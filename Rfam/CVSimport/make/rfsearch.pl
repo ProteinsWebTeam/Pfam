@@ -124,7 +124,7 @@ $bqueue     = "pfam_slow" unless $bqueue;
 
 my $fafile = "FA";
 
-print "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED\n";
+#print "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED\n";
 
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 unless( $nobuild ) {
@@ -141,17 +141,19 @@ chomp $phost;
 
 my @blastdb;
 if( $update ) {      # run over the new.fa.* databases
-    @blastdb = glob( "$blastdbdir/new.fa.*[0-9]" );
+    @blastdb = glob( "$blastdbdir/new.fa.*[0-9].nhr" );
     &update_output( "OUTPUT", "OUTPUT.0" );
 }
 else {               # run over *.fa databases
-    @blastdb = glob( "$blastdbdir/*.fa" );
+    @blastdb = glob( "$blastdbdir/*.fa.nhr" );
 }    
 
 mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
 unless( $blast ) {
     print STDERR "Queuing up blast jobs ...\n";
     foreach my $blastdb ( @blastdb ) {
+	$blastdb =~ s/\.nhr$//g;
+
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	my $fh = new IO::File;
