@@ -11,8 +11,10 @@ foreach my $family (@ARGV){
 #    system ("rqc-seqs $family");
     print STDERR "\nOVERLAP CHECK - ignoring $family\n\n";
     system ("rqc-overlap $family -i $family");
-    print STDERR "FORMAT CHECK\n\n";
+    print STDERR "\nFORMAT CHECK\n\n";
     system ("rqc-format $family");
+    print STDERR "\nSEQUENCE CHECK\n\n";
+    system ("rqc-seqs $family");
 }
 
 
