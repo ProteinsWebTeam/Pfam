@@ -417,7 +417,7 @@ sub update_rfam{
     
        eval {
 	   if (not defined $stat) {
-	       $stat = $dbh->prepare($self->__replace_sql('rfam', 17));
+	       $stat = $dbh->prepare($self->__replace_sql('rfam', 18));
 	   }
 	  
 	 #  print "ADDING DATA \n";
@@ -437,7 +437,8 @@ sub update_rfam{
 			   $rdb_cmbuild,
 			   $rdb_cmcalibrate,
 			   $rdb_num_seed, 
-			   $rdb_num_full
+			   $rdb_num_full,
+	                   ""
 			 );
 	   $rows += $stat->rows;
        };
