@@ -36,8 +36,8 @@ use vars qw( @ISA
 	     $view_maker );
 
 @ISA    = qw( Exporter );
-
 use Rfam::DB::DB_RCS;
+use Rfam::DB::DB_RDB;
 use UpdateRDB;
 
 $root_dir       = "/pfam/db/Rfam";
