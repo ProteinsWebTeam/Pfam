@@ -94,11 +94,19 @@ if( -s "DESC" ) {
 
 $buildopts = "CM SEED" unless $buildopts;
 open( S, "SEED" ) or die;
+my $seenrf;
 while(<S>) {
-    if( /^\#=GC RF/ and $buildopts !~ /--rf/ ) {
-	$buildopts = "--rf $buildopts";
+    if( /^\#=GC RF/ ) {
+	$seenrf = 1;
+	last;
     }
+}
+if( $seenrf and $buildopts !~ /--rf/ ) {
+    $buildopts = "--rf $buildopts";
 }   
+if( !$seenrf and $buildopts =~ /--rf/ ) {
+    $buildopts =~ s/--rf //g;
+}
 
 if( -e "CMSEARCH_JOBS_COMPLETE" ) {
     unlink( "CMSEARCH_JOBS_COMPLETE" ) or die "can't remove file [CMSEARCH_JOBS_COMPLETE]\n";
@@ -199,7 +207,7 @@ while( @seqids ) {
 
     open( FA, "> $$.minidb.$k" ) or die;
     while( @nses ) {
-	my @pfetchids = ( [ splice( @nses, 0, 1000 ) ],   # first round of fetches
+	my @pfetchids = ( [ splice( @nses, 0, 200 ) ],    # first round of fetches
 			  [],                             # end > length failures
 			  [] );                           # version failures
 
@@ -309,7 +317,7 @@ $fh -> print("lsrcp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n");
 $fh -> print("rm -f /tmp/$$.cmerr\n");
 $fh -> close;
 
-&update_desc( $options ) unless( !-e "DESC" );
+&update_desc( $buildopts, $options ) unless( !-e "DESC" );
 
 
 ##############
@@ -404,12 +412,17 @@ sub update_output {
 
 
 sub update_desc {
-    my $options = shift;
+    my $buildopts = shift;
+    my $searchopts = shift;
     open( DNEW, ">DESC.new" ) or die;
     open( DESC, "DESC" ) or die;
     while(<DESC>) {
+	if( /^BM   cmbuild\s+/ ) {
+	    print DNEW "BM   cmbuild $buildopts CM SEED\n";
+	    next;
+	}
 	if( /^BM   cmsearch\s+/ ) {
-	    print DNEW "BM   cmsearch $options CM SEQDB\n";
+	    print DNEW "BM   cmsearch $searchopts CM SEQDB\n";
 	    next;
 	}
 	print DNEW $_;
