@@ -155,6 +155,8 @@ sub order_by_embl_taxonomy {
 sub insert_column {
     my $self = shift;
     my $col  = shift;
+    my $char = shift;
+    $char = '.' if( not $char );
 
     if( $col > $self->length() ) {
 	die "can't insert_column [$col] greater than aln length [".$self->length()."]\n";
@@ -162,19 +164,19 @@ sub insert_column {
 
     foreach my $seq ( $self -> each_seq() ) {
 	my @seq = split( //, $seq->seq() );
-	splice( @seq, $col, 0, '.' );
+	splice( @seq, $col, 0, $char );
 	$seq->seq( join( '', @seq ) );
     }
 
     if( $self->match_states() ) {
 	my @ary = split( //, $self->match_states() );
-	splice( @ary, $col, 0, '.' );
+	splice( @ary, $col, 0, $char );
 	$self->match_states( join( '', @ary ) );
     }
 
     if( my $ss = $self->ss_cons() ) {
 	my @ary = split( //, $ss->getInfernalString() );
-	splice( @ary, $col, 0, '.' );
+	splice( @ary, $col, 0, $char );
 	my $newss = Rfam::SS -> new();
 	$newss->parseInfernalString( join( '', @ary ) );
 	$self->ss_cons( $newss );
