@@ -71,6 +71,7 @@ foreach my $file ( @fafiles ) {
     my $report = new Bio::Tools::BPlite( -fh => \*B );
     {
 	my( $qname, $qlength ) = $report->query =~ /^(.*)\s+\((\d+)\s+letters/;
+	next unless $qlength;           # gonna have trouble if this is the case!
 	$qname =~ s/ /_/g;
 	while( my $sbjct = $report -> nextSbjct ) {
 	    my( $sname, $st, $en ) = $sbjct -> name() =~ /^(\S+)\/(\d+)-(\d+)\s+/;
