@@ -211,6 +211,53 @@
     )
   )
 
+; trim-left needs to change the start-ends if they exist
+(defun trim-left ()
+  "trim the alignment left of cursor position"
+  (interactive)
+  (save-excursion
+    (let ((column (current-column))
+	  end)
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+	(if (or (ralee-is-alignment-line) (ralee-is-markup-line))
+	    (progn
+	      (move-to-column column)
+	      (setq end (point))
+	      (search-backward " ")
+	      (kill-region (1+ (point)) end)
+	      )
+	  )
+	(forward-line)
+	)
+      )
+    )
+  )
+
+
+; trim-right needs to hack the start-ends if they exist
+(defun trim-right ()
+  "trim the alignment left of cursor position"
+  (interactive)
+  (save-excursion
+    (let ((column (current-column))
+	  start)
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+	(if (or (ralee-is-alignment-line) (ralee-is-markup-line))
+	    (progn
+	      (move-to-column column)
+	      (setq start (point))
+	      (end-of-line)
+	      (kill-region start (point))
+	      )
+	  )
+	(forward-line)
+	)
+      )
+    )
+  )
+
 
 
 (provide 'ralee-edit)
