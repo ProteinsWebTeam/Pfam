@@ -1,17 +1,5 @@
 #!/usr/local/bin/perl -w
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $bioperl_dir;
-use lib $rfam_mod_dir;
-
 use strict;
 use Getopt::Long;
 use Rfam;
@@ -47,7 +35,7 @@ foreach my $file ( @Rfam::align_file_set ) {
 
     open( ALNOUT, ">$file.ann" ) or die;
     my $seen;
-    open( REF, "sreformat --mingap stockholm $file.tmp |" ) or die;
+    open( REF, "sreformat --gapsym '.' -r -u --mingap stockholm $file.tmp |" ) or die;
     while( <REF> ) {
 	next if( /^\#=GF AU / );
 	if( /^\#=G/ and not $seen ) {
