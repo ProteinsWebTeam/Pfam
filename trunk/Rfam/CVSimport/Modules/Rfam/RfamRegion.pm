@@ -76,7 +76,7 @@ sub new {
   my %params = @_;
   my $self = $class->SUPER::new(%params);
 
-  my( $acc, $id, $mod_st, $mod_en, $bits,   $length, $rfamseq_id, $auto_rfam);
+  my( $acc, $id, $mod_st, $mod_en, $bits, $length, $rfamseq_id, $auto_rfam);
 
   $acc = ($params{'-RFAM_ACCESSION'}||$params{'-rfam_accession'});
   $id = ($params{'-RFAM_ID'}||$params{'-rfam_id'});
@@ -96,7 +96,6 @@ sub new {
   $self->bits_score( $bits );
   $self->rfamseq_id($rfamseq_id);
   $self->auto_rfam($auto_rfam);
-
 
   return $self;
 }
@@ -119,9 +118,9 @@ sub accession{
    my ($self, $value) = @_;
 
    if (defined $value) {
-       $self->{'PfamReg_acc'} = $value;
+       $self->{'RFAM_ACC'} = $value;
    }
-   return $self->{'PfamReg_acc'};
+   return $self->{'RFAM_ACC'};
 }
 
 
@@ -141,9 +140,9 @@ sub id{
    my ($self, $value) = @_;
 
    if (defined $value) {
-       $self->{'PfamReg_id'} = $value;
+       $self->{'RFAM_ID'} = $value;
    }
-   return $self->{'PfamReg_id'};
+   return $self->{'RFAM_ID'};
 }
 
 
@@ -161,9 +160,9 @@ sub model_from {
    my ($self, $value) = @_;
 
    if (defined $value) {
-       $self->{'PfamReg_model_from'} = $value;
+       $self->{'MODEL_FROM'} = $value;
    }
-   return $self->{'PfamReg_model_from'};
+   return $self->{'MODEL_FROM'};
 }
 
 
@@ -184,9 +183,9 @@ sub model_to {
 
 
    if (defined $value) {
-       $self->{'PfamReg_model_to'} = $value;
+       $self->{'MODEL_TO'} = $value;
    }
-   return $self->{'PfamReg_model_to'};
+   return $self->{'MODEL_TO'};
 }
 
 
@@ -207,9 +206,9 @@ sub bits_score {
    my ($self, $value) = @_;
 
    if (defined $value) {
-       $self->{'PfamReg_bits_score'} = $value;
+       $self->{'BITS'} = $value;
    }
-   return $self->{'PfamReg_bits_score'};
+   return $self->{'BITS'};
 }
 
 
@@ -218,9 +217,9 @@ sub rfamseq_id {
    my ($self, $value) = @_;
 
    if (defined $value) {
-       $self->{'pfamseq_id'} = $value;
+       $self->{'RFAMSEQ_ID'} = $value;
    }
-   return $self->{'pfamseq_id'};
+   return $self->{'RFAMSEQ_ID'};
 }
 
 
@@ -230,9 +229,9 @@ sub auto_rfam {
    my ($self, $value) = @_;
 
    if (defined $value) {
-       $self->{'auto_pfamA'} = $value;
+       $self->{'AUTO_RFAM'} = $value;
    }
-   return $self->{'auto_pfamA'};
+   return $self->{'AUTO_RFAM'};
 }
 
 
