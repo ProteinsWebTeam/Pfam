@@ -42,7 +42,9 @@ sub write_embl {
     print $fh "RX   PUBMED; ", $self->{'PUBMED'}, ".\n";
     print $fh wrap( "RA   ", "RA   ", $self->{'AUTHORS'} ), ";\n";
     print $fh wrap( "RT   ", "RT   ", "\"".$self->{'TITLE'}."\"" ), ";\n";
-    print $fh "RL   ", $self->{'JOURNAL'}, " ", $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'}, "-", $self->{'PAGES'}->{'TO'}, "(", $self->{'YEAR'}, ")", ".\n";
+    print $fh "RL   ", $self->{'JOURNAL'}, " ", $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'};
+    print $fh "-", $self->{'PAGES'}->{'TO'} if( $self->{'PAGES'}->{'TO'} );
+    print $fh "(", $self->{'YEAR'}, ")", ".\n";
 
 }
 
@@ -97,7 +99,7 @@ sub get_ref_by_pubmed {
 	    $self->{ 'AUTHORS' } = $data{ 'AU' };
 	}
 
-	if( $data{ 'SO' } =~ /(.*)\s+(\d{4}).*;(\d+).*:(\d+)-?(\d*)/ ) {
+	if( $data{ 'SO' } =~ /(.*)\s+(\d{4}).*;(\d+).*:(\w*\d+)-?(\d*)/ ) {
 	    $self->{ 'JOURNAL' } = $1;
 	    $self->{ 'YEAR' }    = $2;
 	    $self->{ 'VOLUME' }  = $3;
@@ -108,7 +110,7 @@ sub get_ref_by_pubmed {
 	    my $fromlen = length( $self->{ 'PAGES' }->{ 'FROM' } );
 	    my $tolen   = length( $self->{ 'PAGES' }->{ 'TO' } );
 
-	    if( $fromlen > $tolen ) {  # Stupid numbering better do something!
+	    if( $tolen and $fromlen > $tolen ) {  # Stupid numbering better do something!
 		$self->{ 'PAGES' }->{ 'TO' } = substr( $self->{ 'PAGES' }->{ 'FROM' }, 0, 
 						       $fromlen - $tolen ).$self->{ 'PAGES' }->{ 'TO' };
 	    }
