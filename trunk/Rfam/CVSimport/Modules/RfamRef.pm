@@ -36,11 +36,13 @@ sub write_embl {
     my $fh   = shift;
     my $num  = shift or 1;
 
-    print "RN   [$num]\n";
-    print "RX   PUBMED; ", $self->{'PUBMED'}, "\n";
-    print "RA   ", $self->{'AUTHORS'}, "\n";
-    print "RT   \"", $self->{'TITLE'}, "\"\n";
-    print "RL   ", $self->{'JOURNAL'}, " ", $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'}, "-", $self->{'PAGES'}->{'TO'}, "(", $self->{'YEAR'}, ")", ".\n";
+    $Text::Wrap::columns = 75;
+
+    print $fh "RN   [$num]\n";
+    print $fh "RX   PUBMED; ", $self->{'PUBMED'}, "\n";
+    print $fh wrap( "RA   ", "RA   ", $self->{'AUTHORS'} );
+    print $fh wrap( "RT   ", "RT   ", "\"".$self->{'TITLE'}."\"" );
+    print $fh "RL   ", $self->{'JOURNAL'}, " ", $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'}, "-", $self->{'PAGES'}->{'TO'}, "(", $self->{'YEAR'}, ")", ".\n";
 
 }
 
