@@ -741,7 +741,7 @@ sub _add_markup {
     
     my $txt_sub =  substr($seq, $start, 1);
  #   print "$txt_sub :$sub :: " if ( ($print) && ($sub =~ /[\>|\<]/)  );
-    if ( ($sub eq "<") || ($sub eq "{") ||  ($sub eq "(") ){
+    if ( ($sub eq "<") || ($sub eq "{") ||  ($sub eq "(") ||  ($sub eq "[") ){
   #    $blee_for++;
       $arrows{$start} = "for";
 
@@ -764,7 +764,7 @@ sub _add_markup {
       $for_prev = 1;
       $back_prev = 0;
       
-    }	elsif ( ($sub eq ">") || ($sub eq "}") ||  ($sub eq ")") ){
+    }	elsif ( ($sub eq ">") || ($sub eq "}") ||  ($sub eq ")") ||  ($sub eq "]") ){
    #   $blee_back++;
       $count-- if (!$for_prev);
       $back_storage{$count} = $start;
