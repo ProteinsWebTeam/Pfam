@@ -1,16 +1,4 @@
-#!/usr/local/bin/perl
-
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $rfam_mod_dir;
-use lib $bioperl_dir;
+#!/usr/local/bin/perl -w
 
 use strict;
 use Rfam;
@@ -162,18 +150,18 @@ sub compare_overlap_to_current {
 			( $s1, $e1 ) = ( $start, $stop );
 		    }
 
-		    if( $current_reg->model_from > $current_reg->model_to ) {
-			( $s2, $e2 ) = ( $current_reg->model_to, $current_reg->model_from );
+		    if( $current_reg->from > $current_reg->to ) {
+			( $s2, $e2 ) = ( $current_reg->to, $current_reg->from );
 		    }
 		    else {
-			( $s2, $e2 ) = ( $current_reg->model_from, $current_reg->model_to );
+			( $s2, $e2 ) = ( $current_reg->from, $current_reg->to );
 		    }
 
 		    if( ( $s1 >= $s2 and $e1 <= $e2 ) or 
 		        ( $s1 <= $e2 and $e1 >= $e2 ) or 
 		        ( $s1 <= $s2 and $e1 >= $s2 ) ) {
 			unless( $ignore{$current_reg->accession} ) {
-			    push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),$dir,$start,$stop, $current_reg->accession() , $current_reg->model_from(),$current_reg->model_to()));
+			    push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),$dir,$start,$stop, $current_reg->accession() , $current_reg->from(),$current_reg->to()));
 			    $count ++;
 			}
 		    }
