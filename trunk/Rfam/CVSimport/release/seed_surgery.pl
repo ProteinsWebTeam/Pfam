@@ -50,11 +50,11 @@ my $db = Rfam::default_db();
 
 foreach my $acc ( @list ) {
     my $changed;
-    my $aln = new Bio::Rfam::RfamAlign;
+    my $aln = new Rfam::RfamAlign;
     open( SEED, "$acc/SEED" ) or die;
     $aln -> read_stockholm( \*SEED );
 
-    foreach my $seq ( $aln -> eachSeq() ) {
+    foreach my $seq ( $aln -> each_seq() ) {
 	my $curstr = $seq -> seq();
 	if( $curstr =~ tr/tT/uU/ ) {    # "It's RNA dammit" (SRE)
 	    printf( "%s   %-20s   ", $acc, $seq->id."/".$seq->start."-".$seq->end );
@@ -104,7 +104,7 @@ foreach my $acc ( @list ) {
 	    }
 	    else {
 		printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
-		$aln -> removeSeq( $seq );
+		$aln -> remove_seq( $seq );
 		print "DELETE\tFIXED\n";
 		$changed = 1;
 	    }

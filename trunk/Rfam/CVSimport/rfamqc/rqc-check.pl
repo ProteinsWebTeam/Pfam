@@ -44,7 +44,7 @@ foreach my $acc (@ARGV) {
     # Look at current version
     my $align=$entry->full();
     my @ids;
-    foreach my $seq ($align->eachSeq() ) {
+    foreach my $seq ($align->each_seq() ) {
 	$current_names{ $seq->id() } = 1;
     }
     
@@ -53,7 +53,7 @@ foreach my $acc (@ARGV) {
     open (ALI, "$acc/ALIGN")||die "Can't open file $acc/ALIGN\n";
     $newali->read_stockholm(\*ALI);
     close (ALI);
-    foreach my $seq ($newali->eachSeq() ) {
+    foreach my $seq ($newali->each_seq() ) {
 	$edited_names{ $seq->id() } = 1;
     }
 
@@ -61,7 +61,7 @@ foreach my $acc (@ARGV) {
     open (ALI, "$acc/SEED")||die "Can't open file $acc/SEED\n";
     $newali->read_stockholm(\*ALI);
     close (ALI);
-    foreach my $seq ($newali->eachSeq() ) {
+    foreach my $seq ($newali->each_seq() ) {
 	$edited_seed_names{ $seq->id() } = 1;
     }
 

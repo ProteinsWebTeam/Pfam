@@ -57,14 +57,14 @@ if( $split ) {
     $fh -> close();
     
     # ok - we rely on eachSeq returning seqs in the order they were read!
-    my @seqs = $aln -> eachSeq();
+    my @seqs = $aln -> each_seq();
     my $j = 1;
-    open( BEST, "$$"."_groups_best.txt" ) or die;
+    open( BEST, "$$"."_groups_best.txt" ) or die "can't open $$"."_groups_best.txt";
     while(<BEST>) {
 	if( my ($line) = /^(\S+ )/ ) {
 	    my $new = Rfam::RfamAlign -> new();
 	    foreach my $i ( $line =~ /(\d+)[\,\s]/g ) {
-		$new -> addSeq( $seqs[$i-1] );
+		$new -> add_seq( $seqs[$i-1] );
 	    }
 	    open( O, ">$file.gp$j" ) or die;
 	    $new -> write_stockholm( \*O );
@@ -87,7 +87,7 @@ foreach my $alnfile ( @alnfiles ) {
     open( A, $alnfile ) or die;
     my $aln = new Rfam::RfamAlign;
     $aln -> read_stockholm( \*A );
-    foreach my $seq ( $aln -> eachSeq() ) {
+    foreach my $seq ( $aln -> each_seq() ) {
 	print O "; TYPE              RNA\n";
 	print O "; COL 1             label\n";
 	print O "; COL 2             residue\n";
