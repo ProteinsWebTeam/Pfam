@@ -12,7 +12,28 @@
 	    (progn
 	      (move-to-column column)
 	      (insert ralee-gap-symbol)))
-	(forward-line)))))
+	(forward-line)
+	)
+      )
+    )
+  )
+
+
+(defun ralee-insert-gap ()
+  "Insert a gap residues"
+  (interactive)
+  (insert ralee-gap-symbol)
+  )
+
+
+(defun ralee-delete-gap ()
+  "delete a gap residue"
+  (interactive)
+  (if (or (char-equal (char-after) ?\.)
+	  (char-equal (char-after) ?\-))
+      (delete-char 1)
+    )
+  )
 
 
 (defun ralee-delete-gap-column ()
@@ -44,7 +65,12 @@
 		  (move-to-column column)
 		  (delete-char 1)))
 	    (forward-line)
-	    ))))))
+	    )
+	  )
+	)
+      )
+    )
+  )
 
 (defun ralee-unblock-alignment ()
   "unblock a blocked alignment"
