@@ -34,9 +34,9 @@ use vars qw($AUTOLOAD
 	    @EXPORT_OK ); 
 
 #use strict;
-use Database::RfamRDB;
+use Rfam::RfamRDB;
 
-@ISA = qw(Database::RfamRDB);
+@ISA = qw(Rfam::RfamRDB);
 
 #my $Attributes = ('-db_name' => "-db_name");
 
