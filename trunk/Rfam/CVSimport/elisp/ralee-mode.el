@@ -1,5 +1,8 @@
 ;;; ralee-mode.el --- ralee mode
 
+(require 'ralee-faces)
+(require 'ralee-helpers)
+(require 'ralee-movement)
 
 (defcustom ralee-mode-hook nil
   "Normal hook run when entering ralee mode"
@@ -190,108 +193,6 @@ Returns a list of pairs in order of increasing closing base."
 
 
 
-; complex definition of a face
-; try a simpler one
-(defface ralee-face-a
-  `((((type tty) (class color))
-     (:background "skyblue" :foreground "black"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "skyblue" :foreground "black"))
-    (((class color) (background light))
-     (:background "skyblue" :foreground "black"))
-    (t (:background "gray")))
-  "Highlighting face a"
-  :group 'basic-faces)
-
-(defface ralee-face-b
-  `((((type tty) (class color))
-     (:background "lightgreen" :foreground "black"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "lightgreen" :foreground "black"))
-    (((class color) (background light))
-     (:background "lightgreen" :foreground "black"))
-    (t (:background "gray")))
-  "Highlighting face b"
-  :group 'basic-faces)
-
-(defface ralee-face-c
-  `((((type tty) (class color))
-     (:background "pink" :foreground "black"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "pink" :foreground "black"))
-    (((class color) (background light))
-     (:background "pink" :foreground "black"))
-    (t (:background "gray")))
-  "Highlighting face c"
-  :group 'basic-faces)
-
-(defface ralee-face-d
-  `((((type tty) (class color))
-     (:background "white" :foreground "black"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "white" :foreground "black"))
-    (((class color) (background light))
-     (:background "white" :foreground "black"))
-    (t (:background "gray")))
-  "Highlighting face d"
-  :group 'basic-faces)
-
-(defface ralee-face-e
-  `((((type tty) (class color))
-     (:background "red" :foreground "white"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "red" :foreground "white"))
-    (((class color) (background light))
-     (:background "red" :foreground "white"))
-    (t (:background "gray")))
-  "Highlighting face e"
-  :group 'basic-faces)
-
-(defface ralee-face-f
-  `((((type tty) (class color))
-     (:background "blue" :foreground "white"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "blue" :foreground "white"))
-    (((class color) (background light))
-     (:background "blue" :foreground "white"))
-    (t (:background "gray")))
-  "Highlighting face f"
-  :group 'basic-faces)
-
-(defface ralee-face-g
-  `((((type tty) (class color))
-     (:background "green" :foreground "white"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "green" :foreground "white"))
-    (((class color) (background light))
-     (:background "green" :foreground "white"))
-    (t (:background "gray")))
-  "Highlighting face g"
-  :group 'basic-faces)
-
-
-(setq ralee-faces '(ralee-face-a 
-		    ralee-face-b 
-		    ralee-face-c
-		    ralee-face-d
-		    ralee-face-e
-		    ralee-face-f
-		    ralee-face-g
-		    ))
 
 
 (defun ralee-paint-line-by-pairs (pairs-list)
@@ -479,30 +380,6 @@ Returns a list of pairs in order of increasing closing base."
       (forward-line))))
 
 
-(defun ralee-jump-right ()
-  "move the pointer jump-num characters to the right"
-  (interactive)
-  (forward-char ralee-jump-num))
-
-(defun ralee-jump-left ()
-  "move the pointer jump-num characters to the left"
-  (interactive)
-  (backward-char ralee-jump-num))
-
-(defun ralee-jump-up ()
-  "move the pointer jump-num lines up"
-  (interactive)
-  (let ((column (current-column)))
-    (forward-line (- 0 ralee-jump-num))
-    (move-to-column column)))
-
-(defun ralee-jump-down ()
-  "move the pointer jump-num lines down"
-  (interactive)
-  (let ((column (current-column)))
-    (forward-line ralee-jump-num)
-    (move-to-column column)))
-
 
 (defun ralee-paired-column (column)
   "return the pair of <column>"
@@ -637,6 +514,25 @@ Returns a list of pairs in order of increasing closing base."
   (car kill-ring))
 
 
+(defun ralee-ungap-string (string)
+  "take a seq string as input and return an ungapped version"
+  (interactive)
+  (let (split
+	base
+	out)
+    (setq split (split-string string ""))
+    (while split
+      (setq base (car split))
+      (setq split (cdr split))
+      (if (string-match "[A-Za-z]" base)
+	  (setq out (concat out base))
+	)
+      )
+    out
+    )
+  )
+  
+
 (defun ralee-unblock-alignment ()
   "unblock a blocked alignment"
   (interactive)
@@ -678,6 +574,3 @@ Returns a list of pairs in order of increasing closing base."
     )
   )
 
-
-
-(call-process "RNAfold" nil t t "< /nfs/team71/pfam/sgj/tmp/temp.seq")
