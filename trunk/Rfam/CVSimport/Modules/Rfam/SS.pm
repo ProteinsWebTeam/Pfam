@@ -199,23 +199,33 @@ sub column_colourmap {
     my $nest = 0;
     my %colmap;
 
+    $self -> _rebuild_map();  # just make sure
+
     foreach my $pair ( sort { $a->[1] <=> $b->[1] } $self->eachPair() ) {
+
+	# catch things like ...
+	# <<..>>..<<..>>
+	#          *
 	if( $pair->left > $lastclose ) {
 	    $colour++;
-	    $nest = $lastopen;
 	}
-	if( $pair->left < $nest ) {
-	    $colour++;
-	    $nest = 0;
+
+	# catch things like ...
+	# <<..<<..>>..<<..>>>>
+	#                   *
+	foreach my $donepair ( grep{ ( $_->left < $self->pairedBase($lastclose) ) and 
+				      ( $_->left > $pair->left ) } $self->eachPair() ) {
+	    if( exists $colmap{ $donepair->left } and $colmap{ $donepair->left } != $colour ) {
+		$colour++;
+		last;
+	    }
 	}
 
 	$colmap{ $pair->left }  = $colour;
 	$colmap{ $pair->right } = $colour;
 
-	$lastopen  = $pair->left();
 	$lastclose = $pair->right();
     }
-
     return \%colmap;
 }
 
