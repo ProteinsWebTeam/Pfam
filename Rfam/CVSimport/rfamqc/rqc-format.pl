@@ -126,7 +126,8 @@ sub desc_is_OK {
             };
             /^RT/ && do { last; };
             /^RL/ && do { 
-                if( !/^RL   .*\d+;\d+:(\d+)(?:-(\d+))?\.$/ and ! /^RL   .*\d+;\d+:RESEARCH.*$/) {
+                if( !/^RL   .*\d{4};\d+:(\w*\d+)(?:-(\d+))?\.$/ ) {
+
                     warn "$family: Bad reference line [$_]\nFormat is:    Journal abbreviation year;volume:page-page.\n
 ";
                     $error = 1;
