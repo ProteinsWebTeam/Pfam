@@ -256,24 +256,24 @@ sub final_genomic_species_data {
     my $auto_rfamseq = $stat->fetchrow;
     $stat->finish();
 
-    my $auto_sql = "select auto_rfam from rfam where rfam_acc = '$rfam_acc'";
+    $auto_sql = "select auto_rfam from rfam where rfam_acc = '$rfam_acc'";
     $stat = $dbh->prepare($auto_sql);
     $stat->execute();
     my $auto_rfam = $stat->fetchrow;
     $stat->finish();
 
-  
- my $sql = "select auto_rfamseq, auto_rfam from rfam_reg_full where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
+    
+    my $sql = "select auto_rfamseq, auto_rfam from rfam_reg_full where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
     $stat = $dbh->prepare($sql);
-   $stat->execute();
+    $stat->execute();
     my ($tmp_auto_rfamseq, $tmp_auto_rfam) = $stat->fetchrow;
     $stat->finish();
-
-  #  print "FAILED: $rfamseq_acc $rfam_acc, $seq_start, $seq_end \n" if (!$tmp_auto_rfamseq);
-
-    my $sql = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
-    $stat = $dbh->prepare($sql);
-   $stat->execute();
+    
+    #  print "FAILED: $rfamseq_acc $rfam_acc, $seq_start, $seq_end \n" if (!$tmp_auto_rfamseq);
+    
+    my $sql_update = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
+    $stat = $dbh->prepare($sql_update);
+    $stat->execute();
     
     
   }
