@@ -578,6 +578,7 @@ sub get_short_info_on_family {
     my($line, $lasttouched, $lastauthor);
 
     my ($islocked, $locker) = &check_family_isnot_locked( $family ); 
+    my $id = &Rfam::acc2id( $family );
 
     if( !open(INFO,"rlog -b $rcs_master_dir/$family/DESC |") ) {
 	print("RCS: can't get any info on family [$family]\n");
@@ -598,9 +599,9 @@ sub get_short_info_on_family {
     close(INFO);
 
     if( $islocked == 1 ) {
-	print $fileout sprintf("[%-15s] Revision $lasttouched [%-10s] Locked [$locker]\n",$family,$lastauthor);
+	print $fileout sprintf("[%-7s] [%-15s] Revision $lasttouched [%-10s] Locked [$locker]\n",$family,$id,$lastauthor);
     } else {
-	print $fileout sprintf("[%-15s] Revision $lasttouched [%-10s]\n",$family,$lastauthor);
+	print $fileout sprintf("[%-7s] [%-15s] Revision $lasttouched [%-10s]\n",$family,$id,$lastauthor);
     }
 
 }
