@@ -66,8 +66,25 @@ else {
 my $res = $allres -> remove_overlaps();
 
 if( $list ) {
+    my $chunksize = 1000;
+    my $desclength = 50;
+    my %desc;
+    my @allnames = map{ $_->seqname } $res->eachHMMUnit();
+    while( scalar @allnames ) {
+	my $string = join( " ", splice( @allnames, 0, $chunksize ) );
+	open( P, "pfetch -D $string |" ) or die;
+	while( <P> ) {
+	    if( /^\S+\s+(\S+)\.\d+\s+(.{1,$desclength})/ ) {
+		$desc{$1} = $2;
+	    }
+	}
+	close P or die "can't close pfetch pipe";
+    }
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
-	printf( "%-15s%8d%8d%8d%8d%10s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
+	if( not exists $desc{$unit->seqname} ) {
+	    $desc{$unit->seqname} = "no description available";
+	}
+	printf( "%-12s%-".$desclength."s%10d%8d%6d%6d%9s\n", $unit->seqname, $desc{$unit->seqname}, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
     }
     exit(0);
 }
