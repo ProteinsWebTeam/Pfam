@@ -148,9 +148,7 @@ sub allocate_new_accession {
     my $db = Rfam::default_db();
     if( my $name = $db->_get_lock() ) {
         # locks the SDMB file
-        print STDERR "Unable to get the lock for the SDBM_file - $name has it\n"
-;
-        return undef;
+        die "Unable to get the lock for the SDBM_file - $name has it\n";
     }
 
     open(ACCLOG,"$acclog_file") || die "Could not open $acclog_file ($!) A v. bad error";
@@ -439,29 +437,10 @@ sub get_locked_families {
 
 
 sub get_all_family_names {
-    my (@names);
 
-    if( !opendir(_RFAM_INTERNAL_DIR,$Rfam::rcs_master_dir) ) {
-	print("RCS: A real bad problem, can't see root at $Rfam::rcs_master_dir\n");
-	return @names;
-    }
+    warn "RfamRCS::get_all_family_names() is deprecated.  Use Rfam::DB modules instead.\n";
+    return undef;
 
-    my @files = readdir _RFAM_INTERNAL_DIR;
-
-    closedir(_RFAM_INTERNAL_DIR);
-
-    foreach my $file (@files) {
-	if( $file =~ /^\.$/ || $file =~ /^\.\.$/ ) { next; }
-	if( !(-d "$Rfam::rcs_master_dir/$file") ) {
-	    print("RCS: I don't like this, a non directory file [$file] in the RCS_MASTER. Yuk!\n");
-	}
-	else {
-	    push(@names,$file);
-	}
-
-    }
-
-    return @names;
 }
 
 
