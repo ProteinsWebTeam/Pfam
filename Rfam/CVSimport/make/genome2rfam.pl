@@ -17,6 +17,7 @@ use lib $pfam_mod_dir;
 use lib $bioperl_dir;
 use strict;
 use Getopt::Long;
+use IO::File;
 
 use Rfam;
 use Rfam::RfamAlign;
@@ -138,76 +139,47 @@ foreach my $add ( @add ) {
 my %search;
 my $ignore;
 open( E, $file ) or die "can't find your file [$file]\n";
-if( $agp ) {  # agp things don't work properly at the moment
-    while(<E>) {
-	if( /^\S+\s+\d+\s+\d+\s+\d+\s+\S+\s+(\S+)\.(\d+)\s+(\d+)\s+(\d+)/ ) {
-	    my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
-	    if( not exists $rfamseq{$id} ) {
-		if( $search ) {
-		    $search{ "$id\.$ver/$st-$en" } = 1;
-		}
-		else {
-		    print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
-		}
-		next;
-	    }
-	    
-	    if( $ver != $rfamseq{$id} ) {
-		my $str1 = `pfetch -a -q $id\.$ver:$st-$en`;
-		my $str2 = `pfetch -a -q $id\.$rfamseq{$id}:$st-$en`;
-		if( $str1 ne $str2 ) {
-		    if( $search ) {
-			$search{ "$id\.$ver/$st-$en" } = 1;
-		    }
-		    else {
-			print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
-		    }
-		    next;
-		}
-	    }
-	    
-	    if( not $search ) {
-		print_hits( $id, $st, $en );
-	    }
-	}
-    }
-    print "\/\/\n" unless $search;
+my $seqs;
+if( $agp ) {
+    $seqs = read_agp( \*E );
 }
 elsif( $con ) {
-    while(<E>) {
-	if( /^AC\s+(\S+)\;/ ) {
-	    print $_ unless $search;
-	}
-	if( /^DE/ or /^OC/ or /^OS/ ) {
-	    print $_ unless $search;
-	}
-	if( /^\/\// ) {
-	    print $_ unless $search;
-	}
-	if( my( $stuff ) = /^CO\s+(.*)/ ) {
-	    while( $stuff =~ /([A-Z0-9]+)\.(\d+)\:(\d+)\.\.(\d+)/g ) {
-		my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
-		if( not exists $rfamseq{$id} ) {
-		    print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
-		    $search{ "$id\.$ver/$st-$en" } = 1 if $search;
-		    next;
-		}
+    $seqs = read_cons( \*E );
+}
 
-		if( $ver != $rfamseq{$id} ) {
-		    my( $st2, $en2 ) = &mapseq( $id, $ver, $st, $en );
-		    if( not $en2 ) {
-			print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
-			$search{ "$id\.$ver/$st-$en" } = 1 if $search;
-			next;
-		    }
-		    ( $st, $en ) = ( $st2, $en2 );
-		}
+foreach my $ctg ( keys %{$seqs} ) {
+    if( not $search ) {
+	print "AC   $ctg;\n";
+	print "DE   ", $seqs->{$ctg}->{'DE'}, "\n" if( $seqs->{$ctg}->{'DE'} );
+	print "OS   ", $seqs->{$ctg}->{'OS'}, "\n" if( $seqs->{$ctg}->{'OS'} );
+	print "OC   ", $seqs->{$ctg}->{'OC'}, "\n" if( $seqs->{$ctg}->{'OC'} );
+    }
 
-		if( not $search ) {
-		    print_hits( $id, $st, $en );
-		}
+    foreach my $seq ( @{ $seqs->{$ctg}->{'list'} } ) {
+	my( $id, $ver, $st, $en ) = ( $seq->{'id'}, $seq->{'ver'}, $seq->{'start'}, $seq->{'end'} );
+
+	if( not exists $rfamseq{$id} ) {
+	    print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
+	    $search{ "$id\.$ver/$st-$en" } = 1 if $search;
+	    next;
+	}
+
+	if( $ver != $rfamseq{$id} ) {
+	    my( $st2, $en2 ) = &mapseq( $id, $ver, $st, $en );
+	    if( not $en2 ) {
+		print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
+		$search{ "$id\.$ver/$st-$en" } = 1 if $search;
+		next;
 	    }
+	    ( $st, $en ) = ( $st2, $en2 );
 	}
+
+	if( not $search ) {
+	    print_hits( $id, $st, $en );
+	}
+    }
+    if( not $search ) {
+	print "\/\/\n";
     }
 }
 
@@ -254,7 +226,25 @@ sub print_hits {
 
 sub mapseq {
     my( $id, $ver, $st, $en ) = @_;
-    system "pfetch -a $id\.$ver:$st-$en -n $id\.$ver/$st-$en > $$.sub.fa" and die;
+    my $fh = IO::File -> new();
+
+  FETCH: open( O, ">$$.sub.fa" ) or die;
+#    print STDERR "end $en\n";
+    $fh -> open( "pfetch -a $id\.$ver:$st-$en -n $id\.$ver/$st-$en|" ) or die;
+    while(<$fh>) {
+	if( /end is greater than sequence length.*?(\d+)/ ) {
+	    $en = $1;
+#	    print O $_;
+	    redo FETCH;
+	}
+	elsif( /no match/ ) {
+#	    print O $_;
+	    return 0;
+	}
+	else {
+	    print O $_;
+	}
+    }
     system "pfetch -a $id\.$rfamseq{$id} -n $id\.$rfamseq{$id} > $$.whole.fa" and die;
 			
     system "formatdb -i $$.whole.fa -p F" and die;
@@ -281,4 +271,42 @@ sub mapseq {
 	print STDERR "mapping $id\.$ver/$st-$en to $id\.$rfamseq{$id}/", $best->hit->start, "-", $best->hit->end, "\n";
 	return( $st, $en );
     }
+}
+
+sub read_agp {
+    my $fh = shift;
+    my %seqs;
+    while(<$fh>) {
+	if( /^\S+\s+\d+\s+\d+\s+\d+\s+\S+\s+(\S+)\.(\d+)\s+(\d+)\s+(\d+)/ ) {
+	    my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
+	    push( @{ $seqs{'UNKNOWN'}->{'list'} }, { 'id'      => $id,
+						     'ver'     => $ver,
+						     'start'   => $st,
+						     'end'     => $en } );
+	}
+    }
+    return \%seqs;
+}
+
+sub read_cons {
+    my $fh = shift;
+    my( %seqs, $acc );
+    while(<$fh>) {
+	if( /^AC\s+(\S+)\;/ ) {
+	    $acc = $1;
+	}
+	if( /^(DE)\s+(.*)/ or /^(OC)\s+(.*)/ or /^(OS)\s+(.*)/ ) {
+	    $seqs{$acc}->{$1} .= "$2 ";
+	}
+	if( my( $stuff ) = /^CO\s+(.*)/ ) {
+	    while( $stuff =~ /([A-Z0-9]+)\.(\d+)\:(\d+)\.\.(\d+)/g ) {
+		my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
+		push( @{ $seqs{$acc}->{'list'} }, { 'id'      => $id,
+						    'ver'     => $ver,
+						    'start'   => $st,
+						    'end'     => $en } );
+	    }
+	}
+    }
+    return \%seqs;
 }
