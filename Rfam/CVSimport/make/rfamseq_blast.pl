@@ -211,7 +211,7 @@ sub get_seq {
     }
     my $truncseq = $seq -> trunc( $start, $end );
     if( $strand < 0 ) {
-	$truncseq -> revcom();
+	$truncseq = $truncseq -> revcom();
 	$truncseq -> id( "$id/$end-$start" );
     }
     else {
