@@ -97,12 +97,13 @@ while(<S>) {
 }   
 
 # defaults
-my $blastdbdir = $Rfam::rfamseq_current_dir;
+my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
+my $blastdbdir2 = "/data/blastdb/Rfam/Large";  # but run things from here
 $blast_eval = 10  unless $blast_eval;
 $window     = 100 unless $window;
 $cpus       = 20  unless $cpus;
 $queue      = "pfam_slow -Rlinux" unless $queue;
-$bqueue     = "pfam_slow -Rlinux" unless $bqueue;
+$bqueue     = "pfam_slow -R 'select[largedata]'" unless $bqueue;
 my $fafile = "FA";
 
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
@@ -135,7 +136,7 @@ unless( $blast ) {
 	my $fh = new IO::File;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
 	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
-	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
+	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l $fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
 	$fh -> print("rm -f /tmp/$$.blastlist.$i\n");
 	$fh -> close;
@@ -185,39 +186,70 @@ while( @seqids ) {
 
     open( FA, "> $$.minidb.$k" ) or die;
     while( @nses ) {
-	my $str = join( ' ', splice( @nses, 0, 1000 ) );
-	while( $str ) {  # while we have a query to run
-	    my @tmpnses = split( ' ', $str ); 
-	    my $i = 0;
+	my @pfetchids = ( [ splice( @nses, 0, 1000 ) ],   # first round of fetches
+			  [],                             # end > length failures
+			  [] );                           # version failures
+
+	my $seen_count = 0;
+
+	for( my $p=0; $p<@pfetchids; $p++ ) {
+	    my $listref = $pfetchids[$p];
+	    next unless( @{$listref} );
+
+	    my $options = "";
+	    if( $p == (@pfetchids-1) ) {
+		# we're retreiving the version failures
+		$options .= "-a";
+	    }
+
+	    my $str = join( ' ', @{$listref} );
 	    my $fh = IO::File->new();
-	    $fh -> open( "pfetch -a $str |" );
-	    $str = "";   # reset ready to fill will those that fail
-	    my $nse;
+	    $fh -> open( "pfetch $options $str |" );
+#	    print "pfetch $options $str\n";
+
+	    my $i = 0;
+	    my( $endmismatch );
+
 	    while(<$fh>) {
-		if( /^\>(\S+)\s+(\S+)/ ) {
-		    my $pfetchid = $2;
-#		    print T "$i $2 ";
-		    $nse = $tmpnses[$i];
-		    $nse =~ tr/:/\//;
-		    my( $tmpid, $tmpse ) = $nse =~ /(\S+\.\d+)\/(\d+-\d+)/;
-		    if( $pfetchid ne $tmpid ) {  # catch stupid problems
-			die "\npfetch id problem: $tmpid mismatch $pfetchid\nReport this!\n";
+#		print;
+		if( my( $pfetchid ) = /^\>\S+\s+(\S+)/ ) {
+		    my $nse = $listref->[$i];
+		    $nse =~ s/:/\//g;
+		    my( $tmpid ) = $nse =~ /(\S+\.\d+)\/\d+-\d+/;
+		    if( $pfetchid ne $tmpid ) {
+			# catch stupid problems
+			die "\nFATAL: pfetch id problem - [$nse] mismatch [$pfetchid]\nReport this!\n";
 		    }
-		    print FA ">$tmpid/$tmpse\n";
-#		    print T "$tmpid $tmpse\n";
+		    print FA ">$nse\n";
 		    $i ++;
+		    $seen_count ++;
+		    $endmismatch = 0;
 		}
 		elsif( my( $end ) = /end is greater than sequence length.*?(\d+)/ ) {
-		    $nse = $tmpnses[$i];
-#		    print T "$nse $_";
+		    my $nse = $listref->[$i];
+		    if( $p == 1 ) {
+			# this has failed before, something wrong
+			die "\nFATAL: failed to pfetch [$nse]\n";
+		    }
 		    my( $tmp ) = $nse =~ /(\S+\.\d+\:\d+-)\d+/;
-		    $str .= "$tmp$end ";
-		    $i++
+		    push( @{$pfetchids[1]}, "$tmp$end" );
+		    $i++;
+		    $endmismatch = 1;
 		}
 		elsif( /no match/ ) {
-		    $nse = $tmpnses[$i];
-		    warn "$nse not found in database - this is bad and needs following up\n";
-		    $i++;
+		    if( $endmismatch ) {
+			# we've already dealt with this sequence
+			$endmismatch = 0;
+		    }
+		    else {
+			my $nse = $listref->[$i];
+			if( $p == 2 ) {
+			    # this has failed before, something wrong
+			    die "\nFATAL: failed to pfetch [$nse]\n";
+			}
+			push( @{$pfetchids[2]}, $listref->[$i] );
+			$i++;
+		    }
 		}
 		else {
 		    print FA "$_";
@@ -225,6 +257,12 @@ while( @seqids ) {
 	    }
 	    $fh -> close;
 	}
+
+#	print "$seen_count\n";
+#	if( $seen_count != @{$pfetchids[0]} ) {
+#	    die "FATAL: failed to pfetch some sequences\n";
+#	}
+
     }
     close FA;
 }
@@ -281,9 +319,13 @@ sub parse_list {
 		}
 	    }
 
-	    unless( $already ) {
+	    if( $already ) {
+		print "SKIP\n";
+	    }
+	    else {
 		push( @{ $list->{$name} }, { 'start' => $start,
 					     'end'   => $end } );
+		print "KEEP\n";
 	    }
 	}
     }
