@@ -5,7 +5,7 @@
   (interactive)
   (write-region (ralee-ungap-string (ralee-get-seq-string)) nil "/tmp/tmp.seq")
   (call-process "RNAfold" "/tmp/tmp.seq")
-  (start-process "gv" (buffer-name) "gv" "rna.ps")
+  (start-process "gv" "*messages*" "gv" "rna.ps")
   )
 
 
