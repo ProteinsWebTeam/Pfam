@@ -30,6 +30,7 @@ correctly with secondary structure markup etc from stockholm format.
 package Rfam::RfamAlign;
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
+use IO::File;
 
 use Bio::SimpleAlign;
 use Rfam::SS;
@@ -115,6 +116,39 @@ sub allgaps_columns_removed {
     return @sortedgappositions;
 }
 
+
+sub order_by_embl_taxonomy {
+    my $self = shift;
+    my $newaln = Rfam::RfamAlign->new();
+
+    my %tax;
+    foreach my $seq ( $self->each_seq ) {
+	my $id = $seq->id;
+	my $ocstring;
+	my $fh = IO::File->new;
+	$fh -> open( "pfetch -F $id|" );
+	while(<$fh>) {
+	    if( /^OC\s+(.*)/ ) {
+		$ocstring .= $1;		
+	    }
+	    last if( /^FH/ );
+	}
+	$fh -> close;
+	if( not $ocstring ) {
+	    die "can't get taxonomy from pfetch -F $id";
+	}
+	$tax{ $seq->id."/".$seq->start."-".$seq->end } = { 'seq' => $seq,
+							   'oc'  => $ocstring };
+    }
+    foreach my $seq ( sort { $tax{$a}->{'oc'} cmp $tax{$b}->{'oc'} } keys %tax ) {
+	$newaln->add_seq( $tax{$seq}->{'seq'} );
+    }
+
+    $newaln->ss_cons( $self->ss_cons );
+    $newaln->match_states( $self->match_states );
+
+    return $newaln;
+}
 
 
 sub trimmed_alignment {
