@@ -19,6 +19,7 @@
   (define-key ralee-mode-map "\C-c\C-k" 'ralee-paint-line-by-base)
   (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-base)
   (define-key ralee-mode-map "\C-p" 'ralee-jump-to-pair)
+  (define-key ralee-mode-map "\C-[" 'ralee-jump-to-pair-in-other-window)
   (define-key ralee-mode-map "\C-f" 'ralee-jump-right)
   (define-key ralee-mode-map "\C-b" 'ralee-jump-left))
 
@@ -97,77 +98,63 @@ Turning on ralee-mode runs the hook `ralee-mode-hook'."
   )
 
 
-(defun ralee-parse-ss (structure-string)
+(defun ralee-get-base-pairs ()
   "Parse the secondary structure markup.
-Returns a list of pairs in order of increasing closing base.
-This order is important for calculating helix boundaries."
-  (let ((stack ())
-	(i 0)
-	(pairs ())
-	structure
-	)
-
-    (setq structure (split-string structure-string ""))
-    (while structure
-      (setq i (1+ i))
-      (if (equal (car structure) "<")
-	  (setq stack (cons i stack))
-	)
-      (if (equal (car structure) ">")
-	  (progn
-;	    (if pairs
-		(setq pairs (cons (cons (car stack) i) pairs))
-;	      (setq pairs (cons (car stack) i))
-;	      )
-	    (setq stack (cdr stack))
-	    )
-	)
-      (setq structure (cdr structure))
-      )
-    pairs
-    )
-  )
-
-(defun ralee-get-ss ()
-  "get the structure from the current buffer"
+Returns a list of pairs in order of increasing closing base."
   (save-excursion
-    (beginning-of-buffer)
-    (search-forward "#=GC SS_cons")
-    (copy-region-as-kill (line-beginning-position) (line-end-position))
+    (let ((stack ())
+	  (pairs ())
+	  base
+	  )
+      (beginning-of-buffer)
+      (search-forward "#=GC SS_cons")
+      (search-forward " ")
+
+      (while (< (point) (line-end-position))
+	(copy-region-as-kill (point) (1+ (point)))
+	(setq base (car kill-ring))
+	(if (equal base "<")
+	    (setq stack (cons (current-column) stack))
+	  )
+	(if (equal base ">")
+	    (progn
+	      (setq pairs (cons (cons (car stack) (current-column)) pairs))
+	      (setq stack (cdr stack)))
+	  )
+	(forward-char)
+	)
+      pairs
+      )
     )
-  (car kill-ring)
   )
+
+;(defun ralee-get-ss ()
+;  "get the structure from the current buffer"
+;  (save-excursion
+;    (beginning-of-buffer)
+;    (search-forward "#=GC SS_cons")
+;    (copy-region-as-kill (line-beginning-position) (line-end-position))
+;    )
+;  (car kill-ring)
+;  )
 
 
 ; complex definition of a face
 ; try a simpler one
 (defface ralee-face-a
   `((((type tty) (class color))
-     (:background "yellow" :foreground "black"))
+     (:background "skyblue" :foreground "black"))
     (((type tty) (class mono))
      (:inverse-video t))
     (((class color) (background dark))
-     (:background "yellow" :foreground "black"))
+     (:background "skyblue" :foreground "black"))
     (((class color) (background light))
-     (:background "black"))
+     (:background "darkblue"))
     (t (:background "gray")))
   "Highlighting face a"
   :group 'basic-faces)
 
 (defface ralee-face-b
-  `((((type tty) (class color))
-     (:background "white" :foreground "black"))
-    (((type tty) (class mono))
-     (:inverse-video t))
-    (((class color) (background dark))
-     (:background "white" :foreground "black"))
-    (((class color) (background light))
-     (:background "darkblue"))
-    (t (:background "gray")))
-  "Highlighting face b"
-  :group 'basic-faces)
-
-(defface ralee-face-c
   `((((type tty) (class color))
      (:background "lightgreen" :foreground "black"))
     (((type tty) (class mono))
@@ -177,10 +164,10 @@ This order is important for calculating helix boundaries."
     (((class color) (background light))
      (:background "darkgreen"))
     (t (:background "gray")))
-  "Highlighting face c"
+  "Highlighting face b"
   :group 'basic-faces)
 
-(defface ralee-face-d
+(defface ralee-face-c
   `((((type tty) (class color))
      (:background "pink" :foreground "black"))
     (((type tty) (class mono))
@@ -190,10 +177,10 @@ This order is important for calculating helix boundaries."
     (((class color) (background light))
      (:background "red"))
     (t (:background "gray")))
-  "Highlighting face d"
+  "Highlighting face c"
   :group 'basic-faces)
 
-(defface ralee-face-e
+(defface ralee-face-d
   `((((type tty) (class color))
      (:background "white" :foreground "black"))
     (((type tty) (class mono))
@@ -203,10 +190,10 @@ This order is important for calculating helix boundaries."
     (((class color) (background light))
      (:background "gray"))
     (t (:background "gray")))
-  "Highlighting face e"
+  "Highlighting face d"
   :group 'basic-faces)
 
-(defface ralee-face-f
+(defface ralee-face-e
   `((((type tty) (class color))
      (:background "red" :foreground "white"))
     (((type tty) (class mono))
@@ -215,6 +202,19 @@ This order is important for calculating helix boundaries."
      (:background "red" :foreground "white"))
     (((class color) (background light))
      (:background "red"))
+    (t (:background "gray")))
+  "Highlighting face e"
+  :group 'basic-faces)
+
+(defface ralee-face-f
+  `((((type tty) (class color))
+     (:background "blue" :foreground "white"))
+    (((type tty) (class mono))
+     (:inverse-video t))
+    (((class color) (background dark))
+     (:background "blue" :foreground "white"))
+    (((class color) (background light))
+     (:background "black"))
     (t (:background "gray")))
   "Highlighting face f"
   :group 'basic-faces)
@@ -241,12 +241,15 @@ This order is important for calculating helix boundaries."
     (while pairs-list
       (setq pair (car pairs-list))
       (setq pairs-list (cdr pairs-list))
-      (setq open (+ beg (car pair)))
-      (setq close (+ beg (cdr pair)))
 
-      (copy-region-as-kill (- open 1) open)
+      (move-to-column (car pair))
+      (setq open (point))
+      (copy-region-as-kill (point) (1+ (point)))
       (setq openbase (car kill-ring))
-      (copy-region-as-kill (- close 1) close)
+
+      (move-to-column (cdr pair))
+      (setq close (point))
+      (copy-region-as-kill (point) (1+ (point)))
       (setq closebase (car kill-ring))
 
       ; remainder operator guarantees that we'll get a colour
@@ -269,8 +272,8 @@ This order is important for calculating helix boundaries."
 	   )
 
 	  (progn
-	    (put-text-property (- open 1) open 'face (nth face-num ralee-faces))
-	    (put-text-property (- close 1) close 'face (nth face-num ralee-faces))
+	    (put-text-property open (1+ open) 'face (nth face-num ralee-faces))
+	    (put-text-property close (1+ close) 'face (nth face-num ralee-faces))
 	    )
 	)
       )
@@ -334,50 +337,116 @@ This order is important for calculating helix boundaries."
   "get the structure, and then paint the current line"
   (interactive)
   (save-excursion
-    (setq structure (ralee-get-ss))
-    (setq pairs (ralee-parse-ss structure))
-    (ralee-paint-line-by-pairs pairs)
-    )
-  )
+    (setq pairs (ralee-get-base-pairs))
+    (ralee-paint-line-by-pairs pairs)))
 
 (defun ralee-paint-buffer-by-ss ()
   "get the structure, and then paint the whole buffer"
   (interactive)
   (save-excursion
-    (setq structure (ralee-get-ss))
-    (setq pairs (ralee-parse-ss structure))
+    (setq pairs (ralee-get-base-pairs))
     (beginning-of-buffer)
     (ralee-paint-line-by-pairs pairs) ; make sure we do the first line aswell
     (while (search-forward "\n")
-      (ralee-paint-line-by-pairs pairs)
-      )
-    )
-  )
-
+      (ralee-paint-line-by-pairs pairs))))
 
 
 (defun ralee-jump-right ()
   "move the pointer jump-num characters to the right"
   (interactive)
-  (forward-char ralee-jump-num)
-  )
+  (forward-char ralee-jump-num))
 
 (defun ralee-jump-left ()
   "move the pointer jump-num characters to the left"
   (interactive)
-  (backward-char ralee-jump-num)
-  )
+  (backward-char ralee-jump-num))
+
+
+(defun ralee-paired-column (column)
+  "return the pair of <column>"
+  (interactive)
+  (let (pair-column
+	pairs
+	pair)
+    (setq pairs (ralee-get-base-pairs))
+    (setq pair (assoc column pairs))
+    (if pair
+	(setq paired-column (cdr pair))
+      (progn
+	(setq pair (rassoc column pairs))
+	(if pair
+	    (setq paired-column (car pair)))))
+    
+    (if paired-column
+	paired-column
+      nil)))
 
 
 (defun ralee-jump-to-pair ()
   "jump to the pairing base"
   (interactive)
-  (setq structure (ralee-get-ss))
-  (setq pairs (ralee-parse-ss structure))
-  (setq pair (assoc (1- (current-column)) pairs))
-  (if (equal (car pair) (1- (current-column)))
-      (setq paired-column (cdr pair))
-    (setq paired-column (car pair)))
-  (if paired-column
-      (move-to-column paired-column))
+  (let (paired-column)
+    (setq paired-column (ralee-paired-column (current-column)))
+    (if paired-column
+	(progn
+	  (message "column %s pairs with column %s" (current-column) paired-column)
+	  (move-to-column paired-column))
+      (message "No pair!"))))
+
+
+
+(defun ralee-jump-to-pair-in-other-window ()
+  "jump the cursor to the pairing base in other window
+- make the other window if necessary"
+  (interactive)
+  (let (paired-column
+	line)
+    (setq line (current-line))
+    (setq paired-column (ralee-paired-column (current-column)))
+    (if paired-column
+	(progn
+	  (if (one-window-p)
+	      (split-window))  ; make another window if there isn't already one
+	  (message "column %s pairs with column %s" (current-column) paired-column)
+	  (select-window (next-window))
+	  (goto-line line)
+	  (move-to-column paired-column)
+	  (recenter))
+      (message "No pair!"))))
+
+
+(defun current-line ()  ; surely this should be a default method?
+  "Return the vertical position of point..."
+  (count-lines (point-min) (point)))
+
+
+(defun ralee-insert-column ()
+  "Insert a column of gap residues"
+  (interactive)
+  (save-excursion
+    (let (column)
+      (setq column (current-column))
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+	(move-to-column column)
+	(insert ".")
+	(forward-line)))))
+
+
+(defun ralee-is-alignment-line ()
+  "Check if the current line is part of the alignment itself"
   )
+
+
+; IDEAS
+;
+;   - calculating the pairs list is slow
+;          cache it and only recalculate if the buffer has been editted
+
+;(setq list (x-defined-colors))
+;(while list
+;  (setq c (car list))
+;  (setq list (cdr list))
+;  (insert c)
+;  (insert "\n")
+;  )snow
