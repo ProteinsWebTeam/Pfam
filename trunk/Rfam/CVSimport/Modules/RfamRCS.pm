@@ -1117,6 +1117,49 @@ sub user_has_locked_family {
 }
 
 
+sub view_file_errors {
+    my $family = shift;
+    my $error;
+    foreach my $viewfile ( @view_file_set ) {
+        if( not -s "$current_dir/$family/$viewfile" ) {
+            warn "$family: $viewfile empty\n";
+            $error ++;
+            next;
+        }
+        foreach my $famfile ( @rcs_file_set ) {
+            if( -M "$current_dir/$family/$viewfile" > -M "$current_dir/$family/$famfile" ) {
+                warn "$family: $viewfile is older than $famfile\n";
+                $error ++;
+            }
+        }
+    }
+    return $error;
+}
+
+
+sub make_align_release_file {
+    my $type = shift;
+    my $path = shift;
+    my( $annfile, $filename );
+    if( $type eq "SEED" ) {
+        $annfile  = "SEED.ann";
+        $filename = "Rfam.seed";
+    }
+    elsif( $type eq "FULL" ) {
+        $annfile  = "ALIGN.ann";
+        $filename = "Rfam.full";
+    }
+    else {
+        die "RfamRCS: don't understand the type of file you want";
+    }
+
+    foreach my $acc ( &Rfam::get_allaccs() ) {
+        system "cat $current_dir/$acc/$annfile >> $path/$filename" and die "RfamRCS: failed to read $current_dir/$acc/$annfile";
+    }
+    return 0;
+}
+
+
 #
 # tell require things that we are ok
 #
