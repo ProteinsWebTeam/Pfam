@@ -73,6 +73,7 @@ foreach my $temp_file ( readdir(_WHOLE) ) {
 
   }
 
+  print _EMBL "$id~$acc~$version~$desc~$os~$oc~$prev\n" if ($acc);
   close(_FILE);
 
 }
