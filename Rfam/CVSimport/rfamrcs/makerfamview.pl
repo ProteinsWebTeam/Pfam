@@ -41,7 +41,7 @@ foreach my $file ( @align_file_set ) {
 	    $id = $1;
 	}
 	if( /^AC\s+(\S+)\s*\;\s*/ ) {
-	    $accessions{$id} = $1;
+	    $accessions{$id} = $1 unless $accessions{$id};
 	}
     }
     close GETZ or die;
