@@ -1,0 +1,10 @@
+#!/usr/local/bin/perl
+
+$name = shift;
+
+$name =~ s/^\w+://;
+
+open(GET,"pfetch -F $name |");
+while(<GET>) {
+    print;
+}
