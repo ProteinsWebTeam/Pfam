@@ -4,7 +4,8 @@ use strict;
 use Getopt::Long;
 use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Index::Fasta;
-use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
+#use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
+use lib '/nfs/disk56/sgj/pfam/scripts/Modules';
 use Bio::SimpleAlign;
 use CMResults;
 
@@ -28,7 +29,7 @@ if( $help ) {
 }
 
 not $inxfile and $inxfile = '/pfam/db/rfamseq/rfamseq.fa.bpi';
-my $seqinx  = Bio::Index::Fasta->new( $inxfile ); 
+my $seqinx = Bio::Index::Fasta->new( $inxfile ); 
 
 END {
     # truly wierd, but if I don't do this I get core dumps on program exit!
@@ -36,8 +37,6 @@ END {
 }
 
 my $file = shift;
-my $tc_bits;
-my $nc_bits;
 
 open( F, $file ) or die;
 open( FA, ">$$.fa" ) or die;
@@ -105,6 +104,9 @@ foreach my $cmseq ( $res->eachHMMSequence() ) {
 close FA;
 
 system "covea -o ALIGN CM.cov $$.fa" and die "failed to run covea";
+
+my $tc_bits = $res -> lowest_true( $thr );
+my $nc_bits = $res -> highest_noise( $thr );
 
 if( -s "DESC" ) {
     open( DNEW, ">DESC.new" ) or die;
