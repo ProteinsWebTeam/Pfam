@@ -1146,9 +1146,16 @@ sub make_align_release_file {
     }
 
     my $db = Rfam::default_db();
+    open( OUTFILE, ">>$path/$filename" ) or die;
     foreach my $acc ( $db->get_allacc() ) {
-        system "cat $Rfam::current_dir/$acc/$annfile >> $path/$filename" and die "RfamRCS: failed to read $Rfam::current_dir/$acc/$annfile";
+	open( F, "$Rfam::current_dir/$acc/$annfile" ) or die;
+	while(<F>) {
+	    chomp;     # remove newline and add it again to make sure
+	    print OUTFILE "$_\n";
+	}
+	close F;
     }
+    close OUTFILE;
     return 0;
 }
 
