@@ -1303,45 +1303,48 @@ sub add_rfamseq {
 
 sub  delete_mirna_tables{
   my($self) = @_;
-
+  
   my ($dbh, $stat_add, $rows, $error, $auto_lit, $auto_mirna, $stat_lit, $stat_mirna);
-
- # print "ID: $id, ACC: $acc, $desc , $start, $end, $mature_name, $sequence \n";
-   $dbh = $self->open_transaction( 'mirna' , 'mirna_literature_references', 'mirna_mature', 'mirna_species', 'mirna_database_links' );
+  
+  # print "ID: $id, ACC: $acc, $desc , $start, $end, $mature_name, $sequence \n";
+  $dbh = $self->open_transaction( 'mirna' , 'mirna_literature_references', 'mirna_mature', 'mirna_species', 'mirna_database_links' );
   $dbh->do("delete from mirna");
   $dbh->do("delete from mirna_literature_references");
   $dbh->do("delete from mirna_mature");
-  $dbh->do("delete from mirna_species");
+  ##$dbh->do("delete from mirna_species"); # not needed at the moment as the species have been static
   $dbh->do("delete from mirna_database_links");
   $self->close_transaction();
 }
 
 
 sub add_mirna {
-  my($self, $id, $acc, $desc , $mature, $sequence, $refs, $database) = @_;
+  my($self, $id, $acc, $desc , $mature, $sequence, $comment_line, $refs, $database) = @_;
   
   my ($dbh, $stat_add, $stat_mat,$stat_data, $rows, $error, $auto_lit, $auto_mirna, $stat_lit, $stat_mirna);
   
-  # print "ID: $id, ACC: $acc, $desc , $start, $end, $mature_name, $sequence \n";
+  
   $dbh = $self->open_transaction( 'mirna' ,'literature_references', 'mirna_literature_references', 'mirna_mature', 'mirna_species', 'mirna_database_links'  );
   
   
   ######### UPDATE mirna 
   eval {
     if (not defined $stat_add) {
-      $stat_add = $dbh->prepare($self->__insert_sql('mirna', 5));
+      $stat_add = $dbh->prepare($self->__insert_sql('mirna', 6));
       #print "stat: $stat \n";
     }
     #   print "ADDING: $rdb_acc \n";
     #  sleep 1;
+    # print "$auto_mirna, $acc, $id, $desc, $sequence, $comment_line \n";
     $stat_add->execute($auto_mirna,
 		       $acc, 
 		       $id, 
 		       $desc, 
-		       $sequence
+		       $sequence,
+		       $comment_line
 		      );
     $rows += $stat_add->rows;
     $auto_mirna = $stat_add->{mysql_insertid}; ## get the auto number
+    
   };
   if ($@) {
     $error = "Could not do the insertion on the mirna table [$@]";
@@ -1362,9 +1365,9 @@ foreach my $query_return (@mature_temp) {
     }
     
     $stat_mat->execute($auto_mirna,
-		       $output{'NAME'},
-		       $output{'START'},
-		       $output{'END'}
+		       $output{NAME},
+		       $output{START},
+		       $output{END}
 		      );
     $rows += $stat_add->rows;
   };
@@ -1383,7 +1386,7 @@ foreach my $query_return (@refs_temp) {
   my %output = %{$query_return};
   
   my $medline = $output{MEDLINE};
-  my $st = $dbh->prepare("select auto_lit from literature_references where medline = '$medline'");
+  my $st = $dbh->prepare("select auto_lit from literature_references where medline = '$medline' or journal like '%" .$output{JOURNAL} . "%' ");
   $st->execute();
   my($auto_lit) = $st->fetchrow;
   $st->finish();
@@ -1398,6 +1401,7 @@ foreach my $query_return (@refs_temp) {
       #   print "ADDING: $rdb_acc \n";
       #  sleep 1;
       #  die "No auto_
+      #    print "AUTO LIT: $auto_lit , " .$output{MEDLINE} . " , " .$output{TITLE} . " , " .$output{AUTHORS} . " , " .$output{JOURNAL} . "\n";
       $stat_lit->execute($auto_lit,
 			 $output{MEDLINE},
 			 $output{TITLE},
@@ -1438,6 +1442,7 @@ foreach my $query_return (@refs_temp) {
 };
 if ($@) {
   $error = "Could not do the insertion on the mirna_literature_references table [$@]";
+  print "EROR: $error \n";
   last;
 }
 
@@ -1451,35 +1456,47 @@ if ($@) {
 
 my @database_tmp = @${database};
 
-foreach my $query_return (@database_tmp) {
-  my %output = %{$query_return};
+
+foreach (@database_tmp) {
+  # print "QUERY: $_ \n";
+  my %output = %{$_};
   
   my $db_id = $output{ID};
+  #  print "DB ADD: $db_id \n";
   my $db_link = $output{LINK};
   my $db_comment = $output{COMMENT};
-  
+  # print "LINK: $db_link \n";
   
   
   eval {
-    if (not defined $stat_data) {
-      $stat_lit = $dbh->prepare($self->__insert_sql('mirna_database_links', 5));
-      #print "stat: $stat \n";
-    }
+    # if (not defined $stat_data) {
+    #     $stat_lit = $dbh->prepare($self->__insert_sql('mirna_database_links', 5));
+    # print "stat: $stat_lit \n";
+    #  }
     #   print "ADDING: $rdb_acc \n";
     #  sleep 1;
-    $stat_lit->execute($auto_mirna,
-		       $output{ID},
-		       $output{COMMENT},
-		       $output{LINK},
-		       ""
-		      );
-    $rows += $stat_data->rows;
+    # print "auto: $auto_mirna, id: $db_id, link: $db_link, comment: $db_comment \n";
+    # $db_link = "RF";
+    my $params;
+    
+    #print "SQL: ";
+    
+    my $stat_lit = $dbh->prepare("insert into mirna_database_links values ('$auto_mirna', '$db_id','$db_comment', '$db_link',   '$params')");
+    $stat_lit->execute();
+    #   $stat_lit->execute($auto_mirna,
+    #		       $db_id,
+    #		       $db_link,
+    #		       $db_comment,
+    #		       ""
+    #		      );
+    #  $rows += $stat_data->rows;
     
     
     
   };
   if ($@) {
     $error = "Could not do the insertion on the mirna_database_links table [$@]";
+    print "error: $error \n";
     last;
     }  
 
@@ -1489,7 +1506,7 @@ foreach my $query_return (@database_tmp) {
 
   
 }
-
+#exit(0);
 
 }
 
