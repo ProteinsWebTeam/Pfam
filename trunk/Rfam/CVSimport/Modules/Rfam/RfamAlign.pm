@@ -522,6 +522,21 @@ EOF
     unlink( "$$.rna", "$$.rna_ss.ps" ) or die;
 }
 
+
+sub write_ilm {
+    # write alnment format for ILM input
+    my $self = shift;
+    my $out  = shift;
+
+    $self -> gap_char('-');
+    my $maxn = $self->maxdisplayname_length();
+    foreach my $seq ( $self->each_seq() ) {
+	my $namestr = $self->displayname($seq->get_nse());
+	print $out sprintf( "%-".$maxn."s:%s\n", $namestr, $seq->seq() );
+    }
+}
+
+
 sub write_stockholm {
     my $self  = shift;
     my $out   = shift;
@@ -535,7 +550,10 @@ sub write_stockholm {
 
     my $ss_str;
     eval {
-	$ss_str = $self->ss_cons->getInfernalString();
+	if( $self->ss_cons ) {
+	    $self->ss_cons->length( $self->length );
+	    $ss_str = $self->ss_cons->getInfernalString();
+	}
     };
 	
     for( my $i=0; $i < $iter; $i++ ) {
