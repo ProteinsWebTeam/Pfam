@@ -357,6 +357,7 @@ EOF
 		if( exists $colmap{$i} ) {
                     print STDERR "$i $colmap{$i}\n";
                     if( !exists $colmap{$i-1} or $colmap{$i} != $colmap{$i-1} ) {
+			print "\[$first $last $colours{$colmap{$first}}\]\n" if $first;
 			$first = $last = $i;
 		    }
                     else {
