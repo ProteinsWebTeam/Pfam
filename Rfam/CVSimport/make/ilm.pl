@@ -17,7 +17,10 @@ GetOptions( "h"     => \$help,
 
 sub usage {
     print STDERR <<EOF;
-Usage: $0 <alignfile>
+Usage: $0 <options> <alignfile>
+Options:     -h           show this help
+             -hwt <n>     set weighting of hlx matrix scores
+             -mwt <n>     set weighting of mixy matrix scores
 
 EOF
 }
