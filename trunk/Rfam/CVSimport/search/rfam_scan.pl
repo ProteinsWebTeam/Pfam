@@ -88,23 +88,26 @@ my( $local,
     $blastcut,
     $noclean,
     $help,
-    $outfile );
+    $outfile,
+    @binpath,
+    );
 
 my $rfam_dir;
 if( $ENV{'RFAM_DIR'} ) {
     $rfam_dir = $ENV{'RFAM_DIR'};
 }
 
-&GetOptions( "local"   => \$local,
-	     "global"  => \$global,
-	     "d=s"     => \$rfam_dir,
-	     "acc=s"   => \$family_acc,
-	     "fadb=s"  => \$blastdb,
-	     "t=s"     => \$thresh,
-	     "o=s"     => \$outfile,
-	     "bt=s"    => \$blastcut,
-	     "noclean" => \$noclean,
-	     "h"       => \$help );
+&GetOptions( "local"         => \$local,
+	     "global"        => \$global,
+	     "d=s"           => \$rfam_dir,
+	     "acc=s"         => \$family_acc,
+	     "fadb=s"        => \$blastdb,
+	     "t=s"           => \$thresh,
+	     "o=s"           => \$outfile,
+	     "bt=s"          => \$blastcut,
+	     "noclean"       => \$noclean,
+	     "h"             => \$help,
+	     "bin=s@"        => \@binpath );
 
 my $fafile = shift;
 
@@ -120,6 +123,7 @@ Usage: $0 <options> fasta_file
 	-o <file>     : write the output to <file>
 
     Expert options
+        -bin <path>   : add <path> onto your executable path (can specify >1)
 	-local        : perform local mode search  (default is Rfam mode)
 	-global       : perform global mode search (       -- \" --      )
 	-acc <acc>    : search against only a single family
@@ -137,6 +141,13 @@ Usage: $0 <options> fasta_file
 
 EOF
 exit(1);
+}
+
+# add specified locations onto the path for blast and linux binaries
+if( @binpath ) {
+    foreach my $path ( @binpath ) {
+	$ENV{'PATH'} = "$path:$ENV{'PATH'}";
+    }
 }
 
 not $blastdb   and $blastdb   = "$rfam_dir/Rfam.fasta";
@@ -173,7 +184,7 @@ foreach my $acc ( keys %results ) {
     }
 
     my $id = $thr{ $acc } -> { 'id' };
-    open( O, ">/tmp/$$.seq" ) or die "can't write to /tmp/$$seq";
+    open( O, ">/tmp/$$.seq" ) or die "can't write to /tmp/$$.seq";
     my $out = Bio::SeqIO -> new( -fh => \*O, '-format' => 'Fasta' );
 	
     foreach my $seqid ( keys %{ $results{ $acc } } ) {
