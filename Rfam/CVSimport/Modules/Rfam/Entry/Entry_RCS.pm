@@ -26,17 +26,91 @@ sub new {
   
   my $self = $class->SUPER::new(%arguments);
 
-  $self->{'build'}   = [];
-  $self->{'forward'} = [];
-  $self->{'edit'}    = [];
+  $self->{'build'}     = [];
+  $self->{'forward'}   = [];
+  $self->{'reference'} = [];
+  $self->{'dblink'}    = [];
 
   $self->_loaded(0);
 
   return $self;
-
 }
 
 
+
+
+=head2 add_dblink
+
+ Title   : add_dblink
+ Usage   : $self->add_dblink($link)
+ Function: add Bio::Annotation::DBLink to the list
+ Example :
+ Returns : 
+ Args    :
+
+
+=cut
+
+sub add_dblink {
+    my ($self,$link) = @_;
+    push(@{$self->{'dblink'}},$link);
+}
+
+
+=head2 each_dblink
+
+ Title   : each_dblink
+ Usage   : gives you an array of Bio::Annotation::DBLink objects
+ Function:
+ Example :
+ Returns : 
+ Args    :
+
+
+=cut
+
+sub each_dblink{
+   my ($self,@args) = @_;
+   $self->_before_annotation_hook('dblink');
+   return @{$self->{'dblink'}};
+}
+
+
+=head2 add_reference
+
+ Title   : add_reference
+ Usage   : $self->add_reference($ref)
+ Function: add Bio::Annotation::Reference to the list
+ Example :
+ Returns : 
+ Args    :
+
+
+=cut
+
+sub add_reference {
+    my ($self,$ref) = @_;
+    push(@{$self->{'reference'}},$ref);
+}
+
+
+=head2 each_reference
+
+ Title   : each_reference
+ Usage   : gives you an array of Bio::Annotation::Reference objects
+ Function:
+ Example :
+ Returns : 
+ Args    :
+
+
+=cut
+
+sub each_reference {
+   my ($self,@args) = @_;
+   $self->_before_annotation_hook('reference');
+   return @{$self->{'reference'}};
+}
 
 
 =head2 add_build_line
@@ -52,29 +126,8 @@ sub new {
 =cut
 
 sub add_build_line{
-   my ($self,$line) = @_;
- 
-   if ($line =~ /HMM\_ls/i) {
-   
-     if ($line =~ /hmmbuild/i) {
-       $self->hmmbuild_ls($line);
-     } elsif ($line =~ /hmmcalibrate/i) {
-       $self->hmmcalibrate_ls($line);
-     }
-
-     
-   } elsif ($line =~ /HMM\_fs/i) {
- 
-     if ($line =~ /hmmbuild/i) {
-       $self->hmmbuild_fs($line);
-     } elsif ($line =~ /hmmcalibrate/i) {
-       $self->hmmcalibrate_fs($line);
-     }
-
-   }
-
-   push(@{$self->{'build'}},$line);
-
+    my ($self,$line) = @_;
+    push(@{$self->{'build'}},$line);
 }
 
 =head2 each_build_line
@@ -95,42 +148,6 @@ sub each_build_line{
    return @{$self->{'build'}};
 }
 
-
-=head2 add_edit_line
-
- Title   : add_edit_line
- Usage   : $self->add_edit_line($line)
- Function: adds another edit line to the object
- Example :
- Returns : 
- Args    :
-
-
-=cut
-
-sub add_edit_line {
-   my ($self,$line) = @_;
-   push(@{$self->{'edit'}},$line);
-}
-
-
-=head2 each_edit_line
-
- Title   : each_edit_line
- Usage   : gives you an array of edit lines
- Function:
- Example :
- Returns : 
- Args    :
-
-
-=cut
-
-sub each_edit_line{
-   my ($self,@args) = @_;
-   $self->_before_annotation_hook('edit');
-   return @{$self->{'edit'}};
-}
 
 =head2 entry_type
 
@@ -225,16 +242,16 @@ sub acc{
 }
 
 
-sub auto_pfamA{
+sub description{
     my ($self,$value) = @_;
     
     if( defined $value) {
-	$self->{'auto_pfamA'} = $value;
+	$self->{'description'} = $value;
     } else {
-	$self->_before_annotation_hook('auto_pfamA');
+	$self->_before_annotation_hook('description');
     }
     
-    return $self->{'auto_pfamA'};
+    return $self->{'description'};
     
 }
 
@@ -264,32 +281,6 @@ sub alignmethod{
 }
 
 
-=head2 alignorder
-
- Title   : alignorder
- Usage   : $self->alignorder($newval)
- Function: 
- Example : 
- Returns : value of alignorder
- Args    : newvalue (optional)
-
-=cut
-
-sub alignorder{
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'alignorder'} = $value;
-   }  else {
-       $self->_before_annotation_hook('alignorder');
-   }
-    
-   return $self->{'alignorder'};
-
-}
-
-
-
 =head2 ann
 
  Title   : ann
@@ -303,16 +294,16 @@ sub alignorder{
 
 sub ann{
     my ($obj,$value) = @_;
-    if( defined $value) {
-	$obj->{'_rcs_ann'} = $value;
-    } else {
-	if( $obj->_loaded() == 0 ) {
-	    $obj->_load_annotation();
-	}
-    }
-
-    return $obj->{'_rcs_ann'};
-
+    warn "Rfam::Entry_RCS::ann() is deprecated - you're code is now probably broken!";
+    return 0;
+#    if( defined $value) {
+#	$obj->{'_rcs_ann'} = $value;
+#    } else {
+#	if( $obj->_loaded() == 0 ) {
+#	    $obj->_load_annotation();
+#	}
+#    }
+#    return $obj->{'_rcs_ann'};
 }
 
 sub _load_in_full {
@@ -822,60 +813,6 @@ sub source{
 }
 
 
-
-sub ls_kappa{
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'ls_kappa'} = $value;
-   }  else {
-       $self->_before_annotation_hook('ls_kappa');
-   }
-    
-   return $self->{'ls_kappa'};
-
-}
-
-sub ls_mu{
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'ls_mu'} = $value;
-   }  else {
-       $self->_before_annotation_hook('ls_mu');
-   }
-    
-   return $self->{'ls_mu'};
-
-}
-
-
-sub fs_kappa{
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'fs_kappa'} = $value;
-   }  else {
-       $self->_before_annotation_hook('fs_kappa');
-   }
-    
-   return $self->{'fs_kappa'};
-
-}
-
-sub fs_mu{
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'fs_mu'} = $value;
-   }  else {
-       $self->_before_annotation_hook('fs_mu');
-   }
-    
-   return $self->{'fs_mu'};
-
-}
-
 sub comment{
    my ($self,$value) = @_;
    if( defined $value) {
@@ -917,66 +854,6 @@ sub trusted_cutoff{
 
 
 
-
-
-######### BUILD METHODS 
-
-
-sub hmmbuild_ls {
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'hmmbuild_ls'} = $value;
-   }  else {
-       $self->_before_annotation_hook('hmmbuild_ls');
-   }
-   return $self->{'hmmbuild_ls'};
-
-}
-
-sub hmmcalibrate_ls {
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'hmmcalibrate_ls'} = $value;
-   }  else {
-       $self->_before_annotation_hook('hmmcalibrate_ls');
-   }
-   return $self->{'hmmcalibrate_ls'};
-
-}
-
-sub hmmbuild_fs {
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'hmmbuild_fs'} = $value;
-   }  else {
-       $self->_before_annotation_hook('hmmbuild_fs');
-   }
-   return $self->{'hmmbuild_fs'};
-
-}
-
-
-sub hmmcalibrate_fs {
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'hmmcalibrate_fs'} = $value;
-   }  else {
-       $self->_before_annotation_hook('hmmcalibrate_fs');
-   }
-   return $self->{'hmmcalibrate_fs'};
-
-}
-
-
-
-
-###### /end of build methods
-
-
 =head2 _before_annotation_hook
 
  Title   : _before_annotation_hook
@@ -991,10 +868,6 @@ sub hmmcalibrate_fs {
 
 sub _before_annotation_hook{
    my ($self,$type) = @_;
-
-   if( $type eq 'id' ) {
-       return 1;
-   }
 
    if( $self->_loaded() == 1 ) {
        return 1;
@@ -1033,16 +906,11 @@ sub _load_annotation {
  
    open(_SOURCE,"$dir/$fname") || print "For entry object [$id], got no valid directory for $fname [$dir/$fname] $!";
 
-
-   ##### FILL UP THE ANNOTATION OBJECT FROM THE DESC FILE 
-   $self->ann(Bio::Annotation->new('-description'  => 'some description'));
-
-   $self->_read_std_desc(\*_SOURCE,$self->{'_rcs_ann'});
+   $self->_read_std_desc(\*_SOURCE);
    close(_SOURCE) || die("Could not close [$id] DESC in reading annotation");
    
    $self->_loaded(1);
 
-   ## NUMBER IN SEED 
    my($num_seed, $num_full, %distinct_seed);
    $num_full = $num_seed = 0;
    open(_SEED, "$dir/SEED");
@@ -1056,8 +924,6 @@ sub _load_annotation {
    }
    $self->num_seqs_in_seed($num_seed);
 
-
-   ## NUMBER IN FULL
    open(_FULL, "$dir/scores");
    while(<_FULL>) {
      $num_full++;
@@ -1067,10 +933,7 @@ sub _load_annotation {
    $self->num_seqs_in_full($num_full);
 
    return 1;
-     
 }
-
-
 
 
 
@@ -1122,7 +985,6 @@ sub _directory{
 
 
 
-
 =head2 _desc_filename
 
  Title   : _desc_filename
@@ -1144,12 +1006,3 @@ sub _desc_filename {
     
 }
 
-sub description {
-   my ($self,$value) = @_;
-
-   if( defined $value) {
-       $self->{'description'} = $value;
-   } 
-  
-   return $self->{'description'};
-}

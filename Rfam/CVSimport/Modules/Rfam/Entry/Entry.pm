@@ -1,13 +1,9 @@
 
 
-
-
-
 package Rfam::Entry::Entry;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 
-use Bio::Annotation::Collection;
 use Bio::Annotation::Comment;
 use Bio::Annotation::DBLink;
 use Bio::Annotation::Reference;
@@ -26,8 +22,6 @@ sub new {
 }
 
 
-
-
 =head2 source
 
  Title   : source
@@ -43,7 +37,7 @@ sub new {
 sub source{
    my ($self,$value) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::source - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::source - should be filled by subclass");
 }
 
 
@@ -61,17 +55,17 @@ sub source{
 
 sub alignmethod{
    my ($self,$value) = @_;
-   $self->throw("Abstract method, Bio::Pfam::EntryA::alignmethod - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::alignmethod - should be filled by subclass");
 
 }
 
 
 
-=head2 alignorder
+=head2 description
 
- Title   : alignorder
- Usage   : $self->alignorder($order)
- Function: 
+ Title   : description
+ Usage   : $self->description($desc)
+ Function: get/set description
  Example :
  Returns : 
  Args    :
@@ -79,10 +73,10 @@ sub alignmethod{
 
 =cut
 
-sub alignorder {
-   my ($self,$line) = @_;
+sub description {
+   my ($self,$desc) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::alignorder - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::description - should be filled by subclass");
 }
 
 
@@ -101,7 +95,7 @@ sub alignorder {
 sub add_build_line{
    my ($self,$line) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::add_build_line - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::add_build_line - should be filled by subclass");
 }
 
 
@@ -121,53 +115,15 @@ sub add_build_line{
 sub each_build_line{
    my ($self,@args) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::each_build_line - should be filled by subclass");
-}
-
-
-=head2 add_edit_line
-
- Title   : add_edit_line
- Usage   : $self->add_edit_line($line)
- Function: adds another edit line to the object
- Example :
- Returns : 
- Args    :
-
-
-=cut
-
-sub add_edit_line{
-   my ($self,$line) = @_;
-
-   $self->throw("Abstract method, Bio::Pfam::EntryA::add_edit_line - should be filled by subclass");
-}
-
-
-=head2 each_edit_line
-
- Title   : each_edit_line
- Usage   : gives you an array of edit lines
- Function:
- Example :
- Returns : 
- Args    :
-
-
-=cut
-
-sub each_edit_line{
-   my ($self,@args) = @_;
-
-   $self->throw("Abstract method, Bio::Pfam::EntryA::each_edit_line - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::each_build_line - should be filled by subclass");
 }
 
 
 =head2 entry_type
 
  Title   : entry_type
- Usage   : $self->entry_type($len)
- Function: gets/sets the length of the HMM model (match states) for this pfam familiy
+ Usage   : $self->entry_type($type)
+ Function: gets/sets the type
  Returns : 
  Args    :
 
@@ -177,7 +133,7 @@ sub each_edit_line{
 sub entry_type {
    my ($self,$line) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::model_length - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::model_length - should be filled by subclass");
 }
 
 
@@ -187,7 +143,7 @@ sub entry_type {
 
  Title   : model_length
  Usage   : $self->model_length($len)
- Function: gets/sets the length of the HMM model (match states) for this pfam familiy
+ Function: gets/sets the length of the model
  Returns : 
  Args    :
 
@@ -197,7 +153,7 @@ sub entry_type {
 sub model_length {
    my ($self,$line) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::model_length - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::model_length - should be filled by subclass");
 }
 
 
@@ -218,7 +174,7 @@ sub model_length {
 sub add_forward_acc{
    my ($self,$acc) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::add_forward_acc - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::add_forward_acc - should be filled by subclass");
 }
 
 
@@ -238,7 +194,7 @@ sub add_forward_acc{
 sub each_forward_acc {
    my ($self,@args) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::each_forward_acc - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::each_forward_acc - should be filled by subclass");
 }
 
 
@@ -260,7 +216,7 @@ sub each_forward_acc {
 sub gathering_cutoff {
    my ($self,$value) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::gathering_cutoff - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::gathering_cutoff - should be filled by subclass");
 
 }
 
@@ -295,7 +251,7 @@ sub gathering_cutoff_string {
        return $fs;
    }
    else {
-       $self->throw("Bio::Pfam::EntryA->gathering_cutoff_string - illegal 'type': $type");
+       $self->throw("Rfam::Entry->gathering_cutoff_string - illegal 'type': $type");
    }
 }
 
@@ -316,7 +272,7 @@ sub gathering_cutoff_string {
 sub internal_comment {
    my ($self,$value) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::internal_comment - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::internal_comment - should be filled by subclass");
 }
 
 
@@ -336,7 +292,7 @@ sub internal_comment {
 sub trusted_cutoff{
    my ($self,$value) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::trusted_cutoff - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::trusted_cutoff - should be filled by subclass");
 }
 
 
@@ -371,7 +327,7 @@ sub trusted_cutoff_string{
        return $fs;
    }
    else {
-       $self->throw("Bio::Pfam::EntryA->trusted_cutoff_string - illegal 'type': $type");
+       $self->throw("Rfam::Entry->trusted_cutoff_string - illegal 'type': $type");
    }
 
 }
@@ -393,7 +349,7 @@ sub trusted_cutoff_string{
 sub noise_cutoff{
    my ($self,$value) = @_;  
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::noise_cutoff - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::noise_cutoff - should be filled by subclass");
 }
 
 
@@ -427,7 +383,7 @@ sub noise_cutoff_string{
        return $fs;
    }
    else {
-       $self->throw("Bio::Pfam::EntryA->noise_cutoff_string - illegal 'type': $type");
+       $self->throw("Rfam::Entry->noise_cutoff_string - illegal 'type': $type");
    }
 }
 
@@ -448,7 +404,7 @@ sub noise_cutoff_string{
 sub previous_ids{
     my ($self,$value) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::previous_ids - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::previous_ids - should be filled by subclass");
     
 }
 
@@ -469,7 +425,7 @@ sub previous_ids{
 sub is_dead {
    my ($self,@args) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::is_dead - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::is_dead - should be filled by subclass");
 
 }
 
@@ -490,7 +446,7 @@ sub is_dead {
 sub seed{
    my ($self,@args) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::seed - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::seed - should be filled by subclass");
 
 }
 
@@ -511,22 +467,10 @@ sub seed{
 sub num_seqs_in_seed {
    my ($self, $value) = @_;
 
-   $self->throw("Abstract method, Bio::Pfam::EntryA::num_seqs_in_full - should be filled by subclass");
+   $self->throw("Abstract method, Rfam::Entry::num_seqs_in_full - should be filled by subclass");
 }
 
-=head2 nested_domains
- Usage   : $count = $self->nested_domains(@_);
- Function:
- Example : 
- Returns : The Pfam ids that this entry isallowed to overlap with
- Args    :
-=cut
 
-sub nested_domains {
-	my ($self, @domains) = @_;
-		
-        $self->throw("Abstract method, Bio::Pfam::EntryA::nested_domains - should be filled by subclass");
-		}
 
 =head2 write_internal_desc
 
@@ -766,8 +710,9 @@ sub _read_rdb_desc {
 sub _read_std_desc{
    my ($self,$file,$ann) = @_;
    my($ref,$link,$justseenref,$refcomment,$linkcomment,@lines,$i, $thisfam);
-   if( !defined $ann) {
-       $self->throw("Entry does not have an annotation object attached - cannot read in contents");
+   if( defined $ann) {
+#       $self->throw("Entry does not have an annotation object attached - cannot read in contents");
+       warn "Entry no longer needs to have an annotation object attached";
    }
 
    @lines = <$file>;
@@ -784,7 +729,7 @@ sub _read_std_desc{
 	   next;
        };
        /^DE\s+(.*?)\s+$/ && do {
-	   $ann->description($1);
+	   $self->description($1);
 	   next;
        };
        /^AU\s+(.+)$/ && do {
@@ -833,10 +778,6 @@ sub _read_std_desc{
 	   $self->add_build_line($1);
 	   next;
        };
-       /^AM\s+(.*?)\s+$/ && do {
-	   $self->alignorder($1);
-	   next;
-       };
        /^KL/ && do {
 	   $self->is_dead(1);
 	   next;
@@ -849,11 +790,9 @@ sub _read_std_desc{
        # not one of these lines - break!
        last;
    }
-  # print "DONE \n";
 
 
-
-   my( $rn, $rm, $rt, $ra, $rl, @refs);
+   my( $rn, $rm, $rt, $ra, $rl, $rc, @refs, $comment);
    foreach (@lines) {
      ### DATABASE LINKS 
      my ($db_name, $db_ref, $rest);
@@ -862,24 +801,22 @@ sub _read_std_desc{
 	 ($db_name, $db_ref, $rest) = ($1, $2, $3);
        } elsif ($_ =~ /^DR\s+(\S+);\s+(\S+);\s*(.*)/) {
 	 ($db_name, $db_ref, $rest) = ($1, $2, $3);
-       }       else {
+       } else {
 	 print "Bad DR line - $lines[$i]\n";
        }
 		  
        my $link = new Bio::Annotation::DBLink(-database => $db_name,
-				       -primary_id => $db_ref
+					      -primary_id => $db_ref
 				      );
 
-       $ann->add_DBLink($link);
+       $self->add_dblink( $link );
 
 
      } elsif ($_ =~ /^R/ ) {
- #      print "GOT REFS : " . $_. " \n";
-       
        if ($_ =~ /^RN\s+\[(\d+)\]/) {
 	 if ($rn) {
-	   push @refs, $rn ."~" . $rm . "~" . $rt . "~" . $ra . "~" . $rl;
-	   $rn = $rm = $rt = $ra = $rl = undef;
+	   push @refs, $rn ."~" . $rm . "~" . $rt . "~" . $ra . "~" . $rl . "~" . $rc;
+	   $rn = $rm = $rt = $ra = $rl = $rc = undef;
 	 }
 	 $rn .= $1;
        } elsif (/^RM   (\d+)/) {
@@ -890,19 +827,16 @@ sub _read_std_desc{
 	 $ra .= $1;
        } elsif (/^RL   (.*)/) {
 	 $rl .= $1;
+       } elsif (/^RC   (.*)/) {  # these get lost at the moment
+	 $rc .= $1;
        }
 	 
 
-
      } elsif ($_ =~ /^CC/ ) {
-     #  print "GOT COMMENTS LINE: " .$lines[$i] . " \n";
-
 
        ### COMMENTS
        if( $_ =~ /^CC\s+(.*)/ ){
-	 my $comment .= $1;
-	 my $the_comment = Bio::Annotation::Comment->new('-text' => $comment);
-	 $ann->add_Comment($the_comment);
+	   $self->comment .= "$1 ";
        } elsif ( $_ =~ /^CC\s*$/ ) {
 
        } else {
@@ -910,39 +844,29 @@ sub _read_std_desc{
        }
 
      }
-
-
    }
-   if ($rn) {
+
+   if ($rn) { # this catches the last reference!
      push @refs, $rn ."~" . $rm . "~" . $rt . "~" . $ra . "~" . $rl;
    }
    
-
    foreach (@refs) {
-
      my($rn, $rm, $rt, $ra, $rl) = split(/~/, $_);
      $rt =~ s/  / /g;
      $ra =~ s/  / /g;
 
+     my $ref  = new Bio::Annotation::Reference->new( '-authors'  => $ra,
+						     '-title'    => $rt,
+						     '-location' => $rl,
+						     '-medline'  => $rm);
 
-     my $ref  = new Bio::Annotation::Reference->new( '-authors' => $ra,
-                                           '-title'   => $rt,
-                                           '-location'=> $rl,
-                                           '-mwdline'   => $rm);
-;
-               #print STDERR "Adding new reference\n";
-     $ann->add_Reference($ref);
+     $self->add_reference($ref);
+     # just to make sure
      $ref->medline($rm);
-     
      $ref->title($rt);
-     
      $ref->authors($ra);
      $ref->location($rl);
-
-
    }
-
- 
 }
 
 
