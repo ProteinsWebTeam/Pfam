@@ -156,7 +156,19 @@ sub get_Entry_by_acc {
    $currentdir = $self->_current_dir();
 
    if( ! -d  "$currentdir/$acc" ) {
-       print "$acc is not a valid accession for this Rfam database\n";
+       $atticdir = $self->_attic_directory();
+       if (! -d "$atticdir/$id") {
+	   die("$acc is not a valid accession for this Rfam database");
+       }
+       else {
+           if ($dead_please) {
+               $dir = "$atticdir/$id";
+               $fname = "DEAD";
+           }   
+           else {
+               $self->throw("$id is the id of a dead family");
+           }
+       }
    }
    else {
        $dir = "$currentdir/$acc";
