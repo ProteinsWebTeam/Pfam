@@ -738,7 +738,7 @@ sub update_literature_references {
       $self->report_mode and 
 	printf STDERR "Deleting from %s.rfam_literature_references for entry %s\n", $self->_database_name, $rdb_auto_num;
       
-      $dbh->do("delete from rfam_literature_references where auto_rfam = '$rdb_auto_num'");
+      $dbh->do("delete from rfam_literature_references where auto_rfam = '$rdb_auto_num'") if ($rdb_auto_num);
     };
   
     
