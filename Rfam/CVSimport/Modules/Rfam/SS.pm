@@ -213,8 +213,8 @@ sub column_colourmap {
 	# catch things like ...
 	# <<..<<..>>..<<..>>>>
 	#                   *
-	foreach my $donepair ( grep{ ( $_->left < $self->pairedBase($lastclose) ) and 
-				      ( $_->left > $pair->left ) } $self->eachPair() ) {
+	foreach my $donepair ( grep{ ( $_->left < $lastopen ) and 
+				     ( $_->left > $pair->left ) } $self->eachPair() ) {
 	    if( exists $colmap{ $donepair->left } and $colmap{ $donepair->left } != $colour ) {
 		$colour++;
 		last;
@@ -225,6 +225,7 @@ sub column_colourmap {
 	$colmap{ $pair->right } = $colour;
 
 	$lastclose = $pair->right();
+	$lastopen  = $pair->left();
     }
     return \%colmap;
 }
