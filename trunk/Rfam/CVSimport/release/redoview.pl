@@ -23,5 +23,5 @@ else {
 
 foreach my $acc ( @accs ) {
     print "Doing $acc ....\n";
-    system "$Rfam::view_maker $acc" and die;
+    system "$Rfam::view_maker -n $acc" and die;
 }
