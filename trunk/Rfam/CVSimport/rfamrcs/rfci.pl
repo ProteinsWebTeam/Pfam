@@ -97,10 +97,7 @@ unless( $oldid eq $id ) {              # change the accmap
     if( !($ret =~ /^success/ ) ) {
 	die "rfci: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
     }
-    if( my $name = $db->_get_lock() ) {
-	# locks the SDMB file
-	die "Unable to get the lock for the SDBM_file - $name has it\n";
-    }
+
     $db->_move_accession( $acc, $id );
     $db->_unlock();
 }
