@@ -136,13 +136,21 @@ sub add_users_to_system {
 
 
     
-sub allocate_new_accession {   # hack at the moment
-                               # should use accmaps, locks etc
+sub allocate_new_accession {
+
     my $family = shift;
     
     if( !$family ) {
 	warn("Cannot allocate a new family without a name");
 	return undef;
+    }
+
+    my $db = Rfam::default_db();
+    if( my $name = $db->_get_lock() ) {
+        # locks the SDMB file
+        print STDERR "Unable to get the lock for the SDBM_file - $name has it\n"
+;
+        return undef;
     }
 
     open(ACCLOG,"$acclog_file") || die "Could not open $acclog_file ($!) A v. bad error";
@@ -169,6 +177,11 @@ sub allocate_new_accession {   # hack at the moment
     close(ACCTEMP);
 
     rename("$acclog_file.$$",$acclog_file);
+
+    # update the accmap
+    $db->_add_accession( $acc, $family );
+    $db->_unlock();
+    
     return "$acc";
 }
 
