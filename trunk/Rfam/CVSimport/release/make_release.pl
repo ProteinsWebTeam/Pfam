@@ -17,8 +17,8 @@ my @family_list = &Rfam::get_allaccs();
 
 print STDERR "Checking view files ....\n";
 foreach my $acc ( @family_list ) {
-    my $id = Rfam::acc2id( $acc );
-    if( &RfamRCS::view_file_errors( $id ) ) {
+#    my $id = Rfam::acc2id( $acc );
+    if( &RfamRCS::view_file_errors( $acc ) ) {
         warn "$acc: found errors with viewfiles\n";
 	$error ++;
     }
@@ -47,6 +47,6 @@ unless( -s "$Rfam::releases_dir/$rel/Rfam.fasta" ) {
 
 unless( -s "$Rfam::releases_dir/$rel/Rfam.thr" ) {
     print STDERR "Making Rfam.thr ....\n";
-    system "$Rfam::scripts_dir/release/make_thr $Rfam::releases_dir/$rel/Rfam.seed > $Rfam::releases_dir/$rel/Rfam.thr" and die;
+    system "$Rfam::scripts_dir/release/make_thr.pl $Rfam::releases_dir/$rel/Rfam.seed > $Rfam::releases_dir/$rel/Rfam.thr" and die;
 }
 
