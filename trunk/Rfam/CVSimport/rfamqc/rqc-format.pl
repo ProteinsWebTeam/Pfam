@@ -12,8 +12,6 @@ else {
     exit(1);
 }
 
-
-
 sub desc_is_OK {
     my $family = shift @_;
     my $error = 0;
@@ -84,6 +82,14 @@ sub desc_is_OK {
                 }
                last;
             };
+	    /^TP/ && do {
+		unless( /^TP   Site\s*$/ or /^TP   Gene\s*$/ or /^TP   Intron\s*$/ ) {
+                    warn "$family: TP lines should be one of Site, Intron, Gene\nNot $_\n";
+                    $error = 1;
+ 		}
+		$fields{$&}++;
+                last;
+	    }
             /^BM/ && do {
 		if( not /^BM   cmbuild / and not /^BM   cmsearch / ) {
                     warn "$family: BM lines should start with cmbuild or cmsearch\n";
@@ -184,6 +190,10 @@ sub desc_is_OK {
     }
     if ($fields{NC} != 1){
         warn "$family: There are [$fields{NC}] NC lines. SERIOUS ERROR.\n";
+        $error = 1;
+    }
+    if ($fields{TP} != 1){
+        warn "$family: There are [$fields{TP}] TP lines. SERIOUS ERROR.\n";
         $error = 1;
     }
     if ($fields{DE} > 1){
