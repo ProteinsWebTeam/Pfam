@@ -4,7 +4,7 @@
 # author sgj
 # heavily stolen from Ewan's pfnew
 #
-
+use lib '/pfam/db/bioperl';
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
@@ -17,6 +17,7 @@ use strict;
 use Rfam;
 use RfamRCS;
 use Getopt::Long;
+use UpdateRDB;
 
 if( $#ARGV == -1 ) {
     &RfamRCS::show_rcs_help(\*STDOUT);
@@ -133,7 +134,45 @@ if( &RfamRCS::update_current_directory($acc) == 0 ) {
 
 # rdb stuff when its ready
 
+## READY NOW!!! i hope
+
+print STDERR "\nChecking family into RDB\n";
+
+eval {
+  my $rdb =  Rfam::switchover_rdb_update();
+  my $db = Rfam::default_db();
+  my $en = $db->get_Entry_by_acc( $acc);
+  my $id = $en->author();
+  $rdb->check_in_Entry( $en );
+};
+
+$@ and do {
+  print STDERR "RFCI: RDB update; Could not update relational database for family $acc [$@]\n";
+};
+print STDERR "RDB update succesful\n";
+
+&RfamRCS::make_view_files($acc); 
+
+print STDERR "Generating the coloured mark-up\n";
+
+### Do the FULL Alignment
+system("cp -f ./$acc/ALIGN ./$acc/$acc.full");
+system("mv -f  ./$acc/$acc.full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/");
+system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
+
+system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only --family $acc ");
+
+### Do the SEED Alignment
+system("cp -f ./$acc/SEED  ./$acc/$acc.full");
+system("mv -f  ./$acc/$acc.full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/");
+system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
+
+system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
+
+
 # &RfamRCS::make_view_files($id); 
+
+
 
 print STDERR "\n\nChecked in family [$acc]\n";
 
