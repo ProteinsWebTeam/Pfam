@@ -22,6 +22,7 @@ use vars qw( @ISA
              @model_file_set
 	     @ann_file_set
              @rcs_file_set 
+	     @output_file_set
 	     @optional_file_set 
 	     $view_maker );
 
@@ -39,7 +40,8 @@ use vars qw( @ISA
 	      @ann_file_set
 	      @model_file_set
 	      @rcs_file_set 
-              @optional_file_set 
+              @output_file_set
+	      @optional_file_set 
 	      $view_maker );
 
 $root_dir       = "/pfam/db/Rfam";
@@ -54,8 +56,9 @@ $acclog_file    = "$accession_dir/acclog";
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
 @ann_file_set      = ( "DESC" );
+@output_file_set   = ( "OUTPUT" );
 @model_file_set    = ( "CM" );
-@rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set );
+@rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set, @output_file_set );
 @optional_file_set = ();
 
 $view_maker = "$scripts_dir/rfamrcs/makerfamview.pl";
