@@ -23,8 +23,13 @@ die "need output_dir\n" if(!$output_dir);
 die "need file_type , either seed or full \n" if (!$file_type);
 
 
+my(@results);
+if ($family) {
+  (@results) = $rdb->query("select rfamseq_acc, species from rfamseq, rfam, rfam_reg_" . $file_type. " where rfam_acc = '$family'  and rfam.auto_rfam  = rfam_reg_" . $file_type. ".auto_rfam and rfam_reg_" .$file_type . ".auto_rfamseq  = rfamseq.auto_rfamseq ");
+} else {
+  (@results) = $rdb->query("select rfamseq_acc, species from rfamseq");
+}
 
-my(@results) = $rdb->query("select rfamseq_acc, species from rfamseq ");
 
 foreach (@results) {
   my($rfamseq_acc, $spec) = @{$_};
@@ -55,7 +60,7 @@ my(@seq, @sec_struc, $conserved, %names);
 my $count = 0;
 my $total_count = 0;
 my $maxname_len = 0;
-my (@arrays, @new_seq);
+my (@arrays, @new_seq, @seqs_match);
 my $length;
 my @blocks;
 my $conserved;
@@ -85,6 +90,7 @@ foreach my $file ( readdir(_WHOLE) ) {
 sub _do_one_family {
 
   my($file, $input_dir, $output_dir, $file_type, $ss_cons_only, $web_file) = @_;
+ # print "FILE: $file, $input_dir, $output_dir, $file_type, $ss_cons_only, $web_file \n";
   @blocks = @arrays = @new_seq = @seq = @sec_struc = ();
   %names = {};
   $count = $total_count = $maxname_len =  $length = $conserved = $maxdisplayname_length = undef;
@@ -116,7 +122,7 @@ sub _do_one_family {
  #  open(_FILE, " $complete_file |") or print "CANNA AS $! \n";
   
   while(<_FILE>) {
-    #print "$_ ";
+   #print "$_ ";
     next if ($_ =~ /\# STOCKHOLM/);
     chop($_);
     #print "$_";
@@ -246,7 +252,7 @@ sub _do_one_family {
 #print "NEW: @colour_map \n";
 
   while($key <= $length) {
-    
+  #  print "key: $key \n";sleep 1;
 #    if(defined($fix_colours{$cons_colour{$key}})) {
       
 #    } elsif ($cons_colour{$key} =~ /[a-z]/) {
@@ -311,7 +317,7 @@ sub _do_one_family {
 
 #  my %cons_last_colour = %cons_colour;
 #  $cons_last_colour{last} = 1;
-
+my $tmp_seq_count = 0;
   
 my $print = 0;
   foreach (@seq) {
@@ -423,113 +429,7 @@ my $print = 0;
 	%colour = undef;
 	%colour = %temp_new_colours;
 
-#	exit(0);
-#print "HERE \n";
-#	print "DONT EQUAL \n";
-#	print "\n\n@col_map\n";
-#	print "@colour_map\n";
-##	exit(0);
 
-
-#	my $key = 0;
-#	my %new_fix_colours;
-##	my @new_colour_map;
-##	my $last;
-#	my $colour_count = 0;
-
-
-##	my (%temp_highest, %temp_lowest);
-
-
-#	  while($key <= $length) {
-	    
-#	    if(defined($new_fix_colours{$colour{$key}})) {
-	      
-#	    } elsif ($colour{$key} =~ /[a-z]/) {
-	      
-#	      $new_fix_colours{$colour{$key}} = $colours[$colour_count];
-	      
-#	      $colour_count++;
-	      
-#	    }
-	    
-	    
-#	    if (defined($colour{$key})) {
-	      
-#	      $colour{$key} = $new_fix_colours{$colour{$key}};
-
-
-	      
-	      
-#	    }
-	    
-#	    $key++;
-	    
-#	  }
-
-
-
-#	my %new_fixed_hash;
-##	print "NEW: @new_colour_map \n";
-#	my $let_count = 0;
-#	foreach my $letter ( @col_map) {
-#	  my($min, $max) = split(/~/, $temp_blo_col[$let_count]);
-#	  my $middle = $max - $min;
-#	  $middle = $middle / 2;
-#	  $middle = $middle + $min;
-#	  print "\nlet: $letter :: min: " . $min. " max: " . $max. " middle: $middle \n";
-#	  my $int_count = 0;
-#	  my $min_let = 99999;
-#	  foreach (@col_blocks) {
-##	    print "EEP : $_ \n";
-#	    my($col_min, $col_max) = split(/~/, $_);
-#	   # if (($min eq $col_min)) { print "EEP ! \n"};
-#	    print "MIN: $min to col min: $col_min ::  MAX: $max to col max: $col_max which is SS_cons : " .$colour_map[$int_count] . " \n";
-#	    if ( ( ( $middle >= $col_min) && ($middle <= $col_max)) || ($min eq $col_min) || ($max eq $col_max) ) {
-
-#	      print "VAL: " . $colour_map[$int_count] ."  to : ".$colours_count{$colour_map[$int_count]} . " \n";
-	   
-
-
-#	    #  $min_let = $colours_count{$colour_map[$int_count]} if ( $colours_count{$colour_map[$int_count]} < $min_let); 
-#	      $new_fixed_hash{$letter} = $colour_map[$int_count];
-#	      print "LETTER: $letter \n";
-
-#	           print "MATCH : " .$new_fixed_hash{$letter} .  " get: " . $colour_map[$int_count] . " :: COUNT: $int_count   MIN: $min_let  :: " .$colours[$min_let] . " \n";
-#	     # $new_fixed_hash{$letter} = $colours[$min_let];
-#	    #  exit(0);
-#	    }
-#	    $int_count++;
-
-#	  }
-
-	  
-	  
-#	  $let_count++;
-#	}
-#	exit(0);
-
-	
-#	my $key = 0;
-
-#	while($key <= $length) {
-	  
-	  
-#	  if (defined($colour{$key})) {
-	    
-#	    $colour{$key} = $new_fixed_hash{$colour{$key}};
-	    
-	    
-#	  }
-	  
-#	  $key++;
-	  
-#	  }
-	
-	
-	
-##	print "\n\n";
-##	exit(0);
 
       }
 
@@ -554,6 +454,7 @@ my $print = 0;
 	if(defined($new_fix_colours{$colour{$key}})) {
 	  
 	} elsif ($colour{$key} =~ /[a-z]/) {
+
 	  
 	  $new_fix_colours{$colour{$key}} = $colours[$colour_count];
 	  
@@ -563,8 +464,13 @@ my $print = 0;
 	
 	
 	if (defined($colour{$key})) {
-	  
-	  $colour{$key} = $new_fix_colours{$colour{$key}};
+	#  print "key: $key \n";sleep 1;
+	#  print "TMP key: $key MATCH: " .$seqs_match[$tmp_seq_count]{$key} . " \n";
+	  if ($seqs_match[$tmp_seq_count]{$key}) {
+	    $colour{$key} = $new_fix_colours{$colour{$key}};# if ($seqs_match[$tmp_seq_count]{$key});
+	  } else {
+	    $colour{$key} = undef;
+	  }
 	  
 	  
 	  
@@ -606,7 +512,7 @@ my $print = 0;
       $count_track = $count_track + 500;
       
     }
-    
+    $tmp_seq_count++;
   }
   #print "SEQ: @new_seq \n";
 
@@ -614,11 +520,15 @@ my $print = 0;
   push @new_seq, $conserved;
   my $file_out;
   if ($web_file) {
-    $file_out = $web_file . "." . $file_count;
+    if ($web_file !~ /htdocs/) {
+      $file_out = $file . ".html";
+    } else {
+      $file_out = $web_file . "." . $file_count;
+    }
+
   } else {
    $file_out = $complete_out . "." . $file_count;
   }
-  #print "WEB TEMP $web_file\n";
   _print_to_file( $count_track, $file_out,$maxdisplayname_length ) if(defined($new_seq[0]));
   
 
@@ -642,32 +552,37 @@ sub _print_to_file {
 
   my ( $seq_name_count, $file_out,$maxdisplayname_length )  = @_;
 #  print "LENGTH: $maxdisplayname_length \n";
- # print "FILE OUT: $file_out \n";
   open(_OUT, ">$file_out") || print "CANNA OPEN $file_out as $! \n";
 #  print _OUT "<html><head><link REL=\"stylesheet\" HREF=\"rfam_align.css\"></head><body>";
   
   my $block_count = 0;
  # print "BLOCKS: @blocks \n";
+  if ($file_out =~ /html/) {
+    print _OUT "<HTML><HEAD><LINK REL=\"stylesheet\" HREF=\"rfam_align.css\"></HEAD><BODY>\n";
+  }
   print _OUT "<pre>";
   foreach my $block (@blocks) {
- #    print "bloock: $block \n";sleep 1;
+#    print "bloock: $block \n";sleep 1;
     my $internal_seq_name_count = $seq_name_count;
     my $seq_count  = 0;
     foreach my $seq (@new_seq) {
       my $parsed_sub;
       #  print "SEQ: $seq \n"; sleep 1;
       my $sub = substr($seq, $block, 79);
-      
+   #   print "SUB: $sub \n";
       my $sub_count = 0;
       
       #  my $tmp_block = $block;
       
       while($sub_count < 79) {
+	#print "$sub_count \n";
 	my $tmp_sub = substr($sub, $sub_count, 1);
 	my $prefix = $sub_count + $block;
+	#print "$seq_count, $prefix \n";
 	if(defined($arrays[$seq_count]{$prefix})) {
+	  
 	  $tmp_sub = "<b ID=\"" .$arrays[$seq_count]{$prefix} . "\">$tmp_sub</b>";
-	  #	print "SUB: $tmp_sub \n";
+	 # 	print "SUB: $tmp_sub \n";
 	} else {
 	  $tmp_sub = "<b>$tmp_sub</b>";
 	}
@@ -733,7 +648,7 @@ sub _print_to_file {
 
   print _OUT "</pre>";
   close(_OUT);
-  system("gzip -f $file_out");
+  system("gzip -f $file_out") if ($file_out !~ /html/);
  # exit(0);
 
 
@@ -750,8 +665,8 @@ sub _print_to_file {
 sub _add_markup {
   
   my($seq, $sec_struc, $print) = @_;
-  # print "\n$seq\n$sec_struc \n" if ($print);
-  my $new_seq, $new_sec_struc;
+ #  print "\n$seq\n$sec_struc \n";
+  my $new_seq, $new_sec_struc, %seqs_ma;
   
   
  
@@ -777,7 +692,7 @@ sub _add_markup {
   my $for_prev = 0;
   my $back_prev = 0;
   my %new_block_track;
-  my (%for_storage, %back_storage);
+  my (%for_storage, %back_storage, %store_sub_seq);
   my $new_block = 0;
   
   
@@ -797,16 +712,16 @@ sub _add_markup {
  # my $blee_back = 0;
 
   my %arrows;
-
+#print "SEQ: $seq\n";
   while($start <= $length) {
     my $sub = substr($sec_struc, $start, 1);
-    
+   
     my $txt_sub =  substr($seq, $start, 1);
  #   print "$txt_sub :$sub :: " if ( ($print) && ($sub =~ /[\>|\<]/)  );
     if ( ($sub eq "<") || ($sub eq "{") ||  ($sub eq "(") ||  ($sub eq "[") ){
   #    $blee_for++;
       $arrows{$start} = "for";
-
+      $store_sub_seq{$start} = $txt_sub;
       $count++ if(!$back_prev);
       $for_storage{$count} = $start;
       #	print "$sub: $start :: count: $count :: stor: " .$for_storage{$count} .  " <BR>";
@@ -843,7 +758,12 @@ sub _add_markup {
    #   print " arr: " .  $arr[$for_storage{$count}]. " IS: " . $txt_arr[$for_storage{$count}] . "  " if ($print);
 
       $seq_colour{$for_storage{$count}} = $colours[$new_block];
-      #	print "SEQ: " .$for_storage{$count} . " eq : " .$seq_colour{$for_storage{$count}} . " \n";
+    #  print "SEQ COUNT > : " .$for_storage{$count} . " , < $start  eq : " .$seq_colour{$for_storage{$count}} . " \n";
+   #   print "FOR SEQ: " .$store_sub_seq{$for_storage{$count}} . " -> $txt_sub \n";
+      my $nuc_mat = check_nucs_match($store_sub_seq{$for_storage{$count}} . "~". $txt_sub);
+
+      $seqs_ma{$start} = $nuc_mat;
+      $seqs_ma{$for_storage{$count}} = $nuc_mat;
       
       $seq_colour{$start} = $colours[$new_block];
       
@@ -885,7 +805,7 @@ sub _add_markup {
     
   }
   
-  
+  push @seqs_match, \%seqs_ma;
   
   my $tmp;
   foreach (@arr) {
@@ -903,7 +823,7 @@ sub _add_markup {
     
     $tmp = $tmp . "$_";
   }
-
+#  print "TMP: $tmp \n";
   $new_seq = $tmp;
   
 #  print "FOR:  $blee_for  BACK: $blee_back \n\n";
@@ -941,6 +861,12 @@ sub _add_markup {
 
   push @blocks, $num_start . "~" . $last_num if ($num_start);
 
+#  foreach (@col_blocks) {
+#    print "$_ \n";
+#  }
+#  foreach (sort keys %seq_colour) {
+#    print "$_ -> " . $seq_colour{$_}. " \n";
+#  }
   #print "num_start: $num_start :: last : $last_num \n\n";
   #print "BLOCKS: \n@blocks \n\n";
  # print "COL: \n@col_blocks\n";
@@ -948,5 +874,22 @@ sub _add_markup {
 # exit(0);
 #print "NEW: $new_seq \n";
 #print "blocks : @col_blocks \n";
+
   return $new_seq, \@blocks, \@col_blocks,  %seq_colour;
+}
+
+
+sub check_nucs_match {
+  my($both_nuc) = @_;
+  my(%match);
+  $match{'A~U'} = "match";
+  $match{'U~A'} = "match";
+  $match{'C~G'} = "match";
+  $match{'G~C'} = "match";
+  $match{'U~G'} = "match";
+  $match{'G~U'} = "match";
+  if (defined($match{$both_nuc})) {
+    return "match";
+  }
+
 }
