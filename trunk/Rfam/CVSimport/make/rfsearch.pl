@@ -100,12 +100,16 @@ if( -s "DESC" ) {
 	    $buildopts = $1;
 	};
 	/^BM\s+cmsearch.*-local/ and do {
-	    $local = 1 unless $global;
-	    warn "Using --local mode as specified in DESC file\n";
+	    unless( $global ) {
+		$local = 1;
+		warn "Using --local mode as specified in DESC file\n";
+	    }
 	};
 	/^BM\s+cmsearch.*-W\s+(\d+)/ and do {
-	    $window = $1 unless $window;
-	    warn "No window size specified - using $window from DESC file\n";
+	    unless( $window ) {
+		$window = $1;
+		warn "No window size specified - using $window from DESC file\n";
+	    }
 	};
     }
 }
@@ -187,6 +191,7 @@ while( @seqids ) {
     open( FA, "> $$.minidb.$i" ) or die;
     foreach my $seqid ( @tmpids ) {
 	foreach my $reg ( @{ $seqlist{ $seqid } } ) {
+#	    print $seqid, " ", $reg->{'start'}, " ", $reg->{'end'}, "\n";
 #	    my $start = $reg->{'start'} - $window;
 #	    my $end   = $reg->{'end'}   + $window;
 #	    $start = 1 if( $start < 1 );
@@ -271,6 +276,7 @@ sub parse_blast {
 	    $name = $1;
 	    while( my $hsp = $sbjct->nextHSP ) {
 		my( $start, $end ) = ( $hsp->subject->start, $hsp->subject->end );
+#		print "PARSE $name $start $end\n";
 		# if reverse strand then swap start and end
 		if( $end < $start ) {
 		    ( $start, $end ) = ( $end, $start );
