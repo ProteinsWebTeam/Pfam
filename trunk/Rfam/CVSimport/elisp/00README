@@ -14,6 +14,17 @@ written primarily by and for curators of the Rfam database
 things that available multiple sequence alignment editors don't allow!
 
 
+Requirements
+------------
+
+   - ralee-mode.tar.gz
+	(http://www.sanger.ac.uk/Users/sgj/code/ralee-mode.tar.gz)
+   - emacs 21 (should also work with xemacs 21)
+	(http://www.gnu.org/software/emacs/emacs.html)
+   - some RNA alignments that you need to view/edit
+        (http://www.sanger.ac.uk/Software/Rfam/)
+
+
 Installation
 ------------
 
