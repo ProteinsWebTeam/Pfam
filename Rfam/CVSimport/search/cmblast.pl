@@ -81,7 +81,7 @@ not $blastcut  and $blastcut  = 10;
 
 my $model_dir    = "$blast_dir";
 my $thr_file     = "$blast_dir/Rfam.thr";
-my $blastcmd     = "/usr/local/ensembl/bin/blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F > $$.blast";
+my $blastcmd     = "/usr/local/ensembl/bin/blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F";
 
 # read threshold file
 my %thr;
@@ -104,15 +104,15 @@ while( my $seq = $in->next_seq() ) {
 
 my $error;
 
-system "$blastcmd" and die;
-my %results = %{ &parse_blast( "$$.blast" ) };
+system "$blastcmd > /tmp/$$.blast" and die;
+my %results = %{ &parse_blast( "/tmp/$$.blast" ) };
 foreach my $acc ( keys %results ) {
     if( $family_acc ) {
 	next unless( $family_acc eq $acc ); # do single family if $family_acc
     }
 
     my $id = $thr{ $acc } -> { 'id' };
-    open( O, ">$$.seq" ) or die;
+    open( O, ">/tmp/$$.seq" ) or die;
     my $out = Bio::SeqIO -> new( -fh => \*O, '-format' => 'Fasta' );
 	
     foreach my $seqid ( keys %{ $results{ $acc } } ) {
@@ -130,7 +130,7 @@ foreach my $acc ( keys %results ) {
 
     close O;
 
-    die if( not -s "$$.seq" );
+    die if( not -s "/tmp/$$.seq" );
 
     my $options = "-W ".$thr{$acc}{'win'};
     if( $global ) {
@@ -142,9 +142,9 @@ foreach my $acc ( keys %results ) {
 
 #    print "$acc options: $options  cut ", $thr{$acc}->{'thr'}, "\n";
 
-    system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and do {
+    system "cmsearch $options $model_dir/$acc.cm /tmp/$$.seq > /tmp/$$.res" and do {
 	warn "$acc search failed";
-	open( TMP, "$$.seq" ) or die;
+	open( TMP, "/tmp/$$.seq" ) or die;
 	while( <TMP> ) {
 	    if( /^\>/ ) {
 		warn "Sequence:\n$_\n";
@@ -154,7 +154,7 @@ foreach my $acc ( keys %results ) {
 	$error ++;
     };
     
-    open( RES, "$$.res" ) or die;
+    open( RES, "/tmp/$$.res" ) or die;
     my $res = new CMResults;
     $res -> parse_infernal( \*RES );
     $res = $res -> remove_overlaps();
@@ -171,7 +171,7 @@ foreach my $acc ( keys %results ) {
 }
 
 unless( $noclean ) {
-    unlink( "$$.res", "$$.seq", "$$.blast" ) or die;
+    unlink( "/tmp/$$.res", "/tmp/$$.seq", "/tmp/$$.blast" ) or die;
 }
 
 if( $error ) {
