@@ -534,7 +534,7 @@ sub update_rfam_reg_full {
 	 }
 
 	 if (not defined $stat) {
-	   $stat = $dbh->prepare( $self->__insert_sql( 'rfam_reg_full', 5));
+	   $stat = $dbh->prepare( $self->__insert_sql( 'rfam_reg_full', 6));
 	 }
 	 eval {
 	   $stat->execute($rdb_auto_num,
