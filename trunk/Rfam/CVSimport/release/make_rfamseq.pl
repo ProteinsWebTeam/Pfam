@@ -15,13 +15,14 @@ use strict;
 use Getopt::Long;
 use Bio::SeqIO;
 
-my $verbose;
-&GetOptions( "v" => \$verbose );
+my( $verbose, @filelist );
+&GetOptions( "v"    => \$verbose,
+	     "f=s@" => \@filelist );
 
 my $dir = shift;
 $dir = "." if not $dir;
 chdir "$dir" or die "can't cd to $dir";
-my @filelist = glob( "*.dat" );
+@filelist = glob( "*.dat" ) unless( @filelist );
 
 # convert embl format to fasta
 # we want to be keyed off accession rather than id so change disply_id
@@ -32,7 +33,7 @@ foreach my $file ( @filelist ) {
     my $out = Bio::SeqIO->new( -file => ">$root.fa", '-format' => 'Fasta' );
     while ( my $seq = $in->next_seq() ) {
 	print STDERR $seq->accession, "\n" if $verbose;
-	$seq -> display_id( $seq -> accession );
+	$seq -> display_id( $seq->accession.".".$seq->seq_version );
 	$out -> write_seq( $seq );
     }
 }
