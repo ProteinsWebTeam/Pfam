@@ -19,15 +19,41 @@ use Bio::SeqIO;
 use CMResults;
 
 my $arch = `uname`;
-if( $arch =~ /linux/i ) {
+if( $arch =~ /linux/i ) {     # if we're running on the blades
     $ENV{'PATH'} = "/pfam/db/Rfam/bin/linux:$ENV{'PATH'}"; # push linux binaries onto front of path
 }
 
-my( $local, $blast_dir );
+my( $local, $blast_dir, $help );
 &GetOptions( "local" => \$local,
-	     "db=s"  => \$blast_dir );
+	     "db=s"  => \$blast_dir,
+	     "h"     => \$help );
 
 my $fafile       = shift;
+
+if( $help or not $fafile ) {
+        print STDERR <<EOF;
+
+$0: search a DNA fasta file against Rfam
+
+Usage: $0 <options> fasta_file
+    Options
+        -h            : show this help
+
+    Expert options
+	-local        : perform local mode search
+	-db           : specify directory location of Rfam database
+        
+    Output format is:
+        <seq id> <seq start> <seq end> <rfam acc> <model start> <model end> <bit score> <rfam id>
+
+    This search can be very slow for large RNA gene-rich DNA sequences.
+    You should probably try different size chunks to find reasonable 
+    search times.  As a guide, finding 12 tRNAs in a 2kb chunk of 
+    sequence seems to take 2-3 mins.
+
+EOF
+exit(1);
+}
 
 not $blast_dir and $blast_dir = "/pfam/db/Rfam/BLASTDB";
 #my $blast2_bin   = "/usr/local/ensembl/bin";
