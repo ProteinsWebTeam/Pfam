@@ -14,7 +14,10 @@ my %TP_hash = (
 		    'antisense' => 1,
 		    'snRNA' => {
 			'splicing' => 1,
-			'guide' => 1
+			'guide' => {
+				'C/D-box' => 1,
+				'H/ACA-box' => 1,
+				}
 			}
 		},
 		'Intron' => 1,
@@ -182,6 +185,12 @@ sub desc_is_OK {
 		}
 		elsif ($i == 3){
 		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}){
+			print "$family: Invalid TP line: $TP\n";
+			$error = 1;
+		    }
+		}
+		elsif ($i == 4){
+		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}->{$TPline[3]}){
 			print "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
