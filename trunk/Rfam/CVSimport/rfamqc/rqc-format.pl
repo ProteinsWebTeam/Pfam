@@ -5,24 +5,24 @@ use Rfam;
 
 my $family = shift;
 #Hash containing valid TP lines:
-my %TP_hash = (
+my %TP_hash = (	
 		'Gene' => {
-			     'tRNA' => 1,
-                             'rRNA' => 1,
-			     'miRNA' =>	1,
-			     'ribozyme' => 1,
-			     'antisense' => 1,
-			     'snRNA' => {
-			     		   'splicing' => 1,
-			                   'guide' => 1
-					  }
-			    },
+		    'tRNA' => 1,
+		    'rRNA' => 1,
+		    'miRNA' =>	1,
+		    'ribozyme' => 1,
+		    'antisense' => 1,
+		    'snRNA' => {
+			'splicing' => 1,
+			'guide' => 1
+			}
+		},
 		'Intron' => 1,
 		'Cis-reg' => {
-		                'IRES' => 1,
-		                'riboswitch' => 1
-			       }
-		 );
+		    'IRES' => 1,
+		    'riboswitch' => 1
+		    }
+		);
 
 my $error;
 if( !&check_timestamps( $family ) ) {
@@ -158,32 +158,32 @@ sub desc_is_OK {
 		$fields{$&}++;
 		my $TP;
 		my $i =0;
-			if (/TP   (.+)/){
-			$TP = "$1 ";
-			}
-			my @TPline = split /; /, $TP;
-			foreach my $element (@TPline){
-			$i++;
-			}
-			if ($i == 1){
-				unless (exists $TP_hash{$TPline[0]}){
-				print "Invalid TP line: $TP\n";
-				$error = 1;
-				}
-			}
-			
-			elsif ($i == 2){
-				unless (exists $TP_hash{$TPline[0]}->{$TPline[1]} ){
-				print "Invalid TP line: $TP\n";
-				$error = 1;
-				}
-			}
-			elsif ($i == 3){
-				unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}){
-				print "Invalid TP line: $TP\n";
-				$error = 1;
-				}
-			}
+		if (/^TP   (\w+.*)/){
+		    $TP = "$1 ";
+		}
+		my @TPline = split /; /, $TP;
+		foreach my $element (@TPline){
+		    $i++;
+		}
+		if ($i == 1){
+		    unless (exists $TP_hash{$TPline[0]}){
+			print "Invalid TP line: $TP\n";
+			$error = 1;
+		    }
+		}
+		
+		elsif ($i == 2){
+		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]} ){
+			print "Invalid TP line: $TP\n";
+			$error = 1;
+		    }
+		}
+		elsif ($i == 3){
+		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}){
+			print "Invalid TP line: $TP\n";
+			$error = 1;
+		    }
+		}
 
                 last;
 	    };
@@ -302,6 +302,10 @@ sub desc_is_OK {
     }
     if ($fields{TP} != 1){
         warn "$family: There are [$fields{TP}] TP lines. SERIOUS ERROR.\n";
+        $error = 1;
+    }
+    if ($fields{BM} != 2){
+        warn "$family: There are [$fields{BM}] BM lines. SERIOUS ERROR.\n";
         $error = 1;
     }
     if ($fields{DE} > 1){
