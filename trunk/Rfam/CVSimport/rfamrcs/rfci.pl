@@ -101,12 +101,10 @@ my $db = Rfam::default_db();
 my $oldid = $db->acc2id( $acc );
 
 unless( $oldid eq $id ) {              # change the accmap
-    my $ret = &RfamRCS::get_accession_lock();
 
-    if( !($ret =~ /^success/ ) ) {
+    if( my $ret = $db->_get_lock() ) {
 	die "rfci: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
     }
-
     $db->_move_accession( $acc, $id );
     $db->_unlock();
 }
