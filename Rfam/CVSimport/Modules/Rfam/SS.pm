@@ -55,6 +55,51 @@ sub eachPair {
 }
 
 
+sub get_knotted {
+    my $self = shift;
+    my @letters = qw( - A B C D E F G H I J );
+    my $k = 0;
+
+    foreach my $pair ( sort{ $a->right - $a->left <=> $b->right - $b->left } 
+		       #sort{ $a->left <=> $b->left }
+		       $self->eachPair() ) {
+	next if $pair->knot();    # ignore if we're already a knot
+	my $j = 0;
+	my @pairs;
+	for( my $i=$pair->left+1; $i<$pair->right; $i++ ) {
+	    # loop over all pairs with base between left and right
+	    if( my $p = $self->getPairByCol($i) ) {
+		next if $p->knot();  # ignore if we're a knot
+		$j++ if( $p->left == $i );
+		$j-- if( $p->right == $i );
+		push( @pairs, $p );  # store the pair
+	    }
+	}
+
+	$k++ if( $j != 0 );
+
+	while( $j != 0 ) {      # something is pseudoknotted
+	    foreach my $p ( @pairs ) {
+		if( $j>0 ) {    # we have too many opens
+		    # if pair closes here then removing it won't help
+		    next if( $p->right > $pair->left and
+			     $p->right < $pair->right );
+		    $j --;
+		}
+		else {          # we have too many closes
+		    # if pair opens here then removing it won't help
+		    next if( $p->left > $pair->left and
+			     $p->left < $pair->right );
+		    $j ++;
+		}
+
+		$p->knot( $letters[$k] );   # clasify this pair as a knot
+	    }
+	}
+    }
+}
+
+
 sub getInfernalString {
     my $self = shift;
     my @ary;
