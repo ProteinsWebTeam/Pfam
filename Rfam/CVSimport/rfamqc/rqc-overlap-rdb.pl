@@ -121,8 +121,8 @@ sub compare_overlap_to_current {
 
     my %hash;
     foreach my $seq ( $full->each_seq(), $seed->each_seq() ) {
-	my( $emblacc ) = $seq->id() =~ /^(\S+)\.\d+/;
-	$hash{$emblacc} .= sprintf("%d-%d:",$seq->start(),$seq->end());
+	push( @{ $hash{$seq->id()} }, { 'start' => $seq->start(),
+					'end'   => $seq->end() } );
     }
 
     my @arry;
@@ -130,48 +130,43 @@ sub compare_overlap_to_current {
     my @keys = keys %hash;
     my $rdb = Rfam::switchover_rdb();
 
-    my $count;
+    my $count = 0;
 
-
-	foreach my $seq ($rdb->get_AnnotSeqs(\@keys, ['seed', 'full'])) {
-	  my @current_regs = sort { $a->from <=> $b->from } ($seq->eachAnnotatedRegion);
-	  foreach my $current_reg (@current_regs) {
-	    $_ = $hash{$current_reg->rfamseq_id()};
-	    chop; # trailing :
-		my @startstop = split(/:/);
-		foreach my $startstop ( @startstop) {
-		    my( $start, $stop ) = split( /-/, $startstop );
-		    my( $s1, $s2, $e1, $e2 );
-
-		    if( $start > $stop ) {
-			( $s1, $e1 ) = ( $stop, $start );
-		    }
-		    else {
-			( $s1, $e1 ) = ( $start, $stop );
-		    }
-
-		    if( $current_reg->from > $current_reg->to ) {
-			( $s2, $e2 ) = ( $current_reg->to, $current_reg->from );
-		    }
-		    else {
-			( $s2, $e2 ) = ( $current_reg->from, $current_reg->to );
-		    }
-
-		    if( ( $s1 >= $s2 and $e1 <= $e2 ) or 
-		        ( $s1 <= $e2 and $e1 >= $e2 ) or 
-		        ( $s1 <= $s2 and $e1 >= $s2 ) ) {
-			unless( $ignore{$current_reg->accession} ) {
-			    push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),$dir,$start,$stop, $current_reg->accession() , $current_reg->from(),$current_reg->to()));
-			    $count ++;
-			}
+    foreach my $seq ( $rdb->get_AnnotSeqs(\@keys, ['seed', 'full']) ) {
+	my @current_regs = sort { $a->from <=> $b->from } ($seq->eachAnnotatedRegion);
+	foreach my $current_reg (@current_regs) {
+	    foreach my $startstop ( @{ $hash{$current_reg->rfamseq_id()} } ) {
+		my( $s1, $s2, $e1, $e2 );
+		
+		if( $startstop->{'start'} > $startstop->{'end'} ) {
+		    ( $s1, $e1 ) = ( $startstop->{'end'}, $startstop->{'start'} );
+		}
+		else {
+		    ( $s1, $e1 ) = ( $startstop->{'start'}, $startstop->{'end'} );
+		}
+		
+		if( $current_reg->from > $current_reg->to ) {
+		    ( $s2, $e2 ) = ( $current_reg->to, $current_reg->from );
+		}
+		else {
+		    ( $s2, $e2 ) = ( $current_reg->from, $current_reg->to );
+		}
+		
+		if( ( $s1 >= $s2 and $e1 <= $e2 ) or 
+		    ( $s1 <= $e2 and $e1 >= $e2 ) or 
+		    ( $s1 <= $s2 and $e1 >= $s2 ) ) {
+		    unless( $ignore{$current_reg->accession} ) {
+			push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),$dir,$start,$stop, $current_reg->accession() , $current_reg->from(),$current_reg->to()));
+			$count ++;
 		    }
 		}
 	    }
 	}
-	if( $report ) {
-	    print $report sprintf("Done Model %-25s - Found %d overlaps\n",$dir,$count);
-	}
-
+    }
+    if( $report ) {
+	print $report sprintf("Done Model %-25s - Found %d overlaps\n",$dir,$count);
+    }
+    
     return @arry;
 }
 
