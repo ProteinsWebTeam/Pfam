@@ -73,7 +73,7 @@ unless( $already ) {
 my $res = $allres -> remove_overlaps();
 
 if( $list ) {
-    my $chunksize = 1000;
+    my $chunksize = 100;
     my $desclength = 35;
     my %desc;
     $thr = 0 if( not defined $thr );
