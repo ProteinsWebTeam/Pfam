@@ -54,9 +54,16 @@ This module has a slightly unusual method-naming convention:
 
 package Rfam::DB::DB_RDB;
 
+BEGIN {
+    # DBI isn't always available
+    # if it isn't then we don't want to bomb
+    if( eval "use DBI" ) {
+        warn "DBI isn't available. Some Rfam functionality won't work\n";
+    }
+}
+
 use vars qw(@ISA);
 use strict;
-use DBI;
 use FileHandle;
 
 use Rfam::DB::RfamRDB;
@@ -185,7 +192,7 @@ sub get_AnnotSeqs {
 	$annseq->id( $sv );
 
 	if (defined $st_pfamA_reg_full) {
-	    eval {
+ 	    eval {
 		$st_pfamA_reg_full->execute($sv);
 		while ( my($rfamseq_sv, $rfam_acc, $rfam_id, $auto_rfam, $seq_start, $seq_end,$desc, $bits_score)
 			= $st_pfamA_reg_full->fetchrow) {
