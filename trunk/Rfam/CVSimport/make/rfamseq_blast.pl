@@ -102,6 +102,7 @@ foreach my $db ( @blastdb ) {
 		my $writer = new Bio::SearchIO::Writer::TextResultWriter();
 		my $out = new Bio::SearchIO( -writer => $writer );
 		$out->write_result( $result );
+		next;
 	    }
 	    while( my $hit = $result->next_hit() ) {
 		while( my $hsp = $hit->next_hsp() ) {
@@ -128,23 +129,28 @@ foreach my $db ( @blastdb ) {
 		
 		# Merge overlapping regions - because hsps are sorted by start 
 		# we only need to check if it overlaps with the last one
-		if( scalar(@se) and 
-		    $start <= $se[ scalar(@se)-1 ]->{'end'} and 
-		    $end   >= $se[ scalar(@se)-1 ]->{'end'} ) {
-		    
-		    $se[ scalar(@se)-1 ]->{'end'} = $end;
+		if( scalar(@se) and $start <= $se[ scalar(@se)-1 ]->{'end'} ) {	 
+                    # we have an overlap
+		    if( $end >= $se[ scalar(@se)-1 ]->{'end'} ) {
+                        # extend the end
+			$se[ scalar(@se)-1 ]->{'end'} = $end;
+#			print STDERR "$id/$start-$end overlap\n";
+		    }
+		    else {
+			# ignore
+#			print STDERR "$id/$start-$end unnecessary\n";
+		    }
 		}
 		else {
 		    push( @se, { 'start' => $start, 'end' => $end } );
+#		    print STDERR "$id/$start-$end new\n";
 		}
 	    }
 	    
+	    my $faout = Bio::SeqIO -> new( '-format' => 'Fasta' );
 	    foreach my $se ( @se ) {
-		my $faout = Bio::SeqIO -> new( '-format' => 'Fasta' );
-		foreach my $se ( @se ) {
-		    my $seq = &get_seq( $id, $se->{'start'}, $se->{'end'} );
-		    $faout -> write_seq( $seq );
-		}
+		my $seq = &get_seq( $id, $se->{'start'}, $se->{'end'} );
+		$faout -> write_seq( $seq );
 	    }
 	}
     }
