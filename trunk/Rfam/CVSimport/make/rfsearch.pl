@@ -5,8 +5,6 @@ use Getopt::Long;
 use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Tools::BPlite;
 use Bio::Index::Fasta;
-use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
-use Bio::SimpleAlign;
 use lib '/pfam/db/Rfam/scripts/Modules';
 use Rfam;
 
@@ -23,9 +21,10 @@ my( $quiet,
     $blast_eval,
     $inxfile,
     $local,
+    $global,
     $help );
 
-# this will only run on linux at the moment
+# -queue must be linux machines at the moment
 
 #my $arch = `uname`;
 #if( $arch =~ /linux/i ) {
@@ -49,6 +48,7 @@ Options:       -h              show this help
                -queue <queue>  use lsf queue <queue> for the cmsearch step
                -bqueue <queue> use lsf queue <queue> for the blast jobs
 	       -local          run cmsearch with --local option
+	       -global         run cmsearch in global mode (override DESC cmsearch command)
 	       -window <n>     window size <n> basepairs
 
 EOF
@@ -65,14 +65,11 @@ EOF
 	     "queue=s"  => \$queue,
 	     "bqueue=s" => \$bqueue,
 	     "local"    => \$local,
+	     "global"   => \$global,
              "window=s" => \$window,
 	     "h"        => \$help );
 
 
-# defaults
-$blast_eval = 10  unless $blast_eval;
-$window     = 100 unless $window;
-$cpus       = 1   unless $cpus;
 $inxfile    = $rfamseq_current_inx unless $inxfile;
 my $blastdbdir = $rfamseq_current_dir;
 
@@ -93,11 +90,35 @@ if( $cpus > 1 and not $queue ) {
     exit(1);
 }
 
+my $buildopts;
+if( -s "DESC" ) {
+    open( D, "DESC" ) or die "DESC exists but I can't open it";
+    while( <D> ) {
+	/^BM\s+cmbuild\s+(.*)\s*/ and do {
+	    $buildopts = $1;
+	};
+	/^BM\s+cmsearch.*-local/ and do {
+	    $local = 1 unless $global;
+	};
+	/^BM\s+cmsearch.*-W\s+(\d+)/ and do {
+	    $window = $1 unless $window;
+	    warn "No window size specified - using $window from DESC file\n";
+	};
+    }
+}
+
+# defaults
+$blast_eval = 10  unless $blast_eval;
+$window     = 100 unless $window;
+$cpus       = 1   unless $cpus;
+$buildopts  = "--rf CM SEED" unless $buildopts;
+
 my $fafile = "FA";
-system "sreformat fasta SEED > $fafile" and die "can't convert SEED to FA";
-system "cmbuild -F --rf CM SEED" and die "can't build CM from SEED";
 
 unless( $blast_outfile ) {
+    system "sreformat fasta SEED > $fafile" and die "can't convert SEED to FA";
+    system "/pfam/db/Rfam/bin/cmbuild -F $buildopts" and die "can't build CM from SEED";
+
     my @blastdbs;
     if( $blastdb ) {
 	push( @blastdbs, $blastdb );
