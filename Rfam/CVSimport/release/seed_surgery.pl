@@ -21,6 +21,8 @@ use Getopt::Long;
 use Bio::SeqIO;
 use Bio::Index::Fasta;
 use Bio::SearchIO;
+use Bio::Factory::EMBOSS;
+use Bio::AlignIO;
 use Rfam;
 use Rfam::RfamAlign;
 
@@ -87,7 +89,7 @@ foreach my $acc ( @list ) {
 	}
 	
 	if( my $change = &t_to_u( $seq ) ) {
-	    print STDERR $seq->id, " T_TO_U\n";
+	    print STDERR $seq->id, " T_TO_U\n" if $verbose;
 	    $cosmetic_change = 1;
 	}
 
@@ -116,11 +118,12 @@ foreach my $acc ( @list ) {
 		}
 	    }
 	    else {   # the sequence has changed (hopefully only slightly)
+#		my $aln = align_to_new( $seq );
 		print STDERR $seq->id, " SEQ_CHANGE\n" if $verbose;
 	    }
 	}
 	else {       # we've got to map to a new accession
-	    print STDERR $seq->id, " DELETE\n";
+	    print STDERR $seq->id, " DELETE\n" if $verbose;
 	    print STDERR "\n" if $verbose;
 	    $seq_change = 1;
 	    next;
@@ -237,6 +240,27 @@ sub subseq_is_unchanged {
 	return undef;
     }
 }
+
+
+sub align_to_new {
+    my $seq = shift;
+    my $fullseq = &get_seq( $seq->accession_number() );
+
+    open( FA, ">$$.fa" ) or die;
+    my $faout = Bio::SeqIO->new( '-fh'     => \*FA,
+				 '-format' => 'Fasta' );
+    $faout -> write_seq( $seq );
+    open( FA, ">$$.db" ) or die;
+    $faout -> write_seq( $fullseq );
+    close FA;
+
+    system "water $$.db $$.fa -gapopen 5 -gapextend 2 -outfile $$.out > /dev/null 2>&1" and die;
+    my $alnin  = Bio::AlignIO -> new( -format => 'emboss', 
+				      -file   => "$$.out" ); 
+    my $aln    = $alnin->next_aln();
+    return $aln;
+}
+
 
 ##############
 

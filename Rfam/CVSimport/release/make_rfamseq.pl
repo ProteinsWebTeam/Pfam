@@ -3,13 +3,10 @@
 # first download all required .dat files to directory
 # then run this!
 
-BEGIN {
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-	?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
 
-use lib $bioperl_dir;
+##########
+# before next release change this to include missing genome entries
+##########
 
 use strict;
 use Getopt::Long;
