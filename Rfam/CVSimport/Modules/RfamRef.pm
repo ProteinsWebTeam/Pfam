@@ -68,7 +68,7 @@ sub get_ref_by_pubmed {
 	my $tag;
 	foreach ( split( /\n/, $res->content  ) ) {
 	    s/\r//g;    # remove dos new lines
-	    print "$_\n";
+#	    print "$_\n";
 	    if( /^(\w+)\s*-\s+(.*)$/ or /^<\S+><\S+>(\w+)\s*- (.*)$/ ) {
 		$tag = $1;
 		if( ! $data{ $tag } ) {
