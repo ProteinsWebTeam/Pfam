@@ -545,6 +545,7 @@ sub write_stockholm {
     $block = $self -> length if( not $block );
 
     my $maxn = $self->maxdisplayname_length() + 2;
+    $maxn = 15 if( $maxn < 15 );
     my $iter = $self->length/$block;
     print $out "\# STOCKHOLM 1.0\n\n";
 
@@ -561,6 +562,81 @@ sub write_stockholm {
 	    my $namestr = $self->displayname($seq->get_nse());
 	    my $subseq = substr( $seq->seq, $i*$block, $block );
 	    print $out sprintf( "%-".$maxn."s  %s\n", $namestr, $subseq );
+	}
+	if( $self->match_states() ) {
+	    my $submatch = substr( $self->match_states(), $i*$block, $block );
+	    print $out sprintf( "%-".$maxn."s  %s\n", "\#=GC RF", $submatch );
+	}
+	if( $ss_str ) {
+	    my $subcons  = substr( $ss_str, $i*$block, $block );
+	    print $out sprintf( "%-".$maxn."s  %s\n", "\#=GC SS_cons", $subcons );
+	}
+	print $out "\n" unless( ($i+1) >= $iter );
+    }
+    print $out "\/\/\n";
+}
+
+sub write_sparse {
+    # sparse format (as named by sgj :) is the format where the first
+    # sequence is shown in full and then all other sequences are only
+    # shown as differences from the first.  "." means we're identical,
+    # "-" means a gap
+    my $self  = shift;
+    my $out   = shift;
+    my $refid = shift;
+    my $block = shift;
+    $block = 50 if( not defined $block );
+    $block = $self -> length if( not $block );
+
+    my $maxn = $self->maxdisplayname_length() + 2;
+    $maxn = 15 if( $maxn < 15 );
+    my $iter = $self->length/$block;
+    print $out "\# RFAM SPARSE FORMAT\n\n";
+
+    my $ss_str;
+    eval {
+	if( $self->ss_cons ) {
+	    $self->ss_cons->length( $self->length );
+	    $ss_str = $self->ss_cons->getInfernalString();
+	}
+    };
+	
+    for( my $i=0; $i < $iter; $i++ ) {
+	my $refseq;
+	if( $refid ) {
+	    ($refseq) = $self->each_seq_with_id( $refid );
+	}
+	if( not $refseq ) {
+	    ($refseq) = $self->each_seq;
+	}
+	my @refseq = split( //, substr( $refseq->seq, $i*$block, $block ) );
+
+	print $out sprintf( "%-".$maxn."s  %s\n", 
+			    $self->displayname($refseq->get_nse()), 
+			    join( '', @refseq ) );
+
+	foreach my $seq ( $self->each_seq() ) {
+	    # skip if this is our reference sequence
+	    next if( $seq->get_nse eq $refseq->get_nse );
+
+	    my $subseq = substr( $seq->seq, $i*$block, $block );
+	    my @subseq = split( //, $subseq );
+	    my @newseq;
+	    for( my $j=0; $j<@refseq; $j++ ) {
+		if( $refseq[$j] eq $subseq[$j] ) {
+		    push( @newseq, "." );
+		}
+		elsif( $refseq[$j] =~ /\w/ and $subseq[$j] !~ /\w/ ) {
+		    push( @newseq, "-" );
+		}
+		else {
+		    push( @newseq, $subseq[$j] );
+		}
+	    }
+
+	    print $out sprintf( "%-".$maxn."s  %s\n", 
+				$self->displayname($seq->get_nse()), 
+				join( '', @newseq ) );
 	}
 	if( $self->match_states() ) {
 	    my $submatch = substr( $self->match_states(), $i*$block, $block );
