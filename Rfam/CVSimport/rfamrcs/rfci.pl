@@ -128,6 +128,22 @@ $@ and do {
 };
 print STDERR "RDB update succesful\n";
 
-#&RfamRCS::make_view_files($acc); 
+&RfamRCS::make_view_files($acc); 
+
+print STDERR "Generating the coloured mark-up\n";
+
+### Do the FULL Alignment
+system("cp -f ./$acc/ALIGN ./$acc/$acc.full");
+system("mv -f  ./$acc/$acc.full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/");
+system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
+
+system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only --family $acc ");
+
+### Do the SEED Alignment
+system("cp -f ./$acc/SEED  ./$acc/$acc.full");
+system("mv -f  ./$acc/$acc.full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/");
+system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
+
+system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
 
 print STDERR "\n\nChecked in family [$acc]\n";
