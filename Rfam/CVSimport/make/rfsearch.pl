@@ -29,6 +29,7 @@ my( $quiet,
     $local,
     $global,
     $cpus,
+    $blast,
     $help );
 
 
@@ -59,6 +60,7 @@ EOF
 	     "cpu=s"    => \$cpus,
              "w=s"      => \$window,
 	     "nobuild"  => \$nobuild,
+	     "blast=s"  => \$blast,
 	     "h"        => \$help );
 
 if( $help or not -e "SEED" ) {
@@ -112,23 +114,28 @@ print STDERR "done\n";
 
 print STDERR "Queuing up blast jobs ...\n";
 my $i = 0;
-foreach my $blastdb ( glob( "$blastdbdir/*.fa" ) ) {
-    $i ++;
-    my( $div ) = $blastdb =~ /\/([a-z0-9]+)\.fa$/;
+my $fh = new IO::File;
+
+unless( $blast ) {
+    foreach my $blastdb ( glob( "$blastdbdir/*.fa" ) ) {
+	$i ++;
+	my( $div ) = $blastdb =~ /\/([a-z0-9]+)\.fa$/;
+	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\" -f \"$$.blast.$i < /tmp/$$.blast.$i\"") or die "$!";
+	$fh -> print("blastall -b 100000 -v 100000 -p blastn -i $fafile -e $blast_eval -F F -W 7 -d $blastdb > /tmp/$$.blast.$i\n");
+	$fh -> close;
+    }
+
+    print STDERR "Waiting for blast jobs ...\n";
     my $fh = new IO::File;
-    $fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
-    $fh -> print("blastall -p blastn -i $fafile -e $blast_eval -F F -W 7 -d $blastdb > $$.blast.$i\n");
+    $fh -> open("| bsub -I -q pfam_fast -m pfam -w\'done(rf$$)\'") or die "$!";
+    $fh -> print("cat $$.blast.* >> $$.blastall\n");
     $fh -> close;
 }
 
-print STDERR "Waiting for blast jobs ...\n";
-my $fh = new IO::File;
-$fh -> open("| bsub -I -q pfam_fast -m pfam -w\'done(rf$$)\'") or die "$!";
-$fh -> print("cat $$.blast.* >> $$.blastall\n");
-$fh -> close;
+$blast = "$$.blastall" if( not $blast );
 
 print STDERR "parsing blast output ... ";
-my %seqlist = %{ &parse_blast( "$$.blastall" ) };
+my %seqlist = %{ &parse_blast( $blast ) };
 print STDERR "done\n";
 
 print STDERR "building mini database ... ";
@@ -154,7 +161,6 @@ while( @seqids ) {
 print STDERR "done\n";
 undef( %seqlist );             # free up memory
 
-
 my $command = "/pfam/db/Rfam/bin/linux/cmsearch";
 my $options = "";
 if( $local ) {
@@ -163,8 +169,8 @@ if( $local ) {
 $options .= " -W $window";
 
 print STDERR "Queueing cmsearch jobs ...\n";
-$fh -> open("| bsub -q $queue -o $$.err.\%I -J\"[1-$k]\"") or die "$!";
-$fh -> print("$command $options CM $$.minidb.\$\{LSB_JOBINDEX\} > OUTPUT.\$\{LSB_JOBINDEX\}\n");
+$fh -> open("| bsub -q $queue -o $$.err.\%I -J\"[1-$k]\" -f \"$$.minidb.\%I > /tmp/$$.minidb.\%I\" -f \"OUTPUT.\%I < /tmp/OUTPUT.\%I\"") or die "$!";
+$fh -> print("$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/OUTPUT.\$\{LSB_JOBINDEX\}\n");
 $fh -> close;
 
 &update_desc( $options ) unless( !-e "DESC" );
