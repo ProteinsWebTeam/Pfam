@@ -13,8 +13,13 @@ use lib $bioperl_dir;
 use lib $rfam_mod_dir;
 
 use strict;
+use Getopt::Long;
 use Rfam;
 use Rfam::RfamAlign;
+
+my $nolock;
+
+&GetOptions( "n" => \$nolock );
 
 my $acc = shift;
 chdir "$Rfam::current_dir/$acc" or die;
@@ -76,11 +81,12 @@ system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.ful
 
 system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
 
+# remove locks, tmp files etc
 
-if( ! -e "$Rfam::current_dir/$acc/todo.view" ) {
-    warn("For $acc, there is no todo.view file. Cannot remove");
-} else {
-    unlink("$Rfam::current_dir/$acc/todo.view");
+if( -e "$Rfam::current_dir/$acc/todo.view" ) {
+    unlink("$Rfam::current_dir/$acc/todo.view") or warn "can't remove todo.view file\n";
 }
 
-system("rfabort -u VIEW $acc") and warn "$acc: abort view lock failed - no lock";
+unless( $nolock ) {
+    system("rfabort -u VIEW $acc") and warn "$acc: abort view lock failed - no lock?";
+}
