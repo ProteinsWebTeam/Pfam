@@ -62,11 +62,11 @@ sub get_ref_by_pubmed {
     my $res = $ua->request( $req );
     if( $res->is_success ) {
 	my %data;
+	my $tag;
 	foreach ( split( /\n/, $res->content  ) ) {
 	    s/\r//g;    # remove dos new lines
-#	    print "$_\n";
-	    my $tag;
-	    if( /^(\w+)\s*- (.*)$/ or /^<\S+><\S+>(\w+)\s*- (.*)$/ ) {
+	    print "$_\n";
+	    if( /^(\w+)\s*-\s+(.*)$/ or /^<\S+><\S+>(\w+)\s*- (.*)$/ ) {
 		$tag = $1;
 		if( ! $data{ $tag } ) {
 		    $data{ $tag } = $2;
