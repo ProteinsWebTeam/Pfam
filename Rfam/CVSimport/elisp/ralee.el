@@ -1,23 +1,41 @@
-;(save-excursion
-;  (let (beg end)
-;    (beginning-of-buffer) (setq beg (point))
-;    (end-of-buffer) (setq end (point))
-;    (remove-text-properties beg end '(fontified nil))
-;    )
-;  )
+;;; ralee-mode.el --- ralee mode
 
-(text-mode)   ; need to turn off font locking
-(set-face-attribute 'default nil
-		    :background "black")
-(setq truncate-lines 1)
 
-(define-key global-map "\C-c\C-l" 'ralee-paint-line-by-ss)
-(define-key global-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
-(define-key global-map "\C-f" 'ralee-move-20-right)
-(define-key global-map "\C-b" 'ralee-move-20-left)
+(defcustom ralee-mode-hook nil
+  "Normal hook run when entering ralee mode and many related modes."
+  :type 'hook
+  :options '(turn-off-auto-fill
+	     )
+  :group 'data)
 
+(defvar ralee-mode-map nil
+  "Keymap for Ralee mode.")
+
+(if ralee-mode-map
+    ()
+  (setq ralee-mode-map (make-sparse-keymap))
+  (define-key ralee-mode-map "\C-c\C-l" 'ralee-paint-line-by-ss)
+  (define-key ralee-mode-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
+  (define-key ralee-mode-map "\C-f" 'ralee-move-20-right)
+  (define-key ralee-mode-map "\C-b" 'ralee-move-20-left))
 
 ;;;;;;;;
+
+(defun ralee-mode ()
+  "Major mode for RALEE alignment editing
+Turning on ralee-mode runs the hook `ralee-mode-hook'."
+  (interactive)
+  (kill-all-local-variables)
+  (use-local-map ralee-mode-map)
+;  (setq local-abbrev-table ralee-mode-abbrev-table)
+;  (set-syntax-table ralee-mode-syntax-table)
+  (setq truncate-lines 1)
+  (setq mode-name "Ralee")
+  (setq major-mode 'ralee-mode)
+  (run-hooks 'ralee-mode-hook))      ; Finally, this permits the user to
+                                     ;   customize the mode with a hook.
+
+
 
 (defun ralee-helix-map (pairs)
   "Calculate helix boundaries based on pairs."
