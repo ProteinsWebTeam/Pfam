@@ -53,24 +53,31 @@ foreach my $acc ( @list ) {
     my $aln = new Rfam::RfamAlign;
     open( SEED, "$acc/SEED" ) or die;
     $aln -> read_stockholm( \*SEED );
+    my $newaln = Rfam::RfamAlign->new();
 
     foreach my $seq ( $aln -> each_seq() ) {
+	my $addseq = Bio::LocatableSeq -> new( -id    => $seq->id,
+					       -start => $seq->start,
+					       -end   => $seq->end,
+					       -seq   => $seq->seq );
 	my $curstr = $seq -> seq();
-	if( $curstr =~ tr/tT/uU/ ) {    # "It's RNA dammit" (SRE)
+	if( $curstr =~ tr/Tt/Uu/ ) {    # "It's RNA dammit" (SRE)
 	    printf( "%s   %-20s   ", $acc, $seq->id."/".$seq->start."-".$seq->end );
 	    print "T_TO_U\n";
-	    $seq -> seq( $curstr );
+	    $addseq -> seq( $curstr );
 	    $changed = 1;
 	}
-	$curstr =~ s/\.//g;
+	$curstr =~ s/[\.\-]//g;
+	$curstr = uc( $curstr );
 
 	if( !$rename and my $newseq = &return_seq( $newinx, $seq->id, $seq->start, $seq->end ) ) {
-#	if( my $newseq = &return_seq( $newinx, $seq->id ) ) {
 	    my $newstr = $newseq -> seq;
-	    $newstr =~ tr/T/U/; 
+	    $newstr =~ tr/Ttu/UUU/; 
+	    $newstr = uc( $newstr );
 	    if( $newstr ne $curstr ) {
+#		print "\n$curstr\n$newstr\n";
 		printf( "%s   %-20s   %-20s   ", $acc, $seq->id."/".$seq->start."-".$seq->end, $seq->id."/".$seq->start."-".$seq->end );
-		my $fixed = &find_match( $newinx, $seq );
+		my $fixed = &find_match( $newinx, $addseq );
 		if( $fixed == -1 ) {
 		    print "RENUMBER\tFIXED\n";
 		    $changed = 1;
@@ -88,7 +95,7 @@ foreach my $acc ( @list ) {
 	else {
 	    if( $rename ) {
 		printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
-		my $fixed = &find_match( $newinx, $seq, 1 );
+		my $fixed = &find_match( $newinx, $addseq, 1 );
 		if( $fixed == -1 ) {
 		    print "RENUMBER\tFIXED\n";
 		    $changed = 1;
@@ -100,25 +107,28 @@ foreach my $acc ( @list ) {
 		else {
 		    print "MISMATCH\tNOTFIXED\n";
 		    $changed = 1;
+		    next;
 		}		
 	    }
 	    else {
 		printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
-		$aln -> remove_seq( $seq );
+#		$aln -> remove_seq( $seq );
 		print "DELETE\tFIXED\n";
 		$changed = 1;
+		next;
 	    }
 	}
+	$newaln -> add_seq( $addseq );
     }
 
-#    if( $aln -> allgaps_columns_removed ) {
+#    if( $newaln -> allgaps_columns_removed ) {
 #	printf( "%s   GAPS_REMOVED\n", $acc );
 #	$changed = 1;
 #    }
 
     if( $changed and not $noaction ) {
 	open( NEW, ">$acc/SEEDNEW" ) or die "can't write to $acc/SEEDNEW";
-	$aln -> write_stockholm( \*NEW );
+	$newaln -> write_stockholm( \*NEW );
 	close NEW;
 
 	rename( "$acc/SEED", "$acc/SEEDOLD" ) or die "can't rename SEED to SEEDOLD";
@@ -147,6 +157,9 @@ sub return_seq {
 	$truncseq = $cache{$id};
     }
     else {
+	if( $to > $cache{$id}->length ) {
+	    $to = $cache{$id}->length;
+	}
 	eval {
 	    if( $from > $to ) {
 		$truncseq = $cache{$id} -> trunc( $to, $from );
@@ -182,7 +195,7 @@ sub find_match {
     if( $rfamseq ) {
 	my @blastdbs = glob( "$Rfam::rfamseq_current_dir/*.fa" );
 	foreach my $blastdb ( @blastdbs ) {
-	    system "blastall -W12 -F F -d $blastdb -i $$.old.fa -p blastn -v 10 -b 10 >> $$.blast" and die "can't run blastall";
+	    system "blastall -W 30 -F F -d $blastdb -i $$.old.fa -p blastn -v 5 -b 5 >> $$.blast" and die "can't run blastall";
 	}
     }
     else {
@@ -211,12 +224,21 @@ sub find_match {
 	}
     }
 
+    if( not $best ) {
+	warn "can't find a matching sequence\t";
+	return 0;
+    }
+
     my $fixed;
     $seq->id( $newid );
+    my( $hitstart, $hitend ) = ( $best->start('hit'), $best->end('hit') );
+    if( $best->strand('query') != $best->strand('hit') ) {
+	( $hitstart, $hitend ) = ( $hitend, $hitstart );
+    }
 
     if( $best -> num_identical == $querylength ) {
-	$seq -> start( $best->start('hit') );
-	$seq -> end( $best->end('hit') );
+	$seq -> start( $hitstart );
+	$seq -> end( $hitend );
 	$fixed = -1;
     }
     elsif( $best->length('hit') > $best->length('query') ) {
@@ -248,8 +270,8 @@ sub find_match {
 	    }
 	}
 
-	$seq -> start( $best->start('hit') );
-	$seq -> end( $best->end('hit') );
+	$seq -> start( $hitstart );
+	$seq -> end( $hitend );
 	$seq -> seq( join( "", @newgap ) );
 	$fixed = ( $querylength - $best->num_identical );
 
