@@ -72,11 +72,13 @@ if( ! open(DESC,"./$acc/DESC") ) {
     die "rfci: A bad error - cannot open the desc file [./$acc/DESC]. Yikes! [$!]";
 }
 
-my $has_ac;
-
+my( $has_ac, $id );
 while(<DESC>) {
     if(/^AC/) {
 	$has_ac=1;
+    }
+    if( /^ID\s+(\S+)/ ) {
+	$id = $1;
     }
 }    
 close(DESC);
@@ -84,6 +86,25 @@ close(DESC);
 if(!$has_ac) {
     die "rfci: Your DESC file has no AC line. This is bad!\n";
 }
+
+
+my $db = Rfam::default_db();
+my $oldid = $db->acc2id( $acc );
+
+unless( $oldid eq $id ) {              # change the accmap
+    my $ret = &RfamRCS::get_accession_lock();
+
+    if( !($ret =~ /^success/ ) ) {
+	die "rfci: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
+    }
+    if( my $name = $db->_get_lock() ) {
+	# locks the SDMB file
+	die "Unable to get the lock for the SDBM_file - $name has it\n";
+    }
+    $db->_move_accession( $acc, $id );
+    $db->_unlock();
+}
+
 
 if( &RfamRCS::move_files_to_rcs_directory($acc, $acc) == 0 ) {
     die "rfci: Could not move RCS files to directory for family [$acc]. Problem!\n";
@@ -110,6 +131,8 @@ if( &RfamRCS::check_in_rcs_files($acc, $comment) == 0 ) {
 if( &RfamRCS::update_current_directory($acc) == 0 ) {
     die "rfci: Could not update directory for $acc\n";
 }
+
+
   
 ## rdb stuff
 
@@ -124,26 +147,10 @@ eval {
 };
 
 $@ and do {
-  print STDERR "RFCI: RDB update; Could not update relational database for family $acc [$@]\n";
+    die "rfci: RDB update; Could not update relational database for family $acc [$@]\n";
 };
 print STDERR "RDB update succesful\n";
 
 &RfamRCS::make_view_files($acc); 
-
-print STDERR "Generating the coloured mark-up\n";
-
-### Do the FULL Alignment
-system("cp -f ./$acc/ALIGN ./$acc/$acc.full");
-system("mv -f  ./$acc/$acc.full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/");
-system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
-
-system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only --family $acc ");
-
-### Do the SEED Alignment
-system("cp -f ./$acc/SEED  ./$acc/$acc.full");
-system("mv -f  ./$acc/$acc.full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/");
-system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
-
-system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
 
 print STDERR "\n\nChecked in family [$acc]\n";
