@@ -2,10 +2,11 @@
 
 use strict;
 
+my $host = shift;
+my $dir = shift;
+
 foreach my $file ( @ARGV ) {
-    my $pwd = `pwd`;
-    chomp $pwd;
-    system "rcp pfam:$pwd/$file /tmp/" and die;
+    system "rcp $host:$dir/$file /tmp/" and die;
     if( !-s "/tmp/$file" ) {
 	exit(1);
     }
