@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 
 BEGIN {
-    $pfam_rcs_mod = 
+    $pfam_mod_dir = 
         (defined $ENV{'PFAM_MOD_DIR'})
             ?$ENV{'PFAM_MOD_DIR'}:"/nfs/disk100/pubseq/Pfam/scripts";
     $bioperl_dir = 
@@ -23,8 +23,8 @@ my $local;
 
 my $fafile       = shift;
 
-my $blast2_bin   = "/usr/local/pubseq/bin";
-my $infernal_bin = "/nfs/disk100/pubseq/Pfam/bin";
+my $blast2_bin   = "/usr/local/ensembl/bin";
+my $infernal_bin = "/usr/local/ensembl/bin";
 my $blast_dir    = "/pfam/db/Rfam/BLASTDB";
 my $model_dir    = "$blast_dir";
 my $blastdb      = "$blast_dir/Rfam.fasta";
@@ -77,7 +77,7 @@ foreach my $acc ( keys %results ) {
 
     my $options = "-W ".$thr{$acc}{'win'};
     $options   .= " --local" if $local;
-    system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and die;
+    system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and warn "$acc search failed";
     
     open( RES, "$$.res" ) or die;
     my $res = new CMResults;
