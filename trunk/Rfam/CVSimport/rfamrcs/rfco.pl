@@ -5,13 +5,24 @@
 # heavily borrowed from Ewan's pfam code
 #
 
-use lib '/pfam/db/Rfam/scripts/Modules';
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+}
+
+use lib $rfam_mod_dir;
 
 use strict;
+use Getopt::Long;
 use Rfam;
 use RfamRCS;
 
-if( $#ARGV == -1 ) {
+my( $id, $help );
+&GetOptions( "id=s" => \$id,
+	     "h"    => \$help );
+
+if( $help ) {
     &RfamRCS::show_rcs_help(\*STDOUT);
     exit;
 }
@@ -28,7 +39,15 @@ OK:{
 die "rfco aborted: database is locked by $locker" if $locked; 
 }
 
-my $acc = shift;
+my $acc;
+if( $id ) {
+    $acc = &Rfam::id2acc( $id );
+    die "rfco: Cannot find accession for $id\n" if not $acc;
+}
+else {
+    $acc = shift;
+}
+
     
 if( ! ( -d "$rcs_master_dir/$acc")  ) {
     die "rfco: Family [$acc] does not have an RCS directory in $rcs_master_dir.\nUnable to check out\n";
