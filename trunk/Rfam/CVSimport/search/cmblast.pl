@@ -3,10 +3,10 @@
 BEGIN {
     $pfam_mod_dir = 
         (defined $ENV{'PFAM_MOD_DIR'})
-            ?$ENV{'PFAM_MOD_DIR'}:"/nfs/disk100/pubseq/Pfam/scripts";
+            ?$ENV{'PFAM_MOD_DIR'}:"/pfam/db/Pfam/scripts/Modules";
     $bioperl_dir = 
         (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/nfs/disk100/pubseq/Pfam/bioperl";
+            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
 }
 
 use lib $pfam_mod_dir;
