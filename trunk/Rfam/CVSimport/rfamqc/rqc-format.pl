@@ -12,6 +12,7 @@ my %TP_hash = (
 		    'miRNA' =>	1,
 		    'ribozyme' => 1,
 		    'antisense' => 1,
+		    'sRNA' => 1,
 		    'snRNA' => {
 			'splicing' => 1,
 			'guide' => {
@@ -23,7 +24,9 @@ my %TP_hash = (
 		'Intron' => 1,
 		'Cis-reg' => {
 		    'IRES' => 1,
-		    'riboswitch' => 1
+		    'riboswitch' => 1,
+		    'thermoregulator' => 1,
+		    'frameshift_element' => 1
 		    }
 		);
 
