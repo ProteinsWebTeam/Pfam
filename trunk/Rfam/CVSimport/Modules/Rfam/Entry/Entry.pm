@@ -836,7 +836,7 @@ sub _read_std_desc{
 
        ### COMMENTS
        if( $_ =~ /^CC\s+(.*)/ ){
-	   $self->comment .= "$1 ";
+	   $comment .= "$1 ";
        } elsif ( $_ =~ /^CC\s*$/ ) {
 
        } else {
@@ -844,6 +844,10 @@ sub _read_std_desc{
        }
 
      }
+   }
+
+   if( $comment ) {
+       $self->comment( $comment );
    }
 
    if ($rn) { # this catches the last reference!
