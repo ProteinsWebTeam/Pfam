@@ -815,6 +815,7 @@ sub _read_std_desc{
      } elsif ($_ =~ /^R/ ) {
        if ($_ =~ /^RN\s+\[(\d+)\]/) {
 	 if ($rn) {
+	   $rc = "" if( not $rc );
 	   push @refs, $rn ."~" . $rm . "~" . $rt . "~" . $ra . "~" . $rl . "~" . $rc;
 	   $rn = $rm = $rt = $ra = $rl = $rc = undef;
 	 }
