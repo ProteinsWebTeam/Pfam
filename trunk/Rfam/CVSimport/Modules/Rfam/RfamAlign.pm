@@ -289,21 +289,27 @@ sub order_by_embl_taxonomy {
 	my $idstr = join( ']|[EMBL-acc:', @tonid );
 #	print "getz -f sv -f tax -f sl \'[EMBL-acc:$idstr]\'\n";
 
-	my( $ocstring, $acc );
+	my( $ocstring, @accs );
 	my $fh = IO::File->new;
 	$fh -> open( "getz -f acc -f tax -f id '[EMBL-acc:$idstr]' |" );
 	while(<$fh>) {
 #	    print;
-	    if( /^AC\s+(\S+)\;/ ) {
-		$acc = $1 unless $acc;
+	    if( my ($accs) = /^AC\s+(.*)/ ) {
+		while( $accs =~ /(\S+?)\;/g ) {
+		    push( @accs, $1 );
+		}
 	    }
 	    if( /^OC\s+(.*)/ ) {
 		$ocstring .= "$1 ";
 	    }
 	    if( /^ID\s+/ ) {
 #		print "$acc      $ocstring\n";
-		$tax{$acc} = $ocstring;
-		$ocstring = $acc = undef;
+		foreach my $acc ( @accs ) {
+#		    print "[$acc]\n";
+		    $tax{$acc} = $ocstring;
+		}
+		$ocstring = undef;
+		@accs = ();
 	    }
 	}
 	$fh -> close;
