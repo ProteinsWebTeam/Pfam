@@ -29,9 +29,13 @@
 	close 
 	openbase 
 	closebase 
-	helices)
+	helices
+	line-start
+	line-end)
 
-    (put-text-property (line-beginning-position) (line-end-position) 'face 'default)
+    (beginning-of-line) (setq line-start (point))
+    (end-of-line) (setq line-end (point))
+    (put-text-property line-start line-end 'face 'default)
 
     (setq helices (ralee-helix-map pairs-list))
 
@@ -168,11 +172,16 @@
     (goto-char (point-min))
     (while (equal (ralee-is-alignment-line) nil)
       (forward-line)) ; search for the first alignment line
-    (search-forward "\n")
-    (search-backward " ")
-    (while (< (point) (line-end-position))
-      (paint-column-by-cons)
-      (forward-char))))
+    (end-of-line)
+    (let ((line-end (point)))
+      (search-backward " ")
+      (while (< (point) line-end)
+	(paint-column-by-cons)
+	(forward-char)
+	)
+      )
+    )
+  )
 
 
 
