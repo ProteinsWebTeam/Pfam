@@ -23,10 +23,12 @@ my( $quiet,
     $local,
     $help );
 
-my $arch = `uname`;
-if( $arch =~ /linux/i ) {
+# this will only run on linux at the moment
+
+#my $arch = `uname`;
+#if( $arch =~ /linux/i ) {
     $ENV{'PATH'} = "/pfam/db/Rfam/bin/linux:$ENV{'PATH'}"; # push linux binaries onto front of path
-}
+#}
 
 sub help {
     print STDERR <<EOF;
