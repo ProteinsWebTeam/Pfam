@@ -18,10 +18,22 @@
   (define-key ralee-mode-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
   (define-key ralee-mode-map "\C-c\C-k" 'ralee-paint-line-by-base)
   (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-base)
+  (define-key ralee-mode-map "\C-i" 'ralee-insert-gap-column)
+  (define-key ralee-mode-map "\C-c\C-d" 'ralee-delete-gap-column)
   (define-key ralee-mode-map "\C-p" 'ralee-jump-to-pair)
   (define-key ralee-mode-map "\C-[" 'ralee-jump-to-pair-in-other-window)
   (define-key ralee-mode-map "\C-f" 'ralee-jump-right)
   (define-key ralee-mode-map "\C-b" 'ralee-jump-left))
+
+(defvar ralee-structure-cache nil
+  "cache the structure line")
+
+(defvar ralee-base-pairs-cache nil
+  "cache the base pairing pattern")
+
+(defvar ralee-gap-symbol "."
+  "The gap symbol")
+
 
 ;;;;;;;;
 
@@ -44,7 +56,6 @@ Turning on ralee-mode runs the hook `ralee-mode-hook'."
 
 (defun ralee-helix-map (pairs)
   "Calculate helix boundaries based on pairs."
-  (interactive)
   (let ((helix 0)
 	(lastopen 0)
 	(lastclose 9999999)
@@ -98,6 +109,24 @@ Turning on ralee-mode runs the hook `ralee-mode-hook'."
   )
 
 
+(defun ralee-get-ss-line ()
+  "Get the SS_cons line"
+  (save-excursion
+    (let (structure-line)
+      (goto-char (point-min))
+      (search-forward "#=GC SS_cons")
+      (copy-region-as-kill (line-beginning-position) (line-end-position))
+      (setq structure (car kill-ring)))))
+
+
+(defun ralee-structure-has-changed (structure-line)
+  "check if the structure has changed"
+  (interactive)
+  (if (equal structure-line ralee-structure-cache)
+      nil
+    t))
+
+
 (defun ralee-get-base-pairs ()
   "Parse the secondary structure markup.
 Returns a list of pairs in order of increasing closing base."
@@ -105,38 +134,34 @@ Returns a list of pairs in order of increasing closing base."
     (let ((stack ())
 	  (pairs ())
 	  base
+	  structure-line
 	  )
-      (beginning-of-buffer)
-      (search-forward "#=GC SS_cons")
-      (search-forward " ")
 
-      (while (< (point) (line-end-position))
-	(copy-region-as-kill (point) (1+ (point)))
-	(setq base (car kill-ring))
-	(if (equal base "<")
-	    (setq stack (cons (current-column) stack))
-	  )
-	(if (equal base ">")
-	    (progn
-	      (setq pairs (cons (cons (car stack) (current-column)) pairs))
-	      (setq stack (cdr stack)))
-	  )
-	(forward-char)
-	)
-      pairs
-      )
-    )
-  )
+      (setq structure-line (ralee-get-ss-line))
 
-;(defun ralee-get-ss ()
-;  "get the structure from the current buffer"
-;  (save-excursion
-;    (beginning-of-buffer)
-;    (search-forward "#=GC SS_cons")
-;    (copy-region-as-kill (line-beginning-position) (line-end-position))
-;    )
-;  (car kill-ring)
-;  )
+      ; only recalculate the base pairing structure if structure has changed
+      (if (ralee-structure-has-changed structure-line)
+	  (progn
+	    (goto-char (point-min))
+	    (search-forward "#=GC SS_cons")
+	    (search-forward " ")
+
+	    (while (< (point) (line-end-position))
+	      (setq base (char-after))
+	      (if (char-equal base ?<)
+		  (setq stack (cons (current-column) stack))
+		)
+	      (if (char-equal base ?>)
+		  (progn
+		    (setq pairs (cons (cons (car stack) (current-column)) pairs))
+		    (setq stack (cdr stack)))
+		)
+	      (forward-char))
+	    (setq ralee-structure-cache structure-line)   ; cache these for speed
+	    (setq ralee-base-pairs-cache pairs)))         ;
+      
+      ralee-base-pairs-cache)))
+
 
 
 ; complex definition of a face
@@ -244,41 +269,31 @@ Returns a list of pairs in order of increasing closing base."
 
       (move-to-column (car pair))
       (setq open (point))
-      (copy-region-as-kill (point) (1+ (point)))
-      (setq openbase (car kill-ring))
+      (setq openbase (char-after))
 
       (move-to-column (cdr pair))
       (setq close (point))
-      (copy-region-as-kill (point) (1+ (point)))
-      (setq closebase (car kill-ring))
+      (setq closebase (char-after))
 
       ; remainder operator guarantees that we'll get a colour
       (setq face-num (% (cdr (assoc (car pair) helices)) (length ralee-faces)))
 
-      (if (or
-	   (and (or (equal openbase "G") (equal openbase "g")) 
-		(or (equal closebase "C") (equal closebase "c")
-		    (equal closebase "U") (equal closebase "u")
-		    (equal closebase "T") (equal closebase "t")))
-	   (and (or (equal openbase "C") (equal openbase "c")) 
-		(or (equal closebase "G") (equal closebase "g")))
-	   (and (or (equal openbase "U") (equal openbase "u")
-		    (equal openbase "T") (equal openbase "t"))
-		(or (equal closebase "A") (equal closebase "a")
-		    (equal closebase "G") (equal closebase "g")))
-	   (and (or (equal openbase "A") (equal openbase "a")) 
-		(or (equal closebase "U") (equal closebase "u")
-		    (equal closebase "T") (equal closebase "t")))
-	   )
+      (let ((case-fold-search 1)) ; case-independent search
+	(if (or
+	     (and (char-equal openbase ?G) (or (char-equal closebase ?C)
+					       (char-equal closebase ?U)
+					       (char-equal closebase ?T)))
+	     (and (char-equal openbase ?C) (char-equal closebase ?G))
+	     (and (or (char-equal openbase ?U)
+		      (char-equal openbase ?T)) (or (char-equal closebase ?A)
+						    (char-equal closebase ?G)))
+	     (and (char-equal openbase ?A) (or (char-equal closebase ?U)
+					       (char-equal closebase ?T))))
 
-	  (progn
-	    (put-text-property open (1+ open) 'face (nth face-num ralee-faces))
-	    (put-text-property close (1+ close) 'face (nth face-num ralee-faces))
-	    )
-	)
-      )
-    )
-  )
+	    (progn
+	      (put-text-property open (1+ open) 'face (nth face-num ralee-faces))
+	      (put-text-property close (1+ close) 'face (nth face-num ralee-faces))
+	      ))))))
 
 
 (defun ralee-paint-line-by-base ()
@@ -298,26 +313,21 @@ Returns a list of pairs in order of increasing closing base."
      
       (while (< (point) end)  ; until the end of the line
 	(forward-char)
-	(copy-region-as-kill (point) (1+ (point)))
-	(setq base (car kill-ring))
+	(setq base (char-after))
 	(setq face-num nil)
 	
-	(if (or (equal base "G") (equal base "g"))
-	    (setq face-num 0))
-	(if (or (equal base "C") (equal base "c"))
-	    (setq face-num 1))
-	(if (or (equal base "A") (equal base "a"))
-	    (setq face-num 2))
-	(if (or (equal base "T") (equal base "t")
-		(equal base "U") (equal base "u"))
-	    (setq face-num 3))
+	(let ((case-fold-search t)) ; case independent search
+	  (if (char-equal base ?G)
+	      (setq face-num 0))
+	  (if (char-equal base ?C)
+	      (setq face-num 1))
+	  (if (char-equal base ?A)
+	      (setq face-num 2))
+	  (if (or (char-equal base ?T) (char-equal base ?U))
+	      (setq face-num 3))
 	
-	(if face-num
-	    (put-text-property (point) (1+ (point)) 'face (nth face-num ralee-faces)))
-	)
-      )
-    )
-  )
+	  (if face-num
+	      (put-text-property (point) (1+ (point)) 'face (nth face-num ralee-faces))))))))
 
 
 (defun ralee-paint-buffer-by-base ()
@@ -326,11 +336,9 @@ Returns a list of pairs in order of increasing closing base."
   (save-excursion
     (goto-char (point-min))
     (while (< (point) (point-max))
-      (ralee-paint-line-by-base)
-      (forward-line)
-      )
-    )
-  )
+      (if (ralee-is-alignment-line)
+	  (ralee-paint-line-by-base))
+      (forward-line))))
 
 
 (defun ralee-paint-line-by-ss ()
@@ -346,9 +354,10 @@ Returns a list of pairs in order of increasing closing base."
   (save-excursion
     (setq pairs (ralee-get-base-pairs))
     (beginning-of-buffer)
-    (ralee-paint-line-by-pairs pairs) ; make sure we do the first line aswell
-    (while (search-forward "\n")
-      (ralee-paint-line-by-pairs pairs))))
+    (while (< (point) (point-max))
+      (if (ralee-is-alignment-line)
+	  (ralee-paint-line-by-pairs pairs))
+      (forward-line))))
 
 
 (defun ralee-jump-right ()
@@ -364,7 +373,6 @@ Returns a list of pairs in order of increasing closing base."
 
 (defun ralee-paired-column (column)
   "return the pair of <column>"
-  (interactive)
   (let (pair-column
 	pairs
 	pair)
@@ -420,7 +428,7 @@ Returns a list of pairs in order of increasing closing base."
   (count-lines (point-min) (point)))
 
 
-(defun ralee-insert-column ()
+(defun ralee-insert-gap-column ()
   "Insert a column of gap residues"
   (interactive)
   (save-excursion
@@ -428,25 +436,56 @@ Returns a list of pairs in order of increasing closing base."
       (setq column (current-column))
       (goto-char (point-min))
       (while (< (point) (point-max))
-	(move-to-column column)
-	(insert ".")
+	(if (or (ralee-is-alignment-line) (ralee-is-markup-line))
+	    (progn
+	      (move-to-column column)
+	      (insert ralee-gap-symbol)))
 	(forward-line)))))
+
+
+(defun ralee-delete-gap-column ()
+  "Delete a column but only if it is all gaps"
+  (interactive)
+  (save-excursion
+    (let (column notagap)
+      (setq column (current-column))
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+	(if (or (ralee-is-alignment-line) (ralee-is-markup-line))
+	    (progn
+	      (move-to-column column)
+	      (setq char (char-after))
+	      (if (char-equal char (string-to-char ralee-gap-symbol))
+		  ()
+		(progn
+		  (setq notagap t)
+		  (goto-char (point-max))))))  ; break the loop
+	(forward-line))
+
+      (if notagap    ; go round again, deleting the base this time
+	  (message "Column %s contains non-gap characters -- cannot delete" column)
+	(progn
+	  (goto-char (point-min))
+	  (while (< (point) (point-max))
+	    (if (or (ralee-is-alignment-line) (ralee-is-markup-line))
+		(progn
+		  (move-to-column column)
+		  (delete-char 1)))
+	    (forward-line)
+	    ))))))
 
 
 (defun ralee-is-alignment-line ()
   "Check if the current line is part of the alignment itself"
-  )
+  (save-excursion
+    (beginning-of-line)
+    (looking-at "[A-Za-z0-9]+\.[0-9]+/[0-9]+-[0-9]+\ +")
+  ))
 
+(defun ralee-is-markup-line ()
+  "Check if the current line is #=GC"
+  (save-excursion
+    (beginning-of-line)
+    (looking-at "#=GC ")
+  ))
 
-; IDEAS
-;
-;   - calculating the pairs list is slow
-;          cache it and only recalculate if the buffer has been editted
-
-;(setq list (x-defined-colors))
-;(while list
-;  (setq c (car list))
-;  (setq list (cdr list))
-;  (insert c)
-;  (insert "\n")
-;  )snow
