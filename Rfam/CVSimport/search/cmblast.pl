@@ -24,6 +24,7 @@ if( $arch =~ /linux/i ) {     # if we're running on the blades
 }
 
 my( $local, 
+    $global,
     $blast_dir, 
     $family_acc,
     $blastdb,
@@ -33,6 +34,7 @@ my( $local,
     $help );
 
 &GetOptions( "local"   => \$local,
+	     "global"  => \$global,
 	     "db=s"    => \$blast_dir,
 	     "acc=s"   => \$family_acc,
 	     "fadb=s"  => \$blastdb,
@@ -53,7 +55,8 @@ Usage: $0 <options> fasta_file
         -h            : show this help
 
     Expert options
-	-local        : perform local mode search
+	-local        : perform local mode search  (default is Rfam mode)
+	-global       : perform global mode search (       -- \" --      )
 	-db <dir>     : specify directory location of Rfam database
 	-acc <acc>    : search against only a single family
 	-fadb <file>  : use alternative fasta db
@@ -84,8 +87,8 @@ my $blastcmd     = "blastall -p blastn -e $blastcut -d $blastdb -i $fafile -F F 
 my %thr;
 open( T, $thr_file ) or die;
 while(<T>) {
-    if( /^(RF\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s*$/ ) {
-	$thr{ $1 } = { 'id' => $2, 'thr' => $3, 'win' => $4 };
+    if( /^(RF\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\S+)\s*$/ ) {
+	$thr{ $1 } = { 'id' => $2, 'thr' => $3, 'win' => $4, 'mode' => $5 };
     }
 }
 close T;
@@ -130,7 +133,15 @@ foreach my $acc ( keys %results ) {
     die if( not -s "$$.seq" );
 
     my $options = "-W ".$thr{$acc}{'win'};
-    $options   .= " --local" if $local;
+    if( $global ) {
+	# don't use local mode
+    }
+    elsif( $local or $thr{$acc}{'mode'} =~ /local/) {
+	$options .= " --local";
+    }
+
+    print "$acc options: $options\n";
+
     system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and do {
 	warn "$acc search failed";
 	open( TMP, "$$.seq" ) or die;
