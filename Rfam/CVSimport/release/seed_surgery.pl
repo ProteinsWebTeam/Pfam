@@ -20,7 +20,7 @@ use Getopt::Long;
 
 use Bio::SeqIO;
 use Bio::Index::Fasta;
-use Bio::Tools::BPlite2;
+use Bio::SearchIO;
 use Rfam;
 use Rfam::RfamAlign;
 
@@ -182,7 +182,7 @@ sub find_match {
     if( $rfamseq ) {
 	my @blastdbs = glob( "$Rfam::rfamseq_current_dir/*.fa" );
 	foreach my $blastdb ( @blastdbs ) {
-	    system "blastall -W8 -F F -d $blastdb -i $$.old.fa -p blastn -v 10 -b 10 >> $$.blast" and die "can't run blastall";
+	    system "blastall -W12 -F F -d $blastdb -i $$.old.fa -p blastn -v 10 -b 10 >> $$.blast" and die "can't run blastall";
 	}
     }
     else {
@@ -197,16 +197,15 @@ sub find_match {
     }
 
     my( $best, $newid );
-    open( BLAST, "$$.blast" ) or die "can't open $$.blast";
-    my $multiple = new Bio::Tools::BPlite2::Multi( \*BLAST );
+    my $multiple = Bio::SearchIO->new( -file => "$$.blast", '-format' => 'Blast' );
     my $querylength;
-    while( my $report = $multiple->nextReport ) {
-	$querylength = $report->queryLength unless $querylength;
-	while( my $sbjct = $report->nextSbjct ) {
-	    while( my $hsp = $sbjct->nextHSP ) {
+    while( my $result = $multiple->next_result ) {
+	$querylength = $result->query_length unless $querylength;
+	while( my $hit = $result->next_hit ) {
+	    while( my $hsp = $hit->next_hsp ) {
 		if( not $best or $hsp->bits >= $best->bits ) {
 		    $best = $hsp;
-		    ( $newid ) = $sbjct->name =~ /^>?\s*(\S+)\s*/;
+		    $newid = $hit->name;
 		}
 	    }
 	}
@@ -215,12 +214,12 @@ sub find_match {
     my $fixed;
     $seq->id( $newid );
 
-    if( $best -> match == $querylength ) {
-	$seq -> start( $best->sbjctBegin );
-	$seq -> end( $best->sbjctEnd );
+    if( $best -> num_identical == $querylength ) {
+	$seq -> start( $best->start('hit') );
+	$seq -> end( $best->end('hit') );
 	$fixed = -1;
     }
-    elsif( $best->length > ( $best->queryEnd - $best->queryBegin + 1 ) ) {
+    elsif( $best->length('hit') > $best->length('query') ) {
 	# inserts in subject sequence -- can't deal easily
 	$fixed = 0;
     }
@@ -229,11 +228,11 @@ sub find_match {
 
 	my @oldgap = split( //, $seq -> seq );
 	my @newgap;
-	my $subaln = $best -> sbjctAlignment;
+	my $subaln = $best -> hit_string;
 	$subaln =~ tr/acgt-/ACGU\./;
 	my @subgap = split( //, $subaln );
 	my $j=0;
-	for( my $k=1; $k<$best->queryBegin; $k++ ) {
+	for( my $k=1; $k<$best->start('query'); $k++ ) {
 	    unshift( @subgap, "." );
 	}
 	for( my $i=0; $i<@oldgap; $i++ ) {
@@ -249,10 +248,10 @@ sub find_match {
 	    }
 	}
 
-	$seq -> start( $best->sbjctBegin );
-	$seq -> end( $best->sbjctEnd );
+	$seq -> start( $best->start('hit') );
+	$seq -> end( $best->end('hit') );
 	$seq -> seq( join( "", @newgap ) );
-	$fixed = ( $querylength - $best -> match );
+	$fixed = ( $querylength - $best->num_identical );
 
 #	print "\n", join( "", @oldgap ), "\n", join( "", @newgap ), "\n";
     }
