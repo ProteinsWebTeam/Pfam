@@ -81,7 +81,7 @@ not $blastcut  and $blastcut  = 10;
 
 my $model_dir    = "$blast_dir";
 my $thr_file     = "$blast_dir/Rfam.thr";
-my $blastcmd     = "blastall -p blastn -e $blastcut -d $blastdb -i $fafile -F F -W 8 > $$.blast";
+my $blastcmd     = "/usr/local/ensembl/bin/wublastn $blastdb $fafile -E$blastcut -W3 > $$.blast";
 
 # read threshold file
 my %thr;
