@@ -76,10 +76,11 @@ if( $#families == -1 ) {
     exit();
 }
 
+my $db = Rfam::default_db();
 foreach my $family (@families) {
     my $acc;
-    if( &Rfam::is_id($family) ) {
-	$acc = &Rfam::id2acc( $family );
+    if( $db->is_id($family) ) {
+	$acc = $db->id2acc( $family );
 	die "rfinfo: Cannot find accession for $family\n" if not $acc;
     }
     else {
@@ -97,8 +98,8 @@ foreach my $family (@families) {
     } else {
 	print STDOUT "\nRevision information for $acc:\n\n";
 	&RfamRCS::get_info_on_family($acc,\*STDOUT);
-	if( !open(DESC,"$current_dir/$acc/DESC") ) {
-	    print "rfinfo - could not open $current_dir/$acc/DESC - not happy - $!\n";
+	if( !open(DESC,"$Rfam::current_dir/$acc/DESC") ) {
+	    print "rfinfo - could not open $Rfam::current_dir/$acc/DESC - not happy - $!\n";
 	} else {
 	    print "\nDescription file:\n\n";
 	    while( <DESC> ) {

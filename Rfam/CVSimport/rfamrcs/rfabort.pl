@@ -40,8 +40,9 @@ if( $locked ) {
 
 my $fam = shift;
 my $acc;
-if( &Rfam::is_id($fam) ) {
-    $acc = &Rfam::id2acc( $fam );
+my $db = Rfam::default_db();
+if( $db->is_id($fam) ) {
+    $acc = $db->id2acc( $fam );
     die "rfabort: Cannot find accession for $fam\n" if not $acc;
 }
 else {
