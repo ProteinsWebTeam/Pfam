@@ -1,0 +1,119 @@
+<!-- SET  $title="Taxonomy Query" -->
+<!-- ADDHEADER -->
+
+
+<SCRIPT>   
+    var Organism;
+    var OrganismIndex;
+    function InitOrganism(form) {
+	    Organism = form.query.value;
+    	    OrganismIndex = form.organism.selectedIndex;
+	    OperatorIndex = form.operator.selectedIndex;
+    }
+    function CopyName(form) {
+	    InitOrganism(form);
+	    form.query.value = Organism + " "+ form.organism[OrganismIndex].value;
+    }
+    function CopyOperator(form) {
+	    InitOrganism(form);
+	    form.query.value = Organism + " "+ form.operator[OperatorIndex].value;
+    }
+    function Clear(form) {
+	    Organism = "";
+	    form.query.value = "";
+    }
+</SCRIPT>
+
+
+
+<form name=taxonomy method=POST enctype='multipart/form-data' action="$TAXONOMY">
+  <table border=1 class=normaltext cellpadding=5 cellspacing=0  bgcolor="$RFAMCOLOUR" width='100%'>
+    <tr>
+      <th BGCOLOR=#000070 ALIGN=LEFT CLASS=whitetableheader>Enter your query</th>
+    </tr>
+    <tr>
+      <td CLASS=normaltext>
+      <p>The taxonomy query requires the scientific latin denomination of organisms. For example Eukaryota, Metazoa , Arthropoda, Insecta ,Drosophila melanogaster, etc.</p> 
+      <p>The taxonomy query language uses the words AND, OR, NOT as operators, and parenthesis to define priorities. 
+<P>
+e.g.:<B> Drosophila melanogaster AND NOT (Vertebrata or Caenorhabditis elegans)</B>; this query will return the list of Rfam domains present in fly but not in worm and vertebrates.</p>
+      <p><B>Write your query here:</B>
+      <p><textarea name="query" rows=3 COLS=80></textarea></p>
+      <p><input type="submit" value="Search" > <input type="reset" onClick="javascript:Clear(this.form);"> <INPUT TYPE=button value=Example javascript:void() onClick="window.document.taxonomy.query.value='Drosophila melanogaster AND NOT ( Vertebrata  OR Caenorhabditis elegans )';">
+
+
+	</p>
+      <p><input type="checkbox" name="unique" value="checkbox"> Find domains unique to a specific family. Example:domains unique to Plasmodium falciparum. This search can take several minutes.</p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+      <table class=normaltext>
+      <tr>
+        <th align="left">Some predefinited taxonomic names</th>
+      </tr>
+      <tr>
+        <td>Taxonomic names:</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+	<td>Operators:</td>
+      </tr>
+      <tr>
+        <td>
+       	  <select name="organism">
+          <option value="Arabidopsis thaliana"> Arabidopsis thaliana
+          <option value="Caenorhabditis elegans"> Caenorhabditis elegans
+          <option value="Danio rerio"> Danio rerio (zebrafish) 
+          <option value="Dictyostelium discoideum"> Dictyostelium discoideum
+          <option value="Drosophila melanogaster"> Drosophila melanogaster
+          <option value="Escherichia coli"> Escherichia coli
+          <option value="Homo sapiens"> Homo sapiens
+          <option value="Mus musculus"> Mus musculus 
+          <option value="Mycoplasma"> Mycoplasma
+          <option value="Oryza sativa"> Oryza sativa  
+          <option value="Plasmodium falciparum"> Plasmodium falciparum 
+          <option value="Pneumocystis carinii"> Pneumocystis carinii
+          <option value="Rattus"> Rattus
+          <option value="Saccharomyces cerevisiae"> Saccharomyces cerevisiae
+          <option value="Schizosaccharomyces pombe"> Schizosaccharomyces pombe
+          <option value="Takifugu rubripes"> Takifugu rubripes
+          <option value="Xenopus laevis"> Xenopus laevis
+	  <option value="Eukaryota"> Eukaryota
+	  <option value="Bacteria"> Bacteria
+	  <option value="Archaea"> Archaea
+	  <option value="Viruses"> Viruses
+	  <option value="Metazoa"> Metazoa
+	  <option value="Vertebrata"> Vertebrata
+	  <option value="Mammalia"> Mammalia
+	  <option value="Arthropoda"> Arthropoda
+	  <option value="Nematoda"> Nematoda
+	  <option value="Fungi"> Fungi
+	  <option value="Viridiplantae"> Viridiplantae
+       	  </select>
+      	  <input type="button" name="copy" value="Add organism" onClick="javascript:CopyName(this.form);">
+      	</td>
+	<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+	<td>
+          <select name="operator">
+	  <option value="AND"> AND
+          <option value="OR"> OR
+          <option value="NOT"> NOT
+	  <option value="(" > (
+	  <option value=")" > )
+       	  </select>
+      	  <input type="button" name="copyOperator" value="Add operator" onClick="javascript:CopyOperator(this.form);">
+      	</td>
+      </tr>
+      </table>
+      </td>
+    </tr>
+  </tr>
+  </table>
+</form>
+
+
+
+
+<p>
+
+<!-- ADDFOOTER -->
+
