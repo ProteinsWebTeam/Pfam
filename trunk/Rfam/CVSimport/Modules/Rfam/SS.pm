@@ -109,8 +109,8 @@ sub length {
 	return $self->{'LENGTH'};
     }
     else {
-	my @sort = sort { $b->[1] <=> $a->[1] } $self->eachPair();
-	return $sort[0]->[1];
+	my @sort = sort { $b->right() <=> $a->right() } $self->eachPair();
+	return $sort[0]->right();
     }
 }
 
@@ -220,7 +220,7 @@ sub column_colourmap {
 
     $self -> _rebuild_map();  # just make sure
 
-    foreach my $pair ( sort { $a->[1] <=> $b->[1] } $self->eachPair() ) {
+    foreach my $pair ( sort { $a->right() <=> $b->right() } $self->eachPair() ) {
 
 	# catch things like ...
 	# <<..>>..<<..>>
