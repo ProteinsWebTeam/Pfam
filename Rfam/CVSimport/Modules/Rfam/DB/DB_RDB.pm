@@ -135,6 +135,9 @@ sub get_AnnotSeqs {
     eval {
 	$dbh = $self->_the_RDB->connect();
     };
+    if( $@ ) {
+	die "DB_RDB::get_AnnotSeqs - can't connect to RDB\n";
+    }
     
     my %type;
     if (not $type_list) {
@@ -154,51 +157,62 @@ sub get_AnnotSeqs {
     
     my $st_pfamA_reg_full;
     if ($type{"full"}) {
-	my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description, bits_score from rfam_reg_full, rfamseq, rfam";
-	$stat .= " where rfamseq_acc = ? and rfam.auto_rfam = rfam_reg_full.auto_rfam ";
-	$stat .= "and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
+	my $stat = "select rfamseq.version, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description, bits_score from rfam_reg_full, rfamseq, rfam ";
+	$stat .= "where rfamseq.version = ? ";
+	$stat .= "and rfam.auto_rfam = rfam_reg_full.auto_rfam and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_acc";
     
 	$st_pfamA_reg_full = $dbh->prepare($stat);
     }
   
     my $st_pfamA_reg_seed;
     if ($type{"seed"}) {
-	my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  from rfam_reg_seed, rfamseq, rfam ";
-	$stat .= "where rfamseq_acc = ? and rfam.auto_rfam = rfam_reg_seed.auto_rfam ";
-	$stat .= "and rfam_reg_seed.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
+	my $stat = "select rfamseq.version, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  from rfam_reg_seed, rfamseq, rfam ";
+	$stat .= "where rfamseq.version = ? ";
+	$stat .= "and rfam.auto_rfam = rfam_reg_seed.auto_rfam and rfam_reg_seed.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_acc";
 
 	$st_pfamA_reg_seed = $dbh->prepare($stat);
     }
   
     foreach my $in_id (@{$id_list}) {
 	my $annseq = Rfam::AnnotatedSequence->new();
-	my( $sv ) = $self->rfamseq_version( $in_id );
+	my $sv;
+	if( $in_id =~ /^\S+\.\d+/ ) {
+	    $sv = $in_id;
+	}
+	else {
+	    ($sv) = $self->rfamseq_version( $in_id );
+	}
 	$annseq->id( $sv );
 
 	if (defined $st_pfamA_reg_full) {
-	    $st_pfamA_reg_full->execute($in_id);
-	    while ( my($rfamseq_id, $rfam_acc, $rfam_id, $auto_rfam, $seq_start, $seq_end,$desc, $bits_score)
-		    = $st_pfamA_reg_full->fetchrow) {
-		
-		$annseq->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
-								   '-RFAM_ID' => $rfam_id,
-								   '-SEQ_ID' => $sv,
-								   '-FROM' => $seq_start,
-								   '-TO' => $seq_end,
-								   '-AUTO_RFAM' => $auto_rfam,
-								   '-BITS' => $bits_score,
-								
-								   '-ANNOTATION' => $desc
-								   ));
+	    eval {
+		$st_pfamA_reg_full->execute($sv);
+		while ( my($rfamseq_sv, $rfam_acc, $rfam_id, $auto_rfam, $seq_start, $seq_end,$desc, $bits_score)
+			= $st_pfamA_reg_full->fetchrow) {
+		    
+		    $annseq->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
+								       '-RFAM_ID' => $rfam_id,
+								       '-SEQ_ID' => $sv,
+								       '-FROM' => $seq_start,
+								       '-TO' => $seq_end,
+								       '-AUTO_RFAM' => $auto_rfam,
+								       '-BITS' => $bits_score,
+								       
+								       '-ANNOTATION' => $desc
+								       ));
+		}
+		$st_pfamA_reg_full->finish;
+	    };
+	    if ($@) {
+		warn "RDB connection problems [$@]";
 	    }
-	    $st_pfamA_reg_full->finish;
 	}
     
 	if (defined $st_pfamA_reg_seed) {
 	    eval {
-		$st_pfamA_reg_seed->execute($in_id);
+		$st_pfamA_reg_seed->execute($sv);
 
-		while ( my($rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end, $desc)
+		while ( my($rfamseq_sv, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end, $desc)
 			= $st_pfamA_reg_seed->fetchrow) {
 
 		    $annseq->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
