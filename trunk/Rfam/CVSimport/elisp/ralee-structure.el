@@ -79,64 +79,85 @@
 (defun ralee-get-ss-line ()
   "Get the SS_cons line"
   (save-excursion
-    (let (structure-line beg end)
+    (let (beg end)
       (goto-char (point-min))
       (search-forward "#=GC SS_cons")
       (beginning-of-line) (setq beg (point))
       (end-of-line) (setq end (point))
       (copy-region-as-kill beg end)
-      (setq structure (car kill-ring)))))
+      (car kill-ring)
+      )
+    )
+  )
+ 
+
+(defun ralee-get-current-ss-line ()
+  "Get the current SS line"
+  (save-excursion
+    (let (beg end)
+      (beginning-of-line) (setq beg (point))
+      (if (or (looking-at "#=GR .* SS ")
+	      (looking-at "#=GC SS_cons "))
+	  (progn
+	    (end-of-line) (setq end (point))
+	    (copy-region-as-kill beg end)
+	    (car kill-ring)
+	    )
+	nil
+	)
+      )
+    )
+  )
 
 
 (defun ralee-structure-has-changed (structure-line)
   "check if the structure has changed"
   (if (equal structure-line ralee-structure-cache)
       nil
-    t))
+    t
+    )
+  )
 
 
-(defun ralee-get-base-pairs ()
+(defun ralee-get-base-pairs (structure-line)
   "Parse the secondary structure markup.
 Returns a list of pairs in order of increasing closing base."
   (save-excursion
     (let ((stack ())
 	  (pairs ())
 	  base
-	  structure-line
-	  line-end
 	  )
-
-      (setq structure-line (ralee-get-ss-line))
 
       ; only recalculate the base pairing structure if structure has changed
       (if (ralee-structure-has-changed structure-line)
 	  (progn
-	    (goto-char (point-min))
-	    (search-forward "#=GC SS_cons")
-	    (end-of-line) (setq line-end (point))
-	    (search-backward " ")
-
-	    (while (< (point) line-end)
-	      (setq base (char-after))
-	      (if (or (char-equal base ?\<)
-		      (char-equal base ?\()
-		      (char-equal base ?\[)
-		      (char-equal base ?\{))
-		  (setq stack (cons (current-column) stack))
+	    (setq split (split-string structure-line ""))
+	    (let ((i 0))
+	      (while (< i (length split))
+		(setq base (string-to-char (nth i split)))
+		(if (or (char-equal base ?\<)
+			(char-equal base ?\()
+			(char-equal base ?\[)
+			(char-equal base ?\{))
+		    (setq stack (cons i stack))
+		  )
+		(if (or (char-equal base ?\>)
+			(char-equal base ?\))
+			(char-equal base ?\])
+			(char-equal base ?\}))
+		    (progn
+		      (setq pairs (cons (cons (car stack) i) pairs))
+		      (setq stack (cdr stack)))
+		  )
+		(setq i (1+ i))
 		)
-	      (if (or (char-equal base ?\>)
-		      (char-equal base ?\))
-		      (char-equal base ?\])
-		      (char-equal base ?\}))
-		  (progn
-		    (setq pairs (cons (cons (car stack) (current-column)) pairs))
-		    (setq stack (cdr stack)))
-		)
-	      (forward-char))
+	      )
 	    (setq ralee-structure-cache structure-line)   ; cache these for speed
 	    (setq ralee-base-pairs-cache pairs)))         ;
-      
-      ralee-base-pairs-cache)))
+      ralee-base-pairs-cache
+      )
+    )
+  )
 
 
 
@@ -147,8 +168,10 @@ Returns a list of pairs in order of increasing closing base."
   "return the pair of <column>"
   (let (pair-column
 	pairs
-	pair)
-    (setq pairs (ralee-get-base-pairs))
+	pair
+	structure-line)
+    (setq structure-line (ralee-get-ss-line))
+    (setq pairs (ralee-get-base-pairs structure-line))
     (setq pair (assoc column pairs))
     (if pair
 	(setq paired-column (cdr pair))
