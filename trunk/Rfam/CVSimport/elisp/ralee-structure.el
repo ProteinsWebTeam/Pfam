@@ -118,10 +118,16 @@ Returns a list of pairs in order of increasing closing base."
 
 	    (while (< (point) line-end)
 	      (setq base (char-after))
-	      (if (char-equal base ?<)
+	      (if (or (char-equal base ?\<)
+		      (char-equal base ?\()
+		      (char-equal base ?\[)
+		      (char-equal base ?\{))
 		  (setq stack (cons (current-column) stack))
 		)
-	      (if (char-equal base ?>)
+	      (if (or (char-equal base ?\>)
+		      (char-equal base ?\))
+		      (char-equal base ?\])
+		      (char-equal base ?\}))
 		  (progn
 		    (setq pairs (cons (cons (car stack) (current-column)) pairs))
 		    (setq stack (cdr stack)))
