@@ -24,9 +24,10 @@ use Bio::SearchIO::Writer::TextResultWriter;
 
 my $evalue = 10;
 
-my( $division, $minidb, $help, $length, $listhits );
+my( $division, $minidb, $help, $length, $listhits, @blastdb );
 &GetOptions( "e=s"    => \$evalue,
 	     "d=s"    => \$division,
+	     "db=s@"  => \@blastdb,
 	     "h"      => \$help,
 	     "w=s"    => \$length,
 	     "minidb" => \$minidb,
@@ -68,21 +69,22 @@ eval {
 #}
 END { undef $seqinx; }   # stop bizarre seg faults
 
-my $glob;
-
-if( $division ) {
-    $glob = "$division*.fa";
-}
-else {
-    $glob = "*.fa";
+unless( @blastdb ) {
+    my $glob;
+    if( $division ) {
+	@blastdb = glob( "$Rfam::rfamseq_current_dir/$division*.fa" );
+    }
+    else {
+	@blastdb = glob( "$Rfam::rfamseq_current_dir/*.fa" );
+    }
 }
 
 
 my %hitlist;
-foreach my $db ( glob( "$Rfam::rfamseq_current_dir/$glob" ) ) {
+foreach my $db ( @blastdb ) {
     my $factory = Bio::Tools::Run::StandAloneBlast->new( 'program'  => 'blastn',
 							 'database' => $db,
-							 'outfile'  => "$$.blast",
+							 'outfile'  => "/tmp/$$.blast",
 							 'F'        => 'F',
 							 'W'        => 7,
 							 'b'        => 100000,
