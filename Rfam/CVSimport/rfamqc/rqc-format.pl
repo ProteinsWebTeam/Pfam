@@ -83,13 +83,13 @@ sub desc_is_OK {
                last;
             };
 	    /^TP/ && do {
+		$fields{$&}++;
 		unless( /^TP   Site\s*$/ or /^TP   Gene\s*$/ or /^TP   Intron\s*$/ ) {
                     warn "$family: TP lines should be one of Site, Intron, Gene\nNot $_\n";
                     $error = 1;
  		}
-		$fields{$&}++;
                 last;
-	    }
+	    };
             /^BM/ && do {
 		if( not /^BM   cmbuild / and not /^BM   cmsearch / ) {
                     warn "$family: BM lines should start with cmbuild or cmsearch\n";
