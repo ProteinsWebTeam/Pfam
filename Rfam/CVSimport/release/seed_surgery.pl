@@ -11,38 +11,54 @@ use Bio::SimpleAlign;
 use Bio::SeqIO;
 use Bio::Index::Fasta;
 use Bio::Tools::BPlite2;
-use lib '/pfam/db/Rfam/scripts/Modules';
+#use lib '/pfam/db/Rfam/scripts/Modules';
+use lib "$ENV{HOME}/rfam/scripts/Modules";
 use Bio::Rfam::RfamAlign;
 use Rfam;
 
-my $noaction;
+my( $noaction,
+    $dir,
+    $noclean );
 
-&GetOptions( "noaction" => \$noaction );
+&GetOptions( "noaction" => \$noaction,
+	     "dir"      => \$dir,
+	     "noclean"  => \$noclean );
 
-my $dir = shift;
-chdir $dir or die "can't chdir to $dir\n";
+if( $dir ) {
+    chdir $dir or die "can't chdir to $dir\n";
+}
 my $newinx = Bio::Index::Fasta->new( $rfamseq_new_inx );
-my $curinx = Bio::Index::Fasta->new( $rfamseq_current_inx );
 my %cache;
+my @list;
+@list = @ARGV or @list = &Rfam::get_allaccs();
 
 #open( LOG, ">log" ) or die "can't write to $dir/log\n";
 
-foreach my $acc ( &Rfam::get_allaccs() ) {
+foreach my $acc ( @list ) {
+    my $changed;
     my $aln = new Bio::Rfam::RfamAlign;
     open( SEED, "$acc/SEED" ) or die;
     $aln -> read_stockholm( \*SEED );
     foreach my $seq ( $aln -> eachSeq() ) {
 	my $curstr = $seq -> seq();
+	if( $curstr =~ tr/tT/uU/ ) {    # "It's RNA dammit" (SRE)
+	    printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
+	    print "T_TO_U\n";
+	    $seq -> seq( $curstr );
+	    $changed = 1;
+	}
 	$curstr =~ s/\.//g;
 	my $newseq = &return_seq( $newinx, $seq->id, $seq->start, $seq->end );
 	if( not defined $newseq ) {
 	    printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
 	    $aln -> removeSeq( $seq );
 	    print "DELETE\tFIXED\n";
+	    $changed = 1;
 	}
 	elsif( not $newseq ) {
 	    printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
 	    print "OUTOFBOUNDS\tNOTFIXED";
+	    $changed = 1;
 	}
 	else {
 	    my $newstr = $newseq -> seq;
@@ -52,30 +68,37 @@ foreach my $acc ( &Rfam::get_allaccs() ) {
 		my $fixed = &find_match( $newinx, $seq );
 		if( $fixed == -1 ) {
 		    print "RENUMBER\tFIXED\n";
+		    $changed = 1;
 		}
 		elsif( $fixed ) {
 		    print $fixed, "_MISMATCH\tFIXED\n";
+		    $changed = 1;
 		}
 		else {
 		    print "MISMATCH\tNOTFIXED\n";
+		    $changed = 1;
 		}
 	    }
 	}
     }
 
-    unless( $noaction ) {
+    if( $aln -> allgaps_columns_removed ) {
+	printf( "%s   GAPS_REMOVED\n", $acc );
+	$changed = 1;
+    }
+
+    if( $changed and not $noaction ) {
 	open( NEW, ">$acc/SEEDNEW" ) or die "can't write to $acc/SEEDNEW";
 	$aln -> write_stockholm( \*NEW );
 	close NEW;
-	# following will be unnecessary when infernal handles weights
-	system "weight -o $acc/SEEDNEW2 $acc/SEEDNEW > /dev/null 2>&1" and die "can't run weight";
+	# yippee - infernal handles weights so don't need squid!
+        # system "weight -o $acc/SEEDNEW2 $acc/SEEDNEW > /dev/null 2>&1" and die "can't run weight";
 	rename( "$acc/SEED", "$acc/SEEDOLD" ) or die "can't rename SEED to SEEDOLD";
-	rename( "$acc/SEEDNEW2", "$acc/SEED" ) or die "can't rename SEEDNEW2 to SEED";
+	rename( "$acc/SEEDNEW", "$acc/SEED" ) or die "can't rename SEEDNEW to SEED";
     }
 }
 
 undef $newinx;
-undef $curinx;
 
 sub return_seq {
     my $inx  = shift;
@@ -181,7 +204,7 @@ sub find_match {
 #	print "\n", join( "", @oldgap ), "\n", join( "", @newgap ), "\n";
     }
 
-    unlink( "$$.new.fa", "$$.old.fa", "$$.new.fa.nhr", "$$.new.fa.nin", "$$.new.fa.nsq", "$$.blast" ) or die "can't cleanup";
+    unlink( "$$.new.fa", "$$.old.fa", "$$.new.fa.nhr", "$$.new.fa.nin", "$$.new.fa.nsq", "$$.blast" ) or die "can't cleanup" unless $noclean;
 
     return $fixed;
 }
