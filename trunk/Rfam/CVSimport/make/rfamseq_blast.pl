@@ -21,7 +21,7 @@ use Bio::SeqIO;
 
 my( $evalue, $division, $minidb, $help );
 &GetOptions( "e=s"    => \$evalue,
-	     "o=s"    => \$division,
+	     "d=s"    => \$division,
 	     "h"      => \$help,
 	     "minidb" => \$minidb );
 
@@ -36,7 +36,7 @@ rfamseq_blast.pl: blast a sequence against rfamseq
 
 Usage:   rfamseq_blast.pl <options> <fastafile>
 Options:       -h          show this help
-               -o <div>    restrict search to EMBL division
+               -d <div>    restrict search to EMBL division
                -e <n>      blast evalue threshold
                --minidb    build minidb of all blast hits
 
