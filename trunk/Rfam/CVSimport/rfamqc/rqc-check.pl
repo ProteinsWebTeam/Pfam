@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -w
 
 # This script compares the working and current versions of the 
 # full alignment to check that no sequences are lose.
@@ -31,12 +31,14 @@ if( $#ARGV == -1 ) {
 }
 
 foreach my $acc (@ARGV) {
+    if( $acc =~ /\/$/ ) {
+	chop $acc;
+    }
     if( not $db->is_acc( $acc ) ) {
 	print "NEW FAMILY\n";
 	next;
     }
     my $entry = $db->get_Entry_by_acc($acc);
-    my ($ali,$nse,$start,$end,$extra);
     my (%current_names,%edited_names,%edited_seed_names);
   
     # Look at current version
@@ -64,7 +66,8 @@ foreach my $acc (@ARGV) {
     }
 
     # Find missing sequences in edited family
-    my (%missing,$lost);
+    my %missing;
+    my $lost = 0;
     # Put missing sequences into a missing file in directory
     open (MISSING, "> $acc/missing")||die "Can't write to file $acc/missing\n";
     foreach my $element (sort keys %current_names){
@@ -77,6 +80,7 @@ foreach my $acc (@ARGV) {
     }
     close (MISSING); 
 
+    my $extra = 0;
     # Find how many sequences gained
     open (FOUND, "> $acc/found")||die "Can't write to file $acc/found\n";
     foreach my $element (sort keys %edited_names){
