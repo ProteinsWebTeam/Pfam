@@ -1,0 +1,55 @@
+<!-- SET  $title="FTP access to Rfam" -->
+<!-- ADDHEADER -->
+
+<P CLASS=normaltext>
+You can download the Rfam database and search it
+locally using the <a href="http://infernal.wustl.edu/">INFERNAL</a>
+software suite.</P>
+
+
+
+
+
+
+
+<table border=1 class=normaltext CELLPADDING=5  width=100%   CELLSPACING=0 bgcolor="$RFAMCOLOUR">
+  <tr>
+    <th bgcolor=#000070 ALIGN=LEFT CLASS=whitetableheader>FTP files</th>
+  </tr>
+  <tr>
+    <td>
+      <table cols=1 border0 width=100%  cellpadding = 5 cellspacing=0>
+        
+         
+
+
+  <tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif> <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/"> 
+       Hyperlink directly to the ftp site </a> </td></tr>
+
+
+       <tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/README"> README</a> - read this first</td></tr>
+
+       <tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/COPYING"> COPYING</a> - Rfam is in the public domain: read this for the legalities</td></tr>
+
+<tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/USERMAN"> USERMAN</A> - a description of the Rfam flatfile formats</td></tr>
+
+<tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/Rfam.seed.gz"> Rfam.seed.gz</A> - annotated seed alignments in STOCKHOLM format</td></tr>
+
+<tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/Rfam.full.gz"> Rfam.full.gz</a> - annotated full alignments in STOCKHOLM format</td></tr>
+
+<tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/Rfam.fasta.gz">Rfam.fasta.gz </a>- fasta sequences of Rfam members filtered to <90% identity</td></tr>
+
+<tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/Rfamseq.list.gz"> Rfamseq.list.gz</a> - list of EMBL accessions/versions in the RFAMSEQ database</td></tr>
+
+
+<tr><td ALIGN=LEFT CLASS=normaltext NOWRAP><img src=gifs/arrow.gif>  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/Rfam.tar.gz"> Rfam.tar.gz</a> - Rfam models</td></tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+<p>
+
+
+<!-- ADDFOOTER -->
+

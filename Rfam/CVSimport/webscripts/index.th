@@ -1,0 +1,147 @@
+<!-- SET  $title="Rfam Home Page" -->
+
+<!-- ADDHEADER -->
+
+<!--
+<center><img SRC="gifs/rfam.gif" height=147 width=350></center><br>
+-->
+
+
+<TABLE BORDER=0  HEIGHT=460 WIDTH=100% CELLPADDING=5 CELLSPACING=0>
+<P><P><P><P>
+
+<TR><TD VALIGN=TOP ALIGN=LEFT>
+
+
+<P CLASS=normaltext>
+Rfam is a large collection of multiple sequence alignments and 
+covariance models covering many common non-coding RNA families.
+For each family in Rfam you can:</P>
+<UL CLASS=normaltext><LI>View and download multiple sequence alignments</LI>
+<li>Read family annotation</li>
+<LI>Examine species distribution of family members</LI>
+<LI>Follow links to other databases</LI>
+</UL>
+ 
+<P CLASS=normaltext> 
+
+Rfam makes use of a large amount of available data, especially
+published multiple sequence alignments, and repackages these data in a
+single searchable and sustainable resource.  We have made every effort
+to credit individual sources on family pages, and have compiled a list
+of links to these sources <a href="help/acknowledge.shtml">here</a>.
+If you find any of the data presented here useful, please also be sure
+to credit the primary source.
+
+</P>
+
+<P CLASS=normaltext>
+For more information on Rfam, and using this site, click <a
+href="help/index.shtml">here</a>.
+</P>
+
+<P CLASS=normaltext>
+Rfam UK is also the home of the microRNA Registry.  To submit miRNA
+sequences for naming, or to browse published miRNAs, click <a
+href="mirna/index.shtml">here</a>.
+</P>
+
+
+</TD>
+
+<TD VALIGN=TOP ALIGN=RIGHT>
+<TABLE BORDER=1 CELLPADDING=3 WIDTH=100%  CELLSPACING=0>
+<TR><TD BGCOLOR=#000070 CLASS=whitetableheader>Version 4.1</TD></TR>
+<TR><TD NOWRAP valign=center align=left  BGCOLOR="$RFAMCOLOUR">June 2003, 165 families</TD></TR>
+</TABLE>
+
+
+<P>
+<TABLE BORDER=1 CELLPADDING=3 WIDTH=100%  CELLSPACING=0>
+<TR><TD BGCOLOR=#000070 CLASS=whitetableheader>Enter your keyword(s) here</TD></TR>
+<TR><TD NOWRAP valign=center align=left  BGCOLOR="$RFAMCOLOUR">
+<form name=tsearch METHOD="GET" ACTION="/cgi-bin/Rfam/queryrfam.pl"> <input type=hidden name="db" value="rfam"><input type=hidden name="db" value="prosite"><input type=hidden name="db" value="swiss"><input type=hidden name="size" value="100"><input name="terms">&nbsp;<input type=submit value=Go><INPUT TYPE=button VALUE=Example  onClick="window.document.tsearch.terms.value='splice';"> </form>
+</TD></TR></TABLE>
+
+<P>
+
+<TABLE BORDER=1 WIDTH=100%  CELLPADDING=3 CELLSPACING=0>
+<TR><TD BGCOLOR=#000070 CLASS=whitetableheader>Enter an EMBL name or accession number<BR></TD></TR>
+<TR><TD NOWRAP  BGCOLOR="$RFAMCOLOUR">
+<form name=protein_name METHOD="GET" ACTION="/cgi-bin/Rfam/seqget.pl"><input name="name">&nbsp;<input type=submit value=Go><INPUT TYPE=BUTTON VALUE=Example onClick="window.document.protein_name.name.value='AJ390104';">
+ </form></TD></TR>
+</TABLE>
+
+</TD>
+</TR>
+
+
+</TD></TR>
+
+
+<TR><TD VALIGN=BOTTOM ALIGN=LEFT valign=bottom colspan=2 >
+
+<TABLE >
+<TR><TD valign=top >
+<TABLE BORDER=1 CELLPADDING=5  CELLSPACING=0>
+<TR><TD BGCOLOR=#000070 CLASS=whitetableheader>Rfam Mirror Servers Worldwide
+</TD></TR>
+
+<TR><TD BGCOLOR="$RFAMCOLOUR">
+<TABLE CELLPADDING=3  CELLSPACING=0>
+<TR><TD NOWRAP><A href="http://www.sanger.ac.uk/Software/Rfam"><img src=gifs/flags/british_flag.gif border=0 ALT="Sanger Institute" HEIGHT="10" WIDTH="10"> Sanger Institute (UK)</a></TD></TR>
+
+<TR><TD NOWRAP><A HREF="http://rfam.wustl.edu/"><img src=gifs/flags/american_flag.gif border=0 ALT="St. Louis" HEIGHT="10" WIDTH="10"> St. Louis (USA)</A></TD></TR>
+
+
+</TABLE>
+</TD></TR>
+</TABLE>
+
+
+
+
+
+</TD>
+<TD>&nbsp;</TD><TD valign=top>
+
+<TABLE BORDER=1 CELLPADDING=5  CELLSPACING=0>
+<TR><TD BGCOLOR=#000070 CLASS=whitetableheader >FTP access to Rfam
+</TD></TR>
+<TR><TD  BGCOLOR="$RFAMCOLOUR" >
+
+<SPAN  CLASS=normalsmalltext>You can also download the Rfam database and for instance search it locally using the </SPAN> <a href="http://infernal.wustl.edu/">INFERNAL</A>  <SPAN  CLASS=normalsmalltext>covariance model software.</SPAN><BR>
+
+<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">Hyperlink directly to the ftp site </A> <SPAN  CLASS=normalsmalltext>or </SPAN><a href="http://www.sanger.ac.uk/Software/Rfam/ftp.html"> View ftp site files</A> 
+
+</TD></TR></TABLE>
+
+<P>
+</TABLE>
+<TABLE BORDER=1 CLASS=normaltext CELLPADDING=5  CELLSPACING=0>
+<TR><TD BGCOLOR=#000070 CLASS=whitetableheader>Reference
+</TD></TR>
+<TR><TD VALIGN=TOP WRAP BGCOLOR=$RFAMCOLOUR >
+<SPAN class=normaltext><B>
+If you find Rfam useful we ask that you cite the following publication:</B>
+</SPAN> <BR>
+
+<a href="http://nar.oupjournals.org/cgi/content/abstract/31/1/439">Rfam: an RNA family database</a>.<br>
+Sam Griffiths-Jones, Alex Bateman, Mhairi Marshall, Ajay Khanna and Sean R. Eddy. <br>Nucleic Acids Research, 2003, 31, 1, 439-441.
+
+</TD></TR>
+</TABLE>
+
+
+
+
+</TD></TR>
+</TABLE>
+
+
+
+
+<!-- ADDFOOTER -->
+
+</html>
+
