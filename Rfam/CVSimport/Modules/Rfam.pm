@@ -58,7 +58,7 @@ use vars qw( @ISA
 
 ## Database modules added by Mhairi
 #use Bio::Rfam::DB;
-use Database::DB_RDB;
+#use Database::DB_RDB;
 use Database::DB_RCS;
 use UpdateRDB;
 
