@@ -67,7 +67,7 @@ sub get_ref_by_pubmed {
 	my $tag;
 	foreach ( split( /\n/, $res->content  ) ) {
 	    s/\r//g;    # remove dos new lines
-	    print "$_\n";
+#	    print "$_\n";
 	    if( /^(\w+)\s*-\s+(.*)$/ or /^<\S+><\S+>(\w+)\s*- (.*)$/ ) {
 		$tag = $1;
 		if( ! $data{ $tag } ) {
@@ -92,6 +92,10 @@ sub get_ref_by_pubmed {
 	if( $data{ 'TI' } =~ /\[see comments\]/ ) {
 	    my @title_with_comment = split (/\[see/, $data{'TI'});       
 	    $data{ 'TI' } = $title_with_comment[0];
+	}
+	# remove trailing . from TI
+	if( $data{ 'TI' } =~ /\.\s*$/ ) {
+	    chop $data{'TI'};
 	}
 	$self->{ 'TITLE' } = $data{ 'TI' };
 
