@@ -1,5 +1,10 @@
 #!/usr/local/bin/perl -w
 
+# This is mostly pretty NFS friendly now.  Should run rfsearch itself on 
+# something with local storage, but the jobs all get sent off to blades
+# using nice socket things, pfetch etc.
+
+
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
@@ -92,7 +97,6 @@ if( -s "DESC" ) {
 
 # defaults
 my $blastdbdir = $Rfam::rfamseq_current_dir;
-my $inxfile    = $Rfam::rfamseq_current_inx;
 $blast_eval = 10  unless $blast_eval;
 $window     = 100 unless $window;
 $cpus       = 20  unless $cpus;
@@ -101,72 +105,102 @@ $bqueue     = "pfam_slow -Rlinux" unless $bqueue;
 $buildopts  = "--rf CM SEED" unless $buildopts;
 my $fafile = "FA";
 
-my $seqinx  = Bio::Index::Fasta->new( '-filename'    => $inxfile,
-                                      '-dbm_package' => 'DB_File' ); 
-END { undef $seqinx; }   # stop bizarre seg faults
-
-print STDERR "building model ... ";
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 unless( $nobuild ) {
+    print STDERR "building model ... ";
     system "/pfam/db/Rfam/bin/cmbuild -F $buildopts" and die "can't build CM from SEED";
+    print STDERR "done\n";
 }
-print STDERR "done\n";
 
-print STDERR "Queuing up blast jobs ...\n";
 my $i = 0;
 my $fh = new IO::File;
+my $pwd   = `pwd`;
+my $phost = `uname -n`;
+chomp $pwd;
+chomp $phost;
 
 unless( $blast ) {
+    print STDERR "Queuing up blast jobs ...\n";
     foreach my $blastdb ( glob( "$blastdbdir/*.fa" ) ) {
 	$i ++;
 	my( $div ) = $blastdb =~ /\/([a-z0-9]+)\.fa$/;
-	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\" -f \"$$.blast.$i < /tmp/$$.blast.$i\"") or die "$!";
+	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
 	$fh -> print("blastall -b 100000 -v 100000 -p blastn -i $fafile -e $blast_eval -F F -W 7 -d $blastdb > /tmp/$$.blast.$i\n");
+	$fh -> print("lsrcp /tmp/$$.blast.$i $phost:$pwd/$$.blast.$i\n");
+	$fh -> print("rm -f /tmp/$$.blast.$i\n");
 	$fh -> close;
     }
 
     print STDERR "Waiting for blast jobs ...\n";
     my $fh = new IO::File;
-    $fh -> open("| bsub -I -q pfam_fast -Ralpha -w\'done(rf$$)\'") or die "$!";
-    $fh -> print("cat $$.blast.* >> $$.blastall\n");
+    $fh -> open("| bsub -I -q pfam_fast -w\'done(rf$$)\'") or die "$!";
+    $fh -> print("echo \"blast jobs finished at:\" > $$.berr\n");
+    $fh -> print("date >> $$.berr\n");
     $fh -> close;
 }
 
-$blast = "$$.blastall" if( not $blast );
-
 print STDERR "parsing blast output ... ";
-my %seqlist = %{ &parse_blast( $blast ) };
+my $seqlist = {};
+if( $blast ) {
+    $seqlist = &parse_blast( $seqlist, "$blast" );
+}
+else {
+    for( my $j=1; $j<=$i; $j++ ) {
+	$seqlist = &parse_blast( $seqlist, "$$.blast.$j" );
+    }
+}
 print STDERR "done\n";
 
+my %sv;
+open( SV, "$blastdbdir/Rfamseq.lst" ) or die;
+while(<SV>) {
+    if( /^(\S+)\.(\d+)\s*$/ ) {
+	$sv{$1} = $2;
+    }
+}
+close SV;
+
 print STDERR "building mini database ... ";
-my $numseqs = scalar( keys %seqlist );
+my $numseqs = scalar( keys %{ $seqlist } );
 my $count = int( $numseqs/$cpus ) + 1;
 my $k = 1;
-my @seqids = sort keys %seqlist;
+my @seqids = sort keys %{ $seqlist };
 while( @seqids ) {
     my @tmpids = splice( @seqids, 0, $count ); 
     open( FA, "> $$.minidb.$k" ) or die;
     foreach my $seqid ( @tmpids ) {
-        foreach my $reg ( @{ $seqlist{ $seqid } } ) {
-            my $seq = &get_seq( $seqid, $reg->{'start'}, $reg->{'end'} );
-            next if not $seq;
-            my $seqstr = $seq->seq();
-            $seqstr =~ s/(.{1,60})/$1\n/g;
-            print FA ">", $seq->id(), "\n$seqstr";
+        foreach my $reg ( @{ $seqlist->{$seqid} } ) {
+	    my $seqsv = $seqid.".".$sv{$seqid};
+	    my( $start, $end ) = ( $reg->{'start'}, $reg->{'end'} );
+	  GET: {
+	      $fh -> open( "pfetch -a $seqsv:$start-$end -n $seqid/$start-$end |" );
+	      while(<$fh>) {
+		  if( /end is greater than sequence length.*?(\d+)/ ) {
+		      $end = $1;
+		      $fh -> close;
+		      redo GET;
+		  }
+		  elsif( /no match/ ) {
+		      warn "$seqsv not found in database - this is bad\n";
+		  }
+		  else {
+		      print FA "$_";
+		  }
+	      }
+	      $fh -> close;
+	  }
         }
     }
     $k++;
     close FA;
 }
 print STDERR "done\n";
-undef( %seqlist );             # free up memory
+undef( $seqlist );             # free up memory
 
 my $command = "/pfam/db/Rfam/bin/linux/cmsearch";
 my $options = "";
-if( $local ) {
-    $options .= "--local";
-}
-$options .= " -W $window";
+$options .= "--local " if( $local );
+$options .= "-W $window";
 
 print STDERR "Queueing cmsearch jobs ...\n";
 $fh -> open("| bsub -q $queue -o $$.err.\%I -J\"[1-$k]\" -f \"$$.minidb.\%I > /tmp/$$.minidb.\%I\" -f \"OUTPUT.\%I < /tmp/$$.OUTPUT.\%I\"") or die "$!";
@@ -179,10 +213,10 @@ $fh -> close;
 ##############
 
 sub parse_blast {
+    my $list      = shift;
     my $blastfile = shift;
     open( BL, $blastfile ) or die;
     my $report = new Bio::Tools::BPlite( -fh => \*BL );
-    my %list;
     {
         while( my $sbjct = $report -> nextSbjct ) {
             my $name = $sbjct -> name();
@@ -197,8 +231,8 @@ sub parse_blast {
 
                 # avoid having multiple copies of one region in minidb
                 my $already;
-                if( exists $list{ $name } ) {
-                    foreach my $se ( sort @{ $list{ $name } } ) {
+                if( exists $list->{$name} ) {
+                    foreach my $se ( sort @{ $list->{$name} } ) {
                         if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
                             $se->{'start'} = $start;
                             $already = 1;
@@ -214,7 +248,7 @@ sub parse_blast {
                 }
 
                 unless( $already ) {
-                    push( @{ $list{ $name } }, { 'start' => $start,
+                    push( @{ $list->{$name} }, { 'start' => $start,
                                                  'end'   => $end } );
                 }
             }
@@ -222,35 +256,9 @@ sub parse_blast {
         last if ( $report -> _parseHeader == -1 );
         redo;
     }
-    return \%list;
+    return $list;
 }
 
-sub get_seq {
-    # fixes start < 1 and end > length
-    my $id    = shift;
-    my $start = shift;
-    my $end   = shift;
-
-    my $seq = new Bio::Seq;
-    eval {
-        $seq = $seqinx -> fetch( $id );
-    };
-    if( not $seq or $@ ) {
-        warn "$id not found in your seq db\n";
-        return 0;       # failure
-    }
-    my $length = $seq -> length();
-    if( $start < 1 ) {
-        $start = 1;
-    }
-    if( $end > $length ) {
-        $end = $length;
-    }
-    my $truncseq = $seq -> trunc( $start, $end );
-    $truncseq -> desc( "" );
-    $truncseq -> id( "$id/$start-$end" );
-    return $truncseq;
-}
 
 sub update_desc {
     my $options = shift;
