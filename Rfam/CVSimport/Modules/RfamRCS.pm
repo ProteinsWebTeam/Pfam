@@ -7,8 +7,6 @@
 # can be used in generic fashion for Xfam
 #
 
-use lib '/pfam/db/Rfam/scripts/Modules';
-
 package RfamRCS;
 
 use strict;
@@ -20,13 +18,13 @@ use vars qw( @ISA
 
 @ISA = qw( Exporter );
 
-my $database_lock = "$accession_dir/database_lock";
-my $acclog_file   = "$accession_dir/acclog";
-my $acc_lock      = "$accession_dir/lock";
-my $access_list   = "$accession_dir/access_list";
+my $database_lock = "$Rfam::accession_dir/database_lock";
+my $acclog_file   = "$Rfam::accession_dir/acclog";
+my $acc_lock      = "$Rfam::accession_dir/lock";
+my $access_list   = "$Rfam::accession_dir/access_list";
 my $allowed_user_string = "";
 
-my $view_maker = "$scripts_dir/rfamrcs/makerfamview.pl";
+my $view_maker = "$Rfam::scripts_dir/rfamrcs/makerfamview.pl";
 
 open (_LIST, $access_list) or die "Fatal error - could not open the access list file";
 while(<_LIST>) {
@@ -51,26 +49,26 @@ sub abort_lock_on_family {
 
     $out = 1;
 
-    foreach my $file ( @rcs_file_set ) {
-	if( system("rcs -u -q $rcs_master_dir/$family/$file") != 0 ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
+	if( system("rcs -u -q $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: Was unable to abort file [$file] in [$family]... hmmm...\n");
 	    $out = 0;
 	}
     }
 
-    foreach my $file ( @optional_file_set ) {
-	if( !(-e "$rcs_master_dir/$family/$file,v") ) { next; }
+    foreach my $file ( @Rfam::optional_file_set ) {
+	if( !(-e "$Rfam::rcs_master_dir/$family/$file,v") ) { next; }
 
-	if( system("rcs -u -q $rcs_master_dir/$family/$file") != 0 ) {
+	if( system("rcs -u -q $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: Was unable to abort file [$file] in [$family]... hmmm...\n");
 	    $out =0;
 	}
     }
 
-    if( ! -e "$rcs_master_dir/$family/locked" ) {
+    if( ! -e "$Rfam::rcs_master_dir/$family/locked" ) {
 	warn("Bad news... you have checked in a family and I have lost my locked file. Ooops!");
     } else {
-	unlink("$rcs_master_dir/$family/locked");
+	unlink("$Rfam::rcs_master_dir/$family/locked");
     }
 
     return $out;
@@ -84,20 +82,20 @@ sub add_users_to_family {
 
     my $user = join(',', @users);
 
-    foreach my $file ( @rcs_file_set ) {
-	if( ! -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
+	if( ! -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    warn("Bad error - for family $family no $file in RCS master!");
 	} else {
-	    if( system("rcs -a$user $rcs_master_dir/$family/$file,v") ) {
+	    if( system("rcs -a$user $Rfam::rcs_master_dir/$family/$file,v") ) {
 		warn("Bad error - unable to -a$user on $family/$file");
 	    }
 	}
     }
-    foreach my $file ( @optional_file_set ) {
-	if( ! -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file ( @Rfam::optional_file_set ) {
+	if( ! -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    next;
 	} else {
-	    if( system("rcs -a$user $rcs_master_dir/$family/$file,v") ) {
+	    if( system("rcs -a$user $Rfam::rcs_master_dir/$family/$file,v") ) {
 		warn("Bad error - unable to -a$user on $family/$file");
 	    }
 	}
@@ -178,7 +176,7 @@ sub allocate_new_accession {   # hack at the moment
 
 sub check_family_directory_exists {
     my ($family) = @_;
-    if( !(-e "$rcs_master_dir/$family") ) {
+    if( !(-e "$Rfam::rcs_master_dir/$family") ) {
 	return 0;
     }    
     return 1;
@@ -189,7 +187,7 @@ sub check_family_exists {
     my ($family) = @_;
     my $out = 1;
 
-    foreach my $file ( @rcs_file_set ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
 	if( check_family_file_exists($family,"$file") == 0 ) { 
 	    warn "could not find $file,v in [$family]"; 
 	    $out = 0; 
@@ -202,7 +200,7 @@ sub check_family_exists {
 sub check_family_file_exists {
     my ($family,$file) = @_;
 
-    if( !(-e "$rcs_master_dir/$family/$file,v") ) { return 0;}
+    if( !(-e "$Rfam::rcs_master_dir/$family/$file,v") ) { return 0;}
     else { return 1;}
 
 }
@@ -237,7 +235,7 @@ sub check_family_isnot_locked {
     my ($locked, $locker);
     my $islocked = 0;
 
-    if ( open(_LOCK, "<$rcs_master_dir/$family/locked")) {
+    if ( open(_LOCK, "<$Rfam::rcs_master_dir/$family/locked")) {
 	while(<_LOCK>) {
 	    /^Lock file to indicate lock by user (\S+)/ && do {
 		$locker = $1;
@@ -250,7 +248,7 @@ sub check_family_isnot_locked {
 	$locked = "$locker";
     }
 
-    open(RLOG,"rlog -L -h $rcs_master_dir/$family/SEED|") || die "Could not open rlog pipe!";
+    open(RLOG,"rlog -L -h $Rfam::rcs_master_dir/$family/SEED|") || die "Could not open rlog pipe!";
 
     while(<RLOG>) {
 	if( /^locks:/ ) {
@@ -273,39 +271,39 @@ sub check_in_rcs_files {
     my $new_rcs;
     my $out = 1;
 
-    foreach my $file ( @rcs_file_set ) {
-	if( system("ci -f -q -m\"$comment\" $rcs_master_dir/$family/$file") != 0 ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
+	if( system("ci -f -q -m\"$comment\" $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: Was unable to check in $file... hmm...\n");
 	    $out = 0;
 	}
-#	system("chmod g+rw $rcs_master_dir/$family/$file,v");
+#	system("chmod g+rw $Rfam::rcs_master_dir/$family/$file,v");
     }
 
-    foreach my $file ( @optional_file_set ) {
-	if( !(-e "$rcs_master_dir/$family/$file") ) { 
+    foreach my $file ( @Rfam::optional_file_set ) {
+	if( !(-e "$Rfam::rcs_master_dir/$family/$file") ) { 
 	    next; 
 	}
-	if( !( -e "$rcs_master_dir/$family/$file,v") ) {
+	if( !( -e "$Rfam::rcs_master_dir/$family/$file,v") ) {
 	    $new_rcs = 1;
 	}
 
 	if( $new_rcs ) {
-	    if( system("rcs -a$allowed_user_string -q -i -t-\"$comment\" $rcs_master_dir/$family/$file") != 0 ) {
+	    if( system("rcs -a$allowed_user_string -q -i -t-\"$comment\" $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 		print("RCS: Was unable make new file $file... hmm...\n");
 		$out = 0;
 	    }	
 	}	       
-	if( system("ci -f -q -m\"$comment\" $rcs_master_dir/$family/$file") != 0 ) {
+	if( system("ci -f -q -m\"$comment\" $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: Was unable to check in $file... hmm...\n");
 	    $out = 0;
 	}
-#	system("chmod g+rw $rcs_master_dir/$family/$file,v");
+#	system("chmod g+rw $Rfam::rcs_master_dir/$family/$file,v");
     }
 
-    if( ! -e "$rcs_master_dir/$family/locked" ) {
+    if( ! -e "$Rfam::rcs_master_dir/$family/locked" ) {
 	warn("Bad news... you have checked in a family and I have lost my locked file. Ooops!");
     } else {
-	unlink("$rcs_master_dir/$family/locked");
+	unlink("$Rfam::rcs_master_dir/$family/locked");
     }
 
     return $out;
@@ -321,13 +319,13 @@ sub check_out_family {
     my($family,$handle) = @_; 
     my $out = 1;
 
-    foreach my $file ( @rcs_file_set ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
 	if( check_out_file($file,$family,$handle) == 0 ) {
 	    $out = 0;
 	}
     }
-    foreach my $file ( @optional_file_set ) {
-	if( -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file ( @Rfam::optional_file_set ) {
+	if( -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    if( check_out_file($file,$family,$handle) == 0 ) {
 		$out = 0;
 	    }
@@ -336,7 +334,7 @@ sub check_out_family {
 
     # make locked file
 
-    open(LOC,">$rcs_master_dir/$family/locked") || die("Bad bug ... could not open locked file $!");
+    open(LOC,">$Rfam::rcs_master_dir/$family/locked") || die("Bad bug ... could not open locked file $!");
 
     my $user = `whoami`; chop $user;
     print LOC "Lock file to indicate lock by user $user\n";
@@ -353,7 +351,7 @@ sub check_out_family {
 sub check_out_file {
     my ($file,$family,$handle) = @_;
 
-    if( !open(CHECK,"co -l -q $rcs_master_dir/$family/$file|") ) {
+    if( !open(CHECK,"co -l -q $Rfam::rcs_master_dir/$family/$file|") ) {
 	print("RCS: Could not open co -l for $file of family $family, $!\n");
 	return 0;
     }
@@ -377,8 +375,8 @@ sub copy_from_current {
     my($family) = @_;
     my($out) = 1;
 
-    foreach my $file ( @rcs_file_set ) {
-	if( system("cp $current_dir/$family/$file ./$file") != 0 ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
+	if( system("cp $Rfam::current_dir/$family/$file ./$file") != 0 ) {
 	    $out = 0;
 	}
 	if( system("chmod u+w ./$file") != 0 ) {
@@ -386,9 +384,9 @@ sub copy_from_current {
 	}
     }
 
-    foreach my $file ( @optional_file_set ) {
-	if( -e "$rcs_master_dir/$family/$file,v" ) {
-	    if( system("cp $current_dir/$family/$file ./$file") != 0 ) {
+    foreach my $file ( @Rfam::optional_file_set ) {
+	if( -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
+	    if( system("cp $Rfam::current_dir/$family/$file ./$file") != 0 ) {
 		$out = 0;
 	    }
 	    if( system("chmod u+w ./$file") != 0 ) {
@@ -403,8 +401,8 @@ sub copy_from_current {
 sub get_locked_families {
     my (@names);
 
-    if( !opendir(_RFAM_INTERNAL_DIR,$rcs_master_dir) ) {
-	print("RCS: A real bad problem, can't see root at $rcs_master_dir\n");
+    if( !opendir(_RFAM_INTERNAL_DIR,$Rfam::rcs_master_dir) ) {
+	print("RCS: A real bad problem, can't see root at $Rfam::rcs_master_dir\n");
 	return @names;
     }
 
@@ -412,11 +410,11 @@ sub get_locked_families {
 
     foreach my $file (@files) {
 	if( $file =~ /^\.$/ || $file =~ /^\.\.$/ ) { next; }
-	if( !(-d "$rcs_master_dir/$file") ) {
+	if( !(-d "$Rfam::rcs_master_dir/$file") ) {
 	    print("RCS: I don't like this, a non directory file [$file] in the RCS_MASTER. Yuk!\n");
 	}
 	else {
-	    if( -e "$rcs_master_dir/$file/locked" ) {
+	    if( -e "$Rfam::rcs_master_dir/$file/locked" ) {
 		push(@names,$file);
 	    }
 	}
@@ -430,8 +428,8 @@ sub get_locked_families {
 sub get_all_family_names {
     my (@names);
 
-    if( !opendir(_RFAM_INTERNAL_DIR,$rcs_master_dir) ) {
-	print("RCS: A real bad problem, can't see root at $rcs_master_dir\n");
+    if( !opendir(_RFAM_INTERNAL_DIR,$Rfam::rcs_master_dir) ) {
+	print("RCS: A real bad problem, can't see root at $Rfam::rcs_master_dir\n");
 	return @names;
     }
 
@@ -441,7 +439,7 @@ sub get_all_family_names {
 
     foreach my $file (@files) {
 	if( $file =~ /^\.$/ || $file =~ /^\.\.$/ ) { next; }
-	if( !(-d "$rcs_master_dir/$file") ) {
+	if( !(-d "$Rfam::rcs_master_dir/$file") ) {
 	    print("RCS: I don't like this, a non directory file [$file] in the RCS_MASTER. Yuk!\n");
 	}
 	else {
@@ -457,8 +455,8 @@ sub get_all_family_names {
 sub get_dead_family_names {
     my (@names);
 
-    if( !opendir(_RFAM_INTERNAL_DIR,$rcs_attic_dir) ) {
-	print("RCS: A real bad problem, can't see attic at $rcs_attic_dir\n");
+    if( !opendir(_RFAM_INTERNAL_DIR,$Rfam::rcs_attic_dir) ) {
+	print("RCS: A real bad problem, can't see attic at $Rfam::rcs_attic_dir\n");
 	return @names;
     }
 
@@ -468,7 +466,7 @@ sub get_dead_family_names {
 
     foreach my $file (@files) {
 	if( $file =~ /^\.$/ || $file =~ /^\.\.$/ ) { next; }
-	if( !(-d "$rcs_attic_dir/$file") ) {
+	if( !(-d "$Rfam::rcs_attic_dir/$file") ) {
 	    print("RCS: I don't like this, a non directory file [$file] in the RCS_ATTIC. Yuk!\n");
 	}
 	else {
@@ -485,7 +483,7 @@ sub get_info_on_family {
     my($line, $locker);
     my $locked = "";
 
-    if ( open(_LOCK, "<$rcs_master_dir/$family/locked")) {
+    if ( open(_LOCK, "<$Rfam::rcs_master_dir/$family/locked")) {
 	while(<_LOCK>) {
 	    /^Lock file to indicate lock by user (\S+)/ && do {
 		$locker = $1;
@@ -493,7 +491,7 @@ sub get_info_on_family {
 	}
     }
 
-    if( !open(INFO,"rlog -b $rcs_master_dir/$family/DESC |") ) {
+    if( !open(INFO,"rlog -b $Rfam::rcs_master_dir/$family/DESC |") ) {
 	print("RCS: can't get any info on family [$family]\n");
     }
 
@@ -577,10 +575,11 @@ sub get_short_info_on_family {
     my($family,$fileout) = @_;
     my($line, $lasttouched, $lastauthor);
 
-    my ($islocked, $locker) = &check_family_isnot_locked( $family ); 
-    my $id = &Rfam::acc2id( $family );
+    my ($islocked, $locker) = &check_family_isnot_locked( $family );
+    my $db = Rfam::default_db();
+    my $id = $db -> acc2id( $family );
 
-    if( !open(INFO,"rlog -b $rcs_master_dir/$family/DESC |") ) {
+    if( !open(INFO,"rlog -b $Rfam::rcs_master_dir/$family/DESC |") ) {
 	print("RCS: can't get any info on family [$family]\n");
     }
 
@@ -617,19 +616,19 @@ sub label_family {
 	return undef;
     }
 
-    foreach my $file ( @rcs_file_set ) {
-	if( system("rcs -N$label: $rcs_master_dir/$family/$file") != 0 ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
+	if( system("Rfam::rcs -N$label: $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    warn("Could not label $family/$file...");
 	    $ret = 0;
 	}
     }
 
-    foreach my $file ( @optional_file_set ) {
-	if( ! -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file ( @Rfam::optional_file_set ) {
+	if( ! -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    next;
 	}
 
-	if( system("rcs -N$label: $rcs_master_dir/$family/$file") != 0 ) {
+	if( system("rcs -N$label: $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    warn("Could not label $family/$file...");
 	    $ret = 0;
 	}
@@ -656,7 +655,7 @@ sub label_hash {
     # open align file with rlog
     #
 
-    my $loc = ($dead)?$rcs_attic_dir:$rcs_master_dir;
+    my $loc = ($dead)?$Rfam::rcs_attic_dir:$Rfam::rcs_master_dir;
 
     open(RLOG,"rlog $loc/$family/DESC |") || die "Could not open pipe to rlog $!";
     while(<RLOG>) {
@@ -685,13 +684,13 @@ sub lock_family {
 
     my($out) = 1;
 
-    foreach my $file (@rcs_file_set) {
+    foreach my $file (@Rfam::rcs_file_set) {
 	if( lock_file($file,$family) == 0 ) {
 	    $out = 0;
 	}
     }
-    foreach my $file (@optional_file_set) {
-	if( -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file (@Rfam::optional_file_set) {
+	if( -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    if( lock_file($file,$family) == 0 ) {
 		$out = 0;
 	    }
@@ -704,7 +703,7 @@ sub lock_family {
 	$user = `whoami`; chop $user;
     }
 
-    open(LOC,">$rcs_master_dir/$family/locked") || die("Bad bug ... could not open locked file $!");
+    open(LOC,">$Rfam::rcs_master_dir/$family/locked") || die("Bad bug ... could not open locked file $!");
     print LOC "Lock file to indicate lock by user $user\n";
     close(LOC);
 
@@ -716,7 +715,7 @@ sub lock_family {
 sub lock_file {
     my($file,$family) = @_;
 
-    system "rcs -l -q $rcs_master_dir/$family/$file" and 
+    system "rcs -l -q $Rfam::rcs_master_dir/$family/$file" and 
 	warn("Major error - could not get lock for $family/$file");
 
     return 1;
@@ -730,17 +729,17 @@ sub make_new_rcs_directory {
 
     $out = 1;
 
-    if( mkdir("$rcs_master_dir/$newfamily", 0775) == 0 ) {
+    if( mkdir("$Rfam::rcs_master_dir/$newfamily", 0775) == 0 ) {
 	print("RCS: Could not make new rcs directory for [$newfamily] due to $!\n");
 	$out = 0;
     }
 
-    if( mkdir("$current_dir/$newfamily", 0775) == 0 ) {
+    if( mkdir("$Rfam::current_dir/$newfamily", 0775) == 0 ) {
 	print("RCS: Could not make new current directory for [$newfamily] due to $!\n");
 	$out = 0;
     }
-    system("chmod a+rxw $rcs_master_dir/$newfamily");
-    system("chmod a+rxw $current_dir/$newfamily");
+    system("chmod a+rxw $Rfam::rcs_master_dir/$newfamily");
+    system("chmod a+rxw $Rfam::current_dir/$newfamily");
 
     return $out;
 }
@@ -751,16 +750,16 @@ sub make_new_rcs_files {
     my ($family,$comment) = @_;
     my $out = 1;
 
-    foreach my $file (@rcs_file_set) {
-	if( system("rcs -a$allowed_user_string -q -i -t-\"$comment\" $rcs_master_dir/$family/$file") != 0 ) {
+    foreach my $file (@Rfam::rcs_file_set) {
+	if( system("rcs -a$allowed_user_string -q -i -t-\"$comment\" $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: Was unable make new file $file... hmm...\n");
 	    $out = 0;
 	}
     }
-    foreach my $file (@optional_file_set) {
-	if( !(-e "$rcs_master_dir/$family/$file") ) {next;}
+    foreach my $file (@Rfam::optional_file_set) {
+	if( !(-e "$Rfam::rcs_master_dir/$family/$file") ) {next;}
 
-	if( system("rcs -a$allowed_user_string -q -i -t-\"$comment\" $rcs_master_dir/$family/$file") != 0 ) {
+	if( system("rcs -a$allowed_user_string -q -i -t-\"$comment\" $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: Was unable make new file $file... hmm...\n");
 	    $out = 0;
 	}
@@ -774,14 +773,14 @@ sub make_view_files {
 
     # if the files are already there, delete them
 
-    foreach my $file ( @view_file_set ) {
-	if( -e "$current_dir/$family/$file" ) {
-	    unlink("$current_dir/$family/$file");
+    foreach my $file ( @Rfam::view_file_set ) {
+	if( -e "$Rfam::current_dir/$family/$file" ) {
+	    unlink("$Rfam::current_dir/$family/$file");
 	}
     }
 
     umask 002;
-    open(TODO,">$current_dir/$family/todo.view") || die "Could not open todo.view file for $family";
+    open(TODO,">$Rfam::current_dir/$family/todo.view") || die "Could not open todo.view file for $family";
     my $me = `whoami`;
     chomp $me;
     print TODO "Set off for $family by $me\n";
@@ -806,8 +805,8 @@ sub move_family_to_current {
     my ($family) = @_;
     my $out = 1;
 
-    foreach my $file (@rcs_file_set) {
-	if( system("mv $rcs_master_dir/$family/$file ./$file") != 0 ) {
+    foreach my $file (@Rfam::rcs_file_set) {
+	if( system("mv $Rfam::rcs_master_dir/$family/$file ./$file") != 0 ) {
 	    $out = 0;
 	}
 	if( system("chmod a-x ./$file") != 0 ) {
@@ -815,9 +814,9 @@ sub move_family_to_current {
 	}
     }
 
-    foreach my $file (@optional_file_set) {
-	if( -e "$rcs_master_dir/$family/$file" ) {
-	    if( system("mv $rcs_master_dir/$family/$file ./$file") != 0 ) {
+    foreach my $file (@Rfam::optional_file_set) {
+	if( -e "$Rfam::rcs_master_dir/$family/$file" ) {
+	    if( system("mv $Rfam::rcs_master_dir/$family/$file ./$file") != 0 ) {
 		$out = 0;
 	    }
 	    if( system("chmod a-x ./$file") != 0 ) {
@@ -835,15 +834,15 @@ sub move_files_to_rcs_directory {
     my ($family,$fromdir) = @_;
     my $out = 1;
 
-    foreach my $file (@rcs_file_set) {
-	if( system("cp $fromdir/$file $rcs_master_dir/$family/$file") != 0 ) {
+    foreach my $file (@Rfam::rcs_file_set) {
+	if( system("cp $fromdir/$file $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    $out = 0;
 	}
     }
 
-    foreach my $file (@optional_file_set ) {
+    foreach my $file (@Rfam::optional_file_set ) {
 	if( -e "$fromdir/$file") {
-	    if( system("cp $fromdir/$file $rcs_master_dir/$family/$file") != 0 ) {
+	    if( system("cp $fromdir/$file $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 		$out = 0;
 	    }
 	}
@@ -866,8 +865,8 @@ sub move_rcs_directory {     # not sorted
     # numbers and lock it.
 
     
-    if( -d "$rcs_master_dir/$to" ) {
-	print("RCS: Directory $rcs_master_dir/$to exists. Cannot move!");
+    if( -d "$Rfam::rcs_master_dir/$to" ) {
+	print("RCS: Directory $Rfam::rcs_master_dir/$to exists. Cannot move!");
 	return 1;
     }
 
@@ -881,23 +880,23 @@ sub move_rcs_directory {     # not sorted
     $refhash = $db->_get_tied_accmap();
     %temphash = reverse %{$refhash};
 
-    if( rename("$rcs_master_dir/$from","$rcs_master_dir/$to") == 0 ) {
+    if( rename("$Rfam::rcs_master_dir/$from","$Rfam::rcs_master_dir/$to") == 0 ) {
 	print("RCS: Very bad error. Please talk to adminstator. Unable to move RCS $from to $to $!");
 	return 1;
     }
 
     
-    if( system("rm -r -f $current_dir/$from") ){
+    if( system("rm -r -f $Rfam::current_dir/$from") ){
 	print("RCS: Very bad error. Please talk to adminstator. Unable to remove current $from$!");
 	return 1;
     }
 
-    if( mkdir("$current_dir/$to", 0775) == 0 ) {
+    if( mkdir("$Rfam::current_dir/$to", 0775) == 0 ) {
 	print("RCS: Could not make new Pfam current directory for [$to] due to $!\n");
 	return 1;
     }
 
-    system("chmod a+rxw $current_dir/$to");
+    system("chmod a+rxw $Rfam::current_dir/$to");
 
     $acc = $temphash{$from};
     $db->_move_accession($acc,$to);
@@ -942,20 +941,20 @@ sub remove_users_from_family {
 
     my $user = join(',', @users);
 
-    foreach my $file ( @rcs_file_set ) {
-	if( ! -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file ( @Rfam::rcs_file_set ) {
+	if( ! -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    warn("Bad error - for family $family no $file in RCS master!");
 	} else {
-	    if( system("rcs -e$user $rcs_master_dir/$family/$file,v") ) {
+	    if( system("rcs -e$user $Rfam::rcs_master_dir/$family/$file,v") ) {
 		warn("Bad error - unable to -e$user on $family/$file");
 	    }
 	}
     }
-    foreach my $file ( @optional_file_set ) {
-	if( ! -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file ( @Rfam::optional_file_set ) {
+	if( ! -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    next;
 	} else {
-	    if( system("rcs -e$user $rcs_master_dir/$family/$file,v") ) {
+	    if( system("rcs -e$user $Rfam::rcs_master_dir/$family/$file,v") ) {
 		warn("Bad error - unable to -e$user on $family/$file");
 	    }
 	}
@@ -1024,13 +1023,13 @@ sub update_family_label {
     my($family, $label, $handle) = @_; 
     my $out = 1;
 
-    foreach my $file (@rcs_file_set) {
+    foreach my $file (@Rfam::rcs_file_set) {
 	if( update_file_label($file,$family,$handle,$label) == 0 ) {
 	    $out = 0;
 	}
     }
-    foreach my $file (@optional_file_set) {
-	if( -e "$rcs_master_dir/$family/$file,v" ) {
+    foreach my $file (@Rfam::optional_file_set) {
+	if( -e "$Rfam::rcs_master_dir/$family/$file,v" ) {
 	    if( update_file_label($file,$family,$handle,$label) == 0 ) {
 		$out = 0;
 	    }
@@ -1044,7 +1043,7 @@ sub update_family_label {
 sub update_file_label {
     my ($file,$family,$handle,$label) = @_;
 
-    if( !open(CHECK,"co -r$label  -q $rcs_master_dir/$family/$file|") ) {
+    if( !open(CHECK,"co -r$label  -q $Rfam::rcs_master_dir/$family/$file|") ) {
 	print("RCS: Could not open co -l for $file of family $family, $!\n");
 	return 0;
     }
@@ -1064,33 +1063,33 @@ sub update_current_directory {
 
     my $out = 1;
 
-    foreach my $file (@rcs_file_set) {
-	if( system("co -q $rcs_master_dir/$family/$file") != 0 ) {
+    foreach my $file (@Rfam::rcs_file_set) {
+	if( system("co -q $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: For file $file of family $family,\ncould not check (unlocked) out for update\n");
 	    $out = 0;
 	}
-	if( system("mv -f $rcs_master_dir/$family/$file $current_dir/$family/$file") != 0 ) {
+	if( system("mv -f $Rfam::rcs_master_dir/$family/$file $Rfam::current_dir/$family/$file") != 0 ) {
 	    print("RCS: For file $file of family $family,\ncould not move file from RCS to current for update\n");
 	    $out = 0;
 	}
-	if( system("chmod a-x $current_dir/$family/$file") != 0 ) {
+	if( system("chmod a-x $Rfam::current_dir/$family/$file") != 0 ) {
 	    $out = 0;
 	}
     }
 
-    foreach my $file (@optional_file_set) {
-	if( !(-e "$rcs_master_dir/$family/$file,v") ) { 
+    foreach my $file (@Rfam::optional_file_set) {
+	if( !(-e "$Rfam::rcs_master_dir/$family/$file,v") ) { 
 	    next; 
 	}
-	if( system("co -q $rcs_master_dir/$family/$file") != 0 ) {
+	if( system("co -q $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    print("RCS: For file $file of family $family,\n could not check (unlocked) out for update\n");
 	    $out = 0;
 	}
-	if( system("mv -f $rcs_master_dir/$family/$file $current_dir/$family/$file") != 0 ) {
+	if( system("mv -f $Rfam::rcs_master_dir/$family/$file $Rfam::current_dir/$family/$file") != 0 ) {
 	    print("RCS: For file $file of family $family,\ncould not move file from RCS to current for update\n");
 	    $out = 0;
 	}
-	if( system("chmod a-x $current_dir/$family/$file") != 0 ) {
+	if( system("chmod a-x $Rfam::current_dir/$family/$file") != 0 ) {
 	    $out = 0;
 	}
     }
@@ -1121,14 +1120,14 @@ sub user_has_locked_family {
 sub view_file_errors {
     my $family = shift;
     my $error;
-    foreach my $viewfile ( @view_file_set ) {
-        if( not -s "$current_dir/$family/$viewfile" ) {
+    foreach my $viewfile ( @Rfam::view_file_set ) {
+        if( not -s "$Rfam::current_dir/$family/$viewfile" ) {
             warn "$family: $viewfile empty\n";
             $error ++;
             next;
         }
-        foreach my $famfile ( @rcs_file_set ) {
-            if( -M "$current_dir/$family/$viewfile" > -M "$current_dir/$family/$famfile" ) {
+        foreach my $famfile ( @Rfam::rcs_file_set ) {
+            if( -M "$Rfam::current_dir/$family/$viewfile" > -M "$Rfam::current_dir/$family/$famfile" ) {
                 warn "$family: $viewfile is older than $famfile\n";
                 $error ++;
             }
@@ -1154,8 +1153,9 @@ sub make_align_release_file {
         die "RfamRCS: don't understand the type of file you want";
     }
 
-    foreach my $acc ( &Rfam::get_allaccs() ) {
-        system "cat $current_dir/$acc/$annfile >> $path/$filename" and die "RfamRCS: failed to read $current_dir/$acc/$annfile";
+    my $db = Rfam::default_db();
+    foreach my $acc ( $db->get_allacc() ) {
+        system "cat $Rfam::current_dir/$acc/$annfile >> $path/$filename" and die "RfamRCS: failed to read $Rfam::current_dir/$acc/$annfile";
     }
     return 0;
 }
