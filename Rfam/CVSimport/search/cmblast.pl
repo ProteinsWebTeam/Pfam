@@ -140,7 +140,7 @@ foreach my $acc ( keys %results ) {
 	$options .= " --local";
     }
 
-    print "$acc options: $options\n";
+#    print "$acc options: $options\n";
 
     system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and do {
 	warn "$acc search failed";
