@@ -63,17 +63,17 @@ sub new {
 ############## and should beused with extreme caution
 
 
-=head2 check_in_EntryA
+=head2 check_in_Entry
 
  Title   : check_in_entry
- Usage   : $updatedb->check_in_EntryA( $entry );
+ Usage   : $updatedb->check_in_Entry( $entry );
  Function:
     This function updates the underlying relational database
     by loading the given family through the middleware layer
     and inserting all relevant records into the correct tables,
     deleting records if necesary
  Returns :
- Args    : Bio::Pfam::EntryA
+ Args    : Rfam::Entry::Entry object
 
 =cut
 
@@ -358,53 +358,29 @@ sub update_rfam{
 	   $st->execute();
 	   my($temp_auto) = $st->fetchrow;
 	   $st->finish();
-	  $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
+	   $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
 
+	   $rdb_desc = $en->description;
+	   $rdb_author = $en->author;  # author
+	   $rdb_comment = $en->comment;
 
-
-	   if (defined $en->ann) {
-	    
-	   
-	       $rdb_desc = $en->ann->description;
-
-	     ### NEW RDB PARAMS
-
-	       $rdb_author = $en->author;  # author
-
-	      ### GET COMMENT 
-	       foreach my $comment (  $en->ann->each_Comment ) {
-		$rdb_comment .= " " . $comment->text();
-	       }
-	
-	     
-
-	       $rdb_align_method = $en->alignmethod();
-	       $rdb_GA = $en->gathering_cutoff();
-	       $rdb_TC = $en->trusted_cutoff();
-	       $rdb_NC = $en->noise_cutoff();
+	   $rdb_align_method = $en->alignmethod();
+	   $rdb_GA = $en->gathering_cutoff();
+	   $rdb_TC = $en->trusted_cutoff();
+	   $rdb_NC = $en->noise_cutoff();
 	      
-
-
-	       $rdb_previous_ids = $en->previous_ids();
-	       $rdb_source = $en->source();
+	   $rdb_previous_ids = $en->previous_ids();
+	   $rdb_source = $en->source();
 	      
-	       foreach my $line ($en->each_build_line) {
-		 $rdb_cmcalibrate .= $line if (($rdb_cmbuild) &&  (!$rdb_cmcalibrate) );
-		 $rdb_cmbuild .= $line if   (!$rdb_cmbuild)  ;
-		
-		
-	       }
-	     
-
-	       $rdb_num_seed = $en->num_seqs_in_seed();
-	       $rdb_num_full = $en->num_seqs_in_full();
-	       
-
+	   foreach my $line ($en->each_build_line) {
+	       $rdb_cmcalibrate .= $line if (($rdb_cmbuild) &&  (!$rdb_cmcalibrate) );
+	       $rdb_cmbuild .= $line if   (!$rdb_cmbuild)  ;
 	   }
-
-	       $rdb_modlen = $en->model_length;
-	 
-	 
+	     
+	   $rdb_num_seed = $en->num_seqs_in_seed();
+	   $rdb_num_full = $en->num_seqs_in_full();
+	       
+	   $rdb_modlen = $en->model_length;
        };
        if ($@) {
 	   $error = "Could not fetch all the needed data from the rfam entry [$@]";
@@ -745,11 +721,11 @@ sub update_literature_references {
   
     
     ## If there is a literature reference
-    if ($en->ann->each_Reference()) {
+    if ($en->each_reference()) {
 
       my $count = 1;
       # For each reference
-      foreach my $ref ( $en->ann->each_Reference() ) {
+      foreach my $ref ( $en->each_reference() ) {
 	
 	my($comment, $medline, $authors, $journal, $title);
 	
@@ -877,8 +853,8 @@ sub update_rfam_database_links {
     
     ## If there is a database reference
 
-    if ($en->ann->each_DBLink ()) {
-      foreach my $link ($en->ann->each_DBLink ) {
+    if ($en->each_dbLink ()) {
+      foreach my $link ($en->each_dbLink ) {
 #	print "MEAOW BOO HISS \n";
 	my($database, $title, $db_link, @other_info, $all_other);
 	$database = $link->database;
