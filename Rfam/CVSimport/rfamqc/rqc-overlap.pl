@@ -14,7 +14,7 @@ use lib $bioperl_dir;
 
 use strict;
 use Rfam;
-use Bio::Rfam::RfamAlign;
+use Rfam::RfamAlign;
 use Getopt::Long;
 
 my( $quiet,
@@ -49,7 +49,8 @@ if( ! defined $nolog ) {
 }
 
 
-my @families = Rfam::get_allaccs();
+my $db = Rfam::default_db();
+my @families = $db->get_allacc();
 
 my @overlap;
 if( defined $quiet ) {
@@ -77,7 +78,7 @@ foreach my $overlap ( @overlap ) {
 }
 
 open( SEED, "$family_dir/SEED" ) or die;
-my $seed = new Bio::Rfam::RfamAlign;
+my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 my @list = $seed->eachSeq();
 
@@ -118,10 +119,10 @@ sub compare_overlap_to_current {
     my @families = @{$fams_ref};
 
     open( FULL, "$dir/ALIGN" ) or die;
-    my $full = new Bio::Rfam::RfamAlign;
+    my $full = new Rfam::RfamAlign;
     $full -> read_stockholm( \*FULL );
     open( SEED, "$dir/SEED" ) or die;
-    my $seed = new Bio::Rfam::RfamAlign;
+    my $seed = new Rfam::RfamAlign;
     $seed -> read_stockholm( \*SEED );
 
     my %hash;
@@ -135,10 +136,10 @@ sub compare_overlap_to_current {
 	my $count = 0;
 
 	open( FULL, "$Rfam::current_dir/$family/ALIGN" ) or die;
-	my $full = new Bio::Rfam::RfamAlign;
+	my $full = new Rfam::RfamAlign;
 	$full -> read_stockholm( \*FULL );
 	open( SEED, "$Rfam::current_dir/$family/SEED" ) or die;
-	my $seed = new Bio::Rfam::RfamAlign;
+	my $seed = new Rfam::RfamAlign;
 	$seed -> read_stockholm( \*SEED );
 
 	foreach my $seq ( $full->eachSeq(), $seed->eachSeq() ) {
