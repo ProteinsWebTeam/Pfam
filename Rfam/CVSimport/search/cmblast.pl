@@ -23,12 +23,23 @@ if( $arch =~ /linux/i ) {     # if we're running on the blades
     $ENV{'PATH'} = "/pfam/db/Rfam/bin/linux:$ENV{'PATH'}"; # push linux binaries onto front of path
 }
 
-my( $local, $blast_dir, $help );
-&GetOptions( "local" => \$local,
-	     "db=s"  => \$blast_dir,
-	     "h"     => \$help );
+my( $local, 
+    $blast_dir, 
+    $family_acc,
+    $blastdb,
+    $thresh,
+    $blastcut,
+    $help );
 
-my $fafile       = shift;
+&GetOptions( "local"  => \$local,
+	     "db=s"   => \$blast_dir,
+	     "acc=s"  => \$family_acc,
+	     "fadb=s" => \$blastdb,
+	     "t=s"    => \$thresh,
+	     "bt=s"   => \$blastcut,
+	     "h"      => \$help );
+
+my $fafile = shift;
 
 if( $help or not $fafile ) {
         print STDERR <<EOF;
@@ -41,7 +52,11 @@ Usage: $0 <options> fasta_file
 
     Expert options
 	-local        : perform local mode search
-	-db           : specify directory location of Rfam database
+	-db <dir>     : specify directory location of Rfam database
+	-acc <acc>    : search against only a single family
+	-fadb <file>  : use alternative fasta db
+	-t <bits>     : specify cutoff in bits
+	-bt <bits>    : specify blast evalue cutoff
         
     Output format is:
         <seq id> <seq start> <seq end> <rfam acc> <model start> <model end> <bit score> <rfam id>
@@ -56,12 +71,11 @@ exit(1);
 }
 
 not $blast_dir and $blast_dir = "/pfam/db/Rfam/BLASTDB";
-#my $blast2_bin   = "/usr/local/ensembl/bin";
-#my $infernal_bin = "/usr/local/ensembl/bin";
+not $blastdb   and $blastdb   = "$blast_dir/Rfam.fasta";
+not $blastcut  and $blastcut  = 10;
+
 my $model_dir    = "$blast_dir";
-my $blastdb      = "$blast_dir/Rfam.fasta";
 my $thr_file     = "$blast_dir/Rfam.thr";
-my $blastcut     = 10;
 my $blastcmd     = "blastall -p blastn -e $blastcut -d $blastdb -i $fafile -F F -W 8 > $$.blast";
 
 # read threshold file
@@ -88,6 +102,10 @@ my $error;
 system "$blastcmd" and die;
 my %results = %{ &parse_blast( "$$.blast" ) };
 foreach my $acc ( keys %results ) {
+    if( $family_acc ) {
+	next unless( $family_acc eq $acc ); # do single family if $family_acc
+    }
+
     my $id = $thr{ $acc } -> { 'id' };
     open( O, ">$$.seq" ) or die;
     my $out = Bio::SeqIO -> new( -fh => \*O, '-format' => 'Fasta' );
@@ -127,7 +145,8 @@ foreach my $acc ( keys %results ) {
     my $res = new CMResults;
     $res -> parse_infernal( \*RES );
     $res = $res -> remove_overlaps();
-    $res = $res -> filter_on_cutoff( $thr{$acc}->{'thr'} );
+    not defined $thresh and $thresh = $thr{$acc}->{'thr'};
+    $res = $res -> filter_on_cutoff( $thresh );
     
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	printf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%-10s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_hmm, $unit->end_hmm, $unit->bits, $id );
