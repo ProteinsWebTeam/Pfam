@@ -927,6 +927,11 @@ sub _load_annotation {
    
    $self->_loaded(1);
 
+   # if we have a dead family then we don't want to go further
+   if( $self->is_dead ) {
+       return 1;
+   }
+
    my($num_seed, $num_full, %distinct_seed);
    $num_full = $num_seed = 0;
    open(_SEED, "$dir/SEED");
