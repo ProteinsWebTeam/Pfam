@@ -167,20 +167,20 @@ sub desc_is_OK {
 		}
 		if ($i == 1){
 		    unless (exists $TP_hash{$TPline[0]}){
-			print "Invalid TP line: $TP\n";
+			print "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
 		}
 		
 		elsif ($i == 2){
 		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]} ){
-			print "Invalid TP line: $TP\n";
+			print "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
 		}
 		elsif ($i == 3){
 		    unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}){
-			print "Invalid TP line: $TP\n";
+			print "$family: Invalid TP line: $TP\n";
 			$error = 1;
 		    }
 		}
