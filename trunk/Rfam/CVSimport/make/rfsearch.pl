@@ -146,8 +146,9 @@ unless( $blast ) {
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	my $fh = new IO::File;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
+#	$fh -> print('setenv PATH $PATH:/usr/local/lsfv42/4.2/linux2.4-glibc2.1-x86/bin\n');
 	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
-	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
+	$fh -> print("/usr/local/lsfv42/4.2/linux2.4-glibc2.1-x86/bin/lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
 	$fh -> print("rm -f /tmp/$$.blastlist.$i\n");
 	$fh -> close;
     }
@@ -251,9 +252,10 @@ $name = "" if( not $name );
 print STDERR "Queueing cmsearch jobs ...\n";
 my $fh = IO::File->new();
 $fh -> open( "| bsub -q $queue -o $$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
-$fh -> print( "lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
+#$fh -> print( 'setenv PATH $PATH:/usr/local/lsfv42/4.2/linux2.4-glibc2.1-x86/bin\n' );
+$fh -> print( "/usr/local/lsfv42/4.2/linux2.4-glibc2.1-x86/bin/lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "/usr/local/lsfv42/4.2/linux2.4-glibc2.1-x86/bin/lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "rm -f /tmp/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> close;
 
