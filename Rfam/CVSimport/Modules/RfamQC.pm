@@ -11,6 +11,48 @@ use Rfam::RfamAlign;
 use Bio::Index::Fasta;
 use Bio::Index::Swissprot;
 
+use vars qw( %tag_mandatory
+	     %tag_mandatory_stk
+	     %tag_optional
+	     %tag_mandatory_aln
+	     %tag_optional_aln );
+
+%tag_mandatory = (
+		  'AC' => 1,
+		  'ID' => 1,
+		  'DE' => 1,
+		  'AU' => 1,
+		  'TC' => 1,
+		  'NC' => 1,
+		  'GA' => 1,
+		  'SE' => 1,
+		  'SS' => 1,
+		  'TP' => 1,
+		  'BM' => 2,
+		  );
+
+%tag_mandatory_stk = (
+		      'SQ' => 1,
+		      );
+
+%tag_optional = ( # numbers don't mean anything here
+		  'CC' => 1,
+		  'RN' => 1,
+		  'RT' => 1,
+		  'RA' => 1,
+		  'RL' => 1,
+		  'RM' => 1,
+		  'DR' => 1,
+		 );
+
+%tag_mandatory_aln = (
+		      'SS_cons' => 1,
+		      );
+
+%tag_optional_aln = (
+		     'RF' => 1,
+		     );
+
 
 sub id_exists {
     my $id = shift;
@@ -22,6 +64,98 @@ sub id_exists {
     else {
 	return 0;
     }
+}
+
+
+sub correct_tags {
+    my $fh = shift;
+    my $stk;
+    my %fields;
+    my $error = 0;
+    my $seenend;
+    while(<$fh>) {
+	if( /^\# STOCKHOLM/ ) {
+	    $stk = 1;
+	    next;
+	}
+	if( $stk and /^\#=GF ([A-Z]{2})   \S+/ ) {
+	    $fields{$1}++;
+	    next;
+	}
+	if( !$stk and /^([A-Z]{2})   \S+/ ) {
+	    $fields{$1}++;
+	    next;
+	}
+	if( $stk and /^$/ ) {
+	    next;
+	}
+	if( $stk and /^\S+\/\d+-\d+\d+\S+$/ ) {
+	    next;
+	}
+	if( $stk and /^\#=G. (\S+) / ) {
+	    $fields{$1}++;
+	}
+	if( $stk and /^\/\// ) {
+	    $seenend = 1;
+	    next;
+	}
+
+    }
+    
+    foreach my $f ( keys %fields ) {
+	if( exists $tag_mandatory{$f} ) {
+	    if( $fields{$f} != $tag_mandatory{$f} ) {
+		warn "[$f]: should have $tag_mandatory{$f} lines, we have $fields{$f}\n";
+		$error ++;
+	    }
+	    next;
+	}
+	elsif( $stk and exists $tag_mandatory_stk{$f} ) {
+	    if( $fields{$f} != $tag_mandatory_stk{$f} ) {
+		warn "[$f]: should have $tag_mandatory_stk{$f} lines, we have $fields{$f}\n";
+		$error ++;
+	    }
+	    next;
+	}
+	elsif( exists $tag_optional{$f} ) {
+	    next;
+	}
+	elsif( exists $tag_mandatory_aln{$f} or exists $tag_optional_aln{$f} ) {
+	    next;
+	}
+
+	warn "[$f]: unknown field\n";
+	$error ++;
+    }
+
+    foreach my $f ( keys %tag_mandatory ) {
+	if( $fields{$f} != $tag_mandatory{$f} ) {
+	    warn "[$f]: should have $tag_mandatory{$f} lines, we have $fields{$f}\n";
+	    $error ++;
+	}
+    }
+
+    if( $stk ) {
+	foreach my $f ( keys %tag_mandatory_stk ) {
+	    if( $fields{$f} != $tag_mandatory_stk{$f} ) {
+		warn "[$f]: should have $tag_mandatory_stk{$f} lines, we have $fields{$f}\n";
+		$error ++;
+	    }
+	}
+	foreach my $f ( keys %tag_mandatory_aln ) {
+	    if( ! exists $fields{$f} ) {
+		warn "[$f]: missing line\n";
+		$error ++;
+	    }
+	}
+	
+	if( not $seenend ) {
+	    warn "No \/\/ delimiter\n";
+	    $error ++;
+	}
+    }
+
+    return $error;
 }
 
 
