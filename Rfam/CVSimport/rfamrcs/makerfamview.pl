@@ -3,9 +3,11 @@
 use strict;
 use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::SimpleAlign;
+use lib '/pfam/db/Rfam/scripts/Modules';
+use Rfam;
 
-my $dir = shift;
-chdir "$dir" or die;
+my $acc = shift;
+chdir "$current_dir/$acc" or die;
 
 my @ann;
 open( DESC, "DESC" ) or die;
@@ -16,7 +18,7 @@ while( <DESC> ) {
 }
 close DESC;
 
-foreach my $file ( "SEED", "ALIGN" ) {
+foreach my $file ( @align_file_set ) {
     my $aln = new Bio::SimpleAlign;
     open( ALN, $file ) or die;
     $aln -> read_selex( \*ALN );
@@ -43,7 +45,7 @@ foreach my $file ( "SEED", "ALIGN" ) {
 	}
     }
     close GETZ or die;
-#    system "rm -f temp.$$" and die;
+    unlink "temp.$$" or die "can't remove temp.$$";
 
     open( ALNOUT, ">$file.ann" ) or die;
 
@@ -83,3 +85,4 @@ foreach my $file ( "SEED", "ALIGN" ) {
     close REF or die;
     close ALNOUT;
 }
+
