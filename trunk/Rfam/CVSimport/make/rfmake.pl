@@ -36,7 +36,7 @@ END {
 
 my $file = shift;
 
-if( not defined $thr ) {
+if( not defined $thr and not $list and not $overlaps ) {
     open( DESC, "DESC" ) or die;
     while( <DESC> ) {
 	/^GA\s+(\S+)/ and do {
