@@ -26,13 +26,14 @@ sub coloured_rfam {
   
   
   while(<_FILE>) {
+    #print "$_ <BR>";
     if ($_ =~ /^\#=GC\s+SS_cons/) {
       
      # if (defined($rfamseq_ids{$1})) {
 	print _ALIGN  "$_\n";
      # }
     } else {
-      if ($_ =~ /^(\S+)\/\d+\-\d+/) {
+      if ($_ =~ /^(\S+)\.\d+\/\d+\-\d+/) {
 	if (defined($rfamseq_ids{$1})) {
 	  print _ALIGN  "$_";
 	}
@@ -65,8 +66,9 @@ sub generate_jtml_file_swiss {
     
     
     my $dol = "$$";
-   my $command = "/nfs/WWW/cgi-bin/Rfam/bin/new_parse_rfam.pl --input_dir /nfs/WWW/htdocs/Software/Rfam/temp/ --output_dir  /nfs/WWW/htdocs/Software/Rfam/temp --file_type full --ss_cons_only --family $acc --web_file $align ";
-
+ 
+   my $command = "/nfs/WWW/cgi-bin/Rfam/bin/new_parse_rfam.pl --input_dir /nfs/WWW/SANGER_docs/htdocs/Software/Rfam/temp/ --output_dir  /nfs/WWW/SANGER_docs/htdocs/Software/Rfam/temp --file_type full --ss_cons_only --family $acc --web_file $align ";
+# print "COMMAND : $command <P>";
     #my $command = "$RfamWWWConfig::file_root/bin/jalview/rfam_jtml $align 80 > $outfile";
     my $result;
     eval {

@@ -32,7 +32,8 @@ print $q->header();
 #
 # ok. get into the real stuff
 #
-
+#print "Content-type: text/html\n\n";print "Content-type: text/html\n\n";
+#print "Blee <P>";
 #my $temp_name = $q->param('name');
 #$name = $1 if ($temp_name =~  /^([\-\_\@\w\s+.]+)$/);
 #my $temp_zoom = $q->param('zoom_factor');
@@ -40,6 +41,8 @@ print $q->header();
 #if (! defined($zoom) ) {
 #    $zoom = 0.5;
 #}
+
+#print "Content-type: text/html\n\n";print "Content-type: text/html\n\n";
 my $temp_name;
 $temp_name = $q->param('acc');
 my $acc = $1 if ($temp_name =~  /^([\-\_\@\w\s+.]+)$/);
@@ -55,7 +58,25 @@ my $aln_type = $1 if ($temp_name =~  /^([\-\_\@\w\s+.]+)$/);
 
 
 $temp_name = $q->param('rfamseq_acc');
-my $rfamseq_acc = $1 if ($temp_name =~  /^([\-\_\@\w\s+.]+)$/);
+my $rfamseq_acc = $1 if ($temp_name =~  /^([\-\_\/\@\w\s+.]+)$/);
+
+my $temp = $q->param("max_count");
+my $max_count = $1 if ($temp =~  /^([-\@~:\w\s+.]+)$/);
+
+my ($count, $seq_count, %ids);
+
+$count  = $seq_count = 0;
+
+while ($count <= $max_count)  {  
+  my $temp = $q->param($count);
+  my $blee = $1 if ($temp =~  /^([-\@~\/\-:\w.]+)$/);
+  if ($blee) {
+    $ids{$blee} = $blee;
+    $seq_count++;
+  }
+#  print "BLEE: $blee <P>";
+  $count++;
+}
 
 if ( (!$acc) && (!$name) ) {
   &RfamWWWConfig::user_error("You need to enter EMBL name or accession number");
@@ -64,17 +85,26 @@ if ( (!$acc) && (!$name) ) {
 
 $aln_type = "FULL" if (!$aln_type);
 my ($en);
+#print "COUNT: $seq_count \n";
 my $ali = &RfamWWWConfig::get_alignment($acc, $aln_type,1, 1);
 #print "ALIGN: $ali, $acc <P>";
+ print "<PRE>";
+
+my $got_count = 0;
 foreach my $rseq ( $ali->each_seq() ) {
  # print "$rseq <BR>";
   my $name = $ali->displayname($rseq->get_nse());
   my $seq  = $rseq->seq();
-  #print "NAME : $name <P>";
-  my $seq_want = $rfamseq_acc . "/" . $start . "-" . $end;
-  if ($name =~ /$seq_want/) {
+  
+  my $name_no_version = $name;
+  $name_no_version =~ s/\.\d+\//\//;
+#  print "NAME : $name <P>";
+  
+ # my $seq_want = $rfamseq_acc . "/" . $start . "-" . $end;
+#  print "WANT: $seq_want <BR>";
+  if (defined($ids{$name_no_version})) {
   #  print "EQUAL <P>";
-    print "<PRE>";
+   
     print ">$name\n<BR>";
     my $count =0;
     my $length = length($seq);
@@ -83,10 +113,16 @@ foreach my $rseq ( $ali->each_seq() ) {
       print  "$seqsub\n<BR>";
       $count++;
     }
-    print "</PRE>";
-    last
+
+    $got_count++;
+    if ($got_count eq $seq_count) {
+      last;
+    }
+
+ #   last
   }
 }
+ print "</PRE>";
 &RfamWWWConfig::logs("SEQUENCE:$aln_type:$rfamseq_acc/$start-$end");
 #print "EEP <P>";
 

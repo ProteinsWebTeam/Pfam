@@ -2,6 +2,9 @@
 
 use strict;
 use CGI;
+use lib "/nfs/WWW/SANGER_docs/cgi-bin/Rfam/mirna";
+use mirnaWWWConfig;
+
 
 $| = 1;
 
@@ -12,7 +15,7 @@ my( $hex, $tmpfile );
 
 {
     $hex = sprintf "%lx", time();
-    $tmpfile = "/nfs/disk100/pubseq/Pfam/temp/mir-submit/$hex.sub";
+    $tmpfile = "$mirnaWWWConfig::file_root/submission/$hex.sub"; 
     if( -s $tmpfile ) {
 	redo;
 	sleep 2;
@@ -113,8 +116,8 @@ elsif( $ncbi = $query -> param( "taxonid" ) ) {
     print TMP "NCBI taxon ID: $ncbi\n";
 }
 
-if( not $taxon or $ncbi ) {
-    print "<h4>You must specify either a species from the drop down box, or an NCBI taxon ID.</h4>\n";
+if ( (! $taxon) and (! $ncbi)  ) {
+    print "<h4>You must specify either a species from the drop down box, or an NCBI taxon ID. </h4>\n";
     die;
 }
 

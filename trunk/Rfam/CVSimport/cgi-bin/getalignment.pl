@@ -38,13 +38,39 @@ $aln_type  = $1 if ($temp =~  /^([-\@~\w.]+)$/);
 my $temp      = $query->param('acc');
 $acc     = $1 if ($temp =~  /^([-\@~\w.]+)$/);
 
-my $temp     = $query->param('name');
-$name     = $1 if ($temp =~  /^([-\@~\w.]+)$/);
+#my $temp     = $query->param('name');
+#$name     = $1 if ($temp =~  /^([-\@~\w.]+)$/);
 
 my $temp     = $query->param('file_num');
 $file_num     = $1 if ($temp =~  /^([-\@~\w.]+)$/);
 
 $file_num = 1 if (!$file_num);
+
+my $en;
+
+eval {
+
+    $db = &RfamWWWConfig::get_database();
+
+     $en = $db->get_Entry_by_acc( $acc );
+
+    $name = $en->id();
+
+};
+
+if ($query->param('format') =~ /download/) {
+  my $url = "$RfamWWWConfig::WWW_root/data/$aln_type/$acc.full.gz";
+  print CGI->redirect("$url")
+}
+
+
+if ( ($en->num_seqs_in_full() > 10000) && ($query->param('format') !~ /link/) && ($aln_type =~ /full/) ) {
+  print "Content-type: text/html\n\n";
+  print &RfamWWWConfig::header( "$aln_type alignment for $name" , $name, $acc);
+  print "<span class=normalmediumtext>This family contains too many members in the full alignment to display in the browser. <P>Instead you can download the full alignment from <A href=$RfamWWWConfig::WWW_root/data/full/$acc.full.gz>here</A><P>";
+  print &RfamWWWConfig::footer();
+  exit(0);
+}
 
 if (! defined( $query->param('format'))) {
     $query->param('format', 'mul');
@@ -63,11 +89,9 @@ if ($query->param('format') !~ /link/){
  # print "no here : $ali<P>";
 
 } else {
- # print "HERE <P>";
   $ali = Rfam::RfamAlign->new();
 }
 #print "ALI: $ali <BR>";
-#print "HERE $name <P>";
 ##cast up to a WWWAlign enabling the generate_html_alignment method
 
 my $formatter = WWWAlign->new('-alignment' => $ali,

@@ -217,6 +217,17 @@ sub write_Rfam_table {
       print $fh "<tr><td >Type</td><td>", $entry->entry_type(), "</td></tr>\n";
     print $fh "<tr><td>Source of seed alignment</td><td>", $entry->source(), "</td></tr>\n";
     print $fh "</td></tr>";
+    
+    if ($entry->structure_source() =~ /Published(;\s+PMID:\d+)/) {
+     # $medlinelink;
+      my $test = $1;
+      my $med = $1 if ($test =~ /(\d+)$/);
+      
+      $entry->structure_source("<A href=$medlinelink". $med . ">Published; PMID:$med</A>");      
+    }
+
+    print $fh "<tr><td>Source of secondary structure</td><td>", $entry->structure_source(), "</td></tr>\n";
+    print $fh "</td></tr>";
     print $fh "<tr><td >Gathering cutoff</td><td NOWRAP> ", $self->chop_cutoff($entry->gathering_cutoff()), "</TD></tr>\n";
    
 
@@ -296,7 +307,6 @@ print $fh qq (
 <tr>
 <td CLASS=normaltext>
 <form METHOD="GET" ACTION="$RfamWWWConfig::getalignment">
-<input name="name" type="hidden" value="$id">
 <input name="acc" type="hidden" value="$acc">
 <center>
 <input name=type type=radio checked value=seed> Seed ($scount)&nbsp;
@@ -308,8 +318,8 @@ Format <select name=format>
 <option value=stock> Plain Stockholm format
 <option value=fal> Fasta format (with gaps)
 <option value=msf> MSF format
+<option value=download> Download to file
 <option value=belvu> Belvu (unix only)
-<option value=belold> Belvu (old version unix only)
 <option value=jalview> Jalview (Java)
 </select>
 <P>
@@ -333,7 +343,6 @@ Help relating to Rfam alignments <a href="$RfamWWWConfig::align_help">here</a>
 <tr>
 <td  CLASS=normaltext VALIGN=TOP>
 <form METHOD="GET" ACTION="$RfamWWWConfig::membersequences">
-<input name="name" type="hidden" value="$id">
 <input name="acc" type="hidden" value="$acc">
 <input name="verbose" type="hidden" value="true">
 <center>
@@ -439,7 +448,7 @@ sub write_links_table {
 
 
       foreach my $link ( $entry->ann()->get_Annotations('dblink')) {
-	
+#print "LINK: " . $self->get_database_link($link) . " <BR>";	
 	print $fh "<tr>\n<td><SPAN CLASS=normallargetext> ", $link->database(), " </SPAN>";
 	
 	print $fh "</td>\n<td><code>", $self->get_database_link($link), "</code></td>\n</tr>\n";
@@ -480,7 +489,6 @@ sub write_species_table {
     print $fh "<center>\n";
     print $fh "<form method='get' action=\"$RfamWWWConfig::speciesdist\">\n";
     print $fh "<input name=\"acc\" type=\"hidden\" value=\"", $entry->acc, "\">\n";
-    print $fh "<input name=\"id\" type=\"hidden\" value=\"", $entry->id, "\">\n";
     print $fh "Tree depth :<select name=depth>\n";
     print $fh "<option value=\"all\"> Show all levels\n";
     print $fh "<option value=\"1\"> 1 level\n";
@@ -631,6 +639,7 @@ sub get_database_link {
 
     $db = $ref->database();
     $id = $ref->primary_id();
+#print "DB: $db , ID: $id <P>";
   # print "HERE : $id <P>";
   #  ($add) = $ref->each_additional();
 #print "BOO <P>";
@@ -654,17 +663,17 @@ sub get_database_link {
 	# $refstring =  "$id\&nbsp;[$link]";
 	$refstring =  "$link";
     }
-    elsif ( $db eq 'PFAMB') {
+    elsif ( $db eq 'MIR') {
       my $href;
       my $link;
       if ($id =~ /\s/) {
 	my(@arr) = split(/\s+/, $id);
 	foreach (@arr) {
-	  $href = "$RfamWWWConfig::getpfamb?acc=$_";
+	  $href = "$RfamWWWConfig::mir?acc=$_";
 	  $link = $link ." ". "<a href=\'$href\'>$_</a>";
 	}
       } else {
-	$href = "$RfamWWWConfig::getpfamb?acc=$id"; 
+	$href = "$RfamWWWConfig::mir?acc=$id"; 
 	$link = "<a href=\'$href\'>$id</a>";
       }    
 

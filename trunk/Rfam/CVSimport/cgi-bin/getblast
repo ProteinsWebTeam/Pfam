@@ -1,0 +1,426 @@
+#!/usr/local/bin/perl -wT
+#########
+# Author: rmp
+# Maintainer: rmp
+# Created: 2002-06-08
+# Last Modified: 2004-09-01
+# retrieve blast results and do that parsing thang
+#
+use strict;
+use CGI qw/:cgi/;
+
+
+use lib qw(
+	   /nfs/WWW/SANGER_docs/perl/ensembl/common-web/modules
+	   /nfs/WWW/SANGER_docs/perl/ensembl/ensembl/modules
+	   /nfs/WWW/SANGER_docs/perl/ensembl/ensembl-draw/modules
+	   /nfs/WWW/SANGER_docs/perl/bioperl-live
+	   /nfs/WWW/SANGER_docs/perl
+	   /nfs/WWW/SANGER_docs/bin-offline/Website/Blast
+	   /nfs/WWW/SANGER_docs/bin-offline
+	  
+	  );
+use Website::Utilities::Template;
+use Website::Blast::Parser::Generic;
+use Website::Blast::Util;
+use Sanger::Graphics::JSTools;
+use SangerWeb;
+
+use lib '/nfs/WWW/cgi-bin/Rfam';
+#use HMMThres;
+use Rfam::CMResults;
+use RfamWWWConfig;
+
+$| = 1;
+$ENV{'PATH'} = "";
+&main();
+1;
+
+sub main {
+  my $cgi    = CGI->new();
+  my $util   = Website::Blast::Util->new();
+  my $format = $cgi->param('format') || "default";
+  my ($id)   = $cgi->param('id') =~ /([a-zA-Z0-9\.]+)/;
+  $id      ||= "";
+  my $sw;
+  my ($tmppath) = $util->hashpath($id) =~ m|([a-zA-Z0-9_/\.]+)|;
+  if(-f $tmppath && -s $tmppath > 10000000) {
+    $format       = "plain" ;
+    $cgi->param('format', $format);
+  }
+
+  if($format eq "plain") {
+    print "Content-type: text/plain\n\n";
+  } else {
+    $sw = SangerWeb->new({
+			  'title'  => "Blast Server Results",
+			  'banner' => "Blast Server Results",
+			  'jsfile' => "/js/zmenu.js",
+			 });
+   # print "Content-type: text/html\n\n";
+print $cgi->header();
+
+    print &RfamWWWConfig::header("Sequence search results"); #print $sw->header();
+
+    &retrieval_form($cgi, $util, $id);
+  }
+  if($id ne "") {
+    &step1($cgi, $util, $id,$tmppath );
+  }
+
+  if($format ne "plain") {
+    print "<br /><br /><br />\n";
+    #print $sw->footer();
+    print &RfamWWWConfig::footer();
+ }
+}
+
+#########
+# form for entering job ids
+#
+sub retrieval_form {
+  my ($cgi, $util, $id) = @_;
+
+  my $server_name = $ENV{'HTTP_X_FORWARDED_HOST'} || $ENV{'HTTP_X_HOST'};
+ # my $tmpl        = Website::Utilities::Template->new({
+#						       'htx' => "$ENV{'DOCUMENT_ROOT'}/../data/blast/templates/getblast.htx",
+
+						       
+#	 print $tmpl->generate({
+##			 'status'      => $queuestub->status(),
+#			 'id'          => $id,
+#			 'server_name' => $server_name,
+#			});					      });
+
+  print "<form method=\"GET\" action=\"/cgi-bin/Rfam/getblast\">
+  <table border=\"0\" align=\"center\" cellpadding=\"2\" cellspacing=\"0\" width=\"500\">
+    <tr class=\"violet2\">
+      <td><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td>
+      <td>
+        Retrieve result for id: <input type=\"entry\" name=\"id\" value=\"$id\" size=\"30\">
+        <input type=\"submit\" value=\"retrieve\">
+      </td>
+      <td><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td>
+    </tr>
+    <tr><td colspan=\"3\"><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td></tr>
+    <tr class=\"violet2\">
+      <td><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td>
+      <td>
+        <p class=\"red1\">
+          Your BLAST query has been added to the queue of jobs.<br />The
+          majority of BLASTs are completed within two minutes.
+        </p>
+      </td>
+      <td><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td>
+    </tr>
+    <tr><td colspan=\"3\"><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td></tr>
+    <tr class=\"violet2\">
+      <td><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td>
+      <td>
+        <p class=\"red1\">
+          To retrieve your results, click the <b>retrieve</b> button
+          above, or use the following URL: <a  href=\"http://$server_name/cgi-bin/Rfam/getblast?id=$id\">http://$server_name/cgi-bin/Rfam/getblast?id=$id</a>
+        </p>
+      </td>
+      <td><img src=\"/gfx/blank.gif\" width=\"10\" alt=\"\" /></td>
+    </tr>
+  </table>
+</form>";
+ 
+}
+
+sub step1 {
+  my ($cgi, $util, $id, $tmppath) = @_;
+
+  my $ticket = Website::Blast::Ticket->new({'id' => $id});
+  unless($ticket) {
+    print qq($id is not a valid identifier.);
+    return;
+  }
+
+ # print qq(Options: @{[$ticket->options()||""]}<br />\n);
+  my @omnitickets = $ticket->omnitickets();
+#  print "HERE : $cgi, $util, $id, $tmppath <P>";
+  my %done;
+  if(scalar @omnitickets > 0) {
+    #########
+    # do omni hits
+    #
+  #  print "WOWSER <P>";
+    my $i = 1;
+    my($dna_query);
+    for my $subticket (@omnitickets) {
+      my $job_status = $subticket->queuestub->status($i) || "FINISHED";
+     # print "STAT: $job_status <P>";
+      $job_status = "RUNNING" if ($job_status =~ /RUN/);
+      printf qq(Job id %s is %s<br />\n), $subticket->id(), $job_status;
+      my $tmp_done = 1;
+      if (-f "$tmppath" . ".$i") {
+#	print "GOT FILE <P>";
+	$done{$i} = "DONE";
+	$done{$i} = "NO" if($subticket->queuestub->status($i) =~ /RUN/);
+	$dna_query = 1 if ($subticket->blasttype() =~ /perl/);
+
+      } else {
+	$done{$i} = "NO";
+      }
+    #  print "PATH: " . $subticket->blasttype(). " , $i <P>";
+      if($subticket->pfam()) {
+#	print "PFAM <P>";
+#	&step2($cgi, $util, $subticket, "Website::Blast::Parser::Pfam");
+      } else {
+#	print "DONT KNOW : " .$subticket->database() . "<P>";
+#	&step2($cgi, $util, $subticket, "Website::Blast::Parser::Omniblast", {'skip_bioperl'=>1});
+      }
+      $i++;
+    }
+    my $eep = 1;
+    foreach (sort keys %done) {
+   #   print "D: " .$done{$_} . " <BR>";
+      if ($done{$_} !~ /DONE/) {
+	$eep = 0;
+      }
+    }
+  #  print "EEP: $eep <P>";
+   # $eep = 1;
+    if ($eep) {
+    #  if ($dna_query) {
+     	&print_rfam_output("$tmppath" . ".1", $id);
+    #  } else {
+#	&print_output($tmppath, @omnitickets);
+ #     }
+
+    }
+
+  } else {
+    printf qq(PAJ Job id %s is %s<br />\n), $ticket->id(), ($ticket->queuestub->status() || "UNKNOWN");
+
+    my $generic = Website::Blast::Parser::Generic->new({
+							'util'         => $util,
+							'ticket'       => $ticket,
+							'skip_bioperl' => 1, #skip bp objs!
+						       });
+
+    if(!defined $generic) {
+      my $status = $ticket->queuestub->status() || "UNKNOWN";
+      print qq(Job @{[$ticket->tracker()]} status is $status<br />);
+
+      return;
+    }
+
+    my $database = $ticket->database();
+    my $name     = "Generic";
+    my $format   = $cgi->param('format') || "default";
+    my $opts     = {
+		    'graphic' => ($format eq "graphic")?"on":"off",
+		   };
+    
+    if($format eq "ssaha") {
+      $name = "SSAHA";
+
+    } elsif($format eq "plain") {
+      $name = "Plain";
+
+    } else {
+      if($database =~ m|humpub/chr|i              ||
+	 $database =~ m|humpub/finished|          ||
+	 $database =~ m|humpub/public_unfinished| ||
+	 $database =~ m|humpub/all|               ||
+	 $database =~ m|humpub/public_human|) {
+	$name = "Homo_sapiens";
+	
+      } elsif($database =~ m|/humpub/mouse|) {
+	$name = "Mus_musculus";
+	
+      } elsif($database eq "wormpub/allcmid") {
+	$name = "C_elegans";
+	
+      } elsif($database =~ /yeastpub\/NM/i) {
+	$name = "N_meningitidis";
+	
+      } elsif(substr($database, 0, 11) eq "yeastpub/ML") {
+	$name = "M_leprae";
+	
+      } elsif(substr($database, 0, 11) eq "yeastpub/CJ") {
+	$name = "C_jejuni";
+	
+      } elsif(substr($database, 0, 6) eq "merops") {
+	$name = "MEROPS";
+	
+      } elsif(substr($database, 0, 8) eq "genetrap") {
+	$name = "GeneTrap";
+      }
+    }
+
+    &step2($cgi, $util, $ticket, "Website::Blast::Parser::$name", $opts);
+  }
+}
+
+sub step2 {
+  my ($cgi, $util, $ticket, $parsername, $opts) = @_;
+  $opts ||= {};
+
+  eval "require $parsername";
+  my $parser = $parsername->new({
+				 'util'         => $util,
+				 'ticket'       => $ticket,
+				 'cgi'          => $cgi,
+				 'graphic'      => $opts->{'graphic'},
+				 'skip_bioperl' => $opts->{'skip_bioperl'},
+				});
+  return $parser?$parser->parse():"";
+}
+
+
+sub print_rfam_output {
+
+  my $file = shift; #("$tmppath" . ".1");
+  my $id  = shift;
+  my $dol = "$$";
+  my(@files,  $tmp_file, @arr);
+ # my $count = 1;%accs,
+  open(_FILE, "$file");
+  while(<_FILE>) {
+   # print "$_ <BR>";
+    if ($_ =~ /ACC:\s+(\S+)/) {
+      my $acc = $1;
+     # print "ACC: $acc <BR>";
+      #$accs{$count} = $1;
+      
+      if($tmp_file) {
+	open(_TMP_FILE, ">$tmp_file");
+	foreach (@arr) {
+	  print _TMP_FILE "$_";
+	}
+	close(_TMP_FILE);
+	@arr = ();
+	
+      }
+
+      $tmp_file = "$RfamWWWConfig::tempdir/$id" . "_$acc" . "_$dol";
+      push @files, "$acc"  . "~" . $tmp_file;
+     # print "TMP: $tmp_file <BR>";
+
+      #$count++;
+    } else {
+      push @arr, $_;
+    }
+   # print "$_";
+  }
+
+  close(_FILE);
+  if ($tmp_file) {
+    open(_TMP_FILE, ">$tmp_file");
+    foreach (@arr) {
+      print _TMP_FILE "$_";
+    }
+    close(_TMP_FILE);
+  }
+#
+#print "HERE : $file<P>";
+ open(STDIN, "$file");
+
+  my %thr;
+  my %alignment_store;
+  my $thr_file = "/nfs/WWW/htdocs/Software/Rfam/data/Rfam.thr";
+  open( T, $thr_file ) or die;
+  while(<T>) {
+    if( /^(RF\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\S+)\s*$/ ) {
+      $thr{ $1 } = { 'id' => $2, 'thr' => $3, 'win' => $4, 'mode' => $5 };
+    }
+  }
+  close T;
+  my $alignment;
+  my $count = 0;
+  my %names;
+  my @align_count;
+  my $print_header = 0;
+  my $unit_count = 0;
+  my(@all_results);
+
+  foreach (@files) {
+    my($acc, $tmp_file) = split(/~/, $_);
+#    print "$_ <BR>";
+    open(STDIN, "$tmp_file");
+    my $res = new CMResults;
+    $res -> parse_infernal( \*STDIN );
+    $res = $res -> remove_overlaps();
+   # print "ACC: $acc :: CUT: " .$thr{$acc}->{'thr'} . " <BR>";
+    $res = $res -> filter_on_cutoff( $thr{$acc}->{'thr'} );
+    
+    if ($res->number() > 0) {
+       my $id = $thr{ $acc } -> { 'id' };
+      
+      foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
+#	print "UNIT: $unit, ACC
+	my  %temp = ( 'acc' =>  $acc,
+		      'id' => $id,
+		      'unit' => $unit
+		    );
+	
+	push @all_results, \%temp;
+	
+      }
+      
+      
+      
+    }
+  }
+
+  ######## IF WE HAVE PROPER RESULTS AFTER CMSEARCH AGAINST .CM THEN PROCEED TO PRINT OUT
+  if (@all_results) {
+    
+    ## FIRST PRINT OUT THE TABLE
+    _print_table_header();
+    
+    foreach my $result (@all_results) {
+      my $link = "<A HREF=/cgi-bin/Rfam/getacc?" . $result->{'acc'} . ">" . $result->{'id'} . "</A>";
+      
+      
+      
+      printf( "<TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour>%s</TD><TD  NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour>%8d</TD><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour>%8d</TD><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour>%4.2f</TD><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour><a href=\"#%s\">Align</a></TD></TR>\n", $link, $result->{'unit'}->start_seq, $result->{'unit'}->end_seq, $result->{'unit'}->bits, $result->{'unit'}->start_seq . "-" .  $result->{'unit'}->end_seq . "/" . $result->{'unit'}->bits);
+      
+      
+      
+      
+    }
+    print "</TABLE></CENTER><P><P><hr><center><span class=normallargetext>Alignment of Rfam domains to CM's</span></center><P>";
+    
+    
+    ## NOW PRINT OUT THE ALIGNMENT
+    
+    foreach my $result (@all_results) {
+      my $a_href = $result->{'unit'}->start_seq . "-" .  $result->{'unit'}->end_seq . "/" . $result->{'unit'}->bits;
+      print "<a name=\"$a_href\"><img src=$RfamWWWConfig::WWW_root/gifs/arrow.gif><span class=normaltext>Alignment</a> of domains " . $result->{'id'}. " vs Userseq $a_href</span><pre>\n";
+      my $line_count = 1;
+      foreach my $line ( $result->{'unit'}->each_alignment_line()) {
+	print "$line\n";
+	if ($line_count eq 4) {
+	  print "<BR>\n";
+	  $line_count = 0;
+	}
+	
+	$line_count++;
+      }
+      print "</pre>";
+  }
+
+
+  } else {
+    print "<CENTER class=normallargetext>No matches were found for your nucleotide sequence </center><P>";
+  }
+
+#print "RES: @all_results <P>";
+#  print "<PRE>";
+
+
+ # print "</PRE>";
+}
+
+sub _print_table_header {
+
+  print "<CENTER><span class=normalmediumtext>Matches for your nucleotide sequence </span><P>";
+
+  print "<TABLE BORDER=1 CELLPADDING=5  CELLSPACING=0><TR><TD BGCOLOR=#000070 CLASS=whitetableheader>Family</TD><TD BGCOLOR=#000070 CLASS=whitetableheader >Start</TD><TD  BGCOLOR=#000070 CLASS=whitetableheader>End</TD><TD  BGCOLOR=#000070 CLASS=whitetableheader>Bits Score</TD><TD BGCOLOR=#000070 CLASS=whitetableheader>Alignment</TD></TR>";
+
+}

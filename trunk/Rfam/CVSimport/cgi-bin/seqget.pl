@@ -50,6 +50,12 @@ if ( (!$acc) && (!$name) ) {
 }
 
 
+if( $name =~ /^(\S+)\.\d+/ ) {
+  $name = $1;
+}
+if( $acc =~ /^(\S+)\.\d+/ ) {
+  $acc = $1;
+}
 
 my $annseq;
 if ($name) {

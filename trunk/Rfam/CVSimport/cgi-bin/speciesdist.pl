@@ -41,17 +41,38 @@ else {
     $prog_depth = $depth;
 }
 
+
+my ($db, $en);
+
+eval {
+
+    $db = &RfamWWWConfig::get_database();
+
+     $en = $db->get_Entry_by_acc( $acc );
+
+    $family = $en->id();
+
+};
+
+
+if  ($en->num_seqs_in_full() > 10000)  {
+  print &RfamWWWConfig::header( "pecies distribution for family $family ($depth levels)" , $family, $acc);
+  print "<span class=normalmediumtext>This family contains too many members in the full alignment to display in the browser. <P>Instead you can download the full alignment from <A href=$RfamWWWConfig::WWW_root/data/full/$acc.full.gz>here</A><P>";
+  print &RfamWWWConfig::footer();
+  exit(0);
+}
+
+
+
 print &RfamWWWConfig::header("Species distribution for family $family ($depth levels)", $family, $acc);
 
 #print "<HR NOSHADE SIZE=2><P>";
 print <<END;
 <HR NOSHADE SIZE=2>
-<span class=normaltext><B>Member Sequences</B> - Click on the links to see the domain organisation of the proteins containing the $family domain.<BR>
+<span class=normaltext><B>Member Sequences</B> - Click on the links to see the EMBL sequences containing the $family family.<BR>
 
-<BR><B>Alignment</B> - Select the checkboxes then click 'View selected species alignment' . This wil
-l generate a Coloured Alignment of proteins for ONLY the selected species  containing the $family do
-main. Plain Pfam format and Stockholm format will be available soon.<P>
-Values in brackets represent the number of proteins containing the domain in the respective families
+<BR><B>Alignment</B> - Select the checkboxes then click 'View selected species alignment' . This will generate a Coloured Alignment of EMBL entries for ONLY the selected species  containing the $family family. <P>
+Values in brackets represent the number of sequences containing the family in the respective species
 .<P>
 END
 

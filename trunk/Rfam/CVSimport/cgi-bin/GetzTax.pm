@@ -38,52 +38,7 @@ sub get {
 }
 
 
-sub _get_full_names {
 
- my (  $acc) = @_;
- 
- my %values;
-## print "HERE $acc <P>";
-
-#  # my $Index_File_Name = "/nfs/WWW/htdocs/Software/Rfam/data/Rfam_full.index";
-#my $Index_File_Name = "/nfs/disk100/pubseq/Pfam/temp/index/Rfam_full.index";
-#   my $inx = Bio::Index::Stockholm->new($Index_File_Name);
-#   my $bio_index = $inx->fetch($acc);
-  
-#   open(_TEMP, ">/nfs/WWW/htdocs/Software/Rfam/temp/temp.dat");
-   
-#   while(<$bio_index>) {
-#  #   print "$_ <BR>" if ($_ =~ /^\#=GF/);
-#     next if ($_ !~ /[A-Z]|[a-z]|[0-9]/);
-#     next if ($_ =~ /\#=/);
-
-#    # print "EEP <BR>";
-#     if ($_ =~ /^(\S+)\/(\d+)-(\d+)\s+/) {
-#       my $all =  $1 . "/" . $2 . "-" . $3;
-#    #   print "1: $1 :: ALL: $all <BR>";
-       
-#       $values{$1} = $all;
-
-#     }
-
-#   #  $values{$1} = $1 . "/" . $2 . "-" . $3 if ($_ =~ /^(\S+)\/(\d+)-(\d+)\s+/);
-#     my($temp, @junk) = split(/\//, $_);
-#     # print _TEMP "emblrelease:" . $temp . "\n";
-#     #  my 
-     
-#     #  print "$_ <BR>";
-
-#     last if ($_ =~ /\#=GC/);
-   
-     
-     
-#   }
-
- 
-
-
- return %values;
-}
 
 sub genome_species {
  my (  $acc, $list , $species) = @_;
