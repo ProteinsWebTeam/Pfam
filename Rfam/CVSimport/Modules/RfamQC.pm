@@ -8,8 +8,8 @@ package RfamQC;
 use strict;
 use Rfam;
 use Rfam::RfamAlign;
-use Bio::Index::Fasta;
-use Bio::Index::Swissprot;
+use Bio::SeqFetcher::xdget;
+
 
 use vars qw( %tag_mandatory
 	     %tag_mandatory_stk
@@ -161,7 +161,7 @@ sub correct_tags {
 
 sub valid_sequences {
     my $family = shift;
-    my $inx = Bio::Index::Fasta -> new( '-filename' => $Rfam::rfamseq_new_inx );
+    my $inx = Bio::SeqFetcher::xdget->new( '-db' => [$Rfam::rfamseq] );
     my $error;
 
     my @aligns = qw( SEED ALIGN );
@@ -180,7 +180,7 @@ sub valid_sequences {
 		print "$family/$alnfile: ".$seq->id." doesn't have a version\n";
 		$error = 1;
 	    }
-	    my $rfamseq = $inx -> fetch( $seq->id );
+	    my $rfamseq = $inx -> get_Seq_by_acc( $seq->id );
 	    if( not $rfamseq ) {
 		print "$family/$alnfile: cannot find ".$seq->id." in rfamseq database\n";
 		$error = 1;
