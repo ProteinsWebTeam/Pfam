@@ -12,7 +12,7 @@
 
 =head1 NAME
 
-UpdateRDB
+Rfam::UpdateRDB
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,7 @@ to provide basic connection facilities
 # Let the code begin...
     
 
-package UpdateRDB;
+package Rfam::UpdateRDB;
 
 use vars qw($AUTOLOAD 
 	    @ISA 
