@@ -9,5 +9,21 @@
   )
 
 
-(provide 'ralee-helpers)
+(defun fetch-sequence ()
+  "use pfetch to get a sequence"
+  (interactive)
+  (let (seqid)
+    (setq seqid (ralee-get-real-seq-id))
+    (if seqid
+	(progn
+	  (call-process "pfetch" nil seqid t "-F" seqid)
+	  (pop-to-buffer seqid)
+	  (setq buffer-read-only 1)
+	  (goto-char (point-min))
+	  )
+      )
+    )
+  )
 
+
+(provide 'ralee-helpers)
