@@ -52,6 +52,12 @@ if( ! defined $nolog ) {
 my $db = Rfam::default_db();
 my @families = $db->get_allacc();
 
+my %ignore;
+foreach my $ignorefam ( @ignore ) {
+    print STDERR "ignoring $ignorefam\n";
+    $ignore{$ignorefam} = 1;
+}
+
 my @overlap;
 if( defined $quiet ) {
     @overlap = &compare_overlap_to_current( $family_dir, \@families );
@@ -77,7 +83,7 @@ foreach my $overlap ( @overlap ) {
     &errorout ("Sequence [$name] overlap $dom1/$start1-$end1 with $dom2/$start2-$end2\n");
 }
 
-open( SEED, "$family_dir/SEED" ) or die;
+open( SEED, "$family_dir/SEED" ) or die "can't find $family_dir/SEED\n";
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 my @list = $seed->each_seq();
@@ -118,16 +124,17 @@ sub compare_overlap_to_current {
 
     my @families = @{$fams_ref};
 
-    open( FULL, "$dir/ALIGN" ) or die;
+    open( FULL, "$dir/ALIGN" ) or die "can't find $dir/ALIGN\n";
     my $full = new Rfam::RfamAlign;
     $full -> read_stockholm( \*FULL );
-    open( SEED, "$dir/SEED" ) or die;
+    open( SEED, "$dir/SEED" ) or die "can't find $dir/SEED\n";
     my $seed = new Rfam::RfamAlign;
     $seed -> read_stockholm( \*SEED );
 
     my %hash;
     foreach my $seq ( $full->each_seq(), $seed->each_seq() ) {
-	$hash{$seq->id()} .= sprintf("%d-%d:",$seq->start(),$seq->end());
+	my( $emblacc ) = $seq->id() =~ /^(\S+)\.\d+/;
+	$hash{$emblacc} .= sprintf("%d-%d:",$seq->start(),$seq->end());
     }
 
     my @arry;
@@ -135,7 +142,7 @@ sub compare_overlap_to_current {
     my @keys = keys %hash;
     my $rdb = Rfam::switchover_rdb();
 
-
+    my $count;
 
 
 	foreach my $seq ($rdb->get_AnnotSeqs(\@keys, ['seed', 'full'])) {
@@ -165,13 +172,16 @@ sub compare_overlap_to_current {
 		    if( ( $s1 >= $s2 and $e1 <= $e2 ) or 
 		        ( $s1 <= $e2 and $e1 >= $e2 ) or 
 		        ( $s1 <= $s2 and $e1 >= $s2 ) ) {
-			push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),$dir,$start,$stop, $current_reg->accession() , $current_reg->model_from(),$current_reg->model_to()));
+			unless( $ignore{$current_reg->accession} ) {
+			    push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),$dir,$start,$stop, $current_reg->accession() , $current_reg->model_from(),$current_reg->model_to()));
+			    $count ++;
+			}
 		    }
 		}
 	    }
 	}
 	if( $report ) {
-#	    print $report sprintf("Done Model %-25s - Found %d overlaps\n",$family,$count);
+	    print $report sprintf("Done Model %-25s - Found %d overlaps\n",$dir,$count);
 	}
 
     return @arry;
