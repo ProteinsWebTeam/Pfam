@@ -869,6 +869,10 @@ sub trusted_cutoff{
 sub _before_annotation_hook{
    my ($self,$type) = @_;
 
+   if( $type eq 'id' ) {
+       return 1;
+   }
+
    if( $self->_loaded() == 1 ) {
        return 1;
    }
@@ -898,7 +902,7 @@ sub _load_annotation {
    $dir = $self->_directory();
    $fname = $self->_desc_filename;
   
-   $id  = $self->id();
+   $id = $self->id();
 
    if( $self->_loaded() == 1) {
        $self->warn("Reloading annotation without indicating deloaded object.");
