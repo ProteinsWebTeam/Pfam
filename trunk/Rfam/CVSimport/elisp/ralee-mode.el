@@ -2,7 +2,7 @@
 
 
 (defcustom ralee-mode-hook nil
-  "Normal hook run when entering ralee mode and many related modes."
+  "Normal hook run when entering ralee mode"
   :type 'hook
   :options '(turn-off-auto-fill
 	     )
@@ -179,7 +179,7 @@ Returns a list of pairs in order of increasing closing base."
     (((class color) (background dark))
      (:background "skyblue" :foreground "black"))
     (((class color) (background light))
-     (:background "darkblue"))
+     (:background "skyblue" :foreground "black"))
     (t (:background "gray")))
   "Highlighting face a"
   :group 'basic-faces)
@@ -192,7 +192,7 @@ Returns a list of pairs in order of increasing closing base."
     (((class color) (background dark))
      (:background "lightgreen" :foreground "black"))
     (((class color) (background light))
-     (:background "darkgreen"))
+     (:background "lightgreen" :foreground "black"))
     (t (:background "gray")))
   "Highlighting face b"
   :group 'basic-faces)
@@ -205,7 +205,7 @@ Returns a list of pairs in order of increasing closing base."
     (((class color) (background dark))
      (:background "pink" :foreground "black"))
     (((class color) (background light))
-     (:background "red"))
+     (:background "pink" :foreground "black"))
     (t (:background "gray")))
   "Highlighting face c"
   :group 'basic-faces)
@@ -218,7 +218,7 @@ Returns a list of pairs in order of increasing closing base."
     (((class color) (background dark))
      (:background "white" :foreground "black"))
     (((class color) (background light))
-     (:background "gray"))
+     (:background "white" :foreground "black"))
     (t (:background "gray")))
   "Highlighting face d"
   :group 'basic-faces)
@@ -231,7 +231,7 @@ Returns a list of pairs in order of increasing closing base."
     (((class color) (background dark))
      (:background "red" :foreground "white"))
     (((class color) (background light))
-     (:background "red"))
+     (:background "red" :foreground "white"))
     (t (:background "gray")))
   "Highlighting face e"
   :group 'basic-faces)
@@ -244,9 +244,22 @@ Returns a list of pairs in order of increasing closing base."
     (((class color) (background dark))
      (:background "blue" :foreground "white"))
     (((class color) (background light))
-     (:background "black"))
+     (:background "blue" :foreground "white"))
     (t (:background "gray")))
   "Highlighting face f"
+  :group 'basic-faces)
+
+(defface ralee-face-g
+  `((((type tty) (class color))
+     (:background "green" :foreground "white"))
+    (((type tty) (class mono))
+     (:inverse-video t))
+    (((class color) (background dark))
+     (:background "green" :foreground "white"))
+    (((class color) (background light))
+     (:background "green" :foreground "white"))
+    (t (:background "gray")))
+  "Highlighting face g"
   :group 'basic-faces)
 
 
@@ -256,6 +269,7 @@ Returns a list of pairs in order of increasing closing base."
 		    ralee-face-d
 		    ralee-face-e
 		    ralee-face-f
+		    ralee-face-g
 		    ))
 
 
@@ -582,4 +596,60 @@ Returns a list of pairs in order of increasing closing base."
     (beginning-of-line)
     (looking-at "#=GC ")
   ))
+
+(defun ralee-get-seq-id ()
+  "get the sequence identifier of the current alignment line"
+  (beginning-of-line)
+  (search-forward " ")
+  (copy-region-as-kill (line-beginning-position) (1- (point)))
+  (car kill-ring))
+
+(defun ralee-get-seq-string ()
+  "get the sequence string of the current alignment line"
+  (end-of-line)
+  (search-backward " ")
+  (copy-region-as-kill (1+ (point)) (line-end-position))
+  (car kill-ring))
+
+
+(defun ralee-unblock-alignment ()
+  "unblock a blocked alignment"
+  (interactive)
+  (goto-char (point-min))
+  (let ((seqs ())
+	seqid
+	(ids ())
+	seqstr)
+
+    (while (< (point) (point-max))
+      (beginning-of-line)
+      (if (or (ralee-is-alignment-line) (ralee-is-markup-line))
+	  (progn
+	    (setq seqid (ralee-get-seq-id))
+	    (setq seqstr (ralee-get-seq-string))
+	    (if (assoc seqid seqs)
+		(setq seqstr (concat (cdr (assoc seqid seqs)) seqstr))
+	      (push seqid ids)
+	      )
+	    (setq seqs (cons (cons seqid seqstr) seqs))
+	    )
+	)
+      (forward-line)
+      )
+
+    (setq ids (reverse ids))
+
+    (insert "# STOCKHOLM 1.0\n\n")
+    (while ids
+      (setq seqid (car ids))
+      (setq ids (cdr ids))
+
+      (insert seqid)
+      (insert "\t")
+      (insert (cdr (assoc seqid seqs)))
+      (insert "\n")
+      )
+    (insert "\\\\\n")
+    )
+  )
 
