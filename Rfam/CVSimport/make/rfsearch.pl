@@ -21,7 +21,6 @@ use strict;
 use Getopt::Long;
 use IO::File;
 
-use Bio::Tools::BPlite;
 use Bio::Index::Fasta;
 use Rfam;
 
@@ -98,6 +97,14 @@ if( -s "DESC" ) {
     }
 }
 
+$buildopts = "CM SEED" unless $buildopts;
+open( S, "SEED" ) or die;
+while(<S>) {
+    if( /^\#=GC RF/ and $buildopts !~ /--rf/ ) {
+	$buildopts = "--rf $buildopts";
+    }
+}   
+
 # defaults
 my $blastdbdir = $Rfam::rfamseq_current_dir;
 $blast_eval = 10  unless $blast_eval;
@@ -105,7 +112,6 @@ $window     = 100 unless $window;
 $cpus       = 20  unless $cpus;
 $queue      = "pfam_slow -Rlinux" unless $queue;
 $bqueue     = "pfam_slow -Rlinux" unless $bqueue;
-$buildopts  = "--rf CM SEED" unless $buildopts;
 my $fafile = "FA";
 
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
@@ -128,9 +134,9 @@ unless( $blast ) {
 	$i ++;
 	my( $div ) = $blastdb =~ /\/([a-z0-9]+)\.fa$/;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
-	$fh -> print("blastall -b 100000 -v 100000 -p blastn -i $fafile -e $blast_eval -F F -W 7 -d $blastdb > /tmp/$$.blast.$i\n");
-	$fh -> print("lsrcp /tmp/$$.blast.$i $phost:$pwd/$$.blast.$i\n");
-	$fh -> print("rm -f /tmp/$$.blast.$i\n");
+	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
+	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
+	$fh -> print("rm -f /tmp/$$.blastlist.$i\n");
 	$fh -> close;
     }
 
@@ -142,14 +148,14 @@ unless( $blast ) {
     $fh -> close;
 }
 
-print STDERR "parsing blast output ... ";
+print STDERR "parsing blast list ... ";
 my $seqlist = {};
 if( $blast ) {
-    $seqlist = &parse_blast( $seqlist, "$blast" );
+    $seqlist = &parse_list( $seqlist, "$blast" );
 }
 else {
     for( my $j=1; $j<=$i; $j++ ) {
-	$seqlist = &parse_blast( $seqlist, "$$.blast.$j" );
+	$seqlist = &parse_list( $seqlist, "$$.blastlist.$j" );
     }
 }
 print STDERR "done\n";
@@ -248,49 +254,40 @@ $fh -> close;
 
 ##############
 
-sub parse_blast {
-    my $list      = shift;
-    my $blastfile = shift;
+sub parse_list {
+    my $list       = shift;
+    my $blastfile  = shift;
     open( BL, $blastfile ) or die;
-    my $report = new Bio::Tools::BPlite( -fh => \*BL );
-    {
-        while( my $sbjct = $report -> nextSbjct ) {
-            my $name = $sbjct -> name();
-            $name =~ /^(\S+)\s+/;
-            $name = $1;
-            while( my $hsp = $sbjct->nextHSP ) {
-                my( $start, $end ) = ( $hsp->subject->start, $hsp->subject->end );
-                # add window length onto each end
-                $start = $start - $window;
-                $end   = $end   + $window;
-                $start = 1 if( $start < 1 );
+    while( <BL> ) {
+	if( my( $name, $start, $end ) = /^(\S+)\s+(\d+)\s+(\d+)/ ) {
+	    # add window length onto each end
+	    $start = $start - $window;
+	    $end   = $end   + $window;
+	    $start = 1 if( $start < 1 );
 
-                # avoid having multiple copies of one region in minidb
-                my $already;
-                if( exists $list->{$name} ) {
-                    foreach my $se ( sort @{ $list->{$name} } ) {
-                        if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
-                            $se->{'start'} = $start;
-                            $already = 1;
-                        }
-                        if( $se->{'end'} >= $start and $se->{'end'} <= $end ) {
-                            $se->{'end'} = $end;
-                            $already = 1;
-                        }
-                        if( $se->{'start'} <= $start and $se->{'end'} >= $end ) {
-                            $already = 1;
-                        }
-                    }
-                }
+	    # avoid having multiple copies of one region in minidb
+	    my $already;
+	    if( exists $list->{$name} ) {
+		foreach my $se ( sort @{ $list->{$name} } ) {
+		    if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
+			$se->{'start'} = $start;
+			$already = 1;
+		    }
+		    if( $se->{'end'} >= $start and $se->{'end'} <= $end ) {
+			$se->{'end'} = $end;
+			$already = 1;
+		    }
+		    if( $se->{'start'} <= $start and $se->{'end'} >= $end ) {
+			$already = 1;
+		    }
+		}
+	    }
 
-                unless( $already ) {
-                    push( @{ $list->{$name} }, { 'start' => $start,
-                                                 'end'   => $end } );
-                }
-            }
-        }
-        last if ( $report -> _parseHeader == -1 );
-        redo;
+	    unless( $already ) {
+		push( @{ $list->{$name} }, { 'start' => $start,
+					     'end'   => $end } );
+	    }
+	}
     }
     return $list;
 }
