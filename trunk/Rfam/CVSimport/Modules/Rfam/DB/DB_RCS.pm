@@ -3,7 +3,7 @@
 # Let the code begin...
 
 
-package Database::DB_RCS;
+package Rfam::DB::DB_RCS;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 use Fcntl;
@@ -12,12 +12,12 @@ use FileHandle;
 
 # Object preamble - inheriets from Bio::Root::Object
 
-use Database::DB;
-use Database::Entry_RCS;
+use Rfam::DB::DB;
+use Rfam::Entry::Entry_RCS;
 
 my $DEAD_FAMILY_STRING = '__DEAD_FAMILY__';
 
-@ISA = qw(Database::DB);
+@ISA = qw(Rfam::DB::DB);
 
 
 
@@ -98,7 +98,7 @@ sub get_Entry_by_acc {
        $fname = "DESC";
    }
 
-   $entry = Database::Entry_RCS->new();
+   $entry = Rfam::Entry::Entry_RCS->new();
    $entry->acc($acc);
 
    $entry->_directory("$dir");

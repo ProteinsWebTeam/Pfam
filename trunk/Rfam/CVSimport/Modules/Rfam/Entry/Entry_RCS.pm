@@ -5,17 +5,17 @@
 # Let the code begin...
 
 
-package Database::Entry_RCS;
+package Rfam::Entry::Entry_RCS;
 use vars qw($AUTOLOAD @ISA);
 
 use strict;
 
-use Database::Entry;
-use Database::RfamRegion;
+use Rfam::Entry::Entry;
+use Rfam::RfamRegion;
 use Bio::Annotation;
 use Bio::Annotation::DBLink;
 
-@ISA = qw(Database::Entry);
+@ISA = qw(Rfam::Entry::Entry);
 
 
 
@@ -451,13 +451,13 @@ sub annotated_regions {
 
       
       eval {
-	    push @list,  Database::RfamRegion->new('-RFAM_ACCESSION' => $acc,
-						    '-RFAM_ID' => $id,
-						    '-SEQ_ID' => $embl_acc,
-						    '-FROM' => $seq_start, 
-						    '-TO' => $seq_end,
-						    '-BITS' => $bits,
-						    '-ANNOTATION' => $ann);
+	    push @list,  Rfam::RfamRegion->new('-RFAM_ACCESSION' => $acc,
+					       '-RFAM_ID' => $id,
+					       '-SEQ_ID' => $embl_acc,
+					       '-FROM' => $seq_start, 
+					       '-TO' => $seq_end,
+					       '-BITS' => $bits,
+					       '-ANNOTATION' => $ann);
 
 	  };
       if ($@) {
@@ -504,7 +504,7 @@ sub author{
  Usage   : $full = $self->full()
  Function:
  Example :
- Returns : Bio::Pfam::AlignPfam object of the full alignment
+ Returns : Rfam::RfamAlign object of the full alignment
  Args    :
 
 
@@ -518,7 +518,7 @@ sub full{
 
    open(_ALIGN,"$dir/ALIGN") || $self->throw("For entry object [$id], got no valid directory for ALIGN alignment [$dir/FULL] $!");
    
-   $out = Bio::Pfam::AlignPfam->new();
+   $out = Rfam::RfamAlign->new();
    $out->read_stockholm(\*_ALIGN);
 
    close(_ALIGN);
@@ -810,7 +810,7 @@ sub previous_ids{
  Usage   : $seed = $self->seed()
  Function:
  Example :
- Returns : Bio::Pfam::AlignPfam object of the seed alignment
+ Returns : Rfam::RfamAlign object of the seed alignment
  Args    :
 
 
@@ -825,7 +825,7 @@ sub seed{
 
    open(_SEED,"$dir/SEED") || $self->throw("For entry object [$id], got no valid directory for SEED alignment [$dir/SEED] $!");
    
-   $out = Bio::Pfam::AlignPfam->new();
+   $out = Rfam::RfamAlign->new();
    $out->read_stockholm(\*_SEED);
 
    close(_SEED);

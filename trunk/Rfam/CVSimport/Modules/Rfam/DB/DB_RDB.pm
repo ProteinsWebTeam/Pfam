@@ -11,7 +11,7 @@
 
 =head1 NAME
 
-Bio::Pfam::DB_RDB - An interface to a pfam database implemented as a relational
+Rfam::DB_RDB - An interface to a pfam database implemented as a relational
 database.
 
 =head1 SYNOPSIS
@@ -52,17 +52,17 @@ This module has a slightly unusual method-naming convention:
 # Let the code begin...
 
 
-package Database::DB_RDB;
+package Rfam::DB::DB_RDB;
 
 use vars qw($AUTOLOAD @ISA);
 use strict;
 use DBI;
 use FileHandle;
 
-use Database::RfamRDB;
+use Rfam::RfamRDB;
 
 
-@ISA = qw(Database::DB);
+@ISA = qw(Rfam::DB::DB);
 
 # _initialize is where the heavy stuff will happen when new is called
 
@@ -73,7 +73,7 @@ sub _initialize {
  
   # ok - ready to rock
 
-  $self->_the_RDB( Database::RfamRDB->new( %params ));
+  $self->_the_RDB( Rfam::DB::RfamRDB->new( %params ));
 
   # set stuff in self from @args
   return $make; # success - we hope!

@@ -58,7 +58,7 @@ The rest of the documentation details each of the object methods. Internal metho
 # Let the code begin...
 
 
-package Database::DB;
+package Rfam::DB::DB;
 use vars qw($AUTOLOAD @ISA @EXPORT_OK );
 use strict;
 
@@ -183,7 +183,7 @@ sub get_random_acc{
 sub get_Entry_by_id{
    my ($self,@args) = @_;
 
-   $self->throw("Bio::Pfam::DB::get_Entry_by_id is deprecated. Use get_EntryA_by_id");
+   $self->throw("Rfam::DB::DB::get_Entry_by_id is deprecated. Use get_EntryA_by_id");
 }
 
 
