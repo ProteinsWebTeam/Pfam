@@ -50,3 +50,8 @@ unless( -s "$Rfam::releases_dir/$rel/Rfam.thr" ) {
     system "$Rfam::scripts_dir/release/make_thr.pl $Rfam::releases_dir/$rel/Rfam.seed > $Rfam::releases_dir/$rel/Rfam.thr" and die;
 }
 
+unless( -s "$Rfam::releases_dir/$rel/Rfam.tar" ) {
+    print STDERR "Making Rfam.tar ....\n";
+    system "$Rfam::scripts_dir/release/make_models.pl > $Rfam::releases_dir/$rel/Rfam.tar" and die;
+}
+
