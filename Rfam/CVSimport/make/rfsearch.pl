@@ -127,7 +127,7 @@ unless( $blast ) {
 
     print STDERR "Waiting for blast jobs ...\n";
     my $fh = new IO::File;
-    $fh -> open("| bsub -I -q pfam_fast -m pfam -w\'done(rf$$)\'") or die "$!";
+    $fh -> open("| bsub -I -q pfam_fast -Ralpha -w\'done(rf$$)\'") or die "$!";
     $fh -> print("cat $$.blast.* >> $$.blastall\n");
     $fh -> close;
 }
