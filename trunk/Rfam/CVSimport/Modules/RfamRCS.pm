@@ -289,7 +289,7 @@ sub check_in_rcs_files {
 	    $new_rcs = 1;
 	}
 
-	if( $new_rcs == 1 ) {
+	if( $new_rcs ) {
 	    if( system("rcs -a$allowed_user_string -q -i -t-\"$comment\" $rcs_master_dir/$family/$file") != 0 ) {
 		print("RCS: Was unable make new file $file... hmm...\n");
 		$out = 0;
