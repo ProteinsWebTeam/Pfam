@@ -4,19 +4,6 @@
 # something with local storage, but the jobs all get sent off to blades
 # using nice socket things, pfetch etc.
 
-
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $rfam_mod_dir;
-use lib $bioperl_dir;
-
 use strict;
 use Getopt::Long;
 use IO::File;
@@ -147,7 +134,7 @@ unless( $blast ) {
 	my $fh = new IO::File;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
 	$fh -> print(". /usr/local/lsfv42/conf/profile.lsf\n");   # so we can find lsrcp
-	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
+	$fh -> print("rfamseq_blast.pl --mp -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
 	$fh -> print("rm -f /tmp/$$.blastlist.$i\n");
 	$fh -> close;
