@@ -1,6 +1,9 @@
 #!/usr/local/bin/perl -w
 
 BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
     $pfam_mod_dir = 
         (defined $ENV{'PFAM_MODULES_DIR'})
             ?$ENV{'PFAM_MODULES_DIR'}:"/pfam/db/Pfam/scripts/Modules";
@@ -9,6 +12,7 @@ BEGIN {
             ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
 }
 
+use lib $rfam_mod_dir;
 use lib $pfam_mod_dir;
 use lib $bioperl_dir;
 
@@ -16,7 +20,6 @@ use strict;
 use Getopt::Long;
 use Bio::Index::Fasta;
 use CMResults;
-use lib '/pfam/db/Rfam/scripts/Modules';
 use Rfam;
 
 my( $thr, 
@@ -38,7 +41,7 @@ if( $help ) {
     exit(1);
 }
 
-not $inxfile and $inxfile = $rfamseq_current_inx;
+not $inxfile and $inxfile = $Rfam::rfamseq_current_inx;
 my $seqinx = Bio::Index::Fasta->new( $inxfile ); 
 
 END {
