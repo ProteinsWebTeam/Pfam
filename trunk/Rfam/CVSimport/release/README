@@ -1,0 +1,49 @@
+Rfam release procedure
+----------------------
+
+1. Wait for Hans to mail about new EMBL release
+
+2. Make new rfamseq directory
+   > mkdir /pfam/rfam1/rfamseq/?/
+   > cd /pfam/rfam1/rfamseq/?/
+
+3. Pick up .dat files from srspartition
+   > rcp cbi2:/nfs/disk100/pubseq/srspartition/data/embl??/*.dat .
+
+   Avoid htg_*.dat, est_*.dat, gss_*.dat, htc.dat, htgo_*.dat,
+   pat??.dat, sts.dat, syn.dat, unc.dat.
+
+4. Build rfamseq files
+   > /pfam/db/Rfam/scripts/release/make_rfamseq.pl
+
+5. Index rfamseq
+   > /pfam/db/Rfam/scripts/release/index_rfamseq.pl rfamseq.fa.bpi
+
+6. Copy accross to /pfam/db/rfamseq/?/
+   Don't need *.dat files and hopefully soon *.fa files
+
+7. Flip the CURRENT symlink in /pfam/db/rfamseq/
+
+8. Get isg to copy /pfam/db/rfamseq/CURRENT/ to
+   /data/blastdb/Rfam/Large
+
+9. mkdir /pfam/rfam2/NEW
+   cd /pfam/rfam2/NEW
+
+10. Checkout all families (get people to scrap locks)
+    > /pfam/db/Rfam/scripts/release/rfco_all.pl
+
+11. Run seed surgery
+    > /pfam/db/Rfam/scripts/release/seed_surgery -v >& surgery.log
+
+12. Any that have changed need full rebuild
+    Any that haven't can just be updated
+
+.
+.
+.
+.
+.
+
+??. Make release files
+    > /pfam/db/Rfam/scripts/release/make_release.pl 6.0
