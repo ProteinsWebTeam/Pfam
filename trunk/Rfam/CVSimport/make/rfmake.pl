@@ -88,17 +88,24 @@ if( $list ) {
 	my $string = join( " ", splice( @allnames, 0, $chunksize ) );
 	open( P, "pfetch -D $string |" ) or die;
 	while( <P> ) {
-	    if( /^\S+\s+(\S+)\s+(.{1,$desclength})/ ) {
+	    if( /^\S+\s+(\S+)\.\d+\s+(.{1,$desclength})/ ) {
 		$desc{$1} = $2;
 	    }
 	}
 	close P or die "can't close pfetch pipe";
     }
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
-	if( not exists $desc{$unit->seqname} ) {
-	    $desc{$unit->seqname} = "no description available";
+	my( $emblacc );
+	if( $unit->seqname =~ /^(\S+)\.\d+$/ ) {
+	    $emblacc = $1;
 	}
-	printf( "%-12s%-".$desclength."s%8d%8d%5d%5d%8s\n", $unit->seqname, $desc{$unit->seqname}, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
+	else {
+	    $emblacc = $unit->seqname;
+	}
+	if( not exists $desc{$emblacc} ) {
+	    $desc{$emblacc} = "no description available";
+	}
+	printf( "%-12s%-".$desclength."s%8d%8d%5d%5d%8s\n", $unit->seqname, $desc{$emblacc}, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
     }
     exit(0);
 }
