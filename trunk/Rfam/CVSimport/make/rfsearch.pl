@@ -72,10 +72,10 @@ EOF
 	     "h"        => \$help );
 
 
-$inxfile    = $rfamseq_current_inx unless $inxfile;
-my $blastdbdir = $rfamseq_current_dir;
+$inxfile       = $Rfam::rfamseq_current_inx unless $inxfile;
+my $blastdbdir = $Rfam::rfamseq_current_dir;
 
-my $seqinx  = Bio::Index::Fasta->new( $inxfile ); 
+my $seqinx     = Bio::Index::Fasta->new( $inxfile ); 
 
 END {
     # random wierdness - this stops core dump on exit
@@ -137,7 +137,7 @@ unless( $blast_outfile ) {
 	push( @blastdbs, $blastdb );
     }
     else {
-	@blastdbs = glob( "$rfamseq_current_dir/*.fa" );
+	@blastdbs = glob( "$Rfam::rfamseq_current_dir/*.fa" );
     }
 
     print STDERR "running blast search ... \n" unless $quiet;
