@@ -10,50 +10,40 @@ use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
 use LWP;
 use Text::Wrap;
+use Bio::Annotation::Reference;
+
+@ISA = qw( Bio::Annotation::Reference );
+
 
 sub new {
     my $caller = shift;
     my $class  = ref( $caller ) || $caller;
-    my $self   = {};
-
-    $self->{'PUBMED'}  = undef;
-    $self->{'AUTHORS'} = undef;
-    $self->{'TITLE'}   = undef;
-    $self->{'JOURNAL'} = undef;
-    $self->{'YEAR'}    = undef;
-    $self->{'VOLUME'}  = undef;
-    $self->{'NUMBER'}  = undef;
-    $self->{'EPUB'}    = undef;
-    $self->{'PAGES'}->{'FROM'} = undef;
-    $self->{'PAGES'}->{'TO'}   = undef;
-
-    bless( $self, $class );
+    my $self   = $class -> SUPER::new();
     return $self;
 }
 
 
-sub write_embl {
-    my $self = shift;
-    my $fh   = shift;
-    my $num  = shift || 1;
-
-    $Text::Wrap::columns = 75;
-
-    print $fh "RN   [$num]\n";
-    print $fh "RX   PUBMED; ", $self->{'PUBMED'}, ".\n";
-    print $fh wrap( "RA   ", "RA   ", $self->{'AUTHORS'} ), ";\n";
-    print $fh wrap( "RT   ", "RT   ", "\"".$self->{'TITLE'}."\"" ), ";\n";
-    print $fh "RL   ", $self->{'JOURNAL'}, " ";
-    if( $self->{'EPUB'} ) {
-	print "[Epub ahead of print] ";
-    }
-    else {
-	print $fh $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'};
-	print $fh "-", $self->{'PAGES'}->{'TO'} if( $self->{'PAGES'}->{'TO'} );
-    }
-    print $fh "(", $self->{'YEAR'}, ")", ".\n";
-
-}
+#sub write_embl {
+#    my $self = shift;
+#    my $fh   = shift;
+#    my $num  = shift || 1;
+#
+#    $Text::Wrap::columns = 75;
+#
+#    print $fh "RN   [$num]\n";
+#    print $fh "RX   PUBMED; ", $self->{'PUBMED'}, ".\n";
+#    print $fh wrap( "RA   ", "RA   ", $self->{'AUTHORS'} ), ";\n";
+#    print $fh wrap( "RT   ", "RT   ", "\"".$self->{'TITLE'}."\"" ), ";\n";
+#    print $fh "RL   ", $self->{'JOURNAL'}, " ";
+#    if( $self->{'EPUB'} ) {
+#	print "[Epub ahead of print] ";
+#    }
+#    else {
+#	print $fh $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'};
+#	print $fh "-", $self->{'PAGES'}->{'TO'} if( $self->{'PAGES'}->{'TO'} );
+#    }
+#    print $fh "(", $self->{'YEAR'}, ")", ".\n";
+#}
 
 
 sub get_ref_by_pubmed {
@@ -61,7 +51,7 @@ sub get_ref_by_pubmed {
     my $self   = shift;
     my $pubmed = shift;
 
-    $self->{'PUBMED'} = $pubmed;
+    $self->pubmed( $pubmed );
 
     my $ua = new LWP::UserAgent;
     $ua->agent("AVAce Indexer/1.1");
@@ -104,40 +94,47 @@ sub get_ref_by_pubmed {
 	if( $data{ 'TI' } =~ /\.\s*$/ ) {
 	    chop $data{'TI'};
 	}
-	$self->{ 'TITLE' } = $data{ 'TI' };
+	$self->title( "\"".$data{'TI'}."\"" );
 
 	if( $data{ 'AU' } ) {
-	    $self->{ 'AUTHORS' } = $data{ 'AU' };
+	    $self->authors( $data{'AU'} );
 	}
 
 	if( $data{ 'SO' } =~ /(.*)\s+(\d{4}).*;(.*)/ ) {
-	    $self->{ 'JOURNAL' } = $1;
-	    $self->{ 'YEAR' }    = $2;
+	    my $journal = $1;
+	    my $year = $2;
 	    my $rest = $3;
+	    my( $volume, $page_from, $page_to, $epub );
 
 	    if( $rest =~ /(\d+).*:(\w*\d+)-?(\d*)/ ) {
-		$self->{ 'VOLUME' }  = $1;
-		$self->{ 'PAGES' }->{ 'FROM' } = $2;
-		$self->{ 'PAGES' }->{ 'TO' }   = $3;
+		$volume = $1;
+		$page_from = $2;
+		$page_to = $3;
+
+		# convert pubmeds stupid 160-3 page numbering to 160-163.
+		my $fromlen = length( $page_from );
+		my $tolen   = length( $page_to );
+		
+		if( $tolen and $fromlen > $tolen ) {  # Stupid numbering better do something!
+		    $page_to = substr( $page_from, 0, $fromlen - $tolen ).$page_to;
+		}
 	    }
 	    else {    
 		# probably epub prior to print
-		# embl style is set all these to zero
-		$self->{ 'VOLUME' }  = 0;
-		$self->{ 'PAGES' }->{ 'FROM' } = 0;
-		$self->{ 'PAGES' }->{ 'TO' }   = 0;
-
-		$self->{ 'EPUB' } = 1;
+		$epub = 1;
 	    }
 
-	    # convert pubmeds stupid 160-3 page numbering to 160-163.
-	    my $fromlen = length( $self->{ 'PAGES' }->{ 'FROM' } );
-	    my $tolen   = length( $self->{ 'PAGES' }->{ 'TO' } );
-
-	    if( $tolen and $fromlen > $tolen ) {  # Stupid numbering better do something!
-		$self->{ 'PAGES' }->{ 'TO' } = substr( $self->{ 'PAGES' }->{ 'FROM' }, 0, 
-						       $fromlen - $tolen ).$self->{ 'PAGES' }->{ 'TO' };
+	    my $location = "$journal ";
+	    if( $epub ) {
+		$location .= "[Epub ahead of print] ";
 	    }
+	    else {
+		$location .= "$volume:$page_from";
+		$location .= "-$page_to" if( $page_to );
+	    }
+	    $location .= "($year).";
+
+	    $self->location( $location );
 	}
     }
 }
