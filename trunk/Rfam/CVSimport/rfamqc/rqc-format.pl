@@ -137,8 +137,15 @@ sub desc_is_OK {
             };
 	    /^TP/ && do {
 		$fields{$&}++;
-		unless( /^TP   Site\s*$/ or /^TP   Gene\s*$/ or /^TP   Intron\s*$/ ) {
-                    warn "$family: TP lines should be one of Site, Intron, Gene\nNot $_\n";
+		unless( /^TP   Gene; tRNA;\s*$/ or /^TP   Gene; rRNA;\s*$/
+		or /^TP   Gene; snRNA; splicing;\s*$/ or /^TP   Gene; snRNA; guide;\s*$/
+		or /^TP   Gene; snRNA; miRNA;\s*$/ or /^TP   Gene; ribozyme;\s*$/
+		or /^TP   Gene; antisense;\s*$/ or /^TP   Gene; other;\s*$/
+		or /^TP   Gene; RUF;\s*$/ or /^TP   Intron;\s*$/
+		or /^TP   Cis-reg;\s*$/ or /^TP   Cis-reg; riboswitch\s*$/
+		or /^TP   Cis-reg; riboswitch\s*$/
+		) {
+                    warn "$family: invalid TP line \"$_\"\n";
                     $error = 1;
  		}
                 last;
