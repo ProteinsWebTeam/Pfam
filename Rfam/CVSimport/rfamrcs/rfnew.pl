@@ -71,20 +71,22 @@ my $comment = "New family";
 # Ok. Attempt to get the lock. If we fail a rather ungraceful exit.
 # 
 
-my $ret = &RfamRCS::get_accession_lock();
+# dunno why we were doing this - allocate_new_accession gets the lock
 
-if( !($ret =~ /^success/ ) ) {
-    die "rfnew: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
-}
+#my $ret = &RfamRCS::get_accession_lock();
+
+#if( !($ret =~ /^success/ ) ) {
+#    die "rfnew: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
+#}
 
 my $acc = &RfamRCS::allocate_new_accession($id);
 if( !defined $acc ) {
-    &RfamRCS::release_accession_lock();
+#    &RfamRCS::release_accession_lock();
     die "rfnew: Unable to allocate new accession number. Check write permission to ACCESSION dir\n";
 }
 
 if( ! &RfamRCS::make_new_rcs_directory($acc) ) {
-    &RfamRCS::release_accession_lock();
+#    &RfamRCS::release_accession_lock();
     die "rfnew: Cannot make a new directory for $id.\nCheck you have write permissions to RCS_MASTER\n";
 }
 
@@ -92,7 +94,7 @@ open(LOCK,">$Rfam::rcs_master_dir/$acc/locked") or die "rfnew: cannot write to l
 print LOCK "First lock due to rfnew\n";
 close(LOCK);
 
-&RfamRCS::release_accession_lock();
+#&RfamRCS::release_accession_lock();
 
 if( !open(DESC,"./$id/DESC") ) {
     die "rfnew: cannot open the desc file. Yikes!";
