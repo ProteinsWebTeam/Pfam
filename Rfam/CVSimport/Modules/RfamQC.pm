@@ -170,6 +170,11 @@ sub valid_sequences {
 	open( ALN, "$family/$alnfile" ) or die "can't open $family/$alnfile";
 	$aln -> read_stockholm( \*ALN );
 	foreach my $seq ( $aln -> each_seq ) {
+	    if( $seq->id !~ /\S+\.\d+$/ ) {
+		print "$family/$alnfile: ".$seq->id." doesn't have a version\n";
+		$error = 1;
+		next;
+	    }
 	    my $rfamseq = $inx -> fetch( $seq->id );
 	    if( not $rfamseq ) {
 		print "$family/$alnfile: cannot find ".$seq->id." in rfamseq database\n";
