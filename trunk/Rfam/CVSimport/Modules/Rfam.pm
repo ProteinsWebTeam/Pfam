@@ -22,7 +22,8 @@ use vars qw( @ISA
              @model_file_set
 	     @ann_file_set
              @rcs_file_set 
-	     @optional_file_set );
+	     @optional_file_set 
+	     $view_maker );
 
 @ISA    = qw( Exporter );
 @EXPORT = qw( $root_dir
@@ -38,7 +39,8 @@ use vars qw( @ISA
 	      @ann_file_set
 	      @model_file_set
 	      @rcs_file_set 
-              @optional_file_set );
+              @optional_file_set 
+	      $view_maker );
 
 $root_dir       = "/pfam/db/Rfam";
 $current_dir    = "$root_dir/CURRENT";
@@ -56,6 +58,7 @@ $acclog_file    = "$accession_dir/acclog";
 @rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set );
 @optional_file_set = ();
 
+$view_maker = "$scripts_dir/rfamrcs/makerfamview.pl";
 
 sub get_allaccs {
     my @accs;
