@@ -1,6 +1,9 @@
 #!/usr/local/bin/perl -w
 
-# POD documentation
+# Copyright (c) 2002-2003 Genome Research Ltd 
+# Distributed under the same terms as the Rfam database.  See
+# ftp://ftp.sanger.ac.uk/pub/databases/Rfam/COPYRIGHT for more
+# details.
 
 =head1 NAME
 
@@ -66,8 +69,8 @@ useful.  You may not.
 
 =head1 CONTACT
 
-This script is copyright Genome Research Ltd 2003.  Please contact
-sgj@sanger.ac.uk for help.
+This script is copyright (c) Genome Research Ltd 2002-2003.  Please
+contact sgj@sanger.ac.uk for help.
 
 =cut
 
