@@ -1,7 +1,14 @@
 #!/usr/local/bin/perl -w
 
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+}
+
+use lib $rfam_mod_dir;
+
 use strict;
-use lib '/pfam/db/Rfam/scripts/Modules';
 use Rfam;
 
 my $dir = shift;
@@ -9,7 +16,8 @@ if( $dir ) {
 	chdir $dir or die "cannot chdir to $dir";
 }
 
-foreach my $acc ( &Rfam::get_allaccs() ) {
+my $db = Rfam::default_db();
+foreach my $acc ( $db->get_allacc() ) {
     system "rfco $acc" and do {
 	warn "failed to checkout $acc";
 	next;

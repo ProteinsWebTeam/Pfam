@@ -3,34 +3,48 @@
 # performs seed surgery on Rfam families at rfamseq update time
 # (also handy during familiy building!)
 
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+    $bioperl_dir =
+        (defined $ENV{'BIOPERL_DIR'})
+            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
+}
+
+use lib $rfam_mod_dir;
+use lib $bioperl_dir;
+
 use strict;
 use Getopt::Long;
 
-use lib '/nfs/disk100/pubseq/Pfam/bioperl';
-use Bio::SimpleAlign;
 use Bio::SeqIO;
 use Bio::Index::Fasta;
 use Bio::Tools::BPlite2;
-#use lib '/pfam/db/Rfam/scripts/Modules';
-use lib "$ENV{HOME}/rfam/scripts/Modules";
-use Bio::Rfam::RfamAlign;
 use Rfam;
+use Rfam::RfamAlign;
 
 my( $noaction,
     $dir,
-    $noclean );
+    $noclean,
+    $rename,
+    $queue );
 
 &GetOptions( "noaction" => \$noaction,
 	     "dir"      => \$dir,
-	     "noclean"  => \$noclean );
+	     "noclean"  => \$noclean,
+	     "rename"   => \$rename,
+	     "q=s"      => \$queue );
 
 if( $dir ) {
     chdir $dir or die "can't chdir to $dir\n";
 }
-my $newinx = Bio::Index::Fasta->new( $rfamseq_new_inx );
+my $newinx = Bio::Index::Fasta->new( $Rfam::rfamseq_new_inx );
 my %cache;
 my @list;
-@list = @ARGV or @list = &Rfam::get_allaccs();
+my $db = Rfam::default_db();
+@list = @ARGV or @list = $db->get_allacc();
+
 
 #open( LOG, ">log" ) or die "can't write to $dir/log\n";
 
@@ -39,32 +53,23 @@ foreach my $acc ( @list ) {
     my $aln = new Bio::Rfam::RfamAlign;
     open( SEED, "$acc/SEED" ) or die;
     $aln -> read_stockholm( \*SEED );
+
     foreach my $seq ( $aln -> eachSeq() ) {
 	my $curstr = $seq -> seq();
 	if( $curstr =~ tr/tT/uU/ ) {    # "It's RNA dammit" (SRE)
-	    printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
+	    printf( "%s   %-20s   ", $acc, $seq->id."/".$seq->start."-".$seq->end );
 	    print "T_TO_U\n";
 	    $seq -> seq( $curstr );
 	    $changed = 1;
 	}
 	$curstr =~ s/\.//g;
-	my $newseq = &return_seq( $newinx, $seq->id, $seq->start, $seq->end );
-	if( not defined $newseq ) {
-	    printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
-	    $aln -> removeSeq( $seq );
-	    print "DELETE\tFIXED\n";
-	    $changed = 1;
-	}
-	elsif( not $newseq ) {
-	    printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
-	    print "OUTOFBOUNDS\tNOTFIXED";
-	    $changed = 1;
-	}
-	else {
+
+	if( !$rename and my $newseq = &return_seq( $newinx, $seq->id, $seq->start, $seq->end ) ) {
+#	if( my $newseq = &return_seq( $newinx, $seq->id ) ) {
 	    my $newstr = $newseq -> seq;
 	    $newstr =~ tr/T/U/; 
 	    if( $newstr ne $curstr ) {
-		printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
+		printf( "%s   %-20s   %-20s   ", $acc, $seq->id."/".$seq->start."-".$seq->end, $seq->id."/".$seq->start."-".$seq->end );
 		my $fixed = &find_match( $newinx, $seq );
 		if( $fixed == -1 ) {
 		    print "RENUMBER\tFIXED\n";
@@ -80,25 +85,49 @@ foreach my $acc ( @list ) {
 		}
 	    }
 	}
+	else {
+	    if( $rename ) {
+		printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
+		my $fixed = &find_match( $newinx, $seq, 1 );
+		if( $fixed == -1 ) {
+		    print "RENUMBER\tFIXED\n";
+		    $changed = 1;
+		}
+		elsif( $fixed ) {
+		    print $fixed, "_MISMATCH\tFIXED\n";
+		    $changed = 1;
+		}
+		else {
+		    print "MISMATCH\tNOTFIXED\n";
+		    $changed = 1;
+		}		
+	    }
+	    else {
+		printf( "%s   %-10s%10d%10d     ", $acc, $seq->id, $seq->start, $seq->end );
+		$aln -> removeSeq( $seq );
+		print "DELETE\tFIXED\n";
+		$changed = 1;
+	    }
+	}
     }
 
-    if( $aln -> allgaps_columns_removed ) {
-	printf( "%s   GAPS_REMOVED\n", $acc );
-	$changed = 1;
-    }
+#    if( $aln -> allgaps_columns_removed ) {
+#	printf( "%s   GAPS_REMOVED\n", $acc );
+#	$changed = 1;
+#    }
 
     if( $changed and not $noaction ) {
 	open( NEW, ">$acc/SEEDNEW" ) or die "can't write to $acc/SEEDNEW";
 	$aln -> write_stockholm( \*NEW );
 	close NEW;
-	# yippee - infernal handles weights so don't need squid!
-        # system "weight -o $acc/SEEDNEW2 $acc/SEEDNEW > /dev/null 2>&1" and die "can't run weight";
+
 	rename( "$acc/SEED", "$acc/SEEDOLD" ) or die "can't rename SEED to SEEDOLD";
 	rename( "$acc/SEEDNEW", "$acc/SEED" ) or die "can't rename SEEDNEW to SEED";
     }
 }
 
 undef $newinx;
+
 
 sub return_seq {
     my $inx  = shift;
@@ -110,7 +139,7 @@ sub return_seq {
 	$cache{$id} = $inx -> fetch( $id ) unless exists $cache{$id};
     };
     if( $@ or not $cache{$id} ) {
-#	warn "$id not found in your database: $@\n";
+	warn "$id not found in your database: $@\n";
 	return undef;
     }
     my $truncseq;
@@ -128,7 +157,7 @@ sub return_seq {
 	    }
 	};
 	if( $@ or not $truncseq ) {
-#	warn "$id: $from-$to are not reasonable bounds\n";
+	    warn "$id: $from-$to are not reasonable bounds\n";
 	    return 0;
 	}
     }
@@ -137,37 +166,61 @@ sub return_seq {
 
 
 sub find_match {
-    my $newinx = shift;
-    my $seq    = shift;
-    my $id     = $seq -> id;
-
-    open( OUT, ">$$.new.fa" ) or die "can't write to $$.new.fa";
-    my $out = new Bio::SeqIO( -fh => \*OUT, '-format' => 'Fasta' );
-    my $newseq = $newinx -> fetch( $seq -> id );
-    $out -> write_seq( $newseq );
-    close OUT;
+    my $newinx  = shift;
+    my $seq     = shift;
+    my $rfamseq = shift;
+    my $id      = $seq -> id;
 
     open( OUT, ">$$.old.fa" ) or die "can't write to $$.old.fa";
     $seq -> display_id( $seq->id."/".$seq->start."-".$seq->end );
-    $out = new Bio::SeqIO( -fh => \*OUT, '-format' => 'Fasta' );
+    my $out = new Bio::SeqIO( '-fh' => \*OUT, '-format' => 'Fasta' );
     $out -> write_seq( $seq );
     close OUT;
     $seq -> display_id( $id );
 
-    system "formatdb -i $$.new.fa -p F" and die "can't formatdb $$.new.fa";
-    system "blastall -W8 -F F -d $$.new.fa -i $$.old.fa -p blastn > $$.blast" and die "can't run blastall";
+    my $seqdb;
+    if( $rfamseq ) {
+	my @blastdbs = glob( "$Rfam::rfamseq_current_dir/*.fa" );
+	foreach my $blastdb ( @blastdbs ) {
+	    system "blastall -W8 -F F -d $blastdb -i $$.old.fa -p blastn -v 10 -b 10 >> $$.blast" and die "can't run blastall";
+	}
+    }
+    else {
+	open( OUT, ">$$.new.fa" ) or die "can't write to $$.new.fa";
+	my $out = new Bio::SeqIO( '-fh' => \*OUT, '-format' => 'Fasta' );
+	my $newseq = $newinx -> fetch( $seq -> id );
+	$out -> write_seq( $newseq );
+	close OUT;
+
+	system "formatdb -i $$.new.fa -p F" and die "can't formatdb $$.new.fa";
+	system "blastall -W8 -F F -d $$.new.fa -i $$.old.fa -p blastn > $$.blast" and die "can't run blastall";
+    }
+
+    my( $best, $newid );
+    open( BLAST, "$$.blast" ) or die "can't open $$.blast";
+    my $multiple = new Bio::Tools::BPlite2::Multi( \*BLAST );
+    my $querylength;
+    while( my $report = $multiple->nextReport ) {
+	$querylength = $report->queryLength unless $querylength;
+	while( my $sbjct = $report->nextSbjct ) {
+	    while( my $hsp = $sbjct->nextHSP ) {
+		if( not $best or $hsp->bits >= $best->bits ) {
+		    $best = $hsp;
+		    ( $newid ) = $sbjct->name =~ /^>?\s*(\S+)\s*/;
+		}
+	    }
+	}
+    }
 
     my $fixed;
-    open( BLAST, "$$.blast" ) or die "can't open $$.blast";
-    my $report = new Bio::Tools::BPlite2( \*BLAST );
-    my $sbjct = $report->nextSbjct;
-    my $hsp = $sbjct->nextHSP;     # just take the first hsp which should be the best hit
-    if( $hsp -> match == $report->queryLength ) {
-	$seq -> start( $hsp->sbjctBegin );
-	$seq -> end( $hsp->sbjctEnd );
+    $seq->id( $newid );
+
+    if( $best -> match == $querylength ) {
+	$seq -> start( $best->sbjctBegin );
+	$seq -> end( $best->sbjctEnd );
 	$fixed = -1;
     }
-    elsif( $hsp->length > ( $hsp->queryEnd - $hsp->queryBegin + 1 ) ) {
+    elsif( $best->length > ( $best->queryEnd - $best->queryBegin + 1 ) ) {
 	# inserts in subject sequence -- can't deal easily
 	$fixed = 0;
     }
@@ -176,11 +229,11 @@ sub find_match {
 
 	my @oldgap = split( //, $seq -> seq );
 	my @newgap;
-	my $subaln = $hsp -> sbjctAlignment;
+	my $subaln = $best -> sbjctAlignment;
 	$subaln =~ tr/acgt-/ACGU\./;
 	my @subgap = split( //, $subaln );
 	my $j=0;
-	for( my $k=1; $k<$hsp->queryBegin; $k++ ) {
+	for( my $k=1; $k<$best->queryBegin; $k++ ) {
 	    unshift( @subgap, "." );
 	}
 	for( my $i=0; $i<@oldgap; $i++ ) {
@@ -196,10 +249,10 @@ sub find_match {
 	    }
 	}
 
-	$seq -> start( $hsp->sbjctBegin );
-	$seq -> end( $hsp->sbjctEnd );
+	$seq -> start( $best->sbjctBegin );
+	$seq -> end( $best->sbjctEnd );
 	$seq -> seq( join( "", @newgap ) );
-	$fixed = ( $report->queryLength - $hsp -> match );
+	$fixed = ( $querylength - $best -> match );
 
 #	print "\n", join( "", @oldgap ), "\n", join( "", @newgap ), "\n";
     }
