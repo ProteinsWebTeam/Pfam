@@ -441,7 +441,10 @@ sub write_stockholm {
     my $iter = $self->length_aln/$block;
     print $out "\# STOCKHOLM 1.0\n\n";
 
-    my $ss_str = $self->ss_cons->getInfernalString();
+    my $ss_str;
+    eval {
+	$ss_str = $self->ss_cons->getInfernalString();
+    };
 	
     for( my $i=0; $i < $iter; $i++ ) {
 	foreach my $seq ( $self->eachSeq() ) {
@@ -509,7 +512,7 @@ sub write_connect {
     }
     
     # dummy first line
-    print $out "  290 ENERGY =  -126.8    ACJL\n";
+    print $out "  ", $newseq->length, " ENERGY = 0  $seqid\n";
 
     for( my $i=1; $i<=@ss; $i++ ) {
 	my $j;
