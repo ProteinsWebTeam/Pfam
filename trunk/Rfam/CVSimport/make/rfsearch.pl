@@ -93,6 +93,7 @@ my $blastdbdir = $Rfam::rfamseq_current_dir;
 my $inxfile    = $Rfam::rfamseq_current_inx;
 $blast_eval = 10  unless $blast_eval;
 $window     = 100 unless $window;
+$cpus       = 20  unless $cpus;
 $queue      = "pfam_slow -Rlinux" unless $queue;
 $bqueue     = "pfam_slow -Rlinux" unless $bqueue;
 $buildopts  = "--rf CM SEED" unless $buildopts;
