@@ -151,6 +151,39 @@ sub order_by_embl_taxonomy {
 }
 
 
+# insert a column of gaps after the given column number
+sub insert_column {
+    my $self = shift;
+    my $col  = shift;
+
+    if( $col > $self->length() ) {
+	die "can't insert_column [$col] greater than aln length [".$self->length()."]\n";
+    }
+
+    foreach my $seq ( $self -> each_seq() ) {
+	my @seq = split( //, $seq->seq() );
+	splice( @seq, $col, 0, '.' );
+	$seq->seq( join( '', @seq ) );
+    }
+
+    if( $self->match_states() ) {
+	my @ary = split( //, $self->match_states() );
+	splice( @ary, $col, 0, '.' );
+	$self->match_states( join( '', @ary ) );
+    }
+
+    if( my $ss = $self->ss_cons() ) {
+	my @ary = split( //, $ss->getInfernalString() );
+	splice( @ary, $col, 0, '.' );
+	my $newss = Rfam::SS -> new();
+	$newss->parseInfernalString( join( '', @ary ) );
+	$self->ss_cons( $newss );
+    }
+
+    return $self;
+}
+
+
 sub trimmed_alignment {
     my ($self, $start, $end) = @_;
 
