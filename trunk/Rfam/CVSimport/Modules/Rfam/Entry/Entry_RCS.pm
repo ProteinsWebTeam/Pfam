@@ -39,8 +39,6 @@ sub new {
 
 
 
-
-
 =head2 add_build_line
 
  Title   : add_build_line
@@ -241,42 +239,6 @@ sub auto_pfamA{
 }
 
 
-=head2 nested_domains
- Usage   : $count = $self->nested_domains(@_);
- Function:
- Example : 
- Returns : The Pfam ids that this entry isallowed to overlap with
- Args    :
-=cut
-
-
-sub nested_domains {
-	
-  my ($self, @domains) = @_;
-
-  if (defined @domains){
- 
-    foreach (@domains) {
-      push(@{$self->{'nested_domains'}},$_);
-      
-    }
-    
-  } else {
-    $self->_before_annotation_hook('nested_domains');
-  }
-
-
-  ## This is a total hack, but kept crashing. Will fix at a later stage. (Mhairi)
-  if (defined $self->{'nested_domains'}) {
-     return @{$self->{'nested_domains'}};
-   
-  } else {
-     return ();
-  }
-
-  
-}
-
 =head2 alignmethod
 
  Title   : alignmethod
@@ -367,7 +329,7 @@ sub _load_in_full {
     my($score, $temp_score, $start_end, $mode, $seq);
     if($_ =~ /(\S+)\s+(\S+)\s+(\S+)/) {      
       $temp_score = $1;
-      if ($temp_score == "\W0\.0") {
+      if ($temp_score =~ /^\W+0\.0$/) {
 	if ( ($temp_score =~ /^\-/) ||($temp_score =~ /^\+/) ) {
 		  
 	  $score =  substr($temp_score, 1);
