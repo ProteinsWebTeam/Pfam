@@ -100,6 +100,11 @@ while(<S>) {
     }
 }   
 
+if( -e "CMSEARCH_JOBS_COMPLETE" ) {
+    unlink( "CMSEARCH_JOBS_COMPLETE" ) or die "can't remove file [CMSEARCH_JOBS_COMPLETE]\n";
+}
+
+
 # defaults
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
 my $blastdbdir2 = "/data/blastdb/Rfam/Large";  # but run things from here
@@ -138,19 +143,22 @@ unless( $blast ) {
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	my $fh = new IO::File;
-	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
+	$fh -> open("| bsub -q $bqueue -J\"rf$$\"") or die "$!";
 	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
-	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l $fafile > /tmp/$$.blastlist.$i\n");
+	$fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
+	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l /tmp/$fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
-	$fh -> print("rm -f /tmp/$$.blastlist.$i\n");
+	$fh -> print("rm -f /tmp/$$.blastlist.$i /tmp/$fafile\n");
 	$fh -> close;
     }
 
     print STDERR "Waiting for blast jobs ...\n";
     my $fh = new IO::File;
     $fh -> open("| bsub -I -q pfam_fast -w\'done(rf$$)\'") or die "$!";
-    $fh -> print("echo \"blast jobs finished at:\" > $$.berr\n");
-    $fh -> print("date >> $$.berr\n");
+    $fh -> print("echo \"blast jobs finished at:\" > /tmp/$$.berr\n");
+    $fh -> print("date >> /tmp/$$.berr\n");
+    $fh -> print("lsrcp /tmp/$$.berr $phost:$pwd/$$.berr\n");
+    $fh -> print("rm -f /tmp/$$.berr\n");
     $fh -> close;
 }
 
@@ -278,15 +286,26 @@ my $options = "";
 $options .= "--local " if( $local );
 $options .= "-W $window";
 
-$name = "" if( not $name );
+$name = "cm$$" if( not $name );
 print STDERR "Queueing cmsearch jobs ...\n";
 my $fh = IO::File->new();
 $fh -> open( "| bsub -q $queue -o $$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 $fh -> print( "lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "lsrcp $phost:$pwd/CM /tmp/$$.CM\n" );
+$fh -> print( "$command $options /tmp/$$.CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "rm -f /tmp/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "rm -f /tmp/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} /tmp/$$.CM\n" );
+$fh -> close;
+
+
+# send something to clean up
+$fh = new IO::File;
+$fh -> open("| bsub -q pfam_fast -w\'done($name)\'") or die "$!";
+$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
+$fh -> print("date >> /tmp/$$.cmerr\n");
+$fh -> print("lsrcp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n");
+$fh -> print("rm -f /tmp/$$.cmerr\n");
 $fh -> close;
 
 &update_desc( $options ) unless( !-e "DESC" );
@@ -324,12 +343,12 @@ sub parse_list {
 	    }
 
 	    if( $already ) {
-		print "SKIP\n";
+#		print "SKIP\n";
 	    }
 	    else {
 		push( @{ $list->{$name} }, { 'start' => $start,
 					     'end'   => $end } );
-		print "KEEP\n";
+#		print "KEEP\n";
 	    }
 	}
     }
