@@ -695,15 +695,19 @@ EOF
 
 sub write_coloured_ps {
     my $self  = shift;
-    my $out   = shift;
-    my $font  = shift;
-    my $lines = shift;
-    $font = 10 if( not defined $font );
-    $lines = 70/$font * 10 if( not $lines );
+    my %params = @_;
+
+    my $out = $params{'-fh'};
+    my $fontsize = $params{'-fontsize'};
+    my $lines = $params{'-lines'};
+    my $fitpage = $params{'-fitpage'};
+
+    $fontsize = 10 if( not defined $fontsize );
+    $lines = 70/$fontsize * 10 if( not $lines );
     my $maxn = $self->maxdisplayname_length() + 2;
 
-    my $block = int( 80/$font * 10 - $maxn );
-    my $offset = $font/4;
+    my $block = int( 80/$fontsize * 10 - $maxn );
+    my $offset = $fontsize/4;
     my $iter = $self->length/$block;
     my $numseqs = $self->no_sequences;
 
@@ -731,7 +735,7 @@ sub write_coloured_ps {
     moveto
     0 -$offset rmoveto
     dup 0 rlineto
-    0 $font rlineto
+    0 $fontsize rlineto
     neg 0 rlineto
     closepath
     bgcolor aload pop setrgbcolor
@@ -754,14 +758,14 @@ sub write_coloured_ps {
 } bind def
 
 /N {
-  /y0 y0 $font sub def
+  /y0 y0 $fontsize sub def
   x0 y0 moveto 
 } bind def
 
 %%Page: 1 1
 /bgcolor [ 1 1 1 ] def
 /Courier-New findfont
-$font scalefont
+$fontsize scalefont
 setfont
 newpath
 /y0 780 def
@@ -796,9 +800,10 @@ EOF
 	
     my $l = 0; # number of lines on the page
 
-    for( my $i=0; $i < $iter; $i++ ) {
-	if( ($i+1)*$numseqs > $lines*$page ) {
-#	    $l = 0;
+    for( my $i=0; $i < $iter; $i++ ) {  # for each block
+#	print $out "<< I=$i NS=$numseqs L=$lines l=$l P=$page >>\n";
+	if( $fitpage and $l+$numseqs+2 > $lines ) {
+	    $l = 0;
 	    $page ++;
 	    print $out <<EOF;
 grestore
@@ -806,7 +811,7 @@ showpage
 \%\%Page: $page $page
 /bgcolor [ 1 1 1 ] def
 /Courier-New findfont
-$font scalefont
+$fontsize scalefont
 setfont
 newpath
 /y0 780 def
@@ -816,7 +821,25 @@ EOF
 	}
 
 	foreach my $seq ( $self->each_seq() ) {
-#	    $i++; # the line count
+	    $l++; # the line count
+	    if( !$fitpage and $l > $lines ) {
+		$l = 0;
+		$page ++;
+		print $out <<EOF;
+grestore
+showpage
+\%\%Page: $page $page
+/bgcolor [ 1 1 1 ] def
+/Courier-New findfont
+$fontsize scalefont
+setfont
+newpath
+/y0 780 def
+/x0 40 def
+x0 y0 moveto
+EOF
+	    }
+
 	    my $namestr = $self->displayname($seq->get_nse());
 	    my @seq = split( //, $seq->seq );
 	    
@@ -865,6 +888,7 @@ EOF
 		}
 	    }
 	    print $out "N\n";
+	    $l++; # the line count
 	}
 	print $out "N\n" unless( ($i+1) >= $iter );
     }
