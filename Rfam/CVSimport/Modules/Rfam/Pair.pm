@@ -19,18 +19,23 @@ use strict;
 
 
 sub new {
-    my $caller = shift;
-    my $left   = shift;
-    my $right  = shift;
+    my( $caller, $left, $right, $knot ) = @_;
     my $class  = ref( $caller ) || $caller;
-    my $self = [];
+
+    my $self = { 'LEFT'  => undef,
+	         'RIGHT' => undef };
+    bless( $self, $class );
+
     if( $right and $right >= $left ) {
-	$self = [ $left, $right ];
+	$self->left($left);
+	$self->right($right);
     }
     elsif( $right and $left > $right ) {
-	$self = [ $right, $left ];
+	$self->left($right);
+	$self->right($left);
     }
-	bless( $self, $class );
+
+    $self->knot($knot) if $knot;
 
     return $self;
 }
@@ -38,15 +43,22 @@ sub new {
 sub left {
     my $self = shift;
     my $left = shift;
-    $self->[0] = $left if( $left );
-    return $self->[0];
+    $self->{'LEFT'} = $left if( $left );
+    return $self->{'LEFT'};
 }
 
 sub right {
     my $self  = shift;
     my $right = shift;
-    $self->[1] = $right if( $right );
-    return $self->[1];
+    $self->{'RIGHT'} = $right if( $right );
+    return $self->{'RIGHT'};
+}
+
+sub knot {
+    my $self  = shift;
+    my $knot  = shift;
+    $self->{'KNOT'} = $knot if( defined $knot );
+    return $self->{'KNOT'};
 }
 
 1;
