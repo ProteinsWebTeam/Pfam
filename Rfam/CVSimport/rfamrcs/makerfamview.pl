@@ -60,7 +60,7 @@ foreach my $file ( @Rfam::align_file_set ) {
     close REF or die;
     close ALNOUT;
 
-    unlink "$file.tmp" or diel
+    unlink "$file.tmp" or die;
 }
 
 
