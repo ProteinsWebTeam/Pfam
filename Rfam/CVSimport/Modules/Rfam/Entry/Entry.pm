@@ -3,7 +3,7 @@
 
 
 
-package Database::Entry;
+package Rfam::Entry::Entry;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 
