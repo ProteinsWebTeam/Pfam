@@ -12,7 +12,7 @@
 
 =head1 NAME
 
-Bio::Pfam::AnnotatedRegion - Object for the annotation of a specified region of a sequence
+Rfam::AnnotatedRegion - Object for the annotation of a specified region of a sequence
 
 =head1 SYNOPSIS
 
@@ -20,12 +20,12 @@ Derive from this class to create a new kind of AnnotatedRegion. The three
 core fields are -FROM, -TO, and -ANNOTATION (containing the start and end residue numbers
 and a reference to an Annotation object):
 
-    use Bio::Pfam::AnnotatedRegion;
+    use Rfam::AnnotatedRegion;
 
-    $reg = Bio::Pfam::AnnotatedRegion->new('-SEQ_ID' => $name,
-					   '-FROM' => $from,
-					   '-TO' => $to,
-					   '-ANNOTATION' => annot);
+    $reg = Rfam::AnnotatedRegion->new('-SEQ_ID' => $name,
+                                      '-FROM' => $from,
+				      '-TO' => $to,
+				      '-ANNOTATION' => annot);
 
 
 =head1 DESCRIPTION
@@ -49,7 +49,7 @@ The rest of the documentation details each of the object methods. Internal metho
 # Let the code begin...
 
 
-package Database::AnnotatedRegion;
+package Rfam::AnnotatedRegion;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 

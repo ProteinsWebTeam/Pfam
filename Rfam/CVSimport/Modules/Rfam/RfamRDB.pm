@@ -28,7 +28,7 @@ functions for update of the database.
 # Let the code begin...
     
 
-package Database::RfamRDB;
+package Rfam::RfamRDB;
 
 
 use vars qw($AUTOLOAD 
@@ -280,7 +280,7 @@ sub open_transaction{
 	   $dbh->do( $self->__lock_tables_sql( @tmp ) );    
        };
        if ($@) {
-	   $self->throw("Bio::Rfam::RfamRDB->open_connection - failed to lock tables");
+	   $self->throw("Rfam::RfamRDB->open_connection - failed to lock tables");
        }
    }
    

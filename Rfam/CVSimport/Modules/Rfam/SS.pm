@@ -17,10 +17,10 @@ Bio::Rfam::SS
 
 =cut
 
-package Bio::Rfam::SS;
+package Rfam::SS;
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
-use Bio::Rfam::Pair;
+use Rfam::Pair;
 
 ################################################
 # Use the hashmap with care -- mostly untested #
@@ -127,7 +127,7 @@ sub parseInfernalString {
 	}
 	elsif( $ss[$i-1] =~ /[\]\)\}\>]/ ) {
 	    my $j = pop @open || -1;
-	    my $pair = new Bio::Rfam::Pair( $j, $i );
+	    my $pair = new Rfam::Pair( $j, $i );
 	    $self -> addPair( $pair );
 	}
     }
