@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 
 use strict;
-use lib '/nfs/disk56/sgj/pfam/scripts/rfam/scripts/Modules';
+use lib '/pfam/db/Rfam/scripts/Modules';
 use Rfam;
 use RfamRCS;
 
