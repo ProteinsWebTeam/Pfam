@@ -14,7 +14,6 @@ use lib $bioperl_dir;
 
 use strict;
 use Rfam;
-#require '/nfs/team71/pfam/mm1/rfam_cvs/scripts/Modules/Rfam.pm';
 use Rfam::RfamAlign;
 use Getopt::Long;
 
@@ -22,27 +21,7 @@ my( $quiet,
     $nolog,
     $local_fams,
     @ignore);
-#print "HERE\n";
-#my $rdb = Rfam::switchover_rdb();
-#my @temp = qw(U40654 K03160 AB011808 AB033416   X00867    K03161);
 
-#my @blee = qw(seed full) ;
-#my @res = $rdb->get_AnnotSeqs( \@temp, \@blee );
-#print "RDB: $rdb \n";
-#foreach my $annseq (@res) {
-# # print "REGION: $region \n";
-#  foreach my $reg ($annseq->eachAnnotatedRegion()) {
-#    print "REGION: $reg \n";
-#    my $start = $reg->model_from();
-#    my $end = $reg->model_to();
-#    my $bits = $reg->bits_score();
-#    my $desc = $reg->annotation();
-#    print "START: $start , end: $end, bits: $bits, DESC: $desc \n";
-
-#  }
-
-#}
-#exit(0);
 &GetOptions("i=s@" => \@ignore,
 	    "q"    => \$quiet,
 	    "l"    => \$local_fams,
