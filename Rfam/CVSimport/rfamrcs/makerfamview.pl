@@ -52,7 +52,7 @@ foreach my $file ( @align_file_set ) {
     my $seen;
     open( REF, "sreformat --mingap stockholm $file |" ) or die;
     while( <REF> ) {
-	next if( /^\#=GF AU    CM RNA automatic alignment/ );
+	next if( /^\#=GF AU / );
 	if( /^\#=G/ and not $seen ) {
 	    print ALNOUT @ann;
 	    print ALNOUT "#=GF SQ   $numseq\n";
@@ -86,3 +86,17 @@ foreach my $file ( @align_file_set ) {
     close ALNOUT;
 }
 
+#temporary hack
+
+open( SEEDOUT, ">SEED.$$" ) or die;
+open( SEED, "SEED.ann" ) or die;
+while(<SEED>) {
+    if( /SS_cons/ ) {
+	tr/\>\</\<\>/;
+    }
+    print SEEDOUT;
+}
+close SEED;
+close SEEDOUT;
+
+rename( "SEED.$$", "SEED.ann" ) or die;
