@@ -1,7 +1,14 @@
 #!/usr/local/bin/perl -w
 
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+}
+
+use lib $rfam_mod_dir;
+
 use strict;
-use lib '/pfam/db/Rfam/scripts/Modules';
 use Rfam;
 use RfamRCS;
 
@@ -13,7 +20,8 @@ if( not -d "$Rfam::releases_dir/$rel" ) {
     mkdir( "$Rfam::releases_dir/$rel", 0755 );
 }
 
-my @family_list = &Rfam::get_allaccs();
+my $db = Rfam::default_db();
+my @family_list = $db->get_allacc();
 
 print STDERR "Checking view files ....\n";
 foreach my $acc ( @family_list ) {
