@@ -55,6 +55,29 @@ sub eachPair {
 }
 
 
+sub getInfernalString {
+    my $self = shift;
+    my @ary;
+    foreach my $pair ( $self->eachPair() ) {
+	$ary[ $pair->left() -1  ] = "<";
+	$ary[ $pair->right() -1 ] = ">";
+    }
+    
+    for( my $i=0; $i<$self->length(); $i++ ) {
+	$ary[$i] = '.' if( not $ary[$i] );
+    }
+    return join( '', @ary );
+}
+
+
+sub getViennaString {
+    my $self = shift;
+    my $str = $self -> getInfernalString();
+    $str =~ s/[\<\{\[]/\(/g;
+    $str =~ s/[\>\}\]]/\)/g;
+    return $str;
+}
+
 sub getPairByCol {
     my $self = shift;
     my $col  = shift;
@@ -115,33 +138,33 @@ sub removeColumn {
     my $self = shift;
     my @cols = @_;
     
+    # first deal with any pair that involves $col
     foreach my $col ( @cols ) {
-	# take one off the length
-	$self->length( $self->length -1 );
-
-	# first deal with any pair that involves $col
 	if( $self->pairedBase( $col ) ) {
+	    my $pair = $self->getPairByCol( $col );
 	    $self->removePair( $self->getPairByCol( $col ) );
 	}
+    }
 
-	# then decrement all column numbers after $col
-	foreach my $pair ( $self->eachPair() ) {
+    # correct the length
+    $self->length( $self->length - @cols );
+
+    # then decrement all column numbers after $col
+    foreach my $pair ( $self->eachPair() ) {
+	my( $leftcount, $rightcount );
+	foreach my $col ( @cols ) {
 	    if( $pair->left() > $col ) {
-		delete $self->{'MAP'}->{$pair->left};  # deal with map
-		delete $self->{'MAP'}->{$pair->right};
-		$pair->left(  $pair->left  -1 );
-		$pair->right( $pair->right -1 );
-		$self->{'MAP'}->{$pair->left}  = $pair->right;
-		$self->{'MAP'}->{$pair->right} = $pair->left;
+		$leftcount ++;
 	    }
-	    elsif( $pair->right() > $col ) {
-		delete $self->{'MAP'}->{$pair->right}; # deal with map
-		$pair->right( $pair->right -1 );
-		$self->{'MAP'}->{$pair->left}  = $pair->right;
-		$self->{'MAP'}->{$pair->right} = $pair->left;	    
+	    if( $pair->right() > $col ) {
+		$rightcount ++;
 	    }
 	}
+	$pair->left(  $pair->left  - $leftcount )  if( $leftcount );
+	$pair->right( $pair->right - $rightcount ) if( $rightcount );
     }
+
+    $self -> _rebuild_map();
 }
 
 
@@ -167,18 +190,15 @@ sub removePair {
 }
 
 
-sub writeInfernalString {
+
+sub _rebuild_map {
     my $self = shift;
-    my @ary;
-    foreach my $pair ( $self->eachPair() ) {
-	$ary[ $pair->left() -1  ] = "<";
-	$ary[ $pair->right() -1 ] = ">";
+    $self -> {'MAP'} = {};
+    foreach my $pair ( $self -> eachPair() ) {
+	$self -> {'MAP'} -> {$pair->left}  = $pair->right;
+	$self -> {'MAP'} -> {$pair->right} = $pair->left;
     }
-    
-    for( my $i=0; $i<$self->length(); $i++ ) {
-	$ary[$i] = '.' if( not $ary[$i] );
-    }
-    return join( '', @ary );
 }
+
 
 1;

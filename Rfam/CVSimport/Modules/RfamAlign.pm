@@ -32,6 +32,8 @@ use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
 
 use Bio::SimpleAlign;
+use Bio::Rfam::SS;
+
 @ISA = qw( Bio::SimpleAlign );
 
 
@@ -81,32 +83,24 @@ sub allgaps_columns_removed {
     my (@columnlist, %mymap);
     my @index_list = (0..$self->length_aln-1);
 
-    my @newrf = split( //, $self -> match_states );
-    my @newss = split( //, $self -> ss_cons );
-
     foreach my $seq ($self->eachSeq) {
         my @ary = split( //, $seq->seq() );
         foreach my $el (grep { $ary[$_] ne '.' and $ary[$_] ne '-' }  (@index_list)) {
             $mymap{ $el } = 1;
         }
-
-        foreach my $el (grep { $newrf[$_] ne '.' and $newrf[$_] ne '-' }  (@index_list)) {
-            $mymap{ $el } = 1;
-        }
-
-        foreach my $el (grep { $newss[$_] ne '.' and $newss[$_] ne '-' }  (@index_list)) {
-            $mymap{ $el } = 1;
-        }
     }
 
     my @sortedgappositions = sort { $b <=> $a } grep { not defined( $mymap{$_}) }  (@index_list);
+    my @sort2 = map { $_ + 1 } @sortedgappositions;    # removeColumn index starts at 1 not 0
+    $self -> ss_cons -> removeColumn( @sort2 );    
 
-    foreach my $gappos (@sortedgappositions) {
-	splice @newrf, $gappos, 1;
-	splice @newss, $gappos, 1;
+    if( $self -> match_states ) {
+	my @newrf = split( //, $self -> match_states );
+	foreach my $gappos (@sortedgappositions) {
+	    splice @newrf, $gappos, 1;
+	}
+	$self -> match_states( join( "", @newrf ) );
     }
-    $self -> match_states( join( "", @newrf ) );
-    $self -> ss_cons( join( "", @newss ) );
 
     foreach my $seq ($self->eachSeq) {
 	my @newseq = split( //, $seq->seq() );
@@ -136,15 +130,17 @@ sub trimmed_alignment {
     }
     
     my @rf = split( //, $self -> match_states );
-    my @ss = split( //, $self -> ss_cons );
 
     my @junkrf = splice( @rf, 0, $start-1 );
     my $newrf  = join( '', splice( @rf, 0, $end-$start+1 ) );
-    my @junkss = splice( @ss, 0, $start-1 );
-    my $newss  = join( '', splice( @ss, 0, $end-$start+1 ) );
-    
     $self -> match_states( $newrf );
-    $self -> ss_cons( $newss );
+
+    if( $start > 1 ) {
+	$self->ss_cons->removeColumn( 1..$start-1 );
+    }
+    if( $end < $self->length_aln() ) {
+	$self->ss_cons->removeColumn( $end+1..$self->length_aln() );
+    }
 
     foreach my $seq ($self->eachSeq()) {
         my @residues = split( //, $seq->seq() );
@@ -271,13 +267,13 @@ sub read_stockholm {
     }
 
     if( $ss_cons ) {
-	$self -> ss_cons( $ss_cons );
+	my $ss = new Bio::Rfam::SS;
+	$ss -> parseInfernalString( $ss_cons );
+	$self -> ss_cons( $ss );
     }
     if( $match_states ) {
 	$self -> match_states( $match_states );
     } 
-
-#    print "$ss_cons\n$match_states\n";
 
     return $count; 
 }
@@ -287,23 +283,20 @@ sub write_structure_ps {
     my $self = shift;
     my $out  = shift;
 
-    my $ss   = $self->ss_cons();
-    $ss =~ s/\</\(/g;
-    $ss =~ s/\>/\)/g;
+    my $newaln = new Bio::Rfam::RfamAlign;
+    my $conseq = new Bio::LocatableSeq( '-id'  => "Seq_cons",
+					'-start' => 1,
+					'-end' => $self->length_aln(),
+					'-seq' => $self->consensus() );
 
-    my @ss   = split( //, $ss );
-    my @cons = split( //, $self->consensus() );
+    $newaln -> addSeq( $conseq );
+    $newaln -> ss_cons( $self->ss_cons );
+    $newaln -> allgaps_columns_removed();
 
-    for( my $i=0; $i<@cons; $i++ ) {
-	if( $cons[$i] !~ /[ACGUTacgut]/ and $ss[$i] !~ /[\(\)]/ ) {
-	    splice( @ss, $i, 1 );
-	    splice( @cons, $i, 1 );
-	    $i--;
-	}
-    }
+    my( $seq ) = $newaln -> eachSeq();
 
     open( T, ">$$.rna" ) or die;
-    print T ">$$.rna\n", join( '', @cons ), "\n", join( '', @ss ), "\n";
+    print T ">$$.rna\n", $seq->seq(), "\n", $newaln->ss_cons->getViennaString(), "\n";
     close T;
 
     system "RNAplot < $$.rna > /dev/null" and die "can't run RNAplot";
@@ -345,6 +338,8 @@ sub write_stockholm {
     my $iter = $self->length_aln/$block;
     print $out "\# STOCKHOLM 1.0\n\n";
 
+    my $ss_str = $self->ss_cons->getInfernalString();
+	
     for( my $i=0; $i < $iter; $i++ ) {
 	foreach my $seq ( $self->eachSeq() ) {
 	    my $namestr = $self->get_displayname($seq->get_nse());
@@ -355,8 +350,8 @@ sub write_stockholm {
 	    my $submatch = substr( $self->match_states(), $i*$block, $block );
 	    print $out sprintf( "%-".$maxn."s  %s\n", "\#=GC RF", $submatch );
 	}
-	if( $self->ss_cons() ) {
-	    my $subcons  = substr( $self->ss_cons(), $i*$block, $block );
+	if( $ss_str ) {
+	    my $subcons  = substr( $ss_str, $i*$block, $block );
 	    print $out sprintf( "%-".$maxn."s  %s\n", "\#=GC SS_cons", $subcons );
 	}
 	print $out "\n" unless( ($i+1) >= $iter );
@@ -371,7 +366,7 @@ sub write_connect {
 
     die "can't read ss_cons line" if( not $self -> ss_cons() );
 
-    my @ss   = split( //, $self->ss_cons() );
+    my @ss   = split( //, $self->ss_cons->getInfernalString );
     my @cons = split( //, $self->consensus() );
 
     my( @open, %bp );
