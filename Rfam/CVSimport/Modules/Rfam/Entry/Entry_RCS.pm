@@ -400,8 +400,8 @@ sub annotated_regions {
    for ($self->name_start_end($type)) {
 	$nses{$_} = 1;
     }
-
-    $ann = Bio::Annotation->new('-DESCRIPTION' => $self->ann->description);
+   
+    #$ann = Bio::Annotation->new('-DESCRIPTION' => $self->ann->description);
     foreach my $region_names (sort keys %nses) {
   
       my ($embl_acc, $seq_start, $seq_end, $bits);
@@ -431,7 +431,6 @@ sub annotated_regions {
       }
     
     }
-
     return @list;
 }
 
