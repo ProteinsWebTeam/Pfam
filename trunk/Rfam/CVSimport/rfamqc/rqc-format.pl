@@ -31,9 +31,11 @@ if( !&check_timestamps( $family ) ) {
 if( !&desc_is_OK( $family ) ) {
     $error = 1;
 }
-   
+
+open( LOG, ">$family/format" ) or die;   
 if( $error ) {
     print STDERR "$family: Your family contains errors\n";
+    print LOG "$family: Your family contains errors\n";
     exit(1);
 }
 print STDERR "$family: No errors found\n";
