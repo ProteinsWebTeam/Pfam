@@ -3,7 +3,7 @@
 
 =head1 NAME
 
-Bio::Rfam::Pair
+Rfam::Pair
 
 =head1 SYNOPSIS
 
@@ -13,7 +13,7 @@ Bio::Rfam::Pair
 
 =cut
 
-package Bio::Rfam::Pair;
+package Rfam::Pair;
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
 

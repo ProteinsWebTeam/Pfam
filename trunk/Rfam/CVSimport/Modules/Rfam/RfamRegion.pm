@@ -61,14 +61,14 @@ The rest of the documentation details each of the object methods. Internal metho
 # Let the code begin...
 
 
-package Database::RfamRegion;
+package Rfam::RfamRegion;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 
 
-use Database::AnnotatedRegion;
+use Rfam::AnnotatedRegion;
 
-@ISA = qw(Database::AnnotatedRegion);
+@ISA = qw(Rfam::AnnotatedRegion);
 
 sub new {
   my $caller = shift;

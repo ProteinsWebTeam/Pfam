@@ -8,7 +8,7 @@
 
 =head1 NAME
 
-Bio::Rfam::RfamAlign
+Rfam::RfamAlign
 
 =head1 SYNOPSIS
 
@@ -27,12 +27,12 @@ correctly with secondary structure markup etc from stockholm format.
 
 =cut
 
-package Bio::Rfam::RfamAlign;
+package Rfam::RfamAlign;
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
 
 use Bio::SimpleAlign;
-use Bio::Rfam::SS;
+use Rfam::SS;
 
 @ISA = qw( Bio::SimpleAlign );
 
@@ -267,7 +267,7 @@ sub read_stockholm {
     }
 
     if( $ss_cons ) {
-	my $ss = new Bio::Rfam::SS;
+	my $ss = new Rfam::SS;
 	$ss -> parseInfernalString( $ss_cons );
 	$self -> ss_cons( $ss );
     }
@@ -283,7 +283,7 @@ sub write_structure_ps {
     my $self = shift;
     my $out  = shift;
 
-    my $newaln = new Bio::Rfam::RfamAlign;
+    my $newaln = new Rfam::RfamAlign;
     my $conseq = new Bio::LocatableSeq( '-id'  => "Seq_cons",
 					'-start' => 1,
 					'-end' => $self->length_aln(),
