@@ -21,7 +21,7 @@ foreach my $temp_file ( readdir(_WHOLE) ) {
   while(<_FILE>) {
    # print "$_ ";sleep 1;
     chop($_);
-    if (/\ID\s+(\S+)/){
+    if (/^ID\s+(\S+)/){
       print _EMBL "$id~$acc~$version~$desc~$os~$oc~$prev\n" if ($acc);
       $id = $acc = $desc = $os = $oc = $version = $prev = undef;
       
@@ -46,7 +46,7 @@ foreach my $temp_file ( readdir(_WHOLE) ) {
 
     }
 
-    if (/\SV\s+(\S+)/){
+    if (/^SV\s+(\S+)/){
       $version = $1;
       #print "version: $version \n";
       #if ($acc =~ /;/) {
@@ -55,18 +55,18 @@ foreach my $temp_file ( readdir(_WHOLE) ) {
     }
 
 
-    if (/\DE\s+(.*)/){
+    if (/^DE\s+(.*)/){
       $desc .= " " . $1;
       #print "description: $desc \n";
     }
     
-    if (/\OS\s+(.*)/){
+    if (/^OS\s+(.*)/){
       $os .=  $1;
      # print "species: $os \n";
     }
 
 
-    if (/\OC\s+(.*)/){
+    if (/^OC\s+(.*)/){
       $oc .= $1;
      # print "tax: $oc \n";
     }
