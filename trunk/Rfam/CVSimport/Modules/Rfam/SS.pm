@@ -190,6 +190,35 @@ sub removePair {
 }
 
 
+sub column_colourmap {
+    my $self = shift;
+
+    my $colour = 1;
+    my $lastopen  = 0;
+    my $lastclose = 999999999999999;
+    my $nest = 0;
+    my %colmap;
+
+    foreach my $pair ( sort { $a->[1] <=> $b->[1] } $self->eachPair() ) {
+	if( $pair->left > $lastclose ) {
+	    $colour++;
+	    $nest = $lastopen;
+	}
+	if( $pair->left < $nest ) {
+	    $colour++;
+	    $nest = 0;
+	}
+
+	$colmap{ $pair->left }  = $colour;
+	$colmap{ $pair->right } = $colour;
+
+	$lastopen  = $pair->left();
+	$lastclose = $pair->right();
+    }
+
+    return \%colmap;
+}
+
 
 sub _rebuild_map {
     my $self = shift;
