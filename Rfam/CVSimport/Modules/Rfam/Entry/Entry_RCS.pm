@@ -516,7 +516,7 @@ sub full{
    $dir = $self->_directory();
    $id  = $self->id();
 
-   open(_ALIGN,"$dir/ALIGN") || $self->throw("For entry object [$id], got no valid directory for ALIGN alignment [$dir/FULL] $!");
+   open(_ALIGN,"$dir/ALIGN") || die("For entry object [$id], got no valid directory for ALIGN alignment [$dir/FULL] $!");
    
    $out = Rfam::RfamAlign->new();
    $out->read_stockholm(\*_ALIGN);
@@ -680,10 +680,10 @@ sub name_start_end {
    SWITCH : { 
      $type =~ /FULL/i && do { $file = 'scores'; last; };
      $type =~ /SEED/i && do { $file = 'SEED'; last; };
-     $self->throw("This type [$type] is neither full nor seed. Can't process");
+     die("This type [$type] is neither full nor seed. Can't process");
    }
  
-   open(_ALIGN,"$dir/$file") || $self->throw("For entry object [$id], got no valid directory for alignment [$dir/$file] $!");
+   open(_ALIGN,"$dir/$file") || die("For entry object [$id], got no valid directory for alignment [$dir/$file] $!");
    my (%distinct);
    while(<_ALIGN>) {
      if ($_ =~ /^(\S+\/\d+\-\d+)\s+/) {
@@ -695,7 +695,7 @@ sub name_start_end {
      
    }
 
-   close(_ALIGN) || $self->throw("Could not close alignment file handle");
+   close(_ALIGN) || die("Could not close alignment file handle");
 
    @list = keys %distinct;
 
@@ -823,7 +823,7 @@ sub seed{
    $dir = $self->_directory();
    $id  = $self->id();
 
-   open(_SEED,"$dir/SEED") || $self->throw("For entry object [$id], got no valid directory for SEED alignment [$dir/SEED] $!");
+   open(_SEED,"$dir/SEED") || die("For entry object [$id], got no valid directory for SEED alignment [$dir/SEED] $!");
    
    $out = Rfam::RfamAlign->new();
    $out->read_stockholm(\*_SEED);
@@ -1076,7 +1076,7 @@ sub _load_annotation {
    $self->ann(Bio::Annotation->new('-description'  => 'some description'));
 
    $self->_read_std_desc(\*_SOURCE,$self->{'_rcs_ann'});
-   close(_SOURCE) || $self->throw("Could not close [$id] DESC in reading annotation");
+   close(_SOURCE) || die("Could not close [$id] DESC in reading annotation");
    
    $self->_loaded(1);
 
