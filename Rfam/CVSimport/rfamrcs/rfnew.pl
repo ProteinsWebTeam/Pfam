@@ -15,6 +15,7 @@ use lib $rfam_mod_dir;
 
 use strict;
 use Rfam;
+use RfamQC;
 use RfamRCS;
 use Getopt::Long;
 use UpdateRDB;
