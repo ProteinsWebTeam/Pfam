@@ -4,7 +4,8 @@ use strict;
 use Getopt::Long;
 use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Index::Fasta;
-use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
+#use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
+use lib '/nfs/disk56/sgj/pfam/scripts/Modules';
 use CMResults;
 
 my( $thr, 
@@ -97,6 +98,7 @@ elsif( $overlaps ) {
     exit(0);
 }
 
+open( SC, ">scores" ) or die;
 foreach my $cmseq ( $res->eachHMMSequence() ) {
     foreach my $cmunit ( $cmseq->eachHMMUnit ) {
 	next unless $cmunit->bits >= $thr;
@@ -111,9 +113,11 @@ foreach my $cmseq ( $res->eachHMMSequence() ) {
 	$seqstr =~ tr/Tt/Uu/;                 # It's RNA dammit! (SRE)
 	$seqstr =~ s/(.{1,60})/$1\n/g;
 	print FA ">", $seq->id(), "\n$seqstr";
+	print SC $cmunit->bits, " $id/$start-$end\n";
     }
 }
 close FA;
+close SC;
 
 if( $local ) {
     system "cmalign -l -o ALIGN CM $$.fa" and die "failed to run cmalign";
