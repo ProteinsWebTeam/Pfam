@@ -294,17 +294,48 @@ sub write_structure_ps {
     $newaln -> ss_cons( $self->ss_cons );
     $newaln -> allgaps_columns_removed();
 
-    my %colours = ( 1 => "1 0 0",
-		    2 => "0.5 0.5 0",
-		    3 => "0.5 0.5 1",
-		    4 => "0 0.5 0.5",
-		    5 => "1 0.5 0.5",
-		    6 => "0 1 0",
-		    7 => "0 0 1",
-		    8 => "0.5 0.5 0",
-		    9 => "0.5 0.5 1",
-		    10 => "0 0.5 0.5",
-		    11 => "1 0.5 0.5" );
+    # get the colours from Mhairi's webpage things
+    my( %colours, $count );
+    my $cssfile = "/nfs/WWW/htdocs/Software/Rfam/rfam_align.css";
+    if( -s $cssfile ) {
+	open( C, $cssfile ) or die;
+	while(<C>) {
+	    if( /\#\S+\s+\{\s*background-color\:\s*\#(\S{2})(\S{2})(\S{2})\;\s*\}/ ) {
+		$count++;
+		my $r = sprintf("%.2f", hex($1)/256);
+		my $g = sprintf("%.2f", hex($2)/256);
+		my $b = sprintf("%.2f", hex($3)/256);
+		$colours{$count} = "$r $g $b";
+#		print STDERR "$count $r $g $b\n";
+	    }
+	}
+	close C;
+    }
+    # or fall back on some defaults
+    if( not exists $colours{1} ) {
+	%colours = ( 1 => "1.00 0.60 0.60",
+		     2 => "0.60 0.60 1.00",
+		     3 => "0.60 1.00 0.60",
+		     4 => "1.00 0.60 0.00",
+		     5 => "0.60 1.00 1.00",
+		     6 => "0.59 0.75 0.75",
+		     7 => "1.00 1.00 0.60",
+		     8 => "1.00 0.20 1.00",
+		     9 => "0.20 1.00 1.00",
+		     10 => "1.00 1.00 0.20",
+		     11 => "0.18 0.84 0.05",
+		     12 => "0.95 0.74 0.97",
+		     13 => "1.00 0.60 0.00",
+		     14 => "0.72 0.31 0.20",
+		     15 => "1.00 0.00 0.00",
+		     16 => "1.00 0.80 0.60",
+		     17 => "0.80 0.80 0.80",
+		     18 => "0.80 0.20 0.40",
+		     19 => "0.80 1.00 0.40",
+		     20 => "1.00 0.80 0.40",
+		     21 => "0.49 0.39 0.18",
+		     );
+    }
 
     my( $seq ) = $newaln -> eachSeq();
 
@@ -355,9 +386,9 @@ EOF
 	    my( $first, $last );
 	    for( my $i=1; $i-1<=$newaln->ss_cons->length; $i++ ) {
 		if( exists $colmap{$i} ) {
-                    print STDERR "$i $colmap{$i}\n";
+                    # print STDERR "$i $colmap{$i}\n";
                     if( !exists $colmap{$i-1} or $colmap{$i} != $colmap{$i-1} ) {
-			print "\[$first $last $colours{$colmap{$first}}\]\n" if $first;
+			print $out "\[$first $last $colours{$colmap{$first}}\]\n" if $first;
 			$first = $last = $i;
 		    }
                     else {
@@ -365,7 +396,7 @@ EOF
 		    }
                 }
 	        else {
-		    print "\[$first $last $colours{$colmap{$first}}\]\n" if $first;
+		    print $out "\[$first $last $colours{$colmap{$first}}\]\n" if $first;
                     undef $first;
                 }
             }  
