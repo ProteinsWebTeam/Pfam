@@ -31,6 +31,10 @@ if( $#ARGV == -1 ) {
 }
 
 foreach my $acc (@ARGV) {
+    if( not $db->is_acc( $acc ) ) {
+	print "NEW FAMILY\n";
+	next;
+    }
     my $entry = $db->get_Entry_by_acc($acc);
     my ($ali,$nse,$start,$end,$extra);
     my (%current_names,%edited_names,%edited_seed_names);
