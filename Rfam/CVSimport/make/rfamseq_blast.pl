@@ -65,7 +65,7 @@ else {
 foreach my $db ( glob( "$rfamseq_current_dir/$glob" ) ) {
     print STDERR "searching $db\n";
     if( $minidb ) {
-	system "blastall -p blastn -i $fafile -e $evalue -F F -W 7 -d $db >> $$.blast" and die;
+	system "blastall -p blastn -i $fafile -e $evalue -F F -W 7 -d $db > $$.blast" and die;
 	my %seqlist = %{ &parse_blast( "$$.blast" ) };
 	foreach my $seqid ( keys %seqlist ) {
 	    foreach my $reg ( @{ $seqlist{ $seqid } } ) {
@@ -100,6 +100,7 @@ sub parse_blast {
                 $start = $start - $length;
                 $end   = $end   + $length;
                 $start = 1 if( $start < 1 );
+
                 # avoid having multiple copies of one region in minidb
                 my $already;
                 if( exists $list{ $name } ) {
