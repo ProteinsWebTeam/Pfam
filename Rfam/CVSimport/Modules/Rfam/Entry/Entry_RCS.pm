@@ -12,7 +12,7 @@ use strict;
 
 use Rfam::Entry::Entry;
 use Rfam::RfamRegion;
-use Bio::Annotation;
+use Bio::Annotation::Collection;
 use Bio::Annotation::DBLink;
 
 @ISA = qw(Rfam::Entry::Entry);

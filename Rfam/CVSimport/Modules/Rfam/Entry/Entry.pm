@@ -7,7 +7,7 @@ package Rfam::Entry::Entry;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 
-use Bio::Annotation;
+use Bio::Annotation::Collection;
 use Bio::Annotation::Comment;
 use Bio::Annotation::DBLink;
 use Bio::Annotation::Reference;
