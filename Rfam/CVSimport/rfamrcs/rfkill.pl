@@ -125,8 +125,6 @@ if( system("mv $Rfam::rcs_master_dir/$acc $Rfam::rcs_attic_dir/$acc") != 0 ) {
     die("rfkill: could not move $acc from RCS_MASTER to RCS_ATTIC! This is bad - tell someone!\n");
 }
 
-$db->_unlock();
-
 open(DEAD,">$Rfam::rcs_attic_dir/$acc/DEAD") || die "Could not open DEAD file $!\n";
 print DEAD "AC   $acc\n";
 print DEAD "KL   This family has been killed\n";
