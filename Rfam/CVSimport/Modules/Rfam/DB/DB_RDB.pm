@@ -54,30 +54,42 @@ This module has a slightly unusual method-naming convention:
 
 package Rfam::DB::DB_RDB;
 
-use vars qw($AUTOLOAD @ISA);
+use vars qw(@ISA);
 use strict;
 use DBI;
 use FileHandle;
 
 use Rfam::RfamRDB;
-
+use Rfam::AnnotatedSequence;
 
 @ISA = qw(Rfam::DB::DB);
 
 # _initialize is where the heavy stuff will happen when new is called
 
-sub _initialize {
-  my($self, %params) = @_;
+sub new {
+   my $caller = shift;
+   my $self = bless {}, ref($caller) || $caller;
 
-  my $make = $self->SUPER::_initialize(%params);
- 
-  # ok - ready to rock
+ #  print "BOO <P>";
+   my %params = @_;
+   my $make = $self->SUPER::new(%params);
 
-  $self->_the_RDB( Rfam::DB::RfamRDB->new( %params ));
-
-  # set stuff in self from @args
-  return $make; # success - we hope!
+   $make->_the_RDB( Rfam::DB::RfamRDB->new( %params ));
+return $make; # success - we hope!
 }
+
+#sub _initialize {
+#  my($self, %params) = @_;
+
+#  my $make = $self->SUPER::_initialize(%params);
+ 
+#  # ok - ready to rock
+
+#  $self->_the_RDB( Rfam::DB::RfamRDB->new( %params ));
+
+#  # set stuff in self from @args
+#  return $make; # success - we hope!
+#}
 
 
 
@@ -138,12 +150,142 @@ sub query{
 
 
 
+sub get_AnnotSeqs {
+  my ($self, $id_list, $type_list) = @_;
+  
+  my ($dbh, $st_pfamA_reg_seed, $st_pfamA_reg_full,  $st_pfamB_reg, $st_other_reg,$st_hmm_other_region,$st_context_region, $st_length, $length,       $seq_id, $st, $en, $score, $mo_st, $mo_en, $bits, $ev, $acc, $id, $desc, $orien,       $annot, $sou, $all_regs, $mod_len, $tree_order,      @annseqlist,$domain_score,	  %temp);
+  
+  #  my $fac = Rfam::AnnotatedSequence->new();
+  eval {
+    $dbh = $self->_the_RDB->connect();
+  };
+  
+  if (not $type_list) {
+    $all_regs = "true";	 
+  }   else {
+    foreach my $info_type (@{$type_list}) {
+      if ($info_type =~ /seed/i) {
+	$temp{ "seed" } = 1;
+      }       elsif ($info_type =~ /full/i) {
+	$temp{ "full" } = 1;
+      }
+    }
+    
+  }
+  
+  if ($temp{"full"} or $all_regs) {
+    
+    #	   my $stat = "select seq_start, seq_end, model_start, model_end, ";
+    #	   $stat .= "bits_score, evalue_score, pfamA_reg_full.pfamA_acc, pfamA_id, description ";
+    #	   $stat .= "from pfamA_reg_full natural left join pfamA  where pfamseq_id = ?";
+    
+#    my $stat = "select seq_start, seq_end, model_start, model_end, ";
+#    $stat .= "domain_bits_score, domain_evalue_score, pfamA.pfamA_acc, pfamA_id, pfamA.description , pfamA_reg_full.tree_order ";
+#    $stat .= "from pfamseq, pfamA, pfamA_reg_full ";
+#    $stat .= "where pfamseq.pfamseq_id =  ? and pfamseq.auto_pfamseq = pfamA_reg_full.auto_pfamseq and pfamA_reg_full.auto_pfamA = pfamA.auto_pfamA  and in_full = '1'";
+
+    my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  bits_score from rfam_reg_full , rfamseq, rfam";
+    $stat .= " where rfam_acc = ? and rfam.auto_rfam = rfam_reg_full.auto_rfam ";
+    $stat .= "and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
+    
+    ##and significant = '1'  #### BUG FIX !! 
+    
+    
+    $st_pfamA_reg_full = $dbh->prepare($stat);
+    
+  }
+  
+  if ($temp{"seed"}) {
+    #	   my $stat = "select seq_start, seq_end, ";
+    #	   $stat .= "pfamA_reg_seed.pfamA_acc, pfamA_id, description ";
+    #	   $stat .= "from pfamA_reg_seed natural left join pfamA where pfamseq_id = ?";
+    
+#    my $stat = "select seq_start, seq_end, ";
+#    $stat .= "pfamA.pfamA_acc, pfamA_id, pfamA.description ";
+#    $stat .= "from pfamA_reg_seed, pfamA, pfamseq  where pfamseq.pfamseq_id  = ? and pfamseq.auto_pfamseq = pfamA_reg_seed.auto_pfamseq and pfamA_reg_seed.auto_pfamA = pfamA.auto_pfamA";
+    
+    my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  from rfam_reg_seed , rfamseq, rfam";
+    $stat .= " where rfamseq_acc = ? and rfam.auto_rfam = rfam_reg_seed.auto_rfam ";
+    $stat .= "and rfam_reg_seed.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
+#    print "STAT: $stat \n";
+    $st_pfamA_reg_seed = $dbh->prepare($stat);
+  }
+  
+  
+  foreach my $in_id (@{$id_list}) {
+    my $fac = Rfam::AnnotatedSequence->new();
+    #my $annSeq = $fac->createAnnotatedSequence();
+    $fac->id( $in_id );
+#    print "ID: $in_id \n";
+    if (defined $st_pfamA_reg_full) {
+      $st_pfamA_reg_full->execute($in_id);
+#      print "FULL: $st_pfamA_reg_full \n";
+      while ( my($rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end,$desc, $bits_score)
+	      = $st_pfamA_reg_full->fetchrow) {
+	
+	
+	$fac->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
+							'-RFAM_ID' => $rfam_id,
+							'-SEQ_ID' => $rfamseq_id,
+							'-MODEL_FROM' => $seq_start,
+							'-MODEL_TO' => $seq_end,
+							'-AUTO_RFAM' => $auto_rfam,
+							'-BITS' => $bits_score,
+							
+							'-ANNOTATION' => $desc
+						       ));
+      }
+      
+      
+      $st_pfamA_reg_full->finish;
+    }
+    
+    if (defined $st_pfamA_reg_seed) {
+      eval {
+	$st_pfamA_reg_seed->execute($in_id);
+   #   print "SEED: $st_pfamA_reg_seed \n";
+      while ( my($rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end,$desc)
+	      = $st_pfamA_reg_seed->fetchrow) {
+#	print "$rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end,$desc\n";
+	$fac->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
+							'-RFAM_ID' => $rfam_id,
+							'-SEQ_ID' => $rfamseq_id,
+							'-MODEL_FROM' => $seq_start,
+							'-MODEL_TO' => $seq_end,
+							'-AUTO_RFAM' => $auto_rfam,
+							
+							'-ANNOTATION' => $desc
+						       ));
+
+
+
+      }
+      $st_pfamA_reg_seed->finish;
+    };
+      if ($@) {
+#	print "BOMB \n";
+      }
+    }
+ #   print "FAC: $fac \n";
+    push @annseqlist, $fac;
+  }
+  
+  $self->_the_RDB->disconnect;
+#}
+
+  return @annseqlist;
+#}#
+  
+}
+
+
+
 
 
 =head2 _the_RDB
 
- Title   : _the_RDB
- Usage   : $rdb = $self->_the_RDB();
+Title   : _the_RDB
+  Usage   : $rdb = $self->_the_RDB();
  Function:
     Gets/sets the underlying database object for this query layer
  Returns : A object that provides basic connection facilities to the RDB
