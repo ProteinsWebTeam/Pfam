@@ -1,23 +1,9 @@
 #!/usr/local/bin/perl -w
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-
-}
-
-use lib $bioperl_dir;
-use lib $rfam_mod_dir;
-
 use strict;
 use Getopt::Long;
 use Rfam;
-use Bio::Index::Fasta;
-use Bio::Tools::BPlite;
+use Bio::SeqFetcher::xdget;
 use Bio::SeqIO;
 use Bio::Tools::Run::StandAloneBlast;
 use Bio::SearchIO;
@@ -55,7 +41,7 @@ exit(1);
 }
 
 my $blastdbdir = $Rfam::rfamseq_current_dir;
-my $inxfile    = $Rfam::rfamseq_current_inx;
+my $inxfile    = $Rfam::rfamseq;
 
 my $in = Bio::SeqIO -> new( '-file' => $fafile, '-format' => 'Fasta' );
 
@@ -83,15 +69,17 @@ if( $multiplex ) {
     $evalue = $evalue * $bigseq->length() / $avlength;
 }
 
-my $seqinx;
-eval {
-    $seqinx = Bio::Index::Fasta->new( '-filename'    => $inxfile,
-				      '-dbm_package' => 'DB_File' );
-};
+#my $seqinx;
+#eval {
+#    $seqinx = Bio::Index::Fasta->new( '-filename'    => $inxfile,
+#				      '-dbm_package' => 'DB_File' );
+#};
 #if( not $seqinx or $@ ) {
 #    warn "failed to get sequence index object\n$@";
 #}
-END { undef $seqinx; }   # stop bizarre seg faults
+#END { undef $seqinx; }   # stop bizarre seg faults
+
+my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 
 unless( @blastdb ) {
     my $glob;
@@ -200,7 +188,7 @@ sub get_seq {
 
     my $seq = new Bio::Seq;
     eval {
-        $seq = $seqinx -> fetch( $id );
+        $seq = $seqinx -> get_Seq_by_acc( $id );
     };
     if( not $seq or $@ ) {
         warn "$id not found in your seq db\n$@";
