@@ -137,6 +137,7 @@ elsif( $overlaps ) {
     exit(0);
 }
 
+my $atleastonehit;
 open( FA, ">$$.fa" ) or die;
 open( SC, ">scores" ) or die;
 foreach my $cmseq ( $res->eachHMMSequence() ) {
@@ -154,10 +155,16 @@ foreach my $cmseq ( $res->eachHMMSequence() ) {
 	$seqstr =~ s/(.{1,60})/$1\n/g;
 	print FA ">", $seq->id(), "\n$seqstr";
 	print SC $cmunit->bits, " $id/$start-$end\n";
+	$atleastonehit = 1;
     }
 }
 close FA;
 close SC;
+
+if( !$atleastonehit ) {
+    warn "no hits\n";
+    exit(0);
+}
 
 if( $local ) {
     system "cmalign -l -o ALIGN CM $$.fa" and die "failed to run cmalign";
