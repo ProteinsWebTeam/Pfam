@@ -76,7 +76,7 @@ sub match_states {
 # SimpleAlign docs suggest this is implemented therein but it aint!
 # Nicked from Pfam::AlignPfam
 
-# altered to act on $self and return number of columns removed
+# altered to act on $self and return list of columns removed
 
 sub allgaps_columns_removed {
     my ($self) = @_;
@@ -112,8 +112,9 @@ sub allgaps_columns_removed {
 	$seq -> seq( join ( "", @newseq ) );
     }
 
-    return scalar( @sortedgappositions );
+    return @sortedgappositions;
 }
+
 
 
 sub trimmed_alignment {
@@ -293,6 +294,18 @@ sub write_structure_ps {
     $newaln -> ss_cons( $self->ss_cons );
     $newaln -> allgaps_columns_removed();
 
+    my %colours = ( 1 => "1 0 0",
+		    2 => "0.5 0.5 0",
+		    3 => "0.5 0.5 1",
+		    4 => "0 0.5 0.5",
+		    5 => "1 0.5 0.5",
+		    6 => "0 1 0",
+		    7 => "0 0 1",
+		    8 => "0.5 0.5 0",
+		    9 => "0.5 0.5 1",
+		    10 => "0 0.5 0.5",
+		    11 => "1 0.5 0.5" );
+
     my( $seq ) = $newaln -> eachSeq();
 
     open( T, ">$$.rna" ) or die;
@@ -302,6 +315,64 @@ sub write_structure_ps {
     system "RNAplot < $$.rna > /dev/null" and die "can't run RNAplot";
     open( PS, "$$.rna_ss.ps" ) or die;
     while(<PS>) {
+	if( /^\/drawpairs\s+true/ ) {
+	    print $out $_;
+	    print $out "/drawcolours true def  % Alex's hack to add structure colouring\n";
+	    next;
+	}
+	if( /% draw the outline/ ) {
+	    print $out <<EOF;
+
+% Draw structure colours - Alex hacking around
+drawcolours {
+  12 setlinewidth
+  
+  colourranges { coor exch aload pop
+  setrgbcolor    % stack: [coor] start end
+  % delete one from start and end to get array index
+  1 sub exch 1 sub exch
+  2 copy pop     % stack: [coor] start end start
+  sub 1 add      % stack: [coor] start range
+  getinterval    % stack: [coor slice]
+  dup            % stack: [coor slice] [coor slice]
+  newpath
+  0 get aload pop 0 0 360 arc
+  {aload pop lineto} forall
+  stroke
+  } forall
+
+  0.8 setlinewidth
+} if
+
+EOF
+            print $out $_;
+            next;
+        }
+        if( /^\/pairs \[/ ) {
+	    print $out "\/colourranges \[\n";
+
+	    my %colmap = %{ $newaln->ss_cons->column_colourmap };
+	    my( $first, $last );
+	    for( my $i=1; $i-1<=$newaln->ss_cons->length; $i++ ) {
+		if( exists $colmap{$i} ) {
+                    print STDERR "$i $colmap{$i}\n";
+                    if( !exists $colmap{$i-1} or $colmap{$i} != $colmap{$i-1} ) {
+			$first = $last = $i;
+		    }
+                    else {
+		        $last++;
+		    }
+                }
+	        else {
+		    print "\[$first $last $colours{$colmap{$first}}\]\n" if $first;
+                    undef $first;
+                }
+            }  
+
+            print $out "\] def\n";
+	    print $out $_;
+	    next;
+	}
 	if( /^drawbases/ ) {
 	    print $out $_;
 	    print $out "  0 setgray\n";
