@@ -73,8 +73,10 @@ my $rdb_driver = "mysql";
 my $rdb_user = "rfam";
 my $rdb_pass = "mafp1";
 
-my $rdb_name = "rfam";
+my $external_rdb_name = "rfam";
 my $switchover_rdb_name = "rfam2";
+my $live_rdb_name = "rfamlive";
+my $temp_rdb_name = "rfam_temp"; ## to be deleted!!
 
 sub default_db{
     return Rfam::DB::DB_RCS->new( '-current'   => $current_dir,
@@ -85,10 +87,10 @@ sub default_db{
 } 
 
 
-sub rdb {
+sub external_rdb {
    my ($self) = @_;
 
-   return Rfam::DB::DB_RDB->new('-db_name' => $rdb_name,
+   return Rfam::DB::DB_RDB->new('-db_name' => $external_rdb_name,
 				'-db_driver' => $rdb_driver, 
 				'-db_host' => $rdb_host,
 				'-db_user' => $rdb_user,
@@ -109,9 +111,29 @@ sub switchover_rdb {
 
 }
 
+sub live_rdb {
+   my ($self) = @_;
 
+   return Rfam::DB::DB_RDB->new('-db_name' => $live_rdb_name,
+				'-db_driver' => $rdb_driver, 
+				'-db_host' => $rdb_host,
+				'-db_user' => $rdb_user,
+				'-db_password' => $rdb_pass);
 
-sub rdb_update{
+}
+
+sub temp_rdb {
+   my ($self) = @_;
+
+   return Rfam::DB::DB_RDB->new('-db_name' => $temp_rdb_name,
+				'-db_driver' => $rdb_driver, 
+				'-db_host' => $rdb_host,
+				'-db_user' => $rdb_user,
+				'-db_password' => $rdb_pass);
+
+}
+
+sub external_rdb_update{
     my ($self) = @_;
 
     my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
@@ -128,7 +150,7 @@ sub rdb_update{
        }
     }
     else { 
-	return UpdateRDB->new('-db_name' => $rdb_name,
+	return UpdateRDB->new('-db_name' => $external_rdb_name,
 			      '-db_driver' => $rdb_driver, 
 			      '-db_host' => $rdb_host,
 			      '-db_user' => $rdb_user,
@@ -164,5 +186,56 @@ sub switchover_rdb_update{
 
 }
 
+sub live_rdb_update{
+    my ($self) = @_;
+
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+       }
+    }
+    else {
+	return UpdateRDB->new('-db_name' => $live_rdb_name,
+			      '-db_driver' => $rdb_driver, 
+			      '-db_host' => $rdb_host,
+			      '-db_user' => $rdb_user,
+			      '-db_password' => $rdb_pass);
+    }    
+
+}
+
+sub temp_rdb_update{
+    my ($self) = @_;
+
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+       }
+    }
+    else {
+	return UpdateRDB->new('-db_name' => $temp_rdb_name,
+			      '-db_driver' => $rdb_driver, 
+			      '-db_host' => $rdb_host,
+			      '-db_user' => $rdb_user,
+			      '-db_password' => $rdb_pass);
+    }    
+
+}
 
 1;
