@@ -169,11 +169,16 @@ sub valid_sequences {
 	my $aln = new Rfam::RfamAlign;
 	open( ALN, "$family/$alnfile" ) or die "can't open $family/$alnfile";
 	$aln -> read_stockholm( \*ALN );
+
+	if( $alnfile =~ /SEED/ and $aln->no_sequences < 2 ) {
+	    print "$family/$alnfile: SEED has < 2 members -- very bad!\n";
+	    $error = 1;
+	}
+
 	foreach my $seq ( $aln -> each_seq ) {
 	    if( $seq->id !~ /\S+\.\d+$/ ) {
 		print "$family/$alnfile: ".$seq->id." doesn't have a version\n";
 		$error = 1;
-		next;
 	    }
 	    my $rfamseq = $inx -> fetch( $seq->id );
 	    if( not $rfamseq ) {
