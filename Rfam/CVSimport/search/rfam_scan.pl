@@ -189,7 +189,7 @@ system "$blastcmd > /tmp/$$.blast" and die "failed to run blastall";
 my %results = %{ &parse_blast( "/tmp/$$.blast" ) };
 
 if( $outfile ) {
-    open( O, ">$outfile" ) or die "can't write to output file $outfile\n";
+    open( RESULTS, ">$outfile" ) or die "can't write to output file $outfile\n";
 }
 
 foreach my $acc ( keys %results ) {
@@ -251,7 +251,7 @@ foreach my $acc ( keys %results ) {
 
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachUnit() ) {
 	if( $outfile ) {
-	    print O sprintf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_mod, $unit->end_mod, $unit->bits, $id );
+	    print RESULTS sprintf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_mod, $unit->end_mod, $unit->bits, $id );
 	}
 	else {
 	    printf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_mod, $unit->end_mod, $unit->bits, $id );
