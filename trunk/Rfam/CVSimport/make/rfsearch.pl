@@ -298,13 +298,14 @@ $options .= "--local " if( $local );
 $options .= "-W $window";
 
 $name = "cm$$" if( not $name );
+system "cp CM $$.CM" and die;
 print STDERR "Queueing cmsearch jobs ...\n";
 mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
 my $fh = IO::File->new();
-$fh -> open( "| bsub -q $queue -Rlinux -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
+# preexec script copies files across and then tests for their presence
+# if this fails then the job should reschedule for another go
+$fh -> open( "| bsub -q $queue -Rlinux -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $$.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
-$fh -> print( "lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "lsrcp $phost:$pwd/CM /tmp/$$.CM\n" );
 $fh -> print( "$command $options /tmp/$$.CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "rm -f /tmp/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} /tmp/$$.CM\n" );
