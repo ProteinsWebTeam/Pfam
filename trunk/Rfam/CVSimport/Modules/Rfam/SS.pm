@@ -55,47 +55,67 @@ sub eachPair {
 }
 
 
+
 sub get_knotted {
     my $self = shift;
-    my @letters = qw( - A B C D E F G H I J );
-    my $k = 0;
 
-    foreach my $pair ( sort{ $a->right - $a->left <=> $b->right - $b->left } 
-		       #sort{ $a->left <=> $b->left }
-		       $self->eachPair() ) {
-	next if $pair->knot();    # ignore if we're already a knot
-	my $j = 0;
-	my @pairs;
-	for( my $i=$pair->left+1; $i<$pair->right; $i++ ) {
-	    # loop over all pairs with base between left and right
-	    if( my $p = $self->getPairByCol($i) ) {
-		next if $p->knot();  # ignore if we're a knot
-		$j++ if( $p->left == $i );
-		$j-- if( $p->right == $i );
-		push( @pairs, $p );  # store the pair
+    my @pair = sort{ $a->left <=> $b->left } $self->eachPair;
+    my( @knot, %count );
+
+    # consider each pair of base pairs, and fill a matrix with
+    # whether they are knotted with respect to one another
+    for( my $i=0; $i<@pair; $i++ ) {
+	for( my $j=$i+1; $j<@pair; $j++ ) {
+	    if( $pair[$j]->left < $pair[$i]->right and $pair[$j]->right > $pair[$i]->right ) {
+		# this pair of pairs are knotted
+		$knot[$i][$j] = 1;
+		# also keep a count of the number of knots involved for
+		# each base pair
+		$count{$i} ++;
+		$count{$j} ++;
+	    }
+	    else {
+		# this pair of pairs are nested (or completely seperate)
+		$knot[$i][$j] = 0;
 	    }
 	}
+    }
+    
+    foreach my $c ( sort{ $count{$b}<=>$count{$a} } keys %count ) {
+	next unless( $count{$c} );
 
-	$k++ if( $j != 0 );
+	$pair[$c]->knot(1);   # set this pair as a knot
 
-	while( $j != 0 ) {      # something is pseudoknotted
-	    foreach my $p ( @pairs ) {
-		if( $j>0 ) {    # we have too many opens
-		    # if pair closes here then removing it won't help
-		    next if( $p->right > $pair->left and
-			     $p->right < $pair->right );
-		    $j --;
-		}
-		else {          # we have too many closes
-		    # if pair opens here then removing it won't help
-		    next if( $p->left > $pair->left and
-			     $p->left < $pair->right );
-		    $j ++;
-		}
-
-		$p->knot( $letters[$k] );   # clasify this pair as a knot
-	    }
+ 	for( my $i=0; $i<@pair; $i++ ) {
+	    $count{$i}-- if( $knot[$c][$i] );    # remove column $c from the counts so
+	    $count{$i}-- if( $knot[$i][$c] );    # decrement any count involving $c
 	}
+    }
+
+    # now go back and assign the pseudoknot helix number
+    my $k=0;
+    my @letter = qw( - A B C D E F G H I );
+    
+    for( my $i=0; $i<@pair; $i++ ) {
+	next unless( $pair[$i]->knot() );
+
+	# 012 34 56 210 43 56
+	# <<<.AA.BB.>>>.aa.bb matrix looks like
+	# 
+	#   0 1 2 3 4 5
+	# 0 - 0 0 1 1 1
+	# 1   - 0 1 1 1
+	# 2     - 1 1 1
+	# 3       - 0 1
+	# 4         - 1
+	# 5           -
+	#
+	# where 0's reach down to diagonal we have a new helix
+
+	if( $i==0 or $knot[$i-1][$i] ) {
+	    $k++;
+	}
+	$pair[$i]->knot($letter[$k]);
     }
 }
 
