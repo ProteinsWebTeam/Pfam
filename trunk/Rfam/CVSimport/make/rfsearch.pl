@@ -169,8 +169,8 @@ if( $local ) {
 $options .= " -W $window";
 
 print STDERR "Queueing cmsearch jobs ...\n";
-$fh -> open("| bsub -q $queue -o $$.err.\%I -J\"[1-$k]\" -f \"$$.minidb.\%I > /tmp/$$.minidb.\%I\" -f \"OUTPUT.\%I < /tmp/OUTPUT.\%I\"") or die "$!";
-$fh -> print("$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/OUTPUT.\$\{LSB_JOBINDEX\}\n");
+$fh -> open("| bsub -q $queue -o $$.err.\%I -J\"[1-$k]\" -f \"$$.minidb.\%I > /tmp/$$.minidb.\%I\" -f \"OUTPUT.\%I < /tmp/$$.OUTPUT.\%I\"") or die "$!";
+$fh -> print("$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n");
 $fh -> close;
 
 &update_desc( $options ) unless( !-e "DESC" );
