@@ -420,7 +420,7 @@ sub update_rfam{
 	       $stat = $dbh->prepare($self->__replace_sql('rfam', 17));
 	   }
 	  
-
+	 #  print "ADDING DATA \n";
 	   $stat->execute( $rdb_auto_num, 
 			  $rdb_acc, 
 			   $rdb_id, 
@@ -525,7 +525,7 @@ sub update_rfam_reg_full {
 	   my $st = $dbh->prepare("select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'");
 	   $st->execute();
 	   $rfamseq_auto = $st->fetchrow;
-	   print  "ERROR: $rfamseq_acc is NOT in the rfam table \n" if (!$rfamseq_auto);
+	   print  "ERROR: $rfamseq_acc is NOT in the rfamseq  table. This record has not been added \n" if (!$rfamseq_auto);
 	   $no_seq_count++  if (!$rfamseq_auto);
 	   next if (!$rfamseq_auto);
 	   $st->finish();
@@ -635,7 +635,7 @@ sub update_rfam_reg_seed {
 	   my $st = $dbh->prepare("select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'");
 	   $st->execute();
 	   $rfamseq_auto = $st->fetchrow;
-	   print  "ERROR: $rfamseq_acc is NOT in the rfam table \n" if (!$rfamseq_auto);
+	   print  "ERROR: $rfamseq_acc is NOT in the rfamseq table. This record has not been added \n" if (!$rfamseq_auto);
 	   $no_seq_count++  if (!$rfamseq_auto);
 	   next if (!$rfamseq_auto);
 	   $st->finish();
