@@ -21,6 +21,7 @@ Usage: $0 <options> <alignfile>
 Options:     -h           show this help
              -hwt <n>     set weighting of hlx matrix scores
              -mwt <n>     set weighting of mixy matrix scores
+                          (defaults 1:1)
 
 EOF
 }
@@ -44,8 +45,8 @@ my $ss = Rfam::SS -> new();
 system( "mixy /tmp/$$.aln > /tmp/$$.mixy" ) and die;
 system( "hlxplot /tmp/$$.aln > /tmp/$$.hlx" ) and die;
 
-$hlxwt = 20/scalar($aln->each_seq) unless( defined $hlxwt );
-$mixywt = 1000                     unless( defined $mixywt );
+$hlxwt  = 1 unless( defined $hlxwt );
+$mixywt = 1 unless( defined $mixywt );
 
 open( DAT, ">/tmp/$$.dat" ) or die;
 print DAT "/tmp/$$.mixy $mixywt\n";
