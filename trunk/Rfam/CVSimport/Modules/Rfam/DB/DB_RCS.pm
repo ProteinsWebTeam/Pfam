@@ -58,6 +58,64 @@ sub new {
 }
 
 
+sub acc2id {
+    my $self = shift;
+    my $acc  = shift;
+    
+    my $accmap = $self->_get_tied_accmap();
+    my $id = $accmap->{$acc};
+
+    if( not defined $id ) {
+	die "Rfam::DB::DB_RCS: accession [$acc] doesnot exist";
+    }
+    return $id;
+}
+
+
+sub id2acc {
+    my $self = shift;
+    my $id   = shift;
+    
+    my $accmap = $self->_get_tied_accmap();
+    my %idmap  = reverse %{$accmap};
+    my $acc    = $idmap{$id};
+
+    if( not defined $acc ) {
+	die "Rfam::DB::DB_RCS: accession [$id] doesnot exist";
+    }
+    return $acc;
+}
+
+
+sub is_acc {
+    my $self = shift;
+    my $acc  = shift;
+    
+    my $accmap = $self->_get_tied_accmap();
+    if( exists $accmap->{$acc} ) {
+	return 1;
+    }
+    else {
+	return 0;
+    }
+}
+
+
+sub is_id {
+    my $self = shift;
+    my $id   = shift;
+    
+    my $accmap = $self->_get_tied_accmap();
+    my %idmap  = reverse %{$accmap};
+    if( exists $idmap{$id} ) {
+	return 1;
+    }
+    else {
+	return 0;
+    }
+}
+
+
 sub get_allacc {
     my $self   = shift;
     my $accmap = $self->_get_tied_accmap();
@@ -69,7 +127,6 @@ sub get_allacc {
 	}
 	push( @acc, $acc );
     }
-
     return @acc
 }
 
