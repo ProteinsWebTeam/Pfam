@@ -45,7 +45,17 @@ sub new {
     my $self   = $class -> SUPER::new();
     $self -> { 'SS_CONS' }      = undef;
     $self -> { 'MATCH_STATES' } = undef;
+    $self -> { 'CONSENSUS' }    = undef;
     return $self;
+}
+
+
+sub consensus {
+    my $self = shift;
+    if( not $self -> { 'CONSENSUS' } ) {
+	$self -> { 'CONSENSUS' } = $self -> _compute_consensus();
+    }
+    return $self -> { 'CONSENSUS' };
 }
 
 sub ss_cons {
@@ -66,7 +76,6 @@ sub match_states {
 
 # altered to act on $self and return number of columns removed
 
-
 sub allgaps_columns_removed {
     my ($self) = @_;
     my (@columnlist, %mymap);
@@ -74,7 +83,6 @@ sub allgaps_columns_removed {
 
     my @newrf = split( //, $self -> match_states );
     my @newss = split( //, $self -> ss_cons );
-
 
     foreach my $seq ($self->eachSeq) {
         my @ary = split( //, $seq->seq() );
@@ -113,6 +121,77 @@ sub allgaps_columns_removed {
     return scalar( @sortedgappositions );
 }
 
+
+sub trimmed_alignment {
+    my ($self, $start, $end) = @_;
+
+    if (not defined($start) and not defined($end)) {
+        $self->throw("The desired extent of the alignment has not been given in any way");
+    }
+    elsif (not defined($start)) {
+        $start = 1;
+    }
+    elsif (not defined($end)) {
+        $end = $self->length_aln();
+    }
+    
+    my @rf = split( //, $self -> match_states );
+    my @ss = split( //, $self -> ss_cons );
+
+    my @junkrf = splice( @rf, 0, $start-1 );
+    my $newrf  = join( '', splice( @rf, 0, $end-$start+1 ) );
+    my @junkss = splice( @ss, 0, $start-1 );
+    my $newss  = join( '', splice( @ss, 0, $end-$start+1 ) );
+    
+    $self -> match_states( $newrf );
+    $self -> ss_cons( $newss );
+
+    foreach my $seq ($self->eachSeq()) {
+        my @residues = split( //, $seq->seq() );
+        my @discardedleft = splice( @residues, 0, $start-1 );
+
+        # now, if we splice the first ($end - $start + 1) residues, then that is 
+        # what we are interested in. @residues will be left with what is discarded right.
+ 
+        $seq -> seq( join( '', splice( @residues, 0, $end-$start+1 ) ) );
+
+	my $newstart = $seq->start();
+	my $newend   = $seq->end();
+
+        foreach my $char (@discardedleft) {
+            if ($char ne '-' and $char ne '.') {
+		if( $seq->start() > $seq->end() ) { 
+		    $newstart--;
+		}
+		else {
+		    $newstart++;
+		}
+            }
+        }
+        foreach my $char (@residues) {
+            if ($char ne '-' and $char ne '.') {
+		if( $seq->end() < $seq->start() ) { 
+		    $newend++;
+		}
+		else {
+		    $newend--;
+		}
+            }
+        }
+
+	$seq -> start( $newstart );
+	$seq -> end( $newend );
+
+        # we may be left with just gaps in the sequence; if this is the case
+        # then remove it
+
+        if ($newend == $newstart) {
+	    $seq -> removeSeq( $seq );
+        }
+    }
+
+    return 1;
+}
 
 
 sub read_stockholm {
@@ -203,6 +282,58 @@ sub read_stockholm {
     return $count; 
 }
 
+
+sub write_structure_ps {
+    my $self = shift;
+    my $out  = shift;
+
+    my $ss   = $self->ss_cons();
+    $ss =~ s/\</\(/g;
+    $ss =~ s/\>/\)/g;
+
+    my @ss   = split( //, $ss );
+    my @cons = split( //, $self->consensus() );
+
+    for( my $i=0; $i<@cons; $i++ ) {
+	if( $cons[$i] !~ /[ACGUTacgut]/ and $ss[$i] !~ /[\(\)]/ ) {
+	    splice( @ss, $i, 1 );
+	    splice( @cons, $i, 1 );
+	    $i--;
+	}
+    }
+
+    open( T, ">$$.rna" ) or die;
+    print T ">$$.rna\n", join( '', @cons ), "\n", join( '', @ss ), "\n";
+    close T;
+
+    system "RNAplot < $$.rna > /dev/null" and die "can't run RNAplot";
+    open( PS, "$$.rna_ss.ps" ) or die;
+    while(<PS>) {
+	if( /^drawbases/ ) {
+	    print $out $_;
+	    print $out "  0 setgray\n";
+	    next;
+	}
+	if( /^drawoutline/ ) {
+	    print $out $_;
+	    print $out "  0.5 setgray\n";
+	    next;
+	}
+	if( /^drawpairs/ ) {
+	    print $out $_;
+	    print $out "  0.5 setgray\n";
+	    next;
+	}
+	if( /\[9 3.01\] 9 setdash/ ) {
+	    print $out "  [5 12] 12 setdash\n";
+	    next;
+	}
+	print $out $_;
+    }
+    close PS;
+    unlink( "$$.rna", "$$.rna_ss.ps" ) or die;
+}
+
 sub write_stockholm {
     my $self  = shift;
     my $out   = shift;
@@ -232,5 +363,75 @@ sub write_stockholm {
     }
     print $out "\/\/\n";
 }
+
+
+sub write_connect {
+    my $self = shift;
+    my $out  = shift;
+
+    die "can't read ss_cons line" if( not $self -> ss_cons() );
+
+    my @ss   = split( //, $self->ss_cons() );
+    my @cons = split( //, $self->consensus() );
+
+    my( @open, %bp );
+    for( my $i=1; $i<=@ss; $i++ ) {
+	if( $ss[$i-1] =~ /[\[\(\{\<]/ ) {
+	    push( @open, $i );
+	}
+	elsif( $ss[$i-1] =~ /[\]\)\}\>]/ ) {
+	    my $j = pop @open || -1;
+	    $bp{$i} = $j;
+	    $bp{$j} = $i;
+	}
+    }
+    
+    for( my $i=1; $i<=@ss; $i++ ) {
+	my $j;
+	if( exists $bp{$i} ) {
+	    $j = $bp{$i};
+	}
+	else {
+	    $j = 0;
+	}
+	my $next;
+	if( $i+1 > @ss ) {
+	    $next = 0;
+	}
+	else {
+	    $next = $i+1;
+	} 
+	print $out sprintf( "%5d %-1s %5d %5d %5d %5d\n", $i, $cons[$i-1], $i-1, $next, $j, $i );
+    }
+}
+
+
+# this returns simply the most common base, no fancy perc. cutoffs or anything
+sub _compute_consensus {
+    my $self = shift;
+    my @columns;
+
+    foreach my $seq ( $self -> eachSeq() ) {
+	my @ary = split( //, $seq->seq );
+	for( my $i=0; $i<@ary; $i++ ) {
+	    $columns[$i]->{$ary[$i]} ++;
+	}
+    }
+
+    my $str;
+    foreach my $col ( @columns ) {
+	my $best;
+	my $high = 0;
+	foreach my $sym ( keys %{$col} ) {
+	    if( $col->{$sym} > $high ) {
+		$best = $sym;
+		$high = $col->{$sym};
+	    }
+	}
+	$str .= $best;
+    }
+    return $str;
+}
+
 
 1;
