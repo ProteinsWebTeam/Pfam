@@ -67,6 +67,10 @@ close(DESC);
 
 my $comment = "New family";
 
+unless( &RfamQC::valid_sequences( $id ) ) {
+    die "rfnew: Your sequences don't all match the database\n";
+}
+
 #
 # Ok. Attempt to get the lock. If we fail a rather ungraceful exit.
 # 
