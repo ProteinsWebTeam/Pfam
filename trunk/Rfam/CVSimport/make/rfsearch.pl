@@ -23,6 +23,11 @@ my( $quiet,
     $local,
     $help );
 
+my $arch = `uname`;
+if( $arch =~ /linux/i ) {
+    $ENV{'PATH'} = "/pfam/db/Rfam/bin/linux:$ENV{'PATH'}"; # push linux binaries onto front of path
+}
+
 sub help {
     print STDERR <<EOF;
 
@@ -66,7 +71,6 @@ $window     = 100 unless $window;
 $cpus       = 1   unless $cpus;
 $inxfile    = '/pfam/db/rfamseq/rfamseq.fa.bpi' unless $inxfile;
 my $blastdbdir = '/pfam/db/rfamseq';
-my $pathtocove = '/nfs/farm/Pfam/bin';
 
 my $fafile  = shift;
 my $seqinx  = Bio::Index::Fasta->new( $inxfile ); 
