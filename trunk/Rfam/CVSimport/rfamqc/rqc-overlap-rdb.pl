@@ -156,7 +156,13 @@ sub compare_overlap_to_current {
 		    ( $s1 <= $e2 and $e1 >= $e2 ) or 
 		    ( $s1 <= $s2 and $e1 >= $s2 ) ) {
 		    unless( $ignore{$current_reg->accession} ) {
-			push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),$dir,$start,$stop, $current_reg->accession() , $current_reg->from(),$current_reg->to()));
+			push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),
+					      $dir,
+					      $startstop->{'start'},
+					      $startstop->{'end'}, 
+					      $current_reg->accession(), 
+					      $current_reg->from(),
+					      $current_reg->to()));
 			$count ++;
 		    }
 		}
