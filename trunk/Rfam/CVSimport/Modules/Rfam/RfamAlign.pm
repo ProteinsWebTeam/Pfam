@@ -576,6 +576,284 @@ sub write_stockholm {
     print $out "\/\/\n";
 }
 
+sub write_coloured_html {
+    my $self  = shift;
+    my $out   = shift;
+    my $block = shift;
+    $block = 50 if( not defined $block );
+    $block = $self -> length if( not $block );
+
+    my $maxn = $self->maxdisplayname_length() + 2;
+    $maxn = 15 if( $maxn < 15 );
+    my $iter = $self->length/$block;
+
+    open( CSS, ">align.css" ) or die;
+    print CSS <<EOF;
+#a    { background-color: #ff9999;}
+#b    { background-color: #9999ff;}
+#c    { background-color: #99ff99;}
+#d    { background-color: #FF9900;}
+#e    { background-color: #99ffff;}
+#f    { background-color: #98C0C0;}
+#g    { background-color: #ffff99;}
+#h    { background-color: #ff33ff;}
+#i    { background-color: #33ffff;}
+#j    { background-color: #ffff33;}
+#k    { background-color: #2ED70C;}
+#l    { background-color: #F4BEF8;}
+#m    { background-color: #ff9900;}
+#n    { background-color: #B94F32;}
+#o    { background-color: #FF0000;}
+#p    { background-color: #ffcc99;}
+#q    { background-color: #CCCCCC;}
+#r    { background-color: #CC3366;}
+#s    { background-color: #CCff66;}
+#t    { background-color: #Ffcc66;}
+#u    { background-color: #7e652f;}
+
+BODY { 
+  font-size: 10pt;
+  font-family: courier; 
+  font-weight: normal;
+}
+
+b, .b {
+  font-size: 10pt;
+  font-family: courier; 
+  font-weight: normal;
+}
+
+EOF
+
+    print $out <<EOF;
+<html>
+<head>
+<link REL=stylesheet HREF="align.css" TYPE="text/css">
+</head>
+<body>
+<pre>
+EOF
+
+    my %colmap = %{ $self->ss_cons->column_colourmap };
+    my @alpha = qw( a b c d e f g h i j k l m n o p q r s t u v w x y z );
+
+    my @ss_str;
+    eval {
+	if( $self->ss_cons ) {
+	    $self->ss_cons->length( $self->length );
+	    @ss_str = split( //, $self->ss_cons->getInfernalString() );
+	}
+    };
+	
+    for( my $i=0; $i < $iter; $i++ ) {
+	foreach my $seq ( $self->each_seq() ) {
+	    my $namestr = $self->displayname($seq->get_nse());
+	    my @seq = split( //, $seq->seq );
+	    
+	    printf $out sprintf( "%-".$maxn."s  ", $namestr );
+	    for( my $j=($i*$block); $j<($i+1)*$block; $j++ ) {
+		last if( $j >= @seq ); # last block may be short
+		if( my $col = $colmap{$j+1} ) {
+		    my $pair = $self->ss_cons->getPairByCol($j+1);
+		    my @res = sort ( $seq[$pair->left -1], $seq[$pair->right -1] );
+		    if( ( $res[0] eq "C" and $res[1] eq "G" ) or
+			( $res[0] eq "A" and $res[1] eq "T" ) or
+			( $res[0] eq "A" and $res[1] eq "U" ) or
+			( $res[0] eq "G" and $res[1] eq "U" ) or
+			( $res[0] eq "G" and $res[1] eq "T" ) ) {
+
+			print $out "<b id=\"".$alpha[$col-1]."\">".$seq[$j]."</b>";
+			next;
+		    }
+		}
+		print $out $seq[$j];
+	    }
+	    print $out "\n";
+	}
+	if( $self->match_states() ) {
+	    my $submatch = substr( $self->match_states(), $i*$block, $block );
+	    print $out sprintf( "%-".$maxn."s  %s\n", "\#=GC RF", $submatch );
+	}
+	if( @ss_str ) {
+	    printf $out sprintf( "%-".$maxn."s  ", "#=GC SS_cons" );
+	    for( my $j=($i*$block); $j<($i+1)*$block; $j++ ) {
+		last if( $j >= @ss_str ); # last block may be short
+		if( my $col = $colmap{$j+1} ) {
+		    print $out "<b id=\"".$alpha[$col-1]."\">".$ss_str[$j]."</b>";
+		}
+		else {
+		    print $out $ss_str[$j];
+		}
+	    }
+	    print $out "\n";
+	}
+	print $out "\n" unless( ($i+1) >= $iter );
+    }
+    print $out "\/\/\n</pre>\n";
+}
+
+
+sub write_coloured_ps {
+    my $self  = shift;
+    my $out   = shift;
+    my $font = shift;
+    $font = 10 if( not defined $font );
+    my $block = 80/$font * 10 - 25;
+    my $lines = 64/$font * 10;
+    my $offset = $font/4;
+
+    my $maxn = $self->maxdisplayname_length() + 2;
+    my $iter = $self->length/$block;
+    my $whoami = `whoami`;
+    chomp $whoami;
+    my $date = `date`;
+    chomp $date;
+
+    print $out <<EOF;
+\%!PS-Adobe-3.0
+\%\%Title: SEED
+\%\%For: $whoami
+\%\%Creator: Rfam::RfamAlign
+\%\%CreationDate: $date
+\%\%Orientation: Portrait
+\%\%Pages: 1
+\%\%EndComments
+
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 -$offset rmoveto
+    dup 0 rlineto
+    0 $font rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+/S {
+  show
+} bind def
+
+/C {
+  dup dobackgroundstring
+  S
+} bind def
+
+/N {
+  S
+  /y0 y0 $font sub def
+  x0 y0 moveto 
+} bind def
+
+%%Page: (1) 1
+/bgcolor [ 1 1 1 ] def
+/Courier-New findfont
+$font scalefont
+setfont
+newpath
+/y0 760 def
+/x0 40 def
+x0 y0 moveto
+
+(# STOCKHOLM 1.0) N
+() N
+EOF
+
+    my %colmap = %{ $self->ss_cons->column_colourmap };
+    my @colours = ( "1 0.6 0.6",
+		    "0.6 0.6 1",
+		    "0.6 1 0.6",
+
+		    "0.6 1 0",
+		    "0.6 0 1",
+		    "0 1 0.6",
+		    "1 0 0.6",
+		    "0 0.6 1",
+		    "1 0.6 0",
+
+		    "0.3 0.3 1",
+		    "0.3 1 0.3",
+		    "1 0.3 0.3",
+		    );
+    my @ss_str;
+    eval {
+	if( $self->ss_cons ) {
+	    $self->ss_cons->length( $self->length );
+	    @ss_str = split( //, $self->ss_cons->getInfernalString() );
+	}
+    };
+	
+    for( my $i=0; $i < $iter; $i++ ) {
+	foreach my $seq ( $self->each_seq() ) {
+	    my $namestr = $self->displayname($seq->get_nse());
+	    my @seq = split( //, $seq->seq );
+	    
+	    printf $out sprintf( "(%-".$maxn."s  ) S ", $namestr );
+
+	    my $lastcol = 0;
+	    for( my $j=($i*$block); $j<($i+1)*$block; $j++ ) {
+		last if( $j >= @seq ); # last block may be short
+		if( my $col = $colmap{$j+1} ) {
+		    my $pair = $self->ss_cons->getPairByCol($j+1);
+		    my @res = sort ( $seq[$pair->left -1], $seq[$pair->right -1] );
+		    if( ( $res[0] eq "C" and $res[1] eq "G" ) or
+			( $res[0] eq "A" and $res[1] eq "T" ) or
+			( $res[0] eq "A" and $res[1] eq "U" ) or
+			( $res[0] eq "G" and $res[1] eq "U" ) or
+			( $res[0] eq "G" and $res[1] eq "T" ) ) {
+
+			if( $lastcol != $col ) {
+			    $lastcol = $col;
+			    print $out "\n/bgcolor \[ $colours[$col-1] \] def\n";
+			}
+			print $out "($seq[$j]) C ";
+			next;
+		    }
+		}
+		print $out "($seq[$j]) S ";
+	    }
+	    print $out "() N\n";
+	}
+	if( @ss_str ) {
+	    printf $out sprintf( "(%-".$maxn."s  ) S ", "#=GC SS_cons" );
+	    my $lastcol = 0;
+	    for( my $j=($i*$block); $j<($i+1)*$block; $j++ ) {
+		last if( $j >= @ss_str ); # last block may be short
+		if( my $col = $colmap{$j+1} ) {
+		    if( $lastcol != $col ) {
+			$lastcol = $col;
+			print $out "\n/bgcolor \[ $colours[$col-1] \] def\n";
+		    }
+		    print $out "($ss_str[$j]) C ";
+		}
+		else {
+		    print $out "($ss_str[$j]) S ";
+		}
+	    }
+	    print $out "() N\n";
+	}
+	print $out "() N\n" unless( ($i+1) >= $iter );
+    }
+    print $out "(\/\/) N\n";
+    print $out <<EOF;
+grestore
+showpage
+
+\%\%EOF
+EOF
+
+}
+
+
 sub write_sparse {
     # sparse format (as named by sgj :) is the format where the first
     # sequence is shown in full and then all other sequences are only
