@@ -63,7 +63,7 @@ my @seqs;
 my $bigseq = Bio::Seq->new( '-id' => 'multiplex' ) if( $multiplex );
 my $count;
 while( my $seq = $in->next_seq() ) {
-    $length = $seq->length() unless( $length );
+    $length = $seq->length() unless( defined $length );
     if( $multiplex ) {
 	$bigseq->seq( $bigseq->seq()."NNNNNNNNNN".$seq->seq() );
 	$count ++;
@@ -163,16 +163,16 @@ foreach my $db ( @blastdb ) {
 		    if( $end >= $se[ scalar(@se)-1 ]->{'end'} ) {
                         # extend the end
 			$se[ scalar(@se)-1 ]->{'end'} = $end;
-			print STDERR "$id/$start-$end overlap\n";
+#			print STDERR "$id/$start-$end overlap\n";
 		    }
 		    else {
 			# ignore
-			print STDERR "$id/$start-$end unnecessary\n";
+#			print STDERR "$id/$start-$end unnecessary\n";
 		    }
 		}
 		else {
 		    push( @se, { 'start' => $start, 'end' => $end, 'strand' => $strand } );
-		    print STDERR "$id/$start-$end new\n";
+#		    print STDERR "$id/$start-$end new\n";
 		}
 	    }
 	    
