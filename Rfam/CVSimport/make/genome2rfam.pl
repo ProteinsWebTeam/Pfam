@@ -35,7 +35,7 @@ my( $agp, $con, $search, @add, $clean, $outfile );
 	     );
 
 my $file = shift;
-my $rfamseqlist = '/pfam/db/rfamseq/CURRENT/Rfamseq.lst';
+my $rfamseqlist = '/pfam/db/rfamseq/CURRENT/embl_sv.txt';
 
 sub help {
     print STDERR <<EOF;
@@ -56,6 +56,12 @@ if( $search and not $outfile ) {
     print STDERR "You need to specify an outfile if you use the --search option\n";
     exit(1);
 }
+
+#my %ignoreacc = ( "AE008687" => 1,
+#		  "AE008689" => 1,
+#		  "AE008690" => 1,
+#		  );
+
 
 my %rfamseq;
 open( L, $rfamseqlist ) or die;
@@ -113,6 +119,8 @@ foreach my $add ( @add ) {
 	    $start = $st + $start - 1;
 	    $end   = $st + $end - 1;
 
+#	    print STDERR "$id/$start-$end\n" if( $id eq "AL360012" );
+
 	    $rfamseq{$id} = $ver;
 
 	    unless( $res -> getHMMSequence( $id ) ) {
@@ -148,6 +156,7 @@ elsif( $con ) {
 }
 
 foreach my $ctg ( keys %{$seqs} ) {
+    next if( exists $ignoreacc{ $ctg } );
     if( not $search ) {
 	print "AC   $ctg;\n";
 	print "DE   ", $seqs->{$ctg}->{'DE'}, "\n" if( $seqs->{$ctg}->{'DE'} );
@@ -196,8 +205,26 @@ if( $search ) {
 	my $j = @search;
 	for( my $i=1; $i<=@search; $i++ ) {
 	    my( $sv, $st, $en ) = $search[$i-1] =~ /(\S+)\/(\d+)-(\d+)/;
-	    system "pfetch -a $sv:$st-$en -n $sv/$st-$en > $jid.$i.fa" and die;
+	    my $fh = IO::File->new;
+	    my $pfopt = "-a";
+	  FETCH: {
+	      $fh -> open( "pfetch $pfopt $sv:$st-$en -n $sv/$st-$en|" );
+	      open( O, ">$jid.$i.fa" ) or die;
+	      while(<$fh>) {
+		  if( /no match/ ) {
+		      if( not $pfopt ) {
+			  warn "failed to get $sv/$st-$en from pfetch\n";
+			  last;
+		      }
+		      $pfopt = "";
+		      redo FETCH;
+		  }
+		  print O $_;
+	      }
+	      $fh -> close;
+	  }	    
 	}
+
 	system "echo 'cmblast.pl $jid.\$\{LSB_JOBINDEX\}.fa > $jid.\$\{LSB_JOBINDEX\}.out' | bsub -q pfam_slow -Rlinux -o $jid.\%I.err -Jrf$jid\"[1-$j]\"" and die; 
 
 	# the clever bit - run this script again after the array
@@ -214,9 +241,11 @@ if( $search ) {
 sub print_hits {
     my( $seqid, $constart, $conend ) = @_;
     if( my $seq = $res -> getHMMSequence( $seqid ) ) {
+#	print STDERR "SEQ $seqid/$constart-$conend\n";
 	foreach my $unit ( sort { $a->start_seq <=> $b->start_seq } $seq -> eachHMMUnit() ) {
-	    if( ($unit->start_seq > $constart and $unit->end_seq > $constart) or
-		($unit->start_seq < $conend   and $unit->end_seq < $conend) ) {
+	    if( ($unit->start_seq >= $constart and $unit->end_seq >= $constart) and
+		($unit->start_seq <= $conend   and $unit->end_seq <= $conend) ) {
+#		print STDERR "  UNIT $seqid/$constart-$conend ", $unit->start_seq(), " ", $unit->end_seq(), "\n";
 		printf( "RF   %-26s %-10s %-16s %7s\n", $unit->seqname."/".$unit->start_seq."-".$unit->end_seq, $unit->hmmacc, $unit->hmmname, $unit->bits );
 	    }
 	}
@@ -228,23 +257,29 @@ sub mapseq {
     my( $id, $ver, $st, $en ) = @_;
     my $fh = IO::File -> new();
 
-  FETCH: open( O, ">$$.sub.fa" ) or die;
+    my $pfopt = "-a";
+  FETCH: {
+      open( O, ">$$.sub.fa" ) or die;
 #    print STDERR "end $en\n";
-    $fh -> open( "pfetch -a $id\.$ver:$st-$en -n $id\.$ver/$st-$en|" ) or die;
-    while(<$fh>) {
-	if( /end is greater than sequence length.*?(\d+)/ ) {
-	    $en = $1;
-#	    print O $_;
-	    redo FETCH;
-	}
-	elsif( /no match/ ) {
-#	    print O $_;
-	    return 0;
-	}
-	else {
-	    print O $_;
-	}
-    }
+      $fh -> open( "pfetch $pfopt $id\.$ver:$st-$en -n $id\.$ver/$st-$en|" ) or die;
+      while(<$fh>) {
+	  if( /end is greater than sequence length.*?(\d+)/ ) {
+	      $en = $1;
+	      redo FETCH;
+	  }
+	  elsif( /no match/ ) {
+	      if( not $pfopt ) {
+		  warn "failed to pfetch $id\.$ver/$st-$en";
+		  return 0;
+	      }
+	      $pfopt = "";
+	      redo FETCH;
+	  }
+	  else {
+	      print O $_;
+	  }
+      }
+  }
     system "pfetch -a $id\.$rfamseq{$id} -n $id\.$rfamseq{$id} > $$.whole.fa" and die;
 			
     system "formatdb -i $$.whole.fa -p F" and die;
