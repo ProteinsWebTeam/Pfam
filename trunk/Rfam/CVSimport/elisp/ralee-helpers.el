@@ -30,6 +30,24 @@
   )
 
 
+(defun fold-all-sequences ()
+  "run fold-sequence on each sequence in turn"
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (< (point) (point-max))
+      (if (ralee-is-alignment-line)
+	  (progn
+	    (fold-sequence)
+	    (forward-line)
+	    )
+	)
+      (forward-line)
+      )
+    )
+  )
+
+
 (defun fold-sequence ()
   "take the current sequence, RNAfold it, and mock up an SS_cons line"
   (interactive)
