@@ -26,14 +26,13 @@
   (setq ralee-mode-map (make-sparse-keymap))
   (define-key ralee-mode-map "\C-c\C-l" 'ralee-paint-line-by-ss)
   (define-key ralee-mode-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
-;  (define-key ralee-mode-map "\C-c\C-k" 'ralee-paint-line-by-base)
-;  (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-base)
   (define-key ralee-mode-map "\C-c\C-c" 'ralee-paint-column-by-cons)
   (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-cons)
   (define-key ralee-mode-map "\C-c\C-i" 'ralee-insert-gap-column)
   (define-key ralee-mode-map "\C-c\C-d" 'ralee-delete-gap-column)
   (define-key ralee-mode-map "\C-c\C-p" 'ralee-jump-to-pair)
   (define-key ralee-mode-map "\C-c\C-[" 'ralee-jump-to-pair-in-other-window)
+  (define-key ralee-mode-map "\C-c\C-f" 'fetch-sequence)
   (define-key ralee-mode-map "\C-f" 'ralee-jump-right)
   (define-key ralee-mode-map "\C-b" 'ralee-jump-left)
   (define-key ralee-mode-map "\C-p" 'ralee-jump-up)
@@ -109,19 +108,64 @@ Turning on ralee-mode runs the hook `ralee-mode-hook'."
     (looking-at "#=GC ")
   ))
 
+
 (defun ralee-get-seq-id ()
   "get the sequence identifier of the current alignment line"
-  (beginning-of-line)
-  (search-forward " ")
-  (copy-region-as-kill (line-beginning-position) (1- (point)))
-  (car kill-ring))
+  (save-excursion
+    (beginning-of-line)
+    (if (ralee-is-alignment-line)
+	(progn
+	  (search-forward " ")
+	  (copy-region-as-kill (line-beginning-position) (1- (point)))
+	  (car kill-ring)
+	  )
+      (progn
+	(message "can't get seqid from current line")
+	nil
+	)
+      )
+    )
+  )
+
+(defun ralee-get-real-seq-id ()
+  "get the sequence identifier of the current alignment line"
+  (save-excursion
+    (beginning-of-line)
+    (if (ralee-is-alignment-line)
+	(progn
+	  (if (looking-at "[A-Za-z0-9_\.]+/[0-9]")
+	      (progn
+		(search-forward "/")
+		(copy-region-as-kill (line-beginning-position) (1- (point)))
+		)
+	    (progn
+	      (search-forward " ")
+	      (copy-region-as-kill (line-beginning-position) (1- (point)))
+	      )
+	    )
+	  (car kill-ring)
+	  )
+      (progn
+	(message "can't get seqid from current line")
+	nil
+	)
+      )
+    )
+  )
 
 (defun ralee-get-seq-string ()
   "get the sequence string of the current alignment line"
-  (end-of-line)
-  (search-backward " ")
-  (copy-region-as-kill (1+ (point)) (line-end-position))
-  (car kill-ring))
+  (save-excursion
+    (if (ralee-is-alignment-line)
+	(progn
+	  (end-of-line)
+	  (search-backward " ")
+	  (copy-region-as-kill (1+ (point)) (line-end-position))
+	  (car kill-ring)
+	  )
+      )
+    )
+  )
 
 
 (defun ralee-ungap-string (string)
