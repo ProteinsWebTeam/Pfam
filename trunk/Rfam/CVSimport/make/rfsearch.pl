@@ -304,7 +304,7 @@ mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
 my $fh = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
-$fh -> open( "| bsub -q $queue -Rlinux -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $$.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
+$fh -> open( "| bsub -q $queue -Rlinux -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $phost $pwd $$.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 $fh -> print( "$command $options /tmp/$$.CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
