@@ -3,7 +3,7 @@
 
 use Getopt::Long;
 
-use lib '/nfs/intweb/server/cgi-bin/Rfam';
+use lib '/nfs/WWWdev/SANGER_docs/cgi-bin/Rfam';
 
 use RfamWWWConfig;
 
