@@ -50,7 +50,8 @@ my $inxfile    = $rfamseq_current_inx;
 my $in = Bio::SeqIO -> new( '-file' => $fafile, '-format' => 'Fasta' );
 my $length = $in -> next_seq() -> length();
 
-my $seqinx  = Bio::Index::Fasta->new( $inxfile ); 
+my $seqinx  = Bio::Index::Fasta->new( '-filename'    => $inxfile,
+				      '-dbm_package' => 'SDBM_File' ); 
 END { undef $seqinx; }   # stop bizarre seg faults
 
 my $glob;
