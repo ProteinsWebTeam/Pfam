@@ -59,7 +59,7 @@ use strict;
 use DBI;
 use FileHandle;
 
-use Rfam::RfamRDB;
+use Rfam::DB::RfamRDB;
 use Rfam::AnnotatedSequence;
 
 @ISA = qw(Rfam::DB::DB);
