@@ -1,11 +1,33 @@
 ;;; ralee-mode.el --- ralee mode
 
+; Copyright (c) 2004 Sam Griffiths-Jones
+;
+; This is part of RALEE -- see
+; http://www.sanger.ac.uk/Users/sgj/code/ralee/ and the README file
+; that should accompany this file.
+;
+; RALEE is free software; you can redistribute it and/or modify it
+; under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+; RALEE is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with RALEE; if not, write to the Free Software Foundation,
+; Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+
 (require 'ralee-faces)
 (require 'ralee-helpers)
 (require 'ralee-movement)
 (require 'ralee-paint)
 (require 'ralee-structure)
 (require 'ralee-edit)
+(require 'ralee-tools)
 
 
 (defcustom ralee-mode-hook nil
@@ -24,19 +46,21 @@
 (if ralee-mode-map
     ()
   (setq ralee-mode-map (make-sparse-keymap))
-  (define-key ralee-mode-map "\C-c\C-l" 'ralee-paint-line-by-ss)
-  (define-key ralee-mode-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
-  (define-key ralee-mode-map "\C-c\C-c" 'ralee-paint-column-by-cons)
-  (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-cons)
-  (define-key ralee-mode-map "\C-c\C-i" 'ralee-insert-gap-column)
-  (define-key ralee-mode-map "\C-c\C-d" 'ralee-delete-gap-column)
-  (define-key ralee-mode-map "\C-c\C-p" 'ralee-jump-to-pair)
-  (define-key ralee-mode-map "\C-c\C-[" 'ralee-jump-to-pair-in-other-window)
+  (define-key ralee-mode-map "\C-c\C-l" 'paint-line-by-ss)
+  (define-key ralee-mode-map "\C-c\C-b" 'paint-buffer-by-ss)
+  (define-key ralee-mode-map "\C-c\C-c" 'paint-column-by-cons)
+  (define-key ralee-mode-map "\C-c\C-v" 'paint-buffer-by-cons)
+  (define-key ralee-mode-map "\C-c\C-i" 'insert-gap-column)
+  (define-key ralee-mode-map "\C-c\C-d" 'delete-gap-column)
+  (define-key ralee-mode-map "." 'insert-gap)
+  (define-key ralee-mode-map "\C-d" 'delete-gap)
+  (define-key ralee-mode-map "\C-c\C-p" 'jump-to-pair)
+  (define-key ralee-mode-map "\C-c\C-[" 'jump-to-pair-in-other-window)
   (define-key ralee-mode-map "\C-c\C-f" 'fetch-sequence)
-  (define-key ralee-mode-map "\C-f" 'ralee-jump-right)
-  (define-key ralee-mode-map "\C-b" 'ralee-jump-left)
-  (define-key ralee-mode-map "\C-p" 'ralee-jump-up)
-  (define-key ralee-mode-map "\C-n" 'ralee-jump-down)
+  (define-key ralee-mode-map "\C-f" 'jump-right)
+  (define-key ralee-mode-map "\C-b" 'jump-left)
+  (define-key ralee-mode-map "\C-p" 'jump-up)
+  (define-key ralee-mode-map "\C-n" 'jump-down)
   )
 
 ;; Create mode-specific tables.
@@ -67,8 +91,6 @@
   "The gap symbol")
 
 
-;;;;;;;;
-
 (defun ralee-mode ()
   "Major mode for RALEE alignment editing
 Turning on ralee-mode runs the hook `ralee-mode-hook'."
@@ -85,105 +107,4 @@ Turning on ralee-mode runs the hook `ralee-mode-hook'."
                                      ;   customize the mode with a hook.
 
 
-
-
-
-(defun current-line ()  ; surely this should be a default method?
-  "Return the vertical position of point..."
-  (count-lines (point-min) (point)))
-
-
-
-(defun ralee-is-alignment-line ()
-  "Check if the current line is part of the alignment itself"
-  (save-excursion
-    (beginning-of-line)
-    (looking-at "[A-Za-z0-9]+\.[0-9]+/[0-9]+-[0-9]+\ +")
-  ))
-
-(defun ralee-is-markup-line ()
-  "Check if the current line is #=GC"
-  (save-excursion
-    (beginning-of-line)
-    (looking-at "#=GC ")
-  ))
-
-
-(defun ralee-get-seq-id ()
-  "get the sequence identifier of the current alignment line"
-  (save-excursion
-    (beginning-of-line)
-    (if (ralee-is-alignment-line)
-	(progn
-	  (search-forward " ")
-	  (copy-region-as-kill (line-beginning-position) (1- (point)))
-	  (car kill-ring)
-	  )
-      (progn
-	(message "can't get seqid from current line")
-	nil
-	)
-      )
-    )
-  )
-
-(defun ralee-get-real-seq-id ()
-  "get the sequence identifier of the current alignment line"
-  (save-excursion
-    (beginning-of-line)
-    (if (ralee-is-alignment-line)
-	(progn
-	  (if (looking-at "[A-Za-z0-9_\.]+/[0-9]")
-	      (progn
-		(search-forward "/")
-		(copy-region-as-kill (line-beginning-position) (1- (point)))
-		)
-	    (progn
-	      (search-forward " ")
-	      (copy-region-as-kill (line-beginning-position) (1- (point)))
-	      )
-	    )
-	  (car kill-ring)
-	  )
-      (progn
-	(message "can't get seqid from current line")
-	nil
-	)
-      )
-    )
-  )
-
-(defun ralee-get-seq-string ()
-  "get the sequence string of the current alignment line"
-  (save-excursion
-    (if (ralee-is-alignment-line)
-	(progn
-	  (end-of-line)
-	  (search-backward " ")
-	  (copy-region-as-kill (1+ (point)) (line-end-position))
-	  (car kill-ring)
-	  )
-      )
-    )
-  )
-
-
-(defun ralee-ungap-string (string)
-  "take a seq string as input and return an ungapped version"
-  (interactive)
-  (let (split
-	base
-	out)
-    (setq split (split-string string ""))
-    (while split
-      (setq base (car split))
-      (setq split (cdr split))
-      (if (string-match "[A-Za-z]" base)
-	  (setq out (concat out base))
-	)
-      )
-    out
-    )
-  )
-  
-
+(provide 'ralee-mode)
