@@ -226,14 +226,20 @@ sub run_blast_search {
     my $blastdb = shift;
     my $evalue = shift;
 
-    if( $bqueue ) {
-	print STDERR "bsub -I -q $bqueue -e $$.berr blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast\n";
-	system "bsub -I -q $bqueue -e $$.berr blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast" and die;
+    eval {
+	if( $bqueue ) {
+#	    print STDERR "bsub -I -q $bqueue -e $$.berr blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast\n";
+	    system "bsub -I -q $bqueue -e $$.berr 'echo \"running on \${LSB_HOSTS}\" > $$.berr; blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast'" and die;
+	}
+	else {
+#	    print STDERR "blastall -i $file -p blastn -e $evalue -d $blastdb >> $$.blast\n";
+	    system "blastall -i $file -p blastn -e $evalue -d $blastdb >> $$.blast" and die;
+	}
+    };
+    if( $@ ) {
+	die "blast job failed\n[blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast]\n[$@]\n";
     }
-    else {
-	print STDERR "blastall -i $file -p blastn -e $evalue -d $blastdb >> $$.blast\n";
-	system "blastall -i $file -p blastn -e $evalue -d $blastdb >> $$.blast" and die;
-    }
+
     return "$$.blast";
 }
 
