@@ -53,16 +53,20 @@
   (define-key ralee-mode-map "\C-c\C-v" 'paint-buffer-by-cons)
   (define-key ralee-mode-map "\C-c\C-i" 'insert-gap-column)
   (define-key ralee-mode-map "\C-c\C-d" 'delete-gap-column)
-  (define-key ralee-mode-map "." 'insert-gap)
+;  (define-key ralee-mode-map "." 'insert-gap)     ; not a good idea at the moment!
   (define-key ralee-mode-map "\C-d" 'delete-gap)
   (define-key ralee-mode-map "\C-c\C-p" 'jump-to-pair)
-  (define-key ralee-mode-map "\C-c\C-[" 'jump-to-pair-in-other-window)
+  (define-key ralee-mode-map "\C-c\C-o" 'jump-to-pair-in-other-window)
   (define-key ralee-mode-map "\C-c\C-f" 'fold-sequence)
   (define-key ralee-mode-map "\C-f" 'jump-right)
   (define-key ralee-mode-map "\C-b" 'jump-left)
   (define-key ralee-mode-map "\C-p" 'jump-up)
   (define-key ralee-mode-map "\C-n" 'jump-down)
+
+  ; have to do this after ralee-mode-map is set up
+  (require 'ralee-menu)
   )
+
 
 ;; Create mode-specific tables.
 (defvar ralee-mode-syntax-table nil 

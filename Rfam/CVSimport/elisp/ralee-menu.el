@@ -21,16 +21,31 @@
 ; Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 
-(defvar menu-bar-ralee-menu (make-sparse-keymap "Ralee"))
 
-(define-key menu-bar-ralee-menu [paint-buffer-by-ss]
-  '("Paint buffer by structure" . paint-buffer-by-ss))
-(define-key menu-bar-ralee-menu [paint-line-by-ss]
-  '("Paint line by structure" . paint-line-by-ss))
-(define-key menu-bar-ralee-menu [separator]
+; The following sets up a menu in GNU emacs but not in xemacs
+(define-key ralee-mode-map [menu-bar] (make-sparse-keymap))
+(define-key ralee-mode-map [menu-bar structure]
+  (cons "Structure" (make-sparse-keymap "Structure")))
+(define-key ralee-mode-map [menu-bar structure show-structure-ps]
+  '("Show structure" . show-structure-ps))
+(define-key ralee-mode-map [menu-bar structure fold-all-sequences]
+  '("Fold all sequences" . fold-all-sequences))
+(define-key ralee-mode-map [menu-bar structure fold-sequences]
+  '("Fold sequence" . fold-sequence))
+(define-key ralee-mode-map [menu-bar structure separator2]
   '("--"))
-(define-key menu-bar-ralee-menu [jump-forward]
-  '("Jump forward" . jump-forward))
+(define-key ralee-mode-map [menu-bar structure jump-to-pair-in-other-window]
+  '("Jump to pairing base in another window" . jump-to-pair-in-other-window))
+(define-key ralee-mode-map [menu-bar structure jump-to-pair]
+  '("Jump to pairing base" . jump-to-pair))
+(define-key ralee-mode-map [menu-bar structure separator1]
+  '("--"))
+(define-key ralee-mode-map [menu-bar structure paint-buffer-by-current-ss-line]
+  '("Paint buffer by current structure" . paint-buffer-by-current-ss-line))
+(define-key ralee-mode-map [menu-bar structure paint-buffer-by-cons]
+  '("Paint buffer by base" . paint-buffer-by-cons))
+(define-key ralee-mode-map [menu-bar structure paint-buffer-by-ss]
+  '("Paint buffer by structure" . paint-buffer-by-ss))
 
 
 (provide 'ralee-menu)
