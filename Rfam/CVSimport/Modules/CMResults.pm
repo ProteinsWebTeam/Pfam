@@ -150,7 +150,10 @@ sub parse_rsearch {
 	    $subst = $start + $1 - 1;
 	    $suben = $start + $2 - 1;		
 	}
-	if( my( $bits, $evalue ) = /Score\s*=\s*(\S+)\,\s*E\s*=\s*(\S+)\,\s*/ ) {
+	if( my( $bits ) = /Score\s*=\s*(\S+)\,?/ ) {
+	    my $evalue = /E\s*=\s*(\S+)\,?/;
+	    $evalue = "UNK" if( not $evalue );
+		
 	    unless( $self -> getHMMSequence( $id ) ) {
 		my $seq = new HMMSequence;
 		$seq    -> name( $id );
