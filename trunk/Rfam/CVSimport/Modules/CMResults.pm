@@ -13,7 +13,7 @@
 
 package CMResults;
 
-use lib '/pfam/db/Pfam/scripts/Modules'; # bad bad bad!
+#use lib '/pfam/db/Pfam/scripts/Modules'; # bad bad bad!
 
 use strict;
 use HMMResults;
