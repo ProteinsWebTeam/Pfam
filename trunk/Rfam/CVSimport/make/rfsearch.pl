@@ -227,11 +227,11 @@ sub run_blast_search {
     my $evalue = shift;
 
     if( $bqueue ) {
-	print STDERR "bsub -I -q $bqueue -e $$.berr blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast";
+	print STDERR "bsub -I -q $bqueue -e $$.berr blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast\n";
 	system "bsub -I -q $bqueue -e $$.berr blastall -i $file -p blastn -e $evalue -d $blastdb > $$.blast" and die;
     }
     else {
-	print STDERR "blastall -i $file -p blastn -e $evalue -d $blastdb >> $$.blast";
+	print STDERR "blastall -i $file -p blastn -e $evalue -d $blastdb >> $$.blast\n";
 	system "blastall -i $file -p blastn -e $evalue -d $blastdb >> $$.blast" and die;
     }
     return "$$.blast";
