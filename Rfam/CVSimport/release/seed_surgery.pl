@@ -3,40 +3,31 @@
 # performs seed surgery on Rfam families at rfamseq update time
 # (also handy during familiy building!)
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $rfam_mod_dir;
-use lib $bioperl_dir;
-
 use strict;
 use Getopt::Long;
 
 use Bio::SeqIO;
-use Bio::Index::Fasta;
+#use Bio::Index::Fasta;
 use Bio::SearchIO;
-use Bio::Factory::EMBOSS;
+#use Bio::Factory::EMBOSS;
 use Bio::AlignIO;
 use Rfam;
 use Rfam::RfamAlign;
+use Bio::SeqFetcher::xdget;
 
 my( $noaction,
     $dir,
     $noclean,
     $rename,
     $queue,
+    $file,
     $verbose );
 
 &GetOptions( "noaction" => \$noaction,
 	     "dir"      => \$dir,
 	     "noclean"  => \$noclean,
 	     "rename"   => \$rename,
+	     "f=s"      => \$file,
 	     "q=s"      => \$queue,
 	     "v"        => \$verbose );
 
@@ -44,17 +35,26 @@ if( $dir ) {
     chdir $dir or die "can't chdir to $dir\n";
 }
 
-my $inx = Bio::Index::Fasta->new( $Rfam::rfamseq_current_inx );
+my $inx = Bio::SeqFetcher::xdget->new( '-db' => [$Rfam::rfamseq] );
 
-END { undef $inx; }  # stop bizarre seq faults;
+# read in the current sequence versions
+my %emblsv;
+open( E, "$Rfam::rfamseq_current_dir/embl_sv.txt" ) or die;
+while(<E>) {
+    if( /^(\S+)\.(\d+)/ ) {
+	$emblsv{$1} = $2;
+    }
+}
+close E;
 
 my %cache;
-my @list;
 my $db = Rfam::default_db();
+my @list;
 @list = @ARGV or @list = $db->get_allacc();
 
 foreach my $acc ( @list ) {
-    print STDERR "Family $acc:\n";
+    next unless( -d "$acc" );
+    warn "Family $acc:\n" if $verbose;
     my( $seq_change, $cosmetic_change );
     my $aln = new Rfam::RfamAlign;
     open( SEED, "$acc/SEED" ) or die;
@@ -69,6 +69,7 @@ foreach my $acc ( @list ) {
     }
 
     foreach my $oldseq ( $aln -> each_seq() ) {
+	my @tags;
 	my( $oldstart, $oldend ) = ( $oldseq->start, $oldseq->end );
 
 	# $seq is the sequence we will add to the new aln object -
@@ -78,7 +79,8 @@ foreach my $acc ( @list ) {
 	my $seq = Bio::LocatableSeq -> new( '-id'    => $oldseq->id(),
 					    '-start' => $oldseq->start(),
 					    '-end'   => $oldseq->end(),
-					    '-seq'   => $oldseq->seq() );
+					    '-seq'   => $oldseq->seq(),
+					    '-strand' => 1 );
 
 	if( $seq->id() =~ /^(\S+)\.(\d+)$/ ) {
 	    $seq->accession_number($1);
@@ -89,50 +91,55 @@ foreach my $acc ( @list ) {
 	}
 	
 	if( my $change = &t_to_u( $seq ) ) {
-	    print STDERR $seq->id, " T_TO_U\n" if $verbose;
+	    push( @tags, "T_TO_U" );
 	    $cosmetic_change = 1;
 	}
 
-	if( my $newsv = &new_sv( $seq ) ) {         # accession exists in database
-	    print STDERR $seq->id, " ACCESSION_OK\n" if $verbose;
-	    my( $newstart, $newend ) = &subseq_is_unchanged( $seq );
-	    if( $newend ) { 
-		if( $newstart != $seq->start or $newend != $seq->end ) {
-		    print STDERR $seq->id, " START_END_CHANGE\n" if $verbose;		    
-		    $seq->start( $newstart );
-		    $seq->end( $newend );
-		    $cosmetic_change = 1;
-		}
-		else {
-		    print STDERR $seq->id, " SEQ_OK\n" if $verbose;
-		}
 
-		if( $seq->version() and $seq->version() == $newsv ) {   
-		    # leave well alone
-		}
-		else {                              # sv is different
-		    print STDERR $seq->id, " NEW_VERSION $newsv\n" if $verbose;
-		    $seq->version( $newsv );
-		    $seq->id( $seq->accession_number.".".$newsv );
-		    $cosmetic_change = 1;
-		}
-	    }
-	    else {   # the sequence has changed (hopefully only slightly)
-#		my $aln = align_to_new( $seq );
-		print STDERR $seq->id, " SEQ_CHANGE\n" if $verbose;
-	    }
+      SWITCH: {
+	  if( !exists $emblsv{$seq->accession_number} ) {
+	      # deleted
+	      push( @tags, "DELETE" );
+	      undef $seq;
+	      $seq_change = 1;
+	      last;
+	  }
+
+	  if( $seq->version() == $emblsv{$seq->accession_number} ) {
+	      # leave alone
+	      push( @tags, "UNCHANGED" );
+	      last;
+	  }
+
+	  # change the version and carry on with checks
+	  $seq->version( $emblsv{$seq->accession_number} );
+	  push( @tags, "NEW_VERSION" );
+
+	  my( $newstart, $newend ) = &subseq_is_unchanged( $seq );
+	  if( $newend ) {
+	      $seq->start( $newstart );
+	      $seq->end( $newend );
+	      push( @tags, "SEQ_OK" );
+	      $cosmetic_change = 1;
+	      last;
+	  }
+
+	  # sequence has changed
+	  push( @tags, "SEQ_CHANGED" );
+	  push( @tags, "DELETE" );
+	  undef $seq;
+	  $seq_change = 1;
+
+      };
+
+	if( $verbose ) {
+	    warn $oldseq->id."\t".join( " ", @tags )."\n";
 	}
-	else {       # we've got to map to a new accession
-	    print STDERR $seq->id, " DELETE\n" if $verbose;
-	    print STDERR "\n" if $verbose;
-	    $seq_change = 1;
-	    next;
+
+	if( $seq ) {
+	    $seq->id( $seq->accession_number.".".$seq->version );
+	    $newaln -> add_seq( $seq ) if( $seq );
 	}
-
-	print STDERR sprintf( "%-28s%-28s\n", $oldseq->id."/".$oldseq->start."-".$oldseq->end, $seq->id."/".$seq->start."-".$seq->end ) if $verbose;
-	print STDERR "\n" if $verbose;
-	$newaln -> add_seq( $seq );
-
     }
 
     if( !$noaction and ( $cosmetic_change or $seq_change ) ) {
@@ -143,12 +150,15 @@ foreach my $acc ( @list ) {
 	rename( "$acc/SEED", "$acc/SEEDOLD" ) or die "can't rename SEED to SEEDOLD";
 	rename( "$acc/SEEDNEW", "$acc/SEED" ) or die "can't rename SEEDNEW to SEED";
 
-	if( $seq_change ) {
-	    print STDERR "Family $acc: The alignment has changed - you must rebuild the family\n\n";
-	}
-	else {
-	    print STDERR "Family $acc: Cosmetic changes - no rebuild needed\n\n";
-	}
+    }
+    if( $seq_change ) {
+	warn "Family $acc: The alignment has changed - you must rebuild the family\n\n";
+    }
+    elsif( $cosmetic_change ) {
+	warn "Family $acc: Cosmetic changes - no rebuild needed\n\n";
+    }
+    else {
+	warn "Family $acc: Unchanged - no rebuild needed\n\n";
     }
 }
 
@@ -169,7 +179,7 @@ sub t_to_u {
 sub get_seq {
     my $acc = shift;
     eval {
-	$cache{$acc} = $inx->fetch( $acc ) unless exists $cache{$acc};
+	$cache{$acc} = $inx->get_Seq_by_acc( $acc ) unless exists $cache{$acc};
     };
     if( $@ or not $cache{$acc} ) {
 #	warn "$acc not found in your database: $@\n";
@@ -190,7 +200,7 @@ sub new_sv {
 
 sub subseq_is_unchanged {
     my $seq    = shift;
-    my $newseq = &get_seq( $seq->accession_number() );
+    my $newseq = &get_seq( $seq->accession_number().".".$emblsv{$seq->accession_number()} );
 
     my $reverse;
     my( $oldstr, $oldstr2 );
@@ -272,7 +282,7 @@ sub return_seq {
     my $to   = shift;
 
     eval {
-	$cache{$id} = $inx -> fetch( $id ) unless exists $cache{$id};
+	$cache{$id} = $inx -> get_Seq_by_acc( $id ) unless exists $cache{$id};
     };
     if( $@ or not $cache{$id} ) {
 	warn "$id not found in your database: $@\n";
