@@ -128,20 +128,20 @@ see!
     Movement commands
     -----------------
 
-    M-x jump-right			C-f
-    M-x jump-left			C-b
-    M-x jump-up				C-p
-    M-x jump-down			C-n
-    M-x jump-to-pair			C-c C-p
-    M-x jump-to-pair-in-other-window	C-c C-[
+    M-x jump-right				C-f
+    M-x jump-left				C-b
+    M-x jump-up					C-p
+    M-x jump-down				C-n
+    M-x jump-to-pair				C-c C-p
+    M-x jump-to-pair-in-other-window		C-c C-[
 
     Editing commands
     ----------------
 
-    M-x insert-gap			.
-    M-x insert-gap-column		C-c C-i
-    M-x delete-gap			C-d
-    M-x delete-gap-column		C-c C-d
+    M-x insert-gap				.
+    M-x insert-gap-column			C-c C-i
+    M-x delete-gap				C-d
+    M-x delete-gap-column			C-c C-d
     M-x delete-all-gap-columns
     M-x unblock-alignment
 
@@ -153,17 +153,19 @@ see!
     Painting commands
     -----------------
 
-    paint-buffer-by-ss			C-c C-b
-    paint-line-by-ss			C-c C-l
-    paint-buffer-by-cons		C-c C-v
+    M-x paint-buffer-by-ss			C-c C-b
+    M-x paint-line-by-ss			C-c C-l
+    M-x paint-buffer-by-cons			C-c C-v
+    M-x paint-buffer-by-current-ss-line		C-c C-n
 
     Helper commands
     ---------------
 
+    M-x fold-sequence				C-c C-f
     M-x show-structure-ps
     M-x fetch-sequence
 
-(show-structure-ps assumes that you have ViennaRNA
+(show-structure-ps and fold-sequence assume that you have ViennaRNA
 (http://www.tbi.univie.ac.at/~ivo/RNA/) installed, and that RNAfold
 (along with gv) is on your path.  fetch-sequence will only work inside
 the Sanger at the moment.  Both should be more configurable at some
