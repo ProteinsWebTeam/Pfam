@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 
 use strict;
-use lib '/nfs/disk56/sgj/pfam/scripts/rfam/scripts/Modules';
+use lib '/pfam/db/Rfam/scripts/Modules';
 use Rfam;
 
 my $file = shift;
@@ -24,5 +24,5 @@ chdir "$Rfam::current_dir" or die;
 foreach my $acc ( @accs ) {
     my $id = Rfam::acc2id( $acc );
     print "Doing $id ....\n";
-    system "/nfs/disk56/sgj/pfam/scripts/rfam/makerfamview.pl $id" and die;
+    system "$Rfam::scripts_dir/rfamrcs/makerfamview.pl $id" and die;
 }
