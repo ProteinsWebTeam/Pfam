@@ -152,21 +152,21 @@ sub get_allacc {
 
 sub get_Entry_by_acc {
    my ($self, $acc, $dead_please) = @_;
-   my ($entry,$id,$currentdir, $atticdir, $dir, $fname, $isdead);
+   my ($entry,$currentdir, $atticdir, $dir, $fname, $isdead);
    $currentdir = $self->_current_dir();
 
    if( ! -d  "$currentdir/$acc" ) {
        $atticdir = $self->_attic_directory();
-       if (! -d "$atticdir/$id") {
+       if (! -d "$atticdir/$acc") {
 	   die("$acc is not a valid accession for this Rfam database");
        }
        else {
            if ($dead_please) {
-               $dir = "$atticdir/$id";
+               $dir = "$atticdir/$acc";
                $fname = "DEAD";
            }   
            else {
-               $self->throw("$id is the id of a dead family");
+               die("$acc is the accession of a dead family");
            }
        }
    }
