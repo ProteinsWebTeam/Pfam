@@ -35,6 +35,10 @@ use Bio::SimpleAlign;
 @ISA = qw( Bio::SimpleAlign );
 
 
+# new is probably not needed at the moment, but we have it
+# here to make the SS_CONS and MATCH_STATES explicit and
+# documented
+
 sub new {
     my $caller = shift;
     my $class  = ref( $caller ) || $caller;
@@ -55,6 +59,60 @@ sub match_states {
     $self -> { 'MATCH_STATES' } = shift if @_;
     return $self -> { 'MATCH_STATES' };
 }
+
+
+# SimpleAlign docs suggest this is implemented therein but it aint!
+# Nicked from Pfam::AlignPfam
+
+# altered to act on $self and return number of columns removed
+
+
+sub allgaps_columns_removed {
+    my ($self) = @_;
+    my (@columnlist, %mymap);
+    my @index_list = (0..$self->length_aln-1);
+
+    my @newrf = split( //, $self -> match_states );
+    my @newss = split( //, $self -> ss_cons );
+
+
+    foreach my $seq ($self->eachSeq) {
+        my @ary = split( //, $seq->seq() );
+        foreach my $el (grep { $ary[$_] ne '.' and $ary[$_] ne '-' }  (@index_list)) {
+            $mymap{ $el } = 1;
+        }
+
+        foreach my $el (grep { $newrf[$_] ne '.' and $newrf[$_] ne '-' }  (@index_list)) {
+            $mymap{ $el } = 1;
+        }
+
+        foreach my $el (grep { $newss[$_] ne '.' and $newss[$_] ne '-' }  (@index_list)) {
+            $mymap{ $el } = 1;
+        }
+    }
+
+    my @sortedgappositions = sort { $b <=> $a } grep { not defined( $mymap{$_}) }  (@index_list);
+
+    foreach my $gappos (@sortedgappositions) {
+	splice @newrf, $gappos, 1;
+	splice @newss, $gappos, 1;
+    }
+    $self -> match_states( join( "", @newrf ) );
+    $self -> ss_cons( join( "", @newss ) );
+
+    foreach my $seq ($self->eachSeq) {
+	my @newseq = split( //, $seq->seq() );
+
+        foreach my $gappos (@sortedgappositions) {
+            splice @newseq, $gappos, 1;
+        }
+
+	$seq -> seq( join ( "", @newseq ) );
+    }
+
+    return scalar( @sortedgappositions );
+}
+
 
 
 sub read_stockholm {
