@@ -378,7 +378,8 @@ sub update_rfam{
        $rdb_cmbuild,
        $rdb_num_full,
        $rdb_num_seed,
-
+       $rdb_entry_type,
+       $rdb_structure_source
       );
 
    $dbh = $self->open_transaction( 'rfam' );
@@ -410,6 +411,7 @@ sub update_rfam{
 	      
 	   $rdb_previous_ids = $en->previous_ids();
 	   $rdb_source = $en->source();
+	   $rdb_structure_source = $en->structure_source();
 	   foreach my $line ($en->each_build_line) {
 	       $rdb_cmcalibrate .= $line if (($rdb_cmbuild) &&  (!$rdb_cmcalibrate) );
 	       $rdb_cmbuild .= $line if   (!$rdb_cmbuild)  ;
@@ -418,6 +420,7 @@ sub update_rfam{
 	   $rdb_num_full = $en->num_seqs_in_full();
 	       
 	   $rdb_modlen = $en->model_length;
+	   $rdb_entry_type = $en->entry_type;
        };
        if ($@) {
 	   $error = "Could not fetch all the needed data from the rfam entry [$@]";
@@ -430,7 +433,7 @@ sub update_rfam{
     
        eval {
 	   if (not defined $stat) {
-	       $stat = $dbh->prepare($self->__replace_sql('rfam', 18));
+	       $stat = $dbh->prepare($self->__replace_sql('rfam', 19));
 	   }
 	  
 	  # print "ADDING DATA $rdb_auto_num, $rdb_acc, \n";
@@ -451,7 +454,8 @@ sub update_rfam{
 			   $rdb_cmcalibrate,
 			   $rdb_num_seed, 
 			   $rdb_num_full,
-	                   ""
+	                   $rdb_entry_type,
+			   $rdb_structure_source
 			 );
 	   $rows += $stat->rows;
        };
@@ -473,6 +477,25 @@ sub update_rfam{
    return $rows;
 }
 
+sub fix_tax_and_species {
+  my($self, @array) = @_;
+   $dbh = $self->open_transaction( 'rfamseq');
+  foreach (@array) {
+    chop($_);
+    my($rfamseq_acc, $species, $taxonomy) = split(/~/, $_);
+    $species = $dbh->quote($species);
+    $taxonomy = $dbh->quote($taxonomy);
+    my $sql = "update rfamseq set species = $species, taxonomy = $taxonomy where rfamseq_acc = '$rfamseq_acc'";
+  #  print "sql: $sql \n";
+    my $st = $dbh->prepare($sql);
+    $st->execute();
+    
+    $st->finish();
+  #  exit(0);
+  }
+
+   $self->close_transaction();
+}
 
 
 ###########################################
@@ -765,31 +788,32 @@ sub update_literature_references {
       $dbh->do("delete from rfam_literature_references where auto_rfam = '$rdb_auto_num'") if ($rdb_auto_num);
     };
   
-    
     ## If there is a literature reference
     if ($en->each_reference()) {
-
       my $count = 1;
       # For each reference
       foreach my $ref ( $en->each_reference() ) {
-	
 	my($comment, $medline, $authors, $journal, $title);
 	
-	## Get out comment if there is one
-	if (defined ($ref->comment() ) ) {
-	#  print "COMMENT: " .$ref->comment() . " \n";
-	  #foreach my $refcomm ( $ref->comment->each_flat() ) {
-	   # $comment .=  $refcomm . " ";
-	  $comment = $ref->comment();
-	  #  chop($refcomm);
-	#  }
-	}
-	
+	## Get out comment if there is one - ignored for the moment
+#	if (defined ($ref->comment() ) ) {
+#	  print "DEF\n";
+#	#  print "COMMENT: " .$ref->comment() . " \n";
+#	  #foreach my $refcomm ( $ref->comment->each_flat() ) {
+#	   # $comment .=  $refcomm . " ";
+#	  $comment = $ref->comment();
+#	  print "COMMENT: " .$ref->comment() . " \n";
+#	  #  chop($refcomm);
+#	#  }
+#	}
 
+
+	
+#	print "COMM $comment \n";
 
 	$medline = $ref->medline();
 	$title = $ref->title();
-
+	
 	$authors = $ref->authors;
 	$journal = $ref->location();
 	
@@ -803,7 +827,6 @@ sub update_literature_references {
 	$st->execute();
 	my($auto_lit) = $st->fetchrow;
 	$st->finish();
-	
 	## Not already in medline so add it
 	if (!$auto_lit) {
 	  ## need to add the lit reference
@@ -811,7 +834,6 @@ sub update_literature_references {
 	    $stat = undef;
 	    if (not defined $stat) {
 	      my $sql = "INSERT INTO literature_references VALUES ( NULL , $medline, $title, $authors, $journal)";
-	      
 	      $stat = $dbh->prepare($sql);
 	    }
 	    
@@ -1054,7 +1076,7 @@ sub add_rfamseq {
 #       }
 
     
-       
+     my $taxon;
      if (defined($store_rfamseq{$rdb_acc})) {
        
      } else {
@@ -1064,7 +1086,7 @@ sub add_rfamseq {
 	# print "NO AUTO \n";
 	 eval {
 	   if (not defined $stat_add) {
-	     $stat_add = $dbh->prepare($self->__insert_sql('rfamseq', 8));
+	     $stat_add = $dbh->prepare($self->__insert_sql('rfamseq', 9));
 	     #print "stat: $stat \n";
 	   }
           print "ADDING: $rdb_acc \n";
@@ -1076,7 +1098,8 @@ sub add_rfamseq {
 			  $rdb_os,
 			  $rdb_oc,
 			  $rdb_version,
-			  $rdb_prev
+			  $rdb_prev,
+			  $taxon
 			 );
 	   $rows += $stat_add->rows;
 	 };
@@ -1097,10 +1120,11 @@ sub add_rfamseq {
 #	 print "updating: $rdb_acc \n";
 	 eval {
 	   if (not defined $stat) {
-	     $stat = $dbh->prepare($self->__replace_sql('rfamseq', 8));
+	     $stat = $dbh->prepare($self->__replace_sql('rfamseq', 9));
 	    # print "stat: $stat \n";
 	   }
 	   #print "UPDATING $rdb_auto , $rdb_acc \n";
+	   
 	   $stat->execute($rdb_auto,
 			  $rdb_id, 
 			  $rdb_acc, 
@@ -1108,7 +1132,8 @@ sub add_rfamseq {
 			  $rdb_os,
 			  $rdb_oc,
 			  $rdb_version,
-			  $rdb_prev
+			  $rdb_prev,
+			  $taxon
 			 );
 	   $rows += $stat->rows;
 
@@ -1165,12 +1190,12 @@ sub  delete_mirna_tables{
 
 sub add_mirna {
   my($self, $id, $acc, $desc , $mature, $sequence, $refs, $database) = @_;
-
+  
   my ($dbh, $stat_add, $stat_mat,$stat_data, $rows, $error, $auto_lit, $auto_mirna, $stat_lit, $stat_mirna);
-
- # print "ID: $id, ACC: $acc, $desc , $start, $end, $mature_name, $sequence \n";
-   $dbh = $self->open_transaction( 'mirna' ,'literature_references', 'mirna_literature_references', 'mirna_mature', 'mirna_species', 'mirna_database_links'  );
-
+  
+  # print "ID: $id, ACC: $acc, $desc , $start, $end, $mature_name, $sequence \n";
+  $dbh = $self->open_transaction( 'mirna' ,'literature_references', 'mirna_literature_references', 'mirna_mature', 'mirna_species', 'mirna_database_links'  );
+  
   
   ######### UPDATE mirna 
   eval {
@@ -1194,31 +1219,31 @@ sub add_mirna {
     last;
   }
   
-
+  
   my @mature_temp = @${mature};
 
 foreach my $query_return (@mature_temp) {
   my %output = %{$query_return};
-
-
+  
+  
   ########## UPDATE mirna_mature  
   eval {
     if (not defined $stat_mat) {
       $stat_mat = $dbh->prepare($self->__insert_sql('mirna_mature', 4));
     }
-
+    
     $stat_mat->execute($auto_mirna,
 		       $output{'NAME'},
 		       $output{'START'},
 		       $output{'END'}
 		      );
-      $rows += $stat_add->rows;
+    $rows += $stat_add->rows;
   };
   if ($@) {
     $error = "Could not do the insertion on the mirna_mature table [$@]";
     last;
   }
-
+  
 }
 
 ######## UPDATE literature tables
@@ -1243,7 +1268,7 @@ foreach my $query_return (@refs_temp) {
       }
       #   print "ADDING: $rdb_acc \n";
       #  sleep 1;
-    #  die "No auto_
+      #  die "No auto_
       $stat_lit->execute($auto_lit,
 			 $output{MEDLINE},
 			 $output{TITLE},
@@ -1277,9 +1302,9 @@ foreach my $query_return (@refs_temp) {
 			 $output{NUMBER}
 			);
     $rows += $stat_mirna->rows;
+    
+  }
   
-}
-
   
 };
 if ($@) {
@@ -1299,13 +1324,13 @@ my @database_tmp = @${database};
 
 foreach my $query_return (@database_tmp) {
   my %output = %{$query_return};
-
+  
   my $db_id = $output{ID};
   my $db_link = $output{LINK};
   my $db_comment = $output{COMMENT};
   
-
-
+  
+  
   eval {
     if (not defined $stat_data) {
       $stat_lit = $dbh->prepare($self->__insert_sql('mirna_database_links', 5));
@@ -1321,7 +1346,7 @@ foreach my $query_return (@database_tmp) {
 		      );
     $rows += $stat_data->rows;
     
-  
+    
     
   };
   if ($@) {
