@@ -4,9 +4,7 @@ use strict;
 use Getopt::Long;
 use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Index::Fasta;
-#use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
-use lib '/nfs/disk56/sgj/pfam/scripts/Modules';
-use Bio::SimpleAlign;
+use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
 use CMResults;
 
 my( $thr, 
@@ -37,6 +35,16 @@ END {
 }
 
 my $file = shift;
+
+if( not defined $thr ) {
+    open( DESC, "DESC" ) or die;
+    while( <DESC> ) {
+	/^GA\s+(\S+)/ and do {
+	    $thr = $1;
+	}
+    }
+    close DESC;
+}
 
 open( F, $file ) or die;
 open( FA, ">$$.fa" ) or die;
@@ -97,6 +105,7 @@ foreach my $cmseq ( $res->eachHMMSequence() ) {
 	my $seq = &get_seq( $id, $start, $end );
 	next unless $seq;
 	my $seqstr = $seq->seq();
+	$seqstr =~ tr/Tt/Uu/;                 # It's RNA dammit! (SRE)
 	$seqstr =~ s/(.{1,60})/$1\n/g;
 	print FA ">", $seq->id(), "\n$seqstr";
     }
@@ -107,6 +116,7 @@ system "covea -o ALIGN CM.cov $$.fa" and die "failed to run covea";
 
 my $tc_bits = $res -> lowest_true( $thr );
 my $nc_bits = $res -> highest_noise( $thr );
+$nc_bits = "undefined" if( $nc_bits == -100000 );    # hack!
 
 if( -s "DESC" ) {
     open( DNEW, ">DESC.new" ) or die;
@@ -121,7 +131,12 @@ if( -s "DESC" ) {
 	    next;
 	}
 	if( /^NC\s+/ ) {
-	    printf DNEW ( "NC   %.2f\n", $nc_bits );
+	    if( $nc_bits eq "undefined" ) {
+		printf DNEW ( "NC   %s\n", $nc_bits );		
+	    }
+	    else {
+		printf DNEW ( "NC   %.2f\n", $nc_bits );
+	    }
 	    next;
 	}
 	print DNEW $_;
