@@ -146,7 +146,7 @@ if( &RfamRCS::update_current_directory($acc) == 0 ) {
 print STDERR "\nChecking family into RDB\n";
 
 eval {
-  my $rdb =  Rfam::switchover_rdb_update();
+  my $rdb =  Rfam::live_rdb_update();
   my $db = Rfam::default_db();
   my $en = $db->get_Entry_by_acc( $acc);
   my $id = $en->author();
