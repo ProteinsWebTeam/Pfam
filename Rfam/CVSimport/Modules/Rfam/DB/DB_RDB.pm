@@ -64,38 +64,15 @@ use Rfam::AnnotatedSequence;
 
 @ISA = qw(Rfam::DB::DB);
 
-# _initialize is where the heavy stuff will happen when new is called
 
 sub new {
-   my $caller = shift;
-   my $self = bless {}, ref($caller) || $caller;
-
- #  print "BOO <P>";
+   my $class = shift;
    my %params = @_;
-   my $make = $self->SUPER::new(%params);
+   my $self = $class->SUPER::new(%params);
 
-   $make->_the_RDB( Rfam::DB::RfamRDB->new( %params ));
-return $make; # success - we hope!
+   $self->_the_RDB( Rfam::DB::RfamRDB->new( %params ));
+   return $self;
 }
-
-#sub _initialize {
-#  my($self, %params) = @_;
-
-#  my $make = $self->SUPER::_initialize(%params);
- 
-#  # ok - ready to rock
-
-#  $self->_the_RDB( Rfam::DB::RfamRDB->new( %params ));
-
-#  # set stuff in self from @args
-#  return $make; # success - we hope!
-#}
-
-
-
-
-
-
 
 
 
@@ -125,11 +102,10 @@ sub query{
     my ($self, $query) = @_;
     my ($dbh, $st, @retlist);
 
- if ( ($query !~ /^select/i) && ($query !~ /^show/i) &&  ($query !~ /^describe/i) ) {
-
+    if ( ($query !~ /^select/i) && ($query !~ /^show/i) &&  ($query !~ /^describe/i) ) {
 	print "DB_RDB::query - only 'select' queries are allowed";
 	exit();
-	}
+    }
 
     eval {
 	$dbh = $self->_the_RDB->connect();
@@ -152,134 +128,131 @@ sub query{
 
 
 sub get_AnnotSeqs {
-  my ($self, $id_list, $type_list) = @_;
-  
-  my ($dbh, $st_pfamA_reg_seed, $st_pfamA_reg_full,  $st_pfamB_reg, $st_other_reg,$st_hmm_other_region,$st_context_region, $st_length, $length,       $seq_id, $st, $en, $score, $mo_st, $mo_en, $bits, $ev, $acc, $id, $desc, $orien,       $annot, $sou, $all_regs, $mod_len, $tree_order,      @annseqlist,$domain_score,	  %temp);
-  
-  #  my $fac = Rfam::AnnotatedSequence->new();
-  eval {
-    $dbh = $self->_the_RDB->connect();
-  };
-  
-  if (not $type_list) {
-    $all_regs = "true";	 
-  }   else {
-    foreach my $info_type (@{$type_list}) {
-      if ($info_type =~ /seed/i) {
-	$temp{ "seed" } = 1;
-      }       elsif ($info_type =~ /full/i) {
-	$temp{ "full" } = 1;
-      }
-    }
+    my ($self, $id_list, $type_list) = @_;
+    my @annseqlist;
     
-  }
-  
-  if ($temp{"full"} or $all_regs) {
-    
-    #	   my $stat = "select seq_start, seq_end, model_start, model_end, ";
-    #	   $stat .= "bits_score, evalue_score, pfamA_reg_full.pfamA_acc, pfamA_id, description ";
-    #	   $stat .= "from pfamA_reg_full natural left join pfamA  where pfamseq_id = ?";
-    
-#    my $stat = "select seq_start, seq_end, model_start, model_end, ";
-#    $stat .= "domain_bits_score, domain_evalue_score, pfamA.pfamA_acc, pfamA_id, pfamA.description , pfamA_reg_full.tree_order ";
-#    $stat .= "from pfamseq, pfamA, pfamA_reg_full ";
-#    $stat .= "where pfamseq.pfamseq_id =  ? and pfamseq.auto_pfamseq = pfamA_reg_full.auto_pfamseq and pfamA_reg_full.auto_pfamA = pfamA.auto_pfamA  and in_full = '1'";
-
-    my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  bits_score from rfam_reg_full , rfamseq, rfam";
-    $stat .= " where rfam_acc = ? and rfam.auto_rfam = rfam_reg_full.auto_rfam ";
-    $stat .= "and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
-    
-    ##and significant = '1'  #### BUG FIX !! 
-    
-    
-    $st_pfamA_reg_full = $dbh->prepare($stat);
-    
-  }
-  
-  if ($temp{"seed"}) {
-    #	   my $stat = "select seq_start, seq_end, ";
-    #	   $stat .= "pfamA_reg_seed.pfamA_acc, pfamA_id, description ";
-    #	   $stat .= "from pfamA_reg_seed natural left join pfamA where pfamseq_id = ?";
-    
-#    my $stat = "select seq_start, seq_end, ";
-#    $stat .= "pfamA.pfamA_acc, pfamA_id, pfamA.description ";
-#    $stat .= "from pfamA_reg_seed, pfamA, pfamseq  where pfamseq.pfamseq_id  = ? and pfamseq.auto_pfamseq = pfamA_reg_seed.auto_pfamseq and pfamA_reg_seed.auto_pfamA = pfamA.auto_pfamA";
-    
-    my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  from rfam_reg_seed , rfamseq, rfam";
-    $stat .= " where rfamseq_acc = ? and rfam.auto_rfam = rfam_reg_seed.auto_rfam ";
-    $stat .= "and rfam_reg_seed.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
-#    print "STAT: $stat \n";
-    $st_pfamA_reg_seed = $dbh->prepare($stat);
-  }
-  
-  
-  foreach my $in_id (@{$id_list}) {
-    my $fac = Rfam::AnnotatedSequence->new();
-    #my $annSeq = $fac->createAnnotatedSequence();
-    $fac->id( $in_id );
-#    print "ID: $in_id \n";
-    if (defined $st_pfamA_reg_full) {
-      $st_pfamA_reg_full->execute($in_id);
-#      print "FULL: $st_pfamA_reg_full \n";
-      while ( my($rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end,$desc, $bits_score)
-	      = $st_pfamA_reg_full->fetchrow) {
-	
-	
-	$fac->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
-							'-RFAM_ID' => $rfam_id,
-							'-SEQ_ID' => $rfamseq_id,
-							'-MODEL_FROM' => $seq_start,
-							'-MODEL_TO' => $seq_end,
-							'-AUTO_RFAM' => $auto_rfam,
-							'-BITS' => $bits_score,
-							
-							'-ANNOTATION' => $desc
-						       ));
-      }
-      
-      
-      $st_pfamA_reg_full->finish;
-    }
-    
-    if (defined $st_pfamA_reg_seed) {
-      eval {
-	$st_pfamA_reg_seed->execute($in_id);
-   #   print "SEED: $st_pfamA_reg_seed \n";
-      while ( my($rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end,$desc)
-	      = $st_pfamA_reg_seed->fetchrow) {
-#	print "$rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end,$desc\n";
-	$fac->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
-							'-RFAM_ID' => $rfam_id,
-							'-SEQ_ID' => $rfamseq_id,
-							'-MODEL_FROM' => $seq_start,
-							'-MODEL_TO' => $seq_end,
-							'-AUTO_RFAM' => $auto_rfam,
-							
-							'-ANNOTATION' => $desc
-						       ));
-
-
-
-      }
-      $st_pfamA_reg_seed->finish;
+    my $dbh;
+    eval {
+	$dbh = $self->_the_RDB->connect();
     };
-      if ($@) {
-#	print "BOMB \n";
-      }
+    
+    my %type;
+    if (not $type_list) {
+	$type{ "seed" } = 1;
+	$type{ "full" } = 1;
     }
- #   print "FAC: $fac \n";
-    push @annseqlist, $fac;
-  }
+    else {
+	foreach my $info_type (@{$type_list}) {
+	    if ($info_type =~ /seed/i) {
+		$type{ "seed" } = 1;
+	    } 
+	    elsif ($info_type =~ /full/i) {
+		$type{ "full" } = 1;
+	    }
+	}
+    }
+    
+    my $st_pfamA_reg_full;
+    if ($type{"full"}) {
+	my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description, bits_score from rfam_reg_full, rfamseq, rfam";
+	$stat .= " where rfamseq_acc = ? and rfam.auto_rfam = rfam_reg_full.auto_rfam ";
+	$stat .= "and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
+    
+	$st_pfamA_reg_full = $dbh->prepare($stat);
+    }
   
-  $self->_the_RDB->disconnect;
-#}
+    my $st_pfamA_reg_seed;
+    if ($type{"seed"}) {
+	my $stat = "select rfamseq_acc, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  from rfam_reg_seed, rfamseq, rfam ";
+	$stat .= "where rfamseq_acc = ? and rfam.auto_rfam = rfam_reg_seed.auto_rfam ";
+	$stat .= "and rfam_reg_seed.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_id";
 
-  return @annseqlist;
-#}#
+	$st_pfamA_reg_seed = $dbh->prepare($stat);
+    }
   
+    foreach my $in_id (@{$id_list}) {
+	my $annseq = Rfam::AnnotatedSequence->new();
+	my( $sv ) = $self->rfamseq_version( $in_id );
+	$annseq->id( $sv );
+
+	if (defined $st_pfamA_reg_full) {
+	    $st_pfamA_reg_full->execute($in_id);
+	    while ( my($rfamseq_id, $rfam_acc, $rfam_id, $auto_rfam, $seq_start, $seq_end,$desc, $bits_score)
+		    = $st_pfamA_reg_full->fetchrow) {
+		
+		$annseq->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
+								   '-RFAM_ID' => $rfam_id,
+								   '-SEQ_ID' => $sv,
+								   '-FROM' => $seq_start,
+								   '-TO' => $seq_end,
+								   '-AUTO_RFAM' => $auto_rfam,
+								   '-BITS' => $bits_score,
+								
+								   '-ANNOTATION' => $desc
+								   ));
+	    }
+	    $st_pfamA_reg_full->finish;
+	}
+    
+	if (defined $st_pfamA_reg_seed) {
+	    eval {
+		$st_pfamA_reg_seed->execute($in_id);
+
+		while ( my($rfamseq_id, $rfam_acc, $rfam_id,$auto_rfam, $seq_start, $seq_end, $desc)
+			= $st_pfamA_reg_seed->fetchrow) {
+
+		    $annseq->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
+								       '-RFAM_ID' => $rfam_id,
+								       '-SEQ_ID' => $sv,
+								       '-FROM' => $seq_start,
+								       '-TO' => $seq_end,
+								       '-AUTO_RFAM' => $auto_rfam,
+								       
+								       '-ANNOTATION' => $desc
+								       ));
+		    
+		}
+		$st_pfamA_reg_seed->finish;
+	    };
+	    if ($@) {
+		warn "RDB connection problems [$@]";
+	    }
+	}
+	push( @annseqlist, $annseq );
+    }
+    
+    $self->_the_RDB->disconnect;
+    return @annseqlist;
 }
 
 
+sub rfamseq_version {
+    my $self = shift;
+    my $rfamseq_acc = shift;
+
+    my $dbh;
+    eval {
+	$dbh = $self->_the_RDB->connect();
+    };
+    if( $@ ) {
+	warn "RDB connection problems [$@]";
+    }
+    
+    my $stat = "select version from rfamseq where rfamseq_acc = ?";
+    my $prep = $dbh->prepare($stat);
+    
+    my @version;
+    eval {
+	$prep->execute($rfamseq_acc);
+	while( my($version) = $prep->fetchrow) {
+	    push( @version, $version );
+	}
+    };
+    if( $@ ) {
+	warn "RDB connection problems [$@]";
+    }
+    return @version;
+}
 
 
 
