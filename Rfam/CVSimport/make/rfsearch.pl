@@ -167,32 +167,54 @@ print STDERR "building mini database ... ";
 my $numseqs = scalar( keys %{ $seqlist } );
 my $count = int( $numseqs/$cpus ) + 1;
 my $k = 1;
-my @seqids = sort keys %{ $seqlist };
+my @seqids = keys %{ $seqlist };
 while( @seqids ) {
     my @tmpids = splice( @seqids, 0, $count ); 
-    open( FA, "> $$.minidb.$k" ) or die;
+    my @nses;
+
     foreach my $seqid ( @tmpids ) {
         foreach my $reg ( @{ $seqlist->{$seqid} } ) {
+	    # this is a bit complex just to get an array of nses
 	    my $seqsv = $seqid.".".$sv{$seqid};
 	    my( $start, $end ) = ( $reg->{'start'}, $reg->{'end'} );
-	  GET: {
-	      $fh -> open( "pfetch -a $seqsv:$start-$end -n $seqid/$start-$end |" );
-	      while(<$fh>) {
-		  if( /end is greater than sequence length.*?(\d+)/ ) {
-		      $end = $1;
-		      $fh -> close;
-		      redo GET;
-		  }
-		  elsif( /no match/ ) {
-		      warn "$seqsv not found in database - this is bad\n";
-		  }
-		  else {
-		      print FA "$_";
-		  }
-	      }
-	      $fh -> close;
-	  }
-        }
+	    push( @nses, "$seqsv:$start-$end" );
+	}
+    }
+
+    open( FA, "> $$.minidb.$k" ) or die;
+    while( @nses ) {
+	my @tmpnses = splice( @nses, 0, 1000 ); 
+	my $str = join( ' ', @tmpnses );
+	while( $str ) {  # while we have a query to run
+	    my $i = 0;
+	    $fh -> open( "pfetch -a $str |" );
+	    $str = "";   # reset ready to fill will those that failed last time
+	    my $nse;
+	    while(<$fh>) {
+		if( /^\>(\S+)/ ) {
+		    $nse = $tmpnses[$i];
+		    $nse =~ tr/:/\//;
+		    my( $tmpid, $tmpse ) = $nse =~ /(\S+)\.\d+\/(\d+-\d+)/;
+		    print FA ">$tmpid/$tmpse\n";
+		    $i ++;
+		}
+		elsif( my( $end ) = /end is greater than sequence length.*?(\d+)/ ) {
+		    $nse = $tmpnses[$i];
+		    my( $tmp ) = $nse =~ /(\S+\.\d+\:\d+-)\d+/;
+		    $str .= "$tmp$end ";
+		    $i++
+		}
+		elsif( /no match/ ) {
+		    $nse = $tmpnses[$i];
+		    warn "$nse not found in database - this is bad and needs following up\n";
+		    $i++;
+		}
+		else {
+		    print FA "$_";
+		}
+	    }
+	    $fh -> close;
+	}
     }
     $k++;
     close FA;
