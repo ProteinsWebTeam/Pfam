@@ -1186,9 +1186,9 @@ foreach my $query_return (@mature_temp) {
     }
 
     $stat_mat->execute($auto_mirna,
-		       $output{NAME},
-		       $output{START},
-		       $output{END}
+		       $output{'NAME'},
+		       $output{'START'},
+		       $output{'END'}
 		      );
       $rows += $stat_add->rows;
   };
