@@ -28,6 +28,7 @@ use vars qw( @ISA
 	     @ann_file_set
              @rcs_file_set 
 	     @output_file_set
+	     @scores_file_set
 	     @optional_file_set 
 	     $view_maker );
 
@@ -51,6 +52,7 @@ use vars qw( @ISA
 	      @model_file_set
 	      @rcs_file_set 
               @output_file_set
+	      @scores_file_set
 	      @optional_file_set 
 	      $view_maker );
 
@@ -74,8 +76,8 @@ $rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";
 @ann_file_set      = ( "DESC" );
 @output_file_set   = ( "OUTPUT" );
 @model_file_set    = ( "CM" );
-@rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set, @output_file_set );
-@optional_file_set = ( "scores" );
+@scores_file_set   = ( "scores" );
+@rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set, @output_file_set, @scores_file_set );
 
 $view_maker = "$scripts_dir/rfamrcs/makerfamview.pl";
 
@@ -117,6 +119,30 @@ sub id2acc {
     warn "Can't find $id in file $acclog_file\n";
     return 0;
 }
+
+sub is_acc {
+    my $test = shift;
+    open( F, $acclog_file ) or die "can't open acclog file $acclog_file";
+    while(<F>) {
+	if( /^$test\s+\[\S+\]/ ) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+sub is_id {
+    my $test = shift;
+    open( F, $acclog_file ) or die "can't open acclog file $acclog_file";
+    while(<F>) {
+	if( /^RF\d+\s+\[$test\]/ ) {
+	    return 1;
+	}
+    }
+    return 0;
+}
+
+
 
 
 1;
