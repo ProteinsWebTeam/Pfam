@@ -77,6 +77,4 @@ if( ! -e "$Rfam::current_dir/$acc/todo.view" ) {
     unlink("$Rfam::current_dir/$acc/todo.view");
 }
 
-if( -e "$Rfam::current_dir/$acc/locked" ) {
-    system("rfabort -u VIEW $acc") and die;
-}
+system("rfabort -u VIEW $acc") and warn "$acc: abort view lock failed - no lock";
