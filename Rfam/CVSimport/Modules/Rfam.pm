@@ -40,13 +40,13 @@ use vars qw( @ISA
 	      @rcs_file_set 
               @optional_file_set );
 
-$root_dir       = "/nfs/farm/Rfam";
+$root_dir       = "/pfam/db/Rfam";
 $current_dir    = "$root_dir/CURRENT";
-$accession_dir  = "/pfam/db/Rfam/ACCESSION";
-$releases_dir   = "/pfam/db/Rfam/RELEASES";
+$accession_dir  = "$root_dir/ACCESSION";
+$releases_dir   = "$root_dir/RELEASES";
 $rcs_master_dir = "$root_dir/RCS_MASTER";
 $rcs_attic_dir  = "$root_dir/RCS_ATTIC";
-$scripts_dir    = "/pfam/db/Rfam/scripts";
+$scripts_dir    = "$root_dir/scripts";
 $acclog_file    = "$accession_dir/acclog";
 
 @align_file_set    = ( "SEED", "ALIGN" );
