@@ -530,8 +530,13 @@ sub update_rfam_reg_full {
 
        my @regions = $en->annotated_regions('FULL');
        foreach my $reg (@regions) {
-	 my $rfamseq_acc = $reg->seq_name;
-	
+	   my $rfamseq_acc;     # should be embl acc not acc.ver
+	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
+	       $rfamseq_acc = $1;
+	   }
+	   else {
+	       $rfamseq_acc = $reg->seq_name;
+	   }
 	 
 	 if (defined($store_rfamseq{$rfamseq_acc})) {
 	   $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
@@ -640,8 +645,13 @@ sub update_rfam_reg_seed {
        $dbh->do("delete from rfam_reg_seed where auto_rfam = '$rdb_auto_num' ");
        my @regions = $en->annotated_regions('SEED');
        foreach my $reg (@regions) {
-	 my $rfamseq_acc = $reg->seq_name;
-	
+	   my $rfamseq_acc;     # should be embl acc not acc.ver
+	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
+	       $rfamseq_acc = $1;
+	   }
+	   else {
+	       $rfamseq_acc = $reg->seq_name;
+	   }
 	 
 	 if (defined($store_rfamseq{$rfamseq_acc})) {
 	   $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
