@@ -19,10 +19,11 @@ use Bio::Tools::BPlite;
 use Bio::Index::Fasta;
 use Bio::SeqIO;
 
-my( $evalue, $division, $minidb, $help );
+my( $evalue, $division, $minidb, $help, $length );
 &GetOptions( "e=s"    => \$evalue,
 	     "d=s"    => \$division,
 	     "h"      => \$help,
+	     "w=s"    => \$length,
 	     "minidb" => \$minidb );
 
 $evalue = 10 if( not $evalue );
@@ -39,6 +40,7 @@ Options:       -h          show this help
                -d <div>    restrict search to EMBL division
                -e <n>      blast evalue threshold
                --minidb    build minidb of all blast hits
+	       -w <n>      override sequence length window 
 
 EOF
 exit(1);
@@ -48,7 +50,9 @@ my $blastdbdir = $rfamseq_current_dir;
 my $inxfile    = $rfamseq_current_inx;
 
 my $in = Bio::SeqIO -> new( '-file' => $fafile, '-format' => 'Fasta' );
-my $length = $in -> next_seq() -> length();
+unless( $length ) {
+    $length = $in -> next_seq() -> length();
+}
 
 my $seqinx  = Bio::Index::Fasta->new( '-filename'    => $inxfile,
 				      '-dbm_package' => 'DB_File' ); 
