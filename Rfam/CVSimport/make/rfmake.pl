@@ -4,9 +4,10 @@ use strict;
 use Getopt::Long;
 use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Index::Fasta;
-#use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
-use lib '/nfs/disk56/sgj/pfam/scripts/Modules';
+use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
 use CMResults;
+use lib '/pfam/db/Rfam/scripts/Modules';
+use Rfam;
 
 my( $thr, 
     $inxfile,
@@ -27,7 +28,7 @@ if( $help ) {
     exit(1);
 }
 
-not $inxfile and $inxfile = '/pfam/db/rfamseq/rfamseq.fa.bpi';
+not $inxfile and $inxfile = $rfamseq_current_inx;
 my $seqinx = Bio::Index::Fasta->new( $inxfile ); 
 
 END {
