@@ -4,7 +4,7 @@
 # author sgj
 # heavily borrowed from Ewan's pfam code
 #
-
+use lib '/pfam/db/bioperl';
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
@@ -17,7 +17,7 @@ use strict;
 use Getopt::Std;
 use Rfam;
 use RfamRCS;
-
+use UpdateRDB;
 use vars qw($opt_m);
 
 &getopt("m:");
@@ -111,7 +111,22 @@ if( &RfamRCS::update_current_directory($acc) == 0 ) {
     die "rfci: Could not update directory for $acc\n";
 }
   
-# rdb stuff
+## rdb stuff
+
+print STDERR "\nChecking family into RDB\n";
+
+eval {
+  my $rdb =  Rfam::switchover_rdb_update();
+  my $db = Rfam::default_db();
+  my $en = $db->get_Entry_by_acc( $acc);
+  my $id = $en->author();
+  $rdb->check_in_Entry( $en );
+};
+
+$@ and do {
+  print STDERR "RFCI: RDB update; Could not update relational database for family $acc [$@]\n";
+};
+print STDERR "RDB update succesful\n";
 
 #&RfamRCS::make_view_files($acc); 
 
