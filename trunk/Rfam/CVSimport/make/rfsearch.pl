@@ -36,7 +36,7 @@ Usage:   rfsearch.pl <options>
 Options:       -h              show this help
 	       -e <n>          use blast evalue of <n>
                -q <queue>      use lsf queue <queue> for the cmsearch step
-               -bq <queue>     use lsf queue <queue> for the blast jobs
+               -bq <queue>     use lsf queue <queue> for the blast jobs (DISABLED!)
 	       -w <n>          window size <n> basepairs
 	       --name <str>    give lsf a name for the cmsearch jobs
 	       --local         run cmsearch with --local option
@@ -64,6 +64,10 @@ EOF
 if( $help or not -e "SEED" ) {
     &help();
     exit(1);
+}
+
+if( $bqueue ) {
+    warn "The --bq option has been disabled for now - its use\nwill do more harm than good now!\n";
 }
 
 my $buildopts;
@@ -103,7 +107,7 @@ $blast_eval = 10  unless $blast_eval;
 $window     = 100 unless $window;
 $cpus       = 20  unless $cpus;
 $queue      = "pfam_slow -Rlinux" unless $queue;
-$bqueue     = "pfam_slow -R 'select[largedata]'" unless $bqueue;
+$bqueue     = "pfam_slow -R 'select[largedata]'"; # unless $bqueue;
 my $fafile = "FA";
 
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
