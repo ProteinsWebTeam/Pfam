@@ -88,7 +88,7 @@ if( ! &RfamRCS::make_new_rcs_directory($acc) ) {
     die "rfnew: Cannot make a new directory for $id.\nCheck you have write permissions to RCS_MASTER\n";
 }
 
-open(LOCK,">$rcs_master_dir/$acc/locked") or die "rfnew: cannot write to lock file\n";
+open(LOCK,">$Rfam::rcs_master_dir/$acc/locked") or die "rfnew: cannot write to lock file\n";
 print LOCK "First lock due to rfnew\n";
 close(LOCK);
 

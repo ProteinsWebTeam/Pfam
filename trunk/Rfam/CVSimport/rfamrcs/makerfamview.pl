@@ -14,11 +14,11 @@ use lib $rfam_mod_dir;
 
 use strict;
 use Rfam;
-use Bio::Rfam::RfamAlign;
+use Rfam::RfamAlign;
 
 #my $current_dir = ".";
 my $acc = shift;
-chdir "$current_dir/$acc" or die;
+chdir "$Rfam::current_dir/$acc" or die;
 
 my @ann;
 open( DESC, "DESC" ) or die;
@@ -29,8 +29,8 @@ while( <DESC> ) {
 }
 close DESC;
 
-foreach my $file ( @align_file_set ) {
-    my $aln = new Bio::Rfam::RfamAlign;
+foreach my $file ( @Rfam::align_file_set ) {
+    my $aln = new Rfam::RfamAlign;
     open( ALN, $file ) or die;
     $aln -> read_stockholm( \*ALN );
     close ALN;

@@ -34,18 +34,19 @@ OK:{
     die "rfupdate aborted: database is locked by $locker" if $locked; 
 }
 		
+my $db = Rfam::default_db();
 foreach my $fam (@ARGV) {
     my $acc;
-    if( &Rfam::is_id($fam) ) {
-	$acc = &Rfam::id2acc( $fam );
+    if( $db->is_id($fam) ) {
+	$acc = $db->id2acc( $fam );
 	die "rfupdate: Cannot find accession for $fam\n" if not $acc;
     }
     else {
 	$acc = $fam;
     }
 
-    if( ! ( -d "$rcs_master_dir/$acc")  ) {
-	print("rfupdate: Family [$acc] does not have an RCS directory in $rcs_master_dir.\n Unable to find files!\n");
+    if( ! ( -d "$Rfam::rcs_master_dir/$acc")  ) {
+	print("rfupdate: Family [$acc] does not have an RCS directory in $$Rfam::rcs_master_dir.\n Unable to find files!\n");
 	next; # back to foreach
     }
 
