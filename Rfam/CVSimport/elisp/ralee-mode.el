@@ -11,6 +11,9 @@
 (defvar ralee-mode-map nil
   "Keymap for Ralee mode.")
 
+(defvar ralee-mode-map nil
+  "Keymap for Ralee mode.")
+
 (if ralee-mode-map
     ()
   (setq ralee-mode-map (make-sparse-keymap))
@@ -20,7 +23,7 @@
 ;  (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-base)
   (define-key ralee-mode-map "\C-c\C-c" 'ralee-paint-column-by-cons)
   (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-cons)
-  (define-key ralee-mode-map "\C-i" 'ralee-insert-gap-column)
+  (define-key ralee-mode-map "\C-c\C-i" 'ralee-insert-gap-column)
   (define-key ralee-mode-map "\C-c\C-d" 'ralee-delete-gap-column)
   (define-key ralee-mode-map "\C-c\C-p" 'ralee-jump-to-pair)
   (define-key ralee-mode-map "\C-c\C-[" 'ralee-jump-to-pair-in-other-window)
@@ -28,6 +31,24 @@
   (define-key ralee-mode-map "\C-b" 'ralee-jump-left)
   (define-key ralee-mode-map "\C-p" 'ralee-jump-up)
   (define-key ralee-mode-map "\C-n" 'ralee-jump-down)
+  )
+
+;; Create mode-specific tables.
+(defvar ralee-mode-syntax-table nil 
+  "Syntax table used while in ralee mode.")
+
+(if ralee-mode-syntax-table
+    ()              ; Do not change the table if it is already set up.
+  (setq ralee-mode-syntax-table (make-syntax-table))
+  ; parenthesis matching should do <> aswell as the usual suspects
+  (modify-syntax-entry ?\( "()" ralee-mode-syntax-table)
+  (modify-syntax-entry ?\) ")(" ralee-mode-syntax-table)
+  (modify-syntax-entry ?\[ "(]" ralee-mode-syntax-table)
+  (modify-syntax-entry ?\] ")[" ralee-mode-syntax-table)
+  (modify-syntax-entry ?\{ "(}" ralee-mode-syntax-table)
+  (modify-syntax-entry ?\} "){" ralee-mode-syntax-table)
+  (modify-syntax-entry ?\< "(>" ralee-mode-syntax-table)
+  (modify-syntax-entry ?\> ")<" ralee-mode-syntax-table)
   )
 
 (defvar ralee-structure-cache nil
@@ -49,7 +70,7 @@ Turning on ralee-mode runs the hook `ralee-mode-hook'."
   (kill-all-local-variables)
   (use-local-map ralee-mode-map)
 ;  (setq local-abbrev-table ralee-mode-abbrev-table)
-;  (set-syntax-table ralee-mode-syntax-table)
+  (set-syntax-table ralee-mode-syntax-table)
   (setq truncate-lines 1)
   (setq ralee-jump-num 20)
   (setq mode-name "Ralee")
@@ -275,10 +296,14 @@ Returns a list of pairs in order of increasing closing base."
 
 (defun ralee-paint-line-by-pairs (pairs-list)
   "colour the current line according to the SS_cons line"
-  (let (beg end (pair ()) open close openbase closebase helices)
-    (beginning-of-line) (setq beg (point))
-    (end-of-line) (setq end (point))
-    (put-text-property beg end 'face 'default)
+  (let ((pair ()) 
+	open 
+	close 
+	openbase 
+	closebase 
+	helices)
+
+    (put-text-property (line-beginning-position) (line-end-position) 'face 'default)
 
     (setq helices (ralee-helix-map pairs-list))
 
@@ -299,15 +324,15 @@ Returns a list of pairs in order of increasing closing base."
 
       (let ((case-fold-search 1)) ; case-independent search
 	(if (or
+	     (and (char-equal openbase ?C) (char-equal closebase ?G))
 	     (and (char-equal openbase ?G) (or (char-equal closebase ?C)
 					       (char-equal closebase ?U)
 					       (char-equal closebase ?T)))
-	     (and (char-equal openbase ?C) (char-equal closebase ?G))
+	     (and (char-equal openbase ?A) (or (char-equal closebase ?U)
+					       (char-equal closebase ?T)))
 	     (and (or (char-equal openbase ?U)
 		      (char-equal openbase ?T)) (or (char-equal closebase ?A)
-						    (char-equal closebase ?G)))
-	     (and (char-equal openbase ?A) (or (char-equal closebase ?U)
-					       (char-equal closebase ?T))))
+						    (char-equal closebase ?G))))
 
 	    (progn
 	      (put-text-property open (1+ open) 'face (nth face-num ralee-faces))
@@ -653,3 +678,6 @@ Returns a list of pairs in order of increasing closing base."
     )
   )
 
+
+
+(call-process "RNAfold" nil t t "< /nfs/team71/pfam/sgj/tmp/temp.seq")
