@@ -125,7 +125,6 @@ unless( $nobuild ) {
 }
 
 my $i = 0;
-my $fh = new IO::File;
 my $pwd   = `pwd`;
 my $phost = `uname -n`;
 chomp $pwd;
@@ -145,6 +144,7 @@ unless( $blast ) {
     foreach my $blastdb ( @blastdb ) {
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
+	my $fh = new IO::File;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
 	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
@@ -175,7 +175,7 @@ print STDERR "done\n";
 print STDERR "building mini database ... ";
 my $numseqs = scalar( keys %{ $seqlist } );
 my $count = int( $numseqs/$cpus ) + 1;
-my $k = 1;
+my $k = 0;
 my @seqids = keys %{ $seqlist };
 
 #open( T, ">tmp.sam" );
@@ -192,12 +192,15 @@ while( @seqids ) {
 	}
     }
 
+    $k++;
+
     open( FA, "> $$.minidb.$k" ) or die;
     while( @nses ) {
 	my $str = join( ' ', splice( @nses, 0, 1000 ) );
 	while( $str ) {  # while we have a query to run
 	    my @tmpnses = split( ' ', $str ); 
 	    my $i = 0;
+	    my $fh = IO::File->new();
 	    $fh -> open( "pfetch -a $str |" );
 	    $str = "";   # reset ready to fill will those that fail
 	    my $nse;
@@ -234,7 +237,6 @@ while( @seqids ) {
 	    $fh -> close;
 	}
     }
-    $k++;
     close FA;
 }
 print STDERR "done\n";
@@ -247,8 +249,12 @@ $options .= "-W $window";
 
 $name = "" if( not $name );
 print STDERR "Queueing cmsearch jobs ...\n";
-$fh -> open("| bsub -q $queue -o $$.err.\%I -J$name\"[1-$k]\" -f \"$$.minidb.\%I > /tmp/$$.minidb.\%I\" -f \"OUTPUT.\%I < /tmp/$$.OUTPUT.\%I\"") or die "$!";
-$fh -> print("$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n");
+my $fh = IO::File->new();
+$fh -> open( "| bsub -q $queue -o $$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
+$fh -> print( "lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "rm -f /tmp/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> close;
 
 &update_desc( $options ) unless( !-e "DESC" );
