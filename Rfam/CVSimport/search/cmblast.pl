@@ -23,19 +23,20 @@ if( $arch =~ /linux/i ) {
     $ENV{'PATH'} = "/pfam/db/Rfam/bin/linux:$ENV{'PATH'}"; # push linux binaries onto front of path
 }
 
-my $local;
-&GetOptions( "local" => \$local );
+my( $local, $blast_dir );
+&GetOptions( "local" => \$local,
+	     "db=s"  => \$blast_dir );
 
 my $fafile       = shift;
 
-my $blast2_bin   = "/usr/local/ensembl/bin";
+not $blast_dir and $blast_dir = "/pfam/db/Rfam/BLASTDB";
+#my $blast2_bin   = "/usr/local/ensembl/bin";
 #my $infernal_bin = "/usr/local/ensembl/bin";
-my $blast_dir    = "/pfam/db/Rfam/BLASTDB";
 my $model_dir    = "$blast_dir";
 my $blastdb      = "$blast_dir/Rfam.fasta";
 my $thr_file     = "$blast_dir/Rfam.thr";
 my $blastcut     = 10;
-my $blastcmd     = "$blast2_bin/blastall -p blastn -e $blastcut -d $blastdb -i $fafile > $$.blast";
+my $blastcmd     = "blastall -p blastn -e $blastcut -d $blastdb -i $fafile > $$.blast";
 
 # read threshold file
 my %thr;
