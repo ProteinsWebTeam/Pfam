@@ -47,8 +47,9 @@ if( !(-d $id) ) {
     die "rfnew: [$id] is not a current directory.\nMust be in the parent directory of the family to make a new family\n";
 }
 
-if( &RfamRCS::check_family_directory_exists($id) ) {
-    die "rfnew: Family [$id] already has a directory.\nIf this is an existing family, check in the revision using rfci\n";
+if( &RfamRCS::id_exists( $id ) ) {
+    die "rfnew: Family [$id] already exists.\nIf this is an existing family, check in the revision using rfc
+i\n";
 }
 
 if( ! open(DESC,"./$id/DESC") ) {

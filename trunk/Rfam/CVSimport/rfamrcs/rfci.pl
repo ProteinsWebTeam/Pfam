@@ -101,6 +101,9 @@ my $db = Rfam::default_db();
 my $oldid = $db->acc2id( $acc );
 
 unless( $oldid eq $id ) {              # change the accmap
+    if( my $acccheck = &RfamQC::id_exists($id) ) {
+        die "rfci: your new id already exists [$acccheck]\n" if( $acccheck ne $acc );;
+    }
 
     if( my $ret = $db->_get_lock() ) {
 	die "rfci: The accession lock has been grabbed by [$ret].\nAccession locking should be short - try again in a couple of minutes\n";
