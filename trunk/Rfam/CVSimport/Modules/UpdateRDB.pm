@@ -192,43 +192,35 @@ sub load_generic_file_to_rdb {
 
 
 
-sub check_in_dead_EntryA {
+sub check_in_dead_Entry {
  my ($self, @en) = @_;
  
  my ($stat,
-       $dbh,
-       $rows, 
-       $error, 
-       $rdb_acc, 
-       $rdb_id, 
+     $dbh,
+     $rows, 
+     $error, 
+     $rdb_acc, 
+     $rdb_id, 
      $rdb_comment,
      $rdb_auto_num,
      $rdb_forward
      );
 
- $dbh = $self->open_transaction( 'pfamA', 'dead_families' );
+ $dbh = $self->open_transaction( 'rfam', 'dead_families' );
 
-$self->report_mode();
+ $self->report_mode();
  
  eval {
    foreach my $en (@en) {
  
      $rdb_acc = $en->acc;
-    
      $rdb_id = $en->id();
      $rdb_comment = $en->comment();
      $rdb_forward = $en->each_forward_acc();
      foreach my $forward ($en->each_forward_acc()) {
-        $rdb_forward = $rdb_forward . ";$forward";
-    }
-
-          
-     ### GET COMMENT
-     foreach my $comment ( $en->ann->flatcomment->each_flat() ) {
-       $rdb_comment .= " " . $comment;
+	 $rdb_forward = $rdb_forward . ";$forward";
      }
-     
-     
+
      eval {
        if (not defined $stat) {
 	 $stat = $dbh->prepare($self->__replace_sql('dead_families', 4));
@@ -257,15 +249,65 @@ $self->report_mode();
  $self->close_transaction( $error );
  $error and $self->throw( $error );
 
- ### No errors so delete the pfamA entry from RDB !
+ ### No errors so delete the rfam entry from RDB !
  if(!$error) {
-   $self->delete_EntryA(@en);
+   $self->delete_Entry(@en);
  }
 
 
 }
 
+=head2 delete_Entry
 
+ Title   : delete_Entry
+ Usage   : $updatedb->delete_Entry( @entry_list );
+ Function:
+    This function deletes all of the region information
+    associated with an rfam entry. Note that even the entry
+    itself is deleted from rfam. Even though dead entries
+    are not deleted from the rfam table, this occurs so
+    that if we wish to replace the entry by using the file
+    entry mechanism, everything works.
+ Returns :
+ Args    : Rfam::Entry pbjects (list of)
+
+=cut
+
+sub delete_Entry {
+   my ($self, @ents) = @_;
+
+   my ($dbh,
+       @regions );
+
+   $dbh = $self->open_transaction( 'rfam', 'rfam_reg_seed', 'rfam_reg_full' , 'rfam_database_links', 'rfam_literature_references');
+
+   eval {
+       foreach my $en (@ents) {
+           my $acc = $en->acc;
+
+           ####### AUTO NUM
+           my $st = $dbh->prepare("select auto_rfam from rfam where rfam_acc = '$acc'");
+           $st->execute();
+           my($temp_auto) = $st->fetchrow;
+           $st->finish();
+
+           my $rdb_auto_num = $temp_auto if(defined($temp_auto));
+
+           $dbh->do("delete from rfam                       where auto_rfam = '$rdb_auto_num'");
+           $dbh->do("delete from rfam_reg_seed              where auto_rfam = '$rdb_auto_num'");
+           $dbh->do("delete from rfam_reg_full              where auto_rfam = '$rdb_auto_num'");
+           $dbh->do("delete from rfam_database_links        where auto_rfam = '$rdb_auto_num'");
+           $dbh->do("delete from rfam_literature_references where auto_rfam = '$rdb_auto_num'");
+       }
+   };
+
+   $self->close_transaction( $@);
+   $@ and $self->throw($@);
+
+}
+
+
+# this method looks like some test code - it won't do anything useful
 sub query {
   my ($self, $var) = @_;
 my $dbh = $self->open_transaction( 'rfam' , 'rfam_database_links');
@@ -290,12 +332,12 @@ my ($stat);
 			   "", 
 			   ""
 			 );
-	   $rows += $stat->rows;
+#	   $rows += $stat->rows;
        };
        
        if ($@) {
 	 
-	   $error = "Could not do the insertion/update on the pfamA table [$@]";
+#	   $error = "Could not do the insertion/update on the pfamA table [$@]";
 	   
 	   last;
        }
