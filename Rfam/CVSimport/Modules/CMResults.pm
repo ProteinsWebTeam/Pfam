@@ -66,11 +66,13 @@ sub parse_infernal {
     my $self = shift;
     my $file = shift;
 
-    my( $id, $start, $end, $ready, $modst, $moden );
+    my( $id, $start, $end, $alnline );
+    my( $alnst, $alnen );
     my $unit;  # this should always be the last added HMMUnit
 
     while( <$file> ) {
 	chomp;
+	next if( /CPU time:\s+/ or /memory:\s+/ );
 	if( /^sequence:\s+(\S+)\s*/ ) {
 	    if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
 		( $id, $start, $end ) = ( $1, $2, $3 );
@@ -81,53 +83,78 @@ sub parse_infernal {
 	    else { 
 		die "Don't recognise cmsearch output line [$_]";
 	    }
-
+	}
+	elsif( my( $st, $en, $bits ) = /^hit\s+\d+\s*:\s+(\d+)\s+(\d+)\s+(\S+)\s+bits/ ) {
+	    # make sure we have a Sequence
 	    unless( $self -> getHMMSequence( $id ) ) {
 		my $seq = new HMMSequence;
 		$seq    -> name( $id );
 		$self   -> addHMMSequence( $seq );
 	    }
-	}
-	elsif( /^\s+$/ ) {
-	    $ready = 1;
-	}
-	elsif( /^hit\s+\d+\s*:\s+(.*)\s+bits/ ) {
-	    my $rest = $1;
-	    my( $st, $en, $bits );
-	    if( $rest =~ /(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\S+)/ ) {
-		( $st, $en, $modst, $moden, $bits ) = ( $1, $2, $3, $4, $5 );
-	    }
-	    elsif( $rest =~ /(\d+)\s+(\d+)\s+(\S+)/ ) {
-		( $st, $en, $bits ) = ( $1, $2, $3 );
-	    }
-	    else {
-		warn "Don't recognise cmsearch output line [$_]";
-	    }
 
-	    $ready = 1;
+	    undef $alnst; # reset ready for new alignment
+	    undef $alnen;
+	    $alnline = 0;
 	
 	    $st += $start - 1;
 	    $en += $start - 1;
 
+	    # sort out a Unit
 	    $unit = new HMMUnit;
 	    $unit -> seqname( $id );
 	    $unit -> hmmname( " " );
 	    $unit -> hmmacc( " " );
 	    $unit -> start_seq( $st );
 	    $unit -> end_seq( $en );
-	    $unit -> start_hmm( $modst ) if $modst;
-	    $unit -> end_hmm( $moden ) if $moden;
 	    $unit -> bits( $bits );
 	    $unit -> evalue( " " );
 
 	    $self -> addHMMUnit( $unit );
 	}
-	elsif( /^\s+(\d+)\s+.*\s+(\d+)\s*$/ and $ready ) {
-	    # unit is already in results object, but this should still
-            # get to where it needs to be
-	    $ready = 0;
-	    $unit -> start_hmm( $1 ) unless $unit -> start_hmm();
-	    $unit -> end_hmm( $2 );
+	elsif( /^\s*$/ ) {
+	    $alnline = 0;
+	}
+	elsif( /^\s+(\d*)\s*(.+?)\s*(\d*)\s*$/ ) {
+	    my $wholeline = $_;
+	    $alnline ++;
+	    if( $alnline == 2 ) {
+		# unit is already in results object, but this should still
+		# get to where it needs to be
+		$unit -> start_hmm( $1 ) unless $unit -> start_hmm();
+		$unit -> end_hmm( $3 );
+	    }
+	    if( $alnline == 4 ) {
+		# cmsearch reports wierd start end numbers in the alignment
+		# lines - fix them here
+		if( my( $space, $ast, $stuff, $aen ) = /^(\s+)(\d+)\s+(.+)\s+(\d+)/ ) {
+		    my $origaln = $stuff;
+		    $stuff =~ s/[-\.]//g;
+
+		    my $strand = 1;
+		    if( $unit->start_seq > $unit->end_seq ) {
+			$strand = -1;
+		    }
+
+		    if( $alnen ) {
+			# add 1 for + strand stuff, take one for - strand
+			$alnst = $alnen + $strand;
+		    }
+		    else {
+			$alnst = $unit->start_seq;
+		    }
+		    $alnen = $alnst + $strand*( length($stuff)-1 );
+
+		    my $spacing = length($space)+length($ast);
+		    $wholeline = sprintf( "%".$spacing."s %s %s", $alnst, $origaln, $alnen );
+		}
+		else {
+		    warn "can't read alignment line [$_]\n";
+		}
+	    }
+	    $unit->add_alignment_line( $wholeline );
+	}
+	else {
+	    warn "failed to parse line [$_]\n";
 	}
     }
     return $self;
