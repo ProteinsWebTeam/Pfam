@@ -16,7 +16,6 @@ use strict;
 use Getopt::Long;
 use Rfam;
 use Bio::Tools::BPlite;
-use Bio::Index::Fasta;
 use Bio::SeqIO;
 use Bio::Tools::Run::StandAloneBlast;
 use Bio::SearchIO;
@@ -58,8 +57,11 @@ unless( $length ) {
     $length = $in -> next_seq() -> length();
 }
 
-my $seqinx  = Bio::Index::Fasta->new( '-filename'    => $inxfile,
-				      '-dbm_package' => 'DB_File' ); 
+my $seqinx;
+eval {
+    $seqinx = Bio::Index::Fasta->new( '-filename'    => $inxfile,
+				      '-dbm_package' => 'DB_File' );
+};
 END { undef $seqinx; }   # stop bizarre seg faults
 
 my $glob;
