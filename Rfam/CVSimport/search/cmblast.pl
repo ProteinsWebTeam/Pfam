@@ -62,7 +62,7 @@ my $model_dir    = "$blast_dir";
 my $blastdb      = "$blast_dir/Rfam.fasta";
 my $thr_file     = "$blast_dir/Rfam.thr";
 my $blastcut     = 10;
-my $blastcmd     = "blastall -p blastn -e $blastcut -d $blastdb -i $fafile > $$.blast";
+my $blastcmd     = "blastall -p blastn -e $blastcut -d $blastdb -i $fafile -F F -W 8 > $$.blast";
 
 # read threshold file
 my %thr;
