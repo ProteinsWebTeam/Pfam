@@ -1,21 +1,5 @@
 #!/usr/local/bin/perl -w
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $pfam_mod_dir = 
-        (defined $ENV{'PFAM_MODULES_DIR'})
-            ?$ENV{'PFAM_MODULES_DIR'}:"/pfam/db/Pfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $rfam_mod_dir;
-use lib $pfam_mod_dir;
-use lib $bioperl_dir;
-
 use strict;
 use Getopt::Long;
 use Bio::Index::Fasta;
@@ -65,7 +49,14 @@ if( not $list and not $overlaps ) {
     close DESC;
 }
 
+my $already;
 open( F, $file ) or die;
+if( <F> =~ /^\# Rfam/ ) {
+    $already = 1;
+}
+close F;
+open( F, $file ) or die;
+
 my $allres = new CMResults;
 
 if( $cove ) {
@@ -73,6 +64,14 @@ if( $cove ) {
 }
 else {
     $allres -> parse_infernal( \*F );
+}
+close F;
+
+unless( $already ) {
+    # write a rearranged and slimmed output file
+    open( F, ">$file" ) or die;
+    $allres -> write_output( \*F );
+    close F;
 }
 
 my $res = $allres -> remove_overlaps();
