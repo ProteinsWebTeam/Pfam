@@ -84,15 +84,16 @@ my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 unless( @blastdb ) {
     my $glob;
     if( $division ) {
-	@blastdb = glob( "$Rfam::rfamseq_current_dir/$division*.fa" );
+	@blastdb = glob( "$Rfam::rfamseq_current_dir/$division*.fa.nhr" );
     }
     else {
-	@blastdb = glob( "$Rfam::rfamseq_current_dir/*.fa" );
+	@blastdb = glob( "$Rfam::rfamseq_current_dir/*.fa.nhr" );
     }
 }
 
 
 foreach my $db ( @blastdb ) {
+    $db =~ s/\.nhr$//g;
     my %hitlist;
 
     my $factory = Bio::Tools::Run::StandAloneBlast->new( 'program'  => 'blastn',
