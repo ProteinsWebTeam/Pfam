@@ -74,15 +74,20 @@ close A;
 close O;
 
 my $fh = new IO::File;
-$fh -> open("| bsub -I -q $queue -Rlinux -o pfold.err > /dev/null") or die "$!";
-$fh -> print("$pfold_bindir/findphyl $pfold_bindir/scfg.rate $$.col > /tmp/$$.nj.col\n");
+$fh -> open("| bsub -I -q $queue -Rlinux -f \"$$.col > /tmp/$$.col\" -f \"$$.out.fa < /tmp/$$.out.fa\" > /dev/null") or die "$!";
+$fh -> print("$pfold_bindir/findphyl $pfold_bindir/scfg.rate /tmp/$$.col > /tmp/$$.nj.col\n");
 $fh -> print("$pfold_bindir/mltree $pfold_bindir/scfg.rate /tmp/$$.nj.col > /tmp/$$.ml.col\n");
 $fh -> print("$pfold_bindir/scfg --robust=$robust --treeinfile $pfold_bindir/article.grm /tmp/$$.ml.col > /tmp/$$.res.col\n");
-$fh -> print("$pfold_bindir/addparen /tmp/$$.res.col | $pfold_bindir/col2fasta > $$.out.fa\n");
+$fh -> print("$pfold_bindir/addparen /tmp/$$.res.col | $pfold_bindir/col2fasta > /tmp/$$.out.fa\n");
 $fh -> close;
 
 open( O, ">$$.out.fa2" ) or die;
-open( S, "$$.out.fa" ) or die;
+WAIT: {
+    open( S, "$$.out.fa" ) or do {
+	sleep 5;
+	redo WAIT;
+    };
+}
 my $str;
 my %seq;
 my $nse;
