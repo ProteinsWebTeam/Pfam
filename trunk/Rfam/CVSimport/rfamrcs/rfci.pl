@@ -9,14 +9,20 @@ BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
             ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+    $bioperl_dir =
+        (defined $ENV{'BIOPERL_DIR'})
+            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
+
 }
 
+use lib $bioperl_dir;
 use lib $rfam_mod_dir;
 
 use strict;
 use Getopt::Std;
 use Rfam;
 use RfamRCS;
+use RfamQC;
 use UpdateRDB;
 use vars qw($opt_m);
 
@@ -87,6 +93,9 @@ if(!$has_ac) {
     die "rfci: Your DESC file has no AC line. This is bad!\n";
 }
 
+unless( &RfamQC::valid_sequences( $acc ) ) {
+    die "rfci: Your sequences don't all match the database\n";
+}
 
 my $db = Rfam::default_db();
 my $oldid = $db->acc2id( $acc );
