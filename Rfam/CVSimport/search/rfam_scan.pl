@@ -164,6 +164,7 @@ Usage: $0 <options> fasta_file
 	-o <file>      : write the output to <file>
 	-f <format>    : output format - currently one of
                             tab      simple tab delimited (default)
+			    aln      tab with cmsearch alignments
                             gff      GFF version 2
 
     Expert options
