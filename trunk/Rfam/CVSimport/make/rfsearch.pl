@@ -50,6 +50,7 @@ Options:       -h              show this help
 	       -local          run cmsearch with --local option
 	       -global         run cmsearch in global mode (override DESC cmsearch command)
 	       -window <n>     window size <n> basepairs
+	       -nobuild        skip cmbuild step
 
 EOF
 }
@@ -67,6 +68,7 @@ EOF
 	     "local"    => \$local,
 	     "global"   => \$global,
              "window=s" => \$window,
+	     "nobuild"  => \$nobuild,
 	     "h"        => \$help );
 
 
@@ -99,6 +101,7 @@ if( -s "DESC" ) {
 	};
 	/^BM\s+cmsearch.*-local/ and do {
 	    $local = 1 unless $global;
+	    warn "Using --local mode as specified in DESC file\n";
 	};
 	/^BM\s+cmsearch.*-W\s+(\d+)/ and do {
 	    $window = $1 unless $window;
@@ -116,8 +119,12 @@ $buildopts  = "--rf CM SEED" unless $buildopts;
 my $fafile = "FA";
 
 unless( $blast_outfile ) {
+    print STDERR "making fasta file ... \n" unless $quiet;
     system "sreformat fasta SEED > $fafile" and die "can't convert SEED to FA";
-    system "/pfam/db/Rfam/bin/cmbuild -F $buildopts" and die "can't build CM from SEED";
+    unless( $nobuild ) {
+	print STDERR "build covariance model ... \n" unless $quiet;
+	system "/pfam/db/Rfam/bin/cmbuild -F $buildopts" and die "can't build CM from SEED";
+    }
 
     my @blastdbs;
     if( $blastdb ) {
