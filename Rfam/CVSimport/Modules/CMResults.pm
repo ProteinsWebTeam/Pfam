@@ -70,18 +70,22 @@ sub parse_infernal {
     my $unit;  # this should always be the last added HMMUnit
 
     while( <$file> ) {
+	chomp;
 	if( /^sequence:\s+(\S+)\s*/ ) {
 	    if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
 		( $id, $start, $end ) = ( $1, $2, $3 );
-
-		unless( $self -> getHMMSequence( $id ) ) {
-		    my $seq = new HMMSequence;
-		    $seq    -> name( $id );
-		    $self   -> addHMMSequence( $seq );
-		}
 	    }
-	    else {
-		warn "Don't recognise cmsearch output line [$_]";
+	    elsif( ($id) = $1 =~ /^(\S+)/ ) {
+		$start = 1;
+	    }
+	    else { 
+		die "Don't recognise cmsearch output line [$_]";
+	    }
+
+	    unless( $self -> getHMMSequence( $id ) ) {
+		my $seq = new HMMSequence;
+		$seq    -> name( $id );
+		$self   -> addHMMSequence( $seq );
 	    }
 	}
 	elsif( /^\s+$/ ) {
