@@ -4,6 +4,7 @@
 # - inherit from Bio::Root instead of Bio::Ensembl::Root
 # - fixed a "my" variable $seqstr masks earlier declaration 
 #   error in db method
+# - return undef if sequence is not found
 # - other stuff from here down is unchanged
 
 # Cared for by EnsEMBL  <ensembl-dev@ebi.ac.uk>
@@ -193,6 +194,10 @@ sub get_Seq_by_acc {
     close FH;
 
     last DB if $out[0] !~ /Not found/;
+  }
+
+  if( $out[0] =~ /Not found/ ) {
+      return undef;
   }
 
   shift @out;
