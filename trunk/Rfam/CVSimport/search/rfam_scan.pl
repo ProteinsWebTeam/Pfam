@@ -56,7 +56,10 @@ Run rfam_scan.pl -h to get a list of options.  Probably the only thing
 to worry about is supplying the -d option with the location of your
 downloaded Rfam database.  Or you can set the RFAM_DIR environment
 variable to point to the right place and things should work without
--d.
+-d.  If your BLAST and INFERNAL binaries are not on your path, you can
+specify their locations with the -bin option (more than once if
+necessary), or you can set the BLAST_BIN_DIR and INFERNAL_BIN_DIR
+environment variables if you so desire.
 
 This script can take a long while to run on big sequences so you will
 want to test on something small and sensible first.
@@ -95,6 +98,12 @@ my( $local,
 my $rfam_dir;
 if( $ENV{'RFAM_DIR'} ) {
     $rfam_dir = $ENV{'RFAM_DIR'};
+}
+if( $ENV{'INFERNAL_BIN_DIR'} ) {
+    push( @binpath, $ENV{'INFERNAL_BIN_DIR'} );
+}
+if( $ENV{'BLAST_BIN_DIR'} ) {
+    push( @binpath, $ENV{'BLAST_BIN_DIR'} );
 }
 
 &GetOptions( "local"         => \$local,
