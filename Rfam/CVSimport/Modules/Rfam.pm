@@ -91,11 +91,14 @@ sub get_allaccs {
     return @accs;
 }
 
+
+# this is horrible -- need some db objects SOON!
+
 sub acc2id {
     my $acc = shift;
     open( F, $acclog_file ) or die "can't open acclog file $acclog_file";
     while(<F>) {
-	if( /^$acc\s+(\S+)/ ) {
+	if( /^$acc\s+\[(\S+)\]/ ) {
 	    return $1;
 	}
     }
@@ -107,7 +110,7 @@ sub id2acc {
     my $id = shift;
     open( F, $acclog_file ) or die "can't open acclog file $acclog_file";
     while(<F>) {
-	if( /^(RF\d+)\s+$id/ ) {
+	if( /^(RF\d+)\s+\[$id\]/ ) {
 	    return $1;
 	}
     }
