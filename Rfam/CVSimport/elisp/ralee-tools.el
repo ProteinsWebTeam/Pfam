@@ -35,10 +35,10 @@
   ))
 
 (defun ralee-is-markup-line ()
-  "Check if the current line is #=GC"
+  "Check if the current line is #=G[CR]"
   (save-excursion
     (beginning-of-line)
-    (looking-at "#=GC ")
+    (looking-at "#=G[CR] ")
   ))
 
 
