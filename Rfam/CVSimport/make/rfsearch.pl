@@ -160,15 +160,6 @@ else {
 }
 print STDERR "done\n";
 
-my %sv;
-open( SV, "$blastdbdir/Rfamseq.lst" ) or die;
-while(<SV>) {
-    if( /^(\S+)\.(\d+)\s*$/ ) {
-	$sv{$1} = $2;
-    }
-}
-close SV;
-
 print STDERR "building mini database ... ";
 my $numseqs = scalar( keys %{ $seqlist } );
 my $count = int( $numseqs/$cpus ) + 1;
@@ -184,9 +175,8 @@ while( @seqids ) {
     foreach my $seqid ( @tmpids ) {
         foreach my $reg ( @{ $seqlist->{$seqid} } ) {
 	    # this is a bit complex just to get an array of nses
-	    my $seqsv = $seqid.".".$sv{$seqid};
 	    my( $start, $end ) = ( $reg->{'start'}, $reg->{'end'} );
-	    push( @nses, "$seqsv:$start-$end" );
+	    push( @nses, "$seqid:$start-$end" );
 	}
     }
 
@@ -205,8 +195,8 @@ while( @seqids ) {
 #		    print T "$i $2 ";
 		    $nse = $tmpnses[$i];
 		    $nse =~ tr/:/\//;
-		    my( $tmpid, $tmpse ) = $nse =~ /(\S+)\.\d+\/(\d+-\d+)/;
-		    if( $pfetchid !~ /$tmpid/ ) {  # catch stupid problems
+		    my( $tmpid, $tmpse ) = $nse =~ /(\S+\.\d+)\/(\d+-\d+)/;
+		    if( $pfetchid ne $tmpid ) {  # catch stupid problems
 			die "\npfetch id problem: $tmpid mismatch $pfetchid\nReport this!\n";
 		    }
 		    print FA ">$tmpid/$tmpse\n";
