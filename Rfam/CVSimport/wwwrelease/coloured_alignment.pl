@@ -8,7 +8,7 @@ use lib '/nfs/team71/pfam/mm1/rfam_cvs/scripts/Modules';
 use Rfam;
 use RfamWWWConfig;
 use vars qw(%all_rfamseq);
-my $rdb = Rfam->live_rdb();
+#my $rdb = Rfam->live_rdb();
 my($input_dir, $output_dir, $file_type, $ss_cons_only, $family, $web_file);
 
 &GetOptions(  'input_dir=s' => \$input_dir,
@@ -16,34 +16,34 @@ my($input_dir, $output_dir, $file_type, $ss_cons_only, $family, $web_file);
 	      'file_type=s' => \$file_type,
 	      'ss_cons_only' => \$ss_cons_only,
 	      'family=s' => \$family,
-	      'web_file=s'  => \$web_file);
+	      'seed=s'  => \$web_file);
 
 #die "need input_dir\n" if(!$input_dir);
 #die "need output_dir\n" if(!$output_dir);
-die "need file_type , either seed or full \n" if (!$file_type);
+#die "need file_type , either seed or full \n" if (!$file_type);
+
+$file_type = "seed";
+#my(@results);
+#if ($family) {
+#  (@results) = $rdb->query("select rfamseq_acc, species from rfamseq, rfam, rfam_reg_" . $file_type. " where rfam_acc = '$family'  and rfam.auto_rfam  = rfam_reg_" . $file_type. ".auto_rfam and rfam_reg_" .$file_type . ".auto_rfamseq  = rfamseq.auto_rfamseq ");
+#} else {
+#  (@results) = $rdb->query("select rfamseq_acc, species from rfamseq");
+#}
 
 
-my(@results);
-if ($family) {
-  (@results) = $rdb->query("select rfamseq_acc, species from rfamseq, rfam, rfam_reg_" . $file_type. " where rfam_acc = '$family'  and rfam.auto_rfam  = rfam_reg_" . $file_type. ".auto_rfam and rfam_reg_" .$file_type . ".auto_rfamseq  = rfamseq.auto_rfamseq ");
-} else {
-  (@results) = $rdb->query("select rfamseq_acc, species from rfamseq");
-}
-
-
-foreach (@results) {
-  my($rfamseq_acc, $spec) = @{$_};
-  my $spec_short;
-  if ($spec =~ /(\S\S\S)\S*?\s+(\S\S\S)\S*?.*/) {
-    $spec_short = $1 . "." . $2 . ".";
-  } elsif ($spec =~ /(\S\S\S)\S*?\s+(\S)\s+/) {
-    $spec_short = $1 . "." . $2 . ".&nbsp;&nbsp;";
-  } elsif($spec =~ /(\S\S\S)/) { 
+#foreach (@results) {
+#  my($rfamseq_acc, $spec) = @{$_};
+#  my $spec_short;
+#  if ($spec =~ /(\S\S\S)\S*?\s+(\S\S\S)\S*?.*/) {
+#    $spec_short = $1 . "." . $2 . ".";
+#  } elsif ($spec =~ /(\S\S\S)\S*?\s+(\S)\s+/) {
+#    $spec_short = $1 . "." . $2 . ".&nbsp;&nbsp;";
+#  } elsif($spec =~ /(\S\S\S)/) { 
     
-    $spec_short = $1 . ".&nbsp;&nbsp;&nbsp;&nbsp;";
-  }
-  $all_rfamseq{$rfamseq_acc} = $spec_short;
-}
+#    $spec_short = $1 . ".&nbsp;&nbsp;&nbsp;&nbsp;";
+#  }
+#  $all_rfamseq{$rfamseq_acc} = $spec_short;
+#}
 
 
 my @colours = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
@@ -609,8 +609,9 @@ sub _print_to_file {
 	my $acc = $1 if ($names[$internal_seq_name_count] =~ /^(\S+)\.\d+\// );
 	#chop($acc); # remove the dot
 #	print "\nACC: $acc \n";
-	#$species_short = &RfamWWWConfig::species_for_rfamseq($acc);
-	$species_short = $all_rfamseq{$acc};
+	$species_short = &RfamWWWConfig::species_for_rfamseq($acc);
+#	print "SHORT: $species_short \n";
+	#$species_short = $all_rfamseq{$acc};
 	$species_short = "<font color=#FF0000>" . $species_short . "</FONT>";
 	$link =~ s/THEACC/$acc/;
 #	print "FINAL : $link \n";
@@ -881,6 +882,7 @@ sub _add_markup {
 
 sub check_nucs_match {
   my($both_nuc) = @_;
+ # print "BOTH: $both_nuc \n";
   my(%match);
   $match{'A~U'} = "match";
   $match{'U~A'} = "match";
