@@ -50,7 +50,7 @@ sub addPair {
 
 sub eachPair {
     my $self = shift;
-    my @sort = sort { $a->[0] <=> $b->[0] } @{$self->{'PAIR'}};
+    my @sort = sort { $a->left() <=> $b->left() } @{$self->{'PAIR'}};
     return @sort;
 }
 
@@ -58,12 +58,19 @@ sub eachPair {
 sub getInfernalString {
     my $self = shift;
     my @ary;
+
     foreach my $pair ( $self->eachPair() ) {
-	$ary[ $pair->left() -1  ] = "<";
-	$ary[ $pair->right() -1 ] = ">";
+	if( $pair->knot() ) {   # we have a pseudoknot!
+	    $ary[ $pair->left() -1  ] = uc( $pair->knot );
+	    $ary[ $pair->right() -1 ] = lc( $pair->knot );
+	}
+	else {
+	    $ary[ $pair->left() -1  ] = "<";
+	    $ary[ $pair->right() -1 ] = ">";
+	}
     }
     
-    for( my $i=0; $i<$self->length(); $i++ ) {
+    for( my $i=0; $i<$self->length(); $i++ ) { # fill in gap chars
 	$ary[$i] = '.' if( not $ary[$i] );
     }
     return join( '', @ary );
@@ -121,13 +128,25 @@ sub parseInfernalString {
     $self -> length( scalar( @ss ) );
     
     my @open;
+    my %knot; # This will be populated with positions of letters
+              # marking pseudoknot bases.  To cope with complex cases
+              # the key will be the letter used.
+
     for( my $i=1; $i<=@ss; $i++ ) {
 	if( $ss[$i-1] =~ /[\[\(\{\<]/ ) {
 	    push( @open, $i );
 	}
+	elsif( $ss[$i-1] =~ /([A-Z])/ ) {
+	    push( @{ $knot{$1} }, $i );
+	}
 	elsif( $ss[$i-1] =~ /[\]\)\}\>]/ ) {
 	    my $j = pop @open || -1;
 	    my $pair = new Rfam::Pair( $j, $i );
+	    $self -> addPair( $pair );
+	}
+	elsif( $ss[$i-1] =~ /([a-z])/ ) {
+	    my $j = pop @{ $knot{uc($1)} } || -1;
+	    my $pair = new Rfam::Pair( $j, $i, uc($1) );
 	    $self -> addPair( $pair );
 	}
     }
