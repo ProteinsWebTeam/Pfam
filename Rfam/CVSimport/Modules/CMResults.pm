@@ -140,8 +140,11 @@ sub parse_rsearch {
 
     my( $id, $start, $end, $subst, $suben );
     while( <$file> ) {
-	if( /^\#(\S+)\/(\d+)-(\d+)/ ) {
+	if( /^\>(\S+)\/(\d+)-(\d+)/ ) {
 	    ( $id, $start, $end ) = ( $1, $2, $3 );
+	}
+	elsif( /^\>(\S+)/ ) {
+	    ( $id, $start ) =( $1, $2 );
 	}
 	if( /Query\s*=\s*\d+\s*-\s*\d+\,\s+Target\s*=\s*(\d+)\s*-\s*(\d+)\s*$/ ) {
 	    $subst = $start + $1 - 1;
