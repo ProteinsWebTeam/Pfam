@@ -4,8 +4,12 @@ BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
             ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+    $bioperl_dir = 
+        (defined $ENV{'BIOPERL_DIR'})
+            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
 }
 
+use lib $bioperl_dir;
 use lib $rfam_mod_dir;
 use strict;
 use Rfam;
@@ -33,17 +37,28 @@ else {
 }
 
 foreach my $acc ( @accs ) {
-    my $file;
-    if( $flatfile ) {
-	$file = "$acc.seed";
+    my $psfile;
+    if( -s "/pfam/db/Rfam/PICTURES/$acc.ps" ) {
+	$psfile = "/pfam/db/Rfam/PICTURES/$acc.ps";
+	system "pstopnm --landscape --stdout --xsize 800 $psfile | pnmtojpeg --quality 90 | jpegtran -rotate 180 > $acc.jpg" and die;
+	system "pstopnm --landscape --stdout --xsize 300 $psfile | pnmtojpeg --quality 90 | jpegtran -rotate 180 > tn_$acc.jpg" and die;
     }
     else {
-	$file = "$Rfam::current_dir/$acc/SEED";
+	$psfile = "./$acc.ps";
+	my $file;
+	if( $flatfile ) {
+	    $file = "$acc.seed";
+	}
+	else {
+	    $file = "$Rfam::current_dir/$acc/SEED";
+	}
+	system "$Rfam::scripts_dir/make/aln2ps.pl $file > $psfile" and die;
+	system "pstopnm --portrait --stdout $psfile | pnmtojpeg --quality 90 > $acc.jpg" and die;
+	system "pstopnm --portrait --stdout --xsize 200 $psfile | pnmtojpeg --quality 90 > tn_$acc.jpg" and die;
     }
-    system "$Rfam::scripts_dir/make/aln2ps.pl $file > $acc.ps" and die;
-    system "pstopnm --portrait --stdout $acc.ps | pnmtojpeg --quality 90 > $acc.jpg" and die;
-    system "pstopnm --portrait --stdout --xsize 200 $acc.ps | pnmtojpeg --quality 90 > tn_$acc.jpg" and die;
-    unlink( "$acc.ps" ) or die;
+    if( -s "./$acc.ps" ) {
+	unlink( "./$acc.ps" ) or die;
+    }
     if( $flatfile ) {
 	unlink( "$acc.seed" ) or die;
     }
