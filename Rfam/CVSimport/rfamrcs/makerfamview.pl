@@ -31,15 +31,18 @@ close DESC;
 
 foreach my $file ( @Rfam::align_file_set ) {
     my $aln = new Rfam::RfamAlign;
+    open( AOU, ">$file.tmp" ) or die;
     open( ALN, $file ) or die;
     $aln -> read_stockholm( \*ALN );
     close ALN;
+    my $newaln = $aln -> order_by_embl_taxonomy();
+    $newaln -> write_stockholm( \*AOU );
+
     my $numseq = scalar ( $aln -> each_seq() );
 
     open( ALNOUT, ">$file.ann" ) or die;
-
     my $seen;
-    open( REF, "sreformat --mingap stockholm $file |" ) or die;
+    open( REF, "sreformat --mingap stockholm $file.tmp |" ) or die;
     while( <REF> ) {
 	next if( /^\#=GF AU / );
 	if( /^\#=G/ and not $seen ) {
@@ -56,6 +59,8 @@ foreach my $file ( @Rfam::align_file_set ) {
     }
     close REF or die;
     close ALNOUT;
+
+    unlink "$file.tmp" or diel
 }
 
 
