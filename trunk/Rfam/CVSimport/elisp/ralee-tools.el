@@ -131,4 +131,29 @@
   )
   
 
+(defun ralee-maxidlength ()
+  "get the maximum id length for the current alignment"
+  (save-excursion
+    (goto-char (point-min))
+    (let ((maxidlength 0)
+	  seqid
+	  split)
+      (while (< (point) (point-max))
+	(beginning-of-line)
+	(if (or (ralee-is-alignment-line) (ralee-is-markup-line))
+	    (progn
+	      (setq seqid (ralee-get-seq-id))
+	      (setq split (split-string seqid ""))
+	      (if (> (length split) maxidlength)
+		  (setq maxidlength (length split))
+		)
+	      )
+	  )
+	)
+      (forward-line)
+      )
+    )
+  )
+
+
 (provide 'ralee-tools)
