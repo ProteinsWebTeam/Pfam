@@ -10,18 +10,11 @@
 # in the DESC file
 #
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-}
-
-use lib $rfam_mod_dir;
 
 use strict;
 use Rfam;
 use RfamRCS;
-use UpdateRDB;
+use Rfam::UpdateRDB;
 
 if( $#ARGV == -1 ) {
   &usage();

@@ -3,9 +3,8 @@
 use strict;
 use Getopt::Long;
 use lib '/nfs/WWWdev/SANGER_docs/cgi-bin/Rfam';
-use lib '/nfs/team71/pfam/mm1/rfam_cvs/scripts/Modules';
 
-use UpdateRDB;
+use Rfam::UpdateRDB;
 use Rfam;
 
 

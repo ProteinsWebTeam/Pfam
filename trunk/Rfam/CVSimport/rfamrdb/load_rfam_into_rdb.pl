@@ -1,14 +1,8 @@
 #!/usr/local/bin/perl 
 
 
-use lib '/nfs/team71/pfam/mm1/rfam_cvs/scripts/Modules';
-use lib '/pfam/db/bioperl';
-
-use UpdateRDB;
+use Rfam::UpdateRDB;
 use Rfam;
-
-
-
 
 
 use strict;

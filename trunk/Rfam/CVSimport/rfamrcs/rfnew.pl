@@ -4,21 +4,13 @@
 # author sgj
 # heavily stolen from Ewan's pfnew
 #
-use lib '/pfam/db/bioperl';
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-}
-
-use lib $rfam_mod_dir;
 
 use strict;
 use Rfam;
 use RfamQC;
 use RfamRCS;
 use Getopt::Long;
-use UpdateRDB;
+use Rfam::UpdateRDB;
 
 if( $#ARGV == -1 ) {
     &RfamRCS::show_rcs_help(\*STDOUT);
