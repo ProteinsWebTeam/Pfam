@@ -22,11 +22,11 @@ use Rfam;
 use Rfam::RfamAlign;
 use CMResults;
 
-my( $agp, $con, $search, $add, $clean, $outfile );
+my( $agp, $con, $search, @add, $clean, $outfile );
 &GetOptions( "agp"     => \$agp,
 	     "con"     => \$con,
 	     "search"  => \$search,
-	     "add=s"   => \$add,
+	     "add=s@"  => \@add,
 	     "clean=s" => \$clean,        # clean up a load of results files from previous run
 	     "o=s"     => \$outfile,
 	     );
@@ -103,12 +103,10 @@ unless( $search ) {
 }
 
 if( $clean ) {
-    system "cat $clean.*.out >> $$.add" and die;
-    system "rm -f $clean.*.out $clean.*.fa $clean.*.err" and die;
-    $add = "$$.add";
+    push( @add, "$clean.*.out" );
 }
 
-if( $add ) {
+foreach my $add ( @add ) {
     open( A, $add ) or die;
     while(<A>) {
 	if( my( $id, $ver, $start, $end, $rfacc, $bits, $rfid ) = 
@@ -137,7 +135,7 @@ if( $add ) {
     unlink $add if $clean;
 }
 
-my @search;
+my %search;
 my $ignore;
 open( E, $file ) or die;
 if( $agp ) {
@@ -145,7 +143,7 @@ if( $agp ) {
 	if( /^\S+\s+\d+\s+\d+\s+\d+\s+\S+\s+(\S+)\.(\d+)\s+(\d+)\s+(\d+)/ ) {
 	    my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
 	    if( $search and ( not exists $rfamseq{$id} or $ver != $rfamseq{$id} ) ) {
-		push( @search, $id.".".$ver );
+		$search{ $id.".".$ver } = 1;
 	    }
 	    elsif( not exists $rfamseq{$id} ) {
 		print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
@@ -175,7 +173,7 @@ elsif( $con ) {
 	    while( /([A-Z0-9]+)\.(\d+)\:(\d+)\.\.(\d+)/g ) {
 		my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
 		if( $search and ( not exists $rfamseq{$id} or $ver != $rfamseq{$id} ) ) {
-		    push( @search, $id.".".$ver );
+		    $search{ $id.".".$ver } = 1;
 		}
 		elsif( not exists $rfamseq{$id} ) {
 		    print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
@@ -200,10 +198,10 @@ if( $search ) {
     elsif( $con ) {
 	$options = "--con";
     }
-    if( @search ) {
+    if( my @search = keys %search ) {
 	my $j = @search;
 	for( my $i=1; $i<=@search; $i++ ) {
-	    system "pfetch -A $search[$i-1] -n $search[$i-1] > $jid.$i.fa" and die;
+	    system "pfetch $search[$i-1] -n $search[$i-1] > $jid.$i.fa" and die;
 	}
 	system "echo 'cmblast.pl $jid.\$\{LSB_JOBINDEX\}.fa > $jid.\$\{LSB_JOBINDEX\}.out' | bsub -q pfam_slow -Rlinux -o $jid.\%I.err -Jrf$jid\"[1-$j]\"" and die; 
 
