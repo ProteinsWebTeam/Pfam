@@ -11,6 +11,7 @@ BEGIN {
 
 use lib $rfam_mod_dir;
 use lib $bioperl_dir;
+use Getopt::Long;
 
 use strict;
 use IO::File;
@@ -19,8 +20,19 @@ use Rfam::RfamAlign;
 sub usage {
     print STDERR <<EOF;
 Usage: $0 <alignfile> <outfile>
+
+optional args:
+ -robust <number between 0 and 1>
+
+The robustness option specifies how much incorrectness in the
+sequence or alignment of bases. Default is 0.01. A value of
+0.05 might be better for poorer alignments.
 EOF
 }
+
+
+my $robust=0.01; # Range between 0 and 1
+&GetOptions('robust=s'  => \$robust);
 
 my $alnfile = shift;
 if( not $alnfile ) {
@@ -65,7 +77,7 @@ my $fh = new IO::File;
 $fh -> open("| bsub -I -q $queue -Rlinux -o pfold.err") or die "$!";
 $fh -> print("$pfold_bindir/findphyl $pfold_bindir/scfg.rate $$.col > /tmp/$$.nj.col\n");
 $fh -> print("$pfold_bindir/mltree $pfold_bindir/scfg.rate /tmp/$$.nj.col > /tmp/$$.ml.col\n");
-$fh -> print("$pfold_bindir/scfg --treeinfile $pfold_bindir/article.grm /tmp/$$.ml.col > /tmp/$$.res.col\n");
+$fh -> print("$pfold_bindir/scfg --robust=$robust --treeinfile $pfold_bindir/article.grm /tmp/$$.ml.col > /tmp/$$.res.col\n");
 $fh -> print("$pfold_bindir/addparen /tmp/$$.res.col | $pfold_bindir/col2fasta > $$.out.fa\n");
 $fh -> close;
 
