@@ -52,21 +52,20 @@ END {
 my $file = shift;
 
 my $local;
-#if( not defined $thr and not $list and not $overlaps ) {
-open( DESC, "DESC" ) or warn "Can't open DESC to determine global/local requirement\n";
-while( <DESC> ) {
-    /^GA\s+(\S+)/ and do {
-	$thr = $1 if not defined $thr;
-    };
-    /^BM\s+cmsearch.*-local.*/ and do {
-	$local = 1;
-    };
+if( not $list and not $overlaps ) {
+    open( DESC, "DESC" ) or warn "Can't open DESC to determine global/local requirement\n";
+    while( <DESC> ) {
+	/^GA\s+(\S+)/ and do {
+	    $thr = $1 if not defined $thr;
+	};
+	/^BM\s+cmsearch.*-local.*/ and do {
+	    $local = 1;
+	};
+    }
+    close DESC;
 }
-close DESC;
 
 open( F, $file ) or die;
-open( FA, ">$$.fa" ) or die;
-   
 my $allres = new CMResults;
 
 if( $cove ) {
@@ -82,7 +81,7 @@ if( $list ) {
     my $chunksize = 1000;
     my $desclength = 35;
     my %desc;
-    $thr = 0 if( not $thr );
+    $thr = 0 if( not defined $thr );
     my @goodhits = grep{ $_->bits >= $thr } $res->eachHMMUnit();
     my @allnames = map{ $_->seqname } @goodhits;
     while( scalar @allnames ) {
@@ -131,6 +130,7 @@ elsif( $overlaps ) {
     exit(0);
 }
 
+open( FA, ">$$.fa" ) or die;
 open( SC, ">scores" ) or die;
 foreach my $cmseq ( $res->eachHMMSequence() ) {
     foreach my $cmunit ( $cmseq->eachHMMUnit ) {
