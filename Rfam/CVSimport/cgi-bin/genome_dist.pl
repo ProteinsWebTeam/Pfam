@@ -87,7 +87,7 @@ sub _print_cat_results {
   foreach (sort keys %cat_res) {
     my ($the_species, $junk) = split(/~/, $_);
     
-    my($description, $taxonomy, $auto_genome) = split(/~/, $_);
+    my($description, $taxonomy, $auto_genome, $genome_acc) = split(/~/, $_);
     my($species) = $1 if ($description =~ /^(\S+\s+\S+)/);
     my (@values) = @{$cat_res{$_}};
     
@@ -99,7 +99,7 @@ sub _print_cat_results {
       
     }
     if ($count > 0) {
-      print "<TR><TD class=normalmediumtext BGCOLOR=$RfamWWWConfig::rfamcolour  NOWRAP valign=center align=left ><A href=genome_view.pl?auto_genome=" . $auto_genome .">$the_species</A></TD>";
+      print "<TR><TD class=normalmediumtext BGCOLOR=$RfamWWWConfig::rfamcolour  NOWRAP valign=center align=left ><A href=genome_view.pl?genome_acc=" . $genome_acc .">$the_species</A></TD>";
       print "<TD class=normalmediumtext BGCOLOR=$RfamWWWConfig::rfamcolour  NOWRAP valign=center align=right>$count</TD><TD class=normalmediumtext BGCOLOR=$RfamWWWConfig::rfamcolour  NOWRAP valign=center align=right>$sum</TD></TR>";
     }
     
