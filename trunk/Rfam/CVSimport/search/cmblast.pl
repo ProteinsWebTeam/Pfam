@@ -29,15 +29,17 @@ my( $local,
     $blastdb,
     $thresh,
     $blastcut,
+    $noclean,
     $help );
 
-&GetOptions( "local"  => \$local,
-	     "db=s"   => \$blast_dir,
-	     "acc=s"  => \$family_acc,
-	     "fadb=s" => \$blastdb,
-	     "t=s"    => \$thresh,
-	     "bt=s"   => \$blastcut,
-	     "h"      => \$help );
+&GetOptions( "local"   => \$local,
+	     "db=s"    => \$blast_dir,
+	     "acc=s"   => \$family_acc,
+	     "fadb=s"  => \$blastdb,
+	     "t=s"     => \$thresh,
+	     "bt=s"    => \$blastcut,
+	     "noclean" => \$noclean,
+	     "h"       => \$help );
 
 my $fafile = shift;
 
@@ -153,7 +155,9 @@ foreach my $acc ( keys %results ) {
     }
 }
 
-#unlink( "$$.res", "$$.seq", "$$.blast" ) or die;
+unless( $noclean ) {
+    unlink( "$$.res", "$$.seq", "$$.blast" ) or die;
+}
 
 if( $error ) {
     die "$error errors -- exiting\n";
