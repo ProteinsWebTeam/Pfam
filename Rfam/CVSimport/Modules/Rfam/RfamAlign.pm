@@ -711,6 +711,11 @@ sub write_coloured_ps {
     my $iter = $self->length/$block;
     my $numseqs = $self->no_sequences;
 
+    if( $numseqs+2 > $lines ) {
+	# can't fit to page
+	$fitpage = 0;
+    }
+
     my $whoami = `whoami`;
     chomp $whoami;
     my $date = `date`;
@@ -853,11 +858,11 @@ EOF
 		    my $col = $colmap{$j+1};
 		    my @res = sort ( $seq[$pair->left -1], $seq[$pair->right -1] );
 #		    print $out "\n<< $res[0] $res[1] >>\n";
-		    if( ( $res[0] eq "C" and $res[1] eq "G" ) or
-			( $res[0] eq "A" and $res[1] eq "T" ) or
-			( $res[0] eq "A" and $res[1] eq "U" ) or
-			( $res[0] eq "G" and $res[1] eq "U" ) or
-			( $res[0] eq "G" and $res[1] eq "T" ) ) {
+		    if( ( $res[0] =~ /C/i and $res[1] =~ /G/i ) or
+			( $res[0] =~ /A/i and $res[1] =~ /T/i ) or
+			( $res[0] =~ /A/i and $res[1] =~ /U/i ) or
+			( $res[0] =~ /G/i and $res[1] =~ /U/i ) or
+			( $res[0] =~ /G/i and $res[1] =~ /T/i ) ) {
 
 			if( $lastcol != $col ) {
 			    $lastcol = $col;
