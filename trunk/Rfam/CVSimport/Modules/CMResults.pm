@@ -73,6 +73,8 @@ sub parse_infernal {
 	next if( /^\#/ );
 	next if( /CPU time:\s+/ or /memory:\s+/ );
 	next if( /^\s*$/ );
+	next if( /^\s*\-\s*\-\s*$/ ); # these may have screwed things 
+	                              # up before Jan 2005!
 	if( /^sequence:\s+(\S+)\s*/ ) {
 	    if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
 		( $id, $start, $end ) = ( $1, $2, $3 );
