@@ -34,14 +34,14 @@ sub new {
 sub write_embl {
     my $self = shift;
     my $fh   = shift;
-    my $num  = shift or 1;
+    my $num  = shift || 1;
 
     $Text::Wrap::columns = 75;
 
     print $fh "RN   [$num]\n";
-    print $fh "RX   PUBMED; ", $self->{'PUBMED'}, "\n";
-    print $fh wrap( "RA   ", "RA   ", $self->{'AUTHORS'} );
-    print $fh wrap( "RT   ", "RT   ", "\"".$self->{'TITLE'}."\"" );
+    print $fh "RX   PUBMED; ", $self->{'PUBMED'}, ".\n";
+    print $fh wrap( "RA   ", "RA   ", $self->{'AUTHORS'} ), ";\n";
+    print $fh wrap( "RT   ", "RT   ", "\"".$self->{'TITLE'}."\"" ), ";\n";
     print $fh "RL   ", $self->{'JOURNAL'}, " ", $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'}, "-", $self->{'PAGES'}->{'TO'}, "(", $self->{'YEAR'}, ")", ".\n";
 
 }
@@ -96,7 +96,7 @@ sub get_ref_by_pubmed {
 	    $self->{ 'AUTHORS' } = $data{ 'AU' };
 	}
 
-	if( $data{ 'SO' } =~ /(.*)\s+(\d{4}).*;(\d+).*:(\d+)-(\d+)/ ) {
+	if( $data{ 'SO' } =~ /(.*)\s+(\d{4}).*;(\d+).*:(\d+)-?(\d*)/ ) {
 	    $self->{ 'JOURNAL' } = $1;
 	    $self->{ 'YEAR' }    = $2;
 	    $self->{ 'VOLUME' }  = $3;
