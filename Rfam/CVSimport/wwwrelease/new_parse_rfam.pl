@@ -24,7 +24,7 @@ die "need file_type , either seed or full \n" if (!$file_type);
 
 
 
-my @colours = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t");
+my @colours = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
 
 my %colours_count;
 my $count = 0;
@@ -904,6 +904,7 @@ sub _add_markup {
  # print "COL: \n@col_blocks\n";
 
 # exit(0);
-
+#print "NEW: $new_seq \n";
+#print "blocks : @col_blocks \n";
   return $new_seq, \@blocks, \@col_blocks,  %seq_colour;
 }
