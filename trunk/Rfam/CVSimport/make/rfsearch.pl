@@ -2,7 +2,8 @@
 
 # This is mostly pretty NFS friendly now.  Should run rfsearch itself on 
 # something with local storage, but the jobs all get sent off to blades
-# using nice socket things, pfetch etc.
+# using nice socket things, pfetch etc.  Blast searches are still bad, 
+# but not sure how to fix at the moment.
 
 use strict;
 use Getopt::Long;
@@ -134,7 +135,7 @@ unless( $blast ) {
 	my $fh = new IO::File;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
 	$fh -> print(". /usr/local/lsfv42/conf/profile.lsf\n");   # so we can find lsrcp
-	$fh -> print("rfamseq_blast.pl --mp -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
+	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
 	$fh -> print("rm -f /tmp/$$.blastlist.$i\n");
 	$fh -> close;
