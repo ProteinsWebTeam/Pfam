@@ -767,8 +767,9 @@ sub _read_std_desc{
 	   next;
        };
        /^TP\s+(.*)$/ && do {
-	 $1 =~ s/\s+//g;
-	   $self->entry_type($1);
+	 my $type = $1;
+	 $type =~ s/\s+//g;
+	 $self->entry_type($type);
 	   next;
        };
        /^NS\s+(\d+)/ && do {
