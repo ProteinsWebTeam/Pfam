@@ -744,6 +744,10 @@ sub _read_std_desc{
 	   $self->source($1);
 	   next;
        };
+       /^SS\s+(.*?)\s+$/ && do {
+	   $self->structure_source($1);
+	   next;
+       };
 
        /^PI\s+(.*?)\s+$/ && do {
 	   $self->previous_ids($1);

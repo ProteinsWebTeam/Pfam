@@ -824,6 +824,29 @@ sub source{
 
 }
 
+=head2 structure_source
+
+ Title   : structure_source
+ Usage   : $self->structure_source($newval)
+ Function: 
+ Example : 
+ Returns : value of structure_source
+ Args    : newvalue (optional)
+
+
+=cut
+
+sub structure_source{
+   my ($self,$value) = @_;
+   if( defined $value) {
+       $self->{'structure_source'} = $value;
+   }  else {
+       $self->_before_annotation_hook('structure_source');
+   }
+
+   return $self->{'structure_source'};
+}
+
 
 sub comment{
    my ($self,$value) = @_;
