@@ -73,8 +73,8 @@ sub parse_infernal {
 	next if( /^\#/ );
 	next if( /CPU time:\s+/ or /memory:\s+/ );
 	next if( /^\s*$/ );
-	next if( /^\s*\-\s*\-\s*$/ ); # these may have screwed things 
-	                              # up before Jan 2005!
+	next if( /^\s+-\s+-\s*$/ );
+
 	if( /^sequence:\s+(\S+)\s*/ ) {
 	    if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
 		( $id, $start, $end ) = ( $1, $2, $3 );
@@ -113,11 +113,18 @@ sub parse_infernal {
 
 	    $self -> addHMMUnit( $unit );
 	}
-	elsif( /^\s+(\d*)\s*(.+?)\s*(\d*)\s*$/ ) {
+
+        elsif( /^\s*$/ or
+	       /^\s+\-\s+/ or
+	       /^\s+(\d*)\s*(.+?)\s*(\d*)\s*$/ ) {
+	    # should be an alignment line
+	    # add it, and then parse the next 4 lines
 	    $unit->add_alignment_line( $_ );
+
 	    for( my $i=1; $i<=4; $i++ ) {
 		my $wholeline = <$file>;
 		chomp $wholeline;
+
 		if( $i == 1 ) {
 		    if( my( $start, $end ) = $wholeline =~ /^\s+(\d+)\s+.*\s+(\d+)\s*$/ ) {
 			# unit is already in results object, but this should still
@@ -125,10 +132,19 @@ sub parse_infernal {
 			$unit -> start_hmm( $start ) unless $unit -> start_hmm();
 			$unit -> end_hmm( $end );
 		    }
+		    elsif( $wholeline =~ /\s+\-\s+/ ) {
+			# ignore these annoying local alignment lines
+		    }
+		    else {
+			warn "failed to parse alignment line 1 [$wholeline]\n";
+		    }
 		}
+
 		if( $i == 3 ) {
 		    # cmsearch reports wierd start end numbers in the alignment
 		    # lines - fix them here
+
+		    # THIS FAILS FOR LOCAL ALIGNMENTS AT THE MOMENT
 		    if( my( $space, $ast, $stuff, $aen ) = $wholeline =~ /^(\s+)(\d+)\s+(.+)\s+(\d+)/ ) {
 			my $origaln = $stuff;
 			$stuff =~ s/[-\.]//g;
@@ -150,7 +166,14 @@ sub parse_infernal {
 			my $spacing = length($space)+length($ast);
 			$wholeline = sprintf( "%".$spacing."s %s %s", $alnst, $origaln, $alnen );
 		    }
+		    elsif( $wholeline =~ /\s+\-\s+/ ) {
+			# ignore these annoying local alignment lines
+		    }
+		    else {
+			warn "failed to parse alignment line 3 [$wholeline]\n";
+		    }
 		}
+
 		if( $i == 4 ) {
 		    warn "alignment line [$wholeline] should be blank\n" unless( $wholeline =~ /^\s*$/ );
 		}
@@ -164,6 +187,7 @@ sub parse_infernal {
     }
     return $self;
 }    
+
 
 
 sub parse_rsearch {
