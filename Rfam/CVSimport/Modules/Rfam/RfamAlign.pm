@@ -464,13 +464,37 @@ sub write_stockholm {
 
 
 sub write_connect {
-    my $self = shift;
-    my $out  = shift;
+    my $self  = shift;
+    my $out   = shift;
+    my $seqid = shift; # if this exists we'll use a single sequence and
+                       # the SS_cons line
 
     die "can't read ss_cons line" if( not $self -> ss_cons() );
 
-    my @ss   = split( //, $self->ss_cons->getInfernalString );
-    my @cons = split( //, $self->consensus() );
+    my $seqstr;
+    if( $seqid ) {
+	my( $seq ) = $self->eachSeqWithId($seqid);
+	$seqstr = $seq->seq();
+    }
+    else {
+	$seqstr = $self->consensus();
+    }
+
+    $seqid = "Seq_cons" unless $seqid;
+
+    my $newaln = Rfam::RfamAlign->new();
+    my $newseq = new Bio::LocatableSeq( '-id'  => $seqid,
+					'-start' => 1,
+					'-end' => $self->length_aln(),
+					'-seq' => $seqstr );
+
+    $newaln -> addSeq( $newseq );
+    $newaln -> ss_cons( $self->ss_cons );
+    $newaln -> allgaps_columns_removed();
+    my( $gapless ) = $newaln -> eachSeq();
+    
+    my @ss   = split( //, $newaln->ss_cons->getInfernalString );
+    my @seq  = split( //, $gapless->seq() );
 
     my( @open, %bp );
     for( my $i=1; $i<=@ss; $i++ ) {
@@ -484,6 +508,9 @@ sub write_connect {
 	}
     }
     
+    # dummy first line
+    print $out "  290 ENERGY =  -126.8    ACJL\n";
+
     for( my $i=1; $i<=@ss; $i++ ) {
 	my $j;
 	if( exists $bp{$i} ) {
@@ -499,7 +526,7 @@ sub write_connect {
 	else {
 	    $next = $i+1;
 	} 
-	print $out sprintf( "%5d %-1s %5d %5d %5d %5d\n", $i, $cons[$i-1], $i-1, $next, $j, $i );
+	print $out sprintf( "%5d %-1s %5d %5d %5d %5d\n", $i, $seq[$i-1], $i-1, $next, $j, $i );
     }
 }
 
