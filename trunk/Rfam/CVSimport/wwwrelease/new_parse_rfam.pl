@@ -605,7 +605,7 @@ my $print = 0;
 sub _print_to_file {
 
   my ( $seq_name_count, $file_out)  = @_;
-  print "FILE OUT: $file_out \n";
+#  print "FILE OUT: $file_out \n";
   open(_OUT, ">$file_out");
 #  print _OUT "<html><head><link REL=\"stylesheet\" HREF=\"rfam_align.css\"></head><body>";
   
