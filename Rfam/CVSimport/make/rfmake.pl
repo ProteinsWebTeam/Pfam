@@ -82,7 +82,9 @@ if( $list ) {
     my $chunksize = 1000;
     my $desclength = 35;
     my %desc;
-    my @allnames = map{ $_->seqname } $res->eachHMMUnit();
+    $thr = 0 if( not $thr );
+    my @goodhits = grep{ $_->bits >= $thr } $res->eachHMMUnit();
+    my @allnames = map{ $_->seqname } @goodhits;
     while( scalar @allnames ) {
 	my $string = join( " ", splice( @allnames, 0, $chunksize ) );
 	open( P, "pfetch -D $string |" ) or die;
