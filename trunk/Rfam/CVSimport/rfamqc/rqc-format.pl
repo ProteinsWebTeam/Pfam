@@ -4,6 +4,25 @@ use strict;
 use Rfam;
 
 my $family = shift;
+#Hash containing valid TP lines:
+my %TP_hash = (
+		'Gene' => {
+			     'tRNA' => 1,
+                             'rRNA' => 1,
+			     'miRNA' =>	1,
+			     'ribozyme' => 1,
+			     'antisense' => 1,
+			     'snRNA' => {
+			     		   'splicing' => 1,
+			                   'guide' => 1
+					  }
+			    },
+		'Intron' => 1,
+		'Cis-reg' => {
+		                'IRES' => 1,
+		                'riboswitch' => 1
+			       }
+		 );
 
 my $error;
 if( !&check_timestamps( $family ) ) {
@@ -137,31 +156,35 @@ sub desc_is_OK {
             };
 	    /^TP/ && do {
 		$fields{$&}++;
-		unless( /^TP   Gene; tRNA;\s*$/ or /^TP   Gene; rRNA;\s*$/
-		or /^TP   Gene; snRNA; splicing;\s*$/ or /^TP   Gene; snRNA; guide;\s*$/
-		or /^TP   Gene; miRNA;\s*$/ or /^TP   Gene; ribozyme;\s*$/
-		or /^TP   Gene; antisense;\s*$/ or /^TP   Gene; other;\s*$/
-		or /^TP   Gene; RUF;\s*$/ or /^TP   Intron;\s*$/
-		or /^TP   Cis-reg;\s*$/ or /^TP   Cis-reg; riboswitch;\s*$/
-		or /^TP   Cis-reg; IRES;\s*$/
-		) {
-                    warn "$family: invalid TP line \"$_\"\n";
-		    warn "Valid TP lines are as follows:\n";
-		    warn "Gene; tRNA;\n";
-		    warn "Gene; rRNA;\n";
-		    warn "Gene; snRNA; splicing;\n";
-		    warn "Gene; snRNA; guide;\n";
-		    warn "Gene; miRNA;\n";
-		    warn "Gene; ribozyme;\n";
-		    warn "Gene; antisense;\n";
-		    warn "Gene; other;\n";
-		    warn "Gene; RUF;\n";
-		    warn "Intron;\n";
-		    warn "Cis-reg;\n";
-		    warn "Cis-reg; riboswitch;\n";
-		    warn "Cis-reg; IRES;\n";
-                    $error = 1;
- 		}
+		my $TP;
+		my $i =0;
+			if (/TP   (.+)/){
+			$TP = "$1 ";
+			}
+			my @TPline = split /; /, $TP;
+			foreach my $element (@TPline){
+			$i++;
+			}
+			if ($i == 1){
+				unless (exists $TP_hash{$TPline[0]}){
+				print "Invalid TP line: $TP\n";
+				$error = 1;
+				}
+			}
+			
+			elsif ($i == 2){
+				unless (exists $TP_hash{$TPline[0]}->{$TPline[1]} ){
+				print "Invalid TP line: $TP\n";
+				$error = 1;
+				}
+			}
+			elsif ($i == 3){
+				unless (exists $TP_hash{$TPline[0]}->{$TPline[1]}->{$TPline[2]}){
+				print "Invalid TP line: $TP\n";
+				$error = 1;
+				}
+			}
+
                 last;
 	    };
             /^BM/ && do {
