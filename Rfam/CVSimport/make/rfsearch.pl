@@ -117,7 +117,9 @@ if( -s "DESC" ) {
 # defaults
 $blast_eval = 10  unless $blast_eval;
 $window     = 100 unless $window;
-$cpus       = 1   unless $cpus;
+$cpus       = 40  unless $cpus;
+$queue      = "pfam_slow -Rlinux" unless $queue;
+$bqueue     = "pfam_slow -Rlinux" unless $bqueue;
 $buildopts  = "--rf CM SEED" unless $buildopts;
 
 my $fafile = "FA";
