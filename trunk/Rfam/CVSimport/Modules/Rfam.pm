@@ -16,7 +16,12 @@ use vars qw( @ISA
 	     $rcs_master_dir
 	     $rcs_attic_dir
 	     $scripts_dir
-	     $acclog_file 
+	     $acclog_file
+	     $rfamseq_root_dir
+	     $rfamseq_current_dir
+	     $rfamseq_new_dir
+	     $rfamseq_current_inx
+	     $rfamseq_new_inx
 	     @view_file_set
              @align_file_set
              @model_file_set
@@ -35,6 +40,11 @@ use vars qw( @ISA
 	      $rcs_attic_dir 
 	      $scripts_dir    
 	      $acclog_file
+	      $rfamseq_root_dir
+	      $rfamseq_current_dir
+	      $rfamseq_new_dir
+	      $rfamseq_current_inx
+	      $rfamseq_new_inx
 	      @view_file_set
 	      @align_file_set
 	      @ann_file_set
@@ -52,6 +62,12 @@ $rcs_master_dir = "$root_dir/RCS_MASTER";
 $rcs_attic_dir  = "$root_dir/RCS_ATTIC";
 $scripts_dir    = "$root_dir/scripts";
 $acclog_file    = "$accession_dir/acclog";
+
+$rfamseq_root_dir    = "/pfam/db/rfamseq";
+$rfamseq_current_dir = "$rfamseq_root_dir/CURRENT";
+$rfamseq_new_dir     = "$rfamseq_root_dir/NEW";
+$rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi";
+$rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";
 
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
