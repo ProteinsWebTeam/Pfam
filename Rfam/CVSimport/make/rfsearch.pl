@@ -35,7 +35,8 @@ my( $quiet,
     $name,
     $cpus,
     $blast,
-    $help );
+    $help,
+    $update );
 
 
 sub help {
@@ -54,6 +55,7 @@ Options:       -h              show this help
 	       --global        run cmsearch in global mode (override DESC cmsearch command)
 	       --cpu           number of cpus to run cmsearch job over
 	       --nobuild       skip cmbuild step
+	       --update        update the family to a new underlying sequence db (expert!)
 
 EOF
 }
@@ -68,6 +70,7 @@ EOF
 	     "nobuild"  => \$nobuild,
 	     "name=s"   => \$name,
 	     "blast=s"  => \$blast,
+	     "update"   => \$update,
 	     "h"        => \$help );
 
 if( $help or not -e "SEED" ) {
@@ -128,11 +131,20 @@ my $phost = `uname -n`;
 chomp $pwd;
 chomp $phost;
 
+my @blastdb;
+if( $update ) {      # run over the new.fa.* databases
+    @blastdb = glob( "$blastdbdir/new.fa.*[0-9]" );
+    &update_output( "OUTPUT", "OUTPUT.0" );
+}
+else {               # run over *.fa databases
+    @blastdb = glob( "$blastdbdir/*.fa" );
+}    
+
 unless( $blast ) {
     print STDERR "Queuing up blast jobs ...\n";
-    foreach my $blastdb ( glob( "$blastdbdir/*.fa" ) ) {
+    foreach my $blastdb ( @blastdb ) {
 	$i ++;
-	my( $div ) = $blastdb =~ /\/([a-z0-9]+)\.fa$/;
+	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
 	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
@@ -280,6 +292,52 @@ sub parse_list {
 	}
     }
     return $list;
+}
+
+
+sub update_output { 
+    my $oldfile = shift;
+    my $newfile = shift;
+
+    my %delup;
+    my $difffile = "$Rfam::rfamseq_current_dir/rfamseq.diff";
+    my $svfile   = "$Rfam::rfamseq_current_dir/embl_sv.txt";
+    open( DIFF, $difffile ) or die;
+    while(<DIFF>) {
+	if( my( $acc ) = /^(\S+)\.(\d+)\s+(UPDATE|DELETE)/ ) {
+	    $delup{ $acc } = $2;
+	}
+    }
+    close DIFF;
+
+    my %sv;
+    open( SV, $svfile ) or die;
+    while(<SV>) {
+	if( my( $acc, $ver ) = /^(\S+)\.(\d+)/ ) {
+	    $sv{ $acc } = $ver;
+	}
+    }
+    close SV;
+
+    my $skip;
+    open( NEW, ">$newfile" ) or die;
+    open( OLD, "$oldfile" ) or die;
+    while(<OLD>) {
+	if( my( $acc, $junk ) = /^sequence\:\s+(\w+)\.?\d*(.*)/ ) {
+#	    print STDERR "$_\n$acc;$junk\n";
+	    if( $delup{ $acc } ) {
+		$skip = 1;
+		next;
+	    }
+	    else {
+		$_ = "sequence: $acc.$sv{$acc}".$junk."\n";
+		$skip = 0;
+	    }
+	}
+	print NEW $_ unless $skip;
+    }
+    close OLD;
+    close NEW;
 }
 
 
