@@ -609,7 +609,7 @@ sub label_family {
     }
 
     foreach my $file ( @Rfam::rcs_file_set ) {
-	if( system("Rfam::rcs -N$label: $Rfam::rcs_master_dir/$family/$file") != 0 ) {
+	if( system("rcs -N$label: $Rfam::rcs_master_dir/$family/$file") != 0 ) {
 	    warn("Could not label $family/$file...");
 	    $ret = 0;
 	}
