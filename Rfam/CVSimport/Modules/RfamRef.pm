@@ -23,6 +23,7 @@ sub new {
     $self->{'YEAR'}    = undef;
     $self->{'VOLUME'}  = undef;
     $self->{'NUMBER'}  = undef;
+    $self->{'EPUB'}    = undef;
     $self->{'PAGES'}->{'FROM'} = undef;
     $self->{'PAGES'}->{'TO'}   = undef;
 
@@ -67,7 +68,7 @@ sub get_ref_by_pubmed {
 	my $tag;
 	foreach ( split( /\n/, $res->content  ) ) {
 	    s/\r//g;    # remove dos new lines
-#	    print "$_\n";
+	    print "$_\n";
 	    if( /^(\w+)\s*-\s+(.*)$/ or /^<\S+><\S+>(\w+)\s*- (.*)$/ ) {
 		$tag = $1;
 		if( ! $data{ $tag } ) {
@@ -103,12 +104,23 @@ sub get_ref_by_pubmed {
 	    $self->{ 'AUTHORS' } = $data{ 'AU' };
 	}
 
-	if( $data{ 'SO' } =~ /(.*)\s+(\d{4}).*;(\d+).*:(\w*\d+)-?(\d*)/ ) {
+	if( $data{ 'SO' } =~ /(.*)\s+(\d{4}).*;(.*)/ ) {
 	    $self->{ 'JOURNAL' } = $1;
 	    $self->{ 'YEAR' }    = $2;
-	    $self->{ 'VOLUME' }  = $3;
-	    $self->{ 'PAGES' }->{ 'FROM' } = $4;
-	    $self->{ 'PAGES' }->{ 'TO' }   = $5;
+	    my $rest = $3;
+
+	    if( $rest =~ /(\d+).*:(\w*\d+)-?(\d*)/ ) {
+		$self->{ 'VOLUME' }  = $1;
+		$self->{ 'PAGES' }->{ 'FROM' } = $2;
+		$self->{ 'PAGES' }->{ 'TO' }   = $3;
+	    }
+	    else {    
+		# probably epub prior to print
+		# embl style is set all these to zero
+		$self->{ 'VOLUME' }  = 0;
+		$self->{ 'PAGES' }->{ 'FROM' } = 0;
+		$self->{ 'PAGES' }->{ 'TO' }   = 0;
+	    }
 
 	    # convert pubmeds stupid 160-3 page numbering to 160-163.
 	    my $fromlen = length( $self->{ 'PAGES' }->{ 'FROM' } );
