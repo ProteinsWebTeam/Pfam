@@ -694,19 +694,29 @@ EOF
 
 
 sub write_coloured_ps {
+    # write postscript output with coloured markup
     my $self  = shift;
     my %params = @_;
 
-    my $out = $params{'-fh'};
-    my $fontsize = $params{'-fontsize'};
-    my $lines = $params{'-lines'};
-    my $fitpage = $params{'-fitpage'};
+    my $out       = $params{'-fh'};
+    my $fontsize  = $params{'-fontsize'};
+    my $lines     = $params{'-lines'};
+    my $fitpage   = $params{'-fitpage'};
+    my $landscape = $params{'-landscape'};
+    my $block     = $params{'-width'};
 
-    $fontsize = 10 if( not defined $fontsize );
-    $lines = 70/$fontsize * 10 if( not $lines );
+    $fontsize = 10 if( not $fontsize );
     my $maxn = $self->maxdisplayname_length() + 2;
 
-    my $block = int( 80/$fontsize * 10 - $maxn );
+    if( $landscape ) {
+	$block = int( 125/$fontsize * 10 - $maxn ) if( not $block );	    
+	$lines = int( 50/$fontsize * 10 ) if( not $lines );
+    }
+    else {
+	$block = int( 82/$fontsize * 10 - $maxn ) if( not $block );
+	$lines = int( 72/$fontsize * 10 ) if( not $lines );
+    }
+
     my $offset = $fontsize/4;
     my $iter = $self->length/$block;
     my $numseqs = $self->no_sequences;
@@ -715,6 +725,9 @@ sub write_coloured_ps {
 	# can't fit to page
 	$fitpage = 0;
     }
+
+    my $orient = "Portrait";
+    $orient = "Landscape" if( $landscape );
 
     my $whoami = `whoami`;
     chomp $whoami;
@@ -729,7 +742,7 @@ sub write_coloured_ps {
 \%\%Creator: Rfam::RfamAlign
 \%\%CreationDate: $date
 \%\%DocumentPaperSizes: a4
-\%\%Orientation: Portrait
+\%\%Orientation: $orient
 \%\%Pages: 1
 \%\%EndComments
 
@@ -768,13 +781,22 @@ sub write_coloured_ps {
 } bind def
 
 %%Page: 1 1
+EOF
+
+    my( $x0, $y0 ) = ( 40, 780 );
+    if( $landscape ) {
+	print $out "90 rotate\n";
+	( $x0, $y0 ) = ( 40, -40 );
+    }
+
+    print <<EOF;
 /bgcolor [ 1 1 1 ] def
 /Courier-New findfont
 $fontsize scalefont
 setfont
 newpath
-/y0 780 def
-/x0 40 def
+/y0 $y0 def
+/x0 $x0 def
 x0 y0 moveto
 
 (# STOCKHOLM 1.0) S N
@@ -834,13 +856,18 @@ EOF
 grestore
 showpage
 \%\%Page: $page $page
+EOF
+                if( $landscape ) {
+		    print $out "90 rotate\n";
+		}
+		print $out <<EOF;
 /bgcolor [ 1 1 1 ] def
 /Courier-New findfont
 $fontsize scalefont
 setfont
 newpath
-/y0 780 def
-/x0 40 def
+/y0 $y0 def
+/x0 $x0 def
 x0 y0 moveto
 EOF
 	    }
