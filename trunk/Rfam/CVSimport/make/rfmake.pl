@@ -77,7 +77,7 @@ my $res = $allres -> remove_overlaps();
 
 if( $list ) {
     my $chunksize = 1000;
-    my $desclength = 50;
+    my $desclength = 35;
     my %desc;
     my @allnames = map{ $_->seqname } $res->eachHMMUnit();
     while( scalar @allnames ) {
@@ -94,7 +94,7 @@ if( $list ) {
 	if( not exists $desc{$unit->seqname} ) {
 	    $desc{$unit->seqname} = "no description available";
 	}
-	printf( "%-12s%-".$desclength."s%10d%8d%6d%6d%9s\n", $unit->seqname, $desc{$unit->seqname}, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
+	printf( "%-10s%-".$desclength."s%8d%8d%5d%5d%8s\n", $unit->seqname, $desc{$unit->seqname}, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
     }
     exit(0);
 }
