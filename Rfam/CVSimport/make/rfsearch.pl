@@ -36,7 +36,7 @@ Usage:   rfsearch.pl <options>
 Options:       -h              show this help
 	       -e <n>          use blast evalue of <n>
                -q <queue>      use lsf queue <queue> for the cmsearch step
-               -bq <queue>     use lsf queue <queue> for the blast jobs (DISABLED!)
+               -bq <queue>     use lsf queue <queue> for the blast jobs
 	       -w <n>          window size <n> basepairs
 	       --name <str>    give lsf a name for the cmsearch jobs
 	       --local         run cmsearch with --local option
@@ -66,9 +66,9 @@ if( $help or not -e "SEED" ) {
     exit(1);
 }
 
-if( $bqueue ) {
-    warn "The --bq option has been disabled for now - its use\nwill do more harm than good now!\n";
-}
+#if( $bqueue ) {
+#    warn "The --bq option has been disabled for now - its use\nwill do more harm than good now!\n";
+#}
 
 my $buildopts;
 if( -s "DESC" ) {
@@ -111,8 +111,9 @@ my $blastdbdir2 = "/data/blastdb/Rfam/Large";  # but run things from here
 $blast_eval = 10  unless $blast_eval;
 $window     = 100 unless $window;
 $cpus       = 20  unless $cpus;
-$queue      = "pfam_slow -Rlinux" unless $queue;
-$bqueue     = "pfam_slow -R 'select[largedata]'"; # unless $bqueue;
+$queue      = "pfam_slow" unless $queue;
+$bqueue     = "pfam_slow" unless $bqueue;
+
 my $fafile = "FA";
 
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
@@ -143,7 +144,7 @@ unless( $blast ) {
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	my $fh = new IO::File;
-	$fh -> open("| bsub -q $bqueue -J\"rf$$\"") or die "$!";
+	$fh -> open("| bsub -q $bqueue -R 'select[largedata]' -J\"rf$$\"") or die "$!";
 	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 	$fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
 	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l /tmp/$fafile > /tmp/$$.blastlist.$i\n");
@@ -289,7 +290,7 @@ $options .= "-W $window";
 $name = "cm$$" if( not $name );
 print STDERR "Queueing cmsearch jobs ...\n";
 my $fh = IO::File->new();
-$fh -> open( "| bsub -q $queue -o $$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
+$fh -> open( "| bsub -q $queue -Rlinux -o $$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 $fh -> print( "lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp $phost:$pwd/CM /tmp/$$.CM\n" );
