@@ -12,6 +12,19 @@ use Bio::Index::Fasta;
 use Bio::Index::Swissprot;
 
 
+sub id_exists {
+    my $id = shift;
+    my $db = Rfam::default_db();
+    if( $db -> is_id( $id ) ) {
+	my $acc = $db->id2acc( $id );
+	return $acc; # id exists
+    }
+    else {
+	return 0;
+    }
+}
+
+
 sub valid_sequences {
     my $family = shift;
     my $inx = Bio::Index::Fasta -> new( '-filename' => $Rfam::rfamseq_new_inx );
