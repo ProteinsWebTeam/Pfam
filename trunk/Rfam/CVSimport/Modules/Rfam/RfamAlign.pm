@@ -121,27 +121,50 @@ sub order_by_embl_taxonomy {
     my $self = shift;
     my $newaln = Rfam::RfamAlign->new();
 
-    my %tax;
-    foreach my $seq ( $self->each_seq ) {
-	my $id = $seq->id;
-	my $ocstring;
+    my( %tax, %order );
+    my @seqs = $self->each_seq;
+    while( @seqs ) {
+	my @tonseq = splice( @seqs, 0, 100 );
+	my @tonid;
+	foreach my $seq ( @tonseq ) {
+	    my( $id ) = $seq->id() =~ /^(\S+?)(\.|$)/;
+					       push( @tonid, $id );
+					   }
+					       
+	my $idstr = join( ']|[EMBL-acc:', @tonid );
+#	print "getz -f sv -f tax -f sl \'[EMBL-acc:$idstr]\'\n";
+
+	my( $ocstring, $acc );
 	my $fh = IO::File->new;
-	$fh -> open( "pfetch -F $id|" );
+	$fh -> open( "getz -f acc -f tax -f sl '[EMBL-acc:$idstr]' |" );
 	while(<$fh>) {
-	    if( /^OC\s+(.*)/ ) {
-		$ocstring .= $1;		
+#	    print;
+	    if( /^AC\s+(\S+)\;/ ) {
+		$acc = $1 unless $acc;
 	    }
-	    last if( /^FH/ );
+	    if( /^OC\s+(.*)/ ) {
+		$ocstring .= "$1 ";
+	    }
+	    if( /^SQ\s+/ ) {
+#		print "$acc      $ocstring\n";
+		$tax{$acc} = $ocstring;
+		$ocstring = $acc = undef;
+	    }
 	}
 	$fh -> close;
-	if( not $ocstring ) {
-	    die "can't get taxonomy from pfetch -F $id";
+	foreach my $seq ( @tonseq ) {
+	    my( $acc ) = $seq->id() =~ /^(\S+?)(\.|$)/;
+	    if( !exists $tax{$acc} ) {
+		warn "failed to get taxonomy for ", $seq->id, "\n";
+		$tax{$acc} = "zz_unknown";
+	    }
+	    $order{ $seq->id."/".$seq->start."-".$seq->end } = { 'seq' => $seq,
+								 'oc'  => $tax{$acc} };
 	}
-	$tax{ $seq->id."/".$seq->start."-".$seq->end } = { 'seq' => $seq,
-							   'oc'  => $ocstring };
     }
-    foreach my $seq ( sort { $tax{$a}->{'oc'} cmp $tax{$b}->{'oc'} } keys %tax ) {
-	$newaln->add_seq( $tax{$seq}->{'seq'} );
+    foreach my $nse ( sort { $order{$a}->{'oc'} cmp $order{$b}->{'oc'} } keys %order ) {
+#	print "$nse\n";
+	$newaln->add_seq( $order{$nse}->{'seq'} );
     }
 
     $newaln->ss_cons( $self->ss_cons );
