@@ -104,6 +104,7 @@ my( $local,
     @binpath,
     $outputfmt,
     $nobig,
+    $slow,
     );
 
 my $rfam_dir;
@@ -129,7 +130,7 @@ if( $ENV{'BLAST_BIN_DIR'} ) {
 	     "f=s"           => \$outputfmt,
 	     "h"             => \$help,
 	     "nobig"         => \$nobig,
-	     "bin=s@"        => \@binpath );
+	     "slow"          => \$slow );
 
 my $fafile = shift;
 
@@ -159,8 +160,11 @@ Usage: $0 <options> fasta_file
 	--global       : perform global mode search (       -- \" --      )
 	--acc <acc>    : search against only a single family
 	--nobig        : skip the large ribosomal RNAs
-        --bin <path>   : add <path> onto your executable path (can specify >1)
 	--fadb <file>  : use alternative fasta db
+	--slow         : do a full covariance model search - painfully slow
+	                 (please please use --nobig aswell, or restrict    )
+                         (to a single model with -acc, and only run on very)
+                         (short sequences                                  )
 
         
     Defualt tab delimited output format is:
@@ -185,7 +189,7 @@ EOF
 # add specified locations onto the path for blast and linux binaries
 if( @binpath ) {
     foreach my $path ( @binpath ) {
-	$ENV{'PATH'} = "$path:$ENV{'PATH'}";
+        $ENV{'PATH'} = "$path:$ENV{'PATH'}";
     }
 }
 
@@ -223,15 +227,29 @@ while( my $seq = $in->next_seq() ) {
 }
 
 my $error;
+my @families;
+my %results;
 
-system "$blastcmd > /tmp/$$.blast" and die "failed to run blastall";
-my %results = %{ &parse_blast( "/tmp/$$.blast" ) };
+if( $slow ) {
+    # run over all families
+    @families = sort keys %thr;
+}
+else {
+    # run blast search and run on restricted set
+    system "$blastcmd > /tmp/$$.blast" and die "failed to run blastall";
+    %results = %{ &parse_blast( "/tmp/$$.blast" ) };
+    @families = keys %results;
+}
 
+# open an output file
 if( $outfile ) {
     open( RESULTS, ">$outfile" ) or die "can't write to output file $outfile\n";
 }
 
-foreach my $acc ( keys %results ) {
+my $cmquery;
+
+# loop over families
+foreach my $acc ( @families ) {
     if( $family_acc ) {
 	next unless( $family_acc eq $acc ); # do single family if $family_acc
     }
@@ -240,25 +258,30 @@ foreach my $acc ( keys %results ) {
     }
 
     my $id = $thr{ $acc } -> { 'id' };
-    open( O, ">/tmp/$$.seq" ) or die "can't write to /tmp/$$.seq";
-    my $out = Bio::SeqIO -> new( -fh => \*O, '-format' => 'Fasta' );
-	
-    foreach my $seqid ( keys %{ $results{ $acc } } ) {
-	foreach my $hit ( @{ $results{ $acc } -> { $seqid } } ) {
-	    my( $start, $end, $score, $subject ) = ( $hit -> { 'start' },
-						     $hit -> { 'end' },
-						     $hit -> { 'score' },
-						     $hit -> { 'subject' } );
-#	    print "$acc $seqid $start $end $subject\n";
-	    my $newseq = $seqs{$seqid} -> trunc( $start, $end );
-	    $newseq -> display_id( "$seqid/$start-$end" );
-	    $out -> write_seq( $newseq );
-	}
+
+    if( $slow ) {
+	$cmquery = $fafile;
     }
+    else {
+	$cmquery = "/tmp/$$.seq";
+	open( O, ">$cmquery" ) or die "can't write to [$cmquery]";
+	my $out = Bio::SeqIO -> new( -fh => \*O, '-format' => 'Fasta' );
+	
+	foreach my $seqid ( keys %{ $results{ $acc } } ) {
+	    foreach my $hit ( @{ $results{ $acc } -> { $seqid } } ) {
+		my( $start, $end, $score, $subject ) = ( $hit -> { 'start' },
+							 $hit -> { 'end' },
+							 $hit -> { 'score' },
+							 $hit -> { 'subject' } );
 
-    close O;
-
-    die "can't find a file I've written in /tmp[/$$.seq]" if( not -s "/tmp/$$.seq" );
+		my $newseq = $seqs{$seqid} -> trunc( $start, $end );
+		$newseq -> display_id( "$seqid/$start-$end" );
+		$out -> write_seq( $newseq );
+	    }
+	}
+	close O;
+	die "can't find a file I've written in /tmp [$cmquery]" if( not -s $cmquery );
+    }
 
     my $options = "-W ".$thr{$acc}{'win'};
     if( $global ) {
@@ -268,9 +291,9 @@ foreach my $acc ( keys %results ) {
 	$options .= " --local";
     }
 
-    system "cmsearch $options $rfam_dir/$acc.cm /tmp/$$.seq > /tmp/$$.res" and do {
+    system "cmsearch $options $rfam_dir/$acc.cm $cmquery > /tmp/$$.res" and do {
 	warn "$acc search failed";
-	open( TMP, "/tmp/$$.seq" ) or die "can't read /tmp/$$.seq";
+	open( TMP, $cmquery ) or die "can't read [$cmquery]";
 	while( <TMP> ) {
 	    if( /^\>/ ) {
 		warn "Sequence:\n$_\n";
@@ -334,7 +357,10 @@ foreach my $acc ( keys %results ) {
 }
 
 unless( $noclean ) {
-    unlink( "/tmp/$$.res", "/tmp/$$.seq", "/tmp/$$.blast" ) or die;
+    unlink( "/tmp/$$.res", "/tmp/$$.blast" ) or die;
+    unless( $slow ) {
+	unlink( $cmquery ) or die;
+    }
 }
 
 if( $error ) {
@@ -342,6 +368,16 @@ if( $error ) {
 }
 
 ######### 
+
+sub parse_blast_table {
+    my $blastfile = shift;
+    my %hits;
+
+    # can't do this yet
+
+
+}
+
 
 sub parse_blast {
     my $blastfile = shift;
