@@ -77,4 +77,4 @@ if( ! -e "$Rfam::current_dir/$acc/todo.view" ) {
     unlink("$Rfam::current_dir/$acc/todo.view");
 }
 
-system("pfabort -u VIEW $acc");
+system("rfabort -u VIEW $acc") and die;
