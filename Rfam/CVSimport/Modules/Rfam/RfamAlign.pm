@@ -696,18 +696,22 @@ EOF
 sub write_coloured_ps {
     my $self  = shift;
     my $out   = shift;
-    my $font = shift;
+    my $font  = shift;
+    my $lines = shift;
     $font = 10 if( not defined $font );
-    my $block = 80/$font * 10 - 25;
-    my $lines = 64/$font * 10;
-    my $offset = $font/4;
-
+    $lines = 70/$font * 10 if( not $lines );
     my $maxn = $self->maxdisplayname_length() + 2;
+
+    my $block = int( 80/$font * 10 - $maxn );
+    my $offset = $font/4;
     my $iter = $self->length/$block;
+    my $numseqs = $self->no_sequences;
+
     my $whoami = `whoami`;
     chomp $whoami;
     my $date = `date`;
     chomp $date;
+    my $page = 1;
 
     print $out <<EOF;
 \%!PS-Adobe-3.0
@@ -715,6 +719,7 @@ sub write_coloured_ps {
 \%\%For: $whoami
 \%\%Creator: Rfam::RfamAlign
 \%\%CreationDate: $date
+\%\%DocumentPaperSizes: a4
 \%\%Orientation: Portrait
 \%\%Pages: 1
 \%\%EndComments
@@ -749,37 +754,34 @@ sub write_coloured_ps {
 } bind def
 
 /N {
-  S
   /y0 y0 $font sub def
   x0 y0 moveto 
 } bind def
 
-%%Page: (1) 1
+%%Page: 1 1
 /bgcolor [ 1 1 1 ] def
 /Courier-New findfont
 $font scalefont
 setfont
 newpath
-/y0 760 def
+/y0 780 def
 /x0 40 def
 x0 y0 moveto
 
-(# STOCKHOLM 1.0) N
-() N
+(# STOCKHOLM 1.0) S N
+N
 EOF
 
     my %colmap = %{ $self->ss_cons->column_colourmap };
     my @colours = ( "1 0.6 0.6",
 		    "0.6 0.6 1",
 		    "0.6 1 0.6",
-
 		    "0.6 1 0",
 		    "0.6 0 1",
 		    "0 1 0.6",
 		    "1 0 0.6",
 		    "0 0.6 1",
 		    "1 0.6 0",
-
 		    "0.3 0.3 1",
 		    "0.3 1 0.3",
 		    "1 0.3 0.3",
@@ -792,8 +794,29 @@ EOF
 	}
     };
 	
+    my $l = 0; # number of lines on the page
+
     for( my $i=0; $i < $iter; $i++ ) {
+	if( ($i+1)*$numseqs > $lines*$page ) {
+#	    $l = 0;
+	    $page ++;
+	    print $out <<EOF;
+grestore
+showpage
+\%\%Page: $page $page
+/bgcolor [ 1 1 1 ] def
+/Courier-New findfont
+$font scalefont
+setfont
+newpath
+/y0 780 def
+/x0 40 def
+x0 y0 moveto
+EOF
+	}
+
 	foreach my $seq ( $self->each_seq() ) {
+#	    $i++; # the line count
 	    my $namestr = $self->displayname($seq->get_nse());
 	    my @seq = split( //, $seq->seq );
 	    
@@ -802,9 +825,11 @@ EOF
 	    my $lastcol = 0;
 	    for( my $j=($i*$block); $j<($i+1)*$block; $j++ ) {
 		last if( $j >= @seq ); # last block may be short
-		if( my $col = $colmap{$j+1} ) {
-		    my $pair = $self->ss_cons->getPairByCol($j+1);
+
+		if( my $pair = $self->ss_cons->getPairByCol($j+1) ) {
+		    my $col = $colmap{$j+1};
 		    my @res = sort ( $seq[$pair->left -1], $seq[$pair->right -1] );
+#		    print $out "\n<< $res[0] $res[1] >>\n";
 		    if( ( $res[0] eq "C" and $res[1] eq "G" ) or
 			( $res[0] eq "A" and $res[1] eq "T" ) or
 			( $res[0] eq "A" and $res[1] eq "U" ) or
@@ -821,7 +846,7 @@ EOF
 		}
 		print $out "($seq[$j]) S ";
 	    }
-	    print $out "() N\n";
+	    print $out "N\n";
 	}
 	if( @ss_str ) {
 	    printf $out sprintf( "(%-".$maxn."s  ) S ", "#=GC SS_cons" );
@@ -839,11 +864,11 @@ EOF
 		    print $out "($ss_str[$j]) S ";
 		}
 	    }
-	    print $out "() N\n";
+	    print $out "N\n";
 	}
-	print $out "() N\n" unless( ($i+1) >= $iter );
+	print $out "N\n" unless( ($i+1) >= $iter );
     }
-    print $out "(\/\/) N\n";
+    print $out "(\/\/) S N\n";
     print $out <<EOF;
 grestore
 showpage
