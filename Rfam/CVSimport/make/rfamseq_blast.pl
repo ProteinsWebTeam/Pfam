@@ -80,8 +80,9 @@ unless( @blastdb ) {
 }
 
 
-my %hitlist;
 foreach my $db ( @blastdb ) {
+    my %hitlist;
+
     my $factory = Bio::Tools::Run::StandAloneBlast->new( 'program'  => 'blastn',
 							 'database' => $db,
 							 'outfile'  => "/tmp/$$.blast",
@@ -129,7 +130,7 @@ foreach my $db ( @blastdb ) {
 		# we only need to check if it overlaps with the last one
 		if( scalar(@se) and 
 		    $start <= $se[ scalar(@se)-1 ]->{'end'} and 
-		    $end >= $se[ scalar(@se)-1 ]->{'end'} ) {
+		    $end   >= $se[ scalar(@se)-1 ]->{'end'} ) {
 		    
 		    $se[ scalar(@se)-1 ]->{'end'} = $end;
 		}
