@@ -43,8 +43,14 @@ sub write_embl {
     print $fh "RX   PUBMED; ", $self->{'PUBMED'}, ".\n";
     print $fh wrap( "RA   ", "RA   ", $self->{'AUTHORS'} ), ";\n";
     print $fh wrap( "RT   ", "RT   ", "\"".$self->{'TITLE'}."\"" ), ";\n";
-    print $fh "RL   ", $self->{'JOURNAL'}, " ", $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'};
-    print $fh "-", $self->{'PAGES'}->{'TO'} if( $self->{'PAGES'}->{'TO'} );
+    print $fh "RL   ", $self->{'JOURNAL'}, " ";
+    if( $self->{'EPUB'} ) {
+	print "[Epub ahead of print] ";
+    }
+    else {
+	print $fh $self->{'VOLUME'}, ":", $self->{'PAGES'}->{'FROM'};
+	print $fh "-", $self->{'PAGES'}->{'TO'} if( $self->{'PAGES'}->{'TO'} );
+    }
     print $fh "(", $self->{'YEAR'}, ")", ".\n";
 
 }
@@ -120,6 +126,8 @@ sub get_ref_by_pubmed {
 		$self->{ 'VOLUME' }  = 0;
 		$self->{ 'PAGES' }->{ 'FROM' } = 0;
 		$self->{ 'PAGES' }->{ 'TO' }   = 0;
+
+		$self->{ 'EPUB' } = 1;
 	    }
 
 	    # convert pubmeds stupid 160-3 page numbering to 160-163.
