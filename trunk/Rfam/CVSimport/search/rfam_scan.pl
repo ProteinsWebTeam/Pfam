@@ -93,6 +93,7 @@ my( $local,
     $help,
     $outfile,
     @binpath,
+    $outputfmt,
     );
 
 my $rfam_dir;
@@ -115,13 +116,19 @@ if( $ENV{'BLAST_BIN_DIR'} ) {
 	     "o=s"           => \$outfile,
 	     "bt=s"          => \$blastcut,
 	     "noclean"       => \$noclean,
+	     "f=s"           => \$outputfmt,
 	     "h"             => \$help,
 	     "bin=s@"        => \@binpath );
 
 my $fafile = shift;
 
 if( $help or not $fafile ) {
-        print STDERR <<EOF;
+    &help();
+    exit(1);
+}
+
+sub help {
+    print STDERR <<EOF;
 
 $0: search a DNA fasta file against Rfam
 
@@ -130,6 +137,9 @@ Usage: $0 <options> fasta_file
         -h            : show this help
 	-d <dir>      : specify directory location of Rfam database
 	-o <file>     : write the output to <file>
+	-f <format>   : output format - currently one of
+                            tab      simple tab delimited (default)
+                            gff      GFF version 2
 
     Expert options
         -bin <path>   : add <path> onto your executable path (can specify >1)
@@ -140,7 +150,7 @@ Usage: $0 <options> fasta_file
 	-t <bits>     : specify cutoff in bits
 	-bt <bits>    : specify blast evalue cutoff
         
-    Output format is:
+    Defualt tab delimited output format is:
         <seq id> <seq start> <seq end> <rfam acc> <model start> <model end> <bit score> <rfam id>
 
     This search can be very slow for large RNA gene-rich sequences.
@@ -149,7 +159,14 @@ Usage: $0 <options> fasta_file
     sequence seems to take 2-3 mins.
 
 EOF
-exit(1);
+}
+
+sub format_help {
+    print STDERR <<EOF;
+    Invalid option: 
+       -f must be set to "tab" or "gff"
+
+EOF
 }
 
 # add specified locations onto the path for blast and linux binaries
@@ -161,8 +178,14 @@ if( @binpath ) {
 
 not $blastdb   and $blastdb   = "$rfam_dir/Rfam.fasta";
 not $blastcut  and $blastcut  = 10;
+not $outputfmt and $outputfmt = "tab";
 
 my $blastcmd = "blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F";
+
+if( $outputfmt ne "tab" and $outputfmt ne "gff" ) {
+    &format_help;
+    exit(1);
+}
 
 # read threshold file
 my %thr;
@@ -250,11 +273,43 @@ foreach my $acc ( keys %results ) {
     }
 
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachUnit() ) {
-	if( $outfile ) {
-	    print RESULTS sprintf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_mod, $unit->end_mod, $unit->bits, $id );
+	my $outstring;
+	if( $outputfmt eq "tab" ) {
+	    $outstring = sprintf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%s", 
+				  $unit->seqname, 
+				  $unit->start_seq, 
+				  $unit->end_seq, 
+				  $acc, 
+				  $unit->start_mod, 
+				  $unit->end_mod, 
+				  $unit->bits, 
+				  $id );
+	}
+	elsif( $outputfmt eq "gff" ) {
+	    my( $strand, $st, $en ) = ( "+", $unit->start_seq, $unit->end_seq );
+	    if( $en < $st ) {
+		( $strand, $st, $en ) = ( "-", $unit->end_seq, $unit->start_seq );
+	    }
+	    $outstring = sprintf( "%s\tRfam\tdomain\t%d\t%d\t\.\t%s\t\.\tACC=%s; ID=%s; SCORE=%s;", 
+				  $unit->seqname, 
+				  $st, 
+				  $en, 
+				  $strand, 
+				  $acc, 
+				  $id,
+				  $unit->bits );
 	}
 	else {
-	    printf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_mod, $unit->end_mod, $unit->bits, $id );
+	    print STDERR "While trying to format the output:\n\n";
+	    &format_help;
+            exit(1);
+        }
+
+	if( $outfile ) {
+	    print RESULTS "$outstring\n";
+	}
+	else {
+	    print "$outstring\n";
 	}
     }
 }
