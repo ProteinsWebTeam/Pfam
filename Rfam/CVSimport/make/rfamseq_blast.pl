@@ -1,17 +1,5 @@
 #!/usr/local/bin/perl -w
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $rfam_mod_dir;
-use lib $bioperl_dir;
-
 use strict;
 use Getopt::Long;
 use Rfam;
@@ -24,14 +12,15 @@ use Bio::SearchIO::Writer::TextResultWriter;
 
 my $evalue = 10;
 
-my( $division, $minidb, $help, $length, $listhits, @blastdb );
+my( $division, $minidb, $help, $length, $listhits, @blastdb, $multiplex );
 &GetOptions( "e=s"    => \$evalue,
 	     "d=s"    => \$division,
 	     "db=s@"  => \@blastdb,
 	     "h"      => \$help,
 	     "w=s"    => \$length,
 	     "minidb" => \$minidb,
-	     "l"      => \$listhits );
+	     "l"      => \$listhits,
+	     "mp"     => \$multiplex );
 
 my $fafile = shift;
 
@@ -46,6 +35,7 @@ Options:       -h          show this help
                -e <n>      blast evalue threshold
                --minidb    build minidb of all blast hits
 	       -w <n>      override sequence length window 
+	       --mp        multiplex sequences (evalues slightly out)
 
 EOF
 exit(1);
@@ -55,8 +45,29 @@ my $blastdbdir = $Rfam::rfamseq_current_dir;
 my $inxfile    = $Rfam::rfamseq_current_inx;
 
 my $in = Bio::SeqIO -> new( '-file' => $fafile, '-format' => 'Fasta' );
-unless( $length ) {
-    $length = $in -> next_seq() -> length();
+
+my @seqs;
+my $bigseq = Bio::Seq->new( '-id' => 'multiplex' ) if( $multiplex );
+my $count;
+while( my $seq = $in->next_seq() ) {
+    $length = $in -> next_seq() -> length() unless( $length );
+    if( $multiplex ) {
+	$bigseq->seq( $bigseq->seq()."NNNNNNNNNN".$seq->seq() );
+	$count ++;
+    }
+    else { 
+	push( @seqs, $seq );
+    }
+}
+
+if( $multiplex ) {
+    # Multiplex option concatenates query seqs for speedup.  Evalues are
+    # dependent on query length, so we have to fudge the threshold.  This
+    # is likely to be slightly out.
+
+    push( @seqs, $bigseq );
+    my $avlength = ( $bigseq->length()-($count*10) ) / $count;
+    $evalue = $evalue * $bigseq->length() / $avlength;
 }
 
 my $seqinx;
@@ -95,7 +106,7 @@ foreach my $db ( @blastdb ) {
     print STDERR "searching $db\n";
 
     my $seqio = Bio::SeqIO -> new( '-file' => $fafile, '-format' => 'Fasta' );
-    while( my $seq = $seqio -> next_seq() ) {
+    foreach my $seq ( @seqs ) {
 	my $report = $factory->blastall( $seq );
 	while( my $result = $report->next_result ) {
 	    unless( $listhits or $minidb ) {
