@@ -1,10 +1,5 @@
 #!/usr/local/bin/perl -w
 
-# Copyright (c) 2002-2003 Genome Research Ltd 
-# Distributed under the same terms as the Rfam database.  See
-# ftp://ftp.sanger.ac.uk/pub/databases/Rfam/COPYRIGHT for more
-# details.
-
 =head1 NAME
 
 rfam_scan.pl - search a nucleotide fasta sequence against the Rfam
@@ -12,7 +7,7 @@ library of covariance models.
 
 =head1 VERSION
 
-This is version 0.1 of rfam_scan.pl.  It has been tested with Perl
+This is version 0.2 of rfam_scan.pl.  It has been tested with Perl
 5.6.1, Rfam 4.0, Bioperl 1.2 and INFERNAL 0.55.  It should work with
 any versions higher than these.
 
@@ -57,9 +52,8 @@ to worry about is supplying the -d option with the location of your
 downloaded Rfam database.  Or you can set the RFAM_DIR environment
 variable to point to the right place and things should work without
 -d.  If your BLAST and INFERNAL binaries are not on your path, you can
-specify their locations with the -bin option (more than once if
-necessary), or you can set the BLAST_BIN_DIR and INFERNAL_BIN_DIR
-environment variables if you so desire.
+specify their locations by setting the BLAST_BIN_DIR and
+INFERNAL_BIN_DIR environment variables if you so desire.
 
 =head1 THINGS TO NOTE
 
@@ -79,10 +73,26 @@ Many options are not rigorously tested.  Error messages are
 uninformative.  The documentation is inadequate.  You may find it
 useful.  You may not.
 
+=head1 HISTORY
+
+v0.2    2005-02-22
+   - add --slow option
+   - 'aln' format option gives you cmsearch style alignments
+   - fix -o output option
+
+v0.1    2003-11-19
+   - first effort at something useful
+   - return Rfam hits as tab delimited or gff format
+
+
 =head1 CONTACT
 
-This script is copyright (c) Genome Research Ltd 2002-2003.  Please
-contact sgj@sanger.ac.uk for help.
+Copyright (c) 2003-2005 Genome Research Ltd
+
+Distributed under the same terms as the Rfam database.  See
+ftp://ftp.sanger.ac.uk/pub/databases/Rfam/COPYRIGHT for more details.
+
+Please contact rfam@sanger.ac.uk for help.
 
 =cut
 
@@ -105,6 +115,7 @@ my( $local,
     $outputfmt,
     $nobig,
     $slow,
+    $window,
     );
 
 my $rfam_dir;
@@ -130,7 +141,9 @@ if( $ENV{'BLAST_BIN_DIR'} ) {
 	     "f=s"           => \$outputfmt,
 	     "h"             => \$help,
 	     "nobig"         => \$nobig,
-	     "slow"          => \$slow );
+	     "slow"          => \$slow,
+	     "w=s"           => \$window,  # debug only!
+	     );
 
 my $fafile = shift;
 
@@ -181,7 +194,7 @@ EOF
 sub format_help {
     print STDERR <<EOF;
     Invalid option: 
-       -f must be set to "tab" or "gff"
+       -f must be set to "tab", "gff" or "aln"
 
 EOF
 }
@@ -199,7 +212,7 @@ not $outputfmt and $outputfmt = "tab";
 
 my $blastcmd = "blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F -b 1000000 -v 1000000";
 
-if( $outputfmt ne "tab" and $outputfmt ne "gff" ) {
+if( $outputfmt ne "tab" and $outputfmt ne "gff" and $outputfmt ne "aln" ) {
     &format_help;
     exit(1);
 }
@@ -209,7 +222,7 @@ my %rrna = ( "RF00177" => 1 );
 
 # read threshold file
 my %thr;
-open( T, "$rfam_dir/Rfam.thr" ) or die "can't file the Rfam.thr file";
+open( T, "$rfam_dir/Rfam.thr" ) or die "FATAL: can't file the Rfam.thr file";
 while(<T>) {
     if( /^(RF\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s+(\S+)\s*$/ ) {
 	$thr{ $1 } = { 'id' => $2, 'thr' => $3, 'win' => $4, 'mode' => $5 };
@@ -236,14 +249,14 @@ if( $slow ) {
 }
 else {
     # run blast search and run on restricted set
-    system "$blastcmd > /tmp/$$.blast" and die "failed to run blastall";
+    system "$blastcmd > /tmp/$$.blast" and die "FATAL: failed to run blastall";
     %results = %{ &parse_blast( "/tmp/$$.blast" ) };
     @families = keys %results;
 }
 
 # open an output file
 if( $outfile ) {
-    open( RESULTS, ">$outfile" ) or die "can't write to output file $outfile\n";
+    open( RESULTS, ">$outfile" ) or die "FATAL: can't write to output file $outfile\n";
 }
 
 my $cmquery;
@@ -264,7 +277,7 @@ foreach my $acc ( @families ) {
     }
     else {
 	$cmquery = "/tmp/$$.seq";
-	open( O, ">$cmquery" ) or die "can't write to [$cmquery]";
+	open( O, ">$cmquery" ) or die "FATAL: can't write to [$cmquery]";
 	my $out = Bio::SeqIO -> new( -fh => \*O, '-format' => 'Fasta' );
 	
 	foreach my $seqid ( keys %{ $results{ $acc } } ) {
@@ -280,10 +293,10 @@ foreach my $acc ( @families ) {
 	    }
 	}
 	close O;
-	die "can't find a file I've written in /tmp [$cmquery]" if( not -s $cmquery );
+	die "FATAL: can't find a file I've written in /tmp [$cmquery]" if( not -s $cmquery );
     }
 
-    my $options = "-W ".$thr{$acc}{'win'};
+    my $options = "-W ". ( $window || $thr{$acc}{'win'} );
     if( $global ) {
 	# don't use local mode
     }
@@ -292,18 +305,18 @@ foreach my $acc ( @families ) {
     }
 
     system "cmsearch $options $rfam_dir/$acc.cm $cmquery > /tmp/$$.res" and do {
-	warn "$acc search failed";
-	open( TMP, $cmquery ) or die "can't read [$cmquery]";
+	warn "WARNING: $acc search failed";
+	open( TMP, $cmquery ) or die "FATAL: can't read [$cmquery]";
 	while( <TMP> ) {
 	    if( /^\>/ ) {
-		warn "Sequence:\n$_\n";
+		warn "WARNING: Sequence:\n$_\n";
 	    }
 	}
 	close TMP;
 	$error ++;
     };
     
-    open( RES, "/tmp/$$.res" ) or die "can't read /tmp/$$.res";
+    open( RES, "/tmp/$$.res" ) or die "FATAL: can't read [/tmp/$$.res]";
     my $res = CMResults->new();
     $res -> parse_infernal( \*RES );
     $res = $res -> remove_overlaps();
@@ -316,7 +329,7 @@ foreach my $acc ( @families ) {
 
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachUnit() ) {
 	my $outstring;
-	if( $outputfmt eq "tab" ) {
+	if( $outputfmt =~ /tab/i or $outputfmt =~ /aln/i ) {
 	    $outstring = sprintf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%s", 
 				  $unit->seqname, 
 				  $unit->start_seq, 
@@ -326,8 +339,14 @@ foreach my $acc ( @families ) {
 				  $unit->end_mod, 
 				  $unit->bits, 
 				  $id );
+
+	    if( $outputfmt =~ /aln/ ) {
+		$outstring .= "\n\n";
+		$outstring .= join( '', $unit->each_alignment_line() );
+		chomp $outstring;
+	    }
 	}
-	elsif( $outputfmt eq "gff" ) {
+	elsif( $outputfmt =~ /gff/i ) {
 	    my( $strand, $st, $en ) = ( "+", $unit->start_seq, $unit->end_seq );
 	    if( $en < $st ) {
 		( $strand, $st, $en ) = ( "-", $unit->end_seq, $unit->start_seq );
@@ -357,14 +376,14 @@ foreach my $acc ( @families ) {
 }
 
 unless( $noclean ) {
-    unlink( "/tmp/$$.res", "/tmp/$$.blast" ) or die;
+    unlink( "/tmp/$$.res", "/tmp/$$.blast" ) or die "FATAL: can't unlink [/tmp/$$.res] or [/tmp/$$.blast]";
     unless( $slow ) {
-	unlink( $cmquery ) or die;
+	unlink( $cmquery ) or die "FATAL: can't unlink [$cmquery]";
     }
 }
 
 if( $error ) {
-    die "$error errors -- exiting\n";
+    die "FATAL: $error errors -- exiting\n";
 }
 
 ######### 
@@ -457,7 +476,7 @@ sub addUnit {
     my $name = $unit->seqname();
 
     if( !exists $self->{'seq'}->{$name} ) {
-        warn "Adding a domain of $name but with no CMSequence. Will be kept in domain array but not added to a CMSequence";
+        warn "WARNING: Adding a domain of $name but with no CMSequence. Will be kept in domain array but not added to a CMSequence";
     } else {
         $self->{'seq'}->{$name}->addUnit($unit);
     }
@@ -474,7 +493,7 @@ sub addSequence {
     my $seq  = shift;
     my $name = $seq->name();
     if( exists $self->{'seq'}->{$name} ) {
-        warn "You already have $name in CMResults. Replacing by a new entry!";
+        warn "WARNING: You already have $name in CMResults. Replacing by a new entry!";
     }
     $self->{'seq'}->{$name} = $seq;
 }
@@ -498,11 +517,16 @@ sub parse_infernal {
     my $self = shift;
     my $file = shift;
 
-    my( $id, $start, $end, $ready, $modst, $moden );
+    my( $id, $start, $end, $modst, $moden );
     my $unit;  # this should always be the last added Unit
+    my $pushback;
 
-    while( <$file> ) {
+    while( $_ = $pushback or $_ = <$file> ) {
         chomp;
+	$pushback = undef;
+
+	last if( /^CPU time:/ );
+
         if( /^sequence:\s+(\S+)\s*/ ) {
             if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
                 ( $id, $start, $end ) = ( $1, $2, $3 );
@@ -511,16 +535,13 @@ sub parse_infernal {
                 $start = 1;
             }
             else { 
-                die "Don't recognise cmsearch output line [$_]";
+                die "FATAL: Don't recognise cmsearch output line [$_]";
             }
             unless( $self -> getSequence( $id ) ) {
                 my $seq = CMSequence->new();
                 $seq    -> name( $id );
                 $self   -> addSequence( $seq );
             }
-        }
-        elsif( /^\s+$/ ) {
-            $ready = 1;
         }
         elsif( /^hit\s+\d+\s*:\s+(.*)\s+bits/ ) {
             my $rest = $1;
@@ -532,11 +553,9 @@ sub parse_infernal {
                 ( $st, $en, $bits ) = ( $1, $2, $3 );
             }
             else {
-                warn "Don't recognise cmsearch output line [$_]";
+                warn "WARNING: Don't recognise cmsearch output line [$_]";
             }
 
-            $ready = 1;
-        
             $st += $start - 1;
             $en += $start - 1;
 
@@ -552,13 +571,51 @@ sub parse_infernal {
             $unit -> evalue( " " );
 
             $self -> addUnit( $unit );
-        }
-        elsif( /^\s+(\d+)\s+.*\s+(\d+)\s*$/ and $ready ) {
-            # unit is already in results object, but this should still
-            # get to where it needs to be
-            $ready = 0;
-            $unit -> start_mod( $1 ) unless $unit -> start_mod();
-            $unit -> end_mod( $2 );
+
+	    my $offset = 0;
+	    my $ready = 1;
+	    while( <$file> ) {
+		if( /^hit/ or /^sequence/ or /^CPU time/ ) {
+		    $pushback = $_;
+		    last;
+		}
+
+		if( /^\s*$/ ) {
+		    $ready = 1;
+		}
+
+		if( my( $pad, $ast, $stuff, $aen ) = /^(\s+)(\d+)(\s+.*\s+)(\d+)\s*$/ ) {
+		    if( $ready ) {
+			# unit is already in results object, but this should still
+			# get to where it needs to be
+			$ready = 0;
+			$unit->start_mod( $ast ) unless $unit->start_mod();
+			$unit->end_mod( $aen );
+		    }
+		    else {
+			my $stlen = length( $ast );
+			if( $unit->start_seq > $unit->end_seq ) {
+			    # cmsearch 0.55 reverse strand alignments have broken 
+			    # start/ends
+			    $offset = $ast if( !$offset );
+			    $ast = $unit->start_seq + $offset - $ast;
+			    $aen = $unit->start_seq + $offset - $aen;
+			}
+			else {
+			    $ast += $start-1; 
+			    $aen += $start-1;
+			}
+			$pad = " " x ( length($pad) + $stlen - length($ast) );
+
+			$_ = $pad.$ast.$stuff.$aen."\n";
+		    }
+
+		}
+
+		$unit->add_alignment_line( $_ );
+
+	    }
+
         }
     }
     return $self;
@@ -663,6 +720,7 @@ sub new {
 	end_mod    => undef,
         bits       => undef,
         evalue     => undef,
+	alignlines => [],
 	};
 
     bless $self, $class;
@@ -732,4 +790,15 @@ sub end_mod {
     return $self->{'end_mod'};
 }
 
+sub add_alignment_line {
+    my $self = shift;
+    my $line = shift;
+    push(@{$self->{'alignlines'}},$line);
+}
+ 
+sub each_alignment_line {
+    my $self = shift;
+    return @{$self->{'alignlines'}};
+}
+ 
 ##############
