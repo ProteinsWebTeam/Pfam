@@ -214,20 +214,20 @@ sub check_in_dead_Entry {
    foreach my $en (@en) {
  
      $rdb_acc = $en->acc;
-     $rdb_id = $en->id();
      $rdb_comment = $en->comment();
-     $rdb_forward = $en->each_forward_acc();
      foreach my $forward ($en->each_forward_acc()) {
-	 $rdb_forward = $rdb_forward . ";$forward";
+	 $rdb_forward .= "$forward;";
+     }
+     if( $rdb_forward =~ /\;$/ ) {
+	 chop $rdb_forward;
      }
 
      eval {
        if (not defined $stat) {
-	 $stat = $dbh->prepare($self->__replace_sql('dead_families', 4));
+	 $stat = $dbh->prepare($self->__replace_sql('dead_families', 3));
        }
        
        $stat->execute( $rdb_acc, 
-		       $rdb_id, 
 		       $rdb_comment,
 		       $rdb_forward
 		     );
