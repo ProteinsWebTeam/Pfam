@@ -16,8 +16,11 @@
   (setq ralee-mode-map (make-sparse-keymap))
   (define-key ralee-mode-map "\C-c\C-l" 'ralee-paint-line-by-ss)
   (define-key ralee-mode-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
-  (define-key ralee-mode-map "\C-f" 'ralee-move-20-right)
-  (define-key ralee-mode-map "\C-b" 'ralee-move-20-left))
+  (define-key ralee-mode-map "\C-c\C-k" 'ralee-paint-line-by-base)
+  (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-base)
+  (define-key ralee-mode-map "\C-p" 'ralee-jump-to-pair)
+  (define-key ralee-mode-map "\C-f" 'ralee-jump-right)
+  (define-key ralee-mode-map "\C-b" 'ralee-jump-left))
 
 ;;;;;;;;
 
@@ -30,6 +33,7 @@ Turning on ralee-mode runs the hook `ralee-mode-hook'."
 ;  (setq local-abbrev-table ralee-mode-abbrev-table)
 ;  (set-syntax-table ralee-mode-syntax-table)
   (setq truncate-lines 1)
+  (setq ralee-jump-num 20)
   (setq mode-name "Ralee")
   (setq major-mode 'ralee-mode)
   (run-hooks 'ralee-mode-hook))      ; Finally, this permits the user to
@@ -127,6 +131,7 @@ This order is important for calculating helix boundaries."
 (defun ralee-get-ss ()
   "get the structure from the current buffer"
   (save-excursion
+    (beginning-of-buffer)
     (search-forward "#=GC SS_cons")
     (copy-region-as-kill (line-beginning-position) (line-end-position))
     )
@@ -272,6 +277,59 @@ This order is important for calculating helix boundaries."
     )
   )
 
+
+(defun ralee-paint-line-by-base ()
+  "colour the current line according to base identity"
+  (interactive)
+  (save-excursion
+    (let (beg
+	  end
+	  face-num,
+	  base)
+      (beginning-of-line) (setq beg (point))
+      (end-of-line) (setq end (point))
+      (put-text-property beg end 'face 'default)
+      
+      (search-forward "\n")
+      (search-backward " ") ; so we end up at the start of the sequence
+     
+      (while (< (point) end)  ; until the end of the line
+	(forward-char)
+	(copy-region-as-kill (point) (1+ (point)))
+	(setq base (car kill-ring))
+	(setq face-num nil)
+	
+	(if (or (equal base "G") (equal base "g"))
+	    (setq face-num 0))
+	(if (or (equal base "C") (equal base "c"))
+	    (setq face-num 1))
+	(if (or (equal base "A") (equal base "a"))
+	    (setq face-num 2))
+	(if (or (equal base "T") (equal base "t")
+		(equal base "U") (equal base "u"))
+	    (setq face-num 3))
+	
+	(if face-num
+	    (put-text-property (point) (1+ (point)) 'face (nth face-num ralee-faces)))
+	)
+      )
+    )
+  )
+
+
+(defun ralee-paint-buffer-by-base ()
+  "colour the current line according to base identity"
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (< (point) (point-max))
+      (ralee-paint-line-by-base)
+      (forward-line)
+      )
+    )
+  )
+
+
 (defun ralee-paint-line-by-ss ()
   "get the structure, and then paint the current line"
   (interactive)
@@ -298,15 +356,28 @@ This order is important for calculating helix boundaries."
 
 
 
-(defun ralee-move-20-right ()
-  "move the pointer 20 characters to the right"
+(defun ralee-jump-right ()
+  "move the pointer jump-num characters to the right"
   (interactive)
-  (forward-char 20)
+  (forward-char ralee-jump-num)
   )
 
-(defun ralee-move-20-left ()
-  "move the pointer 20 characters to the left"
+(defun ralee-jump-left ()
+  "move the pointer jump-num characters to the left"
   (interactive)
-  (backward-char 20)
+  (backward-char ralee-jump-num)
   )
 
+
+(defun ralee-jump-to-pair ()
+  "jump to the pairing base"
+  (interactive)
+  (setq structure (ralee-get-ss))
+  (setq pairs (ralee-parse-ss structure))
+  (setq pair (assoc (1- (current-column)) pairs))
+  (if (equal (car pair) (1- (current-column)))
+      (setq paired-column (cdr pair))
+    (setq paired-column (car pair)))
+  (if paired-column
+      (move-to-column paired-column))
+  )
