@@ -534,6 +534,41 @@ sub write_connect {
 }
 
 
+=head2 write_fasta
+
+ Title     : write_fasta
+ Usage     : $ali->write_fasta(\*OUTPUT)
+           :
+           :
+ Function  : writes a fasta formatted alignment
+           :
+ Returns   :
+ Argument  : reference-to-glob to file or filehandle object
+
+=cut
+
+sub write_fasta {
+    my $self = shift;
+    my $file  = shift;
+    my ($seq,$rseq,$name,$count,$length,$seqsub);
+
+    foreach $rseq ( $self->each_seq() ) {
+        $name = $self->displayname($rseq->get_nse());
+        $seq  = $rseq->seq();
+        
+        print $file ">$name\n";
+        
+        $count =0;
+        $length = length($seq);
+        while( ($count * 60 ) < $length ) {
+            $seqsub = substr($seq,$count*60,60);
+            print $file "$seqsub\n";
+            $count++;
+        }
+    }
+}
+
+
 # this returns simply the most common base, no fancy perc. cutoffs or anything
 sub _compute_consensus {
     my $self = shift;
