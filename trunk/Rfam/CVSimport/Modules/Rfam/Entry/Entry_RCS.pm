@@ -242,6 +242,19 @@ sub acc{
 }
 
 
+sub auto_rfam{
+    my ($self,$value) = @_;
+    if( defined $value) {
+	$self->{'auto_rfam'} = $value;
+    } else {
+	$self->_before_annotation_hook('auto_rfam');
+    }
+  
+    return $self->{'auto_rfam'};
+    
+}
+
+
 sub description{
     my ($self,$value) = @_;
     
