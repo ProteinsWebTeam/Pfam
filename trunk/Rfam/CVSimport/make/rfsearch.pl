@@ -33,6 +33,7 @@ my( $quiet,
     $blast_eval,
     $local,
     $global,
+    $name,
     $cpus,
     $blast,
     $help );
@@ -49,6 +50,7 @@ Options:       -h              show this help
                -q <queue>      use lsf queue <queue> for the cmsearch step
                -bq <queue>     use lsf queue <queue> for the blast jobs
 	       -w <n>          window size <n> basepairs
+	       --name <str>    give lsf a name for the cmsearch jobs
 	       --local         run cmsearch with --local option
 	       --global        run cmsearch in global mode (override DESC cmsearch command)
 	       --cpu           number of cpus to run cmsearch job over
@@ -65,6 +67,7 @@ EOF
 	     "cpu=s"    => \$cpus,
              "w=s"      => \$window,
 	     "nobuild"  => \$nobuild,
+	     "name=s"   => \$name,
 	     "blast=s"  => \$blast,
 	     "h"        => \$help );
 
@@ -202,8 +205,9 @@ my $options = "";
 $options .= "--local " if( $local );
 $options .= "-W $window";
 
+$name = "" if( not $name );
 print STDERR "Queueing cmsearch jobs ...\n";
-$fh -> open("| bsub -q $queue -o $$.err.\%I -J\"[1-$k]\" -f \"$$.minidb.\%I > /tmp/$$.minidb.\%I\" -f \"OUTPUT.\%I < /tmp/$$.OUTPUT.\%I\"") or die "$!";
+$fh -> open("| bsub -q $queue -o $$.err.\%I -J$name\"[1-$k]\" -f \"$$.minidb.\%I > /tmp/$$.minidb.\%I\" -f \"OUTPUT.\%I < /tmp/$$.OUTPUT.\%I\"") or die "$!";
 $fh -> print("$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n");
 $fh -> close;
 
