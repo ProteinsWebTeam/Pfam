@@ -1,37 +1,62 @@
 #!/usr/local/bin/perl -w
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-}
-
-use lib $rfam_mod_dir;
-
 use strict;
 use Rfam;
+use RfamQC;
 use RfamRCS;
 
 my $rel = shift;
 $rel =~ s/_/\./;
 my $error;
 
+print STDERR "--------------------\nMaking release $rel\n--------------------\n";
 if( not -d "$Rfam::releases_dir/$rel" ) {
-    mkdir( "$Rfam::releases_dir/$rel", 0755 );
+    mkdir( "$Rfam::releases_dir/$rel", 0755 ) or die;
 }
+chdir "$Rfam::releases_dir/$rel" or die;
 
 my $db = Rfam::default_db();
 my @family_list = $db->get_allacc();
 
+unless( -e "checked_sequences" ) {
+    print STDERR "Checking sequences ....\n";
+    chdir "$Rfam::current_dir" or die "failed to cd to $Rfam::current_dir";
+    foreach my $acc ( @family_list ) {
+	unless( &RfamQC::valid_sequences( $acc ) ) {
+	    warn "$acc: sequence up-to-date check failed\n";
+	    $error ++;
+	}
+    }
+    die "Sequences are not up-to-date, exiting\n" if $error;
+    chdir "$Rfam::releases_dir/$rel" or die;
+}
+
+# check format in here somewhere!
+
+unless( -e "rcs_labelling_done" ) {
+    print STDERR "RCS labelling families ....\n";
+    my( $major, $minor ) = $rel =~ /(\d+)\.(\d+)/;
+    my $label = "Rel$major"."_$minor";
+    foreach my $acc ( @family_list ) {
+	eval {
+	    &RfamRCS::label_family( $acc, $label );
+	};
+	if( $@ ) {
+	    $error ++;
+	    warn "$acc: failed to add RCS label [$label]\n";
+	}
+    }
+    die "RCS labelling step failed, exiting\n" if $error;
+    system "touch rcs_labelling_done" and die;
+}
+
 print STDERR "Checking view files ....\n";
 foreach my $acc ( @family_list ) {
-#    my $id = Rfam::acc2id( $acc );
     if( &RfamRCS::view_file_errors( $acc ) ) {
         warn "$acc: found errors with viewfiles\n";
 	$error ++;
     }
 }
-
 die "View files contain errors, exiting\n" if $error;
 
 unless( -s "$Rfam::releases_dir/$rel/Rfam.seed" ) {
