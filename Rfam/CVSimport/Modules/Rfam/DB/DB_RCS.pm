@@ -7,7 +7,12 @@ package Rfam::DB::DB_RCS;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 use Fcntl;
-use DB_File;
+
+BEGIN {   # DB_File not on blades so carry on regardless if we can't find it
+    eval {
+	use DB_File;
+    };
+}
 use FileHandle;
 
 # Object preamble - inheriets from Bio::Root::Object
