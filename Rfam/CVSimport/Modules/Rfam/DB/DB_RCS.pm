@@ -222,6 +222,38 @@ sub _add_accession{
    untie(%accmap);
 }
 
+=head2 _move_accession
+
+ Title   : _move_accession
+ Usage   : $self->_move_accession('RF00102','newfamilyname')
+ Function: change id of an accession. Assumes you have the lock
+ Example : 
+ Returns : 
+ Args    :
+
+
+=cut
+
+sub _move_accession{
+   my ($self,$acc,$family) = @_;
+   my ($obj,%accmap);
+   if( $self->{'is_locked'} != 1 ) {
+       die("Have not locked the database - cannot add an accession!");
+   }
+
+   # now get and tie the hash, saving the object
+   
+   if( ($obj = tie( %accmap, 'DB_File' ,$self->{'dbrcsbase_index'}, O_RDWR,0666)) == 0){
+       die("Could not open $self->{'dbrcsbase_index'} as a DB_file $! Leaving the lock on");
+       
+   }
+
+   $accmap{$acc} = $family;
+   $obj->sync();
+   undef $obj;
+   untie(%accmap);
+}
+
 =head2 _kill_accession
 
  Title   : _kill_accession
