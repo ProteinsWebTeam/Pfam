@@ -56,7 +56,7 @@ $rfamseq_current_dir = "$rfamseq_root_dir/CURRENT";
 $rfamseq_new_dir     = "$rfamseq_root_dir/NEW";
 $rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi";
 $rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";
-$rfamseq             = "$rfamseq_current_dir/rfamseq";
+$rfamseq             = "$rfamseq_current_dir/rfamseq.fa";
 
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
