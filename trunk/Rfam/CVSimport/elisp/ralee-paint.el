@@ -69,7 +69,12 @@
 	    (progn
 	      (put-text-property open (1+ open) 'face (nth face-num ralee-faces))
 	      (put-text-property close (1+ close) 'face (nth face-num ralee-faces))
-	      ))))))
+	      )
+	  )
+	)
+      )
+    )
+  )
 
 
 (defun paint-line-by-base ()
@@ -103,7 +108,13 @@
 	      (setq face-num 3))
 	
 	  (if face-num
-	      (put-text-property (point) (1+ (point)) 'face (nth face-num ralee-faces))))))))
+	      (put-text-property (point) (1+ (point)) 'face (nth face-num ralee-faces))
+	    )
+	  )
+	)
+      )
+    )
+  )
 
 
 (defun paint-column-by-cons ()
@@ -134,8 +145,11 @@
 		(if (char-equal base ?G) (setq g-count (1+ g-count)))
 		(if (or (char-equal base ?U)
 			(char-equal base ?T)) (setq u-count (1+ u-count)))
-		)))
-	(forward-line))
+		)
+	      )
+	  )
+	(forward-line)
+	)
 
       (if (or (> (/ (float a-count) (float line-count)) cons)
 	      (> (/ (float c-count) (float line-count)) cons)
@@ -160,9 +174,16 @@
 		      (if (and (or (char-equal base ?T)
 				   (char-equal base ?U)) (> (/ (float u-count) (float line-count)) cons))
 			  (put-text-property (point) (1+ (point)) 'face (nth 3 ralee-faces)))
-		      )))
-	      (forward-line))
-	    )))))
+		      )
+		    )
+		)
+	      (forward-line)
+	      )
+	    )
+	)
+      )
+    )
+  )
 
 
 (defun paint-buffer-by-cons ()
@@ -193,27 +214,63 @@
     (while (< (point) (point-max))
       (if (ralee-is-alignment-line)
 	  (paint-line-by-base))
-      (forward-line))))
+      (forward-line)
+      )
+    )
+  )
 
 
 (defun paint-line-by-ss ()
   "get the structure, and then paint the current line"
   (interactive)
   (save-excursion
-    (setq pairs (ralee-get-base-pairs))
-    (paint-line-by-pairs pairs)))
+    (let (line pairs)
+      (setq line (ralee-get-ss-line))
+      (setq pairs (ralee-get-base-pairs line))
+      (paint-line-by-pairs pairs)
+      )
+    )
+  )
 
 
 (defun paint-buffer-by-ss ()
   "get the structure, and then paint the whole buffer"
   (interactive)
   (save-excursion
-    (setq pairs (ralee-get-base-pairs))
-    (beginning-of-buffer)
-    (while (< (point) (point-max))
-      (if (ralee-is-alignment-line)
-	  (paint-line-by-pairs pairs))
-      (forward-line))))
+    (let (line pairs)
+      (setq line (ralee-get-ss-line))
+      (setq pairs (ralee-get-base-pairs line))
+      (beginning-of-buffer)
+      (while (< (point) (point-max))
+	(if (ralee-is-alignment-line)
+	    (paint-line-by-pairs pairs))
+	(forward-line)
+	)
+      )
+    )
+  )
+
+(defun paint-buffer-by-current-ss-line ()
+  "get structure from the current line, and then paint the whole buffer"
+  (interactive)
+  (save-excursion
+    (let (line pairs)
+      (setq line (ralee-get-current-ss-line))
+      (if line
+	  (progn
+	    (setq pairs (ralee-get-base-pairs line))
+	    (beginning-of-buffer)
+	    (while (< (point) (point-max))
+	      (if (ralee-is-alignment-line)
+		  (paint-line-by-pairs pairs))
+	      (forward-line)
+	      )
+	    )
+	(message "Current line doesn't contain structure markup")
+	)
+      )
+    )
+  )
 
 
 (provide 'ralee-paint)
