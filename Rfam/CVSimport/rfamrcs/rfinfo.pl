@@ -29,6 +29,8 @@ my ($check_family,
     $short_info,
     @families);
 
+my $db = Rfam::default_db();
+
 if( not &getopts('alvns')) {
     &leave("Unknown arguments for rfinfo");
 }
@@ -39,7 +41,7 @@ if( !$opt_a && !$opt_l && $#ARGV == -1 ) {
 }
 
 if( $opt_a) {
-    @families = &RfamRCS::get_all_family_names();
+    @families = $db->get_allacc();
     $check_family = 0;
     $short_info = 1;
 } elsif ( $opt_l ) {
@@ -63,20 +65,11 @@ if( $opt_s ) {
     $short_info = 1;
 }
 
-#if( $opt_n ) {
-#    @families = ();
-#    my $db = Bio::Pfam::default_db();
-#    foreach my $acc ( @ARGV ) {
-#	push(@families,$db->acc2id($acc));
-#    }
-#}
-
 if( $#families == -1 ) {
     print("rfinfo: We have no families to process... presumably a bug... please contact pfam\@sanger.ac.uk\n");
     exit();
 }
 
-my $db = Rfam::default_db();
 foreach my $family (@families) {
     my $acc;
     if( $db->is_id($family) ) {
