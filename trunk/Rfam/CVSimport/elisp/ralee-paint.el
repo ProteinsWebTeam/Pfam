@@ -1,6 +1,28 @@
 ;;; ralee-paint
 
-(defun ralee-paint-line-by-pairs (pairs-list)
+; Copyright (c) 2004 Sam Griffiths-Jones
+;
+; This is part of RALEE -- see
+; http://www.sanger.ac.uk/Users/sgj/code/ralee/ and the README file
+; that should accompany this file.
+;
+; RALEE is free software; you can redistribute it and/or modify it
+; under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 2 of the License, or
+; (at your option) any later version.
+;
+; RALEE is distributed in the hope that it will be useful, but
+; WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+; General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with RALEE; if not, write to the Free Software Foundation,
+; Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+
+
+(defun paint-line-by-pairs (pairs-list)
   "colour the current line according to the SS_cons line"
   (let ((pair ()) 
 	open 
@@ -46,7 +68,7 @@
 	      ))))))
 
 
-(defun ralee-paint-line-by-base ()
+(defun paint-line-by-base ()
   "colour the current line according to base identity"
   (interactive)
   (save-excursion
@@ -80,7 +102,7 @@
 	      (put-text-property (point) (1+ (point)) 'face (nth face-num ralee-faces))))))))
 
 
-(defun ralee-paint-column-by-cons ()
+(defun paint-column-by-cons ()
   "paint a column by its conservation"
   (interactive)
   (save-excursion
@@ -139,7 +161,7 @@
 	    )))))
 
 
-(defun ralee-paint-buffer-by-cons ()
+(defun paint-buffer-by-cons ()
   "paint whole buffer by column conservation"
   (interactive)
   (save-excursion
@@ -149,31 +171,31 @@
     (search-forward "\n")
     (search-backward " ")
     (while (< (point) (line-end-position))
-      (ralee-paint-column-by-cons)
+      (paint-column-by-cons)
       (forward-char))))
 
 
 
-(defun ralee-paint-buffer-by-base ()
+(defun paint-buffer-by-base ()
   "colour the current line according to base identity"
   (interactive)
   (save-excursion
     (goto-char (point-min))
     (while (< (point) (point-max))
       (if (ralee-is-alignment-line)
-	  (ralee-paint-line-by-base))
+	  (paint-line-by-base))
       (forward-line))))
 
 
-(defun ralee-paint-line-by-ss ()
+(defun paint-line-by-ss ()
   "get the structure, and then paint the current line"
   (interactive)
   (save-excursion
     (setq pairs (ralee-get-base-pairs))
-    (ralee-paint-line-by-pairs pairs)))
+    (paint-line-by-pairs pairs)))
 
 
-(defun ralee-paint-buffer-by-ss ()
+(defun paint-buffer-by-ss ()
   "get the structure, and then paint the whole buffer"
   (interactive)
   (save-excursion
@@ -181,7 +203,7 @@
     (beginning-of-buffer)
     (while (< (point) (point-max))
       (if (ralee-is-alignment-line)
-	  (ralee-paint-line-by-pairs pairs))
+	  (paint-line-by-pairs pairs))
       (forward-line))))
 
 
