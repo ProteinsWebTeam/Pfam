@@ -2,17 +2,19 @@
 
 # Let the code begin...
 
+BEGIN {
+    # DB_File isn't always available
+    # if it isn't then we don't want to bomb
+    if( eval "use DB_File" ) {
+        warn "DB_File isn't available.\n";
+    }
+}
 
 package Rfam::DB::DB_RCS;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 use Fcntl;
 
-BEGIN {   # DB_File not on blades so carry on regardless if we can't find it
-    eval {
-	use DB_File;
-    };
-}
 use FileHandle;
 
 # Object preamble - inheriets from Bio::Root::Object
