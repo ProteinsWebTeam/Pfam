@@ -30,14 +30,19 @@ functions for update of the database.
 
 package Rfam::DB::RfamRDB;
 
+BEGIN {
+    # DBI isn't always available
+    # if it isn't then we don't want to bomb
+    if( eval "use DBI" ) {
+        warn "DBI isn't available. Some Rfam functionality won't work\n";
+    }
+}
 
 use vars qw($AUTOLOAD 
 	    @ISA 
 	    @EXPORT_OK ); 
 
 use strict;
-use DBI;
-
 
 
 sub new {
