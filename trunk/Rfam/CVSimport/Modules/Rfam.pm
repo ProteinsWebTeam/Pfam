@@ -18,7 +18,7 @@ $root_dir      = "/nfs/farm/Rfam";
 $current_dir   = "$root_dir/CURRENT";
 $accession_dir = "$root_dir/ACCESSION";
 $releases_dir  = "$root_dir/RELEASES";
-$scripts_dir   = "$root_dir/scripts";
+$scripts_dir   = "/pfam/db/Rfam/scripts";
 $acclog_file   = "$accession_dir/acclog";
 
 
