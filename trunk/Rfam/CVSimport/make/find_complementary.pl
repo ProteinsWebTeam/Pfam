@@ -5,11 +5,27 @@ use Getopt::Long;
 use Bio::SeqIO;
 use Bio::SearchIO;
 
-my( $help );
+sub usage {
+    print STDERR <<EOF;
+$0
+
+Find regions of complementarity to the query using WU-BLAST and a custom scoring matrix.
+
+Usage: $0 <target> <query>
+Options:   -h                   show this help
+           --strand [b|f|r]     search [b]oth, [f]orward or [r]everse strand (default f)
+
+EOF
+}
+
+my( $help, $bpscore, $guscore, $mmscore );
 my $strand = "f";   # default
 
 GetOptions( "h"        => \$help,
-	    "strand=s" => \$strand );
+	    "strand=s" => \$strand,
+	    "M=s"      => \$bpscore,
+	    "M2=s"     => \$guscore,
+	    "N=s"      => \$mmscore );
 
 # args in wublast order
 my $targetfile = shift;
@@ -26,18 +42,12 @@ if( $strand !~ /^[b|f|r]$/ ) {
     exit(1);
 }
 
-sub usage {
-    print STDERR <<EOF;
-$0
-
-Find regions of complementarity to the query using WU-BLAST and a custom scoring matrix.
-
-Usage: $0 <target> <query>
-Options:   -h                   show this help
-           --strand [b|f|r]     search [b]oth, [f]orward or [r]everse strand (default f)
-
-EOF
+if( $bpscore and !$guscore ) {
+    $guscore = $bpscore;
 }
+$bpscore = +5 unless $bpscore;
+$guscore = +3 unless $guscore;
+$mmscore = -4 unless $mmscore;
 
 
 # we need to reverse the query sequence (but not complement)
@@ -55,7 +65,8 @@ my @targetfiles;
 
 if( $strand =~ /[b|f]/ ) {
     # search the top strand
-     push( @targetfiles, "$targetfile" );
+     push( @targetfiles, { 'file' => "$targetfile",
+			   'strand' => 1 } );
 }
 
 if( $strand =~ /[b|r]/ ) {
@@ -66,19 +77,20 @@ if( $strand =~ /[b|r]/ ) {
 				  '-format' => 'Fasta' );
     while( my $seq = $tin->next_seq() ) {
 	my $rc = $seq->revcom();
-	$rc->id( $seq->id."_rc" );
 	$tout->write_seq( $rc );
     }
     undef $tout;
-    push( @targetfiles, "$$.target.rc" );
+    push( @targetfiles, { 'file' => "$$.target.rc",
+			  'strand' => -1 } );
 }
 
 # write out the matrix - otherwise I can't make wublast find it!
-&dump_matrix();
+&dump_matrix( $bpscore, $guscore, $mmscore );
 
-foreach my $targetfile ( @targetfiles ) {
+foreach my $target ( @targetfiles ) {
+    my $targetfile = $target->{'file'};
     system "xdformat -p $targetfile > /dev/null 2>&1" and die "failed to run xdformat";
-    system "wublastp $targetfile $$.query.rev -matrix matrix -span1 -warnings > $$.blast" and die "failed to run wublastp";
+    system "wublastp $targetfile $$.query.rev -matrix matrix -span1 -warnings Q=10 R=10 gapK=0.0151 gapH=0.0600 gapL=0.104 > $$.blast" and die "failed to run wublastp";
 
     my $in = Bio::SearchIO -> new( '-file' => "$$.blast",
 				   '-format' => 'Blast' );
@@ -86,11 +98,19 @@ foreach my $targetfile ( @targetfiles ) {
     while( my $result = $in->next_result() ) {
 	while( my $hit = $result->next_hit() ) {
 	    while( my $hsp = $hit->next_hsp() ) {
+		my( $hitst, $hiten ) = ( $hsp->start('hit'), $hsp->end('hit') );
+		my $direction = "Forward";
+		if( $target->{'strand'} < 0 ) {
+		    ( $hitst, $hiten ) = ( $hiten, $hitst );
+		    $direction = "Reverse";
+		}
+		
 		# print a summary line
-		printf( ">%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n\n",
+		printf( ">%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n\n",
 			$result->query_name(),
 			$hsp->start('query'),
 			$hsp->end('query'),
+			$direction,
 			$hit->name, 
 			$hsp->start('hit'),
 			$hsp->end('hit'),
@@ -113,33 +133,62 @@ foreach my $targetfile ( @targetfiles ) {
 		# remember these as a running count
 		my $hen = $hsp->start('hit') - 1;
 		my $qen = $hsp->end('query') + 1;
+		if( $target->{'strand'} < 0 ) {
+		    $hen = $hsp->end('hit') + 1;
+		}
+
+		# find the longest start/end number
+		my $numl = length( $hsp->start('query') );
+		if( length( $hsp->end('query') ) > $numl ) {
+		    $numl = length( $hsp->end('query') );
+		}
+		if( length( $hsp->start('hit') ) > $numl ) {
+		    $numl = length( $hsp->start('hit') );
+		}
+		if( length( $hsp->end('hit') ) > $numl ) {
+		    $numl = length( $hsp->end('hit') );
+		}
 
 		# print the alignments out nicely
 		for( my $i=0; $i<$hsp->hsp_length(); $i=$i+60 ) {
 		    my $hsub = substr( $hsp->hit_string(), $i, 60 );
 		    $hsub =~ s/-//g;
-		    my $hst = $hen + 1;
-		    $hen = $hst + length($hsub) - 1;
-		    $hen = $hsp->end('hit') if( $hen > $hsp->end('hit') );
+		    my $hst;
+
+		    if( $target->{'strand'} < 0 ) {
+			$hst = $hen - 1;
+			$hen = $hst - length($hsub) + 1;
+			$hen = $hsp->start('hit') if( $hen < $hsp->start('hit') );
+		    }
+		    else {
+			$hst = $hen + 1;
+			$hen = $hst + length($hsub) - 1;
+			$hen = $hsp->end('hit') if( $hen > $hsp->end('hit') );
+		    }
 		    
 		    my $qsub = substr( $hsp->query_string(), $i, 60 );
+		    my $strl = length( $qsub );
 		    $qsub =~ s/-//g;
 		    my $qst = $qen - 1;
 		    $qen = $qst - length($qsub) + 1;
 		    $qen = $hsp->start('query') if( $qen < $hsp->start('query') );
 		    
-		    printf( "%10d  %-60s  %-10d\n", 
+		    printf( "%5s %".$numl."d %-".$strl."s %-".$numl."d %s\n", 
+			    "3'",
 			    $qst, 
 			    substr( $hsp->query_string(), $i, 60 ),
 			    $qen,
+			    "5'"
 			    );
-		    printf( "%10s  %-60s\n", "",
+		    printf( "%".($numl+6)."s %-".$strl."s\n", "",
 			    substr( $homol, $i, 60 ) 
 			    );
-		    printf( "%10d  %-60s  %-10d\n", 
+		    printf( "%5s %".$numl."d %-".$strl."s %-".$numl."d %s\n",
+			    "5'",
 			    $hst, 
 			    substr( $hsp->hit_string(), $i, 60 ),
 			    $hen,
+			    "3'"
 			    );
 		    print "\n";
 		}
@@ -151,23 +200,27 @@ foreach my $targetfile ( @targetfiles ) {
 
 
 sub dump_matrix {
+    my $bp = shift || +5;
+    my $gu = shift || +3;
+    my $mm = shift || -4;
     open( MAT, ">matrix" ) or die "can't write to matrix";
     print MAT <<EOF;
-    A   T   G   C   S   W   R   Y   K   M   B   V   H   D   N
-A  -4   5  -4  -4  -4   1   1  -4  -4   1  -4  -1  -1  -1  -2
-T   5  -4   3  -4  -4   1  -4   1   1  -4  -1  -4  -1  -1  -2
-G  -4   3  -4   5   1  -4   1  -4   1  -4  -1  -1  -4  -1  -2
-C  -4  -4   5  -4   1  -4  -4   1  -4   1  -1  -1  -1  -4  -2
-S  -4  -4   1   1  -4  -4  -2  -2  -2  -2  -1  -1  -3  -3  -1
-W   1   1  -4  -4  -4  -4  -2  -2  -2  -2  -3  -3  -1  -1  -1
-R   1  -4   1  -4  -2  -2  -4  -4  -2  -2  -3  -1  -3  -1  -1
-Y  -4   1  -4   1  -2  -2  -4  -4  -2  -2  -1  -3  -1  -3  -1
-K  -4   1   1  -4  -2  -2  -2  -2  -4  -4  -1  -3  -3  -1  -1
-M   1  -4  -4   1  -2  -2  -2  -2  -4  -4  -3  -1  -1  -3  -1
-B  -4  -1  -1  -1  -1  -3  -3  -1  -1  -3  -4  -2  -2  -2  -1
-V  -1  -4  -1  -1  -1  -3  -1  -3  -3  -1  -2  -4  -2  -2  -1
-H  -1  -1  -4  -1  -3  -1  -3  -1  -3  -1  -2  -2  -4  -2  -1  
-D  -1  -1  -1  -4  -3  -1  -1  -3  -1  -3  -2  -2  -2  -4  -1
-N  -2  -2  -2  -2  -1  -1  -1  -1  -1  -1  -1  -1  -1  -1  -4
+    A   T   U   G   C   S   W   R   Y   K   M   B   V   H   D   N
+A  $mm  $bp  $bp  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+T  $bp  $mm  $mm  $gu  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+U  $bp  $mm  $mm  $gu  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+G  $mm  $gu  $gu  $mm  $bp  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+C  $mm  $mm  $mm  $bp  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+S  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+W  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+R  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+Y  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+K  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+M  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+B  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+V  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+H  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  
+D  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
+N  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm  $mm
 EOF
 }
