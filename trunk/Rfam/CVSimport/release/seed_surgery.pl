@@ -54,6 +54,7 @@ foreach my $acc ( @list ) {
     open( SEED, "$acc/SEED" ) or die;
     $aln -> read_stockholm( \*SEED );
     my $newaln = Rfam::RfamAlign->new();
+    $newaln->ss_cons( $aln->ss_cons );
 
     foreach my $seq ( $aln -> each_seq() ) {
 	my $addseq = Bio::LocatableSeq -> new( -id    => $seq->id,
@@ -62,7 +63,7 @@ foreach my $acc ( @list ) {
 					       -seq   => $seq->seq );
 	my $curstr = $seq -> seq();
 	if( $curstr =~ tr/Tt/Uu/ ) {    # "It's RNA dammit" (SRE)
-	    printf( "%s   %-20s   ", $acc, $seq->id."/".$seq->start."-".$seq->end );
+	    printf( "%s   %-10s%10d%10d   ", $acc, $seq->id,$seq->start,$seq->end );
 	    print "T_TO_U\n";
 	    $addseq -> seq( $curstr );
 	    $changed = 1;
@@ -75,8 +76,8 @@ foreach my $acc ( @list ) {
 	    $newstr =~ tr/Ttu/UUU/; 
 	    $newstr = uc( $newstr );
 	    if( $newstr ne $curstr ) {
-#		print "\n$curstr\n$newstr\n";
-		printf( "%s   %-20s   %-20s   ", $acc, $seq->id."/".$seq->start."-".$seq->end, $seq->id."/".$seq->start."-".$seq->end );
+		print "\n$curstr\n$newstr\n";
+		printf( "%s   %-10s%10d%10d   %-10s%10d%10d   ", $acc, $seq->id, $seq->start, $seq->end, $seq->id, $seq->start, $seq->end );
 		my $fixed = &find_match( $newinx, $addseq );
 		if( $fixed == -1 ) {
 		    print "RENUMBER\tFIXED\n";
@@ -194,6 +195,9 @@ sub find_match {
     my $seqdb;
     if( $rfamseq ) {
 	my @blastdbs = glob( "$Rfam::rfamseq_current_dir/*.fa" );
+	if( -s "$$.blast" ) {
+	    unlink( "$$.blast" ) or die;
+	}
 	foreach my $blastdb ( @blastdbs ) {
 	    system "blastall -W 30 -F F -d $blastdb -i $$.old.fa -p blastn -v 5 -b 5 >> $$.blast" and die "can't run blastall";
 	}
