@@ -46,20 +46,22 @@
   "get the sequence identifier of the current alignment line"
   (save-excursion
     (beginning-of-line)
-    (if (ralee-is-alignment-line)
-	(progn
-	  (search-forward " ")
-	  (copy-region-as-kill (line-beginning-position) (1- (point)))
-	  (car kill-ring)
-	  )
-      (if (ralee-is-markup-line)
+    (let ((beg (point)))
+      (if (ralee-is-alignment-line)
 	  (progn
-	    (looking-at "#=G[A-Z] [A-Za-z0-9_-]+ ")
-	    (match-string 0)
+	    (search-forward " ")
+	    (copy-region-as-kill beg (1- (point)))
+	    (car kill-ring)
 	    )
-	(progn
-	  (message "can't get seqid from current line")
-	  nil
+	(if (ralee-is-markup-line)
+	    (progn
+	      (looking-at "#=G[A-Z] [A-Za-z0-9_-]+ ")
+	      (match-string 0)
+	      )
+	  (progn
+	    (message "can't get seqid from current line")
+	    nil
+	    )
 	  )
 	)
       )
@@ -70,23 +72,25 @@
   "get the sequence identifier of the current alignment line"
   (save-excursion
     (beginning-of-line)
-    (if (ralee-is-alignment-line)
-	(progn
-	  (if (looking-at "[A-Za-z0-9_-\.]+/[0-9]")
+    (let ((beg (point)))
+      (if (ralee-is-alignment-line)
+	  (progn
+	    (if (looking-at "[A-Za-z0-9_-\.]+/[0-9]")
+		(progn
+		  (search-forward "/")
+		  (copy-region-as-kill beg (1- (point)))
+		  )
 	      (progn
-		(search-forward "/")
-		(copy-region-as-kill (line-beginning-position) (1- (point)))
+		(search-forward " ")
+		(copy-region-as-kill beg (1- (point)))
 		)
-	    (progn
-	      (search-forward " ")
-	      (copy-region-as-kill (line-beginning-position) (1- (point)))
 	      )
+	    (car kill-ring)
 	    )
-	  (car kill-ring)
+	(progn
+	  (message "can't get seqid from current line")
+	  nil
 	  )
-      (progn
-	(message "can't get seqid from current line")
-	nil
 	)
       )
     )
@@ -98,9 +102,11 @@
     (if (or (ralee-is-alignment-line) (ralee-is-markup-line))
 	(progn
 	  (end-of-line)
-	  (search-backward " ")
-	  (copy-region-as-kill (1+ (point)) (line-end-position))
-	  (car kill-ring)
+	  (let ((end (point)))
+	    (search-backward " ")
+	    (copy-region-as-kill (1+ (point)) end)
+	    (car kill-ring)
+	    )
 	  )
       )
     )

@@ -33,7 +33,7 @@
 	close
 	helices)
 
-    (while (>= i 0)
+    (while (>= i 1)
       (setq i (1- i))
       (setq pair (nth i pairs))
       (setq open (car pair))
@@ -79,10 +79,12 @@
 (defun ralee-get-ss-line ()
   "Get the SS_cons line"
   (save-excursion
-    (let (structure-line)
+    (let (structure-line beg end)
       (goto-char (point-min))
       (search-forward "#=GC SS_cons")
-      (copy-region-as-kill (line-beginning-position) (line-end-position))
+      (beginning-of-line) (setq beg (point))
+      (end-of-line) (setq end (point))
+      (copy-region-as-kill beg end)
       (setq structure (car kill-ring)))))
 
 
@@ -101,6 +103,7 @@ Returns a list of pairs in order of increasing closing base."
 	  (pairs ())
 	  base
 	  structure-line
+	  line-end
 	  )
 
       (setq structure-line (ralee-get-ss-line))
@@ -110,9 +113,10 @@ Returns a list of pairs in order of increasing closing base."
 	  (progn
 	    (goto-char (point-min))
 	    (search-forward "#=GC SS_cons")
-	    (search-forward " ")
+	    (end-of-line) (setq line-end (point))
+	    (search-backward " ")
 
-	    (while (< (point) (line-end-position))
+	    (while (< (point) line-end)
 	      (setq base (char-after))
 	      (if (char-equal base ?<)
 		  (setq stack (cons (current-column) stack))
