@@ -39,3 +39,14 @@ unless( -s "$Rfam::releases_dir/$rel/Rfam.full" ) {
 	die "Failed to make Rfam.full";
     }
 }
+
+unless( -s "$Rfam::releases_dir/$rel/Rfam.fasta" ) {
+    print STDERR "Making Rfam.fasta ....\n";
+    system "$Rfam::scripts_dir/release/make_fastadb.pl -i 90 $Rfam::releases_dir/$rel/Rfam.full > $Rfam::releases_dir/$rel/Rfam.fasta" and die;
+}
+
+unless( -s "$Rfam::releases_dir/$rel/Rfam.thr" ) {
+    print STDERR "Making Rfam.thr ....\n";
+    system "$Rfam::scripts_dir/release/make_thr $Rfam::releases_dir/$rel/Rfam.seed > $Rfam::releases_dir/$rel/Rfam.thr" and die;
+}
+
