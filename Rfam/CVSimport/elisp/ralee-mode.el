@@ -16,14 +16,19 @@
   (setq ralee-mode-map (make-sparse-keymap))
   (define-key ralee-mode-map "\C-c\C-l" 'ralee-paint-line-by-ss)
   (define-key ralee-mode-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
-  (define-key ralee-mode-map "\C-c\C-k" 'ralee-paint-line-by-base)
-  (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-base)
+;  (define-key ralee-mode-map "\C-c\C-k" 'ralee-paint-line-by-base)
+;  (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-base)
+  (define-key ralee-mode-map "\C-c\C-c" 'ralee-paint-column-by-cons)
+  (define-key ralee-mode-map "\C-c\C-v" 'ralee-paint-buffer-by-cons)
   (define-key ralee-mode-map "\C-i" 'ralee-insert-gap-column)
   (define-key ralee-mode-map "\C-c\C-d" 'ralee-delete-gap-column)
-  (define-key ralee-mode-map "\C-p" 'ralee-jump-to-pair)
-  (define-key ralee-mode-map "\C-[" 'ralee-jump-to-pair-in-other-window)
+  (define-key ralee-mode-map "\C-c\C-p" 'ralee-jump-to-pair)
+  (define-key ralee-mode-map "\C-c\C-[" 'ralee-jump-to-pair-in-other-window)
   (define-key ralee-mode-map "\C-f" 'ralee-jump-right)
-  (define-key ralee-mode-map "\C-b" 'ralee-jump-left))
+  (define-key ralee-mode-map "\C-b" 'ralee-jump-left)
+  (define-key ralee-mode-map "\C-p" 'ralee-jump-up)
+  (define-key ralee-mode-map "\C-n" 'ralee-jump-down)
+  )
 
 (defvar ralee-structure-cache nil
   "cache the structure line")
@@ -330,6 +335,80 @@ Returns a list of pairs in order of increasing closing base."
 	      (put-text-property (point) (1+ (point)) 'face (nth face-num ralee-faces))))))))
 
 
+(defun ralee-paint-column-by-cons ()
+  "paint a column by its conservation"
+  (interactive)
+  (save-excursion
+    (let (column
+	  (a-count 0)
+	  (c-count 0)
+	  (g-count 0)
+	  (u-count 0)
+	  (cons 0.3))
+
+      (setq column (current-column))
+      (goto-char (point-max))
+      (setq line-count (current-line))
+      (goto-char (point-min))
+
+      (while (< (point) (point-max))   ; go round once counting bases
+	(if (ralee-is-alignment-line)
+	    (progn
+	      (move-to-column column)
+	      (put-text-property (point) (1+ (point)) 'face 'default)
+	      (setq base (char-after))
+	      (let ((case-fold-search t))
+		(if (char-equal base ?A) (setq a-count (1+ a-count)))
+		(if (char-equal base ?C) (setq c-count (1+ c-count)))
+		(if (char-equal base ?G) (setq g-count (1+ g-count)))
+		(if (or (char-equal base ?U)
+			(char-equal base ?T)) (setq u-count (1+ u-count)))
+		)))
+	(forward-line))
+
+      (if (or (> (/ (float a-count) (float line-count)) cons)
+	      (> (/ (float c-count) (float line-count)) cons)
+	      (> (/ (float g-count) (float line-count)) cons)
+	      (> (/ (float u-count) (float line-count)) cons))
+
+	  (progn
+	    (goto-char (point-min))
+
+	    (while (< (point) (point-max))  ; go round again colouring them
+	      (if (ralee-is-alignment-line)
+		  (progn
+		    (move-to-column column)
+		    (setq base (char-after))
+		    (let ((case-fold-search t))
+		      (if (and (char-equal base ?A) (> (/ (float a-count) (float line-count)) cons))
+			  (put-text-property (point) (1+ (point)) 'face (nth 0 ralee-faces)))
+		      (if (and (char-equal base ?C) (> (/ (float c-count) (float line-count)) cons))
+			  (put-text-property (point) (1+ (point)) 'face (nth 1 ralee-faces)))
+		      (if (and (char-equal base ?G) (> (/ (float g-count) (float line-count)) cons))
+			  (put-text-property (point) (1+ (point)) 'face (nth 2 ralee-faces)))
+		      (if (and (or (char-equal base ?T)
+				   (char-equal base ?U)) (> (/ (float u-count) (float line-count)) cons))
+			  (put-text-property (point) (1+ (point)) 'face (nth 3 ralee-faces)))
+		      )))
+	      (forward-line))
+	    )))))
+
+
+(defun ralee-paint-buffer-by-cons ()
+  "paint whole buffer by column conservation"
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (equal (ralee-is-alignment-line) nil)
+      (forward-line)) ; search for the first alignment line
+    (search-forward "\n")
+    (search-backward " ")
+    (while (< (point) (line-end-position))
+      (ralee-paint-column-by-cons)
+      (forward-char))))
+
+
+
 (defun ralee-paint-buffer-by-base ()
   "colour the current line according to base identity"
   (interactive)
@@ -347,6 +426,7 @@ Returns a list of pairs in order of increasing closing base."
   (save-excursion
     (setq pairs (ralee-get-base-pairs))
     (ralee-paint-line-by-pairs pairs)))
+
 
 (defun ralee-paint-buffer-by-ss ()
   "get the structure, and then paint the whole buffer"
@@ -369,6 +449,20 @@ Returns a list of pairs in order of increasing closing base."
   "move the pointer jump-num characters to the left"
   (interactive)
   (backward-char ralee-jump-num))
+
+(defun ralee-jump-up ()
+  "move the pointer jump-num lines up"
+  (interactive)
+  (let ((column (current-column)))
+    (forward-line (- 0 ralee-jump-num))
+    (move-to-column column)))
+
+(defun ralee-jump-down ()
+  "move the pointer jump-num lines down"
+  (interactive)
+  (let ((column (current-column)))
+    (forward-line ralee-jump-num)
+    (move-to-column column)))
 
 
 (defun ralee-paired-column (column)
