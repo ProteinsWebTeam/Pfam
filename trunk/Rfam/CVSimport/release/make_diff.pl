@@ -1,100 +1,64 @@
 #!/usr/local/bin/perl -w
 
-BEGIN {
-    $rfam_modules_dir =
-	(defined $ENV{'RFAM_MODULES_DIR'})
-	    ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-	    ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $bioperl_dir;
-use lib $rfam_modules_dir;
 use strict;
+use POSIX;   # gives us floor() function
+use Rfam;
+use Bio::SeqIO;
 use Bio::Index::Fasta;
-use CRC64;
 
-my $newindex = shift;
-my $oldindex = shift;
+my $newlist = shift;
+my $oldlist = shift;
 
-die "not called correctly" unless $newindex;
-
-my $oldinx = Bio::Index::Fasta->new( '-filename' => $oldindex );
-my $newinx = Bio::Index::Fasta->new( '-filename' => $newindex );
-my $oldnum = $oldinx -> _file_count() or 0;
-my $newnum = $newinx -> _file_count() or 0;
+die "not called correctly" unless $oldlist;
+my $inx = Bio::Index::Fasta -> new( '-filename' => $Rfam::rfamseq_current_inx,
+				    '-dbm_package' => 'DB_File' );
 
 my( %newacc, %oldacc );
-for( my $i = 0; $i < $newnum; $i++ ) {
-    my( $file ) = $newinx->unpack_record( $newinx->db->{"__FILE_$i"} );
-    open( F, $file ) or die;
-    while( <F> ) {
-	if( /^\>(\S+)/ ) {
-	    $newacc{ $1 } = 1;
-	}
+open( F, $newlist ) or die;
+while( <F> ) {
+    if( /^(\S+)\.(\d+)/ ) {
+	$newacc{ $1 } = $2;
     }
-    close F;
 }
+close F;
 
-for( my $i = 0; $i < $oldnum; $i++ ) {
-    my( $file ) = $oldinx->unpack_record( $oldinx->db->{"__FILE_$i"} );
-    open( F, $file ) or die;
-    while( <F> ) {
-    	if( /^\>(\S+)/ ) {
-	    $oldacc{ $1 } = 1;
-	}
+open( F, $oldlist ) or die;
+while( <F> ) {
+    if( /^(\S+)\.(\d+)/ ) {
+	$oldacc{ $1 } = $2;
     }
-    close F;
 }
+close F;
 
+my $i = 0;
+my $k = 1;
+my $out = Bio::SeqIO->new( '-file' => ">new.fa.1", '-format' => 'Fasta' );
 
 foreach my $acc ( keys %newacc ) {
+    my $seq;
     if( not exists $oldacc{ $acc } ) {
-	print "$acc NEW\n";
-	next;
+	print "$acc.$newacc{$acc} NEW\n";
+	$seq = $inx -> fetch( $acc.".".$newacc{$acc} );
     }
-
-    my $oldseq = $oldinx -> fetch( $acc );
-    my $newseq = $newinx -> fetch( $acc );
-
-    if( not $oldseq ) {
-	warn "can't find $acc in your old database\n";
+    elsif( $newacc{ $acc } != $oldacc{ $acc } ) {
+	print "$acc.$newacc{$acc} UPDATE\n";
+	$seq = $inx -> fetch( $acc.".".$newacc{$acc} );
     }
-    if( not $newseq ) {
-	warn "can't find $acc in your new database\n";
+    
+    if( $i >= 5000 ) {
+	$k ++;
+	$i = 0;
+	$out = Bio::SeqIO->new( '-file' => ">new.fa.$k", '-format' => 'Fasta' );
     }
-
-
-#    if( $newseq -> id() ne $oldseq -> id() ) {
-#	print "$acc RENAME ", $oldseq -> id(), " ", $newseq -> id(), "\n";
-#    }
-
-    my $oldcrc = CRC64::crc64( $oldseq->seq );
-    my $newcrc = CRC64::crc64( $newseq->seq );
-
-    if( $oldcrc ne $newcrc ) {
-	print "$acc SEQCHANGE\n";
+    if( $seq ) {
+	$out -> write_seq( $seq );
+	$i ++;
     }
 }
 
 foreach my $acc ( keys %oldacc ) {
     if( not exists $newacc{ $acc } ) {
-	print "$acc DELETED\n";
+	print "$acc.$oldacc{$acc} DELETED\n";
     }
 }
 
-
-##################
-
-sub next_acc {
-    my $fh = shift;
-    my $acc;
-    while(<$fh>) {
-	last if /^\/\//;
-	if( /^AC\s+(\S+);/ ) {
-	    $acc = $1 unless $acc;
-	}
-    }
-    return $acc;
-}
