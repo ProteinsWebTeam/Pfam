@@ -38,7 +38,7 @@ use vars qw( @ISA
 @ISA    = qw( Exporter );
 use Rfam::DB::DB_RCS;
 use Rfam::DB::DB_RDB;
-use UpdateRDB;
+use Rfam::UpdateRDB;
 
 $root_dir       = "/pfam/db/Rfam";
 $current_dir    = "$root_dir/CURRENT";
@@ -150,11 +150,11 @@ sub external_rdb_update{
        }
     }
     else { 
-	return UpdateRDB->new('-db_name' => $external_rdb_name,
-			      '-db_driver' => $rdb_driver, 
-			      '-db_host' => $rdb_host,
-			      '-db_user' => $rdb_user,
-			      '-db_password' => $rdb_pass);
+	return Rfam::UpdateRDB->new('-db_name' => $external_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdb_host,
+				    '-db_user' => $rdb_user,
+				    '-db_password' => $rdb_pass);
     }    
 
 }
@@ -177,11 +177,11 @@ sub switchover_rdb_update{
        }
     }
     else {
-	return UpdateRDB->new('-db_name' => $switchover_rdb_name,
-			      '-db_driver' => $rdb_driver, 
-			      '-db_host' => $rdb_host,
-			      '-db_user' => $rdb_user,
-			      '-db_password' => $rdb_pass);
+	return Rfam::UpdateRDB->new('-db_name' => $switchover_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdb_host,
+				    '-db_user' => $rdb_user,
+				    '-db_password' => $rdb_pass);
     }    
 
 }
@@ -203,11 +203,11 @@ sub live_rdb_update{
        }
     }
     else {
-	return UpdateRDB->new('-db_name' => $live_rdb_name,
-			      '-db_driver' => $rdb_driver, 
-			      '-db_host' => $rdb_host,
-			      '-db_user' => $rdb_user,
-			      '-db_password' => $rdb_pass);
+	return Rfam::UpdateRDB->new('-db_name' => $live_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdb_host,
+				    '-db_user' => $rdb_user,
+				    '-db_password' => $rdb_pass);
     }    
 
 }
@@ -229,11 +229,11 @@ sub temp_rdb_update{
        }
     }
     else {
-	return UpdateRDB->new('-db_name' => $temp_rdb_name,
-			      '-db_driver' => $rdb_driver, 
-			      '-db_host' => $rdb_host,
-			      '-db_user' => $rdb_user,
-			      '-db_password' => $rdb_pass);
+	return Rfam::UpdateRDB->new('-db_name' => $temp_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdb_host,
+				    '-db_user' => $rdb_user,
+				    '-db_password' => $rdb_pass);
     }    
 
 }

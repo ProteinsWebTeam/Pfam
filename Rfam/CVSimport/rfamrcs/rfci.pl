@@ -4,26 +4,13 @@
 # author sgj
 # heavily borrowed from Ewan's pfam code
 #
-use lib '/pfam/db/bioperl';
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-
-}
-
-use lib $bioperl_dir;
-use lib $rfam_mod_dir;
 
 use strict;
 use Getopt::Std;
 use Rfam;
 use RfamRCS;
 use RfamQC;
-use UpdateRDB;
+use Rfam::UpdateRDB;
 use vars qw($opt_m);
 
 &getopt("m:");
