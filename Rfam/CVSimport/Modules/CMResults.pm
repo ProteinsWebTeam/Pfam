@@ -13,8 +13,6 @@
 
 package CMResults;
 
-#use lib '/pfam/db/Pfam/scripts/Modules'; # bad bad bad!
-
 use strict;
 use HMMResults;
 use vars qw( @ISA );
@@ -72,7 +70,9 @@ sub parse_infernal {
 
     while( <$file> ) {
 	chomp;
+	next if( /^\#/ );
 	next if( /CPU time:\s+/ or /memory:\s+/ );
+	next if( /^\s*$/ );
 	if( /^sequence:\s+(\S+)\s*/ ) {
 	    if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
 		( $id, $start, $end ) = ( $1, $2, $3 );
@@ -111,47 +111,50 @@ sub parse_infernal {
 
 	    $self -> addHMMUnit( $unit );
 	}
-	elsif( /^\s*$/ ) {
-	    $alnline = 0;
-	}
 	elsif( /^\s+(\d*)\s*(.+?)\s*(\d*)\s*$/ ) {
-	    my $wholeline = $_;
-	    $alnline ++;
-	    if( $alnline == 2 ) {
-		# unit is already in results object, but this should still
-		# get to where it needs to be
-		$unit -> start_hmm( $1 ) unless $unit -> start_hmm();
-		$unit -> end_hmm( $3 );
-	    }
-	    if( $alnline == 4 ) {
-		# cmsearch reports wierd start end numbers in the alignment
-		# lines - fix them here
-		if( my( $space, $ast, $stuff, $aen ) = /^(\s+)(\d+)\s+(.+)\s+(\d+)/ ) {
-		    my $origaln = $stuff;
-		    $stuff =~ s/[-\.]//g;
-
-		    my $strand = 1;
-		    if( $unit->start_seq > $unit->end_seq ) {
-			$strand = -1;
+	    $unit->add_alignment_line( $_ );
+	    for( my $i=1; $i<=4; $i++ ) {
+		my $wholeline = <$file>;
+		chomp $wholeline;
+		if( $i == 1 ) {
+		    if( my( $start, $end ) = $wholeline =~ /^\s+(\d+)\s+.*\s+(\d+)\s*$/ ) {
+			# unit is already in results object, but this should still
+			# get to where it needs to be
+			$unit -> start_hmm( $start ) unless $unit -> start_hmm();
+			$unit -> end_hmm( $end );
 		    }
-
-		    if( $alnen ) {
-			# add 1 for + strand stuff, take one for - strand
-			$alnst = $alnen + $strand;
-		    }
-		    else {
-			$alnst = $unit->start_seq;
-		    }
-		    $alnen = $alnst + $strand*( length($stuff)-1 );
-
-		    my $spacing = length($space)+length($ast);
-		    $wholeline = sprintf( "%".$spacing."s %s %s", $alnst, $origaln, $alnen );
 		}
-		else {
-		    warn "can't read alignment line [$_]\n";
+		if( $i == 3 ) {
+		    # cmsearch reports wierd start end numbers in the alignment
+		    # lines - fix them here
+		    if( my( $space, $ast, $stuff, $aen ) = $wholeline =~ /^(\s+)(\d+)\s+(.+)\s+(\d+)/ ) {
+			my $origaln = $stuff;
+			$stuff =~ s/[-\.]//g;
+
+			my $strand = 1;
+			if( $unit->start_seq > $unit->end_seq ) {
+			    $strand = -1;
+			}
+
+			if( $alnen ) {
+			    # add 1 for + strand stuff, take one for - strand
+			    $alnst = $alnen + $strand;
+			}
+			else {
+			    $alnst = $unit->start_seq;
+			}
+			$alnen = $alnst + $strand*( length($stuff)-1 );
+
+			my $spacing = length($space)+length($ast);
+			$wholeline = sprintf( "%".$spacing."s %s %s", $alnst, $origaln, $alnen );
+		    }
 		}
+		if( $i == 4 ) {
+		    warn "alignment line [$wholeline] should be blank\n" unless( $wholeline =~ /^\s*$/ );
+		}
+
+		$unit->add_alignment_line( $wholeline );
 	    }
-	    $unit->add_alignment_line( $wholeline );
 	}
 	else {
 	    warn "failed to parse line [$_]\n";
@@ -292,5 +295,32 @@ sub write_list {
 	}
     }
 }
+
+sub write_output {
+    my $self = shift;
+    my $fh = shift;
+    $fh = \*STDOUT unless $fh;
+    my $date = `date`;
+    chomp $date;
+
+    print $fh "# Rfam output [$date]\n";
+    foreach my $seq ( sort{ $a->name cmp $b->name } $self->eachHMMSequence()) {
+	print $fh "sequence: ",$seq->name,"\n";
+	my $i = 0;
+        foreach my $unit ( sort{ $a->start_seq <=> $b->start_seq } $seq->eachHMMUnit()) {
+	    printf $fh ( "hit %3d :%10d %10d   %s bits\n", 
+			 $i++, 
+			 $unit->start_seq, $unit->end_seq,
+			 $unit->bits );
+
+	    my $j = 0;
+	    foreach my $line ( $unit->each_alignment_line ) {
+		print $fh "$line\n";
+	    }
+	}
+    }
+
+}
+
 
 1;
