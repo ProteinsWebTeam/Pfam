@@ -119,9 +119,11 @@ foreach my $db ( @blastdb ) {
     print STDERR "searching $db\n";
 
     my $seqio = Bio::SeqIO -> new( '-file' => $fafile, '-format' => 'Fasta' );
+    my $seen;
     foreach my $seq ( @seqs ) {
 	my $report = $factory->blastall( $seq );
 	while( my $result = $report->next_result ) {
+	    $seen = 1;
 	    unless( $listhits or $minidb ) {
 		my $writer = new Bio::SearchIO::Writer::TextResultWriter();
 		my $out = new Bio::SearchIO( -writer => $writer );
@@ -140,6 +142,8 @@ foreach my $db ( @blastdb ) {
 	    }
 	}
     }
+
+    die "BLAST output is empty -- the job has probably failed\n" unless $seen;
 
     if( $minidb ) {
 	foreach my $id ( keys %hitlist ) {
