@@ -176,11 +176,13 @@ sub desc_is_OK {
     }
 
     # Check compulsory feilds
-    if ($fields{AC} eq "0"){
-        warn "$family: There is no accession line. SERIOUS ERROR.\n";
-        $error = 1;
-    }
-    if ($fields{AC} > 1){
+    # there shouldn't be a AC line before the family is created!
+
+#    if ($fields{AC} eq "0"){
+#        warn "$family: There is no accession line. SERIOUS ERROR.\n";
+#        $error = 1;
+#    }
+    if (exists $fields{AC} and $fields{AC} > 1){
         warn "$family: There are $fields{AC} accession lines. SERIOUS ERROR.\n";
         $error = 1;
     }
