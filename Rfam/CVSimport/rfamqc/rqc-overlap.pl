@@ -80,7 +80,7 @@ foreach my $overlap ( @overlap ) {
 open( SEED, "$family_dir/SEED" ) or die;
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
-my @list = $seed->eachSeq();
+my @list = $seed->each_seq();
 
 for( my $seq = shift(@list); defined $seq; $seq = shift(@list) ) {
     foreach my $other ( @list ) {
@@ -126,7 +126,7 @@ sub compare_overlap_to_current {
     $seed -> read_stockholm( \*SEED );
 
     my %hash;
-    foreach my $seq ( $full->eachSeq(), $seed->eachSeq() ) {
+    foreach my $seq ( $full->each_seq(), $seed->each_seq() ) {
 	$hash{$seq->id()} .= sprintf("%d-%d:",$seq->start(),$seq->end());
     }
 
@@ -142,7 +142,7 @@ sub compare_overlap_to_current {
 	my $seed = new Rfam::RfamAlign;
 	$seed -> read_stockholm( \*SEED );
 
-	foreach my $seq ( $full->eachSeq(), $seed->eachSeq() ) {
+	foreach my $seq ( $full->each_seq(), $seed->each_seq() ) {
 	    if( $hash{$seq->id()} ) {
 		$_ = $hash{$seq->id()};
 		chop; # trailing :

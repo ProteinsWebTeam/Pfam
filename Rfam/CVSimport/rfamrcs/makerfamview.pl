@@ -34,7 +34,7 @@ foreach my $file ( @Rfam::align_file_set ) {
     open( ALN, $file ) or die;
     $aln -> read_stockholm( \*ALN );
     close ALN;
-    my $numseq = scalar ( $aln -> eachSeq() );
+    my $numseq = scalar ( $aln -> each_seq() );
 
     open( ALNOUT, ">$file.ann" ) or die;
 

@@ -83,7 +83,7 @@ sub allgaps_columns_removed {
     my (@columnlist, %mymap);
     my @index_list = (0..$self->length_aln-1);
 
-    foreach my $seq ($self->eachSeq) {
+    foreach my $seq ($self->each_seq) {
         my @ary = split( //, $seq->seq() );
         foreach my $el (grep { $ary[$_] ne '.' and $ary[$_] ne '-' }  (@index_list)) {
             $mymap{ $el } = 1;
@@ -102,7 +102,7 @@ sub allgaps_columns_removed {
 	$self -> match_states( join( "", @newrf ) );
     }
 
-    foreach my $seq ($self->eachSeq) {
+    foreach my $seq ($self->each_seq) {
 	my @newseq = split( //, $seq->seq() );
 
         foreach my $gappos (@sortedgappositions) {
@@ -143,7 +143,7 @@ sub trimmed_alignment {
 	$self->ss_cons->removeColumn( $end+1..$self->length_aln() );
     }
 
-    foreach my $seq ($self->eachSeq()) {
+    foreach my $seq ($self->each_seq()) {
         my @residues = split( //, $seq->seq() );
         my @discardedleft = splice( @residues, 0, $start-1 );
 
@@ -183,7 +183,7 @@ sub trimmed_alignment {
         # then remove it
 
         if ($newend == $newstart) {
-	    $seq -> removeSeq( $seq );
+	    $seq -> remove_seq( $seq );
         }
     }
 
@@ -263,7 +263,7 @@ sub read_stockholm {
 					 '-type'  => 'aligned'
 					 );
 
-        $self -> addSeq($seq);
+        $self -> add_seq($seq);
         $count++;
     }
 
@@ -290,7 +290,7 @@ sub write_structure_ps {
 					'-end' => $self->length_aln(),
 					'-seq' => $self->consensus() );
 
-    $newaln -> addSeq( $conseq );
+    $newaln -> add_seq( $conseq );
     $newaln -> ss_cons( $self->ss_cons );
     $newaln -> allgaps_columns_removed();
 
@@ -337,7 +337,7 @@ sub write_structure_ps {
 		     );
     }
 
-    my( $seq ) = $newaln -> eachSeq();
+    my( $seq ) = $newaln -> each_seq();
 
     open( T, ">$$.rna" ) or die;
     print T ">$$.rna\n", $seq->seq(), "\n", $newaln->ss_cons->getViennaString(), "\n";
@@ -447,7 +447,7 @@ sub write_stockholm {
     };
 	
     for( my $i=0; $i < $iter; $i++ ) {
-	foreach my $seq ( $self->eachSeq() ) {
+	foreach my $seq ( $self->each_seq() ) {
 	    my $namestr = $self->get_displayname($seq->get_nse());
 	    my $subseq = substr( $seq->seq, $i*$block, $block );
 	    print $out sprintf( "%-".$maxn."s  %s\n", $namestr, $subseq );
@@ -476,7 +476,7 @@ sub write_connect {
 
     my $seqstr;
     if( $seqid ) {
-	my( $seq ) = $self->eachSeqWithId($seqid);
+	my( $seq ) = $self->each_seq_with_id($seqid);
 	$seqstr = $seq->seq();
     }
     else {
@@ -491,10 +491,10 @@ sub write_connect {
 					'-end' => $self->length_aln(),
 					'-seq' => $seqstr );
 
-    $newaln -> addSeq( $newseq );
+    $newaln -> add_seq( $newseq );
     $newaln -> ss_cons( $self->ss_cons );
     $newaln -> allgaps_columns_removed();
-    my( $gapless ) = $newaln -> eachSeq();
+    my( $gapless ) = $newaln -> each_seq();
     
     my @ss   = split( //, $newaln->ss_cons->getInfernalString );
     my @seq  = split( //, $gapless->seq() );
@@ -539,7 +539,7 @@ sub _compute_consensus {
     my $self = shift;
     my @columns;
 
-    foreach my $seq ( $self -> eachSeq() ) {
+    foreach my $seq ( $self -> each_seq() ) {
 	my @ary = split( //, $seq->seq );
 	for( my $i=0; $i<@ary; $i++ ) {
 	    $columns[$i]->{$ary[$i]} ++;

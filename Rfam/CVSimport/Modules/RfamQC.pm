@@ -22,7 +22,7 @@ sub valid_sequences {
 	my $aln = new Rfam::RfamAlign;
 	open( ALN, "$family/$alnfile" ) or die "can't open $family/$alnfile";
 	$aln -> read_stockholm( \*ALN );
-	foreach my $seq ( $aln -> eachSeq ) {
+	foreach my $seq ( $aln -> each_seq ) {
 	    my $rfamseq = $inx -> fetch( $seq->id );
 	    if( not $rfamseq ) {
 		print "$family/$alnfile: cannot find ".$seq->id." in rfamseq database\n";
