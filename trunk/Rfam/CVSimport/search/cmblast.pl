@@ -1,9 +1,19 @@
 #!/usr/local/bin/perl -w
 
+BEGIN {
+    $pfam_rcs_mod = 
+        (defined $ENV{'PFAM_MOD_DIR'})
+            ?$ENV{'PFAM_MOD_DIR'}:"/nfs/disk100/pubseq/Pfam/scripts";
+    $bioperl_dir = 
+        (defined $ENV{'BIOPERL_DIR'})
+            ?$ENV{'BIOPERL_DIR'}:"/nfs/disk100/pubseq/Pfam/bioperl";
+}
+
+use lib $pfam_mod_dir;
+use lib $bioperl_dir;
+
 use strict;
 use Getopt::Long;
-use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
-use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Tools::BPlite;
 use Bio::SeqIO;
 use CMResults;
@@ -80,7 +90,7 @@ foreach my $acc ( keys %results ) {
     }
 }
 
-unlink( "$$.res", "$$.seq", "$$.blast" ) or die;
+#unlink( "$$.res", "$$.seq", "$$.blast" ) or die;
 
 
 sub parse_blast {
