@@ -139,13 +139,27 @@ sub desc_is_OK {
 		$fields{$&}++;
 		unless( /^TP   Gene; tRNA;\s*$/ or /^TP   Gene; rRNA;\s*$/
 		or /^TP   Gene; snRNA; splicing;\s*$/ or /^TP   Gene; snRNA; guide;\s*$/
-		or /^TP   Gene; snRNA; miRNA;\s*$/ or /^TP   Gene; ribozyme;\s*$/
+		or /^TP   Gene; miRNA;\s*$/ or /^TP   Gene; ribozyme;\s*$/
 		or /^TP   Gene; antisense;\s*$/ or /^TP   Gene; other;\s*$/
 		or /^TP   Gene; RUF;\s*$/ or /^TP   Intron;\s*$/
 		or /^TP   Cis-reg;\s*$/ or /^TP   Cis-reg; riboswitch\s*$/
-		or /^TP   Cis-reg; riboswitch\s*$/
+		or /^TP   Cis-reg; IRES\s*$/
 		) {
                     warn "$family: invalid TP line \"$_\"\n";
+		    warn "Valid TP lines are as follows:\n";
+		    warn "Gene; tRNA;\n";
+		    warn "Gene; rRNA;\n";
+		    warn "Gene; snRNA; splicing;\n";
+		    warn "Gene; snRNA; guide;\n";
+		    warn "Gene; miRNA;\n";
+		    warn "Gene; ribozyme;\n";
+		    warn "Gene; antisense;\n";
+		    warn "Gene; other;\n";
+		    warn "Gene; RUF;\n";
+		    warn "Intron;\n";
+		    warn "Cis-reg;\n";
+		    warn "Cis-reg; riboswitch\n";
+		    warn "Cis-reg; IRES\n";
                     $error = 1;
  		}
                 last;
