@@ -46,8 +46,8 @@ EOF
 exit(1);
 }
 
-my $blastdbdir = $rfamseq_current_dir;
-my $inxfile    = $rfamseq_current_inx;
+my $blastdbdir = $Rfam::rfamseq_current_dir;
+my $inxfile    = $Rfam::rfamseq_current_inx;
 
 my $in = Bio::SeqIO -> new( '-file' => $fafile, '-format' => 'Fasta' );
 unless( $length ) {
@@ -67,7 +67,7 @@ else {
     $glob = "*.fa";
 }
 
-foreach my $db ( glob( "$rfamseq_current_dir/$glob" ) ) {
+foreach my $db ( glob( "$Rfam::rfamseq_current_dir/$glob" ) ) {
     print STDERR "searching $db\n";
     if( $minidb ) {
 	system "blastall -p blastn -i $fafile -e $evalue -F F -W 7 -d $db > $$.blast" and die;
