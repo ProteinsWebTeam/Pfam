@@ -122,7 +122,7 @@ $cpus       = 20  unless $cpus;
 $queue      = "pfam_slow" unless $queue;
 $bqueue     = "pfam_slow" unless $bqueue;
 
-my $fafile = "FA";
+my $fafile = "$$.fa";
 
 #print "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED\n";
 
