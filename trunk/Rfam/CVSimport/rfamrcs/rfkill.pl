@@ -41,7 +41,7 @@ if( $acc =~ /\/$/ ) {
 
 ## check that we can connect to the RDB
 
-my $rdb = Rfam->switchover_rdb_update();
+my $rdb = Rfam->live_rdb_update();
 eval { 
     $rdb->connect();
 };
