@@ -7,6 +7,8 @@ use Bio::Tools::BPlite;
 use Bio::Index::Fasta;
 use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
 use Bio::SimpleAlign;
+use lib '/pfam/db/Rfam/scripts/Modules';
+use Rfam;
 
 my( $quiet, 
     $blastdb, 
@@ -35,16 +37,16 @@ sub help {
 
 rfsearch.pl: builds and searches covariance model against sequence database
 
-Usage:   rfsearch.pl <options> <fasta file>
+Usage:   rfsearch.pl <options>
 Options:       -h              show this help
                -q              don't tell me what you're doing
                -db <blastdb>   sequence database, else use rfamseq
 	       -inx <bpindex>  bioperl index of seq db
 	       -blast <file>   use precomputed blast output
 	       -evalue <n>     use blast evalue of <n>
-               -noblast        do full covels search, no blast preproc (not implemented)
-               -cpu <n>        use <n> cpus for the covels step
-               -queue <queue>  use lsf queue <queue> for the covels step
+               -noblast        do full cmsearch search, no blast preproc (not implemented)
+               -cpu <n>        use <n> cpus for the cmsearch step
+               -queue <queue>  use lsf queue <queue> for the cmsearch step
                -bqueue <queue> use lsf queue <queue> for the blast jobs
 	       -local          run cmsearch with --local option
 	       -window <n>     window size <n> basepairs
@@ -71,10 +73,9 @@ EOF
 $blast_eval = 10  unless $blast_eval;
 $window     = 100 unless $window;
 $cpus       = 1   unless $cpus;
-$inxfile    = '/pfam/db/rfamseq/rfamseq.fa.bpi' unless $inxfile;
-my $blastdbdir = '/pfam/db/rfamseq';
+$inxfile    = $rfamseq_current_inx unless $inxfile;
+my $blastdbdir = $rfamseq_current_dir;
 
-my $fafile  = shift;
 my $seqinx  = Bio::Index::Fasta->new( $inxfile ); 
 
 END {
@@ -82,7 +83,7 @@ END {
     undef $seqinx;
 }
 
-if( $help or not $fafile ) {
+if( $help or not -e "SEED" ) {
     &help();
     exit(1);
 }
@@ -91,43 +92,18 @@ if( $cpus > 1 and not $queue ) {
     print STDERR "If you specify -cpu then you also need the -queue option\n";
     exit(1);
 }
-	
+
+my $fafile = "FA";
+system "sreformat fasta SEED > $fafile" and die "can't convert SEED to FA";
+system "cmbuild -F --rf CM SEED" and die "can't build CM from SEED";
+
 unless( $blast_outfile ) {
     my @blastdbs;
     if( $blastdb ) {
 	push( @blastdbs, $blastdb );
     }
     else {
-	if( not $blastdbdir ) {
-	    &help();
-	    print STDERR "You must set your BLASTDB environment variable to something sensible\n\n";
-	    exit(1);
-	}
-	@blastdbs = ( "$blastdbdir/fun.fa",
-		      "$blastdbdir/hum01.fa",
-		      "$blastdbdir/hum02.fa",
-		      "$blastdbdir/hum03.fa",
-		      "$blastdbdir/hum04.fa",
-		      "$blastdbdir/hum05.fa",
-		      "$blastdbdir/hum06.fa",
-		      "$blastdbdir/hum07.fa",
-		      "$blastdbdir/hum08.fa",
-		      "$blastdbdir/hum09.fa",
-		      "$blastdbdir/hum10.fa",
-		      "$blastdbdir/hum11.fa",
-		      "$blastdbdir/inv01.fa",
-		      "$blastdbdir/inv02.fa",
-		      "$blastdbdir/mam.fa",
-		      "$blastdbdir/mus.fa",
-		      "$blastdbdir/org.fa",
-		      "$blastdbdir/phg.fa",
-		      "$blastdbdir/pln.fa",
-		      "$blastdbdir/pro01.fa",
-		      "$blastdbdir/pro02.fa",
-		      "$blastdbdir/pro03.fa",
-		      "$blastdbdir/rod.fa",
-		      "$blastdbdir/vrl.fa",
-		      "$blastdbdir/vrt.fa" );
+	@blastdbs = glob( "$rfamseq_current_dir/*.fa" );
     }
 
     print STDERR "running blast search ... \n" unless $quiet;
@@ -211,7 +187,7 @@ else {
     $command = "cmsearch -W $window";
 }
 
-print STDERR "searching minidb with cove model ... " unless $quiet;
+print STDERR "searching minidb with model ... " unless $quiet;
 if( $queue ) {
     system "echo \'$command CM $$.minidb.\$\{LSB_JOBINDEX\} > OUTPUT.\$\{LSB_JOBINDEX\}\' | bsub -q $queue -o $$.err.\%I -J\"[1-$i]\"" and die;
 }
@@ -315,7 +291,7 @@ sub update_desc {
     open( DESC, "DESC" ) or die;
     while(<DESC>) {
 	if( /^SM\s+/ ) {
-	    print DNEW "SM   covels $options\n";
+	    print DNEW "SM   cmsearch $options\n";
 	    next;
 	}
 	print DNEW $_;
