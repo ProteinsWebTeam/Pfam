@@ -14,8 +14,8 @@ $/ = "//\n";
 my $count = 0;
 while(<F>) {
     my $outfile;
-    if( /[\n^]AC\s+(\S+?)[\;\s]/ ) {
-	$outfile = "$1.spl";
+    if( /[\n^](\#=GF\s+)?AC\s+(\S+?)[\;\s]/ ) {
+	$outfile = "$2.spl";
     }
     else {
 	$count ++;
