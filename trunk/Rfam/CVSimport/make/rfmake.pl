@@ -2,7 +2,7 @@
 
 use strict;
 use Getopt::Long;
-use Bio::Index::Fasta;
+use Bio::SeqFetcher::xdget;
 use CMResults;
 use Rfam;
 
@@ -25,13 +25,9 @@ if( $help ) {
     exit(1);
 }
 
-not $inxfile and $inxfile = $Rfam::rfamseq_current_inx;
-my $seqinx = Bio::Index::Fasta->new( $inxfile ); 
+not $inxfile and $inxfile = $Rfam::rfamseq;
+my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 
-END {
-    # truly wierd, but if I don't do this I get core dumps on program exit!
-    undef $seqinx;
-}
 
 my $file = shift;
 
@@ -227,7 +223,7 @@ sub get_seq {
 
     my $seq = new Bio::Seq;
     eval {
-	$seq = $seqinx -> fetch( $id );
+	$seq = $seqinx -> get_Seq_by_acc( $id );
     };
     if( $@ or not $seq ) {
 	warn "$id not found in your seq db\n";
