@@ -12,6 +12,7 @@ package RfamRCS;
 use strict;
 use FileHandle;
 use Rfam;
+use RfamQC;
 
 use vars qw( @ISA 
 	     @EXPORT );
@@ -1124,6 +1125,12 @@ sub view_file_errors {
                 $error ++;
             }
         }
+
+	open( F, "$Rfam::current_dir/$family/$viewfile" ) or die "$family: can't open viewfile [$viewfile]\n";
+	if( &RfamQC::correct_tags( \*F ) ) {
+	    warn "$family: incorrect tags\n";
+	    $error ++;
+	}
     }
     return $error;
 }
