@@ -43,8 +43,8 @@ sub addPair {
     my $self = shift;
     my $pair = shift;
     push( @{$self->{'PAIR'}}, $pair );
-    $self->{'MAP'}->{$pair->left}  = $pair->left;
-    $self->{'MAP'}->{$pair->right} = $pair->right;
+    $self->{'MAP'}->{$pair->left}  = $pair->right;
+    $self->{'MAP'}->{$pair->right} = $pair->left;
 }
 
 
