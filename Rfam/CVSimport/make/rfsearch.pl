@@ -148,14 +148,16 @@ else {               # run over *.fa databases
     @blastdb = glob( "$blastdbdir/*.fa" );
 }    
 
+mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
 unless( $blast ) {
     print STDERR "Queuing up blast jobs ...\n";
     foreach my $blastdb ( @blastdb ) {
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	my $fh = new IO::File;
-	$fh -> open("| bsub -q $bqueue -R 'select[largedata]' -J\"rf$$\"") or die "$!";
-	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
+	$fh -> open("| bsub -q $bqueue -R 'select[largedata]' -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$$/$$.berr.\%J") or die "$!";
+	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
+	$fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
 	$fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
 	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l /tmp/$fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
@@ -300,7 +302,6 @@ $options .= "-W $window";
 $name = "cm$$" if( not $name );
 system "cp CM $$.CM" and die;
 print STDERR "Queueing cmsearch jobs ...\n";
-mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
 my $fh = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
