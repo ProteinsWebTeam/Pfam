@@ -1,16 +1,61 @@
 #!/usr/local/bin/perl -w
 
 use strict;
+use Rfam;
 
 my $family = shift;
 
-if( &desc_is_OK( "$family" ) ) {
-    print STDERR "$family: No errors found\n";
+my $error;
+if( !&check_timestamps( $family ) ) {
+    $error = 1;
 }
-else {
+if( !&desc_is_OK( $family ) ) {
+    $error = 1;
+}
+   
+if( $error ) {
     print STDERR "$family: Your family contains errors\n";
     exit(1);
 }
+print STDERR "$family: No errors found\n";
+
+
+sub check_timestamps {
+    my $family = shift;
+    my $error;
+
+    foreach my $file ( @Rfam::rcs_file_set ) {
+        if( !(-s "$family/$file") ) {
+            warn "$family: $file does not exist\n";
+            $error = 1;
+        }
+    }
+
+    if( -M "$family/SEED" < -M "$family/CM" ) {
+        warn "$family: Your SEED [$family/SEED] is younger than your CM file [$family/CM].\n";
+        $error = 1;
+    }
+    if( -M "$family/CM" < -M "$family/OUTPUT" ) {
+        warn "$family: Your CM [$family/CM] is younger than your OUTPUT file [$family/OUTPUT].\n";
+        $error = 1;
+    }
+    if ( -M "$family/OUTPUT" < -M "$family/ALIGN" ) {
+        warn "$family: Your OUTPUT [$family/OUTPUT] is younger than your full alignment [$family/ALIGN].\n";
+        $error = 1;
+    }
+    if( -M "$family/OUTPUT" < -M "$family/scores" ) {
+        warn "$family: Your OUTPUT [$family/OUTPUT] is younger than your scores [$family/scores].\n";
+        $error = 1;
+    }
+
+    if($error) {
+        return 0;         # failure
+    }
+    else {
+        return 1;         # success
+    }
+}
+
 
 sub desc_is_OK {
     my $family = shift @_;
