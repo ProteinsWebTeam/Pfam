@@ -46,7 +46,7 @@ You also need to be able to read and write to /tmp on your machine.
 4. Grab and install INFERNAL, NCBI BLAST and Bioperl, and make sure
    your paths etc are set up properly.
 
-=head1 SEARCHING RFAM
+=head1 SEARCHING YOUR SEQUENCE AGAINST RFAM
 
 The INFERNAL user manual has information about how to search sequences
 using covariance models.  This is very compute intensive.  This script
@@ -61,8 +61,17 @@ specify their locations with the -bin option (more than once if
 necessary), or you can set the BLAST_BIN_DIR and INFERNAL_BIN_DIR
 environment variables if you so desire.
 
-This script can take a long while to run on big sequences so you will
-want to test on something small and sensible first.
+=head1 THINGS TO NOTE
+
+It is important that every sequence in your input fasta file has a
+unique name.
+
+This script can take a long while to run on big sequences,
+particularly if your sequence looks anything like a ribosomal RNA.
+You will want to test on something small and sensible first.
+Ribosomal RNAs should be relatively easy to find using things like
+BLAST, so you can omit the SSU and LSU rRNAs from Rfam searches with
+the --nobig option.
 
 =head1 BUGS
 
@@ -94,6 +103,7 @@ my( $local,
     $outfile,
     @binpath,
     $outputfmt,
+    $nobig,
     );
 
 my $rfam_dir;
@@ -118,6 +128,7 @@ if( $ENV{'BLAST_BIN_DIR'} ) {
 	     "noclean"       => \$noclean,
 	     "f=s"           => \$outputfmt,
 	     "h"             => \$help,
+	     "nobig"         => \$nobig,
 	     "bin=s@"        => \@binpath );
 
 my $fafile = shift;
@@ -134,21 +145,23 @@ $0: search a DNA fasta file against Rfam
 
 Usage: $0 <options> fasta_file
     Options
-        -h            : show this help
-	-d <dir>      : specify directory location of Rfam database
-	-o <file>     : write the output to <file>
-	-f <format>   : output format - currently one of
+        -h             : show this help
+	-d <dir>       : specify directory location of Rfam database
+	-o <file>      : write the output to <file>
+	-f <format>    : output format - currently one of
                             tab      simple tab delimited (default)
                             gff      GFF version 2
 
     Expert options
-        -bin <path>   : add <path> onto your executable path (can specify >1)
-	-local        : perform local mode search  (default is Rfam mode)
-	-global       : perform global mode search (       -- \" --      )
-	-acc <acc>    : search against only a single family
-	-fadb <file>  : use alternative fasta db
-	-t <bits>     : specify cutoff in bits
-	-bt <bits>    : specify blast evalue cutoff
+	-t <bits>      : specify cutoff in bits
+	--bt <bits>    : specify blast evalue cutoff
+	--local        : perform local mode search  (default is Rfam mode)
+	--global       : perform global mode search (       -- \" --      )
+	--acc <acc>    : search against only a single family
+	--nobig        : skip the large ribosomal RNAs
+        --bin <path>   : add <path> onto your executable path (can specify >1)
+	--fadb <file>  : use alternative fasta db
+
         
     Defualt tab delimited output format is:
         <seq id> <seq start> <seq end> <rfam acc> <model start> <model end> <bit score> <rfam id>
@@ -180,12 +193,15 @@ not $blastdb   and $blastdb   = "$rfam_dir/Rfam.fasta";
 not $blastcut  and $blastcut  = 10;
 not $outputfmt and $outputfmt = "tab";
 
-my $blastcmd = "blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F";
+my $blastcmd = "blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F -b 1000000 -v 1000000";
 
 if( $outputfmt ne "tab" and $outputfmt ne "gff" ) {
     &format_help;
     exit(1);
 }
+
+# accessions of big ribosomal RNAs
+my %rrna = ( "RF00177" => 1 );
 
 # read threshold file
 my %thr;
@@ -218,6 +234,9 @@ if( $outfile ) {
 foreach my $acc ( keys %results ) {
     if( $family_acc ) {
 	next unless( $family_acc eq $acc ); # do single family if $family_acc
+    }
+    if( $nobig and exists $rrna{$acc} ) { 
+	next;   # skip large ribosomal if we're asked to
     }
 
     my $id = $thr{ $acc } -> { 'id' };
