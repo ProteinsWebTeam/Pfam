@@ -134,7 +134,7 @@ unless( $blast ) {
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	my $fh = new IO::File;
 	$fh -> open("| bsub -q $bqueue -o $div.berr -J\"rf$$\"") or die "$!";
-	$fh -> print(". /usr/local/lsfv42/conf/profile.lsf\n");   # so we can find lsrcp
+	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdb -l $fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
 	$fh -> print("rm -f /tmp/$$.blastlist.$i\n");
@@ -240,7 +240,7 @@ $name = "" if( not $name );
 print STDERR "Queueing cmsearch jobs ...\n";
 my $fh = IO::File->new();
 $fh -> open( "| bsub -q $queue -o $$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
-$fh -> print(". /usr/local/lsfv42/conf/profile.lsf\n");   # so we can find lsrcp
+$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 $fh -> print( "lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "$command $options CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
