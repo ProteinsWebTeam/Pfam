@@ -6,8 +6,13 @@
 # heavily lifted from Ewan's pfam code
 #
 
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+}
 
-use lib '/pfam/db/Rfam/scripts/Modules';
+use lib $rfam_mod_dir;
 
 use strict;
 use Rfam;
@@ -29,7 +34,16 @@ OK:{
     die "rfupdate aborted: database is locked by $locker" if $locked; 
 }
 		
-foreach my $acc (@ARGV) {
+foreach my $fam (@ARGV) {
+    my $acc;
+    if( &Rfam::is_id($fam) ) {
+	$acc = &Rfam::id2acc( $fam );
+	die "rfupdate: Cannot find accession for $fam\n" if not $acc;
+    }
+    else {
+	$acc = $fam;
+    }
+
     if( ! ( -d "$rcs_master_dir/$acc")  ) {
 	print("rfupdate: Family [$acc] does not have an RCS directory in $rcs_master_dir.\n Unable to find files!\n");
 	next; # back to foreach

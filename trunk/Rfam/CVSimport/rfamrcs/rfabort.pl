@@ -5,7 +5,13 @@
 # borrowed heavily from Ewan's pfam code
 #
 
-use lib '/pfam/db/Rfam/scripts/Modules';
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+}
+
+use lib $rfam_mod_dir;
 
 use strict;
 use Getopt::Std;
@@ -32,36 +38,40 @@ if( $locked ) {
     } 
 }
 
-foreach my $acc (@ARGV) {
-    if( ! &RfamRCS::check_family_directory_exists($acc) ) {
-	print("rfabort: Family [$acc] does not have a directory in RCS_MASTER.\nYou should probably mail pfam\@sanger.ac.uk if you think this is a real family");
-	next;
-    }
-
-    if( ! &RfamRCS::check_family_exists($acc) ) {
-	print("rfabort: Family [$acc] has RCS_MASTER directory, but not the correct files internally.\nPlease contact pfam\@sanger.ac.uk to resolve the error");
-	next;
-    }
-    
-    if (not defined($name)) {
-	$name = `whoami`;
-	chop $name;
-    }
-
-    my ($haslocked,$peoplelocked) = &RfamRCS::user_has_locked_family($acc,$name);
-
-    if( $haslocked == 0 ) {
-	print("rfabort: This family [$acc] was not locked by you [$name],\nit was locked by [$peoplelocked]... so can't abort\n");
-	next;
-    }
-
-    if( ! &RfamRCS::abort_lock_on_family($acc) ) {
-	print("rfabort: Unable to abort lock ... this is a bad internal error\nPlease report problem to pfam\@sanger.ac.uk");
-	next;
-    }
-    
-    print STDOUT "\n\nAborted lock on family [$acc]\n";
+my $fam = shift;
+my $acc;
+if( &Rfam::is_id($fam) ) {
+    $acc = &Rfam::id2acc( $fam );
+    die "rfabort: Cannot find accession for $fam\n" if not $acc;
 }
+else {
+    $acc = $fam;
+}
+
+if( ! &RfamRCS::check_family_directory_exists($acc) ) {
+    die("rfabort: Family [$acc] does not have a directory in RCS_MASTER.\nYou should probably mail pfam\@sanger.ac.uk if you think this is a real family");
+}
+
+if( ! &RfamRCS::check_family_exists($acc) ) {
+    die("rfabort: Family [$acc] has RCS_MASTER directory, but not the correct files internally.\nPlease contact pfam\@sanger.ac.uk to resolve the error");
+}
+    
+if (not defined($name)) {
+    $name = `whoami`;
+    chop $name;
+}
+
+my ($haslocked,$peoplelocked) = &RfamRCS::user_has_locked_family($acc,$name);
+
+if( $haslocked == 0 ) {
+    die ("rfabort: This family [$acc] was not locked by you [$name],\nit was locked by [$peoplelocked]... so can't abort\n");
+}
+
+if( ! &RfamRCS::abort_lock_on_family($acc) ) {
+    die("rfabort: Unable to abort lock ... this is a bad internal error\nPlease report problem to pfam\@sanger.ac.uk");
+}
+    
+print STDOUT "\n\nAborted lock on family [$acc]\n";
 
 
 
