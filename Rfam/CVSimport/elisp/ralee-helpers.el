@@ -22,12 +22,50 @@
 
 
 (defun show-structure-ps ()
-  "take the current sequence and RNAfold it"
+  "take the current sequence, RNAfold it, and show the structure ps file"
   (interactive)
   (write-region (ralee-ungap-string (ralee-get-seq-string)) nil "/tmp/tmp.seq")
   (call-process "RNAfold" "/tmp/tmp.seq")
   (start-process "gv" "*messages*" "gv" "rna.ps")
   )
+
+
+(defun fold-sequence ()
+  "take the current sequence, RNAfold it, and mock up an SS_cons line"
+  (interactive)
+  (save-excursion
+    (write-region (ralee-get-seq-string) nil "/tmp/tmp.seq")
+    (call-process "RNAfold" "/tmp/tmp.seq" "*scratch")
+    (end-of-line)
+    (search-backward " ")
+    (let ((curbuf (current-buffer))
+	  (seqid (ralee-get-seq-id))
+	  (first-col (current-column)))
+      (set-buffer "*scratch")
+      (goto-char (point-max))
+      (forward-line -1)
+      (beginning-of-line)
+      (let ((beg (point)))
+	(search-forward " ")
+	(copy-region-as-kill beg (point))
+	)
+      (set-buffer curbuf)
+      (forward-line)
+      (beginning-of-line)
+      (let ((string (concat "#=GR " seqid " SS "))
+	    (i 0))
+	(insert string)
+	(while (<= i (- first-col (length string)))
+          (insert " ")
+          (setq i (1+ i))
+          )
+        )
+      (yank)
+      (insert "\n")
+      )
+    )
+  )
+  
 
 
 (defun fetch-sequence ()
