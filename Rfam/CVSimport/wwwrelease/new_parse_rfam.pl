@@ -8,12 +8,13 @@ use lib '/nfs/intweb/server/cgi-bin/Rfam';
 use RfamWWWConfig;
 
 
-my($input_dir, $output_dir, $file_type, $ss_cons_only);
+my($input_dir, $output_dir, $file_type, $ss_cons_only, $family);
 
 &GetOptions(  'input_dir=s' => \$input_dir,
 	      'output_dir=s' => \$output_dir,
 	      'file_type=s' => \$file_type,
-	      'ss_cons_only' => \$ss_cons_only);
+	      'ss_cons_only' => \$ss_cons_only,
+	   'family=s' => \$family);
 
 die "need input_dir\n" if(!$input_dir);
 die "need output_dir\n" if(!$output_dir);
@@ -45,25 +46,44 @@ my $conserved;
 
 $input_dir = $input_dir . "/$file_type";
 
+if ($family) {
+  $family .= ".full.gz";
+  _do_one_family($family, $input_dir, $output_dir, $file_type, $ss_cons_only);
+  exit(0);
+}
+
+
 opendir(_WHOLE, "$input_dir") || die("Could not open $input_dir $!");
 
 foreach my $file ( readdir(_WHOLE) ) {
+
+
+  $file =~ /^\.+$/ && next;
+  _do_one_family($file, $input_dir, $output_dir, $file_type, $ss_cons_only  );
+} 
+
+
+sub _do_one_family {
+
+  my($file, $input_dir, $output_dir, $file_type, $ss_cons_only) = @_;
 
   @blocks = @arrays = @new_seq = @seq = @sec_struc = ();
   %names = {};
   $count = $total_count = $maxname_len =  $length = $conserved = undef;
 
-  $file =~ /^\.+$/ && next;
- 
+  
+  my $file_sub;
+  $file_sub = $1 if ($file =~ /(RF\d+\.full).gz/);
+
   my $complete_file = $input_dir . "/" . $file;
 
  # $complete_file = "/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/Rfam.full.tmp";
-  print "FILE: $complete_file \n";
-  my $file_sub;
-  $file_sub = $1 if ($file =~ /(RF\d+\.full)/);
+#  print "FILE: $complete_file \n";
+ # my $file_sub;
+ # $file_sub = $1 if ($file =~ /(RF\d+\.full.gz)/);
 
   my $complete_out = $output_dir . "/" . $file_type. "/" . $file_sub;
-
+#print "OUT: $complete_out \n";
   #$complete_out = "/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align/full/Rfam.full.tmp";
 
 
