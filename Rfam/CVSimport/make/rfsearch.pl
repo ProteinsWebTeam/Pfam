@@ -74,7 +74,7 @@ my $buildopts;
 if( -s "DESC" ) {
     open( D, "DESC" ) or die "DESC exists but I can't open it";
     while( <D> ) {
-	/^BM\s+cmbuild\s+(.*)\s*/ and do {
+	/^BM\s+cmbuild\s+(.*)\s*$/ and do {
 	    $buildopts = $1;
 	};
 	/^BM\s+cmsearch.*-local/ and do {
@@ -92,7 +92,7 @@ if( -s "DESC" ) {
     }
 }
 
-$buildopts = "CM SEED" unless $buildopts;
+$buildopts = "" unless $buildopts;
 open( S, "SEED" ) or die;
 my $seenrf;
 while(<S>) {
@@ -124,10 +124,12 @@ $bqueue     = "pfam_slow" unless $bqueue;
 
 my $fafile = "FA";
 
+#print "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED\n";
+
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 unless( $nobuild ) {
     print STDERR "building model ... ";
-    system "/pfam/db/Rfam/bin/cmbuild -F $buildopts" and die "can't build CM from SEED";
+    system "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
     print STDERR "done\n";
 }
 
