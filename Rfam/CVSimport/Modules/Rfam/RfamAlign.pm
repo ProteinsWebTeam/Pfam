@@ -629,8 +629,11 @@ sub write_sparse {
 		elsif( $refseq[$j] =~ /\w/ and $subseq[$j] !~ /\w/ ) {
 		    push( @newseq, "-" );
 		}
+		elsif( $refseq[$j] !~ /\w/ and $subseq[$j] =~ /\w/ ) {
+		    push( @newseq, lc($subseq[$j]) );
+		}
 		else {
-		    push( @newseq, $subseq[$j] );
+		    push( @newseq, uc($subseq[$j]) );
 		}
 	    }
 
