@@ -128,7 +128,7 @@ sub compare_overlap_to_current {
     my @arry;
    
     my @keys = keys %hash;
-    my $rdb = Rfam::switchover_rdb();
+    my $rdb = Rfam::live_rdb();
 
     my $count = 0;
 
