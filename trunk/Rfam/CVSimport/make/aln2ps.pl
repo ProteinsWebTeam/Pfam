@@ -12,10 +12,10 @@ BEGIN {
 use lib $bioperl_dir;
 use lib $rfam_mod_dir;
 
-use Bio::Rfam::RfamAlign;
+use Rfam::RfamAlign;
 
 my $file = shift;
 open( F, $file ) or die;
-my $aln = new Bio::Rfam::RfamAlign;
+my $aln = new Rfam::RfamAlign;
 $aln -> read_stockholm( \*F );
 $aln -> write_structure_ps( \*STDOUT );
