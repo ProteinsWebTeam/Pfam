@@ -14,6 +14,7 @@ use FileHandle;
 
 use Rfam::DB::DB;
 use Rfam::Entry::Entry_RCS;
+use Rfam::RfamAlign;
 
 my $DEAD_FAMILY_STRING = '__DEAD_FAMILY__';
 
@@ -145,7 +146,7 @@ sub get_allacc {
 sub get_Entry_by_acc {
    my ($self, $acc, $dead_please) = @_;
    my ($entry,$id,$currentdir, $atticdir, $dir, $fname, $isdead);
-   $currentdir = $self->_current_directory();
+   $currentdir = $self->_current_dir();
 
    if( ! -d  "$currentdir/$acc" ) {
        print "$acc is not a valid accession for this Rfam database\n";
