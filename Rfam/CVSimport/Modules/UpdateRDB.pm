@@ -541,7 +541,8 @@ sub update_rfam_reg_full {
 			  $rfamseq_auto, 
 			  $reg->from, 
 			  $reg->to,
-			  $reg->bits_score
+			  $reg->bits_score,
+			 ""
 			 );
 	   
 	   
