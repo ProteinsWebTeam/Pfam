@@ -15,8 +15,11 @@ use vars qw( @ISA
 	     $releases_dir
 	     $rcs_master_dir
 	     $rcs_attic_dir
+	     $rcs_index_file
+	     $lock_file
 	     $scripts_dir
 	     $acclog_file
+	     $rfamseq
 	     $rfamseq_root_dir
 	     $rfamseq_current_dir
 	     $rfamseq_new_dir
@@ -33,35 +36,31 @@ use vars qw( @ISA
 	     $view_maker );
 
 @ISA    = qw( Exporter );
-@EXPORT = qw( $root_dir
-	      $current_dir
-	      $accession_dir 
-	      $releases_dir 
-	      $rcs_master_dir 
-	      $rcs_attic_dir 
-	      $scripts_dir    
-	      $acclog_file
-	      $rfamseq_root_dir
-	      $rfamseq_current_dir
-	      $rfamseq_new_dir
-	      $rfamseq_current_inx
-	      $rfamseq_new_inx
-	      @view_file_set
-	      @align_file_set
-	      @ann_file_set
-	      @model_file_set
-	      @rcs_file_set 
-              @output_file_set
-	      @scores_file_set
-	      @optional_file_set 
-	      $view_maker );
+#@EXPORT = qw( $root_dir
+#	      $current_dir
+#	      $accession_dir 
+#	      $releases_dir 
+#	      $rcs_master_dir 
+#	      $rcs_attic_dir 
+#	      $scripts_dir    
+#	      $acclog_file
+#	      $rfamseq_root_dir
+#	      $rfamseq_current_dir
+#	      $rfamseq_new_dir
+#	      $rfamseq_current_inx
+#	      $rfamseq_new_inx
+#	      @view_file_set
+#	      @align_file_set
+#	      @ann_file_set
+#	      @model_file_set
+#	      @rcs_file_set 
+#             @output_file_set
+#	      @scores_file_set
+#	      @optional_file_set 
+#	      $view_maker );
 
-## Database modules added by Mhairi
-#use Bio::Rfam::DB;
-#use Database::DB_RDB;
 use Database::DB_RCS;
 use UpdateRDB;
-
 
 $root_dir       = "/pfam/db/Rfam";
 $current_dir    = "$root_dir/CURRENT";
@@ -71,12 +70,15 @@ $rcs_master_dir = "$root_dir/RCS_MASTER";
 $rcs_attic_dir  = "$root_dir/RCS_ATTIC";
 $scripts_dir    = "$root_dir/scripts";
 $acclog_file    = "$accession_dir/acclog";
+$rcs_index_file = "$accession_dir/accmap.dat";
+$lock_file      = "$accession_dir/lock";
 
 $rfamseq_root_dir    = "/pfam/db/rfamseq";
 $rfamseq_current_dir = "$rfamseq_root_dir/CURRENT";
 $rfamseq_new_dir     = "$rfamseq_root_dir/NEW";
 $rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi";
 $rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";
+$rfamseq             = "$rfamseq_current_dir/rfamseq";
 
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
@@ -168,7 +170,11 @@ my $switchover_rdb_name = "rfam2";
 
 
 sub default_db{
-    return Database::DB_RCS->new('-current' => $current_dir );
+    return Database::DB_RCS->new( '-current'   => $current_dir,
+				  '-attic'     => $rcs_attic_dir, 
+				  '-index'     => $rcs_index_file,
+				  '-lock_file' => $lock_file,
+				  '-rfamseq'   => $rfamseq );
 } 
 
 
