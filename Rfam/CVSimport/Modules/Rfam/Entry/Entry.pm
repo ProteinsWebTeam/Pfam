@@ -767,6 +767,7 @@ sub _read_std_desc{
 	   next;
        };
        /^TP\s+(.*)$/ && do {
+	 $1 =~ s/\s+//g;
 	   $self->entry_type($1);
 	   next;
        };
@@ -795,7 +796,6 @@ sub _read_std_desc{
        last;
    }
 
-   print "HERE \n";
    my( $rn, $rm, $rt, $ra, $rl, $rc, @refs, $comment);
    foreach (@lines) {
      ### DATABASE LINKS 
