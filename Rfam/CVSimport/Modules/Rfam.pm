@@ -56,6 +56,13 @@ use vars qw( @ISA
 	      @optional_file_set 
 	      $view_maker );
 
+## Database modules added by Mhairi
+#use Bio::Rfam::DB;
+use Database::DB_RDB;
+use Database::DB_RCS;
+use UpdateRDB;
+
+
 $root_dir       = "/pfam/db/Rfam";
 $current_dir    = "$root_dir/CURRENT";
 $accession_dir  = "$root_dir/ACCESSION";
@@ -140,6 +147,114 @@ sub is_id {
 	}
     }
     return 0;
+}
+
+
+
+###################################################################
+#
+# DATABASE PARAMETERS AND MODULES (mhairi)
+#
+###################################################################
+
+my $rdb_host = "pfam";
+my $rdb_driver = "mysql";
+my $rdb_user = "rfam";
+my $rdb_pass = "mafp1";
+
+
+my $rdb_name = "rfam";
+my $switchover_rdb_name = "rfam2";
+
+
+sub default_db{
+    return Database::DB_RCS->new('-current' => $current_dir );
+} 
+
+
+
+#### CONNECT TO SELECT FROM THE RDB
+
+sub rdb {
+   my ($self) = @_;
+
+   return Database::DB_RDB->new('-db_name' => $rdb_name,
+				 '-db_driver' => $rdb_driver, 
+				 '-db_host' => $rdb_host,
+				 '-db_user' => $rdb_user,
+				 '-db_password' => $rdb_pass);
+
+}
+
+
+
+sub switchover_rdb {
+   my ($self) = @_;
+
+   return Database::DB_RDB->new('-db_name' => $switchover_rdb_name,
+				 '-db_driver' => $rdb_driver, 
+				 '-db_host' => $rdb_host,
+				 '-db_user' => $rdb_user,
+				 '-db_password' => $rdb_pass);
+
+}
+
+
+####### CONNECT SO THAT THE RDB CAN BE UPDATED
+
+
+
+sub rdb_update{
+    my ($self) = @_;
+
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+       }
+    }
+    else { 
+	return UpdateRDB->new('-db_name' => $rdb_name,
+			      '-db_driver' => $rdb_driver, 
+			      '-db_host' => $rdb_host,
+			      '-db_user' => $rdb_user,
+			      '-db_password' => $rdb_pass);
+    }    
+
+}
+
+
+sub switchover_rdb_update{
+    my ($self) = @_;
+
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+       }
+    }
+    else {
+	return UpdateRDB->new('-db_name' => $switchover_rdb_name,
+			      '-db_driver' => $rdb_driver, 
+			      '-db_host' => $rdb_host,
+			      '-db_user' => $rdb_user,
+			      '-db_password' => $rdb_pass);
+    }    
+
 }
 
 
