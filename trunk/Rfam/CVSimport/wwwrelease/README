@@ -1,0 +1,117 @@
+######################################################
+###### WEB RELEASE DOCUMENT ##################
+######################################################
+
+## Ok presently everything is in my dir, but will be moved at somepoint !
+
+#############################################################
+1) Prepare WWWdev for the new data
+#############################################################
+
+rm -f -r /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/*
+mkdir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/desc /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/species /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align/seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align/full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/images
+
+#############################################################
+2) Perform shatterflat
+#############################################################
+
+cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+
+perl ../shatterflat.pl /pfam/db/Rfam/RELEASES/X.X/Rfam.full /pfam/db/Rfam/RELEASES/X.X/Rfam.seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data &
+
+#############################################################
+3) Make browse files
+#############################################################
+
+cd  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam
+makebrowse.pl data/family.index
+
+./install -c
+
+3a) gzip
+
+gzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/*.full
+gzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/*.full
+
+3a) Upload rfam2 database 
+
+mkdir /pfam/data3/database_backups/Rfam/RELEASES/X.X
+chmod 777 /pfam/data3/database_backups/Rfam/RELEASES/X.X
+/pfam/db/Rfam/scripts/rfamrdb/rdb_flatfiles.pl --dir /pfam/data3/database_backups/Rfam/RELEASES/X.X --dump_to_file --database rfamlive
+/pfam/db/Rfam/scripts/rfamrdb/rdb_flatfiles.pl --dir /pfam/data3/database_backups/Rfam/RELEASES/X.X --load_from_file --database rfam2 
+
+
+#############################################################
+4) Create alignment files (rfam2 must be updated for this to work)
+#############################################################
+
+hhhhm, might be best to use parser.pl for these are they keep failing!
+
+
+FULL: Has flag for full only having SS_cons 
+bsub -q pfam_slow -R alpha '/pfam/db/Rfam/scripts/wwwrelease/web_new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only'
+
+SEED:
+bsub -q pfam_slow -R alpha '/pfam/db/Rfam/scripts/wwwrelease/web_new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed'
+
+#############################################################
+5) Create species files - This makes sure that the species format is correct
+#############################################################
+
+rm -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/*
+/nfs/team71/pfam/mm1/rfam_cvs/scripts/rfamrdb/get_species_files.pl /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/
+
+
+/nfs/team71/pfam/mm1/rfam_cvs/scripts/wwwrelease/species_fix.pl /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/
+
+#############################################################
+6) copy fasta files and index them
+#############################################################
+mkdir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM
+
+Hassle Sam if the BLASTDB has not been updated
+cp -f /pfam/db/Rfam/BLASTDB/*.cm /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM
+cp -f /pfam/db/Rfam/RELEASES/X.X/Rfam.fasta.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+gunzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/Rfam.fasta.gz
+
+cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+
+formatdb -p F -i Rfam.fasta
+xdformat -n  Rfam.fasta
+
+### Rfam threshold file
+cp -f /pfam/db/Rfam/RELEASES/X.X/Rfam.thr.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+gunzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/Rfam.thr.gz
+
+### Family page pictures
+
+rm -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/*
+cp -f /pfam/db/Rfam/RELEASES/7.0/Rfam.pics.tar.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/
+cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/
+gunzip Rfam.pics.tar.gz
+tar xvf Rfam.pics.tar
+
+#############################################################
+7) Genome stuff
+#############################################################
+/nfs/team71/pfam/mm1/rfam_cvs/scripts/wwwrelease/genome_species.pl --read /pfam/db/Rfam/RELEASES/RELEASE_NUM/embl.rfam
+
+
+########################################################
+# 
+# DATABASE UPLOAD- THESE ARE THE OLD SCRIPTS
+#
+########################################################
+
+
+
+
+/pfam/db/Rfam/scripts/rfamrdb/parse_embl_files.pl  /pfam/db/rfamseq/CURRENT
+
+/pfam/db/Rfam/scripts/rfamrdb/upload_embl_file.pl rfam2 ## this might need changed!
+
+/pfam/db/Rfam/scripts/rfamrdb/delete_old_rfamseqs.pl  ### delted old rfamseq
+
+/pfam/db/Rfam/scripts/rfamrdb/load_rfam_into_rdb.pl rfam2
+
+/pfam/db/Rfam/scripts/rfamrdb/get_species_files.pl /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/species
