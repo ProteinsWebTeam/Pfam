@@ -174,7 +174,7 @@ MTMDefaultTarget = "text";
 
 var MTMIconList = null;
 MTMIconList = new IconList();
-MTMIconList.addIcon(new MTMIcon("menu_link_external.gif", "http://", "pre"));
+MTMIconList.addIcon(new MTMIcon("menu_link_external.gif", "/cgi-bin", "pre"));
 MTMIconList.addIcon(new MTMIcon("menu_link_pdf.gif", ".pdf", "post"));
 
 /******************************************************************************
