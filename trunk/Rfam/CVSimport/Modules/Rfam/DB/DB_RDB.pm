@@ -127,7 +127,8 @@ sub query{
 
  if ( ($query !~ /^select/i) && ($query !~ /^show/i) &&  ($query !~ /^describe/i) ) {
 
-	$self->throw("DB_RDB::query - only 'select' queries are allowed");
+	print "DB_RDB::query - only 'select' queries are allowed";
+	exit();
 	}
 
     eval {
@@ -142,7 +143,7 @@ sub query{
 	
 	$self->_the_RDB->disconnect;
     };   
-    $@ and $self->throw("DB_RDB::query - error with query '$query' [$@]"); 
+    $@ and print "DB_RDB::query - error with query '$query' [$@]\n"; 
 
     return @retlist;
 }
