@@ -25,7 +25,7 @@
   "take the current sequence, RNAfold it, and show the structure ps file"
   (interactive)
   (let (tmpfile)
-    (setq tmpfile (concat "/tmp/" user-login-name ".seq"))
+    (setq tmpfile (concat "/tmp/" (user-login-name) ".seq"))
     (write-region (ralee-ungap-string (ralee-get-seq-string)) nil tmpfile)
     (call-process "RNAfold" tmpfile)
     (start-process "gv" "*messages*" "gv" "rna.ps")
@@ -61,7 +61,7 @@
 	  (seqid (ralee-get-seq-id))
 	  (first-col (current-column))
 	  tmpfile)
-      (setq tmpfile (concat "/tmp/" user-login-name ".seq"))
+      (setq tmpfile (concat "/tmp/" (user-login-name) ".seq"))
       (write-region (ralee-get-seq-string) nil tmpfile)
       (get-buffer-create "*structures*") ; make it if it doesn't exist
       (set-buffer "*structures*")
