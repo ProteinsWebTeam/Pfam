@@ -74,6 +74,14 @@ sub desc_is_OK {
                 last; 
             };
             /^SE/ && do { $fields{$&}++; last; };
+            /^SS/ && do { 
+		$fields{$&}++;
+		if ( !/SS   (Published|Predicted)\;/){
+                    warn "$family: SS line format incorrect [$_]\n";
+                    $error = 1;
+		}
+		last;
+	    };
             /^GA/ && do {
                 $fields{$&}++; 
                 if (! /^GA   \S+\s*$/){
@@ -212,6 +220,10 @@ sub desc_is_OK {
     }
     if ($fields{SE} ne "1"){
         warn "$family: There are [$fields{SE}] SE lines\n";
+        $error = 1;
+    }
+    if ($fields{SS} ne "1"){
+        warn "$family: There are [$fields{SS}] SS lines\n";
         $error = 1;
     }
     if ($fields{GA} ne "1"){
