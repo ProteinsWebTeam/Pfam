@@ -16,7 +16,6 @@ use strict;
 use Rfam;
 use Rfam::RfamAlign;
 
-#my $current_dir = ".";
 my $acc = shift;
 chdir "$Rfam::current_dir/$acc" or die;
 
@@ -36,28 +35,6 @@ foreach my $file ( @Rfam::align_file_set ) {
     close ALN;
     my $numseq = scalar ( $aln -> eachSeq() );
 
-#    my %accessions;
-#    open( TEMP, ">temp.$$" ) or die;
-#    foreach my $seq ( $aln -> eachSeq() ) {
-#	my $id = $seq->id();
-#	print TEMP "emblrelease:$id\n";
-#    }
-#    close ALN;
-#    close TEMP;
-
-#    my $id;
-#    open( GETZ, "getz -f id -f acc \@temp.$$ |" ) or die;
-#    while(<GETZ>) {
-#	if( /^ID\s+(\S+)\s+/ ) {
-#	    $id = $1;
-#	}
-#	if( /^AC\s+(\S+)\s*\;\s*/ ) {
-#	    $accessions{$id} = $1 unless $accessions{$id};
-#	}
-#    }
-#    close GETZ or die;
-#    unlink "temp.$$" or die "can't remove temp.$$";
-
     open( ALNOUT, ">$file.ann" ) or die;
 
     my $seen;
@@ -74,26 +51,30 @@ foreach my $file ( @Rfam::align_file_set ) {
 	    print ALNOUT "#=GF SQ   $numseq\n\n";
 	    $seen = 1;
 	}
-#	if( /^((?:\#=GR )?(\S+)\/\d+-\d+\s+)(.*)\s*$/ ) {
-#	    my( $nse, $id, $seq ) = ( $1, $2, $3 );
-#	    my $length = length $nse;
-#	    die "$id not found in your sequence database" if( not $id );
-#	    $nse =~ s/$id/$accessions{$id}/g;
-#	    $nse =~ s/\s+$//;
-#	    my $format = "\%-".$length."s%s\n";
-#	    printf ALNOUT ( "$format", $nse, $seq );
-#	}
-#	elsif( /^(\#=GS (\S+)\/\d+-\d+)\s+(.*)\s*$/ ) {
-#	    my( $nse, $id, $rest ) = ( $1, $2, $3 );
-#	    die "$id not found in your sequence database" if( not $id );
-#	    $nse =~ s/$id/$accessions{$id}/g;
-#	    printf ALNOUT ( "%-34s%s\n", $nse, $rest );
-#	}
-#	else {
-	    print ALNOUT;
-#	}
+	print ALNOUT;
     }
     close REF or die;
     close ALNOUT;
 }
 
+
+# copy web based stuff around
+
+system("cp -f $Rfam::current_dir/$acc/ALIGN /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
+system("gzip -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
+
+system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only --family $acc ");
+
+system("cp -f $Rfam::current_dir/$acc/SEED /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
+system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
+
+system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
+
+
+if( ! -e "$Rfam::current_dir/$acc/todo.view" ) {
+    warn("For $acc, there is no todo.view file. Cannot remove");
+} else {
+    unlink("$Rfam::current_dir/$acc/todo.view");
+}
+
+system("pfabort -u VIEW $acc");
