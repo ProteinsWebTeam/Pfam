@@ -169,6 +169,14 @@ sub desc_is_OK {
                         }
                         last SWITCH;
                     };
+                    /^DR   MIR;\s+/ && do {
+                        if( !/^DR   MIR;\s+MI\d+;$/ ) {
+                            warn "$family: Bad MIR reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+                        }
+                        last SWITCH;
+                    };
                     /^DR   URL;\s+(\S+);$/ && do {
                         warn "$family: Please check the URL $1\n";
                         last SWITCH;
