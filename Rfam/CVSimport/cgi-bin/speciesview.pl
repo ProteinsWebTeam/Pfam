@@ -39,13 +39,7 @@ print &RfamWWWConfig::header("Members in $name for family $family", $family, $ac
 #print "<hr noshade size=2>\n";
 
 my %values;
-#(%values) = GetzTax::_get_full_names($acc, %values);
 
-
-# foreach my $key (sort keys %values) {
-
-#   print "KEY: $key, val: " .$values{$key} . " <BR>";
-# }
 
  GetzTax::_file_domain_species($acc, \@list);
 #print " VALS: " . %values. " <P>";
@@ -64,7 +58,7 @@ $tree -> get_ids( $name, \@ids );
 #$galign = GIFAlign->new();
 
 
-print qq(<TABLE BORDER=1 CELLPADDING=5  CELLSPACING=0><TR><TD BGCOLOR=#000070 CLASS=whitetableheader>EMBL Accession number</TD><TD BGCOLOR=#000070 CLASS=whitetableheader>Description</TD><TD BGCOLOR=#000070 CLASS=whitetableheader >Start</TD><TD  BGCOLOR=#000070 CLASS=whitetableheader>End</TD><TD  BGCOLOR=#000070 CLASS=whitetableheader>View Sequence</TD></TR>
+print qq(<form method=GET ACTION=/cgi-bin/Rfam/getfasta.pl ><table><tr><td><TABLE BORDER=1 CELLPADDING=5  CELLSPACING=0><TR><TD BGCOLOR=#000070 CLASS=whitetableheader>EMBL Accession number</TD><TD BGCOLOR=#000070 CLASS=whitetableheader>Description</TD><TD BGCOLOR=#000070 CLASS=whitetableheader >Start</TD><TD  BGCOLOR=#000070 CLASS=whitetableheader>End</TD><TD  BGCOLOR=#000070 CLASS=whitetableheader>Get Seq</TD></TR>
 
 
 
@@ -72,7 +66,7 @@ print qq(<TABLE BORDER=1 CELLPADDING=5  CELLSPACING=0><TR><TD BGCOLOR=#000070 CL
 
 );
 
-
+my $count = 0;
 foreach my $seqid (@ids) {
   my $link = $RfamWWWConfig::srsserver;
   $link =~ s/THEACC/$seqid/;
@@ -80,16 +74,22 @@ foreach my $seqid (@ids) {
  # print "SEQ: $seqid <P>";
   my($annseq) = &RfamWWWConfig::species_get_sequence($seqid, $acc);
   foreach my $region ($annseq->eachAnnotatedRegion()) {
-    print "<TR><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour ><A HREF=$link>$seqid</A></TD>";
-     print "<TD WRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour class=normaltext >" . $region->annotation(). "</TD>";
-    print "<TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour class=normaltext>" . $region->model_from() . "</TD><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour class=normaltext>" . $region->model_to(). "</TD><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour>    <form name=taxonomy method=POST enctype='multipart/form-data' action=\"/cgi-bin/Pfam/complexes.pl\"><input type=hidden name=acc ><input type=button name=/cgi-bin/Rfam/getfasta.pl?acc=$acc&start=" . $region->model_from() . "&end=" .$region->model_to() . "&rfamseq_acc=$seqid value=\"Get Sequence\" onClick=\"javascript:EepCopyName(this.form , this.name );\"></form>  </TD></TR>";
+    my $desc = $region->annotation();
+    if (length($desc) > 70 ) {
+      my $temp = substr($desc, 0, 70);
+      $temp .= "...";
+      $desc = $temp;
+    }
+    print "<TR><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour ><A HREF=$link>" .$region->version() . "</A></TD>";
+     print "<TD WRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour class=normaltext >$desc</TD>";
+    print "<TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour class=normaltext>" . $region->model_from() . "</TD><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour class=normaltext>" . $region->model_to(). "</TD><TD NOWRAP valign=center align=left  BGCOLOR=$RfamWWWConfig::rfamcolour><input type=checkbox name=$count value= " . "$seqid" . "/" . $region->model_from()  . "-" . $region->model_to()  . ">      </TD></TR>";
 
-  
+    $count++;
   }
 }
 
 
-print "</TABLE><P>";
+print "</TABLE></td></tr><TR><TR><tr><td ALIGN=RIGHT><input type=hidden name=max_count value=$count><input type=hidden name=acc value=$acc><input type=hidden name=aln_type value=full><input type=submit  value=\"View Selected Sequences\" ></TD></TR></form><P>";
 
 print &RfamWWWConfig::footer();
 &RfamWWWConfig::logs("SPECIESVIEW:$acc:$name");

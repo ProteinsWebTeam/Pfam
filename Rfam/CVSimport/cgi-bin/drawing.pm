@@ -1,6 +1,7 @@
 #! /usr/local/bin/perl
 
 use GD;
+#use SVG;
 
 
 
@@ -511,4 +512,313 @@ $im->transparent($white);
 }
 
 
+sub generate_svg {
+  my( $file, $tmp_coord, $tmp_all_coord, $tmp_region_coord, $tmp_region_label, $tmp_region_details, $tmp_circular_key, $unit) = @_;
+#  print "FILE: $file <P>";
+  my (@coord) = @{$tmp_coord};
+  my (@all_coord) = @{$tmp_all_coord};
+  my (@region_coord)  = @{$tmp_region_coord};
+  my (@region_label) = @{$tmp_region_label};
+  my (@region_details) = @{$tmp_region_details};
+  my (@circular_key) = @{$tmp_circular_key};
+
+#  foreach (@region_details) {
+#    print "$_ <BR>";
+#  }
+
+  open(_SVG, ">>$file") or die "canna open $file as $! <P>";
+
+  
+
+  print _SVG qq(<?xml version=\"1.0\"?>
+
+
+                <svg xml:space=\"preserve\" width=\"14000pt\" height=\"1700pt\" viewBox=\"0 0 300 300\">
+             
+	
+
+		
+	       );
+  #	onload=\"init(evt)\">
+  print _SVG qq(<script language=\"JavaScript1.2\" >
+<![CDATA[
+ var storeSequences = new Array();
+ );
+ 
+   my $for_count = 0;
+   foreach (@region_details) {
+     my($label, $version, $newpoints, $existingpoints, $rfam_id) = split(/~/, $_);
+     print _SVG "storeSequences[$for_count] = new addSeq(\"$label\", \"$version\", \"$newpoints\", \"$existingpoints\", \"$rfam_id\");\n";
+     $for_count++;
+   }
+   #	 storeSequences[0] = new addSeq("Cobalamin 66246-66476", "AL603642.1", "red"); 
+   #	 storeSequences[1] = new addSeq("Cobalamin 10383-10598 ", "AL603644.1",  "blue"); 
+   #	 storeSequences[2] = new addSeq("Intron_gpII 106834-106910 ", "AL603644.1" , "blue"); 
+
+   print _SVG qq(
+		 function addSeq (label, version, newpoints, existingpoints, rfamid) {
+		   this.label = label;
+		   this.version = version;
+		   this.newpoints = newpoints;
+		   this.existingpoints = existingpoints;
+		   this.rfamid = rfamid;
+		 }
+		 
+		 function parseSeq (verID) {
+		   //  regexp = /verID/;
+		   
+		   //var match_str = storeSequences[2].color;
+		   //			   return regexp;
+		   for (var i=0; i < storeSequences.length; i++) {
+		     var match_str = storeSequences[i].version;
+		     //			     return match_str;
+		     var match=  match_str.search();
+		     if (match > 0) {
+		       return storeSequences[i].color;
+		       
+		     }
+		   }
+		   
+		 }
+		 
+		 
+		 
+		 function enlarge_circle(evt) {
+		   var circle=evt.getTarget();
+		   //	   circle.setAttribute(\"r\", 50);
+		   
+		   var blee;
+		   regexp = circle.getAttribute("id");
+		   for (var i=0; i < storeSequences.length; i++) {
+		     var match_str = storeSequences[i].version;
+		     
+		     var match =  match_str.search(regexp);
+		     //blee = match_str + " " +  regexp;
+		     if (match >= 0) {
+		       
+		       var line = svgDocument.getElementById(storeSequences[i].label);
+		       //  line.setAttribute("points", storeSequences[i].newpoints);
+		       line.setAttribute("style", "fill:red; stroke:red;");
+		     }
+		   }
+		   
+		   var newTextID = svgDocument.createTextNode( circle.getAttribute("id"));
+		   
+		   //	  var blee =  parseSeq(circle.getAttribute("id"));
+		   //   var newText = svgDocument.createTextNode(blee );
+		   var newText = svgDocument.createTextNode( circle.getAttribute("id"));
+		   
+		   circle = svgDocument.getElementById("pct0");
+		   
+		   circle.replaceChild(newText, circle.getFirstChild() );
+		 }
+		 
+		 function shrink_circle(evt) {
+		   var circle = evt.getTarget();
+		   var newText = svgDocument.createTextNode( " ");
+		   //  circle.replaceChild(newText, circle.getFirstChild() );
+		   
+		   // REST TO EXISTING POINTS
+		     regexp = circle.getAttribute("id");
+		   for (var i=0; i < storeSequences.length; i++) {
+		     var match_str = storeSequences[i].version;
+		     
+		     var match =  match_str.search(regexp);
+		     //blee = match_str + " " +  regexp;
+		     if (match >= 0) {
+		       // blee = "WOW " + match + " " + match_str;
+		       
+		       var line = svgDocument.getElementById(storeSequences[i].label);
+		       // line.setAttribute("points",storeSequences[i].existingpoints );
+		       line.setAttribute("style", "fill:black; stroke:black;");
+		     }
+		   }
+		   
+		   circle = svgDocument.getElementById("pct0");
+		   
+		   circle.replaceChild(newText, circle.getFirstChild() );
+		   
+		   //  var circle=evt.getTarget();
+		   //   circle.setAttribute(\"r\", 25);
+		 }
+		 // ]]>
+		</script>
+	       );
+
+  ## Guide circle to show the size of the genome!
+  print _SVG "<circle cx=\"160\"  cy=\"160\" r=\"130\" style=\"stroke: blue; fill:white;\"  />\n";
+  # point of origin
+ # print _SVG "<line x1=\"160\"  y1=\"10\" x2=\"160\" y2=\"30\" style=\"stroke: blue;\"  />\n";
+ # print _SVG "<text id=\"poo\" x=\"160\" y=\"8\" style=\"font-size: 7pt; text-anchor: middle;\">Point of Origin</text>\n";
+  
+  my @poo_coords = ("258.955525354751 60.965642316592,251.887273543698 68.039525008264", "299.999955610457 159.888514260497,289.999958781139 159.896477527605", "259.11312721078 258.876630274801,252.033618124296 251.814013826601", "160.222971408308 299.999822441856,160.207044879143 289.99983512458", "61.2023275064133 259.191833886918,68.259304113098 252.106702894995", "20.0003995057195 160.334456935719,30.0003709695967 160.310567154597", "60.7295223380897 61.2813479388208,67.8202707425118 68.332680228905");
+
+  my ($count_unit);
+  $count_unit = 0;
+  foreach my $poo (@circular_key) {
+    print _SVG "<polygon  id=\"\" ";
+    print _SVG "points =\" ";
+    print _SVG "$poo";
+    print _SVG "\"  style=\"fill:blue; stroke:blue;\"/> \n";
+    my ($start, $end) = split(/,/, $poo);
+    my ($tmp_x1, $tmp_y1) = split(/\s+/, $start);
+    my $x1 = int $tmp_x1;
+    my $y1 = int $tmp_y1;
+
+    my ($tmp_x2, $tmp_y2) = split(/\s+/, $end);
+    my $x2 = int $tmp_x2;
+    my $y2 = int $tmp_y2;
+
+   
+    ## unit label
+    my $multi;
+    $multi = 100;
+    $multi = 10 if (!$unit);
+    if (not ($count_unit % 5)) { 
+     #  print "$x1 , $y1 , $x2, $y2 [ $poo] <BR>";
+      print _SVG "<text id=\"poo2\" x=\"$x1\" y=\"$y1\" style=\"font-size: 4pt; text-anchor: middle;\">" . $count_unit * $multi. "</text>\n";
+    }
+
+    #   print "poo: $poo , x: $x , y: $y<BR>";
+    #} elsif ( ($unit) && (not ($count_unit % 10)) )  { 
+     # my $tmp = $count_unit / 10;
+     
+     # print _SVG "<text id=\"poo2\" x=\"$x\" y=\"$y\" style=\"font-size: 4pt; text-anchor: middle;\">$tmp Mb</text>\n";
+    #}
+
+    $count_unit++;
+  }
+
+
+
+  ## First outer circle of the genome
+  print _SVG "<circle cx=\"160\"  cy=\"160\" r=\"100\" style=\"stroke: black; fill:white;\"  />\n";
+ 
+
+## Shoes where the outer lines are
+#print _SVG "<circle cx=\"160\"  cy=\"160\" r=\"150\" style=\"stroke: black; fill: white; \"/>\n";
+
+
+# print _SVG "<line x1=\"100\" y1=\"100\" x2=\"100\" y2=\"0\" style=\"stroke: green;\"/>";
+  #foreach (@coord) {
+  #  my($x, $y) = split(/~/, $_);
+
+   #  print _SVG "<line x1=\"100\" y1=\"100\" x2=\"$x\" y2=\"$y\" style=\"stroke: red;\"/>";
+    
+ # }
+  
+  my @col; # = qw (red green blue lavendar yellow grey #DB08BB purple orange #5888E8 brown lilac pink cyan red green blue lavendar yellow grey purple #F266CC  orange brown lilac pink cyan red green blue lavendar #2752AB yellow grey purple orange brown lilac pink cyan);
+
+  open(_COL, "/nfs/WWWdev/TEST_docs/htdocs/Software/Rfam/data/cols.dat");
+ # push @col, "#00f8ff";
+  while(<_COL>) {
+    chop($_);
+    push @col, $_;
+  #  print "$_<BR>";
+  }
+
+  close(_COL);
+  my (%regions_cols);
+  my $reg_count = 0;
+  my $count = 0;
+#  foreach (@region_coord) {
+  foreach (@all_coord) {
+
+   
+    my $version = $coord[$count];
+  # print "VER: $version <BR>";
+    my $acc = $1 if ($version =~ /^(\S+\.\d+)/);
+    print _SVG "<a xlink:href=\"$RfamWWWCongif::WWW_link/cgi-bin/Rfam/seqget.pl?name=$acc\">\n";
+   # print "$version<BR>";
+    print _SVG "<polygon  id=\"$version\" ";
+    print _SVG "points =\" ";
+    print _SVG "$_";
+    my $col = $col[$count];
+    print _SVG "\"  style=\"fill:#CCCCCC; stroke:black;\" onmouseover=\"enlarge_circle(evt)\" onmouseout=\"shrink_circle(evt)\"  /> \n";
+ #   print _SVG "</a>";
+    $count++;
+  }
+
+  $count = 0;
+  
+  foreach (@region_coord) {
+    my($x1, $y1, $x2, $y2);
+    if ($_ =~ /(\d+\.\d+)\s+(\d+\.\d+)\,(\d+\.\d+)\s+(\d+\.\d+)/) {
+      $x1 = $1; $y1 = $2; $x2 = $3; $y2 = $4;
+    }
+   # print "$x1, $y1, $x2, $y2 <BR>";
+    my $version = $region_label[$count];
+#   print "VER: $version <BR>";
+    my $acc = $1 if ($version =~ /^(\S+)\s+/);
+  #  print "ACC: $acc :: VERSION: $version <BR>";
+  #  print "$version <BR>";
+    my $url = "http://www.sanger.ac.uk/cgi-bin/Rfam/getfasta.pl";
+  #  print _SVG "<a xlink:href=\"$url\">";
+
+  #  print _SVG "<line id=\"$version\" x1=\"$x1\" y1=\"$y1\" x2=\"$x2\" y2=\"$y2\" style= ";
+    print _SVG "<polygon  id=\"$version\" ";
+    print _SVG "points =\" ";
+    print _SVG "$_";
+    my $col = $col[$count];
+    print _SVG "\" style=\"fill:black; stroke:black;\"   onmouseover=\"enlarge_circle(evt)\" onmouseout=\"shrink_circle(evt)\" /> \n";
+
+   # print _SVG "</a>";
+    $count++;
+  }
+
+  print _SVG "<text id=\"pct0\" x=\"160\" y=\"160\" style=\"font-size: 9pt; text-anchor: middle;\"> </text>\n"; 
+
+
+#  print _SVG "<line x1=\"0\" y1=\"100\" x2=\"100\" y2=\"0\" style=\"stroke: red;\"/>";
+#  print _SVG "<line x1=\"100\" y1=\"0\" x2=\"200\" y2=\"100\" style=\"stroke: red;\"/>";
+#  print _SVG "<line x1=\"0\" y1=\"100\" x2=\"100\" y2=\"200\" style=\"stroke: red;\"/>";
+#   print _SVG "<line x1=\"100\" y1=\"200\" x2=\"200\" y2=\"100\" style=\"stroke: red;\"/>";
+
+#  print _SVG "<line x1=\"100\" y1=\"0\" x2=\"100\" y2=\"100\" style=\"stroke: green;\"/>";
+#  print _SVG "<line x1=\"100\" y1=\"100\" x2=\"200\" y2=\"100\" style=\"stroke: green;\"/>";
+
+#   print _SVG "<line x1=\"50\" y1=\"50\" x2=\"200\" y2=\"100\" style=\"stroke: yellow;\"/>";
+
+#   my $text = $offset + ($width / 2);
+  # print _SVG "<text x=\"$text\" y=\"106\" style=\"font-family: Tahoma; font-size: 8pt; stroke: none; fill: white;\">" . $region_id. "</text>\n";
+
+#  } elsif ($region_type =~ /pfamB/i) {
+   
+#    print _SVG " <!--- pfamB -->\n";
+#    print _SVG "<rect x=\"$offset\" y=\"96\" width=\"$width\" height=\"3\" style= \"fill:green;\" />\n";
+#    print _SVG "<rect x=\"$offset\" y=\"99\" width=\"$width\" height=\"3\" style= \"fill:orange;\" />\n";
+#    print _SVG "<rect x=\"$offset\" y=\"102\" width=\"$width\" height=\"3\" style= \"fill:cyan;\" />\n";
+#    print _SVG "<rect x=\"$offset\" y=\"104\" width=\"$width\" height=\"4\" style= \"fill:purple;\" />\n";
+    
+#  }elsif ($region_type =~ /smart/i) {
+#      print _SVG "<!--- red $region_id domain -->\n";
+#   print _SVG "<rect x=\"$offset\" y=\"93\" width=\"$width\" height=\"20\"  style= \"fill:black;\"/>\n";
+ 
+    
+#  }
+
+
+
+   print _SVG "\n\n";
+ print _SVG "</svg>\n";
+  close(_SVG);
+
+#  $offset = $offset + $width;
+}
+
+sub _poo {
+  my $poo1 = "160 10,162.616533956306 10.0228225693806,162.442098359219 20.0213010647552,160 20";
+  my $poo2 = "160 10,162.616533956306 10.0228225693806,162.442098359219 20.0213010647552,160 20";
+  
+  my $poo3 = "160 10,162.616533956306 10.0228225693806,162.442098359219 20.0213010647552,160 20"; 
+  
+  my $poo4 = "160 10,162.616533956306 10.0228225693806,162.442098359219 20.0213010647552,160 20"; 
+  
+  my $poo5 = "160 10,162.616533956306 10.0228225693806,162.442098359219 20.0213010647552,160 20"; 
+  
+  my $poo6 = "160 10,162.616533956306 10.0228225693806,162.442098359219 20.0213010647552,160 20"; 
+  
+  my $poo7 = "160 10,162.616533956306 10.0228225693806,162.442098359219 20.0213010647552,160 20"; 
+
+}
 1;

@@ -45,7 +45,7 @@ $rdb_user = 'rfam';
 $rdb_password = 'mafp1';
 
 $file_root = '/nfs/WWW/htdocs/Software/Rfam';
-$data_root = "/nfs/WWW/htdocs/Software/Rfam/data";
+$data_root = "$file_root/data";
 
 $site       = 'http://www.sanger.ac.uk';
 $WWW_root   = "$site/Software/Rfam";
@@ -86,6 +86,7 @@ $seqget			= "$cgibin/seqget.pl";
 $speciesdist		= "$cgibin/speciesdist.pl";
 $speciesview		= "$cgibin/speciesview.pl";
 $getacc         	= "$cgibin/getacc";
+$mir                    = "$cgibin/mirna/mirna_entry.pl";
 
 # contact point 
 
@@ -132,7 +133,7 @@ sub link_mapper {
 	    [{'home' => 'http://www.expasy.ch/swissprot',
 	      'link' => 'http://www.expasy.ch/cgi-bin/niceprot.pl?$acc',
 	      'id'   => 'SWISS-PROT',
-		'INTERPRO-LINK' => 'http://srs6.ebi.ac.uk/srs6bin/cgi-bin/wgetz?-newId+-e+[SWall-ACC:$id]',
+	      'INTERPRO-LINK' => 'http://srs6.ebi.ac.uk/srs6bin/cgi-bin/wgetz?-newId+-e+[SWall-ACC:$id]',
 		}
 	    ],
         'PROSITE' => 
@@ -265,8 +266,6 @@ sub get_database {
 =cut
 
 
-
-
 sub get_alignment {
     my $acc = shift;
     my $type = shift; # either 'full' or 'seed'
@@ -313,6 +312,7 @@ sub user_error {
     exit(0);
 }
 
+
 sub species_for_rfamseq {
   my ($acc) = @_;
   my ($species);
@@ -348,6 +348,7 @@ sub array {
 
 
 }
+
 
 sub domain_species {
         
@@ -393,7 +394,7 @@ sub species_get_sequence {
 
 
 sub header {
-  my($title, $rfam_id , $rfam_acc_num, $url_atributes) = @_;
+  my($title, $rfam_id , $rfam_acc_num, $dynamic_javascript) = @_;
   
   my ($varhash,$outstr);
   
@@ -451,40 +452,13 @@ sub header {
     
     $varhash{'url'} = "getacc?$rfam_acc_num";
     $varhash{'gif'} = "temp/new_gifs/". $rfam_acc_num . "_large.gif";
-    
-    
-  } elsif ($title =~ /swissrfam/i) {
-    if ($rfam_acc_num) {
-      $varhash{'url'} = "getacc?$rfam_acc_num";
-      $varhash{'gif'} = "temp/new_gifs/". $rfam_acc_num . "_small.gif";
-      
-      $varhash{'url2'} = "swissrfamget.pl?$url_atributes";
-      $varhash{'gif2'} = "gifs/page_header/swissrfam_large_tab.gif";
-      
-    } else {
-      $varhash{'url'} = "swissrfamget.pl?$url_atributes";
-      $varhash{'gif'} = "gifs/page_header/swissrfam_large_tab.gif";
-    }
-    
-    
-  }  elsif ($title =~ /structural/i) {
-    
-    $varhash{'url2'} = "structural_view.pl?$url_atributes";
-    $varhash{'gif2'} = "gifs/page_header/structure_large_tab.gif";
-    
-    if ($rfam_acc_num) {
-      $varhash{'url'} = "getacc?$rfam_acc_num";
-      $varhash{'gif'} = "temp/new_gifs/". $rfam_acc_num . "_small.gif";
-      
-    }
-    
+       
   } 
-  
-  $header_file = $header_file if ($javascript);
   
   open(HEAD,$header_file) || die "Could not open $header_file $!";
   while(<HEAD>) {
     # print "<pre>$_ </pre><BR>";
+    s/^## CODE GOES HERE!!/$dynamic_javascript/;
     while( $_ =~ /\$(\w+)/g ) {
       
       ## TAKEN OUT FOR NOW !
@@ -655,6 +629,15 @@ sub footer {
 
 
 
+
+sub chromosome {
+  my($file, $coord, $allcoord, $region_coord, $region_label, $region_details, $circular_key, $unit) = @_;
+
+  
+  generate_svg($file, $coord, $allcoord, $region_coord, $region_label, $region_details, $circular_key, $unit);
+
+}
+
 sub logs {
 
   my ($message, $seq) = @_;
@@ -664,21 +647,26 @@ sub logs {
   
   my($sec, $min, $hour, $mday, $mon, $year) = (localtime) [0, 1, 2, 3, 4, 5];
   $mon++;
-  print _LOG "$mday/$mon/2003 $hour:$min:$sec ".  $ENV{'REMOTE_HOST'} ." " . $ENV{'REMOTE_ADDR'} . " " . $ENV{'USER_AGENT'} . " $message \n";
+  print _LOG "$mday/$mon/2004 $hour:$min:$sec ".  $ENV{'REMOTE_HOST'} ." " . $ENV{'REMOTE_ADDR'} . " " . $ENV{'USER_AGENT'} . " $message \n";
   
   close(_LOG);
 
   if ($seq) {
     
     open(_LOG, ">>$tempdir/stats/sequences") or print "TEMPDIR CANNA OPEN $tempdir/stats/sequences $!\n";
-    
-    print _LOG ">$mday/$mon/2003 $hour:$min:$sec ".  $ENV{'REMOTE_HOST'} ." " . $ENV{'REMOTE_ADDR'} . " " . $ENV{'USER_AGENT'} . "\n";
+
+    print _LOG ">$mday/$mon/2004 $hour:$min:$sec ".  $ENV{'REMOTE_HOST'} ." " . $ENV{'REMOTE_ADDR'} . " " . $ENV{'USER_AGENT'} . "\n";
     $seq=~ s/(.{1,60})/$1\n/g;
     print _LOG "$seq";
     close(_LOG);
   }
 
+
+
 }
+
+
+
 
 
 

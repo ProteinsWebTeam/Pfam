@@ -107,7 +107,9 @@ foreach my $taxon (@params) {
 
 
 }
-#print "ACC: $acc <P>";
+#print "Context-type: text/html\n\n";
+
+##print "ACC: $acc <P>";
 #foreach (sort keys %pfamseq_ids) {
 #  print "KEY: $_ , VAL: " . $pfamseq_ids{$_}. " <BR>";
 #}
