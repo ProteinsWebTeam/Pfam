@@ -133,18 +133,26 @@ Returns a list of pairs in order of increasing closing base."
 	  (progn
 	    (setq split (split-string structure-line ""))
 	    (let ((i 0))
+
+	      ; Grrr
+	      ; GNU emacs: (split-string "AACC" "") => ("A" "A" "C" "C")
+	      ; xemacs:    (split-string "AACC" "") => ("" "A" "A" "C" "C" "")
+	      (if (equal (nth 0 split) "")
+		  (setq split (cdr split))
+		)
+
 	      (while (< i (length split))
 		(setq base (string-to-char (nth i split)))
-		(if (or (char-equal base ?\<)
-			(char-equal base ?\()
-			(char-equal base ?\[)
-			(char-equal base ?\{))
+		(if (and base (or (char-equal base ?\<)
+				  (char-equal base ?\()
+				  (char-equal base ?\[)
+				  (char-equal base ?\{)))
 		    (setq stack (cons i stack))
 		  )
-		(if (or (char-equal base ?\>)
-			(char-equal base ?\))
-			(char-equal base ?\])
-			(char-equal base ?\}))
+		(if (and base (or (char-equal base ?\>)
+				  (char-equal base ?\))
+				  (char-equal base ?\])
+				  (char-equal base ?\})))
 		    (progn
 		      (setq pairs (cons (cons (car stack) i) pairs))
 		      (setq stack (cdr stack)))
@@ -153,7 +161,9 @@ Returns a list of pairs in order of increasing closing base."
 		)
 	      )
 	    (setq ralee-structure-cache structure-line)   ; cache these for speed
-	    (setq ralee-base-pairs-cache pairs)))         ;
+	    (setq ralee-base-pairs-cache pairs)
+	    )
+	)
       ralee-base-pairs-cache
       )
     )
