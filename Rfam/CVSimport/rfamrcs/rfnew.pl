@@ -5,7 +5,13 @@
 # heavily stolen from Ewan's pfnew
 #
 
-use lib '/pfam/db/Rfam/scripts/Modules';
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+}
+
+use lib $rfam_mod_dir;
 
 use strict;
 use Rfam;

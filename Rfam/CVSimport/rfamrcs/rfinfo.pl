@@ -5,7 +5,13 @@
 # ported to rfinfo by sgj
 #
 
-use lib '/pfam/db/Rfam/scripts/Modules';
+BEGIN {
+    $rfam_mod_dir = 
+        (defined $ENV{'RFAM_MODULES_DIR'})
+            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+}
+
+use lib $rfam_mod_dir;
 
 use strict;
 use Rfam;
@@ -71,20 +77,28 @@ if( $#families == -1 ) {
 }
 
 foreach my $family (@families) {
+    my $acc;
+    if( &Rfam::is_id($family) ) {
+	$acc = &Rfam::id2acc( $family );
+	die "rfinfo: Cannot find accession for $family\n" if not $acc;
+    }
+    else {
+	$acc = $family;
+    }
     if( $check_family ) {
-	if( ! &RfamRCS::check_family_directory_exists($family) ) {
-	    print("rfinfo: Family $family does not exist... can't find any info\n");
+	if( ! &RfamRCS::check_family_directory_exists($acc) ) {
+	    print("rfinfo: Family $acc does not exist... can't find any info\n");
 	    next;
 	}
     }
 
-    if( $short_info == 1 ) {
-	&RfamRCS::get_short_info_on_family($family,\*STDOUT);
+    if( $short_info ) {
+	&RfamRCS::get_short_info_on_family($acc,\*STDOUT);
     } else {
-	print STDOUT "\nRevision information for $family:\n\n";
-	&RfamRCS::get_info_on_family($family,\*STDOUT);
-	if( !open(DESC,"$current_dir/$family/DESC") ) {
-	    print "rfinfo - could not open $current_dir/$family/DESC - not happy - $!\n";
+	print STDOUT "\nRevision information for $acc:\n\n";
+	&RfamRCS::get_info_on_family($acc,\*STDOUT);
+	if( !open(DESC,"$current_dir/$acc/DESC") ) {
+	    print "rfinfo - could not open $current_dir/$acc/DESC - not happy - $!\n";
 	} else {
 	    print "\nDescription file:\n\n";
 	    while( <DESC> ) {
