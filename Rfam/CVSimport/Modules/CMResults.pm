@@ -118,7 +118,7 @@ sub parse_infernal {
 
 	    $self -> addHMMUnit( $unit );
 	}
-	elsif( /^\s*(\d+)\s+\S+\s+(\d+)\s*$/ and $ready ) {
+	elsif( /^\s+(\d+)\s+.*\s+(\d+)\s*$/ and $ready ) {
 	    # unit is already in results object, but this should still
             # get to where it needs to be
 	    $ready = 0;
