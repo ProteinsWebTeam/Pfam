@@ -189,8 +189,9 @@ sub desc_is_OK {
 	    };
             /^BM/ && do {
                 $fields{$&}++;
-		if( not /^BM   cmbuild / and not /^BM   cmsearch / ) {
-                    warn "$family: BM lines should start with cmbuild or cmsearch\n";
+		if( not /^BM   cmbuild (-\S+ )?CM SEED$/ and 
+		    not /^BM   cmsearch (-\S+ )?-W \d+ (-\S+ )?CM SEQDB$/ ) {
+                    warn "$family: Your BM line doesn't look right [$_]\n";
 		    $error = 1;
 		}
                 last;
