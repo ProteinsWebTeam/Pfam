@@ -15,7 +15,7 @@ use lib $bioperl_dir;
 use strict;
 use Rfam;
 
-use Bio::Rfam::RfamAlign;
+use Rfam::RfamAlign;
 use Bio::Index::Fasta;
 use Bio::Index::Swissprot;
 
@@ -25,7 +25,7 @@ my $inx = Bio::Index::Fasta -> new( '-filename' => $Rfam::rfamseq_new_inx );
 my $error;
 my @aligns = qw( SEED ALIGN );
 foreach my $alnfile ( @aligns ) {
-    my $aln = new Bio::Rfam::RfamAlign;
+    my $aln = new Rfam::RfamAlign;
     open( ALN, "$family/$alnfile" ) or die "can't open $family/$alnfile";
     $aln -> read_stockholm( \*ALN );
     foreach my $seq ( $aln -> eachSeq ) {
