@@ -40,13 +40,20 @@ while(<COL>) {
 }
 while(<COL>) {
     my( $left, $right ) = split;
-    print "$left $right\n";
     if( $left and $right ) {
+	next if $ss->pairedBase( $left );
 	my $pair = Rfam::Pair -> new( $left, $right );
-	$ss->addPair($pair) unless( $ss->pairedBase( $left ) );
+	$ss->addPair($pair);
 #	print "$left $right\n";
     }
 }
+close COL;
+
+$ss -> get_knotted();
 
 $aln->ss_cons( $ss );
 $aln->write_stockholm( \*STDOUT );
+
+unlink "/tmp/$$.aln" or die;
+unlink "/tmp/$$.mtx" or die;
+unlink "/tmp/$$.col" or die;
