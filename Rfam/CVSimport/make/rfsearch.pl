@@ -168,6 +168,9 @@ my $numseqs = scalar( keys %{ $seqlist } );
 my $count = int( $numseqs/$cpus ) + 1;
 my $k = 1;
 my @seqids = keys %{ $seqlist };
+
+#open( T, ">tmp.sam" );
+
 while( @seqids ) {
     my @tmpids = splice( @seqids, 0, $count ); 
     my @nses;
@@ -183,23 +186,30 @@ while( @seqids ) {
 
     open( FA, "> $$.minidb.$k" ) or die;
     while( @nses ) {
-	my @tmpnses = splice( @nses, 0, 1000 ); 
-	my $str = join( ' ', @tmpnses );
+	my $str = join( ' ', splice( @nses, 0, 1000 ) );
 	while( $str ) {  # while we have a query to run
+	    my @tmpnses = split( ' ', $str ); 
 	    my $i = 0;
 	    $fh -> open( "pfetch -a $str |" );
-	    $str = "";   # reset ready to fill will those that failed last time
+	    $str = "";   # reset ready to fill will those that fail
 	    my $nse;
 	    while(<$fh>) {
-		if( /^\>(\S+)/ ) {
+		if( /^\>(\S+)\s+(\S+)/ ) {
+		    my $pfetchid = $2;
+#		    print T "$i $2 ";
 		    $nse = $tmpnses[$i];
 		    $nse =~ tr/:/\//;
 		    my( $tmpid, $tmpse ) = $nse =~ /(\S+)\.\d+\/(\d+-\d+)/;
+		    if( $pfetchid !~ /$tmpid/ ) {  # catch stupid problems
+			die "\npfetch id problem: $tmpid mismatch $pfetchid\nReport this!\n";
+		    }
 		    print FA ">$tmpid/$tmpse\n";
+#		    print T "$tmpid $tmpse\n";
 		    $i ++;
 		}
 		elsif( my( $end ) = /end is greater than sequence length.*?(\d+)/ ) {
 		    $nse = $tmpnses[$i];
+#		    print T "$nse $_";
 		    my( $tmp ) = $nse =~ /(\S+\.\d+\:\d+-)\d+/;
 		    $str .= "$tmp$end ";
 		    $i++
