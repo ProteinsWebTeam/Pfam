@@ -24,7 +24,7 @@ Options:
 	-realign	Realigns sequences after extend
 	-keepalign	adds new sequence to existing alignment
 	
-extend_rna.pl -fp [num] -tp [num] [multiple alignment]
+extend_rna.pl -lh [num] -rh [num] [multiple alignment]
 
 EOF
 exit;
@@ -107,7 +107,9 @@ my $j =0;
 	print ".";
 	$j++;
 	}
-
+unlink "tmp.$$";
+unlink "fa.$$";
+unlink "fa.$$.fa.$$";
 sub read_fasta{
 
     my $fasta_file = shift;
@@ -146,8 +148,7 @@ sub get_seq {
     $start =1;
     }
 	
-    $reverse = 1 if( $end < $start );
-    
+    $reverse = 1 if( $end < $start );    
     my $seq = new Bio::Seq;    
     eval {
         $seq = $seqinx -> get_Seq_by_acc( $id );
@@ -194,12 +195,10 @@ sub get_aligned_seqs {
     my $startseq;
     my $endtrunc;
     my $endseq;
-	
     my $oldend = $end;
     my $oldstart = $start;
 	
     $reverse = 1 if( $end < $start );
-    
     my $seq = new Bio::Seq;    
     eval {
         $seq = $seqinx -> get_Seq_by_acc( $id );
@@ -211,6 +210,9 @@ sub get_aligned_seqs {
     if ($reverse){
     $oldstart = $start+$lh;
     $oldend = $end-$rh;
+        if ($oldend < 1){
+	$oldend =1;
+	}
     } 
     else{
     $end = $end+$rh;
@@ -223,14 +225,11 @@ sub get_aligned_seqs {
     $start =1;
     }
     ( $alistart, $aliend ) = ( $start, $end );
-
-                                                                          
+                                                                      
     $starttrunc = $seq -> trunc( $alistart, $oldstart );
     $startseq = $starttrunc->seq();
     $endtrunc = $seq -> trunc( $oldend, $aliend);
     $endseq = $endtrunc->seq();
-   
-
     if( $reverse ) {
     my $revseq = $starttrunc -> revcom();
     $startseq = $revseq->seq();
@@ -281,5 +280,4 @@ sub get_aligned_seqs {
 	$j++;
 	}
 	print "\n";
-
 }
