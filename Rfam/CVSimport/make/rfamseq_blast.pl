@@ -50,7 +50,7 @@ my @seqs;
 my $bigseq = Bio::Seq->new( '-id' => 'multiplex' ) if( $multiplex );
 my $count;
 while( my $seq = $in->next_seq() ) {
-    $length = $in -> next_seq() -> length() unless( $length );
+    $length = $seq->length() unless( $length );
     if( $multiplex ) {
 	$bigseq->seq( $bigseq->seq()."NNNNNNNNNN".$seq->seq() );
 	$count ++;
