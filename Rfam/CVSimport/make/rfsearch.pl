@@ -153,6 +153,7 @@ unless( $blast ) {
     print STDERR "Queuing up blast jobs ...\n";
     foreach my $blastdb ( @blastdb ) {
 	$blastdb =~ s/\.nhr$//g;
+	my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 8";
 
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
@@ -161,7 +162,8 @@ unless( $blast ) {
 	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
 	$fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
 	$fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
-	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l /tmp/$fafile > /tmp/$$.blastlist.$i\n");
+	$fh -> print("$blastcmd > /tmp/$$.blastlist.$i\n");
+#	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l /tmp/$fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
 	$fh -> print("rm -f /tmp/$$.blastlist.$i /tmp/$fafile\n");
 	$fh -> close;
@@ -189,6 +191,9 @@ else {
 }
 print STDERR "done\n";
 
+#exit(0);
+
+
 print STDERR "building mini database ... ";
 my $numseqs = scalar( keys %{ $seqlist } );
 my $count = int( $numseqs/$cpus ) + 1;
@@ -209,84 +214,109 @@ while( @seqids ) {
 	}
     }
 
+#    foreach my $nse ( @nses ) {
+#	print "$nse\n";
+#    }
+
+
     $k++;
+    my $nse_count = 100;
+    my $seen_count = 0;
 
     open( FA, "> $$.minidb.$k" ) or die;
     while( @nses ) {
-	my @pfetchids = ( [ splice( @nses, 0, 200 ) ],    # first round of fetches
-			  [],                             # end > length failures
-			  [] );                           # version failures
+#	my @pfetchids = ( [ splice( @nses, 0, $nse_count ) ],    # first round of fetches
+#			  [],                                    # end > length failures
+#			  [] );                                  # version failures
 
-	my $seen_count = 0;
 
-	for( my $p=0; $p<@pfetchids; $p++ ) {
-	    my $listref = $pfetchids[$p];
-	    next unless( @{$listref} );
-
-	    my $options = "-d embl";
-	    if( $p == (@pfetchids-1) ) {
-		# we're retreiving the version failures
-		$options .= " -a";
+# replace pfetch code with an xdget for now
+#####
+	my $nse = pop( @nses );
+#	print "$nse\n";
+	my( $n, $s, $e ) = $nse =~ /(\S+)\:(\d+)-(\d+)/;
+	my $fh = IO::File->new();
+	$fh -> open( "xdget -n -a $s -b $e /pfam/db/rfamseq/CURRENT/rfamseq.fa $n |" ) or die "\nFATAL:pfetch failure\n";
+	while(<$fh>) {
+	    if( /^\>/ ) {
+		print FA ">$n/$s-$e\n";
 	    }
-
-	    my $str = join( ' ', @{$listref} );
-	    my $fh = IO::File->new();
-	    $fh -> open( "pfetch $options $str |" );
-#	    print "pfetch $options $str\n";
-
-	    my $i = 0;
-	    my( $endmismatch );
-
-	    while(<$fh>) {
-#		print;
-		if( my( $pfetchid ) = /^\>\S+\s+(\S+)/ ) {
-		    my $nse = $listref->[$i];
-		    $nse =~ s/:/\//g;
-		    my( $tmpid ) = $nse =~ /(\S+\.\d+)\/\d+-\d+/;
-		    if( $pfetchid ne $tmpid ) {
-			# catch stupid problems
-			die "\nFATAL: pfetch id problem - [$nse] mismatch [$pfetchid]\nReport this!\n";
-		    }
-		    print FA ">$nse\n";
-		    $i ++;
-		    $seen_count ++;
-		    $endmismatch = 0;
-		}
-		elsif( my( $end ) = /end is greater than sequence length.*?(\d+)/ ) {
-		    my $nse = $listref->[$i];
-		    if( $p == 1 ) {
-			# this has failed before, something wrong
-			die "\nFATAL: failed to pfetch [$nse]\n";
-		    }
-		    my( $tmp ) = $nse =~ /(\S+\.\d+\:\d+-)\d+/;
-		    push( @{$pfetchids[1]}, "$tmp$end" );
-		    $i++;
-		    $endmismatch = 1;
-		}
-		elsif( /no match/ ) {
-		    if( $endmismatch ) {
-			# we've already dealt with this sequence
-			$endmismatch = 0;
-		    }
-		    else {
-			my $nse = $listref->[$i];
-			if( $p == 2 ) {
-			    # this has failed before, something wrong
-			    die "\nFATAL: failed to pfetch [$nse]\n";
-			}
-			push( @{$pfetchids[2]}, $listref->[$i] );
-			$i++;
-		    }
-		}
-		else {
-		    print FA "$_";
-		}
+	    else {
+		print FA $_;
 	    }
-	    $fh -> close;
 	}
+	$fh -> close or die "\nFATAL:pfetch failure\n";
+	$seen_count ++;
 
-#	print "$seen_count\n";
-#	if( $seen_count != @{$pfetchids[0]} ) {
+#####
+
+#	for( my $p=0; $p<@pfetchids; $p++ ) {
+#	    my $listref = $pfetchids[$p];
+#	    next unless( @{$listref} );
+
+#	    my $options = "-d embl";
+#	    if( $p == (@pfetchids-1) ) {
+		# we're retreiving the version failures
+#		$options .= " -a";
+#	    }
+
+#	    my $str = join( ' ', @{$listref} );
+#	    my $fh = IO::File->new();
+#	    $fh -> open( "pfetch $options $str |" ) or die "\nFATAL:pfetch failure\n";
+
+#	    my $i = 0;
+#	    my( $endmismatch );
+
+#	    while(<$fh>) {
+#		if( my( $pfetchid ) = /^\>\S+\s+(\S+)/ ) {
+#		    my $nse = $listref->[$i];
+#		    $nse =~ s/:/\//g;
+#		    my( $tmpid ) = $nse =~ /(\S+\.\d+)\/\d+-\d+/;
+#		    if( $pfetchid ne $tmpid ) {
+			# catch stupid problems
+#			die "\nFATAL: pfetch id problem - [$nse] mismatch [$pfetchid]\nReport this!\n";
+#		    }
+#		    print FA ">$nse\n";
+#		    $i ++;
+#		    $seen_count ++;
+#		    $endmismatch = 0;
+#		}
+#		elsif( my( $end ) = /end is greater than sequence length.*?(\d+)/ ) {
+#		    my $nse = $listref->[$i];
+#		    if( $p == 1 ) {
+			# this has failed before, something wrong
+#			die "\nFATAL: failed to pfetch [$nse]\n";
+#		    }
+#		    my( $tmp ) = $nse =~ /(\S+\.\d+\:\d+-)\d+/;
+#		    push( @{$pfetchids[1]}, "$tmp$end" );
+#		    $i++;
+#		    $endmismatch = 1;
+#		}
+#		elsif( /no match/ ) {
+#		    if( $endmismatch ) {
+			# we've already dealt with this sequence
+#			$endmismatch = 0;
+#		    }
+#		    else {
+#			my $nse = $listref->[$i];
+#			if( $p == 2 ) {
+			    # this has failed before, something wrong
+#			    die "\nFATAL: failed to pfetch [$nse]\n";
+#			}
+#			push( @{$pfetchids[2]}, $listref->[$i] );
+#			$i++;
+#		    }
+#		}
+#		else {
+#		    print FA "$_";
+#		}
+#	    }
+
+#	    $fh -> close or die "\nFATAL: pfetch failure\n";;
+#	}
+
+#	warn "INFO: seen $seen_count sequences\n";
+#	if( $seen_count != $nse_count ) {
 #	    die "FATAL: failed to pfetch some sequences\n";
 #	}
 
@@ -295,6 +325,9 @@ while( @seqids ) {
 }
 print STDERR "done\n";
 undef( $seqlist );             # free up memory
+
+exit(0);
+
 
 my $command = "/pfam/db/Rfam/bin/linux/cmsearch";
 my $options = "";
@@ -334,38 +367,56 @@ sub parse_list {
     my $blastfile  = shift;
     open( BL, $blastfile ) or die;
     while( <BL> ) {
-	if( my( $name, $start, $end ) = /^(\S+)\s+(\d+)\s+(\d+)/ ) {
-	    # add window length onto each end
-	    $start = $start - $window;
-	    $end   = $end   + $window;
+	my( $name, $start, $end );
+	if( /^\S+\s+(\S+)\s+\S+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)\s+(\d+)\s+/ ) {
+	    $name = $1;
+	    $start = $2 - $window;
+	    $end   = $3 + $window;
 	    $start = 1 if( $start < 1 );
 
-	    # avoid having multiple copies of one region in minidb
-	    my $already;
-	    if( exists $list->{$name} ) {
-		foreach my $se ( sort @{ $list->{$name} } ) {
-		    if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
-			$se->{'start'} = $start;
-			$already = 1;
-		    }
-		    if( $se->{'end'} >= $start and $se->{'end'} <= $end ) {
-			$se->{'end'} = $end;
-			$already = 1;
-		    }
-		    if( $se->{'start'} <= $start and $se->{'end'} >= $end ) {
-			$already = 1;
-		    }
+	}
+	elsif( /^(\S+)\s+(\d+)\s+(\d+)/ ) {
+	    # add window length onto each end
+	    $name  = $1;
+	    $start = $2 - $window;
+	    $end   = $3 + $window;
+	    $start = 1 if( $start < 1 );
+	}
+	else {
+	    chomp;
+	    warn "failed to parse blast line [$_]\n";
+	    next;
+	}
+
+	# avoid having multiple copies of one region in minidb
+	my $already;
+	if( exists $list->{$name} ) {
+	    foreach my $se ( sort @{ $list->{$name} } ) {
+
+		if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
+		    $se->{'start'} = $start;
+		    $already = 1;
+		}
+		if( $se->{'end'} >= $start and $se->{'end'} <= $end ) {
+		    $se->{'end'} = $end;
+		    $already = 1;
+		}
+		if( $se->{'start'} <= $start and $se->{'end'} >= $end ) {
+		    $already = 1;
 		}
 	    }
+	}
 
-	    if( $already ) {
-#		print "SKIP\n";
-	    }
-	    else {
-		push( @{ $list->{$name} }, { 'start' => $start,
-					     'end'   => $end } );
-#		print "KEEP\n";
-	    }
+#	print "$name/$start-$end";
+
+	if( $already ) {
+#	    print " .... SKIP\n";
+	    # skip
+	}
+	else {
+#	    print " .... KEEP\n";
+	    push( @{ $list->{$name} }, { 'start' => $start,
+					 'end'   => $end } );
 	}
     }
     return $list;
