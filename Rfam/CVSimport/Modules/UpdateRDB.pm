@@ -342,24 +342,21 @@ sub update_rfam{
    $dbh = $self->open_transaction( 'rfam' );
  
    foreach my $en (@{$entries}) {
-   
+    
        eval {
-
 	   $rdb_acc = $en->acc;
-	
 	   $rdb_id = $en->id();
-	   $rdb_auto_num = $en->auto_pfamA;
-
-	   ### NEW AUTO NUMBER
-
+	 
+	 $rdb_auto_num = $en->auto_rfam;
+	 
+	 ### NEW AUTO NUMBER
  
-	   ####### AUTO NUM 
+	 ####### AUTO NUM 
 	   my $st = $dbh->prepare("select auto_rfam from rfam where rfam_acc = '$rdb_acc'");
 	   $st->execute();
 	   my($temp_auto) = $st->fetchrow;
 	   $st->finish();
 	   $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
-
 	   $rdb_desc = $en->description;
 	   $rdb_author = $en->author;  # author
 	   $rdb_comment = $en->comment;
@@ -371,12 +368,10 @@ sub update_rfam{
 	      
 	   $rdb_previous_ids = $en->previous_ids();
 	   $rdb_source = $en->source();
-	      
 	   foreach my $line ($en->each_build_line) {
 	       $rdb_cmcalibrate .= $line if (($rdb_cmbuild) &&  (!$rdb_cmcalibrate) );
 	       $rdb_cmbuild .= $line if   (!$rdb_cmbuild)  ;
 	   }
-	     
 	   $rdb_num_seed = $en->num_seqs_in_seed();
 	   $rdb_num_full = $en->num_seqs_in_full();
 	       
@@ -396,7 +391,7 @@ sub update_rfam{
 	       $stat = $dbh->prepare($self->__replace_sql('rfam', 18));
 	   }
 	  
-	 #  print "ADDING DATA \n";
+	  # print "ADDING DATA $rdb_auto_num, $rdb_acc, \n";
 	   $stat->execute( $rdb_auto_num, 
 			  $rdb_acc, 
 			   $rdb_id, 
@@ -474,7 +469,7 @@ sub update_rfam_reg_full {
        
        $rdb_acc = $en->acc;
        $rdb_id = $en->id();
-       $rdb_auto_num = $en->auto_pfamA;
+       $rdb_auto_num = $en->auto_rfam;
        
        
        ####### AUTO NUM 
@@ -543,7 +538,7 @@ sub update_rfam_reg_full {
    }
 
 
-  
+ 
    $self->close_transaction( $error );
 
 
@@ -589,7 +584,7 @@ sub update_rfam_reg_seed {
        
        $rdb_acc = $en->acc;
        $rdb_id = $en->id();
-       $rdb_auto_num = $en->auto_pfamA;
+       $rdb_auto_num = $en->auto_rfam;
        
        
        ####### AUTO NUM 
@@ -601,7 +596,6 @@ sub update_rfam_reg_seed {
      
        $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
        $dbh->do("delete from rfam_reg_seed where auto_rfam = '$rdb_auto_num' ");
-       
        my @regions = $en->annotated_regions('SEED');
        foreach my $reg (@regions) {
 	 my $rfamseq_acc = $reg->seq_name;
@@ -805,7 +799,6 @@ sub update_literature_references {
   
   $self->close_transaction( $error );
   $error and $self->throw( $error );
-  
   return $rows;
   
   
@@ -852,9 +845,8 @@ sub update_rfam_database_links {
     
     
     ## If there is a database reference
-
-    if ($en->each_dbLink ()) {
-      foreach my $link ($en->each_dbLink ) {
+    if ($en->each_dblink ()) {
+      foreach my $link ($en->each_dblink ) {
 #	print "MEAOW BOO HISS \n";
 	my($database, $title, $db_link, @other_info, $all_other);
 	$database = $link->database;
@@ -902,7 +894,6 @@ sub update_rfam_database_links {
   
   $self->close_transaction( $error );
   $error and $self->throw( $error );
-  
   return $rows;
   
   
