@@ -5,7 +5,7 @@
 # heavily stolen from Ewan's pfnew
 #
 
-use lib '/nfs/disk56/sgj/rfam/scripts/Modules';
+use lib '/pfam/db/Rfam/scripts/Modules';
 
 use strict;
 use Rfam;
