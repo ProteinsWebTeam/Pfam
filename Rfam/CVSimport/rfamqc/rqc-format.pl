@@ -142,8 +142,8 @@ sub desc_is_OK {
 		or /^TP   Gene; miRNA;\s*$/ or /^TP   Gene; ribozyme;\s*$/
 		or /^TP   Gene; antisense;\s*$/ or /^TP   Gene; other;\s*$/
 		or /^TP   Gene; RUF;\s*$/ or /^TP   Intron;\s*$/
-		or /^TP   Cis-reg;\s*$/ or /^TP   Cis-reg; riboswitch\s*$/
-		or /^TP   Cis-reg; IRES\s*$/
+		or /^TP   Cis-reg;\s*$/ or /^TP   Cis-reg; riboswitch;\s*$/
+		or /^TP   Cis-reg; IRES;\s*$/
 		) {
                     warn "$family: invalid TP line \"$_\"\n";
 		    warn "Valid TP lines are as follows:\n";
@@ -158,8 +158,8 @@ sub desc_is_OK {
 		    warn "Gene; RUF;\n";
 		    warn "Intron;\n";
 		    warn "Cis-reg;\n";
-		    warn "Cis-reg; riboswitch\n";
-		    warn "Cis-reg; IRES\n";
+		    warn "Cis-reg; riboswitch;\n";
+		    warn "Cis-reg; IRES;\n";
                     $error = 1;
  		}
                 last;
