@@ -18,13 +18,18 @@ use Bio::Tools::BPlite;
 use Bio::SeqIO;
 use CMResults;
 
+my $arch = `uname`;
+if( $arch =~ /linux/i ) {
+    $ENV{'PATH'} = "/pfam/db/Rfam/bin/linux:$ENV{'PATH'}"; # push linux binaries onto front of path
+}
+
 my $local;
 &GetOptions( "local" => \$local );
 
 my $fafile       = shift;
 
 my $blast2_bin   = "/usr/local/ensembl/bin";
-my $infernal_bin = "/usr/local/ensembl/bin";
+#my $infernal_bin = "/usr/local/ensembl/bin";
 my $blast_dir    = "/pfam/db/Rfam/BLASTDB";
 my $model_dir    = "$blast_dir";
 my $blastdb      = "$blast_dir/Rfam.fasta";
@@ -50,6 +55,8 @@ while( my $seq = $in->next_seq() ) {
     $seqs{ $seq->id() } = $seq;
     $maxidlength = length( $seq->id() ) if( length( $seq->id() ) > $maxidlength );
 }
+
+my $error;
 
 system "$blastcmd" and die;
 my %results = %{ &parse_blast( "$$.blast" ) };
@@ -77,7 +84,17 @@ foreach my $acc ( keys %results ) {
 
     my $options = "-W ".$thr{$acc}{'win'};
     $options   .= " --local" if $local;
-    system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and warn "$acc search failed";
+    system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and do {
+	warn "$acc search failed";
+	open( TMP, "$$.seq" ) or die;
+	while( <TMP> ) {
+	    if( /^\>/ ) {
+		warn "Sequence:\n$_\n";
+	    }
+	}
+	close TMP;
+	$error ++;
+    };
     
     open( RES, "$$.res" ) or die;
     my $res = new CMResults;
@@ -91,6 +108,10 @@ foreach my $acc ( keys %results ) {
 }
 
 #unlink( "$$.res", "$$.seq", "$$.blast" ) or die;
+
+if( $error ) {
+    die "$error errors -- exiting\n";
+}
 
 
 sub parse_blast {
