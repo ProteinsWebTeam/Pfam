@@ -1,10 +1,20 @@
 #!/usr/local/bin/perl -w
 
+BEGIN {
+    $pfam_mod_dir = 
+        (defined $ENV{'PFAM_MODULES_DIR'})
+            ?$ENV{'PFAM_MODULES_DIR'}:"/pfam/db/Pfam/scripts/Modules";
+    $bioperl_dir =
+        (defined $ENV{'BIOPERL_DIR'})
+            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
+}
+
+use lib $pfam_mod_dir;
+use lib $bioperl_dir;
+
 use strict;
 use Getopt::Long;
-use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Index::Fasta;
-use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
 use CMResults;
 use lib '/pfam/db/Rfam/scripts/Modules';
 use Rfam;
