@@ -71,15 +71,15 @@ foreach my $file ( @Rfam::align_file_set ) {
 
 # copy web based stuff around
 
-system("cp -f $Rfam::current_dir/$acc/ALIGN /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
-system("gzip -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
+#system("cp -f $Rfam::current_dir/$acc/ALIGN /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
+#system("gzip -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
 
-system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only --family $acc ");
+#system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only --family $acc ");
 
-system("cp -f $Rfam::current_dir/$acc/SEED /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
-system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
+#system("cp -f $Rfam::current_dir/$acc/SEED /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
+#system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
 
-system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
+#system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
 
 # remove locks, tmp files etc
 
