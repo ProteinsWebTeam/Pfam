@@ -81,7 +81,7 @@ not $blastcut  and $blastcut  = 10;
 
 my $model_dir    = "$blast_dir";
 my $thr_file     = "$blast_dir/Rfam.thr";
-my $blastcmd     = "/usr/local/ensembl/bin/wublastn $blastdb $fafile -E$blastcut -W3 > $$.blast";
+my $blastcmd     = "/usr/local/ensembl/bin/blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F > $$.blast";
 
 # read threshold file
 my %thr;
@@ -140,7 +140,7 @@ foreach my $acc ( keys %results ) {
 	$options .= " --local";
     }
 
-#    print "$acc options: $options\n";
+#    print "$acc options: $options  cut ", $thr{$acc}->{'thr'}, "\n";
 
     system "cmsearch $options $model_dir/$acc.cm $$.seq > $$.res" and do {
 	warn "$acc search failed";
@@ -158,9 +158,13 @@ foreach my $acc ( keys %results ) {
     my $res = new CMResults;
     $res -> parse_infernal( \*RES );
     $res = $res -> remove_overlaps();
-    not defined $thresh and $thresh = $thr{$acc}->{'thr'};
-    $res = $res -> filter_on_cutoff( $thresh );
-    
+    if( defined $thresh ) {
+	$res = $res -> filter_on_cutoff( $thresh );
+    }
+    else {
+	$res = $res -> filter_on_cutoff( $thr{$acc}->{'thr'} );
+    }
+
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	printf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%-10s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_hmm, $unit->end_hmm, $unit->bits, $id );
     }
