@@ -24,9 +24,12 @@
 (defun show-structure-ps ()
   "take the current sequence, RNAfold it, and show the structure ps file"
   (interactive)
-  (write-region (ralee-ungap-string (ralee-get-seq-string)) nil "/tmp/tmp.seq")
-  (call-process "RNAfold" "/tmp/tmp.seq")
-  (start-process "gv" "*messages*" "gv" "rna.ps")
+  (let (tmpfile)
+    (setq tmpfile (concat "/tmp/" user-login-name ".seq"))
+    (write-region (ralee-ungap-string (ralee-get-seq-string)) nil tmpfile)
+    (call-process "RNAfold" tmpfile)
+    (start-process "gv" "*messages*" "gv" "rna.ps")
+    )
   )
 
 
@@ -56,12 +59,14 @@
     (search-backward " ")
     (let ((curbuf (current-buffer))
 	  (seqid (ralee-get-seq-id))
-	  (first-col (current-column)))
-      (write-region (ralee-get-seq-string) nil "/tmp/tmp.seq")
+	  (first-col (current-column))
+	  tmpfile)
+      (setq tmpfile (concat "/tmp/" user-login-name ".seq"))
+      (write-region (ralee-get-seq-string) nil tmpfile)
       (get-buffer-create "*structures*") ; make it if it doesn't exist
       (set-buffer "*structures*")
       (goto-char (point-max))   ; write new structure at the end
-      (call-process "RNAfold" "/tmp/tmp.seq" "*structures*")
+      (call-process "RNAfold" tmpfile "*structures*")
       (forward-line -1)
       (beginning-of-line)
       (let ((beg (point)))
