@@ -19,14 +19,14 @@ use Rfam::RfamAlign;
 
 sub usage {
     print STDERR <<EOF;
-Usage: $0 <alignfile> <outfile>
+Usage: $0 <alignfile>
 
 optional args:
- -robust <number between 0 and 1>
+   -robust <number between 0 and 1>
 
-The robustness option specifies how much incorrectness in the
-sequence or alignment of bases. Default is 0.01. A value of
-0.05 might be better for poorer alignments.
+   The robustness option specifies how much incorrectness in the
+   sequence or alignment of bases. Default is 0.01. A value of
+   0.05 might be better for poorer alignments.
 EOF
 }
 
@@ -74,7 +74,7 @@ close A;
 close O;
 
 my $fh = new IO::File;
-$fh -> open("| bsub -I -q $queue -Rlinux -o pfold.err") or die "$!";
+$fh -> open("| bsub -I -q $queue -Rlinux -o pfold.err > /dev/null") or die "$!";
 $fh -> print("$pfold_bindir/findphyl $pfold_bindir/scfg.rate $$.col > /tmp/$$.nj.col\n");
 $fh -> print("$pfold_bindir/mltree $pfold_bindir/scfg.rate /tmp/$$.nj.col > /tmp/$$.ml.col\n");
 $fh -> print("$pfold_bindir/scfg --robust=$robust --treeinfile $pfold_bindir/article.grm /tmp/$$.ml.col > /tmp/$$.res.col\n");
