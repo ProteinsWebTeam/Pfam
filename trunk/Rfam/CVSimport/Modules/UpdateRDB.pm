@@ -152,7 +152,136 @@ sub empty_tables {
 }
 
 
+##############################################
+#
+# This updates the rfam.com file - not really used as Sam has to tweak the file first!!
+#
+###############################################
 
+sub genomic_species_data {
+  my($self, $ac, $de, $joined_tax, @rf) = @_;
+
+  my ($dbh, $stat);
+
+  $dbh = $self->open_transaction('genome_entry','rfam_reg_full' , 'rfamseq');
+  my ($genome_auto);
+  eval {
+    if (not defined $stat) {
+      $stat = $dbh->prepare($self->__replace_sql('genome_entry', 4));
+    }
+    
+    # print "ADDING DATA $rdb_auto_num, $rdb_acc, \n";
+    $stat->execute( $genome_auto, 
+		    $ac,
+		    $de,
+		    $joined_tax
+		  );
+    $rows += $stat->rows;
+    $genome_auto = $stat->{mysql_insertid}; ## get the auto number
+  };
+  
+  if ($@) {
+    
+    $error = "Could not do the insertion/update on the pfamA table [$@]";
+    
+    last;
+  }
+#  print "GENOME_AUTO: $genome_auto\n";
+  foreach my $rfamseq_acc (@rf) {
+
+    my $auto_sql = "select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'";
+    $stat = $dbh->prepare($auto_sql);
+    $stat->execute();
+    my $auto_rfamseq = $stat->fetchrow;
+    $stat->finish();
+
+#    print "AUTO: $auto_rfamseq\n";
+    my $sql = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq'";
+    $stat = $dbh->prepare($sql);
+    $stat->execute();
+    
+    
+  }
+
+
+
+
+}
+
+################################
+#
+# This parses the final genome embl file after sam has tweaked with it!!
+#
+################################
+
+sub final_genomic_species_data {
+  my($self, $ac, $de, $joined_tax, @rf) = @_;
+
+  my ($dbh, $stat);
+
+  $dbh = $self->open_transaction('genome_entry','rfam_reg_full' , 'rfamseq', 'rfam');
+  my ($genome_auto);
+  eval {
+    if (not defined $stat) {
+      $stat = $dbh->prepare($self->__replace_sql('genome_entry', 4));
+    }
+    
+    # print "ADDING DATA $rdb_auto_num, $rdb_acc, \n";
+    $stat->execute( $genome_auto, 
+		    $ac,
+		    $de,
+		    $joined_tax
+		  );
+    $rows += $stat->rows;
+    $genome_auto = $stat->{mysql_insertid}; ## get the auto number
+  };
+  
+  if ($@) {
+    
+    $error = "Could not do the insertion/update on the pfamA table [$@]";
+    
+    last;
+  }
+
+  foreach my $update (@rf) {
+    my $rfamseq_acc = $update->{'seq_acc'};
+    my $rfam_acc = $update->{'rfam_acc'};
+    my $seq_start = $update->{'start'};
+    my $seq_end = $update->{'end'};
+#    print "rfamseq: $rfamseq_acc, $rfam_acc, $seq_start, $seq_end \n";
+    my $auto_sql = "select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'";
+ #   print "$auto_sql \n";
+   $stat = $dbh->prepare($auto_sql);
+    $stat->execute();
+    my $auto_rfamseq = $stat->fetchrow;
+    $stat->finish();
+
+    my $auto_sql = "select auto_rfam from rfam where rfam_acc = '$rfam_acc'";
+    $stat = $dbh->prepare($auto_sql);
+    $stat->execute();
+    my $auto_rfam = $stat->fetchrow;
+    $stat->finish();
+
+  
+ my $sql = "select auto_rfamseq, auto_rfam from rfam_reg_full where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
+    $stat = $dbh->prepare($sql);
+   $stat->execute();
+    my ($tmp_auto_rfamseq, $tmp_auto_rfam) = $stat->fetchrow;
+    $stat->finish();
+
+  #  print "FAILED: $rfamseq_acc $rfam_acc, $seq_start, $seq_end \n" if (!$tmp_auto_rfamseq);
+
+    my $sql = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
+    $stat = $dbh->prepare($sql);
+   $stat->execute();
+    
+    
+  }
+
+
+
+
+}
 
 
 sub load_generic_file_to_rdb {
