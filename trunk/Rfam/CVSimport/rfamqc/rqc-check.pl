@@ -34,27 +34,17 @@ foreach my $acc (@ARGV) {
     if( $acc =~ /\/$/ ) {
 	chop $acc;
     }
-    if( not $db->is_acc( $acc ) ) {
-	print "NEW FAMILY\n";
-	next;
-    }
-    my $entry = $db->get_Entry_by_acc($acc);
+
     my (%current_names,%edited_names,%edited_seed_names);
-  
-    # Look at current version
-    my $align=$entry->full();
-    my @ids;
-    foreach my $seq ($align->each_seq() ) {
-	$current_names{ $seq->id() } = 1;
-    }
-    
+
     # Look at edited version SEED and ALIGN
     my $newali = new Rfam::RfamAlign;
     open (ALI, "$acc/ALIGN")||die "Can't open file $acc/ALIGN\n";
     $newali->read_stockholm(\*ALI);
     close (ALI);
     foreach my $seq ($newali->each_seq() ) {
-	$edited_names{ $seq->id() } = 1;
+	my( $acc ) = $seq->id() =~ /^(\S+?)(\.|$)/;
+	$edited_names{ $acc } = 1;
     }
 
     $newali = new Rfam::RfamAlign;
@@ -62,9 +52,32 @@ foreach my $acc (@ARGV) {
     $newali->read_stockholm(\*ALI);
     close (ALI);
     foreach my $seq ($newali->each_seq() ) {
-	$edited_seed_names{ $seq->id() } = 1;
+	my( $acc ) = $seq->id() =~ /^(\S+?)(\.|$)/;
+	$edited_seed_names{ $acc } = 1;
     }
 
+    # Check all SEED members in ALIGN
+    foreach my $element (sort keys %edited_seed_names) {
+	if (! $edited_names{$element}) {
+	    print "SERIOUS ERROR: $element in SEED in not in ALIGN!\n";
+	}
+    }
+
+    if( not $db->is_acc( $acc ) ) {
+	print "NEW FAMILY\n";
+	next;
+    }
+
+    my $entry = $db->get_Entry_by_acc($acc);
+  
+    # Look at current version
+    my $align=$entry->full();
+    my @ids;
+    foreach my $seq ($align->each_seq() ) {
+	my( $acc ) = $seq->id() =~ /^(\S+?)(\.|$)/;
+	$current_names{ $acc } = 1;
+    }
+    
     # Find missing sequences in edited family
     my %missing;
     my $lost = 0;
@@ -91,13 +104,6 @@ foreach my $acc (@ARGV) {
     }
     close (FOUND);
     print "Lost $lost. Found $extra.\n";
-
-    # Check all SEED members in ALIGN
-    foreach my $element (sort keys %edited_seed_names) {
-	if (! $edited_names{$element}) {
-	    print "SERIOUS ERROR: $element in SEED in not in ALIGN!\n";
-	}
-    }
 }
 
 
