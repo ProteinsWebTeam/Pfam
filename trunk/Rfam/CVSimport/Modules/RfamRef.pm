@@ -57,13 +57,14 @@ sub get_ref_by_pubmed {
     my $ua = new LWP::UserAgent;
     $ua->agent("AVAce Indexer/1.1");
     $ua->proxy(http => 'http://wwwcache.sanger.ac.uk'); 
-    my $url = "http://www.ncbi.nlm.nih.gov/htbin-post/Entrez/query?db=m&form=6&uid=$pubmed&Dopt=l";
+    my $url = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id=$pubmed&retmode=text&rettype=medline";
     my $req = new HTTP::Request GET => $url;
     my $res = $ua->request( $req );
     if( $res->is_success ) {
 	my %data;
 	foreach ( split( /\n/, $res->content  ) ) {
 	    s/\r//g;    # remove dos new lines
+#	    print "$_\n";
 	    my $tag;
 	    if( /^(\w+)\s*- (.*)$/ or /^<\S+><\S+>(\w+)\s*- (.*)$/ ) {
 		$tag = $1;
