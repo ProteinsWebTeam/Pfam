@@ -15,21 +15,22 @@ use lib $bioperl_dir;
 use strict;
 use Getopt::Long;
 use Rfam;
+use Bio::Index::Fasta;
 use Bio::Tools::BPlite;
 use Bio::SeqIO;
 use Bio::Tools::Run::StandAloneBlast;
 use Bio::SearchIO;
 use Bio::SearchIO::Writer::TextResultWriter;
 
-my( $evalue, $division, $minidb, $help, $length, $listhits );
+my $evalue = 10;
+
+my( $division, $minidb, $help, $length, $listhits );
 &GetOptions( "e=s"    => \$evalue,
 	     "d=s"    => \$division,
 	     "h"      => \$help,
 	     "w=s"    => \$length,
 	     "minidb" => \$minidb,
 	     "l"      => \$listhits );
-
-$evalue = 10 if( not $evalue );
 
 my $fafile = shift;
 
@@ -62,6 +63,9 @@ eval {
     $seqinx = Bio::Index::Fasta->new( '-filename'    => $inxfile,
 				      '-dbm_package' => 'DB_File' );
 };
+#if( not $seqinx or $@ ) {
+#    warn "failed to get sequence index object\n$@";
+#}
 END { undef $seqinx; }   # stop bizarre seg faults
 
 my $glob;
@@ -78,6 +82,7 @@ my %hitlist;
 foreach my $db ( glob( "$Rfam::rfamseq_current_dir/$glob" ) ) {
     my $factory = Bio::Tools::Run::StandAloneBlast->new( 'program'  => 'blastn',
 							 'database' => $db,
+							 'outfile'  => "$$.blast",
 							 'F'        => 'F',
 							 'W'        => 7,
 							 'b'        => 100000,
@@ -97,39 +102,41 @@ foreach my $db ( glob( "$Rfam::rfamseq_current_dir/$glob" ) ) {
 	    }
 	    while( my $hit = $result->next_hit() ) {
 		while( my $hsp = $hit->next_hsp() ) {
-		    push( @{ $hitlist{$hit->name} }, $hsp );
+		    if( $listhits ) {
+			print $hit->name, " ", $hsp->start('hit'), " ", $hsp->end('hit'), "\n";
+		    }
+		    else {
+			push( @{ $hitlist{$hit->name} }, $hsp );
+		    }
 		}
 	    }
 	}
     }
 
-    foreach my $id ( keys %hitlist ) {
-	my @se;
-	my @hsplist = sort { $a->start('hit') <=> $b->start('hit') } @{ $hitlist{$id} };
-	while( my $hsp = shift @hsplist ) {
-	    my( $start, $end ) = ( $hsp->start('hit'), $hsp->end('hit') );
-	    $start = $start - $length;
-	    $end   = $end   + $length;
-	    $start = 1 if( $start < 1 );
-
-	    # Merge overlapping regions - because hsps are sorted by start 
-	    # we only need to check if it overlaps with the last one
-	    if( scalar(@se) and 
-		$start <= $se[ scalar(@se)-1 ]->{'end'} and 
-		$end >= $se[ scalar(@se)-1 ]->{'end'} ) {
+    if( $minidb ) {
+	foreach my $id ( keys %hitlist ) {
+	    my @se;
+	    my @hsplist = sort { $a->start('hit') <=> $b->start('hit') } @{ $hitlist{$id} };
+	    while( my $hsp = shift @hsplist ) {
+		my( $start, $end ) = ( $hsp->start('hit'), $hsp->end('hit') );
+		$start = $start - $length;
+		$end   = $end   + $length;
+		$start = 1 if( $start < 1 );
 		
-		$se[ scalar(@se)-1 ]->{'end'} = $end;
+		# Merge overlapping regions - because hsps are sorted by start 
+		# we only need to check if it overlaps with the last one
+		if( scalar(@se) and 
+		    $start <= $se[ scalar(@se)-1 ]->{'end'} and 
+		    $end >= $se[ scalar(@se)-1 ]->{'end'} ) {
+		    
+		    $se[ scalar(@se)-1 ]->{'end'} = $end;
+		}
+		else {
+		    push( @se, { 'start' => $start, 'end' => $end } );
+		}
 	    }
-	    else {
-		push( @se, { 'start' => $start, 'end' => $end } );
-	    }
-	}
-
-	foreach my $se ( @se ) {
-	    if( $listhits ) {
-		print "$id ", $se->{'start'}, " ", $se->{'end'}, "\n";
-	    }
-	    elsif( $minidb ) {
+	    
+	    foreach my $se ( @se ) {
 		my $faout = Bio::SeqIO -> new( '-format' => 'Fasta' );
 		foreach my $se ( @se ) {
 		    my $seq = &get_seq( $id, $se->{'start'}, $se->{'end'} );
@@ -153,7 +160,7 @@ sub get_seq {
         $seq = $seqinx -> fetch( $id );
     };
     if( not $seq or $@ ) {
-        warn "$id not found in your seq db\n";
+        warn "$id not found in your seq db\n$@";
         return 0;       # failure
     }
     my $length = $seq -> length();
