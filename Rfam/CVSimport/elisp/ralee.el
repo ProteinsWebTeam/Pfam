@@ -13,6 +13,9 @@
 
 (define-key global-map "\C-c\C-l" 'ralee-paint-line-by-ss)
 (define-key global-map "\C-c\C-b" 'ralee-paint-buffer-by-ss)
+(define-key global-map "\C-f" 'ralee-move-20-right)
+(define-key global-map "\C-b" 'ralee-move-20-left)
+
 
 ;;;;;;;;
 
@@ -273,5 +276,19 @@ This order is important for calculating helix boundaries."
       (ralee-paint-line-by-pairs pairs)
       )
     )
+  )
+
+
+
+(defun ralee-move-20-right ()
+  "move the pointer 20 characters to the right"
+  (interactive)
+  (forward-char 20)
+  )
+
+(defun ralee-move-20-left ()
+  "move the pointer 20 characters to the left"
+  (interactive)
+  (backward-char 20)
   )
 
