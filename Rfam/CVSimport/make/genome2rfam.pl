@@ -22,6 +22,8 @@ use Rfam;
 use Rfam::RfamAlign;
 use CMResults;
 
+use Bio::Tools::BPlite;
+
 my( $agp, $con, $search, @add, $clean, $outfile );
 &GetOptions( "agp"     => \$agp,
 	     "con"     => \$con,
@@ -32,11 +34,14 @@ my( $agp, $con, $search, @add, $clean, $outfile );
 	     );
 
 my $file = shift;
-my $rfamseqlist = '/pfam/db/Rfam/RELEASES/CURRENT/Rfamseq.lst';
+my $rfamseqlist = '/pfam/db/rfamseq/CURRENT/Rfamseq.lst';
 
 sub help {
     print STDERR <<EOF;
 Usage:  $0 [--agp|--con] [--search] [--add resultsfile] file
+
+            --agp things do not work properly at the moment
+
 EOF
 }
 
@@ -50,15 +55,6 @@ if( $search and not $outfile ) {
     print STDERR "You need to specify an outfile if you use the --search option\n";
     exit(1);
 }
-
-#my %ignore = qw( AE000521 1
-#                 AE013600 1
-#                 AE014293 1
-#                 AE014294 1
-#                 BA000025 1
-#                 BA000027 1
-#                 AL672111 1
-#                 );
 
 my %rfamseq;
 open( L, $rfamseqlist ) or die;
@@ -103,14 +99,18 @@ unless( $search ) {
 }
 
 if( $clean ) {
-    push( @add, "$clean.*.out" );
+    push( @add, glob("$clean.*.out") );
 }
 
+# read in the precalculated stuff
 foreach my $add ( @add ) {
     open( A, $add ) or die;
     while(<A>) {
-	if( my( $id, $ver, $start, $end, $rfacc, $bits, $rfid ) = 
-	    /(\S+)\.(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+\d+\s+\d+\s+(\S+)\s+(\S+)/ ) {
+	if( my( $id, $ver, $st, $en, $start, $end, $rfacc, $bits, $rfid ) = 
+	    /(\S+)\.(\d+)\/(\d+)-(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+\d+\s+\d+\s+(\S+)\s+(\S+)/ ) {
+
+	    $start = $st + $start - 1;
+	    $end   = $st + $end - 1;
 
 	    $rfamseq{$id} = $ver;
 
@@ -132,26 +132,41 @@ foreach my $add ( @add ) {
 	}
     }
     close A;
-    unlink $add if $clean;
+#    unlink $add if $clean;
 }
 
 my %search;
 my $ignore;
-open( E, $file ) or die;
-if( $agp ) {
+open( E, $file ) or die "can't find your file [$file]\n";
+if( $agp ) {  # agp things don't work properly at the moment
     while(<E>) {
 	if( /^\S+\s+\d+\s+\d+\s+\d+\s+\S+\s+(\S+)\.(\d+)\s+(\d+)\s+(\d+)/ ) {
 	    my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
-	    if( $search and ( not exists $rfamseq{$id} or $ver != $rfamseq{$id} ) ) {
-		$search{ $id.".".$ver } = 1;
+	    if( not exists $rfamseq{$id} ) {
+		if( $search ) {
+		    $search{ "$id\.$ver/$st-$en" } = 1;
+		}
+		else {
+		    print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
+		}
+		next;
 	    }
-	    elsif( not exists $rfamseq{$id} ) {
-		print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
+	    
+	    if( $ver != $rfamseq{$id} ) {
+		my $str1 = `pfetch -a -q $id\.$ver:$st-$en`;
+		my $str2 = `pfetch -a -q $id\.$rfamseq{$id}:$st-$en`;
+		if( $str1 ne $str2 ) {
+		    if( $search ) {
+			$search{ "$id\.$ver/$st-$en" } = 1;
+		    }
+		    else {
+			print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
+		    }
+		    next;
+		}
 	    }
-	    elsif( $ver != $rfamseq{$id} ) {
-		print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
-	    }
-	    elsif( not $search ) {
+	    
+	    if( not $search ) {
 		print_hits( $id, $st, $en );
 	    }
 	}
@@ -163,25 +178,32 @@ elsif( $con ) {
 	if( /^AC\s+(\S+)\;/ ) {
 	    print $_ unless $search;
 	}
-	if( /^DE/ or /^OC/ ) {
+	if( /^DE/ or /^OC/ or /^OS/ ) {
 	    print $_ unless $search;
 	}
 	if( /^\/\// ) {
 	    print $_ unless $search;
 	}
 	if( my( $stuff ) = /^CO\s+(.*)/ ) {
-	    while( /([A-Z0-9]+)\.(\d+)\:(\d+)\.\.(\d+)/g ) {
+	    while( $stuff =~ /([A-Z0-9]+)\.(\d+)\:(\d+)\.\.(\d+)/g ) {
 		my( $id, $ver, $st, $en ) = ( $1, $2, $3, $4 );
-		if( $search and ( not exists $rfamseq{$id} or $ver != $rfamseq{$id} ) ) {
-		    $search{ $id.".".$ver } = 1;
-		}
-		elsif( not exists $rfamseq{$id} ) {
+		if( not exists $rfamseq{$id} ) {
 		    print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
+		    $search{ "$id\.$ver/$st-$en" } = 1 if $search;
+		    next;
 		}
-		elsif( $ver != $rfamseq{$id} ) {
-		    print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
+
+		if( $ver != $rfamseq{$id} ) {
+		    my( $st2, $en2 ) = &mapseq( $id, $ver, $st, $en );
+		    if( not $en2 ) {
+			print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
+			$search{ "$id\.$ver/$st-$en" } = 1 if $search;
+			next;
+		    }
+		    ( $st, $en ) = ( $st2, $en2 );
 		}
-		elsif( not $search ) {
+
+		if( not $search ) {
 		    print_hits( $id, $st, $en );
 		}
 	    }
@@ -201,13 +223,14 @@ if( $search ) {
     if( my @search = keys %search ) {
 	my $j = @search;
 	for( my $i=1; $i<=@search; $i++ ) {
-	    system "pfetch $search[$i-1] -n $search[$i-1] > $jid.$i.fa" and die;
+	    my( $sv, $st, $en ) = $search[$i-1] =~ /(\S+)\/(\d+)-(\d+)/;
+	    system "pfetch -a $sv:$st-$en -n $sv/$st-$en > $jid.$i.fa" and die;
 	}
 	system "echo 'cmblast.pl $jid.\$\{LSB_JOBINDEX\}.fa > $jid.\$\{LSB_JOBINDEX\}.out' | bsub -q pfam_slow -Rlinux -o $jid.\%I.err -Jrf$jid\"[1-$j]\"" and die; 
 
 	# the clever bit - run this script again after the array
 	# above has finished and clearing up after myself
-	system "bsub -q pfam_slow -m pfam -w'done(rf$jid)' -o genome2rfam.err \"$0 --clean $jid $options $file > $outfile\"" and die;
+	system "bsub -q pfam_slow -Ralpha -w'done(rf$jid)' -o genome2rfam.err \"$0 --clean $jid $options $file > $outfile\"" and die;
     }
     else {
 	system "$0 $options $file > $outfile" and die;
@@ -225,5 +248,37 @@ sub print_hits {
 		printf( "RF   %-26s %-10s %-16s %7s\n", $unit->seqname."/".$unit->start_seq."-".$unit->end_seq, $unit->hmmacc, $unit->hmmname, $unit->bits );
 	    }
 	}
+    }
+}
+
+
+sub mapseq {
+    my( $id, $ver, $st, $en ) = @_;
+    system "pfetch -a $id\.$ver:$st-$en -n $id\.$ver/$st-$en > $$.sub.fa" and die;
+    system "pfetch -a $id\.$rfamseq{$id} -n $id\.$rfamseq{$id} > $$.whole.fa" and die;
+			
+    system "formatdb -i $$.whole.fa -p F" and die;
+    system "blastall -F F -d $$.whole.fa -i $$.sub.fa -p blastn -e 0.000001 > $$.blast" and die;
+
+    open( BLAST, "$$.blast" ) or die "can't open $$.blast";
+    my $report = new Bio::Tools::BPlite( '-fh' => \*BLAST );
+    my $best;
+    {
+	my $querylength = $report->qlength;
+	while( my $sbjct = $report->nextSbjct ) {
+	    while( my $hsp = $sbjct->nextHSP ) {
+		if( (not $best or $hsp->bits >= $best->bits) ) {
+		    $best = $hsp;
+		}
+	    }
+	}
+        last if ($report->_parseHeader == -1);
+	redo;
+    }
+    close BLAST;
+
+    if( $best ) {
+	print STDERR "mapping $id\.$ver/$st-$en to $id\.$rfamseq{$id}/", $best->hit->start, "-", $best->hit->end, "\n";
+	return( $st, $en );
     }
 }
