@@ -22,8 +22,9 @@ chdir "$Rfam::current_dir/$acc" or die;
 my @ann;
 open( DESC, "DESC" ) or die;
 while( <DESC> ) {
+    chomp;  # remove newline and add it again to make sure
     unless( /^\*\*\s+/ ) {
-	push( @ann, "#=GF $_" );
+	push( @ann, "#=GF $_\n" );
     }
 }
 close DESC;
