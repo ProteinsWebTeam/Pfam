@@ -152,7 +152,7 @@ sub desc_is_OK {
                     warn "$family: GA lines should look like:\nGA   20.00;\nNot $_\n";
                     $error = 1;
                 }
-               last;
+		last;
             };
 	    /^TP/ && do {
 		$fields{$&}++;
@@ -188,11 +188,11 @@ sub desc_is_OK {
                 last;
 	    };
             /^BM/ && do {
+                $fields{$&}++;
 		if( not /^BM   cmbuild / and not /^BM   cmsearch / ) {
                     warn "$family: BM lines should start with cmbuild or cmsearch\n";
 		    $error = 1;
 		}
-                $fields{$&}++;
                 last;
             };
             /^SQ/ && do {
@@ -207,7 +207,7 @@ sub desc_is_OK {
                     $error = 1;
                     warn "$family: DESC files should not contain blank CC lines, please check and remove\n";
                     last;
-               } elsif (/^CC.*-!-/){
+		} elsif (/^CC.*-!-/){
                     $error = 1;
                     warn "$family: DESC files should not contain -!- in CC lines, please check and remove\n";
                 }
@@ -289,7 +289,7 @@ sub desc_is_OK {
 #        $error = 1;
 #    }
     if (exists $fields{AC} and $fields{AC} > 1){
-        warn "$family: There are $fields{AC} accession lines. SERIOUS ERROR.\n";
+        warn "$family: There are [$fields{AC}] accession lines. SERIOUS ERROR.\n";
         $error = 1;
     }
     if ($fields{TC} != 1){
