@@ -558,7 +558,7 @@ sub _print_to_file {
   my $block_count = 0;
  # print "BLOCKS: @blocks \n";
   if ($file_out =~ /html/) {
-    print _OUT "<HTML><HEAD><LINK REL=\"stylesheet\" HREF=\"rfam_align.css\"></HEAD><BODY>\n";
+    print _OUT "<HTML><HEAD><LINK REL=\"stylesheet\" HREF=\"markup_align.css\"></HEAD><BODY>\n";
   }
   print _OUT "<pre>";
   foreach my $block (@blocks) {
