@@ -218,6 +218,7 @@ sub _add_accession{
 
    $accmap{$acc} = $family;
    $obj->sync();
+   undef $obj;
    untie(%accmap);
 }
 
@@ -281,17 +282,17 @@ sub _get_lock{
    my ($me) = `whoami`;
    chomp($me);
 
-   if( !-e $self->{'dbrcsbase_lock_file'} ) {
+   if( !-e $self->_lock_file ) {
        # get the lock now!
 
-       open(_LOCK_,">$self->{'dbrcsbase_lock_file'}") || die "Could not open lock file $!";
+       open( _LOCK_, ">".$self->_lock_file ) || die "Could not open lock file $!";
        print _LOCK_ "$me has locked the database\n";
        close(_LOCK_);
        $self->{'is_locked'} = 1;
 
        return undef;
    } else {
-       open(_LOCK_,"$self->{'dbrcsbase_lock_file'}") || die "Could not open lock file $!";
+       open( _LOCK_, $self->_lock_file ) || die "Could not open lock file $!";
        $line = <_LOCK_>;
        $line =~ /(\S+)/;
        $name = $1;
@@ -321,11 +322,11 @@ sub _unlock{
        die("Trying to release the lock when you haven't got it!");
    }
 
-   if( ! -e $self->{'dbrcsbase_lock_file'} ) {
+   if( ! -e $self->_lock_file ) {
        die("Bad error - you have the lock but there is no lock file!");
    }
 
-   unlink($self->{'dbrcsbase_lock_file'});
+   unlink($self->_lock_file);
    $self->{'is_locked'} = 0;
 
    return 0;
