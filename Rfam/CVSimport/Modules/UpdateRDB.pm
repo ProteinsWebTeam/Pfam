@@ -793,7 +793,7 @@ sub update_literature_references {
 	    }
 	    
 	    $stat->execute();
-	    $auto_lit = $stat->{insertid}; ## get the auto number
+	    $auto_lit = $stat->{mysql_insertid}; ## get the auto number
 	    $rows += $stat->rows;
 	  };
 	  
@@ -996,17 +996,18 @@ sub add_rfamseq {
 #   exit(0);
   open(_EN, $entries);
    while(<_EN>) {
-   #  print "EN : $_ \n";
+  #   print "EN : $_ \n";
     # print "HERE $entries \n"; exit(0);
 
-     my( $rdb_id, $rdb_acc, $rdb_version, $rdb_desc,$rdb_os, $rdb_oc,  $rdb_prev);
+     my($temp, $rdb_id, $rdb_acc, $rdb_version, $rdb_desc,$rdb_os, $rdb_oc,  $rdb_prev);
 
   #   if (!$seed) {
   #     ($rdb_acc, $rdb_id) = split(/\s+/, $_);
      
    #  } else {
      chop($_);
-     ( $rdb_id, $rdb_acc, $rdb_version, $rdb_desc,$rdb_os, $rdb_oc,  $rdb_prev) = split(/~/, $_);
+     ($temp, $rdb_id, $rdb_acc, $rdb_version, $rdb_desc,$rdb_os, $rdb_oc,  $rdb_prev) = split(/\t/, $_);
+     #print "ID: $rdb_id, ACC: $rdb_acc, VER: $rdb_version, DESC: $rdb_desc, OS: $rdb_os, OC: $rdb_oc,  PREV: $rdb_prev \n";
      $rdb_acc =~ s/\s+//g;
      $rdb_id =~ s/\s+//g;
   
@@ -1046,8 +1047,8 @@ sub add_rfamseq {
 	     $stat_add = $dbh->prepare($self->__insert_sql('rfamseq', 8));
 	     #print "stat: $stat \n";
 	   }
-	#   print "ADDING: $rdb_acc \n";
-	 #  sleep 1;
+          print "ADDING: $rdb_acc \n";
+	
 	   $stat_add->execute($rdb_auto,
 			  $rdb_id, 
 			  $rdb_acc, 
@@ -1079,7 +1080,7 @@ sub add_rfamseq {
 	     $stat = $dbh->prepare($self->__replace_sql('rfamseq', 8));
 	    # print "stat: $stat \n";
 	   }
-#	   sleep 1;
+	   #print "UPDATING $rdb_auto , $rdb_acc \n";
 	   $stat->execute($rdb_auto,
 			  $rdb_id, 
 			  $rdb_acc, 
@@ -1166,7 +1167,7 @@ sub add_mirna {
 		       $sequence
 		      );
     $rows += $stat_add->rows;
-    $auto_mirna = $stat_add->{insertid}; ## get the auto number
+    $auto_mirna = $stat_add->{mysql_insertid}; ## get the auto number
   };
   if ($@) {
     $error = "Could not do the insertion on the mirna table [$@]";
@@ -1231,7 +1232,7 @@ foreach my $query_return (@refs_temp) {
 			);
       $rows += $stat_lit->rows;
       
-      $auto_lit = $stat_lit->{insertid}; ## get the auto number
+      $auto_lit = $stat_lit->{mysql_insertid}; ## get the auto number
       
     };
     if ($@) {
