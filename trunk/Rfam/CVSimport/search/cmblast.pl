@@ -2,7 +2,7 @@
 
 use strict;
 use Getopt::Long;
-use lib '/nfs/disk56/sgj/pfam/scripts/Modules';
+use lib '/nfs/disk100/pubseq/Pfam/scripts/Modules';
 use lib '/nfs/disk100/pubseq/Pfam/bioperl';
 use Bio::Tools::BPlite;
 use Bio::SeqIO;
@@ -15,7 +15,7 @@ my $fafile       = shift;
 
 my $blast2_bin   = "/usr/local/pubseq/bin";
 my $infernal_bin = "/nfs/disk100/pubseq/Pfam/bin";
-my $blast_dir    = "/pfam/db/Rfam/tmp";
+my $blast_dir    = "/pfam/db/Rfam/BLASTDB";
 my $model_dir    = "$blast_dir";
 my $blastdb      = "$blast_dir/Rfam.fasta";
 my $thr_file     = "$blast_dir/Rfam.thr";
@@ -26,8 +26,8 @@ my $blastcmd     = "$blast2_bin/blastall -p blastn -e $blastcut -d $blastdb -i $
 my %thr;
 open( T, $thr_file ) or die;
 while(<T>) {
-    if( /^(RF\d+)\s+\S+\s+(\S+)\s+(\d+)\s*$/ ) {
-	$thr{ $1 } = { 'thr' => $2, 'win' => $3 };
+    if( /^(RF\d+)\s+(\S+)\s+(\S+)\s+(\d+)\s*$/ ) {
+	$thr{ $1 } = { 'id' => $2, 'thr' => $3, 'win' => $4 };
     }
 }
 close T;
@@ -44,6 +44,7 @@ while( my $seq = $in->next_seq() ) {
 system "$blastcmd" and die;
 my %results = %{ &parse_blast( "$$.blast" ) };
 foreach my $acc ( keys %results ) {
+    my $id = $thr{ $acc } -> { 'id' };
     open( O, ">$$.seq" ) or die;
     my $out = Bio::SeqIO -> new( -fh => \*O, '-format' => 'Fasta' );
 	
@@ -53,6 +54,7 @@ foreach my $acc ( keys %results ) {
 						     $hit -> { 'end' },
 						     $hit -> { 'score' },
 						     $hit -> { 'subject' } );
+#	    print "$acc $seqid $start $end $subject\n";
 	    my $newseq = $seqs{$seqid} -> trunc( $start, $end );
 	    $newseq -> display_id( "$seqid/$start-$end" );
 	    $out -> write_seq( $newseq );
@@ -74,11 +76,11 @@ foreach my $acc ( keys %results ) {
     $res = $res -> filter_on_cutoff( $thr{$acc}->{'thr'} );
     
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
-	printf( "%-".$maxidlength."s%8d%8d%8d%8d%10s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
+	printf( "%-".$maxidlength."s%8d%8d%10s%8d%8d%10s\t%-10s\n", $unit->seqname, $unit->start_seq, $unit->end_seq, $acc, $unit->start_hmm, $unit->end_hmm, $unit->bits, $id );
     }
 }
 
-
+unlink( "$$.res", "$$.seq", "$$.blast" ) or die;
 
 
 sub parse_blast {
@@ -101,7 +103,7 @@ sub parse_blast {
 
 		$start -= $win;
 		$end   += $win;
-		$start  = 0       if( $start < 0 );
+		$start  = 1       if( $start < 1 );
 		$end    = $length if( $end   > $length );
 
                 my $already;
