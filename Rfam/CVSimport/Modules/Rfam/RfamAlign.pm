@@ -81,7 +81,7 @@ sub match_states {
 sub allgaps_columns_removed {
     my ($self) = @_;
     my (@columnlist, %mymap);
-    my @index_list = (0..$self->length_aln-1);
+    my @index_list = (0..$self->length-1);
 
     foreach my $seq ($self->each_seq) {
         my @ary = split( //, $seq->seq() );
@@ -127,7 +127,7 @@ sub trimmed_alignment {
         $start = 1;
     }
     elsif (not defined($end)) {
-        $end = $self->length_aln();
+        $end = $self->length();
     }
     
     my @rf = split( //, $self -> match_states );
@@ -140,7 +140,7 @@ sub trimmed_alignment {
 	$self->ss_cons->removeColumn( 1..$start-1 );
     }
     if( $end < $self->length_aln() ) {
-	$self->ss_cons->removeColumn( $end+1..$self->length_aln() );
+	$self->ss_cons->removeColumn( $end+1..$self->length() );
     }
 
     foreach my $seq ($self->each_seq()) {
@@ -287,7 +287,7 @@ sub write_structure_ps {
     my $newaln = new Rfam::RfamAlign;
     my $conseq = new Bio::LocatableSeq( '-id'  => "Seq_cons",
 					'-start' => 1,
-					'-end' => $self->length_aln(),
+					'-end' => $self->length(),
 					'-seq' => $self->consensus() );
 
     $newaln -> add_seq( $conseq );
@@ -435,10 +435,10 @@ sub write_stockholm {
     my $out   = shift;
     my $block = shift;
     $block = 50 if( not defined $block );
-    $block = $self -> length_aln if( not $block );
+    $block = $self -> length if( not $block );
 
     my $maxn = $self->maxdisplayname_length() + 2;
-    my $iter = $self->length_aln/$block;
+    my $iter = $self->length/$block;
     print $out "\# STOCKHOLM 1.0\n\n";
 
     my $ss_str;
@@ -448,7 +448,7 @@ sub write_stockholm {
 	
     for( my $i=0; $i < $iter; $i++ ) {
 	foreach my $seq ( $self->each_seq() ) {
-	    my $namestr = $self->get_displayname($seq->get_nse());
+	    my $namestr = $self->displayname($seq->get_nse());
 	    my $subseq = substr( $seq->seq, $i*$block, $block );
 	    print $out sprintf( "%-".$maxn."s  %s\n", $namestr, $subseq );
 	}
@@ -488,7 +488,7 @@ sub write_connect {
     my $newaln = Rfam::RfamAlign->new();
     my $newseq = new Bio::LocatableSeq( '-id'  => $seqid,
 					'-start' => 1,
-					'-end' => $self->length_aln(),
+					'-end' => $self->length(),
 					'-seq' => $seqstr );
 
     $newaln -> add_seq( $newseq );
