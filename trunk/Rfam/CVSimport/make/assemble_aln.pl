@@ -88,10 +88,17 @@ foreach my $alnfile ( @alnfiles ) {
 			$inspos = $i;
 		    }
 
-#		    print "INSERT1 $insdir\n";
-			
-		    splice( @newrf, $inspos, 0, '.' );
-		    $newaln->insert_column( $inspos, "." );
+		    # how many gaps to insert?
+		    my @ins;
+		    until( $oldrf[$i] ne '.' ) {
+			$i++;
+			push( @ins, '.' );
+		    }
+		    $i--;
+
+#		    print "INSERT1 $inspos ",scalar(@ins),"\n";
+		    splice( @newrf, $inspos, 0, @ins );
+		    $newaln->insert_column( $inspos, join('',@ins) );
 		}
 		elsif( $newrf[$i] eq '.' ) { 
 		    # we need an insert in aln
@@ -120,9 +127,17 @@ foreach my $alnfile ( @alnfiles ) {
 			$inspos = $i;
 		    }
 
-#		    print "INSERT2 $insdir\n";
-		    splice( @oldrf, $inspos, 0, '.' );
-		    $oldaln->insert_column( $inspos, "." );
+		    my @ins;
+		    # how many gaps to insert?
+		    until( $newrf[$i] ne '.' ) {
+			$i++;
+			push( @ins, '.' );
+		    }
+		    $i--;
+
+#		    print "INSERT2 $inspos ",scalar(@ins), "\n";
+		    splice( @oldrf, $inspos, 0, @ins );
+		    $oldaln->insert_column( $inspos, join('',@ins) );
 		}
 		else {
 		    # we have a skipped match state
@@ -132,12 +147,12 @@ foreach my $alnfile ( @alnfiles ) {
 			    die "I can't match up your RF lines\n";
 			}
 			if( $newrf[$i+$j] eq $oldrf[$i] ) {
-			    splice( @oldrf, $i, 0, '.' );
+			    splice( @oldrf, $i, 0, '-' );
 			    $oldaln->insert_column( $i, "-" );
 			    last;
 			}
 			elsif( $newrf[$i] eq $oldrf[$i+$j] ) {
-			    splice( @newrf, $i, 0, '.' );
+			    splice( @newrf, $i, 0, '-' );
 			    $newaln->insert_column( $i, "-" );
 			    last;
 			}
