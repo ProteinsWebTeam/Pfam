@@ -36,15 +36,18 @@ END {
 
 my $file = shift;
 
-if( not defined $thr and not $list and not $overlaps ) {
-    open( DESC, "DESC" ) or die;
-    while( <DESC> ) {
-	/^GA\s+(\S+)/ and do {
-	    $thr = $1;
-	}
-    }
-    close DESC;
+my $local;
+#if( not defined $thr and not $list and not $overlaps ) {
+open( DESC, "DESC" ) or warn "Can't open DESC to determine global/local requirement\n";
+while( <DESC> ) {
+    /^GA\s+(\S+)/ and do {
+	$thr = $1 if not defined $thr;
+    };
+    /^BM\s+cmsearch.*-local.*/ and do {
+	$local = 1;
+    };
 }
+close DESC;
 
 open( F, $file ) or die;
 open( FA, ">$$.fa" ) or die;
@@ -112,7 +115,12 @@ foreach my $cmseq ( $res->eachHMMSequence() ) {
 }
 close FA;
 
-system "covea -o ALIGN CM.cov $$.fa" and die "failed to run covea";
+if( $local ) {
+    system "cmalign -l -o ALIGN CM $$.fa" and die "failed to run cmalign";
+}
+else {
+    system "cmalign -o ALIGN CM $$.fa" and die "failed to run cmalign";
+}
 
 my $tc_bits = $res -> lowest_true( $thr );
 my $nc_bits = $res -> highest_noise( $thr );
