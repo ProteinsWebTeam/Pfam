@@ -69,12 +69,13 @@ $fh -> print("$pfold_bindir/scfg --treeinfile $pfold_bindir/article.grm /tmp/$$.
 $fh -> print("$pfold_bindir/addparen /tmp/$$.res.col | $pfold_bindir/col2fasta > $$.out.fa\n");
 $fh -> close;
 
-open( O, ">$$.out.stk" ) or die;
+open( O, ">$$.out.fa2" ) or die;
 open( S, "$$.out.fa" ) or die;
 my $str;
 my %seq;
 my $nse;
 while(<S>) {
+    chomp;
     if( /^\>(\S+)/ ) {
 	$nse = $1;
 	$str = undef;
@@ -88,10 +89,10 @@ while(<S>) {
 }
 close S;
 foreach my $nse ( keys %seq ) {
-    print O ">$nse\n$seq{$nse}";
+    print O ">$nse\n$seq{$nse}\n";
 }
 $str =~ tr/\(\)/\<\>/;
-print O ">#=GC_SS_cons\n$str";
+print O ">#=GC_SS_cons\n$str\n";
 close O;
 
-system "sreformat -u -r --gapsym '.' --mingap stockholm $$.out.stk | sed 's/GC_SS_cons/GC SS_cons/g'" and die;
+system "sreformat -u -r --gapsym '.' --mingap stockholm $$.out.fa2 | sed 's/GC_SS_cons/GC SS_cons/g'" and die;
