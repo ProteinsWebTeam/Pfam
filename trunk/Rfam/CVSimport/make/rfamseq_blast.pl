@@ -151,6 +151,11 @@ foreach my $db ( @blastdb ) {
 		$end   = $end   + $length;
 		$start = 1 if( $start < 1 );
 		
+		my $strand = 1;
+		if( $hsp->strand('hit') ne $hsp->strand('query') ) {
+		    $strand = -1;
+		}
+
 		# Merge overlapping regions - because hsps are sorted by start 
 		# we only need to check if it overlaps with the last one
 		if( scalar(@se) and $start <= $se[ scalar(@se)-1 ]->{'end'} ) {	 
@@ -158,22 +163,22 @@ foreach my $db ( @blastdb ) {
 		    if( $end >= $se[ scalar(@se)-1 ]->{'end'} ) {
                         # extend the end
 			$se[ scalar(@se)-1 ]->{'end'} = $end;
-#			print STDERR "$id/$start-$end overlap\n";
+			print STDERR "$id/$start-$end overlap\n";
 		    }
 		    else {
 			# ignore
-#			print STDERR "$id/$start-$end unnecessary\n";
+			print STDERR "$id/$start-$end unnecessary\n";
 		    }
 		}
 		else {
-		    push( @se, { 'start' => $start, 'end' => $end } );
-#		    print STDERR "$id/$start-$end new\n";
+		    push( @se, { 'start' => $start, 'end' => $end, 'strand' => $strand } );
+		    print STDERR "$id/$start-$end new\n";
 		}
 	    }
 	    
 	    my $faout = Bio::SeqIO -> new( '-format' => 'Fasta' );
 	    foreach my $se ( @se ) {
-		my $seq = &get_seq( $id, $se->{'start'}, $se->{'end'} );
+		my $seq = &get_seq( $id, $se->{'start'}, $se->{'end'}, $se->{'strand'} );
 		$faout -> write_seq( $seq );
 	    }
 	}
@@ -184,9 +189,10 @@ foreach my $db ( @blastdb ) {
 
 sub get_seq {
     # fixes start < 1 and end > length
-    my $id    = shift;
-    my $start = shift;
-    my $end   = shift;
+    my $id     = shift;
+    my $start  = shift;
+    my $end    = shift;
+    my $strand = shift;
 
     my $seq = new Bio::Seq;
     eval {
@@ -204,7 +210,13 @@ sub get_seq {
         $end = $length;
     }
     my $truncseq = $seq -> trunc( $start, $end );
+    if( $strand < 0 ) {
+	$truncseq -> revcom();
+	$truncseq -> id( "$id/$end-$start" );
+    }
+    else {
+	$truncseq -> id( "$id/$start-$end" );
+    }
     $truncseq -> desc( "" );
-    $truncseq -> id( "$id/$start-$end" );
     return $truncseq;
 }

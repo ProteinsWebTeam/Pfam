@@ -1,20 +1,5 @@
 #!/usr/local/bin/perl -w
 
-BEGIN {
-    $rfam_mod_dir = 
-        (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
-    $pfam_mod_dir = 
-        (defined $ENV{'PFAM_MODULES_DIR'})
-            ?$ENV{'PFAM_MODULES_DIR'}:"/pfam/db/Pfam/scripts/Modules";
-    $bioperl_dir =
-        (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
-}
-
-use lib $rfam_mod_dir;
-use lib $pfam_mod_dir;
-use lib $bioperl_dir;
 use strict;
 use Getopt::Long;
 use IO::File;
@@ -25,13 +10,14 @@ use CMResults;
 
 use Bio::Tools::BPlite;
 
-my( $agp, $con, $search, @add, $clean, $outfile );
+my( $agp, $con, $search, @add, $clean, $outfile, $help );
 &GetOptions( "agp"     => \$agp,
 	     "con"     => \$con,
 	     "search"  => \$search,
 	     "add=s@"  => \@add,
 	     "clean=s" => \$clean,        # clean up a load of results files from previous run
 	     "o=s"     => \$outfile,
+	     "h"       => \$help,
 	     );
 
 my $file = shift;
@@ -46,21 +32,19 @@ Usage:  $0 [--agp|--con] [--search] [--add resultsfile] file
 EOF
 }
 
-if( not $agp and not $con ) {
-    &help();
-    exit(1);
-}
-
 if( $search and not $outfile ) {
     &help();
     print STDERR "You need to specify an outfile if you use the --search option\n";
     exit(1);
 }
 
-#my %ignoreacc = ( "AE008687" => 1,
-#		  "AE008689" => 1,
-#		  "AE008690" => 1,
-#		  );
+my %ignoreacc = (
+#		 "AE008687" => 1,
+#		 "AE008689" => 1,
+#		 "AE008690" => 1,
+#		 "BA000006" => 1,
+#		 "AE000521" => 1,
+		 );
 
 
 my %rfamseq;
@@ -72,77 +56,7 @@ while(<L>) {
 }
 close L;
 
-# if we need to do a cmblast step on some stuff which isn't
-# in rfamseq then we don't bother with this step the first 
-# time round
-my $res = new CMResults;
-unless( $search ) {
-    my $db = Rfam::default_db();
-    my @family_list = $db->get_allacc();
-    foreach my $rfacc ( @family_list ) {
-	my $rfid = $db->acc2id( $rfacc );
-	open( S, "$Rfam::current_dir/$rfacc/scores" ) or die;
-	while(<S>) {
-	    if( my( $score, $id, $start, $end ) = /^(\S+)\s+(\S+)\/(\d+)-(\d+)/ ) {
-		unless( $res -> getHMMSequence( $id ) ) {
-		    my $seq = new HMMSequence;
-		    $seq -> name( $id );
-		    $res -> addHMMSequence( $seq );
-		}
-		
-		my $unit = new HMMUnit;
-		$unit -> seqname( $id );
-		$unit -> hmmname( $rfid );
-		$unit -> hmmacc( $rfacc );
-		$unit -> start_seq( $start );
-		$unit -> end_seq( $end );
-		$unit -> bits( $score );
-		
-		$res -> addHMMUnit( $unit );
-	    }
-	}
-	close S;
-    }
-}
-
-if( $clean ) {
-    push( @add, glob("$clean.*.out") );
-}
-
-# read in the precalculated stuff
-foreach my $add ( @add ) {
-    open( A, $add ) or die;
-    while(<A>) {
-	if( my( $id, $ver, $st, $en, $start, $end, $rfacc, $bits, $rfid ) = 
-	    /(\S+)\.(\d+)\/(\d+)-(\d+)\s+(\d+)\s+(\d+)\s+(\S+)\s+\d+\s+\d+\s+(\S+)\s+(\S+)/ ) {
-
-	    $start = $st + $start - 1;
-	    $end   = $st + $end - 1;
-
-#	    print STDERR "$id/$start-$end\n" if( $id eq "AL360012" );
-
-	    $rfamseq{$id} = $ver;
-
-	    unless( $res -> getHMMSequence( $id ) ) {
-		my $seq = new HMMSequence;
-		$seq -> name( $id );
-		$res -> addHMMSequence( $seq );
-	    }
-
-	    my $unit = new HMMUnit;
-	    $unit -> seqname( $id );
-	    $unit -> hmmname( $rfid );
-	    $unit -> hmmacc( $rfacc );
-	    $unit -> start_seq( $start );
-	    $unit -> end_seq( $end );
-	    $unit -> bits( $bits );
-	    
-	    $res -> addHMMUnit( $unit );
-	}
-    }
-    close A;
-#    unlink $add if $clean;
-}
+my $rdb = Rfam::switchover_rdb();
 
 my %search;
 my $ignore;
@@ -153,6 +67,45 @@ if( $agp ) {
 }
 elsif( $con ) {
     $seqs = read_cons( \*E );
+}
+else {
+    my %seqs;
+    open( F, $file ) or die;
+    while(<F>) {
+	if( /^(\S+)\.(\d+)[\.\/](\d+)[\.\-](\d+)/ ) {
+#	    print "$1 $2 $3 $4\n";
+	    push( @{ $seqs{'UNKNOWN'}->{'list'} }, { 'id'      => $1,
+						     'ver'     => $2,
+						     'start'   => $3,
+						     'end'     => $4 } );
+	}
+    }
+    close F;
+    $seqs = \%seqs;
+}
+
+my %annseq;
+if( @add ) {
+    foreach my $file ( @add ) {
+	open( F, $file ) or die;
+	while(<F>) {
+	    if( my( $sv, $st, $en, $rfacc, $modst, $moden, $bits, $rfid ) =
+		/(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/ ) {
+		
+		unless( $annseq{$sv} ) {
+		    my $annseq = Rfam::AnnotatedSequence->new();
+		    $annseq{$sv} = $annseq;
+		}
+		$annseq{$sv}->addAnnotatedRegion( Rfam::RfamRegion->new( '-RFAM_ACCESSION' => $rfacc,
+									 '-RFAM_ID' => $rfid,
+									 '-SEQ_ID' => $sv,
+									 '-FROM' => $st,
+									 '-TO' => $en,
+									 '-BITS' => $bits )
+					     );
+	    }
+	}
+    }
 }
 
 foreach my $ctg ( keys %{$seqs} ) {
@@ -167,86 +120,59 @@ foreach my $ctg ( keys %{$seqs} ) {
     foreach my $seq ( @{ $seqs->{$ctg}->{'list'} } ) {
 	my( $id, $ver, $st, $en ) = ( $seq->{'id'}, $seq->{'ver'}, $seq->{'start'}, $seq->{'end'} );
 
-	if( not exists $rfamseq{$id} ) {
-	    print STDERR "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
-	    $search{ "$id\.$ver/$st-$en" } = 1 if $search;
-	    next;
-	}
-
-	if( $ver != $rfamseq{$id} ) {
-	    my( $st2, $en2 ) = &mapseq( $id, $ver, $st, $en );
-	    if( not $en2 ) {
-		print STDERR "$id\.$ver/$st-$en version mismatch\n" unless $clean;
-		$search{ "$id\.$ver/$st-$en" } = 1 if $search;
+	unless( @add ) {
+	    if( not exists $rfamseq{$id} ) {
+		print "$id\.$ver/$st-$en not found in rfamseq\n" unless $clean;
 		next;
 	    }
-	    ( $st, $en ) = ( $st2, $en2 );
-	}
 
-	if( not $search ) {
-	    print_hits( $id, $st, $en );
+	    if( $ver != $rfamseq{$id} ) {
+#	        my( $st2, $en2 ) = &mapseq( $id, $ver, $st, $en );
+#	        if( not $en2 ) {
+	    	print "$id\.$ver/$st-$en version mismatch\n" unless $clean;
+	    	next;
+#	        }
+#	        ( $st, $en ) = ( $st2, $en2 );
+	    }
 	}
+	print_hits( "$id.$ver", $st, $en );
     }
-    if( not $search ) {
-	print "\/\/\n";
-    }
+    print "\/\/\n";
 }
 
-if( $search ) {
-    my $jid = $$;
-    my $options;
-    if( $agp ) {
-	$options = "--agp";
-    }
-    elsif( $con ) {
-	$options = "--con";
-    }
-    if( my @search = keys %search ) {
-	my $j = @search;
-	for( my $i=1; $i<=@search; $i++ ) {
-	    my( $sv, $st, $en ) = $search[$i-1] =~ /(\S+)\/(\d+)-(\d+)/;
-	    my $fh = IO::File->new;
-	    my $pfopt = "-a";
-	  FETCH: {
-	      $fh -> open( "pfetch $pfopt $sv:$st-$en -n $sv/$st-$en|" );
-	      open( O, ">$jid.$i.fa" ) or die;
-	      while(<$fh>) {
-		  if( /no match/ ) {
-		      if( not $pfopt ) {
-			  warn "failed to get $sv/$st-$en from pfetch\n";
-			  last;
-		      }
-		      $pfopt = "";
-		      redo FETCH;
-		  }
-		  print O $_;
-	      }
-	      $fh -> close;
-	  }	    
-	}
-
-	system "echo 'cmblast.pl $jid.\$\{LSB_JOBINDEX\}.fa > $jid.\$\{LSB_JOBINDEX\}.out' | bsub -q pfam_slow -Rlinux -o $jid.\%I.err -Jrf$jid\"[1-$j]\"" and die; 
-
-	# the clever bit - run this script again after the array
-	# above has finished and clearing up after myself
-	system "bsub -q pfam_slow -Ralpha -w'done(rf$jid)' -o genome2rfam.err \"$0 --clean $jid $options $file > $outfile\"" and die;
-    }
-    else {
-	system "$0 $options $file > $outfile" and die;
-    }	
-}
 
 ########
 
 sub print_hits {
-    my( $seqid, $constart, $conend ) = @_;
-    if( my $seq = $res -> getHMMSequence( $seqid ) ) {
-#	print STDERR "SEQ $seqid/$constart-$conend\n";
-	foreach my $unit ( sort { $a->start_seq <=> $b->start_seq } $seq -> eachHMMUnit() ) {
-	    if( ($unit->start_seq >= $constart and $unit->end_seq >= $constart) and
-		($unit->start_seq <= $conend   and $unit->end_seq <= $conend) ) {
-#		print STDERR "  UNIT $seqid/$constart-$conend ", $unit->start_seq(), " ", $unit->end_seq(), "\n";
-		printf( "RF   %-26s %-10s %-16s %7s\n", $unit->seqname."/".$unit->start_seq."-".$unit->end_seq, $unit->hmmacc, $unit->hmmname, $unit->bits );
+    my( $sv, $constart, $conend ) = @_;
+#    print STDERR "getting $sv\n";
+    my( $seqid ) = $sv =~ /^(\S+)\.\d+/;
+    print "$sv\n";
+    my @annseqs;
+    if( $annseq{$sv} ) {
+	push( @annseqs, $annseq{$sv} );
+    }
+    else {
+      GET: {
+	  eval {
+	      @annseqs = $rdb -> get_AnnotSeqs( [$sv], ['full'] );
+#	      print "@annseqs\n";
+	  };
+	  if( $@ ) {
+	      sleep 2;
+	      redo GET;
+	  }
+      }
+    }
+
+    foreach my $annseq ( @annseqs ) {
+	foreach my $reg ( $annseq->eachAnnotatedRegion ) {
+	    if( $reg->from > $constart and 
+		$reg->from < $conend   and
+		$reg->to   > $constart and
+		$reg->to   < $conend ) {
+
+		printf( "RF   %-26s %-10s %-16s %7s\n", $reg->rfamseq_id()."/".$reg->from."-".$reg->to, $reg->accession, $reg->id, sprintf( "%.2f", $reg->bits_score ) );
 	    }
 	}
     }
