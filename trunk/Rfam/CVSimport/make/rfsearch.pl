@@ -74,7 +74,7 @@ my $buildopts;
 if( -s "DESC" ) {
     open( D, "DESC" ) or die "DESC exists but I can't open it";
     while( <D> ) {
-	/^BM\s+cmbuild\s+(.*)\s*$/ and do {
+	/^BM\s+cmbuild\s+(.*)\s+CM\s+SEED$/ and do {
 	    $buildopts = $1;
 	};
 	/^BM\s+cmsearch.*-local/ and do {
@@ -124,7 +124,7 @@ $bqueue     = "pfam_slow" unless $bqueue;
 
 my $fafile = "FA";
 
-#print "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED\n";
+print "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED\n";
 
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 unless( $nobuild ) {
@@ -219,10 +219,10 @@ while( @seqids ) {
 	    my $listref = $pfetchids[$p];
 	    next unless( @{$listref} );
 
-	    my $options = "";
+	    my $options = "-d embl";
 	    if( $p == (@pfetchids-1) ) {
 		# we're retreiving the version failures
-		$options .= "-a";
+		$options .= " -a";
 	    }
 
 	    my $str = join( ' ', @{$listref} );
@@ -299,8 +299,9 @@ $options .= "-W $window";
 
 $name = "cm$$" if( not $name );
 print STDERR "Queueing cmsearch jobs ...\n";
+mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
 my $fh = IO::File->new();
-$fh -> open( "| bsub -q $queue -Rlinux -o $$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
+$fh -> open( "| bsub -q $queue -Rlinux -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 $fh -> print( "lsrcp $phost:$pwd/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.minidb.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp $phost:$pwd/CM /tmp/$$.CM\n" );
@@ -420,7 +421,12 @@ sub update_desc {
     open( DESC, "DESC" ) or die;
     while(<DESC>) {
 	if( /^BM   cmbuild\s+/ ) {
-	    print DNEW "BM   cmbuild $buildopts CM SEED\n";
+	    if( $buildopts ) {
+		print DNEW "BM   cmbuild $buildopts CM SEED\n";
+	    }
+	    else {
+		print DNEW "BM   cmbuild CM SEED\n";
+	    }
 	    next;
 	}
 	if( /^BM   cmsearch\s+/ ) {
