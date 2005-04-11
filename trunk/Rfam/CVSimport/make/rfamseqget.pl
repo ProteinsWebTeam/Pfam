@@ -2,13 +2,13 @@
 
 use strict;
 use Getopt::Long;
+use Rfam;
 
 my( $a, $b );
 GetOptions( "a=s" => \$a,
 	    "b=s" => \$b );
 
-my $rfamseq = "/pfam/db/rfamseq/CURRENT/rfamseq.fa";
-
+my $rfamseq = $Rfam::rfamseq;
 my $name = shift;
 
 if( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
