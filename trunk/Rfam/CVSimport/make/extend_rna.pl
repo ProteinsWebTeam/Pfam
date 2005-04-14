@@ -47,7 +47,7 @@ my $aln = new Rfam::RfamAlign;
 open (ALIGNFILE, "$input");
 $aln->read_stockholm( \*ALIGNFILE );
 close ALIGNFILE;
-foreach my $seq ( sort{ $a->id cmp $b->id || $a->start <=> $b->start } $aln -> each_seq()){
+foreach my $seq ($aln -> each_seq()){
 $str_ali = $seq -> seq();
 my $acc = $seq->id;
 my $start = $seq->start;
