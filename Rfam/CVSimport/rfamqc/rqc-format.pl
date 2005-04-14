@@ -26,7 +26,8 @@ my %TP_hash = (
 		    'IRES' => 1,
 		    'riboswitch' => 1,
 		    'thermoregulator' => 1,
-		    'frameshift_element' => 1
+		    'frameshift_element' => 1,
+		    'leader' => 1
 		    }
 		);
 
