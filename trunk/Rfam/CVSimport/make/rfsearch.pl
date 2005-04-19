@@ -2,14 +2,12 @@
 
 # This is mostly pretty NFS friendly now.  Should run rfsearch itself on 
 # something with local storage, but the jobs all get sent off to blades
-# using nice socket things, pfetch etc.  Blast searches are still bad, 
-# but not sure how to fix at the moment.
+# using nice socket things, pfetch etc.  
 
 use strict;
 use Getopt::Long;
 use IO::File;
 
-use Bio::Index::Fasta;
 use Rfam;
 
 my( $quiet, 
@@ -66,9 +64,6 @@ if( $help or not -e "SEED" ) {
     exit(1);
 }
 
-#if( $bqueue ) {
-#    warn "The --bq option has been disabled for now - its use\nwill do more harm than good now!\n";
-#}
 
 my $buildopts;
 if( -s "DESC" ) {
@@ -112,6 +107,8 @@ if( -e "CMSEARCH_JOBS_COMPLETE" ) {
     unlink( "CMSEARCH_JOBS_COMPLETE" ) or die "can't remove file [CMSEARCH_JOBS_COMPLETE]\n";
 }
 
+&printlog( "" );
+&printlog( "Starting rfsearch" );
 
 # defaults
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
@@ -124,13 +121,10 @@ $bqueue     = "pfam_slow" unless $bqueue;
 
 my $fafile = "$$.fa";
 
-#print "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED\n";
-
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 unless( $nobuild ) {
-    print STDERR "building model ... ";
+    &printlog( "Building model" );
     system "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
-    print STDERR "done\n";
 }
 
 my $i = 0;
@@ -150,7 +144,7 @@ else {               # run over *.fa databases
 
 mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
 unless( $blast ) {
-    print STDERR "Queuing up blast jobs ...\n";
+    &printlog( "Queuing up blast jobs" );
     foreach my $blastdb ( @blastdb ) {
 	$blastdb =~ s/\.nhr$//g;
 	my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 8";
@@ -163,13 +157,12 @@ unless( $blast ) {
 	$fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
 	$fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
 	$fh -> print("$blastcmd > /tmp/$$.blastlist.$i\n");
-#	$fh -> print("rfamseq_blast.pl -e $blast_eval --db $blastdbdir2/$div -l /tmp/$fafile > /tmp/$$.blastlist.$i\n");
 	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
 	$fh -> print("rm -f /tmp/$$.blastlist.$i /tmp/$fafile\n");
 	$fh -> close;
     }
 
-    print STDERR "Waiting for blast jobs ...\n";
+    &printlog( "Waiting for blast jobs" );
     my $fh = new IO::File;
     $fh -> open("| bsub -I -q pfam_fast -w\'done(rf$$)\'") or die "$!";
     $fh -> print("echo \"blast jobs finished at:\" > /tmp/$$.berr\n");
@@ -179,7 +172,7 @@ unless( $blast ) {
     $fh -> close;
 }
 
-print STDERR "parsing blast list ... ";
+&printlog( "parsing blast list" );
 my $seqlist = {};
 if( $blast ) {
     $seqlist = &parse_list( $seqlist, "$blast" );
@@ -189,18 +182,13 @@ else {
 	$seqlist = &parse_list( $seqlist, "$$.blastlist.$j" );
     }
 }
-print STDERR "done\n";
 
-#exit(0);
-
-
-print STDERR "building mini database ... ";
+&printlog( "Building mini database" );
 my $numseqs = scalar( keys %{ $seqlist } );
 my $count = int( $numseqs/$cpus ) + 1;
 my $k = 0;
 my @seqids = keys %{ $seqlist };
 
-#open( T, ">tmp.sam" );
 
 while( @seqids ) {
     my @tmpids = splice( @seqids, 0, $count ); 
@@ -213,11 +201,6 @@ while( @seqids ) {
 	    push( @nses, "$seqid:$start-$end" );
 	}
     }
-
-#    foreach my $nse ( @nses ) {
-#	print "$nse\n";
-#    }
-
 
     $k++;
     my $nse_count = 100;
@@ -323,7 +306,6 @@ while( @seqids ) {
     }
     close FA;
 }
-print STDERR "done\n";
 undef( $seqlist );             # free up memory
 
 my $command = "/pfam/db/Rfam/bin/linux/cmsearch";
@@ -333,7 +315,9 @@ $options .= "-W $window";
 
 $name = "cm$$" if( not $name );
 system "cp CM $$.CM" and die;
-print STDERR "Queueing cmsearch jobs ...\n";
+
+&printlog( "Queueing cmsearch jobs" );
+
 my $fh = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
@@ -358,6 +342,22 @@ $fh -> close;
 
 
 ##############
+
+sub printlog {
+    my $m = join( '', @_ );
+    my $time = `date`;
+    chomp $time;
+    open( LOG, ">>rfsearch.log" ) or die;
+    if( $m ) {
+        printf LOG "%-35s [%s]\n", $m, $time;
+        printf STDERR "%-35s [%s]\n", $m, $time;
+    }
+    else {
+        print LOG "\n";
+    }
+    close LOG;
+}
+
 
 sub parse_list {
     my $list       = shift;
