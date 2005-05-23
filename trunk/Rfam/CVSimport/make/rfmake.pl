@@ -81,7 +81,7 @@ if( $list ) {
     my @allnames = map{ $_->seqname } @goodhits;
     while( scalar @allnames ) {
 	my $string = join( " ", splice( @allnames, 0, $chunksize ) );
-	open( P, "pfetch -d embl -D $string |" ) or die;
+	open( P, "pfetch -a -d embl -D $string |" ) or die;
 	while( <P> ) {
 	    if( /^\S+\s+(\S+)\.\d+\s+(.{1,$desclength})/ ) {
 		$desc{$1} = $2;
