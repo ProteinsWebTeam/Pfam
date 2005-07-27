@@ -23,7 +23,7 @@ my $blast_eval = 10;
 my $window     = 100;
 my $cpus       = 20;
 my $queue      = 'long -m bc_hosts';
-my $bqueue     = "long -R 'select[largedata]'";
+my $bqueue     = 'long -m bc_hosts';
 my $queue2     = 'normal';
 
 sub help {
