@@ -12,18 +12,19 @@ use Rfam;
 
 my( $quiet, 
     $nobuild, 
-    $queue, 
-    $bqueue,
-    $window,
-    $blast_eval,
     $local,
     $global,
     $name,
-    $cpus,
     $blast,
     $help,
     $update );
 
+my $blast_eval = 10;
+my $window     = 100;
+my $cpus       = 20;
+my $queue      = 'long -m bc_hosts';
+my $bqueue     = "long -R 'select[largedata]'";
+my $queue2     = 'normal';
 
 sub help {
     print STDERR <<EOF;
@@ -113,11 +114,6 @@ if( -e "CMSEARCH_JOBS_COMPLETE" ) {
 # defaults
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
 my $blastdbdir2 = "/data/blastdb/Rfam/Large";  # but run things from here
-$blast_eval = 10  unless $blast_eval;
-$window     = 100 unless $window;
-$cpus       = 20  unless $cpus;
-$queue      = "pfam_slow" unless $queue;
-$bqueue     = "pfam_slow" unless $bqueue;
 
 my $fafile = "$$.fa";
 
@@ -152,7 +148,7 @@ unless( $blast ) {
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	my $fh = new IO::File;
-	$fh -> open("| bsub -q $bqueue -R 'select[largedata]' -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$$/$$.berr.\%J") or die "$!";
+	$fh -> open("| bsub -q $bqueue -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$$/$$.berr.\%J") or die "$!";
 	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
 	$fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
 	$fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
@@ -164,7 +160,7 @@ unless( $blast ) {
 
     &printlog( "Waiting for blast jobs" );
     my $fh = new IO::File;
-    $fh -> open("| bsub -I -q pfam_fast -w\'done(rf$$)\'") or die "$!";
+    $fh -> open("| bsub -I $queue2 -w\'done(rf$$)\'") or die "$!";
     $fh -> print("echo \"blast jobs finished at:\" > /tmp/$$.berr\n");
     $fh -> print("date >> /tmp/$$.berr\n");
     $fh -> print("lsrcp /tmp/$$.berr $phost:$pwd/$$.berr\n");
@@ -321,7 +317,7 @@ system "cp CM $$.CM" and die;
 my $fh = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
-$fh -> open( "| bsub -q $queue -m bc_hosts -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $phost $pwd $$.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
+$fh -> open( "| bsub -q $queue -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $phost $pwd $$.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 $fh -> print( "$command $options /tmp/$$.CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
@@ -331,7 +327,7 @@ $fh -> close;
 
 # send something to clean up
 $fh = new IO::File;
-$fh -> open("| bsub -q pfam_fast -w\'done($name)\'") or die "$!";
+$fh -> open("| bsub -q $queue2 -w\'done($name)\'") or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
 $fh -> print("date >> /tmp/$$.cmerr\n");
 $fh -> print("lsrcp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n");
