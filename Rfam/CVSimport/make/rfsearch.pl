@@ -160,7 +160,7 @@ unless( $blast ) {
 
     &printlog( "Waiting for blast jobs" );
     my $fh = new IO::File;
-    $fh -> open("| bsub -I $queue2 -w\'done(rf$$)\'") or die "$!";
+    $fh -> open("| bsub -I -q $queue2 -w\'done(rf$$)\'") or die "$!";
     $fh -> print("echo \"blast jobs finished at:\" > /tmp/$$.berr\n");
     $fh -> print("date >> /tmp/$$.berr\n");
     $fh -> print("lsrcp /tmp/$$.berr $phost:$pwd/$$.berr\n");
