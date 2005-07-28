@@ -138,7 +138,10 @@ else {               # run over *.fa databases
     @blastdb = glob( "$blastdbdir/*.fa.nhr" );
 }    
 
+# make sure writable by group
+umask(002);
 mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
+
 unless( $blast ) {
     &printlog( "Queuing up blast jobs" );
     foreach my $blastdb ( @blastdb ) {
