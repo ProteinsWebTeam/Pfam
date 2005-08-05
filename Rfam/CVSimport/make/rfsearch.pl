@@ -140,7 +140,7 @@ else {               # run over *.fa databases
 
 # make sure writable by group
 umask(002);
-mkdir( "/pfam/db/Rfam/tmp/log/$$", 0755 );
+mkdir( "/pfam/db/Rfam/tmp/log/$$", 0775 );
 
 unless( $blast ) {
     &printlog( "Queuing up blast jobs" );
