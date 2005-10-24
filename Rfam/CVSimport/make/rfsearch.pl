@@ -113,7 +113,7 @@ if( -e "CMSEARCH_JOBS_COMPLETE" ) {
 
 # defaults
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
-my $blastdbdir2 = "/data/blastdb/Rfam/Large";  # but run things from here
+my $blastdbdir2 = "/data/blastdb/Rfam/rfamseq";  # but run things from here
 
 my $fafile = "$$.fa";
 
@@ -146,7 +146,11 @@ unless( $blast ) {
     &printlog( "Queuing up blast jobs" );
     foreach my $blastdb ( @blastdb ) {
 	$blastdb =~ s/\.nhr$//g;
+	$blastdb =~ s/$blastdbdir/$blastdbdir2/g;
 	my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 8";
+
+#	print "$blastcmd\n";
+#	next;
 
 	$i ++;
 	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
