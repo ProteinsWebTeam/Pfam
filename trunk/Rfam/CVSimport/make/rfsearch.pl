@@ -123,7 +123,7 @@ unless( $nobuild ) {
     system "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
 }
 
-my $i = 0;
+#my $i = 0;
 my $pwd   = `pwd`;
 my $phost = `uname -n`;
 chomp $pwd;
@@ -141,39 +141,58 @@ else {               # run over *.fa databases
 # make sure writable by group
 umask(002);
 mkdir( "/pfam/db/Rfam/tmp/log/$$", 0775 );
+my @index = ( 1..scalar(@blastdb) );
+my $round = 0;
 
-unless( $blast ) {
-    &printlog( "Queuing up blast jobs" );
-    foreach my $blastdb ( @blastdb ) {
-	$blastdb =~ s/\.nhr$//g;
-	$blastdb =~ s/$blastdbdir/$blastdbdir2/g;
-	my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 8";
+ BLAST: {
+     unless( $blast ) {
+	 &printlog( "Queuing up blast jobs [round ".(++$round)."]" );
+	 foreach my $i ( @index ) {
+	     my $blastdb = $blastdb[$i-1];
+	     $blastdb =~ s/\.nhr$//g;
+	     $blastdb =~ s/$blastdbdir/$blastdbdir2/g;
+	     my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 9";
+	     
+	     my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
+	     my $fh = new IO::File;
+	     $fh -> open("| bsub -q $bqueue -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$$/$$.berr.$i") or die "$!";
+	     $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
+	     $fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
+	     $fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
+	     $fh -> print("$blastcmd > /tmp/$$.blastlist.$i\n");
+	     $fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
+	     $fh -> print("rm -f /tmp/$$.blastlist.$i /tmp/$fafile\n");
+	     $fh -> close;
+	 }
+	 
+	 &printlog( "Waiting for blast jobs" );
+	 my $fh = new IO::File;
+	 $fh -> open("| bsub -I -q $queue2 -w\'done(rf$$)\'") or die "$!";
+	 $fh -> print("echo \"blast jobs finished at:\" > /tmp/$$.berr\n");
+	 $fh -> print("date >> /tmp/$$.berr\n");
+	 $fh -> print("lsrcp /tmp/$$.berr $phost:$pwd/$$.berr\n");
+	 $fh -> print("rm -f /tmp/$$.berr\n");
+	 $fh -> close;
+     }
 
-#	print "$blastcmd\n";
-#	next;
+     &printlog( "checking blast result integrity" );
+     my @rerun;
+     foreach my $i ( @index ) {
+	 if( !-s "$$.blastlist.$i" ) {
+	     &printlog( "Zero size output [$$.blastlist.$i] -- rerun blast search." );
+	     push( @rerun, $i );
+	 }
+     }
+     if( @rerun ) {
+	 if( $round > 3 ) {
+	     &printlog( "Maximum number of Blast failures -- dieing" );
+	     die;
+	 }
+	 @index = @rerun;
+	 redo BLAST;
+     }
+ }
 
-	$i ++;
-	my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
-	my $fh = new IO::File;
-	$fh -> open("| bsub -q $bqueue -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$$/$$.berr.\%J") or die "$!";
-	$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
-	$fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
-	$fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
-	$fh -> print("$blastcmd > /tmp/$$.blastlist.$i\n");
-	$fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
-	$fh -> print("rm -f /tmp/$$.blastlist.$i /tmp/$fafile\n");
-	$fh -> close;
-    }
-
-    &printlog( "Waiting for blast jobs" );
-    my $fh = new IO::File;
-    $fh -> open("| bsub -I -q $queue2 -w\'done(rf$$)\'") or die "$!";
-    $fh -> print("echo \"blast jobs finished at:\" > /tmp/$$.berr\n");
-    $fh -> print("date >> /tmp/$$.berr\n");
-    $fh -> print("lsrcp /tmp/$$.berr $phost:$pwd/$$.berr\n");
-    $fh -> print("rm -f /tmp/$$.berr\n");
-    $fh -> close;
-}
 
 &printlog( "parsing blast list" );
 my $seqlist = {};
@@ -181,8 +200,8 @@ if( $blast ) {
     $seqlist = &parse_list( $seqlist, "$blast" );
 }
 else {
-    for( my $j=1; $j<=$i; $j++ ) {
-	$seqlist = &parse_list( $seqlist, "$$.blastlist.$j" );
+    for( my $i=1; $i <= scalar(@blastdb); $i++ ) {
+	$seqlist = &parse_list( $seqlist, "$$.blastlist.$i" );
     }
 }
 
@@ -367,6 +386,7 @@ sub parse_list {
     my $blastfile  = shift;
     open( BL, $blastfile ) or die;
     while( <BL> ) {
+	next if( /^\#/ );
 	my( $name, $start, $end );
 	if( /^\S+\s+(\S+)\s+\S+\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+)\s+(\d+)\s+/ ) {
 	    $name = $1;
