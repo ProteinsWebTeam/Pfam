@@ -71,6 +71,8 @@ sub parse_infernal {
     while( <$file> ) {
 	chomp;
 	next if( /^\#/ );
+	next if( /^\*\*\*/ );
+	next if( /^alignment strategy:/ );
 	next if( /CPU time:\s+/ or /memory:\s+/ );
 	next if( /^\s*$/ );
 	next if( /^\s+-\s+-\s*$/ );
