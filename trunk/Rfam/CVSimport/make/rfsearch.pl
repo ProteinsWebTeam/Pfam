@@ -153,54 +153,58 @@ mkdir( "/pfam/db/Rfam/tmp/log/$$", 0775 );
 my @index = ( 1..scalar(@blastdb) );
 my $round = 0;
 
-unless( $minidb or $blast ) {
+unless( $minidb ) {
   BLAST: {
-      &printlog( "Queuing up blast jobs [round ".(++$round)."]" );
-	 foreach my $i ( @index ) {
-	     my $blastdb = $blastdb[$i-1];
-	     $blastdb =~ s/\.nhr$//g;
-	     $blastdb =~ s/$blastdbdir/$blastdbdir2/g;
-	     my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 9";
-	     
-	     my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
-	     my $fh = new IO::File;
-	     $fh -> open("| bsub -q $bqueue -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$$/$$.berr.$i") or die "$!";
-	     $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
-	     $fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
-	     $fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
-	     $fh -> print("$blastcmd > /tmp/$$.blastlist.$i\n");
-	     $fh -> print("lsrcp /tmp/$$.blastlist.$i $phost:$pwd/$$.blastlist.$i\n");
-	     $fh -> print("rm -f /tmp/$$.blastlist.$i /tmp/$fafile\n");
-	     $fh -> close;
-	 }
-	 
-	 &printlog( "Waiting for blast jobs" );
-	 my $fh = new IO::File;
-	 $fh -> open("| bsub -I -q $queue2 -w\'done(rf$$)\'") or die "$!";
-	 $fh -> print("echo \"blast jobs finished at:\" > /tmp/$$.berr\n");
-	 $fh -> print("date >> /tmp/$$.berr\n");
-	 $fh -> print("lsrcp /tmp/$$.berr $phost:$pwd/$$.berr\n");
-	 $fh -> print("rm -f /tmp/$$.berr\n");
-	 $fh -> close;
-     }
+      if( $round or !$blast ) {
+	  &printlog( "Queuing up blast jobs [round ".$round."]" );
+	  $blast = $$ if( !$blast );
+	  foreach my $i ( @index ) {
+	      my $blastdb = $blastdb[$i-1];
+	      $blastdb =~ s/\.nhr$//g;
+	      $blastdb =~ s/$blastdbdir/$blastdbdir2/g;
+	      my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 9";
+	  
+	      my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
+	      my $fh = new IO::File;
+	      $fh -> open("| bsub -q $bqueue -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$blast/$blast.berr.$i") or die "$!";
+	      $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
+	      $fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
+	      $fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
+	      $fh -> print("$blastcmd > /tmp/$blast.blastlist.$i\n");
+	      $fh -> print("lsrcp /tmp/$blast.blastlist.$i $phost:$pwd/$blast.blastlist.$i\n");
+	      $fh -> print("rm -f /tmp/$blast.blastlist.$i /tmp/$fafile\n");
+	      $fh -> close;
+	  }
+      
+	  &printlog( "Waiting for blast jobs" );
+	  my $fh = new IO::File;
+	  $fh -> open("| bsub -I -q $queue2 -w\'done(rf$blast)\'") or die "$!";
+	  $fh -> print("echo \"blast jobs finished at:\" > /tmp/$blast.berr\n");
+	  $fh -> print("date >> /tmp/$blast.berr\n");
+	  $fh -> print("lsrcp /tmp/$blast.berr $phost:$pwd/$blast.berr\n");
+	  $fh -> print("rm -f /tmp/$blast.berr\n");
+	  $fh -> close;
+      }
 
-     &printlog( "checking blast result integrity" );
-     my @rerun;
-     foreach my $i ( @index ) {
-	 if( !-s "$$.blastlist.$i" ) {
-	     &printlog( "Zero size output [$$.blastlist.$i] -- rerun blast search." );
-	     push( @rerun, $i );
-	 }
-     }
-     if( @rerun ) {
-	 if( $round > 3 ) {
-	     &printlog( "FATAL: Maximum number of Blast failures" );
-	     die;
-	 }
-	 @index = @rerun;
-	 redo BLAST;
-     }
- }
+      &printlog( "checking blast result integrity" );
+      my @rerun;
+      foreach my $i ( @index ) {
+	  if( !-s "$blast.blastlist.$i" ) {
+	      &printlog( "Zero size output [$blast.blastlist.$i] -- rerun blast search." );
+	      push( @rerun, $i );
+	  }
+      }
+      if( @rerun ) {
+	  $round ++;
+	  if( $round > 3 ) {
+	      &printlog( "FATAL: Maximum number of Blast failures" );
+	      die;
+	  }
+	  @index = @rerun;
+	  redo BLAST;
+      }
+  }
+}
 
 
 my $k = 0;  # number of minidb files
@@ -217,14 +221,14 @@ else {
     &printlog( "parsing blast list" );
     $minidb = $$;
     my $seqlist = {};
-    if( $blast ) {
-	$seqlist = &parse_list( $seqlist, "$blast" );
-    }
-    else {
+#    if( $blast ) {
+#	$seqlist = &parse_list( $seqlist, "$blast" );
+#    }
+#    else {
 	for( my $i=1; $i <= scalar(@blastdb); $i++ ) {
-	    $seqlist = &parse_list( $seqlist, "$$.blastlist.$i" );
+	    $seqlist = &parse_list( $seqlist, "$blast.blastlist.$i" );
 	}
-    }
+#    }
 
     &printlog( "Building mini database" );
     my $numseqs = scalar( keys %{ $seqlist } );
