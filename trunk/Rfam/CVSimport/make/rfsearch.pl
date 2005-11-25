@@ -17,10 +17,12 @@ my( $quiet,
     $name,
     $blast,
     $help,
-    $update );
+    $update,
+    $minidb,
+    );
 
 my $blast_eval = 10;
-my $window     = 100;
+my $window;#     = 100;  # bad bad
 my $cpus       = 20;
 my $queue      = 'long -m bc_hosts';
 my $bqueue     = 'long -m bc_hosts';
@@ -57,6 +59,7 @@ EOF
 	     "nobuild"  => \$nobuild,
 	     "name=s"   => \$name,
 	     "blast=s"  => \$blast,
+	     "minidb=s" => \$minidb,
 	     "update"   => \$update,
 	     "h"        => \$help );
 
@@ -76,17 +79,23 @@ if( -s "DESC" ) {
 	/^BM\s+cmsearch.*-local/ and do {
 	    unless( $global ) {
 		$local = 1;
-		warn "Using --local mode as specified in DESC file\n";
+		&printlog( "Using --local mode as specified in DESC file" );
 	    }
 	};
 	/^BM\s+cmsearch.*-W\s+(\d+)/ and do {
 	    unless( $window ) {
 		$window = $1;
-		warn "No window size specified - using $window from DESC file\n";
+		&printlog( "WARN: Using window [$window] from DESC file" );
 	    }
 	};
     }
 }
+
+if( !$window ) {
+    $window = 200;
+    &printlog( "WARN: Using default window [$window]" );
+}
+
 
 $buildopts = "" unless $buildopts;
 open( S, "SEED" ) or die;
@@ -144,9 +153,9 @@ mkdir( "/pfam/db/Rfam/tmp/log/$$", 0775 );
 my @index = ( 1..scalar(@blastdb) );
 my $round = 0;
 
- BLAST: {
-     unless( $blast ) {
-	 &printlog( "Queuing up blast jobs [round ".(++$round)."]" );
+unless( $minidb or $blast ) {
+  BLAST: {
+      &printlog( "Queuing up blast jobs [round ".(++$round)."]" );
 	 foreach my $i ( @index ) {
 	     my $blastdb = $blastdb[$i-1];
 	     $blastdb =~ s/\.nhr$//g;
@@ -185,7 +194,7 @@ my $round = 0;
      }
      if( @rerun ) {
 	 if( $round > 3 ) {
-	     &printlog( "Maximum number of Blast failures -- dieing" );
+	     &printlog( "FATAL: Maximum number of Blast failures" );
 	     die;
 	 }
 	 @index = @rerun;
@@ -194,141 +203,75 @@ my $round = 0;
  }
 
 
-&printlog( "parsing blast list" );
-my $seqlist = {};
-if( $blast ) {
-    $seqlist = &parse_list( $seqlist, "$blast" );
+my $k = 0;  # number of minidb files
+if( $minidb ) {
+    if( my @t = glob( "$minidb.minidb.*" ) ) {
+	$k = @t;
+    }
+    else {
+	&printlog( "FATAL: no minidb files [$minidb.minidb.*]" );
+	die;
+    }
 }
 else {
-    for( my $i=1; $i <= scalar(@blastdb); $i++ ) {
-	$seqlist = &parse_list( $seqlist, "$$.blastlist.$i" );
+    &printlog( "parsing blast list" );
+    $minidb = $$;
+    my $seqlist = {};
+    if( $blast ) {
+	$seqlist = &parse_list( $seqlist, "$blast" );
     }
-}
-
-&printlog( "Building mini database" );
-my $numseqs = scalar( keys %{ $seqlist } );
-my $count = int( $numseqs/$cpus ) + 1;
-my $k = 0;
-my @seqids = keys %{ $seqlist };
-
-
-while( @seqids ) {
-    my @tmpids = splice( @seqids, 0, $count ); 
-    my @nses;
-
-    foreach my $seqid ( @tmpids ) {
-        foreach my $reg ( @{ $seqlist->{$seqid} } ) {
-	    # this is a bit complex just to get an array of nses
-	    my( $start, $end ) = ( $reg->{'start'}, $reg->{'end'} );
-	    push( @nses, "$seqid:$start-$end" );
+    else {
+	for( my $i=1; $i <= scalar(@blastdb); $i++ ) {
+	    $seqlist = &parse_list( $seqlist, "$$.blastlist.$i" );
 	}
     }
 
-    $k++;
-    my $nse_count = 100;
-    my $seen_count = 0;
-
-    open( FA, "> $$.minidb.$k" ) or die;
-    while( @nses ) {
-#	my @pfetchids = ( [ splice( @nses, 0, $nse_count ) ],    # first round of fetches
-#			  [],                                    # end > length failures
-#			  [] );                                  # version failures
+    &printlog( "Building mini database" );
+    my $numseqs = scalar( keys %{ $seqlist } );
+    my $count = int( $numseqs/$cpus ) + 1;
+    my @seqids = keys %{ $seqlist };
 
 
-# replace pfetch code with an xdget for now
-#####
-	my $nse = pop( @nses );
-#	print "$nse\n";
-	my( $n, $s, $e ) = $nse =~ /(\S+)\:(\d+)-(\d+)/;
-	my $fh = IO::File->new();
-	$fh -> open( "xdget -n -a $s -b $e /pfam/db/rfamseq/CURRENT/rfamseq.fa $n |" ) or die "\nFATAL:pfetch failure\n";
-	while(<$fh>) {
-	    if( /^\>/ ) {
-		print FA ">$n/$s-$e\n";
-	    }
-	    else {
-		print FA $_;
+    while( @seqids ) {
+	my @tmpids = splice( @seqids, 0, $count ); 
+	my @nses;
+
+	foreach my $seqid ( @tmpids ) {
+	    foreach my $reg ( @{ $seqlist->{$seqid} } ) {
+		# this is a bit complex just to get an array of nses
+		my( $start, $end ) = ( $reg->{'start'}, $reg->{'end'} );
+		push( @nses, "$seqid:$start-$end" );
 	    }
 	}
-	$fh -> close or die "\nFATAL:pfetch failure\n";
-	$seen_count ++;
 
-#####
+	$k++;
+	my $nse_count = 100;
+	my $seen_count = 0;
+	
+	open( FA, "> $minidb.minidb.$k" ) or die;
+	while( @nses ) {
+	    # replace pfetch with xdget -- find old revisions to
+	    # see pfetch code
+	    my $nse = pop( @nses );
+	    my( $n, $s, $e ) = $nse =~ /(\S+)\:(\d+)-(\d+)/;
+	    my $fh = IO::File->new();
+	    $fh -> open( "xdget -n -a $s -b $e /pfam/db/rfamseq/CURRENT/rfamseq.fa $n |" ) or die "\nFATAL:pfetch failure\n";
+	    while(<$fh>) {
+		if( /^\>/ ) {
+		    print FA ">$n/$s-$e\n";
+		}
+		else {
+		    print FA $_;
+		}
+	    }
+	    $fh -> close or die "\nFATAL:pfetch failure\n";
+	    $seen_count ++;
 
-#	for( my $p=0; $p<@pfetchids; $p++ ) {
-#	    my $listref = $pfetchids[$p];
-#	    next unless( @{$listref} );
-
-#	    my $options = "-d embl";
-#	    if( $p == (@pfetchids-1) ) {
-		# we're retreiving the version failures
-#		$options .= " -a";
-#	    }
-
-#	    my $str = join( ' ', @{$listref} );
-#	    my $fh = IO::File->new();
-#	    $fh -> open( "pfetch $options $str |" ) or die "\nFATAL:pfetch failure\n";
-
-#	    my $i = 0;
-#	    my( $endmismatch );
-
-#	    while(<$fh>) {
-#		if( my( $pfetchid ) = /^\>\S+\s+(\S+)/ ) {
-#		    my $nse = $listref->[$i];
-#		    $nse =~ s/:/\//g;
-#		    my( $tmpid ) = $nse =~ /(\S+\.\d+)\/\d+-\d+/;
-#		    if( $pfetchid ne $tmpid ) {
-			# catch stupid problems
-#			die "\nFATAL: pfetch id problem - [$nse] mismatch [$pfetchid]\nReport this!\n";
-#		    }
-#		    print FA ">$nse\n";
-#		    $i ++;
-#		    $seen_count ++;
-#		    $endmismatch = 0;
-#		}
-#		elsif( my( $end ) = /end is greater than sequence length.*?(\d+)/ ) {
-#		    my $nse = $listref->[$i];
-#		    if( $p == 1 ) {
-			# this has failed before, something wrong
-#			die "\nFATAL: failed to pfetch [$nse]\n";
-#		    }
-#		    my( $tmp ) = $nse =~ /(\S+\.\d+\:\d+-)\d+/;
-#		    push( @{$pfetchids[1]}, "$tmp$end" );
-#		    $i++;
-#		    $endmismatch = 1;
-#		}
-#		elsif( /no match/ ) {
-#		    if( $endmismatch ) {
-			# we've already dealt with this sequence
-#			$endmismatch = 0;
-#		    }
-#		    else {
-#			my $nse = $listref->[$i];
-#			if( $p == 2 ) {
-			    # this has failed before, something wrong
-#			    die "\nFATAL: failed to pfetch [$nse]\n";
-#			}
-#			push( @{$pfetchids[2]}, $listref->[$i] );
-#			$i++;
-#		    }
-#		}
-#		else {
-#		    print FA "$_";
-#		}
-#	    }
-
-#	    $fh -> close or die "\nFATAL: pfetch failure\n";;
-#	}
-
-#	warn "INFO: seen $seen_count sequences\n";
-#	if( $seen_count != $nse_count ) {
-#	    die "FATAL: failed to pfetch some sequences\n";
-#	}
-
+	}
+	close FA;
     }
-    close FA;
+    undef( $seqlist );             # free up memory
 }
-undef( $seqlist );             # free up memory
 
 my $command = "/pfam/db/Rfam/bin/linux/cmsearch";
 my $options = "";
@@ -343,11 +286,11 @@ system "cp CM $$.CM" and die;
 my $fh = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
-$fh -> open( "| bsub -q $queue -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $phost $pwd $$.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
+$fh -> open( "| bsub -q $queue -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $phost $pwd $minidb.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
-$fh -> print( "$command $options /tmp/$$.CM /tmp/$$.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "$command $options /tmp/$$.CM /tmp/$minidb.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "rm -f /tmp/$$.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} /tmp/$$.CM\n" );
+$fh -> print( "rm -f /tmp/$minidb.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} /tmp/$$.CM\n" );
 $fh -> close;
 
 
@@ -371,8 +314,8 @@ sub printlog {
     chomp $time;
     open( LOG, ">>rfsearch.log" ) or die;
     if( $m ) {
-        printf LOG "%-35s [%s]\n", $m, $time;
-        printf STDERR "%-35s [%s]\n", $m, $time;
+        printf LOG "%-40s [%s]\n", $m, $time;
+        printf STDERR "%-40s [%s]\n", $m, $time;
     }
     else {
         print LOG "\n";
