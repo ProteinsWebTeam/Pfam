@@ -142,7 +142,7 @@ sub db {
 sub options {
 
   my ($self, $options) = @_;
-  if ($options) {
+  if (defined $options) {
       $self->{'_options'} = $options;
   }
   return $self->{'_options'};  
