@@ -1,0 +1,94 @@
+
+[% server = constants.server %]
+[% root = constants.root %]
+
+<title>Pfam: [% title %]</title>
+
+<!-- ====================================================================== -->
+<!-- JT 20051020 WTSI -->
+
+<script type="text/javascript" src="[% server %][% root %]/pfam.js"></script>
+
+<!-- make the site RSS feed discoverable --> 
+<link href="http://www.sanger.ac.uk/Software/Pfam/rss/pfam_rss_feed.rdf" 
+      rel="alternate"
+      type="application/rss+xml"
+      title="Pfam News" />
+
+<!-- ====================================================================== -->
+<!-- JT 20051129 WTSI -->
+
+<!-- javascript for sortable tables -->
+<script type="text/javascript"
+        src="[% server %][% root %]/sortabletable.js">
+  <!-- see http://webfx.eae.net/dhtml/sortabletable/sortabletable.html -->
+</script>
+
+<!-- ====================================================================== -->
+<!-- Sanger menus... -->
+
+<!-- <link rel="stylesheet" href="[% server %]/css/wtsi.css" type="text/css" /> -->
+
+<link rel="stylesheet" href="[% server %]/css/menus/jimmac.css" type="text/css" />
+<script type="text/javascript" src="[% server %]/js/menus/jimmac.js"></script>
+<script type="text/javascript">
+  new ypSlideOutMenu("menu2","down",273,16,100,125)
+  new ypSlideOutMenu("menu3","down",373,16,100,100)
+  new ypSlideOutMenu("menu4","down",473,16,100,50)
+  new ypSlideOutMenu("menu5","down",573,16,100,50)
+  new ypSlideOutMenu("menu6","down",673,16,100,600)
+</script>
+
+<!-- ====================================================================== -->
+<!-- Pfam specific CSS -->
+
+<link rel="stylesheet" href="/static/css/pfam.css" type="text/css" />
+
+<!-- ====================================================================== -->
+<!-- TT-specific CSS -->
+
+<link rel="stylesheet" href="/static/css/[% style %].css" type="text/css" />
+	
+<!--[if IE]>
+<link rel="stylesheet" href="/static/css/[% style %]_ie.css" type="text/css" />
+<![endif]-->
+
+<!-- ====================================================================== -->
+<!-- dnd stylesheet -->
+
+<link type="text/css" href="/static/css/dnd.css" rel="stylesheet"></link>
+
+<!-- ====================================================================== -->
+<!-- YAHOO modules -->
+
+<!-- Namespace source file -->
+<script type="text/javascript" src="/static/javascripts/YAHOO.js" ></script>
+
+<!-- Dependency source files -->
+<script type="text/javascript" src="/static/javascripts/dom.js" ></script>
+<script type="text/javascript" src="/static/javascripts/event.js" ></script>
+
+<!-- Drag and Drop source file -->
+<script type="text/javascript" src="/static/javascripts/dragdrop.js" ></script>  
+
+<!-- Animation source file -->
+<script type="text/javascript" src="/static/javascripts/animation.js" ></script>  
+
+<!-- Connection Manager source file -->
+<script type="text/javascript" src="/static/javascripts/connection.js"></script>
+
+<!-- Logger -->
+<script type="text/javascript" src="/static/javascripts/log.js"></script>
+
+<!-- ====================================================================== -->
+<!-- JSON handling -->
+
+<script type="text/javascript" src="/static/javascripts/json.js"></script>
+
+<!-- ====================================================================== -->
+<!-- my code -->
+
+<script type="text/javascript" src="/static/javascripts/IdGenerator.js"></script>
+<script type="text/javascript" src="/static/javascripts/Draggable.js"></script>
+<script type="text/javascript" src="/static/javascripts/dnd.js"></script>
+	

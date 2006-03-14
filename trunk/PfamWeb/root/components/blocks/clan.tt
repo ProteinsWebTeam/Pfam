@@ -1,0 +1,18 @@
+
+[%# requires a pfam object called "clans" %]
+
+<!-- start pfam block -->
+
+<div class="block" id="clanBlock">
+  <div class="handle">
+    <h1>Pfam Clans</h1>
+  </div>
+  <div class="blockContent[% IF NOT open %] closed[% END %]">
+	<p>acc = <a href=/clans/summary/[% pfam.clan_acc %]>[% pfam.clan_acc %]</a></p>
+	<p>id  = [% pfam.clan_id %]</p>
+	<p>description  = [% pfam.clan_description %]</p>
+	<!--<p>comment  = [% pfam.comment %]</p>-->
+  </div>
+</div>
+
+<!-- end pfam block -->

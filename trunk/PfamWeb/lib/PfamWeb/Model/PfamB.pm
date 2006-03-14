@@ -1,0 +1,33 @@
+package PfamWeb::Model::PfamB;
+
+use strict;
+use warnings;
+
+use base "PfamWeb::Model::BaseModel";
+
+__PACKAGE__->load_components( qw/Core/ );
+
+#Set up the table
+__PACKAGE__->table( "pfamB" );
+
+#Get the columns that we want to keep
+__PACKAGE__->add_columns( qw/auto_pfamB pfamB_acc pfamB_id/);
+
+#Now set up the primary keys/contraints
+__PACKAGE__->set_primary_key("auto_pfamB", "pfamB_acc");
+
+#Now setup the relationship 
+
+#PfamB joins are to pfamB_reg, pdbmap & pfamB_stockholm 
+
+__PACKAGE__->has_many( "pfamb_reg" =>  "PfamWeb::Model::PfamB_reg",
+		      { "foreign.auto_pfamB"  => "self.auto_pfamB" });
+
+__PACKAGE__->has_many   ( "pdbMap"   => "PfamWeb::Model::PdbMap",
+			  { "foreign.auto_pfam"  => "self.auto_pfamb" },
+			  { proxy => [ qw/pdb_id/ ] } );
+
+__PACKAGE__->has_one( "pfamB_stock" => "PfamWeb::Model::PfamB_stockholm",
+		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
+		      {proxy => qw[/stockholm_data/]});
+1;

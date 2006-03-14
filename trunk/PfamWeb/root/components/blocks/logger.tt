@@ -1,0 +1,9 @@
+
+<div class="block" id="loggerBlock">
+  <div class="handle">
+    <h1>Javascript log</h1>
+  </div>
+  <div class="blockContent[% IF NOT open %] closed[% END %]">
+    <div id="logDiv"></div>
+  </div>
+</div>
