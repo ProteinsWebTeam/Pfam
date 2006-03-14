@@ -1,0 +1,58 @@
+
+#header h1 {
+	border: 1px solid #999;
+    background-color: #DDD; 
+    color: #999;
+}
+
+h1.error {
+	color: red;
+}
+
+body {
+	background: #EEE url(/static/images/bg_diag.png) repeat scroll top left;
+}
+
+#summary {
+	border: 1px solid red;
+    clear: both;
+	height: 110px;
+}
+
+#summary img {
+    width: 100px;
+	height: 100px;
+	float: left;
+}
+
+#content {
+    border: 1px solid green;
+	margin-left: 205px;
+}
+
+#sidebar {
+    border: 1px solid blue;
+    width: 200px;
+    float: left;
+    background: pink;
+}
+
+.section dl {
+	margin-left: 110px;
+}
+
+.section dl dt {
+	float: left;
+    background: red;
+	width: 14em;
+    text-align: right;
+}
+
+.section dl dd {
+    background: green;
+	margin-left: 10em;
+}
+
+#selectedTab {
+	background: red;
+}

@@ -1,0 +1,91 @@
+
+/* logger */
+#rightbar {
+	float: right;
+	width: 400px;
+}
+
+#logDiv {
+	font-family: Arial, Helvetica, sans-serif;
+	overflow: auto;
+	text-align: left;
+	z-index: 998;
+	font-size: 84%;
+	height:200px;
+}
+
+.draggable {
+	padding: 1px;
+	z-index: 1;
+}
+
+#left .draggable {
+	width: 600px;
+}
+#right .draggable {
+	width: 250px;
+}
+
+.block {
+	border: 1px solid #999;
+}
+
+.droppable {
+	width: 250px;
+	background: #FF0;
+	padding: 1px;
+}
+
+.dropped {
+	width: 250px;
+	background: #0FF;
+	padding: 1px;
+}
+
+.target,
+.targetActive,
+.targetSelected {
+	height: 5px;
+	padding: 1px;
+	font-size: x-small;
+}
+
+.targetActive {
+	background: #5F5;
+}
+
+.targetSelected {
+	background: #F55;
+}
+
+/* block content */
+
+.handle {
+	margin: 1px;
+	padding: 0;
+    border: 1px solid #999;
+	background: #CCC;
+	cursor: move;
+}
+
+.handle h1 {
+	display: inline;
+	font-size: medium;
+}
+
+.handle img { 
+	cursor: pointer;
+}
+
+.closed {
+	display: none;
+}
+
+.blockContent {
+	font-size: smaller;
+	display: block;
+	margin: 1px;
+	padding: 0;
+    border: 1px solid #999;
+	background: #EEE;
+}

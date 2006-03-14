@@ -1,0 +1,21 @@
+---
+name: PfamWeb
+Controller::Summary:
+  views: 
+    blocks:  view_blocks.tt
+    tabs:    view_tabs.tt
+    print:   print.tt
+    default: view.tt
+View::TT:
+  COMPILE_DIR: /nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/template_cache
+Template::Toolkit:
+  tabs:
+    - go:       Gene Ontology
+    - interpro: InterPro
+    - pdb:      PDB
+static:
+  ignore_extensions: 
+    - tmpl
+    - tt
+    - tt2
+    - xhtml

@@ -1,0 +1,15 @@
+<html>
+
+  <head>
+	[% PROCESS components/head.tt %]
+  </head>
+
+  <body>
+	[% PROCESS components/header.tt %]	
+
+	<h1 class="error">Problems</h1>
+
+	[% PROCESS components/footer.tt %]
+	
+  </body>
+</html>

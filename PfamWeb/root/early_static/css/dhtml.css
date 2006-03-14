@@ -1,0 +1,55 @@
+
+#header h1 {
+	border: 1px solid #999;
+    background-color: #DDD; 
+    color: #999;
+}
+
+h1.error {
+	color: red;
+}
+
+#footer p {
+	margin: 0;
+    padding: 0;
+}
+
+body {
+	background: #EEE url(/static/images/bg_diag.png) repeat scroll top left;
+/*	background: #EEE; */
+}
+
+#content {
+	margin: 0 2px;
+}
+
+.block {
+	border: 1px solid #999;
+    background: #DDD;
+    margin-bottom: 2px; /* separation of boxes on the page */
+	position: relative;
+	top: 0;
+	left: 0;
+}
+
+#pfamBlock		> .blockContent	{ background: #AFC; }
+#interproBlock	> .blockContent	{ background: #FCA; }
+#pdbBlock		> .blockContent	{ background: #CAF; }
+#goBlock		> .blockContent { background: #ACF; }
+
+.blockHeader {
+	margin: 2px;
+	padding: 0;
+    border: 1px solid #999;
+}
+
+.blockHeader h1 {
+	display: inline;
+}
+
+.blockContent {
+	display: block;
+	margin: 2px;
+	padding: 0;
+    border: 1px solid #999;
+}

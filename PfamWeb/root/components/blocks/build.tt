@@ -1,0 +1,26 @@
+
+[%# requires a pfam object called "pfam" %]
+
+<!-- start pfam block -->
+
+<div class="block" id="buildBlock">
+  <div class="handle">
+    <h1>HMMer build information</h1>
+  </div>
+  <div class="blockContent [% IF NOT open %]closed[% END %]">
+	<p>ls data</p>
+	<p>hmmbuild ls  = [% pfam.hmmbuild_ls %]</p>
+	<p>hmmcalibrate ls = [% pfam.hmmcalibrate_ls %]</p>
+	<p>Sequence Threshold</p>	
+	<p>gathering cut-off = [% pfam.ls_sequence_GA %]</p>
+	<p>Trusted cutoff = [% pfam.ls_sequence_TC %]</p>
+	<p>Noise cutoff =[% pfam.ls_sequence_NC %] </p>
+	<p>Domain Threshold</p>	
+	<p>gathering cut-off = [% pfam.ls_domain_GA %]</p>
+	<p>Trusted cutoff = [% pfam.ls_domain_TC %]</p>
+	<p>Noise cutoff =[% pfam.ls_domain_NC %] </p>
+	<p><a href=/download_hmm/[% pfam.pfamA_acc %]&mode=ls>Download HMM</a>
+  </div>
+</div>
+
+<!-- end pfam block -->
