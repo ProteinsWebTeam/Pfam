@@ -73,7 +73,7 @@ use Bio::Seq::RichSeq;
 
 sub new {
   my($class, %params ) = @_;
-  my( $id, $start, $end, $seq, $acc, $desc, $org, $tax, $annot, $seq_version, $current, $ss, $sa, $tm, $pp, $lb, $db) = 
+  my( $id, $start, $end, $seq, $acc, $desc, $org, $tax, $annot, $seq_version, $current, $ss, $sa, $tm, $pp, $lb, $db, $index) = 
       (
        ($params{'-ID'}          || $params{'-id'}),
        ($params{'-START'}       || $params{'-start'}),
@@ -91,12 +91,16 @@ sub new {
        ($params{'-TM'}          || $params{'-tm'}),
        ($params{'-PP'}          || $params{'-pp'}),
        ($params{'-LI'}          || $params{'-li'}),
-	   ($params{'-DB'}          || $params{'-db'})
+       ($params{'-DB'}          || $params{'-db'}),
+       ($params{'-RDB_INDEX'}          || $params{'-rdb_index'}),
        );
        
   my $self = $class->SUPER::new( %params );  # this is Bio::Pfam::Root
                       # so we have to set Bio::LocatableSeq fields ourself
 
+
+  
+  
   $self->id( $id );
   $self->start( $start );
   $self->end( $end );
@@ -106,6 +110,7 @@ sub new {
   $self->desc( $desc );
   $self->organism( $org );
   $self->taxonomy( $tax );
+  $self->rdb_index( $index );
   $self->annotation( $annot );
   $self->seq_version( $seq_version );
   $self->sec_struct( $ss );
@@ -137,6 +142,25 @@ sub acc {
        $self->{'seqpfam_acc'} = $value;
    }
    return $self->{'seqpfam_acc'};
+}
+
+=head2 rdb_index
+
+ Title   : rdb_index
+ Usage   : 
+    $dom->rdb_index(); # or ...
+    $dom->rdb_index( 123 );
+ Function: For setting and getting the mysql index in the object
+
+=cut
+
+sub rdb_index {
+   my ($self, $value) = @_;
+
+   if (defined $value) {
+       $self->{'seqpfam_index'} = $value;
+   }
+   return $self->{'seqpfam_index'};
 }
 
 =head2 desc
