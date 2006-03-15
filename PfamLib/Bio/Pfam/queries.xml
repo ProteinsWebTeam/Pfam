@@ -1,0 +1,285 @@
+<?xml version="1.0"?>
+
+<pfamQueries>
+
+  <database>
+    <type>mysql</type>
+    <name>pfam_19_0_web</name>
+    <host>pfam1a</host>
+    <port>3306</port>
+    <user>pfam</user>
+    <pass>password</pass>
+  </database>
+
+  <queryList>
+
+    <!-- ============================================================ -->
+
+    <query id="idLookup">
+      <description>
+        retrieve the Pfam accession code and accompanying description
+      </description>
+      <queryString>
+<![CDATA[
+SELECT pfamA_acc
+FROM   pfamA 
+WHERE  pfamA_acc = ?
+OR     pfamA_id  = ?
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="lookup" count="2">pfam accession code</param>
+      </paramList>
+      <columnList>
+        <column id="acc">PfamA accession number</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="interpro">
+      <label>InterPro</label>
+      <description>InterPro abstracts</description>
+      <queryString>
+<![CDATA[
+SELECT pf.pfamA_acc     AS acc,
+       pf.pfamA_id      AS id,
+       pf.description   AS descr
+FROM   pfamA            AS pf,
+       pfam_to_interpro AS pi,
+       interpro_and_go  AS ig
+WHERE  pf.auto_pfamA    = pi.auto_pfamA
+AND    pi.auto_interpro = ig.auto_interpro
+AND    MATCH( ig.interpro_abstract ) AGAINST( ? IN BOOLEAN MODE )
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="search_word" method="fulltext">string to locate in interpro abstract</param>
+      </paramList>
+      <columnList>
+        <column id="acc">PfamA accession number</column>
+        <column id="id">ID code</column>
+        <column id="descr">Description</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="pfamA">
+      <label>Pfam</label>
+      <description>Text fields for Pfam entries</description>
+      <queryString>
+<![CDATA[
+SELECT pfamA_acc   AS acc,
+       pfamA_id    AS id,
+       description AS descr
+FROM   pfamA 
+WHERE  MATCH( pfamA_acc, pfamA_id, description, comment ) AGAINST( ? IN BOOLEAN MODE )
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="search_word" wildcard="1" method="fulltext">string to locate in pfamA description column</param>
+      </paramList>
+      <columnList>
+        <column id="acc">PfamA accession number</column>
+        <column id="id">ID code</column>
+        <column id="descr">Description</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="pdb">
+      <label>PDB</label>
+      <description>HEADER and TITLE records from PDB entries</description>
+      <queryString>
+<![CDATA[
+SELECT DISTINCT( pf.pfamA_acc ) AS acc,
+       pf.pfamA_id AS id,
+       pf.description AS descr
+FROM   pdb    AS p,
+       pdbmap AS pm,
+       pfamA  AS pf
+WHERE  p.auto_pdb = pm.auto_pdb
+AND    pm.auto_pfam = pf.auto_pfamA
+AND    MATCH( p.pdb_id, p.header, p.title ) AGAINST ( ? IN BOOLEAN MODE )
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="search_word" method="fulltext">string to locate in pfamA description column</param>
+      </paramList>
+      <columnList>
+        <column id="acc">PfamA accession number</column>
+        <column id="id">ID code</column>
+        <column id="descr">Description</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="pfamseq_big">
+      <description>
+        text search the description and species records in the pfamseq table
+      </description>
+      <queryString>
+<![CDATA[
+SELECT DISTINCT( p.pfamA_acc ) AS acc,
+       p.description AS descr
+FROM   pfamA AS p, 
+       pfamseq AS ps,
+       pfamA_reg_full AS prf
+WHERE  prf.in_full != 0
+AND    p.auto_pfamA     = prf.auto_pfamA
+AND    prf.auto_pfamseq = ps.auto_pfamseq
+AND    MATCH( ps.description, ps.species ) AGAINST( ? IN BOOLEAN MODE )
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="search_word" method="fulltext">string to locate in sequence description or species fields</param>
+      </paramList>
+      <columnList>
+        <column id="acc">PfamA accession number</column>
+        <column id="descr">Description</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="pfamseq">
+      <label>Pfamseq</label>
+      <description>Pfam sequence description and species fields</description>
+      <queryString>
+<![CDATA[
+SELECT DISTINCT( pfamA_acc ) AS acc, 
+       pfamA_id AS id,
+       description AS descr
+FROM   seq_info
+WHERE  MATCH( seq_description, species ) AGAINST( ? IN BOOLEAN MODE ); 
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="search_word" method="fulltext">string to locate in sequence description field</param>
+      </paramList>
+      <columnList>
+        <column id="acc">PfamA accession number</column>
+        <column id="id">ID code</column>
+        <column id="descr">Description</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="interpro_new">
+      <label>InterPro</label>
+      <description>InterPro entry abstracts</description>
+      <queryString>
+<![CDATA[
+SELECT interpro_id,
+       abstract
+FROM   pfamA AS p,
+       interpro AS i
+WHERE  pfamA_acc = ? 
+AND    p.auto_pfamA = i.auto_pfamA
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="pfama_acc">pfam accession</param>
+      </paramList>
+      <columnList>
+        <column id="id">interpro ID</column>
+        <column id="descr">interpro abstract</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="gene_ontology">
+      <label>Gene Ontology (GO)</label>
+      <description>Gene Ontology data</description>
+      <queryString>
+<![CDATA[
+SELECT category, 
+       term,
+       go_id
+FROM   pfamA AS p,
+       gene_ontology AS go
+WHERE  p.pfamA_acc = ?
+AND    p.auto_pfamA = go.auto_pfamA
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="pfama_acc">pfam accession</param>
+      </paramList>
+      <columnList>
+        <column id="category">GO category</column>
+        <column id="term">GO term</column>
+        <column id="id">GO ID</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="pdb_image">
+      <label>PDB Image</label>
+      <description>Image of a structure from the Protein DataBank</description>
+      <queryString>
+<![CDATA[
+SELECT pi.pdb_image
+FROM   pdb_image AS pi,
+       pdb AS p
+WHERE  pi.auto_pdb = p.auto_pdb
+AND    pdb_id = ?;
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="pdb_id">PDB ID</param>
+      </paramList>
+      <columnList>
+        <column id="image">PDB image</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+    <query id="clans">
+      <label>Clans</label>
+      <description>Clan descriptions and comments</description>
+      <queryString>
+<![CDATA[
+SELECT pfamA_acc, pfamA_id, description 
+FROM   pfamA AS p,
+       clan_membership AS cm,
+       clans AS c
+WHERE  MATCH( clan_description, clan_comment )
+       AGAINST( ? IN BOOLEAN MODE ) 
+AND    p.auto_pfamA = cm.auto_pfamA 
+AND    cm.auto_clan = c.auto_clan
+]]>
+      </queryString>
+      <paramList>
+        <param index="1" id="search_word">string to find in clan description or comment</param>
+      </paramList>
+      <columnList>
+        <column id="acc">PfamA accession number</column>
+        <column id="id">ID code</column>
+        <column id="descr">Description</column>
+      </columnList>
+    </query>
+
+    <!-- ============================================================ -->
+
+  </queryList>
+
+  <querySetList>
+
+    <querySet id="multi">
+      <query>pfamA</query>
+      <query>interpro</query>
+      <query>pdb</query>
+      <query>pfamseq</query>
+      <query>clans</query>
+    </querySet>
+
+  </querySetList>
+
+</pfamQueries>
