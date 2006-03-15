@@ -1,0 +1,18 @@
+
+[%- showCloser=1 -%]
+
+<html>
+
+  <head>
+	[% PROCESS components/head.tt title = "Clan Summary for $clan.clan_id"
+                                  style = "blocks"  %]
+  </head>
+
+  <body>
+	[% PROCESS components/header.tt %]
+	<h1>Clan entry [% clan.clan_id %]</h1>
+        [% PROCESS "components/blocks/clanHead.tt" %]	
+	[% PROCESS components/footer.tt %]
+	
+  </body>
+</html>
