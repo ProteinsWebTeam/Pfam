@@ -1,5 +1,5 @@
 
-package PfamWeb::Controller::GetImage;
+package MyApp::Controller::GetImage;
 
 use strict;
 use warnings;
@@ -9,7 +9,7 @@ sub default : Private {
   my( $this, $c ) = @_;
 
   $c->req->param("pdbid") =~ m/^(\d\w{3})$/;
-  $c->stash->{pdb} = PfamWeb::Model::Pdb->search( { pdb_id => $1 } )->next;
+  $c->stash->{pdb} = MyApp::Model::Pdb->search( { pdb_id => $1 } )->next;
 }
 
 sub end : Private {
