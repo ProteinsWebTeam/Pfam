@@ -34,7 +34,7 @@ Draggable.CLOSED_IMAGE = "/static/images/closed.gif";
 Draggable.CONTENT_DIV = null;
 
 // the URL to post layout data to
-Draggable.STORE_URL = "http://temple.dynamic.sanger.ac.uk:3000/store";
+Draggable.STORE_URL = "/store";
 //Draggable.STORE_URL = "http://web-1-14.internal.sanger.ac.uk:3000/store";
 
 //----------------------------------------------------------------------
