@@ -1334,9 +1334,10 @@ sub print_image {
   my $self = shift;
   my $file = $self->image_name.".png";
   my $pid = $$;
-  my $file_location = "tmp/pfam/domain_gfx/$pid";
-  if(!-d "$Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location"){
-      mkdir("$Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location") || die "Could not mkdir $Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location:[$!]";
+  my $root = "/home/rob/Work/PfamWeb/root";
+  my $file_location = "domain_images/$pid";
+  if(!-d "$root/$file_location"){
+      mkdir("$root/$file_location") || die "Could not mkdir $root/file_location:[$!]";
   }
 
 
@@ -1346,28 +1347,28 @@ sub print_image {
   my @md5 = md5_hex($file) =~ /\G(..)/g;
   foreach ($md5[0], $md5[1], $md5[2]){
       $file_location .= "/$_";
-      if(!-d "$Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location" ){
-	  mkdir( "$Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location") || die "Could not mkdir $Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location:[$!]";
+      if(!-d "$root/$file_location" ){
+	  mkdir( "$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
       }
   }
   
 
   
-  open(OUTFILE, ">$Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location/$file") or warn "Cannot print $Bio::Pfam::Web::PfamWWWConfig::doc_root/$file_location/$file:[$!]\n";
+  open(OUTFILE, ">$root/$file_location/$file") or warn "Cannot print $root/$file_location/$file:[$!]\n";
 
   binmode OUTFILE;
   # Convert the image to PNG and print it on standard output
   print OUTFILE $self->image->png;
-  close(OUTFILE) or warn "Cannot close $file_location/$file :[$!]";
+  close(OUTFILE) or warn "Cannot close $root/£file_location/$file :[$!]";
   
   
   if($self->format ne "png" && $self->format){
       warn "try to convert from png to different format, this is not implemented!\n";
-       $self->file_location("../../$file_location/$file");
+       $self->file_location("$file_location/$file");
       #convert the image
       #unlink($Bio::Pfam::Web::PfamWWWConfig::tempdir/$file)";
   }else{
-      $self->file_location("../../$file_location/$file");
+      $self->file_location("$file_location/$file");
   }
 
   

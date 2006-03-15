@@ -2,7 +2,7 @@ package Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
 use vars qw($AUTLOAD @ISA @EXPORT $VERSION);
 use Exporter;
-use Bio::Pfam::Web::PfamWWWConfig;
+#use Bio::Pfam::Web::PfamWWWConfig;
 use Bio::Pfam::Drawing::Layout::LayoutManager;
 @ISA = qw(Bio::Pfam::Drawing::Layout::LayoutManager);
 
