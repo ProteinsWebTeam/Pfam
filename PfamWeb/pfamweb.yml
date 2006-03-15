@@ -7,7 +7,7 @@ Controller::Summary:
     print:   print.tt
     default: view.tt
 View::TT:
-  COMPILE_DIR: /nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/template_cache
+  COMPILE_DIR: /tmp/template_cache
 Template::Toolkit:
   tabs:
     - go:       Gene Ontology
