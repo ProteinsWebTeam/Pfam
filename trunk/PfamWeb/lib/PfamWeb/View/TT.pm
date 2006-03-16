@@ -1,16 +1,16 @@
+
+# TT.pm
+# jt 20060316 WTSI
+#
+# An empty view class. Everything clever is handled by the controllers
+# or the templates themselves.
+#
+# $Id: TT.pm,v 1.2 2006-03-16 17:45:06 jt6 Exp $
+
 package PfamWeb::View::TT;
 
 use strict;
 use base 'Catalyst::View::TT';
-
-__PACKAGE__->config( {
-					  CONSTANTS => {
-									server => "http://www.sanger.ac.uk",
-									root   => "/Software/Pfam"
-								   },
-					  EVAL_PERL => 1,
-					 }
-				   );
 
 =head1 NAME
 
