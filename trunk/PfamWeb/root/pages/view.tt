@@ -1,38 +1,18 @@
 
-[%# define the lookup that will point to the actual files for the blocks
-    and specify a default layout %]
-[% blocks = {
-	 buildBlock     = "components/blocks/build.tt"
-	 clanBlock      = "components/blocks/clan.tt"
-	 clanHeadBlock  = "components/blocks/clanHead.tt"
-	 goBlock        = "components/blocks/go.tt"
-	 interproBlock  = "components/blocks/interpro.tt"
-	 loggerBlock    = "components/blocks/logger.tt"
-	 pdbBlock       = "components/blocks/pdb.tt"
-	 pfamBlock      = "components/blocks/pfam.tt"
-	 pfamRefBlock   = "components/blocks/pfamRef.tt"
-  }
-  defaultLayout = {
-    left = {
-      "0" = { pfamBlock     = 1 }
-      "1" = { pfamRefBlock  = 1 }
-      "2" = { interproBlock = 1 }
-      "3" = { loggerBlock   = 1 }
-    }
-    right = {
-      "0" = { goBlock   = 1 }
-      "1" = { clanBlock = 1 }
-      "2" = { pdbBlock = 1 }
-    }
-  }
+[%#
+# view.tt
+# jt6 20060316 WTSI
+# 
+# build the main Pfam family page. Still a test-bed.
+#
+# $Id: view.tt,v 1.2 2006-03-16 17:41:03 jt6 Exp $
 %]
-
 
 <html>
 
   <head>
 	[% PROCESS components/head.tt title = "Pfam family $pfam.pfamA_id"
-                                  style = "blocks"  %]
+                                  style = "blocks" %]
   </head>
 
   <body>
