@@ -1,3 +1,13 @@
+
+# PfamWeb.pm
+# jt 20060316 WTSI
+#
+# This is the main class for the Pfam website catalyst
+# application. Configuration is all done through the pfamweb.yml
+# config file and there's (currently) not much else in here.
+#
+# $Id: PfamWeb.pm,v 1.2 2006-03-16 17:37:10 jt6 Exp $
+
 package PfamWeb;
 
 use strict;
@@ -7,7 +17,7 @@ use warnings;
 # Set flags and add plugins for the application
 #
 #         -Debug: activates the debug mode for very useful log messages
-# Static::Simple: will serve static files from the application's root 
+# Static::Simple: will serve static files from the application's root
 # directory
 #
 use Catalyst qw/ -Debug
@@ -17,13 +27,18 @@ use Catalyst qw/ -Debug
 				 Session::Store::FastMmap
 				 Session::State::Cookie /;
 
+use PfamConfig qw( pfamlib );
+
 our $VERSION = '0.01';
 
 #
 # Configure the application
 #
 
-#__PACKAGE__->config( YAML::LoadFile( __PACKAGE__->path_to('pfamweb.yml') ) );
+#__PACKAGE__->config( file => "../PfamConfig/pfamweb.yml" );
+
+# use the default location for the config file, i.e. the root of the
+# catalyst application
 
 #
 # Start the application
