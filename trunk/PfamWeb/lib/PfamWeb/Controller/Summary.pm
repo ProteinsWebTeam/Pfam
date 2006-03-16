@@ -1,4 +1,12 @@
 
+# Summary.pm
+# jt6 20060316 WTSI
+#
+# Controller to build the main Pfam family page. Still a test-bed of
+# sorts.
+#
+# $Id: Summary.pm,v 1.2 2006-03-16 17:39:26 jt6 Exp $
+
 package PfamWeb::Controller::Summary;
 
 use strict;
