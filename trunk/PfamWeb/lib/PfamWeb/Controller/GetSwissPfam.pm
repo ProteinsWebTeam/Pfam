@@ -9,6 +9,7 @@ use Bio::Pfam::SeqPfam;
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 use Bio::Pfam::Drawing::Image::ImageSet;
 use Bio::Pfam::Drawing::Image::Image;
+
 use base "Catalyst::Controller";
 
 
