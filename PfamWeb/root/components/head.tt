@@ -1,16 +1,13 @@
 
-[% server = constants.server %]
-[% root = constants.root %]
-
 <title>Pfam: [% title %]</title>
 
 <!-- ====================================================================== -->
 <!-- JT 20051020 WTSI -->
 
-<script type="text/javascript" src="[% server %][% root %]/pfam.js"></script>
+<script type="text/javascript" src="[% constants.server %][% constants.root %]/pfam.js"></script>
 
 <!-- make the site RSS feed discoverable --> 
-<link href="http://www.sanger.ac.uk/Software/Pfam/rss/pfam_rss_feed.rdf" 
+<link href="/rss/pfam_rss_feed.rdf" 
       rel="alternate"
       type="application/rss+xml"
       title="Pfam News" />
@@ -20,17 +17,17 @@
 
 <!-- javascript for sortable tables -->
 <script type="text/javascript"
-        src="[% server %][% root %]/sortabletable.js">
+        src="[% constants.server %][% constants.root %]/sortabletable.js">
   <!-- see http://webfx.eae.net/dhtml/sortabletable/sortabletable.html -->
 </script>
 
 <!-- ====================================================================== -->
 <!-- Sanger menus... -->
 
-<!-- <link rel="stylesheet" href="[% server %]/css/wtsi.css" type="text/css" /> -->
+<!-- <link rel="stylesheet" href="[% constants.server %]/css/wtsi.css" type="text/css" /> -->
 
-<link rel="stylesheet" href="[% server %]/css/menus/jimmac.css" type="text/css" />
-<script type="text/javascript" src="[% server %]/js/menus/jimmac.js"></script>
+<link rel="stylesheet" href="[% constants.server %]/css/menus/jimmac.css" type="text/css" />
+<script type="text/javascript" src="[% constants.server %]/js/menus/jimmac.js"></script>
 <script type="text/javascript">
   new ypSlideOutMenu("menu2","down",273,16,100,125)
   new ypSlideOutMenu("menu3","down",373,16,100,100)
