@@ -7,11 +7,13 @@
 
   <body>
 	[% PROCESS components/header.tt %]
-	<h1>Swiss PFam</h1>
+	<h1>Pfam Domain organisation</h1>
 	
+	<p>Domain orgainsation Summary view</p>
 	<ul>
 	[% FOREACH image IN images.each_image %]
-		<li style="border: 1px solid red"><img src="/[% image.file_location %]"/></ul>
+	     	[% CALL image.print_image %]
+		<li style="border: 1px solid red"><img src="/[% image.file_location %]"/></li>
 	[% END %]
 	</ul>
 [%#	
