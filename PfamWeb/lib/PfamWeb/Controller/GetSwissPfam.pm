@@ -9,7 +9,6 @@ use Bio::Pfam::SeqPfam;
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 use Bio::Pfam::Drawing::Image::ImageSet;
 use Bio::Pfam::Drawing::Image::Image;
-
 use base "Catalyst::Controller";
 
 
@@ -20,9 +19,11 @@ sub getseq : LocalRegex( '^(\S+)' ) {
   my $acc = $c->req->snippets->[0];
   my @seqs_acc;
   push(@seqs_acc, $acc);
-  my $seqs = PfamWeb::Model::GetBioObjects::getAnnseq(\@seqs_acc);
-
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+  my %order = map{$_ => 1 }$layout->region_order;
+  my $seqs = PfamWeb::Model::GetBioObjects::getAnnseq(\@seqs_acc, \%order);
+  
+  
   $layout->layout_sequences(@$seqs);
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $imageset->create_images($layout->layout_to_XMLDOM);
