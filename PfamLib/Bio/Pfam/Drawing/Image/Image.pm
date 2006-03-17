@@ -1390,8 +1390,8 @@ sub print_image {
 sub _combine_images {
     my($self, $region, $style, $left, $right, $straight, $l_style, $r_style, $sizes) = @_;
     #get the region length
-    my $reg_length = $region->getAttribute("end")-$region->getAttribute("start") + 1;
-
+    my $reg_length = (int($region->getAttribute("end"))-int($region->getAttribute("start"))) + 1;
+    
 	
     if ($style =~ /sml/) {
 	my $start = $region->getAttribute("start");
@@ -1406,28 +1406,39 @@ sub _combine_images {
     #do something
 
   } elsif($style =~ /big/) {
-    #must be a big shape......
-    my $left_shape_length = $$sizes{$l_style};
-    if($left){
-      $self->image->copy($left, $region->getAttribute("start"), $self->y_start, 0, 0, $left_shape_length, $$sizes{$style});
-    }
-    
-    #Do the middle
-    my $right_shape_length = $$sizes{$r_style};
-    my $middle_width = $reg_length;
-    $middle_width = $middle_width - $left_shape_length - $right_shape_length;
+      #must be a big shape......
+      
+      my $left_shape_length = $$sizes{$l_style};
+      my $right_shape_length = $$sizes{$r_style};
+      my $middle_width = (int(($region->getAttribute("end"))-$right_shape_length))-(int($region->getAttribute("start")) + $left_shape_length)+1;
+      
+      if($left){
+	  $self->image->copy($left, int($region->getAttribute("start")), $self->y_start, 0, 0, $left_shape_length, $$sizes{$style});
+      }
+      if($right){
+	  $self->image->copy($right, int($region->getAttribute("end")) - $right_shape_length, $self->y_start, ($right_shape_length+1), 0, $right_shape_length-1, $$sizes{$style});
+      }
 
-    ### $middle_width-- if ( ($region->left_shape() =~ /small/) || ($region->right_shape() =~ /small/) ); # only need to test once
-    
-    $self->image->copyResized($straight, $region->getAttribute("start") + $left_shape_length    , $self->y_start, 4, 0, $middle_width , $$sizes{$style}, 10, $$sizes{$style});
+      #Do the middle
+      
+      
 
-    #Do the right edge
-    if($right){
-      $self->image->copy($right, $region->getAttribute("end") - $right_shape_length, $self->y_start, $right_shape_length,0, $right_shape_length, $$sizes{$style});
-    }
+      ### $middle_width-- if ( ($region->left_shape() =~ /small/) || ($region->right_shape() =~ /small/) ); # only need to test once
+      $self->image->copyResized($straight, int($region->getAttribute("start")) + $left_shape_length, $self->y_start, 4, 0, $middle_width, $$sizes{$style}, 2, $$sizes{$style});
+      #$self->image->copyResized($straight, $region->getAttribute("start") + $left_shape_length, $self->y_start, 4, 0, $middle_width , $$sizes{$style}, 10, $$sizes{$style});
+
+      #Do the right edge
+      
+      
+      
+      #if($right){
+	#  $self->image->copy($right, int($region->getAttribute("end")) - $right_shape_length, $self->y_start, ($right_shape_length+1), 0, $right_shape_length-1, $$sizes{$style});
+      #}
+      #print STDERR "right, ".int(($region->getAttribute("end"))-$right_shape_length).",".int($region->getAttribute("end"))."\n";
+      
   }
-  #Add a label to the region
-  $self->_funky_label($region, $reg_length);
+    #Add a label to the region
+    $self->_funky_label($region, $reg_length);
 }
 
 =head2 _straight
