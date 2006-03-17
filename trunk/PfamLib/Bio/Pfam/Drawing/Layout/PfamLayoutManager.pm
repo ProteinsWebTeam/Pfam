@@ -1,5 +1,6 @@
 package Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
+use strict;
 use vars qw($AUTLOAD @ISA @EXPORT $VERSION);
 use Exporter;
 #use Bio::Pfam::Web::PfamWWWConfig;
@@ -12,8 +13,10 @@ sub _default_region_order {
 
 sub scale_x {
   my ($self, $scale_x) = @_;
-  if ($scale){
-    $self->{'scale_x'} = $scale;
+  print STDERR "In scale_x\n";
+  if ($scale_x){
+      print STDERR "Setting scale $scale_x\n";
+      $self->{'scale_x'} = $scale_x;
   }
   if(!$self->{'scale_x'}){
     $self->{'scale_x'} = 0.5;
@@ -23,8 +26,8 @@ sub scale_x {
 
 sub scale_y {
   my ($self, $scale_y) = @_;
-  if ($scale){
-    $self->{'scale_y'} = $scale;
+  if ($scale_y){
+    $self->{'scale_y'} = $scale_y;
   }
   if(!$self->{'scale_y'}){
     $self->{'scale_y'} = 1.0;
@@ -84,6 +87,8 @@ sub printSequenceKey{
 
 sub printDomainKey{
     my ($self) = shift;
+    #Okay - starting to use mm1 code, so it is not going to be nice
+    my $font_color = "#000000";
     print qq (<center><table width=75% border=0 cellpadding=3 cellspacing=0> <tr bgcolor=\#dfdff7 CLASS=whitetableheader>
 	      <th><font color=$font_color NOWRAP>Domain Image Key (in order of priority)</th></tr><tr><td>);
     
