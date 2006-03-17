@@ -21,7 +21,7 @@ __PACKAGE__->set_primary_key( "auto_pfamA", "auto_pfamseq");
 
 __PACKAGE__->has_one    ( "pfamA" => "PfamWeb::Model::Pfam",
 			  {"foreign.auto_pfamA" => "self.auto_pfamA"},
-			  {proxy => [qw/pfamA_id pfamA_acc/]});
+			  {proxy => [qw/pfamA_id pfamA_acc description/]});
 
 __PACKAGE__->has_one    ( "pfamseq" => "PfamWeb::Model::Pfamseq",
 			  {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
