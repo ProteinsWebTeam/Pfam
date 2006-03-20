@@ -44,17 +44,8 @@
 <!-- ====================================================================== -->
 <!-- TT-specific CSS -->
 
-<link rel="stylesheet" href="/static/css/[% style %].css" type="text/css" />
+<link rel="stylesheet" href="/static/css/blocks.css" type="text/css" />
 	
-<!--[if IE]>
-<link rel="stylesheet" href="/static/css/[% style %]_ie.css" type="text/css" />
-<![endif]-->
-
-<!-- ====================================================================== -->
-<!-- dnd stylesheet -->
-
-<link type="text/css" href="/static/css/dnd.css" rel="stylesheet"></link>
-
 <!-- ====================================================================== -->
 <!-- YAHOO modules -->
 
@@ -65,17 +56,8 @@
 <script type="text/javascript" src="/static/javascripts/dom.js" ></script>
 <script type="text/javascript" src="/static/javascripts/event.js" ></script>
 
-<!-- Drag and Drop source file -->
-<script type="text/javascript" src="/static/javascripts/dragdrop.js" ></script>  
-
-<!-- Animation source file -->
-<script type="text/javascript" src="/static/javascripts/animation.js" ></script>  
-
 <!-- Connection Manager source file -->
 <script type="text/javascript" src="/static/javascripts/connection.js"></script>
-
-<!-- Logger -->
-<script type="text/javascript" src="/static/javascripts/log.js"></script>
 
 <!-- ====================================================================== -->
 <!-- JSON handling -->
@@ -85,7 +67,5 @@
 <!-- ====================================================================== -->
 <!-- my code -->
 
-<script type="text/javascript" src="/static/javascripts/IdGenerator.js"></script>
-<script type="text/javascript" src="/static/javascripts/Draggable.js"></script>
-<script type="text/javascript" src="/static/javascripts/dnd.js"></script>
-	
+<script type="text/javascript" src="/static/javascripts/Block.js"></script>
+<script type="text/javascript" src="/static/javascripts/blockConfig.js"></script>
