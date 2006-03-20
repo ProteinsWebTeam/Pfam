@@ -195,11 +195,15 @@ Draggable.show = function( e, oDraggable ) {
   Draggable.saveLayout( oDraggable.getEl().parentNode );
 };
 
+//-------------------------------------
+
 Draggable.prototype.openBlock = function() {
   this.contentEl.style.display = "block";
   this.closerEl.src = Draggable.OPEN_IMAGE;
   this.state = Draggable.OPEN;
 }
+
+//-------------------------------------
 
 Draggable.prototype.closeBlock = function() {
   this.contentEl.style.display = "none";
@@ -402,7 +406,7 @@ Draggable.prototype.startDrag = function( e ) {
   YAHOO.util.Dom.setStyle( this.getEl(), "opacity", Draggable.OPACITY );
   this.dropped = false;
 
-  // store the block starting position
+  // store the blocks starting position
   this.origX = YAHOO.util.Dom.getX( this.getEl() );
   this.origY = YAHOO.util.Dom.getY( this.getEl() );
 
