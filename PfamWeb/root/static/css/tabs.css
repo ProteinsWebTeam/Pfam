@@ -1,58 +1,136 @@
-
-#header h1 {
-	border: 1px solid #999;
-    background-color: #DDD; 
-    color: #999;
-}
-
-h1.error {
-	color: red;
-}
-
 body {
-	background: #EEE url(/static/images/bg_diag.png) repeat scroll top left;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  font-size: small;
 }
 
-#summary {
-	border: 1px solid red;
-    clear: both;
-	height: 110px;
+form  {
+  margin: 0;
+  padding: 0;
 }
 
-#summary img {
-    width: 100px;
-	height: 100px;
-	float: left;
+#header	{ background: #FDB; }
+/*
+#content	{ background: #BFD; }
+#sidebar	{ background: #DBF; }
+*/
+#footer	{ background: #BDF; }
+
+#wrap {
+   background: url(/static/images/faux_bg.gif) repeat-y 20% 0;
+}
+
+#header {
+  margin: 0;
+  padding: 0;
 }
 
 #content {
-    border: 1px solid green;
-	margin-left: 205px;
+  margin: 0;
+  width: 80%;
+  float: right;
+  min-height: 400px;
+}
+
+#cleaner {
+  clear: both;
+}
+
+#footer {
+  clear: both;
 }
 
 #sidebar {
-    border: 1px solid blue;
-    width: 200px;
-    float: left;
-    background: pink;
+  padding: 0.4em 0;
+  width: 20%;
+  float: left;
+  min-height: 400px;
 }
 
-.section dl {
-	margin-left: 110px;
+#newEntryForm {
+  margin-top: 50px;
+  padding: 0.8em;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #074987;
 }
 
-.section dl dt {
-	float: left;
-    background: red;
-	width: 14em;
-    text-align: right;
+#idField {
+  border: 2px solid #074987;
 }
 
-.section dl dd {
-    background: green;
-	margin-left: 10em;
+#idSubmit {
+  border: 2px solid #074987;
+  background: #4577a5;
+  color: #c2d2e1;
 }
 
-#selectedTab {
-	background: red;
+#sidebar ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+#sidebar ul li {
+  padding-left: 0.4em;
+}
+
+#sidebar ul li a {
+  margin: 0;
+  padding: 0.4em 0 0.4em 0.4em;
+  display: block;
+  text-decoration: none;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #074987;
+}
+
+#sidebar ul li.selected a {
+  background: url(/static/images/selected_bg.gif);
+  border: 1px solid #4577a5;
+  border-right: none;
+}
+
+div.block {
+  margin: 0.4em;
+  display: none;
+}
+
+div.handle {
+  color: #FEFEFE;
+  padding: 0.2em;
+  background-color: #074987;
+  background-repeat: no-repeat;
+  background-position: center right;
+}
+
+div.handle h1 {
+  font-size: 1.5em;
+  display: inline;
+  padding: 0.4em 0;
+}
+
+div.blockContent {
+  padding: 0.4em;
+  border-top: none;
+  font-size: smaller;
+}
+
+#summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png); }
+#interproBlock	div.handle { background-image: url(/static/images/open_book.png); }
+#buildBlock		div.handle { background-image: url(/static/images/hammer.png); }
+#pfamBlock		div.handle { background-image: url(/static/images/pfam_logo.png); }
+#domainsBlock	div.handle { background-image: url(/static/images/pfam.png); }
+
+#domainsBlock .blockContent {
+	overflow: auto;
+    max-height: 400px;
+}
+.domain {
+	padding: 10px;
+}
+
+#summaryBlock {
+  display: block;
 }

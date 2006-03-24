@@ -4,7 +4,7 @@
 
    stylesheet for the blocks layout of the new Pfam family page
 
-  $Id: blocks.css,v 1.3 2006-03-20 14:39:34 jt6 Exp $
+  $Id: blocks.css,v 1.4 2006-03-24 11:46:17 jt6 Exp $
 */
 
 /*----------------------------------------*/
@@ -20,29 +20,25 @@ h1.error {
 }
 
 body {
-	background: #EEE url(/static/images/bg_diag.png) repeat scroll top left;
+/*	background: #EEE url(/static/images/bg_diag.png) repeat scroll top left; */
+  	background: #F8F8F8;
 }
 
 /*----------------------------------------*/
 /* page layout */
 
-#content {
-	margin: 0 2px;
-}
-
 #left {
     margin: 0;
-	margin-right: 10px;
     padding: 0;
 	float: left;
-    width: 600px;
+    width: 65%;
 }
 
 #right {
-	margin: 0;
+    margin: 0;
     padding: 0;
  	float: left;
-    width: 250px;
+    width: 33%;
 }
 
 div.cleaner {
@@ -55,20 +51,14 @@ div.cleaner {
 	background: transparent;
 }
 
+hr.short {
+	width: 70%;
+    border: none;
+    border-top: 1px solid #074987;
+}
+
 /*----------------------------------------*/
 /* block components */
-
-div.block {
-	border: 1px solid #999;
-    background: #DDD;
-    margin-bottom: 2px; /* separation of boxes on the page */
-}
-
-div.blockContent {
-	display: block;
-	padding: 2px;
-    border-top: 1px solid #999;
-}
 
 /* the closer image */
 a.open {
@@ -76,42 +66,71 @@ a.open {
     height: 15px;
 }
 
-.handle {
-	padding: 0;
-	background: #CCC;
-}
-
-.handle h1 {
-	display: inline;
-	font-size: medium;
-}
-
-.handle img { 
-	cursor: pointer;
-}
-
 .closed {
 	display: none;
 }
 
-.blockContent {
-	font-size: smaller;
-	background: #EEE;
+div.block {	
+	margin: 8px 4px;
+	border: 1px solid #074987; /* <--------- block header colour (#074987) */
+}
+
+div.handle {
+	color: #fefefe;
+    background-color: #074987; /* <--------- block header colour */
+    background-repeat: no-repeat;
+	background-position: center right;
+	padding: 0.1em;
+}
+
+div.handle h1 {
+	margin: 0;
+	padding: 0;
+    font-size: 1em;
+	display: inline;
+}
+
+div.blockContent {
+    background: #e7edf3; /* <--------- block background (#cbdced) */
+    display: block;
+    padding: 0.4em;
+    border-top: none;
+    font-size: smaller;
+}
+
+#right div.blockContent {
+    background: #cbdced;
 }
 
 /*----------------------------------------*/
 /* specific blocks */
 
-#pfamBlock		.blockContent { background: #AFC; }
-#interproBlock	.blockContent { background: #FCA; }
-#pdbBlock		.blockContent { background: #CAF; }
-#goBlock		.blockContent { background: #ACF; }
-
-#domainsBlock	.blockContent {
+#domainsBlock .blockContent {
 	overflow: auto;
-    height: 200px;
+    max-height: 200px;
 }
-
 .domain {
 	padding: 10px;
+}
+
+#interproBlock	div.handle { background-image: url(/static/images/open_book.png) }
+#goBlock		div.handle { background-image: url(/static/images/go.png) }
+#pfamBlock		div.handle { background-image: url(/static/images/pfam_logo.png) }
+#pfamRefBlock	div.handle { background-image: url(/static/images/open_book.png) }
+#domainsBlock	div.handle { background-image: url(/static/images/pfam.png) }
+#clanBlock		div.handle { background-image: url(/static/images/clan.png) }
+#buildBlock		div.handle { background-image: url(/static/images/hammer.png) }
+#pdbBlock		div.handle { background-image: url(/static/images/structure.png) }
+
+#summaryBlock {
+	line-height: 1.1em;
+}
+
+div.inactive {
+	border: 1px solid #777;
+}
+
+div.inactive div.handle {
+    background-color: #777;
+    color: #BBB;
 }
