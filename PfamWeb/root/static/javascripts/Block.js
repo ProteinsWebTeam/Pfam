@@ -1,7 +1,11 @@
 
 // Block Class
 // jt 20060303 WTSI
-
+//
+// A javascript wrapper for a div that can be open/closed using by 
+// clicking an image in the title bar.
+//
+// $Id: Block.js,v 1.2 2006-03-24 11:45:13 jt6 Exp $
 
 //----------------------------------------------------------------------
 //- class variables ----------------------------------------------------
@@ -93,6 +97,12 @@ Block.prototype.initialiseBlocks = function( id ) {
 								"click", 
 								Block.show, 
 								this );
+
+  // add the callback to store the state of the blocks to the server
+  YAHOO.util.Event.addListener( document,
+								"unload", 
+								Block.saveLayout
+								);
 };
 
 //----------------------------------------------------------------------
@@ -108,7 +118,10 @@ Block.show = function( e, oBlock ) {
 	oBlock.open();
   } 
 
-  Block.saveLayout( oBlock );
+  // if the firing of the event on unload proves unreliable, we can
+  // update the server after every open/close event by uncompenting
+  // this call
+  //Block.saveLayout();
 };
 
 //----------------------------------------------------------------------
@@ -136,8 +149,10 @@ Block.saveLayout = function() {
   var layout = {};
 
   // get the column divs
-  for( var id in Block.blocks ) {
-	layout[id] = Block.blocks[id].state;
+  for( var i = 0; i < Block.blocks.length; i++ ) {
+	var block = Block.blocks[i];
+	var id = block.id
+	layout[id] = block.state;
   }
 
   // toString the JSON object
