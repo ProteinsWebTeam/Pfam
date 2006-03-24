@@ -5,7 +5,7 @@
 # Controller to build the main Pfam family page. Still a test-bed of
 # sorts.
 #
-# $Id: Summary.pm,v 1.3 2006-03-17 17:38:15 jt6 Exp $
+# $Id: Summary.pm,v 1.4 2006-03-24 11:37:06 jt6 Exp $
 
 package PfamWeb::Controller::Summary;
 
@@ -24,35 +24,6 @@ sub getacc : LocalRegex( '^(PF\d{5})' ) {
 
   $c->stash->{template} = "pages/error.tt"
 	unless defined $c->stash->{pfam};
-
-  #--------------------------------------------------
-  # get domain architectures
-  my @seqs_acc;
-  foreach my $arch ( PfamWeb::Model::PfamA_architecture->search( {'pfamA_acc' => $acc},
-																 { join       => [qw/ arch pfam/],
-																   order_by   =>"arch.no_seqs DESC" }
-															   )
-				   ) {
-	push @seqs_acc, $arch->pfamseq_acc;
-  }
-
-  my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layout->scale_x("0.2"); #0.33
-  $layout->scale_y("0.5"); #0.45
-
-  #my %order = map{$_ => 1 }$layout->region_order;
-  my %order = ( "pfama" => 1);
-
-  my $seqs = PfamWeb::Model::GetBioObjects::getAnnseq( \@seqs_acc, \%order );
-
-  $layout->layout_sequences( @$seqs );
-
-  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageset->create_images($layout->layout_to_XMLDOM);
-
-  $c->stash->{images} = $imageset;
-
-  #--------------------------------------------------
 
   #$c->log->info( "getacc: Pfam object: |", $c->stash->{pfam}, "|" );
 }
@@ -118,6 +89,33 @@ sub end : Private {
 	$c->req->param( "tab" ) =~ /^([A-Za-z]+).*$/;
 	$c->stash->{selectedTab} = $1;
   }
+
+  # add domain architectures to the stash
+  my @seqs_acc;
+  my $acc = $c->stash->{pfam}->pfamA_acc;
+  foreach my $arch ( PfamWeb::Model::PfamA_architecture->search( {'pfamA_acc' => $acc },
+																 { join       => [qw/ arch pfam/],
+																   order_by   =>"arch.no_seqs DESC" }
+															   )
+				   ) {
+	push @seqs_acc, $arch->pfamseq_acc;
+  }
+
+  my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+  $layout->scale_x("0.2"); #0.33
+  $layout->scale_y("0.5"); #0.45
+
+  #my %order = map{$_ => 1 }$layout->region_order;
+  my %order = ( "pfama" => 1);
+
+  my $seqs = PfamWeb::Model::GetBioObjects::getAnnseq( \@seqs_acc, \%order );
+
+  $layout->layout_sequences( @$seqs );
+
+  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  $imageset->create_images($layout->layout_to_XMLDOM);
+
+  $c->stash->{images} = $imageset;
 
   # make sure there's a template defined ultimately
   $c->stash->{template} ||= "pages/" . $this->{views}->{default};
