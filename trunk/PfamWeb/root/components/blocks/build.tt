@@ -11,14 +11,9 @@
 	<p>ls data</p>
 	<p>hmmbuild ls  = [% pfam.hmmbuild_ls %]</p>
 	<p>hmmcalibrate ls = [% pfam.hmmcalibrate_ls %]</p>
-	<p>Sequence Threshold</p>	
-	<p>gathering cut-off = [% pfam.ls_sequence_GA %]</p>
-	<p>Trusted cutoff = [% pfam.ls_sequence_TC %]</p>
-	<p>Noise cutoff =[% pfam.ls_sequence_NC %] </p>
-	<p>Domain Threshold</p>	
-	<p>gathering cut-off = [% pfam.ls_domain_GA %]</p>
-	<p>Trusted cutoff = [% pfam.ls_domain_TC %]</p>
-	<p>Noise cutoff =[% pfam.ls_domain_NC %] </p>
+	<p>gathering cut-off = [% pfam.ls_sequence_GA %] (s), [% pfam.ls_domain_GA %] (d)</p>
+	<p>Trusted cutoff = [% pfam.ls_sequence_TC %] (s), [% pfam.ls_domain_TC %] (d)/p>
+	<p>Noise cutoff =[% pfam.ls_sequence_NC %] (s), [% pfam.ls_domain_NC %] (d)</p>
 	<p><a href=/download_hmm/[% pfam.pfamA_acc %]&mode=ls>Download HMM</a>
   </div>
 </div>
