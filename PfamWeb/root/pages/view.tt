@@ -5,7 +5,7 @@
 # 
 # build the main Pfam family page. Still a test-bed.
 #
-# $Id: view.tt,v 1.3 2006-03-20 14:42:31 jt6 Exp $
+# $Id: view.tt,v 1.4 2006-03-24 11:43:52 jt6 Exp $
 %]
 
 <html>
@@ -24,35 +24,37 @@
 	  <input type="hidden" name="layout" id="layoutInput"/>
 	</form>
 
+<!--
 	<h1>Pfam entry [% pfam.pfamA_id %]</h1>
-
-    <div id="content">
-
     [% IF c.session.layout %]
 	  [% pattern = c.session.layout %]
       <h3>Custom session</h3>
     [% END %]
+-->
+
+    <div id="content">
 
     <div id="left" class="column">
  	  [% FOREACH blockName IN layout.left %]
+	<!-- 	    <div class="shadow"> -->
 	    [% blockFile = blocks.${blockName} %]
 		[% state = pattern ? pattern.${blockName} : 1 %]
 
         [% PROCESS $blockFile open = state %]
+	<!--	    </div> -->
 	  [% END %]
-
     </div> <!-- end of left column -->
 
     <div id="right" class="column">
 	[% CALL c.log.debug( "right column" ) %]
-
 	  [% FOREACH blockName IN layout.right %]
+	<!--	    <div class="shadow"> -->
 	    [% blockFile = blocks.${blockName} %]
 		[% state = pattern ? pattern.${blockName} : 1 %]
 
         [% PROCESS $blockFile open = state %]
+	<!--	    </div> -->
 	  [% END %]
-
     </div>
 
     <div class="cleaner">&nbsp;</div>
