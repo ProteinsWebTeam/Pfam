@@ -3,11 +3,11 @@
 
 <!-- start gene ontology block -->
 
-<div class="block" id="goBlock">
+<div class="block[% IF NOT pfam.go %] inactive[% END %]" id="goBlock">
   <div class="handle">
 	<h1>Gene Ontology</h1>
   </div>
-  <div class="blockContent[% IF NOT open %] closed[% END %]">
+  <div class="blockContent[% IF NOT open OR NOT pfam.go %] closed[% END %]">
 
 	[%- # re-order the data from the go table, keying on the category 
 	    # rather than goId
