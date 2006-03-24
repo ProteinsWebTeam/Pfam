@@ -44,7 +44,7 @@
 <!-- ====================================================================== -->
 <!-- TT-specific CSS -->
 
-<link rel="stylesheet" href="/static/css/blocks.css" type="text/css" />
+<link rel="stylesheet" href="/static/css/[% style %].css" type="text/css" />
 	
 <!-- ====================================================================== -->
 <!-- YAHOO modules -->
@@ -67,5 +67,9 @@
 <!-- ====================================================================== -->
 <!-- my code -->
 
+[% IF style != "tabs" %]
 <script type="text/javascript" src="/static/javascripts/Block.js"></script>
 <script type="text/javascript" src="/static/javascripts/blockConfig.js"></script>
+[% ELSE %]
+<script type="text/javascript" src="/static/javascripts/show.js"></script>
+[% END %]
