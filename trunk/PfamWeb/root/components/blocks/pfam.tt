@@ -5,7 +5,7 @@
 
 <div class="block" id="pfamBlock">
   <div class="handle">
-    <h1>Pfam</h1>
+    <h1>Pfam entry: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
   </div>
   <div class="blockContent[% IF NOT open %] closed[% END %]">
 	<p>acc = [% pfam.pfamA_acc %]</p>
