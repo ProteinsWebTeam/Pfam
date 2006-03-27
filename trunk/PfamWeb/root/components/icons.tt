@@ -1,0 +1,24 @@
+
+<div id="icons">
+
+<!--
+  <ul>
+    <li id="seqIcon">[% summaryData.numSequences %] sequences</li>
+    <li id="structIcon">[% summaryData.numStructures %] structures</li>
+    <li id="archIcon">[% summaryData.numArchitectures %] architectures</li>
+    <li id="specIcon">[% summaryData.numSpecies %] species</li>
+  </ul>
+-->
+  <dl>
+	<dt>[% summaryData.numSequences %]</dt>
+    <dd id="seqIcon">sequences</dd>
+	<dt>[% summaryData.numStructures %]</dt>
+    <dd id="structIcon">structures</dd>
+    <dt>[% summaryData.numArchitectures %]</dt>
+	<dd id="archIcon">architectures</dd>
+    <dt>[% summaryData.numSpecies %]</dt>
+	<dd id="specIcon">species</dd>
+  </dl>
+
+</div>
+
