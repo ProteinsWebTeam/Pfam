@@ -22,5 +22,5 @@ __PACKAGE__->set_primary_key("auto_pfamB");
 
 __PACKAGE__->has_one( "pfamB" => "PfamWeb::Model::PfamB",
 		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
-		      {proxy => qw[/pfamB_id pfamB_acc/]});
+		      {proxy => [ qw/pfamB_id pfamB_acc/]});
 1;

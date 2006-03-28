@@ -31,5 +31,5 @@ __PACKAGE__->has_one    ( "pfam" => "PfamWeb::Model::Pfam",
 
 __PACKAGE__->has_one    ( "arch" => "PfamWeb::Model::Architecture",
 			  {"foreign.auto_architecture" => "self.auto_architecture"},
-			  {proxy => [ qw/architecture type_example no_seqs pfamseq_id pfamseq_acc/ ]});
+			  {proxy => [ qw/architecture type_example no_seqs pfamseq_id pfamseq_acc annseq_storable/ ]});
 1;

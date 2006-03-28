@@ -18,4 +18,6 @@ __PACKAGE__->set_primary_key("auto_pfamseq");
 __PACKAGE__->has_one("auto_pfamseq" => "PfamWeb::Model::Pfamseq",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
 
+__PACKAGE__->has_one("auto_architecture" => "PfamWeb::Model::Architecture",
+		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
 1;

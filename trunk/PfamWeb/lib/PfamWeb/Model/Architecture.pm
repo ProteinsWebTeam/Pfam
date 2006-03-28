@@ -28,4 +28,8 @@ __PACKAGE__->has_one    ( "type_example" => "PfamWeb::Model::Pfamseq",
 			  {"foreign.auto_pfamseq" => "self.type_example"},
 			  {proxy => [ qw/pfamseq_id pfamseq_acc/ ]});
 
+__PACKAGE__->has_one    ( "storable" => "PfamWeb::Model::Pfam_annseq",
+			  {"foreign.auto_pfamseq" => "self.type_example"},
+			  {proxy => [ qw/annseq_storable/ ]});
+
 1;
