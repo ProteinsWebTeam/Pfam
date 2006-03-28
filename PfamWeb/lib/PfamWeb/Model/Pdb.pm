@@ -11,7 +11,7 @@ __PACKAGE__->table( "pdb" );
 __PACKAGE__->add_columns( qw/auto_pdb pdb_id header title/ );
 __PACKAGE__->set_primary_key( "auto_pdb" );
 
-__PACKAGE__->has_one(    "pdbMap" => "PfamWeb::Model::PdbMap",
+__PACKAGE__->has_many(    "pdbMap" => "PfamWeb::Model::PdbMap",
 						 { "foreign.auto_pdb" => "self.auto_pdb" } );
 
 __PACKAGE__->might_have( "image"  => "PfamWeb::Model::PdbImage",
