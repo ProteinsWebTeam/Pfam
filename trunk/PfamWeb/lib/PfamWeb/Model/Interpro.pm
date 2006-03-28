@@ -12,7 +12,7 @@ __PACKAGE__->add_columns( qw/auto_pfamA interpro_id abstract/ );
 __PACKAGE__->set_primary_key( "auto_pfamA" );
 
 __PACKAGE__->has_one( "pfamA" => "PfamWeb::Model::Pfam",
-					  undef,
-					  { proxy => [ qw/ pfamA_acc pfamA_id / ] } );
+		      {"foreign.auto_pfamA"  => "self.auto_pfamA" },
+		      { proxy => [ qw/ pfamA_acc pfamA_id / ] } );
 1;
 
