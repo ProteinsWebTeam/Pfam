@@ -4,8 +4,8 @@ function show( id ) {
   for( var i = 0; i < divs.length; i++ ) {
     var div = divs[i];
     var style = div.style;
-    if( "block" == div.className ) {
-      if( id + "Block" == div.id ) {
+	if( div.className == "block" ) {
+      if( id == div.id ) {
         style.display = "block";
       } else {
         style.display = "none";
@@ -18,7 +18,7 @@ function show( id ) {
     var li = lis[i];
     var label = id + "Selector";
     if( li.id == label ) {
-      li.className = "selected";
+	  li.className = "selected";
     } else {
       li.className = "";
     }
