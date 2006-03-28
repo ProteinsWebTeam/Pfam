@@ -180,7 +180,7 @@ sub convert_to_js {
 	
 	my $label =  $node->get_name()."(".$node->get_frequency().")";
 	my $node_id = $node->get_name();
-	$node_id =~ s/(\s+|\.)//g;
+	$node_id =~ s/\W+//g;
 	$$js .= "var $node_id = new YAHOO.widget.TextNode(\"$label\", $parent, false);\n";
 	my $childOf = $node_id;    
 	if ($node->has_childrens()) {    
