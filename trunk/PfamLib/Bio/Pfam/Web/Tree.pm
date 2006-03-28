@@ -11,6 +11,7 @@ package Bio::Pfam::Web::Tree;
 ###########################################################
 
 use strict;
+use warnings;
 
 # OBSOLETE METHODS! Eliminate from your scripts!!
 sub clear_root {
@@ -45,6 +46,9 @@ sub to_text {
 	$tree->convert_to_text($depth, $tag, \$output);
 	return $output;
 }
+
+
+
 
 sub to_string {
 	my ($tree) = @_;
@@ -156,6 +160,38 @@ sub convert_to_text {
 	}
 }
 
+
+
+sub convert_to_js {
+    my ($tree, $js, $parent) = @_;
+    my $isNotRoot = ($$js eq '')? undef:1;
+    if(!$parent) {
+	#There is no javascript root.
+	$parent = "root";
+    }
+    
+    
+    my $unique = $tree->children_is_unique();
+    my $lastNode = $tree->is_last_node();
+    
+    
+    foreach my $node ($tree->get_branches()) {
+	
+	
+	my $label =  $node->get_name()."(".$node->get_frequency().")";
+	my $node_id = $node->get_name();
+	$node_id =~ s/(\s+|\.)//g;
+	$$js .= "var $node_id = new YAHOO.widget.TextNode(\"$label\", $parent, false);\n";
+	my $childOf = $node_id;    
+	if ($node->has_childrens()) {    
+	    $node->convert_to_js($js, $childOf);
+	}
+    }
+}
+
+
+
+
 sub convert_to_pnh {
 	my ($tree, $ptrString) = @_;
 	if ($tree->has_childrens()) {
@@ -174,6 +210,7 @@ sub convert_from_pnh {
 	my ($tree, $ptrString) = @_;
 	$$ptrString =~ s/^[\(\,]([^:]+):(\d+)//;	
 	my ($name,$frequency) = ($1,$2);
+	#print STDERR ">($name,$frequency)\n"; #FOR DEBUG
 	$tree->create_node($name,$frequency);
 	if (substr($$ptrString,0,1) eq '(') { 
 		($tree->get_node($name))->convert_from_pnh($ptrString);
