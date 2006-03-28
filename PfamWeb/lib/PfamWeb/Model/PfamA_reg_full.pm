@@ -23,6 +23,6 @@ __PACKAGE__->has_one( "pfamA" =>  "PfamWeb::Model::Pfam",
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamWeb::Model::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-		      { proxy => [ qw/pfamseq_acc pfamseq_id/ ] } );
+		      { proxy => [ qw/pfamseq_acc pfamseq_id species taxonomy/ ] } );
 
 1;
