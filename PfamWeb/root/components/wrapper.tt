@@ -5,7 +5,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.1 2006-03-27 15:14:21 jt6 Exp $
+# $Id: wrapper.tt,v 1.2 2006-03-29 12:55:19 jt6 Exp $
 %]
 
 [% USE date %]
@@ -14,7 +14,7 @@
   
   <head>
 	
-	<title>Pfam: [% title %]</title>
+	<title>Pfam: [% pfam.pfamA_id %]</title>
 	
 	<!-- ====================================================================== -->
 	<!-- JT 20051020 WTSI -->
@@ -32,7 +32,7 @@
 
 	<!-- javascript for sortable tables -->
 	<script type="text/javascript"
-	  src="[% constants.server %][% constants.root %]/sortabletable.js">
+	  src="[% constants.server %][% constants.root %]/sortabletable.js"></script>
 	  <!-- see http://webfx.eae.net/dhtml/sortabletable/sortabletable.html -->
 	</script>
 
@@ -54,46 +54,47 @@
 	<!-- ====================================================================== -->
 	<!-- Pfam specific CSS -->
 
-	<link rel="stylesheet" href="/static/css/pfam.css" type="text/css" />
+	<link rel="stylesheet" href="[% c.uri_for( "/static/css/pfam.css" ) %]" type="text/css" />
 
 	<!-- ====================================================================== -->
 	<!-- TT-specific CSS -->
 
-	<link rel="stylesheet" href="/static/css/[% style %].css" type="text/css" />
+	<link rel="stylesheet" href="[% c.uri_for( "/static/css/${style}.css" ) %]" type="text/css" />
 
 	<!-- ====================================================================== -->
 	<!-- YAHOO modules -->
 
 	<!-- Namespace source file -->
-	<script type="text/javascript" src="/static/javascripts/YAHOO.js" ></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/YAHOO.js" ) %]"></script>
 
 	<!-- Dependency source files -->
-	<script type="text/javascript" src="/static/javascripts/dom.js" ></script>
-	<script type="text/javascript" src="/static/javascripts/event.js" ></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/dom.js" ) %]" ></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/event.js" ) %]" ></script>
 
 	<!-- Connection Manager source file -->
-	<script type="text/javascript" src="/static/javascripts/connection.js"></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/connection.js" ) %]"></script>
+
+    <!-- TreeView widget -->
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/treeview.js" ) %]"></script>
 
 	<!-- ====================================================================== -->
 	<!-- JSON handling -->
 
-	<script type="text/javascript" src="/static/javascripts/json.js"></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/json.js" ) %]"></script>
 
-	<!-- ====================================================================== -->
+    <!-- ====================================================================== -->
 	<!-- my code -->
 
 	[% IF style == "tabs" %]
-	<script type="text/javascript" src="/static/javascripts/show.js"></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/show.js" ) %]"></script>
 	[% ELSE %]
-	<script type="text/javascript" src="/static/javascripts/Block.js"></script>
-	<script type="text/javascript" src="/static/javascripts/blockConfig.js"></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/Block.js" ) %]"></script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/blockConfig.js" ) %]"></script>
 	[% END %]
 
   </head>
 
-	<body>
-
-	  <!-- start of header -->
+	<body onload="treeInit();">
 
 	  <!-- header start here -->
 	  <div id="header">
@@ -281,8 +282,6 @@
 	  </div>
 	  <!-- header end -->
 
-	  <!-- end of header -->
-	  
 	  <!-- ====================================================================== -->
 	  <!-- content -->
 
