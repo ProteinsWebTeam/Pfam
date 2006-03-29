@@ -1,3 +1,7 @@
+
+/* ======================================== */
+/* page layout items */
+
 body {
   margin: 0;
   padding: 0;
@@ -10,50 +14,61 @@ form  {
   padding: 0;
 }
 
-#header	{ background: #FDB; }
-/*
-#content	{ background: #BFD; }
-#sidebar	{ background: #DBF; }
-*/
-#footer	{ background: #BDF; }
-
-#wrap {
-   background: url(/static/images/faux_bg.gif) repeat-y 20% 0;
-}
-
 #header {
   margin: 0;
   padding: 0;
 }
 
-#content {
-  margin: 0;
-  width: 80%;
-  float: right;
-  min-height: 400px;
+#wrapper {
+	overflow:hidden;
+ border: 1px solid red;
+ width: 100%;
 }
 
-#cleaner {
+#content {
+  margin: 0;
+  width: 85%;
+  float: right;
+}
+
+.cleaner {
   clear: both;
 }
 
 #footer {
   clear: both;
+  line-height: 1.2em;
 }
 
 #sidebar {
-  padding: 0.4em 0;
-  width: 20%;
-  float: left;
-  min-height: 400px;
+	background: url(/static/images/sidebar_bg.gif) repeat-y right 0;
+    border-bottom: 1px solid #4577a5;
+    padding: 0.4em 0;
+    width: 15%;
+    float: left;
+	margin-bottom: 0.4em;
+}
+
+/* ======================================== */
+/* page components */
+
+#pageHeader {
+    background: url(/static/images/double_gradient.gif) no-repeat 15% bottom;
+	color: #074987;
+}
+
+#pageHeader h1 {
+	padding: 0;
+	margin: 0;
+    float: left;
 }
 
 #newEntryForm {
-  margin-top: 50px;
-  padding: 0.8em;
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #074987;
+	display: none;        /* N.B. */
+    margin-top: 50px;
+    padding: 0.4em;
+    font-weight: bold;
+    color: #074987;
 }
 
 #idField {
@@ -77,11 +92,12 @@ form  {
 }
 
 #sidebar ul li a {
+  border-bottom: 1px solid #83a4c3;
+  border-right: 1px solid #4577a5;
   margin: 0;
   padding: 0.4em 0 0.4em 0.4em;
   display: block;
   text-decoration: none;
-  font-size: 1.2em;
   font-weight: bold;
   color: #074987;
 }
@@ -91,6 +107,17 @@ form  {
   border: 1px solid #4577a5;
   border-right: none;
 }
+
+#sidebar ul li a.lastItem {
+	border: none;
+}
+
+hr.short {
+  display: none;
+}
+
+/* ======================================== */
+/* general block styles */
 
 div.block {
   margin: 0.4em;
@@ -117,20 +144,73 @@ div.blockContent {
   font-size: smaller;
 }
 
-#summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png); }
-#interproBlock	div.handle { background-image: url(/static/images/open_book.png); }
-#buildBlock		div.handle { background-image: url(/static/images/hammer.png); }
-#pfamBlock		div.handle { background-image: url(/static/images/pfam_logo.png); }
-#domainsBlock	div.handle { background-image: url(/static/images/pfam.png); }
+/* ======================================== */
+/* rules for specific blocks */
+
+#summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png) }
+#interproBlock	div.handle { background-image: url(/static/images/open_book.png) }
+#buildBlock		div.handle { background-image: url(/static/images/hammer.png) }
+#pfamBlock		div.handle { background-image: url(/static/images/pfam_logo.png) }
+#domainsBlock	div.handle { background-image: url(/static/images/pfam.png) }
 
 #domainsBlock .blockContent {
 	overflow: auto;
     max-height: 400px;
 }
-.domain {
-	padding: 10px;
+div.domain {
+	padding: 6px;
 }
 
-#summaryBlock {
+#tabSummaryBlock {
   display: block;
 }
+
+div.pdbImageFragment {
+	background: #e7edf3;
+    border: 1px solid #074987;
+	float: right;
+    margin: 0.2em;
+	padding: 0.3em;
+    width: 200px;
+}
+
+h4.pdbTitle  {
+	color: #074987;
+    display: inline;
+}
+
+#icons {
+	float: right;
+}
+
+#icons dl {
+	margin: 0;
+    padding: 0.5em;
+    color: #FEFEFE;
+    background-color: #074987;
+}
+
+#icons dl dt {
+	display: inline;
+	margin: 0;
+    text-align: right;
+}
+
+#icons dl dd {
+	display: inline;
+	margin: 0;
+	padding: 0.4em 0 0.4em 65px;
+    background-repeat: no-repeat;
+	background-position: center left;
+    border-right: 2px solid #FEFEFE;
+}
+
+#icons dl dd.lastIcon {
+	border: none;
+}
+
+
+#seqIcon	{ background-image: url(/static/images/pfam_logo.png) }
+#structIcon	{ background-image: url(/static/images/structure.png) }
+#archIcon	{ background-image: url(/static/images/pfam.png) }
+#specIcon	{ background-image: url(/static/images/species.png) }

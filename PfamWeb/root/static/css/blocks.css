@@ -4,7 +4,7 @@
 
    stylesheet for the blocks layout of the new Pfam family page
 
-  $Id: blocks.css,v 1.4 2006-03-24 11:46:17 jt6 Exp $
+  $Id: blocks.css,v 1.5 2006-03-29 12:59:13 jt6 Exp $
 */
 
 /*----------------------------------------*/
@@ -121,6 +121,7 @@ div.blockContent {
 #clanBlock		div.handle { background-image: url(/static/images/clan.png) }
 #buildBlock		div.handle { background-image: url(/static/images/hammer.png) }
 #pdbBlock		div.handle { background-image: url(/static/images/structure.png) }
+#summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png) }
 
 #summaryBlock {
 	line-height: 1.1em;
@@ -133,4 +134,45 @@ div.inactive {
 div.inactive div.handle {
     background-color: #777;
     color: #BBB;
+}
+
+
+#icons dl {
+	margin: 0;
+    padding: 0;
+}
+
+#icons dl dt {
+	margin: 0;
+	padding: 0.4em 0;
+	width: 1.4em;
+	float: left;
+    text-align: right;
+}
+
+#icons dl dd {
+	margin: 0;
+    margin-left: 1.4em;
+	padding: 0.4em 0 0.4em 65px;
+    background-repeat: no-repeat;
+	background-position: center left;
+}
+
+#seqIcon	{ background-image: url(/static/images/pfam_logo.png) }
+#structIcon	{ background-image: url(/static/images/structure.png) }
+#archIcon	{ background-image: url(/static/images/pfam.png) }
+#specIcon	{ background-image: url(/static/images/species.png) }
+
+div.pdbImageFragment {
+	background: #e7edf3;
+    border: 1px solid #074987;
+	float: right;
+    margin: 0.2em;
+	padding: 0.3em;
+    width: 200px;
+}
+
+h4.pdbTitle  {
+	color: #074987;
+    display: inline;
 }
