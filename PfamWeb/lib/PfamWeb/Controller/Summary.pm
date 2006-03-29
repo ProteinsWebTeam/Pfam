@@ -5,7 +5,7 @@
 # Controller to build the main Pfam family page. Still a test-bed of
 # sorts.
 #
-# $Id: Summary.pm,v 1.4 2006-03-24 11:37:06 jt6 Exp $
+# $Id: Summary.pm,v 1.5 2006-03-29 10:59:35 jt6 Exp $
 
 package PfamWeb::Controller::Summary;
 
@@ -90,7 +90,9 @@ sub end : Private {
 	$c->stash->{selectedTab} = $1;
   }
 
+  #----------------------------------------------------------------------
   # add domain architectures to the stash
+
   my @seqs_acc;
   my $acc = $c->stash->{pfam}->pfamA_acc;
   foreach my $arch ( PfamWeb::Model::PfamA_architecture->search( {'pfamA_acc' => $acc },
@@ -117,6 +119,26 @@ sub end : Private {
 
   $c->stash->{images} = $imageset;
 
+  #----------------------------------------------------------------------
+  # add the species tree
+
+  my $tree = PfamWeb::Model::GetSpeciesTree::getTree($acc);
+
+  my $js;
+  $tree->convert_to_js(\$js);
+  $c->stash->{tree} = $js;
+
+  #----------------------------------------------------------------------
+  # get the PDB details
+
+  my @maps = PfamWeb::Model::PdbMap->search( { pfamA_acc => $acc,
+															pfam_region => 1 },
+														  { join => [qw/ pdb pfamA / ] }
+														);
+  $c->stash->{pfamMaps} = \@maps;
+
+  #----------------------------------------------------------------------
+
   # make sure there's a template defined ultimately
   $c->stash->{template} ||= "pages/" . $this->{views}->{default};
 
@@ -125,3 +147,7 @@ sub end : Private {
 }
 
 1;
+
+# foreach my $pMap ( @pfamMaps){
+#     print $pMap->pfamA_id." on ".$pMap->pfamseq_id."/".$pMap->pfam_start_res."-".$pMap->pfam_end_res." maps to ".$pMap->pdb_id.":".$pMap->chain.",".$pMap->pdb_start_res."-".$pMap->pdb_end_res."\n";
+# } 
