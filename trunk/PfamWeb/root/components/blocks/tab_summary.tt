@@ -3,7 +3,7 @@
 
 <div class="block" id="tabSummaryBlock">
   <div class="handle">
-    <h1>Pfam entry: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
+    <h1>Summary</h1>
   </div>
   <div class="blockContent[% IF NOT open %] closed[% END %]">
 

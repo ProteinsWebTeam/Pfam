@@ -1,8 +1,7 @@
-[%# requires a pfam object called "pfam" %]
 
 <!-- start pfam block -->
 
-<div class="block" id="buildBlock">
+<div class="block" id="curationBlock">
  <div class="handle">
    <h1>Curation and Family Details</h1>
  </div>

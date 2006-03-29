@@ -17,7 +17,7 @@
     <dt>[% summaryData.numArchitectures %]</dt>
 	<dd id="archIcon">architectures</dd>
     <dt>[% summaryData.numSpecies %]</dt>
-	<dd id="specIcon">species</dd>
+	<dd id="specIcon" class="lastIcon">species</dd>
   </dl>
 
 </div>
