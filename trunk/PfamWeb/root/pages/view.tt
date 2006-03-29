@@ -5,63 +5,41 @@
 # 
 # build the main Pfam family page. Still a test-bed.
 #
-# $Id: view.tt,v 1.4 2006-03-24 11:43:52 jt6 Exp $
+# $Id: view.tt,v 1.5 2006-03-29 12:56:01 jt6 Exp $
 %]
 
-<html>
+[% style = "blocks" %]
 
-  <head>
-	[% PROCESS components/head.tt title = "Pfam family $pfam.pfamA_id"
-                                  style = "blocks" %]
-  </head>
+<div id="wrapper">
 
-  <body>
-	[% PROCESS components/header.tt %]
+[%# hidden form that will be used for submitting layout changes to 
+    the server %]
+<form name="storeLayout" method="GET">
+  <input type="hidden" name="layout" id="layoutInput"/>
+</form>
 
-    [%# hidden form that will be used for submitting layout changes to 
-        the server %]
-	<form name="storeLayout" method="GET">
-	  <input type="hidden" name="layout" id="layoutInput"/>
-	</form>
+<div id="content">
 
-<!--
-	<h1>Pfam entry [% pfam.pfamA_id %]</h1>
-    [% IF c.session.layout %]
-	  [% pattern = c.session.layout %]
-      <h3>Custom session</h3>
-    [% END %]
--->
+[% state = 1 %]
 
-    <div id="content">
+<div id="left" class="column">
+  [% FOREACH blockName IN layout.left %]
+    [% blockFile = blocks.${blockName} %]
 
-    <div id="left" class="column">
- 	  [% FOREACH blockName IN layout.left %]
-	<!-- 	    <div class="shadow"> -->
-	    [% blockFile = blocks.${blockName} %]
-		[% state = pattern ? pattern.${blockName} : 1 %]
+    [% PROCESS $blockFile open = state %]
+  [% END %]
+</div> <!-- end of left column -->
 
-        [% PROCESS $blockFile open = state %]
-	<!--	    </div> -->
-	  [% END %]
-    </div> <!-- end of left column -->
+<div id="right" class="column">
+[% CALL c.log.debug( "right column" ) %]
+  [% FOREACH blockName IN layout.right %]
+    [% blockFile = blocks.${blockName} %]
 
-    <div id="right" class="column">
-	[% CALL c.log.debug( "right column" ) %]
-	  [% FOREACH blockName IN layout.right %]
-	<!--	    <div class="shadow"> -->
-	    [% blockFile = blocks.${blockName} %]
-		[% state = pattern ? pattern.${blockName} : 1 %]
+    [% PROCESS $blockFile open = state %]
+  [% END %]
+</div>
 
-        [% PROCESS $blockFile open = state %]
-	<!--	    </div> -->
-	  [% END %]
-    </div>
+</div><!-- end of "content" div -->
 
-    <div class="cleaner">&nbsp;</div>
+</div>
 
-	</div><!-- end of "content" div -->
-
-	[% PROCESS components/footer.tt %]
-	
-  </body>
-</html>

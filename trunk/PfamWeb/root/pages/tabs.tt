@@ -5,57 +5,46 @@
 # 
 # build the main Pfam family page. Still a test-bed.
 #
-# $Id: tabs.tt,v 1.1 2006-03-24 11:48:16 jt6 Exp $
+# $Id: tabs.tt,v 1.2 2006-03-29 12:56:01 jt6 Exp $
 %]
 
-<html>
+[% style = "tabs" %]
 
-  <head>
-	[% PROCESS components/head.tt title = "Pfam family $pfam.pfamA_id"
-                                  style = "tabs" %]
-  </head>
 
-  <body>
-	[% PROCESS components/header.tt %]
+<div id="pageHeader">
+  <h1>Pfam entry: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
+  [% PROCESS components/blocks/icons.tt %]
 
-	<div id="wrap">
+  <div class="cleaner">&nbsp;</div>
+</div>
 
-      <div id="sidebar">
-	    <ul>
-	    [% first = 1 %]
-	    [% FOREACH block IN tabLayout %]
-	      [% blockName = block.keys.first %]
-	      [% blockFile = "${blockName}Block" %]
-	      [% blockTitle = block.values.first %]
-		  <li id="[% blockName %]Selector"[% IF first %] class="selected"[% END %]>
-	        <a href="javascript:show('[% blockName %]');">[% blockTitle %]</a>
-          </li>
-          [% first = "" %]
-        [% END %]
-        </ul>
-		<div id="newEntryForm">
-		  <form action="http://temple.dynamic.sanger.ac.uk:3000/summary">
-            <input type="hidden" name="view" value="tabs"/>
-			<label for="idField">ID:</label>
-		    <input type="text" id="idField" name="id" size="10"/>
-	        <input type="submit" id="idSubmit" Value="Go"/>
-	      </form>
-        </div>
-      </div>
+<div id="sidebar">
+  <ul>
+  [% firstTab = 1 %]
+  [% FOREACH block IN tabLayout %]
+    [% blockName = block.keys.first %]
+    [% blockTitle = block.values.first %]
+    <li id="[% blockName %]Selector"[% IF firstTab %] class="selected"[% END %]>
+      <a href="javascript:show('[% blockName %]');">[% blockTitle %]</a>
+    </li>
+    [% firstTab = "" %]
+  [% END %]
+  </ul>
+  <div id="newEntryForm">
+    <form action="http://temple.dynamic.sanger.ac.uk:3000/summary">
+      <input type="hidden" name="view" value="tabs"/>
+  	<label for="idField">ID:</label>
+      <input type="text" id="idField" name="id" size="10"/>
+      <input type="submit" id="idSubmit" Value="Go"/>
+    </form>
+  </div>
+</div>
 
-      <div id="content">
-	    [% FOREACH block IN tabLayout %]
-	      [% blockName = block.keys.first %]
-	      [% blockID   = "${blockName}Block" %]
-	      [% blockFile = blocks.${blockID} %]
-          [% PROCESS $blockFile %]
-        [% END %]
-      </div>
-    <div class="cleaner">&nbsp;</div>
+<div id="content">
+  [% FOREACH block IN tabLayout %]
+    [% blockName = block.keys.first %]
+    [% blockFile = blocks.${blockName} %]
+    [% PROCESS $blockFile %]
+  [% END %]
+</div>
 
-	</div><!-- end of "content" div -->
-
-	[% PROCESS components/footer.tt %]
-	
-  </body>
-</html>
