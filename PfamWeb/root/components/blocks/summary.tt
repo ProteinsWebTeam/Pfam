@@ -7,22 +7,35 @@
   </div>
   <div class="blockContent[% IF NOT open %] closed[% END %]">
 
+    [%# pick a random PDB entry for this family %]
+    [% numIds = pfam.pdbMap.size %]
+    [% PERL %]
+    $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
+    [% END %]
+
+    [% pdbObj = pfam.pdbMap.${rand}.pdb %]
+	[% pdbId     = pdbObj.pdb_id -%]
+	[% title     = pdbObj.title -%]
+
+    [% IF pdbObj.pdb_image %]
+    <div class="pdbImageFragment">
+  	  <img class="pdbImage" src="http://temple.dynamic.sanger.ac.uk:3000/getimage?pdbid=[% pdbId %]" />
+	  <h4 class="pdbTitle">PDB entry [% pdbId %]</h4>: [% title %]
+    </div>
+    [% END %]
+
 	<h3>[% pfam.description %]</h3>
 	<p>[% pfam.comment %]</p>
-
-    <hr class="short"/>
 
     <h3>Literature references</h3>
     <ol>
 	  [% FOREACH ref IN pfam.pfamA_lit_refs %]
 	  <li>
-        [% ref.author %], [% ref.journal %]: [% ref.title %]
+        [% ref.author %] [% ref.journal %] [% ref.title %]
 		<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Abstract&list_uids=[% ref.medline %]">[% ref.medline %]</a>
       </li>
 	  [% END %]
 	</ol>
-
-    <hr class="short"/>
 
 	<h3>Interpro entry [% pfam.interpro.interpro_id %]</h3>
 	<p>[% pfam.interpro.abstract %]</p>

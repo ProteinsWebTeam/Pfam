@@ -1,0 +1,28 @@
+
+<!-- start tree block -->
+
+<div class="block" id="treeBlock">
+  <div class="handle">
+    <h1>Species distribution</h1>
+  </div>
+  <div class="blockContent [% IF NOT open %]closed[% END %]">
+
+    <!-- start of tree -->
+	<div id="treeDiv"></div>
+
+    <link rel="stylesheet" type="text/css" href="http://developer.yahoo.com/yui/treeview/examples/css/default/tree.css">
+
+	<script type="text/javascript">
+      var tree;
+	  function treeInit() {
+	    tree = new YAHOO.widget.TreeView("treeDiv");
+        var root = tree.getRoot();
+	    [% tree %]
+        tree.draw();
+      }
+	</script>
+
+  </div>
+</div>
+
+<!-- end of tree block -->

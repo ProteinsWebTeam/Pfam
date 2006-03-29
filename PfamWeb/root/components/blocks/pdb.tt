@@ -1,5 +1,5 @@
 
-[%# requires a PDB object called "pdbObj" %]
+[% USE dumper %]
 
 <!-- start pdb block -->
 
@@ -16,6 +16,23 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
 	<h1>PDB</h1>
   </div>
   <div class="blockContent[% IF NOT open %] closed[% END %]">
+
+  <ul>
+  [% FOREACH pdbMap IN pfamMaps %]
+    <li>
+       [% pdbMap.pfamA_id %] 
+	on [% pdbMap.pfamseq_id %] 
+     / [% pdbMap.pfam_start_res %] 
+     - [% pdbMap.pfam_end_res %] maps to
+       [% pdbMap.pdb_id %]
+     : [% pdbMap.chain %]
+     , [% pdbMap.pdb_start_res %]
+     - [% pdbMap.pdb_end_res %]
+    </li>
+	[% END %]
+ </ul>
+
+
 
 	[% pdbId     = pdbObj.pdb_id -%]
 	[% header    = pdbObj.header -%]
@@ -34,12 +51,13 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
 	<p>start |[% start %]|</p>
 	<p>end |[% end %]|</p>
 
+<!-- 
 	[% IF pdbObj.pdb_image %]
 		<img src="http://temple.dynamic.sanger.ac.uk:3000/getimage?pdbid=[% pdbId %]" />
 	[% ELSE %]
 		<p>No image for this PDB entry</p>
 	[% END %]
-
+-->
 
   </div>
 </div>

@@ -1,7 +1,7 @@
 
 <div class="block" id="iconsBlock">
   <div class="handle">
-	<h1>Summary</h1>
+	<h1>Overview</h1>
   </div>
   <div class="blockContent[% IF NOT open %] closed[% END %]">
     [% PROCESS components/blocks/icons.tt %]
