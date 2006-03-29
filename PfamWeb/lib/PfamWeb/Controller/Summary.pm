@@ -5,7 +5,7 @@
 # Controller to build the main Pfam family page. Still a test-bed of
 # sorts.
 #
-# $Id: Summary.pm,v 1.5 2006-03-29 10:59:35 jt6 Exp $
+# $Id: Summary.pm,v 1.6 2006-03-29 13:17:53 rdf Exp $
 
 package PfamWeb::Controller::Summary;
 
@@ -95,12 +95,15 @@ sub end : Private {
 
   my @seqs_acc;
   my $acc = $c->stash->{pfam}->pfamA_acc;
-  foreach my $arch ( PfamWeb::Model::PfamA_architecture->search( {'pfamA_acc' => $acc },
-																 { join       => [qw/ arch pfam/],
+  my $auto_pfam = $c->stash->{pfam}->auto_pfamA; 
+  my $no_archs;
+  foreach my $arch ( PfamWeb::Model::PfamA_architecture->search( {'auto_pfamA' => $auto_pfam },
+																 { join       => [qw/ arch /],
 																   order_by   =>"arch.no_seqs DESC" }
 															   )
 				   ) {
-	push @seqs_acc, $arch->pfamseq_acc;
+      $no_archs++;
+      push @seqs_acc, $arch->pfamseq_acc;
   }
 
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
@@ -131,14 +134,40 @@ sub end : Private {
   #----------------------------------------------------------------------
   # get the PDB details
 
-  my @maps = PfamWeb::Model::PdbMap->search( { pfamA_acc => $acc,
+  my @maps = PfamWeb::Model::PdbMap->search( { auto_pfam => $auto_pfam,
 															pfam_region => 1 },
-														  { join => [qw/ pdb pfamA / ] }
+														  { join => [qw/ pdb / ] }
 														);
   $c->stash->{pfamMaps} = \@maps;
 
   #----------------------------------------------------------------------
+  # Build the summary details
+  
+  my %summaryData;
 
+  
+  
+  #Number or architectures....
+  $summaryData{numArchitectures} = $no_archs;
+  
+  #Number of sequences in full alignment
+  $summaryData{numSequences} = $c->stash->{pfam}->num_full;
+  
+  #Number of structures known for the domain 
+  my %pdb_unique = map{$_->pdb_id => 1} @maps;
+  $summaryData{numStructures} = scalar(keys %pdb_unique);
+  
+  #Number of species
+  my @species = PfamWeb::Model::PfamA_reg_full->search({auto_pfamA => $auto_pfam,
+							in_full => 1},
+						       {join => [ qw/pfamseq/]});
+  
+  my %species_unique = map{$_->species => 1}@species;
+  $summaryData{numSpecies} = scalar(keys %species_unique);
+  
+  $c->stash->{summaryData} = \%summaryData;
+
+  #----------------------------------------------------------------------
   # make sure there's a template defined ultimately
   $c->stash->{template} ||= "pages/" . $this->{views}->{default};
 
