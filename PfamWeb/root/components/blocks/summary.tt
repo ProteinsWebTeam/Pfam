@@ -19,7 +19,7 @@
 
     [% IF pdbObj.pdb_image %]
     <div class="pdbImageFragment">
-  	  <img class="pdbImage" src="http://temple.dynamic.sanger.ac.uk:3000/getimage?pdbid=[% pdbId %]" />
+  	  <img class="pdbImage" src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" />
 	  <h4 class="pdbTitle">PDB entry [% pdbId %]</h4>: [% title %]
     </div>
     [% END %]

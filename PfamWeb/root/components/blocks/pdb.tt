@@ -53,7 +53,7 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
 
 <!-- 
 	[% IF pdbObj.pdb_image %]
-		<img src="http://temple.dynamic.sanger.ac.uk:3000/getimage?pdbid=[% pdbId %]" />
+		<img src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" />
 	[% ELSE %]
 		<p>No image for this PDB entry</p>
 	[% END %]
