@@ -5,7 +5,7 @@
 # Controller to build the main Pfam family page. Still a test-bed of
 # sorts.
 #
-# $Id: Summary.pm,v 1.6 2006-03-29 13:17:53 rdf Exp $
+# $Id: Summary.pm,v 1.7 2006-03-29 13:33:15 jt6 Exp $
 
 package PfamWeb::Controller::Summary;
 
@@ -142,29 +142,30 @@ sub end : Private {
 
   #----------------------------------------------------------------------
   # Build the summary details
-  
+
   my %summaryData;
 
-  
-  
   #Number or architectures....
   $summaryData{numArchitectures} = $no_archs;
-  
+
   #Number of sequences in full alignment
   $summaryData{numSequences} = $c->stash->{pfam}->num_full;
-  
+
   #Number of structures known for the domain 
   my %pdb_unique = map{$_->pdb_id => 1} @maps;
   $summaryData{numStructures} = scalar(keys %pdb_unique);
-  
+
   #Number of species
   my @species = PfamWeb::Model::PfamA_reg_full->search({auto_pfamA => $auto_pfam,
 							in_full => 1},
 						       {join => [ qw/pfamseq/]});
-  
+
   my %species_unique = map{$_->species => 1}@species;
   $summaryData{numSpecies} = scalar(keys %species_unique);
-  
+
+  # HACK:hardcoded interactions number added here...
+  $summaryData{numIpfam} = 7;
+
   $c->stash->{summaryData} = \%summaryData;
 
   #----------------------------------------------------------------------
@@ -176,7 +177,3 @@ sub end : Private {
 }
 
 1;
-
-# foreach my $pMap ( @pfamMaps){
-#     print $pMap->pfamA_id." on ".$pMap->pfamseq_id."/".$pMap->pfam_start_res."-".$pMap->pfam_end_res." maps to ".$pMap->pdb_id.":".$pMap->chain.",".$pMap->pdb_start_res."-".$pMap->pdb_end_res."\n";
-# } 
