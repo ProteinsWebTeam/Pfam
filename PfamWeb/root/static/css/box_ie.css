@@ -1,0 +1,42 @@
+
+/* Set a height to fix up some rendering issues with IE... */
+.i1, .i3 {
+  height: 1px;
+}
+
+/* change the border images to one that will fill the gap that otherwise
+   appears in the background of the box... */
+.i1 {
+  background-image: url(/static/images/borders_wide.png);
+}
+
+.i2 {
+  background-image: url(/static/images/borders_wide.png);
+}
+
+#seqIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/alignment.png",sizingMethod="crop");
+}
+
+#structIcon	{ 
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/structure.png",sizingMethod="crop");
+}
+
+/*
+#archIcon {
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/domains.png",sizingMethod="crop");
+}
+*/
+
+#specIcon {
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/species.png",sizingMethod="crop");
+}
+
+#ipfamIcon {
+	background-image: none;
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/ipfam.png",sizingMethod="crop");
+}

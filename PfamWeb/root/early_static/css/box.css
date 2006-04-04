@@ -1,0 +1,57 @@
+/* Top border and right corner */
+.bt {
+  background: url(/static/images/box.png) no-repeat 100% 0;
+  margin: 0 0 0 12px;
+  height: 12px;
+}
+
+/* Top left corner */
+.bt div {
+  height: 12px;
+  width: 12px;
+  position: relative;
+  left: -12px;
+  background: url(/static/images/box.png) no-repeat 0 0;
+}
+
+/* Bottom border and right corner */
+.bb {
+  background: url(/static/images/box.png) no-repeat 100% 100%;
+  margin: 0 0 0 12px;
+  height: 15px;
+}
+
+/* Bottom left corner */
+.bb div {
+  height: 15px;
+  width: 12px;
+  position: relative;
+  left: -12px;
+  background: url(/static/images/box.png) no-repeat 0 100%;
+}
+
+/* Left border */
+.i1 {
+  padding: 0 0 0 5px;
+  background: url(/static/images/borders.png) repeat-y 0 0;
+}
+
+/* Right border */
+.i2 {
+  padding: 0 9px 0 0;
+  background: url(/static/images/borders.png) repeat-y 100% 0;
+}
+
+/*
+.cb {
+	border: 1px solid pink;
+}
+
+.i1 {
+	border: 1px solid red;
+}
+
+.bb {
+    border: 1px solid green;
+}
+*/
