@@ -35,11 +35,6 @@ form  {
   clear: both;
 }
 
-#footer {
-  clear: both;
-  line-height: 1.2em;
-}
-
 #sidebar {
 	background: url(/static/images/sidebar_bg.gif) repeat-y right 0;
     border-bottom: 1px solid #4577a5;
@@ -55,12 +50,13 @@ form  {
 #pageHeader {
     background: url(/static/images/double_gradient.gif) no-repeat 15% bottom;
 	color: #074987;
+	padding: 0.4em;
 }
 
 #pageHeader h1 {
+	margin: 0.2em;
 	padding: 0;
-	margin: 0;
-    float: left;
+    clear: both;
 }
 
 #newEntryForm {
@@ -100,6 +96,10 @@ form  {
   text-decoration: none;
   font-weight: bold;
   color: #074987;
+}
+
+#sidebar ul li a:hover {
+  text-decoration: underline;
 }
 
 #sidebar ul li.selected a {
@@ -179,38 +179,34 @@ h4.pdbTitle  {
     display: inline;
 }
 
-#icons {
-	float: right;
+#iconsContent {
+	clear: both;
+	overflow: auto;
+    background: #074987;
 }
 
-#icons dl {
-	margin: 0;
-    padding: 0.5em;
-    color: #FEFEFE;
-    background-color: #074987;
-}
-
-#icons dl dt {
-	display: inline;
-	margin: 0;
-    text-align: right;
-}
-
-#icons dl dd {
-	display: inline;
-	margin: 0;
-	padding: 0.4em 0 0.4em 65px;
+#iconsContent a {
+	color: #fefefe;
+	width: 8em;
+	float: left;
+	border-right: 1px solid #fefefe;
+	padding: 0.4em 0.2em 0.4em 57px;
+	background-color: #074987;
     background-repeat: no-repeat;
-	background-position: center left;
-    border-right: 2px solid #FEFEFE;
+	background-position: 2px center;
 }
 
-#icons dl dd.lastIcon {
-	border: none;
+#iconsContent a em {
+	font-weight: bold;
+    font-style: normal;
 }
 
+#iconsContent .lastIcon {
+	border-right: none;
+}
 
-#seqIcon	{ background-image: url(/static/images/pfam_logo.png) }
-#structIcon	{ background-image: url(/static/images/structure.png) }
-#archIcon	{ background-image: url(/static/images/pfam.png) }
-#specIcon	{ background-image: url(/static/images/species.png) }
+#seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
+#structIcon	{ background-image: url(/static/images/logos/structure.png) }
+#archIcon	{ background-image: url(/static/images/logos/domains.gif) }
+#specIcon	{ background-image: url(/static/images/logos/species.png) }
+#ipfamIcon	{ background-image: url(/static/images/logos/ipfam.png) }
