@@ -54,18 +54,19 @@ div.menubar {
   width:            100%;
 }
 
-#footer a {
-  color: #074987;
-}
-
 #footer {
 	border:           1px solid #074987; 
     font-size:        0.8em;
     text-align:       left;
     background-color: #cbdced;
     color:            #074987;
-	padding: 2px;
+	padding: 0.3em;
     clear: both;
+    height: 1em;
+}
+
+#footer a {
+  color: #074987;
 }
 
 #modDate {
