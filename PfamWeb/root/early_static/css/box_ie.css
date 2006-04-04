@@ -1,18 +1,45 @@
 
-/* Set a height to fix up some rendering issues with IE... */
+/* a completely new stylesheet to make sure that IE gets the box right...
+   jt6 20060404 WTSI.
+   
+   $Id: box_ie.css,v 1.2 2006-04-04 13:17:28 jt6 Exp $
+*/
+
+.bt {
+  background-image: url(/static/images/box.gif);
+}
+
+/* Top left corner */
+.bt div {
+  background-image: url(/static/images/box.gif);
+}
+
+/* Bottom border and right corner */
+.bb {
+  background-image: url(/static/images/box.gif);
+}
+
+/* Bottom left corner */
+.bb div {
+  background-image: url(/static/images/box.gif);
+}
+
+/* Left border */
+.i1 {
+  background-image: url(/static/images/borders.gif);
+}
+
+/* Right border */
+.i2 {
+  background-image: url(/static/images/borders_wide.gif);
+}
+
+/* set a height to fix up some rendering issues with IE... */
 .i1, .i3 {
   height: 1px;
 }
 
-/* change the border images to one that will fill the gap that otherwise
-   appears in the background of the box... */
-.i1 {
-  background-image: url(/static/images/borders_wide.png);
-}
-
-.i2 {
-  background-image: url(/static/images/borders_wide.png);
-}
+/* use the AlphaImageLoader filter to show the logos */
 
 #seqIcon {
     background-image: none;

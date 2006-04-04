@@ -1,3 +1,10 @@
+
+/* style the box with curved corners.
+   jt6 20060404 WTSI
+
+   $Id: box.css,v 1.2 2006-04-04 13:17:28 jt6 Exp $
+*/
+
 /* Top border and right corner */
 .bt {
   background: url(/static/images/box.png) no-repeat 100% 0;
@@ -41,17 +48,3 @@
   padding: 0 9px 0 0;
   background: url(/static/images/borders.png) repeat-y 100% 0;
 }
-
-/*
-.cb {
-	border: 1px solid pink;
-}
-
-.i1 {
-	border: 1px solid red;
-}
-
-.bb {
-    border: 1px solid green;
-}
-*/
