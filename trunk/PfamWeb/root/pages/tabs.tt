@@ -5,17 +5,14 @@
 # 
 # build the main Pfam family page. Still a test-bed.
 #
-# $Id: tabs.tt,v 1.2 2006-03-29 12:56:01 jt6 Exp $
+# $Id: tabs.tt,v 1.3 2006-04-04 12:18:04 jt6 Exp $
 %]
 
 [% style = "tabs" %]
 
-
 <div id="pageHeader">
-  <h1>Pfam entry: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
   [% PROCESS components/blocks/icons.tt %]
-
-  <div class="cleaner">&nbsp;</div>
+  <h1>Pfam entry: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
 </div>
 
 <div id="sidebar">
@@ -25,7 +22,7 @@
     [% blockName = block.keys.first %]
     [% blockTitle = block.values.first %]
     <li id="[% blockName %]Selector"[% IF firstTab %] class="selected"[% END %]>
-      <a href="javascript:show('[% blockName %]');">[% blockTitle %]</a>
+      <a href="javascript:show('[% blockName %]')">[% blockTitle %]</a>
     </li>
     [% firstTab = "" %]
   [% END %]
