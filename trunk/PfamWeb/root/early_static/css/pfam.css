@@ -11,13 +11,6 @@ body {
 	padding: 0;
 }
 
-/* the tooltip layer */
-#overDiv {
-	position: absolute;
-    visibility: hidden;
-    z-index:1000;
-}
-
 .headercentre {
 	background: #FFF url(http://www.sanger.ac.uk/Software/Pfam/images/swoosh_structure.png) no-repeat top left;
 /*	background: #FFF url(/static/images/swoosh_coloured_structure.jpg) no-repeat top left; */
