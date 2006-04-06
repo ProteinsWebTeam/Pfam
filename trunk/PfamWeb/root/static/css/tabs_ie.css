@@ -1,0 +1,18 @@
+
+/* IE stylesheet to handle transparency...
+   jt6 20060406 WTSI.
+
+   $Id: tabs_ie.css,v 1.1 2006-04-06 12:22:19 jt6 Exp $
+*/
+
+/*
+#pageTitle h1 {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/left_curve.png",sizingMethod="crop");
+}
+*/
+
+#icons {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/right_top.png",sizingMethod="crop");
+}
