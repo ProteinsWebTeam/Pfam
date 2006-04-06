@@ -1,6 +1,6 @@
 
 function show( id ) {
-  var divs = document.getElementsByTagName( "div" );
+  var divs = YAHOO.util.Dom.get( "content" ).getElementsByTagName( "div" );
   for( var i = 0; i < divs.length; i++ ) {
     var div = divs[i];
     var style = div.style;
@@ -13,7 +13,7 @@ function show( id ) {
     }
   }
 
-  var lis = document.getElementsByTagName( "li" );
+  var lis = YAHOO.util.Dom.get( "sidebar" ).getElementsByTagName( "li" );
   for( var i = 0; i < lis.length; i++ ) {
     var li = lis[i];
     var label = id + "Selector";
