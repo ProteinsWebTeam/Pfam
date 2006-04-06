@@ -2,7 +2,7 @@
 /* a completely new stylesheet to make sure that IE gets the box right...
    jt6 20060404 WTSI.
    
-   $Id: box_ie.css,v 1.2 2006-04-04 13:17:28 jt6 Exp $
+   $Id: box_ie.css,v 1.3 2006-04-06 12:22:48 jt6 Exp $
 */
 
 .bt {
@@ -51,12 +51,10 @@
 	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/structure.png",sizingMethod="crop");
 }
 
-/*
 #archIcon {
 	background-image: none;
 	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/domains.png",sizingMethod="crop");
 }
-*/
 
 #specIcon {
 	background-image: none;

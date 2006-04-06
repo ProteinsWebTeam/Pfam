@@ -1,8 +1,7 @@
 
-<div id="icons" class="cbb">
+<div id="icons">
 
-  <div id="iconsContent">
-
+  <div id="logos">
     <a href="javascript:show('alignBlock')" id="seqIcon"><em>[% summaryData.numSequences %]</em>&nbsp;sequences</a>
     <a href="javascript:show('domainsBlock')" id="archIcon"><em>[% summaryData.numArchitectures %]</em>&nbsp;architectures</a>
     <a href="javascript:show('pdbBlock')" id="structIcon"><em>[% summaryData.numStructures %]</em>&nbsp;structures</a>
@@ -10,7 +9,6 @@
     <a id="ipfamIcon"><em>[% summaryData.numIpfam %]</em>&nbsp;interactions</a>
     <!-- the last value is hard coded -->
     <a href="javascript:show('treeBlock')" id="specIcon" class="lastIcon"><em>[% summaryData.numSpecies %]</em>&nbsp;species</a>
-  
   </div>
-
+  
 </div>

@@ -20,9 +20,8 @@ form  {
 }
 
 #wrapper {
-	overflow:hidden;
- border: 1px solid red;
- width: 100%;
+  overflow:hidden;
+  width: 100%;
 }
 
 #content {
@@ -47,16 +46,21 @@ form  {
 /* ======================================== */
 /* page components */
 
+#stripe {
+    background: #3b70a0;
+    height: 8px;
+}
+
 #pageHeader {
-    background: url(/static/images/double_gradient.gif) no-repeat 15% bottom;
+    background: url(/static/images/double_gradient.gif) repeat-y 15% bottom;
 	color: #074987;
-	padding: 0.4em;
+    min-height: 60px;
 }
 
 #pageHeader h1 {
-	margin: 0.2em;
-	padding: 0;
-    clear: both;
+    background: url(/static/images/left_curve.gif) no-repeat top left;
+	margin: 0;
+	padding: 0.4em;
 }
 
 #newEntryForm {
@@ -88,8 +92,9 @@ form  {
 }
 
 #sidebar ul li a {
-  border-bottom: 1px solid #83a4c3;
-  border-right: 1px solid #4577a5;
+  outline: none;
+/*  border-bottom: 1px solid #83a4c3;
+  border-right: 1px solid #4577a5; */
   margin: 0;
   padding: 0.4em 0 0.4em 0.4em;
   display: block;
@@ -103,13 +108,18 @@ form  {
 }
 
 #sidebar ul li.selected a {
+  outline: none;
   background: url(/static/images/selected_bg.gif);
   border: 1px solid #4577a5;
   border-right: none;
 }
 
+#sidebar ul li.selected a:hover {
+  text-decoration: none;
+}
+
 #sidebar ul li a.lastItem {
-	border: none;
+  border: none;
 }
 
 hr.short {
@@ -179,34 +189,54 @@ h4.pdbTitle  {
     display: inline;
 }
 
-#iconsContent {
-	clear: both;
-	overflow: auto;
-    background: #074987;
+#icons {
+  color: #fefefe;
+  float: right;
+  background: url(/static/images/right_top.png) top left no-repeat;
+  margin: 0;
+  padding: 0 0 0 40px;
+  height: 60px;
 }
 
-#iconsContent a {
-	color: #fefefe;
-	width: 8em;
-	float: left;
-	border-right: 1px solid #fefefe;
-	padding: 0.4em 0.2em 0.4em 57px;
-	background-color: #074987;
-    background-repeat: no-repeat;
-	background-position: 2px center;
+#icons h2 {
+  color: #fefefe;
+  margin: 0;
+  padding: 0;
+  font-size: small;
+  display: inline;
 }
 
-#iconsContent a em {
-	font-weight: bold;
-    font-style: normal;
+#icons span {
+  border: 1px solid red;
+  font-size: larger;
+  margin: 1px;
 }
 
-#iconsContent .lastIcon {
-	border-right: none;
+#icons a {
+  color: #fefefe;
+  text-decoration: none;
+}
+
+#icons a:hover {
+  text-decoration: underline;
+}
+
+#icons a em {
+  font-weight: bold;
+  font-style: normal;
 }
 
 #seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
 #structIcon	{ background-image: url(/static/images/logos/structure.png) }
-#archIcon	{ background-image: url(/static/images/logos/domains.gif) }
+#archIcon	{ background-image: url(/static/images/logos/domains.png) }
 #specIcon	{ background-image: url(/static/images/logos/species.png) }
 #ipfamIcon	{ background-image: url(/static/images/logos/ipfam.png) }
+
+#logos a {
+	color: #fefefe;
+	float: left;
+	padding: 22px 0.4em 0.2em 0.4em;
+	  text-align:center;
+    background-repeat: no-repeat;
+	background-position: center -2px;
+}
