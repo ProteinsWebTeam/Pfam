@@ -1,0 +1,74 @@
+
+/* base stylesheet for the Pfam site
+   jt6 20060406 WTSI
+
+   $Id: base.css,v 1.1 2006-04-07 10:24:47 jt6 Exp $
+*/
+
+body {
+	font-family: arial, helvetica, sans-serif;
+	min-width: 840px;
+    margin: 0;
+	padding: 0;
+}
+
+.headercentre {
+	background: #FFF url(http://www.sanger.ac.uk/Software/Pfam/images/swoosh_structure.png) no-repeat top left;
+/*	background: #FFF url(/static/images/swoosh_coloured_structure.jpg) no-repeat top left; */
+}
+
+#header { 
+	height: 84px; 
+    margin: 0;
+    padding: 0;
+}
+
+#headerLink {
+	height: 66px;
+	width: 200px;
+    border: 0;
+	position: absolute;
+    left: 0;
+}
+
+#pfamLogo {
+	margin: 4px 0;
+    float: right;
+    border: 0;
+}
+
+img.map {
+    border-style: none;
+	width: 60px;
+    height: 15px;
+}
+
+div.menubar {
+  position:         relative;
+  left:             0;
+  top:              -16px;
+  width:            100%;
+}
+
+#footer {
+	border:           1px solid #074987; 
+    font-size:        0.8em;
+    text-align:       left;
+    background-color: #cbdced;
+    color:            #074987;
+	padding: 0.3em;
+    clear: both;
+    height: 1em;
+}
+
+#footer a {
+  color: #074987;
+}
+
+#modDate {
+	float: right;
+    color: #808080;
+    padding: 0;
+    margin: 0;
+    font-size: 0.8em;
+}
