@@ -1,38 +1,74 @@
 
+/* tabs.css
+   jt6 20060406 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam family pages.
+
+   $Id: tabs.css,v 1.6 2006-04-07 10:24:22 jt6 Exp $
+*/   
+
 /* ======================================== */
 /* page layout items */
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  font-size: small;
+
+/* the stripe between the page header and the top of the tab */
+#tabHeader {
+    background: #3b70a0;
+    height: 8px;
 }
 
-form  {
-  margin: 0;
-  padding: 0;
+/* styles for the markup that forms the page tab */
+#tabTitle {
+    background: url(/static/images/double_gradient.gif) repeat-y 15% bottom;
+	color: #074987;
+    min-height: 50px;
 }
 
-#header {
-  margin: 0;
-  padding: 0;
+#tabTitle h1 {
+    background: url(/static/images/left_curve.gif) no-repeat top left;
+	margin: 0;
+	padding: 0.2em 0.4em;
 }
 
-#wrapper {
-  overflow:hidden;
-  width: 100%;
+/* the overview bar */
+#icons {
+    float: right;
+    background: url(/static/images/right_top.png) top left no-repeat;
+    margin: 0;
+    padding: 0 0 0 40px;
 }
 
-#content {
-  margin: 0;
-  width: 85%;
-  float: right;
+#icons a {
+	color: #fefefe;
+    text-decoration: none;
+	float: left;
+	padding: 22px 0.4em 0.2em 0.4em;
+	text-align:center;
+    background-repeat: no-repeat;
+	background-position: center -2px;
 }
 
-.cleaner {
-  clear: both;
+#icons a:hover {
+    text-decoration: underline;
 }
+
+#icons a em {
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* the logos for the overview */
+#seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
+#archIcon	{ background-image: url(/static/images/logos/domains.png) }
+#structIcon	{ background-image: url(/static/images/logos/structure.png) }
+#ipfamIcon	{ background-image: url(/static/images/logos/ipfam.png) }
+#specIcon	{ background-image: url(/static/images/logos/tree.png) }
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+/* the left column navigation bar */
 
 #sidebar {
 	background: url(/static/images/sidebar_bg.gif) repeat-y right 0;
@@ -43,42 +79,17 @@ form  {
 	margin-bottom: 0.4em;
 }
 
-/* ======================================== */
-/* page components */
-
-#stripe {
-    background: #3b70a0;
-    height: 8px;
+#pageType {
+    color: #fefefe;
+	margin: 0 0.4em 0.4em 0.4em;
+    padding: 0.1em;
+    border: 1px solid #074987;
 }
 
-#pageHeader {
-    background: url(/static/images/double_gradient.gif) repeat-y 15% bottom;
-	color: #074987;
-    min-height: 60px;
-}
-
-#pageHeader h1 {
-    background: url(/static/images/left_curve.gif) no-repeat top left;
+#pageType h3 {
 	margin: 0;
-	padding: 0.4em;
-}
-
-#newEntryForm {
-	display: none;        /* N.B. */
-    margin-top: 50px;
-    padding: 0.4em;
-    font-weight: bold;
-    color: #074987;
-}
-
-#idField {
-  border: 2px solid #074987;
-}
-
-#idSubmit {
-  border: 2px solid #074987;
-  background: #4577a5;
-  color: #c2d2e1;
+    padding: 0.3em;
+    background: #074987;
 }
 
 #sidebar ul {
@@ -122,12 +133,16 @@ form  {
   border: none;
 }
 
-hr.short {
-  display: none;
+/* the main page content */
+
+#content {
+  margin: 0;
+  width: 85%;
+  float: right;
 }
 
 /* ======================================== */
-/* general block styles */
+/* general styles for "blocks" */
 
 div.block {
   margin: 0.4em;
@@ -156,6 +171,8 @@ div.blockContent {
 
 /* ======================================== */
 /* rules for specific blocks */
+
+/* the (currently grey-scale) logos for the individual tab titles */
 
 #summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png) }
 #interproBlock	div.handle { background-image: url(/static/images/open_book.png) }
@@ -189,54 +206,32 @@ h4.pdbTitle  {
     display: inline;
 }
 
-#icons {
-  color: #fefefe;
-  float: right;
-  background: url(/static/images/right_top.png) top left no-repeat;
-  margin: 0;
-  padding: 0 0 0 40px;
-  height: 60px;
+hr.short {
+	height: 1px;
+	border: none;
+	border-top: 1px solid #074987;
+    width: 80%;
 }
 
-#icons h2 {
-  color: #fefefe;
-  margin: 0;
-  padding: 0;
-  font-size: small;
-  display: inline;
+
+/* ======================================== */
+/* junk */
+
+#newEntryForm {
+	display: none;        /* N.B. */
+    margin-top: 50px;
+    padding: 0.4em;
+    font-weight: bold;
+    color: #074987;
 }
 
-#icons span {
-  border: 1px solid red;
-  font-size: larger;
-  margin: 1px;
+#idField {
+  border: 2px solid #074987;
 }
 
-#icons a {
-  color: #fefefe;
-  text-decoration: none;
+#idSubmit {
+  border: 2px solid #074987;
+  background: #4577a5;
+  color: #c2d2e1;
 }
 
-#icons a:hover {
-  text-decoration: underline;
-}
-
-#icons a em {
-  font-weight: bold;
-  font-style: normal;
-}
-
-#seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
-#structIcon	{ background-image: url(/static/images/logos/structure.png) }
-#archIcon	{ background-image: url(/static/images/logos/domains.png) }
-#specIcon	{ background-image: url(/static/images/logos/species.png) }
-#ipfamIcon	{ background-image: url(/static/images/logos/ipfam.png) }
-
-#logos a {
-	color: #fefefe;
-	float: left;
-	padding: 22px 0.4em 0.2em 0.4em;
-	  text-align:center;
-    background-repeat: no-repeat;
-	background-position: center -2px;
-}
