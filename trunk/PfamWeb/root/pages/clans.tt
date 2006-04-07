@@ -1,0 +1,5 @@
+
+[% style = "clans" %]
+[% pageType = "Clans page" %]
+
+[% PROCESS pages/layout.tt %]
