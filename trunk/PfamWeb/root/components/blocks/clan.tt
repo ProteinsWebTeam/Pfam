@@ -1,5 +1,7 @@
 
-[%# requires a pfam object called "clans" %]
+[% IF NOT pfam.clan_acc;
+   RETURN;
+END %]
 
 <!-- start pfam block -->
 
