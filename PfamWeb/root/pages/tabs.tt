@@ -1,50 +1,5 @@
 
-[%#
-# tabs.tt
-# jt6 20060316 WTSI
-# 
-# build the main Pfam family page. Still a test-bed.
-#
-# $Id: tabs.tt,v 1.4 2006-04-06 12:21:38 jt6 Exp $
-%]
-
 [% style = "tabs" %]
+[% pageType = "Family page" %]
 
-<div id="stripe"></div>
-
-[% PROCESS components/blocks/icons.tt %]
-
-<div id="pageHeader">
-  <h1><em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
-</div>
-
-<div id="sidebar">
-  <ul>
-  [% firstTab = 1 %]
-  [% FOREACH block IN tabLayout %]
-    [% blockName = block.keys.first %]
-    [% blockTitle = block.values.first %]
-    <li id="[% blockName %]Selector"[% IF firstTab %] class="selected"[% END %]>
-      <a href="javascript:show('[% blockName %]')">[% blockTitle %]</a>
-    </li>
-    [% firstTab = "" %]
-  [% END %]
-  </ul>
-  <div id="newEntryForm">
-    <form action="http://temple.dynamic.sanger.ac.uk:3000/summary">
-      <input type="hidden" name="view" value="tabs"/>
-  	<label for="idField">ID:</label>
-      <input type="text" id="idField" name="id" size="10"/>
-      <input type="submit" id="idSubmit" Value="Go"/>
-    </form>
-  </div>
-</div>
-
-<div id="content">
-  [% FOREACH block IN tabLayout %]
-    [% blockName = block.keys.first %]
-    [% blockFile = blocks.${blockName} %]
-    [% PROCESS $blockFile %]
-  [% END %]
-</div>
-
+[% PROCESS pages/layout.tt %]
