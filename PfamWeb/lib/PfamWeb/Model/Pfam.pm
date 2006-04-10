@@ -16,18 +16,17 @@ __PACKAGE__->add_columns( qw/auto_pfamA pfamA_acc pfamA_id description model_len
 
 
 #Set the the keys
-__PACKAGE__->set_primary_key( "auto_pfamA" );
+__PACKAGE__->set_primary_key( "auto_pfamA", "pfamA_id", "pfamA_acc" );
 
 
 #Now on to the relationships
 
 __PACKAGE__->might_have ( "interpro" => "PfamWeb::Model::Interpro",
-			  undef,
+			  {"foreign.auto_pfamA"  => "self.auto_pfamA" },
 			  { proxy => [ qw/interpro_id abstract/ ] } );
 
 __PACKAGE__->has_many   ( "pdbMap"   => "PfamWeb::Model::PdbMap",
-			  { "foreign.auto_pfam"  => "self.auto_pfamA" },
-			  { proxy => [ qw/pdb_id/ ] } );
+			  { "foreign.auto_pfam"  => "self.auto_pfamA" });
 
 __PACKAGE__->has_many   ( "go"       => "PfamWeb::Model::GO",
 			  { "foreign.auto_pfamA" => "self.auto_pfamA" } );
@@ -45,6 +44,9 @@ __PACKAGE__->has_one    ( "pfamA_web" => "PfamWeb::Model::PfamA_web",
 
 __PACKAGE__->has_many    ( "pfamA_arch" => "PfamWeb::Model::PfamA_architecture",
 			  {"foreign.auto_pfamA" => "self.auto_pfamA"});
+
+__PACKAGE__->has_many( "pfamA_database_links" => "PfamWeb::Model::PfamA_database_links",
+		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
 #PRC tables - todo
 

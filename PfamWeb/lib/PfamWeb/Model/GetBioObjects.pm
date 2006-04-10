@@ -32,36 +32,42 @@ sub  getSeqs {
     
     #For faster code, make memory declarations here.
     my ($acc, $annSeq, @annSeqs);
-
+    
     #Get all of the nested domains here......
     foreach $acc (@$accs_ref){
+	#print "REF is ".ref($acc)."\n";
+	my $pfamseq;
 	$annSeq = $fac->createAnnotatedSequence();
-	#Get an object out of the database
-	my @rs = PfamWeb::Model::Pfamseq->find( pfamseq_acc => $acc );
-	if(!scalar(@rs)){
-	    print STDERR "Looking up id\n";
-	    @rs = PfamWeb::Model::Pfamseq->find( pfamseq_id => $acc ); 
-	}
+	if(!ref($acc)){
+#Get an object out of the database
 	
-	if(!scalar(@rs)){
-	    print STDERR "Looking up secondary\n";
-	    @rs = PfamWeb::Model::Pfamseq->find({ "secondary_accession.secondary_acc" => $acc },
-						{ join => [qw/ secondary_accession /]}); 
-	}
-	my $pfamseq = shift @rs;
+	    my @rs = PfamWeb::Model::Pfamseq->find( pfamseq_acc => $acc );
+	    if(!scalar(@rs)){
+		print STDERR "Looking up id\n";
+		@rs = PfamWeb::Model::Pfamseq->find( pfamseq_id => $acc ); 
+	    }
 	
-
-	#Now populate the BioPerl sequence object.
-	#There should be more stuff here......
-	$annSeq->id( $pfamseq->pfamseq_id );
-	$annSeq->length( $pfamseq->length );
-	$annSeq->sequence(Bio::Pfam::SeqPfam->new('-seq' => $pfamseq->sequence,
-						  '-start' => '1',
-						  '-end' => $pfamseq->length,
-						  '-id'=> $pfamseq->pfamseq_id,
-						  '-acc' => $pfamseq->pfamseq_acc,
-						  '-organism' => $pfamseq->species,
-						  '-desc' => $pfamseq->description,
+	    if(!scalar(@rs)){
+		print STDERR "Looking up secondary\n";
+		@rs = PfamWeb::Model::Pfamseq->find({ "secondary_accession.secondary_acc" => $acc },
+						    { join => [qw/ secondary_accession /]}); 
+	    }
+	    $pfamseq = shift @rs;
+	}else{
+	    $pfamseq = $acc;
+	}
+	    
+	    #Now populate the BioPerl sequence object.
+	    #There should be more stuff here......
+	    $annSeq->id( $pfamseq->pfamseq_id );
+	    $annSeq->length( $pfamseq->length );
+	    $annSeq->sequence(Bio::Pfam::SeqPfam->new('-seq' => $pfamseq->sequence,
+						      '-start' => '1',
+						      '-end' => $pfamseq->length,
+						      '-id'=> $pfamseq->pfamseq_id,
+						      '-acc' => $pfamseq->pfamseq_acc,
+						      '-organism' => $pfamseq->species,
+						      '-desc' => $pfamseq->description,
 						  '-rdb_index' => $pfamseq->auto_pfamseq));
 	push(@annSeqs, $annSeq)
 	}

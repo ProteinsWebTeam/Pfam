@@ -17,7 +17,8 @@ __PACKAGE__->set_primary_key( "auto_pfamA", "auto_lit" );
 #1 to many relationship
 
 __PACKAGE__->has_one( "pfamA" => "PfamWeb::Model::Pfam",
-		       {"foreign.auto_pfamA"  => "self.auto_pfamA"});
+		       {"foreign.auto_pfamA"  => "self.auto_pfamA"},
+		       {proxy => [qw/pfamA_id pfamA_acc/]});
 
 
 __PACKAGE__->has_one( "literature" => "PfamWeb::Model::Literature_references",
