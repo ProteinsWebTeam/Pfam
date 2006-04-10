@@ -1,10 +1,15 @@
+[%-
+numIds = pfam.pdbMap.size;
+UNLESS numIds;
+  RETURN;
+END;
+-%]
 
 [% USE dumper %]
 
 <!-- start pdb block -->
 
 [%# pick a random PDB entry for this family %]
-[% numIds = pfam.pdbMap.size %]
 [% PERL %]
 $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
 [% END %]
