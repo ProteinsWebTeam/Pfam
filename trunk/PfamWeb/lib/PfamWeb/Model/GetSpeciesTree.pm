@@ -25,8 +25,10 @@ sub _getTreeData{
 	#Looks like a Pfam-A entry as it does not match a Pfam-B i 
 	
 	foreach my $region ( PfamWeb::Model::PfamA_reg_full->search( {"pfamA.pfamA_acc" => $family_acc,
-								    "in_full"      => 1}, 
-								   { join => [qw/ pfamA pfamseq /]})){
+								      "in_full"         => 1}, 
+								     { join             => [qw/ pfamA pfamseq /],
+								      # prefetch         => [qw/ pfamA pfamseq /]
+								       })){
 	    push(@treeData, $region->taxonomy);
 	    
 	    
