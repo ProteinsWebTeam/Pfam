@@ -5,7 +5,68 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.1 2006-04-07 10:23:16 jt6 Exp $
+# $Id: layout.tt,v 1.2 2006-04-10 10:15:56 jt6 Exp $
+%]
+
+[% USE String %]
+
+[%# generate a sidebar tab %]
+[% BLOCK generateTab %]
+
+  [% # see if the tab should be activated or not
+  suffix = String.new;
+  IF NOT active OR firstTab;
+    IF NOT active;
+      CALL suffix.append( "inactive" );
+    END;
+    IF firstTab;
+      CALL suffix.append( " selected" );
+    END;
+    CALL suffix.trim();
+  END
+  %]
+
+  <li id="[% blockName %]Selector"[% IF suffix %] class="[% suffix %]"[% END %]>
+    [% IF active %]
+      <a href="javascript:show('[% blockName %]')">[% blockTitle %]</a>
+    [% ELSE %]
+      <span class="inactive">[% blockTitle %]</a>
+    [% END %]
+  </li>
+
+[% END %]
+
+[%
+firstTab    = 1;
+tabsContent = String.new;
+pageContent = String.new;
+
+activity = {};
+
+FOREACH block IN tabLayout.${style};
+
+  blockName = block.keys.first;
+  blockFile = blocks.${blockName};
+  blockTitle = block.values.first;
+
+  # build the contents of the tab, if it's active
+  pageOutput = PROCESS $blockFile;
+  CALL pageContent.append( pageOutput );
+
+  IF pageOutput;
+    blockActive = 1;
+  ELSE;
+    blockActive = 0;
+  END;
+  activity.$blockName = blockActive;
+
+  # build the tab label
+  tabsOutput = PROCESS generateTab active = blockActive;
+  CALL tabsContent.append( tabsOutput );
+
+  firstTab = 0;
+
+END;
 %]
 
 <div id="tabHeader"></div>
@@ -13,25 +74,19 @@
 [% PROCESS components/blocks/icons.tt %]
 
 <div id="tabTitle">
-  <h1><em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
+  <div id="corner">
+    <div id="pageType">
+      <h2>[% pageType %]</h2>
+    </div>
+    <h2><em>[% pfam.pfamA_id %]</em>&nbsp;([% pfam.pfamA_acc %])</h2>
+  </div>
+  <div class="cleaner">&nbsp;</div>
 </div>
 
 <div id="sidebar">
 
-  <div id="pageType">
-    <h3>[% pageType %]</h3>
-  </div>
-
   <ul>
-  [% firstTab = 1 %]
-  [% FOREACH block IN tabLayout.${style} %]
-    [% blockName = block.keys.first %]
-    [% blockTitle = block.values.first %]
-    <li id="[% blockName %]Selector"[% IF firstTab %] class="selected"[% END %]>
-      <a href="javascript:show('[% blockName %]')">[% blockTitle %]</a>
-    </li>
-    [% firstTab = "" %]
-  [% END %]
+    [% tabsContent %]
   </ul>
 
   [%#
@@ -48,10 +103,6 @@
 </div>
 
 <div id="content">
-  [% FOREACH block IN tabLayout.${style} %]
-    [% blockName = block.keys.first %]
-    [% blockFile = blocks.${blockName} %]
-    [% PROCESS $blockFile %]
-  [% END %]
+  [% pageContent %]
 </div>
 
