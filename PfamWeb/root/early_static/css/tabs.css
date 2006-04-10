@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: tabs.css,v 1.6 2006-04-07 10:24:22 jt6 Exp $
+   $Id: tabs.css,v 1.7 2006-04-10 10:14:43 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -15,7 +15,7 @@
 /* the stripe between the page header and the top of the tab */
 #tabHeader {
     background: #3b70a0;
-    height: 8px;
+    height: 6px;
 }
 
 /* styles for the markup that forms the page tab */
@@ -25,10 +25,36 @@
     min-height: 50px;
 }
 
-#tabTitle h1 {
-    background: url(/static/images/left_curve.gif) no-repeat top left;
+.cleaner {
+clear: both;
+ font-size: 1px;
+margin: 0;
+padding: 0;
+}
+
+#corner h2 {
 	margin: 0;
-	padding: 0.2em 0.4em;
+	padding: 0.2em;
+    float: left;
+}
+
+#corner {
+    background: url(/static/images/left_curve.gif) no-repeat top left;
+    padding: 12px 0.4em 0.4em 0.4em;
+}
+
+#pageType {
+    margin: 0;
+    padding: 1px;
+    float: left;
+    border: 1px solid #074987;
+}
+
+#pageType h2 {
+    color: #fefefe;
+	margin: 0;
+    padding: 0.1em;
+    background: #074987;
 }
 
 /* the overview bar */
@@ -36,10 +62,12 @@
     float: right;
     background: url(/static/images/right_top.png) top left no-repeat;
     margin: 0;
-    padding: 0 0 0 40px;
+    padding: 0 0 6px 40px;
 }
 
-#icons a {
+#icons a,
+#icons span {
+    outline: none;
 	color: #fefefe;
     text-decoration: none;
 	float: left;
@@ -47,16 +75,25 @@
 	text-align:center;
     background-repeat: no-repeat;
 	background-position: center -2px;
+    font-size: smaller;
+}
+
+#icons span {
+    color: #BBB;
+    font-size: smaller;
 }
 
 #icons a:hover {
+    outline: none;
     text-decoration: underline;
 }
 
-#icons a em {
+#icons a em,
+#icons span em {
     font-weight: bold;
     font-style: normal;
 }
+
 
 /* the logos for the overview */
 #seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
@@ -71,25 +108,13 @@
 /* the left column navigation bar */
 
 #sidebar {
+    clear: both;
 	background: url(/static/images/sidebar_bg.gif) repeat-y right 0;
     border-bottom: 1px solid #4577a5;
     padding: 0.4em 0;
     width: 15%;
     float: left;
 	margin-bottom: 0.4em;
-}
-
-#pageType {
-    color: #fefefe;
-	margin: 0 0.4em 0.4em 0.4em;
-    padding: 0.1em;
-    border: 1px solid #074987;
-}
-
-#pageType h3 {
-	margin: 0;
-    padding: 0.3em;
-    background: #074987;
 }
 
 #sidebar ul {
@@ -129,8 +154,13 @@
   text-decoration: none;
 }
 
-#sidebar ul li a.lastItem {
-  border: none;
+#sidebar ul li span.inactive {
+  margin: 0;
+  padding: 0.4em 0 0.4em 0.4em;
+  display: block;
+  text-decoration: none;
+  font-weight: bold;
+  color: #7c99b3;
 }
 
 /* the main page content */
