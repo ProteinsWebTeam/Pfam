@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: tabs.css,v 1.7 2006-04-10 10:14:43 jt6 Exp $
+   $Id: tabs.css,v 1.8 2006-04-10 10:59:17 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -123,10 +123,6 @@ padding: 0;
   list-style: none;
 }
 
-#sidebar ul li {
-  padding-left: 0.4em;
-}
-
 #sidebar ul li a {
   outline: none;
 /*  border-bottom: 1px solid #83a4c3;
@@ -141,6 +137,12 @@ padding: 0;
 
 #sidebar ul li a:hover {
   text-decoration: underline;
+}
+
+#sidebar ul li.selected {
+background: url(/static/images/tab_shadow.png) no-repeat bottom left;
+margin-left: 0.4em;
+padding: 0 0 5px 0;
 }
 
 #sidebar ul li.selected a {
