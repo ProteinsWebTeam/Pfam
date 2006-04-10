@@ -24,6 +24,7 @@ sub getseq : LocalRegex( '^(\S+)' ) {
   foreach my $arch ( PfamWeb::Model::PfamA_architecture->search( {'pfamA_acc' => $acc},
 							    {
 								join => [qw/ arch pfam/],
+								prefetch => [qw/arch/],
 								order_by =>"arch.no_seqs DESC",
 							    })){
       push(@seqs_acc, $arch->pfamseq_acc);   
@@ -39,7 +40,7 @@ sub getseq : LocalRegex( '^(\S+)' ) {
   #my %order = map{$_ => 1 }$layout->region_order;
   my %order = ( "pfama" => 1);
  
-  #This stp is v.slow
+  #This step is v.slow
   my $seqs = PfamWeb::Model::GetBioObjects::getAnnseq(\@seqs_acc, \%order);
   
   $layout->layout_sequences(@$seqs);
