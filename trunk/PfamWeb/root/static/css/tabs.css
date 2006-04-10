@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: tabs.css,v 1.8 2006-04-10 10:59:17 jt6 Exp $
+   $Id: tabs.css,v 1.9 2006-04-10 13:06:59 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -23,13 +23,15 @@
     background: url(/static/images/double_gradient.gif) repeat-y 15% bottom;
 	color: #074987;
     min-height: 50px;
+    margin: 0;
+    padding: 0 0 2px 0;
 }
 
 .cleaner {
-clear: both;
- font-size: 1px;
-margin: 0;
-padding: 0;
+    clear: both;
+    height: 1px;
+    margin: 0;
+    padding: 0;
 }
 
 #corner h2 {
@@ -123,42 +125,43 @@ padding: 0;
   list-style: none;
 }
 
-#sidebar ul li a {
+#sidebar li a {
   outline: none;
 /*  border-bottom: 1px solid #83a4c3;
   border-right: 1px solid #4577a5; */
   margin: 0;
-  padding: 0.4em 0 0.4em 0.4em;
+  padding: 0.2em 0 0.2em 0.6em;
   display: block;
   text-decoration: none;
   font-weight: bold;
   color: #074987;
 }
 
-#sidebar ul li a:hover {
+#sidebar li a:hover {
   text-decoration: underline;
 }
 
-#sidebar ul li.selected {
-background: url(/static/images/tab_shadow.png) no-repeat bottom left;
-margin-left: 0.4em;
-padding: 0 0 5px 0;
+#sidebar li.selected {
+  background: url(/static/images/tab_shadow.png) no-repeat bottom left;
+  margin-left: 0.2em;
+  padding: 0 0 5px 0;
 }
 
-#sidebar ul li.selected a {
+#sidebar li.selected a {
   outline: none;
   background: url(/static/images/selected_bg.gif);
   border: 1px solid #4577a5;
   border-right: none;
+  padding: 0.2em 0 0.2em 0.4em;
 }
 
-#sidebar ul li.selected a:hover {
+#sidebar li.selected a:hover {
   text-decoration: none;
 }
 
-#sidebar ul li span.inactive {
+#sidebar li span.inactive {
   margin: 0;
-  padding: 0.4em 0 0.4em 0.4em;
+  padding: 0.2em 0 0.2em 0.6em;
   display: block;
   text-decoration: none;
   font-weight: bold;

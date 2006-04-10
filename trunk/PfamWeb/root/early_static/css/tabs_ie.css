@@ -2,7 +2,7 @@
 /* IE stylesheet to handle transparency...
    jt6 20060406 WTSI.
 
-   $Id: tabs_ie.css,v 1.1 2006-04-06 12:22:19 jt6 Exp $
+   $Id: tabs_ie.css,v 1.2 2006-04-10 13:06:59 jt6 Exp $
 */
 
 /*
@@ -15,4 +15,9 @@
 #icons {
     background-image: none;
 	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/right_top.png",sizingMethod="crop");
+}
+
+li.selected {
+    background-image: none;
+    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/tab_shadow.png",sizingMethod="crop");
 }
