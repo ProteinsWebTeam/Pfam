@@ -146,23 +146,44 @@ sub length{
 =cut
 
 sub convert_seq {
-  my ($self, $seq) = @_;
+  my ($self, $seq, $regionsAndFeatures) = @_;
   $self->length($seq->length);
   $self->name($seq->id);
   if($seq->sequence && $seq->sequence->organism){
       $self->info("[".$seq->sequence->organism."] ".$seq->sequence->desc);
   }
-  foreach my $region ($seq->eachAnnotatedRegion){
-    my $l_reg = Bio::Pfam::Drawing::Layout::Region->new();
-    $self->addRegion($l_reg);
-    $l_reg->convert_reg($region);
-  }
 
-  foreach my $feature ($seq->eachFeature){
-    my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
-    $self->addMarkup($markup);
-    $markup->convert_feature($feature);
+  if($regionsAndFeatures){
+      foreach my $region ($seq->eachAnnotatedRegion){
+	  if($$regionsAndFeatures{$region->type}){
+	      my $l_reg = Bio::Pfam::Drawing::Layout::Region->new();
+	      $self->addRegion($l_reg);
+	      $l_reg->convert_reg($region);
+	  }
+      }
+      
+      if(!$$regionsAndFeatures{"noFeatures"}){
+	  foreach my $feature ($seq->eachFeature){
+	      my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
+	      $self->addMarkup($markup);
+	      $markup->convert_feature($feature);
+	  }
+      }
+  }else{
+      foreach my $region ($seq->eachAnnotatedRegion){
+	  my $l_reg = Bio::Pfam::Drawing::Layout::Region->new();
+	  $self->addRegion($l_reg);
+	  $l_reg->convert_reg($region);
+      }
+      
+      foreach my $feature ($seq->eachFeature){
+	  my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
+	  $self->addMarkup($markup);
+	  $markup->convert_feature($feature);
+      }
+      
   }
+  
 }
 
 

@@ -80,6 +80,31 @@ sub layout_sequences{
   $self->_set_graphic_styles;
 }
 
+=head2 layout_sequences_with_regions_and_features
+
+    Title   : layout_sequences
+    Usage   : $layout_manager->layout_sequences(@seqs)
+    Function: This is the main method of the layout manager.  It takes the
+            : configurators and converts the bioperl sequence objects into
+            : psuedo XML::DOM objects so that they can be printed to XML
+    Retruns : nothing
+    Args    : An array of bioperl sequences
+
+=cut
+
+sub layout_sequences_with_regions_and_features{
+  my $self = shift;
+  my $seqs = shift;
+  my $regionsAndFeatures = shift;
+  foreach my $seq (@$seqs){
+    my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
+    $l_seq->convert_seq($seq, $regionsAndFeatures);
+    $self->add_seq($l_seq);
+  }
+  $self->resolve_overlaps;
+  $self->_set_graphic_styles;
+}
+
 
 
 =head2 _set_graphic_styles
