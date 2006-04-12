@@ -6,7 +6,7 @@
 # application. Configuration is all done through the pfamweb.yml
 # config file and there's (currently) not much else in here.
 #
-# $Id: PfamWeb.pm,v 1.2 2006-03-16 17:37:10 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.3 2006-04-12 16:29:44 jt6 Exp $
 
 package PfamWeb;
 
@@ -61,13 +61,45 @@ Catalyst based application.
 
 =cut
 
-=head2 default
 
-=cut
+
+# get the row in the Pfam table for this entry
+
+sub begin : Private {
+  my( $this, $c ) = @_;
+
+  if( defined $c->req->param("acc") ) {
+
+	$c->req->param("acc") =~ m/^(PF\d{5})$/;
+	$c->log->info( "$this: found accession |$1|" );
+
+	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_acc => $1 } )
+	  if defined $1;
+
+  } elsif( defined $c->req->param("id") ) {
+
+	$c->req->param("id") =~ m/(^\w+$)/;
+	$c->log->info( "$this: found ID |$1|" );
+
+	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_id => $1 } )
+	  if defined $1;
+
+  }	
+
+  $c->log->warn( "$this: no ID or accession" )
+	unless defined $c->stash->{pfam};
+
+}
+
+
 
 #
 # Output a friendly welcome message
 #
+=head2 default
+
+=cut
+
 sub default : Private {
     my ( $self, $c ) = @_;
 
