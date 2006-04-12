@@ -2,8 +2,16 @@
 /* IE stylesheet to handle transparency...
    jt6 20060406 WTSI.
 
-   $Id: tabs_ie.css,v 1.2 2006-04-10 13:06:59 jt6 Exp $
+   $Id: tabs_ie.css,v 1.3 2006-04-12 16:22:45 jt6 Exp $
 */
+
+hr.short {
+    display: inline;
+	height: 1px;
+	border: none;
+	border-top: 1px solid #074987;
+    width: 80%;
+}
 
 /*
 #pageTitle h1 {
@@ -12,11 +20,40 @@
 }
 */
 
+/* the curved corner for the page top tab */
 #icons {
     background-image: none;
 	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/right_top.png",sizingMethod="crop");
 }
 
+/* the individual icons in the overview bar */
+#seqIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/alignment.png",sizingMethod="crop");
+}
+
+#archIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/domains.png",sizingMethod="crop");
+}
+
+#structIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/structure.png",sizingMethod="crop");
+}
+
+#ipfamIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/ipfam.png",sizingMethod="crop");
+}
+
+#specIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/tree.png",sizingMethod="crop");
+}
+
+
+/* background for the active tab in the sidebar */
 li.selected {
     background-image: none;
     filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/tab_shadow.png",sizingMethod="crop");
