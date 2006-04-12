@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: tabs.css,v 1.9 2006-04-10 13:06:59 jt6 Exp $
+   $Id: tabs.css,v 1.10 2006-04-12 16:22:15 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -130,7 +130,7 @@
 /*  border-bottom: 1px solid #83a4c3;
   border-right: 1px solid #4577a5; */
   margin: 0;
-  padding: 0.2em 0 0.2em 0.6em;
+  padding: 0.2em 0 0.2em 0.8em;
   display: block;
   text-decoration: none;
   font-weight: bold;
@@ -161,7 +161,7 @@
 
 #sidebar li span.inactive {
   margin: 0;
-  padding: 0.2em 0 0.2em 0.6em;
+  padding: 0.2em 0 0.2em 0.8em;
   display: block;
   text-decoration: none;
   font-weight: bold;
@@ -207,13 +207,13 @@ div.blockContent {
 /* ======================================== */
 /* rules for specific blocks */
 
-/* the (currently grey-scale) logos for the individual tab titles */
-
+/* the (currently grey-scale) logos for the individual tab titles 
 #summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png) }
 #interproBlock	div.handle { background-image: url(/static/images/open_book.png) }
 #buildBlock		div.handle { background-image: url(/static/images/hammer.png) }
 #pfamBlock		div.handle { background-image: url(/static/images/pfam_logo.png) }
 #domainsBlock	div.handle { background-image: url(/static/images/pfam.png) }
+*/
 
 #domainsBlock .blockContent {
 	overflow: auto;
@@ -236,18 +236,19 @@ div.pdbImageFragment {
     width: 200px;
 }
 
+img.pdbImage {
+	width: 200px;
+    height: 200px;
+}
+
 h4.pdbTitle  {
 	color: #074987;
     display: inline;
 }
 
 hr.short {
-	height: 1px;
-	border: none;
-	border-top: 1px solid #074987;
-    width: 80%;
+	display: none;
 }
-
 
 /* ======================================== */
 /* junk */
