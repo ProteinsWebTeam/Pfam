@@ -18,7 +18,7 @@ sub end : Private {
   if( defined $c->stash->{pdb} ) {
 	# we retrieved a Pdb object, which we can use to get the image
 	# itself
-	$c->res->content_type( "image/jpeg" );
+	$c->res->content_type( "image/gif" );
 	$c->res->write( $c->stash->{pdb}->pdb_image );
   } else {
 	$c->res->redirect( "static/images/blank.gif" );
