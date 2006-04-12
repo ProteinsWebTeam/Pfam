@@ -1,11 +1,10 @@
-
 [%#
 # wrapper.tt
 # jt6 20060327 WTSI
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.4 2006-04-06 12:21:27 jt6 Exp $
+# $Id: wrapper.tt,v 1.5 2006-04-12 16:32:15 jt6 Exp $
 %]
 
 [% USE date %]
@@ -68,16 +67,6 @@
     <![endif]-->
 
 	<!-- ====================================================================== -->
-    <!-- curved corners -->
-
-	<link rel="stylesheet" href="[% c.uri_for( "/static/css/box.css" ) %]" type="text/css" />
-    <!--[if lt IE 7 ]>
-	<link rel="stylesheet" href="[% c.uri_for( "/static/css/box_ie.css" ) %]" type="text/css" />
-    <![endif]-->
-
-	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/cb.js" ) %]"></script>
-
-	<!-- ====================================================================== -->
 	<!-- YAHOO modules -->
 
 	<!-- Namespace source file -->
@@ -93,27 +82,13 @@
     <!-- TreeView widget -->
 	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/treeview.js" ) %]"></script>
 
-	<!-- ====================================================================== -->
-	<!-- JSON handling -->
-
-	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/json.js" ) %]"></script>
+    <!-- stylesheet for the tree -->
+	<link rel="stylesheet" type="text/css" href="[% c.uri_for( "/static/css/tree.css" ) %]" />
 
     <!-- ====================================================================== -->
 	<!-- my code -->
 
-	[% IF style == "blocks" %]
-	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/Block.js" ) %]"></script>
-	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/blockConfig.js" ) %]"></script>
-	[% ELSE %]
-	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/show.js" ) %]"></script>
-	[% END %]
-
-    <script type="text/javascript">
-	  window.onload = function() {
-	    treeInit(); // set up the species tree
-      }
-
-	</script>
+	<script type="text/javascript" src="[% c.uri_for( "/static/javascripts/pfFunctions.js" ) %]"></script>
 
   </head>
 
