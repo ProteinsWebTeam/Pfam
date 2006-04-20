@@ -4,10 +4,8 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.5 2006-04-12 16:32:15 jt6 Exp $
+# $Id: wrapper.tt,v 1.6 2006-04-20 16:33:44 jt6 Exp $
 %]
-
-[% USE date %]
 
 <html>
   
@@ -51,19 +49,22 @@
 	</script>
 
 	<!-- ====================================================================== -->
-	<!-- Pfam specific CSS -->
+	<!-- stylesheets -->
 
 	<link rel="stylesheet" href="[% c.uri_for( "/static/css/pfam.css" ) %]" type="text/css" />
+	<link rel="stylesheet" href="[% c.uri_for( "/static/css/tab_layout.css" ) %]" type="text/css" />
+    [% IF layouts.${pageType}.css.global -%]
+      [% css = layouts.${pageType}.css.global -%]
+	  <link rel="stylesheet" href="[% c.uri_for( "/static/css/${css}" ) %]" type="text/css" />
+    [% END -%]
+
     <!--[if lt IE 7 ]>
 	<link rel="stylesheet" href="[% c.uri_for( "/static/css/pfam_ie.css" ) %]" type="text/css" />
-    <![endif]-->
-
-	<!-- ====================================================================== -->
-	<!-- TT-specific CSS -->
-
-	<link rel="stylesheet" href="[% c.uri_for( "/static/css/${style}.css" ) %]" type="text/css" />
-    <!--[if lt IE 7 ]>
-	<link rel="stylesheet" href="[% c.uri_for( "/static/css/${style}_ie.css" ) %]" type="text/css" />
+	<link rel="stylesheet" href="[% c.uri_for( "/static/css/tab_layout_ie.css" ) %]" type="text/css" />
+	[% IF layouts.${pageType}.css.ie -%]
+      [% css = layouts.${pageType}.css.ie -%]
+	  <link rel="stylesheet" href="[% c.uri_for( "/static/css/${css}" ) %]" type="text/css" />
+    [% END -%]
     <![endif]-->
 
 	<!-- ====================================================================== -->
@@ -271,34 +272,25 @@
 				</table>
 			  </div>
 			</div>
-		  </div>
-		  <!-- submenus end -->
+		  </div> <!-- end of "submenus" -->
 
-		</div>
-		<!-- menubar end --> 
+		</div> <!-- end of "menubar" --> 
 
-	  </div>
-	  <!-- header end -->
+	  </div> <!-- end of "header" -->
 
-	  <!-- ====================================================================== -->
-	  <!-- content -->
+      <div id="pageContainer">
 
-	  [% content %]
+	    <!-- content -->
+	    [% content %]
+ 	    <!-- end of "content" -->
 
-	  <!-- end of content -->
-	  <!-- ====================================================================== -->
+        <div id="footerWrapper">
+          <div id="footer">Comments or questions on the site? Send a mail to <a href="mailto:pfam@sanger.ac.uk">pfam@sanger.ac.uk</a></div>
+        </div>
 
-	  <!-- start of footer -->
+        <div class="cleaner">&nbsp;</div>
 
-	  <div id="footer">
-		<span>Comments or questions on the site? Send a mail to <a href="mailto:pfam@sanger.ac.uk">pfam@sanger.ac.uk</a></span>
-	  </div>
+      </div> <!-- end of "pageContainer" -->
 
-	  <div id="modDate">
-		Last modified: [% date.format(template.modtime) %]
-	  </div>
-
-	  <!-- end of footer -->
-
-	</body>
+    </body>
 </html>
