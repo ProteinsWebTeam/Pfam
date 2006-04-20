@@ -1,37 +1,28 @@
 
-/* tabs.css
-   jt6 20060406 WTSI
+/* tab_layout
+   jt6 20060418 WTSI
 
-   Stylesheet for the items that are specific to the tab layout for
-   the Pfam family pages.
+   Base stylesheet for the tab-layout pages. Only colours should 
+   need to be tweaked for the specific pages.
 
-   $Id: tabs.css,v 1.10 2006-04-12 16:22:15 jt6 Exp $
+   $Id: tab_layout.css,v 1.1 2006-04-20 16:37:15 jt6 Exp $
 */   
 
 /* ======================================== */
 /* page layout items */
 
-
 /* the stripe between the page header and the top of the tab */
 #tabHeader {
-    background: #3b70a0;
     height: 6px;
+    background: #3b70a0;
 }
 
 /* styles for the markup that forms the page tab */
 #tabTitle {
-    background: url(/static/images/double_gradient.gif) repeat-y 15% bottom;
-	color: #074987;
+/*  background: url(/static/images/double_gradient.gif) repeat-y 15% bottom; */
     min-height: 50px;
     margin: 0;
     padding: 0 0 2px 0;
-}
-
-.cleaner {
-    clear: both;
-    height: 1px;
-    margin: 0;
-    padding: 0;
 }
 
 #corner h2 {
@@ -45,26 +36,12 @@
     padding: 12px 0.4em 0.4em 0.4em;
 }
 
-#pageType {
-    margin: 0;
-    padding: 1px;
-    float: left;
-    border: 1px solid #074987;
-}
-
-#pageType h2 {
-    color: #fefefe;
-	margin: 0;
-    padding: 0.1em;
-    background: #074987;
-}
-
 /* the overview bar */
 #icons {
-    float: right;
     background: url(/static/images/right_top.png) top left no-repeat;
     margin: 0;
     padding: 0 0 6px 40px;
+    float: right;
 }
 
 #icons a,
@@ -96,7 +73,6 @@
     font-style: normal;
 }
 
-
 /* the logos for the overview */
 #seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
 #archIcon	{ background-image: url(/static/images/logos/domains.png) }
@@ -107,16 +83,19 @@
 /* ======================================== */
 /* components of the remainder of the page */
 
-/* the left column navigation bar */
+/* a wrapper around the contents and footer, used to add the bottom gradient */
+#pageContainer {
+  background: #e4e0f5 url(/static/images/bottom_gradient.png) repeat-x bottom;
+  padding-bottom: 0.5em;
+}
 
+/* the left column navigation bar */
 #sidebar {
-    clear: both;
-	background: url(/static/images/sidebar_bg.gif) repeat-y right 0;
-    border-bottom: 1px solid #4577a5;
+/* 	background: url(/static/images/sidebar_bg_green.gif) repeat-y right 0; */
+    font-size: 0.9em;
     padding: 0.4em 0;
     width: 15%;
-    float: left;
-	margin-bottom: 0.4em;
+    clear: both;
 }
 
 #sidebar ul {
@@ -127,14 +106,11 @@
 
 #sidebar li a {
   outline: none;
-/*  border-bottom: 1px solid #83a4c3;
-  border-right: 1px solid #4577a5; */
   margin: 0;
   padding: 0.2em 0 0.2em 0.8em;
   display: block;
   text-decoration: none;
   font-weight: bold;
-  color: #074987;
 }
 
 #sidebar li a:hover {
@@ -145,12 +121,16 @@
   background: url(/static/images/tab_shadow.png) no-repeat bottom left;
   margin-left: 0.2em;
   padding: 0 0 5px 0;
+  position: relative;
+  left: 1px;
+  z-index: 1000;
 }
 
 #sidebar li.selected a {
   outline: none;
   background: url(/static/images/selected_bg.gif);
-  border: 1px solid #4577a5;
+  border-width: 1px;
+  border-style: solid;
   border-right: none;
   padding: 0.2em 0 0.2em 0.4em;
 }
@@ -165,15 +145,57 @@
   display: block;
   text-decoration: none;
   font-weight: bold;
-  color: #7c99b3;
 }
 
 /* the main page content */
 
 #content {
+  background: #FFF;
+  border-top: 1px solid blue;
+}
+
+#contentContainer {
+  width: 84.8%;
+  border-left: 1px solid red;
   margin: 0;
+  padding: 0;
+  background: #FFF url(/static/images/wide_tab_shadow.png) no-repeat bottom left;
+}
+
+#columnContainer {
+  overflow: hidden;
+}
+
+#columnContainer .column {
+  position: relative;
+  float: left;
+  padding-bottom: 10000px;     /* X + padding-bottom */
+  margin-bottom: -10000px;     /* X */
+}
+
+/* fix the footer overflow in IE */
+* html body {
+  overflow: hidden;
+}
+
+* html #footerWrapper {
+  float: left;
+  position: relative;
+  width: 100%;
+  padding-bottom: 10010px;
+  margin-bottom: -10000px;
+}
+
+#footer {
+  border: none;
+  border-top: 1px solid green;
   width: 85%;
   float: right;
+  margin: 0;
+  padding: 0.4em 0;
+  background: url(/static/images/wide_tab_shadow.png) no-repeat top left;
+  text-align: right;
+  font-size: small;
 }
 
 /* ======================================== */
@@ -185,36 +207,28 @@ div.block {
 }
 
 div.handle {
-  color: #FEFEFE;
+  color: #fefefe;
   padding: 0.2em;
-  background-color: #074987;
   background-repeat: no-repeat;
   background-position: center right;
 }
 
 div.handle h1 {
-  font-size: 1.5em;
   display: inline;
   padding: 0.4em 0;
+  font-size: large;
 }
 
 div.blockContent {
   padding: 0.4em;
   border-top: none;
-  font-size: smaller;
+  font-size: 0.9em;
 }
 
 /* ======================================== */
 /* rules for specific blocks */
 
-/* the (currently grey-scale) logos for the individual tab titles 
-#summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png) }
-#interproBlock	div.handle { background-image: url(/static/images/open_book.png) }
-#buildBlock		div.handle { background-image: url(/static/images/hammer.png) }
-#pfamBlock		div.handle { background-image: url(/static/images/pfam_logo.png) }
-#domainsBlock	div.handle { background-image: url(/static/images/pfam.png) }
-*/
-
+/* limit the height of the domain images block */
 #domainsBlock .blockContent {
 	overflow: auto;
     max-height: 400px;
@@ -228,12 +242,14 @@ div.domain {
 }
 
 div.pdbImageFragment {
-	background: #e7edf3;
-    border: 1px solid #074987;
+    border-width: 1px;
+    border-style: solid;
 	float: right;
     margin: 0.2em;
 	padding: 0.3em;
     width: 200px;
+font-size: 0.8em;
+overflow: hidden;
 }
 
 img.pdbImage {
@@ -242,7 +258,6 @@ img.pdbImage {
 }
 
 h4.pdbTitle  {
-	color: #074987;
     display: inline;
 }
 
@@ -251,23 +266,3 @@ hr.short {
 }
 
 /* ======================================== */
-/* junk */
-
-#newEntryForm {
-	display: none;        /* N.B. */
-    margin-top: 50px;
-    padding: 0.4em;
-    font-weight: bold;
-    color: #074987;
-}
-
-#idField {
-  border: 2px solid #074987;
-}
-
-#idSubmit {
-  border: 2px solid #074987;
-  background: #4577a5;
-  color: #c2d2e1;
-}
-

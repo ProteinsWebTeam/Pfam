@@ -1,7 +1,10 @@
+/* pfam.css
+   jt6 20060406 WTSI
 
-/* ============================================================ */
-/* header and footer re-design */
-/* JT 20051202 WTSI */
+   Stylesheet with generally applicable rules for the whole site.
+
+   $Id: pfam.css,v 1.5 2006-04-20 16:37:15 jt6 Exp $
+*/   
 
 body {
 	font-family: arial, helvetica, sans-serif;
@@ -47,186 +50,9 @@ div.menubar {
   width:            100%;
 }
 
-#footer {
-	border:           1px solid #074987; 
-    font-size:        0.8em;
-    text-align:       left;
-    background-color: #cbdced;
-    color:            #074987;
-	padding: 0.3em;
+.cleaner {
     clear: both;
-    height: 1em;
-}
-
-#footer a {
-  color: #074987;
-}
-
-#modDate {
-	float: right;
-    color: #808080;
-    padding: 0;
+    height: 1px;
     margin: 0;
-    font-size: 0.8em;
+    padding: 0;
 }
-
-/* ============================================================ */
-/* used in the Pfam family pages */
-/* JT 20051025 WTSI */
-
-.highlightedblock {
-	padding: 0.4em;
-	margin-bottom: 4px;
-}
-
-.highlightedblock h2 {
-	font-size: smaller;
-	margin: 0;
-	padding: 0;
-}
-
-.pfama {
-	border: 1px solid #2B2;
-	background: #AFA;
-}
-
-.both {
-	border: 1px solid #31A;
-	background: #D9F;
-}
-
-.prc {
-	border: 1px solid #779;
-	background: #DDF;
-}
-
-.prodom {
-	border: 1px solid #55B;
-	background: #BBF;
-}
-
-.left {
-	width: 20em;
-}
-
-.highlightedblock .tooltipped {
-	display: block;
-	font-weight: bold;
-	color: #000;
-}
-
-/* ============================================================ */
-/* used in the new search results page */
-/* JT 20051201 WTSI */
-
-#key {
-	padding: 4px;
-	margin: 8px 8px;
-    border: 1px solid #999;
-    background-color: #EEE;
-	text-align: center;
-}
-
-#key h2 {
-	text-align: left;
-	margin: 4px auto;
-    padding: 2px;
-	font-size: large;
-    font-weight: bold;
-}
-
-#key p {
-	margin: 0;
-	text-align: left;
-}
-
-#keyTable {
-	font-size: smaller;
-    margin-top: 4px;
-    margin-bottom: 4px;
-    width: 50%;
-    margin-left: 25%;
-	margin-right: 25%;
-}
-
-#results br {
-	clear:both;
-}
-
-#results {
-    text-align: center;
-	font-family: arial;
-}
-
-#resultTitle {
-	display: block;
-	padding: 4px;
-}
-
-#resultTable {
-	clear: both;
-	border: 1px solid #000070;
-    margin: 0 auto;
-}
-
-#resultTable td.rownum {
-	display: none;
-}
-
-#resultTable td p {
-	display: none;
-}
-
-.titleRow {
-   background: #000070;
-   color: #EEE;
-   font-weight: bold;
-}
-
-.titleRow td {
-	color: #EEE;
-}
-
-#keyTable .titleRow {
-	background: #AAA;
-    font-weight: bold;
-}
-
-#results td.fixedWidth {
-	width: 6em;
-}
-
-#results td {
-	padding: 3px;
-    text-align: center;
-}
-
-#results td.desc {
-	text-align: left;
-}
-
-#results tr.odd {
-	background: #DDD;
-}
-
-#results tr.even {
-	background: #CCC;
-}
-
-.sort-arrow {
-	width:					11px;
-	height:					11px;
-	background-position:	center center;
-	background-repeat:		no-repeat;
-	margin:					0 2px;
-}
-
-.sort-arrow.descending {
-	background-image:		url( /Software/Pfam/images/downsimple.gif );
-
-}
-
-.sort-arrow.ascending {
-	background-image:		url( /Software/Pfam/images/upsimple.gif );
-}
-

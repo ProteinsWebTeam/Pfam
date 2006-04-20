@@ -1,0 +1,67 @@
+
+/* family.css
+   jt6 20060413 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam family pages.
+
+   $Id: family.css,v 1.1 2006-04-20 16:37:15 jt6 Exp $
+*/   
+
+/* ======================================== */
+/* page layout items */
+
+/* styles for the markup that forms the page tab */
+#tabTitle {
+	color: #074987;
+}
+
+#pageType {
+    border-color: #074987;
+}
+
+#pageType h2 {
+  color: #074987;
+/*    background: #074987; */
+}
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+/* the left column navigation bar */
+
+#sidebar {
+    border-bottom-color: #4577a5;
+}
+
+#sidebar li a {
+  color: #074987;
+}
+
+#sidebar li.selected a {
+  border-color: #4577a5;
+}
+
+#sidebar li span.inactive {
+  color: #7c99b3;
+}
+
+/* ======================================== */
+/* general styles for "blocks" */
+
+div.handle {
+  background-color: #074987;
+}
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.pdbImageFragment {
+	background: #e7edf3;
+    border-color: #074987;
+}
+
+h4.pdbTitle  {
+	color: #074987;
+}
+

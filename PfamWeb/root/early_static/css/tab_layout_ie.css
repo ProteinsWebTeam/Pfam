@@ -1,29 +1,19 @@
 
-/* IE stylesheet to handle transparency...
-   jt6 20060406 WTSI.
+/* tab_layout_ie.css
+   jt6 20060418 WTSI.
 
-   $Id: tabs_ie.css,v 1.3 2006-04-12 16:22:45 jt6 Exp $
+   IE stylesheet to handle transparency...
+   
+   $Id: tab_layout_ie.css,v 1.1 2006-04-20 16:37:15 jt6 Exp $
 */
 
 hr.short {
     display: inline;
 	height: 1px;
 	border: none;
-	border-top: 1px solid #074987;
+	border-top-width: 1px;
+    border-top-style: solid;
     width: 80%;
-}
-
-/*
-#pageTitle h1 {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/left_curve.png",sizingMethod="crop");
-}
-*/
-
-/* the curved corner for the page top tab */
-#icons {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/right_top.png",sizingMethod="crop");
 }
 
 /* the individual icons in the overview bar */
@@ -54,7 +44,7 @@ hr.short {
 
 
 /* background for the active tab in the sidebar */
-li.selected {
+#sidebar li.selected {
     background-image: none;
-    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/tab_shadow.png",sizingMethod="crop");
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/tab_shadow.png",sizingMethod="crop");
 }

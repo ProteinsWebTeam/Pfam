@@ -1,211 +1,82 @@
 
+/* clans.css
+   jt6 20060418 WTSI
+
+   Stylesheet for the clans page.
+
+   $Id: clans.css,v 1.2 2006-04-20 16:37:14 jt6 Exp $
+*/   
+
 /* ======================================== */
 /* page layout items */
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  font-size: small;
+
+/* the stripe between the page header and the top of the tab */
+#tabHeader {
+    background: #3b70a0;
 }
 
-form  {
-  margin: 0;
-  padding: 0;
+/* styles for the markup that forms the page tab */
+#tabTitle {
+    background-image: url(/static/images/double_gradient_green_noborder.gif);
+	color: #060;
 }
 
-#header {
-  margin: 0;
-  padding: 0;
+#pageType {
+    border-color: #060;
 }
 
-#wrapper {
-  overflow:hidden;
-  width: 100%;
+#pageType h2 {
+    background: #060;
 }
 
-#content {
-  margin: 0;
-  width: 85%;
-  float: right;
+#corner {
+	background: url(/static/images/left_curve.gif) no-repeat top left;
 }
 
-.cleaner {
-  clear: both;
+#icons {
+    background-image: url(/static/images/right_top.png);
 }
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+/* the left column navigation bar */
 
 #sidebar {
-	background: #d7e0c4 url(/static/images/sidebar_gradient.png) repeat-y right 0;
-    border-bottom: 1px solid #87a04d;
-    padding: 0.4em 0;
-    width: 15%;
-    float: left;
-	margin-bottom: 0.4em;
+/*    border-bottom-color: #0C0; */
+/*	background-image: url(/static/images/sidebar_bg_green.gif); */
+}
+
+#sidebar li a {
+  color: #060;
+}
+
+#sidebar li.selected a {
+  border-color: #0C0;
+  background-image: url(/static/images/selected_bg_green.gif);
+}
+
+#sidebar li span.inactive {
+  color: #59b259;
 }
 
 /* ======================================== */
-/* page components */
-
-#pageHeader {
-    background: #d7e0c4 url(/static/images/bar_gradient.png) no-repeat 15% bottom;
-	color: #5f8011;
-	padding: 0.4em;
-}
-
-#pageHeader h1 {
-	margin: 0.2em;
-	padding: 0;
-    clear: both;
-}
-
-#newEntryForm {
-	display: none;        /* N.B. */
-    margin-top: 50px;
-    padding: 0.4em;
-    font-weight: bold;
-    color: #5f8011;
-}
-
-#idField {
-  border: 2px solid #5f8011;
-}
-
-#idSubmit {
-  border: 2px solid #5f8011;
-  background: #87a04d;
-  color: #c2d2e1;
-}
-
-#sidebar ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-#sidebar ul li {
-  padding-left: 0.4em;
-}
-
-#sidebar ul li a {
-  outline: none;
-  margin: 0;
-  padding: 0.4em 0 0.4em 0.4em;
-  display: block;
-  text-decoration: none;
-  font-weight: bold;
-  color: #5f8011;
-}
-
-#sidebar ul li a:hover {
-  text-decoration: underline;
-}
-
-#sidebar ul li.selected a {
-  outline: none;
-  background: #FFF url(/static/images/selected_gradient.png);
-  border: 1px solid #87a04d;
-  border-right: none;
-}
-
-#sidebar ul li.selected a:hover {
-  text-decoration: none;
-}
-
-#sidebar ul li a.lastItem {
-  border: none;
-}
-
-hr.short {
-  display: none;
-}
-
-/* ======================================== */
-/* general block styles */
-
-div.block {
-  margin: 0.4em;
-  display: none;
-}
+/* general styles for "blocks" */
 
 div.handle {
-  color: #FEFEFE;
-  padding: 0.2em;
-  background-color: #5f8011;
-  background-repeat: no-repeat;
-  background-position: center right;
-}
-
-div.handle h1 {
-  font-size: 1.5em;
-  display: inline;
-  padding: 0.4em 0;
-}
-
-div.blockContent {
-  padding: 0.4em;
-  border-top: none;
-  font-size: smaller;
+  background-color: #060;
 }
 
 /* ======================================== */
 /* rules for specific blocks */
 
-#summaryBlock	div.handle { background-image: url(/static/images/pfam_logo.png) }
-#interproBlock	div.handle { background-image: url(/static/images/open_book.png) }
-#buildBlock		div.handle { background-image: url(/static/images/hammer.png) }
-#pfamBlock		div.handle { background-image: url(/static/images/pfam_logo.png) }
-#domainsBlock	div.handle { background-image: url(/static/images/pfam.png) }
-
-#domainsBlock .blockContent {
-	overflow: auto;
-    max-height: 400px;
-}
-div.domain {
-	padding: 6px;
-}
-
-#tabSummaryBlock {
-  display: block;
-}
-
 div.pdbImageFragment {
-	background: #e7edf3;
-    border: 1px solid #074987;
-	float: right;
-    margin: 0.2em;
-	padding: 0.3em;
-    width: 200px;
+	background: #DDD;
+    border-color: #060;
 }
 
 h4.pdbTitle  {
-	color: #074987;
-    display: inline;
+	color: #060;
 }
 
-#icons {
-	clear: both;
-	overflow: auto;
-    background: #074987;
-}
-
-#icons a {
-	color: #fefefe;
-	width: 8em;
-    background-repeat: no-repeat;
-	background-position: 2px center;
-}
-
-#icons a em {
-	font-weight: bold;
-    font-style: normal;
-}
-
-#icons .lastIcon {
-	border-right: none;
-}
-
-#seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
-#structIcon	{ background-image: url(/static/images/logos/structure.png) }
-#archIcon	{ background-image: url(/static/images/logos/domains.gif) }
-#specIcon	{ background-image: url(/static/images/logos/species.png) }
-#ipfamIcon	{ background-image: url(/static/images/logos/ipfam.png) }
