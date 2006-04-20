@@ -6,7 +6,7 @@
 # application. Configuration is all done through the pfamweb.yml
 # config file and there's (currently) not much else in here.
 #
-# $Id: PfamWeb.pm,v 1.3 2006-04-12 16:29:44 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.4 2006-04-20 16:30:26 jt6 Exp $
 
 package PfamWeb;
 
@@ -68,6 +68,9 @@ Catalyst based application.
 sub begin : Private {
   my( $this, $c ) = @_;
 
+  #----------------------------------------
+  # get the accession or ID code
+
   if( defined $c->req->param("acc") ) {
 
 	$c->req->param("acc") =~ m/^(PF\d{5})$/;
@@ -86,11 +89,65 @@ sub begin : Private {
 
   }	
 
-  $c->log->warn( "$this: no ID or accession" )
+  # we're done here unless there's an entry specified
+  $c->log->warn( "$this: no ID or accession" ) and return
 	unless defined $c->stash->{pfam};
 
-}
+  #----------------------------------------
+  # get the data items for the overview bar
 
+  my %summaryData;
+
+  # make things easier by getting hold of the auto_pfamA
+  my $auto_pfam = $c->stash->{pfam}->auto_pfamA;
+
+  # get the PDB details
+  my @maps = PfamWeb::Model::PdbMap->search(
+    { auto_pfam   => $auto_pfam,
+	  pfam_region => 1 },
+	{ join        => [qw/ pdb / ] } );
+  $c->stash->{pfamMaps} = \@maps;
+
+
+  # count the number of architectures
+  my $rs = PfamWeb::Model::PfamA_architecture->find(
+    { auto_pfamA => $auto_pfam },
+    {
+      select => [
+        { count => "auto_pfamA" }
+      ],
+      as => [ 'count' ]
+    }
+  );
+
+  # number or architectures....
+  $summaryData{numArchitectures} = $rs->get_column( "count" );
+
+  # number of sequences in full alignment
+  $summaryData{numSequences} = $c->stash->{pfam}->num_full;
+
+  # number of structures known for the domain
+  my %pdb_unique = map {$_->pdb_id => 1} @maps;
+  $summaryData{numStructures} = scalar(keys %pdb_unique);
+  $c->stash->{pdbUnique} = \%pdb_unique;
+
+  # number of species
+  my @species = PfamWeb::Model::PfamA_reg_full->search(
+    { auto_pfamA => $auto_pfam,
+	  in_full    => 1 },
+    { join       => [ qw/pfamseq/ ],
+	  prefetch   => [ qw/pfamseq/ ] } );
+
+  my %species_unique = map {$_->species => 1} @species;
+  $summaryData{numSpecies} = scalar(keys %species_unique);
+
+  # HACK: hardcoded interactions number added here...
+  $summaryData{numIpfam} = 7;
+  $c->log->warn( "$this: WARNING: number of interactions is hard coded !" );
+
+  $c->stash->{summaryData} = \%summaryData;
+
+}
 
 
 #
