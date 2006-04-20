@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam family page.
 #
-# $Id: Family.pm,v 1.1 2006-04-12 16:25:53 jt6 Exp $
+# $Id: Family.pm,v 1.2 2006-04-20 16:32:53 jt6 Exp $
 
 package PfamWeb::Controller::Family;
 
@@ -15,7 +15,7 @@ use Data::Dumper;
 
 use base "Catalyst::Controller";
 
-
+#-------------------------------------------------------------------------------
 # pick up http://localhost:3000/summary
 
 sub generateSummary : Path {
@@ -25,82 +25,36 @@ sub generateSummary : Path {
   # begin method from the PfamWeb.pm class
   my $acc = $c->stash->{pfam}->pfamA_acc;
 
-  # make things easier by getting hold of the auto_pfamA too
-  my $auto_pfam = $c->stash->{pfam}->auto_pfamA;
-
-  #----------------------------------------------------------------------
-  # get the PDB details
-
-  my @maps = PfamWeb::Model::PdbMap->search(
-    { auto_pfam   => $auto_pfam,
-	  pfam_region => 1 },
-	{ join        => [qw/ pdb / ] } );
-  $c->stash->{pfamMaps} = \@maps;
-
-  #----------------------------------------------------------------------
-
-  my $rs = PfamWeb::Model::PfamA_architecture->find(
-    { auto_pfamA => $auto_pfam },
-    {
-      select => [
-        { count => "auto_pfamA" }
-      ],
-      as => [ 'count' ]
-    }
-  );
-
-  #----------------------------------------------------------------------
-  # Build the summary details
-
-  my %summaryData;
-
-  # Number or architectures....
-  $summaryData{numArchitectures} = $rs->get_column( "count" );
-
-  # Number of sequences in full alignment
-  $summaryData{numSequences} = $c->stash->{pfam}->num_full;
-
-  # Number of structures known for the domain
-  my %pdb_unique = map {$_->pdb_id => 1} @maps;
-  $summaryData{numStructures} = scalar(keys %pdb_unique);
-  $c->stash->{pdbUnique} = \%pdb_unique;
-
-  # Number of species
-  my @species = PfamWeb::Model::PfamA_reg_full->search(
-    { auto_pfamA => $auto_pfam,
-	  in_full    => 1 },
-    { join       => [ qw/pfamseq/ ],
-	  prefetch   => [ qw/pfamseq/ ] } );
-
-  my %species_unique = map {$_->species => 1} @species;
-  $summaryData{numSpecies} = scalar(keys %species_unique);
-
-  # HACK:hardcoded interactions number added here...
-  $summaryData{numIpfam} = 7;
-  $c->log->warn( "$this: WARNING: number of interactions is hard coded !" );
-
-  $c->stash->{summaryData} = \%summaryData;
-
-  #----------------------------------------------------------------------
   # add the cross-references to the stash
   $c->forward( "getDbXrefs" );
 
-  #----------------------------------------------------------------------
-  # make sure there's a template defined ultimately
-  $c->stash->{template} ||= "pages/" . $c->config->{views}->{default};
+  # set up the TT view
+  $c->stash->{pageType} = "family";
+  $c->stash->{template} = "pages/layout.tt";
 
   # and use it
   $c->forward( "PfamWeb::View::TT" );
 
 }
 
-sub getacc : Regex( qw[^getacc/(PF\d{5})$] ) {
-  my( $this, $c ) = @_;
+#-------------------------------------------------------------------------------
+# mimc the old "getacc" URL - doesn't work right now...
 
-  $c->forward( "family?acc=" . $c->req->snippets->[0] );
+#sub getacc : Regex( "/getacc\?(PF\d{5})$" ) {
+#  my( $this, $c ) = @_;
 
-}
+#  my $acc = $c->req->snippets->[0];
+#  $c->log->debug( "acc: $acc" );
+				 
+#  $c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_acc => $acc } );
+#
+#  $c->forward( "family" );
 
+#}
+
+#-------------------------------------------------------------------------------
+# get the database cross-references from various places and stuff them
+# into the stash
 
 sub getDbXrefs : Private {
   my( $this, $c ) = @_;
