@@ -5,39 +5,44 @@
 #
 # overview icons for the top of the page
 #
-# $Id: icons.tt,v 1.6 2006-04-10 10:11:18 jt6 Exp $
+# $Id: icons.tt,v 1.7 2006-04-24 16:37:43 jt6 Exp $
 %]
 
 [% icons = [
              { id     = "archIcon",
                block  = "domainsBlock",
                count  = summaryData.numArchitectures,
-               items  = "architectures" },
+               items  = "architectures",
+               item   = "architecture" },
              { id     = "seqIcon",    
-			   block  = "alignBlock",
+               block  = "alignBlock",
                count  = summaryData.numSequences,
-               items  = "sequences" },
+               items  = "sequences",
+               item   = "sequence" },
              # this is hard coded !
              { id     = "ipfamIcon",
                block  = "ipfamBlock",
                count  = summaryData.numIpfam,
-               items  = "interactions" },
-			 # that was hard coded !
+               items  = "interactions",
+               item   = "interaction" },
+             # that was hard coded !
              { id     = "specIcon",
                block  = "treeBlock",
                count  = summaryData.numSpecies,
-               items  = "species" },
+               items  = "species"
+               item   = "species" },
              { id     = "structIcon",
                block  = "pdbBlock",
                count  = summaryData.numStructures,
-               items  = "structures" },
+               items  = "structures",
+               item   = "structure" },
            ]
 %]
 
 <div id="icons">
   [% FOREACH icon IN icons %]
     [% IF activity.${icon.block} %]
-      <a href="javascript:show('[% icon.block %]')" id="[% icon.id %]"><em>[% icon.count %]</em>&nbsp;[% icon.items %]</a>
+      <a href="javascript:show('[% icon.block %]')" id="[% icon.id %]"><em>[% icon.count %]</em>&nbsp;[% icon.count > 1 ? icon.items : icon.item %]</a>
     [% ELSE %]
       <span id="[% icon.id %]"><em>[% icon.count %]</em>&nbsp;[% icon.items %]</span>
     [% END %]
