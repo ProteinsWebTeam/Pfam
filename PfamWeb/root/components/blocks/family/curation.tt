@@ -1,0 +1,132 @@
+
+<!-- start curation block -->
+
+<div class="block" id="curationBlock">
+  <div class="handle">
+    <h1>Curation and Family Details</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Curation</h3>
+
+    [% IF pfam.status == "NEW" %]
+      <p>This family is new in this Pfam release.</p>
+    [% ELSIF pfam.status == "NOCHANGE" %]
+      <p>This family has not been changed since the last Pfam release.</p>
+    [% ELSIF pfam.status == "CHANGE" %]
+      <p>This family has changed since the last Pfam release.</p>
+    [% END %]
+
+    <div class="row">
+      <span class="label">Author:</span>
+      <span class="rowData">[% pfam.author %]</span>
+    </div>
+
+    <div class="row">
+      <span class="label">Seed source:</span>
+      <span class="rowData">[% pfam.seed_source %]</span>
+    </div>
+
+    <div class="row">
+      <span class="label">Previous ids:</span>
+      <span class="rowData">[% pfam.previous_id ? pfam.previous_id : "none" %]</span>
+    </div>
+
+    <div class="row">
+      <span class="label">Type:</span>
+      <span class="rowData">[% pfam.type %]</span>
+    </div>
+
+    <div class="row">
+      <span class="label">Number in seed:</span>
+      <span class="rowData">[% pfam.num_seed %]</span>
+	</div>
+
+    <div class="row">
+      <span class="label">Number in full:</span>
+      <span class="rowData">[% pfam.num_full %]</span>
+	</div>
+
+    <div class="row">
+      <span class="label">Average length of the domain:</span>
+      <span class="rowData">[% pfam.average_length %] aa</span>
+	</div>
+
+    <div class="row">
+      <span class="label">Average identity of full alignment:</span>
+      <span class="rowData">[% pfam.percentage_id %] %</span>
+	</div>
+
+    <div class="row">
+      <span class="label">Average coverage of the sequence by the domain:</span>
+      <span class="rowData">[% pfam.average_coverage %] %</span>
+	</div>
+   
+    <h3>HMM information</h3>
+
+    <div class="row">
+      <span class="label">HMM build commands:</span>
+      <span class="rowData">
+        <div><em>ls model:</em> [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</div>
+        <div><em>fs model:</em> [% pfam.hmmbuild_fs %] [% pfam.hmmcalibrate_fs %]</div>
+      </span>
+	</div>
+
+    <div class="row">
+      <span class="label" id="tableLabel">Model details:</span>
+      <span class="rowData" id="modelDetails">
+        <table>
+          <thead>
+            <tr>
+              <th rowspan="2">Parameter</th>
+              <th colspan="2">ls</th>
+              <th colspan="2">fs</th>
+            </tr>
+            <tr>
+              <th>Sequence</th>
+              <th>Domain</th>
+              <th>Sequence</th>
+              <th>Domain</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label">Gathering cut-off</td>
+              <td>[% pfam.ls_sequence_GA %]</td>
+              <td>[% pfam.ls_domain_GA %]</td>
+              <td>[% pfam.fs_sequence_GA %]</td>
+              <td>[% pfam.fs_domain_GA %]</td>
+            </tr>
+            <tr>
+              <td class="label">Trusted cut-off</td>
+              <td>[% pfam.ls_sequence_TC %]</td>
+              <td>[% pfam.ls_domain_TC %]</td>
+              <td>[% pfam.fs_sequence_TC %]</td>
+              <td>[% pfam.fs_domain_TC %]</td>
+            </tr>
+            <tr>
+              <td class="label">Noise cut-off</td>
+              <td>[% pfam.ls_sequence_NC %]</td>
+              <td>[% pfam.ls_domain_NC %]</td>
+              <td>[% pfam.fs_sequence_NC %]</td>
+              <td>[% pfam.fs_domain_NC %]</td>
+            </tr>
+          </tbody>
+        </table>
+      </span>
+	</div>
+
+    <div class="row">
+      <span class="label">Model length:</span>
+      <span class="rowData">[% pfam.model_length %]</span>
+	</div>
+
+    <div class="row">
+	  <span class="label">Family (HMM) version:</span>
+      <span class="rowData">[% pfam.version %]</span>
+	</div>
+
+  </div>
+</div>
+
+<!-- end curation block --> 

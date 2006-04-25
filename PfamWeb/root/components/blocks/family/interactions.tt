@@ -1,0 +1,21 @@
+[%-
+IF NOT summaryData.numIpfam;
+  RETURN;
+END;
+-%]
+
+<!-- start interactions block -->
+
+<div class="block" id="ipfamBlock">
+  <div class="handle">
+    <h1>Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>There are [% summaryData.numIpfam %] <a href="[% c.uri_for( "/int?acc=$pfam.pfamA_acc" ) %]">interactions</a> for this family.</p>
+
+  </div>
+
+</div>
+
+<!-- end interactions block -->

@@ -1,0 +1,11 @@
+
+[%#
+# title.tt
+# jt6 20060424 WTSI
+#
+# build the tab title for the family pages
+#
+# $Id: title.tt,v 1.1 2006-04-25 16:27:37 jt6 Exp $
+%]
+
+<h2>Family: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h2>
