@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.4 2006-04-20 16:34:10 jt6 Exp $
+# $Id: layout.tt,v 1.5 2006-04-25 16:24:38 jt6 Exp $
 %]
 
 [% USE String %]
@@ -29,9 +29,12 @@
 
   <li id="[% blockName %]Selector"[% IF suffix %] class="[% suffix %]"[% END %]>
     [% IF active %]
-      <a href="javascript:show('[% blockName %]')">[% blockTitle %]</a>
+      <!-- add an extra, unnecessary div, to workaround the IE box model bug --> 
+      <div>
+        <a href="javascript:show('[% blockName %]')">[% blockTitle %]</a>
+      </div>
     [% ELSE %]
-      <span class="inactive">[% blockTitle %]</span>
+      <div class="inactive">[% blockTitle %]</div>
     [% END %]
   </li>
 
@@ -76,25 +79,26 @@ END;
 
 <div id="tabTitle">
   <div id="corner">
-    <h2>[% layouts.${pageType}.title %]: <em>[% pfam.pfamA_id %]</em>&nbsp;([% pfam.pfamA_acc %])</h2>
-  <div class="cleaner"></div>
+    [% titleFile = layouts.${pageType}.titleTemplate %]
+    [% PROCESS $titleFile %]
+  </div>
 </div>
 
+<div id="wrap">
 
-<div id="columnContainer">
+  <!-- this is only here to avoid the IE peekaboo bug... -->
+  <div id="spacer">&nbsp;</div>
 
-  <div id="sidebar" class="column">
+  <div id="sidebar">
     <ul>
       [% tabsContent %]
     </ul>
   </div> <!-- end of "sidebar" -->
 
-  <div id="contentContainer" class="column">
+  <div id="content">
+    [% pageContent %]
+  </div> <!-- end of "content" -->
 
-    <div id="content">
-      [% pageContent %]
-    </div> <!-- end of "content" -->
+  <div class="cleaner"></div>
 
-  </div> <!-- end of "contentContainer" -->
-
-</div>
+</div> <!-- end of "wrap" -->
