@@ -32,7 +32,7 @@
 	  [% FOREACH ref IN pfam.pfamA_lit_refs %]
 	  <li>
         [% ref.author %] [% ref.journal %] [% ref.title %]
-		<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Abstract&list_uids=[% ref.medline %]">[% ref.medline %]</a>
+		<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
       </li>
 	  [% END %]
 	</ol>
