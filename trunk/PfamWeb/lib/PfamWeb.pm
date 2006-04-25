@@ -6,7 +6,7 @@
 # application. Configuration is all done through the pfamweb.yml
 # config file and there's (currently) not much else in here.
 #
-# $Id: PfamWeb.pm,v 1.4 2006-04-20 16:30:26 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.5 2006-04-25 16:45:08 jt6 Exp $
 
 package PfamWeb;
 
@@ -22,10 +22,12 @@ use warnings;
 #
 use Catalyst qw/ -Debug
 				 ConfigLoader
-				 Static::Simple
-				 Session
-				 Session::Store::FastMmap
-				 Session::State::Cookie /;
+				 Static::Simple /;
+
+# add the following to enable session handling:
+#				 Session
+#				 Session::Store::FastMmap
+#				 Session::State::Cookie
 
 use PfamConfig qw( pfamlib );
 
@@ -141,9 +143,16 @@ sub begin : Private {
   my %species_unique = map {$_->species => 1} @species;
   $summaryData{numSpecies} = scalar(keys %species_unique);
 
-  # HACK: hardcoded interactions number added here...
-  $summaryData{numIpfam} = 7;
-  $c->log->warn( "$this: WARNING: number of interactions is hard coded !" );
+  # number of interactions
+  $rs = PfamWeb::Model::Int_pfamAs->find({ auto_pfamA_A => $auto_pfam },
+	{ select => [
+				 { count => "auto_pfamA_A" }
+				],
+	  as => [ qw/NumInts/ ]
+    }
+  );
+
+  $summaryData{numIpfam} = $rs->get_column( "NumInts" );
 
   $c->stash->{summaryData} = \%summaryData;
 
