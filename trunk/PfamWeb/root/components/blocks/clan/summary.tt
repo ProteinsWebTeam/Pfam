@@ -1,0 +1,57 @@
+
+[%#
+# summary.tt
+# jt6 20060424 WTSI
+# 
+# build the summary block for clans
+#
+# $Id: summary.tt,v 1.1 2006-04-25 16:28:00 jt6 Exp $
+%]
+
+<!-- start clan summary block -->
+
+<div class="block" id="clanSummaryBlock">
+  <div class="handle">
+    <h1>Pfam Clans</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Clan [% clan.clan_id %]</h3>
+
+	<p>[% clan.clan_description %]</p>
+
+    <h3>Comments</h3>
+
+	<p>[% clan.clan_comment %]</p>
+
+    <h3>Author</h3>
+
+    <p>[% clan.clan_author %]</p>
+
+    <h3>Members</h3>
+
+    <p>This clan contains the following member familes:</p>    
+
+	[% FOREACH pfam IN clan.clan_membership %]
+     <span class="clanMember">
+       <a href="[% c.uri_for( "/family?acc=${pfam.pfamA_acc}" ) %]">
+         [% pfam.pfamA_id %]</a></span>
+	[% END %]
+    <div class="cleaner"></div>
+
+    <h3>Literature references</h3>
+
+    <ol>
+      [% FOREACH ref IN clan.clan_lit_refs %]
+        <li>
+          [% ref.author %], [% ref.journal %]: [% ref.title %]
+          <a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
+        </li>
+      [% END %]
+    </ol>
+
+  </div>
+
+</div>
+
+<!-- end clan summary block -->

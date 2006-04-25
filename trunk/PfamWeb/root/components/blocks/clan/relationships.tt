@@ -1,0 +1,23 @@
+
+[%#
+# relationships.tt
+# jt6 20060424 WTSI
+#
+# $Id: relationships.tt,v 1.1 2006-04-25 16:28:00 jt6 Exp $
+%]
+
+<!-- start relationships block -->
+
+<div class="block" id="relationshipsBlock">
+  <div class="handle">
+    <h1>Family relationships</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Graphics...</h3>
+
+  </div>
+
+</div>
+
+<!-- end relationships block -->

@@ -1,0 +1,11 @@
+
+[%#
+# title.tt
+# jt6 20060424 WTSI
+#
+# build the tab title for the clan pages
+#
+# $Id: title.tt,v 1.1 2006-04-25 16:28:00 jt6 Exp $
+%]
+
+<h2>Clan: <em>[% clan.clan_id %]</em> ([% clan.clan_acc %])</h2>
