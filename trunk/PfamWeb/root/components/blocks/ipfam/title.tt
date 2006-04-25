@@ -1,0 +1,11 @@
+
+[%#
+# title.tt
+# jt6 20060424 WTSI
+#
+# build the tab title for the iPfam pages
+#
+# $Id: title.tt,v 1.1 2006-04-25 16:26:58 jt6 Exp $
+%]
+
+<h2>iPfam: <em>[% pfam.pfamA_id %]</em>&nbsp;([% pfam.pfamA_acc %])</h2>
