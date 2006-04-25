@@ -1,0 +1,19 @@
+[% USE dumper %]
+<!-- start dbRefs block -->
+
+<div class="block" id="dbRefsBlock">
+  <div class="handle">
+	<h1>Database references</h1>
+  </div>
+  <div class="blockContent[% IF NOT open %] closed[% END %]">
+	[% FOREACH key IN xrefs.keys %]
+          	<p> DB   Link</p>	
+	   [% FOREACH db IN xrefs.$key %] 
+		<p> key [% db %]</p>
+	   [% END %]	
+	[% END %]
+
+  </div>
+</div>
+
+<!-- end dbRefs block -->

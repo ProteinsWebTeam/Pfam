@@ -1,0 +1,36 @@
+[%-
+IF NOT pfam.clan_acc;
+  RETURN;
+END;
+-%]
+
+<!-- start clan block -->
+
+<div class="block[% IF NOT pfam.clan_acc %] inactive[% END %]" id="clanBlock">
+  <div class="handle">
+    <h1>Pfam Clans</h1>
+  </div>
+  <div class="blockContent">
+
+    <div class="row">
+      <span class="label">Clan:</span>
+      <span class="rowData"><a href="[% c.uri_for( "/clan?id=${pfam.clan_id}" ) %]">[% pfam.clan_id %]</a> (<a href="[% c.uri_for( "/clan?acc=${pfam.clan_acc}" ) %]">[% pfam.clan_acc %]</a>)</span>
+    </div>
+
+    <div class="row">
+      <span class="label">Description:</span>
+      <span class="rowData">[% pfam.clan_description %]</span>
+    </div>
+
+    [% IF pfam.clan_comment %]
+    <div class="row">
+      <span class="label">Comment:</span>
+      <span class="rowData">[% pfam.clan_comment %]</span>
+    </div>
+    [% END %]
+
+  </div>
+
+</div>
+
+<!-- end clan block -->

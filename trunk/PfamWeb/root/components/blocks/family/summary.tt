@@ -1,0 +1,62 @@
+
+[%#
+# summary.tt
+# jt6 20060406 WTSI
+# 
+# build the summary block for families
+#
+# $Id: summary.tt,v 1.1 2006-04-25 16:27:37 jt6 Exp $
+%]
+
+<!-- start summary block -->
+
+<div class="block" id="familySummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+
+    [%# pick a random PDB entry for this family %]
+    [% numIds = pfam.pdbMap.size %]
+    [% PERL %]
+    $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
+    [% END %]
+
+    [% pdbObj = pfam.pdbMap.${rand}.pdb %]
+	[% pdbId     = pdbObj.pdb_id -%]
+	[% title     = pdbObj.title -%]
+
+    [% IF pdbObj.pdb_image %]
+    <div class="pdbImageFragment">
+  	  <img class="pdbImage" src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" alt="[% pdbId %]" />
+	  <h4 class="pdbTitle">PDB entry [% pdbId %]</h4>: [% title %]
+    </div>
+    [% END %]
+
+	<h3>[% pfam.description %]</h3>
+	<p>[% pfam.comment %]</p>
+
+    <hr class="short"/>
+
+    <h3>Literature references</h3>
+    <ol>
+	  [% FOREACH ref IN pfam.pfamA_lit_refs %]
+	  <li>
+        [% ref.author %], [% ref.journal %]: [% ref.title %]
+		<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
+      </li>
+	  [% END %]
+	</ol>
+
+    <hr class="short"/>
+
+	<h3>Interpro entry [% pfam.interpro.interpro_id %]</h3>
+
+    [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
+        to contain <p> tags... -%]
+	[% pfam.interpro.abstract %]
+
+  </div>
+</div>
+
+<!-- end summary block -->

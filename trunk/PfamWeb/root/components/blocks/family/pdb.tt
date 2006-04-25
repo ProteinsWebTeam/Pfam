@@ -1,0 +1,70 @@
+[%-
+numIds = pfam.pdbMap.size;
+UNLESS numIds;
+  RETURN;
+END;
+-%]
+
+[% USE dumper %]
+
+<!-- start pdb block -->
+
+[%# pick a random PDB entry for this family %]
+[% PERL %]
+$stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
+[% END %]
+
+[% pdbObj = pfam.pdbMap.${rand}.pdb %]
+
+<div class="block" id="pdbBlock">
+  <div class="handle">
+	<h1>PDB</h1>
+  </div>
+  <div class="blockContent[% IF NOT open %] closed[% END %]">
+
+  <ul>
+  [% FOREACH pdbMap IN pfamMaps %]
+    <li>
+       [% pdbMap.pfamA_id %] 
+	on [% pdbMap.pfamseq_id %] 
+     / [% pdbMap.pfam_start_res %] 
+     - [% pdbMap.pfam_end_res %] maps to
+       [% pdbMap.pdb_id %]
+     : [% pdbMap.chain %]
+     , [% pdbMap.pdb_start_res %]
+     - [% pdbMap.pdb_end_res %]
+    </li>
+	[% END %]
+ </ul>
+
+
+
+	[% pdbId     = pdbObj.pdb_id -%]
+	[% header    = pdbObj.header -%]
+	[% title     = pdbObj.title -%]
+
+	[%# these values are available from the pdbmap table, but not the pdb 
+	    table itself. Get the pdbmap row for this particular pdb entry %]
+	[% chain     = pdbObj.pdbMap.chain -%]
+	[% start     = pdbObj.pdbMap.pdb_start_res -%]
+	[% end       = pdbObj.pdbMap.pdb_end_res -%]
+	
+	<p>PDB entry |[% pdbId %]|</p>	
+	<p>header |[% header %]|</p>
+	<p>title |[% title %]|</p>
+	<p>chain |[% chain %]|</p>
+	<p>start |[% start %]|</p>
+	<p>end |[% end %]|</p>
+
+<!-- 
+	[% IF pdbObj.pdb_image %]
+		<img src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" alt="[% pdbId %]" />
+	[% ELSE %]
+		<p>No image for this PDB entry</p>
+	[% END %]
+-->
+
+  </div>
+</div>
+
+<!-- end pdb block -->
