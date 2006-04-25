@@ -1,0 +1,23 @@
+
+[%#
+# domains.tt
+# jt6 20060424 WTSI
+#
+# $Id: domains.tt,v 1.1 2006-04-25 16:28:00 jt6 Exp $
+%]
+
+<!-- start domain organisation block -->
+
+<div class="block" id="clanDomainsBlock">
+  <div class="handle">
+    <h1>Domain organisation</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Domain organisation...</h3>
+
+  </div>
+
+</div>
+
+<!-- end domain organisation block -->
