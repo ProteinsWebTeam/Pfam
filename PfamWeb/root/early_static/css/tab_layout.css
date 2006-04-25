@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.1 2006-04-20 16:37:15 jt6 Exp $
+   $Id: tab_layout.css,v 1.2 2006-04-25 16:23:52 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -27,13 +27,14 @@
 
 #corner h2 {
 	margin: 0;
-	padding: 0.2em;
+	padding: 0.2em 0 0 0.2em;
     float: left;
 }
 
 #corner {
     background: url(/static/images/left_curve.gif) no-repeat top left;
-    padding: 12px 0.4em 0.4em 0.4em;
+    padding: 12px 0 0 0.4em;
+    height: 12px;
 }
 
 /* the overview bar */
@@ -53,13 +54,13 @@
 	padding: 22px 0.4em 0.2em 0.4em;
 	text-align:center;
     background-repeat: no-repeat;
-	background-position: center -2px;
-    font-size: smaller;
+	background-position: center top;
+    font-size: x-small;
 }
 
 #icons span {
     color: #BBB;
-    font-size: smaller;
+    font-size: x-small;
 }
 
 #icons a:hover {
@@ -83,19 +84,47 @@
 /* ======================================== */
 /* components of the remainder of the page */
 
-/* a wrapper around the contents and footer, used to add the bottom gradient */
-#pageContainer {
-  background: #e4e0f5 url(/static/images/bottom_gradient.png) repeat-x bottom;
-  padding-bottom: 0.5em;
+#spacer {
+  background: #c2d2e1;
+  clear: both;
+  height: 0;
 }
 
-/* the left column navigation bar */
+#content {
+  width: 85%;
+  float: right;
+  border-top-width: 1px;
+  border-top-style: solid;
+  position: relative; /* needed to fix the IE peekaboo bug... */
+}
+
 #sidebar {
-/* 	background: url(/static/images/sidebar_bg_green.gif) repeat-y right 0; */
-    font-size: 0.9em;
-    padding: 0.4em 0;
-    width: 15%;
-    clear: both;
+  width: 15%;
+  float: left;
+  padding: 0.4em 0;
+  position: relative; /* needed to fix the IE peekaboo bug... */
+}
+
+#footer {
+  clear: both;
+  background-image: url(/static/images/wide_tab_shadow.png);
+  background-repeat: no-repeat;
+  background-position: top left;
+  position: relative;
+  right: 1px;
+  width: 85%;
+  float: right;
+  margin-bottom: 1em;
+  padding: 0.4em 0;
+  border-top-width: 1px;
+  border-top-style: solid;
+  text-align: right;
+  font-size: small;
+}
+
+#contentContainer {
+  background-repeat: repeat-x;
+  background-position: bottom left;
 }
 
 #sidebar ul {
@@ -107,7 +136,7 @@
 #sidebar li a {
   outline: none;
   margin: 0;
-  padding: 0.2em 0 0.2em 0.8em;
+  padding: 0.2em 0.2em 0.2em 0.8em;
   display: block;
   text-decoration: none;
   font-weight: bold;
@@ -117,18 +146,19 @@
   text-decoration: underline;
 }
 
-#sidebar li.selected {
-  background: url(/static/images/tab_shadow.png) no-repeat bottom left;
-  margin-left: 0.2em;
+#sidebar li {
   padding: 0 0 5px 0;
-  position: relative;
-  left: 1px;
-  z-index: 1000;
+}
+
+#sidebar li.selected {
+  background-image: url(/static/images/wide_tab_shadow.png);
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  margin-left: 0.2em;
 }
 
 #sidebar li.selected a {
   outline: none;
-  background: url(/static/images/selected_bg.gif);
   border-width: 1px;
   border-style: solid;
   border-right: none;
@@ -137,65 +167,14 @@
 
 #sidebar li.selected a:hover {
   text-decoration: none;
+  cursor: default;
 }
 
-#sidebar li span.inactive {
+#sidebar li div.inactive {
   margin: 0;
   padding: 0.2em 0 0.2em 0.8em;
-  display: block;
   text-decoration: none;
   font-weight: bold;
-}
-
-/* the main page content */
-
-#content {
-  background: #FFF;
-  border-top: 1px solid blue;
-}
-
-#contentContainer {
-  width: 84.8%;
-  border-left: 1px solid red;
-  margin: 0;
-  padding: 0;
-  background: #FFF url(/static/images/wide_tab_shadow.png) no-repeat bottom left;
-}
-
-#columnContainer {
-  overflow: hidden;
-}
-
-#columnContainer .column {
-  position: relative;
-  float: left;
-  padding-bottom: 10000px;     /* X + padding-bottom */
-  margin-bottom: -10000px;     /* X */
-}
-
-/* fix the footer overflow in IE */
-* html body {
-  overflow: hidden;
-}
-
-* html #footerWrapper {
-  float: left;
-  position: relative;
-  width: 100%;
-  padding-bottom: 10010px;
-  margin-bottom: -10000px;
-}
-
-#footer {
-  border: none;
-  border-top: 1px solid green;
-  width: 85%;
-  float: right;
-  margin: 0;
-  padding: 0.4em 0;
-  background: url(/static/images/wide_tab_shadow.png) no-repeat top left;
-  text-align: right;
-  font-size: small;
 }
 
 /* ======================================== */
@@ -237,7 +216,12 @@ div.domain {
 	padding: 6px;
 }
 
-#tabSummaryBlock {
+/* these are the summary blocks for the different sections. These need
+   to have display:block set explicitly, otherwise the first tab wont
+   appear... bit of a hack... */
+#familySummaryBlock,
+#clanSummaryBlock,
+#ipfamSummaryBlock {
   display: block;
 }
 

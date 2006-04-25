@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.5 2006-04-20 16:37:15 jt6 Exp $
+   $Id: pfam.css,v 1.6 2006-04-25 16:23:52 jt6 Exp $
 */   
 
 body {
@@ -55,4 +55,8 @@ div.menubar {
     height: 1px;
     margin: 0;
     padding: 0;
+}
+
+ul, dl, ol {
+	position: relative;
 }

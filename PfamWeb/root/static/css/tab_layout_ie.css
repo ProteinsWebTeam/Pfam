@@ -2,9 +2,9 @@
 /* tab_layout_ie.css
    jt6 20060418 WTSI.
 
-   IE stylesheet to handle transparency...
+   IE stylesheet to apply various fixes for IE inadequacies and bugs
    
-   $Id: tab_layout_ie.css,v 1.1 2006-04-20 16:37:15 jt6 Exp $
+   $Id: tab_layout_ie.css,v 1.2 2006-04-25 16:23:52 jt6 Exp $
 */
 
 hr.short {
@@ -42,9 +42,30 @@ hr.short {
 	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/logos/tree.png",sizingMethod="crop");
 }
 
-
-/* background for the active tab in the sidebar */
+/* turn off the background for the active tab in the sidebar. The IE filter
+   just doesnt work... */
 #sidebar li.selected {
     background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/tab_shadow.png",sizingMethod="crop");
+/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/wide_tab_shadow.png",sizingMethod="crop"); */
 }
+
+/* the shadow under the main content. Just turn it off for now, because the 
+   shadow under the tab doesnt work and it would be wierd to have one but not
+   the other */
+#footer {
+    background-image: none;
+/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/wide_tab_shadow.png",sizingMethod="crop"); */
+/*  move the footer across to avoid an overhanging bit of background. That would
+    be the IE box model bug I think... */
+    left: 3px;
+}
+
+/* we need a spacer div inside the wrapper around the content and sidebar, to 
+   avoid the IE peekaboo bug. In real browsers we can set the height of this to
+   zero and it will essentially disappear, but in IE it has to have height: auto
+   otherwise it disappears... taking the whole page contents with it. Dont you
+   just love IE ? */
+#spacer {
+  height: auto;
+}
+

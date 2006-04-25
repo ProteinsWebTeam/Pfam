@@ -1,82 +1,91 @@
 
-/* clans.css
-   jt6 20060418 WTSI
+/* clans
+   jt6 20060421 WTSI
 
-   Stylesheet for the clans page.
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam clan pages.
 
-   $Id: clans.css,v 1.2 2006-04-20 16:37:14 jt6 Exp $
+   $Id: clans.css,v 1.3 2006-04-25 16:23:52 jt6 Exp $
 */   
 
 /* ======================================== */
 /* page layout items */
 
-
-/* the stripe between the page header and the top of the tab */
-#tabHeader {
-    background: #3b70a0;
-}
-
 /* styles for the markup that forms the page tab */
 #tabTitle {
-    background-image: url(/static/images/double_gradient_green_noborder.gif);
-	color: #060;
+	color: #3c5747;
 }
 
 #pageType {
-    border-color: #060;
+    border-color: #3c5747;
 }
 
 #pageType h2 {
-    background: #060;
-}
-
-#corner {
-	background: url(/static/images/left_curve.gif) no-repeat top left;
-}
-
-#icons {
-    background-image: url(/static/images/right_top.png);
+  color: #3c5747;
+/*    background: #3c5747; */
 }
 
 /* ======================================== */
 /* components of the remainder of the page */
 
+#content {
+  border-top-color: #5a826b;
+}
+
+#contentContainer {
+  background-color: #7fb897;
+  background-image: url(/static/images/green_page_border.png);
+}
+
+#wrap {
+  position: relative; /* needed to fix the IE peekaboo bug... */
+  background: url(/static/images/green_bg.gif) repeat-y 15% 0;
+}
+
 /* the left column navigation bar */
 
 #sidebar {
-/*    border-bottom-color: #0C0; */
-/*	background-image: url(/static/images/sidebar_bg_green.gif); */
+    border-bottom-color: #5a826b;
 }
 
 #sidebar li a {
-  color: #060;
+  color: #3c5747;
 }
 
 #sidebar li.selected a {
-  border-color: #0C0;
-  background-image: url(/static/images/selected_bg_green.gif);
+  border-color: #5a826b;
+  background-image: url(/static/images/green_selected_bg.gif);
 }
 
 #sidebar li span.inactive {
-  color: #59b259;
+  color: #6b9c7f;
+}
+
+#footer {
+  border-top-color: #5a826b;
 }
 
 /* ======================================== */
 /* general styles for "blocks" */
 
 div.handle {
-  background-color: #060;
+  background-color: #3c5747;
 }
 
 /* ======================================== */
 /* rules for specific blocks */
 
 div.pdbImageFragment {
-	background: #DDD;
-    border-color: #060;
+	background: #e7edf3;
+    border-color: #3c5747;
 }
 
 h4.pdbTitle  {
-	color: #060;
+	color: #3c5747;
 }
 
+span.clanMember {
+  float: left;
+  padding-left: 0.8em;
+  width: 10em;
+}
