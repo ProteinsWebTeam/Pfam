@@ -7,7 +7,7 @@
    <h1>Curation and Family Details</h1>
  </div>
  <div class="blockContent [% IF NOT open %]closed[% END %]">
-   <u>Curtion Details for [% pfam.pfamA_id %]</u>
+   <em>Curation Details for [% pfam.pfamA_id %]</em>
    <p>Author: [% pfam.author %]</p>
       
    <p>Seed Source: [% pfam.seed_source %]</p>       <p>Previous ids:[% pfam.previous_id %]/p>
@@ -15,33 +15,35 @@
 
 
        <p> [% pfam.status %] from last release</p>
-   <p> Number in seed: [% pfam.num_seed %]
-   <p> Number in full: [% pfam.num_full %]
-   <p> Average length of the domain: [% pfam.average_length %] aa
-   <p> Average identity of full Alignment: [% pfam.percentage_id %] %
-   <p> Average coverage of the sequence by the domain: [% pfam.average_coverage %]
+   <p> Number in seed: [% pfam.num_seed %]</p>
+   <p> Number in full: [% pfam.num_full %]</p>
+   <p> Average length of the domain: [% pfam.average_length %] aa</p>
+   <p> Average identity of full Alignment: [% pfam.percentage_id %] %</p>
+   <p> Average coverage of the sequence by the domain: [% pfam.average_coverage %]</p>
 
-   <br>
-   <h3><u>HMM info</u></h3>
+   <br />
+   <h3>HMM info</h3>
    <p>Model Length: [% pfam.model_length %]</p>
-    <p>Family (HMM) Version: [% pfam.version %];
+    <p>Family (HMM) Version: [% pfam.version %];</p>
 
    <p>Need to be put in a table</p>
-   <ul><p>ls model details</p>
-   <li>HMM Build command: [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</li>       <li>Gathering Sequence Cut-off: [% pfam.ls_sequence_GA %]
-   <li>Gathering Domain Cuf-off: [% pfam.ls_domain_GA %]
-   <li>Sequence Trusted Cut-off: [% pfam.ls_sequence_TC %]
-   <li>Domain Trusted  Cuf-off: [% pfam.ls_domain_TC %]
-   <li>Sequence Noise Cut-off: [% pfam.ls_sequence_NC %]
-   <li>Domain Noise Cuf-off: [% pfam.ls_domain_NC %]
+   <p>ls model details</p><ul>
+   <li>HMM Build command: [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</li>
+   <li>Gathering Sequence Cut-off: [% pfam.ls_sequence_GA %]</li>
+   <li>Gathering Domain Cuf-off: [% pfam.ls_domain_GA %]</li>
+   <li>Sequence Trusted Cut-off: [% pfam.ls_sequence_TC %]</li>
+   <li>Domain Trusted  Cuf-off: [% pfam.ls_domain_TC %]</li>
+   <li>Sequence Noise Cut-off: [% pfam.ls_sequence_NC %]</li>
+   <li>Domain Noise Cuf-off: [% pfam.ls_domain_NC %]</li>
    </ul>
-          <ul><p>fs model detaifs</p>
-   <li>HMM Build command: [% pfam.hmmbuild_fs %] [% pfam.hmmcalibrate_fs %]</li>       <li>Gathering Sequence Cut-off: [% pfam.fs_sequence_GA %]
-   <li>Gathering Domain Cuf-off: [% pfam.fs_domain_GA %]
-   <li>Sequence Trusted Cut-off: [% pfam.fs_sequence_TC %]
-   <li>Domain Trusted  Cuf-off: [% pfam.fs_domain_TC %]
-   <li>Sequence Noise Cut-off: [% pfam.fs_sequence_NC %]
-   <li>Domain Noise Cuf-off: [% pfam.fs_domain_NC %]
+          <p>fs model details</p><ul>
+   <li>HMM Build command: [% pfam.hmmbuild_fs %] [% pfam.hmmcalibrate_fs %]</li>
+   <li>Gathering Sequence Cut-off: [% pfam.fs_sequence_GA %]</li>
+   <li>Gathering Domain Cuf-off: [% pfam.fs_domain_GA %]</li>
+   <li>Sequence Trusted Cut-off: [% pfam.fs_sequence_TC %]</li>
+   <li>Domain Trusted  Cuf-off: [% pfam.fs_domain_TC %]</li>
+   <li>Sequence Noise Cut-off: [% pfam.fs_sequence_NC %]</li>
+   <li>Domain Noise Cuf-off: [% pfam.fs_domain_NC %]</li>
    </ul>
   
  </div>

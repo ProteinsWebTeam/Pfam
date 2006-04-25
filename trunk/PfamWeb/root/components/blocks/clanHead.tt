@@ -1,7 +1,7 @@
 
 [%# requires a pfam object called "clans" %]
 
-<!-- start pfam block -->
+<!-- start clanHead block -->
 
 <div class="block" id="clanHeadBlock">
   <div class="handle">
@@ -34,4 +34,4 @@
   </div>
 </div>
 
-<!-- end pfam block -->
+<!-- end clanHead block -->
