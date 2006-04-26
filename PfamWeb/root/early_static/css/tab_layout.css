@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.2 2006-04-25 16:23:52 jt6 Exp $
+   $Id: tab_layout.css,v 1.3 2006-04-26 10:41:42 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -39,7 +39,7 @@
 
 /* the overview bar */
 #icons {
-    background: url(/static/images/right_top.png) top left no-repeat;
+    background: url(/static/images/right_top.gif) top left no-repeat;
     margin: 0;
     padding: 0 0 6px 40px;
     float: right;
@@ -122,6 +122,10 @@
   font-size: small;
 }
 
+#footer span {
+  padding-right: 0.4em;
+}
+
 #contentContainer {
   background-repeat: repeat-x;
   background-position: bottom left;
@@ -140,6 +144,7 @@
   display: block;
   text-decoration: none;
   font-weight: bold;
+  height: 100%; /* only needed to convince IE to make the whole block clickable */
 }
 
 #sidebar li a:hover {
@@ -158,6 +163,8 @@
 }
 
 #sidebar li.selected a {
+position: relative;
+left: 1px;
   outline: none;
   border-width: 1px;
   border-style: solid;
@@ -172,7 +179,7 @@
 
 #sidebar li div.inactive {
   margin: 0;
-  padding: 0.2em 0 0.2em 0.8em;
+  padding: 0.2em 0.2em 0.2em 0.8em;
   text-decoration: none;
   font-weight: bold;
 }
