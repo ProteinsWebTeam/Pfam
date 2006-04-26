@@ -4,7 +4,7 @@
 
    IE stylesheet to apply various fixes for IE inadequacies and bugs
    
-   $Id: tab_layout_ie.css,v 1.2 2006-04-25 16:23:52 jt6 Exp $
+   $Id: tab_layout_ie.css,v 1.3 2006-04-26 10:41:42 jt6 Exp $
 */
 
 hr.short {
@@ -57,7 +57,7 @@ hr.short {
 /*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/wide_tab_shadow.png",sizingMethod="crop"); */
 /*  move the footer across to avoid an overhanging bit of background. That would
     be the IE box model bug I think... */
-    left: 3px;
+    left: 4px;
 }
 
 /* we need a spacer div inside the wrapper around the content and sidebar, to 

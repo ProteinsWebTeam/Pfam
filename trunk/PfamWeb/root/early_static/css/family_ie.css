@@ -4,7 +4,7 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: family_ie.css,v 1.2 2006-04-25 16:23:52 jt6 Exp $
+   $Id: family_ie.css,v 1.3 2006-04-26 10:41:42 jt6 Exp $
 */
 
 hr.short {
@@ -12,8 +12,9 @@ hr.short {
 }
 
 /* the curved corner for the page top tab */
+/* redundant if we switch to a GIF rather than a PNG...
 #icons {
     background-image: none;
     filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/right_top.png",sizingMethod="crop");
 }
-
+*/
