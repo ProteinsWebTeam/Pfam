@@ -1,0 +1,11 @@
+
+[%#
+# title.tt
+# jt6 20060427 WTSI
+#
+# build the tab title for the protein pages
+#
+# $Id: title.tt,v 1.1 2006-05-15 12:05:46 jt6 Exp $
+%]
+
+<h2>UniProt entry: <em>[% pfamseq.pfamseq_id %]</em> ([% pfamseq.pfamseq_acc %])</h2>

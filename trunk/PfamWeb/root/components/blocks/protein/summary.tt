@@ -1,0 +1,27 @@
+
+[%#
+# summary.tt
+# jt6 20060427 WTSI
+# 
+# build the summary block for proteins
+#
+# $Id: summary.tt,v 1.1 2006-05-15 12:05:46 jt6 Exp $
+%]
+
+<!-- start protein summary block -->
+
+<div class="block" id="proteinSummaryBlock">
+  <div class="handle">
+    <h1>UniProt entry</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Accession [% pfamseq.pfamseq_acc %]</h3>
+
+	<p>[% pfamseq.sequence %]</p>
+
+  </div>
+
+</div>
+
+<!-- end protein summary block -->

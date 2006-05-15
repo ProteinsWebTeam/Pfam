@@ -1,0 +1,70 @@
+
+[%#
+# graphics.tt
+# jt6 20060502 WTSI
+# 
+# block for graphics for the protein section
+#
+# $Id: graphics.tt,v 1.1 2006-05-15 12:05:46 jt6 Exp $
+-%]
+
+<!-- start protein graphics block -->
+
+<div class="block" id="proteinGraphicsBlock">
+  <div class="handle">
+    <h1>Graphics</h1>
+  </div>
+  <div class="blockContent">
+
+    <!-- start of graphics div -->
+    <div id="graphicsHolder">
+      <p style="border: 1px solid red" id="pgph">Not yet updated</p>
+    </div>
+    <!-- end of graphics div -->
+
+	<p><a id="revealControl" href="#" onclick="revealDASSources();return false">Show</a></p>
+
+	<div id="checkboxes" style="display: none">
+
+    <p>Using the following default servers:</p>
+	<ul>
+      [% FOREACH source IN dasSourcesRs -%]
+        [% IF source.defaultServer -%]
+        <li>[% source.name %]</li>
+        [% END -%]
+      [% END -%]
+    </ul>
+
+	[% c.prototype.form_remote_tag( { url    => c.uri_for( "/updatesources" ),
+			                       	  update => "graphicsHolder" } ) %]
+  
+      [% FOREACH source IN dasSourcesRs -%]
+	    [% IF source.defaultServer -%]
+          <input name="[% source.server_id %]" type="hidden" value="on" />
+	    [% END -%]
+	  [% END %]
+	  <input type="hidden" name="acc" value="[% pfamseq_acc %]" />
+
+      [% FOREACH source IN dasSourcesRs -%]
+	    [% IF NOT source.defaultServer -%]
+  	      <div class="source">
+  	        <input name="[% source.server_id %]" type="checkbox" />
+    	      <span class="checkboxLabel">
+              <a href="[% source.helperurl %]">[% source.name %]</a>
+              (<a href="[% source.url %]">source</a>)
+  	        </span>
+          </div>
+        [% END -%]
+      [% END -%]
+
+	  <input name="submit" value="Update" type="submit" />
+
+	</form>
+
+	</div>
+
+  </div>
+
+</div>
+
+<!-- end protein graphics block -->
