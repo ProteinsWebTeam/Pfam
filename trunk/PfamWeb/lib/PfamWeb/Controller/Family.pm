@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam family page.
 #
-# $Id: Family.pm,v 1.2 2006-04-20 16:32:53 jt6 Exp $
+# $Id: Family.pm,v 1.3 2006-05-15 12:13:07 jt6 Exp $
 
 package PfamWeb::Controller::Family;
 
@@ -15,42 +15,121 @@ use Data::Dumper;
 
 use base "Catalyst::Controller";
 
+# this is the base class for dealing with Pfam family-related
+# data. The begin method will try to extract data from the database
+# for the family that's specified either with an ID or accession. The
+# end method will hand off to the tab-layout template.
+#
+# Subclasses can override the end method to, for example, remove the
+# wrapper from the templates.
+
 #-------------------------------------------------------------------------------
 # pick up http://localhost:3000/summary
 
 sub generateSummary : Path {
   my( $this, $c ) = @_;
 
-  # the accession should have been dropped into the stash by the
-  # begin method from the PfamWeb.pm class
-  my $acc = $c->stash->{pfam}->pfamA_acc;
+  # the accession should have been dropped into the stash by the begin
+  # method
 
   # add the cross-references to the stash
-  $c->forward( "getDbXrefs" );
-
-  # set up the TT view
-  $c->stash->{pageType} = "family";
-  $c->stash->{template} = "pages/layout.tt";
-
-  # and use it
-  $c->forward( "PfamWeb::View::TT" );
+  $c->forward( "getDbXrefs" ) if defined $c->stash->{pfam};
 
 }
 
 #-------------------------------------------------------------------------------
-# mimc the old "getacc" URL - doesn't work right now...
+# get the row in the Pfam table for this entry
 
-#sub getacc : Regex( "/getacc\?(PF\d{5})$" ) {
-#  my( $this, $c ) = @_;
+sub begin : Private {
+  my( $this, $c ) = @_;
 
-#  my $acc = $c->req->snippets->[0];
-#  $c->log->debug( "acc: $acc" );
-				 
-#  $c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_acc => $acc } );
-#
-#  $c->forward( "family" );
+  #----------------------------------------
+  # get the accession or ID code
 
-#}
+  if( defined $c->req->param("acc") ) {
+
+	$c->req->param("acc") =~ m/^(PF\d{5})$/;
+	$c->log->info( "$this: found accession |$1|" );
+
+	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_acc => $1 } )
+	  if defined $1;
+
+  } elsif( defined $c->req->param("id") ) {
+
+	$c->req->param("id") =~ m/(^\w+$)/;
+	$c->log->info( "$this: found ID |$1|" );
+
+	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_id => $1 } )
+	  if defined $1;
+
+  }	
+
+  # we're done here unless there's an entry specified
+  $c->log->warn( "$this: no ID or accession" ) and return
+	unless defined $c->stash->{pfam};
+
+  #----------------------------------------
+  # get the data items for the overview bar
+
+  my %summaryData;
+
+  # make things easier by getting hold of the auto_pfamA
+  my $auto_pfam = $c->stash->{pfam}->auto_pfamA;
+
+  # get the PDB details
+  my @maps = PfamWeb::Model::PdbMap->search(
+    { auto_pfam   => $auto_pfam,
+	  pfam_region => 1 },
+	{ join        => [qw/ pdb / ] } );
+  $c->stash->{pfamMaps} = \@maps;
+
+
+  # count the number of architectures
+  my $rs = PfamWeb::Model::PfamA_architecture->find(
+    { auto_pfamA => $auto_pfam },
+    {
+      select => [
+        { count => "auto_pfamA" }
+      ],
+      as => [ 'count' ]
+    }
+  );
+
+  # number or architectures....
+  $summaryData{numArchitectures} = $rs->get_column( "count" );
+
+  # number of sequences in full alignment
+  $summaryData{numSequences} = $c->stash->{pfam}->num_full;
+
+  # number of structures known for the domain
+  my %pdb_unique = map {$_->pdb_id => 1} @maps;
+  $summaryData{numStructures} = scalar(keys %pdb_unique);
+  $c->stash->{pdbUnique} = \%pdb_unique;
+
+  # number of species
+  my @species = PfamWeb::Model::PfamA_reg_full->search(
+    { auto_pfamA => $auto_pfam,
+	  in_full    => 1 },
+    { join       => [ qw/pfamseq/ ],
+	  prefetch   => [ qw/pfamseq/ ] } );
+
+  my %species_unique = map {$_->species => 1} @species;
+  $summaryData{numSpecies} = scalar(keys %species_unique);
+
+  # number of interactions
+  $rs = PfamWeb::Model::Int_pfamAs->find({ auto_pfamA_A => $auto_pfam },
+	{ select => [
+				 { count => "auto_pfamA_A" }
+				],
+	  as => [ qw/NumInts/ ]
+    }
+  );
+
+  $summaryData{numIpfam} = $rs->get_column( "NumInts" );
+
+  $c->stash->{summaryData} = \%summaryData;
+
+}
 
 #-------------------------------------------------------------------------------
 # get the database cross-references from various places and stuff them
@@ -130,5 +209,21 @@ sub getDbXrefs : Private {
 
 }
 
+#-------------------------------------------------------------------------------
+# hand off to the full page template
+
+sub end : Private {
+  my( $this, $c ) = @_;
+
+  # set up the TT view
+  $c->stash->{pageType} = "family";
+  $c->stash->{template} = "pages/layout.tt";
+
+  # and use it
+  $c->forward( "PfamWeb::View::TT" );
+
+}
+
+#-------------------------------------------------------------------------------
 
 1;
