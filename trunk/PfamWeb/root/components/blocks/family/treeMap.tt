@@ -1,0 +1,30 @@
+[%#
+# treeMap.tt
+# jt6 20060511 WTSI
+#
+# format the image map for the species tree
+#
+# $Id: treeMap.tt,v 1.1 2006-05-15 12:04:26 jt6 Exp $
+%]
+
+[%# url for uniprot: http://www.ebi.uniprot.org/uniprot-srv/uniProtView.do?proteinId=acc %]
+
+[% CALL c.log.debug( "generating image map..." ) -%]
+
+<img src="[% c.uri_for( "/gettreeimage", 
+                        { acc  => pfam.pfamA_acc,
+                          type => type } ) %]"
+     usemap="#nhxmap" />
+
+<map name="nhxmap">
+[% FOREACH node IN tree.node_array -%]
+  [% matches = node.N.match( '^(.*?)\/\d+-\d+$' ) -%]
+  <!-- include when we have some information to add here... 
+  <area coords="[% node.node_area.join( "," ) %]" title="node" />
+  -->
+  [% IF node.area AND matches.0 -%]
+  <area coords="[% node.area.join( "," ) %]" href="[% c.uri_for( "/protein", id=matches.0 ) %]" />
+  [% END -%]
+[% END -%]
+</map>
+
