@@ -1,20 +1,23 @@
+[%#
+# align.tt
+# jt6 20060411 WTSI
+#
+# block showing the family alignment.
+#
+# $Id: align.tt,v 1.2 2006-05-15 11:59:22 jt6 Exp $
+%]
 
-<!-- start of alignBlock -->
+<!-- start align block -->
 
 <div class="block" id="alignBlock">
   <div class="handle">
-    <h1>Alignments and Trees</h1>
+    <h1>Alignments</h1>
   </div>
-  <div class="blockContent [% IF NOT open %]closed[% END %]">
+  <div class="blockContent">
 
-    <div class="alignSelect">
-	  <form method="get" action="/getalign">
-	    <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
-	    <input name="type" type="radio" checked="checked" value="seed"></input><span>Seed ([% pfam.num_seed %])</span>
-	    <input name="type" type="radio" value="full"></input><span>Full ([% pfam.num_full %])</span>
-	
-	    <p>Format
-	      <select name="format">
+    <form method="get" action="/getalign">
+        <p>Format
+          <select name="format">
              <option value="link">Coloured alignment</option>
              <option value="mul">Plain Pfam format</option>
              <option value="stock">Plain Stockholm format</option>
@@ -25,8 +28,7 @@
              <option value="jalview">Jalview (Java)</option>
            </select>
         </p>
-	  </form>
-    </div>		
+    </form>
 
     <div class="hmmlogoSelect">
 	</div>	
@@ -44,8 +46,7 @@
 	  <p>The trees were generated using <a href="http://www.sanger.ac.uk/Software/analysis/quicktree/">Quicktree</a></p> 
    <p>To find out more about ATV phylogenetic tree-viewer <a href="http://www.genetics.wustl.edu/eddy/atv">click here</a></p>
     </div>
-
   </div>
 </div>
 
-<!-- end of alignBlock -->
+<!-- end of align block -->
