@@ -4,7 +4,7 @@
 #
 # Controller to build a species tree.
 #
-# $Id: SpeciesTree.pm,v 1.1 2006-04-12 16:28:46 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.2 2006-05-15 12:13:55 jt6 Exp $
 
 package PfamWeb::Controller::SpeciesTree;
 
@@ -13,9 +13,9 @@ use warnings;
 
 use Data::Dumper;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Family";
 
-
+#-------------------------------------------------------------------------------
 # pick up a URL like http://localhost:3000/speciestree?acc=PF00067
 
 sub getData : Path {
@@ -32,6 +32,10 @@ sub getData : Path {
   $c->stash->{tree} = $js;
 
 }
+
+#-------------------------------------------------------------------------------
+# override the default end from Family, so that we hand off to a
+# template that doesn't need a wrapper
 
 sub end : Private {
   my( $this, $c ) = @_;
