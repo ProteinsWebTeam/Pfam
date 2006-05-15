@@ -1,0 +1,53 @@
+
+[%#
+# phylo.tt
+# jt6 20060515 WTSI
+#
+# block showing the phylogenetic tree for a family
+#
+# $Id: phylo.tt,v 1.1 2006-05-15 11:59:48 jt6 Exp $
+%]
+
+<!-- start of phyloBlock -->
+
+<div class="block" id="phyloBlock">
+  <div class="handle">
+    <h1>Trees</h1>
+  </div>
+  <div class="blockContent">
+
+	<div id="alignmentTree">
+	  <p id="atph">
+	    <img src="static/images/loading.gif" alt="loading..." />
+        Loading alignment tree...
+      </p>	
+	</div>
+
+	[%# set the options for the ajax call that populates the tree -%]
+    <script type="text/javascript">
+      loadOptions.at        = {};
+      loadOptions.at.uri    = "[% c.uri_for( "/gettreemap" ) %]";
+      loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
+	</script>
+
+    [%# the form that controls the tree display -%]
+    [% c.prototype.form_remote_tag( {
+             url    => c.uri_for( "/gettreemap" ),
+             update => "alignmentTree"
+           } ) %]
+      <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
+      <span>
+        <input name="type" type="radio" checked="checked" value="seed" />
+        Seed ([% pfam.num_seed %])
+      </span>
+      <span>
+        <input name="type" type="radio" value="full" />
+        Full ([% pfam.num_full %])
+      </span>
+      <input type="submit" name="submit" value="Change tree" />
+    </form>
+
+  </div>
+</div>
+
+<!-- end of phyloBlock -->
