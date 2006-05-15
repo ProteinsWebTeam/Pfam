@@ -1,0 +1,90 @@
+
+/* family.css
+   jt6 20060413 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam family pages.
+
+   $Id: protein.css,v 1.1 2006-05-15 10:51:23 jt6 Exp $
+*/   
+
+/* ======================================== */
+/* page layout items */
+
+/* styles for the markup that forms the page tab */
+#tabTitle {
+	color: #074987;
+}
+
+#pageType {
+    border-color: #074987;
+}
+
+#pageType h2 {
+  color: #074987;
+/*    background: #074987; */
+}
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+#content {
+  border-top-color: #4577a5;
+}
+
+#contentContainer {
+  background-color: #c2d2e1;
+  background-image: url(/static/images/blue_page_border.gif);
+}
+
+#wrap {
+  position: relative; /* needed to fix the IE peekaboo bug... */
+  background: url(/static/images/blue_bg.gif) repeat-y 15% 0;
+}
+
+/* the left column navigation bar */
+
+#sidebar {
+    border-bottom-color: #4577a5;
+}
+
+#sidebar li a {
+  color: #074987;
+}
+
+#sidebar li.selected a {
+  border-color: #4577a5;
+  background-image: url(/static/images/blue_selected_bg.gif);
+}
+
+#sidebar li span.inactive {
+  color: #7c99b3;
+}
+
+#footer {
+  border-top-color: #4577a5;
+}
+
+/* ======================================== */
+/* general styles for "blocks" */
+
+div.handle {
+  background-color: #074987;
+}
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.source {
+	float: left;
+    width: 16em;
+	padding: 0.2em;
+}
+
+div.source span.checkboxLabel {
+	float: left;
+}
+
+div.source input {
+	float: left;
+}
