@@ -6,7 +6,7 @@
 # application. Configuration is all done through the pfamweb.yml
 # config file and there's (currently) not much else in here.
 #
-# $Id: PfamWeb.pm,v 1.5 2006-04-25 16:45:08 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.6 2006-05-15 12:11:36 jt6 Exp $
 
 package PfamWeb;
 
@@ -22,6 +22,8 @@ use warnings;
 #
 use Catalyst qw/ -Debug
 				 ConfigLoader
+                 Prototype
+				 Cache::FastMmap
 				 Static::Simple /;
 
 # add the following to enable session handling:
@@ -64,99 +66,6 @@ Catalyst based application.
 =cut
 
 
-
-# get the row in the Pfam table for this entry
-
-sub begin : Private {
-  my( $this, $c ) = @_;
-
-  #----------------------------------------
-  # get the accession or ID code
-
-  if( defined $c->req->param("acc") ) {
-
-	$c->req->param("acc") =~ m/^(PF\d{5})$/;
-	$c->log->info( "$this: found accession |$1|" );
-
-	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_acc => $1 } )
-	  if defined $1;
-
-  } elsif( defined $c->req->param("id") ) {
-
-	$c->req->param("id") =~ m/(^\w+$)/;
-	$c->log->info( "$this: found ID |$1|" );
-
-	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_id => $1 } )
-	  if defined $1;
-
-  }	
-
-  # we're done here unless there's an entry specified
-  $c->log->warn( "$this: no ID or accession" ) and return
-	unless defined $c->stash->{pfam};
-
-  #----------------------------------------
-  # get the data items for the overview bar
-
-  my %summaryData;
-
-  # make things easier by getting hold of the auto_pfamA
-  my $auto_pfam = $c->stash->{pfam}->auto_pfamA;
-
-  # get the PDB details
-  my @maps = PfamWeb::Model::PdbMap->search(
-    { auto_pfam   => $auto_pfam,
-	  pfam_region => 1 },
-	{ join        => [qw/ pdb / ] } );
-  $c->stash->{pfamMaps} = \@maps;
-
-
-  # count the number of architectures
-  my $rs = PfamWeb::Model::PfamA_architecture->find(
-    { auto_pfamA => $auto_pfam },
-    {
-      select => [
-        { count => "auto_pfamA" }
-      ],
-      as => [ 'count' ]
-    }
-  );
-
-  # number or architectures....
-  $summaryData{numArchitectures} = $rs->get_column( "count" );
-
-  # number of sequences in full alignment
-  $summaryData{numSequences} = $c->stash->{pfam}->num_full;
-
-  # number of structures known for the domain
-  my %pdb_unique = map {$_->pdb_id => 1} @maps;
-  $summaryData{numStructures} = scalar(keys %pdb_unique);
-  $c->stash->{pdbUnique} = \%pdb_unique;
-
-  # number of species
-  my @species = PfamWeb::Model::PfamA_reg_full->search(
-    { auto_pfamA => $auto_pfam,
-	  in_full    => 1 },
-    { join       => [ qw/pfamseq/ ],
-	  prefetch   => [ qw/pfamseq/ ] } );
-
-  my %species_unique = map {$_->species => 1} @species;
-  $summaryData{numSpecies} = scalar(keys %species_unique);
-
-  # number of interactions
-  $rs = PfamWeb::Model::Int_pfamAs->find({ auto_pfamA_A => $auto_pfam },
-	{ select => [
-				 { count => "auto_pfamA_A" }
-				],
-	  as => [ qw/NumInts/ ]
-    }
-  );
-
-  $summaryData{numIpfam} = $rs->get_column( "NumInts" );
-
-  $c->stash->{summaryData} = \%summaryData;
-
-}
 
 
 #
