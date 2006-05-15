@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.1 2006-04-25 16:27:36 jt6 Exp $
+# $Id: domains.tt,v 1.2 2006-05-15 12:02:37 jt6 Exp $
 %]
 
 <!-- start domain architectures block -->
@@ -16,13 +16,17 @@
     <h1>Domain organisation</h1> 
   </div>
   <div class="blockContent">
-  <p>Loading...</p>
+  <p id="dgph">
+    <img src="static/images/loading.gif" alt="loading..." />
+    Loading domain graphics...
+  </p>
   </div>
 </div>
 
 <script type="text/javascript">
-var url = "[% c.uri_for( "/domaingraphics" ) %]?acc=[% pfam.pfamA_acc %]";
-YAHOO.util.Connect.asyncRequest( "GET", url, graphicsCallback, null );
+  loadOptions.dg        = {};
+  loadOptions.dg.uri    = "[% c.uri_for( "/domaingraphics" ) %]";
+  loadOptions.dg.params = "acc=[% pfam.pfamA_acc %]";
 </script>
 
 <!-- end domain architectures block -->
