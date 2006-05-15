@@ -1,0 +1,11 @@
+[%#
+# loadGraphics.tt
+# jt6 20060503 WTSI
+#
+# contents of the protein graphics block. Called using an ajax request
+# via ProteinGraphics.pm and stuffed into a div in the existing page
+#
+# $Id: loadGraphics.tt,v 1.1 2006-05-15 12:05:46 jt6 Exp $
+%]
+
+<p style="border: 1px solid green">Generated domain graphics go here...</p>
