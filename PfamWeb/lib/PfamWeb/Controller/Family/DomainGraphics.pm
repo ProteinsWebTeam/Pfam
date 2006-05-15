@@ -4,7 +4,7 @@
 #
 # Controller to build a set of domain graphics for a given Pfam.
 #
-# $Id: DomainGraphics.pm,v 1.1 2006-04-12 16:24:50 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.2 2006-05-15 12:12:37 jt6 Exp $
 
 package PfamWeb::Controller::DomainGraphics;
 
@@ -13,7 +13,7 @@ use warnings;
 
 use Data::Dumper;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Family";
 
 
 # pick up a URL like http://localhost:3000/domaingraphics?acc=PF00067
@@ -49,6 +49,10 @@ sub getData : Path {
   $c->stash->{images} = $imageset;
 
 }
+
+#-------------------------------------------------------------------------------
+# override the end method from the Family class, so that we now hand
+# off to a template that doesn't require the wrapper
 
 sub end : Private {
   my( $this, $c ) = @_;
