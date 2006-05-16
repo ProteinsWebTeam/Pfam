@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.1 2006-05-15 12:05:46 jt6 Exp $
+# $Id: graphics.tt,v 1.2 2006-05-16 12:48:42 jt6 Exp $
 -%]
 
 <!-- start protein graphics block -->
@@ -43,7 +43,7 @@
           <input name="[% source.server_id %]" type="hidden" value="on" />
 	    [% END -%]
 	  [% END %]
-	  <input type="hidden" name="acc" value="[% pfamseq_acc %]" />
+	  <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
 
       [% FOREACH source IN dasSourcesRs -%]
 	    [% IF NOT source.defaultServer -%]
