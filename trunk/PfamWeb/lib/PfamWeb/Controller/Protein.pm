@@ -4,7 +4,7 @@
 #
 # Controller to build the main protein page.
 #
-# $Id: Protein.pm,v 1.1 2006-05-15 12:14:46 jt6 Exp $
+# $Id: Protein.pm,v 1.2 2006-05-16 09:49:26 jt6 Exp $
 
 package PfamWeb::Controller::Protein;
 
@@ -38,9 +38,6 @@ sub begin : Private {
 	$c->req->param( "acc" ) =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/;
 	$c->log->info( "Protein::begin: found a uniprot accession |$1|" );
 
-	$c->stash->{pfamseq_acc} = $1
-	  if defined $1;
-
 	# try a lookup in the main pfamseq table first
 	my $p = PfamWeb::Model::Pfamseq->find( { pfamseq_acc => $1 } );
 
@@ -52,7 +49,7 @@ sub begin : Private {
 	  # ... otherwise, see if this is really a secondary accession
 	  $p = PfamWeb::Model::Secondary_pfamseq_acc->find( { secondary_acc => $1 },
 													    { join =>     [ qw/pfamseq/ ],
-														  prefetch => [ qw/pfamseq/ ]} );
+														  prefetch => [ qw/pfamseq/ ] } );
 
 	  $c->stash->{pfamseq} = $p if defined $p;
 	}
@@ -65,7 +62,7 @@ sub begin : Private {
 	# try a lookup in the main pfamseq table first
 	my $p = PfamWeb::Model::Pfamseq->find( { pfamseq_id => $1 } );
 
-	$c->stash->{pfamseq} = $p if defined $p;
+	$c->stash->{pfamseq}     = $p if defined $p;
 
   } elsif( defined $c->req->param( "entry" ) ) {
 
