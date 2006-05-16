@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.1 2006-05-15 12:14:46 jt6 Exp $
+# $Id: Graphics.pm,v 1.2 2006-05-16 09:49:26 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -43,9 +43,10 @@ sub updateSources : Path( "/updatesources" ) {
 
   my $dl = PfamWeb::Model::Das_sources->getDasLite;
   $dl->dsn( \@dsnList );
-  my $result = $dl->features( $c->stash->{pfamseq_acc} );
+  my $result = $dl->features( $c->stash->{pfamseq}->pfamseq_acc );
 
-  $c->log->debug( "Protein::Graphics::updateSources: result for |" . $c->stash->{pfamseq_acc}
+  $c->log->debug( "Protein::Graphics::updateSources: result for |"
+				  . $c->stash->{pfamseq}->pfamseq_acc
  				  . "|: " . Dumper( $result ) );
 
 }
