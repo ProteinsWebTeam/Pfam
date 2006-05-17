@@ -378,7 +378,7 @@ foreach my $acc ( @families ) {
 
 unless( $noclean ) {
     unlink( "/tmp/$$.res", "/tmp/$$.blast" ) or die "FATAL: can't unlink [/tmp/$$.res] or [/tmp/$$.blast]";
-    unless( $slow ) {
+    if( !$slow and $cmquery ) {
 	unlink( $cmquery ) or die "FATAL: can't unlink [$cmquery]";
     }
 }
