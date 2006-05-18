@@ -16,8 +16,8 @@ my %TP_hash = (
 		    'snRNA' => {
 			'splicing' => 1,
 			'guide' => {
-				'C/D-box' => 1,
-				'H/ACA-box' => 1,
+				'CD' => 1,
+				'HACA' => 1,
 				}
 			}
 		},
@@ -258,8 +258,8 @@ sub desc_is_OK {
             /^RM/ && do  {
                 $fields{$&}++;
                 $ref=1;
-                if( !/^RM   \d{7,8}$/) {
-                    warn "$family: Bad Medline reference [$_]\nShould be a seven or eight digit number\n";
+                if( !/^RM   \d{6,8}$/) {
+                    warn "$family: Bad Medline reference [$_]\nShould be a six to eight digit number\n";
                     $error = 1;
                 }
                 last;
