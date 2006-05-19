@@ -1140,158 +1140,66 @@ sub update_rfam_database_links {
 
 
 sub add_rfamseq {
-   my ($self, $entries) = @_;
-   my ($stat, $stat_add,
-       $dbh,
-       $rows, 
-       $error, 
-       $rdb_acc, 
-       $rdb_id, 
-       $rdb_desc, 
-       $rdb_len, 
-       $rdb_org,
-      $rdb_auto,
-      $rdb_crc64,
-      $rdb_version,
-      $rdb_is_fragment,
-      $rdb_taxonomy,
-      %store_rfamseq, $st);
+    my $self = shift;
+    my @seqs = @_;
 
-   $dbh = $self->open_transaction( 'rfamseq' );
-#print "EN : $entries \n";
-#   open(_EN, $entries);
-#   while(<_EN>) {
-#     print "BLEE: $_ \n"; sleep 1;
-#   }
-#   close(_EN);
-#   exit(0);
-  open(_EN, $entries);
-   while(<_EN>) {
-  #   print "EN : $_ \n";
-    # print "HERE $entries \n"; exit(0);
+    $dbh = $self->open_transaction( 'rfamseq' );
 
-     my($temp, $rdb_id, $rdb_acc, $rdb_version, $rdb_desc,$rdb_os, $rdb_oc,  $rdb_prev);
+    my $error = "";
+    my $rows = 0;
+    foreach my $seq ( @seqs ) {
+	my $auto_id = '';
+	my $st = $dbh->prepare( 'select auto_rfamseq from rfamseq where rfamseq_acc = ?' );
+	$st->execute( $seq->accession_number );
+	($auto_id) = $st->fetchrow;
+	$st->finish();
 
-  #   if (!$seed) {
-  #     ($rdb_acc, $rdb_id) = split(/\s+/, $_);
-     
-   #  } else {
-     chop($_);
-     ($temp, $rdb_id, $rdb_acc, $rdb_version, $rdb_desc,$rdb_os, $rdb_oc,  $rdb_prev) = split(/\t/, $_);
-     #print "ID: $rdb_id, ACC: $rdb_acc, VER: $rdb_version, DESC: $rdb_desc, OS: $rdb_os, OC: $rdb_oc,  PREV: $rdb_prev \n";
-     $rdb_acc =~ s/\s+//g;
-     $rdb_id =~ s/\s+//g;
-  
+	if( $auto_id ) {
+	    $st = $dbh->prepare($self->__replace_sql('rfamseq', 9));
+	}
+	else {
+	    $st = $dbh->prepare($self->__insert_sql('rfamseq', 9));
+	}
 
-     my $st = $dbh->prepare("select auto_rfamseq from rfamseq where rfamseq_acc = '$rdb_acc'");
-     $st->execute();
-     my($temp_auto) = $st->fetchrow;
-     $st->finish();
+	# stolen from Bio::SeqIO::embl->write_seq
+	my $spec = $seq->species;
+	my($species, @class) = $spec->classification();
+	my $genus = $class[0];
+	my $OS = "$genus $species";
+	if (my $ssp = $spec->sub_species) {
+	    $OS .= " $ssp";
+	}
+	if (my $common = $spec->common_name) {
+	    $OS .= " ($common)";
+	}
+	my $OC = join('; ', reverse(@class)) .'.';
+	####
 
-     if ($temp_auto) {
-       $rdb_auto = $temp_auto;
-     } else {
-       $rdb_auto = undef;
-     }
-   #  print "ACC: $rdb_acc:: auto: $rdb_auto \n";
-#      if (!$temp_auto) {
+	$st->execute( $auto_id,
+		      $seq->id,
+		      $seq->accession_number,
+		      $seq->description,
+		      $OS,
+		      $OC,
+		      $seq->seq_version,
+		      join( ';', $seq->get_secondary_accessions ),
+		      ''
+		      );
 
-##	print "$rdb_acc not in database \n";
-#	next;
-
-#       } else {
-#	# print "$rdb_acc in RDB: $rdb_id, $rdb_acc, $rdb_version, $rdb_desc,$rdb_os, $rdb_oc,  $rdb_prev\n"; sleep 1;
-#	 next;
-#       }
-
-    
-     my $taxon;
-     if (defined($store_rfamseq{$rdb_acc})) {
-       
-     } else {
-       $store_rfamseq{$rdb_acc} = $rdb_acc;
-       #print "HERE \n";
-       if (!$rdb_auto) {
-	# print "NO AUTO \n";
-	 eval {
-	   if (not defined $stat_add) {
-	     $stat_add = $dbh->prepare($self->__insert_sql('rfamseq', 9));
-	     #print "stat: $stat \n";
-	   }
-          print "ADDING: $rdb_acc \n";
-	
-	   $stat_add->execute($rdb_auto,
-			  $rdb_id, 
-			  $rdb_acc, 
-			  $rdb_desc, 
-			  $rdb_os,
-			  $rdb_oc,
-			  $rdb_version,
-			  $rdb_prev,
-			  $taxon
-			 );
-	   $rows += $stat_add->rows;
-	 };
-	 if ($@) {
-	   $error = "Could not do the insertion on the rfamseq table [$@]";
-	   last;
-	 }
+	$rows += $st->rows;
+    };
+    if ($@) {
+	$error = "Could not do the insertion on the rfamseq table [$@]";
+	last;
+    }
 	 
-	 
-       } else {
-	 
-	 
-	 # my $st = $dbh->prepare("select auto_rfamseq from rfamseq where rfamseq_acc = '$rdb_acc'");
-	 # $st->execute();
-	 #my($temp_auto) = $st->fetchrow;
-	 #$st->finish();
-	 #   if (!$temp_auto) {
-#	 print "updating: $rdb_acc \n";
-	 eval {
-	   if (not defined $stat) {
-	     $stat = $dbh->prepare($self->__replace_sql('rfamseq', 9));
-	    # print "stat: $stat \n";
-	   }
-	   #print "UPDATING $rdb_auto , $rdb_acc \n";
-	   
-	   $stat->execute($rdb_auto,
-			  $rdb_id, 
-			  $rdb_acc, 
-			  $rdb_desc, 
-			  $rdb_os,
-			  $rdb_oc,
-			  $rdb_version,
-			  $rdb_prev,
-			  $taxon
-			 );
-	   $rows += $stat->rows;
+    $self->close_transaction( $error );
+    $error and $self->throw( $error );
 
-	   
-	 };
-	 if ($@) {
-	   $error = "Could not do the update on the rfamseq table [$@]";
-	   last;
-	 }
-	 
-	 
-	 
-	 
-	 
-	 
-	 
-       }
-       
-     }
+    $self->report_mode and 
+	printf STDERR "Just added %d records to %s.pfamseq\n", $rows, $self->_database_name();
 
-   } #/ end while
-
-   $self->close_transaction( $error );
-   $error and $self->throw( $error );
-
-   $self->report_mode and 
-       printf STDERR "Just added %d records to %s.pfamseq\n", $rows, $self->_database_name();
-
-   return $rows;
+    return $rows;
 }
 
 
