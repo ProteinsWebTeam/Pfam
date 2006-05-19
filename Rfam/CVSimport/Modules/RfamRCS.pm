@@ -785,7 +785,7 @@ sub make_view_files {
 
     # submit makeview
 
-    system("bsub -q pfam_slow -Ralpha -o /dev/null $view_maker $family");
+    system("bsub -m 'pfam1a pfam1b' -o /dev/null $view_maker $family");
 
     # when the view files have finished being built, the lock will be released
 
