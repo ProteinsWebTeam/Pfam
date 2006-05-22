@@ -5,7 +5,18 @@
 # contents of the protein graphics block. Called using an ajax request
 # via ProteinGraphics.pm and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.1 2006-05-15 12:05:46 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.2 2006-05-22 16:50:21 jt6 Exp $
 %]
 
+<!--
 <p style="border: 1px solid green">Generated domain graphics go here...</p>
+-->
+
+[% i = 0 %]
+[% FOREACH image IN images.each_image %]
+  [% SET image.image_name = i %]
+  [% CALL image.print_image %]
+  <img src="[% image.file_location %]" alt="" />
+  [% CALL image.image_map %]
+  [% SET i = i+1 %]
+[% END %]
