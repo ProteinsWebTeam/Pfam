@@ -5,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.1 2006-05-15 12:01:58 jt6 Exp $
+# $Id: species.tt,v 1.2 2006-05-22 16:49:25 jt6 Exp $
 %]
 
 <!-- start species block -->
@@ -29,7 +29,6 @@
 </div>
 
 <script type="text/javascript">
-  loadOptions.st = {};
   loadOptions.st.uri    = "[% c.uri_for( "/speciestree" ) %]";
   loadOptions.st.params = "acc=[% pfam.pfamA_acc %]";
 </script>
