@@ -4,15 +4,16 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.2 2006-05-16 09:49:26 jt6 Exp $
+# $Id: Graphics.pm,v 1.3 2006-05-22 16:47:22 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
 use strict;
 use warnings;
 
-use Bio::DasLite;
 use Data::Dumper;
+
+use Bio::Pfam::Drawing::Layout::DasLayoutManager;
 
 # extend the Protein class. This way we should get hold of the pfamseq
 # data by default, via the "begin" method on Protein
@@ -30,24 +31,57 @@ sub updateSources : Path( "/updatesources" ) {
 
   $c->log->debug( "Protein::Graphics::updateSources: listing parameters:" );
 
-  my @dsnList;
+  my $seqAcc = $c->stash->{pfamseq}->pfamseq_acc;
+
+  # get a sequence first...
+  my @dsnList = ( "http://das.sanger.ac.uk/das/pfam" );
+
+#  my $dl = PfamWeb::Model::Das_sources->getDasLite;
+
+  my $dl = Bio::DasLite->new( { dsn     => PfamWeb->config->{dasDsn},
+								timeout => PfamWeb->config->{dasTo},
+								proxy   => PfamWeb->config->{dasProxy}
+							  } );
+
+  $dl->dsn( \@dsnList );
+
+  my $sequence = $dl->sequence( $seqAcc );
+
+  # if we don't get a sequence from the Pfam source, all hope is lost...
+  return unless $sequence;
+
+  # if we do get a sequence, we can now add the user-specified sources
+  # and call those registries to get features.
+
+  # first, reset the sources list
+  @dsnList = ();
+
+  # get the sources from the parameter list
   foreach ( sort keys %{$c->req->parameters} ) {
 
 	# we want only the server IDs
-	next unless( /^DS_\d+$/ and $c->req->param( $_ ) eq "on" );
+	next unless /^DS_\d+$/ and $c->req->param( $_ ) eq "on";
 	$c->log->debug( "Protein::Graphics::updateSources: param: |$_|"
 					. $c->req->param($_) . "|" );
 	my $ds = PfamWeb::Model::Das_sources->find( server_id => $_ );
 	push @dsnList, $ds->url;
   }
 
-  my $dl = PfamWeb::Model::Das_sources->getDasLite;
   $dl->dsn( \@dsnList );
-  my $result = $dl->features( $c->stash->{pfamseq}->pfamseq_acc );
+  #my $result = $dl->features( $seqAcc );
 
-  $c->log->debug( "Protein::Graphics::updateSources: result for |"
-				  . $c->stash->{pfamseq}->pfamseq_acc
- 				  . "|: " . Dumper( $result ) );
+   #$c->log->debug( "Protein::Graphics::updateSources: result for |"
+ 	#			  . $seqAcc . "|: " . Dumper( $result ) );
+
+  my $features = $dl->features( $seqAcc );
+
+  my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
+  $layout->layout_DAS_sequences_and_features( $sequence, $features );
+
+  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  $imageset->create_images( $layout->layout_to_XMLDOM );
+
+  $c->stash->{images} = $imageset;
 
 }
 
