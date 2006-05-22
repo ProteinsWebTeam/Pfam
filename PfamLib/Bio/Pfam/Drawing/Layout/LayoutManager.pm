@@ -394,6 +394,8 @@ sub resolve_overlaps{
   }
 }
 
+
+
 sub hide_regions_not_in_order{
     my ($self, $seq) = @_;
     my @ro = $self->region_order;
