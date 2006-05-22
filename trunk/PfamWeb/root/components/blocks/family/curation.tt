@@ -1,6 +1,8 @@
 
 <!-- start curation block -->
 
+[%- USE String -%]
+
 <div class="block" id="curationBlock">
   <div class="handle">
     <h1>Curation and Family Details</h1>
@@ -90,26 +92,26 @@
             </tr>
           </thead>
           <tbody>
-            <tr>
+            <tr class="odd">
               <td class="label">Gathering cut-off</td>
-              <td>[% pfam.ls_sequence_GA %]</td>
-              <td>[% pfam.ls_domain_GA %]</td>
-              <td>[% pfam.fs_sequence_GA %]</td>
-              <td>[% pfam.fs_domain_GA %]</td>
+              <td>[% String.new( pfam.ls_sequence_GA ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.ls_domain_GA ).format( "%5.1f" )%]</td>
+              <td>[% String.new( pfam.fs_sequence_GA ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.fs_domain_GA ).format( "%5.1f" ) %]</td>
             </tr>
-            <tr>
+            <tr class="even">
               <td class="label">Trusted cut-off</td>
-              <td>[% pfam.ls_sequence_TC %]</td>
-              <td>[% pfam.ls_domain_TC %]</td>
-              <td>[% pfam.fs_sequence_TC %]</td>
-              <td>[% pfam.fs_domain_TC %]</td>
+              <td>[% String.new( pfam.ls_sequence_TC ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.ls_domain_TC ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.fs_sequence_TC ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.fs_domain_TC ).format( "%5.1f" ) %]</td>
             </tr>
-            <tr>
+            <tr class="odd">
               <td class="label">Noise cut-off</td>
-              <td>[% pfam.ls_sequence_NC %]</td>
-              <td>[% pfam.ls_domain_NC %]</td>
-              <td>[% pfam.fs_sequence_NC %]</td>
-              <td>[% pfam.fs_domain_NC %]</td>
+              <td>[% String.new( pfam.ls_sequence_NC ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.ls_domain_NC ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.fs_sequence_NC ).format( "%5.1f" ) %]</td>
+              <td>[% String.new( pfam.fs_domain_NC ).format( "%5.1f" ) %]</td>
             </tr>
           </tbody>
         </table>
