@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.5 2006-05-16 09:50:42 jt6 Exp $
+   $Id: tab_layout.css,v 1.6 2006-05-22 16:51:17 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -254,10 +254,6 @@ h4.pdbTitle  {
 
 hr.short {
 	display: none;
-}
-
-#alignmentTree img {
-	border: 1px solid #e7edf3;
 }
 
 /* ======================================== */
