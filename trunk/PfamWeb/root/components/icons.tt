@@ -5,7 +5,7 @@
 #
 # overview icons for the top of the page
 #
-# $Id: icons.tt,v 1.7 2006-04-24 16:37:43 jt6 Exp $
+# $Id: icons.tt,v 1.8 2006-05-22 16:48:02 jt6 Exp $
 %]
 
 [% icons = [
@@ -27,7 +27,7 @@
                item   = "interaction" },
              # that was hard coded !
              { id     = "specIcon",
-               block  = "treeBlock",
+               block  = "speciesBlock",
                count  = summaryData.numSpecies,
                items  = "species"
                item   = "species" },
