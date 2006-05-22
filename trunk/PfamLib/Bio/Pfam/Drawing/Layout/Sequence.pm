@@ -28,6 +28,7 @@ package Bio::Pfam::Drawing::Layout::Sequence;
 use vars qw($AUTOLOAD @ISA @EXPORT);
 use strict;
 use Exporter;
+use Data::Dumper;
 
 =head2 new
 
@@ -44,6 +45,7 @@ sub new {
     $self->{ 'name' } = undef;
     $self->{ 'length' } = undef;
     $self->{ 'info' } = undef;
+    $self->{ 'hidden'} = undef;
 
     return $self;
 }
@@ -112,6 +114,15 @@ sub info{
    }
    return $self->{'info'};
 }
+
+sub hidden{
+   my ($self, $hidden) = @_;
+   if($hidden){
+     $self->{'hidden'} = $hidden;
+   }
+   return $self->{'hidden'};
+}
+
 
 
 =head2 length
@@ -186,6 +197,37 @@ sub convert_seq {
   
 }
 
+sub convertDasSeqAndFeatures {
+    my ($self, $seqSource, $source, $features) = @_;
+    
+    while (my ($source,$seqs) = each %$seqSource){ 
+	foreach my $s (@$seqs){
+	    if($s->{'sequence'}){
+		$self->length(length($s->{'sequence'}));
+	    }elsif($s->{'start'} && $s->{'end'}){
+		$self->length(($s->{'end'} - $s->{'start'}) + 1 );
+	    }else{
+		warn "Can not determine sequence length, this will probably prove fatal\n";
+	    }
+	    $self->name($s->{'sequence_id'});
+	    
+	    foreach my $feature (@$features){
+		if ($feature->{'drawingType'} eq "Region"){
+		    my $region = Bio::Pfam::Drawing::Layout::Region->new();
+		    $self->addRegion($region);
+		    $region->convertDasRegion($feature, $source, $s->{'sequence_id'});
+		}elsif( $feature->{'drawingType'} eq "Markup"){
+		    my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
+		    $self->addMarkup($markup);
+		    $markup->convertDasMarkup($feature, $source, $s->{'sequence_id'});
+		}
+	    }
+	}
+    }
+}
+
+
+
 
 sub sequence2XMLDOM {
     my $self = shift;
@@ -194,6 +236,7 @@ sub sequence2XMLDOM {
     $element->setAttribute("name", $self->name);
     $element->setAttribute("length", $self->length);
     $element->setAttribute("display_data", $self->info);
+    $element->setAttribute("hidden", 1) if($self->hidden);
     foreach my $reg ($self->eachRegion){
 	  if(!$reg->hidden){
 	    my $region_element = $reg->region2XMLDOM($dom);

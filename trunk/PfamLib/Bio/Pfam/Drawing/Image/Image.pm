@@ -617,26 +617,33 @@ sub sort_and_resolve_markups {
 sub _add_map{
   my ($self, $region) = @_;
   
+  print "Trying to add map\n";
   if($region){
-  
-    my $area = qq(<area shape=\"rect\" coords=\");
-    #Okay, I am going to assume that there is an start and end coos. Write the area.
-    $area .= $region->getAttribute("start").", ".$self->y_start.", ".$region->getAttribute("end").", ".($self->y_start+$self->_max_domain_height);
-    #Okay, now add the href
-	if( defined $region->getAttribute("link_URL" ) ) {
+      
+      my $area = qq(<area shape=\"rect\" coords=\");
+      #Okay, I am going to assume that there is an start and end coos. Write the area.
+      $area .= $region->getAttribute("start").", ".$self->y_start.", ".$region->getAttribute("end").", ".($self->y_start+$self->_max_domain_height);
+      #Okay, now add the href
+      if( defined $region->getAttribute("link_URL" ) ) {
 	  $area .= "\" href=\"".$region->getAttribute("link_URL");
-	} else {
-	  $area .= "\" nohref=\"". $region->getAttribute("label")."\"";
-	}
-    #Alternative
-    $area .= "\" title=\"";
-    $area .= $region->getAttribute("label").":" if($region->getAttribute("label"));
-    $area .=  $region->getAttribute("start")/$self->scale_x."-".$region->getAttribute("end")/$self->scale_x."\" />";
+      } else {
+	  $area .= "\" nohref=\"". $region->getAttribute("label");
+      }
+      
+    
+    
 
-	
+      #Alternative
+      $area .= "\"";
+      if(defined $region->getAttribute("unique_id")){
+	  $area .= " id=".$region->getAttribute("unique_id");
+      }
+      $area .= " title=\"";
+      $area .= $region->getAttribute("label").":" if($region->getAttribute("label"));
+      $area .=  $region->getAttribute("start")/$self->scale_x."-".$region->getAttribute("end")/$self->scale_x."\" />";
 
-    $self->image_map($area);
-  }	       
+      $self->image_map($area);
+  }
 }
 
 =head2 _add_regions
@@ -771,7 +778,7 @@ sub create_image {
   $self->_new_image;
 
   #Draw each section, adding any new images to the store images hash
-  $self->_draw_sequence();
+  $self->_draw_sequence() unless ($seq_dom->getAttribute("hidden"));
   $self->_draw_regions($stored_image_ref);
   $self->_draw_top_markup();
   $self->_draw_bottom_markup();
@@ -872,67 +879,67 @@ sub _draw_regions{
     #This will store the size of the left and right images
     my ($left, $straight, $right, $reverse);
     if($region eq "big"){
-      my $shape = $xc->findnodes("pf:bigShape")->shift;
-      #extend the hash to make unique for large images i.e. colour1 could be the same
-      $key .= "~".$colour2{R}."~".$colour2{G}."~".$colour2{B};
-      #Okay, is the domain is very small, we need the smaller domain edges
-      
-      $leftStyle = $shape->getAttribute("leftStyle");
-      $rightStyle = $shape->getAttribute("rightStyle");
-      
-      #The middle bit and if striaght edges forms the edge
-      if(!$$stored_regions_ref{$key}{'straight'}){
-	($$stored_regions_ref{$key}{'straight'}, $$stored_regions_ref{$key}{'reverse'}) = $self->_straight($sizes{$region}, \%colour1, \%colour2);
-      }
-
-      $straight = $$stored_regions_ref{$key}{'straight'};
-
-      #Make sure that we have the reverse
-      if(!$$stored_regions_ref{$key}{'reverse'}){
-	($$stored_regions_ref{$key}{'straight'}, $$stored_regions_ref{$key}{'reverse'}) = $self->_straight($sizes{$region}, \%colour1, \%colour2);
-      }
-
-      $reverse =  $$stored_regions_ref{$key}{'reverse'};
-      
-      if($leftStyle ne "straight"){
-	#jagged or curved gets here
-	if($reg_dom->getAttribute("end")  - $reg_dom->getAttribute("start") <= 26){
-	  #This is a small domain, so we want small versions of the domain
-	  $leftStyle .= "small";
-	  $rightStyle .= "small";
-	}
-	#Okay, if the images are not in the store hash, make them. Note, the
-	#style of the edge is the name of the sub.
-	if(!$$stored_regions_ref{$key}{$leftStyle."left"}){
-	  ($$stored_regions_ref{$key}{$leftStyle."left"}, $$stored_regions_ref{$key}{$leftStyle."right"})  = $self->$leftStyle($reg_dom, \%colour1, \%colour2, $straight, $reverse);
-	}
-	$left = $$stored_regions_ref{$key}{$leftStyle."left"};
-      }elsif( $rightStyle eq "straight") {
-	if(!$$stored_regions_ref{$key}{$leftStyle."left"}){
-	  ($$stored_regions_ref{$key}{$leftStyle."left"}, $$stored_regions_ref{$key}{$leftStyle."right"})  = $self->straight($reg_dom, \%colour1, \%colour2, $reverse);
-	}
-	$left = $$stored_regions_ref{$key}{$leftStyle."left"};
-      }else{
-	$left = 0;
-      }
-
-      if($rightStyle !~ /straight/){
-	#jagged or curved gets here
+	my $shape = $xc->findnodes("pf:bigShape")->shift;
+	#extend the hash to make unique for large images i.e. colour1 could be the same
+	$key .= "~".$colour2{R}."~".$colour2{G}."~".$colour2{B};
+	#Okay, is the domain is very small, we need the smaller domain edges
 	
-	#Okay, if the images are not in the store hash, make them. Note, the
-	#style of the edge is the name of the sub.
-	if(!$$stored_regions_ref{$key}{$rightStyle."right"}){
-	  ($$stored_regions_ref{$key}{$rightStyle."left"}, $$stored_regions_ref{$key}{$rightStyle."right"})  = $self->$rightStyle($reg_dom, \%colour1, \%colour2, $straight, $reverse);
+	$leftStyle = $shape->getAttribute("leftStyle");
+	$rightStyle = $shape->getAttribute("rightStyle");
+	
+	#The middle bit and if striaght edges forms the edge
+	if(!$$stored_regions_ref{$key}{'straight'}){
+	    ($$stored_regions_ref{$key}{'straight'}, $$stored_regions_ref{$key}{'reverse'}) = $self->_straight($sizes{$region}, \%colour1, \%colour2);
 	}
-	$right = $$stored_regions_ref{$key}{$rightStyle."right"};
-      }elsif($rightStyle eq "straight"){
-	if(!$$stored_regions_ref{$key}{$rightStyle."right"}){
-	  ($$stored_regions_ref{$key}{$rightStyle."left"}, $$stored_regions_ref{$key}{$rightStyle."right"})  = $self->straight($reg_dom, \%colour1, \%colour2, $reverse);
+	
+	$straight = $$stored_regions_ref{$key}{'straight'};
+	
+	#Make sure that we have the reverse
+	if(!$$stored_regions_ref{$key}{'reverse'}){
+	    ($$stored_regions_ref{$key}{'straight'}, $$stored_regions_ref{$key}{'reverse'}) = $self->_straight($sizes{$region}, \%colour1, \%colour2);
 	}
-	$right = $$stored_regions_ref{$key}{$rightStyle."right"};
-      }else{
-	$right = 0;
-      }
+	
+	$reverse =  $$stored_regions_ref{$key}{'reverse'};
+	
+	if($leftStyle ne "straight"){
+	    #jagged or curved gets here
+	    if($reg_dom->getAttribute("end")  - $reg_dom->getAttribute("start") <= 26){
+		#This is a small domain, so we want small versions of the domain
+		$leftStyle .= "small";
+		$rightStyle .= "small";
+	    }
+	    #Okay, if the images are not in the store hash, make them. Note, the
+	    #style of the edge is the name of the sub.
+	    if(!$$stored_regions_ref{$key}{$leftStyle."left"}){
+		($$stored_regions_ref{$key}{$leftStyle."left"}, $$stored_regions_ref{$key}{$leftStyle."right"})  = $self->$leftStyle($reg_dom, \%colour1, \%colour2, $straight, $reverse);
+	    }
+	    $left = $$stored_regions_ref{$key}{$leftStyle."left"};
+	}elsif( $rightStyle eq "straight") {
+	    if(!$$stored_regions_ref{$key}{$leftStyle."left"}){
+		($$stored_regions_ref{$key}{$leftStyle."left"}, $$stored_regions_ref{$key}{$leftStyle."right"})  = $self->straight($reg_dom, \%colour1, \%colour2, $reverse);
+	    }
+	    $left = $$stored_regions_ref{$key}{$leftStyle."left"};
+	}else{
+	    $left = 0;
+	}
+
+	if($rightStyle !~ /straight/){
+	    #jagged or curved gets here
+	    
+	    #Okay, if the images are not in the store hash, make them. Note, the
+	    #style of the edge is the name of the sub.
+	    if(!$$stored_regions_ref{$key}{$rightStyle."right"}){
+		($$stored_regions_ref{$key}{$rightStyle."left"}, $$stored_regions_ref{$key}{$rightStyle."right"})  = $self->$rightStyle($reg_dom, \%colour1, \%colour2, $straight, $reverse);
+	    }
+	    $right = $$stored_regions_ref{$key}{$rightStyle."right"};
+	}elsif($rightStyle eq "straight"){
+	    if(!$$stored_regions_ref{$key}{$rightStyle."right"}){
+		($$stored_regions_ref{$key}{$rightStyle."left"}, $$stored_regions_ref{$key}{$rightStyle."right"})  = $self->straight($reg_dom, \%colour1, \%colour2, $reverse);
+	    }
+	    $right = $$stored_regions_ref{$key}{$rightStyle."right"};
+	}else{
+	    $right = 0;
+	}
 	
       
 	
@@ -949,7 +956,7 @@ sub _draw_regions{
 	    }
 	    $right = $left = 0;
 	    $straight = $$stored_regions_ref{$key};
-	
+	    
 	    
 	}else{
 	    #does the hash of stored images contain the smaller images?
@@ -964,9 +971,9 @@ sub _draw_regions{
     }
     $self->_combine_images($reg_dom, $region, $left, $right, $straight, $leftStyle, $rightStyle, \%sizes);
     #Now write the image map;
-    if($reg_dom->getAttribute("link_URL")){
+    #if($reg_dom->getAttribute("link_URL")){
       $self->_add_map($reg_dom);
-    }
+    #}
   }
 }
 
@@ -1341,6 +1348,7 @@ sub print_image {
   }
 
 
+
   
 
   #make temp lib of all with unknown location
@@ -1374,6 +1382,38 @@ sub print_image {
   
 }
 
+sub print_image_test {
+  my $self = shift;
+
+  my $file = $self->image_name.".png";
+  
+  my $pid = $$;
+  my $root = "/home/rob/Work/";
+  my $file_location = "domain_images";
+  if(!-d "$root/$file_location"){
+      mkdir("$root/$file_location") || die "Could not mkdir $root/file_location:[$!]";
+  }
+
+
+  
+  open(OUTFILE, ">$root/$file_location/$file") or warn "Cannot print $root/$file_location/$file:[$!]\n";
+
+  binmode OUTFILE;
+  # Convert the image to PNG and print it on standard output
+  print OUTFILE $self->image->png;
+  close(OUTFILE) or warn "Cannot close $root/$file_location/$file :[$!]";
+  
+  
+  if($self->format ne "png" && $self->format){
+      warn "try to convert from png to different format, this is not implemented!\n";
+       $self->file_location("$file_location/$file");
+      #convert the image
+      #unlink($Bio::Pfam::Web::PfamWWWConfig::tempdir/$file)";
+  }else{
+      $self->file_location("$file_location/$file");
+  }
+
+}
 =head2 _combine_images
 
    Title    : _combine_images
@@ -1636,21 +1676,23 @@ sub sml {
   my($prev_x) = 0;
 
   #This part is doing the transparency
-  my ($start_x) = 1;
-  my $x_trace = $start_x;
-  while ($y_count <= $im_height - 2) {
-    while($x_trace <= $region_length - 2) {
-      $new_im->filledRectangle($x_trace, $y_count, $x_trace , $y_count, $white);
-      $x_trace = $x_trace + 4;
-    }
-    if ($start_x == 1) {
-      $start_x = 3;
-      $x_trace = 3;
-    } else {
-      $x_trace = 1;
-      $start_x = 1;
-    }
-    $y_count++;
+  if(!$region->getAttribute("solid")){
+      my ($start_x) = 1;
+      my $x_trace = $start_x;
+      while ($y_count <= $im_height - 2) {
+	  while($x_trace <= $region_length - 2) {
+	      $new_im->filledRectangle($x_trace, $y_count, $x_trace , $y_count, $white);
+	      $x_trace = $x_trace + 4;
+	  }
+	  if ($start_x == 1) {
+	      $start_x = 3;
+	      $x_trace = 3;
+	  } else {
+	      $x_trace = 1;
+	      $start_x = 1;
+	  }
+	  $y_count++;
+      }
   }
   return $new_im;
 }

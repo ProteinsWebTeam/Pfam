@@ -139,6 +139,25 @@ sub url {
     }
 }
 
+sub solid {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{'solid'} = $value;
+    }else{
+	return $self->{'solid'};
+    }
+}
+
+
+sub uid {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{'uid'} = $value;
+    }else{
+	return $self->{'uid'};
+    }
+}
+
 =head2 colour1
 
     Title   : colour1   
@@ -185,6 +204,14 @@ sub region2XMLDOM{
       $element->setAttribute("link_URL", $self->url);
     }
     
+    if($self->solid){
+	$element->setAttribute("solid", 1);
+    }
+    if($self->uid){
+	$element->setAttribute("unique_id", $self->uid);
+    }
+    
+
     #colour1
     my $c1 = $dom->createElement("colour1");
     $element->appendChild($c1);
@@ -312,6 +339,23 @@ sub convert_reg{
   $self->BioAnnotatedRegion($region);
   $self->start($region->from);
   $self->end($region->to);
+
+}
+
+sub convertDasRegion{
+    my($self, $feature, $source, $seq_id) = @_;
+    $self->start($feature->{'start'});
+    $self->end($feature->{'end'});
+    $self->BioAnnotatedRegion(Bio::Pfam::AnnotatedRegion->new('-SEQ_ID' => $seq_id,
+							      '-FROM' => $feature->{'start'},
+							      '-TO' => $feature->{'end'},
+							      '-TYPE' => $source));
+    $self->label($feature->{'feature_id'});
+    $self->solid(1);
+    $self->colour1(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $feature->{'colour1'}));
+    $self->colour2(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $feature->{'colour2'}));
+    $self->type("smlShape");
+    $self->uid($feature->{'uid'});
 
 }
 
