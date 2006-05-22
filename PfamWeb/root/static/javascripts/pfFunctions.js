@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.2 2006-05-15 11:01:41 jt6 Exp $
+// $Id: pfFunctions.js,v 1.3 2006-05-22 16:51:52 jt6 Exp $
 
 // show the specified tab in the page body
 function show( id ) {
@@ -94,6 +94,9 @@ Event.observe( window, "load", postLoad, false );
 
 // individual blocks will populate this...
 var loadOptions = {};
+loadOptions.dg = {};
+loadOptions.st = {};
+loadOptions.at = {};
 
 // and this will make the ajax calls
 function postLoad() {
