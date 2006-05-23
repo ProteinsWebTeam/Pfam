@@ -16,7 +16,7 @@ sub layout_DAS_sequences_and_features {
   #Okay, the way das works is going to be slightly different.
   #For each source, we want to display the sequence at the top,
   #the draw all features below the sequence.
-
+  
   my $uid = 1;
   foreach my $source (keys %$features){
 	#first get the sequence object.
@@ -28,19 +28,22 @@ sub layout_DAS_sequences_and_features {
 	  $sourceId = "genericDas";
 	}
 	#What we do with das is slightly different.  We display all features (of a type that are accepted)
-	my $config = $self->getSourceConfigurator($sourceId);
 	
-	$config->configureSource($features->{$source});
-	my $featureSetsRef = $self->resolveOverlaps($features->{$source}, \$uid);
-	
-	foreach my $featureSet (@$featureSetsRef){
-	    #print Dumper($featureSet);
-	    my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
-	    $l_seq->hidden(1);
-	    $l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
-	    $self->add_seq($l_seq);
+	if(ref($features->{$source}) eq "ARRAY"){ 
+	    my $config = $self->getSourceConfigurator($sourceId);
+	    
+	    $config->configureSource($features->{$source});
+	    my $featureSetsRef = $self->resolveOverlaps($features->{$source}, \$uid);
+	    
+	    foreach my $featureSet (@$featureSetsRef){
+		#print Dumper($featureSet);
+		my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
+		$l_seq->hidden(1);
+		$l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
+		$self->add_seq($l_seq);
+	    }
 	}
-  }
+    }
 }
 #$self->_set_graphics_styles;
 
