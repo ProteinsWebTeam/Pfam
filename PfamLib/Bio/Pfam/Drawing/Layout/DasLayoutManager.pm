@@ -11,27 +11,26 @@ use Data::Dumper;
 
 
 sub layout_DAS_sequences_and_features {
-    my ($self, $sequence, $features) = @_;
+  my ($self, $sequence, $features) = @_;
     
-    #Okay, the way das works is going to be slightly different.
-    #For each source, we want to display the sequence at the top,
-    #the draw all features below the sequence.
+  #Okay, the way das works is going to be slightly different.
+  #For each source, we want to display the sequence at the top,
+  #the draw all features below the sequence.
 
-    my $uid = 1;
-    foreach my $source (keys %$features){
+  my $uid = 1;
+  foreach my $source (keys %$features){
 	#first get the sequence object.
 	my $sourceId;
 	if($source =~ /(pfam|smart|superfamily|cath_sptr|dssp)/i){
 	    my $id = lc($1);
 	    $sourceId = $id."Das";
 	}else{
-	    $sourceId = "genericDas";
+	  $sourceId = "genericDas";
 	}
 	#What we do with das is slightly different.  We display all features (of a type that are accepted)
 	my $config = $self->getSourceConfigurator($sourceId);
 	
 	$config->configureSource($features->{$source});
-	#
 	my $featureSetsRef = $self->resolveOverlaps($features->{$source}, \$uid);
 	
 	foreach my $featureSet (@$featureSetsRef){
@@ -41,9 +40,9 @@ sub layout_DAS_sequences_and_features {
 	    $l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
 	    $self->add_seq($l_seq);
 	}
-    }
-    #$self->_set_graphics_styles;
+  }
 }
+#$self->_set_graphics_styles;
 
 
 
