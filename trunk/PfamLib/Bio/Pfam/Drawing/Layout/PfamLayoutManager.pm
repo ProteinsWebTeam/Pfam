@@ -13,9 +13,7 @@ sub _default_region_order {
 
 sub scale_x {
   my ($self, $scale_x) = @_;
-  print STDERR "In scale_x\n";
   if ($scale_x){
-      print STDERR "Setting scale $scale_x\n";
       $self->{'scale_x'} = $scale_x;
   }
   if(!$self->{'scale_x'}){

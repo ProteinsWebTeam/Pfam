@@ -617,7 +617,7 @@ sub sort_and_resolve_markups {
 sub _add_map{
   my ($self, $region) = @_;
   
-  print "Trying to add map\n";
+
   if($region){
       
       my $area = qq(<area shape=\"rect\" coords=\");

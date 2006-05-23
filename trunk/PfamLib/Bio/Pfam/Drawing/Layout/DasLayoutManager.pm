@@ -29,11 +29,11 @@ sub layout_DAS_sequences_and_features {
 	}
 	#What we do with das is slightly different.  We display all features (of a type that are accepted)
 	my $config = $self->getSourceConfigurator($sourceId);
-	#print Dumper($features);
+	
 	$config->configureSource($features->{$source});
 	#
 	my $featureSetsRef = $self->resolveOverlaps($features->{$source}, \$uid);
-	print "Got ".scalar(@$featureSetsRef)."\n";
+	
 	foreach my $featureSet (@$featureSetsRef){
 	    #print Dumper($featureSet);
 	    my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
@@ -50,9 +50,9 @@ sub layout_DAS_sequences_and_features {
 
 sub scale_x {
   my ($self, $scale_x) = @_;
-  print STDERR "In scale_x\n";
+  
   if ($scale_x){
-      print STDERR "Setting scale $scale_x\n";
+      
       $self->{'scale_x'} = $scale_x;
   }
   if(!$self->{'scale_x'}){
@@ -114,20 +114,20 @@ sub resolveOverlaps{
 	    my $overlapWithSet = 0;
 	    foreach my $feature (@{$featureSets->[$j]}){
 		next SET if($features->[$i]->{'drawingType'} ne $feature->{'drawingType'});
-		print "$features->[$i]->{'start'}, $features->[$i]->{'end'}, $feature->{'start'}, $feature->{'end'}\n";
+		
 		if(($features->[$i]->{'start'} <= $feature->{'end'} &&  
 		    $features->[$i]->{'start'} >= $feature->{'start'}) 
 		   || ($features->[$i]->{'end'} <= $feature->{'end'} &&  
 		       $features->[$i]->{'end'} >= $feature->{'start'})){
 		    $overlapWithSet = 1;
-		    print "Failed\n";
+		    
 		    last;
 		}
 	    }
 	   
 	    if(!$overlapWithSet){
 		push(@{$featureSets->[$j]}, $features->[$i]);
-		print "Adding to existing set\n";
+		
 		$assignedToSet = 1;
 		next FEATURE;;
 	    }
