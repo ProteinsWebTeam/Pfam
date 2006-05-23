@@ -25,7 +25,6 @@ sub _setDrawingType{
     my($self, $feature) = @_;
     #Note, feature is an array ref....
     for(my $i = 0; $i < scalar(@$feature); $i++){
-	print STDERR "Start : |$feature|".$feature->[$i]->{'end'}."\n";
 	if($feature->[$i]->{'end'} && $feature->[$i]->{'start'}){
 	    if($feature->[$i]->{'end'} == $feature->[$i]->{'start'}){
 		$feature->[$i]->{'drawingType'} = "Markup";
