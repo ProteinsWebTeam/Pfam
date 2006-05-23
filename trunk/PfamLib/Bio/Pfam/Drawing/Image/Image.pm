@@ -1439,8 +1439,17 @@ sub _combine_images {
 	for ($start =  $region->getAttribute("start"); $start <=($region->getAttribute("end")-100); $start +=100 ){
 	    $self->image->copy($straight, $start, $self->y_start + 7*$self->scale_y, 0, 0, 100, $$sizes{$style});
 	}
-	
+
 	$self->image->copy($straight, $start, $self->y_start + 7*$self->scale_y, 0, 0, $region->getAttribute("end")-$start+1, $$sizes{$style});
+	if($region->getAttribute("solid")){
+	    my $start_ori = $region->getAttribute("start");
+	    my $end = $region->getAttribute("end");
+	    my $red    = $self->image->colorAllocate(255,  0,  0);
+	    $self->image->rectangle($start_ori,($self->y_start + 7)*$self->scale_y, $end, (($self->y_start + 6)*$self->scale_y)+$$sizes{$style}, $red);
+	}
+
+
+	
 	
     } elsif ($style =~ /med/) {
     #do something
