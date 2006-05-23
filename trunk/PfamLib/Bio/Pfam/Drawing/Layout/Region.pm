@@ -350,7 +350,7 @@ sub convertDasRegion{
 							      '-FROM' => $feature->{'start'},
 							      '-TO' => $feature->{'end'},
 							      '-TYPE' => $source));
-    $self->label($feature->{'feature_id'});
+    $self->label($feature->{'feature_label'});
     $self->solid(1);
     $self->colour1(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $feature->{'colour1'}));
     $self->colour2(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $feature->{'colour2'}));
