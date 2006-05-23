@@ -198,29 +198,28 @@ sub convert_seq {
 }
 
 sub convertDasSeqAndFeatures {
-    my ($self, $seqSource, $source, $features) = @_;
+    my ($self, $seqSource, $sourceUrl, $features) = @_;
     
     while (my ($source,$seqs) = each %$seqSource){ 
-	foreach my $s (@$seqs){
-	    if($s->{'sequence'}){
-		$self->length(length($s->{'sequence'}));
-	    }elsif($s->{'start'} && $s->{'end'}){
-		$self->length(($s->{'end'} - $s->{'start'}) + 1 );
-	    }else{
-		warn "Can not determine sequence length, this will probably prove fatal\n";
-	    }
-	    $self->name($s->{'sequence_id'});
-	    
-	    foreach my $feature (@$features){
-		if ($feature->{'drawingType'} eq "Region"){
-		    my $region = Bio::Pfam::Drawing::Layout::Region->new();
-		    $self->addRegion($region);
-		    $region->convertDasRegion($feature, $source, $s->{'sequence_id'});
-		}elsif( $feature->{'drawingType'} eq "Markup"){
-		    my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
-		    $self->addMarkup($markup);
-		    $markup->convertDasMarkup($feature, $source, $s->{'sequence_id'});
-		}
+	my $s = $seqs->[0];
+	if($s->{'sequence'}){
+	    $self->length(length($s->{'sequence'}));
+	}elsif($s->{'start'} && $s->{'end'}){
+	    $self->length(($s->{'end'} - $s->{'start'}) + 1 );
+	}else{
+	    warn "Can not determine sequence length, this will probably prove fatal\n";
+	}
+	$self->name($s->{'sequence_id'});
+	$self->info($sourceUrl);
+	foreach my $feature (@$features){
+	    if ($feature->{'drawingType'} eq "Region"){
+		my $region = Bio::Pfam::Drawing::Layout::Region->new();
+		$self->addRegion($region);
+		$region->convertDasRegion($feature, $source, $s->{'sequence_id'});
+	    }elsif( $feature->{'drawingType'} eq "Markup"){
+		my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
+		$self->addMarkup($markup);
+		$markup->convertDasMarkup($feature, $source, $s->{'sequence_id'});
 	    }
 	}
     }
