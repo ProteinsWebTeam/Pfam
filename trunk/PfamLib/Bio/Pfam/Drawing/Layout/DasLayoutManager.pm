@@ -38,7 +38,7 @@ sub layout_DAS_sequences_and_features {
 	    #print Dumper($featureSet);
 	    my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
 	    $l_seq->hidden(1);
-	    $l_seq->convertDasSeqAndFeatures($sequence, $sourceId, $featureSet );
+	    $l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
 	    $self->add_seq($l_seq);
 	}
     }

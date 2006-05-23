@@ -276,7 +276,6 @@ sub layout_to_XMLDOM {
   #$dom->createXMLDecl();
   my $dom = XML::LibXML->createDocument(); #This should generate an empty document.....
   my $image = $dom->createElement( "image");
-  print STDERR "Generated empty document\n";
 
 #  $image->setAttribute("xmlns:pf", "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd");
 
