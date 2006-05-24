@@ -18,7 +18,7 @@
 #   defaultServer BOOLEAN      DEFAULT 0
 # );
 #
-# $Id: update_das_sources.pl,v 1.1 2006-05-15 12:09:22 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.2 2006-05-24 15:58:02 jt6 Exp $
 
 use warnings;
 use strict;
@@ -67,7 +67,7 @@ my $dbh = DBI->connect( $DB_DSN,
 						  AutoCommit => 0 } );
 
 # prepare the queries
-my $insertSth = $dbh->prepare( "INSERT INTO das_sources ( server_id, name, url, system, helperurl, defaultServer ) VALUES( ?, ?, ?, ?, ?, ? )" );
+my $insertSth = $dbh->prepare( "INSERT INTO das_sources ( server_id, name, url, system, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ? )" );
 
 # get the full list of sources
 my $sourcesList = $das->registry_sources( { category => [ "Protein Sequence", "Protein Structure" ] } );
@@ -83,7 +83,7 @@ foreach my $source ( @$sourcesList ) {
   my $since = Delta_Days( $year2, $month2, $day2, $year1, $month1, $day1 );
 
   print "(ww) dropping \"$source->{nickname}\"; down for $since days\n" and next
-	if $since > 1;
+	if $since > 2;
 
   my $featureCount = 0;
   my $sysCount = 0;
@@ -91,6 +91,11 @@ foreach my $source ( @$sourcesList ) {
   my $entry = {};
   $entry->{name}      = $source->{nickname};
   $entry->{url}       = $source->{url};
+  # trim any trailing slash off the URL
+  {
+	$/ = "/";
+	chomp $entry->{url};
+  };
   $entry->{id}        = $source->{id};
   $entry->{helperurl} = $source->{helperurl};
 
