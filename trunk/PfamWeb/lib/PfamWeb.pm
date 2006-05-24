@@ -6,7 +6,7 @@
 # application. Configuration is all done through the pfamweb.yml
 # config file and there's (currently) not much else in here.
 #
-# $Id: PfamWeb.pm,v 1.6 2006-05-15 12:11:36 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.7 2006-05-24 16:13:26 jt6 Exp $
 
 package PfamWeb;
 
@@ -21,15 +21,15 @@ use warnings;
 # directory
 #
 use Catalyst qw/ -Debug
-				 ConfigLoader
+                 ConfigLoader
                  Prototype
-				 Cache::FastMmap
-				 Static::Simple /;
+                 Cache::FastMmap
+                 Static::Simple /;
 
 # add the following to enable session handling:
-#				 Session
-#				 Session::Store::FastMmap
-#				 Session::State::Cookie
+#                Session
+#                Session::Store::FastMmap
+#                Session::State::Cookie
 
 use PfamConfig qw( pfamlib );
 
