@@ -5,8 +5,18 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.1 2006-04-25 16:27:37 jt6 Exp $
+# $Id: summary.tt,v 1.2 2006-05-24 16:05:11 jt6 Exp $
 %]
+
+[%# on the assumption that the family page will always contain at least this
+    block, we need to add the snippet of javascript here that will trigger
+    the post-loading of the various other block contents. The actual function
+    that does the post loading (familyPostLoad) is in pfFunctions.js
+%]
+
+<script type="text/javascript">
+  Event.observe( window, "load", familyPostLoad, false );
+</script>
 
 <!-- start summary block -->
 
