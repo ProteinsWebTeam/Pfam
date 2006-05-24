@@ -4,14 +4,13 @@
 #
 # Controller to build the main protein page.
 #
-# $Id: Protein.pm,v 1.2 2006-05-16 09:49:26 jt6 Exp $
+# $Id: Protein.pm,v 1.3 2006-05-24 15:59:48 jt6 Exp $
 
 package PfamWeb::Controller::Protein;
 
 use strict;
 use warnings;
 
-use Bio::DasLite;
 use Data::Dumper;
 
 use base "Catalyst::Controller";
