@@ -5,8 +5,14 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.1 2006-05-15 12:05:46 jt6 Exp $
+# $Id: summary.tt,v 1.2 2006-05-24 16:05:49 jt6 Exp $
 %]
+
+[%# see family summary.tt for the explanation for this snippet... %]
+
+<script type="text/javascript">
+  Event.observe( window, "load", proteinPostLoad, false );
+</script>
 
 <!-- start protein summary block -->
 
