@@ -4,14 +4,14 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.3 2006-05-22 16:47:22 jt6 Exp $
+# $Id: Graphics.pm,v 1.4 2006-05-24 16:02:19 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
 use strict;
 use warnings;
 
-use Data::Dumper;
+use Time::HiRes qw( gettimeofday );
 
 use Bio::Pfam::Drawing::Layout::DasLayoutManager;
 
@@ -36,15 +36,8 @@ sub updateSources : Path( "/updatesources" ) {
   # get a sequence first...
   my @dsnList = ( "http://das.sanger.ac.uk/das/pfam" );
 
-#  my $dl = PfamWeb::Model::Das_sources->getDasLite;
-
-  my $dl = Bio::DasLite->new( { dsn     => PfamWeb->config->{dasDsn},
-								timeout => PfamWeb->config->{dasTo},
-								proxy   => PfamWeb->config->{dasProxy}
-							  } );
-
+  my $dl = PfamWeb::Model::Das_sources->getDasLite;
   $dl->dsn( \@dsnList );
-
   my $sequence = $dl->sequence( $seqAcc );
 
   # if we don't get a sequence from the Pfam source, all hope is lost...
@@ -56,7 +49,14 @@ sub updateSources : Path( "/updatesources" ) {
   # first, reset the sources list
   @dsnList = ();
 
-  # get the sources from the parameter list
+  # get the default servers from the database table
+  my @defaultServers = PfamWeb::Model::Das_sources->search( default_server => 1 );
+  $c->log->debug( "found " . scalar @defaultServers . " default servers" );
+  foreach ( @defaultServers ) {
+	push @dsnList, $_->url;
+  }
+
+  # get the user-specified sources from the parameter list
   foreach ( sort keys %{$c->req->parameters} ) {
 
 	# we want only the server IDs
@@ -64,25 +64,51 @@ sub updateSources : Path( "/updatesources" ) {
 	$c->log->debug( "Protein::Graphics::updateSources: param: |$_|"
 					. $c->req->param($_) . "|" );
 	my $ds = PfamWeb::Model::Das_sources->find( server_id => $_ );
-	push @dsnList, $ds->url;
+	push @dsnList, $ds->url if defined $ds;
   }
 
+  # give the DasLite object our list of servers and retrieve the
+  # features for them
   $dl->dsn( \@dsnList );
-  #my $result = $dl->features( $seqAcc );
-
-   #$c->log->debug( "Protein::Graphics::updateSources: result for |"
- 	#			  . $seqAcc . "|: " . Dumper( $result ) );
-
   my $features = $dl->features( $seqAcc );
 
+  # hand the features to the layout manager and get it to draw the graphics
   my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
   $layout->layout_DAS_sequences_and_features( $sequence, $features );
 
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $imageset->create_images( $layout->layout_to_XMLDOM );
 
-  $c->stash->{images} = $imageset;
+  # process the generated images and convert the URL that comes back
+  # from the layout manager into a simple label, via our database
+  # table of server information
+  my $i = 0;
+  my( %maps, $handle, $server, $serverName );
+  foreach my $image ( $imageset->each_image ) {
 
+	( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
+	$server = PfamWeb::Model::Das_sources->find( url => $handle );
+
+	# generate a high-resolution fingerprint for the image
+	my $stamp = gettimeofday * 10000;
+	$image->{image_name} .= ".$stamp." . $i++;
+	$image->print_image;
+	
+	$serverName = ( defined $server ) ? $server->name : "unknown";
+	push @{ $maps{$serverName} }, { image => $image->file_location,
+									map   => $image->image_map,
+									server=> $serverName,
+									info  => $image->image_info };
+  }
+
+  # sort the maps according to server name
+  my @maps;
+  foreach ( sort keys %maps ) {
+	push @maps, @{ $maps{$_} };
+  }
+
+  # stash the maps and we're done
+  $c->stash->{maps} = \@maps;
 }
 
 
