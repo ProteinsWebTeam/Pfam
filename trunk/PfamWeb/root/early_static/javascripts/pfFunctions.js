@@ -4,9 +4,11 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.3 2006-05-22 16:51:52 jt6 Exp $
+// $Id: pfFunctions.js,v 1.4 2006-05-24 16:09:19 jt6 Exp $
 
+//------------------------------------------------------------
 // show the specified tab in the page body
+
 function show( id ) {
 
   // show/hide the blocks themselves
@@ -28,23 +30,25 @@ function show( id ) {
 						  } );
 }
 
-
+//------------------------------------------------------------
 // show/hide the DAS sources selection panel
+
 showSources = true;
 function revealDASSources() {
   if( showSources ) {
-	Effect.BlindDown('checkboxes');
+	Effect.BlindDown( "checkboxes", { duration: 0.3 } );
 	showSources = false;
 	Element.update( $("revealControl"), "Hide" );
   } else {
-	Effect.BlindUp('checkboxes');
+	Effect.BlindUp("checkboxes", { duration: 0.5 } );
 	showSources = true;
 	Element.update( $("revealControl"), "Show" );
   }
 }
 
-
+//------------------------------------------------------------
 // callbacks for the domain graphics generation call
+
 function dgSuccess( oResponse ) {
   Element.update( $("dgph").parentNode, oResponse.responseText );
 }
@@ -52,8 +56,9 @@ function dgFailure() {
   Element.update( $("dgph"), "Domain graphics loading failed." );
 }
 
-
+//------------------------------------------------------------
 // callbacks for the species tree generation call
+
 function stSuccess( oResponse ) {
   var tree = new YAHOO.widget.TreeView("treeDiv");
   var root = tree.getRoot();
@@ -64,8 +69,9 @@ function stFailure() {
   Element.update( $("stph"), "Tree loading failed." );
 }
 
-
+//------------------------------------------------------------
 // callbacks for the alignment tree generation call
+
 function atSuccess( oResponse ) {
   Element.update( $("alignmentTree"), oResponse.responseText );
 }
@@ -84,22 +90,29 @@ function atFailure() {
   Element.update( $("atph"), "Alignment tree loading failed." );
 }
 
+//------------------------------------------------------------
+// callbacks for the alignment/DAS graphics in the protein section
 
-// re-load the alignment tree
-//function loadAlignmentTree( 
+function pgSuccess( oResponse ) {
+  Element.update( $("graphicsHolder"), oResponse.responseText );
+}
+function pgFailure() {
+  Element.update( $("pgph"), "Alignment loading failed." );
+}
 
+//------------------------------------------------------------
+// code snippets in individual blocks will populate this object
 
-// set-up to defer loading of the heavier components of the page
-Event.observe( window, "load", postLoad, false );
-
-// individual blocks will populate this...
 var loadOptions = {};
-loadOptions.dg = {};
-loadOptions.st = {};
-loadOptions.at = {};
+loadOptions.dg = {}; // domain graphics
+loadOptions.st = {}; // species tree
+loadOptions.at = {}; // alignment tree
+loadOptions.pg = {}; // protein graphics
 
-// and this will make the ajax calls
-function postLoad() {
+//------------------------------------------------------------
+// this will make the ajax calls for the family page components
+
+function familyPostLoad() {
   new Ajax.Request( loadOptions.dg.uri,
 					{ method:     "get", 
 					  parameters: loadOptions.dg.params,
@@ -118,4 +131,16 @@ function postLoad() {
 					  onComplete: atSuccess,
 					  onFailure:  atFailure
 					} );
+}
+
+//------------------------------------------------------------
+// load ajax components for the protein page
+
+function proteinPostLoad() {
+   new Ajax.Request( loadOptions.pg.uri,
+ 					{ method: "get",
+ 						parameters: loadOptions.pg.params,
+ 						onComplete: pgSuccess,
+ 						onFailure:  pgFailure
+ 					} );
 }
