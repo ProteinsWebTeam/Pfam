@@ -1444,8 +1444,8 @@ sub _combine_images {
 	if($region->getAttribute("solid")){
 	    my $start_ori = $region->getAttribute("start");
 	    my $end = $region->getAttribute("end");
-	    my $red    = $self->image->colorAllocate(255,  0,  0);
-	    $self->image->rectangle($start_ori,($self->y_start + 7)*$self->scale_y, $end, (($self->y_start + 6)*$self->scale_y)+$$sizes{$style}, $red);
+	    my $grey    = $self->image->colorAllocate(153, 153,  153);
+	    $self->image->rectangle($start_ori,($self->y_start + 7)*$self->scale_y, $end, (($self->y_start + 6)*$self->scale_y)+$$sizes{$style}, $grey);
 	}
 
 
