@@ -4,17 +4,18 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.4 2006-05-24 16:02:19 jt6 Exp $
+# $Id: Graphics.pm,v 1.5 2006-05-25 15:37:33 rdf Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
 use strict;
 use warnings;
-
+use Data::Dumper;
+use Storable qw(thaw);
 use Time::HiRes qw( gettimeofday );
 
 use Bio::Pfam::Drawing::Layout::DasLayoutManager;
-
+use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 # extend the Protein class. This way we should get hold of the pfamseq
 # data by default, via the "begin" method on Protein
 
@@ -42,6 +43,30 @@ sub updateSources : Path( "/updatesources" ) {
 
   # if we don't get a sequence from the Pfam source, all hope is lost...
   return unless $sequence;
+
+  my @seqs;
+  my $seqStorable = $c->stash->{pfamseq}->annseq;
+  #$c->log->debug("raw storable = $seqStorable");
+  #my $seqThaw = thaw($seqStorable->annseq_storable);
+  #$c->log->debug("Storable|".Dumper($seqThaw)."|");
+  push(@seqs, thaw($seqStorable->annseq_storable) );
+  my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+  $layoutPfam->scale_x(1);
+  my %regionsAndFeatures = ( "PfamA"      => 1,
+			     "PfamB"      => 1,
+                             "noFeatures" => 1 );
+  $layoutPfam->layout_sequences_with_regions_and_features(\@seqs, \%regionsAndFeatures);
+
+  my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  $pfamImageset->create_images($layoutPfam->layout_to_XMLDOM);
+  my( %maps, $handle, $server, $serverName );
+  foreach my $image ( $pfamImageset->each_image ) {
+      $image->print_image;
+      push(@{$maps{"pfam"} }, { image => $image->file_location,
+				map   => $image->image_map,
+				server=> "Pfam",
+				info  => $image->image_info }); 
+  }
 
   # if we do get a sequence, we can now add the user-specified sources
   # and call those registries to get features.
@@ -83,7 +108,7 @@ sub updateSources : Path( "/updatesources" ) {
   # from the layout manager into a simple label, via our database
   # table of server information
   my $i = 0;
-  my( %maps, $handle, $server, $serverName );
+  
   foreach my $image ( $imageset->each_image ) {
 
 	( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
