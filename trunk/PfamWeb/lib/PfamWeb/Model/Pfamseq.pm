@@ -69,7 +69,7 @@ __PACKAGE__->has_one("arch_eg", => "PfamWeb::Model::Architecture",
 
 #pfam_annseq
 __PACKAGE__->has_one("annseq" => "PfamWeb::Model::Pfam_annseq",
-		     {"foreign.type_example" => "self.auto_pfamseq"},
+		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 		     {proxy => [qw/annseq_storable/]});
 #Other
 #msd_data
@@ -95,4 +95,7 @@ __PACKAGE__->has_one("ncbi", => "PfamWeb::Model::Pfamseq_ncbi",
 __PACKAGE__->has_one("arch" =>  "PfamWeb::Model::Pfamseq_architecture",
 		     {"foreign.type_example" => "self.auto_pfamseq"},
 		     { proxy => [qw/architecture/]});
-
+#Storable
+#__PACKAGE__->has_one("pfamseqStorable" =>  "PfamWeb::Model::Pfam_annseq",
+#		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
+#		     { proxy => [qw/annseq_storable/]});
