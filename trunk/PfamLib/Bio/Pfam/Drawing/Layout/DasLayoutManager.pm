@@ -21,12 +21,16 @@ sub layout_DAS_sequences_and_features {
   foreach my $source (keys %$features){
 	#first get the sequence object.
 	my $sourceId;
-	if($source =~ /(pfam|smart|superfamily|cath_sptr|dssp)/i){
+	print STDERR "\n\n\n***** $source, ";
+
+	if($source =~ /(smart|superfamily|cath_sptr|dssp|das\/pfam)/i){
 	    my $id = lc($1);
+	    $id =~ s/_|\///g;
 	    $sourceId = $id."Das";
 	}else{
-	  $sourceId = "genericDas";
+	  $sourceId = "genericDasSource";
 	}
+	print STDERR "$sourceId *****\n\n\n\n";
 	#What we do with das is slightly different.  We display all features (of a type that are accepted)
 	
 	if(ref($features->{$source}) eq "ARRAY"){ 
