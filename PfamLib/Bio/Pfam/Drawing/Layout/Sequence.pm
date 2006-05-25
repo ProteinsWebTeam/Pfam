@@ -203,7 +203,7 @@ sub convertDasSeqAndFeatures {
     while (my ($source,$seqs) = each %$seqSource){ 
 	my $s = $seqs->[0];
 	if($s->{'sequence'}){
-	    $self->length(length($s->{'sequence'}));
+	    $self->length(CORE::length($s->{'sequence'}));
 	}elsif($s->{'start'} && $s->{'end'}){
 	    $self->length(($s->{'end'} - $s->{'start'}) + 1 );
 	}else{
@@ -217,9 +217,9 @@ sub convertDasSeqAndFeatures {
 		$self->addRegion($region);
 		$region->convertDasRegion($feature, $source, $s->{'sequence_id'});
 	    }elsif( $feature->{'drawingType'} eq "Markup"){
-		my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
-		$self->addMarkup($markup);
-		$markup->convertDasMarkup($feature, $source, $s->{'sequence_id'});
+		#my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
+		#$self->addMarkup($markup);
+		#$markup->convertDasMarkup($feature, $source, $s->{'sequence_id'});
 	    }
 	}
     }
