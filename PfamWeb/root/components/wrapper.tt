@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.8 2006-05-15 12:08:07 jt6 Exp $
+# $Id: wrapper.tt,v 1.9 2006-05-26 15:44:44 jt6 Exp $
 -%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -74,22 +74,28 @@
     <!-- YAHOO modules -->
 
     <!-- Namespace source file -->
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/YAHOO.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/YAHOO.js" ) %]"></script>
 
     <!-- Dependency source files -->
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/dom.js" ) %]" ></script>
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/event.js" ) %]" ></script>
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/dom.js" ) %]" ></script>
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/event.js" ) %]" ></script>
 
     <!-- TreeView widget and accompanying stylesheet -->
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/treeview.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/treeview.js" ) %]"></script>
     <link rel="stylesheet" type="text/css" href="[% c.uri_for( "/static/css/tree.css" ) %]" />
 
     <!-- ====================================================================== -->
     <!-- scriptaculous and prototype -->
 
     <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/prototype.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/scriptaculous.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/effects.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/scriptaculous/effects.js" ) %]"></script>
+
+    <!-- ====================================================================== -->
+	<!-- tooltip library -->
+
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/domTT/domLib.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/domTT/domTT.js" ) %]"></script>
 
     <!-- ====================================================================== -->
     <!-- local javascript -->
