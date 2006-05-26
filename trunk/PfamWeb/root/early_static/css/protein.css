@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: protein.css,v 1.2 2006-05-24 16:11:58 jt6 Exp $
+   $Id: protein.css,v 1.3 2006-05-26 15:44:56 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -88,7 +88,7 @@ div.source span.checkboxLabel {
 div.source input {
 	float: left;
 }
-
+/* ---------------------------------------- */
 /* DAS features */
 
 #checkboxes {
@@ -115,4 +115,33 @@ img.featuresImage {
 
 #featuresMap br {
 	clear: left;
+}
+
+#tracks {
+  border: none;
+}
+
+#highlight {
+  /* need this to avoid IE making the box way bigger than specified... */
+  font-size: 1px; 
+  background: #99F;
+  border: 1px solid #66C;
+  display: none;
+  position: absolute;
+}
+
+#cursor {
+  font-size: 1px; 
+  background: #CCC;
+  display: none;
+  width: 1px;
+  height: 10px;
+  position: absolute;
+}
+
+#status {
+  padding: 2px;
+  border: 1px solid #CCC;
+  border-top: none;
+  background: #EEE;
 }

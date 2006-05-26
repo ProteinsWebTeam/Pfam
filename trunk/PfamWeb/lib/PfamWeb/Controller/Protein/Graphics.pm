@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.5 2006-05-25 15:37:33 rdf Exp $
+# $Id: Graphics.pm,v 1.6 2006-05-26 15:44:37 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -75,10 +75,12 @@ sub updateSources : Path( "/updatesources" ) {
   @dsnList = ();
 
   # get the default servers from the database table
-  my @defaultServers = PfamWeb::Model::Das_sources->search( default_server => 1 );
-  $c->log->debug( "found " . scalar @defaultServers . " default servers" );
-  foreach ( @defaultServers ) {
-	push @dsnList, $_->url;
+  unless( $c->req->param( "reload" ) ) {
+	my @defaultServers = PfamWeb::Model::Das_sources->search( default_server => 1 );
+	$c->log->debug( "found " . scalar @defaultServers . " default servers" );
+	foreach ( @defaultServers ) {
+	  push @dsnList, $_->url;
+	}
   }
 
   # get the user-specified sources from the parameter list

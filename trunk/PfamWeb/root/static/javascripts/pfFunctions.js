@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.4 2006-05-24 16:09:19 jt6 Exp $
+// $Id: pfFunctions.js,v 1.5 2006-05-26 15:44:57 jt6 Exp $
 
 //------------------------------------------------------------
 // show the specified tab in the page body
@@ -143,4 +143,117 @@ function proteinPostLoad() {
  						onComplete: pgSuccess,
  						onFailure:  pgFailure
  					} );
+}
+
+//------------------------------------------------------------
+// these two functions from http://www.quirksmode.org/
+
+function findPosX(obj) {
+	var curleft = 0;
+	if (obj.offsetParent) {
+		while (obj.offsetParent) {
+			curleft += obj.offsetLeft
+			obj = obj.offsetParent;
+		}
+	} else if (obj.x) {
+		curleft += obj.x;
+  }
+	return curleft;
+}
+
+function findPosY(obj) {
+	var curtop = 0;
+	if (obj.offsetParent) {
+		while (obj.offsetParent) {
+			curtop += obj.offsetTop
+			obj = obj.offsetParent;
+		}
+	} else if (obj.y) {
+		curtop += obj.y;
+  }
+	return curtop;
+}
+
+//------------------------------------------------------------
+// log messages to the FireBug console
+
+function printfire() {
+  if( document.createEvent ) {
+	printfire.args = arguments;
+	var ev = document.createEvent( "Events" );
+	ev.initEvent( "printfire", false, true );
+	dispatchEvent( ev );
+  }
+}
+
+//------------------------------------------------------------
+// highlight an "area" in an image map by overlaying a coloured div
+
+function highlight( e ) {
+  var target;
+  if( e.target ) {
+    target = e.target;
+  } else { 
+    target = e.srcElement;
+  }
+  // work around the Safari bug that causes a text node to be the target
+  if( target.nodeType == 3 ) target = target.parentNode;
+
+  var coords = target.coords.split(",");
+  var hs = $("highlight").style;
+
+  hs.width = coords[2] - coords[0];
+  hs.height = coords[3] - coords[1];
+
+  var mapX = findPosX( $("featuresMap") );
+  var mapY = findPosY( $("featuresMap") );	
+
+  hs.left = Number( coords[0] ) + Number( mapX );
+  hs.top  = Number( coords[1] ) + Number( mapY );
+
+  printfire( "showing tip: " + target.id + "Tip" );
+  domTT_activate( $("highlight"), e, "predefined", target.id + "Tip" );
+
+  $("highlight").style.display = "block";
+}
+
+// and hide the div on mouseout
+function unhighlight( e ) {
+  domTT_mouseout( $("highlight"), e );
+  $("highlight").style.display = "none";
+}
+
+//------------------------------------------------------------
+// move a thin line across the image maps, by way of a cursor
+
+function moveCursor( e ) {
+  var cObj = $("cursor");
+  var fObj = $("featuresMap");
+  // set the cursor height to the height of the map
+  cObj.style.height = Element.getHeight( fObj ) - 1 + "px";
+
+  // get the positions of the various blocks
+  var co = Position.cumulativeOffset( fObj );
+  var px = Event.pointerX( e );
+  var ol = fObj.offsetLeft;
+
+  var cx = px - co[0] + ol - 1;
+
+  var images = $A( $("featuresMap").getElementsByTagName("img") );
+
+  var im = images[0];
+  var minX = im.offsetLeft;
+  var maxX = im.offsetLeft + Element.getDimensions( im ).width;
+
+  x = cx;
+  if( x < minX ) x = minX;
+  if( x > maxX ) x = maxX;
+
+  cObj.style.left = x + "px";
+
+  var r = x - im.offsetLeft;
+  // update the status display
+  $("status").innerHTML = "residue: " + r;
+
+  cObj.style.display = "block";
 }
