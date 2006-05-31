@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.5 2006-05-26 15:44:57 jt6 Exp $
+// $Id: pfFunctions.js,v 1.6 2006-05-31 16:50:53 jt6 Exp $
 
 //------------------------------------------------------------
 // show the specified tab in the page body
@@ -95,6 +95,7 @@ function atFailure() {
 
 function pgSuccess( oResponse ) {
   Element.update( $("graphicsHolder"), oResponse.responseText );
+  installGizmos();
 }
 function pgFailure() {
   Element.update( $("pgph"), "Alignment loading failed." );
@@ -149,41 +150,29 @@ function proteinPostLoad() {
 // these two functions from http://www.quirksmode.org/
 
 function findPosX(obj) {
-	var curleft = 0;
-	if (obj.offsetParent) {
-		while (obj.offsetParent) {
-			curleft += obj.offsetLeft
-			obj = obj.offsetParent;
-		}
-	} else if (obj.x) {
-		curleft += obj.x;
+  var curleft = 0;
+  if (obj.offsetParent) {
+	while (obj.offsetParent) {
+	  curleft += obj.offsetLeft
+		obj = obj.offsetParent;
+	}
+  } else if (obj.x) {
+	curleft += obj.x;
   }
-	return curleft;
+  return curleft;
 }
 
 function findPosY(obj) {
-	var curtop = 0;
-	if (obj.offsetParent) {
-		while (obj.offsetParent) {
-			curtop += obj.offsetTop
-			obj = obj.offsetParent;
-		}
-	} else if (obj.y) {
-		curtop += obj.y;
+  var curtop = 0;
+  if (obj.offsetParent) {
+	while (obj.offsetParent) {
+	  curtop += obj.offsetTop
+		obj = obj.offsetParent;
+	}
+  } else if (obj.y) {
+	curtop += obj.y;
   }
-	return curtop;
-}
-
-//------------------------------------------------------------
-// log messages to the FireBug console
-
-function printfire() {
-  if( document.createEvent ) {
-	printfire.args = arguments;
-	var ev = document.createEvent( "Events" );
-	ev.initEvent( "printfire", false, true );
-	dispatchEvent( ev );
-  }
+  return curtop;
 }
 
 //------------------------------------------------------------
@@ -199,22 +188,49 @@ function highlight( e ) {
   // work around the Safari bug that causes a text node to be the target
   if( target.nodeType == 3 ) target = target.parentNode;
 
+  // this is the <map> that contains this <area>
+  var mapName = target.parentNode.name;
+
+  console.debug( "target:   |" + target.id + "|" );
+  console.debug( "mapName:  |" + mapName + "|" );
+
+  // find the ID of the <img> that uses this <map>
+  var regex = /^featuresMap(\d+)$/;
+  var results = regex.exec( mapName );
+  console.debug( "number: |" + results[1] + "|" );
+  var image = $("featuresImage" + results[1]);
+  console.debug( "image: |" + image.id + "|" );
+
+  // show the tooltip
+  //domTT_activate( target, e, "predefined", target.id + "Tip" );
+  //domTT_activate( $("highlight"), e, "predefined", target.id + "Tip" );
+
+  // place the highlight
   var coords = target.coords.split(",");
-  var hs = $("highlight").style;
+  var width  = coords[2] - coords[0];
+  var height = coords[3] - coords[1];
 
-  hs.width = coords[2] - coords[0];
-  hs.height = coords[3] - coords[1];
+  var left = findPosX( image ) 
+	       + Number( coords[0] )
+	       - findPosX( $("featuresMap") ) 
+	       + $("featuresMap").offsetLeft;
 
-  var mapX = findPosX( $("featuresMap") );
-  var mapY = findPosY( $("featuresMap") );	
+  var top  = findPosY( image )
+           + Number( coords[1] )
+           - findPosY( $("featuresMap") )
+           + $("featuresMap").offsetTop;
 
-  hs.left = Number( coords[0] ) + Number( mapX );
-  hs.top  = Number( coords[1] ) + Number( mapY );
+  console.debug( "WxH+X,Y:  " + width + "x" + height + "+" + left + "," + top );
 
-  printfire( "showing tip: " + target.id + "Tip" );
-  domTT_activate( $("highlight"), e, "predefined", target.id + "Tip" );
-
-  $("highlight").style.display = "block";
+  Element.setStyle( $("highlight"),
+					{
+					  "width":   width + "px",
+					  "height":  height + "px",
+					  "left":    left + "px",
+					  "top":     top + "px",
+					  "display": "block"
+					}
+				  );
 }
 
 // and hide the div on mouseout
@@ -229,6 +245,7 @@ function unhighlight( e ) {
 function moveCursor( e ) {
   var cObj = $("cursor");
   var fObj = $("featuresMap");
+
   // set the cursor height to the height of the map
   cObj.style.height = Element.getHeight( fObj ) - 1 + "px";
 
@@ -237,22 +254,19 @@ function moveCursor( e ) {
   var px = Event.pointerX( e );
   var ol = fObj.offsetLeft;
 
-  var cx = px - co[0] + ol - 1;
+  var x = px - co[0] + ol - 1;
 
-  var images = $A( $("featuresMap").getElementsByTagName("img") );
-
-  var im = images[0];
+  var im   = $A( $("featuresMap").getElementsByTagName("img") ).first();
   var minX = im.offsetLeft;
   var maxX = im.offsetLeft + Element.getDimensions( im ).width;
 
-  x = cx;
   if( x < minX ) x = minX;
   if( x > maxX ) x = maxX;
 
   cObj.style.left = x + "px";
 
-  var r = x - im.offsetLeft;
   // update the status display
+  var r = x - im.offsetLeft;
   $("status").innerHTML = "residue: " + r;
 
   cObj.style.display = "block";
