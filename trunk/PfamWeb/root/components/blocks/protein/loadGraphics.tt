@@ -5,7 +5,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via ProteinGraphics.pm and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.5 2006-05-31 16:51:07 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.6 2006-05-31 17:00:49 jt6 Exp $
 %]
 
 [% USE dumper %]
@@ -43,9 +43,9 @@
 <script type="text/javascript">
   var areas = $("featuresMap").getElementsByTagName( "area" );
   for( var i = 1; i <= areas.length; i++ ) {
-	if( $("familyArea" + i) ) {
-	    Event.observe( "familyArea" + i, "mouseover", highlight );
-    	//domTT_addPredefined( "familyArea" + i + "Tip",
+	if( $("featuresArea" + i) ) {
+	    Event.observe( "featuresArea" + i, "mouseover", highlight );
+    	//domTT_addPredefined( "featuresArea" + i + "Tip",
 	    //  "caption",    $("tip" + i + "Caption" ),
     	//  "content",    $("tip" + i + "Content" ),
 	    //  "styleClass", "niceTitle",
