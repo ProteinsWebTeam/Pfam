@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.4 2006-05-26 15:44:48 jt6 Exp $
+# $Id: graphics.tt,v 1.5 2006-05-31 16:51:20 jt6 Exp $
 -%]
 
 <!-- start protein graphics block -->
@@ -35,7 +35,9 @@
 	<div id="checkboxes" style="display: none">
 
 	[% c.prototype.form_remote_tag( { url    => c.uri_for( "/updatesources" ),
-			                       	  update => "graphicsHolder" } ) %]
+			                       	  update => "graphicsHolder",
+							          evalScripts => 1
+						 } ) %]
   
 	  <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
 	  <input type="hidden" name="reload" value="1" />
@@ -55,10 +57,11 @@
 	</form>
 
 	  <div class="cleaner">&nbsp;</div>
-	</div>
 
-  </div>
+	</div> <!-- end of "checkboxes" -->
 
-</div>
+  </div> <!-- end of "blockContent" -->
+
+</div> <!-- end of "block" -->
 
 <!-- end protein graphics block -->
