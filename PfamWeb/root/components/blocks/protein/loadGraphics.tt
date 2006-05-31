@@ -5,7 +5,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via ProteinGraphics.pm and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.4 2006-05-26 15:44:48 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.5 2006-05-31 16:51:07 jt6 Exp $
 %]
 
 [% USE dumper %]
@@ -21,41 +21,41 @@
   [% FOREACH i IN range %]
   	[% map = maps.$i %]
 	[% CALL c.log.debug( dumper.dump( map ) ) %]
-	<div class="featuresRow" id="map[% i %]Wrapper">
+	<div class="featuresRow" id="featuresRow[% i %]">
 
       <p class="featuresLabel">[% map.server %]</p>
 
-      <img class="featuresImage" src="[% c.uri_for( "/" ); map.image %]" usemap="#map[% i %]" alt="" />
-	  <br />
+      <img class="featuresImage" id="featuresImage[% i %]" src="[% c.uri_for( "/" ); map.image %]" usemap="#featuresMap[% i %]" alt="" />
 
-      <map name="map[% i %]">
+      <map name="featuresMap[% i %]">
         [% map.map %]
       </map>
 
     </div>
   [% END %]
 
-  <!-- div class="cleaner">&nbsp;</div -->
+  <div class="cleaner">&nbsp;</div>
 
 </div>
 
 <div id="status">&nbsp;</div>
 
 <script type="text/javascript">
-//  var areas = $("featuresMap").getElementsByTagName( "area" );
-//  for( var i = 1; i <= areas.length; i++ ) {
-//    printfire( "adding area " + i );
-//    Event.observe( i, "mouseover", highlight );
-//    domTT_addPredefined( "item" + i + "Tip",
-//      "caption",    $("tip" + i + "Caption" ),
-//      "content",    $("tip" + i + "Content" ),
-//      "styleClass", "niceTitle",
-//      "trail",      true
-//    );
-//  }
+  var areas = $("featuresMap").getElementsByTagName( "area" );
+  for( var i = 1; i <= areas.length; i++ ) {
+	if( $("familyArea" + i) ) {
+	    Event.observe( "familyArea" + i, "mouseover", highlight );
+    	//domTT_addPredefined( "familyArea" + i + "Tip",
+	    //  "caption",    $("tip" + i + "Caption" ),
+    	//  "content",    $("tip" + i + "Content" ),
+	    //  "styleClass", "niceTitle",
+    	//  "trail",      true
+	    //);
+	}
+  }
   Event.observe( "featuresMap", "mousemove", moveCursor );
-//  Event.observe( "highlight",   "mousemove", moveCursor, true );
-//  Event.observe( "highlight",   "mouseout",  unhighlight );
+  Event.observe( "highlight",   "mousemove", moveCursor, true );
+  Event.observe( "highlight",   "mouseout",  unhighlight );
 </script>
 
 <!-- end of features map -->
