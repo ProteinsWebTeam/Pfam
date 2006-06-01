@@ -636,7 +636,7 @@ sub _add_map{
       #Alternative
       $area .= "\"";
       if(defined $region->getAttribute("unique_id")){
-	  $area .= " id=".$region->getAttribute("unique_id");
+	  $area .= " id=\"featuresArea".$region->getAttribute("unique_id")."\"";
       }
       $area .= " title=\"";
       $area .= $region->getAttribute("label").":" if($region->getAttribute("label"));
@@ -1341,10 +1341,11 @@ sub print_image {
   my $self = shift;
   my $file = $self->image_name.".png";
   my $pid = $$;
-  my $root = "/home/rob/Work/PfamWeb/root";
+#  my $root = "/home/rob/Work/PfamWeb/root";
+  my $root = "/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/root";
   my $file_location = "domain_images/$pid";
   if(!-d "$root/$file_location"){
-      mkdir("$root/$file_location") || die "Could not mkdir $root/file_location:[$!]";
+      mkdir("$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
   }
 
 
@@ -1367,7 +1368,7 @@ sub print_image {
   binmode OUTFILE;
   # Convert the image to PNG and print it on standard output
   print OUTFILE $self->image->png;
-  close(OUTFILE) or warn "Cannot close $root/£file_location/$file :[$!]";
+  close(OUTFILE) or warn "Cannot close $root/$file_location/$file :[$!]";
   
   
   if($self->format ne "png" && $self->format){
