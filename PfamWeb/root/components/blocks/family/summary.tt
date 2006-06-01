@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.2 2006-05-24 16:05:11 jt6 Exp $
+# $Id: summary.tt,v 1.3 2006-06-01 16:33:09 jt6 Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -44,11 +44,13 @@
     [% END %]
 
 	<h3>[% pfam.description %]</h3>
+
 	<p>[% pfam.comment %]</p>
 
     <hr class="short"/>
 
     <h3>Literature references</h3>
+
     <ol>
 	  [% FOREACH ref IN pfam.pfamA_lit_refs %]
 	  <li>
