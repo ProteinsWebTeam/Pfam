@@ -131,7 +131,7 @@ sub _rightStyle {
 sub _construct_URL {
   my ($self, $region) = @_;
   #This should be defined by some
-  $region->url($Bio::Pfam::Web::PfamWWWConfig::cgibin."/getacc?".$region->BioAnnotatedRegion->accession);
+  $region->url("/family?acc=".$region->BioAnnotatedRegion->accession);
 }
 
 
