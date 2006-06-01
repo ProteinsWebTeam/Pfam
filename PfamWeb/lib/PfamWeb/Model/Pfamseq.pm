@@ -88,14 +88,14 @@ __PACKAGE__->has_many("pdb_mapping", => "PfamWeb::Model::Pdb_mapping",
 #Things that should be removed once some rationale is applied - We should then just be able to add the column name, but the call should be the same;
 ##pfamseq_ncbi
 __PACKAGE__->has_one("ncbi", => "PfamWeb::Model::Pfamseq_ncbi",
-		     {"foreign.type_example" => "self.auto_pfamseq"},
+		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 		     { proxy => [qw/ncbi_code/]});
 
 ##pfamseq_architecture
 __PACKAGE__->has_one("arch" =>  "PfamWeb::Model::Pfamseq_architecture",
 		     {"foreign.type_example" => "self.auto_pfamseq"},
 		     { proxy => [qw/architecture/]});
-#Storable
-#__PACKAGE__->has_one("pfamseqStorable" =>  "PfamWeb::Model::Pfam_annseq",
-#		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
-#		     { proxy => [qw/annseq_storable/]});
+##Storable
+__PACKAGE__->has_one("pfamseqStorable" =>  "PfamWeb::Model::Pfam_annseq",
+		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
+		     { proxy => [qw/annseq_storable/]});
