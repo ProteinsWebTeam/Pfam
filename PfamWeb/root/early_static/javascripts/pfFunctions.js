@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.6 2006-05-31 16:50:53 jt6 Exp $
+// $Id: pfFunctions.js,v 1.7 2006-06-01 16:28:54 jt6 Exp $
 
 //------------------------------------------------------------
 // show the specified tab in the page body
@@ -31,18 +31,23 @@ function show( id ) {
 }
 
 //------------------------------------------------------------
-// show/hide the DAS sources selection panel
+// show/hide the specified drop-down panel
 
-showSources = true;
-function revealDASSources() {
-  if( showSources ) {
-	Effect.BlindDown( "checkboxes", { duration: 0.3 } );
-	showSources = false;
-	Element.update( $("revealControl"), "Hide" );
+showItems = {};
+function reveal( oSwitch, sId ) {
+  console.debug( "showing:        |" + sId + "|" );
+  console.debug( "showItems[sId]: |" + showItems[sId] + "|" );
+  var oSource = $(sId);
+  if( showItems[sId] ) {
+	console.debug( sId + " is currently shown" );
+	Effect.BlindUp( oSource, { duration: 0.3 } );
+	showItems[sId] = false;
+	Element.update( oSwitch, "Show" );
   } else {
-	Effect.BlindUp("checkboxes", { duration: 0.5 } );
-	showSources = true;
-	Element.update( $("revealControl"), "Show" );
+	console.debug( sId + " is currently hidden" );
+	Effect.BlindDown( oSource, { duration: 0.3 } );
+	showItems[sId] = true;
+	Element.update( oSwitch, "Hide" );
   }
 }
 
@@ -91,11 +96,20 @@ function atFailure() {
 }
 
 //------------------------------------------------------------
+// callbacks for the coloured alignment in the family section
+
+function caSuccess( oResponse ) {
+  Element.update( $("caph"), oResponse.responseText );
+}
+function caFailure() {
+  Element.update( $("caph"), "Alignment loading failed." );
+}
+
+//------------------------------------------------------------
 // callbacks for the alignment/DAS graphics in the protein section
 
 function pgSuccess( oResponse ) {
   Element.update( $("graphicsHolder"), oResponse.responseText );
-  installGizmos();
 }
 function pgFailure() {
   Element.update( $("pgph"), "Alignment loading failed." );
@@ -109,6 +123,7 @@ loadOptions.dg = {}; // domain graphics
 loadOptions.st = {}; // species tree
 loadOptions.at = {}; // alignment tree
 loadOptions.pg = {}; // protein graphics
+loadOptions.ca = {}; // coloured alignment
 
 //------------------------------------------------------------
 // this will make the ajax calls for the family page components
@@ -131,6 +146,12 @@ function familyPostLoad() {
 					  parameters: loadOptions.at.params,
 					  onComplete: atSuccess,
 					  onFailure:  atFailure
+					} );
+  new Ajax.Request( loadOptions.ca.uri,
+					{ method:     "get", 
+					  parameters: loadOptions.ca.params,
+					  onComplete: caSuccess,
+					  onFailure:  caFailure
 					} );
 }
 
