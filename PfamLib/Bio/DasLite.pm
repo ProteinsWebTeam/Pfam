@@ -13,7 +13,8 @@ use HTTP::Headers;
 use Data::Dumper;
 
 our $DEBUG    = 0;
-our $VERSION  = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our $VERSION  = do { my @r = (q$Revision: 1.4 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+
 our $BLK_SIZE = 8192;
 our $TIMEOUT  = 5;
 our $MAX_REQ  = 5;
@@ -103,49 +104,56 @@ our $ATTR     = {
 										'arrow'          => {
 												     %common_style_attrs,
 												     'parallel'     => [],
+												     'bar_style'    => [], # WTSI extension
 												    },
 										'anchored_arrow' => {
 												     %common_style_attrs,
 												     'parallel'     => [],
 												     'orientation'  => [], # WTSI extension
 												     'no_anchor'    => [], # WTSI extension
+												     'bar_style'    => [], # WTSI extension
 												    },
 										'box'            => {
 												     %common_style_attrs,
-												     'linewidth'   => [],
-												     'pattern'     => [],  # WTSI extension
+												     'linewidth'    => [],
+												     'pattern'      => [],  # WTSI extension
 												    },
 										'farrow'         => {                      # WTSI extension
 												     %common_style_attrs,
-												     'orientation' => [],
-												     'no_anchor'   => [],
+												     'orientation'  => [],
+												     'no_anchor'    => [],
+												     'bar_style'    => [], # WTSI extension
 												    },
 										'rarrow'         => {                      # WTSI extension
 												     %common_style_attrs,
-												     'orientation' => [],
-												     'no_anchor'   => [],
+												     'orientation'  => [],
+												     'no_anchor'    => [],
+												     'bar_style'    => [], # WTSI extension
 												    },
 										'cross'          => {
 												     %common_style_attrs,
-												     'linewidth'   => [],  # WTSI extension
+												     'linewidth'    => [],  # WTSI extension
 												    },
 										'dot'            => \%common_style_attrs,
 										'ex'             => {
 												     %common_style_attrs,
-												     'linewidth'   => [],  # WTSI extension
+												     'linewidth'    => [],  # WTSI extension
 												    },
 										'hidden'         => \%common_style_attrs,
 										'line'           => {
 												     %common_style_attrs,
-												     'style'       => [],
+												     'style'        => [],
 												    },
-										'span'           => \%common_style_attrs,
+										'span'           => {
+												     %common_style_attrs,
+												     'bar_style'    => [], # WTSI extension
+												    },
 										'text'           => {
 												     %common_style_attrs,
-												     'font'        => [],
-												     'fontsize'    => [],
-												     'string'      => [],
-												     'style'       => [],
+												     'font'         => [],
+												     'fontsize'     => [],
+												     'string'       => [],
+												     'style'        => [],
 												    },
 										'primers'        => \%common_style_attrs,
 										'toomany'        => {
@@ -527,6 +535,7 @@ sub _generic_request {
   my ($self, $query, $fname, $opts) = @_;
 
   $opts       ||= {};
+  delete($self->{'currentsegs'});
   my $ref       = {};
   my $dsn       = $opts->{'use_basename'}?$self->basename():$self->dsn();
   my @bn        = @{$dsn};
