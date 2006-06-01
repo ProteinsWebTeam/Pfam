@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.9 2006-05-26 15:44:44 jt6 Exp $
+# $Id: wrapper.tt,v 1.10 2006-06-01 16:31:04 jt6 Exp $
 -%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -19,8 +19,8 @@
     <!-- ====================================================================== -->
     <!-- JT 20051020 WTSI -->
     
-    <script type="text/javascript"
-      src="[% constants.server %][% constants.root %]/pfam.js"></script>
+    <!-- script type="text/javascript"
+      src="[% constants.server %][% constants.root %]/pfam.js"></script -->
     
     <!-- make the site RSS feed discoverable --> 
     <link href="/rss/pfam_rss_feed.rdf" 
@@ -31,10 +31,10 @@
     <!-- JT 20051129 WTSI -->
 
     <!-- javascript for sortable tables -->
-    <script type="text/javascript"
+    <!-- script type="text/javascript"
       src="[% constants.server %][% constants.root %]/sortabletable.js">
-      <!-- see http://webfx.eae.net/dhtml/sortabletable/sortabletable.html -->
-    </script>
+    </script -->
+    <!-- see http://webfx.eae.net/dhtml/sortabletable/sortabletable.html -->
 
     <!-- ====================================================================== -->
     <!-- Sanger menus... -->
@@ -55,6 +55,7 @@
     <!-- stylesheets -->
 
     <link rel="stylesheet" href="[% c.uri_for( "/static/css/pfam.css" ) %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for( "/static/css/alignment.css" ) %]" type="text/css" />
     <link rel="stylesheet" href="[% c.uri_for( "/static/css/tab_layout.css" ) %]" type="text/css" />
     [% IF layouts.${pageType}.css.global -%]
       [% css = layouts.${pageType}.css.global -%]
