@@ -12,20 +12,25 @@ END;
   </div>
   <div class="blockContent">
 
-    <div class="row">
+  [% oe = 0 %]
+
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Clan:</span>
       <span class="rowData"><a href="[% c.uri_for( "/clan?id=${pfam.clan_id}" ) %]">[% pfam.clan_id %]</a> (<a href="[% c.uri_for( "/clan?acc=${pfam.clan_acc}" ) %]">[% pfam.clan_acc %]</a>)</span>
+      <div class="cleaner">&nbsp;</div>
     </div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Description:</span>
       <span class="rowData">[% pfam.clan_description %]</span>
+      <div class="cleaner">&nbsp;</div>
     </div>
 
     [% IF pfam.clan_comment %]
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Comment:</span>
       <span class="rowData">[% pfam.clan_comment %]</span>
+      <div class="cleaner">&nbsp;</div>
     </div>
     [% END %]
 

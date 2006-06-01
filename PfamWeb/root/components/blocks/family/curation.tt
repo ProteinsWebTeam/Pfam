@@ -19,62 +19,74 @@
       <p>This family has changed since the last Pfam release.</p>
     [% END %]
 
-    <div class="row">
+	[% oe = 0 %]
+
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Author:</span>
       <span class="rowData">[% pfam.author %]</span>
+      <div class="cleaner">&nbsp;</div>
     </div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Seed source:</span>
       <span class="rowData">[% pfam.seed_source %]</span>
+      <div class="cleaner">&nbsp;</div>
     </div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Previous ids:</span>
       <span class="rowData">[% pfam.previous_id ? pfam.previous_id : "none" %]</span>
+      <div class="cleaner">&nbsp;</div>
     </div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Type:</span>
       <span class="rowData">[% pfam.type %]</span>
+      <div class="cleaner">&nbsp;</div>
     </div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Number in seed:</span>
       <span class="rowData">[% pfam.num_seed %]</span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Number in full:</span>
       <span class="rowData">[% pfam.num_full %]</span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Average length of the domain:</span>
       <span class="rowData">[% pfam.average_length %] aa</span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Average identity of full alignment:</span>
       <span class="rowData">[% pfam.percentage_id %] %</span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Average coverage of the sequence by the domain:</span>
       <span class="rowData">[% pfam.average_coverage %] %</span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
    
     <h3>HMM information</h3>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">HMM build commands:</span>
       <span class="rowData">
         <div><em>ls model:</em> [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</div>
         <div><em>fs model:</em> [% pfam.hmmbuild_fs %] [% pfam.hmmcalibrate_fs %]</div>
       </span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label" id="tableLabel">Model details:</span>
       <span class="rowData" id="modelDetails">
         <table>
@@ -116,16 +128,19 @@
           </tbody>
         </table>
       </span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
       <span class="label">Model length:</span>
       <span class="rowData">[% pfam.model_length %]</span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
-    <div class="row">
+    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 	  <span class="label">Family (HMM) version:</span>
       <span class="rowData">[% pfam.version %]</span>
+      <div class="cleaner">&nbsp;</div>
 	</div>
 
   </div>
