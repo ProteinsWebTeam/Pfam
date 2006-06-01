@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.2 2006-05-15 11:59:22 jt6 Exp $
+# $Id: align.tt,v 1.3 2006-06-01 16:32:10 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -14,6 +14,11 @@
     <h1>Alignments</h1>
   </div>
   <div class="blockContent">
+
+    <p id="caph">
+      <img src="static/images/loading.gif" alt="loading..." />
+      Loading alignment...
+    </p>
 
     <form method="get" action="/getalign">
         <p>Format
@@ -48,5 +53,10 @@
     </div>
   </div>
 </div>
+
+<script type="text/javascript">
+  loadOptions.ca.uri    = "[% c.uri_for( "/alignmentgenerator" ) %]";
+  loadOptions.ca.params = "acc=[% pfam.pfamA_acc %]";
+</script>
 
 <!-- end of align block -->
