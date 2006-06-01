@@ -29,9 +29,10 @@ sub _setDrawingStyles{
 	print STDERR $features->[$i]->{'feature_label'}."\n";
 	print STDERR $features->[$i]->{'type_id'}."\n";
 	if($features->[$i]->{'feature_id'} =~ /DOMAIN/){
-	    my $newLabel = $features->[$i]->{'type_id'}."(ACC:".$features->[$i]->{'feature_label'}.")";
-	    print STDERR "$newLabel\n";
-	    $features->[$i]->{'feature_label'} = $newLabel;
+	    if($features->[$i]->{'feature_label'} !~ /ACC\:/){    
+		my $newLabel = $features->[$i]->{'type_id'}."(ACC:".$features->[$i]->{'feature_label'}.")";
+		$features->[$i]->{'feature_label'} = $newLabel;
+	    }
 	    $self->_setRegionColours($features->[$i], "CCFFCC","339900");
 	}else{
 	    $features->[$i]->{'hidden'} = 1;
