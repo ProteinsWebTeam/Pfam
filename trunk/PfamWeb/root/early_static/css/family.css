@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.4 2006-05-22 16:51:17 jt6 Exp $
+   $Id: family.css,v 1.5 2006-06-01 16:29:26 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -84,35 +84,12 @@ h4.pdbTitle  {
 	color: #074987;
 }
 
-#curationBlock h1 {
-  padding-bottom: 0;
-  margin-bottom: 0;
-}
-
 #curationBlock h3 {
   width: 11.7em;
   margin: 0.2em 0;
   padding-top: 1em;
-  text-decoration: underline;
   text-align: right;
   clear: both;
-}
-
-div.blockContent div.row {
-  clear: both;
-  padding-top: 0.4em;
-}
-
-div.blockContent span.label {
-  float: left;
-  text-align: right;
-  width: 14em;
-  font-weight: bold;
-  padding-right: 0.4em;
-}
-
-div.blockContent span.rowData {
-  float: left;
 }
 
 #tableLabel {
@@ -143,13 +120,13 @@ div.blockContent span.rowData {
 }
 
 #modelDetails tr.odd td {
-	background: #DDD;
+	background: #EEE;
 }
 #modelDetails tr.even td {
-	background: #EEE;
+	background: #DDD;
 }
 
 #alignmentTree img {
-    border: 1px solid #DDD;
+    border: 1px solid #CCC;
 }
 

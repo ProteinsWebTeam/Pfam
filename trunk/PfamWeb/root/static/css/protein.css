@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: protein.css,v 1.3 2006-05-26 15:44:56 jt6 Exp $
+   $Id: protein.css,v 1.4 2006-06-01 16:29:26 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -104,6 +104,7 @@ p.featuresLabel {
     width: 6em;
     margin: 2px;
 	text-align: right;
+ clear: left;
 }
 
 img.featuresImage {
@@ -111,10 +112,6 @@ img.featuresImage {
     margin-left: 6em;
     border: none;
     margin: 2px;
-}
-
-#featuresMap br {
-	clear: left;
 }
 
 #tracks {
@@ -128,6 +125,11 @@ img.featuresImage {
   border: 1px solid #66C;
   display: none;
   position: absolute;
+  width: 1px;
+  height: 1px;
+  left: 0;
+  top: 0;
+  z-index: 1;
 }
 
 #cursor {
@@ -144,4 +146,44 @@ img.featuresImage {
   border: 1px solid #CCC;
   border-top: none;
   background: #EEE;
+}
+
+div.sequenceLine {
+    margin: 0;
+	padding: 0;
+    clear:both;
+	font-family: mono;
+    font-size: 0.8em;
+}
+
+div.leftAlignmentLabel {
+	margin: 0;
+	padding: 0.1em 0.4em;
+    float: left;
+	text-align: right;
+    width: 4em;
+}
+
+div.alignmentRow {	
+	margin: 0;
+	padding: 0.1em;
+    float: left;
+}
+
+div.rightAlignmentLabel {
+	margin: 0;
+	padding: 0.1em;
+	text-align: right;
+    float: left;
+    width: 3em;
+}
+
+#plainSequence {
+	font-family: mono;
+    font-size: 0.8em;
+    margin: 0.2em;
+    padding: 0.2em;
+	border: 1px solid #CCC;
+    background: #DDD;
+	float: left;
 }
