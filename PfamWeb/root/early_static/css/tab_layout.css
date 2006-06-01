@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.6 2006-05-22 16:51:17 jt6 Exp $
+   $Id: tab_layout.css,v 1.7 2006-06-01 16:29:26 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -208,6 +208,49 @@ div.blockContent {
   padding: 0.4em;
   border-top: none;
   font-size: 0.9em;
+}
+
+h3 {
+  text-decoration: underline;
+}
+
+div.blockContent div.row {
+  clear: both;
+  padding-top: 0.4em;
+}
+
+div.odd {
+  background: #e7e7e7;
+}
+
+div.even {
+  background: #f3f3f3;
+}
+
+div.blockContent span.label {
+  float: left;
+  text-align: right;
+  width: 14em;
+  font-weight: bold;
+  padding-right: 0.4em;
+}
+
+div.blockContent span.rowData {
+  float: left;
+}
+
+span.subLabel {
+  font-style: italic;
+  display: block;
+  width: 6em;
+  float: left;
+  padding-bottom: 0.2em;
+  clear: left;
+}
+
+span.subRowData {
+  display: block;
+  float: left;
 }
 
 /* ======================================== */
