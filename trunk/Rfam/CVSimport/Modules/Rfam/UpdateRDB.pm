@@ -1161,18 +1161,23 @@ sub add_rfamseq {
 	    $st = $dbh->prepare($self->__insert_sql('rfamseq', 9));
 	}
 
+	my $OS = "unknown";
+	my $OC = "unknown";
+
 	# stolen from Bio::SeqIO::embl->write_seq
 	my $spec = $seq->species;
-	my($species, @class) = $spec->classification();
-	my $genus = $class[0];
-	my $OS = "$genus $species";
-	if (my $ssp = $spec->sub_species) {
-	    $OS .= " $ssp";
+	if( $spec ) {
+	    my($species, @class) = $spec->classification();
+	    my $genus = $class[0];
+	    $OS = "$genus $species";
+	    if (my $ssp = $spec->sub_species) {
+		$OS .= " $ssp";
+	    }
+	    if (my $common = $spec->common_name) {
+		$OS .= " ($common)";
+	    }
+	    $OC = join('; ', reverse(@class)) .'.';
 	}
-	if (my $common = $spec->common_name) {
-	    $OS .= " ($common)";
-	}
-	my $OC = join('; ', reverse(@class)) .'.';
 	####
 
 	$st->execute( $auto_id,
