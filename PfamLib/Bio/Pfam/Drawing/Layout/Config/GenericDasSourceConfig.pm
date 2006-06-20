@@ -55,6 +55,7 @@ sub _setDrawingStyles{
 	    #$self->_lineColour($markup);
 	    #$self->_lineStyle($markup);
 	    #v_align
+	  $features->[$i]->{'hidden'} = 1;
 	} 
     }
 }
