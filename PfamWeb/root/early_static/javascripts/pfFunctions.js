@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.7 2006-06-01 16:28:54 jt6 Exp $
+// $Id: pfFunctions.js,v 1.8 2006-06-27 16:32:27 jt6 Exp $
 
 //------------------------------------------------------------
 // show the specified tab in the page body
@@ -35,16 +35,16 @@ function show( id ) {
 
 showItems = {};
 function reveal( oSwitch, sId ) {
-  console.debug( "showing:        |" + sId + "|" );
-  console.debug( "showItems[sId]: |" + showItems[sId] + "|" );
+  // // console.debug( "showing:        |" + sId + "|" );
+  // // console.debug( "showItems[sId]: |" + showItems[sId] + "|" );
   var oSource = $(sId);
   if( showItems[sId] ) {
-	console.debug( sId + " is currently shown" );
+	// console.debug( sId + " is currently shown" );
 	Effect.BlindUp( oSource, { duration: 0.3 } );
 	showItems[sId] = false;
 	Element.update( oSwitch, "Show" );
   } else {
-	console.debug( sId + " is currently hidden" );
+	// console.debug( sId + " is currently hidden" );
 	Effect.BlindDown( oSource, { duration: 0.3 } );
 	showItems[sId] = true;
 	Element.update( oSwitch, "Hide" );
@@ -108,9 +108,25 @@ function caFailure() {
 //------------------------------------------------------------
 // callbacks for the alignment/DAS graphics in the protein section
 
+// called when the browser first fires the request
+function pgStarted( oResponse ) {
+  $("pgSubmitButton").disabled = true;
+  $("pgUpdateSpinner").style.visibility = "visible";
+}
+
+// called when the request completes
+function pgCompleted() {
+  $("pgSubmitButton").disabled = false;
+  $("pgUpdateSpinner").style.visibility = "hidden";
+}
+
+// called in response to a successful call
 function pgSuccess( oResponse ) {
   Element.update( $("graphicsHolder"), oResponse.responseText );
+  $("pgSubmitButton").disabled = false;
 }
+
+// called in response to a failed call
 function pgFailure() {
   Element.update( $("pgph"), "Alignment loading failed." );
 }
@@ -147,12 +163,12 @@ function familyPostLoad() {
 					  onComplete: atSuccess,
 					  onFailure:  atFailure
 					} );
-  new Ajax.Request( loadOptions.ca.uri,
-					{ method:     "get", 
-					  parameters: loadOptions.ca.params,
-					  onComplete: caSuccess,
-					  onFailure:  caFailure
-					} );
+//   new Ajax.Request( loadOptions.ca.uri,
+// 					{ method:     "get", 
+// 					  parameters: loadOptions.ca.params,
+// 					  onComplete: caSuccess,
+// 					  onFailure:  caFailure
+// 					} );
 }
 
 //------------------------------------------------------------
@@ -161,9 +177,9 @@ function familyPostLoad() {
 function proteinPostLoad() {
    new Ajax.Request( loadOptions.pg.uri,
  					{ method: "get",
- 						parameters: loadOptions.pg.params,
- 						onComplete: pgSuccess,
- 						onFailure:  pgFailure
+ 					  parameters: loadOptions.pg.params,
+ 					  onComplete: pgSuccess,
+ 					  onFailure:  pgFailure
  					} );
 }
 
@@ -212,15 +228,15 @@ function highlight( e ) {
   // this is the <map> that contains this <area>
   var mapName = target.parentNode.name;
 
-  console.debug( "target:   |" + target.id + "|" );
-  console.debug( "mapName:  |" + mapName + "|" );
+  // console.debug( "target:   |" + target.id + "|" );
+  // console.debug( "mapName:  |" + mapName + "|" );
 
   // find the ID of the <img> that uses this <map>
   var regex = /^featuresMap(\d+)$/;
   var results = regex.exec( mapName );
-  console.debug( "number: |" + results[1] + "|" );
+  // console.debug( "number: |" + results[1] + "|" );
   var image = $("featuresImage" + results[1]);
-  console.debug( "image: |" + image.id + "|" );
+  // console.debug( "image: |" + image.id + "|" );
 
   // show the tooltip
   //domTT_activate( target, e, "predefined", target.id + "Tip" );
@@ -241,7 +257,7 @@ function highlight( e ) {
            - findPosY( $("featuresMap") )
            + $("featuresMap").offsetTop;
 
-  console.debug( "WxH+X,Y:  " + width + "x" + height + "+" + left + "," + top );
+  // console.debug( "WxH+X,Y:  " + width + "x" + height + "+" + left + "," + top );
 
   Element.setStyle( $("highlight"),
 					{
@@ -287,8 +303,119 @@ function moveCursor( e ) {
   cObj.style.left = x + "px";
 
   // update the status display
-  var r = x - im.offsetLeft;
-  $("status").innerHTML = "residue: " + r;
+  var r = x - im.offsetLeft + 1;
+  $("status").innerHTML = "Residue number: " + r;
 
   cObj.style.display = "block";
+}
+
+//------------------------------------------------------------
+// an object that takes care of mouseover highlighting of the 
+// structure mapping table.
+
+// store the currently highlighted cells in a global
+var highlightedCells = new Array();
+
+// define the object
+var highlight = new Object();
+
+// handle mouseovers - find the cells of the table that need to
+// be highlighted and set the appropriate CSS class
+
+highlight.mouseoverHandler = function( e ) {
+
+	// get hold of the starting row, the one with the highlighted cell
+	var startingRow;
+    if( e.srcElement ) {
+	  // get it the IE way...
+	  startingRow = e.srcElement.parentNode;
+    } else if( e.target ) {
+	  // and for the rest of the world...
+      startingRow = e.target.parentNode;
+    }
+
+	// these are the cells that we'll need to colour
+	var cells = new Array();
+
+    // first, stash the cells in the starting row
+	var startingCells = $A( startingRow.getElementsByTagName( "td" ) );
+    cells.push( startingCells );
+	// console.debug( "cells starts with " + cells.length + " cells" );
+
+    // and then, if this row isn't the full width of the table, recurse down
+    // (actually, up) the previous rows and collect more cells to highlight
+	if( startingCells.length < numColsTable ) {
+      this.walkRows( startingRow, cells );
+    }
+    // console.debug( "retrieved " + cells.flatten().length + " cells" );
+
+    // highlight the collected cells
+	cells.flatten().each( function( cell ) {
+        Element.addClassName( cell, "stripeHover" );
+	    highlightedCells.push( cell );
+      }
+    );
+
+}
+
+// recursive method for walking back up the table rows and finding
+// those that require cells to be highlighted. Because the table can
+// (and likely does) contain rowspan'd cells, it's not as simple as
+// just colouring a complete <tr>, unfortunately...
+
+highlight.walkRows = function( startingRow, cells ) {
+	// console.debug( "in walkRows" );
+
+    // find out how many columns are in the starting row
+    var numColsStartingRow = startingRow.getElementsByTagName( "td" ).length;
+    // console.debug( "startingRow has " + numColsStartingRow + " columns" );
+
+    // get all of the previous rows in the table
+    var thisRow = startingRow;
+    var prevRow;
+	var prevCols;
+    var numCols;
+	while( prevRow = thisRow.previousSibling ) {
+      if( prevRow.nodeType == 1 ) {
+	    // console.debug( "checking row " + prevRow.rowIndex );
+
+        prevCols = prevRow.getElementsByTagName( "td" );
+        numCols = prevCols.length;
+	    if( numCols == numColsTable ||
+            numCols >  numColsStartingRow ) {
+	      break;
+        }
+	  }
+	  thisRow = prevRow;
+    }
+    // console.debug( "previous longer row is row " + prevRow.rowIndex );
+
+    // add the extra cells from the longer row into the array of cells to 
+    // highlight and keep walking down (up) the table
+
+    // there are "numCols" columns in the previous longest row
+    // there are "numColsStartingRow" columns in the current row
+
+	for( var i = 0; i < ( numCols - numColsStartingRow ); i++ ) {
+      cells.push( prevCols[i] );
+    }
+    // console.debug( "adding " + cells.length + " cells" );
+
+    // see if we need to move on to previous rows in the table
+    if( numCols < numColsTable ) {
+      this.walkRows( prevRow, cells );
+    }
+}
+
+// handle mouseout events on the cells. Walk down the list of
+// currently highlighted cells and remove the hover classname
+
+highlight.mouseoutHandler = function( e ) {
+    highlightedCells.each( function( cell ) {
+        Element.removeClassName( cell, "stripeHover" );
+      }
+    );
+
+	// reset the array
+	highlightedCells.clear();
 }
