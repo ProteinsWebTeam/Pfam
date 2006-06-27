@@ -20,7 +20,160 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
   <div class="handle">
 	<h1>PDB</h1>
   </div>
-  <div class="blockContent[% IF NOT open %] closed[% END %]">
+  <div class="blockContent">
+
+	[%- oe = 0 -%]
+
+    [%- mapping = {} -%]
+    [%- FOREACH pdbMap IN pfamMaps -%]
+      [%- seqKey = pdbMap.pfamseq_id -%]
+      [%- IF ! mapping.$seqKey %]
+        [%- mapping.$seqKey = {} -%]
+      [%- END -%]
+    
+      [%- resKey = "${pdbMap.pfam_start_res} - ${pdbMap.pfam_end_res}" -%]
+      [%- IF ! mapping.$seqKey.$resKey -%]
+        [%- mapping.$seqKey.$resKey = {} -%]
+      [%- END -%]
+    
+      [%- pdbKey = pdbMap.pdb_id -%]
+      [%- IF ! mapping.$seqKey.$resKey.$pdbKey -%]
+        [%- mapping.$seqKey.$resKey.$pdbKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$seqKey.$resKey.COUNT -%]
+	    [% mapping.$seqKey.$resKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$seqKey.$resKey.COUNT = mapping.$seqKey.$resKey.COUNT + 1 -%]
+	  [%- END -%]
+    
+      [%- chainKey = pdbMap.chain -%]
+      [%- IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey -%]
+        [%- mapping.$seqKey.$resKey.$pdbKey.$chainKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$seqKey.$resKey.$pdbKey.COUNT -%]
+	    [% mapping.$seqKey.$resKey.$pdbKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$seqKey.$resKey.$pdbKey.COUNT = mapping.$seqKey.$resKey.$pdbKey.COUNT + 1 -%]
+	  [%- END -%]
+    
+      [%- pdbResKey = "${pdbMap.pdb_start_res} - ${pdbMap.pdb_end_res}" -%]
+      [%- IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey -%]
+        [%- mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap -%]
+ 	  [%- END -%]
+	  [%- IF ! mapping.$seqKey.COUNT -%]
+	    [% mapping.$seqKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$seqKey.COUNT = mapping.$seqKey.COUNT + 1 -%]
+	  [%- END -%]
+
+    [%- END -%]
+
+    <table class="details" id="structuresTable">
+      <thead>
+	    <tr class="caption">
+          <th id="unpId">UniProt entry</th>
+          <th id="unpRes">UniProt residues</th>
+          <th id="pdbId">PDB ID</th>
+		  <th id="chId">PDB chain ID</th>
+          <th id="pdbRes">PDB residues</th>
+        </tr>
+	  </thead>
+      <tbody>
+
+	  [%- USE seqKeyIter = iterator( mapping.keys.sort ) -%]
+      [%- FOREACH seqKey IN seqKeyIter -%]
+	    [%- NEXT IF mapping.$seqKey == "COUNT" %]
+        [% oe=oe+1 %]
+	    [%- FOREACH resKey IN mapping.$seqKey.keys.sort -%]
+		  [%- NEXT IF mapping.$seqKey.$resKey == "COUNT" %]
+	      [%- FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort -%]
+	        [%- FOREACH chainKey IN mapping.$seqKey.$resKey.$pdbKey.keys.sort -%]
+		      [%- NEXT IF mapping.$seqKey.$resKey.$pdbKey == "COUNT" %]
+	          [%- FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+
+		      [%# the purists amongst us will say that this is Bad... a table row that's
+                  there purely to permit formatting. Screw it. It looks good. -%]
+		      [% IF seqKey != prevSeqKey AND ! seqKeyIter.first -%]
+                [%# <tr class="newRow"><td colspan="5">&nbsp;</td></tr> %]
+              [% END -%]
+              <tr>
+
+		        [% IF seqKey != prevSeqKey -%]
+		          <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>[% seqKey %]</td>
+                [% END -%]
+
+	            [% IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
+                [% END -%]
+
+		        [% IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>[% pdbKey %]</td>
+                [% END -%]
+
+				[%- prevSeqKey = seqKey -%]
+				[%- prevResKey = resKey -%]
+				[%- prevPdbKey = pdbKey -%]
+
+	            <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% chainKey %]</td>
+			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
+
+	          </tr>
+
+	          [%- END # of pdbResKey -%]
+	        [%- END # of chainKey -%]
+          [%- END # of pdbKey -%]
+	    [%- END # of resKey -%]
+      [%- END # of seqKey -%]
+    </tbody>
+  </table>
+
+  <script type="text/javascript">
+
+    // how many columns are there in the table ?
+    var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+    var numColsTable  = firstRow.getElementsByTagName("td").length;
+
+    // walk over all of the cells in the table and add listeners for mouseover and 
+    // mouseout events
+    $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+        cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+        cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+      }
+    );
+
+  </script>
+
+  <!-- [%# redundant. Remove once it's checked in once %]
+  <dl>
+  [% FOREACH seqKey IN mapping.keys.sort %]
+    <dt class="seqKey">[% seqKey %]</span>
+
+    <dd class="seqKey">
+	  <dl class="structuresList">
+	  [% FOREACH resKey IN mapping.$seqKey.keys.sort %]
+        [% NEXT IF resKey == "COUNT" %]
+        <dt class="resKey">[% resKey %]</dt>
+	    <dd class="resKey">
+	      <dl>
+	      [% FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort %]
+	        [% NEXT IF pdbKey == "COUNT" %]
+	        <dt class="pdbKey">[% pdbKey %]</dt>
+	  	    <dd class="pdbKey [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+	          [% FOREACH chainKey IN mapping.$seqKey.$resKey.$pdbKey.keys.sort %]
+		        [% FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort %]
+		          [% chainKey %] [% pdbResKey %]<br />
+		        [% END %]
+		      [% END %]
+	        </dd>
+          [% END %]
+	      </dl>
+	    </dd>
+      [% END %]
+	  </dl>
+    </dd>
+  [% END %]
+  </dl>
+  -->
 
   <ul>
   [% FOREACH pdbMap IN pfamMaps %]
@@ -35,34 +188,32 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
      - [% pdbMap.pdb_end_res %]
     </li>
 	[% END %]
- </ul>
+  </ul>
 
+  <!--
+  [% pdbId     = pdbObj.pdb_id -%]
+  [% header    = pdbObj.header -%]
+  [% title     = pdbObj.title -%]
 
+  [%# these values are available from the pdbmap table, but not the pdb 
+      table itself. Get the pdbmap row for this particular pdb entry %]
+  [% chain     = pdbObj.pdbMap.chain -%]
+  [% start     = pdbObj.pdbMap.pdb_start_res -%]
+  [% end       = pdbObj.pdbMap.pdb_end_res -%]
+  
+  <p>PDB entry |[% pdbId %]|</p>  
+  <p>header |[% header %]|</p>
+  <p>title |[% title %]|</p>
+  <p>chain |[% chain %]|</p>
+  <p>start |[% start %]|</p>
+  <p>end |[% end %]|</p>
 
-	[% pdbId     = pdbObj.pdb_id -%]
-	[% header    = pdbObj.header -%]
-	[% title     = pdbObj.title -%]
-
-	[%# these values are available from the pdbmap table, but not the pdb 
-	    table itself. Get the pdbmap row for this particular pdb entry %]
-	[% chain     = pdbObj.pdbMap.chain -%]
-	[% start     = pdbObj.pdbMap.pdb_start_res -%]
-	[% end       = pdbObj.pdbMap.pdb_end_res -%]
-	
-	<p>PDB entry |[% pdbId %]|</p>	
-	<p>header |[% header %]|</p>
-	<p>title |[% title %]|</p>
-	<p>chain |[% chain %]|</p>
-	<p>start |[% start %]|</p>
-	<p>end |[% end %]|</p>
-
-<!-- 
-	[% IF pdbObj.pdb_image %]
-		<img src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" alt="[% pdbId %]" />
-	[% ELSE %]
-		<p>No image for this PDB entry</p>
-	[% END %]
--->
+  [% IF pdbObj.pdb_image %]
+      <img src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" alt="[% pdbId %]" />
+  [% ELSE %]
+      <p>No image for this PDB entry</p>
+  [% END %]
+  -->
 
   </div>
 </div>
