@@ -153,7 +153,7 @@ Control.Slider.prototype = {
     this.value = this.values[0]; // assure backwards compat
     
     this.handles[handleIdx].style[this.isVertical() ? 'top' : 'left'] = 
-      this.translateToPx(sliderValue);
+      this.translateToPx(sliderValue, handleIdx);
     
     this.drawSpans();
     if(!this.dragging || !this.event) this.updateFinished();
@@ -162,14 +162,46 @@ Control.Slider.prototype = {
     this.setValue(this.values[handleIdx || this.activeHandleIdx || 0] + delta, 
       handleIdx || this.activeHandleIdx || 0);
   },
-  translateToPx: function(value) {
-    return Math.round(
+  translateToPx: function(value, handleIdx) {
+    // Hack GR to allow two sliders show the same value without overlapping
+    if (this.handles.length == 2 && handleIdx != null) {
+      var offset = (value - this.range.start) / (this.range.end-this.range.start) * (this.trackLength - 2 * this.handleLength);
+	  if (handleIdx > 0) {
+	    return Math.round(offset + this.handleLength) + 'px';
+	  }
+	  else {
+	    return Math.round(offset) + 'px';
+	  }
+	}
+    else {
+      return Math.round(
       ((this.trackLength-this.handleLength)/(this.range.end-this.range.start)) * 
       (value - this.range.start)) + "px";
+    }
   },
   translateToValue: function(offset) {
-    return ((offset/(this.trackLength-this.handleLength) * 
-      (this.range.end-this.range.start)) + this.range.start);
+    // Hack GR to allow two sliders show the same value without overlapping
+    var percent = 0;
+    if (this.handles.length == 2) {
+	  if (this.activeHandleIdx > 0) {
+	  	percent = (offset - 1.5 * this.handleLength)/(this.trackLength - 2 * this.handleLength)
+	  }
+	  else {
+    	percent = (offset + 0.5 * this.handleLength)/(this.trackLength - 2 * this.handleLength)
+	  }
+	  var value = percent * (this.range.end-this.range.start) + this.range.start; 
+	  if (value < this.range.start) {
+	    value = this.range.start;
+	  }
+	  else if (value > this.range.end) {
+	    value = this.range.end;
+	  }
+	  return value;
+	}
+    else {
+      return ((offset/(this.trackLength-this.handleLength) * 
+        (this.range.end-this.range.start)) + this.range.start);
+    }
   },
   getRange: function(range) {
     var v = this.values.sortBy(Prototype.K); 
@@ -199,11 +231,11 @@ Control.Slider.prototype = {
   },
   setSpan: function(span, range) {
     if(this.isVertical()) {
-      span.style.top = this.translateToPx(range.start);
-      span.style.height = this.translateToPx(range.end - range.start + this.range.start);
+      span.style.top = this.translateToPx(range.start, null);
+      span.style.height = this.translateToPx(range.end - range.start + this.range.start, null);
     } else {
-      span.style.left = this.translateToPx(range.start);
-      span.style.width = this.translateToPx(range.end - range.start + this.range.start);
+      span.style.left = this.translateToPx(range.start, null);
+      span.style.width = this.translateToPx(range.end - range.start + this.range.start, null);
     }
   },
   updateStyles: function() {
