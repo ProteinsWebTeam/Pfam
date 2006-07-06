@@ -1,0 +1,64 @@
+[%#
+# alignmentFragment.tt
+# jt6 20060628 WTSI
+#
+# dump out a sequence alignment as a page fragment.
+#
+# $Id: alignmentFragment.tt,v 1.1 2006-07-06 11:46:34 jt6 Exp $
+%]
+
+[% start     = alignments.start ? alignments.start : 1  %]
+[% end       = alignments.end   ? alignments.end   : 20 %]
+[% interval  = end - start + 1 %]
+
+[% max       = alignments.lengths.0 %]
+
+[% nextStart = start + interval %]
+[% nextEnd   = end   + interval %]
+
+[% nextStart = ( nextStart > max ) ? start : nextStart %]
+[% nextStart = ( nextStart >= nextEnd ) ? ( nextEnd - 1 ) : nextStart %]
+[% nextEnd = ( nextEnd + interval > max ) ? max : nextEnd %]
+
+[% nextRows  = "$nextStart-$nextEnd" %]
+
+[% prevStart = start - interval %]
+[% prevEnd   = end   - interval %]
+
+[% IF prevStart < 1 %]
+  [% prevStart = 1 %]
+  [% prevEnd   = prevStart + interval - 1 %]
+[% END %]
+[% prevEnd = ( prevEnd + interval > max ) ? max : prevEnd %] 
+[% prevEnd = ( prevEnd <= prevStart ) ? ( prevStart + 1 ) : prevEnd %] 
+
+[% prevRows  = "$prevStart-$prevEnd" %]
+
+[%# dump the raw alignment %]
+[% alignments.alignments.0 %]
+
+[%# c.prototype.form_remote_tag( {
+       url    => c.uri_for( "/alignmentgenerator" ),
+       update => "caph"
+     } ) %]
+
+<form method="post" id="pagingForm">
+
+  <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
+  <span>
+    <label for="startSeq">Start: </label>
+    <input name="start" id="startSeq" type="text" size="5"[% IF start %] value="[% start %]"[% END %] />
+  </span>
+  <span>
+    <label for="endSeq">End (max [% max %]): </label>
+    <input name="end" id="endSeq" type="input" size="5"[% IF end %] value="[% end %]"[% END %] />
+  </span>
+
+  <input type="hidden" name="range" id="rowRange" />
+ 
+  <input type="button" value="prev" onclick="generateAlignment('pager', [% prevStart %], [% prevEnd %] )" />  
+  <input type="button" value="next" onclick="generateAlignment('pager', [% nextStart %], [% nextEnd %] )" />  
+  <input type="button" value="submit" onclick="generateAlignment('submit')" />  
+
+</form>
+
