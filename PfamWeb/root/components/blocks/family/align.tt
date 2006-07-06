@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.3 2006-06-01 16:32:10 jt6 Exp $
+# $Id: align.tt,v 1.4 2006-07-06 11:46:16 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -15,43 +15,15 @@
   </div>
   <div class="blockContent">
 
-    <p id="caph">
-      <img src="static/images/loading.gif" alt="loading..." />
-      Loading alignment...
-    </p>
-
-    <form method="get" action="/getalign">
-        <p>Format
-          <select name="format">
-             <option value="link">Coloured alignment</option>
-             <option value="mul">Plain Pfam format</option>
-             <option value="stock">Plain Stockholm format</option>
-             <option value="fal">Fasta format (with gaps)</option>
-             <option value="msf">MSF format</option>
-             <option value="belvu">Belvu (unix only)</option>
-             <option value="belold">Belvu (old version unix only)</option>
-             <option value="jalview">Jalview (Java)</option>
-           </select>
-        </p>
-    </form>
-
-    <div class="hmmlogoSelect">
-	</div>	
-
-    <div class="treeSelect">
-	  <form method="get" action="/getalign">
-	    <input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
-	    <input type="hidden" name="tree" value="tree" />
-	    <input type="radio" name="type" checked="checked" value="seed"></input><span>Seed ([% pfam.num_seed %])&nbsp;</span>
-	    <input type="radio" name="type" value="full"></input><span>Full ([% pfam.num_full %])</span>
-        <input type="submit" value="Download tree" />
-        <input type="button" value="ATV Applet" onclick="open_cur_ATV('$acc', this.form)" />
-      </form>
-
-	  <p>The trees were generated using <a href="http://www.sanger.ac.uk/Software/analysis/quicktree/">Quicktree</a></p> 
-   <p>To find out more about ATV phylogenetic tree-viewer <a href="http://www.genetics.wustl.edu/eddy/atv">click here</a></p>
+	<div id="caph">
+      <p>
+        <img src="/images/loading.gif" alt="loading..." />
+        Loading alignment...
+      </p>
     </div>
-  </div>
+
+  </div> [%# end of blockcontent %]
+
 </div>
 
 <script type="text/javascript">
