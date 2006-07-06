@@ -4,7 +4,7 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: protein_ie.css,v 1.1 2006-05-15 10:51:23 jt6 Exp $
+   $Id: protein_ie.css,v 1.2 2006-07-06 10:45:37 jt6 Exp $
 */
 
 hr.short {
@@ -15,6 +15,6 @@ hr.short {
 /* redundant if we switch to a GIF rather than a PNG...
 #icons {
     background-image: none;
-    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/right_top.png",sizingMethod="crop");
+    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/right_top.png",sizingMethod="crop");
 }
 */

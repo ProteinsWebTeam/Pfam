@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.5 2006-06-01 16:29:26 jt6 Exp $
+   $Id: family.css,v 1.6 2006-07-06 10:45:37 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -28,18 +28,25 @@
 /* ======================================== */
 /* components of the remainder of the page */
 
-#content {
-  border-top-color: #4577a5;
-}
+/* 
+div#contentContainer
+  div#wrap
+    div#sidebar
+    div#content
+*/
 
 #contentContainer {
   background-color: #c2d2e1;
-  background-image: url(/static/images/blue_page_border.gif);
+  background-image: url(/images/blue_page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/static/images/blue_bg.gif) repeat-y 15% 0;
+  background: url(/images/blue_bg.gif) repeat-y 15% 0;
+}
+
+#content {
+  border-top-color: #4577a5;
 }
 
 /* the left column navigation bar */
@@ -54,11 +61,11 @@
 
 #sidebar li.selected a {
   border-color: #4577a5;
-  background-image: url(/static/images/blue_selected_bg.gif);
+  background-image: url(/images/blue_selected_bg.gif);
 }
 
-#sidebar li span.inactive {
-  color: #7c99b3;
+#sidebar li div.inactive {
+  color: #8daac4; /* was 7c99b3 */
 }
 
 #footer {
@@ -84,49 +91,127 @@ h4.pdbTitle  {
 	color: #074987;
 }
 
-#curationBlock h3 {
-  width: 11.7em;
-  margin: 0.2em 0;
-  padding-top: 1em;
-  text-align: right;
-  clear: both;
-}
-
 #tableLabel {
   padding-top: 0.4em;
 }
 
-#modelDetails table {  
+/* ---------------------------------------- */
+
+table.details {  
   margin: 0;
   padding: 0;
-  display: inline;
+  border-collapse: collapse;
 }
 
-#modelDetails .label {
+table.details .label {
   text-align: left;
 }
 
-#modelDetails thead tr {
+table.details thead tr {
   background: #BBB;
 }
 
-#modelDetails th {
+table.details th {
   padding: 0.2em;
+  border: 2px solid #FFF;
 }
 
-#modelDetails td {
+table.details td {
   text-align: center;
   padding: 0.2em;
+  border: 2px solid #FFF;
 }
 
-#modelDetails tr.odd td {
-	background: #EEE;
+table.details tr.newRow td {
+  margin-top: 2px;
+  border-top: 1px solid #BBB;
 }
-#modelDetails tr.even td {
+
+table.details tr {
 	background: #DDD;
 }
+
+.stripeHover {
+	background: #CBD;
+}
+
+/* ---------------------------------------- */
 
 #alignmentTree img {
     border: 1px solid #CCC;
 }
 
+#structuresListTable {
+  background: #BBB;
+}
+
+#structuresListTable th {
+  padding: 0.4em;
+}
+
+#structuresListTable td {
+  padding: 0.2em 0.4em;
+}
+
+#structuresListTable tr.newRow td {
+  border-top: 1px solid #BBB;
+}
+
+#unpId {
+  width: 6em;
+}
+#unpRes {
+  width: 6em;
+}
+#pdbId {
+  width: 4em;
+}
+#chId {
+  width: 3em;
+}
+#pdbRes {
+  width: 6em;
+}
+
+#alignmentData {
+  width: 55em;
+  font-family: mono;
+  font-size: smaller;
+  overflow: auto;
+}
+#alignmentData span {
+  white-space: nowrap;
+}
+
+#alignmentKey {
+  width: 12em;
+  font-family: mono;
+  font-size: smaller;
+  overflow: auto;
+  float: left;
+}
+#alignmentKey span {
+  display: block;
+}
+#alignmentKey span.odd {
+  background: #BAB;
+}
+#alignmentKey span.even {
+  background: #CBC;
+}
+
+/*
+div.align {
+  width: 100%;
+  font-family: Courier;
+  font-size: smaller;
+  white-space: nowrap;
+  overflow: auto;
+}
+
+div.align span.alirow {
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+*/

@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the iPfam pages.
 
-   $Id: ipfam.css,v 1.1 2006-04-25 16:23:52 jt6 Exp $
+   $Id: ipfam.css,v 1.2 2006-07-06 10:45:37 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -34,12 +34,12 @@
 
 #contentContainer {
   background-color: #a69dcc;
-  background-image: url(/static/images/purple_page_border.gif);
+  background-image: url(/images/purple_page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/static/images/purple_bg.gif) repeat-y 15% 0;
+  background: url(/images/purple_bg.gif) repeat-y 15% 0;
 }
 
 /* the left column navigation bar */
@@ -54,7 +54,7 @@
 
 #sidebar li.selected a {
   border-color: #6f63a2;
-  background-image: url(/static/images/purple_selected_bg.gif);
+  background-image: url(/images/purple_selected_bg.gif);
 }
 
 #sidebar li span.inactive {
