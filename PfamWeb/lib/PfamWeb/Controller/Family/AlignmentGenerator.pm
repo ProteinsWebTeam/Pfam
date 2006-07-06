@@ -4,7 +4,7 @@
 #
 # ?
 #
-# $Id: AlignmentGenerator.pm,v 1.1 2006-06-01 16:25:41 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.2 2006-07-06 09:51:46 jt6 Exp $
 
 package PfamWeb::Controller::AlignmentGenerator;
 
@@ -23,17 +23,55 @@ sub getData : Path {
 
   return unless defined $c->stash->{pfam};
 
+  # somewhere to dump the paging info
+  $c->stash->{alignments} = {};
+
   my @dsnList = ( "http://pfam1b.internal.sanger.ac.uk:9000/das/pfamAlign" );
 
   my $dl = PfamWeb::Model::Das_sources->getDasLite;
   $dl->dsn( \@dsnList );
 
-  my $alignment = $dl->alignment( { query => $c->stash->{pfam}->pfamA_acc . ".full" } );
-  my $features  = $dl->features( $c->stash->{pfam}->pfamA_acc . ".full" );
-  my $consensus = getConsensus( $features );
+  # get the limits from the parameters
+  my $rows;
+  ( $rows ) = $c->req->param( "range" ) =~ m/^(\d+\-\d+)$/
+	if defined $c->req->param( "range" );
 
-  $c->stash->{alignment} = [ reconstructAli( $alignment ) ];
-  $c->stash->{consensus} = Bio::Pfam::ColourAlign::parseConsensus( $consensus );
+  $c->log->debug( "rows: |$rows|" );
+
+  unless( defined $rows ) {
+	$c->log->debug( "rows undefined; calculating from start and end" );
+
+	my( $start, $end );
+	( $start ) = $c->req->param( "start" ) =~ m/^(\d+)$/
+	  if defined $c->req->param( "start" );
+	( $end   ) = $c->req->param( "end"   ) =~ m/^(\d+)$/
+	  if defined $c->req->param( "end" );
+
+	$rows = ( defined $start ? $start : "1" ) . "-" . ( defined $end ? $end : 10 );
+  }
+
+  $c->log->debug( "rows finally set to: |$rows|" );
+  $rows = "1-20" unless $rows =~ /^\d+\-\d+$/;
+
+  # store the start and end of the range
+  $rows =~ m/^(\d+)\-(\d+)$/;
+  $c->stash->{alignments}->{start} = $1;
+  $c->stash->{alignments}->{end}   = $2;
+
+  my $rawAlignment = $dl->alignment( { query => $c->stash->{pfam}->pfamA_acc . ".full",
+									   rows  => $rows
+									 } );
+  my $features     = $dl->features( $c->stash->{pfam}->pfamA_acc . ".full" );
+  my $consensus    = Bio::Pfam::ColourAlign::parseConsensus( getConsensus( $features ) );
+
+  my( $alignments, $alignmentLengths ) = reconstructAli( $rawAlignment );
+  my @markedUpAlignments;
+   foreach my $alignment ( @$alignments ) {
+ 	push @markedUpAlignments, Bio::Pfam::ColourAlign::markupAlignSeparate( $alignment, $consensus );
+   }
+
+  $c->stash->{alignments}->{alignments} = \@markedUpAlignments;
+  $c->stash->{alignments}->{lengths}    = $alignmentLengths;
 
 }
 
@@ -44,57 +82,92 @@ sub getData : Path {
 sub end : Private {
   my( $this, $c ) = @_;
 
-  return unless defined $c->stash->{pfam};
+  # not sure we need this check here, since it's being done in the
+  # default method already
+  #return unless defined $c->stash->{pfam};
 
-  foreach my $alignment ( @{$c->stash->{alignment}} ) {
-	Bio::Pfam::ColourAlign::markupAlign( $alignment, $c->stash->{consensus} );
-  }
+  $c->stash->{template} = "components/blocks/family/alignmentFragment.tt";
+
+  # forward to the class that's got the WRAPPER set to null
+  $c->forward( "PfamWeb::View::TTBlock" );
 
 }
 
 #-------------------------------------------------------------------------------
 
 sub reconstructAli {
-    my $ali = shift;
-    my ($source, $aliData) = each %$ali;
+  my $ali = shift;
+  my ($source, $aliData) = each %$ali;
 
-    my @alignments;
-    #print "$source, $aliData\n";
-    for (my $i = 0; $i < scalar(@$aliData); $i++){
-	#print $aliData->[$i]->{'alignobject'}."\n";
+  my( @alignments, @alignmentLengths );
+  #print "$source, $aliData\n";
+  for (my $i = 0; $i < scalar(@$aliData); $i++) {
 	my %aliObjects = map{$_->{'alignobject_intObjectId'} => $_} @{$aliData->[$i]->{'alignobject'}};
-	foreach my $block (sort{$a->{'block_blockOrder'} <=> $b->{'block_blockOrder'}} @{$aliData->[$i]->{'block'}}){
-	    my %ali;
-	    foreach my $bseqRef (@{$block->{'segment'}}){
+	push @alignmentLengths, $aliData->[$i]->{alignment_max};
+	foreach my $block (sort{$a->{'block_blockOrder'} <=> $b->{'block_blockOrder'}} @{$aliData->[$i]->{'block'}}) {
+	  my %ali;
+	  foreach my $bseqRef (@{$block->{'segment'}}) {
 		$ali{$bseqRef->{'segment_intObjectId'}."/".$bseqRef->{'segment_start'}."-".$bseqRef->{'segment_end'}} = &getAliString($bseqRef, \%aliObjects); 
 		#printf("%-20s %s\n", $bseqRef->{'segment_intObjectId'}."/".$bseqRef->{'segment_start'}."-".$bseqRef->{'segment_end'}, $aliString);
-	    }
-	    push(@alignments, \%ali);
+	  }
+	  push(@alignments, \%ali);
 	}
-    }
-    return @alignments;
+  }
+  return \@alignments, \@alignmentLengths;
 }
 
+# an attempt to re-write the previous method to be a little more
+# efficient. It's so efficient it doesn't work. Remove once the class
+# has been checked in once...
+sub reconstructAlignment {
+  my( $alignmentData, $consensus ) = @_;
+
+  # get the data for the single alignment out of the junk that we're passed...
+  my $alignment = ( values %$alignmentData )[0]->[0];
+  print STDERR "alignment: " . Dumper( $alignment ) . "\n";
+
+  # convert an array of alignment rows into a hash, which the uniprot
+  # ID as the key and the alignment row hash as the value
+  my %aliObjects = map { $_->{alignobject_intObjectId} => $_ } @{ $alignment->{alignobject} };
+
+  # walk over the alignment and apply the cigar strings
+  my( @alignments, $key );
+  foreach my $block ( sort { $a->{block_blockOrder} <=> $b->{block_blockOrder} }
+					  @{$alignment->{block}} ) {
+	my %ali;
+	foreach my $bseqRef (@{ $block->{segment} } ) {
+	  $key = $bseqRef->{segment_intObjectId} . "/" .
+		     $bseqRef->{segment_start} . "-" .
+		     $bseqRef->{segment_end};
+	  $ali{$key} = getAliString( $bseqRef, \%aliObjects );
+	}
+	print STDERR "parsed alignment: " . Dumper( \%ali ) . "\n";
+	push @alignments, Bio::Pfam::ColourAlign::markupAlign( \%ali, $consensus );
+  }
+  return \@alignments;
+}
+
+
 sub getAliString{
-    my ($bseqRef, $aliObjectsRef) = @_;
-    my $seq = substr($aliObjectsRef->{$bseqRef->{'segment_intObjectId'}}->{'sequence'}, ($bseqRef->{'segment_start'}-1), $bseqRef->{'segment_end'}-$bseqRef->{'segment_start'}+1);
-    my $aliString = cigar2align($bseqRef->{'cigar'},$seq);
-    return $aliString;
+  my ($bseqRef, $aliObjectsRef) = @_;
+  my $seq = substr($aliObjectsRef->{$bseqRef->{'segment_intObjectId'}}->{'sequence'}, ($bseqRef->{'segment_start'}-1), $bseqRef->{'segment_end'}-$bseqRef->{'segment_start'}+1);
+  my $aliString = cigar2align($bseqRef->{'cigar'},$seq);
+  return $aliString;
 }
 
 sub cigar2align  {
-    my $cigar = shift;
-    $cigar =~ s/\"//g;
-    my $seq = shift;
-    my $tmp = $cigar;
-    my $start = 0;
-    my $len = length($seq);
-    $tmp =~ s/(\d+)D/'-'x$1/eg;
-    $tmp =~ s/D/\-/g;
-    $tmp =~ s/(\d+)I/'.'x$1/eg;
-    $tmp =~ s/I/\./g;
-    $tmp =~ s/(\d{0,5})M/if($1){$start+=$1,($start<=$len)?substr($seq,$start-$1,$1):'~'x$1}else{$start+=1,($start<=$len)?substr($seq,$start-1,1):'~'}/eg;
-    return $tmp;
+  my $cigar = shift;
+  $cigar =~ s/\"//g;
+  my $seq = shift;
+  my $tmp = $cigar;
+  my $start = 0;
+  my $len = length($seq);
+  $tmp =~ s/(\d+)D/'-'x$1/eg;
+  $tmp =~ s/D/\-/g;
+  $tmp =~ s/(\d+)I/'.'x$1/eg;
+  $tmp =~ s/I/\./g;
+  $tmp =~ s/(\d{0,5})M/if($1){$start+=$1,($start<=$len)?substr($seq,$start-$1,$1):'~'x$1}else{$start+=1,($start<=$len)?substr($seq,$start-1,1):'~'}/eg;
+  return $tmp;
 
 }
 
