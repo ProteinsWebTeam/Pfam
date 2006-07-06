@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.7 2006-06-01 16:29:26 jt6 Exp $
+   $Id: tab_layout.css,v 1.8 2006-07-06 10:45:37 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -19,7 +19,7 @@
 
 /* styles for the markup that forms the page tab */
 #tabTitle {
-/*  background: url(/static/images/double_gradient.gif) repeat-y 15% bottom; */
+/*  background: url(/images/double_gradient.gif) repeat-y 15% bottom; */
     min-height: 50px;
     margin: 0;
     padding: 0 0 2px 0;
@@ -32,14 +32,14 @@
 }
 
 #corner {
-    background: url(/static/images/left_curve.gif) no-repeat top left;
+    background: url(/images/left_curve.gif) no-repeat top left;
     padding: 12px 0 0 0.4em;
     height: 12px;
 }
 
 /* the overview bar */
 #icons {
-    background: url(/static/images/right_top.gif) top left no-repeat;
+    background: url(/images/right_top.gif) top left no-repeat;
     margin: 0;
     padding: 0 0 6px 40px;
     float: right;
@@ -75,11 +75,11 @@
 }
 
 /* the logos for the overview */
-#seqIcon	{ background-image: url(/static/images/logos/alignment.png) }
-#archIcon	{ background-image: url(/static/images/logos/domains.png) }
-#structIcon	{ background-image: url(/static/images/logos/structure.png) }
-#ipfamIcon	{ background-image: url(/static/images/logos/ipfam.png) }
-#specIcon	{ background-image: url(/static/images/logos/tree.png) }
+#seqIcon	{ background-image: url(/images/logos/alignment.png) }
+#archIcon	{ background-image: url(/images/logos/domains.png) }
+#structIcon	{ background-image: url(/images/logos/structure.png) }
+#ipfamIcon	{ background-image: url(/images/logos/ipfam.png) }
+#specIcon	{ background-image: url(/images/logos/tree.png) }
 
 /* ======================================== */
 /* components of the remainder of the page */
@@ -107,7 +107,7 @@
 
 #footer {
   clear: both;
-  background-image: url(/static/images/wide_tab_shadow.png);
+  background-image: url(/images/wide_tab_shadow.png);
   background-repeat: no-repeat;
   background-position: top left;
   position: relative;
@@ -155,15 +155,15 @@
 }
 
 #sidebar li.selected {
-  background-image: url(/static/images/wide_tab_shadow.png);
+  background-image: url(/images/wide_tab_shadow.png);
   background-repeat: no-repeat;
   background-position: bottom left;
   margin-left: 0.2em;
 }
 
 #sidebar li.selected a {
-position: relative;
-left: 1px;
+  position: relative;
+  left: 1px;
   outline: none;
   border-width: 1px;
   border-style: solid;
@@ -177,6 +177,7 @@ left: 1px;
 }
 
 #sidebar li div.inactive {
+  color: #AAA;
   margin: 0;
   padding: 0.2em 0.2em 0.2em 0.8em;
   text-decoration: none;
@@ -214,29 +215,35 @@ h3 {
   text-decoration: underline;
 }
 
-div.blockContent div.row {
+h3.inset {
+  width: 11.7em;
+  margin: 0.2em 0 0.4em 0;
+  padding-top: 1em;
+  text-align: right;
   clear: both;
-  padding-top: 0.4em;
 }
 
-div.odd {
-  background: #e7e7e7;
-}
-
-div.even {
+.odd {
   background: #f3f3f3;
 }
 
-div.blockContent span.label {
-  float: left;
-  text-align: right;
-  width: 14em;
-  font-weight: bold;
-  padding-right: 0.4em;
+.even {
+  background: #e7e7e7;
 }
 
-div.blockContent span.rowData {
+div.blockContent dt.label {
+  font-weight: bold;
+  text-align: right;
+  width: 14em;
   float: left;
+  padding: 0.2em;
+}
+
+div.blockContent dd.row {
+  margin-left: 0;
+  padding: 0.2em;
+  padding-left: 14.6em;
+  clear: left;
 }
 
 span.subLabel {
@@ -251,6 +258,33 @@ span.subLabel {
 span.subRowData {
   display: block;
   float: left;
+}
+
+p.small {
+	font-size: smaller;
+}
+
+p.inactive {
+	color: #AAA;
+}
+
+table.layout {
+  width: 100%;
+}
+table.layout td {
+  margin: 1px;
+}
+table.layout td.label {
+  width: 13.2em;
+  padding: 0.2em;
+  background: #CCC;
+  text-align: right;
+  font-weight: bold;
+  vertical-align: top;
+}
+table.layout td.data {
+  padding: 0.2em;
+  vertical-align: top;
 }
 
 /* ======================================== */

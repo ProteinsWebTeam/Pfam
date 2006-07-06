@@ -4,7 +4,7 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: clans_ie.css,v 1.1 2006-04-20 16:37:15 jt6 Exp $
+   $Id: clans_ie.css,v 1.2 2006-07-06 10:45:37 jt6 Exp $
 */
 
 hr.short {
@@ -14,5 +14,5 @@ hr.short {
 /* the curved corner for the page top tab */
 #icons {
     background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/static/images/right_top_green.png",sizingMethod="crop");
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/right_top_green.png",sizingMethod="crop");
 }
