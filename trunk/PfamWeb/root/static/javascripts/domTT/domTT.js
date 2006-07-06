@@ -1,4 +1,4 @@
-/** $Id: domTT.js,v 1.1 2006-06-01 16:28:15 jt6 Exp $ */
+/** $Id: domTT.js,v 1.2 2006-07-06 10:46:46 jt6 Exp $ */
 // {{{ license
 
 /*
