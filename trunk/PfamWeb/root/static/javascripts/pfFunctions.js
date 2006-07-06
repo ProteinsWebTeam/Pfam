@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.8 2006-06-27 16:32:27 jt6 Exp $
+// $Id: pfFunctions.js,v 1.9 2006-07-06 11:45:40 jt6 Exp $
 
 //------------------------------------------------------------
 // show the specified tab in the page body
@@ -31,7 +31,8 @@ function show( id ) {
 }
 
 //------------------------------------------------------------
-// show/hide the specified drop-down panel
+// show/hide the specified drop-down panel in the protein 
+// section
 
 showItems = {};
 function reveal( oSwitch, sId ) {
@@ -52,7 +53,8 @@ function reveal( oSwitch, sId ) {
 }
 
 //------------------------------------------------------------
-// callbacks for the domain graphics generation call
+// callbacks for the domain graphics generation call in the 
+// family section
 
 function dgSuccess( oResponse ) {
   Element.update( $("dgph").parentNode, oResponse.responseText );
@@ -62,7 +64,8 @@ function dgFailure() {
 }
 
 //------------------------------------------------------------
-// callbacks for the species tree generation call
+// callbacks for the species tree generation call in the 
+// family section
 
 function stSuccess( oResponse ) {
   var tree = new YAHOO.widget.TreeView("treeDiv");
@@ -75,7 +78,8 @@ function stFailure() {
 }
 
 //------------------------------------------------------------
-// callbacks for the alignment tree generation call
+// callbacks for the alignment tree generation call in the 
+// family section
 
 function atSuccess( oResponse ) {
   Element.update( $("alignmentTree"), oResponse.responseText );
@@ -101,8 +105,49 @@ function atFailure() {
 function caSuccess( oResponse ) {
   Element.update( $("caph"), oResponse.responseText );
 }
+
 function caFailure() {
   Element.update( $("caph"), "Alignment loading failed." );
+}
+
+//------------------------------------------------------------
+// code snippets in individual blocks will populate this object
+
+var loadOptions = {};
+loadOptions.dg = {}; // domain graphics
+loadOptions.st = {}; // species tree
+loadOptions.at = {}; // alignment tree
+loadOptions.pg = {}; // protein graphics
+loadOptions.ca = {}; // coloured alignment
+
+//------------------------------------------------------------
+// this will make the ajax calls for the family page components
+
+function familyPostLoad() {
+  new Ajax.Request( loadOptions.dg.uri,
+					{ method:     "get", 
+ 					  parameters: loadOptions.dg.params,
+ 					  onComplete: dgSuccess,
+ 					  onFailure:  dgFailure
+ 					} );
+  new Ajax.Request( loadOptions.st.uri,
+ 	                { method:     "get", 
+ 					  parameters: loadOptions.st.params,
+                      onComplete: stSuccess,
+                      onFailure:  stFailure
+ 					} );
+  new Ajax.Request( loadOptions.at.uri,
+ 					{ method:     "get", 
+ 					  parameters: loadOptions.at.params,
+ 					  onComplete: atSuccess,
+ 					  onFailure:  atFailure
+ 					} );
+  new Ajax.Request( loadOptions.ca.uri,
+					{ method:     "get", 
+					  parameters: loadOptions.ca.params,
+					  onComplete: caSuccess,
+					  onFailure:  caFailure
+					} );
 }
 
 //------------------------------------------------------------
@@ -129,46 +174,6 @@ function pgSuccess( oResponse ) {
 // called in response to a failed call
 function pgFailure() {
   Element.update( $("pgph"), "Alignment loading failed." );
-}
-
-//------------------------------------------------------------
-// code snippets in individual blocks will populate this object
-
-var loadOptions = {};
-loadOptions.dg = {}; // domain graphics
-loadOptions.st = {}; // species tree
-loadOptions.at = {}; // alignment tree
-loadOptions.pg = {}; // protein graphics
-loadOptions.ca = {}; // coloured alignment
-
-//------------------------------------------------------------
-// this will make the ajax calls for the family page components
-
-function familyPostLoad() {
-  new Ajax.Request( loadOptions.dg.uri,
-					{ method:     "get", 
-					  parameters: loadOptions.dg.params,
-					  onComplete: dgSuccess,
-					  onFailure:  dgFailure
-					} );
-  new Ajax.Request( loadOptions.st.uri,
-	                { method:     "get", 
-					  parameters: loadOptions.st.params,
-                      onComplete: stSuccess,
-                      onFailure:  stFailure
-					} );
-  new Ajax.Request( loadOptions.at.uri,
-					{ method:     "get", 
-					  parameters: loadOptions.at.params,
-					  onComplete: atSuccess,
-					  onFailure:  atFailure
-					} );
-//   new Ajax.Request( loadOptions.ca.uri,
-// 					{ method:     "get", 
-// 					  parameters: loadOptions.ca.params,
-// 					  onComplete: caSuccess,
-// 					  onFailure:  caFailure
-// 					} );
 }
 
 //------------------------------------------------------------
@@ -419,3 +424,70 @@ highlight.mouseoutHandler = function( e ) {
 	// reset the array
 	highlightedCells.clear();
 }
+
+//------------------------------------------------------------
+// function to submit the alignment generation form  
+
+function generateAlignment( type, start, end ) {
+
+  // are we rendering a specified range or the previous/next block ?
+  var range;
+  if( "pager" == type ) {
+	range = start + "-" + end;
+  } else {
+	range = $F("startSeq")+"-"+$F("endSeq");
+  }
+
+  // stuff that value into the form...
+  $("rowRange").value = range;
+
+  // and effectively submit it
+  new Ajax.Updater( "caph",
+                    loadOptions.ca.uri, 
+                    {
+                      parameters:   Form.serialize( $("pagingForm") ),
+                      asynchronous: 1
+                    }
+                  );
+
+  return false;
+}
+
+
+
+// from the author's first demo of a vertical slider.  It begins disabled.
+// var s2 = new Control.Slider( 'slider_1',
+// 							 'track_1',
+// 							 {   axis:'vertical',
+// 							     minimum: 60,
+// 							     maximum:288,
+// 							     alignX: -28,
+// 							     alignY: -5,
+// 							     disabled: true, 
+// 							 } 
+// 						   );
+
+// example of a horizontal slider that allows only 4 possible values
+// var sliderLimited = new Control.Slider( 'slider_Limited',
+// 										'track_Limited',
+// 										{   minimum:2,
+// 											maximum:30,
+// 											increment:9,
+// 											alignX: -5,
+// 											alignY: -5,
+// 											values: [2, 10, 15, 30]
+// 										}
+//                                       );
+
+// Setting the callbacks later on
+// s2.options.onChange = function(value){
+//   activeProfile.height = value;
+//   updateBankDescription();
+//   setResizeDesc();
+//   $('height_value').innerHTML = value;
+// };
+// s2.options.onSlide = function(value){                                  
+//   vidFrame1.setHeight(value);
+//   $('height_value').innerHTML = value;
+//   setResizeDesc();
+// };
