@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.6 2006-07-06 10:45:37 jt6 Exp $
+   $Id: family.css,v 1.7 2006-07-07 16:09:52 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -37,12 +37,12 @@ div#contentContainer
 
 #contentContainer {
   background-color: #c2d2e1;
-  background-image: url(/images/blue_page_border.gif);
+  background-image: url(/images/family/page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/images/blue_bg.gif) repeat-y 15% 0;
+  background: url(/images/family/bg.gif) repeat-y 15% 0;
 }
 
 #content {
@@ -61,7 +61,7 @@ div#contentContainer
 
 #sidebar li.selected a {
   border-color: #4577a5;
-  background-image: url(/images/blue_selected_bg.gif);
+  background-image: url(/images/family/selected_bg.gif);
 }
 
 #sidebar li div.inactive {
@@ -93,46 +93,6 @@ h4.pdbTitle  {
 
 #tableLabel {
   padding-top: 0.4em;
-}
-
-/* ---------------------------------------- */
-
-table.details {  
-  margin: 0;
-  padding: 0;
-  border-collapse: collapse;
-}
-
-table.details .label {
-  text-align: left;
-}
-
-table.details thead tr {
-  background: #BBB;
-}
-
-table.details th {
-  padding: 0.2em;
-  border: 2px solid #FFF;
-}
-
-table.details td {
-  text-align: center;
-  padding: 0.2em;
-  border: 2px solid #FFF;
-}
-
-table.details tr.newRow td {
-  margin-top: 2px;
-  border-top: 1px solid #BBB;
-}
-
-table.details tr {
-	background: #DDD;
-}
-
-.stripeHover {
-	background: #CBD;
 }
 
 /* ---------------------------------------- */
@@ -200,18 +160,7 @@ table.details tr {
   background: #CBC;
 }
 
-/*
-div.align {
-  width: 100%;
-  font-family: Courier;
-  font-size: smaller;
-  white-space: nowrap;
-  overflow: auto;
-}
-
-div.align span.alirow {
-  margin: 0;
-  padding: 0;
+#domainsBlock img {
   display: block;
+  padding: 0.4em;
 }
-*/
