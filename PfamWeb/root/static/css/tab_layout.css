@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.8 2006-07-06 10:45:37 jt6 Exp $
+   $Id: tab_layout.css,v 1.9 2006-07-07 16:09:29 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -19,7 +19,7 @@
 
 /* styles for the markup that forms the page tab */
 #tabTitle {
-/*  background: url(/images/double_gradient.gif) repeat-y 15% bottom; */
+/*  background: url(/images/layout/double_gradient.gif) repeat-y 15% bottom; */
     min-height: 50px;
     margin: 0;
     padding: 0 0 2px 0;
@@ -32,14 +32,14 @@
 }
 
 #corner {
-    background: url(/images/left_curve.gif) no-repeat top left;
+    background: url(/images/layout/left_curve.gif) no-repeat top left;
     padding: 12px 0 0 0.4em;
     height: 12px;
 }
 
 /* the overview bar */
 #icons {
-    background: url(/images/right_top.gif) top left no-repeat;
+    background: url(/images/layout/right_top.gif) top left no-repeat;
     margin: 0;
     padding: 0 0 6px 40px;
     float: right;
@@ -107,7 +107,7 @@
 
 #footer {
   clear: both;
-  background-image: url(/images/wide_tab_shadow.png);
+  background-image: url(/images/layout/wide_tab_shadow.png);
   background-repeat: no-repeat;
   background-position: top left;
   position: relative;
@@ -155,7 +155,7 @@
 }
 
 #sidebar li.selected {
-  background-image: url(/images/wide_tab_shadow.png);
+  background-image: url(/images/layout/wide_tab_shadow.png);
   background-repeat: no-repeat;
   background-position: bottom left;
   margin-left: 0.2em;
@@ -305,7 +305,8 @@ div.domain {
 #familySummaryBlock,
 #clanSummaryBlock,
 #ipfamSummaryBlock,
-#proteinSummaryBlock {
+#proteinSummaryBlock,
+#structureSummaryBlock {
   display: block;
 }
 
@@ -316,8 +317,8 @@ div.pdbImageFragment {
     margin: 0.2em;
 	padding: 0.3em;
     width: 200px;
-font-size: 0.8em;
-overflow: hidden;
+    font-size: 0.8em;
+    overflow: hidden;
 }
 
 img.pdbImage {
@@ -331,6 +332,46 @@ h4.pdbTitle  {
 
 hr.short {
 	display: none;
+}
+
+/* ---------------------------------------- */
+
+table.details {  
+  margin: 0;
+  padding: 0;
+  border-collapse: collapse;
+}
+
+table.details .label {
+  text-align: left;
+}
+
+table.details thead tr {
+  background: #BBB;
+}
+
+table.details th {
+  padding: 0.2em;
+  border: 2px solid #FFF;
+}
+
+table.details td {
+  text-align: center;
+  padding: 0.2em;
+  border: 2px solid #FFF;
+}
+
+table.details tr.newRow td {
+  margin-top: 2px;
+  border-top: 1px solid #BBB;
+}
+
+table.details tr {
+	background: #DDD;
+}
+
+.stripeHover {
+	background: #CBD;
 }
 
 /* ======================================== */
