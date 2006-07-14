@@ -4,7 +4,7 @@
 #
 # ?
 #
-# $Id: AlignmentGenerator.pm,v 1.2 2006-07-06 09:51:46 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.3 2006-07-14 13:09:39 jt6 Exp $
 
 package PfamWeb::Controller::AlignmentGenerator;
 
@@ -47,16 +47,23 @@ sub getData : Path {
 	( $end   ) = $c->req->param( "end"   ) =~ m/^(\d+)$/
 	  if defined $c->req->param( "end" );
 
-	$rows = ( defined $start ? $start : "1" ) . "-" . ( defined $end ? $end : 10 );
+	$rows = $start . "-" . $end if( defined $start and defined $end );
   }
 
   $c->log->debug( "rows finally set to: |$rows|" );
-  $rows = "1-20" unless $rows =~ /^\d+\-\d+$/;
+  $rows = $this->{defaultRows} unless $rows =~ /^\d+\-\d+$/;
 
   # store the start and end of the range
   $rows =~ m/^(\d+)\-(\d+)$/;
   $c->stash->{alignments}->{start} = $1;
   $c->stash->{alignments}->{end}   = $2;
+
+  # store the scroll position
+  if( defined $c->req->param( "scrollValue" ) ) {
+	$c->req->param( "scrollValue" ) =~ /^(\d+)$/;
+	$c->stash->{scroll} = $1;
+	$c->log->debug( "set scroll value to |" . $c->stash->{scroll} . "|" );
+  }
 
   my $rawAlignment = $dl->alignment( { query => $c->stash->{pfam}->pfamA_acc . ".full",
 									   rows  => $rows
