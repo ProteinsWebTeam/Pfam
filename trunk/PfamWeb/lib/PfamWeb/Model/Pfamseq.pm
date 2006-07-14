@@ -96,6 +96,6 @@ __PACKAGE__->has_one("arch" =>  "PfamWeb::Model::Pfamseq_architecture",
 		     {"foreign.type_example" => "self.auto_pfamseq"},
 		     { proxy => [qw/architecture/]});
 ##Storable
-__PACKAGE__->has_one("pfamseqStorable" =>  "PfamWeb::Model::Pfam_annseq",
-		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
-		     { proxy => [qw/annseq_storable/]});
+#'__PACKAGE__->has_one("pfamseqStorable" =>  "PfamWeb::Model::Pfam_annseq",
+#		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
+#		     { proxy => [qw/annseq_storable/]});
