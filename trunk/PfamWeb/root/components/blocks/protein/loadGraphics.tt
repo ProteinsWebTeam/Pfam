@@ -5,10 +5,8 @@
 # contents of the protein graphics block. Called using an ajax request
 # via ProteinGraphics.pm and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.6 2006-05-31 17:00:49 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.7 2006-07-14 12:43:14 jt6 Exp $
 %]
-
-[% USE dumper %]
 
 <!-- start of features map -->
 
@@ -20,12 +18,11 @@
   [% range = [ 0 .. maps.size ] %]
   [% FOREACH i IN range %]
   	[% map = maps.$i %]
-	[% CALL c.log.debug( dumper.dump( map ) ) %]
 	<div class="featuresRow" id="featuresRow[% i %]">
 
       <p class="featuresLabel">[% map.server %]</p>
 
-      <img class="featuresImage" id="featuresImage[% i %]" src="[% c.uri_for( "/" ); map.image %]" usemap="#featuresMap[% i %]" alt="" />
+      <img class="featuresImage" id="featuresImage[% i %]" src="[% constants.tmp %]/[% map.image %]" usemap="#featuresMap[% i %]" alt="" />
 
       <map name="featuresMap[% i %]">
         [% map.map %]
@@ -42,20 +39,22 @@
 
 <script type="text/javascript">
   var areas = $("featuresMap").getElementsByTagName( "area" );
+
   for( var i = 1; i <= areas.length; i++ ) {
 	if( $("featuresArea" + i) ) {
-	    Event.observe( "featuresArea" + i, "mouseover", highlight );
-    	//domTT_addPredefined( "featuresArea" + i + "Tip",
-	    //  "caption",    $("tip" + i + "Caption" ),
-    	//  "content",    $("tip" + i + "Content" ),
-	    //  "styleClass", "niceTitle",
-    	//  "trail",      true
-	    //);
+	  Event.observe( "featuresArea" + i, "mouseover", highlightFeature );
+      //domTT_addPredefined( "featuresArea" + i + "Tip",
+	  //  "caption",    $("tip" + i + "Caption" ),
+      //  "content",    $("tip" + i + "Content" ),
+	  //  "styleClass", "niceTitle",
+      //  "trail",      true
+	  //);
 	}
   }
   Event.observe( "featuresMap", "mousemove", moveCursor );
   Event.observe( "highlight",   "mousemove", moveCursor, true );
   Event.observe( "highlight",   "mouseout",  unhighlight );
+
 </script>
 
 <!-- end of features map -->
