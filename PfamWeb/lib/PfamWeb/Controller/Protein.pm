@@ -4,7 +4,7 @@
 #
 # Controller to build the main protein page.
 #
-# $Id: Protein.pm,v 1.3 2006-05-24 15:59:48 jt6 Exp $
+# $Id: Protein.pm,v 1.4 2006-07-14 13:10:13 jt6 Exp $
 
 package PfamWeb::Controller::Protein;
 
@@ -61,7 +61,7 @@ sub begin : Private {
 	# try a lookup in the main pfamseq table first
 	my $p = PfamWeb::Model::Pfamseq->find( { pfamseq_id => $1 } );
 
-	$c->stash->{pfamseq}     = $p if defined $p;
+	$c->stash->{pfamseq} = $p if defined $p;
 
   } elsif( defined $c->req->param( "entry" ) ) {
 
