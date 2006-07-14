@@ -1,18 +1,140 @@
+
 [% USE dumper %]
+
+[% # these are the labels for the links that will appear in the page
+labels = {
+	atobPRODOM = "PRODOM"
+    atobPRC    = "PRC"
+	atobBOTH   = "PRODOM &amp; PRC"
+    pdb        = "PDB entries"
+	interpro   = "InterPro"
+	COGS       = "COGS"
+    HOMSTRAD   = "HOMSTRAD"
+	SCOP       = "SCOP"
+	URL        = "External sites"
+   };
+# this is the order in which those links will be shown
+labelOrder = [
+    "atobPRODOM",
+    "atobPRC",   
+    "atobBOTH",
+    "pdb",       
+    "interpro",  
+    "COGS",      
+    "HOMSTRAD",  
+    "SCOP",
+    "URL"       
+]
+%]
+
+[% BLOCK buildLink %]
+  [% SWITCH type %]
+    [% CASE "PROSITE" %]
+      <a href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
+    [% CASE "PFAMB" %]
+      <a href="http://www.sanger.ac.uk/cgi-bin/Pfam/pfambget.pl?acc=[% id %]">[% id %]</a>
+	[% CASE "interpro" %]
+      <a href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
+	[% CASE "pdb" %]
+      <a href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
+	[% CASE "COGS" %]
+      <a href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
+	[% CASE "HOMSTRAD" %]
+      <a href="http://www-cryst.bioc.cam.ac.uk/cgi-bin/homstrad.cgi?family=[% id %]">[% id %]</a>
+	[% CASE "SCOP" %]
+      <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=fa&pdb=[% id %]">[% id %]</a>
+	[% CASE "URL" %]
+      <a href="[% id %]">[% number %]</a>
+	[% CASE %]
+      <p>Unrecognized link type: [% type %]</p>
+  [% END %]
+[% END %]
+
 <!-- start dbRefs block -->
 
 <div class="block" id="dbRefsBlock">
   <div class="handle">
 	<h1>Database references</h1>
   </div>
-  <div class="blockContent[% IF NOT open %] closed[% END %]">
-	[% FOREACH key IN xrefs.keys %]
-          	<p> DB   Link</p>	
-	   [% FOREACH db IN xrefs.$key %] 
-		<p> key [% db %]</p>
-	   [% END %]	
-	[% END %]
+  <div class="blockContent">
+    [% oe = 0 %]
 
+    <table class="layout">
+      <tbody>
+	  [% FOREACH db IN labelOrder %]
+        [% IF xrefs.$db.size %]
+	      <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+	        <td class="label">
+            [%- IF labels.$db -%]
+	          [%- labels.$db %]:
+            [%- ELSE -%]
+	          Unknown links ([% db %]):
+	        [%- END -%]
+	        </td>
+            <td class="data">
+              [% SWITCH db %]
+                [% CASE "interpro" %]
+	              [% FOREACH ref IN xrefs.$db %]
+                    <span class="entry">
+	                  [%- PROCESS buildLink type="interpro" id=ref -%]
+                    </span>
+	              [% END %]
+	         
+                  [% CASE [ "atobPRODOM" "atobPRC" ] %]
+	              [% FOREACH ref IN xrefs.$db %]
+                    <span class="entry">
+	                  [%- PROCESS buildLink type="PFAMB" id=ref.db_link -%]
+                    </span>
+	              [% END %]
+	         
+                [% CASE "atobBOTH" %]
+	              [% FOREACH ref IN xrefs.$db %]
+                    <span class="entry">
+	                  [%- PROCESS buildLink type="PFAMB" id=ref.pfamB_acc -%]
+                    </span>
+	              [% END %]
+	         
+                [% CASE "pdb" %]
+	              [% FOREACH pdb IN pdbUnique.keys.sort %]
+                    <span class="entry pdbEntry">
+	                  [%- PROCESS buildLink type="pdb" id=pdb -%]
+                    </span>
+	              [% END %]
+	         
+                [% CASE "COGS" %]
+	              [% cogs = [] %]
+	              [% FOREACH ref IN xrefs.$db %]
+	                [% cogs.push( ref.db_link ) %]
+	              [% END %]
+	              [% FOREACH id IN cogs.sort %]
+                    <span class="entry">
+	                  [%- PROCESS buildLink type="COGS" id=id -%]
+                    </span>
+	              [% END %]
+	         
+                [% CASE [ "HOMSTRAD" "SCOP" ] %]
+	              [% FOREACH ref IN xrefs.$db %]
+                    <span class="entry">
+	                  [%- PROCESS buildLink type=db id=ref.db_link -%]
+                    </span>
+	              [% END %]
+	         
+                [% CASE "URL" %]
+	            [% count = 1 %]
+	              [% FOREACH ref IN xrefs.$db %]
+                    <span class="entry">
+	                  [%- PROCESS buildLink type="URL" id=ref.db_link number=count -%]
+	               [% count = count + 1 %]
+                    </span>
+	              [% END %]
+	         
+	          [% END # of SWITCH db %]
+	        </td>
+          </tr>
+        [% END # end of "if xrefs..." %]
+	  [% END # end of "foreach db" %]
+      </tbody>
+    </table>
   </div>
 </div>
 
