@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.3 2006-06-01 16:34:04 jt6 Exp $
+# $Id: summary.tt,v 1.4 2006-07-14 12:43:42 jt6 Exp $
 %]
 
 [% USE String %]
@@ -24,96 +24,104 @@
   </div>
   <div class="blockContent">
 
-  <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-    <span class="label">Entry:</span>
-	<span class="rowData">
-      <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_acc %]</a>)</span>
-      <div class="cleaner">&nbsp;</div>
-  </div>
+    [% oe = 0 %]
 
-  <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-    <span class="label">Description:</span>
-	<span class="rowData">[% pfamseq.description %]</span>
-    <div class="cleaner">&nbsp;</div>
-      <div class="cleaner">&nbsp;</div>
-  </div>
+    <table class="layout">
+	  <tbody>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Entry:</td>
+	      <td class="data">
+            <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_acc %]</a>)
+          </td>
+		</tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Description:</td>
+	      <td class="data">
+            [% pfamseq.description %]
+          </td>
+		</tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Source organism:</td>
+	      <td class="data">
+            [% IF pfamseq.ncbi_code %]
+	          <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.ncbi_code %]</a>)
+            [% ELSE %]	
+	          [% pfamseq.species %]
+            [% END %]
+          </td>
+		</tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Sequence:</td>
+          <td class="data">
 
-  <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-    <span class="label">Source organism:</span>
-	<span class="rowData">
-    [% IF pfamseq.ncbi_code %]
-	<a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.ncbi_code %]</a>)
-    [% ELSE %]	
-	[% pfamseq.species %]
-    [% END %]
-    </span>
-      <div class="cleaner">&nbsp;</div>
-  </div>
-
-  <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-    <span class="label">Checksums:</span>
-	<span class="rowData">
-      <div><span class="subLabel">CRC64:</span><span class="subRowData">[% pfamseq.crc64 %]</span></div>
-      <div><span class="subLabel">MD5:</span><span class="subRowData">[% pfamseq.md5 %]</span></div>
-    </span>
-    <div class="cleaner">&nbsp;</div>
-      <div class="cleaner">&nbsp;</div>
-  </div>
-
-  <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-    <span class="label">Sequence:</span>
-	<span class="rowData">
-
-      [%# an array containing the individual residues %]
-      [% sa = String.new( pfamseq.sequence ).split("") %]
+            [%# an array containing the individual residues %]
+            [% sa = String.new( pfamseq.sequence ).split("") %]
   
-      [%# a string with the bare lines of the sequence, without numbering %]
-      [% sl = String.new %]
+            [%# a string with the bare lines of the sequence, without numbering %]
+            [% sl = String.new %]
 
-      [%# a string with the sequence, plus spacing and numbering %]
-      [% sb = String.new %]
+            [%# a string with the sequence, plus spacing and numbering %]
+            [% sb = String.new %]
 
-	  [%# build the strings... this is a bit long-winded, because it's a 
-          workaround. The "substr" virtual method seems to be broken in the
-          version of TT that we have right now... %]
+            [%# build the strings... this is a bit long-winded, because it's a 
+                workaround. The "substr" virtual method seems to be broken in the
+                version of TT that we have right now... %]
 
-      [% CALL sb.append( sa.0 ) -%]
-      [% CALL sl.append( sa.0 ) -%]
-      <div class="sequenceLine">
-      [% i = 1 -%]
-      [% label = 1 -%] 
-        <div class="leftAlignmentLabel">[%- i %]</div>
-      [%- WHILE i < sa.size -%]
-          [%- CALL sb.append( sa.$i ) -%]
-          [%- CALL sl.append( sa.$i ) -%]
-          [%- IF ! ( (i+1) % 10 ) %][% CALL sb.append(" ") %][% END -%]
-          [%- IF ! ( (i+1) % 60 ) -%]
-            [% CALL sl.append( "<br />" ) %]
-            [% label = i + 1 %]
-        <div class="alignmentRow">[% sb %]</div>
-        <div class="rightAlignmentLabel">[% label %]</div>
-            [%- sb = String.new -%]
-      </div>
-      <div class="sequenceLine">
-        [%- label = label + 1 -%]
-        <div class="leftAlignmentLabel">[%- label %]</div>
-        [%- END -%]
-        [%- i = i + 1 -%]
-      [% END -%]
-        <div class="alignmentRow">[% String.new( sb ).left(65).replace(" ", "&nbsp;" ) %]</div>
-        <div class="rightAlignmentLabel">[% i %]</div>
-      </div>
+            [% CALL sb.append( sa.0 ) -%]
+            [% CALL sl.append( sa.0 ) -%]
 
-      <div class="cleaner">&nbsp;</div>
-	  <p>
-        <a href="#" onclick="return reveal(this,'plainSequence')">Show</a> the unformatted sequence.
-      </p>
-	  <div id="plainSequence" style="display: none">[% sl %]</div>
+            <div class="sequenceLine">
+              [% i = 1 -%]
+              [% label = 1 -%] 
+              <div class="leftAlignmentLabel">[%- i %]</div>
 
-	</span> <!-- end of "rowData" -->
+			  [%# if you look closely at this block, you'll see that there's an 
+                  extra </div>, which is required because we're building the line
+                  on the fly and closing the <div> somewhere dependent on where the
+                  end of the line falls. It's fine. Really. %]
 
-      <div class="cleaner">&nbsp;</div>
-  </div>
+              [% i = 1 %]
+		      [% FOREACH char IN sa %]
+                [%- CALL sb.append( char ) -%]
+                [%- CALL sl.append( char ) -%]
+                [%- IF ! ( (i+1) % 10 ) %][% CALL sb.append(" ") %][% END -%]
+                [%- IF ! ( (i+1) % 60 ) -%]
+                  [% CALL sl.append( "<br />" ) %]
+                  [% label = i + 1 %]
+                    <div class="alignmentRow">[% sb %]</div>
+                    <div class="rightAlignmentLabel">[% label %]</div>
+                    [%- sb = String.new -%]
+                  </div> [%# extra, extra ! %]
+                  <div class="sequenceLine">
+                  [%- label = label + 1 -%]
+                  <div class="leftAlignmentLabel">[%- label %]</div>
+                [%- END -%]
+                [%- i = i + 1 -%]
+              [% END -%]
+
+              <div class="alignmentRow">[% String.new( sb ).left(65).replace(" ", "&nbsp;" ) %]</div>
+              <div class="rightAlignmentLabel">[% i %]</div>
+
+            </div> [%# end of sequenceLine %]
+
+            <div class="cleaner">&nbsp;</div>
+      
+            <p>
+              <a href="#" onclick="return reveal(this,'plainSequence')">Show</a> the unformatted sequence.
+            </p>
+
+            <div id="plainSequence" style="display: none">[% sl %]</div>
+          </td>
+        </tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Checksums:</td>
+          <td class="data">
+            <div><span class="subLabel">CRC64:</span><span class="subRowData">[% pfamseq.crc64 %]</span></div>
+            <div><span class="subLabel">MD5:</span><span class="subRowData">[% pfamseq.md5 %]</span></div>
+          </td>
+        </tr>
+      </tbody>
+	</table>
 
   </div> <!-- end of "blockContent" -->
 </div>
