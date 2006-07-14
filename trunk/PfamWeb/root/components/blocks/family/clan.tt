@@ -19,7 +19,7 @@ END;
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		  <td class="label">Clan:</td>
 	      <td class="data">
-            <a href="[% c.uri_for( "/clan?id=${pfam.clan_id}" ) %]">[% pfam.clan_id %]</a> (<a href="[% c.uri_for( "/clan?acc=${pfam.clan_acc}" ) %]">[% pfam.clan_acc %]</a>)
+            <a href="[% c.uri_for( "/clan", id=pfam.clan_id ) %]">[% pfam.clan_id %]</a> (<a href="[% c.uri_for( "/clan", acc=pfam.clan_acc ) %]">[% pfam.clan_acc %]</a>)
           </td>
 		</tr>
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
