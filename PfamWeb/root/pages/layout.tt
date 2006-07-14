@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.6 2006-05-24 16:08:59 jt6 Exp $
+# $Id: layout.tt,v 1.7 2006-07-14 13:15:23 jt6 Exp $
 %]
 
 [% USE String %]
@@ -80,13 +80,13 @@ END;
 <div id="tabTitle">
   <div id="corner">
     [% titleFile = layouts.${pageType}.titleTemplate %]
-    [% PROCESS $titleFile %]
+    [% PROCESS $titleFile titleType="tab"%]
   </div>
 </div>
 
 <div id="wrap">
 
-  <!-- this is only here to avoid the IE peekaboo bug... -->
+  [%# this is only here to avoid the IE peekaboo bug... -%]
   <div id="spacer">&nbsp;</div>
 
   <div id="sidebar">
