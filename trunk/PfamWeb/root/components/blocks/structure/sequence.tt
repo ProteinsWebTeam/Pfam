@@ -1,0 +1,45 @@
+
+[%#
+# sequence.tt
+# jt6 20060706 WTSI
+# 
+# build the sequence block for structures
+#
+# $Id: sequence.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
+%]
+
+[% # collect the unique uniprot IDs
+
+unpIds = {};
+FOREACH m IN mapping;
+  unp = m.pfamseq_id;
+  unpIds.$unp = m ;
+END
+%]
+
+<!-- start sequence block -->
+
+<div class="block" id="structureSequenceBlock">
+  <div class="handle">
+    <h1>Domain organisation</h1>
+  </div>
+  <div class="blockContent">
+
+	<div id="structureGraphicsHolder">
+      <p id="sgph">
+        <img src="/images/loading.gif" alt="loading..." />
+        Loading domain graphics...
+      </p>
+    </div>
+
+  </div>
+</div>
+
+[% unpIds = unpIds.keys.join(",") %]
+
+<script type="text/javascript">
+  loadOptions.sg.uri    = "[% c.uri_for( "/structuregraphics" ) %]";
+  loadOptions.sg.params = "ids=[% unpIds %]";
+</script>
+
+<!-- end sequence block -->

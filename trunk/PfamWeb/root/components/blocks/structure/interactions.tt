@@ -1,0 +1,24 @@
+
+[%#
+# interactions.tt
+# jt6 20060706 WTSI
+# 
+# build the interactions block for structures
+#
+# $Id: interactions.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
+%]
+
+<!-- start interactions block -->
+
+<div class="block" id="structureIntBlock">
+  <div class="handle">
+    <h1>Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+	<h3>Interactions</h3>
+
+  </div>
+</div>
+
+<!-- end interactions block -->
