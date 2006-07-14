@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam family page.
 #
-# $Id: Family.pm,v 1.3 2006-05-15 12:13:07 jt6 Exp $
+# $Id: Family.pm,v 1.4 2006-07-14 13:08:58 jt6 Exp $
 
 package PfamWeb::Controller::Family;
 
@@ -56,7 +56,7 @@ sub begin : Private {
 
   } elsif( defined $c->req->param("id") ) {
 
-	$c->req->param("id") =~ m/(^\w+$)/;
+	$c->req->param("id") =~ m/^(\w+)$/;
 	$c->log->info( "$this: found ID |$1|" );
 
 	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_id => $1 } )
@@ -145,40 +145,46 @@ sub getDbXrefs : Private {
 	if $c->stash->{pfam}->interpro_id;
 
   # PDB
-  $xRefs{pdb} = keys %{ $c->stash->{pdb} }
+  $xRefs{pdb} = keys %{ $c->stash->{pdbUnique} }
 	if $c->stash->{summaryData}{numStructures};
 
   # PfamA to PfamB links based on PRODOM
   my %atobPRODOM;
-  foreach my $xref ($c->stash->{pfam}->pfamA_database_links ) {
-
+  foreach my $xref ( $c->stash->{pfam}->pfamA_database_links ) {
 	if( $xref->db_id eq "PFAMB" ) {
 	  $atobPRODOM{$xref->db_link} = $xref;
 	} else {
-	  push @{ $xRefs{$xref->db_link} }, $xref;
+	  push @{ $xRefs{$xref->db_id} }, $xref;
 	}
   }
 
   # PfamA to PfamA links based on PRC
   my @atoaPRC = PfamWeb::Model::PfamA2pfamA_PRC_results->search(
     { "pfamA1.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
-	  "evalue"           => { "<=", "0.01"} },
+	  evalue             => { "<=", "0.01"} },
 	{ join               => [ qw/pfamA1 pfamA2/ ],
 	  select             => [ "pfamA1.pfamA_id", "pfamA2.pfamA_id" ],
 	  as                 => [ qw/l_pfamA_id r_pfamA_id/ ],
 	  prefetch           => [ qw/pfamA2 pfamA1/ ] } );
 
-  $xRefs{atobPRC} = \@atoaPRC
-	if scalar @atoaPRC;
+  $xRefs{atoaPRC} = \@atoaPRC if scalar @atoaPRC;
 
   # PfamB to PfamA links based on PRC
   my @atobPRC = PfamWeb::Model::PfamB2pfamA_PRC_results->search(
-    { pfamA_acc => $c->stash->{pfam}->pfamA_acc },
+    { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc, },
+#	  evalue    => { "<=", "0.01"} },
 	{ join      => [ qw/pfamA pfamB/ ],
 	  prefetch  => [ qw/pfamA pfamB/ ] } );
 
   # find the union between PRC and PRODOM PfamB links
-  my %atobPRC = map { $_->pfamB_acc => $_ } @atobPRC;
+  my %atobPRC;
+  foreach ( @atobPRC ) {
+	$atobPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.01;
+  }
+  # we should be able to filter the results of the query according to
+  # evalue using a call on the DBIx::Class object, but for some reason
+  # it's broken, hence this last loop...
+  # my %atobPRC = map { $_->pfamB_acc => $_ } @atobPRC;
 
   my %atobBOTH;
   foreach ( keys %atobPRC, keys %atobPRODOM ) {
@@ -188,21 +194,30 @@ sub getDbXrefs : Private {
 
   # and then prune out those accessions that are in both lists
   foreach ( keys %atobPRC ) {
-      delete $atobPRC{$_} if exists $atobBOTH{$_};
+	delete $atobPRC{$_} if exists $atobBOTH{$_};
   }
 
   foreach ( keys %atobPRODOM ) {
-      delete $atobPRODOM{$_} if exists $atobBOTH{$_};
+	delete $atobPRODOM{$_} if exists $atobBOTH{$_};
   }
 
   # now populate the hash of xRefs;
-  my @atobPRC_pruned = values %atobPRC;
+  my @atobPRC_pruned;
+  foreach ( sort keys %atobPRC ) {
+	push @atobPRC_pruned, $atobPRC{$_};
+  }
   $xRefs{atobPRC} = \@atobPRC_pruned if scalar @atobPRC_pruned;
 
-  my @atobPRODOM = values %atobPRODOM;
+  my @atobPRODOM;
+  foreach ( sort keys %atobPRODOM ) {
+	push @atobPRODOM, $atobPRODOM{$_};
+  }
   $xRefs{atobPRODOM} = \@atobPRODOM if scalar @atobPRODOM;
 
-  my @atobBOTH = values %atobBOTH;
+  my @atobBOTH;
+  foreach ( sort keys %atobBOTH ) {
+	push @atobBOTH, $atobBOTH{$_};
+  }
   $xRefs{atobBOTH} = \@atobBOTH if scalar @atobBOTH;
 
   $c->stash->{xrefs} = \%xRefs;
