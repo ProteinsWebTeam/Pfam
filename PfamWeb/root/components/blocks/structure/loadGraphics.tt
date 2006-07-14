@@ -1,0 +1,37 @@
+[%#
+# loadGraphics.tt
+# jt6 20060713 WTSI
+#
+# $Id: loadGraphics.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
+%]
+
+[% USE String %]
+
+<div id="structureGraphics">
+
+[%# we're cheating and using "oe" as a counter as well as the usual odd/even token here %]
+[%- oe = 0 -%]
+
+[%- FOREACH chainIds IN chainsToUnp.keys.sort -%]
+
+  [%- unp = chainsToUnp.$chainIds -%]
+  [%- image = unpToImage.$unp -%]
+  [%- chainLabel = String.new( chainIds ) -%]
+
+  <div class="graphicRow[% IF oe % 2 %] odd[% ELSE %] even[% END %][% oe=oe+1 %]">
+    <span class="graphicLabel">Chain[% IF chainLabel.search("\,") %]s[% END %] [% chainIds %] (UniProt entry <a href="[% c.uri_for( "/protein", id=unp ) %]">[% unp %]</a>):</span>
+    <img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#structureGraphicsMap[% oe %]"
+         alt=""/>
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="structureGraphicsMap[% oe %]">
+      [% image.image_map %]
+    </map>
+
+  </div>
+
+[%- END -%]
+
+</div>

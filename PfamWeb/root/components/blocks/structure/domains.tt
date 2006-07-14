@@ -1,0 +1,33 @@
+
+[%#
+# domains.tt
+# jt6 20060706 WTSI
+# 
+# build the structural domains block for structures
+#
+# $Id: domains.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
+%]
+
+<!-- start domains block -->
+
+<div class="block" id="structureDomainsBlock">
+  <div class="handle">
+    <h1>Structural domains</h1>
+  </div>
+  <div class="blockContent">
+
+	<h3>Domains</h3>
+
+    <!-- applet width="640"
+            height="480"
+            name="av"
+            code="MoleculeViewerApplet"
+	        archive="/AstexViewer2.jar">
+      <param name="scriptFile" 
+             value="/621p.script">
+    </applet -->
+
+  </div>
+</div>
+
+<!-- end domains block -->
