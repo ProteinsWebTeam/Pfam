@@ -1,0 +1,101 @@
+
+/* structure
+   jt6 20060413 WTSI
+
+   Stylesheet for the structure pages.
+
+   $Id: structure.css,v 1.1 2006-07-14 13:17:41 jt6 Exp $
+*/   
+
+/* ======================================== */
+/* page layout items */
+
+/* styles for the markup that forms the page tab */
+#tabTitle {
+	color: #074987;
+}
+
+#pageType {
+    border-color: #074987;
+}
+
+#pageType h2 {
+  color: #074987;
+/*    background: #074987; */
+}
+
+#spacer {
+  background-color: #faf8f2; /* natural 7 */
+}
+
+#contentContainer {
+  background-color: #faf8f2; /* natural 7 */
+  background-image: url(/images/structure/page_border.gif);
+}
+
+#wrap {
+  position: relative; /* needed to fix the IE peekaboo bug... */
+  background: url(/images/structure/bg.gif) repeat-y 15% 0;
+}
+
+#content {
+  border-top-color: #074987;
+}
+
+div.handle {
+  background-color: #074987;
+}
+
+/* the left column navigation bar */
+
+#sidebar {
+    border-bottom-color: #074987;
+}
+
+#sidebar li a {
+  color: #074987;
+}
+
+#sidebar li.selected a {
+  border-color: #074987;
+  background-image: url(/images/selected_bg.gif);
+}
+
+#sidebar li span.inactive {
+  color: #83a4c3;
+}
+
+#footer {
+  border-top-color: #074987;
+}
+
+/* ======================================== */
+/* rules for specific blocks */
+
+/* summary tab */
+ol {
+  margin: 0;
+}
+
+li {
+  padding-bottom: 0.2em;
+}
+
+/* the pfam graphics in the sequence tab */
+div.graphicRow {
+  display: block;
+  clear: both;
+  padding: 0.4em;
+}
+
+span.graphicLabel {
+  float: left;
+  width: 24em;
+}
+
+img.graphicImage {
+  border: none;
+  float: left;
+}
+
+
