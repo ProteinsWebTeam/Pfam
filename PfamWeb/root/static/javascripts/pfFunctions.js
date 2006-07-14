@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.9 2006-07-06 11:45:40 jt6 Exp $
+// $Id: pfFunctions.js,v 1.10 2006-07-14 13:06:20 jt6 Exp $
 
 //------------------------------------------------------------
 // show the specified tab in the page body
@@ -119,6 +119,7 @@ loadOptions.st = {}; // species tree
 loadOptions.at = {}; // alignment tree
 loadOptions.pg = {}; // protein graphics
 loadOptions.ca = {}; // coloured alignment
+loadOptions.sg = {}; // sequence graphics
 
 //------------------------------------------------------------
 // this will make the ajax calls for the family page components
@@ -220,7 +221,8 @@ function findPosY(obj) {
 //------------------------------------------------------------
 // highlight an "area" in an image map by overlaying a coloured div
 
-function highlight( e ) {
+function highlightFeature( e ) {
+  // console.debug( "entering highlight" )
   var target;
   if( e.target ) {
     target = e.target;
@@ -273,6 +275,7 @@ function highlight( e ) {
 					  "display": "block"
 					}
 				  );
+  // console.debug( "leaving highlight" )
 }
 
 // and hide the div on mouseout
@@ -329,39 +332,39 @@ var highlight = new Object();
 
 highlight.mouseoverHandler = function( e ) {
 
-	// get hold of the starting row, the one with the highlighted cell
-	var startingRow;
-    if( e.srcElement ) {
-	  // get it the IE way...
-	  startingRow = e.srcElement.parentNode;
-    } else if( e.target ) {
-	  // and for the rest of the world...
-      startingRow = e.target.parentNode;
-    }
+  // get hold of the starting row, the one with the highlighted cell
+  var startingRow;
+  if( e.srcElement ) {
+	// get it the IE way...
+	startingRow = e.srcElement.parentNode;
+  } else if( e.target ) {
+	// and for the rest of the world...
+	startingRow = e.target.parentNode;
+  }
 
-	// these are the cells that we'll need to colour
-	var cells = new Array();
+  // these are the cells that we'll need to colour
+  var cells = new Array();
 
-    // first, stash the cells in the starting row
-	var startingCells = $A( startingRow.getElementsByTagName( "td" ) );
-    cells.push( startingCells );
-	// console.debug( "cells starts with " + cells.length + " cells" );
+  // first, stash the cells in the starting row
+  var startingCells = $A( startingRow.getElementsByTagName( "td" ) );
+  cells.push( startingCells );
+  // console.debug( "cells starts with " + cells.length + " cells" );
 
-    // and then, if this row isn't the full width of the table, recurse down
-    // (actually, up) the previous rows and collect more cells to highlight
-	if( startingCells.length < numColsTable ) {
-      this.walkRows( startingRow, cells );
-    }
-    // console.debug( "retrieved " + cells.flatten().length + " cells" );
+  // and then, if this row isn't the full width of the table, recurse down
+  // (actually, up) the previous rows and collect more cells to highlight
+  if( startingCells.length < numColsTable ) {
+	this.walkRows( startingRow, cells );
+  }
+  // console.debug( "retrieved " + cells.flatten().length + " cells" );
 
-    // highlight the collected cells
-	cells.flatten().each( function( cell ) {
-        Element.addClassName( cell, "stripeHover" );
-	    highlightedCells.push( cell );
-      }
-    );
-
-}
+  // highlight the collected cells
+  cells.flatten().each( function( cell ) {
+						  Element.addClassName( cell, "stripeHover" );
+						  highlightedCells.push( cell );
+						}
+					  );
+  
+};
 
 // recursive method for walking back up the table rows and finding
 // those that require cells to be highlighted. Because the table can
@@ -369,62 +372,67 @@ highlight.mouseoverHandler = function( e ) {
 // just colouring a complete <tr>, unfortunately...
 
 highlight.walkRows = function( startingRow, cells ) {
-	// console.debug( "in walkRows" );
+  // console.debug( "in walkRows" );
 
-    // find out how many columns are in the starting row
-    var numColsStartingRow = startingRow.getElementsByTagName( "td" ).length;
-    // console.debug( "startingRow has " + numColsStartingRow + " columns" );
+  // catch the empty events that come from, I think, table contents
+  if( null == startingRow ) {
+	return;
+  }
 
-    // get all of the previous rows in the table
-    var thisRow = startingRow;
-    var prevRow;
-	var prevCols;
-    var numCols;
-	while( prevRow = thisRow.previousSibling ) {
-      if( prevRow.nodeType == 1 ) {
-	    // console.debug( "checking row " + prevRow.rowIndex );
+  // find out how many columns are in the starting row
+  var numColsStartingRow = startingRow.getElementsByTagName( "td" ).length;
+  // console.debug( "startingRow has " + numColsStartingRow + " columns" );
 
-        prevCols = prevRow.getElementsByTagName( "td" );
-        numCols = prevCols.length;
-	    if( numCols == numColsTable ||
-            numCols >  numColsStartingRow ) {
-	      break;
-        }
+  // get all of the previous rows in the table
+  var thisRow = startingRow;
+  var prevRow;
+  var prevCols;
+  var numCols;
+  while( prevRow = thisRow.previousSibling ) {
+	if( prevRow.nodeType == 1 ) {
+	  // console.debug( "checking row " + prevRow.rowIndex );
+	  
+	  prevCols = prevRow.getElementsByTagName( "td" );
+	  numCols = prevCols.length;
+	  if( numCols == numColsTable ||
+		  numCols >  numColsStartingRow ) {
+		break;
 	  }
-	  thisRow = prevRow;
-    }
-    // console.debug( "previous longer row is row " + prevRow.rowIndex );
-
-    // add the extra cells from the longer row into the array of cells to 
-    // highlight and keep walking down (up) the table
-
-    // there are "numCols" columns in the previous longest row
-    // there are "numColsStartingRow" columns in the current row
-
-	for( var i = 0; i < ( numCols - numColsStartingRow ); i++ ) {
-      cells.push( prevCols[i] );
-    }
-    // console.debug( "adding " + cells.length + " cells" );
-
-    // see if we need to move on to previous rows in the table
-    if( numCols < numColsTable ) {
-      this.walkRows( prevRow, cells );
-    }
-}
-
+	}
+	thisRow = prevRow;
+  }
+  // console.debug( "previous longer row is row " + prevRow.rowIndex );
+  
+  // add the extra cells from the longer row into the array of cells to 
+  // highlight and keep walking down (up) the table
+  
+  // there are "numCols" columns in the previous longest row
+  // there are "numColsStartingRow" columns in the current row
+  
+  for( var i = 0; i < ( numCols - numColsStartingRow ); i++ ) {
+	cells.push( prevCols[i] );
+  }
+  // console.debug( "adding " + cells.length + " cells" );
+  
+  // see if we need to move on to previous rows in the table
+  if( numCols < numColsTable ) {
+	this.walkRows( prevRow, cells );
+  }
+};
+  
 // handle mouseout events on the cells. Walk down the list of
 // currently highlighted cells and remove the hover classname
-
+  
 highlight.mouseoutHandler = function( e ) {
-    highlightedCells.each( function( cell ) {
-        Element.removeClassName( cell, "stripeHover" );
-      }
-    );
-
-	// reset the array
-	highlightedCells.clear();
+  highlightedCells.each( function( cell ) {
+						   Element.removeClassName( cell, "stripeHover" );
+						 }
+					   );
+  
+  // reset the array
+  highlightedCells.clear();
 }
-
+  
 //------------------------------------------------------------
 // function to submit the alignment generation form  
 
@@ -441,13 +449,17 @@ function generateAlignment( type, start, end ) {
   // stuff that value into the form...
   $("rowRange").value = range;
 
-  // and effectively submit it
+  // store the scroll value for the alignment, so we can use it in the
+  // new page
+  $("scrollValue").value = $("alignmentData").scrollLeft;
+
+  // submit the form
   new Ajax.Updater( "caph",
                     loadOptions.ca.uri, 
-                    {
-                      parameters:   Form.serialize( $("pagingForm") ),
-                      asynchronous: 1
-                    }
+                    {   parameters:   Form.serialize( $("pagingForm") ),
+						asynchronous: 1,
+						evalScripts:  true
+					}
                   );
 
   return false;
@@ -455,39 +467,26 @@ function generateAlignment( type, start, end ) {
 
 
 
-// from the author's first demo of a vertical slider.  It begins disabled.
-// var s2 = new Control.Slider( 'slider_1',
-// 							 'track_1',
-// 							 {   axis:'vertical',
-// 							     minimum: 60,
-// 							     maximum:288,
-// 							     alignX: -28,
-// 							     alignY: -5,
-// 							     disabled: true, 
-// 							 } 
-// 						   );
 
-// example of a horizontal slider that allows only 4 possible values
-// var sliderLimited = new Control.Slider( 'slider_Limited',
-// 										'track_Limited',
-// 										{   minimum:2,
-// 											maximum:30,
-// 											increment:9,
-// 											alignX: -5,
-// 											alignY: -5,
-// 											values: [2, 10, 15, 30]
-// 										}
-//                                       );
+//------------------------------------------------------------
+// load ajax components for the structure page
 
-// Setting the callbacks later on
-// s2.options.onChange = function(value){
-//   activeProfile.height = value;
-//   updateBankDescription();
-//   setResizeDesc();
-//   $('height_value').innerHTML = value;
-// };
-// s2.options.onSlide = function(value){                                  
-//   vidFrame1.setHeight(value);
-//   $('height_value').innerHTML = value;
-//   setResizeDesc();
-// };
+function structurePostLoad() {
+   new Ajax.Request( loadOptions.sg.uri,
+ 					{ method: "get",
+ 					  parameters: loadOptions.sg.params,
+ 					  onComplete: sgSuccess,
+ 					  onFailure:  sgFailure
+ 					} );
+}
+
+// called in response to a successful call
+function sgSuccess( oResponse ) {
+  Element.update( $("structureGraphicsHolder"), oResponse.responseText );
+}
+
+// called in response to a failed call
+function sgFailure() {
+  Element.update( $("sgph"), "Graphics loading failed." );
+}
+
