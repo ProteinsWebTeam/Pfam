@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.3 2006-06-01 16:33:09 jt6 Exp $
+# $Id: summary.tt,v 1.4 2006-07-14 12:46:22 jt6 Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -38,17 +38,23 @@
 
     [% IF pdbObj.pdb_image %]
     <div class="pdbImageFragment">
-  	  <img class="pdbImage" src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" alt="[% pdbId %]" />
-	  <h4 class="pdbTitle">PDB entry [% pdbId %]</h4>: [% title %]
+	  <a href="[% c.uri_for( "/structure", id=pdbId ) %]">
+  	    <img class="pdbImage" src="[% c.uri_for( "/getimage", pdbid=pdbId ) %]" alt="[% pdbId %]" /></a>
+	  <a href="[% c.uri_for( "/structure", id=pdbId ) %]" class="pdbTitle">PDB entry [% pdbId %]</a>: [% title %]
     </div>
     [% END %]
 
 	<h3>[% pfam.description %]</h3>
 
+	[% IF pfam.comment.length %]
 	<p>[% pfam.comment %]</p>
+	[% ELSE %]
+	<p class="inactive">No further details</p>
+	[% END %]
 
     <hr class="short"/>
 
+	[% IF pfam.pfamA_lit_refs.size %]
     <h3>Literature references</h3>
 
     <ol>
@@ -61,6 +67,7 @@
 	</ol>
 
     <hr class="short"/>
+	[% END %]
 
 	<h3>Interpro entry [% pfam.interpro.interpro_id %]</h3>
 
