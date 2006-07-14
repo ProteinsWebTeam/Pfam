@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.6 2006-05-26 15:44:37 jt6 Exp $
+# $Id: Graphics.pm,v 1.7 2006-07-14 13:10:35 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -16,9 +16,9 @@ use Time::HiRes qw( gettimeofday );
 
 use Bio::Pfam::Drawing::Layout::DasLayoutManager;
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
+
 # extend the Protein class. This way we should get hold of the pfamseq
 # data by default, via the "begin" method on Protein
-
 use base "PfamWeb::Controller::Protein";
 
 #-------------------------------------------------------------------------------
