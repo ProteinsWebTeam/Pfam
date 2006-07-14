@@ -1,20 +1,11 @@
 [%-
-numIds = pfam.pdbMap.size;
+numIds = pfamMaps.size;
 UNLESS numIds;
   RETURN;
 END;
 -%]
 
-[% USE dumper %]
-
 <!-- start pdb block -->
-
-[%# pick a random PDB entry for this family %]
-[% PERL %]
-$stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
-[% END %]
-
-[% pdbObj = pfam.pdbMap.${rand}.pdb %]
 
 <div class="block" id="pdbBlock">
   <div class="handle">
@@ -99,7 +90,7 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
               <tr>
 
 		        [% IF seqKey != prevSeqKey -%]
-		          <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>[% seqKey %]</td>
+		          <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/protein", id=seqKey ) %]">[% seqKey %]</a></td>
                 [% END -%]
 
 	            [% IF seqKey != prevSeqKey OR resKey != prevResKey -%]
@@ -107,7 +98,9 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
                 [% END -%]
 
 		        [% IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
-	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>[% pdbKey %]</td>
+	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                  <a href="[% c.uri_for( "/structure", id=pdbKey ) %]">[% pdbKey %]</a>
+                  </td>
                 [% END -%]
 
 				[%- prevSeqKey = seqKey -%]
@@ -173,7 +166,6 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
     </dd>
   [% END %]
   </dl>
-  -->
 
   <ul>
   [% FOREACH pdbMap IN pfamMaps %]
@@ -190,7 +182,13 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
 	[% END %]
   </ul>
 
-  <!--
+  [%# pick a random PDB entry for this family %]
+  [% PERL %]
+  $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
+  [% END %]
+
+  [% pdbObj = pfam.pdbMap.${rand}.pdb %]
+
   [% pdbId     = pdbObj.pdb_id -%]
   [% header    = pdbObj.header -%]
   [% title     = pdbObj.title -%]
@@ -209,7 +207,7 @@ $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
   <p>end |[% end %]|</p>
 
   [% IF pdbObj.pdb_image %]
-      <img src="[% c.uri_for( "/getimage" ) %]?pdbid=[% pdbId %]" alt="[% pdbId %]" />
+      <img src="[% c.uri_for( "/getimage", pdbid=pdbId ) %]" alt="[% pdbId %]" />
   [% ELSE %]
       <p>No image for this PDB entry</p>
   [% END %]
