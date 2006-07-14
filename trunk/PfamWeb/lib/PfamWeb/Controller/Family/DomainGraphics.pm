@@ -4,7 +4,7 @@
 #
 # Controller to build a set of domain graphics for a given Pfam.
 #
-# $Id: DomainGraphics.pm,v 1.3 2006-07-10 12:29:45 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.4 2006-07-14 13:09:58 jt6 Exp $
 
 package PfamWeb::Controller::DomainGraphics;
 
@@ -65,8 +65,6 @@ sub getData : Path {
   my %regionsAndFeatures = ( "PfamA"      => 1,
 							 "noFeatures" => 1 );
   $layout->layout_sequences_with_regions_and_features( \@seqs, \%regionsAndFeatures );
-
-  # $layout->layout_sequences( @$seqs );
 
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $imageset->create_images( $layout->layout_to_XMLDOM );
