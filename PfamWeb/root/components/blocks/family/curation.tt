@@ -9,7 +9,7 @@
   </div>
   <div class="blockContent">
 
-    <h3>Curation</h3>
+    <h3 class="inset">Curation</h3>
 
     [% IF pfam.status == "NEW" %]
       <p>This family is new in this Pfam release.</p>
@@ -21,127 +21,142 @@
 
 	[% oe = 0 %]
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Author:</span>
-      <span class="rowData">[% pfam.author %]</span>
-      <div class="cleaner">&nbsp;</div>
-    </div>
+    <table class="layout">
+	  <tbody>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Author:</td>
+	      <td class="data">
+	        [% pfam.author %]
+          </td>
+		</tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Seed source:</td>
+	      <td class="data">
+	        [% pfam.seed_source %]
+          </td>
+		</tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+	      <td class="label">Previous ids:</td>
+          <td class="data">
+            [% pfam.previous_id ? pfam.previous_id : "none" %]
+          </td>
+        </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Seed source:</span>
-      <span class="rowData">[% pfam.seed_source %]</span>
-      <div class="cleaner">&nbsp;</div>
-    </div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+	      <td class="label">Type:</td>
+	      <td class="data">
+            [% pfam.type %]
+	      </td>
+	    </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Previous ids:</span>
-      <span class="rowData">[% pfam.previous_id ? pfam.previous_id : "none" %]</span>
-      <div class="cleaner">&nbsp;</div>
-    </div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+	      <td class="label">Number in seed:</td>
+	      <td class="data">
+            [% pfam.num_seed %]
+	      </td>
+	    </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Type:</span>
-      <span class="rowData">[% pfam.type %]</span>
-      <div class="cleaner">&nbsp;</div>
-    </div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Number in full:</td>
+		  <td class="data">
+            [% pfam.num_full %]
+	      </td>
+	    </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Number in seed:</span>
-      <span class="rowData">[% pfam.num_seed %]</span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Average length of the domain:</td>
+		  <td class="data">
+            [% pfam.average_length %] aa
+	      </td>
+	    </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Number in full:</span>
-      <span class="rowData">[% pfam.num_full %]</span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Average identity of full alignment:</td>
+		  <td class="data">
+            [% pfam.percentage_id %] %
+	      </td>
+	    </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Average length of the domain:</span>
-      <span class="rowData">[% pfam.average_length %] aa</span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Average coverage of the sequence by the domain:</td>
+		  <td class="data">
+            [% pfam.average_coverage %] %
+	      </td>
+	    </tr>
+      </tbody>
+	</table>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Average identity of full alignment:</span>
-      <span class="rowData">[% pfam.percentage_id %] %</span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
+    <h3 class="inset">HMM information</h3>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Average coverage of the sequence by the domain:</span>
-      <span class="rowData">[% pfam.average_coverage %] %</span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
-   
-    <h3>HMM information</h3>
+    <table class="layout">
+      <tbody>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+	      <td class="label">HMM build commands:</td>
+          <td class="data">
+            <div><em>ls model:</em> [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</div>
+            <div><em>fs model:</em> [% pfam.hmmbuild_fs %] [% pfam.hmmcalibrate_fs %]</div>
+          </td>
+	    </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">HMM build commands:</span>
-      <span class="rowData">
-        <div><em>ls model:</em> [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</div>
-        <div><em>fs model:</em> [% pfam.hmmbuild_fs %] [% pfam.hmmcalibrate_fs %]</div>
-      </span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label" id="tableLabel">Model details:</td>
+          <td class="data">
+            <table class="details">
+              <thead>
+                <tr>
+                  <th rowspan="2">Parameter</th>
+                  <th colspan="2">ls</th>
+                  <th colspan="2">fs</th>
+                </tr>
+                <tr>
+                  <th>Sequence</th>
+                  <th>Domain</th>
+                  <th>Sequence</th>
+                  <th>Domain</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="odd">
+                  <td class="label">Gathering cut-off</td>
+                  <td>[% String.new( pfam.ls_sequence_GA ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.ls_domain_GA ).format( "%5.1f" )%]</td>
+                  <td>[% String.new( pfam.fs_sequence_GA ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.fs_domain_GA ).format( "%5.1f" ) %]</td>
+                </tr>
+                <tr class="even">
+                  <td class="label">Trusted cut-off</td>
+                  <td>[% String.new( pfam.ls_sequence_TC ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.ls_domain_TC ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.fs_sequence_TC ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.fs_domain_TC ).format( "%5.1f" ) %]</td>
+                </tr>
+                <tr class="odd">
+                  <td class="label">Noise cut-off</td>
+                  <td>[% String.new( pfam.ls_sequence_NC ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.ls_domain_NC ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.fs_sequence_NC ).format( "%5.1f" ) %]</td>
+                  <td>[% String.new( pfam.fs_domain_NC ).format( "%5.1f" ) %]</td>
+                </tr>
+              </tbody>
+            </table>
+	      </td>
+        </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label" id="tableLabel">Model details:</span>
-      <span class="rowData" id="modelDetails">
-        <table>
-          <thead>
-            <tr>
-              <th rowspan="2">Parameter</th>
-              <th colspan="2">ls</th>
-              <th colspan="2">fs</th>
-            </tr>
-            <tr>
-              <th>Sequence</th>
-              <th>Domain</th>
-              <th>Sequence</th>
-              <th>Domain</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr class="odd">
-              <td class="label">Gathering cut-off</td>
-              <td>[% String.new( pfam.ls_sequence_GA ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.ls_domain_GA ).format( "%5.1f" )%]</td>
-              <td>[% String.new( pfam.fs_sequence_GA ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.fs_domain_GA ).format( "%5.1f" ) %]</td>
-            </tr>
-            <tr class="even">
-              <td class="label">Trusted cut-off</td>
-              <td>[% String.new( pfam.ls_sequence_TC ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.ls_domain_TC ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.fs_sequence_TC ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.fs_domain_TC ).format( "%5.1f" ) %]</td>
-            </tr>
-            <tr class="odd">
-              <td class="label">Noise cut-off</td>
-              <td>[% String.new( pfam.ls_sequence_NC ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.ls_domain_NC ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.fs_sequence_NC ).format( "%5.1f" ) %]</td>
-              <td>[% String.new( pfam.fs_domain_NC ).format( "%5.1f" ) %]</td>
-            </tr>
-          </tbody>
-        </table>
-      </span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Model length:</td>
+          <td class="data">
+            [% pfam.model_length %]
+          </td>
+	    </tr>
 
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-      <span class="label">Model length:</span>
-      <span class="rowData">[% pfam.model_length %]</span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
-
-    <div class="row [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-	  <span class="label">Family (HMM) version:</span>
-      <span class="rowData">[% pfam.version %]</span>
-      <div class="cleaner">&nbsp;</div>
-	</div>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+          <td class="label">Family (HMM) version:</td>
+          <td class="data">
+            [% pfam.version %]
+          </td>
+	    </tr>
+      </tbody>
+    </table>
 
   </div>
 </div>
