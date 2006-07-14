@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.1 2006-04-25 16:28:00 jt6 Exp $
+# $Id: summary.tt,v 1.2 2006-07-14 12:52:32 jt6 Exp $
 %]
 
 <!-- start clan summary block -->
@@ -34,7 +34,7 @@
 
 	[% FOREACH pfam IN clan.clan_membership %]
      <span class="clanMember">
-       <a href="[% c.uri_for( "/family?acc=${pfam.pfamA_acc}" ) %]">
+       <a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">
          [% pfam.pfamA_id %]</a></span>
 	[% END %]
     <div class="cleaner"></div>
