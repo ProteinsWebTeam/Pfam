@@ -5,21 +5,29 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.6 2006-06-01 16:33:43 jt6 Exp $
+# $Id: graphics.tt,v 1.7 2006-07-14 12:41:10 jt6 Exp $
 -%]
 
 <!-- start protein graphics block -->
 
 <div class="block" id="proteinGraphicsBlock">
   <div class="handle">
-    <h1>Graphics</h1>
+    <h1>Sequence annotations</h1>
   </div>
   <div class="blockContent">
 
+    <p>This section shows a graphical representation of the sequence from this UniProt 
+    entry, shown as Pfam domains, aligned with features from various other sequence
+    databases. You can choose which features are displayed using the drop-down panel under
+    the image.</p>
+
+	<p class="small"><strong>Note:</strong> it can take a few seconds for this image
+    to be generated and loaded.</p>
+ 
     <!-- start of graphics div -->
     <div id="graphicsHolder">
 	  <p id="pgph">
-        <img src="static/images/loading.gif" alt="loading..." />
+        <img src="/images/loading.gif" alt="loading..." />
         Loading feature alignment...
       </p>
     </div>
@@ -28,39 +36,55 @@
     <script type="text/javascript">
       loadOptions.pg.uri    = "[% c.uri_for( "/updatesources" ) %]";
       loadOptions.pg.params = "acc=[% pfamseq.pfamseq_acc %]";
-	</script>
+  	</script>
 
-    <p>
-      <a href="#" onclick="return reveal(this,'checkboxes')">Show</a> sources update panel.
-    </p>
+	<div id="updatePanel">
+      <p><a href="#" onclick="return reveal(this,'checkboxes')">Show</a>
+	  sources update panel.</p>
 
-	<div id="checkboxes" style="display: none">
+	  <div id="checkboxes" style="display: none">
 
-	[% c.prototype.form_remote_tag( { url    => c.uri_for( "/updatesources" ),
-			                       	  update => "graphicsHolder",
-							          evalScripts => 1
-						 } ) %]
+        <p>Use the check-boxes below to select the sources that you wish to query, then
+        hit &quot;Update&quot; to re-generate the image. Please note that the data for the
+        image are retrieved from servers around the web and it may take a few seconds to 
+        collect the data and generate the image.</p>
+
+  		[% c.prototype.form_remote_tag( { url         => c.uri_for( "/updatesources" ),
+				                       	  update      => "graphicsHolder",
+							              before      => "pgStarted()",
+							              complete    => "pgCompleted()",
+								          evalScripts => 1 } ) %]
   
-	  <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
-	  <input type="hidden" name="reload" value="1" />
+	      <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
+	      <input type="hidden" name="reload" value="1" />
 
-      [% FOREACH source IN dasSourcesRs.sort("name") -%]
-  	    <div class="source">
-  	      <input name="[% source.server_id %]" type="checkbox" [% IF source.default_server %]checked="1"[% END %] />
-    	    <span class="checkboxLabel">
-            <a href="[% source.helper_url %]">[% source.name %]</a>
-            (<a href="[% source.url %]">source</a>)
-  	      </span>
-        </div>
-      [% END -%]
+          [% FOREACH source IN dasSourcesRs.sort("name") -%]
+  	        <div class="source">
+    	        <input name="[% source.server_id %]" type="checkbox" [% IF source.default_server %]checked="1"[% END %] />
+      	        <span class="checkboxLabel">
+                <a href="[% source.helper_url %]">[% source.name %]</a>
+                (<a href="[% source.url %]">source</a>)
+  	          </span>
+            </div>
+          [% END -%]
 
-	  <input name="submit" value="Update" type="submit" />
+  	      <input id="pgSubmitButton"
+		         name="submit"
+                 value="Update"
+                 type="submit"
+                 disabled="true" />
+		  <div id="pgUpdateSpinner" style="visibility: hidden">
+            <img src="/images/loading.gif" alt="loading..." />
+            Loading features...
+          </div>
 
-	</form>
+        </form>
 
-	  <div class="cleaner">&nbsp;</div>
+	  </div> <!-- end of "checkboxes" -->
 
-	</div> <!-- end of "checkboxes" -->
+      <div class="cleaner">&nbsp;</div>
+ 
+    </div> <!-- end of "updatePanel" -->
 
   </div> <!-- end of "blockContent" -->
 
