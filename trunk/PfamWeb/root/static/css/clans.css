@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam clan pages.
 
-   $Id: clans.css,v 1.4 2006-07-06 10:45:37 jt6 Exp $
+   $Id: clans.css,v 1.5 2006-07-14 12:55:12 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -13,63 +13,67 @@
 
 /* styles for the markup that forms the page tab */
 #tabTitle {
-	color: #3c5747;
+	color: #074987;
 }
 
 #pageType {
-    border-color: #3c5747;
+    border-color: #074987;
 }
 
 #pageType h2 {
-  color: #3c5747;
-/*    background: #3c5747; */
+  color: #074987;
+/*    background: #074987; */
 }
 
 /* ======================================== */
 /* components of the remainder of the page */
 
-#content {
-  border-top-color: #5a826b;
+#spacer {
+  background-color: #eff3e8; /* natural 3 */
 }
 
 #contentContainer {
-  background-color: #7fb897;
-  background-image: url(/images/green_page_border.png);
+  background-color: #eff3e8; /* natural 3 */
+  background-image: url(/images/clan/page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/images/green_bg.gif) repeat-y 15% 0;
+  background: url(/images/clan/bg.gif) repeat-y 15% 0;
+}
+
+#content {
+  border-top-color: #074987;
 }
 
 /* the left column navigation bar */
 
 #sidebar {
-    border-bottom-color: #5a826b;
+    border-bottom-color: #074987;
 }
 
 #sidebar li a {
-  color: #3c5747;
+  color: #074987;
 }
 
 #sidebar li.selected a {
-  border-color: #5a826b;
-  background-image: url(/images/green_selected_bg.gif);
+  border-color: #074987;
+  background-image: url(/images/selected_bg.gif);
 }
 
 #sidebar li span.inactive {
-  color: #6b9c7f;
+  color: #afc088;
 }
 
 #footer {
-  border-top-color: #5a826b;
+  border-top-color: #074987;
 }
 
 /* ======================================== */
 /* general styles for "blocks" */
 
 div.handle {
-  background-color: #3c5747;
+  background-color: #074987;
 }
 
 /* ======================================== */
@@ -77,11 +81,11 @@ div.handle {
 
 div.pdbImageFragment {
 	background: #e7edf3;
-    border-color: #3c5747;
+    border-color: #074987;
 }
 
 h4.pdbTitle  {
-	color: #3c5747;
+	color: #074987;
 }
 
 span.clanMember {

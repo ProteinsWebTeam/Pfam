@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.9 2006-07-07 16:09:29 jt6 Exp $
+   $Id: tab_layout.css,v 1.10 2006-07-14 12:55:12 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -85,9 +85,10 @@
 /* components of the remainder of the page */
 
 #spacer {
-  background: #c2d2e1;
+  background-color: #c2d2e1;
   clear: both;
   height: 0;
+  font-size: 1px;
 }
 
 #content {

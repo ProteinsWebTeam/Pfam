@@ -5,8 +5,14 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.7 2006-07-07 16:09:52 jt6 Exp $
+   $Id: family.css,v 1.8 2006-07-14 12:55:12 jt6 Exp $
 */   
+
+/*
+background: #e7edf3 (Prime 1, 10%)
+inactive:   #83a4c3 (Prime 1, 50%)
+highlight/border: #074987 (Prime 1, 100%)
+*/
 
 /* ======================================== */
 /* page layout items */
@@ -28,15 +34,12 @@
 /* ======================================== */
 /* components of the remainder of the page */
 
-/* 
-div#contentContainer
-  div#wrap
-    div#sidebar
-    div#content
-*/
+#spacer {
+  background-color: #e7edf3; /* Prime 1 */
+}
 
 #contentContainer {
-  background-color: #c2d2e1;
+  background-color: #e7edf3; /* Prime 1 */
   background-image: url(/images/family/page_border.gif);
 }
 
@@ -46,13 +49,13 @@ div#contentContainer
 }
 
 #content {
-  border-top-color: #4577a5;
+  border-top-color: #074897;
 }
 
 /* the left column navigation bar */
 
 #sidebar {
-    border-bottom-color: #4577a5;
+    border-bottom-color: #074897;
 }
 
 #sidebar li a {
@@ -60,16 +63,16 @@ div#contentContainer
 }
 
 #sidebar li.selected a {
-  border-color: #4577a5;
-  background-image: url(/images/family/selected_bg.gif);
+  border-color: #074897;
+  background-image: url(/images/selected_bg.gif);
 }
 
 #sidebar li div.inactive {
-  color: #8daac4; /* was 7c99b3 */
+  color: #83a4c3; /* was 7c99b3 */
 }
 
 #footer {
-  border-top-color: #4577a5;
+  border-top-color: #074897;
 }
 
 /* ======================================== */
@@ -87,8 +90,13 @@ div.pdbImageFragment {
     border-color: #074987;
 }
 
-h4.pdbTitle  {
-	color: #074987;
+div.pdbImageFragment img {
+  border: none;
+}
+
+.pdbTitle  {
+  color: #074987;
+  font-weight: bold
 }
 
 #tableLabel {
@@ -135,7 +143,7 @@ h4.pdbTitle  {
 
 #alignmentData {
   width: 55em;
-  font-family: mono;
+  font-family: mono, Courier;
   font-size: smaller;
   overflow: auto;
 }
@@ -145,7 +153,7 @@ h4.pdbTitle  {
 
 #alignmentKey {
   width: 12em;
-  font-family: mono;
+  font-family: mono, Courier;
   font-size: smaller;
   overflow: auto;
   float: left;
@@ -153,6 +161,7 @@ h4.pdbTitle  {
 #alignmentKey span {
   display: block;
 }
+
 #alignmentKey span.odd {
   background: #BAB;
 }

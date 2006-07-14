@@ -1,11 +1,11 @@
 
-/* family.css
+/* protein
    jt6 20060413 WTSI
 
    Stylesheet for the items that are specific to the tab layout for
-   the Pfam family pages.
+   the Pfam protein pages.
 
-   $Id: protein.css,v 1.5 2006-07-06 10:45:37 jt6 Exp $
+   $Id: protein.css,v 1.6 2006-07-14 12:55:12 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -28,24 +28,28 @@
 /* ======================================== */
 /* components of the remainder of the page */
 
-#content {
-  border-top-color: #4577a5;
+#spacer {
+  background-color: #e6f2ee; /*  natural 4 */
 }
 
 #contentContainer {
-  background-color: #c2d2e1;
-  background-image: url(/images/blue_page_border.gif);
+  background-color: #e6f2ee; /*  natural 4 */
+  background-image: url(/images/protein/page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/images/blue_bg.gif) repeat-y 15% 0;
+  background: url(/images/protein/bg.gif) repeat-y 15% 0;
+}
+
+#content {
+  border-top-color: #074987;
 }
 
 /* the left column navigation bar */
 
 #sidebar {
-    border-bottom-color: #4577a5;
+    border-bottom-color: #074987;
 }
 
 #sidebar li a {
@@ -53,16 +57,16 @@
 }
 
 #sidebar li.selected a {
-  border-color: #4577a5;
-  background-image: url(/images/blue_selected_bg.gif);
+  border-color: #074987;
+  background-image: url(/images/selected_bg.gif);
 }
 
-#sidebar li span.inactive {
-  color: #7c99b3;
+#sidebar li div.inactive {
+  color: #83a4c3;
 }
 
 #footer {
-  border-top-color: #4577a5;
+  border-top-color: #074987;
 }
 
 /* ======================================== */
@@ -158,7 +162,7 @@ div.sequenceLine {
     margin: 0;
 	padding: 0;
     clear:both;
-	font-family: mono;
+	font-family: mono, Courier;
     font-size: 0.8em;
 }
 
@@ -185,7 +189,7 @@ div.rightAlignmentLabel {
 }
 
 #plainSequence {
-	font-family: mono;
+	font-family: mono, Courier;
     font-size: 0.8em;
     margin: 0.2em;
     padding: 0.2em;
