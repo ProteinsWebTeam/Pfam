@@ -4,15 +4,15 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.10 2006-06-01 16:31:04 jt6 Exp $
+# $Id: wrapper.tt,v 1.11 2006-07-14 12:54:27 jt6 Exp $
 -%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
   
   <head>
-    
-    <title>Pfam: [% pfam.pfamA_id %]</title>
+    [% titleFile = layouts.${pageType}.titleTemplate %]
+    <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
     
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
@@ -54,20 +54,20 @@
     <!-- ====================================================================== -->
     <!-- stylesheets -->
 
-    <link rel="stylesheet" href="[% c.uri_for( "/static/css/pfam.css" ) %]" type="text/css" />
-    <link rel="stylesheet" href="[% c.uri_for( "/static/css/alignment.css" ) %]" type="text/css" />
-    <link rel="stylesheet" href="[% c.uri_for( "/static/css/tab_layout.css" ) %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for( "/css/alignment.css" ) %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout.css" ) %]" type="text/css" />
     [% IF layouts.${pageType}.css.global -%]
       [% css = layouts.${pageType}.css.global -%]
-      <link rel="stylesheet" href="[% c.uri_for( "/static/css/${css}" ) %]" type="text/css" />
+      <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
     [% END -%]
 
     <!--[if lt IE 7 ]>
-    <link rel="stylesheet" href="[% c.uri_for( "/static/css/pfam_ie.css" ) %]" type="text/css" />
-    <link rel="stylesheet" href="[% c.uri_for( "/static/css/tab_layout_ie.css" ) %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for( "/css/pfam_ie.css" ) %]" type="text/css" />
+    <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_ie.css" ) %]" type="text/css" />
     [% IF layouts.${pageType}.css.ie -%]
       [% css = layouts.${pageType}.css.ie -%]
-      <link rel="stylesheet" href="[% c.uri_for( "/static/css/${css}" ) %]" type="text/css" />
+      <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
     [% END -%]
     <![endif]-->
 
@@ -75,33 +75,34 @@
     <!-- YAHOO modules -->
 
     <!-- Namespace source file -->
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/YAHOO.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/YAHOO.js" ) %]"></script>
 
     <!-- Dependency source files -->
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/dom.js" ) %]" ></script>
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/event.js" ) %]" ></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/dom.js" ) %]" ></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/event.js" ) %]" ></script>
 
     <!-- TreeView widget and accompanying stylesheet -->
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/yui/treeview.js" ) %]"></script>
-    <link rel="stylesheet" type="text/css" href="[% c.uri_for( "/static/css/tree.css" ) %]" />
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/treeview.js" ) %]"></script>
+    <link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
 
     <!-- ====================================================================== -->
     <!-- scriptaculous and prototype -->
 
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/prototype.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/scriptaculous/effects.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/slider.js" ) %]"></script>
 
     <!-- ====================================================================== -->
 	<!-- tooltip library -->
 
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/domTT/domLib.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/domTT/domTT.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/domTT/domLib.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/domTT/domTT.js" ) %]"></script>
 
     <!-- ====================================================================== -->
     <!-- local javascript -->
 
-    <script type="text/javascript" src="[% c.uri_for( "/static/javascripts/pfFunctions.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
 
   </head>
 
@@ -153,7 +154,7 @@
                     href="[% constants.server %][% constants.root %]"               
                     onmouseover="ypSlideOutMenu.hover_in('menu1')"
                     onmouseout="ypSlideOutMenu.hover_out('menu1')">
-                    <img src="/static/images/home.png" 
+                    <img src="/PfamWeb/images/home.png" 
                       height="15" 
                       width="100" 
                       alt="Pfam Home" 
@@ -161,7 +162,7 @@
                       border="0" /></a>
                 </td>
                 <td>
-                  <img src="/static/images/search.png" 
+                  <img src="/PfamWeb/images/search.png" 
                     height="15" 
                     width="100" 
                     alt="Search by" 
@@ -172,7 +173,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu2')" />
                 </td>
                 <td>
-                  <img src="/static/images/browse.png" 
+                  <img src="/PfamWeb/images/browse.png" 
                     height="15"
                     width="100"
                     title="Browse by - Click for menu"
@@ -183,7 +184,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu3')" />
                 </td>
                 <td>
-                  <img src="/static/images/ftp.png"
+                  <img src="/PfamWeb/images/ftp.png"
                     height="15"
                     width="100"
                     title="FTP - Click for menu"
@@ -194,7 +195,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu4')" />
                 </td>
                 <td>
-                  <img src="/static/images/ipfam.png"
+                  <img src="/PfamWeb/images/ipfam.png"
                     height="15"
                     width="100"
                     title="iPfam - Click for menu"
@@ -205,7 +206,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu5')" />
                 </td>
                 <td>
-                  <img src="/static/images/help.png" 
+                  <img src="/PfamWeb/images/help.png" 
                     height="15"
                     width="100"
                     title="Help - Click for menu"
