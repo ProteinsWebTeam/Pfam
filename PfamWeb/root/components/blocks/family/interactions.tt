@@ -12,7 +12,7 @@ END;
   </div>
   <div class="blockContent">
 
-    <p>There are [% summaryData.numIpfam %] <a href="[% c.uri_for( "/int?acc=$pfam.pfamA_acc" ) %]">interactions</a> for this family.</p>
+    <p>There are [% summaryData.numIpfam %] <a href="[% c.uri_for( "/int", acc=pfam.pfamA_acc ) %]">interactions</a> for this family.</p>
 
   </div>
 
