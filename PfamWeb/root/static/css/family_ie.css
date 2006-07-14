@@ -4,22 +4,9 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: family_ie.css,v 1.4 2006-07-06 10:45:37 jt6 Exp $
+   $Id: family_ie.css,v 1.5 2006-07-14 12:55:12 jt6 Exp $
 */
 
 hr.short {
     border-color: #074987;
-}
-
-/* the curved corner for the page top tab */
-/* redundant if we switch to a GIF rather than a PNG...
-#icons {
-    background-image: none;
-    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/right_top.png",sizingMethod="crop");
-}
-*/
-
-#alignmentKey, 
-#alignmentData {
-	font-family: Courier;
 }
