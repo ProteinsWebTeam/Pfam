@@ -16,7 +16,8 @@ __PACKAGE__->set_primary_key("auto_pfamseq");
 
 #This doesnot need any proxies as all of the data should be in the storable object
 __PACKAGE__->has_one("auto_pfamseq" => "PfamWeb::Model::Pfamseq",
-		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
+		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
+					{proxy => [qw/pfamseq_id pfamseq_acc/]});
 
 __PACKAGE__->has_one("auto_architecture" => "PfamWeb::Model::Architecture",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
