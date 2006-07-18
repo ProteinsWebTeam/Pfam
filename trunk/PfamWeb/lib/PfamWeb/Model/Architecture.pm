@@ -22,7 +22,8 @@ __PACKAGE__->set_primary_key( "auto_architecture", "architecture", "type_example
 #Now on to the relationships
 
 __PACKAGE__->has_one    ( "pfamA_architecture" => "PfamWeb::Model::PfamA_architecture",
-			  {"foreign.auto_architecture" => "self.auto_architecture"});
+			  {"foreign.auto_architecture" => "self.auto_architecture"},
+			{proxy => [qw/auto_pfamA/]});
 
 __PACKAGE__->has_one    ( "type_example" => "PfamWeb::Model::Pfamseq",
 			  {"foreign.auto_pfamseq" => "self.type_example"},
@@ -32,4 +33,7 @@ __PACKAGE__->has_one    ( "storable" => "PfamWeb::Model::Pfam_annseq",
 			  {"foreign.auto_pfamseq" => "self.type_example"},
 			  {proxy => [ qw/annseq_storable/ ]});
 
+__PACKAGE__->has_one    ( "clan_arch" => "PfamWeb::Model::ClanArchitecture",
+			  {"foreign.auto_architecture" => "self.auto_architecture"},
+			{proxy => [qw/auto_clan/]});
 1;
