@@ -11,6 +11,7 @@ my( $thr,
     $list,
     $help, 
     $cove,
+#    $fasta,
     $overlaps );
 
 &GetOptions( "t=s"      => \$thr,
@@ -18,6 +19,7 @@ my( $thr,
 	     "l"        => \$list,
 	     "overlaps" => \$overlaps,
 	     "cove"     => \$cove,
+#	     "fa=s"     => \$fasta,
 	     "h"        => \$help );
 
 if( $help ) {
@@ -27,7 +29,6 @@ if( $help ) {
 
 not $inxfile and $inxfile = $Rfam::rfamseq;
 my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
-
 
 my $file = shift;
 
@@ -77,18 +78,29 @@ if( $list ) {
     my $desclength = 35;
     my %desc;
     $thr = 0 if( not defined $thr );
+
     my @goodhits = grep{ $_->bits >= $thr } $res->eachHMMUnit();
     my @allnames = map{ $_->seqname } @goodhits;
-    while( scalar @allnames ) {
-	my $string = join( " ", splice( @allnames, 0, $chunksize ) );
-	open( P, "pfetch -a -d embl -D $string |" ) or die;
-	while( <P> ) {
-	    if( /^\S+\s+(\S+)\.\d+\s+(.{1,$desclength})/ ) {
-		$desc{$1} = $2;
-	    }
+
+    if( $inxfile ne $Rfam::rfamseq ) {
+	foreach my $id ( @allnames ) {
+	    my $seq = &get_seq( $id );
+	    $desc{ $id } = $seq->desc;
 	}
-	close P or die "can't close pfetch pipe";
     }
+    else {
+	while( scalar @allnames ) {
+	    my $string = join( " ", splice( @allnames, 0, $chunksize ) );
+	    open( P, "pfetch -d embl -D $string |" ) or die;
+	    while( <P> ) {
+		if( /^\S+\s+(\S+)\.\d+\s+(.{1,$desclength})/ ) {
+		    $desc{$1} = $2;
+		}
+	    }
+	    close P or die "can't close pfetch pipe";
+	}
+    }
+
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	my( $emblacc );
 	if( $unit->seqname =~ /^(\S+)\.\d+$/ ) {
@@ -161,12 +173,9 @@ if( !$atleastonehit ) {
     exit(0);
 }
 
-if( $local ) {
-    system "cmalign -l -o ALIGN CM $$.fa" and die "failed to run cmalign";
-}
-else {
-    system "cmalign -o ALIGN CM $$.fa" and die "failed to run cmalign";
-}
+my $options = "-o ALIGN --banded --bandexpand ";
+$options = "-l ".$options if( $local );
+system "cmalign $options CM $$.fa" and die "failed to run cmalign";
 
 my $tc_bits = $res -> lowest_true( $thr );
 my $nc_bits = $res -> highest_noise( $thr );
@@ -219,7 +228,7 @@ sub get_seq {
     my $end   = shift;
     my $reverse;
 
-    $reverse = 1 if( $end < $start );
+    $reverse = 1 if( $end and $end < $start );
 
     my $seq = new Bio::Seq;
     eval {
@@ -229,24 +238,27 @@ sub get_seq {
 	warn "$id not found in your seq db\n";
 	return 0;       # failure
     }
-    
-    my( $getstart, $getend );
-    if( $reverse ) {
-	( $getstart, $getend ) = ( $end, $start );
-    }
-    else {
-	( $getstart, $getend ) = ( $start, $end );
-    }
-    
-    my $truncseq = $seq -> trunc( $getstart, $getend );
-    $truncseq -> desc( "" );
-    $truncseq -> id( "$id/$start-$end" );
 
-    if( $reverse ) {
-	my $revseq = $truncseq -> revcom();
-	$truncseq = $revseq;
+    my $truncseq;
+    if( $end ) {
+	my( $getstart, $getend );
+	if( $reverse ) {
+	    ( $getstart, $getend ) = ( $end, $start );
+	}
+	else {
+	    ( $getstart, $getend ) = ( $start, $end );
+	}
+    
+	$truncseq = $seq -> trunc( $getstart, $getend );
+	$truncseq -> desc( "" );
+	$truncseq -> id( "$id/$start-$end" );
+
+	if( $reverse ) {
+	    my $revseq = $truncseq -> revcom();
+	    $truncseq = $revseq;
+	}
     }
 
-    return $truncseq;
+    return $truncseq || $seq;
 }
 
