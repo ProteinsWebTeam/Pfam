@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.10 2006-07-14 12:55:12 jt6 Exp $
+   $Id: tab_layout.css,v 1.11 2006-07-20 10:03:23 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -373,6 +373,33 @@ table.details tr {
 
 .stripeHover {
 	background: #CBD;
+}
+
+table.details tr.odd {
+  background: #CCC;
+}
+
+table.details tr.even {
+  background: #DDD;
+}
+
+/* ---------------------------------------- */
+/* pfam graphics */
+
+div.graphicRow {
+  display: block;
+  clear: both;
+  padding: 0.4em;
+}
+
+span.graphicLabel {
+  float: left;
+  width: 24em;
+}
+
+img.graphicImage {
+  border: none;
+  float: left;
 }
 
 /* ======================================== */

@@ -4,7 +4,7 @@
 
    Stylesheet for the structure pages.
 
-   $Id: structure.css,v 1.1 2006-07-14 13:17:41 jt6 Exp $
+   $Id: structure.css,v 1.2 2006-07-20 10:03:23 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -80,22 +80,4 @@ ol {
 li {
   padding-bottom: 0.2em;
 }
-
-/* the pfam graphics in the sequence tab */
-div.graphicRow {
-  display: block;
-  clear: both;
-  padding: 0.4em;
-}
-
-span.graphicLabel {
-  float: left;
-  width: 24em;
-}
-
-img.graphicImage {
-  border: none;
-  float: left;
-}
-
 
