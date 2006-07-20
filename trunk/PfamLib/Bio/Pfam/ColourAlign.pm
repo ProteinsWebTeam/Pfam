@@ -2,8 +2,10 @@ package Bio::Pfam::ColourAlign;
 
 use strict;
 use warnings;
+#use CGI;
 our ($groups, $class, $colours);
 
+#my $cgi = new CGI;
 
 #&printCSS;
 #my $alignRef = &parseAlign;
@@ -45,51 +47,129 @@ sub parseConsensus{
     return(\@c);
 }
 
+sub markupAlign {
+  my( $alignRef, $conRef ) = @_;
 
-sub markupAlign{
-    my $alignRef = shift;
-    my $conRef = shift;
-    my $currentClass = 0;
+  my( $r, $R );
 
-    my ($css, $r, $R);
-    print "<pre>\n<div class=align>";
-    foreach my $nse (keys %$alignRef){
+  my $op = "<div class=\"align\">\n";
+  my $rowNum = 0;
+  foreach my $nse ( keys %$alignRef ){
+	my $nseLabel;
+	( $nseLabel = sprintf "%-20s", $nse ) =~ s/\s/\&nbsp;/g;
 	my $i = 0;
-	print "<div class=alirow><span class=nse>$nse   </span>";
-	while($alignRef->{$nse}){
-	    $r = substr($alignRef->{$nse}, 0, 1, "");
-	    $R = uc $r;
-	    
-	    
-	    if($R eq "." || $R eq "-"){
-		print "<span class=black>$r</span>";
-		$i++;
-		next;
-	    }elsif($R eq $conRef->[$i]){
-		$css = "S".$class->{$R};
-		print "<span class=$css>$r</span>";
-		$i++;
-		next;
-	    }elsif($groups->{$conRef->[$i]}->{$R}){
-		$css = "T".$class->{$R};
-		print "<span class=$css>$r</span>";
-		$i++;
-		next;
-	    }else{
-		print "<span class=black>$r</span>";
-		$i++;
-		next;
-	    }
-	    
-	    
+	$op .= "<span class=\"alirow " . ( ( $rowNum++ % 2 ) ? "odd" : "even" ) . "\"><span class=\"nse\">$nseLabel</span><span class=\"alidata\">";
+	while( $alignRef->{$nse}) {
+	  $r = substr( $alignRef->{$nse}, 0, 1, "" );
+	  $R = uc $r;
+
+	  if( $R eq "." or $R eq "-" ) {
+		$op .= $r;
+	  } elsif( $R eq $conRef->[$i] ) {
+		$op .= "<span class=\"S" . $class->{$R} . "\">$r</span>";
+	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
+		$op .= "<span class=\"T" . $class->{$R} . "\">$r</span>";
+	  } else {
+		$op .= $r;
+	  }
+	  $i++;
+	  $op .= "\n" unless $i % 20;
 	}
-	print "</div>\n";
-    }
-    print "</div>\n";
-    print "</pre>";
+	$op .= "</span></span>\n";
+  }
+  $op .= "</div>";
+
+  return $op;
 }
 
+sub markupAlignSeparate {
+  my( $alignRef, $conRef ) = @_;
 
+  my( $r, $R );
+
+  my $key = "<div id=\"alignmentKey\">";
+  my $ali = "<div id=\"alignmentData\">";
+
+  my $rowNum = 0;
+  foreach my $nse ( keys %$alignRef ){
+	my $i = 0;
+
+	$key .= "<span class=\"" . ( $rowNum % 2 ? "odd" : "even" ) . "\">$nse</span>\n";
+	$ali .= "<span class=\"" . ( $rowNum++ % 2 ? "odd" : "even" ) . "\">";
+
+	while( $alignRef->{$nse}) {
+	  $r = substr( $alignRef->{$nse}, 0, 1, "" );
+	  $R = uc $r;
+
+	  if( $R eq "." or $R eq "-" ) {
+		$ali .= $r;
+	  } elsif( $R eq $conRef->[$i] ) {
+		$ali .= "<span class=\"S" . $class->{$R} . "\">$r</span>";
+	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
+		$ali .= "<span class=\"T" . $class->{$R} . "\">$r</span>";
+	  } else {
+		$ali .= $r;
+	  }
+	  $i++;
+
+	}
+
+	$ali .= "</span>\n";
+  }
+
+  $key .= "</div>\n";
+  $ali .= "</div>\n";
+
+  # composite the key and alignment into a single, large div
+  return "<div id=\"alignmentBlock\">\n$key\n$ali</div>\n";
+}
+
+# sub markupAlign2 {
+#   my( $alignRef, $conRef ) = @_;
+
+#   my( $r, $R );
+
+#   my $key = $cgi->start_div( { -class => "key" } );
+#   my $ali = $cgi->start_div( { -class => "align" } );
+
+#   my $rowNum = 0;
+#   foreach my $nse ( keys %$alignRef ){
+# 	my $nseLabel;
+# 	( $nseLabel = sprintf "%-20s", $nse ) =~ s/\s/\&nbsp;/g;
+# 	my $i = 0;
+
+# 	$key .= $cgi->span( { -class => "nse " . ( $rowNum % 2 ) ? "odd" : "even" }, $nseLabel );
+
+# 	$ali .= $cgi->start_span( { -class => "alirow " . ( $rowNum++ % 2 ) ? "odd" : "even" } );
+	
+# 	while( $alignRef->{$nse}) {
+# 	  $r = substr( $alignRef->{$nse}, 0, 1, "" );
+# 	  $R = uc $r;
+
+# 	  if( $R eq "." or $R eq "-" ) {
+# 		$ali .= $r;
+# 	  } elsif( $R eq $conRef->[$i] ) {
+# 		$ali .= $cgi->span( { -class => "S" . $class->{$R} }, $r );
+# 	  } elsif( $groups->{$conRef->[$i]}->{$R} ) {
+# 		$ali .= $cgi->span( { -class => "T" . $class->{$R} }, $r );
+# 	  } else {
+# 		$ali .= $r;
+# 	  }
+# 	  $i++;
+
+# 	}
+
+# 	$ali .= $cgi->end_span;
+#   }
+
+#   $key .= $cgi->end_div;
+#   $ali .= $cgi->end_div;
+
+#   print STDERR "key: |$key|\n";
+#   print STDERR "ali: |$ali|\n";
+
+#   return $key . $ali;
+# }
 
 #These are build at compile time as it makes it faster running in modperl and
 #as they should not be altered.  I have put them down here to make the code a 
