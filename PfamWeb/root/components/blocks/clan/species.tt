@@ -1,0 +1,23 @@
+
+[%#
+# species.tt
+# jt6 20060718 WTSI
+#
+# $Id: species.tt,v 1.1 2006-07-20 09:04:06 jt6 Exp $
+%]
+
+<!-- start species block -->
+
+<div class="block" id="clanSpeciesBlock">
+  <div class="handle">
+    <h1>Species</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Species...</h3>
+
+  </div>
+
+</div>
+
+<!-- end species block -->
