@@ -30,4 +30,14 @@ __PACKAGE__->has_one( "clans" => "PfamWeb::Model::Clans",
 		      {proxy => [qw/clan_acc clan_id clan_description/]});
 
 
+__PACKAGE__->has_many( "pfamARegFull" => "PfamWeb::Model::PfamA_reg_full",
+		      {"foreign.auto_pfamA" => "self.auto_pfamA"});
+
+__PACKAGE__->might_have( "pfamAInts" => "PfamWeb::Model::Int_pfamAs",
+		      {"foreign.auto_pfamA_A" => "self.auto_pfamA"});
+
+__PACKAGE__->might_have( "pdbmap" => "PfamWeb::Model::PdbMap",
+		      {"foreign.auto_pfam" => "self.auto_pfamA"});
+
+
 1;
