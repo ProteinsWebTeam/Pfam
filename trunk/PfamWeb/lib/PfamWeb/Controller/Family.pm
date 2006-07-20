@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam family page.
 #
-# $Id: Family.pm,v 1.4 2006-07-14 13:08:58 jt6 Exp $
+# $Id: Family.pm,v 1.5 2006-07-20 08:46:52 jt6 Exp $
 
 package PfamWeb::Controller::Family;
 
@@ -24,20 +24,6 @@ use base "Catalyst::Controller";
 # wrapper from the templates.
 
 #-------------------------------------------------------------------------------
-# pick up http://localhost:3000/summary
-
-sub generateSummary : Path {
-  my( $this, $c ) = @_;
-
-  # the accession should have been dropped into the stash by the begin
-  # method
-
-  # add the cross-references to the stash
-  $c->forward( "getDbXrefs" ) if defined $c->stash->{pfam};
-
-}
-
-#-------------------------------------------------------------------------------
 # get the row in the Pfam table for this entry
 
 sub begin : Private {
@@ -48,8 +34,8 @@ sub begin : Private {
 
   if( defined $c->req->param("acc") ) {
 
-	$c->req->param("acc") =~ m/^(PF\d{5})$/;
-	$c->log->info( "$this: found accession |$1|" );
+	$c->req->param("acc") =~ m/^(PF\d{5})$/i;
+	$c->log->info( "Family::begin: found accession |$1|" );
 
 	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_acc => $1 } )
 	  if defined $1;
@@ -57,16 +43,36 @@ sub begin : Private {
   } elsif( defined $c->req->param("id") ) {
 
 	$c->req->param("id") =~ m/^(\w+)$/;
-	$c->log->info( "$this: found ID |$1|" );
+	$c->log->info( "Family::begin: found ID |$1|" );
 
 	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_id => $1 } )
 	  if defined $1;
 
-  }	
+  }	elsif( defined $c->req->param( "entry" ) ) {
+
+	if( $c->req->param( "entry" ) =~ /^(PF\d{5})$/i ) {
+
+	  # looks like an accession; redirect to this action, appending the accession
+	  $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting" );
+	  $c->res->redirect( $c->uri_for( "/family", { acc => $1 } ) );
+	  return 1;
+
+	} elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
+
+	  # looks like an ID; redirect to this action, appending the ID
+	  $c->log->debug( "Family::begin: might be a Pfam ID; redirecting" );
+	  $c->res->redirect( $c->uri_for( "/family", { id => $1 } ) );
+	  return 1;
+	}
+
+  }
 
   # we're done here unless there's an entry specified
-  $c->log->warn( "$this: no ID or accession" ) and return
-	unless defined $c->stash->{pfam};
+  unless( defined $c->stash->{pfam} ) {
+	$c->log->warn( "$this: no ID or accession" );
+	$c->error( "No valid Pfam family accession or ID" );
+	return;
+  }
 
   #----------------------------------------
   # get the data items for the overview bar
@@ -95,7 +101,7 @@ sub begin : Private {
     }
   );
 
-  # number or architectures....
+  # number of architectures....
   $summaryData{numArchitectures} = $rs->get_column( "count" );
 
   # number of sequences in full alignment
@@ -128,6 +134,20 @@ sub begin : Private {
   $summaryData{numIpfam} = $rs->get_column( "NumInts" );
 
   $c->stash->{summaryData} = \%summaryData;
+
+}
+
+#-------------------------------------------------------------------------------
+# pick up http://localhost:3000/summary
+
+sub generateSummary : Path {
+  my( $this, $c ) = @_;
+
+  # the accession should have been dropped into the stash by the begin
+  # method
+
+  # add the cross-references to the stash
+  $c->forward( "getDbXrefs" ) if defined $c->stash->{pfam};
 
 }
 
@@ -230,12 +250,23 @@ sub getDbXrefs : Private {
 sub end : Private {
   my( $this, $c ) = @_;
 
-  # set up the TT view
-  $c->stash->{pageType} = "family";
-  $c->stash->{template} = "pages/layout.tt";
+  # don't try to render a page unless there's a Pfam object in the stash
+  return 0 unless defined $c->stash->{pfam};
 
-  # and use it
+  # check for errors
+  if ( scalar @{ $c->error } ) {
+	$c->stash->{errors}   = $c->error;
+	$c->stash->{template} = "components/blocks/family/errors.tt";
+  } else {
+	$c->stash->{pageType} = "family";
+	$c->stash->{template} = "pages/layout.tt";
+  }
+
+  # and render the page
   $c->forward( "PfamWeb::View::TT" );
+
+  # clear any errors
+  $c->error(0);
 
 }
 
