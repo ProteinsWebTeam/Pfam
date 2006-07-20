@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
+# $Id: summary.tt,v 1.2 2006-07-20 09:32:35 jt6 Exp $
 %]
 
 [% USE String %]
@@ -73,12 +73,12 @@
 
 	        <table class="details">
 		      <thead>
-                <tr>
+                <tr class="caption">
                   <th colspan="3">PDB</th>
                   <th colspan="3">UniProt</th>
                   <th rowspan="2">Pfam family</th>
                 </tr>
-                <tr>
+                <tr class="caption">
                   <th>Chain</th>
                   <th>Start</th>
                   <th>End</th>
@@ -101,6 +101,8 @@
                 [% END %]
 		      </tbody>
             </table>
+
+			<p class="small"><strong>Note:</strong> This mapping was provided by the <a href="http://www.ebi.ac.uk/msd/">MSD</a> group.</p>
 
           </td>
 		</tr>
