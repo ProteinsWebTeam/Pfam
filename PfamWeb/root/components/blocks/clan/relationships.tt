@@ -3,18 +3,25 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.1 2006-04-25 16:28:00 jt6 Exp $
+# $Id: relationships.tt,v 1.2 2006-07-20 09:04:49 jt6 Exp $
 %]
 
 <!-- start relationships block -->
 
-<div class="block" id="relationshipsBlock">
+[%- image = "${constants.server}/${constants.root}/data/clans/newRelationship/${clan.clan_acc}.png" -%]
+[%- map   = "${constants.docroot}/${constants.root}/data/clans/newRelationship/${clan.clan_acc}.html" -%]
+
+<div class="block" id="clanRelationshipsBlock">
   <div class="handle">
     <h1>Family relationships</h1>
   </div>
   <div class="blockContent">
 
-    <h3>Graphics...</h3>
+    <img id="clanImage" src="[% image %]" alt="" usemap="#clanMap" />
+
+	<map name="clanMap">
+      [% INSERT $map %]
+    </map>
 
   </div>
 
