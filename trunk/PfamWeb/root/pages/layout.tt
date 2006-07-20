@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.7 2006-07-14 13:15:23 jt6 Exp $
+# $Id: layout.tt,v 1.8 2006-07-20 09:33:11 jt6 Exp $
 %]
 
 [% USE String %]
@@ -75,7 +75,7 @@ END;
 
 <div id="tabHeader"></div>
 
-[% PROCESS components/blocks/icons.tt %]
+[% PROCESS components/icons.tt %]
 
 <div id="tabTitle">
   <div id="corner">
