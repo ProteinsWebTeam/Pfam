@@ -4,15 +4,21 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.11 2006-07-14 12:54:27 jt6 Exp $
+# $Id: wrapper.tt,v 1.12 2006-07-20 09:02:54 jt6 Exp $
 -%]
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
   
   <head>
-    [% titleFile = layouts.${pageType}.titleTemplate %]
-    <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
+
+    [% IF pageType %]
+      [% titleFile = layouts.${pageType}.titleTemplate %]
+      <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
+    [% ELSE %]
+      <title>Pfam</title>
+    [% END %]
     
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
@@ -104,6 +110,8 @@
 
     <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
 
+	<link rel="shortcut icon" href="images/favicon.ico" >
+
   </head>
 
     <body>
@@ -131,7 +139,7 @@
               </form>
                 <!--search box end-->
               </div>
-              <a href="[% constants.server %][% constants.root %]"><img id="pfamLogo" src="[% constants.server %][% constants.root %]/images/pfam_logo.gif" alt="Pfam" /></a>
+              <a href="[% c.uri_for( "/" ) %]"><img id="pfamLogo" src="[% constants.server %][% constants.root %]/images/pfam_logo.gif" alt="Pfam" /></a>
             </td>
           </tr>
           <tr>
@@ -154,7 +162,7 @@
                     href="[% constants.server %][% constants.root %]"               
                     onmouseover="ypSlideOutMenu.hover_in('menu1')"
                     onmouseout="ypSlideOutMenu.hover_out('menu1')">
-                    <img src="/PfamWeb/images/home.png" 
+                    <img src="/images/home.png" 
                       height="15" 
                       width="100" 
                       alt="Pfam Home" 
@@ -162,7 +170,7 @@
                       border="0" /></a>
                 </td>
                 <td>
-                  <img src="/PfamWeb/images/search.png" 
+                  <img src="/images/search.png" 
                     height="15" 
                     width="100" 
                     alt="Search by" 
@@ -173,7 +181,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu2')" />
                 </td>
                 <td>
-                  <img src="/PfamWeb/images/browse.png" 
+                  <img src="/images/browse.png" 
                     height="15"
                     width="100"
                     title="Browse by - Click for menu"
@@ -184,7 +192,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu3')" />
                 </td>
                 <td>
-                  <img src="/PfamWeb/images/ftp.png"
+                  <img src="/images/ftp.png"
                     height="15"
                     width="100"
                     title="FTP - Click for menu"
@@ -195,7 +203,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu4')" />
                 </td>
                 <td>
-                  <img src="/PfamWeb/images/ipfam.png"
+                  <img src="/images/ipfam.png"
                     height="15"
                     width="100"
                     title="iPfam - Click for menu"
@@ -206,7 +214,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu5')" />
                 </td>
                 <td>
-                  <img src="/PfamWeb/images/help.png" 
+                  <img src="/images/help.png" 
                     height="15"
                     width="100"
                     title="Help - Click for menu"
@@ -291,6 +299,14 @@
 
       </div> <!-- end of "header" -->
 
+      [% IF fullPage %]
+
+        <!-- content -->
+        [% content %]
+        <!-- end of "content" -->
+
+      [% ELSE %]
+
       <div id="contentContainer">
 
         <!-- content -->
@@ -304,6 +320,8 @@
         <div class="cleaner"></div>
 
       </div> <!-- end of "contentContainer" -->
+
+      [% END # of IF fullpage %]
 
     </body>
 </html>
