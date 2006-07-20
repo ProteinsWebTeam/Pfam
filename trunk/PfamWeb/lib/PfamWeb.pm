@@ -6,7 +6,7 @@
 # application. Configuration is all done through the pfamweb.yml
 # config file and there's (currently) not much else in here.
 #
-# $Id: PfamWeb.pm,v 1.8 2006-07-14 13:11:45 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.9 2006-07-20 10:05:11 jt6 Exp $
 
 package PfamWeb;
 
@@ -66,7 +66,6 @@ Catalyst based application.
 
 =cut
 
-
 #
 # Output a friendly welcome message
 #
@@ -75,10 +74,19 @@ Catalyst based application.
 =cut
 
 sub default : Private {
-    my ( $self, $c ) = @_;
+  my ( $self, $c ) = @_;
 
-    # Hello World
-    $c->response->body( $c->welcome_message );
+  # Hello World
+  #$c->response->body( $c->welcome_message );
+
+  # catch the root of the application. This could be moved into a
+  # lower level controller sometime, with a Global action that
+  # captures "/"...
+  unless( $c->response->body ) {
+    $c->stash->{fullPage} = 1;
+	$c->stash->{template} = "pages/index.tt";
+	$c->forward( "PfamWeb::View::TT" );
+  }
 }
 
 #
