@@ -26,7 +26,8 @@ my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
 
 sub new {
   my $class = shift;
-  my %params = @_;
+  my $params = shift;
+
   my $self = bless {}, ref($class) || $class;
   $self->{'height'} = undef;
   $self->{'length'} = undef;
@@ -45,6 +46,9 @@ sub new {
   $self->{'regions'} = [];
   $self->{'allocated_colours'} = {};
   $self->{'colourMap'} = Sanger::Graphics::ColourMap->new();
+
+  $self->{timeStamp} = $params->{timeStamp}
+	if defined $params->{timeStamp};
 
   return $self;
 }
@@ -1340,10 +1344,20 @@ sub _new_image {
 sub print_image {
   my $self = shift;
   my $file = $self->image_name.".png";
-  my $pid = $$;
+
+  my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
 #  my $root = "/home/rob/Work/PfamWeb/root";
-  my $root = "/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/root";
-  my $file_location = "domain_images/$pid";
+#  my $root = "/nfs/WWW/tmp/pfam/";
+
+  my $root;
+  if( $ENV{DOCUMENT_ROOT} ) {
+	$root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
+	($root)  = $root =~ m|([a-z0-9_\./]+)|i;
+  } else {
+	$root = "/nfs/WWWdev/SANGER_docs/htdocs/tmp/pfam";
+  }
+
+  my $file_location = "domain_gfx/$dirName";
   if(!-d "$root/$file_location"){
       mkdir("$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
   }

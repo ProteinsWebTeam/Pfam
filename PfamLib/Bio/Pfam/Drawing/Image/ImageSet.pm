@@ -5,6 +5,7 @@ use GD;
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 use Bio::Pfam::Drawing::Image::Image;
+use Time::HiRes qw( gettimeofday );
 
 my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
 
@@ -12,6 +13,9 @@ sub new{
   my $class = shift;
   my $self = bless {}, ref($class) || $class;
   $self->{ 'images' } = [];
+
+  $self->{timeStamp} = gettimeofday * 100000;
+
   return $self;
 }
 
@@ -40,7 +44,6 @@ sub create_images {
 	$dom = $origDom;
   }
 
-
   my $root = $dom->documentElement;
   my $xc = XML::LibXML::XPathContext->new( $root );
   $xc->registerNs( "pf" => $ns );
@@ -49,7 +52,7 @@ sub create_images {
 	
 	#print STDERR "creating image for |$seqNode|", $seqNode->nodeName, "|\n";
 
-    my $image = Bio::Pfam::Drawing::Image::Image->new;
+    my $image = Bio::Pfam::Drawing::Image::Image->new( { timeStamp => $self->{timeStamp} } );
 
 	#print STDERR "imageset: length: |", $seqNode->getAttribute( "length" ), "|\n";
 
