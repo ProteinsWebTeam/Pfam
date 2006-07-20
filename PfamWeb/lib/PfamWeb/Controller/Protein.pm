@@ -4,7 +4,7 @@
 #
 # Controller to build the main protein page.
 #
-# $Id: Protein.pm,v 1.4 2006-07-14 13:10:13 jt6 Exp $
+# $Id: Protein.pm,v 1.5 2006-07-20 08:59:36 jt6 Exp $
 
 package PfamWeb::Controller::Protein;
 
@@ -16,17 +16,6 @@ use Data::Dumper;
 use base "Catalyst::Controller";
 
 #-------------------------------------------------------------------------------
-# the hook into the class
-
-# pick up a URL like http://localhost:3000/protein?acc=P00179
-
-sub default : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "Protein::default: starting..." );
-}
-
-#-------------------------------------------------------------------------------
 # get the data from the database for the UniProt entry
 
 sub begin : Private {
@@ -34,7 +23,7 @@ sub begin : Private {
 
   if( defined $c->req->param( "acc" ) ) {
 
-	$c->req->param( "acc" ) =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/;
+	$c->req->param( "acc" ) =~ m/^([OPQ]\d[A-Za-z0-9]{3}\d)$/i;
 	$c->log->info( "Protein::begin: found a uniprot accession |$1|" );
 
 	# try a lookup in the main pfamseq table first
@@ -67,7 +56,7 @@ sub begin : Private {
 
 	# we don't know if this is an accession or an ID; try both
 
-	if( $c->req->param( "entry" ) =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/ ) {
+	if( $c->req->param( "entry" ) =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/i ) {
 
 	  # looks like an accession; redirect to this action, appending the accession
 	  $c->log->debug( "Protein::begin: looks like a uniprot accession ($1); redirecting" );
@@ -96,20 +85,39 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
+# the hook into the class
+
+# pick up a URL like http://localhost:3000/protein?acc=P00179
+
+sub default : Private {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( "Protein::default: action caught a URL..." );
+}
+
+#-------------------------------------------------------------------------------
 # default end; hand off to the whole page layout
 
 sub end : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Protein::end: setting template..." );
+  # don't try to render a page unless there's a Pfamseq object in the stash
+  return 0 unless defined $c->stash->{pfamseq};
 
-  # set up the TT view
-  $c->stash->{pageType} = "protein";
-  $c->stash->{template} = "pages/layout.tt";
+  # check for errors
+  if ( scalar @{ $c->error } ) {
+	$c->stash->{errors}   = $c->error;
+	$c->stash->{template} = "components/blocks/protein/errors.tt";
+  } else {
+	$c->stash->{pageType} = "protein";
+	$c->stash->{template} = "pages/layout.tt";
+  }
 
-  # and use it
+  # and render the page
   $c->forward( "PfamWeb::View::TT" );
 
+  # clear any errors
+  $c->error(0);
 }
 
 #-------------------------------------------------------------------------------
