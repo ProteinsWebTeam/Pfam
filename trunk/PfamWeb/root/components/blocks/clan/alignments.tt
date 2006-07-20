@@ -1,0 +1,24 @@
+
+[%#
+# alignments.tt
+# jt6 20060424 WTSI
+#
+# $Id: alignments.tt,v 1.1 2006-07-20 09:04:06 jt6 Exp $
+%]
+
+<!-- start clan alignments block -->
+
+<div class="block" id="clanAlignmentsBlock">
+  <div class="handle">
+    <h1>Alignments</h1>
+  </div>
+  <div class="blockContent">
+
+    <p><strong>Please note:</strong> Clan alignments can be <strong>very</strong> large and can cause problems for some browsers.</p>
+
+    <p>You can view the full clan alignment <a href="http://www.sanger.ac.uk/Software/Pfam/data/clans/alignment/[% clan.clan_acc %].shtml" target="_blank">here</a>.</p>
+  </div>
+
+</div>
+
+<!-- end clan alignments block -->

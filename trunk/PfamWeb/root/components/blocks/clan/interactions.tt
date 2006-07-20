@@ -1,0 +1,23 @@
+
+[%#
+# interactions.tt
+# jt6 20060718 WTSI
+#
+# $Id: interactions.tt,v 1.1 2006-07-20 09:04:06 jt6 Exp $
+%]
+
+<!-- start interactions block -->
+
+<div class="block" id="clanInteractionsBlock">
+  <div class="handle">
+    <h1>Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Interactions...</h3>
+
+  </div>
+
+</div>
+
+<!-- end interactions block -->
