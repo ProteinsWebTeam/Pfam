@@ -1,0 +1,25 @@
+
+[%#
+# errors.tt
+# jt6 20060717 WTSI
+#
+# show an error report for the family page.
+#
+# $Id: error.tt,v 1.1 2006-07-20 09:28:44 jt6 Exp $
+%]
+
+<!-- start error report -->
+
+<div class="errorReport">
+
+  <h1>Error</h1>
+
+  <p>There was a problem with your last request:</p>
+
+  [% FOREACH error IN errors %]
+    <p>[% error %]</p>
+  [% END %]
+
+</div>
+
+<!-- end error report -->
