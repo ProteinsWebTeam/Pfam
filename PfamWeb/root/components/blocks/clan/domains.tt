@@ -3,7 +3,9 @@
 # domains.tt
 # jt6 20060424 WTSI
 #
-# $Id: domains.tt,v 1.1 2006-04-25 16:28:00 jt6 Exp $
+# the domain organisation block for the clans sections
+#
+# $Id: domains.tt,v 1.2 2006-07-20 09:04:27 jt6 Exp $
 %]
 
 <!-- start domain organisation block -->
@@ -14,10 +16,20 @@
   </div>
   <div class="blockContent">
 
-    <h3>Domain organisation...</h3>
+	<div id="clanGraphicsHolder">
+      <p id="cgph">
+        <img src="/images/loading.gif" alt="loading..." />
+        Loading domain graphics...
+      </p>
+    </div> <!-- end of clanGraphicsHolder -->
 
-  </div>
+  </div> <!-- end of blockContent -->
 
-</div>
+</div> <!-- end of clanDomainsBlock -->
+
+<script type="text/javascript">
+  loadOptions.cg.uri    = "[% c.uri_for( "/clangraphics" ) %]";
+  loadOptions.cg.params = "id=[% clan.clan_id %]";
+</script>
 
 <!-- end domain organisation block -->
