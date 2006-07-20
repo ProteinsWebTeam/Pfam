@@ -1,0 +1,73 @@
+
+[%#
+# browseFamilies.tt
+# jt6 20060717 WTSI
+# 
+# build a "browse" page
+#
+# $Id: browseFamilies.tt,v 1.1 2006-07-20 09:33:37 jt6 Exp $
+%]
+
+[% oe = 0 %]
+
+[% pageList = BLOCK %]
+<div class="pageList">
+[% pages = [ "numbers",
+             "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+	         "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ] %]
+[% lcChar = char | lower %]
+[% CALL c.log.debug( "lcChar: $lcChar" ) %]
+
+[% FOREACH page IN pages %]
+[% CALL c.log.debug( "page: $page" ) %]
+  [% IF page ==  lcChar %]
+  <span class="letter inactive">
+    [% page | ucfirst %]
+  </span>
+  [% ELSE %]
+  <span class="letter">
+    <a href="[% c.uri_for( "/browse", page ) %]">[% page | ucfirst %]</a>
+  </span>
+  [% END %]
+[% END %]
+</div>
+[% END %]
+
+<!-- start browse page -->
+
+[% pageList %]
+
+<table class="details">
+  <thead>
+    <tr class="caption">
+      <th>Name</th>
+      <th>Type</th>
+      <th>No. seed</th>
+      <th>No. full</th>
+      <th>Av. length</th>
+      <th>Av. %id</th>
+      <th>Av. coverage</th>
+      <th>Status</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH pfam IN browse %]
+    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+      <td><a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">[% pfam.pfamA_id %]</a></td>
+      <td>[% pfam.type %]</td>
+      <td>[% pfam.num_seed %]</td>
+      <td>[% pfam.num_full %]</td>
+      <td>[% pfam.average_length %]</td>
+      <td>[% pfam.percentage_id %]</td>
+      <td>[% pfam.average_coverage %]</td>
+      <td>[% pfam.status %]</td>
+      <td>[% pfam.description %]</td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<!-- end browse page -->

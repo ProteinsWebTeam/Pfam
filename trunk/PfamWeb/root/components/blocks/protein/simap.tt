@@ -1,0 +1,24 @@
+
+[%#
+# simap.tt
+# jt6 20060719 WTSI
+# 
+# block for the SIMAP data
+#
+# $Id: simap.tt,v 1.1 2006-07-20 09:31:44 jt6 Exp $
+-%]
+
+<!-- start SIMAP block -->
+
+<div class="block" id="proteinSIMAPBlock">
+  <div class="handle">
+    <h1>SIMAP</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>SIMAP data</h3>
+
+  </div> <!-- end of "blockContent" -->
+</div> <!-- end of "block" -->
+
+<!-- end SIMAP block -->

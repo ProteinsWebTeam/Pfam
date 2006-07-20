@@ -1,0 +1,131 @@
+
+[%#
+# index.tt
+# jt6 20060717 WTSI
+# 
+# build the main Pfam home page.
+#
+# $Id: index.tt,v 1.1 2006-07-20 09:33:25 jt6 Exp $
+%]
+
+<!-- start the index page -->
+
+<div id="jumpBoxes">
+
+  <div class="jumpBox">
+    <h2>Jump to...</h2>
+    <p>
+      Enter the accession or ID for a Pfam family, <br />
+      Pfam clan, PDB structure or UniProt protein <br />
+      and hit return.
+    </p>
+  </div>
+
+  <div class="jumpBox">
+    <form action="[% c.uri_for( "/family" ) %]" name="familyJump">
+      <span class="title">Family:</span>
+      <span class="jump"><input type="text" size="10" name="entry" /></span>
+    </form>
+  </div>
+
+  <div class="jumpBox">
+    <form action="[% c.uri_for( "/clan" ) %]" name="clanJump">
+      <span class="title">Clan:</span>
+      <span class="jump"><input type="text" size="10" name="entry" /></span>
+    </form>
+  </div>
+
+  <div class="jumpBox">
+    <form action="[% c.uri_for( "/structure" ) %]" name="structureJump">
+      <span class="title">Structure:</span>
+      <span class="jump"><input type="text" size="10" name="entry" /></span>
+    </form>
+  </div>
+
+  <div class="jumpBox">
+    <form action="[% c.uri_for( "/protein" ) %]" name="proteinJump">
+      <span class="title">Protein:</span>
+      <span class="jump"><input type="text" size="10" name="entry" /></span>
+    </form>
+  </div>
+
+  <div class="jumpBox">
+    <form action="[% c.uri_for( "/browse" ) %]" id="browseJump">
+      <span class="title">Browse:</span>
+      <span class="jump">
+        <select name="browse" id="browsePages" onchange="$('browseJump').submit();">
+          <option value="numbers">Numbers</option>
+          <option value="a">A</option>
+          <option value="b">B</option>
+          <option value="c">C</option>
+          <option value="d">D</option>
+          <option value="e">E</option>
+          <option value="f">F</option>
+          <option value="g">G</option>
+          <option value="h">H</option>
+          <option value="i">I</option>
+          <option value="j">J</option>
+          <option value="k">K</option>
+          <option value="l">L</option>
+          <option value="m">M</option>
+          <option value="n">N</option>
+          <option value="o">O</option>
+          <option value="p">P</option>
+          <option value="q">Q</option>
+          <option value="r">R</option>
+          <option value="s">S</option>
+          <option value="t">T</option>
+          <option value="u">U</option>
+          <option value="v">V</option>
+          <option value="w">W</option>
+          <option value="x">X</option>
+          <option value="y">Y</option>
+          <option value="z">Z</option>
+        </select>
+      </span>
+    </form>
+  </div>
+</div>
+
+<div id="pageBody">
+
+  <p>
+    Pfam is a large collection of multiple sequence alignments and hidden
+    Markov models covering many common protein domains and families. For
+    each family in Pfam you can:
+  </p>
+  <ul>
+    <li>Look at multiple alignments</li>
+    <li>View protein domain architectures</li>
+    <li>Examine species distribution</li>
+    <li>Follow links to other databases</li>
+    <li>View known protein structures</li>
+  </ul>
+  
+  <p>
+    For more information on Pfam, on using this site, or on the changes
+    between Pfam releases 19.0 and 20.0, click <a href="http://www.sanger.ac.uk/Software/Pfam/help/index.shtml">here</a>.
+  </p>
+  <p>
+    Pfam can be used to view the domain organisation of proteins. A
+    typical example is shown below. Notice that a single protein can
+    belong to several Pfam families.
+  </p>
+  <img src="[% c.uri_for( "/images/imdh_leido.png" ) %]" alt="An example of a Pfam domain image" />
+  <p>
+    74% of protein sequences have at least one match to Pfam. This
+    number is called the sequence coverage and is shown in the pie chart
+    on the right.
+  </p>
+  <p>
+    Pfam is a database of two parts, the first is the curated part of
+    Pfam containing over 8296 protein families. To give Pfam a more
+    comprehensive coverage of known proteins we automatically generate a
+    supplement called Pfam-B. This contains a large number of small
+    families taken from the <a href="http://prodes.toulouse.inra.fr/prodom/doc/prodom.html">PRODOM</a> database that do not overlap with
+    Pfam-A. Although of lower quality Pfam-B families can be useful when
+    no Pfam-A families are found.
+  </p>
+</div>
+
+<!-- end the index page -->

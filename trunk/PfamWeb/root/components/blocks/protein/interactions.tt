@@ -1,0 +1,24 @@
+
+[%#
+# interactions.tt
+# jt6 20060719 WTSI
+# 
+# block for the interactions data for the sequence section
+#
+# $Id: interactions.tt,v 1.1 2006-07-20 09:31:44 jt6 Exp $
+-%]
+
+<!-- start interactions block -->
+
+<div class="block" id="proteinInteractionsBlock">
+  <div class="handle">
+    <h1>Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Interactions data</h3>
+
+  </div> <!-- end of "blockContent" -->
+</div> <!-- end of "block" -->
+
+<!-- end interactions block -->
