@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.10 2006-07-14 13:06:20 jt6 Exp $
+// $Id: pfFunctions.js,v 1.11 2006-07-20 10:04:10 jt6 Exp $
 
 //------------------------------------------------------------
 // show the specified tab in the page body
@@ -120,6 +120,7 @@ loadOptions.at = {}; // alignment tree
 loadOptions.pg = {}; // protein graphics
 loadOptions.ca = {}; // coloured alignment
 loadOptions.sg = {}; // sequence graphics
+loadOptions.cg = {}; // sequence graphics
 
 //------------------------------------------------------------
 // this will make the ajax calls for the family page components
@@ -489,4 +490,28 @@ function sgSuccess( oResponse ) {
 function sgFailure() {
   Element.update( $("sgph"), "Graphics loading failed." );
 }
+
+//------------------------------------------------------------
+// load ajax components for the clans page
+
+function clanPostLoad() {
+   new Ajax.Request( loadOptions.cg.uri,
+ 					{ method: "get",
+ 					  parameters: loadOptions.cg.params,
+ 					  onComplete: cgSuccess,
+ 					  onFailure:  cgFailure
+ 					} );
+}
+
+// called in response to a successful call
+function cgSuccess( oResponse ) {
+  Element.update( $("clanGraphicsHolder"), oResponse.responseText );
+}
+
+// called in response to a failed call
+function cgFailure() {
+  Element.update( $("cgph"), "Graphics loading failed." );
+}
+
+//------------------------------------------------------------
 
