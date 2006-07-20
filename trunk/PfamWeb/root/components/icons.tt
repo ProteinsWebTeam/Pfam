@@ -5,34 +5,29 @@
 #
 # overview icons for the top of the page
 #
-# $Id: icons.tt,v 1.8 2006-05-22 16:48:02 jt6 Exp $
+# $Id: icons.tt,v 1.9 2006-07-20 09:01:54 jt6 Exp $
 %]
 
 [% icons = [
              { id     = "archIcon",
-               block  = "domainsBlock",
                count  = summaryData.numArchitectures,
                items  = "architectures",
                item   = "architecture" },
              { id     = "seqIcon",    
-               block  = "alignBlock",
                count  = summaryData.numSequences,
                items  = "sequences",
                item   = "sequence" },
              # this is hard coded !
              { id     = "ipfamIcon",
-               block  = "ipfamBlock",
                count  = summaryData.numIpfam,
                items  = "interactions",
                item   = "interaction" },
              # that was hard coded !
              { id     = "specIcon",
-               block  = "speciesBlock",
                count  = summaryData.numSpecies,
                items  = "species"
                item   = "species" },
              { id     = "structIcon",
-               block  = "pdbBlock",
                count  = summaryData.numStructures,
                items  = "structures",
                item   = "structure" },
@@ -41,8 +36,9 @@
 
 <div id="icons">
   [% FOREACH icon IN icons %]
-    [% IF activity.${icon.block} %]
-      <a href="javascript:show('[% icon.block %]')" id="[% icon.id %]"><em>[% icon.count %]</em>&nbsp;[% icon.count > 1 ? icon.items : icon.item %]</a>
+    [% block = layouts.${pageType}.iconLinks.${icon.id} %]
+    [% IF activity.$block %]
+      <a href="javascript:show('[% block %]')" id="[% icon.id %]"><em>[% icon.count %]</em>&nbsp;[% icon.count > 1 ? icon.items : icon.item %]</a>
     [% ELSE %]
       <span id="[% icon.id %]"><em>[% icon.count %]</em>&nbsp;[% icon.items %]</span>
     [% END %]
