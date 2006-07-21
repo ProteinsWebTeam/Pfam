@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam clan pages.
 
-   $Id: clans.css,v 1.6 2006-07-20 10:03:23 jt6 Exp $
+   $Id: clans.css,v 1.7 2006-07-21 14:51:11 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -94,6 +94,6 @@ span.clanMember {
   width: 12em;
 }
 
-#relationshipsBlock img {
+#clanRelationshipsBlock img {
   border: 1px solid #BBB;
 }
