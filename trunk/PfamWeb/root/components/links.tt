@@ -1,0 +1,199 @@
+
+[%#
+# links.tt
+# jt6 20060720 WTSI
+# 
+# a block to format links for various databases
+#
+# $Id: links.tt,v 1.1 2006-07-21 09:16:35 jt6 Exp $
+-%]
+
+[% USE dumper %]
+
+[% # these are the labels for the links that will appear in the page
+labels = {
+	atobPRODOM = "PRODOM"
+    atobPRC    = "PRC"
+	atobBOTH   = "PRODOM &amp; PRC"
+    pdb        = "PDB entries"
+	interpro   = "InterPro"
+	COGS       = "COGS"
+    HOMSTRAD   = "HOMSTRAD"
+    MEROPS     = "MEROPS"
+	SCOP       = "SCOP"
+	CATH       = "CATH"
+	URL        = "External sites"
+   };
+
+# this is the order in which those links will be shown
+internal = [
+    "atobPRC",   
+    "atobPRODOM",
+    "atobBOTH",
+]
+external = [
+    "COGS",      
+    "HOMSTRAD",  
+    "MEROPS",
+    "SCOP",
+    "CATH",
+    "URL"       
+]
+
+# ditched link types
+#    "interpro",  
+#    "pdb",       
+
+%]
+
+[% BLOCK buildLink %]
+  [% SWITCH type %]
+    [% CASE "PROSITE" %]
+      <a href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
+    [% CASE "PFAMB" %]
+      <a href="http://www.sanger.ac.uk/cgi-bin/Pfam/pfambget.pl?acc=[% id %]">[% id %]</a>
+	[% CASE "interpro" %]
+      <a href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
+	[% CASE "pdb" %]
+      <a href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
+	[% CASE "COGS" %]
+      <a href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
+	[% CASE "HOMSTRAD" %]
+      <a href="http://www-cryst.bioc.cam.ac.uk/cgi-bin/homstrad.cgi?family=[% id %]">[% id %]</a>
+	[% CASE "SCOP" %]
+      [% IF other %]
+      <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=[% other %]&pdb=[% id %]">[% id %]</a>
+      [% ELSE %]
+      <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% id %]">[% id %]</a>
+      [% END %]
+	[% CASE "MEROPS" %]
+      <a href="http://merops.sanger.ac.uk/cgi-bin/merops.cgi?id=[% id %]">[% id %]</a>
+	[% CASE "CATH" %]
+      <a href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=[% id %]">[% id %]</a>
+	[% CASE "URL" %]
+      <a href="[% id %]">[% number %]</a>
+	[% CASE %]
+      <p>Unrecognized link type: [% type %]</p>
+  [% END %]
+[% END %]
+
+[%# build the internal links. This block should have produce no spaces or blank lines,
+    otherwise the check for content below could include an empty section in the final
+    page output -%]
+[%- internalLinks = BLOCK -%]
+  [%- FOREACH db IN internal -%]
+    [%- IF xrefs.$db.size -%]
+      <dt>
+        [%- IF labels.$db -%]
+          [%- labels.$db %]:
+        [%- ELSE -%]
+          Unknown links ([% db %]):
+        [%- END -%]
+      </dt>
+      <dd>
+        [%- SWITCH db -%]
+          [%- CASE "interpro" -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              <span class="entry">
+                [%- PROCESS buildLink type="interpro" id=ref -%]
+              </span>
+            [%- END -%]
+            [%- CASE [ "atobPRC" ] -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              <span class="entry">
+                [%- PROCESS buildLink type="PFAMB" id=ref.pfamB_acc -%]
+              </span>
+            [%- END -%]
+            [%- CASE [ "atobPRODOM" ] -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              <span class="entry">
+                [%- PROCESS buildLink type="PFAMB" id=ref.db_link -%]
+              </span>
+            [%- END -%]
+            [%- CASE "atobBOTH" -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              <span class="entry">
+                [%- PROCESS buildLink type="PFAMB" id=ref.pfamB_acc -%]
+              </span>
+            [%- END -%]
+        [%- END # of SWITCH db -%]
+      </dd>
+    [%- END # end of "if xrefs..." -%]
+  [%- END # end of "foreach db" -%]
+[%- END # of internal block -%]
+
+[%-# build the external links -%]
+[%- externalLinks = BLOCK -%]
+  [%- FOREACH db IN external -%]
+    [%- CALL c.log.debug( "found a $db link" ) -%]
+    [%- IF xrefs.$db.size -%]
+      <dt>
+        [%- IF labels.$db -%]
+          [%- labels.$db -%]:
+        [%- ELSE -%]
+          Unknown links ([% db %]):
+        [%- END -%]
+      </dt>
+      <dd>
+        [%- SWITCH db -%]
+          [%- CASE "pdb" -%]
+            [%- FOREACH pdb IN pdbUnique.keys.sort -%]
+              <span class="entry pdbEntry">
+                [%- PROCESS buildLink type="pdb" id=pdb -%]
+              </span>
+            [%- END -%]
+          [%- CASE "COGS" -%]
+            [%- cogs = [] -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              [%- cogs.push( ref.db_link ) -%]
+            [%- END -%]
+            [%- FOREACH id IN cogs.sort -%]
+              <span class="entry">
+                [%- PROCESS buildLink type="COGS" id=id -%]
+              </span>
+            [%- END -%]
+          [%- CASE [ "HOMSTRAD" "CATH" "MEROPS" ] -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              <span class="entry">
+                [%- PROCESS buildLink type=db id=ref.db_link -%]
+              </span>
+            [%- END -%]
+          [%- CASE [ "SCOP" ] -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              <span class="entry">
+                [%- PROCESS buildLink type=db id=ref.db_link other=ref.other_params -%]
+              </span>
+            [%- END -%]
+          [%- CASE "URL" -%]
+            [%- count = 1 -%]
+            [%- FOREACH ref IN xrefs.$db -%]
+              <span class="entry">
+                [%- PROCESS buildLink type="URL" id=ref.db_link number=count -%]
+                [%- count = count + 1 -%]
+              </span>
+            [%- END -%]
+        [%- END # of SWITCH db -%]
+      </dd>
+    [%- END # end of "if xrefs..." -%]
+  [%- END # end of "foreach db" -%]
+[%- END # of external block -%]
+
+<div class="databaseReferences">
+
+  [%- IF internalLinks -%]
+  <h3>Internal database links</h3>
+
+  <dl>
+    [% internalLinks %]
+  </dl>
+  [%- END # of "if internalLinks" -%]
+
+  [%- IF externalLinks -%]
+  <h3>External database links</h3>
+
+  <dl>
+    [% externalLinks %]
+  </dl>
+  [%- END # of "if externalLinks" -%]
+
+</div>
