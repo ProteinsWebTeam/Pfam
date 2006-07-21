@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam family page.
 #
-# $Id: Family.pm,v 1.5 2006-07-20 08:46:52 jt6 Exp $
+# $Id: Family.pm,v 1.6 2006-07-21 14:55:36 jt6 Exp $
 
 package PfamWeb::Controller::Family;
 
@@ -203,7 +203,7 @@ sub getDbXrefs : Private {
   }
   # we should be able to filter the results of the query according to
   # evalue using a call on the DBIx::Class object, but for some reason
-  # it's broken, hence this last loop...
+  # it's broken, hence that last loop rather than this neat map...
   # my %atobPRC = map { $_->pfamB_acc => $_ } @atobPRC;
 
   my %atobBOTH;
