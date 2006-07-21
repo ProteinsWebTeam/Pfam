@@ -43,9 +43,10 @@ use Bio::Pfam::Root;
 
 sub new {
   my ($class, %params) = @_;
-  
+
   my $self = bless {}, ref($class) || $class;
-  
+
+  my $proxy      = $params{'-proxy'};
   my $md5        = $params{'-md5'};
   my $maxHits    = $params{'-maxHits'};
   my $minSWscore = $params{'-minSWscore'};
@@ -53,9 +54,10 @@ sub new {
   my $databases  = $params{'-databases'};
   my $showSeq    = $params{'-showSeq'};
   my $showAli    = $params{'-showAli'};
-  
+
  #Quick assess, miss out get/sets
   eval{
+    $self->{'proxy'}      = $proxy;
     $self->{'md5'}        = $md5;
     $self->{'maxHits'}    = $maxHits;
     $self->{'minSWscore'} = $minSWscore;
@@ -64,7 +66,20 @@ sub new {
     $self->{'showSeq'}    = $showSeq;
     $self->{'showAli'}    = $showSeq;
   };
+
+  # set a default proxy, if it's not specified
+  $self->{proxy} ||= "http://wwwcache.sanger.ac.uk:3128/";
+
   return $self;
+}
+
+sub proxy {
+  my ($self,$proxy) = @_;
+
+  # set a proxy, if defined
+  $self->{proxy} = $proxy if defined $proxy;
+
+  return $self->{proxy};
 }
 
 sub queryMd5 {
@@ -203,7 +218,9 @@ sub queryService {
   #Now make the request to the SIMAP service.
   my $results  = SOAP::Lite
     -> uri('http://mips.gsf.de/webservices/services/SimapService')
-      -> proxy('http://mips.gsf.de/webservices/services/SimapService')
+      -> proxy('http://mips.gsf.de/webservices/services/SimapService',
+			   proxy => [ 'http' => $self->proxy ]
+			  )
 	-> getHitsByMD5( $soapMessage->to_soap_data ); # This changes the soap message object to xml
   
 
