@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.3 2006-07-20 09:05:15 jt6 Exp $
+# $Id: summary.tt,v 1.4 2006-07-21 14:45:26 jt6 Exp $
 %]
 
 [%# add an observer to trigger post-loading of the graphics %]
@@ -20,7 +20,7 @@
   [% FOREACH pfam IN clan.clan_membership.nsort("num_full").reverse %]
   <span class="clanMember">
     <a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">
-      [% pfam.pfamA_id %]</a> ([% pfam.num_full %])</span>
+      [% pfam.pfamA_id %]</a></span>
    [% total = total + pfam.num_full %]
   [% END %]
 [% END %]
@@ -57,15 +57,15 @@
 
     <h3>Members</h3>
 
-    <p>This clan contains the following member familes. The number of domains in each
-      family is shown after the clan name:</p>
+    <p>This clan contains the following member families:</p>
 
     [% membershipList %]
 
     <div class="cleaner"></div>
 
-  </div>
+	[% PROCESS components/links.tt %]
 
+  </div>
 </div>
 
 <!-- end clan summary block -->
