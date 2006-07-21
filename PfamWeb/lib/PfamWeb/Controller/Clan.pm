@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.3 2006-07-20 08:46:16 jt6 Exp $
+# $Id: Clan.pm,v 1.4 2006-07-21 14:55:15 jt6 Exp $
 
 package PfamWeb::Controller::Clan;
 
@@ -129,6 +129,17 @@ sub begin : Private {
   $summaryData{numSpecies} = scalar(keys %species_unique);
 
   $c->stash->{summaryData} = \%summaryData;
+
+  #----------------------------------------
+  # get the database cross references
+
+  my @refs = PfamWeb::Model::Clan_database_links->search( { auto_clan => $autoClan } );
+
+  my %xRefs;
+  foreach ( @refs ) {
+	$xRefs{$_->db_id} = $_;
+  }
+  $c->stash->{xrefs} = \%xRefs;
 
 }
 
