@@ -5,7 +5,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.1 2006-07-21 09:16:35 jt6 Exp $
+# $Id: links.tt,v 1.2 2006-07-21 10:11:24 jt6 Exp $
 -%]
 
 [% USE dumper %]
@@ -81,16 +81,18 @@ external = [
     otherwise the check for content below could include an empty section in the final
     page output -%]
 [%- internalLinks = BLOCK -%]
+[%- oe = 0 -%]
   [%- FOREACH db IN internal -%]
     [%- IF xrefs.$db.size -%]
-      <dt>
+    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+      <td class="label">
         [%- IF labels.$db -%]
-          [%- labels.$db %]:
+          [%- labels.$db -%]:
         [%- ELSE -%]
           Unknown links ([% db %]):
         [%- END -%]
-      </dt>
-      <dd>
+      </td>
+      <td>
         [%- SWITCH db -%]
           [%- CASE "interpro" -%]
             [%- FOREACH ref IN xrefs.$db -%]
@@ -98,43 +100,45 @@ external = [
                 [%- PROCESS buildLink type="interpro" id=ref -%]
               </span>
             [%- END -%]
-            [%- CASE [ "atobPRC" ] -%]
+          [%- CASE [ "atobPRC" ] -%]
             [%- FOREACH ref IN xrefs.$db -%]
               <span class="entry">
                 [%- PROCESS buildLink type="PFAMB" id=ref.pfamB_acc -%]
               </span>
             [%- END -%]
-            [%- CASE [ "atobPRODOM" ] -%]
+          [%- CASE [ "atobPRODOM" ] -%]
             [%- FOREACH ref IN xrefs.$db -%]
               <span class="entry">
                 [%- PROCESS buildLink type="PFAMB" id=ref.db_link -%]
               </span>
             [%- END -%]
-            [%- CASE "atobBOTH" -%]
+          [%- CASE "atobBOTH" -%]
             [%- FOREACH ref IN xrefs.$db -%]
               <span class="entry">
                 [%- PROCESS buildLink type="PFAMB" id=ref.pfamB_acc -%]
               </span>
             [%- END -%]
         [%- END # of SWITCH db -%]
-      </dd>
+      </td>
+    </tr>
     [%- END # end of "if xrefs..." -%]
   [%- END # end of "foreach db" -%]
-[%- END # of internal block -%]
+[%- END # of internalLinks block -%]
 
 [%-# build the external links -%]
 [%- externalLinks = BLOCK -%]
+[%- oe = 0 -%]
   [%- FOREACH db IN external -%]
-    [%- CALL c.log.debug( "found a $db link" ) -%]
     [%- IF xrefs.$db.size -%]
-      <dt>
+    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+      <td class="label">
         [%- IF labels.$db -%]
           [%- labels.$db -%]:
         [%- ELSE -%]
           Unknown links ([% db %]):
         [%- END -%]
-      </dt>
-      <dd>
+      </td>
+      <td>
         [%- SWITCH db -%]
           [%- CASE "pdb" -%]
             [%- FOREACH pdb IN pdbUnique.keys.sort -%]
@@ -152,7 +156,7 @@ external = [
                 [%- PROCESS buildLink type="COGS" id=id -%]
               </span>
             [%- END -%]
-          [%- CASE [ "HOMSTRAD" "CATH" "MEROPS" ] -%]
+          [%- CASE [ "HOMSTRAD", "CATH", "MEROPS" ] -%]
             [%- FOREACH ref IN xrefs.$db -%]
               <span class="entry">
                 [%- PROCESS buildLink type=db id=ref.db_link -%]
@@ -173,27 +177,34 @@ external = [
               </span>
             [%- END -%]
         [%- END # of SWITCH db -%]
-      </dd>
+      </td>
+    </tr>
     [%- END # end of "if xrefs..." -%]
   [%- END # end of "foreach db" -%]
-[%- END # of external block -%]
+[%- END # of externalLinks block -%]
 
 <div class="databaseReferences">
 
   [%- IF internalLinks -%]
   <h3>Internal database links</h3>
 
-  <dl>
-    [% internalLinks %]
-  </dl>
+  <table class="details">
+    <tbody>
+      [% internalLinks %]
+    </tbody>
+  </table>
+
   [%- END # of "if internalLinks" -%]
 
   [%- IF externalLinks -%]
   <h3>External database links</h3>
 
-  <dl>
-    [% externalLinks %]
-  </dl>
+  <table class="details">
+    <tbody>
+      [% externalLinks %]
+    </tbody>
+  </table>
+
   [%- END # of "if externalLinks" -%]
 
 </div>
