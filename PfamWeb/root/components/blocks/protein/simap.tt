@@ -5,7 +5,7 @@
 # 
 # block for the SIMAP data
 #
-# $Id: simap.tt,v 1.1 2006-07-20 09:31:44 jt6 Exp $
+# $Id: simap.tt,v 1.2 2006-07-21 15:11:41 rdf Exp $
 -%]
 
 <!-- start SIMAP block -->
@@ -17,6 +17,19 @@
   <div class="blockContent">
 
     <h3>SIMAP data</h3>
+	<!-- start of SIMAP graphics div -->
+    <div id="simapGraphicsHolder">
+	  <p id="simapph">
+        <img src="/images/loading.gif" alt="loading..." />
+        Loading feature alignment...
+      </p>
+    </div>
+    <!-- end of graphics div -->
+
+    <script type="text/javascript">
+      loadOptions.simap.uri    = "[% c.uri_for( "/getsimapdata" ) %]";
+      loadOptions.simap.params = "acc=[% pfamseq.pfamseq_acc %]";
+  	</script>
 
   </div> <!-- end of "blockContent" -->
 </div> <!-- end of "block" -->
