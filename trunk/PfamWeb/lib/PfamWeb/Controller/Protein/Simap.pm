@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Simap.pm,v 1.1 2006-07-21 15:04:00 rdf Exp $
+# $Id: Simap.pm,v 1.2 2006-07-21 15:52:19 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Simap;
 
@@ -45,7 +45,9 @@ sub getSimapData : Path('/getsimapdata') {
   $layoutPfam->layout_sequences_with_regions_and_features(\@seqs, \%regionsAndFeatures);
   my $drawingXML = $layoutPfam->layout_to_XMLDOM;
 
-  my $simap = Bio::Pfam::WebServices::Client::Simap->new('-md5'        => $c->stash->{pfamseq}->md5,
+  my $simap = Bio::Pfam::WebServices::Client::Simap->new(
+                             '-proxy'      => $this->{simapProxy},
+                             '-md5'        => $c->stash->{pfamseq}->md5,
 							 '-maxHits'    => 50,
 							 '-minSWscore' => 1,
 							 '-maxEvalues' => 0.001,
