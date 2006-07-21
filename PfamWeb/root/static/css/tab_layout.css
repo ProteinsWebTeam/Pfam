@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.11 2006-07-20 10:03:23 jt6 Exp $
+   $Id: tab_layout.css,v 1.12 2006-07-21 14:50:10 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -265,7 +265,7 @@ p.small {
 	font-size: smaller;
 }
 
-p.inactive {
+.inactive {
 	color: #AAA;
 }
 
@@ -303,6 +303,7 @@ div.domain {
 /* these are the summary blocks for the different sections. These need
    to have display:block set explicitly, otherwise the first tab wont
    appear... bit of a hack... */
+/*
 #familySummaryBlock,
 #clanSummaryBlock,
 #ipfamSummaryBlock,
@@ -310,6 +311,7 @@ div.domain {
 #structureSummaryBlock {
   display: block;
 }
+*/
 
 div.pdbImageFragment {
     border-width: 1px;
@@ -343,10 +345,6 @@ table.details {
   border-collapse: collapse;
 }
 
-table.details .label {
-  text-align: left;
-}
-
 table.details thead tr {
   background: #BBB;
 }
@@ -360,6 +358,15 @@ table.details td {
   text-align: center;
   padding: 0.2em;
   border: 2px solid #FFF;
+}
+
+table.details td.label {
+  width: 13.2em;
+  padding: 0.2em;
+  background: #CCC;
+  text-align: center;
+  font-weight: bold;
+  vertical-align: top;
 }
 
 table.details tr.newRow td {
@@ -383,6 +390,18 @@ table.details tr.even {
   background: #DDD;
 }
 
+/* these two rules are for the details table when it is split into
+   two separate columns */
+div.floatLeft {
+  float: left;
+  margin-right: 0.4em;
+}
+
+tr.continuation {
+  font-size: smaller;
+  background: none;
+}
+
 /* ---------------------------------------- */
 /* pfam graphics */
 
@@ -400,6 +419,19 @@ span.graphicLabel {
 img.graphicImage {
   border: none;
   float: left;
+}
+
+/* ---------------------------------------- */
+/* database links */
+
+div.databaseReferences td {
+  text-align: left;
+  width: 20em;
+}
+
+div.databaseReferences td.label {
+  text-align: right;
+  width: 6em;
 }
 
 /* ======================================== */
