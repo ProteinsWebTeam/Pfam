@@ -3,7 +3,7 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.2 2006-07-20 09:04:49 jt6 Exp $
+# $Id: relationships.tt,v 1.3 2006-07-21 15:56:51 jt6 Exp $
 %]
 
 <!-- start relationships block -->
@@ -19,9 +19,13 @@
 
     <img id="clanImage" src="[% image %]" alt="" usemap="#clanMap" />
 
+    [% TRY %]
 	<map name="clanMap">
       [% INSERT $map %]
     </map>
+    [% CATCH %]
+      [% CALL c.log.error( "couldn't load the relationship image map for clan ${clan.clan_acc}" ) %]
+    [% END %]
 
   </div>
 
