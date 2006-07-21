@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.7 2006-07-14 13:10:35 jt6 Exp $
+# $Id: Graphics.pm,v 1.8 2006-07-21 14:56:15 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -110,15 +110,15 @@ sub updateSources : Path( "/updatesources" ) {
   # from the layout manager into a simple label, via our database
   # table of server information
   my $i = 0;
-  
+
   foreach my $image ( $imageset->each_image ) {
 
 	( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
 	$server = PfamWeb::Model::Das_sources->find( url => $handle );
 
-	# generate a high-resolution fingerprint for the image
-	my $stamp = gettimeofday * 10000;
-	$image->{image_name} .= ".$stamp." . $i++;
+	# append an image number to the image name, to avoid name clashes
+	# for multiple images generated in the same run
+	$image->image_name( $image->image_name . $i++ );
 	$image->print_image;
 	
 	$serverName = ( defined $server ) ? $server->name : "unknown";
