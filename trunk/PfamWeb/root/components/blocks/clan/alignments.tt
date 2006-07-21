@@ -3,7 +3,7 @@
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.1 2006-07-20 09:04:06 jt6 Exp $
+# $Id: alignments.tt,v 1.2 2006-07-21 14:43:02 jt6 Exp $
 %]
 
 <!-- start clan alignments block -->
@@ -14,11 +14,79 @@
   </div>
   <div class="blockContent">
 
-    <p><strong>Please note:</strong> Clan alignments can be <strong>very</strong> large and can cause problems for some browsers.</p>
+    <p><strong>Please note:</strong> Clan alignments can be <strong>very</strong> large
+      and can cause problems for some browsers.</p>
 
     <p>You can view the full clan alignment <a href="http://www.sanger.ac.uk/Software/Pfam/data/clans/alignment/[% clan.clan_acc %].shtml" target="_blank">here</a>.</p>
-  </div>
 
+[% tableHeader = BLOCK %]
+    <table class="details[% IF float %] [% float %][% END %]">
+      <thead>
+        <tr>
+          <th rowspan="2">Pfam family</th>
+          <th colspan="2">Number of sequences</th>
+          <th rowspan="2">Alignment</th>
+        </tr>
+        <tr>
+          <th>Seed</th>
+          <th>Full</th>
+        </tr>
+      </thead>
+      <tbody>
+[% END %]
+
+[% tableFooter = BLOCK %]
+      </tbody>
+    </table>
+[% END %]
+
+[%# work out if we're going to split the table in two. If we are, work out how long
+    each column can get and wrap each in a div that will float it left %]
+
+[% maxLength = "" %]
+[% IF clan.clan_membership.size > constants.tableLength %]
+  [% maxLength = clan.clan_membership.size / 2 %]
+  <div class="floatLeft">
+[% END %]
+
+[% tableHeader %]
+
+[% oe = 0 %]
+[% split = 0 %]
+[% FOREACH pfam IN clan.clan_membership.sort("num_full") %]
+
+  [% IF NOT split AND maxLength AND loop.index > maxLength %]
+    <tr class="continuation">
+      <td colspan="4">
+        <span class="inactive">continued</span>
+      </td>
+    </tr>
+    [% tableFooter %]
+    </div>
+    <div class="floatLeft">
+    [% tableHeader %]
+    [% split = 1 %]
+  [% END %]
+
+  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <td><a href="[% c.uri_for( "/family", id=pfam.pfamA_id ) %]">[% pfam.pfamA_id %]</a>
+      (<a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">[% pfam.pfamA_acc %]</a>)</td>
+    <td>[% pfam.num_seed %]</td>
+    <td>[% pfam.num_full %]</td>
+    <td><a href="[% c.uri_for( "/family", id=pfam.pfamA_id, tab="alignBlock" )%]">View</a></td>
+  </tr>
+
+[% END # of FOREACH pfam %]
+
+[% tableFooter %]
+
+[% IF clan.clan_membership.size > constants.tableLength %]
+  </div>
+[% END %]
+
+    <div class="cleaner">&nbsp;</div>
+
+  </div>
 </div>
 
 <!-- end clan alignments block -->
