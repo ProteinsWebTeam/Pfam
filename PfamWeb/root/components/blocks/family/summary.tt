@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.4 2006-07-14 12:46:22 jt6 Exp $
+# $Id: summary.tt,v 1.5 2006-07-21 14:54:00 jt6 Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -74,6 +74,8 @@
     [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
         to contain <p> tags... -%]
 	[% pfam.interpro.abstract %]
+
+	[% PROCESS components/links.tt %]
 
   </div>
 </div>
