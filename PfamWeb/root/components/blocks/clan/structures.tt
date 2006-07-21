@@ -3,7 +3,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.1 2006-07-20 09:04:06 jt6 Exp $
+# $Id: structures.tt,v 1.2 2006-07-21 14:52:52 jt6 Exp $
 %]
 
 <!-- start structures block -->
@@ -14,7 +14,36 @@
   </div>
   <div class="blockContent">
 
-    <h3>Structures...</h3>
+	        <table class="details">
+		      <thead>
+                <tr class="caption">
+                  <th colspan="3">PDB</th>
+                  <th colspan="3">UniProt</th>
+                  <th rowspan="2">Pfam family</th>
+                </tr>
+                <tr class="caption">
+                  <th>Chain</th>
+                  <th>Start</th>
+                  <th>End</th>
+                  <th>ID</th>
+                  <th>Start</th>
+                  <th>End</th>
+                </tr>
+		      </thead>
+		      <tbody>
+                [% FOREACH m IN mapping %]
+                <tr>
+                  <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
+                  <td>[% m.pdb_start_res %]</td>
+                  <td>[% m.pdb_end_res %]</td>
+                  <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
+                  <td>[% m.pfam_start_res %]</td>
+                  <td>[% m.pfam_end_res %]</td>
+                  <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
+                </tr>
+                [% END %]
+		      </tbody>
+            </table>
 
   </div>
 
