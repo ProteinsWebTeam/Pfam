@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.12 2006-07-20 09:02:54 jt6 Exp $
+# $Id: wrapper.tt,v 1.13 2006-07-21 14:49:25 jt6 Exp $
 -%]
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -109,6 +109,16 @@
     <!-- local javascript -->
 
     <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/family.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/structure.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/clans.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/protein.js" ) %]"></script>
+
+    [%# do we want to highlight a particular tab ? %]
+    <script type="text/javascript">
+      showTab = "[% showTab %]";
+      Event.observe( window, "load", chooseTab, false );
+    </script> 
 
 	<link rel="shortcut icon" href="images/favicon.ico" >
 
