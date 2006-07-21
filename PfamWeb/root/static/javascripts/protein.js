@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.1 2006-07-21 14:48:40 jt6 Exp $
+// $Id: protein.js,v 1.2 2006-07-21 15:10:35 rdf Exp $
 
 // this will make the ajax calls for the protein page components
 
@@ -15,6 +15,12 @@ function proteinPostLoad() {
  					  onComplete: pgSuccess,
  					  onFailure:  pgFailure
  					} );
+    new Ajax.Request( loadOptions.simap.uri,	
+ 					{ method: "get",
+ 					  parameters: loadOptions.simap.params,
+ 					  onComplete: simapSuccess,
+ 					  onFailure:  simapFailure
+ 					} );		
 }
 
 // show/hide the specified drop-down panel
@@ -72,5 +78,17 @@ function pgFailure() {
 }
 
 //------------------------------------------------------------
-// load ajax components for the protein page
+
+// called in response to a successful call
+function simapSuccess( oResponse ) {
+  Element.update( $("simapGraphicsHolder"), oResponse.responseText );
+}
+
+// called in response to a failed call
+function simapFailure() {
+  Element.update( $("simapph"), "Contacting SIMAP W/S - failed." );
+}
+
+//------------------------------------------------------------
+
 
