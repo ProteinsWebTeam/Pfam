@@ -3,8 +3,11 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.2 2006-07-21 14:52:52 jt6 Exp $
+# $Id: structures.tt,v 1.3 2006-07-24 16:19:16 jt6 Exp $
 %]
+
+[% USE dumper %]
+[% USE String %]
 
 <!-- start structures block -->
 
@@ -14,39 +17,161 @@
   </div>
   <div class="blockContent">
 
-	        <table class="details">
-		      <thead>
-                <tr class="caption">
-                  <th colspan="3">PDB</th>
-                  <th colspan="3">UniProt</th>
-                  <th rowspan="2">Pfam family</th>
-                </tr>
-                <tr class="caption">
-                  <th>Chain</th>
-                  <th>Start</th>
-                  <th>End</th>
-                  <th>ID</th>
-                  <th>Start</th>
-                  <th>End</th>
-                </tr>
-		      </thead>
-		      <tbody>
-                [% FOREACH m IN mapping %]
-                <tr>
-                  <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
-                  <td>[% m.pdb_start_res %]</td>
-                  <td>[% m.pdb_end_res %]</td>
-                  <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
-                  <td>[% m.pfam_start_res %]</td>
-                  <td>[% m.pfam_end_res %]</td>
-                  <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
-                </tr>
+	[%- oe = 0 -%]
+
+    [% CALL c.log.debug( "starting to generate mapping; ${pfamMaps.size} rows" ) %]
+
+    [%- mapping = {} -%]
+	[% USE pdbMapIter = iterator( pfamMaps ) %]
+    [%- FOREACH pdbMap IN pdbMapIter -%]
+      [%- famKey = pdbMap.get_column("pfamA_id") -%]
+      [% CALL c.log.debug( "${pdbMapIter.index}: famKey: |$famKey|" ) %]
+      [%- IF ! mapping.$famKey %]
+        [%- mapping.$famKey = {} -%]
+      [%- END -%]
+    
+      [%- seqKey = pdbMap.get_column("pfamseq_id") -%]
+      [% CALL c.log.debug( "seqKey: |$seqKey|" ) %]
+      [%- IF ! mapping.$famKey.$seqKey %]
+        [%- mapping.$famKey.$seqKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$famKey.$seqKey.COUNT -%]
+	    [% mapping.$famKey.$seqKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.$seqKey.COUNT = mapping.$famKey.$seqKey.COUNT + 1 -%]
+	  [%- END -%]
+
+      [%- resKey = String.new( pdbMap.get_column("pfam_start_res") );
+          CALL resKey.append( " - ", pdbMap.get_column("pfam_end_res") ) %]
+      [% CALL c.log.debug( "resKey: |$resKey|" ) %]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey = {} -%]
+      [%- END -%]
+    
+      [%- pdbKey = pdbMap.get_column("pdb_id") -%]
+      [% CALL c.log.debug( "pdbKey: |$pdbKey|" ) %]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey.$pdbKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$famKey.$seqKey.$resKey.COUNT -%]
+	    [% mapping.$famKey.$seqKey.$resKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.$seqKey.$resKey.COUNT = mapping.$famKey.$seqKey.$resKey.COUNT + 1 -%]
+	  [%- END -%]
+    
+      [%- chainKey = pdbMap.get_column("chain") -%]
+      [% CALL c.log.debug( "chainKey: |$chainKey|" ) %]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT -%]
+	    [% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT = mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT + 1 -%]
+	  [%- END -%]
+    
+      [%- pdbResKey = String.new( pdbMap.get_column("pdb_start_res") );
+          CALL pdbResKey.append( " - ", pdbMap.get_column("pdb_end_res") ) %]
+      [% CALL c.log.debug( "pdbResKey: |$pdbResKey|" ) %]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap -%]
+ 	  [%- END -%]
+	  [%- IF ! mapping.$famKey.COUNT -%]
+	    [% mapping.$famKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.COUNT = mapping.$famKey.COUNT + 1 -%]
+	  [%- END -%]
+
+    [%- END -%]
+
+    [% CALL c.log.debug( "done generating mapping" ) %]
+
+    <table class="details" id="structuresTable">
+      <thead>
+	    <tr class="caption">
+          <th id="pfam">Pfam family</th>
+          <th id="unpId">UniProt entry</th>
+          <th id="unpRes">UniProt residues</th>
+          <th id="pdbId">PDB ID</th>
+		  <th id="chId">PDB chain ID</th>
+          <th id="pdbRes">PDB residues</th>
+        </tr>
+	  </thead>
+      <tbody>
+
+	[%- USE famKeyIter = iterator( mapping.keys.sort ) -%]
+    [%- FOREACH famKey IN famKeyIter -%]
+	  [%- NEXT IF mapping.$famKey == "COUNT" %]
+      [% oe=oe+1 %]
+      [%- FOREACH seqKey IN mapping.$famKey.keys.sort  -%]
+	    [%- FOREACH resKey IN mapping.$famKey.$seqKey.keys.sort -%]
+		  [%- NEXT IF mapping.$famKey.$seqKey.$resKey == "COUNT" %]
+	      [%- FOREACH pdbKey IN mapping.$famKey.$seqKey.$resKey.keys.sort -%]
+	        [%- FOREACH chainKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.keys.sort -%]
+		      [%- NEXT IF mapping.$famKey.$seqKey.$resKey.$pdbKey == "COUNT" %]
+	          [%- FOREACH pdbResKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+
+              <tr>
+
+		        [% IF famKey != prevFamKey -%]
+	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/family", id=famKey ) %]">[% famKey %]</a></td>
+			    [% END %]
+ 
+		        [% IF seqKey != prevSeqKey -%]
+		          <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/protein", id=seqKey ) %]">[% seqKey %]</a></td>
+                [% END -%]
+
+	            [% IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
+                [% END -%]
+
+		        [% IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                  <a href="[% c.uri_for( "/structure", id=pdbKey ) %]">[% pdbKey %]</a>
+                  </td>
+                [% END -%]
+
+				[%- prevFamKey = famKey -%]
+				[%- prevSeqKey = seqKey -%]
+				[%- prevResKey = resKey -%]
+				[%- prevPdbKey = pdbKey -%]
+
+	            <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+	            [% IF chainKey %]
+	              [% chainKey %]
+                [% ELSE %]
+                  <span class="inactive">n/a</span>
                 [% END %]
-		      </tbody>
-            </table>
+                </td>
+			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
+
+	          </tr>
+
+	          [%- END # of pdbResKey -%]
+	        [%- END # of chainKey -%]
+          [%- END # of pdbKey -%]
+	    [%- END # of resKey -%]
+      [%- END # of seqKey -%]
+    [%- END # of famKey -%]
+      </tbody>
+    </table>
+
+    <script type="text/javascript">
+
+      // how many columns are there in the table ?
+      var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+      var numColsTable  = firstRow.getElementsByTagName("td").length;
+
+      // walk over all of the cells in the table and add listeners for mouseover and 
+      // mouseout events
+      $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+          cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+          cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+        }
+	 );
+    </script>
 
   </div>
-
 </div>
 
 <!-- end structures block -->
