@@ -1,3 +1,11 @@
+[%#
+# pdb.tt
+# jt6 20060424 WTSI
+#
+# Format the mapping between uniprot and PDB for the given Pfam family.
+#
+# $Id: pdb.tt,v 1.4 2006-07-24 10:30:16 jt6 Exp $
+-%]
 [%-
 numIds = pfamMaps.size;
 UNLESS numIds;
@@ -107,7 +115,13 @@ END;
 				[%- prevResKey = resKey -%]
 				[%- prevPdbKey = pdbKey -%]
 
-	            <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% chainKey %]</td>
+	            <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+	            [% IF chainKey %]
+	              [% chainKey %]
+                [% ELSE %]
+                  <span class="inactive">n/a</span>
+                [% END %]
+                </td>
 			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
 
 	          </tr>
@@ -117,101 +131,23 @@ END;
           [%- END # of pdbKey -%]
 	    [%- END # of resKey -%]
       [%- END # of seqKey -%]
-    </tbody>
-  </table>
+      </tbody>
+    </table>
 
-  <script type="text/javascript">
+    <script type="text/javascript">
 
-    // how many columns are there in the table ?
-    var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
-    var numColsTable  = firstRow.getElementsByTagName("td").length;
+      // how many columns are there in the table ?
+      var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+      var numColsTable  = firstRow.getElementsByTagName("td").length;
 
-    // walk over all of the cells in the table and add listeners for mouseover and 
-    // mouseout events
-    $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
-        cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
-        cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
-      }
-    );
-
-  </script>
-
-  <!-- [%# redundant. Remove once it's checked in once %]
-  <dl>
-  [% FOREACH seqKey IN mapping.keys.sort %]
-    <dt class="seqKey">[% seqKey %]</span>
-
-    <dd class="seqKey">
-	  <dl class="structuresList">
-	  [% FOREACH resKey IN mapping.$seqKey.keys.sort %]
-        [% NEXT IF resKey == "COUNT" %]
-        <dt class="resKey">[% resKey %]</dt>
-	    <dd class="resKey">
-	      <dl>
-	      [% FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort %]
-	        [% NEXT IF pdbKey == "COUNT" %]
-	        <dt class="pdbKey">[% pdbKey %]</dt>
-	  	    <dd class="pdbKey [% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-	          [% FOREACH chainKey IN mapping.$seqKey.$resKey.$pdbKey.keys.sort %]
-		        [% FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort %]
-		          [% chainKey %] [% pdbResKey %]<br />
-		        [% END %]
-		      [% END %]
-	        </dd>
-          [% END %]
-	      </dl>
-	    </dd>
-      [% END %]
-	  </dl>
-    </dd>
-  [% END %]
-  </dl>
-
-  <ul>
-  [% FOREACH pdbMap IN pfamMaps %]
-    <li>
-       [% pdbMap.pfamA_id %] 
-	on [% pdbMap.pfamseq_id %] 
-     / [% pdbMap.pfam_start_res %] 
-     - [% pdbMap.pfam_end_res %] maps to
-       [% pdbMap.pdb_id %]
-     : [% pdbMap.chain %]
-     , [% pdbMap.pdb_start_res %]
-     - [% pdbMap.pdb_end_res %]
-    </li>
-	[% END %]
-  </ul>
-
-  [%# pick a random PDB entry for this family %]
-  [% PERL %]
-  $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
-  [% END %]
-
-  [% pdbObj = pfam.pdbMap.${rand}.pdb %]
-
-  [% pdbId     = pdbObj.pdb_id -%]
-  [% header    = pdbObj.header -%]
-  [% title     = pdbObj.title -%]
-
-  [%# these values are available from the pdbmap table, but not the pdb 
-      table itself. Get the pdbmap row for this particular pdb entry %]
-  [% chain     = pdbObj.pdbMap.chain -%]
-  [% start     = pdbObj.pdbMap.pdb_start_res -%]
-  [% end       = pdbObj.pdbMap.pdb_end_res -%]
-  
-  <p>PDB entry |[% pdbId %]|</p>  
-  <p>header |[% header %]|</p>
-  <p>title |[% title %]|</p>
-  <p>chain |[% chain %]|</p>
-  <p>start |[% start %]|</p>
-  <p>end |[% end %]|</p>
-
-  [% IF pdbObj.pdb_image %]
-      <img src="[% c.uri_for( "/getimage", pdbid=pdbId ) %]" alt="[% pdbId %]" />
-  [% ELSE %]
-      <p>No image for this PDB entry</p>
-  [% END %]
-  -->
+      // walk over all of the cells in the table and add listeners for mouseover and 
+      // mouseout events
+      $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+          cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+          cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+        }
+	  );
+    </script>
 
   </div>
 </div>
