@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.8 2006-07-21 14:56:15 jt6 Exp $
+# $Id: Graphics.pm,v 1.9 2006-07-25 12:24:17 rdf Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -54,18 +54,18 @@ sub updateSources : Path( "/updatesources" ) {
   $layoutPfam->scale_x(1);
   my %regionsAndFeatures = ( "PfamA"      => 1,
 			     "PfamB"      => 1,
-                             "noFeatures" => 1 );
+                             "noFeatures" => 0 );
   $layoutPfam->layout_sequences_with_regions_and_features(\@seqs, \%regionsAndFeatures);
 
   my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $pfamImageset->create_images($layoutPfam->layout_to_XMLDOM);
-  my( %maps, $handle, $server, $serverName );
+  my( %maps, $handle, $server, $serverName, @pfam );
   foreach my $image ( $pfamImageset->each_image ) {
       $image->print_image;
-      push(@{$maps{"pfam"} }, { image => $image->file_location,
-				map   => $image->image_map,
-				server=> "Pfam",
-				info  => $image->image_info }); 
+      push(@pfam, { image => $image->file_location,
+		    map   => $image->image_map,
+		    server=> "Pfam",
+		    info  => $image->image_info }); 
   }
 
   # if we do get a sequence, we can now add the user-specified sources
@@ -101,39 +101,41 @@ sub updateSources : Path( "/updatesources" ) {
 
   # hand the features to the layout manager and get it to draw the graphics
   my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
-  $layout->layout_DAS_sequences_and_features( $sequence, $features );
-
-  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageset->create_images( $layout->layout_to_XMLDOM );
-
-  # process the generated images and convert the URL that comes back
-  # from the layout manager into a simple label, via our database
-  # table of server information
-  my $i = 0;
-
-  foreach my $image ( $imageset->each_image ) {
-
-	( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
-	$server = PfamWeb::Model::Das_sources->find( url => $handle );
-
-	# append an image number to the image name, to avoid name clashes
-	# for multiple images generated in the same run
-	$image->image_name( $image->image_name . $i++ );
-	$image->print_image;
-	
-	$serverName = ( defined $server ) ? $server->name : "unknown";
-	push @{ $maps{$serverName} }, { image => $image->file_location,
-									map   => $image->image_map,
-									server=> $serverName,
-									info  => $image->image_info };
+  my $success = $layout->layout_DAS_sequences_and_features( $sequence, $features );
+  #$c->log->debug( "Das DOM:".$layout->layout_to_XMLDOM->toString(1));
+  if($success){
+    my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+    $imageset->create_images( $layout->layout_to_XMLDOM );
+    
+    # process the generated images and convert the URL that comes back
+    # from the layout manager into a simple label, via our database
+    # table of server information
+    my $i = 0;
+    
+    my ($pfamRef);
+    foreach my $image ( $imageset->each_image ) {
+      
+      ( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
+      $server = PfamWeb::Model::Das_sources->find( url => $handle );
+      
+      # append an image number to the image name, to avoid name clashes
+      # for multiple images generated in the same run
+      $image->image_name( $image->image_name . $i++ );
+      $image->print_image;
+      $c->log->debug("Server is :|$server|");
+      $serverName = ( defined $server ) ? $server->name : "unknown";
+      push @{ $maps{$serverName} }, { image => $image->file_location,
+				      map   => $image->image_map,
+				      server=> $serverName,
+				      info  => $image->image_info };
+    }
   }
-
   # sort the maps according to server name
   my @maps;
   foreach ( sort keys %maps ) {
 	push @maps, @{ $maps{$_} };
   }
-
+  unshift( @maps, @pfam);
   # stash the maps and we're done
   $c->stash->{maps} = \@maps;
 }
