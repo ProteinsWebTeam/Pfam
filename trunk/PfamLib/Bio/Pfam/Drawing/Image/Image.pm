@@ -626,7 +626,7 @@ sub _add_map{
       
       my $area = qq(<area shape=\"rect\" coords=\");
       #Okay, I am going to assume that there is an start and end coos. Write the area.
-      $area .= $region->getAttribute("start").", ".$self->y_start.", ".$region->getAttribute("end").", ".($self->y_start+$self->_max_domain_height);
+      $area .= $region->getAttribute("start").",".$self->y_start.",".$region->getAttribute("end").",".($self->y_start+$self->_max_domain_height);
       #Okay, now add the href
       if( defined $region->getAttribute("link_URL" ) ) {
 	  $area .= "\" href=\"".$region->getAttribute("link_URL");
@@ -782,7 +782,7 @@ sub create_image {
   $self->_new_image;
 
   #Draw each section, adding any new images to the store images hash
-  $self->_draw_sequence() unless ($seq_dom->getAttribute("hidden"));
+  $self->_draw_sequence($seq_dom) unless ($seq_dom->getAttribute("hidden"));
   $self->_draw_regions($stored_image_ref);
   $self->_draw_top_markup();
   $self->_draw_bottom_markup();
@@ -800,17 +800,32 @@ sub create_image {
 
 sub _draw_sequence{
   my $self = shift;
+  my $seq_dom = shift;
+  my (%colour1, %colour2);
+
+  my $xc = XML::LibXML::XPathContext->new;
+  $xc->registerNs( "pf" => $ns );
+  $xc->setContextNode( $seq_dom );
+  if($xc->findnodes("pf:colour1/pf:colour")->shift ){
+    %colour1 = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift );
+  }else{
   #get the grey colour
-  my %rgb = ( 'R' => 192,
-	      'G' => 192,
-	      'B' => 192);
-  my $grey = $self->get_colour(%rgb);
-  #get the dark grey colour
-  %rgb = ( 'R' => 128,
-	   'G' => 128,
-	   'B' => 128);
-  
-  my $dark_grey = $self->get_colour(%rgb);
+    %colour1 = ( 'R' => 192,
+		 'G' => 192,
+		 'B' => 192);
+  }
+
+  my $grey = $self->get_colour(%colour1);
+  if($xc->findnodes("pf:colour2/pf:colour")->shift ){
+    %colour2 = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift );
+  }else{
+    #get the dark grey colour
+    %colour2 = ( 'R' => 128,
+		 'G' => 128,
+		 'B' => 128);
+  }
+    # %colour1 = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift );
+  my $dark_grey = $self->get_colour(%colour2);
 
   #now draw the entire sequence. This is comprised of two stripes, a thick grey stripe,
   #followed by a thinner dark grey stripe.
@@ -1170,7 +1185,7 @@ sub _draw_vertical_line {
   if($markup->getAttribute("label")){
       my $area = qq(<area shape=\"rect\" coords=\");
       #Okay, I am going to assume that there is an start and end coos. Write the area.
-      $area .= ($x-1).", ".($y1-6).", ".($x+1).", ".($y2+6)."\" nohref=\"".$markup->getAttribute("label")."\"";
+      $area .= ($x-1).",".($y1-6).",".($x+1).",".($y2+6)."\" nohref=\"".$markup->getAttribute("label")."\"";
       #Alterantive
       $area .= " title=\"";
       $area .= $markup->getAttribute("label");
@@ -1196,7 +1211,7 @@ sub _draw_horizontal_line {
     
    if($markup->getAttribute("label")){
       my $area = qq(<area shape=\"rect\" coords=\");
-      $area .= "$x1, ".($y+1).", $x2,".($y-1)."\" nohref=\"".$markup->getAttribute("label")."\"";
+      $area .= "$x1,".($y+1).",$x2,".($y-1)."\" nohref=\"".$markup->getAttribute("label")."\"";
       $area .= " title=\"";
       $area .= $markup->getAttribute("label");
       $area .=  "\" />";
@@ -1345,6 +1360,7 @@ sub print_image {
   my $self = shift;
   my $file = $self->image_name.".png";
 
+
   my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
 #  my $root = "/home/rob/Work/PfamWeb/root";
 #  my $root = "/nfs/WWW/tmp/pfam/";
@@ -1354,7 +1370,7 @@ sub print_image {
 	$root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
 	($root)  = $root =~ m|([a-z0-9_\./]+)|i;
   } else {
-	$root = "/nfs/WWWdev/SANGER_docs/htdocs/tmp/pfam";
+	$root = "/home/rob/Work/PfamWeb/root";
   }
 
   my $file_location = "domain_gfx/$dirName";
@@ -1956,6 +1972,13 @@ sub curved {
     $width -= $dw;
   }
   return ($im_border, $im_border);
+}
+
+
+sub graph {
+  
+
+
 }
 
 
