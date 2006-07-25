@@ -54,8 +54,12 @@ sub _setDrawingStyles{
 	    #_headStyle
 	    #$self->_lineColour($markup);
 	    #$self->_lineStyle($markup);
-	    #v_align
-	  $features->[$i]->{'hidden'} = 1;
+	  #v_align
+	  $features->[$i]->{_headColour} = "ff0033";
+	  $features->[$i]->{_headStyle}  = "diamond";
+	  $features->[$i]->{_lineColour} = "cccccc";
+	  $features->[$i]->{_lineStyle}  = "bold";
+	  $features->[$i]->{_valign}     = "top";
 	} 
     }
 }
@@ -63,13 +67,16 @@ sub _setDrawingStyles{
 
 sub _setRegionColours{
     my($self, $feature, $colour1, $colour2) = @_;
+
+    print STDERR "********* colour1 = |$colour1|, colour2 = |$colour2| **********\n";
+
     if($colour1){
 	$feature->{'colour1'} = $colour1;
     }else{
 	$feature->{'colour1'} = "cccccc";
     }
     if($colour2){
-	$feature->{'colour2'} = $colour2;	
+	$feature->{'colour2'} = $colour2;
     }else{
 	$feature->{'colour2'} = "a2a2a2";
     }

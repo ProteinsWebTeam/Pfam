@@ -40,12 +40,14 @@ sub new {
     my $self = bless {}, ref($caller) || $caller;
     my %params = @_;
 
-    $self->{ 'region' } = [];
-    $self->{ 'markup' } = [];
-    $self->{ 'name' } = undef;
-    $self->{ 'length' } = undef;
-    $self->{ 'info' } = undef;
-    $self->{ 'hidden'} = undef;
+    $self->{ 'region' }  = [];
+    $self->{ 'markup' }  = [];
+    $self->{ 'name' }    = undef;
+    $self->{ 'length' }  = undef;
+    $self->{ 'info' }    = undef;
+    $self->{ 'hidden'  } = undef;
+    $self->{ 'colour1' } = undef;
+    $self->{ 'colour2' } = undef;
 
     return $self;
 }
@@ -123,7 +125,31 @@ sub hidden{
    return $self->{'hidden'};
 }
 
+sub colour1{
+   my ($self, $colour) = @_;
+    if($colour){
+      if($colour->isa("Bio::Pfam::Drawing::Colour::hexColour") || 
+	 $colour->isa("Bio::Pfam::Drawing::Colour::rgbColour")){
+	$self->{'colour1'} = $colour;
+      }else {
+        warn "$colour is not a Bio::Pfam::Drawing::Colour::xxxColour";
+      }
+    }
+    return $self->{'colour1'};
+}
 
+sub colour2{
+   my ($self, $colour) = @_;
+    if($colour){
+      if($colour->isa("Bio::Pfam::Drawing::Colour::hexColour") || 
+	 $colour->isa("Bio::Pfam::Drawing::Colour::rgbColour")){
+	$self->{'colour2'} = $colour;
+      }else {
+        warn "$colour is not a Bio::Pfam::Drawing::Colour::xxxColour";
+      }
+    }
+    return $self->{'colour2'};
+}
 
 =head2 length
 
@@ -217,9 +243,9 @@ sub convertDasSeqAndFeatures {
 		$self->addRegion($region);
 		$region->convertDasRegion($feature, $source, $s->{'sequence_id'});
 	    }elsif( $feature->{'drawingType'} eq "Markup"){
-		#my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
-		#$self->addMarkup($markup);
-		#$markup->convertDasMarkup($feature, $source, $s->{'sequence_id'});
+		my $markup = Bio::Pfam::Drawing::Layout::Markup->new();
+		$self->addMarkup($markup);
+		$markup->convertDasMarkup($feature, $source, $s->{'sequence_id'});
 	    }
 	}
     }
@@ -235,6 +261,21 @@ sub sequence2XMLDOM {
     $element->setAttribute("name", $self->name);
     $element->setAttribute("length", $self->length);
     $element->setAttribute("display_data", $self->info);
+
+    if($self->colour1){
+      my $c1 = $dom->createElement("colour1");
+      $element->appendChild($c1);
+      my $colour = $self->colour1->colour2XMLDOM($dom);
+      $c1->appendChild($colour);
+    }
+    if($self->colour1){
+      my $c2 = $dom->createElement("colour2");
+      $element->appendChild($c2);
+      my $colour = $self->colour1->colour2XMLDOM($dom);
+      $c2->appendChild($colour);
+    }
+    
+
     $element->setAttribute("hidden", 1) if($self->hidden);
     foreach my $reg ($self->eachRegion){
 	  if(!$reg->hidden){
