@@ -16,21 +16,21 @@ sub layout_DAS_sequences_and_features {
   #Okay, the way das works is going to be slightly different.
   #For each source, we want to display the sequence at the top,
   #the draw all features below the sequence.
-  
+  my $featureSetsAdded =0;
   my $uid = 1;
   foreach my $source (keys %$features){
 	#first get the sequence object.
 	my $sourceId;
 	print STDERR "\n\n\n***** $source, ";
 
-	if($source =~ /(smart|superfamily|cath_sptr|dssp|das\/pfam)/i){
+	if($source =~ /(smart|superfamily|cath_sptr|dssp|uniprot|das\/pfam)/i){
 	    my $id = lc($1);
 	    $id =~ s/_|\///g;
 	    $sourceId = $id."Das";
 	}else{
 	  $sourceId = "genericDasSource";
 	}
-	print STDERR "$sourceId *****\n\n\n\n";
+	#print STDERR "$sourceId *****\n\n\n\n";
 	#What we do with das is slightly different.  We display all features (of a type that are accepted)
 	
 	if(ref($features->{$source}) eq "ARRAY"){ 
@@ -41,15 +41,20 @@ sub layout_DAS_sequences_and_features {
 	    
 	    foreach my $featureSet (@$featureSetsRef){
 		#print Dumper($featureSet);
-		my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
-		$l_seq->hidden(1);
-		$l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
-		$self->add_seq($l_seq);
+	      $featureSetsAdded++;
+	      my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
+		#$l_seq->hidden(1);
+	      $l_seq->colour1(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "EEEEEE"));
+	      $l_seq->colour2(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "DDDDDD"));
+	      $l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
+	      $self->add_seq($l_seq);
+
+		
 	    }
 	}
     }
+  return $featureSetsAdded;
 }
-#$self->_set_graphics_styles;
 
 
 
@@ -120,7 +125,13 @@ sub resolveOverlaps{
 	    my $overlapWithSet = 0;
 	    foreach my $feature (@{$featureSets->[$j]}){
 		next SET if($features->[$i]->{'drawingType'} ne $feature->{'drawingType'});
-		
+		if($feature->{'_displayGroup'} || $features->[$i]->{'_displayGroup'}){
+		  #Lets keep similar features together
+		  next SET unless ($feature->{'_displayGroup'} && $features->[$i]->{'_displayGroup'});
+		  next SET unless ($feature->{'_displayGroup'} eq $features->[$i]->{'_displayGroup'});
+		}
+
+		#Need to take into account that markups may have no end...
 		if(($features->[$i]->{'start'} <= $feature->{'end'} &&  
 		    $features->[$i]->{'start'} >= $feature->{'start'}) 
 		   || ($features->[$i]->{'end'} <= $feature->{'end'} &&  

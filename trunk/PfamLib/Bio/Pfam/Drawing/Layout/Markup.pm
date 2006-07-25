@@ -267,6 +267,35 @@ sub convert_feature{
   $self->end($feature->end) if($feature->end);
 }
 
+
+sub convertDasMarkup{
+   my($self, $feature) = @_;
+   $self->start($feature->{'start'});
+   $self->end($feature->{'end'}) unless ($feature->{'end'} == $feature->{'start'});
+   $self->BioSeqFeature(Bio::SeqFeature::Generic->new('-from' => $feature->{'start'},
+				 '-to' => $feature->{'end'},
+				 '-display_name' => $feature->{'feature_label'},
+				 ));
+
+   $self->v_align($feature->{'_valign'});
+   if($feature->{'_headColour'}){
+     $self->head_colour(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $feature->{'_headColour'}));
+   }
+   if($feature->{'_headStyle'}){
+     $self->head($feature->{'_headStyle'});
+   }
+   if($feature->{'_lineStyle'}){
+     $self->line($feature->{'_lineStyle'});
+   }
+
+   if($feature->{'_lineColour'}){
+     $self->line_colour(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $feature->{'_lineColour'}));
+   }
+
+   $self->label($feature->{'feature_label'});
+}
+
+
 =head2 BioSeqFeature
 
     Title   : BioSeqFeature
