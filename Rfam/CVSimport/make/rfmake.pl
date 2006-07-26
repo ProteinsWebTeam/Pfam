@@ -82,24 +82,24 @@ if( $list ) {
     my @goodhits = grep{ $_->bits >= $thr } $res->eachHMMUnit();
     my @allnames = map{ $_->seqname } @goodhits;
 
-    if( $inxfile ne $Rfam::rfamseq ) {
-	foreach my $id ( @allnames ) {
-	    my $seq = &get_seq( $id );
-	    $desc{ $id } = $seq->desc;
-	}
-    }
-    else {
+#    if( $inxfile ne $Rfam::rfamseq ) {
+#	foreach my $id ( @allnames ) {
+#	    my $seq = &get_seq( $id );
+#	    $desc{ $id } = $seq->desc;
+#	}
+#    }
+#    else {
 	while( scalar @allnames ) {
 	    my $string = join( " ", splice( @allnames, 0, $chunksize ) );
-	    open( P, "pfetch -d embl -D $string |" ) or die;
+	    open( P, "pfetch -a -d embl -D $string |" ) or die;
 	    while( <P> ) {
-		if( /^\S+\s+(\S+)\.\d+\s+(.{1,$desclength})/ ) {
-		    $desc{$1} = $2;
+		if( /^(\w+\s+)?(\w+)\.\d+\s+(.{1,$desclength})/ ) {
+		    $desc{$2} = $3;
 		}
 	    }
 	    close P or die "can't close pfetch pipe";
 	}
-    }
+#    }
 
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	my( $emblacc );
@@ -173,7 +173,7 @@ if( !$atleastonehit ) {
     exit(0);
 }
 
-my $options = "-o ALIGN --banded --bandexpand ";
+my $options = "-o ALIGN --banded --bandexpand --nosmall";
 $options = "-l ".$options if( $local );
 system "cmalign $options CM $$.fa" and die "failed to run cmalign";
 
