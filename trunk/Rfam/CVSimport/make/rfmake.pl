@@ -173,8 +173,13 @@ if( !$atleastonehit ) {
     exit(0);
 }
 
-my $options = "-o ALIGN --banded --bandexpand --nosmall";
-$options = "-l ".$options if( $local );
+my $options = "-o ALIGN --banded --bandexpand";
+if( $local ) {
+    $options = "-l ".$options;
+}
+else {
+    $options .= " --nosmall";
+}
 system "cmalign $options CM $$.fa" and die "failed to run cmalign";
 
 my $tc_bits = $res -> lowest_true( $thr );
