@@ -5,7 +5,7 @@
 #
 # add post-loaded domain graphics for the clan domain organisation block
 #
-# $Id: loadGraphics.tt,v 1.1 2006-07-20 09:04:06 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.2 2006-08-14 10:57:38 jt6 Exp $
 %]
 
 [% USE String %]
@@ -62,12 +62,12 @@ CALL archString.trim.chop;
 
     <h3>There are [% seqInfo.$id.num %] sequences with the following architecture: [% archString %]</h3>
 
-    <span class="graphicLabel">Type example: <a href="[% c.uri_for( "/protein", id=image.image_name ) %]">[% image.image_name %]</a> [% image.image_info %]</span>
+    <span class="graphicLabel"><a href="[% c.uri_for( "/protein", id=image.image_name ) %]">[% image.image_name %]</a> [% image.image_info %]</span>
     <img class="graphicImage"
          src="[% constants.tmp %]/[% image.file_location %]"
          usemap="#clanGraphicsMap[% oe %]"
          alt="" />
-    <p>([% image.length %] residues)</p>
+    <p>([% image.length / image.scale_x %] residues)</p>
     <div class="cleaner">&nbsp;</div>
 
     <map name="clanGraphicsMap[% oe %]">
