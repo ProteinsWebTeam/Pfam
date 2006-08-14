@@ -4,7 +4,7 @@
 #
 # Controller for the "browse" pages. Originally by RDF.
 #
-# $Id: Browse.pm,v 1.1 2006-07-20 09:01:09 jt6 Exp $
+# $Id: Browse.pm,v 1.2 2006-08-14 10:38:00 jt6 Exp $
 
 package PfamWeb::Controller::Browse;
 
@@ -25,11 +25,13 @@ sub browse : Path {
 
   return unless defined $char;
 
+  $c->log->debug( "Browse::browse: looking for letter \"$char\"" );
+
   # run the query to get back all families starting with the specified letter
-  my @res = PfamWeb::Model::Pfam->search( { pfamA_id => { "LIKE", "$char%" } },
-										  { join     => [ qw/pfamA_web/ ],
-											prefetch => [ qw/pfamA_web/ ] }
-										);
+  my @res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "LIKE", "$char%" } },
+											   { join     => [ qw/pfamA_web/ ],
+												 prefetch => [ qw/pfamA_web/ ] }
+											 );
 
   # and stash them for the template
   $c->stash->{char}   = uc $char;
@@ -43,12 +45,14 @@ sub browse : Path {
 sub browsenumbers : Path( "numbers" ) {
   my( $this, $c ) = @_;
 
+  $c->log->debug( "Browse::browse: looking for numbers" );
+
   # run the query to get back all families starting with a number
-  my @res = PfamWeb::Model::Pfam->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
-										  { order_by => "pfamA_id ASC",
-											join     => [ qw/pfamA_web/ ],
-											prefetch => [ qw/pfamA_web/ ] }
-										);
+  my @res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
+											   { order_by => "pfamA_id ASC",
+												 join     => [ qw/pfamA_web/ ],
+												 prefetch => [ qw/pfamA_web/ ] }
+											 );
 
   # and stash them for the template
   $c->stash->{char}   = "Numbers";
@@ -63,7 +67,7 @@ sub browsenumbers : Path( "numbers" ) {
 #   my( $this, $c ) = @_;
 
 #   # run the query to get back all families starting with a number
-#   my @res = PfamWeb::Model::Pfam->search( { },
+#   my @res = $c->model("PfamDB::Pfam")->search( { },
 # 										  { order_by => "pfamA_id ASC",
 # 											limit    => 20,
 # 											join     => [ qw/pfamA_web/ ],
@@ -77,7 +81,8 @@ sub browsenumbers : Path( "numbers" ) {
 
 # pick up a URL like http://localhost:3000/browse/[A-Za-z]
 
-sub browseLetters : LocalRegex( "^([A-Za-z])$" ) {
+sub browseLetters : LocalRegex( '^([A-Za-z])$' ) {
+
   my( $this, $c ) = @_;
 
   # get the first letter
@@ -87,10 +92,10 @@ sub browseLetters : LocalRegex( "^([A-Za-z])$" ) {
 	unless defined $char;
 
   # run the query to get back all families starting with that letter
-  my @res = PfamWeb::Model::Pfam->search( { pfamA_id => { "LIKE", "$char%" } },
-										  { join     => [ qw/pfamA_web/ ],
-											prefetch => [ qw/pfamA_web/ ] }
-										);
+  my @res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "LIKE", "$char%" } },
+											   { join     => [ qw/pfamA_web/ ],
+												 prefetch => [ qw/pfamA_web/ ] }
+											 );
 
   # and stash them for the template
   $c->stash->{char}   = uc $char;
