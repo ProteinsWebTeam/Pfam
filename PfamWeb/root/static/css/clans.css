@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam clan pages.
 
-   $Id: clans.css,v 1.7 2006-07-21 14:51:11 jt6 Exp $
+   $Id: clans.css,v 1.8 2006-08-14 10:51:27 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -86,12 +86,6 @@ div.pdbImageFragment {
 
 h4.pdbTitle  {
 	color: #074987;
-}
-
-span.clanMember {
-  float: left;
-  padding-left: 0.8em;
-  width: 12em;
 }
 
 #clanRelationshipsBlock img {

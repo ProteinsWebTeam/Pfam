@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.8 2006-07-20 10:03:23 jt6 Exp $
+   $Id: pfam.css,v 1.9 2006-08-14 10:51:27 jt6 Exp $
 */   
 
 body {
@@ -67,6 +67,10 @@ ul, dl, ol {
 
 #pageBody {
   padding: 0.2em;
+}
+
+#pageBody ul {
+  margin-right: 25em;
 }
 
 #jumpBoxes {

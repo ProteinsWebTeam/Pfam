@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.9 2006-07-21 14:51:51 jt6 Exp $
+   $Id: family.css,v 1.10 2006-08-14 10:51:27 jt6 Exp $
 */   
 
 /*
@@ -86,8 +86,8 @@ div.pdbImageFragment {
     border-color: #074987;
 }
 
-div.pdbImageFragment img {
-  border: none;
+div.blockContent ol {
+    margin-right: 210px;
 }
 
 .pdbTitle  {
