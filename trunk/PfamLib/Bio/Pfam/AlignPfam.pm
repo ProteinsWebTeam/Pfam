@@ -1297,7 +1297,7 @@ sub write_Pfam {
 	}
  
     foreach $seq ( $self->each_seq() ) {
-	$namestr = $seq->get_nse();
+      $namestr = $seq->get_nse();
 	$add = $maxn - length($namestr) + 2;
 	$namestr .= " " x $add;
 	print $out sprintf("%s  %s\n",$namestr,$seq->seq());
@@ -1424,7 +1424,67 @@ sub write_MSF {
     }                           
 }
 
+sub average_percentage_identity_per_column {
 
+   my ($self,@args) = @_;
+
+   my @alphabet = ('A','B','C','D','E','F','G','H','I','J','K','L','M',
+                   'N','O','P','Q','R','S','T','U','V','W','X','Y','Z');
+
+   my ($len, $total, $subtotal, $divisor, $subdivisor, @seqs, @countHashes);
+
+   if (! $self->is_flush()) {
+       $self->throw("All sequences in the alignment must be the same length");
+   }
+
+   my $idPerCol = [];
+   my $residuesPerCol = [];
+   #@seqs = $self->each_seq();
+   $len = $self->length();
+
+   # load the each hash with correct keys for existence checks
+
+   for( my $index=0; $index < $len; $index++) {
+       foreach my $letter (@alphabet) {
+	   $countHashes[$index]->{$letter} = 0;
+       }
+   }
+   my $no_seqs =0;
+   foreach my $seq ($self->each_seq)  {
+       my @seqChars = split //, $seq->seq();
+       for( my $column=0; $column < @seqChars; $column++ ) {
+	   my $char = uc($seqChars[$column]);
+	   if (exists $countHashes[$column]->{$char}) {
+	       $countHashes[$column]->{$char}++;
+	       $$residuesPerCol[$column]++;
+	   }
+       }
+       $no_seqs++;
+   }
+   
+   for( my $column=0; $column < @$residuesPerCol; $column++ ) {
+     $$residuesPerCol[$column] = ($$residuesPerCol[$column]/$no_seqs)*100;
+   }
+
+   $total = 0;
+   $divisor = 0;
+   for(my $column =0; $column < $len; $column++) {
+     my $colTotal = 0;
+     my $colDivisor =0;
+     my %hash = %{$countHashes[$column]};
+     $subdivisor = 0;
+     foreach my $res (keys %hash) {
+       $colTotal += $hash{$res}*($hash{$res} - 1);
+       $subdivisor += $hash{$res};
+     }
+     $total += $colTotal;
+     $colDivisor = $subdivisor * ($subdivisor - 1);
+     $idPerCol->[($column+1)] = $colDivisor > 0 ? ($colTotal / $colDivisor )*100.0 : 0;
+     $divisor += $colDivisor;
+   }
+   return ($idPerCol , $divisor > 0 ? ($total / $divisor )*100.0 : 0, $residuesPerCol);
+
+}
 1;
 
 
