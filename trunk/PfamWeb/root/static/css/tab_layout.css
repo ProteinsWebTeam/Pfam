@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.12 2006-07-21 14:50:10 jt6 Exp $
+   $Id: tab_layout.css,v 1.13 2006-08-14 10:51:27 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -185,8 +185,16 @@
   font-weight: bold;
 }
 
+#sidebar img {
+  padding: 0.4em 0.8em;
+}
+
 /* ======================================== */
 /* general styles for "blocks" */
+
+img {
+  border: none;
+}
 
 div.block {
   margin: 0.4em;
@@ -235,6 +243,7 @@ h3.inset {
 div.blockContent dt.label {
   font-weight: bold;
   text-align: right;
+  text-decoration: underline;
   width: 14em;
   float: left;
   padding: 0.2em;
@@ -289,6 +298,35 @@ table.layout td.data {
 }
 
 /* ======================================== */
+/* tooltip styles */
+
+.tipHeader {
+  color: black;
+  background: #CCC;
+  border: 1px solid black;
+  font-family: arial;
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 2px;
+  width: 150px;
+  opacity: 0.9;
+  filter: alpha(opacity=90);
+}
+
+.tipBody {
+  color: black;
+  background: #EEE;
+  border: 1px solid black;
+  border-top: none;
+  font-family: arial;
+  font-size: 0.8em;
+  padding: 2px;
+  width: 150px;
+  opacity: 0.9;
+  filter: alpha(opacity=90);
+}
+
+/* ======================================== */
 /* rules for specific blocks */
 
 /* limit the height of the domain images block */
@@ -322,6 +360,11 @@ div.pdbImageFragment {
     width: 200px;
     font-size: 0.8em;
     overflow: hidden;
+}
+
+div.pdbImageFragment h1 {
+    font-size: 1em;
+    text-decoration: underline;
 }
 
 img.pdbImage {
@@ -408,7 +451,7 @@ tr.continuation {
 div.graphicRow {
   display: block;
   clear: both;
-  padding: 0.4em;
+  padding: 0.2em;
 }
 
 span.graphicLabel {
@@ -417,7 +460,6 @@ span.graphicLabel {
 }
 
 img.graphicImage {
-  border: none;
   float: left;
 }
 
@@ -432,6 +474,15 @@ div.databaseReferences td {
 div.databaseReferences td.label {
   text-align: right;
   width: 6em;
+}
+
+/* ---------------------------------------- */
+/* a list of clan members */
+
+span.clanMember {
+  float: left;
+  padding-left: 0.8em;
+  width: 12em;
 }
 
 /* ======================================== */
