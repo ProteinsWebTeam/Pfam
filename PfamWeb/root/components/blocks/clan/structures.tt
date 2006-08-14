@@ -3,7 +3,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.3 2006-07-24 16:19:16 jt6 Exp $
+# $Id: structures.tt,v 1.4 2006-08-14 10:58:28 jt6 Exp $
 %]
 
 [% USE dumper %]
@@ -19,19 +19,15 @@
 
 	[%- oe = 0 -%]
 
-    [% CALL c.log.debug( "starting to generate mapping; ${pfamMaps.size} rows" ) %]
-
     [%- mapping = {} -%]
 	[% USE pdbMapIter = iterator( pfamMaps ) %]
     [%- FOREACH pdbMap IN pdbMapIter -%]
       [%- famKey = pdbMap.get_column("pfamA_id") -%]
-      [% CALL c.log.debug( "${pdbMapIter.index}: famKey: |$famKey|" ) %]
       [%- IF ! mapping.$famKey %]
         [%- mapping.$famKey = {} -%]
       [%- END -%]
     
       [%- seqKey = pdbMap.get_column("pfamseq_id") -%]
-      [% CALL c.log.debug( "seqKey: |$seqKey|" ) %]
       [%- IF ! mapping.$famKey.$seqKey %]
         [%- mapping.$famKey.$seqKey = {} -%]
       [%- END -%]
@@ -43,13 +39,11 @@
 
       [%- resKey = String.new( pdbMap.get_column("pfam_start_res") );
           CALL resKey.append( " - ", pdbMap.get_column("pfam_end_res") ) %]
-      [% CALL c.log.debug( "resKey: |$resKey|" ) %]
       [%- IF ! mapping.$famKey.$seqKey.$resKey -%]
         [%- mapping.$famKey.$seqKey.$resKey = {} -%]
       [%- END -%]
     
       [%- pdbKey = pdbMap.get_column("pdb_id") -%]
-      [% CALL c.log.debug( "pdbKey: |$pdbKey|" ) %]
       [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey -%]
         [%- mapping.$famKey.$seqKey.$resKey.$pdbKey = {} -%]
       [%- END -%]
@@ -60,7 +54,6 @@
 	  [%- END -%]
     
       [%- chainKey = pdbMap.get_column("chain") -%]
-      [% CALL c.log.debug( "chainKey: |$chainKey|" ) %]
       [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey -%]
         [%- mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey = {} -%]
       [%- END -%]
@@ -72,7 +65,6 @@
     
       [%- pdbResKey = String.new( pdbMap.get_column("pdb_start_res") );
           CALL pdbResKey.append( " - ", pdbMap.get_column("pdb_end_res") ) %]
-      [% CALL c.log.debug( "pdbResKey: |$pdbResKey|" ) %]
       [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey -%]
         [%- mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap -%]
  	  [%- END -%]
@@ -84,8 +76,6 @@
 
     [%- END -%]
 
-    [% CALL c.log.debug( "done generating mapping" ) %]
-
     <table class="details" id="structuresTable">
       <thead>
 	    <tr class="caption">
@@ -95,64 +85,76 @@
           <th id="pdbId">PDB ID</th>
 		  <th id="chId">PDB chain ID</th>
           <th id="pdbRes">PDB residues</th>
+          <th id="viewCol">View</th>
         </tr>
 	  </thead>
       <tbody>
 
-	[%- USE famKeyIter = iterator( mapping.keys.sort ) -%]
-    [%- FOREACH famKey IN famKeyIter -%]
-	  [%- NEXT IF mapping.$famKey == "COUNT" %]
-      [% oe=oe+1 %]
-      [%- FOREACH seqKey IN mapping.$famKey.keys.sort  -%]
-	    [%- FOREACH resKey IN mapping.$famKey.$seqKey.keys.sort -%]
-		  [%- NEXT IF mapping.$famKey.$seqKey.$resKey == "COUNT" %]
-	      [%- FOREACH pdbKey IN mapping.$famKey.$seqKey.$resKey.keys.sort -%]
-	        [%- FOREACH chainKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.keys.sort -%]
-		      [%- NEXT IF mapping.$famKey.$seqKey.$resKey.$pdbKey == "COUNT" %]
-	          [%- FOREACH pdbResKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
-
-              <tr>
-
-		        [% IF famKey != prevFamKey -%]
-	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/family", id=famKey ) %]">[% famKey %]</a></td>
-			    [% END %]
- 
-		        [% IF seqKey != prevSeqKey -%]
-		          <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/protein", id=seqKey ) %]">[% seqKey %]</a></td>
-                [% END -%]
-
-	            [% IF seqKey != prevSeqKey OR resKey != prevResKey -%]
-	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
-                [% END -%]
-
-		        [% IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
-	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                  <a href="[% c.uri_for( "/structure", id=pdbKey ) %]">[% pdbKey %]</a>
+      [%- USE famKeyIter = iterator( mapping.keys.sort ) -%]
+      [%- FOREACH famKey IN famKeyIter -%]
+        [%- NEXT IF mapping.$famKey == "COUNT" %]
+        [% oe=oe+1 %]
+        [%- FOREACH seqKey IN mapping.$famKey.keys.sort  -%]
+          [%- FOREACH resKey IN mapping.$famKey.$seqKey.keys.sort -%]
+            [%- NEXT IF mapping.$famKey.$seqKey.$resKey == "COUNT" %]
+            [%- FOREACH pdbKey IN mapping.$famKey.$seqKey.$resKey.keys.sort -%]
+              [%- FOREACH chainKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.keys.sort -%]
+                [%- NEXT IF mapping.$famKey.$seqKey.$resKey.$pdbKey == "COUNT" %]
+                [%- FOREACH pdbResKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+  
+                <tr>
+  
+                  [% IF famKey != prevFamKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/family", id=famKey ) %]">[% famKey %]</a></td>
+                  [% END %]
+   
+                  [% IF seqKey != prevSeqKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/protein", id=seqKey ) %]">[% seqKey %]</a></td>
+                  [% END -%]
+  
+                  [% IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
+                  [% END -%]
+  
+                  [% IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                    <a href="[% c.uri_for( "/structure", id=pdbKey ) %]">[% pdbKey %]</a>
+                    </td>
+                  [% END -%]
+  
+                  [%- prevFamKey = famKey -%]
+                  [%- prevSeqKey = seqKey -%]
+                  [%- prevResKey = resKey -%]
+                  [%- prevPdbKey = pdbKey -%]
+  
+                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+                  [% IF chainKey %]
+                    [% chainKey %]
+                  [% ELSE %]
+                    <span class="inactive">n/a</span>
+                  [% END %]
                   </td>
-                [% END -%]
-
-				[%- prevFamKey = famKey -%]
-				[%- prevSeqKey = seqKey -%]
-				[%- prevResKey = resKey -%]
-				[%- prevPdbKey = pdbKey -%]
-
-	            <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
-	            [% IF chainKey %]
-	              [% chainKey %]
-                [% ELSE %]
-                  <span class="inactive">n/a</span>
-                [% END %]
-                </td>
-			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
-
-	          </tr>
-
-	          [%- END # of pdbResKey -%]
-	        [%- END # of chainKey -%]
-          [%- END # of pdbKey -%]
-	    [%- END # of resKey -%]
-      [%- END # of seqKey -%]
-    [%- END # of famKey -%]
+                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
+                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) %]"
+                       onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;"
+                       target="newWin">Jmol</a>	
+                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) %]"
+                       onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
+                       target="newWin">AstexViewer</a>	
+                    <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&pdb=[% pdbKey %]"
+                       onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
+                       target="newWin">SPICE</a>	
+				  </td>
+  
+                </tr>
+  
+                [%- END # of pdbResKey -%]
+              [%- END # of chainKey -%]
+            [%- END # of pdbKey -%]
+          [%- END # of resKey -%]
+        [%- END # of seqKey -%]
+      [%- END # of famKey -%]
       </tbody>
     </table>
 
