@@ -41,15 +41,15 @@ sub  getSeqs {
 	if(!ref($acc)){
 #Get an object out of the database
 	
-	    my @rs = PfamWeb::Model::Pfamseq->find( pfamseq_acc => $acc );
+	    my @rs = PfamWeb::Schema::PfamDB::Pfamseq->find( pfamseq_acc => $acc );
 	    if(!scalar(@rs)){
 		print STDERR "Looking up id\n";
-		@rs = PfamWeb::Model::Pfamseq->find( pfamseq_id => $acc ); 
+		@rs = PfamWeb::Schema::PfamDB::Pfamseq->find( pfamseq_id => $acc ); 
 	    }
 	
 	    if(!scalar(@rs)){
 		print STDERR "Looking up secondary\n";
-		@rs = PfamWeb::Model::Pfamseq->find({ "secondary_accession.secondary_acc" => $acc },
+		@rs = PfamWeb::Schema::PfamDB::Pfamseq->find({ "secondary_accession.secondary_acc" => $acc },
 						    { join => [qw/ secondary_accession /]}); 
 	    }
 	    $pfamseq = shift @rs;
@@ -81,7 +81,7 @@ sub getPfamAFullRegions{
     my $nestings = shift;
     #Now get the pfam full regions for all the sequense in the annSeq array reference.
     for (my $i = 0; $i < scalar(@$annSeq_ref); $i++){	
-	foreach my $region ( PfamWeb::Model::PfamA_reg_full->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index,
+	foreach my $region ( PfamWeb::Schema::PfamDB::PfamA_reg_full->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index,
 								      in_full      => 1 )){
 	    
 	    $$annSeq_ref[$i]->addAnnotatedRegion( Bio::Pfam::PfamRegion->new('-PFAM_ACCESSION' => $region->pfamA_acc,
@@ -152,7 +152,7 @@ sub getPfamBRegions {
     my $annSeq_ref = shift;
     for (my $i = 0; $i < scalar(@$annSeq_ref); $i++){
 	#Get the PfamB data
-	foreach my $region ( PfamWeb::Model::PfamB_reg->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
+	foreach my $region ( PfamWeb::Schema::PfamDB::PfamB_reg->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
 	    $$annSeq_ref[$i]->addAnnotatedRegion( Bio::Pfam::PfamRegion->new('-PFAM_ACCESSION' => $region->pfamB_acc,
 									     '-PFAM_ID' => $region->pfamB_id,
 									     '-FROM' => $region->seq_start,
@@ -168,7 +168,7 @@ sub getOtherRegions {
     my $annSeq_ref = shift;
     for (my $i = 0; $i < scalar(@$annSeq_ref); $i++){
 	#Get the transmembrane etc positions
-	foreach my $region (PfamWeb::Model::Other_reg->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
+	foreach my $region (PfamWeb::Schema::PfamDB::Other_reg->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
 	    $$annSeq_ref[$i]->addAnnotatedRegion( Bio::Pfam::OtherRegion->new('-FROM' => $region->seq_start,
 									      '-TO' => $region->seq_end,
 									      '-TYPE' => $region->type_id,
@@ -186,7 +186,7 @@ sub getContextRegion {
     my$annSeq_ref=shift;
     for (my $i = 0; $i < scalar(@$annSeq_ref); $i++){
 	#Get the context regions
-	foreach my $region (PfamWeb::Model::Context_pfam_regions->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
+	foreach my $region (PfamWeb::Schema::PfamDB::Context_pfam_regions->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
 	    $$annSeq_ref[$1]->addAnnotatedRegion( Bio::Pfam::ContextPfamRegion->new('-PFAM_ACCESSION' => $region->pfamA_acc,
 										   '-PFAM_ID' => $region->pfamA_id,
 										   '-FROM' => $region->seq_start,
@@ -204,7 +204,7 @@ sub getSmartRegions{
     my$annSeq_ref=shift;
     for (my $i = 0; $i < scalar(@$annSeq_ref); $i++){
 	#Get SMART matches
-	foreach my $region (PfamWeb::Model::Smart_reg->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
+	foreach my $region (PfamWeb::Schema::PfamDB::Smart_reg->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
 	    $$annSeq_ref[$1]->addAnnotatedRegion( Bio::Pfam::SmartRegion->new('-FROM' => $region->seq_start,
 									      '-TO' => $region->seq_end,
 									      '-TYPE' => "SMART",
@@ -218,7 +218,7 @@ sub getSmartRegions{
 sub getDisulphide{
     my $annSeq_ref = shift;
     for (my $i = 0; $i < scalar(@$annSeq_ref); $i++){
-	foreach my $markup (PfamWeb::Model::Pfamseq_disulphide->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
+	foreach my $markup (PfamWeb::Schema::PfamDB::Pfamseq_disulphide->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
 	    my $feature = Bio::SeqFeature::Generic->new('-start' => $markup->bond_start,
 							'-end' => $markup->bond_end,
 							'-primary' => "disulphide");
@@ -236,7 +236,7 @@ sub getActiveSite{
     my $annSeq_ref = shift;
     #Get the active site
     for (my $i = 0; $i < scalar(@$annSeq_ref); $i++){
-	foreach my $markup (PfamWeb::Model::Pfamseq_markup->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
+	foreach my $markup (PfamWeb::Schema::PfamDB::Pfamseq_markup->search( auto_pfamseq => $$annSeq_ref[$i]->sequence->rdb_index)){
 	    my $feature = Bio::SeqFeature::Generic->new('-start' => $markup->residue,
 							'-primary' => $markup->label);
 	    my $res = substr($$annSeq_ref[$i]->sequence->seq, $markup->residue-1, 1);
