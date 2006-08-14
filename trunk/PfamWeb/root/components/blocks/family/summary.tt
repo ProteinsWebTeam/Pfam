@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.5 2006-07-21 14:54:00 jt6 Exp $
+# $Id: summary.tt,v 1.6 2006-08-14 11:02:18 jt6 Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -26,23 +26,7 @@
   </div>
   <div class="blockContent">
 
-    [%# pick a random PDB entry for this family %]
-    [% numIds = pfam.pdbMap.size %]
-    [% PERL %]
-    $stash->set( rand => sprintf "%d",rand($stash->get("numIds")) );
-    [% END %]
-
-    [% pdbObj = pfam.pdbMap.${rand}.pdb %]
-	[% pdbId     = pdbObj.pdb_id -%]
-	[% title     = pdbObj.title -%]
-
-    [% IF pdbObj.pdb_image %]
-    <div class="pdbImageFragment">
-	  <a href="[% c.uri_for( "/structure", id=pdbId ) %]">
-  	    <img class="pdbImage" src="[% c.uri_for( "/getimage", pdbid=pdbId ) %]" alt="[% pdbId %]" /></a>
-	  <a href="[% c.uri_for( "/structure", id=pdbId ) %]" class="pdbTitle">PDB entry [% pdbId %]</a>: [% title %]
-    </div>
-    [% END %]
+    <div id="siph">&nbsp;</div>
 
 	<h3>[% pfam.description %]</h3>
 
@@ -75,9 +59,44 @@
         to contain <p> tags... -%]
 	[% pfam.interpro.abstract %]
 
+	[%- IF pfam.clan_acc -%]
+	<h3>Clans</h3>
+
+    [% membershipList = BLOCK %]
+      [% total = 0 %]
+      [% FOREACH member IN clan.clan_membership.sort("pfamA_id") %]
+        <span class="clanMember">
+          [% IF member.pfamA_acc == pfam.pfamA_acc %]
+            [% member.pfamA_id %]
+          [% ELSE %]
+            <a href="[% c.uri_for( "/family", acc=member.pfamA_acc ) %]">
+              [% member.pfamA_id %]</a>
+          [% END %]
+        </span>
+        [% total = total + 1 %]
+      [% END # of foreach %]
+    [% END # of block %]
+
+	<p>This family is a member of clan <strong>
+      <a href="[% c.uri_for( "/clan", id=pfam.clan_id ) %]">[% pfam.clan_id %]</a></strong>
+      (<a href="[% c.uri_for( "/clan", acc=pfam.clan_acc ) %]">[% pfam.clan_acc %]</a>),
+      which contains the following [% total %] member[% total > 1 ? "s" : "" %]:
+    </p>
+
+	[% membershipList %]
+
+    <div class="cleaner"></div>
+
+    [%- END # of "if clan_acc" -%]
+
 	[% PROCESS components/links.tt %]
 
   </div>
 </div>
+
+<script type="text/javascript">
+  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
+  loadOptions.si.params = "acc=[% pfam.pfamA_acc %]";
+</script>
 
 <!-- end summary block -->
