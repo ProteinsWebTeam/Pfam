@@ -2,21 +2,47 @@
 # Graphics.pm
 # jt6 20060710 WTSI
 #
-# Controller to build a set of domain graphics for a given UniProt
-# sequence - used in the structure section, confusingly.
-#
-# $Id: Graphics.pm,v 1.1 2006-07-14 13:08:06 jt6 Exp $
+# $Id: Graphics.pm,v 1.2 2006-08-14 10:46:12 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Structure::Graphics - controller for generating
+domain graphics for a UniProt sequence
+
+=cut
 
 package PfamWeb::Controller::Structure::Graphics;
+
+=head1 DESCRIPTION
+
+Controller to build a set of domain graphics for a given UniProt
+sequence - used in the structure section, confusingly.
+
+Generates a B<page component>.
+
+$Id: Graphics.pm,v 1.2 2006-08-14 10:46:12 jt6 Exp $
+
+=cut
 
 use strict;
 use warnings;
 
 use Storable qw(thaw);
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Structure";
 
 #-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 begin : Private
+
+Overrides the L<begin|/PfamWeb::Controller::Structure> method from the
+parent class, and looks for a single parameter with a comma-separated
+list of IDs. Those IDs are the UniProt IDs for the sequences that
+should be drawn.
+
+=cut
 
 sub begin : Private {
   my( $this, $c ) = @_;
@@ -37,7 +63,12 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
-# pick up a URL like http://localhost:3000/structure/graphics?id=Q6FRP6
+
+=head2 default : Path
+
+Picks up a URL like http://localhost:3000/structure/graphics?ids=Q6FRP6
+
+=cut
 
 sub getData : Path {
   my( $this, $c ) = @_;
@@ -46,7 +77,7 @@ sub getData : Path {
   foreach my $id ( @{ $c->stash->{idList} } ) {
 
 	# retrieve the Storable with the data for this sequence
-	my $pfamseq = PfamWeb::Model::Pfamseq->find( { pfamseq_id => $id } );
+	my $pfamseq = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $id } );
 
 	# thaw it out and stash it
 	push @seqs, thaw( $pfamseq->annseq_storable ) if defined $pfamseq;
@@ -60,7 +91,7 @@ sub getData : Path {
 
   my %regionsAndFeatures = ( "PfamA"      => 1,
 							 "noFeatures" => 1 );
-  $layout->layout_sequences_with_regions_and_features( \@seqs, 
+  $layout->layout_sequences_with_regions_and_features( \@seqs,
 													   \%regionsAndFeatures );
 
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
@@ -101,8 +132,13 @@ sub getData : Path {
 }
 
 #-------------------------------------------------------------------------------
-# override the end method from the base class, so that we now hand
-# off to a template that doesn't require the wrapper
+
+=head2 end : Private
+
+Overrides the end method from the base class, so that we now hand off
+to a template that doesn't require the wrapper
+
+=cut
 
 sub end : Private {
   my( $this, $c ) = @_;
@@ -115,5 +151,20 @@ sub end : Private {
   $c->forward( "PfamWeb::View::TTBlock" );
 
 }
+
+#-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;
