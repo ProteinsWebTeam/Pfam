@@ -500,6 +500,73 @@ sub read_Pfam {
 }
 
 
+sub read_msf {
+  my $self = shift;
+  my $fh   = shift;
+  my (%hash,$name,$str,@names,$seqname,$start,$end,$count,$seq);
+  
+  while( <$fh> ) {
+    $_ =~ /\/\// && last; # move to alignment section
+    $_ =~ /Name:\s+(\S+)/ && do { $name = $1;
+				      $hash{$name} = ""; # blank line
+				      push(@names,$name); # we need it ordered!
+				    };
+    # otherwise - skip
+  }
+
+   # alignment section
+
+   while( <$fh>) {
+       next if ( $_ =~ /^\s+(\d+)/ ) ;
+       $_ =~ /^\s*(\S+)\s+(.*)$/ && do {
+	 $name = $1;
+	 $str = $2;
+	 if( ! exists $hash{$name} ) {
+	   $self->throw("$name exists as an alignment line but not in the header. Not confident of what is going on!");
+	 }
+	 $str =~ s/\s//g;
+	 $str =~ s/\~/\-/g;
+	   
+	 $hash{$name} .= $str;
+       };
+     }
+
+  return 0 if scalar @names < 1;
+
+  # now got this as a name - sequence hash. Lets make some sequences!
+  
+  foreach $name ( @names ) {
+    if( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
+      $seqname = $1;
+      $start = $2;
+      $end = $3;
+    } else {
+      $seqname=$name;
+      $start = 1;
+      $str = $hash{$name};
+      $str =~ s/[^A-Za-z]//g;
+      $end = length($str);
+    }
+    my $add = Bio::Pfam::SeqPfam->new('-seq' => $hash{$name},
+				      '-id' => $seqname,
+				      '-acc' => $seqname,
+				      '-start' => $start,
+				      '-end' => $end,
+				      '-type' => 'aligned');
+    $self->add_seq($add);
+   }
+
+#   return $self;
+
+}
+
+
+
+
+
+
+
+
 =head2 read_Pfam_file
 
  Title     : read_Pfam_file
@@ -1423,6 +1490,7 @@ sub write_MSF {
         $count = $tempcount;
     }                           
 }
+
 
 sub average_percentage_identity_per_column {
 
