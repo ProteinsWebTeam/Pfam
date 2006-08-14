@@ -4,7 +4,7 @@
 #
 # Controller to build the tree view of the family
 #
-# $Id: Tree.pm,v 1.1 2006-05-15 12:14:46 jt6 Exp $
+# $Id: Tree.pm,v 1.2 2006-08-14 10:43:45 jt6 Exp $
 
 package PfamWeb::Controller::Family::Tree;
 
@@ -31,8 +31,8 @@ sub auto : Private {
 
   # find out what type of tree to draw, seed or full, being careful
   # not to take what the user supplies directly...
-  my $type = ( $c->req->param( "type") eq "full" ) ? "full" : "seed";
-  $c->stash->{type} = $type;
+  my $type = (defined $c->req->param("type") and $c->req->param("type") eq "full")
+	? "full" : "seed";
 
   # before generating it, see if we can retrieve it from the cache
   my $tree;

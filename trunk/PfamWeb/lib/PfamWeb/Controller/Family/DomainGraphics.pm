@@ -4,9 +4,9 @@
 #
 # Controller to build a set of domain graphics for a given Pfam.
 #
-# $Id: DomainGraphics.pm,v 1.4 2006-07-14 13:09:58 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.5 2006-08-14 10:43:45 jt6 Exp $
 
-package PfamWeb::Controller::DomainGraphics;
+package PfamWeb::Controller::Family::DomainGraphics;
 
 use strict;
 use warnings;
@@ -16,7 +16,7 @@ use Storable qw(thaw);
 use base "PfamWeb::Controller::Family";
 
 
-# pick up a URL like http://localhost:3000/domaingraphics?acc=PF00067
+# pick up a URL like http://localhost:3000/family/domaingraphics?acc=PF00067
 
 sub getData : Path {
   my( $this, $c ) = @_;
@@ -45,11 +45,12 @@ sub getData : Path {
 
   my $acc = $c->stash->{pfam}->pfamA_acc;
 
+#	PfamWeb::Model::PfamA_architecture->search( { pfamA_acc => $acc },
   my @architectures =
-	PfamWeb::Model::PfamA_architecture->search( { pfamA_acc => $acc },
-												{ join      => [ qw/ arch pfam /],
-												  order_by  => "arch.no_seqs DESC" }
-											  );
+	$c->model("PfamDB::PfamA_architecture")->search( { pfamA_acc => $acc },
+													 { join      => [ qw/ arch pfam /],
+													   order_by  => "arch.no_seqs DESC" }
+												   );
   $c->log->debug( "found " . scalar @architectures . " architectures" );
 
   my @seqs;
@@ -59,8 +60,8 @@ sub getData : Path {
   $c->log->debug( "found " . scalar @seqs . " storables" );
 
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layout->scale_x( $this->{scale_x} ); #0.33
-  $layout->scale_y( $this->{scale_y} ); #0.45
+  #$layout->scale_x( $this->{scale_x} ); #0.33
+  #$layout->scale_y( $this->{scale_y} ); #0.45
 
   my %regionsAndFeatures = ( "PfamA"      => 1,
 							 "noFeatures" => 1 );

@@ -4,9 +4,9 @@
 #
 # ?
 #
-# $Id: AlignmentGenerator.pm,v 1.3 2006-07-14 13:09:39 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.4 2006-08-14 10:43:45 jt6 Exp $
 
-package PfamWeb::Controller::AlignmentGenerator;
+package PfamWeb::Controller::Family::AlignmentGenerator;
 
 use strict;
 use warnings;
@@ -16,7 +16,7 @@ use Bio::Pfam::ColourAlign;
 
 use base "PfamWeb::Controller::Family";
 
-# pick up a URL like http://localhost:3000/alignmentgenerator?acc=PF00067
+# pick up a URL like http://localhost:3000/family/alignmentgenerator?acc=PF00067
 
 sub getData : Path {
   my( $this, $c ) = @_;
@@ -28,7 +28,9 @@ sub getData : Path {
 
   my @dsnList = ( "http://pfam1b.internal.sanger.ac.uk:9000/das/pfamAlign" );
 
-  my $dl = PfamWeb::Model::Das_sources->getDasLite;
+  # retrieve the DasLite client from the base model class and hand it
+  # the list of DSNs
+  my $dl = $c->model("PfamDB")->getDasLite;
   $dl->dsn( \@dsnList );
 
   # get the limits from the parameters
@@ -36,10 +38,8 @@ sub getData : Path {
   ( $rows ) = $c->req->param( "range" ) =~ m/^(\d+\-\d+)$/
 	if defined $c->req->param( "range" );
 
-  $c->log->debug( "rows: |$rows|" );
-
   unless( defined $rows ) {
-	$c->log->debug( "rows undefined; calculating from start and end" );
+	$c->log->debug( "AlignmentGenerator::getData: rows undefined; calculating from start and end" );
 
 	my( $start, $end );
 	( $start ) = $c->req->param( "start" ) =~ m/^(\d+)$/
@@ -50,8 +50,8 @@ sub getData : Path {
 	$rows = $start . "-" . $end if( defined $start and defined $end );
   }
 
-  $c->log->debug( "rows finally set to: |$rows|" );
-  $rows = $this->{defaultRows} unless $rows =~ /^\d+\-\d+$/;
+  $rows = $this->{defaultRows} unless( defined $rows && $rows =~ /^\d+\-\d+$/ );
+  $c->log->debug( "AlignmentGenerator::getData: rows finally set to: |$rows|" );
 
   # store the start and end of the range
   $rows =~ m/^(\d+)\-(\d+)$/;
@@ -62,7 +62,7 @@ sub getData : Path {
   if( defined $c->req->param( "scrollValue" ) ) {
 	$c->req->param( "scrollValue" ) =~ /^(\d+)$/;
 	$c->stash->{scroll} = $1;
-	$c->log->debug( "set scroll value to |" . $c->stash->{scroll} . "|" );
+	$c->log->debug( "AlignmentGenerator::getData: set scroll value to |" . $c->stash->{scroll} . "|" );
   }
 
   my $rawAlignment = $dl->alignment( { query => $c->stash->{pfam}->pfamA_acc . ".full",
