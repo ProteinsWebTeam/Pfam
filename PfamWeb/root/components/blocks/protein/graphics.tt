@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.7 2006-07-14 12:41:10 jt6 Exp $
+# $Id: graphics.tt,v 1.8 2006-08-14 11:04:54 jt6 Exp $
 -%]
 
 <!-- start protein graphics block -->
@@ -40,7 +40,7 @@
 
 	<div id="updatePanel">
       <p><a href="#" onclick="return reveal(this,'checkboxes')">Show</a>
-	  sources update panel.</p>
+	    sources update panel.</p>
 
 	  <div id="checkboxes" style="display: none">
 
@@ -60,7 +60,7 @@
 
           [% FOREACH source IN dasSourcesRs.sort("name") -%]
   	        <div class="source">
-    	        <input name="[% source.server_id %]" type="checkbox" [% IF source.default_server %]checked="1"[% END %] />
+    	        <input name="[% source.server_id %]" type="checkbox" [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="1"[% END %] />
       	        <span class="checkboxLabel">
                 <a href="[% source.helper_url %]">[% source.name %]</a>
                 (<a href="[% source.url %]">source</a>)
