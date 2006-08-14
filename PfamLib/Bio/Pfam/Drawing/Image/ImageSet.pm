@@ -5,7 +5,10 @@ use GD;
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 use Bio::Pfam::Drawing::Image::Image;
+use Bio::Pfam::Drawing::Image::Graph;
+
 use Time::HiRes qw( gettimeofday );
+
 
 my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
 
@@ -13,9 +16,8 @@ sub new{
   my $class = shift;
   my $self = bless {}, ref($class) || $class;
   $self->{ 'images' } = [];
-
+  $self->{ 'graphs' } = [];
   $self->{timeStamp} = gettimeofday * 100000;
-
   return $self;
 }
 
@@ -64,6 +66,28 @@ sub create_images {
 
     $self->add_image( $image );
   }
+
+  my $maxOffSet = 0;
+  foreach my $graphNode ( $xc->findnodes( "pf:graph" ) ) {
+    my $image = Bio::Pfam::Drawing::Image::Graph->new;
+    $image->length( $root->getAttribute( "length" ) );
+    $image->height( $root->getAttribute( "height" ) );
+    $image->format(  $root->getAttribute( "format"  ) );
+    $image->bg_colour();#not yet implemented
+    $image->create_graph( $graphNode );
+    if($image->offSet){
+      $maxOffSet = $image->offSet if($image->offSet > $maxOffSet); 
+    }
+    $self->add_graph( $image );
+  }
+
+  if($maxOffSet){
+    foreach my $image ($self->each_image){
+      $image->addOffSet($maxOffSet);
+
+    }
+  }
+
 }
 
 sub add_image {
@@ -79,6 +103,16 @@ sub each_image {
   return @{$self->{'images'}};
 }
 
+sub add_graph{
+  my ($self, $graphObj) = @_;
+  if($graphObj){
+    push(@{$self->{'graphs'}}, $graphObj);
+  }
+}
 
+sub each_graph{
+  my $self = shift;
+  return (@{$self->{'graphs'}});
+}
 
 1;
