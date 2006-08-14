@@ -3,23 +3,19 @@
 # jt6 20060503 WTSI
 #
 # contents of the protein graphics block. Called using an ajax request
-# via ProteinGraphics.pm and stuffed into a div in the existing page
+# via Protein::graphics and stuffed into a div in the existing page
 #
-# $Id: simapGraphics.tt,v 1.1 2006-07-21 15:28:16 rdf Exp $
+# $Id: simapGraphics.tt,v 1.2 2006-08-14 11:06:12 jt6 Exp $
 %]
 
 <!-- start of features map -->
 
 <div id="simap">
 
-<p> This is the post loaded SIMAP data</p>
-
 [% FOREACH image IN imageset.each_image %]
   [% CALL image.print_image %]
   <img class="domainImage" src="[% constants.tmp %]/[% image.file_location %]" alt=""/><br/>
 [% END %]
-
-
 
 </div>
 
