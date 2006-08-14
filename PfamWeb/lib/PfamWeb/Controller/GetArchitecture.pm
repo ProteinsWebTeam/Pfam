@@ -21,7 +21,7 @@ sub getseq : LocalRegex( '^(\S+)' ) {
   my @seqs_acc;
 
   #Probably want to put this in the stash.....
-  foreach my $arch ( PfamWeb::Model::PfamA_architecture->search( {'pfamA_acc' => $acc},
+  foreach my $arch ( $c->model("PfamDB::PfamA_architecture")->search( {'pfamA_acc' => $acc},
 							    {
 								join => [qw/ arch pfam/],
 								prefetch => [qw/arch/],

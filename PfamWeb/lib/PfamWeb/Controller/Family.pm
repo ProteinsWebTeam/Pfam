@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam family page.
 #
-# $Id: Family.pm,v 1.6 2006-07-21 14:55:36 jt6 Exp $
+# $Id: Family.pm,v 1.7 2006-08-14 10:38:50 jt6 Exp $
 
 package PfamWeb::Controller::Family;
 
@@ -14,6 +14,7 @@ use warnings;
 use Data::Dumper;
 
 use base "Catalyst::Controller";
+
 
 # this is the base class for dealing with Pfam family-related
 # data. The begin method will try to extract data from the database
@@ -34,23 +35,34 @@ sub begin : Private {
 
   if( defined $c->req->param("acc") ) {
 
-	$c->req->param("acc") =~ m/^(PF\d{5})$/i;
-	$c->log->info( "Family::begin: found accession |$1|" );
+	$c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
+	$c->log->info( "Family::begin: found accession |$1|, type |$2|" );
 
-	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_acc => $1 } )
-	  if defined $1;
+	if( defined $1 ) {
+
+	  # see if this is actually a PfamB...
+	  if( $2 eq 'B' ) {
+		$c->log->debug( "Family::begin: looks like a PfamB; redirecting" );
+		$c->res->redirect( $c->uri_for( "/pfamb", { acc => $1 } ) );
+		return 1;
+	  }
+
+	  # no; must be a PfamA
+	  $c->log->debug( "Family::begin: family is a PfamA" );
+	  $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } )
+	}
 
   } elsif( defined $c->req->param("id") ) {
 
 	$c->req->param("id") =~ m/^(\w+)$/;
 	$c->log->info( "Family::begin: found ID |$1|" );
 
-	$c->stash->{pfam} = PfamWeb::Model::Pfam->find( { pfamA_id => $1 } )
+	$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
 	  if defined $1;
 
   }	elsif( defined $c->req->param( "entry" ) ) {
 
-	if( $c->req->param( "entry" ) =~ /^(PF\d{5})$/i ) {
+	if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5})$/i ) {
 
 	  # looks like an accession; redirect to this action, appending the accession
 	  $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting" );
@@ -69,10 +81,17 @@ sub begin : Private {
 
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfam} ) {
-	$c->log->warn( "$this: no ID or accession" );
+	$c->log->warn( "Family::begin: no ID or accession" );
 	$c->error( "No valid Pfam family accession or ID" );
 	return;
   }
+
+  #----------------------------------------
+  # add the clan details, if any
+
+  my $clanAcc = $c->stash->{pfam}->clan_acc;
+  $c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_acc => $clanAcc } )
+	if defined $clanAcc;
 
   #----------------------------------------
   # get the data items for the overview bar
@@ -83,15 +102,15 @@ sub begin : Private {
   my $auto_pfam = $c->stash->{pfam}->auto_pfamA;
 
   # get the PDB details
-  my @maps = PfamWeb::Model::PdbMap->search(
+  my @maps = $c->model("PfamDB::PdbMap")->search(
     { auto_pfam   => $auto_pfam,
 	  pfam_region => 1 },
-	{ join        => [qw/ pdb / ] } );
+	{ join        => [ qw/ pdb / ],
+	  prefetch    => [ qw/ pdb / ] } );
   $c->stash->{pfamMaps} = \@maps;
 
-
   # count the number of architectures
-  my $rs = PfamWeb::Model::PfamA_architecture->find(
+  my $rs = $c->model("PfamDB::PfamA_architecture")->find(
     { auto_pfamA => $auto_pfam },
     {
       select => [
@@ -108,12 +127,12 @@ sub begin : Private {
   $summaryData{numSequences} = $c->stash->{pfam}->num_full;
 
   # number of structures known for the domain
-  my %pdb_unique = map {$_->pdb_id => 1} @maps;
+  my %pdb_unique = map {$_->pdb_id => $_} @maps;
   $summaryData{numStructures} = scalar(keys %pdb_unique);
   $c->stash->{pdbUnique} = \%pdb_unique;
 
   # number of species
-  my @species = PfamWeb::Model::PfamA_reg_full->search(
+  my @species = $c->model("PfamDB::PfamA_reg_full")->search(
     { auto_pfamA => $auto_pfam,
 	  in_full    => 1 },
     { join       => [ qw/pfamseq/ ],
@@ -123,7 +142,7 @@ sub begin : Private {
   $summaryData{numSpecies} = scalar(keys %species_unique);
 
   # number of interactions
-  $rs = PfamWeb::Model::Int_pfamAs->find({ auto_pfamA_A => $auto_pfam },
+  $rs = $c->model("PfamDB::Int_pfamAs")->find({ auto_pfamA_A => $auto_pfam },
 	{ select => [
 				 { count => "auto_pfamA_A" }
 				],
@@ -131,7 +150,7 @@ sub begin : Private {
     }
   );
 
-  $summaryData{numIpfam} = $rs->get_column( "NumInts" );
+  $summaryData{numInt} = $rs->get_column( "NumInts" );
 
   $c->stash->{summaryData} = \%summaryData;
 
@@ -179,7 +198,7 @@ sub getDbXrefs : Private {
   }
 
   # PfamA to PfamA links based on PRC
-  my @atoaPRC = PfamWeb::Model::PfamA2pfamA_PRC_results->search(
+  my @atoaPRC = $c->model("PfamDB::PfamA2pfamA_PRC_results")->search(
     { "pfamA1.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
 	  evalue             => { "<=", "0.01"} },
 	{ join               => [ qw/pfamA1 pfamA2/ ],
@@ -190,7 +209,7 @@ sub getDbXrefs : Private {
   $xRefs{atoaPRC} = \@atoaPRC if scalar @atoaPRC;
 
   # PfamB to PfamA links based on PRC
-  my @atobPRC = PfamWeb::Model::PfamB2pfamA_PRC_results->search(
+  my @atobPRC = $c->model("PfamDB::PfamB2pfamA_PRC_results")->search(
     { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc, },
 #	  evalue    => { "<=", "0.01"} },
 	{ join      => [ qw/pfamA pfamB/ ],
@@ -259,7 +278,7 @@ sub end : Private {
 	$c->stash->{template} = "components/blocks/family/errors.tt";
   } else {
 	$c->stash->{pageType} = "family";
-	$c->stash->{template} = "pages/layout.tt";
+	$c->stash->{template} ||= "pages/layout.tt";
   }
 
   # and render the page

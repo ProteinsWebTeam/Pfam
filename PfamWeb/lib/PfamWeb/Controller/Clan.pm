@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.4 2006-07-21 14:55:15 jt6 Exp $
+# $Id: Clan.pm,v 1.5 2006-08-14 10:38:50 jt6 Exp $
 
 package PfamWeb::Controller::Clan;
 
@@ -12,7 +12,6 @@ use strict;
 use warnings;
 
 use Data::Dumper;
-use Storable qw( thaw );
 
 use base "Catalyst::Controller";
 
@@ -24,15 +23,16 @@ sub begin : Private {
 	$c->req->param( "acc" ) =~ m/^(CL\d{4})$/i;
 	$c->log->info( "Clan::begin: found accession |$1|" );
 
-	$c->stash->{clan} = PfamWeb::Model::Clans->find( { clan_acc => $1 } )
+	$c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
 	  if defined $1;
 
   } elsif( defined $c->req->param( "id" ) ) {
 
-	$c->req->param( "id" ) =~ m/^(\w+)$/;
+	$c->log->info( "Clan::begin: found param |".$c->req->param("id")."|" );
+	$c->req->param( "id" ) =~ m/^([\w-]+)$/;
 	$c->log->info( "Clan::begin: found ID |$1|" );
 	
-	$c->stash->{clan} = PfamWeb::Model::Clans->find( { clan_id => $1 } )
+	$c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
 	  if defined $1;
 
   } elsif( defined $c->req->param( "entry" ) ) {
@@ -70,7 +70,7 @@ sub begin : Private {
   my $autoClan = $c->stash->{clan}->auto_clan;
 
   # number of sequences
-  my $rs = PfamWeb::Model::Clan_membership->find(
+  my $rs = $c->model("PfamDB::Clan_membership")->find(
     { auto_clan => $autoClan },
     {
       select => [ { sum => "pfam.num_full" } ],
@@ -81,7 +81,7 @@ sub begin : Private {
   $summaryData{numSequences} = $rs->get_column( "total_in_clan" );
 
   # count the number of architectures
-  $rs = PfamWeb::Model::ClanArchitecture->find(
+  $rs = $c->model("PfamDB::ClanArchitecture")->find(
     { auto_clan => $autoClan },
     {
       select => [ { count => "auto_clan" } ],
@@ -91,17 +91,17 @@ sub begin : Private {
   $summaryData{numArchitectures} = $rs->get_column( "count" );
 
   # number of interactions
-  $rs = PfamWeb::Model::Clan_membership->find(
+  $rs = $c->model("PfamDB::Clan_membership")->find(
     { auto_clan => $autoClan },
 	{ select => [ { count => "auto_pfamA_A" } ],
 	  as     => [ qw/NumInts/ ],
 	  join   => [ qw/pfamAInts/ ]
     }
   );
-  $summaryData{numIpfam} = $rs->get_column( "NumInts" );
+  $summaryData{numInt} = $rs->get_column( "NumInts" );
 
- # get the PDB details
-  my @maps = PfamWeb::Model::Clan_membership->search(
+  # get the PDB details
+  my @maps = $c->model("PfamDB::Clan_membership")->search(
     { auto_clan            => $autoClan,
 	  "pdbmap.pfam_region" => 1 },
 	{ select => [ qw/pdb.pdb_id/ ],
@@ -116,7 +116,7 @@ sub begin : Private {
   $c->stash->{pdbUnique} = \%pdb_unique;
 
   # number of species
-  my @species = PfamWeb::Model::Clan_membership->search(
+  my @species = $c->model("PfamDB::Clan_membership")->search(
     { auto_clan              => $autoClan,
  	  "pfamARegFull.in_full" => 1 },
     { select => [ qw/pfamseq.species/ ],
@@ -133,13 +133,44 @@ sub begin : Private {
   #----------------------------------------
   # get the database cross references
 
-  my @refs = PfamWeb::Model::Clan_database_links->search( { auto_clan => $autoClan } );
+  my @refs = $c->model("PfamDB::Clan_database_links")->search( { auto_clan => $autoClan } );
 
   my %xRefs;
   foreach ( @refs ) {
 	$xRefs{$_->db_id} = $_;
   }
   $c->stash->{xrefs} = \%xRefs;
+
+  #----------------------------------------
+  # get the structure mapping
+
+  my @mapping = $c->model("PfamDB::Clan_membership")->search( { auto_clan => $autoClan },
+														 { select => [ qw/pfamseq.pfamseq_id
+																		  pfamA.pfamA_id
+																		  pfamA.pfamA_acc
+																		  pdbmap.pfam_start_res
+																		  pdbmap.pfam_end_res
+																		  pdb.pdb_id
+																		  pdbmap.chain
+																		  pdbmap.pdb_start_res
+																		  pdbmap.pdb_end_res/ ],
+														   as     => [ qw/pfamseq_id
+																		  pfamA_id
+																		  pfamA_acc
+																		  pfam_start_res
+																		  pfam_end_res
+																		  pdb_id
+																		  chain
+																		  pdb_start_res
+																		  pdb_end_res/ ],
+														   join => { pdbmap => [qw/pfamA
+																				   pfamseq
+																				   pdb/ ]
+																   }
+														 }
+													   );
+
+  $c->stash->{pfamMaps} = \@mapping;
 
 }
 
@@ -189,7 +220,7 @@ sub end : Private {
 # sub summary : LocalRegex('^summary\/(CL\d{4})$') { 
 #   my ($this, $c) = @_;
 #   my $clan_acc = $c->req->snippets->[0]; #get what was captured in the regex
-#   $c->stash->{clan} = PfamWeb::Model::Clans->find( {clan_acc=>$clan_acc} ); 
+#   $c->stash->{clan} = $c->model("PfamDB::Clans")->find( {clan_acc=>$clan_acc} ); 
 #   if ($c->stash->{clan}){
 #      $c->stash->{template} = "pages/clanSum.tt";
 #   }else{ 

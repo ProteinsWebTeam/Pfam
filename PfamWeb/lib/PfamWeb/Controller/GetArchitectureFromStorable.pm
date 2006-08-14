@@ -21,7 +21,7 @@ sub getArchStore : LocalRegex( '^(\S+)' ) {
   my $acc = $c->req->snippets->[0];
 
 
-  my @architectures = PfamWeb::Model::PfamA_architecture->search( {pfamA_acc => $acc},
+  my @architectures = $c->model("PfamDB::PfamA_architecture")->search( {pfamA_acc => $acc},
 								  {
 								      join => [qw/arch pfam/],
 								      order_by =>"arch.no_seqs DESC",
