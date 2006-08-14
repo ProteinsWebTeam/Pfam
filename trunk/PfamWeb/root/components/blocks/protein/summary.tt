@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.5 2006-07-20 09:31:23 jt6 Exp $
+# $Id: summary.tt,v 1.6 2006-08-14 11:07:00 jt6 Exp $
 %]
 
 [% USE String %]
@@ -50,8 +50,23 @@
             [% END %]
           </td>
 		</tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Length:</td>
+	      <td class="data">
+            [% pfamseq.length %] amino acids
+          </td>
+		</tr>
       </tbody>
 	</table>
+
+	[% image = pfamImageset.each_image.list.shift %]
+	[% CALL image.print_image %]
+
+    <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/><br/>
+
+	<map name="singleImageMap">
+      [% image.image_map %]
+    </map>
 
   </div> <!-- end of "blockContent" -->
 </div>
