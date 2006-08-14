@@ -21,7 +21,7 @@ sub layout_DAS_sequences_and_features {
   foreach my $source (keys %$features){
 	#first get the sequence object.
 	my $sourceId;
-	print STDERR "\n\n\n***** $source, ";
+	#print STDERR "\n\n\n***** $source, ";
 
 	if($source =~ /(smart|superfamily|cath_sptr|dssp|uniprot|das\/pfam)/i){
 	    my $id = lc($1);
