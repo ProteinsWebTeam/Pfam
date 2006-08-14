@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.2 2006-07-21 15:10:35 rdf Exp $
+// $Id: protein.js,v 1.3 2006-08-14 10:53:43 jt6 Exp $
 
 // this will make the ajax calls for the protein page components
 
@@ -15,7 +15,8 @@ function proteinPostLoad() {
  					  onComplete: pgSuccess,
  					  onFailure:  pgFailure
  					} );
-    new Ajax.Request( loadOptions.simap.uri,	
+
+   new Ajax.Request( loadOptions.simap.uri,	
  					{ method: "get",
  					  parameters: loadOptions.simap.params,
  					  onComplete: simapSuccess,
