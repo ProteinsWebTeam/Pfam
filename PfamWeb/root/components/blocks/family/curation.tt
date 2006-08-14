@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.5 2006-07-21 14:50:48 jt6 Exp $
+# $Id: curation.tt,v 1.6 2006-08-14 10:59:58 jt6 Exp $
 %]
 
 <!-- start curation block -->
@@ -34,20 +34,20 @@
 	  <tbody>
 <!--
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		  <td class="label">Author:</td>
+		  <td class="label" title="header=[Author name] body=[The name of the author of this Pfam family] requireclick=[on]">Author:</td>
 	      <td class="data">
 	        [% pfam.author %]
           </td>
 		</tr>
 -->
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		  <td class="label">Seed source:</td>
+		  <td class="label" title="header=[Seed source] body=[The method by which the seed alignment was generated] cssheader=[tipHeader] cssbody=[tipBody] requireclick=[on]">Seed source:</td>
 	      <td class="data">
 	        [% pfam.seed_source %]
           </td>
 		</tr>
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-	      <td class="label">Previous ids:</td>
+	      <td class="label" title="header=[Previous IDs] body=[Any previous IDs by which this family has been known] cssheader=[tipHeader] cssbody=[tipBody] requireclick=[on]">Previous IDs:</td>
           <td class="data">
             [% IF pfam.previous_id %]
               [% pfam.previous_id %]
@@ -58,7 +58,7 @@
         </tr>
 
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-	      <td class="label">Type:</td>
+	      <td class="label" title="header=[Family type] body=[domain, family, repeat and motif] cssheader=[tipHeader] cssbody=[tipBody] requireclick=[on]">Type:</td>
 	      <td class="data">
             [% pfam.type %]
 	      </td>
