@@ -1,0 +1,85 @@
+
+[%#
+# familyStructures.tt
+# jt6 20060727 WTSI
+# 
+# build the summary block for families
+#
+# $Id
+%]
+
+[%- 
+# see if pdb was populated by the controller, in which case the user chose a
+# specific PDB entry to be displayed; if it's not populated, choose a random entry
+# and show the image for that
+
+IF NOT pdbObj;
+
+  # pick a random PDB entry for this family
+  idList = pdbUnique.keys.sort;
+  numIds = idList.size;
+
+  IF numIds > 1;
+    PERL %]
+      my $numIds = $stash->get("numIds");
+      $stash->set( rand => sprintf "%d",rand($numIds) ) if $numIds;
+    [% END;
+    randomId = idList.${rand};
+	pdbObj = pdbUnique.$randomId;
+  ELSE;
+    # if there's only one structure there's no array under pdbUnique, so we go 
+    # straight to the pdb object... I think
+    pdbObj = pdbUnique.values.shift;
+  END;
+
+END;
+
+IF pdbUnique.keys.size %]
+
+<!-- start of pdb image block -->
+
+<div class="pdbImageFragment">
+
+  [%- IF pdbObj.pdb_image -%]
+
+    <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]">
+      <img class="pdbImage" 
+           title="header=[View structure data] body=[Click to view the structure page for PDB entry [% pdbObj.pdb_id %]] fade=[on] fadespeed=[0.5] delay=[500]"
+           src="[% c.uri_for( "/structure/getimage", id=pdbObj.pdb_id ) %]"
+           alt="[% pdbObj.pdb_id %]" /></a>
+
+    [%- IF randomId -%]
+      <h1>Example structure</h1>
+    [%- END -%]
+
+    <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]" class="pdbTitle">
+      PDB entry [% pdbObj.pdb_id %]</a>: [% pdbObj.title %]
+
+  [%- ELSE -%]
+
+    <p class="inactive">No image available</p>
+
+  [%- END -%]
+ 
+  [%# if there are multiple PDB entries, allow the user to choose a specific one %]
+  [% IF pdbUnique.keys.size > 1 %]
+
+    [% c.prototype.form_remote_tag( {
+             url    => c.uri_for( "/family/structures" ),
+             update => "siph"
+           } ) %]
+      <input id="pfamAccField" name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
+	  <select name="pdbId" id="pdbIdField">
+	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
+  	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %]selected="1"[% END %] />[% id %]</option>
+        [% END %]
+      </select>
+
+    <input type="submit" name="submit" value="View" />
+  </form>
+
+  [% END # of "if pdbUnique.keys.size > 1" %]
+</div>
+[% END # of "if pdbUnique.keys.size" %]
+
+<!-- end of pdb image block -->
