@@ -2,14 +2,17 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# Controller to build a species tree.
+# Controller to build a species tree. This is the clickable,
+# expandable tree in the "Species" tab.
 #
-# $Id: SpeciesTree.pm,v 1.2 2006-05-15 12:13:55 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.3 2006-08-14 10:43:45 jt6 Exp $
 
-package PfamWeb::Controller::SpeciesTree;
+package PfamWeb::Controller::Family::SpeciesTree;
 
 use strict;
 use warnings;
+
+use Bio::Pfam::Web::Tree;
 
 use Data::Dumper;
 
@@ -25,30 +28,47 @@ sub getData : Path {
 
   # the accession should be set by the begin method on the application class
   my $acc = $c->stash->{pfam}->pfamA_acc;
-  my $tree = PfamWeb::Model::GetSpeciesTree::getTree( $acc );
+
+  $c->forward( "getTree" );
 
   my $js;
-  $tree->convert_to_js( \$js );
+  $c->stash->{rawTree}->convert_to_js( \$js );
   $c->stash->{tree} = $js;
 
 }
 
 #-------------------------------------------------------------------------------
-# override the default end from Family, so that we hand off to a
-# template that doesn't need a wrapper
+# override the default end from Family, so that we can return the tree directly
 
 sub end : Private {
   my( $this, $c ) = @_;
 
-  return unless defined $c->stash->{pfam};
-
-  $c->stash->{template} = "components/blocks/treeContents.tt";
-
-  # forward to the class that's got the WRAPPER set to null
-  #$c->forward( "PfamWeb::View::TTBlock" );
-
   $c->response->body( $c->stash->{tree} );
+}
+
+#-------------------------------------------------------------------------------
+
+sub getTree : Private {
+  my( $this, $c ) = @_;
+
+  my @regions = $c->model("PfamDB::PfamA_reg_full")->search(
+				  { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
+					"in_full"         => 1 },
+				  { join              => [ qw/ pfamA pfamseq /] }
+				);
+	
+  my @treeData;
+  foreach my $region ( @regions ) {
+	push @treeData, $region->taxonomy;
+  }
+
+  my $tree = Bio::Pfam::Web::Tree->new();
+  $tree->grow_tree ( \@treeData, ';' );
+
+  $c->stash->{rawTree} = $tree->clear_root();
 
 }
+
+#-------------------------------------------------------------------------------
 
 1;
