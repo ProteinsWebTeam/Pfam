@@ -4,7 +4,7 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.2 2006-07-14 12:51:26 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.3 2006-08-14 10:59:40 jt6 Exp $
 %]
 
 [% start     = alignments.start ? alignments.start : 1  %]
@@ -64,28 +64,5 @@
 </form>
 
 <script type="text/javascript">
-  // scroll the alignment to the same point as the previously viewed alignment block
-  $("alignmentData").scrollLeft = $F("scrollValue");
-
-  // add links to the sequence IDs
-
-  // a regular expression to filter out the ID, start and end residues
-  var re = /^(.*?)\/(\d+)\-(\d+)$/;
-  $$("#alignmentKey span").each( function( item ) {
-	  var s  = item.firstChild.nodeValue;
-	  var ar = re.exec( s );
-
-      // build the link
-      var a = document.createElement( "a" );
-	  var t = document.createTextNode( ar[1] );
-      a.appendChild( t );
-	  a.setAttribute( "href", "[% c.uri_for( "/protein", entry="" ) %]" + ar[1] );
-
-      item.replaceChild( a, item.firstChild );
-
-      // tack on the residue range, as plain text for now at least
-	  var r = document.createTextNode( "/" + ar[2] + "-" + ar[3] );
-      item.appendChild( r );
-    }
-  );
+  formatAlignment( "[% c.uri_for( "/protein", entry="" ) %]" );
 </script>
