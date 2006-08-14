@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.1 2006-07-20 09:33:25 jt6 Exp $
+# $Id: index.tt,v 1.2 2006-08-14 11:10:42 jt6 Exp $
 %]
 
 <!-- start the index page -->
@@ -54,7 +54,8 @@
       <span class="title">Browse:</span>
       <span class="jump">
         <select name="browse" id="browsePages" onchange="$('browseJump').submit();">
-          <option value="numbers">Numbers</option>
+          <option>Choose</option>
+          <option value="Numbers">Numbers</option>
           <option value="a">A</option>
           <option value="b">B</option>
           <option value="c">C</option>
