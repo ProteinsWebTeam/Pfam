@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.3 2006-07-14 12:47:24 jt6 Exp $
+# $Id: phylo.tt,v 1.4 2006-08-14 11:01:35 jt6 Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -45,6 +45,13 @@
       </span>
       <input type="submit" name="submit" value="Change tree" />
     </form>
+
+	[% CALL c.log.debug( "phylo.tt: treeURLRoot: |${constants.treeURLRoot}|" ) %]
+
+    <p><strong>Note:</strong> You can also download the data files for the
+	  <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
+	  <a href="[% constants.treeURLRoot %]/full/[% pfam.pfamA_acc %].tree">full</a> 
+      trees.</p>
 
   </div>
 </div>
