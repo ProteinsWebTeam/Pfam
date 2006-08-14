@@ -3,12 +3,17 @@
 # jt6 20060503 WTSI
 #
 # contents of the protein graphics block. Called using an ajax request
-# via ProteinGraphics.pm and stuffed into a div in the existing page
+# via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.7 2006-07-14 12:43:14 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.8 2006-08-14 11:05:43 jt6 Exp $
 %]
 
 <!-- start of features map -->
+
+<div id="track1" style="display:none;width:200px;background-color:#aaa;height:5px;margin:20px;position:relative">
+  <div id="handle1" style="display:none;width:5px;height:10px;background-color:#f00;cursor:move;left:100px"> </div>
+</div>
+<div id="debug1" style="padding-top: 5px;margin:20px">change: ?</div></p>
 
 <div id="featuresMap">
 
@@ -34,6 +39,56 @@
   <div class="cleaner">&nbsp;</div>
 
 </div>
+
+<script type="text/javascript">
+
+	Event.observe( $("featuresImage0"), "load", setWidths, false );
+
+	function setWidths() {
+
+	  // get the width of the first image
+	  naturalWidth = $("featuresImage0").width;
+	  naturalHeight = $("featuresImage0").height;
+
+	  max = naturalWidth * 1.5;
+      min = naturalWidth / 2;
+	  start = $("featuresMap").offsetWidth;
+	  console.log( "min: " + min );
+	  console.log( "max: " + max );
+	  console.log( "start: " + start );
+
+	  $("handle1").style.left="100px";
+
+	  if( $("featuresImage0").width > start ) {
+	    console.log( "scaling" );
+	    $("featuresImage0").width = start;
+	    $("handle1").style.display = "block";
+	    $("track1").style.display = "block";
+	  } else {
+	    console.log( "NOT scaling" );
+	  }
+
+    new Control.Slider(
+	  'handle1',
+      'track1',
+      {
+        onSlide:function( v ) {
+			$('debug1').innerHTML='slide: '+v;
+		},
+        onChange:function( v ) {
+
+			var w = v * ( max - min ) + min;
+			$$("img.featuresImage").each( function( img ) {
+	          img.width=w;
+	          //img.height=naturalHeight;
+            } );
+			$('debug1').innerHTML='change: '+w;
+        }
+      }
+	);
+	}
+
+</script>
 
 <div id="status">&nbsp;</div>
 
