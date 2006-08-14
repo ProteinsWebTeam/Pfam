@@ -1,12 +1,13 @@
-
 [%#
 # interactions.tt
 # jt6 20060719 WTSI
 # 
 # block for the interactions data for the sequence section
 #
-# $Id: interactions.tt,v 1.1 2006-07-20 09:31:44 jt6 Exp $
+# $Id: interactions.tt,v 1.2 2006-08-14 11:05:23 jt6 Exp $
 -%]
+
+[%- RETURN UNLESS summaryData.numInt -%]
 
 <!-- start interactions block -->
 
