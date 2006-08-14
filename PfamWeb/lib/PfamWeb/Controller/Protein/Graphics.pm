@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.9 2006-07-25 12:24:17 rdf Exp $
+# $Id: Graphics.pm,v 1.10 2006-08-14 10:44:47 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -37,62 +37,92 @@ sub updateSources : Path( "/updatesources" ) {
   # get a sequence first...
   my @dsnList = ( "http://das.sanger.ac.uk/das/pfam" );
 
-  my $dl = PfamWeb::Model::Das_sources->getDasLite;
+  # retrieve the DasLite client from the base model class and hand it
+  # the list of DSNs
+  my $dl = $c->model("PfamDB")->getDasLite;
   $dl->dsn( \@dsnList );
-  my $sequence = $dl->sequence( $seqAcc );
 
   # if we don't get a sequence from the Pfam source, all hope is lost...
+  my $sequence = $dl->sequence( $seqAcc );
   return unless $sequence;
 
-  my @seqs;
-  my $seqStorable = $c->stash->{pfamseq}->annseq;
-  #$c->log->debug("raw storable = $seqStorable");
-  #my $seqThaw = thaw($seqStorable->annseq_storable);
-  #$c->log->debug("Storable|".Dumper($seqThaw)."|");
-  push(@seqs, thaw($seqStorable->annseq_storable) );
-  my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layoutPfam->scale_x(1);
-  my %regionsAndFeatures = ( "PfamA"      => 1,
-			     "PfamB"      => 1,
-                             "noFeatures" => 0 );
-  $layoutPfam->layout_sequences_with_regions_and_features(\@seqs, \%regionsAndFeatures);
-
-  my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $pfamImageset->create_images($layoutPfam->layout_to_XMLDOM);
+  # retrieve the image map for the Pfam graphic from the stash and add
+  # it to the array of images that we're going to generate here.
   my( %maps, $handle, $server, $serverName, @pfam );
-  foreach my $image ( $pfamImageset->each_image ) {
-      $image->print_image;
-      push(@pfam, { image => $image->file_location,
-		    map   => $image->image_map,
-		    server=> "Pfam",
-		    info  => $image->image_info }); 
+  foreach my $image ( $c->stash->{pfamImageset}->each_image ) {
+	$image->image_name( $image->image_name . "0" );
+	$image->print_image;
+	push(@pfam, { image => $image->file_location,
+				  map   => $image->image_map,
+				  server=> "Pfam",
+				  info  => $image->image_info });
   }
 
   # if we do get a sequence, we can now add the user-specified sources
   # and call those registries to get features.
 
-  # first, reset the sources list
+  # we'll reuse the array for the list of servers...
   @dsnList = ();
 
-  # get the default servers from the database table
-  unless( $c->req->param( "reload" ) ) {
-	my @defaultServers = PfamWeb::Model::Das_sources->search( default_server => 1 );
-	$c->log->debug( "found " . scalar @defaultServers . " default servers" );
+  # get the server list
+
+  # keep track of server IDs, so that we can store them in the session
+  # later
+  my %servers;
+
+  # first, see if there's a list in the request parameters
+  if( $c->req->param( "reload" ) ) {
+
+	$c->log->debug( "getting DAS server IDs from the request" );
+	foreach ( sort keys %{$c->req->parameters} ) {
+
+	  # we want only the server IDs
+	  next unless /^(DS_\d+)$/ and $c->req->param( $_ ) eq "on";
+
+	  my $ds = $c->model("PfamDB::Das_sources")->find( { server_id => $1 } );
+
+	  if( defined $ds ) {
+		push @dsnList, $ds->url;
+		$servers{$1} = 1;
+		$c->log->debug( "  added $1 to session" );
+	  }
+	}
+
+  # next, see if there's a list of servers set in the session
+  } elsif( $c->session->{selectedDASServers} ) {
+
+	$c->log->debug( "getting DAS server IDs from the session" );
+	
+	foreach ( keys %{$c->session->{selectedDASServers}} ) {
+	  my $ds = $c->model("PfamDB::Das_sources")->find( { server_id => $_ } );
+	  $c->log->debug( "  extracted $_ from session" );
+	  push @dsnList, $ds->url if defined $ds;
+	}
+
+  } else {
+
+	# finally, if we don't have a list of servers from either the
+	# session or the request, get the default list from the DB
+
+	$c->log->debug( "getting DAS server IDs from the database" );
+	my @defaultServers = $c->model("PfamDB::Das_sources")->search( { default_server => 1 } );
+
 	foreach ( @defaultServers ) {
 	  push @dsnList, $_->url;
+	  $servers{$_->server_id} = 1;
+	  $c->log->debug( "  added " . $_->server_id . " to session" );
 	}
+
   }
 
-  # get the user-specified sources from the parameter list
-  foreach ( sort keys %{$c->req->parameters} ) {
-
-	# we want only the server IDs
-	next unless /^DS_\d+$/ and $c->req->param( $_ ) eq "on";
-	$c->log->debug( "Protein::Graphics::updateSources: param: |$_|"
-					. $c->req->param($_) . "|" );
-	my $ds = PfamWeb::Model::Das_sources->find( server_id => $_ );
-	push @dsnList, $ds->url if defined $ds;
+  # store the list of selected servers in the session
+  $c->log->debug( "selected servers: " );
+  foreach my $id ( keys %servers ) {
+	$c->log->debug( "server id: |$id|" );
   }
+
+  $c->session->{selectedDASServers} = \%servers
+	if scalar keys %servers;
 
   # give the DasLite object our list of servers and retrieve the
   # features for them
@@ -106,18 +136,18 @@ sub updateSources : Path( "/updatesources" ) {
   if($success){
     my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
     $imageset->create_images( $layout->layout_to_XMLDOM );
-    
+
     # process the generated images and convert the URL that comes back
     # from the layout manager into a simple label, via our database
     # table of server information
-    my $i = 0;
-    
+    my $i = 1; # start at 1 because the Pfam graphic is 0
+
     my ($pfamRef);
     foreach my $image ( $imageset->each_image ) {
-      
+
       ( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
-      $server = PfamWeb::Model::Das_sources->find( url => $handle );
-      
+      $server = $c->model("PfamDB::Das_sources")->find( { url => $handle } );
+
       # append an image number to the image name, to avoid name clashes
       # for multiple images generated in the same run
       $image->image_name( $image->image_name . $i++ );
@@ -130,6 +160,7 @@ sub updateSources : Path( "/updatesources" ) {
 				      info  => $image->image_info };
     }
   }
+
   # sort the maps according to server name
   my @maps;
   foreach ( sort keys %maps ) {
