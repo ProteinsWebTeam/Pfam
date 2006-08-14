@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Simap.pm,v 1.2 2006-07-21 15:52:19 jt6 Exp $
+# $Id: Simap.pm,v 1.3 2006-08-14 10:44:47 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Simap;
 
@@ -38,12 +38,15 @@ sub getSimapData : Path('/getsimapdata') {
   my @seqs;
   push(@seqs, thaw($seqStorable->annseq_storable));
   my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layoutPfam->scale_x(1);
+
   my %regionsAndFeatures = ( "PfamA"      => 1,
                              "PfamB"      => 1,
                              "noFeatures" => 1 );
   $layoutPfam->layout_sequences_with_regions_and_features(\@seqs, \%regionsAndFeatures);
   my $drawingXML = $layoutPfam->layout_to_XMLDOM;
+
+  $c->log->debug( "proxy is set to: |".$this->{simapProxy}."|" )
+	if defined $this->{simapProxy};
 
   my $simap = Bio::Pfam::WebServices::Client::Simap->new(
                              '-proxy'      => $this->{simapProxy},
@@ -59,9 +62,9 @@ sub getSimapData : Path('/getsimapdata') {
 
   my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $pfamImageset->create_images($drawingXML);
-  $c->stash->{'imageset'} = $pfamImageset;
+  $c->stash->{imageset} = $pfamImageset;
   $c->log->debug( "|" . $seqAcc ."|" );
-  
+
 }
 
 
