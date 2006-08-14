@@ -37,6 +37,8 @@ use warnings;
 use SOAP::Lite (outputxml => 1); # We need to return XML in the response as SOAP::SOM screws the response!
 use SOAP::Data::Builder;
 use XML::LibXML;
+use IPC::Open2;
+
 use Bio::Pfam::Root;
 
 @ISA = qw(Bio::Pfam::Root);
@@ -68,7 +70,7 @@ sub new {
   };
 
   # set a default proxy, if it's not specified
-  $self->{proxy} ||= "http://wwwcache.sanger.ac.uk:3128/";
+  $self->{simapProxy} ||= "http://wwwcache.sanger.ac.uk:3128/";
 
   return $self;
 }
@@ -304,6 +306,38 @@ sub processResponse4Website {
     }
   }
 }
+
+
+sub hits2Ali {
+  my  $self = shift;
+  my($out, $in);
+  my $pid = open2($out, $in, "muscle -stable -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf");
+  my $aliString;
+  foreach my $hitNode ($self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit")){
+    
+    #get the evalue
+    my $evalue        = $hitNode->findvalue("alignments/alignment/expectation");
+    my $identity      = $hitNode->findvalue("alignments/alignment/identity");
+    my $querySeqStart = $hitNode->findvalue("alignments/alignment/querySeq/\@start");
+    my $querySeqEnd   = $hitNode->findvalue("alignments/alignment/querySeq/\@end");
+    my $matchSeqStart = $hitNode->findvalue("alignments/alignment/matchSeq/\@start");
+    my $matchSeqEnd   = $hitNode->findvalue("alignments/alignment/matchSeq/\@end");
+    my $sequence      = $hitNode->findvalue("matchSequence/sequence/sequence");
+    
+    my $aliSeq        = substr($sequence, $matchSeqStart - 1, $matchSeqEnd - $matchSeqStart +1);
+    foreach my $proteinNode ($hitNode->findnodes("matchSequence/protein")){
+      my $protein       = $proteinNode->find("\@name");
+      my $species       = $proteinNode->find("taxonomyNode/\@name");
+      $aliString .= ">$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq\n";
+    }
+  }
+  print $in $aliString;
+  close($in);
+  #system("muscle -stable -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -in /home/rob/Work//PfamWeb/root/fa -out /home/rob/Work//PfamWeb/root/fa.ali; sreformat stockholm /home/rob/Work//PfamWeb/root/fa.ali > /home/rob/Work//PfamWeb/root/fa.sto");  
+  return($out);
+}
+
+
 
 
 1;
