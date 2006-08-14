@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.4 2006-07-06 11:46:16 jt6 Exp $
+# $Id: align.tt,v 1.5 2006-08-14 10:59:07 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -22,12 +22,19 @@
       </p>
     </div>
 
+	<p>You can also view the 
+      <a href="[% constants.alignURLRoot %]/seed/[% pfam.pfamA_acc %].shtml.gz"
+         target="_blank">seed</a> and
+      <a href="[% constants.alignURLRoot %]/full/[% pfam.pfamA_acc %].shtml.gz"
+         target="_blank">full</a> alignments in separate windows. 
+    </p>
+
   </div> [%# end of blockcontent %]
 
 </div>
 
 <script type="text/javascript">
-  loadOptions.ca.uri    = "[% c.uri_for( "/alignmentgenerator" ) %]";
+  loadOptions.ca.uri    = "[% c.uri_for( "/family/alignmentgenerator" ) %]";
   loadOptions.ca.params = "acc=[% pfam.pfamA_acc %]";
 </script>
 

@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.4 2006-07-14 12:48:50 jt6 Exp $
+# $Id: domains.tt,v 1.5 2006-08-14 11:00:42 jt6 Exp $
 %]
 
 <!-- start domain architectures block -->
@@ -24,7 +24,7 @@
 </div>
 
 <script type="text/javascript">
-  loadOptions.dg.uri    = "[% c.uri_for( "/domaingraphics" ) %]";
+  loadOptions.dg.uri    = "[% c.uri_for( "/family/domaingraphics" ) %]";
   loadOptions.dg.params = "acc=[% pfam.pfamA_acc %]";
 </script>
 
