@@ -4,13 +4,14 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.13 2006-07-21 15:10:35 rdf Exp $
+// $Id: pfFunctions.js,v 1.14 2006-08-14 10:54:25 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
 
 var loadOptions = {};
 loadOptions.dg = {}; // domain graphics
+loadOptions.si = {}; // structure image
 loadOptions.st = {}; // species tree
 loadOptions.at = {}; // alignment tree
 loadOptions.pg = {}; // protein graphics
@@ -48,6 +49,12 @@ highlight.mouseoverHandler = function( e ) {
   } else if( e.target ) {
 	// and for the rest of the world...
 	startingRow = e.target.parentNode;
+  }
+
+  // if the mouseover event originates at a link node within a table
+  // cell, we need to get the parent of the parent of the link node
+  if( "td" == startingRow.nodeName || "TD" == startingRow.nodeName ) {
+	startingRow = startingRow.parentNode;
   }
 
   // these are the cells that we'll need to colour
@@ -151,16 +158,36 @@ highlight.mouseoutHandler = function( e ) {
 
 // show the selected tab
 function chooseTab() {
-  
+
   // see if the showTab variable points to tab that actually exists in
   // the page
   if( $(showTab) ) {
+	//console.debug( "chooseTab: using param setting: " + showTab );
+
 	// yes; show that tab
 	show( showTab );
+
   } else {
-	// no; get the first block in the page and show that instead
-	var id = document.getElementsByClassName( "block" )[0].id;
-	show( document.getElementsByClassName( "block" )[0].id );
+	//console.debug( "chooseTab: no param setting; checking cookie" );
+	
+	// no; see if there's a cookie to tell us the last tab
+	var cookieTab = readCookie( "lastTab" );
+	//console.debug( "cookieTab: |" + cookieTab + "|" );
+
+	if( cookieTab && $(cookieTab) ) {
+	  //console.debug( "chooseTab: found a cookie; switching to |" + cookieTab + "|"  );
+	  
+	  // yes; show that tab
+	  show( cookieTab );
+	} else {
+	  //console.debug( "chooseTab: no cookie switching to default"  );
+
+	  // no; get the first block in the page and show that instead
+	  var block = document.getElementsByClassName( "block" )[0];
+	  if( block && block.id ) {
+		show( block.id );
+	  }
+	}
   }
 }
 
@@ -187,36 +214,9 @@ function show( id ) {
 							  Element.removeClassName( item, "selected" );
 							}
 						  } );
-}
 
-//------------------------------------------------------------
-// calculate the position of the supplied object.
-// these two functions from http://www.quirksmode.org/
-
-function findPosX(obj) {
-  var curleft = 0;
-  if (obj.offsetParent) {
-	while (obj.offsetParent) {
-	  curleft += obj.offsetLeft
-		obj = obj.offsetParent;
-	}
-  } else if (obj.x) {
-	curleft += obj.x;
-  }
-  return curleft;
-}
-
-function findPosY(obj) {
-  var curtop = 0;
-  if (obj.offsetParent) {
-	while (obj.offsetParent) {
-	  curtop += obj.offsetTop
-		obj = obj.offsetParent;
-	}
-  } else if (obj.y) {
-	curtop += obj.y;
-  }
-  return curtop;
+  // set a cookie to show the preference
+  createCookie( "lastTab", id, "1d", section );
 }
 
 //------------------------------------------------------------
@@ -245,10 +245,6 @@ function highlightFeature( e ) {
   // console.debug( "number: |" + results[1] + "|" );
   var image = $("featuresImage" + results[1]);
   // console.debug( "image: |" + image.id + "|" );
-
-  // show the tooltip
-  //domTT_activate( target, e, "predefined", target.id + "Tip" );
-  //domTT_activate( $("highlight"), e, "predefined", target.id + "Tip" );
 
   // place the highlight
   var coords = target.coords.split(",");
@@ -283,7 +279,6 @@ function highlightFeature( e ) {
 
 // and hide the div on mouseout
 function unhighlight( e ) {
-  domTT_mouseout( $("highlight"), e );
   $("highlight").style.display = "none";
 }
 
@@ -319,6 +314,144 @@ function moveCursor( e ) {
   $("status").innerHTML = "Residue number: " + r;
 
   cObj.style.display = "block";
+}
+
+//------------------------------------------------------------
+//- external functions ---------------------------------------
+//------------------------------------------------------------
+// these functions are taken from http://www.quirksmode.org/
+
+// calculate the position of the supplied object.
+
+function findPosX(obj) {
+  var curleft = 0;
+  if (obj.offsetParent) {
+	while (obj.offsetParent) {
+	  curleft += obj.offsetLeft
+		obj = obj.offsetParent;
+	}
+  } else if (obj.x) {
+	curleft += obj.x;
+  }
+  return curleft;
+}
+
+//----------------------------------------
+
+function findPosY(obj) {
+  var curtop = 0;
+  if (obj.offsetParent) {
+	while (obj.offsetParent) {
+	  curtop += obj.offsetTop
+		obj = obj.offsetParent;
+	}
+  } else if (obj.y) {
+	curtop += obj.y;
+  }
+  return curtop;
+}
+
+//------------------------------------------------------------
+// generate a pop-up window. Based on a function from  
+// http://www.accessify.com/features/tutorials/the-perfect-popup/
+
+function popUp( strURL, strType, strHeight, strWidth, strName ) {
+  if( strName == "" ) {
+	strName = "newWin";
+  }
+  var strOptions="";
+  if( strType == "console" ) {
+	strOptions = "resizable,height="+strHeight+",width="+strWidth;
+  }
+  if( strType == "fixed" ) {
+	strOptions = "status,height="+strHeight+",width="+strWidth;
+  }
+  if( strType == "elastic") {
+	strOptions = "toolbar,menubar,scrollbars,resizable,location,height="+strHeight+",width="+strWidth;
+  }
+  window.open( strURL, strName, strOptions );
+}
+
+//------------------------------------------------------------
+// cookie handling functions
+
+// this is a modified version of the "createCookies" method from
+// quirksmode. Added the ability to specify the timeout value as
+// days, hours or minutes, e.g. "10m". If the interval isn't
+// specified, it defaults to minutes, so "10" is equivalent to "10m"
+
+function createCookie( name, value, time, path ) {
+  var expires = "";
+
+  // was there a time specified ?
+  if( time ) {
+
+	try {
+	  var interval = time.charAt( time.length - 1 );
+
+	  // if the interval isn't specified, we default to "minutes" and
+	  // treat the whole of the period string as the period value
+	  var period;
+	  if( interval != "d" && interval != "h" && interval != "m" ) {
+		period = time.substring( 0, time.length );
+	  } else {
+		period = time.substring( 0, time.length - 1 );
+	  }
+
+	  // choose the multiplier - defaults to "minutes"
+	  var multiplier;
+	  switch( interval ) {
+	    case 'd': multiplier = period * 1000 * 60 * 60 * 24; break
+	    case 'h': multiplier = period * 1000 * 60 * 60;      break
+	    case 'm': multiplier = period * 1000 * 60;           break
+	    default:  multiplier = period * 1000 * 60;           break
+   	  }
+
+	  // set the expiry date
+	  var date = new Date();
+	  date.setTime( date.getTime() + multiplier );
+	  var dateString = date.toUTCString();
+	  
+	  // make sure it's valid, just in case
+	  if( dateString != "Invalid Date" ) {
+		expires = "; expires=" + dateString;
+	  }
+
+	} catch( e ) {
+	  // default to a session cookie if something went wrong
+	  expires = "";
+	}
+  }
+
+  // was there a path specified ?
+  path = (path) ? "/" + path : "/";
+
+  // add the cookie
+  document.cookie = name + "=" + value + expires + "; path=" + path;
+}
+
+//----------------------------------------
+
+function readCookie( name ) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split( ';' );
+  for( var i=0; i < ca.length; i++ ) {
+	var c = ca[i];
+	while( c.charAt( 0 ) == ' ' ) {
+	  c = c.substring( 1, c.length );
+	}
+	if( c.indexOf( nameEQ ) == 0 ) {
+	  return c.substring( nameEQ.length, c.length );
+	}
+  }
+  return null;
+}
+
+//----------------------------------------
+// this is UNTESTED !
+
+function eraseCookie( name ) {
+  createCookie( name, "", -1 );
 }
 
 //------------------------------------------------------------
