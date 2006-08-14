@@ -1,8 +1,13 @@
-[%-
-IF NOT summaryData.numIpfam;
-  RETURN;
-END;
+[%#
+# interactions.tt
+# jt6 20060719 WTSI
+# 
+# block for the interactions data for the family section
+#
+# $Id: interactions.tt,v 1.3 2006-08-14 11:00:52 jt6 Exp $
 -%]
+
+[%- RETURN UNLESS summaryData.numInt -%]
 
 <!-- start interactions block -->
 
@@ -12,7 +17,7 @@ END;
   </div>
   <div class="blockContent">
 
-    <p>There are [% summaryData.numIpfam %] <a href="[% c.uri_for( "/int", acc=pfam.pfamA_acc ) %]">interactions</a> for this family.</p>
+    <p>There are [% summaryData.numInt %] <a href="[% c.uri_for( "/int", acc=pfam.pfamA_acc ) %]">interactions</a> for this family.</p>
 
   </div>
 
