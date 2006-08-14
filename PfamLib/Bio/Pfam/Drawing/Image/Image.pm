@@ -1328,7 +1328,7 @@ sub _new_image {
   my $self =  shift;
 
   
-  my $im = new GD::Image($self->length, $self->height);
+  my $im = new GD::Image($self->length + 2, $self->height);
   
 
   #Add the GD image object to this object
@@ -1367,12 +1367,14 @@ sub print_image {
 
   my $root;
   if( $ENV{DOCUMENT_ROOT} ) {
-	$root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
-	($root)  = $root =~ m|([a-z0-9_\./]+)|i;
-  } else {
-	$root = "/home/rob/Work/PfamWeb/root";
+    $root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
+    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
+  } elsif($ENV{PFAM_DOMAIN_IMAGES}) {
+    $root = "$ENV{'PFAM_DOMAIN_IMAGES'}";
+    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
+  }else{
+    die "Do not know where to print images to: Please set the environment variable PFAM_DOMAIN_IMAGES\n"; 
   }
-
   my $file_location = "domain_gfx/$dirName";
   if(!-d "$root/$file_location"){
       mkdir("$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
@@ -1975,10 +1977,15 @@ sub curved {
 }
 
 
-sub graph {
-  
+sub addOffSet{
+  my ($self,$offSet) = @_;
+  my $imageOri = $self->image;
+  my $lengthOri = $self->length;
+  $self->length($self->length + $offSet);
+  $self->_new_image;
+  $self->image->copy($imageOri, $offSet, 0, 0, 0, $lengthOri+1, $self->height);
 
-
+  #Need to alter image map!.
 }
 
 
