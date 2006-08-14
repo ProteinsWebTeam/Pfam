@@ -4,11 +4,17 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.1 2006-07-21 14:48:40 jt6 Exp $
+// $Id: family.js,v 1.2 2006-08-14 10:53:09 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
 function familyPostLoad() {
+  new Ajax.Request( loadOptions.si.uri,
+					{ method:     "get", 
+ 					  parameters: loadOptions.si.params,
+ 					  onComplete: siSuccess
+					  // not even bothering with a failure callback...
+ 					} );
   new Ajax.Request( loadOptions.dg.uri,
 					{ method:     "get", 
  					  parameters: loadOptions.dg.params,
@@ -36,6 +42,13 @@ function familyPostLoad() {
 }
 
 //------------------------------------------------------------
+// callback for the structure image call
+
+function siSuccess( oResponse ) {
+  Element.update( $("siph"), oResponse.responseText );
+}
+
+//------------------------------------------------------------
 // callbacks for the domain graphics generation call
 
 function dgSuccess( oResponse ) {
@@ -48,8 +61,9 @@ function dgFailure() {
 //------------------------------------------------------------
 // callbacks for the species tree generation call
 
+var tree;
 function stSuccess( oResponse ) {
-  var tree = new YAHOO.widget.TreeView("treeDiv");
+  tree = new YAHOO.widget.TreeView("treeDiv");
   var root = tree.getRoot();
   eval( oResponse.responseText );
   tree.draw();
@@ -87,7 +101,7 @@ function caSuccess( oResponse ) {
 }
 
 function caFailure() {
-  Element.update( $("caph"), "Alignment loading failed." );
+  Element.update( $("caph"), "Coloured alignment loading failed." );
 }
 
 //------------------------------------------------------------
@@ -122,3 +136,38 @@ function generateAlignment( type, start, end ) {
   return false;
 }
 
+//------------------------------------------------------------
+// tweak the alignment to scroll it horizontally to a saved point and
+// to add links to the sequence IDs
+
+function formatAlignment( urlBase) {
+  // scroll the alignment to the same point as the previously viewed
+  // alignment block
+  $("alignmentData").scrollLeft = $F("scrollValue");
+
+  // add links to the sequence IDs
+
+  // pre-compile a regular expression to filter out the ID, start and
+  // end residues
+  var re = /^(.*?)\/(\d+)\-(\d+)$/;
+
+  // get all of the spans and walk the list to add tags to each
+  var spans = $("alignmentKey").getElementsByTagName( "span" );
+  $A( spans ).each( function( item ) {
+	  var s  = item.firstChild.nodeValue;
+	  var ar = re.exec( s );
+
+      // build the link
+      var a = document.createElement( "a" );
+	  var t = document.createTextNode( ar[1] );
+      a.appendChild( t );
+	  a.setAttribute( "href", urlBase + ar[1] );
+
+      item.replaceChild( a, item.firstChild );
+
+      // tack on the residue range, as plain text for now at least
+	  var r = document.createTextNode( "/" + ar[2] + "-" + ar[3] );
+      item.appendChild( r );
+    }
+  );
+}
