@@ -5,7 +5,7 @@
 # 
 # block for the SIMAP data
 #
-# $Id: simap.tt,v 1.2 2006-07-21 15:11:41 rdf Exp $
+# $Id: simap.tt,v 1.3 2006-08-14 11:05:59 jt6 Exp $
 -%]
 
 <!-- start SIMAP block -->
@@ -16,7 +16,6 @@
   </div>
   <div class="blockContent">
 
-    <h3>SIMAP data</h3>
 	<!-- start of SIMAP graphics div -->
     <div id="simapGraphicsHolder">
 	  <p id="simapph">
