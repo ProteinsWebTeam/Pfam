@@ -6,7 +6,7 @@
 # application. Configuration is all done through the pfamweb.yml
 # config file and there's (currently) not much else in here.
 #
-# $Id: PfamWeb.pm,v 1.10 2006-07-21 14:46:24 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.11 2006-08-14 10:23:50 jt6 Exp $
 
 package PfamWeb;
 
@@ -23,6 +23,9 @@ use warnings;
 use Catalyst qw/ -Debug
                  ConfigLoader
                  Prototype
+                 Session
+                 Session::Store::FastMmap
+                 Session::State::Cookie
                  Cache::FastMmap
 				 Static::Simple /;
 
@@ -38,8 +41,9 @@ our $VERSION = '0.01';
 # configure the application
 __PACKAGE__->setup;
 
+
 sub auto : Private {
-  my ( $self, $c ) = @_;
+  my( $self, $c ) = @_;
 
   my $tab;
   ( $tab ) = $c->req->param( "tab" ) =~ /^(\w+)$/
@@ -54,7 +58,7 @@ sub auto : Private {
 # catch-all method that displays the main site index page
 
 sub default : Private {
-  my ( $self, $c ) = @_;
+  my( $self, $c ) = @_;
 
   # Hello World
   #$c->response->body( $c->welcome_message );
@@ -68,5 +72,7 @@ sub default : Private {
 	$c->forward( "PfamWeb::View::TT" );
   }
 }
+
+
 
 1;
