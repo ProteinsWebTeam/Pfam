@@ -1,0 +1,11 @@
+
+[%-#
+# search.tt
+# jt6 20060807 WTSI
+# 
+# search results page
+#
+# $Id: search.tt,v 1.1 2006-08-14 11:11:04 jt6 Exp $
+-%]
+
+<h1>Search results</h1>
