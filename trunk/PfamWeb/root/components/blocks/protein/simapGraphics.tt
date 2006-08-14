@@ -5,17 +5,29 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::graphics and stuffed into a div in the existing page
 #
-# $Id: simapGraphics.tt,v 1.2 2006-08-14 11:06:12 jt6 Exp $
+# $Id: simapGraphics.tt,v 1.3 2006-08-14 15:33:34 rdf Exp $
 %]
 
 <!-- start of features map -->
 
 <div id="simap">
 
-[% FOREACH image IN imageset.each_image %]
+[% imageArray = imageset.each_image.list %]
+[% firstImage = imageArray.shift %]
+[% CALL firstImage.print_image %]
+<img class="domainImage" src="[% constants.tmp %]/[% firstImage.file_location %]" alt=""/><br/>
+[% FOREACH image IN imageset.each_graph %]
+  [% CALL image.print_image %]	
+  <img class="domainImage" src="[% constants.tmp %]/graph.png" alt=""/><br/>
+[% END %]
+
+
+
+[% FOREACH image IN imageArray %]
   [% CALL image.print_image %]
   <img class="domainImage" src="[% constants.tmp %]/[% image.file_location %]" alt=""/><br/>
 [% END %]
+
 
 </div>
 
