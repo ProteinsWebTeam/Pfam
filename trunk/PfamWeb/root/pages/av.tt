@@ -17,7 +17,7 @@
         height="500"
         name="av"
         code="MoleculeViewerApplet"
-        archive="/AstexViewer2.jar">
+        archive="/av/AstexViewer2.jar">
 <param name="script" value="
 background '0xE7E7E7';
 molecule load mol 'http://temple.dynamic.sanger.ac.uk:3000/structure/getpdbfile/[% pdbId %].pdb';
