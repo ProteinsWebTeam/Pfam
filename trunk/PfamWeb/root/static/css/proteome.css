@@ -1,0 +1,92 @@
+!
+/* interactions.css
+   jt6 20060421 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the iPfam pages.
+
+   $Id: proteome.css,v 1.1 2006-08-21 15:20:09 jt6 Exp $
+*/   
+
+/*
+background: #fff1d0
+border:     #6b5c3b
+highlight:  #d78f00
+*/
+
+/* ======================================== */
+/* page layout items */
+
+/* styles for the markup that forms the page tab */
+#tabTitle {
+	color: #6b5c3b;
+}
+
+#pageType {
+    border-color: #6b5c3b;
+}
+
+#pageType h2 {
+  color: #6f63a2;
+/*    background: #6b5c3b; */
+}
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+#content {
+  border-top-color: #6f63a2;
+}
+
+#contentContainer {
+  background-color: #fff1d0;
+  background-image: url(/images/purple_page_border.gif);
+}
+
+#wrap {
+  position: relative; /* needed to fix the IE peekaboo bug... */
+  background: url(/images/purple_bg.gif) repeat-y 15% 0;
+}
+
+/* the left column navigation bar */
+
+#sidebar {
+    border-bottom-color: #6f63a2;
+}
+
+#sidebar li a {
+  color: #6b5c3b;
+}
+
+#sidebar li.selected a {
+  border-color: #6f63a2;
+  background-image: url(/images/purple_selected_bg.gif);
+}
+
+#sidebar li span.inactive {
+  color: #a499d5;
+}
+
+#footer {
+  border-top-color: #6f63a2;
+}
+
+/* ======================================== */
+/* general styles for "blocks" */
+
+div.handle {
+  background-color: #6b5c3b;
+}
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.pdbImageFragment {
+	background: #e7edf3;
+    border-color: #6f63a2;
+}
+
+h4.pdbTitle  {
+	color: #6b5c3b;
+}
+
