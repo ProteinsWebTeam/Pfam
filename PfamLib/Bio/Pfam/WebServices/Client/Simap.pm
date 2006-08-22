@@ -7,8 +7,7 @@ Bio::Pfam::::WebServices::Client::Simap
 
     use Bio::Pfam::Webservices::Client::Simap;
 
-    $simap = new Bio::Pfam::Webservices:Client::Simap( 
-                                           '-' => $annotationRef);
+    $simap = new Bio::Pfam::Webservices:Client::Simap;
 
 
 =head1 DESCRIPTION
@@ -268,6 +267,7 @@ sub processResponse4Website {
       $seqElement->setAttribute( "hidden", 1);
       my $region = $drawingXML->createElement("region");
       $region->setAttribute( "label" , "$protein/$matchSeqStart-$matchSeqEnd : $querySeqStart-$querySeqEnd ($identity%)" );
+      $region->setAttribute( "link_URL", "/protein?acc=$protein");
       $region->setAttribute( "start" ,$querySeqStart  );
       $region->setAttribute( "end", $querySeqEnd );
       $region->setAttribute( "solid", 1);
@@ -310,8 +310,7 @@ sub processResponse4Website {
 
 sub hits2Ali {
   my  $self = shift;
-  my($out, $in);
-  my $pid = open2($out, $in, "muscle -stable -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf");
+  
   my $aliString;
   foreach my $hitNode ($self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit")){
     
@@ -331,10 +330,16 @@ sub hits2Ali {
       $aliString .= ">$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq\n";
     }
   }
-  print $in $aliString;
-  close($in);
-  #system("muscle -stable -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -in /home/rob/Work//PfamWeb/root/fa -out /home/rob/Work//PfamWeb/root/fa.ali; sreformat stockholm /home/rob/Work//PfamWeb/root/fa.ali > /home/rob/Work//PfamWeb/root/fa.sto");  
-  return($out);
+
+  #print STDERR "$aliString\n";
+  #Align the sequences
+  open(MSF, "echo \"$aliString\" | muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf |") || die "Could not open tmp msf:[$!]\n";
+  
+  #Now Parse the alignment
+  my $pfamaln = new Bio::Pfam::AlignPfam->new;
+  $pfamaln->read_msf(\*MSF);
+  close(MSF);
+  return($pfamaln);
 }
 
 
