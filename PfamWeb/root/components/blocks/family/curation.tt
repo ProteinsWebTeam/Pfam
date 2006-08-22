@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.6 2006-08-14 10:59:58 jt6 Exp $
+# $Id: curation.tt,v 1.7 2006-08-22 15:18:31 jt6 Exp $
 %]
 
 <!-- start curation block -->
@@ -133,24 +133,24 @@
               <tbody>
                 <tr class="odd">
                   <td class="label">Gathering cut-off</td>
-                  <td>[% String.new( pfam.ls_sequence_GA ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.ls_domain_GA ).format( "%5.1f" )%]</td>
-                  <td>[% String.new( pfam.fs_sequence_GA ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.fs_domain_GA ).format( "%5.1f" ) %]</td>
+                  <td>[% pfam.ls_sequence_GA | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.ls_domain_GA   | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.fs_sequence_GA | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.fs_domain_GA   | format( "%5.1f" ) %]</td>
                 </tr>
                 <tr class="even">
                   <td class="label">Trusted cut-off</td>
-                  <td>[% String.new( pfam.ls_sequence_TC ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.ls_domain_TC ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.fs_sequence_TC ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.fs_domain_TC ).format( "%5.1f" ) %]</td>
+                  <td>[% pfam.ls_sequence_TC | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.ls_domain_TC   | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.fs_sequence_TC | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.fs_domain_TC   | format( "%5.1f" ) %]</td>
                 </tr>
                 <tr class="odd">
                   <td class="label">Noise cut-off</td>
-                  <td>[% String.new( pfam.ls_sequence_NC ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.ls_domain_NC ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.fs_sequence_NC ).format( "%5.1f" ) %]</td>
-                  <td>[% String.new( pfam.fs_domain_NC ).format( "%5.1f" ) %]</td>
+                  <td>[% pfam.ls_sequence_NC | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.ls_domain_NC   | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.fs_sequence_NC | format( "%5.1f" ) %]</td>
+                  <td>[% pfam.fs_domain_NC   | format( "%5.1f" ) %]</td>
                 </tr>
               </tbody>
             </table>
