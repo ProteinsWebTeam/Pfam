@@ -68,8 +68,6 @@ sub _setDrawingStyles{
 sub _setRegionColours{
     my($self, $feature, $colour1, $colour2) = @_;
 
-    print STDERR "********* colour1 = |$colour1|, colour2 = |$colour2| **********\n";
-
     if($colour1){
 	$feature->{'colour1'} = $colour1;
     }else{
