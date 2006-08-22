@@ -21,7 +21,7 @@ my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
 
 sub new {
   my $class = shift;
-  my %params = @_;
+  my $params = shift;
   my $self = bless {}, ref($class) || $class;
   $self->{'height'} = undef;
   $self->{'length'} = undef;
@@ -39,6 +39,9 @@ sub new {
   $self->{'allocated_colours'} = {};
   $self->{'axis_colour'} = "offblack1";
   $self->{'dataSeries'} = 1;
+
+  $self->{timeStamp} = $params->{timeStamp}
+    if defined $params->{timeStamp};
   return $self;
 }
 
@@ -131,10 +134,9 @@ sub create_graph{
   my ($self, $graphDom) = @_;
   my $xc = XML::LibXML::XPathContext->new( $graphDom );
   $xc->registerNs( "pf" => $ns );
-  print $graphDom->toString(1);
   #First get the graph type and get the corresponding GD::graph object
   $self->graphType($graphDom->getAttribute("graphType"));
-  $self->length($graphDom->getAttribute("length")+70);
+  $self->length($graphDom->getAttribute("length")+45);
   $self->height($graphDom->getAttribute("height"));
   $self->graphTitle($graphDom->getAttribute("title"));
   my $legend = $graphDom->getAttribute("showLegend");
@@ -215,18 +217,61 @@ sub create_graph{
 
 sub print_image{
   my $self = shift;
+  my $file = "simap.png";
+  
+  my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
+  my $root;
+  if( $ENV{DOCUMENT_ROOT} ) {
+    $root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
+    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
+  } elsif($ENV{PFAM_DOMAIN_IMAGES}) {
+    $root = "$ENV{'PFAM_DOMAIN_IMAGES'}";
+    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
+  }else{
+    die "Do not know where to print images to: Please set the environment variable PFAM_DOMAIN_IMAGES\n"; 
+  }
+  my $file_location = "domain_gfx/$dirName";
+  if(!-d "$root/$file_location"){
+      mkdir("$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
+  }
+  
+  $file_location .= "/graphs";
+  if(!-d "$root/$file_location" ){
+    mkdir( "$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
+  }
+  open(OUTFILE, ">$root/$file_location/$file") or warn "Cannot print $root/$file_location/$file:[$!]\n";
 
-  open(IMG, '>/home/rob/Work/PfamWeb/root/graph.png') or die $!;
-  binmode IMG;
-  print IMG $self->graphImage->png;
-  close IMG;
+  binmode OUTFILE;
+  # Convert the image to PNG and print it on standard output
+  print OUTFILE $self->graphImage->png;
+  close(OUTFILE) or warn "Cannot close $root/$file_location/$file :[$!]";
+  $self->file_location("$file_location/$file");
 }
+
+=head2 file_location
+
+   Title   :file_location
+   Usage   :$self->file_location("mypathtofile/image.format");
+   Function:Sets the location where the file is printed out.  
+           :This is set by the print file sub.
+   Args    :The file_location
+
+=cut
+
+sub file_location {
+  my ($self, $value) = @_;
+  if($value){
+      $self->{'file_location'} = $value;
+  }
+  return($self->{'file_location'});
+}
+
 
 sub workOutOffset {
   my $self = shift;
   my ($axisR,$axisG,$axisB) = GD::Graph::colour::_rgb($self->axisColour);
 
-  my $y = $self->height/2;
+  my $y = 30;
   my $x = 0;
   while($x < $self->length){
     my $index = $self->graphImage->getPixel($x,$y);
