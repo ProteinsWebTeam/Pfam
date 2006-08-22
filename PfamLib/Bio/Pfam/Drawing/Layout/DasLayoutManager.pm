@@ -135,7 +135,10 @@ sub resolveOverlaps{
 		if(($features->[$i]->{'start'} <= $feature->{'end'} &&  
 		    $features->[$i]->{'start'} >= $feature->{'start'}) 
 		   || ($features->[$i]->{'end'} <= $feature->{'end'} &&  
-		       $features->[$i]->{'end'} >= $feature->{'start'})){
+		       $features->[$i]->{'end'} >= $feature->{'start'})
+		   || ($features->[$i]->{'start'} <= $feature->{'start'} &&  
+		       $features->[$i]->{'end'} >= $feature->{'end'})
+		  ){
 		    $overlapWithSet = 1;
 		    
 		    last;
