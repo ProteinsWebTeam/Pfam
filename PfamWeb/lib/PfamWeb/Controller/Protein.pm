@@ -4,7 +4,7 @@
 #
 # Controller to build the main protein page.
 #
-# $Id: Protein.pm,v 1.6 2006-08-14 10:38:50 jt6 Exp $
+# $Id: Protein.pm,v 1.7 2006-08-22 13:35:25 rdf Exp $
 
 package PfamWeb::Controller::Protein;
 
@@ -135,13 +135,13 @@ sub begin : Private {
   my $autoPfamseq = $c->stash->{pfamseq}->auto_pfamseq;
 
   my @mapping = $c->model("PfamDB::PdbMap")->search(
-                  { "pfamseq.auto_pfamseq" => $autoPfamseq,
-					pfam_region            => 1 },
-				  {
-				    join     => [ qw/pfamA pfamseq pdb/ ],
-				    prefetch => [ qw/pfamA pfamseq pdb/ ]
-				  }
-			   );
+						    { "pfamseq.auto_pfamseq" => $autoPfamseq,
+						      pfam_region            => 1 },
+						    {
+						     join     => [ qw/pfamA pfamseq pdb/ ],
+						     prefetch => [ qw/pfamA pfamseq pdb/ ]
+						    }
+						   );
 
   $c->stash->{pfamMaps} = \@mapping;
 
@@ -180,7 +180,7 @@ sub begin : Private {
 		  { auto_pfamseq_A => $autoPfamseq },
 		  { select => [
 					   { count => [
-								   { distinct => [ "auto_pfamA_A && auto_pfamA_B" ] }
+								   { distinct => [ "auto_int_pfamAs" ] }
 								  ]
 					   }
 					  ],
