@@ -4,7 +4,7 @@
 #
 # Controller to build the tree view of the family
 #
-# $Id: Tree.pm,v 1.2 2006-08-14 10:43:45 jt6 Exp $
+# $Id: Tree.pm,v 1.3 2006-08-22 15:14:27 jt6 Exp $
 
 package PfamWeb::Controller::Family::Tree;
 
@@ -70,6 +70,7 @@ sub auto : Private {
 	$c->cache->set( "tree". $acc . $type, $tree ) if defined $tree;
   }
 
+  $c->stash->{type} = $type;
   $c->stash->{tree} = $tree;
 
 }
