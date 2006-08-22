@@ -5,10 +5,8 @@
 # 
 # build a "browse" page
 #
-# $Id: browseFamilies.tt,v 1.1 2006-07-20 09:33:37 jt6 Exp $
+# $Id: browseFamilies.tt,v 1.2 2006-08-22 15:28:42 jt6 Exp $
 %]
-
-[% oe = 0 %]
 
 [% pageList = BLOCK %]
 <div class="pageList">
@@ -16,7 +14,6 @@
              "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
 	         "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ] %]
 [% lcChar = char | lower %]
-[% CALL c.log.debug( "lcChar: $lcChar" ) %]
 
 [% FOREACH page IN pages %]
 [% CALL c.log.debug( "page: $page" ) %]
@@ -26,7 +23,7 @@
   </span>
   [% ELSE %]
   <span class="letter">
-    <a href="[% c.uri_for( "/browse", page ) %]">[% page | ucfirst %]</a>
+    <a href="[% c.uri_for( "/family/browse", browse=page ) %]">[% page | ucfirst %]</a>
   </span>
   [% END %]
 [% END %]
@@ -53,7 +50,7 @@
   </thead>
   <tbody>
   [% FOREACH pfam IN browse %]
-    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+    <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
       <td><a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">[% pfam.pfamA_id %]</a></td>
       <td>[% pfam.type %]</td>
       <td>[% pfam.num_seed %]</td>
