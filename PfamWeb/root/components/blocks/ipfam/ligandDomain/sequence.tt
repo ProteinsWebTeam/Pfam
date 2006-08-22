@@ -1,0 +1,25 @@
+
+[%#
+# sequence.tt
+# rdf 20060424 WTSI
+# 
+# Lists the domain:ligand interactions
+#
+# $Id: sequence.tt,v 1.1 2006-08-22 13:31:16 rdf Exp $
+%]
+
+<!-- start iLigandDomain Sequence block -->
+
+<div class="block" id="iLigandDomainSequenceBlock">
+  <div class="handle">
+    <h1>Seqeuences containing Domain Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>list of sequences:...</h3>
+
+  </div>
+
+</div>
+
+<!-- end iLigandDomain Sequence block -->

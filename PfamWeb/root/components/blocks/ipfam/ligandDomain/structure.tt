@@ -1,0 +1,25 @@
+
+[%#
+# structure.tt
+# rdf 20060424 WTSI
+# 
+# Lists the structures contains the ligand
+#
+# $Id: structure.tt,v 1.1 2006-08-22 13:31:16 rdf Exp $
+%]
+
+<!-- start iLigandDomain Structure block -->
+
+<div class="block" id="iLigandDomainStructureBlock">
+  <div class="handle">
+    <h1>Structures containing Domain Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>list the domains:...</h3>
+
+  </div>
+
+</div>
+
+<!-- end  iLigandDomain Structure block -->
