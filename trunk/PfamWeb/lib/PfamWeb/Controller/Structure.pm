@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.4 2006-08-22 13:33:39 rdf Exp $
+# $Id: Structure.pm,v 1.5 2006-08-22 15:12:28 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<full page>.
 
-$Id: Structure.pm,v 1.4 2006-08-22 13:33:39 rdf Exp $
+$Id: Structure.pm,v 1.5 2006-08-22 15:12:28 jt6 Exp $
 
 =cut
 
@@ -75,7 +75,6 @@ sub begin : Private {
 
 	$c->req->param("id") =~ m/^([0-9][A-Z0-9]{3})$/i;
 	if( defined $1 ) {
-	  #$pdb   = PfamWeb::Model::Pdb->find( { pdb_id => $1 } );
 	  $pdb   = $c->model("PfamDB::Pdb")->find( { pdb_id => $1 } );
 	  $pdbId = $1;
 	  $c->log->debug( "Structure::begin: found ID |$pdbId|" );
@@ -93,7 +92,6 @@ sub begin : Private {
 
 	$c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." );
 	( $pdbId ) = $pdbIdArg =~ /^(\d\w{3})/;
-	#$pdb   = PfamWeb::Model::Pdb->find( { pdb_id => $pdbId } )
 	$pdb   = $c->model("PfamDB::Pdb")->find( { pdb_id => $pdbId } )
 	  if defined $pdbId;
 
@@ -166,8 +164,7 @@ sub addMapping : Private {
   my( $this, $c ) = @_;
 
   # add the structure-to-UniProt mapping to the stash
-  #my @unpMap = PfamWeb::Model::PdbMap")->search( 
-  my @unpMap = $c->model("PfamDB::PdbMap")->search( 
+  my @unpMap = $c->model("PfamDB::PdbMap")->search(
                   { auto_pdb    => $c->stash->{pdb}->auto_pdb,
 					pfam_region => 1 },
 				  { join     => [ qw/pfamA pfamseq/ ],
