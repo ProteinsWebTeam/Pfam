@@ -1,0 +1,15 @@
+
+[%#
+# title.tt
+# jt6 20060424 WTSI
+#
+# build the tab title for the iPfam pages
+#
+# $Id: title.tt,v 1.1 2006-08-22 13:31:16 rdf Exp $
+%]
+
+[% IF titleType == "tab" %]
+<h2>Ligand-Domain Interaction: <em></em></h2>
+[% ELSIF titleType == "page" %]
+Ligand-Domain Interaction:&nbsp;()
+[% END %]
