@@ -3,11 +3,11 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.9 2006-08-14 10:51:27 jt6 Exp $
+   $Id: pfam.css,v 1.10 2006-08-22 15:25:22 jt6 Exp $
 */   
 
 body {
-	font-family: arial, helvetica, sans-serif;
+	font-family: Arial,Helvetica,Sans-serif;
     color: #404040;
 	min-width: 840px;
     margin: 0;
@@ -61,6 +61,15 @@ div.menubar {
 ul, dl, ol {
 	position: relative;
 }
+
+a:link,
+a:visited,
+a:hover,
+a:focus,
+a:active {
+  color: #074987;
+}
+
 
 /* ======================================== */
 /* index page */
@@ -135,4 +144,138 @@ span.letter a:active {
 
 span.letter a:hover {
   text-decoration: underline;
+}
+
+/* ======================================== */
+/* search results */
+
+/* affects the whole page */
+
+#results tr.odd {
+    background: #CCC;
+}
+
+#results tr.even {
+    background: #DDD;
+}
+
+.titleRow {
+   background: #AAA;
+   color: #FFF;
+   font-weight: bold;
+}
+
+.sortarrow {
+	width: 11px;
+	height:	15px;
+	background-position: center center;
+	background-repeat: no-repeat;
+	margin: 0 2px;
+}
+
+.sortarrow.updown {
+	background-image: url( /images/updown.gif );
+}
+
+.sortarrow.down {
+	background-image: url( /images/downsimple.gif );
+}
+
+.sortarrow.up {
+	background-image: url( /images/upsimple.gif );
+}
+
+/* this is the auto-generated link for sorting the column */
+a.sortheader {
+    text-decoration: none;
+    display: block;
+}
+
+/* affects the key */
+
+#key {
+	padding: 4px;
+	margin: 8px 8px;
+    border: 1px solid #999;
+    background-color: #EEE;
+	text-align: center;
+}
+
+#key h2 {
+    color: #074987;
+	text-align: left;
+	margin: 4px auto;
+    padding: 2px;
+	font-size: large;
+    font-weight: bold;
+}
+
+#key p {
+	margin: 0;
+	text-align: left;
+}
+
+/* affects the key table */
+
+#keyTable {
+	font-size: smaller;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    width: 50%;
+    margin-left: 25%;
+	margin-right: 25%;
+}
+
+#keyTable .titleRow {
+	background: #AAA;
+    font-weight: bold;
+}
+
+/* affects the results table */
+
+#resultTable {
+    font-size: smaller;
+	clear: both;
+/* 	border: 1px solid #000070; */
+    margin: 0 auto;
+}
+
+#resultTable .rowNum {
+	display: none;
+}
+
+#resultTable p {
+	display: none;
+}
+
+#resultTable .fixedWidth {
+	width: 6em;
+}
+
+#resultTable .desc {
+	text-align: left;
+}
+
+#resultTable th {
+	padding: 3px;
+}
+
+#resultTable td {
+	padding: 3px;
+    text-align: center;
+	background-position: center center;
+    background-repeat: no-repeat;
+	background-image: url( /images/blank_tick.gif );
+}
+
+#resultTable td.ticked {
+	background-image: url( /images/tick.gif );
+}
+
+#resultTable thead tr a {
+	color: white;
+}
+
+#resultTable thead tr {
+	background: #074987;
 }
