@@ -1,0 +1,16 @@
+
+[%#
+# title.tt
+# rdf 20060821 WTSI
+#
+# build the titles for the proteome pages
+#
+#
+# $Idx$
+%]
+
+[% IF titleType == "tab" %]
+<h2>Proteome: <em>[% proteome.species %]</em></h2>
+[% ELSIF titleType == "page" %]
+Proteome: [% proteome.species %]
+[% END %]
