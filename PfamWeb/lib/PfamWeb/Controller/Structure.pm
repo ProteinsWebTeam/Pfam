@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.3 2006-08-14 10:38:50 jt6 Exp $
+# $Id: Structure.pm,v 1.4 2006-08-22 13:33:39 rdf Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<full page>.
 
-$Id: Structure.pm,v 1.3 2006-08-14 10:38:50 jt6 Exp $
+$Id: Structure.pm,v 1.4 2006-08-22 13:33:39 rdf Exp $
 
 =cut
 
@@ -106,6 +106,47 @@ sub begin : Private {
   # stash the PDB object and ID
   $c->stash->{pdb}   = $pdb;
   $c->stash->{pdbId} = $pdbId;
+  my $autoPdb = $c->stash->{pdb}->auto_pdb;
+  #Now get the Icon information for the structure;
+  my %summaryData;
+  # Number of sequences in the structure - count the number of chains.
+  my $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
+						  {select => [ { count => [ {distinct => ["chain"] } ]}],
+						     as   => [ qw/numChains/]});
+  $summaryData{numSequences} = $rs->get_column( "numChains" );
+
+  # Number of species should be one, but get the species for the sequences
+  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
+						{  join => [ qw/pfamseq/],
+						   select => [ { count => [ {distinct => ["pfamseq.species"] } ]}],
+						    as => [ qw/numSpecies/]} );
+  $summaryData{numSpecies} = $rs->get_column( "numSpecies" );
+
+  #Number Architectures
+  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
+						{  join => [ qw/pfamseq_arch/],
+						   select => [ { count => [ {distinct => ["pfamseq_arch.auto_architecture"] } ]}],
+						     as => [ qw/numArch/]} );
+  $summaryData{numArchitectures} = $rs->get_column( "numArch" );;
+  # Number of Interactions.
+  $rs = $c->model("PfamDB::Interactions")->find(
+						{ auto_pdb => $autoPdb },
+						{ select => [
+							     { count => [
+									 { distinct => [ "auto_int_pfamAs" ] }
+									]
+							     }
+							    ],
+						  as => [ qw/numInts/ ]
+						}
+					       );  
+  $summaryData{numInt} = $rs->get_column("numInts");
+
+  # Structures is one
+  $summaryData{numStructures} = 1;
+
+  $c->stash->{summaryData} = \%summaryData;
+
 
 }
 
