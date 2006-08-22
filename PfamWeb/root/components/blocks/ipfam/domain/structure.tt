@@ -1,0 +1,25 @@
+
+[%#
+# structure.tt
+# rdf 20060424 WTSI
+# 
+# Lists the structures contains the ligand
+#
+# $Id: structure.tt,v 1.1 2006-08-22 13:30:00 rdf Exp $
+%]
+
+<!-- start ipfam summary block -->
+
+<div class="block" id="iDomainStructureBlock">
+  <div class="handle">
+    <h1>Structures containing Domain Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>list the domains:...</h3>
+
+  </div>
+
+</div>
+
+<!-- end ipfam summary block -->

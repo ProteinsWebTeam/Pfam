@@ -1,0 +1,26 @@
+
+[%#
+# domain.tt
+# rdf 20060424 WTSI
+# 
+# Lists the domain:ligand interactions
+#
+# $Id: ligand.tt,v 1.1 2006-08-22 13:30:00 rdf Exp $
+%]
+
+<!-- start ipfam summary block -->
+
+<div class="block" id="iDomainLigandBlock">
+  <div class="handle">
+    <h1>Domain:Ligand Interactions</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>list the domains:...</h3>
+
+  </div>
+
+</div>
+
+<!-- end ipfam summary block -->
+
