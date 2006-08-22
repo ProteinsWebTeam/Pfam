@@ -1,0 +1,15 @@
+
+[%#
+# title.tt
+# rdf 20060821 WTSI
+#
+# build the tab title for the Ligand iPfam pages
+#
+# $Id: title.tt,v 1.1 2006-08-22 13:30:46 rdf Exp $
+%]
+
+[% IF titleType == "tab" %]
+<h2>Ligand: <em>[% ligand.name %]</em></h2>
+[% ELSIF titleType == "page" %]
+Ligands: [% ligand.name %]&nbsp;([% ligand.three_letter_code %])
+[% END %]

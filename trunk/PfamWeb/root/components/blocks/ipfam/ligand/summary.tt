@@ -1,0 +1,99 @@
+
+[%#
+# summary.tt
+# jt6 20060424 WTSI
+# 
+# build the summary block for the iPfam pages
+#
+# $Id: summary.tt,v 1.1 2006-08-22 13:30:46 rdf Exp $
+%]
+
+<!-- start Ligands summary block -->
+
+<div class="block" id="iLigandSummaryBlock">
+  <div class="handle">
+    <h1>Ligand Summary</h1>
+  </div
+  <div class="blockContent">
+	[% oe = 0 %]
+
+    <table class="layout">
+	<tbody>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Name:</td>		
+	      <td class="data">	
+	        [% ligand.name %]
+          </td>	
+	</tr>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Code:</td>		
+	      <td class="data">	
+	        [% ligand.three_letter_code %]
+          </td>	
+	</tr>	
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Formula:</td>		
+	      <td class="data">	
+	        [% ligand.formula %]
+          </td>	
+	</tr>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Number of Atoms:</td>		
+	      <td class="data">	
+	        [% ligand.num_atoms_all %]
+        	  </td>
+		</tr>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Molecular Weight:</td>		
+	      <td class="data">	
+	        [% ligand.molecular_weight %]
+          </td>	
+	</tr>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Charge:</td>		
+	      <td class="data">	
+	        [% ligand.charge %]
+          </td>	
+	</tr>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Ligand Class:</td>		
+	      <td class="data">	
+	        [% ligand.category %]
+          </td>	
+	</tr>
+	
+	
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Systematic Name:</td>
+		<td class="data">	
+	        [% ligand.systematic_name %]
+          </td>	
+	</tr>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Stereo Smile:</td>
+		<td class="data">	
+	        [% ligand.stereo_smiles %]
+          </td>	
+	</tr>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Non Stereo Smile:</td>
+		<td class="data">	
+	        [% ligand.non_stereo_smiles %]
+          </td>	
+	</tr>
+
+
+
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Graphic</td>		
+	      <td class="data">	
+		<img src="http://www.ebi.ac.uk/msd-srv/msdchem/cgi-bin/ligand/GetGif?[% ligand.three_letter_code %]" >
+          </td>	
+	</tr>
+	</tbody>
+</table>
+  </div>
+
+</div>
+
+<!-- end ipfam summary block -->
