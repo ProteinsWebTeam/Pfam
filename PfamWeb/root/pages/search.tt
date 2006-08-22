@@ -5,7 +5,109 @@
 # 
 # search results page
 #
-# $Id: search.tt,v 1.1 2006-08-14 11:11:04 jt6 Exp $
+# $Id: search.tt,v 1.2 2006-08-22 15:29:19 jt6 Exp $
 -%]
 
-<h1>Search results</h1>
+<!-- script type="text/javascript">
+  Event.observe( window, "load", initializeFunctions, false );
+</script -->
+
+<div id="results">
+
+  <div id="key">
+
+    <h2>Search results</h2>
+
+    [% rowNums = {} %]
+    [% hitsSummary = BLOCK %]
+      [% hitPlugins = 0 %]
+      <table id="keyTable">
+        <thead>
+          <tr class="titleRow">
+            <td>Section</td>
+            <td class="desc">Description</td>
+            <td>Number of hits</td>
+          </tr>
+        </thead>
+        <tbody>
+        [% FOREACH pluginName IN enabledPluginsArray %]
+    	  [% rowNums.$pluginName = 0 %]
+          <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
+            <td>[% pluginName %]</td>
+            <td class="desc">[% enabledPluginsHash.$pluginName %]</td>
+            <td>[% pluginHits.$pluginName || 0 %]</td>
+          </tr>
+          [% # keep track of the number of plugins that returned results
+             IF pluginHits.$pluginName; hitPlugins = hitPlugins + 1; END
+          %]
+        [% END %]
+        </tbody>
+      </table>
+    [% END %]
+
+    <p>
+      We found <strong>[% results.size %]</strong> results for your query 
+      (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
+      sections of the database.
+      [% IF lookupHit %]
+	  Your query also appears to be a match for Pfam entry
+      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
+        [% lookupHit.pfamA_id %]</a></em>
+	  (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
+        [% lookupHit.pfamA_acc %]</a>).
+      [% END %]
+    </p>
+
+    [% hitsSummary %]
+
+    <p>
+      This key shows a brief description of each of the database
+      sections, in the order that they were searched, along with the
+      number of hits found in each one. The table of results may be
+      sorted by clicking on the column titles, or restored to the
+      original order <a onclick="_ts_resortTable($('resultTable'),'0');return
+      false;" href="#">here</a>. Note that the final list of hits shows
+      only unique Pfam accessions.
+    </p>
+
+  </div> <!-- end of div "key" -->
+
+  <table class="sortable" id="resultTable">
+    <thead>
+      <tr class="titleRow">
+        <th class="rowNum">Original order</th>
+        <th>Accession</th>
+        <th>ID</th>
+        <th class="nosort">Description</th>
+        [% FOREACH pluginName IN enabledPluginsArray %]
+          [% IF pluginHits.$pluginName %]
+          <th>[% pluginName %]</th>
+          [% END %]
+        [% END %]
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results;
+         acc = row.dbObj.pfamA_acc;
+         id  = row.dbObj.pfamA_id %]
+      <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% acc %]</a></td>
+        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% id %]</a></td>
+        <td class="desc">[% row.dbObj.description %]</td>
+        [% FOREACH pluginName IN enabledPluginsArray %]
+          [% IF pluginHits.$pluginName %]
+            [% IF row.query.$pluginName %]
+              <td class="ticked fixedWidth"><p>[% rowNums.$pluginName %]</p></td>
+              [%- rowNums.$pluginName = rowNums.$pluginName + 1 -%]
+            [% ELSE %]
+              <td class="fixedWidth"><p>10000000</p></td>
+            [% END %]
+          [% END %]
+        [% END %]
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+
+</div> <!-- end of div "results" -->
