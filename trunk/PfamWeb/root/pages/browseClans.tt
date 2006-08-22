@@ -1,0 +1,72 @@
+
+[%#
+# browseClans.tt
+# jt6 20060821 WTSI
+# 
+# build a "browse" page for clans
+#
+# $Id: browseClans.tt,v 1.1 2006-08-22 15:28:24 jt6 Exp $
+%]
+
+[% pageList = BLOCK %]
+<div class="pageList">
+[% pages = [ "numbers",
+             "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+	         "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ] %]
+[% lcChar = char | lower %]
+
+[% FOREACH page IN pages %]
+[% CALL c.log.debug( "page: $page" ) %]
+  [% IF page ==  lcChar %]
+  <span class="letter inactive">
+    [% page | ucfirst %]
+  </span>
+  [% ELSE %]
+  <span class="letter">
+    <a href="#[% page %]">[% page | ucfirst %]</a>
+  </span>
+  [% END %]
+[% END %]
+</div>
+[% END %]
+
+<!-- start browse page -->
+
+[% pageList %]
+
+<table class="details">
+  <thead>
+    <tr class="caption">
+      <th>Clan ID</th>
+      <th>Clan accession</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% first = "" %]
+  [% FOREACH clan IN browse %]
+    [% IF clan.clan_id.match('^\d') %]
+      [% initialLetter = "0" %]
+    [% ELSE %]
+	  [% initialLetter = clan.clan_id.split("").first | lower %]
+    [% END %]
+	[% CALL c.log.debug( "initial letter, first: |$initialLetter|$first|" ) %]
+    <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
+	  <td>
+        <a 
+[%- IF initialLetter != first %]
+name="[% initialLetter %]"
+  [% first = initialLetter | lower %]
+[% END %]
+        href="[% c.uri_for( "/clan", id=clan.clan_id ) %]">[% clan.clan_id %]</a>
+      </td>
+      <td><a href="[% c.uri_for( "/clan", id=clan.clan_id ) %]">[% clan.clan_acc %]</a></td>
+      <td>[% clan.clan_description %]</td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<!-- end browse page -->
