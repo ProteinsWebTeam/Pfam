@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.14 2006-08-14 11:09:46 jt6 Exp $
+# $Id: wrapper.tt,v 1.15 2006-08-22 15:23:05 jt6 Exp $
 -%]
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -41,6 +41,11 @@
       src="[% constants.server %][% constants.root %]/sortabletable.js">
     </script -->
     <!-- see http://webfx.eae.net/dhtml/sortabletable/sortabletable.html -->
+
+
+    <script type="text/javascript"
+      src="/javascripts/sorttable.js">
+    </script>
 
     <!-- ====================================================================== -->
     <!-- Sanger menus... -->
@@ -95,6 +100,7 @@
     <!-- scriptaculous and prototype -->
 
     <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
     <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
     <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
     <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/slider.js" ) %]"></script>
@@ -146,11 +152,11 @@
             <td align="left" nowrap="nowrap"><a href="/"><img src="[% constants.server %]/icons/blank.gif" height="66" width="200" alt="" title="" align="left" border="0" /></a>
               <div style="float: right;">
                 <!--search box start here-->
-                <form action="[% constants.server %]/cgi-bin/Pfam/querypfam_jt.pl" name="sitesearch">
+                <form action="[% c.uri_for( "/search" ) %]" name="sitesearch">
                 <table class="headersearch" border="0" cellspacing="0" cellpadding="1">
                   <tr>
                     <td align="left">
-                      <input type="text" name="terms" value="" size="12" maxlength="100" class="sitesearchquery" />
+                      <input type="text" name="query" value="" size="12" maxlength="100" class="sitesearchquery" />
                     </td>
                     <td align="right"><a href="javascript:document.forms['sitesearch'].submit()" class="sitesearchbutton">&nbsp;Search Pfam&nbsp;</a></td>
                   </tr>
