@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.1 2006-08-14 10:41:20 jt6 Exp $
+# $Id: Search.pm,v 1.2 2006-08-22 15:10:54 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,15 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.1 2006-08-14 10:41:20 jt6 Exp $
+$Id: Search.pm,v 1.2 2006-08-22 15:10:54 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Module::Pluggable;
+use Data::Dumper;
 
 use base "Catalyst::Controller";
 
@@ -48,6 +51,7 @@ sub begin : Private {
   $c->log->warn( "Search::begin: no query terms supplied" ) and return
 	unless defined $terms;
 
+  # stash the de-tainted terms so we can safely display them later
   $c->stash->{rawQueryTerms} = $terms;
 
   # somewhere for the results of this search
@@ -67,6 +71,35 @@ Captures URLs like
 
 =back
 
+This method walks the list of search plugins and for each one that is
+enabled in the configuration, it calls the following methods:
+
+=over
+
+=item o C<Plugin::formatTerms>
+
+Intended to convert the simple user input string from the URL into a
+suitable query term for the DB. There's a basic version of this method
+on this class but plugins can override that with their own version if
+they need to do some other processing.
+
+=item o C<Plugin::process>
+
+Executes the database query and returns the results as a L<DBIC
+ResultSet|DBIx::Class::ResultSet>.
+
+=item o C<Search::mergeResults>
+
+Walks the L<ResultSet|DBIx::Class::ResultSet> and adds the results to
+the results of the whole query.
+
+=back
+
+It might be necessary, in the future, to modify this process so that
+the plugins can return an array of
+L<ResultSets|DBIx::Class::ResultSet>, allowing each one to execute
+multiple queries.
+
 =cut
 
 sub default : Private {
@@ -77,43 +110,118 @@ sub default : Private {
   $c->error( "You did not supply any valid search terms" )
 	unless $c->stash->{rawQueryTerms};
 
-  foreach my $query ( @{$this->{queries}} ) {
-	$c->log->debug( "Search::begin: executing query: |$query|" );
+  #----------------------------------------
+  # build a list of the enabled queries. The YAML stores this
+  # information as an array of hashes, each of which has a single
+  # key/value pair, e.g.
+  #   - { Pfam:     1 } # enabled
+  #   - { Pdb:      0 } # DISABLED
+  #   - { Seq_info: 1 } # enabled
+  # The key gives the name of the plugin and the value (taken as true
+  # or false) determines whether that particular search plugin will be
+  # called. The order of the queries is determined by their order in
+  # the array.
 
-	# format the terms - add wildcard characters, etc.
-	$c->forward( "Search::$query", "formatTerms" );
+  my( @enabledPlugins, @enabledPluginsReversed, $pluginName, $pluginDesc );
+  foreach my $row ( @{ $this->{plugins} } ) {
 
-	# execute the query
-	$c->forward( "Search::$query" ); # calls "process()" by default
+	# we could use "each" to get the single key/value pair from the hash,
+	# but it does strange things when called multiple times, so this
+	# is safer, if uglier
+	next unless( $pluginDesc = (values %$row)[0] );
 
-	# add the results to our growing set of results
-	$c->forward( "addResults" );
-  }	
+	$pluginName = (keys %$row)[0];
+
+	# keep track of the order of the enabled plugins. Store the list
+	# forwards and backwards, since we'll use it both ways
+	push    @enabledPlugins,         $pluginName;
+	unshift @enabledPluginsReversed, $pluginName;
+
+	# and drop them into a hash too, for easy look-up
+	$c->stash->{enabledPluginsHash}->{$pluginName} = $pluginDesc;
+  }
+
+  # store the (reversed) list of query names
+  $c->stash->{enabledPluginsArray} =         \@enabledPlugins;
+  $c->stash->{enabledPluginsArrayReversed} = \@enabledPluginsReversed;
+
+  #----------------------------------------
+
+  # keep track of the number of hits for each query
+  $c->stash->{pluginHits} = {};
+
+  # walk the plugins and run each query in turn
+  foreach my $plugin ( $this->plugins ) {
+	my $pluginName = ( split /\:\:/, $plugin )[-1];
+
+	# check that the plugin is properly formed and is enabled
+	next unless( $plugin->can( "process" ) and
+				 $c->stash->{enabledPluginsHash}->{$pluginName} );
+
+	# firkle with the user input if necessary and build a string that
+	# we can pass straight to the DB
+	$c->forward( "formatTerms" );
+
+	# and run the query
+	$c->log->debug( "Search::default: running query for plugin $pluginName" );
+	my $results = $c->forward( $plugin );
+
+	# merge results from the individual query
+	$c->forward( "mergeResults", [ $pluginName, $results ] );
+
+  }
 
   $c->log->debug( "Search::default: found a total of " .
 				  scalar( keys %{$c->stash->{results}} ) . " rows" );
 
-}
 
-#-------------------------------------------------------------------------------
+  #----------------------------------------
 
-sub addResults : Private {
-  my( $this, $c ) = @_;
-
-  # the new set of results:			$c->stash->{queryResults}
-  # all results from this search:	$c->stash->{results}
-
-  $c->log->debug( "Search::addResults: checking " . $c->stash->{queryResults}->count . " rows" );
-
-  while( my $row = $c->stash->{queryResults}->next ) {
-	my $auto_pfamA = $row->auto_pfamA;
-	$c->log->debug( "Search::addResults: found auto_pfamA, row: |$auto_pfamA|$row|" );
-	$c->stash->{results}->{$auto_pfamA} = $row;
+  # if there's only one result, redirect straight to it
+  if( scalar keys %{$c->stash->{results}} == 1 ) {
+	my( $acc ) = keys %{$c->stash->{results}};
+	$c->log->debug( "Search::default: found a single hit: |$acc|; redirecting" );
+	$c->res->redirect( $c->uri_for( "/family", { acc => $acc } ) );
+	return 1;
   }
 
-  return 1;
-}
+  #----------------------------------------
 
+  # sort the results according to the score and pfam accession
+  my @results;
+  my $results = $c->stash->{results};
+  foreach my $acc ( sort { $results->{$b}->{score} <=> $results->{$a}->{score}
+							 || $a cmp $b }
+					keys %{$c->stash->{results}} ) {
+	push @results, $c->stash->{results}->{$acc};
+  }
+
+  $c->stash->{results} = \@results;
+
+  #----------------------------------------
+
+  # do a quick look-up to see if the search term matches a Pfam ID
+  # or accession
+
+  # first, check if there are multiple "words" in the query term,
+  # because if there are, this can't be a unique ID or accession
+  unless( $c->stash->{rawQueryTerms} =~ /![A-Za-z0-9_-]/ ) {
+	
+	my $rs = $c->model("PfamDB::Pfam")->search(
+											   [
+												{ pfamA_acc => $c->stash->{rawQueryTerms} },
+												{ pfamA_id  => $c->stash->{rawQueryTerms} }
+											   ]
+											  );
+	
+	# we're going to assume that there's only one hit here... we're in
+	# trouble if there's more than one, certainly
+	my $hit = $rs->next;
+	$c->stash->{lookupHit} = $hit if $hit;
+
+  }
+
+}
 
 #-------------------------------------------------------------------------------
 
@@ -124,7 +232,7 @@ word in the list. This base implementation just prepends a "+"
 (require that the word is present in every returned row; necessary for
 "IN BOOLEAN MODE" queries) and appends a "*" (wildcard) to each term.
 
-This method should be over-ridden by plugin search classes, if they
+This method should be over-ridden by plugin search classes if they
 need some other processing to be performed on the search terms.
 
 =cut
@@ -132,14 +240,79 @@ need some other processing to be performed on the search terms.
 sub formatTerms : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Search::formatTerms: in base \"formatTerms\"" );
   $c->stash->{terms} =
-	join " ",
-	  map { $_ = "+$_*" }
-		split /\s+|\W/,
-		  $c->stash->{rawQueryTerms};
-  $c->log->debug( "Search::formatTerms: query terms: |" . $c->stash->{terms} ."|" );
+	join " ", map { $_ = "+$_*" } split /\s+|\W|\:|\-|\_/, $c->stash->{rawQueryTerms};
 
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 mergeResults : Private
+
+Merges the results of an individual query into the set of results for
+the whole search. The PfamA accession is used as the hash key, so it
+needs to be present in the results of the plugin queries. Also keeps
+track of the number of hits for each plugin query.
+
+=cut
+
+sub mergeResults : Private {
+  my( $this, $c, $pluginName, $rs ) = @_;
+
+  # walk the query results and merge them into the overall results
+  my( $acc, $row );
+  while( my $dbObj = $rs->next ) {
+	$acc = $dbObj->pfamA_acc;
+
+	$row = $c->stash->{results}->{$acc} ||= {};
+
+	$row->{dbObj} = $dbObj;
+    $row->{query}->{$pluginName} = 1;
+
+	$c->stash->{pluginHits}->{$pluginName} += 1;
+
+	# score this hit
+	$this->_computeScore( $c, $row );
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 _computeScore
+
+Calculates a simple score for each hit, based on which plugin
+generated the hit.
+
+The score is calculated according to the order of the plugins from the
+config, treating the first one in the list - probably the PfamA table
+search - as the most significant, e.g.
+
+=over
+
+if the order of the plugins is Pfam -> Pdb -> Seq_info -> GO,
+the score is 8 + 4 + 2 + 1 = 15
+
+if the Seq_info plugin doesn't generate a hit, the score is 8 + 4 + 0
++ 1 = 13, and that hit will sort lower in the results than the one above.
+
+=back
+
+Since it's called once per hit, this method is implemented as a
+regular perl function, rather than a Catalyst action, so it's called
+directly instead of using C<< $c->forward >>.
+
+=cut
+
+sub _computeScore {
+  my( $this, $c, $row ) = @_;
+
+  my $score = 0;
+  my $factor = 1;
+  foreach my $pluginName ( @{ $c->stash->{enabledPluginsArrayReversed} } ) {
+	$score  += $factor if $row->{query}->{$pluginName};
+	$factor *= 2;
+  }
+  $row->{score} = $score;
 }
 
 #-------------------------------------------------------------------------------
@@ -162,6 +335,9 @@ sub end : Private {
   # set up the TT view
   # check for errors
   if ( scalar @{ $c->error } ) {
+	foreach ( @{$c->error} ) {
+	  $c->log->debug( "error message: |$_|" );
+	}
 	$c->stash->{errors}   = $c->error;
 	$c->stash->{template} = "pages/errors.tt";
   } else {
