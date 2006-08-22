@@ -5,7 +5,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::graphics and stuffed into a div in the existing page
 #
-# $Id: simapGraphics.tt,v 1.3 2006-08-14 15:33:34 rdf Exp $
+# $Id: simapGraphics.tt,v 1.4 2006-08-22 13:40:47 rdf Exp $
 %]
 
 <!-- start of features map -->
@@ -15,17 +15,36 @@
 [% imageArray = imageset.each_image.list %]
 [% firstImage = imageArray.shift %]
 [% CALL firstImage.print_image %]
-<img class="domainImage" src="[% constants.tmp %]/[% firstImage.file_location %]" alt=""/><br/>
-[% FOREACH image IN imageset.each_graph %]
-  [% CALL image.print_image %]	
-  <img class="domainImage" src="[% constants.tmp %]/graph.png" alt=""/><br/>
+
+<img class="domainImage"
+         src="[% constants.tmp %]/[% firstImage.file_location %]"
+         usemap="#firstGraphicsMap"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="firstGraphicsMap">
+      [% firstImage.image_map %]
+    </map>	
+[% FOREACH graph IN imageset.each_graph %]
+  [% CALL graph.print_image %]	
+  <img class="domainImage" src="[% constants.tmp %]/[% graph.file_location %]" alt=""/><br/>	
 [% END %]
 
 
-
+[% oe = 0 %]
 [% FOREACH image IN imageArray %]
   [% CALL image.print_image %]
-  <img class="domainImage" src="[% constants.tmp %]/[% image.file_location %]" alt=""/><br/>
+
+     <img class="domainImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#graphicsMap[% oe %]"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="graphicsMap[% oe %]">
+      [% image.image_map %]
+    </map>		
+    [% oe = oe + 1 %]
 [% END %]
 
 
