@@ -25,6 +25,8 @@ IF NOT pdbObj;
       $stash->set( rand => sprintf "%d",rand($numIds) ) if $numIds;
     [% END;
     randomId = idList.${rand};
+	# if we had the Math plugin, we could do it this way:
+    # randomId = idList.${Math.rand(idList.size)};
 	pdbObj = pdbUnique.$randomId;
   ELSE;
     # if there's only one structure there's no array under pdbUnique, so we go 
