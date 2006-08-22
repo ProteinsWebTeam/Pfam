@@ -4,9 +4,9 @@
 #
 # A model to retrieve data from the WTSI pfetch server.
 #
-# $Id: Pfetch.pm,v 1.1 2006-08-14 10:34:22 jt6 Exp $
+# $Id: Pfetch.pm,v 1.2 2006-08-22 13:37:37 rdf Exp $
 
-package PfamWeb::Schema::PfamDB::Pfetch;
+package PfamWeb::Model::Pfetch;
 
 use strict;
 use warnings;
