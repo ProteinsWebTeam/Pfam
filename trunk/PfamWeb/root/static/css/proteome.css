@@ -1,51 +1,49 @@
-!
-/* interactions.css
+
+/* proteome.css
    jt6 20060421 WTSI
 
    Stylesheet for the items that are specific to the tab layout for
-   the iPfam pages.
+   the proteome pages.
 
-   $Id: proteome.css,v 1.1 2006-08-21 15:20:09 jt6 Exp $
+   $Id: proteome.css,v 1.2 2006-08-22 13:39:50 rdf Exp $
 */   
-
-/*
-background: #fff1d0
-border:     #6b5c3b
-highlight:  #d78f00
-*/
 
 /* ======================================== */
 /* page layout items */
 
 /* styles for the markup that forms the page tab */
 #tabTitle {
-	color: #6b5c3b;
+	color: #074987;
 }
 
 #pageType {
-    border-color: #6b5c3b;
+    border-color: #074987;
 }
 
 #pageType h2 {
   color: #6f63a2;
-/*    background: #6b5c3b; */
+/*    background: #074987; */
 }
 
 /* ======================================== */
 /* components of the remainder of the page */
 
-#content {
-  border-top-color: #6f63a2;
+#spacer {
+  background-color: #fff1e6; /* vibrant 1 */
 }
 
 #contentContainer {
-  background-color: #fff1d0;
-  background-image: url(/images/purple_page_border.gif);
+  background-color: #fff1e6; /* vibrant 1 */
+  background-image: url(/images/ipfam/page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/images/purple_bg.gif) repeat-y 15% 0;
+  background: url(/images/ipfam/bg.gif) repeat-y 15% 0;
+}
+
+#content {
+  border-top-color: #6f63a2;
 }
 
 /* the left column navigation bar */
@@ -55,16 +53,16 @@ highlight:  #d78f00
 }
 
 #sidebar li a {
-  color: #6b5c3b;
+  color: #074987;
 }
 
 #sidebar li.selected a {
   border-color: #6f63a2;
-  background-image: url(/images/purple_selected_bg.gif);
+  background-image: url(/images/selected_bg.gif);
 }
 
 #sidebar li span.inactive {
-  color: #a499d5;
+  color: #83a4c3;
 }
 
 #footer {
@@ -75,7 +73,7 @@ highlight:  #d78f00
 /* general styles for "blocks" */
 
 div.handle {
-  background-color: #6b5c3b;
+  background-color: #074987;
 }
 
 /* ======================================== */
@@ -87,6 +85,6 @@ div.pdbImageFragment {
 }
 
 h4.pdbTitle  {
-	color: #6b5c3b;
+	color: #074987;
 }
 
