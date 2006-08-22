@@ -17,7 +17,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "seq_info" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc seq_description species pfamA_acc pfamA_id/);
+__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc description seq_description species pfamA_acc pfamA_id/);
 
 #Set the the keys
 __PACKAGE__->set_primary_key( "auto_pfamseq" );
