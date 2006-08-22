@@ -1,0 +1,21 @@
+
+[%#
+# summary.tt
+# jt6 20060424 WTSI
+# 
+# build the summary block for the iPfam pages
+#
+# $Id: summary.tt,v 1.1 2006-08-22 13:30:00 rdf Exp $
+%]
+
+<!-- start ipfam summary block -->
+
+<div class="block" id="iDomainSummaryBlock">
+  <div class="handle">
+    <h1>Domain Summary</h1>
+  </div
+ 
+
+</div>
+
+<!-- end ipfam summary block -->
