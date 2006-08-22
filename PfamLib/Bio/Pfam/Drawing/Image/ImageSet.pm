@@ -69,7 +69,7 @@ sub create_images {
 
   my $maxOffSet = 0;
   foreach my $graphNode ( $xc->findnodes( "pf:graph" ) ) {
-    my $image = Bio::Pfam::Drawing::Image::Graph->new;
+    my $image = Bio::Pfam::Drawing::Image::Graph->new( { timeStamp => $self->{timeStamp} } );
     $image->length( $root->getAttribute( "length" ) );
     $image->height( $root->getAttribute( "height" ) );
     $image->format(  $root->getAttribute( "format"  ) );

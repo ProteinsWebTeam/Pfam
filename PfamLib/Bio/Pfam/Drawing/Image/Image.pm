@@ -1984,8 +1984,23 @@ sub addOffSet{
   $self->length($self->length + $offSet);
   $self->_new_image;
   $self->image->copy($imageOri, $offSet, 0, 0, 0, $lengthOri+1, $self->height);
-
+  
   #Need to alter image map!.
+  my $imageMap = $self->image_map;
+  my $parser = XML::LibXML->new();
+  if($imageMap){
+    my $doc = $parser->parse_balanced_chunk($imageMap);
+    
+    foreach my $area ($doc->findnodes("area")){
+      my $attribute = $area->getAttributeNode( "coords" );
+      my @coos = split(/\,/,  $attribute->getValue);
+      $coos[0] += $offSet;
+      $coos[2] += $offSet;
+      my $newCoos = join(",", @coos);
+      $attribute->setValue($newCoos);
+    }
+    $self->{'image_map'} = $doc->toString(1);
+  }
 }
 
 
