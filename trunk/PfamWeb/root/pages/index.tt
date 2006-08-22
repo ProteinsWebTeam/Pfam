@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.2 2006-08-14 11:10:42 jt6 Exp $
+# $Id: index.tt,v 1.3 2006-08-22 12:46:29 uid11770 Exp $
 %]
 
 <!-- start the index page -->
@@ -50,7 +50,7 @@
   </div>
 
   <div class="jumpBox">
-    <form action="[% c.uri_for( "/browse" ) %]" id="browseJump">
+    <form action="[% c.uri_for( "/family/browse" ) %]" id="browseJump">
       <span class="title">Browse:</span>
       <span class="jump">
         <select name="browse" id="browsePages" onchange="$('browseJump').submit();">
