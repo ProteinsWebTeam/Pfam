@@ -71,7 +71,7 @@ sub _setDrawingType{
     }
     
   
-    print "Feature Type:".$features->[$i]->{'type_id'}." unknown\n";
+    #print "Feature Type:".$features->[$i]->{'type_id'}." unknown\n";
     $features->[$i]->{'hidden'} = 1 ;
   }
 }

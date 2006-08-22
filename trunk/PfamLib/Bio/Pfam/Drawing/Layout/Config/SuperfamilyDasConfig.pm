@@ -26,8 +26,8 @@ sub _setDrawingStyles{
     my ($self,$features) = @_;
     
     for(my $i = 0; $i < scalar(@$features); $i++){
-	print STDERR $features->[$i]->{'feature_label'}."\n";
-	print STDERR $features->[$i]->{'type_id'}."\n";
+	#print STDERR $features->[$i]->{'feature_label'}."\n";
+	#print STDERR $features->[$i]->{'type_id'}."\n";
 	if($features->[$i]->{'feature_id'} =~ /DOMAIN/){
 	    if($features->[$i]->{'feature_label'} !~ /ACC\:/){    
 		my $newLabel = $features->[$i]->{'type_id'}."(ACC:".$features->[$i]->{'feature_label'}.")";
