@@ -24,7 +24,7 @@ molecule load mol 'http://temple.dynamic.sanger.ac.uk:3000/structure/getpdbfile/
 display lines off all;
 color '0xDDDDDD' aminoacid;
 [%- FOREACH m IN mapping -%]
-color '0x[% m.hex_colour %]' residue [% m.pdb_start_res %] to [% m.pdb_end_res %] and chain [% m.chain %];
+color '0x[% m.hex_colour %]' residue [% m.pdb_start_res %] to [% m.pdb_end_res %][% IF chain %] and chain [% m.chain ; END %];
 [%- END -%]
 secstruc molecule mol;
 schematic -name cartoonObj
@@ -33,11 +33,11 @@ schematic -name cartoonObj
 cylinder_radius 10 aminoacid;
 [%- FOREACH markup IN markups -%]
   [%- IF markup.auto_markup == 1 -%]
-    color '255,51,102' residue [% markup.pdb_seq_number %] and chain [% markup.chain %];
+    color '255,51,102' residue [% markup.pdb_seq_number %][% IF chain %] and chain [% markup.chain ; END %];
   [%- ELSIF markup.auto_markup == 2 -%]
-    color '153,0,204' residue [% markup.pdb_seq_number %] and chain [% markup.chain %];
+    color '153,0,204' residue [% markup.pdb_seq_number %][% IF chain %] and chain [% markup.chain ; END %];
   [%- END -%]
-  display cylinders on residue [% markup.pdb_seq_number %] and chain [% markup.chain %];
+  display cylinders on residue [% markup.pdb_seq_number %][% IF chain %] and chain [% markup.chain ; END %];
 [%- END -%]
 /*
 surface -solid true surfObj '0xE7E7E7' aminoacid;
