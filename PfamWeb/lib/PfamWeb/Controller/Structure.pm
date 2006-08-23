@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.5 2006-08-22 15:12:28 jt6 Exp $
+# $Id: Structure.pm,v 1.6 2006-08-23 14:35:09 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<full page>.
 
-$Id: Structure.pm,v 1.5 2006-08-22 15:12:28 jt6 Exp $
+$Id: Structure.pm,v 1.6 2006-08-23 14:35:09 jt6 Exp $
 
 =cut
 
@@ -74,39 +74,44 @@ sub begin : Private {
   if( defined $c->req->param("id") ) {
 
 	$c->req->param("id") =~ m/^([0-9][A-Z0-9]{3})$/i;
-	if( defined $1 ) {
-	  $pdb   = $c->model("PfamDB::Pdb")->find( { pdb_id => $1 } );
-	  $pdbId = $1;
-	  $c->log->debug( "Structure::begin: found ID |$pdbId|" );
-	}
+	$pdbId = $1	if defined $1;
 
   } elsif( defined $c->req->param("entry") ) {
 
 	# handle requests that specify "entry" rather than "id"
 
 	$c->req->param("entry") =~ m/^([0-9][A-Z0-9]{3})$/i;
-	$c->log->debug( "Structure::begin: looks like an ID ($1); redirecting" );
-	$c->res->redirect( $c->uri_for( "/structure", { id => $1 } ) );
+	$pdbId = $1	if defined $1;
+
+	# previously we were redirecting back to this same action,
+	# exchanging "entry" for "id", but it's a bit daft, given really..
+	#$c->log->debug( "Structure::begin: looks like an ID ($1); redirecting" );
+	#$c->res->redirect( $c->uri_for( "/structure", { id => $1 } ) );
 
   } elsif( defined $pdbIdArg ) {
 
 	$c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." );
-	( $pdbId ) = $pdbIdArg =~ /^(\d\w{3})/;
-	$pdb   = $c->model("PfamDB::Pdb")->find( { pdb_id => $pdbId } )
-	  if defined $pdbId;
+	$pdbIdArg =~ /^(\d\w{3})/;
+	$pdbId = $1 if defined $1;
 
   }
 
+  $c->log->debug( "Structure::begin: found a valid ID ($pdbId)" );
+  $pdb = $c->model("PfamDB::Pdb")->find( { pdb_id => $pdbId } );
+
   # we're done here unless there's an entry specified
-  $c->log->warn( "Structure::begin: no valid PDB ID supplied" ) and return
-	unless defined $pdb;
+  $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdbId|" )
+	and return
+	  unless defined $pdb;
 
   # stash the PDB object and ID
   $c->stash->{pdb}   = $pdb;
   $c->stash->{pdbId} = $pdbId;
   my $autoPdb = $c->stash->{pdb}->auto_pdb;
-  #Now get the Icon information for the structure;
+
+  # Now get the Icon information for the structure;
   my %summaryData;
+
   # Number of sequences in the structure - count the number of chains.
   my $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
 						  {select => [ { count => [ {distinct => ["chain"] } ]}],
@@ -120,12 +125,13 @@ sub begin : Private {
 						    as => [ qw/numSpecies/]} );
   $summaryData{numSpecies} = $rs->get_column( "numSpecies" );
 
-  #Number Architectures
+  # Number Architectures
   $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
 						{  join => [ qw/pfamseq_arch/],
 						   select => [ { count => [ {distinct => ["pfamseq_arch.auto_architecture"] } ]}],
 						     as => [ qw/numArch/]} );
   $summaryData{numArchitectures} = $rs->get_column( "numArch" );;
+
   # Number of Interactions.
   $rs = $c->model("PfamDB::Interactions")->find(
 						{ auto_pdb => $autoPdb },
@@ -137,14 +143,13 @@ sub begin : Private {
 							    ],
 						  as => [ qw/numInts/ ]
 						}
-					       );  
+					       );
   $summaryData{numInt} = $rs->get_column("numInts");
 
   # Structures is one
   $summaryData{numStructures} = 1;
 
   $c->stash->{summaryData} = \%summaryData;
-
 
 }
 
