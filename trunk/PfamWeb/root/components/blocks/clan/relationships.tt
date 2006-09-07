@@ -3,13 +3,13 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.4 2006-08-14 10:58:09 jt6 Exp $
+# $Id: relationships.tt,v 1.5 2006-09-07 09:48:55 jt6 Exp $
 %]
 
 <!-- start relationships block -->
 
-[%- image = "${constants.server}/${constants.root}/data/clans/newRelationship/${clan.clan_acc}.png" -%]
-[%- map   = "${constants.docroot}/${constants.root}/data/clans/newRelationship/${clan.clan_acc}.html" -%]
+[%- image = "${constants.clanDataRoot}/newRelationship/${clan.clan_acc}.png" -%]
+[%- map   = "${constants.clanDataRoot}/newRelationship/${clan.clan_acc}.html" -%]
 
 <div class="block" id="clanRelationshipsBlock">
   <div class="handle">
