@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.8 2006-08-14 11:04:54 jt6 Exp $
+# $Id: graphics.tt,v 1.9 2006-09-07 10:10:34 jt6 Exp $
 -%]
 
 <!-- start protein graphics block -->
@@ -26,15 +26,14 @@
  
     <!-- start of graphics div -->
     <div id="graphicsHolder">
-	  <p id="pgph">
-        <img src="/images/loading.gif" alt="loading..." />
+	  <p id="pgph" class="loading">
         Loading feature alignment...
       </p>
     </div>
     <!-- end of graphics div -->
 
     <script type="text/javascript">
-      loadOptions.pg.uri    = "[% c.uri_for( "/updatesources" ) %]";
+      loadOptions.pg.uri    = "[% c.uri_for( "/protein/graphics" ) %]";
       loadOptions.pg.params = "acc=[% pfamseq.pfamseq_acc %]";
   	</script>
 
@@ -49,7 +48,7 @@
         image are retrieved from servers around the web and it may take a few seconds to 
         collect the data and generate the image.</p>
 
-  		[% c.prototype.form_remote_tag( { url         => c.uri_for( "/updatesources" ),
+  		[% c.prototype.form_remote_tag( { url         => c.uri_for( "/protein/graphics" ),
 				                       	  update      => "graphicsHolder",
 							              before      => "pgStarted()",
 							              complete    => "pgCompleted()",
@@ -62,7 +61,11 @@
   	        <div class="source">
     	        <input name="[% source.server_id %]" type="checkbox" [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="1"[% END %] />
       	        <span class="checkboxLabel">
+	            [% IF source.helper_url %]
                 <a href="[% source.helper_url %]">[% source.name %]</a>
+                [% ELSE %]
+                [% source.name %]
+                [% END %]
                 (<a href="[% source.url %]">source</a>)
   	          </span>
             </div>
@@ -73,8 +76,7 @@
                  value="Update"
                  type="submit"
                  disabled="true" />
-		  <div id="pgUpdateSpinner" style="visibility: hidden">
-            <img src="/images/loading.gif" alt="loading..." />
+		  <div id="pgUpdateSpinner" style="visibility: hidden" class="loading">
             Loading features...
           </div>
 
