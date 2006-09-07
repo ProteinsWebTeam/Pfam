@@ -7,6 +7,8 @@ use Digest::MD5 qw(md5_hex);
 use GD;
 use Sanger::Graphics::ColourMap;
 
+use strict;
+use warnings;
 
 my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
 
@@ -243,10 +245,10 @@ sub format {
 
 sub file_location {
   my ($self, $value) = @_;
-  if($value){
-      $self->{'file_location'} = $value;
-  }
-  return($self->{'file_location'});
+
+  $self->{file_location} = $value if $value;
+
+  return $self->{file_location};
 }
 
 =head2 image
@@ -1366,23 +1368,20 @@ sub print_image {
 #  my $root = "/nfs/WWW/tmp/pfam/";
 
   my $root;
-  if( $ENV{DOCUMENT_ROOT} ) {
-    $root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
-    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
-  } elsif($ENV{PFAM_DOMAIN_IMAGES}) {
-    $root = "$ENV{'PFAM_DOMAIN_IMAGES'}";
-    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
-  }else{
-    die "Do not know where to print images to: Please set the environment variable PFAM_DOMAIN_IMAGES\n"; 
+  if($ENV{PFAM_DOMAIN_IMAGES}) {
+    $root   = "$ENV{'PFAM_DOMAIN_IMAGES'}";
+    ($root) = $root =~ m|([a-z0-9_\./]+)|i;
+  } elsif( $ENV{DOCUMENT_ROOT} ) {
+    $root   = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
+    ($root) = $root =~ m|([a-z0-9_\./]+)|i;
+  } else {
+    die "Do not know where to print images to: Please set the environment variable PFAM_DOMAIN_IMAGES\n";
   }
+
   my $file_location = "domain_gfx/$dirName";
   if(!-d "$root/$file_location"){
       mkdir("$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
   }
-
-
-
-  
 
   #make temp lib of all with unknown location
   my @md5 = md5_hex($file) =~ /\G(..)/g;
@@ -1392,27 +1391,20 @@ sub print_image {
 	  mkdir( "$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
       }
   }
-  
 
-  
-  open(OUTFILE, ">$root/$file_location/$file") or warn "Cannot print $root/$file_location/$file:[$!]\n";
+  my $filename = "$root/$file_location/$file";
+  open(OUTFILE, ">$filename") or warn "Cannot print $filename: [$!]\n";
 
   binmode OUTFILE;
   # Convert the image to PNG and print it on standard output
   print OUTFILE $self->image->png;
-  close(OUTFILE) or warn "Cannot close $root/$file_location/$file :[$!]";
-  
-  
-  if($self->format ne "png" && $self->format){
-      warn "try to convert from png to different format, this is not implemented!\n";
-       $self->file_location("$file_location/$file");
-      #convert the image
-      #unlink($Bio::Pfam::Web::PfamWWWConfig::tempdir/$file)";
-  }else{
-      $self->file_location("$file_location/$file");
-  }
+  close(OUTFILE) or warn "Cannot close $filename :[$!]";
 
-  
+  warn "try to convert from png to different format, this is not implemented!\n"
+	if( $self->format && $self->format ne "png" );
+
+  $self->file_location("$file_location/$file");
+
 }
 
 sub print_image_test {
