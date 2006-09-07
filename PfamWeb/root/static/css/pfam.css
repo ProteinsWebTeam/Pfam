@@ -3,11 +3,12 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.10 2006-08-22 15:25:22 jt6 Exp $
+   $Id: pfam.css,v 1.11 2006-09-07 10:13:45 jt6 Exp $
 */   
 
 body {
 	font-family: Arial,Helvetica,Sans-serif;
+    font-size: smaller;
     color: #404040;
 	min-width: 840px;
     margin: 0;
@@ -15,7 +16,7 @@ body {
 }
 
 .headercentre {
-	background: #FFF url(/images/swoosh_structure.png) no-repeat top left;
+	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
 /*	background: #FFF url(http://www.sanger.ac.uk/Software/Pfam/images/swoosh_structure.png) no-repeat top left; */
 /*	background: #FFF url(/static/images/swoosh_coloured_structure.jpg) no-repeat top left; */
 }
@@ -114,15 +115,12 @@ div.jumpBox span.title {
 
 div.pageList {
   margin: 0.4em auto;
-  width: 100%;
+  padding: 0.4em;
   text-align: center;
 }
 
 div.pageList span.letter {
-  border: 1px solid #CCC;
   padding: 0.1em;
-  margin: 0.1em;
-  text-align: center;
 }
 
 div.pageList span.inactive {
@@ -131,19 +129,16 @@ div.pageList span.inactive {
   font-weight: bold;
 }
 
-span.letter a {
+div.pageList span.letter a {
   text-decoration: none;
+  padding: 0.4em;
+  color: #000;
+  background: #DDD;
 }
 
-span.letter a:link,
-span.letter a:visited,
-span.letter a:focus,
-span.letter a:active {
-  color: black;
-}
-
-span.letter a:hover {
-  text-decoration: underline;
+div.pageList span.letter a:hover {
+  background: #AAA;
+  color: white;
 }
 
 /* ======================================== */
@@ -174,15 +169,15 @@ span.letter a:hover {
 }
 
 .sortarrow.updown {
-	background-image: url( /images/updown.gif );
+	background-image: url(/catalyst/PfamWeb/images/updown.gif);
 }
 
 .sortarrow.down {
-	background-image: url( /images/downsimple.gif );
+	background-image: url(/catalyst/PfamWeb/images/downsimple.gif);
 }
 
 .sortarrow.up {
-	background-image: url( /images/upsimple.gif );
+	background-image: url(/catalyst/PfamWeb/images/upsimple.gif);
 }
 
 /* this is the auto-generated link for sorting the column */
@@ -218,7 +213,6 @@ a.sortheader {
 /* affects the key table */
 
 #keyTable {
-	font-size: smaller;
     margin-top: 4px;
     margin-bottom: 4px;
     width: 50%;
@@ -234,7 +228,6 @@ a.sortheader {
 /* affects the results table */
 
 #resultTable {
-    font-size: smaller;
 	clear: both;
 /* 	border: 1px solid #000070; */
     margin: 0 auto;
@@ -265,11 +258,11 @@ a.sortheader {
     text-align: center;
 	background-position: center center;
     background-repeat: no-repeat;
-	background-image: url( /images/blank_tick.gif );
+	background-image: url(/catalyst/PfamWeb/images/blank_tick.gif);
 }
 
 #resultTable td.ticked {
-	background-image: url( /images/tick.gif );
+	background-image: url(/catalyst/PfamWeb/images/tick.gif);
 }
 
 #resultTable thead tr a {

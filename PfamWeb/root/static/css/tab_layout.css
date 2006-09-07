@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.13 2006-08-14 10:51:27 jt6 Exp $
+   $Id: tab_layout.css,v 1.14 2006-09-07 10:13:45 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -19,7 +19,7 @@
 
 /* styles for the markup that forms the page tab */
 #tabTitle {
-/*  background: url(/images/layout/double_gradient.gif) repeat-y 15% bottom; */
+/*  background: url(/catalyst/PfamWeb/images/layout/double_gradient.gif) repeat-y 15% bottom; */
     min-height: 50px;
     margin: 0;
     padding: 0 0 2px 0;
@@ -32,14 +32,14 @@
 }
 
 #corner {
-    background: url(/images/layout/left_curve.gif) no-repeat top left;
+    background: url(/catalyst/PfamWeb/images/layout/left_curve.gif) no-repeat top left;
     padding: 12px 0 0 0.4em;
     height: 12px;
 }
 
 /* the overview bar */
 #icons {
-    background: url(/images/layout/right_top.gif) top left no-repeat;
+    background: url(/catalyst/PfamWeb/images/layout/right_top.gif) top left no-repeat;
     margin: 0;
     padding: 0 0 6px 40px;
     float: right;
@@ -75,11 +75,11 @@
 }
 
 /* the logos for the overview */
-#seqIcon	{ background-image: url(/images/logos/alignment.png) }
-#archIcon	{ background-image: url(/images/logos/domains.png) }
-#structIcon	{ background-image: url(/images/logos/structure.png) }
-#ipfamIcon	{ background-image: url(/images/logos/ipfam.png) }
-#specIcon	{ background-image: url(/images/logos/tree.png) }
+#seqIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/alignment.png) }
+#archIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/domains.png) }
+#structIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/structure.png) }
+#ipfamIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/ipfam.png) }
+#specIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/tree.png) }
 
 /* ======================================== */
 /* components of the remainder of the page */
@@ -108,7 +108,7 @@
 
 #footer {
   clear: both;
-  background-image: url(/images/layout/wide_tab_shadow.png);
+  background-image: url(/catalyst/PfamWeb/images/layout/wide_tab_shadow.png);
   background-repeat: no-repeat;
   background-position: top left;
   position: relative;
@@ -156,7 +156,7 @@
 }
 
 #sidebar li.selected {
-  background-image: url(/images/layout/wide_tab_shadow.png);
+  background-image: url(/catalyst/PfamWeb/images/layout/wide_tab_shadow.png);
   background-repeat: no-repeat;
   background-position: bottom left;
   margin-left: 0.2em;
@@ -170,6 +170,7 @@
   border-style: solid;
   border-right: none;
   padding: 0.2em 0 0.2em 0.4em;
+  background-image: url(/catalyst/PfamWeb/images/selected_bg.gif);
 }
 
 #sidebar li.selected a:hover {
@@ -187,6 +188,13 @@
 
 #sidebar img {
   padding: 0.4em 0.8em;
+}
+
+.loading {
+  background-image: url(/catalyst/PfamWeb/images/loading.gif);
+  background-repeat: no-repeat;
+  background-position: center left;
+  padding-left: 16px;
 }
 
 /* ======================================== */

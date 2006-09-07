@@ -3,81 +3,81 @@
 /* first or middle sibling, no children */
 .ygtvtn {
 	width:16px; height:22px; 
-	background: url(/images/treeview/default/tn.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/tn.gif) 0 0 no-repeat; 
 }
 
 /* first or middle sibling, collapsable */
 .ygtvtm {
 	width:16px; height:22px; 
 	cursor:pointer ;
-	background: url(/images/treeview/default/tm.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/tm.gif) 0 0 no-repeat; 
 }
 
 /* first or middle sibling, collapsable, hover */
 .ygtvtmh {
 	width:16px; height:22px; 
 	cursor:pointer ;
-	background: url(/images/treeview/default/tmh.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/tmh.gif) 0 0 no-repeat; 
 }
 
 /* first or middle sibling, expandable */
 .ygtvtp {
 	width:16px; height:22px; 
 	cursor:pointer ;
-	background: url(/images/treeview/default/tp.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/tp.gif) 0 0 no-repeat; 
 }
 
 /* first or middle sibling, expandable, hover */
 .ygtvtph {
 	width:16px; height:22px; 
 	cursor:pointer ;
-	background: url(/images/treeview/default/tph.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/tph.gif) 0 0 no-repeat; 
 }
 
 /* last sibling, no children */
 .ygtvln {
 	width:16px; height:22px; 
-	background: url(/images/treeview/default/ln.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/ln.gif) 0 0 no-repeat; 
 }
 
 /* Last sibling, collapsable */
 .ygtvlm {
 	width:16px; height:22px; 
 	cursor:pointer ;
-	background: url(/images/treeview/default/lm.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/lm.gif) 0 0 no-repeat; 
 }
 
 /* Last sibling, collapsable, hover */
 .ygtvlmh {
 	width:16px; height:22px; 
 	cursor:pointer ;
-	background: url(/images/treeview/default/lmh.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/lmh.gif) 0 0 no-repeat; 
 }
 
 /* Last sibling, expandable */
 .ygtvlp { 
 	width:16px; height:22px; 
 	cursor:pointer ;
-	background: url(/images/treeview/default/lp.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/lp.gif) 0 0 no-repeat; 
 }
 
 /* Last sibling, expandable, hover */
 .ygtvlph { 
 	width:17px; height:22px; cursor:pointer ;
-	background: url(/images/treeview/default/lph.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/lph.gif) 0 0 no-repeat; 
 }
 
 /* Loading icon */
 .ygtvloading { 
 	width:16px; height:22px; 
-	background: url(/images/treeview/default/loading.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/loading.gif) 0 0 no-repeat; 
 }
 
 /* the style for the empty cells that are used for rendering the depth 
  * of the node */
 .ygtvdepthcell { 
 	width:16px; height:22px; 
-	background: url(/images/treeview/default/vline.gif) 0 0 no-repeat; 
+	background: url(/catalyst/PfamWeb/images/treeview/default/vline.gif) 0 0 no-repeat; 
 }
 
 .ygtvblankdepthcell { width:16px; height:22px; }

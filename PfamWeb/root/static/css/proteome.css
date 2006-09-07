@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the proteome pages.
 
-   $Id: proteome.css,v 1.2 2006-08-22 13:39:50 rdf Exp $
+   $Id: proteome.css,v 1.3 2006-09-07 10:13:44 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -34,12 +34,12 @@
 
 #contentContainer {
   background-color: #fff1e6; /* vibrant 1 */
-  background-image: url(/images/ipfam/page_border.gif);
+  background-image: url(/catalyst/PfamWeb/images/ipfam/page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/images/ipfam/bg.gif) repeat-y 15% 0;
+  background: url(/catalyst/PfamWeb/images/ipfam/bg.gif) repeat-y 15% 0;
 }
 
 #content {
@@ -58,7 +58,6 @@
 
 #sidebar li.selected a {
   border-color: #6f63a2;
-  background-image: url(/images/selected_bg.gif);
 }
 
 #sidebar li span.inactive {
