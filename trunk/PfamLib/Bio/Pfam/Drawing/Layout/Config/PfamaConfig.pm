@@ -131,7 +131,10 @@ sub _rightStyle {
 sub _construct_URL {
   my ($self, $region) = @_;
   #This should be defined by some
-  $region->url("/family?acc=".$region->BioAnnotatedRegion->accession);
+  my $url = ( defined $ENV{PFAM_FAMILY_ROOT} ) 
+	? $ENV{PFAM_FAMILY_ROOT}."/family?acc=".$region->BioAnnotatedRegion->accession
+	  : "/family?acc=".$region->BioAnnotatedRegion->accession;
+	$region->url( $url );
 }
 
 
