@@ -38,6 +38,8 @@ use SOAP::Data::Builder;
 use XML::LibXML;
 use IPC::Open2;
 
+use File::Temp qw/ tempfile /;
+
 use Bio::Pfam::Root;
 
 @ISA = qw(Bio::Pfam::Root);
@@ -310,10 +312,12 @@ sub processResponse4Website {
 
 sub hits2Ali {
   my  $self = shift;
-  
+
+  #print STDERR "response DOM: |" . $self->_response->toString(1) . "|";
+
   my $aliString;
   foreach my $hitNode ($self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit")){
-    
+
     #get the evalue
     my $evalue        = $hitNode->findvalue("alignments/alignment/expectation");
     my $identity      = $hitNode->findvalue("alignments/alignment/identity");
@@ -322,27 +326,54 @@ sub hits2Ali {
     my $matchSeqStart = $hitNode->findvalue("alignments/alignment/matchSeq/\@start");
     my $matchSeqEnd   = $hitNode->findvalue("alignments/alignment/matchSeq/\@end");
     my $sequence      = $hitNode->findvalue("matchSequence/sequence/sequence");
-    
+	#print STDERR "sequence: |$sequence|\n";
+
     my $aliSeq        = substr($sequence, $matchSeqStart - 1, $matchSeqEnd - $matchSeqStart +1);
     foreach my $proteinNode ($hitNode->findnodes("matchSequence/protein")){
       my $protein       = $proteinNode->find("\@name");
       my $species       = $proteinNode->find("taxonomyNode/\@name");
       $aliString .= ">$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq\n";
+	  #print STDERR "aliString addition: |>$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq|\n";
     }
   }
 
   #print STDERR "$aliString\n";
   #Align the sequences
-  open(MSF, "echo \"$aliString\" | muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf |") || die "Could not open tmp msf:[$!]\n";
-  
+
+  # this isn't cutting it when we run on the dev servers, which have
+  # taint mode enabled. In taint mode we get all sorts of errors
+  # telling us we're doing bad things...
+  # jt6 20060830 WTSI
+  #open(MSF, "echo \"$aliString\" | /nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf |") || die "Could not open tmp msf:[$!]\n";
+
+
+  $ENV{PATH} = "/bin:/usr/bin:/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin";
+
+  my $tmpRoot;
+  if( $ENV{PFAM_DOMAIN_IMAGES} ) {
+    $tmpRoot = $ENV{PFAM_DOMAIN_IMAGES};
+  } elsif( $ENV{DOCUMENT_ROOT} ) {
+    $tmpRoot = "$ENV{DOCUMENT_ROOT}/tmp/pfam";
+  } else {
+    die "Can't set a temp directory";
+  }
+  ($tmpRoot) = $tmpRoot =~ m|([a-z0-9_\./]+)|i;
+
+  my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpRoot );
+  print $tmpFh $aliString;
+  close $tmpFh;
+
+  #print STDERR "Running muscle: |/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile|\n";
+
+  open( MSF, "/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
+	or die "Could not run muscle: $!";
+
   #Now Parse the alignment
   my $pfamaln = new Bio::Pfam::AlignPfam->new;
   $pfamaln->read_msf(\*MSF);
   close(MSF);
   return($pfamaln);
+
 }
-
-
-
 
 1;
