@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.5 2006-08-22 15:21:50 jt6 Exp $
+# $Id: phylo.tt,v 1.6 2006-09-07 09:50:05 jt6 Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -17,8 +17,7 @@
   <div class="blockContent">
 
 	<div id="alignmentTree">
-	  <p id="atph">
-	    <img src="/images/loading.gif" alt="loading..." />
+	  <p id="atph" class="loading">
         Loading alignment tree...
       </p>	
 	</div>

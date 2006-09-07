@@ -5,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.4 2006-08-14 11:01:53 jt6 Exp $
+# $Id: species.tt,v 1.5 2006-09-07 09:50:05 jt6 Exp $
 %]
 
 <!-- start species block -->
@@ -25,8 +25,7 @@
 
     <!-- start of tree -->
 	<div id="treeDiv">
-      <p id="stph">
-        <img src="/images/loading.gif" alt="loading..." />
+      <p id="stph" class="loading">
         Loading...
       </p>
     </div>
