@@ -4,24 +4,24 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.3 2006-08-14 10:53:43 jt6 Exp $
+// $Id: protein.js,v 1.4 2006-09-07 10:15:42 jt6 Exp $
 
 // this will make the ajax calls for the protein page components
 
 function proteinPostLoad() {
-   new Ajax.Request( loadOptions.pg.uri,
+  new Ajax.Request( loadOptions.pg.uri,
  					{ method: "get",
  					  parameters: loadOptions.pg.params,
  					  onComplete: pgSuccess,
  					  onFailure:  pgFailure
  					} );
 
-   new Ajax.Request( loadOptions.simap.uri,	
- 					{ method: "get",
- 					  parameters: loadOptions.simap.params,
- 					  onComplete: simapSuccess,
- 					  onFailure:  simapFailure
- 					} );		
+  new Ajax.Request( loadOptions.simap.uri,	
+  					{ method: "get",
+					  parameters: loadOptions.simap.params,
+					  onComplete: simapSuccess,
+					  onFailure:  simapFailure
+					} );
 }
 
 // show/hide the specified drop-down panel
