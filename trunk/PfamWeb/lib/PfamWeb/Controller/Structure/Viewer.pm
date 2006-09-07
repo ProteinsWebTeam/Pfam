@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.1 2006-08-14 10:46:35 jt6 Exp $
+# $Id: Viewer.pm,v 1.2 2006-09-07 11:53:59 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.1 2006-08-14 10:46:35 jt6 Exp $
+$Id: Viewer.pm,v 1.2 2006-09-07 11:53:59 jt6 Exp $
 
 =cut
 
@@ -54,11 +54,17 @@ sub auto : Private {
 
   # get the markup for this entry
   my %seenChainAutoPfamseq;
-  my @allMarkups;
+  my( @allMarkups, $ap, $chain );
   foreach my $map ( @{$c->stash->{mapping}}  ) {
-	
-	next if $seenChainAutoPfamseq{ $map->auto_pfamseq.$map->chain };
- 	#my @markups = PfamWeb::Model::Pfamseq_markup->search(
+
+	# all this crap is to avoid warnings when we try to build a hash
+	# key using a chain ID that is not defined...
+	$ap    = ( defined $map->auto_pfamseq ) ? $map->auto_pfamseq : "";
+	$chain = ( defined $map->chain ) ? $map->chain : "";
+
+	$c->log->debug( "Viewer::auto: auto_pfamseq, chain: |$ap|$chain|" );
+
+	next if $seenChainAutoPfamseq{$ap.$chain};
  	my @markups = $c->model("PfamDB::Pfamseq_markup")->search(
                     { "pdbResidue.auto_pfamseq" => $map->auto_pfamseq,
 					  "pdbResidue.chain"        => $map->chain,
@@ -66,7 +72,7 @@ sub auto : Private {
 				    { join     => [qw/pdbResidue/],
 					  prefetch => [qw/pdbResidue/] }
 				  );
-	$seenChainAutoPfamseq{ $map->auto_pfamseq.$map->chain}++;
+	$seenChainAutoPfamseq{$ap.$chain}++;
 	push @allMarkups, @markups;
   }
 
