@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.5 2006-08-14 10:59:07 jt6 Exp $
+# $Id: align.tt,v 1.6 2006-09-07 09:50:04 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -16,8 +16,7 @@
   <div class="blockContent">
 
 	<div id="caph">
-      <p>
-        <img src="/images/loading.gif" alt="loading..." />
+      <p class="loading">
         Loading alignment...
       </p>
     </div>
