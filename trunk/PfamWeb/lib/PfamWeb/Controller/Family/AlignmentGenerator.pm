@@ -4,7 +4,7 @@
 #
 # ?
 #
-# $Id: AlignmentGenerator.pm,v 1.4 2006-08-14 10:43:45 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.5 2006-09-07 11:52:36 jt6 Exp $
 
 package PfamWeb::Controller::Family::AlignmentGenerator;
 
@@ -26,12 +26,10 @@ sub getData : Path {
   # somewhere to dump the paging info
   $c->stash->{alignments} = {};
 
-  my @dsnList = ( "http://pfam1b.internal.sanger.ac.uk:9000/das/pfamAlign" );
-
   # retrieve the DasLite client from the base model class and hand it
   # the list of DSNs
   my $dl = $c->model("PfamDB")->getDasLite;
-  $dl->dsn( \@dsnList );
+  $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamAlign| ] );
 
   # get the limits from the parameters
   my $rows;
