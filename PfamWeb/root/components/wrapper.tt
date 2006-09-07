@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.15 2006-08-22 15:23:05 jt6 Exp $
+# $Id: wrapper.tt,v 1.16 2006-09-07 10:12:18 jt6 Exp $
 -%]
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -44,7 +44,7 @@
 
 
     <script type="text/javascript"
-      src="/javascripts/sorttable.js">
+      src="[% c.uri_for("/javascripts/sorttable.js" ) %]">
     </script>
 
     <!-- ====================================================================== -->
@@ -121,7 +121,7 @@
 
     <!-- ====================================================================== -->
 	<!-- set the favicon -->
-	<link rel="shortcut icon" href="/images/favicon.ico" >
+	<link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
 
     <!-- ====================================================================== -->
 	<!-- jmol -->	
@@ -132,8 +132,9 @@
 
     [%# do we want to highlight a particular tab ? %]
     <script type="text/javascript">
-      section = "[% pageType %]";
-      showTab = "[% showTab %]";
+	  serverRoot = "[% constants.root # the server root, e.g. /catalyst/PfamWeb %]";
+      section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
+      showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
       Event.observe( window, "load", chooseTab, false );
     </script> 
 
@@ -164,7 +165,7 @@
               </form>
                 <!--search box end-->
               </div>
-              <a href="[% c.uri_for( "/" ) %]"><img id="pfamLogo" src="[% constants.server %][% constants.root %]/images/pfam_logo.gif" alt="Pfam" /></a>
+              <a href="[% c.uri_for( "/" ) %]"><img id="pfamLogo" src="[% c.uri_for( "/images/pfam_logo.gif" ) %]" alt="Pfam" /></a>
             </td>
           </tr>
           <tr>
@@ -187,7 +188,7 @@
                     href="[% constants.server %][% constants.root %]"               
                     onmouseover="ypSlideOutMenu.hover_in('menu1')"
                     onmouseout="ypSlideOutMenu.hover_out('menu1')">
-                    <img src="/images/home.png" 
+                    <img src="[% c.uri_for( "/images/home.png" ) %]" 
                       height="15" 
                       width="100" 
                       alt="Pfam Home" 
@@ -195,7 +196,7 @@
                       border="0" /></a>
                 </td>
                 <td>
-                  <img src="/images/search.png" 
+                  <img src="[% c.uri_for( "/images/search.png" ) %]" 
                     height="15" 
                     width="100" 
                     alt="Search by" 
@@ -206,7 +207,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu2')" />
                 </td>
                 <td>
-                  <img src="/images/browse.png" 
+                  <img src="[% c.uri_for( "/images/browse.png" ) %]" 
                     height="15"
                     width="100"
                     title="Browse by - Click for menu"
@@ -217,7 +218,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu3')" />
                 </td>
                 <td>
-                  <img src="/images/ftp.png"
+                  <img src="[% c.uri_for( "/images/ftp.png" ) %]"
                     height="15"
                     width="100"
                     title="FTP - Click for menu"
@@ -228,7 +229,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu4')" />
                 </td>
                 <td>
-                  <img src="/images/ipfam.png"
+                  <img src="[% c.uri_for( "/images/ipfam.png" ) %]"
                     height="15"
                     width="100"
                     title="iPfam - Click for menu"
@@ -239,7 +240,7 @@
                     onmouseout="ypSlideOutMenu.hover_out('menu5')" />
                 </td>
                 <td>
-                  <img src="/images/help.png" 
+                  <img src="[% c.uri_for( "/images/help.png" ) %]" 
                     height="15"
                     width="100"
                     title="Help - Click for menu"
