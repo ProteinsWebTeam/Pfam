@@ -17,10 +17,10 @@
         height="500"
         name="av"
         code="MoleculeViewerApplet"
-        archive="/av/AstexViewer2.jar">
+        archive="[% c.uri_for( "/av/AstexViewer2.jar" ) %]">
 <param name="script" value="
 background '0xE7E7E7';
-molecule load mol 'http://temple.dynamic.sanger.ac.uk:3000/structure/getpdbfile/[% pdbId %].pdb';
+molecule load mol '[% c.uri_for( "/structure/getpdbfile" ) %]/[% pdbId %].pdb';
 display lines off all;
 color '0xDDDDDD' aminoacid;
 [%- FOREACH m IN mapping -%]
