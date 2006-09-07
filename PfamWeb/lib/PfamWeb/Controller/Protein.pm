@@ -4,7 +4,7 @@
 #
 # Controller to build the main protein page.
 #
-# $Id: Protein.pm,v 1.7 2006-08-22 13:35:25 rdf Exp $
+# $Id: Protein.pm,v 1.8 2006-09-07 11:52:09 jt6 Exp $
 
 package PfamWeb::Controller::Protein;
 
@@ -95,6 +95,7 @@ sub begin : Private {
   # get a layout manager and set the X scale
   my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layoutPfam->scale_x(1);
+  $c->log->debug( "Protein::begin: instantiated a layout manager" );
 
   # retrieve the Storable containing the annotated sequence, thaw it
   # and hand it off to the layout manager
@@ -116,6 +117,7 @@ sub begin : Private {
   # and build an imageset
   my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $pfamImageset->create_images( $layoutPfam->layout_to_XMLDOM );
+  $c->log->debug( "Protein::begin: created images" );
 
   $c->stash->{pfamImageset} = $pfamImageset;
 
