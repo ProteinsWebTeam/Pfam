@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.10 2006-08-14 10:51:27 jt6 Exp $
+   $Id: family.css,v 1.11 2006-09-07 10:13:44 jt6 Exp $
 */   
 
 /*
@@ -40,12 +40,12 @@ highlight/border: #074987 (Prime 1, 100%)
 
 #contentContainer {
   background-color: #e7edf3; /* Prime 1 */
-  background-image: url(/images/family/page_border.gif);
+  background-image: url(/catalyst/PfamWeb/images/family/page_border.gif);
 }
 
 #wrap {
   position: relative; /* needed to fix the IE peekaboo bug... */
-  background: url(/images/family/bg.gif) repeat-y 15% 0;
+  background: url(/catalyst/PfamWeb/images/family/bg.gif) repeat-y 15% 0;
 }
 
 #content {
@@ -64,7 +64,6 @@ highlight/border: #074987 (Prime 1, 100%)
 
 #sidebar li.selected a {
   border-color: #074897;
-  background-image: url(/images/selected_bg.gif);
 }
 
 #footer {
