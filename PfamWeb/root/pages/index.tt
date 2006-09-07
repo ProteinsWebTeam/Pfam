@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.3 2006-08-22 12:46:29 uid11770 Exp $
+# $Id: index.tt,v 1.4 2006-09-07 10:25:13 jt6 Exp $
 %]
 
 <!-- start the index page -->
@@ -89,12 +89,14 @@
 </div>
 
 <div id="pageBody">
-
+[%# USE links = PfamWeb::Template::Plugin::Links %]
+[%# FILTER $links %]
   <p>
     Pfam is a large collection of multiple sequence alignments and hidden
     Markov models covering many common protein domains and families. For
     each family in Pfam you can:
   </p>
+[%# END %]
   <ul>
     <li>Look at multiple alignments</li>
     <li>View protein domain architectures</li>
@@ -130,3 +132,7 @@
 </div>
 
 <!-- end the index page -->
+
+[%# USE conv = PfamWeb::Template::Plugin::TTPlug %]
+[%# "ABCDEFGHIJKLMNOPQRSTUVWXYZ" | $conv %]
+
