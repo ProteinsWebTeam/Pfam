@@ -45,7 +45,7 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
 %]
 
 <script type="text/javascript">
-  jmolInitialize("/jmol"); // REQUIRED
+  jmolInitialize(" [% c.uri_for( "/jmol" ) %]"); // REQUIRED
   jmolSetAppletColor( "white" );
   jmolApplet(500, '[% script %]');
 </script>
