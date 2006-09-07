@@ -5,7 +5,7 @@
 #
 # the domain organisation block for the clans sections
 #
-# $Id: domains.tt,v 1.3 2006-08-14 10:57:16 jt6 Exp $
+# $Id: domains.tt,v 1.4 2006-09-07 09:48:32 jt6 Exp $
 %]
 
 <!-- start domain organisation block -->
@@ -17,8 +17,7 @@
   <div class="blockContent">
 
 	<div id="clanGraphicsHolder">
-      <p id="cgph">
-        <img src="/images/loading.gif" alt="loading..." />
+      <p id="cgph" class="loading">
         Loading domain graphics...
       </p>
     </div> <!-- end of clanGraphicsHolder -->
