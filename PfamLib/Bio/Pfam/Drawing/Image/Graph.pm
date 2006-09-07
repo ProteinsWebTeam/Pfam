@@ -221,11 +221,11 @@ sub print_image{
   
   my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
   my $root;
-  if( $ENV{DOCUMENT_ROOT} ) {
-    $root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
-    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
-  } elsif($ENV{PFAM_DOMAIN_IMAGES}) {
+  if($ENV{PFAM_DOMAIN_IMAGES}) {
     $root = "$ENV{'PFAM_DOMAIN_IMAGES'}";
+    ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
+  } elsif( $ENV{DOCUMENT_ROOT} ) {
+    $root = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
     ($root)  = $root =~ m|([a-z0-9_\./]+)|i;
   }else{
     die "Do not know where to print images to: Please set the environment variable PFAM_DOMAIN_IMAGES\n"; 
