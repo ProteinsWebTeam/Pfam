@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.10 2006-08-14 10:44:47 jt6 Exp $
+# $Id: Graphics.pm,v 1.11 2006-09-07 11:53:19 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -27,7 +27,7 @@ use base "PfamWeb::Controller::Protein";
 
 # pick up a URL like http://localhost:3000/protein/graphics?acc=P00179
 
-sub updateSources : Path( "/updatesources" ) {
+sub updateSources : Path {
   my( $this, $c ) = @_;
 
   $c->log->debug( "Protein::Graphics::updateSources: listing parameters:" );
@@ -46,25 +46,93 @@ sub updateSources : Path( "/updatesources" ) {
   my $sequence = $dl->sequence( $seqAcc );
   return unless $sequence;
 
+  $c->log->debug( "Protein::Graphics::updateSources: sequence: |".Dumper($sequence)."|" );
+
   # retrieve the image map for the Pfam graphic from the stash and add
   # it to the array of images that we're going to generate here.
   my( %maps, $handle, $server, $serverName, @pfam );
   foreach my $image ( $c->stash->{pfamImageset}->each_image ) {
 	$image->image_name( $image->image_name . "0" );
 	$image->print_image;
-	push(@pfam, { image => $image->file_location,
+	push @pfam, { image => $image->file_location,
 				  map   => $image->image_map,
 				  server=> "Pfam",
-				  info  => $image->image_info });
+				  info  => $image->image_info };
   }
 
   # if we do get a sequence, we can now add the user-specified sources
   # and call those registries to get features.
 
-  # we'll reuse the array for the list of servers...
+  # reset the list of DSN URLs
   @dsnList = ();
 
-  # get the server list
+  # get the server list and update @dsnList in place
+  $c->forward( "getServerList", [ \@dsnList ] );
+
+  foreach my $ds ( @{$c->stash->{dsnList}} ) {
+	$c->log->debug( "Protein::Graphics::updateSources: default server: |$ds|" );
+  }
+
+  # give the DasLite object our list of servers and retrieve the
+  # features for them
+  $dl->dsn( $c->stash->{dsnList} );
+
+  my $features = $dl->features( $seqAcc );
+  $c->log->debug( "Protein::Graphics::updatesources: features: |" . Dumper($features) ."|" );
+
+  # hand the features to the layout manager and get it to draw the graphics
+  my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
+  my $success = $layout->layout_DAS_sequences_and_features( $sequence, $features );
+  $c->log->debug( "Protein::Graphics::updatesources: Das DOM:"
+				  . $layout->layout_to_XMLDOM->toString(1));
+
+  if($success){
+ 	my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+ 	$imageset->create_images( $layout->layout_to_XMLDOM );
+
+ 	# process the generated images and convert the URL that comes back
+ 	# from the layout manager into a simple label, via our database
+ 	# table of server information
+ 	my $i = 1; # start at 1 because the Pfam graphic is 0
+
+ 	my ($pfamRef);
+ 	foreach my $image ( $imageset->each_image ) {
+
+ 	  ( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
+ 	  $server = $c->model("PfamDB::Das_sources")->find( { url => $handle } );
+
+ 	  # append an image number to the image name, to avoid name clashes
+ 	  # for multiple images generated in the same run
+ 	  $image->image_name( $image->image_name . $i++ );
+ 	  $image->print_image;
+ 	  $serverName = ( defined $server ) ? $server->name : "unknown";
+ 	  push @{ $maps{$serverName} }, { image => $image->file_location,
+ 									  map   => $image->image_map,
+ 									  server=> $serverName,
+ 									  info  => $image->image_info };
+ 	}
+   }
+
+   # sort the maps according to server name
+   my @maps;
+   foreach ( sort keys %maps ) {
+ 	push @maps, @{ $maps{$_} };
+   }
+   unshift @maps, @pfam;
+
+   # stash the maps and we're done
+   $c->stash->{maps} = \@maps;
+
+   $c->log->debug( "Protein::Graphics::updateSources: generated "
+				   . scalar @{$c->stash->{maps}} . " images" );
+}
+
+#-------------------------------------------------------------------------------
+# retrieve the list of servers from either the request (in the
+# parameters), the session or, finally, the database
+
+sub getServerList : Private {
+  my( $this, $c, $dsnList ) = @_;
 
   # keep track of server IDs, so that we can store them in the session
   # later
@@ -73,7 +141,7 @@ sub updateSources : Path( "/updatesources" ) {
   # first, see if there's a list in the request parameters
   if( $c->req->param( "reload" ) ) {
 
-	$c->log->debug( "getting DAS server IDs from the request" );
+	$c->log->debug( "Protein::Graphics::getServerList: getting DAS server IDs from request" );
 	foreach ( sort keys %{$c->req->parameters} ) {
 
 	  # we want only the server IDs
@@ -82,95 +150,42 @@ sub updateSources : Path( "/updatesources" ) {
 	  my $ds = $c->model("PfamDB::Das_sources")->find( { server_id => $1 } );
 
 	  if( defined $ds ) {
-		push @dsnList, $ds->url;
+		push @$dsnList, $ds->url;
 		$servers{$1} = 1;
-		$c->log->debug( "  added $1 to session" );
+		$c->log->debug( "Protein::Graphics::getServerList:   extracted $1" );
 	  }
 	}
 
   # next, see if there's a list of servers set in the session
   } elsif( $c->session->{selectedDASServers} ) {
 
-	$c->log->debug( "getting DAS server IDs from the session" );
-	
-	foreach ( keys %{$c->session->{selectedDASServers}} ) {
-	  my $ds = $c->model("PfamDB::Das_sources")->find( { server_id => $_ } );
-	  $c->log->debug( "  extracted $_ from session" );
-	  push @dsnList, $ds->url if defined $ds;
-	}
+ 	$c->log->debug( "Protein::Graphics::getServerList: getting server IDs from session" );
+
+ 	foreach ( keys %{$c->session->{selectedDASServers}} ) {
+ 	  my $ds = $c->model("PfamDB::Das_sources")->find( { server_id => $_ } );
+ 	  $c->log->debug( "Protein::Graphics::getServerList:   extracted $_" );
+ 	  push @$dsnList, $ds->url if defined $ds;
+ 	}
 
   } else {
 
 	# finally, if we don't have a list of servers from either the
 	# session or the request, get the default list from the DB
-
-	$c->log->debug( "getting DAS server IDs from the database" );
+	$c->log->debug( "Protein::Graphics::getServerList: getting server IDs from database" );
 	my @defaultServers = $c->model("PfamDB::Das_sources")->search( { default_server => 1 } );
+ 	foreach ( @defaultServers ) {
+	  push @$dsnList, $_->url;
+ 	  $servers{$_->server_id} = 1;
+	  $c->log->debug( "Protein::Graphics::getServerList:   extracted " . $_->server_id );
+ 	}
 
-	foreach ( @defaultServers ) {
-	  push @dsnList, $_->url;
-	  $servers{$_->server_id} = 1;
-	  $c->log->debug( "  added " . $_->server_id . " to session" );
-	}
-
-  }
+   }
 
   # store the list of selected servers in the session
-  $c->log->debug( "selected servers: " );
-  foreach my $id ( keys %servers ) {
-	$c->log->debug( "server id: |$id|" );
-  }
+   $c->session->{selectedDASServers} = \%servers if scalar keys %servers;
 
-  $c->session->{selectedDASServers} = \%servers
-	if scalar keys %servers;
-
-  # give the DasLite object our list of servers and retrieve the
-  # features for them
-  $dl->dsn( \@dsnList );
-  my $features = $dl->features( $seqAcc );
-
-  # hand the features to the layout manager and get it to draw the graphics
-  my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
-  my $success = $layout->layout_DAS_sequences_and_features( $sequence, $features );
-  #$c->log->debug( "Das DOM:".$layout->layout_to_XMLDOM->toString(1));
-  if($success){
-    my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-    $imageset->create_images( $layout->layout_to_XMLDOM );
-
-    # process the generated images and convert the URL that comes back
-    # from the layout manager into a simple label, via our database
-    # table of server information
-    my $i = 1; # start at 1 because the Pfam graphic is 0
-
-    my ($pfamRef);
-    foreach my $image ( $imageset->each_image ) {
-
-      ( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
-      $server = $c->model("PfamDB::Das_sources")->find( { url => $handle } );
-
-      # append an image number to the image name, to avoid name clashes
-      # for multiple images generated in the same run
-      $image->image_name( $image->image_name . $i++ );
-      $image->print_image;
-      $c->log->debug("Server is :|$server|");
-      $serverName = ( defined $server ) ? $server->name : "unknown";
-      push @{ $maps{$serverName} }, { image => $image->file_location,
-				      map   => $image->image_map,
-				      server=> $serverName,
-				      info  => $image->image_info };
-    }
-  }
-
-  # sort the maps according to server name
-  my @maps;
-  foreach ( sort keys %maps ) {
-	push @maps, @{ $maps{$_} };
-  }
-  unshift( @maps, @pfam);
-  # stash the maps and we're done
-  $c->stash->{maps} = \@maps;
+  $c->stash->{dsnList} = $dsnList;
 }
-
 
 #-------------------------------------------------------------------------------
 # override the end method from Protein.pm, so that we now redirect to
