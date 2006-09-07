@@ -33,7 +33,8 @@ use vars qw($AUTOLOAD @ISA);
 
 use strict;
 use warnings;
-use SOAP::Lite (outputxml => 1); # We need to return XML in the response as SOAP::SOM screws the response!
+use SOAP::Lite;
+
 use SOAP::Data::Builder;
 use XML::LibXML;
 use IPC::Open2;
@@ -71,17 +72,15 @@ sub new {
   };
 
   # set a default proxy, if it's not specified
-  $self->{simapProxy} ||= "http://wwwcache.sanger.ac.uk:3128/";
+  $self->{proxy} ||= "http://wwwcache.sanger.ac.uk:3128/";
 
   return $self;
 }
 
 sub proxy {
   my ($self,$proxy) = @_;
-
   # set a proxy, if defined
   $self->{proxy} = $proxy if defined $proxy;
-
   return $self->{proxy};
 }
 
@@ -221,6 +220,7 @@ sub queryService {
   #Now make the request to the SIMAP service.
   my $results  = SOAP::Lite
     -> uri('http://mips.gsf.de/webservices/services/SimapService')
+     ->outputxml(1) # We need to return XML in the response as SOAP::SOM screws the response!
       -> proxy('http://mips.gsf.de/webservices/services/SimapService',
 			   proxy => [ 'http' => $self->proxy ]
 			  )
@@ -269,7 +269,7 @@ sub processResponse4Website {
       $seqElement->setAttribute( "hidden", 1);
       my $region = $drawingXML->createElement("region");
       $region->setAttribute( "label" , "$protein/$matchSeqStart-$matchSeqEnd : $querySeqStart-$querySeqEnd ($identity%)" );
-      $region->setAttribute( "link_URL", "/protein?acc=$protein");
+      $region->setAttribute( "link_URL", "catalyst/PfamWeb/protein?acc=$protein");
       $region->setAttribute( "start" ,$querySeqStart  );
       $region->setAttribute( "end", $querySeqEnd );
       $region->setAttribute( "solid", 1);
@@ -365,7 +365,7 @@ sub hits2Ali {
 
   #print STDERR "Running muscle: |/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile|\n";
 
-  open( MSF, "/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
+  open( MSF, "muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
 	or die "Could not run muscle: $!";
 
   #Now Parse the alignment
