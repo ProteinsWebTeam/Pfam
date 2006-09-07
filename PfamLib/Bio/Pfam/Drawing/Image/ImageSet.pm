@@ -100,7 +100,8 @@ sub add_image {
 
 sub each_image {
   my $self = shift;
-  return @{$self->{'images'}};
+#  return @{$self->{images}};
+  return wantarray ? @{$self->{images}} : $self->{images};
 }
 
 sub add_graph{
