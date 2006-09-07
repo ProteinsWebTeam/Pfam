@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.14 2006-08-14 10:54:25 jt6 Exp $
+// $Id: pfFunctions.js,v 1.15 2006-09-07 10:14:18 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -216,7 +216,8 @@ function show( id ) {
 						  } );
 
   // set a cookie to show the preference
-  createCookie( "lastTab", id, "1d", section );
+  createCookie( "lastTab", id, "1d", serverRoot + "/" + section );
+
 }
 
 //------------------------------------------------------------
@@ -361,7 +362,7 @@ function popUp( strURL, strType, strHeight, strWidth, strName ) {
   }
   var strOptions="";
   if( strType == "console" ) {
-	strOptions = "resizable,height="+strHeight+",width="+strWidth;
+	strOptions = "resizable,scrollbars,height="+strHeight+",width="+strWidth;
   }
   if( strType == "fixed" ) {
 	strOptions = "status,height="+strHeight+",width="+strWidth;
@@ -424,10 +425,11 @@ function createCookie( name, value, time, path ) {
   }
 
   // was there a path specified ?
-  path = (path) ? "/" + path : "/";
+  path = (path) ? path : "/";
 
   // add the cookie
   document.cookie = name + "=" + value + expires + "; path=" + path;
+
 }
 
 //----------------------------------------
