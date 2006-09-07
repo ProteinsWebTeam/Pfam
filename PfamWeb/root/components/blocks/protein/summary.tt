@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.6 2006-08-14 11:07:00 jt6 Exp $
+# $Id: summary.tt,v 1.7 2006-09-07 09:58:19 jt6 Exp $
 %]
 
 [% USE String %]
@@ -59,7 +59,8 @@
       </tbody>
 	</table>
 
-	[% image = pfamImageset.each_image.list.shift %]
+	[% image = pfamImageset.each_image %]
+
 	[% CALL image.print_image %]
 
     <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/><br/>
