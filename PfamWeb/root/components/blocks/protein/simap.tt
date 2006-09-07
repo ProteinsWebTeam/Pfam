@@ -5,7 +5,7 @@
 # 
 # block for the SIMAP data
 #
-# $Id: simap.tt,v 1.3 2006-08-14 11:05:59 jt6 Exp $
+# $Id: simap.tt,v 1.4 2006-09-07 09:52:14 jt6 Exp $
 -%]
 
 <!-- start SIMAP block -->
@@ -18,8 +18,7 @@
 
 	<!-- start of SIMAP graphics div -->
     <div id="simapGraphicsHolder">
-	  <p id="simapph">
-        <img src="/images/loading.gif" alt="loading..." />
+	  <p id="simapph" class="loading">
         Loading feature alignment...
       </p>
     </div>
