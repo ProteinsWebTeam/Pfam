@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.4 2006-09-07 10:25:13 jt6 Exp $
+# $Id: index.tt,v 1.5 2006-09-08 15:23:56 jt6 Exp $
 %]
 
 <!-- start the index page -->
@@ -125,7 +125,7 @@
     Pfam containing over 8296 protein families. To give Pfam a more
     comprehensive coverage of known proteins we automatically generate a
     supplement called Pfam-B. This contains a large number of small
-    families taken from the <a href="http://prodes.toulouse.inra.fr/prodom/doc/prodom.html">PRODOM</a> database that do not overlap with
+    families taken from the <a class="ext" href="http://prodes.toulouse.inra.fr/prodom/doc/prodom.html">PRODOM</a> database that do not overlap with
     Pfam-A. Although of lower quality Pfam-B families can be useful when
     no Pfam-A families are found.
   </p>
