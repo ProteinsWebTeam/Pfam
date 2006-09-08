@@ -5,7 +5,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.3 2006-08-14 11:09:08 jt6 Exp $
+# $Id: links.tt,v 1.4 2006-09-08 15:23:14 jt6 Exp $
 -%]
 
 [% USE dumper %]
@@ -49,29 +49,29 @@ external = [
 [% BLOCK buildLink %]
   [% SWITCH type %]
     [% CASE "PROSITE" %]
-      <a href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
+      <a class="ext" href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
     [% CASE "PFAMB" %]
-      <a href="[% c.uri_for( "/pfamb", acc=id ) %]">[% id %]</a>
+      <a class="ext" href="[% c.uri_for( "/pfamb", acc=id ) %]">[% id %]</a>
 	[% CASE "interpro" %]
-      <a href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
+      <a class="ext" href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
 	[% CASE "pdb" %]
-      <a href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
+      <a class="ext" href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
 	[% CASE "COGS" %]
-      <a href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
+      <a class="ext" href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
 	[% CASE "HOMSTRAD" %]
-      <a href="http://www-cryst.bioc.cam.ac.uk/cgi-bin/homstrad.cgi?family=[% id %]">[% id %]</a>
+      <a class="ext" href="http://www-cryst.bioc.cam.ac.uk/cgi-bin/homstrad.cgi?family=[% id %]">[% id %]</a>
 	[% CASE "SCOP" %]
       [% IF other %]
-      <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=[% other %]&pdb=[% id %]">[% id %]</a>
+      <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=[% other %]&pdb=[% id %]">[% id %]</a>
       [% ELSE %]
-      <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% id %]">[% id %]</a>
+      <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% id %]">[% id %]</a>
       [% END %]
 	[% CASE "MEROPS" %]
-      <a href="http://merops.sanger.ac.uk/cgi-bin/merops.cgi?id=[% id %]">[% id %]</a>
+      <a class="ext" href="http://merops.sanger.ac.uk/cgi-bin/merops.cgi?id=[% id %]">[% id %]</a>
 	[% CASE "CATH" %]
-      <a href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=[% id %]">[% id %]</a>
+      <a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=[% id %]">[% id %]</a>
 	[% CASE "URL" %]
-      <a href="[% id %]">[% number %]</a>
+      <a class="ext" href="[% id %]">[% number %]</a>
 	[% CASE %]
       <p>Unrecognized link type: [% type %]</p>
   [% END %]

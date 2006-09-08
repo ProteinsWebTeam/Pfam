@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.9 2006-09-07 10:10:34 jt6 Exp $
+# $Id: graphics.tt,v 1.10 2006-09-08 15:23:22 jt6 Exp $
 -%]
 
 <!-- start protein graphics block -->
@@ -37,9 +37,10 @@
       loadOptions.pg.params = "acc=[% pfamseq.pfamseq_acc %]";
   	</script>
 
+    <p><a href="#" onclick="return reveal(this,'checkboxes')">Show</a>
+	  sources update panel.</p>
+
 	<div id="updatePanel">
-      <p><a href="#" onclick="return reveal(this,'checkboxes')">Show</a>
-	    sources update panel.</p>
 
 	  <div id="checkboxes" style="display: none">
 
@@ -60,7 +61,7 @@
           [% FOREACH source IN dasSourcesRs.sort("name") -%]
   	        <div class="source">
     	        <input name="[% source.server_id %]" type="checkbox" [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="1"[% END %] />
-      	        <span class="checkboxLabel">
+      	        <span class="checkboxLabel ext">
 	            [% IF source.helper_url %]
                 <a href="[% source.helper_url %]">[% source.name %]</a>
                 [% ELSE %]
@@ -82,10 +83,10 @@
 
         </form>
 
+        <div class="cleaner">&nbsp;</div>
+ 
 	  </div> <!-- end of "checkboxes" -->
 
-      <div class="cleaner">&nbsp;</div>
- 
     </div> <!-- end of "updatePanel" -->
 
   </div> <!-- end of "blockContent" -->

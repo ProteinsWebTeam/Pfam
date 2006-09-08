@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.5 2006-08-14 10:58:49 jt6 Exp $
+# $Id: summary.tt,v 1.6 2006-09-08 15:23:22 jt6 Exp $
 %]
 
 [%# add an observer to trigger post-loading of the graphics %]
@@ -46,7 +46,7 @@
       [% FOREACH ref IN clan.clan_lit_refs %]
         <li>
           [% ref.author %], [% ref.journal %]: [% ref.title %]
-          <a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
         </li>
       [% END %]
     </ol>
