@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.11 2006-09-07 10:13:45 jt6 Exp $
+   $Id: pfam.css,v 1.12 2006-09-08 15:08:06 jt6 Exp $
 */   
 
 body {
@@ -17,8 +17,6 @@ body {
 
 .headercentre {
 	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
-/*	background: #FFF url(http://www.sanger.ac.uk/Software/Pfam/images/swoosh_structure.png) no-repeat top left; */
-/*	background: #FFF url(/static/images/swoosh_coloured_structure.jpg) no-repeat top left; */
 }
 
 #header { 
@@ -61,6 +59,13 @@ div.menubar {
 
 ul, dl, ol {
 	position: relative;
+}
+
+a.ext {
+	background-image: url(/catalyst/PfamWeb/images/external.png);
+    background-repeat: no-repeat;
+    background-position: center right;
+    padding-right: 12px;
 }
 
 a:link,
