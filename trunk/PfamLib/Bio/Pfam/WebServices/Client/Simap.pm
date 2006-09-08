@@ -347,8 +347,6 @@ sub hits2Ali {
   #open(MSF, "echo \"$aliString\" | /nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf |") || die "Could not open tmp msf:[$!]\n";
 
 
-  $ENV{PATH} = "/bin:/usr/bin:/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin";
-
   my $tmpRoot;
   if( $ENV{PFAM_DOMAIN_IMAGES} ) {
     $tmpRoot = $ENV{PFAM_DOMAIN_IMAGES};
@@ -365,7 +363,7 @@ sub hits2Ali {
 
   #print STDERR "Running muscle: |/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile|\n";
 
-  open( MSF, "muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
+  open( MSF, "$ENV{PFAM_MUSCLE_BIN} -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
 	or die "Could not run muscle: $!";
 
   #Now Parse the alignment
