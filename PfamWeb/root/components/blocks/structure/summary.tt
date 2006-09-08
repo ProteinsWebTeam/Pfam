@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.6 2006-09-07 10:11:35 jt6 Exp $
+# $Id: summary.tt,v 1.7 2006-09-08 15:23:24 jt6 Exp $
 %]
 
 [% USE String %]
@@ -119,14 +119,14 @@
 		      </tbody>
             </table>
 
-			<p class="small"><strong>Note:</strong> This mapping was provided by the <a href="http://www.ebi.ac.uk/msd/">MSD</a> group.</p>
+			<p class="small"><strong>Note:</strong> This mapping was provided by the <a class="ext" href="http://www.ebi.ac.uk/msd/">MSD</a> group.</p>
 
           </td>
 		</tr>
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		  <td class="label">PubMed reference:</td>
 	      <td class="data">
-	        <a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&list_uids=[% pdb.pubmed_id %]&dopt=Abstract">[% pdb.pubmed_id %]</a>
+	        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&list_uids=[% pdb.pubmed_id %]&dopt=Abstract">[% pdb.pubmed_id %]</a>
           </td>
 		</tr>
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
@@ -134,19 +134,19 @@
 	      <td class="data">
             <ol>
               <li>
-                <a href="http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=[% pdbId %]">Protein DataBank (PDB)</a>
+                <a class="ext" href="http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=[% pdbId %]">Protein DataBank (PDB)</a>
               </li>
               <li>
-                <a href="http://www.ebi.ac.uk/msd-srv/atlas?id=[% pdbId %]">Macromolecular Structure Database (MSD)</a>
+                <a class="ext" href="http://www.ebi.ac.uk/msd-srv/atlas?id=[% pdbId %]">Macromolecular Structure Database (MSD)</a>
               </li>
               <li>
-                <a href="http://www.ebi.ac.uk/thornton-srv/databases/cgi-bin/pdbsum/GetPage.pl?pdbcode=[% pdbId %]">PDBsum</a>
+                <a class="ext" href="http://www.ebi.ac.uk/thornton-srv/databases/cgi-bin/pdbsum/GetPage.pl?pdbcode=[% pdbId %]">PDBsum</a>
               </li>
               <li>
-                <a href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/CATHSrch.pl?type=PDB&query=[% pdbId %]">CATH</a>
+                <a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/CATHSrch.pl?type=PDB&query=[% pdbId %]">CATH</a>
               </li>
               <li>
-                <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?pdb=[% pdbId %]">Structural Classifcation of Proteins (SCOP)</a>
+                <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?pdb=[% pdbId %]">Structural Classifcation of Proteins (SCOP)</a>
               </li>
             </ol>
           </td>

@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.6 2006-08-14 11:02:18 jt6 Exp $
+# $Id: summary.tt,v 1.7 2006-09-08 15:23:22 jt6 Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -45,7 +45,7 @@
 	  [% FOREACH ref IN pfam.pfamA_lit_refs %]
 	  <li>
         [% ref.author %], [% ref.journal %]: [% ref.title %]
-		<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
+		<a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
       </li>
 	  [% END %]
 	</ol>

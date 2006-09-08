@@ -3,7 +3,7 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.5 2006-09-07 09:48:55 jt6 Exp $
+# $Id: relationships.tt,v 1.6 2006-09-08 15:23:22 jt6 Exp $
 %]
 
 <!-- start relationships block -->
@@ -17,8 +17,7 @@
   </div>
   <div class="blockContent">
 
-    <a href="javascript:scaleImage()"><img id="clanImage" src="[% image %]" alt="" usemap="#clanMap" /></a>
-
+    <!-- a href="javascript:scaleImage()"--><img id="clanImage" src="[% image %]" alt="" usemap="#clanMap" /><!-- /a -->
     [% TRY %]
 	<map name="clanMap" id="clanMap">
       [% INSERT $map %]

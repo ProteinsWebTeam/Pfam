@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.7 2006-09-07 09:58:19 jt6 Exp $
+# $Id: summary.tt,v 1.8 2006-09-08 15:23:23 jt6 Exp $
 %]
 
 [% USE String %]
@@ -31,7 +31,9 @@
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		  <td class="label">Entry:</td>
 	      <td class="data">
-            <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_acc %]</a>)
+            <span class="ext">
+              <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_acc %]</a>)
+            </span>
           </td>
 		</tr>
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
@@ -44,7 +46,9 @@
 		  <td class="label">Source organism:</td>
 	      <td class="data">
             [% IF pfamseq.ncbi_code %]
+            <span class="ext">
 	          <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.ncbi_code %]</a>)
+            </span>
             [% ELSE %]	
 	          [% pfamseq.species %]
             [% END %]
