@@ -4,7 +4,7 @@
 
    IE stylesheet to apply various fixes for IE inadequacies and bugs
    
-   $Id: tab_layout_ie.css,v 1.5 2006-07-14 12:55:12 jt6 Exp $
+   $Id: tab_layout_ie.css,v 1.6 2006-09-11 10:28:31 jt6 Exp $
 */
 
 hr.short {
@@ -19,34 +19,34 @@ hr.short {
 /* the individual icons in the overview bar */
 #seqIcon {
     background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/logos/alignment.png",sizingMethod="crop");
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/alignment.png",sizingMethod="crop");
 }
 
 #archIcon {
     background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/logos/domains.png",sizingMethod="crop");
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/domains.png",sizingMethod="crop");
 }
 
 #structIcon {
     background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/logos/structure.png",sizingMethod="crop");
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/structure.png",sizingMethod="crop");
 }
 
 #ipfamIcon {
     background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/logos/ipfam.png",sizingMethod="crop");
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/ipfam.png",sizingMethod="crop");
 }
 
 #specIcon {
     background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/logos/tree.png",sizingMethod="crop");
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/tree.png",sizingMethod="crop");
 }
 
 /* turn off the background for the active tab in the sidebar. The IE filter
    just doesnt work... */
 #sidebar li.selected {
     background-image: none;
-/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
+/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
 }
 
 /* the shadow under the main content. Just turn it off for now, because the 
@@ -54,7 +54,7 @@ hr.short {
    the other */
 #footer {
     background-image: none;
-/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
+/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
 /*  move the footer across to avoid an overhanging bit of background. That would
     be the IE box model bug I think... */
     left: 4px;
