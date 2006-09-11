@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.13 2006-09-08 15:24:27 jt6 Exp $
+   $Id: pfam.css,v 1.14 2006-09-11 10:27:57 jt6 Exp $
 */   
 
 body {
@@ -62,9 +62,7 @@ ul, dl, ol {
 }
 
 .ext {
-	background-image: url(/catalyst/PfamWeb/images/external.png);
-    background-repeat: no-repeat;
-    background-position: center right;
+	background: url(/catalyst/PfamWeb/images/external.gif) no-repeat center right;
     padding-right: 12px;
 }
 
