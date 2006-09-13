@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.2 2006-09-07 11:53:59 jt6 Exp $
+# $Id: Viewer.pm,v 1.3 2006-09-13 08:34:21 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.2 2006-09-07 11:53:59 jt6 Exp $
+$Id: Viewer.pm,v 1.3 2006-09-13 08:34:21 jt6 Exp $
 
 =cut
 
@@ -135,7 +135,7 @@ sub end : Private {
   }
 
   # and render the page
-  $c->forward( "PfamWeb::View::TT" );
+  $c->forward( "PfamWeb::View::TTBlock" );
 
   # clear any errors
   $c->error(0);
