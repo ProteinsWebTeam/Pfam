@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.14 2006-09-11 10:27:57 jt6 Exp $
+   $Id: pfam.css,v 1.15 2006-09-13 08:27:16 jt6 Exp $
 */   
 
 body {
@@ -142,6 +142,14 @@ div.pageList span.letter a {
 div.pageList span.letter a:hover {
   background: #AAA;
   color: white;
+}
+
+/* ======================================== */
+/* viewer pages */
+
+h1.viewHeader {
+    padding-top: 70px;
+	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
 }
 
 /* ======================================== */
