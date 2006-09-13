@@ -1,0 +1,9 @@
+
+[% USE date %]
+
+<h3>SIMAP data unavailable</h3>
+
+<p>Data for this section are retrieved directly from SIMAP, but there appears
+to be a problem with the SIMAP web service.</p>
+
+<p>[% date.format %]</p>
