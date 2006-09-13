@@ -4,7 +4,7 @@
 #
 # Controller to build the tree view of the family
 #
-# $Id: Tree.pm,v 1.3 2006-08-22 15:14:27 jt6 Exp $
+# $Id: Tree.pm,v 1.4 2006-09-13 08:32:33 jt6 Exp $
 
 package PfamWeb::Controller::Family::Tree;
 
@@ -84,7 +84,7 @@ sub generateImage : Path( "/gettreeimage" ) {
 	$c->res->content_type( "image/gif" );
 	$c->res->write( $c->stash->{tree}->plot_core( 1 )->gif );
   } else {
-	$c->res->redirect( "static/images/blank.gif" );
+	$c->res->redirect( $c->uri_for( "/images/blank.gif" ) );
   }
 }
 
