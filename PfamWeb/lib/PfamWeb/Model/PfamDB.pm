@@ -2,7 +2,7 @@
 # PfamDB.pm
 # jt6 20060808 WTSI
 #
-# $Id: PfamDB.pm,v 1.2 2006-09-07 11:54:42 jt6 Exp $
+# $Id: PfamDB.pm,v 1.3 2006-09-13 08:34:42 jt6 Exp $
 
 =head1 NAME
 
@@ -33,9 +33,12 @@ The object is instantiated in the C<BEGIN> block and uses
 configuration parameters that are set in the YAML application
 configuration file.
 
-$Id: PfamDB.pm,v 1.2 2006-09-07 11:54:42 jt6 Exp $
+$Id: PfamDB.pm,v 1.3 2006-09-13 08:34:42 jt6 Exp $
 
 =cut
+
+use strict;
+use warnings;
 
 use base qw/Catalyst::Model::DBIC::Schema/;
 
