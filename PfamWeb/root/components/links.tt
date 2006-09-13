@@ -5,7 +5,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.4 2006-09-08 15:23:14 jt6 Exp $
+# $Id: links.tt,v 1.5 2006-09-13 08:28:29 jt6 Exp $
 -%]
 
 [% USE dumper %]
@@ -51,11 +51,11 @@ external = [
     [% CASE "PROSITE" %]
       <a class="ext" href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
     [% CASE "PFAMB" %]
-      <a class="ext" href="[% c.uri_for( "/pfamb", acc=id ) %]">[% id %]</a>
+      <a href="[% c.uri_for( "/pfamb", acc=id ) %]">[% id %]</a>
 	[% CASE "interpro" %]
       <a class="ext" href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
 	[% CASE "pdb" %]
-      <a class="ext" href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
+      <a href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
 	[% CASE "COGS" %]
       <a class="ext" href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
 	[% CASE "HOMSTRAD" %]
@@ -73,7 +73,7 @@ external = [
 	[% CASE "URL" %]
       <a class="ext" href="[% id %]">[% number %]</a>
 	[% CASE %]
-      <p>Unrecognized link type: [% type %]</p>
+      <p>Other link: [% type %]</p>
   [% END %]
 [% END %]
 
