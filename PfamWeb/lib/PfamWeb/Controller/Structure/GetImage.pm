@@ -2,7 +2,7 @@
 # GetImage.pm
 # jt6 20060314 WTSI
 #
-# $Id: GetImage.pm,v 1.5 2006-08-14 10:46:12 jt6 Exp $
+# $Id: GetImage.pm,v 1.6 2006-09-13 08:33:35 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ to extract the PDB ID from the URL.
 
 Generates an B<image file>, MIME type C<image/gif>.
 
-$Id: GetImage.pm,v 1.5 2006-08-14 10:46:12 jt6 Exp $
+$Id: GetImage.pm,v 1.6 2006-09-13 08:33:35 jt6 Exp $
 
 =cut
 
@@ -66,7 +66,7 @@ sub end : Private {
 	$c->res->content_type( "image/gif" );
 	$c->res->write( $c->stash->{pdb}->pdb_image );
   } else {
-	$c->res->redirect( "/images/blank.gif" );
+	$c->res->redirect( $c->uri_for( "/images/blank.gif" ) );
   }
 
 }
