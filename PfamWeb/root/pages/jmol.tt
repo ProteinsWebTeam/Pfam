@@ -11,7 +11,35 @@
 [% USE String %]
 [% USE dumper %]
 
-<h1>PDB entry [% pdb.pdb_id %]</h1>
+
+<html>
+
+  <head>
+
+    <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
+
+    <!-- ====================================================================== -->
+    <!-- scriptaculous and prototype -->
+
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/slider.js" ) %]"></script>
+
+    <!-- ====================================================================== -->
+	<!-- set the favicon -->
+	<link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
+
+    <!-- ====================================================================== -->
+	<!-- jmol -->	
+    <script type="text/javascript" src="[% c.uri_for( "/jmol/Jmol.js" ) %]"></script>
+
+  </head>
+
+  <body>
+
+<h1 class="viewHeader">PDB entry [% pdb.pdb_id %]</h1>
 
 [%
 script = String.new( "background [xe7e7e7]; load \"" );
@@ -23,7 +51,9 @@ CALL script.append( "\"; select all; cartoons on; cpk off; wireframe off; " );
 FOREACH m IN mapping;
 
   CALL script.append( "select ${m.pdb_start_res}-${m.pdb_end_res}:${m.chain}; " );
-  CALL script.append( "color [x${m.hex_colour}]; " );
+  IF m.hex_colour;
+    CALL script.append( "color [x${m.hex_colour}]; " );
+  END;
 
   FOREACH markup IN markups;
     CALL activeSites.append( "select ${markup.pdb_seq_number}:${markup.chain}; " );
@@ -85,3 +115,5 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
   </tbody>
 </table>
 
+</body>
+</html>
