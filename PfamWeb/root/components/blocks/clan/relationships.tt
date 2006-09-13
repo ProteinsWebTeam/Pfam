@@ -3,13 +3,13 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.6 2006-09-08 15:23:22 jt6 Exp $
+# $Id: relationships.tt,v 1.7 2006-09-13 08:29:28 jt6 Exp $
 %]
 
 <!-- start relationships block -->
 
-[%- image = "${constants.clanDataRoot}/newRelationship/${clan.clan_acc}.png" -%]
-[%- map   = "${constants.clanDataRoot}/newRelationship/${clan.clan_acc}.html" -%]
+[%- image = "${constants.clanDataURLRoot}/newRelationship/${clan.clan_acc}.png" -%]
+[%- map   = "${constants.clanDataFileRoot}/newRelationship/${clan.clan_acc}.html" -%]
 
 <div class="block" id="clanRelationshipsBlock">
   <div class="handle">
@@ -23,7 +23,7 @@
       [% INSERT $map %]
     </map>
     [% CATCH %]
-      [% CALL c.log.error( "couldn't load the relationship image map for clan ${clan.clan_acc}" ) %]
+      [% CALL c.log.error( "couldn't load the relationship image map for clan ${clan.clan_acc}, $map" ) %]
     [% END %]
 
   </div>
