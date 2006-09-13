@@ -38,7 +38,6 @@ use SOAP::Lite;
 use SOAP::Data::Builder;
 use XML::LibXML;
 use IPC::Open2;
-
 use File::Temp qw/ tempfile /;
 
 use Bio::Pfam::Root;
@@ -225,16 +224,25 @@ sub queryService {
 			   proxy => [ 'http' => $self->proxy ]
 			  )
 	-> getHitsByMD5( $soapMessage->to_soap_data ); # This changes the soap message object to xml
-  
 
-  #Should test for a fault here!
-  if ($results) {
-    my $parser = XML::LibXML->new();
-    # Now get the results as SOAP::Lite can not handle the response properly
-    $self->_response($parser->parse_string($results));
-  } else {
-    $self->throw("Got no results");
-  }
+  # make sure there was a response...
+  die "No results received from the SIMAP service"
+	unless defined $results;
+
+  my $parser = XML::LibXML->new();
+  my $resultsXML = $parser->parse_string( $results );
+
+  # ... that it was parseable as XML...
+  die "Couldn't parse SIMAP XML response"
+	unless defined $resultsXML;
+
+  # ... and that it wasn't a fault response
+  die "Received a fault response from SIMAP"
+	if $resultsXML->findnodes("/soapenv:Envelope/soapenv:Body/soapenv:Fault");
+
+  # Now get the results as SOAP::Lite can not handle the response properly
+  $self->_response($resultsXML);
+
 }
 sub _response {
   my ($self, $responseDom) = @_;
@@ -248,8 +256,14 @@ sub _response {
 sub processResponse4Website {
   my ($self, $drawingXML, $seqObj) = @_;
   my $imageNode = $drawingXML->documentElement;
-  foreach my $hitNode ($self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit")){
-    
+
+  # make sure we find some hits in the soap response
+  my @hits = $self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit");
+
+  die "No hits found in SIMAP response" unless scalar @hits;
+
+  foreach my $hitNode ( @hits ){
+
     #get the evalue
     my $evalue        = $hitNode->findvalue("alignments/alignment/expectation");
     my $identity      = $hitNode->findvalue("alignments/alignment/identity");
@@ -261,7 +275,7 @@ sub processResponse4Website {
     foreach my $proteinNode ($hitNode->findnodes("matchSequence/protein")){
       my $protein       = $proteinNode->find("\@name");
       my $species       = $proteinNode->find("taxonomyNode/\@name");
-      
+
       my $seqElement = $drawingXML->createElement( "sequence" );
       $imageNode->appendChild($seqElement);
       $seqElement->setAttribute( "length", $seqObj->length );
@@ -279,27 +293,27 @@ sub processResponse4Website {
       my $colour  = $drawingXML->createElement("colour");
       my $hex  = $drawingXML->createElement("hex");
       if($identity <= 100 && $identity > 90){
-	$hex->setAttribute("hexcode", "FF0000")
+		$hex->setAttribute("hexcode", "FF0000")
       }elsif($identity <= 90 && $identity > 80){
-	$hex->setAttribute("hexcode", "FF3300")
+		$hex->setAttribute("hexcode", "FF3300")
       }elsif($identity <= 80 && $identity > 70){
-	$hex->setAttribute("hexcode", "FF6600")
+		$hex->setAttribute("hexcode", "FF6600")
       }elsif($identity <= 70 && $identity > 60){
-	$hex->setAttribute("hexcode", "FF8000")
+		$hex->setAttribute("hexcode", "FF8000")
       }elsif($identity <= 60 && $identity > 50){
-	$hex->setAttribute("hexcode", "FF9900")
+		$hex->setAttribute("hexcode", "FF9900")
       }elsif($identity <= 50 && $identity > 40){
-	$hex->setAttribute("hexcode", "FFB200")
+		$hex->setAttribute("hexcode", "FFB200")
       }elsif($identity <= 40 && $identity > 30){
-	$hex->setAttribute("hexcode", "FFCC00")
+		$hex->setAttribute("hexcode", "FFCC00")
       }elsif($identity <= 30 && $identity > 20){
-	$hex->setAttribute("hexcode", "FFE500")
+		$hex->setAttribute("hexcode", "FFE500")
       }elsif($identity <= 20 && $identity > 10){
-	$hex->setAttribute("hexcode", "FFFF00")
+		$hex->setAttribute("hexcode", "FFFF00")
       }else{
-	$hex->setAttribute("hexcode", "FFFFFF")
+		$hex->setAttribute("hexcode", "FFFFFF")
       }
-      
+
       #$hex->setAttribute("hexcode", "CC6666"); #John,you are going to complain about this......
       $colour->appendChild($hex);
       $colour1->appendChild($colour);
@@ -316,7 +330,11 @@ sub hits2Ali {
   #print STDERR "response DOM: |" . $self->_response->toString(1) . "|";
 
   my $aliString;
-  foreach my $hitNode ($self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit")){
+  my @hits = $self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit");
+
+  die "No hits found in SIMAP response" unless scalar @hits;
+
+  foreach my $hitNode ( @hits ){
 
     #get the evalue
     my $evalue        = $hitNode->findvalue("alignments/alignment/expectation");
@@ -333,11 +351,10 @@ sub hits2Ali {
       my $protein       = $proteinNode->find("\@name");
       my $species       = $proteinNode->find("taxonomyNode/\@name");
       $aliString .= ">$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq\n";
-	  #print STDERR "aliString addition: |>$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq|\n";
+	  print STDERR "aliString addition: |>$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq|\n";
     }
   }
 
-  #print STDERR "$aliString\n";
   #Align the sequences
 
   # this isn't cutting it when we run on the dev servers, which have
@@ -346,14 +363,15 @@ sub hits2Ali {
   # jt6 20060830 WTSI
   #open(MSF, "echo \"$aliString\" | /nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf |") || die "Could not open tmp msf:[$!]\n";
 
-
+  # dump the input file to a temporary file. Let a module generate the
+  # temp filehandle and filename for us
   my $tmpRoot;
   if( $ENV{PFAM_DOMAIN_IMAGES} ) {
     $tmpRoot = $ENV{PFAM_DOMAIN_IMAGES};
   } elsif( $ENV{DOCUMENT_ROOT} ) {
     $tmpRoot = "$ENV{DOCUMENT_ROOT}/tmp/pfam";
   } else {
-    die "Can't set a temp directory";
+    die "Can't set a temp directory for muscle output";
   }
   ($tmpRoot) = $tmpRoot =~ m|([a-z0-9_\./]+)|i;
 
