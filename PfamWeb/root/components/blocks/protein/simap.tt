@@ -5,7 +5,7 @@
 # 
 # block for the SIMAP data
 #
-# $Id: simap.tt,v 1.4 2006-09-07 09:52:14 jt6 Exp $
+# $Id: simap.tt,v 1.5 2006-09-13 08:30:10 jt6 Exp $
 -%]
 
 <!-- start SIMAP block -->
@@ -25,7 +25,7 @@
     <!-- end of graphics div -->
 
     <script type="text/javascript">
-      loadOptions.simap.uri    = "[% c.uri_for( "/getsimapdata" ) %]";
+      loadOptions.simap.uri    = "[% c.uri_for( "/protein/simap" ) %]";
       loadOptions.simap.params = "acc=[% pfamseq.pfamseq_acc %]";
   	</script>
 
