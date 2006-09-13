@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.5 2006-09-08 15:23:56 jt6 Exp $
+# $Id: index.tt,v 1.6 2006-09-13 08:42:29 jt6 Exp $
 %]
 
 <!-- start the index page -->
@@ -25,6 +25,7 @@
     <form action="[% c.uri_for( "/family" ) %]" name="familyJump">
       <span class="title">Family:</span>
       <span class="jump"><input type="text" size="10" name="entry" /></span>
+	  <input type="submit" value="Go" />
     </form>
   </div>
 
@@ -32,6 +33,7 @@
     <form action="[% c.uri_for( "/clan" ) %]" name="clanJump">
       <span class="title">Clan:</span>
       <span class="jump"><input type="text" size="10" name="entry" /></span>
+	  <input type="submit" value="Go" />
     </form>
   </div>
 
@@ -39,6 +41,7 @@
     <form action="[% c.uri_for( "/structure" ) %]" name="structureJump">
       <span class="title">Structure:</span>
       <span class="jump"><input type="text" size="10" name="entry" /></span>
+	  <input type="submit" value="Go" />
     </form>
   </div>
 
@@ -46,6 +49,7 @@
     <form action="[% c.uri_for( "/protein" ) %]" name="proteinJump">
       <span class="title">Protein:</span>
       <span class="jump"><input type="text" size="10" name="entry" /></span>
+	  <input type="submit" value="Go" />
     </form>
   </div>
 
@@ -84,6 +88,7 @@
           <option value="z">Z</option>
         </select>
       </span>
+	  <input type="submit" value="Go" />
     </form>
   </div>
 </div>
