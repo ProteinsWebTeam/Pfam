@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Simap.pm,v 1.5 2006-08-22 13:36:43 rdf Exp $
+# $Id: Simap.pm,v 1.6 2006-09-13 08:33:05 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Simap;
 
@@ -28,7 +28,7 @@ use base "PfamWeb::Controller::Protein";
 
 # pick up a URL like http://localhost:3000/proteingraphics?acc=P00179
 
-sub getSimapData : Path('/getsimapdata') {
+sub getSimapData : Path {
   my( $this, $c ) = @_;
 
   $c->log->debug( "Protein::Simap::getSimapData listing parameters:" );
@@ -46,8 +46,7 @@ sub getSimapData : Path('/getsimapdata') {
   $layoutPfam->layout_sequences_with_regions_and_features(\@seqs, \%regionsAndFeatures);
   my $drawingXML = $layoutPfam->layout_to_XMLDOM;
 
-  $c->log->debug( "\n\n\n proxy is set to: |".$this->{simapProxy}."| \n\n\n\n" );
-#	if defined $this->{simapProxy};
+  $c->log->debug( "SIMAP proxy is set to: |" . $this->{simapProxy} . "|" );
 
   my $simap = Bio::Pfam::WebServices::Client::Simap->new(
 							 '-proxy'      => $this->{simapProxy},
@@ -58,11 +57,18 @@ sub getSimapData : Path('/getsimapdata') {
 							 '-database'   => [qw/313 314/],
 							 '-showSeq'    => 1,
 							 '-showAli'    => 0);
-  $simap->queryService;
-  $simap->processResponse4Website($drawingXML, $c->stash->{pfamseq});
-  my $pfamaln = $simap->hits2Ali;
- 
-  
+
+  my $pfamaln;
+  eval {
+	$simap->queryService;
+	$simap->processResponse4Website($drawingXML, $c->stash->{pfamseq});
+	$pfamaln = $simap->hits2Ali;
+  };
+  if( $@ ) {
+	$c->log->error( "Protein::Simap::getSimapData: problem retrieving SIMAP data" );
+	die $@;
+  }
+
   #Now Parse the alignment
   #my $pfamaln = new Bio::Pfam::AlignPfam->new;
   #$pfamaln->read_msf($ali);
@@ -78,8 +84,12 @@ sub getSimapData : Path('/getsimapdata') {
   }
   $pfamaln->splice_by_seq_pos($pos);
 
-  die "Length of alignment duff\n" unless ($pfamaln->length == $c->stash->{pfamseq}->length);
-
+  # make sure we retrieved an alignment
+  unless( $pfamaln->length == $c->stash->{pfamseq}->length ) {
+	$c->log->error( "Protein::Simap::getSimapData: problem with length of alignment" );
+	$c->error( "There was a problem with the length of the alignment from SIMAP" );
+	return;
+  }
 
   #Calulate the average ID per column.
   my ($idPerCol, $averageId, $residuesPerCol) = $pfamaln->average_percentage_identity_per_column;
@@ -177,12 +187,20 @@ sub end : Private {
 
   $c->log->debug( "Protein::Simap::end: handing off to wrapper-less template..." );
 
-  $c->stash->{template} = "components/blocks/protein/simapGraphics.tt";
+  # check for errors
+  if ( scalar @{ $c->error } ) {
+	$c->forward( "/reportError" );
+	$c->stash->{template} = "components/blocks/protein/simapError.tt";
+  } else {
+	$c->stash->{template} = "components/blocks/protein/simapGraphics.tt";
+  }
 
-  # forward to the class that's got the WRAPPER set to null
+  # and render the page
   $c->forward( "PfamWeb::View::TTBlock" );
+
+  # clear any errors
+  $c->clear_errors;
 
 }
 
 1;
-
