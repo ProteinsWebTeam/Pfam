@@ -11,7 +11,34 @@
 [% USE String %]
 [% USE dumper %]
 
-<h1>PDB entry [% pdb.pdb_id %]</h1>
+<html>
+
+  <head>
+
+    <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
+
+    <!-- ====================================================================== -->
+    <!-- scriptaculous and prototype -->
+
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
+    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/slider.js" ) %]"></script>
+
+    <!-- ====================================================================== -->
+	<!-- set the favicon -->
+	<link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
+
+    <!-- ====================================================================== -->
+	<!-- jmol -->	
+    <script type="text/javascript" src="[% c.uri_for( "/jmol/Jmol.js" ) %]"></script>
+
+  </head>
+
+  <body>
+
+<h1 class="viewHeader">PDB entry [% pdb.pdb_id %]</h1>
 
 <applet width="500"
         height="500"
@@ -24,7 +51,9 @@ molecule load mol '[% c.uri_for( "/structure/getpdbfile" ) %]/[% pdbId %].pdb';
 display lines off all;
 color '0xDDDDDD' aminoacid;
 [%- FOREACH m IN mapping -%]
-color '0x[% m.hex_colour %]' residue [% m.pdb_start_res %] to [% m.pdb_end_res %][% IF chain %] and chain [% m.chain ; END %];
+  [% IF m.hex_colour %]
+    color '0x[% m.hex_colour %]' residue [% m.pdb_start_res %] to [% m.pdb_end_res %][% IF chain %] and chain [% m.chain ; END %];
+  [%- END -%]
 [%- END -%]
 secstruc molecule mol;
 schematic -name cartoonObj
@@ -85,3 +114,6 @@ object surfObj -map { current };
   </tbody>
 </table>
 
+  </body>
+
+</html>
