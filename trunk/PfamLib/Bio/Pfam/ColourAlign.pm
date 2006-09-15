@@ -114,7 +114,7 @@ sub markupAlignSeparate {
 
 	}
 
-	$ali .= "</span>\n";
+	$ali .= "<br /></span>\n";
   }
 
   $key .= "</div>\n";
