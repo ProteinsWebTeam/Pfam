@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.11 2006-09-07 11:53:19 jt6 Exp $
+# $Id: Graphics.pm,v 1.12 2006-09-15 13:43:28 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -46,7 +46,7 @@ sub updateSources : Path {
   my $sequence = $dl->sequence( $seqAcc );
   return unless $sequence;
 
-  $c->log->debug( "Protein::Graphics::updateSources: sequence: |".Dumper($sequence)."|" );
+  #$c->log->debug( "Protein::Graphics::updateSources: sequence: |".Dumper($sequence)."|" );
 
   # retrieve the image map for the Pfam graphic from the stash and add
   # it to the array of images that we're going to generate here.
@@ -78,13 +78,11 @@ sub updateSources : Path {
   $dl->dsn( $c->stash->{dsnList} );
 
   my $features = $dl->features( $seqAcc );
-  $c->log->debug( "Protein::Graphics::updatesources: features: |" . Dumper($features) ."|" );
+  #$c->log->debug( "Protein::Graphics::updatesources: features: |" . Dumper($features) ."|" );
 
   # hand the features to the layout manager and get it to draw the graphics
   my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
   my $success = $layout->layout_DAS_sequences_and_features( $sequence, $features );
-  $c->log->debug( "Protein::Graphics::updatesources: Das DOM:"
-				  . $layout->layout_to_XMLDOM->toString(1));
 
   if($success){
  	my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
