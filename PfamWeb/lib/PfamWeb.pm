@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.12 2006-09-13 08:31:54 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.13 2006-09-15 13:12:47 jt6 Exp $
 
 =head1 NAME
 
@@ -14,11 +14,11 @@ package PfamWeb;
 
 =head1 DESCRIPTION
 
-This is the main class for the Pfam website catalyst
-application. Configuration is all done through the C<pfamweb.yml>
-config file.
+This is the main class for the Pfam website catalyst application. It
+handles error reporting for the whole application and tab selection
+for all the view.
 
-$Id: PfamWeb.pm,v 1.12 2006-09-13 08:31:54 jt6 Exp $
+$Id: PfamWeb.pm,v 1.13 2006-09-15 13:12:47 jt6 Exp $
 
 =cut
 
@@ -57,10 +57,27 @@ our $VERSION = '0.01';
 
 =head1 CONFIGURATION
 
-Configuration is done through a single YAML file, C<pfamweb.yml>,
-which contains all of the catalyst-specific settings, and an INI file,
-C<pfamweb.ini>, which points C<Module::PortablePath> at associated
-library modules in other filesystem trees.
+Configuration is done through two main files:
+
+=over
+
+=item C<pfamweb.yml>
+
+a YAML format file that contains all of the catalyst-specific
+settings
+
+=item C<pfamweb.ini>
+
+an INI format file that points C<Module::PortablePath> at associated
+library modules in other filesystem trees
+
+=back
+
+These two files are explicitly excluded from the PfamWeb CVS module
+because they will contain passwords which can't be made public along
+with the rest of the code. Separating the configuration into a
+separate CVS module (PfamConfig) means that the code CVS modules can
+be published, if we need to do that.
 
 =cut
 
@@ -68,10 +85,32 @@ __PACKAGE__->setup;
 
 #-------------------------------------------------------------------------------
 
+=head1 METHODS
+
+=head2 index : Private
+
+Drops straight to the site index page.
+
+=cut
+
+sub index : Private {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( "PfamWeb::index: generating site index" );
+
+  # we really *shouldn't* have any content, but we'll check
+  # anyway. Maybe we need to reset the response body... if that's even
+  # possible.
+
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 default : Private
 
-Re-directs straight to the index page for the whole site. This is the
-default page for any errors, broken (internal) links, etc.
+Catch unexpected redirects, etc. This action just drops straight to
+the site index page but it records the redirect in the error database
+before that.
 
 =cut
 
@@ -81,19 +120,25 @@ sub default : Private {
   # Hello World - the default catalyst welcome page
   #$c->response->body( $c->welcome_message );
 
-  # catch the root of the application. This could be moved into a
-  # lower level controller sometime, with a Global action that
-  # captures "/"...
-  unless( $c->response->body ) {
-    $c->stash->{fullPage} = 1;
-	$c->stash->{template} = "pages/index.tt";
-	$c->forward( "PfamWeb::View::TT" );
-  }
+  # record an error message, because we shouldn't error arrive here
+  # unless via a broken link, missing page, etc.
+
+  # first, figure out where the broken link was, internal or external
+  my $where = ( $c->req->referer =~ /sanger/ ) ? "internal" : "external";
+
+  # record the error
+  $c->error("Found a broken $where link: \"" . $c->req->uri
+			. "\", referer: \"" . $c->req->referer . "\"" );
+
+  # report it
+  $c->forward( "/reportError" );
+
+  # and clear the errors before we render the page
+  $c->clear_errors;
+
 }
 
 #-------------------------------------------------------------------------------
-
-=head1 METHODS
 
 =head2 auto : Private
 
@@ -116,17 +161,61 @@ sub auto : Private {
   return 1;
 }
 
-=head2 default : Private
+#-------------------------------------------------------------------------------
 
-A catch-all method that displays the main site index page.
+=head2 end : Private
+
+Renders the index page for the site, ignoring any errors that were
+encountered up to this point.
 
 =cut
+
+sub end : Private {
+  my( $this, $c ) = @_;
+
+  unless( $c->response->body ) {
+    $c->stash->{fullPage} = 1;
+	$c->stash->{template} = "pages/index.tt";
+	$c->forward( "PfamWeb::View::TT" );
+  }
+
+}
 
 #-------------------------------------------------------------------------------
 
 =head2 reportError : Private
 
-Records site errors in the database.
+Records site errors in the database. Because we could be getting
+failures constantly, e.g. from SIMAP web service, we want to avoid
+just mailing admins about that, so instead we insert an error message
+into a database table.
+
+The table has four columns:
+
+=over 8
+
+=item message
+
+the raw message from the caller
+
+=item num
+
+the number of times this message has been seen
+
+=item first
+
+the timestamp for the first occurrence of the message
+
+=item last
+
+the timestamp for that most recent occurence of the
+message
+
+=back
+
+An external script or vanilla SQL query should then be able to
+retrieve error logs when required and we can keep track of errors
+without being deluged with mail...
 
 =cut
 
@@ -140,19 +229,19 @@ sub reportError : Private {
 	my $rs = $c->model( "WebUser::ErrorLog" )->find( { message => $e } );
 
 	if( $rs ) {
-	  $c->log->debug( "PfamWeb::reportError: seen that error before; update" );
 	  $rs->update( { num => $rs->num + 1 } );
 	} else {
-	  $c->log->debug( "PfamWeb::reportError: new error message; creating" );
-	  $rs->create( { message => $e,
-					 num     => 1,
-					 first   => [ "CURRENT_TIMESTAMP" ] } );
+	  eval {
+		$c->model( "WebUser::ErrorLog" )->create( { message => $e,
+													num     => 1,
+													first   => [ "CURRENT_TIMESTAMP" ] } );
+	  };
+	  if( $@ ) {
+		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+	  }
 	}
 	
   }
-
-  $c->log->debug( "PfamWeb::reportError: there are now "
-				  . $c->model( "WebUser::ErrorLog" )->count . " errors in the table" );
 
 }
 
