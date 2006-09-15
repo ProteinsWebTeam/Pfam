@@ -4,7 +4,7 @@
 #
 # Controller to build the main protein page.
 #
-# $Id: Protein.pm,v 1.8 2006-09-07 11:52:09 jt6 Exp $
+# $Id: Protein.pm,v 1.9 2006-09-15 13:43:06 jt6 Exp $
 
 package PfamWeb::Controller::Protein;
 
@@ -230,7 +230,7 @@ sub end : Private {
   $c->forward( "PfamWeb::View::TT" );
 
   # clear any errors
-  $c->error(0);
+  $c->clear_errors;
 }
 
 #-------------------------------------------------------------------------------
