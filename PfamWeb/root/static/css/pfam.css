@@ -3,11 +3,11 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.15 2006-09-13 08:27:16 jt6 Exp $
+   $Id: pfam.css,v 1.16 2006-09-16 10:25:58 jt6 Exp $
 */   
 
 body {
-	font-family: Arial,Helvetica,Sans-serif;
+	font-family: arial, helvetica, sans-serif;
     font-size: smaller;
     color: #404040;
 	min-width: 840px;
@@ -177,6 +177,7 @@ h1.viewHeader {
 	background-position: center center;
 	background-repeat: no-repeat;
 	margin: 0 2px;
+    border-style: none;
 }
 
 .sortarrow.updown {
