@@ -4,7 +4,7 @@
 
    IE stylesheet to apply various fixes for IE inadequacies and bugs
    
-   $Id: tab_layout_ie.css,v 1.6 2006-09-11 10:28:31 jt6 Exp $
+   $Id: tab_layout_ie.css,v 1.7 2006-09-16 09:59:15 jt6 Exp $
 */
 
 hr.short {
@@ -69,4 +69,10 @@ hr.short {
   height: auto;
 }
 
-
+/* try to to overcome the IE "float drop" bug, which pushes the content block
+   down below the bottom of the sidebar if we show a large image, such as for a
+   long sequence in the "domain images" sections. */
+#content {
+	overflow-y: visible;
+    overflow-x: auto;
+}
