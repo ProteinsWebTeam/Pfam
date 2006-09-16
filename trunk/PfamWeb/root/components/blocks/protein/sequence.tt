@@ -5,7 +5,7 @@
 # 
 # block for the sequence, raw and formatted, for the protein page
 #
-# $Id: sequence.tt,v 1.1 2006-07-10 15:38:30 jt6 Exp $
+# $Id: sequence.tt,v 1.2 2006-09-16 10:13:57 jt6 Exp $
 -%]
 
 <!-- start protein sequence block -->
@@ -20,7 +20,7 @@
 
     <table class="layout">
       <tbody>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
           <td class="label">Sequence:</td>
           <td class="data">
 
@@ -83,7 +83,7 @@
             <div id="plainSequence" style="display: none">[% sl %]</div>
           </td>
         </tr>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
           <td class="label">Checksums:</td>
           <td class="data">
             <div><span class="subLabel">CRC64:</span><span class="subRowData">[% pfamseq.crc64 %]</span></div>
