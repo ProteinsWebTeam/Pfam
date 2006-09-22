@@ -1,15 +1,17 @@
-
 [%
 # familyStructures.tt
 # jt6 20060727 WTSI
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.3 2006-09-07 09:50:50 jt6 Exp $
+# $Id: familyStructures.tt,v 1.4 2006-09-22 10:36:16 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if it's not populated, choose a random entry
 # and show the image for that
+
+# tell the wrapper not to add any header or footer
+META naked = 1;
 
 IF NOT pdbObj;
 
@@ -40,7 +42,8 @@ IF NOT pdbObj;
 
 END;
 
-IF pdbUnique.keys.size %]
+IF pdbUnique.keys.size
+-%]
 
 <!-- start of pdb image block -->
 
@@ -50,7 +53,7 @@ IF pdbUnique.keys.size %]
 
     <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]">
       <img class="pdbImage" 
-           title="header=[View structure data] body=[Click to view the structure page for PDB entry [% pdbObj.pdb_id %]] fade=[on] fadespeed=[0.5] delay=[500]"
+           title="header=[View structure data] body=[Click to view the structure page for PDB entry [% pdbObj.pdb_id %]] fade=[on] fadespeed=[0.5] delay=[500] cssheader=[tipHeader] cssbody=[tipBody]"
            src="[% c.uri_for( "/structure/getimage", id=pdbObj.pdb_id ) %]"
            alt="[% pdbObj.pdb_id %]" /></a>
 
@@ -86,6 +89,7 @@ IF pdbUnique.keys.size %]
 
   [% END # of "if pdbUnique.keys.size > 1" %]
 </div>
+
 [% END # of "if pdbUnique.keys.size" %]
 
 <!-- end of pdb image block -->
