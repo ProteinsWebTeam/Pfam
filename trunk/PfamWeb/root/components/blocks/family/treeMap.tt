@@ -1,10 +1,13 @@
-[%#
+[%
 # treeMap.tt
 # jt6 20060511 WTSI
 #
 # format the image map for the species tree
 #
-# $Id: treeMap.tt,v 1.1 2006-05-15 12:04:26 jt6 Exp $
+# $Id: treeMap.tt,v 1.2 2006-09-22 10:36:16 jt6 Exp $
+
+# tell the wrapper not to add any header or footer
+META naked = 1;
 %]
 
 [%# url for uniprot: http://www.ebi.uniprot.org/uniprot-srv/uniProtView.do?proteinId=acc %]
