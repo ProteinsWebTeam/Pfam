@@ -4,7 +4,7 @@
 #
 # Controller for the "browse" pages. Originally by RDF.
 #
-# $Id: Browse.pm,v 1.3 2006-08-22 15:13:29 jt6 Exp $
+# $Id: Browse.pm,v 1.4 2006-09-22 10:45:17 jt6 Exp $
 
 package PfamWeb::Controller::Family::Browse;
 
@@ -82,19 +82,17 @@ sub end : Private {
 
   # check for errors
   if ( scalar @{ $c->error } ) {
-	$c->stash->{errors}   = $c->error;
-	$c->stash->{template} = "components/errors.tt";
+	$c->stash->{template} = "pages/error.tt";
   } else {
 	$c->stash->{pageType} = "family";
-	$c->stash->{template} = "pages/browse.tt";
+	$c->stash->{template} ||= "pages/browse.tt";
   }
 
   # and use it
-  $c->stash->{fullPage} = 1;
   $c->forward( "PfamWeb::View::TT" );
 
   # clear any errors
-  $c->error(0);
+  $c->clear_errors;
 
 }
 
