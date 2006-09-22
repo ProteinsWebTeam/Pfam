@@ -4,7 +4,7 @@
 #
 # Controller to build the tree view of the family
 #
-# $Id: Tree.pm,v 1.4 2006-09-13 08:32:33 jt6 Exp $
+# $Id: Tree.pm,v 1.5 2006-09-22 10:46:00 jt6 Exp $
 
 package PfamWeb::Controller::Family::Tree;
 
@@ -76,6 +76,9 @@ sub auto : Private {
 }
 
 #-------------------------------------------------------------------------------
+# these next two methods are equivalent to the "end", in that they
+# decide which template to render or, in the case of generateImage,
+# return content directly.
 
 sub generateImage : Path( "/gettreeimage" ) {
   my( $this, $c ) = @_;
@@ -100,7 +103,7 @@ sub generateMap : Path( "/gettreemap" ) {
   $c->stash->{template} = "components/blocks/family/treeMap.tt";
 
   # and use it
-  $c->forward( "PfamWeb::View::TTBlock" );
+  $c->forward( "PfamWeb::View::TT" );
 
 }
 

@@ -4,7 +4,7 @@
 #
 # ?
 #
-# $Id: AlignmentGenerator.pm,v 1.5 2006-09-07 11:52:36 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.6 2006-09-22 10:46:00 jt6 Exp $
 
 package PfamWeb::Controller::Family::AlignmentGenerator;
 
@@ -78,23 +78,8 @@ sub getData : Path {
   $c->stash->{alignments}->{alignments} = \@markedUpAlignments;
   $c->stash->{alignments}->{lengths}    = $alignmentLengths;
 
-}
-
-#-------------------------------------------------------------------------------
-# override the end method from the Family class, so that we now hand
-# off to a template that doesn't require the wrapper
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  # not sure we need this check here, since it's being done in the
-  # default method already
-  #return unless defined $c->stash->{pfam};
-
+  # set up the view and rely on "end" from the parent class to render it
   $c->stash->{template} = "components/blocks/family/alignmentFragment.tt";
-
-  # forward to the class that's got the WRAPPER set to null
-  $c->forward( "PfamWeb::View::TTBlock" );
 
 }
 
