@@ -1,0 +1,36 @@
+[%
+# systemError.tt
+# jt6 20060921 WTSI
+#
+# show a system error report
+#
+# $Id: systemError.tt,v 1.1 2006-09-22 10:31:53 jt6 Exp $
+
+# tell the wrapper to add the full page footer
+META fullPage = 1;
+-%]
+
+<!-- start error report -->
+
+<div class="errorReport">
+
+  <p>There was a system error on your last request.</p>
+
+  [% IF c.error.size AND constants.debug %]
+    <p class="message">[% c.error.first %]</p>
+  [% END %]
+
+  <p>
+    This error has been recorded and will be investigated. If you would like to 
+    let us know what you were doing when the error occurred, please file a bug
+    report.
+  </p>
+
+  <p>
+    You might like to go <a href="javascript: history.go(-1)">back</a> to the
+    previous page and see if it works this time...
+  </p>
+
+</div>
+
+<!-- end error report -->
