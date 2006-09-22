@@ -5,7 +5,7 @@
 #
 # overview icons for the top of the page
 #
-# $Id: icons.tt,v 1.10 2006-08-14 11:08:47 jt6 Exp $
+# $Id: icons.tt,v 1.11 2006-09-22 10:32:32 jt6 Exp $
 %]
 
 [% icons = [
@@ -17,12 +17,10 @@
                count  = summaryData.numSequences,
                items  = "sequences",
                item   = "sequence" },
-             # this is hard coded !
              { id     = "ipfamIcon",
                count  = summaryData.numInt,
                items  = "interactions",
                item   = "interaction" },
-             # that was hard coded !
              { id     = "specIcon",
                count  = summaryData.numSpecies,
                items  = "species"
