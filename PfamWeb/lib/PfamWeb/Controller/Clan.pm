@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.6 2006-09-22 10:44:23 jt6 Exp $
+# $Id: Clan.pm,v 1.7 2006-09-22 13:22:13 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.6 2006-09-22 10:44:23 jt6 Exp $
+$Id: Clan.pm,v 1.7 2006-09-22 13:22:13 jt6 Exp $
 
 =cut
 
@@ -92,6 +92,12 @@ sub begin : Private {
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{clan} ) {
 
+	# de-taint the accession or ID
+	my $input = $c->req->param("acc")
+	  || $c->req->param("id")
+	  || $c->req->param("entry");
+	$input =~ s/^(\w+)/$1/;
+
 	# see if this was an internal link and, if so, report it
 	my $b = $c->req->base;
 	if( $c->req->referer =~ /^$b/ ) {
@@ -99,12 +105,6 @@ sub begin : Private {
 	  # this means that the link that got us here was somewhere within
 	  # the Pfam site and that the accession or ID which it specified
 	  # doesn't actually exist in the DB
-
-	  # de-taint the accession or ID
-	  my $input = $c->req->param("acc")
-		|| $c->req->param("id")
-		|| $c->req->param("entry");
-	  $input =~ s/^(\w+)/$1/;
 
 	  # report the error as a broken internal link
 	  $c->error( "Found a broken internal link; no valid clan accession or ID "

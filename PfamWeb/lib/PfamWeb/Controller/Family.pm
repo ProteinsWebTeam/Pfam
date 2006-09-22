@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.8 2006-09-22 10:44:23 jt6 Exp $
+# $Id: Family.pm,v 1.9 2006-09-22 13:22:13 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.8 2006-09-22 10:44:23 jt6 Exp $
+$Id: Family.pm,v 1.9 2006-09-22 13:22:13 jt6 Exp $
 
 =cut
 
@@ -102,6 +102,12 @@ sub begin : Private {
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfam} ) {
 
+	# de-taint the accession or ID
+	my $input = $c->req->param("acc")
+	  || $c->req->param("id")
+	  || $c->req->param("entry");
+	$input =~ s/^(\w+)/$1/;
+
 	# see if this was an internal link and, if so, report it
 	my $b = $c->req->base;
 	if( $c->req->referer =~ /^$b/ ) {
@@ -109,12 +115,6 @@ sub begin : Private {
 	  # this means that the link that got us here was somewhere within
 	  # the Pfam site and that the accession or ID which it specified
 	  # doesn't actually exist in the DB
-
-	  # de-taint the accession or ID
-	  my $input = $c->req->param("acc")
-		|| $c->req->param("id")
-		|| $c->req->param("entry");
-	  $input =~ s/^(\w+)/$1/;
 
 	  # report the error as a broken internal link
 	  $c->error( "Found a broken internal link; no valid Pfam family accession or ID "
@@ -142,9 +142,9 @@ sub begin : Private {
   #----------------------------------------
   # add the clan details, if any
 
-  my $clanAcc = $c->stash->{pfam}->clan_acc;
-  $c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_acc => $clanAcc } )
-	if defined $clanAcc;
+  $c->stash->{clan} = $c->model("PfamDB::Clans")
+	->find( { clan_acc => $c->stash->{pfam}->clan_acc } )
+	  if defined $c->stash->{pfam}->clan_acc;
 
   #----------------------------------------
   # add extra data to the stash
