@@ -1,11 +1,14 @@
-[%#
+[%
 # loadGraphics.tt
 # jt6 20060713 WTSI
 #
-# $Id: loadGraphics.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
-%]
+# $Id: loadGraphics.tt,v 1.2 2006-09-22 10:37:39 jt6 Exp $
 
-[% USE String %]
+# tell the wrapper not to add any header or footer
+META naked = 1;
+
+USE String
+-%]
 
 <div id="structureGraphics">
 
