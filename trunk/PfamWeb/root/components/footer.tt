@@ -1,0 +1,17 @@
+[%
+# pageFooter.tt
+# jt6 20060921 WTSI
+#
+# $Id: footer.tt,v 1.3 2006-09-22 10:30:26 jt6 Exp $
+%]
+
+<!-- footer start -->
+
+<div id="footer">
+  <span>Comments or questions on the site? Send a mail to <a href="mailto:pfam-help@sanger.ac.uk">
+    pfam-help@sanger.ac.uk</a></span>
+</div>
+
+<div class="cleaner"></div>
+
+<!-- footer end -->
