@@ -1,25 +1,37 @@
-
-[%#
-# errors.tt
+[%
+# error.tt
 # jt6 20060717 WTSI
 #
 # show an error report for the family page.
 #
-# $Id: error.tt,v 1.1 2006-07-20 09:28:44 jt6 Exp $
-%]
+# $Id: error.tt,v 1.2 2006-09-22 10:35:51 jt6 Exp $
 
-<!-- start error report -->
+# tell the wrapper to add the full page footer
+META fullPage = 1;
+-%]
 
-<div class="errorReport">
+[% message = BLOCK %]
 
-  <h1>Error</h1>
+  [% IF c.error.size AND constants.debug %]
 
-  <p>There was a problem with your last request:</p>
+    <p>There was a <em>system error</em> when loading the requested family page:</p>
+    <p class="message">[% c.error.first %]</p>
 
-  [% FOREACH error IN errors %]
-    <p>[% error %]</p>
-  [% END %]
+  [% ELSE %]
 
-</div>
+    [% IF errorMsg %]
 
-<!-- end error report -->
+      <p>There was a problem loading the requested family page:</p>
+      <p class="message">[% errorMsg %]</p>
+
+    [% ELSE %]
+
+      <p>There was a problem loading the requested family page.</p>
+
+    [% END %]
+
+  [% END # of IF DEBUG... %]
+
+[% END # of block %]
+
+[% PROCESS pages/sectionError.tt %]
