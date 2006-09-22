@@ -1,11 +1,12 @@
-
-[%#
+[%
 # index.tt
 # jt6 20060717 WTSI
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.6 2006-09-13 08:42:29 jt6 Exp $
+# $Id: index.tt,v 1.7 2006-09-22 10:29:29 jt6 Exp $
+
+META fullPage = 1
 %]
 
 <!-- start the index page -->

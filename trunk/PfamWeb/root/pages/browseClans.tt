@@ -1,12 +1,14 @@
-
-[%#
+[%
 # browseClans.tt
 # jt6 20060821 WTSI
 # 
 # build a "browse" page for clans
 #
-# $Id: browseClans.tt,v 1.1 2006-08-22 15:28:24 jt6 Exp $
-%]
+# $Id: browseClans.tt,v 1.2 2006-09-22 10:29:29 jt6 Exp $
+
+# tell the wrapper to add the full-page footer
+META fullPage = 1
+-%]
 
 [% pageList = BLOCK %]
 <div class="pageList">
