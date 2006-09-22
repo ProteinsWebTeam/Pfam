@@ -32,7 +32,7 @@ function ts_makeSortable(table) {
         var txt = ts_getInnerText(cell);
         cell.innerHTML = '<a href="#" class="sortheader" '+ 
         'onclick="ts_resortTable(this, '+i+');return false;">' + 
-        txt+'<img class="sortarrow updown" src="/images/blank.gif" /></a>';
+        txt+'<img class="sortarrow updown" src="/catalyst/PfamWeb/images/blank.gif" /></a>';
 		//        txt+'<span class="sortarrow">&nbsp;&nbsp;&nbsp;</span></a>';
     }
 }
@@ -131,7 +131,7 @@ function _ts_resortTable( table, column, img ) {
 	$A(tbody.getElementsByTagName("tr")).each( function( tr ) {
 	    Element.removeClassName( tr, "odd" );
 	    Element.removeClassName( tr, "even" );
-	    Element.addClassName( tr, i++ % 2 ? "even" : "odd" );
+	    Element.addClassName( tr, i++ % 2 ? "odd" : "even" );
 	  }
 	);
 
