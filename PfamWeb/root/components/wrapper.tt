@@ -1,353 +1,54 @@
-[%#-
+[%
 # wrapper.tt
 # jt6 20060327 WTSI
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.17 2006-09-13 08:28:58 jt6 Exp $
--%]
+# $Id: wrapper.tt,v 1.18 2006-09-22 10:34:15 jt6 Exp $
 
+# see if the page should be left completely bare of any header/footer
+IF template.naked;
+    CALL c.log.debug( "***** naked template *****" );
+	content;
+ELSE;
+
+# no; add some sort of wrapper around it, but figure out whether we need
+# the tab footer or full page footer later on
+
+-%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
-  
+
   <head>
-
-    [% IF pageType %]
-      [% titleFile = layouts.${pageType}.titleTemplate %]
-      <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
-    [% ELSE %]
-      <title>Pfam</title>
-    [% END %]
-    
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
-    <!-- ====================================================================== -->
-    <!-- JT 20051020 WTSI -->
-    
-    <!-- script type="text/javascript"
-      src="[% constants.server %][% constants.root %]/pfam.js"></script -->
-    
-    <!-- make the site RSS feed discoverable --> 
-    <link href="/rss/pfam_rss_feed.rdf" 
-      rel="alternate"
-      type="application/rss+xml"
-      title="Pfam News" />
-    
-    <!-- JT 20051129 WTSI -->
-
-    <!-- javascript for sortable tables -->
-    <!-- script type="text/javascript"
-      src="[% constants.server %][% constants.root %]/sortabletable.js">
-    </script -->
-    <!-- see http://webfx.eae.net/dhtml/sortabletable/sortabletable.html -->
-
-
-    <script type="text/javascript"
-      src="[% c.uri_for("/javascripts/sorttable.js" ) %]">
-    </script>
-
-    <!-- ====================================================================== -->
-    <!-- Sanger menus... -->
-
-    <!-- <link rel="stylesheet" href="[% constants.server %]/css/wtsi.css" type="text/css" /> -->
-
-    <link rel="stylesheet" href="[% constants.server %]/css/menus/jimmac.css" type="text/css" />
-    <script type="text/javascript" src="[% constants.server %]/js/menus/jimmac.js"></script>
-    <script type="text/javascript">
-      new ypSlideOutMenu("menu2","down",273,16,100,125)
-      new ypSlideOutMenu("menu3","down",373,16,100,100)
-      new ypSlideOutMenu("menu4","down",473,16,100,50)
-      new ypSlideOutMenu("menu5","down",573,16,100,50)
-      new ypSlideOutMenu("menu6","down",673,16,100,600)
-    </script>
-
-    <!-- ====================================================================== -->
-    <!-- stylesheets -->
-
-    <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
-    <link rel="stylesheet" href="[% c.uri_for( "/css/alignment.css" ) %]" type="text/css" />
-    <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout.css" ) %]" type="text/css" />
-    [% IF layouts.${pageType}.css.global -%]
-      [% css = layouts.${pageType}.css.global -%]
-      <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
-    [% END -%]
-
-    <!--[if lt IE 7 ]>
-    <link rel="stylesheet" href="[% c.uri_for( "/css/pfam_ie.css" ) %]" type="text/css" />
-    <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_ie.css" ) %]" type="text/css" />
-    [% IF layouts.${pageType}.css.ie -%]
-      [% css = layouts.${pageType}.css.ie -%]
-      <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
-    [% END -%]
-    <![endif]-->
-
-    <!-- ====================================================================== -->
-    <!-- YAHOO modules -->
-
-    <!-- Namespace source file -->
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/YAHOO.js" ) %]"></script>
-
-    <!-- Dependency source files -->
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/dom.js" ) %]" ></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/event.js" ) %]" ></script>
-
-    <!-- TreeView widget and accompanying stylesheet -->
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/treeview.js" ) %]"></script>
-    <link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
-
-    <!-- ====================================================================== -->
-    <!-- scriptaculous and prototype -->
-
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/slider.js" ) %]"></script>
-
-    <!-- ====================================================================== -->
-	<!-- tooltip library - from http://boxover.swazz.org -->
-
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/boxover.js" ) %]"></script>
-
-    <!-- ====================================================================== -->
-    <!-- local javascript -->
-
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/family.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/structure.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/clans.js" ) %]"></script>
-    <script type="text/javascript" src="[% c.uri_for( "/javascripts/protein.js" ) %]"></script>
-
-    <!-- ====================================================================== -->
-	<!-- set the favicon -->
-	<link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
-
-    <!-- ====================================================================== -->
-	<!-- jmol -->	
-    <script type="text/javascript" src="[% c.uri_for( "/jmol/Jmol.js" ) %]"></script>
-
-    <!-- ====================================================================== -->
-    <!-- tab selection -->
-
-    [%# do we want to highlight a particular tab ? %]
-    <script type="text/javascript">
-	  serverRoot = "[% constants.root # the server root, e.g. /catalyst/PfamWeb %]";
-      section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
-      showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
-      Event.observe( window, "load", chooseTab, false );
-    </script> 
-
+	[%# import javascripts, stylesheets, etc. %]
+    [% PROCESS components/head.tt %]
   </head>
 
     <body>
 
-      <!-- header start here -->
-      <div id="header">
+	  [%# build the page header, with the swoosh, menus, etc. %]
+      [% PROCESS components/header.tt %]
 
-        <table class="header" cellpadding="0" cellspacing="0" width="100%">
-          <tr>
-            <td colspan="2"><img src="[% c.uri_for( "/images/blank.gif" ) %]" width="780" height="1" alt="" /></td><!-- set minimum width -->
-          </tr>
-          <tr class="headercentre">
-            <td align="left" nowrap="nowrap"><a href="/"><img src="[% constants.server %]/icons/blank.gif" height="66" width="200" alt="" title="" align="left" border="0" /></a>
-              <div style="float: right;">
-                <!--search box start here-->
-                <form action="[% c.uri_for( "/search" ) %]" name="sitesearch">
-                <table class="headersearch" border="0" cellspacing="0" cellpadding="1">
-                  <tr>
-                    <td align="left">
-                      <input type="text" name="query" value="" size="12" maxlength="100" class="sitesearchquery" />
-                    </td>
-                    <td align="right"><a href="javascript:document.forms['sitesearch'].submit()" class="sitesearchbutton">&nbsp;Search Pfam&nbsp;</a></td>
-                  </tr>
-                </table>
-              </form>
-                <!--search box end-->
-              </div>
-              <a href="[% c.uri_for( "/" ) %]"><img id="pfamLogo" src="[% c.uri_for( "/images/pfam_logo.gif" ) %]" alt="Pfam" /></a>
-            </td>
-          </tr>
-          <tr>
-            <td colspan="2" style="background-color: #cbdced; height: 17px;">
-              <img class="map" src="[% constants.server %][% constants.root %]/images/email-rss.gif" alt="" usemap="#contactMap" />
-              <map name="contactMap" id="contactMap">
-                <area shape="rect" coords="0,0,20,15" title="Contact Pfam" href="mailto:pfam@sanger.ac.uk" alt=""></area>
-                <area shape="rect" coords="21,0,60,15" title="RSS Feed" target="new" href="[% constants.server %][% constants.root %]/rss/pfam_rss_feed.rdf" alt=""></area>
-              </map>
-            </td>
-          </tr>
-        </table>
 
-        <!-- menubar start here -->
-        <div class="menubar" id="menubar">
-          <div class="menutext">
-            <table border="0" cellpadding="0" cellspacing="0" class="slickmenu">
-              <tr>
-                <td><a id="menu1"
-                    href="[% constants.server %][% constants.root %]"               
-                    onmouseover="ypSlideOutMenu.hover_in('menu1')"
-                    onmouseout="ypSlideOutMenu.hover_out('menu1')">
-                    <img src="[% c.uri_for( "/images/home.png" ) %]" 
-                      height="15" 
-                      width="100" 
-                      alt="Pfam Home" 
-                      title="Pfam Home"
-                      border="0" /></a>
-                </td>
-                <td>
-                  <img src="[% c.uri_for( "/images/search.png" ) %]" 
-                    height="15" 
-                    width="100" 
-                    alt="Search by" 
-                    title="Search by - Click for menu" 
-                    border="0"
-                    onclick="ypSlideOutMenu.toggleMenu('menu2', 1);"
-                    onmouseover="ypSlideOutMenu.hover_in('menu2');ypSlideOutMenu.toggleMenu('menu2', 0)"
-                    onmouseout="ypSlideOutMenu.hover_out('menu2')" />
-                </td>
-                <td>
-                  <img src="[% c.uri_for( "/images/browse.png" ) %]" 
-                    height="15"
-                    width="100"
-                    title="Browse by - Click for menu"
-                    alt="Browse by"
-                    border="0"
-                    onclick="ypSlideOutMenu.toggleMenu('menu3', 1);"
-                    onmouseover="ypSlideOutMenu.hover_in('menu3');ypSlideOutMenu.toggleMenu('menu3', 0)"
-                    onmouseout="ypSlideOutMenu.hover_out('menu3')" />
-                </td>
-                <td>
-                  <img src="[% c.uri_for( "/images/ftp.png" ) %]"
-                    height="15"
-                    width="100"
-                    title="FTP - Click for menu"
-                    alt="FTP"
-                    border="0"
-                    onclick="ypSlideOutMenu.toggleMenu('menu4', 1);"
-                    onmouseover="ypSlideOutMenu.hover_in('menu4');ypSlideOutMenu.toggleMenu('menu4', 0)"
-                    onmouseout="ypSlideOutMenu.hover_out('menu4')" />
-                </td>
-                <td>
-                  <img src="[% c.uri_for( "/images/ipfam.png" ) %]"
-                    height="15"
-                    width="100"
-                    title="iPfam - Click for menu"
-                    alt="iPfam"
-                    border="0"
-                    onclick="ypSlideOutMenu.toggleMenu('menu5', 1);"
-                    onmouseover="ypSlideOutMenu.hover_in('menu5');ypSlideOutMenu.toggleMenu('menu5', 0)"
-                    onmouseout="ypSlideOutMenu.hover_out('menu5')" />
-                </td>
-                <td>
-                  <img src="[% c.uri_for( "/images/help.png" ) %]" 
-                    height="15"
-                    width="100"
-                    title="Help - Click for menu"
-                    alt="Help"
-                    border="0"
-                    onclick="ypSlideOutMenu.toggleMenu('menu6', 1);"
-                    onmouseover="ypSlideOutMenu.hover_in('menu6');ypSlideOutMenu.toggleMenu('menu6', 0)"
-                    onmouseout="ypSlideOutMenu.hover_out('menu6')" />
-                </td>
-              </tr>
-              <tr>
-                <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-                <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-                <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-                <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-                <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-                <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-              </tr>
-            </table>
-          </div>
+	  [% IF template.fullPage %]
+       [% CALL c.log.debug( "@@@@@ full page @@@@@" ) %]
+      [% END %]
 
-          <!-- submenus start here -->
-          <div class="submenus" id="submenus">
-            <div id="menu2Container">
-              <div id="menu2Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/search.shtml">Protein name or sequence</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/tsearch.shtml">Keyword</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %]/cgi-bin/Pfam/dql.pl">Domain query</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/dnasearch.shtml">DNA sequence</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/tql.shtml">Taxonomy query</a></td></tr>
-                </table>
-              </div>
-            </div>
-            <div id="menu3Container">
-              <div id="menu3Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/browse/top_twenty.shtml">Pfam family ID</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %]/cgi-bin/Pfam/genome_dist.pl">Genomes</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/browse/clans.shtml">Clans</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/iPfam/browse/number.shtml">Interaction</a></td></tr>
-                </table>
-              </div>
-            </div>
-            <div id="menu4Container">
-              <div id="menu4Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr class="hi"><td class="slickmenu"><a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">Hyperlink directly to the FTP site</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/ftp.shtml">View FTP sites</a></td></tr>
-                </table>
-              </div>
-            </div>
-            <div id="menu5Container">
-              <div id="menu5Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/iPfam">iPfam home page</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/iPfam/browse/number.shtml">Browse iPfam</a></td></tr>
-                </table>
-              </div>
-            </div>
-            <div id="menu6Container">
-              <div id="menu6Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-                <table cellpadding="0" cellspacing="0" border="0">
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/index.shtml">Main help page</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/gstart.shtml">Getting started</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/region_help.shtml">Guide to domains</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %]/cgi-bin/Pfam/xml_upload.pl">Create your own domain images</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/changes.shtml">Changes from last release</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/rdb_doc.shtml">Pfam MySQL documentation</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/futurechange.shtml">Planned changes to Pfam</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/faq.shtml">FAQ on Pfam</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/othersite.shtml">Linking to Pfam</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/belvu_setup.shtml">Using Belvu to view alignments</a></td></tr>
-                  <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/mail.shtml">Mailing list for Pfam</a></td></tr>
-                  <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/scores.shtml">Help on scores for Pfam</a></td></tr>
-                </table>
-              </div>
-            </div>
-          </div> <!-- end of "submenus" -->
 
-        </div> <!-- end of "menubar" --> 
+	  [%# add a wrapper div if this is a tab layout page %]
+  	  [% UNLESS template.fullPage %]<div id="contentContainer">[% END %]
 
-      </div> <!-- end of "header" -->
+      <!-- start of content -->
+      [% content %]
+      <!-- end of "content" -->
 
-      [% IF fullPage %]
+	  [%# add the common footer %]
+      [% PROCESS components/footer.tt %]
 
-        <!-- content -->
-        [% content %]
-        <!-- end of "content" -->
-
-      [% ELSE %]
-
-      <div id="contentContainer">
-
-        <!-- content -->
-        [% content %]
-        <!-- end of "content" -->
-
-        <div id="footer">
-          <span>Comments or questions on the site? Send a mail to <a href="mailto:pfam@sanger.ac.uk">pfam@sanger.ac.uk</a></span>
-        </div>
-
-        <div class="cleaner"></div>
-
-      </div> <!-- end of "contentContainer" -->
-
-      [% END # of IF fullpage %]
+  	  [% UNLESS template.fullPage %]</div>[% END %]
 
     </body>
 </html>
+
+[% END # of "if template.naked" %]
