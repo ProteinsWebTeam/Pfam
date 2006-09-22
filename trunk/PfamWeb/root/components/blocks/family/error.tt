@@ -4,7 +4,7 @@
 #
 # show an error report for the family page.
 #
-# $Id: error.tt,v 1.2 2006-09-22 10:35:51 jt6 Exp $
+# $Id: error.tt,v 1.3 2006-09-22 13:16:50 jt6 Exp $
 
 # tell the wrapper to add the full page footer
 META fullPage = 1;
@@ -19,15 +19,10 @@ META fullPage = 1;
 
   [% ELSE %]
 
+    <p>There was a problem loading the requested family page.</p>
+
     [% IF errorMsg %]
-
-      <p>There was a problem loading the requested family page:</p>
       <p class="message">[% errorMsg %]</p>
-
-    [% ELSE %]
-
-      <p>There was a problem loading the requested family page.</p>
-
     [% END %]
 
   [% END # of IF DEBUG... %]
