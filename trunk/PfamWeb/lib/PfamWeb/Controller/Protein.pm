@@ -2,11 +2,26 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# Controller to build the main protein page.
-#
-# $Id: Protein.pm,v 1.9 2006-09-15 13:43:06 jt6 Exp $
+# $Id: Protein.pm,v 1.10 2006-09-22 10:44:23 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Family - controller to build the main protein
+page
+
+=cut
 
 package PfamWeb::Controller::Protein;
+
+=head1 DESCRIPTION
+
+This is intended to be the base class for everything related to
+UniProt entries across the site. 
+Generates a B<tabbed page>.
+
+$Id: Protein.pm,v 1.10 2006-09-22 10:44:23 jt6 Exp $
+
+=cut
 
 use strict;
 use warnings;
@@ -16,10 +31,19 @@ use Data::Dumper;
 use Storable qw(thaw);
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Section";
+
+__PACKAGE__->config( SECTION => "protein" );
 
 #-------------------------------------------------------------------------------
-# get the data from the database for the UniProt entry
+
+=head1 METHODS
+
+=head2 begin : Private
+
+Get the data from the database for the UniProt entry.
+
+=cut
 
 sub begin : Private {
   my( $this, $c ) = @_;
@@ -82,15 +106,92 @@ sub begin : Private {
 
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfamseq} ) {
-	$c->log->warn( "Protein::begin: no ID or accession" );
-	$c->error( "No valid UniProt accession or ID" );
+
+	# see if this was an internal link and, if so, report it
+	my $b = $c->req->base;
+	if( $c->req->referer =~ /^$b/ ) {
+
+	  # this means that the link that got us here was somewhere within
+	  # the Pfam site and that the accession or ID which it specified
+	  # doesn't actually exist in the DB
+
+	  # de-taint the accession or ID
+	  my $input = $c->req->param("acc")
+		|| $c->req->param("id")
+		|| $c->req->param("entry");
+	  $input =~ s/^(\w+)/$1/;
+
+	  # report the error as a broken internal link
+	  $c->error( "Found a broken internal link; no valid UniProt accession or ID "
+				 . "(\"$input\") in \"" . $c->req->referer . "\"" );
+	  $c->forward( "/reportError" );
+
+	  # now reset the errors array so that we can add the message for
+	  # public consumption
+	  $c->clear_errors;
+
+	}
+
+	# the message that we'll show to the user
+	$c->stash->{errorMsg} = "No valid UniProt accession or ID";
+
+	# log a warning and we're done; drop out to the end method which
+	# will put up the standard error page
+	$c->log->warn( "Family::begin: no valid UniProt ID or accession" );
+
 	return;
   }
 
   $c->log->debug( "Protein::begin: successfully retrieved a pfamseq object" );
 
   #----------------------------------------
-  # generate the Pfam graphic
+  # add available DAS sources to the stash
+
+  my @dasSources = $c->model("PfamDB::Das_sources")->search();
+  $c->stash->{dasSourcesRs} = \@dasSources;
+
+  $c->log->debug( "Protein::begin: added DAS sources to the stash" );
+
+  #----------------------------------------
+  # add extra data to the stash
+
+  $c->forward( "_generatePfamGraphic" );
+  $c->forward( "_getMapping" );
+  $c->forward( "_getSummaryData" );
+
+}
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# get the structure mapping
+
+sub _getMapping : Private {
+  my( $this, $c ) = @_;
+
+  # get a layout manager and set the X scale
+
+  my @mapping = $c->model("PfamDB::PdbMap")->search(
+						    { "pfamseq.auto_pfamseq" => $c->stash->{pfamseq}->auto_pfamseq,
+						      pfam_region            => 1 },
+						    {
+						     join     => [ qw/pfamA pfamseq pdb/ ],
+						     prefetch => [ qw/pfamA pfamseq pdb/ ]
+						    }
+						   );
+
+  $c->stash->{pfamMaps} = \@mapping;
+
+  $c->log->debug( "Protein::begin: added the structure mapping to the stash" );
+
+}
+
+#-------------------------------------------------------------------------------
+# generate the Pfam graphic
+
+sub _generatePfamGraphic : Private {
+  my( $this, $c ) = @_;
 
   # get a layout manager and set the X scale
   my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
@@ -123,34 +224,13 @@ sub begin : Private {
 
   $c->log->debug( "Protein::begin: successfully generated an imageset object" );
 
-  #----------------------------------------
-  # add available DAS sources to the stash
+}
 
-  my @dasSources = $c->model("PfamDB::Das_sources")->search();
-  $c->stash->{dasSourcesRs} = \@dasSources;
+#-------------------------------------------------------------------------------
+# get the data items for the overview bar
 
-  $c->log->debug( "Protein::begin: added DAS sources to the stash" );
-
-  #----------------------------------------
-  # get the structure mapping
-
-  my $autoPfamseq = $c->stash->{pfamseq}->auto_pfamseq;
-
-  my @mapping = $c->model("PfamDB::PdbMap")->search(
-						    { "pfamseq.auto_pfamseq" => $autoPfamseq,
-						      pfam_region            => 1 },
-						    {
-						     join     => [ qw/pfamA pfamseq pdb/ ],
-						     prefetch => [ qw/pfamA pfamseq pdb/ ]
-						    }
-						   );
-
-  $c->stash->{pfamMaps} = \@mapping;
-
-  $c->log->debug( "Protein::begin: added the structure mapping to the stash" );
-
-  #----------------------------------------
-  # get the data items for the overview bar
+sub _getSummaryData : Private {
+  my( $this, $c ) = @_;
 
   my %summaryData;
 
@@ -165,7 +245,7 @@ sub begin : Private {
 
   # number of structures
   my $rs = $c->model("PfamDB::Pdb_residue")->find(
-             { auto_pfamseq => $autoPfamseq },
+             { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
 			 { select => [
 						  { count => [
 									  { distinct => [ qw/auto_pdb/ ] }
@@ -179,7 +259,7 @@ sub begin : Private {
 
   # number of interactions
   $rs = $c->model("PfamDB::Interactions")->find(
-		  { auto_pfamseq_A => $autoPfamseq },
+		  { auto_pfamseq_A => $c->stash->{pfamseq}->auto_pfamseq },
 		  { select => [
 					   { count => [
 								   { distinct => [ "auto_int_pfamAs" ] }
@@ -198,41 +278,18 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
-# the hook into the class
 
-# pick up a URL like http://localhost:3000/protein?acc=P00179
+=head1 AUTHOR
 
-sub default : Private {
-  my( $this, $c ) = @_;
+John Tate, C<jt6@sanger.ac.uk>
 
-  $c->log->debug( "Protein::default: action caught a URL..." );
-}
+Rob Finn, C<rdf@sanger.ac.uk>
 
-#-------------------------------------------------------------------------------
-# default end; hand off to the whole page layout
+=head1 COPYRIGHT
 
-sub end : Private {
-  my( $this, $c ) = @_;
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
-  # don't try to render a page unless there's a Pfamseq object in the stash
-  return 0 unless defined $c->stash->{pfamseq};
-
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-	$c->stash->{errors}   = $c->error;
-	$c->stash->{template} = "components/blocks/protein/errors.tt";
-  } else {
-	$c->stash->{pageType} = "protein";
-	$c->stash->{template} = "pages/layout.tt";
-  }
-
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
-
-  # clear any errors
-  $c->clear_errors;
-}
-
-#-------------------------------------------------------------------------------
+=cut
 
 1;
