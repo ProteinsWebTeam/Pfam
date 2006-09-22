@@ -1,20 +1,25 @@
-
-[%-#
+[%
 # jmol.tt
 # jt6 20060728 WTSI
 # 
 # build a page for the Jmol applet
 #
 # $Id%
+
+# tell the wrapper not to add any header or footer. We'll generate a complete 
+# page here ourselves
+META naked = 1;
+
+USE String;
+USE dumper;
 -%]
-
-[% USE String %]
-[% USE dumper %]
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
 
   <head>
+
+    <title>Pfam: Viewing structure [% pdb.pdb_id %]</title>
 
     <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
 
@@ -39,7 +44,7 @@
 
   <body>
 
-<h1 class="viewHeader">PDB entry [% pdb.pdb_id %]</h1>
+    <h1 class="viewHeader">PDB entry [% pdb.pdb_id %]</h1>
 
 [%
 script = String.new( "background [xe7e7e7]; load \"" );
@@ -74,46 +79,47 @@ CALL script.append( activeSites );
 CALL script.append( "select none; select ligand; cpk on; color cpk; " );
 %]
 
-<script type="text/javascript">
-  jmolInitialize(" [% c.uri_for( "/jmol" ) %]"); // REQUIRED
-  jmolSetAppletColor( "white" );
-  jmolApplet(500, '[% script %]');
-</script>
+    <script type="text/javascript">
+      jmolInitialize(" [% c.uri_for( "/jmol" ) %]"); // REQUIRED
+      jmolSetAppletColor( "white" );
+      jmolApplet(500, '[% script %]');
+    </script>
 
-[% oe = 0 %]
+    [% oe = 0 %]
 
-<table class="details">
-  <thead>
-    <tr class="caption">
-      <th colspan="3">PDB</th>
-      <th colspan="3">UniProt</th>
-      <th rowspan="2">Pfam family</th>
-      <th rowspan="2">Colour</th>
-    </tr>
-    <tr class="caption">
-      <th>Chain</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>ID</th>
-      <th>Start</th>
-      <th>End</th>
-    </tr>
-  </thead>
-  <tbody>
-    [% FOREACH m IN mapping %]
-    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
-      <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
-      <td>[% m.pdb_start_res %]</td>
-      <td>[% m.pdb_end_res %]</td>
-      <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
-      <td>[% m.pfam_start_res %]</td>
-      <td>[% m.pfam_end_res %]</td>
-      <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
-      <td style="background: #[% m.hex_colour %]">&nbsp;</td>
-    </tr>
-    [% END %]
-  </tbody>
-</table>
+    <table class="details">
+      <thead>
+        <tr class="caption">
+          <th colspan="3">PDB</th>
+          <th colspan="3">UniProt</th>
+          <th rowspan="2">Pfam family</th>
+          <th rowspan="2">Colour</th>
+        </tr>
+        <tr class="caption">
+          <th>Chain</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>ID</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        [% FOREACH m IN mapping %]
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
+          <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
+          <td>[% m.pdb_start_res %]</td>
+          <td>[% m.pdb_end_res %]</td>
+          <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
+          <td>[% m.pfam_start_res %]</td>
+          <td>[% m.pfam_end_res %]</td>
+          <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
+          <td style="background: #[% m.hex_colour %]">&nbsp;</td>
+        </tr>
+        [% END %]
+      </tbody>
+    </table>
+    
 
-</body>
+  </body>
 </html>

@@ -1,11 +1,13 @@
-
-[%#
+[%
 # browseFamilies.tt
 # jt6 20060717 WTSI
 # 
 # build a "browse" page
 #
-# $Id: browseFamilies.tt,v 1.2 2006-08-22 15:28:42 jt6 Exp $
+# $Id: browseFamilies.tt,v 1.3 2006-09-22 10:29:28 jt6 Exp $
+
+# tell the wrapper it's a full page
+META fullPage = 1
 %]
 
 [% pageList = BLOCK %]

@@ -1,15 +1,35 @@
-<html>
+[%
+# error.tt
+# jt6 20060918 WTSI
+#
+# the main site error page
+#
+# $Id: error.tt,v 1.2 2006-09-22 10:29:29 jt6 Exp $
 
-  <head>
-	[% PROCESS components/head.tt %]
-  </head>
+# tell the wrapper to add the full page footer
+META fullPage = 1;
+-%]
 
-  <body>
-	[% PROCESS components/header.tt %]	
+<!-- start error report -->
 
-	<h1 class="error">Problems</h1>
+<div class="errorReport">
 
-	[% PROCESS components/footer.tt %]
-	
-  </body>
-</html>
+  <p>
+    There was a problem loading the requested page.
+  </p>
+
+  <p>
+    This could be because you followed a broken link from within the Pfam site, or
+    on an external site that links to us.
+  </p>
+
+  <p>
+    You might like to go <a href="javascript: history.go(-1)">back</a> to the previous page, 
+    <a href="javascript: $('siteSearchField').value='[% searchTerm %]';$('sitesearch').submit()">
+      search</a> for the entry you&apos;re looking for or report a broken link in the
+    Pfam site.
+  </p>
+
+</div>
+
+<!-- end error report -->

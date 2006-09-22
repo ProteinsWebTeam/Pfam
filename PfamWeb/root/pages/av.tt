@@ -1,19 +1,25 @@
-
-[%-#
+[%
 # av.tt
 # jt6 20060802 WTSI
 # 
 # build a page for the AstexViewer applet
 #
 # $Id%
--%]
 
-[% USE String %]
-[% USE dumper %]
+# tell the wrapper not to add any header or footer. We'll generate a complete 
+# page here ourselves
+META naked = 1;
+
+USE String;
+USE dumper;
+-%]
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
 
   <head>
+
+    <title>Pfam: Viewing structure [% pdb.pdb_id %]</title>
 
     <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
 
@@ -38,14 +44,14 @@
 
   <body>
 
-<h1 class="viewHeader">PDB entry [% pdb.pdb_id %]</h1>
+    <h1 class="viewHeader">PDB entry [% pdb.pdb_id %]</h1>
 
-<applet width="500"
-        height="500"
-        name="av"
-        code="MoleculeViewerApplet"
-        archive="[% c.uri_for( "/av/AstexViewer2.jar" ) %]">
-<param name="script" value="
+    <applet width="500"
+            height="500"
+            name="av"
+            code="MoleculeViewerApplet"
+            archive="[% c.uri_for( "/av/AstexViewer2.jar" ) %]">
+    <param name="script" value="
 background '0xE7E7E7';
 molecule load mol '[% c.uri_for( "/structure/getpdbfile" ) %]/[% pdbId %].pdb';
 display lines off all;
@@ -77,43 +83,43 @@ object surfObj -map { current };
 */
 " />
 
-</applet>
+    </applet>
 
-[% oe = 0 %]
+    [% oe = 0 %]
 
-<table class="details">
-  <thead>
-    <tr class="caption">
-      <th colspan="3">PDB</th>
-      <th colspan="3">UniProt</th>
-      <th rowspan="2">Pfam family</th>
-      <th rowspan="2">Colour</th>
-    </tr>
-    <tr class="caption">
-      <th>Chain</th>
-      <th>Start</th>
-      <th>End</th>
-      <th>ID</th>
-      <th>Start</th>
-      <th>End</th>
-    </tr>
-  </thead>
-  <tbody>
-    [% FOREACH m IN mapping %]
-    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
-      <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
-      <td>[% m.pdb_start_res %]</td>
-      <td>[% m.pdb_end_res %]</td>
-      <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
-      <td>[% m.pfam_start_res %]</td>
-      <td>[% m.pfam_end_res %]</td>
-      <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
-      <td style="background: #[% m.hex_colour %]">&nbsp;</td>
-    </tr>
-    [% END %]
-  </tbody>
-</table>
-
+    <table class="details">
+      <thead>
+        <tr class="caption">
+          <th colspan="3">PDB</th>
+          <th colspan="3">UniProt</th>
+          <th rowspan="2">Pfam family</th>
+          <th rowspan="2">Colour</th>
+        </tr>
+        <tr class="caption">
+          <th>Chain</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>ID</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        [% FOREACH m IN mapping %]
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
+          <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
+          <td>[% m.pdb_start_res %]</td>
+          <td>[% m.pdb_end_res %]</td>
+          <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
+          <td>[% m.pfam_start_res %]</td>
+          <td>[% m.pfam_end_res %]</td>
+          <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
+          <td style="background: #[% m.hex_colour %]">&nbsp;</td>
+        </tr>
+        [% END %]
+      </tbody>
+    </table>
+    
   </body>
-
+  
 </html>
