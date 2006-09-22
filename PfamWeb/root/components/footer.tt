@@ -1,8 +1,8 @@
 [%
-# pageFooter.tt
+# footer.tt
 # jt6 20060921 WTSI
 #
-# $Id: footer.tt,v 1.3 2006-09-22 10:30:26 jt6 Exp $
+# $Id: footer.tt,v 1.4 2006-09-22 13:19:12 jt6 Exp $
 %]
 
 <!-- footer start -->
