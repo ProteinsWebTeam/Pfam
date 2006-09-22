@@ -1,0 +1,35 @@
+[%#-
+# Define a macro that generates a boxover tooltip as a title attribute
+# jt6 20060920 WTSI
+#
+# Usage: 
+#
+#  import it:
+#    {%- PROCESS "components/help.tt" -%}
+#
+#  add a tip to the conf:
+#    <helpSystem>
+#    	<section curation>
+#   	    <tip seedSource>
+#   			header	"Seed source"
+#   			body	"The method by which the seed alignment was generated"
+#   	    </tip>
+#   	</section>
+#    </helpSystem>
+#
+#  include the tip:
+#    <tr class="{% IF oe % 2 %}odd{% ELSE %}even{% END %}{% oe=oe+1 %}">
+#      <td class="label"{% addTip("curation","seedSource") %}>Seed source:</td>
+#      <td class="data">{% pfam.seed_source %}</td>
+#    </tr>
+#
+-%]
+[% MACRO addTip(section,id)
+    BLOCK;
+      header = helpSystem.section.${section}.tip.${id}.header;
+      body   = helpSystem.section.${section}.tip.${id}.body;
+      IF header AND body;
+        "onmouseover=\"Element.addClassName(this,'under')\" onmouseout=\"Element.removeClassName(this,'under')\" title=\"header=[$header] body=[$body] cssheader=[tipHeader] cssbody=[tipBody] requireclick=[on] fade=[on] fadespeed=[0.5]\"";
+      END;
+	END
+%]
