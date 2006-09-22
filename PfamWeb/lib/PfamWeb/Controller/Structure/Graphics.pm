@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060710 WTSI
 #
-# $Id: Graphics.pm,v 1.2 2006-08-14 10:46:12 jt6 Exp $
+# $Id: Graphics.pm,v 1.3 2006-09-22 10:47:46 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ sequence - used in the structure section, confusingly.
 
 Generates a B<page component>.
 
-$Id: Graphics.pm,v 1.2 2006-08-14 10:46:12 jt6 Exp $
+$Id: Graphics.pm,v 1.3 2006-09-22 10:47:46 jt6 Exp $
 
 =cut
 
@@ -129,26 +129,8 @@ sub getData : Path {
   $c->stash->{chainsToUnp} = \%chainsToUnp;
   $c->stash->{unpToImage}  = \%unpToImage;
 
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Overrides the end method from the base class, so that we now hand off
-to a template that doesn't require the wrapper
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  return unless defined $c->stash->{images};
-
+  # set up the view and rely on "end" from the parent class to render it
   $c->stash->{template} = "components/blocks/structure/loadGraphics.tt";
-
-  # forward to the class that's got the WRAPPER set to null
-  $c->forward( "PfamWeb::View::TTBlock" );
 
 }
 

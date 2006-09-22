@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.3 2006-09-13 08:34:21 jt6 Exp $
+# $Id: Viewer.pm,v 1.4 2006-09-22 10:47:46 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.3 2006-09-13 08:34:21 jt6 Exp $
+$Id: Viewer.pm,v 1.4 2006-09-22 10:47:46 jt6 Exp $
 
 =cut
 
@@ -116,7 +116,6 @@ previously
 
 =cut
 
-
 sub end : Private {
   my( $this, $c ) = @_;
 
@@ -126,19 +125,17 @@ sub end : Private {
   # set up the TT view
   # check for errors
   if ( scalar @{ $c->error } ) {
-	$c->stash->{errors}   = $c->error;
-	$c->stash->{template} = "components/blocks/structure/errors.tt";
+	$c->stash->{template} = "components/blocks/structure/error.tt";
   } else {
 	$c->stash->{pageType} = "structure";
-	$c->stash->{fullPage} = 1;
 	$c->stash->{template} = "pages/" . $c->stash->{viewer} . ".tt";
   }
 
   # and render the page
-  $c->forward( "PfamWeb::View::TTBlock" );
+  $c->forward( "PfamWeb::View::TT" );
 
   # clear any errors
-  $c->error(0);
+  $c->clear_errors;
 
 }
 
