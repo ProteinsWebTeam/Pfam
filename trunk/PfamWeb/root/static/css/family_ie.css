@@ -4,9 +4,14 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: family_ie.css,v 1.5 2006-07-14 12:55:12 jt6 Exp $
+   $Id: family_ie.css,v 1.6 2006-09-22 10:21:34 jt6 Exp $
 */
 
 hr.short {
     border-color: #074987;
+}
+
+#alignmentData {
+	overflow-x: auto;
+    overflow-y: visible;
 }
