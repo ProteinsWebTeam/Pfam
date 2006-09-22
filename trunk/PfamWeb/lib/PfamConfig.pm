@@ -9,7 +9,7 @@
 # external libraries from a configuration file, rather than having to
 # hard-code them into "use lib" lines in each source file
 
-# $Id: PfamConfig.pm,v 1.3 2006-09-07 16:24:56 jt6 Exp $
+# $Id: PfamConfig.pm,v 1.4 2006-09-22 10:42:07 jt6 Exp $
 
 package PfamConfig;
 
@@ -24,7 +24,7 @@ sub import {
   # the catalyst application
   
   $Module::PortablePath::CONFIGS = {
-	 default => "/nfs/team71/pfam/jt6/server/PfamWeb/pfamweb.ini",
+	 default => "/nfs/team71/pfam/jt6/server/PfamWeb/conf/pfamweb.ini",
   };
 
   Module::PortablePath::import(@_);
