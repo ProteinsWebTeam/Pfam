@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.10 2006-09-22 10:44:23 jt6 Exp $
+# $Id: Protein.pm,v 1.11 2006-09-22 13:22:14 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.10 2006-09-22 10:44:23 jt6 Exp $
+$Id: Protein.pm,v 1.11 2006-09-22 13:22:14 jt6 Exp $
 
 =cut
 
@@ -107,6 +107,12 @@ sub begin : Private {
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfamseq} ) {
 
+	# de-taint the accession or ID
+	my $input = $c->req->param("acc")
+	  || $c->req->param("id")
+	  || $c->req->param("entry");
+	$input =~ s/^(\w+)/$1/;
+
 	# see if this was an internal link and, if so, report it
 	my $b = $c->req->base;
 	if( $c->req->referer =~ /^$b/ ) {
@@ -114,12 +120,6 @@ sub begin : Private {
 	  # this means that the link that got us here was somewhere within
 	  # the Pfam site and that the accession or ID which it specified
 	  # doesn't actually exist in the DB
-
-	  # de-taint the accession or ID
-	  my $input = $c->req->param("acc")
-		|| $c->req->param("id")
-		|| $c->req->param("entry");
-	  $input =~ s/^(\w+)/$1/;
 
 	  # report the error as a broken internal link
 	  $c->error( "Found a broken internal link; no valid UniProt accession or ID "

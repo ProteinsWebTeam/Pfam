@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.7 2006-09-22 10:44:23 jt6 Exp $
+# $Id: Structure.pm,v 1.8 2006-09-22 13:22:14 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.7 2006-09-22 10:44:23 jt6 Exp $
+$Id: Structure.pm,v 1.8 2006-09-22 13:22:14 jt6 Exp $
 
 =cut
 
@@ -98,18 +98,17 @@ sub begin : Private {
 
   }
 
-  $c->log->debug( "Structure::begin: found a valid ID ($pdbId)" );
   $pdb = $c->model("PfamDB::Pdb")->find( { pdb_id => $pdbId } );
 
   # we're done here unless there's an entry specified
   unless( defined $pdb ) {
 
+	# de-taint the ID
+	my( $input ) = $c->req->param("id") =~ /^(\w+)/;
+
 	# see if this was an internal link and, if so, report it
 	my $b = $c->req->base;
-	if( $c->req->referer =~ /^$b/ ) {
-
-	  # de-taint the ID
-	  my( $input ) = $c->req->param("id") =~ /^(\w+)/;
+	if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
 
 	  # report the error as a broken internal link
 	  $c->error( "Found a broken internal link; no valid PDB ID "
@@ -119,16 +118,16 @@ sub begin : Private {
 	  $c->clear_errors;
 	}
 
-	$c->error( "No valid PDB ID" );
+	$c->stash->{errorMsg} = "No valid PDB ID";
 
 	# log a warning and we're done; drop out to the end method which
 	# will put up the standard error page
-	$c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdbId|" );
+	$c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$input|" );
 
 	return;
   }
 
-  $c->log->debug( "Structure::begin: successfully retrieved a pdb object" );
+  $c->log->debug( "Structure::begin: successfully retrieved pdb object for $pdbId" );
 
   # stash the PDB object and ID
   $c->stash->{pdb}   = $pdb;
