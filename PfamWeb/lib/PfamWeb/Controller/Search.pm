@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.2 2006-08-22 15:10:54 jt6 Exp $
+# $Id: Search.pm,v 1.3 2006-09-22 10:44:23 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.2 2006-08-22 15:10:54 jt6 Exp $
+$Id: Search.pm,v 1.3 2006-09-22 10:44:23 jt6 Exp $
 
 =cut
 
@@ -45,7 +45,7 @@ sub begin : Private {
 
   # get the query
   my $terms;
-  ( $terms ) = $c->req->params->{query} =~ /^([\w\:\;\-\.\s]+)/;
+  ( $terms ) = $c->req->param( "query" ) =~ /^([\w\:\;\-\.\s]+)/;
 
   # we're done here unless there's a query specified
   $c->log->warn( "Search::begin: no query terms supplied" ) and return
@@ -177,8 +177,18 @@ sub default : Private {
 
   #----------------------------------------
 
+  # if there are no results, redirect to the error page
+  my $numHits = scalar keys %{$c->stash->{results}};
+  if( $numHits < 1 ) {
+	$c->stash->{template} = "pages/searchError.tt";
+	return 0;
+  }
+
+  #----------------------------------------
+
   # if there's only one result, redirect straight to it
-  if( scalar keys %{$c->stash->{results}} == 1 ) {
+
+  if( $numHits == 1 ) {
 	my( $acc ) = keys %{$c->stash->{results}};
 	$c->log->debug( "Search::default: found a single hit: |$acc|; redirecting" );
 	$c->res->redirect( $c->uri_for( "/family", { acc => $acc } ) );
@@ -329,9 +339,6 @@ sub end : Private {
 
   $c->log->debug( "Search::end: working out what to render..." );
 
-  # don't try to render a page unless there's a Pdb object in the stash
-  return 0 unless defined $c->stash->{results};
-
   # set up the TT view
   # check for errors
   if ( scalar @{ $c->error } ) {
@@ -343,7 +350,7 @@ sub end : Private {
   } else {
 	$c->stash->{pageType} = "family"; # THIS IS WRONG ! FIX ME !
 	$c->stash->{fullPage} = 1;
-	$c->stash->{template} = "pages/search.tt";
+	$c->stash->{template} ||= "pages/search.tt";
   }
 
   # and render the page

@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.6 2006-08-23 14:35:09 jt6 Exp $
+# $Id: Structure.pm,v 1.7 2006-09-22 10:44:23 jt6 Exp $
 
 =head1 NAME
 
@@ -29,9 +29,9 @@ site, so it includes an action to capture a URL like
 
 =back
 
-Generates a B<full page>.
+Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.6 2006-08-23 14:35:09 jt6 Exp $
+$Id: Structure.pm,v 1.7 2006-09-22 10:44:23 jt6 Exp $
 
 =cut
 
@@ -40,7 +40,9 @@ use warnings;
 
 use Data::Dumper;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Section";
+
+__PACKAGE__->config( SECTION => "structure" );
 
 #-------------------------------------------------------------------------------
 
@@ -100,56 +102,40 @@ sub begin : Private {
   $pdb = $c->model("PfamDB::Pdb")->find( { pdb_id => $pdbId } );
 
   # we're done here unless there's an entry specified
-  $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdbId|" )
-	and return
-	  unless defined $pdb;
+  unless( defined $pdb ) {
+
+	# see if this was an internal link and, if so, report it
+	my $b = $c->req->base;
+	if( $c->req->referer =~ /^$b/ ) {
+
+	  # de-taint the ID
+	  my( $input ) = $c->req->param("id") =~ /^(\w+)/;
+
+	  # report the error as a broken internal link
+	  $c->error( "Found a broken internal link; no valid PDB ID "
+				 . "(\"$input\") in \"" . $c->req->referer . "\"" );
+	  $c->forward( "/reportError" );
+
+	  $c->clear_errors;
+	}
+
+	$c->error( "No valid PDB ID" );
+
+	# log a warning and we're done; drop out to the end method which
+	# will put up the standard error page
+	$c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdbId|" );
+
+	return;
+  }
+
+  $c->log->debug( "Structure::begin: successfully retrieved a pdb object" );
 
   # stash the PDB object and ID
   $c->stash->{pdb}   = $pdb;
   $c->stash->{pdbId} = $pdbId;
-  my $autoPdb = $c->stash->{pdb}->auto_pdb;
 
-  # Now get the Icon information for the structure;
-  my %summaryData;
-
-  # Number of sequences in the structure - count the number of chains.
-  my $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
-						  {select => [ { count => [ {distinct => ["chain"] } ]}],
-						     as   => [ qw/numChains/]});
-  $summaryData{numSequences} = $rs->get_column( "numChains" );
-
-  # Number of species should be one, but get the species for the sequences
-  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
-						{  join => [ qw/pfamseq/],
-						   select => [ { count => [ {distinct => ["pfamseq.species"] } ]}],
-						    as => [ qw/numSpecies/]} );
-  $summaryData{numSpecies} = $rs->get_column( "numSpecies" );
-
-  # Number Architectures
-  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
-						{  join => [ qw/pfamseq_arch/],
-						   select => [ { count => [ {distinct => ["pfamseq_arch.auto_architecture"] } ]}],
-						     as => [ qw/numArch/]} );
-  $summaryData{numArchitectures} = $rs->get_column( "numArch" );;
-
-  # Number of Interactions.
-  $rs = $c->model("PfamDB::Interactions")->find(
-						{ auto_pdb => $autoPdb },
-						{ select => [
-							     { count => [
-									 { distinct => [ "auto_int_pfamAs" ] }
-									]
-							     }
-							    ],
-						  as => [ qw/numInts/ ]
-						}
-					       );
-  $summaryData{numInt} = $rs->get_column("numInts");
-
-  # Structures is one
-  $summaryData{numStructures} = 1;
-
-  $c->stash->{summaryData} = \%summaryData;
+  # get the icon summary data
+  $c->forward( "_getSummaryData" );
 
 }
 
@@ -196,7 +182,16 @@ sub addMapping : Private {
 
 =head2 default : Path
 
-Picks up a URL like http://localhost:3000/structure?id=1abc
+Picks up a URL like
+
+=over
+
+=item http://localhost:3000/structure?id=1abc
+
+=back
+
+Also adds the structure-sequence-pfam mapping to the stash, since
+that's used by various subclasses, such as Viewer.
 
 =cut
 
@@ -208,7 +203,7 @@ sub default : Path {
   $c->forward( "addMapping" );
 
   # get the authors list
-  my @authors = $c->model("PfamDB::PdbAuthor")->search( 
+  my @authors = $c->model("PfamDB::PdbAuthor")->search(
                   { auto_pdb => $c->stash->{pdb}->auto_pdb },
 				  { order_by => "author_order ASC" }
                 );
@@ -218,35 +213,56 @@ sub default : Path {
 }
 
 #-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-=head2 end : Private
+# get the data items for the overview bar
 
-Hands off to the full page template or catches any errors that were
-generated earlier
-
-=cut
-
-sub end : Private {
+sub _getSummaryData : Private {
   my( $this, $c ) = @_;
 
-  # don't try to render a page unless there's a Pdb object in the stash
-  return 0 unless defined $c->stash->{pdb};
+  my %summaryData;
 
-  # set up the TT view
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-	$c->stash->{errors}   = $c->error;
-	$c->stash->{template} = "components/blocks/structure/errors.tt";
-  } else {
-	$c->stash->{pageType} = "structure";
-	$c->stash->{template} = "pages/layout.tt";
-  }
+  my $autoPdb = $c->stash->{pdb}->auto_pdb;
 
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
+  # number of sequences in the structure - count the number of chains.
+  my $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
+						  {select => [ { count => [ {distinct => ["chain"] } ]}],
+						     as   => [ qw/numChains/]});
+  $summaryData{numSequences} = $rs->get_column( "numChains" );
 
-  # clear any errors
-  $c->error(0);
+  # number of species should be one, but get the species for the sequences
+  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
+						{  join => [ qw/pfamseq/],
+						   select => [ { count => [ {distinct => ["pfamseq.species"] } ]}],
+						    as => [ qw/numSpecies/]} );
+  $summaryData{numSpecies} = $rs->get_column( "numSpecies" );
+
+  # number architectures
+  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
+						{  join => [ qw/pfamseq_arch/],
+						   select => [ { count => [ {distinct => ["pfamseq_arch.auto_architecture"] } ]}],
+						     as => [ qw/numArch/]} );
+  $summaryData{numArchitectures} = $rs->get_column( "numArch" );;
+
+  # number of interactions.
+  $rs = $c->model("PfamDB::Interactions")->find(
+						{ auto_pdb => $autoPdb },
+						{ select => [
+							     { count => [
+									 { distinct => [ "auto_int_pfamAs" ] }
+									]
+							     }
+							    ],
+						  as => [ qw/numInts/ ]
+						}
+					       );
+  $summaryData{numInt} = $rs->get_column("numInts");
+
+  # number of structures is one
+  $summaryData{numStructures} = 1;
+
+  $c->stash->{summaryData} = \%summaryData;
 
 }
 

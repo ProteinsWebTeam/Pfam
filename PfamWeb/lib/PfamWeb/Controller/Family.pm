@@ -2,30 +2,50 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# Controller to build the main Pfam family page.
-#
-# $Id: Family.pm,v 1.7 2006-08-14 10:38:50 jt6 Exp $
+# $Id: Family.pm,v 1.8 2006-09-22 10:44:23 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Family - controller to build the main Pfam family
+page
+
+=cut
 
 package PfamWeb::Controller::Family;
+
+=head1 DESCRIPTION
+
+This is intended to be the base class for everything related to Pfam
+families across the site. The L<begin|/"begin : Private"> method tries
+to extract a Pfam ID or accession from the captured URL and tries to
+load a Pfam object from the model.
+
+Generates a B<tabbed page>.
+
+$Id: Family.pm,v 1.8 2006-09-22 10:44:23 jt6 Exp $
+
+=cut
 
 use strict;
 use warnings;
 
 use Data::Dumper;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Section";
 
-
-# this is the base class for dealing with Pfam family-related
-# data. The begin method will try to extract data from the database
-# for the family that's specified either with an ID or accession. The
-# end method will hand off to the tab-layout template.
-#
-# Subclasses can override the end method to, for example, remove the
-# wrapper from the templates.
+# set the name of the section
+__PACKAGE__->config( SECTION => "family" );
 
 #-------------------------------------------------------------------------------
-# get the row in the Pfam table for this entry
+
+=head1 METHODS
+
+=head2 begin : Private
+
+Extracts the Pfam family ID or accession from the URL and gets the row
+in the Pfam table for that entry.
+
+=cut
 
 sub begin : Private {
   my( $this, $c ) = @_;
@@ -81,10 +101,43 @@ sub begin : Private {
 
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfam} ) {
-	$c->log->warn( "Family::begin: no ID or accession" );
-	$c->error( "No valid Pfam family accession or ID" );
+
+	# see if this was an internal link and, if so, report it
+	my $b = $c->req->base;
+	if( $c->req->referer =~ /^$b/ ) {
+
+	  # this means that the link that got us here was somewhere within
+	  # the Pfam site and that the accession or ID which it specified
+	  # doesn't actually exist in the DB
+
+	  # de-taint the accession or ID
+	  my $input = $c->req->param("acc")
+		|| $c->req->param("id")
+		|| $c->req->param("entry");
+	  $input =~ s/^(\w+)/$1/;
+
+	  # report the error as a broken internal link
+	  $c->error( "Found a broken internal link; no valid Pfam family accession or ID "
+				 . "(\"$input\") in \"" . $c->req->referer . "\"" );
+	  $c->forward( "/reportError" );
+
+	  # now reset the errors array so that we can add the message for
+	  # public consumption
+	  $c->clear_errors;
+
+	}
+
+	# the message that we'll show to the user
+	$c->stash->{errorMsg} = "No valid Pfam family accession or ID";
+
+	# log a warning and we're done; drop out to the end method which
+	# will put up the standard error page
+	$c->log->warn( "Family::begin: no valid Pfam family ID or accession" );
+
 	return;
   }
+
+  $c->log->debug( "Family::begin: successfully retrieved a pfam object" );
 
   #----------------------------------------
   # add the clan details, if any
@@ -94,7 +147,21 @@ sub begin : Private {
 	if defined $clanAcc;
 
   #----------------------------------------
-  # get the data items for the overview bar
+  # add extra data to the stash
+
+  $c->forward( "_getSummaryData" );
+  $c->forward( "_getDbXrefs" );
+
+}
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# get the data items for the overview bar
+
+sub _getSummaryData : Private {
+  my( $this, $c ) = @_;
 
   my %summaryData;
 
@@ -157,24 +224,9 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
-# pick up http://localhost:3000/summary
+# gets the database cross-references
 
-sub generateSummary : Path {
-  my( $this, $c ) = @_;
-
-  # the accession should have been dropped into the stash by the begin
-  # method
-
-  # add the cross-references to the stash
-  $c->forward( "getDbXrefs" ) if defined $c->stash->{pfam};
-
-}
-
-#-------------------------------------------------------------------------------
-# get the database cross-references from various places and stuff them
-# into the stash
-
-sub getDbXrefs : Private {
+sub _getDbXrefs : Private {
   my( $this, $c ) = @_;
 
   my %xRefs;
@@ -264,31 +316,18 @@ sub getDbXrefs : Private {
 }
 
 #-------------------------------------------------------------------------------
-# hand off to the full page template
 
-sub end : Private {
-  my( $this, $c ) = @_;
+=head1 AUTHOR
 
-  # don't try to render a page unless there's a Pfam object in the stash
-  return 0 unless defined $c->stash->{pfam};
+John Tate, C<jt6@sanger.ac.uk>
 
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-	$c->stash->{errors}   = $c->error;
-	$c->stash->{template} = "components/blocks/family/errors.tt";
-  } else {
-	$c->stash->{pageType} = "family";
-	$c->stash->{template} ||= "pages/layout.tt";
-  }
+Rob Finn, C<rdf@sanger.ac.uk>
 
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
+=head1 COPYRIGHT
 
-  # clear any errors
-  $c->error(0);
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
-}
-
-#-------------------------------------------------------------------------------
+=cut
 
 1;
