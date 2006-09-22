@@ -1,13 +1,12 @@
-
-[%#
+[%
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.4 2006-08-14 10:58:28 jt6 Exp $
-%]
+# $Id: structures.tt,v 1.5 2006-09-22 10:40:03 jt6 Exp $
 
-[% USE dumper %]
-[% USE String %]
+USE dumper;
+USE String
+-%]
 
 <!-- start structures block -->
 
