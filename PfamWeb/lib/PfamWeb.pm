@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.13 2006-09-15 13:12:47 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.14 2006-09-22 10:41:34 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles error reporting for the whole application and tab selection
 for all the view.
 
-$Id: PfamWeb.pm,v 1.13 2006-09-15 13:12:47 jt6 Exp $
+$Id: PfamWeb.pm,v 1.14 2006-09-22 10:41:34 jt6 Exp $
 
 =cut
 
@@ -31,14 +31,22 @@ use warnings;
 # Static::Simple: will serve static files from the application's root
 # directory
 #
-use Catalyst qw/ -Debug
-                 ConfigLoader
-                 Prototype
-                 Session
-                 Session::Store::FastMmap
-                 Session::State::Cookie
-                 Cache::FastMmap
-				 Static::Simple /;
+use Catalyst qw/
+				-Debug
+				ConfigLoader
+				Prototype
+				Session
+				Session::Store::FastMmap
+				Session::State::Cookie
+				Session::State::URI
+				Cache::FastMmap
+				Static::Simple
+				/;
+
+__PACKAGE__->config( file => "/nfs/team71/pfam/jt6/server/PfamWeb/conf/pfamweb.conf" );
+
+# add PageCache as the last plugin to enable page caching. Careful
+# though... doesn't work with Static::Simple
 
 # add the following to enable session handling:
 #                Session
@@ -127,8 +135,8 @@ sub default : Private {
   my $where = ( $c->req->referer =~ /sanger/ ) ? "internal" : "external";
 
   # record the error
-  $c->error("Found a broken $where link: \"" . $c->req->uri
-			. "\", referer: \"" . $c->req->referer . "\"" );
+  $c->error("Found a broken $where link: \"" . $c->req->uri	. "\", referer: "
+			. ( $c->req->referer eq "" ? "unknown" : "\"" . $c->req->referer . "\"" ) );
 
   # report it
   $c->forward( "/reportError" );
@@ -157,6 +165,10 @@ sub auto : Private {
 	if defined $c->req->param( "tab" );
 
   $c->stash->{showTab} = $1 if defined $tab;
+
+#  $c->cache_page( expires  => "300",
+#				  auto_uri => [ "/*" ],
+#				  debug    => 1 );
 
   return 1;
 }
@@ -200,7 +212,7 @@ the raw message from the caller
 
 =item num
 
-the number of times this message has been seen
+the number of times this precise message has been seen
 
 =item first
 
@@ -209,13 +221,13 @@ the timestamp for the first occurrence of the message
 =item last
 
 the timestamp for that most recent occurence of the
-message
+message. Automatically updated on insert or update
 
 =back
 
-An external script or vanilla SQL query should then be able to
-retrieve error logs when required and we can keep track of errors
-without being deluged with mail...
+An external script or plain SQL query should then be able to retrieve
+error logs when required and we can keep track of errors without being
+deluged with mail.
 
 =cut
 
@@ -237,6 +249,7 @@ sub reportError : Private {
 													first   => [ "CURRENT_TIMESTAMP" ] } );
 	  };
 	  if( $@ ) {
+		# really bad; an error while reporting an error...
 		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
 	  }
 	}
