@@ -1,14 +1,16 @@
-
-[%#
+[%
 # loadGraphics.tt
 # jt6 20060718 WTSI
 #
 # add post-loaded domain graphics for the clan domain organisation block
 #
-# $Id: loadGraphics.tt,v 1.2 2006-08-14 10:57:38 jt6 Exp $
-%]
+# $Id: loadGraphics.tt,v 1.3 2006-09-22 10:39:43 jt6 Exp $
 
-[% USE String %]
+# tell the wrapper not to add a header or a footer
+META naked = 1;
+
+USE String
+-%]
 
 <div id="clanGraphics">
 
