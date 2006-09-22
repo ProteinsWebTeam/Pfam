@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.11 2006-09-07 10:13:44 jt6 Exp $
+   $Id: family.css,v 1.12 2006-09-22 10:21:34 jt6 Exp $
 */   
 
 /*
@@ -13,23 +13,6 @@ background: #e7edf3 (Prime 1, 10%)
 inactive:   #83a4c3 (Prime 1, 50%)
 highlight/border: #074987 (Prime 1, 100%)
 */
-
-/* ======================================== */
-/* page layout items */
-
-/* styles for the markup that forms the page tab */
-#tabTitle {
-	color: #074987;
-}
-
-#pageType {
-    border-color: #074987;
-}
-
-#pageType h2 {
-  color: #074987;
-/*    background: #074987; */
-}
 
 /* ======================================== */
 /* components of the remainder of the page */
@@ -44,37 +27,7 @@ highlight/border: #074987 (Prime 1, 100%)
 }
 
 #wrap {
-  position: relative; /* needed to fix the IE peekaboo bug... */
   background: url(/catalyst/PfamWeb/images/family/bg.gif) repeat-y 15% 0;
-}
-
-#content {
-  border-top-color: #074897;
-}
-
-/* the left column navigation bar */
-
-#sidebar {
-    border-bottom-color: #074897;
-}
-
-#sidebar li a {
-  color: #074987;
-}
-
-#sidebar li.selected a {
-  border-color: #074897;
-}
-
-#footer {
-  border-top-color: #074897;
-}
-
-/* ======================================== */
-/* general styles for "blocks" */
-
-div.handle {
-  background-color: #074987;
 }
 
 /* ======================================== */
