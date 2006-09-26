@@ -1,0 +1,123 @@
+
+/* family.css
+   jt6 20060413 WTSI
+
+   Stylesheet for the items that are specific to the tab layout for
+   the Pfam family pages.
+
+   $Id: help.css,v 1.1 2006-09-26 15:30:57 jt6 Exp $
+*/   
+
+/*
+background: #e7edf3 (Prime 1, 10%)
+inactive:   #83a4c3 (Prime 1, 50%)
+highlight/border: #074987 (Prime 1, 100%)
+*/
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+#spacer {
+  background-color: #e7edf3; /* Prime 1 */
+}
+
+#contentContainer {
+  background-color: #e7edf3; /* Prime 1 */
+  background-image: url(/catalyst/PfamWeb/images/family/page_border.gif);
+}
+
+#wrap {
+  background: url(/catalyst/PfamWeb/images/family/bg.gif) repeat-y 15% 0;
+}
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.pdbImageFragment {
+	background: #e7edf3;
+    border-color: #074987;
+}
+
+div.blockContent ol {
+    margin-right: 210px;
+}
+
+.pdbTitle  {
+  color: #074987;
+  font-weight: bold
+}
+
+#tableLabel {
+  padding-top: 0.4em;
+}
+
+/* ---------------------------------------- */
+
+#alignmentTree img {
+    border: 1px solid #CCC;
+}
+
+#structuresListTable {
+  background: #BBB;
+}
+
+#structuresListTable th {
+  padding: 0.4em;
+}
+
+#structuresListTable td {
+  padding: 0.2em 0.4em;
+}
+
+#structuresListTable tr.newRow td {
+  border-top: 1px solid #BBB;
+}
+
+#unpId {
+  width: 6em;
+}
+#unpRes {
+  width: 6em;
+}
+#pdbId {
+  width: 4em;
+}
+#chId {
+  width: 3em;
+}
+#pdbRes {
+  width: 6em;
+}
+
+#alignmentData {
+  width: 55em;
+  font-family: mono, Courier;
+  font-size: smaller;
+  overflow: auto;
+}
+#alignmentData span {
+  white-space: nowrap;
+}
+
+#alignmentKey {
+  width: 12em;
+  font-family: mono, Courier;
+  font-size: smaller;
+  overflow: auto;
+  float: left;
+}
+#alignmentKey span {
+  display: block;
+}
+
+#alignmentKey span.odd {
+  background: #BAB;
+}
+#alignmentKey span.even {
+  background: #CBC;
+}
+
+#domainsBlock img {
+  display: block;
+  padding: 0.4em;
+}
