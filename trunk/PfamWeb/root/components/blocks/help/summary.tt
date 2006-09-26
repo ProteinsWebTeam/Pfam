@@ -1,0 +1,25 @@
+[%
+# summary.tt
+# jt6 20060925 WTSI
+# 
+# build the summary block for the help pages
+#
+# $Id: summary.tt,v 1.1 2006-09-26 15:20:54 jt6 Exp $
+%]
+
+<!-- start summary block -->
+
+<div class="block" id="helpSummaryBlock">
+  <div class="handle">
+    <h1>Help</h1>
+  </div>
+  <div class="blockContent">
+
+	<h1>Help pages</h1>
+
+	<p>These are the Pfam help pages.</p>
+
+  </div>
+</div>
+
+<!-- end summary block -->
