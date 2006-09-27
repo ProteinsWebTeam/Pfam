@@ -3,51 +3,21 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.16 2006-09-16 10:25:58 jt6 Exp $
+   $Id: pfam.css,v 1.17 2006-09-27 16:04:46 jt6 Exp $
 */   
 
 body {
 	font-family: arial, helvetica, sans-serif;
     font-size: smaller;
     color: #404040;
+    background: #FFF;
 	min-width: 840px;
     margin: 0;
 	padding: 0;
 }
 
-.headercentre {
-	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
-}
-
-#header { 
-	height: 84px; 
-}
-
-#headerLink {
-	height: 66px;
-	width: 200px;
-    border: 0;
-	position: absolute;
-    left: 0;
-}
-
-#pfamLogo {
-	margin: 4px 0;
-    float: right;
-    border: 0;
-}
-
-img.map {
-    border-style: none;
-	width: 60px;
-    height: 15px;
-}
-
-div.menubar {
-  position:         relative;
-  left:             0;
-  top:              -16px;
-  width:            100%;
+table {
+	border-collapse: collapse;
 }
 
 .cleaner {
@@ -74,6 +44,262 @@ a:active {
   color: #074987;
 }
 
+/* ======================================== */
+/* header classes
+ *
+ * Note that all of the header styles and markup are *incredibly* twitchy, so
+ * dont change anything unless you absolutely have to ! */
+
+#header {
+	height: 84px;
+    width: 100%;
+}
+
+#header img {
+    border-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+table.header {
+    width: 100%;
+}
+
+table.header tr,
+table.header td {
+	padding: 0;
+    margin: 0;
+}
+
+/* set the minimum width for the page. IE ignores min-width, so we use this image to get
+   (hopefully) the same effect... */
+#minWidth {
+	min-width: 880px;
+	width: 880px;
+    height: 1px;
+}
+
+tr.headercentre {
+	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
+}
+
+#wtsiLogo {
+    float: left;
+    border-style: none;
+	width: 200px;
+    height: 66px;
+}
+
+#pfamLogo {
+    vertical-align: middle;
+    border-style: none;
+	margin: 4px 0;
+    float: right;
+}
+
+#headerSearch {
+  float: right;
+  background-color: #cbdced;
+  padding: 5px;
+  margin: 15px;
+  -moz-border-radius: 8px;
+  border: 2px solid #074987;
+}
+
+/* these next few styles are ripped straight from wtsi.css */
+
+#sitesearchbutton {
+  border-width:        2px;
+  border-style:        solid;
+  border-top-color:    #efeaf3;
+  border-left-color:   #909fc7;
+  border-bottom-color: #506816;
+  border-right-color:  #22408f;
+  padding:             1px;
+  background-color:    #cbdced;
+  font-family:         Arial, Helvetica, Sans-serif;
+  font-size:           0.6em;
+  font-weight:         bold;
+  text-decoration:     none;
+}
+
+#sitesearchbutton:link,
+#sitesearchbutton:visited {
+  background-color: #cbdced;
+  color:            #074987;
+  font-weight:      bold;
+  text-decoration:  none;
+  font-size:        0.6em;
+}
+
+#sitesearchbutton:hover {
+  background-color: #8abbee;
+  text-decoration:  none;
+  color:            #ffffff;
+}
+
+#siteSearchField {
+  background-color: #ffffff;
+  font-size:        0.6em;
+  color:            #8d0017;
+  padding:          0;
+  margin:           0;
+  display:          inline;
+}
+
+/* menu bar styles */
+
+img.map {
+  position: absolute;
+  left:     0px;
+  top:      69px;
+  z-index:  1
+}
+
+#menuRow {
+	height: 17px;
+    background: #cbdced;
+}
+
+/* configure the drop-down menus. This is mostly based on wtsi.css */
+
+img.menu {
+	height: 15px;
+    width: 100px;
+    border-style: none;
+}
+
+img.menuBlank {
+    width: 100px;
+    height: 1px;
+}
+
+div.menutext td img { 
+  cursor: pointer;
+}
+
+table.slickmenu td {
+	margin: 0;
+    padding: 0;
+}
+
+table.slickmenu a {
+  height:          16px;
+  text-decoration: none;
+  display:         block;
+  font-size:       0.8em;
+  font-weight:     bold;
+}
+
+table.slickmenu a:hover {
+  display:         block;
+  text-decoration: none;
+}
+
+#menubar {
+	position: absolute;
+    width: 100%;
+    top: 68px;
+}
+
+img.map {
+  position: absolute;
+  left:     0px;
+  top:      69px;
+  z-index:  1
+}
+
+div.menutext {
+    height:      16px;
+    z-index:     3;
+    margin-left: 173px;
+}
+
+#menubar table,
+#menubar table a,
+#menubar table a:visited,
+#menubar {
+  color:          #074987;
+  text-decoration: none;
+}
+
+div.menuContent {
+  position: relative;
+  left: 0;
+  text-align: left;
+  opacity: 0.93;
+}
+
+#submenus a {
+  text-decoration: none;
+  display:         block;
+  width:           100px;
+  padding:         2px 2px;
+  font-size:       0.75em;
+}
+
+#submenus a:hover,
+#submenus a:link,
+#submenus a:visited {
+  text-decoration: none;
+  color:           #074987;
+}
+
+#submenus tr.hi, tr.hi {
+  background-color: #b8d2ef;
+  text-decoration:   none;
+}
+
+#submenus tr.lo, tr.lo {
+  background-color: #cbdced;
+  text-decoration:   none;
+}
+
+#submenus a:hover {
+  background-color: #074987;
+  color:            #ffffff;
+}
+
+
+/* ======================================== */
+/* the footer. We use a wrapper div (#contentContainer) for the content
+   when the page contains tabs, so add a separate style for that, which 
+   adds the background image, etc. */
+
+#footer a {
+  color: #074987;
+}
+
+#footer span {
+  margin: 0;
+  padding: 0 0.4em 0 0;
+}
+
+/* the footer for full page templates */
+#footer {
+  clear: both;
+  border: 1px solid #074987; 
+  font-size: 80%;
+  background-color: #cbdced;
+  color: #074987;
+  padding: 2px;
+  margin: 8px 0 0 0;
+}
+
+/* the footer for tab-layout templates */
+#contentContainer #footer {
+  clear: both;
+  background: url(/catalyst/PfamWeb/images/layout/wide_tab_shadow.png) no-repeat top left;
+  position: relative;
+  width: 85%;
+  float: right;
+  margin: 0 0 1em 0;
+  padding: 0.4em 0;
+  border: none;
+  border-top: 1px solid #074897;
+  text-align: right;
+  font-size: small;
+}
 
 /* ======================================== */
 /* index page */
@@ -87,6 +313,7 @@ a:active {
 }
 
 #jumpBoxes {
+  width: 20em;
   margin: 0.4em;
   float: right;
   border: 1px solid #BBB;
@@ -98,12 +325,17 @@ div.jumpBox p {
   margin: 0;
 }
 
-#jumpBoxes div.jumpBox {
+div.jumpBox {
   padding: 0.4em;
-  margin: 0.4em;
+  margin: 2px;
   background: #f3f3f3;
   border: 1px solid #CCC;
-}  
+}
+
+/* fix the huge boxes in IE */
+div.jumpBox form {
+  display: inline;
+}
 
 div.jumpBox span.title {
   float: left;

@@ -1,182 +1,212 @@
+[%
+# header.tt
+# jt6 20060314 WTSI
+#
+# the page header, from the swoosh to the bottom of the menubar...
+#
+# reworked to tidy it for the new site
+# jt6 20060927 WTSI
+#
+# This stuff is all *incredibly* twitchy, so don't change it unless
+# it's absolutely necessary !
+#
+# $Id: header.tt,v 1.4 2006-09-27 16:04:40 jt6 Exp $
+-%]
+
 <!-- header start here -->
+
 <div id="header">
 
-  <table class="header" cellpadding="0" cellspacing="0" width="100%">
+  <table class="header">
+
+    <!-- set minimum width -->
+
     <tr>
-      <td colspan="2"><img src="[% c.uri_for( "/images/blank.gif" ) %]" width="780" height="1" alt="" /></td><!-- set minimum width -->
+      <td><img id="minWidth" src="[% c.uri_for( "/images/blank.gif" ) %]" height="1" alt="" /></td>
     </tr>
+
+    <!-- WTSI logo, swoosh and Pfam images, search box -->
+
     <tr class="headercentre">
-      <td align="left" nowrap="nowrap"><a href="/"><img src="[% constants.server %]/icons/blank.gif" height="66" width="200" alt="" title="" align="left" border="0" /></a>
-        <div style="float: right;">
-          <!--search box start here-->
-          <form id="sitesearch" action="[% c.uri_for( "/search" ) %]" name="sitesearch">
-          <table class="headersearch" border="0" cellspacing="0" cellpadding="1">
-            <tr>
-              <td align="left">
-                <input type="text" id="siteSearchField" name="query" value="" size="12" maxlength="100" class="sitesearchquery" />
-              </td>
-              <td align="right"><a href="javascript:document.forms['sitesearch'].submit()" class="sitesearchbutton">&nbsp;Search Pfam&nbsp;</a></td>
-            </tr>
-          </table>
-        </form>
-          <!--search box end-->
+      <td align="left">
+        <a href="http://www.sanger.ac.uk/">
+          <img id="wtsiLogo" src="[% c.uri_for( "/images/blank.gif" ) %]" alt="" /></a>
+
+        <!--search box start here-->
+        <div id="headerSearch">
+          <form id="sitesearch" action="[% c.uri_for( "/search" ) %]">
+            <table border="0" cellspacing="0" cellpadding="1">
+              <tr>
+                <td><input type="text" id="siteSearchField" name="query" value="" size="12" maxlength="100" /></td>
+                <td><a href="#" onclick="$('sitesearch').submit()" id="sitesearchbutton">&nbsp;Search Pfam&nbsp;</a></td>
+              </tr>
+            </table>
+          </form>
         </div>
-        <a href="[% c.uri_for( "/" ) %]"><img id="pfamLogo" src="[% c.uri_for( "/images/pfam_logo.gif" ) %]" alt="Pfam" /></a>
+        <!--search box end-->
+
+        <a href="[% c.uri_for( "/" ) %]">
+          <img id="pfamLogo" src="[% c.uri_for( "/images/pfam_logo.gif" ) %]" alt="Pfam" /></a>
       </td>
     </tr>
+
+    <!-- space for the menu bar -->
+
     <tr>
-      <td colspan="2" style="background-color: #cbdced; height: 17px;">
-        <img class="map" src="[% constants.server %][% constants.root %]/images/email-rss.gif" alt="" usemap="#contactMap" />
+      <td id="menuRow">
+        <img class="map" src="[% c.uri_for( "/images/email-rss.gif" )%]" alt="" usemap="#contactMap" />
         <map name="contactMap" id="contactMap">
-          <area shape="rect" coords="0,0,20,15" title="Contact Pfam" href="mailto:pfam@sanger.ac.uk" alt="" />
+          <area shape="rect" coords="0,0,20,15" title="Contact Pfam" href="mailto:pfam-help@sanger.ac.uk" alt="" />
           <area shape="rect" coords="21,0,60,15" title="RSS Feed" target="new" href="[% constants.server %][% constants.root %]/rss/pfam_rss_feed.rdf" alt="" />
         </map>
       </td>
     </tr>
+
   </table>
 
   <!-- menubar start here -->
-  <div class="menubar" id="menubar">
+  <div id="menubar">
     <div class="menutext">
-      <table border="0" cellpadding="0" cellspacing="0" class="slickmenu">
+      <table class="slickmenu">
         <tr>
-          <td><a id="menu1"
-              href="[% constants.server %][% constants.root %]"               
-              onmouseover="ypSlideOutMenu.hover_in('menu1')"
-              onmouseout="ypSlideOutMenu.hover_out('menu1')">
-              <img src="[% c.uri_for( "/images/home.png" ) %]" 
-                height="15" 
-                width="100" 
-                alt="Pfam Home" 
-                title="Pfam Home"
-                border="0" /></a>
+          <td>
+            <a id="menu1" href="[% c.uri_for( "/" ) %]">
+              <img src="[% c.uri_for( "/images/home.png" ) %]"
+                   class="menu"
+                   alt="Pfam Home" 
+                   title="Pfam Home"
+                   onmouseover="ypSlideOutMenu.hover_in('menu1')"
+                   onmouseout="ypSlideOutMenu.hover_out('menu1')" /></a>
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/search.png" ) %]" 
-              height="15" 
-              width="100" 
-              alt="Search by" 
-              title="Search by - Click for menu" 
-              border="0"
-              onclick="ypSlideOutMenu.toggleMenu('menu2', 1);"
-              onmouseover="ypSlideOutMenu.hover_in('menu2');ypSlideOutMenu.toggleMenu('menu2', 0)"
-              onmouseout="ypSlideOutMenu.hover_out('menu2')" />
+            <img src="[% c.uri_for( "/images/search.png" ) %]"
+                 class="menu"
+                 alt="Search by" 
+                 title="Search by - Click for menu" 
+                 onclick="ypSlideOutMenu.toggleMenu('menu2', 1);"
+                 onmouseover="ypSlideOutMenu.hover_in('menu2');ypSlideOutMenu.toggleMenu('menu2', 0)"
+                 onmouseout="ypSlideOutMenu.hover_out('menu2')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/browse.png" ) %]" 
-              height="15"
-              width="100"
-              title="Browse by - Click for menu"
-              alt="Browse by"
-              border="0"
-              onclick="ypSlideOutMenu.toggleMenu('menu3', 1);"
-              onmouseover="ypSlideOutMenu.hover_in('menu3');ypSlideOutMenu.toggleMenu('menu3', 0)"
-              onmouseout="ypSlideOutMenu.hover_out('menu3')" />
+            <img src="[% c.uri_for( "/images/browse.png" ) %]"
+                 class="menu"
+                 title="Browse by - Click for menu"
+                 alt="Browse by"
+                 onclick="ypSlideOutMenu.toggleMenu('menu3', 1);"
+                 onmouseover="ypSlideOutMenu.hover_in('menu3');ypSlideOutMenu.toggleMenu('menu3', 0)"
+                 onmouseout="ypSlideOutMenu.hover_out('menu3')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/ftp.png" ) %]"
-              height="15"
-              width="100"
-              title="FTP - Click for menu"
-              alt="FTP"
-              border="0"
-              onclick="ypSlideOutMenu.toggleMenu('menu4', 1);"
-              onmouseover="ypSlideOutMenu.hover_in('menu4');ypSlideOutMenu.toggleMenu('menu4', 0)"
-              onmouseout="ypSlideOutMenu.hover_out('menu4')" />
+            <img src="[% c.uri_for( "/images/ftp.png") %]"
+                 class="menu"
+                 title="FTP - Click for menu"
+                 alt="FTP"
+                 onclick="ypSlideOutMenu.toggleMenu('menu4', 1);"
+                 onmouseover="ypSlideOutMenu.hover_in('menu4');ypSlideOutMenu.toggleMenu('menu4', 0)"
+                 onmouseout="ypSlideOutMenu.hover_out('menu4')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/ipfam.png" ) %]"
-              height="15"
-              width="100"
-              title="iPfam - Click for menu"
-              alt="iPfam"
-              border="0"
-              onclick="ypSlideOutMenu.toggleMenu('menu5', 1);"
-              onmouseover="ypSlideOutMenu.hover_in('menu5');ypSlideOutMenu.toggleMenu('menu5', 0)"
-              onmouseout="ypSlideOutMenu.hover_out('menu5')" />
+            <img src="[% c.uri_for( "/images/ipfam.png") %]"
+                 class="menu"
+                 title="iPfam - Click for menu"
+                 alt="iPfam"
+                 onclick="ypSlideOutMenu.toggleMenu('menu5', 1);"
+                 onmouseover="ypSlideOutMenu.hover_in('menu5');ypSlideOutMenu.toggleMenu('menu5', 0)"
+                 onmouseout="ypSlideOutMenu.hover_out('menu5')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/help.png" ) %]" 
-              height="15"
-              width="100"
-              title="Help - Click for menu"
-              alt="Help"
-              border="0"
-              onclick="ypSlideOutMenu.toggleMenu('menu6', 1);"
-              onmouseover="ypSlideOutMenu.hover_in('menu6');ypSlideOutMenu.toggleMenu('menu6', 0)"
-              onmouseout="ypSlideOutMenu.hover_out('menu6')" />
+            <img src="[% c.uri_for( "/images/help.png" ) %]"
+                 class="menu"
+                 title="Help - Click for menu"
+                 alt="Help"
+                 onclick="ypSlideOutMenu.toggleMenu('menu6', 1);"
+                 onmouseover="ypSlideOutMenu.hover_in('menu6');ypSlideOutMenu.toggleMenu('menu6', 0)"
+                 onmouseout="ypSlideOutMenu.hover_out('menu6')" />
+          </td>
+          <td><a id="menu7" href="http://www.sanger.ac.uk/Software/Pfam/about.html">
+              <img src="[% c.uri_for( "/images/about.png" ) %]"
+                   class="menu"
+                   alt="About Pfam" 
+                   title="About Pfam"
+                   onclick="popUp(this.href,'console',500,530,'about');return false;"
+                   onmouseover="ypSlideOutMenu.hover_in('menu7')"
+                   onmouseout="ypSlideOutMenu.hover_out('menu7')" /></a>
           </td>
         </tr>
         <tr>
-          <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-          <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-          <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-          <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-          <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
-          <td><img src="[% constants.server %]/gfx/blank.gif" height="1" width="100" alt=""/></td>
+          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
+          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
+          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
+          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
+          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
+          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
+          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
         </tr>
       </table>
     </div>
-
+    
     <!-- submenus start here -->
-    <div class="submenus" id="submenus">
+    <div id="submenus">
       <div id="menu2Container">
-        <div id="menu2Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-          <table cellpadding="0" cellspacing="0" border="0">
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/search.shtml">Protein name or sequence</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/tsearch.shtml">Keyword</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %]/cgi-bin/Pfam/dql.pl">Domain query</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/dnasearch.shtml">DNA sequence</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/tql.shtml">Taxonomy query</a></td></tr>
+        <div id="menu2Content" class="menuContent">
+          <table>
+            <tr class="hi"><td><a href="/Software/Pfam/search.shtml">Protein name or sequence</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/tsearch.shtml">Keyword</a></td></tr>
+            <tr class="hi"><td><a href="/cgi-bin/Pfam/dql.pl">Domain query</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/dnasearch.shtml">DNA sequence</a></td></tr>
+            <tr class="hi"><td><a href="/Software/Pfam/tql.shtml">Taxonomy query</a></td></tr>
           </table>
         </div>
       </div>
       <div id="menu3Container">
-        <div id="menu3Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-          <table cellpadding="0" cellspacing="0" border="0">
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/browse/top_twenty.shtml">Pfam family ID</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %]/cgi-bin/Pfam/genome_dist.pl">Genomes</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/browse/clans.shtml">Clans</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/iPfam/browse/number.shtml">Interaction</a></td></tr>
+        <div id="menu3Content" class="menuContent">
+          <table>
+            <tr class="hi"><td><a href="/Software/Pfam/browse/top_twenty.shtml">Pfam family ID</a></td></tr>
+            <tr class="lo"><td><a href="/cgi-bin/Pfam/genome_dist.pl">Genomes</a></td></tr>
+             <tr class="hi"><td><a href="/Software/Pfam/browse/clans.shtml">Clans</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/iPfam/browse/number.shtml">Interaction</a></td></tr>
           </table>
         </div>
       </div>
       <div id="menu4Container">
-        <div id="menu4Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-          <table cellpadding="0" cellspacing="0" border="0">
-            <tr class="hi"><td class="slickmenu"><a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">Hyperlink directly to the FTP site</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/ftp.shtml">View FTP sites</a></td></tr>
+        <div id="menu4Content" class="menuContent">
+          <table>
+            <tr class="hi"><td><a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">Hyperlink directly to the FTP site</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/ftp.shtml">View FTP sites</a></td></tr>
           </table>
         </div>
       </div>
       <div id="menu5Container">
-        <div id="menu5Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-          <table cellpadding="0" cellspacing="0" border="0">
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/iPfam">iPfam home page</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/iPfam/browse/number.shtml">Browse iPfam</a></td></tr>
+        <div id="menu5Content" class="menuContent">
+          <table>
+            <tr class="hi"><td><a href="/Software/Pfam/iPfam">iPfam home page</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/iPfam/browse/number.shtml">Browse iPfam</a></td></tr>
           </table>
         </div>
       </div>
       <div id="menu6Container">
-        <div id="menu6Content" style="position: relative; left: 0; filter:alpha(opacity=93); text-align: left;">
-          <table cellpadding="0" cellspacing="0" border="0">
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/index.shtml">Main help page</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/gstart.shtml">Getting started</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/region_help.shtml">Guide to domains</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %]/cgi-bin/Pfam/xml_upload.pl">Create your own domain images</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/changes.shtml">Changes from last release</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/rdb_doc.shtml">Pfam MySQL documentation</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/futurechange.shtml">Planned changes to Pfam</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/faq.shtml">FAQ on Pfam</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/othersite.shtml">Linking to Pfam</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/belvu_setup.shtml">Using Belvu to view alignments</a></td></tr>
-            <tr class="hi"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/mail.shtml">Mailing list for Pfam</a></td></tr>
-            <tr class="lo"><td class="slickmenu"><a href="[% constants.server %][% constants.root %]/help/scores.shtml">Help on scores for Pfam</a></td></tr>
+        <div id="menu6Content" class="menuContent">
+          <table>
+            <tr class="hi"><td><a href="/Software/Pfam/help/index.shtml">Main help page</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/help/gstart.shtml">Getting started</a></td></tr>
+            <tr class="hi"><td><a href="/Software/Pfam/help/region_help.shtml">Guide to domains</a></td></tr>
+            <tr class="lo"><td><a href="/cgi-bin/Pfam/upload_xml.pl">Create your own domain images</a></td></tr>
+            <tr class="hi"><td><a href="/Software/Pfam/help/changes.shtml">Changes from last release</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/help/rdb_doc.shtml">Pfam MySQL documentation</a></td></tr>
+
+            <tr class="hi"><td><a href="/Software/Pfam/help/futurechange.shtml">Planned changes to Pfam</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/help/faq.shtml">FAQ on Pfam</a></td></tr>
+            <tr class="hi"><td><a href="/Software/Pfam/help/othersite.shtml">Linking to Pfam</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/help/belvu_setup.shtml">Using Belvu to view alignments</a></td></tr>
+            <tr class="hi"><td><a href="/Software/Pfam/help/mail.shtml">Mailing list for Pfam</a></td></tr>
+            <tr class="lo"><td><a href="/Software/Pfam/help/scores.shtml">Help on scores for Pfam</a></td></tr>
           </table>
         </div>
       </div>
-    </div> <!-- end of "submenus" -->
+    </div>
+    <!-- submenus end -->
 
-  </div> <!-- end of "menubar" --> 
+  </div>
+  <!-- end of menu bar -->
 
 </div> <!-- end of "header" -->
