@@ -1,0 +1,22 @@
+[%
+# domainGraphics.tt
+# rdf 20060927 WTSI
+# 
+# build the domainGraphics block for the help pages
+#
+# $Id: domainGraphics.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+%]
+
+<!-- start domainGraphics.tt block -->
+
+<div class="block" id="helpDomainGraphicsBlock">
+  <div class="handle">
+    <h1>A Guide to the Pfam Domain Graphics</h1>
+  </div>
+  <div class="blockContent">
+
+  <h3>Introduction</h3>
+  <p>This needs loads of work</p>
+	
+  </div>
+</div>

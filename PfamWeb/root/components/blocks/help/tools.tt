@@ -1,0 +1,20 @@
+[%
+# tools.tt
+# rdf 20060926 WTSI
+# 
+# build the scores block for the help pages
+#
+# $Id: tools.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+%]
+
+<!-- start the Tools block -->
+<div class="block" id="helpToolsBlock">
+  <div class="handle">
+    <h1>Guideto the Tools and Webservices Provided By Pfam</h1>
+  </div>
+  <div class="blockContent">
+	<h3>Batch Upload</h3>
+	<p>Some information about the batch upload.</p>
+  </div>
+</div>
+
