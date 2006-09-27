@@ -4,7 +4,7 @@
 
    IE stylesheet to apply various fixes for IE inadequacies and bugs
    
-   $Id: tab_layout_ie.css,v 1.7 2006-09-16 09:59:15 jt6 Exp $
+   $Id: tab_layout_ie.css,v 1.8 2006-09-27 16:05:42 jt6 Exp $
 */
 
 hr.short {
@@ -47,17 +47,6 @@ hr.short {
 #sidebar li.selected {
     background-image: none;
 /*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
-}
-
-/* the shadow under the main content. Just turn it off for now, because the 
-   shadow under the tab doesnt work and it would be wierd to have one but not
-   the other */
-#footer {
-    background-image: none;
-/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
-/*  move the footer across to avoid an overhanging bit of background. That would
-    be the IE box model bug I think... */
-    left: 4px;
 }
 
 /* we need a spacer div inside the wrapper around the content and sidebar, to 
