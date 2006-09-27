@@ -1,0 +1,27 @@
+[%
+# glossary.tt
+# rdf 20060927 WTSI
+# 
+# build the mirrors block for the help pages
+#
+# $Id: glossary.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+%]
+
+<!-- start glossary.tt block -->
+
+<div class="block" id="helpGlossaryBlock">
+  <div class="handle">
+    <h1>Glossary of Terms Used in Pfam</h1>
+  </div>
+  <div class="blockContent">
+
+  <h3>Clan</h3>
+  <p>A collection of related Pfam entries.  The relationship may be defined by similarity of sequence, structure or profile-HMM.</p>
+  <h3>Domain</h3>
+  <h3>Family</h3>
+  <h3>HMM</h3>
+  <h3>Motif</h3>
+  <h3>Repeat</h3>
+
+  </div>
+</div>

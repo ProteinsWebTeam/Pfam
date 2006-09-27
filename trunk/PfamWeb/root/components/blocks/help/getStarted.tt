@@ -1,0 +1,21 @@
+[%
+# getStarted.tt
+# rdf 20060927 WTSI
+# 
+# build the getStarted block for the help pages
+#
+# $Id: getStarted.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+%]
+
+<!-- start getStarted block -->
+
+<div class="block" id="helpGetStartedBlock">
+  <div class="handle">
+    <h1>Getting Started using Pfam</h1>
+  </div>
+  <div class="blockContent">
+
+  <h3>Hmmm</h3>
+  <p>This needs loads of work!</p>
+  </div>
+</div>

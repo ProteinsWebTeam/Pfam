@@ -1,0 +1,319 @@
+[%
+# faq.tt
+# rdf 20060927 WTSI
+# 
+# build the faq block for the help pages
+#
+# $Id: faq.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+%]
+
+<!-- start faq block -->
+
+<div class="block" id="helpFAQBlock">
+  <div class="handle">
+    <h1>Frequently Asked Questions</h1>
+  </div>
+  <div class="blockContent">
+<ul>
+<li><A HREF=#1>General Pfam FAQ</A><BR>
+<li><A HREF=#2>Gripes about Pfam</A><BR>
+<li><A HREF=#3>Other databases</A><BR>
+</ul>
+
+<span class=normallargetext><A NAME="1">General</A> Pfam FAQ</span><P>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+
+<TR><TD bgcolor=#000070 class=whitetableheader>What is Pfam?</TD></TR>
+<TR><TD class=normaltext>Pfam is a database of multiple alignments
+of protein domains or conserved protein regions. Hopefully they represent
+some evolutionary conserved structure which has implications for
+the protein's function.
+
+<p>
+Pfam is actually composed of two sets of families. <B>Pfam-A</B>  families are based on curated
+multiple alignments whereas <B>Pfam-B</B> is an automatic clustering of the rest
+of SWISSPROT and TrEMBL derived from the <b><A href="http://www.toulouse.inra.fr/prodom.html">PRODOM</a></b> database. The current FAQ is principly
+about the curated <B>Pfam-A</B> families.
+</TD></TR></TABLE>
+<p>
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>How can I use it?</TD></TR>
+<TR><TD class=normaltext>The easiest way to use Pfam is through the
+Web.  However you can also download Pfam in flatfile format from our FTP
+site. Choose your web site:<P>
+<ul>
+<li><a href="http://www.sanger.ac.uk/Software/Pfam/"><img src=../gifs/flags/british_flag.gif border=0> Wellcome Trust Sanger Institute (UK)</a><BR>
+<li><a href="http://www.cgr.ki.se/Pfam/"><img src=../gifs/flags/swedish_flag.gif border=0> Karolinska Institutet (Sweden)</a><BR>
+<li><a href="http://pfam.wustl.edu/"><img src=../gifs/flags/american_flag.gif border=0> St Louis (USA)</a>
+<li><A HREF="http://pfam.jouy.inra.fr/"><img src=../gifs/flags/french_flag.gif border=0> Institut National de la Recherche Agronomique (France)</A><br>
+</ul>
+</TD></TR></TABLE>
+<p>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>How can I search Pfam locally?</TD></TR>
+<TR><TD class=normaltext>If you have a large number of sequences, or your boss will not allow you to
+post your sequence across the web you can search your sequence locally.
+
+You will need:
+<ol>
+<li>HMMER software installed (see <a href="http://hmmer.wustl.edu/">http://hmmer.wustl.edu/</a>)</li>
+<li>The Pfam HMM libraries, Pfam_ls and/or Pfam_fs (see Pfam FTP site)</li>
+</ol>
+<b>The HMMER software</b><br><br>
+
+The HMMER software runs on unix and linux systems.  You can check if it is
+installed by typing
+
+<pre>   which hmmpfam</pre>
+
+If you get a result such as
+
+<pre>   hmmpfam: Command not found.</pre>
+
+<p>The you will need to install the HMMER package on your system. Instructions for this are 
+at <a href="http://hmmer.wustl.edu/">http://hmmer.wustl.edu/</a>.</p>
+
+<b>Downloading the Pfam HMM libraries</b><br><br>
+
+<p>You will need a copy of at least the file Pfam_ls from the Pfam FTP site, and possibly also
+the Pfam_fs file as well. The Pfam_ls file contains all the Pfam models for finding global
+or complete matches to the domain or family.  Whereas the Pfam_fs file contains models
+for finding fragmentary matches to domains and families.</p>
+
+<b>Running Pfam searches locally</b><br><br>
+
+<p>The Pfam matches you see on the web are the combined result of searching both the Pfam_ls
+and Pfam_fs models.  However this is a really large number of models to search.  Unless
+you have a lot of computers or you really want to make sure you have the complete answer
+you will probably only search your sequences against just the Pfam_ls file. To do this you run the following command.  The sequence file can contain any number of sequences.</p>
+
+<pre>   hmmpfam --cut_ga Pfam_ls sequence_file > output_file</pre>
+
+<p>If you want to search the Pfam_fs file this must be done as a seperate search and the results
+combined together.  Generally you will find about 3% more matches on top of the Pfam_ls
+search.</p>
+</TD></TR></TABLE>
+<p>
+
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>What is actually kept for each Pfam family?</TD></TR>
+<TR><TD class=normaltext>Each family has the following data:
+<ul>
+<li> A <b>seed alignment</b> which is a hand edited multiple alignment representing the family.
+<li> <b>Hidden Markov Models (HMM)</b> derived from the seed alignment which 
+can be used to find new members of the domain and also take a set of
+sequences to realign them to the model.  One HMM is in ls mode (global) the other is an fs mode (local) model.
+<li> A <b>full alignment</b> which is an automatic alignment of all the
+examples of the domain using the two HMMs to find and then align the sequences
+<li> <b>annotation</b> which contains a brief description of the domain, links to other databases and some Pfam specific data. To record how the family was constructed.
+</ul>
+</TD></TR></TABLE>
+
+<p>
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>How many accurate alignments have you got?</TD></TR>
+<TR><TD class=normaltext>Release 7.0 has 3,360
+families. Over 69% of the proteins in SWISSPROT 40 and TrEMBL-18 have at least
+one match to a Pfam-A family.
+</TD></TR></TABLE>
+<p>
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Can I search my protein against Pfam? </TD></TR>
+<TR><TD class=normaltext>Of course! Please
+use one of the two servers listed below.
+<ul>
+<li><a href="../search.shtml"><img src=../gifs/flags/british_flag.gif border=0> Sanger Institute(UK)</a>
+<li><a href="http://pfam.wustl.edu/hmmsearch.shtml"><img src=../gifs/flags/american_flag.gif border=0> St. Louis (USA)</a>
+</ul>
+</TD></TR></TABLE>
+
+
+<p>
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Can I search my dna sequence in translation against Pfam?</TD></TR>
+<TR><TD class=normaltext> Yes you can! Use the following page.
+<ul>
+<li><a href="../dnasearch.shtml"><img src=../gifs/flags/british_flag.gif border=0> Sanger Institute (UK)</a>
+</ul> This software is in development in the <a href="http://www.sanger.ac.uk/Software/Wise2">Wise2</a> package
+</TD></TR></TABLE>
+<p>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>What is the difference between the - and . characters in your full alignments?</TD></TR>
+
+<TR><TD class=normaltext> The - and . characters both represent gap characters.  However they do tell you some extra information about how the HMM has generated the alignment. The -  symbols are where the alignment of the sequence has used a delete state in the HMM to jump past a match state.  This means that the sequence is missing a column that the HMM was expecting to be there.  The . character is used to pad gaps where one sequence in the alignment has sequence from the HMMs insert state. See the alignment below where both characters are used.  The HMM states emitting each column are shown. Note that residues emitted from the Insert (I) state are in lower case.</p>
+
+<pre>
+FLPA_METMA/1-193     ---MPEIRQLSEGIFEVTKD.KKQLSTLNLDPGKVVYGEKLISVEGDE
+FBRL_XENLA/86-317    RKVIVEPHR-HEGIFICRGK.EDALVTKNLVPGESVYGEKRISVEDGE
+FBRL_MOUSE/90-321    KNVMVEPHR-HEGVFICRGK.EDALFTKNLVPGESVYGEKRVSISEGD
+O75259/81-312        KNVMVEPHR-HEGVFICRGK.EDALVTKNLVPGESVYGEKRVSISEGD
+FBRL_SCHPO/71-303    AKVIIEPHR-HAGVFIARGK.EDLLVTRNLVPGESVYNEKRISVDSPD
+O15647/71-301        GKVIVVPHR-FPGVYLLKGK.SDILVTKNLVPGESVYGEKRYEVMTED
+FBRL_TETTH/64-294    KTIIVK-HR-LEGVFICKGQ.LEALVTKNFFPGESVYNEKRMSVEENG
+FBRL_LEIMA/57-291    AKVIVEPHMLHPGVFISKAK.TDSLCTLNMVPGISVYGEKRIELGATQ
+Q9ZSE3/38-276        SAVVVEPHKVHAGIFVSRGKsEDSLATLNLVPGVSVYGEKRVQTETTD
+HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
+</pre>
+</TD></TR></TABLE>
+
+<p>
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>What do the SS and SA lines in the alignment mean?</TD></TR>
+
+<TR><TD class=normaltext> These lines are structural information.
+The SS stands for secondary structure,  and this is taken from DSSP. 
+The table below shows what each of the code-letters means.
+<p>
+<center>
+<table class=normaltext border=1 cellpadding=5 cellspacing=0 bgcolor="$PFAMCOLOUR">
+<tr bgcolor=#000070  ><td class=whitetableheader>DSSP code</td><td class=whitetableheader>DSSP definition</td></tr>
+<tr><td>C</td><td>Random Coil </td></tr>
+<tr><td>H</td><td>Alpha-helix</td></tr>
+<tr><td>G</td><td>3(10) helix</td></tr>
+<tr><td>I</td><td>Pi-helix</td></tr>
+<tr><td>E</td><td>Hydrogen bonded beta-strand (extended strand)</td></tr>
+<tr><td>B</td><td>Residue in isolated beta-bridge</td></tr>
+<tr><td>T</td><td>H-bonded turn (3-turn, 4-turn, or 5-turn)</td></tr>
+<tr><td>S</td><td>Bend (five-residue bend centered at residue i)</td></tr>
+</table>
+</center>
+<p>
+The SA stands for surface accessibility. It is expressed on a scale between 0 and 9 
+where 0 is a buried residue and 9 is a solvent exposed residue.</p>
+
+<p>See the following URL for more information: <a href="http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html">http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html</a></p>
+</TD></TR></TABLE>
+
+<hr>
+<p>
+<span class=normallargetext><A NAME="2">Gripes</A> about Pfam</span>
+<br>
+<br>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Pfam doesn't include my sequence!</TD></TR>
+<TR><TD class=normaltext> 
+
+Pfam is built from fixed releases of Swiss-Prot and TrEMBL, which are
+updated infrequently.  This means that at any time the sequences used
+by Pfam could be several months behind those in the most up-to-date
+versions of the sequence databases. New sequences are only inlcuded
+into Pfam at major releases, these are for example Pfam version 5.0,
+6.0, 7.0 etc. If your sequence isn't in Pfam you can still find out
+what domains it contains by pasting it into the search box in Pfam,
+click <a href="http://www.sanger.ac.uk/Software/Pfam/search.shtml">here</a>.
+
+</TD></TR></TABLE>
+
+<br>
+<br>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Your alignments are terrible!</TD></TR>
+<TR><TD class=normaltext> Firstly if you do feel that an
+alignment is bad, then please tell us - we can probably fix it, at least
+in the next release. E-mail <a href="mailto:pfam@sanger.ac.uk">
+Pfam</a>.
+
+<p>
+However, remember two things:
+<ul>
+<li> We attempt to get the SEED alignments correct. The FULL alignments, which
+are made automatically from the HMM models, are not hand checked, and so the
+quality maybe lower.
+<li> The FULL alignments often look worse than they are because of gaps in
+the alignment. This is particularly bad in large multiple alignments where a
+single sequence may insert residues in an otherwise conserved block.  We find
+that some of these are due to mispredictions of genes from genomic DNA.
+</ul>
+</TD></TR></TABLE>
+
+<br>
+<br>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>You don't have domain YYYY in!</TD></TR>
+<TR><TD class=normaltext> 
+We are very keen to be alerted to new domains. If you can provide us
+with a multiple alignment then we will try hard to incorporate it into
+the database. If you know of a domain, but don't have a multiple
+alignment, we still want to know, for simple families just one
+sequence is enough. Again E-mail <a href="mailto:pfam@sanger.ac.uk">
+Pfam</a>.
+</TD></TR></TABLE>
+
+<br>
+<br>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Can we have this running sensibly locally. Do you have software
+to support Pfam locally?</TD></TR>
+<TR><TD class=normaltext> In terms on HMMs and formats, Pfam is
+based around the <a href="http://hmmer.wustl.edu/"> HMMER2 </a> package.
+This will need to be installed on your local machine, and you will
+need to also download the Pfam HMM libraries from the FTP site. These
+files are called Pfam_ls (global models) and Pfam_fs (fragment models)
+</TD></TR></TABLE>
+
+<br>
+<br>
+
+<hr>
+
+<br>
+<br>
+
+<span class=normallargetext><A NAME="3">Other</A> databases</span>
+
+<br>
+<br>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Are there other databases which do this?</b> </TD></TR>
+<TR><TD class=normaltext>To a certain
+extent yes, they are a number of "second generation" databases which
+are trying to organise the protein database into evolutionary conserved
+regions. Examples include
+<ul>
+<li> <a href="http://www.isrec.isb-sib.ch/software/PFSCAN_form.html"> PROSITE </a>
+This originally was based around regular expression patterns but now also
+includes profiles
+<li> <a href="http://www.bioinf.man.ac.uk/dbbrowser/PRINTS/"> PRINTS </a>
+This is based around protein "finger-prints" of a series of small conserved motifs making up 
+a domain.
+<li> <a href="http://www.blocks.fhcrc.org/"> BLOCKS </a> 
+This is based around automatic ungapped alignments 
+<li> <a href="http://smart.embl-heidelberg.de/"> SMART </a> 
+This is a database concentrating on extracellular modules and signaling domains. 
+<li> <a href="http://www.toulouse.inra.fr/prodom.html"> PRODOM </a>
+This is an automatically generated domain database based on PSI-BLAST searching.
+<li> <a href="http://www.ebi.ac.uk/interpro"> InterPro </a>
+Combines information from Pfam, Prints, SMART, Prosite and PRODOM.
+<li> <a href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml"> CDD </a>
+The Conserved Domain Database is derived from Pfam and SMART databases.
+</ul>
+</TD></TR></TABLE>
+<p>
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>So which database is better?</TD></TR>
+<TR><TD class=normaltext> As with everything, it depends on your
+problem: I would certainly suggest using more than one method. Pfam is likely
+to provide more interpretable results with crisp definitions of domains
+in a protein.
+</TD></TR></TABLE>
+<p>
+<hr>
+<p>
+
+  </div>
+</div>

@@ -1,0 +1,78 @@
+[%
+# linking.tt
+# rdf 20060927 WTSI
+# 
+# build the linking block for the help pages
+#
+# $Id: linking.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+%]
+
+<!-- start mirrors block -->
+
+<div class="block" id="helpLinkingBlock">
+  <div class="handle">
+    <h1>How to link to Pfam?</h1>
+  </div>
+  <div class="blockContent">
+  <p>John, seems most of this should go into mirrors.  However, we need to write something about linking to the new site</p>
+
+<p>Pfam is maintained by a consortium of researchers based in Cambridge,
+Stockholm, and St. Louis. Although the data files are identical, the
+web servers are not mirrors of each other; they are maintained
+separately and only loosely coordinated by code-sharing.
+
+<p> All the servers are in a continuous state of flux, especially near
+the time of new Pfam releases. Webmasters are not advised to make
+links to just any Pfam page. However, we promise to make every effort
+to maintain the following links that other webmasters may find useful.
+
+<h3> Home pages </h3>
+<ul>
+  <li> Cambridge: <A HREF="http://www.sanger.ac.uk/Software/Pfam/">http://www.sanger.ac.uk/Software/Pfam/ </A>
+  <li> Stockholm: <A HREF="http://www.cgr.ki.se/Pfam/"> http://www.cgr.ki.se/Pfam/</A>
+  <li> St. Louis: <A HREF="http://pfam.wustl.edu/"> http://pfam.wustl.edu/</A>
+</ul>
+
+<h3> Searching a protein sequence against Pfam </h3>
+<ul>
+  <li> Cambridge: <A HREF="http://www.sanger.ac.uk/Software/Pfam/search.shtml">http://www.sanger.ac.uk/Software/Pfam/search.shtml</A>
+  <li> Stockholm: <A HREF="http://pfam.cgb.ki.se/hmmsearch.shtml">http://pfam.cgb.ki.se/hmmsearch.shtml</A>
+  <li> St. Louis: <A HREF="http://pfam.wustl.edu/hmmsearch.shtml">http://pfam.wustl.edu/hmmsearch.shtml</A>
+</ul>
+
+
+<h3> Searching a DNA sequence against Pfam </h3>
+<ul>
+  <li> Cambridge: <A HREF="http://www.sanger.ac.uk/Software/Pfam/dnasearch.shtml">http://www.sanger.ac.uk/Software/Pfam/dnasearch.shtml</A>
+  <li> Stockholm: not yet available
+  <li> St. Louis: not yet available
+</ul>
+
+<h3> Retrieving Pfam family description pages </h3>
+example: retrieve PF00002
+<ul>
+  <li> Cambridge: <A HREF="http://www.sanger.ac.uk/cgi-bin/Pfam/getacc?PF00002">http://www.sanger.ac.uk/cgi-bin/Pfam/getacc?PF00002</A>
+  <li> Stockholm: <A HREF="http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002">http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002</A>
+  <li> St. Louis: <A HREF="http://pfam.wustl.edu/cgi-bin/getdesc?acc=PF00002">http://pfam.wustl.edu/cgi-bin/getdesc?acc=PF00002</A>
+</ul>
+
+The St. Louis server also supports fetching this page by name;
+substitute "name=pkinase" (for instance), instead of "acc=PF00002".
+However, accession numbers are more stable from release to release
+than names are, so we strongly recommend that you link by accession number.
+
+<h3> Retrieving Pfam alignments </h3>
+example: retrieve Seed alignment for PF00002
+<ul>
+  <li> Cambridge: <A HREF="http://www.sanger.ac.uk/cgi-bin/Pfam/getalignment.pl?acc=PF00002&type=seed">http://www.sanger.ac.uk/cgi-bin/Pfam/getalignment.pl?acc=PF00002&type=seed</A>
+  <li> Stockholm: <A HREF="http://www.cgr.ki.se/cgi-bin/Pfam/getalignment.pl?acc=PF00002&type=seed">http://www.cgr.ki.se/cgi-bin/Pfam/getalignment.pl?acc=PF00002&type=seed</A>
+  <li> St. Louis: <A HREF="http://pfam.wustl.edu/cgi-bin/getalignment?acc=PF00002&type=seed">http://pfam.wustl.edu/cgi-bin/getalignment?acc=PF00002&type=seed</A>
+</ul>
+
+To get the Full alignment instead, use "type=full" instead of "type=seed".
+<p>
+To retrieve the alignment by name, use "name=pkinase" (for instance) instead
+of "acc=PF00002". (St. Louis only). 
+</SPAN>
+  </div>
+</div>

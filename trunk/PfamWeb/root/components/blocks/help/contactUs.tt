@@ -1,0 +1,31 @@
+[%
+# contactUs.tt
+# rdf 20060927 WTSI
+# 
+# build the contactUS block for the help pages
+#
+# $Id: contactUs.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+%]
+
+<!-- start ContactUs block -->
+
+<div class="block" id="helpContactUsBlock">
+  <div class="handle">
+    <h1>How to contact Pfam</h1>
+  </div>
+  <div class="blockContent">
+
+  <h3>Contact Pfam</h3>
+  Pfam help form to go in here.......
+
+  <h3>Mail list</h3>
+   <p>The pfamlist keeps is a low traffic list that has important announcements, such as releases or major changes.<p>
+   <p>To join the mailing list send a mail to</p>
+   <a href="mailto:pfamlist-subscribe@sanger.ac.uk">pfamlist-subscribe@sanger.ac.uk</a></p>
+   <p> If you should want to unsubscribe from the list send a mail to<P>
+   <a href="mailto:pfamlist-unsubscribe@sanger.ac.uk">pfamlist-unsubscribe@sanger.ac.uk</a></p>
+   <h3>RSS feeds</h3>
+   <p>Alternatively you can keep in touch with the latest goings on using the Pfam RSS feed.<p>
+   <p>Give link</p>		
+  </div>
+</div>
