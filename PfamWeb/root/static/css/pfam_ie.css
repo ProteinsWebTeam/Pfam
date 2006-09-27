@@ -1,5 +1,28 @@
 
-#footer {
-	height: 20px;
-    padding: 2px;
+/* the shadow under the main content. Just turn it off for now, because the 
+   shadow under the tab doesnt work and it would be weird to have one but not
+   the other */
+#contentContainer #footer {
+    background-image: none;
+/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
+}
+
+/* make the drop-down menus semi-transparent */
+div.menuContent {
+	filter: alpha(opacity=93);
+}
+
+/* only IE could think that a form tag should have margins... */
+#headerSearch form {
+  margin-bottom: 0;
+}
+
+/* adjust the exact positions of a couple of header items */
+table.slickmenu a {
+  height:          17px;
+}
+
+img.map {
+	position: relative;
+    top: 1px;
 }
