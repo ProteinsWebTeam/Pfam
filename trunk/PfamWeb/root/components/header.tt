@@ -10,7 +10,7 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.4 2006-09-27 16:04:40 jt6 Exp $
+# $Id: header.tt,v 1.5 2006-09-27 16:11:48 jt6 Exp $
 -%]
 
 <!-- header start here -->
@@ -71,7 +71,7 @@
         <tr>
           <td>
             <a id="menu1" href="[% c.uri_for( "/" ) %]">
-              <img src="[% c.uri_for( "/images/home.png" ) %]"
+              <img src="[% c.uri_for( "/images/menus/pfam_home.png" ) %]"
                    class="menu"
                    alt="Pfam Home" 
                    title="Pfam Home"
@@ -79,7 +79,7 @@
                    onmouseout="ypSlideOutMenu.hover_out('menu1')" /></a>
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/search.png" ) %]"
+            <img src="[% c.uri_for( "/images/menus/search_by.png" ) %]"
                  class="menu"
                  alt="Search by" 
                  title="Search by - Click for menu" 
@@ -88,7 +88,7 @@
                  onmouseout="ypSlideOutMenu.hover_out('menu2')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/browse.png" ) %]"
+            <img src="[% c.uri_for( "/images/menus/browse_by.png" ) %]"
                  class="menu"
                  title="Browse by - Click for menu"
                  alt="Browse by"
@@ -97,7 +97,7 @@
                  onmouseout="ypSlideOutMenu.hover_out('menu3')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/ftp.png") %]"
+            <img src="[% c.uri_for( "/images/menus/ftp.png") %]"
                  class="menu"
                  title="FTP - Click for menu"
                  alt="FTP"
@@ -106,7 +106,7 @@
                  onmouseout="ypSlideOutMenu.hover_out('menu4')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/ipfam.png") %]"
+            <img src="[% c.uri_for( "/images/menus/ipfam.png") %]"
                  class="menu"
                  title="iPfam - Click for menu"
                  alt="iPfam"
@@ -115,7 +115,7 @@
                  onmouseout="ypSlideOutMenu.hover_out('menu5')" />
           </td>
           <td>
-            <img src="[% c.uri_for( "/images/help.png" ) %]"
+            <img src="[% c.uri_for( "/images/menus/help.png" ) %]"
                  class="menu"
                  title="Help - Click for menu"
                  alt="Help"
@@ -124,7 +124,7 @@
                  onmouseout="ypSlideOutMenu.hover_out('menu6')" />
           </td>
           <td><a id="menu7" href="http://www.sanger.ac.uk/Software/Pfam/about.html">
-              <img src="[% c.uri_for( "/images/about.png" ) %]"
+              <img src="[% c.uri_for( "/images/menus/about.png" ) %]"
                    class="menu"
                    alt="About Pfam" 
                    title="About Pfam"
