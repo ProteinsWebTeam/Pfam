@@ -4,7 +4,7 @@
 #
 # the main site error page
 #
-# $Id: error.tt,v 1.2 2006-09-22 10:29:29 jt6 Exp $
+# $Id: error.tt,v 1.3 2006-09-28 08:57:35 jt6 Exp $
 
 # tell the wrapper to add the full page footer
 META fullPage = 1;
@@ -26,7 +26,7 @@ META fullPage = 1;
   <p>
     You might like to go <a href="javascript: history.go(-1)">back</a> to the previous page, 
     <a href="javascript: $('siteSearchField').value='[% searchTerm %]';$('sitesearch').submit()">
-      search</a> for the entry you&apos;re looking for or report a broken link in the
+      search</a> for the entry you&rsquo;re looking for or report a broken link in the
     Pfam site.
   </p>
 

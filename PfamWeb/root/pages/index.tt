@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.7 2006-09-22 10:29:29 jt6 Exp $
+# $Id: index.tt,v 1.8 2006-09-28 08:57:35 jt6 Exp $
 
 META fullPage = 1
 %]
@@ -16,9 +16,8 @@ META fullPage = 1
   <div class="jumpBox">
     <h2>Jump to...</h2>
     <p>
-      Enter the accession or ID for a Pfam family, <br />
-      Pfam clan, PDB structure or UniProt protein <br />
-      and hit return.
+      Enter the accession or ID for a Pfam family,
+      Pfam clan, PDB structure or UniProt protein.
     </p>
   </div>
 
