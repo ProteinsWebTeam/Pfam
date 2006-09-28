@@ -1,0 +1,34 @@
+[%#
+# simap.tt
+# rdf 2006/08/24 WTSI
+# 
+# block for the structural domains data
+#
+# $Id: getDomains.tt,v 1.1 2006-09-28 09:59:07 rdf Exp $
+-%]
+
+<!-- start structural domains block -->
+
+<div class="block" id="structurePLDomainsBlock">
+  <div class="handle">
+    <h1>Structural Domain Comparison</h1>
+  </div>
+  <div class="blockContent">
+	<!-- start of Structural Domains graphics div -->
+    <div id="getStructureDomainGraphicsHolder">
+	  <p id="getDomph">
+        <img src="/images/loading.gif" alt="loading..." />
+        Getting Data from CATH and SCOP...
+      </p>
+    </div>
+    <!-- end of graphics div -->
+
+    <script type="text/javascript">
+      loadOptions.getDomains.uri    = "[% c.uri_for( "/structure/structuraldomains" ) %]";
+      loadOptions.getDomains.params = "id=[% pdbId %]";
+  	</script>	
+
+  </div> <!-- end of "blockContent" -->
+</div> <!-- end of "block" -->
+
+<!-- end structural domains block -->
