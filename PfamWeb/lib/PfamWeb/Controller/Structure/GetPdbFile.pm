@@ -4,7 +4,7 @@
 #
 # Controller to return a PDB file
 #
-# $Id: GetPdbFile.pm,v 1.1 2006-08-14 10:47:20 jt6 Exp $
+# $Id: GetPdbFile.pm,v 1.2 2006-09-28 14:38:48 jt6 Exp $
 
 =head1 NAME
 
@@ -23,14 +23,14 @@ extract the PDB ID from the URL.
 
 Generates a B<flat file>, MIME type C<chemical/x-pdb>.
 
-$Id: GetPdbFile.pm,v 1.1 2006-08-14 10:47:20 jt6 Exp $
+$Id: GetPdbFile.pm,v 1.2 2006-09-28 14:38:48 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Structure";
 
 #-------------------------------------------------------------------------------
 
