@@ -23,7 +23,7 @@
 	</dd>
 
 	<dt>
-      don&apos;t include wildcards:
+      don&rsquo;t include wildcards:
 	</dt>
 	<dd>
       the search system will automatically add wildcards to the end of
@@ -32,7 +32,7 @@
 	</dd>
 
 	<dt>
-      don&apos;t worry about case:
+      don&rsquo;t worry about case:
 	</dt>
 	<dd>
       the search is case insensitive, so changing the case of your
@@ -42,7 +42,7 @@
 		try fewer words:
 	</dt>
 	<dd>
-      if you don&apos;t get any results, try making your query less
+      if you don&rsquo;t get any results, try making your query less
       specific, e.g. use &quot;rhinovirus&quot; instead of &quot;human
       rhinovirus&nbsp;14&quot;
 	</dd>
@@ -51,7 +51,7 @@
 	</dt>
 	<dd>
       make sure that the spelling of your search terms is accurate;
-      the database can&apos;t compensate for incorrect spelling
+      the database can&rsquo;t compensate for incorrect spelling
 	</dd>
 	<dt>
       obsolete entries:
@@ -59,7 +59,7 @@
 	<dd>
       entries may be removed from the Pfam database occasionally, as
       they are included in larger families, etc. Because details of
-      the &apos;dead&apos; entries are not in the database, they will
+      the &rsquo;dead&rsquo; entries are not in the database, they will
       not appear in your search results
 	</dd>
 
