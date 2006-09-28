@@ -29,7 +29,7 @@ __PACKAGE__->has_one( "pdb" => "PfamWeb::Schema::PfamDB::Pdb",
 
 __PACKAGE__->has_one( "pfamseq" => "PfamWeb::Schema::PfamDB::Pfamseq",
 					  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
-					  { proxy => [ qw/ pfamseq_id pfamseq_acc / ] }
+					  { proxy => [ qw/ pfamseq_id pfamseq_acc length/ ] }
 					);
 
 __PACKAGE__->has_one( "pfamseq_arch" => "PfamWeb::Schema::PfamDB::Pfamseq_architecture",
