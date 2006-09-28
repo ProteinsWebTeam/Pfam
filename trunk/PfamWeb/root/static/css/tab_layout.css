@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.16 2006-09-27 16:05:42 jt6 Exp $
+   $Id: tab_layout.css,v 1.17 2006-09-28 14:42:43 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -454,71 +454,6 @@ h4.pdbTitle  {
 
 hr.short {
 	display: none;
-}
-
-/* ---------------------------------------- */
-
-table.details {  
-  margin: 0;
-  padding: 0;
-  border-collapse: collapse;
-}
-
-table.details thead tr {
-  background: #BBB;
-}
-
-table.details th {
-  padding: 0.2em;
-  border: 2px solid #FFF;
-}
-
-table.details td {
-  text-align: center;
-  padding: 0.2em;
-  border: 2px solid #FFF;
-}
-
-table.details td.label {
-  width: 13.2em;
-  padding: 0.2em;
-  background: #CCC;
-  text-align: center;
-  font-weight: bold;
-  vertical-align: top;
-}
-
-table.details tr.newRow td {
-  margin-top: 2px;
-  border-top: 1px solid #BBB;
-}
-
-table.details tr {
-	background: #DDD;
-}
-
-.stripeHover {
-	background: #CBD;
-}
-
-table.details tr.odd {
-  background: #CCC;
-}
-
-table.details tr.even {
-  background: #DDD;
-}
-
-/* these two rules are for the details table when it is split into
-   two separate columns */
-div.floatLeft {
-  float: left;
-  margin-right: 0.4em;
-}
-
-tr.continuation {
-  font-size: smaller;
-  background: none;
 }
 
 /* ---------------------------------------- */
