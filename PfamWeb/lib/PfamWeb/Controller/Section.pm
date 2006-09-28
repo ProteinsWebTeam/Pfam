@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.1 2006-09-22 10:43:53 jt6 Exp $
+# $Id: Section.pm,v 1.2 2006-09-28 13:23:21 jt6 Exp $
 
 =head1 NAME
 
@@ -20,14 +20,14 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.1 2006-09-22 10:43:53 jt6 Exp $
+$Id: Section.pm,v 1.2 2006-09-28 13:23:21 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dumper;
+use Data::Dump qw( dump );
 
 use base "Catalyst::Controller";
 
@@ -79,8 +79,16 @@ sub end : Private {
 
   } elsif ( $c->stash->{errorMsg} ) {
 
-	# there was an error with user input, e.g. bad ID or accession
-	$c->stash->{template} = "components/blocks/" . $this->{SECTION} . "/error.tt";
+	# there was an error with user input, e.g. bad ID or
+	# accession. Check the config for the location of the error
+	# template file
+	$c->stash->{template} =
+	  $c->config
+		->{"View::TT"}
+		  ->{VARIABLES}
+			->{layouts}
+			  ->{ $this->{SECTION} }
+				->{errorTemplate};
 
   } else {
 
