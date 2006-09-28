@@ -5,11 +5,11 @@
 #
 # build the tab title for the domain-domain interaction pages
 #
-# $Id: title.tt,v 1.1 2006-08-22 13:31:40 rdf Exp $
+# $Id: title.tt,v 1.2 2006-09-28 10:10:07 rdf Exp $
 %]
 
 [% IF titleType == "tab" %]
-<h2>Domain-Domain interaction: <em></em></h2>
+<h2>[% pfam_B.pfamA_id %]-[% pfam_B.pfamA_id %] interaction: <em></em></h2>
 [% ELSIF titleType == "page" %]
-Domain-Domain intercation;()
+[% pfam_B.pfamA_id %]-[% pfam_B.pfamA_id %] intercations
 [% END %]
