@@ -1,7 +1,7 @@
 # StructuralDomains.pm
 # rdf 20060823 WTSI
 #
-# $Id: StructuralDomains.pm,v 1.1 2006-09-28 09:52:51 rdf Exp $
+# $Id: StructuralDomains.pm,v 1.2 2006-09-28 14:25:59 jt6 Exp $
 
 =head1 NAME
 
@@ -145,29 +145,12 @@ sub getStructuralDomains : Path {
 #   $c->stash->{chainsToUnp} = \%chainsToUnp;
 #   $c->stash->{unpToImage}  = \%unpToImage;
   $c->stash->{domainImages} = $imageset;
-}
 
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Overrides the end method from the base class, so that we now hand off
-to a template that doesn't require the wrapper
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  #return unless defined $c->stash->{images};
-
+  # set the template to render
   $c->stash->{template} = "components/blocks/structure/domains.tt";
 
-  # forward to the class that's got the WRAPPER set to null
-  $c->forward( "PfamWeb::View::TTBlock" );
-
 }
+
 
 #-------------------------------------------------------------------------------
 
