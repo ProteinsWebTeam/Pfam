@@ -17,10 +17,12 @@ __PACKAGE__->set_primary_key( "auto_pfamA_A", "auto_pfamA_B", "auto_int_pfamAs" 
 #1 to many relationship
 
 __PACKAGE__->has_one( "pfamA_A" => "PfamWeb::Schema::PfamDB::Pfam",
-		      {"foreign.auto_pfamA"  => "self.auto_pfamA_A"});
+		      {"foreign.auto_pfamA"  => "self.auto_pfamA_A"},
+		      { proxy =>  [ qw/pfamA_id pfamA_acc/] } );
 
 __PACKAGE__->has_one( "pfamA_B" => "PfamWeb::Schema::PfamDB::Pfam",
-		      {"foreign.auto_pfamA"  => "self.auto_pfamA_B"});
+		      {"foreign.auto_pfamA"  => "self.auto_pfamA_B"},
+		      {proxy => [ qw/pfamA_id pfamA_acc/] } );
 
 
 1;
