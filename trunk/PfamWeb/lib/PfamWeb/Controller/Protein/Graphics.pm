@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.12 2006-09-15 13:43:28 jt6 Exp $
+# $Id: Graphics.pm,v 1.13 2006-09-28 10:46:52 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -180,26 +180,16 @@ sub getServerList : Private {
    }
 
   # store the list of selected servers in the session
-   $c->session->{selectedDASServers} = \%servers if scalar keys %servers;
+  $c->session->{selectedDASServers} = \%servers if scalar keys %servers;
 
   $c->stash->{dsnList} = $dsnList;
+
+  # set up the view and rely on "end" from the parent class to render it
+  $c->stash->{template} = "components/blocks/protein/loadGraphics.tt";
+
 }
 
 #-------------------------------------------------------------------------------
-# override the end method from Protein.pm, so that we now redirect to
-# a template that doesn't require the wrapper
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "Protein::Graphics::end: handing off to wrapper-less template..." );
-
-  $c->stash->{template} = "components/blocks/protein/loadGraphics.tt";
-
-  # forward to the class that's got the WRAPPER set to null
-  $c->forward( "PfamWeb::View::TTBlock" );
-
-}
 
 1;
 
