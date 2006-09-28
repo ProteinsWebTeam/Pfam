@@ -59,9 +59,8 @@ sub _rightStyle {
 sub _construct_URL {
   my ($self, $region) = @_;
   #This should be defined by some
-  my $url = $region->BioAnnotatedRegion->id;
-  $url =~ s/\./\//g;
-  $region->url("http://cathwww.biochem.ucl.ac.uk/latest/class$url/index.html");
+  my $id = $region->BioAnnotatedRegion->id;
+  $region->url("http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=$id");
 }
 
 sub _construct_label{
