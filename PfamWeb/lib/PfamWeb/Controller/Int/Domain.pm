@@ -3,7 +3,7 @@
 #
 # Controller to build the main Domain page.
 #
-# $Id: Domain.pm,v 1.2 2006-09-28 09:40:09 rdf Exp $
+# $Id: Domain.pm,v 1.3 2006-09-28 13:27:10 jt6 Exp $
 
 package PfamWeb::Controller::Int::Domain;
 
@@ -11,7 +11,9 @@ use strict;
 use warnings;
 use Data::Dumper;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Section";
+
+__PACKAGE__->config( SECTION => "domain" );
 
 #-------------------------------------------------------------------------------
 # pick up http://localhost:3000/int
@@ -66,28 +68,6 @@ sub generateDomainIntSum : Path {
 }
 
 #-------------------------------------------------------------------------------
-sub end : Private {
-  my( $this, $c ) = @_;
 
-  # don't try to render a page unless there's a Pfam object in the stash
-  #return 0 unless defined $c->stash->{ligand};
-
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-        $c->stash->{errors}   = $c->error;
-        $c->stash->{template} = "components/blocks/ipfam/errors.tt";
-  } else {
-        $c->log->debug("PfamWeb::Controller::Int::Domain - Handing off to layout");
-        $c->stash->{pageType} = "iDomain";
-        $c->stash->{template} ||= "pages/layout.tt";
-  }
-
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
-
-  # clear any errors
-  $c->error(0);
-
-}
 1;
 
