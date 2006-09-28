@@ -1,11 +1,13 @@
-[%#
+[%
 # simapGraphics.tt
 # jt6 20060503 WTSI
 #
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::graphics and stuffed into a div in the existing page
 #
-# $Id: simapGraphics.tt,v 1.4 2006-08-22 13:40:47 rdf Exp $
+# $Id: simapGraphics.tt,v 1.5 2006-09-28 10:46:17 jt6 Exp $
+
+META naked = 1
 %]
 
 <!-- start of features map -->
