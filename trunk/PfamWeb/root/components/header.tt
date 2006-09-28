@@ -10,7 +10,7 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.5 2006-09-27 16:11:48 jt6 Exp $
+# $Id: header.tt,v 1.6 2006-09-28 10:45:46 jt6 Exp $
 -%]
 
 <!-- header start here -->
@@ -134,13 +134,13 @@
           </td>
         </tr>
         <tr>
-          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
-          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
-          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
-          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
-          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
-          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
-          <td><img src="/gfx/blank.gif" class="menuBlank" alt=""/></td>
+          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
         </tr>
       </table>
     </div>
