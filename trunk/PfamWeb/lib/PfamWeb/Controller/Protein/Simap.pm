@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Simap.pm,v 1.6 2006-09-13 08:33:05 jt6 Exp $
+# $Id: Simap.pm,v 1.7 2006-09-28 10:47:44 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Simap;
 
@@ -185,8 +185,6 @@ sub getSimapData : Path {
 sub end : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Protein::Simap::end: handing off to wrapper-less template..." );
-
   # check for errors
   if ( scalar @{ $c->error } ) {
 	$c->forward( "/reportError" );
@@ -195,8 +193,9 @@ sub end : Private {
 	$c->stash->{template} = "components/blocks/protein/simapGraphics.tt";
   }
 
-  # and render the page
-  $c->forward( "PfamWeb::View::TTBlock" );
+  # and render the page - need to make sure the templates tell the
+  # wrapper not to add the header/footer, using the META tag at the top
+  $c->forward( "PfamWeb::View::TT" );
 
   # clear any errors
   $c->clear_errors;
