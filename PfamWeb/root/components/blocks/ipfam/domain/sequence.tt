@@ -5,14 +5,14 @@
 # 
 # Lists the domain:ligand interactions
 #
-# $Id: sequence.tt,v 1.1 2006-08-22 13:30:00 rdf Exp $
+# $Id: sequence.tt,v 1.2 2006-09-28 10:09:08 rdf Exp $
 %]
 
 <!-- start ipfam summary block -->
 
 <div class="block" id="iDomainSequenceBlock">
   <div class="handle">
-    <h1>Seqeuences containing Domain Interactions</h1>
+    <h1>Seqeuences containing [% pfam.pfamA_id %] Interactions</h1>
   </div>
   <div class="blockContent">
 
