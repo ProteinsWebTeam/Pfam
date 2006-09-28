@@ -3,7 +3,7 @@
 #
 # Controller to build the main Ligand page.
 #
-# $Id: Ligand.pm,v 1.2 2006-09-28 13:26:55 jt6 Exp $
+# $Id: Ligand.pm,v 1.3 2006-09-28 14:42:02 jt6 Exp $
 
 package PfamWeb::Controller::Int::Ligand;
 
@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use Data::Dumper;
 
-use base "PfamWeb::Controller::Int";
+use base "PfamWeb::Controller::Section";
 
 __PACKAGE__->config( SECTION => "ligand" );
 
