@@ -10,7 +10,7 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.6 2006-09-28 10:45:46 jt6 Exp $
+# $Id: header.tt,v 1.7 2006-09-28 14:40:02 jt6 Exp $
 -%]
 
 <!-- header start here -->
@@ -187,19 +187,18 @@
       <div id="menu6Container">
         <div id="menu6Content" class="menuContent">
           <table>
-            <tr class="hi"><td><a href="/Software/Pfam/help/index.shtml">Main help page</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/help/gstart.shtml">Getting started</a></td></tr>
-            <tr class="hi"><td><a href="/Software/Pfam/help/region_help.shtml">Guide to domains</a></td></tr>
-            <tr class="lo"><td><a href="/cgi-bin/Pfam/upload_xml.pl">Create your own domain images</a></td></tr>
-            <tr class="hi"><td><a href="/Software/Pfam/help/changes.shtml">Changes from last release</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/help/rdb_doc.shtml">Pfam MySQL documentation</a></td></tr>
-
-            <tr class="hi"><td><a href="/Software/Pfam/help/futurechange.shtml">Planned changes to Pfam</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/help/faq.shtml">FAQ on Pfam</a></td></tr>
-            <tr class="hi"><td><a href="/Software/Pfam/help/othersite.shtml">Linking to Pfam</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/help/belvu_setup.shtml">Using Belvu to view alignments</a></td></tr>
-            <tr class="hi"><td><a href="/Software/Pfam/help/mail.shtml">Mailing list for Pfam</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/help/scores.shtml">Help on scores for Pfam</a></td></tr>
+            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpSummaryBlock" ) %]">Summary</a></td></tr>
+            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpChangesBlock" ) %]">Changes</a></td></tr>
+            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpGetStartedBlock" ) %]">Getting started</a></td></tr>
+            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpFAQBlock" ) %]">FAQ</a></td></tr>
+            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpScoresBlock" ) %]">Scores</a></td></tr>
+            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpDomainGraphicsBlock" ) %]">Guide to graphics</a></td></tr>
+            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpLinkingBlock" ) %]">Linking to Pfam</a></td></tr>
+            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">Mirrors</a></td></tr>
+            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpReferencesBlock" ) %]">Citing Pfam</a></td></tr>
+            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpGlossaryBlock" ) %]">Glossary</a></td></tr>
+            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpTheTeamBlock" ) %]">Team members</a></td></tr>
+            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpContactUsBlock" ) %]">Contact us</a></td></tr>
           </table>
         </div>
       </div>
