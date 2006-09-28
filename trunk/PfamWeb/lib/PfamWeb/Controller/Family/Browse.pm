@@ -4,7 +4,7 @@
 #
 # Controller for the "browse" pages. Originally by RDF.
 #
-# $Id: Browse.pm,v 1.4 2006-09-22 10:45:17 jt6 Exp $
+# $Id: Browse.pm,v 1.5 2006-09-28 09:38:20 rdf Exp $
 
 package PfamWeb::Controller::Family::Browse;
 
@@ -25,14 +25,23 @@ sub browse : Path {
   my @res;
 
   if( lc $c->req->param("browse") eq "numbers" ) {
-
-	$c->stash->{char} = "numbers";
-	# run the query to get back all families starting with a number
-	@res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
-											  { order_by => "pfamA_id ASC",
-												join     => [ qw/pfamA_web/ ],
-												prefetch => [ qw/pfamA_web/ ] }
-											);
+    $c->stash->{char} = "numbers";
+    # run the query to get back all families starting with a number
+    @res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
+					      { order_by => "pfamA_id ASC",
+						join     => [ qw/pfamA_web/ ],
+						prefetch => [ qw/pfamA_web/ ] }
+					    );
+  }elsif(lc $c->req->param("browse") eq "top twenty") {
+    $c->log->debug("Calling Top twenty");
+    $c->stash->{char} = "top twenty";
+    @res = $c->model("PfamDB::Pfam")->search( { },
+						 { order_by => "num_full DESC",
+						   join     => [ qw/pfamA_web/ ],
+						   prefetch => [ qw/pfamA_web/ ],
+						   rows     => 20,
+						   page     => 1})->all;
+    $c->log->debug("*** Got |".scalar(@res)."| results ***");
   } else {
 
 	my $char;
@@ -46,7 +55,7 @@ sub browse : Path {
 	# run the query to get back all families starting with the specified letter
 	@res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "LIKE", "$char%" } },
 											  { join     => [ qw/pfamA_web/ ],
-												prefetch => [ qw/pfamA_web/ ] }
+											    prefetch => [ qw/pfamA_web/ ] }
 											);
   }
 
@@ -54,25 +63,6 @@ sub browse : Path {
   $c->stash->{browse} = \@res if scalar @res;
 
 }
-
-
-# pick up a URL like http://localhost:3000/browse/top_twenty
-
-# sub browseTopTwenty : Path( "top_twenty" ) {
-#   my( $this, $c ) = @_;
-
-#   # run the query to get back all families starting with a number
-#   my @res = $c->model("PfamDB::Pfam")->search( { },
-# 										  { order_by => "pfamA_id ASC",
-# 											limit    => 20,
-# 											join     => [ qw/pfamA_web/ ],
-# 											prefetch => [ qw/pfamA_web/ ] }
-# 										);
-
-#   # and stash them for the template
-#   $c->stash->{browse} = \@res if scalar @res;
-
-# }
 
 
 # render the page
