@@ -5,10 +5,11 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.5 2006-09-07 09:50:05 jt6 Exp $
+# $Id: species.tt,v 1.6 2006-09-28 10:06:24 rdf Exp $
 %]
 
 <!-- start species block -->
+
 
 <div class="block" id="speciesBlock">
   <div class="handle">

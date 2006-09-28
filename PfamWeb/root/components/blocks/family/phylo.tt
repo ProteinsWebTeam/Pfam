@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.6 2006-09-07 09:50:05 jt6 Exp $
+# $Id: phylo.tt,v 1.7 2006-09-28 10:06:24 rdf Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -15,20 +15,8 @@
     <h1>Trees</h1>
   </div>
   <div class="blockContent">
-
-	<div id="alignmentTree">
-	  <p id="atph" class="loading">
-        Loading alignment tree...
-      </p>	
-	</div>
-
-	[%# set the options for the ajax call that populates the tree -%]
-    <script type="text/javascript">
-      loadOptions.at.uri    = "[% c.uri_for( "/gettreemap" ) %]";
-      loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
-	</script>
-
-    [%# the form that controls the tree display -%]
+  <p>This page displays the UPGMA based phylogentic tree, generated using quicktree, for the given alignment.</p> 
+[%# the form that controls the tree display -%]
     [% c.prototype.form_remote_tag( {
              url    => c.uri_for( "/gettreemap" ),
              update => "alignmentTree"
@@ -44,6 +32,19 @@
       </span>
       <input type="submit" name="submit" value="Change tree" />
     </form>
+	<div id="alignmentTree">
+	  <p id="atph" class="loading">
+        Loading alignment tree...
+      </p>	
+	</div>
+
+	[%# set the options for the ajax call that populates the tree -%]
+    <script type="text/javascript">
+      loadOptions.at.uri    = "[% c.uri_for( "/gettreemap" ) %]";
+      loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
+	</script>
+
+    
 
     <p><strong>Note:</strong> You can also download the data files for the
 	  <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
