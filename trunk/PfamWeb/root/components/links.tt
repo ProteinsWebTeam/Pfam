@@ -5,7 +5,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.6 2006-09-22 10:32:50 jt6 Exp $
+# $Id: links.tt,v 1.7 2006-09-28 10:03:42 rdf Exp $
 -%]
 
 [% USE dumper %]
@@ -186,8 +186,7 @@ external = [
 <div class="databaseReferences">
 
   [%- IF internalLinks -%]
-  <h3>Internal database links</h3>
-
+  <h3 [% addTip("family","intDbRefs") %]>Internal database links</h3>
   <table class="details">
     <tbody>
       [% internalLinks %]
@@ -197,8 +196,7 @@ external = [
   [%- END # of "if internalLinks" -%]
 
   [%- IF externalLinks -%]
-  <h3>External database links</h3>
-
+  <h3 [% addTip("family","extDbRefs") %]>External database links</h3>
   <table class="details">
     <tbody>
       [% externalLinks %]
