@@ -5,7 +5,7 @@
 # 
 # Lists the domain:ligand interactions
 #
-# $Id: domain.tt,v 1.1 2006-08-22 13:30:00 rdf Exp $
+# $Id: domain.tt,v 1.2 2006-09-28 10:09:08 rdf Exp $
 %]
 
 <!-- start ipfam summary block -->
@@ -17,7 +17,10 @@
   <div class="blockContent">
 
     <h3>list the domains:...</h3>
-
+	[% FOREACH domain IN domainInts %]
+	<p>[% domain.pfamA_id %] <a href=[% c.uri_for( "/int/domaindomain", acc1=domain.pfamA_acc, acc2=pfam.pfamA_acc ) %] > link </a> </p>
+	[% END %]
+	
   </div>
 
 </div>

@@ -5,11 +5,11 @@
 #
 # build the tab title for the iPfam pages
 #
-# $Id: title.tt,v 1.1 2006-08-22 13:30:00 rdf Exp $
+# $Id: title.tt,v 1.2 2006-09-28 10:09:08 rdf Exp $
 %]
 
-[% IF titleType == "tab" %]
-<h2>iPfam: <em></em></h2>
-[% ELSIF titleType == "page" %]
-iPfam:&nbsp;()
+[% IF titleType == "page" %]
+Domain Interactions for: [% pfam.pfamA_id %]( [% pfam.pfamA_acc %] )
+[% ELSIF titleType == "tab" %]
+<h2>iPfam:[% pfam.pfamA_id %]</h2>
 [% END %]
