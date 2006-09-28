@@ -4,7 +4,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.9 2006-09-28 08:56:45 jt6 Exp $
+# $Id: layout.tt,v 1.10 2006-09-28 13:33:01 jt6 Exp $
 
 USE String;
 USE date;
@@ -87,7 +87,7 @@ END;
     TRY;
       PROCESS $titleFile titleType="tab";
     CATCH;
-      CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\"" );
+      CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\" (page type \"$pageType\")" );
     END
     %]
   </div>
