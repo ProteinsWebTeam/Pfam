@@ -1,12 +1,14 @@
-[%#
+[%
 # loadGraphics.tt
 # jt6 20060503 WTSI
 #
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.10 2006-09-15 13:10:13 jt6 Exp $
-%]
+# $Id: loadGraphics.tt,v 1.11 2006-09-28 10:46:17 jt6 Exp $
+
+META naked = 1
+-%]
 
 <!-- start of features map -->
 

@@ -1,5 +1,17 @@
+[%
+# simapError.tt
+# jt6 20060913 WTSI
+#
+# display an error message if we can't retrieve data from SIMAP.
+#
+# $Id: simapError.tt,v 1.2 2006-09-28 10:46:17 jt6 Exp $
 
-[% USE date %]
+META naked = 1;
+
+USE date
+-%]
+
+<!-- start of simap error message -->
 
 <h3>SIMAP data unavailable</h3>
 
@@ -7,3 +19,5 @@
 to be a problem with the SIMAP web service.</p>
 
 <p>[% date.format %]</p>
+
+<!-- end of simap error message -->
