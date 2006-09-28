@@ -4,7 +4,7 @@
 #
 # Controller to build the main iPfam page.
 #
-# $Id: Int.pm,v 1.1 2006-04-25 16:45:39 jt6 Exp $
+# $Id: Int.pm,v 1.2 2006-09-28 09:35:49 rdf Exp $
 
 package PfamWeb::Controller::Int;
 
@@ -21,15 +21,31 @@ use base "Catalyst::Controller";
 sub generateSummary : Path {
   my( $this, $c ) = @_;
 
-  # set up the TT view
-  $c->stash->{pageType} = "ipfam";
-  $c->stash->{template} = "pages/layout.tt";
-
-  # and use it
-  $c->forward( "PfamWeb::View::TT" );
+  $c->log->debug("Int::generateSummary: Hello");
 
 }
 
 #-------------------------------------------------------------------------------
+sub end : Private {
+  my( $this, $c ) = @_;
 
+  # don't try to render a page unless there's a Pfam object in the stash
+  #return 0 unless defined $c->stash->{ligand};
+  
+  # check for errors
+  if ( scalar @{ $c->error } ) {
+	$c->stash->{errors}   = $c->error;
+	$c->stash->{template} = "components/blocks/ipfam/errors.tt";
+  } else {
+	$c->stash->{pageType} = "ipfam";
+	$c->stash->{template} ||= "pages/layout.tt";
+  }
+
+  # and render the page
+  $c->forward( "PfamWeb::View::TT" );
+
+  # clear any errors
+  $c->error(0);
+
+}
 1;
