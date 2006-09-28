@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.11 2006-09-22 13:22:14 jt6 Exp $
+# $Id: Protein.pm,v 1.12 2006-09-28 14:41:03 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.11 2006-09-22 13:22:14 jt6 Exp $
+$Id: Protein.pm,v 1.12 2006-09-28 14:41:03 jt6 Exp $
 
 =cut
 
@@ -110,7 +110,8 @@ sub begin : Private {
 	# de-taint the accession or ID
 	my $input = $c->req->param("acc")
 	  || $c->req->param("id")
-	  || $c->req->param("entry");
+	  || $c->req->param("entry")
+      || "";
 	$input =~ s/^(\w+)/$1/;
 
 	# see if this was an internal link and, if so, report it
