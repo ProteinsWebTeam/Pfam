@@ -1,20 +1,18 @@
-
-[%#
-# page.tt
+[%
+# layout.tt
 # jt6 20060406 WTSI
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.8 2006-07-20 09:33:11 jt6 Exp $
-%]
+# $Id: layout.tt,v 1.9 2006-09-28 08:56:45 jt6 Exp $
 
-[% USE String %]
-[% USE date %]
+USE String;
+USE date;
 
-[%# generate a sidebar tab %]
-[% BLOCK generateTab %]
+# generate a sidebar tab
+BLOCK generateTab;
 
-  [% # see if the tab should be activated or not
+  # see if the tab should be activated or not
   suffix = String.new;
   IF NOT active OR firstTab;
     IF NOT active;
@@ -25,7 +23,7 @@
     END;
     CALL suffix.trim();
   END
-  -%]
+-%]
 
   <li id="[% blockName %]Selector"[% IF suffix %] class="[% suffix %]"[% END %]>
     [% IF active -%]
@@ -54,7 +52,12 @@ FOREACH block IN layouts.${pageType}.blocks;
   blockTitle = block.values.first;
 
   # build the contents of the tab, if it's active
-  pageOutput = PROCESS $blockFile;
+  TRY;
+    pageOutput = PROCESS $blockFile;
+  CATCH;
+    CALL c.log.error( "layout.tt: Couldn't render template file \"$blockFile\"" );
+  END;
+
   CALL pageContent.append( pageOutput );
 
   IF pageOutput;
@@ -79,8 +82,14 @@ END;
 
 <div id="tabTitle">
   <div id="corner">
-    [% titleFile = layouts.${pageType}.titleTemplate %]
-    [% PROCESS $titleFile titleType="tab"%]
+    [%
+    titleFile = layouts.${pageType}.titleTemplate;
+    TRY;
+      PROCESS $titleFile titleType="tab";
+    CATCH;
+      CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\"" );
+    END
+    %]
   </div>
 </div>
 
