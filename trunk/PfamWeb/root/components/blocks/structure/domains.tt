@@ -5,29 +5,32 @@
 # 
 # build the structural domains block for structures
 #
-# $Id: domains.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
+# $Id: domains.tt,v 1.2 2006-09-28 10:11:32 rdf Exp $
 %]
 
 <!-- start domains block -->
 
-<div class="block" id="structureDomainsBlock">
-  <div class="handle">
-    <h1>Structural domains</h1>
-  </div>
-  <div class="blockContent">
+
+
+<div class="getDom">
 
 	<h3>Domains</h3>
+[% oe = 0 %]
+[% FOREACH image IN domainImages.each_image %]
 
-    <!-- applet width="640"
-            height="480"
-            name="av"
-            code="MoleculeViewerApplet"
-	        archive="/AstexViewer2.jar">
-      <param name="scriptFile" 
-             value="/621p.script">
-    </applet -->
+  <div class="graphicRow[% IF oe % 2 %] odd[% ELSE %] even[% END %][% oe=oe+1 %]">
+     <img class="domainImage"	
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#graphicsMap[% oe %]"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
 
-  </div>
+    <map name="graphicsMap[% oe %]">
+      [% image.image_map %]
+    </map>		
+	</div>
+[% END %]
+
 </div>
 
 <!-- end domains block -->
