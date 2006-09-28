@@ -6,7 +6,7 @@
 
 <div class="block" id="dbRefsBlock">
   <div class="handle">
-	<h1>Database references</h1>
+	<h1 [% addTip("family","dbRefs") %]>Database references</h1>
   </div>
   <div class="blockContent">
     [% oe = 0 %]

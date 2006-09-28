@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.9 2006-09-28 08:59:17 jt6 Exp $
+# $Id: curation.tt,v 1.10 2006-09-28 10:06:24 rdf Exp $
 %]
 
 <!-- start curation block -->

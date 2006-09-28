@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.7 2006-09-28 08:59:24 jt6 Exp $
+# $Id: pdb.tt,v 1.8 2006-09-28 10:06:24 rdf Exp $
 
 numIds = pfamMaps.size;
 UNLESS numIds;
@@ -74,7 +74,7 @@ END;
           <th id="pdbId">PDB ID</th>
 		  <th id="chId">PDB chain ID</th>
           <th id="pdbRes">PDB residues</th>
-		  <th id="viewCol">View</th>
+		  <th id="viewCol"  [% addTip("family","pdbTableView") %]>View</th>
         </tr>
 	  </thead>
       <tbody>

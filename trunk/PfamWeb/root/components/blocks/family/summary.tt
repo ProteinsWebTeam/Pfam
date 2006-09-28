@@ -1,11 +1,11 @@
 
-[%#
+[%
 # summary.tt
 # jt6 20060406 WTSI
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.8 2006-09-28 08:58:56 jt6 Exp $
+# $Id: summary.tt,v 1.9 2006-09-28 10:06:24 rdf Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -28,7 +28,8 @@
 
     <div id="siph">&nbsp;</div>
 
-	<h3>[% pfam.description %]
+
+	<h3 [% addTip("family","description") %]>[% pfam.description %]
       <img style="vertical-align: middle" alt="Add an annotation" src="[% c.uri_for( "/images/annotation.png") %]" /></h3>
 
 	[% IF pfam.comment.length %]
@@ -40,7 +41,7 @@
     <hr class="short"/>
 
 	[% IF pfam.pfamA_lit_refs.size %]
-    <h3>Literature references</h3>
+    <h3 [% addTip("family","litRefs") %]>Literature references</h3>
 
     <ol>
 	  [% FOREACH ref IN pfam.pfamA_lit_refs %]
@@ -54,14 +55,19 @@
     <hr class="short"/>
 	[% END %]
 
+<<<<<<< summary.tt
+	<h3 [% addTip("family","interpro") %]>Interpro entry [% pfam.interpro.interpro_id %]</h3>
+=======
 	<h3>Interpro entry <a href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h3>
+>>>>>>> 1.8
 
     [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
         to contain <p> tags... -%]
 	[% pfam.interpro.abstract %]
 
+
 	[%- IF pfam.clan_acc -%]
-	<h3>Clans</h3>
+	<h3 [% addTip("family","familyClan") %]>Clan</h3>
 
     [% membershipList = BLOCK %]
       [% total = 0 %]
@@ -90,7 +96,8 @@
 
     [%- END # of "if clan_acc" -%]
 
-	[% PROCESS components/links.tt %]
+
+  [% PROCESS components/links.tt %]
 
   </div>
 </div>
