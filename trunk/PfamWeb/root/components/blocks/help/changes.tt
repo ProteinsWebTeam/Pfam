@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.1 2006-09-27 13:54:38 rdf Exp $
+# $Id: changes.tt,v 1.2 2006-09-29 15:26:58 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -15,12 +15,18 @@
   </div>
   <div class="blockContent">
 
+  <p>
+	This section details changes that we hope to make to the Pfam database and to the
+	public website.
+  </p>
+
   <h3>Planned Changes</h3>
+ 
   <p>The old website is going to be binned and this brand new one will take it's place.</p>  
 
   <h3>Previous Changes</h3>
-  <p>John, just show changes between this release and the previous. Put the rest in a "more" div.</p>	
 
+<div id="previousChanges">
 
 <center><span>Changes between Pfam release 19 and 20</span></center><p>
 <span class=normaltext>Release 20.0 contains a total of 8296 families, with 123 new families and 10 families deleted since the last release. 73.88% of all proteins in Pfamseq contain a match to at least one Pfam domain.  51.57% of all residues in the sequence database fall within Pfam domains.</p>
@@ -238,6 +244,7 @@ and fs HMMs. For more inforamtion on Pfam thresholds click
 </p>
 
 
+</div> <!-- end of "previous changes" -->
 
   </div>
 </div>
