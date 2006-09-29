@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.14 2006-09-22 10:41:34 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.15 2006-09-29 14:40:05 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles error reporting for the whole application and tab selection
 for all the view.
 
-$Id: PfamWeb.pm,v 1.14 2006-09-22 10:41:34 jt6 Exp $
+$Id: PfamWeb.pm,v 1.15 2006-09-29 14:40:05 jt6 Exp $
 
 =cut
 
@@ -43,8 +43,6 @@ use Catalyst qw/
 				Static::Simple
 				/;
 
-__PACKAGE__->config( file => "/nfs/team71/pfam/jt6/server/PfamWeb/conf/pfamweb.conf" );
-
 # add PageCache as the last plugin to enable page caching. Careful
 # though... doesn't work with Static::Simple
 
@@ -53,42 +51,22 @@ __PACKAGE__->config( file => "/nfs/team71/pfam/jt6/server/PfamWeb/conf/pfamweb.c
 #                Session::Store::FastMmap
 #                Session::State::Cookie
 
-# configure library loading. This module reads the pfamweb.ini file in
-# the root of the application and gets the path to the specified
-# "library module," which it then adds to the include path
-
-use PfamConfig qw( pfamlib );
-
 our $VERSION = '0.01';
 
 #-------------------------------------------------------------------------------
 
 =head1 CONFIGURATION
 
-Configuration is done through two main files:
-
-=over
-
-=item C<pfamweb.yml>
-
-a YAML format file that contains all of the catalyst-specific
-settings
-
-=item C<pfamweb.ini>
-
-an INI format file that points C<Module::PortablePath> at associated
-library modules in other filesystem trees
-
-=back
-
-These two files are explicitly excluded from the PfamWeb CVS module
-because they will contain passwords which can't be made public along
-with the rest of the code. Separating the configuration into a
-separate CVS module (PfamConfig) means that the code CVS modules can
-be published, if we need to do that.
+Configuration is done through external configuration files.
 
 =cut
 
+# grab the location of the configuration file from the environment and
+# detaint it. Doing this means we can configure the location of the
+# config file in httpd.conf rather than in the code
+my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ /([\w\/-]+)/;
+
+__PACKAGE__->config( file => $conf );
 __PACKAGE__->setup;
 
 #-------------------------------------------------------------------------------
@@ -106,10 +84,6 @@ sub index : Private {
 
   $c->log->debug( "PfamWeb::index: generating site index" );
 
-  # we really *shouldn't* have any content, but we'll check
-  # anyway. Maybe we need to reset the response body... if that's even
-  # possible.
-
 }
 
 #-------------------------------------------------------------------------------
@@ -124,9 +98,6 @@ before that.
 
 sub default : Private {
   my( $this, $c ) = @_;
-
-  # Hello World - the default catalyst welcome page
-  #$c->response->body( $c->welcome_message );
 
   # record an error message, because we shouldn't error arrive here
   # unless via a broken link, missing page, etc.
