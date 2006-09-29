@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::PfamA_web;
+package PfamDB::PfamA_web;
 
 use strict;
 use warnings;
@@ -15,7 +15,7 @@ __PACKAGE__->add_columns(qw/auto_pfamA average_length percentage_id average_cove
 
 __PACKAGE__->set_primary_key( "auto_pfamA" );
 
-__PACKAGE__->has_one( "pfam" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfam" => "PfamDB::Pfam",
 		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
 1;

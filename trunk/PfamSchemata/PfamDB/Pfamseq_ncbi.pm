@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Pfamseq_ncbi;
+package PfamDB::Pfamseq_ncbi;
 
 use strict;
 use warnings;
@@ -14,11 +14,11 @@ __PACKAGE__->add_columns(qw/auto_pfamseq ncbi_code/);
 
 __PACKAGE__->set_primary_key("auto_pfamseq", "ncbi_code");
 
-__PACKAGE__->has_one("auto_pfamseq" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one("auto_pfamseq" => "PfamDB::Pfamseq",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 		     {proxy => [qw/pfamseq_id pfamseq_acc/]});
 
-__PACKAGE__->has_one("ncbi" => "PfamSchemata::PfamDB::Ncbi_taxonomy",
+__PACKAGE__->has_one("ncbi" => "PfamDB::Ncbi_taxonomy",
 		     {"foreign.ncbi_code" => "self.ncbi_code"},
 		     {proxy => [qw/species taxonomy/]});
 

@@ -1,5 +1,5 @@
 
-package PfamSchemata::PfamDB::PdbAuthor;
+package PfamDB::PdbAuthor;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ __PACKAGE__->table( "pdb_author" );
 __PACKAGE__->add_columns( qw/auto_pdb author_order last_name name_initials/ );
 __PACKAGE__->set_primary_key( "auto_pdb" );
 
-__PACKAGE__->has_one(    "pdb" => "PfamSchemata::PfamDB::PdbNew",
+__PACKAGE__->has_one(    "pdb" => "PfamDB::PdbNew",
 			 { "foreign.auto_pdb" => "self.auto_pdb" } );
 
 

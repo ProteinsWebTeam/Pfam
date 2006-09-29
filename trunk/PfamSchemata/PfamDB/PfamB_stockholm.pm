@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::PfamB_stockholm;
+package PfamDB::PfamB_stockholm;
 
 use strict;
 use warnings;
@@ -20,7 +20,7 @@ __PACKAGE__->set_primary_key("auto_pfamB");
 
 #pfamB_stockholm joins are to pfamB
 
-__PACKAGE__->has_one( "pfamB" => "PfamSchemata::PfamDB::PfamB",
+__PACKAGE__->has_one( "pfamB" => "PfamDB::PfamB",
 		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
 		      {proxy => [ qw/pfamB_id pfamB_acc/]});
 1;

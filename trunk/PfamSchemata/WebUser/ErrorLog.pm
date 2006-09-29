@@ -4,9 +4,9 @@
 
 # DBIx::Class::ResultSource for the error_log table
 
-# $Id: ErrorLog.pm,v 1.1.1.1 2006-09-29 09:56:35 jt6 Exp $
+# $Id: ErrorLog.pm,v 1.2 2006-09-29 15:23:31 jt6 Exp $
 
-package PfamSchemata::WebUser::ErrorLog;
+package WebUser::ErrorLog;
 
 use strict;
 use warnings;

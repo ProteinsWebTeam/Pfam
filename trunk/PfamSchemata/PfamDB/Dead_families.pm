@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Dead_families;
+package PfamDB::Dead_families;
 
 use strict;
 use warnings;

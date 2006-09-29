@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Version;
+package PfamDB::Version;
 
 use strict;
 use warnings;

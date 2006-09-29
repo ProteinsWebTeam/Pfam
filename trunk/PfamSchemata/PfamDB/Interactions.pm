@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Interactions;
+package PfamDB::Interactions;
 
 use strict;
 use warnings;
@@ -16,29 +16,29 @@ __PACKAGE__->set_primary_key( "auto_interactions",  "auto_int_pfamAs", "auto_int
 #Set up relationships
 #1 to many relationship
 
-__PACKAGE__->has_one( "int_pfamA" => "PfamSchemata::PfamDB::Int_pfamAs",
+__PACKAGE__->has_one( "int_pfamA" => "PfamDB::Int_pfamAs",
 		      {"foreign.auto_int_pfamA"  => "self.auto_int_pfamA"});
 
-__PACKAGE__->has_one( "int_atoms" => "PfamSchemata::PfamDB::Int_atoms",
+__PACKAGE__->has_one( "int_atoms" => "PfamDB::Int_atoms",
 		      {"foreign.auto_int_atoms"  => "self.auto_int_atoms"},
 		      {proxy => [qw/pdb_atom partner_pdb_atom bond_name/]});
 
-__PACKAGE__->has_one( "pdb" => "PfamSchemata::PfamDB::Pdb",
+__PACKAGE__->has_one( "pdb" => "PfamDB::Pdb",
 		      {"foreign.auto_pdb"  => "self.auto_pdb"},
 		      {proxy => [qw/pdb_id/]});
 
-__PACKAGE__->has_one( "pfamseqA" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one( "pfamseqA" => "PfamDB::Pfamseq",
 		      {"foreign.auto_pfamseq"  => "self.auto_pfamseq_A"},
 		      {proxy => [qw/pfamseq_id pfamseq_acc/]});
 
-__PACKAGE__->has_one( "pfamseqB" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one( "pfamseqB" => "PfamDB::Pfamseq",
 		      {"foreign.auto_pfamseq"  => "self.auto_pfamseq_B"},
 		      {proxy => [qw/pfamseq_id pfamseq_acc/]});
 
-__PACKAGE__->has_one( "pfamA_A" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA_A" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA_A"});
 
-__PACKAGE__->has_one( "pfamA_B" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA_B" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA_B"});
 
 

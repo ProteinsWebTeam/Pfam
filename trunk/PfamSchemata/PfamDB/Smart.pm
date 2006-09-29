@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Smart;
+package PfamDB::Smart;
 
 use strict;
 use warnings;
@@ -20,7 +20,7 @@ __PACKAGE__->set_primary_key("auto_smart", "smart_acc");
 
 #PfamB joins are to pfamB_reg, pdbmap & pfamB_stockholm 
 
-__PACKAGE__->has_many( "smart_reg" =>  "PfamSchemata::PfamDB::Smart_reg",
+__PACKAGE__->has_many( "smart_reg" =>  "PfamDB::Smart_reg",
 		      { "foreign.auto_smart"  => "self.auto_smart" });
 
 

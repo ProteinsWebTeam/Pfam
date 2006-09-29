@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Clan_membership;
+package PfamDB::Clan_membership;
 
 use strict;
 use warnings;
@@ -19,24 +19,24 @@ __PACKAGE__->set_primary_key( "auto_pfamA" );
 
 
 #1 to 1 releationship
-__PACKAGE__->has_one( "pfam" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfam" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA"},
 		        {proxy => [qw/ pfamA_id pfamA_acc num_seed num_full model_length /]});
 
 #Not sure about this one.... there will be many of the same auto_clan in this table,
 #but only one in the clans table, another one for jt6
-__PACKAGE__->has_one( "clans" => "PfamSchemata::PfamDB::Clans",
+__PACKAGE__->has_one( "clans" => "PfamDB::Clans",
 		      {"foreign.auto_clan" => "self.auto_clan"},
 		      {proxy => [qw/clan_acc clan_id clan_description/]});
 
 
-__PACKAGE__->has_many( "pfamARegFull" => "PfamSchemata::PfamDB::PfamA_reg_full",
+__PACKAGE__->has_many( "pfamARegFull" => "PfamDB::PfamA_reg_full",
 		      {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
-__PACKAGE__->might_have( "pfamAInts" => "PfamSchemata::PfamDB::Int_pfamAs",
+__PACKAGE__->might_have( "pfamAInts" => "PfamDB::Int_pfamAs",
 		      {"foreign.auto_pfamA_A" => "self.auto_pfamA"});
 
-__PACKAGE__->might_have( "pdbmap" => "PfamSchemata::PfamDB::PdbMap",
+__PACKAGE__->might_have( "pdbmap" => "PfamDB::PdbMap",
 		      {"foreign.auto_pfam" => "self.auto_pfamA"});
 
 

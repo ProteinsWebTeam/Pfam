@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Smart_reg;
+package PfamDB::Smart_reg;
 
 use strict;
 use warnings;
@@ -18,12 +18,12 @@ __PACKAGE__->set_primary_key("auto_smart", "auto_pfamseq");
 
 #Now setup the relationship
 
-__PACKAGE__->has_one( "smart" =>  "PfamSchemata::PfamDB::Smart",
+__PACKAGE__->has_one( "smart" =>  "PfamDB::Smart",
 		      { "foreign.auto_smart"  => "self.auto_smart" },
 		      { proxy => [ qw/smart_id smart_acc/ ] } );
 
 
-__PACKAGE__->has_one( "pfamseq" =>  "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
 		      { proxy => [ qw/pfamseq_acc pfamseq_id/ ] } );
 1;

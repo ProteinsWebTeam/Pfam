@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Pfam_annseq;
+package PfamDB::Pfam_annseq;
 
 use strict;
 use warnings;
@@ -15,10 +15,10 @@ __PACKAGE__->add_columns(qw/auto_pfamseq annseq_storable/);
 __PACKAGE__->set_primary_key("auto_pfamseq");
 
 #This doesnot need any proxies as all of the data should be in the storable object
-__PACKAGE__->has_one("auto_pfamseq" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one("auto_pfamseq" => "PfamDB::Pfamseq",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 					{proxy => [qw/pfamseq_id pfamseq_acc/]});
 
-__PACKAGE__->has_one("auto_architecture" => "PfamSchemata::PfamDB::Architecture",
+__PACKAGE__->has_one("auto_architecture" => "PfamDB::Architecture",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
 1;

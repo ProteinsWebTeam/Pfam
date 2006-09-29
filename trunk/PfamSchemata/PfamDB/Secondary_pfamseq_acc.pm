@@ -4,9 +4,9 @@
 #
 # Model for the secondary_pfamseq_acc table.
 #
-# $Id: Secondary_pfamseq_acc.pm,v 1.1.1.1 2006-09-29 09:56:35 jt6 Exp $
+# $Id: Secondary_pfamseq_acc.pm,v 1.2 2006-09-29 15:23:31 jt6 Exp $
 
-package PfamSchemata::PfamDB::Secondary_pfamseq_acc;
+package PfamDB::Secondary_pfamseq_acc;
 
 use strict;
 use warnings;
@@ -25,7 +25,7 @@ __PACKAGE__->add_columns( qw/ auto_pfamseq secondary_acc /);
 __PACKAGE__->set_primary_key( "auto_pfamseq", "secondary_acc" );
 
 # now setup the relationship
-__PACKAGE__->has_one( "pfamseq" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one( "pfamseq" => "PfamDB::Pfamseq",
 					  { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
 					  { proxy => [ qw/ pfamseq_id pfamseq_acc sequence / ] }  );
 

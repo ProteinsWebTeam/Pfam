@@ -1,5 +1,5 @@
 
-package PfamSchemata::PfamDB::Pfam;
+package PfamDB::Pfam;
 
 use strict;
 use warnings;
@@ -21,31 +21,31 @@ __PACKAGE__->set_primary_key( "auto_pfamA", "pfamA_id", "pfamA_acc" );
 
 #Now on to the relationships
 
-__PACKAGE__->might_have ( "interpro" => "PfamSchemata::PfamDB::Interpro",
+__PACKAGE__->might_have ( "interpro" => "PfamDB::Interpro",
 			  {"foreign.auto_pfamA"  => "self.auto_pfamA" },
 			  { proxy => [ qw/interpro_id abstract/ ] } );
 
-__PACKAGE__->has_many   ( "pdbMap"   => "PfamSchemata::PfamDB::PdbMap",
+__PACKAGE__->has_many   ( "pdbMap"   => "PfamDB::PdbMap",
 			  { "foreign.auto_pfam"  => "self.auto_pfamA" });
 
-__PACKAGE__->has_many   ( "go"       => "PfamSchemata::PfamDB::GO",
+__PACKAGE__->has_many   ( "go"       => "PfamDB::GO",
 			  { "foreign.auto_pfamA" => "self.auto_pfamA" } );
 
-__PACKAGE__->has_many   ( "pfamA_lit_refs" => "PfamSchemata::PfamDB::PfamA_literature_references",
+__PACKAGE__->has_many   ( "pfamA_lit_refs" => "PfamDB::PfamA_literature_references",
 			  {"foreign.auto_pfamA"  => "self.auto_pfamA"} );
 
-__PACKAGE__->might_have ( "clan_membership" => "PfamSchemata::PfamDB::Clan_membership",
+__PACKAGE__->might_have ( "clan_membership" => "PfamDB::Clan_membership",
 			  {"foreign.auto_pfamA" => "self.auto_pfamA"},
 			  {proxy => [ qw/clan_acc clan_id clan_description/]});
 
-__PACKAGE__->has_one    ( "pfamA_web" => "PfamSchemata::PfamDB::PfamA_web",
+__PACKAGE__->has_one    ( "pfamA_web" => "PfamDB::PfamA_web",
 			  {"foreign.auto_pfamA" => "self.auto_pfamA"},
 			  {proxy => [ qw/average_length percentage_id average_coverage status/]});
 
-__PACKAGE__->has_many    ( "pfamA_arch" => "PfamSchemata::PfamDB::PfamA_architecture",
+__PACKAGE__->has_many    ( "pfamA_arch" => "PfamDB::PfamA_architecture",
 			  {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
-__PACKAGE__->has_many( "pfamA_database_links" => "PfamSchemata::PfamDB::PfamA_database_links",
+__PACKAGE__->has_many( "pfamA_database_links" => "PfamDB::PfamA_database_links",
 		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
 #PRC tables - todo
@@ -53,13 +53,13 @@ __PACKAGE__->has_many( "pfamA_database_links" => "PfamSchemata::PfamDB::PfamA_da
 
 #All of the region tables that join on to pfamA
 
-__PACKAGE__->has_many ("pfamA_reg_full" => "PfamSchemata::PfamDB::PfamA_reg_full",
+__PACKAGE__->has_many ("pfamA_reg_full" => "PfamDB::PfamA_reg_full",
 		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
-__PACKAGE__->has_many ("pfamA_reg_seed" => "PfamSchemata::PfamDB::PfamA_reg_seed",
+__PACKAGE__->has_many ("pfamA_reg_seed" => "PfamDB::PfamA_reg_seed",
 		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
-__PACKAGE__->has_many ("context" => "PfamSchemata::PfamDB::Context_pfam_regions",
+__PACKAGE__->has_many ("context" => "PfamDB::Context_pfam_regions",
 		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
 #Interaction tables - todo

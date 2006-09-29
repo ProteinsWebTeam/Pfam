@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Ligands;
+package PfamDB::Ligands;
 
 use strict;
 use warnings;

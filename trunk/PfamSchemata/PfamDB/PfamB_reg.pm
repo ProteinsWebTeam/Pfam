@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::PfamB_reg;
+package PfamDB::PfamB_reg;
 
 use strict;
 use warnings;
@@ -18,12 +18,12 @@ __PACKAGE__->set_primary_key("auto_pfamB", "auto_pfamseq");
 
 #Now setup the relationship
 
-__PACKAGE__->has_one( "pfamB" =>  "PfamSchemata::PfamDB::PfamB",
+__PACKAGE__->has_one( "pfamB" =>  "PfamDB::PfamB",
 		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
 		      { proxy => [ qw/pfamB_id pfamB_acc/ ] } );
 
 
-__PACKAGE__->has_one( "pfamseq" =>  "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
 		      { proxy => [ qw/pfamseq_acc pfamseq_id/ ] } );
 1;

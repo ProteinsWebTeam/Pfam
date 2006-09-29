@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Clan_database_links;
+package PfamDB::Clan_database_links;
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ __PACKAGE__->set_primary_key( "auto_clan");
 #Set up relationships
 
 #1 to 1 relationship that must be there.....
-__PACKAGE__->has_one( "clans" => "PfamSchemata::PfamDB::Clans",
+__PACKAGE__->has_one( "clans" => "PfamDB::Clans",
 		       {"foreign.auto_clan"  => "self.auto_clan"});
 
 
