@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.18 2006-09-28 14:42:43 jt6 Exp $
+   $Id: pfam.css,v 1.19 2006-09-29 15:36:34 jt6 Exp $
 */   
 
 body {
@@ -14,10 +14,6 @@ body {
 	min-width: 840px;
     margin: 0;
 	padding: 0;
-}
-
-table {
-	border-collapse: collapse;
 }
 
 .cleaner {
@@ -53,6 +49,10 @@ a:active {
 #header {
 	height: 84px;
     width: 100%;
+}
+
+#header table {
+	border-collapse: collapse;
 }
 
 #header img {
@@ -376,12 +376,15 @@ div.pageList span.letter a:hover {
   color: white;
 }
 
+table.browse { 
+  margin: 0 auto;
+}
+
 /* ---------------------------------------- */
 
 table.details {  
-  margin: 0 auto;
+  margin: 0;
   padding: 0;
-  border-collapse: collapse;
 }
 
 table.details thead tr {
