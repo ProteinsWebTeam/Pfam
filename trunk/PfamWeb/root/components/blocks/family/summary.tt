@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.9 2006-09-28 10:06:24 rdf Exp $
+# $Id: summary.tt,v 1.10 2006-09-29 15:26:21 jt6 Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -55,11 +55,7 @@
     <hr class="short"/>
 	[% END %]
 
-<<<<<<< summary.tt
-	<h3 [% addTip("family","interpro") %]>Interpro entry [% pfam.interpro.interpro_id %]</h3>
-=======
-	<h3>Interpro entry <a href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h3>
->>>>>>> 1.8
+	<h3 [% addTip("family","interpro") %]>Interpro entry <a href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h3>
 
     [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
         to contain <p> tags... -%]
