@@ -351,7 +351,7 @@ sub hits2Ali {
       my $protein       = $proteinNode->find("\@name");
       my $species       = $proteinNode->find("taxonomyNode/\@name");
       $aliString .= ">$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq\n";
-	  print STDERR "aliString addition: |>$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq|\n";
+	  #print STDERR "aliString addition: |>$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq|\n";
     }
   }
 
