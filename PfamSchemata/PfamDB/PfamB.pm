@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::PfamB;
+package PfamDB::PfamB;
 
 use strict;
 use warnings;
@@ -20,14 +20,14 @@ __PACKAGE__->set_primary_key("auto_pfamB", "pfamB_acc");
 
 #PfamB joins are to pfamB_reg, pdbmap & pfamB_stockholm 
 
-__PACKAGE__->has_many( pfamb_reg => "PfamSchemata::PfamDB::PfamB_reg",
+__PACKAGE__->has_many( pfamb_reg => "PfamDB::PfamB_reg",
 		      { "foreign.auto_pfamB"  => "self.auto_pfamB" } );
 
-__PACKAGE__->has_many( pdbMap => "PfamSchemata::PfamDB::PdbMap",
+__PACKAGE__->has_many( pdbMap => "PfamDB::PdbMap",
 			  { "foreign.auto_pfam"  => "self.auto_pfamB" },
 			  { proxy => [ qw/pdb_id/ ] } );
 
-__PACKAGE__->has_one( pfamB_stock => "PfamSchemata::PfamDB::PfamB_stockholm",
+__PACKAGE__->has_one( pfamB_stock => "PfamDB::PfamB_stockholm",
 		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
 		      { proxy => qw[/stockholm_data/] } );
 1;

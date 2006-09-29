@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Pfamseq_disulphide;
+package PfamDB::Pfamseq_disulphide;
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ __PACKAGE__->add_columns(qw/auto_pfamseq bond_start bond_end/);
 
 __PACKAGE__->set_primary_key("auto_pfamseq");
 
-__PACKAGE__->has_one("auto_pfamseq" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one("auto_pfamseq" => "PfamDB::Pfamseq",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 		     {proxy => [qw/pfamseq_id pfamseq_acc/]});
 

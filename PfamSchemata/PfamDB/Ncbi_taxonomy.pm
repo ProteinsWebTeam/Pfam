@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Ncbi_taxonomy;
+package PfamDB::Ncbi_taxonomy;
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ __PACKAGE__->add_columns(qw/ncbi_code species taxonomy/);
 
 __PACKAGE__->set_primary_key("ncbi_code");
 
-__PACKAGE__->has_many("auto_pfamseq" => "PfamSchemata::PfamDB::Pfamseq_ncbi",
+__PACKAGE__->has_many("auto_pfamseq" => "PfamDB::Pfamseq_ncbi",
 		      {"foreign.ncbi_code" => "self.ncbi_code"});
 
 1;

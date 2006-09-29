@@ -1,5 +1,5 @@
 
-package PfamSchemata::PfamDB::Architecture;
+package PfamDB::Architecture;
 
 use strict;
 use warnings;
@@ -21,19 +21,19 @@ __PACKAGE__->set_primary_key( "auto_architecture", "architecture", "type_example
 
 #Now on to the relationships
 
-__PACKAGE__->has_one    ( "pfamA_architecture" => "PfamSchemata::PfamDB::PfamA_architecture",
+__PACKAGE__->has_one    ( "pfamA_architecture" => "PfamDB::PfamA_architecture",
 			  {"foreign.auto_architecture" => "self.auto_architecture"},
 			{proxy => [qw/auto_pfamA/]});
 
-__PACKAGE__->has_one    ( "type_example" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one    ( "type_example" => "PfamDB::Pfamseq",
 			  {"foreign.auto_pfamseq" => "self.type_example"},
 			  {proxy => [ qw/pfamseq_id pfamseq_acc/ ]});
 
-__PACKAGE__->has_one    ( "storable" => "PfamSchemata::PfamDB::Pfam_annseq",
+__PACKAGE__->has_one    ( "storable" => "PfamDB::Pfam_annseq",
 			  {"foreign.auto_pfamseq" => "self.type_example"},
 			  {proxy => [ qw/annseq_storable/ ]});
 
-__PACKAGE__->has_one    ( "clan_arch" => "PfamSchemata::PfamDB::ClanArchitecture",
+__PACKAGE__->has_one    ( "clan_arch" => "PfamDB::ClanArchitecture",
 			  {"foreign.auto_architecture" => "self.auto_architecture"},
 			{proxy => [qw/auto_clan/]});
 1;

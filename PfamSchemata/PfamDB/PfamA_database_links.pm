@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::PfamA_database_links;
+package PfamDB::PfamA_database_links;
 
 use strict;
 use warnings;
@@ -14,7 +14,7 @@ __PACKAGE__->set_primary_key( "auto_pfamA");
 #Set up relationships
 
 #1 to 1 relationship that must be there.....
-__PACKAGE__->has_one( "pfamA" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA" => "PfamDB::Pfam",
 		       {"foreign.auto_pfamA"  => "self.auto_pfamA"},
 		      {proxy => [ qw/pfamA_id pfamA_acc/]});
 

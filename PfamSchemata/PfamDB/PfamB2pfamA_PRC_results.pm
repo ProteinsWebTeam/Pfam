@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::PfamB2pfamA_PRC_results;
+package PfamDB::PfamB2pfamA_PRC_results;
 
 use strict;
 use warnings;
@@ -15,11 +15,11 @@ __PACKAGE__->set_primary_key( "auto_pfamB", "auto_pfamA");
 
 #Set up relationships
 #1 to many relationship
-__PACKAGE__->has_one( "pfamA" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA"},
 		      {proxy => [qw/pfamA_id pfamA_acc/]});
 
-__PACKAGE__->has_one( "pfamB" => "PfamSchemata::PfamDB::PfamB",
+__PACKAGE__->has_one( "pfamB" => "PfamDB::PfamB",
 		      {"foreign.auto_pfamB"  => "self.auto_pfamB"},
 		      {proxy => [qw/pfamB_id pfamB_acc/]});
 

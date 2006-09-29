@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Int_pfamAs;
+package PfamDB::Int_pfamAs;
 
 use strict;
 use warnings;
@@ -16,11 +16,11 @@ __PACKAGE__->set_primary_key( "auto_pfamA_A", "auto_pfamA_B", "auto_int_pfamAs" 
 #Set up relationships
 #1 to many relationship
 
-__PACKAGE__->has_one( "pfamA_A" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA_A" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA_A"},
 		      { proxy =>  [ qw/pfamA_id pfamA_acc/] } );
 
-__PACKAGE__->has_one( "pfamA_B" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA_B" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA_B"},
 		      {proxy => [ qw/pfamA_id pfamA_acc/] } );
 

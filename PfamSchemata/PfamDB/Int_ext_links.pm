@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Int_ext_links;
+package PfamDB::Int_ext_links;
 
 use strict;
 use warnings;
@@ -16,19 +16,19 @@ __PACKAGE__->set_primary_key("auto_int_ext_links", "auto_pfamaseq_A", "pfamseq_a
 #Set up relationships
 #1 to many relationship
 
-__PACKAGE__->has_one( "pfamA_A" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA_A" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA_A"});
 
-__PACKAGE__->has_one( "pfamA_B" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamA_B" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA_B"});
 
-__PACKAGE__->has_one( "pfamseq_A" => "PfamSchemata::PfamDB::Pfamseq",
+__PACKAGE__->has_one( "pfamseq_A" => "PfamDB::Pfamseq",
 		      {"foreign.auto_pfamseq"  => "self.auto_pfamseq_A"});
 
-__PACKAGE__->has_one( "pfamseq_B" => "PfamSchemata::PfamDB::Pfam",
+__PACKAGE__->has_one( "pfamseq_B" => "PfamDB::Pfam",
 		      {"foreign.auto_pfameq"  => "self.auto_pfamseq_B"});
 
-__PACKAGE__->has_one( "int_pfamAs" => "PfamSchemata::PfamDB::IntPfamAs",
+__PACKAGE__->has_one( "int_pfamAs" => "PfamDB::IntPfamAs",
 		      {"foreign.auto_int_pfamAs" => "self.auto_int_pfamAs"});
 
 1;

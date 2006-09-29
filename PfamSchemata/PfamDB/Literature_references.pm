@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Literature_references;
+package PfamDB::Literature_references;
 
 use strict;
 use warnings;
@@ -16,7 +16,7 @@ __PACKAGE__->set_primary_key( "auto_lit" );
 #1 to many relationship
 
 
-__PACKAGE__->has_one( "clan_lit_refs" => "PfamSchemata::PfamDB::Clan_lit_refs",
+__PACKAGE__->has_one( "clan_lit_refs" => "PfamDB::Clan_lit_refs",
 		       {"foreign.auto_lit"  => "self.auto_lit"});
 
 

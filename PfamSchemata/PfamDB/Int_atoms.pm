@@ -1,4 +1,4 @@
-package PfamSchemata::PfamDB::Int_atoms;
+package PfamDB::Int_atoms;
 
 use strict;
 use warnings;
@@ -16,10 +16,10 @@ __PACKAGE__->set_primary_key( "auto_int_atoms", "auto_int_bonds");
 #Set up relationships
 #1 to many relationship
 
-__PACKAGE__->has_many( "interactions" => "PfamSchemata::PfamDB::Interactions",
+__PACKAGE__->has_many( "interactions" => "PfamDB::Interactions",
 		      {"foreign.auto_int_atoms"  => "self.auto_int_atoms"});
 
-__PACKAGE__->has_one( "bond" => "PfamSchemata::PfamDB::Int_bonds",
+__PACKAGE__->has_one( "bond" => "PfamDB::Int_bonds",
 		      {"foreign.auto_int_bonds"  => "self.auto_int_bonds"},
 		      {proxy  => [qw/bond_name/]});
 
