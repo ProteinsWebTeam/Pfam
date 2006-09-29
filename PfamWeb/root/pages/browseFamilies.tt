@@ -4,7 +4,7 @@
 # 
 # build a "browse" page
 #
-# $Id: browseFamilies.tt,v 1.4 2006-09-28 10:14:50 rdf Exp $
+# $Id: browseFamilies.tt,v 1.5 2006-09-29 15:27:42 jt6 Exp $
 
 # tell the wrapper it's a full page
 META fullPage = 1
@@ -18,7 +18,6 @@ META fullPage = 1
 [% lcChar = char | lower %]
 
 [% FOREACH page IN pages %]
-[% CALL c.log.debug( "page: $page" ) %]
   [% IF page ==  lcChar %]
   <span class="letter inactive">
     [% page | ucfirst %]
@@ -30,13 +29,13 @@ META fullPage = 1
   [% END %]
 [% END %]
 </div>
-[% END %]
+[% END # of BLOCK %]
 
 <!-- start browse page -->
 
 [% pageList %]
 
-<table class="details">
+<table class="details browse">
   <thead>
     <tr class="caption">
       <th>Name</th>
