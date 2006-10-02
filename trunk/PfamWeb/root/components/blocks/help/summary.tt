@@ -4,7 +4,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.2 2006-09-28 10:07:55 rdf Exp $
+# $Id: summary.tt,v 1.3 2006-10-02 12:29:08 jm14 Exp $
 %]
 
 <!-- start summary block -->
@@ -15,7 +15,7 @@
   </div>
   <div class="blockContent">
 	<h3>About Pfam</h3>
-	<p>These are the Pfam help pages.</p>
+	<p>These are the Pfam help pages, and a lot of good they are right now.</p>
   </div>
 </div>
 
