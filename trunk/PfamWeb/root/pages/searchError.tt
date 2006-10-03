@@ -1,3 +1,13 @@
+[%
+# searchError.tt
+# jt6 20060807 WTSI
+# 
+# search error page
+#
+# $Id
+
+META fullPage = 1
+-%]
 
 <div id="tips">
 
