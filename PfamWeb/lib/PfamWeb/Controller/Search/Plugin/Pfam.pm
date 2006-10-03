@@ -2,7 +2,7 @@
 # Pfam.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pfam.pm,v 1.1 2006-08-22 15:16:23 jt6 Exp $
+# $Id: Pfam.pm,v 1.2 2006-10-03 14:31:28 jt6 Exp $
 
 =head1 NAME
 
@@ -33,7 +33,7 @@ against the following columns:
 
 =back
 
-$Id: Pfam.pm,v 1.1 2006-08-22 15:16:23 jt6 Exp $
+$Id: Pfam.pm,v 1.2 2006-10-03 14:31:28 jt6 Exp $
 
 =cut
 
@@ -67,16 +67,24 @@ sub process : Private {
 
   $c->log->debug( "Search::Plugin::Pfam::process: text querying table pfamA" );
 
-  my $results = $c->model("PfamDB::Pfam")
-	->search(
-			 {},
-			 {}
-			)
+  my $m = $c->model("PfamDB::Pfam");
+
+  # do a full blown query...
+  my $results =
+	$m->search(
+			   {},
+			   {}
+			  )
 	  ->search_literal( "MATCH( pfamA_acc, pfamA_id, description, comment, previous_id ) " .
 						"AGAINST( ? IN BOOLEAN MODE )",
 						$c->stash->{terms} );
 
-  return $results;
+  # do a simple lookup for the ID or accession...
+  my $lookup =
+	$m->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
+				  { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
+
+  return $results, $lookup;
 }
 
 #-------------------------------------------------------------------------------
