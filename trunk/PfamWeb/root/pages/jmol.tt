@@ -120,6 +120,7 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
       </tbody>
     </table>
     
+	<a href="#" onclick="window.close()" class="closer">Close window</a>
 
   </body>
 </html>

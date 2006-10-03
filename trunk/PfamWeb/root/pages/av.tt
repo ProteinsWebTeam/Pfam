@@ -120,6 +120,7 @@ object surfObj -map { current };
       </tbody>
     </table>
     
+	<a href="#" onclick="window.close()" class="closer">Close window</a>
+
   </body>
-  
 </html>
