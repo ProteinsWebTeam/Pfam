@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.3 2006-09-22 10:44:23 jt6 Exp $
+# $Id: Search.pm,v 1.4 2006-10-03 14:30:26 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.3 2006-09-22 10:44:23 jt6 Exp $
+$Id: Search.pm,v 1.4 2006-10-03 14:30:26 jt6 Exp $
 
 =cut
 
@@ -28,7 +28,8 @@ use warnings;
 use Module::Pluggable;
 use Data::Dumper;
 
-use base "Catalyst::Controller";
+# inherit from Section, so we get a default end method
+use base "PfamWeb::Controller::Section";
 
 #-------------------------------------------------------------------------------
 
@@ -72,7 +73,7 @@ Captures URLs like
 =back
 
 This method walks the list of search plugins and for each one that is
-enabled in the configuration, it calls the following methods:
+listed in the configuration, it calls the following methods:
 
 =over
 
@@ -110,19 +111,19 @@ sub default : Private {
   $c->error( "You did not supply any valid search terms" )
 	unless $c->stash->{rawQueryTerms};
 
-  #----------------------------------------
-  # build a list of the enabled queries. The YAML stores this
-  # information as an array of hashes, each of which has a single
-  # key/value pair, e.g.
-  #   - { Pfam:     1 } # enabled
-  #   - { Pdb:      0 } # DISABLED
-  #   - { Seq_info: 1 } # enabled
-  # The key gives the name of the plugin and the value (taken as true
-  # or false) determines whether that particular search plugin will be
-  # called. The order of the queries is determined by their order in
-  # the array.
+  # build a list of the queries. The config stores this information
+  # as an array of hashes, each of which has a single key/value pair, e.g.
+  #   plugins => [
+  #         { Pfam => "Text fields for Pfam entries" },
+  #         { Seq_info => "Pfam sequence description and species fields" },
+  #         { Pdb => "HEADER and TITLE records from PDB entries" },
+  #         { Go => "Gene ontology IDs and terms" },
+  #         { Interpro => "InterPro entry abstracts" },
+  #       ]
+  # The order in which the queries are run is determined by their
+  # order in the array.
 
-  my( @enabledPlugins, @enabledPluginsReversed, $pluginName, $pluginDesc );
+  my( @plugins, @pluginsReversed, $pluginName, $pluginDesc );
   foreach my $row ( @{ $this->{plugins} } ) {
 
 	# we could use "each" to get the single key/value pair from the hash,
@@ -132,18 +133,18 @@ sub default : Private {
 
 	$pluginName = (keys %$row)[0];
 
-	# keep track of the order of the enabled plugins. Store the list
-	# forwards and backwards, since we'll use it both ways
-	push    @enabledPlugins,         $pluginName;
-	unshift @enabledPluginsReversed, $pluginName;
+	# keep track of the order of the configured plugins. Store the
+	# list forwards and backwards, since we'll use it both ways
+	push    @plugins,         $pluginName;
+	unshift @pluginsReversed, $pluginName;
 
 	# and drop them into a hash too, for easy look-up
-	$c->stash->{enabledPluginsHash}->{$pluginName} = $pluginDesc;
+	$c->stash->{pluginsHash}->{$pluginName} = $pluginDesc;
   }
 
   # store the (reversed) list of query names
-  $c->stash->{enabledPluginsArray} =         \@enabledPlugins;
-  $c->stash->{enabledPluginsArrayReversed} = \@enabledPluginsReversed;
+  $c->stash->{pluginsArray} =         \@plugins;
+  $c->stash->{pluginsArrayReversed} = \@pluginsReversed;
 
   #----------------------------------------
 
@@ -155,8 +156,7 @@ sub default : Private {
 	my $pluginName = ( split /\:\:/, $plugin )[-1];
 
 	# check that the plugin is properly formed and is enabled
-	next unless( $plugin->can( "process" ) and
-				 $c->stash->{enabledPluginsHash}->{$pluginName} );
+	next unless $plugin->can( "process" );
 
 	# firkle with the user input if necessary and build a string that
 	# we can pass straight to the DB
@@ -231,6 +231,9 @@ sub default : Private {
 
   }
 
+  # set the page template and we're done
+  $c->stash->{template} = "pages/search.tt";
+
 }
 
 #-------------------------------------------------------------------------------
@@ -267,6 +270,25 @@ track of the number of hits for each plugin query.
 =cut
 
 sub mergeResults : Private {
+  my( $this, $c, $pluginName, $results ) = @_;
+
+  if( ref $results eq "ARRAY" ) {
+	foreach my $rs ( @$results ) {
+	  $c->forward( "_mergeResults", [ $pluginName, $rs ] );
+	}
+  } else {
+	$c->forward( "_mergeResults", [ $pluginName, $results ] );
+  }
+}
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# merge results from plugins. If the plugin returns an array of
+# ResultSets, walk down it and merge in each one in turn
+
+sub _mergeResults : Private {
   my( $this, $c, $pluginName, $rs ) = @_;
 
   # walk the query results and merge them into the overall results
@@ -288,77 +310,34 @@ sub mergeResults : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 _computeScore
-
-Calculates a simple score for each hit, based on which plugin
-generated the hit.
-
-The score is calculated according to the order of the plugins from the
-config, treating the first one in the list - probably the PfamA table
-search - as the most significant, e.g.
-
-=over
-
-if the order of the plugins is Pfam -> Pdb -> Seq_info -> GO,
-the score is 8 + 4 + 2 + 1 = 15
-
-if the Seq_info plugin doesn't generate a hit, the score is 8 + 4 + 0
-+ 1 = 13, and that hit will sort lower in the results than the one above.
-
-=back
-
-Since it's called once per hit, this method is implemented as a
-regular perl function, rather than a Catalyst action, so it's called
-directly instead of using C<< $c->forward >>.
-
-=cut
+# Calculates a simple score for each hit, based on which plugin
+# generated the hit.
+#
+# The score is calculated according to the order of the plugins from
+# the config, treating the first one in the list - probably the PfamA
+# table search - as the most significant, e.g.
+#
+#  if the order of the plugins is Pfam -> Pdb -> Seq_info -> GO,
+#  the score is 8 + 4 + 2 + 1 = 15
+#
+#  if the Seq_info plugin doesn't generate a hit, the score is 8 + 4 +
+#  0 + 1 = 13, and that hit will sort lower in the results than the
+#  one above.
+#
+# Since it's called once per hit, this method is implemented as a
+# regular perl function, rather than a Catalyst action, so it's called
+# directly instead of using $c->forward.
 
 sub _computeScore {
   my( $this, $c, $row ) = @_;
 
   my $score = 0;
   my $factor = 1;
-  foreach my $pluginName ( @{ $c->stash->{enabledPluginsArrayReversed} } ) {
+  foreach my $pluginName ( @{ $c->stash->{pluginsArrayReversed} } ) {
 	$score  += $factor if $row->{query}->{$pluginName};
 	$factor *= 2;
   }
   $row->{score} = $score;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Hands off to the full page template or catches any errors that were
-generated earlier
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "Search::end: working out what to render..." );
-
-  # set up the TT view
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-	foreach ( @{$c->error} ) {
-	  $c->log->debug( "error message: |$_|" );
-	}
-	$c->stash->{errors}   = $c->error;
-	$c->stash->{template} = "pages/errors.tt";
-  } else {
-	$c->stash->{pageType} = "family"; # THIS IS WRONG ! FIX ME !
-	$c->stash->{fullPage} = 1;
-	$c->stash->{template} ||= "pages/search.tt";
-  }
-
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
-
-  # clear any errors
-  $c->error(0);
-
 }
 
 #-------------------------------------------------------------------------------
