@@ -10,7 +10,7 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.7 2006-09-28 14:40:02 jt6 Exp $
+# $Id: header.tt,v 1.8 2006-10-03 14:05:05 jt6 Exp $
 -%]
 
 <!-- header start here -->
@@ -46,7 +46,7 @@
         <!--search box end-->
 
         <a href="[% c.uri_for( "/" ) %]">
-          <img id="pfamLogo" src="[% c.uri_for( "/images/pfam_logo.gif" ) %]" alt="Pfam" /></a>
+          <img style="margin: 4px 0" id="pfamLogo" src="[% c.uri_for( "/images/pfam_logo.gif" ) %]" alt="Pfam" /></a>
       </td>
     </tr>
 
@@ -56,7 +56,7 @@
       <td id="menuRow">
         <img class="map" src="[% c.uri_for( "/images/email-rss.gif" )%]" alt="" usemap="#contactMap" />
         <map name="contactMap" id="contactMap">
-          <area shape="rect" coords="0,0,20,15" title="Contact Pfam" href="mailto:pfam-help@sanger.ac.uk" alt="" />
+          <area shape="rect" coords="0,0,20,15" title="Contact Pfam" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;" alt="" />
           <area shape="rect" coords="21,0,60,15" title="RSS Feed" target="new" href="[% constants.server %][% constants.root %]/rss/pfam_rss_feed.rdf" alt="" />
         </map>
       </td>
