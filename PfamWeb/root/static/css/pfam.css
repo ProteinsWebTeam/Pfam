@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.19 2006-09-29 15:36:34 jt6 Exp $
+   $Id: pfam.css,v 1.20 2006-10-03 14:06:12 jt6 Exp $
 */   
 
 body {
@@ -91,10 +91,8 @@ tr.headercentre {
 }
 
 #pfamLogo {
-    vertical-align: middle;
-    border-style: none;
-	margin: 4px 0;
     float: right;
+    margin: 4px 0;
 }
 
 #headerSearch {
@@ -174,6 +172,12 @@ img.menuBlank {
     height: 1px;
 }
 
+div.menutext {
+    height:      16px;
+    z-index:     3;
+    margin-left: 173px;
+}
+
 div.menutext td img { 
   cursor: pointer;
 }
@@ -202,22 +206,8 @@ table.slickmenu a:hover {
     top: 68px;
 }
 
-img.map {
-  position: absolute;
-  left:     0px;
-  top:      69px;
-  z-index:  1
-}
-
-div.menutext {
-    height:      16px;
-    z-index:     3;
-    margin-left: 173px;
-}
-
 #menubar table,
 #menubar table a,
-#menubar table a:visited,
 #menubar {
   color:          #074987;
   text-decoration: none;
@@ -238,11 +228,14 @@ div.menuContent {
   font-size:       0.75em;
 }
 
-#submenus a:hover,
 #submenus a:link,
 #submenus a:visited {
-  text-decoration: none;
   color:           #074987;
+}
+
+#submenus a:hover {
+  background-color: #074987;
+  color:            #FFF;
 }
 
 #submenus tr.hi, tr.hi {
@@ -255,15 +248,13 @@ div.menuContent {
   text-decoration:   none;
 }
 
-#submenus a:hover {
-  background-color: #074987;
-  color:            #ffffff;
+div.menutext {
+  margin-left:   173px;
 }
-
 
 /* ======================================== */
 /* the footer. We use a wrapper div (#contentContainer) for the content
-   when the page contains tabs, so add a separate style for that, which 
+   when the page contains tabs, so add a separate style for that which 
    adds the background image, etc. */
 
 #footer a {
@@ -393,13 +384,13 @@ table.details thead tr {
 
 table.details th {
   padding: 0.2em;
-  border: 2px solid #FFF;
+/*  border: 2px solid #FFF; */
 }
 
 table.details td {
   text-align: center;
   padding: 0.2em;
-  border: 2px solid #FFF;
+/*  border: 2px solid #FFF; */
 }
 
 table.details td.label {
@@ -420,7 +411,7 @@ table.details tr {
 	background: #DDD;
 }
 
-.stripeHover {
+td.stripeHover {
 	background: #CBD;
 }
 
@@ -450,6 +441,12 @@ tr.continuation {
 h1.viewHeader {
     padding-top: 70px;
 	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
+}
+
+a.closer {
+	background: url(/catalyst/PfamWeb/images/close.gif) no-repeat left;
+    padding-left: 11px;
+	margin: 0.2em;
 }
 
 /* ======================================== */
@@ -583,4 +580,9 @@ a.sortheader {
 
 #resultTable thead tr {
 	background: #074987;
+}
+
+#results span.highlight,
+#resultTable tr.highlight {
+	background: #CBD;
 }
