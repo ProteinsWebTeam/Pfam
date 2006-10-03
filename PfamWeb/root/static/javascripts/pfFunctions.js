@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.16 2006-09-28 09:45:21 rdf Exp $
+// $Id: pfFunctions.js,v 1.17 2006-10-03 14:07:16 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -75,6 +75,7 @@ highlight.mouseoverHandler = function( e ) {
   // highlight the collected cells
   cells.flatten().each( function( cell ) {
 						  Element.addClassName( cell, "stripeHover" );
+						  // console.debug( "added stripeHover for cell " + cell );
 						  highlightedCells.push( cell );
 						}
 					  );
@@ -162,25 +163,25 @@ function chooseTab() {
   // see if the showTab variable points to tab that actually exists in
   // the page
   if( $(showTab) ) {
-	//console.debug( "chooseTab: using param setting: " + showTab );
+	// console.debug( "chooseTab: using param setting: " + showTab );
 
 	// yes; show that tab
 	show( showTab );
 
   } else {
-	//console.debug( "chooseTab: no param setting; checking cookie" );
+	// console.debug( "chooseTab: no param setting; checking cookie" );
 	
 	// no; see if there's a cookie to tell us the last tab
 	var cookieTab = readCookie( "lastTab" );
-	//console.debug( "cookieTab: |" + cookieTab + "|" );
+	// console.debug( "cookieTab: |" + cookieTab + "|" );
 
 	if( cookieTab && $(cookieTab) ) {
-	  //console.debug( "chooseTab: found a cookie; switching to |" + cookieTab + "|"  );
+	  // console.debug( "chooseTab: found a cookie; switching to |" + cookieTab + "|"  );
 	  
 	  // yes; show that tab
 	  show( cookieTab );
 	} else {
-	  //console.debug( "chooseTab: no cookie switching to default"  );
+	  // console.debug( "chooseTab: no cookie switching to default"  );
 
 	  // no; get the first block in the page and show that instead
 	  var block = document.getElementsByClassName( "block" )[0];
