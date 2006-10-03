@@ -32,12 +32,12 @@ chomp $input;
 my $ss_cons;
 open (INPUTFILE, "$input") or die "Can't find your input file!";
 open (OUT, ">SEED.$$");
-        while (<INPUTFILE>){
-		if ($_=~m/^#=GC SS_cons\s+(.+)/){
-		$ss_cons = $1;
-		chomp $ss_cons;
-		}
-        }
+while (<INPUTFILE>){
+    if ($_=~m/^#=GC SS_cons\s+(.+)/){
+	$ss_cons = $1;
+	chomp $ss_cons;
+    }
+}
 my $newstart;
 my $newend;
 my $str_ali;
@@ -47,29 +47,31 @@ my $aln = new Rfam::RfamAlign;
 open (ALIGNFILE, "$input");
 $aln->read_stockholm( \*ALIGNFILE );
 close ALIGNFILE;
+print "# STOCKHOLM 1.0\n\n";
 foreach my $seq ($aln -> each_seq()){
-$str_ali = $seq -> seq();
-my $acc = $seq->id;
-my $start = $seq->start;
-my $end = $seq->end;
-$newstart = $start-$lh;
-$newend = $end+$rh;
-my $extra = &get_aligned_seqs($acc, $start, $end, $lh, $rh, $str_ali); 
+    $str_ali = $seq -> seq();
+    my $acc = $seq->id;
+    my $start = $seq->start;
+    my $end = $seq->end;
+    $newstart = $start-$lh;
+    $newend = $end+$rh;
+    my $extra = &get_aligned_seqs($acc, $start, $end, $lh, $rh, $str_ali); 
 }
 
 chomp $ss_cons;
 print "#=GC SS_cons                            ";
 my $i =0;
-	while ($i < $lh){
-	print ".";
-	$i++;
-	}
+while ($i < $lh){
+    print ".";
+    $i++;
+}
 print "$ss_cons";
 my $j =0;
-	while ($j < $rh){
-	print ".";
-	$j++;
-	}
+while ($j < $rh){
+    print ".";
+    $j++;
+}
+print "\n\/\/\n";
 unlink "tmp.$$";
 
 sub get_aligned_seqs {
