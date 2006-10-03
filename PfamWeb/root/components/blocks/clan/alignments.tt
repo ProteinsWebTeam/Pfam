@@ -3,7 +3,7 @@
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.4 2006-09-07 09:47:59 jt6 Exp $
+# $Id: alignments.tt,v 1.5 2006-10-03 13:57:48 jt6 Exp $
 %]
 
 <!-- start clan alignments block -->
@@ -85,7 +85,7 @@ END
   <tr class="summaryRow">
     <td><strong>Total:</strong> [% totalFam %]</td>
     <td><strong>Total:</strong> [% totalSeq %]</td>
-    <td><strong><a href="[% constants.clanDataRoot %]/alignment/[% clan.clan_acc %].shtml" target="_blank">Clan alignment</a></strong></td>
+    <td><strong><a href="[% constants.clanDataURLRoot %]/alignment/[% clan.clan_acc %].shtml" target="_blank">Clan alignment</a></strong></td>
   </tr>
 
 [%- tableFooter -%]
