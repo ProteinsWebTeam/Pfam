@@ -4,7 +4,7 @@
 #
 # add post-loaded domain graphics for the clan domain organisation block
 #
-# $Id: loadGraphics.tt,v 1.3 2006-09-22 10:39:43 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.4 2006-10-03 13:58:24 jt6 Exp $
 
 # tell the wrapper not to add a header or a footer
 META naked = 1;
@@ -62,14 +62,23 @@ CALL archString.trim.chop;
 
   <div class="graphicRow[% IF oe % 2 %] odd[% ELSE %] even[% END %][% oe=oe+1 %]">
 
-    <h3>There are [% seqInfo.$id.num %] sequences with the following architecture: [% archString %]</h3>
+    <h3>
+      There are [% seqInfo.$id.num %] sequences with the following 
+      [% archString.search( "," ) ? "architectures" : "architecture" %]: 
+      [% archString %]
+    </h3>
 
-    <span class="graphicLabel"><a href="[% c.uri_for( "/protein", id=image.image_name ) %]">[% image.image_name %]</a> [% image.image_info %]</span>
+    <span class="graphicLabel">
+	  <a href="[% c.uri_for( "/protein", id=image.image_name ) %]">
+        [% image.image_name %]</a>
+      [% image.image_info %]
+      ([% image.length / image.scale_x %] residues)
+    </span>
+
     <img class="graphicImage"
          src="[% constants.tmp %]/[% image.file_location %]"
          usemap="#clanGraphicsMap[% oe %]"
          alt="" />
-    <p>([% image.length / image.scale_x %] residues)</p>
     <div class="cleaner">&nbsp;</div>
 
     <map name="clanGraphicsMap[% oe %]">
