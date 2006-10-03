@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.20 2006-10-03 14:06:12 jt6 Exp $
+   $Id: pfam.css,v 1.21 2006-10-03 15:44:29 jt6 Exp $
 */   
 
 body {
@@ -290,6 +290,52 @@ div.menutext {
   border-top: 1px solid #074897;
   text-align: right;
   font-size: small;
+}
+
+/* ======================================== */
+/* tooltip styles */
+
+.tipHeader {
+/*
+  color: black;
+  background: #CCC;
+  border: 1px solid black;
+*/
+  color: #074987;
+  background: #c2d2e1;
+  border: 1px solid #074987;
+  font-family: arial;
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 2px;
+  width: 150px;
+  opacity: 0.9;
+  filter: alpha(opacity=90);
+}
+
+.tipBody {
+/*
+  color: black;
+  background: #EEE;
+  border: 1px solid black;
+*/
+  color: #074987;
+  background: #FFF;
+  border: 1px solid #074987;
+  border-top: none;
+  font-family: arial;
+  font-size: 0.8em;
+  padding: 2px;
+  width: 150px;
+  opacity: 0.9;
+  filter: alpha(opacity=90);
+}
+
+/* we have snippets of JS to add and remove the class name "under" to
+   elements with tooltips */
+.under {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* ======================================== */
@@ -586,3 +632,89 @@ a.sortheader {
 #resultTable tr.highlight {
 	background: #CBD;
 }
+
+/* ======================================== */
+/* rules for specific blocks */
+
+div.domain {
+	padding: 6px;
+}
+
+div.pdbImageFragment {
+    border-width: 1px;
+    border-style: solid;
+	float: right;
+    margin: 0.2em;
+	padding: 0.3em;
+    width: 200px;
+    font-size: 0.8em;
+    overflow: hidden;
+}
+
+div.pdbImageFragment h1 {
+    font-size: 1em;
+    text-decoration: underline;
+}
+
+img.pdbImage {
+	width: 200px;
+    height: 200px;
+}
+
+h4.pdbTitle  {
+    display: inline;
+}
+
+hr.short {
+	display: none;
+}
+
+/* ---------------------------------------- */
+/* pfam graphics */
+
+div.graphicRow {
+  clear: both;
+  padding: 0.2em;
+}
+
+span.graphicLabel {
+  width: 24em;
+  margin: 0;
+  padding: 0;
+}
+
+div.graphicRow p,
+div.graphicRow h3 {
+  margin: 0.2em 0;
+  padding: 0;
+}
+
+img.graphicImage {
+  margin: 0;
+  padding: 0;
+  float: left;
+}
+
+/* ---------------------------------------- */
+/* database links */
+
+div.databaseReferences td {
+  text-align: left;
+  width: 20em;
+}
+
+div.databaseReferences td.label {
+  text-align: right;
+  width: 6em;
+}
+
+/* ---------------------------------------- */
+/* a list of clan members */
+
+span.clanMember {
+  float: left;
+  padding-left: 0.8em;
+  width: 12em;
+}
+
+/* ======================================== */
