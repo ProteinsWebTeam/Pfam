@@ -2,11 +2,11 @@
 # GetImage.pm
 # jt6 20060314 WTSI
 #
-# $Id: GetImage.pm,v 1.6 2006-09-13 08:33:35 jt6 Exp $
+# $Id: GetImage.pm,v 1.7 2006-10-03 14:31:47 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Structure::GetImage - server an image of the
+PfamWeb::Controller::Structure::GetImage - serve an image of the
 structure
 
 =cut
@@ -22,7 +22,7 @@ to extract the PDB ID from the URL.
 
 Generates an B<image file>, MIME type C<image/gif>.
 
-$Id: GetImage.pm,v 1.6 2006-09-13 08:33:35 jt6 Exp $
+$Id: GetImage.pm,v 1.7 2006-10-03 14:31:47 jt6 Exp $
 
 =cut
 
