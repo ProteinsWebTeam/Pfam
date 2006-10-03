@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Simap.pm,v 1.7 2006-09-28 10:47:44 jt6 Exp $
+# $Id: Simap.pm,v 1.8 2006-10-03 08:40:44 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Simap;
 
@@ -85,11 +85,15 @@ sub getSimapData : Path {
   $pfamaln->splice_by_seq_pos($pos);
 
   # make sure we retrieved an alignment
-  unless( $pfamaln->length == $c->stash->{pfamseq}->length ) {
-	$c->log->error( "Protein::Simap::getSimapData: problem with length of alignment" );
-	$c->error( "There was a problem with the length of the alignment from SIMAP" );
-	return;
-  }
+
+  # this assertion is broken... might be fixed when we update our
+  # version of UniProt
+
+  #  unless( $pfamaln->length == $c->stash->{pfamseq}->length ) {
+  #	$c->log->error( "Protein::Simap::getSimapData: problem with length of alignment" );
+  #	$c->error( "There was a problem with the length of the alignment from SIMAP" );
+  #	return;
+  #  }
 
   #Calulate the average ID per column.
   my ($idPerCol, $averageId, $residuesPerCol) = $pfamaln->average_percentage_identity_per_column;
