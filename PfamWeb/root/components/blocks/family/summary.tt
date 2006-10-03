@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.11 2006-10-03 08:50:30 jt6 Exp $
+# $Id: summary.tt,v 1.12 2006-10-03 08:57:02 rdf Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -28,7 +28,7 @@
 
     <div id="siph">&nbsp;</div>
 
-	<h3><span [% addTip("family","description") %][% pfam.description %]</span>
+	<h3><span [% addTip("family","description") %]>[% pfam.description %]</span>
       <img style="vertical-align: middle" alt="Add an annotation" src="[% c.uri_for( "/images/annotation.png") %]" /></h3>
 
 	[% IF pfam.comment.length %]
@@ -54,7 +54,7 @@
     <hr class="short"/>
 	[% END %]
 
-	<h3 [% addTip("family","interpro") %]>Interpro entry <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h3>
+	<h3><span [% addTip("family","interpro") %]>Interpro entry</span> <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h3>
 
     [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
         to contain <p> tags... -%]
