@@ -2,11 +2,11 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.15 2006-09-29 14:40:05 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.16 2006-10-03 15:47:52 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb - main class for the Pfam website application
+PfamWeb - application class for the Pfam website
 
 =cut
 
@@ -15,10 +15,10 @@ package PfamWeb;
 =head1 DESCRIPTION
 
 This is the main class for the Pfam website catalyst application. It
-handles error reporting for the whole application and tab selection
-for all the view.
+handles configuration of the application classes and error reporting
+for the whole application.
 
-$Id: PfamWeb.pm,v 1.15 2006-09-29 14:40:05 jt6 Exp $
+$Id: PfamWeb.pm,v 1.16 2006-10-03 15:47:52 jt6 Exp $
 
 =cut
 
@@ -57,7 +57,8 @@ our $VERSION = '0.01';
 
 =head1 CONFIGURATION
 
-Configuration is done through external configuration files.
+Configuration is done through a series of external "Apache-style"
+configuration files.
 
 =cut
 
@@ -68,101 +69,6 @@ my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ /([\w\/-]+)/;
 
 __PACKAGE__->config( file => $conf );
 __PACKAGE__->setup;
-
-#-------------------------------------------------------------------------------
-
-=head1 METHODS
-
-=head2 index : Private
-
-Drops straight to the site index page.
-
-=cut
-
-sub index : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "PfamWeb::index: generating site index" );
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 default : Private
-
-Catch unexpected redirects, etc. This action just drops straight to
-the site index page but it records the redirect in the error database
-before that.
-
-=cut
-
-sub default : Private {
-  my( $this, $c ) = @_;
-
-  # record an error message, because we shouldn't error arrive here
-  # unless via a broken link, missing page, etc.
-
-  # first, figure out where the broken link was, internal or external
-  my $where = ( $c->req->referer =~ /sanger/ ) ? "internal" : "external";
-
-  # record the error
-  $c->error("Found a broken $where link: \"" . $c->req->uri	. "\", referer: "
-			. ( $c->req->referer eq "" ? "unknown" : "\"" . $c->req->referer . "\"" ) );
-
-  # report it
-  $c->forward( "/reportError" );
-
-  # and clear the errors before we render the page
-  $c->clear_errors;
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 auto : Private
-
-Checks the request parameters for a "tab" parameter and sets the
-appropriate tab name in the stash. That will be picked up by the
-tab_layout.tt view, which will use it to figure out which tab to show
-by default.
-
-=cut
-
-sub auto : Private {
-  my( $this, $c ) = @_;
-
-  my $tab;
-  ( $tab ) = $c->req->param( "tab" ) =~ /^(\w+)$/
-	if defined $c->req->param( "tab" );
-
-  $c->stash->{showTab} = $1 if defined $tab;
-
-#  $c->cache_page( expires  => "300",
-#				  auto_uri => [ "/*" ],
-#				  debug    => 1 );
-
-  return 1;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Renders the index page for the site, ignoring any errors that were
-encountered up to this point.
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  unless( $c->response->body ) {
-    $c->stash->{fullPage} = 1;
-	$c->stash->{template} = "pages/index.tt";
-	$c->forward( "PfamWeb::View::TT" );
-  }
-
-}
 
 #-------------------------------------------------------------------------------
 
