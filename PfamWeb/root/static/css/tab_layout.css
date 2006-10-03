@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.18 2006-10-03 14:06:37 jt6 Exp $
+   $Id: tab_layout.css,v 1.19 2006-10-03 15:44:10 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -275,12 +275,6 @@ div.blockContent {
   font-size: 0.9em;
 }
 
-/*
-h3 {
-  text-decoration: underline;
-}
-*/
-
 h3.inset {
   margin: 0.2em 0 0.4em 0;
   padding-top: 1em;
@@ -353,155 +347,6 @@ table.layout td.label {
 table.layout td.data {
   padding: 0.2em;
   vertical-align: top;
-}
-
-/* ======================================== */
-/* tooltip styles */
-
-.tipHeader {
-/*
-  color: black;
-  background: #CCC;
-  border: 1px solid black;
-*/
-  color: #074987;
-  background: #c2d2e1;
-  border: 1px solid #074987;
-  font-family: arial;
-  font-size: 0.8em;
-  font-weight: bold;
-  padding: 2px;
-  width: 150px;
-  opacity: 0.9;
-  filter: alpha(opacity=90);
-}
-
-.tipBody {
-/*
-  color: black;
-  background: #EEE;
-  border: 1px solid black;
-*/
-  color: #074987;
-  background: #FFF;
-  border: 1px solid #074987;
-  border-top: none;
-  font-family: arial;
-  font-size: 0.8em;
-  padding: 2px;
-  width: 150px;
-  opacity: 0.9;
-  filter: alpha(opacity=90);
-}
-
-/* we have snippets of JS to add and remove the class name "under" to
-   elements with tooltips */
-.under {
-  text-decoration: underline;
-}
-
-/* ======================================== */
-/* rules for specific blocks */
-
-/* limit the height of the domain images block
-#domainsBlock .blockContent {
-  	overflow: auto;
-    max-height: 400px;
-}
-*/
-
-div.domain {
-	padding: 6px;
-}
-
-/* these are the summary blocks for the different sections. These need
-   to have display:block set explicitly, otherwise the first tab wont
-   appear... bit of a hack... */
-/*
-#familySummaryBlock,
-#clanSummaryBlock,
-#ipfamSummaryBlock,
-#proteinSummaryBlock,
-#structureSummaryBlock {
-  display: block;
-}
-*/
-
-div.pdbImageFragment {
-    border-width: 1px;
-    border-style: solid;
-	float: right;
-    margin: 0.2em;
-	padding: 0.3em;
-    width: 200px;
-    font-size: 0.8em;
-    overflow: hidden;
-}
-
-div.pdbImageFragment h1 {
-    font-size: 1em;
-    text-decoration: underline;
-}
-
-img.pdbImage {
-	width: 200px;
-    height: 200px;
-}
-
-h4.pdbTitle  {
-    display: inline;
-}
-
-hr.short {
-	display: none;
-}
-
-/* ---------------------------------------- */
-/* pfam graphics */
-
-div.graphicRow {
-  clear: both;
-  padding: 0.2em;
-}
-
-span.graphicLabel {
-  width: 24em;
-  margin: 0;
-  padding: 0;
-}
-
-div.graphicRow p,
-div.graphicRow h3 {
-  margin: 0.2em 0;
-  padding: 0;
-}
-
-img.graphicImage {
-  margin: 0;
-  padding: 0;
-  float: left;
-}
-
-/* ---------------------------------------- */
-/* database links */
-
-div.databaseReferences td {
-  text-align: left;
-  width: 20em;
-}
-
-div.databaseReferences td.label {
-  text-align: right;
-  width: 6em;
-}
-
-/* ---------------------------------------- */
-/* a list of clan members */
-
-span.clanMember {
-  float: left;
-  padding-left: 0.8em;
-  width: 12em;
 }
 
 /* ======================================== */
