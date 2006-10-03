@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.9 2006-09-22 13:22:13 jt6 Exp $
+# $Id: Family.pm,v 1.10 2006-10-03 14:29:44 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.9 2006-09-22 13:22:13 jt6 Exp $
+$Id: Family.pm,v 1.10 2006-10-03 14:29:44 jt6 Exp $
 
 =cut
 
@@ -74,7 +74,7 @@ sub begin : Private {
 
   } elsif( defined $c->req->param("id") ) {
 
-	$c->req->param("id") =~ m/^(\w+)$/;
+	$c->req->param("id") =~ /^([\w_-]+)$/;
 	$c->log->info( "Family::begin: found ID |$1|" );
 
 	$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
