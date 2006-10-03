@@ -1,10 +1,10 @@
-[%-
+[%
 # search.tt
 # jt6 20060807 WTSI
 # 
 # search results page
 #
-# $Id: search.tt,v 1.3 2006-09-28 08:57:01 jt6 Exp $
+# $Id: search.tt,v 1.4 2006-10-03 14:09:36 jt6 Exp $
 
 META fullPage = 1
 -%]
@@ -31,11 +31,11 @@ META fullPage = 1
           </tr>
         </thead>
         <tbody>
-        [% FOREACH pluginName IN enabledPluginsArray %]
+        [% FOREACH pluginName IN pluginsArray %]
     	  [% rowNums.$pluginName = 0 %]
           <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
             <td>[% pluginName %]</td>
-            <td class="desc">[% enabledPluginsHash.$pluginName %]</td>
+            <td class="desc">[% pluginsHash.$pluginName %]</td>
             <td>[% pluginHits.$pluginName || 0 %]</td>
           </tr>
           [% # keep track of the number of plugins that returned results
@@ -55,7 +55,7 @@ META fullPage = 1
       <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
         [% lookupHit.pfamA_id %]</a></em>
 	  (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
-        [% lookupHit.pfamA_acc %]</a>).
+        [% lookupHit.pfamA_acc %]</a>) and this row is <span class="highlight">highlighted</span> in the results table.
       [% END %]
     </p>
 
@@ -80,7 +80,7 @@ META fullPage = 1
         <th>Accession</th>
         <th>ID</th>
         <th class="nosort">Description</th>
-        [% FOREACH pluginName IN enabledPluginsArray %]
+        [% FOREACH pluginName IN pluginsArray %]
           [% IF pluginHits.$pluginName %]
           <th>[% pluginName %]</th>
           [% END %]
@@ -91,12 +91,12 @@ META fullPage = 1
       [% FOREACH row IN results;
          acc = row.dbObj.pfamA_acc;
          id  = row.dbObj.pfamA_id %]
-      <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
+      <tr class="[% loop.index % 2 ? "odd" : "even" %][% lookupHit.pfamA_id == id ? " highlight" : "" %]">
         <td class="rowNum">[% loop.index %]</td>
         <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% acc %]</a></td>
         <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% id %]</a></td>
         <td class="desc">[% row.dbObj.description %]</td>
-        [% FOREACH pluginName IN enabledPluginsArray %]
+        [% FOREACH pluginName IN pluginsArray %]
           [% IF pluginHits.$pluginName %]
             [% IF row.query.$pluginName %]
               <td class="ticked fixedWidth"><p>[% rowNums.$pluginName %]</p></td>
