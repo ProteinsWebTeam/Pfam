@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.6 2006-09-08 15:23:22 jt6 Exp $
+# $Id: summary.tt,v 1.7 2006-10-03 14:04:07 jt6 Exp $
 %]
 
 [%# add an observer to trigger post-loading of the graphics %]
@@ -32,6 +32,8 @@
     <h1>Pfam Clans</h1>
   </div>
   <div class="blockContent">
+
+    <div id="siph">&nbsp;</div>
 
     <h3>[% clan.clan_description %]</h3>
 
@@ -69,5 +71,10 @@
 
   </div>
 </div>
+
+<script type="text/javascript">
+  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
+  loadOptions.si.params = "acc=[% pfam.pfamA_acc %]";
+</script>
 
 <!-- end clan summary block -->
