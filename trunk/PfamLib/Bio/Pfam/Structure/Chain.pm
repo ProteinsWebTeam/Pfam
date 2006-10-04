@@ -155,7 +155,7 @@ sub type {
 	my $self = shift;
 	my $type = shift;
 	
-	my @types_allowed = ( 'protein', 'hetatom', 'nucleic acid', 'model' );
+	my @types_allowed = ( 'protein', 'hetatom', 'nucleic acid', 'DNA', 'RNA',  'model', 'unknown' );
 	my $okay = 0;
 
 
@@ -245,8 +245,7 @@ $chain->add(residue);
 
 sub each {
 	my $self = shift;
-	my @residues = @{$self->{residues}};
-	return @residues;
+	return @{$self->{residues}};
 }
 
 
@@ -318,9 +317,9 @@ sub write {
 	
 	print $FILEHANDLE "Chain id:".$self->chain_id().", Chain type = ".$self->type()."\n";
 	
-	@_ = $self->each();
+	#@_ = $self->each();
 
-	foreach my $residue (@_)
+	foreach my $residue ($self->each)
 		{
 		$residue->write(\*$FILEHANDLE);
 		}
@@ -330,9 +329,9 @@ sub write {
 sub write_pdb_chain {
   my $self = shift;
   my $FILEHANDLE = shift;
-  @_ = $self->each();
+  #@_ = $self->each();
   
-  foreach my $residue (@_){
+  foreach my $residue ($self->each){
     $residue->write_pdb_residue(\*$FILEHANDLE, $self->chain_id);
   }
   print $FILEHANDLE "TER\n";
@@ -486,5 +485,60 @@ sub transform_chain{
   my $trans = shift;
   foreach my $residue ($self->each){
     $residue->transform_residue($trans);
+  }
+}
+
+sub _guess_alphabet {
+  my $self = shift;
+  my $str = $self->chain2fasta();
+  my $type= "unknown";
+  
+  my $total = CORE::length($str);
+  if( $total == 0 ) {
+    $self->throw("Got a sequence with no letters in - ".
+		 "cannot guess alphabet [$str]");
+  }
+
+  my $u = ($str =~ tr/Uu/G/);
+  my $atgc = ($str =~ tr/ATGCNatgcn//);
+   
+  if( ($atgc / $total) > 0.85 ) {
+    if(!$u){
+      $type = 'DNA';
+      #Okay, could still be RNA, look for O2*
+    BASE:
+      foreach my $base ($self->each){
+	foreach my $atom ($base->each_atom){
+	  if ($atom->type =~ /O2\*/){
+	    print "ATOM".$atom->type."\n";
+	    $type = "RNA";
+	    last BASE;
+	  }
+	}
+      }
+    }else{
+      $type = 'RNA';
+    }
+  }else{
+    $type = "protein";
+  }
+  $self->type($type);
+
+  if ($type eq 'protein'){
+    foreach my $res ($self->each){
+      foreach my $atom ($res->each_atom){
+	if ($atom->type eq "CA"){
+	  $atom->primary(1);
+	  last;
+	}
+      }
+    }
+  }else{
+    foreach my $mono ($self->each){
+      foreach my $atom ($mono->each_atom){
+	$atom->primary(1);
+	last;
+      }
+    }
   }
 }

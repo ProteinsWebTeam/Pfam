@@ -84,7 +84,7 @@ sub add_ligand{
 # each #
 ########
 
-=head1 each
+=head1 each_chain
 
 Returns a chain object for each chain within the chainset
 
@@ -92,7 +92,7 @@ Use: @_ = $chainset->each();
 
 =cut
 
-sub each {
+sub each_chain {
   my $self = shift;
   return(@{$self->{chains}});
 }
@@ -313,22 +313,7 @@ sub new_atom {
   $atom->type($atom_type);
   $atom->xyz(@atom_xyz);
   $atom->temperature($atom_temperature);
-  
-	
-  if ($chain_type eq 'protein'){ 
-    if ($atom_type =~ /CA/){
-      $atom->primary(1);
-    }else{
-      $atom->primary(0);
-    }
-  }
-  elsif ($chain_type eq 'hetatom' || 'nucleic acid'){
-    if ($first == 1){
-      $atom->primary(1);
-    }else{
-      $atom->primary(0);
-    }
-  }
+  $atom->primary(0);
   return $atom;
 }
 
@@ -432,8 +417,14 @@ use: $chainset->read_pdb(\*FILEHANDLE);
 sub read_pdb {
   my $self = shift;
   my $PDB = shift;
+  #Could pass in a file handle or an array ref from pfetch server
+  if(ref($PDB) ne "ARRAY"){
+    my @tmp = <$PDB>;
+    $PDB = \@tmp;
+  }
   my ($chain, $residue, $ligand, %lig_head_info);
-  while(<$PDB>){
+  foreach(@$PDB){
+    #print "$_\n";
     my @line = split("", $_);
     my $record = join("", @line[0..5]);
     $record =~ s/\s//g;
@@ -465,7 +456,7 @@ sub read_pdb {
       #Protein/DNA/RNA
       if(!$chain or $chain_id ne $chain->chain_id()){
  	#new chain is needed
-	$chain = new_chain("protein", $chain_id);
+	$chain = new_chain("unknown", $chain_id);
 	$self->add_chain($chain);
       }
 
@@ -474,7 +465,7 @@ sub read_pdb {
 	$chain->add($residue);
       }
       
-      my $atom = new_atom("protein", 1,$atom_type, $atom_no, $atom_temp, ($x,$y,$z));
+      my $atom = new_atom("unknown", 1,$atom_type, $atom_no, $atom_temp, ($x,$y,$z));
       $residue->add($atom);
       
     }elsif($record eq "HETATM"){
@@ -559,8 +550,9 @@ sub read_pdb {
     }
   }
   #Here would be the best place to determine the chain types......
-  
-
+  foreach my $chain ($self->each_chain){
+    $chain->_guess_alphabet;
+  }
 }
 
 
