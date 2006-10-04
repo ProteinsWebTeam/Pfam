@@ -34,6 +34,9 @@ use Bio::Pfam::Structure::Atom;
 
 @ISA = ( 'Exporter');
 
+
+
+
 #######
 # new # 
 #######
@@ -79,21 +82,15 @@ $residue->residue_no();
 =cut
 
 sub residue_no {
-	# yet another get set
-	my $self = shift;
-	my $residue_no = shift;
-	if (defined $residue_no)
-		{
-		$self->{residue_no} = $residue_no;
-		return $self;
-		}
-	else
-		{
-		$_ = $self->{residue_no};
-		return $_;
-		}
-	}
-		
+  my $self = shift;
+  my $residue_no = shift;
+  if (defined $residue_no){
+    $self->{residue_no} = $residue_no;
+  }else{
+    return $self->{residue_no};
+  }
+}
+
 #######
 # add #
 #######
@@ -108,22 +105,18 @@ $residue->add('an atom object');
 =cut
 
 sub add{
-	#populate both atoms object here
-	my $self = shift;
-	my $new_atom = shift;
-	@_ = ();
-	#poputlate atoms list
-	my @atoms_list = $self->each();
-	push (@atoms_list, $new_atom);
-	$self->{atoms} = \@atoms_list;
-	return $self;	
+  #populate both atoms object here
+  my $self = shift;
+  my $new_atom = shift;
+  #poputlate atoms list
+  push(@{$self->{atoms}}, $new_atom) if($new_atom);;
 }
 
 ########
 # each #
 ########
 
-=head1 each
+=head1 each_atom
 
 Adds an atom object to a list of atom objects.
 
@@ -132,12 +125,11 @@ $residue->add('atom object');
 
 =cut
 
-sub each {
-	#returns a list of atom objects
-	my $self = shift;
-	@_ = @{$self->{atoms}};
-	return @_;
-	}
+sub each_atom {
+  #returns a list of atom objects
+  my $self = shift;
+  return @{$self->{atoms}};
+}
 
 ########
 # type #
@@ -165,47 +157,27 @@ $residue->type('residue type');
 
 
 sub type {
-	my $self = shift;
-	my $type = shift;
-	if (defined $type)
-		{
-		my @aa = ('ALA', 'ARG', 'ASN', 'ASP', 'CYS', 'GLN', 'GLU', 
-			'GLY', 'HIS', 'ILE', 'LEU', 'LYS', 'MET', 'PHE',
-			'PRO', 'SER', 'THR', 'TRP', 'TYR', 'VAL', 'ASX', 
-			'GLX', 'UNK', 'HOH');
-		if ($type =~ /\S{3}/)
-			{
-			
-			my $match_aa  = 0 ;
-			foreach (@aa)
-				{
-				if ($type =~ /$_/i)
-					{
-					$self->{type} = $type;
-					return $self;
-					$match_aa = 1;
-					}
-				}
-				
-			if ($match_aa == 0) 
-				{
-				$self->{type} = $type;
-				return $self;
-				}
-			
-			}
-		elsif ($type =~ /\w{1,2}/)
-			{
-			# verify all atoms in the periodic table ??????
-			$self->{type} = $type;
-			return $self;
-			}
-		}
-	else
-		{
-		$_ = $self->{type};
-		return $_;
-		}
+  my $self = shift;
+  my $type = shift;
+  if (defined $type){
+#    if ($type =~ /\S{3}/){
+#      my $match_aa  = 0 ;
+#      if($type#
+#	if ($type =~ /$_/i){
+#	  $self->{type} = $type;
+#	  $match_aa = 1;
+#	}
+#      }
+#      if ($match_aa == 0){
+#	$self->{type} = $type;
+#      }
+#    }elsif ($type =~ /\w{1,2}/){
+      # verify all atoms in the periodic table ??????
+      $self->{type} = $type;
+#    }
+  }else{
+    return $self->{type};
+  }
 }
 
 #########
@@ -229,10 +201,9 @@ sub write {
 							.$self->type()."\n";
 	#print $FILEHANDLE "    RESIDUE_PROPERTIES::".$self->{secondary}.",".
 	#			$self->{modified}."\n";
+
 	
-	@_ = $self->each();
-	
-	foreach my $atoms (@_)
+	foreach my $atoms ($self->each_atom)
 		{
 		$atoms->write($FILEHANDLE);
 		}
@@ -253,41 +224,33 @@ distance = $residue1->distance($residue2);
 =cut
  
 sub distance {
-	my $self = shift;
-	my $residue2 = shift;
+  my $self = shift;
+  my $residue2 = shift;
 	
-	my @patoms1 = $self->each();
-	my @patoms2 = $residue2->each();
-	my ($patom1, $patom2);	
+  my @patoms1 = $self->each_atom();
+  my @patoms2 = $residue2->each_atom();
+  my ($patom1, $patom2);	
 	
-	foreach my $atom (@patoms1)
-		{
-		my $query = $atom->primary();
-		if ($query == '1')
-			{
-			$patom1 = $atom;
-			}
-		}
-	
-	foreach my $atom (@patoms2)
-		{
-		my $query = $atom->primary();
-		if ($query == '1')
-			{
-			$patom2 = $atom;
-			}
-		}
-	my $distance ;
-	if (defined $patom1 && defined $patom2)
-		{  
-		$distance = $patom1->distance($patom2);
-		}
-	else	
-		{
-		$distance = 0;
-		}	
-		return $distance;
-	}
+  foreach my $atom (@patoms1){
+    my $query = $atom->primary();
+    if ($query == '1'){
+      $patom1 = $atom;
+    }
+  }
+  foreach my $atom (@patoms2){
+    my $query = $atom->primary();
+    if ($query == '1'){
+      $patom2 = $atom;
+    }
+  }
+  my $distance ;
+  if (defined $patom1 && defined $patom2){
+    $distance = $patom1->distance($patom2);
+  }else{
+    $distance = 0;
+  }
+  return $distance;
+}
 
 
 ###########
@@ -304,25 +267,19 @@ $residue->primary();
 =cut
 
 sub primary {
-	my $self = shift;
-	my $pa;
-	my @atoms = $self->each();
-	foreach my $atom (@atoms)
-		{
-		$_ = $atom->primary();
-		if ($_ == 1)
-			{
-			$pa = $atom;
-			}
-		
-		}
-	
-	if (!$pa)
-		{
-		die "Cannot find primary atoms\n";
-		}
-	return $pa;
-	}
+  my $self = shift;
+  my $pa;
+  foreach my $atom ($self->each_atom){
+    if ($atom->{primary} == 1){
+      $pa = $atom;
+      last;
+    }
+  }
+  if (!$pa){
+    die "Cannot find primary atoms\n";
+  }
+  return $pa;
+}
 
 ######
 # ss #
@@ -410,7 +367,7 @@ sub dihedral {
 	my (@phi_atoms, @psi_atoms, @w);	
 	#setup phi atoms c-n-ca-c, psi atoms n-ca-c-n, omega atoms, ca-c-n-ca
 	
-	@_ = $residue1->each();
+	@_ = $residue1->each_atom();
 	foreach my $atom (@_)
 		{
 		my $type = $atom->type();
@@ -421,7 +378,7 @@ sub dihedral {
 			}
 		}
 	
-	@_ = $self->each();
+	@_ = $self->each_atom();
 	foreach my $atom (@_)
 		{
 		my $type = $atom->type();
@@ -446,7 +403,7 @@ sub dihedral {
 		}
 
 
-	@_ = $residue3->each();
+	@_ = $residue3->each_atom();
 	
 	foreach my $atom (@_)
 		{
@@ -531,4 +488,36 @@ sub dihedral {
 	return @ppw;
 }
 
-	
+sub write_pdb_residue {
+  my ($self, $FILEHANDLE, $chainId) = @_;
+  foreach my $atom ($self->each_atom){
+    $atom->write_pdb_atom(\*$FILEHANDLE, $chainId, $self->type, $self->residue_no);
+  }
+}
+
+my %AA = ('ALA' => 1,
+	  'ARG' => 1,
+	  'ASN' => 1,
+	  'ASP' => 1,
+	  'CYS' => 1,
+	  'GLN' => 1,
+	  'GLU' => 1,
+	  'GLY' => 1,
+	  'HIS' => 1,
+	  'ILE' => 1,
+	  'LEU' => 1,
+	  'LYS' => 1,
+	  'MET' => 1,
+	  'PHE' => 1,
+	  'PRO' => 1,
+	  'SER' => 1,
+	  'THR' => 1,
+	  'TRP' => 1,
+	  'TYR' => 1,
+	  'VAL' => 1,
+	  'ASX' => 1,
+	  'GLX' => 1,
+	  'UNK' => 1,
+	  'HOH' => 1);
+
+1;

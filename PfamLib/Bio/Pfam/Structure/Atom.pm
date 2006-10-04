@@ -28,6 +28,7 @@ use strict;
 #use Chain;
 #use Residue;
 use Math::Trig;
+
 #
 #Exporter get all the functions/variables
 #
@@ -140,26 +141,19 @@ Assumes that x,y and z are in an array, with x at position
 
 $atom->xyz(@_);
 
-=cut 	
+=cut
 
-sub xyz 
-	{
-	my $self = shift;
-	my @xyz = @_;
-	if (@xyz)
-		{
-		$self->{a_x} = $xyz[0];
-		$self->{a_y} = $xyz[1];
-		$self->{a_z} = $xyz[2];
-		return $self;
-		} 
-		else 
-		{
-		@_ =();
-		@_ = ($self->{a_x},$self->{a_y},$self->{a_z});
-		return @_;
-		}
-	}
+sub xyz{
+  my $self = shift;
+  my @xyz = @_;
+  if (@xyz){
+    $self->{a_x} = $xyz[0];
+    $self->{a_y} = $xyz[1];
+    $self->{a_z} = $xyz[2];
+  } else{
+    return  ($self->{a_x},$self->{a_y},$self->{a_z});
+   }
+}
 
 ###############
 # temperature #
@@ -274,21 +268,16 @@ $atom->primary();
 
 =cut
 
-sub primary
-	{
-	my $self = shift;
-	my $primary_atom_index = shift;
-	if (defined $primary_atom_index)
-		{
-		$self->{primary} = $primary_atom_index;
-		return $self;
-		}
-	else
-		{
-		$_ = $self->{primary};
-		return $_;
-		}	
-	}
+sub primary{
+  my $self = shift;
+  my $primary_atom_index = shift;
+  if (defined $primary_atom_index){
+    $self->{primary} = $primary_atom_index;
+    return $self->{primary};
+  }else{
+    return $self->{primary};
+  }
+}
 
 ############
 # distance #
@@ -303,16 +292,13 @@ $atom1->distance($atom2);
 =cut
 
 sub distance {
-	my $self =  shift;
-	my $atom2 = shift;
-	my @xyz1 = $self->xyz();
-	my @xyz2 = $atom2->xyz();
-	my $x = ($xyz1[0] - $xyz2[0]);
-	my $y = ($xyz1[1] - $xyz2[1]);
-	my $z = ($xyz1[2] - $xyz2[2]);
-	#print "the x,y,z difference is $x,$y,$z \n"; 
-	my $distance = sqrt(($x*$x)+($y*$y)+($z*$z));
-	return ($distance);
+  my ($self, $atom2) =  @_;
+  my ($x, $y, $z);
+  
+  $x = ($self->{'a_x'} - $atom2->{'a_x'});
+  $y = ($self->{'a_y'} - $atom2->{'a_y'});
+  $z = ($self->{'a_z'} - $atom2->{'a_z'});
+  return( sqrt(($x*$x)+($y*$y)+($z*$z)) );
 }
 
 #########
@@ -432,7 +418,6 @@ sub planer_bases {
 	my @atom_list1 = &{$base_plane_coos{$base1->type()}}($base1);
 	my ($px1, $py1, $pz1, $np1, $p1) = points2plane( @atom_list1);
 	my @atom_list2 = &{$base_plane_coos{$base2->type()}}($base2);
-	
 	my ($px2, $py2, $pz2, $np2, $p2) = points2plane( @atom_list2);
 
 	#Now work out the line of intersect
