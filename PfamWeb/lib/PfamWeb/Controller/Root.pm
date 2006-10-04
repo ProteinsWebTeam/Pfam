@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.1 2006-10-03 15:47:09 jt6 Exp $
+# $Id: Root.pm,v 1.2 2006-10-04 09:30:07 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ errors from within the site, an C<auto> action that handles tab
 selection for the whole site, and a default C<end> that renders the
 index page.
 
-$Id: Root.pm,v 1.1 2006-10-03 15:47:09 jt6 Exp $
+$Id: Root.pm,v 1.2 2006-10-04 09:30:07 jt6 Exp $
 
 =cut
 
@@ -68,11 +68,12 @@ sub default : Private {
   # unless via a broken link, missing page, etc.
 
   # first, figure out where the broken link was, internal or external
-  my $where = ( $c->req->referer =~ /sanger/ ) ? "internal" : "external";
+  my $ref = ( defined $c->req->referer ) ? $c->req->referer : "";
+  my $where = ( $ref =~ /sanger/ ) ? "internal" : "external";
 
   # record the error
   $c->error("Found a broken $where link: \"" . $c->req->uri	. "\", referer: "
-			. ( $c->req->referer eq "" ? "unknown" : "\"" . $c->req->referer . "\"" ) );
+			. ( $ref eq "" ? "unknown" : "\"" . $ref . "\"" ) );
 
   # report it
   $c->forward( "/reportError" );
@@ -111,6 +112,20 @@ sub auto : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 about : Global
+
+Show an "about Pfam" page.
+
+=cut
+
+sub about : Global {
+  my( $this, $c ) = @_;
+
+  $c->stash->{template} = "pages/about.tt";
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 end : Private
 
 Renders the index page for the site, ignoring any errors that were
@@ -123,7 +138,7 @@ sub end : Private {
 
   unless( $c->response->body ) {
     $c->stash->{fullPage} = 1;
-	$c->stash->{template} = "pages/index.tt";
+	$c->stash->{template} ||= "pages/index.tt";
 	$c->forward( "PfamWeb::View::TT" );
   }
 
