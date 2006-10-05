@@ -818,6 +818,13 @@ sub read_stockholm {
 	%accession, %sec_struct, %surf_access, 
 	%trans_mem, %post_prob, %lig_bind, %active_site, %annotation
 	);
+
+    unless (ref($in) eq "GLOB"){
+      my $inCopy = $in;
+      $in = undef;
+      open ($in, "$inCopy") || die "Could not open $inCopy :[$!]\n";
+    }
+
     while( <$in> ) {
 	/^\# STOCKHOLM/ && next;
 
@@ -1245,6 +1252,7 @@ sub write_stockholm {
     # need to find out how much space to allocate to the 'name' part of
     # each part of the sequence.
 
+    my @output;
     $maxn = $self->maxdisplayname_length();
     $maxh = $self->maxdisplayname_length()
 	+ 4  # for the '#=G*
@@ -1253,47 +1261,47 @@ sub write_stockholm {
 
     foreach my $seq ($self->each_seq()) {
 	$namestr = $seq->get_nse();
-	$seq->acc and print $out sprintf("#=GS %-${maxn}s  AC %s\n", $namestr, $seq->acc());
+	$seq->acc and push @output , sprintf("#=GS %-${maxn}s  AC %s\n", $namestr, $seq->acc());
     }
 
     foreach my $seq ( $self->each_seq() ) {
 	$namestr = $seq->get_nse();
-	print $out sprintf("%-${maxh}s %s\n", $namestr, $seq->seq());
+	push @output , sprintf("%-${maxh}s %s\n", $namestr, $seq->seq());
 	if ($annot = $seq->annotation) {
 	    $annot->description and 
-		print $out sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->description());
+		push @output , sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->description());
 	   # foreach my $ln ($annot->each_link) {
 	     foreach my $ln ($annot->get_Annotations('dblink') ) {
-		print $out sprintf("#=GS %-${maxn}s  DR %s; %s;", $namestr, $ln->database(), $ln->primary_id);
+		push @output , sprintf("#=GS %-${maxn}s  DR %s; %s;", $namestr, $ln->database(), $ln->primary_id);
 	#	foreach my $other ($ln->each_additional) {
-		    print $out $ln->optional_id(). " ";
+		    push @output , $ln->optional_id(). " ";
 	#	}
-		print $out "\n";
+		push @output , "\n";
 	    }
 	     }
 	$seq->sec_struct and do {
 	    my $head = sprintf("#=GR %-${maxn}s  SS", $namestr);
-	    print $out sprintf("%-${maxh}s %s\n", $head,  $seq->sec_struct->display );
+	    push @output , sprintf("%-${maxh}s %s\n", $head,  $seq->sec_struct->display );
 	};
 	$seq->surf_access and do {
 	    my $head = sprintf("#=GR %-${maxn}s  SA", $namestr);
-	    print $out sprintf("%-${maxh}s %s\n", $head, $seq->surf_access->display );
+	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->surf_access->display );
 	};
 	$seq->trans_membrane and do {
 	    my $head = sprintf("#=GR %-${maxn}s  TM", $namestr);
-	    print $out sprintf("%-${maxh}s %s\n", $head, $seq->trans_membrane->display );
+	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->trans_membrane->display );
 	};
 	$seq->posterior_prob and do {
 	    my $head = sprintf("#=GR %-${maxn}s  PP", $namestr);
-	    print $out sprintf("%-${maxh}s %s\n", $head, $seq->posterior_prob->display );
+	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->posterior_prob->display );
 	};
 	$seq->ligand_binding and do {
 	    my $head = sprintf("#=GR %-${maxn}s  LI", $namestr);
-	    print $out sprintf("%-${maxh}s %s\n", $head, $seq->ligand_binding->display );
+	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->ligand_binding->display );
 	};
 	$seq->active_site and do {
 	    my $head = sprintf("#=GR %-${maxn}s  AS", $namestr);
-	    print $out sprintf("%-${maxh}s %s\n", $head, $seq->active_site->display );
+	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->active_site->display );
 	};
     }
 
@@ -1301,38 +1309,45 @@ sub write_stockholm {
 
     if ($self->cons_sec_struct) {
 	my $head = "#=GC SS_cons";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->cons_sec_struct->display );
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_sec_struct->display );
     }
     if ($self->cons_surf_access) {
 	my $head = "#=GC SA_cons";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->cons_surf_access->display );
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_surf_access->display );
     }
     if ($self->cons_trans_membrane) {
 	my $head = "#=GC TM_cons";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->cons_tran_membrane->display );
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_tran_membrane->display );
     }
     if ($self->cons_posterior_prob) {
 	my $head = "#=GC PP_cons";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->cons_posterior_prob->display );
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_posterior_prob->display );
     }
     if ($self->cons_ligand_binding) {
 	my $head = "#=GC LI_cons";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->cons_ligand_binding->display );
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_ligand_binding->display );
     }
     if ($self->cons_active_site) {
 	my $head = "#=GC AS_cons";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->cons_active_site->display );
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_active_site->display );
     }
     if ($self->cons_sequence) {
 	my $head = "#=GC seq_cons";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->cons_sequence->display);
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_sequence->display);
     }
     if ($self->match_states_string) {
 	my $head = "#=GC RF";
-	print $out sprintf("%-${maxh}s %s\n", $head, $self->match_states_string->display );
+	push @output , sprintf("%-${maxh}s %s\n", $head, $self->match_states_string->display );
     }
-    print $out "\/\/\n";
+    push @output , "\/\/\n";
 
+    unless(ref($out) eq "GLOB"){
+      return( \@output);
+    }else{
+      foreach (@output){
+	print $out $_;
+      }
+    }
 }
 
 =head2 write_Pfam
@@ -1354,20 +1369,29 @@ sub write_Pfam {
     my ($namestr,$seq,$add);
     my ($maxn);
 
+    my @output;
     $maxn = $self->maxdisplayname_length();
     if ($self->match_states_string)
 	{
 	$namestr = "#=RF";
 	$add = $maxn - length($namestr) + 2;
 	$namestr .= " " x $add;
-	print $out sprintf("%s  %s\n",$namestr,$self->match_states_string->display);
+	push @output, sprintf("%s  %s\n",$namestr,$self->match_states_string->display);
 	}
  
     foreach $seq ( $self->each_seq() ) {
       $namestr = $seq->get_nse();
 	$add = $maxn - length($namestr) + 2;
 	$namestr .= " " x $add;
-	print $out sprintf("%s  %s\n",$namestr,$seq->seq());
+	push @output, sprintf("%s  %s\n",$namestr,$seq->seq());
+    }
+
+    unless(ref($out) eq "GLOB"){
+      return( \@output);
+    }else{
+      foreach (@output){
+	print $out $_;
+      }
     }
 }
 
@@ -1393,36 +1417,44 @@ sub maxdisplayname_length {
 sub write_fasta {
 
     my $self = shift;
-    my $file  = shift;
+    my $out  = shift;
     my ($seq,$rseq,$name,$count,$length,$seqsub);
+    my @output;
 
     foreach $rseq ( $self->each_seq() ) {
         $name = $self->displayname($rseq->get_nse());
         $seq  = $rseq->seq();
         
-        print $file ">$name\n";
+        push @output , ">$name\n";
         
         $count =0;
         $length = length($seq);
         while( ($count * 60 ) < $length ) {
             $seqsub = substr($seq,$count*60,60);
-            print $file "$seqsub\n";
+            push @output , "$seqsub\n";
             $count++;
         }
     }
 
-
+    unless(ref($out) eq "GLOB"){
+      return( \@output);
+    }else{
+      foreach (@output){
+	print $out $_;
+      }
+    }
 }
 
 sub write_MSF {
     my $self = shift;
-    my $file = shift;
+    my $out = shift;
     my $msftag;
     my $type;
     my $count = 0;
     my $maxname;
     my ($length,$date,$name,$seq,$miss,$pad,%hash,@arr,$tempcount,$index);
-    
+    my @output;
+
     $date = localtime(time);
     $msftag = "MSF";
     $type = "P";
@@ -1433,7 +1465,7 @@ sub write_MSF {
         $name = "Align";
     }
     
-    print $file sprintf("\n%s   MSF: %d  Type: P  %s  Check: 00 ..\n\n",$name,$self->no_sequences,$date);
+    push @output , sprintf("\n%s   MSF: %d  Type: P  %s  Check: 00 ..\n\n",$name,$self->no_sequences,$date);
 
     foreach $seq ( $self->each_seq() ) {
         $name = $self->displayname($seq->get_nse());
@@ -1441,7 +1473,7 @@ sub write_MSF {
         $miss += 2;
         $pad  = " " x $miss ;
 
-        print $file sprintf(" Name: %s%sLen:    %d  Check:  %d  Weight:  1.00\n",$name,$pad,length $seq->seq(), 10);
+        push @output , sprintf(" Name: %s%sLen:    %d  Check:  %d  Weight:  1.00\n",$name,$pad,length $seq->seq(), 10);
         ##,$seq->GCG_checksum()
         $hash{$name} = $seq->seq();
         push(@arr,$name);
@@ -1450,20 +1482,20 @@ sub write_MSF {
     #
     # ok - heavy handed, but there you go.
     #
-    print "\n//\n";
+    push @output , "\n//\n";
 
     while( $count < $length ) {
         
         # there is another block to go!
     
         foreach $name  ( @arr ) {
-            print $file sprintf("%23s  ",$name);
+            push @output , sprintf("%23s  ",$name);
             
             $tempcount = $count;
             $index = 0;
             while( ($tempcount + 10 < $length) && ($index < 5)  ) {
                 
-                print $file sprintf("%s ",substr($hash{$name},$tempcount,10));
+                push @output , sprintf("%s ",substr($hash{$name},$tempcount,10));
                                     
                 $tempcount += 10;
                 $index++;
@@ -1478,17 +1510,24 @@ sub write_MSF {
                 # space to print! 
                 #
 
-                print $file sprintf("%s ",substr($hash{$name},$tempcount));
+                push @output , sprintf("%s ",substr($hash{$name},$tempcount));
                 $tempcount += 10;
             }
 
-            print $file "\n";
+            push @output , "\n";
         } # end of each sequence
 
-        print "\n\n";
+        #print "\n\n";
 
         $count = $tempcount;
-    }                           
+    }
+    unless(ref($out) eq "GLOB"){
+      return( \@output);
+    }else{
+      foreach (@output){
+	print $out $_;
+      }
+    } 
 }
 
 
