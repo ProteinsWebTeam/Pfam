@@ -10,7 +10,7 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.8 2006-10-03 14:05:05 jt6 Exp $
+# $Id: header.tt,v 1.9 2006-10-06 10:24:15 jt6 Exp $
 -%]
 
 <!-- header start here -->
@@ -123,12 +123,12 @@
                  onmouseover="ypSlideOutMenu.hover_in('menu6');ypSlideOutMenu.toggleMenu('menu6', 0)"
                  onmouseout="ypSlideOutMenu.hover_out('menu6')" />
           </td>
-          <td><a id="menu7" href="http://www.sanger.ac.uk/Software/Pfam/about.html">
+          <td><a id="menu7" href="[% c.uri_for( "/about" ) %]">
               <img src="[% c.uri_for( "/images/menus/about.png" ) %]"
                    class="menu"
                    alt="About Pfam" 
                    title="About Pfam"
-                   onclick="popUp(this.href,'console',500,530,'about');return false;"
+                   onclick="popUp($('menu7').href,'console',500,530,'about');return false;"
                    onmouseover="ypSlideOutMenu.hover_in('menu7')"
                    onmouseout="ypSlideOutMenu.hover_out('menu7')" /></a>
           </td>
