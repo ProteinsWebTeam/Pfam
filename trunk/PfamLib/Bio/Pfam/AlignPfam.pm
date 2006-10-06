@@ -56,6 +56,7 @@ package Bio::Pfam::AlignPfam;
 use vars qw($AUTOLOAD @ISA);
 use strict;
 
+use Bio::Annotation::DBLink;
 use Bio::Pfam::OtherRegion;
 use Bio::Pfam::SeqPfam;
 use Bio::SimpleAlign;
@@ -804,6 +805,14 @@ sub read_selex {
 sub read_stockholm {
     my $self = shift;
     my $in = shift;
+
+	my $input;
+	if( ref $in eq "GLOB" ) {
+	  $input = [ <$in> ];
+	} else {
+	  $input = $in;
+	}
+
     my ($start,
 	$end,
 	$seqname,
@@ -818,14 +827,8 @@ sub read_stockholm {
 	%accession, %sec_struct, %surf_access, 
 	%trans_mem, %post_prob, %lig_bind, %active_site, %annotation
 	);
-
-    unless (ref($in) eq "GLOB"){
-      my $inCopy = $in;
-      $in = undef;
-      open ($in, "$inCopy") || die "Could not open $inCopy :[$!]\n";
-    }
-
-    while( <$in> ) {
+#    while( <$in> ) {
+	foreach ( @$input ) {
 	/^\# STOCKHOLM/ && next;
 
 	/^\/\// && do {
@@ -1253,6 +1256,9 @@ sub write_stockholm {
     # each part of the sequence.
 
     my @output;
+
+	push @output, "# STOCKHOLM 1.0\n";
+
     $maxn = $self->maxdisplayname_length();
     $maxh = $self->maxdisplayname_length()
 	+ 4  # for the '#=G*
@@ -1260,93 +1266,93 @@ sub write_stockholm {
 	+ 3; # plus some whitespace for good measure
 
     foreach my $seq ($self->each_seq()) {
-	$namestr = $seq->get_nse();
-	$seq->acc and push @output , sprintf("#=GS %-${maxn}s  AC %s\n", $namestr, $seq->acc());
+	  $namestr = $seq->get_nse();
+	  $seq->acc and push @output, sprintf("#=GS %-${maxn}s  AC %s\n", $namestr, $seq->acc());
     }
 
     foreach my $seq ( $self->each_seq() ) {
-	$namestr = $seq->get_nse();
-	push @output , sprintf("%-${maxh}s %s\n", $namestr, $seq->seq());
-	if ($annot = $seq->annotation) {
+	  $namestr = $seq->get_nse();
+	  push @output, sprintf("%-${maxh}s %s\n", $namestr, $seq->seq());
+	  if ($annot = $seq->annotation) {
 	    $annot->description and 
-		push @output , sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->description());
-	   # foreach my $ln ($annot->each_link) {
-	     foreach my $ln ($annot->get_Annotations('dblink') ) {
-		push @output , sprintf("#=GS %-${maxn}s  DR %s; %s;", $namestr, $ln->database(), $ln->primary_id);
-	#	foreach my $other ($ln->each_additional) {
-		    push @output , $ln->optional_id(). " ";
-	#	}
-		push @output , "\n";
+		  push @output, sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->description());
+		# foreach my $ln ($annot->each_link) {
+		foreach my $ln ($annot->get_Annotations('dblink') ) {
+		  push @output, sprintf("#=GS %-${maxn}s  DR %s; %s;", $namestr, $ln->database(), $ln->primary_id);
+		  #	foreach my $other ($ln->each_additional) {
+		  push @output, $ln->optional_id(). " ";
+		  #	}
+		  push @output, "\n";
 	    }
-	     }
-	$seq->sec_struct and do {
+	  }
+	  $seq->sec_struct and do {
 	    my $head = sprintf("#=GR %-${maxn}s  SS", $namestr);
-	    push @output , sprintf("%-${maxh}s %s\n", $head,  $seq->sec_struct->display );
-	};
-	$seq->surf_access and do {
+	    push @output, sprintf("%-${maxh}s %s\n", $head,  $seq->sec_struct->display );
+	  };
+	  $seq->surf_access and do {
 	    my $head = sprintf("#=GR %-${maxn}s  SA", $namestr);
-	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->surf_access->display );
-	};
-	$seq->trans_membrane and do {
+	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->surf_access->display );
+	  };
+	  $seq->trans_membrane and do {
 	    my $head = sprintf("#=GR %-${maxn}s  TM", $namestr);
-	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->trans_membrane->display );
-	};
-	$seq->posterior_prob and do {
+	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->trans_membrane->display );
+	  };
+	  $seq->posterior_prob and do {
 	    my $head = sprintf("#=GR %-${maxn}s  PP", $namestr);
-	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->posterior_prob->display );
-	};
-	$seq->ligand_binding and do {
+	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->posterior_prob->display );
+	  };
+	  $seq->ligand_binding and do {
 	    my $head = sprintf("#=GR %-${maxn}s  LI", $namestr);
-	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->ligand_binding->display );
-	};
-	$seq->active_site and do {
+	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->ligand_binding->display );
+	  };
+	  $seq->active_site and do {
 	    my $head = sprintf("#=GR %-${maxn}s  AS", $namestr);
-	    push @output , sprintf("%-${maxh}s %s\n", $head, $seq->active_site->display );
-	};
+	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->active_site->display );
+	  };
     }
 
     ####### finally, the concesnsus information
 
     if ($self->cons_sec_struct) {
-	my $head = "#=GC SS_cons";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_sec_struct->display );
+	  my $head = "#=GC SS_cons";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->cons_sec_struct->display );
     }
     if ($self->cons_surf_access) {
-	my $head = "#=GC SA_cons";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_surf_access->display );
+	  my $head = "#=GC SA_cons";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->cons_surf_access->display );
     }
     if ($self->cons_trans_membrane) {
-	my $head = "#=GC TM_cons";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_tran_membrane->display );
+	  my $head = "#=GC TM_cons";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->cons_tran_membrane->display );
     }
     if ($self->cons_posterior_prob) {
-	my $head = "#=GC PP_cons";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_posterior_prob->display );
+	  my $head = "#=GC PP_cons";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->cons_posterior_prob->display );
     }
     if ($self->cons_ligand_binding) {
-	my $head = "#=GC LI_cons";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_ligand_binding->display );
+	  my $head = "#=GC LI_cons";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->cons_ligand_binding->display );
     }
     if ($self->cons_active_site) {
-	my $head = "#=GC AS_cons";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_active_site->display );
+	  my $head = "#=GC AS_cons";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->cons_active_site->display );
     }
     if ($self->cons_sequence) {
-	my $head = "#=GC seq_cons";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->cons_sequence->display);
+	  my $head = "#=GC seq_cons";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->cons_sequence->display);
     }
     if ($self->match_states_string) {
-	my $head = "#=GC RF";
-	push @output , sprintf("%-${maxh}s %s\n", $head, $self->match_states_string->display );
+	  my $head = "#=GC RF";
+	  push @output, sprintf("%-${maxh}s %s\n", $head, $self->match_states_string->display );
     }
-    push @output , "\/\/\n";
+    push @output, "\/\/\n";
 
-    unless(ref($out) eq "GLOB"){
-      return( \@output);
-    }else{
-      foreach (@output){
-	print $out $_;
+    if( ref $out eq "GLOB" ){
+      foreach ( @output ){
+		print $out $_;
       }
+    }else{
+      return \@output;
     }
 }
 
