@@ -35,7 +35,7 @@ sub grow_tree {
 	my ($tree, $list, $delimiter) = @_;
 	foreach my $taxonomy (@$list) {
 		my @branch = split /$delimiter/, $taxonomy;
-    $tree->add_branch(@branch);
+    $tree->add_branch(\@branch);
 	}
 }
 
@@ -110,23 +110,25 @@ sub is_unique_organism {
 # Private methods
 ###########################################################
 sub add_branch {
-	my ($tree, @branch) = @_;
-	my $node = shift @branch;
-	if ($tree->node_exist($node)) {
-		($tree->get_node($node))->increment_frequency();
-		($tree->get_node($node))->add_branch(@branch);
+	my ($tree, $branchRef) = @_;
+	my $node = shift @{$branchRef};
+
+	if ($tree->{branches}{$node}) {
+	  $tree->{branches}{$node}{frequency}++;
+	  $tree->{branches}{$node}->add_branch($branchRef);
 	}
 	else {
-		$tree->add_full_branch($node,@branch);
+	  unshift(@$branchRef, $node);
+	  $tree->add_full_branch($branchRef);
 	}
 }
 
 sub add_full_branch {
-	my ($tree, @branch) = @_;
-	my $node = shift @branch;
+	my ($tree, $branchRef) = @_;
+	my $node = shift @{$branchRef};
 	if ($node) {
 		$tree->create_node($node);
-		($tree->get_node($node))->add_full_branch(@branch);
+		($tree->get_node($node))->add_full_branch($branchRef);
 	}
 }
 
@@ -169,21 +171,17 @@ sub convert_to_js {
 	#There is no javascript root.
 	$parent = "root";
     }
-    
-    
+
     my $unique = $tree->children_is_unique();
     my $lastNode = $tree->is_last_node();
-    
-    
+
     foreach my $node ($tree->get_branches()) {
-	
-	
 	my $label =  $node->get_name()."(".$node->get_frequency().")";
 	my $node_id = $node->get_name();
 	$node_id =~ s/\W+//g;
 	$$js .= "var $node_id = new YAHOO.widget.TextNode(\"$label\", $parent, false);\n";
-	my $childOf = $node_id;    
-	if ($node->has_childrens()) {    
+	my $childOf = $node_id;
+	if ($node->has_childrens()) {
 	    $node->convert_to_js($js, $childOf);
 	}
     }
