@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.7 2006-10-03 13:55:55 jt6 Exp $
+# $Id: align.tt,v 1.8 2006-10-06 10:27:08 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -15,28 +15,106 @@
   </div>
   <div class="blockContent">
 
-	<div id="caph">
-      <p class="loading">
-        Loading alignment...
-      </p>
-    </div>
+    <h3>View options</h3>
 
-	<p>You can also view the 
-      <a class="ext" 
-         href="[% constants.alignURLRoot %]/seed/[% pfam.pfamA_acc %].shtml.gz"
-         target="_blank">seed</a> and
-      <a class="ext"
-         href="[% constants.alignURLRoot %]/full/[% pfam.pfamA_acc %].shtml.gz"
-         target="_blank">full</a> alignments in separate windows.
-    </p>
+    <dl>
+      <dt>viewer</dt>
+      <dd>
+        <a href="[% c.uri_for( "/family/showalignment", acc=pfam.pfamA_acc ) %]"
+           onclick="popUp(this.href,'console',800,800,'alignWin');return false;"
+           target="newWin">alignment viewer</a> 
+      </dd>
+      <dt>coloured alignments</dt>
+      <dd>
+        <a href="[% constants.alignURLRoot %]/seed/[% pfam.pfamA_acc %].shtml.gz"
+           target="_blank">seed</a>
+      </dd>
+      <dd>
+        <a href="[% constants.alignURLRoot %]/full/[% pfam.pfamA_acc %].shtml.gz"
+           target="_blank">full</a>
+      </dd>
+      <dt>Jalview</dt>
+      <dd>
+        <a href="[% c.uri_for( "/family/jalview", acc=pfam.pfamA_acc ) %]"
+		   onclick="popUp(this.href,'console',800,800,'jalviewWin');return false;"
+           target="newWin">JalView</a>	
+      </dd>
+    </dl>
 
-  </div> [%# end of blockcontent %]
+    <h3>Download options</h3>
+
+    <form action="[% c.uri_for( "/family/downloadalignment" ) %]" method="get">
+      <input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
+
+	  <dl class="form">
+
+        <dt>Alignment</dt>
+        <dd>
+	      <input type="radio" name="type" id="typeS" value="s" checked="1" />
+	      <label for="typeS">Seed</label>
+        </dd>
+	    <dd>
+	      <input type="radio" name="type" id="typeF" value="f" />
+	      <label for="typeF">Full</label>
+        </dd>
+
+        <dt>Format</dt>
+        <dd>
+          <select name="format" id="format">
+            <option value="pfam" selected="selected">Selex</option>
+            <option value="stockholm">Stockholm</option>
+            <option value="fasta">FASTA</option>
+            <option value="msf">MSF</option>
+          </select>
+        </dd>
+
+        <dt>Order</dt>
+        <dd>
+	      <input type="radio" name="order" id="orderT" value="t" checked="1" />
+	      <label for="orderT">Tree</label>
+        </dd>
+        <dd>
+	      <input type="radio" name="order" id="orderA" value="a" />
+	      <label for="orderA">Alphabetical</label>
+        </dd>
+
+        <dt>Sequence</dt>
+        <dd>
+	      <input type="radio" name="case" id="caseL" value="l" checked="1" />
+	      <label for="caseL">Insert regions in lower case</label>
+        </dd>
+        <dd>
+	      <input type="radio" name="case" id="caseU" value="u" />
+	      <label for="caseU">Whole sequence in upper case</label>
+        </dd>
+
+        <dt>Gaps</dt>
+        <dd>
+          <select name="gaps" id="gaps">
+            <option value="default" selected="selected">Gaps</option>
+            <option value="dots">Gaps as "." (dots)</option>
+            <option value="dashes">Gaps as "-" (dashes)</option>
+            <option value="none">No gaps (unaligned)</option>
+          </select>
+        </dd>
+
+        <dt>Download/view</dt>
+        <dd>
+	      <input type="radio" name="download" id="downloadD" value="1" checked="1" />
+	      <label for="downloadD">Download</label>
+        </dd>
+        <dd>
+	      <input type="radio" name="download" id="downloadV" value="0" />
+	      <label for="downloadV">View</label>
+        </dd>
+
+	  </dl>
+
+      <input type="submit" value="Submit" />
+    </form>
+
+  </div>
 
 </div>
-
-<script type="text/javascript">
-  loadOptions.ca.uri    = "[% c.uri_for( "/family/alignmentgenerator" ) %]";
-  loadOptions.ca.params = "acc=[% pfam.pfamA_acc %]";
-</script>
 
 <!-- end of align block -->
