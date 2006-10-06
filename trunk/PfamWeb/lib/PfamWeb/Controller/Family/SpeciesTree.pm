@@ -5,7 +5,7 @@
 # Controller to build a species tree. This is the clickable,
 # expandable tree in the "Species" tab.
 #
-# $Id: SpeciesTree.pm,v 1.3 2006-08-14 10:43:45 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.4 2006-10-06 15:56:47 rdf Exp $
 
 package PfamWeb::Controller::Family::SpeciesTree;
 
@@ -54,13 +54,30 @@ sub getTree : Private {
   my @regions = $c->model("PfamDB::PfamA_reg_full")->search(
 				  { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
 					"in_full"         => 1 },
-				  { join              => [ qw/ pfamA pfamseq /] }
+				  { join              => [ qw/ pfamA pfamseq /],
+				    prefetch          => [ qw/pfamseq/ ],}
 				);
 	
   my @treeData;
   foreach my $region ( @regions ) {
-	push @treeData, $region->taxonomy;
+    #For some reason in the database Taxonomoy is stored up to genus!
+    my $tax = $region->taxonomy;
+    my $species = $region->species;
+    #Remove ful stop from the end of the species line. Doggy......I know
+    chop($species);
+    #As the species has a leading white space, we introduce "duff".
+    my ($duff, $genus) = split(/\s+/, $species);
+
+    #Work out must to remove.
+    my $lengthToRemove = length($genus) + 2; #+1 for full stop and one for leading white space;
+    my $lengthOfTaxonomy = length($tax);
+    my $offSet = $lengthOfTaxonomy-$lengthToRemove;
+    substr($tax, $offSet, $lengthToRemove, $species); 
+    push @treeData, $tax; 
   }
+  #foreach my $region ( @regions ) {
+	#push @treeData, $region->taxonomy;
+  #}
 
   my $tree = Bio::Pfam::Web::Tree->new();
   $tree->grow_tree ( \@treeData, ';' );
