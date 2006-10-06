@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.12 2006-09-22 10:21:34 jt6 Exp $
+   $Id: family.css,v 1.13 2006-10-06 15:15:54 jt6 Exp $
 */   
 
 /*
@@ -120,4 +120,22 @@ div.blockContent ol {
 #domainsBlock img {
   display: block;
   padding: 0.4em;
+}
+
+/* ---------------------------------------- */
+/* alignment tab */
+
+#alignBlock table.details td {
+	text-align: left;
+    vertical-align: middle;
+}
+
+#alignBlock table.details td.label {
+	text-align: right;
+}
+
+#alignBlock td span {
+	width: 12em;
+    display: block;
+    float: left;
 }
