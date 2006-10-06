@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.2 2006-09-28 13:23:21 jt6 Exp $
+# $Id: Section.pm,v 1.3 2006-10-06 15:14:39 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.2 2006-09-28 13:23:21 jt6 Exp $
+$Id: Section.pm,v 1.3 2006-10-06 15:14:39 jt6 Exp $
 
 =cut
 
@@ -32,6 +32,8 @@ use Data::Dump qw( dump );
 use base "Catalyst::Controller";
 
 #-------------------------------------------------------------------------------
+
+=head1 METHODS
 
 =head2 default : Path
 
@@ -52,8 +54,6 @@ sub default : Path {
 }
 
 #-------------------------------------------------------------------------------
-
-=head1 METHODS
 
 =head2 end : Private
 
