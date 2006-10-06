@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.10 2006-10-03 14:29:44 jt6 Exp $
+# $Id: Family.pm,v 1.11 2006-10-06 10:22:05 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.10 2006-10-03 14:29:44 jt6 Exp $
+$Id: Family.pm,v 1.11 2006-10-06 10:22:05 jt6 Exp $
 
 =cut
 
@@ -105,12 +105,13 @@ sub begin : Private {
 	# de-taint the accession or ID
 	my $input = $c->req->param("acc")
 	  || $c->req->param("id")
-	  || $c->req->param("entry");
+	  || $c->req->param("entry")
+	  || "";
 	$input =~ s/^(\w+)/$1/;
 
 	# see if this was an internal link and, if so, report it
 	my $b = $c->req->base;
-	if( $c->req->referer =~ /^$b/ ) {
+	if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
 
 	  # this means that the link that got us here was somewhere within
 	  # the Pfam site and that the accession or ID which it specified
