@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.21 2006-10-03 15:44:29 jt6 Exp $
+   $Id: pfam.css,v 1.22 2006-10-06 15:17:28 jt6 Exp $
 */   
 
 body {
@@ -11,7 +11,6 @@ body {
     font-size: smaller;
     color: #404040;
     background: #FFF;
-	min-width: 840px;
     margin: 0;
 	padding: 0;
 }
@@ -482,17 +481,23 @@ tr.continuation {
 }
 
 /* ======================================== */
-/* viewer pages */
+/* tool pages */
 
-h1.viewHeader {
-    padding-top: 70px;
-	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
+body.tool {
+  padding: 80px 2px 2px 2px;
+  background: #FFF url(/catalyst/PfamWeb/images/about_back.png) left top no-repeat; 
+  color: #15538e;
 }
 
 a.closer {
 	background: url(/catalyst/PfamWeb/images/close.gif) no-repeat left;
     padding-left: 11px;
 	margin: 0.2em;
+}
+
+body.tool h1 {
+	margin: 0;
+    padding: 0.4em 0;
 }
 
 /* ======================================== */
@@ -634,7 +639,7 @@ a.sortheader {
 }
 
 /* ======================================== */
-/* rules for specific blocks */
+/* rules that are common to several blocks */
 
 div.domain {
 	padding: 6px;
