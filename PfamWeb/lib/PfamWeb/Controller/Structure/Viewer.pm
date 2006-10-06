@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.4 2006-09-22 10:47:46 jt6 Exp $
+# $Id: Viewer.pm,v 1.5 2006-10-06 10:22:33 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.4 2006-09-22 10:47:46 jt6 Exp $
+$Id: Viewer.pm,v 1.5 2006-10-06 10:22:33 jt6 Exp $
 
 =cut
 
@@ -103,40 +103,7 @@ sub default : Path {
   $c->log->debug( "showing " . $c->stash->{viewer}
 				  . " for entry " . $c->stash->{pdbId} );
 
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Overrides the basic "end" method from the Structure base class and
-forwards either to the Jmol or AstexViewer full-page templates, as
-appropriate. Renders an error page if problems were encountered
-previously
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  # don't try to render a page unless there's a Pdb object in the stash
-  return 0 unless defined $c->stash->{pdb};
-
-  # set up the TT view
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-	$c->stash->{template} = "components/blocks/structure/error.tt";
-  } else {
-	$c->stash->{pageType} = "structure";
-	$c->stash->{template} = "pages/" . $c->stash->{viewer} . ".tt";
-  }
-
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
-
-  # clear any errors
-  $c->clear_errors;
-
+  $c->stash->{template} = "components/tools/" . $c->stash->{viewer} . ".tt";
 }
 
 #-------------------------------------------------------------------------------
