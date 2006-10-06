@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.2 2006-08-14 10:53:09 jt6 Exp $
+// $Id: family.js,v 1.3 2006-10-06 10:29:49 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -125,6 +125,7 @@ function generateAlignment( type, start, end ) {
   $("scrollValue").value = $("alignmentData").scrollLeft;
 
   // submit the form
+  Form.disable( "pagingForm" );
   new Ajax.Updater( "caph",
                     loadOptions.ca.uri, 
                     {   parameters:   Form.serialize( $("pagingForm") ),
@@ -170,4 +171,6 @@ function formatAlignment( urlBase) {
       item.appendChild( r );
     }
   );
+
+  Form.enable( "pagingForm" );
 }
