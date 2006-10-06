@@ -1,0 +1,38 @@
+[%
+# alignmentTool.tt
+# jt6 20061004 WTSI
+# 
+# build a page for the alignment viewer tool
+#
+# $Id: alignmentTool.tt,v 1.1 2006-10-06 10:27:46 jt6 Exp $
+
+# tell the wrapper not to add any header or footer. We'll generate a complete 
+# page here ourselves
+META naked = 1;
+
+CALL c.log.debug( "rendering alignmentTool.tt..." );
+
+USE String;
+
+pageContent = BLOCK
+-%]
+
+<script type="text/javascript">
+  Event.observe( window, "load", familyPostLoad, false );
+  loadOptions.ca.uri    = "[% c.uri_for( "/family/alignmentgenerator" ) %]";
+  loadOptions.ca.params = "acc=[% pfam.pfamA_acc %]";
+</script>
+
+<h1>Family alignment for [% pfam.pfamA_acc %]</h1>
+
+<div id="caph">
+  <p class="loading">
+    Loading alignment...
+  </p>
+</div>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]
+
+[% CALL c.log.debug( "done with toolWindow.tt" ) %]
