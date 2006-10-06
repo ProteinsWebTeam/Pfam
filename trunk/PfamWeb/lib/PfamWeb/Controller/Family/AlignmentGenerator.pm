@@ -2,7 +2,7 @@
 # AlignmentGenerator.pm
 # jt6 20060601 WTSI
 #
-# $Id: AlignmentGenerator.pm,v 1.7 2006-10-05 12:49:55 rdf Exp $
+# $Id: AlignmentGenerator.pm,v 1.8 2006-10-06 10:23:01 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ the alignment from DAS sources, plus a few different display options.
 
 Generates a B<full page>.
 
-$Id: AlignmentGenerator.pm,v 1.7 2006-10-05 12:49:55 rdf Exp $
+$Id: AlignmentGenerator.pm,v 1.8 2006-10-06 10:23:01 jt6 Exp $
 
 =cut
 
@@ -55,60 +55,10 @@ sub showAlignment : Path( "/family/showalignment" ) {
 
 #-------------------------------------------------------------------------------
 
-sub downloadAlignment : Path( "/family/downloadalignment" ) {
+sub showJalview : Path( "/family/jalview" ) {
   my( $this, $c ) = @_;
-  my $acc = $c->stash->{pfam}->pfamA_acc;
-  #Need to find alignment type and family accession.
 
-  #first get the alignment filehandle.......
-  my $fh = $c->forward("getAlignFile", $style );
-
-  my $pfamaln = new Bio::Pfam::AlignPfam->new;
-  eval {
-    $pfamaln->read_stockholm( $fh );
-  };
-  if($@){
-    $pfamaln->throw("Error reading stockholm file:[$@]");
-  };
-
-
-  #gaps param can be default, dashes, dot or none 
-  if($c->req->params("gaps") eq "none"){
-    $pfamaln->map_chars('-', '');
-    $pfamaln->map_chars('\.', '');
-  }elsif($c->req->params("gaps") eq "dots"){
-    $pfamaln->map_chars('-', '.');
-  }elsif($c->req->params("gaps") eq "dashes"){
-    $pfamaln->map_chars('\.', '-');
-  }
-
-  #case param can be u or l
-  if($c->req->params("case") eq "u"){
-    $pfamaln->uppercase;
-  }
-
-  #order param can be tree or alphabetical
-  if($c->req->params("order") eq "alpha"){
-    $pfamaln->sort_alphabetically;
-  }
-
-  #Format param can be one of pfam, stockholm, fasta or MSF
-  if($c->req->params(format) eq "stockholm"){
-    $pfamaln->write_stockholm(\*OUT);
-  }elsif($c->req->params(format) eq "pfam"){
-    $pfamaln->write_Pfam(\*OUT);
-  }elsif($c->req->params(format) eq "fasta"){
-    $pfamaln->write_fasta(\*OUT);
-  }elsif($c->req->params(format) eq "msf"){
-    $pfamaln->write_MSF(\*OUT);
-  }
-
-
-  foreach my $param ( sort keys %{ $c->req->params } ) {
-	$c->log->debug( "|$param| => |" . $c->req->param( $param ) . "|" );
-  }
-
-  $c->stash->{template} = "components/blocks/family/alignmentTool.tt";
+  $c->stash->{template} = "components/tools/jalview.tt";
 }
 
 #-------------------------------------------------------------------------------
