@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.19 2006-09-27 16:13:34 jt6 Exp $
+# $Id: wrapper.tt,v 1.20 2006-10-06 10:24:38 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -20,28 +20,36 @@ ELSE;
 <html>
 
   <head>
+    [% IF pageType %]
+      [% titleFile = layouts.${pageType}.titleTemplate %]
+      <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
+    [% ELSE %]
+      <title>Pfam</title>
+    [% END %]
+
 	[%# import javascripts, stylesheets, etc. %]
     [% PROCESS components/head.tt %]
   </head>
 
-    <body>
+  <body>
 
-	  [%# build the page header, with the swoosh, menus, etc. %]
-      [% PROCESS components/header.tt %]
+    [%# build the page header, with the swoosh, menus, etc. %]
+    [% PROCESS components/header.tt %]
 
-	  [%# add a wrapper div if this is a tab layout page %]
-  	  [% UNLESS template.fullPage %]<div id="contentContainer">[% END %]
+    [%# add a wrapper div if this is a tab layout page %]
+    [% UNLESS template.fullPage %]<div id="contentContainer">[% END %]
 
-      <!-- start of content -->
-      [% content %]
-      <!-- end of "content" -->
+    <!-- start of content -->
+    [% content %]
+    <!-- end of content -->
 
-	  [%# add the common footer %]
-      [% PROCESS components/footer.tt %]
+    [%# add the common footer %]
+    [% PROCESS components/footer.tt %]
 
-  	  [% UNLESS template.fullPage %]</div>[% END %]
+    [% UNLESS template.fullPage %]</div>[% END %]
 
-    </body>
+  </body>
+
 </html>
 
 [% END # of "if template.naked" %]
