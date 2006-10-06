@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: DownloadAlignment.pm,v 1.1 2006-10-06 10:23:17 jt6 Exp $
+# $Id: DownloadAlignment.pm,v 1.2 2006-10-06 15:15:09 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::DownloadAlignment;
 
 Generates a B<full page>.
 
-$Id: DownloadAlignment.pm,v 1.1 2006-10-06 10:23:17 jt6 Exp $
+$Id: DownloadAlignment.pm,v 1.2 2006-10-06 15:15:09 jt6 Exp $
 
 =cut
 
@@ -34,9 +34,51 @@ use base "PfamWeb::Controller::Family";
 
 =head1 METHODS
 
+=head2 auto : Private
+
+Just adds the alignment type (seed or full) to the stash.
+
+=cut
+
+sub auto : Private {
+  my( $this, $c ) = @_;
+
+  $c->stash->{type} = ( $c->req->param( "type" ) eq "seed" ) ? "seed" : "full";
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 downloadAlignment : Path
 
-blah
+Serves up the plain (no markup) alignment. Also applies various
+changes to the alignment before hand, such as changing the gap style
+or sequence order.
+
+By default this method will write out in Stockholm format, but the
+following formats are also available and can be specified with the
+C<format> parameter:
+
+=over
+
+=item * pfam
+
+Essentially Stockholm with markup lines removed
+
+=item * fasta
+
+Vanilla FASTA format
+
+=item * msf
+
+No idea...
+
+=item * stockholm (default)
+
+Standard Stockholm format
+
+=back
+
+The exact styles (other than C<pfam>) are defined by BioPerl.
 
 =cut
 
@@ -91,10 +133,14 @@ sub downloadAlignment : Path( "/family/downloadalignment" ) {
 
 #-------------------------------------------------------------------------------
 
+=head2 getAlignFile : Private
+
+Reads a gzipped alignment file from disk and return it as an array reference.
+
+=cut
+
 sub getAlignFile : Private {
   my( $this, $c ) = @_;
-
-  $c->stash->{type} = ( $c->req->param( "type" ) eq "s" ) ? "seed" : "full";
 
   my $file =
 	$this->{alnFileDir} . "/"
@@ -118,7 +164,13 @@ sub getAlignFile : Private {
 
 #-------------------------------------------------------------------------------
 
-sub end : default {
+=head2 end : Private
+
+Writes the sequence alignment directly to the response object.
+
+=cut
+
+sub end : Private {
   my( $this, $c ) = @_;
 
   $c->res->content_type( "text/plain" );
