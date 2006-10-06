@@ -1,0 +1,58 @@
+[%
+# about.tt
+# jt6 20061003 WTSI
+# 
+# build an "about Pfam" page
+#
+# $Id: about.tt,v 1.1 2006-10-06 10:29:03 jt6 Exp $
+
+# tell the wrapper not to add any header or footer. We'll generate a complete 
+# page here ourselves
+META naked = 1
+-%]
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+  <head>
+	<title>About the Pfam website</title>
+    [% PROCESS components/head.tt %]
+  </head>
+
+  <body class="tool">
+
+	<h2>Version 20.0</h2>
+	<h3>Released May 2006</h3>
+
+	<p>
+	  The Pfam website is developed on linux and is tested during
+	  development using recent builds of <a target="new"
+		href="http://www.mozilla.com/firefox/">Firefox</a>, the latest
+	  incarnation of the Mozilla web browser. It is also tested
+	  regularly in <a target="new"
+		href="http://www.microsoft.com/windows/ie/default.mspx">Internet Explorer</a>, 
+      running on Windows, and <a target="new" 
+          href="http://www.apple.com/macosx/features/safari/">Safari</a> on Mac OS X.
+	</p>
+	<p>
+	  The current site has been checked in the following versions of
+	  these browsers:
+    </p>
+	<ul>
+	  <li>Firefox v1.5.0.7</li>
+	  <li>Internet Explorer v6.0</li>
+	  <li>Safari v1.3.1</li>
+	</ul>
+	<p>
+	  Whilst we make every effort to ensure that the Pfam site will
+	  work well with most browsers, older versions in particular will
+	  not always render pages correctly. If you are having problems
+	  with the site, please consider upgrading to a recent version of
+	  your chosen browser.
+	</p>
+
+	<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+  </body>
+
+</html>
