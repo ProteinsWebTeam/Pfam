@@ -6,15 +6,8 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.6 2006-09-27 16:13:14 jt6 Exp $
+# $Id: head.tt,v 1.7 2006-10-06 10:23:57 jt6 Exp $
 -%]
-
-[% IF pageType %]
-  [% titleFile = layouts.${pageType}.titleTemplate %]
-  <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
-[% ELSE %]
-  <title>Pfam</title>
-[% END %]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
