@@ -5,14 +5,14 @@
 # Controller to build a species tree. This is the clickable,
 # expandable tree in the "Species" tab.
 #
-# $Id: SpeciesTree.pm,v 1.4 2006-10-06 15:56:47 rdf Exp $
+# $Id: SpeciesTree.pm,v 1.5 2006-10-09 11:34:16 rdf Exp $
 
 package PfamWeb::Controller::Family::SpeciesTree;
 
 use strict;
 use warnings;
 
-use Bio::Pfam::Web::Tree;
+#use Bio::Pfam::Web::Tree;
 
 use Data::Dumper;
 
@@ -34,6 +34,7 @@ sub getData : Path {
   my $js;
   $c->stash->{rawTree}->convert_to_js( \$js );
   $c->stash->{tree} = $js;
+  #$c->log->debug("javascript:|".$js."|");
 
 }
 
@@ -52,38 +53,48 @@ sub getTree : Private {
   my( $this, $c ) = @_;
 
   my @regions = $c->model("PfamDB::PfamA_reg_full")->search(
-				  { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
-					"in_full"         => 1 },
-				  { join              => [ qw/ pfamA pfamseq /],
-				    prefetch          => [ qw/pfamseq/ ],}
-				);
-	
-  my @treeData;
+							    { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
+							      "in_full"         => 1 },
+							    { join              => [ qw/ pfamA pfamseq /],
+							      prefetch          => [ qw/pfamseq/ ],}
+							   );
+
+  my %tree;
   foreach my $region ( @regions ) {
+    my $speciesData = {}; #This probably could be moved out
     #For some reason in the database Taxonomoy is stored up to genus!
     my $tax = $region->taxonomy;
     my $species = $region->species;
-    #Remove ful stop from the end of the species line. Doggy......I know
+    $tax =~ s/\s+//g;
+    #Remove ful stop from the end of the species line. Dodgy......I know
     chop($species);
-    #As the species has a leading white space, we introduce "duff".
-    my ($duff, $genus) = split(/\s+/, $species);
-
+    #As the species has a leading white space.....
+    $species =~ s/^(\s+)//g;
+    my ($genus) = split(/\s+/, $species);
     #Work out must to remove.
-    my $lengthToRemove = length($genus) + 2; #+1 for full stop and one for leading white space;
+    my $lengthToRemove = length($genus) + 1; #+1 for full stop and one for leading white space;
     my $lengthOfTaxonomy = length($tax);
     my $offSet = $lengthOfTaxonomy-$lengthToRemove;
-    substr($tax, $offSet, $lengthToRemove, $species); 
-    push @treeData, $tax; 
+    substr($tax, $offSet, $lengthToRemove, $species);
+    $$speciesData{'acc'} = $region->pfamseq_acc;
+    $$speciesData{'species'} = $species;
+    $$speciesData{'tax'} = [split(/;/,$tax)];
+    &addBranch(\%tree, $speciesData);
   }
-  #foreach my $region ( @regions ) {
-	#push @treeData, $region->taxonomy;
-  #}
+  $c->stash->{rawTree} = \%tree;
+}
 
-  my $tree = Bio::Pfam::Web::Tree->new();
-  $tree->grow_tree ( \@treeData, ';' );
+sub addBranch {
+  my ($treeRef, $branchRef) = @_;
+  my $node = shift @{$$branchRef{'tax'}};
 
-  $c->stash->{rawTree} = $tree->clear_root();
+  if($node){
+    $treeRef->{branches}->{$node}->{frequency}++; # count the number of regions
+    $treeRef->{branches}->{$node}->{sequences}->{$$branchRef{'acc'}}++; #count the number of unique sequences
+    $treeRef->{branches}->{$node}->{species}->{$$branchRef{'species'}}++; #count the number of unique species
+    addBranch($treeRef->{branches}->{$node}, $branchRef); 
 
+  }
 }
 
 #-------------------------------------------------------------------------------
