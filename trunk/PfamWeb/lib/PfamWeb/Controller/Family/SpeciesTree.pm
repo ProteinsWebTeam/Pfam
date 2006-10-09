@@ -5,7 +5,7 @@
 # Controller to build a species tree. This is the clickable,
 # expandable tree in the "Species" tab.
 #
-# $Id: SpeciesTree.pm,v 1.6 2006-10-09 16:13:21 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.7 2006-10-09 16:21:06 rdf Exp $
 
 package PfamWeb::Controller::Family::SpeciesTree;
 
@@ -53,13 +53,24 @@ sub getData : Path {
 
 sub getTree : Private {
   my( $this, $c ) = @_;
-
+  #Get the species information for the full alignment
   my @regions = $c->model("PfamDB::PfamA_reg_full")->search(
 							    { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
 							      "in_full"         => 1 },
 							    { join              => [ qw/ pfamA pfamseq /],
 							      prefetch          => [ qw/pfamseq/ ],}
 							   );
+  #Get the species information for the seed alignment
+  my @resultsSeed = $c->model("PfamDB::PfamA_reg_seed")->search(
+								 { "pfamA.pfamA_acc" => "PF07065"},
+								 { join              => [ qw/ pfamA pfamseq /],
+								   prefetch          => [ qw/pfamseq/] }
+								);
+  #Hash the seed info
+  my %seedSeqs;
+  foreach my $seedRegion( @resultsSeed){
+    $seedSeqs{$seedRegion->pfamseq_acc}++;
+  }
 
   my %tree;
   foreach my $region ( @regions ) {
@@ -80,6 +91,7 @@ sub getTree : Private {
     substr($tax, $offSet, $lengthToRemove, $species);
     $$speciesData{'acc'} = $region->pfamseq_acc;
     $$speciesData{'species'} = $species;
+    $$speciesData{'inSeed'} = 1  if ($seedSeqs{$region->pfamseq_acc});
     $$speciesData{'tax'} = [split(/;/,$tax)];
     &addBranch(\%tree, $speciesData);
   }
@@ -89,13 +101,14 @@ sub getTree : Private {
 sub addBranch {
   my ($treeRef, $branchRef) = @_;
   my $node = shift @{$$branchRef{'tax'}};
-
   if($node){
     $treeRef->{branches}->{$node}->{frequency}++; # count the number of regions
     $treeRef->{branches}->{$node}->{sequences}->{$$branchRef{'acc'}}++; #count the number of unique sequences
     $treeRef->{branches}->{$node}->{species}->{$$branchRef{'species'}}++; #count the number of unique species
-    addBranch($treeRef->{branches}->{$node}, $branchRef); 
-
+    if($node eq $$branchRef{'species'}){
+      $treeRef->{branches}->{$node}->{inSeed}++ if($$branchRef{'inSeed'});
+    }
+    addBranch($treeRef->{branches}->{$node}, $branchRef);
   }
 }
 
