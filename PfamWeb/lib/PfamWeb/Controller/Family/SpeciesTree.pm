@@ -5,7 +5,7 @@
 # Controller to build a species tree. This is the clickable,
 # expandable tree in the "Species" tab.
 #
-# $Id: SpeciesTree.pm,v 1.5 2006-10-09 11:34:16 rdf Exp $
+# $Id: SpeciesTree.pm,v 1.6 2006-10-09 16:13:21 jt6 Exp $
 
 package PfamWeb::Controller::Family::SpeciesTree;
 
@@ -14,7 +14,7 @@ use warnings;
 
 #use Bio::Pfam::Web::Tree;
 
-use Data::Dumper;
+use Data::Dump qw( dump );
 
 use base "PfamWeb::Controller::Family";
 
@@ -30,22 +30,24 @@ sub getData : Path {
   my $acc = $c->stash->{pfam}->pfamA_acc;
 
   $c->forward( "getTree" );
+  $c->log->debug( dump $c->stash->{rawTree} );
 
   my $js;
-  $c->stash->{rawTree}->convert_to_js( \$js );
-  $c->stash->{tree} = $js;
-  #$c->log->debug("javascript:|".$js."|");
+#  $c->stash->{rawTree}->convert_to_js( \$js );
+#  $c->stash->{tree} = $js;
+
+  $c->stash->{template} = "components/blocks/family/renderTree.tt";
 
 }
 
 #-------------------------------------------------------------------------------
 # override the default end from Family, so that we can return the tree directly
 
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  $c->response->body( $c->stash->{tree} );
-}
+#sub end : Private {
+#  my( $this, $c ) = @_;
+#
+#  $c->response->body( $c->stash->{tree} );
+#}
 
 #-------------------------------------------------------------------------------
 
