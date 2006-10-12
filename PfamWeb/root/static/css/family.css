@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.13 2006-10-06 15:15:54 jt6 Exp $
+   $Id: family.css,v 1.14 2006-10-12 10:27:09 jt6 Exp $
 */   
 
 /*
@@ -138,4 +138,39 @@ div.blockContent ol {
 	width: 12em;
     display: block;
     float: left;
+}
+
+/* ---------------------------------------- */
+/* species tree styles */
+
+div.nodeSummary {
+  float: right;
+  border: 1px solid #AAA;
+  background: #CBD;
+}
+
+div.nodeSummary span {
+  padding: 0.4em;
+}
+
+.seedSummary {
+  background: red;
+}
+
+span.nodeSummaryContent span {
+    border-width: 1px;
+	border-style: solid;
+}
+
+span.specSum {
+	background: #FDD;
+    border-color: #B99;
+}
+span.seqSum {
+	background: #DFD;
+    border-color: #9B9;
+}
+span.domSum {
+	background: #DDF;
+    border-color: #99B;
 }
