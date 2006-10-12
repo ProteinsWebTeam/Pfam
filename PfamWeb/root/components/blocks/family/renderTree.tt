@@ -1,0 +1,55 @@
+[%
+META naked = 1;
+
+USE dumper;
+
+BLOCK walkTree;
+
+	IF tree.branches;
+
+		FOREACH node_name IN tree.branches.keys;
+
+			node_id = node_name.replace( '\W', '_' );
+			node = tree.branches.$node_name;
+
+			IF node.branches.keys.size > 1 OR NOT node.branches;
+				html_id = "${node_id}_html";
+-%]
+var html = '\
+<!-- <span id="[% html_id %]" class="nodeSummary[% node.inSeed ? " seedNode" : "" %]">\
+  <a href="#"\
+     onclick="toggleNodeSummary(\'[% node_id %]\');return false"\
+     class="nodeSummarySwitch"\
+     id="nodeSummarySwitch[% node_id %]">-</a> -->\
+  <span class="nodeSummaryContent" id="nodeSummary[% node_id %]">\
+    <span class="specSum">[% node.species.size %]</span>\
+    <span class="seqSum">[% node.sequences.size %]</span>\
+    <span class="domSum">[% node.frequency %]</span>\
+  </span>\
+<!-- </span> -->\
+';
+
+var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true);
+nodeMapping["[% html_id %]"] = [% node_id %].labelElId;
+
+
+//var [% html_id %] = new YAHOO.widget.HTMLNode(html, [% node_id %], false, true );
+[%
+			ELSE;
+-%]
+			var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
+[%
+			END;
+
+			IF node.branches;
+	 			INCLUDE walkTree tree=node parent=node_id;
+			END; # of if node.branches
+
+		END; # of FOREACH node_name
+
+	END; # of if tree.branches
+
+END; # BLOCK walkTree
+
+INCLUDE walkTree tree=rawTree parent="root"
+-%]
