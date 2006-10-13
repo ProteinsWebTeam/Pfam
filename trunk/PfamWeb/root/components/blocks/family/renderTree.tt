@@ -9,24 +9,23 @@ BLOCK walkTree;
 
 		FOREACH node_name IN tree.branches.keys;
 
-			node_id = node_name.replace( '\W', '_' );
 			node = tree.branches.$node_name;
+			node_id = node_name.replace( '\W', '_' );
 
 			IF node.branches.keys.size > 1 OR NOT node.branches OR parent == "root"
 -%]
+				var summaryId = YAHOO.util.Dom.generateId();
 				var html = '\
 				  <div class="nodeSummary[% NOT node.branches ? " leafNode" : "" %][% node.inSeed ? " seedNode" : "" %]"\
-				       id="nodeSummary[% node_id %]">\
+				       id="' + summaryId +'">\
 				    <div class="specSum">[% node.species.size %]</div>\
 				    <div class="seqSum">[% node.sequences.size %]</div>\
 				    <div class="domSum">[% node.frequency %]</div>\
-				  </div>\
-				';
+				  </div>';
 
 				var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true, false, [% node.inSeed ? "true" : "false" %] );
 
-				console.debug( "adding |" + [% node_id %].toString() + "| to hash" );
-				nodeMapping[[% node_id %].toString()] = [% node_id %];
+				nodeMapping[summaryId] = [% node_id %];
 [%
 			ELSE;
 -%]
@@ -38,7 +37,7 @@ BLOCK walkTree;
 	 			INCLUDE walkTree tree=node parent=node_id;
 			ELSE
 -%]
-				nodeSequences[[% node_id %].toString()] = "[% node.sequences.keys.join(",") %]";
+				nodeSequences[summaryId] = "[% node.sequences.keys.join(" ") %]";
 [%
 			END; # of if node.branches
 
