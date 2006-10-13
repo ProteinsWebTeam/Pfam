@@ -12,37 +12,34 @@ BLOCK walkTree;
 			node_id = node_name.replace( '\W', '_' );
 			node = tree.branches.$node_name;
 
-			IF node.branches.keys.size > 1 OR NOT node.branches;
-				html_id = "${node_id}_html";
+			IF node.branches.keys.size > 1 OR NOT node.branches OR parent == "root"
 -%]
-var html = '\
-<!-- <span id="[% html_id %]" class="nodeSummary[% node.inSeed ? " seedNode" : "" %]">\
-  <a href="#"\
-     onclick="toggleNodeSummary(\'[% node_id %]\');return false"\
-     class="nodeSummarySwitch"\
-     id="nodeSummarySwitch[% node_id %]">-</a> -->\
-  <span class="nodeSummaryContent" id="nodeSummary[% node_id %]">\
-    <span class="specSum">[% node.species.size %]</span>\
-    <span class="seqSum">[% node.sequences.size %]</span>\
-    <span class="domSum">[% node.frequency %]</span>\
-  </span>\
-<!-- </span> -->\
-';
+				var html = '\
+				  <div class="nodeSummary[% NOT node.branches ? " leafNode" : "" %][% node.inSeed ? " seedNode" : "" %]"\
+				       id="nodeSummary[% node_id %]">\
+				    <div class="specSum">[% node.species.size %]</div>\
+				    <div class="seqSum">[% node.sequences.size %]</div>\
+				    <div class="domSum">[% node.frequency %]</div>\
+				  </div>\
+				';
 
-var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true);
-nodeMapping["[% html_id %]"] = [% node_id %].labelElId;
+				var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true, false, [% node.inSeed ? "true" : "false" %] );
 
-
-//var [% html_id %] = new YAHOO.widget.HTMLNode(html, [% node_id %], false, true );
+				console.debug( "adding |" + [% node_id %].toString() + "| to hash" );
+				nodeMapping[[% node_id %].toString()] = [% node_id %];
 [%
 			ELSE;
 -%]
-			var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
+				var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
 [%
 			END;
 
 			IF node.branches;
 	 			INCLUDE walkTree tree=node parent=node_id;
+			ELSE
+-%]
+				nodeSequences[[% node_id %].toString()] = "[% node.sequences.keys.join(",") %]";
+[%
 			END; # of if node.branches
 
 		END; # of FOREACH node_name
