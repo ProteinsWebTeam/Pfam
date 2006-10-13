@@ -1648,7 +1648,6 @@ YAHOO.widget.TextNode.prototype.toString = function() {
 
 
 YAHOO.widget.TextNode.prototype.check = function( state ) { 
-  console.debug( "TextNode: \"checking\" node |" + this + "|" ) ;
   for( var i = 0; i < this.children.length; i++ ) {
 	this.children[i].check( state );
   }
@@ -1813,11 +1812,9 @@ YAHOO.widget.HTMLNode.prototype.toString = function() {
 
 
 YAHOO.widget.HTMLNode.prototype.check = function( state ) { 
-  console.debug( "HTMLNode: no children for HTMLNodes." ) ;
 };
 
 YAHOO.widget.HTMLNode.prototype.uncheck = function() { 
-  console.debug( "HTMLNode: no children for HTMLNodes." ) ;
 };
 
 
