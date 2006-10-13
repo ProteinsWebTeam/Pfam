@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.4 2006-10-13 12:32:01 jt6 Exp $
+// $Id: family.js,v 1.5 2006-10-13 13:59:43 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -73,6 +73,9 @@ function stFailure() {
 }
 
 //------------------------------------------------------------
+//- alignment tree methods -----------------------------------
+//------------------------------------------------------------
+
 // callbacks for the alignment tree generation call
 
 function atSuccess( oResponse ) {
@@ -176,6 +179,11 @@ function formatAlignment( urlBase) {
 }
 
 //------------------------------------------------------------
+//- species tree methods -------------------------------------
+//------------------------------------------------------------
+
+// toggle the highlighting of those sequences which are found in the 
+// seed alignment
 
 var seedsHighlighted = true;
 
@@ -186,9 +194,7 @@ function toggleHighlightSeed() {
 	  } );
   } else {
 	$$(".seedNode").each( function( summary ) {
-		console.debug( "summary.id: |" + summary.id + "|" );
 		if( nodeMapping[summary.id] ) {
-		  console.debug( "retrieved node |" + nodeMapping[summary.id] + "|" );
 		  Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
 		}
 	  } );
@@ -197,6 +203,7 @@ function toggleHighlightSeed() {
 }
 
 //------------------------------------------------------------
+// toggle showing/hiding of the node summaries
 
 var summariesVisible = true;
 
@@ -214,6 +221,8 @@ function toggleShowSummaries() {
 }
 
 //------------------------------------------------------------
+// move the "tools palette" so that it remains at the top of the page
+// as the browser window is scrolled
 
 var toolStart;
 
@@ -231,19 +240,27 @@ function moveTools() {
 }
 
 //------------------------------------------------------------
+// collect the sequences that are specified by the checked leaf nodes
+// in the tree. Submit the form in the page which will act on those
+// accessions
 
 function collectSequences() {
+
+  var seqs = "";
 
   $$(".leafNode").each
 	( function( summary ) {
 	  var taskNode = nodeMapping[summary.id];
-	  console.debug( "checking taskNode |" + taskNode + "|" );
 	  if( taskNode.checked ) {
-		console.debug( "taskNode |" + taskNode + "| is checked" );
-		console.debug( "selected sequences: |" + nodeSequences[summary.id] + "|" );
+		seqs = seqs + nodeSequences[summary.id] + " ";
 	  }
 	} );
 
+  // escape the sequences string, just to be on the safe side
+  $("seqs").value = escape(seqs);
+
+  // and submit the form
+  $("subTreeForm").submit();
 }
 
 //------------------------------------------------------------
