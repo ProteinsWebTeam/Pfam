@@ -2,54 +2,95 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# Controller to build a species tree. This is the clickable,
-# expandable tree in the "Species" tab.
-#
-# $Id: SpeciesTree.pm,v 1.7 2006-10-09 16:21:06 rdf Exp $
+# $Id: SpeciesTree.pm,v 1.8 2006-10-13 14:04:13 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Family::SpeciesTree - controller to build the
+species tree
+
+=cut
 
 package PfamWeb::Controller::Family::SpeciesTree;
+
+=head1 DESCRIPTION
+
+Builds a species tree as a series of nested hashes, which is handed
+off to a template to be rendered as a clickable HTML tree.
+
+Generates a B<page fragment>.
+
+$Id: SpeciesTree.pm,v 1.8 2006-10-13 14:04:13 jt6 Exp $
+
+=cut
 
 use strict;
 use warnings;
 
-#use Bio::Pfam::Web::Tree;
-
+use URI::Escape;
 use Data::Dump qw( dump );
 
 use base "PfamWeb::Controller::Family";
 
 #-------------------------------------------------------------------------------
-# pick up a URL like http://localhost:3000/speciestree?acc=PF00067
 
-sub getData : Path {
+=head1 METHODS
+
+=head2 auto : Private
+
+Generates the tree and adds it to the stash.
+
+=cut
+
+sub auto : Private {
   my( $this, $c ) = @_;
 
-  return unless defined $c->stash->{pfam};
-
-  # the accession should be set by the begin method on the application class
-  my $acc = $c->stash->{pfam}->pfamA_acc;
-
+  # retrieve the tree and stash it
   $c->forward( "getTree" );
-  $c->log->debug( dump $c->stash->{rawTree} );
+}
 
-  my $js;
-#  $c->stash->{rawTree}->convert_to_js( \$js );
-#  $c->stash->{tree} = $js;
+#-------------------------------------------------------------------------------
 
+=head2 renderTree : Path
+
+Captures URLs like C<http://localhost:3000/family/speciestree?acc=PF00067>
+
+=cut
+
+sub renderTree : Path {
+  my( $this, $c ) = @_;
+
+  # point to the template that will generate the javascript that
+  # builds the tree in the client
   $c->stash->{template} = "components/blocks/family/renderTree.tt";
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 renderSubTree : Path
+
+Renders a tree from the supplied sequence accessions.
+
+=cut
+
+sub renderSubTree : Path( "/family/speciessubtree" ) {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( "acc:  |" . $c->req->param( "acc" ) . "|" );
+  $c->log->debug( "seqs: |" . $c->req->param( "seqs" ) . "|" );
+
+  foreach ( split / /, uri_unescape( $c->req->param("seqs") ) ) {
+	$c->log->debug( "  id: |$_|" );
+  }
 
 }
 
 #-------------------------------------------------------------------------------
-# override the default end from Family, so that we can return the tree directly
-
-#sub end : Private {
-#  my( $this, $c ) = @_;
-#
-#  $c->response->body( $c->stash->{tree} );
-#}
-
+#- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
+
+# retrieve the tree data from the database and recurse over it to
+# build a set of nested hashes that represent it
 
 sub getTree : Private {
   my( $this, $c ) = @_;
@@ -62,7 +103,7 @@ sub getTree : Private {
 							   );
   #Get the species information for the seed alignment
   my @resultsSeed = $c->model("PfamDB::PfamA_reg_seed")->search(
-								 { "pfamA.pfamA_acc" => "PF07065"},
+								 { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc },
 								 { join              => [ qw/ pfamA pfamseq /],
 								   prefetch          => [ qw/pfamseq/] }
 								);
@@ -83,20 +124,25 @@ sub getTree : Private {
     chop($species);
     #As the species has a leading white space.....
     $species =~ s/^(\s+)//g;
-    my ($genus) = split(/\s+/, $species);
+    my @tax = split(/\;/, $tax);
+    $tax[$#tax] = $species;
+    #my ($genus) = split(/\s+/, $species);
     #Work out must to remove.
-    my $lengthToRemove = length($genus) + 1; #+1 for full stop and one for leading white space;
-    my $lengthOfTaxonomy = length($tax);
-    my $offSet = $lengthOfTaxonomy-$lengthToRemove;
-    substr($tax, $offSet, $lengthToRemove, $species);
+    #my $lengthToRemove = length($genus) + 1; #+1 for full stop and one for leading white space;
+    #my $lengthOfTaxonomy = length($tax);
+    #my $offSet = $lengthOfTaxonomy-$lengthToRemove;
+    #substr($tax, $offSet, $lengthToRemove, $species);
     $$speciesData{'acc'} = $region->pfamseq_acc;
     $$speciesData{'species'} = $species;
     $$speciesData{'inSeed'} = 1  if ($seedSeqs{$region->pfamseq_acc});
-    $$speciesData{'tax'} = [split(/;/,$tax)];
+    $$speciesData{'tax'} = \@tax;
     &addBranch(\%tree, $speciesData);
   }
   $c->stash->{rawTree} = \%tree;
 }
+
+#-------------------------------------------------------------------------------
+# recursive subroutine to construct a node in the tree
 
 sub addBranch {
   my ($treeRef, $branchRef) = @_;
@@ -113,5 +159,18 @@ sub addBranch {
 }
 
 #-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;
