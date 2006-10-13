@@ -1,11 +1,11 @@
-[%#
+[%
 # species.tt
 # jt6 20060411 WTSI
 #
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.6 2006-09-28 10:06:24 rdf Exp $
+# $Id: species.tt,v 1.7 2006-10-13 14:02:35 jt6 Exp $
 %]
 
 <!-- start species block -->
@@ -21,8 +21,18 @@
         for the ajax call below. The script defines the object and the 
 	    ajax response populates it %]
 
-	<a href="javascript:tree.expandAll()">Fully expand tree</a>
-	<a href="javascript:tree.collapseAll()">Fully collapse tree</a>
+	 <div id="treeTools">
+       <ul>
+	     <li><a href="#" onclick="tree.expandAll();return false">Fully expand tree</a></li>
+	     <li><a href="#" onclick="tree.collapseAll();return false">Fully collapse tree</a></li>
+	     <li><a href="#" onclick="tree.getRoot().children[0].uncheck();return false">Uncheck all</a></li>
+	     <li><a href="#" onclick="toggleShowSummaries();return false">Toggle summaries</a></li>
+	     <li><a href="#" onclick="toggleHighlightSeed();return false">Highlight species in seed</a></li>
+	     <li><a href="[% c.uri_for( "/family/texttree", acc=pfam.pfamA_acc ) | uri | html%]">Download text tree</a></li>
+	     <li><a href="#" onclick="collectSequences();return false">Collect selected sequences</a></li>
+         <li>Key: <span class="specSum">species</span>, <span class="seqSum">sequences</span>, <span class="domSum">domains</span>.</li>
+	  </ul>
+    </div>
 
     <!-- start of tree -->
 	<div id="treeDiv">
@@ -35,9 +45,20 @@
   </div>
 </div>
 
+<form id="subTreeForm" action="[% c.uri_for( "/family/speciessubtree" ) %]" method="get">
+	<input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
+ 	<input type="hidden" name="seqs" id="seqs" />
+</form>
+
 <script type="text/javascript">
   loadOptions.st.uri    = "[% c.uri_for( "/family/speciestree" ) %]";
   loadOptions.st.params = "acc=[% pfam.pfamA_acc %]";
+[%# a hash that maps between the ID of the summary node and the TaskNode object -%]
+  nodeMapping = {};
+[%# a hash that maps between the ID of the summary node and string of sequence accessions -%]
+  nodeSequences = {};
+[%# add a listener that will move the tools palette in response to scrolling of the window %]
+  Event.observe( window, "scroll", moveTools, false );
 </script>
 
 <!-- end of species block -->
