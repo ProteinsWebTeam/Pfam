@@ -10,10 +10,12 @@
  * @param oData    {object}  A string or object containing the data that will
  *                           be used to render this node.
  * @param oParent  {Node}    This node's parent node
+ * @param oSummary {Node}    This node's summary information
  * @param expanded {boolean} The initial expanded/collapsed state
  * @param checked  {boolean} The initial checked/unchecked state
+ * @param inSeed   {boolean} Whether this node is in the seed alignment...
  */
-YAHOO.widget.TaskNode = function(oData, oParent, oSummary, expanded, checked) {
+YAHOO.widget.TaskNode = function(oData, oParent, oSummary, expanded, checked, inSeed ) {
 
     if (oData) { 
         this.init(oData, oParent, expanded);
@@ -33,6 +35,8 @@ YAHOO.widget.TaskNode = function(oData, oParent, oSummary, expanded, checked) {
 	if( oSummary ) {
 	  this.summary = oSummary;
 	}
+
+	this.inSeed = ( inSeed ) ? true : false;
 
     this.logger = new YAHOO.widget.LogWriter(this.toString());
 };
@@ -267,10 +271,9 @@ YAHOO.widget.TaskNode.prototype.getNodeHtml = function() {
     
 
     sb[sb.length] = '<td>';
-    sb[sb.length] = '<span>';
     sb[sb.length] = '<a';
     sb[sb.length] = ' id="' + this.labelElId + '"';
-    sb[sb.length] = ' class="' + this.labelStyle + '"';
+    sb[sb.length] = ' class="' + this.labelStyle + (this.inSeed ? ' highlightSeed"' : '"');
     sb[sb.length] = ' href="' + this.href + '"';
     sb[sb.length] = ' target="' + this.target + '"';
     if (this.hasChildren(true)) {
@@ -286,8 +289,9 @@ YAHOO.widget.TaskNode.prototype.getNodeHtml = function() {
     sb[sb.length] = ' >';
     sb[sb.length] = this.label;
     sb[sb.length] = '</a>';
+    sb[sb.length] = '</td>';
+    sb[sb.length] = '<td class="nodeSummaryCell">';
 	sb[sb.length] = this.summary;
-    sb[sb.length] = '</span>';
     sb[sb.length] = '</td>';
     sb[sb.length] = '</tr>';
     sb[sb.length] = '</table>';
