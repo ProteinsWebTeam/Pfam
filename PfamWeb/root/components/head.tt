@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.7 2006-10-06 10:23:57 jt6 Exp $
+# $Id: head.tt,v 1.8 2006-10-16 14:33:20 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -30,11 +30,11 @@
 
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/jimmac.js" ) %]"></script>
 <script type="text/javascript">
-  new ypSlideOutMenu("menu2","down",273,16,100,125)
-  new ypSlideOutMenu("menu3","down",373,16,100,100)
-  new ypSlideOutMenu("menu4","down",473,16,100,50)
-  new ypSlideOutMenu("menu5","down",573,16,100,50)
-  new ypSlideOutMenu("menu6","down",673,16,100,600)
+  new ypSlideOutMenu("menu2","down",273,16,100,125);
+  new ypSlideOutMenu("menu3","down",373,16,100,100);
+  new ypSlideOutMenu("menu4","down",473,16,100,50);
+  new ypSlideOutMenu("menu5","down",573,16,100,50);
+  new ypSlideOutMenu("menu6","down",673,16,100,600);
 </script>
 
 <!-- ====================================================================== -->
@@ -61,7 +61,7 @@
 <!-- YAHOO modules -->
 
 <!-- Namespace source file -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/YAHOO.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/yahoo.js" ) %]"></script>
 
 <!-- Dependency source files -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/dom.js" ) %]" ></script>
@@ -69,6 +69,7 @@
 
 <!-- TreeView widget and accompanying stylesheet -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/treeview.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/TaskNode.js" ) %]"></script>
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
 
 <!-- ====================================================================== -->
