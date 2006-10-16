@@ -5,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.7 2006-10-13 14:02:35 jt6 Exp $
+# $Id: species.tt,v 1.8 2006-10-16 14:16:22 jt6 Exp $
 %]
 
 <!-- start species block -->
@@ -21,17 +21,35 @@
         for the ajax call below. The script defines the object and the 
 	    ajax response populates it %]
 
-	 <div id="treeTools">
-       <ul>
-	     <li><a href="#" onclick="tree.expandAll();return false">Fully expand tree</a></li>
-	     <li><a href="#" onclick="tree.collapseAll();return false">Fully collapse tree</a></li>
-	     <li><a href="#" onclick="tree.getRoot().children[0].uncheck();return false">Uncheck all</a></li>
-	     <li><a href="#" onclick="toggleShowSummaries();return false">Toggle summaries</a></li>
-	     <li><a href="#" onclick="toggleHighlightSeed();return false">Highlight species in seed</a></li>
-	     <li><a href="[% c.uri_for( "/family/texttree", acc=pfam.pfamA_acc ) | uri | html%]">Download text tree</a></li>
-	     <li><a href="#" onclick="collectSequences();return false">Collect selected sequences</a></li>
-         <li>Key: <span class="specSum">species</span>, <span class="seqSum">sequences</span>, <span class="domSum">domains</span>.</li>
-	  </ul>
+	<div id="treeTools">
+      <div id="treeToolsHeader" onclick="toggleTools();return false">
+        <h3>Tree controls</h3>
+        <span id="toolsToggle">Hide</span>
+		<div class="cleaner"><!-- empty --></div>
+      </div>
+	  <div id="treeToolsContent">
+         <ul>
+	      <li><a href="#" onclick="tree.getRoot().children[0].uncheck();return false">Uncheck</a> all</li>
+	      <li>Fully <a href="#" onclick="tree.expandAll();return false">expand</a> tree</li>
+	      <li>Fully <a href="#" onclick="tree.collapseAll();return false">collapse</a> tree</li>
+	      <li><div id="ddph">Expand tree...</div></li>
+	    </ul>
+	    <h3>Annotation</h3>
+        <ul> 
+	      <li><a id="seedToggle" href="#" onclick="toggleHighlightSeed();return false">Hide</a> highlighting of species in seed</li>
+	      <li><a id="sumToggle" href="#" onclick="toggleShowSummaries();return false">Hide</a> summaries</li>
+	      <li>Key: <span class="specSum">species</span>, <span class="seqSum">sequences</span>, <span class="domSum">domains</span></li>
+        </ul>
+        <h3>Download</h3>
+	    <ul>
+	      <li><a href="[% c.uri_for( "/family/texttree", acc=pfam.pfamA_acc ) | uri | html%]">Save</a> a text representation</li>
+        </ul>
+	    <h3>View selected sequences</h3>
+        <ul>
+          <li><a href="#" onclick="collectSequences();return false">Graphically</a></li>
+          <li>As an <a href="#" onclick="collectSequences();return false">alignment</a></li>
+        </ul>
+      </div>
     </div>
 
     <!-- start of tree -->
