@@ -2,7 +2,7 @@
 # Pfam.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pfam.pm,v 1.2 2006-10-03 14:31:28 jt6 Exp $
+# $Id: Pfam.pm,v 1.3 2006-10-16 14:49:09 jt6 Exp $
 
 =head1 NAME
 
@@ -33,7 +33,10 @@ against the following columns:
 
 =back
 
-$Id: Pfam.pm,v 1.2 2006-10-03 14:31:28 jt6 Exp $
+Also does a simple look up in the pfam table, checking to see if the
+raw search terms match a Pfam family accession or ID.
+
+$Id: Pfam.pm,v 1.3 2006-10-16 14:49:09 jt6 Exp $
 
 =cut
 

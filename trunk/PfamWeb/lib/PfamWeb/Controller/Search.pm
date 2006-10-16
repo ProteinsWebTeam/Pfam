@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.4 2006-10-03 14:30:26 jt6 Exp $
+# $Id: Search.pm,v 1.5 2006-10-16 14:48:55 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.4 2006-10-03 14:30:26 jt6 Exp $
+$Id: Search.pm,v 1.5 2006-10-16 14:48:55 jt6 Exp $
 
 =cut
 
@@ -96,10 +96,11 @@ the results of the whole query.
 
 =back
 
-It might be necessary, in the future, to modify this process so that
-the plugins can return an array of
-L<ResultSets|DBIx::Class::ResultSet>, allowing each one to execute
-multiple queries.
+Plugins can run as many queries as necessary, returning the results as
+an array of references to DBIC L<ResultSets|DBIx::Class::ResultSet>.
+The results from multiple C<ResultSets> are merged in the order that
+they were received, so that results from later queries will override
+those from earlier ones.
 
 =cut
 
