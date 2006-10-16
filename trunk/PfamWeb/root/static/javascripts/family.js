@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.5 2006-10-13 13:59:43 jt6 Exp $
+// $Id: family.js,v 1.6 2006-10-16 14:17:39 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -182,6 +182,22 @@ function formatAlignment( urlBase) {
 //- species tree methods -------------------------------------
 //------------------------------------------------------------
 
+// augment the base TextNode from Yahoo with functions to walk down
+// the tree. These methods are here to allow cascades to work for
+// TextNodes, although we're primarily interested in the TaskNodes,
+// which have a check method from the outset
+
+YAHOO.widget.TextNode.prototype.check = function( state ) { 
+  for( var i = 0; i < this.children.length; i++ ) {
+	this.children[i].check( state );
+  }
+};
+
+YAHOO.widget.TextNode.prototype.uncheck = function( state ) { 
+  this.check( 0 );
+};
+
+//------------------------------------------------------------
 // toggle the highlighting of those sequences which are found in the 
 // seed alignment
 
@@ -189,18 +205,42 @@ var seedsHighlighted = true;
 
 function toggleHighlightSeed() {
   if( seedsHighlighted ) {
-	$$(".highlightSeed").each( function( summary ) {
-		Element.removeClassName( summary, "highlightSeed" );
-	  } );
+	var links = $A( document.getElementsByClassName("highlightSeed", "treeDiv") );
+	links.each( function( a ) {
+				  Element.removeClassName( a, "highlightSeed" );
+				} );
+	Element.update( "seedToggle", "Show" );
   } else {
-	$$(".seedNode").each( function( summary ) {
-		if( nodeMapping[summary.id] ) {
-		  Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
-		}
-	  } );
+	var divs = $A( document.getElementsByClassName("seedNode", "treeDiv") );
+	divs.each( function( d ) {
+				 if( nodeMapping[d.id] ) {
+				   Element.addClassName( $(nodeMapping[d.id].labelElId), "highlightSeed" );
+				 }
+			   } );
+	Element.update( "seedToggle", "Hide" );
   }
   seedsHighlighted = !seedsHighlighted;
 }
+
+// the $$() function in prototype is variously described as wonderful
+// or immensely slow, so we'll ditch it in favour of walking the DOM
+// ourselves. This function is just here for historical reasons...
+// jt6 20061016 WTSI
+//
+// function toggleHighlightSeedSlowly() {
+//   if( seedsHighlighted ) {
+// 	$$(".highlightSeed").each( function( summary ) {
+// 		Element.removeClassName( summary, "highlightSeed" );
+// 	  } );
+//   } else {
+// 	$$(".seedNode").each( function( summary ) {
+// 		if( nodeMapping[summary.id] ) {
+// 		  Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
+// 		}
+// 	  } );
+//   }
+//   seedsHighlighted = !seedsHighlighted;
+// }
 
 //------------------------------------------------------------
 // toggle showing/hiding of the node summaries
@@ -212,13 +252,33 @@ function toggleShowSummaries() {
 	$$("div.nodeSummary").each( function( node ) {
         Element.hide( node );
       } );
+	Element.update( "sumToggle", "Show" );
   } else {
 	$$("div.nodeSummary").each( function( node ) {
         Element.show( node );
       } );
+	Element.update( "sumToggle", "Hide" );
   }
   summariesVisible = !summariesVisible;
 }
+
+// turns out that the $$() function is quicker than walking the tree
+// in this case... who knew ?
+// jt6 20061016 WTSI
+//
+// function toggleShowSummariesSlowly() {
+//   var divs = $A( document.getElementsByClassName("nodeSummary","treeDiv") );
+//   if( summariesVisible ) {
+// 	divs.each( function( d ) {
+// 				Element.hide( d );
+// 			  } );
+//   } else {
+// 	divs.each( function( d ) {
+// 				Element.show( d );
+// 			  } );
+//   }
+//   summariesVisible = !summariesVisible;
+// }
 
 //------------------------------------------------------------
 // move the "tools palette" so that it remains at the top of the page
@@ -248,13 +308,13 @@ function collectSequences() {
 
   var seqs = "";
 
-  $$(".leafNode").each
-	( function( summary ) {
-	  var taskNode = nodeMapping[summary.id];
-	  if( taskNode.checked ) {
-		seqs = seqs + nodeSequences[summary.id] + " ";
-	  }
-	} );
+  var leaves = $A( document.getElementsByClassName( "leafNode", "treeDiv" ) );
+  leaves.each( function( n ) {
+				 var taskNode = nodeMapping[n.id];
+				 if( taskNode.checked ) {
+				   seqs = seqs + nodeSequences[n.id] + " ";
+				 }
+			   } );
 
   // escape the sequences string, just to be on the safe side
   $("seqs").value = escape(seqs);
@@ -263,4 +323,66 @@ function collectSequences() {
   $("subTreeForm").submit();
 }
 
+// function collectSequencesSlowly() {
+
+//   var seqs = "";
+
+//   $$(".leafNode").each
+// 	( function( summary ) {
+// 	  var taskNode = nodeMapping[summary.id];
+// 	  if( taskNode.checked ) {
+// 		seqs = seqs + nodeSequences[summary.id] + " ";
+// 	  }
+// 	} );
+
+//   // escape the sequences string, just to be on the safe side
+//   $("seqs").value = escape(seqs);
+
+//   // and submit the form
+//   $("subTreeForm").submit();
+// }
+
+//------------------------------------------------------------
+// expand the tree to the depth specified in the little form in the
+// tools palette
+
+function expandToDepth() {
+  tree.collapseAll();
+  expandTo( $F("depthSelector"), tree.root );
+}
+
+// the method that actually expands to a given depth. Should really
+// only be called by expandToDepth()
+var currentDepth = 0;
+
+function expandTo( finalDepth, node ) {
+
+  if( currentDepth < finalDepth - 1 ) {
+
+    for( var i=0; i< node.children.length; ++i ) {
+	  
+      var c = node.children[i];
+      c.expand();
+
+	  currentDepth++;
+      expandTo( finalDepth, c );
+	  currentDepth--;
+    }
+  }
+
+}
+
+//------------------------------------------------------------
+// show/hide the tree tools palette
+
+function toggleTools() {
+  if( Element.visible("treeToolsContent") ) {
+	Element.hide( "treeToolsContent" );
+	Element.update( "toolsToggle", "Show" );
+  } else {
+	Element.show( "treeToolsContent" );
+	Element.update( "toolsToggle", "Hide" );
+  }
+}
+	
 //------------------------------------------------------------
