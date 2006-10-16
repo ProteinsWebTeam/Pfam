@@ -49,3 +49,17 @@ END; # BLOCK walkTree
 
 INCLUDE walkTree tree=rawTree parent="root"
 -%]
+
+var dd = new Array();
+
+dd[dd.length] = '<form>';
+dd[dd.length] = 'Expand to depth ';
+dd[dd.length] = '<select id="depthSelector">';
+for( var i = 1; i <= [% maxTreeDepth %]; i++ ) {
+	dd[dd.length] = '<option value="' + i + '">' + i + '</option>';
+}
+dd[dd.length] = '</select>';
+dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
+dd[dd.length] = '</form>';
+
+Element.update( "ddph", dd.join("") );
