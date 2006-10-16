@@ -1,3 +1,11 @@
+
+// This is a modified version of TaskNode.js from the YUI
+// examples. The changes are largely to allow us to add "summaries"
+// after nodes, but the "check" behaviour is also altered so that
+// checking a node results in a cascade DOWN instead of UP, checking
+// children rather than parent nodes.
+// jt6 20061013 WTSI
+
 /**
  * The check box marks a task complete.  It is a simulated form field 
  * with three states ...
@@ -38,7 +46,7 @@ YAHOO.widget.TaskNode = function(oData, oParent, oSummary, expanded, checked, in
 
 	this.inSeed = ( inSeed ) ? true : false;
 
-    this.logger = new YAHOO.widget.LogWriter(this.toString());
+	//    this.logger = new YAHOO.widget.LogWriter(this.toString());
 };
 
 YAHOO.widget.TaskNode.prototype = new YAHOO.widget.TextNode();
@@ -94,7 +102,7 @@ YAHOO.widget.TaskNode.prototype.getCheckLink = function() {
  * Invoked when the user clicks the check box
  */
 YAHOO.widget.TaskNode.prototype.checkClick = function() { 
-    this.logger.log("previous checkstate: " + this.checkState);
+  //    this.logger.log("previous checkstate: " + this.checkState);
     if (this.checkState === 0) {
         this.check();
     } else {
@@ -110,7 +118,7 @@ YAHOO.widget.TaskNode.prototype.checkClick = function() {
  * Override to get the check click event
  */
 YAHOO.widget.TaskNode.prototype.onCheckClick = function() { 
-    this.logger.log("check was clicked");
+  //    this.logger.log("check was clicked");
 }
 
 /**
@@ -120,7 +128,7 @@ YAHOO.widget.TaskNode.prototype.updateParent = function() {
     var p = this.parent;
 
     if (!p || !p.updateParent) {
-        this.logger.log("Abort update parent: " + this.index);
+	  //        this.logger.log("Abort udpate parent: " + this.index);
         return;
     }
 
@@ -199,8 +207,9 @@ YAHOO.widget.TaskNode.prototype.setCheckState = function(state) {
 /**
  * Check this node
  */
+
 /*
- * hacked to make it possible to cascade down the tree rather than up
+ * hacked to cascade down the tree rather than up
  * jt6 20061011 WTSI
  */
 YAHOO.widget.TaskNode.prototype.check = function( state ) { 
@@ -215,30 +224,16 @@ YAHOO.widget.TaskNode.prototype.check = function( state ) {
   this.updateCheckHtml();
 };
 
+/**
+ * Uncheck this node
+ */
 YAHOO.widget.TaskNode.prototype.uncheck = function() {
   this.check( 0 );
 };
 
-/**
- * Uncheck this node
- */
-
-/* The old uncheck method... 
- * jt6 20061011 WTSI
- */
-YAHOO.widget.TaskNode.prototype.uncheckOLD = function() { 
-    this.setCheckState(0);
-     for (var i=0; i<this.children.length; ++i) {
-         this.children[i].uncheck();
-     }
-    this.updateCheckHtml();
-	this.updateChildren();
-	//	this.updateParent();
-};
-
 // Overrides YAHOO.widget.TextNode
 YAHOO.widget.TaskNode.prototype.getNodeHtml = function() { 
-    this.logger.log("Generating html");
+  //    this.logger.log("Generating html");
     var sb = new Array();
 
     sb[sb.length] = '<table border="0" cellpadding="0" cellspacing="0">';
