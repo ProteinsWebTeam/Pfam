@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+# $Id: faq.tt,v 1.2 2006-10-17 14:39:00 jm14 Exp $
 %]
 
 <!-- start faq block -->
@@ -22,36 +22,116 @@
 
 <span class=normallargetext><A NAME="1">General</A> Pfam FAQ</span><P>
 
-<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 
+
+
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 <TR><TD bgcolor=#000070 class=whitetableheader>What is Pfam?</TD></TR>
-<TR><TD class=normaltext>Pfam is a database of multiple alignments
-of protein domains or conserved protein regions. Hopefully they represent
-some evolutionary conserved structure which has implications for
-the protein's function.
+<TR><TD class=normaltext>
 
+Pfam is a collection of multiple sequence alignments and profile
+hidden Markov models (HMMs).  Each Pfam HMM represents a protein
+family or domain.  By searching a protein sequence against our the
+Pfam library of HMMs you can find out its domain architecture.  You
+can also use Pfam to analyse proteomes and domain architectures.  
 <p>
-Pfam is actually composed of two sets of families. <B>Pfam-A</B>  families are based on curated
-multiple alignments whereas <B>Pfam-B</B> is an automatic clustering of the rest
-of SWISSPROT and TrEMBL derived from the <b><A href="http://www.toulouse.inra.fr/prodom.html">PRODOM</a></b> database. The current FAQ is principly
-about the curated <B>Pfam-A</B> families.
+For each Pfam entry we have a family page which can be accessed in
+several ways; by following links for a particular family/domain on the
+website, clicking on a graphical image of a domain and by searching
+for a particular family using the search box on the Pfam website.
+From the family page you can view the alignments and annotation
+(including annotation from the InterPro database where available),
+view the species distribution of a domain, access cross-links to other
+databases and use other tools for protein analysis.  We display
+structural information for each family where available.  <p>
+
 </TD></TR></TABLE>
 <p>
+
+
 
 
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
-<TR><TD bgcolor=#000070 class=whitetableheader>How can I use it?</TD></TR>
-<TR><TD class=normaltext>The easiest way to use Pfam is through the
-Web.  However you can also download Pfam in flatfile format from our FTP
-site. Choose your web site:<P>
-<ul>
-<li><a href="http://www.sanger.ac.uk/Software/Pfam/"><img src=../gifs/flags/british_flag.gif border=0> Wellcome Trust Sanger Institute (UK)</a><BR>
-<li><a href="http://www.cgr.ki.se/Pfam/"><img src=../gifs/flags/swedish_flag.gif border=0> Karolinska Institutet (Sweden)</a><BR>
-<li><a href="http://pfam.wustl.edu/"><img src=../gifs/flags/american_flag.gif border=0> St Louis (USA)</a>
-<li><A HREF="http://pfam.jouy.inra.fr/"><img src=../gifs/flags/french_flag.gif border=0> Institut National de la Recherche Agronomique (France)</A><br>
-</ul>
+<TR><TD bgcolor=#000070 class=whitetableheader>What is the difference between Pfam-A and Pfam-B families?</TD></TR>
+<TR><TD class=normaltext>
+Pfam contains two types of families, Pfam-A  and  Pfam-B.   Pfam-A  families are manually curated HMM based families which we build using an alignment of a small number of representative sequences (we call this alignment the 'seed' alignment).  We manually set a threshold value for each HMM, and this determines the minimum score a sequence must attain to belong to the family.  We search all of our HMMs against the UniProt database, and include all sequences that score above the cut-off value for a particular family in the family's full alignment.   For each family we build two HMMs, one to represent fragment matches and one to represent full length matches. We use the HMMER2 software to build and search our profile HMMs.  Pfam-A matches are very unlikely to be false matches. 
+<p>
+To complement the Pfam-A families, we automatically generate Pfam-B families using the PRODOM database.  Pfam-B families are formed by taking alignments of sequence segments from PRODOM, and removing any Pfam-A residues from them. Some Pfam-B families are composed of low complexity regions and may not reflect true relationships, therefore we recommend you verify that sequences in a Pfam-B family are related by using other methods such as BLAST. 
+<p>
+All  families in Pfam are non-overlapping such that no amino acid belongs to more that one family/domain.  At each Pfam release we search all of our models against an updated version of UniProt, and regenerate our Pfam-B families using the most recent version of PRODOM.
+<p>
 </TD></TR></TABLE>
 <p>
+
+
+
+
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>What is a clan?</TD></TR>
+<TR><TD class=normaltext>
+Some Pfam families are grouped into 'clans'.   Pfam  defines  a  clan  as  a
+collection of families that have arisen from a single  evolutionary  origin.
+Evidence  of  their  evolutionary  relationship  can  be  in  the  form   of
+similarity in tertiary structures, or when structures are not available,  by
+common sequence motifs.  The seed alignments for all families within a  clan
+are aligned and the resulting alignment (called the clan alignment)  can  be
+accessed from a link on the clan page.   Each  clan  page  includes  a  clan
+alignment, a description of the clan and database links  where  appropriate.
+The clan pages can be accessed by following a link from the family page,  or
+alternatively they  can  be  accessed  by  clicking  on  'clans'  under  the
+'browse' by menu on tab on any Pfam page.
+
+
+</TD></TR></TABLE>
+<p>
+
+
+
+
+
+
+
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Can I search DNA against Pfam</TD></TR>
+<TR><TD class=normaltext>
+
+The Wise2 software package allows the comparison of protein HMMs to genomic DNA.  We use this package to allow users to search single DNA sequences against the library of Pfam HMMs.  To do this, you will need to go to the Pfam website hosted at the Sanger Institue (<a href="http://www.sanger.ac.uk/Software/Pfam/">Pfam</a>)</li> and paste your DNA sequence in the DNA search box on the search page.  The results take  approximately  2  minutes for a 1kb sequence, and approximately 1 hours for a 80kb sequence.
+
+<p>
+</TD></TR></TABLE>
+<p>
+
+
+
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>How can I submit a new domain</TD></TR>
+<TR><TD class=normaltext>
+
+If you know of a domain that is not present in Pfam, you can submit it to us by email (<a href="mailto:pfam@sanger.ac.uk">Pfam email<a/>) and we will endeavour to build a Pfam entry for it.  We ask that you supply us with a multiple sequence alignment of the domain (please send the alignment file as a text file (eg. .txt) and not in the format of a specific application such as a Word (.doc) document), and associated literature evidence if available.
+
+<p>
+</TD></TR></TABLE>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
 
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 <TR><TD bgcolor=#000070 class=whitetableheader>How can I search Pfam locally?</TD></TR>
@@ -102,7 +182,8 @@ search.</p>
 
 
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
-<TR><TD bgcolor=#000070 class=whitetableheader>What is actually kept for each Pfam family?</TD></TR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Family page</TD></TR>
+
 <TR><TD class=normaltext>Each family has the following data:
 <ul>
 <li> A <b>seed alignment</b> which is a hand edited multiple alignment representing the family.
