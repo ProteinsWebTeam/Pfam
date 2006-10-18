@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.9 2006-10-06 10:26:44 jt6 Exp $
+# $Id: pdb.tt,v 1.10 2006-10-18 12:22:26 jt6 Exp $
 
 numIds = pfamMaps.size;
 UNLESS numIds;
@@ -119,15 +119,16 @@ END;
                 </td>
 			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
 			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
-                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) %]"
+                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) | uri | html %]"
                      onclick="popUp(this.href,'console',800,800,'jmolWin');return false;"
                      target="newWin">Jmol</a>	
-                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) %]"
+                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) | uri | html %]"
                      onclick="popUp(this.href,'console',800,800,'avWin');return false;"
                      target="newWin">AstexViewer</a>	
-                  <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&pdb=[% pdbKey %]"
+                  <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
                      onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                     target="newWin">SPICE</a>	
+                     target="newWin"
+	                 class="ext">SPICE</a>	
 	            </td>
 
 	          </tr>
