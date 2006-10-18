@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.8 2006-10-13 14:04:13 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.9 2006-10-18 12:16:33 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.8 2006-10-13 14:04:13 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.9 2006-10-18 12:16:33 jt6 Exp $
 
 =cut
 
@@ -47,6 +47,7 @@ sub auto : Private {
 
   # retrieve the tree and stash it
   $c->forward( "getTree" );
+
 }
 
 #-------------------------------------------------------------------------------
@@ -114,6 +115,7 @@ sub getTree : Private {
   }
 
   my %tree;
+  my $maxDepth = 0;
   foreach my $region ( @regions ) {
     my $speciesData = {}; #This probably could be moved out
     #For some reason in the database Taxonomoy is stored up to genus!
@@ -125,6 +127,9 @@ sub getTree : Private {
     #As the species has a leading white space.....
     $species =~ s/^(\s+)//g;
     my @tax = split(/\;/, $tax);
+
+	$maxDepth = scalar @tax	if scalar @tax > $maxDepth;
+
     $tax[$#tax] = $species;
     #my ($genus) = split(/\s+/, $species);
     #Work out must to remove.
@@ -138,6 +143,8 @@ sub getTree : Private {
     $$speciesData{'tax'} = \@tax;
     &addBranch(\%tree, $speciesData);
   }
+  $tree{maxTreeDepth} = $maxDepth;
+
   $c->stash->{rawTree} = \%tree;
 }
 
