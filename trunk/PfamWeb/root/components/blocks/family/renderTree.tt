@@ -55,8 +55,12 @@ var dd = new Array();
 dd[dd.length] = '<form>';
 dd[dd.length] = 'Expand to depth ';
 dd[dd.length] = '<select id="depthSelector">';
-for( var i = 1; i <= [% maxTreeDepth %]; i++ ) {
-	dd[dd.length] = '<option value="' + i + '">' + i + '</option>';
+for( var i = 1; i <= [% rawTree.maxTreeDepth %]; i++ ) {
+	dd[dd.length] = '<option value="' + i + '"';
+    if( i == [% rawTree.maxTreeDepth %] ) {
+      dd[dd.length] = ' selected="1"';
+    }
+	dd[dd.length] = '">' + i + '</option>';
 }
 dd[dd.length] = '</select>';
 dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
