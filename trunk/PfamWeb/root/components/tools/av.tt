@@ -4,7 +4,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.1 2006-10-06 10:25:19 jt6 Exp $
+# $Id: av.tt,v 1.2 2006-10-18 12:26:55 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -80,10 +80,10 @@ object surfObj -map { current };
       <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
       <td>[% m.pdb_start_res %]</td>
       <td>[% m.pdb_end_res %]</td>
-      <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
+      <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]" target="pfamParentWin">[% m.pfamseq_id %]</a></td>
       <td>[% m.pfam_start_res %]</td>
       <td>[% m.pfam_end_res %]</td>
-      <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
+      <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]" target="pfamParentWin">[% m.pfamA_acc %]</a>)</td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
     </tr>
     [% END %]
