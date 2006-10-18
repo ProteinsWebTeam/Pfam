@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.7 2006-09-08 15:23:24 jt6 Exp $
+# $Id: summary.tt,v 1.8 2006-10-18 12:25:48 jt6 Exp $
 %]
 
 [% USE String %]
@@ -69,15 +69,16 @@
 	      <td class="data">
   	        <img class="pdbImage" src="[% c.uri_for( "/structure/getimage", id=pdbId ) %]" alt="[% pdbId %]" /><br />
             View this structure in 
-            <a href="[% c.uri_for( "/structure/viewer", id=pdbId, viewer="jmol" ) %]"
+            <a href="[% c.uri_for( "/structure/viewer", id=pdbId, viewer="jmol" ) | uri | html %]"
                onclick="popUp(this.href,'console',800,800,'jmolWin');return false;"
                target="newWin">Jmol</a>, 
-            <a href="[% c.uri_for( "/structure/viewer", id=pdbId, viewer="av" ) %]"
+            <a href="[% c.uri_for( "/structure/viewer", id=pdbId, viewer="av" ) | uri | html %]"
                onclick="popUp(this.href,'console',800,800,'avWin');return false;"
                target="newWin">AstexViewer</a> or 
-            <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&pdb=[% pdbId %]"
+            <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbId %]"
                onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-               target="newWin">SPICE</a>	
+               target="newWin"
+	           class="ext">SPICE</a>	
 
           </td>
 		</tr>
@@ -126,7 +127,7 @@
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		  <td class="label">PubMed reference:</td>
 	      <td class="data">
-	        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&list_uids=[% pdb.pubmed_id %]&dopt=Abstract">[% pdb.pubmed_id %]</a>
+	        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% pdb.pubmed_id %]">[% pdb.pubmed_id %]</a>
           </td>
 		</tr>
         <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
@@ -143,7 +144,7 @@
                 <a class="ext" href="http://www.ebi.ac.uk/thornton-srv/databases/cgi-bin/pdbsum/GetPage.pl?pdbcode=[% pdbId %]">PDBsum</a>
               </li>
               <li>
-                <a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/CATHSrch.pl?type=PDB&query=[% pdbId %]">CATH</a>
+                <a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/CATHSrch.pl?type=PDB&amp;query=[% pdbId %]">CATH</a>
               </li>
               <li>
                 <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?pdb=[% pdbId %]">Structural Classifcation of Proteins (SCOP)</a>
