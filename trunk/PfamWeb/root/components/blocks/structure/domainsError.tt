@@ -1,0 +1,23 @@
+[%
+# domainsError.tt
+# jt6 20061016 WTSI
+#
+# display an error message if we can't retrieve domain data from SCOP or CATH.
+#
+# $Id: domainsError.tt,v 1.1 2006-10-18 12:26:12 jt6 Exp $
+
+META naked = 1;
+
+USE date
+-%]
+
+<!-- start of domains error message -->
+
+<h3>Structural domain data unavailable</h3>
+
+<p>Data for this section are retrieved directly from SOAP services around the web, but
+there appears to be a problem with the one or more of these services.</p>
+
+<p>[% date.format %]</p>
+
+<!-- end of domains error message -->
