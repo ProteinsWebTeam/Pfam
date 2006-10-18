@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.15 2006-10-16 14:18:06 jt6 Exp $
+   $Id: family.css,v 1.16 2006-10-18 12:18:38 jt6 Exp $
 */   
 
 /*
@@ -185,6 +185,7 @@ div.nodeSummary div {
 	float: right;
     border: 1px solid #AAA;
     background: #e8e8e8;
+	opacity: 0.75;
 }
 
 #treeTools ul {
@@ -210,7 +211,7 @@ div.nodeSummary div {
 }
 
 #toolsToggle {
-    cursor: move;
+    cursor: pointer;
 	float: right;
     padding: 0.2em 0;
 }
