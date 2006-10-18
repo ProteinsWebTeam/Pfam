@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.17 2006-10-03 14:07:16 jt6 Exp $
+// $Id: pfFunctions.js,v 1.18 2006-10-18 12:19:32 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -20,6 +20,13 @@ loadOptions.sg = {}; // sequence graphics
 loadOptions.cg = {}; // clan graphics
 loadOptions.simap ={}; //simap graphics
 loadOptions.getDomains = {}; //get structural domains from cath and scop
+
+//------------------------------------------------------------
+// name the original window, so that we can target links back to it
+// from child-windows
+
+window.name = "pfamParentWin";
+
 //------------------------------------------------------------
 //- objects --------------------------------------------------
 //------------------------------------------------------------
