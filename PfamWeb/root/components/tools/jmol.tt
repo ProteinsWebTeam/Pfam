@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.1 2006-10-06 10:25:19 jt6 Exp $
+# $Id: jmol.tt,v 1.2 2006-10-18 12:29:36 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -51,6 +51,9 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
 <h1>PDB entry [% pdb.pdb_id %]</h1>
 
 <script type="text/javascript">
+  [%# we apparently need to set explicitly the name of the window, otherwise it takes the 
+    # name of the parent, so targetted links back to the parent won't work %]
+  window.name = "jmolWin";
   jmolInitialize(" [% c.uri_for( "/jmol" ) %]"); // REQUIRED
   jmolSetAppletColor( "white" );
   jmolApplet(500, '[% script %]');
@@ -81,10 +84,10 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
       <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
       <td>[% m.pdb_start_res %]</td>
       <td>[% m.pdb_end_res %]</td>
-      <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]">[% m.pfamseq_id %]</a></td>
+      <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]" target="pfamParentWin">[% m.pfamseq_id %]</a></td>
       <td>[% m.pfam_start_res %]</td>
       <td>[% m.pfam_end_res %]</td>
-      <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]">[% m.pfamA_acc %]</a>)</td>
+      <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]" target="pfamParentWin">[% m.pfamA_acc %]</a>)</td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
     </tr>
     [% END %]
