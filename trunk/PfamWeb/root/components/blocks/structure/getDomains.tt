@@ -1,10 +1,10 @@
-[%#
-# simap.tt
+[%
+# getDomains.tt
 # rdf 2006/08/24 WTSI
 # 
 # block for the structural domains data
 #
-# $Id: getDomains.tt,v 1.2 2006-09-28 11:46:04 jt6 Exp $
+# $Id: getDomains.tt,v 1.3 2006-10-18 12:25:13 jt6 Exp $
 -%]
 
 <!-- start structural domains block -->
@@ -16,8 +16,6 @@
   <div class="blockContent">
 
 	<!-- start of Structural Domains graphics div -->
-
-    <h3>Domains</h3>
 
     <div id="getDomph">
       <p class="loading">
