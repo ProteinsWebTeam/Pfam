@@ -1645,20 +1645,6 @@ YAHOO.widget.TextNode.prototype.toString = function() {
     return "TextNode (" + this.index + ") " + this.label;
 };
 
-
-
-YAHOO.widget.TextNode.prototype.check = function( state ) { 
-  for( var i = 0; i < this.children.length; i++ ) {
-	this.children[i].check( state );
-  }
-};
-
-YAHOO.widget.TextNode.prototype.uncheck = function( state ) { 
-  this.check( 0 );
-};
-
-
-
 /**
  * A menu-specific implementation that differs from TextNode in that only 
  * one sibling can be expanded at a time.
@@ -1808,15 +1794,6 @@ YAHOO.widget.HTMLNode.prototype.getNodeHtml = function() {
 YAHOO.widget.HTMLNode.prototype.toString = function() { 
     return "HTMLNode (" + this.index + ")";
 };
-
-
-
-YAHOO.widget.HTMLNode.prototype.check = function( state ) { 
-};
-
-YAHOO.widget.HTMLNode.prototype.uncheck = function() { 
-};
-
 
 /**
  * A static factory class for tree view expand/collapse animations
