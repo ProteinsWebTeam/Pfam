@@ -4,7 +4,7 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: family_ie.css,v 1.6 2006-09-22 10:21:34 jt6 Exp $
+   $Id: family_ie.css,v 1.7 2006-10-18 12:18:53 jt6 Exp $
 */
 
 hr.short {
@@ -14,4 +14,8 @@ hr.short {
 #alignmentData {
 	overflow-x: auto;
     overflow-y: visible;
+}
+
+#treeTools {
+	filter: alpha(opacity=75);
 }
