@@ -4,7 +4,7 @@
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.4 2006-09-07 10:09:43 jt6 Exp $
+# $Id: structure.tt,v 1.5 2006-10-18 12:24:10 jt6 Exp $
 -%]
 
 [%- RETURN UNLESS pfamMaps.size -%]
@@ -116,15 +116,16 @@
                 </td>
 			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
                 <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
-                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) %]"
+                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) | uri | html %]"
                      onclick="popUp(this.href,'console',800,800,'jmolWin');return false;"
                      target="newWin">Jmol</a>	
-                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) %]"
+                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) | uri | html %]"
                      onclick="popUp(this.href,'console',800,800,'avWin');return false;"
                      target="newWin">AstexViewer</a>	
-                  <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&pdb=[% pdbKey %]"
+                  <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
                      onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                     target="newWin">SPICE</a>	
+                     target="newWin"
+	                 class="ext">SPICE</a>	
 				</td>
 
 	          </tr>
