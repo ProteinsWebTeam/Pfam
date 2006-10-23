@@ -2,7 +2,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.5 2006-09-22 10:40:03 jt6 Exp $
+# $Id: structures.tt,v 1.6 2006-10-23 12:12:18 jt6 Exp $
 
 USE dumper;
 USE String
@@ -135,13 +135,14 @@ USE String
                   </td>
                   <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
                   <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
-                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) %]"
+                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) | uri | html %]"
                        onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;"
                        target="newWin">Jmol</a>	
-                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) %]"
+                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) | uri | html %]"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
                        target="newWin">AstexViewer</a>	
-                    <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&pdb=[% pdbKey %]"
+                    <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
+                       class="ext"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
                        target="newWin">SPICE</a>	
 				  </td>
