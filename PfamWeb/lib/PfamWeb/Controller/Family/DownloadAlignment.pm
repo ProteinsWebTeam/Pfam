@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: DownloadAlignment.pm,v 1.2 2006-10-06 15:15:09 jt6 Exp $
+# $Id: DownloadAlignment.pm,v 1.3 2006-10-23 12:22:26 jt6 Exp $
 
 =head1 NAME
 
@@ -17,15 +17,14 @@ package PfamWeb::Controller::Family::DownloadAlignment;
 
 Generates a B<full page>.
 
-$Id: DownloadAlignment.pm,v 1.2 2006-10-06 15:15:09 jt6 Exp $
+$Id: DownloadAlignment.pm,v 1.3 2006-10-23 12:22:26 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dumper;
-use Bio::Pfam::ColourAlign;
+use Data::Dump qw( dump );
 use Compress::Zlib;
 
 use base "PfamWeb::Controller::Family";
@@ -34,27 +33,13 @@ use base "PfamWeb::Controller::Family";
 
 =head1 METHODS
 
-=head2 auto : Private
+=head2 downloadAlignment : Private
 
-Just adds the alignment type (seed or full) to the stash.
-
-=cut
-
-sub auto : Private {
-  my( $this, $c ) = @_;
-
-  $c->stash->{type} = ( $c->req->param( "type" ) eq "seed" ) ? "seed" : "full";
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 downloadAlignment : Path
-
-Serves up the plain (no markup) alignment. Also applies various
+Serves the plain text (no markup) alignment. Also applies various
 changes to the alignment before hand, such as changing the gap style
 or sequence order.
 
-By default this method will write out in Stockholm format, but the
+By default this method will generate Stockholm format, but the
 following formats are also available and can be specified with the
 C<format> parameter:
 
@@ -85,7 +70,7 @@ The exact styles (other than C<pfam>) are defined by BioPerl.
 sub downloadAlignment : Path( "/family/downloadalignment" ) {
   my( $this, $c ) = @_;
 
-  my $alignment = $c->forward( "getAlignFile" );
+  my $alignment = $c->forward( "getAlignment" );
 
   my $pfamaln = new Bio::Pfam::AlignPfam->new;
   eval {
@@ -96,13 +81,15 @@ sub downloadAlignment : Path( "/family/downloadalignment" ) {
   };
 
   # gaps param can be default, dashes, dot or none
-  if( $c->req->param("gaps") eq "none" ) {
-    $pfamaln->map_chars('-', '');
-    $pfamaln->map_chars('\.', '');
-  }elsif( $c->req->param("gaps") eq "dots" ) {
-    $pfamaln->map_chars('-', '.');
-  }elsif( $c->req->param("gaps") eq "dashes" ) {
-    $pfamaln->map_chars('\.', '-');
+  if( $c->req->param("gaps") ) {
+	if( $c->req->param("gaps") eq "none" ) {
+	  $pfamaln->map_chars('-', '');
+	  $pfamaln->map_chars('\.', '');
+	}elsif( $c->req->param("gaps") eq "dots" ) {
+	  $pfamaln->map_chars('-', '.');
+	}elsif( $c->req->param("gaps") eq "dashes" ) {
+	  $pfamaln->map_chars('\.', '-');
+	}
   }
 
   # case param can be u or l
@@ -117,15 +104,17 @@ sub downloadAlignment : Path( "/family/downloadalignment" ) {
 
   #Format param can be one of pfam, stockholm, fasta or MSF
   my $output;
-  if( $c->req->param( "format" ) eq "pfam" ) {
-    $output = $pfamaln->write_Pfam;
-  }elsif( $c->req->param( "format" ) eq "fasta" ) {
-    $output = $pfamaln->write_fasta;
-  }elsif( $c->req->param( "format" ) eq "msf" ) {
-    $output = $pfamaln->write_MSF;
-  } else {
-	# stockholm and "anything else"
-	$output = $pfamaln->write_stockholm;
+  if( $c->req->param( "format" ) ) {
+	if( $c->req->param( "format" ) eq "pfam" ) {
+	  $output = $pfamaln->write_Pfam;
+	}elsif( $c->req->param( "format" ) eq "fasta" ) {
+	  $output = $pfamaln->write_fasta;
+	}elsif( $c->req->param( "format" ) eq "msf" ) {
+	  $output = $pfamaln->write_MSF;
+	} else {
+	  # stockholm and "anything else"
+	  $output = $pfamaln->write_stockholm;
+	}
   }
 
   $c->stash->{output} = $output;
@@ -133,13 +122,33 @@ sub downloadAlignment : Path( "/family/downloadalignment" ) {
 
 #-------------------------------------------------------------------------------
 
-=head2 getAlignFile : Private
+=head2 getAlignment : Private
 
-Reads a gzipped alignment file from disk and return it as an array reference.
+Retrieves an alignment file, either from disk for a PfamA family or
+from the DB for a PfamB family.
 
 =cut
 
-sub getAlignFile : Private {
+sub getAlignment : Private {
+  my( $this, $c ) = @_;
+
+  # see what type of family we have
+  if ( $c->stash->{acc} =~ /^PF\d{5}$/ ) {
+	return $c->forward( "getAlignmentFile" );
+  } else {
+	return $c->forward( "getAlignmentDB" );
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getAlignmentFile : Private
+
+Reads a gzipped alignment file from disk and returns it as an array reference.
+
+=cut
+
+sub getAlignmentFile : Private {
   my( $this, $c ) = @_;
 
   my $file =
@@ -164,6 +173,27 @@ sub getAlignFile : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 getAlignmentDB : Private
+
+Reads a (butchered) Stockholm-format alignment file from the database
+and returns it as an array reference. The only alignments that are
+stored in the DB are for B<PfamB> families.
+
+=cut
+
+sub getAlignmentDB : Private {
+  my( $this, $c ) = @_;
+
+  # need to tack on a header and a footer line before it's really
+  # Stockholm-format... go figure
+  my @aln = split/\n/, "# STOCKHOLM 1.0\n"
+	. $c->stash->{pfam}->pfamB_stockholm->stockholm_data . "//\n";
+
+  return \@aln;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 end : Private
 
 Writes the sequence alignment directly to the response object.
@@ -175,9 +205,19 @@ sub end : Private {
 
   $c->res->content_type( "text/plain" );
 
+  # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( "download" ) ) {
-	$c->res->headers->header( "Content-disposition" => "attachment; filename="
-							  . $c->stash->{pfam}->pfamA_id . "." . $c->stash->{type} );
+	
+	# figure out the filename
+	my $filename;
+	if( $c->stash->{entryType} eq "A" ) {
+	  $filename = $c->stash->{acc} . "_" . $c->stash->{type}. ".txt";
+	} else {
+	  # don't bother sticking "seed" or "full" in there if it's a PfamB
+	  $filename = $c->stash->{acc} . ".txt";
+	}	
+
+	$c->res->headers->header( "Content-disposition" => "attachment; filename=$filename" );
   }
 
   foreach ( @{$c->stash->{output}} ) {
