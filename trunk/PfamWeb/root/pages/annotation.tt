@@ -1,0 +1,58 @@
+[%
+# annotation.tt
+# jt6 20061020 WTSI
+# 
+# An annotation upload form
+#
+# $Id: annotation.tt,v 1.1 2006-10-23 12:09:55 jt6 Exp $
+
+META fullPage = 1
+-%]
+
+<div id="annotationFormDiv">
+
+[%#
+  <form id="annForm" method="post">
+
+  <div class="formRow">
+    <span class="label">Name</span>
+    <span class="field">
+      <input type="text "name="nameField" id="nameField" />
+    </span>
+    <div class="cleaner"><!-- empty --></div>
+  </div>
+  <div class="formRow">
+    <span class="label">Email</span>
+    <span class="field">
+      <input type="text "name="emailField" id="emailField" />
+    </span>
+    <div class="cleaner"><!-- empty --></div>
+  </div>
+  <div class="formRow">
+    <span class="label">Annotation details</span>
+    <span class="field">
+      <textarea name="annField" id="annField" cols="50" rows="15"></textarea>
+    </span>
+    <div class="cleaner"><!-- empty --></div>
+  </div>
+  <div class="formRow">
+    <span class="label">References</span>
+    <span class="field">
+      <textarea name="refField" id="refField" cols="50" rows="5"></textarea>
+    </span>
+    <div class="cleaner"><!-- empty --></div>
+  </div>
+  <div class="formRow">
+    <span class="label">Upload alignment file</span>
+    <span class="field">
+      <input type="file" name="upField" id="upField" />
+    </span>
+    <div class="cleaner"><!-- empty --></div>
+  </div>
+
+  </form>
+%]
+
+[% widget_result.as_xml %]
+
+</div>
