@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.10 2006-10-18 12:21:09 jt6 Exp $
+# $Id: align.tt,v 1.11 2006-10-23 12:12:45 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -20,7 +20,7 @@
     <form id="viewerForm" action="[% c.uri_for( "/family/downloadalignment" ) %]" method="get">
       <input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
 
-	  <table class="details">
+	  <table class="details alignOpts">
         <tr class="odd">
           <td class="label">Alignment:</td>
           <td>
@@ -39,7 +39,7 @@
           <td>
             <span class="button">
               <select name="viewer" id="viewer">
-                <option value="jalview" selected="selected">JalView</option>
+                <option value="jalview" selected="selected">jalview</option>
                 <option value="html">HTML</option>
                 <option value="viewer">Pfam viewer</option>
               </select>
@@ -58,13 +58,11 @@ function launch() {
  	url = "[% c.uri_for( "/family/jalview" ) %]?" + Form.serialize("viewerForm");
     //console.debug( "visiting: |" + url + "|" );
     popUp( url, 'console', 800, 800, 'jalviewWin');
-	return false;
 
   } else if( $F("viewer") == "viewer" ) {
 	url = "[% c.uri_for( "/family/alignmentviewer" ) %]?" + Form.serialize("viewerForm");
     //console.debug( "visiting: |" + url + "|" );
     popUp( url, 'console', 800, 800, 'viewerWin');
-	return false;
 
   } else {
 
@@ -75,8 +73,9 @@ function launch() {
     }
     //console.debug( "visiting: |" + url + "|" );
 	window.open( url );
-    return false;
   }
+
+  return false;
 }
 
     </script>
@@ -86,7 +85,7 @@ function launch() {
     <form action="[% c.uri_for( "/family/downloadalignment" ) %]" method="get">
       <input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
 
-      <table class="details">
+      <table class="details alignOpts">
         <tr class="odd">
           <td class="label">Alignment:</td>
           <td>
@@ -144,7 +143,7 @@ function launch() {
           <td>
             <span class="button">
               <select name="gaps" id="gaps">
-                <option value="default" selected="selected">Gaps</option>
+                <option value="default" selected="selected">Gaps as "." or "-" (mixed)</option>
                 <option value="dots">Gaps as "." (dots)</option>
                 <option value="dashes">Gaps as "-" (dashes)</option>
                 <option value="none">No gaps (unaligned)</option>
