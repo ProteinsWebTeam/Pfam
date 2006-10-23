@@ -112,10 +112,15 @@ sub configure_Region {
 sub _construct_URL {
   my ($self, $region) = @_;
   #This should be defined by some
-  
-  $region->url($Bio::Pfam::Web::PfamWWWConfig::cgibin."/pfambget.pl?acc=".$region->BioAnnotatedRegion->accession);
-  
+
+  my $url = ( defined $ENV{PFAM_FAMILY_ROOT} )
+	? $ENV{PFAM_FAMILY_ROOT}."/pfamb?acc=".$region->BioAnnotatedRegion->accession
+	  : "/pfamb?acc=".$region->BioAnnotatedRegion->accession;
+	$region->url( $url );
 }
+
+#  $region->url($Bio::Pfam::Web::PfamWWWConfig::cgibin."/pfambget.pl?acc=".$region->BioAnnotatedRegion->accession);
+
 
 sub _construct_label{
   my ($self, $region) = @_;
