@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.11 2006-10-06 10:22:05 jt6 Exp $
+# $Id: Family.pm,v 1.12 2006-10-23 12:18:49 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.11 2006-10-06 10:22:05 jt6 Exp $
+$Id: Family.pm,v 1.12 2006-10-23 12:18:49 jt6 Exp $
 
 =cut
 
@@ -61,15 +61,23 @@ sub begin : Private {
 	if( defined $1 ) {
 
 	  # see if this is actually a PfamB...
-	  if( $2 eq 'B' ) {
-		$c->log->debug( "Family::begin: looks like a PfamB; redirecting" );
-		$c->res->redirect( $c->uri_for( "/pfamb", { acc => $1 } ) );
-		return 1;
+ 	  if( $2 eq 'B' ) {
+ 		$c->log->debug( "Family::begin: looks like a PfamB; retrieving" );
+		$c->stash->{entryType} = "B";
+		$c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
+		$c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
+
+ 	  } else {
+
+		# no; must be a PfamA
+		$c->log->debug( "Family::begin: family is a PfamA" );
+		$c->stash->{entryType} = "A";
+		$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+		$c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
+		$c->stash->{type} = ( $c->req->param( "type" ) eq "seed" ) ? "seed" : "full";
+
 	  }
 
-	  # no; must be a PfamA
-	  $c->log->debug( "Family::begin: family is a PfamA" );
-	  $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } )
 	}
 
   } elsif( defined $c->req->param("id") ) {
@@ -141,17 +149,22 @@ sub begin : Private {
   $c->log->debug( "Family::begin: successfully retrieved a pfam object" );
 
   #----------------------------------------
-  # add the clan details, if any
 
-  $c->stash->{clan} = $c->model("PfamDB::Clans")
-	->find( { clan_acc => $c->stash->{pfam}->clan_acc } )
-	  if defined $c->stash->{pfam}->clan_acc;
+  # if this is a PfamA then we need to get more stuff out of the
+  # database for it...
 
-  #----------------------------------------
-  # add extra data to the stash
+  if( $c->stash->{entryType} eq "A" ) {
 
-  $c->forward( "_getSummaryData" );
-  $c->forward( "_getDbXrefs" );
+	# add the clan details, if any
+	$c->stash->{clan} = $c->model("PfamDB::Clans")
+	  ->find( { clan_acc => $c->stash->{pfam}->clan_acc } )
+		if defined $c->stash->{pfam}->clan_acc;
+
+	# add extra data to the stash
+	$c->forward( "_getSummaryData" );
+	$c->forward( "_getDbXrefs" );
+
+  }
 
 }
 
@@ -232,6 +245,10 @@ sub _getDbXrefs : Private {
 
   my %xRefs;
 
+  # stuff in the accession and ID for this entry
+  $xRefs{entryAcc} = $c->stash->{pfam}->pfamA_acc;
+  $xRefs{entryId}  = $c->stash->{pfam}->pfamA_id;
+
   # Interpro
   push @{ $xRefs{interpro} }, $c->stash->{pfam}->interpro_id
 	if $c->stash->{pfam}->interpro_id;
@@ -251,27 +268,32 @@ sub _getDbXrefs : Private {
   }
 
   # PfamA to PfamA links based on PRC
-  my @atoaPRC = $c->model("PfamDB::PfamA2pfamA_PRC_results")->search(
-    { "pfamA1.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
-	  evalue             => { "<=", "0.01"} },
-	{ join               => [ qw/pfamA1 pfamA2/ ],
-	  select             => [ "pfamA1.pfamA_id", "pfamA2.pfamA_id" ],
-	  as                 => [ qw/l_pfamA_id r_pfamA_id/ ],
-	  prefetch           => [ qw/pfamA2 pfamA1/ ] } );
+  my @atoaPRC = $c->model("PfamDB::PfamA2pfamA_PRC_results")
+	->search(
+			 { "pfamA1.pfamA_acc" => $c->stash->{pfam}->pfamA_acc },
+			 { join               => [ qw/pfamA1 pfamA2/ ],
+			   select             => [ qw/pfamA1.pfamA_id pfamA2.pfamA_id evalue/ ],
+			   as                 => [ qw/l_pfamA_id r_pfamA_id evalue/ ],
+			   order_by           => "pfamA2.auto_pfamA ASC" }
+			);
 
-  $xRefs{atoaPRC} = \@atoaPRC if scalar @atoaPRC;
+  $xRefs{atoaPRC} = [];
+  foreach ( @atoaPRC ) {
+	push @{$xRefs{atoaPRC}}, $_ if $_->get_column( "evalue" ) <= 0.001;
+  }
+
+#  $xRefs{atoaPRC} = \@atoaPRC if scalar @atoaPRC;
 
   # PfamB to PfamA links based on PRC
   my @atobPRC = $c->model("PfamDB::PfamB2pfamA_PRC_results")->search(
     { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc, },
-#	  evalue    => { "<=", "0.01"} },
 	{ join      => [ qw/pfamA pfamB/ ],
 	  prefetch  => [ qw/pfamA pfamB/ ] } );
 
   # find the union between PRC and PRODOM PfamB links
   my %atobPRC;
   foreach ( @atobPRC ) {
-	$atobPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.01;
+	$atobPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.001;
   }
   # we should be able to filter the results of the query according to
   # evalue using a call on the DBIx::Class object, but for some reason
