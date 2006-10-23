@@ -4,7 +4,7 @@
 # 
 # build a page for the jalview applet
 #
-# $Id: jalview.tt,v 1.2 2006-10-06 15:18:06 jt6 Exp $
+# $Id: jalview.tt,v 1.3 2006-10-23 12:14:16 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -14,17 +14,17 @@ pageContent = BLOCK;
 
 CALL c.log.debug( "in jalview.tt" );
 
-title = "JalView"
+title = "jalview"
 -%]
 
-<h1>JalView: alignment<em> for [% pfam.pfamA_id %]</em></h1>
+<h1>jalview: alignment<em> for [% acc %]</em></h1>
 
  <applet code="jalview.bin.JalviewLite" width="140" height="35" archive="[% c.uri_for( "/jalview/jalviewApplet.jar" ) %]">
-  <param name="file" value="[% c.uri_for( "/family/downloadalignment", acc=pfam.pfamA_acc, format="stockholm", type=type ) %]">
+  <param name="file" value="[% c.uri_for( "/family/downloadalignment", acc=acc, format="stockholm", type=type ) | uri | html %]">
   <param name="defaultColour" value="Taylor">
   <param name="RGB"  value="#FFFFCC">
   <param name="linkLabel_2" value="Uniprot">
-  <param name="linkUrl_2" value="[% c.uri_for( "/protein", acc=pfam.pfamA_acc ) %]">
+  <param name="linkUrl_2" value="[% c.uri_for( "/protein", acc=acc ) %]">
   <param name="mailServer" value="www.sanger.ac.uk">
   <param name="srsServer" value="www.sanger.ac.uk/srs5bin/cgi-bin/">
   <param name="database" value="pfamseq">
