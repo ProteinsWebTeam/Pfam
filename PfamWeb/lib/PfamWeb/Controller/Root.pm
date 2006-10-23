@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.2 2006-10-04 09:30:07 jt6 Exp $
+# $Id: Root.pm,v 1.3 2006-10-23 12:19:21 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ errors from within the site, an C<auto> action that handles tab
 selection for the whole site, and a default C<end> that renders the
 index page.
 
-$Id: Root.pm,v 1.2 2006-10-04 09:30:07 jt6 Exp $
+$Id: Root.pm,v 1.3 2006-10-23 12:19:21 jt6 Exp $
 
 =cut
 
@@ -122,6 +122,20 @@ sub about : Global {
   my( $this, $c ) = @_;
 
   $c->stash->{template} = "pages/about.tt";
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 annotate : Global
+
+Show an annotation upload form.
+
+=cut
+
+sub annotate : Global {
+  my( $this, $c ) = @_;
+
+  $c->stash->{template} = "pages/annotation.tt";
 }
 
 #-------------------------------------------------------------------------------
