@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.1 2006-08-14 10:41:05 jt6 Exp $
+# $Id: PfamB.pm,v 1.2 2006-10-23 12:19:43 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.1 2006-08-14 10:41:05 jt6 Exp $
+$Id: PfamB.pm,v 1.2 2006-10-23 12:19:43 jt6 Exp $
 
 =cut
 
@@ -29,7 +29,9 @@ use warnings;
 
 use Data::Dumper;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Section";
+
+__PACKAGE__->config( SECTION => "pfamb" );
 
 #-------------------------------------------------------------------------------
 
@@ -50,18 +52,24 @@ sub begin : Private {
 	$c->req->param("acc") =~ m/^(PB\d{6})$/i;
 	$c->log->info( "PfamB::begin: found a PfamB, accession |$1|" );
 
-	$c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } )
-	  if defined $1;
-
+	  if (defined $1){
+		$c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
+		$c->stash->{prodom} = $c->model("PfamDB::PfamB_database_links")
+		  ->find( { auto_pfamB => $c->stash->{pfam}->auto_pfamB,
+					db_id => "PRODOM"} );
+	  }
   }
 
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfam} ) {
-	$c->log->warn( "Family::begin: no ID or accession" );
+	$c->log->warn( "PfamB::begin: no ID or accession" );
 	$c->error( "No valid Pfam family accession or ID" );
 	return;
   }
 
+  # flag this as a PfamB
+  $c->stash->{entryType} = "B";
+  $c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
 }
 
 #-------------------------------------------------------------------------------
@@ -74,32 +82,181 @@ sub generateSummary : Path {
   # method
 
   $c->log->debug( "PfamB::generateSummary: generating a page for a PfamB" );
+
+  $c->forward( "_getSummaryData" );
+  $c->forward( "_getDbXrefs" );
 }
 
 #-------------------------------------------------------------------------------
-# hand off to the full page template
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-sub end : Private {
+# get the data items for the overview bar
+
+sub _getSummaryData : Private {
   my( $this, $c ) = @_;
 
-  # don't try to render a page unless there's a Pfam object in the stash
-  return 0 unless defined $c->stash->{pfam};
+  my %summaryData;
 
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-	$c->stash->{errors}   = $c->error;
-	$c->stash->{template} = "components/blocks/pfamb/errors.tt";
-  } else {
-	$c->stash->{pageType} = "pfamb";
-	$c->stash->{template} ||= "pages/layout.tt";
+  # make things easier by getting hold of the auto_pfamA
+  my $auto_pfam = $c->stash->{pfam}->auto_pfamB;
+
+  # get the PDB details
+  my @maps = $c->model("PfamDB::PdbMap")->search(
+    { auto_pfam   => $auto_pfam,
+	  pfam_region => 0 },
+	{ join        => [ qw/ pdb / ],
+	  prefetch    => [ qw/ pdb / ] } );
+  $c->stash->{pfamMaps} = \@maps;
+
+  # count the number of architectures
+  my $rs = $c->model("PfamDB::PfamB_reg")->find(
+    { auto_pfamB => $auto_pfam },
+    {
+      select => [
+        { count => { distinct => "auto_architecture" } }
+      ],
+      as => [ 'count' ],
+	 join => [ qw/ pfamseq_architecture / ]
+    }
+  );
+
+  # number of architectures....
+  $summaryData{numArchitectures} = $rs->get_column( "count" );
+
+  # count number of sequences in full alignment
+  $rs = $c->model("PfamDB::PfamB_reg")->find(
+    { auto_pfamB => $auto_pfam },
+    {
+      select => [
+        { count => "auto_pfamB" }
+      ],
+      as => [ 'count' ]
+    }
+  );
+
+  # number of sequences in full alignment
+  $summaryData{numSequences} = $rs->get_column( "count" );
+
+  # number of structures known for the domain
+  my %pdb_unique = map {$_->pdb_id => $_} @maps;
+  $summaryData{numStructures} = scalar(keys %pdb_unique);
+  $c->stash->{pdbUnique} = \%pdb_unique;
+
+  # number of species
+  my @species = $c->model("PfamDB::PfamB_reg")->search(
+    { auto_pfamB => $auto_pfam },
+    { join       => [ qw/pfamseq/ ],
+	  prefetch   => [ qw/pfamseq/ ] } );
+
+  my %species_unique = map {$_->species => 1} @species;
+  $summaryData{numSpecies} = scalar(keys %species_unique);
+
+  # number of interactions
+#   $rs = $c->model("PfamDB::Int_pfamAs")->find({ auto_pfamA_A => $auto_pfam },
+# 	{ select => [
+# 				 { count => "auto_pfamA_A" }
+# 				],
+# 	  as => [ qw/NumInts/ ]
+#     }
+#   );
+#
+#  $summaryData{numInt} = $rs->get_column( "NumInts" );
+
+  $summaryData{numInt} = 0;
+
+  $c->stash->{summaryData} = \%summaryData;
+
+}
+
+#-------------------------------------------------------------------------------
+
+sub _getDbXrefs : Private {
+  my( $this, $c ) = @_;
+
+  my %xRefs;
+
+  # stuff in the accession and ID for this entry
+  $xRefs{entryAcc} = $c->stash->{pfam}->pfamB_acc;
+  $xRefs{entryId}  = $c->stash->{pfam}->pfamB_id;
+
+  # PfamB to PfamA links based on PRODOM
+  my %btoaPRODOM;
+  foreach my $xref ( $c->stash->{pfam}->pfamB_database_links ) {
+	if( $xref->db_id eq "PFAMA_PRODOM" ) {
+	  $btoaPRODOM{$xref->db_link} = $xref;
+	}else {
+	  push @{ $xRefs{$xref->db_id} }, $xref;
+	}
   }
 
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
+  # PfamB to PfamB links based on PRC
+  my @btobPRC = $c->model("PfamDB::PfamB2pfamB_PRC_results")
+	->search(
+			 { "pfamB1.pfamB_acc" => $c->stash->{pfam}->pfamB_acc },
+			 { join               => [ qw/pfamB1 pfamB2/ ],
+			   select             => [ qw/pfamB1.pfamB_acc pfamB2.pfamB_acc evalue/ ],
+			   as                 => [ qw/l_pfamB_acc r_pfamB_acc evalue/ ],
+			   order_by           => "pfamB2.auto_pfamB ASC" }
+			);
 
-  # clear any errors
-  $c->error(0);
+  $xRefs{btobPRC} = [];
+  foreach ( @btobPRC ) {
+	next if $_->get_column( "evalue" ) <= 0.001;
+	next if $_->get_column("l_pfamB_acc") eq $_->get_column("r_pfamB_acc");
+	push @{$xRefs{btobPRC}}, $_;
+  }
 
+#  $xRefs{btobPRC} = \@btobPRC if scalar @btobPRC;
+
+  # PfamB to PfamA links based on PRC
+  my @btoaPRC = $c->model("PfamDB::PfamB2pfamA_PRC_results")
+	->search(
+			 { "pfamB.pfamB_acc" => $c->stash->{pfam}->pfamB_acc, },
+			 { join      => [ qw/pfamA pfamB/ ],
+			   prefetch  => [ qw/pfamA pfamB/ ] }
+			);
+
+  # find the union between PRC and PRODOM PfamB links
+  my %btoaPRC;
+  foreach ( @btoaPRC ) {
+	$btoaPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.001;
+  }
+
+  my %btoaBOTH;
+  foreach ( keys %btoaPRC, keys %btoaPRODOM ) {
+	$btoaBOTH{$_} = $btoaPRC{$_}
+	  if( exists( $btoaPRC{$_} ) and exists( $btoaPRODOM{$_} ) );
+  }
+
+  # and then prune out those accessions that are in both lists
+  foreach ( keys %btoaPRC ) {
+	delete $btoaPRC{$_} if exists $btoaBOTH{$_};
+  }
+  foreach ( keys %btoaPRODOM ) {
+	delete $btoaPRODOM{$_} if exists $btoaBOTH{$_};
+  }
+
+  # now populate the hash of xRefs;
+  my @btoaPRC_pruned;
+  foreach ( sort keys %btoaPRC ) {
+	push @btoaPRC_pruned, $btoaPRC{$_};
+  }
+  $xRefs{btoaPRC} = \@btoaPRC_pruned if scalar @btoaPRC_pruned;
+
+  my @btoaPRODOM;
+  foreach ( sort keys %btoaPRODOM ) {
+	push @btoaPRODOM, $btoaPRODOM{$_};
+  }
+  $xRefs{btoaPRODOM} = \@btoaPRODOM if scalar @btoaPRODOM;
+
+  my @btoaBOTH;
+  foreach ( sort keys %btoaBOTH ) {
+	push @btoaBOTH, $btoaBOTH{$_};
+  }
+  $xRefs{btoaBOTH} = \@btoaBOTH if scalar @btoaBOTH;
+
+  $c->stash->{xrefs} = \%xRefs;
 }
 
 #-------------------------------------------------------------------------------
