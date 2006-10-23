@@ -68,29 +68,37 @@ sub queryService {
     -> uri('/SCOP_XML')
     #-> outputxml(1)
       -> proxy('http://131.111.89.223:4242/soap.cgi',
-	       proxy => ['http' => $self->proxy ]);
+			   proxy => ['http' => $self->proxy ]);
 
   my $result = $soap->domains('pdbid' => [$self->pdbId ], 'fields' => ['sid', 'family.name']);
-  if($result){
+
+  die "No result from SCOP SOAP query" unless $result;
+
+  if( $result->result ){
+
     my $parser = XML::LibXML->new();
-    
-    #This is some narly code to get round the incorrect response string....
+
+    #This is some gnarly code to get round the incorrect response string....
     #rdf 22/08/2006
     my @results = split(/\>\n/, $result->result);
     my $resultsString = join(">\n", @results[2..$#results]);
     $resultsString .= ">";
+
     eval{
       $parser->parse_string($resultsString);
     };
-    if($@){
-      warn "Error parsing $result :[$@]\n";
-    }else{
-      $self->_response($parser->parse_string($resultsString));
-    }
-  }else{
+    if( $@ ) {
+	  die "Couldn't parse SCOP SOAP response: $@; raw response: ", $result->result;
+	}
+
+	$self->_response($parser->parse_string($resultsString));
+
+  } else {
+
     my $fcode = $result->faultcode;
     my $fstr  = $result->faultstring;
-    print STDERR "FAULT: $fcode, $fstr\n";
+	die "Received a SOAP fault from SCOP SOAP service: $fcode, $fstr";
+
   }
 }
 
