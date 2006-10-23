@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.22 2006-10-06 15:17:28 jt6 Exp $
+   $Id: pfam.css,v 1.23 2006-10-23 12:08:44 jt6 Exp $
 */   
 
 body {
@@ -434,6 +434,7 @@ table.details th {
 
 table.details td {
   text-align: center;
+  vertical-align: middle;
   padding: 0.2em;
 /*  border: 2px solid #FFF; */
 }
@@ -444,7 +445,6 @@ table.details td.label {
   background: #CCC;
   text-align: center;
   font-weight: bold;
-  vertical-align: top;
 }
 
 table.details tr.newRow td {
