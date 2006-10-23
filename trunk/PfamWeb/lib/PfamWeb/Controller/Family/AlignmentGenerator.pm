@@ -2,7 +2,7 @@
 # AlignmentGenerator.pm
 # jt6 20060601 WTSI
 #
-# $Id: AlignmentGenerator.pm,v 1.9 2006-10-06 15:15:09 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.10 2006-10-23 12:21:56 jt6 Exp $
 
 =head1 NAME
 
@@ -16,14 +16,14 @@ package PfamWeb::Controller::Family::AlignmentGenerator;
 
 Various methods for viewing alignments.
 
-$Id: AlignmentGenerator.pm,v 1.9 2006-10-06 15:15:09 jt6 Exp $
+$Id: AlignmentGenerator.pm,v 1.10 2006-10-23 12:21:56 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dumper;
+use Data::Dump qw( dump );
 use Bio::Pfam::ColourAlign;
 
 use base "PfamWeb::Controller::Family";
@@ -32,39 +32,7 @@ use base "PfamWeb::Controller::Family";
 
 =head1 METHODS
 
-=head2 auto : Private
-
-Just adds the alignment type (seed or full) to the stash.
-
-=cut
-
-sub auto : Private {
-  my( $this, $c ) = @_;
-
-  $c->stash->{type} = ( $c->req->param( "type" ) eq "seed" ) ? "seed" : "full";
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 showAlignment : Path
-
-Hands straight off to a template that generates a "tool" page
-containing the necessary hooks to load the interactive alignment
-viewer.
-
-Picks up a URL like http://localhost:3000/family/alignmentviewer?acc=PF00067
-
-=cut
-
-sub showAlignment : Path( "/family/alignmentviewer" ) {
-  my( $this, $c ) = @_;
-
-  $c->stash->{template} = "components/blocks/family/alignmentTool.tt";
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 getData : Private
+=head2 default : Private
 
 Generates a segment of a sequence alignment. Retrieves the alignment
 from DAS sources and determines start/end row numbers from parameters.
@@ -95,19 +63,17 @@ sub default : Path {
 	if defined $c->req->param( "range" );
 
   unless( defined $rows ) {
-	$c->log->debug( "AlignmentGenerator::getData: rows undefined; calculating from start and end" );
+	$c->log->debug( "AlignmentGenerator::default: rows undefined; calculating from start and end" );
 
 	my( $start, $end );
-	( $start ) = $c->req->param( "start" ) =~ m/^(\d+)$/
-	  if defined $c->req->param( "start" );
-	( $end   ) = $c->req->param( "end"   ) =~ m/^(\d+)$/
-	  if defined $c->req->param( "end" );
+	( $start ) = $c->req->param( "start" ) =~ m/^(\d+)$/ if defined $c->req->param( "start" );
+	( $end   ) = $c->req->param( "end"   ) =~ m/^(\d+)$/ if defined $c->req->param( "end" );
 
 	$rows = $start . "-" . $end if( defined $start and defined $end );
   }
 
   $rows = $this->{defaultRows} unless( defined $rows && $rows =~ /^\d+\-\d+$/ );
-  $c->log->debug( "AlignmentGenerator::getData: rows finally set to: |$rows|" );
+  $c->log->debug( "AlignmentGenerator::default: rows finally set to: |$rows|" );
 
   # store the start and end of the range
   $rows =~ m/^(\d+)\-(\d+)$/;
@@ -118,15 +84,14 @@ sub default : Path {
   if ( defined $c->req->param( "scrollValue" ) ) {
 	$c->req->param( "scrollValue" ) =~ /^(\d+)$/;
 	$c->stash->{scroll} = $1;
-	$c->log->debug( "AlignmentGenerator::getData: set scroll value to |"
+	$c->log->debug( "AlignmentGenerator::default: set scroll value to |"
 					. $c->stash->{scroll} . "|" );
   }
 
-  my $rawAlignment = $dl->alignment( { query => $c->stash->{pfam}->pfamA_acc . "."
-                                                . $c->stash->{type},
+  my $rawAlignment = $dl->alignment( { query => $c->stash->{acc} . "." . $c->stash->{type},
 									   rows  => $rows
 									 } );
-  my $features     = $dl->features( $c->stash->{pfam}->pfamA_acc . "." . $c->stash->{type} );
+  my $features     = $dl->features( $c->stash->{acc} . "." . $c->stash->{type} );
   my $consensus    = Bio::Pfam::ColourAlign::parseConsensus( getConsensus( $features ) );
 
   my( $alignments, $alignmentLengths ) = reconstructAli( $rawAlignment );
@@ -142,6 +107,24 @@ sub default : Path {
   # set up the view and rely on "end" from the parent class to render it
   $c->stash->{template} = "components/blocks/family/alignmentFragment.tt";
 
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 showAlignment : Path
+
+Hands straight off to a template that generates a "tool" page
+containing the necessary hooks to load the interactive alignment
+viewer.
+
+Picks up a URL like http://localhost:3000/family/alignmentviewer?acc=PF00067
+
+=cut
+
+sub showAlignment : Path( "/family/alignmentviewer" ) {
+  my( $this, $c ) = @_;
+
+  $c->stash->{template} = "components/blocks/family/alignmentTool.tt";
 }
 
 #-------------------------------------------------------------------------------
