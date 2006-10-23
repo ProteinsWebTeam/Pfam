@@ -1,0 +1,24 @@
+[%
+# domains.tt
+# jt6 20061018 WTSI
+# 
+# build the domains block for PfamB's
+#
+# $Id: domains.tt,v 1.1 2006-10-23 12:15:20 jt6 Exp $
+%]
+
+<!-- start domains block -->
+
+<div class="block" id="pfambDomainsBlock">
+  <div class="handle">
+    <h1>Domain organisation</h1>
+  </div>
+  <div class="blockContent">
+
+    <h1>PfamB [% pfam.pfamB_acc %]</h1>
+
+  </div>
+</div>
+
+<!-- end domains block -->
+

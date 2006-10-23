@@ -1,0 +1,24 @@
+[%
+# structure.tt
+# jt6 20061018 WTSI
+# 
+# build the structure block for PfamB's
+#
+# $Id: structure.tt,v 1.1 2006-10-23 12:15:20 jt6 Exp $
+%]
+
+<!-- start structure block -->
+
+<div class="block" id="pfambStructureBlock">
+  <div class="handle">
+    <h1>Structures</h1>
+  </div>
+  <div class="blockContent">
+
+    <h1>PfamB [% pfam.pfamB_acc %]</h1>
+
+  </div>
+</div>
+
+<!-- end structure block -->
+
