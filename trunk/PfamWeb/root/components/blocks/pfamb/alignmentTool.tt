@@ -1,0 +1,32 @@
+[%
+# alignmentTool.tt
+# jt6 20061019 WTSI
+# 
+# build a page for the alignment viewer tool for PfamB's
+#
+# $Id: alignmentTool.tt,v 1.1 2006-10-23 12:15:20 jt6 Exp $
+
+META naked = 1;
+
+pageContent = BLOCK
+-%]
+
+<script type="text/javascript">
+  Event.observe( window, "load", pfambPostLoad, false );
+  loadOptions.ca.uri    = "[% c.uri_for( "/pfamb/alignmentgenerator" ) %]";
+  loadOptions.ca.params = "acc=[% pfam.pfamB_acc %]&type=[% type %]";
+</script>
+
+<h1>PfamB alignment for [% pfam.pfamB_acc %]</h1>
+
+<div id="caph">
+  <p class="loading">
+    Loading alignment...
+  </p>
+</div>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]
