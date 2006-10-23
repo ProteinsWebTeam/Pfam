@@ -27,7 +27,12 @@ __PACKAGE__->has_many( pdbMap => "PfamDB::PdbMap",
 			  { "foreign.auto_pfam"  => "self.auto_pfamB" },
 			  { proxy => [ qw/pdb_id/ ] } );
 
-__PACKAGE__->has_one( pfamB_stock => "PfamDB::PfamB_stockholm",
+__PACKAGE__->has_one( pfamB_stockholm => "PfamDB::PfamB_stockholm",
 		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
 		      { proxy => qw[/stockholm_data/] } );
+
+__PACKAGE__->has_many( pfamB_database_links => "PfamDB::PfamB_database_links",
+					   { "foreign.auto_pfamB" => "self.auto_pfamB" } );
+
+
 1;
