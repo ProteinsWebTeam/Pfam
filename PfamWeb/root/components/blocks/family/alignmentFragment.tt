@@ -4,7 +4,7 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.4 2006-09-22 10:36:16 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.5 2006-10-23 12:13:05 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -44,7 +44,7 @@ META naked = 1;
 
 <form method="post" id="pagingForm">
 
-  <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
+  <input name="acc" type="hidden" value="[% acc %]" />
   <span>
     <label for="startSeq">Start: </label>
     <input name="start" id="startSeq" type="text" size="5"[% IF start %] value="[% start %]"[% END %] />
