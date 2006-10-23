@@ -165,30 +165,26 @@ sub convert_to_text {
 
 
 sub convert_to_js {
-    my ($tree, $js, $parent) = @_;
-    my $isNotRoot = ($$js eq '')? undef:1;
-    if(!$parent) {
-	#There is no javascript root.
-	$parent = "root";
-    }
+  my( $tree, $js, $parent ) = @_;
 
-    my $unique = $tree->children_is_unique();
-    my $lastNode = $tree->is_last_node();
+  $parent = "root" unless $parent;
 
-    foreach my $node ($tree->get_branches()) {
-	my $label =  $node->get_name()."(".$node->get_frequency().")";
+  foreach my $node ( $tree->get_branches ) {
 	my $node_id = $node->get_name();
 	$node_id =~ s/\W+//g;
+
+	my $label = $node_id . "(" . $node->get_frequency . ")";
 	$$js .= "var $node_id = new YAHOO.widget.TextNode(\"$label\", $parent, false);\n";
-	my $childOf = $node_id;
-	if ($node->has_childrens()) {
-	    $node->convert_to_js($js, $childOf);
+
+	if( scalar( $node->get_branches ) > 1 or scalar( $node->get_branches ) == 0 ) {
+	  my $html_id = $node_id . "_html";
+	  $$js .= qq(var html = '<div id="$html_id" style="border: 1px solid #AAA;background: #DDD"><span style="padding: 0.4em">$label</span></div>';);
+	  $$js .= "var $html_id = new YAHOO.widget.HTMLNode(html, $node_id, false, true );\n";
 	}
-    }
+
+	$node->convert_to_js( $js, $node_id ) if $node->has_childrens;
+  }
 }
-
-
-
 
 sub convert_to_pnh {
 	my ($tree, $ptrString) = @_;
