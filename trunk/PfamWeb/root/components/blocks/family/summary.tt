@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.12 2006-10-03 08:57:02 rdf Exp $
+# $Id: summary.tt,v 1.13 2006-10-23 12:13:52 jt6 Exp $
 %]
 
 [%# on the assumption that the family page will always contain at least this
@@ -29,7 +29,9 @@
     <div id="siph">&nbsp;</div>
 
 	<h3><span [% addTip("family","description") %]>[% pfam.description %]</span>
-      <img style="vertical-align: middle" alt="Add an annotation" src="[% c.uri_for( "/images/annotation.png") %]" /></h3>
+      <a href="[% c.uri_for( "/annotate" ) %]">
+	    <img class="addAnnotation" alt="Add an annotation" src="[% c.uri_for( "/images/annotation.png") %]" /></a>
+    </h3>
 
 	[% IF pfam.comment.length %]
 	<p>[% pfam.comment %]</p>
@@ -91,8 +93,7 @@
 
     [%- END # of "if clan_acc" -%]
 
-
-  [% PROCESS components/links.tt %]
+    [% PROCESS components/links.tt %]
 
   </div>
 </div>
