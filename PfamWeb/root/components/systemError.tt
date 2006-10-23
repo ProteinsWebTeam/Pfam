@@ -4,7 +4,7 @@
 #
 # show a system error report
 #
-# $Id: systemError.tt,v 1.1 2006-09-22 10:31:53 jt6 Exp $
+# $Id: systemError.tt,v 1.2 2006-10-23 12:11:37 jt6 Exp $
 
 # tell the wrapper to add the full page footer
 META fullPage = 1;
@@ -27,7 +27,7 @@ META fullPage = 1;
   </p>
 
   <p>
-    You might like to go <a href="javascript: history.go(-1)">back</a> to the
+    You might like to go <a href="#" onclick="history.go(-1)">back</a> to the
     previous page and see if it works this time...
   </p>
 
