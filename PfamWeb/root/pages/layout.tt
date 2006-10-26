@@ -4,10 +4,17 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.10 2006-09-28 13:33:01 jt6 Exp $
+# $Id: layout.tt,v 1.11 2006-10-26 16:04:10 jt6 Exp $
 
 USE String;
 USE date;
+
+# this is a store for tooltip information that will be used to write the 
+# javascript that actually generates the tooltip objects. This needs to be in
+# here rather than in the wrapper because the content is generated here and
+# then passed into the wrapper. If we define "tips" in the wrapper it just
+# stomps on the data that was generated.
+tips = {};
 
 # generate a sidebar tab
 BLOCK generateTab;
