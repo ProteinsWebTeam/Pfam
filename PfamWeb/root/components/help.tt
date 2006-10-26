@@ -1,4 +1,4 @@
-[%#-
+[%
 # Define a macro that generates a boxover tooltip as a title attribute
 # jt6 20060920 WTSI
 #
@@ -25,8 +25,7 @@
 
 USE String;
 
-MACRO addTip( section, tipId, elId );
-BLOCK;
+MACRO addTip( section, tipId, elId ) BLOCK;
   CALL c.log.debug( "inside \"addTip\": |$section|$tipId|$elId|" );
   header = helpSystem.section.${section}.tip.${tipId}.header;
   body   = helpSystem.section.${section}.tip.${tipId}.body;
