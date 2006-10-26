@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.9 2006-10-23 12:10:24 jt6 Exp $
+# $Id: head.tt,v 1.10 2006-10-26 15:32:49 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -73,6 +73,9 @@
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/TaskNode.js" ) %]"></script>
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
 
+<!-- tooltips -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/container.js" ) %]"></script>
+
 <!-- ====================================================================== -->
 <!-- scriptaculous and prototype -->
 
@@ -80,12 +83,6 @@
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/slider.js" ) %]"></script>
-
-<!-- ====================================================================== -->
-<!-- tooltip library - from http://boxover.swazz.org -->
-
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/boxover.js" ) %]"></script>
 
 <!-- ====================================================================== -->
 <!-- local javascript -->
