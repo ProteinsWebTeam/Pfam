@@ -4,7 +4,7 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: protein_ie.css,v 1.3 2006-07-14 12:55:12 jt6 Exp $
+   $Id: protein_ie.css,v 1.4 2006-10-26 15:31:33 jt6 Exp $
 */
 
 hr.short {
@@ -25,4 +25,8 @@ div.sequenceLine {
 
 #plainSequence {
     font-size: 0.6em;
+}
+
+#highlight {
+  filter: alpha( opacity=50 );
 }
