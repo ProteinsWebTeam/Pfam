@@ -5,12 +5,10 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.12 2006-10-18 12:21:43 jt6 Exp $
+# $Id: curation.tt,v 1.13 2006-10-26 15:32:22 jt6 Exp $
 %]
 
 <!-- start curation block -->
-
-[%- USE String -%]
 
 <div class="block" id="curationBlock">
   <div class="handle">
@@ -19,7 +17,7 @@
   <div class="blockContent">
 
     <h3>
-      <span [% addTip("curation","curation") %]>Curation</span>
+      <span class="tipped" [% addTip("curation","curationTitle") %]>Curation</span>
 	  <a href="[% c.uri_for( "/help" ) %]">
         <img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
     </h3>
@@ -36,14 +34,14 @@
 
     <table class="layout">
 	  <tbody>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		  <td class="label"[% addTip("curation","seedSource") %]>Seed source:</td>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+		  <td class="label" [% addTip("curation","seedSource") %]>Seed source:</td>
 	      <td class="data">
 	        [% pfam.seed_source %]
           </td>
 		</tr>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-	      <td class="label"[% addTip("curation","prevIds") %]>Previous IDs:</td>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+	      <td class="label" [% addTip("curation","prevIds") %]>Previous IDs:</td>
           <td class="data">
             [% IF pfam.previous_id %]
               [% pfam.previous_id %]
@@ -53,42 +51,42 @@
           </td>
         </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-	      <td class="label"[% addTip("curation","familyType") %]>Type:</td>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+	      <td class="label" [% addTip("curation","familyType") %]>Type:</td>
 	      <td class="data">
             [% pfam.type %]
 	      </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-	      <td class="label"[% addTip("curation","numSeed") %]>Number in seed:</td>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+	      <td class="label" [% addTip("curation","numSeed") %]>Number in seed:</td>
 	      <td class="data">
             [% pfam.num_seed %]
 	      </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-          <td class="label"[% addTip("curation","numFull") %]>Number in full:</td>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label" [% addTip("curation","numFull") %]>Number in full:</td>
 		  <td class="data">
             [% pfam.num_full %]
 	      </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Average length of the domain:</td>
 		  <td class="data">
             [% pfam.average_length %] aa
 	      </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Average identity of full alignment:</td>
 		  <td class="data">
             [% pfam.percentage_id %] %
 	      </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Average coverage of the sequence by the domain:</td>
 		  <td class="data">
             [% pfam.average_coverage %] %
@@ -98,14 +96,14 @@
 	</table>
 
     <h3>
-      <span [% addTip("curation","hmm") %]>HMM information</span>
+      <span class="tipped" [% addTip("curation","hmm") %]>HMM information</span>
 	  <a href="[% c.uri_for( "/help" ) %]">
         <img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
     </h3>
 
     <table class="layout">
       <tbody>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
 	      <td class="label">HMM build commands:</td>
           <td class="data">
             <div><em>ls model:</em> [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</div>
@@ -113,7 +111,7 @@
           </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label" id="tableLabel">Model details:</td>
           <td class="data">
             <table class="details">
@@ -157,21 +155,21 @@
 	      </td>
         </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Model length:</td>
           <td class="data">
             [% pfam.model_length %]
           </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Family (HMM) version:</td>
           <td class="data">
             [% pfam.version %]
           </td>
 	    </tr>
 
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">HMM logo:</td>
           <td class="data">
 		    <a class="ext" href="http://www.sanger.ac.uk/cgi-bin/software/analysis/logomat-m.cgi?pfamid=[% pfam.pfamA_acc %]">View</a> the HMM logo.
