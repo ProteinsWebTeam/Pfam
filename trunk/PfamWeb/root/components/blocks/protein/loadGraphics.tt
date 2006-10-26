@@ -5,7 +5,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.12 2006-10-24 12:48:27 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.13 2006-10-26 15:30:07 jt6 Exp $
 
 META naked = 1
 -%]
@@ -23,11 +23,11 @@ META naked = 1
   	[% map = maps.$i %]
 	<div class="featuresRow" id="featuresRow[% i %]">
 
-      <p class="featuresLabel">[% map.server %]</p>
+      <p class="featuresLabel" id="featuresLabel[% i %]">[% map.server %]</p>
 
       <img class="featuresImage" id="featuresImage[% i %]" src="[% constants.tmp %]/[% map.image %]" usemap="#featuresMap[% i %]" alt="" />
 
-      <map name="featuresMap[% i %]">
+      <map name="featuresMap[% i %]" id="featuresMap[% i %]">
         [% map.map %]
       </map>
 
@@ -42,22 +42,15 @@ META naked = 1
 
 <script type="text/javascript">
   var areas = $("featuresMap").getElementsByTagName( "area" );
-
-  for( var i = 1; i <= areas.length; i++ ) {
-	if( $("featuresArea" + i) ) {
-	  Event.observe( "featuresArea" + i, "mouseover", highlightFeature );
-      //domTT_addPredefined( "featuresArea" + i + "Tip",
-	  //  "caption",    $("tip" + i + "Caption" ),
-      //  "content",    $("tip" + i + "Content" ),
-	  //  "styleClass", "niceTitle",
-      //  "trail",      true
-	  //);
-	}
-  }
+  $A( areas ).each( function( area ) {
+	  Event.observe( area, "mouseover", highlightFeature );
+    }
+  );
   Event.observe( "featuresMap", "mousemove", moveCursor );
-  Event.observe( "highlight",   "mousemove", moveCursor, true );
-  Event.observe( "highlight",   "mouseout",  unhighlight );
-
+  Event.observe( "highlight",   "mousemove", moveCursor );
+  Event.observe( "highlight",   "mouseout",  unhighlight ); 
+  Event.observe( "highlight",   "click",     openHighlightURL );
+  ht = new YAHOO.widget.Tooltip( "highlightTip", { context: "highlight" } );
 </script>
 
 <!-- end of features map -->
