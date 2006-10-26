@@ -18,23 +18,32 @@
 #    </helpSystem>
 #
 #  include the tip:
-#    <tr class="{% IF oe % 2 %}odd{% ELSE %}even{% END %}{% oe=oe+1 %}">
-#      <td class="label"{% addTip("curation","seedSource") %}>Seed source:</td>
+#    <tr class="{% oe % 2 ?"odd" : "even"; oe=oe+1 %}">
+#      <td class="label" {% addTip("curation","seedSource") %}>Seed source:</td>
 #      <td class="data">{% pfam.seed_source %}</td>
 #    </tr>
-#
-# (these three lines add the info gif to the tip header...
-#        "onmouseover=\"Element.addClassName(this,'under')\" onmouseout=\"Element.removeClassName(this,'under')\" title=\"header=[<img class='info' alt='View help' src='";
-#		c.uri_for( "/images/info.gif" );
-#        "' />&nbsp;&nbsp;$header] body=[$body] cssheader=[tipHeader] cssbody=[tipBody] requireclick=[on] fade=[on] fadespeed=[0.5]\"";
-# )
+
+USE String;
+
+MACRO addTip( section, tipId, elId );
+BLOCK;
+  CALL c.log.debug( "inside \"addTip\": |$section|$tipId|$elId|" );
+  header = helpSystem.section.${section}.tip.${tipId}.header;
+  body   = helpSystem.section.${section}.tip.${tipId}.body;
+  IF header AND body;
+    IF elId;
+      contextId = elId;
+    ELSE;
+      contextId = String.new( "toolTipEl_$tipId" );
+    "id=\"$contextId\"";
+    END;
+
+    CALL c.log.debug( "contextId: |$contextId|" );
+
+    tips.$contextId = { section = section,
+                        id      = tipId };
+
+  END; # of IF
+
+END; # of BLOCK 
 -%]
-[% MACRO addTip(section,id)
-    BLOCK;
-      header = helpSystem.section.${section}.tip.${id}.header;
-      body   = helpSystem.section.${section}.tip.${id}.body;
-      IF header AND body;
-        "onmouseover=\"Element.addClassName(this,'under')\" onmouseout=\"Element.removeClassName(this,'under')\" title=\"header=[$header] body=[$body] cssheader=[tipHeader] cssbody=[tipBody] requireclick=[on] fade=[on] fadespeed=[0.5]\"";
-      END;
-	END
-%]
