@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.18 2006-10-18 12:19:32 jt6 Exp $
+// $Id: pfFunctions.js,v 1.19 2006-10-26 15:30:20 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -231,8 +231,20 @@ function show( id ) {
 //------------------------------------------------------------
 // highlight an "area" in an image map by overlaying a coloured div
 
+// hide the feature highlight div before we start
+if( $("highlight" ) ) {
+  Element.hide( "highlight" );
+}
+
+// a re-usable tooltip
+var ht;
+
+// the URL from the highlighted area
+var highlightURL = "";
+
 function highlightFeature( e ) {
   // console.debug( "entering highlight" )
+
   var target;
   if( e.target ) {
     target = e.target;
@@ -240,7 +252,9 @@ function highlightFeature( e ) {
     target = e.srcElement;
   }
   // work around the Safari bug that causes a text node to be the target
-  if( target.nodeType == 3 ) target = target.parentNode;
+  if( target.nodeType == 3 ) {
+	target = target.parentNode;
+  }
 
   // this is the <map> that contains this <area>
   var mapName = target.parentNode.name;
@@ -249,13 +263,10 @@ function highlightFeature( e ) {
   // console.debug( "mapName:  |" + mapName + "|" );
 
   // find the ID of the <img> that uses this <map>
-  var regex = /^featuresMap(\d+)$/;
-  var results = regex.exec( mapName );
-  // console.debug( "number: |" + results[1] + "|" );
-  var image = $("featuresImage" + results[1]);
-  // console.debug( "image: |" + image.id + "|" );
+  var num = mapName.substring( 11 );
+  var image = $("featuresImage" + num);
 
-  // place the highlight
+  // where to place the highlight...
   var coords = target.coords.split(",");
   var width  = coords[2] - coords[0];
   var height = coords[3] - coords[1];
@@ -272,23 +283,59 @@ function highlightFeature( e ) {
 
   // console.debug( "WxH+X,Y:  " + width + "x" + height + "+" + left + "," + top );
 
+  // position the div
   Element.setStyle( $("highlight"),
 					{
 					  "width":   width + "px",
 					  "height":  height + "px",
 					  "left":    left + "px",
-					  "top":     top + "px",
-					  "display": "block"
+					  "top":     top + "px"
 					}
 				  );
+
+  // find the contents of the label for the row containing this feature
+  var mapNum = target.parentNode.id.substring( 11 );
+  var label = $("featuresLabel" + mapNum).innerHTML;
+  // console.debug( "features label: |" + label + "|" );
+
+  // set the tooltip contents
+  ht.setBody( target.alt );
+
+  // retrieve a URL from the feature, if present, and set various
+  // other bits and pieces...
+  if( target.href ) {
+	highlightURL = target.href;
+	Element.addClassName( "highlight", "linked" );
+	ht.setHeader( label +" feature (click for details)" );
+  } else {
+	highlightURL = "";
+	Element.removeClassName( "highlight", "linked" );
+	ht.setHeader( label +" feature" );
+  }
+
+  // "render" the tooltip, to make sure that the header and footer are
+  // added correctly
+  ht.render();
+  
+  // and finally, display the highlight div  
+  Element.show( "highlight" );
+
   // console.debug( "leaving highlight" )
 }
 
 //----------------------------------------
+// open a new window with the URL from a given feature
 
-// and hide the div on mouseout
+function openHighlightURL( e ) {
+  if( highlightURL != "" ) {
+	window.open( highlightURL );
+  }
+}
+//----------------------------------------
+
+// hide the div on mouseout
 function unhighlight( e ) {
-  $("highlight").style.display = "none";
+  Element.hide( "highlight" );
 }
 
 //----------------------------------------
@@ -465,3 +512,26 @@ function eraseCookie( name ) {
 }
 
 //------------------------------------------------------------
+// re-configure the yahoo tooltips
+
+// make the tip follow the cursor
+YAHOO.widget.Tooltip.prototype.onContextMouseMove = function(e, obj) {
+  obj.pageX = YAHOO.util.Event.getPageX(e);
+  obj.pageY = YAHOO.util.Event.getPageY(e);
+  obj.moveTo(obj.pageX, obj.pageY + 20);
+};
+
+// alter the initial configuration of the tips, mainly the delays
+YAHOO.widget.Tooltip.prototype.initDefaultConfig = function() {
+  YAHOO.widget.Tooltip.superclass.initDefaultConfig.call(this);
+
+  this.cfg.addProperty("preventoverlap",   	{ value:true, validator:this.cfg.checkBoolean, supercedes:["x","y","xy"] } );
+  
+  this.cfg.addProperty("showdelay",			{ value:250, handler:this.configShowDelay, validator:this.cfg.checkNumber } );
+  this.cfg.addProperty("autodismissdelay",	{ value:5000, handler:this.configAutoDismissDelay, validator:this.cfg.checkNumber } );
+  this.cfg.addProperty("hidedelay",			{ value:20, handler:this.configHideDelay, validator:this.cfg.checkNumber } );
+  
+  this.cfg.addProperty("text",				{ handler:this.configText, suppressEvent:true } );
+  this.cfg.addProperty("container",			{ value:document.body, handler:this.configContainer } );
+
+};
