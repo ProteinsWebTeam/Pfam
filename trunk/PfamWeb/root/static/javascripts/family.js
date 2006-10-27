@@ -4,41 +4,55 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.6 2006-10-16 14:17:39 jt6 Exp $
+// $Id: family.js,v 1.7 2006-10-27 08:48:39 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
 function familyPostLoad() {
-  new Ajax.Request( loadOptions.si.uri,
-					{ method:     "get", 
- 					  parameters: loadOptions.si.params,
- 					  onComplete: siSuccess
-					  // not even bothering with a failure callback...
- 					} );
-  new Ajax.Request( loadOptions.dg.uri,
-					{ method:     "get", 
- 					  parameters: loadOptions.dg.params,
- 					  onComplete: dgSuccess,
- 					  onFailure:  dgFailure
- 					} );
-  new Ajax.Request( loadOptions.st.uri,
- 	                { method:     "get", 
- 					  parameters: loadOptions.st.params,
-                      onComplete: stSuccess,
-                      onFailure:  stFailure
- 					} );
-  new Ajax.Request( loadOptions.at.uri,
- 					{ method:     "get", 
- 					  parameters: loadOptions.at.params,
- 					  onComplete: atSuccess,
- 					  onFailure:  atFailure
- 					} );
-  new Ajax.Request( loadOptions.ca.uri,
-					{ method:     "get", 
-					  parameters: loadOptions.ca.params,
-					  onComplete: caSuccess,
-					  onFailure:  caFailure
-					} );
+  if( typeof( loadOptions.si.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.si.uri,
+					  { method:     'get', 
+						parameters: loadOptions.si.params,
+						onComplete: siSuccess
+						// not even bothering with a failure callback...
+					  } );
+  }
+  
+  if( typeof( loadOptions.dg.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.dg.uri,
+					  { method:     'get', 
+						parameters: loadOptions.dg.params,
+						onComplete: dgSuccess,
+						onFailure:  dgFailure
+					  } );
+  }
+
+  if( typeof( loadOptions.st.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.st.uri,
+					  { method:     'get', 
+						parameters: loadOptions.st.params,
+						onComplete: stSuccess,
+						onFailure:  stFailure
+					  } );
+  }
+
+  if( typeof( loadOptions.at.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.at.uri,
+					  { method:     'get', 
+						parameters: loadOptions.at.params,
+						onComplete: atSuccess,
+						onFailure:  atFailure
+					  } );
+  }
+
+  if( typeof( loadOptions.ca.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.ca.uri,
+					  { method:     'get', 
+						parameters: loadOptions.ca.params,
+						onComplete: caSuccess,
+						onFailure:  caFailure
+					  } );
+  }
 }
 
 //------------------------------------------------------------
