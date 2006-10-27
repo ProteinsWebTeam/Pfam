@@ -18,6 +18,10 @@ __PACKAGE__->has_one("auto_pfamseq" => "PfamDB::Pfamseq",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 		     {proxy => [qw/pfamseq_id pfamseq_acc/]});
 
+__PACKAGE__->has_one("annseq" => "PfamDB::Pfam_annseq",
+		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
+		     {proxy => [qw/annseq_storable/]});
+
 __PACKAGE__->has_one("arch" => "PfamDB::Architecture",
 		     {"foreign.auto_architecture" => "self.auto_architecture"},
 		     {proxy => [qw/architecture/]});

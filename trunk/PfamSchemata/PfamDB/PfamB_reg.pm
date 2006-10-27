@@ -19,16 +19,20 @@ __PACKAGE__->set_primary_key("auto_pfamB", "auto_pfamseq");
 #Now setup the relationship
 
 __PACKAGE__->has_one( "pfamB" =>  "PfamDB::PfamB",
-					  { "foreign.auto_pfamB"  => "self.auto_pfamB" },
-					  { proxy => [ qw/pfamB_id pfamB_acc/ ] } );
+		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
+		      { proxy => [ qw/pfamB_id pfamB_acc/ ] } );
 
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
-					  { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-					  { proxy => [ qw/pfamseq_acc pfamseq_id species taxonomy/ ] } );
+		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
+		      { proxy => [ qw/pfamseq_acc pfamseq_id species taxonomy/ ] } );
 
-__PACKAGE__->has_one( "pfamseq_architecture" =>  "PfamDB::Pfamseq_architecture",
-					  { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-					  { proxy => [ qw/auto_architecture/ ] } );
+__PACKAGE__->might_have( "pfamseq_architecture" =>  "PfamDB::Pfamseq_architecture",
+			 { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
+			 { proxy => [ qw/auto_architecture/ ] } );
+
+__PACKAGE__->has_one("annseq" => "PfamDB::Pfam_annseq",
+		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
+		     {proxy => [qw/annseq_storable/]});
 
 1;
