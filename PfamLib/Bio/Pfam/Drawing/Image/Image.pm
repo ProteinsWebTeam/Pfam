@@ -631,20 +631,21 @@ sub _add_map{
       $area .= $region->getAttribute("start").",".$self->y_start.",".$region->getAttribute("end").",".($self->y_start+$self->_max_domain_height);
       #Okay, now add the href
       if( defined $region->getAttribute("link_URL" ) ) {
-	  $area .= "\" href=\"".$region->getAttribute("link_URL");
+	  $area .= "\" href=\"".$region->getAttribute("link_URL") . "\"";
       } else {
-	  $area .= "\" nohref=\"". $region->getAttribute("label");
+#	  $area .= "\" nohref=\"". $region->getAttribute("label");
+	  $area .= "\" nohref=\"nohref\"";
       }
       
     
     
 
       #Alternative
-      $area .= "\"";
+#      $area .= "\"";
       if(defined $region->getAttribute("unique_id")){
 	  $area .= " id=\"featuresArea".$region->getAttribute("unique_id")."\"";
       }
-      $area .= " title=\"";
+      $area .= " alt=\"";
       $area .= $region->getAttribute("label").":" if($region->getAttribute("label"));
       $area .=  $region->getAttribute("start")/$self->scale_x."-".$region->getAttribute("end")/$self->scale_x."\" />";
 
@@ -1187,9 +1188,10 @@ sub _draw_vertical_line {
   if($markup->getAttribute("label")){
       my $area = qq(<area shape=\"rect\" coords=\");
       #Okay, I am going to assume that there is an start and end coos. Write the area.
-      $area .= ($x-1).",".($y1-6).",".($x+1).",".($y2+6)."\" nohref=\"".$markup->getAttribute("label")."\"";
-      #Alterantive
-      $area .= " title=\"";
+#      $area .= ($x-1).",".($y1-6).",".($x+1).",".($y2+6)."\" nohref=\"".$markup->getAttribute("label")."\"";
+      $area .= ($x-1).",".($y1-6).",".($x+1).",".($y2+6)."\" nohref=\"nohref\"";
+      #Alternative
+      $area .= " alt=\"";
       $area .= $markup->getAttribute("label");
       $area .=  "\" />";
       $self->image_map($area);
@@ -1213,8 +1215,9 @@ sub _draw_horizontal_line {
     
    if($markup->getAttribute("label")){
       my $area = qq(<area shape=\"rect\" coords=\");
-      $area .= "$x1,".($y+1).",$x2,".($y-1)."\" nohref=\"".$markup->getAttribute("label")."\"";
-      $area .= " title=\"";
+#      $area .= "$x1,".($y+1).",$x2,".($y-1)."\" nohref=\"".$markup->getAttribute("label")."\"";
+      $area .= "$x1,".($y-1).",$x2,".($y+1)."\" nohref=\"nohref\"";
+      $area .= " alt=\"";
       $area .= $markup->getAttribute("label");
       $area .=  "\" />";
       $self->image_map($area);
