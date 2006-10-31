@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.13 2006-10-31 14:31:00 jt6 Exp $
+# $Id: Protein.pm,v 1.14 2006-10-31 15:14:01 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.13 2006-10-31 14:31:00 jt6 Exp $
+$Id: Protein.pm,v 1.14 2006-10-31 15:14:01 jt6 Exp $
 
 =cut
 
@@ -170,14 +170,12 @@ sub begin : Private {
 sub _getGenomeData : Private {
   my( $this, $c ) = @_;
 
-  my $auto_pfamseq = ;
-
   my $rs = $c->model("PfamDB::Genome_pfamseq")
 	->find({ auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
 		   { join => [qw/genome_species/],
 			 prefetch => [qw/genome_species/] } );
 
-  $c->stash->{genomeCode} = $rs->ncbi_code if $rs->ncbi_code;
+  $c->stash->{genomeCode} = $rs->ncbi_code if $rs;
 
   # Rob says we (he) might be able to improve this...
 }
