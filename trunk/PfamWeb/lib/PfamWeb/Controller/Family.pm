@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.12 2006-10-23 12:18:49 jt6 Exp $
+# $Id: Family.pm,v 1.13 2006-10-31 15:13:05 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.12 2006-10-23 12:18:49 jt6 Exp $
+$Id: Family.pm,v 1.13 2006-10-31 15:13:05 jt6 Exp $
 
 =cut
 
@@ -56,7 +56,7 @@ sub begin : Private {
   if( defined $c->req->param("acc") ) {
 
 	$c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
-	$c->log->info( "Family::begin: found accession |$1|, type |$2|" );
+	$c->log->info( "Family::begin: found accession |$1|, family A / B ? |$2|" );
 
 	if( defined $1 ) {
 
@@ -74,8 +74,9 @@ sub begin : Private {
 		$c->stash->{entryType} = "A";
 		$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
 		$c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
-		$c->stash->{type} = ( $c->req->param( "type" ) eq "seed" ) ? "seed" : "full";
-
+		$c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
+		  if defined $c->req->param( "alnType" );
+		
 	  }
 
 	}
@@ -88,6 +89,11 @@ sub begin : Private {
 	$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
 	  if defined $1;
 
+	$c->stash->{entryType} = "A";
+	$c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
+	$c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
+	  if defined $c->req->param( "alnType" );
+	
   }	elsif( defined $c->req->param( "entry" ) ) {
 
 	if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5})$/i ) {
