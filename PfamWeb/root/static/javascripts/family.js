@@ -4,11 +4,13 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.7 2006-10-27 08:48:39 jt6 Exp $
+// $Id: family.js,v 1.8 2006-10-31 15:08:00 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
 function familyPostLoad() {
+
+  // structure image
   if( typeof( loadOptions.si.uri ) != "undefined" ) {
 	new Ajax.Request( loadOptions.si.uri,
 					  { method:     'get', 
@@ -18,6 +20,7 @@ function familyPostLoad() {
 					  } );
   }
   
+  // domain graphics
   if( typeof( loadOptions.dg.uri ) != "undefined" ) {
 	new Ajax.Request( loadOptions.dg.uri,
 					  { method:     'get', 
@@ -27,6 +30,7 @@ function familyPostLoad() {
 					  } );
   }
 
+  // species tree
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
 	new Ajax.Request( loadOptions.st.uri,
 					  { method:     'get', 
@@ -36,6 +40,7 @@ function familyPostLoad() {
 					  } );
   }
 
+  // alignment tree
   if( typeof( loadOptions.at.uri ) != "undefined" ) {
 	new Ajax.Request( loadOptions.at.uri,
 					  { method:     'get', 
@@ -45,6 +50,7 @@ function familyPostLoad() {
 					  } );
   }
 
+  // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
 	new Ajax.Request( loadOptions.ca.uri,
 					  { method:     'get', 
@@ -398,5 +404,5 @@ function toggleTools() {
 	Element.update( "toolsToggle", "Hide" );
   }
 }
-	
+
 //------------------------------------------------------------
