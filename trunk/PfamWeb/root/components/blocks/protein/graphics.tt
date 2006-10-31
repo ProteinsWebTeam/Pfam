@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.11 2006-10-13 14:16:49 jt6 Exp $
+# $Id: graphics.tt,v 1.12 2006-10-31 15:03:49 jt6 Exp $
 -%]
 
 <!-- start protein graphics block -->
@@ -37,7 +37,7 @@
       loadOptions.pg.params = "acc=[% pfamseq.pfamseq_acc %]";
   	</script>
 
-    <p><a href="#" onclick="reveal(this,'checkboxes');return false">Show</a>
+    <p><span class="link" onclick="reveal(this,'checkboxes');return false">Show</span>
 	  sources update panel.</p>
 
 	<div id="updatePanel">
