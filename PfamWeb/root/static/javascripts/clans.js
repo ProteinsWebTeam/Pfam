@@ -4,25 +4,42 @@
 //
 // javascript glue for the clans section
 //
-// $Id: clans.js,v 1.3 2006-10-03 14:07:01 jt6 Exp $
+// $Id: clans.js,v 1.4 2006-10-31 15:07:43 jt6 Exp $
 
 // load ajax components for the clans page
 
 function clanPostLoad() {
-  new Ajax.Request( loadOptions.cg.uri,
- 					{ method: "get",
- 					  parameters: loadOptions.cg.params,
- 					  onComplete: cgSuccess,
- 					  onFailure:  cgFailure
- 					} );
+
+  // domain graphics
+  if( typeof( loadOptions.cg.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.cg.uri,
+					  { method: "get",
+						parameters: loadOptions.cg.params,
+						onComplete: cgSuccess,
+						onFailure:  cgFailure
+					  } );
+  }
 
   // add an example structure image to the summary tab
-  new Ajax.Request( loadOptions.si.uri,
-					{ method:     "get", 
- 					  parameters: loadOptions.si.params,
- 					  onComplete: siSuccess
-					  // not even bothering with a failure callback...
- 					} );
+  if( typeof( loadOptions.si.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.si.uri,
+					  { method:     "get", 
+ 					    parameters: loadOptions.si.params,
+ 					    onComplete: siSuccess
+					    // not even bothering with a failure callback...
+ 					  } );
+  }
+
+  // species tree
+  if( typeof( loadOptions.st.uri ) != "undefined" ) {
+	new Ajax.Request( loadOptions.st.uri,
+					  { method:     'get', 
+						parameters: loadOptions.st.params,
+						onComplete: stSuccess,
+						onFailure:  stFailure
+					  } );
+  }
+
 }
 
 //------------------------------------------------------------
