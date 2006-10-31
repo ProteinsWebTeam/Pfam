@@ -27,8 +27,11 @@ __PACKAGE__->has_one("pfamseq",  => "PfamDB::Pfamseq",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
 
 ##genome_species
-__PACKAGE__->has_one( "genome_sepcies",  => "PfamDB::Genome_species",
-		      {"foreign.ncbi_code" => "self.ncbi_code"} );
+__PACKAGE__->has_one( "genome_species",  => "PfamDB::Genome_species",
+		      {"foreign.ncbi_code" => "self.ncbi_code"},
+		      { proxy => [qw/ species grouping num_distinct_regions num_total_regions
+							  num_proteins sequence_coverage residue_coverage 
+							  total_genome_proteins total_aa_length /]} );
 
 
 1;
