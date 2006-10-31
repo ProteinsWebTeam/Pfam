@@ -5,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.9 2006-10-23 12:13:27 jt6 Exp $
+# $Id: species.tt,v 1.10 2006-10-31 14:57:54 jt6 Exp $
 %]
 
 <!-- start species block -->
@@ -15,7 +15,7 @@
   <div class="handle">
     <h1>Species distribution</h1>
   </div>
-  <div class="blockContent [% IF NOT open %]closed[% END %]">
+  <div class="blockContent">
 
 	[%# the "tree" object is defined in family.js, in the atSuccess callback
         for the ajax call below. The script defines the object and the 
@@ -36,7 +36,7 @@
 	    </ul>
 	    <h3>Annotation</h3>
         <ul> 
-	      [% UNLESS entryType == "B" %]
+	      [% IF entryType == "A" %]
 	      <li><a id="seedToggle" href="#" onclick="toggleHighlightSeed();return false">Hide</a> highlighting of species in seed</li>
           [% END %]
 	      <li><a id="sumToggle" href="#" onclick="toggleShowSummaries();return false">Hide</a> summaries</li>
@@ -49,7 +49,9 @@
 	    <h3>View selected sequences</h3>
         <ul>
           <li><a href="#" onclick="collectSequences();return false">Graphically</a></li>
+		  [% UNLESS entryType == "C" %]
           <li>As an <a href="#" onclick="collectSequences();return false">alignment</a></li>
+		  [% END %]
         </ul>
       </div>
     </div>
@@ -65,30 +67,41 @@
   </div>
 </div>
 
-[%# very ugly. Decide which methods to call next, based on whether this is a PfamA 
-  # or a PfamB... %]
+[% # very ugly. Decide which methods to call next, based on whether this is a PfamA 
+   # or a PfamB...
 
-[% IF entryType == "A" %]
+IF entryType == "A" %]
 
 <form id="subTreeForm" action="[% c.uri_for( "/family/speciessubtree" ) %]" method="get">
-	<input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
- 	<input type="hidden" name="seqs" id="seqs" />
+  <input type="hidden" name="acc" value="[% acc %]" />
+  <input type="hidden" name="seqs" id="seqs" />
 </form>
 
 <script type="text/javascript">
   loadOptions.st.uri    = "[% c.uri_for( "/family/speciestree" ) %]";
-  loadOptions.st.params = "acc=[% pfam.pfamA_acc %]";
+  loadOptions.st.params = "acc=[% acc %]";
 
-[% ELSE %]
+[% ELSIF entryType == "B" %]
 
 <form id="subTreeForm" action="[% c.uri_for( "/pfamb/speciessubtree" ) %]" method="get">
-	<input type="hidden" name="acc" value="[% pfam.pfamB_acc %]" />
- 	<input type="hidden" name="seqs" id="seqs" />
+  <input type="hidden" name="acc" value="[% acc %]" />
+  <input type="hidden" name="seqs" id="seqs" />
 </form>
 
 <script type="text/javascript">
   loadOptions.st.uri    = "[% c.uri_for( "/pfamb/speciestree" ) %]";
-  loadOptions.st.params = "acc=[% pfam.pfamB_acc %]";
+  loadOptions.st.params = "acc=[% acc %]";
+
+[% ELSIF entryType == "C" %]
+
+<form id="subTreeForm" action="[% c.uri_for( "/clan/speciessubtree" ) %]" method="get">
+  <input type="hidden" name="acc" value="[% acc %]" />
+  <input type="hidden" name="seqs" id="seqs" />
+</form>
+
+<script type="text/javascript">
+  loadOptions.st.uri    = "[% c.uri_for( "/clan/speciestree" ) %]";
+  loadOptions.st.params = "acc=[% acc %]";
 
 [% END # of if entryType... %]
 
