@@ -4,7 +4,7 @@
 # 
 # build the domains block for PfamB's
 #
-# $Id: domains.tt,v 1.1 2006-10-23 12:15:20 jt6 Exp $
+# $Id: domains.tt,v 1.2 2006-10-31 15:02:46 jt6 Exp $
 %]
 
 <!-- start domains block -->
@@ -14,11 +14,16 @@
     <h1>Domain organisation</h1>
   </div>
   <div class="blockContent">
-
-    <h1>PfamB [% pfam.pfamB_acc %]</h1>
-
+    <p id="dgph" class="loading">
+      Loading domain graphics...
+    </p>
   </div>
 </div>
+
+<script type="text/javascript">
+  loadOptions.dg.uri    = "[% c.uri_for( "/pfamb/domaingraphics" ) %]";
+  loadOptions.dg.params = "acc=[% pfam.pfamB_acc %]";
+</script>
 
 <!-- end domains block -->
 
