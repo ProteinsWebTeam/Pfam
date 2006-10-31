@@ -2,7 +2,7 @@
 # AlignmentGenerator.pm
 # jt6 20060601 WTSI
 #
-# $Id: AlignmentGenerator.pm,v 1.10 2006-10-23 12:21:56 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.11 2006-10-31 15:15:51 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::AlignmentGenerator;
 
 Various methods for viewing alignments.
 
-$Id: AlignmentGenerator.pm,v 1.10 2006-10-23 12:21:56 jt6 Exp $
+$Id: AlignmentGenerator.pm,v 1.11 2006-10-31 15:15:51 jt6 Exp $
 
 =cut
 
@@ -88,11 +88,12 @@ sub default : Path {
 					. $c->stash->{scroll} . "|" );
   }
 
-  my $rawAlignment = $dl->alignment( { query => $c->stash->{acc} . "." . $c->stash->{type},
+  my $rawAlignment = $dl->alignment( { query => $c->stash->{acc} . "." . $c->stash->{alnType},
 									   rows  => $rows
 									 } );
-  my $features     = $dl->features( $c->stash->{acc} . "." . $c->stash->{type} );
+  my $features     = $dl->features( $c->stash->{acc} . "." . $c->stash->{alnType} );
   my $consensus    = Bio::Pfam::ColourAlign::parseConsensus( getConsensus( $features ) );
+  $c->log->debug( "rawAlignment: " . dump $rawAlignment );
 
   my( $alignments, $alignmentLengths ) = reconstructAli( $rawAlignment );
   my @markedUpAlignments;
