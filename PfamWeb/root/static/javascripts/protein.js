@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.5 2006-09-08 15:09:06 jt6 Exp $
+// $Id: protein.js,v 1.6 2006-10-31 15:09:51 jt6 Exp $
 
 // this will make the ajax calls for the protein page components
 
@@ -30,7 +30,7 @@ showItems = {};
 
 function reveal( oSwitch, sId ) {
   var oSource = $(sId);
-  if( showItems[sId] ) {
+  if( typeof( showItems[sId] ) == "undefined" || showItems[sId] ) {
 	// console.debug( sId + " is currently shown" );
 	Effect.BlindUp( oSource, { duration: 0.3 } );
 	showItems[sId] = false;
