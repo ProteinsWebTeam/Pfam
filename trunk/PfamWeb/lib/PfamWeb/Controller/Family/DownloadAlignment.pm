@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: DownloadAlignment.pm,v 1.3 2006-10-23 12:22:26 jt6 Exp $
+# $Id: DownloadAlignment.pm,v 1.4 2006-10-31 15:16:45 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::DownloadAlignment;
 
 Generates a B<full page>.
 
-$Id: DownloadAlignment.pm,v 1.3 2006-10-23 12:22:26 jt6 Exp $
+$Id: DownloadAlignment.pm,v 1.4 2006-10-31 15:16:45 jt6 Exp $
 
 =cut
 
@@ -132,7 +132,7 @@ from the DB for a PfamB family.
 sub getAlignment : Private {
   my( $this, $c ) = @_;
 
-  # see what type of family we have
+  # see what type of family we have, A or B
   if ( $c->stash->{acc} =~ /^PF\d{5}$/ ) {
 	return $c->forward( "getAlignmentFile" );
   } else {
@@ -153,7 +153,7 @@ sub getAlignmentFile : Private {
 
   my $file =
 	$this->{alnFileDir} . "/"
-	  . $c->stash->{type}
+	  . $c->stash->{alnType}
 		. "/" . $c->stash->{pfam}->pfamA_acc . ".full.gz";
 
   my $gz = gzopen( $file, "rb" )
@@ -211,7 +211,7 @@ sub end : Private {
 	# figure out the filename
 	my $filename;
 	if( $c->stash->{entryType} eq "A" ) {
-	  $filename = $c->stash->{acc} . "_" . $c->stash->{type}. ".txt";
+	  $filename = $c->stash->{acc} . "_" . $c->stash->{alnType}. ".txt";
 	} else {
 	  # don't bother sticking "seed" or "full" in there if it's a PfamB
 	  $filename = $c->stash->{acc} . ".txt";
