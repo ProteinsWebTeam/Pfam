@@ -17,8 +17,6 @@
 
   <body class="tool">
 
-    [% CALL c.log.debug( "rendering the tool window..." ) %]
-
     <!-- start of content -->
     [% pageContent %]
     <!-- end of content -->
