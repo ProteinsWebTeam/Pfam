@@ -1,5 +1,5 @@
 
-# ClanGraphics.pm
+# DomainGraphics.pm
 # jt6 20060718 WTSI
 #
 # $Id
@@ -10,7 +10,7 @@ PfamWeb::Controller::Family - build the post-loaded clan graphics
 
 =cut
 
-package PfamWeb::Controller::Clan::Graphics;
+package PfamWeb::Controller::Clan::DomainGraphics;
 
 =head1 DESCRIPTION
 
@@ -18,7 +18,7 @@ Handles the generation of the graphics component of the clan pages.
 
 Generates a B<page fragment>.
 
-$Id: DomainGraphics.pm,v 1.2 2006-09-22 10:46:32 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.3 2006-10-31 15:14:33 jt6 Exp $
 
 =cut
 
@@ -48,36 +48,53 @@ sub default : Path {
 
   my $autoClan = $c->stash->{clan}->auto_clan;
 
-  my @archs;
+  ( $c->stash->{auto_arch} ) = $c->req->param( "arch" ) =~ /^(\d+)$/
+	if $c->req->param( "arch" );
 
-  if( defined $c->req->param( "all" ) ) {
-
-	@archs = $c->model("PfamDB::Architecture")
-	  ->search( { auto_clan => $autoClan },
-				{
-				 join     => [qw/clan_arch storable type_example/],
-				 prefetch => [qw/storable type_example/],
-				 order_by => "no_seqs DESC"
-				} )->all;
-  } else {
+  my( @seqs, %seqInfo, @architectures );
+  if( $c->stash->{auto_arch} ) {
+	# we want to see all of the sequences with a given architecture
 	
-	@archs = $c->model("PfamDB::Architecture")
-	  ->search( { auto_clan => $autoClan },
-				{
-				 join     => [qw/clan_arch storable type_example/],
-				 prefetch => [qw/storable type_example/],
-				 order_by => "no_seqs DESC",
-				 rows     => 50,
-				 page     => 1
-				} )->all;
-  }
+    @architectures = $c->model("PfamDB::Pfamseq_architecture")
+      ->search( { "arch.auto_architecture" => $c->stash->{auto_arch} },
+				{ join      => [ qw/ arch annseq /],
+				  prefetch  => [ qw/ arch annseq/] } );
 
-  my( @seqs, %seqInfo );
-  foreach my $arch ( @archs ) {
-	push @seqs, thaw( $arch->annseq_storable );
-	my @domains = split /\~/, $arch->architecture;
-	$seqInfo{$arch->pfamseq_id}{arch} = \@domains;
-	$seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs;
+	foreach my $arch ( @architectures ) {
+	  push @seqs, thaw( $arch->annseq_storable );
+	}
+
+  } else{
+	# we want to see the unique architectures containing this domain
+
+	if( defined $c->req->param( "all" ) ) {
+
+	  @architectures = $c->model("PfamDB::Architecture")
+		->search( { auto_clan => $autoClan },
+				  { join     => [qw/clan_arch storable type_example/],
+					prefetch => [qw/storable type_example/],
+					order_by => "no_seqs DESC"
+				  } )->all;
+	} else {
+
+	  @architectures = $c->model("PfamDB::Architecture")
+		->search( { auto_clan => $autoClan },
+				  { join     => [qw/clan_arch storable type_example/],
+					prefetch => [qw/storable type_example/],
+					order_by => "no_seqs DESC",
+					rows     => 50,
+					page     => 1
+				  } )->all;
+	}
+
+	foreach my $arch ( @architectures ) {
+	  push @seqs, thaw( $arch->annseq_storable );
+	  my @domains = split /\~/, $arch->architecture;
+	  $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
+	  $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs;
+	  $seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
+	}
+
   }
   $c->log->debug( "found " . scalar @seqs . " storables" );
 
@@ -87,18 +104,18 @@ sub default : Path {
 
   $layout->layout_sequences_with_regions_and_features( \@seqs,
 													   { PfamA      => 1,
+														 PfamB      => 1,
 														 noFeatures => 0 } );
 														
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $imageset->create_images( $layout->layout_to_XMLDOM );
 
-  $c->stash->{imageset} = $imageset;
+  $c->stash->{images} = $imageset;
   $c->stash->{seqInfo}  = \%seqInfo;
-
 
   # set the template and let the View render it via the "end" method
   # on the parent class
-  $c->stash->{template} = "components/blocks/clan/loadGraphics.tt";
+  $c->stash->{template} = "components/blocks/family/domainSummary.tt";
 
 }
 
