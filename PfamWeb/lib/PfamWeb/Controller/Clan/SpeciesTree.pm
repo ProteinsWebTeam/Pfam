@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.1 2006-10-27 10:42:25 rdf Exp $
+# $Id: SpeciesTree.pm,v 1.2 2006-10-31 15:15:09 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.1 2006-10-27 10:42:25 rdf Exp $
+$Id: SpeciesTree.pm,v 1.2 2006-10-31 15:15:09 jt6 Exp $
 
 =cut
 
@@ -74,7 +74,7 @@ Renders a tree from the supplied sequence accessions.
 
 =cut
 
-sub renderSubTree : Path( "/family/speciessubtree" ) {
+sub renderSubTree : Path( "/clan/speciessubtree" ) {
   my( $this, $c ) = @_;
 
   $c->log->debug( "acc:  |" . $c->req->param( "acc" ) . "|" );
