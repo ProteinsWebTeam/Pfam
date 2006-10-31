@@ -78,10 +78,12 @@ __PACKAGE__->might_have( "pdb_residue" => "PfamDB::Pdb_residue",
 
 #Genome Stuff - todo
 
-
+__PACKAGE__->might_have( "genome_pfamseq" => "PfamDB::genome_pfamseq",
+			 { "foreign.auto_pfamseq" => "self.auto_pfamseq" } );
 
 #Things that should be removed once some rationale is applied - We should then just be able to add the column name, but the call should be the same;
 ##pfamseq_ncbi
+
 __PACKAGE__->has_one("ncbi", => "PfamDB::Pfamseq_ncbi",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 		     { proxy => [qw/ncbi_code/]});
