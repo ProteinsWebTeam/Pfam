@@ -1,0 +1,25 @@
+[%
+# treefam.tt
+# jt6 20061030 WTSI
+# 
+# block for treefam data
+#
+# $Id: treefam.tt,v 1.1 2006-10-31 15:04:36 jt6 Exp $
+
+RETURN UNLESS pfamseq.treefam_acc;
+-%]
+
+<!-- start treefam block -->
+
+<div class="block" id="proteinTreeFamBlock">
+  <div class="handle">
+    <h1>TreeFam</h1>
+  </div>
+  <div class="blockContent">
+
+  <iframe name="treeFamFrame" id="treeFamFrame" src="http://www.treefam.org/cgi-bin/treeview.pl?stype=clean&amp;ac=[% pfamseq.treefam_acc %]" title="TreeFam entry [% pfamseq.treefam_acc %]"></iframe>
+
+  </div> <!-- end of "blockContent" -->
+</div> <!-- end of "block" -->
+
+<!-- end treefam block -->
