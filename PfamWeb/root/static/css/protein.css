@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.13 2006-10-26 15:30:54 jt6 Exp $
+   $Id: protein.css,v 1.14 2006-10-31 15:06:43 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -156,3 +156,13 @@ div.rightAlignmentLabel {
     background: #DDD;
 	float: left;
 }
+
+/* ---------------------------------------- */
+/* treefam section */
+
+#treeFamFrame {
+	width: 100%;
+    height: 500px;
+}
+
+/* ---------------------------------------- */
