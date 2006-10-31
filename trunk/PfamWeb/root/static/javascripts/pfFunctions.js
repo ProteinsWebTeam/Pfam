@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.19 2006-10-26 15:30:20 jt6 Exp $
+// $Id: pfFunctions.js,v 1.20 2006-10-31 15:08:21 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -535,3 +535,29 @@ YAHOO.widget.Tooltip.prototype.initDefaultConfig = function() {
   this.cfg.addProperty("container",			{ value:document.body, handler:this.configContainer } );
 
 };
+
+//------------------------------------------------------------
+// post-load all of the sequences with a given architecture
+
+function loadDomains( arch, index, uri, num ) {
+
+  // the message for the confirmation dialogue
+  var msg = "You are about to load " + num + " domain graphics, which may take some time.\n\nAre you sure you want to continue ?";
+
+  // only ask for confirmation if there are 50 or more sequences to load
+  var continueLoad = ( num >= 50 ) ? confirm( msg ) : true;
+
+  if( continueLoad ) {
+	// switch on and off the visual cues in the page
+	Element.toggle('adSpinner' + arch + index,
+				   'loadSwitch' + index,
+				   'showHideArchs' + index );
+
+	// and actually fire off a request to load the new graphics
+	new Ajax.Updater('domainArch' + index,
+					 uri,
+					 { asynchronous: 1 } );
+  }
+}
+
+//------------------------------------------------------------
