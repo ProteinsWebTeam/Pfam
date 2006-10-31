@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.11 2006-10-23 12:12:45 jt6 Exp $
+# $Id: align.tt,v 1.12 2006-10-31 15:00:18 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -17,19 +17,21 @@
 
     <h3>View options</h3>
 
-    <form id="viewerForm" action="[% c.uri_for( "/family/downloadalignment" ) %]" method="get">
-      <input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
+    <form id="viewerForm"
+          action="[% c.uri_for( "/family/downloadalignment" ) %]"
+          method="get">
+      <input type="hidden" name="acc"  value="[% acc %]" />
 
 	  <table class="details alignOpts">
         <tr class="odd">
           <td class="label">Alignment:</td>
           <td>
             <span class="button">
-              <input type="radio" name="type" id="viewerTypeS" value="seed" checked="1" />
+              <input type="radio" name="alnType" id="viewerTypeS" value="seed" checked="1" />
               <label for="viewerTypeS">Seed</label>
             </span>
             <span class="button">
-              <input type="radio" name="type" id="viewerTypeF" value="full" />
+              <input type="radio" name="alnType" id="viewerTypeF" value="full" />
               <label for="viewerTypeF">Full</label>
             </span>
 	      </td>
@@ -83,18 +85,18 @@ function launch() {
     <h3>Download options</h3>
 
     <form action="[% c.uri_for( "/family/downloadalignment" ) %]" method="get">
-      <input type="hidden" name="acc" value="[% pfam.pfamA_acc %]" />
+      <input type="hidden" name="acc" value="[% acc %]" />
 
       <table class="details alignOpts">
         <tr class="odd">
           <td class="label">Alignment:</td>
           <td>
             <span class="button">
-              <input type="radio" name="type" id="typeS" value="seed" checked="1" />
+              <input type="radio" name="typeS" id="typeS" value="seed" checked="1" />
               <label for="typeS">Seed</label>
             </span>
             <span class="button">
-              <input type="radio" name="type" id="typeF" value="full" />
+              <input type="radio" name="typeF" id="typeF" value="full" />
               <label for="typeF">Full</label>
             </span>
 	      </td>
