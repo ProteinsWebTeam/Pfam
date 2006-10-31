@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.7 2006-09-22 13:22:13 jt6 Exp $
+# $Id: Clan.pm,v 1.8 2006-10-31 15:13:25 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.7 2006-09-22 13:22:13 jt6 Exp $
+$Id: Clan.pm,v 1.8 2006-10-31 15:13:25 jt6 Exp $
 
 =cut
 
@@ -128,6 +128,10 @@ sub begin : Private {
   }
 
   $c->log->debug( "Clan::begin: successfully retrieved a clan object" );
+
+  # set up the pointers to the clan data in the stash
+  $c->stash->{entryType} = "C";
+  $c->stash->{acc} = $c->stash->{clan}->clan_acc;
 
   # populate the stash with other data
   $c->forward( "_getSummaryData" );
