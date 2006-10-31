@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.17 2006-10-23 12:06:53 jt6 Exp $
+   $Id: family.css,v 1.18 2006-10-31 15:05:52 jt6 Exp $
 */   
 
 /*
@@ -141,77 +141,3 @@ table.alignOpts td span {
 }
 
 /* ---------------------------------------- */
-/* species tree styles */
-
-.highlightSeed {
-	background: #CBD;
-}
-
-td.nodeSummaryCell {
-	width: 16em;
-}
-
-div.nodeSummary {
-	margin-left: 0.2em;
-}
-
-div.nodeSummary div {
-    float: left;
-    border-width: 1px;
-	border-style: solid;
-    width: 2.5em;
-	height: 1.2em;
-    padding: 0.1em;
-    margin: 0.1em;
-	text-align: center;
-}
-
-.specSum {
-	background: #FDD;
-    border-color: #B99;
-}
-.seqSum {
-	background: #DFD;
-    border-color: #9B9;
-}
-.domSum {
-	background: #DDF;
-    border-color: #99B;
-}
-
-#treeTools {
-	width: 18em;
-    padding: 0.2em;
-	float: right;
-    border: 1px solid #AAA;
-    background: #e8e8e8;
-	opacity: 0.75;
-}
-
-#treeTools ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-#treeTools li {
-    padding: 0.2em 0;
-}
-
-#treeTools h3 {
-    font-size: 1em;
-    padding: 0.4em 0 0.2em 0;
-    margin: 0;
-}
-
-#treeToolsHeader h3 {
-    margin: 0;
-    padding: 0.2em 0;
-	float: left;
-}
-
-#toolsToggle {
-    cursor: pointer;
-	float: right;
-    padding: 0.2em 0;
-}
