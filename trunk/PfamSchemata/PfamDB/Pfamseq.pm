@@ -11,7 +11,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamseq" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc crc64 md5 description length species taxonomy is_fragment version current non_cons sequence updated created/);
+__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc crc64 md5 description length species taxonomy is_fragment version current non_cons sequence updated created treefam_acc /);
 
 #Set the the keys
 __PACKAGE__->set_primary_key( "auto_pfamseq", "pfamseq_acc", "crc64", "pfamseq_id" );
@@ -79,7 +79,7 @@ __PACKAGE__->might_have( "pdb_residue" => "PfamDB::Pdb_residue",
 #Genome Stuff - todo
 
 __PACKAGE__->might_have( "genome_pfamseq" => "PfamDB::genome_pfamseq",
-			 { "foreign.auto_pfamseq" => "self.auto_pfamseq" } );
+			 { "foreign.auto_pfamseq" => "self.auto_pfamseq" });
 
 #Things that should be removed once some rationale is applied - We should then just be able to add the column name, but the call should be the same;
 ##pfamseq_ncbi
