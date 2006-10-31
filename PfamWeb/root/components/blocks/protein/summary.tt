@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.8 2006-09-08 15:23:23 jt6 Exp $
+# $Id: summary.tt,v 1.9 2006-10-31 14:31:14 jt6 Exp $
 %]
 
 [% USE String %]
@@ -28,7 +28,7 @@
 
     <table class="layout">
 	  <tbody>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
 		  <td class="label">Entry:</td>
 	      <td class="data">
             <span class="ext">
@@ -36,13 +36,13 @@
             </span>
           </td>
 		</tr>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
 		  <td class="label">Description:</td>
 	      <td class="data">
             [% pfamseq.description %]
           </td>
 		</tr>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
 		  <td class="label">Source organism:</td>
 	      <td class="data">
             [% IF pfamseq.ncbi_code %]
@@ -52,9 +52,13 @@
             [% ELSE %]	
 	          [% pfamseq.species %]
             [% END %]
+			[% IF genomeCode %]
+              <br />
+              <a href="[% c.uri_for( "/genome" ncbiCode=genomeCode ) %]">View</a> Pfam genome data.
+			[% END %]
           </td>
 		</tr>
-        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
 		  <td class="label">Length:</td>
 	      <td class="data">
             [% pfamseq.length %] amino acids
