@@ -1,11 +1,11 @@
 
-[%#
+[%
 # summary.tt
 # jt6 20060821 WTSI
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.1 2006-08-22 13:27:56 rdf Exp $
+# $Id: summary.tt,v 1.2 2006-11-01 13:01:33 rdf Exp $
 %]
 
 <!-- start proteome summary block -->
@@ -13,41 +13,60 @@
 <div class="block" id="proteomeSummaryBlock">
   <div class="handle">
     <h1>Proteome Summary</h1>
-  </div
+  </div>
+
+
   <div class="blockContent">
-	[% oe = 0 %]
+
+	[% oe = 0 %]	
 
     <table class="layout">
 	<tbody>
 	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		<td>Name:</td>		
 	      <td class="data">	
-	        wibble
+	        <i>[% proteomeSpecies.species %]</i>
           </td>	
 	</tr>
 	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>NCBI code</td>		
+	      <td class="data">	
+	        [% proteomeSpecies.ncbi_code %]
+          </td>	
+	</tr>
+
+
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		<td>Number Sequences:</td>		
 	      <td class="data">	
-	        lots
+	        [% proteomeSpecies.total_proteome_proteins %] 
           </td>	
 	</tr>	
 	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		<td>Number of Domains:</td>		
 	      <td class="data">	
-	        10,000
+	        [% proteomeSpecies.num_total_regions %] 
           </td>	
 	</tr>
 	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Percentage Coverage:</td>		
+		<td>Percentage Sequence Coverage:</td>		
 	      <td class="data">	
-	        50%
+	        [% proteomeSpecies.sequence_coverage %] %
        	  </td>
 		
 	</tr>
-	</tbody>
-</table>
-  </div>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Precentage Residue Coverage:</td>		
+	      <td class="data">	
+	        [% proteomeSpecies.residue_coverage %] %
+       	  </td>
+		
+	</tr>
 
+	
+	</tbody>
+	</table>
+  </div>
 </div>
 
 <!-- end proteome summary block -->
