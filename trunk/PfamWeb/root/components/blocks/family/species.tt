@@ -5,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.10 2006-10-31 14:57:54 jt6 Exp $
+# $Id: species.tt,v 1.11 2006-11-01 14:47:44 jt6 Exp $
 %]
 
 <!-- start species block -->
@@ -44,13 +44,13 @@
         </ul>
         <h3>Download</h3>
 	    <ul>
-	      <li><a href="[% c.uri_for( "/family/texttree", acc=pfam.pfamA_acc ) | uri | html%]">Save</a> a text representation</li>
+	      <li><a href="[% c.uri_for( "/family/texttree", acc=pfam.pfamA_acc ) %]">Save</a> a text representation</li>
         </ul>
 	    <h3>View selected sequences</h3>
         <ul>
-          <li><a href="#" onclick="collectSequences();return false">Graphically</a></li>
+          <li><span class="link" onclick="collectSequences( '[% acc %]' )">Graphically</span></li>
 		  [% UNLESS entryType == "C" %]
-          <li>As an <a href="#" onclick="collectSequences();return false">alignment</a></li>
+          <li>As an <span class="link" onclick="collectSequences( '[% acc %]' )">alignment</span></li>
 		  [% END %]
         </ul>
       </div>
@@ -68,41 +68,20 @@
 </div>
 
 [% # very ugly. Decide which methods to call next, based on whether this is a PfamA 
-   # or a PfamB...
-
-IF entryType == "A" %]
-
-<form id="subTreeForm" action="[% c.uri_for( "/family/speciessubtree" ) %]" method="get">
-  <input type="hidden" name="acc" value="[% acc %]" />
-  <input type="hidden" name="seqs" id="seqs" />
-</form>
+   # or a PfamB... %]
 
 <script type="text/javascript">
+  loadOptions.st.params = "acc=[% acc %]";
+
+[% IF entryType == "A" %]
   loadOptions.st.uri    = "[% c.uri_for( "/family/speciestree" ) %]";
-  loadOptions.st.params = "acc=[% acc %]";
-
+  var selectURI = "[% c.uri_for( "/family/speciessubtree" ) %]";
 [% ELSIF entryType == "B" %]
-
-<form id="subTreeForm" action="[% c.uri_for( "/pfamb/speciessubtree" ) %]" method="get">
-  <input type="hidden" name="acc" value="[% acc %]" />
-  <input type="hidden" name="seqs" id="seqs" />
-</form>
-
-<script type="text/javascript">
   loadOptions.st.uri    = "[% c.uri_for( "/pfamb/speciestree" ) %]";
-  loadOptions.st.params = "acc=[% acc %]";
-
+  var selectURI = "[% c.uri_for( "/pfamb/speciessubtree" ) %]";
 [% ELSIF entryType == "C" %]
-
-<form id="subTreeForm" action="[% c.uri_for( "/clan/speciessubtree" ) %]" method="get">
-  <input type="hidden" name="acc" value="[% acc %]" />
-  <input type="hidden" name="seqs" id="seqs" />
-</form>
-
-<script type="text/javascript">
   loadOptions.st.uri    = "[% c.uri_for( "/clan/speciestree" ) %]";
-  loadOptions.st.params = "acc=[% acc %]";
-
+  var selectURI = "[% c.uri_for( "/clan/speciessubtree" ) %]";
 [% END # of if entryType... %]
 
   [%# a hash that maps between the ID of the summary node and the TaskNode object -%]
@@ -115,6 +94,7 @@ IF entryType == "A" %]
   [%# add a listener that will move the tools palette in response to scrolling of 
     # the window %]
   Event.observe( window, "scroll", moveTools, false );
+
 </script>
 
 <!-- end of species block -->
