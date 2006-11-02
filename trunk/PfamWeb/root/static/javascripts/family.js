@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.8 2006-10-31 15:08:00 jt6 Exp $
+// $Id: family.js,v 1.9 2006-11-02 11:03:43 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -324,7 +324,7 @@ function moveTools() {
 // in the tree. Submit the form in the page which will act on those
 // accessions
 
-function collectSequences() {
+function collectSequences( acc ) {
 
   var seqs = "";
 
@@ -335,32 +335,13 @@ function collectSequences() {
 				   seqs = seqs + nodeSequences[n.id] + " ";
 				 }
 			   } );
+  
+  // build the URI, escaping the sequences string, just to be on the safe side
+  var url = selectURI + "?acc=" + acc + "&amp;seqs=" + escape( seqs );
 
-  // escape the sequences string, just to be on the safe side
-  $("seqs").value = escape(seqs);
-
-  // and submit the form
-  $("subTreeForm").submit();
+  // and submit the request
+  popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
 }
-
-// function collectSequencesSlowly() {
-
-//   var seqs = "";
-
-//   $$(".leafNode").each
-// 	( function( summary ) {
-// 	  var taskNode = nodeMapping[summary.id];
-// 	  if( taskNode.checked ) {
-// 		seqs = seqs + nodeSequences[summary.id] + " ";
-// 	  }
-// 	} );
-
-//   // escape the sequences string, just to be on the safe side
-//   $("seqs").value = escape(seqs);
-
-//   // and submit the form
-//   $("subTreeForm").submit();
-// }
 
 //------------------------------------------------------------
 // expand the tree to the depth specified in the little form in the
