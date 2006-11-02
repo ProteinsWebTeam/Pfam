@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: DownloadAlignment.pm,v 1.4 2006-10-31 15:16:45 jt6 Exp $
+# $Id: DownloadAlignment.pm,v 1.5 2006-11-02 11:01:45 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::DownloadAlignment;
 
 Generates a B<full page>.
 
-$Id: DownloadAlignment.pm,v 1.4 2006-10-31 15:16:45 jt6 Exp $
+$Id: DownloadAlignment.pm,v 1.5 2006-11-02 11:01:45 jt6 Exp $
 
 =cut
 
@@ -33,7 +33,54 @@ use base "PfamWeb::Controller::Family";
 
 =head1 METHODS
 
-=head2 downloadAlignment : Private
+=head2 downloadAlignment : Path
+
+=cut
+
+sub downloadAlignment : Path( "/family/downloadalignment" ) {
+  my( $this, $c ) = @_;
+
+  if( $c->req->header( "Accept-Encoding" ) and
+	  $c->req->header( "Accept-Encoding" ) =~ /gzip/ ) {
+
+	$c->log->debug( "downloadAlignment: browser accepts gzipped content" );
+
+	my $url;
+	if( $c->req->param( "alnType" ) eq "seed" ) {
+	  $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/seed/"
+		. $c->stash->{acc} . ".shtml.gz";
+	} else {
+	  $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/full/"
+		. $c->stash->{acc} . ".shtml.gz";
+	}
+
+	$c->log->debug( "downloadAlignment: redirecting to |$url|" );
+	$c->res->redirect( $url );
+	return;
+
+  } else {
+
+	$c->log->debug( "downloadAlignment: browser doesn't accept gzipped content" );
+
+	my $file;
+	if( $c->req->param( "alnType" ) eq "seed" ) {
+	  $file = $this->{alnFileDir} . "/jtml/seed/" . $c->stash->{acc} . ".shtml.gz";
+	} else {
+	  # must want the full alignment
+	  $file = $this->{alnFileDir} . "/jtml/full/" . $c->stash->{acc} . ".shtml.gz";
+	}
+
+	$c->log->debug( "downloadAlignment: retrieving alignment from |$file|" );
+
+	$c->stash->{contentType} = "text/html";
+	$c->stash->{output} = $c->forward( "getAlignmentFile", [ $file ] );
+  }
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 formatAlignment : Path
 
 Serves the plain text (no markup) alignment. Also applies various
 changes to the alignment before hand, such as changing the gap style
@@ -67,10 +114,24 @@ The exact styles (other than C<pfam>) are defined by BioPerl.
 
 =cut
 
-sub downloadAlignment : Path( "/family/downloadalignment" ) {
+sub formatAlignment : Path( "/family/formatalignment" ) {
   my( $this, $c ) = @_;
 
-  my $alignment = $c->forward( "getAlignment" );
+  my $alignment;
+
+  # see what type of family we have, A or B
+  if ( $c->stash->{entryType} eq "A" ) {
+
+	my $file =
+	  $this->{alnFileDir} . "/"
+		. $c->stash->{alnType}
+		  . "/" . $c->stash->{acc} . ".full.gz";
+	
+	$alignment = $c->forward( "getAlignmentFile", $file );
+
+  } elsif ( $c->stash->{entryType} eq "B" ) {
+	$alignment = $c->forward( "getAlignmentDB" );
+  }
 
   my $pfamaln = new Bio::Pfam::AlignPfam->new;
   eval {
@@ -93,16 +154,16 @@ sub downloadAlignment : Path( "/family/downloadalignment" ) {
   }
 
   # case param can be u or l
-  if( $c->req->param("case") eq "u" ) {
+  if( $c->req->param("case") and $c->req->param("case") eq "u" ) {
     $pfamaln->uppercase;
   }
 
-  #order param can be tree or alphabetical
-  if( $c->req->param("order") eq "alpha" ) {
+  # order param can be tree or alphabetical
+  if( $c->req->param("order") and $c->req->param("order") eq "alpha" ) {
     $pfamaln->sort_alphabetically;
   }
 
-  #Format param can be one of pfam, stockholm, fasta or MSF
+  # format param can be one of pfam, stockholm, fasta or MSF
   my $output;
   if( $c->req->param( "format" ) ) {
 	if( $c->req->param( "format" ) eq "pfam" ) {
@@ -122,26 +183,6 @@ sub downloadAlignment : Path( "/family/downloadalignment" ) {
 
 #-------------------------------------------------------------------------------
 
-=head2 getAlignment : Private
-
-Retrieves an alignment file, either from disk for a PfamA family or
-from the DB for a PfamB family.
-
-=cut
-
-sub getAlignment : Private {
-  my( $this, $c ) = @_;
-
-  # see what type of family we have, A or B
-  if ( $c->stash->{acc} =~ /^PF\d{5}$/ ) {
-	return $c->forward( "getAlignmentFile" );
-  } else {
-	return $c->forward( "getAlignmentDB" );
-  }
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 getAlignmentFile : Private
 
 Reads a gzipped alignment file from disk and returns it as an array reference.
@@ -149,12 +190,7 @@ Reads a gzipped alignment file from disk and returns it as an array reference.
 =cut
 
 sub getAlignmentFile : Private {
-  my( $this, $c ) = @_;
-
-  my $file =
-	$this->{alnFileDir} . "/"
-	  . $c->stash->{alnType}
-		. "/" . $c->stash->{pfam}->pfamA_acc . ".full.gz";
+  my( $this, $c, $file ) = @_;
 
   my $gz = gzopen( $file, "rb" )
 	or die "Couldn't open alignment file \"$file\": $gzerrno";
@@ -203,7 +239,11 @@ Writes the sequence alignment directly to the response object.
 sub end : Private {
   my( $this, $c ) = @_;
 
-  $c->res->content_type( "text/plain" );
+  if( $c->stash->{contentType} ) {
+	$c->res->content_type( $c->stash->{contentType} );
+  } else {
+	$c->res->content_type( "text/plain" );
+  }
 
   # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( "download" ) ) {
