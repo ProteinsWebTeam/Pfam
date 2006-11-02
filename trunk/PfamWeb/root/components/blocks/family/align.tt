@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.12 2006-10-31 15:00:18 jt6 Exp $
+# $Id: align.tt,v 1.13 2006-11-02 11:05:33 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -20,7 +20,7 @@
     <form id="viewerForm"
           action="[% c.uri_for( "/family/downloadalignment" ) %]"
           method="get">
-      <input type="hidden" name="acc"  value="[% acc %]" />
+      <input type="hidden" name="acc" value="[% acc %]" />
 
 	  <table class="details alignOpts">
         <tr class="odd">
@@ -67,14 +67,14 @@ function launch() {
     popUp( url, 'console', 800, 800, 'viewerWin');
 
   } else {
-
-    if( $F("viewerTypeS") ) {
-	  url = "[% constants.alignURLRoot %]/seed/[% pfam.pfamA_acc %].shtml.gz";
-    } else {
-	  url = "[% constants.alignURLRoot %]/full/[% pfam.pfamA_acc %].shtml.gz";
-    }
+	$("viewerForm").submit();
+//    if( $F("viewerTypeS") ) {
+//	  url = "[% constants.alignURLRoot %]/seed/[% pfam.pfamA_acc %].shtml.gz";
+//    } else {
+//	  url = "[% constants.alignURLRoot %]/full/[% pfam.pfamA_acc %].shtml.gz";
+//    }
     //console.debug( "visiting: |" + url + "|" );
-	window.open( url );
+//	window.open( url );
   }
 
   return false;
@@ -82,9 +82,9 @@ function launch() {
 
     </script>
 
-    <h3>Download options</h3>
+    <h3>Formatting options</h3>
 
-    <form action="[% c.uri_for( "/family/downloadalignment" ) %]" method="get">
+    <form action="[% c.uri_for( "/family/formatalignment" ) %]" method="get">
       <input type="hidden" name="acc" value="[% acc %]" />
 
       <table class="details alignOpts">
@@ -168,7 +168,7 @@ function launch() {
         </tr>
       </table>    
 
-      <input type="submit" value="Download" />
+      <input type="submit" value="Generate" />
     </form>
 
   </div>
