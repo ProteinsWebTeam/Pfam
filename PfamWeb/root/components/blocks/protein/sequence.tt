@@ -4,7 +4,7 @@
 # 
 # block for the sequence, raw and formatted, for the protein page
 #
-# $Id: sequence.tt,v 1.4 2006-10-31 15:04:20 jt6 Exp $
+# $Id: sequence.tt,v 1.5 2006-11-02 11:08:06 jt6 Exp $
 -%]
 
 <!-- start protein sequence block -->
@@ -76,10 +76,10 @@
             <div class="cleaner">&nbsp;</div>
       
             <p>
-              <span class="link" onclick="reveal(this,'plainSequence');return false;">Show</span> the unformatted sequence.
+              <span class="link" onclick="reveal(this,'plainSequence',false)">Show</span> the unformatted sequence.
             </p>
 
-            <div id="plainSequence" style="display: none">[% sl %]</div>
+            <div id="plainSequence">[% sl %]</div>
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
