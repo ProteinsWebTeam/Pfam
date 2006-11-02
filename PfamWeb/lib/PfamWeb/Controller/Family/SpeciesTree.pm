@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.9 2006-10-18 12:16:33 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.10 2006-11-02 11:02:55 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.9 2006-10-18 12:16:33 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.10 2006-11-02 11:02:55 jt6 Exp $
 
 =cut
 
@@ -77,12 +77,16 @@ Renders a tree from the supplied sequence accessions.
 sub renderSubTree : Path( "/family/speciessubtree" ) {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "acc:  |" . $c->req->param( "acc" ) . "|" );
-  $c->log->debug( "seqs: |" . $c->req->param( "seqs" ) . "|" );
+  $c->log->debug( "Family::SpeciesTree: acc:  |" . $c->req->param( "acc" ) . "|" );
+  $c->log->debug( "Family::SpeciesTree: seqs: |" . $c->req->param( "seqs" ) . "|" );
 
   foreach ( split / /, uri_unescape( $c->req->param("seqs") ) ) {
 	$c->log->debug( "  id: |$_|" );
   }
+
+  $c->stash->{selectedSeqs} = [ split / /, uri_unescape( $c->req->param("seqs") ) ];
+
+  $c->stash->{template} = "components/tools/seqView.tt";
 
 }
 
