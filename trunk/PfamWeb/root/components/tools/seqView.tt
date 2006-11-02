@@ -1,0 +1,32 @@
+[%
+# seqView.tt
+# jt6 20061101 WTSI
+# 
+# build a page for viewing the sequences selected from a species tree
+#
+# $Id: seqView.tt,v 1.1 2006-11-02 11:09:22 jt6 Exp $
+
+# tell the wrapper not to add any header or footer. We'll generate a complete 
+# page here ourselves
+META naked = 1;
+
+pageContent = BLOCK;
+
+CALL c.log.debug( "in seqView.tt" );
+
+title = "View selected sequences"
+-%]
+
+<p>You selected the following sequences:</p>
+
+<ul>
+	[% FOR seq IN selectedSeqs %]
+	<li>[% seq %]</li>
+	[% END %]
+</ul>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]
