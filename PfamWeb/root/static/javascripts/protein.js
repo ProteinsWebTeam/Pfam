@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.6 2006-10-31 15:09:51 jt6 Exp $
+// $Id: protein.js,v 1.7 2006-11-02 11:04:17 jt6 Exp $
 
 // this will make the ajax calls for the protein page components
 
@@ -22,13 +22,22 @@ function proteinPostLoad() {
 					  onComplete: simapSuccess,
 					  onFailure:  simapFailure
 					} );
+
+  Element.hide("checkboxes","plainSequence");
 }
 
 // show/hide the specified drop-down panel
 
 showItems = {};
 
-function reveal( oSwitch, sId ) {
+function reveal( oSwitch, sId, bStartState ) {
+
+  // if the third parameter is set, we'll assign it as the "visible
+  // state" of the element, but only if that's not already assigned
+  if( typeof( showItems[sId] ) == "undefined" && typeof( bStartState ) != "undefined" ) {
+	showItems[sId] = bStartState;
+  }
+  
   var oSource = $(sId);
   if( typeof( showItems[sId] ) == "undefined" || showItems[sId] ) {
 	// console.debug( sId + " is currently shown" );
@@ -41,8 +50,9 @@ function reveal( oSwitch, sId ) {
 	showItems[sId] = true;
 	Element.update( oSwitch, "Hide" );
   }
-}
 
+}
+  
 //------------------------------------------------------------
 // callbacks for the alignment/DAS graphics
 
