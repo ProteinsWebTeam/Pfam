@@ -10,7 +10,7 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.9 2006-10-06 10:24:15 jt6 Exp $
+# $Id: header.tt,v 1.10 2006-11-07 16:48:34 jt6 Exp $
 -%]
 
 <!-- header start here -->
@@ -20,19 +20,17 @@
   <table class="header">
 
     <!-- set minimum width -->
-
     <tr>
       <td><img id="minWidth" src="[% c.uri_for( "/images/blank.gif" ) %]" height="1" alt="" /></td>
     </tr>
 
     <!-- WTSI logo, swoosh and Pfam images, search box -->
-
     <tr class="headercentre">
       <td align="left">
         <a href="http://www.sanger.ac.uk/">
           <img id="wtsiLogo" src="[% c.uri_for( "/images/blank.gif" ) %]" alt="" /></a>
 
-        <!--search box start here-->
+        <!--search box starts here-->
         <div id="headerSearch">
           <form id="sitesearch" action="[% c.uri_for( "/search" ) %]">
             <table border="0" cellspacing="0" cellpadding="1">
@@ -50,8 +48,7 @@
       </td>
     </tr>
 
-    <!-- space for the menu bar -->
-
+    <!-- blank space for the menu bar -->
     <tr>
       <td id="menuRow">
         <img class="map" src="[% c.uri_for( "/images/email-rss.gif" )%]" alt="" usemap="#contactMap" />
@@ -64,148 +61,99 @@
 
   </table>
 
-  <!-- menubar start here -->
-  <div id="menubar">
-    <div class="menutext">
-      <table class="slickmenu">
-        <tr>
-          <td>
-            <a id="menu1" href="[% c.uri_for( "/" ) %]">
-              <img src="[% c.uri_for( "/images/menus/pfam_home.png" ) %]"
-                   class="menu"
-                   alt="Pfam Home" 
-                   title="Pfam Home"
-                   onmouseover="ypSlideOutMenu.hover_in('menu1')"
-                   onmouseout="ypSlideOutMenu.hover_out('menu1')" /></a>
-          </td>
-          <td>
-            <img src="[% c.uri_for( "/images/menus/search_by.png" ) %]"
-                 class="menu"
-                 alt="Search by" 
-                 title="Search by - Click for menu" 
-                 onclick="ypSlideOutMenu.toggleMenu('menu2', 1);"
-                 onmouseover="ypSlideOutMenu.hover_in('menu2');ypSlideOutMenu.toggleMenu('menu2', 0)"
-                 onmouseout="ypSlideOutMenu.hover_out('menu2')" />
-          </td>
-          <td>
-            <img src="[% c.uri_for( "/images/menus/browse_by.png" ) %]"
-                 class="menu"
-                 title="Browse by - Click for menu"
-                 alt="Browse by"
-                 onclick="ypSlideOutMenu.toggleMenu('menu3', 1);"
-                 onmouseover="ypSlideOutMenu.hover_in('menu3');ypSlideOutMenu.toggleMenu('menu3', 0)"
-                 onmouseout="ypSlideOutMenu.hover_out('menu3')" />
-          </td>
-          <td>
-            <img src="[% c.uri_for( "/images/menus/ftp.png") %]"
-                 class="menu"
-                 title="FTP - Click for menu"
-                 alt="FTP"
-                 onclick="ypSlideOutMenu.toggleMenu('menu4', 1);"
-                 onmouseover="ypSlideOutMenu.hover_in('menu4');ypSlideOutMenu.toggleMenu('menu4', 0)"
-                 onmouseout="ypSlideOutMenu.hover_out('menu4')" />
-          </td>
-          <td>
-            <img src="[% c.uri_for( "/images/menus/ipfam.png") %]"
-                 class="menu"
-                 title="iPfam - Click for menu"
-                 alt="iPfam"
-                 onclick="ypSlideOutMenu.toggleMenu('menu5', 1);"
-                 onmouseover="ypSlideOutMenu.hover_in('menu5');ypSlideOutMenu.toggleMenu('menu5', 0)"
-                 onmouseout="ypSlideOutMenu.hover_out('menu5')" />
-          </td>
-          <td>
-            <img src="[% c.uri_for( "/images/menus/help.png" ) %]"
-                 class="menu"
-                 title="Help - Click for menu"
-                 alt="Help"
-                 onclick="ypSlideOutMenu.toggleMenu('menu6', 1);"
-                 onmouseover="ypSlideOutMenu.hover_in('menu6');ypSlideOutMenu.toggleMenu('menu6', 0)"
-                 onmouseout="ypSlideOutMenu.hover_out('menu6')" />
-          </td>
-          <td><a id="menu7" href="[% c.uri_for( "/about" ) %]">
-              <img src="[% c.uri_for( "/images/menus/about.png" ) %]"
-                   class="menu"
-                   alt="About Pfam" 
-                   title="About Pfam"
-                   onclick="popUp($('menu7').href,'console',500,530,'about');return false;"
-                   onmouseover="ypSlideOutMenu.hover_in('menu7')"
-                   onmouseout="ypSlideOutMenu.hover_out('menu7')" /></a>
-          </td>
-        </tr>
-        <tr>
-          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-          <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-        </tr>
-      </table>
-    </div>
-    
-    <!-- submenus start here -->
-    <div id="submenus">
-      <div id="menu2Container">
-        <div id="menu2Content" class="menuContent">
-          <table>
-            <tr class="hi"><td><a href="/Software/Pfam/search.shtml">Protein name or sequence</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/tsearch.shtml">Keyword</a></td></tr>
-            <tr class="hi"><td><a href="/cgi-bin/Pfam/dql.pl">Domain query</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/dnasearch.shtml">DNA sequence</a></td></tr>
-            <tr class="hi"><td><a href="/Software/Pfam/tql.shtml">Taxonomy query</a></td></tr>
-          </table>
-        </div>
-      </div>
-      <div id="menu3Container">
-        <div id="menu3Content" class="menuContent">
-          <table>
-            <tr class="hi"><td><a href="/Software/Pfam/browse/top_twenty.shtml">Pfam family ID</a></td></tr>
-            <tr class="lo"><td><a href="/cgi-bin/Pfam/genome_dist.pl">Genomes</a></td></tr>
-             <tr class="hi"><td><a href="/Software/Pfam/browse/clans.shtml">Clans</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/iPfam/browse/number.shtml">Interaction</a></td></tr>
-          </table>
-        </div>
-      </div>
-      <div id="menu4Container">
-        <div id="menu4Content" class="menuContent">
-          <table>
-            <tr class="hi"><td><a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">Hyperlink directly to the FTP site</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/ftp.shtml">View FTP sites</a></td></tr>
-          </table>
-        </div>
-      </div>
-      <div id="menu5Container">
-        <div id="menu5Content" class="menuContent">
-          <table>
-            <tr class="hi"><td><a href="/Software/Pfam/iPfam">iPfam home page</a></td></tr>
-            <tr class="lo"><td><a href="/Software/Pfam/iPfam/browse/number.shtml">Browse iPfam</a></td></tr>
-          </table>
-        </div>
-      </div>
-      <div id="menu6Container">
-        <div id="menu6Content" class="menuContent">
-          <table>
-            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpSummaryBlock" ) %]">Summary</a></td></tr>
-            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpChangesBlock" ) %]">Changes</a></td></tr>
-            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpGetStartedBlock" ) %]">Getting started</a></td></tr>
-            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpFAQBlock" ) %]">FAQ</a></td></tr>
-            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpScoresBlock" ) %]">Scores</a></td></tr>
-            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpDomainGraphicsBlock" ) %]">Guide to graphics</a></td></tr>
-            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpLinkingBlock" ) %]">Linking to Pfam</a></td></tr>
-            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">Mirrors</a></td></tr>
-            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpReferencesBlock" ) %]">Citing Pfam</a></td></tr>
-            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpGlossaryBlock" ) %]">Glossary</a></td></tr>
-            <tr class="hi"><td><a href="[% c.uri_for( "/help", tab="helpTheTeamBlock" ) %]">Team members</a></td></tr>
-            <tr class="lo"><td><a href="[% c.uri_for( "/help", tab="helpContactUsBlock" ) %]">Contact us</a></td></tr>
-          </table>
-        </div>
-      </div>
-    </div>
-    <!-- submenus end -->
+</div>
+<!-- header end -->
 
+<!-- menubar starts here -->
+<div id="menubar">
+  <div class="menutext">
+    <table class="slickmenu">
+      <tr>
+        <td>
+		  <img src="[% c.uri_for( "/images/menus/pfam_home.png" ) %]"
+               class="menu"
+               alt="Pfam Home" 
+               title="Pfam Home"
+			   onclick="document.location='[% c.uri_for( "/" ) %]'"
+               onmouseover="ypSlideOutMenu.hover_in('menu1')"
+               onmouseout="ypSlideOutMenu.hover_out('menu1')" />
+        </td>
+        <td>
+          <img src="[% c.uri_for( "/images/menus/search_by.png" ) %]"
+               class="menu"
+               alt="Search by" 
+               title="Search by - Click for menu" 
+               onclick="ypSlideOutMenu.toggleMenu('menu2', 1);"
+               onmouseover="ypSlideOutMenu.hover_in('menu2');ypSlideOutMenu.toggleMenu('menu2', 0)"
+               onmouseout="ypSlideOutMenu.hover_out('menu2')" />
+        </td>
+        <td>
+          <img src="[% c.uri_for( "/images/menus/browse_by.png" ) %]"
+               class="menu"
+               title="Browse by - Click for menu"
+               alt="Browse by"
+               onclick="ypSlideOutMenu.toggleMenu('menu3', 1);"
+               onmouseover="ypSlideOutMenu.hover_in('menu3');ypSlideOutMenu.toggleMenu('menu3', 0)"
+               onmouseout="ypSlideOutMenu.hover_out('menu3')" />
+        </td>
+        <td>
+          <img src="[% c.uri_for( "/images/menus/ftp.png") %]"
+               class="menu"
+               title="FTP - Click for menu"
+               alt="FTP"
+               onclick="ypSlideOutMenu.toggleMenu('menu4', 1);"
+               onmouseover="ypSlideOutMenu.hover_in('menu4');ypSlideOutMenu.toggleMenu('menu4', 0)"
+               onmouseout="ypSlideOutMenu.hover_out('menu4')" />
+        </td>
+        <td>
+          <img src="[% c.uri_for( "/images/menus/ipfam.png") %]"
+               class="menu"
+               title="iPfam - Click for menu"
+               alt="iPfam"
+               onclick="ypSlideOutMenu.toggleMenu('menu5', 1);"
+               onmouseover="ypSlideOutMenu.hover_in('menu5');ypSlideOutMenu.toggleMenu('menu5', 0)"
+               onmouseout="ypSlideOutMenu.hover_out('menu5')" />
+        </td>
+        <td>
+          <img src="[% c.uri_for( "/images/menus/help.png" ) %]"
+               class="menu"
+               title="Help - Click for menu"
+               alt="Help"
+               onclick="ypSlideOutMenu.toggleMenu('menu6', 1);"
+               onmouseover="ypSlideOutMenu.hover_in('menu6');ypSlideOutMenu.toggleMenu('menu6', 0)"
+               onmouseout="ypSlideOutMenu.hover_out('menu6')" />
+        </td>
+        <td>
+          <img src="[% c.uri_for( "/images/menus/about.png" ) %]"
+               class="menu"
+               alt="About Pfam" 
+               title="About Pfam"
+               onclick="popUp('[% c.uri_for( "/about" ) %]','console',500,530,'about');return false;"
+               onmouseover="ypSlideOutMenu.hover_in('menu7')"
+               onmouseout="ypSlideOutMenu.hover_out('menu7')" />
+        </td>
+      </tr>
+      <tr>
+        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+      </tr>
+    </table>
   </div>
-  <!-- end of menu bar -->
 
-</div> <!-- end of "header" -->
+</div>
+<!-- menubar end -->
+
+<div id="jsWarning" style="border: 1px solid #600;background: #900;color: white;margin: 0.4em auto; width: 50%;padding: 0.4em;">
+<b>Please note:</b> this site relies heavily on the use of javascript, to enable navigation, data
+analysis and presentation. Please enable javascript in your browser or use another, more
+recent browser.
+</div>
+
+<script type="text/javascript">
+  Element.hide("jsWarning");
+</script>

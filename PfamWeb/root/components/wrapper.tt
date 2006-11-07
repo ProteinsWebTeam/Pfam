@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.21 2006-10-26 16:06:51 jt6 Exp $
+# $Id: wrapper.tt,v 1.22 2006-11-07 16:48:34 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -55,6 +55,8 @@ ELSE;
 	[% PROCESS components/tooltips.tt %]
     <!-- end of tooltips script -->
 
+
+	[% PROCESS components/submenus.tt %]
   </body>
 
 </html>
