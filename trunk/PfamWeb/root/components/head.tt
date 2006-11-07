@@ -6,41 +6,24 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.10 2006-10-26 15:32:49 jt6 Exp $
+# $Id: head.tt,v 1.11 2006-11-07 16:48:34 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 <!-- ====================================================================== -->
-<!-- JT 20051020 WTSI -->
-
 <!-- make the site RSS feed discoverable --> 
+
 <link href="/rss/pfam_rss_feed.rdf" 
-  rel="alternate"
-  type="application/rss+xml"
-  title="Pfam News" />
-
-<!-- javascript for sortable tables -->
-<script type="text/javascript"
-  src="[% c.uri_for("/javascripts/sorttable.js" ) %]">
-</script>
-
-<!-- ====================================================================== -->
-<!-- build the menus... -->
-
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/jimmac.js" ) %]"></script>
-<script type="text/javascript">
-  new ypSlideOutMenu("menu2","down",273,16,100,125);
-  new ypSlideOutMenu("menu3","down",373,16,100,100);
-  new ypSlideOutMenu("menu4","down",473,16,100,50);
-  new ypSlideOutMenu("menu5","down",573,16,100,50);
-  new ypSlideOutMenu("menu6","down",673,16,100,600);
-</script>
+      rel="alternate"
+      type="application/rss+xml"
+      title="Pfam News" />
 
 <!-- ====================================================================== -->
 <!-- stylesheets -->
 
 <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
+<link rel="stylesheet" href="[% c.uri_for( "/css/lightbox.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/annotate.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/alignment.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout.css" ) %]" type="text/css" />
@@ -49,14 +32,31 @@
   <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
 [% END -%]
 
+<!-- styles applicable to all versions of IE -->
+<!--[if IE ]>
+<link rel="stylesheet" href="[% c.uri_for( "/css/pfam_all_ie.css" ) %]" type="text/css" />
+<link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_all_ie.css" ) %]" type="text/css" />
+<![endif]-->
+
+<!-- styles applicable to IE6 and below -->
 <!--[if lt IE 7 ]>
 <link rel="stylesheet" href="[% c.uri_for( "/css/pfam_ie.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_ie.css" ) %]" type="text/css" />
-[% IF layouts.${pageType}.css.ie -%]
-  [% css = layouts.${pageType}.css.ie -%]
+[% # stylesheets for individual page types are currently assumed to be applicable
+   # to IE6 and below
+IF layouts.${pageType}.css.ie;
+  css = layouts.${pageType}.css.ie -%]
   <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
 [% END -%]
 <![endif]-->
+
+<!-- ====================================================================== -->
+<!-- set the favicon -->
+<link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
+
+<!-- ====================================================================== -->
+<!-- sortable tables -->
+<script type="text/javascript" src="[% c.uri_for("/javascripts/sorttable.js" ) %]"></script>
 
 <!-- ====================================================================== -->
 <!-- YAHOO modules -->
@@ -84,6 +84,8 @@
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
 
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/lightbox.js" ) %]"></script>
+
 <!-- ====================================================================== -->
 <!-- local javascript -->
 
@@ -95,12 +97,20 @@
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfamb.js" ) %]"></script>
 
 <!-- ====================================================================== -->
-<!-- set the favicon -->
-<link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
-
-<!-- ====================================================================== -->
 <!-- jmol -->	
 <script type="text/javascript" src="[% c.uri_for( "/jmol/Jmol.js" ) %]"></script>
+
+<!-- ====================================================================== -->
+<!-- build the menus... -->
+
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/jimmac.js" ) %]"></script>
+<script type="text/javascript">
+  new ypSlideOutMenu("menu2","down",273,-2,100,125);
+  new ypSlideOutMenu("menu3","down",373,-2,100,100);
+  new ypSlideOutMenu("menu4","down",473,-2,100,50);
+  new ypSlideOutMenu("menu5","down",573,-2,100,50);
+  new ypSlideOutMenu("menu6","down",673,-2,100,600);
+</script>
 
 <!-- ====================================================================== -->
 <!-- tab selection -->
@@ -112,3 +122,4 @@
   showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
   Event.observe( window, "load", chooseTab, false );
 </script> 
+
