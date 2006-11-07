@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.25 2006-10-31 15:06:32 jt6 Exp $
+   $Id: pfam.css,v 1.26 2006-11-07 16:45:59 jt6 Exp $
 */   
 
 body {
@@ -103,6 +103,12 @@ tr.headercentre {
   border: 2px solid #074987;
 }
 
+/* only IE could think that a form tag should have margins... Seems like this is still a
+   problem in IE7, as well as previous versions */
+#headerSearch form {
+  margin-bottom: 0;
+}
+
 /* these next few styles are ripped straight from wtsi.css */
 
 #sitesearchbutton {
@@ -148,9 +154,9 @@ tr.headercentre {
 
 img.map {
   position: absolute;
-  left:     0px;
-  top:      69px;
-  z-index:  1
+  left: 0px;
+  top: 69px;
+  z-index: 1;
 }
 
 #menuRow {
@@ -159,6 +165,11 @@ img.map {
 }
 
 /* configure the drop-down menus. This is mostly based on wtsi.css */
+
+a.menuLink {
+  background: red;
+  margin: 0px;
+}
 
 img.menu {
 	height: 15px;
@@ -187,11 +198,14 @@ table.slickmenu td {
 }
 
 table.slickmenu a {
-  height:          16px;
-  text-decoration: none;
   display:         block;
+  text-decoration: none;
   font-size:       0.8em;
   font-weight:     bold;
+}
+
+table.slickmenu a img {
+	height: 15px;
 }
 
 table.slickmenu a:hover {
@@ -203,13 +217,13 @@ table.slickmenu a:hover {
 	position: absolute;
     width: 100%;
     top: 68px;
+    left: 0; /* without this, the menubar is shifted right by 5 pixels in IE lt 7... */
 }
 
-#menubar table,
-#menubar table a,
-#menubar {
-  color:          #074987;
+#menubar table {
+  color: #074987;
   text-decoration: none;
+  border-collapse: collapse;
 }
 
 div.menuContent {
@@ -217,6 +231,15 @@ div.menuContent {
   left: 0;
   text-align: left;
   opacity: 0.93;
+}
+
+#submenus {
+  position: absolute;
+  top: 84px;
+}
+
+#submenus table {
+  border-collapse: collapse;
 }
 
 #submenus a {
@@ -245,10 +268,6 @@ div.menuContent {
 #submenus tr.lo, tr.lo {
   background-color: #cbdced;
   text-decoration:   none;
-}
-
-div.menutext {
-  margin-left:   173px;
 }
 
 /* ======================================== */
@@ -289,52 +308,6 @@ div.menutext {
   border-top: 1px solid #074897;
   text-align: right;
   font-size: small;
-}
-
-/* ======================================== */
-/* tooltip styles */
-
-.tipHeader {
-/*
-  color: black;
-  background: #CCC;
-  border: 1px solid black;
-*/
-  color: #074987;
-  background: #c2d2e1;
-  border: 1px solid #074987;
-  font-family: arial;
-  font-size: 0.8em;
-  font-weight: bold;
-  padding: 2px;
-  width: 150px;
-  opacity: 0.9;
-  filter: alpha(opacity=90);
-}
-
-.tipBody {
-/*
-  color: black;
-  background: #EEE;
-  border: 1px solid black;
-*/
-  color: #074987;
-  background: #FFF;
-  border: 1px solid #074987;
-  border-top: none;
-  font-family: arial;
-  font-size: 0.8em;
-  padding: 2px;
-  width: 150px;
-  opacity: 0.9;
-  filter: alpha(opacity=90);
-}
-
-/* we have snippets of JS to add and remove the class name "under" to
-   elements with tooltips */
-.under {
-  text-decoration: underline;
-  cursor: pointer;
 }
 
 /* ======================================== */
@@ -759,8 +732,7 @@ span.link {
   background: #cbdced;
   border: 1px solid #074987;
   font-size: 0.8em;
-opacity: 0.8;
-filter: alpha(opacity=80);
+  opacity: 0.8;
 }
 
 .hd {

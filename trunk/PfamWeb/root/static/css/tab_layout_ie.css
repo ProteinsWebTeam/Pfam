@@ -2,9 +2,10 @@
 /* tab_layout_ie.css
    jt6 20060418 WTSI.
 
-   IE stylesheet to apply various fixes for IE inadequacies and bugs
+   IE stylesheet to apply various fixes for IE inadequacies and bugs. This should
+   contain those styles that are targeted at IE6 and below
    
-   $Id: tab_layout_ie.css,v 1.8 2006-09-27 16:05:42 jt6 Exp $
+   $Id: tab_layout_ie.css,v 1.9 2006-11-07 16:46:00 jt6 Exp $
 */
 
 hr.short {
@@ -16,37 +17,10 @@ hr.short {
     width: 80%;
 }
 
-/* the individual icons in the overview bar */
-#seqIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/alignment.png",sizingMethod="crop");
-}
-
-#archIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/domains.png",sizingMethod="crop");
-}
-
-#structIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/structure.png",sizingMethod="crop");
-}
-
-#ipfamIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/ipfam.png",sizingMethod="crop");
-}
-
-#specIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/tree.png",sizingMethod="crop");
-}
-
 /* turn off the background for the active tab in the sidebar. The IE filter
    just doesnt work... */
 #sidebar li.selected {
     background-image: none;
-/*    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/layout/wide_tab_shadow.png",sizingMethod="crop"); */
 }
 
 /* we need a spacer div inside the wrapper around the content and sidebar, to 
