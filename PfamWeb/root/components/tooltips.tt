@@ -3,9 +3,9 @@
 # jt6 20061026 WTSI
 #
 # write a snippet of javascript that creates tooltip objects. Relies on the 
-# "tips" hash which is initialised at the top of the wrapper.
+# "tips" hash which is initialised at the top of the page layout template.
 #
-# $Id: tooltips.tt,v 1.1 2006-10-26 16:06:25 jt6 Exp $
+# $Id: tooltips.tt,v 1.2 2006-11-07 16:47:58 jt6 Exp $
 %]
 
 <script type="text/javascript">
@@ -26,15 +26,11 @@ FOREACH contextId IN tips.keys;
 
 %]
 var [% contextId %] = new YAHOO.widget.Tooltip( "[% contextId %]_tipDiv", 
-                                                {
-                                                  context: "[% contextId %]", 
-                                                  width: "200px"
-                                                }
-                                              );
+                                                { context: "[% contextId %]", 
+                                                  width: "200px" } );
 [% contextId %].setHeader( "[% header %]" );
 [% contextId %].setBody( "[% body %]" );
 [% contextId %].render();
-
 [%
 END;
 %]
