@@ -1,0 +1,36 @@
+
+/* tab_layout_all_ie.css
+   jt6 20061107 WTSI.
+
+   stylesheet to apply various fixes for IE wrinkles. This should be those styles
+   which are applicable to all versions of IE
+   
+   $Id: tab_layout_all_ie.css,v 1.1 2006-11-07 16:45:29 jt6 Exp $
+*/
+
+/* the individual icons in the overview bar */
+#seqIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/alignment.png",sizingMethod="crop");
+}
+
+#archIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/domains.png",sizingMethod="crop");
+}
+
+#structIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/structure.png",sizingMethod="crop");
+}
+
+#ipfamIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/ipfam.png",sizingMethod="crop");
+}
+
+#specIcon {
+    background-image: none;
+	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/logos/tree.png",sizingMethod="crop");
+}
+

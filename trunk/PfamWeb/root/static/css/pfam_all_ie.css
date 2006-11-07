@@ -1,0 +1,19 @@
+
+/* pfam_all_ie.css
+   jt6 20061107 WTSI.
+
+   stylesheet to apply various fixes for IE wrinkles. This should be those styles
+   which are applicable to all versions of IE
+   
+   $Id: pfam_all_ie.css,v 1.1 2006-11-07 16:45:29 jt6 Exp $
+*/
+
+/* make the drop-down menus semi-transparent */
+div.menuContent {
+	filter: alpha(opacity=93);
+}
+
+/* a little transparency for the tooltips */
+.tt {
+	filter: alpha(opacity=80);
+}
