@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.4 2006-09-22 10:36:16 jt6 Exp $
+# $Id: familyStructures.tt,v 1.5 2006-11-07 16:48:57 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if it's not populated, choose a random entry
@@ -42,7 +42,11 @@ IF NOT pdbObj;
 
 END;
 
-IF pdbUnique.keys.size
+IF pdbUnique.keys.size;
+
+# initialise the store for tooltips
+tips = {};
+
 -%]
 
 <!-- start of pdb image block -->
@@ -51,10 +55,9 @@ IF pdbUnique.keys.size
 
   [%- IF pdbObj.pdb_image -%]
 
-    <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]">
+    <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]" [% addTip("family","structureImage") %]>
       <img class="pdbImage" 
-           title="header=[View structure data] body=[Click to view the structure page for PDB entry [% pdbObj.pdb_id %]] fade=[on] fadespeed=[0.5] delay=[500] cssheader=[tipHeader] cssbody=[tipBody]"
-           src="[% c.uri_for( "/structure/getimage", id=pdbObj.pdb_id ) %]"
+ 	       src="[% c.uri_for( "/structure/getimage", id=pdbObj.pdb_id ) %]"
            alt="[% pdbObj.pdb_id %]" /></a>
 
     [%- IF randomId -%]
@@ -91,5 +94,8 @@ IF pdbUnique.keys.size
 </div>
 
 [% END # of "if pdbUnique.keys.size" %]
+
+[%# add tooltips %]
+[% PROCESS components/tooltips.tt %]
 
 <!-- end of pdb image block -->
