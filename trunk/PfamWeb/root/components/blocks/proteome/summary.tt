@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.2 2006-11-01 13:01:33 rdf Exp $
+# $Id: summary.tt,v 1.3 2006-11-13 15:23:05 rdf Exp $
 %]
 
 <!-- start proteome summary block -->
@@ -39,7 +39,7 @@
 	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
 		<td>Number Sequences:</td>		
 	      <td class="data">	
-	        [% proteomeSpecies.total_proteome_proteins %] 
+	        [% proteomeSpecies.total_genome_proteins %] 
           </td>	
 	</tr>	
 	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
