@@ -5,7 +5,7 @@
 # the markup for the site-wide submenus. These are included by the wrapper and placed
 # at the bottom of the body, so that they're rendered on top of the earlier content
 #
-# $Id: submenus.tt,v 1.1 2006-11-07 16:48:34 jt6 Exp $
+# $Id: submenus.tt,v 1.2 2006-11-13 10:48:38 jt6 Exp $
 -%]
 
 <!-- submenus start here -->
@@ -13,21 +13,21 @@
   <div id="menu2Container">
     <div id="menu2Content" class="menuContent">
       <table>
-        <tr class="hi"><td><a href="/Software/Pfam/search.shtml">Protein name or sequence</a></td></tr>
-        <tr class="lo"><td><a href="/Software/Pfam/tsearch.shtml">Keyword</a></td></tr>
-        <tr class="hi"><td><a href="/cgi-bin/Pfam/dql.pl">Domain query</a></td></tr>
-        <tr class="lo"><td><a href="/Software/Pfam/dnasearch.shtml">DNA sequence</a></td></tr>
-        <tr class="hi"><td><a href="/Software/Pfam/tql.shtml">Taxonomy query</a></td></tr>
+        <tr class="hi"><td><a href="[% c.uri_for( "/seqsearch", tab="searchProteinBlock" ) %]">Protein name or sequence</a></td></tr>
+        <tr class="lo"><td><a href="[% c.uri_for( "/seqsearch", tab="searchKeywordBlock" ) %]">Keyword</a></td></tr>
+        <tr class="hi"><td><a href="[% c.uri_for( "/seqsearch", tab="searchDomainBlock" ) %]">Domain query</a></td></tr>
+        <tr class="lo"><td><a href="[% c.uri_for( "/seqsearch", tab="searchDnaBlock" ) %]">DNA sequence</a></td></tr>
+        <tr class="hi"><td><a href="[% c.uri_for( "/seqsearch", tab="searchTaxBlock" ) %]">Taxonomy query</a></td></tr>
       </table>
     </div>
   </div>
   <div id="menu3Container">
     <div id="menu3Content" class="menuContent">
       <table>
-        <tr class="hi"><td><a href="/Software/Pfam/browse/top_twenty.shtml">Pfam family ID</a></td></tr>
-        <tr class="lo"><td><a href="/cgi-bin/Pfam/genome_dist.pl">Genomes</a></td></tr>
-         <tr class="hi"><td><a href="/Software/Pfam/browse/clans.shtml">Clans</a></td></tr>
-        <tr class="lo"><td><a href="/Software/Pfam/iPfam/browse/number.shtml">Interaction</a></td></tr>
+        <tr class="hi"><td><a href="[% c.uri_for( "/family/browse", browse="top twenty" ) | uri | html %]">Pfam family ID</a></td></tr>
+        <tr class="lo"><td><a href="[% c.uri_for( "/genome/browse" ) %]">Genomes</a></td></tr>
+        <tr class="hi"><td><a href="[% c.uri_for( "/clan/browse" ) %]">Clans</a></td></tr>
+        <tr class="lo"><td><a href="[% c.uri_for( "/ipfam/browse" ) %]">Interaction</a></td></tr>
       </table>
     </div>
   </div>
@@ -42,8 +42,8 @@
   <div id="menu5Container">
     <div id="menu5Content" class="menuContent">
       <table>
-        <tr class="hi"><td><a href="/Software/Pfam/iPfam">iPfam home page</a></td></tr>
-        <tr class="lo"><td><a href="/Software/Pfam/iPfam/browse/number.shtml">Browse iPfam</a></td></tr>
+        <tr class="hi"><td><a href="[% c.uri_for( "/ipfam" ) %]">iPfam home page</a></td></tr>
+        <tr class="lo"><td><a href="[% c.uri_for( "/ipfam/browse" ) %]">Browse iPfam</a></td></tr>
       </table>
     </div>
   </div>
