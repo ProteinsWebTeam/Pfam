@@ -5,18 +5,18 @@
    Stylesheet for the items that are specific to the tab layout for
    the proteome pages.
 
-   $Id: proteome.css,v 1.4 2006-09-22 10:21:34 jt6 Exp $
+   $Id: proteome.css,v 1.5 2006-11-13 14:18:46 jt6 Exp $
 */   
 
 /* ======================================== */
 /* components of the remainder of the page */
 
 #spacer {
-  background-color: #fff1e6; /* vibrant 1 */
+  background-color: #f0e8e6;
 }
 
 #contentContainer {
-  background-color: #fff1e6; /* vibrant 1 */
+  background-color: #f0e8e6;
   background-image: url(/catalyst/PfamWeb/images/ipfam/page_border.gif);
 }
 
