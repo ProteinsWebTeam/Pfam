@@ -1,0 +1,14 @@
+
+/* forms_all_ie.css
+   jt6 20061109 WTSI.
+
+   stylesheet to apply various fixes for IE wrinkles. This should be those styles
+   which are applicable to all versions of IE
+   
+   $Id: forms_all_ie.css,v 1.1 2006-11-13 14:39:08 jt6 Exp $
+*/
+
+input.submit,
+input.reset {
+	margin-left: 14.6em;
+}
