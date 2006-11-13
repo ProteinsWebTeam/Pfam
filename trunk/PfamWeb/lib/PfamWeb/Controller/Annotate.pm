@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.2 2006-11-10 18:51:15 jt6 Exp $
+# $Id: Annotate.pm,v 1.3 2006-11-13 10:45:23 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.2 2006-11-10 18:51:15 jt6 Exp $
+$Id: Annotate.pm,v 1.3 2006-11-13 10:45:23 jt6 Exp $
 
 =cut
 
@@ -48,7 +48,7 @@ sub begin : Private {
   my( $this, $c ) = @_;
 
   if( $c->req->param("acc") ) {
-	$c->log->debug( "Annotation::begin: accession: |" . $c->req->param("acc") . "|" );
+	$c->log->debug( "Annotate::begin: accession: |" . $c->req->param("acc") . "|" );
   }
 
   # build the email subject line based on the accession (if given)
@@ -98,6 +98,9 @@ sub begin : Private {
 
   }
 
+  # get the Pfam version
+  $c->stash->{version} = $c->model("PfamDB::Version")->find( {} )->pfam_release;
+
   $c->log->debug( "Annotate::begin: generated subject line: " );
   $c->log->debug( "Annotate::begin:   |" . $c->stash->{subject} . "|" );
 }
@@ -127,7 +130,7 @@ sub index : Private {
 =head2 checkInput : Local
 
 Validates the input from the annotation form. Returns to the
-annotation form if there were problems, or forwards to the method that
+annotation form if there were problems or forwards to the method that
 sends an email.
 
 =cut
@@ -141,12 +144,12 @@ sub checkInput : Local {
   # validate the input parameters
   my $r = $w->process( $c->req );
   if( $r->has_errors ) {
-	$c->log->debug( "Annotate::checkInput: there were validation errors in the user input" );
+	$c->log->debug( "Annotate::checkInput: there were validation errors" );
 
 	# drop the widget into the stash, along with the validation error
 	# messages
-	$c->stash->{widget}   = $r;
-	$c->stash->{error}    = "There were problems with the items that you entered";
+	$c->stash->{widget} = $r;
+	$c->stash->{error}  = "There were problems with the items that you entered";
 
   } else {
 	$c->log->debug( "Annotate::checkInput: no errors in the user input" );
@@ -177,24 +180,22 @@ specified in the config.
 sub sendMail : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Annotate::sendMail: sending an annotation mail" );
-  $c->log->debug( "Annotate::sendMail:   acc:   |" . $c->stash->{acc} . "|" );
-  $c->log->debug( "Annotate::sendMail:   id:    |" . $c->stash->{id} . "|" );
-  $c->log->debug( "Annotate::sendMail:   user:  |" . $c->req->param("user") . "|" );
-  $c->log->debug( "Annotate::sendMail:   email: |" . $c->req->param("email") . "|" );
-  $c->log->debug( "Annotate::sendMail:   ann:   |" . $c->req->param("annotation") . "|" );
-  $c->log->debug( "Annotate::sendMail:   refs:  |" . $c->req->param("refs") . "|" );
+  #$c->log->debug( "Annotate::sendMail: sending an annotation mail" );
+  #$c->log->debug( "Annotate::sendMail:   acc:   |" . $c->stash->{acc} . "|" );
+  #$c->log->debug( "Annotate::sendMail:   id:    |" . $c->stash->{id} . "|" );
+  #$c->log->debug( "Annotate::sendMail:   user:  |" . $c->req->param("user") . "|" );
+  #$c->log->debug( "Annotate::sendMail:   email: |" . $c->req->param("email") . "|" );
+  #$c->log->debug( "Annotate::sendMail:   ann:   |" . $c->req->param("annotation") . "|" );
+  #$c->log->debug( "Annotate::sendMail:   refs:  |" . $c->req->param("refs") . "|" );
 
   # see if there was an uploaded alignment
-  my( @parts, $attachment );
+  my @parts;
   if( $c->req->upload("alignment") ) {
 	my $u = $c->req->upload("alignment");
-	$c->log->debug( "Annotate::sendMail: something was uploaded:" );
-	$c->log->debug( "Annotate::sendMail:   filename: |" . $u->filename . "|" );
-	$c->log->debug( "Annotate::sendMail:   type:     |" . $u->type . "|" );
+	$c->log->debug( "Annotate::sendMail: attaching upload to mail (" . $u->filename . ")" );
 
 	# build an email "part" for it
-  	$attachment = Email::MIME
+  	my $attachment = Email::MIME
  	  ->create( attributes => { content_type => $u->type,
  								disposition  => "attachment",
  								filename     => $u->filename },
@@ -217,12 +218,17 @@ sub sendMail : Private {
 							$c->subreq( "/annotate/renderEmail",
 										{ acc      => $c->stash->{acc},
 										  id       => $c->stash->{id},
+										  version  => $c->stash->{version},
 										  user     => $c->req->param("user"),
 										  email    => $c->req->param("email"),
 										  ann      => $c->req->param("annotation"),
-										  refs     => $c->req->param("refs"),
+										  refs     => $c->req->param("refs") || "",
 										  template => "components/annotationEmail.tt"
-										} ),
+										},
+										{ acc      => $c->stash->{acc},
+										  id       => $c->stash->{id}
+										}
+									  ),
 							@parts
 						   ]
 		   );
@@ -237,7 +243,7 @@ sub sendMail : Private {
 # the new request
 
 # the third argument is a hash ref containing parameters for the
-# sub-request. We need to specific the accession here as well as in
+# sub-request. We need to specify the accession here as well as in
 # the stash because the subject line is generated
 
 #-------------------------------------------------------------------------------
@@ -246,6 +252,9 @@ sub sendMail : Private {
 
 Renders the body of the annotation message. This is just a stub to
 catch the URL. Even the template is set in the caller.
+
+I'm not happy that this has to be an externally visible action, but
+that seems to be the only way the subrequest works.
 
 =cut
 
@@ -284,19 +293,19 @@ sub buildForm : Private {
 
   # user's name
   $w->element( "Textfield", "user" )
-	->label( "Name" )
+	->label( "Name *" )
 	->size( 30 )
 	->maxlength( 200 );
 
   # email address
   $w->element( "Textfield", "email" )
-	->label( "Email address" )
+	->label( "Email address *" )
 	->size( 30 )
 	->maxlength( 100 );
 
   # the annotation itself
   $w->element( "Textarea", "annotation" )
-	->label( "Annotation details" )
+	->label( "Annotation details *" )
 	->cols( 50 )
 	->rows( 15 );
 

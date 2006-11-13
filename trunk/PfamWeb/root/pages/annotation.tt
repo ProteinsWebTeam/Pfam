@@ -4,55 +4,30 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.1 2006-10-23 12:09:55 jt6 Exp $
+# $Id: annotation.tt,v 1.2 2006-11-13 10:45:41 jt6 Exp $
 
-META fullPage = 1
--%]
+META fullPage = 1;
 
-<div id="annotationFormDiv">
+IF success -%]
 
-[%#
-  <form id="annForm" method="post">
+  <p>Your annotation was received successfully.</p>
 
-  <div class="formRow">
-    <span class="label">Name</span>
-    <span class="field">
-      <input type="text "name="nameField" id="nameField" />
-    </span>
-    <div class="cleaner"><!-- empty --></div>
-  </div>
-  <div class="formRow">
-    <span class="label">Email</span>
-    <span class="field">
-      <input type="text "name="emailField" id="emailField" />
-    </span>
-    <div class="cleaner"><!-- empty --></div>
-  </div>
-  <div class="formRow">
-    <span class="label">Annotation details</span>
-    <span class="field">
-      <textarea name="annField" id="annField" cols="50" rows="15"></textarea>
-    </span>
-    <div class="cleaner"><!-- empty --></div>
-  </div>
-  <div class="formRow">
-    <span class="label">References</span>
-    <span class="field">
-      <textarea name="refField" id="refField" cols="50" rows="5"></textarea>
-    </span>
-    <div class="cleaner"><!-- empty --></div>
-  </div>
-  <div class="formRow">
-    <span class="label">Upload alignment file</span>
-    <span class="field">
-      <input type="file" name="upField" id="upField" />
-    </span>
-    <div class="cleaner"><!-- empty --></div>
+[% ELSE %]
+
+  <h2>Submit an annotation[% acc ? " for entry $acc" : "" %]</h2>
+
+  <p>Please supply all of the fields marked with &quot;*&quot;.</p>
+
+  <div id="annForm">
+  [% IF error %]
+    <p>[% error %]</p>
+  [% END %]
+
+    [% widget.as_xml %]
   </div>
 
-  </form>
-%]
+  <script type="text/javascript">
+    $("annotationForm_user").focus();
+  </script>
 
-[% widget_result.as_xml %]
-
-</div>
+[% END # of "if success" %]

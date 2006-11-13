@@ -4,75 +4,8 @@
 
    Stylesheet for the annotation upload form.
 
-   $Id: forms.css,v 1.2 2006-10-27 08:49:22 jt6 Exp $
+   $Id: forms.css,v 1.3 2006-11-13 10:48:58 jt6 Exp $
 */   
-
-#annotationFormDiv {
-	margin: 1em auto;
-    width: 50em;
-	padding: 1em;
-}
-
-/*
-div.formRow {
-	clear: both;
-    padding-bottom: 1em;
-}
-
-span.label {
-	float: left;
-    width: 10em;
-    text-align: right;
-	vertical-align: middle;
-    padding: 0.4em;
-	font-weight: bold;
-}
-
-span.field {
-	float: left;
-	text-align: left;
-}
-
-input, textarea {
-	border: 1px solid #074987;
-    background: #cbdced;
-}
-*/
-
-#annotationFormDiv label {
-    display: block;
-    width: 12em;
-    position: relative;
-    margin: 0.2em 0;
-    padding: 0.3em;
-    text-align: right;
-	font-weight: bold;
-    clear: both;
-}
-
-#annotationFormDiv label input,
-#annotationFormDiv label textarea {
-z-index: 1;
-	float: left;
-    position: relative;
-    top: -1.4em;
-    margin: 0 0 0 11em;
-    padding: 0.2em;
-	border: 1px solid #CCC;
-    background: #EEE;
-}
-
-#annotationFormDiv label textarea {
-	right: 0.5em;
-}
-
-#annotationFormDiv .submit, .reset {
-    margin: 0.2em;
-}
-
-#annotationFormDiv .error_messages {
-    color: red;
-}
 
 /* the "add annotation" button image */
 img.addAnnotation {
@@ -81,4 +14,50 @@ img.addAnnotation {
 	vertical-align: middle;
     padding-bottom: 3px;
 	border-style: none;
+}
+
+/* styles for the annotation form itself */
+#annForm fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+#annForm span.row {
+  width: 100%;
+  float: left;
+  clear: both;
+  margin: 0.2em;
+}
+
+#annForm label {
+  font-weight: bold;
+  width: 14em;
+  text-align: right;
+  float: left;
+  padding: 0.2em;
+  margin: 0.3em;
+}
+
+#annForm input,
+#annForm textarea,
+#annForm upload {
+  border: 1px solid #074987;
+  margin: 0;
+  padding: 0.2em;
+}
+
+#annForm input.submit,
+#annForm input.reset {
+  margin: 0.1em 0.1em 0.1em 13.5em;
+  background: #9fc6ee;
+}
+
+/* error messages */
+#annForm span.error_messages {
+  float: left;
+  padding: 0;
+  margin: 0 0.1em 0.6em 14.9em;
+  color: #700;
+  font-weight: bold;
 }
