@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.21 2006-11-13 14:38:08 jt6 Exp $
+// $Id: pfFunctions.js,v 1.22 2006-11-13 15:29:20 rdf Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -18,6 +18,7 @@ loadOptions.pg = {}; // protein graphics
 loadOptions.ca = {}; // coloured alignment
 loadOptions.sg = {}; // sequence graphics
 loadOptions.cg = {}; // clan graphics
+loadOptions.cstruc = {}; // clan structure tab
 loadOptions.simap ={}; //simap graphics
 loadOptions.getDomains = {}; //get structural domains from cath and scop
 
