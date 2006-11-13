@@ -1,0 +1,75 @@
+[%
+# browseProteome.tt
+# rdf 20061109 WTSI
+# 
+# build a "browse" page for Completed Proteomes
+#
+# $Id: browseProteomes.tt,v 1.1 2006-11-13 15:28:37 rdf Exp $
+
+# tell the wrapper to add the full-page footer
+META fullPage = 1
+-%]
+
+[% pageList = BLOCK %]
+<div class="pageList">
+[% pages = [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+	         "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ] %]
+[% lcChar = char | lower %]
+
+[% FOREACH page IN pages %]
+[% CALL c.log.debug( "page: $page" ) %]
+  [% IF page ==  lcChar %]
+  <span class="letter inactive">
+    [% page | ucfirst %]
+  </span>
+  [% ELSE %]
+  <span class="letter">
+    <a href="#[% page %]">[% page | ucfirst %]</a>
+  </span>
+  [% END %]
+[% END %]
+</div>
+[% END # of BLOCK %]
+
+<!-- start browse page -->
+
+[% pageList %]
+
+<table class="details browse">
+  <thead>
+    <tr class="caption">
+      <th>Species Name</th>
+      <th>NCBI Code</th>
+      <th>Kingdom</th>
+      <th>Proteome Size</th>
+      <th>Sequence Coverage</th>
+      <th>Residue Coverage</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% first = "" %]
+  [% FOREACH proteome IN browse %]
+     [% initialLetter = proteome.species.split("").first | lower %]
+	[% CALL c.log.debug( "initial letter, first: |$initialLetter|$first|" ) %]
+    <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
+	  <td>
+        <a 
+[%- IF initialLetter != first %]
+name="[% initialLetter %]"
+  [% first = initialLetter | lower %]
+[% END %]
+        href="[% c.uri_for( "/proteome", ncbiCode=proteome.ncbi_code ) %]"><i>[% proteome.species %]<?i></a>
+      </td>
+      <td><a href="[% c.uri_for( "/proteome", ncbiCode=proteome.ncbi_code ) %]">[% proteome.ncbi_code %]</a></td>
+      <td>[% proteome.grouping %]</td>
+      <td>[% proteome.total_genome_proteins %]</td>
+      <td>[% proteome.sequence_coverage %]</td>
+      <td>[% proteome.residue_coverage %]</td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<!-- end browse page -->
