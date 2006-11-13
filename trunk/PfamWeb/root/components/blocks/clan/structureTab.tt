@@ -1,0 +1,168 @@
+[%
+# structuresTab.tt
+# jt6 20060424 WTSI
+#
+# $Id: structureTab.tt,v 1.1 2006-11-13 15:24:55 rdf Exp $
+
+USE dumper;
+USE String;
+META naked=1
+-%]
+
+
+	[%- oe = 0 -%]
+
+    [%- mapping = {} -%]
+	[% USE pdbMapIter = iterator( pfamMaps ) %]
+    [%- FOREACH pdbMap IN pdbMapIter -%]
+      [%- famKey = pdbMap.get_column("pfamA_id") -%]
+      [%- IF ! mapping.$famKey %]
+        [%- mapping.$famKey = {} -%]
+      [%- END -%]
+    
+      [%- seqKey = pdbMap.get_column("pfamseq_id") -%]
+      [%- IF ! mapping.$famKey.$seqKey %]
+        [%- mapping.$famKey.$seqKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$famKey.$seqKey.COUNT -%]
+	    [% mapping.$famKey.$seqKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.$seqKey.COUNT = mapping.$famKey.$seqKey.COUNT + 1 -%]
+	  [%- END -%]
+
+      [%- resKey = String.new( pdbMap.get_column("pfam_start_res") );
+          CALL resKey.append( " - ", pdbMap.get_column("pfam_end_res") ) %]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey = {} -%]
+      [%- END -%]
+    
+      [%- pdbKey = pdbMap.get_column("pdb_id") -%]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey.$pdbKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$famKey.$seqKey.$resKey.COUNT -%]
+	    [% mapping.$famKey.$seqKey.$resKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.$seqKey.$resKey.COUNT = mapping.$famKey.$seqKey.$resKey.COUNT + 1 -%]
+	  [%- END -%]
+    
+      [%- chainKey = pdbMap.get_column("chain") -%]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey = {} -%]
+      [%- END -%]
+	  [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT -%]
+	    [% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT = mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT + 1 -%]
+	  [%- END -%]
+    
+      [%- pdbResKey = String.new( pdbMap.get_column("pdb_start_res") );
+          CALL pdbResKey.append( " - ", pdbMap.get_column("pdb_end_res") ) %]
+      [%- IF ! mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey -%]
+        [%- mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap -%]
+ 	  [%- END -%]
+	  [%- IF ! mapping.$famKey.COUNT -%]
+	    [% mapping.$famKey.COUNT = 1 -%]
+	  [%- ELSE -%]
+	    [% mapping.$famKey.COUNT = mapping.$famKey.COUNT + 1 -%]
+	  [%- END -%]
+
+    [%- END -%]
+
+    <table class="details" id="structuresTable">
+      <thead>
+	    <tr class="caption">
+          <th id="pfam">Pfam family</th>
+          <th id="unpId">UniProt entry</th>
+          <th id="unpRes">UniProt residues</th>
+          <th id="pdbId">PDB ID</th>
+		  <th id="chId">PDB chain ID</th>
+          <th id="pdbRes">PDB residues</th>
+          <th id="viewCol">View</th>
+        </tr>
+	  </thead>
+      <tbody>
+
+      [%- USE famKeyIter = iterator( mapping.keys.sort ) -%]
+      [%- FOREACH famKey IN famKeyIter -%]
+        [%- NEXT IF mapping.$famKey == "COUNT" %]
+        [% oe=oe+1 %]
+        [%- FOREACH seqKey IN mapping.$famKey.keys.sort  -%]
+          [%- FOREACH resKey IN mapping.$famKey.$seqKey.keys.sort -%]
+            [%- NEXT IF mapping.$famKey.$seqKey.$resKey == "COUNT" %]
+            [%- FOREACH pdbKey IN mapping.$famKey.$seqKey.$resKey.keys.sort -%]
+              [%- FOREACH chainKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.keys.sort -%]
+                [%- NEXT IF mapping.$famKey.$seqKey.$resKey.$pdbKey == "COUNT" %]
+                [%- FOREACH pdbResKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+  
+                <tr>
+  
+                  [% IF famKey != prevFamKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/family", id=famKey ) %]">[% famKey %]</a></td>
+                  [% END %]
+   
+                  [% IF seqKey != prevSeqKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/protein", id=seqKey ) %]">[% seqKey %]</a></td>
+                  [% END -%]
+  
+                  [% IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
+                  [% END -%]
+  
+                  [% IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+                    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                    <a href="[% c.uri_for( "/structure", id=pdbKey ) %]">[% pdbKey %]</a>
+                    </td>
+                  [% END -%]
+  
+                  [%- prevFamKey = famKey -%]
+                  [%- prevSeqKey = seqKey -%]
+                  [%- prevResKey = resKey -%]
+                  [%- prevPdbKey = pdbKey -%]
+  
+                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+                  [% IF chainKey %]
+                    [% chainKey %]
+                  [% ELSE %]
+                    <span class="inactive">n/a</span>
+                  [% END %]
+                  </td>
+                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
+                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) | uri | html %]"
+                       onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;"
+                       target="newWin">Jmol</a>	
+                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) | uri | html %]"
+                       onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
+                       target="newWin">AstexViewer</a>	
+                    <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
+                       class="ext"
+                       onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
+                       target="newWin">SPICE</a>	
+				  </td>
+  
+                </tr>
+  
+                [%- END # of pdbResKey -%]
+              [%- END # of chainKey -%]
+            [%- END # of pdbKey -%]
+          [%- END # of resKey -%]
+        [%- END # of seqKey -%]
+      [%- END # of famKey -%]
+      </tbody>
+    </table>
+
+    <script type="text/javascript">
+
+      // how many columns are there in the table ?
+      var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+      var numColsTable  = firstRow.getElementsByTagName("td").length;
+
+      // walk over all of the cells in the table and add listeners for mouseover and 
+      // mouseout events
+      $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+          cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+          cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+        }
+	 );
+    </script>
