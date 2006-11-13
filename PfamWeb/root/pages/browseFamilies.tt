@@ -4,7 +4,7 @@
 # 
 # build a "browse" page
 #
-# $Id: browseFamilies.tt,v 1.5 2006-09-29 15:27:42 jt6 Exp $
+# $Id: browseFamilies.tt,v 1.6 2006-11-13 14:40:36 jt6 Exp $
 
 # tell the wrapper it's a full page
 META fullPage = 1
@@ -60,7 +60,7 @@ META fullPage = 1
       <td>[% pfam.percentage_id %]</td>
       <td>[% pfam.average_coverage %]</td>
       <td>[% pfam.status %]</td>
-      <td>[% pfam.description %]</td>
+      <td class="left">[% pfam.description %]</td>
     </tr>
   [% END %]
   </tbody>
