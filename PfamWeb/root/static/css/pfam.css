@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.26 2006-11-07 16:45:59 jt6 Exp $
+   $Id: pfam.css,v 1.27 2006-11-13 14:37:22 jt6 Exp $
 */   
 
 body {
@@ -270,6 +270,17 @@ div.menuContent {
   text-decoration:   none;
 }
 
+/* a little warning message */
+
+#jsWarning {
+	border: 2px solid #600;
+    background: #900;
+	color: #FFF;
+    margin: 0.4em auto;
+	width: 50%;
+    padding: 0.4em;
+}
+
 /* ======================================== */
 /* the footer. We use a wrapper div (#contentContainer) for the content
    when the page contains tabs, so add a separate style for that which 
@@ -386,7 +397,9 @@ div.pageList span.letter a:hover {
 }
 
 table.browse { 
-  margin: 0 auto;
+  /* make sure that the other classes attached to the browse table, probably 
+     "details", cant override the centring */
+  margin: 0 auto !important
 }
 
 /* ---------------------------------------- */
@@ -451,6 +464,10 @@ div.floatLeft {
 tr.continuation {
   font-size: smaller;
   background: none;
+}
+
+td.left {
+	text-alignment: left;
 }
 
 /* ======================================== */
