@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.8 2006-10-31 15:13:25 jt6 Exp $
+# $Id: Clan.pm,v 1.9 2006-11-13 15:31:14 rdf Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.8 2006-10-31 15:13:25 jt6 Exp $
+$Id: Clan.pm,v 1.9 2006-11-13 15:31:14 rdf Exp $
 
 =cut
 
@@ -64,11 +64,9 @@ sub begin : Private {
 
 	$c->log->info( "Clan::begin: found param |".$c->req->param("id")."|" );
 	$c->req->param( "id" ) =~ m/^([\w-]+)$/;
-	$c->log->info( "Clan::begin: found ID |$1|" );
-	
+	$c->log->info( "Clan::begin: found ID |$1|" );	
 	$c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
 	  if defined $1;
-
   } elsif( defined $c->req->param( "entry" ) ) {
 
 	# see if this is really an accession...
@@ -132,14 +130,29 @@ sub begin : Private {
   # set up the pointers to the clan data in the stash
   $c->stash->{entryType} = "C";
   $c->stash->{acc} = $c->stash->{clan}->clan_acc;
+  my @rs = $c->model("PfamDB::Clan_membership")->search( { auto_clan => $c->stash->{clan}->auto_clan },
+					       { join      => [qw/pfam/],
+						 prefetch  => [qw/pfam/] }
+					     );
+  $c->stash->{clanMembers} = \@rs;
 
+}
+
+sub default : Private {
+  my($this, $c) = @_;
   # populate the stash with other data
   $c->forward( "_getSummaryData" );
   $c->forward( "_getXrefs" );
-  $c->forward( "_getMapping" );
+  
 
   # done
 }
+
+
+#sub structureTab : Local {
+#  my($this, $c) = @_;
+#  $c->forward( "_getMapping" );
+#}
 
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
@@ -156,63 +169,28 @@ sub _getSummaryData : Private {
   my $autoClan = $c->stash->{clan}->auto_clan;
 
   # number of sequences
-  my $rs = $c->model("PfamDB::Clan_membership")->find(
-    { auto_clan => $autoClan },
-    {
-      select => [ { sum => "pfam.num_full" } ],
-      as => [ 'total_in_clan' ],
-	 join => [qw/pfam/]
-    }
-  );
-  $summaryData{numSequences} = $rs->get_column( "total_in_clan" );
+  $summaryData{numSequences} = $c->stash->{clan}->number_sequences;
 
-  # count the number of architectures
-  $rs = $c->model("PfamDB::ClanArchitecture")->find(
-    { auto_clan => $autoClan },
-    {
-      select => [ { count => "auto_clan" } ],
-      as => [ 'count' ]
-    }
-  );
-  $summaryData{numArchitectures} = $rs->get_column( "count" );
+  # number of architectures
+  $summaryData{numArchitectures} = $c->stash->{clan}->number_archs;
 
-  # number of interactions
-  $rs = $c->model("PfamDB::Clan_membership")->find(
-    { auto_clan => $autoClan },
-	{ select => [ { count => "auto_pfamA_A" } ],
-	  as     => [ qw/NumInts/ ],
-	  join   => [ qw/pfamAInts/ ]
-    }
-  );
-  $summaryData{numInt} = $rs->get_column( "NumInts" );
-
-  # get the PDB details
-  my @maps = $c->model("PfamDB::Clan_membership")->search(
-    { auto_clan            => $autoClan,
-	  "pdbmap.pfam_region" => 1 },
-	{ select => [ qw/pdb.pdb_id/ ],
-	  as     => [ qw/pdb_id/ ],
-	  join   => { pdbmap => "pdb" }
-    }
-  );
+#   # number of interactions
+  $summaryData{numInt} = 0;
 
   # number of structures known for the domain
-  my %pdb_unique = map {$_->get_column("pdb_id") => 1} @maps;
-  $summaryData{numStructures} = scalar(keys %pdb_unique);
+  $summaryData{numStructures} = $c->stash->{clan}->number_structures;
+
+  my @mapping = $c->model("PfamDB::Pdb_pfamA_reg")
+    ->search( { "clanMembers.auto_clan" =>  $c->stash->{clan}->auto_clan },
+	      { join      => [ qw/pdb clanMembers / ],
+		prefetch  => [ qw/ pdb/ ]});
+
+  my %pdb_unique = map {$_->pdb_id => 1} @mapping;
+  $c->log->debug("Got ".scalar(@mapping)." pdb mappings");
   $c->stash->{pdbUnique} = \%pdb_unique;
 
-  # number of species
-  my @species = $c->model("PfamDB::Clan_membership")->search(
-    { auto_clan              => $autoClan,
- 	  "pfamARegFull.in_full" => 1 },
-    { select => [ qw/pfamseq.species/ ],
-	  as     => [ qw/species/ ],
-	   join   => { pfamARegFull => "pfamseq" }
-    }
-  );
-
-  my %species_unique = map {$_->get_column("species") => 1} @species;
-  $summaryData{numSpecies} = scalar(keys %species_unique);
+  #Number of species
+  $summaryData{numSpecies} = $c->stash->{clan}->number_species;
 
   $c->stash->{summaryData} = \%summaryData;
 
@@ -241,35 +219,35 @@ sub _getXrefs : Private {
 sub _getMapping : Private {
   my( $this, $c ) = @_;
 
-  my @mapping = $c->model("PfamDB::Clan_membership")
-	->search( { auto_clan => $c->stash->{clan}->auto_clan },
-			  { select => [ qw/pfamseq.pfamseq_id
-							   pfamA.pfamA_id
-							   pfamA.pfamA_acc
-							   pdbmap.pfam_start_res
-							   pdbmap.pfam_end_res
-							   pdb.pdb_id
-							   pdbmap.chain
-							   pdbmap.pdb_start_res
-							   pdbmap.pdb_end_res/ ],
-				as     => [ qw/pfamseq_id
-							   pfamA_id
-							   pfamA_acc
-							   pfam_start_res
-							   pfam_end_res
-							   pdb_id
-							   chain
-							   pdb_start_res
-							   pdb_end_res/ ],
-				join => { pdbmap => [qw/pfamA
-										pfamseq
-										pdb/ ]
-						}
-			  }
-			);
+   my @mapping = $c->model("PfamDB::Clan_membership")
+ 	->search( { auto_clan => $c->stash->{clan}->auto_clan,
+ 		    pfam_region => 1 },
+ 		  { select => [ qw/pfamseq.pfamseq_id
+ 							   pfamA.pfamA_id
+ 							   pfamA.pfamA_acc
+ 							   pdbmap.pfam_start_res
+ 							   pdbmap.pfam_end_res
+ 							   pdb.pdb_id
+ 							   pdbmap.chain
+ 							   pdbmap.pdb_start_res
+ 							   pdbmap.pdb_end_res/ ],
+ 				as     => [ qw/pfamseq_id
+ 							   pfamA_id
+ 							   pfamA_acc
+ 							   pfam_start_res
+ 							   pfam_end_res
+ 							   pdb_id
+ 							   chain
+ 							   pdb_start_res
+ 							   pdb_end_res/ ],
+ 				join => { pdbmap => [qw/pfamA
+ 							pfamseq
+ 							pdb/ ]
+ 						}
+ 			  }
+ 			);
 
   $c->stash->{pfamMaps} = \@mapping;
-
 }
 
 #-------------------------------------------------------------------------------

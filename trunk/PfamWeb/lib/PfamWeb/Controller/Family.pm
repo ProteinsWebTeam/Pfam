@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.13 2006-10-31 15:13:05 jt6 Exp $
+# $Id: Family.pm,v 1.14 2006-11-13 15:31:14 rdf Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.13 2006-10-31 15:13:05 jt6 Exp $
+$Id: Family.pm,v 1.14 2006-11-13 15:31:14 rdf Exp $
 
 =cut
 
@@ -186,58 +186,30 @@ sub _getSummaryData : Private {
   my %summaryData;
 
   # make things easier by getting hold of the auto_pfamA
-  my $auto_pfam = $c->stash->{pfam}->auto_pfamA;
-
-  # get the PDB details
-  my @maps = $c->model("PfamDB::PdbMap")->search(
-    { auto_pfam   => $auto_pfam,
-	  pfam_region => 1 },
-	{ join        => [ qw/ pdb / ],
-	  prefetch    => [ qw/ pdb / ] } );
-  $c->stash->{pfamMaps} = \@maps;
-
-  # count the number of architectures
-  my $rs = $c->model("PfamDB::PfamA_architecture")->find(
-    { auto_pfamA => $auto_pfam },
-    {
-      select => [
-        { count => "auto_pfamA" }
-      ],
-      as => [ 'count' ]
-    }
-  );
+  my $auto_pfamA = $c->stash->{pfam}->auto_pfamA;
 
   # number of architectures....
-  $summaryData{numArchitectures} = $rs->get_column( "count" );
+  $summaryData{numArchitectures} = $c->stash->{pfam}->number_archs;
 
   # number of sequences in full alignment
   $summaryData{numSequences} = $c->stash->{pfam}->num_full;
 
   # number of structures known for the domain
-  my %pdb_unique = map {$_->pdb_id => $_} @maps;
-  $summaryData{numStructures} = scalar(keys %pdb_unique);
-  $c->stash->{pdbUnique} = \%pdb_unique;
+  $summaryData{numStructures} = $c->stash->{pfam}->number_structures;
 
-  # number of species
-  my @species = $c->model("PfamDB::PfamA_reg_full")->search(
-    { auto_pfamA => $auto_pfam,
-	  in_full    => 1 },
-    { join       => [ qw/pfamseq/ ],
-	  prefetch   => [ qw/pfamseq/ ] } );
-
-  my %species_unique = map {$_->species => 1} @species;
-  $summaryData{numSpecies} = scalar(keys %species_unique);
+  # Number of species
+  $summaryData{numSpecies} = $c->stash->{pfam}->number_species;
 
   # number of interactions
-  $rs = $c->model("PfamDB::Int_pfamAs")->find({ auto_pfamA_A => $auto_pfam },
-	{ select => [
-				 { count => "auto_pfamA_A" }
-				],
-	  as => [ qw/NumInts/ ]
-    }
-  );
+  #$rs = $c->model("PfamDB::Int_pfamAs")->find({ auto_pfamA_A => $auto_pfamA },
+	#{ select => [
+	#			 { count => "auto_pfamA_A" }
+	#			],
+	#  as => [ qw/NumInts/ ]
+    #}
+  #);
 
-  $summaryData{numInt} = $rs->get_column( "NumInts" );
+  $summaryData{numInt} = 0;
 
   $c->stash->{summaryData} = \%summaryData;
 
