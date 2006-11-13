@@ -9,7 +9,7 @@ use base "DBIx::Class";
 
 __PACKAGE__->load_components( qw/Core/); #Do we want to add DB
 __PACKAGE__->table("clans"); # This is how we define the table
-__PACKAGE__->add_columns( qw/auto_clan clan_acc clan_id clan_description clan_author clan_comment/); # The columns that we want to have access to
+__PACKAGE__->add_columns( qw/auto_clan clan_acc clan_id clan_description clan_author clan_comment number_archs number_structures number_species number_sequences/); # The columns that we want to have access to
 __PACKAGE__->set_primary_key( "auto_clan" );
 
 #Set up relationships
