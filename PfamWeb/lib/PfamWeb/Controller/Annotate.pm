@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.3 2006-11-13 10:45:23 jt6 Exp $
+# $Id: Annotate.pm,v 1.4 2006-11-13 14:30:44 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.3 2006-11-13 10:45:23 jt6 Exp $
+$Id: Annotate.pm,v 1.4 2006-11-13 14:30:44 jt6 Exp $
 
 =cut
 
@@ -97,9 +97,6 @@ sub begin : Private {
 	$c->stash->{subject} = "Annotation submission";
 
   }
-
-  # get the Pfam version
-  $c->stash->{version} = $c->model("PfamDB::Version")->find( {} )->pfam_release;
 
   $c->log->debug( "Annotate::begin: generated subject line: " );
   $c->log->debug( "Annotate::begin:   |" . $c->stash->{subject} . "|" );
