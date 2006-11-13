@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.4 2006-11-13 14:20:17 jt6 Exp $
+# $Id: Root.pm,v 1.5 2006-11-13 14:22:03 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ errors from within the site, an C<auto> action that handles tab
 selection for the whole site, and a default C<end> that renders the
 index page.
 
-$Id: Root.pm,v 1.4 2006-11-13 14:20:17 jt6 Exp $
+$Id: Root.pm,v 1.5 2006-11-13 14:22:03 jt6 Exp $
 
 =cut
 
@@ -92,6 +92,9 @@ appropriate tab name in the stash. That will be picked up by the
 tab_layout.tt view, which will use it to figure out which tab to show
 by default.
 
+Also adds the Pfam version and release date to the stash, so that it's
+generally accessible throughout the app.
+
 =cut
 
 sub auto : Private {
@@ -102,6 +105,11 @@ sub auto : Private {
 	if defined $c->req->param( "tab" );
 
   $c->stash->{showTab} = $1 if defined $tab;
+
+  # stash some details of the Pfam release
+  my $row = $c->model("PfamDB::Version")->find( {} );
+  $c->stash->{version} = $row->pfam_release;
+  $c->stash->{reldate} = $row->pfam_release_date;
 
 #  $c->cache_page( expires  => "300",
 #				  auto_uri => [ "/*" ],
@@ -120,10 +128,6 @@ Show an "about Pfam" page.
 
 sub about : Global {
   my( $this, $c ) = @_;
-
-  my $row = $c->model("PfamDB::Version")->find( {} );
-  $c->stash->{version} = $row->pfam_release;
-  $c->stash->{reldate} = $row->pfam_release_date;
 
   $c->stash->{template} = "components/tools/about.tt";
 }
