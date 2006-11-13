@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.14 2006-10-31 15:14:01 jt6 Exp $
+# $Id: Protein.pm,v 1.15 2006-11-13 16:13:07 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.14 2006-10-31 15:14:01 jt6 Exp $
+$Id: Protein.pm,v 1.15 2006-11-13 16:13:07 jt6 Exp $
 
 =cut
 
@@ -148,7 +148,7 @@ sub begin : Private {
   #----------------------------------------
   # add available DAS sources to the stash
 
-  my @dasSources = $c->model("PfamDB::Das_sources")->search();
+  my @dasSources = $c->model("WebUser::Das_sources")->search();
   $c->stash->{dasSourcesRs} = \@dasSources;
 
   $c->log->debug( "Protein::begin: added DAS sources to the stash" );
