@@ -1,0 +1,24 @@
+
+[%
+# tax.tt
+# jt6 20061108 WTSI
+# 
+# build the taxonomy search block
+#
+# $Id: tax.tt,v 1.1 2006-11-13 14:45:18 jt6 Exp $
+%]
+
+<!-- start taxonomy search block -->
+
+<div class="block" id="searchTaxBlock">
+  <div class="handle">
+    <h1>Taxonomy search</h1>
+  </div>
+  <div class="blockContent">
+
+	<h2>Search fields here</h2>
+
+  </div>
+</div>
+
+<!-- end taxonomy search block -->

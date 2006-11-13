@@ -1,0 +1,32 @@
+[%
+# error.tt
+# jt6 20061108 WTSI
+#
+# show an error report for the search page.
+#
+# $Id: error.tt,v 1.1 2006-11-13 14:45:17 jt6 Exp $
+
+# tell the wrapper to add the full page footer
+META fullPage = 1;
+-%]
+
+[% message = BLOCK %]
+
+  [% IF c.error.size AND constants.debug %]
+
+    <p>There was a <em>system error</em> when attempting the requested search:</p>
+    <p class="message">[% c.error.first %]</p>
+
+  [% ELSE %]
+
+    <p>There was a problem with your search.</p>
+
+    [% IF errorMsg %]
+      <p class="message">[% errorMsg %]</p>
+    [% END %]
+
+  [% END # of IF DEBUG... %]
+
+[% END # of block %]
+
+[% PROCESS pages/sectionError.tt %]

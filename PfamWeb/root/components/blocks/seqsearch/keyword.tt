@@ -1,0 +1,24 @@
+
+[%
+# keyword.tt
+# jt6 20061108 WTSI
+# 
+# build the keyword search block
+#
+# $Id: keyword.tt,v 1.1 2006-11-13 14:45:18 jt6 Exp $
+%]
+
+<!-- start keyword search block -->
+
+<div class="block" id="searchKeywordBlock">
+  <div class="handle">
+    <h1>Keyword search</h1>
+  </div>
+  <div class="blockContent">
+
+	<h2>Search fields here</h2>
+
+  </div>
+</div>
+
+<!-- end keyword search block -->
