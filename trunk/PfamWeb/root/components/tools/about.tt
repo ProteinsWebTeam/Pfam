@@ -4,19 +4,28 @@
 # 
 # build an "about Pfam" page
 #
-# $Id: about.tt,v 1.2 2006-11-13 11:50:30 jt6 Exp $
+# $Id: about.tt,v 1.3 2006-11-13 13:06:18 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
 META naked = 1;
 
-pageContent = BLOCK;
+# format the date nicely
+USE date( format = "%b %Y" );
+r = String.new( reldate );
 
-title = "About the Pfam website"
--%]
+d = reldate.match( '(\d+)\-(\d+)\-(\d+)' );
 
-<h2>Version [% version ? version : "21.0" %]</h2>
-<h3>Released [% reldate ? reldate : "Nov 2006" %]</h3>
+release_date = String.new( "00:00:00 " );
+CALL release_date.append( d.2, ":", d.1, ":", d.0 );
+
+# set the title for the tools window
+title = "About the Pfam website";
+
+pageContent = BLOCK -%]
+
+<h2>Version [% version ? version : "20.0" %]</h2>
+<h3>Released [% reldate ? date.format( release_date ) : "May 2006" %]</h3>
 
 <p>
   The Pfam website is developed on linux and is tested during
