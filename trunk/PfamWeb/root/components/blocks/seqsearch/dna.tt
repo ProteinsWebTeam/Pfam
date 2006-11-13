@@ -1,0 +1,24 @@
+
+[%
+# dna.tt
+# jt6 20061108 WTSI
+# 
+# build the dna search block
+#
+# $Id: dna.tt,v 1.1 2006-11-13 14:45:17 jt6 Exp $
+%]
+
+<!-- start dna search block -->
+
+<div class="block" id="searchDnaBlock">
+  <div class="handle">
+    <h1>DNA search</h1>
+  </div>
+  <div class="blockContent">
+
+	<h2>Search fields here</h2>
+
+  </div>
+</div>
+
+<!-- end dna search block -->

@@ -1,0 +1,24 @@
+
+[%
+# domain.tt
+# jt6 20061108 WTSI
+# 
+# build the domain search block
+#
+# $Id: domain.tt,v 1.1 2006-11-13 14:45:17 jt6 Exp $
+%]
+
+<!-- start domain search block -->
+
+<div class="block" id="searchDomainBlock">
+  <div class="handle">
+    <h1>Domain search</h1>
+  </div>
+  <div class="blockContent">
+
+	<h2>Search fields here</h2>
+
+  </div>
+</div>
+
+<!-- end domain search block -->
