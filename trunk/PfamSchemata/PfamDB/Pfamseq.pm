@@ -11,10 +11,10 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamseq" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc crc64 md5 description length species taxonomy is_fragment version current non_cons sequence updated created treefam_acc /);
+__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc seq_version crc64 md5 description length species taxonomy ncbi_code is_fragment current non_cons sequence updated created genome_seq auto_architecture treefam_acc /);
 
 #Set the the keys
-__PACKAGE__->set_primary_key( "auto_pfamseq", "pfamseq_acc", "crc64", "pfamseq_id" );
+__PACKAGE__->set_primary_key( "auto_pfamseq", "pfamseq_acc", "crc64", "pfamseq_id");
 
 
 
@@ -96,3 +96,5 @@ __PACKAGE__->has_one("arch" =>  "PfamDB::Pfamseq_architecture",
 #'__PACKAGE__->has_one("pfamseqStorable" =>  "PfamDB::Pfam_annseq",
 #		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 #		     { proxy => [qw/annseq_storable/]});
+
+

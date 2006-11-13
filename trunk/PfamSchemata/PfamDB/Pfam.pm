@@ -12,7 +12,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamA" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamA pfamA_acc pfamA_id description model_length author seed_source alignment_method type ls_sequence_GA ls_domain_GA fs_sequence_GA fs_domain_GA ls_sequence_TC ls_domain_TC fs_sequence_TC fs_domain_TC ls_sequence_NC ls_domain_NC fs_sequence_NC fs_domain_NC ls_mu ls_kappa fs_mu fs_kappa comment previous_id hmmbuild_ls hmmcalibrate_ls hmmbuild_fs hmmcalibrate_fs num_full num_seed version/ );
+__PACKAGE__->add_columns( qw/auto_pfamA pfamA_acc pfamA_id description model_length author seed_source alignment_method type ls_sequence_GA ls_domain_GA fs_sequence_GA fs_domain_GA ls_sequence_TC ls_domain_TC fs_sequence_TC fs_domain_TC ls_sequence_NC ls_domain_NC fs_sequence_NC fs_domain_NC ls_mu ls_kappa fs_mu fs_kappa comment previous_id hmmbuild_ls hmmcalibrate_ls hmmbuild_fs hmmcalibrate_fs num_full num_seed version number_archs number_structures number_species/ );
 
 
 #Set the the keys
