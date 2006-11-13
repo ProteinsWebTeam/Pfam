@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Graphics.pm,v 1.13 2006-09-28 10:46:52 jt6 Exp $
+# $Id: Graphics.pm,v 1.14 2006-11-13 16:12:50 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Graphics;
 
@@ -97,7 +97,7 @@ sub updateSources : Path {
  	foreach my $image ( $imageset->each_image ) {
 
  	  ( $handle = $image->image_info ) =~ s/^(.*?)\/features\?.*$/$1/;
- 	  $server = $c->model("PfamDB::Das_sources")->find( { url => $handle } );
+ 	  $server = $c->model("WebUser::Das_sources")->find( { url => $handle } );
 
  	  # append an image number to the image name, to avoid name clashes
  	  # for multiple images generated in the same run
@@ -145,7 +145,7 @@ sub getServerList : Private {
 	  # we want only the server IDs
 	  next unless /^(DS_\d+)$/ and $c->req->param( $_ ) eq "on";
 
-	  my $ds = $c->model("PfamDB::Das_sources")->find( { server_id => $1 } );
+	  my $ds = $c->model("WebUser::Das_sources")->find( { server_id => $1 } );
 
 	  if( defined $ds ) {
 		push @$dsnList, $ds->url;
@@ -160,7 +160,7 @@ sub getServerList : Private {
  	$c->log->debug( "Protein::Graphics::getServerList: getting server IDs from session" );
 
  	foreach ( keys %{$c->session->{selectedDASServers}} ) {
- 	  my $ds = $c->model("PfamDB::Das_sources")->find( { server_id => $_ } );
+ 	  my $ds = $c->model("WebUser::Das_sources")->find( { server_id => $_ } );
  	  $c->log->debug( "Protein::Graphics::getServerList:   extracted $_" );
  	  push @$dsnList, $ds->url if defined $ds;
  	}
@@ -170,7 +170,7 @@ sub getServerList : Private {
 	# finally, if we don't have a list of servers from either the
 	# session or the request, get the default list from the DB
 	$c->log->debug( "Protein::Graphics::getServerList: getting server IDs from database" );
-	my @defaultServers = $c->model("PfamDB::Das_sources")->search( { default_server => 1 } );
+	my @defaultServers = $c->model("WebUser::Das_sources")->search( { default_server => 1 } );
  	foreach ( @defaultServers ) {
 	  push @$dsnList, $_->url;
  	  $servers{$_->server_id} = 1;
