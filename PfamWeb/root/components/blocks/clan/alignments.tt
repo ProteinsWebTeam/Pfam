@@ -3,7 +3,7 @@
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.6 2006-10-23 12:12:18 jt6 Exp $
+# $Id: alignments.tt,v 1.7 2006-11-13 15:25:58 rdf Exp $
 %]
 
 <!-- start clan alignments block -->
@@ -18,7 +18,7 @@
 totalFam = 0;
 totalSeq = 0;
 pfams = [];
-FOREACH pfam IN clan.clan_membership.nsort("num_full").reverse;
+FOREACH pfam IN clanMembers.nsort("num_full").reverse;
 	totalFam = totalFam + 1;
 	totalSeq = totalSeq + pfam.num_full;
 	pfams.push( pfam );
@@ -47,7 +47,7 @@ END
 
 [%- maxLength = "" -%]
 [% IF clan.clan_membership.size > constants.tableLength %]
-  [% maxLength = clan.clan_membership.size / 2 %]
+  [% maxLength = clanMembers.size / 2 %]
   <div class="floatLeft">
 [%- END -%]
 
@@ -90,7 +90,7 @@ END
 
 [%- tableFooter -%]
 
-[%- IF clan.clan_membership.size > constants.tableLength -%]
+[%- IF clanMembers.size > constants.tableLength -%]
   </div>
 [%- END -%]
 
