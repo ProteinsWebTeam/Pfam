@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.3 2006-10-23 12:19:21 jt6 Exp $
+# $Id: Root.pm,v 1.4 2006-11-13 14:20:17 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ errors from within the site, an C<auto> action that handles tab
 selection for the whole site, and a default C<end> that renders the
 index page.
 
-$Id: Root.pm,v 1.3 2006-10-23 12:19:21 jt6 Exp $
+$Id: Root.pm,v 1.4 2006-11-13 14:20:17 jt6 Exp $
 
 =cut
 
@@ -121,7 +121,11 @@ Show an "about Pfam" page.
 sub about : Global {
   my( $this, $c ) = @_;
 
-  $c->stash->{template} = "pages/about.tt";
+  my $row = $c->model("PfamDB::Version")->find( {} );
+  $c->stash->{version} = $row->pfam_release;
+  $c->stash->{reldate} = $row->pfam_release_date;
+
+  $c->stash->{template} = "components/tools/about.tt";
 }
 
 #-------------------------------------------------------------------------------
