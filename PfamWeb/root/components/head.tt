@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.11 2006-11-07 16:48:34 jt6 Exp $
+# $Id: head.tt,v 1.12 2006-11-13 10:47:13 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -36,6 +36,7 @@
 <!--[if IE ]>
 <link rel="stylesheet" href="[% c.uri_for( "/css/pfam_all_ie.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_all_ie.css" ) %]" type="text/css" />
+<link rel="stylesheet" href="[% c.uri_for( "/css/annotate_all_ie.css" ) %]" type="text/css" />
 <![endif]-->
 
 <!-- styles applicable to IE6 and below -->
