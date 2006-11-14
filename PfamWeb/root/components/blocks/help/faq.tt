@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.2 2006-10-17 14:39:00 jm14 Exp $
+# $Id: faq.tt,v 1.3 2006-11-14 17:20:05 jm14 Exp $
 %]
 
 <!-- start faq block -->
@@ -56,9 +56,9 @@ structural information for each family where available.  <p>
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 <TR><TD bgcolor=#000070 class=whitetableheader>What is the difference between Pfam-A and Pfam-B families?</TD></TR>
 <TR><TD class=normaltext>
-Pfam contains two types of families, Pfam-A  and  Pfam-B.   Pfam-A  families are manually curated HMM based families which we build using an alignment of a small number of representative sequences (we call this alignment the 'seed' alignment).  We manually set a threshold value for each HMM, and this determines the minimum score a sequence must attain to belong to the family.  We search all of our HMMs against the UniProt database, and include all sequences that score above the cut-off value for a particular family in the family's full alignment.   For each family we build two HMMs, one to represent fragment matches and one to represent full length matches. We use the HMMER2 software to build and search our profile HMMs.  Pfam-A matches are very unlikely to be false matches. 
+Pfam contains two types of families, Pfam-A  and  Pfam-B.   Pfam-A  families are manually curated HMM based families which we build using an alignment of a small number of representative sequences (we call this alignment the 'seed' alignment).  We manually set a threshold value for each HMM, and this determines the minimum score a sequence must attain to belong to the family.  We search all of our HMMs against the <a href="http://www.ebi.uniprot.org/index.shtml">UniProt</a></li>  database, and include all sequences that score above the cut-off value for a particular family in the family's full alignment.   For each family we build two HMMs, one to represent fragment matches and one to represent full length matches. We use the HMMER2 software to build and search our profile HMMs.  Pfam-A matches are very unlikely to be false matches. 
 <p>
-To complement the Pfam-A families, we automatically generate Pfam-B families using the PRODOM database.  Pfam-B families are formed by taking alignments of sequence segments from PRODOM, and removing any Pfam-A residues from them. Some Pfam-B families are composed of low complexity regions and may not reflect true relationships, therefore we recommend you verify that sequences in a Pfam-B family are related by using other methods such as BLAST. 
+To complement the Pfam-A families, we automatically generate Pfam-B families using the <a href=http://prodom.prabi.fr/prodom/current/html/home.php database">PRODOM</a></li> database.  Pfam-B families are formed by taking alignments of sequence segments from PRODOM, and removing any Pfam-A residues from them. Some Pfam-B families are composed of low complexity regions and may not reflect true relationships, therefore we recommend you verify that sequences in a Pfam-B family are related by using other methods such as BLAST. 
 <p>
 All  families in Pfam are non-overlapping such that no amino acid belongs to more that one family/domain.  At each Pfam release we search all of our models against an updated version of UniProt, and regenerate our Pfam-B families using the most recent version of PRODOM.
 <p>
@@ -73,7 +73,7 @@ All  families in Pfam are non-overlapping such that no amino acid belongs to mor
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 <TR><TD bgcolor=#000070 class=whitetableheader>What is a clan?</TD></TR>
 <TR><TD class=normaltext>
-Some Pfam families are grouped into 'clans'.   Pfam  defines  a  clan  as  a
+Some of the Pfam families are grouped into 'clans'.   Pfam  defines  a  clan  as  a
 collection of families that have arisen from a single  evolutionary  origin.
 Evidence  of  their  evolutionary  relationship  can  be  in  the  form   of
 similarity in tertiary structures, or when structures are not available,  by
@@ -93,12 +93,8 @@ alternatively they  can  be  accessed  by  clicking  on  'clans'  under  the
 
 
 
-
-
-
-
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
-<TR><TD bgcolor=#000070 class=whitetableheader>Can I search DNA against Pfam</TD></TR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Can I search DNA against Pfam?</TD></TR>
 <TR><TD class=normaltext>
 
 The Wise2 software package allows the comparison of protein HMMs to genomic DNA.  We use this package to allow users to search single DNA sequences against the library of Pfam HMMs.  To do this, you will need to go to the Pfam website hosted at the Sanger Institue (<a href="http://www.sanger.ac.uk/Software/Pfam/">Pfam</a>)</li> and paste your DNA sequence in the DNA search box on the search page.  The results take  approximately  2  minutes for a 1kb sequence, and approximately 1 hours for a 80kb sequence.
@@ -112,7 +108,7 @@ The Wise2 software package allows the comparison of protein HMMs to genomic DNA.
 
 
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
-<TR><TD bgcolor=#000070 class=whitetableheader>How can I submit a new domain</TD></TR>
+<TR><TD bgcolor=#000070 class=whitetableheader>How can I submit a new domain?</TD></TR>
 <TR><TD class=normaltext>
 
 If you know of a domain that is not present in Pfam, you can submit it to us by email (<a href="mailto:pfam@sanger.ac.uk">Pfam email<a/>) and we will endeavour to build a Pfam entry for it.  We ask that you supply us with a multiple sequence alignment of the domain (please send the alignment file as a text file (eg. .txt) and not in the format of a specific application such as a Word (.doc) document), and associated literature evidence if available.
@@ -121,6 +117,17 @@ If you know of a domain that is not present in Pfam, you can submit it to us by 
 </TD></TR></TABLE>
 <p>
 
+
+
+
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>What is iPfam</TD></TR>
+<TR><TD class=normaltext>
+
+<a href="http://www.sanger.ac.uk/Software/Pfam/iPfam/">iPfam</a></li> is a resource that describes domain-domain interactions that are observed in PDB entries.  Where two or more Pfam domains occur in a single structure, it analyses them to see if the are close enough to form an interaction.  If they are close enough it calculates the bonds forming the interaction. Further information can be found on the <a href="http://www.sanger.ac.uk/Software/Pfam/help/interaction.shtml">iPfam help pages</a></li>. 
+<p>
+</TD></TR></TABLE>
+<p>
 
 
 
