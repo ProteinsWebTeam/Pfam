@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.18 2006-11-13 14:32:27 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.19 2006-11-14 15:29:35 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.18 2006-11-13 14:32:27 jt6 Exp $
+$Id: PfamWeb.pm,v 1.19 2006-11-14 15:29:35 jt6 Exp $
 
 =cut
 
@@ -68,7 +68,7 @@ configuration files.
 # grab the location of the configuration file from the environment and
 # detaint it. Doing this means we can configure the location of the
 # config file in httpd.conf rather than in the code
-my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ /([\w\/-]+)/;
+my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ /([\d\w\/-]+)/;
 
 __PACKAGE__->config( file => $conf );
 __PACKAGE__->setup;
