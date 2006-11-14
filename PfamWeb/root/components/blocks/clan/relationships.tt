@@ -2,10 +2,10 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.8 2006-09-22 10:39:13 jt6 Exp $
+# $Id: relationships.tt,v 1.9 2006-11-14 15:31:02 jt6 Exp $
 
-image = "${constants.clanDataURLRoot}/newRelationship/${clan.clan_acc}.png";
-map   = "${constants.clanDataFileRoot}/newRelationship/${clan.clan_acc}.html"
+image = "${constants.clanDataURLRoot}/relationship/${clan.clan_acc}.png";
+map   = "${constants.clanDataFileRoot}/relationship/${clan.clan_acc}.html"
 -%]
 
 <!-- start relationships block -->
