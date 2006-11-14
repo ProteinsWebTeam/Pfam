@@ -12,7 +12,7 @@ BLOCK walkTree;
 			node = tree.branches.$node_name;
 			node_id = node_name.replace( '\W', '_' );
 
-			IF node.branches.keys.size > 1 OR NOT node.branches OR parent == "root"
+			IF NOT node.branches OR node.branches.keys.size > 1 OR parent == "root"
 -%]
 				var summaryId = YAHOO.util.Dom.generateId();
 				var html = '\
