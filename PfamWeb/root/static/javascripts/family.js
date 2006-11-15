@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.10 2006-11-15 11:04:24 rdf Exp $
+// $Id: family.js,v 1.11 2006-11-15 11:06:30 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -307,25 +307,6 @@ function toggleShowSummaries() {
 //   }
 //   summariesVisible = !summariesVisible;
 // }
-
-//------------------------------------------------------------
-// move the "tools palette" so that it remains at the top of the page
-// as the browser window is scrolled
-
-var toolStart;
-
-function moveTools() { 
-  if( typeof(toolStart) == "undefined" ) {
-	toolStart = YAHOO.util.Dom.getY( "treeTools" );
-  }
-  
-  var offset = document.documentElement.scrollTop
-	|| document.body.scrollTop; // body in Safari
-
-  var newY = ( offset > toolStart ) ? offset : toolStart;
-
-  YAHOO.util.Dom.setY( "treeTools", newY );
-}
 
 //------------------------------------------------------------
 // collect the sequences that are specified by the checked leaf nodes
