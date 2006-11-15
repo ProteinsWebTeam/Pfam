@@ -5,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.11 2006-11-01 14:47:44 jt6 Exp $
+# $Id: species.tt,v 1.12 2006-11-15 11:05:09 jt6 Exp $
 %]
 
 <!-- start species block -->
@@ -91,9 +91,8 @@
     # accessions -%]
   nodeSequences = {};
 
-  [%# add a listener that will move the tools palette in response to scrolling of 
-    # the window %]
-  Event.observe( window, "scroll", moveTools, false );
+  [%# hide the controls until the tree is loaded, to avoid them overlaying the footer %]
+  Element.hide( "treeToolsContent" );
 
 </script>
 
