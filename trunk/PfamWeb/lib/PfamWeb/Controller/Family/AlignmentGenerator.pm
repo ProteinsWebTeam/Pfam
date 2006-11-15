@@ -2,7 +2,7 @@
 # AlignmentGenerator.pm
 # jt6 20060601 WTSI
 #
-# $Id: AlignmentGenerator.pm,v 1.11 2006-10-31 15:15:51 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.12 2006-11-15 11:05:31 rdf Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::AlignmentGenerator;
 
 Various methods for viewing alignments.
 
-$Id: AlignmentGenerator.pm,v 1.11 2006-10-31 15:15:51 jt6 Exp $
+$Id: AlignmentGenerator.pm,v 1.12 2006-11-15 11:05:31 rdf Exp $
 
 =cut
 
@@ -55,8 +55,11 @@ sub default : Path {
   # retrieve the DasLite client from the base model class and hand it
   # the list of DSNs
   my $dl = $c->model("PfamDB")->getDasLite;
-  $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamAlign| ] );
-
+  if($c->req->param("alnType") and $c->req->param("alnType") eq "seed"){
+    $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamSeedAlign| ] );
+  }else{
+    $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamFullAlign| ] )
+  }
   # get the limits from the parameters
   my $rows;
   ( $rows ) = $c->req->param( "range" ) =~ m/^(\d+\-\d+)$/
@@ -88,12 +91,11 @@ sub default : Path {
 					. $c->stash->{scroll} . "|" );
   }
 
-  my $rawAlignment = $dl->alignment( { query => $c->stash->{acc} . "." . $c->stash->{alnType},
-									   rows  => $rows
-									 } );
-  my $features     = $dl->features( $c->stash->{acc} . "." . $c->stash->{alnType} );
+  my $rawAlignment = $dl->alignment( { query => $c->stash->{acc},
+				       rows  => $rows} );
+  my $features     = $dl->features( $c->stash->{acc});
   my $consensus    = Bio::Pfam::ColourAlign::parseConsensus( getConsensus( $features ) );
-  $c->log->debug( "rawAlignment: " . dump $rawAlignment );
+  #$c->log->debug( "rawAlignment: " . dump $rawAlignment );
 
   my( $alignments, $alignmentLengths ) = reconstructAli( $rawAlignment );
   my @markedUpAlignments;
