@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.9 2006-11-02 11:03:43 jt6 Exp $
+// $Id: family.js,v 1.10 2006-11-15 11:04:24 rdf Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -49,7 +49,15 @@ function familyPostLoad() {
 						onFailure:  atFailure
 					  } );
   }
-
+  // clan structure tab
+  if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
+	 new Ajax.Request( loadOptions.fstruc.uri,
+		 			 	 { method:     'get', 
+			 			parameters: loadOptions.fstruc.params,
+						onComplete: fstrucSuccess,
+						onFailure:  fstrucFailure
+					  } );
+  }
   // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
 	new Ajax.Request( loadOptions.ca.uri,
@@ -387,3 +395,25 @@ function toggleTools() {
 }
 
 //------------------------------------------------------------
+var numColsTable;
+
+function fstrucSuccess( oResponse ) {
+  Element.update( "familyStructureTabHolder", oResponse.responseText );
+	      // how many columns are there in the table ?
+      var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+      numColsTable  = firstRow.getElementsByTagName("td").length;
+
+      // walk over all of the cells in the table and add listeners for mouseover and 
+      // mouseout events
+      $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+          cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+          cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+        }
+	 );
+
+
+}
+
+function fstrucFailure() {
+  Element.update( "fstrucph", "Graphics loading failed." );
+}
