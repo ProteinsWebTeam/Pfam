@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.8 2006-10-23 12:11:18 jt6 Exp $
+# $Id: links.tt,v 1.9 2006-11-15 11:03:05 rdf Exp $
 
 USE dumper;
 
@@ -34,6 +34,7 @@ labels = {
 	PROSITE    = "PROSITE"
 	PROSITE_PROFILE = "PROSITE profile"
 	SCOP       = "SCOP"
+	scoop      = "SCOOP"
 	SMART      = "SMART"
 	SYSTERS    = "SYSTERS"
     TC         = "Transporter classification"
@@ -42,6 +43,7 @@ labels = {
 
 # this is the order in which those links will be shown
 internal = [
+    "scoop",
     "atoaPRC",
     "atobBOTH",
     "atobPRC",   
@@ -205,6 +207,14 @@ internalLinks = BLOCK;
                     [%- PROCESS buildLink type="PFAMA" id=ref.pfamA_id -%]
                   </span>
                 [%- END;
+              CASE "scoop";
+                FOREACH ref IN xrefs.$db;
+	              IF ref.get_column("l_pfamA_id") != ref.get_column("r_pfamA_id") %]
+                    <span class="entry">
+	                  [%- PROCESS buildLink type="PFAMA" id=ref.get_column("r_pfamA_id") -%]
+                    </span>
+	              [%- END;
+                END;
             END # of SWITCH db -%]
       </td>
     </tr>
