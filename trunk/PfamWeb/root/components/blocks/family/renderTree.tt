@@ -67,3 +67,6 @@ dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
 dd[dd.length] = '</form>';
 
 Element.update( "ddph", dd.join("") );
+
+[%-# make the tree controls visible once the tree is loaded %]
+Element.show( "treeToolsContent" );
