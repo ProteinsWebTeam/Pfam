@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.14 2006-11-13 15:31:14 rdf Exp $
+# $Id: Family.pm,v 1.15 2006-11-15 11:08:15 rdf Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.14 2006-11-13 15:31:14 rdf Exp $
+$Id: Family.pm,v 1.15 2006-11-15 11:08:15 rdf Exp $
 
 =cut
 
@@ -235,6 +235,17 @@ sub _getDbXrefs : Private {
   $xRefs{pdb} = keys %{ $c->stash->{pdbUnique} }
 	if $c->stash->{summaryData}{numStructures};
 
+
+  # PfamA relationship based on SCOOP
+  push @{ $xRefs{scoop} }, $c->model("PfamDB::PfamA2pfamA_scoop_results")
+	->search(
+		 { "auto_pfamA1" => $c->stash->{pfam}->auto_pfamA },
+		 { join               => [ qw/pfamA1 pfamA2/ ],
+		   select             => [ qw/pfamA1.pfamA_id pfamA2.pfamA_id score/ ],
+		   as                 => [ qw/l_pfamA_id r_pfamA_id score/ ]
+		 });
+
+
   # PfamA to PfamB links based on PRODOM
   my %atobPRODOM;
   foreach my $xref ( $c->stash->{pfam}->pfamA_database_links ) {
@@ -317,7 +328,23 @@ sub _getDbXrefs : Private {
 }
 
 #-------------------------------------------------------------------------------
+sub _getMapping : Private {
+  my( $this, $c ) = @_;
 
+  my $region = ($c->stash->{entryType} eq "A") ? "1" : "0";
+  my $auto_pfam = ($c->stash->{entryType} eq "A") ? $c->stash->{pfam}->auto_pfamA : $c->stash->{pfam}->auto_pfamB;
+  $c->log->debug("_getMapping, $region, $auto_pfam");
+
+  my @mapping = $c->model("PfamDB::PdbMap")
+    ->search( { auto_pfam => $auto_pfam,
+		pfam_region => $region },
+	      { join => [qw/pdb/ ],
+	        prefetch => [qw/pdb/]}
+	    );
+
+  $c->stash->{pfamMaps} = \@mapping;
+}
+#-------------------------------------------------------------------------------
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
