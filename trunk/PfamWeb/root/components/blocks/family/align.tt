@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.13 2006-11-02 11:05:33 jt6 Exp $
+# $Id: align.tt,v 1.14 2006-11-15 10:59:38 rdf Exp $
 %]
 
 <!-- start align block -->
@@ -28,11 +28,11 @@
           <td>
             <span class="button">
               <input type="radio" name="alnType" id="viewerTypeS" value="seed" checked="1" />
-              <label for="viewerTypeS">Seed</label>
+              <label for="viewerTypeS">Seed ([% pfam.num_seed %])</label>
             </span>
             <span class="button">
               <input type="radio" name="alnType" id="viewerTypeF" value="full" />
-              <label for="viewerTypeF">Full</label>
+              <label for="viewerTypeF">Full ([% pfam.num_full %])</label>
             </span>
 	      </td>
         </tr>
@@ -93,11 +93,11 @@ function launch() {
           <td>
             <span class="button">
               <input type="radio" name="typeS" id="typeS" value="seed" checked="1" />
-              <label for="typeS">Seed</label>
+              <label for="typeS">Seed ([% pfam.num_seed %])</label>
             </span>
             <span class="button">
               <input type="radio" name="typeF" id="typeF" value="full" />
-              <label for="typeF">Full</label>
+              <label for="typeF">Full ([% pfam.num_full %])</label>
             </span>
 	      </td>
         </tr>
