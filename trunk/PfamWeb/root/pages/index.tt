@@ -4,8 +4,9 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.9 2006-09-28 14:39:35 jt6 Exp $
+# $Id: index.tt,v 1.10 2006-11-15 13:06:58 jt6 Exp $
 
+META title = "Pfam home page";
 META fullPage = 1
 %]
 
@@ -112,8 +113,9 @@ META fullPage = 1
   </ul>
   
   <p>
-    For more information on Pfam, on using this site, or on the changes
-    between Pfam releases 19.0 and 20.0, click <a href="http://www.sanger.ac.uk/Software/Pfam/help/index.shtml">here</a>.
+    You can find more information on Pfam, on using this site, or on the changes
+    to Pfam since the previous release, by visiting the Pfam 
+      <a href="[% c.uri_for( "/help" ) %]">help pages</a>.
   </p>
   <p>
     Pfam can be used to view the domain organisation of proteins. A

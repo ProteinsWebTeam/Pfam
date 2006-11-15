@@ -4,8 +4,9 @@
 # 
 # search results page
 #
-# $Id: search.tt,v 1.4 2006-10-03 14:09:36 jt6 Exp $
+# $Id: search.tt,v 1.5 2006-11-15 13:06:58 jt6 Exp $
 
+META title = "Keyword search results";
 META fullPage = 1
 -%]
 
