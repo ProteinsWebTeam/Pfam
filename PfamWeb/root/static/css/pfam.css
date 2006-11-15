@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.27 2006-11-13 14:37:22 jt6 Exp $
+   $Id: pfam.css,v 1.28 2006-11-15 11:05:36 jt6 Exp $
 */   
 
 body {
@@ -805,9 +805,10 @@ div.nodeSummary div {
 }
 
 #treeTools {
+    position: fixed;
+    right: 0.2em;
 	width: 18em;
     padding: 0.2em;
-	float: right;
     border: 1px solid #AAA;
     background: #e8e8e8;
 	opacity: 0.75;
