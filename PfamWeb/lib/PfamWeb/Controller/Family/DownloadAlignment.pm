@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: DownloadAlignment.pm,v 1.5 2006-11-02 11:01:45 jt6 Exp $
+# $Id: DownloadAlignment.pm,v 1.6 2006-11-16 10:05:16 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::DownloadAlignment;
 
 Generates a B<full page>.
 
-$Id: DownloadAlignment.pm,v 1.5 2006-11-02 11:01:45 jt6 Exp $
+$Id: DownloadAlignment.pm,v 1.6 2006-11-16 10:05:16 jt6 Exp $
 
 =cut
 
@@ -126,8 +126,16 @@ sub formatAlignment : Path( "/family/formatalignment" ) {
 	  $this->{alnFileDir} . "/"
 		. $c->stash->{alnType}
 		  . "/" . $c->stash->{acc} . ".full.gz";
-	
-	$alignment = $c->forward( "getAlignmentFile", $file );
+	$c->log->debug( "DownloadAlignment::formatAlignment: trying to load |$file|" );
+
+	# make sure that we've built a path to a real file...
+	unless( -f $file ) {
+	  $c->log->warn( "DownloadAlignment::formatAlignment: can't find file \"$file\"" );
+	  return;
+	}
+
+	# get hold of the alignment
+	$alignment = $c->forward( "getAlignmentFile", [ $file ] );
 
   } elsif ( $c->stash->{entryType} eq "B" ) {
 	$alignment = $c->forward( "getAlignmentDB" );
@@ -239,11 +247,9 @@ Writes the sequence alignment directly to the response object.
 sub end : Private {
   my( $this, $c ) = @_;
 
-  if( $c->stash->{contentType} ) {
-	$c->res->content_type( $c->stash->{contentType} );
-  } else {
-	$c->res->content_type( "text/plain" );
-  }
+  # set the content type either according to what the caller gave us,
+  # or default to plain text
+  $c->res->content_type( $c->stash->{contentType} ? $c->stash->{contentType} : "text/plain" );
 
   # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( "download" ) ) {
