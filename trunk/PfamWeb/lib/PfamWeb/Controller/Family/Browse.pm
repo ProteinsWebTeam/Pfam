@@ -4,7 +4,7 @@
 #
 # Controller for the "browse" pages. Originally by RDF.
 #
-# $Id: Browse.pm,v 1.5 2006-09-28 09:38:20 rdf Exp $
+# $Id: Browse.pm,v 1.6 2006-11-16 13:25:19 jt6 Exp $
 
 package PfamWeb::Controller::Family::Browse;
 
@@ -26,22 +26,40 @@ sub browse : Path {
 
   if( lc $c->req->param("browse") eq "numbers" ) {
     $c->stash->{char} = "numbers";
+
     # run the query to get back all families starting with a number
-    @res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
-					      { order_by => "pfamA_id ASC",
-						join     => [ qw/pfamA_web/ ],
-						prefetch => [ qw/pfamA_web/ ] }
-					    );
-  }elsif(lc $c->req->param("browse") eq "top twenty") {
-    $c->log->debug("Calling Top twenty");
+    @res = $c->model("PfamDB::Pfam")
+	  ->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  order_by => "pfamA_id ASC" }
+			  );
+
+  } elsif( lc $c->req->param("browse") eq "new" ) {
+    $c->stash->{char} = "new";
+
+    # run the query to retrieve new families
+    @res = $c->model("PfamDB::Pfam")
+	  ->search( { change_status => "NEW" },
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  order_by => "pfamA_id ASC" }
+			  );
+
+  } elsif( lc $c->req->param("browse") eq "top twenty" ) {
     $c->stash->{char} = "top twenty";
-    @res = $c->model("PfamDB::Pfam")->search( { },
-						 { order_by => "num_full DESC",
-						   join     => [ qw/pfamA_web/ ],
-						   prefetch => [ qw/pfamA_web/ ],
-						   rows     => 20,
-						   page     => 1})->all;
-    $c->log->debug("*** Got |".scalar(@res)."| results ***");
+
+	# retrieve the top twenty largest families, ordered by number of
+	# sequences in the family
+    @res = $c->model("PfamDB::Pfam")
+	  ->search( { },
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  rows     => 20,
+				  page     => 1,
+				  order_by => "num_full DESC" }
+			  )->all;
+
   } else {
 
 	my $char;
@@ -50,13 +68,15 @@ sub browse : Path {
 	return unless defined $char;
 
 	$c->stash->{char} = uc $char;
-	$c->log->debug( "Browse::browse: looking for letter \"$char\"" );
 
-	# run the query to get back all families starting with the specified letter
-	@res = $c->model("PfamDB::Pfam")->search( { pfamA_id => { "LIKE", "$char%" } },
-											  { join     => [ qw/pfamA_web/ ],
-											    prefetch => [ qw/pfamA_web/ ] }
-											);
+	# run the query to get back all families starting with the
+	# specified letter, ordered by ID
+	@res = $c->model("PfamDB::Pfam")
+	  ->search( { pfamA_id => { "LIKE", "$char%" } },
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  order_by => "pfamA_id" }
+			  );
   }
 
   # stash the results for the template
