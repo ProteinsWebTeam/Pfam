@@ -4,7 +4,7 @@
 # 
 # build the align block for PfamB's
 #
-# $Id: align.tt,v 1.1 2006-10-23 12:15:19 jt6 Exp $
+# $Id: align.tt,v 1.2 2006-11-16 09:59:52 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -29,8 +29,8 @@
             <span class="button">
               <select name="viewer" id="viewer">
                 <option value="jalview" selected="selected">jalview</option>
-                <option value="html" disabled="disabled">HTML</option>
-                <option value="viewer" disabled="disabled">Pfam viewer</option>
+                <option value="html">HTML</option>
+                <option value="viewer">Pfam viewer</option>
               </select>
             </span>
 	      </td>
@@ -65,7 +65,7 @@ function launch() {
     <h3>Download options</h3>
 
     <form id="optionsForm"
-          action="[% c.uri_for( "/family/downloadalignment" ) %]"
+          action="[% c.uri_for( "/family/formatalignment" ) %]"
           method="get">
       <input type="hidden" name="acc" value="[% pfam.pfamB_acc %]" />
 

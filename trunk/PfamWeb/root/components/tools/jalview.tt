@@ -4,7 +4,7 @@
 # 
 # build a page for the jalview applet
 #
-# $Id: jalview.tt,v 1.3 2006-10-23 12:14:16 jt6 Exp $
+# $Id: jalview.tt,v 1.4 2006-11-16 10:00:13 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -20,7 +20,7 @@ title = "jalview"
 <h1>jalview: alignment<em> for [% acc %]</em></h1>
 
  <applet code="jalview.bin.JalviewLite" width="140" height="35" archive="[% c.uri_for( "/jalview/jalviewApplet.jar" ) %]">
-  <param name="file" value="[% c.uri_for( "/family/downloadalignment", acc=acc, format="stockholm", type=type ) | uri | html %]">
+  <param name="file" value="[% c.uri_for( "/family/formatalignment", acc=acc, format="stockholm", alnType=alnType ) | uri | html %]">
   <param name="defaultColour" value="Taylor">
   <param name="RGB"  value="#FFFFCC">
   <param name="linkLabel_2" value="Uniprot">
