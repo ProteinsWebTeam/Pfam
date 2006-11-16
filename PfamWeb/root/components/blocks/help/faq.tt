@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.3 2006-11-14 17:20:05 jm14 Exp $
+# $Id: faq.tt,v 1.4 2006-11-16 13:48:25 jm14 Exp $
 %]
 
 <!-- start faq block -->
@@ -92,14 +92,27 @@ alternatively they  can  be  accessed  by  clicking  on  'clans'  under  the
 
 
 
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Why are there two HMMs foreach Pfam entry?</TD></TR>
+<TR><TD class=normaltext>
+<p>
+Foreach Pfam entry we build two HMMs, one to represent full length matches (ls model), and one to represent fragment matches (fs model).  When you search a protein on our site we search them against both the ls and fs models.
+
+</p>
+</TD></TR></TABLE>
+<p>
+
+
+
+
 
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 <TR><TD bgcolor=#000070 class=whitetableheader>Can I search DNA against Pfam?</TD></TR>
 <TR><TD class=normaltext>
-
+<p>
 The Wise2 software package allows the comparison of protein HMMs to genomic DNA.  We use this package to allow users to search single DNA sequences against the library of Pfam HMMs.  To do this, you will need to go to the Pfam website hosted at the Sanger Institue (<a href="http://www.sanger.ac.uk/Software/Pfam/">Pfam</a>)</li> and paste your DNA sequence in the DNA search box on the search page.  The results take  approximately  2  minutes for a 1kb sequence, and approximately 1 hours for a 80kb sequence.
 
-<p>
+</p>
 </TD></TR></TABLE>
 <p>
 
@@ -186,7 +199,22 @@ search.</p>
 </TD></TR></TABLE>
 <p>
 
+<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
+<TR><TD bgcolor=#000070 class=whitetableheader>Why doesn't Pfam doesn't include my sequence?</TD></TR>
+<TR><TD class=normaltext> 
 
+Pfam is built from a fixed release of UniProt.  At each Pfam release
+we incorporate sequences from the latest release of UniProt.  This means that at any time the
+sequences used by Pfam could be several months behind those in the
+most up-to-date versions of the sequence databases.  If your sequence
+isn't in Pfam you can still find out what domains it contains by
+pasting it into the search box in Pfam, click <a
+href="http://www.sanger.ac.uk/Software/Pfam/search.shtml">here</a>.
+
+</TD></TR></TABLE>
+
+<br>
+<br>
 
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 <TR><TD bgcolor=#000070 class=whitetableheader>Family page</TD></TR>
@@ -281,52 +309,6 @@ where 0 is a buried residue and 9 is a solvent exposed residue.</p>
 <p>See the following URL for more information: <a href="http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html">http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html</a></p>
 </TD></TR></TABLE>
 
-<hr>
-<p>
-<span class=normallargetext><A NAME="2">Gripes</A> about Pfam</span>
-<br>
-<br>
-
-<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
-<TR><TD bgcolor=#000070 class=whitetableheader>Pfam doesn't include my sequence!</TD></TR>
-<TR><TD class=normaltext> 
-
-Pfam is built from fixed releases of Swiss-Prot and TrEMBL, which are
-updated infrequently.  This means that at any time the sequences used
-by Pfam could be several months behind those in the most up-to-date
-versions of the sequence databases. New sequences are only inlcuded
-into Pfam at major releases, these are for example Pfam version 5.0,
-6.0, 7.0 etc. If your sequence isn't in Pfam you can still find out
-what domains it contains by pasting it into the search box in Pfam,
-click <a href="http://www.sanger.ac.uk/Software/Pfam/search.shtml">here</a>.
-
-</TD></TR></TABLE>
-
-<br>
-<br>
-
-<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
-<TR><TD bgcolor=#000070 class=whitetableheader>Your alignments are terrible!</TD></TR>
-<TR><TD class=normaltext> Firstly if you do feel that an
-alignment is bad, then please tell us - we can probably fix it, at least
-in the next release. E-mail <a href="mailto:pfam@sanger.ac.uk">
-Pfam</a>.
-
-<p>
-However, remember two things:
-<ul>
-<li> We attempt to get the SEED alignments correct. The FULL alignments, which
-are made automatically from the HMM models, are not hand checked, and so the
-quality maybe lower.
-<li> The FULL alignments often look worse than they are because of gaps in
-the alignment. This is particularly bad in large multiple alignments where a
-single sequence may insert residues in an otherwise conserved block.  We find
-that some of these are due to mispredictions of genes from genomic DNA.
-</ul>
-</TD></TR></TABLE>
-
-<br>
-<br>
 
 <table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
 <TR><TD bgcolor=#000070 class=whitetableheader>You don't have domain YYYY in!</TD></TR>
