@@ -10,7 +10,7 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.11 2006-11-07 17:04:46 jt6 Exp $
+# $Id: header.tt,v 1.12 2006-11-16 14:45:53 jt6 Exp $
 -%]
 
 <!-- header start here -->
@@ -147,16 +147,3 @@
 
 </div>
 <!-- menubar end -->
-
-[%# a warning message for users who don't have javascript turned on. The message should
-  # be hidden immediately after it's displayed, but if javascript is not working, the
-  # prototype call will fail and the message will stay visible %]
-<div id="jsWarning">
-  <b>Please note:</b> this site relies heavily on the use of javascript. Without a 
-  javascript-enabled browser, this site will not function correctly. Please enable
-  javascript and reload the page, or switch to a different browser.
-</div>
-
-<script type="text/javascript">
-  Element.hide("jsWarning");
-</script>
