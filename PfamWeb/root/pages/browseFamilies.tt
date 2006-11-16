@@ -4,7 +4,7 @@
 # 
 # build a "browse" page
 #
-# $Id: browseFamilies.tt,v 1.6 2006-11-13 14:40:36 jt6 Exp $
+# $Id: browseFamilies.tt,v 1.7 2006-11-16 13:23:11 jt6 Exp $
 
 # tell the wrapper it's a full page
 META fullPage = 1
@@ -12,7 +12,7 @@ META fullPage = 1
 
 [% pageList = BLOCK %]
 <div class="pageList">
-[% pages = [ "top twenty", "numbers",
+[% pages = [ "new", "top twenty", "numbers",
              "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
 	         "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ] %]
 [% lcChar = char | lower %]
@@ -45,12 +45,22 @@ META fullPage = 1
       <th>Av. length</th>
       <th>Av. %id</th>
       <th>Av. coverage</th>
+      <th>Has 3D</th>
       <th>Status</th>
       <th>Description</th>
     </tr>
   </thead>
   <tbody>
-  [% FOREACH pfam IN browse %]
+  [% FOREACH pfam IN browse;
+    IF pfam.status == "NEW";
+	  status = "New";
+    ELSIF pfam.status == "CHANGE";
+      status = "Changed";
+    ELSIF pfam.status == "NOCHANGE";
+      status = "Unchanged";
+    ELSE;
+      status = pfam.status;
+	END %]
     <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
       <td><a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">[% pfam.pfamA_id %]</a></td>
       <td>[% pfam.type %]</td>
@@ -59,8 +69,9 @@ META fullPage = 1
       <td>[% pfam.average_length %]</td>
       <td>[% pfam.percentage_id %]</td>
       <td>[% pfam.average_coverage %]</td>
-      <td>[% pfam.status %]</td>
-      <td class="left">[% pfam.description %]</td>
+	  <td><img alt="" src="[% ( pfam.number_structures > 0 ) ? c.uri_for( "/images/tick.gif" ) : c.uri_for( "/images/blank_tick.gif" ) %]" /></td>
+      <td>[% status %]</td>
+      <td class="left">[% pfam.description | html %]</td>
     </tr>
   [% END %]
   </tbody>
