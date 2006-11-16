@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.28 2006-11-15 11:05:36 jt6 Exp $
+   $Id: pfam.css,v 1.29 2006-11-16 13:23:35 jt6 Exp $
 */   
 
 body {
@@ -467,7 +467,7 @@ tr.continuation {
 }
 
 td.left {
-	text-alignment: left;
+	text-align: left !important;
 }
 
 /* ======================================== */
