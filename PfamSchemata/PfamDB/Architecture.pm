@@ -12,7 +12,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "architecture" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_architecture architecture type_example no_seqs/);
+__PACKAGE__->add_columns( qw/auto_architecture architecture type_example no_seqs architecture_acc/);
 
 
 #Set the the keys
