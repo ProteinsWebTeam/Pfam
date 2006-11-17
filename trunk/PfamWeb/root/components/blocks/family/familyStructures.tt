@@ -4,11 +4,13 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.5 2006-11-07 16:48:57 jt6 Exp $
+# $Id: familyStructures.tt,v 1.6 2006-11-17 11:38:47 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if it's not populated, choose a random entry
 # and show the image for that
+
+USE dumper;
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -34,6 +36,7 @@ IF NOT pdbObj;
     END;
 
 	pdbObj = pdbUnique.$randomId;
+
   ELSE;
     # if there's only one structure there's no array under pdbUnique, so we go 
     # straight to the pdb object... I think
@@ -57,7 +60,7 @@ tips = {};
 
     <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]" [% addTip("family","structureImage") %]>
       <img class="pdbImage" 
- 	       src="[% c.uri_for( "/structure/getimage", id=pdbObj.pdb_id ) %]"
+ 	       src="[% c.uri_for( "/structure/getimage", id=pdbObj.pdb_id, size="s" ) | uri | html %]"
            alt="[% pdbObj.pdb_id %]" /></a>
 
     [%- IF randomId -%]
@@ -83,7 +86,7 @@ tips = {};
       <input id="pfamAccField" name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
 	  <select name="pdbId" id="pdbIdField">
 	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
-  	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %]selected="1"[% END %] />[% id %]</option>
+  	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %]disabled="1"[% END %] />[% id %]</option>
         [% END %]
       </select>
 
