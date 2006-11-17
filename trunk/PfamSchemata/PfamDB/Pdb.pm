@@ -23,7 +23,7 @@ __PACKAGE__->has_many( "pdbMap" => "PfamDB::PdbMap",
 
 __PACKAGE__->might_have( "image"  => "PfamDB::PdbImage",
 			 { "foreign.auto_pdb" => "self.auto_pdb" },
-			 { proxy => [ qw/pdb_image/ ] } );
+			 { proxy => [ qw/pdb_image pdb_image_sml/ ] } );
 
 1;
 
