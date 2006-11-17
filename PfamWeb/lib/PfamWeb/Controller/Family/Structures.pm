@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.2 2006-09-22 10:46:00 jt6 Exp $
+# $Id: Structures.pm,v 1.3 2006-11-17 10:52:09 rdf Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.2 2006-09-22 10:46:00 jt6 Exp $
+$Id: Structures.pm,v 1.3 2006-11-17 10:52:09 rdf Exp $
 
 =cut
 
@@ -69,8 +69,17 @@ sub default : Path {
   ( $id ) = $c->req->param("pdbId") =~ /^(\d\w{3})$/
 	if defined $c->req->param( "pdbId" );
 
-  $c->stash->{pdbObj} = $c->model("PfamDB::Pdb")->find( { pdb_id => $id } )
+  $c->stash->{pdbObj} = $c->model("PfamDB::Pdb")->find( { pdb_id   => $id })
 	if defined $id;
+
+  my @rs = $c->model("PfamDB::Pdb_pfamA_reg")
+    ->search({auto_pfamA => $c->stash->{pfam}->auto_pfamA},
+	     {join => [qw/ pdb /],
+	      prefetch => [qw/ pdb /]}
+	    ) if defined $c->stash->{pfam}->auto_pfamA;
+
+  my %pdbUnique = map{$_->pdb_id => 1 }@rs;
+  $c->stash->{pdbUnique} = \%pdbUnique;
 
   # set up the view and rely on "end" from the parent class to render it
   $c->stash->{template} = "components/blocks/family/familyStructures.tt";
