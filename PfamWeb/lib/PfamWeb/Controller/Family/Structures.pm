@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.3 2006-11-17 10:52:09 rdf Exp $
+# $Id: Structures.pm,v 1.4 2006-11-17 11:38:20 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.3 2006-11-17 10:52:09 rdf Exp $
+$Id: Structures.pm,v 1.4 2006-11-17 11:38:20 jt6 Exp $
 
 =cut
 
@@ -78,7 +78,7 @@ sub default : Path {
 	      prefetch => [qw/ pdb /]}
 	    ) if defined $c->stash->{pfam}->auto_pfamA;
 
-  my %pdbUnique = map{$_->pdb_id => 1 }@rs;
+  my %pdbUnique = map{ $_->pdb_id => $_ } @rs;
   $c->stash->{pdbUnique} = \%pdbUnique;
 
   # set up the view and rely on "end" from the parent class to render it
