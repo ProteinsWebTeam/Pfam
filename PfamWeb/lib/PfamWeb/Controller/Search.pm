@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.5 2006-10-16 14:48:55 jt6 Exp $
+# $Id: Search.pm,v 1.6 2006-11-24 14:53:15 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.5 2006-10-16 14:48:55 jt6 Exp $
+$Id: Search.pm,v 1.6 2006-11-24 14:53:15 jt6 Exp $
 
 =cut
 
@@ -62,7 +62,7 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Path
+=head2 default : Private
 
 Captures URLs like
 
@@ -72,8 +72,24 @@ Captures URLs like
 
 =back
 
-This method walks the list of search plugins and for each one that is
-listed in the configuration, it calls the following methods:
+This method walks the list of text search plugins from the
+configuration and for each one it calls the following methods:
+
+=cut
+
+sub default : Private {
+  my( $this, $c ) = @_;
+
+  $c->forward( "runSearches", [ "textSearches" ] );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 runSearches : Private
+
+This method is handed the name of a set of searches as its first
+argument. It retrieves the list of search plugins for that search set
+and runs each one in turn. For each plugin it calls the following methods:
 
 =over
 
@@ -104,35 +120,20 @@ those from earlier ones.
 
 =cut
 
-sub default : Private {
-  my( $this, $c ) = @_;
+sub runSearches : Private {
+  my( $this, $c, $searchSet ) = @_;
 
   $c->log->debug( "Search::default: caught a URL; running a search" );
 
   $c->error( "You did not supply any valid search terms" )
 	unless $c->stash->{rawQueryTerms};
 
-  # build a list of the queries. The config stores this information
-  # as an array of hashes, each of which has a single key/value pair, e.g.
-  #   plugins => [
-  #         { Pfam => "Text fields for Pfam entries" },
-  #         { Seq_info => "Pfam sequence description and species fields" },
-  #         { Pdb => "HEADER and TITLE records from PDB entries" },
-  #         { Go => "Gene ontology IDs and terms" },
-  #         { Interpro => "InterPro entry abstracts" },
-  #       ]
-  # The order in which the queries are run is determined by their
-  # order in the array.
-
   my( @plugins, @pluginsReversed, $pluginName, $pluginDesc );
-  foreach my $row ( @{ $this->{plugins} } ) {
 
-	# we could use "each" to get the single key/value pair from the hash,
-	# but it does strange things when called multiple times, so this
-	# is safer, if uglier
-	next unless( $pluginDesc = (values %$row)[0] );
+  # get the list of text search plugins from the configuration
+  foreach my $pluginName ( @{ $this->{searchSets}->{$searchSet} } ) {
 
-	$pluginName = (keys %$row)[0];
+	next unless( $pluginDesc = $this->{plugins}->{$pluginName} );
 
 	# keep track of the order of the configured plugins. Store the
 	# list forwards and backwards, since we'll use it both ways
@@ -238,6 +239,8 @@ sub default : Private {
 }
 
 #-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 =head2 formatTerms : Private
 
@@ -283,9 +286,6 @@ sub mergeResults : Private {
 }
 
 #-------------------------------------------------------------------------------
-#- private methods -------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
 # merge results from plugins. If the plugin returns an array of
 # ResultSets, walk down it and merge in each one in turn
 
