@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.12 2006-11-13 10:47:13 jt6 Exp $
+# $Id: head.tt,v 1.13 2006-11-27 16:25:04 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -24,7 +24,7 @@
 
 <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/lightbox.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/annotate.css" ) %]" type="text/css" />
+<link rel="stylesheet" href="[% c.uri_for( "/css/forms.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/alignment.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout.css" ) %]" type="text/css" />
 [% IF layouts.${pageType}.css.global -%]
@@ -36,7 +36,7 @@
 <!--[if IE ]>
 <link rel="stylesheet" href="[% c.uri_for( "/css/pfam_all_ie.css" ) %]" type="text/css" />
 <link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_all_ie.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/annotate_all_ie.css" ) %]" type="text/css" />
+<link rel="stylesheet" href="[% c.uri_for( "/css/forms_all_ie.css" ) %]" type="text/css" />
 <![endif]-->
 
 <!-- styles applicable to IE6 and below -->
@@ -83,7 +83,9 @@ IF layouts.${pageType}.css.ie;
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/effects.js" ) %]"></script>
+
+<!-- ====================================================================== -->
+<!-- the lightbox script -->
 
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/lightbox.js" ) %]"></script>
 
