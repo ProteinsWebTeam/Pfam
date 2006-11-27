@@ -2,20 +2,53 @@
 # Browse.pm
 # jt6 20060717 WTSI
 #
-# Controller for the "browse" pages. Originally by RDF.
-#
-# $Id: Browse.pm,v 1.6 2006-11-16 13:25:19 jt6 Exp $
+# $Id: Browse.pm,v 1.7 2006-11-27 16:28:48 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Family::Browse - controller to build the "browse
+by family" pages
+
+=cut
 
 package PfamWeb::Controller::Family::Browse;
+
+=head1 DESCRIPTION
+
+Retrieves the data for the "browse by family" pages.
+
+Generates a B<full page>.
+
+$Id: Browse.pm,v 1.7 2006-11-27 16:28:48 jt6 Exp $
+
+=cut
 
 use strict;
 use warnings;
 
-use base "Catalyst::Controller";
+use base "PfamWeb::Controller::Section";
 
-sub begin : Private {}
+# set the name of the section
+__PACKAGE__->config( SECTION => "family" );
 
-# pick up a URL like http://localhost:3000/family/browse?browse=a
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 browse : Path
+
+Retrieves data for the specified browse page.
+
+=cut
+
+sub begin : Private {
+  my( $this, $c ) = @_;
+
+  # override the begin method from Family, to avoid error messages
+  # when there's no Pfam accession or ID specified in the
+  # parameters. Which there won't ever be for the browse pages.
+
+}
 
 sub browse : Path {
   my( $this, $c ) = @_;
@@ -82,28 +115,32 @@ sub browse : Path {
   # stash the results for the template
   $c->stash->{browse} = \@res if scalar @res;
 
-}
+  # set the template and let the default end action from Section
+  # render it for us
+  if( $c->req->param("list") ) {
 
-
-# render the page
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-	$c->stash->{template} = "pages/error.tt";
+	# we want to return just the list of Pfam IDs, as a snipped of HTML
+	$c->stash->{template} = "pages/browseIds.tt";
   } else {
-	$c->stash->{pageType} = "family";
-	$c->stash->{template} ||= "pages/browse.tt";
+
+	# just render as a regular "browse" page
+	$c->stash->{template} = "pages/browse.tt";
   }
-
-  # and use it
-  $c->forward( "PfamWeb::View::TT" );
-
-  # clear any errors
-  $c->clear_errors;
-
 }
+
+#-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;
