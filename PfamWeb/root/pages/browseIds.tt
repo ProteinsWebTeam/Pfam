@@ -1,0 +1,15 @@
+[%
+# browse.tt
+# jt6 20060717 WTSI
+# 
+# build a "browse" page
+#
+# $Id: browseIds.tt,v 1.1 2006-11-27 16:26:27 jt6 Exp $
+
+META naked = 1
+%]
+<select id="idSelection" size="15">
+[%- FOREACH pfam IN browse %]
+  <option value="[% pfam.pfamA_acc %]">[% pfam.pfamA_id %]</option>
+[%- END %]
+</select>
