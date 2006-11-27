@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.4 2006-11-13 14:30:44 jt6 Exp $
+# $Id: Annotate.pm,v 1.5 2006-11-27 16:29:52 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.4 2006-11-13 14:30:44 jt6 Exp $
+$Id: Annotate.pm,v 1.5 2006-11-27 16:29:52 jt6 Exp $
 
 =cut
 
@@ -276,6 +276,7 @@ sub buildForm : Private {
 
   # get a widget
   my $w = $c->widget( "annotationForm" )->method( "post" );
+  $w->subcontainer( "div" );
 
   # set the action - always the same for the annotation form
   $w->action( $c->uri_for( "checkInput" ) );
