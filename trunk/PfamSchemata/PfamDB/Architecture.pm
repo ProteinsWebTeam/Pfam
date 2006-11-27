@@ -36,4 +36,8 @@ __PACKAGE__->has_one    ( "storable" => "PfamDB::Pfam_annseq",
 __PACKAGE__->has_one    ( "clan_arch" => "PfamDB::ClanArchitecture",
 			  {"foreign.auto_architecture" => "self.auto_architecture"},
 			{proxy => [qw/auto_clan/]});
+
+__PACKAGE__->has_many( annseq => "PfamDB::Pfam_annseq",
+					   { "foreign.auto_pfamseq"  => "self.type_example" } );
+
 1;
