@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.19 2006-11-16 10:00:43 jt6 Exp $
+   $Id: family.css,v 1.20 2006-11-27 16:01:31 jm14 Exp $
 */   
 
 /*
@@ -52,6 +52,10 @@ div.blockContent ol {
 }
 
 /* ---------------------------------------- */
+
+#interproTitle {
+    margin-top: 1.5em;
+}
 
 #alignmentTree {
     margin: 0.4em 0;
