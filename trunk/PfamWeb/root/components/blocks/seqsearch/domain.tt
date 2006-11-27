@@ -5,8 +5,25 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.1 2006-11-13 14:45:17 jt6 Exp $
-%]
+# $Id: domain.tt,v 1.2 2006-11-27 15:52:55 jt6 Exp $
+
+pages = [ "new", "top twenty", "numbers",
+          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+          "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+pageList = BLOCK %]
+<div id="numeralList">
+[% FOREACH page IN pages %]
+  <span class="nonLink">[% page | ucfirst %]</span>
+  <span class="link" onclick="chooseIds('[% page %]')">[% page | ucfirst %]</span>
+[% END %]
+
+  <span id="nlUpdateSpinner" class="loading">Loading IDs...</span>
+
+  <div class="cleaner"><!-- empty --></div>
+
+</div>
+[% END # of BLOCK %]
 
 <!-- start domain search block -->
 
@@ -16,8 +33,110 @@
   </div>
   <div class="blockContent">
 
-	<h2>Search fields here</h2>
+    [% pageList %]
 
+    <!-- form method="get"
+	      name="domainSearchForm"
+          id="domainSearchForm"
+		  action="[% c.uri_for( "/seqsearch/domain" ) %]" --> 
+
+	[% c.prototype.form_remote_tag( { url          => c.uri_for( "/seqsearch/domain" ),
+			                       	  update       => "textResults",
+						              before       => "dsStarted()",
+						              complete     => "dsCompleted()",
+	                                  html_options => { method => "get",
+                                                        id     => "domainSearchForm" }
+	                                } ) %]
+  
+	  <div id="idList" class="domainList">
+
+	    <h3>ID list</h3>
+
+	    <div id="idSelectionWrapper">
+	      <select id="idSelection" size="15"></select>
+	    </div>
+
+		<span class="buttons">
+		  <input id="haveButton" type="button" onclick="addId('have')" value="Have"/>
+		  <input id="notButton"  type="button" onclick="addId('not')" value="Not" />
+		</span>
+
+	  </div>
+
+	  <div id="haveList" class="domainList">
+
+		<h3>&quot;Have&quot;</h3>
+
+		<select id="have" size="15">
+	      <!-- option value="PF07085">CBS</option>
+	      <option value="PF00571">DRTGG</option -->
+	    </select>
+
+		<span class="buttons">
+		  <input type="button" onclick="removeId('have')" value="Remove" />
+		</span>
+
+	  </div>
+
+	  <div id="notList" class="domainList">
+
+	    <h3>&quot;Not&quot;</h3>
+
+		<select id="not" size="15"></select>
+
+		<span class="buttons">
+		  <input type="button" onclick="removeId('not')" value="Remove"/>
+		</span>
+
+	  </div>
+
+      <input id="domainSearchSubmit" type="submit" value="Submit" />
+
+      <span id="searchUpdateSpinner" class="loading">Loading IDs...</span>
+
+	</form>
+
+	<div id="textResults" style="float: left"><!-- empty --></div>
+
+    <script type="text/javascript">
+	  // hide the disabled numeral links
+      $$("#numeralList span.nonLink").each( function( el ) { Element.hide( el ) } );
+
+	  // hide the two spinners in the page
+	  Element.hide( "nlUpdateSpinner" );
+	  Element.hide( "searchUpdateSpinner" );
+
+	  // set the URI for looking up the IDs beginning with a particular numeral
+	  var queryURI = "[% c.uri_for( "/family/browse" ) %]"
+
+      // run before submitting the search. Disables the submit button and builds the 
+ 	  // list of IDs for the query
+	  function dsStarted() {
+	    console.debug( "disabling submit button" );
+	    $( "domainSearchSubmit" ).disable();
+
+	    console.debug( "builing the list of 'have' IDs:" );
+	  	var i = document.createElement( "input" );
+		i.type  = "hidden";
+		i.name  = "have";
+		i.value = $A( $("have").options ).inject( '', function(pars,i){pars = i.value + " " + pars; return pars } );
+		$("domainSearchForm").appendChild( i );
+  
+	    console.debug( "building the list of 'not' IDs: " );
+		var i = document.createElement( "input" );
+		i.type  = "hidden";
+		i.name  = "not";
+		i.value = $A( $("not").options ).inject( '', function(pars,i){pars = i.value + " " + pars; return pars } );
+		$("domainSearchForm").appendChild( i );
+	  }
+
+	  // run after the search. Re-enables the submit button
+	  function dsCompleted() {
+	    console.debug( "enabling submit button" );
+	    $( "domainSearchSubmit" ).enable();
+	  }
+    </script>
+		
   </div>
 </div>
 
