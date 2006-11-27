@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.23 2006-11-15 11:04:24 rdf Exp $
+// $Id: pfFunctions.js,v 1.24 2006-11-27 16:20:53 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -395,6 +395,80 @@ function loadDomains( arch, index, uri, num ) {
 					 uri,
 					 { asynchronous: 1 } );
   }
+}
+
+//------------------------------------------------------------
+// various functions to move ids between the lists in the
+// domain query section
+
+function chooseIds( letter ) {
+  disableLetters();
+  Element.show( "nlUpdateSpinner" );
+  new Ajax.Updater( "idSelectionWrapper",
+					queryURI,
+					{
+					  parameters: "list=1&browse=" + letter,
+					  onComplete: enableLetters
+					} );
+}
+	
+function enableLetters() {
+  $$("#numeralList span.nonLink" ).each( function( el ) { Element.hide(el) } );
+  $$("#numeralList span.link"    ).each( function( el ) { Element.show(el) } );
+  Element.hide( "nlUpdateSpinner" );
+}
+
+function disableLetters() {
+  $$("#numeralList span.link"    ).each( function( el ) { Element.hide(el) } );
+  $$("#numeralList span.nonLink" ).each( function( el ) { Element.show(el) } );
+}
+
+// add an ID from the selection list to another list, specified by the
+// argument
+function addId(listId) {
+  if( $("idSelection").hasChildNodes() ) {
+	var selected = $("idSelection").selectedIndex;
+	if( selected >= 0 ) {
+	  var chosen = $("idSelection").options[selected];
+	  $("idSelection").removeChild( chosen );
+	  $(listId).appendChild( chosen );			
+	}
+  }
+}
+
+// remove an ID from the specified list and drop it back into the
+// selection list
+function removeId(listId) {
+  if( $(listId).hasChildNodes() ) {
+	var selected = $(listId).selectedIndex;
+	if( selected >= 0 ) {
+	  var chosen = $(listId).options[selected];
+	  $(listId).removeChild( chosen );
+	  $("idSelection").appendChild( chosen );
+	}
+  }			
+}
+
+// construct a list of the chosen IDs and submit the form
+function buildIdLists() {
+
+  $A( $("have").options ).each( function( opt ) {
+								  var i = document.createElement( "input" );
+								  i.type  = "hidden";
+								  i.name  = "have";
+								  i.value = opt.value;
+								  $("domainSearchForm").appendChild( i );
+								} );
+  
+  $A( $("not").options ).each( function( opt ) {
+								  var i = document.createElement( "input" );
+								  i.type  = "hidden";
+								  i.name  = "not";
+								  i.value = opt.value;
+								  $("domainSearchForm").appendChild( i );
+							   } );
+
+  $('domainSearchForm').submit();
 }
 
 //------------------------------------------------------------
