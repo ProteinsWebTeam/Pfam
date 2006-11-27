@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.19 2006-11-14 15:29:35 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.20 2006-11-27 16:29:24 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.19 2006-11-14 15:29:35 jt6 Exp $
+$Id: PfamWeb.pm,v 1.20 2006-11-27 16:29:24 jt6 Exp $
 
 =cut
 
@@ -35,16 +35,15 @@ use Catalyst qw/
 				-Debug
 				ConfigLoader
 				Prototype
-				Session
-				Session::Store::FastMmap
-				Session::State::Cookie
-				Session::State::URI
 				Cache::FastMmap
-				Static::Simple
 				HTML::Widget
 				Email
 				SubRequest
+ 				Session
+ 				Session::Store::FastMmap
+ 				Session::State::Cookie
 				/;
+#				Static::Simple
 
 # add PageCache as the last plugin to enable page caching. Careful
 # though... doesn't work with Static::Simple
