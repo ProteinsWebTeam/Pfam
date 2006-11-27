@@ -261,7 +261,7 @@ sub processResponse4Website {
   my @hits = $self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit");
 
   die "No hits found in SIMAP response" unless scalar @hits;
-
+ NODE:
   foreach my $hitNode ( @hits ){
 
     #get the evalue
@@ -274,6 +274,8 @@ sub processResponse4Website {
     my $sequence      = $hitNode->findvalue("matchSequence/sequence/sequence");
     foreach my $proteinNode ($hitNode->findnodes("matchSequence/protein")){
       my $protein       = $proteinNode->find("\@name");
+      print STDERR "**** ".$protein->string_value.", ".$seqObj->pfamseq_id."*****\n";
+      next NODE if($protein->string_value eq $seqObj->pfamseq_id);
       my $species       = $proteinNode->find("taxonomyNode/\@name");
 
       my $seqElement = $drawingXML->createElement( "sequence" );
