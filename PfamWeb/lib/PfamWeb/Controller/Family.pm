@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.15 2006-11-15 11:08:15 rdf Exp $
+# $Id: Family.pm,v 1.16 2006-11-27 16:30:54 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.15 2006-11-15 11:08:15 rdf Exp $
+$Id: Family.pm,v 1.16 2006-11-27 16:30:54 jt6 Exp $
 
 =cut
 
@@ -271,7 +271,7 @@ sub _getDbXrefs : Private {
 	push @{$xRefs{atoaPRC}}, $_ if $_->get_column( "evalue" ) <= 0.001;
   }
 
-#  $xRefs{atoaPRC} = \@atoaPRC if scalar @atoaPRC;
+  # $xRefs{atoaPRC} = \@atoaPRC if scalar @atoaPRC;
 
   # PfamB to PfamA links based on PRC
   my @atobPRC = $c->model("PfamDB::PfamB2pfamA_PRC_results")->search(
