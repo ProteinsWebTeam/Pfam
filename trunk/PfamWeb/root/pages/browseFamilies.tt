@@ -4,21 +4,21 @@
 # 
 # build a "browse" page
 #
-# $Id: browseFamilies.tt,v 1.7 2006-11-16 13:23:11 jt6 Exp $
+# $Id: browseFamilies.tt,v 1.8 2006-11-27 16:25:54 jt6 Exp $
 
 # tell the wrapper it's a full page
-META fullPage = 1
-%]
+META fullPage = 1;
 
-[% pageList = BLOCK %]
+pages = [ "new", "top twenty", "numbers",
+          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+          "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+pageList = BLOCK %]
 <div class="pageList">
-[% pages = [ "new", "top twenty", "numbers",
-             "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
-	         "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ] %]
-[% lcChar = char | lower %]
 
-[% FOREACH page IN pages %]
-  [% IF page ==  lcChar %]
+[% lcChar = char | lower;
+FOREACH page IN pages;
+  IF page == lcChar %]
   <span class="letter inactive">
     [% page | ucfirst %]
   </span>
@@ -26,8 +26,8 @@ META fullPage = 1
   <span class="letter">
     <a href="[% c.uri_for( "/family/browse", browse=page ) %]">[% page | ucfirst %]</a>
   </span>
-  [% END %]
-[% END %]
+  [% END;
+END %]
 </div>
 [% END # of BLOCK %]
 
