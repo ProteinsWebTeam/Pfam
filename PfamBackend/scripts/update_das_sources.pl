@@ -18,7 +18,7 @@
 #   defaultServer BOOLEAN      DEFAULT 0
 # );
 #
-# $Id: update_das_sources.pl,v 1.3 2006-12-01 11:25:59 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.4 2006-12-01 13:30:26 jt6 Exp $
 
 use warnings;
 use strict;
@@ -27,6 +27,7 @@ use lib qw( /nfs/team71/pfam/jt6/server/PfamLib );
 
 use Bio::DasLite;
 use Data::Dumper;
+use Data::Validate::URI qw( is_uri );
 use DBI;
 use Date::Parse;
 use Date::Calc qw( Delta_Days Delta_DHMS );
@@ -90,32 +91,44 @@ foreach my $source ( @$sourcesList ) {
   my $since = Delta_Days( $year2, $month2, $day2, $year1, $month1, $day1 );
 
   # don't add the source if the lease is older than two days
-  print "(ww) dropping \"$source->{nickname}\"; down for $since days\n" and next
+  print STDERR "(ww) dropping \"$source->{nickname}\"; down for $since days\n" and next
 	if $since > 2;
 
   # don't add the source if it's in the "ignore" list
-  print "(ww) ignoring \"$source->{nickname}\"\n" and next
+  print STDERR "(ww) ignoring \"$source->{nickname}\"\n" and next
 	if $ignoreServers->{ $source->{id} };
 
   my $featureCount = 0;
   my $sysCount = 0;
 
   my $entry = {};
+  $entry->{id}        = $source->{id};
   $entry->{name}      = $source->{nickname};
   $entry->{url}       = $source->{url};
-  # trim any trailing slash off the URL
+  $entry->{helperurl} = $source->{helperurl};
+
+  # trim any trailing slashes off the URLs
   {
 	$/ = "/";
 	chomp $entry->{url};
+	chomp $entry->{helperurl};
   };
-  $entry->{id}        = $source->{id};
-  $entry->{helperurl} = $source->{helperurl};
 
-  foreach my $capability ( @{$source->{capabilities}} ) {
-	$featureCount++ and last if $capability eq "features";
+  # validate the URLs
+  unless( is_uri( $entry->{url} ) ) {
+	print STDERR "(ww) dropping \"$source->{nickname}\"; invalid URL ($source->{url})\n";
+	next;
+  }
+
+  if( $entry->{helperurl} and not is_uri( $entry->{helperurl} ) ) {
+	print STDERR "(ww) dropping \"$source->{nickname}\"; invalid help URL ($entry->{helperurl})\n";
+	next;
   }
 
   # we're only interested in features
+  foreach my $capability ( @{$source->{capabilities}} ) {
+	$featureCount++ and last if $capability eq "features";
+  }
   next unless $featureCount;
 
   # convert the list of coordinate systems into a hash, so that we can
@@ -141,20 +154,26 @@ foreach my $source ( @$sourcesList ) {
 
 }
 
+# make sure we have some sources before going any further
+unless( scalar keys %$chosenList ) {
+  print STDERR "(EE) ERROR: no sources retrieved; leaving the table untouched\n";
+  exit 1;
+}
+
 # update the database
-print "(ii) opening transaction...\n";
+print STDERR "(ii) opening transaction...\n";
 
 # start a transaction...
 eval {
 
   # truncate the table
-  print "(ii) dropping table... ";
+  print STDERR "(ii) dropping table... ";
   $dbh->do( "DELETE FROM das_sources" );
   print "done\n";
 
   # insert them
   foreach my $name ( sort keys %$chosenList ) {
-	print "(ii) inserting $chosenList->{$name}->{name}... ";
+	print STDERR "(ii) inserting $chosenList->{$name}->{name}... ";
 	$insertSth->execute( $chosenList->{$name}->{id},
 						 $chosenList->{$name}->{name},
 						 $chosenList->{$name}->{url},
@@ -163,20 +182,20 @@ eval {
 					     exists $defaultServers->{ $chosenList->{$name}->{id} } ? 1 : 0
 					   );
 
-	print "done\n";
+	print STDERR "done\n";
   }
 
   $dbh->commit;
-  print "(ii) committed changes\n";
+  print STDERR "(ii) committed changes\n";
 
 }; # end of "eval"
 
 # check for errors in the transaction and roll back if we found any
 if( $@ ) {
-  print "\n(EE) ERROR: transaction error: $@; rolling back\n";
+  print STDERR "\n(EE) ERROR: transaction error: $@; rolling back\n";
   eval { $dbh->rollback; };
 } else {
-  print "(ii) transaction successful\n";
+  print STDERR "(ii) transaction successful\n";
 }
 
 # done
