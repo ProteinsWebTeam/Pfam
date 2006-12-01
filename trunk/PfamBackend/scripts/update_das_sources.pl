@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/nfs/team71/pfam/jt6/server/perl/bin/perl
 #
 # update_das_sources.pl
 # jt6 20060428 WTSI
@@ -18,12 +18,12 @@
 #   defaultServer BOOLEAN      DEFAULT 0
 # );
 #
-# $Id: update_das_sources.pl,v 1.2 2006-05-24 15:58:02 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.3 2006-12-01 11:25:59 jt6 Exp $
 
 use warnings;
 use strict;
 
-use lib "../lib";
+use lib qw( /nfs/team71/pfam/jt6/server/PfamLib );
 
 use Bio::DasLite;
 use Data::Dumper;
@@ -39,17 +39,24 @@ my $DAS_TO    = 100;
 my $DAS_PROXY = "http://wwwcache.sanger.ac.uk:3128";
 
 # db setup
-my $DB_DSN  = "dbi:mysql:pfamdev:pfam:3306";
-my $DB_USER = "pfam";
-my $DB_PASS = "password";
+my $DB_DSN  = "dbi:mysql:web_user:pfam:3306";
+my $DB_USER = "web_user";
+my $DB_PASS = "web_user";
 
 # todays date
 my( $s, $m, $h, $day1, $month1, $year1, $z ) = localtime( time );
 
 # default servers
-my $defaultServers = { DS_109 => 1,
-					   DS_110 => 1,
-					   DS_111 => 1 };
+my $defaultServers = { DS_109 => 1, # uniprot
+					   DS_120 => 1, # superfamily
+					   DS_210 => 1, # SMART
+					   DS_311 => 1, # Pfam Other Features
+					   DS_327 => 1, # interpro
+					 };
+
+# ignore these servers
+my $ignoreServers = { DS_241 => 1, # Pfam
+					};
 
 # main
 
@@ -76,14 +83,19 @@ my $sourcesList = $das->registry_sources( { category => [ "Protein Sequence", "P
 my $chosenList = {};
 foreach my $source ( @$sourcesList ) {
 
-#  print Dumper( $source );
+  # print Dumper( $source );
 
   # check the lease date
   my( $s, $m, $h, $day2, $month2, $year2, $z ) = strptime( $source->{leaseDate} );
   my $since = Delta_Days( $year2, $month2, $day2, $year1, $month1, $day1 );
 
+  # don't add the source if the lease is older than two days
   print "(ww) dropping \"$source->{nickname}\"; down for $since days\n" and next
 	if $since > 2;
+
+  # don't add the source if it's in the "ignore" list
+  print "(ww) ignoring \"$source->{nickname}\"\n" and next
+	if $ignoreServers->{ $source->{id} };
 
   my $featureCount = 0;
   my $sysCount = 0;
@@ -161,7 +173,7 @@ eval {
 
 # check for errors in the transaction and roll back if we found any
 if( $@ ) {
-  print "(EE) ERROR: transaction error: $@; rolling back\n";
+  print "\n(EE) ERROR: transaction error: $@; rolling back\n";
   eval { $dbh->rollback; };
 } else {
   print "(ii) transaction successful\n";
