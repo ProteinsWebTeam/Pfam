@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.6 2006-09-07 09:50:04 jt6 Exp $
+# $Id: domains.tt,v 1.7 2006-12-04 16:00:04 jt6 Exp $
 %]
 
 <!-- start domain architectures block -->
@@ -16,6 +16,12 @@
     <h1>Domain organisation</h1> 
   </div>
   <div class="blockContent">
+
+    <p>
+  	  Below is a listing of the unique domain organisations or architectures in which 
+      this domain is found.
+    <p>
+
     <p id="dgph" class="loading">
       Loading domain graphics...
     </p>
