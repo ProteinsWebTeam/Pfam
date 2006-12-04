@@ -4,7 +4,7 @@
 # 
 # block for the sequence, raw and formatted, for the protein page
 #
-# $Id: sequence.tt,v 1.5 2006-11-02 11:08:06 jt6 Exp $
+# $Id: sequence.tt,v 1.6 2006-12-04 16:03:45 jt6 Exp $
 -%]
 
 <!-- start protein sequence block -->
@@ -80,6 +80,11 @@
             </p>
 
             <div id="plainSequence">[% sl %]</div>
+
+			<script type="text/javascript">
+				Element.hide( "plainSequence" );
+			</script>
+	
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
