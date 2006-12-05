@@ -3,7 +3,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.29 2006-11-16 13:23:35 jt6 Exp $
+   $Id: pfam.css,v 1.30 2006-12-05 10:08:31 jt6 Exp $
 */   
 
 body {
@@ -369,6 +369,7 @@ div.jumpBox span.title {
 /* browse pages */
 
 div.pageList {
+  width: 90%;
   margin: 0.4em auto;
   padding: 0.4em;
   text-align: center;
@@ -376,6 +377,9 @@ div.pageList {
 
 div.pageList span.letter {
   padding: 0.1em;
+  height: 2.1em;
+  display: block;
+  float: left;
 }
 
 div.pageList span.inactive {
@@ -840,6 +844,52 @@ div.nodeSummary div {
     cursor: pointer;
 	float: right;
     padding: 0.2em 0;
+}
+
+/* ======================================== */
+/* domain query rules */
+
+#nlUpdateSpinner {
+	margin: 0.2em;
+}
+
+#idList select,
+#haveList select,
+#notList select {
+	margin: 0.2em;
+}
+
+#idList,
+#haveList,
+#notList {
+	width: 30%;
+    margin: 0.2em;
+}
+
+#idList h3,
+#haveList h3,
+#notList h3 {
+	padding: 0.2em;
+    margin: 0;
+}
+
+#domainSearchButtons {
+	clear: both;
+}
+
+span.buttons {
+	padding: 0.2em;
+}
+
+p.domainQueryInstruction {
+	height: 5.2em;
+    float: left;
+	margin: 0;
+    padding: 0.2em;
+}
+
+#textResults {
+	margin: 0.4em 0.2em;
 }
 
 /* ======================================== */
