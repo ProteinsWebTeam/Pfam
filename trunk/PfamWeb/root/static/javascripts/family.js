@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.11 2006-11-15 11:06:30 jt6 Exp $
+// $Id: family.js,v 1.12 2006-12-05 10:10:08 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -52,11 +52,11 @@ function familyPostLoad() {
   // clan structure tab
   if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
 	 new Ajax.Request( loadOptions.fstruc.uri,
-		 			 	 { method:     'get', 
-			 			parameters: loadOptions.fstruc.params,
-						onComplete: fstrucSuccess,
-						onFailure:  fstrucFailure
-					  } );
+					   { method:     'get', 
+			 			 parameters: loadOptions.fstruc.params,
+						 onComplete: fstrucSuccess,
+						 onFailure:  fstrucFailure
+					   } );
   }
   // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
