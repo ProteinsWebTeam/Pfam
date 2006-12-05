@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.8 2006-09-22 13:22:14 jt6 Exp $
+# $Id: Structure.pm,v 1.9 2006-12-05 10:11:23 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.8 2006-09-22 13:22:14 jt6 Exp $
+$Id: Structure.pm,v 1.9 2006-12-05 10:11:23 jt6 Exp $
 
 =cut
 
@@ -153,14 +153,20 @@ Call using a C<forward>, e.g. C<$c->forward( "addMapping" );>
 sub addMapping : Private {
   my( $this, $c ) = @_;
 
+  $c->log->debug( "Structure::addMapping: adding mappings for PDB entry "
+				  . $c->stash->{pdb}->pdb_id );
+
   # add the structure-to-UniProt mapping to the stash
-  my @unpMap = $c->model("PfamDB::PdbMap")->search(
-                  { auto_pdb    => $c->stash->{pdb}->auto_pdb,
-					pfam_region => 1 },
-				  { join     => [ qw/pfamA pfamseq/ ],
-					prefetch => [ qw/pfamA pfamseq/ ],
-					order_by => "chain ASC" }
-				);
+  my @unpMap = $c->model("PfamDB::PdbMap")
+	->search(
+			 { auto_pdb    => $c->stash->{pdb}->auto_pdb,
+			   pfam_region => 1 },
+			 { join     => [ qw/pfamA pfamseq/ ],
+			   prefetch => [ qw/pfamA pfamseq/ ],
+			   order_by => "chain ASC" }
+			);
+
+  $c->log->debug( "Structure::addMapping: found " . scalar @unpMap . " mappings" );
   $c->stash->{mapping} = \@unpMap;
 
   # build a little data structure to map PDB chains to uniprot IDs and
