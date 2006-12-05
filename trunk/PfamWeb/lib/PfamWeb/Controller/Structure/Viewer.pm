@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.5 2006-10-06 10:22:33 jt6 Exp $
+# $Id: Viewer.pm,v 1.6 2006-12-05 10:13:29 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.5 2006-10-06 10:22:33 jt6 Exp $
+$Id: Viewer.pm,v 1.6 2006-12-05 10:13:29 jt6 Exp $
 
 =cut
 
@@ -65,13 +65,28 @@ sub auto : Private {
 	$c->log->debug( "Viewer::auto: auto_pfamseq, chain: |$ap|$chain|" );
 
 	next if $seenChainAutoPfamseq{$ap.$chain};
- 	my @markups = $c->model("PfamDB::Pfamseq_markup")->search(
-                    { "pdbResidue.auto_pfamseq" => $map->auto_pfamseq,
-					  "pdbResidue.chain"        => $map->chain,
-					  "pdbResidue.auto_pdb"     => $c->stash->{pdb}->auto_pdb },
-				    { join     => [qw/pdbResidue/],
-					  prefetch => [qw/pdbResidue/] }
-				  );
+#  	my @markups = $c->model("PfamDB::Pfamseq_markup")
+# 	  ->search(
+# 			   { "pdbResidue.auto_pfamseq" => $map->auto_pfamseq,
+# 				 "pdbResidue.chain"        => $map->chain,
+# 				 "pdbResidue.auto_pdb"     => $c->stash->{pdb}->auto_pdb },
+# 			   { join     => [qw/pdbResidue/],
+# 				 prefetch => [qw/pdbResidue/] }
+# 			  );
+
+	$c->log->debug( "Viewer::auto: about to do query; DBIC_TRACE = |".$ENV{DBIC_TRACE}."|" );
+
+ 	my @markups = $c->model("PfamDB::Pdb_residue")
+	  ->search(
+			   { "pfamseqMarkup.auto_pfamseq" => $map->auto_pfamseq,
+				 chain        => $map->chain,
+				 auto_pdb     => $c->stash->{pdb}->auto_pdb },
+			   { join     => [ qw/pfamseqMarkup/ ],
+				 prefetch => [ qw/pfamseqMarkup/ ] }
+			  );
+	$c->log->debug( "Viewer::auto: found " . scalar @markups . " markups for mapping to "
+					. $map->auto_pfamseq );
+
 	$seenChainAutoPfamseq{$ap.$chain}++;
 	push @allMarkups, @markups;
   }
