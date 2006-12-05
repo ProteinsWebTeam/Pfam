@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.2 2006-11-27 16:31:28 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.3 2006-12-05 10:14:04 jt6 Exp $
 
 =head1 NAME
 
@@ -16,18 +16,14 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.2 2006-11-27 16:31:28 jt6 Exp $
+$Id: SeqSearch.pm,v 1.3 2006-12-05 10:14:04 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use PfamWeb::CustomContainer;
-use HTML::Widget::Element;
-use IO::All;
 use Storable qw(thaw);
-use Data::Dump qw( dump );
 
 # set the default container to be the one we've defined, which makes
 # the markup a little easier to style with CSS
@@ -148,6 +144,9 @@ sub domain : Local {
 
   $c->log->debug( "SeqSearch::domain: |" . $c->req->parameters->{have} . "|" );
 
+  # point at the template right away
+  $c->stash->{template} = "components/blocks/family/domainSummary.tt";
+
   my $list;
   if( exists $c->req->parameters->{have} ) {
 	foreach ( split /\s+/, $c->req->parameters->{have} ) {
@@ -185,15 +184,11 @@ sub domain : Local {
 
   $c->stash->{numRows} = scalar @architectures;
   $c->stash->{numSeqs} = $sum;
-  $c->stash->{template} = "components/blocks/family/domainSummary.tt";
 
   # if there are too many results, bail here and let the TT just
   # display the text summary, plus an admonition to the user to
   # restrict their search a bit
-  if( scalar @architectures > 500 ) {
-	$c->stash->{template} = "components/blocks/seqsearch/domainResults.tt";
-	return;
-  }
+  return if scalar @architectures > 500;
 
   # build the mappings that we'll need to interpret all this...
   my( @seqs, %seqInfo );
@@ -215,125 +210,20 @@ sub domain : Local {
   }
   $c->log->debug( "found " . scalar @seqs . " storables" );
 
-  my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+  if( scalar @seqs ) {
+	my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+	
+	$layout->layout_sequences_with_regions_and_features( \@seqs, { PfamA      => 1,
+																   PfamB      => 1,
+																   noFeatures => 1 } );
+	
+	my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+	$imageset->create_images( $layout->layout_to_XMLDOM );
 
-  $layout->layout_sequences_with_regions_and_features( \@seqs, { PfamA      => 1,
-																 PfamB      => 1,
-																 noFeatures => 1 } );
+	$c->stash->{images} = $imageset;
+	$c->stash->{seqInfo}  = \%seqInfo;
+  }
 
-  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageset->create_images( $layout->layout_to_XMLDOM );
-
-  $c->stash->{images} = $imageset;
-  $c->stash->{seqInfo}  = \%seqInfo;
-
-
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 default : Path
-
-Actually run a search...
-
-=cut
-
-#sub default : Private {
-#  my( $this, $c ) = @_;
-#
-#  $c->log->debug( "SiteSearch::default: caught a URL; running a search" );
-#
-#  unless( $c->stash->{rawQueryTerms} ) {
-#	$c->stash->{errorMsg} = "You did not supply any valid search terms";
-#	return;
-#  }
-#
-#}
-
-#-------------------------------------------------------------------------------
-#- private methods -------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-=head2 buildProteinNameForm : Private
-
-Builds the "search by protein name" form.
-
-=cut
-
-sub buildProteinNameForm : Private {
-  my( $this, $c ) = @_;
-
-  my $w = $c->widget( "proteinNameForm" );
-  $w->method( "post") ;
-  $w->action( $c->uri_for( "checkProteinNameForm" ) );
-
-  # the single text field
-  $w->element( "Textfield", "unp" )
-	->label( "Enter a UniProt ID or accession" )
-	->size( 30 )
-	->maxlength( 40 );
-
-  # a submit button
-  $w->element( "Submit", "submit" )
-	->value( "Submit" );
-
-  # and a reset button
-  $w->element( "Reset", "reset" );
-
-  # constraints...
-  $w->constraint( Length => "unp" )
-	->max( 40 );
-  $w->constraint( Regex => "unp" )
-	->regex( qr/^[\w\d_-]+$/ );
-
-  return $w;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 buildProteinSeqForm : Private
-
-Builds the "search by protein sequence" form.
-
-=cut
-
-sub buildProteinSeqForm : Private {
-  my( $this, $c ) = @_;
-
-  my $w = $c->widget( "proteinSeqForm" );
-  $w->method( "post") ;
-  $w->action( $c->uri_for( "checkProteinSeqForm" ) );
-
-  # the sequence box
-  $w->element( "Textarea", "unp" )
-	->label( "Your sequence" )
-	->cols( 50 )
-	->rows( 20 );
-
-  # search type dropdown
-  $w = $c->widget( "Select", "type" )
-    ->comment( "(Required)" )
-	->label( "Pfam search type" )
-	->options( both => "Both global and fragment",
-			   ls   => "Global (ls)",
-			   fs   => "Fragment (fs)" )
-	->selected( "both" );
-
-  # a submit button
-  $w->element( "Submit", "submit" )
-	->value( "Submit" );
-
-  # and a reset button
-  $w->element( "Reset", "reset" );
-
-  # constraints...
-  $w->constraint( Length => "unp" )
-	->max( 40 );
-  $w->constraint( Regex => "unp" )
-	->regex( qr/^[\w\d_-]+$/ );
-
-  return $w;
 }
 
 #-------------------------------------------------------------------------------
