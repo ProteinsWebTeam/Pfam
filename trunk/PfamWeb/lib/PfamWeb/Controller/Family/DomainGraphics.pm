@@ -4,7 +4,7 @@
 #
 # Controller to build a set of domain graphics for a given Pfam.
 #
-# $Id: DomainGraphics.pm,v 1.8 2006-10-31 15:16:24 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.9 2006-12-05 10:12:12 jt6 Exp $
 
 package PfamWeb::Controller::Family::DomainGraphics;
 
@@ -13,7 +13,24 @@ use warnings;
 
 use Storable qw(thaw);
 
-use base "PfamWeb::Controller::Family";
+use base "PfamWeb::Controller::Section";
+
+sub begin : Private {
+  my( $this, $c ) = @_;
+
+  if( defined $c->req->param("acc") ) {
+
+	$c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
+	$c->log->info( "Family::begin: found accession |$1|, family A / B ? |$2|" );
+
+	if( defined $1 ) {
+	  $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+	  $c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
+	}
+
+  }
+
+}
 
 # pick up a URL like http://localhost:3000/family/domaingraphics?acc=PF00067
 
@@ -52,7 +69,17 @@ sub default : Path {
 				  order_by  => "arch.no_seqs DESC" } );
 	
   }
-  $c->log->debug( "found " . scalar @architectures . " architectures" );
+
+  my $sum = 0;
+  foreach my $arch ( @architectures ) {
+	$sum += $arch->no_seqs;
+  }
+
+  $c->log->debug( "SeqSearch::domain: found " . scalar @architectures
+				  . " rows, with a total of $sum sequences" );
+
+  $c->stash->{numRows} = scalar @architectures;
+  $c->stash->{numSeqs} = $sum;
 
   # build the mappings that we'll need to interpret all this...
   my( @seqs, %seqInfo );
@@ -74,15 +101,17 @@ sub default : Path {
   }
   $c->log->debug( "found " . scalar @seqs . " storables" );
 
-  my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+  if( scalar @seqs ) {
+	my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
 
-  $layout->layout_sequences_with_regions_and_features( \@seqs, \%regionsAndFeatures );
+	$layout->layout_sequences_with_regions_and_features( \@seqs, \%regionsAndFeatures );
 
-  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageset->create_images( $layout->layout_to_XMLDOM );
+	my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+	$imageset->create_images( $layout->layout_to_XMLDOM );
 
-  $c->stash->{images} = $imageset;
-  $c->stash->{seqInfo}  = \%seqInfo;
+	$c->stash->{images} = $imageset;
+	$c->stash->{seqInfo}  = \%seqInfo;
+  }
 
   # set up the view and rely on "end" from the parent class to render it
   $c->stash->{template} = "components/blocks/family/domainSummary.tt";
