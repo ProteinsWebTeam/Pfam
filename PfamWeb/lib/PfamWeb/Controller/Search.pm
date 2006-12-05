@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.6 2006-11-24 14:53:15 jt6 Exp $
+# $Id: Search.pm,v 1.7 2006-12-05 10:10:53 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.6 2006-11-24 14:53:15 jt6 Exp $
+$Id: Search.pm,v 1.7 2006-12-05 10:10:53 jt6 Exp $
 
 =cut
 
@@ -153,16 +153,16 @@ sub runSearches : Private {
   # keep track of the number of hits for each query
   $c->stash->{pluginHits} = {};
 
+  # firkle with the user input if necessary and build a string that
+  # we can pass straight to the DB
+  $c->forward( "formatTerms" );
+
   # walk the plugins and run each query in turn
   foreach my $plugin ( $this->plugins ) {
 	my $pluginName = ( split /\:\:/, $plugin )[-1];
 
 	# check that the plugin is properly formed and is enabled
 	next unless $plugin->can( "process" );
-
-	# firkle with the user input if necessary and build a string that
-	# we can pass straight to the DB
-	$c->forward( "formatTerms" );
 
 	# and run the query
 	$c->log->debug( "Search::default: running query for plugin $pluginName" );
