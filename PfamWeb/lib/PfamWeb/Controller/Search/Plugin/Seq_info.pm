@@ -2,7 +2,7 @@
 # Seq_info.pm
 # jt6 20060810 WTSI
 #
-# $Id: Seq_info.pm,v 1.1 2006-08-22 15:16:23 jt6 Exp $
+# $Id: Seq_info.pm,v 1.2 2006-12-05 10:12:46 jt6 Exp $
 
 =head1 NAME
 
@@ -26,7 +26,7 @@ following columns:
 
 =back
 
-$Id: Seq_info.pm,v 1.1 2006-08-22 15:16:23 jt6 Exp $
+$Id: Seq_info.pm,v 1.2 2006-12-05 10:12:46 jt6 Exp $
 
 =cut
 
@@ -60,7 +60,7 @@ sub process : Private {
 			 {},
 			 {}
 			)
-	  ->search_literal( "MATCH( seq_description, species ) " .
+	  ->search_literal( "MATCH( seq_description, species, pfamseq_id, pfamseq_acc ) " .
 						"AGAINST( ? IN BOOLEAN MODE )",
 						$c->stash->{terms} );
 
