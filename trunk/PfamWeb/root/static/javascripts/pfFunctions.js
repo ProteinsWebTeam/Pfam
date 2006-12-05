@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.24 2006-11-27 16:20:53 jt6 Exp $
+// $Id: pfFunctions.js,v 1.25 2006-12-05 10:10:27 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -385,10 +385,9 @@ function loadDomains( arch, index, uri, num ) {
   var continueLoad = ( num >= 50 ) ? confirm( msg ) : true;
 
   if( continueLoad ) {
-	// switch on and off the visual cues in the page
-	Element.toggle('adSpinner' + arch + index,
-				   'loadSwitch' + index,
-				   'showHideArchs' + index );
+	['adSpinner' + arch + index,
+	 'loadSwitch' + index,
+	 'showHideArchs' + index ].each( Element.toggle );
 
 	// and actually fire off a request to load the new graphics
 	new Ajax.Updater('domainArch' + index,
@@ -398,32 +397,23 @@ function loadDomains( arch, index, uri, num ) {
 }
 
 //------------------------------------------------------------
-// various functions to move ids between the lists in the
-// domain query section
+// various functions used in the domain query tab
 
+// loads the list of IDs, chosen from the "alphabet" at the top of the form
 function chooseIds( letter ) {
-  disableLetters();
+  //  disableLetters();
   Element.show( "nlUpdateSpinner" );
   new Ajax.Updater( "idSelectionWrapper",
 					queryURI,
 					{
 					  parameters: "list=1&browse=" + letter,
-					  onComplete: enableLetters
+					  onComplete: function hideNlSpinner() {
+						            Element.hide("nlUpdateSpinner");
+                                  }
 					} );
 }
-	
-function enableLetters() {
-  $$("#numeralList span.nonLink" ).each( function( el ) { Element.hide(el) } );
-  $$("#numeralList span.link"    ).each( function( el ) { Element.show(el) } );
-  Element.hide( "nlUpdateSpinner" );
-}
 
-function disableLetters() {
-  $$("#numeralList span.link"    ).each( function( el ) { Element.hide(el) } );
-  $$("#numeralList span.nonLink" ).each( function( el ) { Element.show(el) } );
-}
-
-// add an ID from the selection list to another list, specified by the
+// adds an ID from the selection list to another list, specified by the
 // argument
 function addId(listId) {
   if( $("idSelection").hasChildNodes() ) {
@@ -436,7 +426,7 @@ function addId(listId) {
   }
 }
 
-// remove an ID from the specified list and drop it back into the
+// removes an ID from the specified list and drops it back into the
 // selection list
 function removeId(listId) {
   if( $(listId).hasChildNodes() ) {
@@ -449,7 +439,7 @@ function removeId(listId) {
   }			
 }
 
-// construct a list of the chosen IDs and submit the form
+// constructs a list of the chosen IDs and submits the form
 function buildIdLists() {
 
   $A( $("have").options ).each( function( opt ) {
@@ -469,6 +459,50 @@ function buildIdLists() {
 							   } );
 
   $('domainSearchForm').submit();
+}
+
+// run before submitting the search. Disables the submit button and builds the 
+// list of IDs for the query
+function dsStarted() {
+  Element.show( "searchUpdateSpinner" );
+  $( "domainSearchForm" ).disable();
+
+	var i = document.createElement( "input" );
+  i.type  = "hidden";
+  i.name  = "have";
+  i.value = $A( $("have").options ).inject( '', 
+                                            function( pars, i ) { 
+											  pars = i.value + " " + pars;
+                                              return pars;
+                                            } );
+  $("domainSearchForm").appendChild( i );
+
+  var i = document.createElement( "input" );
+  i.type  = "hidden";
+  i.name  = "not";
+  i.value = $A( $("not").options ).inject( '',
+										   function( pars, i ) {
+                                             pars = i.value + " " + pars;
+                                             return pars;
+                                           } );
+  $("domainSearchForm").appendChild( i );
+}
+
+// run after the search. Re-enables the submit button
+function dsCompleted() {
+  $( "domainSearchForm" ).enable();
+  Element.show( "resultsHeader" );
+  Element.hide( "searchUpdateSpinner" );
+}
+
+// reset the forms
+function resetDomainQueryForms() {
+  [ "idSelection", "have", "not" ].each( function( list ) {
+										   log.debug( "resetting list \"" + list + "\"" );
+										   $A( $(list).childNodes ).each( function( n ) {
+																			$(list).removeChild( n );
+																		  } )
+											 } );
 }
 
 //------------------------------------------------------------
