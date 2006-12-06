@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.3 2006-12-05 10:14:04 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.4 2006-12-06 15:48:24 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.3 2006-12-05 10:14:04 jt6 Exp $
+$Id: SeqSearch.pm,v 1.4 2006-12-06 15:48:24 jt6 Exp $
 
 =cut
 
@@ -142,20 +142,20 @@ sub domain : Local {
 
   $c->log->debug( "SeqSearch::domain: executing a domain search" );
 
-  $c->log->debug( "SeqSearch::domain: |" . $c->req->parameters->{have} . "|" );
+  $c->log->debug( "SeqSearch::domain: |" . $c->req->param( "have" ) . "|" );
 
   # point at the template right away
   $c->stash->{template} = "components/blocks/family/domainSummary.tt";
 
   my $list;
-  if( exists $c->req->parameters->{have} ) {
-	foreach ( split /\s+/, $c->req->parameters->{have} ) {
+  if( defined $c->req->param( "have" ) ) {
+	foreach ( split /\s+/, $c->req->param( "have" ) ) {
 	  next unless /(PF\d{5})/;
 	  $list .= "+$1 ";
 	}
   }
-  if( exists $c->req->parameters->{not} ) {
-	foreach ( split /\s+/, $c->req->parameters->{not} ) {
+  if( defined $c->req->param( "not" ) ) {
+	foreach ( split /\s+/, $c->req->param( "not" ) ) {
 	  next unless /(PF\d{5})/;
 	  $list .= "-$1 ";
 	}
