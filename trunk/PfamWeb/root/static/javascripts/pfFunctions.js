@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.25 2006-12-05 10:10:27 jt6 Exp $
+// $Id: pfFunctions.js,v 1.26 2006-12-07 10:58:36 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -401,14 +401,17 @@ function loadDomains( arch, index, uri, num ) {
 
 // loads the list of IDs, chosen from the "alphabet" at the top of the form
 function chooseIds( letter ) {
-  //  disableLetters();
+
   Element.show( "nlUpdateSpinner" );
+  $( "domainSearchForm" ).disable();
+  
   new Ajax.Updater( "idSelectionWrapper",
 					queryURI,
 					{
 					  parameters: "list=1&browse=" + letter,
-					  onComplete: function hideNlSpinner() {
+					  onComplete: function () {
 						            Element.hide("nlUpdateSpinner");
+									$( "domainSearchForm" ).enable();
                                   }
 					} );
 }
