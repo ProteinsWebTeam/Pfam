@@ -41,5 +41,10 @@ __PACKAGE__->has_one( "pfam_anseq" => "PfamDB::Pfam_annseq",
 					  { proxy => [ qw/ pfamseq_storable / ] }
 					);
 
+__PACKAGE__->might_have( pfamseqMarkup => "PfamDB::Pfamseq_markup",
+						 { "foreign.auto_pfamseq" => "self.auto_pfamseq",
+						   "foreign.residue"      => "self.pfamseq_seq_number" },
+						 { proxy => [ qw/ annotation auto_markup / ] } );
+
 1;
 
