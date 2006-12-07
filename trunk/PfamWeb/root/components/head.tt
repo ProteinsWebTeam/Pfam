@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.14 2006-12-04 15:56:34 jt6 Exp $
+# $Id: head.tt,v 1.15 2006-12-07 11:00:54 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -127,24 +127,8 @@ IF layouts.${pageType}.css.ie;
 </script> 
 
 <!-- ====================================================================== -->
-<!-- log4javascript -->
+<!-- firebug lite -->
 
-<script type="text/javascript" src="[% c.uri_for("/javascripts/log4javascript.js") %] "></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/firebug/firebugx.js" ) %]"></script>
 
-<script type="text/javascript">
-  var log = log4javascript.getLogger();
-  appender = new log4javascript.BrowserConsoleAppender();
-  log.addAppender( appender );
-  log.info( "javascript logging initiated" );
-</script>
-<!--[if IE]>
-<script type="text/javascript">
-  var log = log4javascript.getLogger();
-  var appender = new log4javascript.PopUpAppender();
-  appender.setFocusPopUp( true );
-  appender.setNewestMessageAtTop( true );
-  appender.setReopenWhenClosed( true );
-  log.addAppender( appender );
-  log.info( "javascript logging initiated" );
-</script>
-<![endif]-->
+<!-- ====================================================================== -->
