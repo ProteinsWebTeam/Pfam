@@ -1,10 +1,10 @@
-%
+[%
 # glossary.tt
 # rdf 20060927 WTSI
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.2 2006-11-16 13:48:51 jm14 Exp $
+# $Id: glossary.tt,v 1.3 2006-12-07 11:02:04 jt6 Exp $
 %]
 
 <!-- start glossary.tt block -->
