@@ -1,0 +1,137 @@
+[%
+# ftp.tt
+# jt6 20061205 WTSI
+# 
+# build the ftp block for the help pages
+#
+# $Id: ftp.tt,v 1.1 2006-12-07 11:03:16 jt6 Exp $
+
+USE mb = Format( '%.0fMb' ) ;
+USE kb = Format( '%.0fkb' ) ;
+USE pfamseq = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/pfamseq.gz" );
+USE pfam_ls = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam_ls.gz" );
+USE pfam_fs = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam_fs.gz" );
+USE pfamAFull = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-A.full.gz" );
+USE pfamASeed = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-A.seed.gz" );
+USE pfamB = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-B.gz" );
+USE pfamC = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-C.gz" );
+USE swisspfam = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/swisspfam.gz" );
+
+%]
+
+<!-- start ftp block -->
+
+<div class="block" id="helpFtpBlock">
+  <div class="handle">
+    <h1>Pfam FTP site</h1>
+  </div>
+  <div class="blockContent">
+	
+	<p>
+	  The following list describes a few of the important files in the Pfam 
+	  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>.
+	</p>
+
+	<dl>
+	  <dt>
+	    <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/relnotes.txt">
+	      relnotes.txt</a>
+	  </dt>
+	  <dd>
+		Release notes
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
+		  pfamseq.gz</a>
+	  </dt>
+	  <dd>
+		A fasta version of Pfam's underlying sequence database ([% x=pfamseq.size / 1048576;mb(x) %])
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_ls.gz">
+		  Pfam_ls.gz</a>
+	  </dt>
+	  <dd>
+		The Pfam HMM library ([% x=pfam_ls.size / 1048576;mb(x) %]).
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_fs.gz">
+		  Pfam_fs.gz</a>
+	  </dt>
+	  <dd>
+		The Pfam fragment HMM library ([% x=pfam_fs.size / 1048576;mb(x) %])
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
+ 		  Pfam-A.full.gz</a>
+	  </dt>
+	  <dd>
+		The full alignments of the curated families ([% x=pfamAFull.size / 1048576;mb(x) %])
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
+		  Pfam-A.seed.gz</a>
+	  </dt>
+	  <dd>
+		 The seed alignments of the curated families ([% x=pfamASeed.size / 1048576;mb(x) %])
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/current_release/Pfam-B.gz">
+		  Pfam-B.gz</a>
+	  </dt>
+	  <dd>
+		Automatically generated alignments of sequence clusters in SWISSPROT and TrEMBL 
+		that are not modelled in the curated part of Pfam ([% x=pfamB.size / 1048576;mb(x) %])
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
+		  Pfam-C.gz</a>
+	  </dt>
+	  <dd>
+		The contains the information about clans and the Pfam-A membership ([% x=pfamC.size / 1024;kb(x) %])
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
+		  swisspfam.gz</a>
+	  </dt>
+	  <dd>
+		The domain structure of SWISSPROT and TrEMBL proteins according to Pfam ([% x=swisspfam.size / 1048576;mb(x) %])
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/prior.tar">
+	       prior.tar</a>
+	  </dt>
+	  <dd>
+		A set of prior files for specific Pfam families
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/diff">diff</a>
+	  </dt>
+	  <dd>
+		Summary of changes since the last release
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/Icarus">Icarus</a>
+	  </dt>
+	  <dd>
+		Icarus files for SRS indexing of the files in the Pfam distribution
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/COPYRIGHT">COPYRIGHT</a>
+	  </dt>
+	  <dd>
+		Copyright notice for Pfam
+	  </dd>
+	  <dt>
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/GNULICENSE">GNULICENSE</a>
+	  </dt>
+	  <dd>
+		The full text of the GNU Library General Public License under which Pfam is
+		licensed
+	  </dd>
+	</dl>
+
+  </div>
+</div>
+
+<!-- end ftp block -->
