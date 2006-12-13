@@ -4,7 +4,7 @@
 #
 # A model to retrieve data from the WTSI pfetch server.
 #
-# $Id: Pfetch.pm,v 1.2 2006-08-22 13:37:37 rdf Exp $
+# $Id: Pfetch.pm,v 1.3 2006-12-13 15:53:47 jt6 Exp $
 
 package PfamWeb::Model::Pfetch;
 
@@ -20,7 +20,7 @@ BEGIN {
 
   # use settings from the environment if possible
   $serverConfig{PFETCH_SERVER}  = $ENV{PFETCH_SERVER}  if defined $ENV{PFETCH_SERVER};
-  $serverConfig{PFETCH_PORT}    = $ENV{PFETCH_PORT}    if defined $ENV{PFETCH_PORT};
+  $serverConfig{PFETCH_PORT}    = $ENV{PFETCH_PORT}	   if defined $ENV{PFETCH_PORT};
   $serverConfig{PFETCH_TIMEOUT} = $ENV{PFETCH_TIMEOUT} if defined $ENV{PFETCH_TIMEOUT};
 
   # try getting them from the catalyst configuration, if available
@@ -32,6 +32,10 @@ BEGIN {
   if( $@ ) {
 	die "Pfetch::BEGIN: error when setting config: $!";
   }
+
+  ( $serverConfig{PFETCH_SERVER} )  = $serverConfig{PFETCH_SERVER}  =~ /^([\w\.\-]+)$/;
+  ( $serverConfig{PFETCH_PORT} )    = $serverConfig{PFETCH_PORT}    =~ /^([\w\.\-]+)$/;
+  ( $serverConfig{PFETCH_TIMEOUT} ) = $serverConfig{PFETCH_TIMEOUT} =~ /^([\w\.\-]+)$/;
 }
 
 # (do we even need a constructor when we're inside catalyst ? Don't
@@ -81,7 +85,7 @@ sub retrieve {
   # check for errors in the eval
   if ($@) {
 
-	die "problem retrieving data from server"
+	die "problem retrieving data from server ($@)"
 	  unless $@ eq "alarm\n";   # propagate unexpected errors
 
 	# timed out
