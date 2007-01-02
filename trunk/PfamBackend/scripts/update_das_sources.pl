@@ -18,7 +18,7 @@
 #   defaultServer BOOLEAN      DEFAULT 0
 # );
 #
-# $Id: update_das_sources.pl,v 1.4 2006-12-01 13:30:26 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.5 2007-01-02 13:20:22 jt6 Exp $
 
 use warnings;
 use strict;
@@ -29,8 +29,10 @@ use Bio::DasLite;
 use Data::Dumper;
 use Data::Validate::URI qw( is_uri );
 use DBI;
-use Date::Parse;
-use Date::Calc qw( Delta_Days Delta_DHMS );
+use Time::Local;
+
+#use Date::Parse;
+#use Date::Calc qw( Delta_Days Delta_DHMS );
 
 # config
 
@@ -44,8 +46,8 @@ my $DB_DSN  = "dbi:mysql:web_user:pfam:3306";
 my $DB_USER = "web_user";
 my $DB_PASS = "web_user";
 
-# todays date
-my( $s, $m, $h, $day1, $month1, $year1, $z ) = localtime( time );
+# todays date, in seconds since the epoch
+my $cd = time;
 
 # default servers
 my $defaultServers = { DS_109 => 1, # uniprot
@@ -85,17 +87,30 @@ my $chosenList = {};
 foreach my $source ( @$sourcesList ) {
 
   # print Dumper( $source );
+#   foreach ( strptime( $source->{leaseDate} ) ) {
+# 	print "strptime: $_\n";
+#   }
 
   # check the lease date
-  my( $s, $m, $h, $day2, $month2, $year2, $z ) = strptime( $source->{leaseDate} );
-  my $since = Delta_Days( $year2, $month2, $day2, $year1, $month1, $day1 );
+  $source->{leaseDate} =~ m/^(\d{4})\-(\d{2})\-(\d{2})T(\d{2}):(\d{2}):(\d{2}).(\d{3})Z$/i;
+
+  # convert the lease date into seconds since the epoch. Note that we
+  # need to subtract 1 from the day and month, since we need them
+  # zero-based but the registry date comes with them as
+  # day-of-the-month and month-of-the-year
+  my $ld = timelocal( $6, $5, $4, $3 - 1, $2 - 1, $1 );
+
+  # delta, in seconds
+  my $dd = $cd - $ld;
 
   # don't add the source if the lease is older than two days
-  print STDERR "(ww) dropping \"$source->{nickname}\"; down for $since days\n" and next
-	if $since > 2;
+  if( $dd > 172800 ) {
+	print STDERR "(ww) dropping \"$source->{nickname}\" ($source->{id}); down for ".int($dd/86400)." days\n";
+	next;
+  }
 
   # don't add the source if it's in the "ignore" list
-  print STDERR "(ww) ignoring \"$source->{nickname}\"\n" and next
+  print STDERR "(ww) ignoring \"$source->{nickname}\" ($source->{id})\n" and next
 	if $ignoreServers->{ $source->{id} };
 
   my $featureCount = 0;
@@ -116,12 +131,12 @@ foreach my $source ( @$sourcesList ) {
 
   # validate the URLs
   unless( is_uri( $entry->{url} ) ) {
-	print STDERR "(ww) dropping \"$source->{nickname}\"; invalid URL ($source->{url})\n";
+	print STDERR "(ww) dropping \"$source->{nickname}\" ($source->{id}); invalid URL ($source->{url})\n";
 	next;
   }
 
   if( $entry->{helperurl} and not is_uri( $entry->{helperurl} ) ) {
-	print STDERR "(ww) dropping \"$source->{nickname}\"; invalid help URL ($entry->{helperurl})\n";
+	print STDERR "(ww) dropping \"$source->{nickname}\" ($source->{id}); invalid help URL ($entry->{helperurl})\n";
 	next;
   }
 
