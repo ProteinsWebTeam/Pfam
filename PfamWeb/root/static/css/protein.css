@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.15 2006-12-05 10:08:57 jt6 Exp $
+   $Id: protein.css,v 1.16 2007-01-15 15:34:26 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -67,6 +67,7 @@ p.featuresLabel {
     clear: left;
     border: 1px solid #CCC;
     background: #EEE;
+	width: 14em;
 }
 
 img.featuresImage {
