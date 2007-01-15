@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.24 2006-11-16 14:45:35 jt6 Exp $
+# $Id: wrapper.tt,v 1.25 2007-01-15 15:53:11 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -38,22 +38,6 @@ ELSE;
     [%# build the page header, with the swoosh, menus, etc. %]
     [% PROCESS components/header.tt %]
 
-	[%# a warning message for users who don't have javascript turned on. The 
-      # message should be hidden immediately after it's displayed, but if 
-      # javascript is not working, the prototype call will fail and the message
-      # will stay visible %]
-	[% IF template.fullPage %]
-	<div id="jsWarning">
-      <b>Please note:</b> this site relies heavily on the use of javascript. Without a 
-      javascript-enabled browser, this site will not function correctly. Please enable
-      javascript and reload the page, or switch to a different browser.
-	</div>
-
-	<script type="text/javascript">
-	  Element.hide("jsWarning");
-	</script>
-	[% END %]
-
     [%# add a wrapper div if this is a tab layout page %]
     [% UNLESS template.fullPage %]<div id="contentContainer">[% END %]
 
@@ -72,7 +56,6 @@ ELSE;
     <!-- start of tooltips script -->
 	[% PROCESS components/tooltips.tt %]
     <!-- end of tooltips script -->
-
 
 	[% PROCESS components/submenus.tt %]
   </body>
