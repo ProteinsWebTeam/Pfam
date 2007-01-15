@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.16 2006-11-27 16:30:54 jt6 Exp $
+# $Id: Family.pm,v 1.17 2007-01-15 14:20:10 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.16 2006-11-27 16:30:54 jt6 Exp $
+$Id: Family.pm,v 1.17 2007-01-15 14:20:10 jt6 Exp $
 
 =cut
 
@@ -55,101 +55,101 @@ sub begin : Private {
 
   if( defined $c->req->param("acc") ) {
 
-	$c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
-	$c->log->info( "Family::begin: found accession |$1|, family A / B ? |$2|" );
-
-	if( defined $1 ) {
-
-	  # see if this is actually a PfamB...
- 	  if( $2 eq 'B' ) {
- 		$c->log->debug( "Family::begin: looks like a PfamB; retrieving" );
-		$c->stash->{entryType} = "B";
-		$c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
-		$c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
-
- 	  } else {
-
-		# no; must be a PfamA
-		$c->log->debug( "Family::begin: family is a PfamA" );
-		$c->stash->{entryType} = "A";
-		$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
-		$c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
-		$c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
-		  if defined $c->req->param( "alnType" );
+		$c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
+		$c->log->info( "Family::begin: found accession |$1|, family A / B ? |$2|" );
+	
+		if( defined $1 ) {
+	
+		  # see if this is actually a PfamB...
+	 	  if( $2 eq 'B' ) {
+		 		$c->log->debug( "Family::begin: looks like a PfamB; retrieving" );
+				$c->stash->{entryType} = "B";
+				$c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
+				$c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
 		
-	  }
-
-	}
+	 	  } else {
+	
+				# no; must be a PfamA
+				$c->log->debug( "Family::begin: family is a PfamA" );
+				$c->stash->{entryType} = "A";
+				$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+				$c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
+				$c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
+				  if defined $c->req->param( "alnType" );
+				
+		  }
+	
+		}
 
   } elsif( defined $c->req->param("id") ) {
 
-	$c->req->param("id") =~ /^([\w_-]+)$/;
-	$c->log->info( "Family::begin: found ID |$1|" );
-
-	$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
-	  if defined $1;
-
-	$c->stash->{entryType} = "A";
-	$c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
-	$c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
-	  if defined $c->req->param( "alnType" );
+		$c->req->param("id") =~ /^([\w_-]+)$/;
+		$c->log->info( "Family::begin: found ID |$1|" );
+	
+		$c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
+		  if defined $1;
+	
+		$c->stash->{entryType} = "A";
+		$c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
+		$c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
+		  if defined $c->req->param( "alnType" );
 	
   }	elsif( defined $c->req->param( "entry" ) ) {
 
-	if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5})$/i ) {
-
-	  # looks like an accession; redirect to this action, appending the accession
-	  $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting" );
-	  $c->res->redirect( $c->uri_for( "/family", { acc => $1 } ) );
-	  return 1;
-
-	} elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
-
-	  # looks like an ID; redirect to this action, appending the ID
-	  $c->log->debug( "Family::begin: might be a Pfam ID; redirecting" );
-	  $c->res->redirect( $c->uri_for( "/family", { id => $1 } ) );
-	  return 1;
-	}
+		if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5})$/i ) {
+	
+		  # looks like an accession; redirect to this action, appending the accession
+		  $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting" );
+		  $c->res->redirect( $c->uri_for( "/family", { acc => $1 } ) );
+		  return 1;
+	
+		} elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
+	
+		  # looks like an ID; redirect to this action, appending the ID
+		  $c->log->debug( "Family::begin: might be a Pfam ID; redirecting" );
+		  $c->res->redirect( $c->uri_for( "/family", { id => $1 } ) );
+		  return 1;
+		}
 
   }
 
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfam} ) {
 
-	# de-taint the accession or ID
-	my $input = $c->req->param("acc")
-	  || $c->req->param("id")
-	  || $c->req->param("entry")
-	  || "";
-	$input =~ s/^(\w+)/$1/;
+		# de-taint the accession or ID
+		my $input = $c->req->param("acc")
+		  || $c->req->param("id")
+		  || $c->req->param("entry")
+		  || "";
+		$input =~ s/^(\w+)/$1/;
+	
+		# see if this was an internal link and, if so, report it
+		my $b = $c->req->base;
+		if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
+	
+		  # this means that the link that got us here was somewhere within
+		  # the Pfam site and that the accession or ID which it specified
+		  # doesn't actually exist in the DB
+	
+		  # report the error as a broken internal link
+		  $c->error( "Found a broken internal link; no valid Pfam family accession or ID "
+					 . "(\"$input\") in \"" . $c->req->referer . "\"" );
+		  $c->forward( "/reportError" );
+	
+		  # now reset the errors array so that we can add the message for
+		  # public consumption
+		  $c->clear_errors;
+	
+		}
 
-	# see if this was an internal link and, if so, report it
-	my $b = $c->req->base;
-	if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
-
-	  # this means that the link that got us here was somewhere within
-	  # the Pfam site and that the accession or ID which it specified
-	  # doesn't actually exist in the DB
-
-	  # report the error as a broken internal link
-	  $c->error( "Found a broken internal link; no valid Pfam family accession or ID "
-				 . "(\"$input\") in \"" . $c->req->referer . "\"" );
-	  $c->forward( "/reportError" );
-
-	  # now reset the errors array so that we can add the message for
-	  # public consumption
-	  $c->clear_errors;
-
-	}
-
-	# the message that we'll show to the user
-	$c->stash->{errorMsg} = "No valid Pfam family accession or ID";
-
-	# log a warning and we're done; drop out to the end method which
-	# will put up the standard error page
-	$c->log->warn( "Family::begin: no valid Pfam family ID or accession" );
-
-	return;
+		# the message that we'll show to the user
+		$c->stash->{errorMsg} = "No valid Pfam family accession or ID";
+	
+		# log a warning and we're done; drop out to the end method which
+		# will put up the standard error page
+		$c->log->warn( "Family::begin: no valid Pfam family ID or accession" );
+	
+		return;
   }
 
   $c->log->debug( "Family::begin: successfully retrieved a pfam object" );
@@ -161,15 +161,34 @@ sub begin : Private {
 
   if( $c->stash->{entryType} eq "A" ) {
 
-	# add the clan details, if any
-	$c->stash->{clan} = $c->model("PfamDB::Clans")
-	  ->find( { clan_acc => $c->stash->{pfam}->clan_acc } )
-		if defined $c->stash->{pfam}->clan_acc;
+		# add the clan details, if any
+		$c->stash->{clan} = $c->model("PfamDB::Clans")
+		  ->find( { clan_acc => $c->stash->{pfam}->clan_acc } )
+			if defined $c->stash->{pfam}->clan_acc;
+			
+		# if this request originates at the top level of the object hierarchy,
+		# i.e. if it's a call on the "default" method of the Family object,
+		# then we'll need to do a few extra things. If it originates from a 
+		# sub-class of Family, we don't need, for example, to increment our
+		# count of views of the family
+		
+  	if( ref $this eq "PfamWeb::Controller::Family" ) {
+        
+			# add extra data to the stash
+			$c->forward( "_getSummaryData" );
+			$c->forward( "_getDbXrefs" );
+	
+			# increment the "view count" for the family
 
-	# add extra data to the stash
-	$c->forward( "_getSummaryData" );
-	$c->forward( "_getDbXrefs" );
+			# first, retrieve or create a row in the Family_count table
+			my $counter = $c->model("WebUser::Family_count")
+											->find_or_create( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+																					pfamA_id   => $c->stash->{pfam}->pfamA_id,
+																					pfamA_acc  => $c->stash->{pfam}->pfamA_acc } );
 
+			# having now got hold of a row object, increment the count
+			$counter->update( { view_count => $counter->view_count + 1 } );
+	  }
   }
 
 }
@@ -185,9 +204,6 @@ sub _getSummaryData : Private {
 
   my %summaryData;
 
-  # make things easier by getting hold of the auto_pfamA
-  my $auto_pfamA = $c->stash->{pfam}->auto_pfamA;
-
   # number of architectures....
   $summaryData{numArchitectures} = $c->stash->{pfam}->number_archs;
 
@@ -201,6 +217,7 @@ sub _getSummaryData : Private {
   $summaryData{numSpecies} = $c->stash->{pfam}->number_species;
 
   # number of interactions
+  #my $auto_pfamA = $c->stash->{pfam}->auto_pfamA;
   #$rs = $c->model("PfamDB::Int_pfamAs")->find({ auto_pfamA_A => $auto_pfamA },
 	#{ select => [
 	#			 { count => "auto_pfamA_A" }
@@ -328,12 +345,13 @@ sub _getDbXrefs : Private {
 }
 
 #-------------------------------------------------------------------------------
+# retrieves the mapping between Pfam, UniProt and PDB residues
+
 sub _getMapping : Private {
   my( $this, $c ) = @_;
 
   my $region = ($c->stash->{entryType} eq "A") ? "1" : "0";
   my $auto_pfam = ($c->stash->{entryType} eq "A") ? $c->stash->{pfam}->auto_pfamA : $c->stash->{pfam}->auto_pfamB;
-  $c->log->debug("_getMapping, $region, $auto_pfam");
 
   my @mapping = $c->model("PfamDB::PdbMap")
     ->search( { auto_pfam => $auto_pfam,
@@ -345,6 +363,7 @@ sub _getMapping : Private {
   $c->stash->{pfamMaps} = \@mapping;
 }
 #-------------------------------------------------------------------------------
+
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
