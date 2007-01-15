@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.26 2006-12-07 10:58:36 jt6 Exp $
+// $Id: pfFunctions.js,v 1.27 2007-01-15 15:45:44 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -38,10 +38,10 @@ window.name = "pfamParentWin";
 // file because it's used in a couple of places
 
 // store the currently highlighted cells in a global
-var highlightedCells = new Array();
+var highlightedCells = [];
 
 // define the object
-var highlight = new Object();
+var highlight = {};
 
 //----------------------------------------
 
@@ -168,7 +168,7 @@ highlight.mouseoutHandler = function( e ) {
 
 // show the selected tab
 function chooseTab() {
-
+  // console.debug( "pfFunctions.js:chooseTab" );
   // see if the showTab variable points to tab that actually exists in
   // the page
   if( $(showTab) ) {
@@ -205,6 +205,7 @@ function chooseTab() {
 // display the specified tab in the page body
 
 function show( id ) {
+    // console.debug( "pfFunctions.js:show: selecting block \"" + id + "\"" );
 
   // show/hide the blocks themselves
   $$("#content div.block").each( function( block ) {
@@ -225,7 +226,9 @@ function show( id ) {
 						  } );
 
   // set a cookie to show the preference
+  // console.debug( "pfFunctions.js:show: creating a cookie..." );
   createCookie( "lastTab", id, "1d", serverRoot + "/" + section );
+  // console.debug( "pfFunctions.js:show: done creating a cookie" );
 
 }
 
@@ -573,9 +576,11 @@ function popUp( strURL, strType, strHeight, strWidth, strName ) {
 // specified, it defaults to minutes, so "10" is equivalent to "10m"
 
 function createCookie( name, value, time, path ) {
-  var expires = "";
+
+    console.debug( "pfFunctions.js:createCookie: creating a cookie: |%s|%s|%s|%s|", name, value, time, path );
 
   // was there a time specified ?
+  var expires = "";
   if( time ) {
 
 	try {
@@ -619,8 +624,13 @@ function createCookie( name, value, time, path ) {
   path = (path) ? path : "/";
 
   // add the cookie
-  document.cookie = name + "=" + value + expires + "; path=" + path;
-
+  var cookieBody = name + "=" + value + expires + "; path=" + path;
+  console.debug( "pfFunctions.js:createCookie: cookie body: |" + cookieBody + "|" );
+    try {
+	document.cookie = cookieBody;
+    } catch(e) {
+        // console.error( "pfFunctions.js:createCookie: couldn't create cookie: " + e );
+    }
 }
 
 //----------------------------------------
