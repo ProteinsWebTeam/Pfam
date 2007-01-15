@@ -1,0 +1,24 @@
+[%
+# news.tt
+# jt6 20061210 WTSI
+# 
+# build the Pfam news page
+#
+# $Id: news.tt,v 1.1 2007-01-15 16:26:32 jt6 Exp $
+
+META title = "Pfam news";
+
+META fullPage = 1
+%]
+
+<h1>Pfam news</h1>
+
+[% FOREACH item IN newsItems %]
+	[% NEXT UNLESS item.live %]
+	<div class="jumpBox">
+		<h2><a name="[% item.auto_news %]">[% item.title %]</a></h2>
+		<h3>[% item.summary %]</h3>
+		<p>[% item.description %]</p>
+		<p class="small">Added [% item.pubDate %]</p>
+	</div>
+[% END %]
