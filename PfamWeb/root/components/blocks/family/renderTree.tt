@@ -4,7 +4,7 @@ META naked = 1;
 USE dumper;
 
 BLOCK walkTree;
-
+    
 	IF tree.branches;
 
 		FOREACH node_name IN tree.branches.keys;
@@ -50,7 +50,7 @@ END; # BLOCK walkTree
 INCLUDE walkTree tree=rawTree parent="root"
 -%]
 
-var dd = new Array();
+var dd = [];
 
 dd[dd.length] = '<form>';
 dd[dd.length] = 'Expand to depth ';
