@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.10 2006-11-02 11:02:55 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.11 2007-01-15 15:10:45 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.10 2006-11-02 11:02:55 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.11 2007-01-15 15:10:45 jt6 Exp $
 
 =cut
 
@@ -54,15 +54,14 @@ sub auto : Private {
 
 =head2 renderTree : Path
 
-Captures URLs like C<http://localhost:3000/family/speciestree?acc=PF00067>
+Just hands off to the template which generates the javascript that will build
+the tree objects on the client.
 
 =cut
 
 sub renderTree : Path {
   my( $this, $c ) = @_;
 
-  # point to the template that will generate the javascript that
-  # builds the tree in the client
   $c->stash->{template} = "components/blocks/family/renderTree.tt";
 }
 
@@ -112,6 +111,7 @@ sub getTree : Private {
 								 { join              => [ qw/ pfamA pfamseq /],
 								   prefetch          => [ qw/pfamseq/] }
 								);
+								
   #Hash the seed info
   my %seedSeqs;
   foreach my $seedRegion( @resultsSeed){
