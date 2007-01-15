@@ -1,14 +1,15 @@
-# Clan.pm
+
+# StructureTab.pm
 # jt6 20060411 WTSI
 #
 # Controller to build the Pfam family structure tab.
 #
-# $Id: StructureTab.pm,v 1.1 2006-11-15 11:06:23 rdf Exp $
+# $Id: StructureTab.pm,v 1.2 2007-01-15 15:11:10 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Family::StructureTab - controller for family-related
-sections of the site
+PfamWeb::Controller::Family::StructureTab - controller for the 
+structure tab of the family pages.
 
 =cut
 
@@ -16,14 +17,11 @@ package PfamWeb::Controller::Family::StructureTab;
 
 =head1 DESCRIPTION
 
-This is intended to be the base class for everything related to family
-across the site. The L<begin|/"begin : Private"> method will try to
-extract a clan ID or accession from the captured URL and then try to
-load a family object from the model into the stash.
+This controller retrieves the mapping between Pfam, UniProt and PDB
+residues and hands off to a template that constructs the "structure"
+tab of the family section.
 
-Generates a B<tabbed page>.
-
-$Id: StructureTab.pm,v 1.1 2006-11-15 11:06:23 rdf Exp $
+$Id: StructureTab.pm,v 1.2 2007-01-15 15:11:10 jt6 Exp $
 
 =cut
 
@@ -36,7 +34,17 @@ use base "PfamWeb::Controller::Family";
 
 #-------------------------------------------------------------------------------
 
-sub structureTab : Path {
+=head1 METHODS
+
+=head2 default : Path
+
+Populates the stash with the mapping and hands off to the appropriate template.
+Relies on the C<begin> method from the base class (Family) to get the Pfam 
+accession, etc.
+
+=cut
+
+sub default : Path {
   my($this, $c) = @_;
 
   $c->log->debug( "Family::StructureTab::structureTab: acc: |"
