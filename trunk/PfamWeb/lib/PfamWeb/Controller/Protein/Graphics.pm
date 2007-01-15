@@ -2,14 +2,30 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# Controller to build a set of graphics for a given UniProt entry.
-#
-# $Id: Graphics.pm,v 1.14 2006-11-13 16:12:50 jt6 Exp $
+# $Id: Graphics.pm,v 1.15 2007-01-15 15:21:44 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Protein::Graphics - controller to build a set of graphics
+for a given UniProt entry.
+
+=cut
 
 package PfamWeb::Controller::Protein::Graphics;
 
+=head1 DESCRIPTION
+
+This controller generates the graphics for the features that can be
+overlaid on a given UniProt sequence. The features are obtained from
+DAS sources, specified by the user.
+
+$Id: Graphics.pm,v 1.15 2007-01-15 15:21:44 jt6 Exp $
+
+=cut
+
 use strict;
 use warnings;
+
 use Data::Dumper;
 use Storable qw(thaw);
 use Time::HiRes qw( gettimeofday );
@@ -22,12 +38,17 @@ use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 use base "PfamWeb::Controller::Protein";
 
 #-------------------------------------------------------------------------------
-# do something with the list of DAS sources that were specified by the
-# user through the list of checkboxes
 
-# pick up a URL like http://localhost:3000/protein/graphics?acc=P00179
+=head1 METHODS
 
-sub updateSources : Path {
+=head2 updateSources : Path
+
+Generates graphics for the list of DAS sources that were specified by the
+user through the list of checkboxes
+
+=cut
+
+sub default : Path {
   my( $this, $c ) = @_;
 
   $c->log->debug( "Protein::Graphics::updateSources: listing parameters:" );
@@ -54,10 +75,10 @@ sub updateSources : Path {
   foreach my $image ( $c->stash->{pfamImageset}->each_image ) {
 	$image->image_name( $image->image_name . "0" );
 	$image->print_image;
-	push @pfam, { image => $image->file_location,
-				  map   => $image->image_map,
-				  server=> "Pfam",
-				  info  => $image->image_info };
+	push @pfam,	{ image  => $image->file_location,
+				  map    => $image->image_map,
+				  server => "Pfam",
+				  info   => $image->image_info };
   }
 
   # if we do get a sequence, we can now add the user-specified sources
@@ -84,14 +105,14 @@ sub updateSources : Path {
   my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
   my $success = $layout->layout_DAS_sequences_and_features( $sequence, $features );
 
-  if($success){
+  if($success) {
  	my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
  	$imageset->create_images( $layout->layout_to_XMLDOM );
 
  	# process the generated images and convert the URL that comes back
  	# from the layout manager into a simple label, via our database
  	# table of server information
- 	my $i = 1; # start at 1 because the Pfam graphic is 0
+ 	my $i = 1;					# start at 1 because the Pfam graphic is 0
 
  	my ($pfamRef);
  	foreach my $image ( $imageset->each_image ) {
@@ -104,30 +125,35 @@ sub updateSources : Path {
  	  $image->image_name( $image->image_name . $i++ );
  	  $image->print_image;
  	  $serverName = ( defined $server ) ? $server->name : "unknown";
- 	  push @{ $maps{$serverName} }, { image => $image->file_location,
- 									  map   => $image->image_map,
- 									  server=> $serverName,
- 									  info  => $image->image_info };
+ 	  push @{ $maps{$serverName} }, { image  => $image->file_location,
+ 									  map    => $image->image_map,
+ 									  server => $serverName,
+ 									  info   => $image->image_info };
  	}
-   }
+  }
 
-   # sort the maps according to server name
-   my @maps;
-   foreach ( sort keys %maps ) {
+  # sort the maps according to server name
+  my @maps;
+  foreach ( sort keys %maps ) {
  	push @maps, @{ $maps{$_} };
-   }
-   unshift @maps, @pfam;
+  }
+  unshift @maps, @pfam;
 
-   # stash the maps and we're done
-   $c->stash->{maps} = \@maps;
+  # stash the maps and we're done
+  $c->stash->{maps} = \@maps;
 
-   $c->log->debug( "Protein::Graphics::updateSources: generated "
-				   . scalar @{$c->stash->{maps}} . " images" );
+  $c->log->debug( "Protein::Graphics::updateSources: generated "
+				  . scalar @{$c->stash->{maps}} . " images" );
 }
 
 #-------------------------------------------------------------------------------
-# retrieve the list of servers from either the request (in the
-# parameters), the session or, finally, the database
+
+=head2 getServerList: Private
+
+Retrieves the list of servers from either the request (in the parameters), 
+the session or, finally, the database
+
+=cut
 
 sub getServerList : Private {
   my( $this, $c, $dsnList ) = @_;
@@ -139,8 +165,8 @@ sub getServerList : Private {
   # first, see if there's a list in the request parameters
   if( $c->req->param( "reload" ) ) {
 
-	$c->log->debug( "Protein::Graphics::getServerList: getting DAS server IDs from request" );
-	foreach ( sort keys %{$c->req->parameters} ) {
+    $c->log->debug( "Protein::Graphics::getServerList: getting DAS server IDs from request");
+    foreach ( sort keys %{$c->req->parameters} ) {
 
 	  # we want only the server IDs
 	  next unless /^(DS_\d+)$/ and $c->req->param( $_ ) eq "on";
@@ -152,32 +178,32 @@ sub getServerList : Private {
 		$servers{$1} = 1;
 		$c->log->debug( "Protein::Graphics::getServerList:   extracted $1" );
 	  }
-	}
+    }
 
-  # next, see if there's a list of servers set in the session
+    # next, see if there's a list of servers set in the session
   } elsif( $c->session->{selectedDASServers} ) {
 
- 	$c->log->debug( "Protein::Graphics::getServerList: getting server IDs from session" );
+    $c->log->debug( "Protein::Graphics::getServerList: getting server IDs from session" );
 
- 	foreach ( keys %{$c->session->{selectedDASServers}} ) {
- 	  my $ds = $c->model("WebUser::Das_sources")->find( { server_id => $_ } );
- 	  $c->log->debug( "Protein::Graphics::getServerList:   extracted $_" );
- 	  push @$dsnList, $ds->url if defined $ds;
- 	}
+    foreach ( keys %{$c->session->{selectedDASServers}} ) {
+	  my $ds = $c->model("WebUser::Das_sources")->find( { server_id => $_ } );
+	  $c->log->debug( "Protein::Graphics::getServerList:   extracted $_" );
+	  push @$dsnList, $ds->url if defined $ds;
+    }
 
   } else {
 
-	# finally, if we don't have a list of servers from either the
-	# session or the request, get the default list from the DB
-	$c->log->debug( "Protein::Graphics::getServerList: getting server IDs from database" );
-	my @defaultServers = $c->model("WebUser::Das_sources")->search( { default_server => 1 } );
- 	foreach ( @defaultServers ) {
+    # finally, if we don't have a list of servers from either the
+    # session or the request, get the default list from the DB
+    $c->log->debug( "Protein::Graphics::getServerList: getting server IDs from database" );
+    my @defaultServers = $c->model("WebUser::Das_sources")->search( { default_server => 1 } );
+    foreach ( @defaultServers ) {
 	  push @$dsnList, $_->url;
- 	  $servers{$_->server_id} = 1;
+	  $servers{$_->server_id} = 1;
 	  $c->log->debug( "Protein::Graphics::getServerList:   extracted " . $_->server_id );
- 	}
+    }
 
-   }
+  }
 
   # store the list of selected servers in the session
   $c->session->{selectedDASServers} = \%servers if scalar keys %servers;
@@ -191,5 +217,17 @@ sub getServerList : Private {
 
 #-------------------------------------------------------------------------------
 
-1;
+=head1 AUTHOR
 
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+  1;
