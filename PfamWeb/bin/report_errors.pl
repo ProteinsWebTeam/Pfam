@@ -6,18 +6,18 @@
 use strict;
 use warnings;
 
-use lib qw( /nfs/team71/pfam/jt6/server/PfamWeb/lib );
+use lib qw( /nfs/team71/pfam/jt6/server/PfamWeb/lib 
+			/nfs/team71/pfam/jt6/server/PfamSchemata );
 
 use DateTime;
-
-use PfamWeb::Schema::WebUser;
+use WebUser;
 
 my $dsn  = "dbi:mysql:web_user:pfam:3306";
 my $user = "web_user";
 my $pass = "web_user";
 my %dbiParams = ();
 
-my $schema = PfamWeb::Schema::WebUser->connect( $dsn, $user, $pass, \%dbiParams);
+my $schema = WebUser->connect( $dsn, $user, $pass, \%dbiParams);
 
 my $rs = $schema->resultset( "ErrorLog" );
 
