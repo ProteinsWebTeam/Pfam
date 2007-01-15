@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.19 2006-10-03 15:44:10 jt6 Exp $
+   $Id: tab_layout.css,v 1.20 2007-01-15 15:35:59 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -87,12 +87,10 @@
     font-style: normal;
 }
 
-/* the logos for the overview */
-#seqIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/alignment.png) }
-#archIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/domains.png) }
-#structIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/structure.png) }
-#ipfamIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/ipfam.png) }
-#specIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/tree.png) }
+/* fix the huge boxes in IE */
+form {
+  display: inline;
+}
 
 /* ======================================== */
 /* components of the remainder of the page */
@@ -116,6 +114,16 @@
   float: left;
   padding: 0.4em 0;
   position: relative; /* needed to fix the IE peekaboo bug... */
+/* I'd like to use this to stop the sidebar collapsing too far and breaking
+   the "jump box" but it looks like it breaks the tab layout, at least in
+   FF2...
+   min-width: 150px;
+ */
+}
+
+/* this is specifically for the "jump box" title */
+#sidebar h1 {
+	color: #074987;
 }
 
 /* ---------------------------------------- */
@@ -180,8 +188,22 @@
   font-weight: bold;
 }
 
-#sidebar img {
+/*#sidebar img {
   padding: 0.4em 0.8em;
+}
+*/
+#sidebar #jumpBox {
+	margin: 1em 0 0 0.4em;
+}
+
+#sidebar #entry {
+	width: 80px;
+}
+
+#sidebar h1 {
+	margin: 0.4em 0;
+	font-size: large;
+	font-weight: bold;
 }
 
 .loading {
