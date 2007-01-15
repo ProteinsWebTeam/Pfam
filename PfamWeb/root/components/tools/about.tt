@@ -4,17 +4,17 @@
 # 
 # build an "about Pfam" page
 #
-# $Id: about.tt,v 1.3 2006-11-13 13:06:18 jt6 Exp $
+# $Id: about.tt,v 1.4 2007-01-15 16:04:07 jt6 Exp $
 
-# tell the wrapper not to add any header or footer. We'll generate a complete 
+# tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
 META naked = 1;
 
 # format the date nicely
 USE date( format = "%b %Y" );
-r = String.new( reldate );
+r = String.new( relData.pfam_release_date );
 
-d = reldate.match( '(\d+)\-(\d+)\-(\d+)' );
+d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
 
 release_date = String.new( "00:00:00 " );
 CALL release_date.append( d.2, ":", d.1, ":", d.0 );
@@ -24,8 +24,8 @@ title = "About the Pfam website";
 
 pageContent = BLOCK -%]
 
-<h2>Version [% version ? version : "20.0" %]</h2>
-<h3>Released [% reldate ? date.format( release_date ) : "May 2006" %]</h3>
+<h2>Version [% relData.pfam_release ? relData.pfam_release : "21.0" %]</h2>
+<h3>Released [% relData.pfam_release_date ? date.format( release_date ) : "Nov 2006" %]</h3>
 
 <p>
   The Pfam website is developed on linux and is tested during
@@ -42,7 +42,7 @@ pageContent = BLOCK -%]
   these browsers:
 </p>
 <ul>
-  <li>Firefox v1.5.0.7</li>
+  <li>Firefox v2.0</li>
   <li>Internet Explorer v6 and v7</li>
   <li>Safari v1.3.1</li>
 </ul>
