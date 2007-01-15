@@ -26,7 +26,7 @@
 USE String;
 
 MACRO addTip( section, tipId, elId ) BLOCK;
-  CALL c.log.debug( "inside \"addTip\": |$section|$tipId|$elId|" );
+  # CALL c.log.debug( "inside \"addTip\": |$section|$tipId|$elId|" );
   header = helpSystem.section.${section}.tip.${tipId}.header;
   body   = helpSystem.section.${section}.tip.${tipId}.body;
   IF header AND body;
@@ -37,7 +37,7 @@ MACRO addTip( section, tipId, elId ) BLOCK;
     "id=\"$contextId\"";
     END;
 
-    CALL c.log.debug( "contextId: |$contextId|" );
+    # CALL c.log.debug( "contextId: |$contextId|" );
 
     tips.$contextId = { section = section,
                         id      = tipId };
