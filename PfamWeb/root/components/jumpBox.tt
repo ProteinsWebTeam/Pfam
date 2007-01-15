@@ -1,0 +1,35 @@
+[%
+# jumpBox.tt
+# jt6 20061215 WTSI
+#
+# build a "jump box", consisting of a search field and submit button.
+#
+# $Id: jumpBox.tt,v 1.1 2007-01-15 15:55:03 jt6 Exp $
+
+META naked = 1;
+
+# decide if we want the long or short starting message in the field
+msg = short ? "enter ID/acc" : "enter an ID or accession";
+%]
+
+<!-- start of the jump box -->
+
+<div id="jumpBox" class="sidebarComponent">
+	<h1>
+		<span>Jump to...</span>
+		<a href="[% c.uri_for( "/help" ) %]">
+	 		<img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
+	</h1>
+	<form action="[% c.uri_for( "/search/jump" ) %]" method="get" name="jumpForm" id="jumpForm">
+		<input type="text" onfocus="if(!cleared){this.value='';cleared=true}" size="10" name="entry" id="entry" />
+	</form>
+	<script type="text/javascript">
+		$("entry").value = "[% msg %]";
+		var cleared = false;
+	</script>
+	<div onclick="if($F('entry')&amp;&amp;cleared)$('jumpForm').submit()"
+		 id="goButton">&nbsp;</div>
+	<div class="cleaner"><!-- empty --></div>
+</div>
+
+<!-- end of the jump box -->
