@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.5 2006-11-13 14:22:03 jt6 Exp $
+# $Id: Root.pm,v 1.6 2007-01-15 14:40:03 jt6 Exp $
 
 =head1 NAME
 
@@ -20,12 +20,13 @@ errors from within the site, an C<auto> action that handles tab
 selection for the whole site, and a default C<end> that renders the
 index page.
 
-$Id: Root.pm,v 1.5 2006-11-13 14:22:03 jt6 Exp $
+$Id: Root.pm,v 1.6 2007-01-15 14:40:03 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+use Data::Dump qw( dump );
 
 use base "Catalyst::Controller";
 
@@ -44,12 +45,10 @@ Drops straight to the site index page.
 
 =cut
 
-sub index : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "PfamWeb::index: generating site index" );
-
-}
+#sub index : Private {
+#	my( $this, $c ) = @_;
+#
+#}
 
 #-------------------------------------------------------------------------------
 
@@ -64,22 +63,38 @@ before that.
 sub default : Private {
   my( $this, $c ) = @_;
 
+  # retrieve the news items from the feed
+  my @entries = $c->model("WebUser::News")
+	->search( {}, { order_by => "pubDate DESC" } );
+  $c->stash->{newsItems} = \@entries;
+  $c->log->debug( "PfamWeb::index: found " . scalar @entries . " news items " );
+
+  # get the top-ten families
+  my @topTen = $c->model("WebUser::Family_count")
+	->search( {},
+			  { order_by => "view_count DESC" } );
+  $c->stash->{topTen} = \@topTen;
+
+  $c->log->debug("PfamWeb::index: generating site index");
+
   # record an error message, because we shouldn't error arrive here
   # unless via a broken link, missing page, etc.
 
   # first, figure out where the broken link was, internal or external
-  my $ref = ( defined $c->req->referer ) ? $c->req->referer : "";
-  my $where = ( $ref =~ /sanger/ ) ? "internal" : "external";
-
-  # record the error
-  $c->error("Found a broken $where link: \"" . $c->req->uri	. "\", referer: "
-			. ( $ref eq "" ? "unknown" : "\"" . $ref . "\"" ) );
-
-  # report it
-  $c->forward( "/reportError" );
-
-  # and clear the errors before we render the page
-  $c->clear_errors;
+  #	my $ref = ( defined $c->req->referer ) ? $c->req->referer : "";
+  #	my $where = ( $ref =~ /sanger/ ) ? "internal" : "external";
+  #
+  #	# record the error
+  #	$c->error(   "Found a broken $where link: \""
+  #						 . $c->req->uri
+  #						 . "\", referer: "
+  #						 . ( $ref eq "" ? "unknown" : "\"" . $ref . "\"" ) );
+  #
+  #	# report it
+  #	$c->forward("/reportError");
+  #
+  #	# and clear the errors before we render the page
+  #	$c->clear_errors;
 
 }
 
@@ -100,22 +115,54 @@ generally accessible throughout the app.
 sub auto : Private {
   my( $this, $c ) = @_;
 
+  #	return 1 if $c->controller eq $c->controller("Auth");
+  #
+  #  unless( $c->user_exists ) {
+  #    $c->log->debug( "Root::auto: unknown user; redirecting to login" );
+  #    $c->res->redirect( $c->uri_for( "/login" ) );
+  #		return 0;
+  #  }
+  #  $c->log->debug( "Root::auto: user authenticated" );
+
+  # if the URL doesn't end in a slash, tack one on
+  #	if( $c->req->path and $c->req->path !~ /\/$/ and not $c->req->param ) {
+  #		$c->log->debug( "Root::auto: appending a trailing slash to the URL: "
+  #										 . $c->req->path );
+  #		$c->res->redirect( "/" . $c->req->path . "/", 301);
+  #		return 0;
+  #	}
+
+  # pick a tab
   my $tab;
-  ( $tab ) = $c->req->param( "tab" ) =~ /^(\w+)$/
-	if defined $c->req->param( "tab" );
+  ($tab) = $c->req->param("tab") =~ /^(\w+)$/
+    if defined $c->req->param("tab");
 
   $c->stash->{showTab} = $1 if defined $tab;
 
   # stash some details of the Pfam release
-  my $row = $c->model("PfamDB::Version")->find( {} );
-  $c->stash->{version} = $row->pfam_release;
-  $c->stash->{reldate} = $row->pfam_release_date;
+  my $releaseData = $c->model("PfamDB::Version")->find( {} );
+  $c->stash->{relData} = $releaseData if $releaseData;
 
-#  $c->cache_page( expires  => "300",
-#				  auto_uri => [ "/*" ],
-#				  debug    => 1 );
+  #  $c->cache_page( expires  => "300",
+  #				  auto_uri => [ "/*" ],
+  #				  debug    => 1 );
 
   return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 graph : Local
+
+Generates a graph showing Pfam coverage.
+
+=cut
+
+sub graph : Local {
+  my( $this, $c ) = @_;
+
+  $c->res->header( "Content-Type" => "image/png" );
+  $c->stash->{template} = "components/graph.tt";
 }
 
 #-------------------------------------------------------------------------------
@@ -159,7 +206,7 @@ sub end : Private {
   my( $this, $c ) = @_;
 
   unless( $c->response->body ) {
-    $c->stash->{fullPage} = 1;
+	$c->stash->{fullPage} = 1;
 	$c->stash->{template} ||= "pages/index.tt";
 	$c->forward( "PfamWeb::View::TT" );
   }
@@ -181,4 +228,4 @@ it under the same terms as Perl itself.
 
 =cut
 
-1;
+  1;
