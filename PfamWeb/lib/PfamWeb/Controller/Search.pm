@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.7 2006-12-05 10:10:53 jt6 Exp $
+# $Id: Search.pm,v 1.8 2007-01-15 15:07:31 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.7 2006-12-05 10:10:53 jt6 Exp $
+$Id: Search.pm,v 1.8 2007-01-15 15:07:31 jt6 Exp $
 
 =cut
 
@@ -35,16 +35,16 @@ use base "PfamWeb::Controller::Section";
 
 =head1 METHODS
 
-=head2 begin : Private
+=head2 index : Private
 
-Extracts the query terms from the URL and de-taints them.
+Forwards immediately to the L<runSearches> action to run the text searches.
 
 =cut
 
-sub begin : Private {
+sub index : Private {
   my( $this, $c ) = @_;
 
-  # get the query
+  # get the query terms
   my $terms;
   ( $terms ) = $c->req->param( "query" ) =~ /^([\w\:\;\-\.\s]+)/;
 
@@ -58,29 +58,157 @@ sub begin : Private {
   # somewhere for the results of this search
   $c->stash->{results} = {};
 
+  # hand off to the method which will run the queries
+  $c->forward( "runSearches", [ "textSearches" ] );
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Private
+=head2 jump : Local
 
-Captures URLs like
-
-=over
-
-=item http://localhost:3000/search?query=accessory
-
-=back
-
-This method walks the list of text search plugins from the
-configuration and for each one it calls the following methods:
+Re-directs to one of the main page type controllers, such as Family, Clan, etc.,
+which can handle directly the entry ID or accession.
 
 =cut
 
-sub default : Private {
+sub jump : Local {
   my( $this, $c ) = @_;
 
-  $c->forward( "runSearches", [ "textSearches" ] );
+  # de-taint the entry ID or accession
+  my $entry;
+  ( $entry ) = $c->req->param("entry") =~ /^([\w\-_]+)/;
+  $c->log->debug( "Search::jump: called with entry |$entry|" );
+
+  # bail immediately if there's no entry given
+  $c->res->redirect( $c->req->referer ) unless $entry;
+
+  # de-taint the ID type
+  my $entryType;
+  ( $entryType ) = $c->req->param("type") =~ /^(\w+)/;
+  $c->log->debug( "Search::jump: called on entry type |$entryType|" );
+
+  # if there's no recognisable entry type specified but there is an entry
+  # specified, try guessing the entry type
+  unless( defined $this->{jumpTargets}->{$entryType} ) {
+    $c->log->debug( "Search::jump: no valid entry type specified; guessing instead" );
+    $c->detach( "guess", [ $entry ] );
+  }
+
+  # finally, if we get to here we should have both an entry to jump to and an
+  # entry type, so we'll just redirect to the appropriate action
+
+  # look up the action for a particular entry type. This is so that we can't be
+  # directed to some arbitrary action by a user who alters the form parameters
+  my $action = "/" . $this->{jumpTargets}->{$entryType};
+
+  $c->log->debug( "Search::jump: forwarding to |$action|" );
+  $c->res->redirect( $c->uri_for( "/$action", { entry => $entry } ) )
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 guess : Private
+
+Tries to guess what kind of entity is referred to by the argument. It's assumed
+that the entry is already de-tainted before it's passed in here.
+
+=cut
+
+sub guess : Private {
+  my( $this, $c, $entry ) = @_;
+
+  $c->log->debug( "Search::guess: called with entry |$entry|" );
+
+  # see if we can figure out what kind if ID or accession we've been handed
+  my( $action, $found );	
+
+  if( $entry =~ /^(P([FB])\d{5,6})$/i ) {
+    # first, see if it's a Pfam family
+
+    if( $2 eq "F" ) {
+	  $found = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+    } elsif ( $2 eq "B" ) {
+	  $found = $c->model("PfamDB::Pfam")->find( { pfamB_acc => $1 } );			
+    }
+	
+    if( defined $found ) {
+	  $c->log->debug( "Search::guess: found a Pfam family (from accession)" );
+	  $action = "family";						
+    }
+	
+  } elsif( $entry =~ /^(CL\d{4})$/i ) {
+    # next, could it be a clan ?
+
+    $found = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } );
+
+    if( $found ) {
+	  $c->log->debug( "Search::guess: found a clan" );
+	  $action = "clan";
+    }
+	
+  } elsif( $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)$/i ) {
+    # how about a sequence entry ?
+	
+    $found = $c->model("PfamDB::Pfamseq")->find( { pfamseq_acc => $1 } );
+	
+    if( defined $found ) {
+	  $c->log->debug( "Search::guess: found a sequence entry" );
+	  $action = "protein";
+    } else {
+	  # see if it's a secondary accession
+	  $found = $c->model("PfamDB::Secondary_pfamseq_acc")
+		->find( { secondary_acc => $1 },
+				{ join =>     [ qw/pfamseq/ ],
+				  prefetch => [ qw/pfamseq/ ] } );
+	  if ( defined $found ) {
+		$c->log->debug( "Search::guess: found a secondary sequence entry" );
+		$action = "protein";
+	  }
+    }
+  } elsif( $entry =~ /^([A-Z0-9]+\_[A-Z0-9]+)$/i ) {
+    # see if it's a protein sequence ID (e.g. CANX_CHICK)
+	
+    $found = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $1 } );
+	
+    if( $found ) {
+	  $c->log->debug( "Search::guess: found a sequence entry (from ID)" );
+	  $action = "protein";
+    }
+	
+  } elsif( $entry =~ /^([0-9][A-Za-z0-9]{3})$/ ) {
+    # maybe a structure ?
+	
+    $found = $c->model("PfamDB::Pdb")->find( { pdb_id => $1 } );
+	
+    if( defined $found ) {
+	  $c->log->debug( "Search::guess: found a structure" );
+	  $action = "structure";
+    }
+	
+  } else {
+    # finally, see if it's a Pfam family ID or a clan ID
+	
+    # a Pfam family ID ?		
+    $found = $c->model("PfamDB::Pfam")->find( { pfamA_id => $entry } );
+	
+    if( $found ) {
+	  $c->log->debug( "Search::guess: found a Pfam family (from ID)" );
+	  $action = "family";
+    } else {
+	  $found = $c->model("PfamDB::Clans")->find( { clan_id => $entry } );
+	  if( $found ) {
+		$c->log->debug( "Search::guess: found a clan (from ID)" );
+		$action = "clan";
+	  }
+    }
+
+  }
+
+  if( defined $found ) {
+    $c->res->redirect( $c->uri_for( "/$action", { entry => $entry } ) );
+  } else {
+    $c->res->redirect( $c->req->referer );
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -126,22 +254,22 @@ sub runSearches : Private {
   $c->log->debug( "Search::default: caught a URL; running a search" );
 
   $c->error( "You did not supply any valid search terms" )
-	unless $c->stash->{rawQueryTerms};
+    unless $c->stash->{rawQueryTerms};
 
   my( @plugins, @pluginsReversed, $pluginName, $pluginDesc );
 
   # get the list of text search plugins from the configuration
   foreach my $pluginName ( @{ $this->{searchSets}->{$searchSet} } ) {
 
-	next unless( $pluginDesc = $this->{plugins}->{$pluginName} );
+    next unless( $pluginDesc = $this->{plugins}->{$pluginName} );
 
-	# keep track of the order of the configured plugins. Store the
-	# list forwards and backwards, since we'll use it both ways
-	push    @plugins,         $pluginName;
-	unshift @pluginsReversed, $pluginName;
+    # keep track of the order of the configured plugins. Store the
+    # list forwards and backwards, since we'll use it both ways
+    push    @plugins,         $pluginName;
+    unshift @pluginsReversed, $pluginName;
 
-	# and drop them into a hash too, for easy look-up
-	$c->stash->{pluginsHash}->{$pluginName} = $pluginDesc;
+    # and drop them into a hash too, for easy look-up
+    $c->stash->{pluginsHash}->{$pluginName} = $pluginDesc;
   }
 
   # store the (reversed) list of query names
@@ -159,17 +287,17 @@ sub runSearches : Private {
 
   # walk the plugins and run each query in turn
   foreach my $plugin ( $this->plugins ) {
-	my $pluginName = ( split /\:\:/, $plugin )[-1];
+    my $pluginName = ( split /\:\:/, $plugin )[-1];
 
-	# check that the plugin is properly formed and is enabled
-	next unless $plugin->can( "process" );
+    # check that the plugin is properly formed and is enabled
+    next unless $plugin->can( "process" );
 
-	# and run the query
-	$c->log->debug( "Search::default: running query for plugin $pluginName" );
-	my $results = $c->forward( $plugin );
+    # and run the query
+    $c->log->debug( "Search::default: running query for plugin $pluginName" );
+    my $results = $c->forward( $plugin );
 
-	# merge results from the individual query
-	$c->forward( "mergeResults", [ $pluginName, $results ] );
+    # merge results from the individual query
+    $c->forward( "mergeResults", [ $pluginName, $results ] );
 
   }
 
@@ -182,8 +310,8 @@ sub runSearches : Private {
   # if there are no results, redirect to the error page
   my $numHits = scalar keys %{$c->stash->{results}};
   if( $numHits < 1 ) {
-	$c->stash->{template} = "pages/searchError.tt";
-	return 0;
+    $c->stash->{template} = "pages/searchError.tt";
+    return 0;
   }
 
   #----------------------------------------
@@ -191,10 +319,10 @@ sub runSearches : Private {
   # if there's only one result, redirect straight to it
 
   if( $numHits == 1 ) {
-	my( $acc ) = keys %{$c->stash->{results}};
-	$c->log->debug( "Search::default: found a single hit: |$acc|; redirecting" );
-	$c->res->redirect( $c->uri_for( "/family", { acc => $acc } ) );
-	return 1;
+    my( $acc ) = keys %{$c->stash->{results}};
+    $c->log->debug( "Search::default: found a single hit: |$acc|; redirecting" );
+    $c->res->redirect( $c->uri_for( "/family", { acc => $acc } ) );
+    return 1;
   }
 
   #----------------------------------------
@@ -205,7 +333,7 @@ sub runSearches : Private {
   foreach my $acc ( sort { $results->{$b}->{score} <=> $results->{$a}->{score}
 							 || $a cmp $b }
 					keys %{$c->stash->{results}} ) {
-	push @results, $c->stash->{results}->{$acc};
+    push @results, $c->stash->{results}->{$acc};
   }
 
   $c->stash->{results} = \@results;
@@ -218,18 +346,15 @@ sub runSearches : Private {
   # first, check if there are multiple "words" in the query term,
   # because if there are, this can't be a unique ID or accession
   unless( $c->stash->{rawQueryTerms} =~ /![A-Za-z0-9_-]/ ) {
+
+    my $rs = $c->model("PfamDB::Pfam")
+	  ->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
+				  { pfamA_id  => $c->stash->{rawQueryTerms} } ]	);
 	
-	my $rs = $c->model("PfamDB::Pfam")->search(
-											   [
-												{ pfamA_acc => $c->stash->{rawQueryTerms} },
-												{ pfamA_id  => $c->stash->{rawQueryTerms} }
-											   ]
-											  );
-	
-	# we're going to assume that there's only one hit here... we're in
-	# trouble if there's more than one, certainly
-	my $hit = $rs->next;
-	$c->stash->{lookupHit} = $hit if $hit;
+    # we're going to assume that there's only one hit here... we're in
+    # trouble if there's more than one, certainly
+    my $hit = $rs->next;
+    $c->stash->{lookupHit} = $hit if $hit;
 
   }
 
@@ -258,7 +383,7 @@ sub formatTerms : Private {
   my( $this, $c ) = @_;
 
   $c->stash->{terms} =
-	join " ", map { $_ = "+$_*" } split /\s+|\W|\:|\-|\_/, $c->stash->{rawQueryTerms};
+    join " ", map { $_ = "+$_*" } split /\s+|\W|\:|\-|\_/, $c->stash->{rawQueryTerms};
 
 }
 
@@ -277,11 +402,11 @@ sub mergeResults : Private {
   my( $this, $c, $pluginName, $results ) = @_;
 
   if( ref $results eq "ARRAY" ) {
-	foreach my $rs ( @$results ) {
+    foreach my $rs ( @$results ) {
 	  $c->forward( "_mergeResults", [ $pluginName, $rs ] );
-	}
+    }
   } else {
-	$c->forward( "_mergeResults", [ $pluginName, $results ] );
+    $c->forward( "_mergeResults", [ $pluginName, $results ] );
   }
 }
 
@@ -295,17 +420,17 @@ sub _mergeResults : Private {
   # walk the query results and merge them into the overall results
   my( $acc, $row );
   while( my $dbObj = $rs->next ) {
-	$acc = $dbObj->pfamA_acc;
+    $acc = $dbObj->pfamA_acc;
 
-	$row = $c->stash->{results}->{$acc} ||= {};
+    $row = $c->stash->{results}->{$acc} ||= {};
 
-	$row->{dbObj} = $dbObj;
+    $row->{dbObj} = $dbObj;
     $row->{query}->{$pluginName} = 1;
 
-	$c->stash->{pluginHits}->{$pluginName} += 1;
+    $c->stash->{pluginHits}->{$pluginName} += 1;
 
-	# score this hit
-	$this->_computeScore( $c, $row );
+    # score this hit
+    $this->_computeScore( $c, $row );
   }
 }
 
@@ -335,8 +460,8 @@ sub _computeScore {
   my $score = 0;
   my $factor = 1;
   foreach my $pluginName ( @{ $c->stash->{pluginsArrayReversed} } ) {
-	$score  += $factor if $row->{query}->{$pluginName};
-	$factor *= 2;
+    $score  += $factor if $row->{query}->{$pluginName};
+    $factor *= 2;
   }
   $row->{score} = $score;
 }
