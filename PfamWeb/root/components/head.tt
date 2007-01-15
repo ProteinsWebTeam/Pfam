@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.15 2006-12-07 11:00:54 jt6 Exp $
+# $Id: head.tt,v 1.16 2007-01-15 15:51:26 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -14,7 +14,7 @@
 <!-- ====================================================================== -->
 <!-- make the site RSS feed discoverable --> 
 
-<link href="/rss/pfam_rss_feed.rdf" 
+<link href="[% c.uri_for( "/rss/pfam.rdf" ) %]" 
       rel="alternate"
       type="application/rss+xml"
       title="Pfam News" />
@@ -56,10 +56,30 @@ IF layouts.${pageType}.css.ie;
 <link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
 
 <!-- ====================================================================== -->
-<!-- sortable tables -->
-<script type="text/javascript" src="[% c.uri_for("/javascripts/sorttable.js" ) %]"></script>
 
-<!-- ====================================================================== -->
+[% # see if we can use compressed javascript sources
+IF constants.PRODUCTION;
+CALL c.log.info( "head.tt: loading PRODUCTION versions of javascript files " ) -%]
+
+<!-- load the compressed and merged javascript sources -->
+
+<!-- YAHOO modules and an associated stylesheet -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/yahoo.compressed.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/yuiTweak.js" ) %]"></script>
+<link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
+
+<!-- prototype and scriptaculous -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.compressed.js" ) %]"></script>
+
+<!-- local javascript -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/pf.compressed.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/family.js" ) %]"></script>
+
+[% ELSE;
+CALL c.log.info( "head.tt: loading DEVELOPMENT versions of javascript files" ) -%]
+
+<!-- load the separate, uncompressed javascript sources --> 
+
 <!-- YAHOO modules -->
 
 <!-- Namespace source file -->
@@ -69,7 +89,7 @@ IF layouts.${pageType}.css.ie;
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/dom.js" ) %]" ></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/event.js" ) %]" ></script>
 
-<!-- TreeView widget and accompanying stylesheet -->
+<!-- TreeView widget -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/treeview.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/TaskNode.js" ) %]"></script>
 <link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
@@ -77,35 +97,39 @@ IF layouts.${pageType}.css.ie;
 <!-- tooltips -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/container.js" ) %]"></script>
 
-<!-- ====================================================================== -->
-<!-- scriptaculous and prototype -->
 
+<!-- scriptaculous and prototype -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
 
-<!-- ====================================================================== -->
-<!-- the lightbox script -->
-
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/lightbox.js" ) %]"></script>
-
-<!-- ====================================================================== -->
 <!-- local javascript -->
-
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/family.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/structure.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/clans.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/family.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/protein.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfamb.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/structure.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/yuiTweak.js" ) %]"></script>
+
+[% END # of "if production" %]
 
 <!-- ====================================================================== -->
+<!-- the remaining javascript components -->
+
+<!-- the lightbox script -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/lightbox.js" ) %]"></script>
+
 <!-- jmol -->	
 <script type="text/javascript" src="[% c.uri_for( "/jmol/Jmol.js" ) %]"></script>
 
-<!-- ====================================================================== -->
-<!-- build the menus... -->
+<!-- firebug lite -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/firebug/firebugx.js" ) %]"></script>
 
+<!-- sortable tables -->
+<script type="text/javascript" src="[% c.uri_for("/javascripts/sorttable.js" ) %]"></script>
+
+<!-- build the menus... -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/jimmac.js" ) %]"></script>
 <script type="text/javascript">
   new ypSlideOutMenu("menu2","down",273,-2,100,125);
@@ -125,10 +149,5 @@ IF layouts.${pageType}.css.ie;
   showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
   Event.observe( window, "load", chooseTab, false );
 </script> 
-
-<!-- ====================================================================== -->
-<!-- firebug lite -->
-
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/firebug/firebugx.js" ) %]"></script>
 
 <!-- ====================================================================== -->
