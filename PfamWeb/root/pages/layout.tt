@@ -4,7 +4,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.12 2006-11-02 11:08:33 jt6 Exp $
+# $Id: layout.tt,v 1.13 2007-01-15 16:25:05 jt6 Exp $
 
 USE String;
 USE date;
@@ -108,7 +108,10 @@ END;
     <ul>
       [% tabsContent %]
     </ul>
-  </div> <!-- end of "sidebar" -->
+
+	[% PROCESS components/jumpBox.tt short = 1%]
+
+   </div> <!-- end of "sidebar" -->
 
   <div id="content">
     [% pageContent %]
