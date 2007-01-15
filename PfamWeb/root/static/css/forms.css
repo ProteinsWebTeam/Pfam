@@ -4,7 +4,7 @@
 
    Stylesheet for various forms in the site.
 
-   $Id: forms.css,v 1.4 2006-11-27 16:19:20 jt6 Exp $
+   $Id: forms.css,v 1.5 2007-01-15 15:30:26 jt6 Exp $
 */   
 
 /* ---------------------------------------- */
@@ -94,7 +94,7 @@ div.domainList {
 
 div.domainList select {
 	border: 1px solid #074987;
-    background: f5faff;
+    background: #f5faff;
 }
 
 #idList {
