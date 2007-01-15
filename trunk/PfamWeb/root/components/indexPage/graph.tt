@@ -1,0 +1,43 @@
+[%
+# graph.tt
+# jt6 20070108 WTSI
+#
+# generates a pie chart showing Pfam coverage.
+#
+# $Id: graph.tt,v 1.1 2007-01-15 15:54:19 jt6 Exp $
+
+META naked = 1;
+
+USE dumper;
+
+uncovered = 100 - ( relData.pfamA_coverage + relData.pfamB_additional_coverage ); 
+
+# the graph data
+data = [
+         [ "", "", "" ]
+         [ relData.pfamA_coverage, relData.pfamB_additional_coverage, uncovered ]
+       ];
+
+# colours for the pie segments
+dataColours = [ "dblue", "marine", "lgray" ];
+
+FILTER null;
+
+	USE graph = GD.Graph.pie( 160, 100 );
+	USE gdc = GD.Constants;
+	
+	graph.set(transparent = 0
+            t_margin    = 2
+            b_margin    = 2
+            r_margin    = 2
+            l_margin    = 2
+            start_angle = 180
+            dclrs = dataColours
+            axislabelclr = "gray" );
+
+  graph.set_value_font(gdc.gdMediumBoldFont);
+    
+	graph.plot(data).png | stdout(1);
+
+END
+-%]
