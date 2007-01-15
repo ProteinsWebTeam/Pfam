@@ -1,0 +1,34 @@
+[%
+# topTen.tt
+# jt6 20070110 WTSI
+#
+# builds a list of the top ten most viewed Pfam families. 
+
+# Requires that the stash contains an array of rows from the family_count 
+# table, which pretty much means that this will only work via the main site 
+# index page.
+#
+# $Id: topTen.tt,v 1.1 2007-01-15 15:54:19 jt6 Exp $
+
+META naked = 1
+%]
+
+<!-- start of the top ten list -->
+<div id="topTen" class="sidebarComponent">
+  <h1>Top ten families</h1>
+  
+  <p class="small">The most commonly viewed Pfam families in 
+    release [% relData.pfam_release %]:</p>
+  <ul>
+  [% FOREACH i IN [ 0 .. 9 ];
+      row = topTen.$i;
+      LAST UNLESS row %]
+    <li>
+      <span class="topTenLabel">[% i + 1 %]</span>.&nbsp;
+      <a href="[% c.uri_for( "/family", id=row.pfamA_id ) %]">
+        [% row.pfamA_id %]</a>
+    </li>
+  [% END %]
+  </ul>
+</div>
+<!-- eof the top ten list -->
