@@ -4,12 +4,11 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.12 2006-12-05 10:10:08 jt6 Exp $
+// $Id: family.js,v 1.13 2007-01-15 15:47:41 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
 function familyPostLoad() {
-
   // structure image
   if( typeof( loadOptions.si.uri ) != "undefined" ) {
 	new Ajax.Request( loadOptions.si.uri,
@@ -209,21 +208,6 @@ function formatAlignment( urlBase) {
 //------------------------------------------------------------
 //- species tree methods -------------------------------------
 //------------------------------------------------------------
-
-// augment the base TextNode from Yahoo with functions to walk down
-// the tree. These methods are here to allow cascades to work for
-// TextNodes, although we're primarily interested in the TaskNodes,
-// which have a check method from the outset
-
-YAHOO.widget.TextNode.prototype.check = function( state ) { 
-  for( var i = 0; i < this.children.length; i++ ) {
-	this.children[i].check( state );
-  }
-};
-
-YAHOO.widget.TextNode.prototype.uncheck = function( state ) { 
-  this.check( 0 );
-};
 
 //------------------------------------------------------------
 // toggle the highlighting of those sequences which are found in the 
