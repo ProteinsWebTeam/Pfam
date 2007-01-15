@@ -5,14 +5,14 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to IE6 and below
    
-   $Id: pfam_ie.css,v 1.3 2006-11-07 16:45:59 jt6 Exp $
+   $Id: pfam_ie.css,v 1.4 2007-01-15 15:33:12 jt6 Exp $
 */
 
 /* the shadow under the main content. Just turn it off for now, because the 
    shadow under the tab doesnt work and it would be weird to have one but not
    the other */
 #contentContainer #footer {
-    background-image: none;
+	background-image: none;
 }
 
 /* re-position the image map for the RSS logo and email link */
@@ -21,4 +21,16 @@ img.map {
     top: 1px;
 }
 
+/* get rid of the image that adds the background gradient */
+#indexIcons img {
+  diisplay: none;
+}
 
+/* version data block. The main pfam.css stylesheet has a negative margin for this
+ * block, so that the titles of the three columns line up horizontally. For whatever
+ * reason, IE seems to require a positive margin here. Should really fix the layout to 
+ * avoid needing this, but hey... 
+ */
+#versionData {
+	margin-top: 0.55em;
+}
