@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.7 2006-09-28 10:06:24 rdf Exp $
+# $Id: phylo.tt,v 1.8 2007-01-15 15:59:44 jt6 Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -15,12 +15,10 @@
     <h1>Trees</h1>
   </div>
   <div class="blockContent">
-  <p>This page displays the UPGMA based phylogentic tree, generated using quicktree, for the given alignment.</p> 
-[%# the form that controls the tree display -%]
-    [% c.prototype.form_remote_tag( {
-             url    => c.uri_for( "/gettreemap" ),
-             update => "alignmentTree"
-           } ) %]
+    <p>This page displays the UPGMA based phylogentic tree, generated using quicktree, for the given alignment.</p> 
+      [%# the form that controls the tree display -%]
+      [% c.prototype.form_remote_tag( { url    => c.uri_for( "/gettreemap" ),
+                                        update => "alignmentTree" } ) %]
       <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
       <span>
         <input name="type" id="seedRb" type="radio" checked="checked" value="seed" />
@@ -32,24 +30,23 @@
       </span>
       <input type="submit" name="submit" value="Change tree" />
     </form>
-	<div id="alignmentTree">
-	  <p id="atph" class="loading">
-        Loading alignment tree...
-      </p>	
-	</div>
 
-	[%# set the options for the ajax call that populates the tree -%]
+  	<div id="alignmentTree">
+  	  <p id="atph" class="loading">
+          Loading alignment tree...
+        </p>	
+  	</div>
+
+  	[%# set the options for the ajax call that populates the tree -%]
     <script type="text/javascript">
       loadOptions.at.uri    = "[% c.uri_for( "/gettreemap" ) %]";
       loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
-	</script>
-
+  	</script>
     
-
     <p><strong>Note:</strong> You can also download the data files for the
-	  <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
-	  <a href="[% constants.treeURLRoot %]/full/[% pfam.pfamA_acc %].tree">full</a> 
-      trees.</p>
+  	  <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
+  	  <a href="[% constants.treeURLRoot %]/full/[% pfam.pfamA_acc %].tree">full</a> 
+        trees.</p>
 
   </div>
 </div>
