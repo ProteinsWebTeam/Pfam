@@ -24,7 +24,7 @@ __PACKAGE__->has_one("annseq" => "PfamDB::Pfam_annseq",
 
 __PACKAGE__->has_one("arch" => "PfamDB::Architecture",
 		     {"foreign.auto_architecture" => "self.auto_architecture"},
-		     {proxy => [qw/architecture/]});
+		     {proxy => [qw/architecture no_seqs/]});
 
 
 1;
