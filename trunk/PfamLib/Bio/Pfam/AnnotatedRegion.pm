@@ -165,3 +165,5 @@ sub seq_name {
    }
    return $self->{'reg_seqname'};
 }
+
+1;
