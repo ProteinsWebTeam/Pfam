@@ -285,7 +285,7 @@ sub processResponse4Website {
       $seqElement->setAttribute( "hidden", 1);
       my $region = $drawingXML->createElement("region");
       $region->setAttribute( "label" , "$protein/$matchSeqStart-$matchSeqEnd : $querySeqStart-$querySeqEnd ($identity%)" );
-      $region->setAttribute( "link_URL", "protein?acc=$protein");
+      $region->setAttribute( "link_URL", "protein?entry=$protein");
       $region->setAttribute( "start" ,$querySeqStart  );
       $region->setAttribute( "end", $querySeqEnd );
       $region->setAttribute( "solid", 1);
