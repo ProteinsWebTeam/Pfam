@@ -36,8 +36,8 @@ use strict;
 use warnings;
 use Carp;
 
-use Apache::Reload;
-use Apache::DBI qw( :sql_types );
+#use Apache::Reload;
+#use Apache::DBI qw( :sql_types );
 
 use XML::LibXML;
 
@@ -554,7 +554,7 @@ John Tate (jt6@sanger.ac.uk)
 
 =head1 VERSION
 
-$Id: Query.pm,v 1.1.1.1 2006-03-15 09:56:25 rdf Exp $
+$Id: Query.pm,v 1.2 2007-01-16 08:55:55 jt6 Exp $
 
 =cut
 

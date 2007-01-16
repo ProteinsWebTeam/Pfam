@@ -34,8 +34,8 @@ use warnings;
 use Carp;
 use Data::Dumper;
 
-use Apache::Reload;
-use Apache::DBI;
+#use Apache::Reload;
+#use Apache::DBI;
 
 use XML::LibXML;
 use Time::HiRes qw( gettimeofday );
