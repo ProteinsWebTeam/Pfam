@@ -13,7 +13,7 @@ use HTTP::Headers;
 use Data::Dumper;
 
 our $DEBUG    = 0;
-our $VERSION  = do { my @r = (q$Revision: 1.6 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our $VERSION  = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 our $BLK_SIZE = 8192;
 our $TIMEOUT  = 5;
@@ -277,6 +277,7 @@ sub new_from_registry {
 sub http_proxy {
   my ($self, $proxy)    = @_;
   $self->{'http_proxy'} = $proxy if($proxy);
+
   return $self->{'http_proxy'} || $ENV{'http_proxy'};
 }
 
@@ -486,7 +487,7 @@ sub features {
 
 sub sequence {
   my ($self, $query, $opts) = @_;
-  $DEBUG && print "sequnece *** $query, $opts ***\n";
+  $DEBUG and print STDERR qq(sequence *** $query, $opts ***\n);
   return $self->_generic_request($query, 'sequence', $opts);
 }
 
@@ -651,7 +652,6 @@ sub _generic_request {
     }
   }
 
-
   $self->_fetch($ref, $opts->{'headers'});
   $DEBUG and print STDERR qq(Content retrieved\n);
 
@@ -726,7 +726,7 @@ sub _fetch {
     $self->{'statuscodes'}->{$url} ||= $response->status_line() if($response);
   }
 
-  $DEBUG and print STDERR qq(Requests submitted. Waiting for content\n);
+  $DEBUG and print STDERR qq(Requests submitted. Waiting $self->{'timeout'}s for content\n);
   eval {
     $self->{'ua'}->wait($self->{'timeout'});
   };
@@ -734,6 +734,8 @@ sub _fetch {
   if($@) {
     warn $@;
   }
+
+  $DEBUG and print STDERR qq(Done with requests...\n);
 
   for my $url (keys %$url_ref) {
     next if(ref($url_ref->{$url}) ne "CODE");
