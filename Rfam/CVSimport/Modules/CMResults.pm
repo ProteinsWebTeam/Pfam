@@ -100,8 +100,14 @@ sub parse_infernal {
 	    undef $alnen;
 	    $alnline = 0;
 	
-	    $st += $start - 1;
-	    $en += $start - 1;
+	    if( $start < $end ) {
+		$st += $start - 1;
+		$en += $start - 1;
+	    }
+	    else {
+		$st = $start - $st + 1;
+		$en = $start - $en + 1;
+	    }
 
 	    # sort out a Unit
 	    $unit = new HMMUnit;
