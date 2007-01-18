@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to IE6 and below
    
-   $Id: pfam_ie.css,v 1.4 2007-01-15 15:33:12 jt6 Exp $
+   $Id: pfam_ie.css,v 1.5 2007-01-18 12:41:38 jt6 Exp $
 */
 
 /* the shadow under the main content. Just turn it off for now, because the 
@@ -23,7 +23,7 @@ img.map {
 
 /* get rid of the image that adds the background gradient */
 #indexIcons img {
-  diisplay: none;
+  display: none;
 }
 
 /* version data block. The main pfam.css stylesheet has a negative margin for this
