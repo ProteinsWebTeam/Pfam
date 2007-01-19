@@ -173,12 +173,12 @@ if( !$atleastonehit ) {
     exit(0);
 }
 
-my $options = "-o ALIGN --banded --bandexpand";
+my $options = "-o ALIGN";
 if( $local ) {
-    $options = "-l ".$options;
+    $options = "-l ".$options." --qdb";
 }
 else {
-    $options .= " --nosmall";
+    $options .= " --hbanded";
 }
 system "cmalign $options CM $$.fa" and die "failed to run cmalign";
 
