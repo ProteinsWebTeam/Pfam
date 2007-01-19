@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.21 2007-01-15 14:11:59 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.22 2007-01-19 16:40:40 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.21 2007-01-15 14:11:59 jt6 Exp $
+$Id: PfamWeb.pm,v 1.22 2007-01-19 16:40:40 jt6 Exp $
 
 =cut
 
@@ -33,6 +33,7 @@ use warnings;
 #
 use Catalyst qw/
 				-Debug
+				PfamConfigLoader
 				ConfigLoader
 				Prototype
 				Cache::FastMmap
