@@ -36,6 +36,7 @@ use vars qw( %tag_mandatory
 		      );
 
 %tag_optional = ( # numbers don't mean anything here
+		  'PI' => 1,
 		  'CC' => 1,
 		  'RN' => 1,
 		  'RT' => 1,
@@ -167,7 +168,11 @@ sub valid_sequences {
     my @aligns = qw( SEED ALIGN );
     foreach my $alnfile ( @aligns ) {
 	my $aln = new Rfam::RfamAlign;
-	open( ALN, "$family/$alnfile" ) or die "can't open $family/$alnfile";
+	open( ALN, "$family/$alnfile" ) or do {
+	    print "$family/$alnfile: can't open -- very bad!\n";
+	    $error = 1;
+	    next;
+	};
 	$aln -> read_stockholm( \*ALN );
 
 	if( $alnfile =~ /SEED/ and $aln->no_sequences < 2 ) {
