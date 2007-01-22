@@ -235,7 +235,7 @@ sub queryService {
   # ... that it was parseable as XML...
   die "Couldn't parse SIMAP XML response"
 	unless defined $resultsXML;
-
+  #print STDERR $resultsXML->toString(1)."\n";
   # ... and that it wasn't a fault response
   die "Received a fault response from SIMAP"
 	if $resultsXML->findnodes("/soapenv:Envelope/soapenv:Body/soapenv:Fault");
@@ -258,7 +258,8 @@ sub processResponse4Website {
   my $imageNode = $drawingXML->documentElement;
 
   # make sure we find some hits in the soap response
-  my @hits = $self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit");
+
+  my @hits = $self->_response->findnodes("/soapenv:Envelope/soapenv:Body/*/*/result/simapResult/SequenceSimilaritySearchResult/hits/hit");
 
   die "No hits found in SIMAP response" unless scalar @hits;
  NODE:
@@ -332,7 +333,7 @@ sub hits2Ali {
   #print STDERR "response DOM: |" . $self->_response->toString(1) . "|";
 
   my $aliString;
-  my @hits = $self->_response->findnodes("/soapenv:Envelope/soapenv:Body/result/simapResult/SequenceSimilaritySearchResult/hits/hit");
+  my @hits = $self->_response->findnodes("/soapenv:Envelope/soapenv:Body/*/*/result/simapResult/SequenceSimilaritySearchResult/hits/hit");
 
   die "No hits found in SIMAP response" unless scalar @hits;
 
