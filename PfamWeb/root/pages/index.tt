@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.12 2007-01-22 14:59:43 jt6 Exp $
+# $Id: index.tt,v 1.13 2007-01-22 17:09:48 jt6 Exp $
 
 META title = "Pfam home page";
 META fullPage = 1;
@@ -47,10 +47,10 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 				  
         	[% PROCESS components/indexPage/versionData.tt %]
           
-          <hr />
-          
-        	[% PROCESS components/indexPage/mirrors.tt %]
-      
+        	<hr />
+    
+        	[% PROCESS components/jumpBox.tt short=1 %]
+    
 				</div>
 			  <!-- end of left sidebar -->
 				
@@ -140,14 +140,14 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       
     	[% PROCESS components/indexPage/newsItems.tt %]
     	
-    	<hr />
-
-    	[% PROCESS components/jumpBox.tt %]
-
     	<hr />    	
 
     	[% PROCESS components/indexPage/topTen.tt %]
 
+      <hr />
+      
+    	[% PROCESS components/indexPage/mirrors.tt %]
+  
     </div>
     <!-- end of right sidebar -->
 
