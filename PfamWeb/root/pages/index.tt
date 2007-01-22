@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.11 2007-01-15 16:24:26 jt6 Exp $
+# $Id: index.tt,v 1.12 2007-01-22 14:59:43 jt6 Exp $
 
 META title = "Pfam home page";
 META fullPage = 1;
@@ -24,17 +24,14 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   # message should be hidden immediately after it's displayed, but if 
   # javascript is not working, the prototype call will fail and the message
   # will stay visible %]
-[% IF template.fullPage %]
 <div id="jsWarning">
-  <b>Please note:</b> this site relies heavily on the use of javascript. Without a 
-  javascript-enabled browser, this site will not function correctly. Please enable
-  javascript and reload the page, or switch to a different browser.
+  <strong>Please note:</strong> this site relies heavily on the use of javascript. 
+  Without a javascript-enabled browser, this site will not function correctly. 
+  Please enable javascript and reload the page, or switch to a different browser.
 </div>
-
 <script type="text/javascript">
   Element.hide("jsWarning");
 </script>
-[% END %]
 
 <!-- start of index page -->
 <div id="outerIndexWrapper">
