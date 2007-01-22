@@ -4,7 +4,7 @@
 #
 # builds the block showing the statistics for the current release. 
 #
-# $Id: versionData.tt,v 1.1 2007-01-15 15:54:20 jt6 Exp $
+# $Id: versionData.tt,v 1.2 2007-01-22 17:10:26 jt6 Exp $
 
 # Note: there exists a snippet of TT that generates the graph of sequence
 # coverage on the fly, as a PNG that can be included with an img tag:
@@ -18,7 +18,7 @@ META naked = 1
   
 	<h1>Pfam version [% relData.pfam_release %]</h1>
 
-  <p>Released on 
+  <p class="small">Released on 
   [% relData.pfam_release_date ? date.format( release_date ) : "Nov 2006" %], containing
   [% relData.number_families %] familes</p>
 
