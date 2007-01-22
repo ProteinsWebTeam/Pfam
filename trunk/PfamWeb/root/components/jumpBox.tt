@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.1 2007-01-15 15:55:03 jt6 Exp $
+# $Id: jumpBox.tt,v 1.2 2007-01-22 17:09:29 jt6 Exp $
 
 META naked = 1;
 
@@ -20,6 +20,14 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
 		<a href="[% c.uri_for( "/help" ) %]">
 	 		<img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
 	</h1>
+
+  [% UNLESS short %]
+  <p class="small">
+    Enter the accession or ID for the Pfam family, protein entry, PDB entry or clan
+    that you would like to visit.
+  </p>
+  [% END %]
+  
 	<form action="[% c.uri_for( "/search/jump" ) %]" method="get" name="jumpForm" id="jumpForm">
 		<input type="text" onfocus="if(!cleared){this.value='';cleared=true}" size="10" name="entry" id="entry" />
 	</form>
