@@ -4,30 +4,37 @@
 # 
 # build a "browse" page
 #
-# $Id: browseFamilies.tt,v 1.9 2006-12-05 10:07:48 jt6 Exp $
+# $Id: browseFamilies.tt,v 1.10 2007-01-22 14:58:32 jt6 Exp $
 
 # tell the wrapper it's a full page
 META fullPage = 1;
 
+# set the title
+META title = "Browse Pfam families";
+
+# get the argument in lowercase, for comparison purposes
+lcChar = char | lower;
+
+# the pages to be offered 
 pages = [ "new", "top twenty", "numbers",
           "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
           "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
 
+# generate the list of browse pages, for inclusion at the top and bottom of 
+# the page
 pageList = BLOCK %]
 <div class="pageList">
-
-[% lcChar = char | lower;
-FOREACH page IN pages;
+[% FOREACH page IN pages;
   IF page == lcChar %]
-  <span class="letter inactive">
-    [% page | ucfirst %]
-  </span>
+    <span class="letter inactive">
+      [% page | ucfirst %]
+    </span>
   [% ELSE %]
-  <span class="letter">
-    <a href="[% c.uri_for( "/family/browse", browse=page ) %]">[% page | ucfirst %]</a>
-  </span>
-  [% END;
-END %]
+    <span class="letter">
+      <a href="[% c.uri_for( "/family/browse", browse=page ) %]">[% page | ucfirst %]</a>
+    </span>
+  [% END; # of IF
+  END # of FOREACH %]
   <div class="cleaner"><!-- empty --></div>
 </div>
 [% END # of BLOCK %]
