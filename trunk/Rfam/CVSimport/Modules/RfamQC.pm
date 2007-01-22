@@ -9,7 +9,7 @@ use strict;
 use Rfam;
 use Rfam::RfamAlign;
 use Bio::SeqFetcher::xdget;
-
+use Rfam::DB::DB_RCS;
 
 use vars qw( %tag_mandatory
 	     %tag_mandatory_stk
@@ -162,7 +162,7 @@ sub correct_tags {
 
 sub valid_sequences {
     my $family = shift;
-    my $inx = Bio::SeqFetcher::xdget->new( '-db' => [$Rfam::rfamseq] );
+    my $db = Rfam::default_db;
     my $error;
 
     my @aligns = qw( SEED ALIGN );
@@ -185,7 +185,8 @@ sub valid_sequences {
 		print "$family/$alnfile: ".$seq->id." doesn't have a version\n";
 		$error = 1;
 	    }
-	    my $rfamseq = $inx -> get_Seq_by_acc( $seq->id );
+
+	    my $rfamseq = $db -> get_rfamseq( $seq->id, $seq->start, $seq->end );
 	    if( not $rfamseq ) {
 		print "$family/$alnfile: cannot find ".$seq->id." in rfamseq database\n";
 		$error = 1;
@@ -195,26 +196,21 @@ sub valid_sequences {
 	    $str_ali =~ s/[.-]//g;
 	    $str_ali = uc( $str_ali );
 	    my( $start, $end ) = ( $seq->start, $seq->end );
-	    if( $end > $rfamseq->length or $start > $rfamseq->length ) {
-		print "$family/$alnfile: The sequence of ".$seq->id." does not match the rfamseq database\n";
-		$error = 1;
-		next;
-	    }
-	    if( $seq->end < $seq->start ) {
-		( $end, $start ) = ( $start, $end );
-	    }
-	    my $rfamseqtrunc = $rfamseq -> trunc( $start, $end );
-	    my $str_rfamseq;
-	    if( $seq->end < $seq->start ) {
-		$str_rfamseq = $rfamseqtrunc -> revcom() -> seq();
-	    }
-	    else {
-		$str_rfamseq = $rfamseqtrunc -> seq();
-	    }
-	    
+#	    if( $end > $rfamseq->length or $start > $rfamseq->length ) {
+#		print "$family/$alnfile: The sequence of ".$seq->id." does not match the rfamseq database\n";
+#		$error = 1;
+#		next;
+#	    }
+#	    if( $seq->end < $seq->start ) {
+#		( $end, $start ) = ( $start, $end );
+#	    }
+
+	    my $str_rfamseq = $rfamseq->seq;
 	    $str_ali     =~ tr/T/U/;
 	    $str_rfamseq =~ tr/T/U/;
-	    
+	 
+#	    print "$str_ali\n$str_rfamseq\n\n";
+   
 	    if( $str_ali ne $str_rfamseq ) {
 		print "$family/$alnfile: The sequence of ".$seq->id." does not match the rfamseq database\n";
 		$error = 1;
