@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.25 2007-01-15 15:53:11 jt6 Exp $
+# $Id: wrapper.tt,v 1.26 2007-01-22 14:57:53 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -13,33 +13,32 @@ ELSE;
 
 # no; add some sort of wrapper around it, but figure out whether we need
 # the tab footer or full page footer later on
-
 -%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
 
   <head>
-    [% IF pageType %]
+    [% IF template.title %]
+      <title>Pfam: [% template.title %]</title>
+    [% ELSIF pageType %]
       [% titleFile = layouts.${pageType}.titleTemplate %]
       <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
-    [% ELSIF template.title %]
-	  <title>Pfam: [% template.title %]</title>
     [% ELSE %]
       <title>Pfam</title>
     [% END %]
 
-	[%# import javascripts, stylesheets, etc. %]
+    [%# import javascripts, stylesheets, etc. %]
     [% PROCESS components/head.tt %]
   </head>
 
   <body>
 
-    [%# build the page header, with the swoosh, menus, etc. %]
-    [% PROCESS components/header.tt %]
+    [% # build the page header, with the swoosh, menus, etc.
+    PROCESS components/header.tt;
 
-    [%# add a wrapper div if this is a tab layout page %]
-    [% UNLESS template.fullPage %]<div id="contentContainer">[% END %]
+    # add a wrapper div if this is a tab layout page
+    UNLESS template.fullPage %]<div id="contentContainer">[% END %]
 
     <!-- start of content -->
     [% content %]
@@ -50,16 +49,17 @@ ELSE;
     [% PROCESS components/footer.tt %]
     <!-- end of footer -->
 
-    [% UNLESS template.fullPage %]</div>[% END %]
+    [% # close the wrapper div if this is a tab layout page
+    UNLESS template.fullPage %]</div>[% END %]
 
-	[%# add any tooltips that were defined in the content %]
+    [%# add any tooltips that were defined in the content %]
     <!-- start of tooltips script -->
-	[% PROCESS components/tooltips.tt %]
+    [% PROCESS components/tooltips.tt %]
     <!-- end of tooltips script -->
 
-	[% PROCESS components/submenus.tt %]
+    [% PROCESS components/submenus.tt %]
+
   </body>
 
 </html>
-
 [% END # of "if template.naked" %]
