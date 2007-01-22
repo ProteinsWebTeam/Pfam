@@ -22,6 +22,8 @@ use FileHandle;
 use Rfam::DB::DB;
 use Rfam::Entry::Entry_RCS;
 use Rfam::RfamAlign;
+use Bio::SeqFetcher::xdget;
+use Bio::Seq;
 
 my $DEAD_FAMILY_STRING = '__DEAD_FAMILY__';
 
@@ -137,6 +139,59 @@ sub get_allacc {
     }
     return @acc
 }
+
+
+
+sub get_rfamseq {
+    my $self = shift;
+    my $id = shift;
+    my $start = shift;
+    my $end   = shift;
+    my $reverse;
+
+    my $seqinx = $self->_rfamseq_inx_cache;
+
+    $reverse = 1 if( $end and $end < $start );
+
+    if( $end ) {
+        my $options = "";
+        my( $getstart, $getend ) = ( $start, $end );
+        if( $reverse ) {
+            ( $getstart, $getend ) = ( $end, $start );
+            $options .= "-r ";
+        }
+        $options .= "-a $getstart -b $getend ";
+        $seqinx->options( $options );
+    }
+
+    my $seq = new Bio::Seq;
+    eval {
+        $seq = $seqinx -> get_Seq_by_acc( $id );
+    };
+    if( $@ or not $seq ) {
+        warn "$id not found in your seq db\n";
+        return 0;       # failure
+    }
+
+    if( $end ) {
+        $seq->id( $seq->id."/$start-$end" );
+    }
+
+    return $seq;
+}
+
+
+sub _rfamseq_inx_cache {
+    my $self = shift;
+    if( !$self->{-rfamseq_inx_cache} ) {
+	$self->{-rfamseq_inx_cache} = Bio::SeqFetcher::xdget->new( '-db' => [ $self->_rfamseq ] );
+    }
+    else {
+	$self->{-rfamseq_inx_cache}->options('');
+    }
+    return $self->{-rfamseq_inx_cache};
+}
+	
 
 
 =head2 get_Entry_by_acc
