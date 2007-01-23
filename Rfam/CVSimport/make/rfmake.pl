@@ -12,6 +12,7 @@ my( $thr,
     $help, 
     $cove,
 #    $fasta,
+    $trim,
     $overlaps );
 
 &GetOptions( "t=s"      => \$thr,
@@ -20,6 +21,7 @@ my( $thr,
 	     "overlaps" => \$overlaps,
 	     "cove"     => \$cove,
 #	     "fa=s"     => \$fasta,
+	     "trim=s"   => \$trim,
 	     "h"        => \$help );
 
 if( $help ) {
@@ -64,7 +66,11 @@ else {
 }
 close F;
 
-unless( $already ) {
+if( $trim ) {
+    $allres = $allres->filter_on_cutoff( $trim );
+}
+
+if( !$already or $trim ) {
     # write a rearranged and slimmed output file
     open( F, ">$file" ) or die;
     $allres -> write_output( \*F );
@@ -227,6 +233,7 @@ sub help {
 EOF
 }
 
+
 sub get_seq {
     my $id    = shift;
     my $start = shift;
@@ -234,36 +241,33 @@ sub get_seq {
     my $reverse;
 
     $reverse = 1 if( $end and $end < $start );
+    $seqinx->options( '' );    #reset this
+
+    if( $end ) {
+	my $options = "";
+        my( $getstart, $getend ) = ( $start, $end );
+        if( $reverse ) {
+            ( $getstart, $getend ) = ( $end, $start );
+	    $options .= "-r ";
+        }
+	$options .= "-a $getstart -b $getend ";
+	$seqinx->options( $options );
+    }
 
     my $seq = new Bio::Seq;
     eval {
-	$seq = $seqinx -> get_Seq_by_acc( $id );
+        $seq = $seqinx -> get_Seq_by_acc( $id );
     };
     if( $@ or not $seq ) {
-	warn "$id not found in your seq db\n";
-	return 0;       # failure
+        warn "$id not found in your seq db\n";
+        return 0;       # failure
     }
 
-    my $truncseq;
     if( $end ) {
-	my( $getstart, $getend );
-	if( $reverse ) {
-	    ( $getstart, $getend ) = ( $end, $start );
-	}
-	else {
-	    ( $getstart, $getend ) = ( $start, $end );
-	}
-    
-	$truncseq = $seq -> trunc( $getstart, $getend );
-	$truncseq -> desc( "" );
-	$truncseq -> id( "$id/$start-$end" );
-
-	if( $reverse ) {
-	    my $revseq = $truncseq -> revcom();
-	    $truncseq = $revseq;
-	}
+	$seq->id( $seq->id."/$start-$end" );
     }
 
-    return $truncseq || $seq;
+    return $seq;
 }
+
 
