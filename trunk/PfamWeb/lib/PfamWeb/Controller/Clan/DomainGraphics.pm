@@ -18,7 +18,7 @@ Handles the generation of the graphics component of the clan pages.
 
 Generates a B<page fragment>.
 
-$Id: DomainGraphics.pm,v 1.3 2006-10-31 15:14:33 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.4 2007-01-24 09:08:01 jt6 Exp $
 
 =cut
 
@@ -51,7 +51,7 @@ sub default : Path {
   ( $c->stash->{auto_arch} ) = $c->req->param( "arch" ) =~ /^(\d+)$/
 	if $c->req->param( "arch" );
 
-  my( @seqs, %seqInfo, @architectures );
+  my( @seqs, %seqInfo, @architectures, $sum );
   if( $c->stash->{auto_arch} ) {
 	# we want to see all of the sequences with a given architecture
 	
@@ -62,6 +62,7 @@ sub default : Path {
 
 	foreach my $arch ( @architectures ) {
 	  push @seqs, thaw( $arch->annseq_storable );
+	  $sum += $arch->no_seqs;
 	}
 
   } else{
@@ -93,10 +94,13 @@ sub default : Path {
 	  $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
 	  $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs;
 	  $seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
+	  $sum += $arch->no_seqs;
 	}
 
   }
-  $c->log->debug( "found " . scalar @seqs . " storables" );
+  $c->log->debug( "Clan::default: found " . scalar @seqs . " storables" );
+  $c->stash->{numRows} = scalar @architectures;
+  $c->stash->{numSeqs} = $sum;
 
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layout->scale_x( $this->{scale_x} ); #0.33
