@@ -384,7 +384,10 @@ sub hits2Ali {
 
   #print STDERR "Running muscle: |/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile|\n";
 
-  open( MSF, "$ENV{PFAM_MUSCLE_BIN} -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
+  $ENV{PATH} = "";
+  my $muscleBin;
+  ( $muscleBin ) = $ENV{PFAM_MUSCLE_BIN} =~ /^([\w\/\_\-]+)$/;
+  open( MSF, "$muscleBin -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
 	or die "Could not run muscle: $!";
 
   #Now Parse the alignment
