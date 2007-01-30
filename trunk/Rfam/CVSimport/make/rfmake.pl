@@ -89,7 +89,7 @@ if( $list ) {
     my @allnames = map{ $_->seqname } @goodhits;
 
 #    if( $inxfile ne $Rfam::rfamseq ) {
-#	foreach my $id ( @allnames ) {
+#	forach my $id ( @allnames ) {
 #	    my $seq = &get_seq( $id );
 #	    $desc{ $id } = $seq->desc;
 #	}
@@ -97,7 +97,8 @@ if( $list ) {
 #    else {
 	while( scalar @allnames ) {
 	    my $string = join( " ", splice( @allnames, 0, $chunksize ) );
-	    open( P, "pfetch -a -d embl -D $string |" ) or die;
+	    ##we had to take the -d embl option out of here for the new version of pfetch
+	    open( P, "pfetch -a -D $string |" ) or die;
 	    while( <P> ) {
 		if( /^(\w+\s+)?(\w+)\.\d+\s+(.{1,$desclength})/ ) {
 		    $desc{$2} = $3;
