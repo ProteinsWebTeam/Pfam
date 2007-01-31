@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.23 2007-01-22 15:00:31 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.24 2007-01-31 11:34:52 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.23 2007-01-22 15:00:31 jt6 Exp $
+$Id: PfamWeb.pm,v 1.24 2007-01-31 11:34:52 jt6 Exp $
 
 =cut
 
@@ -36,13 +36,16 @@ use Catalyst qw/
 				PfamConfigLoader
 				ConfigLoader
 				Prototype
-				Cache::FastMmap
 				HTML::Widget
 				Email
 				Session
 				Session::Store::FastMmap
 				Session::State::Cookie
+				Cache::FastMmap
+				Cache::FileCache
+				PageCache
 				/;
+
 #				Authentication
 #				Authentication::Store::DBIC
 #				Authentication::Credential::Password
@@ -122,24 +125,23 @@ sub reportError : Private {
 
   foreach my $e ( @{$c->error} ) {
 
-	$c->log->debug( "PfamWeb::reportError: reporting a site error: |$e|" );
-
-	my $rs = $c->model( "WebUser::ErrorLog" )->find( { message => $e } );
-
-	if( $rs ) {
-	  $rs->update( { num => $rs->num + 1 } );
-	} else {
-	  eval {
-		$c->model( "WebUser::ErrorLog" )->create( { message => $e,
-													num     => 1,
-													first   => [ "CURRENT_TIMESTAMP" ] } );
-	  };
-	  if( $@ ) {
-		# really bad; an error while reporting an error...
-		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
-	  }
-	}
-	
+  	$c->log->debug( "PfamWeb::reportError: reporting a site error: |$e|" );
+  
+  	my $rs = $c->model( "WebUser::ErrorLog" )->find( { message => $e } );
+  
+  	if( $rs ) {
+  	  $rs->update( { num => $rs->num + 1 } );
+  	} else {
+  	  eval {
+  		$c->model( "WebUser::ErrorLog" )->create( { message => $e,
+                        													num     => 1,
+                        													first   => [ "CURRENT_TIMESTAMP" ] } );
+  	  };
+  	  if( $@ ) {
+    		# really bad; an error while reporting an error...
+    		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+  	  }
+  	}
   }
 
 }
