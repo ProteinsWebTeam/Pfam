@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.32 2007-01-22 15:03:01 jt6 Exp $
+   $Id: pfam.css,v 1.33 2007-01-31 14:15:55 jt6 Exp $
 */   
 
 body {
@@ -134,7 +134,7 @@ tr.headercentre {
   color:            #074987;
   font-weight:      bold;
   text-decoration:  none;
-  font-size:        0.6em;foreach
+  font-size:        0.6em;
 }
 
 #sitesearchbutton:hover {
@@ -584,7 +584,7 @@ div.newsItem {
 #entry {
 	border: 1px inset #074987;
 	background: #cbdced url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/search_gradient.png);
-	width: 145px;
+	width: 110px; /* set to 145px for the right sidebar on the index page */
 	margin: 1px 0;
 	padding: 2px;
 	color: #074987;
@@ -598,7 +598,7 @@ div.newsItem {
 	height: 20px;
     font-size: 1px;
 	background-position: right;
-	background-repeat: none;
+	background-repeat: no-repeat;
 	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/go.png);
 	border: none;
 	vertical-align: middle;
