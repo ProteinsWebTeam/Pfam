@@ -2,11 +2,24 @@
 # Pfetch.pm
 # jt6 20060731 WTSI
 #
-# A model to retrieve data from the WTSI pfetch server.
-#
-# $Id: Pfetch.pm,v 1.3 2006-12-13 15:53:47 jt6 Exp $
+# $Id: Pfetch.pm,v 1.4 2007-01-31 14:11:27 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Model::Pfetch - retrieve data from the WTSI pfetch server
+
+=cut
 
 package PfamWeb::Model::Pfetch;
+
+=head1 DESCRIPTION
+
+A simple wrapper around a call to the Sanger pfetch server. Call it something
+like:
+
+  $c->model( "Pfetch" )->retrieve( "--pdb" => "1abc" );
+
+=cut
 
 use strict;
 use warnings;
@@ -14,42 +27,20 @@ use warnings;
 use IO::Socket;
 use Sys::Hostname;
 
-my %serverConfig;
+# nothing else to base it on really...
+use base "Catalyst::Model";
 
-BEGIN {
+#-------------------------------------------------------------------------------
 
-  # use settings from the environment if possible
-  $serverConfig{PFETCH_SERVER}  = $ENV{PFETCH_SERVER}  if defined $ENV{PFETCH_SERVER};
-  $serverConfig{PFETCH_PORT}    = $ENV{PFETCH_PORT}	   if defined $ENV{PFETCH_PORT};
-  $serverConfig{PFETCH_TIMEOUT} = $ENV{PFETCH_TIMEOUT} if defined $ENV{PFETCH_TIMEOUT};
+=head1 METHODS
 
-  # try getting them from the catalyst configuration, if available
-  eval {
-	$serverConfig{PFETCH_SERVER}  ||= PfamWeb->config->{pfetchServerIP};
-	$serverConfig{PFETCH_PORT}    ||= PfamWeb->config->{pfetchServerPort};
-	$serverConfig{PFETCH_TIMEOUT} ||= PfamWeb->config->{pfetchServerTimeout};
-  };
-  if( $@ ) {
-	die "Pfetch::BEGIN: error when setting config: $!";
-  }
+=head2 retrieve
 
-  ( $serverConfig{PFETCH_SERVER} )  = $serverConfig{PFETCH_SERVER}  =~ /^([\w\.\-]+)$/;
-  ( $serverConfig{PFETCH_PORT} )    = $serverConfig{PFETCH_PORT}    =~ /^([\w\.\-]+)$/;
-  ( $serverConfig{PFETCH_TIMEOUT} ) = $serverConfig{PFETCH_TIMEOUT} =~ /^([\w\.\-]+)$/;
-}
+Retrieves the specified data from the pfetch server. The arguments should
+encapsulate a valid pfetch command, otherwise it will all go horribly
+wrong.
 
-# (do we even need a constructor when we're inside catalyst ? Don't
-# think so)
-
-sub new {
-  my $invocant = shift;
-  my $class = ref( $invocant ) || $invocant;
-  my $this = {};
-  bless $this, $class;
-  return $this;
-}
-
-# "get me something"
+=cut
 
 sub retrieve {
   my( $this, $commands ) = @_;
@@ -62,18 +53,18 @@ sub retrieve {
   # the bones of this bit are taken from perldoc -f alarm
   eval {
 
-	# catch the alarm signal and die with a message that we can check
-	# for outside of the eval
-	local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
-
-	# ask the kernel to send a SIGALRM to this process after 15 seconds
-	alarm 15;
-
-	# try retrieving the file from the server
-	$result = $this->getData( $commands );
-
-	# and turn off the alarm
-	alarm 0;
+  	# catch the alarm signal and die with a message that we can check
+  	# for outside of the eval
+  	local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+  
+  	# ask the kernel to send a SIGALRM to this process after 15 seconds
+  	alarm 15;
+  
+  	# try retrieving the file from the server
+  	$result = $this->getData( $commands );
+  
+  	# and turn off the alarm
+  	alarm 0;
   };
 
   # according to the camel book, there's a small chance of a race
@@ -85,25 +76,43 @@ sub retrieve {
   # check for errors in the eval
   if ($@) {
 
-	die "problem retrieving data from server ($@)"
-	  unless $@ eq "alarm\n";   # propagate unexpected errors
-
-	# timed out
+  	die "problem retrieving data from server ($@)"
+  	  unless $@ eq "alarm\n";   # propagate unexpected errors
+  
+  	# timed out
   }
 
   return $result;
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 getData
+
+Actually retrieves data from the server. The first obstacle is getting a
+socket connection to the server; we fetch server details from the 
+class configuration in the catalyst config files and then try to connect.
+If the connection fails, we're done. If we get a connection, the results 
+are stuffed into an array and the reference is returned.
+
+=cut
+
 sub getData {
   my( $this, $commands ) = @_;
 
+  # retrieve the Pfetch server connection parameters from the config
+	my( $server, $port, $timeout );
+	( $server  ) = $this->{pfetchServerIP}      =~ /^((\d{1,3}\.){3}\d{1,3})$/;
+	( $port    ) = $this->{pfetchServerPort}    =~ /^(\d+)$/;
+	( $timeout ) = $this->{pfetchServerTimeout} =~ /^(\d+)$/;
+
   # open the socket connection to the server
-  my $s = IO::Socket::INET->new( PeerAddr => $serverConfig{PFETCH_SERVER},
-								 PeerPort => $serverConfig{PFETCH_PORT},
-								 Timeout  => $serverConfig{PFETCH_TIMEOUT},
-								 Proto    => "tcp",
-								 Type     => SOCK_STREAM,
-							   );
+  my $s = IO::Socket::INET->new( PeerAddr => $server,
+                								 PeerPort => $port,
+                								 Timeout  => $timeout,
+                								 Proto    => "tcp",
+                								 Type     => SOCK_STREAM,
+              							   );
 
   # oops
   return unless $s;
@@ -113,7 +122,7 @@ sub getData {
   # build the request string.
   my $request;
   while( my( $command, $param ) = each( %$commands ) ) {
-	$request .= "$command $param ";
+  	$request .= "$command $param ";
   }
   $request .= "--client " . hostname();
 
@@ -123,11 +132,26 @@ sub getData {
   # and read the PDB file back from the pipe
   my @results;
   while( <$s> ) {
-	push @results, $_;
+  	push @results, $_;
   }
   close $s;
 
   return \@results;
 }
+
+#-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;
