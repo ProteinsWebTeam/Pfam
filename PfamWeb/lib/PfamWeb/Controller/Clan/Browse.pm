@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060821 WTSI
 #
-# $Id: Browse.pm,v 1.2 2006-09-22 10:47:02 jt6 Exp $
+# $Id: Browse.pm,v 1.3 2007-01-31 13:56:41 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,6 @@ use warnings;
 
 use base "Catalyst::Controller";
 
-
 =head1 DESCRIPTION
 
 Just a simple wrapper around a template that displays a "browse" page
@@ -26,7 +25,7 @@ one page, rather than splitting them up like the families.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.2 2006-09-22 10:47:02 jt6 Exp $
+$Id: Browse.pm,v 1.3 2007-01-31 13:56:41 jt6 Exp $
 
 =cut
 
@@ -41,12 +40,25 @@ list of all clan IDs and hands off to the template.
 
 =cut
 
+sub begin : Private {
+  my( $this, $c ) = @_;
+
+  # override the begin method from Family, to avoid error messages
+  # when there's no Pfam accession or ID specified in the
+  # parameters. Which there won't ever be for the browse pages.
+
+}
+
 sub browse : Path {
   my( $this, $c ) = @_;
 
-  my @res = $c->model("PfamDB::Clans")->search( {},
-												{ order_by => "clan_id ASC" }
-											  );
+  # set the page to be cached for one week
+  $c->cache_page( 604800 );
+  
+  my @res = $c->model("PfamDB::Clans")
+    ->search( {},
+							{ order_by => "clan_id ASC" }
+					  );
 
   # stash the results for the template
   $c->stash->{browse} = \@res if scalar @res;
@@ -68,10 +80,10 @@ sub end : Private {
 
   # check for errors
   if ( scalar @{ $c->error } ) {
-	$c->stash->{template} = "pages/error.tt";
+  	$c->stash->{template} = "pages/error.tt";
   } else {
-	$c->stash->{pageType} = "clan";
-	$c->stash->{template} = "pages/browseClans.tt";
+  	$c->stash->{pageType} = "clan";
+  	$c->stash->{template} = "pages/browseClans.tt";
   }
 
   # and use it
