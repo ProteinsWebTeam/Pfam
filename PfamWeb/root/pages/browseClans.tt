@@ -4,7 +4,7 @@
 # 
 # build a "browse" page for clans
 #
-# $Id: browseClans.tt,v 1.6 2007-01-22 15:41:39 jt6 Exp $
+# $Id: browseClans.tt,v 1.7 2007-01-31 14:24:26 jt6 Exp $
 
 # tell the wrapper to add the full-page footer
 META fullPage = 1;
@@ -20,7 +20,6 @@ pages = [ "numbers",
 pageList = BLOCK %]
 <div class="pageList">
   [% FOREACH page IN pages;
-    CALL c.log.debug( "page: $page" );
     IF page ==  lcChar %]
       <span class="letter inactive">
         [% page | ucfirst %]
@@ -51,7 +50,7 @@ pageList = BLOCK %]
   [% first = "";
   FOREACH clan IN browse;
     IF clan.clan_id.match('^\d');
-      initialLetter = "0";
+      initialLetter = "numbers";
     ELSE;
 	    initialLetter = clan.clan_id.split("").first | lower;
     END %]
