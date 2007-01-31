@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.11 2007-01-15 15:10:45 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.12 2007-01-31 13:59:58 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.11 2007-01-15 15:10:45 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.12 2007-01-31 13:59:58 jt6 Exp $
 
 =cut
 
@@ -45,8 +45,21 @@ Generates the tree and adds it to the stash.
 sub auto : Private {
   my( $this, $c ) = @_;
 
-  # retrieve the tree and stash it
-  $c->forward( "getTree" );
+  my $tree = $c->cache->get( $c->stash->{pfam}->pfamA_acc );
+  
+  if( $tree ) {
+    $c->log->debug( "Family::SpeciesTree::auto: successfully retrieved cached tree for "
+                    . $c->stash->{pfam}->pfamA_acc ); 
+    $c->stash->{rawTree} = $tree;
+  } else {
+    # retrieve the tree and stash it
+    $c->forward( "getTree" );
+
+    # and cache it
+    $c->cache->set( "species tree " . $c->stash->{pfam}->pfamA_acc,
+                    $c->stash->{rawTree},
+                    "2 weeks" );
+  }
 
 }
 
