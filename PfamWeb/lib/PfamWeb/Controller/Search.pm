@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.8 2007-01-15 15:07:31 jt6 Exp $
+# $Id: Search.pm,v 1.9 2007-01-31 14:06:01 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.8 2007-01-15 15:07:31 jt6 Exp $
+$Id: Search.pm,v 1.9 2007-01-31 14:06:01 jt6 Exp $
 
 =cut
 
@@ -84,7 +84,7 @@ sub jump : Local {
 
   # de-taint the ID type
   my $entryType;
-  ( $entryType ) = $c->req->param("type") =~ /^(\w+)/;
+  ( $entryType ) = $c->req->param("type") || ""  =~ /^(\w+)/;
   $c->log->debug( "Search::jump: called on entry type |$entryType|" );
 
   # if there's no recognisable entry type specified but there is an entry
