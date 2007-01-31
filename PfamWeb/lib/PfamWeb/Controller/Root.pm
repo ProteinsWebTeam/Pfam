@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.7 2007-01-22 15:01:21 jt6 Exp $
+# $Id: Root.pm,v 1.8 2007-01-31 13:45:11 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.7 2007-01-22 15:01:21 jt6 Exp $
+$Id: Root.pm,v 1.8 2007-01-31 13:45:11 jt6 Exp $
 
 =cut
 
@@ -43,27 +43,26 @@ Generates the main site index page. Also traps 404s and redirects to a 404 page.
 =cut
 
 sub default : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "Root.pm: action: " . $c->req->action );
-  $c->log->debug( "Root.pm: URI:    " . $c->req->uri );
-  $c->log->debug( "Root.pm: this:   " . $c->uri_for( "/" ) );
+  my ( $this, $c ) = @_;
 
   # before we go too far, make sure this isn't a broken URL
-  $c->res->redirect( $c->uri_for( "/404" ), 404 )
-   unless $c->req->uri eq $c->uri_for( "/" );
+  $c->res->redirect( $c->uri_for("/404") )
+    unless $c->req->uri eq $c->req->base;
 
   # now, knowing that this is a request for the site index page...
 
+  # set the page to be cached for an hour
+  $c->cache_page( 3600 );
+  
   # retrieve the news items from the feed
-  my @entries = $c->model("WebUser::News")
-                	->search( {}, { order_by => "pubDate DESC" } );
+  my @entries =
+    $c->model("WebUser::News")->search( {}, { order_by => "pubDate DESC" } );
   $c->stash->{newsItems} = \@entries;
 
   # get the top-ten families
-  my @topTen = $c->model("WebUser::Family_count")
-                 ->search( {},
-                           { order_by => "view_count DESC" } );
+  my @topTen =
+    $c->model("WebUser::Family_count")
+    ->search( {}, { order_by => "view_count DESC" } );
   $c->stash->{topTen} = \@topTen;
 
   $c->log->debug("PfamWeb::default: generating site index");
@@ -84,34 +83,31 @@ accessible throughout the app.
 =cut
 
 sub auto : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   #----------------------------------------
   # authentication/authorisation stuff...
-  
-#  return 1 if $c->controller eq $c->controller("Auth");
-# 
-#  unless( $c->user_exists ) {
-#    $c->log->debug( "Root::auto: unknown user; redirecting to login" );
-#    $c->res->redirect( $c->uri_for( "/login" ) );
-#    return 0;
-#  }
-#  $c->log->debug( "Root::auto: user authenticated" );
+
+  #  return 1 if $c->controller eq $c->controller("Auth");
+  #
+  #  unless( $c->user_exists ) {
+  #    $c->log->debug( "Root::auto: unknown user; redirecting to login" );
+  #    $c->res->redirect( $c->uri_for( "/login" ) );
+  #    return 0;
+  #  }
+  #  $c->log->debug( "Root::auto: user authenticated" );
 
   #----------------------------------------
   # tack on a trailing slash, if required
-  
-  # if the URL doesn't end in a slash, tack one on
-  #if( $c->req->path and $c->req->path !~ /\/$/ and not $c->req->param ) {
-  #	$c->log->debug( "Root::auto: appending a trailing slash to the URL: "
-  #									 . $c->req->path );
-  #	$c->res->redirect( "/" . $c->req->path . "/", 301);
-  #	return 0;
-  #}
+
+  if ( $c->req->path and $c->req->path !~ /\/$/ and not $c->req->param ) {
+    $c->res->redirect( $c->req->base . $c->req->path . "/", 301 );
+    return 0;
+  }
 
   #----------------------------------------
-
   # pick a tab
+
   my $tab;
   ($tab) = $c->req->param("tab") =~ /^(\w+)$/
     if defined $c->req->param("tab");
@@ -121,10 +117,6 @@ sub auto : Private {
   # stash some details of the Pfam release
   my $releaseData = $c->model("PfamDB::Version")->find( {} );
   $c->stash->{relData} = $releaseData if $releaseData;
-
-  #  $c->cache_page( expires  => "300",
-  #				  auto_uri => [ "/*" ],
-  #				  debug    => 1 );
 
   return 1;
 }
@@ -138,7 +130,7 @@ Generates a graph showing Pfam coverage.
 =cut
 
 sub graph : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   $c->res->header( "Content-Type" => "image/png" );
   $c->stash->{template} = "components/graph.tt";
@@ -153,7 +145,10 @@ Show an "about Pfam" page.
 =cut
 
 sub about : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
+
+  # set the page to be cached for two weeks
+  $c->cache_page( 1209600 );
 
   $c->stash->{template} = "components/tools/about.tt";
 }
@@ -167,7 +162,7 @@ Show an annotation upload form.
 =cut
 
 sub annotate : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   $c->stash->{template} = "pages/annotation.tt";
 }
@@ -180,32 +175,38 @@ Generates a "404" page.
 
 =cut
 
-sub fourOhFour : Path( "/404" ){
-  my( $this, $c ) = @_;
+sub fourOhFour : Path("/404") {
+  my ( $this, $c ) = @_;
 
-  $c->log->debug( "Root.pm: 404 !" );
+  # set the page to be cached for two weeks
+  $c->cache_page( 1209600 );
+
+  #----------------------------------------
+  # first, figure out where the broken link was, internal or external
+
+  my $ref = ( defined $c->req->referer ) ? $c->req->referer : "";
+  $c->stash->{where} = ( $ref =~ /sanger/ ) ? "internal" : "external";
+
+  # record the error
+  $c->error(   "Found a broken "
+             . $c->stash->{where}
+             . " link: \""
+             . $c->req->uri
+             . "\", referer: "
+             . ( $ref eq "" ? "unknown" : "\"" . $ref . "\"" ) );
+
+  # report it
+  $c->forward("/reportError");
+
+  # and clear the errors before we render the page
+  $c->clear_errors;
+
+  #----------------------------------------
+  # set the HTTP status and point at the 404 page
+
+  $c->res->status(404);
   $c->stash->{template} = "pages/404.tt";
 }
-
-  # record an error message, because we shouldn't error arrive here
-  # unless via a broken link, missing page, etc.
-
-  # first, figure out where the broken link was, internal or external
-  #	my $ref = ( defined $c->req->referer ) ? $c->req->referer : "";
-  #	my $where = ( $ref =~ /sanger/ ) ? "internal" : "external";
-  #
-  #	# record the error
-  #	$c->error(   "Found a broken $where link: \""
-  #						 . $c->req->uri
-  #						 . "\", referer: "
-  #						 . ( $ref eq "" ? "unknown" : "\"" . $ref . "\"" ) );
-  #
-  #	# report it
-  #	$c->forward("/reportError");
-  #
-  #	# and clear the errors before we render the page
-  #	$c->clear_errors;
-
 
 #-------------------------------------------------------------------------------
 
@@ -216,8 +217,8 @@ overridden by setting it in an action (eg for a 404 template).
 
 =cut
 
-sub end : ActionClass( "RenderView" ) {
-  my( $this, $c ) = @_;
+sub end : ActionClass("RenderView") {
+  my ( $this, $c ) = @_;
   $c->stash->{template} ||= "pages/index.tt";
 }
 
