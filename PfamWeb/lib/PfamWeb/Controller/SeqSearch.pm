@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.4 2006-12-06 15:48:24 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.5 2007-01-31 14:07:41 jt6 Exp $
 
 =head1 NAME
 
@@ -16,12 +16,13 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.4 2006-12-06 15:48:24 jt6 Exp $
+$Id: SeqSearch.pm,v 1.5 2007-01-31 14:07:41 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+use HTML::Widget;
 
 use Storable qw(thaw);
 
