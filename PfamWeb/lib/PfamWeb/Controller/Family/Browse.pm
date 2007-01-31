@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060717 WTSI
 #
-# $Id: Browse.pm,v 1.7 2006-11-27 16:28:48 jt6 Exp $
+# $Id: Browse.pm,v 1.8 2007-01-31 13:59:00 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ Retrieves the data for the "browse by family" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.7 2006-11-27 16:28:48 jt6 Exp $
+$Id: Browse.pm,v 1.8 2007-01-31 13:59:00 jt6 Exp $
 
 =cut
 
@@ -35,9 +35,9 @@ __PACKAGE__->config( SECTION => "family" );
 
 =head1 METHODS
 
-=head2 browse : Path
+=head2 begin : Private
 
-Retrieves data for the specified browse page.
+Just overrides the default begin method from Section.
 
 =cut
 
@@ -50,11 +50,22 @@ sub begin : Private {
 
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 browse : Path
+
+Retrieves data for the specified browse page.
+
+=cut
+
 sub browse : Path {
   my( $this, $c ) = @_;
 
   return unless defined $c->req->param( "browse" );
 
+  # set the page to be cached for one week
+  $c->cache_page( 604800 );
+  
   my @res;
 
   if( lc $c->req->param("browse") eq "numbers" ) {
@@ -62,22 +73,22 @@ sub browse : Path {
 
     # run the query to get back all families starting with a number
     @res = $c->model("PfamDB::Pfam")
-	  ->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
-				{ join     => [ qw/pfamA_web/ ],
-				  prefetch => [ qw/pfamA_web/ ],
-				  order_by => "pfamA_id ASC" }
-			  );
+  	  ->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
+        				{ join     => [ qw/pfamA_web/ ],
+        				  prefetch => [ qw/pfamA_web/ ],
+        				  order_by => "pfamA_id ASC" }
+        			  );
 
   } elsif( lc $c->req->param("browse") eq "new" ) {
     $c->stash->{char} = "new";
 
     # run the query to retrieve new families
     @res = $c->model("PfamDB::Pfam")
-	  ->search( { change_status => "NEW" },
-				{ join     => [ qw/pfamA_web/ ],
-				  prefetch => [ qw/pfamA_web/ ],
-				  order_by => "pfamA_id ASC" }
-			  );
+  	  ->search( { change_status => "NEW" },
+        				{ join     => [ qw/pfamA_web/ ],
+        				  prefetch => [ qw/pfamA_web/ ],
+        				  order_by => "pfamA_id ASC" }
+        			  );
 
   } elsif( lc $c->req->param("browse") eq "top twenty" ) {
     $c->stash->{char} = "top twenty";
@@ -85,31 +96,31 @@ sub browse : Path {
 	# retrieve the top twenty largest families, ordered by number of
 	# sequences in the family
     @res = $c->model("PfamDB::Pfam")
-	  ->search( { },
-				{ join     => [ qw/pfamA_web/ ],
-				  prefetch => [ qw/pfamA_web/ ],
-				  rows     => 20,
-				  page     => 1,
-				  order_by => "num_full DESC" }
-			  )->all;
+  	  ->search( { },
+        				{ join     => [ qw/pfamA_web/ ],
+        				  prefetch => [ qw/pfamA_web/ ],
+        				  rows     => 20,
+        				  page     => 1,
+        				  order_by => "num_full DESC" }
+        			  )->all;
 
   } else {
 
-	my $char;
-	( $char ) = $c->req->param( "browse" ) =~ /^(\w)/;
-
-	return unless defined $char;
-
-	$c->stash->{char} = uc $char;
-
-	# run the query to get back all families starting with the
-	# specified letter, ordered by ID
-	@res = $c->model("PfamDB::Pfam")
-	  ->search( { pfamA_id => { "LIKE", "$char%" } },
-				{ join     => [ qw/pfamA_web/ ],
-				  prefetch => [ qw/pfamA_web/ ],
-				  order_by => "pfamA_id" }
-			  );
+  	my $char;
+  	( $char ) = $c->req->param( "browse" ) =~ /^(\w)/;
+  
+  	return unless defined $char;
+  
+  	$c->stash->{char} = uc $char;
+  
+  	# run the query to get back all families starting with the
+  	# specified letter, ordered by ID
+  	@res = $c->model("PfamDB::Pfam")
+  	  ->search( { pfamA_id => { "LIKE", "$char%" } },
+        				{ join     => [ qw/pfamA_web/ ],
+        				  prefetch => [ qw/pfamA_web/ ],
+        				  order_by => "pfamA_id" }
+        			  );
   }
 
   # stash the results for the template
@@ -118,13 +129,12 @@ sub browse : Path {
   # set the template and let the default end action from Section
   # render it for us
   if( $c->req->param("list") ) {
-
-	# we want to return just the list of Pfam IDs, as a snipped of HTML
-	$c->stash->{template} = "pages/browseIds.tt";
+  	# we want to return just the list of Pfam IDs, as a snippet of HTML.
+  	# This is used in the domain query search form
+  	$c->stash->{template} = "pages/browseIds.tt";
   } else {
-
-	# just render as a regular "browse" page
-	$c->stash->{template} = "pages/browse.tt";
+  	# just render as a regular "browse" page
+  	$c->stash->{template} = "pages/browse.tt";
   }
 }
 
