@@ -4,7 +4,7 @@
 #
 # Controller to return a PDB file
 #
-# $Id: GetPdbFile.pm,v 1.2 2006-09-28 14:38:48 jt6 Exp $
+# $Id: GetPdbFile.pm,v 1.3 2007-01-31 14:01:26 jt6 Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ extract the PDB ID from the URL.
 
 Generates a B<flat file>, MIME type C<chemical/x-pdb>.
 
-$Id: GetPdbFile.pm,v 1.2 2006-09-28 14:38:48 jt6 Exp $
+$Id: GetPdbFile.pm,v 1.3 2007-01-31 14:01:26 jt6 Exp $
 
 =cut
 
@@ -49,8 +49,8 @@ sub default : Path {
 
   return unless defined $c->stash->{pdbId};
 
-  $c->stash->{pdbFile} =
-	PfamWeb::Model::Pfetch->retrieve( { "--pdb" => $c->stash->{pdbId} } );
+  $c->stash->{pdbFile} = 
+    $c->model( "Pfetch" )->retrieve( { "--pdb" => $c->stash->{pdbId} } );
 
 }
 
