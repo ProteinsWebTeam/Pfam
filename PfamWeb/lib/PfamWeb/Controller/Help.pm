@@ -2,7 +2,7 @@
 # Help.pm
 # jt6 20060925 WTSI
 #
-# $Id: Help.pm,v 1.1 2006-09-26 15:20:12 jt6 Exp $
+# $Id: Help.pm,v 1.2 2007-01-31 14:04:00 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package PfamWeb::Controller::Help;
 
 Generates a B<tabbed page>.
 
-$Id: Help.pm,v 1.1 2006-09-26 15:20:12 jt6 Exp $
+$Id: Help.pm,v 1.2 2007-01-31 14:04:00 jt6 Exp $
 
 =cut
 
@@ -45,7 +45,10 @@ The default help page
 sub index : Private {
   my( $this, $c ) = @_;
 
-   # empty... just capture the index URL
+  # set the page to be cached for two weeks
+  $c->cache_page( 1209600 );
+
+  # otherwise empty... just capture the index URL
 
 }
 
