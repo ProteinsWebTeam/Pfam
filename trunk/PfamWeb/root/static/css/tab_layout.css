@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.20 2007-01-15 15:35:59 jt6 Exp $
+   $Id: tab_layout.css,v 1.21 2007-01-31 14:16:29 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -218,20 +218,20 @@ form {
 
 div.errorReport {
 	width: 50%;
-    margin: 1em auto;
+  margin: 1em auto;
 	background: #EEE;
-    border: 1px solid #CCC;
+  border: 1px solid #CCC;
 }
 
 div.errorReport p {
 	padding: 0.5em;
-    margin: 0;
+  margin: 0;
 }
 
 div.errorReport p.message {
-    font-weight: bold;
-    color: #833;
-    margin-left: 2em;
+  font-weight: bold;
+  color: #833;
+  margin-left: 2em;
 }
 
 /* ---------------------------------------- */
