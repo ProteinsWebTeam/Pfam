@@ -4,7 +4,7 @@
 #
 # build a list of Pfam mirror sites
 #
-# $Id: mirrors.tt,v 1.1 2007-01-15 15:54:19 jt6 Exp $
+# $Id: mirrors.tt,v 1.2 2007-01-31 14:18:04 jt6 Exp $
 
 META naked = 1
 %]
@@ -17,8 +17,8 @@ META naked = 1
   </h1>
   <p class="small">The following are official Pfam mirror sites:</p>
 	<ul>
-		<li><a href="http://pfam.janelia.org/" class="us mirror">Washington D.C., USA</a></li>
 		<li><a href="http://pfam.cgb.ki.se/" class="se mirror">Stockholm, Sweden</a></li>
+		<li><a href="http://pfam.janelia.org/" class="us mirror">Washington D.C., USA</a></li>
 		<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror">INRA, France</a></li>
 		<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror">CCBB, South Korea</a></li>
 	</ul>	
