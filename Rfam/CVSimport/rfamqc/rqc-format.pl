@@ -2,6 +2,15 @@
 
 use strict;
 use Rfam;
+use Getopt::Long;
+
+my ($ci,
+    $qc);
+
+&GetOptions( "ci" => \$ci,
+             "qc"      => \$qc,
+);
+
 
 my $family = shift;
 #Hash containing valid TP lines:
@@ -16,8 +25,9 @@ my %TP_hash = (
 		    'snRNA' => {
 			'splicing' => 1,
 			'guide' => {
-				'CD' => 1,
-				'HACA' => 1,
+				'CD-box' => 1,
+				'HACA-box' => 1,
+				'scaRNA' => 1,				    
 				}
 			}
 		},
@@ -58,7 +68,8 @@ sub check_timestamps {
             $error = 1;
         }
     }
-
+    
+    unless ($qc){
     if( -M "$family/SEED" < -M "$family/CM" ) {
         warn "$family: Your SEED [$family/SEED] is younger than your CM file [$family/CM].\n";
         $error = 1;
@@ -75,13 +86,14 @@ sub check_timestamps {
         warn "$family: Your OUTPUT [$family/OUTPUT] is younger than your scores [$family/scores].\n";
         $error = 1;
     }
-
+}#mine
     if($error) {
         return 0;         # failure
     }
     else {
         return 1;         # success
     }
+
 }
 
 
@@ -217,6 +229,21 @@ sub desc_is_OK {
                 last;
             };
             # Non-Compulsory fields: These may be present
+
+	    /^PI/ && do {
+		$fields{$&}++;	
+		if (/^PI\s+$/){
+		   $error = 1;
+                    warn "$family: DESC files should not contain blank PI lines, please check and remove\n"; 
+		   last;
+	       }elsif (! /^PI\s{3}(\S+;\s?){1,10}$/) {
+		   $error = 1;
+                    warn "$family: DESC file PI lines wrongly formatted, please check format\n"; 
+		   last;
+	       }
+		last;
+	    };
+
             /^\*\*/ && do { last; };  # These are ** lines which are confidential comments.
             /^CC/ && do {
                 if (/^CC\s+$/){
@@ -231,15 +258,20 @@ sub desc_is_OK {
             };
             /^RT/ && do { last; };
             /^RL/ && do { 
-                if( !/^RL   .*\d{4};\d+:(\w*\d+)(?:-(\d+))?\.$/ ) {
-
-                    warn "$family: Bad reference line [$_]\nFormat is:    Journal abbreviation year;volume:page-page.\n
-";
+		if( !/^RL   .*\d{4};\d+:(\w*\d+)(?:-(\w?\d+))?\.$/ ) {
+                    warn "$family: Bad reference line [$_]\nFormat is:    Journal abbreviation year;volume:page-page.\n";
                     $error = 1;
                 } else {
                     my $start = $1;
-                    my $end = $2;
-                    if( $end and $start > $end ) {
+		    my $end = $2;
+		    if ($start=~/^[A-Z]/){
+			$start=~s/^.//; 
+		    }
+                    if (($end) && ($end=~/^[A-Z]/ )) { 
+			$end=~s/^.//;
+		    }
+
+		    if( $end and $start > $end ) {
                         warn "$family: Your reference line has a start ($start) bigger than end ($end)";
                         $error = 1;
                     }
@@ -283,8 +315,16 @@ sub desc_is_OK {
                         }
                         last SWITCH;
                     };
-                    /^DR   URL;\s+(\S+);$/ && do {
-                        warn "$family: Please check the URL $1\n";
+                    /^DR   MIPF;\s+/ && do {
+                        if( !/^DR   MIPF;\sMIPF\d+;$/ ) {
+                            warn "$family: Bad MIPF reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+                        }
+                        last SWITCH;
+                    };
+		    /^DR   URL;\s+(\S+);$/ && do {
+                       # warn "$family: Please check the URL $1\n";
                         last SWITCH;
                     };
                     warn "$family: Bad reference line: unknown database [$_]\n";
@@ -354,6 +394,12 @@ sub desc_is_OK {
         warn "$family: There is a discrepancy between the number of RN ($fields{RN})and RM ($fields{RM})lines\n";
         $error = 1;
     }
+
+    if (($fields{PI}) && ($fields{PI} > 1)){
+        warn "$family: There are [$fields{PI}] PI lines, please fix this \n";
+       $error = 1;
+    }
+
     close(DESC);
 
     if( !$ref ) {
