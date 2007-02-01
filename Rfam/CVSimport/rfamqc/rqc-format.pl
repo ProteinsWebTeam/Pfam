@@ -2,15 +2,6 @@
 
 use strict;
 use Rfam;
-use Getopt::Long;
-
-my ($ci,
-    $qc);
-
-&GetOptions( "ci" => \$ci,
-             "qc"      => \$qc,
-);
-
 
 my $family = shift;
 #Hash containing valid TP lines:
@@ -69,7 +60,6 @@ sub check_timestamps {
         }
     }
     
-    unless ($qc){
     if( -M "$family/SEED" < -M "$family/CM" ) {
         warn "$family: Your SEED [$family/SEED] is younger than your CM file [$family/CM].\n";
         $error = 1;
@@ -86,7 +76,7 @@ sub check_timestamps {
         warn "$family: Your OUTPUT [$family/OUTPUT] is younger than your scores [$family/scores].\n";
         $error = 1;
     }
-}#mine
+
     if($error) {
         return 0;         # failure
     }
