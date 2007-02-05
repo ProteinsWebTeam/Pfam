@@ -1,14 +1,13 @@
-#!/sw/arch/bin/perl
 # *************************************************************
 #
 # Purpose: 
 # Calculate the CRC64 of a string.
 #
 # $Source: /lustre/pfam/pfam/Users/rdf/cvs2svn/pfamweb-public/PfamLib/Bio/Pfam/Web/CRC64.pm,v $
-# $Revision: 1.1.1.1 $
+# $Revision: 1.2 $
 # $State: Exp $
-# $Date: 2006-03-15 09:56:26 $
-# $Author: rdf $
+# $Date: 2007-02-05 11:11:41 $
+# $Author: jt6 $
 # $Locker:  $
 #
 # *************************************************************
