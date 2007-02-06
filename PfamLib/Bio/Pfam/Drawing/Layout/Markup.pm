@@ -207,6 +207,25 @@ sub end {
    return $self->{'end'};
 }
 
+=head2 url
+
+    Title   : url
+    Usage   : $region->url("http://www.sanger.ac.uk//cgi-bin/Pfam/getacc?PF00621")
+    Function: gets/sets a url to be assigned to the image 
+    Retruns : This will return the URL if no argument is passed
+    Args    : a url (optional)
+
+=cut
+
+sub url {
+    my ($self, $value) = @_;
+    if (defined $value) {
+	$self->{'url'} = $value;
+    }else{
+	return $self->{'url'};
+    }
+}
+
 =head2 markup2XMLDOM
 
     Title   : markup2XMLDOM
@@ -234,9 +253,9 @@ sub markup2XMLDOM{
     if($self->label){ 
       $element->setAttribute("label", $self->label);
     }
-    #if($self->url){
-    #  $element->setAttribute("link_URL", $self->url);
-    #}
+    if($self->url){
+      $element->setAttribute("link_URL", $self->url);
+    }
     
     #Set the elements
     #The line element
@@ -293,6 +312,7 @@ sub convertDasMarkup{
    }
 
    $self->label($feature->{'feature_label'});
+   $self->url($feature->{'link'}[0]{'href'});
 }
 
 
