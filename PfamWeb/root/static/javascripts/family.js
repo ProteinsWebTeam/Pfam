@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.13 2007-01-15 15:47:41 jt6 Exp $
+// $Id: family.js,v 1.14 2007-02-06 13:12:08 jt6 Exp $
 
 // this will make the ajax calls for the family page components
 
@@ -79,7 +79,7 @@ function siSuccess( oResponse ) {
 // callbacks for the domain graphics generation call
 
 function dgSuccess( oResponse ) {
-  Element.update( $("dgph").parentNode, oResponse.responseText );
+  Element.update( $("dgph"), oResponse.responseText );
 }
 function dgFailure() {
   Element.update( $("dgph"), "Domain graphics loading failed." );
