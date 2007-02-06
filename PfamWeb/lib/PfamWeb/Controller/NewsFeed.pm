@@ -2,7 +2,7 @@
 # News.pm
 # jt 20061207 WTSI
 #
-# $Id: NewsFeed.pm,v 1.1 2007-01-15 15:10:19 jt6 Exp $
+# $Id: NewsFeed.pm,v 1.2 2007-02-06 13:13:08 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::NewsFeed;
 
 Generates the Pfam news feed RSS.
 
-$Id: NewsFeed.pm,v 1.1 2007-01-15 15:10:19 jt6 Exp $
+$Id: NewsFeed.pm,v 1.2 2007-02-06 13:13:08 jt6 Exp $
 
 =cut
 
@@ -41,6 +41,9 @@ Shows all Pfam news feed items in full.
 sub index : Private {
 	my( $this, $c ) = @_;
 	
+	# set the page to be cached for an hour
+  $c->cache_page( 3600 );
+
 	# retrieve the news items from the feed
 	my @entries = 
 		$c->model("WebUser::News")->search( {}, { order_by => "pubDate DESC" } );
@@ -60,29 +63,41 @@ Generates an RSS feed.
 sub rss : Global {
 	my( $this, $c ) = @_;
 
-	# start a feed
-	my $feed = XML::Feed->new("RSS");
+  # see if the feed can be extracted from the cache
+  my $feed= $c->cache->get( "newsFeed" );
 
-	# build the channel info
-	$feed->title("Pfam RSS Feed");
-	$feed->link( $c->req->base );
-	$feed->description("Pfam News");
-	$feed->language("en-GB");
+  $c->log->debug( "NewsFeed::RSS: extracted feed from cache" ) if $feed;
 
-	# query the DB for news items, in reverse chronological order
-	my @entries =
-		$c->model("WebUser::News")->search( {}, { order_by => "pubDate DESC" } );
+  unless( $feed ) {
+    $c->log->debug( "NewsFeed::RSS: generating cache from database" );
 
-	# add each item to the feed
-	foreach my $entry (@entries) {
-		my $feedEntry = XML::Feed::Entry->new("RSS");
-		$feedEntry->title( $entry->title );
-		$feedEntry->link( $c->uri_for( "/newsfeed#" . $entry->auto_news ) );
-		$feedEntry->issued(
-									 DateTime::Format::MySQL->parse_datetime( $entry->pubDate ) );
-		$feed->add_entry($feedEntry);
-	}
+    # start a feed
+    $feed = XML::Feed->new("RSS");
 
+  	# build the channel info
+  	$feed->title("Pfam RSS Feed");
+  	$feed->link( $c->req->base );
+  	$feed->description("Pfam News");
+  	$feed->language("en-GB");
+  
+  	# query the DB for news items, in reverse chronological order
+  	my @entries =
+  		$c->model("WebUser::News")->search( {}, { order_by => "pubDate DESC" } );
+  
+  	# add each item to the feed
+  	foreach my $entry (@entries) {
+  		my $feedEntry = XML::Feed::Entry->new("RSS");
+  		$feedEntry->title( $entry->title );
+  		$feedEntry->link( $c->uri_for( "/newsfeed#" . $entry->auto_news ) );
+  		$feedEntry->issued(
+  									 DateTime::Format::MySQL->parse_datetime( $entry->pubDate ) );
+  		$feed->add_entry($feedEntry);
+  	}
+
+    # cache the feed object for later
+  	$c->cache->set( "newsFeed",$feed, "1 hour" );
+  }
+  
 	# just dump the raw XML to the body
 	$c->res->body( $feed->as_xml );
 }
