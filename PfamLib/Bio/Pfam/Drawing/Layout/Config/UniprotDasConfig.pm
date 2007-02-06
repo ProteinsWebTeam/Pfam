@@ -80,52 +80,54 @@ sub _setDrawingStyles{
     my ($self,$features) = @_;
     
     for(my $i = 0; $i < scalar(@$features); $i++){
-      if($features->[$i]->{'drawingType'} eq "Region"){
-	#Set up the display group. This will allow us to keep similar annotations together
-	$features->[$i]->{'_displayGroup'} = $regions{$features->[$i]->{'type_id'}} if ($regions{$features->[$i]->{'type_id'}});
+	  if (!defined $features->[$i]->{'drawingType'}) {
+	  	# Unknown feature type.
+		next;
+	  }
+      elsif($features->[$i]->{'drawingType'} eq "Region"){
+    	#Set up the display group. This will allow us to keep similar annotations together
+	    $features->[$i]->{'_displayGroup'} = $regions{$features->[$i]->{'type_id'}} if ($regions{$features->[$i]->{'type_id'}});
 
-	#This will deal with any seconday structure
-	if($ssElementColours{$features->[$i]->{'type_id'}}){
-	  $self->_setRegionColours($features->[$i], $ssElementColours{$features->[$i]->{'type_id'}}->[0], $ssElementColours{$features->[$i]->{'type_id'}}->[1]);
-	  $features->[$i]->{'feature_label'} = $features->[$i]->{'type_id'};
-	  #$features->[$i]->{'_displayGroup'} = "ss";
-	}elsif($features->[$i]->{'type_id'} eq "DOMAIN"){
-	  $features->[$i]->{'feature_label'} = join(", ", @{$features->[$i]->{'note'}});
-	  $self->_setRegionColours($features->[$i], "feffa5");
-	  $features->[$i]->{'_displayGroup'} = "domains";
+	    #This will deal with any seconday structure
+	    if($ssElementColours{$features->[$i]->{'type_id'}}){
+	      $self->_setRegionColours($features->[$i], $ssElementColours{$features->[$i]->{'type_id'}}->[0], $ssElementColours{$features->[$i]->{'type_id'}}->[1]);
+          $features->[$i]->{'feature_label'} = $features->[$i]->{'type_id'};
+	      #$features->[$i]->{'_displayGroup'} = "ss";
+	    }elsif($features->[$i]->{'type_id'} eq "DOMAIN"){
+	      $features->[$i]->{'feature_label'} = join(", ", @{$features->[$i]->{'note'}});
+	      $self->_setRegionColours($features->[$i], "feffa5");
+	      $features->[$i]->{'_displayGroup'} = "domains";
 	#}elsif($features->[$i]->{'type_id'} eq "CONFLICTS"){
-
-
 
 #CONFLICTS, VARIATION, 
 	  
-	}else{
-	  $self->_setRegionColours($features->[$i], "feffa5");
-	}
+        }else{
+	      $self->_setRegionColours($features->[$i], "feffa5");
+        }
       }elsif($features->[$i]->{'drawingType'} eq "Markup"){
-	$features->[$i]->{'_displayGroup'} = $features->[$i]->{'type_id'};
-	if($features->[$i]->{'type_id'} eq "DISULFID"){
-	  $features->[$i]->{_lineColour}     = "ffcc66";
-	  $features->[$i]->{_lineStyle}      = "bold";
-	  $features->[$i]->{_valign}         = "top";
-	}elsif($features->[$i]->{'type_id'} eq "CROSSLNK"){
-	  $features->[$i]->{_lineColour}     = "666666";
-	  $features->[$i]->{_lineStyle}      = "bold";
-	  $features->[$i]->{_valign}         = "top";
-	}elsif($features->[$i]->{'type_id'} eq "NON_CONS"){
-	  $features->[$i]->{_lineColour}     = "cccccc";
-	  $features->[$i]->{_lineStyle}      = "dashed";
-	  $features->[$i]->{_valign}         = "top";
-	}else{
-	  $features->[$i]->{_headColour}     = $markups{$features->[$i]->{'type_id'}}->[0];
-	  $features->[$i]->{_headStyle}      = $markups{$features->[$i]->{'type_id'}}->[1];
-	  $features->[$i]->{_lineColour}     = "cccccc";
-	  $features->[$i]->{_lineStyle}      = "bold";
-	  $features->[$i]->{_valign}         = "top";
-	} 
-      }
-    }
-  }
+	    $features->[$i]->{'_displayGroup'} = $features->[$i]->{'type_id'};
+        if($features->[$i]->{'type_id'} eq "DISULFID"){
+	      $features->[$i]->{_lineColour}     = "ffcc66";
+          $features->[$i]->{_lineStyle}      = "bold";
+	      $features->[$i]->{_valign}         = "top";
+	    }elsif($features->[$i]->{'type_id'} eq "CROSSLNK"){
+	      $features->[$i]->{_lineColour}     = "666666";
+	      $features->[$i]->{_lineStyle}      = "bold";
+	      $features->[$i]->{_valign}         = "top";
+	    }elsif($features->[$i]->{'type_id'} eq "NON_CONS"){
+	      $features->[$i]->{_lineColour}     = "cccccc";
+	      $features->[$i]->{_lineStyle}      = "dashed";
+	      $features->[$i]->{_valign}         = "top";
+	    }else{
+	      $features->[$i]->{_headColour}     = $markups{$features->[$i]->{'type_id'}}->[0];
+	      $features->[$i]->{_headStyle}      = $markups{$features->[$i]->{'type_id'}}->[1];
+	      $features->[$i]->{_lineColour}     = "cccccc";
+	      $features->[$i]->{_lineStyle}      = "bold";
+	      $features->[$i]->{_valign}         = "top";
+	    } 
+      }# end drawingType if
+    } # end for
+}
 
 
 1;
