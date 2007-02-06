@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.6 2007-01-15 14:17:17 jt6 Exp $
+# $Id: Annotate.pm,v 1.7 2007-02-06 13:12:52 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.6 2007-01-15 14:17:17 jt6 Exp $
+$Id: Annotate.pm,v 1.7 2007-02-06 13:12:52 jt6 Exp $
 
 =cut
 
@@ -28,7 +28,7 @@ use base "Catalyst::Controller";
 use PfamWeb::CustomContainer;
 use HTML::Widget::Element;
 
-use IO::All;
+#use IO::All;
 
 BEGIN {
   HTML::Widget::Element->container_class( "PfamWeb::CustomContainer" );
