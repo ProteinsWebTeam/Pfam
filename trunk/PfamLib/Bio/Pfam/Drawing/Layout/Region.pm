@@ -356,7 +356,7 @@ sub convertDasRegion{
     $self->colour2(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $feature->{'colour2'}));
     $self->type("smlShape");
     $self->uid($feature->{'uid'});
-
+    $self->url($feature->{'link'}[0]{'href'});
 }
 
 sub hidden {
