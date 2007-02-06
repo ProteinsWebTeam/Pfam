@@ -22,8 +22,8 @@ sub layout_DAS_sequences_and_features {
 	#first get the sequence object.
 	my $sourceId;
 	#print STDERR "\n\n\n***** $source, ";
-
-	if($source =~ /(smart|superfamily|cath_sptr|dssp|uniprot|das\/pfam)/i){
+	
+	if($source =~ /(smart|superfamily|cath_sptr|dssp|\/uniprot\/|alig)/i){
 	    my $id = lc($1);
 	    $id =~ s/_|\///g;
 	    $sourceId = $id."Das";
@@ -48,11 +48,9 @@ sub layout_DAS_sequences_and_features {
 	      $l_seq->colour2(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "DDDDDD"));
 	      $l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
 	      $self->add_seq($l_seq);
-
-		
 	    }
 	}
-    }
+  }
   return $featureSetsAdded;
 }
 
