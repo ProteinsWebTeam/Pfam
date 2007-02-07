@@ -8,17 +8,20 @@
 # table up to date.
 #
 # The script populates a table that's created as follows:
-#
-# CREATE TABLE das_sources (
-#   server_id     VARCHAR(40)  PRIMARY KEY,
-#   name          VARCHAR(100) NOT     NULL,
-#   url           VARCHAR(200) NOT     NULL,
-#   system        VARCHAR(200) NOT     NULL,
-#   helperurl     VARCHAR(200) DEFAULT NULL,
-#   defaultServer BOOLEAN      DEFAULT 0
-# );
-#
-# $Id: update_das_sources.pl,v 1.5 2007-01-02 13:20:22 jt6 Exp $
+
+=head
+CREATE TABLE feature_das_sources (
+  server_id VARCHAR(40) NOT NULL,
+  system VARCHAR(200) NOT NULL,
+  sequence_type VARCHAR(200) NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  url VARCHAR(200) NOT NULL,
+  helper_url VARCHAR(200) NULL,
+  default_server TINYINT(1) NOT NULL,
+  PRIMARY KEY(server_id, system, sequence_type)
+);
+=cut
+# $Id: update_das_sources.pl,v 1.6 2007-02-07 16:05:56 aj5 Exp $
 
 use warnings;
 use strict;
@@ -77,16 +80,17 @@ my $dbh = DBI->connect( $DB_DSN,
 						  AutoCommit => 0 } );
 
 # prepare the queries
-my $insertSth = $dbh->prepare( "INSERT INTO das_sources ( server_id, name, url, system, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ? )" );
+my $insertSth = $dbh->prepare( "INSERT INTO feature_das_sources ( server_id, name, url, system, sequence_type, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ?, ? )" );
 
 # get the full list of sources
-my $sourcesList = $das->registry_sources( { category => [ "Protein Sequence", "Protein Structure" ] } );
+#my $sourcesList = $das->registry_sources( { category => [ "Protein Sequence", "Protein Structure" ] } );
+my $sourcesList = $das->registry_sources();
 
 # decide which sources we want to use
-my $chosenList = {};
+my $chosenList = [ ];
 foreach my $source ( @$sourcesList ) {
 
-  # print Dumper( $source );
+#   print Dumper( $source );
 #   foreach ( strptime( $source->{leaseDate} ) ) {
 # 	print "strptime: $_\n";
 #   }
@@ -113,9 +117,6 @@ foreach my $source ( @$sourcesList ) {
   print STDERR "(ww) ignoring \"$source->{nickname}\" ($source->{id})\n" and next
 	if $ignoreServers->{ $source->{id} };
 
-  my $featureCount = 0;
-  my $sysCount = 0;
-
   my $entry = {};
   $entry->{id}        = $source->{id};
   $entry->{name}      = $source->{nickname};
@@ -125,8 +126,8 @@ foreach my $source ( @$sourcesList ) {
   # trim any trailing slashes off the URLs
   {
 	$/ = "/";
-	chomp $entry->{url};
-	chomp $entry->{helperurl};
+	chomp $entry->{url} if defined($entry->{url});
+	chomp $entry->{helperurl} if defined($entry->{helperurl});
   };
 
   # validate the URLs
@@ -141,36 +142,23 @@ foreach my $source ( @$sourcesList ) {
   }
 
   # we're only interested in features
-  foreach my $capability ( @{$source->{capabilities}} ) {
-	$featureCount++ and last if $capability eq "features";
+  next unless grep /features/, @{$source->{capabilities}};
+  
+  foreach my $coords (@{$source->{coordinateSystem}})
+  {
+  	if (defined $entry->{coords}{$coords->{uniqueId}}) {
+		print STDERR "(ww) ignoring duplicate co-ordinate system for $source->{id}\n";
+		next;
+	}
+	$entry->{coords}{$coords->{uniqueId}} = { system => $coords->{name}, type => $coords->{category} };
   }
-  next unless $featureCount;
-
-  # convert the list of coordinate systems into a hash, so that we can
-  # quickly look up the type of coordinate systems that this source
-  # can handle
-  my $map = {};
-  map { $map->{$_->{name}} = 1 } @{$source->{coordinateSystem}};
-
-  if( exists $map->{UniProt} ) {
-	$sysCount++;
-	$entry->{system} = "UniProt";
-  } elsif( exists $map->{Ensembl} ) {
-	$sysCount++;
-	$entry->{system} = "Ensembl";
-  } elsif( exists $map->{PDBresnum} ) {
-	$sysCount++;
-	$entry->{system} = "PDBresnum";
-  }
-
-  # if we've found at least one acceptable coordinate system, stash
-  # this source
-  $chosenList->{$entry->{id}} = $entry if $sysCount;
+  
+  push (@$chosenList, $entry) if (defined $entry->{coords});
 
 }
 
 # make sure we have some sources before going any further
-unless( scalar keys %$chosenList ) {
+unless( scalar @$chosenList ) {
   print STDERR "(EE) ERROR: no sources retrieved; leaving the table untouched\n";
   exit 1;
 }
@@ -182,22 +170,24 @@ print STDERR "(ii) opening transaction...\n";
 eval {
 
   # truncate the table
-  print STDERR "(ii) dropping table... ";
-  $dbh->do( "DELETE FROM das_sources" );
+  print STDERR "(ii) emptying table... ";
+  $dbh->do( "DELETE FROM feature_das_sources" );
   print "done\n";
 
   # insert them
-  foreach my $name ( sort keys %$chosenList ) {
-	print STDERR "(ii) inserting $chosenList->{$name}->{name}... ";
-	$insertSth->execute( $chosenList->{$name}->{id},
-						 $chosenList->{$name}->{name},
-						 $chosenList->{$name}->{url},
-						 $chosenList->{$name}->{system},
-						 $chosenList->{$name}->{helperurl},
-					     exists $defaultServers->{ $chosenList->{$name}->{id} } ? 1 : 0
+  foreach my $entry( sort { $a->{id} cmp $b->{id} } @$chosenList ) {
+  	foreach my $coord (values %{ $entry->{coords} }) {
+		print STDERR "(ii) inserting $entry->{name} [$coord->{system},$coord->{type}]... ";
+		$insertSth->execute( $entry->{id},
+						 $entry->{name},
+						 $entry->{url},
+						 $coord->{system},
+						 $coord->{type},
+						 $entry->{helperurl},
+					     exists $defaultServers->{ $entry->{id} } ? 1 : 0
 					   );
-
-	print STDERR "done\n";
+		print STDERR "done\n";
+	}
   }
 
   $dbh->commit;
