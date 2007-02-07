@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.16 2007-01-15 15:34:26 jt6 Exp $
+   $Id: protein.css,v 1.17 2007-02-07 16:03:05 aj5 Exp $
 */   
 
 /* ======================================== */
@@ -29,7 +29,7 @@
 
 div.source {
 	float: left;
-    width: 17em;
+    width: 18em;
 	padding: 0.2em;
 }
 
@@ -44,36 +44,47 @@ div.source input {
 /* DAS features */
 
 #updatePanel {
-/*    border: 1px solid #CCC; */
-	margin-top: 0.4em;
+	margin-top: 2em;
     padding: 0;
 }
 
-/*
-#featuresMap {
-	border: 1px solid #CCC;
+.dasObjectCheckboxes {
+	background: #e6f2ee;
+	margin: 0.5em;
 }
-*/
 
-#checkboxes {
+.section {
     border: 1px solid #CCC; 
-    padding: 0.4em;
+	float: left;
+	margin-bottom: 10px;
+	padding: none;
+	width: 100%;
+}
+
+p.sectionLabel {
+	font-weight: bold;
+	padding: none;
+	margin-top: 0;
+	text-align: left;
 }
 
 p.featuresLabel {
-	float: left;
-    margin: 2px;
-    padding: 0.1em;
-    clear: left;
-    border: 1px solid #CCC;
-    background: #EEE;
+    margin: 2px 0 0 0;
+    padding: 0;
 	width: 14em;
+	border: 1px solid #CCC;
+    background: #EEE;
+}
+
+td.graphics {
+	margin: none;
+	padding: none;
+	border: none;
 }
 
 img.featuresImage {
-	float: left;
-    margin-left: 6em;
-    margin: 2px;
+    margin: none;
+	padding: none;
 }
 
 #tracks {

@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.27 2007-01-15 15:45:44 jt6 Exp $
+// $Id: pfFunctions.js,v 1.28 2007-02-07 16:03:13 aj5 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -349,6 +349,7 @@ function unhighlight( e ) {
 function moveCursor( e ) {
   var cObj = $("cursor");
   var fObj = $("featuresMap");
+  var im   = $A( $("featuresMap").getElementsByTagName("img") ).first();
 
   // set the cursor height to the height of the map
   cObj.style.height = Element.getHeight( fObj ) - 1 + "px";
@@ -359,10 +360,9 @@ function moveCursor( e ) {
   var ol = fObj.offsetLeft;
 
   var x = px - co[0] + ol - 1;
-
-  var im   = $A( $("featuresMap").getElementsByTagName("img") ).first();
-  var minX = im.offsetLeft;
-  var maxX = im.offsetLeft + Element.getDimensions( im ).width;
+  
+  var minX = im.offsetLeft + im.parentNode.offsetLeft;
+  var maxX = minX + Element.getDimensions( im ).width;
 
   if( x < minX ) x = minX;
   if( x > maxX ) x = maxX;
@@ -370,7 +370,7 @@ function moveCursor( e ) {
   cObj.style.left = x + "px";
 
   // update the status display
-  var r = x - im.offsetLeft + 1;
+  var r = x - (im.offsetLeft + im.parentNode.offsetLeft) + 1;
   $("status").innerHTML = "Residue number: " + r;
 
   cObj.style.display = "block";
