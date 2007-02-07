@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.21 2007-02-07 16:04:27 aj5 Exp $
+# $Id: Protein.pm,v 1.22 2007-02-07 16:39:00 aj5 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.21 2007-02-07 16:04:27 aj5 Exp $
+$Id: Protein.pm,v 1.22 2007-02-07 16:39:00 aj5 Exp $
 
 =cut
 
@@ -42,6 +42,7 @@ use Bio::Pfam::CATHRegion;
 use Bio::Pfam::SCOPRegion;
 use Bio::Pfam::SeqPfam;
 use Bio::Pfam::HMMOtherRegion;
+use Bio::Pfam::Drawing::Image::ImageSet;
 use Bio::SeqFeature::Generic;
 
 use base "PfamWeb::Controller::Section";
