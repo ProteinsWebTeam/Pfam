@@ -5,7 +5,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.13 2006-10-26 15:30:07 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.14 2007-02-07 16:01:40 aj5 Exp $
 
 META naked = 1
 -%]
@@ -16,25 +16,64 @@ META naked = 1
 
   <div id="highlight"></div>
   <div id="cursor"></div>
+  
+  [% c.prototype.form_remote_tag( {	  url         => c.uri_for( "/protein/graphics" ),
+			                       	  update      => "graphicsHolder",
+							          evalScripts => 1 } ) %]
+										  
+  <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
+  <input type="hidden" name="reloadObjects" value="1" />
+  
+  [% i = 0 %]
+  [% FOREACH section IN sections %]
+  
+    <table class="section" cellpadding="0" cellspacing="0">
+	  <caption>
+	    <p align="left">
+        [% section.system %] [% section.type %] ([% section.objects.size %])
+        <span class="link" onclick="reveal(this,'checkboxes_[% section.id %]',false)">Show</span>
+        </p>
+	  </caption>
+	  
+      <!-- Object selection checkboxes -->
+      <tr><td colspan="2">
+	    <div id="checkboxes_[% section.id %]" class="dasObjectCheckboxes" style="display: none;">
+          [% FOREACH subsection IN section.objects %]
+            <div class="source">
+    		  <input id="select_[% subsection.id %]" name="[% section.type %]//[% section.system %]//DO_[% subsection.object %]" type="checkbox" [% IF subsection.rows.size %]checked="1"[% END %] />
+              <span class="checkboxLabel">[% subsection.object %]</span>
+   	        </div>
+          [% END %]
+		  <input type="submit" value="Update" style="float: left; clear: left;"/>
+		  <div class="cleaner">&nbsp;</div>
+	    </div>
+	  </td></tr>
+	  
+	  <!-- Images -->
+      [% FOREACH subsection IN section.objects %]
+	    [% IF subsection.rows.size %]
+		    <tr><td colspan="2"><p class="sectionLabel">[% subsection.object %]</p></td></tr>
+			[% FOREACH row IN subsection.rows %]
+			  <tr>
+			    <td class="graphics" valign="center" nowrap="nowrap"><p class="featuresLabel" id="featuresLabel[% i %]">[% row.server %]</p></td>
+				<td class="graphics">
+                  <map name="featuresMap[% i %]" id="featuresMap[% i %]">
+                    [% row.map %]
+                  </map>
+				  <img class="featuresImage" id="featuresImage[% i %]" src="[% constants.tmp %]/[% row.image %]" usemap="#featuresMap[% i %]" alt="" />
+                </td>
+			  </tr>
+			  [% i = i + 1 %]
+			[% END %]
+		[% END %]
+      [% END %]
 
-  [% lastImage = maps.size - 1 %]
-  [% range = [ 0 .. lastImage ] %]
-  [% FOREACH i IN range %]
-  	[% map = maps.$i %]
-	<div class="featuresRow" id="featuresRow[% i %]">
-
-      <p class="featuresLabel" id="featuresLabel[% i %]">[% map.server %]</p>
-
-      <img class="featuresImage" id="featuresImage[% i %]" src="[% constants.tmp %]/[% map.image %]" usemap="#featuresMap[% i %]" alt="" />
-
-      <map name="featuresMap[% i %]" id="featuresMap[% i %]">
-        [% map.map %]
-      </map>
-
-    </div>
+	</table>
   [% END %]
-
+	
   <div class="cleaner">&nbsp;</div>
+  
+  </form>
 
 </div>
 
