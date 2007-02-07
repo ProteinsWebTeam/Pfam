@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.20 2007-01-31 14:04:53 jt6 Exp $
+# $Id: Protein.pm,v 1.21 2007-02-07 16:04:27 aj5 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.20 2007-01-31 14:04:53 jt6 Exp $
+$Id: Protein.pm,v 1.21 2007-02-07 16:04:27 aj5 Exp $
 
 =cut
 
@@ -157,19 +157,12 @@ sub begin : Private {
 
   $c->log->debug("Protein::begin: successfully retrieved a pfamseq object");
   $c->stash->{pfamseq} = $p;
-
-  #----------------------------------------
-  # add available DAS sources to the stash
-
-  my @dasSources = $c->model("WebUser::Das_sources")->search();
-  $c->stash->{dasSourcesRs} = \@dasSources;
-
-  $c->log->debug("Protein::begin: added DAS sources to the stash");
-
+  
   #----------------------------------------
   # add extra data to the stash
 
   $c->forward("_generatePfamGraphic");
+  $c->forward("_getDasSources");
   $c->forward("_getMapping");
   $c->forward("_getSummaryData");
   $c->forward("_getGenomeData");
@@ -179,6 +172,52 @@ sub begin : Private {
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
+
+sub _getDasSources : Private {
+  my ($this, $c) = @_;
+  
+  my @dasSources = $c->model("WebUser::Feature_das_sources")->search();
+  my $keptSources = {};
+  my ($baseCoord, $baseType) = ('UniProt', 'Protein Sequence');
+  foreach my $f (@dasSources) {
+  	if ($f->sequence_type eq $baseType and $f->system eq $baseCoord) {
+		push (@{ $keptSources->{$f->sequence_type}{$f->system} }, $f);
+		next;
+	}
+  	foreach my $a ($f->alignment_sources_to) {
+		defined $a or next;
+		if ($a->from_type eq $baseType and $a->from_system eq $baseCoord) {
+			push (@{ $keptSources->{$f->sequence_type}{$f->system} }, $f);
+			last;
+		}
+	}
+  }
+  
+  my @keptSourcesArr = ();
+  my @types = &_sortWithPref($baseType, keys %{ $keptSources } );
+  foreach my $type (@types) {
+  	my @systems = &_sortWithPref($baseCoord, keys %{ $keptSources->{$type} } );
+	foreach my $system (@systems) {
+		my $id = $type.'_'.$system;
+		$id =~ s/\s+/_/g;
+  		push (@keptSourcesArr, { type=>$type, system=>$system, servers=>$keptSources->{$type}{$system}, id=>$id } );
+	}
+  }
+  $c->stash->{dasSourcesRs} = \@keptSourcesArr;
+
+  $c->log->debug("Protein::begin: added DAS sources to the stash");
+}
+
+sub _sortWithPref {
+	my $pref = shift;
+	return sort {
+		my $i = (lc $a) cmp (lc $b);
+		return $i if ($i == 0);
+		if ($a eq $pref) { $i = -1; }
+		elsif ($b eq $pref) { $i = 1; }
+		return $i;
+	} @_;
+}
 
 sub _getGenomeData : Private {
   my ( $this, $c ) = @_;
@@ -300,6 +339,8 @@ sub _getSummaryData : Private {
 John Tate, C<jt6@sanger.ac.uk>
 
 Rob Finn, C<rdf@sanger.ac.uk>
+
+Andy Jenkinson, C<aj5@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
