@@ -12,8 +12,8 @@ use HTTP::Request;
 use HTTP::Headers;
 use Data::Dumper;
 
-our $DEBUG    = 1;
-our $VERSION  = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our $DEBUG    = 0;
+our $VERSION  = do { my @r = (q$Revision: 1.9 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 our $BLK_SIZE = 8192;
 our $TIMEOUT  = 5;
