@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.16 2007-02-07 16:04:31 aj5 Exp $
+# $Id: Graphics.pm,v 1.17 2007-02-08 16:21:50 aj5 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.16 2007-02-07 16:04:31 aj5 Exp $
+$Id: Graphics.pm,v 1.17 2007-02-08 16:21:50 aj5 Exp $
 
 =cut
 
@@ -140,11 +140,11 @@ sub default : Path {
 				unless ($skip) {
 					# Start with the stashed Pfam image.
 					push (@ {$imageSets->{$seqAcc}}, $c->stash->{pfamImageset} );
-	
+					
 					# The query sequence has a subsection into which all associated features are placed.
 					$dl->dsn( $selectedFeatureServersForSystem{$type}{$system} );
 					my $features = $dl->features($seqAcc);
-	
+					
 					# Use a layout manager to draw the graphics for this subsection.
 					my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
 					my $numSetsAdded = $layout->layout_DAS_sequences_and_features( $sequence, $features );
@@ -180,7 +180,6 @@ sub default : Path {
 						next if $intObId eq $seqAcc;
 						
 						my $obId = $intObId;
-						$c->log->debug (Dumper $alnMap) if ($obId eq '1uwh.A');
 						
 						# Hack to sort out the PDB alignment server's accession foibles.
 						if ($type eq 'Protein Structure' and $system eq 'PDBresnum') {
