@@ -8,16 +8,13 @@ Rfam release procedure
    > cd /pfam/rfam1/rfamseq/?/
 
 3. Pick up .dat files from srspartition
-   > rcp cbi2:/nfs/disk100/pubseq/srspartition/data/embl??/*.dat .
-
-   Avoid htg_*.dat, est_*.dat, gss_*.dat, htc.dat, htgo_*.dat,
-   pat??.dat, sts.dat, syn.dat, unc.dat.
+   > /pfam/db/Rfam/scripts/release/get_embl_files.pl
 
 4. Build rfamseq files
    > /pfam/db/Rfam/scripts/release/make_rfamseq.pl
 
-5. Index rfamseq
-   > /pfam/db/Rfam/scripts/release/index_rfamseq.pl rfamseq.fa.bpi
+5. Make diff file and new fasta files
+   > /pfam/db/Rfam/scripts/release/make_diff.pl embl_sv.txt /pfam/db/rfamseq/CURRENT/embl_sv.txt
 
 6. Copy accross to /pfam/db/rfamseq/?/
    Don't need *.dat files and hopefully soon *.fa files
@@ -47,3 +44,7 @@ Rfam release procedure
 
 ??. Make release files
     > /pfam/db/Rfam/scripts/release/make_release.pl 6.0
+
+??. Genome data:
+    > /pfam/db/Rfam/scripts/genomes/make_genomes.pl > genome_assemblies.rgp
+    > /pfam/db/Rfam/scripts/genomes/rfam2chr.pl genome_assemblies.rgp Rfam.full.gz Rfamseq.sv.gz
