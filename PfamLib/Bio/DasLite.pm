@@ -12,8 +12,8 @@ use HTTP::Request;
 use HTTP::Headers;
 use Data::Dumper;
 
-our $DEBUG    = 0;
-our $VERSION  = do { my @r = (q$Revision: 1.7 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
+our $DEBUG    = 1;
+our $VERSION  = do { my @r = (q$Revision: 1.8 $ =~ /\d+/g); sprintf "%d."."%03d" x $#r, @r };
 
 our $BLK_SIZE = 8192;
 our $TIMEOUT  = 5;
@@ -63,21 +63,23 @@ our $ATTR     = {
 		 'structure'    => {
                                     'structure'    => [],
 				   },
-                 'alignment'    => {
-                                    'alignment' => [qw(name alignType max)],
-				    'alignobject'  => {
-					            'alignobject' => [qw(objVersion intObjectId type dbSource dbVersion dbAccessionId dbCoodSys)],
-					            'sequence' => [],
-				                   },
-				    'score'     => [qw(score)],
-				    'block'     => {
-					            'block' => [qw(blockOrder)],
-					            'segment' => {
-							          'segment' => [qw(intObjectId start end orientation)],
-					                          'cigar' =>[],
-					                         },
-						   },
-		                   },
+     'alignment'    => {
+                       'alignment' => [qw(name alignType max)],
+			      	         'alignobject'  => {
+					               'alignobject' => [qw(objVersion intObjectId type dbSource dbVersion dbAccessionId dbCoodSys)],
+					                'alignobjectdetail' => {
+					                 'alignobjectdetail' => [qw(dbSource property)],
+					                 },
+			      	          },
+            				    'score'     => [qw(score)],
+				                'block'     => {
+					               'block' => [qw(blockOrder)],
+  					              'segment' => {
+	    						          'segment' => [qw(intObjectId start end orientation)],
+			    		              'cigar'   => [],
+					               },
+						           },
+		                 },
 		 'entry_points' => {
 				    'entry_points' => [qw(href version)],
 				    'segment'      => {
@@ -182,7 +184,7 @@ our $OPTS = {
 	     'entry_points' => [],
 	     'dsn'          => [],
 	     'stylesheet'   => [],
-	     'alignment'     => [qw(query rows subject subjectcoordsys)]
+	     'alignment'    => [qw(query rows subject subjectcoordsys)]
 	 };
 =head1 NAME
 
@@ -783,6 +785,8 @@ sub max_req {
 #
 sub _parse_branch {
   my ($self, $dsn, $ar_ref, $attr, $blk, $addseginfo, $depth) = @_;
+  $DEBUG && print "processing $blk\n";  
+  
   $depth ||= 0;
   my $ref  = {};
 
@@ -801,7 +805,7 @@ sub _parse_branch {
   for my $subpart (@subparts) {
     my $subpart_ref  = [];
 
-    my $pat = qr!(<$subpart[^/]+/>|<$subpart[^/]+>.*?/$subpart>)!smi;
+    my $pat = qr!(<$subpart[^/]+>.*?/$subpart>|<$subpart[^/]+/>)!smi;
     while($blk =~ s/$pat//) {
       &_parse_branch($self, $dsn, $subpart_ref, $attr->{$subpart}, $1, 0, $depth+1);
     }
