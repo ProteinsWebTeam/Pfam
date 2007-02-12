@@ -1,1 +1,15 @@
-Run script/pfamweb_server.pl to test the application.
+
+PfamWeb
+$id$
+
+This is the distribution folder for the Pfam website application. It
+should contain the following top level items:
+
+README:	  this file
+MANIFEST: a complete list of the files in the files in the
+          distribution
+lib:      the perl modules that constitute this Catalyst application
+data:     the Template Toolkit template files that build the pages of
+          the site
+htdocs:   static content for the site, such as images, CSS and
+          javascript files
