@@ -5,7 +5,7 @@
 
 package Bio::Pfam::PfamDBManager;
 
-use base PfamDB;
+use PfamDB;
 use Data::Dumper;
 use strict;
 use Carp;
@@ -15,6 +15,7 @@ $SIG{INT} = sub {
 };
 
 sub new {
+ print "In PfamLive new\n\n";
     my $caller = shift;
     my $class = ref($caller) || $caller;
     my %dbiParams = ();
@@ -29,7 +30,7 @@ sub new {
     print STDERR Dumper($self) && $self->{'debug'};
     
     eval{
-     $self->{'schema'} = __PACKAGE__->connect("dbi".
+     $self->{'schema'} = PfamDB->connect("dbi".
 				       ":".$self->{driver}.
 				       ":".$self->{database}.
 				       ":".$self->{host}.
@@ -81,7 +82,7 @@ sub acc2id {
 
 
 #Try to find in the incoming family is part of a clan
-sub getClanAcc {
+sub getClanDataByPfam {
  my ($self, $family) = @_;
  
  my $result;
