@@ -4,11 +4,14 @@
 #
 
 package Bio::Pfam::PfamLiveDBManager;
+
 use base Bio::Pfam::PfamDBManager;
+use PfamLive;
 use Data::Dumper;
 use Carp qw(cluck croak carp);
 
 sub new {
+ print "In PfamLive new\n\n";
     my $caller = shift;
     my $class = ref($caller) || $caller;
     my %dbiParams = ();
@@ -21,7 +24,7 @@ sub new {
 
     carp("The new object contains :\n".Dumper($self)) if($self->{'debug'});
     eval{
-     $self->{'schema'} = __PACKAGE__->connect("dbi".
+     $self->{'schema'} = PfamLive->connect("dbi".
 				       ":".$self->{driver}.
 				       ":".$self->{database}.
 				       ":".$self->{host}.
