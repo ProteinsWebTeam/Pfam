@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.17 2007-02-07 16:03:05 aj5 Exp $
+   $Id: protein.css,v 1.18 2007-02-13 10:10:08 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -57,13 +57,13 @@ div.source input {
     border: 1px solid #CCC; 
 	float: left;
 	margin-bottom: 10px;
-	padding: none;
+	padding: 0;
 	width: 100%;
 }
 
 p.sectionLabel {
 	font-weight: bold;
-	padding: none;
+	padding: 0;
 	margin-top: 0;
 	text-align: left;
 }
@@ -77,14 +77,14 @@ p.featuresLabel {
 }
 
 td.graphics {
-	margin: none;
-	padding: none;
-	border: none;
+	margin: 0;
+	padding: 0;
+	border-style: none;
 }
 
 img.featuresImage {
-    margin: none;
-	padding: none;
+  margin: 0;
+	padding: 0;
 }
 
 #tracks {
@@ -102,7 +102,7 @@ img.featuresImage {
   left: 0;
   top: 0;
   z-index: 1;
-  cursor: normal;
+  cursor: default;
   opacity: 0.5;
 }
 
