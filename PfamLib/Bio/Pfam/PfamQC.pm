@@ -21,6 +21,8 @@ package Bio::Pfam::PfamQC;
 use strict;
 use Bio::Pfam;
 use Bio::Pfam::DB;
+use Bio::Pfam::PfamDBManager;
+
 use Bio::Pfam::AlignPfam;
 use Bio::Index::Fasta;
 use Bio::Index::Swissprot;
@@ -813,12 +815,17 @@ sub family_overlaps_with_db {
     my $endpoints_opt = shift @_;
 	
     my (%ignore, @overlaps);
+    
+    #Get a connection to the database.    
+    my $pfamDB = Bio::Pfam::PfamDBManager->new;
+
+
 
     my $rdb = Bio::Pfam->live_rdb();
     my $defaultdb = Bio::Pfam->default_db();
    
     if( !-d "$family" ) {
-	die "$family: can't find local directory\n";
+	    die "$family: can't find local directory\n";
     }
 
     my %nested = $rdb->get_nested_domain($family);  
@@ -839,6 +846,8 @@ sub family_overlaps_with_db {
 				}
 			}
 		}
+		
+		
     my @overlaps_allowed = _get_DESC_overlaps($family);
     foreach (@overlaps_allowed)
 		{
