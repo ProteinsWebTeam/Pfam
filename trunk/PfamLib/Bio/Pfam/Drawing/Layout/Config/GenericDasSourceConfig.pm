@@ -1,9 +1,8 @@
 package Bio::Pfam::Drawing::Layout::Config::GenericDasSourceConfig;
+
 use strict;
 use Data::Dumper;
 use vars qw($AUTOLOAD @ISA $VERSION);
-
-
 
 sub new {
   my $caller = shift;
@@ -19,7 +18,6 @@ sub configureSource {
     $self->_setDrawingStyles($features);
 
 }
-
 
 sub _setDrawingType{
     my($self, $feature) = @_;
@@ -79,6 +77,23 @@ sub _setRegionColours{
 	$feature->{'colour2'} = "a2a2a2";
     }
 }
+
+
+sub _setGraphColours{
+    my($self, $feature, $colour1, $colour2) = @_;
+
+    if($colour1){
+	$feature->{'seriesColour'} = $colour1;
+    }else{
+	$feature->{'seriesColour'} = "FF99FF";
+    }
+    if($colour2){
+	$feature->{'axisColour'} = $colour2;
+    }else{
+	$feature->{'colour2'} = "cccccc";
+    }
+}
+
 
 sub _setHeadColour{
 
