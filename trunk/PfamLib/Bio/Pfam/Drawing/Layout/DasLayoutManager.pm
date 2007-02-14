@@ -22,8 +22,9 @@ sub layout_DAS_sequences_and_features {
 	#first get the sequence object.
 	my $sourceId;
 	#print STDERR "\n\n\n***** $source, ";
-	
-	if($source =~ /(smart|superfamily|cath_sptr|dssp|\/uniprot\/|alig)/i){
+
+	if($source =~ /(smart|superfamily|cath_sptr|dssp|\/uniprot\/|hydrophobicity|alig)/i){
+
 	    my $id = lc($1);
 	    $id =~ s/_|\///g;
 	    $sourceId = $id."Das";
@@ -32,7 +33,7 @@ sub layout_DAS_sequences_and_features {
 	}
 	#print STDERR "$sourceId *****\n\n\n\n";
 	#What we do with das is slightly different.  We display all features (of a type that are accepted)
-	
+	eval{
 	if(ref($features->{$source}) eq "ARRAY"){ 
 	    my $config = $self->getSourceConfigurator($sourceId);
 	    
@@ -40,17 +41,26 @@ sub layout_DAS_sequences_and_features {
 	    my $featureSetsRef = $self->resolveOverlaps($features->{$source}, \$uid);
 	    
 	    foreach my $featureSet (@$featureSetsRef){
-		#print Dumper($featureSet);
-	      $featureSetsAdded++;
+		    #print STDERR Dumper($featureSet);
+		    if($featureSet->[0]->{'drawingType'} eq "Graph"){ 
+		     		     print STDERR "Hydro\n"; 
+		    }else{
+		     print STDERR "Feature or region\n";
+		     
 	      my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
-		#$l_seq->hidden(1);
 	      $l_seq->colour1(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "EEEEEE"));
 	      $l_seq->colour2(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "DDDDDD"));
 	      $l_seq->convertDasSeqAndFeatures($sequence, $source, $featureSet );
+	      $featureSetsAdded++;
 	      $self->add_seq($l_seq);
+
+		    }
 	    }
 	}
+  };
+  if($@){ print STDERR "Error laying out data:[$!]\n";}
   }
+  #$featureSetsAdded = 1;
   return $featureSetsAdded;
 }
 
@@ -159,6 +169,5 @@ sub resolveOverlaps{
     }
     return($featureSets);
 }
-
 
 1;
