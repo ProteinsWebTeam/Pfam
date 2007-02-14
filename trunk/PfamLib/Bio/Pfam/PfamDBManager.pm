@@ -4,15 +4,12 @@
 #
 
 package Bio::Pfam::PfamDBManager;
-
+use strict;
+use warnings;
 use PfamDB;
 use Data::Dumper;
 use strict;
 use Carp;
-
-$SIG{INT} = sub {
-    __PACKAGE__->storage->disconnect;
-};
 
 sub new {
  print "In PfamLive new\n\n";
@@ -53,7 +50,7 @@ sub getSchema{
 
 sub DESTROY {
   my $self = shift;
-  $self->storage->disconnect;
+  $self->{'schema'}->storage->disconnect;
 }
 
 
@@ -88,7 +85,7 @@ sub getClanDataByPfam {
  my $result;
  if($family =~ /PF\d+/){
   #Looks like an accession
-  carp("Looking up information for $family. I think this is an accession\n") if $self->{'debug'}; 
+  carp("Looking up information for $family. I think this is an accession") if $self->{'debug'}; 
   $result = $self->getSchema
                      ->resultset("Clan_membership")
                       ->find({ "pfam.pfamA_acc" => $family},
@@ -97,7 +94,7 @@ sub getClanDataByPfam {
   
  }elsif($family =~ /\S{1,16}/){
   #Looks like we have a family id
-  carp("Looking up information for $family. I think this is an id\n") if $self->{'debug'}; 
+  carp("Looking up information for $family. I think this is an id") if $self->{'debug'}; 
   $result = $self->getSchema
                      ->resultset("Clan_membership")
                       ->find({ "pfam.pfamA_id" => $family},
@@ -105,7 +102,7 @@ sub getClanDataByPfam {
                               prefetch => [qw/clans/] });
                               
  }else{
-  cluck("$family does not look like a pfamA accession or id\n")
+  cluck("$family does not look like a pfamA accession or id");
  }
  #Return something if we have found something
  if($result && $result->clan_acc){
@@ -115,6 +112,86 @@ sub getClanDataByPfam {
  carp("Did not find any clan information for $family") if $self->{'debug'};
 }
 
+
+
+sub getClanData {
+ my($self, $clan) = @_;
+ my $clanData;
+ if($clan =~ /CL\d{4}/){
+ carp("Looking up information for $clan. I think this is an accession") if $self->{'debug'};
+ $clanData = $self->getSchema
+                    ->resultset("Clans")
+                     ->find({"clan_acc" => $clan});
+                     
+ }elsif($clan =~ /\S{1,16}/){
+  carp("Looking up information for $clan. I think this is an id") if $self->{'debug'};
+  $clanData = $self->getSchema
+                    ->resultset("Clans")
+                     ->find({"clan_id" => $clan});
+ }else{
+  cluck("$clan does not look like a clan accession or id")
+ }
+ if(ref($clanData)){
+   carp("Found clan information for $clan") if $self->{'debug'};
+  return ($clanData);
+ } 
+ carp("Did not find clan information for $clan") if $self->{'debug'};
+}
+
+sub getClanMembership{
+  my($self, $clan) = @_;
+  my @clanData;
+  if($clan =~ /CL\d{4}/){
+    carp("Looking up information for $clan. I think this is an accession") if $self->{'debug'};
+    @clanData = $self->getSchema
+                     ->resultset("Clan_membership")
+                      ->search({"clans.clan_acc" => $clan},
+                               { join     => [ qw/clans pfam/],
+                                 prefetch => [ qw/clans pfam/] });
+                      
+  }elsif($clan =~ /\S{1,16}/){
+   carp("Looking up information for $clan. I think this is an id") if $self->{'debug'};
+   @clanData = $self->getSchema
+                     ->resultset("Clan_membership")
+                      ->search({"clans.clan_id" => $clan},
+                               { join     => [ qw/clans pfam/],
+                                 prefetch => [ qw/clans pfam/] });
+  }else{
+   cluck("$clan does not look like a clan accession or id")
+  }
+  
+  if($#clanData){
+    carp("Found clan information for $clan") if $self->{'debug'};
+   return (\@clanData);
+  }else{ 
+    carp("Did not find clan membership for $clan") if $self->{'debug'};
+  }
+}
+
+
+sub getPfamData{
+  my($self, $family) = @_;
+  my $familyData;
+  if($family =~ /PF\d{5}/){
+    carp("Looking up information for $family. I think this is an accession") if $self->{'debug'};
+    $familyData = $self->getSchema
+                         ->resultset("Pfam")
+                           ->find({"pfamA_acc" => $family});
+                     
+  }elsif($family =~ /\S{1,16}/){
+    carp("Looking up information for $family. I think this is an id") if $self->{'debug'};
+    $familyData = $self->getSchema
+                      ->resultset("Pfam")
+                       ->find({"pfamA_id" => $family});
+ }else{
+  cluck("$family does not look like a family accession or id")
+ }
+ if(ref($familyData)){
+   carp("Found family information for $family") if $self->{'debug'};
+  return ($familyData);
+ } 
+ carp("Did not find family information for $family") if $self->{'debug'};
+}
 
 #Specific insert/update methods should go here
 
