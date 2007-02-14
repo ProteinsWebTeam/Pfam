@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.9 2006-10-31 14:31:14 jt6 Exp $
+# $Id: summary.tt,v 1.10 2007-02-14 11:40:06 rdf Exp $
 %]
 
 [% USE String %]
@@ -18,11 +18,19 @@
 
 <!-- start protein summary block -->
 
+
+
 <div class="block" id="proteinSummaryBlock">
   <div class="handle">
     <h1>UniProt entry</h1>
   </div>
   <div class="blockContent">
+
+	<div class="explanatoryText">
+		<p>Overview of the protein, containing details from the <a class="ext" href="http://www.uniprot.org/">UniProt</a>  
+		entry and a graphical view of the Pfam domain organisation. HELLO</p>	
+	</div>
+
 
     [% oe = 0 %]
 
@@ -66,17 +74,18 @@
 		</tr>
       </tbody>
 	</table>
-
-	[% image = pfamImageset.each_image %]
-
-	[% CALL image.print_image %]
-
+	<div class="summaryGraphic">
+      	
+    [% image = pfamImageset.each_image %]
+      
+    [% CALL image.print_image %]
+      
     <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/><br/>
-
-	<map name="singleImageMap">
+      
+    <map name="singleImageMap">
       [% image.image_map %]
     </map>
-
+	 </div>
   </div> <!-- end of "blockContent" -->
 </div>
 
