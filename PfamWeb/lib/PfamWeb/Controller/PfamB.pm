@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.2 2006-10-23 12:19:43 jt6 Exp $
+# $Id: PfamB.pm,v 1.3 2007-02-14 11:48:28 rdf Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.2 2006-10-23 12:19:43 jt6 Exp $
+$Id: PfamB.pm,v 1.3 2007-02-14 11:48:28 rdf Exp $
 
 =cut
 
@@ -73,7 +73,7 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
-# pick up http://localhost:3000/pfamb?acc=PF000001
+# pick up http://localhost:3000/pfamb?acc=PB000001
 
 sub generateSummary : Path {
   my( $this, $c ) = @_;
