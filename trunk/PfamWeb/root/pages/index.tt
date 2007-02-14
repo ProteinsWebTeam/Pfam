@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.14 2007-01-31 14:25:45 jt6 Exp $
+# $Id: index.tt,v 1.15 2007-02-14 16:02:45 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -36,24 +36,24 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 <!-- start of index page -->
 <div id="outerIndexWrapper">
 
-	<div id="innerIndexWrapper">
+  <div id="innerIndexWrapper">
 
     <!-- start of "indexContainer" -->
-		<div id="indexContainer">
-			<div id="indexContents">
-			
-			  <!-- start of left sidebar -->
-				<div id="leftSidebar">
-				  
-        	[% PROCESS components/indexPage/versionData.tt %]
+    <div id="indexContainer">
+      <div id="indexContents">
+            
+        <!-- start of left sidebar -->
+        <div id="leftSidebar">
+                  
+          [% PROCESS components/indexPage/versionData.tt %]
           
-        	<hr />
-    
-        	[% PROCESS components/jumpBox.tt addHeader=1, short=1 %]
-    
-				</div>
-			  <!-- end of left sidebar -->
-				
+          <hr />      
+
+          [% PROCESS components/indexPage/topTen.tt %]
+
+        </div>
+        <!-- end of left sidebar -->
+                
         <!-- start of page contents -->
         <div id="indexBody">
           <div class="middleComponent">
@@ -130,28 +130,29 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 
         </div>      
         <!-- end of page contents -->
-				
-			</div> <!-- end of "indexContents" -->
-		</div>
+                
+      </div> <!-- end of "indexContents" -->
+    </div>
     <!-- end of "indexContainer" -->
 
     <!-- start of right sidebar -->
     <div id="rightSidebar">
       
-    	[% PROCESS components/indexPage/newsItems.tt %]
-    	
-    	<hr />    	
-
-    	[% PROCESS components/indexPage/topTen.tt %]
-
+      [% PROCESS components/indexPage/newsItems.tt %]
+        
+      <hr />
+    
+      [% PROCESS components/jumpBox.tt addHeader=1, short=1 %]
+    
       <hr />
       
-    	[% PROCESS components/indexPage/mirrors.tt %]
+      [% PROCESS components/indexPage/mirrors.tt %]
   
     </div>
     <!-- end of right sidebar -->
 
-		<div class="cleaner">&nbsp;</div>
-	</div> <!-- end of "innerIndexWrapper" -->
+    <div class="cleaner">&nbsp;</div>
+
+  </div> <!-- end of "innerIndexWrapper" -->
 
 </div> <!-- end of "outerIndexWrapper" -->
