@@ -4,7 +4,7 @@
 #
 # Controller to build a set of graphics for a given UniProt entry.
 #
-# $Id: Simap.pm,v 1.8 2006-10-03 08:40:44 jt6 Exp $
+# $Id: Simap.pm,v 1.9 2007-02-14 10:48:39 jt6 Exp $
 
 package PfamWeb::Controller::Protein::Simap;
 
@@ -48,26 +48,51 @@ sub getSimapData : Path {
 
   $c->log->debug( "SIMAP proxy is set to: |" . $this->{simapProxy} . "|" );
 
-  my $simap = Bio::Pfam::WebServices::Client::Simap->new(
-							 '-proxy'      => $this->{simapProxy},
-							 '-md5'        => $c->stash->{pfamseq}->md5,
-							 '-maxHits'    => 50,
-							 '-minSWscore' => 1,
-							 '-maxEvalues' => 0.001,
-							 '-database'   => [qw/313 314/],
-							 '-showSeq'    => 1,
-							 '-showAli'    => 0);
+  # see if we can retrieve a pre-built simap object from the cache
+  my $simap;# = $c->cache->get( $c->stash->{pfamseq}->md5 );
 
+  # ... and if not, go ahead and build one from scratch
+#  if( $simap ) {
+#    $c->log->debug( "Simap::getSimapData: retrieved simap object from cache" );    
+#  } else {
+    $c->log->debug( "Simap::getSimapData: couldn't find a cached simap object; building" );    
+    
+    $simap = Bio::Pfam::WebServices::Client::Simap->new(
+        			 '-proxy'      => $this->{simapProxy},
+        			 '-md5'        => $c->stash->{pfamseq}->md5,
+        			 '-maxHits'    => 50,
+        			 '-minSWscore' => 1,
+        			 '-maxEvalues' => 0.001,
+        			 '-database'   => [qw/313 314/],
+        			 '-showSeq'    => 1,
+        			 '-showAli'    => 0);
+  
+    eval {
+    	$simap->queryService;
+    };
+    if( $@ ) {
+    	$c->log->error( "Protein::Simap::getSimapData: problem retrieving SIMAP data" );
+    	die $@;
+    }
+
+    # cache the simap object
+#    print STDERR "********** caching simap object...\n";
+#    $c->cache->set( $c->stash->{pfamseq}->md5, $simap, "12h" );
+#    print STDERR "********** done\n";
+#  }
+  
+  # now we should have a simap object, whether from cache or ab initio
   my $pfamaln;
   eval {
-	$simap->queryService;
-	$simap->processResponse4Website($drawingXML, $c->stash->{pfamseq});
-	$pfamaln = $simap->hits2Ali;
+  	$simap->processResponse4Website($drawingXML, $c->stash->{pfamseq});
+  	$pfamaln = $simap->hits2Ali;
   };
   if( $@ ) {
-	$c->log->error( "Protein::Simap::getSimapData: problem retrieving SIMAP data" );
-	die $@;
+  	$c->log->error( "Protein::Simap::getSimapData: problem processing SIMAP data" );
+  	die $@;
   }
+
+  # now we should have a populated alignment
 
   #Now Parse the alignment
   #my $pfamaln = new Bio::Pfam::AlignPfam->new;
@@ -153,8 +178,8 @@ sub getSimapData : Path {
     my $n = 0;
     foreach (@smooth){
       if($_){
-	$smoothTotal += $_;
-	$n++;
+      	$smoothTotal += $_;
+      	$n++;
       }
     }
 
@@ -191,10 +216,10 @@ sub end : Private {
 
   # check for errors
   if ( scalar @{ $c->error } ) {
-	$c->forward( "/reportError" );
-	$c->stash->{template} = "components/blocks/protein/simapError.tt";
+  	$c->forward( "/reportError" );
+  	$c->stash->{template} = "components/blocks/protein/simapError.tt";
   } else {
-	$c->stash->{template} = "components/blocks/protein/simapGraphics.tt";
+  	$c->stash->{template} = "components/blocks/protein/simapGraphics.tt";
   }
 
   # and render the page - need to make sure the templates tell the
