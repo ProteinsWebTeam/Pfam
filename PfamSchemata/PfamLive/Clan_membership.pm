@@ -18,20 +18,23 @@ __PACKAGE__->set_primary_key( "auto_pfamA" );
 #Set up relationships
 
 
-#1 to 1 releationship
+#1 to 1 relationship
 __PACKAGE__->has_one( "pfam" => "PfamLive::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA"},
-		        {proxy => [qw/ pfamA_id pfamA_acc num_seed num_full model_length /]});
+		        {proxy => [qw/ pfamA_id pfamA_acc num_seed num_full model_length /],
+		         cascade_delete => 0});
 
 #Not sure about this one.... there will be many of the same auto_clan in this table,
 #but only one in the clans table, another one for jt6
 __PACKAGE__->has_one( "clans" => "PfamLive::Clans",
 		      {"foreign.auto_clan" => "self.auto_clan"},
-		      {proxy => [qw/clan_acc clan_id clan_description/]});
+		      {proxy => [qw/clan_acc clan_id clan_description/],
+		       cascade_delete => 0});
 
 
 __PACKAGE__->has_many( "pfamARegFull" => "PfamLive::PfamA_reg_full",
-		      {"foreign.auto_pfamA" => "self.auto_pfamA"});
+		      {"foreign.auto_pfamA" => "self.auto_pfamA"}, 
+		      {cascade_delete => 0});
 
 #__PACKAGE__->might_have( "pfamAInts" => "PfamLive::Int_pfamAs",
 #		      {"foreign.auto_pfamA_A" => "self.auto_pfamA"});
