@@ -15,7 +15,8 @@ __PACKAGE__->set_primary_key( "auto_clan");
 
 #1 to 1 relationship that must be there.....
 __PACKAGE__->has_one( "clans" => "PfamLive::Clans",
-		       {"foreign.auto_clan"  => "self.auto_clan"});
+		       {"foreign.auto_clan"  => "self.auto_clan"},
+		       {cascade_delete => 0});
 
 
 

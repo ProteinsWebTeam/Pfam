@@ -15,11 +15,13 @@ __PACKAGE__->set_primary_key( "auto_clan", "auto_lit" );
 
 #1 to many relationship
 __PACKAGE__->has_one( "clans" => "PfamLive::Clans",
-		       {"foreign.auto_clan"  => "self.auto_clan"});
+		       {"foreign.auto_clan"  => "self.auto_clan"},
+		       {cascade_delete => 0});
 
 __PACKAGE__->has_one( "literature" => "PfamLive::Literature_references",
 		       {"foreign.auto_lit"  => "self.auto_lit"},
-		       {proxy => [qw/medline title author journal/]});
+		       {proxy => [qw/medline title author journal/],
+		        cascade_delete => 0});
 
 
 1;
