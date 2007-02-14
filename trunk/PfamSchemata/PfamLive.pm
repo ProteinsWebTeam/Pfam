@@ -5,7 +5,7 @@
 # The base class for the whole database model. Config comes from the
 # catalyst application class.
 
-# $Id: PfamLive.pm,v 1.1 2006-11-16 11:07:27 jt6 Exp $
+# $Id: PfamLive.pm,v 1.2 2007-02-14 11:36:04 rdf Exp $
 
 package PfamLive;
 
@@ -16,4 +16,8 @@ use base "DBIx::Class::Schema";
 
 __PACKAGE__->load_classes();
 
+$SIG{INT} = sub {
+   print STDERR "Caught Ctrl-C, trying to cleanly disconnect\n";
+  __PACKAGE__->storage->disconnect;
+};
 1;
