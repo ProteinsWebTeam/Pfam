@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.18 2007-02-13 10:10:08 jt6 Exp $
+   $Id: protein.css,v 1.19 2007-02-14 11:42:34 rdf Exp $
 */   
 
 /* ======================================== */
@@ -32,6 +32,8 @@ div.source {
     width: 18em;
 	padding: 0.2em;
 }
+
+
 
 div.source span.checkboxLabel {
 	float: left;
@@ -170,6 +172,11 @@ div.rightAlignmentLabel {
     background: #DDD;
 	float: left;
 }
+
+div.summaryGraphic {
+    margin: 0.75em 0;
+}
+
 
 /* ---------------------------------------- */
 /* treefam section */
