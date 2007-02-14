@@ -4,7 +4,7 @@
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.5 2006-10-18 12:24:10 jt6 Exp $
+# $Id: structure.tt,v 1.6 2007-02-14 11:40:06 rdf Exp $
 -%]
 
 [%- RETURN UNLESS pfamMaps.size -%]
@@ -16,7 +16,9 @@
     <h1>Structure</h1>
   </div>
   <div class="blockContent">
-
+    <div class="explanatoryText">
+      <p>Below is a listing of Pfam domain(s) with known 3D structure(s).</p>
+    </div>
 	[%- oe = 0 -%]
 
     [%- mapping = {} -%]

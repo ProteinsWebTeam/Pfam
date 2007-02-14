@@ -4,7 +4,7 @@
 # 
 # block for treefam data
 #
-# $Id: treefam.tt,v 1.1 2006-10-31 15:04:36 jt6 Exp $
+# $Id: treefam.tt,v 1.2 2007-02-14 11:40:06 rdf Exp $
 
 RETURN UNLESS pfamseq.treefam_acc;
 -%]
@@ -16,6 +16,9 @@ RETURN UNLESS pfamseq.treefam_acc;
     <h1>TreeFam</h1>
   </div>
   <div class="blockContent">
+  <div class="explanatoryText">
+    <p>Below is a phylogenetic tree of animal genes, with ortholog and paralog assignments, from <a clas="ext" href="http://www.treefam.org/">TreeFam</a>.</p>
+  </div>
 
   <iframe name="treeFamFrame" id="treeFamFrame" src="http://www.treefam.org/cgi-bin/treeview.pl?stype=clean&amp;ac=[% pfamseq.treefam_acc %]" title="TreeFam entry [% pfamseq.treefam_acc %]"></iframe>
 
