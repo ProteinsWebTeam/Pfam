@@ -4,96 +4,90 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.1 2007-02-14 14:18:19 jt6 Exp $
+# $Id: Build.PL,v 1.2 2007-02-16 16:16:17 jt6 Exp $
 
 use strict;
+
+use File::Path;
 
 use PfamBuilder;
 
 use Data::Dump qw(dump);
 
-# these are WTSI site defaults
-my %defaults = (
-				app_root => "/catalyst/PfamWeb",
-				install_base => "/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb",
-				configs_dir => "../PfamConfig",
-			   );
+# this is the default location for the main configuration file
+my $configFile = "conf/pfamweb.jcf";
 
 #-------------------------------------------------------------------------------
+#- setup Module::Build ---------------------------------------------------------
+#-------------------------------------------------------------------------------
+
 # configure Module::Build (or rather our subclass of it) itself
 
 my $build = PfamBuilder
   ->new(
-		dist_author   => 'John Tate <jt6@sanger.ac.uk>',
+    # these are modules that are required for the build process, as opposed
+    # to just the normal operation of the site
+    build_requires  => {
+                          "Config::General" => 0.28,
+                          "DBI"             => 0,
+                       },
+    
+    dist_author     => 'John Tate <jt6@sanger.ac.uk>',
 
 		# define the command line options for the installation
-		get_options   => {
-						  accept_defaults => { type    => "!"  },
-						  app_root        => { type    => "=s",
-											   default => $defaults{app_root} },
-						  configs_dir     => { type    => "=s" },
-						  "help|usage"    => { type    => "!"  },
-						  verbose_log     => { type    => "+",
-											   default => 0 },
-						 },
-		
-		license       => "perl",
-		module_name   => "PfamWeb",
+		get_options     => {
+                   		    "accept_defaults" => { type    => "!"  },
+                   		    "config_file"     => { type    => ":s" },
+                     	    "help|usage"      => { type    => "!"  },
+                     	    "verbose_log"     => { type    => "+",
+                                         	       default => 0 },
+                     	 },
+
+		license         => "perl",
+		module_name     => "PfamWeb",
 
 		# recommended but not essential prerequisites. Since there
 		# doesn't seem to be any sensible way to detect BioPerl if
 		# it's not installed as a Bundle, it's recommended rather than
 		# required
-		recommends    => {
-						  "Bundle::BioPerl"                            => 0,
-						  "Catalyst::Devel"                            => 1.0
-						 },
+		recommends      => {
+                    		  "Bundle::BioPerl"                            => 0,
+                    		  "Catalyst::Devel"                            => 1.0,
+                    		  "Module::Build"                              => 0.28,
+                    	 },
 
 		# these are the absolutely required prerequisites
-		requires      => {
-						  "Catalyst::Runtime"                          => 5.7,
-						  "Catalyst::Action::RenderView"               => 0,
-						  "Catalyst::Model::DBIC::Schema"              => 0,
-						  "Catalyst::Plugin::Cache::FastMmap"          => 0,
-						  "Catalyst::Plugin::Email"                    => 0,
-						  "Catalyst::Plugin::HTML::Widget"             => 0,
-						  "Catalyst::Plugin::Session::State::Cookie"   => 0,
-						  "Catalyst::Plugin::Session::Store::FastMmap" => 0,
-						  "Class::Data::Accessor"                      => 0,
-						  "Config::General"                            => 0,
-						  "DateTime"                                   => 0,
-						  "DBIx::Class"                                => 0,
-						  "DBIx::Class::HTMLWidget.pm"                 => 0,
-						  "GD"                                         => 0,
-						  "GD::Graph"                                  => 0,
-						  "HTML::Tree"                                 => 0,
-						  "HTML::Widget"                               => 0,
-						  "JSON"                                       => 0,
-						  "LWP::Parallel::UserAgent.pm"                => 0,
-						  "SOAP::Data::Builder"                        => 0,
-						  "XML::Feed"                                  => 0,
-						 },
+		requires        => {
+            						  "Bio::DasLite"                               => 1.0,
+            						  "Catalyst::Runtime"                          => 5.7,
+            						  "Catalyst::Action::RenderView"               => 0,
+            						  "Catalyst::Model::DBIC::Schema"              => 0,
+            						  "Catalyst::Plugin::Cache::FastMmap"          => 0,
+            						  "Catalyst::Plugin::Email"                    => 0,
+            						  "Catalyst::Plugin::HTML::Widget"             => 0,
+            						  "Catalyst::Plugin::Session::State::Cookie"   => 0,
+            						  "Catalyst::Plugin::Session::Store::FastMmap" => 0,
+            						  "Class::Data::Accessor"                      => 0,
+            						  "Config::General"                            => 0.28,
+            						  "DateTime"                                   => 0,
+            						  "DBIx::Class"                                => 0,
+            						  "DBIx::Class::HTMLWidget.pm"                 => 0,
+            						  "GD"                                         => 0,
+            						  "GD::Graph"                                  => 0,
+            						  "HTML::Tree"                                 => 0,
+            						  "HTML::Widget"                               => 0,
+            						  "JSON"                                       => 0,
+            						  "LWP::Parallel::UserAgent.pm"                => 0,
+            						  "SOAP::Data::Builder"                        => 0,
+            						  "XML::Feed"                                  => 0,
+          						 },
 
 		# for what they're worth...
-		test_files    => [ glob('t/*.t') ],
-	   );
+		test_files      => [ glob('t/*.t') ],
+	);
 
-# we're going to store the default stem for the root URL of the
-# application, along with the one that the user specifies at
-# runtime. If the two differ, we'll need to process the static files;
-# if not, we can get away with copying them.
-$build->notes( "default_app_root", $defaults{app_root} );
-$build->notes( "user_app_root", $build->args( "app_root" ) );
+#--------------------------------------
 
-#-------------------------------------------------------------------------------
-# help ?
-
-if( $build->args( "help" ) or $build->args( "usage" ) ) {
-  usage($build);
-  exit;
-}
-
-#-------------------------------------------------------------------------------
 # add our extra file types (such as "*.conf") to the list of file
 # types that get copied into blib and then installed alongside
 # everything else.
@@ -106,7 +100,8 @@ $build->add_build_element( "conf" );
 $build->add_build_element( "data" );
 $build->add_build_element( "htdocs" );
 
-#-------------------------------------------------------------------------------
+#--------------------------------------
+
 # set up the directory structure for the install tree. If we don't set
 # these paths specifically, MB will install everything as if it were a
 # regular CPAN module, which breaks the catalyst app pretty terminally
@@ -118,43 +113,437 @@ $build->install_base_relpaths( "conf"   => "conf" );
 $build->install_base_relpaths( "data"   => "data" );
 $build->install_base_relpaths( "htdocs" => "htdocs" );
 
+#--------------------------------------
+
+# see if we should use the whatever defaults we find
+$ENV{PERL_MM_USE_DEFAULT} = 1 if $build->args( "accept_defaults" );
+
+#--------------------------------------
+
+# should we just provide some help ?
+if( $build->args( "help" ) or $build->args( "usage" ) ) {
+  usage($build);
+  exit;
+}
+
 #-------------------------------------------------------------------------------
-# see if we should use the script defaults
+#- start the configuration -----------------------------------------------------
+#-------------------------------------------------------------------------------
 
-$ENV{PERL_MM_USE_DEFAULT} = 1 if $build->args->{accept_defaults};
+# a little hello... (ASCII-art courtesy of http://www.network-science.de/ascii/)
+print <<'EOFloc0';
+ ____   __              __        __   _     
+|  _ \ / _| __ _ _ __ __\ \      / /__| |__  
+| |_) | |_ / _` | '_ ` _ \ \ /\ / / _ \ '_ \ 
+|  __/|  _| (_| | | | | | \ V  V /  __/ |_) |
+|_|   |_|  \__,_|_| |_| |_|\_/\_/ \___|_.__/ 
+
+This is the installation and configuration script for the Pfam website application.
+It will ask a series of questions and based on your responses, it will generate a
+script that can be used to configure and then install the website.
+
+You can see some help on using it and the accepted command-line options by running:
+
+  perl Build.PL --help
+
+You will need to make sure that you are using a perl executable which can see the
+various prerequisite modules that you should have installed (such as
+Catalyst::Runtime), or have set the PERL5LIB environment variable to add the
+appropriate library directories to @INC.
+
+Initially, the default values for this script are taken from the configuration file
+in this distribution. You can override the defaults by changing the values at the
+various prompts when you run this script, or by editing the configuration files
+directly. If you edit the files you can point the script at the modified files and
+tell it to accept all of the values in them by doing:
+
+  perl Build.PL --config_file=../my_pfamweb.conf --accept_defaults
+
+Unless you specify "--accept_defaults", the script will prompt you for the various
+parameters that we need, offering default values from the configuration file that
+it reads.
+
+EOFloc0
+
+$build->prompt( "Hit return when you're ready to start.", "" );
+
+#--------------------------------------
+
+# see if Config::General is installed and, if not, print a helpful message to
+# explain why we can't go any further
+
+if( $build->check_installed_version( "Config::General" ) ) {
+
+  eval {
+    require Config::General;
+  };
+  if( $@ ) {
+    die "(EE) ERROR: couldn't load Config::General, although Module::Build thinks it's installed: $@";
+  }
+    
+} else {
+ 
+  print <<EOFcgMissing;
+
+(EE) ERROR: module Config::General is not installed
+
+The PfamWeb application is configured using Apache-style configuration files,
+which are parsed using the Config::General perl module. Because this
+installation reads and re-writes the configuration files that are supplied
+in the distribution, we need to have Config::General installed before you can
+run this script.
+
+Please install Config::General and try again.
+
+EOFcgMissing
+ 
+  exit 1;
+}
+
+# we're going to load the configuration file and use it to generate the default
+# values for the prompts. First we need to find the main config file
+
+# if the user specified the value on the command line, we'll use that
+if( $build->args( "config" ) ) {
+  $configFile = $build->args( "config_file" );  
+} else {
+  $configFile = $build->prompt( "Where is the default configuration file ?",
+                                $configFile );
+}
+
+# make sure we can read it and then parse it in 
+die "(EE) ERROR: couldn't read configuration file \"$configFile\": $!"
+  unless -f $configFile;  
+
+my( $configGeneral, %config, $parsed );
+eval {
+  # throws an exception if there's a real parsing error
+  $configGeneral = new Config::General( -ConfigFile      => $configFile,
+                                        -IncludeRelative => 1 );
+
+  # otherwise we should get a Config::General module...
+  %config = $configGeneral->getall;
+
+  # but we still need some sanity checks, since CG seems happy to parse any
+  # old junk and turn it into a hash. Let's look for some bits of the config
+  # that really should be there...
+  $parsed = defined $config{name} and
+            exists $config{Controller}->{Annotate}->{annotationEmail} and
+            exists $config{View}->{TT}->{VARIABLES}->{blocks};
+
+};
+
+if( $@ or not $parsed ) {
+  print STDERR <<EOFcgError;
+
+(EE) ERROR: there was a problem parsing configuration file \"$configFile\".
+            Please check that the file you specified is valid: $@
+
+EOFcgError
+  exit 1;
+}
 
 #-------------------------------------------------------------------------------
-# figure out where we're looking for the configuration files
+#- talk to the user... ---------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-my $configDir = $build->args( "configs_dir" );
+# where should we put everything ?
 
-unless( -d $configDir ) {
+print <<EOFloc1;
 
-  my $correct = 0;
-  my $firstTry = 1;
+The PfamWeb application consists of several different types of file. We have
+raw perl code, Template Toolkit template files, static HTML content, such as 
+CSS files and images, and finally configuration files. 
 
-  # loop until we get a good config directory
-  while( $firstTry or not $correct ) {
-	$configDir = $build->prompt( "Where is the main configuration file, pfamweb.conf ?",
-								  $defaults{configs_dir} );
-	
-	$correct = -d $configDir and -f "$configDir/pfamweb.conf";
+We will install all of these different files under a single directory, the 
+installation root. For example, you might choose to put PfamWeb in a
+subdirectory of your web-server, e.g. /usr/local/httpd/PfamWeb, or somewhere
+entirely separate, e.g. /opt/webapps/PfamWeb.  
 
-	unless( $correct ) {
-	  print STDERR "(WW) WARNING: can't load pfamweb.conf from there."
-		. ( $firstTry ? " Try again or quit with Ctrl-C\n" : "\n" );
-	}
+EOFloc1
 
-	$firstTry = 0;
+my( $validResponse, $rawResponse );
+
+until( $validResponse ) {
+  $rawResponse = 
+    $build->prompt( "In what directory do you want to install the PfamWeb application ?",
+                    $config{installRoot} );
+  
+  # trim off trailing slashes
+  $rawResponse =~ s/(.*?)\/*$/$1/;
+
+  if( -d $rawResponse ) {
+    $validResponse= $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ?", "Y" );
+  } elsif( -f $1 ) {
+    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ?", "N" );
+  } else {
+    $validResponse = 1;
   }
 
 }
 
-print "(ii) Taking configuration files from $configDir\n";
-$build->notes( configDir => $configDir );
+# store the value directly in our config hash...
+$config{installRoot} = $rawResponse;
+
+# and set the INCLUDE_PATH value in the View::TT config
+$config{View}->{TT}->{INCLUDE_PATH} = $rawResponse . "/data/templates";
+
+print <<EOFloc2;
+
+OK. We will install everything there and you will end up with a directory
+structure that looks something like this:
+
+EOFloc2
+
+foreach my $dir ( qw[ conf data htdocs lib ] ) {
+  print "  $config{installRoot}/$dir\n";
+}
+
+#--------------------------------------
+
+# we'll store the starting value for the application root as a note, so 
+# that we can do a search and replace for it at the Build stage
+$build->notes( "default_app_root", $config{View}->{TT}->{CONSTANTS}->{root} );
+  
+print <<EOFloc3;
+
+Now we need to decide the root of the application in terms of the website
+configuration.
+
+When the application is running, users will access it with a URL something
+like:
+
+  http://www.sanger.ac.uk/pfam
+
+The path component of the URL (in this case "/pfam") is the application root
+and we will need to set that in various files during this installation. Note
+that the application root should start with a slash but should not have a 
+trailing slash.
+
+EOFloc3
+
+$rawResponse = 
+  $build->prompt( "What is the application root for your site ?",
+                  $config{View}->{TT}->{CONSTANTS}->{root} );
+  
+# trim off trailing slashes
+$rawResponse =~ s/(.*?)\/?$/$1/;
+
+# and store in the value "root" in the TT constants section
+$config{View}->{TT}->{CONSTANTS}->{root} = $rawResponse;
+
+#--------------------------------------
+# annotation email
+
+print <<EOFloc4;
+
+OK. The URL for the index page of your site will be:
+
+  http://<your site>$rawResponse
+
+Now we need to get various values that are used in the application
+configuration.
+
+Firstly, values required for the annotation comments feature. Each family page
+has an "add annotation" link, which leads to a form via which users can 
+supply comments. The comments are then emailed to the email address of your
+choice.
+
+EOFloc4
+
+$config{Controller}->{Annotate}->{annotationEmail} =
+  $build->prompt( "To what email address should we send annotation comments ?",
+                  $config{Controller}->{Annotate}->{annotationEmail} );
+
+#--------------------------------------
+# the tmp area
+
+print <<EOFloc5;
+
+Various features of the site require a web-accessible temp directory. The
+easiest way to achieve that is to make a directory called something like "tmp"
+in the htdocs directory of the web-server and set user and filesystem
+permissions to allow the web-server process to write files in that directory.
+
+We need to have both the filesystem path for that directory, as well as the
+URL for it.
+
+EOFloc5
+
+# get the file system path to the temp directory
+# NOTE: COMPILE_DIR is the same as the temp directory...
+
+my $tmpDirPath;
+$validResponse = 0;
+until( $validResponse ) {
+  $tmpDirPath =
+    $build->prompt( "What is the absolute path for the temporary directory ?",
+                    $config{View}->{TT}->{COMPILE_DIR} );
+
+  # see if the directory is already there, otherwise offer to create it
+  if( -d $tmpDirPath ) {
+    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ?", "Y" );
+  } else {
+    if( $build->y_n( "(WW) WARNING: that directory doesn't exist; should we create it now ?", "Y" ) ) {
+      # make sure we catch possible errors with creating the directory
+      eval { mkpath $tmpDirPath };
+      if( $@ ) {
+        print "(WW) WARNING: couldn't create \"$tmpDirPath\": $@\n";
+        print "              You will need to create the specified temp directory before starting the server.\n";
+      } else {
+        print "(ii) created temp directory \"$tmpDirPath\".\n";
+      }
+    } else {
+      print "(WW) WARNING: you will need to create the specified temp directory before starting the server.\n";
+    }
+    $validResponse = 1;
+  }  
+}
+
+# and get the URL for the same directory
+my $tmpDirURL =
+  $build->prompt( "What is the URL for the temporary directory ?",
+                  $config{View}->{TT}->{CONSTANTS}->{tmp} );
+
+$config{View}->{TT}->{COMPILE_DIR} = $tmpDirPath;
+$config{View}->{TT}->{CONSTANTS}->{tmp} = $tmpDirURL;
+
+#--------------------------------------
+
+print <<EOFloc6;
+
+Next, we need to get some database connection parameters.
+
+The site requires two separate databases. The first is the Pfam database,
+which you can retrieve from the Sanger FTP site. This should be accessed using 
+a read-only account. We assume that you do not need a password for connecting
+to the Pfam database using a read-only account.
+
+The second database, web_user, is used for storing information like the news
+items and DAS sources. This must be accessed by an account with read/write
+access and you will need to supply both a username and password for that
+account.
+
+First, let's get parameters for the Pfam database. 
+
+EOFloc6
+
+$validResponse = 0;
+until( $validResponse ) {
+
+  my $pfamDSN = "dbi:mysql";
+  
+  $pfamDSN .= ":" .
+    $build->prompt( "What is the name of the Pfam database ?",
+                    "pfam_21_0" );
+  
+  $pfamDSN .= ":" .
+    $build->prompt( "What is the name of the machine on which the Pfam database is running ?",
+                    "pfam" );
+  
+  $pfamDSN .= ":" .
+    $build->prompt( "What is the port number for connecting to the Pfam database ?",
+                    "3306" );
+  
+  my $pfamUser =
+    $build->prompt( "What is the username for connecting to the Pfam database ?",
+                    "pfamro" );
+  
+  $config{Model}->{PfamDB}->{connect_info}[0] = $pfamDSN;
+  $config{Model}->{PfamDB}->{connect_info}[1] = $pfamUser;
+  
+    print <<EOFloc7;
+
+We will try to connect to the Pfam database using the following parameters:
+
+  dsn:      $pfamDSN
+  username: $pfamUser
+
+Now the "web_user" database details.
+
+EOFloc7
+
+  my $wuDSN = "dbi:mysql";
+  
+  $wuDSN .= ":" .
+    $build->prompt( "What is the name of the web_user database ?",
+                    "web_user" );
+  
+  $wuDSN .= ":" .
+    $build->prompt( "What is the name of the machine on which it is running ?",
+                    "pfam" );
+  
+  $wuDSN .= ":" .
+    $build->prompt( "What is the port for connecting to it ?",
+                    "3306" );
+  
+  my $wuUser =
+    $build->prompt( "What is the username for the read/write account ?",
+                    "web_user" );
+  
+  my $wuPass =
+    $build->prompt( "What is the password for the read/write account ?",
+                    "web_user" );
+  
+  $config{Model}->{WebUser}->{connect_info}[0] = $wuDSN;
+  $config{Model}->{WebUser}->{connect_info}[1] = $wuUser;
+  $config{Model}->{WebUser}->{connect_info}[2] = $wuPass;
+  
+  print <<EOFloc8;
+
+We will try to connect to the web_user database using the following parameters:
+
+  dsn:      $wuDSN
+  username: $wuUser
+  password: $wuPass
+
+EOFloc8
+  
+  # should we test the connections ?
+  if( $build->y_n( "Would you like to try connect to the databases now ?", "N" ) ) {
+  
+    eval {
+      require DBI;
+    };
+    if( $@ ) {
+      print "(WW) WARNING: couldn't load DBI: $@\n";
+      print "              You will need to make sure that perl can find DBI before starting the server.\n";
+    } else {
+      # we got DBI to load, so let's check the connection parameters
+      my $pfamDBH = DBI->connect( $pfamDSN, $pfamUser, undef, { PrintError => 0 } )
+        or print "(WW) WARNING: couldn't connect to the Pfam database: $DBI::errstr\n";  
+      my $wuDBH = DBI->connect( $wuDSN, $wuUser, $wuPass, { PrintError => 0 } )
+        or print "(WW) WARNING: couldn't connect to web_user database: $DBI::errstr\n";  
+
+      if( $pfamDBH and $wuDBH ) {
+        print "(ii) opened both connections successfully.\n";
+        
+        # we're less interested in errors on disconnect...
+        eval {
+          $pfamDBH->disconnect;
+          $wuDBH->disconnect;
+        };
+        $validResponse = 1;
+
+      } else {
+        $validResponse = not $build->y_n( "Do you want to try entering the connection parameters again ?", "Y" );
+      } 
+    }
+  } else {
+    print "(ii) OK, we won't try testing the connections.\n";
+    $validResponse = 1;
+  }
+
+} # end of "until valid response" for the database connection testing
+
+#--------------------------------------
 
 #-------------------------------------------------------------------------------
 # and we're done
+
+# now we should have a valid configuration hash...
+print dump( \%config );
+$build->config_data( "configHash" => \%config );
 
 $build->create_build_script;
 
@@ -177,21 +566,15 @@ Command-line arguments can be specified like
 
 These are the accepted arguments:
 
-  accept_defaults  accept all of the defaults that are built into the script. If
-                   this is omitted you will be prompted for missing values
-  app_root=...     the root of the URL where the site will run.
-                   default: "/catalyst/PfamWeb"
-  configs_dir=...  string; the path to the directory containing configuration files.
-                   This will be used to find "pfamweb.conf" and at build time
-                   all files with the "conf" suffix will be copied into the build
-                   directory
-                   default: "../PfamConfig"
-  help / usage     prints this message
+  accept_defaults     accept all of the defaults that are built into the script. If
+                      this is omitted you will be prompted for missing values
+  config_file=<file>  use the specified file as the basis for the server configuration       
+  help / usage        prints this message
 
 Other arguments affect the running of the generated Build script:
 
-  verbose_log      makes the output from Build more verbose. Adding "--verbose_log"
-                   multiple times will increase the amount of output.
+  verbose_log         makes the output from Build more verbose. Adding "--verbose_log"
+                      multiple times will increase the amount of output.
 
 In addition to the standard Build actions, you can use the following custom actions:
 

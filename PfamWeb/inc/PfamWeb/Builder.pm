@@ -5,7 +5,7 @@
 # A custom Module::Builder subclass to handle installation of the
 # PfamWeb application
 #
-# $Id: Builder.pm,v 1.1 2007-02-14 14:18:19 jt6 Exp $
+# $Id: Builder.pm,v 1.2 2007-02-16 16:16:28 jt6 Exp $
 
 package PfamBuilder;
 
@@ -22,7 +22,8 @@ use Config::General;
 use Data::Dump qw(dump);
 
 # a "global" so that we have somewhere to keep track of the MB object
-my $build;
+# and similarly the config hash that we built
+my( $build, $config );
 
 #-------------------------------------------------------------------------------
 #- new elements ----------------------------------------------------------------
@@ -35,24 +36,44 @@ my $build;
 sub process_conf_files {
   my $this = shift;
 
+  # retrieve the configuration hash that we build from user input
+  $config = $this->config_data( "configHash" ) unless defined $config;
+
   print "(ii) creating a conf directory in blib\n";
-  mkpath "blib/conf";
+  eval { mkpath "blib/conf" };
+  if( $@ ) {
+    die "(EE) ERROR: couldn't create \"/blib/conf\": $@";
+  }
 
   # get the location of the configuration files from our note from the
   # main build script
-  print "(ii) copying config files from " . $this->notes( "configDir" ) . "\n";
-  my $configDir = $this->notes( "configDir" );
+  print "(ii) processing configuration files\n";
 
   # read through the directory, looking only for *.conf files to copy
   # into blib
-  opendir( CONF, $configDir )
+  opendir( CONF, "conf" )
     or die "(EE) ERROR: couldn't read from the config directory: $!";
 
   foreach my $file ( grep /\.conf$/, readdir CONF ) {
-    print "$configDir/$file -> blib/conf/$file\n"
-	  if $this->args( "verbose_log" );
+    print "conf/$file -> blib/conf/$file\n" if $this->args( "verbose_log" );
 
-    copy( "$configDir/$file", "blib/conf" )
+    open( IN, "conf/$file" )
+      or warn "(WW) WARNING: couldn't read config file \"$file\": $!" and next;
+
+    open( OUT, "blib/conf/$file" )
+      or warn "(WW) WARNING: couldn't write config file \"$file\": $!" and next;
+
+  	# get the default value and the new value of the URL root from the
+  	# notes and build a hideous regex to replace one with the other
+  	while( <IN> ) {
+  	  s/(??{$this->notes("default_app_root")})/$config->{View}->{TT}->{CONSTANTS}->{root}/eog;
+  	  print OUT $_;
+  	}
+  
+  	close IN;
+  	close OUT;
+
+    copy( "conf/$file", "blib/conf" )
       or warn "(WW) WARNING: couldn't copy configuration file \"$file\": $!";
   }
 
@@ -68,14 +89,17 @@ sub process_data_files {
   # get a copy of the MB object for use in the callback
   $build = $this unless defined $build;
 
+  # retrieve the configuration hash that we build from user input
+  $config = $this->config_data( "configHash" ) unless defined $config;
+
   print "(ii) copying template files\n";
   mkpath "blib/data";
 
   # walk the tree from "data" downwards and copy any template file
   # that we find into the blib tree
   finddepth( { wanted     => \&forEachTemplate,
-			   no_chdir   => 1 },
-			 "data" );
+      			   no_chdir   => 1 },
+      			 "data" );
 
 }
 
@@ -113,14 +137,17 @@ sub process_htdocs_files {
   # get a copy of the MB object for use in the callback
   $build = $this unless defined $build;
 
+  # retrieve the configuration hash that we build from user input
+  $config = $this->config_data( "configHash" ) unless defined $config;
+
   print "(ii) copying static files\n";
   mkpath "blib/htdocs";
 
   # walk the tree from "data" downwards and copy any template file
   # that we find into the blib tree
   finddepth( { wanted     => \&forEachStaticFile,
-			   no_chdir   => 1 },
-			 "htdocs" );
+      			   no_chdir   => 1 },
+        			 "htdocs" );
 
 }
 
@@ -145,39 +172,39 @@ sub forEachStaticFile {
   # setting for the application root URL: if it's changed, we need to
   # edit the files; if not, copy them.
 
-  if( m/\.(css|js)$/ and $build->notes( "user_app_root" ) ne $build->notes( "default_app_root" ) ) {
+  if( m/\.(css|js)$/ and 
+      $build->notes( "default_app_root" ) ne $config->{View}->{TT}->{CONSTANTS}->{root} ) {
 
-	print "processing $File::Find::name -> blib/$File::Find::dir\n"
-	  if $build->args( "verbose_log" );
-
-	open( IN, $File::Find::name )
-	  or warn "(WW) WARNING: couldn't open ".uc($1)." file \"$File::Find::name\": $!"
-		and return;
-
-	open( OUT, ">blib/$File::Find::name" )
-	  or warn "(WW) WARNING: couldn't write ".uc($1)." file \"blib/$File::Find::name\": $!"
-		and return;
-
-	# get the default value and the new value of the URL root from the
-	# notes and build a hideous regex to replace one with the other
-	while( <IN> ) {
-	  s/(??{$build->notes("default_app_root")})/$build->notes("user_app_root")/eog;
-	  print OUT $_;
-	}
-
-	close IN;
-	close OUT;
+  	print "processing $File::Find::name -> blib/$File::Find::dir\n"
+  	  if $build->args( "verbose_log" );
+  
+  	open( IN, $File::Find::name )
+  	  or warn "(WW) WARNING: couldn't open ".uc($1)." file \"$File::Find::name\": $!"
+  		and return;
+  
+  	open( OUT, ">blib/$File::Find::name" )
+  	  or warn "(WW) WARNING: couldn't write ".uc($1)." file \"blib/$File::Find::name\": $!"
+  		and return;
+  
+  	# get the default value and the new value of the URL root from the
+  	# notes and build a hideous regex to replace one with the other
+  	while( <IN> ) {
+  	  s/(??{$build->notes("default_app_root")})/$config->{View}->{TT}->{CONSTANTS}->{root}/eog;
+  	  print OUT $_;
+  	}
+  
+  	close IN;
+  	close OUT;
 	
   } else {
 
-	# not a file that we need to firkle with; just copy it into blib
-	print "copying $File::Find::name -> blib/$File::Find::name\n"
-	  if $build->args( "verbose_log" );
-
-	copy( "$File::Find::name", "blib/$File::Find::dir" )
-	  or warn "(WW) WARNING: couldn't copy static file \"$_\": $!";
+  	# not a file that we need to firkle with; just copy it into blib
+  	print "copying $File::Find::name -> blib/$File::Find::name\n"
+  	  if $build->args( "verbose_log" );
+  
+  	copy( "$File::Find::name", "blib/$File::Find::dir" )
+  	  or warn "(WW) WARNING: couldn't copy static file \"$_\": $!";
   }
-
 }
 
 #-------------------------------------------------------------------------------
