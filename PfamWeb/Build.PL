@@ -4,18 +4,20 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.2 2007-02-16 16:16:17 jt6 Exp $
+# $Id: Build.PL,v 1.3 2007-02-16 18:01:25 jt6 Exp $
 
 use strict;
 
 use File::Path;
+use File::Copy;
 
 use PfamBuilder;
 
 use Data::Dump qw(dump);
 
 # this is the default location for the main configuration file
-my $configFile = "conf/pfamweb.jcf";
+my $configDir  = "conf";
+my $configFile = "$configDir/pfamweb.jcf";
 
 #-------------------------------------------------------------------------------
 #- setup Module::Build ---------------------------------------------------------
@@ -391,7 +393,7 @@ until( $validResponse ) {
         print "(WW) WARNING: couldn't create \"$tmpDirPath\": $@\n";
         print "              You will need to create the specified temp directory before starting the server.\n";
       } else {
-        print "(ii) created temp directory \"$tmpDirPath\".\n";
+        print "Successfully created temp directory \"$tmpDirPath\".\n";
       }
     } else {
       print "(WW) WARNING: you will need to create the specified temp directory before starting the server.\n";
@@ -516,7 +518,7 @@ EOFloc8
         or print "(WW) WARNING: couldn't connect to web_user database: $DBI::errstr\n";  
 
       if( $pfamDBH and $wuDBH ) {
-        print "(ii) opened both connections successfully.\n";
+        print "Successfully opened connections to both databases.\n";
         
         # we're less interested in errors on disconnect...
         eval {
@@ -530,7 +532,7 @@ EOFloc8
       } 
     }
   } else {
-    print "(ii) OK, we won't try testing the connections.\n";
+    print "\nOK, we won't try testing the connections.\n";
     $validResponse = 1;
   }
 
@@ -538,15 +540,76 @@ EOFloc8
 
 #--------------------------------------
 
-#-------------------------------------------------------------------------------
-# and we're done
+# need to edit move httpd.conf to httpd.conf.orig and then edit it back to
+# httpd.conf, fixing, primarily, the value for PFAMWEB_CONF so that it points
+# at the correct file, i.e. the one we just created 
 
-# now we should have a valid configuration hash...
-print dump( \%config );
+#-------------------------------------------------------------------------------
+#- dump out the configuration --------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# now we should have a valid configuration hash, which we'll store in the MB
+# object so that we can retrieve it in Build actions. That way we avoid having
+# to re-parse the config file itself at least
 $build->config_data( "configHash" => \%config );
+
+# and we'll write it to a new file
+( my $newConfigFile = $configFile ) =~ s/jcf/conf/;
+
+print <<EOFloc9;
+
+Now we need to try writing out the configuration that we just generated. The
+default location for the new file is
+
+  \"$newConfigFile\"
+  
+but before we write the file we'll check if there's a pre-existing configuration
+file called the same name. If there is, you'll have the option to overwrite
+it or rename it. The default setting for the script is to overwrite the 
+pre-existing file.
+
+EOFloc9
+
+$validResponse = 0;
+until( $validResponse ) {
+  
+  if( -f $newConfigFile ) {
+    print "The file \"$newConfigFile\" already exists.\n";
+    if( $build->y_n( "Do you want to overwrite the pre-existing configuration file ?", "Y" ) ) {
+      print "\n(WW) WARNING: overwriting \"$newConfigFile\".\n";
+      $validResponse = 1;
+    } else {
+
+      # generate a name for the backup file
+      my $backupNumber = 0;
+      while( -f "$newConfigFile.$backupNumber" ) { $backupNumber++ }
+      print "\nOK. We'll try to rename the pre-existing file as \"$newConfigFile.$backupNumber\".\n";
+      
+      # try renaming the existing config file to the backup filename
+      if( move( $newConfigFile, "$newConfigFile.$backupNumber" ) ) {
+        print "\nSuccessfully moved pre-existing config file to \"$newConfigFile.$backupNumber\".\n";  
+      } else {
+        print "\n(WW) WARNING: couldn't move the pre-existing config file: $!";
+        $newConfigFile = $build->prompt( "Where do you want to save the new configuration ?",
+                                         "$newConfigFile" );
+      }
+    }
+  } else {
+    print "\nNo pre-existing configuration file found. ";
+    $validResponse = 1;
+  } 
+}
+
+print "Writing your configuration to \"$newConfigFile\".\n\n";
+$configGeneral->save_file( $newConfigFile, \%config );
+
+#--------------------------------------
+
+# and we're done
 
 $build->create_build_script;
 
+print "\nDone.\n\n";
 exit;
 
 #===============================================================================
