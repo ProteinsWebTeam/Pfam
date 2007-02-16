@@ -5,7 +5,7 @@
 # A custom Module::Builder subclass to handle installation of the
 # PfamWeb application
 #
-# $Id: Builder.pm,v 1.2 2007-02-16 16:16:28 jt6 Exp $
+# $Id: Builder.pm,v 1.3 2007-02-16 18:02:14 jt6 Exp $
 
 package PfamBuilder;
 
@@ -42,7 +42,7 @@ sub process_conf_files {
   print "(ii) creating a conf directory in blib\n";
   eval { mkpath "blib/conf" };
   if( $@ ) {
-    die "(EE) ERROR: couldn't create \"/blib/conf\": $@";
+    die "(EE) ERROR: couldn't create \"blib/conf\": $@";
   }
 
   # get the location of the configuration files from our note from the
@@ -54,14 +54,14 @@ sub process_conf_files {
   opendir( CONF, "conf" )
     or die "(EE) ERROR: couldn't read from the config directory: $!";
 
-  foreach my $file ( grep /\.conf$/, readdir CONF ) {
+  foreach my $file ( grep !/^\.|CVS|\.jcf$/, readdir CONF ) {
     print "conf/$file -> blib/conf/$file\n" if $this->args( "verbose_log" );
 
     open( IN, "conf/$file" )
       or warn "(WW) WARNING: couldn't read config file \"$file\": $!" and next;
 
-    open( OUT, "blib/conf/$file" )
-      or warn "(WW) WARNING: couldn't write config file \"$file\": $!" and next;
+    open( OUT, ">blib/conf/$file" )
+      or warn "(WW) WARNING: couldn't write config file \"blib/conf/$file\": $!" and next;
 
   	# get the default value and the new value of the URL root from the
   	# notes and build a hideous regex to replace one with the other
