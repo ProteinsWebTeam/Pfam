@@ -5,9 +5,9 @@
 # A custom Module::Builder subclass to handle installation of the
 # PfamWeb application
 #
-# $Id: Builder.pm,v 1.3 2007-02-16 18:02:14 jt6 Exp $
+# $Id: Builder.pm,v 1.4 2007-02-27 17:06:34 jt6 Exp $
 
-package PfamBuilder;
+package PfamWeb::Builder;
 
 use strict;
 use warnings;
@@ -29,109 +29,90 @@ my( $build, $config );
 #- new elements ----------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-# this essentially just copies *.conf from the user-specified
-# configurations source directory into the blib directory, from where
-# they're installed when we run Build install
+# copied directly from Module::Build::Base::_find_file_by_type
 
-sub process_conf_files {
+sub local_find_file_by_type  {
+  my( $this, $type, $dir ) = @_;
+  return { map {$_, $_}
+    map $this->localize_file_path( $_ ),
+    grep !/\.\#/, @{ $this->rscan_dir( $dir, qr{\.$type$} ) } };
+}
+
+sub find_conf_files {
+  return shift->local_find_file_by_type( "conf", "conf" );
+}
+
+sub find_data_files {
+  return shift->local_find_file_by_type( "tt", "data" );
+}
+
+sub process_htdocs_files {
   my $this = shift;
 
-  # retrieve the configuration hash that we build from user input
-  $config = $this->config_data( "configHash" ) unless defined $config;
-
-  print "(ii) creating a conf directory in blib\n";
-  eval { mkpath "blib/conf" };
-  if( $@ ) {
-    die "(EE) ERROR: couldn't create \"blib/conf\": $@";
-  }
-
-  # get the location of the configuration files from our note from the
-  # main build script
-  print "(ii) processing configuration files\n";
-
-  # read through the directory, looking only for *.conf files to copy
-  # into blib
-  opendir( CONF, "conf" )
-    or die "(EE) ERROR: couldn't read from the config directory: $!";
-
-  foreach my $file ( grep !/^\.|CVS|\.jcf$/, readdir CONF ) {
-    print "conf/$file -> blib/conf/$file\n" if $this->args( "verbose_log" );
-
-    open( IN, "conf/$file" )
-      or warn "(WW) WARNING: couldn't read config file \"$file\": $!" and next;
-
-    open( OUT, ">blib/conf/$file" )
-      or warn "(WW) WARNING: couldn't write config file \"blib/conf/$file\": $!" and next;
-
-  	# get the default value and the new value of the URL root from the
-  	# notes and build a hideous regex to replace one with the other
-  	while( <IN> ) {
-  	  s/(??{$this->notes("default_app_root")})/$config->{View}->{TT}->{CONSTANTS}->{root}/eog;
-  	  print OUT $_;
-  	}
+  print "***** processing htdocs files...\n";
+        
+  # shortcuts...
+  my $defRoot = $this->notes( "defaultAppRoot" );
+  my $appRoot = $this->config_data( "configHash" )->{View}->{TT}->{CONSTANTS}->{root};
   
-  	close IN;
-  	close OUT;
+  my $htdocsDir = File::Spec->catdir( $this->blib, "htdocs" );
+  File::Path::mkpath( $htdocsDir );
+  
+  my $files = $this->find_htdocs_files;
+  print "--------------------------------------------------\n";
+  print dump $files;
+  print "--------------------------------------------------\n";
 
-    copy( "conf/$file", "blib/conf" )
-      or warn "(WW) WARNING: couldn't copy configuration file \"$file\": $!";
+  while( my( $from, $to ) = each %$files ) {
+    print "***** checking |$from| -> |$to|\n";
+    next if $this->up_to_date( $from, $to );
+    print "***** |$from| -> |$to| needs update\n";
+    
+    if( m/\.(css|js)$/ and $defRoot ne $appRoot ) {
+        
+    	print "processing $from\n" if $build->args( "verbose_log" );
+    
+    	open( IN, $from )
+    	  or warn "(WW) WARNING: couldn't open file \"$from\": $!" and return;    
+    	open( OUT, ">to" )
+    	  or warn "(WW) WARNING: couldn't write file \"$to\": $!"  and return;
+    
+    	# get the default value and the new value of the URL root from the
+    	# notes and build a hideous regex to replace one with the other
+    	while( <IN> ) {
+    	  s/(??{$defRoot})/$appRoot/eog;
+    	  print OUT $_;
+    	}
+    
+    	close IN;
+    	close OUT;
+  	
+    } else {
+
+    	# not a file that we need to firkle with; just copy it into blib
+    	print "copying $from -> $to\n" if $this->args( "verbose_log" );
+    
+      $this->copy_if_modified( from => $from, to => $to );
+    }
+
+    $this->add_to_cleanup( $to );
   }
 
-  closedir CONF;
 }
 
-#-------------------------------------------------------------------------------
-# copy template files across
-
-sub process_data_files {
+sub find_htdocs_files {
   my $this = shift;
-
-  # get a copy of the MB object for use in the callback
-  $build = $this unless defined $build;
-
-  # retrieve the configuration hash that we build from user input
-  $config = $this->config_data( "configHash" ) unless defined $config;
-
-  print "(ii) copying template files\n";
-  mkpath "blib/data";
-
-  # walk the tree from "data" downwards and copy any template file
-  # that we find into the blib tree
-  finddepth( { wanted     => \&forEachTemplate,
-      			   no_chdir   => 1 },
-      			 "data" );
-
-}
-
-#----------------------------------------
-# callback for handling templates
-
-sub forEachTemplate {
-
-  print "\$File::Find::dir:  |$File::Find::dir|\n"  if $build->args( "verbose_log" ) > 1;
-  print "\$_:                |$_|\n"                if $build->args( "verbose_log" ) > 1;
-  print "\$File::Find::name: |$File::Find::name|\n" if $build->args( "verbose_log" ) > 1;
-
-  # copy only templates
-  return if not m/\.tt$/;
-
-  # make the directory before we try to copy stuff into it...
-  mkpath "blib/$File::Find::dir"
-	or warn "(WW) WARNING: couldn't create directory \"blib/$File::Find::dir\": $!"
-	  unless -d "blib/$File::Find::dir";
-
-  print "$File::Find::name -> blib/$File::Find::dir\n"
-	if $build->args( "verbose_log" );
-
-  copy( "$File::Find::name", "blib/$File::Find::dir" )
-	or warn "(WW) WARNING: couldn't copy template file \"$_\": $!";
-
+  
+return { map {$_, File::Spec->catdir( $this->blib, $_ ) }
+         map $this->localize_file_path($_),
+         grep !/\.\#/,
+         @{ $this->rscan_dir( "htdocs", sub { ! -d and $File::Find::dir !~ /CVS$/ } ) } };
 }
 
 #-------------------------------------------------------------------------------
 # copy the contents of htdocs (CSS, images, javascripts, jars) across
 
-sub process_htdocs_files {
+sub old_process_htdocs_files {
   my $this = shift;
 
   # get a copy of the MB object for use in the callback
@@ -163,6 +144,9 @@ sub forEachStaticFile {
   # skip CVS directories entirely
   return if $File::Find::dir =~ /CVS$/ or -d;
 
+  # see if the derived file is up to date
+  return if $build->up_to_date( "$File::Find::name", "blib/$File::Find::name" );
+
   # make the directory before we try to copy stuff into it...
   mkpath "blib/$File::Find::dir"
 	or warn "(WW) WARNING: couldn't create directory \"blib/$File::Find::dir\": $!"
@@ -173,7 +157,7 @@ sub forEachStaticFile {
   # edit the files; if not, copy them.
 
   if( m/\.(css|js)$/ and 
-      $build->notes( "default_app_root" ) ne $config->{View}->{TT}->{CONSTANTS}->{root} ) {
+      $build->notes( "defaultAppRoot" ) ne $config->{View}->{TT}->{CONSTANTS}->{root} ) {
 
   	print "processing $File::Find::name -> blib/$File::Find::dir\n"
   	  if $build->args( "verbose_log" );
@@ -189,7 +173,7 @@ sub forEachStaticFile {
   	# get the default value and the new value of the URL root from the
   	# notes and build a hideous regex to replace one with the other
   	while( <IN> ) {
-  	  s/(??{$build->notes("default_app_root")})/$config->{View}->{TT}->{CONSTANTS}->{root}/eog;
+  	  s/(??{$build->notes("defaultAppRoot")})/$config->{View}->{TT}->{CONSTANTS}->{root}/eog;
   	  print OUT $_;
   	}
   
@@ -211,6 +195,61 @@ sub forEachStaticFile {
 #- actions ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+#sub ACTION_install {
+#  my $this = shift;
+#  require ExtUtils::Install;
+#  $this->depends_on( "build" );
+#  ExtUtils::Install::install(
+#    $this->install_map,
+#    !$this->quiet,
+#    0,
+#    $this->{args}{uninst}||0 );
+#}
+#
+#sub ACTION_fakeinstall {
+#  my ($self) = @_;
+#  require ExtUtils::Install;
+#  $self->depends_on('build');
+#  ExtUtils::Install::install($self->install_map, !$self->quiet, 1, $self->{args}{uninst}||0);
+#}
+
+
+# override the "install" action entirely
+
+sub ACTION_fakeinstall {
+  my $this = shift;
+ 
+  $config = $this->config_data( "configHash" ) unless defined $config;
+  
+ my $map = {
+    "blib/lib"        => $config->{installRoot} . "/lib",
+    "blib/htdocs"     => $config->{installRoot} . "/htdocs",
+    "blib/data"       => $config->{installRoot} . "/data",
+    "blib/conf"       => $config->{installRoot} . "/conf",
+    "blib/pfam-core"  => $this->notes( "pfamCoreDir" ),
+    "blib/pfam-model" => $this->notes( "pfamModelDir" ),
+    "read"            => "",
+    "write"           => ""
+  };
+  require ExtUtils::Install;
+  ExtUtils::Install::install( $map, 0, 1, 0 );
+ 
+#my $map = $this->install_map;
+
+#print dump( $map ) . "\n"; 
+  
+#  print "copying pfam-core to " . $this->notes( "pfamCoreDir" ) . "\n";
+#  print "copying pfam-model to " . $this->notes( "pfamModelDir" ) . "\n";
+#
+#  # retrieve the configuration hash that we build from user input
+#  $config = $this->config_data( "configHash" ) unless defined $config;
+#
+#  print "mkdir " . $config->{installRoot} . "\n";
+#  
+#  print "copying conf, lib, htdocs, data to " . $config->{installRoot} . "\n";
+}
+
+#-------------------------------------------------------------------------------
 # a pretty dumb check that the configuration file is in good
 # shape. Config::General seems happy to process any old junk, so in
 # the end this is not much more than a cursory look for unclosed
@@ -218,10 +257,25 @@ sub forEachStaticFile {
 
 sub ACTION_check_config {
   my $this = shift;
+  
+  my $configFile = $this->args( "config_file" );
 
-  print "(ii) test processing config file \"" . $this->notes( "configDir" ) . "/pfamweb.conf\"\n";
+  unless( $configFile ) {
+    print STDERR <<EOFccUsage;    
+(EE) ERROR: no configuration file specified.
 
-  my $conf = new Config::General( $this->notes( "configDir" ) . "/pfamweb.conf" );
+Usage: Build check_config --config_file=<config_file>
+EOFccUsage
+    exit 1;
+  }      
+  unless( -f $configFile ) {
+    print STDERR "(EE) ERROR: no configuration file found at \"$configFile\": $1\n";
+    exit 1;
+  }
+  
+  print "(ii) test processing config file \"$configFile\"...\n";
+
+  my $conf = new Config::General( $configFile );
   my %config = $conf->getall;
 
   dump( \%config ) if $this->args( "verbose_log" );
