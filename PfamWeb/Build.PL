@@ -4,20 +4,29 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.3 2007-02-16 18:01:25 jt6 Exp $
+# $Id: Build.PL,v 1.4 2007-02-27 17:06:05 jt6 Exp $
 
 use strict;
+use warnings;
+
+use lib qw( inc );
+use PfamWeb::Builder;
 
 use File::Path;
 use File::Copy;
-
-use PfamBuilder;
+use Cwd 'realpath';
 
 use Data::Dump qw(dump);
 
-# this is the default location for the main configuration file
+# this is the default location for all of the configuration files in the
+# distribution
 my $configDir  = "conf";
+
+# this is the default location for the main configuration file
 my $configFile = "$configDir/pfamweb.jcf";
+
+# and for the apache config file
+my $httpdFile = "$configDir/httpd.jcf";
 
 #-------------------------------------------------------------------------------
 #- setup Module::Build ---------------------------------------------------------
@@ -25,7 +34,7 @@ my $configFile = "$configDir/pfamweb.jcf";
 
 # configure Module::Build (or rather our subclass of it) itself
 
-my $build = PfamBuilder
+my $build = PfamWeb::Builder
   ->new(
     # these are modules that are required for the build process, as opposed
     # to just the normal operation of the site
@@ -41,8 +50,10 @@ my $build = PfamBuilder
                    		    "accept_defaults" => { type    => "!"  },
                    		    "config_file"     => { type    => ":s" },
                      	    "help|usage"      => { type    => "!"  },
+                     	    "no_help"         => { type    => "!",
+                                         	       default => 0    },
                      	    "verbose_log"     => { type    => "+",
-                                         	       default => 0 },
+                                         	       default => 0    },
                      	 },
 
 		license         => "perl",
@@ -60,7 +71,7 @@ my $build = PfamBuilder
 
 		# these are the absolutely required prerequisites
 		requires        => {
-            						  "Bio::DasLite"                               => 1.0,
+            						  "Bio::Das::Lite"                             => 1.47,
             						  "Catalyst::Runtime"                          => 5.7,
             						  "Catalyst::Action::RenderView"               => 0,
             						  "Catalyst::Model::DBIC::Schema"              => 0,
@@ -128,12 +139,15 @@ if( $build->args( "help" ) or $build->args( "usage" ) ) {
   exit;
 }
 
+# or should we just shut up and not print any help messages between prompts ?
+my $quiet = $build->args( "no_help" );
+
 #-------------------------------------------------------------------------------
 #- start the configuration -----------------------------------------------------
 #-------------------------------------------------------------------------------
 
 # a little hello... (ASCII-art courtesy of http://www.network-science.de/ascii/)
-print <<'EOFloc0';
+print <<'EOFloc' unless $quiet;
  ____   __              __        __   _     
 |  _ \ / _| __ _ _ __ __\ \      / /__| |__  
 | |_) | |_ / _` | '_ ` _ \ \ /\ / / _ \ '_ \ 
@@ -141,8 +155,8 @@ print <<'EOFloc0';
 |_|   |_|  \__,_|_| |_| |_|\_/\_/ \___|_.__/ 
 
 This is the installation and configuration script for the Pfam website application.
-It will ask a series of questions and based on your responses, it will generate a
-script that can be used to configure and then install the website.
+It will ask a series of questions and, based on your responses, generate a script
+that can be used to configure and then install the website.
 
 You can see some help on using it and the accepted command-line options by running:
 
@@ -150,8 +164,8 @@ You can see some help on using it and the accepted command-line options by runni
 
 You will need to make sure that you are using a perl executable which can see the
 various prerequisite modules that you should have installed (such as
-Catalyst::Runtime), or have set the PERL5LIB environment variable to add the
-appropriate library directories to @INC.
+Catalyst::Runtime). Alternatively you can set the PERL5LIB environment variable to
+add the appropriate library directories to @INC before you start.
 
 Initially, the default values for this script are taken from the configuration file
 in this distribution. You can override the defaults by changing the values at the
@@ -165,9 +179,9 @@ Unless you specify "--accept_defaults", the script will prompt you for the vario
 parameters that we need, offering default values from the configuration file that
 it reads.
 
-EOFloc0
+EOFloc
 
-$build->prompt( "Hit return when you're ready to start.", "" );
+$build->prompt( "Hit return when you're ready to start.", "" ) unless $quiet;
 
 #--------------------------------------
 
@@ -206,8 +220,9 @@ EOFcgMissing
 # values for the prompts. First we need to find the main config file
 
 # if the user specified the value on the command line, we'll use that
-if( $build->args( "config" ) ) {
-  $configFile = $build->args( "config_file" );  
+if( $build->args( "config_file" ) ) {
+  $configFile = $build->args( "config_file" );
+  print "\nWe're taking default values from the file \"$configFile\", as specified.\n";
 } else {
   $configFile = $build->prompt( "Where is the default configuration file ?",
                                 $configFile );
@@ -217,14 +232,14 @@ if( $build->args( "config" ) ) {
 die "(EE) ERROR: couldn't read configuration file \"$configFile\": $!"
   unless -f $configFile;  
 
-my( $configGeneral, %config, $parsed );
+my( $configCG, %config, $parsed );
 eval {
   # throws an exception if there's a real parsing error
-  $configGeneral = new Config::General( -ConfigFile      => $configFile,
-                                        -IncludeRelative => 1 );
+  $configCG = new Config::General( -ConfigFile      => $configFile,
+                                   -IncludeRelative => 1 );
 
   # otherwise we should get a Config::General module...
-  %config = $configGeneral->getall;
+  %config = $configCG->getall;
 
   # but we still need some sanity checks, since CG seems happy to parse any
   # old junk and turn it into a hash. Let's look for some bits of the config
@@ -246,12 +261,14 @@ EOFcgError
 }
 
 #-------------------------------------------------------------------------------
-#- talk to the user... ---------------------------------------------------------
+#- configure pfamweb.conf ------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 # where should we put everything ?
 
-print <<EOFloc1;
+print <<EOFloc unless $quiet;
+
+--------------------------------------------------------------------------------
 
 The PfamWeb application consists of several different types of file. We have
 raw perl code, Template Toolkit template files, static HTML content, such as 
@@ -262,10 +279,14 @@ installation root. For example, you might choose to put PfamWeb in a
 subdirectory of your web-server, e.g. /usr/local/httpd/PfamWeb, or somewhere
 entirely separate, e.g. /opt/webapps/PfamWeb.  
 
-EOFloc1
+EOFloc
+
+# store the starting value of the installation root
+$build->notes( "defaultInstallRoot", $config{installRoot} );
 
 my( $validResponse, $rawResponse );
 
+# loop until we get a response that we like...
 until( $validResponse ) {
   $rawResponse = 
     $build->prompt( "In what directory do you want to install the PfamWeb application ?",
@@ -275,9 +296,9 @@ until( $validResponse ) {
   $rawResponse =~ s/(.*?)\/*$/$1/;
 
   if( -d $rawResponse ) {
-    $validResponse= $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ?", "Y" );
+    $validResponse= $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
   } elsif( -f $1 ) {
-    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ?", "N" );
+    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
   } else {
     $validResponse = 1;
   }
@@ -287,42 +308,48 @@ until( $validResponse ) {
 # store the value directly in our config hash...
 $config{installRoot} = $rawResponse;
 
+# ... set the install_base...
+$build->install_base( $rawResponse );
+
 # and set the INCLUDE_PATH value in the View::TT config
 $config{View}->{TT}->{INCLUDE_PATH} = $rawResponse . "/data/templates";
 
-print <<EOFloc2;
+print <<EOFloc unless $quiet;
 
 OK. We will install everything there and you will end up with a directory
 structure that looks something like this:
 
-EOFloc2
+EOFloc
 
-foreach my $dir ( qw[ conf data htdocs lib ] ) {
-  print "  $config{installRoot}/$dir\n";
+unless( $quiet ) {
+  foreach my $dir ( qw[ conf data htdocs lib ] ) {
+    print "  $config{installRoot}/$dir\n";
+  }
 }
 
 #--------------------------------------
 
 # we'll store the starting value for the application root as a note, so 
 # that we can do a search and replace for it at the Build stage
-$build->notes( "default_app_root", $config{View}->{TT}->{CONSTANTS}->{root} );
+$build->notes( "defaultAppRoot", $config{View}->{TT}->{CONSTANTS}->{root} );
   
-print <<EOFloc3;
+print <<EOFloc unless $quiet;
 
-Now we need to decide the root of the application in terms of the website
-configuration.
+--------------------------------------------------------------------------------
+
+Now we need to decide the root of the application as viewed in a browser.
 
 When the application is running, users will access it with a URL something
 like:
 
-  http://www.sanger.ac.uk/pfam
+  http://<your site>/pfam
 
 The path component of the URL (in this case "/pfam") is the application root
 and we will need to set that in various files during this installation. Note
 that the application root should start with a slash but should not have a 
 trailing slash.
 
-EOFloc3
+EOFloc
 
 $rawResponse = 
   $build->prompt( "What is the application root for your site ?",
@@ -337,21 +364,22 @@ $config{View}->{TT}->{CONSTANTS}->{root} = $rawResponse;
 #--------------------------------------
 # annotation email
 
-print <<EOFloc4;
+print <<EOFloc unless $quiet;
 
 OK. The URL for the index page of your site will be:
 
   http://<your site>$rawResponse
 
-Now we need to get various values that are used in the application
+--------------------------------------------------------------------------------
+
+Next we need to get various values that are used in the application
 configuration.
 
 Firstly, values required for the annotation comments feature. Each family page
-has an "add annotation" link, which leads to a form via which users can 
-supply comments. The comments are then emailed to the email address of your
-choice.
+has an "add annotation" link, which leads to a form via which users can supply
+comments. The comments are then emailed to the email address of your choice.
 
-EOFloc4
+EOFloc
 
 $config{Controller}->{Annotate}->{annotationEmail} =
   $build->prompt( "To what email address should we send annotation comments ?",
@@ -360,7 +388,11 @@ $config{Controller}->{Annotate}->{annotationEmail} =
 #--------------------------------------
 # the tmp area
 
-print <<EOFloc5;
+print <<EOFloc unless $quiet;
+
+OK. We'll send annotation emails to "$config{Controller}->{Annotate}->{annotationEmail}".
+
+--------------------------------------------------------------------------------
 
 Various features of the site require a web-accessible temp directory. The
 easiest way to achieve that is to make a directory called something like "tmp"
@@ -370,7 +402,7 @@ permissions to allow the web-server process to write files in that directory.
 We need to have both the filesystem path for that directory, as well as the
 URL for it.
 
-EOFloc5
+EOFloc
 
 # get the file system path to the temp directory
 # NOTE: COMPILE_DIR is the same as the temp directory...
@@ -384,9 +416,9 @@ until( $validResponse ) {
 
   # see if the directory is already there, otherwise offer to create it
   if( -d $tmpDirPath ) {
-    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ?", "Y" );
+    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
   } else {
-    if( $build->y_n( "(WW) WARNING: that directory doesn't exist; should we create it now ?", "Y" ) ) {
+    if( $build->y_n( "(WW) WARNING: that directory doesn't exist; should we create it now ? (Y/n)", "Y" ) ) {
       # make sure we catch possible errors with creating the directory
       eval { mkpath $tmpDirPath };
       if( $@ ) {
@@ -412,9 +444,11 @@ $config{View}->{TT}->{CONSTANTS}->{tmp} = $tmpDirURL;
 
 #--------------------------------------
 
-print <<EOFloc6;
+print <<EOFloc unless $quiet;
 
-Next, we need to get some database connection parameters.
+--------------------------------------------------------------------------------
+
+We now need to get some database connection parameters.
 
 The site requires two separate databases. The first is the Pfam database,
 which you can retrieve from the Sanger FTP site. This should be accessed using 
@@ -428,7 +462,7 @@ account.
 
 First, let's get parameters for the Pfam database. 
 
-EOFloc6
+EOFloc
 
 $validResponse = 0;
 until( $validResponse ) {
@@ -454,7 +488,7 @@ until( $validResponse ) {
   $config{Model}->{PfamDB}->{connect_info}[0] = $pfamDSN;
   $config{Model}->{PfamDB}->{connect_info}[1] = $pfamUser;
   
-    print <<EOFloc7;
+    print <<EOFloc unless $quiet;
 
 We will try to connect to the Pfam database using the following parameters:
 
@@ -463,7 +497,7 @@ We will try to connect to the Pfam database using the following parameters:
 
 Now the "web_user" database details.
 
-EOFloc7
+EOFloc
 
   my $wuDSN = "dbi:mysql";
   
@@ -491,7 +525,7 @@ EOFloc7
   $config{Model}->{WebUser}->{connect_info}[1] = $wuUser;
   $config{Model}->{WebUser}->{connect_info}[2] = $wuPass;
   
-  print <<EOFloc8;
+  print <<EOFloc unless $quiet;
 
 We will try to connect to the web_user database using the following parameters:
 
@@ -499,7 +533,7 @@ We will try to connect to the web_user database using the following parameters:
   username: $wuUser
   password: $wuPass
 
-EOFloc8
+EOFloc
   
   # should we test the connections ?
   if( $build->y_n( "Would you like to try connect to the databases now ?", "N" ) ) {
@@ -518,7 +552,7 @@ EOFloc8
         or print "(WW) WARNING: couldn't connect to web_user database: $DBI::errstr\n";  
 
       if( $pfamDBH and $wuDBH ) {
-        print "Successfully opened connections to both databases.\n";
+        print "\nSuccessfully opened connections to both databases.\n";
         
         # we're less interested in errors on disconnect...
         eval {
@@ -528,25 +562,18 @@ EOFloc8
         $validResponse = 1;
 
       } else {
-        $validResponse = not $build->y_n( "Do you want to try entering the connection parameters again ?", "Y" );
+        $validResponse = not $build->y_n( "Do you want to try entering the connection parameters again ? (Y/n)", "Y" );
       } 
     }
   } else {
-    print "\nOK, we won't try testing the connections.\n";
+    print "\nOK, we won't try testing the connections.\n" unless $quiet;
     $validResponse = 1;
   }
 
 } # end of "until valid response" for the database connection testing
 
-#--------------------------------------
-
-# need to edit move httpd.conf to httpd.conf.orig and then edit it back to
-# httpd.conf, fixing, primarily, the value for PFAMWEB_CONF so that it points
-# at the correct file, i.e. the one we just created 
-
 #-------------------------------------------------------------------------------
-#- dump out the configuration --------------------------------------------------
-#-------------------------------------------------------------------------------
+# dump out the configuration
 
 # now we should have a valid configuration hash, which we'll store in the MB
 # object so that we can retrieve it in Build actions. That way we avoid having
@@ -556,100 +583,362 @@ $build->config_data( "configHash" => \%config );
 # and we'll write it to a new file
 ( my $newConfigFile = $configFile ) =~ s/jcf/conf/;
 
-print <<EOFloc9;
+print <<EOFloc unless $quiet;
 
-Now we need to try writing out the configuration that we just generated. The
-default location for the new file is
+--------------------------------------------------------------------------------
+
+We now have all of the information that we need to write the configuration file
+for your server and we can write it to file. The default location for the new
+file is:
 
   \"$newConfigFile\"
   
-but before we write the file we'll check if there's a pre-existing configuration
-file called the same name. If there is, you'll have the option to overwrite
-it or rename it. The default setting for the script is to overwrite the 
-pre-existing file.
+but before we write the file we'll check if there's a pre-existing 
+configuration file called the same name. If there is, you'll have the option 
+to overwrite it or rename it. The default setting for the script is to 
+overwrite the pre-existing file.
 
-EOFloc9
+EOFloc
 
-$validResponse = 0;
-until( $validResponse ) {
-  
-  if( -f $newConfigFile ) {
-    print "The file \"$newConfigFile\" already exists.\n";
-    if( $build->y_n( "Do you want to overwrite the pre-existing configuration file ?", "Y" ) ) {
-      print "\n(WW) WARNING: overwriting \"$newConfigFile\".\n";
-      $validResponse = 1;
-    } else {
+$newConfigFile = backupFile( $newConfigFile );
 
-      # generate a name for the backup file
-      my $backupNumber = 0;
-      while( -f "$newConfigFile.$backupNumber" ) { $backupNumber++ }
-      print "\nOK. We'll try to rename the pre-existing file as \"$newConfigFile.$backupNumber\".\n";
-      
-      # try renaming the existing config file to the backup filename
-      if( move( $newConfigFile, "$newConfigFile.$backupNumber" ) ) {
-        print "\nSuccessfully moved pre-existing config file to \"$newConfigFile.$backupNumber\".\n";  
-      } else {
-        print "\n(WW) WARNING: couldn't move the pre-existing config file: $!";
-        $newConfigFile = $build->prompt( "Where do you want to save the new configuration ?",
-                                         "$newConfigFile" );
-      }
-    }
-  } else {
-    print "\nNo pre-existing configuration file found. ";
-    $validResponse = 1;
-  } 
+print "\nWriting your configuration to \"$newConfigFile\".\n";
+$configCG->save_file( $newConfigFile, \%config );
+
+# stash the name of that file, so we can delete it when we do a "Build clean"
+$build->add_to_cleanup( $newConfigFile );
+
+#-------------------------------------------------------------------------------
+#- configure httpd.conf --------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# try parsing the starting file
+
+print <<EOFloc;
+
+--------------------------------------------------------------------------------
+
+Next we'll try configure the snippet of Apache configuration file that will
+set up the application in your mod_perl server. We will try to load the Apache
+configuration file from the distribution and then prompt for the values that we
+need to customize it for your installation.
+
+EOFloc
+
+# figure out if we need to move an existing file aside
+( my $newHttpdFile = $httpdFile ) =~ s/jcf/conf/;
+
+# make sure we can read and parse the httpd.conf from the distribution
+my( $httpdCG, %httpdConfig );
+eval {
+  # throws an exception if there's a real parsing error
+  $httpdCG= new Config::General( -ConfigFile      => $httpdFile,
+                                 -IncludeRelative => 1 );
+
+  # otherwise we should get a Config::General module...
+  %httpdConfig = $httpdCG->getall;
+
+  # sanity checks
+  $parsed = grep /mod_perl/, @{$httpdConfig{LoadModule}} and
+            exists $httpdConfig{PerlSetEnv};
+
+};
+
+if( $@ or not $parsed ) {
+  print <<EOFhttpdProblem;
+
+(EE) ERROR: there was a problem loading the Apache configuration file from
+            the distribution (\"$httpdFile\"): $@ 
+            
+If this is a parsing problem, or the file is just missing, then this is a
+problem with the distribution...
+
+EOFhttpdProblem
+  exit 1;
 }
 
-print "Writing your configuration to \"$newConfigFile\".\n\n";
-$configGeneral->save_file( $newConfigFile, \%config );
+# make sure we delete the file on cleanup
+$build->add_to_cleanup( $newHttpdFile );
 
 #--------------------------------------
 
-# and we're done
+# get values that we need for configuring httpd.conf
+
+print <<EOFloc unless $quiet;
+First, we need to know the location of the program "muscle". The distribution
+includes a linux binary for muscle, but you will need to compile or download
+your own version if you're not running the server on linux.
+
+We need to know where muscle will eventually be installed. If you've already got
+a working version of muscle, give the full path for that binary in answer to the
+next question. If you will be installing muscle later, the script will complain
+that it can't find the binary but will still accept the value that you enter. 
+
+EOFloc
+
+my $muscleBin;
+foreach ( @{$httpdConfig{PerlSetEnv}} ) {
+  next unless m/^PFAM_MUSCLE_BIN\s+(.*)/;
+  $muscleBin = $1 and last;
+}
+
+$validResponse = 0;
+until( $validResponse ) {
+  $rawResponse = $build->prompt( "Where is the muscle binary ?", $muscleBin );
+  if( -e $rawResponse and -x $rawResponse ) {
+    print "\nOK. Found the muscle binary.\n";
+    $validResponse = 1;
+  } else {
+    print "(WW) WARNING: no such file or directory.\n";
+    
+    if( $build->y_n( "Do you want to keep the location you specified ($rawResponse) ? (Y/n)", "Y" ) ) {
+      print "\nOK. Accepting the location for muscle that you provided ($rawResponse).\n";
+      $validResponse = 1;
+    } else {    
+      $validResponse = 0;
+    }    
+  }
+}
+
+# set the correct values in the PerlSetEnv lines; we know the rest from our
+# earlier questions
+# NB PFAMWEB_CONFIG must point to the location of the configuration file in the
+# installed server...
+
+$httpdConfig{PerlSetEnv} = [
+  "PFAM_DOMAIN_IMAGES $config{View}->{TT}->{CONSTANTS}->{tmp}",
+  "PFAM_FAMILY_ROOT   $config{View}->{TT}->{CONSTANTS}->{root}",
+  "PFAM_MUSCLE_BIN    $rawResponse",
+  "PFAMWEB_CONFIG     $config{installRoot}/$newConfigFile" ];
+
+# set the location handler for PfamWeb using values that we already retrieved
+$httpdConfig{Location} =
+  {
+     $config{View}->{TT}->{CONSTANTS}->{root} => 
+       { PerlResponseHandler => "PfamWeb",
+         SetHandler          => "perl-script" }
+  };
+
+# edit the mod_rewrite rules. We can handle both the RewriteRule and Alias lines
+# using the same pattern
+my @rules;
+foreach ( @{$httpdConfig{RewriteRule}}, @{$httpdConfig{Alias}} ) {
+  s/(??{$build->notes("defaultAppRoot")})/$config{View}->{TT}->{CONSTANTS}->{root}/eog;
+}
+
+# finally, set the Directory directive that tells Apache to serve the static
+# content
+$httpdConfig{Directory} = {
+   $config{installRoot} => {
+                             Allow   => "from all",
+                             Options => "none",
+                             Order   => "allow,deny"
+                           }
+};
+
+#--------------------------------------
+
+# we'll need the locations for both the pfam-core and pfam-model components...
+
+print <<EOFloc;
+
+--------------------------------------------------------------------------------
+
+There are two ancilliary modules that we need to install for the site. The
+pfam-core directory contains general-purpose modules, for tasks such as drawing
+Pfam graphics or sequence manipulation. The pfam-model directory contains
+DBIx::Class models for the Pfam and web_user databases, which are used
+throughout the PfamWeb code for accessing the two databases.
+
+We need to copy the contents of these two directories when we install everything
+and we need to configure mod_perl to find them.
+
+If you want to you can merge the two directories together when we install, by
+giving the same path for both pfam-core and pfam-model. Just be aware that at
+WTSI we keep them separate, so it's possible that could encounter some file name
+clashes when you merge the sets of modules together. Please let us know if you
+notice any problems.
+
+EOFloc
+
+# we'll offer to put the pfam-core and pfam-model directories parallel to 
+# the PfamWeb directory, i.e. hanging off the same parent directory, which is...
+( my $installRootParent = $config{installRoot} ) =~ s/^((\/.*?)+)\/.*/$1/;
+
+my $pfamCoreDir;
+$validResponse = 0;
+until( $validResponse ) {
+  $pfamCoreDir =
+    $build->prompt( "Where should we put the contents of the pfam-core directory ?",
+                    "$installRootParent/pfam-core" );
+
+  # trim off trailing slashes
+  $pfamCoreDir =~ s/(.*?)\/*$/$1/;
+
+  # see if the directory is already there
+  if( -d $pfamCoreDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
+  } elsif( -f $1 ) {
+    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+  } else {
+    $validResponse = 1;
+  }
+}
+
+my $pfamModelDir;
+$validResponse = 0;
+until( $validResponse ) {
+  $pfamModelDir =
+    $build->prompt( "Where should we put the contents of the pfam-model directory ?",
+                    "$installRootParent/pfam-model" );
+
+  # trim off trailing slashes
+  $pfamModelDir =~ s/(.*?)\/*$/$1/;
+
+  # see if the directory is already there
+  if( -d $pfamModelDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
+  } elsif( -f $1 ) {
+    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+  } else {
+    $validResponse = 1;
+  }
+}
+
+# make a note of the directories where we're copying pfam-core and pfam-model
+$build->notes( "pfamCoreDir",  $pfamCoreDir );
+$build->notes( "pfamModelDir", $pfamModelDir );
+
+print <<EOFloc unless $quiet;
+
+OK. We'll install pfam-core and pfam-model in the following locations:
+
+  pfam-core:  $pfamCoreDir
+  pfam-model: $pfamModelDir
+
+--------------------------------------------------------------------------------
+
+Finally, we'll write out the Apache configuration file.
+
+EOFloc
+
+#--------------------------------------
+
+# we can complete the editing of httpd.conf by tweaking the PerlSwitches
+# directives
+$httpdConfig{PerlSwitches} = [ "-wT",
+                               "-I$pfamCoreDir",
+                               "-I$pfamModelDir",
+                               "-I$config{installRoot}/lib" ];
+
+#--------------------------------------
+
+# write out httpd.conf
+
+$newHttpdFile = backupFile( $newHttpdFile );
+
+print "\nWriting your Apache configuration to \"$newHttpdFile\".\n";
+$httpdCG->save_file( $newHttpdFile, \%httpdConfig );
+
+#-------------------------------------------------------------------------------
+#- and we're done --------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 $build->create_build_script;
 
-print "\nDone.\n\n";
+print <<EOFloc10 unless $quiet;
+
+--------------------------------------------------------------------------------
+
+# TODO copy pfam-core and pfam-model across to blib
+
+Done.
+
+EOFloc10
+
 exit;
 
 #===============================================================================
 #= methods =====================================================================
 #===============================================================================
 
+# tries to move the specified file to $file.orig.n, where n is incremented until
+# that file doesn't exist. If the original file can't be moved, ask they user
+# if they want to overwrite it. If they don't want to overwrite, get another
+# filename from them. Ultimately, the return value is the name of the file
+# that the file should be written to. This may be the same as the one handed
+# to the method in the first place...
+
+sub backupFile {
+  my $file = shift;
+
+  my $validResponse = 0;
+  until( $validResponse ) {
+    
+    if( -f $file ) {
+      if( $build->y_n( "The file \"$file\" already exists. Do you want to overwrite it ? (Y/n)", "Y" ) ) {
+        print "\n(WW) WARNING: overwriting \"$file\".\n";
+        $validResponse = 1;
+      } else {
+  
+        # generate a name for the backup
+        my $backupNumber = 0;
+        while( -f "$file.orig.$backupNumber" ) { $backupNumber++ }
+        my $backup = "$file.orig.$backupNumber";
+        
+        print "\nOK. We'll try to rename the pre-existing file to \"$backup\".\n";
+        
+        if( move( $file, $backup ) ) {
+          print "\nSuccessfully moved pre-existing file.\n";  
+        } else {
+          print "\n(WW) WARNING: couldn't move the pre-existing file: $!";
+          $newConfigFile = $build->prompt( "Where do you want to save the new file ?",
+                                           "$file" );
+        }
+      }
+    } else {
+      $validResponse = 1;
+    } 
+  }
+
+  return $file;
+}
+
+
 sub usage {
   print STDERR << 'EOFhelp';
 
---------------------------------------------------------------------------------
+These are the command-line arguments for Build.PL:
 
-This is the PfamWeb build script.
-
-Command-line arguments can be specified like
-
-  perl Build.PL --accept_defaults
-
-These are the accepted arguments:
-
-  accept_defaults     accept all of the defaults that are built into the script. If
-                      this is omitted you will be prompted for missing values
-  config_file=<file>  use the specified file as the basis for the server configuration       
+  accept_defaults     accept all of the defaults that are read from the default
+                      configuration file. If this switch is omitted you will be
+                      prompted for the required values
+  config_file=<file>  use the specified file as the starting point for the
+                      server configuration
   help / usage        prints this message
+  no_help             don't print any information; just prompt for values
 
 Other arguments affect the running of the generated Build script:
 
-  verbose_log         makes the output from Build more verbose. Adding "--verbose_log"
-                      multiple times will increase the amount of output.
+  verbose_log         makes the output from Build more verbose. Adding 
+                      "--verbose_log" multiple times will increase the amount of
+                      output.
 
-In addition to the standard Build actions, you can use the following custom actions:
+In addition to the standard Build actions, you can use the following custom
+actions:
 
   check_config
+  
+    Causes the script to try parsing the specified configuration file.
+  
+    Requires the argument "config_dir", specifying the configuration file to be
+    verified, e.g.
+    
+      ./Build check_config --config_file=conf/pfamweb.conf
 
-    causes the script to try parsing the main configuration file. The file will be
-    loaded either from the directory specified by the "configs_dir" argument or from
-    the default configuration directory. Any errors generated from parsing the file
-    are displayed by default, but to see the data structure that is generated from
-    the configuration file, add the argument "--verbose_log".
-
---------------------------------------------------------------------------------
+    Any errors generated from parsing the file are displayed by default, but to
+    see the data structure that is generated from the configuration file (as
+    displayed using Data::Dump::dump), add the argument "--verbose_log".
 
 EOFhelp
 }
