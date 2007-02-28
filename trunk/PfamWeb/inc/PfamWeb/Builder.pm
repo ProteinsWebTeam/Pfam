@@ -5,7 +5,7 @@
 # A custom Module::Builder subclass to handle installation of the
 # PfamWeb application
 #
-# $Id: Builder.pm,v 1.5 2007-02-28 14:43:00 jt6 Exp $
+# $Id: Builder.pm,v 1.6 2007-02-28 16:20:53 jt6 Exp $
 
 package PfamWeb::Builder;
 
@@ -79,16 +79,6 @@ sub process_htdocs_files {
 
 }
 
-sub find_core_files {
-  my $this = shift;
-  return $this->local_find_file_by_type( "pm", $this->notes( "pfamCoreDir" ) ); 
-}
-
-sub find_model_files {
-  my $this = shift;
-  return $this->local_find_file_by_type( "pm", $this->notes( "pfamModelDir" ) ); 
-}
-
 #-------------------------------------------------------------------------------
 # We've implicitly added process_conf, process_data and process_htdocs methods
 # by adding the new build elements in the mail Build.PL script, and these 
@@ -102,6 +92,8 @@ sub local_find_file_by_type  {
     grep !/\.\#/, @{ $this->rscan_dir( $dir, qr{\.$type$} ) } };
 }
 
+#--------------------------------------
+
 # and using that...
 sub find_conf_files {
   return shift->local_find_file_by_type( "conf", "conf" );
@@ -110,6 +102,18 @@ sub find_conf_files {
 sub find_data_files {
   return shift->local_find_file_by_type( "tt", "data" );
 }
+
+sub find_pfamCore_files {
+  my $this = shift;
+  return $this->local_find_file_by_type( "pm", "pfamCore" ); 
+}
+
+sub find_pfamModel_files {
+  my $this = shift;
+  return $this->local_find_file_by_type( "pm", "pfamModel" );
+}
+
+#--------------------------------------
 
 # a bit more specialised: find any file in the htdocs directory, but ignore
 # CVS directories
@@ -136,55 +140,22 @@ return { map {$_, catdir( $this->blib, $_ ) }
 #    0,
 #    $this->{args}{uninst}||0 );
 #}
-#
-#sub ACTION_fakeinstall {
-#  my ($self) = @_;
-#  require ExtUtils::Install;
-#  $self->depends_on('build');
-#  ExtUtils::Install::install($self->install_map, !$self->quiet, 1, $self->{args}{uninst}||0);
-#}
-
-# override the "install" action entirely
 
 sub ACTION_fakeinstall {
   my $this = shift;
 
-  foreach my $type ( $this->install_types ) {
-    my $dest = $this->install_destination( $type );
-    print "|$type| ---> |$dest|\n"; 
-  }
-
-  print "install_base_relpaths:\n" . ( dump $this->install_base_relpaths ) . "\n";
-  print "install_path:\n" . ( dump $this->install_path ) . "\n";
-  print "install_map:\n" . ( dump $this->install_map ) . "\n";
- 
-#  my $map = {
-#    "blib/lib"        => $this->config_data( "configHash" )->{installRoot} . "/lib",
-#    "blib/htdocs"     => $this->config_data( "configHash" )->{installRoot} . "/htdocs",
-#    "blib/data"       => $this->config_data( "configHash" )->{installRoot} . "/data",
-#    "blib/conf"       => $this->config_data( "configHash" )->{installRoot} . "/conf",
-#    "blib/pfam-core"  => $this->notes( "pfamCoreDir" ),
-#    "blib/pfam-model" => $this->notes( "pfamModelDir" ),
-#    "read"            => "",
-#    "write"           => ""
-#  };
+#  foreach my $type ( $this->install_types ) {
+#    my $dest = $this->install_destination( $type );
+#    print "|$type| ---> |$dest|\n"; 
+#  }
+#
+#  print "install_base_relpaths:\n" . ( dump $this->install_base_relpaths ) . "\n";
+#  print "install_path:\n" . ( dump $this->install_path ) . "\n";
+#  print "install_map:\n" . ( dump $this->install_map ) . "\n";
 
   require ExtUtils::Install;
-  #ExtUtils::Install::install( $this->install_map, 0, 1, 0 );
+  ExtUtils::Install::install( $this->install_map, 0, 1, 0 );
  
-#my $map = $this->install_map;
-
-#print dump( $map ) . "\n"; 
-  
-#  print "copying pfam-core to " . $this->notes( "pfamCoreDir" ) . "\n";
-#  print "copying pfam-model to " . $this->notes( "pfamModelDir" ) . "\n";
-#
-#  # retrieve the configuration hash that we build from user input
-#  $config = $this->config_data( "configHash" ) unless defined $config;
-#
-#  print "mkdir " . $config->{installRoot} . "\n";
-#  
-#  print "copying conf, lib, htdocs, data to " . $config->{installRoot} . "\n";
 }
 
 #-------------------------------------------------------------------------------
