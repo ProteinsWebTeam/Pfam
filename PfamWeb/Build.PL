@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.5 2007-02-28 14:43:19 jt6 Exp $
+# $Id: Build.PL,v 1.6 2007-02-28 16:20:45 jt6 Exp $
 
 use strict;
 use warnings;
@@ -114,8 +114,8 @@ $build->add_build_element( "conf" );
 $build->add_build_element( "data" );
 $build->add_build_element( "htdocs" );
 
-$build->add_build_element( "core" );
-$build->add_build_element( "model" );
+$build->add_build_element( "pfamCore" );
+$build->add_build_element( "pfamModel" );
 
 #--------------------------------------
 
@@ -583,6 +583,83 @@ EOFloc
 
 } # end of "until valid response" for the database connection testing
 
+#--------------------------------------
+
+# we'll need the locations for both the pfamCore and pfamModel components...
+
+print <<EOFloc;
+
+--------------------------------------------------------------------------------
+
+There are two ancilliary CVS modules that we need to install for the site. 
+They're checked out as part of the initial website checkout but we treat them
+as separate from the website code for development.
+
+The pfamCore directory contains general-purpose modules for tasks such as
+drawing Pfam graphics or sequence manipulation. The pfamModel directory contains
+DBIx::Class models for the Pfam and web_user databases, which are used
+throughout the PfamWeb code for accessing the two databases.
+
+We need to copy the contents of these two directories when we install everything
+and we need to configure mod_perl to find them.
+
+EOFloc
+
+# we'll offer to put the pfamCore and pfamModel directories parallel to 
+# the PfamWeb directory, i.e. hanging off the same parent directory, which is...
+( my $installRootParent = $config{installRoot} ) =~ s/^((\/.*?)+)\/.*/$1/;
+
+my $pfamCoreDir;
+$validResponse = 0;
+until( $validResponse ) {
+  $pfamCoreDir =
+    $build->prompt( "Where should we put the contents of the pfamCore directory ?",
+                    "$installRootParent/pfamCore" );
+
+  # trim off trailing slashes
+  $pfamCoreDir =~ s/(.*?)\/*$/$1/;
+
+  # see if the directory is already there
+  if( -d $pfamCoreDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
+  } elsif( -f $pfamCoreDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+  } else {
+    $validResponse = 1;
+  }
+}
+
+my $pfamModelDir;
+$validResponse = 0;
+until( $validResponse ) {
+  $pfamModelDir =
+    $build->prompt( "Where should we put the contents of the pfamModel directory ?",
+                    "$installRootParent/pfamModel" );
+
+  # trim off trailing slashes
+  $pfamModelDir =~ s/(.*?)\/*$/$1/;
+
+  # see if the directory is already there
+  if( -d $pfamModelDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
+  } elsif( -f $pfamModelDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+  } else {
+    $validResponse = 1;
+  }
+}
+
+$build->install_path( pfamCore  => $pfamCoreDir );
+$build->install_path( pfamModel => $pfamModelDir );
+
+print <<EOFloc unless $quiet;
+
+OK. We'll install pfamCore and pfamModel in the following locations:
+
+  pfamCore:  $pfamCoreDir
+  pfamModel: $pfamModelDir
+EOFloc
+
 #-------------------------------------------------------------------------------
 # dump out the configuration
 
@@ -747,88 +824,7 @@ $httpdConfig{Directory} = {
                            }
 };
 
-#--------------------------------------
-
-# we'll need the locations for both the pfam-core and pfam-model components...
-
-print <<EOFloc;
-
---------------------------------------------------------------------------------
-
-There are two ancilliary modules that we need to install for the site. The
-pfam-core directory contains general-purpose modules, for tasks such as drawing
-Pfam graphics or sequence manipulation. The pfam-model directory contains
-DBIx::Class models for the Pfam and web_user databases, which are used
-throughout the PfamWeb code for accessing the two databases.
-
-We need to copy the contents of these two directories when we install everything
-and we need to configure mod_perl to find them.
-
-If you want to you can merge the two directories together when we install, by
-giving the same path for both pfam-core and pfam-model. Just be aware that at
-WTSI we keep them separate, so it's possible that could encounter some file name
-clashes when you merge the sets of modules together. Please let us know if you
-notice any problems.
-
-EOFloc
-
-# we'll offer to put the pfam-core and pfam-model directories parallel to 
-# the PfamWeb directory, i.e. hanging off the same parent directory, which is...
-( my $installRootParent = $config{installRoot} ) =~ s/^((\/.*?)+)\/.*/$1/;
-
-my $pfamCoreDir;
-$validResponse = 0;
-until( $validResponse ) {
-  $pfamCoreDir =
-    $build->prompt( "Where should we put the contents of the pfam-core directory ?",
-                    "$installRootParent/pfam-core" );
-
-  # trim off trailing slashes
-  $pfamCoreDir =~ s/(.*?)\/*$/$1/;
-
-  # see if the directory is already there
-  if( -d $pfamCoreDir ) {
-    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
-  } elsif( -f $pfamCoreDir ) {
-    $validResponse = $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
-  } else {
-    $validResponse = 1;
-  }
-}
-
-my $pfamModelDir;
-$validResponse = 0;
-until( $validResponse ) {
-  $pfamModelDir =
-    $build->prompt( "Where should we put the contents of the pfam-model directory ?",
-                    "$installRootParent/pfam-model" );
-
-  # trim off trailing slashes
-  $pfamModelDir =~ s/(.*?)\/*$/$1/;
-
-  # see if the directory is already there
-  if( -d $pfamModelDir ) {
-    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
-  } elsif( -f $pfamModelDir ) {
-    $validResponse = $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
-  } else {
-    $validResponse = 1;
-  }
-}
-
-# make a note of the directories where we're copying pfam-core and pfam-model
-$build->notes( "pfamCoreDir",  $pfamCoreDir );
-$build->notes( "pfamModelDir", $pfamModelDir );
-
-$build->install_path( core  => $pfamCoreDir );
-$build->install_path( model => $pfamModelDir );
-
 print <<EOFloc unless $quiet;
-
-OK. We'll install pfam-core and pfam-model in the following locations:
-
-  pfam-core:  $pfamCoreDir
-  pfam-model: $pfamModelDir
 
 --------------------------------------------------------------------------------
 
@@ -863,8 +859,6 @@ $build->create_build_script;
 print <<EOFloc10 unless $quiet;
 
 --------------------------------------------------------------------------------
-
-# TODO copy pfam-core and pfam-model across to blib
 
 Done.
 
