@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.4 2007-02-27 17:06:05 jt6 Exp $
+# $Id: Build.PL,v 1.5 2007-02-28 14:43:19 jt6 Exp $
 
 use strict;
 use warnings;
@@ -42,7 +42,8 @@ my $build = PfamWeb::Builder
                           "Config::General" => 0.28,
                           "DBI"             => 0,
                        },
-    
+
+    create_packlist => 0,
     dist_author     => 'John Tate <jt6@sanger.ac.uk>',
 
 		# define the command line options for the installation
@@ -113,18 +114,28 @@ $build->add_build_element( "conf" );
 $build->add_build_element( "data" );
 $build->add_build_element( "htdocs" );
 
+$build->add_build_element( "core" );
+$build->add_build_element( "model" );
+
 #--------------------------------------
 
 # set up the directory structure for the install tree. If we don't set
 # these paths specifically, MB will install everything as if it were a
-# regular CPAN module, which breaks the catalyst app pretty terminally
+# regular CPAN module, with lib having an architecture-dependent sub-
+# directory inserted somewhere, all of which breaks the catalyst app 
+# pretty terminally
 
-#$build->install_base();
+$build->install_base_relpaths( lib     => "lib" );
+$build->install_base_relpaths( conf    => "conf" );
+$build->install_base_relpaths( data    => "data" );
+$build->install_base_relpaths( htdocs  => "htdocs" );
 
-$build->install_base_relpaths( "lib"    => "lib" );
-$build->install_base_relpaths( "conf"   => "conf" );
-$build->install_base_relpaths( "data"   => "data" );
-$build->install_base_relpaths( "htdocs" => "htdocs" );
+# remove paths for things that we don't want installed at all
+$build->install_base_relpaths( arch    => undef );
+$build->install_base_relpaths( bindoc  => undef );
+$build->install_base_relpaths( binhtml => undef );
+$build->install_base_relpaths( libdoc  => undef );
+$build->install_base_relpaths( libhtml => undef );
 
 #--------------------------------------
 
@@ -778,8 +789,8 @@ until( $validResponse ) {
   # see if the directory is already there
   if( -d $pfamCoreDir ) {
     $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
-  } elsif( -f $1 ) {
-    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+  } elsif( -f $pfamCoreDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
   } else {
     $validResponse = 1;
   }
@@ -798,8 +809,8 @@ until( $validResponse ) {
   # see if the directory is already there
   if( -d $pfamModelDir ) {
     $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
-  } elsif( -f $1 ) {
-    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+  } elsif( -f $pfamModelDir ) {
+    $validResponse = $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
   } else {
     $validResponse = 1;
   }
@@ -808,6 +819,9 @@ until( $validResponse ) {
 # make a note of the directories where we're copying pfam-core and pfam-model
 $build->notes( "pfamCoreDir",  $pfamCoreDir );
 $build->notes( "pfamModelDir", $pfamModelDir );
+
+$build->install_path( core  => $pfamCoreDir );
+$build->install_path( model => $pfamModelDir );
 
 print <<EOFloc unless $quiet;
 
