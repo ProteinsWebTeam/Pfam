@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.9 2007-03-01 15:05:28 jt6 Exp $
+# $Id: Build.PL,v 1.10 2007-03-01 16:58:13 jt6 Exp $
 
 use strict;
 use warnings;
@@ -51,6 +51,7 @@ my $build = PfamWeb::Builder
                    		    "accept_defaults" => { type    => "!"  },
                    		    "config_file"     => { type    => ":s" },
                      	    "help|usage"      => { type    => "!"  },
+                     	    "httpd_file"      => { type    => ":s" },
                      	    "no_help"         => { type    => "!",
                                          	       default => 0    },
                      	    "verbose_log"     => { type    => "+",
@@ -237,15 +238,43 @@ EOFcgMissing
 # if the user specified the value on the command line, we'll use that
 if( $build->args( "config_file" ) ) {
   $configFile = $build->args( "config_file" );
-  print "\nWe're taking default values from the file \"$configFile\", as specified.\n";
-} else {
-  $configFile = $build->prompt( "Where is the default configuration file ?",
-                                $configFile );
+  print "\nWe're taking default PfamWeb values from the file \"$configFile\", as specified.\n";
+}
+if( $build->args( "httpd_file" ) ) {
+  $httpdFile = $build->args( "httpd_file" );
+  print "\nWe're taking default Apache config values from the file \"$httpdFile\", as specified.\n";
 }
 
-# make sure we can read it and then parse it in 
-die "(EE) ERROR: couldn't read configuration file \"$configFile\": $!"
+unless( $build->args( "config_file" ) and $build->args( "httpd_file" ) ) {
+
+  print <<EOFloc unless $quiet;
+
+--------------------------------------------------------------------------------
+  
+This installation uses two configuration files to provide the default values for
+the questions it asks. The first file for the PfamWeb application and the second
+is for Apache. 
+
+The distribution includes versions of those two files and they are presented
+as the default values for the next two questions.
+  
+EOFloc
+
+  $configFile = $build->prompt( "Where is the default PfamWeb configuration file ?",
+                                $configFile );
+  $httpdFile = $build->prompt( "Where is the default Apache configuration file ?",
+                                $httpdFile );
+}
+
+# make sure we can read the files and then parse them
+die "(EE) ERROR: couldn't read PfamWeb configuration file \"$configFile\": $!"
   unless -f $configFile;  
+die "(EE) ERROR: couldn't read Apache configuration file \"$httpdFile\": $!"
+  unless -f $httpdFile;  
+
+#--------------------------------------
+
+# get the PfamWeb config first
 
 my( $configCG, %config, $parsed );
 eval {
@@ -274,6 +303,46 @@ if( $@ or not $parsed ) {
 EOFcgError
   exit 1;
 }
+
+#--------------------------------------
+
+# and get the httpd config
+
+# figure out if we need to move an existing file aside
+( my $newHttpdFile = $httpdFile ) =~ s/jcf/conf/;
+
+# make sure we can read and parse the httpd.conf from the distribution
+my( $httpdCG, %httpdConfig );
+$parsed = 0;
+eval {
+  # throws an exception if there's a real parsing error
+  $httpdCG= new Config::General( -ConfigFile      => $httpdFile,
+                                 -IncludeRelative => 1 );
+
+  # otherwise we should get a Config::General module...
+  %httpdConfig = $httpdCG->getall;
+
+  # sanity checks
+  $parsed = grep /mod_perl/, @{$httpdConfig{LoadModule}} and
+            exists $httpdConfig{PerlSetEnv};
+
+};
+
+if( $@ or not $parsed ) {
+  print <<EOFhttpdProblem;
+
+(EE) ERROR: there was a problem loading the Apache configuration file from
+            the distribution (\"$httpdFile\"): $@ 
+            
+If this is a parsing problem, or the file is just missing, then this is a
+problem with the distribution...
+
+EOFhttpdProblem
+  exit 1;
+}
+
+# make sure we delete the file on cleanup
+$build->add_to_cleanup( $newHttpdFile );
 
 #-------------------------------------------------------------------------------
 #- configure pfamweb.conf ------------------------------------------------------
@@ -653,16 +722,9 @@ until( $validResponse ) {
   }
 }
 
+# set the install paths for the two other modules
 $build->install_path( pfamCore  => $pfamCoreDir );
 $build->install_path( pfamModel => $pfamModelDir );
-
-print <<EOFloc unless $quiet;
-
-OK. We'll install pfamCore and pfamModel in the following locations:
-
-  pfamCore:  $pfamCoreDir
-  pfamModel: $pfamModelDir
-EOFloc
 
 #-------------------------------------------------------------------------------
 # dump out the configuration
@@ -677,11 +739,16 @@ $build->config_data( "configHash" => \%config );
 
 print <<EOFloc unless $quiet;
 
+OK. We'll install pfamCore and pfamModel in the following locations:
+
+  pfamCore:  $pfamCoreDir
+  pfamModel: $pfamModelDir
+
 --------------------------------------------------------------------------------
 
 We now have all of the information that we need to write the configuration file
-for your server and we can write it to file. The default location for the new
-file is:
+for your server. The default location for the new file, inside of the
+distribution directory, will be: 
 
   \"$newConfigFile\"
   
@@ -694,7 +761,7 @@ EOFloc
 
 $newConfigFile = backupFile( $newConfigFile );
 
-print "\nWriting your configuration to \"$newConfigFile\".\n";
+print "Writing your configuration to \"$newConfigFile\".\n";
 $configCG->save_file( $newConfigFile, \%config );
 
 # stash the name of that file, so we can delete it when we do a "Build clean"
@@ -704,65 +771,22 @@ $build->add_to_cleanup( $newConfigFile );
 #- configure httpd.conf --------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-# try parsing the starting file
+# get values that we need for configuring httpd.conf
 
 print <<EOFloc unless $quiet;
 
 --------------------------------------------------------------------------------
 
-Next we'll try configure the snippet of Apache configuration file that will
-set up the application in your mod_perl server. We will try to load the Apache
-configuration file from the distribution and then prompt for the values that we
-need to customize it for your installation.
+Next we'll configure the snippet of Apache configuration file that will set up
+the application in your mod_perl server.
 
-EOFloc
+The only remaining value that we need is the location of the program "muscle".
+The distribution includes a linux binary for muscle, but you will need to
+compile or download your own version if you're not running the server on linux.
 
-# figure out if we need to move an existing file aside
-( my $newHttpdFile = $httpdFile ) =~ s/jcf/conf/;
-
-# make sure we can read and parse the httpd.conf from the distribution
-my( $httpdCG, %httpdConfig );
-eval {
-  # throws an exception if there's a real parsing error
-  $httpdCG= new Config::General( -ConfigFile      => $httpdFile,
-                                 -IncludeRelative => 1 );
-
-  # otherwise we should get a Config::General module...
-  %httpdConfig = $httpdCG->getall;
-
-  # sanity checks
-  $parsed = grep /mod_perl/, @{$httpdConfig{LoadModule}} and
-            exists $httpdConfig{PerlSetEnv};
-
-};
-
-if( $@ or not $parsed ) {
-  print <<EOFhttpdProblem;
-
-(EE) ERROR: there was a problem loading the Apache configuration file from
-            the distribution (\"$httpdFile\"): $@ 
-            
-If this is a parsing problem, or the file is just missing, then this is a
-problem with the distribution...
-
-EOFhttpdProblem
-  exit 1;
-}
-
-# make sure we delete the file on cleanup
-$build->add_to_cleanup( $newHttpdFile );
-
-#--------------------------------------
-
-# get values that we need for configuring httpd.conf
-
-print <<EOFloc unless $quiet;
-First, we need to know the location of the program "muscle". The distribution
-includes a linux binary for muscle, but you will need to compile or download
-your own version if you're not running the server on linux.
-
-We need to know where muscle will eventually be installed. If you've already got
-a working version of muscle, give the full path for that binary in answer to the
+We also need to know where muscle will eventually be installed, rather than
+where it can currently be found in the distribution. If you've already got a
+working version of muscle, give the full path for that binary in answer to the
 next question. If you will be installing muscle later, the script will complain
 that it can't find the binary but will still accept the value that you enter. 
 
@@ -840,7 +864,7 @@ delete $httpdConfig{Location};
 
 $newHttpdFile = backupFile( $newHttpdFile );
 
-print "\nWriting your Apache configuration to \"$newHttpdFile\".\n";
+print "Writing your Apache configuration to \"$newHttpdFile\".\n";
 $httpdCG->save_file( $newHttpdFile, \%httpdConfig );
 
 #--------------------------------------
@@ -984,6 +1008,8 @@ These are the command-line arguments for Build.PL:
   config_file=<file>  use the specified file as the starting point for the
                       server configuration
   help / usage        prints this message
+  httpd_file=<file>   use the specified file as the starting point for 
+                      writing the Apache configuration file
   no_help             don't print any information; just prompt for values
 
 Other arguments affect the running of the generated Build script:
