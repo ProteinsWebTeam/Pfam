@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.8 2007-03-01 11:44:53 jt6 Exp $
+# $Id: Build.PL,v 1.9 2007-03-01 15:05:28 jt6 Exp $
 
 use strict;
 use warnings;
@@ -827,6 +827,12 @@ $httpdConfig{PerlSwitches} = [ "-wT",
                                "-I$pfamCoreDir",
                                "-I$pfamModelDir",
                                "-I$config{installRoot}/lib" ];
+
+# finally, delete the Directory and Location directives from the configuration
+# hash, because otherwise they'll be duplicated when we append them to the
+# output file later
+delete $httpdConfig{Directory};
+delete $httpdConfig{Location};
 
 #--------------------------------------
 
