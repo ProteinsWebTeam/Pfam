@@ -35,8 +35,8 @@
 //
 
 // If you would like to use a custom loading image or close button reference them in the next two lines.
-var loadingImage = '/catalyst/PfamWeb/images/lb_loading.gif';		
-var closeButton = '/catalyst/PfamWeb/images/lb_close.gif';		
+var loadingImage = '/catalyst/pfam/images/lb_loading.gif';		
+var closeButton = '/catalyst/pfam/images/lb_close.gif';		
 
 
 
