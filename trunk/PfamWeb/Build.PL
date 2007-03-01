@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.7 2007-03-01 09:46:28 jt6 Exp $
+# $Id: Build.PL,v 1.8 2007-03-01 11:44:53 jt6 Exp $
 
 use strict;
 use warnings;
@@ -158,7 +158,7 @@ my $quiet = $build->args( "no_help" );
 #-------------------------------------------------------------------------------
 
 # a little hello... (ASCII-art courtesy of http://www.network-science.de/ascii/)
-print <<EOFloc unless $quiet;
+print <<'EOFloc' unless $quiet;
  ____   __              __        __   _     
 |  _ \ / _| __ _ _ __ __\ \      / /__| |__  
 | |_) | |_ / _` | '_ ` _ \ \ /\ / / _ \ '_ \ 
@@ -199,15 +199,19 @@ $build->prompt( "Hit return when you're ready to start.", "" ) unless $quiet;
 # see if Config::General is installed and, if not, print a helpful message to
 # explain why we can't go any further
 
-if( $build->check_installed_version( "Config::General" ) ) {
+# for some reason, the method $build->check_installed_version gives a warning
+# from the core module vpp.pm. Not sure why but it looks strange, so we work
+# around it by calling $build->check_installed_status and peeking into the
+# hash that it returns, just like check_installed_version appears to...
 
+my $cgStatus = $build->check_installed_status( "Config::General", 2.30 );
+if( $cgStatus->{ok} ) {
   eval {
     require Config::General;
   };
   if( $@ ) {
     die "(EE) ERROR: couldn't load Config::General, although Module::Build thinks it's installed: $@";
   }
-    
 } else {
  
   print <<EOFcgMissing;
@@ -794,16 +798,17 @@ until( $validResponse ) {
 # installed server...
 
 $httpdConfig{PerlSetEnv} = [
-  "PFAM_DOMAIN_IMAGES $config{View}->{TT}->{CONSTANTS}->{tmp}",
+  "PFAM_DOMAIN_IMAGES $config{View}->{TT}->{COMPILE_DIR}",
   "PFAM_FAMILY_ROOT   $config{View}->{TT}->{CONSTANTS}->{root}",
   "PFAM_MUSCLE_BIN    $rawResponse",
   "PFAMWEB_CONFIG     $config{installRoot}/$newConfigFile" ];
 
-# edit the mod_rewrite rules. We can handle both the RewriteRule and Alias lines
-# using the same pattern
+# edit the mod_rewrite rules. We need to apply the first pattern to both the
+# RewriteRule and Alias lines, and the second pattern just to the Aliases
 my @rules;
 foreach ( @{$httpdConfig{RewriteRule}}, @{$httpdConfig{Alias}} ) {
   s/(??{$build->notes("defaultAppRoot")})/$config{View}->{TT}->{CONSTANTS}->{root}/eog;
+  s/(??{$build->notes("defaultInstallRoot")})/$config{installRoot}/eog;
 }
 
 print <<EOFloc unless $quiet;
@@ -871,7 +876,7 @@ close CONF;
 
 $build->create_build_script;
 
-print <<EOFloc unless $quiet;
+print <<'EOFloc' unless $quiet;
 
 --------------------------------------------------------------------------------
 
