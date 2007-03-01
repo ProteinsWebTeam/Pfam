@@ -5,7 +5,7 @@
 # A custom Module::Builder subclass to handle installation of the
 # PfamWeb application
 #
-# $Id: Builder.pm,v 1.7 2007-03-01 09:47:12 jt6 Exp $
+# $Id: Builder.pm,v 1.8 2007-03-01 11:45:10 jt6 Exp $
 
 package PfamWeb::Builder;
 
@@ -42,12 +42,12 @@ sub process_htdocs_files {
   while( my( $from, $to ) = each %$files ) {
     next if $this->up_to_date( $from, $to );
     
-    print "$from -> $to\n";
-    
     # only need to edit CSS and JS files, and only if the default application 
     # root has been changed by the user
     if( $from =~ /\.(css|js)$/ and $defRoot ne $appRoot ) {
         
+      print "processing $from -> $to\n";
+    
     	open( IN, $from )
     	  or warn "(WW) WARNING: couldn't open file \"$from\": $!" and return;    
     	  
@@ -92,6 +92,17 @@ sub local_find_file_by_type  {
     grep !/\.\#/, @{ $this->rscan_dir( $dir, qr{\.$type$} ) } };
 }
 
+# this is the same idea, but a bit more specialised: find any file in the htdocs
+# directory, but ignore CVS directories
+sub find_htdocs_files {
+  my $this = shift;
+  
+return { map {$_, catdir( $this->blib, $_ ) }
+         map $this->localize_file_path($_),
+         grep !/\.\#/,
+         @{ $this->rscan_dir( "htdocs", sub { ! -d and $File::Find::dir !~ /CVS$/ } ) } };
+}
+
 #--------------------------------------
 
 # and using that...
@@ -111,19 +122,6 @@ sub find_pfamCore_files {
 sub find_pfamModel_files {
   my $this = shift;
   return $this->local_find_file_by_type( "pm", "pfamModel" );
-}
-
-#--------------------------------------
-
-# a bit more specialised: find any file in the htdocs directory, but ignore
-# CVS directories
-sub find_htdocs_files {
-  my $this = shift;
-  
-return { map {$_, catdir( $this->blib, $_ ) }
-         map $this->localize_file_path($_),
-         grep !/\.\#/,
-         @{ $this->rscan_dir( "htdocs", sub { ! -d and $File::Find::dir !~ /CVS$/ } ) } };
 }
 
 #-------------------------------------------------------------------------------
