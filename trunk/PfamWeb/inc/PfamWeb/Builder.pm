@@ -5,7 +5,7 @@
 # A custom Module::Builder subclass to handle installation of the
 # PfamWeb application
 #
-# $Id: Builder.pm,v 1.6 2007-02-28 16:20:53 jt6 Exp $
+# $Id: Builder.pm,v 1.7 2007-03-01 09:47:12 jt6 Exp $
 
 package PfamWeb::Builder;
 
@@ -17,7 +17,7 @@ use base "Module::Build";
 use File::Basename;
 use File::Path;
 use File::Spec::Functions;
-use Config::General;
+use ExtUtils::Install;
 
 use Data::Dump qw(dump);
 
@@ -130,16 +130,14 @@ return { map {$_, catdir( $this->blib, $_ ) }
 #- actions ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-#sub ACTION_install {
-#  my $this = shift;
-#  require ExtUtils::Install;
-#  $this->depends_on( "build" );
-#  ExtUtils::Install::install(
-#    $this->install_map,
-#    !$this->quiet,
-#    0,
-#    $this->{args}{uninst}||0 );
-#}
+sub ACTION_install {
+  my $this = shift;
+  
+  $this->depends_on( "build" );
+  ExtUtils::Install::install( $this->install_map, 0, 0, 0 ); 
+}
+
+#--------------------------------------
 
 sub ACTION_fakeinstall {
   my $this = shift;
@@ -153,9 +151,8 @@ sub ACTION_fakeinstall {
 #  print "install_path:\n" . ( dump $this->install_path ) . "\n";
 #  print "install_map:\n" . ( dump $this->install_map ) . "\n";
 
-  require ExtUtils::Install;
-  ExtUtils::Install::install( $this->install_map, 0, 1, 0 );
- 
+  $this->depends_on( "build" );
+  ExtUtils::Install::install( $this->install_map, 0, 1, 0 ); 
 }
 
 #-------------------------------------------------------------------------------
