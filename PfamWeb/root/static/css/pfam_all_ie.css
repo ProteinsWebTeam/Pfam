@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: pfam_all_ie.css,v 1.2 2007-01-15 15:31:23 jt6 Exp $
+   $Id: pfam_all_ie.css,v 1.3 2007-03-01 11:47:32 jt6 Exp $
 */
 
 /* make the drop-down menus semi-transparent */
@@ -21,5 +21,5 @@ div.menuContent {
 /* fix the transparency on the "Go" button for the jump box */
 #goButton {
     background-image: none;
-    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/go.png",sizingMethod="crop");
+    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/go.png",sizingMethod="crop");
 }

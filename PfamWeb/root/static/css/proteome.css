@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the proteome pages.
 
-   $Id: proteome.css,v 1.6 2006-11-14 09:23:32 jt6 Exp $
+   $Id: proteome.css,v 1.7 2007-03-01 11:47:33 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -15,11 +15,11 @@
   background-color: #fff1e6; /* vibrant 1 */
  {
   background-color: #fff1e6; /* vibrant 1 */
-  background-image: url(/catalyst/PfamWeb/images/proteome/page_border.gif);
+  background-image: url(/catalyst/pfam/images/proteome/page_border.gif);
 }
 
 #wrap {
-  background: url(/catalyst/PfamWeb/images/proteome/bg.gif) repeat-y 15% 0;
+  background: url(/catalyst/pfam/images/proteome/bg.gif) repeat-y 15% 0;
 }
 
 /* ======================================== */

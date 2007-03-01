@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.19 2007-02-14 11:42:34 rdf Exp $
+   $Id: protein.css,v 1.20 2007-03-01 11:47:33 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -17,11 +17,11 @@
 
 #contentContainer {
   background-color: #e6f2ee; /*  natural 4 */
-  background-image: url(/catalyst/PfamWeb/images/protein/page_border.gif);
+  background-image: url(/catalyst/pfam/images/protein/page_border.gif);
 }
 
 #wrap {
-  background: url(/catalyst/PfamWeb/images/protein/bg.gif) repeat-y 15% 0;
+  background: url(/catalyst/pfam/images/protein/bg.gif) repeat-y 15% 0;
 }
 
 /* ======================================== */

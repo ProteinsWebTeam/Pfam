@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.33 2007-01-31 14:15:55 jt6 Exp $
+   $Id: pfam.css,v 1.34 2007-03-01 11:47:32 jt6 Exp $
 */   
 
 body {
@@ -28,7 +28,7 @@ ul, dl, ol {
 }
 
 .ext {
-	background: url(/catalyst/PfamWeb/images/external.gif) no-repeat center right;
+	background: url(/catalyst/pfam/images/external.gif) no-repeat center right;
     padding-right: 12px;
 }
 
@@ -80,7 +80,7 @@ table.header td {
 }
 
 tr.headercentre {
-	background: #FFF url(/catalyst/PfamWeb/images/swoosh_structure.png) no-repeat top left;
+	background: #FFF url(/catalyst/pfam/images/swoosh_structure.png) no-repeat top left;
 }
 
 #wtsiLogo {
@@ -311,7 +311,7 @@ div.menuContent {
 /* the footer for tab-layout templates */
 #contentContainer #footer {
   clear: both;
-  background: url(/catalyst/PfamWeb/images/layout/wide_tab_shadow.png) no-repeat top left;
+  background: url(/catalyst/pfam/images/layout/wide_tab_shadow.png) no-repeat top left;
   position: relative;
   width: 85%;
   float: right;
@@ -329,11 +329,11 @@ div.menuContent {
 /* page layout */
 
 #outerIndexWrapper {
-	background: #fff url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/left_bg.gif) repeat-y 172px;
+	background: #fff url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y 172px;
 }
 
 #innerIndexWrapper {
-	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/left_bg.gif) repeat-y right;
+	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y right;
 }
 
 #innerIndexWrapper hr {
@@ -347,12 +347,12 @@ div.menuContent {
 	width: 100%;
 	float: left;
 	margin-right: -200px;
-	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/left_bg.gif) repeat-y right;
+	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y right;
 }
 
 #indexContents {
 	margin-right: 202px;
-	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/left_bg.gif) repeat-y 172px;
+	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y 172px;
 }
 
 #indexBody {
@@ -433,11 +433,11 @@ div.middleComponent p {
 }
 
 /* the logos, which are used for the overview in the tab layout, as well as here */
-#seqIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/alignment.png) }
-#archIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/domains.png) }
-#structIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/structure.png) }
-#ipfamIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/ipfam.png) }
-#specIcon	{ background-image: url(/catalyst/PfamWeb/images/logos/tree.png) }
+#seqIcon	{ background-image: url(/catalyst/pfam/images/logos/alignment.png) }
+#archIcon	{ background-image: url(/catalyst/pfam/images/logos/domains.png) }
+#structIcon	{ background-image: url(/catalyst/pfam/images/logos/structure.png) }
+#ipfamIcon	{ background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
+#specIcon	{ background-image: url(/catalyst/pfam/images/logos/tree.png) }
 
 /* citation box */
 #indexCitation {
@@ -583,7 +583,7 @@ div.newsItem {
 /* jump box */
 #entry {
 	border: 1px inset #074987;
-	background: #cbdced url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/search_gradient.png);
+	background: #cbdced url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/search_gradient.png);
 	width: 110px; /* set to 145px for the right sidebar on the index page */
 	margin: 1px 0;
 	padding: 2px;
@@ -599,7 +599,7 @@ div.newsItem {
     font-size: 1px;
 	background-position: right;
 	background-repeat: no-repeat;
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/go.png);
+	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/go.png);
 	border: none;
 	vertical-align: middle;
 	margin: 1px;
@@ -626,16 +626,16 @@ a.mirror {
 
 /* the national flags */
 a.us {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/flags/american_flag.gif);
+	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/american_flag.gif);
 }
 a.se {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/flags/swedish_flag.gif);
+	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/swedish_flag.gif);
 }
 a.kr {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/flags/south_korea.gif);
+	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/south_korea.gif);
 }
 a.fr {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/PfamWeb/images/flags/french_flag.gif);
+	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/french_flag.gif);
 }
 
 /* ======================================== */
@@ -755,12 +755,12 @@ td.left {
 
 body.tool {
   padding: 80px 2px 2px 2px;
-  background: #FFF url(/catalyst/PfamWeb/images/about_back.png) left top no-repeat; 
+  background: #FFF url(/catalyst/pfam/images/about_back.png) left top no-repeat; 
   color: #15538e;
 }
 
 a.closer {
-	background: url(/catalyst/PfamWeb/images/close.gif) no-repeat left;
+	background: url(/catalyst/pfam/images/close.gif) no-repeat left;
     padding-left: 11px;
 	margin: 0.2em;
 }
@@ -799,15 +799,15 @@ body.tool h1 {
 }
 
 .sortarrow.updown {
-	background-image: url(/catalyst/PfamWeb/images/updown.gif);
+	background-image: url(/catalyst/pfam/images/updown.gif);
 }
 
 .sortarrow.down {
-	background-image: url(/catalyst/PfamWeb/images/downsimple.gif);
+	background-image: url(/catalyst/pfam/images/downsimple.gif);
 }
 
 .sortarrow.up {
-	background-image: url(/catalyst/PfamWeb/images/upsimple.gif);
+	background-image: url(/catalyst/pfam/images/upsimple.gif);
 }
 
 /* this is the auto-generated link for sorting the column */
@@ -888,11 +888,11 @@ a.sortheader {
     text-align: center;
 	background-position: center center;
     background-repeat: no-repeat;
-	background-image: url(/catalyst/PfamWeb/images/blank_tick.gif);
+	background-image: url(/catalyst/pfam/images/blank_tick.gif);
 }
 
 #resultTable td.ticked {
-	background-image: url(/catalyst/PfamWeb/images/tick.gif);
+	background-image: url(/catalyst/pfam/images/tick.gif);
 }
 
 #resultTable thead tr a {

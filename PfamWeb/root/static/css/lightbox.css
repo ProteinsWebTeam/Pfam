@@ -33,13 +33,13 @@
 }
 
 #overlay {
-	background-image: url(/catalyst/PfamWeb/images/overlay.png);
+	background-image: url(/catalyst/pfam/images/overlay.png);
 }
 
 * html #overlay {
 	background-color: #333;
 	back\ground-color: transparent;
-	background-image: url(/catalyst/PfamWeb/images/blank.gif);
-	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/PfamWeb/images/overlay.png", sizingMethod="scale");
+	background-image: url(/catalyst/pfam/images/blank.gif);
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/overlay.png", sizingMethod="scale");
 }
 	

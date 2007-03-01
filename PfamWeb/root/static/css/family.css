@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.20 2006-11-27 16:01:31 jm14 Exp $
+   $Id: family.css,v 1.21 2007-03-01 11:47:32 jt6 Exp $
 */   
 
 /*
@@ -23,11 +23,11 @@ highlight/border: #074987 (Prime 1, 100%)
 
 #contentContainer {
   background-color: #e7edf3; /* Prime 1 */
-  background-image: url(/catalyst/PfamWeb/images/family/page_border.gif);
+  background-image: url(/catalyst/pfam/images/family/page_border.gif);
 }
 
 #wrap {
-  background: url(/catalyst/PfamWeb/images/family/bg.gif) repeat-y 15% 0;
+  background: url(/catalyst/pfam/images/family/bg.gif) repeat-y 15% 0;
 }
 
 /* ======================================== */
