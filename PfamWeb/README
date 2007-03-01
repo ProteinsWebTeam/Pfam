@@ -16,6 +16,8 @@ bin:           various executables associated with the application
 data:          Template Toolkit template files
 htdocs:        static content, such as images, CSS and javascript files
 lib:           the perl modules for the PfamWeb catalyst application
+pfamCore:      core Pfam libraries
+pfamModel:     Pfam database description classes
 t:             the directory where test files should be found...
 
-$Id: README,v 1.3 2007-02-12 14:25:34 jt6 Exp $
+$Id: README,v 1.4 2007-03-01 15:06:49 jt6 Exp $
