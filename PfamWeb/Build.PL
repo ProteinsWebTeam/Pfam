@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.6 2007-02-28 16:20:45 jt6 Exp $
+# $Id: Build.PL,v 1.7 2007-03-01 09:46:28 jt6 Exp $
 
 use strict;
 use warnings;
@@ -158,7 +158,7 @@ my $quiet = $build->args( "no_help" );
 #-------------------------------------------------------------------------------
 
 # a little hello... (ASCII-art courtesy of http://www.network-science.de/ascii/)
-print <<'EOFloc' unless $quiet;
+print <<EOFloc unless $quiet;
  ____   __              __        __   _     
 |  _ \ / _| __ _ _ __ __\ \      / /__| |__  
 | |_) | |_ / _` | '_ ` _ \ \ /\ / / _ \ '_ \ 
@@ -587,7 +587,7 @@ EOFloc
 
 # we'll need the locations for both the pfamCore and pfamModel components...
 
-print <<EOFloc;
+print <<EOFloc unless $quiet;
 
 --------------------------------------------------------------------------------
 
@@ -702,7 +702,7 @@ $build->add_to_cleanup( $newConfigFile );
 
 # try parsing the starting file
 
-print <<EOFloc;
+print <<EOFloc unless $quiet;
 
 --------------------------------------------------------------------------------
 
@@ -799,30 +799,12 @@ $httpdConfig{PerlSetEnv} = [
   "PFAM_MUSCLE_BIN    $rawResponse",
   "PFAMWEB_CONFIG     $config{installRoot}/$newConfigFile" ];
 
-# set the location handler for PfamWeb using values that we already retrieved
-$httpdConfig{Location} =
-  {
-     $config{View}->{TT}->{CONSTANTS}->{root} => 
-       { PerlResponseHandler => "PfamWeb",
-         SetHandler          => "perl-script" }
-  };
-
 # edit the mod_rewrite rules. We can handle both the RewriteRule and Alias lines
 # using the same pattern
 my @rules;
 foreach ( @{$httpdConfig{RewriteRule}}, @{$httpdConfig{Alias}} ) {
   s/(??{$build->notes("defaultAppRoot")})/$config{View}->{TT}->{CONSTANTS}->{root}/eog;
 }
-
-# finally, set the Directory directive that tells Apache to serve the static
-# content
-$httpdConfig{Directory} = {
-   $config{installRoot} => {
-                             Allow   => "from all",
-                             Options => "none",
-                             Order   => "allow,deny"
-                           }
-};
 
 print <<EOFloc unless $quiet;
 
@@ -850,19 +832,86 @@ $newHttpdFile = backupFile( $newHttpdFile );
 print "\nWriting your Apache configuration to \"$newHttpdFile\".\n";
 $httpdCG->save_file( $newHttpdFile, \%httpdConfig );
 
+#--------------------------------------
+
+# now we need to cat a couple of directives on to the end of the file... We were
+# originally building these as data structures and letting Confg::General write
+# them out, but the format it wrote out was incorrect
+
+print <<EOFloc unless $quiet;
+
+And to complete the configuration, we need to append a couple of directives to
+the httpd configuration file.
+
+EOFloc
+
+open( CONF, ">>$newHttpdFile" )
+  or die "(EE) ERROR: couldn't append directives to \"$newHttpdFile\": $!";
+
+my $dir = $config{installRoot};
+my $loc = $config{View}->{TT}->{CONSTANTS}->{root};
+
+print CONF <<EOFconf;
+<Directory "$dir">
+  Options none
+  Order   allow,deny
+  Allow   from all
+</Directory>
+<Location "$loc">
+  SetHandler          perl-script
+  PerlResponseHandler PfamWeb
+</Location>
+EOFconf
+
+close CONF;
+
 #-------------------------------------------------------------------------------
 #- and we're done --------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 $build->create_build_script;
 
-print <<EOFloc10 unless $quiet;
+print <<EOFloc unless $quiet;
+
+--------------------------------------------------------------------------------
+
+OK. The configuration part of the installation is now complete. The next stage
+is the build. You need to do:
+
+  $ ./Build
+  
+which will copy files from the distribution into a local directory called
+"blib", modifying them before they're copied, if required. To actually install
+everything, you can do:
+
+  $ ./Build install
+  
+or, if you want to see what that will do before actually running it, you can do:
+
+  $ ./Build fakeinstall
+  
+instead. That will list the steps destination for the files and you can check
+that everything is being put where you expect. If you want to reset everything
+and start again, you can do:
+
+  $ ./Build distclean
+  
+which will remove the "blib" directory and the two configuration files that we
+just wrote, along with the local temporary directory that Module::Build uses to
+keep track of things. 
+
+Finally, to complete the installation, you will need to install the snippet of
+Apache configuration file that we just built. You can find it in 
+"conf/httpd.conf" or in the "conf" directory of the final install directory. You
+need to add the directives in that file to your Apache server configuration,
+either by adding them straight to the live httpd.conf or using an include
+directive.
 
 --------------------------------------------------------------------------------
 
 Done.
 
-EOFloc10
+EOFloc
 
 exit;
 
