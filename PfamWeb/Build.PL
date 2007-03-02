@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.11 2007-03-02 15:41:58 jt6 Exp $
+# $Id: Build.PL,v 1.12 2007-03-02 16:10:15 jt6 Exp $
 
 use strict;
 use warnings;
@@ -86,13 +86,13 @@ my $build = PfamWeb::Builder
             						  "Config::General"                            => 0.28,
             						  "DateTime"                                   => 0,
             						  "DBIx::Class"                                => 0,
-            						  "DBIx::Class::HTMLWidget.pm"                 => 0,
+            						  "DBIx::Class::HTMLWidget"                    => 0,
             						  "GD"                                         => 0,
             						  "GD::Graph"                                  => 0,
             						  "HTML::Tree"                                 => 0,
             						  "HTML::Widget"                               => 0,
             						  "JSON"                                       => 0,
-            						  "LWP::Parallel::UserAgent.pm"                => 0,
+            						  "LWP::Parallel::UserAgent"                   => 0,
             						  "SOAP::Data::Builder"                        => 0,
             						  "XML::Feed"                                  => 0,
           						 },
