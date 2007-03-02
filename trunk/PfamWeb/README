@@ -1,6 +1,6 @@
 
 PfamWeb
-jt 20070212 WTSI.
+jt6 20070212 WTSI.
 
 This is the distribution folder for the Pfam website application. It
 should contain the following top level items:
@@ -9,15 +9,16 @@ Build.PL:      the build script (see INSTALL for how to use this)
 CVS:           version control files
 INSTALL:       installation instructions
 MANIFEST:      complete list of files in the files in the distribution
-MANIFEST.skip: patterns to avoid when building the package manifest
-PfamBuilder:   helper module for the installation
+MANIFEST.SKIP: patterns to avoid when building the package manifest
 README:	       this file
 bin:           various executables associated with the application
+conf:          configuration files for PfamWeb and Apache
 data:          Template Toolkit template files
-htdocs:        static content, such as images, CSS and javascript files
-lib:           the perl modules for the PfamWeb catalyst application
+htdocs:        static content such as images, CSS and javascript files
+inc:           contains the perl module that's required for installation
+lib:           contains perl modules for the PfamWeb catalyst application itself
 pfamCore:      core Pfam libraries
 pfamModel:     Pfam database description classes
 t:             the directory where test files should be found...
 
-$Id: README,v 1.4 2007-03-01 15:06:49 jt6 Exp $
+$Id: README,v 1.5 2007-03-02 15:26:45 jt6 Exp $
