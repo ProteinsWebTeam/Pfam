@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.17 2007-02-08 16:21:50 aj5 Exp $
+# $Id: Graphics.pm,v 1.18 2007-03-02 10:19:23 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.17 2007-02-08 16:21:50 aj5 Exp $
+$Id: Graphics.pm,v 1.18 2007-03-02 10:19:23 jt6 Exp $
 
 =cut
 
@@ -30,7 +30,7 @@ use Data::Dumper;
 use Data::Validate::URI qw( is_uri );
 
 use Bio::Pfam::Drawing::Layout::DasLayoutManager;
-use Bio::DasLite::Tools;
+use Bio::Das::Lite::Tools;
 
 # extend the Protein class. This way we should get hold of the pfamseq
 # data by default, via the "begin" method on Protein
@@ -173,7 +173,7 @@ sub default : Path {
 				# Each sequence in each alignment is a subsection
 				foreach my $aln (@$alignments)
 				{
-					my $alnMap = &Bio::DasLite::Tools::getMappingsForAlignment($aln);
+					my $alnMap = getMappingsForAlignment($aln);
 					foreach my $ob (sort {lc $a->{alignobject_intObjectId} cmp lc $b->{alignobject_intObjectId}} @{ $aln->{alignobject} }) {
 						# Each aligned object has a subsection into which all associated features are placed.
 						my $intObId = $ob->{alignobject_intObjectId};
@@ -214,12 +214,12 @@ sub default : Path {
 
 						# Get any features available for this aligned object.
 						my $features = $dl->features($obId);
-						$features = &Bio::DasLite::Tools::convertFeatures($features, $obMap);
+						$features = convertFeatures($features, $obMap);
 
 						# Add a set of segment features that represent the blocks of the aligned object.
-						my $segments = &Bio::DasLite::Tools::extractSegmentsFromAlignment($aln, $intObId);
-						$segments = &Bio::DasLite::Tools::convertSegmentsToFeatures($segments);
-						$segments = &Bio::DasLite::Tools::convertFeatures($segments, $obMap);
+						my $segments = extractSegmentsFromAlignment($aln, $intObId);
+						$segments = convertSegmentsToFeatures($segments);
+						$segments = convertFeatures($segments, $obMap);
 						$features->{$alnQuery} = $segments;
 
 						# Use a layout manager to draw the graphics for this subsection.
