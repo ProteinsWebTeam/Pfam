@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.26 2007-02-27 17:07:28 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.27 2007-03-02 10:20:07 jt6 Exp $
 
 =head1 NAME
 
@@ -18,19 +18,14 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.26 2007-02-27 17:07:28 jt6 Exp $
+$Id: PfamWeb.pm,v 1.27 2007-03-02 10:20:07 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-# Set flags and add plugins for the application
-#
-#         -Debug: activates the debug mode for very useful log messages
-# Static::Simple: will serve static files from the application's root
-# directory
-#
+# set flags and add plugins for the application
 use Catalyst qw/
 				-Debug
 				PfamConfigLoader
@@ -43,21 +38,16 @@ use Catalyst qw/
 				Cache::FileCache
 				PageCache
 				/;
+
+# some other plugins that could be used...
+
+# a cache backend. This one won't work when we're using multiple servers
 #				Cache::FastMmap
+
+# user authentication. Not used currently, largely because it doesn't really work
 #				Authentication
 #				Authentication::Store::DBIC
 #				Authentication::Credential::Password
-#				PageCache
-#				SubRequest
-#				Static::Simple
-
-# add PageCache as the last plugin to enable page caching. Careful
-# though... doesn't work with Static::Simple
-
-# add the following to enable session handling:
-#                Session
-#                Session::State::Cookie
-#                Session::Store::FastMmap
 
 our $VERSION = '0.01';
 
