@@ -8,36 +8,24 @@ some starting points for reading about Catalyst.
 
 This file, like all of the others in this distribution, is a work in progress...
 
-Documentation
-=============
+Contents
+========
 
-Installing Catalyst is a task in and of itself and there are some good
-resources on the web that describe it. 
-
-o The main CPAN documentation for Catalyst:
-
-		http://search.cpan.org/dist/Catalyst-Manual/
-
-	This includes a (short) section on installation which suggests using an
-	installation script from: 
+o Installation overview
+o Documentation
+o Longer explanation of the install process
+  - Prerequisites
+    + Module::Build
+    + Catalyst::Runtime
+    + mod_perl
+  - Running the build script
+  - Questions
+  - Build
+  - Install
+  - Configure Apache
+  - Browse
+o Known bugs
 	
-		http://www.shadowcatsystems.co.uk/projects/catalyst/index.html
-		
-  The way that I've installed Catalyst in the past is to configure CPAN
-  correctly and then do "cpan Catalyst::Runtime". That will inevitably
-  generate errors with some prerequisite packages, but they're usually easy
-  to trace and fix.
-
-o Catalyst mailing list archives:
-
-	http://www.mail-archive.com/catalyst@lists.rawmode.org/
-
-o There's a thread on the mailing list specifically about Catalyst installation
-
-	  http://www.mail-archive.com/catalyst@lists.rawmode.org/msg01162.html
-	
-	which probably covers a lot of ground, but it's a painful read...
-
 Installation overview
 =====================
 
@@ -67,14 +55,41 @@ Browse to:
 
 	http://your-server/catalyst/pfam
 
-Longer explanation
-==================
+Documentation
+=============
+
+Installing Catalyst is a task in and of itself and there are some good
+resources on the web that describe it. 
+
+o The main CPAN documentation for Catalyst:
+
+		http://search.cpan.org/dist/Catalyst-Manual/
+
+	This includes a (short) section on installation which suggests using an
+	installation script from: 
+	
+		http://www.shadowcatsystems.co.uk/projects/catalyst/index.html
+
+o Catalyst mailing list archives:
+
+	http://www.mail-archive.com/catalyst@lists.rawmode.org/
+
+o There's a thread on the mailing list specifically about Catalyst installation
+
+	  http://www.mail-archive.com/catalyst@lists.rawmode.org/msg01162.html
+	
+	which probably covers a lot of ground, but it's a painful read...
+
+Longer explanation of the install process
+=========================================
 
 Prerequisites
 -------------
 
-The build and installation process absolutely requires Module::Build to be
-installed in your default perl executable:
+Module::Build
+
+The build and installation process absolutely requires Module::Build (M::B) to
+be installed in your default perl executable:
 
 	$ perl -e 'use Module::Build'
 
@@ -82,13 +97,75 @@ The build script will fail unless you have a set of Catalyst prerequisites
 installed, notably Catalyst::Runtime. This script doesn't make any attempt to
 install the prerequisites for you - it's not that helpful.
 
+
+Catalyst::Runtime
+
+After M::B, the next most obvious prerequisite for running a Catalyst web-
+application is Catalyst itself. Installing Catalyst has been, in our experience,
+more painful that installing PfamWeb itself, due largely to the number of 
+prerequisites that Catalyst itself has.
+
+There are two ways to install Catalyst:
+
+	o configure CPAN and install Catalyst::Runtime using the CPAN shell
+	o use a Catalyst installation script (see the Documentation links above)
+
+We've never tried an installation script, but lots of people on the Catalyst
+mailing list have had success with it. For various reasons, we've installed
+Catalyst and its prerequisites using the CPAN shell and have had to nurse the
+process all the way, identifying the cause of installation failures and fixing
+any problems that arise along the way.
+
+Installing Catalyst using CPAN will allow you to install the chains of 
+dependencies for Catalyst, but you'll need to install the prerequisites for
+PfamWeb itself "manually". That is, the installation script knows what its
+dependencies are but doesn't attempt to install them like a true perl module
+installation would.
+
+The following is a list of the known prerequisites for PfamWeb. It's likely
+to be an incomplete list, so you may find that others are requires when you
+try to start the server. If you do find missing dependencies, please keep a note
+of them and let us know, so that we can add them to this list for the future:
+
+  Bio::Das::Lite
+  Catalyst::Runtime
+  Catalyst::Action::RenderView
+  Catalyst::Model::DBIC::Schema
+  Catalyst::Plugin::Cache::FastMmap
+  Catalyst::Plugin::Email
+  Catalyst::Plugin::HTML::Widget
+  Catalyst::Plugin::Session::State::Cookie
+  Catalyst::Plugin::Session::Store::FastMmap
+  Class::Data::Accessor
+  Config::General
+  DateTime
+  DBIx::Class
+  DBIx::Class::HTMLWidget
+  GD
+  GD::Graph
+  HTML::Tree
+  HTML::Widget
+  JSON
+  LWP::Parallel::UserAgent
+  SOAP::Data::Builder
+  XML::Feed
+
+mod_perl
+
+We run Catalyst using the mod_perl plugin for Apache. You will need to have
+mod_perl installed and running before trying to restart Apache to run PfamWeb.
+The instructions for installing mod_perl can be found at the main mod_perl
+site at:
+
+  http://perl.apache.org/docs/2.0/user/index.html
+
 Running the build script
 ------------------------
 
-We're using Module::Build to help install PfamWeb. Using M::B is similar to
-using GNU configure and make. Instead of a script called "configure", there is
-a script called "Build.PL" which generates a file called "Build, in the same
-way that "configure" generates "Makefile". You run Build.PL something like:
+Using M::B is similar to using configure and make. Instead of a script called
+"configure", there is a script called "Build.PL" which generates a file called
+"Build, in the same way that "configure" generates "Makefile". You run Build.PL
+something like:
 
 	$ perl Build.PL
 	...
@@ -293,6 +370,9 @@ o There are several components of the site which are currently served directly
   downloaded with the rest of the data but, for now, you'll have missing
   images in the pages and error messages in the logs for these components.
   
+o The list of prerequisites in the top of the Build.PL script is almost 
+  certainly incomplete.
+
 o The Build.PL script is certain to have bugs, but I don't know what they are.
   It's only been tested locally in Sanger and although it works for us I'm sure
   there will be some bad assumption or missing file that will cause problems on
@@ -301,4 +381,4 @@ o The Build.PL script is certain to have bugs, but I don't know what they are.
 
 
 
-$Id: INSTALL,v 1.1 2007-03-02 15:25:12 jt6 Exp $
+$Id: INSTALL,v 1.2 2007-03-02 16:10:01 jt6 Exp $
