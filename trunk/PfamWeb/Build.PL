@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.10 2007-03-01 16:58:13 jt6 Exp $
+# $Id: Build.PL,v 1.11 2007-03-02 15:41:58 jt6 Exp $
 
 use strict;
 use warnings;
@@ -73,7 +73,7 @@ my $build = PfamWeb::Builder
 
 		# these are the absolutely required prerequisites
 		requires        => {
-            						  "Bio::Das::Lite"                             => 1.47,
+            						  "Bio::Das::Lite"                             => 1.048,
             						  "Catalyst::Runtime"                          => 5.7,
             						  "Catalyst::Action::RenderView"               => 0,
             						  "Catalyst::Model::DBIC::Schema"              => 0,
@@ -166,30 +166,24 @@ print <<'EOFloc' unless $quiet;
 |  __/|  _| (_| | | | | | \ V  V /  __/ |_) |
 |_|   |_|  \__,_|_| |_| |_|\_/\_/ \___|_.__/ 
 
-This is the installation and configuration script for the Pfam website application.
-It will ask a series of questions and, based on your responses, generate a script
-that can be used to configure and then install the website.
+This is the installation and configuration script for the Pfam website 
+application. It will ask a series of questions and, based on your responses,
+generate a script that can be used to configure and then install the website.
 
-You can see some help on using it and the accepted command-line options by running:
+You can see some help on using it and the accepted command-line options by 
+running:
 
   perl Build.PL --help
 
-You will need to make sure that you are using a perl executable which can see the
-various prerequisite modules that you should have installed (such as
-Catalyst::Runtime). Alternatively you can set the PERL5LIB environment variable to
-add the appropriate library directories to @INC before you start.
+You will need to make sure that you are using a perl executable which can see
+the various prerequisite modules that you should have installed (such as
+Catalyst::Runtime). Alternatively you can set the PERL5LIB environment variable
+to add the appropriate library directories to @INC before you start.
 
-Initially, the default values for this script are taken from the configuration file
-in this distribution. You can override the defaults by changing the values at the
-various prompts when you run this script, or by editing the configuration files
-directly. If you edit the files you can point the script at the modified files and
-tell it to accept all of the values in them by doing:
-
-  perl Build.PL --config_file=../my_pfamweb.conf --accept_defaults
-
-Unless you specify "--accept_defaults", the script will prompt you for the various
-parameters that we need, offering default values from the configuration file that
-it reads.
+Initially, the default values for this script are taken from the configuration
+file in this distribution. Unless you specify "--accept_defaults", the script
+will prompt you for the various parameters that we need, offering default values
+from the configuration files that it reads.
 
 EOFloc
 
@@ -235,42 +229,50 @@ EOFcgMissing
 # we're going to load the configuration file and use it to generate the default
 # values for the prompts. First we need to find the main config file
 
-# if the user specified the value on the command line, we'll use that
-if( $build->args( "config_file" ) ) {
-  $configFile = $build->args( "config_file" );
-  print "\nWe're taking default PfamWeb values from the file \"$configFile\", as specified.\n";
-}
-if( $build->args( "httpd_file" ) ) {
-  $httpdFile = $build->args( "httpd_file" );
-  print "\nWe're taking default Apache config values from the file \"$httpdFile\", as specified.\n";
-}
+# if the user specified the value on the command line, we'll use that, otherwise
+# we ask for file names
 
 unless( $build->args( "config_file" ) and $build->args( "httpd_file" ) ) {
-
   print <<EOFloc unless $quiet;
-
 --------------------------------------------------------------------------------
   
 This installation uses two configuration files to provide the default values for
-the questions it asks. The first file for the PfamWeb application and the second
-is for Apache. 
+the questions it asks. The first file if used by the PfamWeb application and the
+second is for Apache.
 
 The distribution includes versions of those two files and they are presented
-as the default values for the next two questions.
+as the default values here.
   
 EOFloc
-
-  $configFile = $build->prompt( "Where is the default PfamWeb configuration file ?",
-                                $configFile );
-  $httpdFile = $build->prompt( "Where is the default Apache configuration file ?",
-                                $httpdFile );
 }
 
-# make sure we can read the files and then parse them
-die "(EE) ERROR: couldn't read PfamWeb configuration file \"$configFile\": $!"
-  unless -f $configFile;  
-die "(EE) ERROR: couldn't read Apache configuration file \"$httpdFile\": $!"
-  unless -f $httpdFile;  
+if( $build->args( "config_file" ) ) {
+  $configFile = $build->args( "config_file" );
+  print <<EOFloc;
+  
+We're taking default PfamWeb config values from the file \"$configFile\",
+as specified on the command line.
+EOFloc
+} else {
+  $configFile = $build->prompt( "Where is the default PfamWeb configuration file ?",
+                                $configFile );
+  die "(EE) ERROR: couldn't read PfamWeb configuration file \"$configFile\": $!"
+    unless -f $configFile;
+}
+
+if( $build->args( "httpd_file" ) ) {
+  $httpdFile = $build->args( "httpd_file" );
+  print <<EOFloc;
+
+We're taking default Apache config values from the file \"$httpdFile\",
+as specified on the command line.
+EOFloc
+} else {
+  $httpdFile = $build->prompt( "Where is the default Apache configuration file ?",
+                                $httpdFile );
+  die "(EE) ERROR: couldn't read Apache configuration file \"$httpdFile\": $!"
+    unless -f $httpdFile;  
+}
 
 #--------------------------------------
 
@@ -761,7 +763,7 @@ EOFloc
 
 $newConfigFile = backupFile( $newConfigFile );
 
-print "Writing your configuration to \"$newConfigFile\".\n";
+print "Writing your configuration to \"$newConfigFile\".\n" unless $quiet;
 $configCG->save_file( $newConfigFile, \%config );
 
 # stash the name of that file, so we can delete it when we do a "Build clean"
@@ -802,7 +804,7 @@ $validResponse = 0;
 until( $validResponse ) {
   $rawResponse = $build->prompt( "Where is the muscle binary ?", $muscleBin );
   if( -e $rawResponse and -x $rawResponse ) {
-    print "\nOK. Found the muscle binary.\n";
+    print "\nOK. Found the muscle binary.\n" unless $quiet;
     $validResponse = 1;
   } else {
     print "(WW) WARNING: no such file or directory.\n";
@@ -864,7 +866,7 @@ delete $httpdConfig{Location};
 
 $newHttpdFile = backupFile( $newHttpdFile );
 
-print "Writing your Apache configuration to \"$newHttpdFile\".\n";
+print "Writing your Apache configuration to \"$newHttpdFile\".\n" unless $quiet;
 $httpdCG->save_file( $newHttpdFile, \%httpdConfig );
 
 #--------------------------------------
