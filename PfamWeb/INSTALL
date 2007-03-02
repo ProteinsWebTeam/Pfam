@@ -93,22 +93,34 @@ be installed in your default perl executable:
 
 	$ perl -e 'use Module::Build'
 
-The build script will fail unless you have a set of Catalyst prerequisites
-installed, notably Catalyst::Runtime. This script doesn't make any attempt to
-install the prerequisites for you - it's not that helpful.
+This shouldn't really be a problem because many of the Catalyst prerequisites
+use M::B themselves, so it should already be installed by the time you come to
+install PfamWeb.
+
+Installing M::B has proven annoyingly difficult when we've done it previously.
+This is mainly because we haven't been installing as root, so we're trying to
+install into a location which it doesn't expect. If you have problems installing
+M::B itself, please let us know and we'll try to help.
 
 
 Catalyst::Runtime
 
+After M::B is installed, you can go ahead with the PfamWeb installation, using 
+the included build script. That script includes a list of prerequisites for
+PfamWeb and will generate an error message if you try to install without first
+having installed those perl dependencies. Note that the script doesn't make any
+attempt to install the prerequisites for you, as would be the case if you were
+installing a true perl module - it's just not that helpful.
+
 After M::B, the next most obvious prerequisite for running a Catalyst web-
 application is Catalyst itself. Installing Catalyst has been, in our experience,
-more painful that installing PfamWeb itself, due largely to the number of 
-prerequisites that Catalyst itself has.
+more painful that installing PfamWeb, due largely to the number of prerequisites
+for Catalyst.
 
 There are two ways to install Catalyst:
 
-	o configure CPAN and install Catalyst::Runtime using the CPAN shell
 	o use a Catalyst installation script (see the Documentation links above)
+	o configure CPAN and install Catalyst::Runtime using the CPAN shell
 
 We've never tried an installation script, but lots of people on the Catalyst
 mailing list have had success with it. For various reasons, we've installed
@@ -381,4 +393,4 @@ o The Build.PL script is certain to have bugs, but I don't know what they are.
 
 
 
-$Id: INSTALL,v 1.2 2007-03-02 16:10:01 jt6 Exp $
+$Id: INSTALL,v 1.3 2007-03-02 16:26:34 jt6 Exp $
