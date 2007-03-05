@@ -2,15 +2,28 @@
 # Simap.pm
 # jt6 20060503 WTSI
 #
-# Controller to build a set of graphics for a given UniProt entry.
-#
-# $Id: Simap.pm,v 1.9 2007-02-14 10:48:39 jt6 Exp $
+# $Id: Simap.pm,v 1.10 2007-03-05 13:23:39 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Simap - build a SIMAP plot for a given UniProt entry.
+
+=cut
 
 package PfamWeb::Controller::Protein::Simap;
 
+=head1 DESCRIPTION
+
+This controller queries the SIMAP web-service for data pertaining to the
+supplied UniProt entry and generates a graph etc. for that entry.
+
+$Id: Simap.pm,v 1.10 2007-03-05 13:23:39 jt6 Exp $
+
+=cut
+
 use strict;
 use warnings;
-use Data::Dumper;
+
 use Storable qw(thaw);
 use Time::HiRes qw( gettimeofday );
 
@@ -23,10 +36,14 @@ use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 use base "PfamWeb::Controller::Protein";
 
 #-------------------------------------------------------------------------------
-# do something with the list of DAS sources that were specified by the
-# user through the list of checkboxes
 
-# pick up a URL like http://localhost:3000/proteingraphics?acc=P00179
+=head1 METHODS
+
+=head2 getSimapData : Path
+
+Query the SIMAP web-service for the given sequence entry.
+
+=cut
 
 sub getSimapData : Path {
   my( $this, $c ) = @_;
@@ -206,10 +223,13 @@ sub getSimapData : Path {
 
 }
 
-
 #-------------------------------------------------------------------------------
-# override the end method from Protein.pm, so that we now redirect to
-# a template that doesn't require the wrapper
+
+=head2 end : Private
+
+Overrides the default end to produce the page fragment with the SIMAP data.
+
+=cut
 
 sub end : Private {
   my( $this, $c ) = @_;
@@ -230,5 +250,20 @@ sub end : Private {
   $c->clear_errors;
 
 }
+
+#-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;

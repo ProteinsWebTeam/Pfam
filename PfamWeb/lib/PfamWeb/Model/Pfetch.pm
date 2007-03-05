@@ -2,11 +2,11 @@
 # Pfetch.pm
 # jt6 20060731 WTSI
 #
-# $Id: Pfetch.pm,v 1.4 2007-01-31 14:11:27 jt6 Exp $
+# $Id: Pfetch.pm,v 1.5 2007-03-05 13:23:39 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Model::Pfetch - retrieve data from the WTSI pfetch server
+PfamWeb::Model::Pfetch - retrieves data from the WTSI pfetch server
 
 =cut
 
@@ -14,8 +14,9 @@ package PfamWeb::Model::Pfetch;
 
 =head1 DESCRIPTION
 
-A simple wrapper around a call to the Sanger pfetch server. Call it something
-like:
+A simple wrapper around a call to the Sanger pfetch server.
+
+=head1 SYNOPSIS
 
   $c->model( "Pfetch" )->retrieve( "--pdb" => "1abc" );
 

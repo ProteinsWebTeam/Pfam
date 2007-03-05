@@ -3,18 +3,40 @@
 #
 # Controller to build the main Domain page.
 #
-# $Id: DomainDomain.pm,v 1.1 2006-09-28 09:51:41 rdf Exp $
+# $Id: DomainDomain.pm,v 1.2 2007-03-05 13:23:39 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Int::DomainDomain - controller for iPfam domain-domain
+interactions.
+
+=cut
+
+=head1 DESCRIPTION
+
+Given two Pfam domain accessions or IDs, this Controller retrieves the
+interactions between the two.
+
+$Id: DomainDomain.pm,v 1.2 2007-03-05 13:23:39 jt6 Exp $
+
+=cut
 
 package PfamWeb::Controller::Int::DomainDomain;
 
 use strict;
 use warnings;
-use Data::Dumper;
 
 use base "Catalyst::Controller";
 
 #-------------------------------------------------------------------------------
-# pick up http://localhost:3000/int
+
+=head1 METHODS
+
+=head2 generateDomainDomainIntSum
+
+Generates the summary data for a domain-domain interaction page.
+
+=cut
 
 sub generateDomainDomainIntSum : Path {
   my( $this, $c ) = @_;
@@ -54,6 +76,16 @@ sub generateDomainDomainIntSum : Path {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 end : Private
+
+Overrides the default end to forward to the iPfam template.
+
+=cut
+
+# TODO: need to figure out if we really need to do this or if we can leave the
+# rendering to the default end
+
 sub end : Private {
   my( $this, $c ) = @_;
 
@@ -77,4 +109,20 @@ sub end : Private {
   $c->error(0);
 
 }
+
+#-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
 1;
