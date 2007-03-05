@@ -2,37 +2,37 @@
 # TT.pm
 # jt 20060316 WTSI
 #
-# An empty view class. Everything clever is handled by the controllers
-# or the templates themselves.
-#
-# $Id: TT.pm,v 1.3 2007-02-07 11:06:29 jt6 Exp $
+# $Id: TT.pm,v 1.4 2007-03-05 13:23:39 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::View::TT - PfamWeb Template Toolkit View
 
 package PfamWeb::View::TT;
+
+=head1 DESCRIPTION
+
+An empty view class. Everything clever is handled by the controllers or the
+templates themselves.
+
+=cut
 
 use strict;
 use warnings;
 
 use base 'Catalyst::View::TT';
 
-=head1 NAME
-
-PfamWeb::View::TT - Catalyst TT View
-
-=head1 SYNOPSIS
-
-See L<PfamWeb>
-
-=head1 DESCRIPTION
-
-Catalyst TT View.
+#-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
-John Tate,,,,
+John Tate, C<jt6@sanger.ac.uk>
 
-=head1 LICENSE
+Rob Finn, C<rdf@sanger.ac.uk>
 
-This library is free software, you can redistribute it and/or modify
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut

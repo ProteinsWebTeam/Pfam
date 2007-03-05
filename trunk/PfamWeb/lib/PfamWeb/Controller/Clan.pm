@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.9 2006-11-13 15:31:14 rdf Exp $
+# $Id: Clan.pm,v 1.10 2007-03-05 13:23:34 jt6 Exp $
 
 =head1 NAME
 
@@ -24,14 +24,12 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.9 2006-11-13 15:31:14 rdf Exp $
+$Id: Clan.pm,v 1.10 2007-03-05 13:23:34 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 
 use base "PfamWeb::Controller::Section";
 
@@ -54,75 +52,76 @@ sub begin : Private {
 
   if( defined $c->req->param( "acc" ) ) {
 
-	$c->req->param( "acc" ) =~ m/^(CL\d{4})$/i;
-	$c->log->info( "Clan::begin: found accession |$1|" );
-
-	$c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
-	  if defined $1;
+    $c->req->param( "acc" ) =~ m/^(CL\d{4})$/i;
+    $c->log->info( "Clan::begin: found accession |$1|" );
+  
+    $c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
+      if defined $1;
 
   } elsif( defined $c->req->param( "id" ) ) {
 
-	$c->log->info( "Clan::begin: found param |".$c->req->param("id")."|" );
-	$c->req->param( "id" ) =~ m/^([\w-]+)$/;
-	$c->log->info( "Clan::begin: found ID |$1|" );	
-	$c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
-	  if defined $1;
+    $c->log->info( "Clan::begin: found param |".$c->req->param("id")."|" );
+    $c->req->param( "id" ) =~ m/^([\w-]+)$/;
+    $c->log->info( "Clan::begin: found ID |$1|" );
+    $c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
+      if defined $1;
+
   } elsif( defined $c->req->param( "entry" ) ) {
 
-	# see if this is really an accession...
-	if( $c->req->param( "entry" ) =~ /^(CL\d{4})$/i ) {
+    # see if this is really an accession...
+    if( $c->req->param( "entry" ) =~ /^(CL\d{4})$/i ) {
+  
+      $c->log->debug( "Clan::begin: looks like a clan accession ($1); redirecting" );
+      $c->res->redirect( $c->uri_for( "/clan", { acc => $1 } ) );
+      return 1;
+  
+    } else {
+  
+      # no; assume it's an ID and see what happens...
+      $c->log->debug( "Clan::begin: doesn't look like a clan accession ($1); redirecting with an ID" );
+      $c->res->redirect( $c->uri_for( "/clan", { id => $c->req->param( "entry" ) } ) );
+      return 1;  
 
-	  $c->log->debug( "Clan::begin: looks like a clan accession ($1); redirecting" );
-	  $c->res->redirect( $c->uri_for( "/clan", { acc => $1 } ) );
-	  return 1;
-
-	} else {
-
-	  # no; assume it's an ID and see what happens...
-	  $c->log->debug( "Clan::begin: doesn't look like a clan accession ($1); redirecting with an ID" );
-	  $c->res->redirect( $c->uri_for( "/clan", { id => $c->req->param( "entry" ) } ) );
-	  return 1;
-
-	}
+    }
 
   }
 
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{clan} ) {
 
-	# de-taint the accession or ID
-	my $input = $c->req->param("acc")
-	  || $c->req->param("id")
-	  || $c->req->param("entry");
-	$input =~ s/^(\w+)/$1/;
-
-	# see if this was an internal link and, if so, report it
-	my $b = $c->req->base;
-	if( $c->req->referer =~ /^$b/ ) {
-
-	  # this means that the link that got us here was somewhere within
-	  # the Pfam site and that the accession or ID which it specified
-	  # doesn't actually exist in the DB
-
-	  # report the error as a broken internal link
-	  $c->error( "Found a broken internal link; no valid clan accession or ID "
-				 . "(\"$input\") in \"" . $c->req->referer . "\"" );
-	  $c->forward( "/reportError" );
-
-	  # now reset the errors array so that we can add the message for
-	  # public consumption
-	  $c->clear_errors;
-
-	}
-
-	# the message that we'll show to the user
-	$c->stash->{errorMsg} = "No valid clan accession or ID";
-
-	# log a warning and we're done; drop out to the end method which
-	# will put up the standard error page
-	$c->log->warn( "Family::begin: no valid clan ID or accession" );
-
-	return;
+    # de-taint the accession or ID
+    my $input = $c->req->param("acc")
+      || $c->req->param("id")
+      || $c->req->param("entry");
+    $input =~ s/^(\w+)/$1/;
+  
+    # see if this was an internal link and, if so, report it
+    my $b = $c->req->base;
+    if( $c->req->referer =~ /^$b/ ) {
+  
+      # this means that the link that got us here was somewhere within
+      # the Pfam site and that the accession or ID which it specified
+      # doesn't actually exist in the DB
+  
+      # report the error as a broken internal link
+      $c->error( "Found a broken internal link; no valid clan accession or ID "
+           . "(\"$input\") in \"" . $c->req->referer . "\"" );
+      $c->forward( "/reportError" );
+  
+      # now reset the errors array so that we can add the message for
+      # public consumption
+      $c->clear_errors;
+  
+    }
+  
+    # the message that we'll show to the user
+    $c->stash->{errorMsg} = "No valid clan accession or ID";
+  
+    # log a warning and we're done; drop out to the end method which
+    # will put up the standard error page
+    $c->log->warn( "Family::begin: no valid clan ID or accession" );
+  
+    return;
   }
 
   $c->log->debug( "Clan::begin: successfully retrieved a clan object" );
@@ -130,35 +129,42 @@ sub begin : Private {
   # set up the pointers to the clan data in the stash
   $c->stash->{entryType} = "C";
   $c->stash->{acc} = $c->stash->{clan}->clan_acc;
-  my @rs = $c->model("PfamDB::Clan_membership")->search( { auto_clan => $c->stash->{clan}->auto_clan },
-					       { join      => [qw/pfam/],
-						 prefetch  => [qw/pfam/] }
-					     );
+  my @rs = $c->model("PfamDB::Clan_membership")
+    ->search( { auto_clan => $c->stash->{clan}->auto_clan },
+              { join      => [qw/pfam/],
+                prefetch  => [qw/pfam/] }
+            );
   $c->stash->{clanMembers} = \@rs;
 
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 default: Private
+
+Catches the default URL and populates the stash with data for building the page.
+
+=cut
+
 sub default : Private {
   my($this, $c) = @_;
+
   # populate the stash with other data
   $c->forward( "_getSummaryData" );
   $c->forward( "_getXrefs" );
   
-
   # done
 }
-
-
-#sub structureTab : Local {
-#  my($this, $c) = @_;
-#  $c->forward( "_getMapping" );
-#}
 
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-# get the data items for the overview bar
+=head2 default: Private
+
+Populates the stash with data for the summary icons.
+
+=cut
 
 sub _getSummaryData : Private {
   my( $this, $c ) = @_;
@@ -174,7 +180,7 @@ sub _getSummaryData : Private {
   # number of architectures
   $summaryData{numArchitectures} = $c->stash->{clan}->number_archs;
 
-#   # number of interactions
+  # number of interactions
   $summaryData{numInt} = 0;
 
   # number of structures known for the domain
@@ -182,8 +188,8 @@ sub _getSummaryData : Private {
 
   my @mapping = $c->model("PfamDB::Pdb_pfamA_reg")
     ->search( { "clanMembers.auto_clan" =>  $c->stash->{clan}->auto_clan },
-	      { join      => [ qw/pdb clanMembers / ],
-		prefetch  => [ qw/ pdb/ ]});
+        { join      => [ qw/pdb clanMembers / ],
+    prefetch  => [ qw/ pdb/ ]});
 
   my %pdb_unique = map {$_->pdb_id => 1} @mapping;
   $c->log->debug("Got ".scalar(@mapping)." pdb mappings");
@@ -197,55 +203,65 @@ sub _getSummaryData : Private {
 }
 
 #-------------------------------------------------------------------------------
-# get the database cross references
+
+=head2 default: Private
+
+Retrieves database cross-references. 
+
+=cut
 
 sub _getXrefs : Private {
   my( $this, $c ) = @_;
 
   my @refs = $c->model("PfamDB::Clan_database_links")
-	->search( { auto_clan => $c->stash->{clan}->auto_clan } );
+  ->search( { auto_clan => $c->stash->{clan}->auto_clan } );
 
   my %xRefs;
   foreach ( @refs ) {
-	$xRefs{$_->db_id} = $_;
+  $xRefs{$_->db_id} = $_;
   }
   $c->stash->{xrefs} = \%xRefs;
 
 }
 
 #-------------------------------------------------------------------------------
-# get the structure mapping
+
+=head2 default: Private
+
+Retrieves the structure mappings for this clan. 
+
+=cut
 
 sub _getMapping : Private {
   my( $this, $c ) = @_;
 
    my @mapping = $c->model("PfamDB::Clan_membership")
- 	->search( { auto_clan => $c->stash->{clan}->auto_clan,
- 		    pfam_region => 1 },
- 		  { select => [ qw/pfamseq.pfamseq_id
- 							   pfamA.pfamA_id
- 							   pfamA.pfamA_acc
- 							   pdbmap.pfam_start_res
- 							   pdbmap.pfam_end_res
- 							   pdb.pdb_id
- 							   pdbmap.chain
- 							   pdbmap.pdb_start_res
- 							   pdbmap.pdb_end_res/ ],
- 				as     => [ qw/pfamseq_id
- 							   pfamA_id
- 							   pfamA_acc
- 							   pfam_start_res
- 							   pfam_end_res
- 							   pdb_id
- 							   chain
- 							   pdb_start_res
- 							   pdb_end_res/ ],
- 				join => { pdbmap => [qw/pfamA
- 							pfamseq
- 							pdb/ ]
- 						}
- 			  }
- 			);
+   ->search( { auto_clan => $c->stash->{clan}->auto_clan,
+         pfam_region => 1 },
+       { select => [ qw/pfamseq.pfamseq_id
+                  pfamA.pfamA_id
+                  pfamA.pfamA_acc
+                  pdbmap.pfam_start_res
+                  pdbmap.pfam_end_res
+                  pdb.pdb_id
+                  pdbmap.chain
+                  pdbmap.pdb_start_res
+                  pdbmap.pdb_end_res/ ],
+         as     => [ qw/pfamseq_id
+                  pfamA_id
+                  pfamA_acc
+                  pfam_start_res
+                  pfam_end_res
+                  pdb_id
+                  chain
+                  pdb_start_res
+                  pdb_end_res/ ],
+         join => { pdbmap => [qw/pfamA
+               pfamseq
+               pdb/ ]
+             }
+         }
+       );
 
   $c->stash->{pfamMaps} = \@mapping;
 }

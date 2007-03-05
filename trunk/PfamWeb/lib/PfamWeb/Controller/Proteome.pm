@@ -4,18 +4,47 @@
 #
 # Controller to build the main Pfam Proteome page.
 #
-# $Id: Proteome.pm,v 1.3 2006-11-13 15:32:10 rdf Exp $
+# $Id: Proteome.pm,v 1.4 2007-03-05 13:23:34 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Proteome- controller for the proteome section
+
+=cut
 
 package PfamWeb::Controller::Proteome;
 
+=head1 DESCRIPTION
+
+This is intended to be the base class for everything related to clans
+across the site. The L<begin|/"begin : Private"> method will try to
+extract a clan ID or accession from the captured URL and then try to
+load a Clan object from the model into the stash.
+
+Generates a B<tabbed page>.
+
+$Id: Proteome.pm,v 1.4 2007-03-05 13:23:34 jt6 Exp $
+
+=cut
+
 use strict;
 use warnings;
-use Data::Dumper;
 
 use base "PfamWeb::Controller::Section";
 
 # set the name of the section
 __PACKAGE__->config( SECTION => "proteome" );
+
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 begin : Private
+
+Tries to extract an NCBI code from the parameters and retrieves the appropriate
+row for it.
+
+=cut
 
 sub begin : Private {
   my( $this, $c ) = @_;
@@ -33,7 +62,12 @@ sub begin : Private {
 
 
 #-------------------------------------------------------------------------------
-# get the data items for the overview bar
+
+=head2 begin : Private
+
+Just gets the data items for the overview bar.
+
+=cut
 
 sub _getSummaryData : Private {
   my( $this, $c ) = @_;
@@ -81,6 +115,21 @@ sub _getSummaryData : Private {
   $c->stash->{summaryData} = \%summaryData;
 
 }
+
+#-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;
 

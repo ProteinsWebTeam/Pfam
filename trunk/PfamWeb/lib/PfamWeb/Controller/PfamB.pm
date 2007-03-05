@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.3 2007-02-14 11:48:28 rdf Exp $
+# $Id: PfamB.pm,v 1.4 2007-03-05 13:23:34 jt6 Exp $
 
 =head1 NAME
 
@@ -20,17 +20,16 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.3 2007-02-14 11:48:28 rdf Exp $
+$Id: PfamB.pm,v 1.4 2007-03-05 13:23:34 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use base "PfamWeb::Controller::Section";
 
+# define the name of the section...
 __PACKAGE__->config( SECTION => "pfamb" );
 
 #-------------------------------------------------------------------------------
@@ -260,5 +259,18 @@ sub _getDbXrefs : Private {
 }
 
 #-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;

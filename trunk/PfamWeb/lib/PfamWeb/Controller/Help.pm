@@ -2,7 +2,7 @@
 # Help.pm
 # jt6 20060925 WTSI
 #
-# $Id: Help.pm,v 1.2 2007-01-31 14:04:00 jt6 Exp $
+# $Id: Help.pm,v 1.3 2007-03-05 13:23:34 jt6 Exp $
 
 =head1 NAME
 
@@ -14,11 +14,11 @@ package PfamWeb::Controller::Help;
 
 =head1 DESCRIPTION
 
-
+Displays the help pages for the PfamWeb site.
 
 Generates a B<tabbed page>.
 
-$Id: Help.pm,v 1.2 2007-01-31 14:04:00 jt6 Exp $
+$Id: Help.pm,v 1.3 2007-03-05 13:23:34 jt6 Exp $
 
 =cut
 
