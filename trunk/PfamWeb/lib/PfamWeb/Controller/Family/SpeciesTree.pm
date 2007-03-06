@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.12 2007-01-31 13:59:58 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.13 2007-03-06 16:21:41 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.12 2007-01-31 13:59:58 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.13 2007-03-06 16:21:41 jt6 Exp $
 
 =cut
 
@@ -45,23 +45,35 @@ Generates the tree and adds it to the stash.
 sub auto : Private {
   my( $this, $c ) = @_;
 
-  my $tree = $c->cache->get( $c->stash->{pfam}->pfamA_acc );
-  
-  if( $tree ) {
-    $c->log->debug( "Family::SpeciesTree::auto: successfully retrieved cached tree for "
-                    . $c->stash->{pfam}->pfamA_acc ); 
-    $c->stash->{rawTree} = $tree;
-  } else {
-    # retrieve the tree and stash it
-    $c->forward( "getTree" );
-
-    # and cache it
-    $c->cache->set( "species tree " . $c->stash->{pfam}->pfamA_acc,
-                    $c->stash->{rawTree},
-                    "2 weeks" );
-  }
+  # retrieve the tree and stash it
+  $c->forward( "getTree" );
 
 }
+
+# caching done like this appears to be broken
+# TODO: switch to Catalyst::Plugin::Cache::Store::FastMmap, or some similar recent cache plugin
+#sub auto : Private {
+#  my( $this, $c ) = @_;
+#
+#  my $tree = $c->cache->get( "species tree " . $c->stash->{pfam}->pfamA_acc );
+#  
+#  if( $tree ) {
+#    $c->log->debug( "Family::SpeciesTree::auto: successfully retrieved cached tree for "
+#                    . $c->stash->{pfam}->pfamA_acc ); 
+#    $c->stash->{rawTree} = $tree;
+#  } else {
+#    $c->log->debug( "Family::SpeciesTree::auto: no cached tree; generating one" );
+#
+#    # retrieve the tree and stash it
+#    $c->forward( "getTree" );
+#
+#    # and cache it
+#    $c->cache->set( "species tree " . $c->stash->{pfam}->pfamA_acc,
+#                    $c->stash->{rawTree},
+#                    "2 weeks" );
+#  }
+#
+#}
 
 #-------------------------------------------------------------------------------
 
@@ -75,6 +87,7 @@ the tree objects on the client.
 sub renderTree : Path {
   my( $this, $c ) = @_;
 
+  $c->log->debug( "Family::SpeciesTree::renderTree: rendering..." );
   $c->stash->{template} = "components/blocks/family/renderTree.tt";
 }
 
@@ -93,7 +106,7 @@ sub renderSubTree : Path( "/family/speciessubtree" ) {
   $c->log->debug( "Family::SpeciesTree: seqs: |" . $c->req->param( "seqs" ) . "|" );
 
   foreach ( split / /, uri_unescape( $c->req->param("seqs") ) ) {
-	$c->log->debug( "  id: |$_|" );
+  	$c->log->debug( "  id: |$_|" );
   }
 
   $c->stash->{selectedSeqs} = [ split / /, uri_unescape( $c->req->param("seqs") ) ];
@@ -111,6 +124,7 @@ sub renderSubTree : Path( "/family/speciessubtree" ) {
 
 sub getTree : Private {
   my( $this, $c ) = @_;
+  
   #Get the species information for the full alignment
   my @regions = $c->model("PfamDB::PfamA_reg_full")->search(
 							    { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
@@ -118,12 +132,17 @@ sub getTree : Private {
 							    { join              => [ qw/ pfamA pfamseq /],
 							      prefetch          => [ qw/pfamseq/ ],}
 							   );
+  $c->log->debug( "Family::SpeciesTree::getTree:: found " . scalar @regions
+                  ." full regions" );
+
   #Get the species information for the seed alignment
   my @resultsSeed = $c->model("PfamDB::PfamA_reg_seed")->search(
 								 { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc },
 								 { join              => [ qw/ pfamA pfamseq /],
 								   prefetch          => [ qw/pfamseq/] }
 								);
+  $c->log->debug( "Family::SpeciesTree::getTree:: found " . scalar @resultsSeed
+                  ." seed regions" );
 								
   #Hash the seed info
   my %seedSeqs;
@@ -139,13 +158,13 @@ sub getTree : Private {
     my $tax = $region->taxonomy;
     my $species = $region->species;
     $tax =~ s/\s+//g;
-    #Remove ful stop from the end of the species line. Dodgy......I know
+    #Remove full stop from the end of the species line. Dodgy......I know
     chop($species);
     #As the species has a leading white space.....
     $species =~ s/^(\s+)//g;
     my @tax = split(/\;/, $tax);
 
-	$maxDepth = scalar @tax	if scalar @tax > $maxDepth;
+  	$maxDepth = scalar @tax	if scalar @tax > $maxDepth;
 
     $tax[$#tax] = $species;
     #my ($genus) = split(/\s+/, $species);
