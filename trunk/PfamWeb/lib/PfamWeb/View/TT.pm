@@ -2,11 +2,13 @@
 # TT.pm
 # jt 20060316 WTSI
 #
-# $Id: TT.pm,v 1.4 2007-03-05 13:23:39 jt6 Exp $
+# $Id: TT.pm,v 1.5 2007-03-06 09:26:07 jt6 Exp $
 
 =head1 NAME
 
 PfamWeb::View::TT - PfamWeb Template Toolkit View
+
+=cut
 
 package PfamWeb::View::TT;
 
