@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.12 2007-03-02 16:10:15 jt6 Exp $
+# $Id: Build.PL,v 1.13 2007-03-06 13:21:24 jt6 Exp $
 
 use strict;
 use warnings;
@@ -14,6 +14,7 @@ use PfamWeb::Builder;
 
 use File::Path;
 use File::Copy;
+use Path::Class;
 use Cwd 'realpath';
 
 use Data::Dump qw(dump);
@@ -74,16 +75,23 @@ my $build = PfamWeb::Builder
 		# these are the absolutely required prerequisites
 		requires        => {
             						  "Bio::Das::Lite"                             => 1.048,
-            						  "Catalyst::Runtime"                          => 5.7,
             						  "Catalyst::Action::RenderView"               => 0,
+                          "Catalyst::Engine::Apache2"                  => 0,
             						  "Catalyst::Model::DBIC::Schema"              => 0,
             						  "Catalyst::Plugin::Cache::FastMmap"          => 0,
+                          "Catalyst::Plugin::Cache::FileCache"         => 0,
+                          "Catalyst::Plugin::ConfigLoader"             => 0,
             						  "Catalyst::Plugin::Email"                    => 0,
             						  "Catalyst::Plugin::HTML::Widget"             => 0,
+                          "Catalyst::Plugin::PageCache"                => 0,
+                          "Catalyst::Plugin::Prototype"                => 0,
             						  "Catalyst::Plugin::Session::State::Cookie"   => 0,
             						  "Catalyst::Plugin::Session::Store::FastMmap" => 0,
+            						  "Catalyst::Runtime"                          => 5.7,
+            						  "Catalyst::View::TT"                         => 0,
             						  "Class::Data::Accessor"                      => 0,
             						  "Config::General"                            => 0.28,
+                          "Data::Visitor::Callback"                    => 0,
             						  "DateTime"                                   => 0,
             						  "DBIx::Class"                                => 0,
             						  "DBIx::Class::HTMLWidget"                    => 0,
@@ -133,10 +141,12 @@ $build->install_base_relpaths( htdocs  => "htdocs" );
 
 # remove paths for things that we don't want installed at all
 $build->install_base_relpaths( arch    => undef );
+$build->install_base_relpaths( bin     => undef );
 $build->install_base_relpaths( bindoc  => undef );
 $build->install_base_relpaths( binhtml => undef );
 $build->install_base_relpaths( libdoc  => undef );
 $build->install_base_relpaths( libhtml => undef );
+$build->install_base_relpaths( script  => undef );
 
 #--------------------------------------
 
@@ -492,6 +502,7 @@ EOFloc
 
 # get the file system path to the temp directory
 # NOTE: COMPILE_DIR is the same as the temp directory...
+# TODO: this is probably a bad idea; we should use a web-INaccessible area for COMPILE_DIR
 
 my $tmpDirPath;
 $validResponse = 0;
@@ -682,7 +693,8 @@ EOFloc
 
 # we'll offer to put the pfamCore and pfamModel directories parallel to 
 # the PfamWeb directory, i.e. hanging off the same parent directory, which is...
-( my $installRootParent = $config{installRoot} ) =~ s/^((\/.*?)+)\/.*/$1/;
+#( my $installRootParent = $config{installRoot} ) =~ s/^((\/.*?)+)\/.*/$1/;
+my $installRootParent = dir( $config{installRoot} )->parent;
 
 my $pfamCoreDir;
 $validResponse = 0;
