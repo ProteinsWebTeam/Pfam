@@ -21,14 +21,14 @@ CREATE TABLE feature_das_sources (
   PRIMARY KEY(server_id, system, sequence_type)
 );
 =cut
-# $Id: update_das_sources.pl,v 1.6 2007-02-07 16:05:56 aj5 Exp $
+# $Id: update_das_sources.pl,v 1.7 2007-03-07 14:13:54 aj5 Exp $
 
 use warnings;
 use strict;
 
 use lib qw( /nfs/team71/pfam/jt6/server/PfamLib );
 
-use Bio::DasLite;
+use Bio::Das::Lite;
 use Data::Dumper;
 use Data::Validate::URI qw( is_uri );
 use DBI;
@@ -39,7 +39,7 @@ use Time::Local;
 
 # config
 
-# Bio::DasLite setup
+# Bio::Das::Lite setup
 my $DAS_DSN   = "http://das.sanger.ac.uk/das/pfam";
 my $DAS_TO    = 100;
 my $DAS_PROXY = "http://wwwcache.sanger.ac.uk:3128";
@@ -66,8 +66,8 @@ my $ignoreServers = { DS_241 => 1, # Pfam
 
 # main
 
-# get a Bio::DasLite object that's connected to the specified registry
-my $das = Bio::DasLite->new( { dsn     => $DAS_DSN,
+# get a Bio::Das::Lite object that's connected to the specified registry
+my $das = Bio::Das::Lite->new( { dsn     => $DAS_DSN,
 							   timeout => $DAS_TO,
 							   proxy   => $DAS_PROXY } );
 
