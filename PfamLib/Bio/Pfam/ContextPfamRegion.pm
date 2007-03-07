@@ -69,10 +69,12 @@ The rest of the documentation details each of the object methods. Internal metho
 
 # Let the code begin...
 
+# Author: rdf
 
 package Bio::Pfam::ContextPfamRegion;
 use vars qw($AUTOLOAD @ISA @EXPORT_OK);
 use strict;
+use warnings;
 
 use Bio::Pfam::AnnotatedRegion;
 

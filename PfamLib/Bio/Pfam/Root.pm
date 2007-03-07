@@ -37,9 +37,13 @@ methods. Internal methods are usually preceded with a _
 
 =cut
 
+# Author: rdf
+
 package Bio::Pfam::Root;
 
 use strict;
+use warnings;
+
 use vars qw($VERBOSITY);
 
 $VERBOSITY = 0;

@@ -54,9 +54,12 @@ The rest of the documentation details each of the object methods. Internal metho
 # Let the code begin...
 
 
+# Author: rdf
+
 package Bio::Pfam::HMMOtherRegion;
 use vars qw($AUTOLOAD @ISA);
 use strict;
+use warnings;
 
 use Bio::Pfam::AnnotatedRegion;
 @ISA = qw(Bio::Pfam::AnnotatedRegion);
