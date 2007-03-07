@@ -1,4 +1,4 @@
-package Bio::DasLite::Tools;
+package Bio::Das::Lite::Tools;
 use strict;
 
 =head1 METHODS
