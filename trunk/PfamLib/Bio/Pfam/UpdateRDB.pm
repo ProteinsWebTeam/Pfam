@@ -25,6 +25,7 @@ to provide basic connection facilities
 
 # Let the code begin...
 
+# Author: rdf
 
 package Bio::Pfam::UpdateRDB;
 
@@ -33,6 +34,8 @@ use vars qw($AUTOLOAD
 	    @EXPORT_OK );
 
 use strict;
+use warnings;
+
 use Time::HiRes qw(gettimeofday);
 use Bio::Pfam::PfamRDB;
 use vars qw(%all_pfamseq_db_store %all_pfamA_db_store);

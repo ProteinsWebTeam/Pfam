@@ -42,10 +42,12 @@ The rest of the documentation details each of the object methods. Internal metho
 
 # Let the code begin...
 
+# Author: rdf
 
 package Bio::Pfam::EntryA_Web;
 use vars qw($AUTOLOAD @ISA);
 use strict;
+use warnings;
 
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::EntryA;
