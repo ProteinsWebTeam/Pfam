@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.16 2007-01-15 15:51:26 jt6 Exp $
+# $Id: head.tt,v 1.17 2007-03-08 14:23:02 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -81,6 +81,7 @@ CALL c.log.info( "head.tt: loading DEVELOPMENT versions of javascript files" ) -
 <!-- load the separate, uncompressed javascript sources --> 
 
 <!-- YAHOO modules -->
+[%# TODO: look into loading these directly from Yahoo servers %]
 
 <!-- Namespace source file -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/yahoo.js" ) %]"></script>
