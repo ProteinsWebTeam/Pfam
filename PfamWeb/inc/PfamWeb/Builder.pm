@@ -5,7 +5,7 @@
 # A custom Module::Builder subclass to handle installation of the
 # PfamWeb application
 #
-# $Id: Builder.pm,v 1.8 2007-03-01 11:45:10 jt6 Exp $
+# $Id: Builder.pm,v 1.9 2007-03-08 14:13:11 jt6 Exp $
 
 package PfamWeb::Builder;
 
@@ -32,7 +32,7 @@ sub process_htdocs_files {
 
   # shortcuts...
   my $defRoot = $this->notes( "defaultAppRoot" );
-  my $appRoot = $this->config_data( "configHash" )->{View}->{TT}->{CONSTANTS}->{root};
+  my $appRoot = $this->notes( "appRoot" );
 
   # make a directory for all of this...  
   mkpath( catdir( $this->blib, "htdocs" ) );

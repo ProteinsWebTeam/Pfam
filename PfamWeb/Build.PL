@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.13 2007-03-06 13:21:24 jt6 Exp $
+# $Id: Build.PL,v 1.14 2007-03-08 14:12:57 jt6 Exp $
 
 use strict;
 use warnings;
@@ -91,8 +91,11 @@ my $build = PfamWeb::Builder
             						  "Catalyst::View::TT"                         => 0,
             						  "Class::Data::Accessor"                      => 0,
             						  "Config::General"                            => 0.28,
+                    		  "Data::Validate::URI"                        => 0,
                           "Data::Visitor::Callback"                    => 0,
             						  "DateTime"                                   => 0,
+                    		  "DateTime::Format::MySQL"                    => 0,
+                    		  "DBD::mysql"                                 => 0,
             						  "DBIx::Class"                                => 0,
             						  "DBIx::Class::HTMLWidget"                    => 0,
             						  "GD"                                         => 0,
@@ -454,8 +457,12 @@ $rawResponse =
 # trim off trailing slashes
 $rawResponse =~ s/(.*?)\/?$/$1/;
 
-# and store in the value "root" in the TT constants section
+# store in the value "root" in the TT constants section
 $config{View}->{TT}->{CONSTANTS}->{root} = $rawResponse;
+
+# add a note so we can compare the default application root to the user-
+# specified value at build time
+$build->notes( "appRoot", $rawResponse );
 
 #--------------------------------------
 # annotation email
@@ -743,12 +750,6 @@ $build->install_path( pfamModel => $pfamModelDir );
 #-------------------------------------------------------------------------------
 # dump out the configuration
 
-# now we should have a valid configuration hash, which we'll store in the MB
-# object so that we can retrieve it in Build actions. That way we avoid having
-# to re-parse the config file itself at least
-$build->config_data( "configHash" => \%config );
-
-# and we'll write it to a new file
 ( my $newConfigFile = $configFile ) =~ s/jcf/conf/;
 
 print <<EOFloc unless $quiet;
