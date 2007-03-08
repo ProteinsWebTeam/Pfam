@@ -47,7 +47,7 @@ BLOCK walkTree;
 
 END; # BLOCK walkTree
 
-INCLUDE walkTree tree=rawTree parent="root"
+INCLUDE walkTree tree=rawTree parent="root";
 -%]
 
 var dd = [];
