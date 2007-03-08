@@ -1,7 +1,6 @@
 
 # $Author: jt6 $
 
-:
 package Bio::Pfam::Drawing::Layout::Config::CathConfig;
 
 use vars qw($AUTOLOAD @ISA $VERSION);
