@@ -4,7 +4,9 @@
 
 # DBIx::Class::ResultSource for the error_log table
 
-# $Id: ErrorLog.pm,v 1.2 2006-09-29 15:23:31 jt6 Exp $
+# $Id: ErrorLog.pm,v 1.3 2007-03-08 14:16:31 jt6 Exp $
+#
+# $Author: jt6 $
 
 package WebUser::ErrorLog;
 

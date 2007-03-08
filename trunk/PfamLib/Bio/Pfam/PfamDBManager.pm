@@ -2,13 +2,13 @@
 #
 # BioPerl module for Bio::Pfam::PfamDBManager
 #
+# $Author
 
 package Bio::Pfam::PfamDBManager;
 use strict;
 use warnings;
 use PfamDB;
 use Data::Dumper;
-use strict;
 use Carp;
 
 sub new {

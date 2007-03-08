@@ -44,6 +44,8 @@ if you want to know more.
 =cut
 
 use strict;
+use warnings;
+
 use Exporter;
 use GD;
 use treefam::nhx;

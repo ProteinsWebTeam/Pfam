@@ -1,18 +1,34 @@
 
-# BaseModel.pm
+# PfamDB.pm
 # jt 20060316 WTSI
+#
+# $Id: PfamDB.pm,v 1.4 2007-03-08 14:16:31 jt6 Exp $
+#
+# $Author: jt6 $
 
-# The base class for the whole database model. Config comes from the
-# catalyst application class.
+=head1 NAME
 
-# $Id: PfamDB.pm,v 1.3 2007-01-19 16:41:31 jt6 Exp $
+PfamDB - the DBIC schema definition class for the Pfam database
+
+=cut
 
 package PfamDB;
+
+=head1 DESCRIPTION
+
+The base class for the whole Pfam database model. Config comes from the catalyst 
+application class.
+
+$Id: PfamDB.pm,v 1.4 2007-03-08 14:16:31 jt6 Exp $
+
+=cut
 
 use strict;
 use warnings;
 
 use base "DBIx::Class::Schema";
+
+#-------------------------------------------------------------------------------
 
 __PACKAGE__->load_classes( qw/
 Architecture          Interpro                     PfamA_reg_seed
@@ -37,6 +53,19 @@ Int_pfamAs            PfamA_reg_full               Version
 Interactions          PfamA_reg_full_significant
 / );
 
+#-------------------------------------------------------------------------------
 
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+This program is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 1;

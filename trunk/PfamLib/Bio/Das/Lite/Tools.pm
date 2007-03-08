@@ -1,5 +1,6 @@
 package Bio::Das::Lite::Tools;
 use strict;
+use warnings;
 
 =head1 METHODS
 
@@ -21,6 +22,9 @@ Returns either (depending on array or scalar context):
 =item A list of feature data structures
 =back
 =cut
+
+# $Author: jt6 $
+
 sub convertSegmentsToFeatures
 {
 	my $segments;

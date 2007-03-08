@@ -1,6 +1,8 @@
 package treefam::misc_utils;
 
 use strict;
+use warnings;
+
 use Exporter;
 
 use treefam::nhx;
@@ -34,3 +36,9 @@ sub nhx_add_OG_tag
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

@@ -1,3 +1,7 @@
+
+# $Id: Int_pfamAs.pm,v 1.3 2007-03-08 14:16:28 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Int_pfamAs;
 
 use strict;

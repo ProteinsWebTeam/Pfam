@@ -1,3 +1,7 @@
+
+# $Id: PfamA_reg_seed.pm,v 1.3 2007-03-08 14:16:30 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::PfamA_reg_seed;
 
 use strict;

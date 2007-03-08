@@ -1,3 +1,7 @@
+
+# $Id: Clan_lit_refs.pm,v 1.3 2007-03-08 14:16:30 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Clan_lit_refs;
 
 use strict;

@@ -1,7 +1,12 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::Config::NestedConfig;
 
 use vars qw($AUTOLOAD @ISA $VERSION);
 use strict;
+use warnings;
+
 
 use Bio::Pfam::Drawing::Layout::Markup;
 use Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig;

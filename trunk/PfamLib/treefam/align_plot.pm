@@ -19,6 +19,8 @@ treefam::align_plot - visualize a multialignment as a PNG image
 =cut
 
 use strict;
+use warnings;
+
 use treefam::alnbase;
 use Exporter;
 use GD;

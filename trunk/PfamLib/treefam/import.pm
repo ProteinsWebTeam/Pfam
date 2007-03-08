@@ -1,6 +1,8 @@
 package treefam::import;
 
 use strict;
+use warnings;
+
 use treefam::generic qw/:basic :cigar/;
 use treefam::db;
 use treefam::nhx;

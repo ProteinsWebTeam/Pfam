@@ -1,4 +1,8 @@
 
+# $Id: PdbMap.pm,v 1.3 2007-03-08 14:16:26 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamDB::PdbMap;
 
 use strict;

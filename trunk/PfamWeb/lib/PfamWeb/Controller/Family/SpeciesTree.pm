@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.13 2007-03-06 16:21:41 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.14 2007-03-08 14:14:58 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.13 2007-03-06 16:21:41 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.14 2007-03-08 14:14:58 jt6 Exp $
 
 =cut
 
@@ -51,7 +51,7 @@ sub auto : Private {
 }
 
 # caching done like this appears to be broken
-# TODO: switch to Catalyst::Plugin::Cache::Store::FastMmap, or some similar recent cache plugin
+# TODO: switch to Catalyst::Plugin::Cache::Store::FastMmap, or some similar recent cache pluginpwd
 #sub auto : Private {
 #  my( $this, $c ) = @_;
 #

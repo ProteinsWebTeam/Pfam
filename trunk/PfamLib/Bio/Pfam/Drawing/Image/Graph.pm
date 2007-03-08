@@ -1,6 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Image::Graph;
 
 use strict;
+use warnings;
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 use Digest::MD5 qw(md5_hex);

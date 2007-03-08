@@ -1,3 +1,7 @@
+
+# $Id: ClanArchitecture.pm,v 1.3 2007-03-08 14:16:24 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::ClanArchitecture;
 
 use strict;

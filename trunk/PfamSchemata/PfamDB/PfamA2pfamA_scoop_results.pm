@@ -1,3 +1,7 @@
+
+# $Id: PfamA2pfamA_scoop_results.pm,v 1.2 2007-03-08 14:16:24 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::PfamA2pfamA_scoop_results;
 
 use strict;

@@ -1,7 +1,8 @@
 package treefam::cgi;
 
 use strict;
-use lib qw(/nfs/WWW/SANGER_docs/perl);
+use warnings;
+
 use Exporter;
 use CGI qw/:standard/;
 use treefam::db;
@@ -581,3 +582,9 @@ sub print_quick_search
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

@@ -1,4 +1,8 @@
 
+# $Id: Pfam.pm,v 1.4 2007-03-08 14:16:24 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamDB::Pfam;
 
 use strict;

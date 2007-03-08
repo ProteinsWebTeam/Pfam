@@ -19,7 +19,12 @@ A good example to follow is glifs
 
 =cut
 
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::LayoutManager;
+
+use strict;
+use warnings;
 
 use vars qw($AUTOLOAD @ISA $VERSION @EXPORT);
 use XML::LibXML;

@@ -1,3 +1,7 @@
+
+# $Id: Genome_pfamseq.pm,v 1.3 2007-03-08 14:16:25 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Genome_pfamseq;
 
 use strict;

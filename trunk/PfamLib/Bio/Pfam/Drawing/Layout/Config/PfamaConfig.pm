@@ -1,6 +1,11 @@
 
+# $Author: jt6 $
+
+
 package Bio::Pfam::Drawing::Layout::Config::PfamaConfig;
 use strict;
+use warnings;
+
 use vars qw($AUTOLOAD @ISA $VERSION);
 
 use Bio::Pfam::Drawing::Layout::Region;

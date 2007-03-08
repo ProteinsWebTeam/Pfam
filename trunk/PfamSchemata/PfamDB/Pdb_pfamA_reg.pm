@@ -1,4 +1,8 @@
 
+# $Id: Pdb_pfamA_reg.pm,v 1.2 2007-03-08 14:16:27 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamDB::Pdb_pfamA_reg;
 
 use strict;

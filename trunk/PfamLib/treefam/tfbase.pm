@@ -26,6 +26,8 @@ which I will document for.
 =cut
 
 use strict;
+use warnings;
+
 use treefam::generic qw/gopen gopen2 gwhich read_file pretty_seq/;
 use IPC::Open2 qw/open2/;
 use Exporter;

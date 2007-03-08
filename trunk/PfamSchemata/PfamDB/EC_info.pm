@@ -1,4 +1,8 @@
 
+# $Id: EC_info.pm,v 1.2 2007-03-08 14:16:27 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamDB::EC_info;
 
 use strict;

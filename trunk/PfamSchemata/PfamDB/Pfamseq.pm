@@ -1,3 +1,7 @@
+
+# $Id: Pfamseq.pm,v 1.6 2007-03-08 14:16:25 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Pfamseq;
 
 use strict;

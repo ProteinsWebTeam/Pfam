@@ -1,3 +1,7 @@
+
+# $Id: PfamA_reg_full_significant.pm,v 1.2 2007-03-08 14:16:23 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamLive::PfamA_reg_full_significant;
 
 use strict;

@@ -1,6 +1,8 @@
 package treefam::build_tree;
 
 use strict;
+use warnings;
+
 use Exporter;
 use IPC::Open2;
 use File::Copy qw(cp);
@@ -133,3 +135,9 @@ sub build_for_TreeFam
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

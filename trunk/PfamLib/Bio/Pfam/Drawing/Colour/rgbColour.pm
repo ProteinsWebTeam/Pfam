@@ -1,5 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Colour::rgbColour;
+
 use strict;
+use warnings;
 
 sub new {
   my $caller = shift;

@@ -36,6 +36,8 @@ methods are very simple, in less than 20 lines.
 =cut
 
 use strict;
+use warnings;
+
 use Exporter;
 use POSIX qw(mkfifo);
 

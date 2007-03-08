@@ -1,3 +1,6 @@
+
+# $Author: jt6 $
+
 =head1 Name
 
 Bio::Pfam::Drawing::Layout::Config::ContextConfig - Contains all of the configuration for
@@ -13,6 +16,8 @@ Bio::Pfam::Drawing::Layout::Config::GenericConfig
 =cut
 package Bio::Pfam::Drawing::Layout::Config::ContextConfig;
 use strict;
+use warnings;
+
 
 use vars qw($AUTOLOAD @ISA $VERSION);
 use Bio::Pfam::Drawing::Layout::Region;
@@ -67,7 +72,7 @@ sub _rightStyle {
 
 sub _construct_URL {
   my ($self, $region) = @_;
-  $region->url($Bio::Pfam::Web::PfamWWWConfig::region_help);
+  #$region->url($Bio::Pfam::Web::PfamWWWConfig::region_help);
 }
 
 sub _set_colours {

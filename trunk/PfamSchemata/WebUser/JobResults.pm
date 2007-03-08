@@ -3,7 +3,9 @@
 #
 # Model for the job_data table.
 #
-# $Id: JobResults.pm,v 1.1 2007-01-29 14:38:15 rdf Exp $
+# $Id: JobResults.pm,v 1.2 2007-03-08 14:16:31 jt6 Exp $
+#
+# $Author: jt6 $
 
 package WebUser::JobResults;
 

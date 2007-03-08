@@ -1,4 +1,8 @@
 
+# $Id: PfamA_architecture.pm,v 1.3 2007-03-08 14:16:30 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamDB::PfamA_architecture;
 
 use strict;

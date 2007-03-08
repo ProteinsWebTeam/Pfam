@@ -25,6 +25,7 @@ The rest of the documentation details each of the object methods. Internal metho
 
 =cut
 
+# $Author: jt6 $
 
 # Let the code begin...
 
@@ -360,12 +361,6 @@ sub hits2Ali {
 
   #Align the sequences
 
-  # this isn't cutting it when we run on the dev servers, which have
-  # taint mode enabled. In taint mode we get all sorts of errors
-  # telling us we're doing bad things...
-  # jt6 20060830 WTSI
-  #open(MSF, "echo \"$aliString\" | /nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf |") || die "Could not open tmp msf:[$!]\n";
-
   # dump the input file to a temporary file. Let a module generate the
   # temp filehandle and filename for us
   my $tmpRoot;
@@ -381,8 +376,6 @@ sub hits2Ali {
   my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpRoot );
   print $tmpFh $aliString;
   close $tmpFh;
-
-  #print STDERR "Running muscle: |/nfs/WWWdev/SANGER_docs/catalyst/PfamWeb/bin/muscle -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile|\n";
 
   $ENV{PATH} = "";
   my $muscleBin;

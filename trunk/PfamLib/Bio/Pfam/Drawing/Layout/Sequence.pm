@@ -22,11 +22,13 @@ The rest of the documentation details each of the object methods. Internal metho
 
 =cut
 
+# $Author: jt6 $
 
 # Let the code begin...
 package Bio::Pfam::Drawing::Layout::Sequence;
 use vars qw($AUTOLOAD @ISA @EXPORT);
 use strict;
+use warnings;
 use Exporter;
 use Data::Dumper;
 

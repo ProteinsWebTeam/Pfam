@@ -1,8 +1,13 @@
+
+# $Author: jt6 $
+
 :
 package Bio::Pfam::Drawing::Layout::Config::CathConfig;
 
 use vars qw($AUTOLOAD @ISA $VERSION);
 use strict;
+use warnings;
+
 
 use Bio::Pfam::Drawing::Layout::Region;
 use Bio::Pfam::Drawing::Layout::Config::GenericRegionConfig;

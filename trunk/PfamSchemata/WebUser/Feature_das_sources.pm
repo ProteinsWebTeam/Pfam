@@ -1,9 +1,12 @@
 
 # Feature_das_sources.pm
-# aj5
+# aj5 20070307 WTSI.
 #
 # Model for the das_sources table.
 #
+# $Id: Feature_das_sources.pm,v 1.2 2007-03-08 14:16:31 jt6 Exp $
+#
+# $Author: jt6 $
 
 package WebUser::Feature_das_sources;
 

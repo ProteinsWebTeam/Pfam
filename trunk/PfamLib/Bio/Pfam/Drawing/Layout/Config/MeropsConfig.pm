@@ -1,5 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::Config::MeropsConfig;
 use strict;
+use warnings;
+
 use vars qw($AUTOLOAD @ISA $VERSION);
 
 use Bio::Pfam::Drawing::Layout::Region;

@@ -2,6 +2,7 @@
 #
 # BioPerl module for Bio::Pfam::PfamLiveDBManager
 #
+# $Author: jt6 $
 
 package Bio::Pfam::PfamLiveDBManager;
 

@@ -13,6 +13,8 @@ use vars qw($AUTOLOAD @ISA @EXPORT_OK);
 use Exporter;
 use Carp;
 use strict;
+use warnings;
+
 @ISA = ( 'Exporter');
 
 

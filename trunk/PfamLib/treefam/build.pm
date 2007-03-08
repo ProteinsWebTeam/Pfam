@@ -1,6 +1,8 @@
 package treefam::build;
 
 use strict;
+use warnings;
+
 use Exporter;
 use IPC::Open2 qw(open2);
 use File::Copy qw(cp);
@@ -19,7 +21,7 @@ sub new
 	my $class = ref($invocant) || $invocant;
 	my $self = { -exe=>'', -tmp=>'/tmp',
 		-is_thread=>1,
-		-blastpath=>'/nfs/treefam/work/data', -blastdb=>'TFSEQ_Current.pep', -blast_e=>'1e-2',
+		-blastpath=>'', -blastdb=>'TFSEQ_Current.pep', -blast_e=>'1e-2',
 		-hmmer_e=>'0.1', -hmmer_z=>'522369', -hmmer_cal_n=>'5000',
 		-muscle_opt=>'',
 		-timeout=>'7200', @_ };
@@ -306,3 +308,9 @@ sub merge_from_families
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

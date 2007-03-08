@@ -1,7 +1,8 @@
 package treefam::search;
 
-use lib qw(/nfs/WWW/SANGER_docs/perl);
 use strict;
+use warnings;
+
 use Exporter;
 use treefam::cgi;
 use treefam::ensembl;
@@ -270,3 +271,9 @@ sub sql_search_gene
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

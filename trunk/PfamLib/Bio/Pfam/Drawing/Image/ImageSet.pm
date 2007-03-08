@@ -1,4 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Image::ImageSet;
+
+use strict;
+use warnings;
 
 use GD;
 #use XML::DOM;

@@ -2,10 +2,12 @@
 #
 # BioPerl module for Bio::Pfam::WebUserDBManager
 #
+# $Author
 
 package Bio::Pfam::WebUserDBManager;
 
-
+use strict;
+use warnings;
 
 use base WebUser;
 use Data::Dumper;

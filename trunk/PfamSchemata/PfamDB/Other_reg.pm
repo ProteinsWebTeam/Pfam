@@ -1,3 +1,7 @@
+
+# $Id: Other_reg.pm,v 1.3 2007-03-08 14:16:25 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Other_reg;
 
 use strict;

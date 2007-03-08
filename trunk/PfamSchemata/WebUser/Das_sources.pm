@@ -4,7 +4,9 @@
 #
 # Model for the das_sources table.
 #
-# $Id: Das_sources.pm,v 1.2 2006-09-29 15:23:29 jt6 Exp $
+# $Id: Das_sources.pm,v 1.3 2007-03-08 14:16:31 jt6 Exp $
+#
+# $Author: jt6 $
 
 package WebUser::Das_sources;
 

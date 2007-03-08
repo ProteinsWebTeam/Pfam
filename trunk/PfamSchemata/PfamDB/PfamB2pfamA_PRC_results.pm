@@ -1,3 +1,7 @@
+
+# $Id: PfamB2pfamA_PRC_results.pm,v 1.3 2007-03-08 14:16:24 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::PfamB2pfamA_PRC_results;
 
 use strict;

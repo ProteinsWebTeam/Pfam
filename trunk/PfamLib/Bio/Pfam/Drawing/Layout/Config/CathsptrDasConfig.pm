@@ -1,5 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::Config::CathsptrDasConfig;
 use strict;
+use warnings;
+
 use Bio::Pfam::Drawing::Layout::Config::GenericDasSourceConfig;
 use vars qw($AUTOLOAD @ISA $VERSION);
 @ISA= qw(Bio::Pfam::Drawing::Layout::Config::GenericDasSourceConfig);
