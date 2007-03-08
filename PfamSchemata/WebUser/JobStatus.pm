@@ -4,7 +4,9 @@
 #
 # Model for the job_status table.
 #
-# $Id: JobStatus.pm,v 1.1 2007-01-29 14:38:16 rdf Exp $
+# $Id: JobStatus.pm,v 1.2 2007-03-08 14:16:31 jt6 Exp $
+#
+# $Author: jt6 $
 
 package WebUser::JobStatus;
 

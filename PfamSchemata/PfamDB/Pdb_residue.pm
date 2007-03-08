@@ -1,4 +1,8 @@
 
+# $Id: Pdb_residue.pm,v 1.4 2007-03-08 14:16:30 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamDB::Pdb_residue;
 
 use strict;

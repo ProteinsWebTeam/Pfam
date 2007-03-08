@@ -1,4 +1,8 @@
 
+# $Id: Clans.pm,v 1.3 2007-03-08 14:16:22 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamLive::Clans;
 
 use strict;

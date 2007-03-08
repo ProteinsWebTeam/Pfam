@@ -1,3 +1,7 @@
+
+# $Id: Context_pfam_regions.pm,v 1.3 2007-03-08 14:16:28 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Context_pfam_regions;
 
 use strict;

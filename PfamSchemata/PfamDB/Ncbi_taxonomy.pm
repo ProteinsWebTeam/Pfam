@@ -1,3 +1,7 @@
+
+# $Id: Ncbi_taxonomy.pm,v 1.3 2007-03-08 14:16:26 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Ncbi_taxonomy;
 
 use strict;

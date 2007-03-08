@@ -1,3 +1,7 @@
+
+# $Id: Genome_species.pm,v 1.2 2007-03-08 14:16:25 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Genome_species;
 
 use strict;

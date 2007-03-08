@@ -1,3 +1,6 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::ColourAlign;
 
 use strict;

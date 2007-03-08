@@ -1,3 +1,7 @@
+
+# $Id: PfamA_database_links.pm,v 1.2 2007-03-08 14:16:22 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamLive::PfamA_database_links;
 
 use strict;

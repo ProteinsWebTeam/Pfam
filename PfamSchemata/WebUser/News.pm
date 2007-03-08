@@ -4,7 +4,9 @@
 #
 # Model for the news table.
 #
-# $Id: News.pm,v 1.1 2007-01-16 08:58:06 jt6 Exp $
+# $Id: News.pm,v 1.2 2007-03-08 14:16:31 jt6 Exp $
+#
+# $Author: jt6 $
 
 package WebUser::News;
 

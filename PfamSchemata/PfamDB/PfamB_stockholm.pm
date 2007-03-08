@@ -1,3 +1,7 @@
+
+# $Id: PfamB_stockholm.pm,v 1.3 2007-03-08 14:16:30 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::PfamB_stockholm;
 
 use strict;

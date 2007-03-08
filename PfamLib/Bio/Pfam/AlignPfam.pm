@@ -48,6 +48,7 @@ The rest of the documentation details each of the object methods. Internal metho
 
 =cut
 
+# $Author: jt6 $
 
 # Let the code begin...
 
@@ -55,6 +56,7 @@ The rest of the documentation details each of the object methods. Internal metho
 package Bio::Pfam::AlignPfam;
 use vars qw($AUTOLOAD @ISA);
 use strict;
+use warnings;
 
 use Bio::Annotation::DBLink;
 use Bio::Pfam::OtherRegion;

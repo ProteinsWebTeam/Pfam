@@ -1,4 +1,8 @@
 
+# $Id: EC_seq.pm,v 1.2 2007-03-08 14:16:26 jt6 Exp $
+#
+# $Author: jt6 $
+
 package PfamDB::EC_seq;
 
 use strict;

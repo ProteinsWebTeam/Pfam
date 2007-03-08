@@ -1,6 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
 use strict;
+use warnings;
 use vars qw($AUTLOAD @ISA @EXPORT $VERSION);
 use Exporter;
 #use Bio::Pfam::Web::PfamWWWConfig;
@@ -83,18 +87,18 @@ sub printSequenceKey{
     print "</table>"
 }
 
-sub printDomainKey{
-    my ($self) = shift;
-    #Okay - starting to use mm1 code, so it is not going to be nice
-    my $font_color = "#000000";
-    print qq (<center><table width=75% border=0 cellpadding=3 cellspacing=0> <tr bgcolor=\#dfdff7 CLASS=whitetableheader>
-	      <th><font color=$font_color NOWRAP>Domain Image Key (in order of priority)</th></tr><tr><td>);
-    
-    print "<table width=100% bgcolor=$Bio::Pfam::Web::PfamWWWConfig::pfamcolour border=0><tr>";
-    foreach my $order ($self->region_order){
-	next if($order =~ /disordered|scop|cath/);
-	print "<td class=normaltext valign=top height=30><center><font size=1>$order</font></center><center><img src=$Bio::Pfam::Web::PfamWWWConfig::WWW_root/gifs/$order.png border=0></center></td>";
-    }
-    print "</tr></table>";
-    print "<td></tr></table></center>";
-}
+#sub printDomainKey{
+#    my ($self) = shift;
+#    #Okay - starting to use mm1 code, so it is not going to be nice
+#    my $font_color = "#000000";
+#    print qq (<center><table width=75% border=0 cellpadding=3 cellspacing=0> <tr bgcolor=\#dfdff7 CLASS=whitetableheader>
+#	      <th><font color=$font_color NOWRAP>Domain Image Key (in order of priority)</th></tr><tr><td>);
+#    
+#    print "<table width=100% bgcolor=$Bio::Pfam::Web::PfamWWWConfig::pfamcolour border=0><tr>";
+#    foreach my $order ($self->region_order){
+#	next if($order =~ /disordered|scop|cath/);
+#	print "<td class=normaltext valign=top height=30><center><font size=1>$order</font></center><center><img src=$Bio::Pfam::Web::PfamWWWConfig::WWW_root/gifs/$order.png border=0></center></td>";
+#    }
+#    print "</tr></table>";
+#    print "<td></tr></table></center>";
+#}

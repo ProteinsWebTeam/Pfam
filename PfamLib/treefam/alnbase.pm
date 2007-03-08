@@ -18,6 +18,8 @@ who might prefer high-level interface in L<treefam::align> module.
 =cut
 
 use strict;
+use warnings;
+
 use Exporter;
 
 use vars qw(@ISA @EXPORT);
@@ -201,3 +203,9 @@ sub resolve_ol_domain
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

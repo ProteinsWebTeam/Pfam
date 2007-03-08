@@ -1,14 +1,15 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Image::Image;
 
 use strict;
+use warnings;
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 use Digest::MD5 qw(md5_hex);
 use GD;
 use Sanger::Graphics::ColourMap;
-
-use strict;
-use warnings;
 
 my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
 
@@ -1372,8 +1373,6 @@ sub print_image {
 
 
   my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
-#  my $root = "/home/rob/Work/PfamWeb/root";
-#  my $root = "/nfs/WWW/tmp/pfam/";
 
   my $root;
   if($ENV{PFAM_DOMAIN_IMAGES}) {

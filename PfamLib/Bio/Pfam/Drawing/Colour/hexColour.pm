@@ -1,6 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Colour::hexColour;
 
 use strict;
+use warnings;
 
 sub new {
   my $caller = shift;

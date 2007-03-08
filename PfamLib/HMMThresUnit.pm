@@ -12,7 +12,7 @@ use vars qw($AUTOLOAD @ISA @EXPORT_OK);
 use Exporter;
 use Carp;
 use strict;
-
+use warnings;
 #
 # Place functions/variables you want to *export*, ie be visible from the caller package into @EXPORT_OK
 #

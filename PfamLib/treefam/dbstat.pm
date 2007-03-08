@@ -1,6 +1,8 @@
 package treefam::dbstat;
 
 use strict;
+use warnings;
+
 use treefam::db;
 use Exporter;
 
@@ -195,3 +197,9 @@ sub guess_name
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

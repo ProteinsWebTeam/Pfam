@@ -1,6 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::DasLayoutManager;
 
 use strict;
+use warnings;
 use vars qw($AUTLOAD @ISA @EXPORT $VERSION);
 use Exporter;
 use Bio::Pfam::Drawing::Layout::LayoutManager;

@@ -1,5 +1,10 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::Config::SuperfamilyDasConfig;
 use strict;
+use warnings;
+
 use Bio::Pfam::Drawing::Layout::Config::GenericDasSourceConfig;
 use Data::Dumper;
 use vars qw($AUTOLOAD @ISA $VERSION);

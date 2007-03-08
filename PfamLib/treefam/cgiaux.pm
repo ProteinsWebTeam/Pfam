@@ -1,6 +1,8 @@
 package treefam::cgiaux;
 
 use strict;
+use warnings;
+
 use Exporter;
 use treefam::nhx;
 use treefam::cgi;
@@ -119,3 +121,9 @@ sub clean_a_bad_session
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

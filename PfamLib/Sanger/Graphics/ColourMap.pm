@@ -5,6 +5,7 @@
 #
 package Sanger::Graphics::ColourMap;
 use strict;
+use warnings;
 use Exporter;
 use vars qw(@ISA);
 @ISA = qw(Exporter);

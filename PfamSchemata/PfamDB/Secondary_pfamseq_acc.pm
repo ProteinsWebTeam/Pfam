@@ -1,10 +1,14 @@
 
+# $Id: Secondary_pfamseq_acc.pm,v 1.3 2007-03-08 14:16:30 jt6 Exp $
+#
+# $Author: jt6 $
+
 # Secondary_pfamseq_acc.pm
 # jt6 20060427 WTSI
 #
 # Model for the secondary_pfamseq_acc table.
 #
-# $Id: Secondary_pfamseq_acc.pm,v 1.2 2006-09-29 15:23:31 jt6 Exp $
+# $Id: Secondary_pfamseq_acc.pm,v 1.3 2007-03-08 14:16:30 jt6 Exp $
 
 package PfamDB::Secondary_pfamseq_acc;
 

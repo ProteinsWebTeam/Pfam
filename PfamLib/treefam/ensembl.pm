@@ -1,6 +1,8 @@
 package treefam::ensembl;
 
 use strict;
+use warnings;
+
 use DBI;
 use Exporter;
 
@@ -162,3 +164,9 @@ sub fetch_ens_pfam
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

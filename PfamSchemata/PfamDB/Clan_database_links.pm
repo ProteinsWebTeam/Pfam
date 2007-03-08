@@ -1,3 +1,7 @@
+
+# $Id: Clan_database_links.pm,v 1.3 2007-03-08 14:16:28 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Clan_database_links;
 
 use strict;

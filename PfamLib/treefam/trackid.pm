@@ -1,6 +1,8 @@
 package treefam::trackid;
 
 use strict;
+use warnings;
+
 use Exporter;
 use POSIX qw(dup2);
 use IPC::Open2;
@@ -173,3 +175,9 @@ sub track
 }
 
 1;
+
+=head1 AUTHOR
+
+Heng Li <lh3@sanger.ac.uk>
+
+=cut

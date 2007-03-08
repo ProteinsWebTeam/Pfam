@@ -1,6 +1,11 @@
+
+# $Author: jt6 $
+
 package Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig;
 
 use strict;
+use warnings;
+
 use Bio::Pfam::Drawing::Layout::Markup;
 use Bio::Pfam::Drawing::Colour::hexColour;
 use Bio::Pfam::Drawing::Colour::rgbColour;

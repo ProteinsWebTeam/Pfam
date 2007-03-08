@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.8 2007-01-31 13:45:11 jt6 Exp $
+# $Id: Root.pm,v 1.9 2007-03-08 14:14:59 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.8 2007-01-31 13:45:11 jt6 Exp $
+$Id: Root.pm,v 1.9 2007-03-08 14:14:59 jt6 Exp $
 
 =cut
 
@@ -100,10 +100,10 @@ sub auto : Private {
   #----------------------------------------
   # tack on a trailing slash, if required
 
-  if ( $c->req->path and $c->req->path !~ /\/$/ and not $c->req->param ) {
-    $c->res->redirect( $c->req->base . $c->req->path . "/", 301 );
-    return 0;
-  }
+#  if ( $c->req->path and $c->req->path !~ /\/$/ and not $c->req->param ) {
+#    $c->res->redirect( $c->req->base . $c->req->path . "/", 301 );
+#    return 0;
+#  }
 
   #----------------------------------------
   # pick a tab
@@ -129,12 +129,12 @@ Generates a graph showing Pfam coverage.
 
 =cut
 
-sub graph : Local {
-  my ( $this, $c ) = @_;
-
-  $c->res->header( "Content-Type" => "image/png" );
-  $c->stash->{template} = "components/graph.tt";
-}
+#sub graph : Local {
+#  my ( $this, $c ) = @_;
+#
+#  $c->res->header( "Content-Type" => "image/png" );
+#  $c->stash->{template} = "components/graph.tt";
+#}
 
 #-------------------------------------------------------------------------------
 

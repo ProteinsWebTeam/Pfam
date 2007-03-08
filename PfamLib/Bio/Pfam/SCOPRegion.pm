@@ -43,6 +43,7 @@ The rest of the documentation details each of the object methods. Internal metho
 
 =cut
 
+# $Author: jt6 $
 
 # Let the code begin...
 
@@ -50,6 +51,7 @@ The rest of the documentation details each of the object methods. Internal metho
 package Bio::Pfam::SCOPRegion;
 use vars qw($AUTOLOAD @ISA);
 use strict;
+use warnings;
 
 use Bio::Pfam::AnnotatedRegion;
 @ISA = qw(Bio::Pfam::AnnotatedRegion);

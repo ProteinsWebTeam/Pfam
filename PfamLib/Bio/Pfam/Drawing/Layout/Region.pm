@@ -20,11 +20,14 @@ Bio::Pfam::Drawing::Region( '-START' => $start,
 
 =cut
 
+# $Author: jt6 $
+
 # Let the code begin...
 package Bio::Pfam::Drawing::Layout::Region;
 use vars qw($AUTOLOAD $VERSION);
 $VERSION = "0.1";
 use strict;
+use warnings;
 use Bio::Pfam::Drawing::Colour::hexColour;
 use Bio::Pfam::Drawing::Colour::rgbColour;
 

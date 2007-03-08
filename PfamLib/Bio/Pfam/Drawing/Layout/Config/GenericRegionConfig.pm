@@ -1,7 +1,12 @@
 
+# $Author: jt6 $
+
+
 package Bio::Pfam::Drawing::Layout::Config::GenericRegionConfig;
 
 use strict;
+use warnings;
+
 use Bio::Pfam::Drawing::Layout::Region;
 use Bio::Pfam::Drawing::Colour::hexColour;
 use Bio::Pfam::Drawing::Colour::rgbColour;

@@ -1,3 +1,7 @@
+
+# $Id: PfamB_reg.pm,v 1.5 2007-03-08 14:16:27 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::PfamB_reg;
 
 use strict;

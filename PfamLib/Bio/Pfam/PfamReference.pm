@@ -3,11 +3,14 @@
 # Should be able to retrieve a reference based on pubmed id
 # and output Pfam, Rfam, miRNA formats
 #
+# $Author: jt6 $
 
 package Bio::Pfam::PfamReference;
 
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
+use warnings;
+
 use LWP;
 use Text::Wrap;
 

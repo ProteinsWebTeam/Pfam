@@ -1,3 +1,7 @@
+
+# $Id: Dead_families.pm,v 1.3 2007-03-08 14:16:30 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Dead_families;
 
 use strict;

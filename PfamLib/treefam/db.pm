@@ -28,6 +28,8 @@ operations are also included.
 =cut
 
 use strict;
+use warnings;
+
 use DBI;
 use Exporter;
 use treefam::generic qw/pretty_seq cigar2align/;

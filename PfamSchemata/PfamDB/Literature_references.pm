@@ -1,3 +1,7 @@
+
+# $Id: Literature_references.pm,v 1.3 2007-03-08 14:16:25 jt6 Exp $
+#
+# $Author: jt6 $
 package PfamDB::Literature_references;
 
 use strict;

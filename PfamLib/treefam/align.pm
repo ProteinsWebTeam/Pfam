@@ -25,6 +25,8 @@ treefam::align - alignment related utilities
 =cut
 
 use strict;
+use warnings;
+
 use Exporter;
 use treefam::generic qw(gopen align2cigar cigar2align pretty_seq);
 use treefam::tfbase qw(get_config);
