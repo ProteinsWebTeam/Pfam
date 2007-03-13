@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.28 2007-02-07 16:03:13 aj5 Exp $
+// $Id: pfFunctions.js,v 1.29 2007-03-13 10:35:08 jt6 Exp $
 
 //------------------------------------------------------------
 // code snippets in individual blocks will populate this object
@@ -53,17 +53,17 @@ highlight.mouseoverHandler = function( e ) {
   // get hold of the starting row, the one with the highlighted cell
   var startingRow;
   if( e.srcElement ) {
-	// get it the IE way...
-	startingRow = e.srcElement.parentNode;
+    // get it the IE way...
+    startingRow = e.srcElement.parentNode;
   } else if( e.target ) {
-	// and for the rest of the world...
-	startingRow = e.target.parentNode;
+    // and for the rest of the world...
+    startingRow = e.target.parentNode;
   }
 
   // if the mouseover event originates at a link node within a table
   // cell, we need to get the parent of the parent of the link node
   if( "td" == startingRow.nodeName || "TD" == startingRow.nodeName ) {
-	startingRow = startingRow.parentNode;
+    startingRow = startingRow.parentNode;
   }
 
   // these are the cells that we'll need to colour
@@ -77,17 +77,17 @@ highlight.mouseoverHandler = function( e ) {
   // and then, if this row isn't the full width of the table, recurse down
   // (actually, up) the previous rows and collect more cells to highlight
   if( startingCells.length < numColsTable ) {
-	this.walkRows( startingRow, cells );
+    this.walkRows( startingRow, cells );
   }
   // console.debug( "retrieved " + cells.flatten().length + " cells" );
 
   // highlight the collected cells
   cells.flatten().each( function( cell ) {
-						  Element.addClassName( cell, "stripeHover" );
-						  // console.debug( "added stripeHover for cell " + cell );
-						  highlightedCells.push( cell );
-						}
-					  );
+                          Element.addClassName( cell, "stripeHover" );
+                          // console.debug( "added stripeHover for cell " + cell );
+                          highlightedCells.push( cell );
+                        }
+                      );
   
 };
 
@@ -103,7 +103,7 @@ highlight.walkRows = function( startingRow, cells ) {
 
   // catch the empty events that come from, I think, table contents
   if( null == startingRow ) {
-	return;
+    return;
   }
 
   // find out how many columns are in the starting row
@@ -116,17 +116,17 @@ highlight.walkRows = function( startingRow, cells ) {
   var prevCols;
   var numCols;
   while( prevRow = thisRow.previousSibling ) {
-	if( prevRow.nodeType == 1 ) {
-	  // console.debug( "checking row " + prevRow.rowIndex );
-	  
-	  prevCols = prevRow.getElementsByTagName( "td" );
-	  numCols = prevCols.length;
-	  if( numCols == numColsTable ||
-		  numCols >  numColsStartingRow ) {
-		break;
-	  }
-	}
-	thisRow = prevRow;
+    if( prevRow.nodeType == 1 ) {
+      // console.debug( "checking row " + prevRow.rowIndex );
+      
+      prevCols = prevRow.getElementsByTagName( "td" );
+      numCols = prevCols.length;
+      if( numCols == numColsTable ||
+          numCols >  numColsStartingRow ) {
+        break;
+      }
+    }
+    thisRow = prevRow;
   }
   // console.debug( "previous longer row is row " + prevRow.rowIndex );
   
@@ -137,13 +137,13 @@ highlight.walkRows = function( startingRow, cells ) {
   // there are "numColsStartingRow" columns in the current row
   
   for( var i = 0; i < ( numCols - numColsStartingRow ); i++ ) {
-	cells.push( prevCols[i] );
+    cells.push( prevCols[i] );
   }
   // console.debug( "adding " + cells.length + " cells" );
   
   // see if we need to move on to previous rows in the table
   if( numCols < numColsTable ) {
-	this.walkRows( prevRow, cells );
+    this.walkRows( prevRow, cells );
   }
 };
   
@@ -154,9 +154,9 @@ highlight.walkRows = function( startingRow, cells ) {
   
 highlight.mouseoutHandler = function( e ) {
   highlightedCells.each( function( cell ) {
-						   Element.removeClassName( cell, "stripeHover" );
-						 }
-					   );
+                           Element.removeClassName( cell, "stripeHover" );
+                         }
+                       );
   
   // reset the array
   highlightedCells.clear();
@@ -172,32 +172,32 @@ function chooseTab() {
   // see if the showTab variable points to tab that actually exists in
   // the page
   if( $(showTab) ) {
-	// console.debug( "chooseTab: using param setting: " + showTab );
+    // console.debug( "chooseTab: using param setting: " + showTab );
 
-	// yes; show that tab
-	show( showTab );
+    // yes; show that tab
+    show( showTab );
 
   } else {
-	// console.debug( "chooseTab: no param setting; checking cookie" );
-	
-	// no; see if there's a cookie to tell us the last tab
-	var cookieTab = readCookie( "lastTab" );
-	// console.debug( "cookieTab: |" + cookieTab + "|" );
+    // console.debug( "chooseTab: no param setting; checking cookie" );
+    
+    // no; see if there's a cookie to tell us the last tab
+    var cookieTab = readCookie( "lastTab" );
+    // console.debug( "cookieTab: |" + cookieTab + "|" );
 
-	if( cookieTab && $(cookieTab) ) {
-	  // console.debug( "chooseTab: found a cookie; switching to |" + cookieTab + "|"  );
-	  
-	  // yes; show that tab
-	  show( cookieTab );
-	} else {
-	  // console.debug( "chooseTab: no cookie switching to default"  );
+    if( cookieTab && $(cookieTab) ) {
+      // console.debug( "chooseTab: found a cookie; switching to |" + cookieTab + "|"  );
+      
+      // yes; show that tab
+      show( cookieTab );
+    } else {
+      // console.debug( "chooseTab: no cookie switching to default"  );
 
-	  // no; get the first block in the page and show that instead
-	  var block = document.getElementsByClassName( "block" )[0];
-	  if( block && block.id ) {
-		show( block.id );
-	  }
-	}
+      // no; get the first block in the page and show that instead
+      var block = document.getElementsByClassName( "block" )[0];
+      if( block && block.id ) {
+        show( block.id );
+      }
+    }
   }
 }
 
@@ -209,21 +209,21 @@ function show( id ) {
 
   // show/hide the blocks themselves
   $$("#content div.block").each( function( block ) {
-								   if( id == block.id ) {
-									 block.style.display = "block";
-								   } else {
-									 Element.hide( block );
-								   }
-								 } );
+                                   if( id == block.id ) {
+                                     block.style.display = "block";
+                                   } else {
+                                     Element.hide( block );
+                                   }
+                                 } );
 
   // set the appropriate selector in the sidebar
   $$("#sidebar li").each( function( item ) {
-							if( id+"Selector" == item.id ) {
-							  Element.addClassName( item, "selected" );
-							} else {
-							  Element.removeClassName( item, "selected" );
-							}
-						  } );
+                            if( id+"Selector" == item.id ) {
+                              Element.addClassName( item, "selected" );
+                            } else {
+                              Element.removeClassName( item, "selected" );
+                            }
+                          } );
 
   // set a cookie to show the preference
   // console.debug( "pfFunctions.js:show: creating a cookie..." );
@@ -257,7 +257,7 @@ function highlightFeature( e ) {
   }
   // work around the Safari bug that causes a text node to be the target
   if( target.nodeType == 3 ) {
-	target = target.parentNode;
+    target = target.parentNode;
   }
 
   // this is the <map> that contains this <area>
@@ -276,9 +276,9 @@ function highlightFeature( e ) {
   var height = coords[3] - coords[1];
 
   var left = findPosX( image ) 
-	       + Number( coords[0] )
-	       - findPosX( $("featuresMap") ) 
-	       + $("featuresMap").offsetLeft;
+           + Number( coords[0] )
+           - findPosX( $("featuresMap") ) 
+           + $("featuresMap").offsetLeft;
 
   var top  = findPosY( image )
            + Number( coords[1] )
@@ -289,13 +289,13 @@ function highlightFeature( e ) {
 
   // position the div
   Element.setStyle( $("highlight"),
-					{
-					  "width":   width + "px",
-					  "height":  height + "px",
-					  "left":    left + "px",
-					  "top":     top + "px"
-					}
-				  );
+                    {
+                      "width":   width + "px",
+                      "height":  height + "px",
+                      "left":    left + "px",
+                      "top":     top + "px"
+                    }
+                  );
 
   // find the contents of the label for the row containing this feature
   var mapNum = target.parentNode.id.substring( 11 );
@@ -308,13 +308,13 @@ function highlightFeature( e ) {
   // retrieve a URL from the feature, if present, and set various
   // other bits and pieces...
   if( target.href ) {
-	highlightURL = target.href;
-	Element.addClassName( "highlight", "linked" );
-	ht.setHeader( label +" feature (click for details)" );
+    highlightURL = target.href;
+    Element.addClassName( "highlight", "linked" );
+    ht.setHeader( label +" feature (click for details)" );
   } else {
-	highlightURL = "";
-	Element.removeClassName( "highlight", "linked" );
-	ht.setHeader( label +" feature" );
+    highlightURL = "";
+    Element.removeClassName( "highlight", "linked" );
+    ht.setHeader( label +" feature" );
   }
 
   // "render" the tooltip, to make sure that the header and footer are
@@ -332,7 +332,7 @@ function highlightFeature( e ) {
 
 function openHighlightURL( e ) {
   if( highlightURL != "" ) {
-	window.open( highlightURL );
+    window.open( highlightURL );
   }
 }
 //----------------------------------------
@@ -388,14 +388,14 @@ function loadDomains( arch, index, uri, num ) {
   var continueLoad = ( num >= 50 ) ? confirm( msg ) : true;
 
   if( continueLoad ) {
-	['adSpinner' + arch + index,
-	 'loadSwitch' + index,
-	 'showHideArchs' + index ].each( Element.toggle );
+    ['adSpinner' + arch + index,
+     'loadSwitch' + index,
+     'showHideArchs' + index ].each( Element.toggle );
 
-	// and actually fire off a request to load the new graphics
-	new Ajax.Updater('domainArch' + index,
-					 uri,
-					 { asynchronous: 1 } );
+    // and actually fire off a request to load the new graphics
+    new Ajax.Updater('domainArch' + index,
+                     uri,
+                     { asynchronous: 1 } );
   }
 }
 
@@ -409,26 +409,26 @@ function chooseIds( letter ) {
   $( "domainSearchForm" ).disable();
   
   new Ajax.Updater( "idSelectionWrapper",
-					queryURI,
-					{
-					  parameters: "list=1&browse=" + letter,
-					  onComplete: function () {
-						            Element.hide("nlUpdateSpinner");
-									$( "domainSearchForm" ).enable();
+                    queryURI,
+                    {
+                      parameters: "list=1&browse=" + letter,
+                      onComplete: function () {
+                                    Element.hide("nlUpdateSpinner");
+                                    $( "domainSearchForm" ).enable();
                                   }
-					} );
+                    } );
 }
 
 // adds an ID from the selection list to another list, specified by the
 // argument
 function addId(listId) {
   if( $("idSelection").hasChildNodes() ) {
-	var selected = $("idSelection").selectedIndex;
-	if( selected >= 0 ) {
-	  var chosen = $("idSelection").options[selected];
-	  $("idSelection").removeChild( chosen );
-	  $(listId).appendChild( chosen );			
-	}
+    var selected = $("idSelection").selectedIndex;
+    if( selected >= 0 ) {
+      var chosen = $("idSelection").options[selected];
+      $("idSelection").removeChild( chosen );
+      $(listId).appendChild( chosen );            
+    }
   }
 }
 
@@ -436,33 +436,33 @@ function addId(listId) {
 // selection list
 function removeId(listId) {
   if( $(listId).hasChildNodes() ) {
-	var selected = $(listId).selectedIndex;
-	if( selected >= 0 ) {
-	  var chosen = $(listId).options[selected];
-	  $(listId).removeChild( chosen );
-	  $("idSelection").appendChild( chosen );
-	}
-  }			
+    var selected = $(listId).selectedIndex;
+    if( selected >= 0 ) {
+      var chosen = $(listId).options[selected];
+      $(listId).removeChild( chosen );
+      $("idSelection").appendChild( chosen );
+    }
+  }            
 }
 
 // constructs a list of the chosen IDs and submits the form
 function buildIdLists() {
 
   $A( $("have").options ).each( function( opt ) {
-								  var i = document.createElement( "input" );
-								  i.type  = "hidden";
-								  i.name  = "have";
-								  i.value = opt.value;
-								  $("domainSearchForm").appendChild( i );
-								} );
+                                  var i = document.createElement( "input" );
+                                  i.type  = "hidden";
+                                  i.name  = "have";
+                                  i.value = opt.value;
+                                  $("domainSearchForm").appendChild( i );
+                                } );
   
   $A( $("not").options ).each( function( opt ) {
-								  var i = document.createElement( "input" );
-								  i.type  = "hidden";
-								  i.name  = "not";
-								  i.value = opt.value;
-								  $("domainSearchForm").appendChild( i );
-							   } );
+                                  var i = document.createElement( "input" );
+                                  i.type  = "hidden";
+                                  i.name  = "not";
+                                  i.value = opt.value;
+                                  $("domainSearchForm").appendChild( i );
+                               } );
 
   $('domainSearchForm').submit();
 }
@@ -473,12 +473,12 @@ function dsStarted() {
   Element.show( "searchUpdateSpinner" );
   $( "domainSearchForm" ).disable();
 
-	var i = document.createElement( "input" );
+    var i = document.createElement( "input" );
   i.type  = "hidden";
   i.name  = "have";
   i.value = $A( $("have").options ).inject( '', 
                                             function( pars, i ) { 
-											  pars = i.value + " " + pars;
+                                              pars = i.value + " " + pars;
                                               return pars;
                                             } );
   $("domainSearchForm").appendChild( i );
@@ -487,7 +487,7 @@ function dsStarted() {
   i.type  = "hidden";
   i.name  = "not";
   i.value = $A( $("not").options ).inject( '',
-										   function( pars, i ) {
+                                           function( pars, i ) {
                                              pars = i.value + " " + pars;
                                              return pars;
                                            } );
@@ -504,11 +504,11 @@ function dsCompleted() {
 // reset the forms
 function resetDomainQueryForms() {
   [ "idSelection", "have", "not" ].each( function( list ) {
-										   log.debug( "resetting list \"" + list + "\"" );
-										   $A( $(list).childNodes ).each( function( n ) {
-																			$(list).removeChild( n );
-																		  } )
-											 } );
+                                           log.debug( "resetting list \"" + list + "\"" );
+                                           $A( $(list).childNodes ).each( function( n ) {
+                                                                            $(list).removeChild( n );
+                                                                          } )
+                                             } );
 }
 
 //------------------------------------------------------------
@@ -521,12 +521,12 @@ function resetDomainQueryForms() {
 function findPosX(obj) {
   var curleft = 0;
   if (obj.offsetParent) {
-	while (obj.offsetParent) {
-	  curleft += obj.offsetLeft
-		obj = obj.offsetParent;
-	}
+    while (obj.offsetParent) {
+      curleft += obj.offsetLeft
+        obj = obj.offsetParent;
+    }
   } else if (obj.x) {
-	curleft += obj.x;
+    curleft += obj.x;
   }
   return curleft;
 }
@@ -536,12 +536,12 @@ function findPosX(obj) {
 function findPosY(obj) {
   var curtop = 0;
   if (obj.offsetParent) {
-	while (obj.offsetParent) {
-	  curtop += obj.offsetTop
-		obj = obj.offsetParent;
-	}
+    while (obj.offsetParent) {
+      curtop += obj.offsetTop
+        obj = obj.offsetParent;
+    }
   } else if (obj.y) {
-	curtop += obj.y;
+    curtop += obj.y;
   }
   return curtop;
 }
@@ -552,17 +552,17 @@ function findPosY(obj) {
 
 function popUp( strURL, strType, strHeight, strWidth, strName ) {
   if( strName == "" ) {
-	strName = "newWin";
+    strName = "newWin";
   }
   var strOptions="";
   if( strType == "console" ) {
-	strOptions = "resizable,scrollbars,height="+strHeight+",width="+strWidth;
+    strOptions = "resizable,scrollbars,height="+strHeight+",width="+strWidth;
   }
   if( strType == "fixed" ) {
-	strOptions = "status,height="+strHeight+",width="+strWidth;
+    strOptions = "status,height="+strHeight+",width="+strWidth;
   }
   if( strType == "elastic") {
-	strOptions = "toolbar,menubar,scrollbars,resizable,location,height="+strHeight+",width="+strWidth;
+    strOptions = "toolbar,menubar,scrollbars,resizable,location,height="+strHeight+",width="+strWidth;
   }
   window.open( strURL, strName, strOptions );
 }
@@ -577,47 +577,47 @@ function popUp( strURL, strType, strHeight, strWidth, strName ) {
 
 function createCookie( name, value, time, path ) {
 
-    console.debug( "pfFunctions.js:createCookie: creating a cookie: |%s|%s|%s|%s|", name, value, time, path );
+  //console.debug( "pfFunctions.js:createCookie: creating a cookie: |%s|%s|%s|%s|", name, value, time, path );
 
   // was there a time specified ?
   var expires = "";
   if( time ) {
 
-	try {
-	  var interval = time.charAt( time.length - 1 );
+    try {
+      var interval = time.charAt( time.length - 1 );
 
-	  // if the interval isn't specified, we default to "minutes" and
-	  // treat the whole of the period string as the period value
-	  var period;
-	  if( interval != "d" && interval != "h" && interval != "m" ) {
-		period = time.substring( 0, time.length );
-	  } else {
-		period = time.substring( 0, time.length - 1 );
-	  }
+      // if the interval isn't specified, we default to "minutes" and
+      // treat the whole of the period string as the period value
+      var period;
+      if( interval != "d" && interval != "h" && interval != "m" ) {
+        period = time.substring( 0, time.length );
+      } else {
+        period = time.substring( 0, time.length - 1 );
+      }
 
-	  // choose the multiplier - defaults to "minutes"
-	  var multiplier;
-	  switch( interval ) {
-	    case 'd': multiplier = period * 1000 * 60 * 60 * 24; break
-	    case 'h': multiplier = period * 1000 * 60 * 60;      break
-	    case 'm': multiplier = period * 1000 * 60;           break
-	    default:  multiplier = period * 1000 * 60;           break
-   	  }
+      // choose the multiplier - defaults to "minutes"
+      var multiplier;
+      switch( interval ) {
+        case 'd': multiplier = period * 1000 * 60 * 60 * 24; break
+        case 'h': multiplier = period * 1000 * 60 * 60;      break
+        case 'm': multiplier = period * 1000 * 60;           break
+        default:  multiplier = period * 1000 * 60;           break
+      }
 
-	  // set the expiry date
-	  var date = new Date();
-	  date.setTime( date.getTime() + multiplier );
-	  var dateString = date.toUTCString();
-	  
-	  // make sure it's valid, just in case
-	  if( dateString != "Invalid Date" ) {
-		expires = "; expires=" + dateString;
-	  }
+      // set the expiry date
+      var date = new Date();
+      date.setTime( date.getTime() + multiplier );
+      var dateString = date.toUTCString();
+      
+      // make sure it's valid, just in case
+      if( dateString != "Invalid Date" ) {
+          expires = "; expires=" + dateString;
+      }
 
-	} catch( e ) {
-	  // default to a session cookie if something went wrong
-	  expires = "";
-	}
+    } catch( e ) {
+      // default to a session cookie if something went wrong
+      expires = "";
+    }
   }
 
   // was there a path specified ?
@@ -625,12 +625,12 @@ function createCookie( name, value, time, path ) {
 
   // add the cookie
   var cookieBody = name + "=" + value + expires + "; path=" + path;
-  console.debug( "pfFunctions.js:createCookie: cookie body: |" + cookieBody + "|" );
-    try {
-	document.cookie = cookieBody;
-    } catch(e) {
-        // console.error( "pfFunctions.js:createCookie: couldn't create cookie: " + e );
-    }
+  // console.debug( "pfFunctions.js:createCookie: cookie body: |" + cookieBody + "|" );
+  try {
+      document.cookie = cookieBody;
+  } catch(e) {
+    // console.error( "pfFunctions.js:createCookie: couldn't create cookie: " + e );
+  }
 }
 
 //----------------------------------------
@@ -639,13 +639,13 @@ function readCookie( name ) {
   var nameEQ = name + "=";
   var ca = document.cookie.split( ';' );
   for( var i=0; i < ca.length; i++ ) {
-	var c = ca[i];
-	while( c.charAt( 0 ) == ' ' ) {
-	  c = c.substring( 1, c.length );
-	}
-	if( c.indexOf( nameEQ ) == 0 ) {
-	  return c.substring( nameEQ.length, c.length );
-	}
+    var c = ca[i];
+    while( c.charAt( 0 ) == ' ' ) {
+      c = c.substring( 1, c.length );
+    }
+    if( c.indexOf( nameEQ ) == 0 ) {
+      return c.substring( nameEQ.length, c.length );
+    }
   }
   return null;
 }
@@ -656,30 +656,5 @@ function readCookie( name ) {
 function eraseCookie( name ) {
   createCookie( name, "", -1 );
 }
-
-//------------------------------------------------------------
-// re-configure the yahoo tooltips
-
-// make the tip follow the cursor
-YAHOO.widget.Tooltip.prototype.onContextMouseMove = function(e, obj) {
-  obj.pageX = YAHOO.util.Event.getPageX(e);
-  obj.pageY = YAHOO.util.Event.getPageY(e);
-  obj.moveTo(obj.pageX, obj.pageY + 20);
-};
-
-// alter the initial configuration of the tips, mainly the delays
-YAHOO.widget.Tooltip.prototype.initDefaultConfig = function() {
-  YAHOO.widget.Tooltip.superclass.initDefaultConfig.call(this);
-
-  this.cfg.addProperty("preventoverlap",   	{ value:true, validator:this.cfg.checkBoolean, supercedes:["x","y","xy"] } );
-  
-  this.cfg.addProperty("showdelay",			{ value:250, handler:this.configShowDelay, validator:this.cfg.checkNumber } );
-  this.cfg.addProperty("autodismissdelay",	{ value:5000, handler:this.configAutoDismissDelay, validator:this.cfg.checkNumber } );
-  this.cfg.addProperty("hidedelay",			{ value:20, handler:this.configHideDelay, validator:this.cfg.checkNumber } );
-  
-  this.cfg.addProperty("text",				{ handler:this.configText, suppressEvent:true } );
-  this.cfg.addProperty("container",			{ value:document.body, handler:this.configContainer } );
-
-};
 
 //------------------------------------------------------------

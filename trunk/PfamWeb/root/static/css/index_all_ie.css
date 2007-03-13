@@ -1,0 +1,20 @@
+
+/* index_all_ie.css
+   jt6 20070312 WTSI.
+
+   Stylesheet for the index page to apply various fixes for IE wrinkles. This
+   should be those styles which are applicable to all versions of IE
+   
+   $Id: index_all_ie.css,v 1.1 2007-03-13 10:35:08 jt6 Exp $
+*/
+
+/* get rid of the image that adds the background gradient */
+#indexIcons img {
+  display: none;
+}
+
+/* fix the transparency on the "Go" button for the jump box */
+#goButton {
+    background-image: none;
+    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/go.png",sizingMethod="crop");
+}
