@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.26 2007-01-22 14:57:53 jt6 Exp $
+# $Id: wrapper.tt,v 1.27 2007-03-13 10:32:59 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -13,6 +13,8 @@ ELSE;
 
 # no; add some sort of wrapper around it, but figure out whether we need
 # the tab footer or full page footer later on
+
+requirements.bar = 1;
 -%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 

@@ -1,3 +1,4 @@
+
 [%
 # species.tt
 # jt6 20060411 WTSI
@@ -5,7 +6,23 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.13 2007-03-08 14:22:32 jt6 Exp $
+# $Id: species.tt,v 1.14 2007-03-13 10:33:00 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# YUI stuff - this is for the tree viewer
+requirements.css.push( "tree.css" );
+requirements.js.push( "yui/yahoo.js" );
+requirements.js.push( "yui/dom.js" );
+requirements.js.push( "yui/event.js" );
+requirements.js.push( "yui/treeview.js" );
+requirements.js.push( "yui/TaskNode.js" );
+requirements.js.push( "treeTweak.js" );
+
+#-------------------------------------------------------------------------------
 %]
 
 <!-- start species block -->

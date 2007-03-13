@@ -4,10 +4,22 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.15 2007-02-14 16:02:45 jt6 Exp $
+# $Id: index.tt,v 1.16 2007-03-13 10:32:59 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+UNLESS requirements;
+  requirements = { css = []
+                   cssIe =[] };
+END; 
+requirements.css.push( "index.css" );
+requirements.cssIeAll.push( "index_all_ie.css" );
+
+#-------------------------------------------------------------------------------
 
 # format the date nicely
 USE date( format = "%b %Y" );
@@ -18,12 +30,11 @@ d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
 release_date = String.new( "00:00:00 " );
 CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 
+# a warning message for users who don't have javascript turned on. The 
+# message should be hidden immediately after it's displayed, but if 
+# javascript is not working, the prototype call will fail and the message
+# will stay visible
 %]
-
-[%# a warning message for users who don't have javascript turned on. The 
-  # message should be hidden immediately after it's displayed, but if 
-  # javascript is not working, the prototype call will fail and the message
-  # will stay visible %]
 <div id="jsWarning">
   <strong>Please note:</strong> this site relies heavily on the use of javascript. 
   Without a javascript-enabled browser, this site will not function correctly. 

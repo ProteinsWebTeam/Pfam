@@ -1,12 +1,23 @@
+
 [%
 # annotation.tt
 # jt6 20061020 WTSI
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.3 2006-11-27 16:25:29 jt6 Exp $
+# $Id: annotation.tt,v 1.4 2007-03-13 10:32:59 jt6 Exp $
 
 META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
 
 IF success -%]
 

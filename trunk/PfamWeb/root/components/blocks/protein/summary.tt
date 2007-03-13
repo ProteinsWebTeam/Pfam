@@ -1,24 +1,32 @@
 
-[%#
+[%
 # summary.tt
 # jt6 20060427 WTSI
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.10 2007-02-14 11:40:06 rdf Exp $
-%]
+# $Id: summary.tt,v 1.11 2007-03-13 10:33:00 jt6 Exp $
 
-[% USE String %]
+USE String;
 
-[%# see family summary.tt for the explanation for this snippet... %]
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
 
+PROCESS "components/require.tt";
+
+requirements.css.push( "protein.css" );
+requirements.cssIe.push( "protein_ie.css" );
+
+requirements.js.push( "protein.js" );
+
+#-------------------------------------------------------------------------------
+
+# see family summary.tt for the explanation for this snippet... %]
 <script type="text/javascript">
   Event.observe( window, "load", proteinPostLoad, false );
 </script>
 
 <!-- start protein summary block -->
-
-
 
 <div class="block" id="proteinSummaryBlock">
   <div class="handle">
@@ -26,66 +34,62 @@
   </div>
   <div class="blockContent">
 
-	<div class="explanatoryText">
-		<p>Overview of the protein, containing details from the <a class="ext" href="http://www.uniprot.org/">UniProt</a>  
-		entry and a graphical view of the Pfam domain organisation. HELLO</p>	
-	</div>
-
+    <div class="explanatoryText">
+      <p>Overview of the protein, containing details from the <a class="ext" href="http://www.uniprot.org/">UniProt</a>  
+      entry and a graphical view of the Pfam domain organisation. HELLO</p>  
+    </div>
 
     [% oe = 0 %]
 
     <table class="layout">
-	  <tbody>
+      <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-		  <td class="label">Entry:</td>
-	      <td class="data">
-            <span class="ext">
-              <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_acc %]</a>)
-            </span>
-          </td>
-		</tr>
+          <td class="label">Entry:</td>
+          <td class="data">
+              <span class="ext">
+                <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_acc %]</a>)
+              </span>
+            </td>
+        </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-		  <td class="label">Description:</td>
-	      <td class="data">
+          <td class="label">Description:</td>
+          <td class="data">
             [% pfamseq.description %]
           </td>
-		</tr>
+        </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-		  <td class="label">Source organism:</td>
-	      <td class="data">
-            [% IF pfamseq.ncbi_code %]
+        <td class="label">Source organism:</td>
+          <td class="data">
+          [% IF pfamseq.ncbi_code %]
             <span class="ext">
-	          <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.ncbi_code %]</a>)
+              <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.ncbi_code %]</a>)
             </span>
-            [% ELSE %]	
-	          [% pfamseq.species %]
+            [% ELSE %]  
+              [% pfamseq.species %]
             [% END %]
-			[% IF genomeCode %]
+            [% IF genomeCode %]
               <br />
               <a href="[% c.uri_for( "/genome" ncbiCode=genomeCode ) %]">View</a> Pfam genome data.
-			[% END %]
+            [% END %]
           </td>
-		</tr>
+        </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-		  <td class="label">Length:</td>
-	      <td class="data">
+          <td class="label">Length:</td>
+          <td class="data">
             [% pfamseq.length %] amino acids
           </td>
-		</tr>
+        </tr>
       </tbody>
-	</table>
-	<div class="summaryGraphic">
-      	
-    [% image = pfamImageset.each_image %]
-      
-    [% CALL image.print_image %]
-      
-    <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/><br/>
-      
-    <map name="singleImageMap">
-      [% image.image_map %]
-    </map>
-	 </div>
+    </table>
+
+    <div class="summaryGraphic">
+    [% image = pfamImageset.each_image;
+    CALL image.print_image %]
+      <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/><br/>      
+      <map name="singleImageMap">
+        [% image.image_map %]
+      </map>
+    </div>
   </div> <!-- end of "blockContent" -->
 </div>
 

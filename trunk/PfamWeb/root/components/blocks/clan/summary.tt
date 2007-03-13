@@ -1,14 +1,28 @@
 
-[%#
+[%
 # summary.tt
 # jt6 20060424 WTSI
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.7 2006-10-03 14:04:07 jt6 Exp $
-%]
+# $Id: summary.tt,v 1.8 2007-03-13 10:33:00 jt6 Exp $
 
-[%# add an observer to trigger post-loading of the graphics %]
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "clans.css" );
+requirements.cssIe.push( "clans_ie.css" );
+
+requirements.js.push( "clans.js" );
+
+# we also need "stSuccess", from the family section
+requirements.js.push( "family.js" );
+
+#-------------------------------------------------------------------------------
+
+# add an observer to trigger post-loading of the graphics %]
 <script type="text/javascript">
   Event.observe( window, "load", clanPostLoad, false );
 </script>

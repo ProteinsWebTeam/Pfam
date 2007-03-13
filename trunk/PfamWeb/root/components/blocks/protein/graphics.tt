@@ -1,11 +1,26 @@
 
-[%#
+[%
 # graphics.tt
 # jt6 20060502 WTSI
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.14 2007-02-07 16:01:40 aj5 Exp $
+# $Id: graphics.tt,v 1.15 2007-03-13 10:33:00 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# YUI stuff - this is for tooltips
+requirements.css.push( "tree.css" );
+requirements.js.push( "yui/yahoo.js" );
+requirements.js.push( "yui/dom.js" );
+requirements.js.push( "yui/event.js" );
+requirements.js.push( "yui/container.js" );
+requirements.js.push( "ttTweak.js" );
+
+#-------------------------------------------------------------------------------
 -%]
 
 <!-- start protein graphics block -->

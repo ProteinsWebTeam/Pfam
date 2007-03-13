@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.17 2007-03-08 14:23:02 jt6 Exp $
+# $Id: head.tt,v 1.18 2007-03-13 10:32:59 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -20,117 +20,90 @@
       title="Pfam News" />
 
 <!-- ====================================================================== -->
-<!-- stylesheets -->
+<!-- load the common javascript files first -->
 
+<!-- scriptaculous and prototype -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js?load=effects" ) %]"></script>
+
+<!-- local javascript -->
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
+
+<!-- ====================================================================== -->
+<!-- load dynamically required stylesheets and javascript files-->
+[%
+# store the base URI so we avoid calling c.uri_for as often, remembering to trim 
+# off the trailing slash from the base URI
+baseUri = String.new( c.req.base );
+base = baseUri.chop;
+
+# somewhere to aggregate the lists of requirements from all templates
+cssIncludes = [];
+cssIeIncludes = [];
+cssIeAllIncludes = [];
+jsIncludes  = [];
+
+# merge the requirements
+FOREACH key IN requirements.keys;
+  SWITCH key;
+    CASE "css";
+      FOREACH stylesheet IN requirements.css;
+        cssIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
+      END;
+    CASE "ie_css";
+      FOREACH stylesheet IN requirements.css;
+        cssIeIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
+      END;
+    CASE "ie_all_css";
+      FOREACH stylesheet IN requirements.css;
+        cssIeAllIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
+      END;
+    CASE "js";
+      FOREACH js IN requirements.js;
+        jsIncludes.push( "<script type=\"text/javascript\" src=\"$base/javascripts/$js\"></script>" );
+      END;
+  END; # of SWITCH
+END; %]
+
+<!-- global stylesheet -->
 <link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/lightbox.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/forms.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/alignment.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout.css" ) %]" type="text/css" />
-[% IF layouts.${pageType}.css.global -%]
-  [% css = layouts.${pageType}.css.global -%]
-  <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
-[% END -%]
 
-<!-- styles applicable to all versions of IE -->
-<!--[if IE ]>
-<link rel="stylesheet" href="[% c.uri_for( "/css/pfam_all_ie.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_all_ie.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/forms_all_ie.css" ) %]" type="text/css" />
-<![endif]-->
+<!-- template requirements -->
+[% # and dump out the uniquified requirements
+FOREACH stylesheet IN cssIncludes.unique %]
+  [% stylesheet;
+END %]
 
 <!-- styles applicable to IE6 and below -->
 <!--[if lt IE 7 ]>
-<link rel="stylesheet" href="[% c.uri_for( "/css/pfam_ie.css" ) %]" type="text/css" />
-<link rel="stylesheet" href="[% c.uri_for( "/css/tab_layout_ie.css" ) %]" type="text/css" />
-[% # stylesheets for individual page types are currently assumed to be applicable
-   # to IE6 and below
-IF layouts.${pageType}.css.ie;
-  css = layouts.${pageType}.css.ie -%]
-  <link rel="stylesheet" href="[% c.uri_for( "/css/${css}" ) %]" type="text/css" />
-[% END -%]
+<link rel="stylesheet" href="[% base %]/css/pfam_ie.css" type="text/css" />
+[% FOREACH stylesheet IN cssIeIncludes.unique %]
+  [% stylesheet;
+END %]
 <![endif]-->
+
+<!-- styles applicable to all versions of IE -->
+<!--[if IE ]>
+<link rel="stylesheet" href="[% base %]/css/pfam_all_ie.css" type="text/css" />
+[% FOREACH stylesheet IN cssIeAllIncludes.unique %]
+  [% stylesheet;
+END %]
+<![endif]-->
+
+[% FOREACH script IN jsIncludes.unique %]
+  [% script;
+END;
+
+-%]
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
 <link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
 
 <!-- ====================================================================== -->
-
-[% # see if we can use compressed javascript sources
-IF constants.PRODUCTION;
-CALL c.log.info( "head.tt: loading PRODUCTION versions of javascript files " ) -%]
-
-<!-- load the compressed and merged javascript sources -->
-
-<!-- YAHOO modules and an associated stylesheet -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yahoo.compressed.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yuiTweak.js" ) %]"></script>
-<link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
-
-<!-- prototype and scriptaculous -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.compressed.js" ) %]"></script>
-
-<!-- local javascript -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/pf.compressed.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/family.js" ) %]"></script>
-
-[% ELSE;
-CALL c.log.info( "head.tt: loading DEVELOPMENT versions of javascript files" ) -%]
-
-<!-- load the separate, uncompressed javascript sources --> 
-
-<!-- YAHOO modules -->
-[%# TODO: look into loading these directly from Yahoo servers %]
-
-<!-- Namespace source file -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/yahoo.js" ) %]"></script>
-
-<!-- Dependency source files -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/dom.js" ) %]" ></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/event.js" ) %]" ></script>
-
-<!-- TreeView widget -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/treeview.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/TaskNode.js" ) %]"></script>
-<link rel="stylesheet" type="text/css" href="[% c.uri_for( "/css/tree.css" ) %]" />
-
-<!-- tooltips -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yui/container.js" ) %]"></script>
-
-
-<!-- scriptaculous and prototype -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js" ) %]"></script>
-
-<!-- local javascript -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/clans.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/family.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/protein.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/pfamb.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/structure.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/yuiTweak.js" ) %]"></script>
-
-[% END # of "if production" %]
-
-<!-- ====================================================================== -->
-<!-- the remaining javascript components -->
-
-<!-- the lightbox script -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/lightbox.js" ) %]"></script>
-
-<!-- jmol -->	
-<script type="text/javascript" src="[% c.uri_for( "/jmol/Jmol.js" ) %]"></script>
-
-<!-- firebug lite -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/firebug/firebugx.js" ) %]"></script>
-
-<!-- sortable tables -->
-<script type="text/javascript" src="[% c.uri_for("/javascripts/sorttable.js" ) %]"></script>
-
 <!-- build the menus... -->
+
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/jimmac.js" ) %]"></script>
 <script type="text/javascript">
   new ypSlideOutMenu("menu2","down",273,-2,100,125);
