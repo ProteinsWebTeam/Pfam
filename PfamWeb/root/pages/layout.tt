@@ -1,13 +1,29 @@
+
 [%
 # layout.tt
 # jt6 20060406 WTSI
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.13 2007-01-15 16:25:05 jt6 Exp $
+# $Id: layout.tt,v 1.14 2007-03-13 10:32:59 jt6 Exp $
 
 USE String;
 USE date;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+UNLESS requirements;
+  requirements = { css = []
+                   cssIe =[]
+                   cssIeAll =[] };
+END; 
+
+requirements.css.push( "tab_layout.css" );
+requirements.cssIe.push( "tab_layout_ie.css" );
+requirements.cssIeAll.push( "tab_layout_all_ie.css" );
+
+#-------------------------------------------------------------------------------
 
 # this is a store for tooltip information that will be used to write the 
 # javascript that actually generates the tooltip objects. This needs to be in

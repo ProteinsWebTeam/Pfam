@@ -4,9 +4,18 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.2 2006-10-18 12:29:36 jt6 Exp $
+# $Id: jmol.tt,v 1.3 2007-03-13 10:32:59 jt6 Exp $
 
-# tell the wrapper not to add any header or footer. We'll generate a complete 
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "jmol/jmol.js" );
+
+#-------------------------------------------------------------------------------
+
+# tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
 META naked = 1;
 

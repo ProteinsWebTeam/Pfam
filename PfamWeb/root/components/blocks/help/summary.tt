@@ -1,10 +1,20 @@
+
 [%
 # summary.tt
 # jt6 20060925 WTSI
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.3 2006-10-02 12:29:08 jm14 Exp $
+# $Id: summary.tt,v 1.4 2007-03-13 10:33:01 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "help.css" );
+
+#-------------------------------------------------------------------------------
 %]
 
 <!-- start summary block -->

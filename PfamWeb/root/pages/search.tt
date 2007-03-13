@@ -4,15 +4,28 @@
 # 
 # search results page
 #
-# $Id: search.tt,v 1.5 2006-11-15 13:06:58 jt6 Exp $
+# $Id: search.tt,v 1.6 2007-03-13 10:32:59 jt6 Exp $
 
 META title = "Keyword search results";
-META fullPage = 1
--%]
+META fullPage = 1;
 
-<!-- script type="text/javascript">
-  Event.observe( window, "load", initializeFunctions, false );
-</script -->
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+UNLESS requirements;
+  requirements = { css      = []
+                   cssIe    = []
+                   js       = [] };
+END; 
+
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+requirements.js.push( "sorttable.js" );
+
+#-------------------------------------------------------------------------------
+
+-%]
 
 <div id="results">
 
@@ -20,9 +33,9 @@ META fullPage = 1
 
     <h2>Search results</h2>
 
-    [% rowNums = {} %]
-    [% hitsSummary = BLOCK %]
-      [% hitPlugins = 0 %]
+    [% rowNums = {};
+    hitsSummary = BLOCK;
+      hitPlugins = 0 %]
       <table id="keyTable">
         <thead>
           <tr class="titleRow">
@@ -32,30 +45,31 @@ META fullPage = 1
           </tr>
         </thead>
         <tbody>
-        [% FOREACH pluginName IN pluginsArray %]
-    	  [% rowNums.$pluginName = 0 %]
+        [% FOREACH pluginName IN pluginsArray;
+          rowNums.$pluginName = 0 %]
           <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
             <td>[% pluginName %]</td>
             <td class="desc">[% pluginsHash.$pluginName %]</td>
             <td>[% pluginHits.$pluginName || 0 %]</td>
           </tr>
           [% # keep track of the number of plugins that returned results
-             IF pluginHits.$pluginName; hitPlugins = hitPlugins + 1; END
-          %]
-        [% END %]
+          IF pluginHits.$pluginName;
+            hitPlugins = hitPlugins + 1; 
+          END;
+        END; # of FOREACH %]
         </tbody>
       </table>
     [% END %]
 
     <p>
-      We found <strong>[% results.size %]</strong> results for your query 
+      We found <strong>[% results.size %]</strong> unique results for your query 
       (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
       sections of the database.
       [% IF lookupHit %]
-	  Your query also appears to be a match for Pfam entry
-      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
+        Your query also appears to be a match for Pfam entry
+        <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
         [% lookupHit.pfamA_id %]</a></em>
-	  (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
+        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
         [% lookupHit.pfamA_acc %]</a>) and this row is <span class="highlight">highlighted</span> in the results table.
       [% END %]
     </p>
@@ -81,11 +95,11 @@ META fullPage = 1
         <th>Accession</th>
         <th>ID</th>
         <th class="nosort">Description</th>
-        [% FOREACH pluginName IN pluginsArray %]
-          [% IF pluginHits.$pluginName %]
+        [% FOREACH pluginName IN pluginsArray;
+          IF pluginHits.$pluginName %]
           <th>[% pluginName %]</th>
-          [% END %]
-        [% END %]
+          [% END;
+        END %]
       </tr>
     </thead>
     <tbody>
@@ -97,16 +111,16 @@ META fullPage = 1
         <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% acc %]</a></td>
         <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% id %]</a></td>
         <td class="desc">[% row.dbObj.description %]</td>
-        [% FOREACH pluginName IN pluginsArray %]
-          [% IF pluginHits.$pluginName %]
-            [% IF row.query.$pluginName %]
+        [% FOREACH pluginName IN pluginsArray;
+          IF pluginHits.$pluginName;
+            IF row.query.$pluginName %]
               <td class="ticked fixedWidth"><p>[% rowNums.$pluginName %]</p></td>
-              [%- rowNums.$pluginName = rowNums.$pluginName + 1 -%]
-            [% ELSE %]
+              [%- rowNums.$pluginName = rowNums.$pluginName + 1;
+            ELSE %]
               <td class="fixedWidth"><p>10000000</p></td>
-            [% END %]
-          [% END %]
-        [% END %]
+            [% END;
+          END;
+        END %]
       </tr>
       [% END %]
     </tbody>

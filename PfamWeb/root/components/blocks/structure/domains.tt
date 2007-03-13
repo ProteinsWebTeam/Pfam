@@ -1,39 +1,16 @@
+
 [%
 # domains.tt
 # jt6 20060706 WTSI
 # 
 # build the structural domains block for structures
 #
-# $Id: domains.tt,v 1.4 2006-10-18 12:24:52 jt6 Exp $
+# $Id: domains.tt,v 1.5 2007-03-13 10:33:00 jt6 Exp $
 
-META naked = 1
+META naked = 1;
 -%]
 
 <!-- start domains block -->
-
-[% IF 0 %]
-
-[% images = domainImages.each_image %]
-
-[% FOREACH i IN [ 0 .. 2 ] %]
-<h3>[% seqMapping.${i} %]</h3>
-
-[% image = images.$i %]
-
-<img class="domainImage"	
-     src="[% constants.tmp %]/[% image.file_location %]"
-     usemap="#graphicsMap[% i %]"
-     alt="" />
-<div class="cleaner">&nbsp;</div>
-
-<map name="graphicsMap[% i %]">
-  [% image.image_map %]
-</map>		
-
-[% END %]
-
-[% END # of IF 0 %]
-
 [% FOREACH image IN domainImages.each_image %]
 
 <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
