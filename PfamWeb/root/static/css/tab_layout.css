@@ -1,11 +1,11 @@
 
-/* tab_layout
+/* tab_layout.css
    jt6 20060418 WTSI
 
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.22 2007-03-01 11:47:33 jt6 Exp $
+   $Id: tab_layout.css,v 1.23 2007-03-13 10:35:08 jt6 Exp $
 */   
 
 /* ======================================== */
@@ -214,27 +214,6 @@ form {
 }
 
 /* ---------------------------------------- */
-/* error page styles */
-
-div.errorReport {
-	width: 50%;
-  margin: 1em auto;
-	background: #EEE;
-  border: 1px solid #CCC;
-}
-
-div.errorReport p {
-	padding: 0.5em;
-  margin: 0;
-}
-
-div.errorReport p.message {
-  font-weight: bold;
-  color: #833;
-  margin-left: 2em;
-}
-
-/* ---------------------------------------- */
 /* search errors page */
 
 #tips {
@@ -270,10 +249,6 @@ p.back a {
 /* ======================================== */
 /* general styles for "blocks" */
 
-img {
-  border: none;
-}
-
 div.block {
   margin: 0.4em;
   display: none;
@@ -300,18 +275,6 @@ div.blockContent {
 h3.inset {
   margin: 0.2em 0 0.4em 0;
   padding-top: 1em;
-}
-
-img.info {
-  vertical-align: middle;
-}
-
-.odd {
-  background: #f3f3f3;
-}
-
-.even {
-  background: #e7e7e7;
 }
 
 div.blockContent dt.label {

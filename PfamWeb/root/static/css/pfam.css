@@ -4,8 +4,10 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.34 2007-03-01 11:47:32 jt6 Exp $
+   $Id: pfam.css,v 1.35 2007-03-13 10:35:08 jt6 Exp $
 */   
+
+/* global or widely used classes */
 
 body {
 	font-family: arial, helvetica, sans-serif;
@@ -38,6 +40,22 @@ a:hover,
 a:focus,
 a:active {
   color: #074987;
+}
+
+img {
+  border: none;
+}
+
+img.info {
+  vertical-align: middle;
+}
+
+.odd {
+  background: #f3f3f3;
+}
+
+.even {
+  background: #e7e7e7;
 }
 
 /* ======================================== */
@@ -283,6 +301,43 @@ div.menuContent {
     padding: 0.4em;
 }
 
+/* the logos, which are used for the overview in the index page as well as
+   in all tab layout pages */
+
+#seqIcon	{ background-image: url(/catalyst/pfam/images/logos/alignment.png) }
+#archIcon	{ background-image: url(/catalyst/pfam/images/logos/domains.png) }
+#structIcon	{ background-image: url(/catalyst/pfam/images/logos/structure.png) }
+#ipfamIcon	{ background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
+#specIcon	{ background-image: url(/catalyst/pfam/images/logos/tree.png) }
+
+/* widgets in the jump box */
+
+#entry {
+	border: 1px inset #074987;
+	background: #cbdced url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/search_gradient.png);
+	width: 110px; /* set to 145px for the right sidebar on the index page */
+	margin: 1px 0;
+	padding: 2px;
+	color: #074987;
+	font-weight: bold;
+	font-size: x-small;
+	float: left;
+}
+
+#goButton {
+	width: 33px;
+	height: 20px;
+    font-size: 1px;
+	background-position: right;
+	background-repeat: no-repeat;
+	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/go.png);
+	border: none;
+	vertical-align: middle;
+	margin: 1px;
+	cursor: pointer;
+	float: left
+}
+
 /* ======================================== */
 /* the footer. We use a wrapper div (#contentContainer) for the content
    when the page contains tabs, so add a separate style for that which 
@@ -324,318 +379,24 @@ div.menuContent {
 }
 
 /* ======================================== */
-/* index page */
+/* error page styles */
 
-/* page layout */
-
-#outerIndexWrapper {
-	background: #fff url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y 172px;
-}
-
-#innerIndexWrapper {
-	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y right;
+div.errorReport {
+	width: 50%;
+  margin: 1em auto;
+	background: #EEE;
+  border: 1px solid #CCC;
 }
 
-#innerIndexWrapper hr {
-	width: 100%;
-	height: 1px;
-	border: none;
-	border-top: 1px solid #cbdced;
+div.errorReport p {
+	padding: 0.5em;
+  margin: 0;
 }
 
-#indexContainer {
-	width: 100%;
-	float: left;
-	margin-right: -200px;
-	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y right;
-}
-
-#indexContents {
-	margin-right: 202px;
-	background: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/left_bg.gif) repeat-y 172px;
-}
-
-#indexBody {
-	margin-left: 177px;
-}
-
-#indexBody em {
-	font-weight: bold;
-	font-style: normal;
-}
-
-div.middleComponent {
-	margin: 0.4em;
-}
-
-div.middleComponent h1 {
-	margin: 0.4em 0;
-	font-weight: bold;
-	font-size: large;
-	color: #700;
-}
-
-div.middleComponent p {
-	margin: 0.6em 0;
-	font-size: small;
-}
-
-/* ---------------------------------------- */
-/* the box containing the icons */
-
-#indexIcons {
-	position: relative;
-	width: 70%;
-	margin: 0 auto;
-	padding: 0.4em;
-	border: 2px solid #3b6fa0;
-	background-color: #074987;
-	font-weight: bold;
-	color: #EEE;
-}
-
-#indexIcons * {
-  position: relative;
-  z-index: 1;
-}
-
-#indexIcons img {
-  height: 100%;
-  left: 0px;
-  position: absolute;
-  top: 0px;
-  width: 100%;
-  z-index: 0;
-}
-
-#indexIcons p {
-	padding: 0;
-	margin: 0;
-}
-
-#indexIcons ul {
-	margin: 0 0 0 2em;
-	padding: 0;
-}
-#indexIcons li {
-	list-style: none;
-	height: 28px;
-	background-position: left;
-	background-repeat: no-repeat;
-}
-
-#indexIcons a {
-	font-weight: bold;
-	color: #EEE;
-	padding: 0 0 0 35px;
-	position: relative;
-	bottom: -0.6em;
-}
-
-/* the logos, which are used for the overview in the tab layout, as well as here */
-#seqIcon	{ background-image: url(/catalyst/pfam/images/logos/alignment.png) }
-#archIcon	{ background-image: url(/catalyst/pfam/images/logos/domains.png) }
-#structIcon	{ background-image: url(/catalyst/pfam/images/logos/structure.png) }
-#ipfamIcon	{ background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
-#specIcon	{ background-image: url(/catalyst/pfam/images/logos/tree.png) }
-
-/* citation box */
-#indexCitation {
-	padding-bottom: 0.4em;
-}
-
-#indexCitation h1,
-#indexCitation p {
-	padding: 0.4em 0;
-	margin: 0;
-}
-
-div.citation span.title {
-	font-style: italic;
-}
-div.citation span.authors {
-	/* nothing */	
-}
-div.citation span.ref {
-	display: block;	
-	padding: 0.2em 0;
-}
-div.citation span.jrnl {
-	font-weight: bold;
-}
-
-/* ---------------------------------------- */
-/* sidebars *
-
-/* the left-hand index page sidebar */
-#leftSidebar {
-	width: 170px;
-	float: left;
-}
-
-/* the right-hand index page sidebar */
-#rightSidebar {
-	width: 196px;
-	float: right;
-}
-
-/* these are for divs that sit inside the sidebars */
-div.sidebarComponent {
-	margin: 0.4em;
-}
-
-div.sidebarComponent h1,
-div.sidebarComponent h2,
-div.sidebarComponent h3 {
-	margin: 0.4em 0;
-	font-weight: bold;
-}
-
-div.sidebarComponent h1 {
-	font-size: large;
-	color: #700;
-}
-div.sidebarComponent h2 {
-	font-size: small;
-}
-div.sidebarComponent h3 {
-	font-size: x-small;
-}
-
-div.sidebarComponent p {
-	margin: 0.4em 0;
-	font-size: small;
-}
-
-div.sidebarComponent p.small {
-	font-size: x-small;
-}
-
-/* tweaks for specific sidebar components */
-
-/* version data block. This negative margin constitutes a nasty hack. We need to
- * push the top of the block back up, so that the title is level with the titles
- * in the middle and right columns, because the margins of the three columns and
- * all of their nested divs end up dropping the left-most column down slightly. 
- * the value of -0.55 em was arrived at empirically... who the hell knows why 
- * that's what we need to make things line up. Should really fix the layout to 
- * avoid needing this, but hey... 
- */
-#versionData {
-	margin-top: -0.55em;
-}
-
-#versionData img {
-	padding: 0.2em 0;
-}
-
-/* coverage details */
-div.coverage {
-	padding: 0.1em;
-	font-size: smaller;
-	background-repeat: no-repeat;
-	background-position: left center;
-	display: block;
-}
-
-/* the keys for the two pie charts are generated by floating a div 
- * and setting the background colours appropriately. This means we're
- * not shipping three little images, but it does require all this CSS
- * to achieve the same effect... */
-
-div.coverageKeyBlock {
-	width: 10px;
-	height: 10px;
-	float: left;
-	margin: 1px;
-}
-
-div.pfamACoverage div.coverageKeyBlock {
-	background-color: #cdeded;
-}
-
-div.pfamBCoverage div.coverageKeyBlock {
-	background-color: #074987;
-}
-
-div.uncovered div.coverageKeyBlock {
-	background-color: #c7c7c7;
-}
-
-/* top ten */
-#topTen ul {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-#topTen span.topTenLabel {
-	float: left;
-	width: 2em;
-	text-align: right;
-}
-
-/* news items */
-div.newsItem {
-	margin-bottom: 0.6em;
-}
-
-/* jump box */
-#entry {
-	border: 1px inset #074987;
-	background: #cbdced url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/search_gradient.png);
-	width: 110px; /* set to 145px for the right sidebar on the index page */
-	margin: 1px 0;
-	padding: 2px;
-	color: #074987;
-	font-weight: bold;
-	font-size: x-small;
-	float: left;
-}
-
-#goButton {
-	width: 33px;
-	height: 20px;
-    font-size: 1px;
-	background-position: right;
-	background-repeat: no-repeat;
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/go.png);
-	border: none;
-	vertical-align: middle;
-	margin: 1px;
-	cursor: pointer;
-	float: left
-}
-
-/* mirror listing */
-#mirrors ul {
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-#mirrors li {
-	padding: 0.2em 0;
-}
-
-a.mirror {
-	padding-left: 14px;
-	background-position: left;
-	background-repeat: no-repeat;
-}
-
-/* the national flags */
-a.us {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/american_flag.gif);
-}
-a.se {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/swedish_flag.gif);
-}
-a.kr {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/south_korea.gif);
-}
-a.fr {
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/flags/french_flag.gif);
+div.errorReport p.message {
+  font-weight: bold;
+  color: #833;
+  margin-left: 2em;
 }
 
 /* ======================================== */

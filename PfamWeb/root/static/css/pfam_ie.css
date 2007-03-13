@@ -5,20 +5,20 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to IE6 and below
    
-   $Id: pfam_ie.css,v 1.6 2007-03-09 09:34:51 jt6 Exp $
+   $Id: pfam_ie.css,v 1.7 2007-03-13 10:35:08 jt6 Exp $
 */
 
 /* the shadow under the main content. Just turn it off for now, because the 
    shadow under the tab doesnt work and it would be weird to have one but not
    the other */
 #contentContainer #footer {
-	background-image: none;
+  background-image: none;
 }
 
 /* re-position the image map for the RSS logo and email link */
 img.map {
-	position: relative;
-    top: 1px;
+  position: relative;
+  top: 1px;
 }
 
 /* version data block. The main pfam.css stylesheet has a negative margin for this
@@ -27,5 +27,5 @@ img.map {
  * avoid needing this, but hey... 
  */
 #versionData {
-	margin-top: 0.55em;
+  margin-top: 0.55em;
 }
