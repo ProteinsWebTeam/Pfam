@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.18 2007-03-13 10:32:59 jt6 Exp $
+# $Id: head.tt,v 1.19 2007-03-13 16:06:26 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -22,10 +22,9 @@
 <!-- ====================================================================== -->
 <!-- load the common javascript files first -->
 
-<!-- scriptaculous and prototype -->
+<!-- prototype -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/selector-addon-v1.js" ) %]"></script>
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/scriptaculous/scriptaculous.js?load=effects" ) %]"></script>
 
 <!-- local javascript -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
@@ -51,12 +50,12 @@ FOREACH key IN requirements.keys;
       FOREACH stylesheet IN requirements.css;
         cssIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
       END;
-    CASE "ie_css";
-      FOREACH stylesheet IN requirements.css;
+    CASE "cssIe";
+      FOREACH stylesheet IN requirements.cssIe;
         cssIeIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
       END;
-    CASE "ie_all_css";
-      FOREACH stylesheet IN requirements.css;
+    CASE "cssIeAll";
+      FOREACH stylesheet IN requirements.cssIeAll;
         cssIeAllIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
       END;
     CASE "js";
@@ -93,9 +92,7 @@ END %]
 
 [% FOREACH script IN jsIncludes.unique %]
   [% script;
-END;
-
--%]
+END -%]
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
