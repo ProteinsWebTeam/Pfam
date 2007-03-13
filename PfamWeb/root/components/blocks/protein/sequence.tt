@@ -1,10 +1,21 @@
+
 [%
 # sequence.tt
 # jt6 20060619 WTSI
 # 
 # block for the sequence, raw and formatted, for the protein page
 #
-# $Id: sequence.tt,v 1.7 2007-02-14 11:40:06 rdf Exp $
+# $Id: sequence.tt,v 1.8 2007-03-13 15:47:11 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
 -%]
 
 <!-- start protein sequence block -->
@@ -14,9 +25,12 @@
     <h1>Sequence information</h1>
   </div>
   <div class="blockContent">
-    <div class="explanatoryText">
-      <p>Below is the amino acid sequence of the given sequence identifer that is stored in the underlying Pfam sequence database (termed pfamseq).</p>
-    </div>
+    <p>
+      This is the amino acid sequence of the UniProt sequence database entry
+      with the identifier [% pfamseq.pfamseq_acc %]. This sequence is stored in
+      the Pfam database and updated with each new Pfam release, but this means
+      that the sequence we store may differ from that stored by UniProt.
+    </p>
     [% oe = 0 %]
 
     <table class="layout">

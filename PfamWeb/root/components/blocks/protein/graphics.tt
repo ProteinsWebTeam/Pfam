@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.15 2007-03-13 10:33:00 jt6 Exp $
+# $Id: graphics.tt,v 1.16 2007-03-13 15:47:11 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,6 +19,8 @@ requirements.js.push( "yui/dom.js" );
 requirements.js.push( "yui/event.js" );
 requirements.js.push( "yui/container.js" );
 requirements.js.push( "ttTweak.js" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 -%]
