@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.27 2007-03-02 10:20:07 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.28 2007-03-14 10:04:30 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.27 2007-03-02 10:20:07 jt6 Exp $
+$Id: PfamWeb.pm,v 1.28 2007-03-14 10:04:30 jt6 Exp $
 
 =cut
 
@@ -37,6 +37,7 @@ use Catalyst qw/
 				Session::State::Cookie
 				Cache::FileCache
 				PageCache
+				Compress::Deflate
 				/;
 
 # some other plugins that could be used...
