@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.14 2007-03-08 14:12:57 jt6 Exp $
+# $Id: Build.PL,v 1.15 2007-03-14 10:32:10 jt6 Exp $
 
 use strict;
 use warnings;
@@ -556,13 +556,13 @@ We now need to get some database connection parameters.
 
 The site requires two separate databases. The first is the Pfam database,
 which you can retrieve from the Sanger FTP site. This should be accessed using 
-a read-only account. We assume that you do not need a password for connecting
-to the Pfam database using a read-only account.
+a read-only account.
 
 The second database, web_user, is used for storing information like the news
 items and DAS sources. This must be accessed by an account with read/write
-access and you will need to supply both a username and password for that
-account.
+access.
+
+You will need to supply a username and password for each account.
 
 First, let's get parameters for the Pfam database. 
 
@@ -589,8 +589,13 @@ until( $validResponse ) {
     $build->prompt( "What is the username for connecting to the Pfam database ?",
                     "pfamro" );
   
+  my $pfamPass =
+    $build->prompt( "What is the password for connecting to the Pfam database ?",
+                    "pfamro" );
+  
   $config{Model}->{PfamDB}->{connect_info}[0] = $pfamDSN;
   $config{Model}->{PfamDB}->{connect_info}[1] = $pfamUser;
+  $config{Model}->{PfamDB}->{connect_info}[2] = $pfamPass;
   
     print <<EOFloc unless $quiet;
 
