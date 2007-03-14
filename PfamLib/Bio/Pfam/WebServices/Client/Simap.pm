@@ -348,14 +348,14 @@ sub hits2Ali {
     my $matchSeqStart = $hitNode->findvalue("alignments/alignment/matchSeq/\@start");
     my $matchSeqEnd   = $hitNode->findvalue("alignments/alignment/matchSeq/\@end");
     my $sequence      = $hitNode->findvalue("matchSequence/sequence/sequence");
-	#print STDERR "sequence: |$sequence|\n";
+  	#print STDERR "sequence: |$sequence|\n";
 
     my $aliSeq        = substr($sequence, $matchSeqStart - 1, $matchSeqEnd - $matchSeqStart +1);
     foreach my $proteinNode ($hitNode->findnodes("matchSequence/protein")){
       my $protein       = $proteinNode->find("\@name");
       my $species       = $proteinNode->find("taxonomyNode/\@name");
       $aliString .= ">$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq\n";
-	  #print STDERR "aliString addition: |>$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq|\n";
+	    #print STDERR "aliString addition: |>$protein/$matchSeqStart-$matchSeqEnd\n$aliSeq|\n";
     }
   }
 
@@ -379,9 +379,9 @@ sub hits2Ali {
 
   $ENV{PATH} = "";
   my $muscleBin;
-  ( $muscleBin ) = $ENV{PFAM_MUSCLE_BIN} =~ /^([\w\/\_\-]+)$/;
+  ( $muscleBin ) = $ENV{PFAM_MUSCLE_BIN} =~ m|^([\w/_\-\.]+)$|;
   open( MSF, "$muscleBin -maxiters 1 -diags -sv -distance1 kbit20_3 -quiet -msf -in $tmpFile |")
-	or die "Could not run muscle: $!";
+  	or die "Could not run muscle: $!";
 
   #Now Parse the alignment
   my $pfamaln = new Bio::Pfam::AlignPfam->new;
