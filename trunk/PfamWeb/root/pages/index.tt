@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.16 2007-03-13 10:32:59 jt6 Exp $
+# $Id: index.tt,v 1.17 2007-03-14 09:08:11 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -12,10 +12,8 @@ META fullPage = 1;
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
-UNLESS requirements;
-  requirements = { css = []
-                   cssIe =[] };
-END; 
+PROCESS "components/require.tt";
+
 requirements.css.push( "index.css" );
 requirements.cssIeAll.push( "index_all_ie.css" );
 
