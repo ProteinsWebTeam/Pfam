@@ -1,10 +1,20 @@
+
 [%
 # getDomains.tt
 # rdf 2006/08/24 WTSI
 # 
 # block for the structural domains data
 #
-# $Id: getDomains.tt,v 1.3 2006-10-18 12:25:13 jt6 Exp $
+# $Id: getDomains.tt,v 1.4 2007-03-14 10:03:53 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "structure.js" );
+
+#-------------------------------------------------------------------------------
 -%]
 
 <!-- start structural domains block -->
