@@ -10,7 +10,10 @@
 # This stuff is all *incredibly* twitchy, so don't change it unless
 # it's absolutely necessary !
 #
-# $Id: header.tt,v 1.13 2007-01-15 15:51:51 jt6 Exp $
+# $Id: header.tt,v 1.14 2007-03-14 10:03:08 jt6 Exp $
+
+# avoid running c.uri_for too frequently...
+images = c.uri_for( "/images" );
 -%]
 
 <!-- header start here -->
@@ -21,14 +24,14 @@
 
     <!-- set minimum width -->
     <tr>
-      <td><img id="minWidth" src="[% c.uri_for( "/images/blank.gif" ) %]" height="1" alt="" /></td>
+      <td><img id="minWidth" src="[% images %]/blank.gif" height="1" alt="" /></td>
     </tr>
 
     <!-- WTSI logo, swoosh and Pfam images, search box -->
     <tr class="headercentre">
       <td align="left">
         <a href="http://www.sanger.ac.uk/">
-          <img id="wtsiLogo" src="[% c.uri_for( "/images/blank.gif" ) %]" alt="" /></a>
+          <img id="wtsiLogo" src="[% images %]/blank.gif" alt="" /></a>
 
         <!--search box starts here-->
         <div id="headerSearch">
@@ -44,14 +47,14 @@
         <!--search box end-->
 
         <a href="[% c.uri_for( "/" ) %]">
-          <img style="margin: 4px 0" id="pfamLogo" src="[% c.uri_for( "/images/pfam_logo.gif" ) %]" alt="Pfam" /></a>
+          <img id="pfamLogo" src="[% images %]/pfam_logo.gif" alt="Pfam" /></a>
       </td>
     </tr>
 
     <!-- blank space for the menu bar -->
     <tr>
       <td id="menuRow">
-        <img class="map" src="[% c.uri_for( "/images/email-rss.gif" )%]" alt="" usemap="#contactMap" />
+        <img class="map" src="[% images %]/email-rss.gif" alt="" usemap="#contactMap" />
         <map name="contactMap" id="contactMap">
           <area shape="rect" coords="0,0,20,15" title="Contact Pfam" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;" alt="" />
           <area shape="rect" coords="21,0,60,15" title="RSS Feed" target="new" href="[% c.uri_for( "/rss" ) %]" alt="" />
@@ -70,7 +73,7 @@
     <table class="slickmenu">
       <tr>
         <td>
-		  <img src="[% c.uri_for( "/images/menus/pfam_home.png" ) %]"
+		  <img src="[% images %]/menus/pfam_home.png"
                class="menu"
                alt="Pfam Home" 
                title="Pfam Home"
@@ -79,7 +82,7 @@
                onmouseout="ypSlideOutMenu.hover_out('menu1')" />
         </td>
         <td>
-          <img src="[% c.uri_for( "/images/menus/search_by.png" ) %]"
+          <img src="[% images %]/menus/search_by.png"
                class="menu"
                alt="Search by" 
                title="Search by - Click for menu" 
@@ -88,7 +91,7 @@
                onmouseout="ypSlideOutMenu.hover_out('menu2')" />
         </td>
         <td>
-          <img src="[% c.uri_for( "/images/menus/browse_by.png" ) %]"
+          <img src="[% images %]/menus/browse_by.png"
                class="menu"
                title="Browse by - Click for menu"
                alt="Browse by"
@@ -97,7 +100,7 @@
                onmouseout="ypSlideOutMenu.hover_out('menu3')" />
         </td>
         <td>
-          <img src="[% c.uri_for( "/images/menus/ftp.png") %]"
+          <img src="[% images %]/menus/ftp.png"
                class="menu"
                title="FTP - Click for menu"
                alt="FTP"
@@ -106,7 +109,7 @@
                onmouseout="ypSlideOutMenu.hover_out('menu4')" />
         </td>
         <td>
-          <img src="[% c.uri_for( "/images/menus/ipfam.png") %]"
+          <img src="[% images %]/menus/ipfam.png"
                class="menu"
                title="iPfam - Click for menu"
                alt="iPfam"
@@ -115,7 +118,7 @@
                onmouseout="ypSlideOutMenu.hover_out('menu5')" />
         </td>
         <td>
-          <img src="[% c.uri_for( "/images/menus/help.png" ) %]"
+          <img src="[% images %]/menus/help.png"
                class="menu"
                title="Help - Click for menu"
                alt="Help"
@@ -124,7 +127,7 @@
                onmouseout="ypSlideOutMenu.hover_out('menu6')" />
         </td>
         <td>
-          <img src="[% c.uri_for( "/images/menus/about.png" ) %]"
+          <img src="[% images %]/menus/about.png"
                class="menu"
                alt="About Pfam" 
                title="About Pfam"
@@ -134,13 +137,13 @@
         </td>
       </tr>
       <tr>
-        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
-        <td><img src="[% c.uri_for( "/images/blank.gif" ) %]" class="menuBlank" alt=""/></td>
+        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
+        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
+        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
+        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
+        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
+        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
+        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
       </tr>
     </table>
   </div>
