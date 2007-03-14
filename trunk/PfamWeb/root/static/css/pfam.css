@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.35 2007-03-13 10:35:08 jt6 Exp $
+   $Id: pfam.css,v 1.36 2007-03-14 16:32:08 jt6 Exp $
 */   
 
 /* global or widely used classes */
@@ -104,13 +104,13 @@ tr.headercentre {
 #wtsiLogo {
     float: left;
     border-style: none;
-	width: 200px;
+  	width: 200px;
     height: 66px;
 }
 
 #pfamLogo {
     float: right;
-    margin: 4px 0;
+    margin: 4px 0 !important
 }
 
 #headerSearch {
