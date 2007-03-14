@@ -8,6 +8,8 @@ some starting points for reading about Catalyst.
 
 This file, like all of the others in this distribution, is a work in progress...
 
+$Id: INSTALL,v 1.4 2007-03-14 10:32:42 jt6 Exp $
+
 Contents
 ========
 
@@ -15,6 +17,7 @@ o Installation overview
 o Documentation
 o Longer explanation of the install process
   - Prerequisites
+    + Databases
     + Module::Build
     + Catalyst::Runtime
     + mod_perl
@@ -86,7 +89,22 @@ Longer explanation of the install process
 Prerequisites
 -------------
 
-Module::Build
+* Databases
+
+The PfamWeb code requires two databases:
+
+	pfam:     a read-only database containing the Pfam data
+	web_user: a read/write database used as for tracking various items
+	
+There are significant changes between the distributed pfam_21_0 database and
+our internal development version. You will need to retrieve the development
+version from our FTP site and install it before starting PfamWeb.
+
+The distribution includes an SQL script, "create_web_user.sql", which can be
+used to create the web_user database from scratch. It will also populate a few
+of the tables, providing some test data at least.
+
+* Module::Build
 
 The build and installation process absolutely requires Module::Build (M::B) to
 be installed in your default perl executable:
@@ -102,8 +120,7 @@ This is mainly because we haven't been installing as root, so we're trying to
 install into a location which it doesn't expect. If you have problems installing
 M::B itself, please let us know and we'll try to help.
 
-
-Catalyst::Runtime
+* Catalyst::Runtime
 
 After M::B is installed, you can go ahead with the PfamWeb installation, using 
 the included build script. That script includes a list of prerequisites for
@@ -162,7 +179,7 @@ of them and let us know, so that we can add them to this list for the future:
   SOAP::Data::Builder
   XML::Feed
 
-mod_perl
+* mod_perl
 
 We run Catalyst using the mod_perl plugin for Apache. You will need to have
 mod_perl installed and running before trying to restart Apache to run PfamWeb.
@@ -393,4 +410,4 @@ o The Build.PL script is certain to have bugs, but I don't know what they are.
 
 
 
-$Id: INSTALL,v 1.3 2007-03-02 16:26:34 jt6 Exp $
+$Id: INSTALL,v 1.4 2007-03-14 10:32:42 jt6 Exp $
