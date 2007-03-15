@@ -1,13 +1,12 @@
-[%#
+[%
 # interactions.tt
 # jt6 20060719 WTSI
 # 
 # block for the interactions data for the family section
 #
-# $Id: interactions.tt,v 1.3 2006-08-14 11:00:52 jt6 Exp $
--%]
+# $Id: interactions.tt,v 1.4 2007-03-15 10:57:09 jt6 Exp $
 
-[%- RETURN UNLESS summaryData.numInt -%]
+RETURN UNLESS summaryData.numInt -%]
 
 <!-- start interactions block -->
 
@@ -17,7 +16,11 @@
   </div>
   <div class="blockContent">
 
-    <p>There are [% summaryData.numInt %] <a href="[% c.uri_for( "/int", acc=pfam.pfamA_acc ) %]">interactions</a> for this family.</p>
+    <p>
+      There [%- summaryData.numInt > 1 ? "are " : "is "; summaryData.numInt %]
+       <a href="[% c.uri_for( "/int/domain", acc=pfam.pfamA_acc ) %]">
+         interaction[% summaryData.numInt > 1 ? "s" : "" %]</a> for this family.
+     </p>
 
   </div>
 
