@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.6 2006-12-05 10:13:29 jt6 Exp $
+# $Id: Viewer.pm,v 1.7 2007-03-15 14:06:15 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.6 2006-12-05 10:13:29 jt6 Exp $
+$Id: Viewer.pm,v 1.7 2007-03-15 14:06:15 jt6 Exp $
 
 =cut
 
@@ -77,13 +77,11 @@ sub auto : Private {
 	$c->log->debug( "Viewer::auto: about to do query; DBIC_TRACE = |".$ENV{DBIC_TRACE}."|" );
 
  	my @markups = $c->model("PfamDB::Pdb_residue")
-	  ->search(
-			   { "pfamseqMarkup.auto_pfamseq" => $map->auto_pfamseq,
-				 chain        => $map->chain,
-				 auto_pdb     => $c->stash->{pdb}->auto_pdb },
-			   { join     => [ qw/pfamseqMarkup/ ],
-				 prefetch => [ qw/pfamseqMarkup/ ] }
-			  );
+	  ->search( { "pfamseqMarkup.auto_pfamseq" => $map->auto_pfamseq,
+				  chain                        => $map->chain,
+				  auto_pdb                     => $c->stash->{pdb}->auto_pdb },
+				{ join                         => [ qw/pfamseqMarkup/ ],
+				 prefetch                      => [ qw/pfamseqMarkup/ ] } );
 	$c->log->debug( "Viewer::auto: found " . scalar @markups . " markups for mapping to "
 					. $map->auto_pfamseq );
 
@@ -131,8 +129,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

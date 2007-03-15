@@ -1,7 +1,7 @@
 # Ligand.pm
 # rdf 20060818 WTSI
 #
-# $Id: Ligand.pm,v 1.4 2007-03-05 13:23:39 jt6 Exp $
+# $Id: Ligand.pm,v 1.5 2007-03-15 14:06:11 jt6 Exp $
 # Controller to build the main Ligand page.
 #
 
@@ -18,7 +18,7 @@ package PfamWeb::Controller::Int::Ligand;
 
 Controller to build the main iPfam ligand page.
 
-$Id: Ligand.pm,v 1.4 2007-03-05 13:23:39 jt6 Exp $
+$Id: Ligand.pm,v 1.5 2007-03-15 14:06:11 jt6 Exp $
 
 =cut
 
@@ -45,7 +45,9 @@ sub generateLigandIntSum : Path {
 
   if( defined $c->req->param("code") ) {
     $c->req->param("code") =~ m/^(\w{3})$/i;
-    $c->stash->{ligand} = $c->model("PfamDB::Ligands")->find( { three_letter_code => $1 } );
+    $c->stash->{ligand} = $c->model("PfamDB::Ligands")
+	  ->find( { three_letter_code => $1 } );
+
     $c->log->debug("Int::Ligand::generateLigandIntSum: Got ligand data for:".$c->stash->{ligand}->name.":");
   }
 
@@ -61,8 +63,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

@@ -3,7 +3,7 @@
 #
 # Controller to build the main Domain page.
 #
-# $Id: DomainDomain.pm,v 1.2 2007-03-05 13:23:39 jt6 Exp $
+# $Id: DomainDomain.pm,v 1.3 2007-03-15 14:06:11 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ interactions.
 Given two Pfam domain accessions or IDs, this Controller retrieves the
 interactions between the two.
 
-$Id: DomainDomain.pm,v 1.2 2007-03-05 13:23:39 jt6 Exp $
+$Id: DomainDomain.pm,v 1.3 2007-03-15 14:06:11 jt6 Exp $
 
 =cut
 
@@ -53,9 +53,9 @@ sub generateDomainDomainIntSum : Path {
     $c->stash->{pfam_B} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
   }
 
-  my @rs = $c->model("PfamDB::Interactions")->search({auto_pfamA_A => $c->stash->{pfam_A}->auto_pfamA,
-						     auto_pfamA_B => $c->stash->{pfam_B}->auto_pfamA}
-						   );
+  my @rs = $c->model("PfamDB::Interactions")
+	->search( { auto_pfamA_A => $c->stash->{pfam_A}->auto_pfamA,
+				auto_pfamA_B => $c->stash->{pfam_B}->auto_pfamA } );
   my $structures ={};
   my $sequences = {};
 
@@ -120,8 +120,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

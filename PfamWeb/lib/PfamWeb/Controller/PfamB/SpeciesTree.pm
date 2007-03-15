@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20061018 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.1 2006-10-23 12:23:06 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.1 2006-10-23 12:23:06 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
 
 =cut
 
@@ -54,6 +54,8 @@ sub auto : Private {
 
 =head2 renderTree : Path
 
+Just hands off to the template that will generate the javascript to
+build the tree on the client.
 
 =cut
 
@@ -95,11 +97,10 @@ sub renderSubTree : Path( "/pfamb/speciessubtree" ) {
 sub getTree : Private {
   my( $this, $c ) = @_;
   #Get the species information for the full alignment
-  my @regions = $c->model("PfamDB::PfamB_reg")->search(
-							    { "auto_pfamB" => $c->stash->{pfam}->auto_pfamB },
-							    { join         => [ qw/ pfamseq /],
-							      prefetch     => [ qw/pfamseq/ ]}
-							   );
+  my @regions = $c->model("PfamDB::PfamB_reg")
+	->search( { "auto_pfamB" => $c->stash->{pfam}->auto_pfamB },
+			  { join         => [ qw/pfamseq/],
+				prefetch     => [ qw/pfamseq/ ]} );
 
   my %tree;
   my $maxDepth = 0;
@@ -157,8 +158,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

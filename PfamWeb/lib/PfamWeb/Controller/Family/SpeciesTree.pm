@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.14 2007-03-08 14:14:58 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.15 2007-03-15 14:06:10 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.14 2007-03-08 14:14:58 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.15 2007-03-15 14:06:10 jt6 Exp $
 
 =cut
 
@@ -126,21 +126,19 @@ sub getTree : Private {
   my( $this, $c ) = @_;
   
   #Get the species information for the full alignment
-  my @regions = $c->model("PfamDB::PfamA_reg_full")->search(
-							    { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
-							      "in_full"         => 1 },
-							    { join              => [ qw/ pfamA pfamseq /],
-							      prefetch          => [ qw/pfamseq/ ],}
-							   );
+  my @regions = $c->model("PfamDB::PfamA_reg_full")
+	->search( { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc,
+				"in_full"         => 1 },
+			  { join              => [ qw/ pfamA pfamseq /],
+				prefetch          => [ qw/pfamseq/ ] } );
   $c->log->debug( "Family::SpeciesTree::getTree:: found " . scalar @regions
                   ." full regions" );
 
   #Get the species information for the seed alignment
-  my @resultsSeed = $c->model("PfamDB::PfamA_reg_seed")->search(
-								 { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc },
-								 { join              => [ qw/ pfamA pfamseq /],
-								   prefetch          => [ qw/pfamseq/] }
-								);
+  my @resultsSeed = $c->model("PfamDB::PfamA_reg_seed")
+	->search( { "pfamA.pfamA_acc" => $c->stash->{pfam}->pfamA_acc },
+			  { join              => [ qw/ pfamA pfamseq /],
+				prefetch          => [ qw/pfamseq/] } );
   $c->log->debug( "Family::SpeciesTree::getTree:: found " . scalar @resultsSeed
                   ." seed regions" );
 								
@@ -211,8 +209,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.18 2007-03-02 10:19:23 jt6 Exp $
+# $Id: Graphics.pm,v 1.19 2007-03-15 14:06:15 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.18 2007-03-02 10:19:23 jt6 Exp $
+$Id: Graphics.pm,v 1.19 2007-03-15 14:06:15 jt6 Exp $
 
 =cut
 
@@ -58,8 +58,8 @@ sub default : Path {
 	my $seqAcc = $c->stash->{pfamseq}->pfamseq_acc;
 	my $sequence = $dl->sequence( $seqAcc );
 	unless ($sequence) {
-		$c->log->warn("Protein::Graphics::updateSources: Unable to get sequence for '$seqAcc'");
-		return; # Hopeless
+	  $c->log->warn("Protein::Graphics::updateSources: Unable to get sequence for '$seqAcc'");
+	  return; # Hopeless
 	}
 	
 	# This is our reference co-ordinate system everything needs to be converted back to.
@@ -74,9 +74,11 @@ sub default : Path {
 	my $imageNum = 0;
 	
 	# Get the supported alignment servers, indexed by co-ord system.
-	my @availableAlignServerList = $c->model("WebUser::Alignment_das_sources")->search( {
-		from_system => $baseSystem, from_type => $baseType, # to_type => $baseType,
-	} );
+	my @availableAlignServerList = $c->model("WebUser::Alignment_das_sources")
+	  ->search( { from_system => $baseSystem,
+				  from_type   => $baseType,
+				  # to_type => $baseType,
+				} );
 	my %availableAlignServersForSystem;
 	foreach (@availableAlignServerList) {
 		$availableAlignServersForSystem{$_->to_type}{$_->to_system} = $_;
@@ -442,9 +444,25 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 
-  1;
+1;

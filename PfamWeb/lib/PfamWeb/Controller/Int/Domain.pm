@@ -2,7 +2,7 @@
 # Domain.pm
 # rdf 20060818 WTSI
 #
-# $Id: Domain.pm,v 1.4 2007-03-05 13:23:38 jt6 Exp $
+# $Id: Domain.pm,v 1.5 2007-03-15 14:06:11 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is a Controller for domain interactions in the iPfam section.
 
 Generates a B<tabbed page>.
 
-$Id: Domain.pm,v 1.4 2007-03-05 13:23:38 jt6 Exp $
+$Id: Domain.pm,v 1.5 2007-03-15 14:06:11 jt6 Exp $
 
 =cut
 
@@ -56,19 +56,22 @@ sub generateDomainIntSum : Path {
 
   if($c->stash->{pfam}->pfamA_id){
     # Now that we have a pfam domain
-    my @rs = $c->model("PfamDB::Int_pfamAs")->search({ auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
-						     { join     => [qw/pfamA_B/],
-						       prefetch => [qw/pfamA_B/]});
+    my @rs = $c->model("PfamDB::Int_pfamAs")
+	  ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
+				{ join         => [ qw/pfamA_B/ ],
+				  prefetch     => [ qw/pfamA_B/ ] } );
     if(scalar(@rs)){
       $c->stash->{domainInts} = \@rs;
-      my $noSeqs = $c->model("PfamDB::Interactions")->find({ auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
-							   { select => { count => {distinct => "auto_pfamseq_A" }},
-							     as     => [qw/noSeqs/] });
+      my $noSeqs = $c->model("PfamDB::Interactions")
+		->find( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
+				{ select       => { count => {distinct => "auto_pfamseq_A" } },
+				  as           => [ qw/noSeqs/ ] } );
       $c->stash->{noSeqs} = $noSeqs->get_column("noSeqs");
-      my $noStruc = $c->model("PfamDB::Interactions")->find({ auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
-								{ select => { count => {distinct => "auto_pdb" }},
-								  as     => [qw/noStrucs/] });
-      
+      my $noStruc = $c->model("PfamDB::Interactions")
+		->find( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
+				{ select       => { count => {distinct => "auto_pdb" } },
+				  as           => [ qw/noStrucs/ ] } );
+
       my %summaryData;
       $summaryData{numSpecies} = 0;
       $summaryData{numArchitectures} = 0;
@@ -76,7 +79,7 @@ sub generateDomainIntSum : Path {
       $summaryData{numSequences}   = $noStruc->get_column("noStrucs");
       $summaryData{numInt}         = scalar(@rs);
       $c->stash->{summaryData} = \%summaryData;
-      
+
       $c->log->debug("Get ".$noSeqs->get_column("noSeqs")." sequences");
       $c->log->debug("Found ".scalar(@{$c->stash->{domainInts}})." domain interactions");
       $c->log->debug("Int::Domain::generateDomainIntSum: Got domain data for:");
@@ -99,8 +102,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

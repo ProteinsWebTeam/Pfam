@@ -2,11 +2,22 @@
 # DomainGraphics.pm
 # jt6 20061023 WTSI
 #
-# Controller to build a set of domain graphics for a given PfamB.
-#
-# $Id: DomainGraphics.pm,v 1.3 2006-10-31 15:17:06 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.4 2007-03-15 14:06:10 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::PfamB::DomainGraphics - build domain graphics for
+a PfamB
+
+=cut
 
 package PfamWeb::Controller::PfamB::DomainGraphics;
+
+=head1 DESCRIPTION
+
+Controller to build a set of domain graphics for a given PfamB.
+
+=cut
 
 use strict;
 use warnings;
@@ -15,7 +26,17 @@ use Storable qw(thaw);
 
 use base "PfamWeb::Controller::PfamB";
 
-# pick up a URL like http://localhost:3000/pfamb/domaingraphics?acc=PB000067
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 default : Path
+
+Retrieves data for either all of the sequences with the fiven
+architecture, or the unique architectures for a particular domain, and
+generates Pfam graphics for them.
+
+=cut
 
 sub default : Path {
   my( $this, $c ) = @_;
@@ -40,8 +61,7 @@ sub default : Path {
       @architectures = $c->model("PfamDB::PfamB_reg")
 		->search( { auto_pfamB => $auto },
 				  { join      => [ qw/ pfamseq_architecture annseq pfamseq /],
-					prefetch  => [ qw/ pfamseq_architecture annseq pfamseq /]
-				  } );
+					prefetch  => [ qw/ pfamseq_architecture annseq pfamseq /] } );
       foreach my $arch ( @architectures ) {
 		push @seqs, thaw( $arch->annseq_storable )
 		  unless $arch->auto_architecture =~ /\d+/;
@@ -53,8 +73,7 @@ sub default : Path {
 		->search( { auto_pfamB => $auto,
 					auto_architecture => $c->stash->{auto_arch} },
 				  { join      => [ qw/ pfamseq_architecture annseq pfamseq /],
-					prefetch  => [ qw/ pfamseq_architecture annseq pfamseq /]
-				  } );
+					prefetch  => [ qw/ pfamseq_architecture annseq pfamseq /] } );
       # query has already done the selection
       foreach my $arch ( @architectures ) {
 		push @seqs, thaw( $arch->annseq_storable );
@@ -67,8 +86,7 @@ sub default : Path {
     @architectures = $c->model("PfamDB::PfamB_reg")
 	  ->search( { auto_pfamB => $auto },
 				{ join      => [ qw/ pfamseq_architecture annseq pfamseq /],
-				  prefetch  => [ qw/ pfamseq_architecture annseq pfamseq /]
-				} );
+				  prefetch  => [ qw/ pfamseq_architecture annseq pfamseq /] } );
 
 	# grab only the unique architectures as they fly by
     foreach my $arch ( @architectures ) {
@@ -135,8 +153,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 
