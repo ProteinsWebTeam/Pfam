@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060717 WTSI
 #
-# $Id: Browse.pm,v 1.8 2007-01-31 13:59:00 jt6 Exp $
+# $Id: Browse.pm,v 1.9 2007-03-15 14:06:10 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ Retrieves the data for the "browse by family" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.8 2007-01-31 13:59:00 jt6 Exp $
+$Id: Browse.pm,v 1.9 2007-03-15 14:06:10 jt6 Exp $
 
 =cut
 
@@ -65,7 +65,7 @@ sub browse : Path {
 
   # set the page to be cached for one week
   $c->cache_page( 604800 );
-  
+
   my @res;
 
   if( lc $c->req->param("browse") eq "numbers" ) {
@@ -74,10 +74,9 @@ sub browse : Path {
     # run the query to get back all families starting with a number
     @res = $c->model("PfamDB::Pfam")
   	  ->search( { pfamA_id => { "REGEXP", "^[0-9]" } },
-        				{ join     => [ qw/pfamA_web/ ],
-        				  prefetch => [ qw/pfamA_web/ ],
-        				  order_by => "pfamA_id ASC" }
-        			  );
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  order_by => "pfamA_id ASC" } );
 
   } elsif( lc $c->req->param("browse") eq "new" ) {
     $c->stash->{char} = "new";
@@ -85,10 +84,9 @@ sub browse : Path {
     # run the query to retrieve new families
     @res = $c->model("PfamDB::Pfam")
   	  ->search( { change_status => "NEW" },
-        				{ join     => [ qw/pfamA_web/ ],
-        				  prefetch => [ qw/pfamA_web/ ],
-        				  order_by => "pfamA_id ASC" }
-        			  );
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  order_by => "pfamA_id ASC" } );
 
   } elsif( lc $c->req->param("browse") eq "top twenty" ) {
     $c->stash->{char} = "top twenty";
@@ -97,30 +95,29 @@ sub browse : Path {
 	# sequences in the family
     @res = $c->model("PfamDB::Pfam")
   	  ->search( { },
-        				{ join     => [ qw/pfamA_web/ ],
-        				  prefetch => [ qw/pfamA_web/ ],
-        				  rows     => 20,
-        				  page     => 1,
-        				  order_by => "num_full DESC" }
-        			  )->all;
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  rows     => 20,
+				  page     => 1,
+				  order_by => "num_full DESC" }
+			  )->all;
 
   } else {
 
   	my $char;
   	( $char ) = $c->req->param( "browse" ) =~ /^(\w)/;
-  
+
   	return unless defined $char;
-  
+
   	$c->stash->{char} = uc $char;
-  
+
   	# run the query to get back all families starting with the
   	# specified letter, ordered by ID
   	@res = $c->model("PfamDB::Pfam")
   	  ->search( { pfamA_id => { "LIKE", "$char%" } },
-        				{ join     => [ qw/pfamA_web/ ],
-        				  prefetch => [ qw/pfamA_web/ ],
-        				  order_by => "pfamA_id" }
-        			  );
+				{ join     => [ qw/pfamA_web/ ],
+				  prefetch => [ qw/pfamA_web/ ],
+				  order_by => "pfamA_id" } );
   }
 
   # stash the results for the template
@@ -148,8 +145,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

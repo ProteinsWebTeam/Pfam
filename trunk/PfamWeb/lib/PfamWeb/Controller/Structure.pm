@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.9 2006-12-05 10:11:23 jt6 Exp $
+# $Id: Structure.pm,v 1.10 2007-03-15 14:06:14 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.9 2006-12-05 10:11:23 jt6 Exp $
+$Id: Structure.pm,v 1.10 2007-03-15 14:06:14 jt6 Exp $
 
 =cut
 
@@ -158,13 +158,11 @@ sub addMapping : Private {
 
   # add the structure-to-UniProt mapping to the stash
   my @unpMap = $c->model("PfamDB::PdbMap")
-	->search(
-			 { auto_pdb    => $c->stash->{pdb}->auto_pdb,
-			   pfam_region => 1 },
-			 { join     => [ qw/pfamA pfamseq/ ],
-			   prefetch => [ qw/pfamA pfamseq/ ],
-			   order_by => "chain ASC" }
-			);
+	->search( { auto_pdb    => $c->stash->{pdb}->auto_pdb,
+				pfam_region => 1 },
+			  { join        => [ qw/pfamA pfamseq/ ],
+				prefetch    => [ qw/pfamA pfamseq/ ],
+				order_by    => "chain ASC" } );
 
   $c->log->debug( "Structure::addMapping: found " . scalar @unpMap . " mappings" );
   $c->stash->{mapping} = \@unpMap;
@@ -208,10 +206,9 @@ sub default : Path {
   $c->forward( "addMapping" );
 
   # get the authors list
-  my @authors = $c->model("PfamDB::PdbAuthor")->search(
-                  { auto_pdb => $c->stash->{pdb}->auto_pdb },
-				  { order_by => "author_order ASC" }
-                );
+  my @authors = $c->model("PfamDB::PdbAuthor")
+	->search( { auto_pdb => $c->stash->{pdb}->auto_pdb },
+			  { order_by => "author_order ASC" } );
 
   $c->stash->{authors} = \@authors;
 
@@ -231,37 +228,49 @@ sub _getSummaryData : Private {
   my $autoPdb = $c->stash->{pdb}->auto_pdb;
 
   # number of sequences in the structure - count the number of chains.
-  my $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
-						  {select => [ { count => [ {distinct => ["chain"] } ]}],
-						     as   => [ qw/numChains/]});
+  my $rs = $c->model("PfamDB::Pdb_residue")
+	->find( { auto_pdb => $autoPdb },
+			{ select   => [
+						   {
+							count => [ { distinct => ["chain"] } ]
+						   }
+						  ],
+			  as       => [ qw/numChains/ ] } );
   $summaryData{numSequences} = $rs->get_column( "numChains" );
 
   # number of species should be one, but get the species for the sequences
-  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
-						{  join => [ qw/pfamseq/],
-						   select => [ { count => [ {distinct => ["pfamseq.species"] } ]}],
-						    as => [ qw/numSpecies/]} );
+  $rs = $c->model("PfamDB::Pdb_residue")
+	->find( { auto_pdb => $autoPdb },
+			{ join     => [ qw/pfamseq/],
+			  select   => [
+						   {
+							count => [ { distinct => [ "pfamseq.species" ] } ]
+						   }
+						  ],
+			  as       => [ qw/numSpecies/ ] } );
   $summaryData{numSpecies} = $rs->get_column( "numSpecies" );
 
   # number architectures
-  $rs = $c->model("PfamDB::Pdb_residue")->find({auto_pdb => $autoPdb},
-						{  join => [ qw/pfamseq_arch/],
-						   select => [ { count => [ {distinct => ["pfamseq_arch.auto_architecture"] } ]}],
-						     as => [ qw/numArch/]} );
+  $rs = $c->model("PfamDB::Pdb_residue")
+	->find( { auto_pdb => $autoPdb },
+			{ join     => [ qw/pfamseq_arch/],
+			  select   => [
+						   {
+							count => [ { distinct => [ "pfamseq_arch.auto_architecture" ] } ]
+						   }
+						  ],
+			  as       => [ qw/numArch/ ] } );
   $summaryData{numArchitectures} = $rs->get_column( "numArch" );;
 
   # number of interactions.
-  $rs = $c->model("PfamDB::Interactions")->find(
-						{ auto_pdb => $autoPdb },
-						{ select => [
-							     { count => [
-									 { distinct => [ "auto_int_pfamAs" ] }
-									]
-							     }
-							    ],
-						  as => [ qw/numInts/ ]
-						}
-					       );
+  $rs = $c->model("PfamDB::Interactions")
+	->find( { auto_pdb => $autoPdb },
+			{ select   => [
+						   {
+							count => [ { distinct => [ "auto_int_pfamAs" ] } ]
+						   }
+						  ],
+			  as       => [ qw/numInts/ ] } );
   $summaryData{numInt} = $rs->get_column("numInts");
 
   # number of structures is one
@@ -281,8 +290,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

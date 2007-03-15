@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam Proteome page.
 #
-# $Id: Proteome.pm,v 1.4 2007-03-05 13:23:34 jt6 Exp $
+# $Id: Proteome.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Proteome.pm,v 1.4 2007-03-05 13:23:34 jt6 Exp $
+$Id: Proteome.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
 
 =cut
 
@@ -74,16 +74,16 @@ sub _getSummaryData : Private {
 
   my %summaryData;
   #select distinct auto_architecture from pfamseq where ncbi_code=62977 and genome_seq=1;
-  my $rs = $c->model("PfamDB::Pfamseq")->find({ ncbi_code  => $c->stash->{proteomeSpecies}->ncbi_code,
-						genome_seq => 1},
-					      { select => [
-							   { count => [
-								       { distinct => [ "auto_architecture" ] }
-								      ]
-							   }
-							  ],
-						as => [ qw/numArch/ ]
-					      });
+  my $rs = $c->model("PfamDB::Pfamseq")
+    ->find({ ncbi_code  => $c->stash->{proteomeSpecies}->ncbi_code,
+			 genome_seq => 1},
+		   { select     => [
+							{ count => [
+										{ distinct => [ "auto_architecture" ] }
+									   ]
+							}
+						   ],
+			 as         => [ qw/numArch/ ] } );
   $summaryData{numArchitectures} = $rs->get_column( "numArch" );;
 
   # number of sequences in proteome.
@@ -92,19 +92,19 @@ sub _getSummaryData : Private {
 
   # number of structures known for the domain
   #Release 21.0 need something like this
-  
+
   #select distinct auto_pdb from pdb_pfamA_reg a, pfamseq s where s.auto_pfamseq=a.auto_pfamseq and ncbi_code=62977 and genome_seq=1;
-  $rs = $c->model("PfamDB::Pdb_pfamA_reg")->find({ "pfamseq.ncbi_code"  => $c->stash->{proteomeSpecies}->ncbi_code,
-						   "pfamseq.genome_seq" => 1},
-						 { select => [
-							      { count => [
-									  { distinct => [ "auto_pdb" ] }
-									 ]
-							      }
-							     ],
-						   as => [ qw/numPdb/ ],
-						   join => [qw/pfamseq/],
-						 });
+  $rs = $c->model("PfamDB::Pdb_pfamA_reg")
+    ->find({ "pfamseq.ncbi_code"  => $c->stash->{proteomeSpecies}->ncbi_code,
+			 "pfamseq.genome_seq" => 1},
+		   { select               => [
+									  { count => [
+												  { distinct => [ "auto_pdb" ] }
+												 ]
+									  }
+									 ],
+			 as                   => [ qw/numPdb/ ],
+			 join                 => [ qw/pfamseq/ ] } );
    $summaryData{numStructures}  = $rs->get_column( "numPdb" );
 
   # number of species
@@ -126,8 +126,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

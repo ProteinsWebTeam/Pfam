@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.6 2007-01-31 13:54:48 jt6 Exp $
+# $Id: Tree.pm,v 1.7 2007-03-15 14:06:10 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.6 2007-01-31 13:54:48 jt6 Exp $
+$Id: Tree.pm,v 1.7 2007-03-15 14:06:10 jt6 Exp $
 
 =cut
 
@@ -38,7 +38,7 @@ use base "PfamWeb::Controller::Family";
 
 We get here after the begin method from the parent class has handled
 the extraction of the family accession from the URL, so we can jump
-straight in and generate the tree. 
+straight in and generate the tree.
 
 Tries to retrieve it from cache before actually generating it though.
 
@@ -63,11 +63,10 @@ sub auto : Private {
   	$c->log->debug( "Tree::auto: successfully retrieved tree from cache" );
   } else {
   	$c->log->debug( "Tree::auto: no cached tree; generating from file" );
-  
+
   	# get a new tree object...
   	$tree = treefam::nhx_plot->new( -width => 600,
                   									-skip  => 14 );
-  
   	# decide if we want the full or the seed alignment
   	my $treeDataFile = $this->{treeFileDir};
   	if( $c->req->param( "type" ) eq "full" ) {
@@ -76,11 +75,11 @@ sub auto : Private {
   	  $treeDataFile .= "/seed/$acc.tree";
   	}
   	$c->log->debug( "Tree::generateTree: loading tree file \"$treeDataFile\"" );
-  
+
   	# open the data file
   	open TREE, $treeDataFile
   	  or $c->log->error( "Tree::generateTree: WARNING: couldn't open tree file for $acc: $!" ) and return;
-  	
+	
   	eval {
   	  $tree->parse( join "", <TREE> );
   	};
@@ -89,7 +88,7 @@ sub auto : Private {
   	  $c->log->error( "Tree::generateTree: ERROR: failed to parse tree for $acc: $@" );
   	  return 0;
   	}
- 
+
     # cache the tree that we just generated
   	$c->cache->set( "tree". $acc . $type, $tree, "2 weeks" )
     	if defined $tree;
@@ -153,7 +152,7 @@ Just overrides the parent end, since we're returning the tree image directly.
 
 sub end : Private {
 
-  # do nothing... 
+  # do nothing...
 
 }
 
@@ -167,8 +166,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

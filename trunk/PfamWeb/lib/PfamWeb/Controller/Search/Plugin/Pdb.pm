@@ -2,7 +2,7 @@
 # Pdb.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pdb.pm,v 1.1 2006-08-22 15:16:23 jt6 Exp $
+# $Id: Pdb.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ we can retrieve pfam accession, ID and description from there, and
 another join against the pdb table for the actual text-query against
 the PDB ID.
 
-$Id: Pdb.pm,v 1.1 2006-08-22 15:16:23 jt6 Exp $
+$Id: Pdb.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
 
 =cut
 
@@ -55,18 +55,18 @@ sub process : Private {
   $c->log->debug( "Search::Plugin::Pdb::process: text querying table pdb" );
 
   my $results = $c->model("PfamDB::PdbMap")
-	->search(
-			 {
-			  pfam_region => 1
-			 },
-			 {
-			  join        => [ qw/pfamA pdb/ ],
-			  prefetch    => [ qw/pfamA/ ]
-			 }
-			)
-	  ->search_literal( "MATCH( pdb_id, header, title ) " .
-						"AGAINST( ? IN BOOLEAN MODE )",
-						$c->stash->{terms} );
+    ->search(
+             {
+              pfam_region => 1
+             },
+             {
+              join        => [ qw/pfamA pdb/ ],
+              prefetch    => [ qw/pfamA/ ]
+             }
+            )
+      ->search_literal( "MATCH( pdb_id, header, title ) " .
+                        "AGAINST( ? IN BOOLEAN MODE )",
+                        $c->stash->{terms} );
 
   return $results;
 }
@@ -81,8 +81,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

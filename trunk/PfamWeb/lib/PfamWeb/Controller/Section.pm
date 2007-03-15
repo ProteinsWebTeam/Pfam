@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.4 2007-03-08 14:14:58 jt6 Exp $
+# $Id: Section.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.4 2007-03-08 14:14:58 jt6 Exp $
+$Id: Section.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
 
 =cut
 
@@ -49,7 +49,7 @@ An empty action to capture URLs like
 
 sub default : Path {
   my( $this, $c ) = @_;
-  
+
   # empty; just here to capture the URL
 
 }
@@ -68,13 +68,13 @@ sub end : Private {
 
   # check for errors
   if( scalar @{ $c->error } ) {
-  
+
   	# there was a system error...
   	$c->stash->{template} = "components/systemError.tt";
-  
+
   	# report the error as a broken internal link
   	$c->forward( "/reportError" );
-  
+
   	# clear the errors before we finish up
   	$c->clear_errors;
 
@@ -92,7 +92,7 @@ sub end : Private {
   				->{errorTemplate};
 
   } else {
-  
+
   	# no problems; set up the template and let it rip
   	$c->stash->{pageType} = $this->{SECTION};
   	$c->stash->{template} ||= "pages/layout.tt";
@@ -114,8 +114,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

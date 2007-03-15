@@ -2,11 +2,23 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# Controller to build a set of domain graphics for a given Pfam.
-#
-# $Id: DomainGraphics.pm,v 1.9 2006-12-05 10:12:12 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.10 2007-03-15 14:06:10 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::Family::DomainGraphics
+
+=cut
 
 package PfamWeb::Controller::Family::DomainGraphics;
+
+=head1 DESCRIPTION
+
+Controller to build a set of domain graphics for a given Pfam.
+
+$Id: DomainGraphics.pm,v 1.10 2007-03-15 14:06:10 jt6 Exp $
+
+=cut
 
 use strict;
 use warnings;
@@ -14,6 +26,17 @@ use warnings;
 use Storable qw(thaw);
 
 use base "PfamWeb::Controller::Section";
+
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 begin : Private
+
+Looks for a Pfam accession and populates the stash with the
+appropriate object.
+
+=cut
 
 sub begin : Private {
   my( $this, $c ) = @_;
@@ -32,7 +55,13 @@ sub begin : Private {
 
 }
 
-# pick up a URL like http://localhost:3000/family/domaingraphics?acc=PF00067
+#-------------------------------------------------------------------------------
+
+=head2 default : Path
+
+Builds the domain graphics for the specified entry.
+
+=cut
 
 sub default : Path {
   my( $this, $c ) = @_;
@@ -128,8 +157,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

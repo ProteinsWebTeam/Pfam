@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.4 2006-11-17 11:38:20 jt6 Exp $
+# $Id: Structures.pm,v 1.5 2007-03-15 14:06:10 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.4 2006-11-17 11:38:20 jt6 Exp $
+$Id: Structures.pm,v 1.5 2007-03-15 14:06:10 jt6 Exp $
 
 =cut
 
@@ -72,11 +72,13 @@ sub default : Path {
   $c->stash->{pdbObj} = $c->model("PfamDB::Pdb")->find( { pdb_id   => $id })
 	if defined $id;
 
-  my @rs = $c->model("PfamDB::Pdb_pfamA_reg")
-    ->search({auto_pfamA => $c->stash->{pfam}->auto_pfamA},
-	     {join => [qw/ pdb /],
-	      prefetch => [qw/ pdb /]}
-	    ) if defined $c->stash->{pfam}->auto_pfamA;
+  my @rs;
+  if( defined $c->stash->{pfam}->auto_pfamA ) {
+	@rs = $c->model("PfamDB::Pdb_pfamA_reg")
+	  ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA},
+				{ join       => [qw/ pdb /],
+				  prefetch   => [qw/ pdb /] } );
+  }
 
   my %pdbUnique = map{ $_->pdb_id => $_ } @rs;
   $c->stash->{pdbUnique} = \%pdbUnique;
@@ -96,8 +98,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 

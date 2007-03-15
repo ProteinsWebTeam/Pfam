@@ -2,7 +2,7 @@
 # Simap.pm
 # jt6 20060503 WTSI
 #
-# $Id: Simap.pm,v 1.10 2007-03-05 13:23:39 jt6 Exp $
+# $Id: Simap.pm,v 1.11 2007-03-15 14:06:15 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Protein::Simap;
 This controller queries the SIMAP web-service for data pertaining to the
 supplied UniProt entry and generates a graph etc. for that entry.
 
-$Id: Simap.pm,v 1.10 2007-03-05 13:23:39 jt6 Exp $
+$Id: Simap.pm,v 1.11 2007-03-15 14:06:15 jt6 Exp $
 
 =cut
 
@@ -70,10 +70,10 @@ sub getSimapData : Path {
 
   # ... and if not, go ahead and build one from scratch
 #  if( $simap ) {
-#    $c->log->debug( "Simap::getSimapData: retrieved simap object from cache" );    
+#    $c->log->debug( "Simap::getSimapData: retrieved simap object from cache" );
 #  } else {
-    $c->log->debug( "Simap::getSimapData: couldn't find a cached simap object; building" );    
-    
+    $c->log->debug( "Simap::getSimapData: couldn't find a cached simap object; building" );
+
     $simap = Bio::Pfam::WebServices::Client::Simap->new(
         			 '-proxy'      => $this->{simapProxy},
         			 '-md5'        => $c->stash->{pfamseq}->md5,
@@ -83,7 +83,7 @@ sub getSimapData : Path {
         			 '-database'   => [qw/313 314/],
         			 '-showSeq'    => 1,
         			 '-showAli'    => 0);
-  
+
     eval {
     	$simap->queryService;
     };
@@ -97,7 +97,7 @@ sub getSimapData : Path {
 #    $c->cache->set( $c->stash->{pfamseq}->md5, $simap, "12h" );
 #    print STDERR "********** done\n";
 #  }
-  
+
   # now we should have a simap object, whether from cache or ab initio
   my $pfamaln;
   eval {
@@ -162,7 +162,7 @@ sub getSimapData : Path {
   $graph->appendChild($axisX);
   $axisX->setAttribute("label", "residue");
   #$axisX->setAttribute("colour", "offblack1");
-  
+
   #Set up the data
   my $graphData = $drawingXML->createElement( "graphData" );
   $graph->appendChild($graphData);
@@ -171,20 +171,19 @@ sub getSimapData : Path {
   $dataSeries1->setAttribute("label", "% Residue Identity");
   $dataSeries1->setAttribute("colour", "green");
   $dataSeries1->setAttribute("type", "area");
-  
+
   my $dataSeries2 = $drawingXML->createElement( "dataSeries" );
   $graphData->appendChild($dataSeries2);
   $dataSeries2->setAttribute("label", "Average % Residue Identity");
   $dataSeries2->setAttribute("colour", "blue");
   $dataSeries2->setAttribute("type", "lines");
- 
+
   my $dataSeries3 = $drawingXML->createElement( "dataSeries" );
   $graphData->appendChild($dataSeries3);
   $dataSeries3->setAttribute("label", "% Residue Aligned");
   $dataSeries3->setAttribute("colour", "red");
   $dataSeries3->setAttribute("type", "lines");
- 
-  
+
   for( my $r = 1; $r < @$idPerCol; $r++){
     my $d1 = $drawingXML->createElement( "data" );
     $dataSeries1->appendChild($d1);
@@ -261,8 +260,24 @@ Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
 
