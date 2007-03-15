@@ -1,11 +1,20 @@
 
-[%#
+[%
 # summary.tt
 # jt6 20060424 WTSI
 # 
 # build the summary block for the iPfam pages
 #
-# $Id: summary.tt,v 1.2 2006-09-28 10:09:08 rdf Exp $
+# $Id: summary.tt,v 1.3 2007-03-15 10:57:40 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "ipfam.css" );
+
+#-------------------------------------------------------------------------------
 %]
 
 <!-- start ipfam summary block -->
