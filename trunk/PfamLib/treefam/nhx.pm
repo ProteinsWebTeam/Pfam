@@ -220,31 +220,7 @@ sub parse_nhx
 	if (@stack != 1) {
 		my $count = @stack;
 		warn(qq{[treefam::nhx::parse] unmatched "(" ($count)});
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+		$self->{_error} = 1;
 		@stack = ();
 	}
 	if ($self->{_error} == 0) {
@@ -277,31 +253,7 @@ sub parse_aux
 			}
 			unless (defined($t)) {
 				warn('[treefam::nhx::parse_aux] unmatched ")"');
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+				$self->{_error} = 1;
 				return;
 			}
 			foreach (reverse @s) {
@@ -345,31 +297,7 @@ sub parse_tft
 	}
 	if (!$root_index) {
 		warn('[treefam::nhx::parse_tft] no root');
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+		$self->{_error} = 1;
 		return;
 	}
 	$root_index = $conv{$root_index};
@@ -521,31 +449,7 @@ sub get_leaves
 	return $nhx->n_leaf unless(defined($leaves));
 	if (ref($leaves) eq 'HASH') {
 		%$leaves = ();
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+		foreach my $p ($nhx->ext_name) { $leaves->{$p} = 1; }
 	} elsif (ref($leaves) eq 'ARRAY') {
 		@$leaves = ();
 		foreach my $p ($nhx->ext_name) { push(@$leaves, $p); }
@@ -626,6 +530,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
+
 
 1;
 

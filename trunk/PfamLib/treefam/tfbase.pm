@@ -135,31 +135,7 @@ sub get_desc_str
 sub mfa2aln
 {
 	my $inp = shift;
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+	my $is_filt = (@_)? shift : 1;
 	my $is_nucl = (@_)? shift : 0;
 	my $fifo_dir = (@_)? shift : '';
 
@@ -239,31 +215,7 @@ sub mfa2nhx
 sub stockholm2mfa
 {
 	my $inp = shift;
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+	my $is_mask = (@_)? shift : 1;
 	my (@order, %seq, %desc, $mask);
 	my $ret = '';
 	foreach (split("\n", $inp)) {
@@ -275,31 +227,7 @@ or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 		} elsif (/^([^\/#\s]\S+)\s+(\S+)$/) {
 			$seq{$1} .= $2;
 		} elsif (/^#=GC\sRF\s+(\S+)$/) {
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+			$mask .= $1;
 		}
 	}
 	if ($is_mask) {
@@ -319,147 +247,27 @@ sub conv_name
 	return if (!$mfa);
 	my %hash = ();
 	my %ori_hash = ();
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+	my $flag = 1;
 	my $ret = '';
 	foreach (split("\n", $mfa)) {
 		if (/^>(\S+\|)?([^\s|]+)(.*)/) {
 			my $name = $2;
 			if (/ORI_NAME=(\S+)/) {
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+				$ori_hash{$1} = 1;
 				if (defined($hash{$name})) {
 					++$hash{$name};
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+				} else { $hash{$name} = 1; }
 				$ret .= "$_\n"; # $name is recorded, but not changed.
 				next;
 			}
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+			$flag = 1;
 			# write ORI_NAME
 			my $anno = (defined($1))? " ORI_NAME=$1$2$3" : " ORI_NAME=$2$3";
 			my $ori_name = $2;
 			if (defined($ori_hash{$ori_name})) {
 				$flag = 0; next; # discard
 			}
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+			$ori_hash{$ori_name} = 1;
 			# put GENEID next to the FASTA name
 			$anno =~ s/(.*)\s+(GENEID=\S+)(.*)/ $2$1$3/;
 				# get SWCODE
@@ -494,31 +302,7 @@ or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 				++$hash{$name};
 				$name = "F$hash{$name}-$name";
 			} else {
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+				$hash{$name} = 1;
 			}
 			$name =~ tr/:;,[]()/---{}{}/;
 			$ret .= ">$name$anno\n";
@@ -549,6 +333,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
+
 
 1;
 

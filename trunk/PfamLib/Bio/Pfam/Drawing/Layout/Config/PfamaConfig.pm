@@ -21,57 +21,9 @@ my (@R, @G, @B);
  $G[0]=3;
  $B[0]=192;
 
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+ $R[1]=31;
  $G[1]=192;
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+ $B[1]=31;
 
  $R[2]=192; 
  $G[2]=15;
@@ -226,31 +178,7 @@ sub _domain_colour{
 sub _assigned_colours {
   my ($self, $acc, $colour1, $colour2) = @_;
   if($colour1 && $colour2){
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+    $self->{'colours'}->{$acc}->{'colour1'} = $colour1;
     $self->{'colours'}->{$acc}->{'colour2'} = $colour2;
   }else{
     if($self->{'colours'}->{$acc}){
@@ -290,31 +218,7 @@ sub _next_colour{
   $dark = sprintf("%02x%02x%02x", @tmp_dark);
   my @tmp_light =  (&control_limits($R[$i1]+40) , &control_limits($G[$i1]+40) , &control_limits($B[$i1]+40) );
   $light = sprintf("%02x%02x%02x", @tmp_light);
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+  $self->{'colour_no'} += 1;
   return ($dark, $light);
 }
 
@@ -365,6 +269,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
+
 
 1;
 

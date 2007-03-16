@@ -70,31 +70,7 @@ sub transalign
 	while (<$fh>) {
 		$header_line = $_;
 		/^(\S+)(.*)/;
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+		$name = $1; $tmp = $2;
 		$name = $1 if ($tmp && $tmp =~ /ORI_NAME=(\S+)/);
 		$sth->execute($name);
 		my ($seq) = $sth->fetchrow_array;
@@ -122,56 +98,8 @@ sub mfa_splice
 	$/ = ">"; <$fh>; $/ = "\n";
 	while (<$fh>) {
 		/^(\S+)(.*)/;
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+		my $name = $1;
+		my $ori_name = $1;
 		$_ = $2;
 		$ori_name = $1 if (/ORI_NAME=(\S+)/);
 		$/ = ">";
@@ -260,6 +188,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
+
 
 1;
 

@@ -51,31 +51,7 @@ sub build_for_TreeFam
 	my (%h_gene, %h_disp, %in_seed, %trans);
 	while (<$fh_aa_aln>) {
 		if (/^>(\S+)(.*)/) {
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+			my $disp = $1;
 			my $comm = $2;
 			my ($ori, $gene) = ($disp, '');
 			$ori = $1 if ($comm =~ /ORI_NAME=(\S+)/);
@@ -99,31 +75,7 @@ or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 		foreach my $p (keys %trans) {
 			#warn("$p\t$trans{$p}\t$h_disp{$trans{$p}}\n");
 			print $fh2 "$p\t$trans{$p}\t$h_disp{$trans{$p}}\n";
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
-
-=cut
-
-1;
-
+			$in_seed{$h_disp{$trans{$p}}} = 1;
 		}
 		close($fh2);
 		if ($seed_nhx && -f $seed_nhx) {
@@ -204,6 +156,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 =cut
+
 
 1;
 
