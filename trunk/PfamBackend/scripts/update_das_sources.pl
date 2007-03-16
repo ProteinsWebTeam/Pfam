@@ -8,20 +8,37 @@
 # table up to date.
 #
 # The script populates a table that's created as follows:
-
-=head
-CREATE TABLE feature_das_sources (
-  server_id VARCHAR(40) NOT NULL,
-  system VARCHAR(200) NOT NULL,
-  sequence_type VARCHAR(200) NOT NULL,
-  name VARCHAR(100) NOT NULL,
-  url VARCHAR(200) NOT NULL,
-  helper_url VARCHAR(200) NULL,
-  default_server TINYINT(1) NOT NULL,
-  PRIMARY KEY(server_id, system, sequence_type)
-);
-=cut
-# $Id: update_das_sources.pl,v 1.7 2007-03-07 14:13:54 aj5 Exp $
+#   CREATE TABLE feature_das_sources (
+#     server_id VARCHAR(40) NOT NULL,
+#     system VARCHAR(200) NOT NULL,
+#     sequence_type VARCHAR(200) NOT NULL,
+#     name VARCHAR(100) NOT NULL,
+#     url VARCHAR(200) NOT NULL,
+#     helper_url VARCHAR(200) NULL,
+#     default_server TINYINT(1) NOT NULL,
+#     PRIMARY KEY(server_id, system, sequence_type)
+#   );
+#
+# $Id: update_das_sources.pl,v 1.8 2007-03-16 10:32:42 jt6 Exp $
+#
+# Copyright (c) 2007: Genome Research Ltd.
+#
+# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+#
+# This is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 use warnings;
 use strict;
