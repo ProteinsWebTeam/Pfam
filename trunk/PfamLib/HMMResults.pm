@@ -161,7 +161,31 @@ sub parse_hmmpfam {
     while(<$file>) {
 	#print STDERR "$_";
 	if( /^Query sequence:\s+(\S+)/ ) {
-	    $seqname = $1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	    $seq = new HMMSequence;
 	    $seq->name($seqname);
 	    $self->addHMMSequence($seq);
@@ -225,7 +249,31 @@ sub parse_hmmpfam {
 		# matches:
 		# PF00621: domain 1 of 1, from 198 to 372
 		if( /^\s*(\S+):.*from\s+(\d+)\s+to\s+(\d+)/ ) {
-		    $name = $1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 		    $from = $2;
 		    $to   = $3;
 
@@ -305,14 +353,86 @@ sub parse_decypher {
 
 	/^\[END ALIGNMENTS TIME\]/ && last;
 	if(/^ T = (\S+)/) {
-	    $id=$1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 
 	    # Multiple domains
 	} elsif(/^Domain.*Score = (\S+)\s+E_Value =\s+(\S+)\s*$/) {
-	    $sc=$1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	    $ev=$2;
 	} elsif(/^RANK.*Score =\s+(\S+)\s+E_Value =\s+(\S+)\s$/) { # These will be overwritten by multiple domain
-	    $sc=$1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	    $ev=$2;
 	} elsif( (($hmmf, $hmmt,$sqfrom,$sqto) = /QS =\s+(\d+)\s+QE =\s+(\d+)\s+TS =\s+(\d+)\s+TE =\s+(\d+)\s+$/)) {
 	    $unit = new HMMUnit;
@@ -389,9 +509,81 @@ sub parse_HMMer1 {
 	if( my( $bits, $s, $e, $id ) = 
 	    /^(-?\d+\.?\d*)\s+\(bits\)\s+f:\s+(\d+)\s+t:\s+(\d+)\s+Target:\s+(\S+)/ ) {
 	    if( $id =~ /(\S+)\/(\d+)-(\d+)/ ) {
-		$id = $1;
-		$s = $2+$s-1;
-		$e = $2+$e-1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	    }
 
 	    if( my $seq = $self->getHMMSequence( $id ) ) {
@@ -474,7 +666,31 @@ sub domain_bits_cutoff_from_evalue {
     $seen = 0;
     foreach $_ ( @doms ) {
 	if( $_->evalue > $eval ) {
-	    $seen = 1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	    $dom = $_;
 	    last;
 	} 
@@ -894,7 +1110,31 @@ sub _extreme_value_p {
     }
 }
 
-1;  # says use was ok
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 __END__
 
 =head1 NAME

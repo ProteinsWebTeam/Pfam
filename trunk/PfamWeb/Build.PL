@@ -4,7 +4,26 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.15 2007-03-14 10:32:10 jt6 Exp $
+# $Id: Build.PL,v 1.16 2007-03-16 11:25:23 jt6 Exp $
+#
+# Copyright (c) 2007: Genome Research Ltd.
+#
+# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+#
+# This is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
 use strict;
 use warnings;
