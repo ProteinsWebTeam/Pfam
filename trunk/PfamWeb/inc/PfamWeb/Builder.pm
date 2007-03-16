@@ -2,13 +2,13 @@
 # PfamBuilder.pm
 # jt 20070208 WTSI.
 #
-# $Id: Builder.pm,v 1.10 2007-03-15 14:35:16 jt6 Exp $
+# $Id: Builder.pm,v 1.11 2007-03-16 11:28:09 jt6 Exp $
 
 =head1 NAME
 
 PfamWeb::Builder - Module::Build subclass for installing PfamWeb
 
-= cut
+=cut
 
 package PfamWeb::Builder;
 
@@ -20,7 +20,7 @@ module provides the extra methods that L<Module::Build> requires to
 install the various extra file types and directories in the PfamWeb
 distribution, such as the static HTML content in htdocs.
 
-$Id: Builder.pm,v 1.10 2007-03-15 14:35:16 jt6 Exp $
+$Id: Builder.pm,v 1.11 2007-03-16 11:28:09 jt6 Exp $
 
 =cut
 
