@@ -104,14 +104,62 @@ sub addSwissPfamToAnnSeq {
        if ($type !~ /pfamb/i and $type !~ /full/i) {
 	   $self->throw("Bio::Pfam::PfamAnnSeqfactory: '$type' not supported by addSwissPfam");
        } 
-       $type_hash{ $type } = 1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
    }
 
    while (<$file>) {
        if (/^>(\S+).*\s(\d+)\sa\.a\./) {
 	   # we have found the id line.
 	   if (not defined($id)) {
-	       $id = $1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	       $annSeq->id( $id );
 	       $annSeq->length( $2 );
 	   }
@@ -122,14 +170,62 @@ sub addSwissPfamToAnnSeq {
        else {
 	   # we must have a domain entry line
 	   if (/^(\S+)\s+\d+.*\(\d+\)\s+(\w+\d+|\w+\d+\.\d+)\s+?(.*?)(?=\s+\d+-\d+)/) {
-	       $domainName = $1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	       $acc = $2;
 	       $annotation = $3;
 	       $remainder = $';
 	       if (($acc =~ /^PF/ and $type_hash{"full"}) || ($acc =~ /^PB/ and $type_hash{"pfamb"})) {
 		   foreach $interval ( split /\s+/, $remainder ) { 
 		       if ($interval =~ /(\d+)-(\d+)/) {
-			   my $start = $1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 			   my $end = $2;
 			   my $ann;
 			   if ($acc =~ /^PF/) {

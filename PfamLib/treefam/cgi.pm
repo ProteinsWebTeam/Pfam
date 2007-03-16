@@ -126,7 +126,31 @@ sub print_tf_footer {
 		$lastmod = qq(Last Modified $ENV{"LAST_MODIFIED"});
 	} elsif (defined $ENV{"SCRIPT_FILENAME"}) {
 		$ENV{"SCRIPT_FILENAME"} =~ /^(.*)$/;
-		my $filename    = $1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 		my ($mtime)     = (stat($filename))[9];
 		my $scriptstamp = localtime($mtime);
 		$lastmod        = qq(Last Modified $scriptstamp) if(defined $scriptstamp);
@@ -282,7 +306,31 @@ sub print_desc {    # update
 
 	if (defined($desc{NEW_AC}) && $desc{NEW_AC}) {
 		print qq(<h3>This family has been curated. Follow the "New Accessions" to see the curated families.</h3><hr>\n);
-		return 1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	}
 	return 0;
 }
@@ -295,7 +343,31 @@ sub print_fam_line
 	unless ($sth) {
 		print qq(<table border="1" cellspacing="0" cellpadding="0" width="100%" class="main">
 			<tr><th>AC<th>SYMBOL<th>NAME<th>NUM<th>Seed Tree<th>Full Tree</tr>\n);
-		return 1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	}
 	my @t;
 	return 0 unless ((@t = $sth->fetchrow_array()));
@@ -314,7 +386,31 @@ sub print_fam_line
 		<td>$t[1]<td>$t[2]<td width="1%">$t[4]/$t[5]
 		<td width="1%"><input type="button" value="view tree" onClick="openPNG('treeview.pl?ac=$t[0]&stype=seed', $t[4])"></td>
 		<td width="1%"><input type="button" value="view tree" onClick="openPNG('treeview.pl?ac=$t[0]&stype=full', $t[5])"></td></tr>\n);
-	return 1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 }
 #############################
 # return the link of sequence
@@ -459,7 +555,31 @@ sub print_map
 			$str .= "length: $p->{dist}<br>" if (defined($p->{dist}) && $p->{dist} >= 0.0);
 			$str .= "bootstrap: $p->{B}<br>" if (defined($p->{B}) && $p->{B} >= 0);
 			if ($p->{E} && $p->{E} =~ /^\$-(\S+)$/) {
-				$_ = $1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 				s/\-/,/g;
 				$str .= "loss: $_<br>";
 			}
@@ -539,7 +659,31 @@ sub print_hmmer_match
 	foreach my $p (@$leaf_list) {
 		$sth->execute($p);
 		($_) = $sth->fetchrow_array;
-		$gene_hash{$_} = 1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 	}
 	$sth->finish;
 	$sth = $self->dbh->prepare(qq{SELECT g.ID, h.SCORE, s.SWCODE, g.SYMBOL, g.GID FROM hmmer h, genes g, species s WHERE h.AC=? AND h.ID=g.ID AND g.TAX_ID=s.TAX_ID ORDER BY h.SCORE DESC, g.ID});
@@ -551,7 +695,31 @@ onMouseOut="hidetip()">Instructions</a></font></h3>\n};
 	my %out = (ARATH=>1, YEAST=>1, SCHPO=>1);
 	while ((@t = $sth->fetchrow_array)) {
 		next if ($has_appear{$t[4]});
-		$has_appear{$t[4]} = 1;
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
+
 		print qq{<tr><td class="tiny"><a href="TFseq.pl?id=$t[0]" target="_blank">$t[3]</a></td><td class=};
 		print ((!$out{$t[2]})? qq{"tiny"} : qq{"redtiny"});
 		print qq{>$t[2]</td><td align="right" class=};
@@ -581,7 +749,31 @@ sub print_quick_search
 <hr>\n};
 }
 
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
 1;
+
 
 =head1 AUTHOR
 
