@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.16 2007-03-16 11:25:23 jt6 Exp $
+# $Id: Build.PL,v 1.17 2007-03-16 16:52:28 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -674,7 +674,7 @@ EOFloc
       print "              You will need to make sure that perl can find DBI before starting the server.\n";
     } else {
       # we got DBI to load, so let's check the connection parameters
-      my $pfamDBH = DBI->connect( $pfamDSN, $pfamUser, undef, { PrintError => 0 } )
+      my $pfamDBH = DBI->connect( $pfamDSN, $pfamUser, $pfamPass, { PrintError => 0 } )
         or print "(WW) WARNING: couldn't connect to the Pfam database: $DBI::errstr\n";  
       my $wuDBH = DBI->connect( $wuDSN, $wuUser, $wuPass, { PrintError => 0 } )
         or print "(WW) WARNING: couldn't connect to web_user database: $DBI::errstr\n";  
