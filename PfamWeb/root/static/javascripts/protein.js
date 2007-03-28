@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.8 2007-03-15 15:03:52 jt6 Exp $
+// $Id: protein.js,v 1.9 2007-03-28 14:41:46 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -45,33 +45,6 @@ function proteinPostLoad() {
   Element.hide("checkboxes","plainSequence");
 }
 
-// show/hide the specified drop-down panel
-
-showItems = {};
-
-function reveal( oSwitch, sId, bStartState ) {
-
-  // if the third parameter is set, we'll assign it as the "visible
-  // state" of the element, but only if that's not already assigned
-  if( typeof( showItems[sId] ) == "undefined" && typeof( bStartState ) != "undefined" ) {
-	showItems[sId] = bStartState;
-  }
-  
-  var oSource = $(sId);
-  if( typeof( showItems[sId] ) == "undefined" || showItems[sId] ) {
-	// console.debug( sId + " is currently shown" );
-	Effect.BlindUp( oSource, { duration: 0.3 } );
-	showItems[sId] = false;
-	Element.update( oSwitch, "Show" );
-  } else {
-	// console.debug( sId + " is currently hidden" );
-	Effect.BlindDown( oSource, { duration: 0.3 } );
-	showItems[sId] = true;
-	Element.update( oSwitch, "Hide" );
-  }
-
-}
-  
 //------------------------------------------------------------
 // callbacks for the alignment/DAS graphics
 
