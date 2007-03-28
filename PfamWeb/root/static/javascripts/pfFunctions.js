@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.30 2007-03-15 15:03:48 jt6 Exp $
+// $Id: pfFunctions.js,v 1.31 2007-03-28 14:42:00 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -185,7 +185,50 @@ highlight.mouseoutHandler = function( e ) {
 //- functions ------------------------------------------------
 //------------------------------------------------------------
 
+// switch between panels on the index page
+function switchPanel( id ) {
+  $$("div.panel").each(
+    function( block ) {
+      if( id == block.id ) {
+        block.style.display = "block";
+      } else {
+        Element.hide( block );
+      }
+    }
+  );
+}
+
+//------------------------------------------------------------
+// show/hide the specified drop-down panel
+
+showItems = {};
+
+function reveal( oSwitch, sId, bStartState ) {
+
+  // if the third parameter is set, we'll assign it as the "visible
+  // state" of the element, but only if that's not already assigned
+  if( typeof( showItems[sId] ) == "undefined" && typeof( bStartState ) != "undefined" ) {
+  	showItems[sId] = bStartState;
+  }
+  
+  var oSource = $(sId);
+  if( typeof( showItems[sId] ) == "undefined" || showItems[sId] ) {
+  	// console.debug( sId + " is currently shown" );
+  	Effect.BlindUp( oSource, { duration: 0.3 } );
+  	showItems[sId] = false;
+  	Element.update( oSwitch, "Show" );
+  } else {
+  	// console.debug( sId + " is currently hidden" );
+  	Effect.BlindDown( oSource, { duration: 0.3 } );
+  	showItems[sId] = true;
+  	Element.update( oSwitch, "Hide" );
+  }
+
+}
+  
+//------------------------------------------------------------
 // show the selected tab
+
 function chooseTab() {
   // console.debug( "pfFunctions.js:chooseTab" );
   // see if the showTab variable points to tab that actually exists in
