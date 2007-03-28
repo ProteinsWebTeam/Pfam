@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.17 2007-03-13 10:33:00 jt6 Exp $
+# $Id: summary.tt,v 1.18 2007-03-28 14:39:20 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -24,6 +24,8 @@ requirements.js.push( "yui/dom.js" );
 requirements.js.push( "yui/event.js" );
 requirements.js.push( "yui/container.js" );
 requirements.js.push( "ttTweak.js" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 
