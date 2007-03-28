@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060717 WTSI
 #
-# $Id: Browse.pm,v 1.9 2007-03-15 14:06:10 jt6 Exp $
+# $Id: Browse.pm,v 1.10 2007-03-28 10:04:56 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ Retrieves the data for the "browse by family" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.9 2007-03-15 14:06:10 jt6 Exp $
+$Id: Browse.pm,v 1.10 2007-03-28 10:04:56 jt6 Exp $
 
 =cut
 
@@ -61,10 +61,8 @@ Retrieves data for the specified browse page.
 sub browse : Path {
   my( $this, $c ) = @_;
 
-  return unless defined $c->req->param( "browse" );
-
   # set the page to be cached for one week
-  $c->cache_page( 604800 );
+#  $c->cache_page( 604800 );
 
   my @res;
 
@@ -78,21 +76,11 @@ sub browse : Path {
 				  prefetch => [ qw/pfamA_web/ ],
 				  order_by => "pfamA_id ASC" } );
 
-  } elsif( lc $c->req->param("browse") eq "new" ) {
-    $c->stash->{char} = "new";
-
-    # run the query to retrieve new families
-    @res = $c->model("PfamDB::Pfam")
-  	  ->search( { change_status => "NEW" },
-				{ join     => [ qw/pfamA_web/ ],
-				  prefetch => [ qw/pfamA_web/ ],
-				  order_by => "pfamA_id ASC" } );
-
   } elsif( lc $c->req->param("browse") eq "top twenty" ) {
     $c->stash->{char} = "top twenty";
 
-	# retrieve the top twenty largest families, ordered by number of
-	# sequences in the family
+  	# retrieve the top twenty largest families, ordered by number of
+  	# sequences in the family
     @res = $c->model("PfamDB::Pfam")
   	  ->search( { },
 				{ join     => [ qw/pfamA_web/ ],
@@ -104,20 +92,35 @@ sub browse : Path {
 
   } else {
 
-  	my $char;
-  	( $char ) = $c->req->param( "browse" ) =~ /^(\w)/;
+    # see if we should load the page for families starting with a given letter
+    my $char;
+    ( $char ) = $c->req->param( "browse" ) =~ /^(\w{1})$/;
 
-  	return unless defined $char;
+    if( defined $char ) {
+      $c->stash->{char} = uc $char;
+  
+    	# run the query to get back all families starting with the
+    	# specified letter, ordered by ID
+    	@res = $c->model("PfamDB::Pfam")
+    	  ->search( { pfamA_id => { "LIKE", "$char%" } },
+  				{ join     => [ qw/pfamA_web/ ],
+  				  prefetch => [ qw/pfamA_web/ ],
+  				  order_by => "pfamA_id" } );
 
-  	$c->stash->{char} = uc $char;
+    } else {
 
-  	# run the query to get back all families starting with the
-  	# specified letter, ordered by ID
-  	@res = $c->model("PfamDB::Pfam")
-  	  ->search( { pfamA_id => { "LIKE", "$char%" } },
-				{ join     => [ qw/pfamA_web/ ],
-				  prefetch => [ qw/pfamA_web/ ],
-				  order_by => "pfamA_id" } );
+      # either "new" specified, or no starting letter specified, so default 
+      # to new families anyway
+      $c->stash->{char} = "new";
+  
+      @res = $c->model("PfamDB::Pfam")
+    	  ->search( { change_status => "NEW" },
+  				{ join     => [ qw/pfamA_web/ ],
+  				  prefetch => [ qw/pfamA_web/ ],
+  				  order_by => "pfamA_id ASC" } );
+
+    }
+
   }
 
   # stash the results for the template
