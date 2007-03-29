@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060821 WTSI
 #
-# $Id: Browse.pm,v 1.4 2007-03-15 14:06:12 jt6 Exp $
+# $Id: Browse.pm,v 1.5 2007-03-29 13:59:26 jt6 Exp $
 
 =head1 NAME
 
@@ -25,7 +25,7 @@ one page, rather than splitting them up like the families.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.4 2007-03-15 14:06:12 jt6 Exp $
+$Id: Browse.pm,v 1.5 2007-03-29 13:59:26 jt6 Exp $
 
 =cut
 
@@ -53,7 +53,7 @@ sub browse : Path {
   my( $this, $c ) = @_;
 
   # set the page to be cached for one week
-  $c->cache_page( 604800 );
+#  $c->cache_page( 604800 );
 
   my @res = $c->model("PfamDB::Clans")
     ->search( {},
@@ -62,34 +62,8 @@ sub browse : Path {
   # stash the results for the template
   $c->stash->{browse} = \@res if scalar @res;
 
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Renders the clan browse pages.
-
-=cut
-
-# render the page
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  # check for errors
-  if ( scalar @{ $c->error } ) {
-  	$c->stash->{template} = "pages/error.tt";
-  } else {
-  	$c->stash->{pageType} = "clan";
-  	$c->stash->{template} = "pages/browseClans.tt";
-  }
-
-  # and use it
-  $c->forward( "PfamWeb::View::TT" );
-
-  # clear any errors
-  $c->clear_errors;
+  # render the page
+	$c->stash->{template} = "pages/browseClans.tt";
 
 }
 
