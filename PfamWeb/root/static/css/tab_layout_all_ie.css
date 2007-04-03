@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: tab_layout_all_ie.css,v 1.4 2007-04-03 14:58:25 jt6 Exp $
+   $Id: tab_layout_all_ie.css,v 1.5 2007-04-03 15:41:35 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -30,7 +30,7 @@
 
 
 #sidebar li.selected a {
-  left: 2px;
+  left: 1px;
 }
 
 /* the individual icons in the overview bar */
