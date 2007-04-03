@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0">
+    <sequence length="200" name="Arrows">
+        <markup start="100" v_align="bottom" label="bold line, uparrow">
+            <line style="dashed">
+                <colour><hex hexcode="9900CC"/></colour>
+            </line>
+            <head style="arrow">
+                <colour><hex hexcode="9900CC"/></colour>
+            </head>
+        </markup>
+        <markup start="50" v_align="top" label="bold line, down arrow">
+            <line style="bold">
+                <colour><hex hexcode="707070"/></colour>
+            </line>
+            <head style="arrow">
+                <colour><hex hexcode="707070"/></colour>
+            </head>
+        </markup>
+				<markup start="150" v_align="top" label="bold line, down arrow, mixed colours">
+            <line style="bold">
+                <colour><hex hexcode="CC0000"/></colour>
+            </line>
+            <head style="arrow">
+                <colour><hex hexcode="33FF66"/></colour>
+            </head>
+        </markup>
+    </sequence>
+</image>

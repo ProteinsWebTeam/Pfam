@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0">
+    <sequence length="400" display_data="test all drawing features" name="TestSeq">
+        <region start="40" end="200" label="DomainName">
+            <colour1>
+                <colour><hex hexcode="9999ff"/></colour>
+            </colour1>
+            <colour2>
+                <colour><hex hexcode="99ccff"/></colour>
+            </colour2>
+            <bigShape leftStyle="curved" rightStyle="curved"/>
+        </region>
+        <region start="210" end="250" label="FamilyNoNameDisply" link_URL="/">
+            <colour1>
+                <colour><hex hexcode="339999"/></colour>
+            </colour1>
+            <colour2>
+                <colour><RGB R="51" G="204" B="204"/></colour>
+            </colour2>
+            <bigShape leftStyle="curved" rightStyle="curved"/>
+        </region>
+    </sequence>
+</image>
