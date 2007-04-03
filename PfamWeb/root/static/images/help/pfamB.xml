@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1">
+  <sequence name="PfamB" length="200" >
+    <region start="8" end="68" label="Pfam-B_39520" link_URL="/cgi-bin/Pfam/pfambget.pl?acc=PB039520">
+      <colour1>
+        <colour>
+          <hex hexcode="bdc000~d1d414~e5e828~c008ae~00bac0~00a6ac~00888e"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+    <region start="105" end="176" label="Pfam-B_43847" link_URL="/cgi-bin/Pfam/pfambget.pl?acc=PB043847">
+      <colour1>
+        <colour>
+          <hex hexcode="8484c0~9898d4~acace8~93c090~c0af92~ac9b7e~8e7d60"/>
+        </colour>
+      </colour1>
+      <smlShape/>
+    </region>
+  </sequence>
+</image>

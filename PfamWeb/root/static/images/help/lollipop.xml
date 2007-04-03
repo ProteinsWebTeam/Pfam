@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0">
+    <sequence length="200" name="Lollipop">
+	    	<markup start="20" v_align="top" label="bold line, Square head">
+            <line style="bold">
+                <colour>
+                    <hex hexcode="666666"/>
+                </colour>
+            </line>
+            <head style="square">
+                <colour>
+                    <hex hexcode="FF3366"/>
+                </colour>
+            </head>
+        </markup>
+        <markup start="40" v_align="bottom" label="bold line, Square head">
+            <line style="dashed">
+                <colour>
+                    <hex hexcode="666666"/>
+                </colour>
+            </line>
+            <head style="square">
+                <colour>
+                    <hex hexcode="9966cc"/>
+                </colour>
+            </head>
+        </markup>
+        <markup start="80" v_align="bottom" label="bold line, Diamond head">
+            <line style="bold line">
+                <colour>
+                    <hex hexcode="666666"/>
+                </colour>
+            </line>
+            <head style="diamond">
+                <colour>
+                    <hex hexcode="FF3366"/>
+                </colour>
+            </head>
+        </markup>
+        <markup start="120" v_align="bottom" label="dashed line, Circle head">
+            <line style="dashed">
+                <colour>
+                    <hex hexcode="666666"/>
+                </colour>
+            </line>
+            <head style="circle">
+                <colour>
+                    <hex hexcode="333399"/>
+                </colour>
+            </head>
+        </markup>
+	      <markup start="60" v_align="top" label="bold line, Square head">
+            <line style="bold">
+                <colour>
+                    <hex hexcode="666666"/>
+                </colour>
+            </line>
+            <head style="square">
+                <colour>
+                    <hex hexcode="66ff00"/>
+                </colour>
+            </head>
+        </markup>
+        <markup start="100" v_align="top" label="bold line, Diamond head">
+            <line style="bold line">
+                <colour>
+                    <hex hexcode="666666"/>
+                </colour>
+            </line>
+            <head style="diamond">
+                <colour>
+                    <hex hexcode="FF3366"/>
+                </colour>
+            </head>
+        </markup>
+        <markup start="140" v_align="top" label="dashed line, Circle head">
+            <line style="dashed">
+                <colour>
+                    <hex hexcode="666666"/>
+                </colour>
+            </line>
+            <head style="circle">
+                <colour>
+                    <hex hexcode="cc9933"/>
+                </colour>
+            </head>
+        </markup>      
+    </sequence>
+</image>
