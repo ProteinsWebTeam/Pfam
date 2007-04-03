@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.24 2007-03-15 14:57:21 jt6 Exp $
+   $Id: tab_layout.css,v 1.25 2007-04-03 14:58:26 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -31,19 +31,9 @@
 /* ======================================== */
 /* page layout items */
 
-/* the stripe between the page header and the top of the tab */
-#tabHeader {
-    height: 6px;
-    background: #3b70a0;
-}
-
 /* styles for the markup that forms the page tab */
 #tabTitle {
-/*  background: url(/catalyst/pfam/images/layout/double_gradient.gif) repeat-y 15% bottom; */
-	color: #074987;
-    min-height: 50px;
-    margin: 0;
-    padding: 0 0 2px 0;
+  color: #074987;
 }
 
 #pageType {
@@ -54,7 +44,7 @@
   color: #074987;
 }
 
-#corner h2 {
+#tabTitle h2 {
 	margin: 0;
 	padding: 0.2em 0 0 0.2em;
     float: left;
@@ -62,37 +52,32 @@
 
 #wrap {
     position: relative; /* needed to fix the IE peekaboo bug... */
-}
-
-#corner {
-    background: url(/catalyst/pfam/images/layout/left_curve.gif) no-repeat top left;
-    padding: 12px 0 0 0.4em;
-    height: 12px;
+    border-right: 1px solid #074987;
 }
 
 /* the overview bar */
 #icons {
-    background: url(/catalyst/pfam/images/layout/right_top.gif) top left no-repeat;
-    margin: 0;
-    padding: 0 0 6px 40px;
-    float: right;
+  width: 36em;
+  float: right;
+  margin: -7px -6px 0 0;
 }
 
 #icons a,
 #icons span {
-    outline: none;
-	color: #fefefe;
-    text-decoration: none;
-	float: left;
-	padding: 22px 0.4em 0.2em 0.4em;
-	text-align:center;
-    background-repeat: no-repeat;
-	background-position: center top;
-    font-size: x-small;
+  float: right;
+  outline: none;
+/*  color: #fefefe;*/
+  color: #074987;
+  text-decoration: none;
+  padding: 22px 0.6em 0 0;
+  text-align:center;
+  background-repeat: no-repeat;
+  background-position: top center;
+  font-size: x-small;
 }
 
 #icons span {
-    color: #BBB;
+    color: #666;
     font-size: x-small;
 }
 
@@ -125,7 +110,6 @@ form {
 #content {
   width: 85%;
   float: left;
-  border-top: 1px solid #074987;
   position: relative; /* needed to fix the IE peekaboo bug... */
 }
 
@@ -146,11 +130,20 @@ form {
 	color: #074987;
 }
 
+/* the top border for the main content block in the tab layout */
+#topBorder {
+  height: 1px;
+  float: right;
+  width: 85%;
+  background: #074987;
+}
+
 /* ---------------------------------------- */
 
 #contentContainer {
   background-repeat: repeat-x;
   background-position: bottom left;
+  padding: 0;
 }
 
 #sidebar ul {
@@ -179,7 +172,6 @@ form {
 }
 
 #sidebar li.selected {
-  background-image: url(/catalyst/pfam/images/layout/wide_tab_shadow.png);
   background-repeat: no-repeat;
   background-position: bottom left;
   margin-left: 0.2em;

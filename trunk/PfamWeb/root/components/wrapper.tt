@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.27 2007-03-13 10:32:59 jt6 Exp $
+# $Id: wrapper.tt,v 1.28 2007-04-03 14:58:19 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -13,10 +13,9 @@ ELSE;
 
 # no; add some sort of wrapper around it, but figure out whether we need
 # the tab footer or full page footer later on
-
-requirements.bar = 1;
 -%]
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 <html>
 
@@ -40,7 +39,7 @@ requirements.bar = 1;
     PROCESS components/header.tt;
 
     # add a wrapper div if this is a tab layout page
-    UNLESS template.fullPage %]<div id="contentContainer">[% END %]
+    UNLESS template.fullPage %]<div class="cbb" id="contentContainer">[% END %]
 
     <!-- start of content -->
     [% content %]
@@ -48,18 +47,22 @@ requirements.bar = 1;
 
     [%# add the common footer %]
     <!-- start of footer -->
-    [% PROCESS components/footer.tt %]
+    <div id="footer"></div>
+
+    <div class="cleaner"><!-- wrap --></div>
     <!-- end of footer -->
 
     [% # close the wrapper div if this is a tab layout page
     UNLESS template.fullPage %]</div>[% END %]
+
+    [% PROCESS components/footer.tt %]
 
     [%# add any tooltips that were defined in the content %]
     <!-- start of tooltips script -->
     [% PROCESS components/tooltips.tt %]
     <!-- end of tooltips script -->
 
-    [% PROCESS components/submenus.tt %]
+    [%# PROCESS components/submenus.tt %]
 
   </body>
 

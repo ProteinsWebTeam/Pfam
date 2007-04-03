@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.17 2007-03-14 09:08:11 jt6 Exp $
+# $Id: index.tt,v 1.18 2007-04-03 14:58:21 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -17,10 +17,12 @@ PROCESS "components/require.tt";
 requirements.css.push( "index.css" );
 requirements.cssIeAll.push( "index_all_ie.css" );
 
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
 #-------------------------------------------------------------------------------
 
 # format the date nicely
-USE date( format = "%b %Y" );
+USE date( format = "%B %Y" );
 r = String.new( relData.pfam_release_date );
 
 d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
@@ -43,125 +45,236 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 </script>
 
 <!-- start of index page -->
-<div id="outerIndexWrapper">
+<div id="index">
+  <div id="intro">
+		<h2>Pfam [% relData.pfam_release %] ([% date.format( release_date ) %],
+    [% relData.number_families %] familes)</h2>
+    <p>
+      The Pfam database is a large collection of protein 
+      families, each represented by <em>multiple sequence alignments</em>
+      and <em>hidden Markov models (HMMs)</em>.
+      <span onclick="Element.toggle('extras');if(Element.visible('extras')){this.innerHTML='Less...'}else{this.innerHTML='More...'}"
+            class="link">
+        More...</span>
+    </p>
+ 		<div id="extras" style="display: none">
+      <p>
+        Proteins are generally composed of one or more functional regions, 
+        commonly termed	<em>domains</em>. Different combinations of domains give 
+        rise to the diverse range of proteins found in nature. The identification 
+        of domains that occur within	proteins can therefore provide insights 
+        into their function. 
+   		</p>
+   		<p>
+   		  There are two components to Pfam: Pfam-A and Pfam-B. Pfam-A entries are 
+        high quality, manually curated families. Although these 
+        <em>Pfam-A</em> entries cover a	large proportion of the sequences in the
+        underlying sequence database, to give a more	comprehensive coverage of 
+        known  proteins we generate a supplement automatically using the 
+        <a href="http://prodom.prabi.fr/prodom.html">PRODOM</a>
+        database. These automatically generated entries are called 
+        <em>Pfam-B</em>.	Although of lower quality, Pfam-B families can be 
+        useful for identifying functionally conserved regions when no Pfam-A 
+        entries are found.
+      </p>
+      <p>
+        Pfam also generates higher-level groupings of related families, known as
+        <em>clans</em>. A clan is a collection of Pfam-A entries which are
+        related by similarity of sequence, structure or profile-HMM.
+		</div>
+	</div>
 
-  <div id="innerIndexWrapper">
-
-    <!-- start of "indexContainer" -->
-    <div id="indexContainer">
-      <div id="indexContents">
-            
-        <!-- start of left sidebar -->
-        <div id="leftSidebar">
-                  
-          [% PROCESS components/indexPage/versionData.tt %]
-          
-          <hr />      
-
-          [% PROCESS components/indexPage/topTen.tt %]
-
-        </div>
-        <!-- end of left sidebar -->
-                
-        <!-- start of page contents -->
-        <div id="indexBody">
-          <div class="middleComponent">
-            <h1>Protein Family database</h1>
-            <p>
-              Proteins are generally comprised of one or more functional regions, 
-              commonly termed <em>domains</em>. Different combinations of domains give 
-              rise to the diverse repertoire of proteins found in nature. Thus, 
-              the identification of domains that occur within proteins can provide 
-              insights to their function.
-            </p>
-            <p>
-              The <em>Pfam</em> database is a large collection of 
-              <em>P</em>rotein domain <em>fam</em>ilies. Each family is represented 
-              by <em>multiple sequence alignments</em> and <em>hidden Markov 
-              models</em> (HMMs).
-            </p>
-            <p>
-              There are two components to Pfam, Pfam-A and Pfam-B. <em>Pfam-A</em> 
-              entries are <em>high quality</em>, manually curated domain families. 
-              Although these Pfam-A entries cover a large proportion of the sequences
-              in the underlying sequence database, to give a more comprehensive 
-              coverage of known proteins we generate a supplement automatically 
-              using the <a href="http://prodom.prabi.fr/prodom/current/html/home.php">
-                PRODOM</a> database. These entries automatically generated entries are 
-              called <em>Pfam-B</em>. Although of lower quality, Pfam-B families can 
-              be useful for identifying functionally conserved regions when no 
-              Pfam-A entries are found.
-            </p>
-            <div id="indexIcons" class="box grad">
-              <img src="[% c.uri_for( "/images/icon_gradient.gif" ) %]" alt="" />
-              <p>The web interface to Pfam allows users to:</p>
-              <ul>
-                <li id="archIcon"><a href="[% c.uri_for( "help" ) %]">View the domain organisation of sequences</a></li>
-                <li id="seqIcon"><a href="[% c.uri_for( "help" ) %]">View multiple sequence alignments</a></li>
-                <li id="ipfamIcon"><a href="[% c.uri_for( "help" ) %]">List domain interactions</a></li>
-                <li id="specIcon"><a href="[% c.uri_for( "help" ) %]">Examine the species distribution</a></li>
-                <li id="structIcon"><a href="[% c.uri_for( "help" ) %]">View known 3D structures</a></li>
-              </ul>
-            </div>
-            <p>
-              More details on the interface and other methods of access can be found 
-              in the <a href="[% c.uri_for( "/help" ) %]">help</a> section.
-            </p>
-          </div>
-
-          <hr />
-
-          <div id="indexCitation" class="middleComponent">
-            <h1>Citing Pfam</h1>
-            <p>
-              If you find Pfam useful, please consider 
-              <a href="[% c.uri_for( "/help", tab="helpReferencesBlock" ) %]">
-                citing</a> the reference that describes this work:
-            </p>
-            <div class="citation">
-              <span class="title">
-                <a href="http://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">Pfam: 
-                clans, web tools and services</a>: 
-              </span>
-              <span class="authors">
-                Robert D. Finn, Jaina Mistry, Benjamin Schuster-B&#246;ckler, Sam 
-                Griffiths-Jones, Volker Hollich,Timo Lassmann, Simon Moxon, Mhairi 
-                Marshall, Ajay Khanna, Richard Durbin, Sean R. Eddy, Erik L. L. 
-                Sonnhammer and Alex Bateman
-              </span>
-              <span class="ref">
-                <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2006)
-                &nbsp;Database Issue 34:D247-D251
-              </span>
-            </div>
-          </div>
-          <!-- end of "indexCitation" -->
-
-        </div>      
-        <!-- end of page contents -->
-                
-      </div> <!-- end of "indexContents" -->
-    </div>
-    <!-- end of "indexContainer" -->
-
-    <!-- start of right sidebar -->
-    <div id="rightSidebar">
-      
-      [% PROCESS components/indexPage/newsItems.tt %]
-        
-      <hr />
-    
-      [% PROCESS components/jumpBox.tt addHeader=1, short=1 %]
-    
-      <hr />
-      
-      [% PROCESS components/indexPage/mirrors.tt %]
+  <div id="controlPanel">
+		<ul>
+			<li class="currentLink" onclick="switchPanel(this,'help')">USING PFAM</li>
+		  <li class="link" onclick="switchPanel(this,'protein')">SEQUENCE SEARCH</li>
+		  <li class="link" onclick="switchPanel(this,'dna')">DNA SEARCH</li>
+		  <li class="link" onclick="switchPanel(this,'family')">VIEW A PFAM FAMILY</li>
+			<li class="link" onclick="switchPanel(this,'clan')">VIEW A CLAN</li>
+			<li class="link" onclick="switchPanel(this,'sequence')">VIEW A SEQUENCE</li>
+			<li class="link" onclick="switchPanel(this,'structure')">VIEW A STRUCTURE</li>
+		  <li class="link" onclick="switchPanel(this,'keyword')">KEYWORD SEARCH</li>
+      <li>&nbsp;</li>
+		</ul>
+  </div><!-- end of "controlPanel" -->
+	  
+  <div id="help" class="panel">
+		<ul>
+			<li>You can find data in Pfam in various ways... </li>
+			<li>Analyze your protein sequence for Pfam matches</li>
+			<li>Analyze your DNA sequence for Pfam matches</li>
+		  <li>View Pfam family annotation and alignments</li>
+			<li>See groups of related families</li>
+			<li>Look at the domain organisation of a UniProt sequence</li>
+			<li>Find the domains on a PDB structure</li>
+		  <li>Query Pfam by keywords</li>
+		  <li>Or view the <a href="[% c.uri_for( "/help" ) %]">help</a> pages for 
+        more information</li>
+		</ul>
+  </div>
+	  
+  <div id="protein" class="panel" style="display: none">
+		<h3>Analyze your protein sequence for Pfam matches</h3>
+    <p>Paste your protein sequence here to find the matching Pfam families.</p>  
+    <form action="[% c.uri_for( "/seqsearch" ) %]"
+          method="get" 
+          id="seqForm">
+  		<textarea class="entryField" 
+                id="seqField" 
+                cols="40" 
+                rows="5"></textarea>
+    </form>
+  	<div onclick="if($F('seqField')!='')$('seqForm').submit()"
+    		 class="goButton">&nbsp;</div>
+  </div>
+	  
+  <div id="dna" class="panel" style="display: none">
+		<h3>Analyze your DNA sequence for Pfam matches</h3>    
+    <p>Paste your DNA sequence here to find matching Pfam families.</p>  
+    <form action="[% c.uri_for( "/dnasearch" ) %]"
+          method="get" 
+          id="dnaForm">
+  		<textarea class="entryField" 
+                id="dnaField" 
+                cols="40" 
+                rows="5"></textarea>
+    </form>
+  	<div onclick="if($F('dnaField')!='')$('dnaForm').submit()"
+    		 class="goButton">&nbsp;</div>
+  </div>
+	  
+  <div id="family" class="panel" style="display: none">
+		<h3>View Pfam family annotation and alignments</h3>
+    <p>Enter a family identifier or accession to see all data for that family.</p>
+    <form action="[% c.uri_for( "/search/jump", type="family" ) %]"
+          method="get" 
+          id="familyForm">
+  		<input class="entryField" 
+             type="text" 
+             name="entry" 
+             id="familyField" 
+             size="10" />
+    </form>
+  	<div onclick="if($F('familyField')!='')$('familyForm').submit()"
+    		 class="goButton">&nbsp;</div>
+		<p>
+		  You can also <a href="[% c.uri_for("/family/browse") %]">browse</a> 
+      through the list of all Pfam families.
+    </p>
+  </div>
+		
+  <div id="clan" class="panel" style="display: none">
+		<h3>See groups of related families</h3>
+    <p>Enter a clan identifier or accesion to see information about that clan.</p>
+    <form action="[% c.uri_for( "/search/jump", type="clan" ) %]"
+          method="get" 
+          id="clanForm">
+  		<input class="entryField"
+             type="text" 
+             name="entry" 
+             id="clanField" 
+             size="10" />
+    </form>
+  	<div onclick="if($F('clanField')!='')$('clanForm').submit()"
+    		 class="goButton">&nbsp;</div>
+		<p>
+		  You can also <a href="[% c.uri_for("/clan/browse") %]">browse</a>
+      through a list of clans.
+    </p>
+  </div>
+	  
+  <div id="sequence" class="panel" style="display: none">
+    <h3>View domain organisation of a UniProt sequence</h3>
+		<p>Enter the sequence identifier or accession for the UniProt sequence of 
+      interest.</p>
+    <form action="[% c.uri_for( "/search/jump", type="protein" ) %]"
+          method="get" 
+          id="proteinForm">
+  		<input class="entryField"
+             type="text" 
+             name="entry" 
+             id="proteinField" 
+             size="10" />
+    </form>
+  	<div onclick="if($F('proteinField')!='')$('proteinForm').submit()"
+    		 class="goButton">&nbsp;</div>
+  </div>
   
+	<div id="structure" class="panel" style="display: none">
+    <h3>Find the domains on a PDB structure</h3>
+		<p>Enter the PDB identifier for the structure in the Protein DataBank.</p>
+    <form action="[% c.uri_for( "/search/jump", type="structure" ) %]"
+          method="get" 
+          id="structureForm">
+  		<input class="entryField"
+             type="text" 
+             name="entry" 
+             id="structureField" 
+             size="10" />
+    </form>
+  	<div onclick="if($F('structureField')!='')$('structureForm').submit()"
+    		 class="goButton">&nbsp;</div>
+  </div>
+		
+	<div id="keyword" class="panel" style="display: none">
+		<h3>Query Pfam by keyword</h3>
+    <p>Search for keywords in text data in the Pfam database.</p> 
+    <form action="[% c.uri_for( "/search" ) %]"
+          method="get" 
+          id="keywordForm">
+  		<input class="entryField" 
+             type="text" 
+             name="query"
+             id="keywordField"
+             size="10" />
+    </form>
+  	<div onclick="if($F('keywordField')!='')$('keywordForm').submit()"
+    		 class="goButton">&nbsp;</div>
+  </div>
+	  
+  <div class="cleaner"><!-- empty --></div>
+
+  <hr />
+ 
+  <div id="citation">
+    <h2>Citing Pfam</h2>
+    <p>
+      If you find Pfam useful, please consider 
+      <a href="[% c.uri_for( "/help", tab="helpReferencesBlock" ) %]">
+        citing</a> the reference that describes this work:
+    </p>
+    <div class="citation">
+      <span class="title">
+        <a href="http://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">
+          Pfam: clans, web tools and services</a>: 
+      </span>
+      <span class="authors">
+        R.D. Finn, J. Mistry, B.Schuster-B&#246;ckler, S. Griffiths-Jones, 
+        V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
+        S.R. Eddy, E.L. L. Sonnhammer and A. Bateman
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2006)
+        &nbsp;Database Issue 34:D247-D251
+      </span>
     </div>
-    <!-- end of right sidebar -->
+  </div>
+  
+  <div id="mirrors">
+  	<h2>Mirrors</h2>
+    <p class="small">The following are official Pfam 
+      <a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">mirror</a> sites:</p>
+  	<ul>
+  		<li><a href="http://pfam.cgb.ki.se/" class="se mirror">Stockholm, Sweden</a></li>
+  		<li><a href="http://pfam.janelia.org/" class="us mirror">Washington D.C., USA</a></li>
+  		<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror">INRA, France</a></li>
+  		<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror">CCBB, South Korea</a></li>
+  	</ul>	
+  </div>
 
-    <div class="cleaner">&nbsp;</div>
+  <div class="cleaner"><!-- empty --></div>
 
-  </div> <!-- end of "innerIndexWrapper" -->
-
-</div> <!-- end of "outerIndexWrapper" -->
+  <hr />
+  
+</div>
+<!-- end of index page -->

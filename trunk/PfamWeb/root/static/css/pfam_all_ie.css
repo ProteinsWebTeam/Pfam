@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: pfam_all_ie.css,v 1.6 2007-03-15 14:57:20 jt6 Exp $
+   $Id: pfam_all_ie.css,v 1.7 2007-04-03 14:58:25 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -36,4 +36,14 @@ div.menuContent {
 /* a little transparency for the tooltips */
 .tt {
 	filter: alpha(opacity=80);
+}
+
+/* fix the positioning in the header */
+#header > #siteLogoHolder {
+  margin-left: expression(document.all.navbar.offsetWidth * -1);
+}
+
+/* why would a form have margins anyway ??? */
+#searchBox form {
+  margin: 0;
 }

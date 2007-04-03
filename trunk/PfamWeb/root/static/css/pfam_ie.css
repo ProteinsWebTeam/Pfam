@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to IE6 and below
    
-   $Id: pfam_ie.css,v 1.8 2007-03-15 14:57:19 jt6 Exp $
+   $Id: pfam_ie.css,v 1.9 2007-04-03 14:58:24 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -48,4 +48,15 @@ img.map {
  */
 #versionData {
   margin-top: 0.55em;
+}
+
+/* fix the transparency on the "Go" button for the jump box and search form */
+.goButton {
+    background-image: none;
+    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/go.png",sizingMethod="crop");
+}
+
+/* serve a GIF to IE for the background in the search fields */
+.entryField {
+	background: #cbdced url(/catalyst/pfam/images/search_gradient.gif) repeat-x top left;
 }
