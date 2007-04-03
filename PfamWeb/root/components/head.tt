@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.19 2007-03-13 16:06:26 jt6 Exp $
+# $Id: head.tt,v 1.20 2007-04-03 14:58:21 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -28,6 +28,9 @@
 
 <!-- local javascript -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
+
+<script type="text/javascript" src="[% c.uri_for( "/javascripts/cb.js" ) %]"></script>
+<link href="[% c.uri_for( "/css/cb.css" ) %]" rel="stylesheet" type="text/css" />
 
 <!-- ====================================================================== -->
 <!-- load dynamically required stylesheets and javascript files-->
@@ -84,7 +87,7 @@ END %]
 
 <!-- styles applicable to all versions of IE -->
 <!--[if IE ]>
-<link rel="stylesheet" href="[% base %]/css/pfam_all_ie.css" type="text/css" />
+<link rel="stylesheet" href="[% base %]/css/pfam_all_ie.css" type="text/css" / >
 [% FOREACH stylesheet IN cssIeAllIncludes.unique %]
   [% stylesheet;
 END %]
@@ -100,16 +103,6 @@ END -%]
 
 <!-- ====================================================================== -->
 <!-- build the menus... -->
-
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/jimmac.js" ) %]"></script>
-<script type="text/javascript">
-  new ypSlideOutMenu("menu2","down",273,-2,100,125);
-  new ypSlideOutMenu("menu3","down",373,-2,100,100);
-  new ypSlideOutMenu("menu4","down",473,-2,100,50);
-  new ypSlideOutMenu("menu5","down",573,-2,100,50);
-  new ypSlideOutMenu("menu6","down",673,-2,100,600);
-</script>
-
 <!-- ====================================================================== -->
 <!-- tab selection -->
 

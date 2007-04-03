@@ -2,17 +2,14 @@
 # footer.tt
 # jt6 20060921 WTSI
 #
-# $Id: footer.tt,v 1.6 2006-10-03 14:05:05 jt6 Exp $
+# $Id: footer.tt,v 1.7 2007-04-03 14:58:20 jt6 Exp $
 %]
 
 <!-- footer start -->
 
-<div id="footer">
-  <span>Comments or questions on the site? Send a mail to <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a></span>
+<div id="siteFooter">
+  <p>Comments or questions on the site? Send a mail to <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a></p>
+  <p><a href="http://www.wellcome.ac.uk/">The Wellcome Trust</a></p>
 </div>
-
-[%# irrelevant as it might seem, we need this div to force the page border to 
-    wrap around the footer... %]
-<div class="cleaner"><!-- wrap --></div>
 
 <!-- footer end -->

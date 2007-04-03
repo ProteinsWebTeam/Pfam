@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.37 2007-03-15 14:57:22 jt6 Exp $
+   $Id: pfam.css,v 1.38 2007-04-03 14:58:27 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -30,7 +30,7 @@
 /* global or widely used classes */
 
 body {
-	font-family: arial, helvetica, sans-serif;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
     font-size: smaller;
     color: #404040;
     background: #FFF;
@@ -78,236 +78,102 @@ img.info {
   background: #e7e7e7;
 }
 
-/* ======================================== */
-/* header classes
+/* ========================================
+ * header classes
  *
- * Note that all of the header styles and markup are *incredibly* twitchy, so
- * dont change anything unless you absolutely have to ! */
+ * the header is laid out using "The Holy Grail" method from ALA, with
+ * IE7 fixes from http://www.gerd-riesselmann.net/development/the-holy-grail-css-layout-fix-for-ie7
+ */
 
 #header {
-	height: 84px;
-    width: 100%;
+  padding: 0 250px 0 250px;
+  min-width: 400px;
 }
 
-#header table {
-	border-collapse: collapse;
+#header .column {
+  position: relative;
+  float: left;
 }
 
-#header img {
-    border-style: none;
-    margin: 0;
-    padding: 0;
+#navbar { /* centre */
+  width: 100%;
 }
 
-table.header {
-    width: 100%;
+#siteLogoHolder { /* left */
+  width: 250px;
+  margin-left: -100%;
+  left: 250px;
+  padding: 10px 0 0 10px;
 }
 
-table.header tr,
-table.header td {
-	padding: 0;
-    margin: 0;
+#pfamLogoHolder { /* right */
+  width: 250px;
+  margin-right: -250px;
+  padding: 10px 0 0 0;
 }
 
-/* set the minimum width for the page. IE ignores min-width, so we use this image to get
-   (hopefully) the same effect... */
-#minWidth {
-	min-width: 880px;
-	width: 880px;
-    height: 1px;
+#header > #siteLogoHolder {
+  left: -250px;
 }
 
-tr.headercentre {
-	background: #FFF url(/catalyst/pfam/images/swoosh_structure.png) no-repeat top left;
+/* we need the right "column" to be the same width as the left in order to 
+ * centre the navbar, but then we need to push the contents of the right column
+ * back right to account for that */
+#pfamLogoHolder a,
+#pfamLogoHolder #searchBox {
+  margin-left: 100px;
 }
 
-#wtsiLogo {
-    float: left;
-    border-style: none;
-  	width: 200px;
-    height: 66px;
+#siteLogo {
+  background-image: url(/catalyst/pfam/images/sanger_logo_light.png);
+/*  background-image: url(jfrc_gray_logo.gif); */
+  background-repeat: no-repeat;
+  width: 218px;
+  height: 70px;
+  border: none;
 }
 
 #pfamLogo {
-    float: right;
-    margin: 4px 0 !important
+  background: #FFF url(/catalyst/pfam/images/pfam_logo.gif) no-repeat;
+  width: 140px;
+  height: 50px;
+  border: none;
 }
 
-#headerSearch {
-  float: right;
-  background-color: #cbdced;
-  padding: 5px;
-  margin: 15px;
-  -moz-border-radius: 8px;
-  border: 2px solid #074987;
-}
-
-/* only IE could think that a form tag should have margins... 
-   Seems like this is still a problem in IE7, as well as 
-   previous versions */
-#headerSearch form {
-  margin-bottom: 0;
-}
-
-/* these next few styles are ripped straight from wtsi.css */
-
-#sitesearchbutton {
-  border-width:        2px;
-  border-style:        solid;
-  border-top-color:    #efeaf3;
-  border-left-color:   #909fc7;
-  border-bottom-color: #506816;
-  border-right-color:  #22408f;
-  padding:             1px;
-  background-color:    #cbdced;
-  font-family:         Arial, Helvetica, Sans-serif;
-  font-size:           0.6em;
-  font-weight:         bold;
-  text-decoration:     none;
-}
-
-#sitesearchbutton:link,
-#sitesearchbutton:visited {
-  background-color: #cbdced;
-  color:            #074987;
-  font-weight:      bold;
-  text-decoration:  none;
-  font-size:        0.6em;
-}
-
-#sitesearchbutton:hover {
-  background-color: #8abbee;
-  text-decoration:  none;
-  color:            #ffffff;
-}
-
+/* tweak the site-wide search box so that it fits nicely under the Pfam logo */
 #siteSearchField {
-  background-color: #ffffff;
-  font-size:        0.6em;
-  color:            #8d0017;
-  padding:          0;
-  margin:           0;
-  display:          inline;
+  width: 92px;
+  margin-left: 3px;
 }
 
-/* menu bar styles */
-
-img.map {
-  position: absolute;
-  left: 0px;
-  top: 69px;
-  z-index: 1;
+/* navbar styles */
+#navbar {
+  font-weight: bold;
+  font-size: 0.9em;
 }
 
-#menuRow {
-	height: 17px;
-    background: #cbdced;
+#navbar ul {
+  margin: 40px 0 0 0;
+  padding: 0;
+  text-align: center;
 }
 
-/* configure the drop-down menus. This is mostly based on wtsi.css */
-
-a.menuLink {
-  background: red;
-  margin: 0px;
+#navbar li { 
+  display: inline;
+  letter-spacing: 2px;
 }
 
-img.menu {
-	height: 15px;
-    width: 100px;
-    border-style: none;
-}
-
-img.menuBlank {
-    width: 100px;
-    height: 1px;
-}
-
-div.menutext {
-    height:      16px;
-    z-index:     3;
-    margin-left: 173px;
-}
-
-div.menutext td img { 
-  cursor: pointer;
-}
-
-table.slickmenu td {
-	margin: 0;
-    padding: 0;
-}
-
-table.slickmenu a {
-  display:         block;
+#navbar a { 
   text-decoration: none;
-  font-size:       0.8em;
-  font-weight:     bold;
+  color: #105a94;
 }
 
-table.slickmenu a img {
-	height: 15px;
+#navbar span { 
+  color: #666;
 }
 
-table.slickmenu a:hover {
-  display:         block;
-  text-decoration: none;
-}
-
-#menubar {
-	position: absolute;
-    width: 100%;
-    top: 68px;
-    left: 0; /* without this, the menubar is shifted right by 5 pixels in IE lt 7... */
-}
-
-#menubar table {
-  color: #074987;
-  text-decoration: none;
-  border-collapse: collapse;
-}
-
-div.menuContent {
-  position: relative;
-  left: 0;
-  text-align: left;
-  opacity: 0.93;
-}
-
-#submenus {
-  position: absolute;
-  top: 84px;
-}
-
-#submenus table {
-  border-collapse: collapse;
-}
-
-#submenus a {
-  text-decoration: none;
-  display:         block;
-  width:           100px;
-  padding:         2px 2px;
-  font-size:       0.75em;
-}
-
-#submenus a:link,
-#submenus a:visited {
-  color:           #074987;
-}
-
-#submenus a:hover {
-  background-color: #074987;
-  color:            #FFF;
-}
-
-#submenus tr.hi, tr.hi {
-  background-color: #b8d2ef;
-  text-decoration:   none;
-}
-
-#submenus tr.lo, tr.lo {
-  background-color: #cbdced;
-  text-decoration:   none;
+#navbar a:hover { 
+  color: #666;
 }
 
 /* a little warning message */
@@ -332,10 +198,9 @@ div.menuContent {
 
 /* widgets in the jump box */
 
-#entry {
+.entryField {
 	border: 1px inset #074987;
-	background: #cbdced url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/search_gradient.png);
-	width: 110px; /* set to 145px for the right sidebar on the index page */
+	background: #cbdced url(/catalyst/pfam/images/search_gradient.png) repeat-x top left;
 	margin: 1px 0;
 	padding: 2px;
 	color: #074987;
@@ -344,18 +209,21 @@ div.menuContent {
 	float: left;
 }
 
-#goButton {
-	width: 33px;
-	height: 20px;
-    font-size: 1px;
-	background-position: right;
-	background-repeat: no-repeat;
-	background-image: url(http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/go.png);
-	border: none;
-	vertical-align: middle;
-	margin: 1px;
-	cursor: pointer;
-	float: left
+/* set the size of the field explicitly for the jumpBox */
+#jumpBox .entryField {
+	width: 110px; /* set to 145px for the right sidebar on the index page */
+}
+
+.goButton {
+  width: 33px;
+  height: 20px;
+  font-size: 1px;
+  background: transparent url(/catalyst/pfam/images/go.png) no-repeat right;
+  border: none;
+  vertical-align: middle;
+  margin: 1px;
+  cursor: pointer;
+  float: left
 }
 
 /* ======================================== */
@@ -363,39 +231,36 @@ div.menuContent {
    when the page contains tabs, so add a separate style for that which 
    adds the background image, etc. */
 
-#footer a {
-  color: #074987;
+#siteFooter {
+	margin: 0.4em 0 0 0;
+	text-align: center;
 }
 
+#siteFooter a {
+	letter-spacing: 2px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#siteFooter p {
+	margin: 0.2em;
+}
+
+/* the footer for full page templates */
 #footer span {
   margin: 0;
   padding: 0 0.4em 0 0;
 }
 
-/* the footer for full page templates */
-#footer {
-  clear: both;
-  border: 1px solid #074987; 
-  font-size: 80%;
-  background-color: #cbdced;
-  color: #074987;
-  padding: 2px;
-  margin: 0;
-}
-
 /* the footer for tab-layout templates */
 #contentContainer #footer {
   clear: both;
-  background: url(/catalyst/pfam/images/layout/wide_tab_shadow.png) no-repeat top left;
   position: relative;
   width: 85%;
   float: right;
-  margin: 0 0 1em 0;
-  padding: 0.4em 0;
   border: none;
   border-top: 1px solid #074897;
-  text-align: right;
-  font-size: small;
+  height: 4px;
 }
 
 /* ======================================== */
@@ -721,6 +586,14 @@ h4.pdbTitle  {
     display: inline;
 }
 
+hr {
+  background-color: #e7e7e7;
+  border: 0;
+  height: 1px;
+  width: 60%;
+  margin: 2em auto;
+}
+
 hr.short {
 	display: none;
 }
@@ -791,10 +664,10 @@ span.clanMember {
 /* ---------------------------------------- */
 /* mimic a link using a span... */
 
-span.link {
-    cursor: pointer;
-    text-decoration: underline;
-    color: #074987;
+.link {
+  cursor: pointer;
+  text-decoration: underline;
+  color: #074987;
 }
 
 /* ---------------------------------------- */
@@ -866,9 +739,9 @@ div.nodeSummary div {
 }
 
 #treeTools {
-  right: 0.2em;
+  right: 2em;
   width: 18em;
-  padding: 0.2em;
+  padding: 0.4em;
   border: 1px solid #AAA;
   background: #e8e8e8;
 	opacity: 0.75;

@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: tab_layout_all_ie.css,v 1.3 2007-03-15 14:57:21 jt6 Exp $
+   $Id: tab_layout_all_ie.css,v 1.4 2007-04-03 14:58:25 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -27,6 +27,11 @@
    or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
     
 */
+
+
+#sidebar li.selected a {
+  left: 2px;
+}
 
 /* the individual icons in the overview bar */
 #seqIcon {
@@ -54,3 +59,18 @@
 	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/logos/tree.png",sizingMethod="crop");
 }
 
+#icons {
+  width: 31em;
+}
+
+#icons a,
+#icons span {
+  float: right;
+}
+
+.icons .i3 {
+  padding: 0 0 2px 0;
+}
+
+
+  

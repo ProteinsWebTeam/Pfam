@@ -1,152 +1,87 @@
 [%
 # header.tt
-# jt6 20060314 WTSI
+# jt6 200670326 WTSI
 #
-# the page header, from the swoosh to the bottom of the menubar...
+# the slimmed down, re-vamped, googlized page header...
 #
-# reworked to tidy it for the new site
-# jt6 20060927 WTSI
-#
-# This stuff is all *incredibly* twitchy, so don't change it unless
-# it's absolutely necessary !
-#
-# $Id: header.tt,v 1.14 2007-03-14 10:03:08 jt6 Exp $
+# $Id: header.tt,v 1.15 2007-04-03 14:58:20 jt6 Exp $
 
-# avoid running c.uri_for too frequently...
-images = c.uri_for( "/images" );
+# the names for the links in the page
+navNames = { 
+  home   = "HOME",
+  search = "SEARCH",
+  browse = "BROWSE",
+  ftp    = "FTP",
+  help   = "HELP" };
+
+# only run uri_for once...
+base = c.uri_for( "/" );
+
+# the URIs for the links
+navLinks = {
+  home   = base,
+  search = "${base}seqsearch",
+  browse = "${base}family/browse",
+  ftp    = "${base}help?tab=helpFtpBlock",
+  help   = "${base}help" };
+
+# the order of the items in the navbar - these are the keys for the two
+# hashes above
+navItems = [ "home", "search", "browse", "ftp", "help" ];
 -%]
 
-<!-- header start here -->
+<!-- header starts here -->
 
 <div id="header">
 
-  <table class="header">
+  <div id="navbar" class="column">
+    <ul>
+    [% FOREACH navItem IN navItems %]
+      <li>
+        [% IF c.stash.nav == navItem %]
+          <span>[% navNames.$navItem %]</span>
+        [% ELSE %]
+          <a href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
+        [% END;
+           IF ! loop.last %]&nbsp;|&nbsp;[% END %]
+       </li>
+    [% END %]
+    </ul>
+  </div>
+  
+  <div id="siteLogoHolder" class="column">
+    <a href="http://www.sanger.ac.uk/">
+      <img alt="" id="siteLogo" src="[% base %]images/blank.gif" /></a>
+  </div>
 
-    <!-- set minimum width -->
-    <tr>
-      <td><img id="minWidth" src="[% images %]/blank.gif" height="1" alt="" /></td>
-    </tr>
-
-    <!-- WTSI logo, swoosh and Pfam images, search box -->
-    <tr class="headercentre">
-      <td align="left">
-        <a href="http://www.sanger.ac.uk/">
-          <img id="wtsiLogo" src="[% images %]/blank.gif" alt="" /></a>
-
-        <!--search box starts here-->
-        <div id="headerSearch">
-          <form id="sitesearch" action="[% c.uri_for( "/search" ) %]">
-            <table border="0" cellspacing="0" cellpadding="1">
-              <tr>
-                <td><input type="text" id="siteSearchField" name="query" value="" size="12" maxlength="100" /></td>
-                <td><a href="#" onclick="$('sitesearch').submit()" id="sitesearchbutton">&nbsp;Search Pfam&nbsp;</a></td>
-              </tr>
-            </table>
-          </form>
-        </div>
-        <!--search box end-->
-
-        <a href="[% c.uri_for( "/" ) %]">
-          <img id="pfamLogo" src="[% images %]/pfam_logo.gif" alt="Pfam" /></a>
-      </td>
-    </tr>
-
-    <!-- blank space for the menu bar -->
-    <tr>
-      <td id="menuRow">
-        <img class="map" src="[% images %]/email-rss.gif" alt="" usemap="#contactMap" />
-        <map name="contactMap" id="contactMap">
-          <area shape="rect" coords="0,0,20,15" title="Contact Pfam" href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;" alt="" />
-          <area shape="rect" coords="21,0,60,15" title="RSS Feed" target="new" href="[% c.uri_for( "/rss" ) %]" alt="" />
-        </map>
-      </td>
-    </tr>
-
-  </table>
-
-</div>
-<!-- header end -->
-
-<!-- menubar starts here -->
-<div id="menubar">
-  <div class="menutext">
-    <table class="slickmenu">
-      <tr>
-        <td>
-		  <img src="[% images %]/menus/pfam_home.png"
-               class="menu"
-               alt="Pfam Home" 
-               title="Pfam Home"
-			   onclick="document.location='[% c.uri_for( "/" ) %]'"
-               onmouseover="ypSlideOutMenu.hover_in('menu1')"
-               onmouseout="ypSlideOutMenu.hover_out('menu1')" />
-        </td>
-        <td>
-          <img src="[% images %]/menus/search_by.png"
-               class="menu"
-               alt="Search by" 
-               title="Search by - Click for menu" 
-               onclick="ypSlideOutMenu.toggleMenu('menu2', 1);"
-               onmouseover="ypSlideOutMenu.hover_in('menu2');ypSlideOutMenu.toggleMenu('menu2', 0)"
-               onmouseout="ypSlideOutMenu.hover_out('menu2')" />
-        </td>
-        <td>
-          <img src="[% images %]/menus/browse_by.png"
-               class="menu"
-               title="Browse by - Click for menu"
-               alt="Browse by"
-               onclick="ypSlideOutMenu.toggleMenu('menu3', 1);"
-               onmouseover="ypSlideOutMenu.hover_in('menu3');ypSlideOutMenu.toggleMenu('menu3', 0)"
-               onmouseout="ypSlideOutMenu.hover_out('menu3')" />
-        </td>
-        <td>
-          <img src="[% images %]/menus/ftp.png"
-               class="menu"
-               title="FTP - Click for menu"
-               alt="FTP"
-               onclick="ypSlideOutMenu.toggleMenu('menu4', 1);"
-               onmouseover="ypSlideOutMenu.hover_in('menu4');ypSlideOutMenu.toggleMenu('menu4', 0)"
-               onmouseout="ypSlideOutMenu.hover_out('menu4')" />
-        </td>
-        <td>
-          <img src="[% images %]/menus/ipfam.png"
-               class="menu"
-               title="iPfam - Click for menu"
-               alt="iPfam"
-               onclick="ypSlideOutMenu.toggleMenu('menu5', 1);"
-               onmouseover="ypSlideOutMenu.hover_in('menu5');ypSlideOutMenu.toggleMenu('menu5', 0)"
-               onmouseout="ypSlideOutMenu.hover_out('menu5')" />
-        </td>
-        <td>
-          <img src="[% images %]/menus/help.png"
-               class="menu"
-               title="Help - Click for menu"
-               alt="Help"
-               onclick="ypSlideOutMenu.toggleMenu('menu6', 1);"
-               onmouseover="ypSlideOutMenu.hover_in('menu6');ypSlideOutMenu.toggleMenu('menu6', 0)"
-               onmouseout="ypSlideOutMenu.hover_out('menu6')" />
-        </td>
-        <td>
-          <img src="[% images %]/menus/about.png"
-               class="menu"
-               alt="About Pfam" 
-               title="About Pfam"
-               onclick="popUp('[% c.uri_for( "/about" ) %]','console',500,530,'about');return false;"
-               onmouseover="ypSlideOutMenu.hover_in('menu7')"
-               onmouseout="ypSlideOutMenu.hover_out('menu7')" />
-        </td>
-      </tr>
-      <tr>
-        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
-        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
-        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
-        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
-        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
-        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
-        <td><img src="[% images %]/blank.gif" class="menuBlank" alt=""/></td>
-      </tr>
-    </table>
+  <div id="pfamLogoHolder" class="column">
+    <a href="[% base %]">
+      <img alt="" id="pfamLogo" src="[% base %]images/blank.gif" /></a>
+    <div id="searchBox">
+      <form action="[% c.uri_for( "/search" ) %]" 
+            method="get" 
+            name="siteSearchForm" 
+            id="siteSearchForm">
+    		<input class="entryField"
+               type="text" 
+               onfocus="if(!cleared){this.value='';cleared=true}" 
+               name="query" 
+               id="siteSearchField" />
+    	</form>
+    	<script type="text/javascript">
+    		$("siteSearchField").value = "keyword search";
+    		var cleared = false;
+    	</script>
+    	<div onclick="if($F('siteSearchField')&amp;&amp;cleared)$('siteSearchForm').submit()"
+      		 class="goButton">&nbsp;</div>
+    </div>
   </div>
 
 </div>
-<!-- menubar end -->
+
+<div class="cleaner"><!-- empty --></div>
+
+<!-- header end -->
+
+  
+

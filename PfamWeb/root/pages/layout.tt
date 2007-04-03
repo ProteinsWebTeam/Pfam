@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.14 2007-03-13 10:32:59 jt6 Exp $
+# $Id: layout.tt,v 1.15 2007-04-03 14:58:22 jt6 Exp $
 
 USE String;
 USE date;
@@ -13,11 +13,7 @@ USE date;
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
-UNLESS requirements;
-  requirements = { css = []
-                   cssIe =[]
-                   cssIeAll =[] };
-END; 
+PROCESS "components/require.tt";
 
 requirements.css.push( "tab_layout.css" );
 requirements.cssIe.push( "tab_layout_ie.css" );
@@ -98,36 +94,36 @@ FOREACH block IN layouts.${pageType}.blocks;
 END;
 %]
 
-<div id="tabHeader"></div>
-
 [% PROCESS components/icons.tt %]
 
 <div id="tabTitle">
-  <div id="corner">
-    [%
-    titleFile = layouts.${pageType}.titleTemplate;
-    TRY;
-      PROCESS $titleFile titleType="tab";
-    CATCH;
-      CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\" (page type \"$pageType\")" );
-    END
-    %]
-  </div>
+  [%
+  titleFile = layouts.${pageType}.titleTemplate;
+  TRY;
+    PROCESS $titleFile titleType="tab";
+  CATCH;
+    CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\" (page type \"$pageType\")" );
+  END
+  %]
 </div>
+
+<div class="cleaner"><!-- empty --></div>
 
 <div id="wrap">
 
   [%# this is only here to avoid the IE peekaboo bug... -%]
   <div id="spacer">&nbsp;</div>
 
+  <div id="topBorder"><!-- empty --></div>
+
   <div id="sidebar">
     <ul>
       [% tabsContent %]
     </ul>
 
-	[% PROCESS components/jumpBox.tt short = 1%]
+  	[% PROCESS components/jumpBox.tt short = 1%]
 
-   </div> <!-- end of "sidebar" -->
+  </div> <!-- end of "sidebar" -->
 
   <div id="content">
     [% pageContent %]
