@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.31 2007-03-28 14:42:00 jt6 Exp $
+// $Id: pfFunctions.js,v 1.32 2007-04-03 15:06:23 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -186,16 +186,36 @@ highlight.mouseoutHandler = function( e ) {
 //------------------------------------------------------------
 
 // switch between panels on the index page
-function switchPanel( id ) {
+function switchPanel( trigger, id ) {
+  
+  // hide all of the panels
   $$("div.panel").each(
-    function( block ) {
-      if( id == block.id ) {
-        block.style.display = "block";
-      } else {
-        Element.hide( block );
-      }
+    function( panel ) {
+      panel.hide();
     }
   );
+
+  // show the selected panel. Note that we're not using Element.show() here, 
+  // because we can't "show" an element that was hidden using CSS... see 
+  // prototype docs
+  $(id).style.display = "block"  
+
+  // as a nicety, if there's a form in the panel, focus it
+  $(id).getElementsBySelector(".entryField").each(
+    function( field ){
+      field.focus();
+    }
+  );
+
+  // switch the style of the trigger link  
+  $$("#controlPanel li").each(
+    function( link ) {
+      link.removeClassName( "currentLink" );
+      link.addClassName( "link" );
+    }
+  );
+  trigger.removeClassName( "link" );
+  trigger.addClassName( "currentLink" );
 }
 
 //------------------------------------------------------------
