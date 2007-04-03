@@ -4,7 +4,7 @@
 # 
 # build the references block for the help pages
 #
-# $Id: references.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+# $Id: references.tt,v 1.2 2007-04-03 12:56:59 rdf Exp $
 %]
 
 <!-- start references block -->
@@ -48,12 +48,18 @@ Research 28:263-266 <font size=1>(Reproduced with permission from <a href="http:
   Database of Protein Families Based on Seed Alignments, Proteins
   28:405-420 </SPAN>
 
-<h3>iPfam References</h3>
-
-
 
 <h3>Book Chapters on Pfam</h3>
-
-
+<p>Michael J. Dunn (Editor), Lynn B. Jorde (Editor), Peter F. R. Little (Editor), Shankar Subramaniam (Editor)
+Section Editor: Rolf
+ISBN: 978-0-470-84974-3
+Hardcover
+4096 pages
+September 2005
+ Wiley Genetics, Genomics, Proteomics and Bioinformatics Section 6 Proteome Families g306303  	Pfam: The protein families database. - Robert D. Finn</p>
+<p>Current protocols in bioinformatics Unit 2.5 Identifying Protein Domains with the Pfam Database ISBN: 978-0-471-25093-7, Rob, Sam and Alex</p>
+<p>Methods in Molecular Biology - Comparative Genomics. Editors:XXXX.
+Pfam: A domain-centric method for analysing proteins and proteomes
+Jaina Mistry, Robert Finn</p>
   </div>
 </div>

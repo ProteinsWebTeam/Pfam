@@ -4,59 +4,77 @@
 # 
 # build the theTeam block for the help pages
 #
-# $Id: theTeam.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+# $Id: theTeam.tt,v 1.2 2007-04-03 12:56:59 rdf Exp $
 %]
 
 <!-- start theTeam block -->
 
 <div class="block" id="helpTheTeamBlock">
   <div class="handle">
-    <h1>Team Pfam</h1>
+    <h1>The Pfam Consortium</h1>
   </div>
   <div class="blockContent">
+	Pfam is maintained by an international consortium of researchers that has been borne out of 
+	its original development by Erik Sonnhammer, Sean Eddy and Richard Durbin. The current list of
+	consortium members, their Institutes and primary role is listed below:
+	
+	<h3>Wellcome Trust Sanger Institute (UK)</h3>
+	<ul>
+		<li>Alex Bateman - Co-ordinator of the Pfam, Merops and Rfam databases </li>
+		<li>Penny Coggill  Pfam Database Annotator</li>
+		<li>Rob Finn - Project Leader</li>
+		<li>Jaina Mistry - Pfam Research and Development</li>
+		<li>John Tate - Web Development</li>
+	</ul>
+	
+	<h3>Janelia Farm Research Center (USA)</h3>
+	<ul>
+		<li>Sean Eddy - Co-ordinator of Pfam-USA, founding developer and author of HMMER software</li>
+	</ul>
+	
+	<h3>Stockholm Bioinformatics Center (Sweden)</h3>
+	<ul>
+		<li>Erik Sonnhammer - Co-ordinator of Pfam-Sweden and founding developer</li>
+	</ul>
+	
+	<h3>Mirror Sites</h3>
+	<ul>
+	  <li><a href="http://www.sanger.ac.uk/Software/Pfam/" class="uk mirror">Cambridge, UK</a></li>
+		<li><a href="http://pfam.cgb.ki.se/" class="se mirror">Stockholm, Sweden</a></li>
+		<li><a href="http://pfam.janelia.org/" class="us mirror">Washington D.C., USA</a></li>
+		<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror">INRA, France</a></li>
+		<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror">CCBB, South Korea</a></li>
+	</ul>	
+	
 
-  <table border=1 cellpadding=5 cellspacing=0>
-	<TR><TD bgcolor=#000070 class=whitetableheader>Who is responsible for Pfam?</TD></TR>
-	<TR><TD class=normaltext> Pfam was originally developed
-	by Erik Sonnhammer and Sean Eddy in Richard Durbin's group. Currently
-	it is maintained by a consortium of researchers:
-	<p>
 
-	<center>
-	<table border=1 cellpadding=5 cellspacing=0 bgcolor=$PFAMCOLOUR>
-		<TR><TD bgcolor=#000070 class=whitetableheader>Wellcome Trust Sanger Institute (UK)</TD><TD bgcolor=#000070 class=whitetableheader>Karolinska Institute (Sweden)</TD><TD bgcolor=#000070 class=whitetableheader>St Louis (USA)  </TD></TR>
-	<TR><TD valign=top align=left class=normaltext>
-	<a href="http://www.sanger.ac.uk/Users/agb/"> Alex Bateman </a> - Group leader<BR>
-<a href="http://www.sanger.ac.uk/Users/rd/"> Richard Durbin</A> - Head of Department<BR>
-<a href="http://www.sanger.ac.uk/Users/sgj/">Sam Griffiths-Jones</a> - Research and Development<BR>
-<A HREF="mailto:pfam@sanger.ac.uk">Jaina Mistry</a> - Pfam annotation<BR>
-<A HREF="mailto:pfam@sanger.ac.uk">Rob Finn</a> - Research and Development<BR>
-<A HREF="mailto:pfam@sanger.ac.uk">John Tate</a> - Web Development<BR>
 
-<BR>Previous contributors:<BR>
-<a href="http://www.sanger.ac.uk/Users/birney/"> Ewan Birney </a> - now working at EBI<BR>
-Lorenzo Cerrutti<BR>
- William Mifsud - Summer student from University of Malta<BR>
-Nina Mian<BR>
-Matthew Bashton
-Mhairi Marshall<BR>
-Kevin Howe<BR>
-Corin Yeats<BR>
-Lachlan Coin<BR>
-</TD><TD valign=top align=left class=normaltext >
-Erik Sonnhammer
-</TD><TD valign=top align=left class=normaltext >
-<a href="http://www.genetics.wustl.edu/eddy/"> Sean Eddy </a>
-</TD></TR></TABLE>
-</center>
-</td></tr></table>
+<h5>Previous contributors<h5>
+<ul>
+  <li>Matthew Bashton</li>
+	<li>Ewan Birney</li>
+  <li>Lorenzo Cerrutti</li>
+  <li>Lachlan Coin</li>
+  <li>Richard Durbin</li>
+  <li>Matthew Fenech</li>
+  <li>Sam Griffiths-Jones</li>
+  <li>Kevin Howe<li> 
+  <li>Nicola Kerrison<li>
+  <li>Mhairi Marshall</li>
+  <li>William Mifsud</li>
+  <li>Nina Mian</li>
+  <li>Simon Moxon</li>
+  <li>Stephen John Sammut<li>
+  <li>Corin Yeats</li>
+</li>
+
+
 
 <p>
 Pfam is a collaborative venture and we hope to be able to interact
 with as many people as possible to provide a quality database. Please
-get into contact with any one of us for information. You can E-mail the Pfam
-consortium  as a group by sending a message to <a href="mailto:pfam-admin@sanger.ac.uk">
-pfam-admin@sanger.ac.uk</a>
+get into contact with any one of us for information. You can E-mail Pfam
+using the address found at the bottom of the page.
 </p>
   </div>
 </div>
