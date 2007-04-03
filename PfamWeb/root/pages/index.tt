@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.18 2007-04-03 14:58:21 jt6 Exp $
+# $Id: index.tt,v 1.19 2007-04-03 15:46:44 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -265,10 +265,10 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <p class="small">The following are official Pfam 
       <a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">mirror</a> sites:</p>
   	<ul>
-  		<li><a href="http://pfam.cgb.ki.se/" class="se mirror">Stockholm, Sweden</a></li>
-  		<li><a href="http://pfam.janelia.org/" class="us mirror">Washington D.C., USA</a></li>
-  		<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror">INRA, France</a></li>
-  		<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror">CCBB, South Korea</a></li>
+  		<li><a href="http://pfam.cgb.ki.se/" class="se mirror" alt="Stockholm Bioinformatics Center">SBC, Sweden</a></li>
+  		<li><a href="http://pfam.janelia.org/" class="us mirror" alt="Janelia Farm Research Campus">JFRC, USA</a></li>
+  		<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror" alt="Institut National de la Recherche Agronomique">INRA, France</a></li>
+  		<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror" alt="Center for Computational Biology &amp; Bioinformatics">CCBB, South Korea</a></li>
   	</ul>	
   </div>
 
