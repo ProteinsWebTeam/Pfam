@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.6 2007-03-15 14:06:12 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.7 2007-04-10 09:21:57 rdf Exp $
 
 =head1 NAME
 
@@ -16,13 +16,14 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.6 2007-03-15 14:06:12 jt6 Exp $
+$Id: SeqSearch.pm,v 1.7 2007-04-10 09:21:57 rdf Exp $
 
 =cut
 
 use strict;
 use warnings;
 use HTML::Widget;
+use Digest::MD5 qw(md5_hex);
 
 use Storable qw(thaw);
 
@@ -126,7 +127,93 @@ Executes a protein sequence search.
 
 sub seq : Local {
   my( $this, $c ) = @_;
+  
+  # point at the template right away
+  $c->stash->{template} = "components/blocks/seqSearch/searchWrapper.tt";
+  
+  
+  #Need to check the parameters
+  my ($seq, $seqP);
+  if($c->req->param( "seq")){
+    $seq = $c->req->param( "seq");
+    $c->log->debug("Raw sequnece:|".$seq."|");
+    my @seqs = split( /\n/, $seq );
+    $c->log->debug("split into $#seqs");
+    if ($seqs[0] =~ /^\>/){
+     shift @seqs;
+     $c->log->debug("shifting of first element of array"); 
+    }
+    $seq = join('', @seqs);
+    $seq =~ s/\s+//g;
+    $c->log->debug(" After |$seq| ");
+    $c->stash->{searchSequence} = $seq;
+    
+    if($seq =~ /[^ABCDEFGHIKLMNPQRSTUVWXYZ]/i){
+      $c->log->debug("Sequence contains an invalid character [$1]"); 
+    }
+    
+  }else{
+    $c->log->debug("Sequence not defined\n"); 
+  }
+  
+  
+  $c->stash->{md5} =  md5_hex(uc($seq));
+  $c->log->debug("Calculated MD5 is:|".$c->stash->{md5}."|.");
+  my $md5Check = $c->model("PfamDB::Pfamseq")->find({md5 => $c->stash->{md5} });
+  
+  if(defined $md5Check ){
+    $c->log->debug("We have seen this sequence before, so no need to search!");      
+  }else{
+    
+    my $rs = $c->model("WebUser::HmmerHistory")->find({ status => "PEND"},
+                                                      { select => [ { count => "status" } ],
+                                                        as     => [ 'numberPending' ]});
+ 
+    $c->stash->{numberPending} = $rs->get_column('numberPending');
+    $c->log->debug("There are |".$c->stash->{numberPending}."| jobs pending.");
+    if($c->stash->{numberPending} > 100 ){
+      $c->log->debug("Please Try again later.");  
+    }
+    
+    $c->stash->{estSearchTime} = int(length($seq)/100);
+    $c->log->debug("Estimated search time |".$c->stash->{estSearchTime}."| secs");
+  
+  
+    $c->log->debug("SeqSearch::local seqOpts:".$c->req->param( "seqOpts"));
+    
+    #Asynchornous bit  
+    
+    #This is the submission part - should essentially do the same as 
+    $c->log->debug( "insert new job PEND " );
+    my $resultHistory = $c->model('WebUser::HmmerHistory')
+                          ->create({'command' => "Built Command string\n",
+                                    'status'  => 'PEND',
+                                    'opened'  => \'NOW()'});
+                                    
+    my $resultStream = $c->model('WebUser::HmmerStream')
+                                ->create({'id' => $resultHistory->id,
+                                         'stdin' => $seq || q() });  
 
+    #while(1){
+     #Get job status
+     
+     #If not done
+      #If running start loading bar 
+      #else sleep for 1 sec  and check again 
+     #If done
+      #Get results and transform into graphic
+      
+     #Put catch in here for jobs that have been running for 15 mins 
+    #}
+    
+    #Another Asynchornous bit
+    #Pfam B submission if required
+    
+    
+    
+    
+  }
+  
   $c->log->debug( "SeqSearch::domain: executing a protein sequence search" );
 }
 
