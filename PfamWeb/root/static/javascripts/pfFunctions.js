@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.32 2007-04-03 15:06:23 jt6 Exp $
+// $Id: pfFunctions.js,v 1.33 2007-04-13 16:13:06 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -236,14 +236,20 @@ function reveal( oSwitch, sId, bStartState ) {
   	// console.debug( sId + " is currently shown" );
   	Effect.BlindUp( oSource, { duration: 0.3 } );
   	showItems[sId] = false;
-  	Element.update( oSwitch, "Show" );
+//  	Element.update( oSwitch, "Show" );
   } else {
   	// console.debug( sId + " is currently hidden" );
   	Effect.BlindDown( oSource, { duration: 0.3 } );
   	showItems[sId] = true;
-  	Element.update( oSwitch, "Hide" );
+//  	Element.update( oSwitch, "Hide" );
   }
-
+  var newIH;
+  if( oSwitch.innerHTML.include( "Show" ) ) {
+    newIH = oSwitch.innerHTML.sub( "Show", "Hide" );
+  } else {
+    newIH = oSwitch.innerHTML.sub( "Hide", "Show" );
+  }
+  oSwitch.update( newIH );
 }
   
 //------------------------------------------------------------
