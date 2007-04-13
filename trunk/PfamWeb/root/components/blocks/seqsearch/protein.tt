@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.3 2007-03-13 10:33:00 jt6 Exp $
+# $Id: protein.tt,v 1.4 2007-04-13 16:12:33 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -54,6 +54,12 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <hr />
   
       <h3>Single sequence searches</h3>
+  
+      [% IF seqSearchError %]
+      <div class="error">
+        [% seqSearchError %]
+      </div>
+      [% END %]
   
       <form method="get" 
             name="proteinSeqSearchForm"
