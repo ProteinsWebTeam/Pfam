@@ -4,9 +4,9 @@
 #
 # Model for the hmmer_history table.
 #
-# $Id: HmmerHistory.pm,v 1.1 2007-04-13 09:58:43 rdf Exp $
+# $Id: HmmerHistory.pm,v 1.2 2007-04-13 16:09:38 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 
 package WebUser::HmmerHistory;
 
@@ -21,7 +21,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "hmmer_history" );
 
 # get the columns that we want to keep
-__PACKAGE__->add_columns( qw/id status command opened closed started/);
+__PACKAGE__->add_columns( qw/id job_id status command opened closed started/);
 
 # set up the primary keys/contraints
 __PACKAGE__->set_primary_key( "id" );
