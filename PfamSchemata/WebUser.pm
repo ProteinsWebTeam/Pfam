@@ -2,9 +2,9 @@
 # WebUser.pm
 # jt 20060912 WTSI
 #
-# $Id: WebUser.pm,v 1.8 2007-03-16 11:25:23 jt6 Exp $
+# $Id: WebUser.pm,v 1.9 2007-04-13 10:06:48 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package WebUser;
 The base class for the whole web_userdatabase model. Config comes from the
 catalyst application class.
 
-$Id: WebUser.pm,v 1.8 2007-03-16 11:25:23 jt6 Exp $
+$Id: WebUser.pm,v 1.9 2007-04-13 10:06:48 rdf Exp $
 
 =cut
 
@@ -39,6 +39,8 @@ __PACKAGE__->load_classes( qw/Feature_das_sources
                               JobSubmission
                               JobResults
                               JobStatus
+                              HmmerHistory
+                              HmmerStream
                               / );
 
 #-------------------------------------------------------------------------------
