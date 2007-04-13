@@ -1,0 +1,63 @@
+
+[%
+# polling.tt
+# jt6 20070410 WTSI
+#
+# $Id: polling.tt,v 1.1 2007-04-13 16:12:50 jt6 Exp $
+
+META title    = "Checking for results of a sequence search";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "job.css" );
+requirements.js.push( "job.js" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<h1>Polling page</h1>
+
+<div id="pfamABar">
+  <p>PfamA search status is <span id="pfamAStatus">unknown</span>.</p>
+  <div id="pfamAError" class="error" style="display: none"></div>
+</div>
+
+<script type="text/javascript">
+  
+  var jobStatus;
+  try {
+    jobStatus = '[% jobStatus %]'.evalJSON( true );
+  } catch( e ) {
+    $("pfamAError")
+      .update( "There was a problem retrieving job parameters from the server.")
+      .show();
+  }
+  
+  if( ! ( jobStatus === undefined ) ) {
+    
+    var jobConfig = {
+      'elId':     'pfamABar',
+      'statuMsg': 'pfamAStatus',
+      'errorMsg': 'pfamAError',
+      'checkURI': '[% c.uri_for( "/seqsearch/checkStatus" ) %]',
+      'doneURI':  '[% c.uri_for( "/seqsearch/jobDone" ) %]',
+      'status':   jobStatus,
+    };
+    
+    var p;
+    try {
+      p  = new Job( jobConfig );
+    } catch( e ) {
+    $("pfamAError")
+      .update( "There was a problem submitting your job to the server.")
+      .show();
+    }
+    
+  }
+
+</script>
