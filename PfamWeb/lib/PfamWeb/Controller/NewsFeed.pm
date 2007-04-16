@@ -2,7 +2,7 @@
 # News.pm
 # jt 20061207 WTSI
 #
-# $Id: NewsFeed.pm,v 1.4 2007-03-15 14:06:12 jt6 Exp $
+# $Id: NewsFeed.pm,v 1.5 2007-04-16 15:58:32 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::NewsFeed;
 
 Generates the Pfam news feed RSS.
 
-$Id: NewsFeed.pm,v 1.4 2007-03-15 14:06:12 jt6 Exp $
+$Id: NewsFeed.pm,v 1.5 2007-04-16 15:58:32 jt6 Exp $
 
 =cut
 
@@ -42,7 +42,7 @@ sub index : Private {
   my( $this, $c ) = @_;
 
   # set the page to be cached for an hour
-  $c->cache_page( 3600 );
+#  $c->cache_page( 3600 );
 
   # retrieve the news items from the feed
   my @entries = $c->model("WebUser::News")
