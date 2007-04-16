@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.26 2007-04-03 15:42:06 jt6 Exp $
+   $Id: tab_layout.css,v 1.27 2007-04-16 15:50:19 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -57,7 +57,7 @@
 
 /* the overview bar */
 #icons {
-  width: 36em;
+  width: 50%;
   float: right;
   margin: -7px -6px 0 0;
 }
@@ -75,6 +75,7 @@
   background-position: top center;
   font-size: x-small;
   width: 18%;
+  overflow: hidden;
 }
 
 #icons span {

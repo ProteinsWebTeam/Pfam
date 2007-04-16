@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.38 2007-04-03 14:58:27 jt6 Exp $
+   $Id: pfam.css,v 1.39 2007-04-16 15:50:19 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -30,12 +30,12 @@
 /* global or widely used classes */
 
 body {
-	font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size: smaller;
-    color: #404040;
-    background: #FFF;
-    margin: 0;
-	padding: 0;
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size: smaller;
+  color: #404040;
+  background: #FFF;
+  margin: 0;
+  padding: 0;
 }
 
 .cleaner {
@@ -148,7 +148,6 @@ img.info {
 
 /* navbar styles */
 #navbar {
-  font-weight: bold;
   font-size: 0.9em;
 }
 
@@ -161,6 +160,11 @@ img.info {
 #navbar li { 
   display: inline;
   letter-spacing: 2px;
+}
+
+#navbar span,
+#navbar a {
+  font-weight: bold;
 }
 
 #navbar a { 
@@ -777,6 +781,71 @@ div.nodeSummary div {
     cursor: pointer;
 	float: right;
     padding: 0.2em 0;
+}
+
+/* ---------------------------------------- */
+/* format the mirrors list and citation */
+
+/* citation */
+#citation {
+  width: 60%;
+  float: left;
+}
+
+#indexCitation {
+	padding-bottom: 0.4em;
+}
+
+#indexCitation h1,
+#indexCitation p {
+	padding: 0.4em 0;
+	margin: 0;
+}
+
+div.citation span.title {
+	font-style: italic;
+}
+div.citation span.authors {
+	font-size: smaller;
+}
+div.citation span.ref {
+	display: block;	
+	padding: 0.2em 0;
+}
+div.citation span.jrnl {
+	font-weight: bold;
+}
+
+/* mirrors list */
+
+ul.mirrors {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+ul.mirrors li {
+	padding: 0.2em 0 ! important;
+}
+
+a.mirror {
+	padding-left: 14px;
+	background-position: left;
+	background-repeat: no-repeat;
+}
+
+/* the national flags */
+a.us {
+	background-image: url(/catalyst/pfam/images/flags/american_flag.gif);
+}
+a.se {
+	background-image: url(/catalyst/pfam/images/flags/swedish_flag.gif);
+}
+a.kr {
+	background-image: url(/catalyst/pfam/images/flags/south_korea.gif);
+}
+a.fr {
+	background-image: url(/catalyst/pfam/images/flags/french_flag.gif);
 }
 
 /* ======================================== */
