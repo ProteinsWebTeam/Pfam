@@ -3,7 +3,7 @@
 # polling.tt
 # jt6 20070410 WTSI
 #
-# $Id: polling.tt,v 1.1 2007-04-13 16:12:50 jt6 Exp $
+# $Id: polling.tt,v 1.2 2007-04-16 16:06:56 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;
@@ -15,6 +15,7 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "job.css" );
 requirements.js.push( "job.js" );
+requirements.js.push( "logger.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -23,8 +24,14 @@ requirements.js.push( "job.js" );
 <h1>Polling page</h1>
 
 <div id="pfamABar">
-  <p>PfamA search status is <span id="pfamAStatus">unknown</span>.</p>
+  <p>PfamA search status is <span id="pfamAStatus" class="jobStatus">unknown</span>.</p>
   <div id="pfamAError" class="error" style="display: none"></div>
+</div>
+
+
+<div id="logger" style="background: #e7e7e7; border: 1px solid #666">
+  <h3>Status</h3>
+  <div id="logScroller"></div>
 </div>
 
 <script type="text/javascript">
@@ -41,12 +48,13 @@ requirements.js.push( "job.js" );
   if( ! ( jobStatus === undefined ) ) {
     
     var jobConfig = {
-      'elId':     'pfamABar',
-      'statuMsg': 'pfamAStatus',
-      'errorMsg': 'pfamAError',
-      'checkURI': '[% c.uri_for( "/seqsearch/checkStatus" ) %]',
-      'doneURI':  '[% c.uri_for( "/seqsearch/jobDone" ) %]',
-      'status':   jobStatus,
+      'name':      'Pfam A search',
+      'elId':      'pfamABar',
+      'statusMsg': 'pfamAStatus',
+      'errorMsg':  'pfamAError',
+      'checkURI':  '[% c.uri_for( "/seqsearch/checkStatus" ) %]',
+      'doneURI':   '[% c.uri_for( "/seqsearch/jobDone" ) %]',
+      'status':    jobStatus,
     };
     
     var p;
