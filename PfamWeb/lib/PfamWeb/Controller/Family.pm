@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.19 2007-03-15 14:06:14 jt6 Exp $
+# $Id: Family.pm,v 1.20 2007-04-16 15:57:54 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.19 2007-03-15 14:06:14 jt6 Exp $
+$Id: Family.pm,v 1.20 2007-04-16 15:57:54 jt6 Exp $
 
 =cut
 
@@ -43,7 +43,21 @@ __PACKAGE__->config( SECTION => "family" );
 =head2 begin : Private
 
 Extracts the Pfam family ID or accession from the URL and gets the row
-in the Pfam table for that entry.
+in the Pfam table for that entry. Expects one of three parameters:
+
+=over
+
+=item acc - a valid Pfam accession, either for an A or B entry
+
+=item id - a valid PfamA accession
+
+=item entry - either an ID or accession
+
+=back
+
+If C<entry> is specified, we'll try to guess if it's an A or B accession entry
+or an ID and redirect back to this class with the appropriate parameter (either
+C<acc> or C<id> specified.
 
 =cut
 
@@ -61,24 +75,29 @@ sub begin : Private {
     if( defined $1 ) {
     
       # see if this is actually a PfamB...
-      if( $2 eq 'B' ) {
+      if( $2 eq 'B' or $2 eq 'b' ) {
         $c->log->debug( "Family::begin: looks like a PfamB; retrieving" );
-        $c->stash->{entryType} = "B";
         $c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
-        $c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
+
+        if( defined $c->stash->{pfam} ) {
+          $c->log->error( "Family::begin: no such PfamB: |$1|" );
+          $c->stash->{entryType} = "B";
+          $c->stash->{acc} = $c->stash->{pfam}->pfamB_acc;
+        }
  
       } else {
 
-        # no; must be a PfamA
-        $c->log->debug( "Family::begin: family is a PfamA" );
-        $c->stash->{entryType} = "A";
+        # no, must be a PfamA
         $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
-        $c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
-        $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
-          if defined $c->req->param( "alnType" );
-          
+
+        if( defined $c->stash->{pfam} ) {
+          $c->log->error( "Family::begin: no such PfamA: |$1|" );
+          $c->stash->{entryType} = "A";
+          $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
+          $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
+            if defined $c->req->param( "alnType" );
+        }
       }
-    
     }
 
   } elsif( defined $c->req->param("id") ) {
@@ -86,13 +105,15 @@ sub begin : Private {
     $c->req->param("id") =~ /^([\w_-]+)$/;
     $c->log->info( "Family::begin: found ID |$1|" );
   
-      $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
+    $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
       if defined $1;
-  
+
+    if( defined $c->stash->{pfam} ) {
       $c->stash->{entryType} = "A";
-    $c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
-    $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
-      if defined $c->req->param( "alnType" );
+      $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
+      $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
+        if defined $c->req->param( "alnType" );
+    }
     
   } elsif( defined $c->req->param( "entry" ) ) {
 
@@ -100,14 +121,16 @@ sub begin : Private {
     
        # looks like an accession; redirect to this action, appending the accession
        $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting" );
-       $c->res->redirect( $c->uri_for( "/family", { acc => $1 } ) );
+       $c->res->redirect( $c->req->uri_with( { acc => $1 } ) );
        return 1;
 
     } elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
 
       # looks like an ID; redirect to this action, appending the ID
       $c->log->debug( "Family::begin: might be a Pfam ID; redirecting" );
-      $c->res->redirect( $c->uri_for( "/family", { id => $1 } ) );
+#      $c->res->redirect( $c->req->uri_with( { id => $1 } ) );
+      $c->req->param( "id" => $1 );
+      $c->detach( "begin" );
       return 1;
     }
 
@@ -148,6 +171,12 @@ sub begin : Private {
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
     $c->log->warn( "Family::begin: no valid Pfam family ID or accession" );
+
+    # should we redirect back to the referer or show an error page ?
+    if( $c->req->param("return") and defined $c->req->referer ) {
+      #$c->res->redirect( $c->uri_for( "/family", { acc => $acc } ) );
+      $c->log->debug( "Family::begin: referer: |" . $c->req->referer . "|" );
+    }
 
     return;
   }
