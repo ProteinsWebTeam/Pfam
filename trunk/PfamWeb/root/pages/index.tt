@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.19 2007-04-03 15:46:44 jt6 Exp $
+# $Id: index.tt,v 1.20 2007-04-16 16:06:35 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -84,6 +84,8 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 		</div>
 	</div>
 
+  <hr />
+ 
   <div id="controlPanel">
 		<ul>
 			<li class="currentLink" onclick="switchPanel(this,'help')">USING PFAM</li>
@@ -112,7 +114,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         more information</li>
 		</ul>
   </div>
-	  
+
   <div id="protein" class="panel" style="display: none">
 		<h3>Analyze your protein sequence for Pfam matches</h3>
     <p>Paste your protein sequence here to find the matching Pfam families.</p>  
@@ -142,13 +144,22 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   	<div onclick="if($F('dnaField')!='')$('dnaForm').submit()"
     		 class="goButton">&nbsp;</div>
   </div>
-	  
+  
+  [% # get a shortcut to avoid too many calls to uri_for
+     jumpURI = c.uri_for( "/search/jump" ) %]
+  
   <div id="family" class="panel" style="display: none">
 		<h3>View Pfam family annotation and alignments</h3>
     <p>Enter a family identifier or accession to see all data for that family.</p>
-    <form action="[% c.uri_for( "/search/jump", type="family" ) %]"
+    <form action="[% jumpURI %]"
           method="get" 
           id="familyForm">
+      <input type="hidden"
+             name="type"
+             value="Family" />
+      <input type="hidden"
+             name="return"
+             value="1" />
   		<input class="entryField" 
              type="text" 
              name="entry" 
@@ -166,9 +177,12 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   <div id="clan" class="panel" style="display: none">
 		<h3>See groups of related families</h3>
     <p>Enter a clan identifier or accesion to see information about that clan.</p>
-    <form action="[% c.uri_for( "/search/jump", type="clan" ) %]"
+    <form action="[% jumpURI %]"
           method="get" 
           id="clanForm">
+      <input type="hidden"
+             name="type"
+             value="Clan" />
   		<input class="entryField"
              type="text" 
              name="entry" 
@@ -187,9 +201,12 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <h3>View domain organisation of a UniProt sequence</h3>
 		<p>Enter the sequence identifier or accession for the UniProt sequence of 
       interest.</p>
-    <form action="[% c.uri_for( "/search/jump", type="protein" ) %]"
+    <form action="[% jumpURI %]"
           method="get" 
           id="proteinForm">
+      <input type="hidden"
+             name="type"
+             value="Protein" />
   		<input class="entryField"
              type="text" 
              name="entry" 
@@ -203,9 +220,12 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 	<div id="structure" class="panel" style="display: none">
     <h3>Find the domains on a PDB structure</h3>
 		<p>Enter the PDB identifier for the structure in the Protein DataBank.</p>
-    <form action="[% c.uri_for( "/search/jump", type="structure" ) %]"
+    <form action="[% jumpURI %]"
           method="get" 
           id="structureForm">
+      <input type="hidden"
+             name="type"
+             value="Structure" />
   		<input class="entryField"
              type="text" 
              name="entry" 
@@ -249,7 +269,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
           Pfam: clans, web tools and services</a>: 
       </span>
       <span class="authors">
-        R.D. Finn, J. Mistry, B.Schuster-B&#246;ckler, S. Griffiths-Jones, 
+        R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones, 
         V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
         S.R. Eddy, E.L. L. Sonnhammer and A. Bateman
       </span>
@@ -263,13 +283,15 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   <div id="mirrors">
   	<h2>Mirrors</h2>
     <p class="small">The following are official Pfam 
-      <a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">mirror</a> sites:</p>
-  	<ul>
-  		<li><a href="http://pfam.cgb.ki.se/" class="se mirror" alt="Stockholm Bioinformatics Center">SBC, Sweden</a></li>
-  		<li><a href="http://pfam.janelia.org/" class="us mirror" alt="Janelia Farm Research Campus">JFRC, USA</a></li>
-  		<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror" alt="Institut National de la Recherche Agronomique">INRA, France</a></li>
-  		<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror" alt="Center for Computational Biology &amp; Bioinformatics">CCBB, South Korea</a></li>
-  	</ul>	
+      <a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">mirror</a> sites:
+    </p>
+  	<ul class="mirrors">
+    	<li><a href="http://pfam.cgb.ki.se/" class="se mirror">SBC, Sweden</a></li>
+    	<li><a href="http://pfam.janelia.org/" class="us mirror">JFRC, USA</a></li>
+    	<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror">INRA, France</a></li>
+    	<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror">CCBB, South Korea</a></li>
+    </ul>	
+
   </div>
 
   <div class="cleaner"><!-- empty --></div>
