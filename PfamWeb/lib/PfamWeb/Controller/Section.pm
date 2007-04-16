@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
+# $Id: Section.pm,v 1.6 2007-04-16 16:00:47 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
+$Id: Section.pm,v 1.6 2007-04-16 16:00:47 jt6 Exp $
 
 =cut
 
@@ -63,7 +63,7 @@ generated earlier
 
 =cut
 
-sub end : Private {
+sub end : ActionClass( "RenderView" ) {
   my( $this, $c ) = @_;
 
   # check for errors
@@ -98,9 +98,6 @@ sub end : Private {
   	$c->stash->{template} ||= "pages/layout.tt";
 
   }
-
-  # and render the page
-  $c->forward( "PfamWeb::View::TT" );
 
 }
 
