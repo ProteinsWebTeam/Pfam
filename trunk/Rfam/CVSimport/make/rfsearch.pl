@@ -1,7 +1,5 @@
 #!/usr/local/bin/perl -w
 
-# edited to use scp instead of lsrcp due to some changes made by systems in the lsf configuration (Daub. J)
-
 # This is mostly pretty NFS friendly now.  Should run rfsearch itself on 
 # something with local storage, but the jobs all get sent off to blades
 # using nice socket things, pfetch etc.  
