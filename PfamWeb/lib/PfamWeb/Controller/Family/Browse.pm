@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060717 WTSI
 #
-# $Id: Browse.pm,v 1.10 2007-03-28 10:04:56 jt6 Exp $
+# $Id: Browse.pm,v 1.11 2007-04-16 16:01:12 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ Retrieves the data for the "browse by family" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.10 2007-03-28 10:04:56 jt6 Exp $
+$Id: Browse.pm,v 1.11 2007-04-16 16:01:12 jt6 Exp $
 
 =cut
 
@@ -48,6 +48,8 @@ sub begin : Private {
   # when there's no Pfam accession or ID specified in the
   # parameters. Which there won't ever be for the browse pages.
 
+  # tell the navbar where we are
+  $c->stash->{nav} = "browse";
 }
 
 #-------------------------------------------------------------------------------
