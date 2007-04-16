@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.1 2007-04-13 16:11:07 jt6 Exp $
+   $Id: job.css,v 1.2 2007-04-16 15:50:01 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -27,6 +27,8 @@
     
 */   
 
+
+
 .jobStatus {
   font-weight: bold;
 }
@@ -38,6 +40,8 @@
 .jobSuccessful {
   color: #696;
 }
+
+/* the progress bar itself */
 
 div.progressWrapper {
   border: 1px solid #666;
@@ -56,4 +60,33 @@ div.progressBar {
   margin: 0;
   padding: 0;
   z-index: 1;
+}
+
+/* the status logger */
+
+#logger {
+  float: right;
+  width: 400px;
+  font-size: smaller;
+  border: 1px solid #666;
+  background: #e7e7e7;
+}
+
+#logScroller {
+  overflow: auto;
+  height: 10em;
+}
+
+#logger h3 {
+  padding: 0;
+  margin: 0;
+  text-decoration: underline;
+}
+
+#logger span.msg {
+  display: block;
+}
+
+#logger span.caller {
+  font-weight: bold;
 }
