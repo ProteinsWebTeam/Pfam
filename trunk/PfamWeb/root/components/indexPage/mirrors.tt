@@ -2,25 +2,15 @@
 # mirrors.tt
 # jt6 20070108 WTSI
 #
-# build a list of Pfam mirror sites
+# the list of Pfam mirror sites
 #
-# $Id: mirrors.tt,v 1.2 2007-01-31 14:18:04 jt6 Exp $
-
-META naked = 1
+# $Id: mirrors.tt,v 1.3 2007-04-16 16:05:29 jt6 Exp $
 %]
 
-<div id="mirrors" class="sidebarComponent">
-	<h1>
-    <span>Mirrors</span>
-    <a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">
-	 		<img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
-  </h1>
-  <p class="small">The following are official Pfam mirror sites:</p>
-	<ul>
-		<li><a href="http://pfam.cgb.ki.se/" class="se mirror">Stockholm, Sweden</a></li>
-		<li><a href="http://pfam.janelia.org/" class="us mirror">Washington D.C., USA</a></li>
-		<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror">INRA, France</a></li>
-		<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror">CCBB, South Korea</a></li>
-	</ul>	
-</div>
+<ul class="mirrors">
+	<li><a href="http://pfam.cgb.ki.se/" class="se mirror" alt="Stockholm Bioinformatics Center, Sweden</a></li>
+	<li><a href="http://pfam.janelia.org/" class="us mirror" alt="Janelia Farm Research Campus">JFRC, USA</a></li>
+	<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror" alt="Institut National de la Recherche Agronomique">INRA, France</a></li>
+	<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror" alt="Center for Computational Biology &amp; Bioinformatics">CCBB, South Korea</a></li>
+</ul>	
     
