@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.8 2007-04-13 16:10:26 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.9 2007-04-16 16:01:47 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.8 2007-04-13 16:10:26 jt6 Exp $
+$Id: SeqSearch.pm,v 1.9 2007-04-16 16:01:47 jt6 Exp $
 
 =cut
 
@@ -315,7 +315,7 @@ sub parseSequence : Private {
   $seq =~ s/\s+//g;
 
   $c->log->debug( "SeqSearch::parseSequence: parsed sequence: |$seq|" );
-  return ( $seq =~ /^[A-Z]+$/i ) ? $seq : "";
+  return ( $seq =~ /^[A-Za-z]+$/ ) ? $seq : "";
 }
 
 #-------------------------------------------------------------------------------
@@ -438,7 +438,7 @@ sub checkStatus : Local {
   
   my $jobId = $c->req->param( "jobId" );
 
-  if( length( $jobId ) != 36 or $jobId !~ /[A-Z0-9\-]/ ) {
+  if( length( $jobId ) != 36 or $jobId !~ /[A-F0-9\-]/ ) {
     $c->log->debug( "SeqSearch::checkStatus: bad job id" );
     $c->stash->{status}->{error} = "Invalid job ID";
     $c->detach( "returnStatus" );
@@ -509,8 +509,47 @@ Returns the URI of the Pfam graphic that is the result of the specified job.
 sub jobDone : Local {
   my( $this, $c ) = @_;
   
-	$c->res->content_type( "text/plain" );
-	$c->res->body( "http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/images/pfam_logo.gif" );
+  # extract the list of IDs from the URI
+  my @jobIds = $c->req->param( "job" );
+
+  # somewhere to store the validated IDs  
+  my @validJobIds = ();
+
+  foreach ( @jobIds ) {
+
+    # detaint the job ID
+    ( my $jobId ) = $_ =~ m/^([A-F0-9\-]+)$/;
+    $c->log->debug( "SeqSearch::jobDone: looking for job ID: |$jobId|" );
+
+    next unless defined $jobId;
+    
+    # job ID *looks* valid; try looking for that job 
+    my $job = $c->model( "WebUser::HmmerHistory" )
+                ->find( { job_id => $jobId } );
+
+    # bail unless it exists
+    next unless defined $job;
+
+    # finally, stuff the job ID
+    push @validJobIds, $jobId;
+  }
+  $c->stash->{jobIds} = \@validJobIds;
+
+  # do something interesting with the results
+  $c->forward( "handleResults" );
+    
+	$c->stash->{template} = "pages/jobDone.tt";
+}
+
+#-------------------------------------------------------------------------------
+
+sub handleResults : Private {
+  my( $this, $c ) = @_;
+  
+  foreach my $jobId ( @{$c->stash->{jobIds}} ) {
+    $c->log->debug( "SeqSearch::handleResults: checking results for |$jobId|" );
+  }
+        
 }
 
 #-------------------------------------------------------------------------------
