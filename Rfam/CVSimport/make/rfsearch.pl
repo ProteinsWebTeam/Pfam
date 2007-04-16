@@ -1,5 +1,7 @@
 #!/usr/local/bin/perl -w
 
+# edited to use scp instead of lsrcp due to some changes made by systems in the lsf configuration (Daub. J)
+
 # This is mostly pretty NFS friendly now.  Should run rfsearch itself on 
 # something with local storage, but the jobs all get sent off to blades
 # using nice socket things, pfetch etc.  
@@ -169,9 +171,9 @@ unless( $minidb ) {
 	      $fh -> open("| bsub -q $bqueue -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$blast/$blast.berr.$i") or die "$!";
 	      $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
 	      $fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
-	      $fh -> print("lsrcp $phost:$pwd/$fafile /tmp/$fafile\n");
+	      $fh -> print("scp $phost:$pwd/$fafile /tmp/$fafile\n");
 	      $fh -> print("$blastcmd > /tmp/$blast.blastlist.$i\n");
-	      $fh -> print("lsrcp /tmp/$blast.blastlist.$i $phost:$pwd/$blast.blastlist.$i\n");
+	      $fh -> print("scp /tmp/$blast.blastlist.$i $phost:$pwd/$blast.blastlist.$i\n");
 	      $fh -> print("rm -f /tmp/$blast.blastlist.$i /tmp/$fafile\n");
 	      $fh -> close;
 	  }
@@ -181,7 +183,7 @@ unless( $minidb ) {
 	  $fh -> open("| bsub -I -q $queue2 -w\'done(rf$blast)\'") or die "$!";
 	  $fh -> print("echo \"blast jobs finished at:\" > /tmp/$blast.berr\n");
 	  $fh -> print("date >> /tmp/$blast.berr\n");
-	  $fh -> print("lsrcp /tmp/$blast.berr $phost:$pwd/$blast.berr\n");
+	  $fh -> print("scp /tmp/$blast.berr $phost:$pwd/$blast.berr\n");
 	  $fh -> print("rm -f /tmp/$blast.berr\n");
 	  $fh -> close;
       }
@@ -291,9 +293,9 @@ my $fh = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
 $fh -> open( "| bsub -q $queue -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $phost $pwd $minidb.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
-$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
+$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
 $fh -> print( "$command $options /tmp/$$.CM /tmp/$minidb.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "lsrcp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fh -> print( "scp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> print( "rm -f /tmp/$minidb.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} /tmp/$$.CM\n" );
 $fh -> close;
 
@@ -301,9 +303,9 @@ $fh -> close;
 # send something to clean up
 $fh = new IO::File;
 $fh -> open("| bsub -q $queue2 -w\'done($name)\'") or die "$!";
-$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find lsrcp
+$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
 $fh -> print("date >> /tmp/$$.cmerr\n");
-$fh -> print("lsrcp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n");
+$fh -> print("scp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n");
 $fh -> print("rm -f /tmp/$$.cmerr\n");
 $fh -> close;
 
