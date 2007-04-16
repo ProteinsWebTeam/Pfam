@@ -4,14 +4,14 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.5 2006-12-07 11:02:04 jt6 Exp $
+# $Id: faq.tt,v 1.6 2007-04-16 16:07:19 jt6 Exp $
 %]
 
 <!-- start faq block -->
 
 <div class="block" id="helpFAQBlock">
   <div class="handle">
-    <h1><a name="top">Frequently Asked Questions</a></h1>
+    <h1><a name="faqTop">Frequently Asked Questions</a></h1>
   </div>
   <div class="blockContent">
 	<ul>
@@ -57,7 +57,7 @@
 	  and use other tools for protein analysis.  We display structural
 	  information for each family where available.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="diffs">What is the difference between Pfam-A and Pfam-B 
 	families ?</a></h3>
@@ -96,7 +96,7 @@
 	  and regenerate our Pfam-B families using the most recent version
 	  of PRODOM.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="clan">What is a clan ?</a></h3>
 
@@ -115,7 +115,7 @@
 	  alternatively they can be accessed by clicking on 'clans' under
 	  the 'browse' by menu on tab on any Pfam page.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="twoHmms">Why are there two HMMs foreach Pfam entry ?</a></h3>
 
@@ -125,7 +125,7 @@
 	  (fs model).  When you search a protein on our site we search
 	  them against both the ls and fs models.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="dnaSearch">Can I search DNA against Pfam ?</a></h3>
 
@@ -139,7 +139,7 @@
 	  for a 1kb sequence, and approximately 1 hours for a 80kb
 	  sequence.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="submit">How can I submit a new domain ?</a></h3>
 
@@ -153,7 +153,7 @@
 	  application such as a Word (.doc) document), and associated
 	  literature evidence if available.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="ipfam">What is iPfam ?</a></h3>
 
@@ -165,7 +165,7 @@
 	  enough it calculates the bonds forming the interaction. Further
 	  information can be found on the iPfam help pages.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="localSearch">How can I search Pfam locally ?</a></h3>
 
@@ -176,7 +176,7 @@
 	  <a href="[% c.uri_for( "/help", tab="helpGetStartedBlock" ) %]">
 	    getting started</a> with Pfam.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="noSeq">Why doesn't Pfam doesn't include my sequence ?</a></h3>
 
@@ -189,7 +189,7 @@
 	  Pfam you can still find out what domains it contains by pasting
 	  it into the search box in Pfam.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="family">What's on the family page ?</a></h3>
 
@@ -219,7 +219,7 @@
 		data. To record how the family was constructed.
 	  </li>
 	</ul>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="howMany">How many accurate alignments do you have ?</a></h3>
 
@@ -228,7 +228,7 @@
 	  SWISSPROT 40 and TrEMBL-18 have at least one match to a Pfam-A
 	  family.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="mySearch">Can I search my protein against Pfam ?</a></h3>
 
@@ -238,16 +238,16 @@
 	<ul>
 	  <li>
 		<a href="[% c.uri_for( "/seqsearch", tab="searchProteinBlock" ) %]">
-		  <img src="[% c.uri_for( "/images/british_flag.gif" ) %]" /> Wellcome Trust 
+		  <img alt="" src="[% c.uri_for( "/images/british_flag.gif" ) %]" /> Wellcome Trust 
 	      Sanger Institute (UK)</a>
 	  </li>
 	  <li>
 		<a href="http://pfam.janelia.org/">
-		  <img src="[% c.uri_for( "/images/american_flag.gif" ) %]" /> Washington D.C.
+		  <img alt="" src="[% c.uri_for( "/images/american_flag.gif" ) %]" /> Washington D.C.
 		   (USA)</a>
 	  </li>
 	</ul>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="transSearch">Can I search my dna sequence in translation against
 	Pfam ?</a></h3>
@@ -256,7 +256,7 @@
 	  Yes you can, on the <a href="[% c.uri_for( "/seqsearch", tab="searchDnaBlock" ) %]">
 	    DNA search page</a>.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 	
 	<h3><a name="gaps">What is the difference between the - and . characters in 
 	your full alignments ?</a></h3>
@@ -287,7 +287,7 @@ FBRL_LEIMA/57-291    AKVIVEPHMLHPGVFISKAK.TDSLCTLNMVPGISVYGEKRIELGATQ
 Q9ZSE3/38-276        SAVVVEPHKVHAGIFVSRGKsEDSLATLNLVPGVSVYGEKRVQTETTD
 HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	</pre>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="sssa">What do the SS and SA lines in the alignment mean ?</a></h3>
 
@@ -326,7 +326,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  You can find more information 
 	 <a href="http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html">here</a>.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="missing">You don't have domain YYYY in Pfam !</a></h3>
 
@@ -338,7 +338,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  simple families just one sequence is enough. Again E-mail <a
 	  href="mailto:pfam@sanger.ac.uk">Pfam</a>.
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3>Can we have this running sensibly locally. Do you have
 	software to support Pfam locally?</h3>
@@ -351,7 +351,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  files are called Pfam_ls (global models) and Pfam_fs (fragment
 	  models).
 	</p>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="other">Are there other databases which do this ?</a></h3>
 
@@ -382,7 +382,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  <dt><a href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">CDD</a></dt>
 	  <dd>The Conserved Domain Database is derived from Pfam and SMART databases.</dd>
 	</dl>
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="best">So which database is better ?</a></h3>
 
@@ -392,7 +392,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  provide more interpretable results with crisp definitions of
 	  domains in a protein.
 	</p>	
-	<a href="#top">back to top</a>
+	<p><a href="#faqTop">back to top</a></p>
 
   </div>
 </div>
