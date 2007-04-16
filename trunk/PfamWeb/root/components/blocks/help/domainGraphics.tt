@@ -1,909 +1,1208 @@
+
 [%
 # domainGraphics.tt
 # rdf 20060927 WTSI
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.2 2007-04-03 12:56:58 rdf Exp $
+# $Id: domainGraphics.tt,v 1.3 2007-04-16 16:07:19 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "help.css" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+# some URI shortcuts
+imgs   = c.uri_for( "/images/help" );
+family = c.uri_for( "/family" );
 %]
 
-<!-- start domainGraphics.tt block -->
+<!-- start domain graphics block -->
 
 <div class="block" id="helpDomainGraphicsBlock">
   <div class="handle">
-    <h1>A Guide to the Pfam Domain Graphics</h1>
+    <h1><a name="graphicsTop">A Guide to the Pfam Domain Graphics</a></h1>
   </div>
   <div class="blockContent">
 
-	<p>One of the features provided by the Pfam website is a graphical representation of the features
-	found within a sequence, termed domain graphics.  There are a variety of different shapes and styles 
-	used and these all have meaning.  This page is designed to give the user with an in depth description
-	of the domain graphics.  The data aquistion and drawing code kept separate, with an XML intermediate.
-	The xml used to produce each image is availabe after each image, so that if required, users can produce
-	their own domain graphics using the online tool, see below.<p>
-	
-	<h2>The Sequence</h2>
-	<p>All sequences are represented by a grey bar.  If no domains or other features are found, then you will just 
-	get the following:</p>
-	<p><img src="[% c.uri_for("/images/help/seq.png") %]"/>
-	<a onclick="Element.toggle('seqXML')">View XML</a></p>
-	<!--Put in a div that you click on to get more..-->
-  <div id="seqXML" style="display: none">
-  	<pre>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" 
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-    xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" 
-    format="png" layout="continuous" scale_x="0.5" scale_y="1.0"&gt;
-    &lt;sequence length="400" display_data="test all drawing features" name="TestSeq"/&gt;
-&lt;/image&gt;
- 	</pre>
-	</div>
-		
-	<h2>Pfam-A</h2>
-	<p>The high quality, curated Pfam-A domains are classified into one of four different types:
-	<font style:"bold">Family, domain, repeat</font> and motif (See <a href=[% c.uri_for("/help/tab=helpSummaryBlock") %]>here</a> 
-	for more details). These different classification types are rendered slightly differently.</p>
-	
-	<h3>Family/Domain</h3>
-	<p>Both family and domain entries are rendered as rectangle with curved ends, 
-	when the sequence is a full length match (if you do not understand what this means, see the description of partial matches). The curves at
-	the ends become less pronounced when the domains are short, as shown in the second domain below.
-	Different entries are displayed with different colours.  When the domain image is long enough, 
-	the domain name appears on the image. Click on the domains will take you to the "Family" page form that entry. 
-	Moving the mouse over the domain image will action an mouse-over event, which display the domain name, followed by the start and end positions
-	of the domain. For example:</p> 
-	
-	<p><img src="[% c.uri_for("/images/help/seqDomain.png") %]" alt="" usemap="#seqDomain" /><a onclick="Element.toggle('seqDomainXML')">View XML</a></p>
-				<map name="seqDomain">
-				<area shape="rect" coords="20, 0, 100, 26" title="DomainNameDisply:40-200" />
-				<area shape="rect" coords="105, 0, 125, 26" title="FamilyNoNameDisply:210-250" />
-				</map>
-		
-	<!--Put in a div that you click on to get more..-->
-  <div id="seqDomainXML" style="display: none">
-  	<pre>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0"&gt;
-    &lt;sequence length="400" display_data="test all drawing features" name="TestSeq"&gt;
-        &lt;region start="40" end="200" label="DomainName"&gt;
-            &lt;colour1&gt;
-                &lt;colour&gt;&lt;hex hexcode="9999ff"/&gt;&lt;/colour&gt;
-            &lt;/colour1&gt;
-            &lt;colour2&gt;
-                &lt;colour&gt;&lt;hex hexcode="99ccff"/&gt;&lt;/colour&gt;
-            &lt;/colour2&gt;
-            &lt;bigShape leftStyle="curved" rightStyle="curved"/&gt;
-        &lt;/region&gt;
-        &lt;region start="210" end="250" label="FamilyNoNameDisply" link_URL="/"&gt;
-            &lt;colour1&gt;
-                &lt;colour&gt;&lt;hex hexcode="339999"/&gt;&lt;/colour&gt;
-            &lt;/colour1&gt;
-            &lt;colour2&gt;
-                &lt;colour&gt;&lt;RGB R="51" G="204" B="204"/&gt;&lt;/colour&gt;
-            &lt;/colour2&gt;
-            &lt;bigShape leftStyle="curved" rightStyle="curved"/&gt;
-        &lt;/region&gt;
-    &lt;/sequence&gt;
-&lt;/image&gt;
- 	</pre>
-	</div>
-
-	<p>Sometimes, a sequence will not match the full length of the HMM that models a Pfam entry.  When a sequence match does not pass through the first position
-	in the HMM, the N-terminal side of the domain graphic is drawn with a jagged edge instead of a curved edge.  When a sequence match does
-	no pass through the last position of the HMM , the C-terminal side of the domain graphic is drawn with a jagged edges.  In some rarer cases, the sequence
-	match does not pass through either of the first and last positions of the HMM, then both of the edges are drawn with jagged edges.</p>
-	 
-	 <p><img src="[% c.uri_for("/images/help/partial.png") %]" alt="" usemap="#partial" />	
-	<a onclick="Element.toggle('partial')">View XML</a></p>
-	<map name="partial">
-		<area shape="rect" coords="5, 0, 55, 26" nohref="/" title="PartN:10-110" />
-		<area shape="rect" coords="105, 0, 175, 26" nohref="/" title="PartC:210-350" />
-		<area shape="rect" coords="57.5, 0, 100, 26" nohref="/" title="PartN_C:115-200" />
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="TOGGLENAME" style="display: none">
-  	<pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0"&gt;
-    &lt;sequence length="400" name="Partial"&gt;
-        &lt;region start="10" end="110" label="PartN" link_URL="/"&gt;
-            &lt;colour1&gt;
-                &lt;colour&gt;&lt;hex hexcode="9999ff"/&gt;&lt;/colour&gt;
-            &lt;/colour1&gt;
-            &lt;colour2&gt;
-                &lt;colour&gt;&lt;hex hexcode="99ccff"/&gt;&lt;/colour&gt;
-            &lt;/colour2&gt;
-            &lt;bigShape leftStyle="jagged" rightStyle="curved"/&gt;
-        &lt;/region&gt;
-        &lt;region start="210" end="350" label="PartC" link_URL="/"&gt;
-            &lt;colour1&gt;
-                &lt;colour&gt;&lt;hex hexcode="339999"/&gt;&lt;/colour&gt;
-            &lt;/colour1&gt;
-            &lt;colour2&gt;
-                &lt;colour&gt;&lt;RGB R="51" G="204" B="204"/&gt;&lt;/colour&gt;
-            &lt;/colour2&gt;
-            &lt;bigShape leftStyle="curved" rightStyle="jagged"/&gt;
-        &lt;/region&gt;
-				 &lt;region start="115" end="200" label="PartN_C" link_URL="/"&gt;
-            &lt;colour1&gt;
-       			 &lt;colour&gt;
-         			&lt;hex hexcode="1fc01f"/&gt;
-        		&lt;/colour&gt;
-      			&lt;/colour1&gt;
-      			&lt;colour2&gt;
-        			&lt;colour&gt;
-          			&lt;hex hexcode="47e847"/&gt;
-        			&lt;/colour&gt;
-      			&lt;/colour2&gt;
-            &lt;bigShape leftStyle="jagged" rightStyle="jagged"/&gt;
-        &lt;/region&gt;
-    &lt;/sequence&gt;
-&lt;/image&gt;
-		</pre>
-	</div>
-
-	 
-	<h3>Repeat/Motif</h3>
-	<p>To distinguish family and domains from those types that do not form an independently 
-	folded units, repeats and motifs.  These are represented by rectangles with straight 
-	edges. As with the family/domains, partial matches are represented with jagged edges.</p> 
-	
-	<p><img src="[% c.uri_for("/images/help/repeat.png") %]" alt="" usemap="#repeat" />	
-	<a onclick="Element.toggle('repeat')">View XML</a></p>
-	<map name="repeat">
-		<area shape="rect" coords="41, 0, 59, 26" title="RepeatNameDisply:82-118" />
-		<area shape="rect" coords="80, 0, 97, 26" title="RepeatNameDisply:159-195" />
-		<area shape="rect" coords="60, 0, 77, 26" title="RepeatNameDisply:120-155" />
-  	<area shape="rect" coords="1, 0, 17, 26" title="RepeatNameDisply:2-34" />
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="repeat" style="display: none">
-  	<pre>&lt;?xml version="1.0"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1"&gt;
-  &lt;sequence name="repeat" length="200" &gt;
-    &lt;region start="82" end="118" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-    &lt;region start="159" end="195" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-		&lt;region start="120" end="155" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-    &lt;region start="2" end="34" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-  &lt;/sequence&gt;
-&lt;/image&gt;
-		</pre>
-	</div>
-	
-	
-	<h3>Discontinuous Nested Domains</h3>
-	<p>Some domains in Pfam are disrupted by the insertion of another domain (or 
-	domains) within that domain. A number of names have been given to this 
-	arrangement; discontinuous (referring to the outer domain), inserted or 
-	nested (both referring to the inner domain). For example, in many sequences 
-	containing an IMPDH domain, the IMPDH domain is continuous along the primary 
-	sequence. However, in some cases, the linear sequence of the IMPDH domain is 
-	broken by the insertion of a CBS domain.</p>
+    <p>
+      One of the features provided by the Pfam website is a graphical 
+      representation of the features found within a sequence, termed <em>domain 
+      graphics</em>. There are a variety of different shapes and styles and each 
+      one has a particular meaning. This page gives an in-depth description of 
+      the elements of Pfam domain graphics.
+    </p>
+    <p>
+      The library which generates the images in this page and throughout the
+      Pfam site uses an XML language to describe the domain graphic that is
+      required. Each of the example graphics in this page is followed by a link
+      that can be used to show the XML that produced it. 
+    </p>
+    
+    <hr />
+    
+    <h2>The sequence</h2>
   
-  <p>Where structures are available, it is obvious that the three-dimensional 
-  arrangement of the domain containing the nested domain is maintained. Typically 
-  the nested domain is found inserted within a surface exposed loop, having little 
-  or no affect on the structure of the other domain. Such an arrangement explains 
-  why and how these nested domains can be functionally tolerated.</p>
-  
-  <p>To represent this arrangement of domain graphically, the discontinous domain
-  is represented in two parts (as shown below).  These two parts are joined by a 
-  line bridging them.  The virtical parts of the line are dashed, while the horizontal
-  line is solid (to dinstinguish it from a disulphide bridge, see below).<p>
-  
-  <p><img src="[% c.uri_for("/images/help/nested.png") %]" alt="" usemap="#nested" />	
-	<a onclick="Element.toggle('nested')">View XML</a></p>
-	<map name="nested">
-		<area shape="rect" coords="2.5, 20, 40, 46" title="IMPDH:5-80" />
-		<area shape="rect" coords="40.5, 20, 67.5, 46" title="CBS:81-135" />
-		<area shape="rect" coords="68, 20, 98.5, 46" title="IMPDH:136-197" />
-		<area shape="rect" coords="38.5, 4, 40.5, 29" nohref="Discontinuous domain" title="Discontinuous domain" />
-		<area shape="rect" coords="67, 4, 69, 25" nohref="Discontinuous domain" title="Discontinuous domain" />
-		<area shape="rect" coords="39.5, 11, 68,9" nohref="Discontinuous domain" title="Discontinuous domain" />	
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="nested" style="display: none">
-  	&lt;pre&gt;&lt;?xml version="1.0"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1"&gt;
-  &lt;sequence name="Nested" length="200"&gt;
-    &lt;region start="5" end="80" label="IMPDH" link_URL="/"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="curved" rightStyle="jagged"/&gt;
-    &lt;/region&gt;
-    &lt;region start="81" end="135" label="CBS" link_URL="/cgi-bin/Pfam/getacc?PF00571"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="c00f0f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="e83737"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="curved" rightStyle="curved"/&gt;
-    &lt;/region&gt;
-    &lt;region start="136" end="197" label="IMPDH" link_URL="/cgi-bin/Pfam/getacc?PF00478"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="jagged" rightStyle="curved"/&gt;
-    &lt;/region&gt;
-    &lt;markup start="79" end="136" v_align="top" label="Discontinuous domain"&gt;
-      &lt;line style="mixed"&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="333333"/&gt;
-        &lt;/colour&gt;
-      &lt;/line&gt;
-    &lt;/markup&gt;
-  &lt;/sequence&gt;
-&lt;/image&gt;
-		</pre>
-	</div>
-  
-  
-	<h3>Context Domains</h3>
-	<p>Context domains in Pfam are those that despite not scoring above the family 
-	gathering threshold are expected to be real, based on the presence of the
-	 surrounding domains found in the protein.  The method is described in:</p>
- 
- 	<h5>Enhanced protein domain discovery by using language modeling techniques from 
- 	speech recognition.
-	Coin L, Bateman A, Durbin R. Proc Natl Acad Sci USA. 2003;100(8):4516-20.</h5>
+    <p>
+      The base sequence, undecorated by any domains or features, is represented 
+      by a plain grey bar:
+    </p>
+    <img src="[% imgs %]/seq.png" alt="" />
+    <span class="link" id="seqToggle" onclick="reveal(this,'seqXML',false)">Show XML</span> 
 
-   <p>In some cases it is possible for a protein without any matches to gain context domains. 
-   This happens when two or more weak matches support each other. This is most often seen 
-   with multiple tandem repeats such as WD40 and leucine rich repeats.</p>
-
-	<p>Within the Pfam domain graphics the context domains are represented by a rectangle, 
-	that is coloured from white to pink as shown below.  These images are interactive in the same
-	manner as the Pfam-A graphics.</p>
-
-<p><img src="[% c.uri_for("/images/help/context.png") %]" alt="" usemap="#context" />	
-	<a onclick="Element.toggle('context')">View XML</a></p>
-	<map name="context">
-	<area shape="rect" coords="41, 0, 59, 26" title="RepeatNameDisply:82-118" />
-	<area shape="rect" coords="80, 0, 97, 26" title="RepeatNameDisply:159-195" />
-	<area shape="rect" coords="60, 0, 77, 26" title="RepeatNameDisply:120-155" />
-  <area shape="rect" coords="1, 0, 17, 26" title="RepeatNameDisply:2-34" />
-  <area shape="rect" coords="22, 0, 39, 26" title="Context:44-79" />
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="context" style="display: none">
-  	<pre>&lt;?xml version="1.0"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1"&gt;
-  &lt;sequence name="context" length="200" &gt;
-    &lt;region start="82" end="118" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-    &lt;region start="159" end="195" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-		&lt;region start="120" end="155" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-    &lt;region start="2" end="34" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-    &lt;region start="44" end="79" label="HEAT" &gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="ff66ff"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;colour2&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="ffffff"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour2&gt;
-      &lt;bigShape leftStyle="straight" rightStyle="straight"/&gt;
-    &lt;/region&gt;
-  &lt;/sequence&gt;
+    <div id="seqXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       format=&quot;png&quot;
+       layout=&quot;continuous&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1.0&quot;&gt;
+  &lt;sequence length=&quot;400&quot; display_data=&quot;test all drawing features&quot; name=&quot;TestSeq&quot;/&gt;
 &lt;/image&gt;</pre>
-	</div>
+    </div>
 
-  <p>Please note that context domains are generated automatically and have not been subjected 
-  to the high level of quality control that Pfam-A domains have. Therefore, context domains 
-  although likely to be correct should be verified by other means.<p> 
-	
-	<h2>Pfam-B</h2>
-	<p>Pfam-B regions are automatically produced clusters that suppliment the high quality
-	Pfam-A regions.  How Pfam-Bs are generated is out lined <a href="/">here</a>. These 
-	regions are represented by a small rectangle, coloured with three stripes. Clicking on
-	the image takes the user to the Pfam-B pages.  Moving the mouse of the striped image will
-	reveal the Pfam-B identifier, start and end points.  If the Pfam-B region is long enough,
-	the PFam-B identifier will be displayed on the image.</p> 
+    <p>
+      The length of the domain graphic that is drawn is proportional to the 
+      length of the sequence itself. The graphics in this page are drawn with
+      a X-scale of 0.5 pixels per amino-acid, so that a 200 residue sequence 
+      will result in a 100 pixel-wide image. Any domains or features which
+      are drawn on the sequence are also scaled by the same factor.
+    </p>
 
-<p><img src="[% c.uri_for("/images/help/pfamB.png") %]" alt="" usemap="#pfamB" />	
-	<a onclick="Element.toggle('pfamB')">View XML</a></p>
-	<map name="pfamB">
-		<area shape="rect" coords="4, 0, 34, 26" nohref="/cgi-bin/Pfam/pfambget.pl?acc=PB039520" title="Pfam-B_39520:8-68" />
-		<area shape="rect" coords="52.5, 0, 88, 26" nohref="/cgi-bin/Pfam/pfambget.pl?acc=PB043847" title="Pfam-B_43847:105-176" />
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="pfamB" style="display: none">
-  	<pre>&lt;?xml version="1.0"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1"&gt;
-  &lt;sequence name="PfamB" length="200" &gt;
-    &lt;region start="8" end="68" label="Pfam-B_39520" link_URL="/cgi-bin/Pfam/pfambget.pl?acc=PB039520"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="bdc000~d1d414~e5e828~c008ae~00bac0~00a6ac~00888e"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-    &lt;region start="105" end="176" label="Pfam-B_43847" link_URL="/cgi-bin/Pfam/pfambget.pl?acc=PB043847"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="8484c0~9898d4~acace8~93c090~c0af92~ac9b7e~8e7d60"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-  &lt;/sequence&gt;
-&lt;/image&gt;</pre>
-	</div>
+  	<p><a href="#graphicsTop">back to top</a></p>
 
-	<h2>Other Sequence Motifs</h2>
-	<p>In addition to domains, smaller sequences motifs are represented by the domain graphis.
-	Currently, the following motifs are represented: Signal peptides, Low complexity regions,
-	coiled-coils and transmembrane regions. These usually take ower prority than other regions that 
-	are drawn, so are often obscured by a Pfam-A graphic being drawn over the top of them. 
-	An example of each motifs' representation is shown here.
-	 
-	<p><img src="[% c.uri_for("/images/help/motifs.png") %]" alt="" usemap="#motifs" />	
-	<a onclick="Element.toggle('motifs')">View XML</a></p>
-	<map name="motifs">
-			<area shape="rect" coords="0.5, 0, 13.5, 26" nohref="" title="Signal Peptide:1-27" />
-			<area shape="rect" coords="19.5, 0, 23.5, 26" nohref="" title="Low Complexity:39-47" />
-			<area shape="rect" coords="33.5, 0, 38, 26" nohref="" title="Low Complexity:67-76" />
-			<area shape="rect" coords="77.5, 0, 88.5, 26" nohref="" title="Transmembrane:155-177" />
-			<area shape="rect" coords="90, 0, 97.5, 26" nohref="" title="Transmembrane:180-195" />	
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="motifs" style="display: none">
-  	<pre>&lt;?xml version="1.0"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1"&gt;
-  &lt;sequence name="Motifs" length="200"&gt;
-		&lt;region start="1" end="27" label="Signal Peptide" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="FF9C00"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-    &lt;region start="39" end="47" label="Low Complexity" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="00FFFF"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-    &lt;region start="67" end="76" label="Low Complexity" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="00FFFF"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-    &lt;region start="103" end="123" label="Coiled Coil"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="9CFF00"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-    &lt;region start="155" end="177" label="Transmembrane" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="FF0000"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-    &lt;region start="180" end="195" label="Transmembrane" link_URL="http://www.sanger.ac.uk/Software/Pfam/help/region_help.shtml"&gt;
-      &lt;colour1&gt;
-        &lt;colour&gt;
-          &lt;hex hexcode="FF0000"/&gt;
-        &lt;/colour&gt;
-      &lt;/colour1&gt;
-      &lt;smlShape/&gt;
-    &lt;/region&gt;
-  &lt;/sequence&gt;
-&lt;/image&gt;
-  	
-		</pre>
-	</div>
-	
-	
-	
-	<h3>Signal Peptides</h3>
-	<p>Signal peptides are short regions (<60 residues long) found at the N-terminus of 
-	proteins that directs the post-translational transport of a protein.  These regions 
-	are subsequently removed by peptidases. More specifically, a signal peptide is 
-	characterised by a short hydrophobic helix (approximately 7Ð15 residues). This helix 
-	is preceded by a slight positively charged region with high variability in length 
-	(approximately 1Ð12 amino acid residues). Between the hydrophobic helix and the 
-	cleavage site is a somewhat polar and uncharged 3Ð8 amino acid residues long region. 
-	In Pfam, we use Phobius for the prediction of the signal peptides and represent 
-	them graphically by a small orange box.</p>
-	
-	<h5>Kall L, Krogh A, Sonnhammer EL. 
-  A combined transmembrane topology and signal peptide prediction method.
-  J Mol Biol. 2004 338:1027-1036. 
-  PMID: 15111065</h5>
+    <hr />
+    
+    <h2>Pfam-A</h2>
 
-	<h3>Low Complexity Regions</h3>
-	Low complexity regions are regions of baised sequence composition, usually comprised of 
-	different types of repeats. These regions have been shown to be functioanlly important 
-	in some proteins, but they are generally not very well understood and are masked out
-	to focus on globular domains within the protein.</p>
-	
-  <p>Within Pfam, we use SEG to calculate low complexity regions in Pfam.  The presence of a low
-  complexity region is indicated by a cyan rectangle. Placing your mouse over the rectangle will
-  reveal the location of the region.</p> 
+    <p>
+      The high quality, curated <em>Pfam-A</em> domains are classified into one of four 
+      different types: <em>family, domain, repeat</em> and <em>motif</em> 
+      (<a href=[% c.uri_for("/help/tab=helpSummaryBlock") %]>more details</a>). 
+      These different classification types are rendered slightly differently.
+    </p>
+    
+    <h3>Family/domain</h3>
 
-   <h5>1. Wan H, Wootton JC. Related Articles
-      A global compositional complexity measure for biological sequences: AT-rich and GC-rich genomes encode less complex proteins.
-      Comput Chem. 2000 Jan;24(1):71-94.
-      PMID: 10642881</h5>
+    <p>
+      It is possible for a sequence to match either the full length of a Pfam
+      HMM (a full length match), or to match a portion of an HMM (a fragment
+      match). The two types of match are rendered differently.
+    </p>
+    <p>
+      Both <em>family</em> and <em>domain</em>entries are rendered as rectangles 
+      with curved ends when the sequence is a full length match. The curves at 
+      the ends become less pronounced when the domains are short, as shown in 
+      the second domain below. Different types of domain are displayed with 
+      different colours. When the domain image is long enough, the domain name 
+      is shown within the domain itself. In most cases, you can click on the 
+      domains to visit the &quot;family page&quot; for that domain. Moving the 
+      mouse over the domain image should also display a tooltip showing the 
+      domain name, as well as the start and end positions of the domain.
+    </p>
+    <img src="[% imgs %]/seqDomain.png" 
+         usemap="#seqDomain" 
+         alt="" />
+    <span class="link" onclick="reveal(this,'seqDomainXML',false)">Show XML</span> 
+    <map name="seqDomain">
+      <area shape="rect" coords="20,0,100,26" title="DomainNameDisply:40-200" />
+      <area shape="rect" coords="105,0,125,26" title="FamilyNoNameDisply:210-250" />
+    </map>
       
-   <h5>2. Wootton JC.
-      Non-globular domains in protein sequences: automated segmentation using complexity measures.
-      Comput Chem. 1994 Sep;18(3):269-85.
-      PMID: 7952898</h5> 
-      
-	<h3>Coiled-Coils</h3>
-	<p>Coiled coils are motifs found in proteins that structurally form alpha-helices that wrap or wind around
-	each other.  Normally, two to three helices are involved, but cases of up to seven alpha heclies have been reported.
-	Colided-coild are found in a wide variety of proteins, many functionally very important. In Pfam we use ncoils, written
-	by Russell and Lupas, to identifiy these motifs.  Coiled-coils are represented by a small lime green
-	rectangle and mousing-over the image provides the users with the start and end residues of the motif. 
-
-  <h3>Transmembrane Regions</h3>
-	<p>Integral membrane proteins contain one or more transmembrane region that is comprised
-	of an alpha helix that passes through or "spans" a membrane. Transmembrane helices are
-	quite variable in length, with the average  usually about 20 amino acids in length.	Again, 
-	Phobius is used for the prdiction of transmebrane regions. These are represented by a red
-	rectangle.</p>
-
-	<h2>Other Sequence Features</h2>
-	<p>Below is a demonstration of how disulphide bridges and active residues are representated 
-	in Pfam.  Each of these features can appear above or below the sequence, but in this case the
-	disulphide bridges are shown above the sequence and the active site residues below the line.</p>
-	
-	<p><img src="[% c.uri_for("/images/help/ActiveSite.png") %]" alt="" usemap="#activeSite" />	
-	<a onclick="Element.toggle('activeSiteXML')">View XML</a></p>
-				<map name="activeSite">
-           <area shape="rect" coords="76.5, 7, 78.5, 29" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
-           <area shape="rect" coords="97, 7, 99, 28" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
-           <area shape="rect" coords="77.5, 14, 98,12" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
-           <area shape="rect" coords="93.5, 4, 95.5, 28" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
-           <area shape="rect" coords="113, 4, 115, 28" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
-           <area shape="rect" coords="94.5, 11, 114,9" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
-           <area shape="rect" coords="142, 7, 144, 28" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
-           <area shape="rect" coords="165.5, 7, 167.5, 32" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
-           <area shape="rect" coords="143, 14, 166.5,12" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
-           <area shape="rect" coords="78, 43, 80, 65" nohref="Active site, C158" title="Active site, C158" />
-           <area shape="rect" coords="145, 43, 147, 65" nohref="Pfam predicted active site, H292" title="Pfam predicted active site, H292" />
-           <area shape="rect" coords="153, 43, 155, 65" nohref="SwissProt predicted active site, N308" title="SwissProt predicted active site, N308" />
-        </map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="activeSiteXML" style="display: none">
-  	<pre>&lt;?xml version="1.0"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" layout="continuous" format="png" scale_x="0.5" scale_y="1"&gt;
-  &lt;sequence name="ActiveSite" length="400"&gt;
-
-    &lt;region start="48" end="104" label="Inhibitor_I29"&gt;
+    <div id="seqDomainXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       format=&quot;png&quot; 
+       layout=&quot;continuous&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1.0&quot;&gt;
+  &lt;sequence length=&quot;400&quot; display_data=&quot;test all drawing features&quot; name=&quot;TestSeq&quot;&gt;
+    &lt;region start=&quot;40&quot; end=&quot;200&quot; label=&quot;DomainName&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9999ff&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;99ccff&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;210&quot; end=&quot;250&quot; label=&quot;FamilyNoNameDisply&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;339999&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;&lt;RGB R=&quot;51&quot; G=&quot;204&quot; B=&quot;204&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+  
+    <p>
+      When the sequence does not match the full length of the HMM that models 
+      a Pfam entry, matching domain fragments are shown. When a sequence match 
+      does not pass through the first position in the HMM, the N-terminal side 
+      of the domain graphic is drawn with a jagged edge instead of a curved 
+      edge. Similarly, when a sequence match does not pass through the last 
+      position of the HMM, the C-terminal side of the domain graphic is drawn
+      with a jagged edge. In some rarer cases, the sequence match may not pass 
+      through either of the first or last positions of the HMM, in which case
+      both sides are drawn with jagged edges. Examples of all three cases are
+      shown here:
+    </p>
+     
+    <img src="[% imgs %]/partial.png"
+         alt="" 
+         usemap="#partial" />  
+    <span class="link" onclick="reveal(this,'partialDomainXML',false)">Show XML</span>
+    <map name="partial">
+      <area shape="rect" coords="5,0,55,26" nohref="/" title="PartN:10-110" />
+      <area shape="rect" coords="105,0,175,26" nohref="/" title="PartC:210-350" />
+      <area shape="rect" coords="57.5,0,100,26" nohref="/" title="PartN_C:115-200" />
+    </map>
+          
+    <!--Put in a div that you click on to get more..-->
+    <div id="partialDomainXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       format=&quot;png&quot; 
+       layout=&quot;continuous&quot; 
+       scale_x=&quot;0.5&quot;
+       scale_y=&quot;1.0&quot;&gt;
+  &lt;sequence length=&quot;400&quot; name=&quot;Partial&quot;&gt;
+    &lt;region start=&quot;10&quot; end=&quot;110&quot; label=&quot;PartN&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9999ff&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;99ccff&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;jagged&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;210&quot; end=&quot;350&quot; label=&quot;PartC&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;339999&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;&lt;RGB R=&quot;51&quot; G=&quot;204&quot; B=&quot;204&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;jagged&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;115&quot; end=&quot;200&quot; label=&quot;PartN_C&quot;&gt;
       &lt;colour1&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="1fc01f"/&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
         &lt;/colour&gt;
       &lt;/colour1&gt;
       &lt;colour2&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="47e847"/&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
         &lt;/colour&gt;
       &lt;/colour2&gt;
-      &lt;bigShape leftStyle="curved" rightStyle="curved"/&gt;
+      &lt;bigShape leftStyle=&quot;jagged&quot; rightStyle=&quot;jagged&quot;/&gt;
     &lt;/region&gt;
-    &lt;region start="134" end="343" label="Peptidase_C1"&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+       
+  	<p><a href="#graphicsTop">back to top</a></p>
+
+    <h3>Repeat/motif</h3> 
+    
+    <p>
+      <em>Repeats</em> and <em>motifs</em> are types of Pfam domain which do not
+      form independently folded units. In order to distinguish them from domains
+      of type family and domain, repeats and motifs are represented by 
+      rectangles with straight edges. As for families and domains, partial 
+      matches are represented with jagged edges.
+    </p>
+    
+    <img src="[% imgs %]/repeat.png"
+         alt="" 
+         usemap="#repeat" />
+    <span class="link" onclick="reveal(this,'repeatXML',false)">Show XML</span>
+    <map name="repeat">
+      <area shape="rect" coords="41,0,59,26" title="RepeatNameDisply:82-118" />
+      <area shape="rect" coords="80,0,97,26" title="RepeatNameDisply:159-195" />
+      <area shape="rect" coords="60,0,77,26" title="RepeatNameDisply:120-155" />
+      <area shape="rect" coords="1,0,17,26" title="RepeatNameDisply:2-34" />
+    </map>
+          
+    <div id="repeatXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence name=&quot;repeat&quot; length=&quot;200&quot; &gt;
+    &lt;region start=&quot;82&quot; end=&quot;118&quot; label=&quot;HEAT&quot;&gt;
       &lt;colour1&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="c00f0f"/&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
         &lt;/colour&gt;
       &lt;/colour1&gt;
       &lt;colour2&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="e83737"/&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
         &lt;/colour&gt;
       &lt;/colour2&gt;
-      &lt;bigShape leftStyle="curved" rightStyle="curved"/&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
     &lt;/region&gt;
-    &lt;region start="1" end="26" label="Signal Peptide" &gt;
+    &lt;region start=&quot;159&quot; end=&quot;195&quot; label=&quot;HEAT&quot;&gt;
       &lt;colour1&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="FF9C00"/&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;120&quot; end=&quot;155&quot; label=&quot;HEAT&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;2&quot; end=&quot;34&quot; label=&quot;HEAT&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+
+  	<p><a href="#graphicsTop">back to top</a></p>
+
+    <h3>Discontinuous nested domains</h3>
+
+    <p>
+      Some domains in Pfam are disrupted by the insertion of another domain (or 
+      domains) within them. A number of names have been given to this 
+      arrangement: <em>discontinuous</em> (referring to the outer domain), 
+      <em>inserted</em> or <em>nested</em> (both referring to the inner domain). 
+      For example, in many sequences containing an 
+      <a href="[% family %]?id=IMPDH">IMPDH domain</a>, the 
+      IMPDH domain is continuous along the primary sequence. However, in some 
+      cases the linear sequence of the IMPDH domain is broken by the insertion 
+      of a <a href="[% family %]?id=CBS">CBS domain</a>, as shown below.
+    </p>
+    <p>
+      Where three-dimensional structures are available for representatives of
+      a Pfam domain, it is generally clear that the three-dimensional
+      arrangement of the domain containing the nested domain is maintained. 
+      Typically the nested domain is found inserted within a surface exposed 
+      loop, having little or no effect on the structure of the other domain. 
+      Such an arrangement explains why and how these nested domains can be 
+      functionally tolerated.
+    </p>
+    <p>
+      To represent this arrangement of domain graphically, the discontinuous 
+      domain is represented in two parts (as shown below). These two parts are 
+      joined by a line bridging them. The vertical parts of the line are dashed,
+      while the horizontal line is solid (to distinguish it from a 
+      <a href="#disulphides">disulphide bridge</a>).
+    <p>
+    
+    <img src="[% imgs %]/nested.png"
+         alt="" 
+         usemap="#nested" />  
+    <span class="link" onclick="reveal(this,'nestedXML',false)">Show XML</span>
+    <map name="nested">
+      <area shape="rect" coords="2.5,20,40,46" title="IMPDH:5-80" />
+      <area shape="rect" coords="40.5,20,67.5,46" title="CBS:81-135" />
+      <area shape="rect" coords="68,20,98.5,46" title="IMPDH:136-197" />
+      <area shape="rect" coords="38.5,4,40.5,29" nohref="discontinuous domain" title="Discontinuous domain" />
+      <area shape="rect" coords="67,4,69,25" nohref="discontinuous domain" title="Discontinuous domain" />
+      <area shape="rect" coords="39.5,11,68,9" nohref="discontinuous domain" title="Discontinuous domain" />  
+    </map>
+          
+    <div id="nestedXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence name=&quot;Nested&quot; length=&quot;200&quot;&gt;
+    &lt;region start=&quot;5&quot; end=&quot;80&quot; label=&quot;IMPDH&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;jagged&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;81&quot; end=&quot;135&quot; label=&quot;CBS&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;c00f0f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;e83737&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;136&quot; end=&quot;197&quot; label=&quot;IMPDH&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;jagged&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+    &lt;markup start=&quot;79&quot; end=&quot;136&quot; v_align=&quot;top&quot; label=&quot;Discontinuous domain&quot;&gt;
+      &lt;line style=&quot;mixed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;333333&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+    &lt;/markup&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+
+  	<a href="#graphicsTop">back to top</a>
+
+    <h3>Context domains</h3>
+
+    <p>
+      <em>Context domains</em> in Pfam are those that, despite not scoring above 
+      the family gathering threshold, are expected to be real, based on the 
+      presence of the surrounding domains found in the protein. The method is 
+      described in:
+    </p>
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
+          Enhanced protein domain discovery by using language modeling techniques from 
+          speech recognition</a>: 
+      </span>
+      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
+      <span class="ref">
+        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+      </span>
+    </div>
+
+    <p>
+      In some cases it is possible for a protein without any matches to gain 
+      context domains. This happens when two or more weak matches support each 
+      other. This is most often seen with multiple tandem repeats such as 
+      <a href="[% family %]?id=WD40">WD40</a> and leucine rich repeats such as
+      <a href="[% family %]?id=LRR_1">LRR_1</a>.
+    </p>
+    <p>
+      Within the Pfam domain graphics, the context domains are represented by 
+      rectangles that are coloured from white to pink as shown below. These 
+      images are interactive in the same manner as the Pfam-A graphics.
+    </p>
+  
+    <img src="[% imgs %]/context.png" 
+         alt="" 
+         usemap="#context" />  
+    <span class="link" onclick="reveal(this,'contextXML',false)">Show XML</span>
+    <map name="context">
+      <area shape="rect" coords="41,0,59,26" title="RepeatNameDisplay:82-118" />
+      <area shape="rect" coords="80,0,97,26" title="RepeatNameDisplay:159-195" />
+      <area shape="rect" coords="60,0,77,26" title="RepeatNameDisplay:120-155" />
+      <area shape="rect" coords="1,0,17,26"  title="RepeatNameDisplay:2-34" />
+      <area shape="rect" coords="22,0,39,26" title="Context:44-79" />
+    </map>
+          
+    <div id="contextXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence name=&quot;context&quot; length=&quot;200&quot;&gt;
+    &lt;region start=&quot;82&quot; end=&quot;118&quot; label=&quot;HEAT&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;159&quot; end=&quot;195&quot; label=&quot;HEAT&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;120&quot; end=&quot;155&quot; label=&quot;HEAT&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;2&quot; end=&quot;34&quot; label=&quot;HEAT&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;44&quot; end=&quot;79&quot; label=&quot;HEAT&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;ff66ff&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;ffffff&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+  
+    <p>
+      Please note that context domains are generated automatically and have not 
+      been subjected to the same high level of quality control as Pfam-A 
+      domains. Therefore, context domains, although likely to be correct should 
+      always be verified by other means.
+    </p> 
+    
+  	<p><a href="#graphicsTop">back to top</a></p>
+
+    <hr />
+    
+    <h2>Pfam-B</h2>
+
+    <p>
+      <em>Pfam-B</em> regions are automatically generated clusters that 
+      supplement the high quality Pfam-A regions. The mechanism for generating 
+      Pfam-B regions is detailed 
+      <a href=[% c.uri_for("/help/tab=helpSummaryBlock") %]>here</a>.
+      These regions are represented by a small rectangle, coloured with three 
+      stripes. As for Pfam-A regions, clicking on a Pfam-B domain takes the 
+      user to the Pfam-B summary page for that entry. Moving the mouse over the 
+      striped image will show a tooltip listing the Pfam-B identifier and its
+      start and end points. If the Pfam-B region is long enough, its identifier 
+      will also be displayed on the image.
+    </p> 
+  
+    <img src="[% imgs %]/pfamB.png"
+         alt="" 
+         usemap="#pfamB" />  
+    <span class="link" onclick="reveal(this,'pfamBXML',false)">Show XML</span>
+    <map name="pfamB">
+      <area shape="rect" coords="4,0,34,26" title="Pfam-B_39520:8-68" />
+      <area shape="rect" coords="52.5,0,88,26" title="Pfam-B_43847:105-176" />
+    </map>
+          
+    <div id="pfamBXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence name=&quot;PfamB&quot; length=&quot;200&quot; &gt;
+    &lt;region start=&quot;8&quot; end=&quot;68&quot; label=&quot;Pfam-B_39520&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;bdc000~d1d414~e5e828~c008ae~00bac0~00a6ac~00888e&quot;/&gt;
         &lt;/colour&gt;
       &lt;/colour1&gt;
       &lt;smlShape/&gt;
     &lt;/region&gt;
-    &lt;markup start="155" end="196" v_align="top" label="Disulphide, 155-196"&gt;
-      &lt;line style="bold"&gt;
+    &lt;region start=&quot;105&quot; end=&quot;176&quot; label=&quot;Pfam-B_43847&quot;&gt;
+      &lt;colour1&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="333333"/&gt;
+          &lt;hex hexcode=&quot;8484c0~9898d4~acace8~93c090~c0af92~ac9b7e~8e7d60&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+  
+  	<p><a href="#graphicsTop">back to top</a></p>
+
+    <hr />
+    
+    <h2>Other sequence motifs</h2>
+    
+    <p>
+      In addition to domains, smaller sequences motifs are represented by the 
+      domain graphics. Currently the following motifs are represented: <em>signal 
+      peptides</em>, <em>low complexity regions</em>, <em>coiled-coils</em> and
+      <em>transmembrane regions</em>. These usually take lower prority than 
+      other regions that are drawn and they are therefore often obscured by, for
+      example, a Pfam-A graphic being drawn over the top of them. An example of 
+      each motif is shown here.
+    </p>
+     
+    <img src="[% imgs %]/motifs.png" 
+         alt="" 
+         usemap="#motifs" />
+    <span class="link" onclick="reveal(this,'motifsXML',false)">Show XML</span>
+    <map name="motifs">
+      <area shape="rect" coords="0.5,0,13.5,26" title="Signal Peptide:1-27" />
+      <area shape="rect" coords="19.5,0,23.5,26" title="Low Complexity:39-47" />
+      <area shape="rect" coords="33.5,0,38,26" title="Low Complexity:67-76" />
+      <area shape="rect" coords="77.5,0,88.5,26" title="Transmembrane:155-177" />
+      <area shape="rect" coords="90,0,97.5,26" title="Transmembrane:180-195" />  
+    </map>
+          
+    <div id="motifsXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence name=&quot;Motifs&quot; length=&quot;200&quot;&gt;
+    &lt;region start=&quot;1&quot; end=&quot;27&quot; label=&quot;Signal Peptide&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF9C00&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;39&quot; end=&quot;47&quot; label=&quot;Low Complexity&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;00FFFF&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;67&quot; end=&quot;76&quot; label=&quot;Low Complexity&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;00FFFF&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;103&quot; end=&quot;123&quot; label=&quot;Coiled Coil&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;9CFF00&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;155&quot; end=&quot;177&quot; label=&quot;Transmembrane&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF0000&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;180&quot; end=&quot;195&quot; label=&quot;Transmembrane&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF0000&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+    
+  	<p><a href="#graphicsTop">back to top</a></p>
+
+    <h3>Signal peptides</h3>
+    
+    <p>
+      <em>Signal peptides</em> are short regions (&lt;60 residues long) found at 
+      the N-terminus of proteins, which direct the post-translational transport 
+      of a protein and are subsequently removed by peptidases. More 
+      specifically, a signal peptide is characterised by a short hydrophobic 
+      helix (approximately 7-15 residues). This helix is preceded by a slight 
+      positively charged region of highly variable length (approximately 1-12 
+      residues). Between the hydrophobic helix and the cleavage site is a 
+      somewhat polar and uncharged region, of between 3 and 8 amino-acids. In 
+      Pfam, we use <a class="ext" href="http://phobius.cgb.ki.se/">Phobius</a>
+      for the prediction of signal peptides and represent them graphically by a 
+      small orange box.
+    </p>
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=15111065&amp;query_hl=1&amp;itool=pubmed_docsum">
+          A combined transmembrane topology and signal peptide prediction method</a>: 
+      </span>
+      <span class="authors">L. Kall, A. Krogh and E.L.L. Sonnhammer</span>
+      <span class="ref">
+        <span class="jrnl">J. Mol. Biol.</span>&nbsp;(2004)&nbsp;338(5):1027-36
+      </span>
+    </div>
+  
+  	<p><a href="#graphicsTop">back to top</a></p>
+
+    <h3>Low complexity regions</h3>
+
+    <p>
+      <em>Low complexity regions</em> are regions of biased sequence 
+      composition, usually comprised of different types of repeats. These 
+      regions have been shown to be functionally important in some proteins, 
+      but they are generally not well understood and are masked out to focus on
+      globular domains within the protein.
+    </p>
+    <p>
+      Within Pfam, we use <a class="ext" href="http://helix.nih.gov/docs/gcg/seg.html">SEG</a>
+      to calculate low complexity regions in Pfam. The presence of a low 
+      complexity region is indicated by a cyan rectangle.
+    </p>
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=10642881&amp;query_hl=1&amp;itool=pubmed_docsum">
+          A global compositional complexity measure for biological sequences: 
+          AT-rich and GC-rich genomes encode less complex proteins</a>: 
+      </span>
+      <span class="authors">H. Wan and J.C. Wootton</span>
+      <span class="ref">
+        <span class="jrnl">Comput. Chem.</span>&nbsp;(2000)&nbsp;24(1):71-94
+      </span>
+    </div>
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=7952898&amp;query_hl=1&amp;itool=pubmed_docsum">
+          Non-globular domains in protein sequences: automated segmentation 
+          using complexity measures</a>: 
+      </span>
+      <span class="authors">J.C. Wootton</span>
+      <span class="ref">
+        <span class="jrnl">Comput. Chem.</span>&nbsp;(1994)&nbsp;18(3):268-85
+      </span>
+    </div>
+
+  	<p><a href="#graphicsTop">back to top</a></p>
+
+    <h3>Coiled-coils</h3>
+
+    <p>
+      <em>Coiled coils</em> are motifs found in proteins that structurally form 
+      alpha-helices that wrap or wind around each other. Normally, two to 
+      three helices are involved, but cases of up to seven alpha-helices have 
+      been reported. Coilded-coild are found in a wide variety of proteins, 
+      many functionally very important. In Pfam we use 
+      <a class="ext" href="http://www.russell.embl-heidelberg.de/cgi-bin/coils-svr.pl">ncoils</a>,
+      to identify these motifs. Coiled-coils are represented by a small 
+      lime-green rectangle. 
+    </p>
+    
+  	<p><a href="#graphicsTop">back to top</a></p>
+    
+    <h3>Transmembrane regions</h3>
+
+    <p>
+      Integral membrane proteins contain one or more <em>transmembrane 
+      regions</em> that are comprised of an alpha-helix that passes through or 
+      &quot;spans&quot; a membrane. Transmembrane helices are quite variable in 
+      length, with the average being about 20 amino-acids in length. Again, 
+      <a class="ext" href="http://phobius.cgb.ki.se/">Phobius</a> is used for 
+      the prediction of transmebrane regions, which are represented by a red
+      rectangle.
+    </p>
+  
+  	<p><a href="#graphicsTop">back to top</a></p>
+    
+    <hr />
+    
+    <h2>Other Sequence features</h2>
+    
+    <p>
+      Below is a demonstration of how <em>disulphide bridges</em> and <em>active 
+        residues</em> are representated in Pfam. Each of these features can 
+      appear above or below the sequence, but in this case the disulphide 
+      bridges are shown above the sequence and the active site residues below 
+      the line.
+    </p>
+    
+    <img src="[% imgs %]/ActiveSite.png" 
+         alt="" 
+         usemap="#activeSite" />
+    <span class="link" onclick="reveal(this,'activeSiteXML',false)">Show XML</span>
+    <map name="activeSite">
+      <area shape="rect" coords="76.5,7,78.5,29" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
+      <area shape="rect" coords="97,7,99,28" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
+      <area shape="rect" coords="77.5,14,98,12" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
+      <area shape="rect" coords="93.5,4,95.5,28" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
+      <area shape="rect" coords="113,4,115,28" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
+      <area shape="rect" coords="94.5,11,114,9" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
+      <area shape="rect" coords="142,7,144,28" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
+      <area shape="rect" coords="165.5,7,167.5,32" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
+      <area shape="rect" coords="143,14,166.5,12" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
+      <area shape="rect" coords="78,43,80,65" nohref="Active site, C158" title="Active site, C158" />
+      <area shape="rect" coords="145,43,147,65" nohref="Pfam predicted active site, H292" title="Pfam predicted active site, H292" />
+      <area shape="rect" coords="153,43,155,65" nohref="SwissProt predicted active site, N308" title="SwissProt predicted active site, N308" />
+    </map>
+          
+    <div id="activeSiteXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence name=&quot;ActiveSite&quot; length=&quot;400&quot;&gt;
+    &lt;region start=&quot;48&quot; end=&quot;104&quot; label=&quot;Inhibitor_I29&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;1fc01f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;47e847&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;134&quot; end=&quot;343&quot; label=&quot;Peptidase_C1&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;c00f0f&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;e83737&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;1&quot; end=&quot;26&quot; label=&quot;Signal Peptide&quot; &gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF9C00&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;markup start=&quot;155&quot; end=&quot;196&quot; v_align=&quot;top&quot; label=&quot;Disulphide, 155-196&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;333333&quot;/&gt;
         &lt;/colour&gt;
       &lt;/line&gt;
     &lt;/markup&gt;
-    &lt;markup start="189" end="228" v_align="top" label="Disulphide, 189-228"&gt;
-      &lt;line style="bold"&gt;
+    &lt;markup start=&quot;189&quot; end=&quot;228&quot; v_align=&quot;top&quot; label=&quot;Disulphide, 189-228&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="333333"/&gt;
+          &lt;hex hexcode=&quot;333333&quot;/&gt;
         &lt;/colour&gt;
       &lt;/line&gt;
     &lt;/markup&gt;
-    &lt;markup start="286" end="333" v_align="top" label="Disulphide, 286-333"&gt;
-      &lt;line style="bold"&gt;
+    &lt;markup start=&quot;286&quot; end=&quot;333&quot; v_align=&quot;top&quot; label=&quot;Disulphide, 286-333&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="333333"/&gt;
+          &lt;hex hexcode=&quot;333333&quot;/&gt;
         &lt;/colour&gt;
       &lt;/line&gt;
     &lt;/markup&gt;
-    &lt;markup start="158" v_align="bottom" label="Active site, C158"&gt;
-      &lt;line style="bold"&gt;
+    &lt;markup start=&quot;158&quot; v_align=&quot;bottom&quot; label=&quot;Active site, C158&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="333333"/&gt;
+          &lt;hex hexcode=&quot;333333&quot;/&gt;
         &lt;/colour&gt;
       &lt;/line&gt;
-      &lt;head style="diamond"&gt;
+      &lt;head style=&quot;diamond&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="FF3366"/&gt;
+          &lt;hex hexcode=&quot;FF3366&quot;/&gt;
         &lt;/colour&gt;
       &lt;/head&gt;
     &lt;/markup&gt;
-    &lt;markup start="292" v_align="bottom" label="Pfam predicted active site, H292"&gt;
-      &lt;line style="bold"&gt;
+    &lt;markup start=&quot;292&quot; v_align=&quot;bottom&quot; label=&quot;Pfam predicted active site, H292&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="333333"/&gt;
+          &lt;hex hexcode=&quot;333333&quot;/&gt;
         &lt;/colour&gt;
       &lt;/line&gt;
-      &lt;head style="diamond"&gt;
+      &lt;head style=&quot;diamond&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="9900CC"/&gt;
+          &lt;hex hexcode=&quot;9900CC&quot;/&gt;
         &lt;/colour&gt;
       &lt;/head&gt;
     &lt;/markup&gt;
-    &lt;markup start="308" v_align="bottom" label="SwissProt predicted active site, N308"&gt;
-      &lt;line style="bold"&gt;
+    &lt;markup start=&quot;308&quot; v_align=&quot;bottom&quot; label=&quot;SwissProt predicted active site, N308&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="333333"/&gt;
+          &lt;hex hexcode=&quot;333333&quot;/&gt;
         &lt;/colour&gt;
       &lt;/line&gt;
-      &lt;head style="diamond"&gt;
+      &lt;head style=&quot;diamond&quot;&gt;
         &lt;colour&gt;
-          &lt;hex hexcode="FF66FF"/&gt;
+          &lt;hex hexcode=&quot;FF66FF&quot;/&gt;
         &lt;/colour&gt;
       &lt;/head&gt;
     &lt;/markup&gt;
   &lt;/sequence&gt;
 &lt;/image&gt;</pre>
-  </div>
+    </div>
 
+  	<p><a href="#graphicsTop">back to top</a></p>
 
+    <h3><a name="disulphides">Disulphide bridges</a></h3>
+    
+    <p>
+      <em>Disulphide bridges</em> play a fundamental role in the folding and 
+      stability of some proteins. They are formed by covalent bonding between
+      the thiol groups from two cysteine residues. The disulphide bridge 
+      annotations used in Pfam come from 
+      <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a> and are 
+      represented by a solid bridge-shaped line. When mutliple disulphide bonds 
+      occur, the heights of the bridges are adjusted to avoid overlaps between 
+      them. Inter-protein disulphides are represented by single vertical lines.
+      As always, moving the mouse over the "bridge graphic" shows the details 
+      of the bond in a tooltip.
+    </p>
+    
+  	<p><a href="#graphicsTop">back to top</a></p>
+    
+    <h3>Active site residues</h3> 
 
-	<h3>Disulphide Bridges</h3>
-	<p>Disulphide bridges play a fundermental role in the folding and stability of some proteins. 
-	They are formed by covalent bonding between the thiol groups from two cysteine residues.
-	The disulphide bridge annotations used in Pfam come from UniProt and are represented by a 
-	solid bridge shaped line.  When mutliple disulphide bonds occur, the height of the bridges are
-	altered to avoid overlaps between them.  Interprotein disulphides are represented by a single,
-	vertical lines.  Again, moving the mouse over the "bridge graphic" reveals the details of the
-	bond.</p>
-	
-	
-	<h3>Active Site Residues</h3> 
-  <p>Within an enyzme, a small number of residues are directly involved in catalysis of a 
-  reaction, termed active site residues. Within, Pfam there are three catergries of active sites.
-  Those that are experimentally define, those that are predicted by UniProt and those predicted by
-  Pfam.  These are represented by a lollipop with a diamond head and coloured red, pink and purple
-  respectively.</p>
+    <p>
+      Within an enyzme, a small number of residues are directly involved in 
+      catalysis of a reaction. These are termed <em>active site residues</em>. 
+      Within Pfam there are three categories of active site: those that are 
+      experimentally determined, those that are predicted by UniProt and 
+      those predicted by Pfam. All three types are represented by a 
+      &quot;lollipop&quot; with a diamond head. The head is coloured red, pink 
+      and purple for each of the three types respectively.
+    </p>
+    <p>
+      Pfam-predicted active sites are determined by using the experimental 
+      data and transferring these annotations through a Pfam alignment. 
+[%# TODO: add a reference for Pfam active sites %]
+    </p>  
   
-  <p>The Pfam predicted active sites are identified by using the experimental data and transfering
-  these annotations through a Pfam alignment, for more details on how this is performed see <a href="/">Jaina</a>.</p>  
+  	<p><a href="#graphicsTop">back to top</a></p>
+    
+    <hr />
+    
+    <h2>Other features</h2>
 
-	<h2>Other Features</h2>
-	<p>In addition to the drawing features outlined above, the Pfam domain graphics library has 
-	some additional functionality.</p>
-	
-	<h3>Arrows</h3>
-	<p>Arrows can be generated such that the direction is perpendicular to the sequence and so
-	that the arrow head points to the sequence. They can be drawn with different vertical line 
-	styles (dashed or bold).  The arrow can be placed above or below the sequence. An example of 
-	different arrow styles are shown:</p> 
-	
-	<p><img src="[% c.uri_for("/images/help/arrows.png") %]" alt="" usemap="#arrows" />	
-	<a onclick="Element.toggle('arrows')">View XML</a></p>
-	<map name="arrows">
-		<area shape="rect" coords="24, 4, 26, 37" nohref="bold line, down arrow" title="bold line, down arrow" />
-		<area shape="rect" coords="74, 4, 76, 37" nohref="bold line, down arrow, mixed colours" title="bold line, down arrow, mixed colours" />
-		<area shape="rect" coords="49, 31, 51, 62" nohref="bold line, uparrow" title="bold line, uparrow" />
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="arrows" style="display: none">
-  	<pre>
-&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0"&gt;
-    &lt;sequence length="200" name="Arrows"&gt;
-        &lt;markup start="100" v_align="bottom" label="bold line, uparrow"&gt;
-            &lt;line style="dashed"&gt;
-                &lt;colour&gt;&lt;hex hexcode="9900CC"/&gt;&lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="arrow"&gt;
-                &lt;colour&gt;&lt;hex hexcode="9900CC"/&gt;&lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-        &lt;markup start="50" v_align="top" label="bold line, down arrow"&gt;
-            &lt;line style="bold"&gt;
-                &lt;colour&gt;&lt;hex hexcode="707070"/&gt;&lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="arrow"&gt;
-                &lt;colour&gt;&lt;hex hexcode="707070"/&gt;&lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-				&lt;markup start="150" v_align="top" label="bold line, down arrow, mixed colours"&gt;
-            &lt;line style="bold"&gt;
-                &lt;colour&gt;&lt;hex hexcode="CC0000"/&gt;&lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="arrow"&gt;
-                &lt;colour&gt;&lt;hex hexcode="33FF66"/&gt;&lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-    &lt;/sequence&gt;
-&lt;/image&gt;
-  	
-		</pre>
-	</div>
-	
-	
-	<!-- Lollipop Stuff -->
-	
-	<h3>Additional Lollipop styles</h3>
-	<p>A wide range of different lollipop styles can be create by combining different line and head colours
-	with different drawing styles. For example, a lollipop can be drawn with either bold (solid) or dashed 
-	lines.  The lollipop head can be drawn as either a square, circle or diamond.</p> 
+    <p>
+      In addition to the drawing features outlined above, the Pfam domain 
+      graphics library includes some additional, general purpose representation
+      styles.
+    </p>
+    
+    <h3>Arrows</h3>
+    
+    <p>
+      <em>Arrows</em> can be drawn perpendicular to the sequence, and can point 
+      either towards or away from the sequence line. They can be drawn with 
+      different vertical line styles (solid, dashed or bold) and can be placed 
+      above or below the sequence. The example below shows the different arrow 
+      styles that are available:</p> 
+    
+    <img src="[% imgs %]/arrows.png" 
+         alt="" 
+         usemap="#arrows" />
+    <span class="link" onclick="reveal(this,'arrowsXML',false)">Show XML</span>
+    <map name="arrows">
+      <area shape="rect" coords="24,4,26,37" nohref="bold line, down arrow" title="bold line, down arrow" />
+      <area shape="rect" coords="74,4,76,37" nohref="bold line, down arrow, mixed colours" title="bold line, down arrow, mixed colours" />
+      <area shape="rect" coords="49,31,51,62" nohref="bold line, uparrow" title="bold line, uparrow" />
+    </map>
+          
+    <div id="arrowsXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence length=&quot;200&quot; name=&quot;Arrows&quot;&gt;
+    &lt;markup start=&quot;100&quot; v_align=&quot;bottom&quot; label=&quot;bold line, uparrow&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9900CC&quot;/&gt;&lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;arrow&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9900CC&quot;/&gt;&lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;50&quot; v_align=&quot;top&quot; label=&quot;bold line, down arrow&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;707070&quot;/&gt;&lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;arrow&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;707070&quot;/&gt;&lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;150&quot; v_align=&quot;top&quot; label=&quot;bold line, down arrow, mixed colours&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;CC0000&quot;/&gt;&lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;arrow&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;33FF66&quot;/&gt;&lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+    
+  	<p><a href="#graphicsTop">back to top</a></p>
+    
+    <h3>Additional &quot;lollipop&quot; styles</h3>
 
-  <p><img src="[% c.uri_for("/images/help/lollipop.png") %]" alt="" usemap="#lollipop" />	
-	<a onclick="Element.toggle('lollipop')">View XML</a></p>
-	<map name="lollipop">
-		<area shape="rect" coords="9, 4, 11, 37" nohref="bold line, Square head" title="bold line, Square head" />
-		<area shape="rect" coords="29, 4, 31, 37" nohref="dashed line, Square head" title="bold line, Square head" />
-		<area shape="rect" coords="49, 4, 51, 37" nohref="bold, Diamond head" title="bold, Diamond head" />
-		<area shape="rect" coords="69, 4, 71, 37" nohref="dashed line, Circle head" title="dashed line, Circle head" />
-		<area shape="rect" coords="19, 31, 21, 62" nohref="bold line, Square head" title="bold line, Square head" />
-		<area shape="rect" coords="39, 31, 41, 62" nohref="bold, Diamond head" title="bold, Diamond head" />
-		<area shape="rect" coords="59, 31, 61, 62" nohref="dashed line, Circle head" title="dashed line, Circle head" />
-	</map>
-				
-	<!--Put in a div that you click on to get more..-->
-  <div id="lollipop" style="display: none">
-  	<pre>
-  	<?xml version="1.0" encoding="UTF-8"?>
-&lt;image xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd" format="png" layout="continuous" scale_x="0.5" scale_y="1.0"&gt;
-    &lt;sequence length="200" name="Lollipop"&gt;
-	    	&lt;markup start="20" v_align="top" label="bold line, Square head"&gt;
-            &lt;line style="bold"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="666666"/&gt;
-                &lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="square"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="FF3366"/&gt;
-                &lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-        &lt;markup start="40" v_align="bottom" label="bold line, Square head"&gt;
-            &lt;line style="dashed"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="666666"/&gt;
-                &lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="square"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="9966cc"/&gt;
-                &lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-        &lt;markup start="80" v_align="bottom" label="bold line, Diamond head"&gt;
-            &lt;line style="bold line"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="666666"/&gt;
-                &lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="diamond"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="FF3366"/&gt;
-                &lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-        &lt;markup start="120" v_align="bottom" label="dashed line, Circle head"&gt;
-            &lt;line style="dashed"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="666666"/&gt;
-                &lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="circle"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="333399"/&gt;
-                &lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-	      &lt;markup start="60" v_align="top" label="bold line, Square head"&gt;
-            &lt;line style="bold"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="666666"/&gt;
-                &lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="square"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="66ff00"/&gt;
-                &lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-        &lt;markup start="100" v_align="top" label="bold line, Diamond head"&gt;
-            &lt;line style="bold line"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="666666"/&gt;
-                &lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="diamond"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="FF3366"/&gt;
-                &lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;
-        &lt;markup start="140" v_align="top" label="dashed line, Circle head"&gt;
-            &lt;line style="dashed"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="666666"/&gt;
-                &lt;/colour&gt;
-            &lt;/line&gt;
-            &lt;head style="circle"&gt;
-                &lt;colour&gt;
-                    &lt;hex hexcode="cc9933"/&gt;
-                &lt;/colour&gt;
-            &lt;/head&gt;
-        &lt;/markup&gt;      
-    &lt;/sequence&gt;
-&lt;/image&gt;
-		</pre>
-	</div>
-	
-	<h2>Producing Your Own Graphics</h2>
-  <p>STILL NEEDS SOME WORK. As we are regularly approached for producing domain graphics for use in publications, we
-  have produced a tool for users to upload a "domain graphics" XML. This file will be validated against
-  the <a href="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd">schema</a> and subseqeuently rendered.  The images can then be saved for your own use.  If there
-  is an existing sequence in Pfam, which you wish to alter/ellaborate then the XML used by Pfam for 
-  this sequence can be obtained using this tool. An example XML of how each component drawn is available
-  after each images in the guide described above.  If there are specific questions that not covered by these help
-  pages please contact <h5>pfam-help AT sanger</h5>.</p> <!-- Not sure how this is going to be done -->
+    <p>
+      A wide range of different lollipop styles can be create by combining 
+      different line and head colours with different drawing styles. For 
+      example, a lollipop can be drawn with either bold (solid) or dashed 
+      lines. The lollipop head can be drawn as either a square, circle or 
+      diamond.
+    </p> 
   
+    <img src="[% imgs %]/lollipop.png" 
+         alt="" 
+         usemap="#lollipop" />
+    <span class="link" onclick="reveal(this,'lollipopXML',false)">Show XML</span>
+    <map name="lollipop">
+      <area shape="rect" coords="9,4,11,37" nohref="bold line, Square head" title="bold line, Square head" />
+      <area shape="rect" coords="29,4,31,37" nohref="dashed line, Square head" title="bold line, Square head" />
+      <area shape="rect" coords="49,4,51,37" nohref="bold, Diamond head" title="bold, Diamond head" />
+      <area shape="rect" coords="69,4,71,37" nohref="dashed line, Circle head" title="dashed line, Circle head" />
+      <area shape="rect" coords="19,31,21,62" nohref="bold line, Square head" title="bold line, Square head" />
+      <area shape="rect" coords="39,31,41,62" nohref="bold, Diamond head" title="bold, Diamond head" />
+      <area shape="rect" coords="59,31,61,62" nohref="dashed line, Circle head" title="dashed line, Circle head" />
+    </map>
+          
+    <div id="lollipopXML" class="xmlFragment" style="display: none">
+      <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
+       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
+                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       layout=&quot;continuous&quot; 
+       format=&quot;png&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1&quot;&gt;
+  &lt;sequence length=&quot;200&quot; name=&quot;Lollipop&quot;&gt;
+    &lt;markup start=&quot;20&quot; v_align=&quot;top&quot; label=&quot;bold line, Square head&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;square&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF3366&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;40&quot; v_align=&quot;bottom&quot; label=&quot;bold line, Square head&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;square&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;9966cc&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;80&quot; v_align=&quot;bottom&quot; label=&quot;bold line, Diamond head&quot;&gt;
+      &lt;line style=&quot;bold line&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;diamond&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF3366&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;120&quot; v_align=&quot;bottom&quot; label=&quot;dashed line, Circle head&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;circle&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;333399&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;60&quot; v_align=&quot;top&quot; label=&quot;bold line, Square head&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;square&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;66ff00&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;100&quot; v_align=&quot;top&quot; label=&quot;bold line, Diamond head&quot;&gt;
+      &lt;line style=&quot;bold line&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;diamond&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF3366&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;140&quot; v_align=&quot;top&quot; label=&quot;dashed line, Circle head&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;circle&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;cc9933&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;      
+  &lt;/sequence&gt;
+&lt;/image&gt;</pre>
+    </div>
+    
+  	<p><a href="#graphicsTop">back to top</a></p>
+    
+<!--
+    <hr />
+    
+    <h2>Producing your own graphics</h2>
+
+    <p>
+      As we are regularly approached for producing domain graphics for use in 
+      publications, we have produced a tool for users to upload a &quot;domain 
+      graphics&quot; XML. This file will be validated against the 
+      <a href="[% c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
+      and subseqeuently rendered. The images that the tool produces can then 
+      be saved for your own use. 
+    </p>
+    <p>
+      If there is an existing sequence in Pfam that you wish to alter/elaborate 
+      then the XML used by Pfam for this sequence can also be obtained using 
+      this tool.
+    </p>
+    
+  	<p><a href="#graphicsTop">back to top</a></p>
+-->
+    
   </div>
 </div>
+
+<!-- end domain graphics block -->

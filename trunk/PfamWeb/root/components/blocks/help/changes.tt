@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.4 2007-04-03 12:56:58 rdf Exp $
+# $Id: changes.tt,v 1.5 2007-04-16 16:07:18 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -15,372 +15,376 @@
   </div>
   <div class="blockContent">
   
+    <p>
+	   This section details the changes that we plan to make or have made to Pfam.
+     This includes changes to the flatfiles, MySQL database and the public 
+     website.
+  	</p>
+    
+    <h2>Planned changes</h2>
+	
+    <p>
+  	  The old website is going to be retired and this brand new one will take 
+      its place.
+  	</p>
 
-		<p><img class=info src="[% c.uri_for( "/images/info.gif" ) %]" />
-	 This section details the changes that we plan to make or have made to Pfam.  This includes
-	   changes to the flatfiles, MySQL database and the public website.
-	</p>
+    <hr />
 
+  	<h2>Past changes</h2>
+
+  	<h3>Changes between Pfam releases 19 and 20</h3>
+
+  	<p>
+  	  Release 20.0 contains a total of 8296 families, with 123 new
+  	  families and 10 families deleted since the last release. 73.88% of
+  	  all proteins in Pfamseq contain a match to at least one Pfam
+  	  domain. 51.57% of all residues in the sequence database fall
+  	  within Pfam domains.
+   	</p>
+   	
+  	<span class="link" onclick="$('moreChanges').toggle()">More changes...</span>
+
+    <div id="moreChanges" style="display: none">
+
+    	<h3>Changes between Pfam releases 18 and 19</h3>
   
-  <h2>Planned Changes</h2>
-	<p>
-	  The old website is going to be binned and this brand new one
-	  will take it's place.
-	</p>
+    	<p>
+    	  Pfam 19.0 is based on UniProt 6.1 (a composite of SWISSPROT
+    	  release 48.1 and SP-TrEMBL release 31.1). This composite
+    	  database is called Pfamseq 19. Pfamseq 19 is available on the
+    	  FTP site. Pfam 19.0 contains a total of 8183 entries, with 223
+    	  new entries since the last release. 73.70% of all proteins in
+    	  pfamseq 19 contain a match to at least one Pfam entry. 51.16% of
+    	  all residues in the sequence database fall within Pfam entries.
+    	</p>
+  
+      <h4>Format Change</h4>
+  
+    	<p>
+     	  The active site markup in Pfam has changed. The feature name AS
+     	  is now reserved for active sites that are not annotated in the
+     	  Swiss-Prot feature table as being probable, potential or by
+     	  similarity.
+    	</p>
+    
+    	<p>
+    	  Pfam predicts a residue to be an active site residue if it
+    	  aligns in a Pfam alignment with a Swiss-Prot annotated active
+    	  site, and is of the same amino acid type. Active sites which
+    	  are predicted by Pfam are given the feature name pAS.
+    	</p>
+    
+    	<p>
+    	  Active site residues which are annotated in Swiss-Prot as being
+    	  probable, potential or by similarity are marked as predicted
+    	  active sites, as long as they do no overlap with a Pfam
+    	  predicted active site. Active sites which are annotated as
+    	  probable, potential or by similarity by Swiss-Prot are given the
+    	  feature name sAS.
+    	</p>
+    
+    	<p>
+    	  In all cases, active sites are marked with an asterix. Below is
+    	  an example:
+    	</p>   
+    	<pre>
+     \#=GR ODP2_AZOVI/418-637 AS        ...........*..............
+     \#=GR Q5KEQ8_CRYNE/111-270 pAS     ...........*..............
+     \#=GR YN14_YEAST/124-327 sAS       ........*.................
+    	</pre>
+    
+    	<h3>Changes between Pfam releases 17 and 18</h3>
+    
+    	<p>
+    	  Pfam 18.0 is based on UniProt 5.0 (a composite of SWISSPROT
+    	  release 47.0 and SP-TrEMBL release 30.0). This composite
+    	  database is called Pfamseq 18. Pfamseq 18 is available on the
+    	  FTP site. Pfam 18.0 contains a total of 7973 entries, with 130
+    	  new entries since the last release. 75.28% of all proteins in
+    	  pfamseq 18 contain a match to at least one Pfam entry. 53.14% of
+    	  all residues in the sequence database fall within Pfam entries.
+    	</p>
+    
+    	<h4>Format Change</h4>
+    
+    	<p>
+    	  In previous versions of Pfam, nested domains in alignments were
+    	  masked out by &quot;X&quot;s. This masking has been removed in
+    	  version 18.0.
+        </p>
+    
+    	<h3>Changes between Pfam releases 16 and 17</h3>
+    
+    	<p>
+    	  Pfam 17.0 is based on UniProt 4.0 (a composite of SWISSPROT
+    	  release 46.0 and SP-TrEMBL release 29.0). This composite
+    	  database is called Pfamseq 17. Pfamseq 17 is available on the
+    	  FTP site. Pfam 17.0 contains a total of 7868 entries, with 225
+    	  new entries since the last release. 75.24% of all proteins in
+    	  Pfamseq 17 contain a match to at least one Pfam entry. 53.3% of
+    	  all residues in the sequence database fall within Pfam entries.
+    	</p>
+    
+        <h4>New clans</h4>
+    
+    	<p>
+    	  Since the last release, we have added over 70 new clans -
+    	  groupings of related families. To coincide with this we have
+    	  revised our clan pages. Each clan page now additionally contains
+    	  links to a clan membership relationship diagram and an alignment
+    	  of the clan members SEED alignments.
+    	</p>
+    
+    	<h4>New graphical views</h4>
+    
+    	<p>
+    	  After initial deployment and testing of this release we will
+    	  switch over to our new graphical domain images. A preview can be
+    	  seen on our home page. More details will follow the switch
+    	  over.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 15 and 16</h3>
+    
+    	<p>
+    	  Pfam 16.0 is based on UniProt 2.5 (a composite of SWISSPROT
+    	  release 44.5 and SP-TrEMBL release 27.5). This composite
+    	  database is called Pfamseq 16. Pfamseq 16 is available on the
+    	  FTP site. Pfam 16.0 contains a total of 7677 entries, with 192
+    	  new entries since the last release. 74.0% of all proteins in
+    	  Pfamseq 16 contain a match to at least one Pfam entry. 53.3% of
+    	  all residues in the sequence database fall within Pfam entries.
+    	</p>
+    
+    	<h4>MySQL database documentation</h4>
+    
+    	<p>
+    	  Comprehensive documentation on the Pfam MySQL database is now
+    	  provided.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 14 and 15</h3>
+    
+    	<p>
+    	  Pfam 15.0 is based on UniProt 2.0 (a composite of SWISSPROT
+    	  release 44.0 and SP-TrEMBL release 27.0). This composite
+    	  database is called Pfamseq 15. Pfamseq 15 is available on the
+    	  FTP site. Pfam 15.0 contains a total of 7503 entries, with 70
+    	  new entries since the last release. 74.0% of all proteins in
+    	  Pfamseq 14 contain a match to at least one Pfam entry. 53.1% of
+    	  all residues in the sequence database fall within Pfam entries.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 13 and 14</h3>
+    
+    	<p>
+    	  Pfam 14.0 is based on UniProt 1.8 (a composite of SWISSPROT
+    	  release 43.2 and SP-TrEMBL release 26.2). This composite
+    	  database is called Pfamseq 14. Pfamseq 14 is available on the
+    	  FTP site. Pfam 14.0 contains a total of 7459 entries, with 51
+    	  new entries and 0 entries deleted since the last release. 74.0%
+    	  of all proteins in Pfamseq 14 contain a match to at least one
+    	  Pfam entry. 53.1% of all residues in the sequence database fall
+    	  within Pfam entries.
+    	</p>
+    
+    	<h4>New look website</h4>
+    
+    	<p>
+    	  The Pfam website has undergone some changes. The tabs have been
+    	  replaced with a Javascript based drop-down menu. If you have any
+    	  feedback on the new layout then please let us know.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 12 and 13</h3>
+    
+    	<p>
+    	  Pfam 13.0 is based on UniProt 1.4 (a composite of SWISSPROT
+    	  release 42.12 and SP-TrEMBL release 25.12). This composite
+    	  database is called Pfamseq 13. Pfamseq 13 is available on the
+    	  FTP site. Pfam 13.0 contains a total of 7426 entries, with 119
+    	  new entries and 9 entries deleted since the last release. 74.0%
+    	  of all proteins in Pfamseq 13 contain a match to at least one
+    	  Pfam entry. 52.7% of all residues in the sequence database fall
+    	  within Pfam entries.
+    	</p>
+    
+    	<h4>iPfam</h4>
+    
+    	<p>
+    	  Released during the last release, a new resource called iPfam
+    	  was made available. iPfam contains infromation about known
+    	  domain-domain interactions at the residue and atom levels.
+    	  There are loads of new and exciting features in this new section
+    	  on the website, which are described further in the iPfam
+    	  section. The underlying relational database files are available
+    	  on the FTP site.
+    	</p>
+    
+    	<h4>Clans</h4>
+    
+    	<p>
+    	  Pfam release 13 sees the introduction of Clans. Clans are
+    	  groupings of Pfam families that we believe have arisen from a
+    	  single evolutionary origin. Evidence of their evolutionary
+    	  relationship comes from their similar tertiary structures, or
+    	  when structures are not available, by common sequence motifs. As
+    	  the members within a clan are allowed to overlap, the families
+    	  within a clan are allowed to compete for domain hits. Hence, it
+    	  is possible to obtain multiple significant hits to more than one
+    	  of the families within the clan.
+    	</p>
+    
+    	<h4>Versions in the HMMs</h4>
+    
+    	<p>
+    	  In the flatfiles and when HMMs are downloads, Pfam families now
+    	  have a version number after the accession number. The version
+    	  number is incremented when the HMM changes. This feature is of
+    	  particular use for genome annotation such that only changed
+    	  models need to be researched against the genome. The version
+    	  numbers are obsolete for the website.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 11 and 12</h3>
+    
+    	<p>
+    	  Pfam 12.0 is based in a composite of SWISSPROT release 42.5 and
+    	  SP-TrEMBL release 25.6. This composite database is called
+    	  Pfamseq 12. Pfamseq 12 is available on the FTP site. Pfam 12.0
+    	  contains a total of 7316 entries, with 65 new entries and 2
+    	  entries deleted since the last release. 73.8% of all proteins in
+    	  Pfamseq 12 contain a match to at least one Pfam entry. 52.7% of
+    	  all residues in the sequence database fall within Pfam entries.
+    	</p>
+    
+    	<h4>Genomes</h4>
+    
+    	<p>
+    	  This is a new section in Pfam that allows users to browse
+    	  Pfam families in genomes and compare Pfam families between
+    	  different genomes.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 10 and 11</h3>
+    
+    	<p>
+    	  Pfam 11.0 is based in a composite of SWISSPROT release 41.25 and
+    	  SP-TrEMBL release 24.14. This composite database is called
+    	  Pfamseq 11. Pfamseq 11 is available on the FTP site. Pfam 11.0
+    	  contains a total of 7255 entries, with 1077 new entries and 12
+    	  entries deleted since the last release. 75.35% of all proteins
+    	  in Pfamseq 11 contain a match to at least one Pfam entry.
+    	  54.26% of all residues in the sequence database fall within Pfam
+    	  entries.
+    	</p>
+    
+    	<p>
+    	  Pfam web searches are now being carried out using a ticketing
+    	  system.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 9 and 10</h3>
+    
+    	<h4>Alignment mode</h4>
+    
+    	<p>
+    	  The previous major release, Pfam 7.0, introduced full alignments
+    	  that were composed of matches from searches with both the ls and
+    	  fs HMMs. In the majority of cases full length global matches
+    	  (i.e. sequence matches to the ls HMM) are taken first, followed
+    	  by the fragment matches. However, in some cases, one of two
+    	  other options are used; the matches can be ordered by score or
+    	  partial matches are taken before global matches. The AM line in
+    	  the build lines section has been introduced in this release to
+    	  inform the user which alignment method was used to build the
+    	  full alignment.
+    	</p>
+    
+    	<h4>Context Domains</h4>
+    
+    	<p>
+    	  This release of Pfam also includes the full implementation of
+    	  Context Domains. Context domains are matches to a Pfam HMM that
+    	  score below the gathering threshold, but based on the similarity
+    	  of the domain architecture to other sequences has been marked up
+    	  as likely matches. More information is available.
+    	</p>
+    
+    	<h4>Nested Domains</h4>
+    
+    	<p>
+    	  Pfam 8.0 also allows some overlaps between families when one
+    	  domain is nested within another. Such overlaps are tightly
+    	  controlled and are only allowed when it is biologically
+    	  correct. The overlapping family is indicated by the NE line and
+    	  the NL indicates the location of the nested domain. More
+    	  information is available.
+    	</p>
+    
+    	<h4>Alignment mark up</h4>
+    
+    	<p>
+    	  Pfam alignments are now supplied with the consensus sequence for
+    	  the alignment. In all cases a threshold of 60% is used (i.e. 60%
+    	  or above of the amino acids in this column belong to this class
+    	  of residue). The program used was based on the Consensus program
+    	  by Nigel Brown at EMBL.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 7 and 8</h3>
+    
+    	<p>
+    	  Pfam 8.0 is based in a composite of SWISSPROT release 40.31 and
+    	  SP-TrEMBL release 22. This composite database is called Pfamseq
+    	  8. Pfamseq 8 is available on the FTP site. Pfam 8.0 contains a
+    	  total of 5193 entries, with 160 new entries and 16 entries
+    	  deleted since the last release. 73.6% of all proteins in
+    	  Pfamseq 8 contain a match to at least one Pfam entry. 53.0% of
+    	  all residues in the sequence database fall within Pfam entries.
+    	</p>
+    
+    	<h4>Alignment mode</h4>
+    
+    	<p>
+    	  The previous major release, Pfam 7.0, introduced full alignments
+    	  that were composed of matches from searches with both the ls and
+    	  fs HMMs. In the majority of cases full length global matches
+    	  (i.e. sequence matches to the ls HMM) are taken first, followed
+    	  by the fragment matches. However, in some cases, one of two
+    	  other options are used; the matches can be ordered by score or
+    	  partial matches are taken before global matches.
+    	</p>
+    
+    	<h3>Changes between Pfam releases 6 and 7</h3>
+    
+    	<p>
+    	  Pfam 7.0 is based on a composite of SWISSPROT release 40 and
+    	  SP-TrEMBL release 18. This composite database is called Pfamseq
+    	  7. Pfamseq 7 is available on the FTP site.Pfam 7.0 contains a
+    	  total of 3360 families, with 320 new families and 33 families
+    	  being deleted.
+    	</p>
+    
+    	<p>
+    	  Links to the HOMSTRAD and SYSTERS database have been added. GO
+    	  terms for each family have been derived from the GO to InterPro
+    	  mapping curated by Nicky Mulder at EBI.
+    	</p>
+    
+    	<p>
+    	  Each Pfam-A family now includes two HMMs, one in ls mode
+    	  (global) and another in fs mode (local). The HMMs are available
+    	  on the FTP site in the Pfam_ls and Pfam_fs flatfiles. The old
+    	  flatfiles called Pfam and PfamFrag have now been depracated.
+    	  Each family now contains family specific thresholds for each of
+    	  the ls and fs models. These are stored in the GA (gathering
+    	  threshold) field. The Pfam full alignments are a composed of
+    	  matches from searches with both the ls and fs HMMs.
+    	</p>
 
-  <hr style="width: 80%; height: 1px"/>
+  	</div>
+    <!-- end of "moreChanges" -->
 
-	<h2>Past changes</h2>
-
-	<h3>Changes between Pfam releases 19 and 20</h3>
-
-	<p>
-	  Release 20.0 contains a total of 8296 families, with 123 new
-	  families and 10 families deleted since the last release. 73.88% of
-	  all proteins in Pfamseq contain a match to at least one Pfam
-	  domain. 51.57% of all residues in the sequence database fall
-	  within Pfam domains.
- 	</p>
- 	
-	<a onclick="Element.toggle('moreChanges')">More Changes...</a></p>
-	<!--Put in a div that you click on to get more..-->
-  <div id="moreChanges" style="display: none">
-	<h3>Changes between Pfam releases 18 and 19</h3>
-
-	<p>
-	  Pfam 19.0 is based on UniProt 6.1 (a composite of SWISSPROT
-	  release 48.1 and SP-TrEMBL release 31.1). This composite
-	  database is called Pfamseq 19. Pfamseq 19 is available on the
-	  FTP site. Pfam 19.0 contains a total of 8183 entries, with 223
-	  new entries since the last release. 73.70% of all proteins in
-	  pfamseq 19 contain a match to at least one Pfam entry. 51.16% of
-	  all residues in the sequence database fall within Pfam entries.
-	</p>
-
-    <h4>Format Change</h4>
-
-	<p>
- 	  The active site markup in Pfam has changed. The feature name AS
- 	  is now reserved for active sites that are not annotated in the
- 	  Swiss-Prot feature table as being probable, potential or by
- 	  similarity.
-	</p>
-
-	<p>
-	  Pfam predicts a residue to be an active site residue if it
-	  aligns in a Pfam alignment with a Swiss-Prot annotated active
-	  site, and is of the same amino acid type. Active sites which
-	  are predicted by Pfam are given the feature name pAS.
-	</p>
-
-	<p>
-	  Active site residues which are annotated in Swiss-Prot as being
-	  probable, potential or by similarity are marked as predicted
-	  active sites, as long as they do no overlap with a Pfam
-	  predicted active site. Active sites which are annotated as
-	  probable, potential or by similarity by Swiss-Prot are given the
-	  feature name sAS.
-	</p>
-
-	<p>
-	  In all cases, active sites are marked with an asterix. Below is
-	  an example:
-	</p>   
-	<pre>
- \#=GR ODP2_AZOVI/418-637 AS        ...........*..............
- \#=GR Q5KEQ8_CRYNE/111-270 pAS     ...........*..............
- \#=GR YN14_YEAST/124-327 sAS       ........*.................
-	</pre>
-
-	<h3>Changes between Pfam releases 17 and 18</h3>
-
-	<p>
-	  Pfam 18.0 is based on UniProt 5.0 (a composite of SWISSPROT
-	  release 47.0 and SP-TrEMBL release 30.0). This composite
-	  database is called Pfamseq 18. Pfamseq 18 is available on the
-	  FTP site. Pfam 18.0 contains a total of 7973 entries, with 130
-	  new entries since the last release. 75.28% of all proteins in
-	  pfamseq 18 contain a match to at least one Pfam entry. 53.14% of
-	  all residues in the sequence database fall within Pfam entries.
-	</p>
-
-	<h4>Format Change</h4>
-
-	<p>
-	  In previous versions of Pfam, nested domains in alignments were
-	  masked out by &quot;X&quot;s. This masking has been removed in
-	  version 18.0.
-    </p>
-
-	<h3>Changes between Pfam releases 16 and 17</h3>
-
-	<p>
-	  Pfam 17.0 is based on UniProt 4.0 (a composite of SWISSPROT
-	  release 46.0 and SP-TrEMBL release 29.0). This composite
-	  database is called Pfamseq 17. Pfamseq 17 is available on the
-	  FTP site. Pfam 17.0 contains a total of 7868 entries, with 225
-	  new entries since the last release. 75.24% of all proteins in
-	  Pfamseq 17 contain a match to at least one Pfam entry. 53.3% of
-	  all residues in the sequence database fall within Pfam entries.
-	</p>
-
-    <h4>New clans</h4>
-
-	<p>
-	  Since the last release, we have added over 70 new clans -
-	  groupings of related families. To coincide with this we have
-	  revised our clan pages. Each clan page now additionally contains
-	  links to a clan membership relationship diagram and an alignment
-	  of the clan members SEED alignments.
-	</p>
-
-	<h4>New graphical views</h4>
-
-	<p>
-	  After initial deployment and testing of this release we will
-	  switch over to our new graphical domain images. A preview can be
-	  seen on our home page. More details will follow the switch
-	  over.
-	</p>
-
-	<h3>Changes between Pfam releases 15 and 16</h3>
-
-	<p>
-	  Pfam 16.0 is based on UniProt 2.5 (a composite of SWISSPROT
-	  release 44.5 and SP-TrEMBL release 27.5). This composite
-	  database is called Pfamseq 16. Pfamseq 16 is available on the
-	  FTP site. Pfam 16.0 contains a total of 7677 entries, with 192
-	  new entries since the last release. 74.0% of all proteins in
-	  Pfamseq 16 contain a match to at least one Pfam entry. 53.3% of
-	  all residues in the sequence database fall within Pfam entries.
-	</p>
-
-	<h4>MySQL database documentation</h4>
-
-	<p>
-	  Comprehensive documentation on the Pfam MySQL database is now
-	  provided.
-	</p>
-
-	<h3>Changes between Pfam releases 14 and 15</h3>
-
-	<p>
-	  Pfam 15.0 is based on UniProt 2.0 (a composite of SWISSPROT
-	  release 44.0 and SP-TrEMBL release 27.0). This composite
-	  database is called Pfamseq 15. Pfamseq 15 is available on the
-	  FTP site. Pfam 15.0 contains a total of 7503 entries, with 70
-	  new entries since the last release. 74.0% of all proteins in
-	  Pfamseq 14 contain a match to at least one Pfam entry. 53.1% of
-	  all residues in the sequence database fall within Pfam entries.
-	</p>
-
-	<h3>Changes between Pfam releases 13 and 14</h3>
-
-	<p>
-	  Pfam 14.0 is based on UniProt 1.8 (a composite of SWISSPROT
-	  release 43.2 and SP-TrEMBL release 26.2). This composite
-	  database is called Pfamseq 14. Pfamseq 14 is available on the
-	  FTP site. Pfam 14.0 contains a total of 7459 entries, with 51
-	  new entries and 0 entries deleted since the last release. 74.0%
-	  of all proteins in Pfamseq 14 contain a match to at least one
-	  Pfam entry. 53.1% of all residues in the sequence database fall
-	  within Pfam entries.
-	</p>
-
-	<h4>New look website</h4>
-
-	<p>
-	  The Pfam website has undergone some changes. The tabs have been
-	  replaced with a Javascript based drop-down menu. If you have any
-	  feedback on the new layout then please let us know.
-	</p>
-
-	<h3>Changes between Pfam releases 12 and 13</h3>
-
-	<p>
-	  Pfam 13.0 is based on UniProt 1.4 (a composite of SWISSPROT
-	  release 42.12 and SP-TrEMBL release 25.12). This composite
-	  database is called Pfamseq 13. Pfamseq 13 is available on the
-	  FTP site. Pfam 13.0 contains a total of 7426 entries, with 119
-	  new entries and 9 entries deleted since the last release. 74.0%
-	  of all proteins in Pfamseq 13 contain a match to at least one
-	  Pfam entry. 52.7% of all residues in the sequence database fall
-	  within Pfam entries.
-	</p>
-
-	<h4>iPfam</h4>
-
-	<p>
-	  Released during the last release, a new resource called iPfam
-	  was made available. iPfam contains infromation about known
-	  domain-domain interactions at the residue and atom levels.
-	  There are loads of new and exciting features in this new section
-	  on the website, which are described further in the iPfam
-	  section. The underlying relational database files are available
-	  on the FTP site.
-	</p>
-
-	<h4>Clans</h4>
-
-	<p>
-	  Pfam release 13 sees the introduction of Clans. Clans are
-	  groupings of Pfam families that we believe have arisen from a
-	  single evolutionary origin. Evidence of their evolutionary
-	  relationship comes from their similar tertiary structures, or
-	  when structures are not available, by common sequence motifs. As
-	  the members within a clan are allowed to overlap, the families
-	  within a clan are allowed to compete for domain hits. Hence, it
-	  is possible to obtain multiple significant hits to more than one
-	  of the families within the clan.
-	</p>
-
-	<h4>Versions in the HMMs</h4>
-
-	<p>
-	  In the flatfiles and when HMMs are downloads, Pfam families now
-	  have a version number after the accession number. The version
-	  number is incremented when the HMM changes. This feature is of
-	  particular use for genome annotation such that only changed
-	  models need to be researched against the genome. The version
-	  numbers are obsolete for the website.
-	</p>
-
-	<h3>Changes between Pfam releases 11 and 12</h3>
-
-	<p>
-	  Pfam 12.0 is based in a composite of SWISSPROT release 42.5 and
-	  SP-TrEMBL release 25.6. This composite database is called
-	  Pfamseq 12. Pfamseq 12 is available on the FTP site. Pfam 12.0
-	  contains a total of 7316 entries, with 65 new entries and 2
-	  entries deleted since the last release. 73.8% of all proteins in
-	  Pfamseq 12 contain a match to at least one Pfam entry. 52.7% of
-	  all residues in the sequence database fall within Pfam entries.
-	</p>
-
-	<h4>Genomes</h4>
-
-	<p>
-	  This is a new section in Pfam that allows users to browse
-	  Pfam families in genomes and compare Pfam families between
-	  different genomes.
-	</p>
-
-	<h3>Changes between Pfam releases 10 and 11</h3>
-
-	<p>
-	  Pfam 11.0 is based in a composite of SWISSPROT release 41.25 and
-	  SP-TrEMBL release 24.14. This composite database is called
-	  Pfamseq 11. Pfamseq 11 is available on the FTP site. Pfam 11.0
-	  contains a total of 7255 entries, with 1077 new entries and 12
-	  entries deleted since the last release. 75.35% of all proteins
-	  in Pfamseq 11 contain a match to at least one Pfam entry.
-	  54.26% of all residues in the sequence database fall within Pfam
-	  entries.
-	</p>
-
-	<p>
-	  Pfam web searches are now being carried out using a ticketing
-	  system.
-	</p>
-
-	<h3>Changes between Pfam releases 9 and 10</h3>
-
-	<h4>Alignment mode</h4>
-
-	<p>
-	  The previous major release, Pfam 7.0, introduced full alignments
-	  that were composed of matches from searches with both the ls and
-	  fs HMMs. In the majority of cases full length global matches
-	  (i.e. sequence matches to the ls HMM) are taken first, followed
-	  by the fragment matches. However, in some cases, one of two
-	  other options are used; the matches can be ordered by score or
-	  partial matches are taken before global matches. The AM line in
-	  the build lines section has been introduced in this release to
-	  inform the user which alignment method was used to build the
-	  full alignment.
-	</p>
-
-	<h4>Context Domains</h4>
-
-	<p>
-	  This release of Pfam also includes the full implementation of
-	  Context Domains. Context domains are matches to a Pfam HMM that
-	  score below the gathering threshold, but based on the similarity
-	  of the domain architecture to other sequences has been marked up
-	  as likely matches. More information is available.
-	</p>
-
-	<h4>Nested Domains</h4>
-
-	<p>
-	  Pfam 8.0 also allows some overlaps between families when one
-	  domain is nested within another. Such overlaps are tightly
-	  controlled and are only allowed when it is biologically
-	  correct. The overlapping family is indicated by the NE line and
-	  the NL indicates the location of the nested domain. More
-	  information is available.
-	</p>
-
-	<h4>Alignment mark up</h4>
-
-	<p>
-	  Pfam alignments are now supplied with the consensus sequence for
-	  the alignment. In all cases a threshold of 60% is used (i.e. 60%
-	  or above of the amino acids in this column belong to this class
-	  of residue). The program used was based on the Consensus program
-	  by Nigel Brown at EMBL.
-	</p>
-
-	<h3>Changes between Pfam releases 7 and 8</h3>
-
-	<p>
-	  Pfam 8.0 is based in a composite of SWISSPROT release 40.31 and
-	  SP-TrEMBL release 22. This composite database is called Pfamseq
-	  8. Pfamseq 8 is available on the FTP site. Pfam 8.0 contains a
-	  total of 5193 entries, with 160 new entries and 16 entries
-	  deleted since the last release. 73.6% of all proteins in
-	  Pfamseq 8 contain a match to at least one Pfam entry. 53.0% of
-	  all residues in the sequence database fall within Pfam entries.
-	</p>
-
-	<h4>Alignment mode</h4>
-
-	<p>
-	  The previous major release, Pfam 7.0, introduced full alignments
-	  that were composed of matches from searches with both the ls and
-	  fs HMMs. In the majority of cases full length global matches
-	  (i.e. sequence matches to the ls HMM) are taken first, followed
-	  by the fragment matches. However, in some cases, one of two
-	  other options are used; the matches can be ordered by score or
-	  partial matches are taken before global matches.
-	</p>
-
-	<h3>Changes between Pfam releases 6 and 7</h3>
-
-	<p>
-	  Pfam 7.0 is based on a composite of SWISSPROT release 40 and
-	  SP-TrEMBL release 18. This composite database is called Pfamseq
-	  7. Pfamseq 7 is available on the FTP site.Pfam 7.0 contains a
-	  total of 3360 families, with 320 new families and 33 families
-	  being deleted.
-	</p>
-
-	<p>
-	  Links to the HOMSTRAD and SYSTERS database have been added. GO
-	  terms for each family have been derived from the GO to InterPro
-	  mapping curated by Nicky Mulder at EBI.
-	</p>
-
-	<p>
-	  Each Pfam-A family now includes two HMMs, one in ls mode
-	  (global) and another in fs mode (local). The HMMs are available
-	  on the FTP site in the Pfam_ls and Pfam_fs flatfiles. The old
-	  flatfiles called Pfam and PfamFrag have now been depracated.
-	  Each family now contains family specific thresholds for each of
-	  the ls and fs models. These are stored in the GA (gathering
-	  threshold) field. The Pfam full alignments are a composed of
-	  matches from searches with both the ls and fs HMMs.
-	</p>
-	</div>
   </div>
 </div>

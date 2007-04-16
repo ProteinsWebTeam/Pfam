@@ -4,7 +4,7 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: mirrors.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+# $Id: mirrors.tt,v 1.2 2007-04-16 16:07:20 jt6 Exp $
 %]
 
 <!-- start mirrors block -->
@@ -15,24 +15,17 @@
   </div>
   <div class="blockContent">
 
-  <h3>List of Recognised Mirror Site</h3>
-  <TABLE CLASS=normaltext BORDER=1 CELLPADDING=5  CELLSPACING=0>
-<TR><TD BGCOLOR=#000070>Pfam Mirror Servers</TD></TR>
-<TR><TD NOWRAP VALIGN=TOP >	
-<TABLE border=0 cellpadding=3 cellspacing=0>
-
-<TR><TD NOWRAP><A href="http://www.sanger.ac.uk/Software/Pfam"><img src="[% c.uri_for( "/images/flag/british_flag.gif" ) %]" border=0> Sanger Centre (UK)</a> </TD></TR>
-<TR><TD NOWRAP><A HREF="http://pfam.wustl.edu/"><img src="[% c.uri_for( "/images/flag/american_flag.gif" ) %]" border=0> St. Louis (USA)</A> </TD></TR>
-<TR><TD NOWRAP><A HREF="http://pfam.cgb.ki.se/Pfam/"><img src="[% c.uri_for( "/images/flag/swedish_flag.gif" ) %]" border=0> Karolinska Institutet (Sweden) </A> </TD></TR>
-<TR><TD NOWRAP><A HREF="http://pfam.jouy.inra.fr/"><img src="[% c.uri_for( "/images/flag/french_flag.gif" ) %]" border=0> Institut National de la Recherche Agronomique (France) </A> </TD></TR>
-<TR><TD NOWRAP><A HREF="http://pfam.ccbb.re.kr"><img src="[% c.uri_for( "/images/flags/south_korea.gif" ) %]" border=0 ALT="Korean Institute of Science and Technology Information" HEIGHT="10" WIDTH="10"> Korean Institute of Science and Technology Information (South Korea)</A></TD></TR>
-<TR><TD NOWRAP class=boldtextsmall>Partial Pfam mirror servers (These provide search functionality only): </TD></TR>
-<TR><TD NOWRAP><a href="http://hits.isb-sib.ch/cgi-bin/PFSCAN"><img src="[% c.uri_for( "/images/flag/swiss_flag.gif" ) %]" border=0> Prosite Profiles - ISREC (Switzerland)</a> </TD></TR>
-<TR><TD NOWRAP><a href="http://smart.embl-heidelberg.de/"><img src="[% c.uri_for( "/images/flag/german_flag.gif" ) %]" border=0> SMART - EMBL (Germany)</FONT></a></TD></TR>
-
-</TABLE>
-</TD></TR>
-</TABLE>
+    <p>
+      Pfam is maintained by the three member sites of the Pfam consortium:
+    </p>
+    <ul class="mirrors">
+    	<li><a href="http://pfam.cgb.ki.se/" class="se mirror">Stockholm Bioinformatics Center, Sweden</a></li>
+    	<li><a href="http://pfam.janelia.org/" class="us mirror">Janelia Farm Research Campus, USA</a></li>
+    	<li><a href="http://pfam.jouy.inra.fr/" class="fr mirror">Institut National de la Recherche Agronomique, France</a></li>
+    	<li><a href="http://pfam.ccbb.re.kr/" class="kr mirror">Center for Computational Biology &amp; Bioinformatics, South Korea</a></li>
+    </ul>	
 
   </div>
 </div>
+
+<!-- end mirrors block -->

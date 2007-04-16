@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.5 2007-04-03 12:56:58 rdf Exp $
+# $Id: summary.tt,v 1.6 2007-04-16 16:07:20 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -24,29 +24,36 @@ requirements.css.push( "help.css" );
     <h1>Help Summary</h1>
   </div>
   <div class="blockContent">
-	<h2>About Pfam</h2>
-	<h3>Pfam 21.0 (November 2006, 8957 familes)</h3>
 
-   <p>Proteins are generally comprised of one or more functional regions, commonly termed 
-   domains. Different combinations of domains give rise to the diverse repertoire of 
-   proteins found in nature. Thus, the identification of domains that occur within 
-   proteins can provide insights to their function.  The Pfam database is a large collection 
-   of Protein domain families. Each family is represented by multiple sequence alignments and 
-  hidden Markov models (HMMs).
+  	<h2>About Pfam</h2>
+
+  	<h3>Pfam 21.0 (November 2006, 8957 familes)</h3>
   
-  <p>There should be something about HMMER in here!</p>
-         
-  <p>There are two components to Pfam, Pfam-A and Pfam-B. Pfam-A entries are high 
-  quality, manually curated domain families. Although these Pfam-A entries cover a 
-  large proportion of the sequences in the underlying sequence database, to give a more 
-  comprehensive coverage of known proteins we generate a supplement automatically using 
-  the PRODOM database. These entries automatically generated entries are called Pfam-B. 
-  Although of lower quality, Pfam-B families can be useful for identifying functionally 
-  conserved regions when no Pfam-A entries are found. </p>
-
-	<p>Define the different types using in Pfam:Family, Domain, Type and Motif.<p>
-
-	<h2>What is in this help section?</h2>
+     <p>
+       Proteins are generally comprised of one or more functional regions, 
+       commonly termed domains. Different combinations of domains give rise to 
+       the diverse repertoire of proteins found in nature. Thus, the 
+       identification of domains that occur within proteins can provide insights 
+       to their function. The Pfam database is a large collection of protein 
+       domain families. Each family is represented by multiple sequence 
+       alignments and hidden Markov models (HMMs).
+    </p>
+    <p>
+      There should be something about HMMER in here!
+    </p>       
+    <p>
+      There are two components to Pfam: Pfam-A and Pfam-B. Pfam-A entries are 
+      high quality, manually curated domain families. Although these Pfam-A 
+      entries cover a large proportion of the sequences in the underlying 
+      sequence database, to give a more comprehensive coverage of known proteins 
+      we generate a supplement automatically using the PRODOM database. These 
+      entries automatically generated entries are called Pfam-B. Although of 
+      lower quality, Pfam-B families can be useful for identifying functionally 
+      conserved regions when no Pfam-A entries are found.
+    </p>
+  	<p>
+  	  Define the different types using in Pfam: family, domain, type and motif.
+    </p>
  
   </div>
 </div>
