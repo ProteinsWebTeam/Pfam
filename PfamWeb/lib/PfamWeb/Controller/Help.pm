@@ -2,7 +2,7 @@
 # Help.pm
 # jt6 20060925 WTSI
 #
-# $Id: Help.pm,v 1.4 2007-03-15 14:06:14 jt6 Exp $
+# $Id: Help.pm,v 1.5 2007-04-16 15:58:19 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Displays the help pages for the PfamWeb site.
 
 Generates a B<tabbed page>.
 
-$Id: Help.pm,v 1.4 2007-03-15 14:06:14 jt6 Exp $
+$Id: Help.pm,v 1.5 2007-04-16 15:58:19 jt6 Exp $
 
 =cut
 
@@ -46,9 +46,10 @@ sub index : Private {
   my( $this, $c ) = @_;
 
   # set the page to be cached for two weeks
-  $c->cache_page( 1209600 );
+#  $c->cache_page( 1209600 );
 
-  # otherwise empty... just capture the index URL
+  # tell the navbar where we are
+  $c->stash->{nav} = "help";
 
 }
 
