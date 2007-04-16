@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.10 2007-03-15 14:06:14 jt6 Exp $
+# $Id: Root.pm,v 1.11 2007-04-16 15:59:10 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.10 2007-03-15 14:06:14 jt6 Exp $
+$Id: Root.pm,v 1.11 2007-04-16 15:59:10 jt6 Exp $
 
 =cut
 
@@ -52,19 +52,22 @@ sub default : Private {
   # now, knowing that this is a request for the site index page...
 
   # set the page to be cached for an hour
-  $c->cache_page( 3600 );
+#  $c->cache_page( 3600 );
 
   # retrieve the news items from the feed
-  my @entries = $c->model("WebUser::News")
-	->search( {},
-			  { order_by => "pubDate DESC" } );
-  $c->stash->{newsItems} = \@entries;
+#  my @entries = $c->model("WebUser::News")
+#	->search( {},
+#			  { order_by => "pubDate DESC" } );
+#  $c->stash->{newsItems} = \@entries;
 
   # get the top-ten families
-  my @topTen = $c->model("WebUser::Family_count")
-    ->search( {},
-			  { order_by => "view_count DESC" } );
-  $c->stash->{topTen} = \@topTen;
+#  my @topTen = $c->model("WebUser::Family_count")
+#    ->search( {},
+#			  { order_by => "view_count DESC" } );
+#  $c->stash->{topTen} = \@topTen;
+
+  # tell the navbar where we are
+  $c->stash->{nav} = "home";
 
   $c->log->debug("PfamWeb::default: generating site index");
 }
@@ -149,7 +152,7 @@ sub about : Local {
   my ( $this, $c ) = @_;
 
   # set the page to be cached for two weeks
-  $c->cache_page( 1209600 );
+#  $c->cache_page( 1209600 );
 
   $c->stash->{template} = "components/tools/about.tt";
 }
@@ -180,7 +183,7 @@ sub fourOhFour : Path("/404") {
   my ( $this, $c ) = @_;
 
   # set the page to be cached for two weeks
-  $c->cache_page( 1209600 );
+#  $c->cache_page( 1209600 );
 
   #----------------------------------------
   # first, figure out where the broken link was, internal or external
