@@ -1,0 +1,28 @@
+
+[%
+# jobDone.tt
+# jt6 20070414 WTSI
+#
+# $Id: jobDone.tt,v 1.1 2007-04-17 08:38:05 jt6 Exp $
+
+META title    = "Results of your sequence search";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "job.css" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<h1>Job results</h1>
+
+<ul>
+[% FOREACH jobId IN jobIds %]
+  <li>[% jobId %]</li>
+[% END %]
+</ul>
