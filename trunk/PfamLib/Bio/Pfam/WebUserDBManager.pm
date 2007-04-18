@@ -2,19 +2,14 @@
 #
 # BioPerl module for Bio::Pfam::WebUserDBManager
 #
-# $Author
-
+# Author
 package Bio::Pfam::WebUserDBManager;
 
 use strict;
 use warnings;
 
-use base WebUser;
+use WebUser;
 use Data::Dumper;
-
-$SIG{INT} = sub {
-    __PACKAGE__->storage->disconnect;
-};
 
 sub new {
     my $caller = shift;
@@ -30,7 +25,7 @@ sub new {
 
     print STDERR Dumper($self);
 
-    $self->{'schema'} = __PACKAGE__->connect("dbi".
+    $self->{'schema'} = WebUser->connect("dbi".
 				       ":".$self->{driver}.
 				       ":".$self->{database}.
 				       ":".$self->{host}.
@@ -47,10 +42,10 @@ sub getSchema{
     return $self->{schema};
 }
 
-sub DESTROY {
-  my $self = shift;
-  $self->storage->disconnect;
-}
+#sub DESTROY {
+#  my $self = shift;
+#  $self->storage->disconnect;
+#}
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
