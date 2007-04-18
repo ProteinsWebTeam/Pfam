@@ -168,6 +168,13 @@ sub getClanMembership{
   }
 }
 
+sub getClanAllClanData {
+  my($self) = shift; 
+  my @clanData = $self->getSchema
+                        ->resultset("Clans")
+                          ->search();
+  return \@clanData;
+}
 
 sub getPfamData{
   my($self, $family) = @_;
