@@ -23,7 +23,7 @@ sub new {
 		 driver    => "mysql",
 		 @_,};
 
-    print STDERR Dumper($self);
+    #print STDERR Dumper($self);
 
     $self->{'schema'} = WebUser->connect("dbi".
 				       ":".$self->{driver}.
