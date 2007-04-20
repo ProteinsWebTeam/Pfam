@@ -4,7 +4,7 @@
 #
 # Model for the hmmer_stream table.
 #
-# $Id: HmmerStream.pm,v 1.1 2007-04-13 09:58:43 rdf Exp $
+# $Id: HmmerStream.pm,v 1.2 2007-04-20 11:04:44 rdf Exp $
 #
 # $Author: rdf $
 
@@ -30,9 +30,10 @@ __PACKAGE__->set_primary_key( "id" );
 
 __PACKAGE__->has_one( hmmer_history => "WebUser::HmmerHistory",
 					  { "foreign.id" => "self.id"},
-					  { proxy            => [ qw/
+					  { proxy            => [ qw/job_id
 					                             status
 					                             command
+					                             estimated_time
 					                             opened
 					                             closed
 					                             started/] } );
