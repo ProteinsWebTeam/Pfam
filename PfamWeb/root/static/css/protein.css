@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.21 2007-03-15 14:57:19 jt6 Exp $
+   $Id: protein.css,v 1.22 2007-04-20 15:14:45 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -29,31 +29,13 @@
 */   
 
 /* ======================================== */
-/* components of the remainder of the page */
-
-#spacer {
-  background-color: #e6f2ee; /*  natural 4 */
-}
-
-#contentContainer {
-  background-color: #e6f2ee; /*  natural 4 */
-  background-image: url(/catalyst/pfam/images/protein/page_border.gif);
-}
-
-#wrap {
-  background: url(/catalyst/pfam/images/protein/bg.gif) repeat-y 15% 0;
-}
-
-/* ======================================== */
 /* rules for specific blocks */
 
 div.source {
 	float: left;
-    width: 18em;
+  width: 18em;
 	padding: 0.2em;
 }
-
-
 
 div.source span.checkboxLabel {
 	float: left;
@@ -62,12 +44,13 @@ div.source span.checkboxLabel {
 div.source input {
 	float: left;
 }
+
 /* ---------------------------------------- */
 /* DAS features */
 
 #updatePanel {
 	margin-top: 2em;
-    padding: 0;
+  padding: 0;
 }
 
 .dasObjectCheckboxes {
@@ -76,7 +59,7 @@ div.source input {
 }
 
 .section {
-    border: 1px solid #CCC; 
+  border: 1px solid #CCC; 
 	float: left;
 	margin-bottom: 10px;
 	padding: 0;
@@ -91,11 +74,11 @@ p.sectionLabel {
 }
 
 p.featuresLabel {
-    margin: 2px 0 0 0;
-    padding: 0;
+  margin: 2px 0 0 0;
+  padding: 0;
 	width: 14em;
 	border: 1px solid #CCC;
-    background: #EEE;
+  background: #EEE;
 }
 
 td.graphics {
@@ -154,56 +137,55 @@ img.featuresImage {
 }
 
 div.sequenceLine {
-    margin: 0;
+  margin: 0;
 	padding: 0;
-    clear:both;
+  clear:both;
 	font-family: mono, Courier;
-    font-size: 0.8em;
+  font-size: 0.8em;
 }
 
 div.leftAlignmentLabel {
 	margin: 0;
 	padding: 0.1em 0.4em;
-    float: left;
+  float: left;
 	text-align: right;
-    width: 4em;
+  width: 4em;
 }
 
 div.alignmentRow {	
 	margin: 0;
 	padding: 0.1em;
-    float: left;
+  float: left;
 }
 
 div.rightAlignmentLabel {
 	margin: 0;
 	padding: 0.1em;
 	text-align: right;
-    float: left;
-    width: 4em;
+  float: left;
+  width: 4em;
 }
 
 #plainSequence {
 	font-family: mono, Courier;
-    font-size: 0.8em;
-    margin: 0.2em;
-    padding: 0.2em;
+  font-size: 0.8em;
+  margin: 0.2em;
+  padding: 0.2em;
 	border: 1px solid #CCC;
-    background: #DDD;
+  background: #DDD;
 	float: left;
 }
 
 div.summaryGraphic {
-    margin: 0.75em 0;
+  margin: 0.75em 0;
 }
-
 
 /* ---------------------------------------- */
 /* treefam section */
 
 #treeFamFrame {
 	width: 100%;
-    height: 500px;
+  height: 500px;
 }
 
 /* ---------------------------------------- */
