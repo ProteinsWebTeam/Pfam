@@ -4,7 +4,7 @@
 
    Stylesheet for various forms in the site.
 
-   $Id: forms.css,v 1.6 2007-03-15 14:57:20 jt6 Exp $
+   $Id: forms.css,v 1.7 2007-04-20 15:13:35 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -46,13 +46,14 @@ img.addAnnotation {
   margin: 0;
 }
 
-.formWrapper span.row {
+.formWrapper .row {
   width: 100%;
   float: left;
   clear: both;
   margin: 0.2em;
 }
 
+.formWrapper .label,
 .formWrapper label {
   font-weight: bold;
   width: 14em;
@@ -60,6 +61,10 @@ img.addAnnotation {
   float: left;
   padding: 0.2em;
   margin: 0.3em;
+}
+
+.formElement label {
+  float: none;
 }
 
 .formWrapper input,
@@ -78,9 +83,15 @@ img.addAnnotation {
   padding: 0.1em;
 }
 
+.formWrapper input.submit {
+  background: #c2d2e1;
+  color: #074987;
+	margin: 0.1em 0.1em 0.1em 12.1em;
+}
+
 #annForm input.submit,
 #annForm input.reset {
-  margin: 0.1em 0.1em 0.1em 13.5em;
+  margin: 0.1em 0.1em 0.1em 13.5em ! important;
 }
 
 /* error messages */
@@ -95,10 +106,11 @@ img.addAnnotation {
 /* ---------------------------------------- */
 /* search forms */
 
-#psfd input.submit,
-#ksfd input.submit {
+/*
+input.submit {
 	margin: 0.1em 0.1em 0.1em 12.1em;
 }
+*/
 
 span.buttons {
 	float: left;
@@ -106,15 +118,15 @@ span.buttons {
 
 div.domainList {
 	float: left;
-    border: 1px solid #009;
+  border: 1px solid #009;
 	background: #EEF;
-    padding: 0.2em;
+  padding: 0.2em;
 	margin: 0.5em;
 }
 
 div.domainList select {
 	border: 1px solid #074987;
-    background: #f5faff;
+  background: #f5faff;
 }
 
 #idList {
@@ -131,3 +143,20 @@ div.domainList select {
 	background: #FEE;
 	border-color: #D99;
 }
+
+/* ---------------------------------------- */
+/* sequence search */
+
+div.error {
+  border: 1px solid #900;
+  background: #f8e7e7;
+  color: #300;
+  width: 50%;
+  padding: 0.2em;
+  margin: 0.2em auto;
+}
+
+div.error h2 {
+  margin: 0.2em;
+}
+
