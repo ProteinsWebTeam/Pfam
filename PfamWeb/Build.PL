@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.17 2007-03-16 16:52:28 jt6 Exp $
+# $Id: Build.PL,v 1.18 2007-04-20 15:38:42 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -66,70 +66,70 @@ my $build = PfamWeb::Builder
     create_packlist => 0,
     dist_author     => 'John Tate <jt6@sanger.ac.uk>',
 
-		# define the command line options for the installation
-		get_options     => {
-                   		    "accept_defaults" => { type    => "!"  },
-                   		    "config_file"     => { type    => ":s" },
-                     	    "help|usage"      => { type    => "!"  },
-                     	    "httpd_file"      => { type    => ":s" },
-                     	    "no_help"         => { type    => "!",
-                                         	       default => 0    },
-                     	    "verbose_log"     => { type    => "+",
-                                         	       default => 0    },
-                     	 },
+    # define the command line options for the installation
+    get_options     => {
+                        "accept_defaults" => { type    => "!"  },
+                        "config_file"     => { type    => ":s" },
+                        "help|usage"      => { type    => "!"  },
+                        "httpd_file"      => { type    => ":s" },
+                        "no_help"         => { type    => "!",
+                                               default => 0    },
+                        "verbose_log"     => { type    => "+",
+                                               default => 0    },
+                     },
 
-		license         => "perl",
-		module_name     => "PfamWeb",
+    license         => "perl",
+    module_name     => "PfamWeb",
 
-		# recommended but not essential prerequisites. Since there
-		# doesn't seem to be any sensible way to detect BioPerl if
-		# it's not installed as a Bundle, it's recommended rather than
-		# required
-		recommends      => {
-                    		  "Bundle::BioPerl"                            => 0,
-                    		  "Catalyst::Devel"                            => 1.0,
-                    		  "Module::Build"                              => 0.28,
-                    	 },
+    # recommended but not essential prerequisites. Since there
+    # doesn't seem to be any sensible way to detect BioPerl if
+    # it's not installed as a Bundle, it's recommended rather than
+    # required
+    recommends      => {
+                          "Bundle::BioPerl"                            => 0,
+                          "Catalyst::Devel"                            => 1.0,
+                          "Module::Build"                              => 0.28,
+                     },
 
-		# these are the absolutely required prerequisites
-		requires        => {
-            						  "Bio::Das::Lite"                             => 1.048,
-            						  "Catalyst::Action::RenderView"               => 0,
+    # these are the absolutely required prerequisites
+    requires        => {
+                          "Bio::Das::Lite"                             => 1.048,
+                          "Catalyst::Action::RenderView"               => 0,
                           "Catalyst::Engine::Apache2"                  => 0,
-            						  "Catalyst::Model::DBIC::Schema"              => 0,
-            						  "Catalyst::Plugin::Cache::FastMmap"          => 0,
+                          "Catalyst::Model::DBIC::Schema"              => 0,
+                          "Catalyst::Plugin::Cache::FastMmap"          => 0,
                           "Catalyst::Plugin::Cache::FileCache"         => 0,
                           "Catalyst::Plugin::ConfigLoader"             => 0,
-            						  "Catalyst::Plugin::Email"                    => 0,
-            						  "Catalyst::Plugin::HTML::Widget"             => 0,
+                          "Catalyst::Plugin::Email"                    => 0,
+                          "Catalyst::Plugin::HTML::Widget"             => 0,
                           "Catalyst::Plugin::PageCache"                => 0,
                           "Catalyst::Plugin::Prototype"                => 0,
-            						  "Catalyst::Plugin::Session::State::Cookie"   => 0,
-            						  "Catalyst::Plugin::Session::Store::FastMmap" => 0,
-            						  "Catalyst::Runtime"                          => 5.7,
-            						  "Catalyst::View::TT"                         => 0,
-            						  "Class::Data::Accessor"                      => 0,
-            						  "Config::General"                            => 0.28,
-                    		  "Data::Validate::URI"                        => 0,
+                          "Catalyst::Plugin::Session::State::Cookie"   => 0,
+                          "Catalyst::Plugin::Session::Store::FastMmap" => 0,
+                          "Catalyst::Runtime"                          => 5.7,
+                          "Catalyst::View::TT"                         => 0,
+                          "Class::Data::Accessor"                      => 0,
+                          "Config::General"                            => 0.28,
+                          "Data::Validate::URI"                        => 0,
                           "Data::Visitor::Callback"                    => 0,
-            						  "DateTime"                                   => 0,
-                    		  "DateTime::Format::MySQL"                    => 0,
-                    		  "DBD::mysql"                                 => 0,
-            						  "DBIx::Class"                                => 0,
-            						  "DBIx::Class::HTMLWidget"                    => 0,
-            						  "GD"                                         => 0,
-            						  "GD::Graph"                                  => 0,
-            						  "HTML::Tree"                                 => 0,
-            						  "HTML::Widget"                               => 0,
-            						  "JSON"                                       => 0,
-            						  "LWP::Parallel::UserAgent"                   => 0,
-            						  "SOAP::Data::Builder"                        => 0,
-            						  "XML::Feed"                                  => 0,
-          						 },
+                          "DateTime"                                   => 0,
+                          "DateTime::Format::MySQL"                    => 0,
+                          "DBD::mysql"                                 => 0,
+                          "DBIx::Class"                                => 0,
+                          "DBIx::Class::HTMLWidget"                    => 0,
+                          "GD"                                         => 0,
+                          "GD::Graph"                                  => 0,
+                          "HTML::Tree"                                 => 0,
+                          "HTML::Widget"                               => 0,
+                          "JSON"                                       => 0,
+                          "LWP::Parallel::UserAgent"                   => 0,
+                          "SOAP::Data::Builder"                        => 0,
+                          "XML::Feed"                                  => 0,
+                       },
 
-		# for what they're worth...
-		test_files      => [ glob('t/*.t') ],
-	);
+    # for what they're worth...
+    test_files      => [ glob('t/*.t') ],
+  );
 
 #--------------------------------------
 
@@ -240,7 +240,7 @@ if( $cgStatus->{ok} ) {
     die "(EE) ERROR: couldn't load Config::General, although Module::Build thinks it's installed: $@";
   }
 } else {
- 
+
   print <<EOFcgMissing;
 
 (EE) ERROR: module Config::General is not installed
@@ -254,7 +254,7 @@ run this script.
 Please install Config::General and try again.
 
 EOFcgMissing
- 
+
   exit 1;
 }
 
@@ -267,21 +267,21 @@ EOFcgMissing
 unless( $build->args( "config_file" ) and $build->args( "httpd_file" ) ) {
   print <<EOFloc unless $quiet;
 --------------------------------------------------------------------------------
-  
+
 This installation uses two configuration files to provide the default values for
 the questions it asks. The first file if used by the PfamWeb application and the
 second is for Apache.
 
 The distribution includes versions of those two files and they are presented
 as the default values here.
-  
+
 EOFloc
 }
 
 if( $build->args( "config_file" ) ) {
   $configFile = $build->args( "config_file" );
   print <<EOFloc;
-  
+
 We're taking default PfamWeb config values from the file \"$configFile\",
 as specified on the command line.
 EOFloc
@@ -303,7 +303,7 @@ EOFloc
   $httpdFile = $build->prompt( "Where is the default Apache configuration file ?",
                                 $httpdFile );
   die "(EE) ERROR: couldn't read Apache configuration file \"$httpdFile\": $!"
-    unless -f $httpdFile;  
+    unless -f $httpdFile;
 }
 
 #--------------------------------------
@@ -366,8 +366,8 @@ if( $@ or not $parsed ) {
   print <<EOFhttpdProblem;
 
 (EE) ERROR: there was a problem loading the Apache configuration file from
-            the distribution (\"$httpdFile\"): $@ 
-            
+            the distribution (\"$httpdFile\"): $@
+
 If this is a parsing problem, or the file is just missing, then this is a
 problem with the distribution...
 
@@ -389,13 +389,13 @@ print <<EOFloc unless $quiet;
 --------------------------------------------------------------------------------
 
 The PfamWeb application consists of several different types of file. We have
-raw perl code, Template Toolkit template files, static HTML content, such as 
-CSS files and images, and finally configuration files. 
+raw perl code, Template Toolkit template files, static HTML content, such as
+CSS files and images, and finally configuration files.
 
-We will install all of these different files under a single directory, the 
+We will install all of these different files under a single directory, the
 installation root. For example, you might choose to put PfamWeb in a
 subdirectory of your web-server, e.g. /usr/local/httpd/PfamWeb, or somewhere
-entirely separate, e.g. /opt/webapps/PfamWeb.  
+entirely separate, e.g. /opt/webapps/PfamWeb.
 
 EOFloc
 
@@ -409,7 +409,7 @@ until( $validResponse ) {
   $rawResponse = 
     $build->prompt( "In what directory do you want to install the PfamWeb application ?",
                     $config{installRoot} );
-  
+
   # trim off trailing slashes
   $rawResponse =~ s/(.*?)\/*$/$1/;
 
@@ -450,7 +450,7 @@ unless( $quiet ) {
 # we'll store the starting value for the application root as a note, so 
 # that we can do a search and replace for it at the Build stage
 $build->notes( "defaultAppRoot", $config{View}->{TT}->{CONSTANTS}->{root} );
-  
+
 print <<EOFloc unless $quiet;
 
 --------------------------------------------------------------------------------
@@ -464,7 +464,7 @@ like:
 
 The path component of the URL (in this case "/pfam") is the application root
 and we will need to set that in various files during this installation. Note
-that the application root should start with a slash but should not have a 
+that the application root should start with a slash but should not have a
 trailing slash.
 
 EOFloc
@@ -472,7 +472,7 @@ EOFloc
 $rawResponse = 
   $build->prompt( "What is the application root for your site ?",
                   $config{View}->{TT}->{CONSTANTS}->{root} );
-  
+
 # trim off trailing slashes
 $rawResponse =~ s/(.*?)\/?$/$1/;
 
@@ -554,7 +554,7 @@ until( $validResponse ) {
       print "(WW) WARNING: you will need to create the specified temp directory before starting the server.\n";
     }
     $validResponse = 1;
-  }  
+  }
 }
 
 # and get the URL for the same directory
@@ -564,6 +564,7 @@ my $tmpDirURL =
 
 $config{View}->{TT}->{COMPILE_DIR} = $tmpDirPath;
 $config{View}->{TT}->{CONSTANTS}->{tmp} = $tmpDirURL;
+$config{Controller}->{PfamGraphicsTools}->{uploadDir} = $tmpDirURL;
 
 #--------------------------------------
 
@@ -583,7 +584,7 @@ access.
 
 You will need to supply a username and password for each account.
 
-First, let's get parameters for the Pfam database. 
+First, let's get parameters for the Pfam database.
 
 EOFloc
 
@@ -591,27 +592,27 @@ $validResponse = 0;
 until( $validResponse ) {
 
   my $pfamDSN = "dbi:mysql";
-  
+
   $pfamDSN .= ":" .
     $build->prompt( "What is the name of the Pfam database ?",
                     "pfam_21_0" );
-  
+
   $pfamDSN .= ":" .
     $build->prompt( "What is the name of the machine on which the Pfam database is running ?",
                     "pfam" );
-  
+
   $pfamDSN .= ":" .
     $build->prompt( "What is the port number for connecting to the Pfam database ?",
                     "3306" );
-  
+
   my $pfamUser =
     $build->prompt( "What is the username for connecting to the Pfam database ?",
                     "pfamro" );
-  
+
   my $pfamPass =
     $build->prompt( "What is the password for connecting to the Pfam database ?",
                     "pfamro" );
-  
+
   $config{Model}->{PfamDB}->{connect_info}[0] = $pfamDSN;
   $config{Model}->{PfamDB}->{connect_info}[1] = $pfamUser;
   $config{Model}->{PfamDB}->{connect_info}[2] = $pfamPass;
@@ -862,8 +863,8 @@ until( $validResponse ) {
 
 $httpdConfig{PerlSetEnv} = [
   "PFAM_DOMAIN_IMAGES $config{View}->{TT}->{COMPILE_DIR}",
-  "PFAM_FAMILY_ROOT   $config{View}->{TT}->{CONSTANTS}->{root}",
   "PFAM_MUSCLE_BIN    $rawResponse",
+  "PFAMWEB_ROOT       $config{View}->{TT}->{CONSTANTS}->{root}",
   "PFAMWEB_CONFIG     $config{installRoot}/$newConfigFile" ];
 
 # edit the mod_rewrite rules. We need to apply the first pattern to both the
