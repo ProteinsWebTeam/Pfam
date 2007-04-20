@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.5 2007-04-16 16:04:59 jt6 Exp $
+# $Id: jumpBox.tt,v 1.6 2007-04-20 15:26:09 jt6 Exp $
 
 META naked = 1;
 
@@ -36,7 +36,7 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
 		var cleared = false;
 	</script>
 	<div onclick="if($F('entry')&amp;&amp;cleared)$('jumpForm').submit()"
-		 class="goButton">&nbsp;</div>
+		 class="glassButton goButton">&nbsp;</div>
 	<div class="cleaner"><!-- empty --></div>
   [% IF c.req.param( "jumpFailed" ) %]
   <span class="error">Couldn't figure out jump</span>
