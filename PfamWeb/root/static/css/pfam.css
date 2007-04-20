@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.39 2007-04-16 15:50:19 jt6 Exp $
+   $Id: pfam.css,v 1.40 2007-04-20 15:14:13 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -46,12 +46,12 @@ body {
 }
 
 ul, dl, ol {
-	position: relative;
+  position: relative;
 }
 
 .ext {
-	background: url(/catalyst/pfam/images/external.gif) no-repeat center right;
-    padding-right: 12px;
+  background: url(/catalyst/pfam/images/external.gif) no-repeat center right;
+  padding-right: 12px;
 }
 
 a:link,
@@ -172,7 +172,7 @@ img.info {
   color: #105a94;
 }
 
-#navbar span { 
+#navbar a.here { 
   color: #666;
 }
 
@@ -183,51 +183,87 @@ img.info {
 /* a little warning message */
 
 #jsWarning {
-	border: 2px solid #600;
-    background: #900;
-	color: #FFF;
-    margin: 0.4em auto;
-	width: 50%;
-    padding: 0.4em;
+  border: 2px solid #600;
+  background: #900;
+  color: #FFF;
+  margin: 0.4em auto;
+  width: 50%;
+  padding: 0.4em;
 }
 
 /* the logos, which are used for the overview in the index page as well as
    in all tab layout pages */
 
-#seqIcon	{ background-image: url(/catalyst/pfam/images/logos/alignment.png) }
-#archIcon	{ background-image: url(/catalyst/pfam/images/logos/domains.png) }
-#structIcon	{ background-image: url(/catalyst/pfam/images/logos/structure.png) }
-#ipfamIcon	{ background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
-#specIcon	{ background-image: url(/catalyst/pfam/images/logos/tree.png) }
+#seqIcon    { background-image: url(/catalyst/pfam/images/logos/alignment.png) }
+#archIcon    { background-image: url(/catalyst/pfam/images/logos/domains.png) }
+#structIcon  { background-image: url(/catalyst/pfam/images/logos/structure.png) }
+#ipfamIcon  { background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
+#specIcon    { background-image: url(/catalyst/pfam/images/logos/tree.png) }
 
 /* widgets in the jump box */
 
 .entryField {
-	border: 1px inset #074987;
-	background: #cbdced url(/catalyst/pfam/images/search_gradient.png) repeat-x top left;
-	margin: 1px 0;
-	padding: 2px;
-	color: #074987;
-	font-weight: bold;
-	font-size: x-small;
-	float: left;
+  border: 1px inset #074987;
+  background: #cbdced url(/catalyst/pfam/images/search_gradient.png) repeat-x top left;
+  margin: 1px 0;
+  padding: 2px;
+  color: #074987;
+  font-weight: bold;
+  font-size: x-small;
+  float: left;
+}
+.disabledEntryField {
+  background-color: #e7e7e7;
+  color: #666;
 }
 
 /* set the size of the field explicitly for the jumpBox */
 #jumpBox .entryField {
-	width: 110px; /* set to 145px for the right sidebar on the index page */
+  width: 110px; /* set to 145px for the right sidebar on the index page */
+}
+
+.glassButton {
+  border: none;
+  vertical-align: middle;
+  margin: 1px;
+  cursor: pointer;
+  float: left;
+  font-size: 1px;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: right;
 }
 
 .goButton {
   width: 33px;
   height: 20px;
-  font-size: 1px;
-  background: transparent url(/catalyst/pfam/images/go.png) no-repeat right;
-  border: none;
-  vertical-align: middle;
-  margin: 1px;
-  cursor: pointer;
-  float: left
+  background-image: url(/catalyst/pfam/images/go.png);
+}
+.disabledGoButton {
+  width: 33px;
+  height: 20px;
+  background-image: url(/catalyst/pfam/images/disabledGo.png);
+}
+
+.exampleButton {
+  width: 66px;
+  height: 20px;
+  background-image: url(/catalyst/pfam/images/exampleButton.png);  
+}
+
+/* ======================================== */
+/* components of the remainder of the page */
+
+#spacer {
+  background-color: #e7edf3; /* Prime 1 */
+}
+
+#contentContainer {
+  background-color: #e7edf3; /* Prime 1 */
+}
+
+#wrap {
+  background: url(/catalyst/pfam/images/bg.gif) repeat-y 15% 0;
 }
 
 /* ======================================== */
@@ -236,18 +272,18 @@ img.info {
    adds the background image, etc. */
 
 #siteFooter {
-	margin: 0.4em 0 0 0;
-	text-align: center;
+  margin: 0.4em 0 0 0;
+  text-align: center;
 }
 
 #siteFooter a {
-	letter-spacing: 2px;
+  letter-spacing: 2px;
   text-decoration: none;
   font-weight: bold;
 }
 
 #siteFooter p {
-	margin: 0.2em;
+  margin: 0.2em;
 }
 
 /* the footer for full page templates */
@@ -271,14 +307,14 @@ img.info {
 /* error page styles */
 
 div.errorReport {
-	width: 50%;
+  width: 50%;
   margin: 1em auto;
-	background: #EEE;
+  background: #EEE;
   border: 1px solid #CCC;
 }
 
 div.errorReport p {
-	padding: 0.5em;
+  padding: 0.5em;
   margin: 0;
 }
 
@@ -369,11 +405,11 @@ table.details tr.newRow td {
 }
 
 table.details tr {
-	background: #DDD;
+  background: #DDD;
 }
 
 td.stripeHover {
-	background: #CBD;
+  background: #CBD;
 }
 
 table.details tr.odd {
@@ -397,7 +433,7 @@ tr.continuation {
 }
 
 td.left {
-	text-align: left !important;
+  text-align: left !important;
 }
 
 /* ======================================== */
@@ -410,13 +446,13 @@ body.tool {
 }
 
 a.closer {
-	background: url(/catalyst/pfam/images/close.gif) no-repeat left;
+  background: url(/catalyst/pfam/images/close.gif) no-repeat left;
     padding-left: 11px;
-	margin: 0.2em;
+  margin: 0.2em;
 }
 
 body.tool h1 {
-	margin: 0;
+  margin: 0;
     padding: 0.4em 0;
 }
 
@@ -440,24 +476,24 @@ body.tool h1 {
 }
 
 .sortarrow {
-	width: 11px;
-	height:	15px;
-	background-position: center center;
-	background-repeat: no-repeat;
-	margin: 0 2px;
+  width: 11px;
+  height:  15px;
+  background-position: center center;
+  background-repeat: no-repeat;
+  margin: 0 2px;
     border-style: none;
 }
 
 .sortarrow.updown {
-	background-image: url(/catalyst/pfam/images/updown.gif);
+  background-image: url(/catalyst/pfam/images/updown.gif);
 }
 
 .sortarrow.down {
-	background-image: url(/catalyst/pfam/images/downsimple.gif);
+  background-image: url(/catalyst/pfam/images/downsimple.gif);
 }
 
 .sortarrow.up {
-	background-image: url(/catalyst/pfam/images/upsimple.gif);
+  background-image: url(/catalyst/pfam/images/upsimple.gif);
 }
 
 /* this is the auto-generated link for sorting the column */
@@ -469,25 +505,25 @@ a.sortheader {
 /* affects the key */
 
 #key {
-	padding: 4px;
-	margin: 8px 8px;
+  padding: 4px;
+  margin: 8px 8px;
     border: 1px solid #999;
     background-color: #EEE;
-	text-align: center;
+  text-align: center;
 }
 
 #key h2 {
     color: #074987;
-	text-align: left;
-	margin: 4px auto;
+  text-align: left;
+  margin: 4px auto;
     padding: 2px;
-	font-size: large;
+  font-size: large;
     font-weight: bold;
 }
 
 #key p {
-	margin: 0;
-	text-align: left;
+  margin: 0;
+  text-align: left;
 }
 
 /* affects the key table */
@@ -497,97 +533,100 @@ a.sortheader {
     margin-bottom: 4px;
     width: 50%;
     margin-left: 25%;
-	margin-right: 25%;
+  margin-right: 25%;
 }
 
 #keyTable .titleRow {
-	background: #AAA;
+  background: #AAA;
     font-weight: bold;
 }
 
 /* affects the results table */
 
 #resultTable {
-	clear: both;
-/* 	border: 1px solid #000070; */
+  clear: both;
+/*   border: 1px solid #000070; */
     margin: 0 auto;
 }
 
 #resultTable .rowNum {
-	display: none;
+  display: none;
 }
 
 #resultTable p {
-	display: none;
+  display: none;
 }
 
 #resultTable .fixedWidth {
-	width: 6em;
+  width: 6em;
 }
 
 #resultTable .desc {
-	text-align: left;
+  text-align: left;
 }
 
 #resultTable th {
-	padding: 3px;
+  padding: 3px;
 }
 
 #resultTable td {
-	padding: 3px;
-    text-align: center;
-	background-position: center center;
-    background-repeat: no-repeat;
-	background-image: url(/catalyst/pfam/images/blank_tick.gif);
+  padding: 3px;
+  text-align: center;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-image: url(/catalyst/pfam/images/blank_tick.gif);
 }
 
 #resultTable td.ticked {
-	background-image: url(/catalyst/pfam/images/tick.gif);
+  background-image: url(/catalyst/pfam/images/tick.gif);
 }
 
 #resultTable thead tr a {
-	color: white;
+  color: white;
 }
 
 #resultTable thead tr {
-	background: #074987;
+  background: #074987;
 }
 
 #results span.highlight,
 #resultTable tr.highlight {
-	background: #CBD;
+  background: #CBD;
 }
 
 /* ======================================== */
 /* rules that are common to several blocks */
 
 div.domain {
-	padding: 6px;
+  padding: 6px;
 }
 
 div.pdbImageFragment {
-    border-width: 1px;
-    border-style: solid;
-	float: right;
-    margin: 0.2em;
-	padding: 0.3em;
-    width: 200px;
-    font-size: 0.8em;
-    overflow: hidden;
+  border-width: 1px;
+  border-style: solid;
+  float: right;
+  margin: 0.2em;
+  padding: 0.3em;
+  width: 200px;
+  font-size: 0.8em;
+  overflow: hidden;
 }
 
 div.pdbImageFragment h1 {
-    font-size: 1em;
-    text-decoration: underline;
+  font-size: 1em;
+  text-decoration: underline;
+  background: #e7edf3;
+  border-color: #074987;
 }
 
 img.pdbImage {
-	width: 200px;
-    height: 200px;
+  width: 200px;
+  height: 200px;
 }
 
 h4.pdbTitle  {
-    display: inline;
+  display: inline;
+  color: #074987;
 }
 
 hr {
@@ -599,7 +638,7 @@ hr {
 }
 
 hr.short {
-	display: none;
+  display: none;
 }
 
 /* ---------------------------------------- */
@@ -629,18 +668,18 @@ img.graphicImage {
 }
 
 div.allArchitectures {
-	overflow: auto;
-    border: 1px solid #AAA;
-    margin: 0.6em;
-    max-height: 250px;
+  overflow: auto;
+  border: 1px solid #AAA;
+  margin: 0.6em;
+  max-height: 250px;
 }
 
 div.allArchitectures .odd {
-	background: #DED;
+  background: #DED;
 }
 
 div.allArchitectures .even {
-	background: #CDC;
+  background: #CDC;
 }
 
 /* ---------------------------------------- */
@@ -707,39 +746,39 @@ span.clanMember {
 /* species tree styles */
 
 .highlightSeed {
-	background: #CBD;
+  background: #CBD;
 }
 
 td.nodeSummaryCell {
-	width: 16em;
+  width: 16em;
 }
 
 div.nodeSummary {
-	margin-left: 0.2em;
+  margin-left: 0.2em;
 }
 
 div.nodeSummary div {
-    float: left;
-    border-width: 1px;
-	border-style: solid;
-    width: 2.5em;
-	height: 1.2em;
-    padding: 0.1em;
-    margin: 0.1em;
-	text-align: center;
+  float: left;
+  border-width: 1px;
+  border-style: solid;
+  width: 2.5em;
+  height: 1.2em;
+  padding: 0.1em;
+  margin: 0.1em;
+  text-align: center;
 }
 
 .specSum {
-	background: #FDD;
-    border-color: #B99;
+  background: #FDD;
+  border-color: #B99;
 }
 .seqSum {
-	background: #DFD;
-    border-color: #9B9;
+  background: #DFD;
+  border-color: #9B9;
 }
 .domSum {
-	background: #DDF;
-    border-color: #99B;
+  background: #DDF;
+  border-color: #99B;
 }
 
 #treeTools {
@@ -748,39 +787,39 @@ div.nodeSummary div {
   padding: 0.4em;
   border: 1px solid #AAA;
   background: #e8e8e8;
-	opacity: 0.75;
+  opacity: 0.75;
 }
 
 #speciesBlock > div.blockContent > #treeTools {
-    position: fixed;
+  position: fixed;
 }
 
 #treeTools ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 #treeTools li {
-    padding: 0.2em 0;
+  padding: 0.2em 0;
 }
 
 #treeTools h3 {
-    font-size: 1em;
-    padding: 0.4em 0 0.2em 0;
-    margin: 0;
+  font-size: 1em;
+  padding: 0.4em 0 0.2em 0;
+  margin: 0;
 }
 
 #treeToolsHeader h3 {
-    margin: 0;
-    padding: 0.2em 0;
-	float: left;
+  margin: 0;
+  padding: 0.2em 0;
+  float: left;
 }
 
 #toolsToggle {
-    cursor: pointer;
-	float: right;
-    padding: 0.2em 0;
+  cursor: pointer;
+  float: right;
+  padding: 0.2em 0;
 }
 
 /* ---------------------------------------- */
@@ -793,105 +832,105 @@ div.nodeSummary div {
 }
 
 #indexCitation {
-	padding-bottom: 0.4em;
+  padding-bottom: 0.4em;
 }
 
 #indexCitation h1,
 #indexCitation p {
-	padding: 0.4em 0;
-	margin: 0;
+  padding: 0.4em 0;
+  margin: 0;
 }
 
 div.citation span.title {
-	font-style: italic;
+  font-style: italic;
 }
 div.citation span.authors {
-	font-size: smaller;
+  font-size: smaller;
 }
 div.citation span.ref {
-	display: block;	
-	padding: 0.2em 0;
+  display: block;  
+  padding: 0.2em 0;
 }
 div.citation span.jrnl {
-	font-weight: bold;
+  font-weight: bold;
 }
 
 /* mirrors list */
 
 ul.mirrors {
-	margin: 0;
-	padding: 0;
-	list-style: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 ul.mirrors li {
-	padding: 0.2em 0 ! important;
+  padding: 0.2em 0 ! important;
 }
 
 a.mirror {
-	padding-left: 14px;
-	background-position: left;
-	background-repeat: no-repeat;
+  padding-left: 14px;
+  background-position: left;
+  background-repeat: no-repeat;
 }
 
 /* the national flags */
 a.us {
-	background-image: url(/catalyst/pfam/images/flags/american_flag.gif);
+  background-image: url(/catalyst/pfam/images/flags/american_flag.gif);
 }
 a.se {
-	background-image: url(/catalyst/pfam/images/flags/swedish_flag.gif);
+  background-image: url(/catalyst/pfam/images/flags/swedish_flag.gif);
 }
 a.kr {
-	background-image: url(/catalyst/pfam/images/flags/south_korea.gif);
+  background-image: url(/catalyst/pfam/images/flags/south_korea.gif);
 }
 a.fr {
-	background-image: url(/catalyst/pfam/images/flags/french_flag.gif);
+  background-image: url(/catalyst/pfam/images/flags/french_flag.gif);
 }
 
 /* ======================================== */
 /* domain query rules */
 
 #nlUpdateSpinner {
-	margin: 0.2em;
+  margin: 0.2em;
 }
 
 #idList select,
 #haveList select,
 #notList select {
-	margin: 0.2em;
+  margin: 0.2em;
 }
 
 #idList,
 #haveList,
 #notList {
-	width: 30%;
-    margin: 0.2em;
+  width: 30%;
+  margin: 0.2em;
 }
 
 #idList h3,
 #haveList h3,
 #notList h3 {
-	padding: 0.2em;
-    margin: 0;
+  padding: 0.2em;
+  margin: 0;
 }
 
 #domainSearchButtons {
-	clear: both;
+  clear: both;
 }
 
 span.buttons {
-	padding: 0.2em;
+  padding: 0.2em;
 }
 
 p.domainQueryInstruction {
-	height: 5.2em;
-    float: left;
-	margin: 0;
-    padding: 0.2em;
+  height: 5.2em;
+  float: left;
+  margin: 0;
+  padding: 0.2em;
 }
 
 #textResults {
-	margin: 0.4em 0.2em;
+  margin: 0.4em 0.2em;
 }
 
 /* ======================================== */
