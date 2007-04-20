@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.1 2007-04-16 15:49:19 jt6 Exp $
+// $Id: job.js,v 1.2 2007-04-20 15:20:15 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -26,12 +26,24 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 
+// class definition
 var Job = Class.create();
 
-// a tally of submitted jobs and a list of those that are actually running
-Job.LIST    = new Hash();
-Job.RUNNING = new Hash();
+// class variables
 
+// a tally of submitted jobs and a list of those that are actually running
+if( Job.LIST    === undefined ) { Job.LIST    = new Hash(); }
+if( Job.RUNNING === undefined ) { Job.RUNNING = new Hash(); }
+
+// constants
+
+// tick interval
+Job.TICK_INTERVAL = 1000;
+
+// the timeout period
+Job.TIMEOUT = 300000;
+
+// add some methods...
 Job.prototype = {
 
   //----------------------------------------------------------------------------
@@ -44,55 +56,72 @@ Job.prototype = {
     try {
       this.checkInput( jobConfig );
     } catch( e ) {
-      console.error( e );
+      // console.error( e );
       throw e;
     }
 
     //----------------------------------------
 
     // job parameters
-    this.jobName       = jobConfig.name;                 // a pretty name for the job
-    this.elId          = jobConfig.elId;                 // the ID for the parent div
-    this.jobId         = jobConfig.status.jobId;         // the job ID, from the server
+
+/*
+{
+  checkURI => "http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/seqsearch/checkstatus",
+  doneURI => "http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/seqsearch/jobDone",
+  jobs => [
+        {
+          estimatedTime => 8,
+          interval => 3,
+          jobId => "9FB12EA2-EF2F-11DB-B860-71AC15EABA95",
+          name => "Pfam A search",
+          submitted => "2007-04-20 12:09:35",
+        },
+        {
+          estimatedTime => 8,
+          interval => 3,
+          jobId => "9FB6F512-EF2F-11DB-B860-71AC15EABA95",
+          name => "Pfam A search",
+          submitted => "2007-04-20 12:09:35",
+        },
+      ],
+}*/
+
     this.estimatedTime = jobConfig.status.estimatedTime; // estimated job run time
+    this.interval      = jobConfig.status.interval;      // polling interval
+    this.jobId         = jobConfig.status.jobId;         // the job ID, from the server
+    this.elId          = jobConfig.status.jobId;         // use the job ID as element ID
+    this.jobName       = jobConfig.status.name;          // a pretty name for the job
+    this.opened        = jobConfig.status.opened;        // submission time
     this.checkURI      = jobConfig.checkURI;             // URI to poll for status
     this.doneURI       = jobConfig.doneURI;              // URI for retrieving results
 
     //----------------------------------------
 
-    // build the markup for the progress bar
-    this.buildProgressBar();
-
-    // keep shortcut to the status message and error message elements
-    this.statusMsg = $( jobConfig.statusMsg );
-    this.errorMsg  = $( jobConfig.errorMsg );
+    // build the markup for the Job
+    this.buildMarkup(); 
 
     //----------------------------------------
 
-    // set periodical execution parameters
-    this.interval = ( jobStatus.interval === undefined ) ? 3 : jobStatus.interval;    
-    this.callback = this.update;
-    this.currentlyExecuting = false;
+    // set up the interval timer and timeout
 
-    // create a timer. We'll trigger every second but only poll the server at
+    // create a timer. We'll trigger at one interval but only poll the server at
     // the interval specified by the caller
-    this.tick = 0;
-    this.timer = setInterval( this.onTimerEvent.bind( this ), 1000 );
+    this.timer = setInterval( this.onTimerEvent.bind( this ), Job.TICK_INTERVAL );
+    console.debug( "Job.initialize: started interval timer" );
+
+    // set a timeout
+    this.timeout = setTimeout( this.onTimeout.bind( this), Job.TIMEOUT );
+    console.debug( "Job.initialize: started timeout timer" );
 
     //----------------------------------------
 
     // keep track of how many jobs are running concurrently
     Job.LIST[ this.jobId ] = 1;
     Job.RUNNING[ this.jobId ] = 1;
-    console.debug( "Job.initialize: currently running jobs: " + Job.RUNNING );
 
     //----------------------------------------
 
-    // get a logger (or pretend to) and log this job
-    this.l = this.getLogger();
-    // this.l.log( "submitted job \"" + this.jobName + "\" (" + this.jobId + ")",
-    //             "initialize" );
-    this.l.log( "submitted job " + this.jobId, "initialize" );
+    this.log( "initialize", "submitted job " + this.jobId );
 
   },
 
@@ -104,13 +133,31 @@ Job.prototype = {
 
   checkInput: function( jobConfig ) {
 
-    // a name for the job, user readable
-    if( jobConfig.name === undefined ) {
-      throw "Job name not given";
+    // estimated run time
+    if( jobConfig.status.estimatedTime === undefined ) {
+      throw "No estimated time specified";
     }
 
-    // make sure the two URIs are defined
+    // check for a polling interval
+    if( jobConfig.status.interval === undefined ) {
+      throw "No polling interval specified";
+    }
+
+    // must have a job ID
+    if( jobConfig.status.jobId === undefined ) {
+      throw "No job ID specified";
+    }
     
+    // the presentable name for the job
+    if( jobConfig.status.name === undefined ) {
+      throw "No job name specified";
+    }
+
+    // when was it started ?
+    if( jobConfig.status.opened === undefined ) {
+      throw "No start time given";
+    }
+
     // the URI that we poll
     if( jobConfig.checkURI === undefined ) {
       throw "Server URIs not configured: 'checkURI' not defined";
@@ -121,116 +168,343 @@ Job.prototype = {
       throw "Server URIs not configured: 'doneURI' not defined";
     }
 
-    // must have a job ID too - specified in the status object, which comes
-    // ultimately from the server right now
-    if( jobConfig.status.jobId === undefined ) {
-      throw "No job ID specified";
-    }
-
-    // and finally, we need to know the ID for the progress bar holder, so
-    // that we can update its components
-    if( jobConfig.elId === undefined ) {
-      throw "No element ID specified";
-    }
   },
 
   //----------------------------------------------------------------------------
-  // build the markup for the progress bar
+  // build the markup
 
-  buildProgressBar: function() {
+  buildMarkup: function() {
+
+/*
+    should hopefully look something like this:
+    <div id="jobs">
+      <div class="job" id="9E1FA256-EF45-11DB-B2ED-4EAF15EABA95">
+        <div class="jobTitle">Pfam A search</div>
+        <dl>
+          <dt>Status:</dt>
+          <dd><span class="spinner">pending</span></dd>
+          <dt>Submitted:</dt>
+          <dd>2007-04-20 14:47:02</dd>
+          <dt>Started:</dt>
+          <dd>-</dd>
+          <dt>Estimated run time:</dt>
+          <dd>12 seconds</dd>
+          <dt>Progress:</dt>
+          <dd>
+            <div class="progressWrapper">
+              <div class="progressBar"></div>
+            </div>
+          </dd>
+        </dl>
+      </div>
+    </div>
+*/
+
+    // a top-level container for the job markup
+    var jobDiv = document.createElement( "div" );
+    jobDiv.setAttribute( "id",    this.jobId );
+    jobDiv.setAttribute( "class", "job" );
+
+    // the title for the bar
+    var title = document.createElement( "div" );
+    title.addClassName( "jobTitle" );
+    title.update( this.jobName );
+    jobDiv.appendChild( title );
+
+    // use a definition list to format a couple of status items
+    var dl = document.createElement( "dl" );
+
+    // the status read-out
+    var statusLabel = document.createElement( "dt" );
+    statusLabel.update( "Status:" );
+    dl.appendChild( statusLabel );
+    var statusValue = document.createElement( "dd" );
+    statusValue.update( "unknown" );
+    dl.appendChild( statusValue );
+
+    // keep track of this so we can poke values into it easily
+    this.statusMsg = statusValue;
+
+    // submission time
+    var submittedLabel = document.createElement( "dt" );
+    submittedLabel.update( "Submitted:" );
+    dl.appendChild( submittedLabel );
+    var submittedValue = document.createElement( "dd" );
+    submittedValue.update( this.opened );
+    dl.appendChild( submittedValue );
+    
+    // start time
+    var startedLabel = document.createElement( "dt" );
+    startedLabel.update( "Started:" );
+    dl.appendChild( startedLabel );
+    var startedValue = document.createElement( "dd" );
+    startedValue.update( "-" );
+    dl.appendChild( startedValue );
+    
+    this.startedValue = startedValue;
+
+    // estimated run time
+    var estLabel = document.createElement( "dt" );
+    estLabel.update( "Estimated run time:" );
+    dl.appendChild( estLabel );
+    var estValue = document.createElement( "dd" );
+    estValue.update( this.estimatedTime + " seconds");
+    dl.appendChild( estValue );
+
+    // the progress bar
+    var barLabel = document.createElement( "dt" );
+    barLabel.update( "Progress:" );
+    dl.appendChild( barLabel );
+    var barValue = document.createElement( "dd" );
+
+    // a container for the bar
     this.wrapper = document.createElement( "div" );
-    this.wrapper.setAttribute( "class", "progressWrapper" );
+    this.wrapper.addClassName( "progressWrapper" );
 
+    // the bar itself - stored as a class variable so we can change its
+    // dimensions later
     this.bar = document.createElement( "div" );
-    this.bar.setAttribute( "class", "progressBar" );
-
+    this.bar.addClassName( "progressBar" );
     this.wrapper.appendChild( this.bar );
-    $(this.elId).appendChild( this.wrapper );
+
+    barValue.appendChild( this.wrapper );
+    dl.appendChild( barValue );
+
+    // add the list to the div
+    jobDiv.appendChild( dl );
+
+    // finally, add this markup to the "jobs" div
+    $("jobs").appendChild( jobDiv );
+
+    console.debug( "Job.buildMarkup: built job markup" );
   },
-   
+     
   //----------------------------------------------------------------------------
   // stop the timer
   
   stop: function() {
-    if( ! this.timer ) {
+    if( ! this.timer || ! this.timeout ) {
       return;
     }
     clearInterval( this.timer );
-    this.timer = null;
+    this.timer   = null;
+    clearTimeout( this.timeout );
+    this.timeout = null;
+
+    console.debug( "Job.stop: timer stopped" );
   },
 
   //----------------------------------------------------------------------------
-
-  // try to create a logger or generate a stub if we fail to create a real one
-  getLogger: function() {
-    console.debug( "Job.getLogger: generating a logger" );
-    var l = new Logger();
-    if( l === undefined ) {
-      l = {};
-      l.log = function() {};      
-    }
-    console.debug( "Job.getLogger: l = " + l );
-    return l;
-  },
-
-  //----------------------------------------------------------------------------
-  //- callbacks ----------------------------------------------------------------
+  //- timer callbacks ----------------------------------------------------------
   //----------------------------------------------------------------------------
 
-  // the callback for the timer itself. Triggers the call to poll the server 
-  // and update the page and progress bar
-
-  onTimerEvent: function() {
-    if( ! this.currentlyExecuting ) {
-      try {
-        this.currentlyExecuting = true;
-        this.update();
-      } finally {
-        this.currentlyExecuting = false;
-      }
-    }
-  },
+  // the callback for the timer. Performs a couple of checks on each tick: 
+  //  o on each tick we'll see if the job is running and, if so, update the 
+  //    progress bar.
+  //  o at the specified polling intervals we'll send a request to the server to
+  //    retrieve the job status
   
-  //----------------------------------------------------------------------------
-  // update the progress bar and see if we should poll the server on this tick
+  onTimerEvent: function() {
 
-  update: function() {
-    this.updateProgressBar();    
-    
+    // only poll the server for the job status at the required interval    
     if( 0 != this.tick++ % this.interval ) {
       new Ajax.Request( this.checkURI, 
                         {
                           method:     'get',
                           onSuccess:  this.checkStatus.bind( this ),
+                          onFailure:  this.pollingFailed.bind( this ),
                           parameters: { jobId: this.jobId }
                         }
                       );
     }
   },
 
-  //----------------------------------------
+  //----------------------------------------------------------------------------
+  // the callback for the timeout. 
+  
+  onTimeout: function() {
+    console.debug( "Job.onTimeout: job timed out ! Stopping updates..." );
 
-  // see if the job is complete. Updates the status message appropriately
+    // tidy up here
+
+    this.stop();
+  },
+
+  //----------------------------------------------------------------------------
+  //- job status callbacks -----------------------------------------------------
+  //----------------------------------------------------------------------------
+
+  // called when the ajax call to poll the job status fails. An opportunity
+  // to tidy up and tell the user that there were problems
+
+  pollingFailed: function() {
+    console.debug( "Job.statusCheckFailed: couldn't poll server for status" );
+
+    // tidy up here
+  },
+  
+  //----------------------------------------------------------------------------
+  // reacts to the status of the job, as retrieved from the server
 
   checkStatus: function( result ) {
+
     var statusString = result.responseText;
     var statusObj;
     try {
       statusObj = statusString.evalJSON();
     } catch( e ) {
       // problem retrieving status. Say so
+      console.debug( "Job.checkStatus: couldn't parse the JSON from the server: " + statusString );
       this.errorMsg.update( "There was a problem retrieving the status of your job." );
+      return;
     }
 
-    if( statusObj.status == "DONE" || statusObj.status == "FAIL" ) {
-      this.jobDone( statusObj );
-    } else {
-      this.statusMsg.update( "pending" );
+    // got a status object from the server response
+    // console.debug( "Job.checkStatus: status object: " +  statusString );
+
+    switch( statusObj.status ) {
+      case "PEND":
+        this.jobPending( statusObj );
+        break;
+      case "RUN":
+        this.jobRunning( statusObj );
+        break;
+      case "DONE":
+        this.jobDone( statusObj );
+        break;
+      case "FAIL":
+        this.jobFailed( statusObj );
+        break;
+      default:
+        // something unexpected happened...
     }
+
   },
 
   //----------------------------------------------------------------------------
-  // update the progress bar
+  //- handlers for the various job status values -------------------------------
+  //----------------------------------------------------------------------------
+
+  // the job is pending. Don't update the progress bar but do
+
+  jobPending: function( statusObj ) {
+    // console.debug( "Job.jobPending: still waiting for the job to run..." );
+
+    // set the status message
+    this.statusMsg.update( "<span class='spinner'>pending</span>" );
+    
+    // log the number of pending jobs
+    var n = statusObj.numPending;
+    var w = statusObj.waitTime;
+    if( n != this.lastPending && n > 0 ) {
+      
+      // I've no idea why I can't build this string in one line, but I'm 
+      // buggered if I can get it to work, so...
+      var areIs = ( n > 1 ) ? "are" : "is";
+      var s     = ( n > 1 ) ? "s" : "";
+      var msg = "there " + areIs + " " + n + " job" + s + 
+                " in the queue ahead of yours. Estimated wait " + w + " seconds";
+
+      this.log( "pending", msg ); 
+    }
+    
+    // keep track of how many jobs were pending when we last checked
+    this.lastPending = n;
+  },
+
+  //----------------------------------------------------------------------------
+  // the job is running. Update the progress bar etc.
+
+  jobRunning: function( statusObj ) {
+    // console.debug( "Job.jobRunning: updating the client" );
+
+    if( ! this.running ) {
+      
+      // don't do all of this again
+      this.running = true;
+
+      // start the "ticks", so that the progress bar gets updated
+      this.tick = 0;
+       
+      // set the status message
+      this.statusMsg.update( "running" );
+
+      // log it
+      this.log( "submitted", 
+                "your job is now running (started " + statusObj.started + ")" );
+
+      // add the start time to the status line
+      this.startedValue.update( statusObj.started );
+    }
+
+    // update the status bar
+    this.updateProgressBar();
+  },
+
+  //----------------------------------------------------------------------------
+  // the job has completed. Tidy up
+
+  jobDone: function( statusObj ) {
+    console.debug( "Job.jobDone: the job completed successfully" );
+
+    this.jobEnded( statusObj );
+
+    // tidy up here
+  },
+  
+  //----------------------------------------------------------------------------
+  // the job has completed. Tidy up
+
+  jobFailed: function( statusObj ) {
+    console.debug( "Job.jobFailed: the job failed" );
+
+    this.jobEnded( statusObj );
+
+    // tidy up here
+  },
+
+  //----------------------------------------------------------------------------
+  // tidy up at the completion of a job, whether successful or unsuccessful
+
+  jobEnded: function( statusObj ) {
+    console.debug( "Job.jobEnded: job completed; tidying up" );
+    
+    // just for good form... shouldn't matter but still
+    this.running = false;
+    
+    // stop the timer and kill the timeout
+    this.stop();
+
+    // update the status message
+    if( statusObj.status == "FAIL" ) {
+      console.debug( "Job.jobEnded: job failed..." );  
+    } else {
+      console.debug( "Job.jobEnded: job successful" );  
+    }
+
+    // update the list of currently running jobs and then see if we should
+    // finish off
+    Job.RUNNING.remove( this.jobId );
+
+    var left = Job.RUNNING.keys().size();
+    console.debug( "Job.jobEnded: " + left + " jobs left" );
+    if( left < 1 ) {
+      console.debug( "Job.jobEnded: all jobs completed; finishing up" );  
+      this.log( "finished", "all jobs complete; redirecting" );
+      this.finish();
+    } else {
+      console.debug( "Job.jobEnded: still waiting for " + left + " jobs" );  
+      this.log( "waiting", "still waiting for " + left + 
+                " job" + (left > 1 ) ? "s" : "" + " to complete..." );
+    }
+
+  },
+
+  //----------------------------------------------------------------------------
+  //- methods to update client display -----------------------------------------
+  //----------------------------------------------------------------------------
+
+  // updates the progress bar
 
   updateProgressBar: function() {
 
@@ -247,76 +521,57 @@ Job.prototype = {
   },
 
   //----------------------------------------------------------------------------
-  // the job has completed so tidy up
-
-  jobDone: function( statusObj ) {
-
-    // stop the timer
-    this.stop();
-
-    // as we're done with it, hide the progress bar entirely
-    $(this.elId).getElementsByClassName( "progressWrapper" ).each(
-      function( el ) {
-        el.hide();
-      }
-    );
-
-    // update the status message
-    if( statusObj.status == "FAIL" ) {
-      console.debug( "Job.jobDone: job failed..." );  
-      this.statusMsg.update( "failed" ).addClassName( "jobFailed" );
-    } else {
-      console.debug( "Job.jobDone: job successful" );  
-      this.statusMsg.update( "done" ).addClassName( "jobSuccessful" );
-    }
-
-    // update the list of currently running jobs and then see if we should
-    // finish off
-    Job.RUNNING.remove( this.jobId );
-
-    var left = Job.RUNNING.keys().size();
-    console.debug( "Job.jobDone: " + left + " jobs left" );
-    if( left < 1 ) {
-      console.debug( "Job.jobDone: all jobs completed; finishing up" );  
-      this.l.log( "all jobs complete; redirecting" );
-      this.finish();
-    } else {
-      console.debug( "Job.jobDone: still waiting for " + left + " jobs" );  
-      this.l.log( "still waiting for " + left + 
-                  " job" + (left > 1 ) ? "s" : "" + " to complete..." );
-    }
-
-    // poll the server one last time to get the result of the job  
-    /* new Ajax.Request( this.doneURI,
-                      {
-                        method:     'get',
-                        onSuccess:  this.finish.bind(this),
-                        parameters: { id: this.jobId }
-                      }
-                    );
-       */
-  },
-  
-  //----------------------------------------
-
+  // all jobs are done; redirect to the "done" page
 
   finish: function( result ) {
     console.debug( "Job.finish: finishing up" );
     
-    // all jobs are done; redirect to the "done" page
+    // need to build the URI with the job IDs given as parameters
     var doneLoc = this.doneURI + "?";
     var buildURI = $A( Job.LIST.keys() ).inject( doneLoc,
-                 function( uri, jobId ) {
-                   return uri + "job=" + jobId + "&amp;";
-                 }
-               );
+                       function( uri, jobId ) {
+                         return uri + "jobId=" + jobId + "&amp;";
+                       }
+                     );
     // chop of the last ampersand
     var uri = buildURI.substr( 0, buildURI.length-5 )
-    console.debug( "Job.finish: redirecting to: |" + uri + "|" )
 
+    console.debug( "Job.finish: redirecting to: |" + uri + "|" )
     document.location = uri;
   },
   
   //----------------------------------------------------------------------------  
+
+  log: function( title, msg ) {
+    
+    // where are we putting the new message ?
+    var messages = $A( $("logScroller").childNodes );
+    var numMsgs = messages.size();
+    var last = $A( $("logScroller").childNodes ).last();
+
+    // a span to hold the whole log entry
+    var entryEl = document.createElement( "div" );
+    entryEl.setAttribute( "id", "msg" + numMsgs );
+
+    // the title
+    var titleEl = document.createElement( "span" );
+    titleEl.setAttribute( "class", "title" )
+    titleEl.update( title + ":&nbsp;" );
+    
+    // the message itself
+    var msgEl = document.createElement( "span" );
+    msgEl.setAttribute( "class", "msg" );
+    msgEl.update( msg );
+
+    // the entry
+    entryEl.appendChild( titleEl );
+    entryEl.appendChild( msgEl );
+    $("logScroller").appendChild( entryEl );
+
+    // scroll the logger to make the most recent message appear
+    $("logScroller").scrollTop = $("logScroller").scrollHeight;
+  
+  //----------------------------------------------------------------------------  
+  }
 
 };
