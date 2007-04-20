@@ -4,7 +4,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.21 2007-04-20 15:23:46 jt6 Exp $
+# $Id: index.tt,v 1.22 2007-04-20 16:09:26 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -117,7 +117,9 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 
   <div id="protein" class="panel" style="display: none">
     <h3>Analyze your protein sequence for Pfam matches</h3>
-    <p>Paste your protein sequence here to find the matching Pfam families.</p>  
+    <p>
+      Paste your protein sequence here to find the matching Pfam families.
+    </p>  
     <form action="[% c.uri_for( "/seqsearch/seq" ) %]"
           method="get" 
           id="seqForm">
@@ -137,8 +139,10 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
          class="glassButton goButton">&nbsp;</div>
     <div onclick="$('seq').value=exSeq"
          class="glassButton exampleButton">&nbsp;</div>
-    <p>
-      You can specify search parameters using 
+    <p class="small">
+      This search will use the <code>pfam_ls</code> library (global) and the 
+      <a href="[% c.uri_for( "/help", tab="helpGlossaryBlock" ) %]">
+        gathering threshold</a>. You can specify the search parameters using 
       <a href="[% c.uri_for( "/seqsearch", tab="searchSequenceBlock"  ) %]">
         this</a> form.      
     </p>
