@@ -3,7 +3,7 @@
 # jobDone.tt
 # jt6 20070414 WTSI
 #
-# $Id: jobDone.tt,v 1.1 2007-04-17 08:38:05 jt6 Exp $
+# $Id: jobDone.tt,v 1.2 2007-04-20 15:24:25 jt6 Exp $
 
 META title    = "Results of your sequence search";
 META fullPage = 1;
@@ -21,8 +21,10 @@ requirements.css.push( "job.css" );
 
 <h1>Job results</h1>
 
-<ul>
-[% FOREACH jobId IN jobIds %]
-  <li>[% jobId %]</li>
+[% FOREACH jobId IN results.keys %]
+<h2>Job [% jobId %]</h2>
+
+<pre>
+[% results.$jobId %]
+</pre>
 [% END %]
-</ul>
