@@ -1,0 +1,279 @@
+
+[%
+# uploadXml.tt
+# jt6 20070402 WTSI
+#
+# builds form for uploading XML describing a Pfam graphic
+#
+# $Id: uploadXml.tt,v 1.1 2007-04-20 15:23:08 jt6 Exp $
+
+META title = "XML Upload";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "graphicTools.css" );
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<h1>Generate domain images</h1>
+<p>
+  This tool allows you to generate your own domain images, by uploading an XML 
+  file describing the image you need. The XML must conform to the Pfam 
+  <a href="[% c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]">schema</a>.
+  Badly formed or non-validating XML uploads will be rejected. Please
+  <a href="[% c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]">download the schema</a>
+  and validate your XML locally before uploading it.
+</p>
+<p>
+  Check the &quot;Image only&quot; box to return just the generated domain 
+  image, with no surrounding HTML. Please note that only the one image (the 
+  first one in the XML description) will be generated, even if the XML contains 
+  multiple &lt;sequence&gt; tags.
+</p>
+
+[% IF error %]
+<div class="error">
+  <h1>Error</h1>
+  <p>
+    [% error %]
+  </p>
+</div>
+[% END %]
+
+<div id="form">
+  <form method="post" 
+        action="[% c.uri_for( "/renderXML" ) %]" 
+        enctype="multipart/form-data">
+    <label for="uploadField">Upload your XML file:</label>
+    <input type="file" 
+           name="XMLupload" 
+           tabindex="1"  
+           size="30" 
+           id="uploadField" />
+    <label>
+      <input type="checkbox" 
+             name="image_only" 
+             value="1" 
+             tabindex="2" />Image only
+    </label>
+    <input type="submit" 
+           tabindex="3" 
+           name="upload" 
+           value="Upload" 
+           class="button" />
+    <input type="reset" 
+           tabindex="4" 
+           name="Reset" 
+           value="Reset" 
+           class="button" />
+  </form>
+</div>
+
+<script type="text/javascript">
+  $("uploadField").focus();
+</script>
+
+<div id="generatedXml" class="graphicItem">
+
+  <p>
+    <strong>Example domain image:</strong>This image shows all of the available 
+    rendering features of the domain image generator.
+  </p>
+
+  <img src="http://www.sanger.ac.uk/Software/Pfam/images/domain_image_example.png" 
+       alt="Example Pfam graphic" />
+
+</div>
+
+<div id="generatedXml" class="graphicItem">
+
+  <span class="link" onclick="reveal( this, 'xmlFragment', false )">Show XML</span>
+
+  [% schema = c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]
+  <div id="xmlFragment" style="display: none">
+    <pre>
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;image xmlns=&quot;[% schema %]&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;[% schema %]
+                           [% schema %]&quot;
+       format=&quot;png&quot; 
+       layout=&quot;continuous&quot; 
+       scale_x=&quot;0.5&quot; 
+       scale_y=&quot;1.0&quot;&gt;
+  &lt;sequence length=&quot;800&quot; display_data=&quot;test all drawing features&quot; name=&quot;TestSeq&quot;&gt;
+    &lt;region start=&quot;600&quot; end=&quot;790&quot; label=&quot;curvedBig&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9999ff&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;99ccff&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;curved&quot; rightStyle=&quot;curved&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;210&quot; end=&quot;300&quot; label=&quot;jaggedBig&quot; link_URL=&quot;/&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;339999&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;&lt;RGB R=&quot;51&quot; G=&quot;204&quot; B=&quot;204&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;jagged&quot; rightStyle=&quot;jagged&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;310&quot; end=&quot;400&quot; label=&quot;straightBig&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;c00f0f&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;colour2&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;e83737&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour2&gt;
+      &lt;bigShape leftStyle=&quot;straight&quot; rightStyle=&quot;straight&quot;/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;410&quot; end=&quot;450&quot; label=&quot;Med&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9CFF00&quot;/&gt;&lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;region start=&quot;550&quot; end=&quot;564&quot; label=&quot;Low Complexity&quot; link_URL=&quot;/&quot;&gt;
+      &lt;colour1&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;00FFFF&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/colour1&gt;
+      &lt;smlShape/&gt;
+    &lt;/region&gt;
+    &lt;markup start=&quot;500&quot; v_align=&quot;bottom&quot; label=&quot;bold line, uparrow&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9900CC&quot;/&gt;&lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;arrow&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;9900CC&quot;/&gt;&lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot; 520&quot; v_align=&quot;top&quot; label=&quot;bold line, down arrow&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;707070&quot;/&gt;&lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;arrow&quot;&gt;
+        &lt;colour&gt;&lt;hex hexcode=&quot;707070&quot;/&gt;&lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;180&quot; end=&quot;209&quot; v_align=&quot;top&quot; label=&quot;disulphide between 140 and 242&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;145&quot; end=&quot;249&quot; v_align=&quot;top&quot; label=&quot;disulphide between 140 and 242, dashed&quot;&gt;
+      &lt;line style=&quot;mixed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;159&quot; v_align=&quot;top&quot; label=&quot;bold line, Square head&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;square&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF3366&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;59&quot; v_align=&quot;bottom&quot; label=&quot;bold line, Square head&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;square&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;9966cc&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;10&quot; v_align=&quot;bottom&quot; label=&quot;straight, Diamond head&quot;&gt;
+      &lt;line style=&quot;straight&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;diamond&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF3366&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;40&quot; v_align=&quot;bottom&quot; label=&quot;dashed line, Circle head&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;circle&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;333399&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;600&quot; v_align=&quot;top&quot; label=&quot;bold line, Square head&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;square&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;66ff00&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;650&quot; v_align=&quot;top&quot; label=&quot;straight, Diamond head&quot;&gt;
+      &lt;line style=&quot;straight&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;diamond&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;FF3366&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;
+    &lt;markup start=&quot;635&quot; v_align=&quot;top&quot; label=&quot;dashed line, Circle head&quot;&gt;
+      &lt;line style=&quot;dashed&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;666666&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/line&gt;
+      &lt;head style=&quot;circle&quot;&gt;
+        &lt;colour&gt;
+          &lt;hex hexcode=&quot;cc9933&quot;/&gt;
+        &lt;/colour&gt;
+      &lt;/head&gt;
+    &lt;/markup&gt;      
+  &lt;/sequence&gt;
+&lt;/image&gt;
+    </pre>
+  </div>
+
+</div>
+
+<p>
+  <strong>Note:</strong> You can also see the domain graphics for a particular 
+  UniProt entry <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">here</a>, along with the 
+  XML file that was used to generate the image.
+</p>
