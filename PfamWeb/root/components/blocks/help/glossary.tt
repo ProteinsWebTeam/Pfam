@@ -4,7 +4,7 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.4 2007-04-16 16:07:20 jt6 Exp $
+# $Id: glossary.tt,v 1.5 2007-04-20 16:09:10 jt6 Exp $
 %]
 
 <!-- start glossary.tt block -->
@@ -73,7 +73,7 @@
       entry.
     </p>
 
-    <h3>Gathering cutoff (GA)</h3>
+    <h3>Gathering threshold (GA)</h3>
     
     <p>
       The search threshold used to build the full alignment. The GA is the 
