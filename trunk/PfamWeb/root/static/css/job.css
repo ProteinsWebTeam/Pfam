@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.2 2007-04-16 15:50:01 jt6 Exp $
+   $Id: job.css,v 1.3 2007-04-20 15:13:56 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -27,8 +27,6 @@
     
 */   
 
-
-
 .jobStatus {
   font-weight: bold;
 }
@@ -41,11 +39,43 @@
   color: #696;
 }
 
-/* the progress bar itself */
+#jobs {
+  margin: 0.4em;
+}
 
+/* the job div */
+.job {
+  border: 1px solid #CCC;
+  background: #e7e7e7;
+} 
+.job div.jobTitle {
+  background: #CCC;
+  border-bottom: 1px solid #CCC;
+  font-weight: bold;
+  font-size: larger;
+  padding: 0.4em;
+}
+
+/* status info */
+dl {
+  margin: 0.4em;
+}
+dt {
+  float: left;
+  font-weight: bold;
+  margin: 0;
+  padding: 0.2em;
+}
+
+dd {
+  margin: 0 0 0 12em;
+  padding: 0.2em;
+}
+
+/* the progress bar */
 div.progressWrapper {
   border: 1px solid #666;
-  width: 80%;
+/*   width: 80%; */
   margin: 0;
   padding: 0;
   z-index: 10;
@@ -62,14 +92,20 @@ div.progressBar {
   z-index: 1;
 }
 
-/* the status logger */
+/* a spinner image */
+.spinner {
+  padding-left: 16px;
+  background: transparent url( /catalyst/pfam/images/loading.gif ) left center no-repeat;
+}
 
+/* the status logger */
 #logger {
-  float: right;
-  width: 400px;
   font-size: smaller;
-  border: 1px solid #666;
+  border: 1px solid #ccc;
   background: #e7e7e7;
+  padding: 0.4em;
+  margin: 0 auto;
+  width: 60%;
 }
 
 #logScroller {
@@ -83,10 +119,6 @@ div.progressBar {
   text-decoration: underline;
 }
 
-#logger span.msg {
-  display: block;
-}
-
-#logger span.caller {
+#logger span.title {
   font-weight: bold;
 }
