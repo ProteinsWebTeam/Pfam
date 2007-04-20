@@ -2,25 +2,36 @@
 
 
 use Getopt::Long;
-use lib '/nfs/WWW/SANGER_docs/perl/bioperl-1.2';
-use lib '/nfs/WWWdev/SANGER_docs/cgi-bin/Rfam';
-use lib '/nfs/team71/pfam/mm1/rfam_cvs/scripts/Modules';
+#use lib '/nfs/WWW/SANGER_docs/perl/bioperl-1.2';
+use lib '/pfam/db/bioperl';
+use lib '/nfs/WWWdev/SANGER_docs/lib/rfam';
+#use lib '/nfs/WWWdev/SANGER_docs/cgi-bin/Rfam/Rfam';
+#use lib '/nfs/team71/pfam/mm1/rfam_cvs/scripts/Modules';
 use Rfam;
 use RfamWWWConfig;
 use vars qw(%all_rfamseq);
-my $rdb = Rfam->switchover_rdb();
-my($input_dir, $output_dir, $file_type, $ss_cons_only, $family, $web_file);
 
-&GetOptions(  'input_dir=s' => \$input_dir,
+my($input_dir, $output_dir, $file_type, $ss_cons_only, $family, $web_file);
+my $dbname;
+
+&GetOptions(  'db=s' => \$dbname,
+	      'input_dir=s' => \$input_dir,
 	      'output_dir=s' => \$output_dir,
 	      'file_type=s' => \$file_type,
 	      'ss_cons_only' => \$ss_cons_only,
 	      'family=s' => \$family,
 	      'web_file=s'  => \$web_file);
 
+die "need db name\n" if(!$dbname);
 die "need input_dir\n" if(!$input_dir);
 die "need output_dir\n" if(!$output_dir);
 die "need file_type , either seed or full \n" if (!$file_type);
+
+my $rdb = Rfam::DB::DB_RDB->new('-db_name' => $dbname,
+                                '-db_driver' => 'mysql',
+                                '-db_host' => 'pfam',
+                                '-db_user' => 'rfam',
+                                '-db_password' => 'mafp1' );
 
 
 my(@results);
