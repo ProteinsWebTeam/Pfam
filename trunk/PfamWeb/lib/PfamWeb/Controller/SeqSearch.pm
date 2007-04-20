@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.9 2007-04-16 16:01:47 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.10 2007-04-20 15:34:58 jt6 Exp $
 
 =head1 NAME
 
@@ -16,12 +16,13 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.9 2007-04-16 16:01:47 jt6 Exp $
+$Id: SeqSearch.pm,v 1.10 2007-04-20 15:34:58 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
 use HTML::Widget;
 use Digest::MD5 qw(md5_hex);
 use JSON;
@@ -240,17 +241,12 @@ sub seq : Local {
   # check the input
 
   # the sequence itself
-  if( defined $c->req->param( "seq" ) ) {
-
-    $c->stash->{seq} = $c->forward( "parseSequence" );
-    if( $c->stash->{seq} eq "" ) {
-      $c->stash->{seqSearchError} = "No valid sequence found.";
-    }
-  } else {
-    $c->stash->{seqSearchError} = "You must supply a sequence.";
+  $c->stash->{seq} = $c->forward( "parseSequence" );
+  unless( $c->stash->{seq} ) {
+    $c->stash->{seqSearchError} = "No valid sequence found. Please enter a valid amino-acid sequence and try again.";
     return;
   }
-
+  
   # sequence search options
   if( defined $c->req->param( "seqOpts" ) ) {
     $c->stash->{seqOpts} = $c->req->param( "seqOpts" );
@@ -258,24 +254,29 @@ sub seq : Local {
             $c->stash->{seqOpts} eq "ls"   or
             $c->stash->{seqOpts} eq "fs" ) {
       $c->stash->{seqSearchError} = "You must select a valid search option.";
+
+      $c->log->debug( "SeqSearch::seq: bad search option; returning to form" );
       return;
     }
   } else {
+    $c->log->debug( "SeqSearch::seq: search options not specified; returning to form" );
     $c->stash->{seqSearchError} = "You must select a search option.";
     return;
   }
 
   # if we have an evalue, we'll use that, otherwise we'll use the gathering
   # threshold
-  if( defined $c->req->param( "evalue" ) ) {
-    if( looks_like_number( $c->req->param( "evalue" ) ) ) {
+  if( defined $c->req->param( "ga" ) and $c->req->param( "ga" ) ) {
+    $c->stash->{ga} = 1;
+  } else {
+    if( defined $c->req->param( "evalue" ) and 
+      looks_like_number( $c->req->param( "evalue" ) ) ) {
       $c->stash->{evalue} = $c->req->param( "evalue" );
     } else {
+      $c->log->debug( "SeqSearch::seq: bad evalue; returning to form" );
       $c->stash->{seqSearchError} = "You did not enter a valid E-value.";
       return;
     }
-  } else {
-    $c->stash->{ga} = 1;
   }
 
   # try to submit the search
@@ -288,6 +289,7 @@ sub seq : Local {
 
   } elsif( $submissionStatus < 0 ) {
     $c->log->debug( "SeqSearch::seq: problem with submission; re-rendering form" ); 
+    return;
 
   } else {
     $c->log->debug( "SeqSearch::seq: sequence search submitted; polling" ); 
@@ -309,35 +311,22 @@ was a problem parsing or if the final sequence contains a character other than
 sub parseSequence : Private {
   my( $this, $c ) = @_;
 
+  return unless defined $c->req->param( "seq" );
+  
   my @seqs = split /\n/, $c->req->param( "seq" );
   shift @seqs if $seqs[0] =~ /^\>/;
-  my $seq = join "", @seqs;
-  $seq =~ s/\s+//g;
+  my $seq = uc( join "", @seqs );
+  $seq =~ s/[\s\r]+//g;
 
   $c->log->debug( "SeqSearch::parseSequence: parsed sequence: |$seq|" );
-  return ( $seq =~ /^[A-Za-z]+$/ ) ? $seq : "";
+  return ( $seq =~ /^[A-Z]+$/ ) ? $seq : "";
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 queueSeqSearch : Private
 
-Executes a protein sequence search. There are three possible return values for
-this action:
-
-=over 4
-
-=item  1 - this sequence has been seen before so we don't need to search
-
-=item  0 - sequence was submitted to the search queue
-
-=item -1 - there was a problem submitting the search
-
-=over
-
-The calling method should capture the return value and act accordingly. In the
-case of an error submitting the search, there will be an entry in the stash
-C<seqSearchError> containing an error message that can be sent back to the user.
+Executes a protein sequence search.
 
 =cut
 
@@ -347,8 +336,8 @@ sub queueSeqSearch : Private {
   # calculate the MD5 checksum for the sequence we've been handed and see if
   # we've already seen that one    
   $c->stash->{md5} = md5_hex( uc( $c->stash->{seq} ) );
-  $c->log->debug( "SeqSearch:: queueSeqSearch: MD5 for user sequence is: |"
-                  . $c->stash->{md5}."|." );
+  $c->log->debug( "SeqSearch::queueSeqSearch: MD5 for user sequence is: |"
+                  . $c->stash->{md5}."|" );
 
   my $found = $c->model("PfamDB::Pfamseq")
                 ->find( { md5 => $c->stash->{md5} } );
@@ -365,7 +354,7 @@ sub queueSeqSearch : Private {
     #insert into database
   }
 
-  # no; need to search the sequence
+  # no; we need to search the sequence
   
   # first, check there's room in the queue
   my $rs = $c->model( "WebUser::HmmerHistory" )
@@ -384,42 +373,78 @@ sub queueSeqSearch : Private {
     return -1;
   }
  
-  # ok. There's room on the queue, so we can submit the job
+  # ok. There's room on the queue, so we can submit the hmmer job and the blast job
   
+  my $aStatus = $c->forward( "queuePfamA" );
+  #my $bStatus = $c->forward( "queuePfamA" ); # NOTE ! Submitting two pfam a jobs here
+  
+  # build a job status data structure that we'll convert to JSON and hand back
+  # to the javascript on the client side
+  my $jobStatus = {
+                    checkURI => $c->uri_for( "/seqsearch/checkstatus" )->as_string,
+                    doneURI  => $c->uri_for( "/seqsearch/jobDone" )->as_string,
+                    #jobs     => [ $aStatus, $bStatus ],
+                    jobs     => [ $aStatus ],
+                  };
+                  
+  $c->log->debug( dump( $jobStatus ) );
+  $c->stash->{jobStatus} = objToJson( $jobStatus );
+  $c->log->debug( "json string: |" . $c->stash->{jobStatus} . "|" );
+  return 0;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 queuePfamA : Private
+
+Submits a pfam A search
+
+=cut
+
+sub queuePfamA : Private {
+  my( $this, $c ) = @_;
+
   # make a guess at the runtime for the job
-  $c->stash->{estimatedTime} = int( length( $c->stash->{seq} ) / 100 );
-  $c->log->debug(   "SeqSearch::queueSeqSearch: estimated search time: |"
-                  . $c->stash->{estimatedTime} . "| seconds" );
+  my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
+  $c->log->debug( "SeqSearch::queuePfamA: estimated search time: " .
+                  "|$estimatedTime| seconds" );
     
   # generate a job ID
-  $c->stash->{jobId} = Data::UUID->new()->create_str();
+  my $jobId = Data::UUID->new()->create_str();
 
   # build the command to run
-  my $cmd = "somescript.pl" 
-            . " -s " . $c->stash->{seqOpts}
-            . " -evalue " .$c->stash->{evalue};
-
+  my $cmd = "/home/pfamweb/scripts/pfam_scan.pl -pvm -d /data/blastdb/Pfam/data";
+  $cmd .= " --mode " . $c->stash->{seqOpts} if $c->stash->{seqOpts} ne "both";
+  $cmd .= " -e " . $c->stash->{evalue}      if $c->stash->{evalue} && !$c->stash->{ga};
+  $cmd .= " --overlap "                     if $c->stash->{showOverlap};
+  $cmd .= " /tmp/$jobId.fa";
+  
   # add this job to the tracking table
   my $resultHistory = $c->model('WebUser::HmmerHistory')
-                        ->create( { command => $cmd,
-                                    job_id  => $c->stash->{jobId},
-                                    status  => 'PEND',
-                                    opened  => \'NOW()' } );
+                        ->create( { command        => $cmd,
+                                    estimated_time => $estimatedTime,
+                                    job_id         => $jobId,
+                                    opened         => \'NOW()',
+                                    status         => 'PEND' } );
                                     
   my $resultStream = $c->model('WebUser::HmmerStream')
                        ->create( { id    => $resultHistory->id,
                                    stdin => $c->stash->{seq} || q() } );
 
+  # check the submission time with a separate query
+  my $historyRow = $c->model( "WebUser::HmmerHistory" )
+                     ->find( { id => $resultHistory->id } );
+
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $jobStatus = {
-                    estimatedTime => $c->stash->{estimatedTime},
-                    jobId         => $c->stash->{jobId},
+                    estimatedTime => $estimatedTime,
                     interval      => $this->{pollingInterval},
+                    jobId         => $jobId,
+                    name          => 'Pfam A search',
+                    opened        => $historyRow->opened,
                   };
-  $c->stash->{jobStatus} = objToJson( $jobStatus );
-
-  return 0;
+  return $jobStatus;
 }
 
 #-------------------------------------------------------------------------------
@@ -449,7 +474,7 @@ sub checkStatus : Local {
                     ->find( { job_id => $jobId } );
 
   # make sure the query returned *something*
-  unless( defined $jobStatus ) {
+  if( not defined $jobStatus ) {
     $c->log->debug( "SeqSearch::checkStatus: problem retrieving job status for job |" 
                     . $jobId . "|" );
     $c->stash->{status}->{error} = "Could not retrieve job status";
@@ -469,11 +494,38 @@ sub checkStatus : Local {
     $c->log->debug( "SeqSearch::checkStatus: job is done" );
     $c->stash->{status}->{status} = "DONE";
     
+  } elsif( $jobStatus->status eq "FAIL" ) {
+    $c->log->debug( "SeqSearch::checkStatus: job failed" );
+    $c->stash->{status}->{status} = "FAIL";
+    
   } else {
     $c->log->error( "SeqSearch::checkStatus: can't determine job status" );
     $c->stash->{status}->{status} = "UNKNOWN";
   }  
-      
+  
+  $c->log->debug( "SeqSearch::checkStatus: opened:  |" . $jobStatus->opened ."|" );
+  $c->log->debug( "SeqSearch::checkStatus: started: |" . $jobStatus->started ."|" );
+  $c->log->debug( "SeqSearch::checkStatus: closed:  |" . $jobStatus->closed ."|" );
+  
+  # see how many jobs are pending
+  my $rs = $c->model( "WebUser::HmmerHistory" )
+             ->search( { status => "PEND",
+                         id     => { '<',  $jobStatus->id }, 
+                         job_id => { 'not like', $jobStatus->job_id } },
+                       { select => [
+                                     { count => "id" },
+                                     { sum   => "estimated_time" }
+                                   ],
+                         as     => [ qw( num wait ) ] }
+                     );
+  $c->stash->{status}->{numPending} = $rs->first()->get_column( "num" );
+  $c->stash->{status}->{waitTime}   = $rs->first()->get_column( "wait" ) || 0;
+  
+  $c->log->debug( "SeqSearch::checkStatus: found      |" .
+                  $c->stash->{status}->{numPending} . "| pending jobs" );
+  $c->log->debug( "SeqSearch::checkStatus: wait time: |" .
+                  $c->stash->{status}->{waitTime} );
+
   # add the times to the response
   $c->stash->{status}->{opened}  = $jobStatus->opened;
   $c->stash->{status}->{started} = $jobStatus->started;
@@ -488,6 +540,9 @@ sub checkStatus : Local {
 sub returnStatus : Private {
   my( $this, $c ) = @_;
 
+  $c->log->debug( "SeqSearch::returnStatus: status object" );
+  $c->log->debug( dump $c->stash->{status} );
+  
   # convert the status hash to a JSON object and return it
   
   my $status = objToJson( $c->stash->{status} ); 
@@ -496,8 +551,8 @@ sub returnStatus : Private {
   $c->log->debug( dump( $c->stash->{status} ) );
 	$c->res->content_type( "application/json" );
 	$c->res->body( $status );
-	  
 }
+
 #-------------------------------------------------------------------------------
 
 =head2 jobDone : Attribute
@@ -510,10 +565,7 @@ sub jobDone : Local {
   my( $this, $c ) = @_;
   
   # extract the list of IDs from the URI
-  my @jobIds = $c->req->param( "job" );
-
-  # somewhere to store the validated IDs  
-  my @validJobIds = ();
+  my @jobIds = $c->req->param( "jobId" );
 
   foreach ( @jobIds ) {
 
@@ -530,10 +582,9 @@ sub jobDone : Local {
     # bail unless it exists
     next unless defined $job;
 
-    # finally, stuff the job ID
-    push @validJobIds, $jobId;
+    # finally, stuff the job ID and result
+    $c->stash->{results}->{$jobId} = $job->stdout;
   }
-  $c->stash->{jobIds} = \@validJobIds;
 
   # do something interesting with the results
   $c->forward( "handleResults" );
