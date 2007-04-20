@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.33 2007-04-13 16:13:06 jt6 Exp $
+// $Id: pfFunctions.js,v 1.34 2007-04-20 15:20:14 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -223,31 +223,44 @@ function switchPanel( trigger, id ) {
 
 showItems = {};
 
-function reveal( oSwitch, sId, bStartState ) {
+function reveal( oSwitch, sId, bStartState, bQuick ) {
 
-  // if the third parameter is set, we'll assign it as the "visible
-  // state" of the element, but only if that's not already assigned
-  if( typeof( showItems[sId] ) == "undefined" && typeof( bStartState ) != "undefined" ) {
+  // we'll assign it bStartState as the "visible state" of the element, but
+  // only if that's not already assigned
+  if( typeof( showItems[sId] ) == "undefined" ) {
   	showItems[sId] = bStartState;
   }
   
   var oSource = $(sId);
-  if( typeof( showItems[sId] ) == "undefined" || showItems[sId] ) {
-  	// console.debug( sId + " is currently shown" );
-  	Effect.BlindUp( oSource, { duration: 0.3 } );
+  if( showItems[sId] === undefined || showItems[sId] ) {
+
+    // hide the element. If bQuick is true, we'll literally hide() it, 
+    // otherwise we'll reveal it
+  	if( bQuick ) {
+      oSource.hide();
+    } else {
+      Effect.BlindUp( oSource, { duration: 0.3 } );
+    }
   	showItems[sId] = false;
-//  	Element.update( oSwitch, "Show" );
   } else {
-  	// console.debug( sId + " is currently hidden" );
-  	Effect.BlindDown( oSource, { duration: 0.3 } );
+
+    // show the element
+  	if( bQuick ) {
+      oSource.show();
+    } else {
+    	Effect.BlindDown( oSource, { duration: 0.3 } );
+    }
   	showItems[sId] = true;
-//  	Element.update( oSwitch, "Hide" );
   }
   var newIH;
   if( oSwitch.innerHTML.include( "Show" ) ) {
     newIH = oSwitch.innerHTML.sub( "Show", "Hide" );
-  } else {
+  } else if( oSwitch.innerHTML.include( "Hide" ) ) {
     newIH = oSwitch.innerHTML.sub( "Hide", "Show" );
+  } else if( oSwitch.innerHTML.include( "More" ) ) {
+    newIH = oSwitch.innerHTML.sub( "More", "Less" );
+  } else if( oSwitch.innerHTML.include( "Less" ) ) {
+    newIH = oSwitch.innerHTML.sub( "Less", "More" );
   }
   oSwitch.update( newIH );
 }
