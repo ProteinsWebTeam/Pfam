@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam clan pages.
 
-   $Id: clans.css,v 1.12 2007-03-15 14:57:21 jt6 Exp $
+   $Id: clans.css,v 1.13 2007-04-20 15:12:54 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -29,32 +29,7 @@
 */   
 
 /* ======================================== */
-/* components of the remainder of the page */
-
-#spacer {
-  background-color: #eff3e8; /* natural 3 */
-}
-
-#contentContainer {
-  background-color: #eff3e8; /* natural 3 */
-  background-image: url(/catalyst/pfam/images/clan/page_border.gif);
-}
-
-#wrap {
-  background: url(/catalyst/pfam/images/clan/bg.gif) repeat-y 15% 0;
-}
-
-/* ======================================== */
 /* rules for specific blocks */
-
-div.pdbImageFragment {
-	background: #e7edf3;
-    border-color: #074987;
-}
-
-h4.pdbTitle  {
-	color: #074987;
-}
 
 #clanRelationshipsBlock img {
   border: 1px solid #BBB;

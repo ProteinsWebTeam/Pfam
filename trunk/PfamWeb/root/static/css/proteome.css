@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the proteome pages.
 
-   $Id: proteome.css,v 1.8 2007-03-15 14:57:19 jt6 Exp $
+   $Id: proteome.css,v 1.9 2007-04-20 15:14:27 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -28,29 +28,4 @@
     
 */   
 
-/* ======================================== */
-/* components of the remainder of the page */
-
-#spacer {
-  background-color: #fff1e6; /* vibrant 1 */
- {
-  background-color: #fff1e6; /* vibrant 1 */
-  background-image: url(/catalyst/pfam/images/proteome/page_border.gif);
-}
-
-#wrap {
-  background: url(/catalyst/pfam/images/proteome/bg.gif) repeat-y 15% 0;
-}
-
-/* ======================================== */
-/* rules for specific blocks */
-
-div.pdbImageFragment {
-	background: #e7edf3;
-    border-color: #6f63a2;
-}
-
-h4.pdbTitle  {
-	color: #074987;
-}
-
+/* no rules currently... */
