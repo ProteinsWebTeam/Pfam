@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.4 2007-04-13 16:12:33 jt6 Exp $
+# $Id: protein.tt,v 1.5 2007-04-20 15:30:04 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -29,9 +29,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
-    <div id="psfd" class="formWrapper">
-
-      <h3>Protein entry search</h3>
+    <div class="formWrapper">
   
       <form method="get" 
             name="proteinSearchForm"
@@ -51,81 +49,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       </form>
   
-      <hr />
-  
-      <h3>Single sequence searches</h3>
-  
-      [% IF seqSearchError %]
-      <div class="error">
-        [% seqSearchError %]
-      </div>
-      [% END %]
-  
-      <form method="get" 
-            name="proteinSeqSearchForm"
-            id="proteinSeqSearchForm"
-            action="[% c.uri_for( "/seqsearch/seq" ) %]">
-  
-        <span class="row">
-          <label for="seq">Sequence</label>
-          <textarea cols="60" rows="10" name="seq" id="seq"></textarea>
-        </span>
-  
-        <span class="row">
-          <label for="seqOpts">Search options</label>
-          <select name="seqOpts" id="seqOpts">
-            <option value="both">Both global &amp; fragment</option>
-            <option value="ls">Global</option>
-            <option value="fs">Fragment</option>
-          </select>
-        </span>
-  
-        <span class="row">
-          <label for="evalue">E-value cut-off level</label>
-          <input type="text" size="10" maxlength="10" value="1.0" name="evalue" id="evalue" />
-        </span>
-  
-        <span class="row">
-          <input class="submit"  type="submit" name="submit" value="Submit" />
-          <input class="reset"   type="reset"  name="reset"  value="Reset" />
-          <input class="example" type="button" value="Example" onclick="$('seq').value=exSeq" />
-        </span>
-  
-      </form>
-  
-      <h3>Batch searches</h3>
-  
-      <form method="get" 
-            name="proteinBatchSearchForm"
-            id="proteinBatchSearchForm"
-            action="[% c.uri_for( "/seqsearch/batch" ) %]">
-  
-        <span class="row">
-          <label for="seq">Sequence</label>
-          <input type="file" size="20" name="batchSeq" id="batchSeq" />
-        </span>
-  
-        <span class="row">
-          <label for="seqOpts">Search options</label>
-          <select name="seqOpts" id="seqOpts">
-            <option value="both">Both global &amp; fragment</option>
-            <option value="ls">Global</option>
-            <option value="fs">Fragment</option>
-          </select>
-        </span>
-  
-        <span class="row">
-          <label for="email">Email address</label>
-          <input type="text" size="20" maxlength="100" name="email" id="email" />
-        </span>
-  
-        <span class="row">
-          <input class="submit"  type="submit" name="submit" value="Submit" />
-          <input class="reset"   type="reset"  name="reset"  value="Reset" />
-        </span>
-  
-      </form>
-  
     </div>
 
   </div>
@@ -133,31 +56,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 <script type="text/javascript">
   var exUnp = "VAV_HUMAN";
-  var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
-TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
-SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
-LSQVNYRVPNMRFLRERLTDLEQRTSDITYGQFAQLYRSLMYSAQKTMDLPFLEASALRA\n\
-GERPELCRVSLPEFQQFLLEYQGELWAVDRLQVQEFMLSFLRDPLREIEEPYFFLDEFVT\n\
-FLFSKENSIWNSQLDEVCPDTMNNPLSHYWISSSHNTYLTGDQFSSESSLEAYARCLRMG\n\
-CRCIELDCWDGPDGMPVIYHGHTLTTKIKFSDVLHTIKEHAFVASEYPVILSIEDHCSIA\n\
-QQRNMAQYFKKVLGDTLLTKPVDIAADGLPSPNQLKRKILIKHKKLAEGSAYEEVPTSVM\n\
-YSENDISNSIKNGILYLEDPVNHEWYPHYFVLTSSKIYYSEETSSDQGNEDEEEPKEASG\n\
-STELHSNEKWFHGKLGAGRDGRHIAERLLTEYCIETGAPDGSFLVRESETFVGDYTLSFW\n\
-RNGKVQHCRIHSRQDAGTPKFFLTDNLVFDSLYDLITHYQQVPLRCNEFEMRLSEPVPQT\n\
-NAHESKEWYHASLTRAQAEHMLMRVPRDGAFLVRKRNEPNSYAISFRAEGKIKHCRVQQE\n\
-GQTVMLGNSEFDSLVDLISYYEKHPLYRKMKLRYPINEEALEKIGTAEPDYGALYEGRNP\n\
-GFYVEANPMPTFKCAVKALFDYKAQREDELTFTKSAIIQNVEKQEGGWWRGDYGGKKQLW\n\
-FPSNYVEEMVSPAALEPEREHLDENSPLGDLLRGVLDVPACQIAVRPEGKNNRLFVFSIS\n\
-MASVAHWSLDVAADSQEELQDWVKKIREVAQTADARLTEGKMMERRKKIALELSELVVYC\n\
-RPVPFDEEKIGTERACYRDMSSFPETKAEKYVNKAKGKKFLQYNRLQLSRIYPKGQRLDS\n\
-SNYDPLPMWICGSQLVALNFQTPDKPMQMNQALFLAGGHCGYVLQPSVMRDEAFDPFDKS\n\
-SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
-PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
-ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
-FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
-  $("unp").focus();
-  $("seq").focus();
-  $("batchSeq").focus();
 </script>
 
 <!-- end protein search block -->
