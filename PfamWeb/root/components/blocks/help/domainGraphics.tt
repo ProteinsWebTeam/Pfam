@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.3 2007-04-16 16:07:19 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.4 2007-04-20 15:28:01 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -1180,15 +1180,16 @@ family = c.uri_for( "/family" );
     
   	<p><a href="#graphicsTop">back to top</a></p>
     
-<!--
     <hr />
     
     <h2>Producing your own graphics</h2>
 
     <p>
       As we are regularly approached for producing domain graphics for use in 
-      publications, we have produced a tool for users to upload a &quot;domain 
-      graphics&quot; XML. This file will be validated against the 
+      publications, we have produced a 
+      <a href="[% c.uri_for( "/generateGraphic" ) %]">tool</a> for users to 
+      upload a &quot;domain graphics&quot; XML. This file will be validated 
+      against the
       <a href="[% c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
       and subseqeuently rendered. The images that the tool produces can then 
       be saved for your own use. 
@@ -1198,9 +1199,13 @@ family = c.uri_for( "/family" );
       then the XML used by Pfam for this sequence can also be obtained using 
       this tool.
     </p>
+    <p>
+      There is a similar <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">tool</a> 
+      which allows you to see the domain graphic for a given 
+      <a href="http://www.ebi.uniprot.org/">UniProt</a> entry.
+    </p>
     
   	<p><a href="#graphicsTop">back to top</a></p>
--->
     
   </div>
 </div>
