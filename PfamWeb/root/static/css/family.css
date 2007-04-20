@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.23 2007-04-03 14:58:25 jt6 Exp $
+   $Id: family.css,v 1.24 2007-04-20 15:13:17 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -33,21 +33,6 @@ background: #e7edf3 (Prime 1, 10%)
 inactive:   #83a4c3 (Prime 1, 50%)
 highlight/border: #074987 (Prime 1, 100%)
 */
-
-/* ======================================== */
-/* components of the remainder of the page */
-
-#spacer {
-  background-color: #e7edf3; /* Prime 1 */
-}
-
-#contentContainer {
-  background-color: #e7edf3; /* Prime 1 */
-}
-
-#wrap {
-  background: url(/catalyst/pfam/images/family/bg.gif) repeat-y 15% 0;
-}
 
 /* ======================================== */
 /* rules for specific blocks */
