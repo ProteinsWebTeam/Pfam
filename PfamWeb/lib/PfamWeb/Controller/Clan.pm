@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.11 2007-03-15 14:06:12 jt6 Exp $
+# $Id: Clan.pm,v 1.12 2007-04-20 15:36:08 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.11 2007-03-15 14:06:12 jt6 Exp $
+$Id: Clan.pm,v 1.12 2007-04-20 15:36:08 jt6 Exp $
 
 =cut
 
@@ -50,12 +50,13 @@ in the clan table for that entry.
 sub begin : Private {
   my( $this, $c ) = @_;
 
+  my $co;
   if( defined $c->req->param( "acc" ) ) {
 
     $c->req->param( "acc" ) =~ m/^(CL\d{4})$/i;
     $c->log->info( "Clan::begin: found accession |$1|" );
   
-    $c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
+    $co = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
       if defined $1;
 
   } elsif( defined $c->req->param( "id" ) ) {
@@ -63,7 +64,7 @@ sub begin : Private {
     $c->log->info( "Clan::begin: found param |".$c->req->param("id")."|" );
     $c->req->param( "id" ) =~ m/^([\w-]+)$/;
     $c->log->info( "Clan::begin: found ID |$1|" );
-    $c->stash->{clan} = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
+    $co = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
       if defined $1;
 
   } elsif( defined $c->req->param( "entry" ) ) {
@@ -73,21 +74,19 @@ sub begin : Private {
   
       $c->log->debug( "Clan::begin: looks like a clan accession ($1); redirecting" );
       $c->res->redirect( $c->uri_for( "/clan", { acc => $1 } ) );
-      return 1;
   
     } else {
   
       # no; assume it's an ID and see what happens...
       $c->log->debug( "Clan::begin: doesn't look like a clan accession ($1); redirecting with an ID" );
       $c->res->redirect( $c->uri_for( "/clan", { id => $c->req->param( "entry" ) } ) );
-      return 1;  
-
     }
 
+    return 1;
   }
 
   # we're done here unless there's an entry specified
-  unless( defined $c->stash->{clan} ) {
+  unless( defined $co ) {
 
     # de-taint the accession or ID
     my $input = $c->req->param("acc")
@@ -128,32 +127,23 @@ sub begin : Private {
 
   # set up the pointers to the clan data in the stash
   $c->stash->{entryType} = "C";
-  $c->stash->{acc} = $c->stash->{clan}->clan_acc;
+  $c->stash->{acc} = $co->clan_acc;
   my @rs = $c->model("PfamDB::Clan_membership")
-    ->search( { auto_clan => $c->stash->{clan}->auto_clan },
+    ->search( { auto_clan => $co->auto_clan },
               { join      => [qw/pfam/],
                 prefetch  => [qw/pfam/] }
             );
   $c->stash->{clanMembers} = \@rs;
 
-}
+  $c->stash->{clan} = $co;
 
-#-------------------------------------------------------------------------------
-
-=head2 default: Private
-
-Catches the default URL and populates the stash with data for building the page.
-
-=cut
-
-sub default : Private {
-  my($this, $c) = @_;
-
+  #----------------------------------------
   # populate the stash with other data
+
   $c->forward( "_getSummaryData" );
   $c->forward( "_getXrefs" );
   
-  # done
+
 }
 
 #-------------------------------------------------------------------------------
