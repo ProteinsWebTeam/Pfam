@@ -213,8 +213,6 @@ htdocs/images/box_darker.gif
 htdocs/images/box_darker.png
 htdocs/images/box_large.png
 htdocs/images/clan.png
-htdocs/images/clan/bg.gif
-htdocs/images/clan/page_border.gif
 htdocs/images/close.gif
 htdocs/images/disabledGo.png
 htdocs/images/domain_image_example.png
@@ -222,8 +220,6 @@ htdocs/images/downsimple.gif
 htdocs/images/email-rss.gif
 htdocs/images/exampleButton.png
 htdocs/images/external.gif
-htdocs/images/family/bg.gif
-htdocs/images/family/page_border.gif
 htdocs/images/favicon.ico
 htdocs/images/flags/american_flag.gif
 htdocs/images/flags/british_flag.gif
@@ -232,7 +228,6 @@ htdocs/images/flags/german_flag.gif
 htdocs/images/flags/south_korea.gif
 htdocs/images/flags/swedish_flag.gif
 htdocs/images/flags/swiss_flag.gif
-htdocs/images/genome/bg.gif
 htdocs/images/go.png
 htdocs/images/green_bg.gif
 htdocs/images/green_page_border.png
@@ -299,10 +294,6 @@ htdocs/images/pfam_logo.gif
 htdocs/images/pfam_logo_old.gif
 htdocs/images/pfamA_coverage_colour.gif
 htdocs/images/pfamB_coverage_colour.gif
-htdocs/images/protein/bg.gif
-htdocs/images/protein/page_border.gif
-htdocs/images/proteome/bg.gif
-htdocs/images/proteome/page_border.gif
 htdocs/images/purple_bg.gif
 htdocs/images/purple_page_border.gif
 htdocs/images/purple_selected_bg.gif
@@ -315,8 +306,6 @@ htdocs/images/search_gradient.png
 htdocs/images/selected_bg.gif
 htdocs/images/selected_gradient.png
 htdocs/images/sequence_chart.png
-htdocs/images/structure/bg.gif
-htdocs/images/structure/page_border.gif
 htdocs/images/swedish_flag.gif
 htdocs/images/swoosh_coloured_structure.jpg
 htdocs/images/swoosh_ipfam.png
