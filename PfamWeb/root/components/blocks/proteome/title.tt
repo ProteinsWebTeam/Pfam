@@ -10,7 +10,7 @@
 %]
 
 [% IF titleType == "tab" %]
-<h2>Proteome: <em>[% proteomeSpecies.species %]</em></h2>
+<h1>Proteome: <em>[% proteomeSpecies.species %]</em></h1>
 [% ELSIF titleType == "page" %]
 Proteome: [% proteomeSpecies.species %]
 [% END %]
