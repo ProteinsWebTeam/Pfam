@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: tab_layout_all_ie.css,v 1.5 2007-04-03 15:41:35 jt6 Exp $
+   $Id: tab_layout_all_ie.css,v 1.6 2007-04-25 13:41:11 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -31,41 +31,6 @@
 
 #sidebar li.selected a {
   left: 1px;
-}
-
-/* the individual icons in the overview bar */
-#seqIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/logos/alignment.png",sizingMethod="crop");
-}
-
-#archIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/logos/domains.png",sizingMethod="crop");
-}
-
-#structIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/logos/structure.png",sizingMethod="crop");
-}
-
-#ipfamIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/logos/ipfam.png",sizingMethod="crop");
-}
-
-#specIcon {
-    background-image: none;
-	filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/logos/tree.png",sizingMethod="crop");
-}
-
-#icons {
-  width: 31em;
-}
-
-#icons a,
-#icons span {
-  float: right;
 }
 
 .icons .i3 {
