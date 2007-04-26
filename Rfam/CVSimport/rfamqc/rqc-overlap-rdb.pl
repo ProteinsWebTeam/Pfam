@@ -10,6 +10,7 @@ my( $quiet,
     $local_fams,
     @ignore);
 
+
 &GetOptions("i=s@" => \@ignore,
 	    "q"    => \$quiet,
 	    "l"    => \$local_fams,
@@ -17,9 +18,8 @@ my( $quiet,
 
 
 if( $#ARGV == -1 ) {
-    print "pqc-overlap - finds the overlap between a Pfam family and the\n";
-    print "      current Pfam database\n";
-    print "USAGE: pqc-overlap <model-directory> <optional - families to compare against>\n";
+    print "rqc-overlap-rdb - finds the overlap between a Rfam family and the current Rfamlive database\n";
+    print "USAGE: rqc-overlap-rdb <model-directory> <optional - families to compare against>\n";
     print "     If no families given, assummes all\n";
     print "OPTIONS\n";
     print "  -i <family> ignore this family (-i can occur multiple times)\n";
@@ -29,47 +29,32 @@ if( $#ARGV == -1 ) {
     exit(1);
 }
 
-
-my $family_dir = shift; # family dir to use
+#family to check against db
+my $family_dir = shift; 
 
 if( ! defined $nolog ) {
     open(LOG,">$family_dir/overlap") || die "Could not open log file $family_dir/overlap - can use -n option $!";
 }
 
-
-my $db = Rfam::default_db();
-my @families = $db->get_allacc();
+# -l option not used at moment but will be added.
 
 my %ignore;
+push (@ignore, $family_dir); # add self to ignore list
 foreach my $ignorefam ( @ignore ) {
     print STDERR "ignoring $ignorefam\n";
     $ignore{$ignorefam} = 1;
 }
 
+
 my @overlap;
 if( defined $quiet ) {
-    @overlap = &compare_overlap_to_current( $family_dir, \@families );
+    @overlap = &get_overlaps( $family_dir );
 } else {
-    @overlap = &compare_overlap_to_current( $family_dir, \@families, \*STDERR );
+    @overlap = &get_overlaps($family_dir, \*STDERR );
 }
 
-
-foreach my $overlap ( @overlap ) {
-    # lines look like seq_name:domain-start-end:domain-start-end
-
-    my ($name,$dom1,$dom2) = split(/:/,$overlap);
-    $dom1 =~ /([\w-]+)-(\d+)-(\d+)/;
-    $dom1 = $1;
-    my $start1 = $2;
-    my $end1 = $3;
-
-    $dom2 =~ /([\w-]+)-(\d+)-(\d+)/;
-    $dom2 = $1;
-    my $start2 = $2;
-    my $end2 = $3;
-	
-    &errorout ("Sequence [$name] overlap $dom1/$start1-$end1 with $dom2/$start2-$end2\n");
-}
+#checks for internal overlaps in seed only as infernal wont predict overlapping regions for same seq.
+#so wont generate overlaps in the ALIGN file if not in seed.
 
 open( SEED, "$family_dir/SEED" ) or die "can't find $family_dir/SEED\n";
 my $seed = new Rfam::RfamAlign;
@@ -77,118 +62,161 @@ $seed -> read_stockholm( \*SEED );
 my @list = $seed->each_seq();
 
 for( my $seq = shift(@list); defined $seq; $seq = shift(@list) ) {
-    foreach my $other ( @list ) {
+   foreach my $other ( @list ) {
 	if( $seq->id ne $other->id ) {
 	    next;
 	}
-	my( $s1, $s2, $e1, $e2 );
-	
-	if( $other->start() > $other->end() ) {
-	    ( $s1, $e1 ) = ( $other->end, $other->start );
-	}
-	else {
-	    ( $s1, $e1 ) = ( $other->start, $other->end );
-	}
-	if( $seq->start > $seq->end ) {
-	    ( $s2, $e2 ) = ( $seq->end, $seq->start );
-	}
-	else {
-	    ( $s2, $e2 ) = ( $seq->start, $seq->end );
-	}
-
-	if( ( $s1 >= $s2 and $e1 <= $e2 ) or 
-	    ( $s1 <= $e2 and $e1 >= $e2 ) or 
-	    ( $s1 <= $s2 and $e1 >= $s2 ) ) {
-	    &errorout (sprintf("Internal overlap of %s/%d-%d to %s/%d-%d\n",$seq->id,$seq->start,$seq->end,$other->id,$other->start,$other->end));
-	}
+	my $or1 = my $or2 = 1;
+	my ($seq1, $seq2)= ($seq->id, $other->id);
+	my ($start1, $end1, $start2, $end2) = ($other->start, $other->end,$seq->start, $seq->end); 
+	my ($s1, $e1, $s2, $e2) = ($start1, $end1, $start2, $end2);
+	if ($s1 > $e1) {
+		    ($s1, $e1) = ($e1, $s1);
+		    $or1= -1;
+		}
+		if ($s2 > $e2) {
+		    ($s2, $e2) = ($e2, $s2);
+		    $or2= -1;
+		}
+	if( &overlap($s1, $e1, $s2, $e2)) {
+	    my $ov_len=&ov_length($s1, $e1, $s2, $e2);
+	   printf LOG ("Internal overlap of $seq1/%d-%d with $seq2/%d-%d by $ov_len\n", $start1, $end1, $start2, $end2);
+       }
     }
 }
 
+close(LOG) if( ! defined $nolog );
+ 
+###SUBROUTINES#######
     
-sub compare_overlap_to_current {
+sub get_overlaps {
     my $dir = shift;
-    my $fams_ref = shift;
     my $report = shift;
 
-    my @families = @{$fams_ref};
-
+    #read in this family align and seed seqs
     open( FULL, "$dir/ALIGN" ) or die "can't find $dir/ALIGN\n";
     my $full = new Rfam::RfamAlign;
     $full -> read_stockholm( \*FULL );
+    close(FULL);
     open( SEED, "$dir/SEED" ) or die "can't find $dir/SEED\n";
     my $seed = new Rfam::RfamAlign;
     $seed -> read_stockholm( \*SEED );
+    close(SEED);
 
     my %hash;
+    # keys: sequence acc, values: array of starts and stops.
     foreach my $seq ( $full->each_seq(), $seed->each_seq() ) {
-	push( @{ $hash{$seq->id()} }, { 'start' => $seq->start(),
+       	push( @{ $hash{$seq->id()} }, { 'start' => $seq->start(),
 					'end'   => $seq->end() } );
     }
 
-    my @arry;
-   
-    my @keys = keys %hash;
-    my $rdb = Rfam::live_rdb();
+    my %sshash;  # nr list of ss OL 
+    my %ophash;  # nr list of op OL
 
-    my $count = 0;
+    #nr list of new family seq accs
+    my @keys=keys(%hash);
+
+    my $rdb = Rfam::live_rdb();  #Rfam::DB::DB_RDB
+
+    #get all the exisiting annotations for each of the new family seqs in the rdb 
+    #store array of ordered annotated regions for each seq
+    #compare each in turn against new family regions
+
+    my $sscount= my $opcount=0;
 
     foreach my $seq ( $rdb->get_AnnotSeqs(\@keys, ['seed', 'full']) ) {
-	my @current_regs = sort { $a->from <=> $b->from } ($seq->eachAnnotatedRegion);
-	foreach my $current_reg (@current_regs) {
+	foreach my $current_reg (sort { $a->from <=> $b->from} ($seq->eachAnnotatedRegion)) {
+
+	    if( $ignore{$current_reg->accession} ) {next;} #skip self
+
 	    foreach my $startstop ( @{ $hash{$current_reg->rfamseq_id()} } ) {
-		my( $s1, $s2, $e1, $e2 );
 		
-		if( $startstop->{'start'} > $startstop->{'end'} ) {
-		    ( $s1, $e1 ) = ( $startstop->{'end'}, $startstop->{'start'} );
+                # create local values instead of having to access object all the time as suggested by code review.
+		my ($seqacc, $reg_acc)= ($current_reg->rfamseq_id(),$current_reg->accession()); 
+		my ( $fam_start, $fam_stop, $reg_start, $reg_stop) = ( $startstop->{'start'}, $startstop->{'end'}, $current_reg->from, $current_reg->to );
+		my( $s1, $e1, $s2, $e2 )= ($fam_start, $fam_stop, $reg_start, $reg_stop);
+                my $or1 = my $or2 = 1;
+ 
+               #deal with orientations
+		if ($s1 > $e1) {
+		    ($s1, $e1) = ($e1, $s1);
+		    $or1= -1;
 		}
-		else {
-		    ( $s1, $e1 ) = ( $startstop->{'start'}, $startstop->{'end'} );
+		if ($s2 > $e2) {
+		    ($s2, $e2) = ($e2, $s2);
+		    $or2= -1;
 		}
-		
-		if( $current_reg->from > $current_reg->to ) {
-		    ( $s2, $e2 ) = ( $current_reg->to, $current_reg->from );
-		}
-		else {
-		    ( $s2, $e2 ) = ( $current_reg->from, $current_reg->to );
-		}
-		
-		if( ( $s1 >= $s2 and $e1 <= $e2 ) or 
-		    ( $s1 <= $e2 and $e1 >= $e2 ) or 
-		    ( $s1 <= $s2 and $e1 >= $s2 ) ) {
-		    unless( $ignore{$current_reg->accession} ) {
-			push( @arry, sprintf( "%s:%s-%d-%d:%s-%d-%d", $current_reg->rfamseq_id(),
-					      $dir,
-					      $startstop->{'start'},
-					      $startstop->{'end'}, 
-					      $current_reg->accession(), 
-					      $current_reg->from(),
-					      $current_reg->to()));
-			$count ++;
+
+ 		#if overlap add to hash in format seqid.family1.family2
+		if (($or1 == $or2) &&  ( &overlap($s1,$e1,$s2,$e2)) ) {
+		    unless ( $sshash{$seqacc}{$dir}{$reg_acc} )  {
+			my $ovlen=&ov_length($s1, $e1, $s2, $e2);
+			my $string=sprintf ("Sequence [$seqacc] overlaps $dir/%d-%d with $reg_acc/%d-%d by $ovlen" , $fam_start,$fam_stop,$reg_start,$reg_stop);
+			$sshash{$seqacc}{$dir}{$reg_acc}= $string;
+   			++$sscount;
 		    }
+		}
+		#op strand overlap
+		if (($or1 != $or2) &&  ( &overlap($s1,$e1,$s2,$e2) ) ) {
+		    unless ( $ophash{$seqacc}{$dir}{$reg_acc} )  {
+			my $ovlen=&ov_length($s1, $e1, $s2, $e2);
+			my $string=sprintf ("Sequence [$seqacc] overlaps $dir/%d-%d with $reg_acc/%d-%d by $ovlen" , $fam_start,$fam_stop,$reg_start,$reg_stop);
+			$ophash{$seqacc}{$dir}{$reg_acc}= $string ; 
+			++$opcount;
+                    }
 		}
 	    }
 	}
     }
-    if( $report ) {
-	print $report sprintf("Done Model %-25s - Found %d overlaps\n",$dir,$count);
-    }
     
-    return @arry;
-}
+    if( $report ) {
+	print sprintf("Done Model %-25s - Found %d same strand and %d opposite strand overlaps\n",$dir, $sscount, $opcount);
+    }
 
+   #print out report for same strand and opp strand overlaps
+    foreach my $seqid (keys (%sshash )){
+	foreach my $fam1 (keys ( %{$sshash{$seqid}} )){
+	    foreach my $fam2 (keys ( % {$sshash{$seqid}{$fam1}} )){
+		print LOG "SS_OL $sshash{$seqid}{$fam1}{$fam2}\n";
+	    }
+	}
+    }
 
-
-sub errorout {
-    my $mess = shift;
-
-    print STDOUT $mess;
-
-    if( ! defined $nolog ) {
-	print LOG $mess;
+    foreach my $seqid (keys (%ophash )){
+	foreach my $fam1 (keys ( %{$ophash{$seqid}} )){
+	    foreach my $fam2 (keys ( % {$ophash{$seqid}{$fam1}} )){
+		print LOG "OP_OL $ophash{$seqid}{$fam1}{$fam2}\n";
+	    }
+	}
     }
 }
 
+#check if regions overlap
+sub overlap {
+    my ($s1,$e1,$s2, $e2)=@_;
+    if( ( $s1 >= $s2 and $e1 <= $e2 ) or  #full ol.
+	( $s1 <= $e2 and $e1 >= $e2 ) or  #region 1 right extended or fully nested region 2
+	( $s1 <= $s2 and $e1 >= $s2 ) ) { #region 1 left extended or fully nested region 2
+	return 1;
+    }
+    return 0;
+}
 
 
+#length of overlap
+sub ov_length {
+    #all will be orientation sorted already
+    my ($s1,$e1,$s2, $e2)=@_;
+    my $len=0;
+   
+    if ( $s1 <= $e2 and $e1 >= $e2 ) {
+	$len=$e2-$s1;
+    }elsif($s1 <= $s2 and $e1 >= $s2  ){
+	$len=$e1-$s2;
+    }else {
+	return 'fullOL';
+    }
 
+    return $len;
+}
 
