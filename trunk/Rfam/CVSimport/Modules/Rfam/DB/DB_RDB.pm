@@ -165,7 +165,7 @@ sub get_AnnotSeqs {
     my $st_pfamA_reg_full;
     if ($type{"full"}) {
 	my $stat = "select rfamseq.version, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description, bits_score from rfam_reg_full, rfamseq, rfam ";
-	$stat .= "where rfamseq.version = ? ";
+	$stat .= "where rfamseq_acc = ? ";
 	$stat .= "and rfam.auto_rfam = rfam_reg_full.auto_rfam and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_acc";
     
 	$st_pfamA_reg_full = $dbh->prepare($stat);
@@ -174,7 +174,7 @@ sub get_AnnotSeqs {
     my $st_pfamA_reg_seed;
     if ($type{"seed"}) {
 	my $stat = "select rfamseq.version, rfam_acc, rfam_id, rfam.auto_rfam, seq_start, seq_end, rfamseq.description  from rfam_reg_seed, rfamseq, rfam ";
-	$stat .= "where rfamseq.version = ? ";
+	$stat .= "where rfamseq_acc = ? ";
 	$stat .= "and rfam.auto_rfam = rfam_reg_seed.auto_rfam and rfam_reg_seed.auto_rfamseq = rfamseq.auto_rfamseq order by rfamseq_acc";
 
 	$st_pfamA_reg_seed = $dbh->prepare($stat);
@@ -183,12 +183,13 @@ sub get_AnnotSeqs {
     foreach my $in_id (@{$id_list}) {
 	my $annseq = Rfam::AnnotatedSequence->new();
 	my $sv;
-	if( $in_id =~ /^\S+\.\d+/ ) {
-	    $sv = $in_id;
+	if( $in_id =~ /^(\S+)\.\d+/ ) {
+	    $sv=$1;
 	}
 	else {
-	    ($sv) = $self->rfamseq_version( $in_id );
+	    $sv = $in_id; #if no version given
 	}
+
 	$annseq->id( $sv );
 
 	if (defined $st_pfamA_reg_full) {
@@ -199,7 +200,7 @@ sub get_AnnotSeqs {
 		    
 		    $annseq->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
 								       '-RFAM_ID' => $rfam_id,
-								       '-SEQ_ID' => $sv,
+								       '-SEQ_ID' => $in_id,
 								       '-FROM' => $seq_start,
 								       '-TO' => $seq_end,
 								       '-AUTO_RFAM' => $auto_rfam,
@@ -224,7 +225,7 @@ sub get_AnnotSeqs {
 
 		    $annseq->addAnnotatedRegion( Rfam::RfamRegion->new('-RFAM_ACCESSION' => $rfam_acc,
 								       '-RFAM_ID' => $rfam_id,
-								       '-SEQ_ID' => $sv,
+								       '-SEQ_ID' => $in_id,
 								       '-FROM' => $seq_start,
 								       '-TO' => $seq_end,
 								       '-AUTO_RFAM' => $auto_rfam,
@@ -245,7 +246,6 @@ sub get_AnnotSeqs {
     $self->_the_RDB->disconnect;
     return @annseqlist;
 }
-
 
 sub rfamseq_version {
     my $self = shift;
