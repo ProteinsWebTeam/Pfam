@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.34 2007-04-20 15:20:14 jt6 Exp $
+// $Id: pfFunctions.js,v 1.35 2007-04-27 16:15:36 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -262,7 +262,7 @@ function reveal( oSwitch, sId, bStartState, bQuick ) {
   } else if( oSwitch.innerHTML.include( "Less" ) ) {
     newIH = oSwitch.innerHTML.sub( "Less", "More" );
   }
-  oSwitch.update( newIH );
+  oSwitch.innerHTML = newIH;
 }
   
 //------------------------------------------------------------
@@ -272,7 +272,7 @@ function chooseTab() {
   // console.debug( "pfFunctions.js:chooseTab" );
   // see if the showTab variable points to tab that actually exists in
   // the page
-  if( $(showTab) ) {
+  if( ! ( showTab === undefined ) && $(showTab) ) {
     // console.debug( "chooseTab: using param setting: " + showTab );
 
     // yes; show that tab
