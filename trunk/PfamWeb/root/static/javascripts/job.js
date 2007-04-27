@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.2 2007-04-20 15:20:15 jt6 Exp $
+// $Id: job.js,v 1.3 2007-04-27 16:14:28 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -107,21 +107,22 @@ Job.prototype = {
     // create a timer. We'll trigger at one interval but only poll the server at
     // the interval specified by the caller
     this.timer = setInterval( this.onTimerEvent.bind( this ), Job.TICK_INTERVAL );
-    console.debug( "Job.initialize: started interval timer" );
-
+    // console.debug( "Job.initialize: started interval timer" );
+    
     // set a timeout
     this.timeout = setTimeout( this.onTimeout.bind( this), Job.TIMEOUT );
-    console.debug( "Job.initialize: started timeout timer" );
+    // console.debug( "Job.initialize: started timeout timer" );
 
     //----------------------------------------
 
     // keep track of how many jobs are running concurrently
     Job.LIST[ this.jobId ] = 1;
     Job.RUNNING[ this.jobId ] = 1;
-
+    
     //----------------------------------------
 
-    this.log( "initialize", "submitted job " + this.jobId );
+    this.log( this.jobName + ": initialize", 
+              "submitted job " + this.jobId );
 
   },
 
@@ -167,7 +168,6 @@ Job.prototype = {
     if( jobConfig.doneURI === undefined ) {
       throw "Server URIs not configured: 'doneURI' not defined";
     }
-
   },
 
   //----------------------------------------------------------------------------
@@ -175,51 +175,74 @@ Job.prototype = {
 
   buildMarkup: function() {
 
-/*
-    should hopefully look something like this:
-    <div id="jobs">
-      <div class="job" id="9E1FA256-EF45-11DB-B2ED-4EAF15EABA95">
-        <div class="jobTitle">Pfam A search</div>
-        <dl>
-          <dt>Status:</dt>
-          <dd><span class="spinner">pending</span></dd>
-          <dt>Submitted:</dt>
-          <dd>2007-04-20 14:47:02</dd>
-          <dt>Started:</dt>
-          <dd>-</dd>
-          <dt>Estimated run time:</dt>
-          <dd>12 seconds</dd>
-          <dt>Progress:</dt>
-          <dd>
-            <div class="progressWrapper">
-              <div class="progressBar"></div>
-            </div>
-          </dd>
-        </dl>
-      </div>
-    </div>
-*/
+    // start with a template and edit in the specific values, like IDs
+    var jobDiv = '\
+      <div class="job">\
+        <div class="jobTitle">-</div>\
+        <dl>\
+          <dt>Status:</dt>\
+          <dd class="status">unknown</dd>\
+          <dt>Submitted:</dt>\
+          <dd class="submitted">-</dd>\
+          <dt>Started:</dt>\
+          <dd class="started">-</dd>\
+          <dt>Estimated run time:</dt>\
+          <dd>12 seconds</dd>\
+          <dt>Progress:</dt>\
+          <dd>\
+            <div class="progressWrapper">\
+              <div class="progressBar"></div>\
+            </div>\
+          </dd>\
+        </dl>\
+      </div>';
+
+    $("jobs").innerHTML = jobDiv;
+
+    // store pointers to specific elements
+    this.statusMsg = $A( document.getElementsByClassName( "status", jobDiv ) ).first();
+    this.startedValue = $A( document.getElementsByClassName( "started", jobDiv ) ).first();
+    this.bar = $A( document.getElementsByClassName( "progressBar", jobDiv ) ).first();
+
+    // edit in the required unique values.
+    $A( document.getElementsByClassName( "job", jobDiv ) )
+      .first()
+      .setAttribute( "id", this.jobId ); 
+    $A( document.getElementsByClassName( "jobTitle", jobDiv ) )
+      .first()
+      .innerHTML = this.jobName; 
+    $A( document.getElementsByClassName( "submitted", jobDiv ) )
+      .first()
+      .innerHTML = this.opened; 
+  },
+  
+  /* this is how we SHOULD be building the markup, using standard DOM methods.
+   * trouble is, this doesn't work in IE...
+   */
+  buildMarkupDOM: function() {
 
     // a top-level container for the job markup
     var jobDiv = document.createElement( "div" );
+    $("jobs").appendChild( jobDiv );
     jobDiv.setAttribute( "id",    this.jobId );
     jobDiv.setAttribute( "class", "job" );
-
+    
     // the title for the bar
     var title = document.createElement( "div" );
-    title.addClassName( "jobTitle" );
-    title.update( this.jobName );
     jobDiv.appendChild( title );
-
+    title.setAttribute( "class", "jobTitle" );
+    title.innerHTML = this.jobName;
+    
     // use a definition list to format a couple of status items
     var dl = document.createElement( "dl" );
+    jobDiv.appendChild( dl );
 
     // the status read-out
     var statusLabel = document.createElement( "dt" );
-    statusLabel.update( "Status:" );
+    statusLabel.innerHTML = "Status:";
     dl.appendChild( statusLabel );
     var statusValue = document.createElement( "dd" );
-    statusValue.update( "unknown" );
+    statusValue.innerHTML = "unknown";
     dl.appendChild( statusValue );
 
     // keep track of this so we can poke values into it easily
@@ -227,56 +250,50 @@ Job.prototype = {
 
     // submission time
     var submittedLabel = document.createElement( "dt" );
-    submittedLabel.update( "Submitted:" );
+    submittedLabel.innerHTML = "Submitted:";
     dl.appendChild( submittedLabel );
     var submittedValue = document.createElement( "dd" );
-    submittedValue.update( this.opened );
+    submittedValue.innerHTML = this.opened;
     dl.appendChild( submittedValue );
     
     // start time
     var startedLabel = document.createElement( "dt" );
-    startedLabel.update( "Started:" );
+    startedLabel.innerHTML = "Started:";
     dl.appendChild( startedLabel );
     var startedValue = document.createElement( "dd" );
-    startedValue.update( "-" );
+    startedValue.innerHTML = "-";
     dl.appendChild( startedValue );
     
     this.startedValue = startedValue;
 
     // estimated run time
     var estLabel = document.createElement( "dt" );
-    estLabel.update( "Estimated run time:" );
+    estLabel.innerHTML = "Estimated run time:";
     dl.appendChild( estLabel );
     var estValue = document.createElement( "dd" );
-    estValue.update( this.estimatedTime + " seconds");
+    estValue.innerHTML = this.estimatedTime + " seconds";
     dl.appendChild( estValue );
 
     // the progress bar
     var barLabel = document.createElement( "dt" );
-    barLabel.update( "Progress:" );
+    barLabel.innerHTML = "Progress:";
     dl.appendChild( barLabel );
     var barValue = document.createElement( "dd" );
+    dl.appendChild( barValue );
+    barValue.setAttribute( "class", "showy" );
 
     // a container for the bar
-    this.wrapper = document.createElement( "div" );
-    this.wrapper.addClassName( "progressWrapper" );
+    var wrapper = document.createElement( "div" );
+    barValue.appendChild( this.wrapper );
+    wrapper.setAttribute( "class", "progressWrapper" );
 
     // the bar itself - stored as a class variable so we can change its
     // dimensions later
     this.bar = document.createElement( "div" );
-    this.bar.addClassName( "progressBar" );
-    this.wrapper.appendChild( this.bar );
+    wrapper.appendChild( this.bar );
+    this.bar.setAttribute( "class", "progressBar" );
 
-    barValue.appendChild( this.wrapper );
-    dl.appendChild( barValue );
-
-    // add the list to the div
-    jobDiv.appendChild( dl );
-
-    // finally, add this markup to the "jobs" div
-    $("jobs").appendChild( jobDiv );
-
-    console.debug( "Job.buildMarkup: built job markup" );
+    // console.debug( "Job.buildMarkup: built job markup" );
   },
      
   //----------------------------------------------------------------------------
@@ -291,7 +308,7 @@ Job.prototype = {
     clearTimeout( this.timeout );
     this.timeout = null;
 
-    console.debug( "Job.stop: timer stopped" );
+    // console.debug( "Job.stop: timer stopped" );
   },
 
   //----------------------------------------------------------------------------
@@ -323,7 +340,7 @@ Job.prototype = {
   // the callback for the timeout. 
   
   onTimeout: function() {
-    console.debug( "Job.onTimeout: job timed out ! Stopping updates..." );
+    // console.debug( "Job.onTimeout: job timed out ! Stopping updates..." );
 
     // tidy up here
 
@@ -338,7 +355,7 @@ Job.prototype = {
   // to tidy up and tell the user that there were problems
 
   pollingFailed: function() {
-    console.debug( "Job.statusCheckFailed: couldn't poll server for status" );
+    // console.debug( "Job.statusCheckFailed: couldn't poll server for status" );
 
     // tidy up here
   },
@@ -347,38 +364,31 @@ Job.prototype = {
   // reacts to the status of the job, as retrieved from the server
 
   checkStatus: function( result ) {
-
     var statusString = result.responseText;
     var statusObj;
     try {
       statusObj = statusString.evalJSON();
     } catch( e ) {
       // problem retrieving status. Say so
-      console.debug( "Job.checkStatus: couldn't parse the JSON from the server: " + statusString );
-      this.errorMsg.update( "There was a problem retrieving the status of your job." );
+      // console.debug( "Job.checkStatus: couldn't parse the JSON from the server: " + statusString );
+      this.log( this.jobName + ": error",
+                "there was a problem retrieving the status of job " + this.jobName );
       return;
     }
 
     // got a status object from the server response
     // console.debug( "Job.checkStatus: status object: " +  statusString );
-
-    switch( statusObj.status ) {
-      case "PEND":
-        this.jobPending( statusObj );
-        break;
-      case "RUN":
-        this.jobRunning( statusObj );
-        break;
-      case "DONE":
-        this.jobDone( statusObj );
-        break;
-      case "FAIL":
-        this.jobFailed( statusObj );
-        break;
-      default:
+    if( statusObj.status == "PEND" ) {
+      this.jobPending( statusObj );
+    } else if( statusObj.status == "RUN" ) {
+      this.jobRunning( statusObj );
+    } else if( statusObj.status == "DONE" ) {
+      this.jobDone( statusObj );
+    } else if( statusObj.status == "FAIL" ) {
+      this.jobFailed( statusObj );
+    } else {
         // something unexpected happened...
     }
-
   },
 
   //----------------------------------------------------------------------------
@@ -391,21 +401,18 @@ Job.prototype = {
     // console.debug( "Job.jobPending: still waiting for the job to run..." );
 
     // set the status message
-    this.statusMsg.update( "<span class='spinner'>pending</span>" );
+    this.statusMsg.innerHTML = "<span class='spinner'>pending</span>";
     
     // log the number of pending jobs
     var n = statusObj.numPending;
     var w = statusObj.waitTime;
     if( n != this.lastPending && n > 0 ) {
       
-      // I've no idea why I can't build this string in one line, but I'm 
-      // buggered if I can get it to work, so...
-      var areIs = ( n > 1 ) ? "are" : "is";
-      var s     = ( n > 1 ) ? "s" : "";
-      var msg = "there " + areIs + " " + n + " job" + s + 
-                " in the queue ahead of yours. Estimated wait " + w + " seconds";
-
-      this.log( "pending", msg ); 
+      this.log( this.jobName + ": pending",
+                "there " + ( (n>1) ? "are " : "is " ) + n + 
+                " job" + ( (n>1) ? "s" : "" ) + 
+                " in the queue ahead of yours. Estimated wait " + w + 
+                " second" + ( (w>1) ? "s" :"" ) );
     }
     
     // keep track of how many jobs were pending when we last checked
@@ -427,14 +434,14 @@ Job.prototype = {
       this.tick = 0;
        
       // set the status message
-      this.statusMsg.update( "running" );
+      this.statusMsg.innerHTML = "running";
 
       // log it
-      this.log( "submitted", 
+      this.log( this.jobName + ": submitted",
                 "your job is now running (started " + statusObj.started + ")" );
 
       // add the start time to the status line
-      this.startedValue.update( statusObj.started );
+      this.startedValue.innerHTML = statusObj.started;
     }
 
     // update the status bar
@@ -445,29 +452,31 @@ Job.prototype = {
   // the job has completed. Tidy up
 
   jobDone: function( statusObj ) {
-    console.debug( "Job.jobDone: the job completed successfully" );
+    // console.debug( "Job.jobDone: the job completed successfully" );
 
     this.jobEnded( statusObj );
 
     // tidy up here
+
   },
   
   //----------------------------------------------------------------------------
   // the job has completed. Tidy up
 
   jobFailed: function( statusObj ) {
-    console.debug( "Job.jobFailed: the job failed" );
+    // console.debug( "Job.jobFailed: the job failed" );
 
     this.jobEnded( statusObj );
 
     // tidy up here
+
   },
 
   //----------------------------------------------------------------------------
   // tidy up at the completion of a job, whether successful or unsuccessful
 
   jobEnded: function( statusObj ) {
-    console.debug( "Job.jobEnded: job completed; tidying up" );
+    // console.debug( "Job.jobEnded: job completed; tidying up" );
     
     // just for good form... shouldn't matter but still
     this.running = false;
@@ -477,9 +486,9 @@ Job.prototype = {
 
     // update the status message
     if( statusObj.status == "FAIL" ) {
-      console.debug( "Job.jobEnded: job failed..." );  
+      // console.debug( "Job.jobEnded: job failed..." );  
     } else {
-      console.debug( "Job.jobEnded: job successful" );  
+      // console.debug( "Job.jobEnded: job successful" );  
     }
 
     // update the list of currently running jobs and then see if we should
@@ -487,17 +496,19 @@ Job.prototype = {
     Job.RUNNING.remove( this.jobId );
 
     var left = Job.RUNNING.keys().size();
-    console.debug( "Job.jobEnded: " + left + " jobs left" );
+    // console.debug( "Job.jobEnded: " + left + " jobs left" );
     if( left < 1 ) {
-      console.debug( "Job.jobEnded: all jobs completed; finishing up" );  
-      this.log( "finished", "all jobs complete; redirecting" );
+      // console.debug( "Job.jobEnded: all jobs completed; finishing up" );  
+      this.log( this.jobName + ": finished",
+                "all jobs complete; redirecting" );
       this.finish();
     } else {
-      console.debug( "Job.jobEnded: still waiting for " + left + " jobs" );  
-      this.log( "waiting", "still waiting for " + left + 
-                " job" + (left > 1 ) ? "s" : "" + " to complete..." );
+      // console.debug( "Job.jobEnded: still waiting for " + left + " jobs" );  
+      this.log( this.jobName + ": waiting",
+                "still waiting for " + left + 
+                " job" + ( (left > 1 ) ? "s" : "" ) + 
+                " to complete..." );
     }
-
   },
 
   //----------------------------------------------------------------------------
@@ -507,12 +518,11 @@ Job.prototype = {
   // updates the progress bar
 
   updateProgressBar: function() {
-
     var barWidth = this.bar.getWidth();
     var maxWidth = this.bar.parentNode.getWidth();
   
     if( barWidth < maxWidth ) {
-      var newWidth = maxWidth * this.tick / this.estimatedTime;
+      var newWidth = Math.floor( maxWidth * this.tick / this.estimatedTime );
       this.bar.setStyle( { width: newWidth+'px' } );
     } else {
       this.bar.setStyle( { width: '1px' } );
@@ -524,7 +534,7 @@ Job.prototype = {
   // all jobs are done; redirect to the "done" page
 
   finish: function( result ) {
-    console.debug( "Job.finish: finishing up" );
+    // console.debug( "Job.finish: finishing up" );
     
     // need to build the URI with the job IDs given as parameters
     var doneLoc = this.doneURI + "?";
@@ -536,7 +546,7 @@ Job.prototype = {
     // chop of the last ampersand
     var uri = buildURI.substr( 0, buildURI.length-5 )
 
-    console.debug( "Job.finish: redirecting to: |" + uri + "|" )
+    // console.debug( "Job.finish: redirecting to: |" + uri + "|" )
     document.location = uri;
   },
   
@@ -556,12 +566,12 @@ Job.prototype = {
     // the title
     var titleEl = document.createElement( "span" );
     titleEl.setAttribute( "class", "title" )
-    titleEl.update( title + ":&nbsp;" );
+    titleEl.innerHTML = title + ":&nbsp;";
     
     // the message itself
     var msgEl = document.createElement( "span" );
     msgEl.setAttribute( "class", "msg" );
-    msgEl.update( msg );
+    msgEl.innerHTML = msg;
 
     // the entry
     entryEl.appendChild( titleEl );
