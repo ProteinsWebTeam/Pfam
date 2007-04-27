@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.6 2007-04-20 15:26:09 jt6 Exp $
+# $Id: jumpBox.tt,v 1.7 2007-04-27 16:02:32 jt6 Exp $
 
 META naked = 1;
 
@@ -17,8 +17,11 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
 <div id="jumpBox" class="sidebarComponent">
 	<h1>
 		<span>Jump to...</span>
-		<a href="[% c.uri_for( "/help" ) %]">
-	 		<img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
+		<a href="[% c.uri_for( "/help", tab="helpGetStartedBlock" ) %]"
+       title="View help on the &quot;Jump to...&quot; search">
+	 		<img src="[% c.uri_for( "/images/info.gif" ) %]" 
+           alt="View help on the &quot;Jump to...&quot; search" 
+           class="info" /></a>
 	</h1>
 
   [% IF addHeader %]
@@ -28,19 +31,32 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
   </p>
   [% END %]
   
-	<form action="[% c.uri_for( "/search/jump" ) %]" method="get" name="jumpForm" id="jumpForm">
-		<input class="entryField" type="text" onfocus="if(!cleared){this.value='';cleared=true}" size="10" name="entry" id="entry" />
+	<form action="[% c.uri_for( "/search/jump" ) %]" 
+        method="get" 
+        name="jumpForm" 
+        id="jumpForm">
+		<input class="entryField" 
+           type="text" 
+           onfocus="if(!jbCleared){this.value='';jbCleared=true}" 
+           size="10" 
+           name="entry" 
+           id="entry" />
 	</form>
+  
 	<script type="text/javascript">
 		$("entry").value = "[% msg %]";
-		var cleared = false;
+		var jbCleared = false;
 	</script>
-	<div onclick="if($F('entry')&amp;&amp;cleared)$('jumpForm').submit()"
-		 class="glassButton goButton">&nbsp;</div>
+  
+	<div onclick="if($F('entry')&amp;&amp;jbCleared)$('jumpForm').submit()"
+		   class="glassButton goButton">&nbsp;</div>
+       
 	<div class="cleaner"><!-- empty --></div>
+
   [% IF c.req.param( "jumpFailed" ) %]
   <span class="error">Couldn't figure out jump</span>
   [% END %]
+
 </div>
 
 <!-- end of the jump box -->
