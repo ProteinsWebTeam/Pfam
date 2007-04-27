@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.6 2007-04-16 16:07:19 jt6 Exp $
+# $Id: faq.tt,v 1.7 2007-04-27 15:56:32 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -238,13 +238,10 @@
 	<ul>
 	  <li>
 		<a href="[% c.uri_for( "/seqsearch", tab="searchProteinBlock" ) %]">
-		  <img alt="" src="[% c.uri_for( "/images/british_flag.gif" ) %]" /> Wellcome Trust 
-	      Sanger Institute (UK)</a>
+		  Wellcome Trust Sanger Institute (UK)</a>
 	  </li>
 	  <li>
-		<a href="http://pfam.janelia.org/">
-		  <img alt="" src="[% c.uri_for( "/images/american_flag.gif" ) %]" /> Washington D.C.
-		   (USA)</a>
+		<a href="http://pfam.janelia.org/">Washington D.C. (USA)</a>
 	  </li>
 	</ul>
 	<p><a href="#faqTop">back to top</a></p>
