@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.27 2007-04-16 15:50:19 jt6 Exp $
+   $Id: tab_layout.css,v 1.28 2007-04-27 16:12:56 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -31,28 +31,41 @@
 /* ======================================== */
 /* page layout items */
 
+#spacer {
+  background-color: #e7edf3; /* Prime 1 */
+}
+
+#contentContainer {
+  background-color: #e7edf3; /* Prime 1 */
+}
+
+#wrap {
+  background: url(/catalyst/pfam/images/bg.gif) repeat-y 15% 0;
+}
+
 /* styles for the markup that forms the page tab */
 #tabTitle {
   color: #074987;
 }
 
 #pageType {
-    border-color: #074987;
+  border-color: #074987;
 }
 
 #pageType h2 {
   color: #074987;
 }
 
-#tabTitle h2 {
+#tabTitle h1 {
+  font-size: x-large;
 	margin: 0;
 	padding: 0.2em 0 0 0.2em;
-    float: left;
+  float: left;
 }
 
 #wrap {
-    position: relative; /* needed to fix the IE peekaboo bug... */
-    border-right: 1px solid #074987;
+  position: relative; /* needed to fix the IE peekaboo bug... */
+  border-right: 1px solid #074987;
 }
 
 /* the overview bar */
@@ -66,38 +79,39 @@
 #icons span {
   float: right;
   outline: none;
-/*  color: #fefefe;*/
   color: #074987;
   text-decoration: none;
-  padding: 22px 0.6em 0 0;
+  padding: 24px 0 0 0;
   text-align:center;
   background-repeat: no-repeat;
   background-position: top center;
   font-size: x-small;
-  width: 18%;
+  width: 20%;
   overflow: hidden;
 }
 
 #icons span {
-    color: #666;
-    font-size: x-small;
+  color: #666;
+  font-size: x-small;
 }
 
 #icons a:hover {
-    outline: none;
-    text-decoration: underline;
+  outline: none;
+  text-decoration: underline;
 }
 
 #icons a em,
 #icons span em {
-    font-weight: bold;
-    font-style: normal;
+  font-weight: bold;
+  font-style: normal;
 }
 
-/* fix the huge boxes in IE */
-form {
-  display: inline;
-}
+/* the logos themselves */
+#seqIcon     { background-image: url(/catalyst/pfam/images/logos/alignment.png) }
+#archIcon    { background-image: url(/catalyst/pfam/images/logos/domains.png) }
+#structIcon  { background-image: url(/catalyst/pfam/images/logos/structure.png) }
+#ipfamIcon   { background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
+#specIcon    { background-image: url(/catalyst/pfam/images/logos/tree.png) }
 
 /* ======================================== */
 /* components of the remainder of the page */
@@ -190,8 +204,9 @@ form {
 }
 
 #sidebar li.selected a:hover {
-  text-decoration: none;
   cursor: default;
+  text-decoration: none;
+/*  color: #666; */
 }
 
 #sidebar li div.inactive {
@@ -202,10 +217,6 @@ form {
   font-weight: bold;
 }
 
-/*#sidebar img {
-  padding: 0.4em 0.8em;
-}
-*/
 #sidebar #jumpBox {
 	margin: 1em 0 0 0.4em;
 }
@@ -232,7 +243,7 @@ form {
 
 #tips {
 	margin: 0.2em auto;
-    width: 60em;
+  width: 60em;
 }
 
 #tips h2 {
@@ -240,19 +251,19 @@ form {
 }
 
 #tips dt {
-    float: left;
-    font-weight: bold;
+  float: left;
+  font-weight: bold;
 	text-align: right;
 }
 
 #tips dd {
 	line-height: 1.2em;
-    margin-left: 13em;
+  margin-left: 13em;
 	margin-bottom: 0.4em;
 }
 
 p.back {
-    text-align: center;
+  text-align: center;
 	font-size: x-large;
 }
 
