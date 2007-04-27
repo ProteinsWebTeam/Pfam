@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.18 2007-03-28 14:39:20 jt6 Exp $
+# $Id: summary.tt,v 1.19 2007-04-27 15:55:54 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,8 +14,6 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
-
-requirements.js.push( "family.js" );
 
 # YUI stuff - this is for tooltips
 requirements.css.push( "tree.css" );
@@ -26,6 +24,9 @@ requirements.js.push( "yui/container.js" );
 requirements.js.push( "ttTweak.js" );
 
 requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+# load this last, after the YUI stuff is parsed and in place 
+requirements.js.push( "family.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -50,42 +51,44 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
     <div id="siph">&nbsp;</div>
 
-  	<h1><span [% addTip("family","description") %]>[% pfam.description %]</span>
+    <h1><span [% addTip("family","description") %]>[% pfam.description %]</span>
       <a href="[% c.uri_for( "/annotate", acc=pfam.pfamA_acc ) %]">
-	    <img class="addAnnotation" alt="Add an annotation" src="[% c.uri_for( "/images/annotation.png") %]" /></a>
+        <img class="addAnnotation" 
+             alt="Add an annotation" 
+             src="[% c.uri_for( "/images/annotation.png") %]" /></a>
     </h1>
 
-  	[% IF pfam.comment.length %]
-  	<p>[% pfam.comment %]</p>
-  	[% ELSE %]
-  	<p class="inactive">No further details</p>
-  	[% END %]
+    [% IF pfam.comment.length %]
+    <p>[% pfam.comment %]</p>
+    [% ELSE %]
+    <p class="inactive">No further details</p>
+    [% END %]
   
     <hr class="short"/>
 
-  	[% IF pfam.pfamA_lit_refs.size %]
+    [% IF pfam.pfamA_lit_refs.size %]
       <h4 [% addTip("family","litRefs") %]>Literature references</h4>
   
       <ol>
-  	  [% FOREACH ref IN pfam.pfamA_lit_refs %]
-    	  <li>
+      [% FOREACH ref IN pfam.pfamA_lit_refs %]
+        <li>
           [% ref.author %], [% ref.journal %]: [% ref.title %]
-      		<a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">PUBMED:[% ref.medline %]</a>
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">PUBMED:[% ref.medline %]</a>
         </li>
-  	  [% END %]
-    	</ol>
+      [% END %]
+      </ol>
   
       <hr class="short"/>
-  	[% END %]
+    [% END %]
 
-  	<h2 id="interproTitle"><span [% addTip("family","interpro") %]>Interpro entry</span> <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h2>
+    <h2 id="interproTitle"><span [% addTip("family","interpro") %]>Interpro entry</span> <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h2>
 
     [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
         to contain <p> tags... -%]
-  	[% pfam.interpro.abstract %]
+    [% pfam.interpro.abstract %]
 
-  	[%- IF pfam.clan_acc -%]
-    	<h2 [% addTip("family","familyClan") %]>Clan</h2>
+    [%- IF pfam.clan_acc -%]
+      <h2 [% addTip("family","familyClan") %]>Clan</h2>
   
       [% membershipList = BLOCK;
         total = 0;
@@ -103,15 +106,16 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
         END; # of foreach
       END # of block %]
 
-	<p>This family is a member of clan <strong>
-      <a href="[% c.uri_for( "/clan", id=pfam.clan_id ) %]">[% pfam.clan_id %]</a></strong>
-      (<a href="[% c.uri_for( "/clan", acc=pfam.clan_acc ) %]">[% pfam.clan_acc %]</a>),
-      which contains the following [% total %] member[% total > 1 ? "s" : "" %]:
-    </p>
-
-	[% membershipList %]
-
-    <div class="cleaner"></div>
+      <p>
+        This family is a member of clan <strong>
+        <a href="[% c.uri_for( "/clan", id=pfam.clan_id ) %]">[% pfam.clan_id %]</a></strong>
+        (<a href="[% c.uri_for( "/clan", acc=pfam.clan_acc ) %]">[% pfam.clan_acc %]</a>),
+        which contains the following [% total %] member[% total > 1 ? "s" : "" %]:
+      </p>
+    
+      [% membershipList %]
+    
+      <div class="cleaner"></div>
 
     [%- END # of "if clan_acc" -%]
 
