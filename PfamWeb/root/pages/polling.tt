@@ -3,7 +3,7 @@
 # polling.tt
 # jt6 20070410 WTSI
 #
-# $Id: polling.tt,v 1.3 2007-04-20 15:24:25 jt6 Exp $
+# $Id: polling.tt,v 1.4 2007-04-27 16:05:38 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;
@@ -27,8 +27,9 @@ requirements.js.push( "job.js" );
   <div id="logScroller"></div>
 </div>
 
-<div id="jobs">
-</div>
+<div id="errors"></div>
+
+<div id="jobs"></div>
 
 <script type="text/javascript">
   
@@ -36,7 +37,7 @@ requirements.js.push( "job.js" );
   try {
     jobStatus = '[% jobStatus %]'.evalJSON( true );
   } catch( e ) {
-    $("pfamAError")
+    $("errors")
       .update( "There was a problem retrieving job parameters from the server.")
       .show();
   }
@@ -48,18 +49,17 @@ requirements.js.push( "job.js" );
       function( job ) {
         
         var jobConfig = {
-          'checkURI':  '[% c.uri_for( "/seqsearch/checkStatus" ) %]',
-          'doneURI':   '[% c.uri_for( "/seqsearch/jobDone" ) %]',
+          'checkURI':  '[% base %]seqsearch/checkStatus',
+          'doneURI':   '[% base %]seqsearch/jobDone',
           'status':    job
         };
-       
         var p;
         try {
           p  = new Job( jobConfig );
         } catch( e ) {
-          console.error( e );
-          $("pfamAError")
-            .update( "There was a problem submitting your job to the server.")
+          // console.error( e );
+          $("errors")
+            .update( "There was a problem submitting your job to the server: " + e.description )
             .show();
         }
         jobs.push( p );
