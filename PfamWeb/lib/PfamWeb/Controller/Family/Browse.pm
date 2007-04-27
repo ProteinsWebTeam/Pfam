@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060717 WTSI
 #
-# $Id: Browse.pm,v 1.11 2007-04-16 16:01:12 jt6 Exp $
+# $Id: Browse.pm,v 1.12 2007-04-27 16:18:46 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ Retrieves the data for the "browse by family" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.11 2007-04-16 16:01:12 jt6 Exp $
+$Id: Browse.pm,v 1.12 2007-04-27 16:18:46 jt6 Exp $
 
 =cut
 
@@ -69,6 +69,7 @@ sub browse : Path {
   my @res;
 
   if( lc $c->req->param("browse") eq "numbers" ) {
+    $c->log->debug( "Family::Browse::browse: browsing \"numbers\"..." );
     $c->stash->{char} = "numbers";
 
     # run the query to get back all families starting with a number
@@ -79,6 +80,7 @@ sub browse : Path {
 				  order_by => "pfamA_id ASC" } );
 
   } elsif( lc $c->req->param("browse") eq "top twenty" ) {
+    $c->log->debug( "Family::Browse::browse: browsing \"top twenty\"..." );
     $c->stash->{char} = "top twenty";
 
   	# retrieve the top twenty largest families, ordered by number of
@@ -94,11 +96,14 @@ sub browse : Path {
 
   } else {
 
+    $c->log->debug( "Family::Browse::browse: not a number, not \"top twenty\"..." );
+
     # see if we should load the page for families starting with a given letter
     my $char;
     ( $char ) = $c->req->param( "browse" ) =~ /^(\w{1})$/;
 
     if( defined $char ) {
+      $c->log->debug( "Family::Browse::browse: browsing for a character: |$char|" );
       $c->stash->{char} = uc $char;
   
     	# run the query to get back all families starting with the
@@ -113,6 +118,7 @@ sub browse : Path {
 
       # either "new" specified, or no starting letter specified, so default 
       # to new families anyway
+      $c->log->debug( "Family::Browse::browse: browsing new entries" );
       $c->stash->{char} = "new";
   
       @res = $c->model("PfamDB::Pfam")
