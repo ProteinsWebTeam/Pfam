@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: help.css,v 1.5 2007-04-20 16:10:28 jt6 Exp $
+   $Id: help.css,v 1.6 2007-04-27 16:09:17 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -45,6 +45,14 @@ div.blockContent ol {
 
 #tableLabel {
   padding-top: 0.4em;
+}
+
+/* ---------------------------------------- */
+/* getting started block */
+
+img.jumpTo {
+  float: right;
+  padding: 0.4em;
 }
 
 /* ---------------------------------------- */
