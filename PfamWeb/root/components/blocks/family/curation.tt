@@ -1,11 +1,16 @@
 
-[%#
+[%
 # curation.tt
 # jt6 20060424 WTSI
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.13 2006-10-26 15:32:22 jt6 Exp $
+# $Id: curation.tt,v 1.14 2007-04-27 15:55:05 jt6 Exp $
+
+# URI shortcuts
+infoGIF = c.uri_for( "/images/info.gif" );
+help = c.uri_for( "/help" );
+getHmm = c.uri_for( "/family/gethmm" );
 %]
 
 <!-- start curation block -->
@@ -18,8 +23,11 @@
 
     <h3>
       <span class="tipped" [% addTip("curation","curationTitle") %]>Curation</span>
-	  <a href="[% c.uri_for( "/help" ) %]">
-        <img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
+  		<a href="[% help %]?tab=helpScoresBlock"
+         title="View help on the curation process">
+  	 		<img src="[% infoGIF %]" 
+             alt="View help on the curation process"
+             class="info" /></a>
     </h3>
 
     [% IF pfam.status == "NEW" %]
@@ -97,8 +105,11 @@
 
     <h3>
       <span class="tipped" [% addTip("curation","hmm") %]>HMM information</span>
-	  <a href="[% c.uri_for( "/help" ) %]">
-        <img class="info" alt="View help" src="[% c.uri_for( "/images/info.gif" ) %]" /></a>
+  	  <a href="[% help %]?tab=helpScoresBlock"
+         title="View help on HMM parameters">
+        <img src="[% infoGIF %]" 
+             class="info" 
+             alt="View help on HMM parameters" /></a>
     </h3>
 
     <table class="layout">
@@ -118,8 +129,8 @@
               <thead>
                 <tr>
                   <th rowspan="2">Parameter</th>
-                  <th colspan="2">ls (<a href="[% c.uri_for( "/family/gethmm", acc=pfam.pfamA_acc, mode="ls" ) | uri | html %]">download</a>)</th>
-                  <th colspan="2">fs (<a href="[% c.uri_for( "/family/gethmm", acc=pfam.pfamA_acc, mode="fs" ) | uri | html %]">download</a>)</th>
+                  <th colspan="2">ls (<a href="[% getHmm %]?acc=[% pfam.pfamA_acc %]&amp;mode=ls">download</a>)</th>
+                  <th colspan="2">fs (<a href="[% getHmm %]?acc=[% pfam.pfamA_acc %]&amp;mode=fs">download</a>)</th>
                 </tr>
                 <tr>
                   <th>Sequence</th>
@@ -172,7 +183,7 @@
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">HMM logo:</td>
           <td class="data">
-		    <a class="ext" href="http://www.sanger.ac.uk/cgi-bin/software/analysis/logomat-m.cgi?pfamid=[% pfam.pfamA_acc %]">View</a> the HMM logo.
+    		    <a class="ext" href="http://www.sanger.ac.uk/cgi-bin/software/analysis/logomat-m.cgi?pfamid=[% pfam.pfamA_acc %]">View</a> the HMM logo.
           </td>
 	    </tr>
       </tbody>
