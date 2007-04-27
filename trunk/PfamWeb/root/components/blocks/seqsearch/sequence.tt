@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.1 2007-04-20 15:28:47 jt6 Exp $
+# $Id: sequence.tt,v 1.2 2007-04-27 15:57:59 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -61,7 +61,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           <span class="label">Cut-off</span>
           <div class="formElement">
             <label for="gaButton">
-              <input type="radio" 
+              <input class="radio"
+                     type="radio" 
                      name="ga" 
                      id="gaButton" 
                      value="1" 
@@ -72,7 +73,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           </div>
           <div class="formElement">
             <label for="eButton">
-              <input type="radio" 
+              <input class="radio"
+                     type="radio" 
                      name="ga" 
                      id="eButton" 
                      value="0" 
