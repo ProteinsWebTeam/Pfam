@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.11 2007-04-16 16:00:18 jt6 Exp $
+# $Id: Search.pm,v 1.12 2007-04-27 16:22:22 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.11 2007-04-16 16:00:18 jt6 Exp $
+$Id: Search.pm,v 1.12 2007-04-27 16:22:22 jt6 Exp $
 
 =cut
 
@@ -136,7 +136,10 @@ Returns the action to which the entry maps, or undef if guessing fails.
 =cut
 
 sub guess : Private {
-  my( $this, $c, $entry ) = @_;
+  my( $this, $c, $entryUnknownCase ) = @_;
+  
+  # make sure we know the entry is upper case
+  my $entry = uc( $entryUnknownCase );
 
   $c->log->debug( "Search::guess: called with entry |$entry|" );
 
@@ -149,7 +152,7 @@ sub guess : Private {
     if( $2 eq "F" ) {
       $found = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
     } elsif ( $2 eq "B" ) {
-      $found = $c->model("PfamDB::Pfam")->find( { pfamB_acc => $1 } );      
+      $found = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );      
     }
   
     if( defined $found ) {
