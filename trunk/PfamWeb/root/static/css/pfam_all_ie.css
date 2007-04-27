@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: pfam_all_ie.css,v 1.7 2007-04-03 14:58:25 jt6 Exp $
+   $Id: pfam_all_ie.css,v 1.8 2007-04-27 16:10:29 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -46,4 +46,10 @@ div.menuContent {
 /* why would a form have margins anyway ??? */
 #searchBox form {
   margin: 0;
+}
+
+/* make the hr look the same here too */
+hr {
+  border: 1px solid #e7e7e7;
+  margin: 1em;
 }
