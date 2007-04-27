@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.10 2007-04-20 15:34:58 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.11 2007-04-27 16:24:46 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.10 2007-04-20 15:34:58 jt6 Exp $
+$Id: SeqSearch.pm,v 1.11 2007-04-27 16:24:46 jt6 Exp $
 
 =cut
 
@@ -367,7 +367,7 @@ sub queueSeqSearch : Private {
                   . "| jobs pending" );
 
   if( $c->stash->{numberPending} > $this->{pendingLimit} ) {
-    $c->log->debug(   "SeqSearch::queueSeqSearch: too many jobs in queue ("
+    $c->log->debug( "SeqSearch::queueSeqSearch: too many jobs in queue ("
                     . $c->stash->{numberPending} . ")" );
     $c->stash->{seqSearchError} = "There are currently too many jobs in the sequence search queue. Please try again in a little while.";
     return -1;
@@ -376,14 +376,14 @@ sub queueSeqSearch : Private {
   # ok. There's room on the queue, so we can submit the hmmer job and the blast job
   
   my $aStatus = $c->forward( "queuePfamA" );
-  #my $bStatus = $c->forward( "queuePfamA" ); # NOTE ! Submitting two pfam a jobs here
+#  my $bStatus = $c->forward( "queuePfamB" );
   
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $jobStatus = {
                     checkURI => $c->uri_for( "/seqsearch/checkstatus" )->as_string,
                     doneURI  => $c->uri_for( "/seqsearch/jobDone" )->as_string,
-                    #jobs     => [ $aStatus, $bStatus ],
+ #                   jobs     => [ $aStatus, $bStatus ],
                     jobs     => [ $aStatus ],
                   };
                   
@@ -406,8 +406,8 @@ sub queuePfamA : Private {
 
   # make a guess at the runtime for the job
   my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
-  $c->log->debug( "SeqSearch::queuePfamA: estimated search time: " .
-                  "|$estimatedTime| seconds" );
+  $c->log->debug( "SeqSearch::queuePfamA: estimated search time: "
+                  . "|$estimatedTime| seconds" );
     
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
@@ -449,6 +449,58 @@ sub queuePfamA : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 queuePfamB : Private
+
+Submits a pfam B search
+
+=cut
+
+sub queuePfamB : Private {
+  my( $this, $c ) = @_;
+
+  # make a guess at the runtime for the job
+  my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
+  $c->log->debug( "SeqSearch::queuePfamB: estimated search time: "
+                  . "|$estimatedTime| seconds" );
+    
+  # generate a job ID
+  my $jobId = Data::UUID->new()->create_str();
+
+  # build the command to run
+  my $cmd = "/data/bin/wublastp /data/blastdb/Pfam/data/Pfam-B.fasta";
+  $cmd .= " /tmp/$jobId.fa";
+  $cmd .= " -cpus 2 -gapE=2000 -T=12";
+  
+  # add this job to the tracking table
+  my $resultHistory = $c->model('WebUser::OtherJobsHistory')
+                        ->create( { command        => $cmd,
+                                    estimated_time => $estimatedTime,
+                                    job_id         => $jobId,
+                                    opened         => \'NOW()',
+                                    status         => 'PEND' } );
+                                    
+  my $resultStream = $c->model('WebUser::OtherJobsStream')
+                       ->create( { id    => $resultHistory->id,
+                                   stdin => $c->stash->{seq} || q() } );
+
+  # check the submission time with a separate query
+  my $historyRow = $c->model( "WebUser::OtherJobsHistory" )
+                     ->find( { id => $resultHistory->id } );
+
+  # build a job status data structure that we'll convert to JSON and hand back
+  # to the javascript on the client side
+  my $jobStatus = {
+                    estimatedTime => $estimatedTime,
+                    interval      => $this->{pollingInterval},
+                    jobId         => $jobId,
+                    name          => 'Pfam B search',
+                    opened        => $historyRow->opened,
+                  };
+  return $jobStatus;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 checkStatus : Local
 
 Checks the status of the specified job and returns it as a plain text response.
@@ -475,8 +527,7 @@ sub checkStatus : Local {
 
   # make sure the query returned *something*
   if( not defined $jobStatus ) {
-    $c->log->debug( "SeqSearch::checkStatus: problem retrieving job status for job |" 
-                    . $jobId . "|" );
+    $c->log->debug( "SeqSearch::checkStatus: problem retrieving job status for job |$jobId|" );
     $c->stash->{status}->{error} = "Could not retrieve job status";
     $c->detach( "returnStatus" );
   }
@@ -503,9 +554,9 @@ sub checkStatus : Local {
     $c->stash->{status}->{status} = "UNKNOWN";
   }  
   
-  $c->log->debug( "SeqSearch::checkStatus: opened:  |" . $jobStatus->opened ."|" );
-  $c->log->debug( "SeqSearch::checkStatus: started: |" . $jobStatus->started ."|" );
-  $c->log->debug( "SeqSearch::checkStatus: closed:  |" . $jobStatus->closed ."|" );
+#  $c->log->debug( "SeqSearch::checkStatus: opened:  |" . $jobStatus->opened ."|" );
+#  $c->log->debug( "SeqSearch::checkStatus: started: |" . $jobStatus->started ."|" );
+#  $c->log->debug( "SeqSearch::checkStatus: closed:  |" . $jobStatus->closed ."|" );
   
   # see how many jobs are pending
   my $rs = $c->model( "WebUser::HmmerHistory" )
@@ -540,17 +591,21 @@ sub checkStatus : Local {
 sub returnStatus : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "SeqSearch::returnStatus: status object" );
-  $c->log->debug( dump $c->stash->{status} );
-  
-  # convert the status hash to a JSON object and return it
-  
+  # convert the status hash to a JSON object and return it  
   my $status = objToJson( $c->stash->{status} ); 
  
   $c->log->debug( "SeqSearch::returnStatus: returning: " );
   $c->log->debug( dump( $c->stash->{status} ) );
+
 	$c->res->content_type( "application/json" );
 	$c->res->body( $status );
+
+  # make damned sure this isn't cached...	
+  $c->res->header( 'Pragma' => 'no-cache' );
+  $c->res->header( 'Expires' => 'Thu, 01 Jan 1970 00:00:00 GMT' );
+	$c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
+                                      'post-check=0, pre-check=0, max-age=0' );
+  
 }
 
 #-------------------------------------------------------------------------------
