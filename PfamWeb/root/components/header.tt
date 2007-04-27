@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.16 2007-04-20 15:25:37 jt6 Exp $
+# $Id: header.tt,v 1.17 2007-04-27 16:01:53 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -15,15 +15,15 @@ navNames = {
   help   = "HELP" };
 
 # only run uri_for once...
-base = c.uri_for( "/" );
+#base = c.uri_for( "/" );
 
 # the URIs for the links
 navLinks = {
   home   = base,
-  search = "${base}seqsearch",
-  browse = "${base}family/browse",
-  ftp    = "${base}help?tab=helpFtpBlock",
-  help   = "${base}help" };
+  search = "${base}/seqsearch",
+  browse = "${base}/browseIndex",
+  ftp    = "${base}/help?tab=helpFtpBlock",
+  help   = "${base}/help" };
 
 # the order of the items in the navbar - these are the keys for the two
 # hashes above
@@ -51,12 +51,16 @@ navItems = [ "home", "search", "browse", "ftp", "help" ];
   
   <div id="siteLogoHolder" class="column">
     <a href="http://www.sanger.ac.uk/">
-      <img alt="" id="siteLogo" src="[% base %]images/blank.gif" /></a>
+      <img alt="Wellcome Trust Sanger Institute" 
+           id="siteLogo" 
+           src="[% base %]/images/blank.gif" /></a>
   </div>
 
   <div id="pfamLogoHolder" class="column">
     <a href="[% base %]">
-      <img alt="" id="pfamLogo" src="[% base %]images/blank.gif" /></a>
+      <img alt="Pfam" 
+           id="pfamLogo" 
+           src="[% base %]/images/blank.gif" /></a>
     <div id="searchBox">
       <form action="[% c.uri_for( "/search" ) %]" 
             method="get" 
@@ -64,15 +68,11 @@ navItems = [ "home", "search", "browse", "ftp", "help" ];
             id="siteSearchForm">
     		<input class="entryField"
                type="text" 
-               onfocus="if(!cleared){this.value='';cleared=true}" 
+               onfocus="if(!ssCleared){this.value='';ssCleared=true}" 
                name="query" 
                id="siteSearchField" />
     	</form>
-    	<script type="text/javascript">
-    		$("siteSearchField").value = "keyword search";
-    		var cleared = false;
-    	</script>
-    	<div onclick="if($F('siteSearchField')&amp;&amp;cleared)$('siteSearchForm').submit()"
+    	<div onclick="if($F('siteSearchField')&amp;&amp;ssCleared)$('siteSearchForm').submit()"
       		 class="glassButton goButton">&nbsp;</div>
     </div>
   </div>
@@ -80,6 +80,11 @@ navItems = [ "home", "search", "browse", "ftp", "help" ];
 </div>
 
 <div class="cleaner"><!-- empty --></div>
+
+<script type="text/javascript">
+	$("siteSearchField").value = "keyword search";
+	var ssCleared = false;
+</script>
 
 <!-- header end -->
 
