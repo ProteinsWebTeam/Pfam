@@ -4,14 +4,14 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.3 2007-03-13 10:32:59 jt6 Exp $
+# $Id: jmol.tt,v 1.4 2007-04-27 15:58:20 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
-requirements.js.push( "jmol/jmol.js" );
+requirements.js.push( "Jmol.js" );
 
 #-------------------------------------------------------------------------------
 
