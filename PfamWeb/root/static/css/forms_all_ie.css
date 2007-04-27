@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: forms_all_ie.css,v 1.2 2007-03-15 14:57:21 jt6 Exp $
+   $Id: forms_all_ie.css,v 1.3 2007-04-27 16:07:45 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -28,7 +28,13 @@
     
 */
 
-input.submit,
-input.reset {
-	margin-left: 14.6em;
+/* try to line up the submit button with the other form elements */
+input.submit {
+	margin-left: 14.6em ! important;
+}
+
+/* make radio buttons look the same in all browsers... */
+.formWrapper input.radio {
+  border: none;
+  background-color: transparent;
 }
