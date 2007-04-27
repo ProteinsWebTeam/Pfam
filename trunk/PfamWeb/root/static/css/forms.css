@@ -4,7 +4,7 @@
 
    Stylesheet for various forms in the site.
 
-   $Id: forms.css,v 1.7 2007-04-20 15:13:35 jt6 Exp $
+   $Id: forms.css,v 1.8 2007-04-27 16:08:23 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -29,15 +29,6 @@
 
 /* ---------------------------------------- */
 /* the annotation form */
-
-/* the "add annotation" button image */
-img.addAnnotation {
-	width: 100px;
-    height: 24px;
-	vertical-align: middle;
-    padding-bottom: 3px;
-	border-style: none;
-}
 
 /* styles for the annotation form itself */
 .formWrapper fieldset {
