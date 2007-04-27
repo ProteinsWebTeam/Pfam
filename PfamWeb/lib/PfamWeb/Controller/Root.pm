@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.11 2007-04-16 15:59:10 jt6 Exp $
+# $Id: Root.pm,v 1.12 2007-04-27 16:22:05 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.11 2007-04-16 15:59:10 jt6 Exp $
+$Id: Root.pm,v 1.12 2007-04-27 16:22:05 jt6 Exp $
 
 =cut
 
@@ -49,22 +49,8 @@ sub default : Private {
   $c->res->redirect( $c->uri_for("/404") )
     unless $c->req->uri eq $c->req->base;
 
-  # now, knowing that this is a request for the site index page...
-
   # set the page to be cached for an hour
 #  $c->cache_page( 3600 );
-
-  # retrieve the news items from the feed
-#  my @entries = $c->model("WebUser::News")
-#	->search( {},
-#			  { order_by => "pubDate DESC" } );
-#  $c->stash->{newsItems} = \@entries;
-
-  # get the top-ten families
-#  my @topTen = $c->model("WebUser::Family_count")
-#    ->search( {},
-#			  { order_by => "view_count DESC" } );
-#  $c->stash->{topTen} = \@topTen;
 
   # tell the navbar where we are
   $c->stash->{nav} = "home";
@@ -89,56 +75,30 @@ accessible throughout the app.
 sub auto : Private {
   my ( $this, $c ) = @_;
 
-  #----------------------------------------
-  # authentication/authorisation stuff...
-
-  #  return 1 if $c->controller eq $c->controller("Auth");
-  #
-  #  unless( $c->user_exists ) {
-  #    $c->log->debug( "Root::auto: unknown user; redirecting to login" );
-  #    $c->res->redirect( $c->uri_for( "/login" ) );
-  #    return 0;
-  #  }
-  #  $c->log->debug( "Root::auto: user authenticated" );
-
-  #----------------------------------------
-  # tack on a trailing slash, if required
-
-#  if ( $c->req->path and $c->req->path !~ /\/$/ and not $c->req->param ) {
-#    $c->res->redirect( $c->req->base . $c->req->path . "/", 301 );
-#    return 0;
-#  }
-
-  #----------------------------------------
   # pick a tab
-
   my $tab;
   ($tab) = $c->req->param("tab") =~ /^(\w+)$/
     if defined $c->req->param("tab");
 
   $c->stash->{showTab} = $1 if defined $tab;
 
-  # stash some details of the Pfam release
-  my $releaseData = $c->model("PfamDB::Version")->find( {} );
+  # see if we can get a DB ResultSet, which is effectively a test of whether we
+  # can connect to the DB. If we can't, thrown an error and let the end action
+  # clean up
+  my $releaseData;
+  eval {
+    # stash some details of the Pfam release
+    $releaseData = $c->model( "PfamDB::Version" )->find( {} );
+  };
+  if( $@ ) {
+    $c->error( "There appears to be a problem with the Pfam database." );
+    $c->forward("/reportError");
+  }
+  
   $c->stash->{relData} = $releaseData if $releaseData;
-
+  
   return 1;
 }
-
-#-------------------------------------------------------------------------------
-
-=head2 graph : Local
-
-Generates a graph showing Pfam coverage.
-
-=cut
-
-#sub graph : Local {
-#  my ( $this, $c ) = @_;
-#
-#  $c->res->header( "Content-Type" => "image/png" );
-#  $c->stash->{template} = "components/graph.tt";
-#}
 
 #-------------------------------------------------------------------------------
 
@@ -169,6 +129,22 @@ sub annotate : Local {
   my ( $this, $c ) = @_;
 
   $c->stash->{template} = "pages/annotation.tt";
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 browseIndex : Global
+
+
+=cut
+
+sub browseIndex : Global {
+  my ( $this, $c ) = @_;
+
+  # tell the navbar where we are
+  $c->stash->{nav} = "browse";
+
+  $c->stash->{template} = "pages/browseIndex.tt";
 }
 
 #-------------------------------------------------------------------------------
@@ -221,9 +197,38 @@ overridden by setting it in an action (eg for a 404 template).
 
 =cut
 
-sub end : ActionClass("RenderView") {
-  my ( $this, $c ) = @_;
+#sub end : ActionClass("RenderView") {
+#  my ( $this, $c ) = @_;
+#  $c->stash->{template} ||= "pages/index.tt";
+#}
+
+sub end : Private {
+  my( $this, $c ) = @_;
+
+  if ( scalar @{ $c->error } ) {
+    $c->log->debug( "Root::end: found some errors from previous methods" );
+    $c->stash->{errorMsg} = $c->error;
+    $c->stash->{template} = "pages/error.tt";
+    
+    # make sure the error page isn't cached
+    $c->res->header( 'Pragma' => 'no-cache' );
+    $c->res->header( 'Expires' => 'Thu, 01 Jan 1970 00:00:00 GMT' );
+  	$c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
+                                        'post-check=0, pre-check=0, max-age=0' );
+    
+    $c->forward( "PfamWeb::View::TT" );
+    $c->clear_errors;
+  }
+
+  return 1 if $c->response->status =~ /^3\d\d$/;
+  return 1 if $c->response->body;
+
+  unless ( $c->response->content_type ) {
+    $c->response->content_type( "text/html; charset=utf-8" );
+  }
+
   $c->stash->{template} ||= "pages/index.tt";
+  $c->forward( "PfamWeb::View::TT" );
 }
 
 #-------------------------------------------------------------------------------
