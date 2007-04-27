@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060821 WTSI
 #
-# $Id: Browse.pm,v 1.5 2007-03-29 13:59:26 jt6 Exp $
+# $Id: Browse.pm,v 1.6 2007-04-27 16:18:06 jt6 Exp $
 
 =head1 NAME
 
@@ -25,7 +25,7 @@ one page, rather than splitting them up like the families.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.5 2007-03-29 13:59:26 jt6 Exp $
+$Id: Browse.pm,v 1.6 2007-04-27 16:18:06 jt6 Exp $
 
 =cut
 
@@ -33,10 +33,9 @@ $Id: Browse.pm,v 1.5 2007-03-29 13:59:26 jt6 Exp $
 
 =head1 METHODS
 
-=head2 browse : Path
+=head2 begin: Path
 
-Picks up a URL like C<http://localhost:3000/clan/browse/>. Retrieves a
-list of all clan IDs and hands off to the template.
+Just overrides the default begin method from Section.
 
 =cut
 
@@ -47,7 +46,17 @@ sub begin : Private {
   # when there's no Pfam accession or ID specified in the
   # parameters. Which there won't ever be for the browse pages.
 
+  # tell the navbar where we are
+  $c->stash->{nav} = "browse";
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 browse : Path
+
+Retrieves data for the specified browse page.
+
+=cut
 
 sub browse : Path {
   my( $this, $c ) = @_;
