@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.41 2007-04-20 16:10:40 jt6 Exp $
+   $Id: pfam.css,v 1.42 2007-04-27 16:11:17 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -31,7 +31,7 @@
 
 body {
   font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-size: smaller;
+  font-size: small;
   color: #404040;
   background: #FFF;
   margin: 0;
@@ -56,10 +56,12 @@ ul, dl, ol {
 
 a:link,
 a:visited,
-a:hover,
 a:focus,
 a:active {
   color: #074987;
+}
+a:hover {
+  color: #666;
 }
 
 img {
@@ -80,6 +82,28 @@ img.info {
 
 .small {
   font-size: smaller;
+}
+
+h1 {
+  font-size: large;
+  margin: 0.8em 0;
+}
+h2 {
+  font-size: medium;
+  margin: 0.5em 0;
+}
+h3 {
+  font-size: small;
+  margin: 0.4em 0;
+}
+h4, h5, h6 {
+  font-size: small;
+  margin: 0.2em 0;
+}
+
+/* fix the huge boxes in IE */
+form {
+  display: inline;
 }
 
 /* ========================================
@@ -134,14 +158,12 @@ img.info {
   background-repeat: no-repeat;
   width: 218px;
   height: 70px;
-  border: none;
 }
 
 #pfamLogo {
   background: #FFF url(/catalyst/pfam/images/pfam_logo.gif) no-repeat;
   width: 140px;
   height: 50px;
-  border: none;
 }
 
 /* tweak the site-wide search box so that it fits nicely under the Pfam logo */
@@ -180,10 +202,6 @@ img.info {
   color: #666;
 }
 
-#navbar a:hover { 
-  color: #666;
-}
-
 /* a little warning message */
 
 #jsWarning {
@@ -194,15 +212,6 @@ img.info {
   width: 50%;
   padding: 0.4em;
 }
-
-/* the logos, which are used for the overview in the index page as well as
-   in all tab layout pages */
-
-#seqIcon    { background-image: url(/catalyst/pfam/images/logos/alignment.png) }
-#archIcon    { background-image: url(/catalyst/pfam/images/logos/domains.png) }
-#structIcon  { background-image: url(/catalyst/pfam/images/logos/structure.png) }
-#ipfamIcon  { background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
-#specIcon    { background-image: url(/catalyst/pfam/images/logos/tree.png) }
 
 /* widgets in the jump box */
 
@@ -256,21 +265,6 @@ img.info {
 }
 
 /* ======================================== */
-/* components of the remainder of the page */
-
-#spacer {
-  background-color: #e7edf3; /* Prime 1 */
-}
-
-#contentContainer {
-  background-color: #e7edf3; /* Prime 1 */
-}
-
-#wrap {
-  background: url(/catalyst/pfam/images/bg.gif) repeat-y 15% 0;
-}
-
-/* ======================================== */
 /* the footer. We use a wrapper div (#contentContainer) for the content
    when the page contains tabs, so add a separate style for that which 
    adds the background image, etc. */
@@ -278,10 +272,10 @@ img.info {
 #siteFooter {
   margin: 0.4em 0 0 0;
   text-align: center;
+  font-size: x-small;
 }
 
 #siteFooter a {
-  letter-spacing: 2px;
   text-decoration: none;
   font-weight: bold;
 }
@@ -294,6 +288,11 @@ img.info {
 #footer span {
   margin: 0;
   padding: 0 0.4em 0 0;
+}
+
+#siteFooter p.spaced,
+#footer p.spaced {
+  letter-spacing: 3px;  
 }
 
 /* the footer for tab-layout templates */
@@ -328,51 +327,8 @@ div.errorReport p.message {
   margin-left: 2em;
 }
 
-/* ======================================== */
-/* browse pages */
-
-div.pageList {
-  width: 90%;
-  margin: 0.4em auto !important;
-  padding: 0.4em;
-  text-align: center;
-}
-
-div.pageList span.letter {
-  padding: 0.1em;
-  height: 2.1em;
-  display: block;
-  float: left;
-}
-
-div.pageList span.inactive {
-  border: none;
-  color: #074987;
-  font-weight: bold;
-}
-
-div.pageList span.letter a {
-  text-decoration: none;
-  padding: 0.4em;
-  color: #000;
-  background: #DDD;
-}
-
-div.pageList span.letter a:hover {
-  background: #AAA;
-  color: white;
-}
-
-table.browse { 
-  /* make sure that the other classes attached to the browse table, probably 
-     "details", cant override the centring */
-  margin: 0 auto !important
-}
-
-.species {
-  font-style: italic;
-}
 /* ---------------------------------------- */
+/* "details" table. Used in various places */
 
 table.details {  
   margin: 0;
@@ -392,7 +348,6 @@ table.details td {
   text-align: center;
   vertical-align: middle;
   padding: 0.2em;
-/*  border: 2px solid #FFF; */
 }
 
 table.details td.label {
@@ -413,7 +368,7 @@ table.details tr {
 }
 
 td.stripeHover {
-  background: #CBD;
+  background: #c2d2e1;
 }
 
 table.details tr.odd {
@@ -485,7 +440,7 @@ body.tool h1 {
   background-position: center center;
   background-repeat: no-repeat;
   margin: 0 2px;
-    border-style: none;
+  border-style: none;
 }
 
 .sortarrow.updown {
@@ -502,8 +457,8 @@ body.tool h1 {
 
 /* this is the auto-generated link for sorting the column */
 a.sortheader {
-    text-decoration: none;
-    display: block;
+  text-decoration: none;
+  display: block;
 }
 
 /* affects the key */
@@ -511,18 +466,18 @@ a.sortheader {
 #key {
   padding: 4px;
   margin: 8px 8px;
-    border: 1px solid #999;
-    background-color: #EEE;
+  border: 1px solid #CCC;
+  background-color: #EEE;
   text-align: center;
 }
 
 #key h2 {
-    color: #074987;
+  color: #074987;
   text-align: left;
   margin: 4px auto;
-    padding: 2px;
+  padding: 2px;
   font-size: large;
-    font-weight: bold;
+  font-weight: bold;
 }
 
 #key p {
@@ -542,7 +497,7 @@ a.sortheader {
 
 #keyTable .titleRow {
   background: #AAA;
-    font-weight: bold;
+  font-weight: bold;
 }
 
 /* affects the results table */
@@ -595,7 +550,7 @@ a.sortheader {
 
 #results span.highlight,
 #resultTable tr.highlight {
-  background: #CBD;
+  background: #c2d2e1; /* #CBD */
 }
 
 /* ======================================== */
@@ -606,21 +561,19 @@ div.domain {
 }
 
 div.pdbImageFragment {
-  border-width: 1px;
-  border-style: solid;
   float: right;
   margin: 0.2em;
   padding: 0.3em;
   width: 200px;
   font-size: 0.8em;
   overflow: hidden;
+  border: 1px solid #074987;
+  background: #e7edf3;
 }
 
 div.pdbImageFragment h1 {
   font-size: 1em;
   text-decoration: underline;
-  background: #e7edf3;
-  border-color: #074987;
 }
 
 img.pdbImage {
@@ -628,14 +581,15 @@ img.pdbImage {
   height: 200px;
 }
 
-h4.pdbTitle  {
+.pdbTitle  {
   display: inline;
   color: #074987;
+  font-weight: bold;
 }
 
 hr {
   background-color: #e7e7e7;
-  border: 0;
+  border: none;
   height: 1px;
   width: 60%;
   margin: 2em auto;
@@ -750,7 +704,7 @@ span.clanMember {
 /* species tree styles */
 
 .highlightSeed {
-  background: #CBD;
+  background: #c2d2e1; /* #CBD */
 }
 
 td.nodeSummaryCell {
@@ -765,7 +719,7 @@ div.nodeSummary div {
   float: left;
   border-width: 1px;
   border-style: solid;
-  width: 2.5em;
+  width: 3em;
   height: 1.2em;
   padding: 0.1em;
   margin: 0.1em;
@@ -783,6 +737,10 @@ div.nodeSummary div {
 .domSum {
   background: #DDF;
   border-color: #99B;
+}
+
+#treeDiv {
+  min-height: 31em;
 }
 
 #treeTools {
