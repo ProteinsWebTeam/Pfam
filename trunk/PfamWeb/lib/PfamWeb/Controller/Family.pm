@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.20 2007-04-16 15:57:54 jt6 Exp $
+# $Id: Family.pm,v 1.21 2007-04-27 16:19:52 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.20 2007-04-16 15:57:54 jt6 Exp $
+$Id: Family.pm,v 1.21 2007-04-27 16:19:52 jt6 Exp $
 
 =cut
 
@@ -80,7 +80,8 @@ sub begin : Private {
         $c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
 
         if( defined $c->stash->{pfam} ) {
-          $c->log->error( "Family::begin: no such PfamB: |$1|" );
+          $c->log->error( "Family::begin: found a PfamB: |$1|" );
+          $c->stash->{pageType} = "pfamb";
           $c->stash->{entryType} = "B";
           $c->stash->{acc} = $c->stash->{pfam}->pfamB_acc;
         }
@@ -91,7 +92,7 @@ sub begin : Private {
         $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
 
         if( defined $c->stash->{pfam} ) {
-          $c->log->error( "Family::begin: no such PfamA: |$1|" );
+          $c->log->error( "Family::begin: found a PfamA: |$1|" );
           $c->stash->{entryType} = "A";
           $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
           $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
@@ -117,7 +118,7 @@ sub begin : Private {
     
   } elsif( defined $c->req->param( "entry" ) ) {
 
-    if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5})$/i ) {
+    if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5,6})$/i ) {
     
        # looks like an accession; redirect to this action, appending the accession
        $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting" );
@@ -128,7 +129,7 @@ sub begin : Private {
 
       # looks like an ID; redirect to this action, appending the ID
       $c->log->debug( "Family::begin: might be a Pfam ID; redirecting" );
-#      $c->res->redirect( $c->req->uri_with( { id => $1 } ) );
+      # $c->res->redirect( $c->req->uri_with( { id => $1 } ) );
       $c->req->param( "id" => $1 );
       $c->detach( "begin" );
       return 1;
@@ -210,13 +211,13 @@ sub begin : Private {
       # increment the "view count" for the family
   
       # first, retrieve or create a row in the Family_count table
-      my $counter = $c->model("WebUser::Family_count")
-        ->find_or_create( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
-                            pfamA_id   => $c->stash->{pfam}->pfamA_id,
-                            pfamA_acc  => $c->stash->{pfam}->pfamA_acc } );
-  
+      #my $counter = $c->model("WebUser::Family_count")
+      #  ->find_or_create( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+      #                      pfamA_id   => $c->stash->{pfam}->pfamA_id,
+      #                      pfamA_acc  => $c->stash->{pfam}->pfamA_acc } );
+ 
       # having now got hold of a row object, increment the count
-      $counter->update( { view_count => $counter->view_count + 1 } );
+      #$counter->update( { view_count => $counter->view_count + 1 } );
     }
   }
 }
