@@ -1,0 +1,90 @@
+
+[%
+# browseIndex.tt
+# jt6 20070426 WTSI
+# 
+# build a "browse" index page
+#
+# $Id: browseIndex.tt,v 1.1 2007-04-27 15:53:05 jt6 Exp $
+
+META title = "Browse Pfam";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+alphabet =    [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+                "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+familyPages = [ "new", "top twenty", "numbers" ];
+clanPages =   [ "numbers" ];
+
+# shortcuts for URIs
+familyURI = "${base}family/browse";
+clanURI = "${base}clan/browse";
+proteomeURI = "${base}proteome/browse";
+%]
+
+<!-- start of browse index page -->
+<div id="browseIndex">
+  
+  <h2>Browse Pfam</h2>
+  
+  <p>
+    You can use the links below to find lists of families, clans or proteomes, 
+    which begin with the chosen letter (or number). You can also see a list of
+    Pfam families which are <a href="[% familyURI %]?browse=new">new</a> to 
+    this release or the list of the <a href="[% familyURI %]?browse=top%20twenty">
+      twenty largest families</a>, in terms of number of sequences.
+  </p>
+  
+  <hr />
+  
+  <table>
+    <tbody>
+      <tr>
+        <td class="type">FAMILIES</td>
+        <td class="links">
+          [% FOREACH letter IN alphabet %]
+          <a href="[% familyURI %]?browse=[% letter |uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+          <br />
+          [% FOREACH letter IN familyPages %]
+          <a href="[% familyURI %]?browse=[% letter |uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+        </td>
+      </tr>
+      <tr>
+        <td class="type">CLANS</td>
+        <td class="links">
+          [% FOREACH letter IN alphabet %]
+          <a href="[% clanURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+          <br />
+          [% FOREACH letter IN clanPages %]
+          <a href="[% clanURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+        </td>
+      </tr>
+      <tr>
+        <td class="type">PROTEOMES</td>
+        <td class="links">
+          [% FOREACH letter IN alphabet %]
+          <a href="[% proteomeURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
+          [% END %]
+        </td>
+      </tr>
+    </tbody>
+  </table>  
+  
+  <hr />
+  
+</div>  
+<!-- end of browse index page -->
+

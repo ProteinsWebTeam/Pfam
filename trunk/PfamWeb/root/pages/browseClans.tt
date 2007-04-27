@@ -1,38 +1,38 @@
+
 [%
 # browseClans.tt
 # jt6 20060821 WTSI
 # 
 # build a "browse" page for clans
 #
-# $Id: browseClans.tt,v 1.7 2007-01-31 14:24:26 jt6 Exp $
-
-# tell the wrapper to add the full-page footer
-META fullPage = 1;
+# $Id: browseClans.tt,v 1.8 2007-04-27 15:53:05 jt6 Exp $
 
 META title = "Browse Pfam clans";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
 
 lcChar = char | lower;
 
 pages = [ "numbers",
           "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
 	        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
-          
-pageList = BLOCK %]
-<div class="pageList">
-  [% FOREACH page IN pages;
-    IF page ==  lcChar %]
-      <span class="letter inactive">
-        [% page | ucfirst %]
-      </span>
-    [% ELSE %]
-      <span class="letter">
-        <a href="#[% page %]">[% page | ucfirst %]</a>
-      </span>
-    [% END; # of IF
-  END; # of FOREACH %]
-  <div class="cleaner"><!-- empty --></div>
-</div>
-[% END # of BLOCK %]
+
+# shortcuts for URIs
+clanURI = "${base}clan";
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar,
+                   pageURI = "#";
+%]
 
 <!-- start browse page -->
 
@@ -54,11 +54,14 @@ pageList = BLOCK %]
     ELSE;
 	    initialLetter = clan.clan_id.split("").first | lower;
     END %]
-    <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
-	  <td>
-        <a [%- IF initialLetter != first %]name="[% initialLetter %]" id="[% initialLetter %]"[% first = initialLetter | lower %][% END %] href="[% c.uri_for( "/clan", id=clan.clan_id ) %]">[% clan.clan_id %]</a>
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+  	  <td>
+        <a [%- IF initialLetter != first %]name="[% initialLetter %]" 
+           id="[% initialLetter %]"[% first = initialLetter | lower %][% END %] 
+           href="[% clanURI %]?id=[% clan.clan_id %]">
+          [% clan.clan_id %]</a>
       </td>
-      <td><a href="[% c.uri_for( "/clan", id=clan.clan_id ) %]">[% clan.clan_acc %]</a></td>
+      <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
       <td>[% clan.clan_description %]</td>
     </tr>
   [% END # of FOREACH %]

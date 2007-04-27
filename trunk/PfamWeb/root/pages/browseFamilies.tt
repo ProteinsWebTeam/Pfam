@@ -1,16 +1,23 @@
+
 [%
 # browseFamilies.tt
 # jt6 20060717 WTSI
 # 
-# build a "browse" page
+# build a "browse" page for Pfam families
 #
-# $Id: browseFamilies.tt,v 1.10 2007-01-22 14:58:32 jt6 Exp $
+# $Id: browseFamilies.tt,v 1.11 2007-04-27 15:53:05 jt6 Exp $
 
-# tell the wrapper it's a full page
+META title = "Browse Pfam families";
 META fullPage = 1;
 
-# set the title
-META title = "Browse Pfam families";
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
 
 # get the argument in lowercase, for comparison purposes
 lcChar = char | lower;
@@ -22,22 +29,18 @@ pages = [ "new", "top twenty", "numbers",
 
 # generate the list of browse pages, for inclusion at the top and bottom of 
 # the page
-pageList = BLOCK %]
-<div class="pageList">
-[% FOREACH page IN pages;
-  IF page == lcChar %]
-    <span class="letter inactive">
-      [% page | ucfirst %]
-    </span>
-  [% ELSE %]
-    <span class="letter">
-      <a href="[% c.uri_for( "/family/browse", browse=page ) %]">[% page | ucfirst %]</a>
-    </span>
-  [% END; # of IF
-  END # of FOREACH %]
-  <div class="cleaner"><!-- empty --></div>
-</div>
-[% END # of BLOCK %]
+
+# shortcuts for URIs
+familyURI    = "${base}family";
+tickURI      = "${base}images/tick.gif";
+blankTickURI = "${base}images/blank_tick.gif";
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar, 
+                   pageURI = "${familyURI}/browse?browse=",
+                   encode=1;
+%]
 
 <!-- start browse page -->
 
@@ -69,15 +72,15 @@ pageList = BLOCK %]
     ELSE;
       status = pfam.status;
 	END %]
-    <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
-      <td><a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">[% pfam.pfamA_id %]</a></td>
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td><a href="[% familyURI %]?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_id %]</a></td>
       <td>[% pfam.type %]</td>
       <td>[% pfam.num_seed %]</td>
       <td>[% pfam.num_full %]</td>
       <td>[% pfam.average_length %]</td>
       <td>[% pfam.percentage_id %]</td>
       <td>[% pfam.average_coverage %]</td>
-	  <td><img alt="" src="[% ( pfam.number_structures > 0 ) ? c.uri_for( "/images/tick.gif" ) : c.uri_for( "/images/blank_tick.gif" ) %]" /></td>
+	  <td><img alt="" src="[% ( pfam.number_structures > 0 ) ? tickURI : blankTickURI %]" /></td>
       <td>[% status %]</td>
       <td class="left">[% pfam.description | html %]</td>
     </tr>
