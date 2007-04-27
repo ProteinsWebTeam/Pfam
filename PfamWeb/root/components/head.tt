@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.21 2007-04-13 16:14:19 jt6 Exp $
+# $Id: head.tt,v 1.22 2007-04-27 15:59:49 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -20,7 +20,7 @@
       title="Pfam News" />
 
 <!-- ====================================================================== -->
-<!-- load the common javascript files first -->
+<!-- load the common files first -->
 
 <!-- prototype -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
@@ -28,8 +28,8 @@
 <!-- local javascript -->
 <script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
 
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/cb.js" ) %]"></script>
-<link href="[% c.uri_for( "/css/cb.css" ) %]" rel="stylesheet" type="text/css" />
+<!-- global stylesheet -->
+<link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
 
 <!-- ====================================================================== -->
 <!-- load dynamically required stylesheets and javascript files-->
@@ -50,71 +50,59 @@ FOREACH key IN requirements.keys;
   SWITCH key;
     CASE "css";
       FOREACH stylesheet IN requirements.css;
-        cssIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
+        cssIncludes.push( "<link rel='stylesheet' href='$base/css/$stylesheet' type='text/css' />" );
       END;
     CASE "cssIe";
       FOREACH stylesheet IN requirements.cssIe;
-        cssIeIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
+        cssIeIncludes.push( "<link rel='stylesheet' href='$base/css/$stylesheet' type='text/css' />" );
       END;
     CASE "cssIeAll";
       FOREACH stylesheet IN requirements.cssIeAll;
-        cssIeAllIncludes.push( "<link rel=\"stylesheet\" href=\"$base/css/$stylesheet\" type=\"text/css\" />" );
+        cssIeAllIncludes.push( "<link rel='stylesheet' href='$base/css/$stylesheet' type='text/css' />" );
       END;
     CASE "js";
       FOREACH js IN requirements.js;
-        jsIncludes.push( "<script type=\"text/javascript\" src=\"$base/javascripts/$js\"></script>" );
+        jsIncludes.push( "<script type='text/javascript' src='$base/javascripts/$js'></script>" );
       END;
   END; # of SWITCH
-END; %]
-
-<!-- global stylesheet -->
-<link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
-
-<!-- template requirements -->
-[%- # and dump out the uniquified requirements
-FOREACH stylesheet IN cssIncludes.unique %]
-  [% stylesheet;
 END -%]
 
-[%- IF cssIeIncludes.size -%]
+<!-- required javascripts -->
+[%-
+# dump out the uniquified requirements for all browsers
+
+# first javascripts
+FOREACH script IN jsIncludes.unique %]
+[% script;
+END %]
+
+<!-- styles applicable to all browsers -->
+[%- FOREACH stylesheet IN cssIncludes.unique %]
+[% stylesheet;
+END %]
+
+[% IF cssIeIncludes.size -%]
 <!-- styles applicable to IE6 and below -->
 <!--[if lt IE 7 ]>
-<link rel="stylesheet" href="[% base %]/css/pfam_ie.css" type="text/css" />
-[% FOREACH stylesheet IN cssIeIncludes.unique %]
+  <link rel="stylesheet" href="[% base %]/css/pfam_ie.css" type="text/css" />
+[%- FOREACH stylesheet IN cssIeIncludes.unique %]
   [% stylesheet;
 END %]
 <![endif]-->
 [%- END -%]
 
-[%- IF cssIeAllIncludes.size -%]
+[% IF cssIeAllIncludes.size -%]
 <!-- styles applicable to all versions of IE -->
 <!--[if IE ]>
-<link rel="stylesheet" href="[% base %]/css/pfam_all_ie.css" type="text/css" / >
-[% FOREACH stylesheet IN cssIeAllIncludes.unique %]
+  <link rel="stylesheet" href="[% base %]/css/pfam_all_ie.css" type="text/css" / >
+[%- FOREACH stylesheet IN cssIeAllIncludes.unique %]
   [% stylesheet;
 END %]
 <![endif]-->
 [%- END -%]
-
-[%- FOREACH script IN jsIncludes.unique %]
-  [% script;
-END -%]
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
 <link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
-
-<!-- ====================================================================== -->
-<!-- build the menus... -->
-<!-- ====================================================================== -->
-<!-- tab selection -->
-
-[%# do we want to highlight a particular tab ? %]
-<script type="text/javascript">
-  serverRoot = "[% constants.root # the server root, e.g. /catalyst/PfamWeb %]";
-  section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
-  showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
-  Event.observe( window, "load", chooseTab, false );
-</script> 
 
 <!-- ====================================================================== -->
