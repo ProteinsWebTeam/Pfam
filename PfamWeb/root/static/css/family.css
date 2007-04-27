@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.24 2007-04-20 15:13:17 jt6 Exp $
+   $Id: family.css,v 1.25 2007-04-27 16:07:11 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -28,27 +28,11 @@
     
 */   
 
-/*
-background: #e7edf3 (Prime 1, 10%)
-inactive:   #83a4c3 (Prime 1, 50%)
-highlight/border: #074987 (Prime 1, 100%)
-*/
-
 /* ======================================== */
 /* rules for specific blocks */
 
-div.pdbImageFragment {
-	background: #e7edf3;
-    border-color: #074987;
-}
-
 div.blockContent ol {
     margin-right: 210px;
-}
-
-.pdbTitle  {
-  color: #074987;
-  font-weight: bold
 }
 
 #tableLabel {
@@ -132,6 +116,15 @@ div.blockContent ol {
 #domainsBlock img {
   display: block;
   padding: 0.4em;
+}
+
+/* the "add annotation" button image */
+img.addAnnotation {
+	width: 100px;
+  height: 24px;
+	vertical-align: middle;
+  padding-bottom: 3px;
+	border-style: none;
 }
 
 /* ---------------------------------------- */
