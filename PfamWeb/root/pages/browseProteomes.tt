@@ -1,37 +1,35 @@
+
 [%
 # browseProteome.tt
 # rdf 20061109 WTSI
 # 
 # build a "browse" page for Completed Proteomes
 #
-# $Id: browseProteomes.tt,v 1.2 2007-01-22 14:59:11 jt6 Exp $
-
-# tell the wrapper to add the full-page footer
-META fullPage = 1;
+# $Id: browseProteomes.tt,v 1.3 2007-04-27 15:53:05 jt6 Exp $
 
 META title = "Browse Pfam proteomes";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
 
 pages = [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
           "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
 
-pageList = BLOCK %]
-<div class="pageList">
+# shortcuts for URIs
+proteomeURI = "${base}proteome";
 
-[% lcChar = char | lower;
-FOREACH page IN pages;
-  IF page ==  lcChar %]
-  <span class="letter inactive">
-    [% page | ucfirst %]
-  </span>
-  [% ELSE %]
-  <span class="letter">
-    <a href="#[% page %]">[% page | ucfirst %]</a>
-  </span>
-  [% END;
-END %]
-  <div class="cleaner"><!-- empty --></div>
-</div>
-[% END # of BLOCK %]
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar,
+                   pageURI = "#";
+%]
 
 <!-- start browse page -->
 
@@ -52,15 +50,16 @@ END %]
   [% first = "";
   FOREACH proteome IN browse;
     initialLetter = proteome.species.split("").first | lower %]
-    <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
   	  <td>
-        <a class="species" href="[% c.uri_for( "/proteome", ncbiCode=proteome.ncbi_code ) %]"
-[%- IF initialLetter != first -%]
-  name="[% initialLetter %]"
-  [%- first = initialLetter | lower;
-END %]>[% proteome.species %]</a>
+        <a class="species" 
+           href="[% proteomeURI %]?ncbiCode=[% proteome.ncbi_code %]"
+           [%- IF initialLetter != first -%]
+             name="[% initialLetter %]"
+             [%- first = initialLetter | lower;
+           END %]>[% proteome.species %]</a>
        </td>
-      <td><a href="[% c.uri_for( "/proteome", ncbiCode=proteome.ncbi_code ) %]">[% proteome.ncbi_code %]</a></td>
+      <td>[% proteome.ncbi_code %]</td>
       <td>[% proteome.grouping %]</td>
       <td>[% proteome.total_genome_proteins %]</td>
       <td>[% proteome.sequence_coverage %]</td>
