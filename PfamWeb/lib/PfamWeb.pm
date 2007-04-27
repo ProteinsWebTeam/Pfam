@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.30 2007-04-16 16:03:43 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.31 2007-04-27 16:17:31 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.30 2007-04-16 16:03:43 jt6 Exp $
+$Id: PfamWeb.pm,v 1.31 2007-04-27 16:17:31 jt6 Exp $
 
 =cut
 
@@ -27,7 +27,6 @@ use warnings;
 
 # set flags and add plugins for the application
 use Catalyst qw/
-				-Debug
 				PfamConfigLoader
 				Prototype
 				HTML::Widget
@@ -36,9 +35,10 @@ use Catalyst qw/
 				Session::Store::FastMmap
 				Session::State::Cookie
 				Cache::FileCache
-				Compress::Deflate
 				/;
 
+#				-Debug
+#				Compress::Deflate
 #				PageCache
 
 # some other plugins that could be used...
@@ -113,24 +113,46 @@ deluged with mail.
 sub reportError : Private {
   my( $this, $c ) = @_;
 
+  my $el = $c->model( "WebUser::ErrorLog" );
   foreach my $e ( @{$c->error} ) {
 
   	$c->log->debug( "PfamWeb::reportError: reporting a site error: |$e|" );
+ 
+    # see if we can access the table at all - basically, see if the DB is up 
+    my $rs; 
+	  eval {
+    	$rs = $el->find( { message => $e } );
+    };
+	  if( $@ ) {
+  		# really bad; an error while reporting an error...
+  		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+	  }
   
-  	my $rs = $c->model( "WebUser::ErrorLog" )->find( { message => $e } );
-  
+    # if we can get a ResultSet, try to add a message
   	if( $rs ) {
-  	  $rs->update( { num => $rs->num + 1 } );
-  	} else {
+
+      # we've seen this error before; update the error count
   	  eval {
-  		$c->model( "WebUser::ErrorLog" )->create( { message => $e,
-                        													num     => 1,
-                        													first   => [ "CURRENT_TIMESTAMP" ] } );
+    	  $rs->update( { num => $rs->num + 1 } );
   	  };
   	  if( $@ ) {
     		# really bad; an error while reporting an error...
     		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
   	  }
+
+  	} else {
+
+      # no log message like this has been registered so far; add the row 
+  	  eval {
+    		$el->create( { message => $e,
+  										num     => 1,
+  										first   => [ "CURRENT_TIMESTAMP" ] } );
+  	  };
+  	  if( $@ ) {
+    		# really bad; an error while reporting an error...
+    		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+  	  }
+
   	}
   }
 
