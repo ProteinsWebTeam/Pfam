@@ -1,10 +1,11 @@
+
 [%
 # index.tt
 # jt6 20060717 WTSI
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.22 2007-04-20 16:09:26 jt6 Exp $
+# $Id: index.tt,v 1.23 2007-04-27 16:04:50 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -71,7 +72,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         <em>Pfam-A</em> entries cover a  large proportion of the sequences in the
         underlying sequence database, to give a more  comprehensive coverage of 
         known  proteins we generate a supplement automatically using the 
-        <a href="http://prodom.prabi.fr/prodom.html">PRODOM</a>
+        <a title="Prodom" href="http://prodom.prabi.fr/prodom.html">PRODOM</a>
         database. These automatically generated entries are called 
         <em>Pfam-B</em>.  Although of lower quality, Pfam-B families can be 
         useful for identifying functionally conserved regions when no Pfam-A 
@@ -85,6 +86,11 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   </div>
 
   <hr />
+ 
+   [% # URI shortcuts
+   helpBase = "${base}help";
+   jumpBase = "${base}search/jump";
+   %]
  
   <div id="controlPanel">
     <ul>
@@ -110,7 +116,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       <li>Look at the domain organisation of a UniProt sequence</li>
       <li>Find the domains on a PDB structure</li>
       <li>Query Pfam by keywords</li>
-      <li>Or view the <a href="[% c.uri_for( "/help" ) %]">help</a> pages for 
+      <li>Or view the <a href="[% helpBase %]">help</a> pages for 
         more information</li>
     </ul>
   </div>
@@ -120,7 +126,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <p>
       Paste your protein sequence here to find the matching Pfam families.
     </p>  
-    <form action="[% c.uri_for( "/seqsearch/seq" ) %]"
+    <form action="[% base %]seqsearch/seq"
           method="get" 
           id="seqForm">
       <input type="hidden"
@@ -141,17 +147,16 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
          class="glassButton exampleButton">&nbsp;</div>
     <p class="small">
       This search will use the <code>pfam_ls</code> library (global) and the 
-      <a href="[% c.uri_for( "/help", tab="helpGlossaryBlock" ) %]">
+      <a href="[% helpBase %]?tab=helpGlossaryBlock">
         gathering threshold</a>. You can specify the search parameters using 
-      <a href="[% c.uri_for( "/seqsearch", tab="searchSequenceBlock"  ) %]">
-        this</a> form.      
+      <a href="[% base %]seqsearch/seq?tab=searchSequenceBlock">this</a> form.      
     </p>
   </div>
     
   <div id="dna" class="panel" style="display: none">
     <h3>Analyze your DNA sequence for Pfam matches</h3>    
     <p>Paste your DNA sequence here to find matching Pfam families.</p>  
-    <form action="[% c.uri_for( "/dnasearch" ) %]"
+    <form action="[% base %]dnasearch"
           method="get" 
           id="dnaForm">
       <textarea class="entryField disabledEntryField" 
@@ -164,13 +169,10 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
          class="glassButton goButton disabledGoButton">&nbsp;</div>
   </div>
   
-  [% # get a shortcut to avoid too many calls to uri_for
-     jumpURI = c.uri_for( "/search/jump" ) %]
-  
   <div id="family" class="panel" style="display: none">
     <h3>View Pfam family annotation and alignments</h3>
     <p>Enter a family identifier or accession to see all data for that family.</p>
-    <form action="[% jumpURI %]"
+    <form action="[% jumpBase %]"
           method="get" 
           id="familyForm">
       <input type="hidden"
@@ -190,7 +192,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <div onclick="$('familyField').value=exPfamId"
          class="glassButton exampleButton">&nbsp;</div>
     <p>
-      You can also <a href="[% c.uri_for("/family/browse") %]">browse</a> 
+      You can also <a href="[% base %]/family/browse">browse</a> 
       through the list of all Pfam families.
     </p>
   </div>
@@ -198,7 +200,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   <div id="clan" class="panel" style="display: none">
     <h3>See groups of related families</h3>
     <p>Enter a clan identifier or accesion to see information about that clan.</p>
-    <form action="[% jumpURI %]"
+    <form action="[% jumpBase %]"
           method="get" 
           id="clanForm">
       <input type="hidden"
@@ -215,7 +217,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <div onclick="$('clanField').value=exClanId"
          class="glassButton exampleButton">&nbsp;</div>
     <p>
-      You can also <a href="[% c.uri_for("/clan/browse") %]">browse</a>
+      You can also <a href="[% base %]clan/browse">browse</a>
       through a list of clans.
     </p>
   </div>
@@ -224,7 +226,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <h3>View domain organisation of a UniProt sequence</h3>
     <p>Enter the sequence identifier or accession for the UniProt sequence of 
       interest.</p>
-    <form action="[% jumpURI %]"
+    <form action="[% jumpBase %]"
           method="get" 
           id="proteinForm">
       <input type="hidden"
@@ -245,7 +247,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   <div id="structure" class="panel" style="display: none">
     <h3>Find the domains on a PDB structure</h3>
     <p>Enter the PDB identifier for the structure in the Protein DataBank.</p>
-    <form action="[% jumpURI %]"
+    <form action="[% jumpBase %]"
           method="get" 
           id="structureForm">
       <input type="hidden"
@@ -266,14 +268,14 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   <div id="keyword" class="panel" style="display: none">
     <h3>Query Pfam by keyword</h3>
     <p>Search for keywords in text data in the Pfam database.</p> 
-    <form action="[% c.uri_for( "/search" ) %]"
+    <form action="[% base %]search"
           method="get" 
           id="keywordForm">
       <input class="entryField" 
              type="text" 
              name="query"
              id="keywordField"
-             size="10" />
+             size="30" />
     </form>
     <div onclick="if( $('keywordField').present() )$('keywordForm').submit()"
          class="glassButton goButton">&nbsp;</div>
@@ -289,8 +291,8 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <h2>Citing Pfam</h2>
     <p>
       If you find Pfam useful, please consider 
-      <a href="[% c.uri_for( "/help", tab="helpReferencesBlock" ) %]">
-        citing</a> the reference that describes this work:
+      <a href="[% helpBase %]?tab=helpReferencesBlock">citing</a> the reference 
+      that describes this work:
     </p>
     <div class="citation">
       <span class="title">
@@ -312,7 +314,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   <div id="mirrors">
     <h2>Mirrors</h2>
     <p class="small">The following are official Pfam 
-      <a href="[% c.uri_for( "/help", tab="helpMirrorsBlock" ) %]">mirror</a> sites:
+      <a href="[% helpBase %]?tab=helpMirrorsBlock">mirror</a> sites:
     </p>
     <ul class="mirrors">
       <li><a href="http://pfam.cgb.ki.se/" class="se mirror">SBC, Sweden</a></li>
