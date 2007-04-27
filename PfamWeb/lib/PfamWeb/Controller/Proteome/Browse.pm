@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20060717 WTSI
 #
-# $Id: Browse.pm,v 1.3 2007-03-15 14:06:11 jt6 Exp $
+# $Id: Browse.pm,v 1.4 2007-04-27 16:19:11 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Browse;
 
 Generates the "browse" page for proteomes.
 
-$Id: Browse.pm,v 1.3 2007-03-15 14:06:11 jt6 Exp $
+$Id: Browse.pm,v 1.4 2007-04-27 16:19:11 jt6 Exp $
 
 =cut
 
@@ -29,6 +29,22 @@ use base "Catalyst::Controller";
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=head2 begin : Private
+
+Just overrides the default begin method from Section and tells the navbar
+where we are.
+
+=cut
+
+sub begin : Private {
+  my( $this, $c ) = @_;
+
+  # tell the navbar where we are
+  $c->stash->{nav} = "browse";
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 browse : Path
 
