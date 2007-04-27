@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.15 2007-04-03 14:58:22 jt6 Exp $
+# $Id: layout.tt,v 1.16 2007-04-27 16:05:14 jt6 Exp $
 
 USE String;
 USE date;
@@ -17,7 +17,9 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "tab_layout.css" );
 requirements.cssIe.push( "tab_layout_ie.css" );
-requirements.cssIeAll.push( "tab_layout_all_ie.css" );
+
+requirements.js.push( "cb.js" );
+requirements.css.push( "cb.css" );
 
 #-------------------------------------------------------------------------------
 
@@ -132,3 +134,16 @@ END;
   <div class="cleaner"></div>
 
 </div> <!-- end of "wrap" -->
+
+<!-- tab selection -->
+
+[%# do we want to highlight a particular tab ? %]
+<script type="text/javascript">
+  serverRoot = "[% constants.root # the server root, e.g. /catalyst/PfamWeb %]";
+  section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
+  showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
+  Event.observe( window, "load", chooseTab );
+</script> 
+
+<!-- ====================================================================== -->
+
