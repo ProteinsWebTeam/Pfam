@@ -3,8 +3,8 @@ package Bio::Pfam::WebServices::PfamQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2007-04-30 09:33:57 $
-# Id:            $Id: PfamQueue.pm,v 1.1 2007-04-30 09:33:57 rdf Exp $
+# Last Modified: $Date: 2007-04-30 09:35:11 $
+# Id:            $Id: PfamQueue.pm,v 1.2 2007-04-30 09:35:11 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -21,7 +21,7 @@ use Carp;
 use Data::UUID;
 use Bio::Pfam::WebUserDBManager;
 
-our $VERSION      = do { my @r = (q$Revision: 1.1 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
+our $VERSION      = do { my @r = (q$Revision: 1.2 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
 our $DATE_FORMATS = {
 		     'hour'  => '%Y-%m-%d-%k',
 		     'day'   => '%Y-%m-%d',
@@ -153,7 +153,7 @@ sub getSchema {
   my ($self) = @_;
 
   if(!$self->{'dbSchema'}) {
-    my $webUserDB = Bio::Pfam::WebUserDBManager->new(host => "127.0.0.1", port => "3337");
+    my $webUserDB = Bio::Pfam::WebUserDBManager->new();
     $self->{'dbSchema'} = $webUserDB->getSchema;
   }
 
@@ -538,7 +538,7 @@ Bio::Pfam::WebServices::PfamQueue - A transactional-database-backed queuing syst
 
 =head1 VERSION
 
-$Revision: 1.1 $
+$Revision: 1.2 $
 
 =head1 SYNOPSIS
 
