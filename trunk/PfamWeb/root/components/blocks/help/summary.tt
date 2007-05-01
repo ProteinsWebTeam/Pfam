@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.6 2007-04-16 16:07:20 jt6 Exp $
+# $Id: summary.tt,v 1.7 2007-05-01 21:03:27 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -38,9 +38,11 @@ requirements.css.push( "help.css" );
        domain families. Each family is represented by multiple sequence 
        alignments and hidden Markov models (HMMs).
     </p>
+<!--
     <p>
       There should be something about HMMER in here!
-    </p>       
+    </p>
+-->    
     <p>
       There are two components to Pfam: Pfam-A and Pfam-B. Pfam-A entries are 
       high quality, manually curated domain families. Although these Pfam-A 
@@ -51,10 +53,11 @@ requirements.css.push( "help.css" );
       lower quality, Pfam-B families can be useful for identifying functionally 
       conserved regions when no Pfam-A entries are found.
     </p>
+<!--
   	<p>
   	  Define the different types using in Pfam: family, domain, type and motif.
     </p>
- 
+-->
   </div>
 </div>
 
