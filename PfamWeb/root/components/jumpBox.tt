@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.7 2007-04-27 16:02:32 jt6 Exp $
+# $Id: jumpBox.tt,v 1.8 2007-05-01 20:57:48 jt6 Exp $
 
 META naked = 1;
 
@@ -33,14 +33,15 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
   
 	<form action="[% c.uri_for( "/search/jump" ) %]" 
         method="get" 
-        name="jumpForm" 
         id="jumpForm">
-		<input class="entryField" 
+    <div>
+  		<input class="entryField" 
            type="text" 
            onfocus="if(!jbCleared){this.value='';jbCleared=true}" 
            size="10" 
            name="entry" 
            id="entry" />
+    </div>
 	</form>
   
 	<script type="text/javascript">

@@ -3,7 +3,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.8 2007-03-13 10:33:00 jt6 Exp $
+# $Id: structures.tt,v 1.9 2007-05-01 21:01:51 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -28,7 +28,7 @@ requirements.js.push( "ttTweak.js" );
     <h1>Structures</h1>
   </div>
   <div class="blockContent">
-	<div id="clanStructureTabHolder">
+  	<div id="clanStructureTabHolder">
       	<p id="cstrucph" class="loading">
         Loading structure mapping...
        </p>	
@@ -37,8 +37,10 @@ requirements.js.push( "ttTweak.js" );
 </div>
 
 <script type="text/javascript">
-  loadOptions.cstruc.uri    = "[% c.uri_for( "/clan/structuretab" ) %]";
+  // <![CDATA[
+  loadOptions.cstruc.uri    = "[% base %]clan/structuretab";
   loadOptions.cstruc.params = "acc=[% clan.clan_acc %]";
+  // ]]>
 </script>
 
 <!-- end structures block -->
