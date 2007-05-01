@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.35 2007-04-27 16:15:36 jt6 Exp $
+// $Id: pfFunctions.js,v 1.36 2007-05-01 21:25:40 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -651,21 +651,21 @@ function findPosY(obj) {
 // generate a pop-up window. Based on a function from  
 // http://www.accessify.com/features/tutorials/the-perfect-popup/
 
-function popUp( strURL, strType, strHeight, strWidth, strName ) {
-  if( strName == "" ) {
-    strName = "newWin";
+function popUp( sURL, sType, sHeight, sWidth, sName ) {
+  if( sName == "" ) {
+    sName = "newWin";
   }
-  var strOptions="";
-  if( strType == "console" ) {
-    strOptions = "resizable,scrollbars,height="+strHeight+",width="+strWidth;
+  var sOptions="";
+  if( sType == "console" ) {
+    sOptions = "resizable,scrollbars,height="+sHeight+",width="+sWidth;
   }
-  if( strType == "fixed" ) {
-    strOptions = "status,height="+strHeight+",width="+strWidth;
+  if( sType == "fixed" ) {
+    sOptions = "status,height="+sHeight+",width="+sWidth;
   }
-  if( strType == "elastic") {
-    strOptions = "toolbar,menubar,scrollbars,resizable,location,height="+strHeight+",width="+strWidth;
+  if( sType == "elastic") {
+    sOptions = "toolbar,menubar,scrollbars,resizable,location,height="+sHeight+",width="+sWidth;
   }
-  window.open( strURL, strName, strOptions );
+  window.open( sURL, sName, sOptions );
 }
 
 //------------------------------------------------------------
