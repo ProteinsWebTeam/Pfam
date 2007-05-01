@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.4 2007-04-27 16:10:02 jt6 Exp $
+   $Id: job.css,v 1.5 2007-05-01 21:22:41 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -47,7 +47,9 @@
 .job {
   border: 1px solid #CCC;
   background: #e7e7e7;
-} 
+  margin: 0.4em 0;
+}
+ 
 .job div.jobTitle {
   background: #CCC;
   border-bottom: 1px solid #CCC;
@@ -82,13 +84,22 @@ div.progressWrapper {
 }
 
 div.progressBar {
-  background: transparent url( /catalyst/pfam/images/pb.gif );
+  background: transparent url( /catalyst/pfam/images/pb.png );
   border-right: 1px solid #666;
   width: 1px;
   height: 20px;
   margin: 0;
   padding: 0;
   z-index: 1;
+}
+
+/* colour the progress bars according to job class */
+div.pfamASearch .progressBar {
+	background-color: #CBD;
+}
+
+div.pfamBSearch .progressBar {
+	background-color: #CDB;
 }
 
 /* a spinner image */
