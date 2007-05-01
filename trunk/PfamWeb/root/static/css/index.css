@@ -4,7 +4,7 @@
 
    Style the main site index page.
    
-   $Id: index.css,v 1.5 2007-04-27 16:09:41 jt6 Exp $
+   $Id: index.css,v 1.6 2007-05-01 21:22:58 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -33,6 +33,10 @@
   width: 700px;
   margin: 0 auto;
   line-height: 1.5em;
+}
+
+#index .nlh {
+  line-height: 1.2em;
 }
 
 #intro {
