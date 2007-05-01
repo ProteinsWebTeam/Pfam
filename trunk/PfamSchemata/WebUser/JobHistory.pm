@@ -4,9 +4,9 @@
 #
 # Model for the job_history table.
 #
-# $Id: JobHistory.pm,v 1.1 2007-04-30 09:44:19 rdf Exp $
+# $Id: JobHistory.pm,v 1.2 2007-05-01 21:27:04 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 
 package WebUser::JobHistory;
 
@@ -21,7 +21,15 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "job_history" );
 
 # get the columns that we want to keep
-__PACKAGE__->add_columns( qw/id job_id status command priority estimated_time opened closed started/);
+__PACKAGE__->add_columns( qw/ id
+							  job_id
+							  status
+							  command
+							  priority
+							  estimated_time
+							  opened
+							  closed
+							  started/);
 
 # set up the primary keys/contraints
 __PACKAGE__->set_primary_key( "id" );
@@ -30,10 +38,9 @@ __PACKAGE__->set_primary_key( "id" );
 
 __PACKAGE__->has_one( job_stream => "WebUser::JobStream",
 					  { "foreign.id" => "self.id"},
-					  { proxy            => [ qw/
-					                             stdin
-					                             stdout
-					                             stderr/] } );
+					  { proxy            => [ qw/ stdin
+												  stdout
+												  stderr / ] } );
 
 =head1 COPYRIGHT
 
