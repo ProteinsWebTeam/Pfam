@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.3 2007-04-27 16:14:28 jt6 Exp $
+// $Id: job.js,v 1.4 2007-05-01 21:25:11 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -91,6 +91,7 @@ Job.prototype = {
     this.jobId         = jobConfig.status.jobId;         // the job ID, from the server
     this.elId          = jobConfig.status.jobId;         // use the job ID as element ID
     this.jobName       = jobConfig.status.name;          // a pretty name for the job
+    this.jobClass      = jobConfig.status.jobClass;      // job class - used for styling
     this.opened        = jobConfig.status.opened;        // submission time
     this.checkURI      = jobConfig.checkURI;             // URI to poll for status
     this.doneURI       = jobConfig.doneURI;              // URI for retrieving results
@@ -154,6 +155,11 @@ Job.prototype = {
       throw "No job name specified";
     }
 
+    // the "class name" for the job
+    if( jobConfig.status.jobClass === undefined ) {
+      throw "No class name specified";
+    }
+
     // when was it started ?
     if( jobConfig.status.opened === undefined ) {
       throw "No start time given";
@@ -176,7 +182,7 @@ Job.prototype = {
   buildMarkup: function() {
 
     // start with a template and edit in the specific values, like IDs
-    var jobDiv = '\
+    var jobDivString = '\
       <div class="job">\
         <div class="jobTitle">-</div>\
         <dl>\
@@ -197,105 +203,39 @@ Job.prototype = {
         </dl>\
       </div>';
 
-    $("jobs").innerHTML = jobDiv;
+	// add the new div to the bottom of the "jobs" div
+	new Insertion.Bottom( $("jobs"), jobDivString );
 
-    // store pointers to specific elements
-    this.statusMsg = $A( document.getElementsByClassName( "status", jobDiv ) ).first();
-    this.startedValue = $A( document.getElementsByClassName( "started", jobDiv ) ).first();
-    this.bar = $A( document.getElementsByClassName( "progressBar", jobDiv ) ).first();
+	// get a handle on this "job" div
+	var jobDiv = $A( document.getElementsByClassName( "job", $("jobs") ) ).last();
+
+    // store pointers to specific elements within this div
+    this.statusMsg    = $A( document.getElementsByClassName( "status",      jobDiv ) )
+	                      .first();
+    this.startedValue = $A( document.getElementsByClassName( "started",     jobDiv ) )
+                          .first();
+    this.bar          = $A( document.getElementsByClassName( "progressBar", jobDiv ) )
+                          .first();
 
     // edit in the required unique values.
-    $A( document.getElementsByClassName( "job", jobDiv ) )
-      .first()
-      .setAttribute( "id", this.jobId ); 
+
+	// an ID for the container element
+	jobDiv.setAttribute( "id", this.jobId );
+
+	// set the CSS class for this job
+	jobDiv.addClassName( this.jobClass );
+
+	// the label for the job
     $A( document.getElementsByClassName( "jobTitle", jobDiv ) )
       .first()
       .innerHTML = this.jobName; 
+
+	// when was it started
     $A( document.getElementsByClassName( "submitted", jobDiv ) )
       .first()
-      .innerHTML = this.opened; 
+      .innerHTML = this.opened;
   },
   
-  /* this is how we SHOULD be building the markup, using standard DOM methods.
-   * trouble is, this doesn't work in IE...
-   */
-  buildMarkupDOM: function() {
-
-    // a top-level container for the job markup
-    var jobDiv = document.createElement( "div" );
-    $("jobs").appendChild( jobDiv );
-    jobDiv.setAttribute( "id",    this.jobId );
-    jobDiv.setAttribute( "class", "job" );
-    
-    // the title for the bar
-    var title = document.createElement( "div" );
-    jobDiv.appendChild( title );
-    title.setAttribute( "class", "jobTitle" );
-    title.innerHTML = this.jobName;
-    
-    // use a definition list to format a couple of status items
-    var dl = document.createElement( "dl" );
-    jobDiv.appendChild( dl );
-
-    // the status read-out
-    var statusLabel = document.createElement( "dt" );
-    statusLabel.innerHTML = "Status:";
-    dl.appendChild( statusLabel );
-    var statusValue = document.createElement( "dd" );
-    statusValue.innerHTML = "unknown";
-    dl.appendChild( statusValue );
-
-    // keep track of this so we can poke values into it easily
-    this.statusMsg = statusValue;
-
-    // submission time
-    var submittedLabel = document.createElement( "dt" );
-    submittedLabel.innerHTML = "Submitted:";
-    dl.appendChild( submittedLabel );
-    var submittedValue = document.createElement( "dd" );
-    submittedValue.innerHTML = this.opened;
-    dl.appendChild( submittedValue );
-    
-    // start time
-    var startedLabel = document.createElement( "dt" );
-    startedLabel.innerHTML = "Started:";
-    dl.appendChild( startedLabel );
-    var startedValue = document.createElement( "dd" );
-    startedValue.innerHTML = "-";
-    dl.appendChild( startedValue );
-    
-    this.startedValue = startedValue;
-
-    // estimated run time
-    var estLabel = document.createElement( "dt" );
-    estLabel.innerHTML = "Estimated run time:";
-    dl.appendChild( estLabel );
-    var estValue = document.createElement( "dd" );
-    estValue.innerHTML = this.estimatedTime + " seconds";
-    dl.appendChild( estValue );
-
-    // the progress bar
-    var barLabel = document.createElement( "dt" );
-    barLabel.innerHTML = "Progress:";
-    dl.appendChild( barLabel );
-    var barValue = document.createElement( "dd" );
-    dl.appendChild( barValue );
-    barValue.setAttribute( "class", "showy" );
-
-    // a container for the bar
-    var wrapper = document.createElement( "div" );
-    barValue.appendChild( this.wrapper );
-    wrapper.setAttribute( "class", "progressWrapper" );
-
-    // the bar itself - stored as a class variable so we can change its
-    // dimensions later
-    this.bar = document.createElement( "div" );
-    wrapper.appendChild( this.bar );
-    this.bar.setAttribute( "class", "progressBar" );
-
-    // console.debug( "Job.buildMarkup: built job markup" );
-  },
-     
   //----------------------------------------------------------------------------
   // stop the timer
   
@@ -373,6 +313,7 @@ Job.prototype = {
       // console.debug( "Job.checkStatus: couldn't parse the JSON from the server: " + statusString );
       this.log( this.jobName + ": error",
                 "there was a problem retrieving the status of job " + this.jobName );
+
       return;
     }
 
@@ -454,6 +395,15 @@ Job.prototype = {
   jobDone: function( statusObj ) {
     // console.debug( "Job.jobDone: the job completed successfully" );
 
+	// set the status message
+	this.statusMsg.innerHTML = "done";
+
+	// log it
+	this.log( this.jobName + ": completed", "finished at " + statusObj.closed );
+
+	// max out the progress bar
+	this.bar.setStyle( { width: '100%' } );
+	
     this.jobEnded( statusObj );
 
     // tidy up here
@@ -466,6 +416,15 @@ Job.prototype = {
   jobFailed: function( statusObj ) {
     // console.debug( "Job.jobFailed: the job failed" );
 
+	// set the status message
+	this.statusMsg.innerHTML = "failed";
+
+	// log it
+	this.log( this.jobName + ": failed", "finished at " + statusObj.closed );
+
+	// max out the progress bar
+	this.bar.setStyle( { width: '100%' } );
+	
     this.jobEnded( statusObj );
 
     // tidy up here
