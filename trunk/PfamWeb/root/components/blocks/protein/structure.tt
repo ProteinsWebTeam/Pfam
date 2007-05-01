@@ -1,13 +1,14 @@
-[%#
+
+[% 
 # structure.tt
 # jt6 20060719 WTSI
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.6 2007-02-14 11:40:06 rdf Exp $
--%]
+# $Id: structure.tt,v 1.7 2007-05-01 21:05:33 jt6 Exp $
 
-[%- RETURN UNLESS pfamMaps.size -%]
+RETURN UNLESS pfamMaps.size;
+-%]
 
 <!-- start structure block -->
 
@@ -19,128 +20,125 @@
     <div class="explanatoryText">
       <p>Below is a listing of Pfam domain(s) with known 3D structure(s).</p>
     </div>
-	[%- oe = 0 -%]
 
-    [%- mapping = {} -%]
-    [%- FOREACH pdbMap IN pfamMaps -%]
-      [%- seqKey = pdbMap.pfamA_id # N.B. seqKey is the Pfam ID here !!! -%]
-      [%- IF ! mapping.$seqKey %]
-        [%- mapping.$seqKey = {} -%]
-      [%- END -%]
+    [%- mapping = {};
+    CALL c.log.debug( "structure.tt: starting first loop" );
+    FOREACH pdbMap IN pfamMaps;
+    CALL c.log.debug( "structure.tt: next mapping..." );
+      seqKey = pdbMap.pfamA_id; # N.B. seqKey is the Pfam ID here !!!
+      IF ! mapping.$seqKey;
+        mapping.$seqKey = {};
+      END;
     
-      [%- resKey = "${pdbMap.pfam_start_res} - ${pdbMap.pfam_end_res}" -%]
-      [%- IF ! mapping.$seqKey.$resKey -%]
-        [%- mapping.$seqKey.$resKey = {} -%]
-      [%- END -%]
+      resKey = "${pdbMap.pfam_start_res} - ${pdbMap.pfam_end_res}";
+      IF ! mapping.$seqKey.$resKey;
+        mapping.$seqKey.$resKey = {};
+      END;
 
-      [%- pdbKey = pdbMap.pdb_id -%]
-      [%- IF ! mapping.$seqKey.$resKey.$pdbKey -%]
-        [%- mapping.$seqKey.$resKey.$pdbKey = {} -%]
-      [%- END -%]
-	  [%- IF ! mapping.$seqKey.$resKey.COUNT -%]
-	    [% mapping.$seqKey.$resKey.COUNT = 1 -%]
-	  [%- ELSE -%]
-	    [% mapping.$seqKey.$resKey.COUNT = mapping.$seqKey.$resKey.COUNT + 1 -%]
-	  [%- END -%]
+      pdbKey = pdbMap.pdb_id;
+      IF ! mapping.$seqKey.$resKey.$pdbKey;
+        mapping.$seqKey.$resKey.$pdbKey = {};
+      END;
+      IF ! mapping.$seqKey.$resKey.COUNT;
+        mapping.$seqKey.$resKey.COUNT = 1;
+      ELSE;
+        mapping.$seqKey.$resKey.COUNT = mapping.$seqKey.$resKey.COUNT + 1;
+      END;
 
-      [%- chainKey = pdbMap.chain -%]
-      [%- IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey -%]
-        [%- mapping.$seqKey.$resKey.$pdbKey.$chainKey = {} -%]
-      [%- END -%]
-	  [%- IF ! mapping.$seqKey.$resKey.$pdbKey.COUNT -%]
-	    [% mapping.$seqKey.$resKey.$pdbKey.COUNT = 1 -%]
-	  [%- ELSE -%]
-	    [% mapping.$seqKey.$resKey.$pdbKey.COUNT = mapping.$seqKey.$resKey.$pdbKey.COUNT + 1 -%]
-	  [%- END -%]
+      chainKey = pdbMap.chain;
+      IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey;
+        mapping.$seqKey.$resKey.$pdbKey.$chainKey = {};
+      END;
+      IF ! mapping.$seqKey.$resKey.$pdbKey.COUNT;
+        mapping.$seqKey.$resKey.$pdbKey.COUNT = 1;
+      ELSE;
+        mapping.$seqKey.$resKey.$pdbKey.COUNT = mapping.$seqKey.$resKey.$pdbKey.COUNT + 1;
+      END;
     
-      [%- pdbResKey = "${pdbMap.pdb_start_res} - ${pdbMap.pdb_end_res}" -%]
-      [%- IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey -%]
-        [%- mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap -%]
- 	  [%- END -%]
-	  [%- IF ! mapping.$seqKey.COUNT -%]
-	    [% mapping.$seqKey.COUNT = 1 -%]
-	  [%- ELSE -%]
-	    [% mapping.$seqKey.COUNT = mapping.$seqKey.COUNT + 1 -%]
-	  [%- END -%]
+      pdbResKey = "${pdbMap.pdb_start_res} - ${pdbMap.pdb_end_res}";
+      IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey;
+        mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap;
+      END;
+      IF ! mapping.$seqKey.COUNT;
+        mapping.$seqKey.COUNT = 1;
+      ELSE;
+        mapping.$seqKey.COUNT = mapping.$seqKey.COUNT + 1;
+      END;
 
-    [%- END -%]
+    END -%]
 
-    <table class="details" id="structuresTable">
+    <table class="details" id="structuresTable" summary="Structure summary">
       <thead>
-	    <tr class="caption">
+        <tr class="caption">
           <th id="unpId">Pfam family</th>
           <th id="unpRes">UniProt residues</th>
           <th id="pdbId">PDB ID</th>
-		  <th id="chId">PDB chain ID</th>
+          <th id="chId">PDB chain ID</th>
           <th id="pdbRes">PDB residues</th>
           <th id="viewCol">View</th>
         </tr>
-	  </thead>
+      </thead>
       <tbody>
-
-	  [%- USE seqKeyIter = iterator( mapping.keys.sort ) -%]
-      [%- FOREACH seqKey IN seqKeyIter -%]
-	    [%- NEXT IF mapping.$seqKey == "COUNT" %]
-        [% oe=oe+1 %]
-	    [%- FOREACH resKey IN mapping.$seqKey.keys.sort -%]
-		  [%- NEXT IF mapping.$seqKey.$resKey == "COUNT" %]
-	      [%- FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort -%]
-	        [%- FOREACH chainKey IN mapping.$seqKey.$resKey.$pdbKey.keys.sort -%]
-		      [%- NEXT IF mapping.$seqKey.$resKey.$pdbKey == "COUNT" %]
-	          [%- FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
-
-              <tr>
-
-		        [% IF seqKey != prevSeqKey -%]
-		          <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/family", id=seqKey ) %]">[% seqKey %]</a></td>
-                [% END -%]
-
-	            [% IF seqKey != prevSeqKey OR resKey != prevResKey -%]
-	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
-                [% END -%]
-
-		        [% IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
-	              <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                  <a href="[% c.uri_for( "/structure", id=pdbKey ) %]">[% pdbKey %]</a>
-                  </td>
-                [% END -%]
-
-				[%- prevSeqKey = seqKey -%]
-				[%- prevResKey = resKey -%]
-				[%- prevPdbKey = pdbKey -%]
-
-	            <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
-	            [% IF chainKey %]
-	              [% chainKey %]
-                [% ELSE %]
-                  <span class="inactive">n/a</span>
-                [% END %]
-                </td>
-			    <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
-                <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
-                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) | uri | html %]"
-                     onclick="popUp(this.href,'console',800,800,'jmolWin');return false;"
-                     target="newWin">Jmol</a>	
-                  <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) | uri | html %]"
-                     onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                     target="newWin">AstexViewer</a>	
-                  <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
-                     onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                     target="newWin"
-	                 class="ext">SPICE</a>	
-				</td>
-
-	          </tr>
-
-	          [%- END # of pdbResKey -%]
-	        [%- END # of chainKey -%]
-          [%- END # of pdbKey -%]
-	    [%- END # of resKey -%]
-      [%- END # of seqKey -%]
+        [%- USE seqKeyIter = iterator( mapping.keys.sort );
+        oe = 0;
+        FOREACH seqKey IN seqKeyIter;
+          NEXT IF mapping.$seqKey == "COUNT";
+          oe=oe+1;
+          FOREACH resKey IN mapping.$seqKey.keys.sort;
+            NEXT IF mapping.$seqKey.$resKey == "COUNT";
+            FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort;
+              FOREACH chainKey IN mapping.$seqKey.$resKey.$pdbKey.keys.sort;
+                NEXT IF mapping.$seqKey.$resKey.$pdbKey == "COUNT";
+                  FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+                    <tr>
+                      [% IF seqKey != prevSeqKey -%]
+                        <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
+                          <a href="[% base %]family?id=[% seqKey %]">[% seqKey %]</a>
+                        </td>
+                      [% END;
+                      IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+                        <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>
+                          [% resKey %]
+                        </td>
+                      [% END;
+                      IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+                        <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                          <a href="[% base %]structure?id=[% pdbKey %]">[% pdbKey %]</a>
+                      </td>
+                      [% END;
+                      prevSeqKey = seqKey;
+                      prevResKey = resKey;
+                      prevPdbKey = pdbKey -%]
+                      <td class="[% oe % 2 ? "odd" : "even" %]">
+                        [% IF chainKey;
+                          chainKey;
+                        ELSE %]
+                          <span class="inactive">n/a</span>
+                        [% END %]
+                      </td>
+                      <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
+                      <td class="[% oe % 2 ? "odd" : "even" %]">
+                        <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=jmol"
+                           onclick="popUp(this.href,'console',800,800,'jmolWin');return false;">
+                           Jmol</a>  
+                        <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=av"
+                           onclick="popUp(this.href,'console',800,800,'avWin');return false;">
+                           AstexViewer</a>  
+                        <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
+                           onclick="popUp(this.href,'console',800,800,'avWin');return false;"
+                           class="ext">SPICE</a>  
+                      </td>
+                    </tr>
+                  [%- END; # of pdbResKey
+                END; # of chainKey
+              END; # of pdbKey
+            END; # of resKey
+          END; # of seqKey -%]
       </tbody>
     </table>
 
     <script type="text/javascript">
+      // <![CDATA[
 
       // how many columns are there in the table ?
       var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
@@ -152,7 +150,9 @@
           cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
           cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
         }
-	  );
+      );
+
+      // ]]>
     </script>
 
   </div> <!-- end of "blockContent" -->
