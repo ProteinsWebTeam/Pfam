@@ -2,7 +2,7 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.9 2006-11-14 15:31:02 jt6 Exp $
+# $Id: relationships.tt,v 1.10 2007-05-01 21:00:27 jt6 Exp $
 
 image = "${constants.clanDataURLRoot}/relationship/${clan.clan_acc}.png";
 map   = "${constants.clanDataFileRoot}/relationship/${clan.clan_acc}.html"
@@ -16,93 +16,17 @@ map   = "${constants.clanDataFileRoot}/relationship/${clan.clan_acc}.html"
   </div>
   <div class="blockContent">
 
-    <!-- a href="javascript:scaleImage()" -->
     <img id="clanImage" src="[% image %]" alt="" usemap="#clanMap" />
-    <!-- /a -->
     [% TRY %]
-	<map name="clanMap" id="clanMap">
+	  <map name="clanMap" id="clanMap">
       [% INSERT $map %]
     </map>
-    [% CATCH %]
-      [% CALL c.log.error( "couldn't load the relationship image map for clan ${clan.clan_acc}, $map" ) %]
-    [% END %]
+    [% CATCH;
+      CALL c.log.error( "couldn't load the relationship image map for clan ${clan.clan_acc}, $map" );
+    END %]
 
   </div>
 
 </div>
-
-[%#
-<script type="text/javascript">
-
-	Event.observe( window, "load", initialise, false );
-
-	var imgWidth;
-	var divWidth;
-    var ratio;
-    var scaled = false;
-    var disabled = false;
-
-    function initialise() {
-	  imgWidth = $("clanImage").offsetWidth;
-	  divWidth = $("clanRelationshipsBlock").offsetWidth - 10;
-	  ratio = imgWidth / divWidth;
-
-	  console.debug( "image: " + imgWidth );
-	  console.debug( "div:   " + divWidth );
-	  console.debug( "radio: " + ratio );
-
-      if( imgWidth > divWidth ) {
-	    scaleImage();
-	  } else {
-	    disabled = true;
-	  }
-
-	}
-
-	function scaleImage() {
-      if( disabled ) {
-	    return;
-	  }
-
-	  if( scaled ) {
-		console.debug( "UNscaling image" );	  
-	    $("clanImage").width = imgWidth;
-	    scaled = false;
-	  } else {
-		console.debug( "scaling image" );	  
-	    $("clanImage").width = divWidth;
-	    scaled = true;
-	  }
-
-	  console.debug( "width: " + $("clanImage").offsetWidth );
-
-	}
-
-	function scaleAreas() {
-
-	  var areas = $("clanMap").getElementsByTagName( "area" );
-	  $A( areas ).each( function( area ) {
-		  var coords = area.getAttribute( "coords" ).split(",");
-
-	      var newCoords = "";
-		  $A( coords ).each( function( coord ) {
-	    	  if( scaled ) {
-	            var num = ( coord / ratio ).toFixed(0);
-			  } else {
-	            var num = ( coord * ratio ).toFixed(0);
-			  }
-			  newCoords = newCoords + num + ",";
-			}
-		  );
-
-		  console.debug( "newCoordsString: " + newCoords );
-	      area.setAttribute( "coords", newCoords.substring( 0, newCoords.length - 1) );
-	    }
-      );
-
-	}
-
-</script>
-%]
 
 <!-- end relationships block -->
