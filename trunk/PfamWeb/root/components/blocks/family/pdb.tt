@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.12 2006-11-15 11:00:24 rdf Exp $
+# $Id: pdb.tt,v 1.13 2007-05-01 21:14:37 jt6 Exp $
 
 numIds = summaryData.numStructures;
 UNLESS numIds;
@@ -16,21 +16,22 @@ END;
 
 <div class="block" id="pdbBlock">
   <div class="handle">
-	<h1>PDB</h1>
+    <h1>PDB</h1>
   </div>
-  <div class="blockContent">	
-	<div id="familyStructureTabHolder">
-      	<p id="fstrucph" class="loading">
+  <div class="blockContent">  
+    <div id="familyStructureTabHolder">
+      <p id="fstrucph" class="loading">
         Loading structure mapping...
-       </p>	
+      </p>  
     </div> <!-- end of familyStructureTabHolder -->
-<script type="text/javascript">
-  loadOptions.fstruc.uri    = "[% c.uri_for( "/family/structuretab" ) %]";
-  loadOptions.fstruc.params = "acc=[% acc %]";
-</script>
-
-<!-- end structures block -->
   </div>
 </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  loadOptions.fstruc.uri    = "[% base %]family/structuretab";
+  loadOptions.fstruc.params = "acc=[% acc %]";
+  // ]]>
+</script>
 
 <!-- end pdb block -->

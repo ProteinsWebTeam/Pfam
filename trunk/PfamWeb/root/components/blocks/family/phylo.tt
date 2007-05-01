@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.9 2007-05-01 21:03:03 jt6 Exp $
+# $Id: phylo.tt,v 1.10 2007-05-01 21:14:37 jt6 Exp $
 
 # URI shortcut
 tmURI = "${base}gettreemap";
@@ -39,21 +39,23 @@ tmURI = "${base}gettreemap";
       </div>
     </form>
 
-  	<div id="alignmentTree">
-  	  <p id="atph" class="loading">
+    <div id="alignmentTree">
+      <p id="atph" class="loading">
           Loading alignment tree...
-        </p>	
-  	</div>
+        </p>  
+    </div>
 
-  	[%# set the options for the ajax call that populates the tree -%]
+    [%# set the options for the ajax call that populates the tree -%]
     <script type="text/javascript">
+      // <![CDATA[
       loadOptions.at.uri    = "[% tmURI %]";
       loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
-  	</script>
+      // ]]>
+    </script>
     
     <p><strong>Note:</strong> You can also download the data files for the
-  	  <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
-  	  <a href="[% constants.treeURLRoot %]/full/[% pfam.pfamA_acc %].tree">full</a> 
+      <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
+      <a href="[% constants.treeURLRoot %]/full/[% pfam.pfamA_acc %].tree">full</a> 
         trees.</p>
 
   </div>
