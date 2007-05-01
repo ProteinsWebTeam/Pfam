@@ -5,7 +5,7 @@
 #
 # show the generated graphic for an uploaded XML file
 #
-# $Id: generatedGraphic.tt,v 1.1 2007-04-20 15:23:07 jt6 Exp $
+# $Id: generatedGraphic.tt,v 1.2 2007-05-01 21:21:55 jt6 Exp $
 
 META title = "Generated Pfam graphic";
 META fullPage = 1;
@@ -61,7 +61,9 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   $("uploadField").focus();
+  // ]]>
 </script>
 
 <div id="generatedGraphic" class="graphicItem">
