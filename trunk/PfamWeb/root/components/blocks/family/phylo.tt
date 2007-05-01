@@ -1,11 +1,14 @@
 
-[%#
+[%
 # phylo.tt
 # jt6 20060515 WTSI
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.8 2007-01-15 15:59:44 jt6 Exp $
+# $Id: phylo.tt,v 1.9 2007-05-01 21:03:03 jt6 Exp $
+
+# URI shortcut
+tmURI = "${base}gettreemap";
 %]
 
 <!-- start of phyloBlock -->
@@ -15,20 +18,25 @@
     <h1>Trees</h1>
   </div>
   <div class="blockContent">
-    <p>This page displays the UPGMA based phylogentic tree, generated using quicktree, for the given alignment.</p> 
-      [%# the form that controls the tree display -%]
-      [% c.prototype.form_remote_tag( { url    => c.uri_for( "/gettreemap" ),
-                                        update => "alignmentTree" } ) %]
-      <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
-      <span>
-        <input name="type" id="seedRb" type="radio" checked="checked" value="seed" />
-        <label for="seedRb">Seed ([% pfam.num_seed %])</label>
-      </span>
-      <span>
-        <input name="type" id="fullRb" type="radio" value="full" />
-        <label for="fullRb">Full ([% pfam.num_full %])</label>
-      </span>
-      <input type="submit" name="submit" value="Change tree" />
+    <p>
+      This page displays the UPGMA based phylogentic tree, generated using 
+      quicktree, for the given alignment.
+    </p> 
+    [% # the form that controls the tree display
+    c.prototype.form_remote_tag( { url    => tmURI,
+                                   update => "alignmentTree" } ) %]
+      <div>
+        <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
+        <span>
+          <input name="type" id="seedRb" type="radio" checked="checked" value="seed" />
+          <label for="seedRb">Seed ([% pfam.num_seed %])</label>
+        </span>
+        <span>
+          <input name="type" id="fullRb" type="radio" value="full" />
+          <label for="fullRb">Full ([% pfam.num_full %])</label>
+        </span>
+        <input type="submit" name="submit" value="Change tree" />
+      </div>
     </form>
 
   	<div id="alignmentTree">
@@ -39,7 +47,7 @@
 
   	[%# set the options for the ajax call that populates the tree -%]
     <script type="text/javascript">
-      loadOptions.at.uri    = "[% c.uri_for( "/gettreemap" ) %]";
+      loadOptions.at.uri    = "[% tmURI %]";
       loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
   	</script>
     

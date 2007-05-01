@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.14 2007-04-27 15:55:05 jt6 Exp $
+# $Id: curation.tt,v 1.15 2007-05-01 21:03:03 jt6 Exp $
 
 # URI shortcuts
 infoGIF = c.uri_for( "/images/info.gif" );
@@ -38,18 +38,18 @@ getHmm = c.uri_for( "/family/gethmm" );
       <p>This family has changed since the last Pfam release.</p>
     [% END %]
 
-	[% oe = 0 %]
+  	[% oe = 0 %]
 
-    <table class="layout">
-	  <tbody>
+    <table class="layout" summary="Curation information for this family">
+  	  <tbody>
         <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
-		  <td class="label" [% addTip("curation","seedSource") %]>Seed source:</td>
-	      <td class="data">
-	        [% pfam.seed_source %]
-          </td>
-		</tr>
+    		  <td class="label" [% addTip("curation","seedSource") %]>Seed source:</td>
+  	      <td class="data">
+  	        [% pfam.seed_source %]
+            </td>
+    		</tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-	      <td class="label" [% addTip("curation","prevIds") %]>Previous IDs:</td>
+  	      <td class="label" [% addTip("curation","prevIds") %]>Previous IDs:</td>
           <td class="data">
             [% IF pfam.previous_id %]
               [% pfam.previous_id %]
@@ -58,50 +58,44 @@ getHmm = c.uri_for( "/family/gethmm" );
             [% END %]
           </td>
         </tr>
-
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-	      <td class="label" [% addTip("curation","familyType") %]>Type:</td>
-	      <td class="data">
-            [% pfam.type %]
-	      </td>
-	    </tr>
-
+  	      <td class="label" [% addTip("curation","familyType") %]>Type:</td>
+  	      <td class="data">
+              [% pfam.type %]
+  	      </td>
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-	      <td class="label" [% addTip("curation","numSeed") %]>Number in seed:</td>
-	      <td class="data">
+  	      <td class="label" [% addTip("curation","numSeed") %]>Number in seed:</td>
+  	      <td class="data">
             [% pfam.num_seed %]
-	      </td>
-	    </tr>
-
+  	      </td>
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label" [% addTip("curation","numFull") %]>Number in full:</td>
-		  <td class="data">
+    		  <td class="data">
             [% pfam.num_full %]
-	      </td>
-	    </tr>
-
+  	      </td>
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Average length of the domain:</td>
-		  <td class="data">
+    		  <td class="data">
             [% pfam.average_length %] aa
-	      </td>
-	    </tr>
-
+  	      </td>
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Average identity of full alignment:</td>
-		  <td class="data">
+    		  <td class="data">
             [% pfam.percentage_id %] %
-	      </td>
-	    </tr>
-
+  	      </td>
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Average coverage of the sequence by the domain:</td>
-		  <td class="data">
+    		  <td class="data">
             [% pfam.average_coverage %] %
-	      </td>
-	    </tr>
+  	      </td>
+  	    </tr>
       </tbody>
-	</table>
+  	</table>
 
     <h3>
       <span class="tipped" [% addTip("curation","hmm") %]>HMM information</span>
@@ -112,7 +106,7 @@ getHmm = c.uri_for( "/family/gethmm" );
              alt="View help on HMM parameters" /></a>
     </h3>
 
-    <table class="layout">
+    <table class="layout" summary="HMM information for this family">
       <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
 	      <td class="label">HMM build commands:</td>
@@ -120,12 +114,11 @@ getHmm = c.uri_for( "/family/gethmm" );
             <div><em>ls model:</em> [% pfam.hmmbuild_ls %] [% pfam.hmmcalibrate_ls %]</div>
             <div><em>fs model:</em> [% pfam.hmmbuild_fs %] [% pfam.hmmcalibrate_fs %]</div>
           </td>
-	    </tr>
-
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label" id="tableLabel">Model details:</td>
           <td class="data">
-            <table class="details">
+            <table class="details" summary="HMM details">
               <thead>
                 <tr>
                   <th rowspan="2">Parameter</th>
@@ -163,29 +156,26 @@ getHmm = c.uri_for( "/family/gethmm" );
                 </tr>
               </tbody>
             </table>
-	      </td>
+  	      </td>
         </tr>
-
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Model length:</td>
           <td class="data">
             [% pfam.model_length %]
           </td>
-	    </tr>
-
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Family (HMM) version:</td>
           <td class="data">
             [% pfam.version %]
           </td>
-	    </tr>
-
+  	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">HMM logo:</td>
           <td class="data">
     		    <a class="ext" href="http://www.sanger.ac.uk/cgi-bin/software/analysis/logomat-m.cgi?pfamid=[% pfam.pfamA_acc %]">View</a> the HMM logo.
           </td>
-	    </tr>
+  	    </tr>
       </tbody>
     </table>
 

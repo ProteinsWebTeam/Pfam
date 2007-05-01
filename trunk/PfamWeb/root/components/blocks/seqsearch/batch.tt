@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.1 2007-04-20 15:28:47 jt6 Exp $
+# $Id: batch.tt,v 1.2 2007-05-01 21:07:47 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -32,38 +32,38 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     <div class="formWrapper">
 
       <form method="get" 
-            name="proteinBatchSearchForm"
             id="proteinBatchSearchForm"
-            action="[% c.uri_for( "/seqsearch/batch" ) %]">
+            action="[% base %]seqsearch/batch">
+        <div>
+    
+          <span class="row">
+            <label for="seq">Sequence</label>
+            <input type="file" size="20" name="batchSeq" id="batchSeq" />
+          </span>
+    
+          <span class="row">
+            <label for="batchSearchSeqOpts">Search options</label>
+            <select name="seqOpts" id="batchSearchSeqOpts">
+              <option value="both">Both global &amp; fragment</option>
+              <option value="ls">Global</option>
+              <option value="fs">Fragment</option>
+            </select>
+          </span>
+    
+          <span class="row">
+            <label for="email">Email address</label>
+            <input type="text" size="20" maxlength="100" name="email" id="email" />
+          </span>
+    
+          <span class="row">
+            <input class="submit"  type="submit" name="submit" value="Submit" />
+            <input class="reset"   type="reset"  name="reset"  value="Reset" />
+          </span>
   
-        <span class="row">
-          <label for="seq">Sequence</label>
-          <input type="file" size="20" name="batchSeq" id="batchSeq" />
-        </span>
-  
-        <span class="row">
-          <label for="seqOpts">Search options</label>
-          <select name="seqOpts" id="seqOpts">
-            <option value="both">Both global &amp; fragment</option>
-            <option value="ls">Global</option>
-            <option value="fs">Fragment</option>
-          </select>
-        </span>
-  
-        <span class="row">
-          <label for="email">Email address</label>
-          <input type="text" size="20" maxlength="100" name="email" id="email" />
-        </span>
-  
-        <span class="row">
-          <input class="submit"  type="submit" name="submit" value="Submit" />
-          <input class="reset"   type="reset"  name="reset"  value="Reset" />
-        </span>
-  
+        </div>
       </form>
 
     </div>
-
   </div>
 </div>
 

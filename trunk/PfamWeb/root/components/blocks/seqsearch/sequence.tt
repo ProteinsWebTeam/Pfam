@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.2 2007-04-27 15:57:59 jt6 Exp $
+# $Id: sequence.tt,v 1.3 2007-05-01 21:07:47 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -39,69 +39,69 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       [% END %]
   
       <form method="get" 
-            name="proteinSeqSearchForm"
             id="proteinSeqSearchForm"
             action="[% c.uri_for( "/seqsearch/seq" ) %]">
+        <div>
+          <span class="row">
+            <label for="seq">Sequence</label>
+            <textarea cols="60" rows="10" name="seq" id="seq"></textarea>
+          </span>
   
-        <span class="row">
-          <label for="seq">Sequence</label>
-          <textarea cols="60" rows="10" name="seq" id="seq"></textarea>
-        </span>
+          <span class="row">
+            <label for="seqSearchSeqOpts">Search options</label>
+            <select name="seqOpts" id="seqSearchSeqOpts">
+              <option value="both">Both global &amp; fragment</option>
+              <option value="ls" selected="selected">Global</option>
+              <option value="fs">Fragment</option>
+            </select>
+          </span>
   
-        <span class="row">
-          <label for="seqOpts">Search options</label>
-          <select name="seqOpts" id="seqOpts">
-            <option value="both">Both global &amp; fragment</option>
-            <option value="ls" selected="selected">Global</option>
-            <option value="fs">Fragment</option>
-          </select>
-        </span>
-  
-        <div class="row">
-          <span class="label">Cut-off</span>
-          <div class="formElement">
-            <label for="gaButton">
-              <input class="radio"
-                     type="radio" 
-                     name="ga" 
-                     id="gaButton" 
-                     value="1" 
-                     checked="checked" 
-                     onChange="$('evalue').disable()" />
-              Gathering threshold
-            </label>
+          <div class="row">
+            <span class="label">Cut-off</span>
+            <div class="formElement">
+              <label for="gaButton">
+                <input class="radio"
+                       type="radio" 
+                       name="ga" 
+                       id="gaButton" 
+                       value="1" 
+                       checked="checked" 
+                       onchange="$('evalue').disable()" />
+                Gathering threshold
+              </label>
+            </div>
+            <div class="formElement">
+              <label for="eButton">
+                <input class="radio"
+                       type="radio" 
+                       name="ga" 
+                       id="eButton" 
+                       value="0" 
+                       onchange="$('evalue').enable()" />
+                Use E-value
+              </label>
+            </div>
           </div>
-          <div class="formElement">
-            <label for="eButton">
-              <input class="radio"
-                     type="radio" 
-                     name="ga" 
-                     id="eButton" 
-                     value="0" 
-                     onChange="$('evalue').enable()" />
-              Use E-value
-            </label>
-          </div>
+  
+          <span class="row">
+            <label for="evalue">E-value</label>
+            <input type="text" 
+                   size="10" 
+                   maxlength="10" 
+                   value="1.0" 
+                   name="evalue" 
+                   id="evalue" 
+                   disabled="disabled" />
+          </span>
+    
+          <span class="row">
+            <input class="submit"  type="submit" name="submit" value="Submit"
+                   onclick="if( ! $('seq').present() ){return false}"/>
+            <input class="reset"   type="reset"  name="reset"  value="Reset" />
+            <input class="example" type="button" value="Example" onclick="$('seq').value=exSeq" />
+          </span>
+
         </div>
-  
-        <span class="row">
-          <label for="evalue">E-value</label>
-          <input type="text" 
-                 size="10" 
-                 maxlength="10" 
-                 value="1.0" 
-                 name="evalue" 
-                 id="evalue" 
-                 disabled="1" />
-        </span>
-  
-        <span class="row">
-          <input class="submit"  type="submit" name="submit" value="Submit"
-                 onclick="if( ! $('seq').present() ){return false}"/>
-          <input class="reset"   type="reset"  name="reset"  value="Reset" />
-          <input class="example" type="button" value="Example" onclick="$('seq').value=exSeq" />
-        </span>
-  
       </form>
   
     </div>
@@ -110,6 +110,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
 TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
 SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
@@ -132,6 +133,7 @@ SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
 PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
 ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
 FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+  // ]]>
 </script>
 
 <!-- end sequence search block -->

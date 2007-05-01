@@ -1,10 +1,11 @@
+
 [%
 # align.tt
 # jt6 20061018 WTSI
 # 
-# build the align block for PfamB's
+# build the align block for PfamBs
 #
-# $Id: align.tt,v 1.2 2006-11-16 09:59:52 jt6 Exp $
+# $Id: align.tt,v 1.3 2007-05-01 21:03:52 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -18,48 +19,53 @@
     <h3>View options</h3>
 
     <form id="viewerForm"
-	      action="[% c.uri_for( "/family/downloadalignment" ) %]"
+	      action="[% base %]family/downloadalignment"
 	      method="get">
-      <input type="hidden" name="acc" value="[% pfam.pfamB_acc %]" />
+      <div>
+        <input type="hidden" name="acc" value="[% pfam.pfamB_acc %]" />
 
-	  <table class="details alignOpts">
-        <tr class="odd">
-          <td class="label">Viewer:</td>
-          <td>
-            <span class="button">
-              <select name="viewer" id="viewer">
-                <option value="jalview" selected="selected">jalview</option>
-                <option value="html">HTML</option>
-                <option value="viewer">Pfam viewer</option>
-              </select>
-            </span>
-	      </td>
-        </tr>
-      </table>
+    	  <table class="details alignOpts" summary="Alignment display options">
+    	    <tbody>
+            <tr class="odd">
+              <td class="label">Viewer:</td>
+              <td>
+                <span class="button">
+                  <select name="viewer" id="viewer">
+                    <option value="jalview" selected="selected">jalview</option>
+                    <option value="html">HTML</option>
+                    <option value="viewer">Pfam viewer</option>
+                  </select>
+                </span>
+      	      </td>
+            </tr>
+          </tbody>
+        </table>
 
-      <input type="button" value="View" onclick="launch()" />
-
+        <input type="button" value="View" onclick="launch()" />
+      </div>
     </form>
 
-	<script type="text/javascript">
-function launch() {
-  if( $F("viewer") == "jalview" ) {
- 	url = "[% c.uri_for( "/family/jalview" ) %]?" + Form.serialize("viewerForm");
-    //console.debug( "visiting: |" + url + "|" );
-    popUp( url, 'console', 800, 800, 'jalviewWin');
-
-  } else if( $F("viewer") == "viewer" ) {
-	url = "[% c.uri_for( "/family/alignmentviewer" ) %]?" + Form.serialize("viewerForm");
-    //console.debug( "visiting: |" + url + "|" );
-    popUp( url, 'console', 800, 800, 'viewerWin');
-
-  } else {
-	url = "[% constants.alignURLRoot %]/full/[% pfam.pfamB_acc %].shtml.gz";
-	window.open( url );
-  }
-
-  return false;
-}
+  	<script type="text/javascript">
+      // <![CDATA[
+      function launch() {
+        if( $F("viewer") == "jalview" ) {
+       	url = "[% base %]family/jalview?" + Form.serialize("viewerForm");
+          //console.debug( "visiting: |" + url + "|" );
+          popUp( url, 'console', 800, 800, 'jalviewWin');
+      
+        } else if( $F("viewer") == "viewer" ) {
+      	url = "[% base %]family/alignmentviewer?" + Form.serialize("viewerForm");
+          //console.debug( "visiting: |" + url + "|" );
+          popUp( url, 'console', 800, 800, 'viewerWin');
+      
+        } else {
+        	url = "[% constants.alignURLRoot %]/full/[% pfam.pfamB_acc %].shtml.gz";
+        	window.open( url );
+        }
+      
+        return false;
+      }
+      // ]]>
     </script>
 
     <h3>Download options</h3>
@@ -67,51 +73,55 @@ function launch() {
     <form id="optionsForm"
           action="[% c.uri_for( "/family/formatalignment" ) %]"
           method="get">
-      <input type="hidden" name="acc" value="[% pfam.pfamB_acc %]" />
+      <div>
+        <input type="hidden" name="acc" value="[% pfam.pfamB_acc %]" />
 
-      <table class="details alignOpts">
-        <tr class="odd">
-          <td class="label">Format:</td>
-          <td>
-            <span class="button">
-              <select name="format" id="format">
-                <option value="pfam" selected="selected">Selex</option>
-                <option value="stockholm">Stockholm</option>
-                <option value="fasta">FASTA</option>
-                <option value="msf">MSF</option>
-              </select>
-            </span>
-	      </td>
-        </tr>
-        <tr class="even">
-          <td class="label">Gaps:</td>
-          <td>
-            <span class="button">
-              <select name="gaps" id="gaps">
-                <option value="default" selected="selected">Gaps as "." or "-" (mixed)</option>
-                <option value="dots">Gaps as "." (dots)</option>
-                <option value="dashes">Gaps as "-" (dashes)</option>
-                <option value="none">No gaps (unaligned)</option>
-              </select>
-            </span>
-	      </td>
-        </tr>
-        <tr class="odd">
-          <td class="label">Download/view:</td>
-          <td>
-            <span class="button">
-              <input type="radio" name="download" id="downloadD" value="1" checked="1" />
-              <label for="downloadD">Download</label>
-            </span>
-            <span class="button">
-              <input type="radio" name="download" id="downloadV" value="0" />
-              <label for="downloadV">View</label>
-            </span>
-	      </td>
-        </tr>
-      </table>    
+        <table class="details alignOpts" summary="Alignment display options">
+          <tbody>
+            <tr class="odd">
+              <td class="label">Format:</td>
+              <td>
+                <span class="button">
+                  <select name="format" id="format">
+                    <option value="pfam" selected="selected">Selex</option>
+                    <option value="stockholm">Stockholm</option>
+                    <option value="fasta">FASTA</option>
+                    <option value="msf">MSF</option>
+                  </select>
+                </span>
+      	      </td>
+            </tr>
+            <tr class="even">
+              <td class="label">Gaps:</td>
+              <td>
+                <span class="button">
+                  <select name="gaps" id="gaps">
+                    <option value="default" selected="selected">Gaps as "." or "-" (mixed)</option>
+                    <option value="dots">Gaps as "." (dots)</option>
+                    <option value="dashes">Gaps as "-" (dashes)</option>
+                    <option value="none">No gaps (unaligned)</option>
+                  </select>
+                </span>
+      	      </td>
+            </tr>
+            <tr class="odd">
+              <td class="label">Download/view:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="download" id="downloadD" value="1" checked="checked" />
+                  <label for="downloadD">Download</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="download" id="downloadV" value="0" />
+                  <label for="downloadV">View</label>
+                </span>
+      	      </td>
+            </tr>
+          </tbody>
+        </table>    
 
-      <input type="submit" value="Download" />
+        <input type="submit" value="Download" />
+      </div>    
     </form>
 
   </div>
@@ -119,4 +129,3 @@ function launch() {
 </div>
 
 <!-- end align block -->
-

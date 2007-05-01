@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.17 2007-04-27 16:01:53 jt6 Exp $
+# $Id: header.tt,v 1.18 2007-05-01 20:57:15 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -61,20 +61,19 @@ navItems = [ "home", "search", "browse", "ftp", "help" ];
       <img alt="Pfam" 
            id="pfamLogo" 
            src="[% base %]/images/blank.gif" /></a>
-    <div id="searchBox">
-      <form action="[% c.uri_for( "/search" ) %]" 
-            method="get" 
-            name="siteSearchForm" 
-            id="siteSearchForm">
-    		<input class="entryField"
-               type="text" 
-               onfocus="if(!ssCleared){this.value='';ssCleared=true}" 
-               name="query" 
-               id="siteSearchField" />
-    	</form>
-    	<div onclick="if($F('siteSearchField')&amp;&amp;ssCleared)$('siteSearchForm').submit()"
-      		 class="glassButton goButton">&nbsp;</div>
-    </div>
+    <form action="[% c.uri_for( "/search" ) %]" 
+          method="get" 
+          id="siteSearchForm">
+      <div id="searchBox">
+        <input class="entryField"
+             type="text" 
+             onfocus="if(!ssCleared){this.value='';ssCleared=true}" 
+             name="query" 
+             id="siteSearchField" />
+        <div onclick="if($F('siteSearchField')&amp;&amp;ssCleared)$('siteSearchForm').submit()"
+             class="glassButton goButton">&nbsp;</div>
+      </div>
+    </form>
   </div>
 
 </div>
@@ -82,8 +81,10 @@ navItems = [ "home", "search", "browse", "ftp", "help" ];
 <div class="cleaner"><!-- empty --></div>
 
 <script type="text/javascript">
-	$("siteSearchField").value = "keyword search";
-	var ssCleared = false;
+  // <![CDATA[
+  $("siteSearchField").value = "keyword search";
+  var ssCleared = false;
+  // ]]>
 </script>
 
 <!-- header end -->

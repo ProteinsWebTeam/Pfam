@@ -5,7 +5,7 @@
 # 
 # build the page selector for the browse pages
 #
-# $Id: pageList.tt,v 1.1 2007-04-27 15:53:05 jt6 Exp $
+# $Id: pageList.tt,v 1.2 2007-05-01 20:59:42 jt6 Exp $
 
 META naked = 1;
 
@@ -24,7 +24,7 @@ requirements.css.push( "browse.css" );
 #-------------------------------------------------------------------------------
 
 %]
-<table class="pageList">
+<table class="pageList" summary="Browse Pfam families by initial letter">
   <tbody>
     <tr>
     [% FOREACH page IN pages;

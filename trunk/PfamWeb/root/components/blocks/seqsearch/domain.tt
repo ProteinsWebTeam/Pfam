@@ -4,7 +4,16 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.4 2007-02-14 10:36:28 jt6 Exp $
+# $Id: domain.tt,v 1.5 2007-05-01 21:07:47 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
 
 pages = [ "new", "top twenty", "numbers",
           "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
@@ -29,105 +38,118 @@ pageList = BLOCK %]
   </div>
   <div class="blockContent">
 
-    [% pageList %]
+    [% pageList;
 
-	[% c.prototype.form_remote_tag( { url          => c.uri_for( "/seqsearch/domain" ),
-			                       	  update       => "textResults",
-						              before       => "dsStarted()",
-						              complete     => "dsCompleted()",
-	                                  html_options => { method => "get",
-                                                        id     => "domainSearchForm" }
-	                                } ) %]
+    c.prototype.form_remote_tag( { url          => "${base}seqsearch/domain",
+                                   update       => "textResults",
+                                   before       => "dsStarted()",
+                                   complete     => "dsCompleted()",
+                                   html_options => { method => "get",
+                                                     id     => "domainSearchForm" }
+                                 } ) %]
+      <div id="idList" class="domainList">
   
-	  <div id="idList" class="domainList">
-
-	    <h3>Pfam domains</h3>
-
-	    <p class="domainQueryInstruction">
+        <h3>Pfam domains</h3>
+  
+        <p class="domainQueryInstruction">
           Select a Pfam domain from this list and choose &quot;Includes&quot; or
-		  &quot;Does not include&quot; to add it to the query.
+          &quot;Does not include&quot; to add it to the query.
         </p>
-
+  
         <div class="cleaner"><!-- empty --></div>
-
-	    <div id="idSelectionWrapper">
-	      <select id="idSelection" size="15"></select>
-	    </div>
-
+  
+        <div id="idSelectionWrapper">
+          <select id="idSelection" size="15">
+            <option id="idBlank"></option>
+          </select>
+        </div>
+  
         <span id="nlUpdateSpinner" class="loading">Loading IDs...</span>
-
-		<span class="buttons">
-		  <input id="haveButton" type="button" onclick="addId('have')" value="Includes"/>
-		  <input id="notButton"  type="button" onclick="addId('not')" value="Does NOT include" />
-		</span>
-
-	  </div>
-
-	  <div id="haveList" class="domainList">
-
-		<h3>Architecture must include...</h3>
-
-	    <p class="domainQueryInstruction">
-          These are the families that must appear in the architecture.
-          Remove unwanted domains by selecting them and pressing &quot;Remove&quot;.
-		</p>
-
-        <div class="cleaner"><!-- empty --></div>
-
-		<select id="have" size="15"></select>
-[%# this can be added to pre-load the form with a couple of values
-		<select id="have" size="15">
-	      <option value="PF07085">CBS</option>
-	      <option value="PF00571">DRTGG</option>
-	    </select>
-%]
-
-		<span class="buttons">
-		  <input type="button" onclick="removeId('have')" value="Remove" />
-		</span>
-
-	  </div>
-
-	  <div id="notList" class="domainList">
-
-	    <h3>Architecture must <em>not</em> include...</h3>
-
-	    <p class="domainQueryInstruction">
+  
+        <span class="buttons">
+          <input id="haveButton" type="button" onclick="addId('have')" value="Includes"/>
+          <input id="notButton"  type="button" onclick="addId('not')" value="Does NOT include" />
+        </span>
+  
+      </div>
+  
+      <div id="haveList" class="domainList">
+  
+      <h3>Architecture must include...</h3>
+  
+      <p class="domainQueryInstruction">
+        These are the families that must appear in the architecture.
+        Remove unwanted domains by selecting them and pressing &quot;Remove&quot;.
+      </p>
+  
+      <div class="cleaner"><!-- empty --></div>
+    
+        <select id="have" size="15">
+          <option id="haveBlank"></option>
+        </select>
+    
+        <span class="buttons">
+          <input type="button" onclick="removeId('have')" value="Remove" />
+        </span>
+    
+      </div>
+  
+      <div id="notList" class="domainList">
+  
+        <h3>Architecture must <em>not</em> include...</h3>
+  
+        <p class="domainQueryInstruction">
           These are the families that must <em>not</em> appear in the architecture.
           Remove unwanted domains by selecting them and pressing &quot;Remove&quot;.
-		</p>
-
+        </p>
+  
         <div class="cleaner"><!-- empty --></div>
-
-		<select id="not" size="15"></select>
-
-		<span class="buttons">
-		  <input type="button" onclick="removeId('not')" value="Remove"/>
-		</span>
-
-	  </div>
-
+  
+        <select id="not" size="15">
+          <option id="notBlank"></option>
+        </select>
+  
+        <span class="buttons">
+          <input type="button" onclick="removeId('not')" value="Remove"/>
+        </span>
+  
+      </div>
+  
       <div id="domainSearchButtons">
         <input type="submit" value="Submit query" id="domainSearchSubmit" />
         <input type="button" value="Reset" onclick="resetDomainQueryForms()" />
         <span id="searchUpdateSpinner" class="loading">Finding matching architectures...</span>
       </div>
 
-	</form>
+    </form>
 
     <p id="resultsHeader">The following architectures match your query architecture:</p>
 
-	<div id="textResults" style="float: left"><!-- empty --></div>
-
-    <script type="text/javascript">
-	  // hide the two spinners in the page and the results title
-	  [ "nlUpdateSpinner", "searchUpdateSpinner", "resultsHeader" ].each( Element.hide );
-
-	  // set the URI for looking up the IDs beginning with a particular numeral
-	  var queryURI = "[% c.uri_for( "/family/browse" ) %]"
-    </script>
-		
+    <div id="textResults" style="float: left"><!-- empty --></div>
+        
   </div>
 </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  // hide the two spinners in the page and the results title
+  $( "nlUpdateSpinner", "searchUpdateSpinner", "resultsHeader" ).invoke( "hide" );
+
+  // the select fields have children just to make the HTML validate, but we
+  // really want them empty, so do that now
+  $( "idSelection", "have", "not" ).each(
+    function(s) {
+      $A( s.childNodes ).each(
+        function(c) {
+          s.remove(c);          
+        }
+      );      
+    }
+  );
+
+  // set the URI for looking up the IDs beginning with a particular numeral
+  var queryURI = "[% base %]family/browse";
+  // ]]>
+</script>
 
 <!-- end domain search block -->
