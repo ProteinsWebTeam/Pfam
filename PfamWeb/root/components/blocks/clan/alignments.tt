@@ -1,9 +1,9 @@
 
-[%#
+[%
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.7 2006-11-13 15:25:58 rdf Exp $
+# $Id: alignments.tt,v 1.8 2007-05-01 21:01:12 jt6 Exp $
 %]
 
 <!-- start clan alignments block -->
@@ -26,7 +26,7 @@ END
 -%]
 
 [%- tableHeader = BLOCK -%]
-    <table class="details[% IF float %] [% float %][% END %]">
+    <table class="details[% IF float %] [% float %][% END %]" summary="Details of alignments">
       <thead>
         <tr>
           <th>Pfam family</th>
@@ -42,22 +42,22 @@ END
     </table>
 [%- END -%]
 
-[%# work out if we're going to split the table in two. If we are, work out how long
-    each column can get and wrap each in a div that will float it left %]
+[% # work out if we're going to split the table in two. If we are, work out how long
+   # each column can get and wrap each in a div that will float it left
 
-[%- maxLength = "" -%]
-[% IF clan.clan_membership.size > constants.tableLength %]
-  [% maxLength = clanMembers.size / 2 %]
+maxLength = "";
+IF clan.clan_membership.size > constants.tableLength;
+  maxLength = clanMembers.size / 2 -%]
   <div class="floatLeft">
-[%- END -%]
+[%- END;
 
-[%- tableHeader -%]
+tableHeader;
 
-[%- oe = 0 -%]
-[%- split = 0 -%]
-[%- FOREACH pfam IN pfams -%]
+oe = 0;
+split = 0;
+FOREACH pfam IN pfams;
 
-  [%- IF NOT split AND maxLength AND loop.index > maxLength -%]
+  IF NOT split AND maxLength AND loop.index > maxLength -%]
     <tr class="continuation">
       <td colspan="3">
         <span class="inactive">continued</span>
@@ -66,18 +66,18 @@ END
     [%- tableFooter -%]
     </div>
     <div class="floatLeft">
-    [%- tableHeader -%]
-    [%- split = 1 -%]
-  [%- END -%]
+    [%- tableHeader;
+    split = 1;
+  END;
   
-  [%- percent = ( pfam.num_full / totalSeq ) * 100 -%]
-  [%- percentS = String.new(percent).format("%.1f") -%]
+  percent = ( pfam.num_full / totalSeq ) * 100;
+  percentS = String.new(percent).format("%.1f") -%]
 
-  <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-    <td><a href="[% c.uri_for( "/family", id=pfam.pfamA_id ) %]">[% pfam.pfamA_id %]</a>
-      (<a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">[% pfam.pfamA_acc %]</a>)</td>
+  <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+    <td><a href="[% base %]family?id=[% pfam.pfamA_id %]">[% pfam.pfamA_id %]</a>
+      (<a href="[% base %]family?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_acc %]</a>)</td>
     <td>[% pfam.num_full %] ([% percentS %]%)</td>
-    <td><a href="[% c.uri_for( "/family", id=pfam.pfamA_id, tab="alignBlock" ) | uri | html %]">View</a></td>
+    <td><a href="[% base %]family?id=[% pfam.pfamA_id %]&amp;tab=alignBlock">View</a></td>
   </tr>
 
 [%- END # of FOREACH pfam -%]
@@ -85,7 +85,13 @@ END
   <tr class="summaryRow">
     <td><strong>Total:</strong> [% totalFam %]</td>
     <td><strong>Total:</strong> [% totalSeq %]</td>
-    <td><strong><a href="[% constants.clanDataURLRoot %]/alignment/[% clan.clan_acc %].shtml" target="_blank">Clan alignment</a></strong></td>
+    <td>
+      <strong>
+        <a href="[% constants.clanDataURLRoot %]/alignment/[% clan.clan_acc %].shtml"
+           onclick="window.open( this.href );return false;">
+           Clan alignment</a>  
+      </strong>
+    </td>
   </tr>
 
 [%- tableFooter -%]
@@ -96,8 +102,10 @@ END
 
     <div class="cleaner">&nbsp;</div>
 
-    <p class="small"><strong>Please note:</strong> Clan alignments can be 
-      <strong>very</strong> large and can cause problems for some browsers.</p>
+    <p class="small">
+      <strong>Please note:</strong> Clan alignments can be 
+      <strong>very</strong> large and can cause problems for some browsers.
+    </p>
 
   </div>
 </div>
