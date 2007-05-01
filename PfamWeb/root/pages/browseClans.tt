@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for clans
 #
-# $Id: browseClans.tt,v 1.8 2007-04-27 15:53:05 jt6 Exp $
+# $Id: browseClans.tt,v 1.9 2007-05-01 21:21:55 jt6 Exp $
 
 META title = "Browse Pfam clans";
 META fullPage = 1;
@@ -38,7 +38,7 @@ pageList = PROCESS "components/pageList.tt",
 
 [% pageList %]
 
-<table class="details browse">
+<table class="details browse" summary="Browse Pfam clans">
   <thead>
     <tr class="caption">
       <th>Clan ID</th>

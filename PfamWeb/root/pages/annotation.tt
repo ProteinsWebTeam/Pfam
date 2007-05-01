@@ -5,7 +5,7 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.4 2007-03-13 10:32:59 jt6 Exp $
+# $Id: annotation.tt,v 1.5 2007-05-01 21:21:55 jt6 Exp $
 
 META fullPage = 1;
 
@@ -38,7 +38,9 @@ IF success -%]
   </div>
 
   <script type="text/javascript">
+    // <![CDATA[
     $("annotationForm_user").focus();
+    // ]]>
   </script>
 
 [% END # of "if success" %]

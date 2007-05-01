@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.16 2007-04-27 16:05:14 jt6 Exp $
+# $Id: layout.tt,v 1.17 2007-05-01 21:21:56 jt6 Exp $
 
 USE String;
 USE date;
@@ -139,10 +139,12 @@ END;
 
 [%# do we want to highlight a particular tab ? %]
 <script type="text/javascript">
+  // <![CDATA[
   serverRoot = "[% constants.root # the server root, e.g. /catalyst/PfamWeb %]";
   section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
   showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
   Event.observe( window, "load", chooseTab );
+  // ]]>
 </script> 
 
 <!-- ====================================================================== -->

@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.23 2007-04-27 16:04:50 jt6 Exp $
+# $Id: index.tt,v 1.24 2007-05-01 21:21:56 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -42,7 +42,9 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   Please enable javascript and reload the page, or switch to a different browser.
 </div>
 <script type="text/javascript">
-  Element.hide("jsWarning");
+  // <![CDATA[
+  $("jsWarning").hide();
+  // ]]>
 </script>
 
 <!-- start of index page -->
@@ -58,16 +60,16 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
             class="link">
         More...</span>
     </p>
-     <div id="extras" style="display: none">
+    <div id="extras" style="display: none">
       <p>
         Proteins are generally composed of one or more functional regions, 
         commonly termed  <em>domains</em>. Different combinations of domains give 
         rise to the diverse range of proteins found in nature. The identification 
         of domains that occur within  proteins can therefore provide insights 
         into their function. 
-       </p>
-       <p>
-         There are two components to Pfam: Pfam-A and Pfam-B. Pfam-A entries are 
+      </p>
+      <p>
+        There are two components to Pfam: Pfam-A and Pfam-B. Pfam-A entries are 
         high quality, manually curated families. Although these 
         <em>Pfam-A</em> entries cover a  large proportion of the sequences in the
         underlying sequence database, to give a more  comprehensive coverage of 
@@ -82,6 +84,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         Pfam also generates higher-level groupings of related families, known as
         <em>clans</em>. A clan is a collection of Pfam-A entries which are
         related by similarity of sequence, structure or profile-HMM.
+      </p>
     </div>
   </div>
 
@@ -125,45 +128,49 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <h3>Analyze your protein sequence for Pfam matches</h3>
     <p>
       Paste your protein sequence here to find the matching Pfam families.
-    </p>  
+    </p>
     <form action="[% base %]seqsearch/seq"
           method="get" 
           id="seqForm">
-      <input type="hidden"
-             name="seqOpts"
-             value="ls" />
-      <input type="hidden"
-             name="ga"
-             value="1" />
-      <textarea class="entryField" 
-                name="seq"
-                id="seq" 
-                cols="40" 
-                rows="5"></textarea>
+      <div>
+        <input type="hidden"
+               name="seqOpts"
+               value="ls" />
+        <input type="hidden"
+               name="ga"
+               value="1" />
+        <textarea class="entryField" 
+                  name="seq"
+                  id="seq" 
+                  cols="40" 
+                  rows="5"></textarea>
+      </div>
     </form>
     <div onclick="if( $('seq').present() )$('seqForm').submit()"
          class="glassButton goButton">&nbsp;</div>
     <div onclick="$('seq').value=exSeq"
          class="glassButton exampleButton">&nbsp;</div>
-    <p class="small">
+    <p class="small nlh">
       This search will use the <code>pfam_ls</code> library (global) and the 
       <a href="[% helpBase %]?tab=helpGlossaryBlock">
         gathering threshold</a>. You can specify the search parameters using 
       <a href="[% base %]seqsearch/seq?tab=searchSequenceBlock">this</a> form.      
     </p>
   </div>
-    
+
   <div id="dna" class="panel" style="display: none">
     <h3>Analyze your DNA sequence for Pfam matches</h3>    
     <p>Paste your DNA sequence here to find matching Pfam families.</p>  
     <form action="[% base %]dnasearch"
           method="get" 
           id="dnaForm">
-      <textarea class="entryField disabledEntryField" 
-                id="dnaField" 
-                cols="40" 
-                rows="5"
-                disabled="1">Coming soon</textarea>
+      <div>
+        <textarea class="entryField disabledEntryField" 
+                  id="dnaField" 
+                  cols="40" 
+                  rows="5"
+                  disabled="disabled">Coming soon</textarea>
+      </div>
     </form>
     <div onclick="if( $('dnaField').present() )$('dnaForm').submit()"
          class="glassButton goButton disabledGoButton">&nbsp;</div>
@@ -175,17 +182,19 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <form action="[% jumpBase %]"
           method="get" 
           id="familyForm">
-      <input type="hidden"
-             name="type"
-             value="Family" />
-      <input type="hidden"
-             name="return"
-             value="1" />
-      <input class="entryField" 
-             type="text" 
-             name="entry" 
-             id="familyField" 
-             size="10" />
+      <div>
+        <input type="hidden"
+               name="type"
+               value="Family" />
+        <input type="hidden"
+               name="return"
+               value="1" />
+        <input class="entryField" 
+               type="text" 
+               name="entry" 
+               id="familyField" 
+               size="10" />
+      </div>
     </form>
     <div onclick="if( $('familyField').present() )$('familyForm').submit()"
          class="glassButton goButton">&nbsp;</div>
@@ -203,14 +212,16 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <form action="[% jumpBase %]"
           method="get" 
           id="clanForm">
-      <input type="hidden"
-             name="type"
-             value="Clan" />
-      <input class="entryField"
-             type="text" 
-             name="entry" 
-             id="clanField" 
-             size="10" />
+      <div>
+        <input type="hidden"
+               name="type"
+               value="Clan" />
+        <input class="entryField"
+               type="text" 
+               name="entry" 
+               id="clanField" 
+               size="10" />
+      </div>
     </form>
     <div onclick="if( $('clanField').present() )$('clanForm').submit()"
          class="glassButton goButton">&nbsp;</div>
@@ -229,14 +240,16 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <form action="[% jumpBase %]"
           method="get" 
           id="proteinForm">
-      <input type="hidden"
-             name="type"
-             value="Protein" />
-      <input class="entryField"
-             type="text" 
-             name="entry" 
-             id="proteinField" 
-             size="10" />
+      <div>
+        <input type="hidden"
+               name="type"
+               value="Protein" />
+        <input class="entryField"
+               type="text" 
+               name="entry" 
+               id="proteinField" 
+               size="10" />
+      </div>
     </form>
     <div onclick="if( $('proteinField').present() )$('proteinForm').submit()"
          class="glassButton goButton">&nbsp;</div>
@@ -250,14 +263,16 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <form action="[% jumpBase %]"
           method="get" 
           id="structureForm">
-      <input type="hidden"
-             name="type"
-             value="Structure" />
-      <input class="entryField"
-             type="text" 
-             name="entry" 
-             id="structureField" 
-             size="10" />
+      <div>
+        <input type="hidden"
+               name="type"
+               value="Structure" />
+        <input class="entryField"
+               type="text" 
+               name="entry" 
+               id="structureField" 
+               size="10" />
+      </div>
     </form>
     <div onclick="if( $('structureField').present() )$('structureForm').submit()"
          class="glassButton goButton">&nbsp;</div>
@@ -271,11 +286,13 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <form action="[% base %]search"
           method="get" 
           id="keywordForm">
-      <input class="entryField" 
-             type="text" 
-             name="query"
-             id="keywordField"
-             size="30" />
+      <div>
+        <input class="entryField" 
+               type="text" 
+               name="query"
+               id="keywordField"
+               size="30" />
+      </div>
     </form>
     <div onclick="if( $('keywordField').present() )$('keywordForm').submit()"
          class="glassButton goButton">&nbsp;</div>
@@ -332,6 +349,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   var exPfamId = "Piwi";
   var exClanId = "Kazal";
   var exUnpId  = "VAV_HUMAN";
@@ -359,6 +377,7 @@ SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
 PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
 ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
 FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+  // ]]>
 </script>
 
 <!-- end of index page -->

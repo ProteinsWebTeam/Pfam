@@ -6,7 +6,7 @@
 # builds the form for specifying a UniProt entry for which to show the graphics
 # XML.
 #
-# $Id: uploadUniprotEntry.tt,v 1.1 2007-04-20 15:23:09 jt6 Exp $
+# $Id: uploadUniprotEntry.tt,v 1.2 2007-05-01 21:21:56 jt6 Exp $
 
 META title = "Generate graphics for a UniProt entry";
 META fullPage = 1;
@@ -65,5 +65,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   $("seqId").focus();
+  // ]]>
 </script>

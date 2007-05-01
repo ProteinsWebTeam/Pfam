@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.4 2007-04-27 15:58:20 jt6 Exp $
+# $Id: jmol.tt,v 1.5 2007-05-01 21:16:59 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -41,10 +41,10 @@ FOREACH m IN mapping;
   FOREACH markup IN markups;
     CALL activeSites.append( "select ${markup.pdb_seq_number}:${markup.chain}; " );
 
-	IF markup.auto_markup == 1;
-	  CALL activeSites.append( "colour [255,51,102]; " );
-	ELSIF markup.auto_markup == 2;
-	  CALL activeSites.append( "colour [153,0,204]; " );
+    IF markup.auto_markup == 1;
+      CALL activeSites.append( "colour [255,51,102]; " );
+    ELSIF markup.auto_markup == 2;
+      CALL activeSites.append( "colour [153,0,204]; " );
     END;
 
     CALL activeSites.append( "wireframe 100; " );
@@ -60,17 +60,17 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
 <h1>PDB entry [% pdb.pdb_id %]</h1>
 
 <script type="text/javascript">
-  [%# we apparently need to set explicitly the name of the window, otherwise it takes the 
-    # name of the parent, so targetted links back to the parent won't work %]
+  // <![CDATA[
+  [% # we apparently need to set explicitly the name of the window, otherwise it takes the 
+     # name of the parent, so targetted links back to the parent won't work %]
   window.name = "jmolWin";
   jmolInitialize(" [% c.uri_for( "/jmol" ) %]"); // REQUIRED
   jmolSetAppletColor( "white" );
   jmolApplet(500, '[% script %]');
+  ]]>
 </script>
 
-[% oe = 0 %]
-
-<table class="details">
+<table class="details" summary="Mappings from PDB to UniProt to Pfam">
   <thead>
     <tr class="caption">
       <th colspan="3">PDB</th>
@@ -88,7 +88,8 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
     </tr>
   </thead>
   <tbody>
-    [% FOREACH m IN mapping %]
+    [% oe = 0;
+    FOREACH m IN mapping %]
     <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
       <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
       <td>[% m.pdb_start_res %]</td>
@@ -103,7 +104,9 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
   </tbody>
 </table>
 
-<a href="#" onclick="window.close()" class="closer">Close window</a>
+<div>
+  <a href="#" onclick="window.close()" class="closer">Close window</a>
+</div>
 
 [% END # of "pageContent = BLOCK" %]
 

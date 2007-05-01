@@ -5,7 +5,7 @@
 #
 # builds form for uploading XML describing a Pfam graphic
 #
-# $Id: uploadXml.tt,v 1.1 2007-04-20 15:23:08 jt6 Exp $
+# $Id: uploadXml.tt,v 1.2 2007-05-01 21:21:56 jt6 Exp $
 
 META title = "XML Upload";
 META fullPage = 1;
@@ -78,7 +78,9 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   $("uploadField").focus();
+  // ]]>
 </script>
 
 <div id="generatedXml" class="graphicItem">

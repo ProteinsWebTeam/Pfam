@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Completed Proteomes
 #
-# $Id: browseProteomes.tt,v 1.3 2007-04-27 15:53:05 jt6 Exp $
+# $Id: browseProteomes.tt,v 1.4 2007-05-01 21:21:55 jt6 Exp $
 
 META title = "Browse Pfam proteomes";
 META fullPage = 1;
@@ -35,7 +35,7 @@ pageList = PROCESS "components/pageList.tt",
 
 [% pageList %]
 
-<table class="details browse">
+<table class="details browse" summary="Browse proteomes">
   <thead>
     <tr class="caption">
       <th>Species Name</th>

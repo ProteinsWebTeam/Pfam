@@ -4,7 +4,7 @@
 # 
 # search results page
 #
-# $Id: search.tt,v 1.6 2007-03-13 10:32:59 jt6 Exp $
+# $Id: search.tt,v 1.7 2007-05-01 21:21:56 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;
@@ -36,7 +36,7 @@ requirements.js.push( "sorttable.js" );
     [% rowNums = {};
     hitsSummary = BLOCK;
       hitPlugins = 0 %]
-      <table id="keyTable">
+      <table id="keyTable" summary="summary of search results">
         <thead>
           <tr class="titleRow">
             <td>Section</td>
@@ -88,7 +88,7 @@ requirements.js.push( "sorttable.js" );
 
   </div> <!-- end of div "key" -->
 
-  <table class="sortable" id="resultTable">
+  <table class="sortable" id="resultTable" summary="Search results">
     <thead>
       <tr class="titleRow">
         <th class="rowNum">Original order</th>
