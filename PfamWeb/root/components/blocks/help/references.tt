@@ -4,7 +4,7 @@
 # 
 # build the references block for the help pages
 #
-# $Id: references.tt,v 1.3 2007-04-16 16:07:20 jt6 Exp $
+# $Id: references.tt,v 1.4 2007-05-01 21:03:27 jt6 Exp $
 %]
 
 <!-- start references block -->
@@ -45,109 +45,131 @@
       </span>
     </div>
 
- <a href=http://nar.oupjournals.org/cgi/content/full/32/suppl_1/D138> The Pfam Protein Families Database</A>
-<p>Alex Bateman, Lachlan Coin, Richard Durbin, Robert D. Finn, Volker Hollich, Sam Griffiths-Jones, Ajay Khanna, Mhairi Marshall, Simon Moxon, Erik L. L. Sonnhammer, David J. Studholme, Corin Yeats and Sean R. Eddy
-<br>
-<p>Nucleic Acids Research(2004) Database Issue 32:D138-D141</p>
-
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
-          Enhanced protein domain discovery by using language modeling techniques from 
-          speech recognition</a>: 
+        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/32/suppl_1/D138">
+          The Pfam Protein Families Database</a>: 
       </span>
-      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
+      <span class="authors">
+        A. Bateman, L. Coin, R. Durbin, R.D. Finn, V. Hollich, 
+        S. Griffiths-Jones, A. Khanna, M. Marshall, S. Moxon, E.L.L. Sonnhammer, 
+        D.J. Studholme, C. Yeats and S.R. Eddy
+      </span>
       <span class="ref">
-        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2004)&nbsp;32:D138-D141
       </span>
     </div>
 
-
-
-<a href=http://nar.oupjournals.org/cgi/content/full/30/1/276?ijkey=wfgjAWVRY.wto&amp;keytype=ref&amp;siteid=nar> The Pfam Protein Families Database</A>
-Bateman A, Birney E, Cerruti L, Durbin R, Etwiller L, Eddy SR, Griffiths-Jones S, Howe KL, Marshall M, Sonnhammer EL (2002)
- Nucleic Acids Research 30(1):276-280
-<P>
-
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
-          Enhanced protein domain discovery by using language modeling techniques from 
-          speech recognition</a>: 
+        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/30/1/276?ijkey=wfgjAWVRY.wto&amp;keytype=ref&amp;siteid=nar">
+          The Pfam Protein Families Database</a>: 
       </span>
-      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
+      <span class="authors">
+        A. Bateman, E. Birney, L. Cerruti, R. Durbin, L. Etwiller, S.R. Eddy, 
+        S. Griffiths-Jones, K.L. Howe, M. Marshall and E.L. Sonnhammer
+      </span>
       <span class="ref">
-        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2002)&nbsp;30(1):276-280
       </span>
     </div>
 
-<a href=ftp://ftp.sanger.ac.uk/pub/databases/Pfam/NAR_2000_paper.pdf>The Pfam Protein Families Database</A>
-       Bateman A, Birney E, Durbin R, Eddy SR, Howe KL, Sonnhammer EL (2000) Nucleic Acids
-Research 28:263-266 <font size=1>(Reproduced with permission from <a href="http://www.oup.co.uk/nar">NAR Online)</font></a>
-<P>
-
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
-          Enhanced protein domain discovery by using language modeling techniques from 
-          speech recognition</a>: 
+        <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/NAR_2000_paper.pdf">
+          The Pfam Protein Families Database</a>: 
       </span>
-      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
+      <span class="authors">
+        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, K.L. Howe and 
+        E.L. Sonnhammer
+      </span>
       <span class="ref">
-        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+        <span class="jrnl">Nucleic Acids Research </span>&nbsp;(2000)&nbsp;28:263-266
+      </span>
+      <span class="small">
+        (Reproduced with permission from <a href="http://www.oup.co.uk/nar">
+          NAR Online</a>)
       </span>
     </div>
 
-<a href=ftp://ftp.sanger.ac.uk/pub/databases/Pfam/NAR_1999_paper.pdf>Pfam 3.1: 1313 multiple
-  alignments match the majority of proteins</A>
- Bateman A, Birney E, Durbin R, Eddy SR, Finn RD, Sonnhammer ELL (1999)
-   Nucleic Acids Research 27:260-262<p>
-
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
-          Enhanced protein domain discovery by using language modeling techniques from 
-          speech recognition</a>: 
+        <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/NAR_1999_paper.pdf">
+          Pfam 3.1: 1313 multiple alignments match the majority of proteins</a>: 
       </span>
-      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
+      <span class="authors">
+        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, R.D. Finn and E.L.L. Sonnhammer
+      </span>
       <span class="ref">
-        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(1999)&nbsp;27:260-262
       </span>
     </div>
 
-<a href="http://nar.oupjournals.org/cgi/content/full/26/1/320">Pfam: multiple sequence alignments and HMM-profiles of protein domains</A> Sonnhammer ELL, Eddy SR, Birney E, Bateman A, Durbin R (1998) Nucleic Acids Research 26:320-322<p>
-
-<SPAN class=normaltext> Sonnhammer ELL, Eddy SR, Durbin R (1997) Pfam: A Comprehensive
-  Database of Protein Families Based on Seed Alignments, Proteins
-  28:405-420 </SPAN>
-
-
-<h3>Book Chapters on Pfam</h3>
-<p>Michael J. Dunn (Editor), Lynn B. Jorde (Editor), Peter F. R. Little (Editor), Shankar Subramaniam (Editor)
-Section Editor: Rolf
-ISBN: 978-0-470-84974-3
-Hardcover
-4096 pages
-September 2005
- Wiley Genetics, Genomics, Proteomics and Bioinformatics Section 6 Proteome Families g306303  	Pfam: The protein families database. - Robert D. Finn</p>
-<p>Current protocols in bioinformatics Unit 2.5 Identifying Protein Domains with the Pfam Database ISBN: 978-0-471-25093-7, Rob, Sam and Alex</p>
-<p>Methods in Molecular Biology - Comparative Genomics. Editors:XXXX.
-Pfam: A domain-centric method for analysing proteins and proteomes
-Jaina Mistry, Robert Finn</p>
-
-
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
-          Enhanced protein domain discovery by using language modeling techniques from 
-          speech recognition</a>: 
+        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/26/1/320">
+          Pfam: multiple sequence alignments and HMM-profiles of protein domains</a>: 
       </span>
-      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
+      <span class="authors">
+        E.L.L. Sonnhammer, S.R. Eddy, E. Birney, A. Bateman and R. Durbin 
+      </span>
       <span class="ref">
-        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(1998)&nbsp;26:320-322
       </span>
     </div>
 
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;list_uids=9223186">
+          Pfam: a comprehensive database of protein families based on seed alignments</a>: 
+      </span>
+      <span class="authors">
+        E.L.L. Sonnhammer, S.R. Eddy and R. Durbin 
+      </span>
+      <span class="ref">
+        <span class="jrnl">Proteins</span>&nbsp;(1997)&nbsp;28:405-420
+      </span>
+    </div>
+
+    <h3>Book Chapters on Pfam</h3>
+
+    <div class="citation">
+      <span class="title">
+        Pfam: the protein families database 
+      </span>
+      <span class="authors">
+        R.D. Finn (eds M.J. Dunn, L.B. Jorde, P.F.R. Little, S. Subramaniam)
+      </span>
+      <span class="ref">
+        <span class="jrnl">Genetics, Genomics, Proteomics and Bioinformatics, Section 6: Protein Families</span>
+        &nbsp;(2005)&nbsp;ISBN&nbsp;978-0-470-84974-3
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        Identifying protein domains with the Pfam database 
+      </span>
+      <span class="authors">
+        R.D. Finn, A. Bateman and S. Griffiths-Jones
+      </span>
+      <span class="ref">
+        <span class="jrnl">Current protocols in bioinformatics</span>
+        &nbsp;ISBN&nbsp;978-0-471-25093-7
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        Pfam: a domain-centric method for analysing proteins and proteomes
+      </span>
+      <span class="authors">
+        J. Mistry and R.D. Finn
+      </span>
+      <span class="ref">
+        <span class="jrnl">Methods in Molecular Biology - Comparative Genomics</span>
+      </span>
+    </div>
 
   </div>
 </div>

@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.4 2007-04-20 15:28:01 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.5 2007-05-01 21:03:25 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,8 +19,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 #-------------------------------------------------------------------------------
 
 # some URI shortcuts
-imgs   = c.uri_for( "/images/help" );
-family = c.uri_for( "/family" );
+imgs   = "${base}images/help";
+family = "${base}family";
 %]
 
 <!-- start domain graphics block -->
@@ -88,7 +88,7 @@ family = c.uri_for( "/family" );
     <p>
       The high quality, curated <em>Pfam-A</em> domains are classified into one of four 
       different types: <em>family, domain, repeat</em> and <em>motif</em> 
-      (<a href=[% c.uri_for("/help/tab=helpSummaryBlock") %]>more details</a>). 
+      (<a href="[% base %]help?tab=helpSummaryBlock">more details</a>). 
       These different classification types are rendered slightly differently.
     </p>
     
@@ -114,9 +114,9 @@ family = c.uri_for( "/family" );
          usemap="#seqDomain" 
          alt="" />
     <span class="link" onclick="reveal(this,'seqDomainXML',false)">Show XML</span> 
-    <map name="seqDomain">
-      <area shape="rect" coords="20,0,100,26" title="DomainNameDisply:40-200" />
-      <area shape="rect" coords="105,0,125,26" title="FamilyNoNameDisply:210-250" />
+    <map id="seqDomain">
+      <area shape="rect" coords="20,0,100,26" nohref="nohref" title="DomainNameDisply:40-200" alt="" />
+      <area shape="rect" coords="105,0,125,26" nohref="nohref" title="FamilyNoNameDisply:210-250" alt="" />
     </map>
       
     <div id="seqDomainXML" class="xmlFragment" style="display: none">
@@ -170,10 +170,10 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#partial" />  
     <span class="link" onclick="reveal(this,'partialDomainXML',false)">Show XML</span>
-    <map name="partial">
-      <area shape="rect" coords="5,0,55,26" nohref="/" title="PartN:10-110" />
-      <area shape="rect" coords="105,0,175,26" nohref="/" title="PartC:210-350" />
-      <area shape="rect" coords="57.5,0,100,26" nohref="/" title="PartN_C:115-200" />
+    <map id="partial">
+      <area shape="rect" coords="5,0,55,26" nohref="nohref" title="PartN:10-110" alt="" />
+      <area shape="rect" coords="105,0,175,26" nohref="nohref" title="PartC:210-350" alt="" />
+      <area shape="rect" coords="57.5,0,100,26" nohref="nohref" title="PartN_C:115-200" alt="" />
     </map>
           
     <!--Put in a div that you click on to get more..-->
@@ -240,11 +240,11 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#repeat" />
     <span class="link" onclick="reveal(this,'repeatXML',false)">Show XML</span>
-    <map name="repeat">
-      <area shape="rect" coords="41,0,59,26" title="RepeatNameDisply:82-118" />
-      <area shape="rect" coords="80,0,97,26" title="RepeatNameDisply:159-195" />
-      <area shape="rect" coords="60,0,77,26" title="RepeatNameDisply:120-155" />
-      <area shape="rect" coords="1,0,17,26" title="RepeatNameDisply:2-34" />
+    <map id="repeat">
+      <area shape="rect" coords="41,0,59,26" nohref="nohref" title="RepeatNameDisply:82-118" alt="" />
+      <area shape="rect" coords="80,0,97,26" nohref="nohref" title="RepeatNameDisply:159-195" alt="" />
+      <area shape="rect" coords="60,0,77,26" nohref="nohref" title="RepeatNameDisply:120-155" alt="" />
+      <area shape="rect" coords="1,0,17,26" nohref="nohref" title="RepeatNameDisply:2-34" alt="" />
     </map>
           
     <div id="repeatXML" class="xmlFragment" style="display: none">
@@ -345,19 +345,19 @@ family = c.uri_for( "/family" );
       joined by a line bridging them. The vertical parts of the line are dashed,
       while the horizontal line is solid (to distinguish it from a 
       <a href="#disulphides">disulphide bridge</a>).
-    <p>
+    </p>
     
     <img src="[% imgs %]/nested.png"
          alt="" 
          usemap="#nested" />  
     <span class="link" onclick="reveal(this,'nestedXML',false)">Show XML</span>
-    <map name="nested">
-      <area shape="rect" coords="2.5,20,40,46" title="IMPDH:5-80" />
-      <area shape="rect" coords="40.5,20,67.5,46" title="CBS:81-135" />
-      <area shape="rect" coords="68,20,98.5,46" title="IMPDH:136-197" />
-      <area shape="rect" coords="38.5,4,40.5,29" nohref="discontinuous domain" title="Discontinuous domain" />
-      <area shape="rect" coords="67,4,69,25" nohref="discontinuous domain" title="Discontinuous domain" />
-      <area shape="rect" coords="39.5,11,68,9" nohref="discontinuous domain" title="Discontinuous domain" />  
+    <map id="nested">
+      <area shape="rect" coords="2.5,20,40,46" nohref="nohref" title="IMPDH:5-80" alt="" />
+      <area shape="rect" coords="40.5,20,67.5,46" nohref="nohref" title="CBS:81-135" alt="" />
+      <area shape="rect" coords="68,20,98.5,46" nohref="nohref" title="IMPDH:136-197" alt="" />
+      <area shape="rect" coords="38.5,4,40.5,29" nohref="nohref" title="Discontinuous domain" alt="" />
+      <area shape="rect" coords="67,4,69,25" nohref="nohref" title="Discontinuous domain" alt="" />
+      <area shape="rect" coords="39.5,11,68,9" nohref="nohref" title="Discontinuous domain" alt="" />  
     </map>
           
     <div id="nestedXML" class="xmlFragment" style="display: none">
@@ -461,12 +461,12 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#context" />  
     <span class="link" onclick="reveal(this,'contextXML',false)">Show XML</span>
-    <map name="context">
-      <area shape="rect" coords="41,0,59,26" title="RepeatNameDisplay:82-118" />
-      <area shape="rect" coords="80,0,97,26" title="RepeatNameDisplay:159-195" />
-      <area shape="rect" coords="60,0,77,26" title="RepeatNameDisplay:120-155" />
-      <area shape="rect" coords="1,0,17,26"  title="RepeatNameDisplay:2-34" />
-      <area shape="rect" coords="22,0,39,26" title="Context:44-79" />
+    <map id="context">
+      <area shape="rect" coords="41,0,59,26" nohref="nohref" title="RepeatNameDisplay:82-118" alt="" />
+      <area shape="rect" coords="80,0,97,26" nohref="nohref" title="RepeatNameDisplay:159-195" alt="" />
+      <area shape="rect" coords="60,0,77,26" nohref="nohref" title="RepeatNameDisplay:120-155" alt="" />
+      <area shape="rect" coords="1,0,17,26"  nohref="nohref" title="RepeatNameDisplay:2-34" alt="" />
+      <area shape="rect" coords="22,0,39,26" nohref="nohref" title="Context:44-79" alt="" />
     </map>
           
     <div id="contextXML" class="xmlFragment" style="display: none">
@@ -567,7 +567,7 @@ family = c.uri_for( "/family" );
       <em>Pfam-B</em> regions are automatically generated clusters that 
       supplement the high quality Pfam-A regions. The mechanism for generating 
       Pfam-B regions is detailed 
-      <a href=[% c.uri_for("/help/tab=helpSummaryBlock") %]>here</a>.
+      <a href="[% base %]help?tab=helpSummaryBlock">here</a>.
       These regions are represented by a small rectangle, coloured with three 
       stripes. As for Pfam-A regions, clicking on a Pfam-B domain takes the 
       user to the Pfam-B summary page for that entry. Moving the mouse over the 
@@ -580,9 +580,9 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#pfamB" />  
     <span class="link" onclick="reveal(this,'pfamBXML',false)">Show XML</span>
-    <map name="pfamB">
-      <area shape="rect" coords="4,0,34,26" title="Pfam-B_39520:8-68" />
-      <area shape="rect" coords="52.5,0,88,26" title="Pfam-B_43847:105-176" />
+    <map id="pfamB">
+      <area shape="rect" coords="4,0,34,26" nohref="nohref" title="Pfam-B_39520:8-68" alt="" />
+      <area shape="rect" coords="52.5,0,88,26" nohref="nohref" title="Pfam-B_43847:105-176" alt="" />
     </map>
           
     <div id="pfamBXML" class="xmlFragment" style="display: none">
@@ -637,12 +637,12 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#motifs" />
     <span class="link" onclick="reveal(this,'motifsXML',false)">Show XML</span>
-    <map name="motifs">
-      <area shape="rect" coords="0.5,0,13.5,26" title="Signal Peptide:1-27" />
-      <area shape="rect" coords="19.5,0,23.5,26" title="Low Complexity:39-47" />
-      <area shape="rect" coords="33.5,0,38,26" title="Low Complexity:67-76" />
-      <area shape="rect" coords="77.5,0,88.5,26" title="Transmembrane:155-177" />
-      <area shape="rect" coords="90,0,97.5,26" title="Transmembrane:180-195" />  
+    <map id="motifs">
+      <area shape="rect" coords="0.5,0,13.5,26" nohref="nohref" title="Signal Peptide:1-27" alt="" />
+      <area shape="rect" coords="19.5,0,23.5,26" nohref="nohref" title="Low Complexity:39-47" alt="" />
+      <area shape="rect" coords="33.5,0,38,26" nohref="nohref" title="Low Complexity:67-76" alt="" />
+      <area shape="rect" coords="77.5,0,88.5,26" nohref="nohref" title="Transmembrane:155-177" alt="" />
+      <area shape="rect" coords="90,0,97.5,26" nohref="nohref" title="Transmembrane:180-195" alt="" />  
     </map>
           
     <div id="motifsXML" class="xmlFragment" style="display: none">
@@ -823,19 +823,19 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#activeSite" />
     <span class="link" onclick="reveal(this,'activeSiteXML',false)">Show XML</span>
-    <map name="activeSite">
-      <area shape="rect" coords="76.5,7,78.5,29" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
-      <area shape="rect" coords="97,7,99,28" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
-      <area shape="rect" coords="77.5,14,98,12" nohref="Disulphide, 155-196" title="Disulphide, 155-196" />
-      <area shape="rect" coords="93.5,4,95.5,28" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
-      <area shape="rect" coords="113,4,115,28" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
-      <area shape="rect" coords="94.5,11,114,9" nohref="Disulphide, 189-228" title="Disulphide, 189-228" />
-      <area shape="rect" coords="142,7,144,28" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
-      <area shape="rect" coords="165.5,7,167.5,32" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
-      <area shape="rect" coords="143,14,166.5,12" nohref="Disulphide, 286-333" title="Disulphide, 286-333" />
-      <area shape="rect" coords="78,43,80,65" nohref="Active site, C158" title="Active site, C158" />
-      <area shape="rect" coords="145,43,147,65" nohref="Pfam predicted active site, H292" title="Pfam predicted active site, H292" />
-      <area shape="rect" coords="153,43,155,65" nohref="SwissProt predicted active site, N308" title="SwissProt predicted active site, N308" />
+    <map id="activeSite">
+      <area shape="rect" coords="76.5,7,78.5,29" nohref="nohref" title="Disulphide, 155-196" alt="" />
+      <area shape="rect" coords="97,7,99,28" nohref="nohref" title="Disulphide, 155-196" alt="" />
+      <area shape="rect" coords="77.5,14,98,12" nohref="nohref" title="Disulphide, 155-196" alt="" />
+      <area shape="rect" coords="93.5,4,95.5,28" nohref="nohref" title="Disulphide, 189-228" alt="" />
+      <area shape="rect" coords="113,4,115,28" nohref="nohref" title="Disulphide, 189-228" alt="" />
+      <area shape="rect" coords="94.5,11,114,9" nohref="nohref" title="Disulphide, 189-228" alt="" />
+      <area shape="rect" coords="142,7,144,28" nohref="nohref" title="Disulphide, 286-333" alt="" />
+      <area shape="rect" coords="165.5,7,167.5,32" nohref="nohref" title="Disulphide, 286-333" alt="" />
+      <area shape="rect" coords="143,14,166.5,12" nohref="nohref" title="Disulphide, 286-333" alt="" />
+      <area shape="rect" coords="78,43,80,65" nohref="nohref" title="Active site, C158" alt="" />
+      <area shape="rect" coords="145,43,147,65" nohref="nohref" title="Pfam predicted active site, H292" alt="" />
+      <area shape="rect" coords="153,43,155,65" nohref="nohref" title="SwissProt predicted active site, N308" alt="" />
     </map>
           
     <div id="activeSiteXML" class="xmlFragment" style="display: none">
@@ -1006,10 +1006,10 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#arrows" />
     <span class="link" onclick="reveal(this,'arrowsXML',false)">Show XML</span>
-    <map name="arrows">
-      <area shape="rect" coords="24,4,26,37" nohref="bold line, down arrow" title="bold line, down arrow" />
-      <area shape="rect" coords="74,4,76,37" nohref="bold line, down arrow, mixed colours" title="bold line, down arrow, mixed colours" />
-      <area shape="rect" coords="49,31,51,62" nohref="bold line, uparrow" title="bold line, uparrow" />
+    <map id="arrows">
+      <area shape="rect" coords="24,4,26,37" nohref="nohref" title="bold line, down arrow" alt="" />
+      <area shape="rect" coords="74,4,76,37" nohref="nohref" title="bold line, down arrow, mixed colours" alt="" />
+      <area shape="rect" coords="49,31,51,62" nohref="nohref" title="bold line, uparrow" alt="" />
     </map>
           
     <div id="arrowsXML" class="xmlFragment" style="display: none">
@@ -1068,14 +1068,14 @@ family = c.uri_for( "/family" );
          alt="" 
          usemap="#lollipop" />
     <span class="link" onclick="reveal(this,'lollipopXML',false)">Show XML</span>
-    <map name="lollipop">
-      <area shape="rect" coords="9,4,11,37" nohref="bold line, Square head" title="bold line, Square head" />
-      <area shape="rect" coords="29,4,31,37" nohref="dashed line, Square head" title="bold line, Square head" />
-      <area shape="rect" coords="49,4,51,37" nohref="bold, Diamond head" title="bold, Diamond head" />
-      <area shape="rect" coords="69,4,71,37" nohref="dashed line, Circle head" title="dashed line, Circle head" />
-      <area shape="rect" coords="19,31,21,62" nohref="bold line, Square head" title="bold line, Square head" />
-      <area shape="rect" coords="39,31,41,62" nohref="bold, Diamond head" title="bold, Diamond head" />
-      <area shape="rect" coords="59,31,61,62" nohref="dashed line, Circle head" title="dashed line, Circle head" />
+    <map id="lollipop">
+      <area shape="rect" coords="9,4,11,37" nohref="nohref" title="bold line, Square head" alt="" />
+      <area shape="rect" coords="29,4,31,37" nohref="nohref" title="bold line, Square head" alt="" />
+      <area shape="rect" coords="49,4,51,37" nohref="nohref" title="bold, Diamond head" alt="" />
+      <area shape="rect" coords="69,4,71,37" nohref="nohref" title="dashed line, Circle head" alt="" />
+      <area shape="rect" coords="19,31,21,62" nohref="nohref" title="bold line, Square head" alt="" />
+      <area shape="rect" coords="39,31,41,62" nohref="nohref" title="bold, Diamond head" alt="" />
+      <area shape="rect" coords="59,31,61,62" nohref="nohref" title="dashed line, Circle head" alt="" />
     </map>
           
     <div id="lollipopXML" class="xmlFragment" style="display: none">
@@ -1187,10 +1187,10 @@ family = c.uri_for( "/family" );
     <p>
       As we are regularly approached for producing domain graphics for use in 
       publications, we have produced a 
-      <a href="[% c.uri_for( "/generateGraphic" ) %]">tool</a> for users to 
+      <a href="[% base %]generateGraphic">tool</a> for users to 
       upload a &quot;domain graphics&quot; XML. This file will be validated 
       against the
-      <a href="[% c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
+      <a href="[% base %]documents/pfamDomainGraphics.xsd">schema</a>
       and subseqeuently rendered. The images that the tool produces can then 
       be saved for your own use. 
     </p>
@@ -1200,7 +1200,7 @@ family = c.uri_for( "/family" );
       this tool.
     </p>
     <p>
-      There is a similar <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">tool</a> 
+      There is a similar <a href="[% base %]generateUniprotGraphic">tool</a> 
       which allows you to see the domain graphic for a given 
       <a href="http://www.ebi.uniprot.org/">UniProt</a> entry.
     </p>
