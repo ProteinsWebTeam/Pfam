@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.42 2007-04-27 16:11:17 jt6 Exp $
+   $Id: pfam.css,v 1.43 2007-05-01 21:23:25 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -787,27 +787,24 @@ div.nodeSummary div {
 /* ---------------------------------------- */
 /* format the mirrors list and citation */
 
-/* citation */
+/* the citation on the index page */
 #citation {
   width: 60%;
   float: left;
 }
 
-#indexCitation {
-  padding-bottom: 0.4em;
+#citation div.citation span.authors {
+  font-size: smaller ! important;
 }
 
-#indexCitation h1,
-#indexCitation p {
-  padding: 0.4em 0;
-  margin: 0;
+/* all other citations */
+
+div.citation {
+  padding-bottom: 0.8em;
 }
 
 div.citation span.title {
   font-style: italic;
-}
-div.citation span.authors {
-  font-size: smaller;
 }
 div.citation span.ref {
   display: block;  
