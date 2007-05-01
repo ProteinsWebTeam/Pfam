@@ -2,7 +2,7 @@
 # structuresTab.tt
 # jt6 20060424 WTSI
 #
-# $Id: structureTab.tt,v 1.2 2007-03-13 10:33:00 jt6 Exp $
+# $Id: structureTab.tt,v 1.3 2007-05-01 21:00:47 jt6 Exp $
 
 USE String;
 
@@ -94,36 +94,40 @@ END -%]
               FOREACH pdbResKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
                 <tr>
                 [% IF famKey != prevFamKey -%]
-                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/family", id=famKey ) %]">[% famKey %]</a></td>
+                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]>
+                    <a href="[% base %]family?id=[% famKey %]">[% famKey %]</a>
+                  </td>
                 [% END;
                 IF seqKey != prevSeqKey -%]
-                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]><a href="[% c.uri_for( "/protein", id=seqKey ) %]">[% seqKey %]</a></td>
+                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]>
+                    <a href="[% base %]protein?id=[% seqKey %]">[% seqKey %]</a>
+                  </td>
                 [% END;
                 IF seqKey != prevSeqKey OR resKey != prevResKey -%]
-                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
+                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
                 [% END;
                 IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
-                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                    <a href="[% c.uri_for( "/structure", id=pdbKey ) %]">[% pdbKey %]</a>
+                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                    <a href="[% base %]structure?id=[% pdbKey %]">[% pdbKey %]</a>
                   </td>
                 [% END;
                 prevFamKey = famKey;
                 prevSeqKey = seqKey;
                 prevResKey = resKey;
                 prevPdbKey = pdbKey -%]  
-                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+                  <td class="[% oe % 2 ? "odd" : "even" %]">
                     [% IF chainKey;
                       chainKey;
                     ELSE %]
                       <span class="inactive">n/a</span>
                     [% END %]
                   </td>
-                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">[% pdbResKey %]</td>
-                  <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
-                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="jmol" ) | uri | html %]"
+                  <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
+                  <td class="[% oe % 2 ? "odd" : "even" %]">
+                    <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=jmol"
                        onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;"
                        target="newWin">Jmol</a>  
-                    <a href="[% c.uri_for( "/structure/viewer", id=pdbKey, viewer="av" ) | uri | html %]"
+                    <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=av"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
                        target="newWin">AstexViewer</a>  
                     <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
