@@ -5,7 +5,7 @@
 # 
 # build the summary block for PfamB's
 #
-# $Id: summary.tt,v 1.4 2007-03-13 10:33:00 jt6 Exp $
+# $Id: summary.tt,v 1.5 2007-05-01 21:03:52 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -17,13 +17,16 @@ requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
+requirements.js.push( "pfamb.js" );
 
 #-------------------------------------------------------------------------------
 
 %]
 
 <script type="text/javascript">
+  // <![CDATA[
   Event.observe( window, "load", pfambPostLoad, false );
+  // ]]>
 </script>
 
 <!-- start summary block -->
@@ -37,11 +40,11 @@ requirements.js.push( "family.js" );
     <h3>PfamB [% pfam.pfamB_acc %]
       <a href="[% c.uri_for( "/annotate" ) %]">
 	    <img class="addAnnotation" alt="Add an annotation" src="[% c.uri_for( "/images/annotation.png") %]" /></a>
-	</h3>
+  	</h3>
 
     <p>
       This family was generated <em>automatically</em> from an alignment taken from
-	  Prodom 2004.1 (<a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% prodom.db_link %]">[% prodom.db_link %]</a>)
+  	  Prodom 2004.1 (<a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% prodom.db_link %]">[% prodom.db_link %]</a>)
       subtracting sequence segments already covered by Pfam-A.
     </p>
 

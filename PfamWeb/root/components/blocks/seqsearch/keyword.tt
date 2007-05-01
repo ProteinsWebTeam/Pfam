@@ -5,7 +5,7 @@
 # 
 # build the keyword search block
 #
-# $Id: keyword.tt,v 1.3 2007-04-20 15:29:28 jt6 Exp $
+# $Id: keyword.tt,v 1.4 2007-05-01 21:07:47 jt6 Exp $
 %]
 
 <!-- start keyword search block -->
@@ -19,32 +19,34 @@
     <div class="formWrapper">
 
       <form method="get" 
-            name="keywordSearchForm"
             id="keywordSearchForm"
             action="[% c.uri_for( "/search" ) %]">
-	    <input type="hidden" name="queryType" value="unp" />
+        <div>
+    	    <input type="hidden" name="queryType" value="unp" />
 
-	    <span class="row">
-          <label for="query">Keyword(s)</label>
-	      <input type="text" size="30" maxlength="100" name="query" id="query" />
-        </span>
+    	    <span class="row">
+            <label for="query">Keyword(s)</label>
+    	      <input type="text" size="30" maxlength="100" name="query" id="query" />
+          </span>
+    
+    	    <span class="row">
+    	      <input class="submit"  type="submit" name="submit" value="Submit" />
+    	      <input class="reset"   type="reset"  name="reset"  value="Reset" />
+    	      <input class="example" type="button" value="Example" onclick="$('query').value=exKw" />
+          </span>
 
-	    <span class="row">
-	      <input class="submit"  type="submit" name="submit" value="Submit" />
-	      <input class="reset"   type="reset"  name="reset"  value="Reset" />
-	      <input class="example" type="button" value="Example" onclick="$('query').value=exKw" />
-        </span>
-
+        </div>
       </form>
 
     </div>
-
   </div>
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   var exKw = "apoptosis";
   $("query").focus();
+  // ]]>
 </script>
 
 <!-- end keyword search block -->

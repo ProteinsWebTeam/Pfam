@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.5 2007-04-20 15:30:04 jt6 Exp $
+# $Id: protein.tt,v 1.6 2007-05-01 21:07:47 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -32,30 +32,32 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     <div class="formWrapper">
   
       <form method="get" 
-            name="proteinSearchForm"
             id="proteinSearchForm"
-            action="[% c.uri_for( "/seqsearch/unp" ) %]">
+            action="[% base %]seqsearch/unp">
+        <div>
+    
+          <span class="row">
+            <label for="unp">UniProt ID or accession</label>
+            <input type="text" size="20" maxlength="40" name="unp" id="unp" />
+          </span>
+    
+          <span class="row">
+            <input class="submit"  type="submit" name="submit" value="Submit" />
+            <input class="reset"   type="reset"  name="reset"  value="Reset" />
+            <input class="example" type="button" value="Example" onclick="$('unp').value=exUnp" />
+          </span>
   
-        <span class="row">
-          <label for="unp">UniProt ID or accession</label>
-          <input type="text" size="20" maxlength="40" name="unp" id="unp" />
-        </span>
-  
-        <span class="row">
-          <input class="submit"  type="submit" name="submit" value="Submit" />
-          <input class="reset"   type="reset"  name="reset"  value="Reset" />
-          <input class="example" type="button" value="Example" onclick="$('unp').value=exUnp" />
-        </span>
-  
+        </div>
       </form>
-  
+        
     </div>
-
   </div>
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   var exUnp = "VAV_HUMAN";
+  // ]]>
 </script>
 
 <!-- end protein search block -->

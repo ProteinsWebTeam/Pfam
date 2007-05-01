@@ -5,7 +5,7 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.16 2007-03-13 15:47:11 jt6 Exp $
+# $Id: graphics.tt,v 1.17 2007-05-01 21:05:42 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -33,82 +33,92 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   </div>
   <div class="blockContent">
 
-    <p>This section shows a graphical representation of the sequence from this UniProt 
-    entry, shown as Pfam domains, aligned with features from various other sequence
-    databases. You can choose which features are displayed using the drop-down panel under
-    the image.</p>
+    <p>
+      This section shows a graphical representation of the sequence from this 
+      UniProt entry, shown as Pfam domains, aligned with features from various 
+      other sequence databases. You can choose which features are displayed 
+      using the drop-down panel under the image.
+    </p>
 
-	<p class="small"><strong>Note:</strong> it can take a few seconds for this image
-    to be generated and loaded.</p>
+    <p class="small">
+      <strong>Note:</strong> it can take a few seconds for this image
+      to be generated and loaded.
+    </p>
  
     <!-- start of graphics div -->
     <div id="graphicsHolder">
-	  <p id="pgph" class="loading">
+      <p id="pgph" class="loading">
         Loading feature alignment...
       </p>
     </div>
     <!-- end of graphics div -->
 
     <script type="text/javascript">
-      loadOptions.pg.uri    = "[% c.uri_for( "/protein/graphics" ) %]";
+      // <![CDATA[
+      loadOptions.pg.uri    = "[% base %]protein/graphics";
       loadOptions.pg.params = "acc=[% pfamseq.pfamseq_acc %]";
-  	</script>
+      // ]]>
+    </script>
 
     <p><span class="link" onclick="reveal(this,'checkboxes',false)">Show</span>
-	  sources update panel.</p>
+    sources update panel.</p>
 
-	<div id="updatePanel">
-
-	  <div id="checkboxes">
-
-        <p>Use the check-boxes below to select the sources that you wish to query, then
-        hit &quot;Update&quot; to re-generate the image. Please note that the data for the
-        image are retrieved from servers around the web and it may take a few seconds to 
-        collect the data and generate the image.</p>
-
-  		[% c.prototype.form_remote_tag( { url         => c.uri_for( "/protein/graphics" ),
-				                       	  update      => "graphicsHolder",
-							              before      => "pgStarted()",
-							              complete    => "pgCompleted()",
-								          evalScripts => 1 } ) %]
+    <div id="updatePanel">
   
-	      <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
-	      <input type="hidden" name="reloadSources" value="1" />
-
-		[% FOREACH section IN dasSourcesRs %]
-		  	<div id="[% section.id %]" class="section">
-				<p class="sectionLabel">[% section.system %] [% section.type %]</p>
-				[% FOREACH source IN section.servers.sort("name") -%]
-	  	        	<div class="source">
-    		        	<input name="[% source.sequence_type %]//[% source.system %]//[% source.server_id %]" type="checkbox" [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="1"[% END %] />
-      		        	<span class="checkboxLabel ext">
-			        	    [% IF source.helper_url %]
-        			        	<a href="[% source.helper_url %]">[% source.name %]</a>
-	                		[% ELSE %]
-		    		            [% source.name %]
-        			        [% END %]
-            	    		(<a href="[% source.url %]">source</a>)
-						</span>
-	    	        </div>
-				[% END -%]
-			</div>
-		[% END %]
-		
-		<input id="pgSubmitButton"
-	         name="submit"
-             value="Update"
-             type="submit"
-             disabled="true"
-			 style="clear: left; float: left;"/>
-		<div id="pgUpdateSpinner" style="visibility: hidden" class="loading">
-           	Loading features...
-       	</div>
-
+      <div id="checkboxes">
+  
+        <p>
+          Use the check-boxes below to select the sources that you wish to query, then
+          hit &quot;Update&quot; to re-generate the image. Please note that the data for the
+          image are retrieved from servers around the web and it may take a few seconds to 
+          collect the data and generate the image.
+        </p>
+  
+        [% c.prototype.form_remote_tag( { url         => "${base}protein/graphics",
+                                          update      => "graphicsHolder",
+                                          before      => "pgStarted()",
+                                          complete    => "pgCompleted()",
+                                          evalScripts => 1 } ) %]
+          <div>
+    
+            <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
+            <input type="hidden" name="reloadSources" value="1" />
+    
+            [% FOREACH section IN dasSourcesRs %]
+                <div id="[% section.id %]" class="section">
+                <p class="sectionLabel">[% section.system %] [% section.type %]</p>
+                [% FOREACH source IN section.servers.sort("name") -%]
+                        <div class="source">
+                          <input name="[% source.sequence_type %]//[% source.system %]//[% source.server_id %]" type="checkbox" [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="checked"[% END %] />
+                            <span class="checkboxLabel ext">
+                            [% IF source.helper_url %]
+                                <a href="[% source.helper_url %]">[% source.name %]</a>
+                              [% ELSE %]
+                                [% source.name %]
+                              [% END %]
+                              (<a href="[% source.url %]">source</a>)
+                    </span>
+                        </div>
+                [% END -%]
+              </div>
+            [% END %]
+        
+            <input id="pgSubmitButton"
+                   name="submit"
+                   value="Update"
+                   type="submit"
+                   disabled="disabled" />
+                   
+            <div id="pgUpdateSpinner" style="visibility: hidden" class="loading">
+              Loading features...
+             </div>
+    
+          </div>
         </form>
-
+  
         <div class="cleaner">&nbsp;</div>
- 
-	  </div> <!-- end of "checkboxes" -->
+   
+      </div> <!-- end of "checkboxes" -->
 
     </div> <!-- end of "updatePanel" -->
 
