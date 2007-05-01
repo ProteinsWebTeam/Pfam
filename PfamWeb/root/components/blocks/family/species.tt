@@ -6,7 +6,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.14 2007-03-13 10:33:00 jt6 Exp $
+# $Id: species.tt,v 1.15 2007-05-01 21:14:37 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -85,6 +85,7 @@ requirements.js.push( "treeTweak.js" );
    # or a PfamB... %]
 
 <script type="text/javascript">
+  // <![CDATA[
   loadOptions.st.params = "acc=[% acc %]";
 
 [% IF entryType == "A" %]
@@ -108,6 +109,7 @@ requirements.js.push( "treeTweak.js" );
   [%# hide the controls until the tree is loaded, to avoid them overlaying the footer %]
   Element.hide( "treeToolsContent" );
 
+  // ]]>
 </script>
 
 <!-- end of species block -->

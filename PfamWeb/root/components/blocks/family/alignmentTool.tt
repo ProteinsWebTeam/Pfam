@@ -4,7 +4,7 @@
 # 
 # build a page for the alignment viewer tool
 #
-# $Id: alignmentTool.tt,v 1.3 2006-10-31 15:00:52 jt6 Exp $
+# $Id: alignmentTool.tt,v 1.4 2007-05-01 21:14:37 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -16,9 +16,11 @@ pageContent = BLOCK
 -%]
 
 <script type="text/javascript">
+  // <![CDATA[
   Event.observe( window, "load", familyPostLoad, false );
   loadOptions.ca.uri    = "[% c.uri_for( "/family/alignmentgenerator" ) %]";
   loadOptions.ca.params = "acc=[% acc %]&alnType=[% alnType %]";
+  // ]]>
 </script>
 
 <h1>Family alignment for [% pfam.pfamA_acc %]</h1>

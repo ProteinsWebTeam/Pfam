@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.19 2007-04-27 15:55:54 jt6 Exp $
+# $Id: summary.tt,v 1.20 2007-05-01 21:14:37 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -38,7 +38,9 @@ requirements.js.push( "family.js" );
 %]
 
 <script type="text/javascript">
+  // <![CDATA[
   Event.observe( window, "load", familyPostLoad, false );
+  // ]]>
 </script>
 
 <!-- start summary block -->
@@ -125,8 +127,10 @@ requirements.js.push( "family.js" );
 </div>
 
 <script type="text/javascript">
+  // <![CDATA[
   loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
   loadOptions.si.params = "acc=[% pfam.pfamA_acc %]";
+  // ]]>
 </script>
 
 <!-- end summary block -->
