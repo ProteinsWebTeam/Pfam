@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.24 2007-05-01 21:21:56 jt6 Exp $
+# $Id: index.tt,v 1.25 2007-05-02 15:22:15 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -200,7 +200,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
          class="glassButton goButton">&nbsp;</div>
     <div onclick="$('familyField').value=exPfamId"
          class="glassButton exampleButton">&nbsp;</div>
-    <p>
+    <p class="small nlh">
       You can also <a href="[% base %]/family/browse">browse</a> 
       through the list of all Pfam families.
     </p>
@@ -227,7 +227,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
          class="glassButton goButton">&nbsp;</div>
     <div onclick="$('clanField').value=exClanId"
          class="glassButton exampleButton">&nbsp;</div>
-    <p>
+    <p class="small nlh">
       You can also <a href="[% base %]clan/browse">browse</a>
       through a list of clans.
     </p>
