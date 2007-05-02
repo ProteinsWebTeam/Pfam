@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.12 2007-05-01 21:26:29 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.13 2007-05-02 15:53:27 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.12 2007-05-01 21:26:29 jt6 Exp $
+$Id: SeqSearch.pm,v 1.13 2007-05-02 15:53:27 jt6 Exp $
 
 =cut
 
@@ -69,7 +69,7 @@ sub begin : Private {
 
   # we're done here unless there's a query specified
   $c->log->warn( "Search::begin: no query terms supplied" ) and return
-	unless defined $terms;
+  unless defined $terms;
 
   # stash the de-tainted terms so we can safely display them later
   $c->stash->{rawQueryTerms} = $terms;
@@ -147,16 +147,16 @@ sub domain : Local {
 
   my $list;
   if( defined $c->req->param( "have" ) ) {
-	foreach ( split /\s+/, $c->req->param( "have" ) ) {
-	  next unless /(PF\d{5})/;
-	  $list .= "+$1 ";
-	}
+    foreach ( split /\s+/, $c->req->param( "have" ) ) {
+      next unless /(PF\d{5})/;
+      $list .= "+$1 ";
+    }
   }
   if( defined $c->req->param( "not" ) ) {
-	foreach ( split /\s+/, $c->req->param( "not" ) ) {
-	  next unless /(PF\d{5})/;
-	  $list .= "-$1 ";
-	}
+    foreach ( split /\s+/, $c->req->param( "not" ) ) {
+      next unless /(PF\d{5})/;
+      $list .= "-$1 ";
+    }
   }
 
   $c->log->debug( "SeqSearch::domain: list: |$list|" );
@@ -164,21 +164,21 @@ sub domain : Local {
   return unless $list;
 
   my @architectures = $c->model("PfamDB::Architecture")
-                      	->search( {},
-                          			  { join     => [ qw/ annseq / ],
-                            				prefetch => [ qw/ annseq / ],
-                            				order_by => "no_seqs DESC" } )
-                    	  ->search_literal( "MATCH( architecture_acc ) " .
-                              						"AGAINST( ? IN BOOLEAN MODE )",
-                              						$list );
+                        ->search( {},
+                                  { join     => [ qw/ annseq / ],
+                                    prefetch => [ qw/ annseq / ],
+                                    order_by => "no_seqs DESC" } )
+                        ->search_literal( "MATCH( architecture_acc ) " .
+                                          "AGAINST( ? IN BOOLEAN MODE )",
+                                          $list );
 
   my $sum = 0;
   foreach my $arch ( @architectures ) {
-  	$sum += $arch->no_seqs;
+    $sum += $arch->no_seqs;
   }
 
   $c->log->debug( "SeqSearch::domain: found " . scalar @architectures
-				  . " rows, with a total of $sum sequences" );
+          . " rows, with a total of $sum sequences" );
 
   $c->stash->{numRows} = scalar @architectures;
   $c->stash->{numSeqs} = $sum;
@@ -192,34 +192,34 @@ sub domain : Local {
   my( @seqs, %seqInfo );
   foreach my $arch ( @architectures ) {
 
-  	# thaw out the sequence object for this architecture
-  	push @seqs, thaw( $arch->annseq_storable );
+    # thaw out the sequence object for this architecture
+    push @seqs, thaw( $arch->annseq_storable );
   
-  	# work out which domains are present on this sequence
-  	my @domains = split /\~/, $arch->architecture;
-  	$seqInfo{$arch->pfamseq_id}{arch} = \@domains;
+    # work out which domains are present on this sequence
+    my @domains = split /\~/, $arch->architecture;
+    $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
   
-  	# store a mapping between the sequence and the auto_architecture
-  	$seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
+    # store a mapping between the sequence and the auto_architecture
+    $seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
   
-  	# if this is a call to retrieve all of the architectures, we don't
-  	# have an auto_architecture, so this won't work
-  	$seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs unless $c->stash->{auto_arch};
+    # if this is a call to retrieve all of the architectures, we don't
+    # have an auto_architecture, so this won't work
+    $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs unless $c->stash->{auto_arch};
   }
   $c->log->debug( "found " . scalar @seqs . " storables" );
 
   if( scalar @seqs ) {
-  	my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  	
-  	$layout->layout_sequences_with_regions_and_features( \@seqs, { PfamA      => 1,
-                                																   PfamB      => 1,
-                                																   noFeatures => 1 } );
-  	
-  	my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  	$imageset->create_images( $layout->layout_to_XMLDOM );
+    my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+    
+    $layout->layout_sequences_with_regions_and_features( \@seqs, { PfamA      => 1,
+                                                                   PfamB      => 1,
+                                                                   noFeatures => 1 } );
+    
+    my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+    $imageset->create_images( $layout->layout_to_XMLDOM );
   
-  	$c->stash->{images} = $imageset;
-  	$c->stash->{seqInfo}  = \%seqInfo;
+    $c->stash->{images} = $imageset;
+    $c->stash->{seqInfo}  = \%seqInfo;
   }
 
 }
@@ -357,7 +357,7 @@ sub queueSeqSearch : Private {
   # no; we need to search the sequence
 
   # first, check there's room in the queue
-  my $rs = $c->model( "WebUser::HmmerHistory" )
+  my $rs = $c->model( "WebUser::JobHistory" )
              ->find( { status => "PEND" },
                      { select => [ { count => "status" } ],
                        as     => [ "numberPending" ] } );
@@ -422,7 +422,7 @@ sub queuePfamA : Private {
   # add this job to the tracking table
   my $resultHistory = $c->model('WebUser::JobHistory')
                         ->create( { command        => $cmd,
-									priority       => "hmmer",
+                                    priority       => "hmmer",
                                     estimated_time => $estimatedTime,
                                     job_id         => $jobId,
                                     opened         => \'NOW()',
@@ -443,8 +443,8 @@ sub queuePfamA : Private {
                     interval      => $this->{pollingInterval},
                     jobId         => $jobId,
                     name          => 'Pfam A search',
-				            jobClass      => 'pfamASearch',
-				            opened        => $historyRow->opened,
+                    jobClass      => 'pfamASearch',
+                    opened        => $historyRow->opened,
                   };
   return $jobStatus;
 }
@@ -476,7 +476,7 @@ sub queuePfamB : Private {
   # add this job to the tracking table
   my $resultHistory = $c->model('WebUser::JobHistory')
                         ->create( { command        => $cmd,
-									priority       => "fast",
+                                    priority       => "fast",
                                     estimated_time => $estimatedTime,
                                     job_id         => $jobId,
                                     opened         => \'NOW()',
@@ -497,7 +497,7 @@ sub queuePfamB : Private {
                     interval      => $this->{pollingInterval},
                     jobId         => $jobId,
                     name          => 'Pfam B search',
-				            jobClass      => 'pfamBSearch',
+                    jobClass      => 'pfamBSearch',
                     opened        => $historyRow->opened,
                   };
   return $jobStatus;
@@ -604,7 +604,7 @@ sub returnStatus : Private {
   $c->res->content_type( "application/json" );
   $c->res->body( $status );
 
-  # make damned sure this isn't cached...	
+  # make damned sure this isn't cached...
   $c->res->header( 'Pragma' => 'no-cache' );
   $c->res->header( 'Expires' => 'Thu, 01 Jan 1970 00:00:00 GMT' );
   $c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
