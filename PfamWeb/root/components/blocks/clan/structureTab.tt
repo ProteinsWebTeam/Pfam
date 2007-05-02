@@ -2,7 +2,7 @@
 # structuresTab.tt
 # jt6 20060424 WTSI
 #
-# $Id: structureTab.tt,v 1.3 2007-05-01 21:00:47 jt6 Exp $
+# $Id: structureTab.tt,v 1.4 2007-05-02 15:52:09 jt6 Exp $
 
 USE String;
 
@@ -125,15 +125,14 @@ END -%]
                   <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
                   <td class="[% oe % 2 ? "odd" : "even" %]">
                     <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=jmol"
-                       onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;"
-                       target="newWin">Jmol</a>  
+                       onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;">
+                       Jmol</a>  
                     <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=av"
-                       onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
-                       target="newWin">AstexViewer</a>  
+                       onclick="popUp(this.href,'fixed',800,800,'avWin');return false;">
+                       AstexViewer</a>  
                     <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
-                       class="ext"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;"
-                       target="newWin">SPICE</a>  
+                       class="ext">SPICE</a>  
                   </td>
                 </tr>
               [%- END; # of pdbResKey

@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.4 2007-05-01 21:14:37 jt6 Exp $
+# $Id: structureTab.tt,v 1.5 2007-05-02 15:52:05 jt6 Exp $
 
 USE dumper;
 USE String;
@@ -70,9 +70,9 @@ END -%]
   <tbody>
 
   [%- 
-    proteinUri = c.uri_for( "/protein" );
-    structureUri = c.uri_for( "/structure" );
-    structureViewerUri = c.uri_for( "/structure/viewer" );
+    proteinUri = "${base}protein";
+    structureUri = "${base}structure";
+    structureViewerUri = "${base}structure/viewer";
     
     USE seqKeyIter = iterator( mapping.keys.sort );
     FOREACH seqKey IN seqKeyIter;
@@ -116,14 +116,13 @@ END -%]
     			    <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
     			    <td class="[% oe % 2 ? "odd" : "even" %]">
                 <a href="[% structureViewerUri %]?viewer=jmol&amp;id=[% pdbKey %]"
-                   onclick="popUp(this.href,'console',800,800,'jmolWin');return false;"
-                   target="newWin">Jmol</a>	
+                   onclick="popUp(this.href,'console',800,800,'jmolWin');return false;">
+                   Jmol</a>
                 <a href="[% structureViewerUri %]?viewer=av&amp;id=[% pdbKey %]"
-                   onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                   target="newWin">AstexViewer</a>	
+                   onclick="popUp(this.href,'console',800,800,'avWin');return false;">
+                   AstexViewer</a>	
                 <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
                    onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                   target="newWin"
                    class="ext">SPICE</a>	
 	            </td>
 	          </tr>
