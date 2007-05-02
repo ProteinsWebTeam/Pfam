@@ -132,8 +132,8 @@ data/templates/components/indexPage/topTen.tt
 data/templates/components/indexPage/versionData.tt
 data/templates/components/jumpBox.tt
 data/templates/components/links.tt
+data/templates/components/pageList.tt
 data/templates/components/require.tt
-data/templates/components/submenus.tt
 data/templates/components/systemError.tt
 data/templates/components/tools/about.tt
 data/templates/components/tools/av.tt
@@ -148,6 +148,7 @@ data/templates/pages/annotation.tt
 data/templates/pages/browse.tt
 data/templates/pages/browseClans.tt
 data/templates/pages/browseIds.tt
+data/templates/pages/browseIndex.tt
 data/templates/pages/browseProteomes.tt
 data/templates/pages/error.tt
 data/templates/pages/generatedGraphic.tt
@@ -166,6 +167,7 @@ data/templates/pages/uploadUniprotEntry.tt
 data/templates/pages/uploadXml.tt
 htdocs/av/AstexViewer2.jar
 htdocs/css/alignment.css
+htdocs/css/browse.css
 htdocs/css/cb.css
 htdocs/css/clans.css
 htdocs/css/clans_ie.css
@@ -179,6 +181,7 @@ htdocs/css/index.css
 htdocs/css/index_all_ie.css
 htdocs/css/ipfam.css
 htdocs/css/job.css
+htdocs/css/job_ie.css
 htdocs/css/lightbox.css
 htdocs/css/pfam.css
 htdocs/css/pfam_all_ie.css
@@ -188,7 +191,6 @@ htdocs/css/protein_ie.css
 htdocs/css/proteome.css
 htdocs/css/structure.css
 htdocs/css/tab_layout.css
-htdocs/css/tab_layout_all_ie.css
 htdocs/css/tab_layout_ie.css
 htdocs/css/tree.css
 htdocs/documents/pfamDomainGraphics.xsd
@@ -228,6 +230,7 @@ htdocs/images/flags/german_flag.gif
 htdocs/images/flags/south_korea.gif
 htdocs/images/flags/swedish_flag.gif
 htdocs/images/flags/swiss_flag.gif
+htdocs/images/genome/bg.gif
 htdocs/images/go.png
 htdocs/images/green_bg.gif
 htdocs/images/green_page_border.png
@@ -259,6 +262,8 @@ htdocs/images/info.gif
 htdocs/images/ipfam/bg.gif
 htdocs/images/ipfam/page_border.gif
 htdocs/images/ipfam_logo.gif
+htdocs/images/jumpTo.gif
+htdocs/images/kwSearch.gif
 htdocs/images/layout/double_gradient.gif
 htdocs/images/layout/left_curve.gif
 htdocs/images/layout/right_top.gif
@@ -290,6 +295,7 @@ htdocs/images/menus/search_by.png
 htdocs/images/menus/search_by_hover.png
 htdocs/images/overlay.png
 htdocs/images/pb.gif
+htdocs/images/pb.png
 htdocs/images/pfam_logo.gif
 htdocs/images/pfam_logo_old.gif
 htdocs/images/pfamA_coverage_colour.gif
@@ -306,6 +312,8 @@ htdocs/images/search_gradient.png
 htdocs/images/selected_bg.gif
 htdocs/images/selected_gradient.png
 htdocs/images/sequence_chart.png
+htdocs/images/structure/bg.gif
+htdocs/images/structure/page_border.gif
 htdocs/images/swedish_flag.gif
 htdocs/images/swoosh_coloured_structure.jpg
 htdocs/images/swoosh_ipfam.png
@@ -370,6 +378,7 @@ htdocs/javascripts/cb.js
 htdocs/javascripts/clans.js
 htdocs/javascripts/family.js
 htdocs/javascripts/jimmac.js
+htdocs/javascripts/Jmol.js
 htdocs/javascripts/job.js
 htdocs/javascripts/json.js
 htdocs/javascripts/lightbox.js
@@ -399,7 +408,6 @@ htdocs/javascripts/yui/treeview-min.js
 htdocs/javascripts/yui/treeview.js
 htdocs/javascripts/yui/yahoo-min.js
 htdocs/javascripts/yui/yahoo.js
-htdocs/jmol/Jmol.js
 htdocs/jmol/JmolApplet0.jar
 htdocs/jmol/JmolApplet1.jar
 htdocs/jmol/JmolApplet2.jar
@@ -648,10 +656,14 @@ pfamModel/WebUser/Feature_das_sources.pm
 pfamModel/WebUser/HmmerHistory.pm
 pfamModel/WebUser/HmmerStream.pm
 pfamModel/WebUser/JobData.pm
+pfamModel/WebUser/JobHistory.pm
 pfamModel/WebUser/JobResults.pm
 pfamModel/WebUser/JobStatus.pm
+pfamModel/WebUser/JobStream.pm
 pfamModel/WebUser/JobSubmission.pm
 pfamModel/WebUser/News.pm
+pfamModel/WebUser/OtherJobsHistory.pm
+pfamModel/WebUser/OtherJobsStream.pm
 README
 sql/create_web_user.sql
 t/01app.t
