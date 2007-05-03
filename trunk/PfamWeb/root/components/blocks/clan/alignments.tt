@@ -3,7 +3,7 @@
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.8 2007-05-01 21:01:12 jt6 Exp $
+# $Id: alignments.tt,v 1.9 2007-05-03 15:20:33 jt6 Exp $
 %]
 
 <!-- start clan alignments block -->
@@ -30,7 +30,7 @@ END
       <thead>
         <tr>
           <th>Pfam family</th>
-          <th>Num. sequences</th>
+          <th>Num. domains</th>
           <th>Alignment</th>
         </tr>
       </thead>
