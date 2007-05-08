@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.6 2007-05-01 21:07:47 jt6 Exp $
+# $Id: protein.tt,v 1.7 2007-05-08 08:55:20 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -33,12 +33,13 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="get" 
             id="proteinSearchForm"
-            action="[% base %]seqsearch/unp">
+            action="[% base %]protein">
         <div>
+          <input type="hidden" name="type" value="Protein" />
     
           <span class="row">
             <label for="unp">UniProt ID or accession</label>
-            <input type="text" size="20" maxlength="40" name="unp" id="unp" />
+            <input type="text" size="20" maxlength="40" name="entry" id="unp" />
           </span>
     
           <span class="row">
