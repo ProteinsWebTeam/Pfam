@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.22 2007-04-27 15:59:49 jt6 Exp $
+# $Id: head.tt,v 1.23 2007-05-08 15:19:51 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -23,22 +23,17 @@
 <!-- load the common files first -->
 
 <!-- prototype -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/prototype.js" ) %]"></script>
+<script type="text/javascript" src="[% base %]javascripts/prototype.js"></script>
 
 <!-- local javascript -->
-<script type="text/javascript" src="[% c.uri_for( "/javascripts/pfFunctions.js" ) %]"></script>
+<script type="text/javascript" src="[% base %]javascripts/pfFunctions.js"></script>
 
 <!-- global stylesheet -->
-<link rel="stylesheet" href="[% c.uri_for( "/css/pfam.css" ) %]" type="text/css" />
+<link rel="stylesheet" href="[% base %]css/pfam.css" type="text/css" />
 
 <!-- ====================================================================== -->
 <!-- load dynamically required stylesheets and javascript files-->
 [%
-# store the base URI so we avoid calling c.uri_for as often, remembering to trim 
-# off the trailing slash from the base URI
-baseUri = String.new( c.req.base );
-base = baseUri.chop;
-
 # somewhere to aggregate the lists of requirements from all templates
 cssIncludes = [];
 cssIeIncludes = [];
@@ -50,19 +45,19 @@ FOREACH key IN requirements.keys;
   SWITCH key;
     CASE "css";
       FOREACH stylesheet IN requirements.css;
-        cssIncludes.push( "<link rel='stylesheet' href='$base/css/$stylesheet' type='text/css' />" );
+        cssIncludes.push( "<link rel='stylesheet' href='${base}css/$stylesheet' type='text/css' />" );
       END;
     CASE "cssIe";
       FOREACH stylesheet IN requirements.cssIe;
-        cssIeIncludes.push( "<link rel='stylesheet' href='$base/css/$stylesheet' type='text/css' />" );
+        cssIeIncludes.push( "<link rel='stylesheet' href='${base}css/$stylesheet' type='text/css' />" );
       END;
     CASE "cssIeAll";
       FOREACH stylesheet IN requirements.cssIeAll;
-        cssIeAllIncludes.push( "<link rel='stylesheet' href='$base/css/$stylesheet' type='text/css' />" );
+        cssIeAllIncludes.push( "<link rel='stylesheet' href='${base}css/$stylesheet' type='text/css' />" );
       END;
     CASE "js";
       FOREACH js IN requirements.js;
-        jsIncludes.push( "<script type='text/javascript' src='$base/javascripts/$js'></script>" );
+        jsIncludes.push( "<script type='text/javascript' src='${base}javascripts/$js'></script>" );
       END;
   END; # of SWITCH
 END -%]
@@ -84,7 +79,7 @@ END %]
 [% IF cssIeIncludes.size -%]
 <!-- styles applicable to IE6 and below -->
 <!--[if lt IE 7 ]>
-  <link rel="stylesheet" href="[% base %]/css/pfam_ie.css" type="text/css" />
+  <link rel="stylesheet" href="[% base %]css/pfam_ie.css" type="text/css" />
 [%- FOREACH stylesheet IN cssIeIncludes.unique %]
   [% stylesheet;
 END %]
@@ -94,7 +89,7 @@ END %]
 [% IF cssIeAllIncludes.size -%]
 <!-- styles applicable to all versions of IE -->
 <!--[if IE ]>
-  <link rel="stylesheet" href="[% base %]/css/pfam_all_ie.css" type="text/css" / >
+  <link rel="stylesheet" href="[% base %]css/pfam_all_ie.css" type="text/css" / >
 [%- FOREACH stylesheet IN cssIeAllIncludes.unique %]
   [% stylesheet;
 END %]
@@ -103,6 +98,9 @@ END %]
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
-<link rel="shortcut icon" href="[% c.uri_for( "/images/favicon.ico" ) %]" />
 
+<link rel="shortcut icon" 
+      type="image/png" 
+      href="[% base %]images/favicon.png" />
+      
 <!-- ====================================================================== -->
