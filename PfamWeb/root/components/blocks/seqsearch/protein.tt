@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.7 2007-05-08 08:55:20 jt6 Exp $
+# $Id: protein.tt,v 1.8 2007-05-08 16:07:35 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -18,6 +18,9 @@ requirements.css.push( "forms.css" );
 requirements.cssIeAll.push( "forms_all_ie.css" );
 
 #-------------------------------------------------------------------------------
+
+# tell "icons.tt" to disable the icons for this set of pages
+iconsDisabled = 1;
 
 %]
 
