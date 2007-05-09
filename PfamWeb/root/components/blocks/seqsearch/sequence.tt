@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.3 2007-05-01 21:07:47 jt6 Exp $
+# $Id: sequence.tt,v 1.4 2007-05-09 13:16:41 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -82,7 +82,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
               </label>
             </div>
           </div>
-  
+          
           <span class="row">
             <label for="evalue">E-value</label>
             <input type="text" 
@@ -94,6 +94,16 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    disabled="disabled" />
           </span>
     
+          <div class="row">
+            <span class="label">Search for PfamBs</span>
+            <div class="formElement">
+              <input class="radio"
+                     type="checkbox" 
+                     name="searchBs" 
+                     value="1" />
+            </div>
+          </div>
+  
           <span class="row">
             <input class="submit"  type="submit" name="submit" value="Submit"
                    onclick="if( ! $('seq').present() ){return false}"/>
