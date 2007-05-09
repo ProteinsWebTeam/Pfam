@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.13 2007-05-02 15:53:27 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.14 2007-05-09 13:16:41 jt6 Exp $
 
 =head1 NAME
 
@@ -16,14 +16,13 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.13 2007-05-02 15:53:27 jt6 Exp $
+$Id: SeqSearch.pm,v 1.14 2007-05-09 13:16:41 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use HTML::Widget;
 use Digest::MD5 qw(md5_hex);
 use JSON;
 use Scalar::Util qw( looks_like_number );
@@ -31,12 +30,6 @@ use Data::UUID;
 use Storable qw(thaw);
 
 use Data::Dump qw(dump );
-
-# set the default container to be the one we've defined, which makes
-# the markup a little easier to style with CSS
-BEGIN {
-  HTML::Widget::Element->container_class( "PfamWeb::CustomContainer" );
-}
 
 use base "PfamWeb::Controller::Section";
 
@@ -92,25 +85,8 @@ sub default : Private {
 
   $c->log->debug( "SeqSearch::default: captured a URL" );
 
-  # build the widgets and stash them
-
-  # search by protein name 
-  #  $c->stash->{proteinForm} = $c->forward( "buildProteinNameForm" )->result;
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 unp : Local
-
-Executes a protein search.
-
-=cut
-
-sub unp : Local {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "SeqSearch::domain: executing a protein search" );
+  # don't do anything; the template is set by Section.pm, according to the value
+  # of SECTION in the config.
 }
 
 #-------------------------------------------------------------------------------
@@ -375,16 +351,18 @@ sub queueSeqSearch : Private {
 
   # ok. There's room on the queue, so we can submit the hmmer job and the blast job
 
-  my $aStatus = $c->forward( "queuePfamA" );
-  my $bStatus = $c->forward( "queuePfamB" );
-
+  my @jobs; 
+  push @jobs, $c->forward( "queuePfamA" );
+  if( $c->req->param( "searchBs" ) ) {
+    push @jobs, $c->forward( "queuePfamB" );
+  }
+  
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $jobStatus = {
                     checkURI => $c->uri_for( "/seqsearch/checkstatus" )->as_string,
                     doneURI  => $c->uri_for( "/seqsearch/jobDone" )->as_string,
-                    jobs     => [ $aStatus, $bStatus ],
-#                    jobs     => [ $aStatus ],
+                    jobs     => \@jobs,
                   };
 
   $c->log->debug( dump( $jobStatus ) );
@@ -592,6 +570,12 @@ sub checkStatus : Local {
 
 #-------------------------------------------------------------------------------
 
+=head2 returnStatus: Local
+
+
+
+=cut
+
 sub returnStatus : Private {
   my( $this, $c ) = @_;
 
@@ -614,7 +598,7 @@ sub returnStatus : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 jobDone : Attribute
+=head2 jobDone : Local
 
 Returns the URI of the Pfam graphic that is the result of the specified job.
 
