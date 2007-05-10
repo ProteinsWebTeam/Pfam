@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.8 2007-05-01 20:57:48 jt6 Exp $
+# $Id: jumpBox.tt,v 1.9 2007-05-10 10:21:12 jt6 Exp $
 
 META naked = 1;
 
@@ -17,9 +17,9 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
 <div id="jumpBox" class="sidebarComponent">
 	<h1>
 		<span>Jump to...</span>
-		<a href="[% c.uri_for( "/help", tab="helpGetStartedBlock" ) %]"
+		<a href="[% base %]help?tab=helpGetStartedBlock"
        title="View help on the &quot;Jump to...&quot; search">
-	 		<img src="[% c.uri_for( "/images/info.gif" ) %]" 
+	 		<img src="[% base %]images/info.gif" 
            alt="View help on the &quot;Jump to...&quot; search" 
            class="info" /></a>
 	</h1>
@@ -31,22 +31,24 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
   </p>
   [% END %]
   
-	<form action="[% c.uri_for( "/search/jump" ) %]" 
+	<form action="[% base %]search/jump" 
         method="get" 
         id="jumpForm">
     <div>
   		<input class="entryField" 
-           type="text" 
-           onfocus="if(!jbCleared){this.value='';jbCleared=true}" 
-           size="10" 
-           name="entry" 
-           id="entry" />
+             type="text" 
+             onfocus="if(!jbCleared){this.value='';jbCleared=true}" 
+             size="10" 
+             name="entry" 
+             id="entry" />
     </div>
 	</form>
   
 	<script type="text/javascript">
+	  // <![CDATA[
 		$("entry").value = "[% msg %]";
 		var jbCleared = false;
+    // ]]>
 	</script>
   
 	<div onclick="if($F('entry')&amp;&amp;jbCleared)$('jumpForm').submit()"
@@ -54,8 +56,8 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
        
 	<div class="cleaner"><!-- empty --></div>
 
-  [% IF c.req.param( "jumpFailed" ) %]
-  <span class="error">Couldn't figure out jump</span>
+  [% IF c.req.param( "jumpErr" ) %]
+  <span class="error">Couldn't guess entry</span>
   [% END %]
 
 </div>
