@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.44 2007-05-10 08:41:22 jt6 Exp $
+   $Id: pfam.css,v 1.45 2007-05-10 10:20:45 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -239,9 +239,17 @@ img.addAnnotation {
   color: #666;
 }
 
+/* jump box styles */
+
 /* set the size of the field explicitly for the jumpBox */
 #jumpBox .entryField {
   width: 110px; /* set to 145px for the right sidebar on the index page */
+}
+
+#jumpBox .error {
+  font-size: smaller;
+  font-weight: bold;
+  color: #600;
 }
 
 .glassButton {
