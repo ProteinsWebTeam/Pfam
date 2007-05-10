@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.43 2007-05-01 21:23:25 jt6 Exp $
+   $Id: pfam.css,v 1.44 2007-05-10 08:41:22 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -211,6 +211,15 @@ form {
   margin: 0.4em auto;
   width: 50%;
   padding: 0.4em;
+}
+
+/* the "add annotation" button image */
+img.addAnnotation {
+	width: 100px;
+  height: 24px;
+	vertical-align: middle;
+  padding-bottom: 3px;
+	border-style: none;
 }
 
 /* widgets in the jump box */
