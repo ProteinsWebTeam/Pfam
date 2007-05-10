@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.12 2007-04-27 16:22:22 jt6 Exp $
+# $Id: Search.pm,v 1.13 2007-05-10 10:21:12 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.12 2007-04-27 16:22:22 jt6 Exp $
+$Id: Search.pm,v 1.13 2007-05-10 10:21:12 jt6 Exp $
 
 =cut
 
@@ -26,6 +26,7 @@ use strict;
 use warnings;
 
 use Module::Pluggable;
+use URI;
 
 # inherit from Section, so we get a default end method
 use base "PfamWeb::Controller::Section";
@@ -74,7 +75,7 @@ sub jump : Local {
   my( $this, $c ) = @_;
 
   # de-taint the entry ID or accession
-  my $entry;
+  my $entry = "";
   ( $entry ) = $c->req->param("entry") =~ /^([\w\-_]+)/;
   $c->log->debug( "Search::jump: called with entry |$entry|" );
 
@@ -114,8 +115,16 @@ sub jump : Local {
   } else {
     $c->log->debug( "Search::jump: couldn't guess entry type..." );
     if( defined $c->req->referer ) {
-      $c->log->debug( "Search::guess: redirecting to referer (".$c->req->referer.")" );
-      $c->res->redirect( $c->req->referer );
+
+      # build a new URI for the referrer. We want to append a parameter to tell
+      # the jump box that we couldn't find the entry, but there could already
+      # *be* parameters, so we use URI to tack the new one on, just to be safe      
+      my $uri = new URI( $c->req->referer );
+      $uri->query_form( $uri->query_form,
+                        jumpErr => 1 );
+                        
+      $c->log->debug( "Search::guess: redirecting to referer ($uri)" );
+      $c->res->redirect( $uri );
     } else {
       $c->log->debug( "Search::guess: couldn't guess entry type and no referer; redirecting to home page" );
       $c->res->redirect( $c->uri_for( "/" ) );
