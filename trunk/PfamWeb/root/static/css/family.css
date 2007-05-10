@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.25 2007-04-27 16:07:11 jt6 Exp $
+   $Id: family.css,v 1.26 2007-05-10 08:41:21 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -116,15 +116,6 @@ div.blockContent ol {
 #domainsBlock img {
   display: block;
   padding: 0.4em;
-}
-
-/* the "add annotation" button image */
-img.addAnnotation {
-	width: 100px;
-  height: 24px;
-	vertical-align: middle;
-  padding-bottom: 3px;
-	border-style: none;
 }
 
 /* ---------------------------------------- */
