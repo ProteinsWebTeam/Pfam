@@ -5,7 +5,7 @@
 # 
 # build the summary block for PfamB's
 #
-# $Id: summary.tt,v 1.5 2007-05-01 21:03:52 jt6 Exp $
+# $Id: summary.tt,v 1.6 2007-05-10 08:40:04 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -37,10 +37,13 @@ requirements.js.push( "pfamb.js" );
   </div>
   <div class="blockContent">
 
-    <h3>PfamB [% pfam.pfamB_acc %]
+    <h1>PfamB [% pfam.pfamB_acc %]
       <a href="[% c.uri_for( "/annotate" ) %]">
-	    <img class="addAnnotation" alt="Add an annotation" src="[% c.uri_for( "/images/annotation.png") %]" /></a>
-  	</h3>
+      <a href="[% base %]annotate?acc=[% pfam.pfamB_acc %]">
+        <img class="addAnnotation" 
+             alt="Add an annotation" 
+             src="[% base %]images/annotation.png" /></a>
+  	</h1>
 
     <p>
       This family was generated <em>automatically</em> from an alignment taken from

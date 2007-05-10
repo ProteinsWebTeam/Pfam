@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.8 2007-03-13 10:33:00 jt6 Exp $
+# $Id: summary.tt,v 1.9 2007-05-10 08:40:04 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -22,24 +22,26 @@ requirements.js.push( "family.js" );
 
 #-------------------------------------------------------------------------------
 
-# add an observer to trigger post-loading of the graphics %]
-<script type="text/javascript">
-  Event.observe( window, "load", clanPostLoad, false );
-</script>
-
-<!-- start clan summary block -->
-
-[% membershipList = BLOCK %]
-  [% total = 0 %]
-  [% size = 0 %]
-  [% FOREACH pfam IN clan.clan_membership.nsort("num_full").reverse %]
+membershipList = BLOCK;
+  total = 0;
+  size = 0;
+  FOREACH pfam IN clan.clan_membership.nsort("num_full").reverse -%]
   <span class="clanMember">
     <a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">
       [% pfam.pfamA_id %]</a></span>
-   [% total = total + pfam.num_full %]
-   [% size = size + 1 %]
-  [% END %]
-[% END %]
+    [% total = total + pfam.num_full;
+    size = size + 1;
+  END;
+END;
+
+# add an observer to trigger post-loading of the graphics %]
+<script type="text/javascript">
+  // <![CDATA[
+  Event.observe( window, "load", clanPostLoad, false );
+  // ]]>
+</script>
+
+<!-- start clan summary block -->
 
 <div class="block" id="clanSummaryBlock">
   <div class="handle">
@@ -49,14 +51,19 @@ requirements.js.push( "family.js" );
 
     <div id="siph">&nbsp;</div>
 
-    <h3>[% clan.clan_description %]</h3>
+    <h1>[% clan.clan_description %]
+      <a href="[% base %]annotate?acc=[% clan.clan_acc %]">
+        <img class="addAnnotation" 
+             alt="Add an annotation" 
+             src="[% base %]images/annotation.png" /></a>
+    </h1>
 
-	<p>[% clan.clan_comment %]</p>
+    <p>[% clan.clan_comment %]</p>
 
     <p>This clan contains <strong>[% size %]</strong> families and
       the total number of domains in the clan is <strong>[% total %]</strong>.</p>
 
-    <h3>Literature references</h3>
+    <h4>Literature references</h4>
 
     <ol>
       [% FOREACH ref IN clan.clan_lit_refs %]
@@ -67,13 +74,7 @@ requirements.js.push( "family.js" );
       [% END %]
     </ol>
 
-<!--
-    <h3>Author</h3>
-
-    <p>[% clan.clan_author %]</p>
--->
-
-    <h3>Members</h3>
+    <h2>Members</h2>
 
     <p>This clan contains the following [% size %] member families:</p>
 
@@ -81,14 +82,16 @@ requirements.js.push( "family.js" );
 
     <div class="cleaner"></div>
 
-	[% PROCESS components/links.tt %]
+    [% PROCESS components/links.tt %]
 
   </div>
 </div>
 
 <script type="text/javascript">
-  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
+  // <![CDATA[
+  loadOptions.si.uri    = "[% base %]family/structures";
   loadOptions.si.params = "acc=[% pfam.pfamA_acc %]";
+  // ]]>
 </script>
 
 <!-- end clan summary block -->

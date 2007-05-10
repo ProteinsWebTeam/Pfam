@@ -5,9 +5,10 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.5 2007-05-01 21:21:55 jt6 Exp $
+# $Id: annotation.tt,v 1.6 2007-05-10 08:40:04 jt6 Exp $
 
 META fullPage = 1;
+META title = "Submit an annotation";
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,9 +20,33 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 #-------------------------------------------------------------------------------
 
-IF success -%]
+IF success;
 
-  <p>Your annotation was received successfully.</p>
+  # decide where we should redirect the user
+  IF type == "A";
+    uri = "${base}family?acc=${acc}";
+  ELSIF type == "B";
+    uri = "${base}pfamb?acc=${acc}";
+  ELSIF type == "C";
+    uri = "${base}clan?acc=${acc}";
+  END;
+  
+-%]
+
+  <h2>Your annotation was received successfully.</h2>
+
+  <p>
+    Thank you for submitting you annotation for entry [% acc %]. It will
+    be considered for incorporation into the Pfam database by one of our
+    annotators.
+  </p>
+  <p>
+    [% IF uri %]
+      You can now <a href="[% uri %]">return</a> to the previous page.
+    [% ELSE %]
+      You can now return to the <a href="[% base %]">Pfam home page</a>.
+    [% END %]
+  </p>
 
 [% ELSE %]
 
@@ -30,9 +55,9 @@ IF success -%]
   <p>Please supply all of the fields marked with &quot;*&quot;.</p>
 
   <div id="annForm" class="formWrapper">
-  [% IF error %]
-    <p>[% error %]</p>
-  [% END %]
+    [% IF error %]
+      <p>[% error %]</p>
+    [% END %]
 
     [% widget.as_xml %]
   </div>
