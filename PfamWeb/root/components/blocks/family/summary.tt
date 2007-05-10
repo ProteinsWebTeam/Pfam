@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.20 2007-05-01 21:14:37 jt6 Exp $
+# $Id: summary.tt,v 1.21 2007-05-10 08:40:04 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -32,8 +32,7 @@ requirements.js.push( "family.js" );
 
 # on the assumption that the family page will always contain at least this
 # block, we need to add the snippet of javascript here that will trigger
-# the post-loading of the various other block contents. The actual function
-# that does the post loading (familyPostLoad) is in pfFunctions.js
+# the post-loading of the various other block contents.
 
 %]
 
@@ -54,10 +53,10 @@ requirements.js.push( "family.js" );
     <div id="siph">&nbsp;</div>
 
     <h1><span [% addTip("family","description") %]>[% pfam.description %]</span>
-      <a href="[% c.uri_for( "/annotate", acc=pfam.pfamA_acc ) %]">
+      <a href="[% base %]annotate?acc=[% pfam.pfamA_acc %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
-             src="[% c.uri_for( "/images/annotation.png") %]" /></a>
+             src="[% base %]images/annotation.png" /></a>
     </h1>
 
     [% IF pfam.comment.length %]
@@ -110,8 +109,8 @@ requirements.js.push( "family.js" );
 
       <p>
         This family is a member of clan <strong>
-        <a href="[% c.uri_for( "/clan", id=pfam.clan_id ) %]">[% pfam.clan_id %]</a></strong>
-        (<a href="[% c.uri_for( "/clan", acc=pfam.clan_acc ) %]">[% pfam.clan_acc %]</a>),
+        <a href="[% base %]clan?id=[% pfam.clan_id %]">[% pfam.clan_id %]</a></strong>
+        (<a href="[% base %]clan?acc=[% pfam.clan_acc %]">[% pfam.clan_acc %]</a>),
         which contains the following [% total %] member[% total > 1 ? "s" : "" %]:
       </p>
     
@@ -128,7 +127,7 @@ requirements.js.push( "family.js" );
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
+  loadOptions.si.uri    = "[% base %]family/structures";
   loadOptions.si.params = "acc=[% pfam.pfamA_acc %]";
   // ]]>
 </script>

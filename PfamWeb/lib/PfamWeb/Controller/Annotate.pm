@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.8 2007-03-15 14:06:13 jt6 Exp $
+# $Id: Annotate.pm,v 1.9 2007-05-10 08:40:03 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.8 2007-03-15 14:06:13 jt6 Exp $
+$Id: Annotate.pm,v 1.9 2007-05-10 08:40:03 jt6 Exp $
 
 =cut
 
@@ -28,8 +28,8 @@ use base "Catalyst::Controller";
 use PfamWeb::CustomContainer;
 use HTML::Widget::Element;
 
-#use IO::All;
-
+# set a custom container for the HTML::Widget form, to make it a wee bit 
+# easier to style
 BEGIN {
   HTML::Widget::Element->container_class( "PfamWeb::CustomContainer" );
 }
@@ -47,55 +47,51 @@ Checks input parameters and populates the stash accordingly.
 sub begin : Private {
   my( $this, $c ) = @_;
 
-  if ( $c->req->param("acc") ) {
-	$c->log->debug( "Annotate::begin: accession: |" . $c->req->param("acc") . "|" );
-  }
-
   # build the email subject line based on the accession (if given)
 
-  if ( $c->req->param("acc") and $c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i ) {
-	$c->log->debug( "Annotate::begin: found a Pfam entry ($2)" );
+  if( $c->req->param("acc") and 
+       $c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i ) {
+    $c->log->debug( "Annotate::begin: found a Pfam entry ($2)" );
 
-	if ( $2 eq "F" ) {
-	  $c->log->debug( "Annotate::begin: it's a pfam A entry" );
-	
-	  my $pfam = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
-	
-	  $c->stash->{type} = "A";
-	  $c->stash->{acc}  = $pfam->pfamA_acc;
-	  $c->stash->{id}   = $pfam->pfamA_id;
-	
-	  $c->stash->{subject} = "Annotation submission for Pfam A entry "
-		. $pfam->pfamA_id . " (" . $pfam->pfamA_acc . ")";
-	
-	} elsif ( $2 eq "B" ) {
-	  $c->log->debug( "Annotate::begin: it's a pfam B entry" );
-	
-	  $c->stash->{type} = "B";
-	  $c->stash->{acc}  = $1;
-	
-	  $c->stash->{subject} = "Annotation submission for Pfam B entry $1";
-	
-	}
+    if( $2 eq "F" ) {
+      $c->log->debug( "Annotate::begin: it's a pfam A entry" );
 
-  } elsif ( $c->req->param("acc") and $c->req->param("acc") =~ m/^(CL\d{4})$/i ) {
-	$c->log->debug( "Annotate::begin: found a clan entry" );
-	
-	my $clan = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
-	  if defined $1;
-	
-	$c->stash->{type} = "C";
-	$c->stash->{acc}  = $clan->clan_acc;
-	$c->stash->{id}   = $clan->clan_id;
-	
-	$c->stash->{subject} = "Annotation submission for Pfam clan " .
-	  $c->stash->{id} . " (" . $c->stash->{acc} . ")";
-	
+      my $pfam = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+
+      $c->stash->{type} = "A";
+      $c->stash->{acc}  = $pfam->pfamA_acc;
+      $c->stash->{id}   = $pfam->pfamA_id;
+    
+      $c->stash->{subject} = "Annotation submission for Pfam A entry "
+                             . $pfam->pfamA_id . " (" . $pfam->pfamA_acc . ")";
+
+    } elsif( $2 eq "B" ) {
+      $c->log->debug( "Annotate::begin: it's a pfam B entry" );
+    
+      $c->stash->{type} = "B";
+      $c->stash->{acc}  = $1;
+    
+      $c->stash->{subject} = "Annotation submission for Pfam B entry $1";
+    }
+
+  } elsif( $c->req->param("acc") and 
+           $c->req->param("acc") =~ m/^(CL\d{4})$/i ) {
+    $c->log->debug( "Annotate::begin: found a clan entry" );
+
+    my $clan = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
+      if defined $1;
+
+    $c->stash->{type} = "C";
+    $c->stash->{acc}  = $clan->clan_acc;
+    $c->stash->{id}   = $clan->clan_id;
+    
+    $c->stash->{subject} = "Annotation submission for Pfam clan "
+                           . $c->stash->{id} . " (" . $c->stash->{acc} . ")";
+    
   } else {
-	$c->log->debug( "Annotate::begin: didn't find a recognised accession" );
-	
-	$c->stash->{subject} = "Annotation submission";
-	
+    $c->log->debug( "Annotate::begin: didn't find a recognised accession" );
+    
+    $c->stash->{subject} = "Annotation submission";
   }
 
   $c->log->debug( "Annotate::begin: generated subject line: " );
@@ -189,12 +185,10 @@ sub sendMail : Private {
     $c->log->debug( "Annotate::sendMail: attaching upload to mail (" . $u->filename . ")" );
 
     # build an email "part" for it
-    my $attachment = Email::MIME
-  	->create( attributes => { content_type => $u->type,
-  							  disposition  => "attachment",
-  							  filename     => $u->filename },
-  			  body => io( $u->tempname )->all,
-  			);
+    my $attachment = Email::MIME->create( attributes => { content_type => $u->type,
+                                                          disposition  => "attachment",
+                                                          filename     => $u->filename },
+                                          body      => io( $u->tempname )->all );
     push @parts, $attachment;
   }
 
@@ -210,10 +204,10 @@ sub sendMail : Private {
   # and send it
   eval {
     $c->email( header     => [ To      => $this->{annotationEmail},
-  							 From    => $c->req->param("email"),
-  							 Subject => $c->stash->{subject} ],
-  			 parts      => [ $mailTxt,
-  							 @parts ] );
+                               From    => $c->req->param("email"),
+                               Subject => $c->stash->{subject} ],
+               parts      => [ $mailTxt,
+               @parts ] );
   };
   if ( $@ ) {
     # something went wrong...
@@ -249,38 +243,38 @@ sub buildForm : Private {
 
   if ( $c->req->param("acc") ) {
     $w->element( "Hidden", "acc" )
-  	->value( $c->req->param("acc") );
+      ->value( $c->req->param("acc") );
   }
 
   # user's name
   $w->element( "Textfield", "user" )
-    ->label( "Name *" )
-  	->size( 30 )
-  	  ->maxlength( 200 );
+     ->label( "Name *" )
+     ->size( 30 )
+     ->maxlength( 200 );
 
   # email address
   $w->element( "Textfield", "email" )
     ->label( "Email address *" )
-  	->size( 30 )
-  	  ->maxlength( 100 );
+    ->size( 30 )
+    ->maxlength( 100 );
 
   # the annotation itself
   $w->element( "Textarea", "annotation" )
     ->label( "Annotation details *" )
-  	->cols( 50 )
-  	  ->rows( 15 );
+    ->cols( 50 )
+    ->rows( 15 );
 
   # supporting references
   $w->element( "Textarea", "refs" )
     ->label( "References" )
-  	->cols( 50 )
-  	  ->rows( 5 );
+    ->cols( 50 )
+    ->rows( 5 );
 
   # an alignment upload field
   $w->element( "Upload", "alignment" )
     ->label( "Upload an alignment file" )
-  	->accept( "text/plain" )
-  	  ->size( 30 );
+    ->accept( "text/plain" )
+    ->size( 30 );
 
   # a submit button
   $w->element( "Submit", "submit" )
