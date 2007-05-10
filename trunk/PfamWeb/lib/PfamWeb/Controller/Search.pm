@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.13 2007-05-10 10:21:12 jt6 Exp $
+# $Id: Search.pm,v 1.14 2007-05-10 10:30:56 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.13 2007-05-10 10:21:12 jt6 Exp $
+$Id: Search.pm,v 1.14 2007-05-10 10:30:56 jt6 Exp $
 
 =cut
 
@@ -81,10 +81,19 @@ sub jump : Local {
 
   # bail immediately if there's no entry given
   unless( $entry ) {
-    $c->stash->{error} = "You did not specify an accession or ID.";
     if( defined $c->req->referer )  {
-      $c->res->redirect( $c->req->referer );
+
+      # build a new URI for the referrer. We want to append a parameter to tell
+      # the jump box that we couldn't find the entry, but there could already
+      # *be* parameters, so we use URI to tack the new one on, just to be safe      
+      my $uri = new URI( $c->req->referer );
+      $uri->query_form( $uri->query_form,
+                        jumpErr => 1 );
+      $c->log->debug( "Search::guess: redirecting to referer ($uri)" );
+      $c->res->redirect( $uri );
+
     } else {
+      $c->log->debug( "Search::guess: couldn't guess entry type and no referer; redirecting to home page" );
       $c->res->redirect( $c->uri_for( "/" ) );
     }
     return 1;
@@ -115,14 +124,9 @@ sub jump : Local {
   } else {
     $c->log->debug( "Search::jump: couldn't guess entry type..." );
     if( defined $c->req->referer ) {
-
-      # build a new URI for the referrer. We want to append a parameter to tell
-      # the jump box that we couldn't find the entry, but there could already
-      # *be* parameters, so we use URI to tack the new one on, just to be safe      
       my $uri = new URI( $c->req->referer );
       $uri->query_form( $uri->query_form,
                         jumpErr => 1 );
-                        
       $c->log->debug( "Search::guess: redirecting to referer ($uri)" );
       $c->res->redirect( $uri );
     } else {
@@ -168,9 +172,11 @@ sub guess : Private {
       $c->log->debug( "Search::guess: found a Pfam family (from accession)" );
       $action = "family";            
     }
+
+  }
   
-  } elsif( $entry =~ /^(CL\d{4})$/i ) {
-    # next, could it be a clan ?
+  # next, could it be a clan ?
+  if( not $action and $entry =~ /^(CL\d{4})$/i ) {
 
     $found = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } );
 
@@ -179,8 +185,10 @@ sub guess : Private {
       $action = "clan";
     }
   
-  } elsif( $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)$/i ) {
-    # how about a sequence entry ?
+  }
+  
+  # how about a sequence entry ?
+  if( not $action and $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)$/i ) {
   
     $found = $c->model("PfamDB::Pfamseq")->find( { pfamseq_acc => $1 } );
   
@@ -198,8 +206,10 @@ sub guess : Private {
         $action = "protein";
       }
     }
-  } elsif( $entry =~ /^([A-Z0-9]+\_[A-Z0-9]+)$/i ) {
-    # see if it's a protein sequence ID (e.g. CANX_CHICK)
+  }
+  
+  # see if it's a protein sequence ID (e.g. CANX_CHICK)
+  if( not $action and $entry =~ /^([A-Z0-9]+\_[A-Z0-9]+)$/i ) {
   
     $found = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $1 } );
   
@@ -208,8 +218,10 @@ sub guess : Private {
       $action = "protein";
     }
   
-  } elsif( $entry =~ /^([0-9][A-Za-z0-9]{3})$/ ) {
-    # maybe a structure ?
+  }
+  
+  # maybe a structure ?
+  if( not $action and $entry =~ /^([0-9][A-Za-z0-9]{3})$/ ) {
   
     $found = $c->model("PfamDB::Pdb")->find( { pdb_id => $1 } );
   
@@ -217,9 +229,11 @@ sub guess : Private {
       $c->log->debug( "Search::guess: found a structure" );
       $action = "structure";
     }
+    
+  }
   
-  } else {
-    # finally, see if it's a Pfam family ID or a clan ID
+  # finally, see if it's a Pfam family ID or a clan ID
+  if( not $action ) {
   
     # a Pfam family ID ?    
     $found = $c->model("PfamDB::Pfam")->find( { pfamA_id => $entry } );
