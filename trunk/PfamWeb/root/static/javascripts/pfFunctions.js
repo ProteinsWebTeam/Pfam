@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.36 2007-05-01 21:25:40 jt6 Exp $
+// $Id: pfFunctions.js,v 1.37 2007-05-11 10:12:25 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -198,7 +198,7 @@ function switchPanel( trigger, id ) {
   // show the selected panel. Note that we're not using Element.show() here, 
   // because we can't "show" an element that was hidden using CSS... see 
   // prototype docs
-  $(id).style.display = "block"  
+  $(id).setStyle( { display: "block" } );
 
   // as a nicety, if there's a form in the panel, focus it
   $(id).getElementsBySelector(".entryField").each(
@@ -306,31 +306,23 @@ function chooseTab() {
 // display the specified tab in the page body
 
 function show( id ) {
-    // console.debug( "pfFunctions.js:show: selecting block \"" + id + "\"" );
-
   // show/hide the blocks themselves
   $$("#content div.block").each( function( block ) {
                                    if( id == block.id ) {
-                                     block.style.display = "block";
+                                     block.setStyle( { display: "block" } );
                                    } else {
-                                     Element.hide( block );
+                                     block.hide();
                                    }
                                  } );
 
   // set the appropriate selector in the sidebar
   $$("#sidebar li").each( function( item ) {
                             if( id+"Selector" == item.id ) {
-                              Element.addClassName( item, "selected" );
+                              item.addClassName( "selected" );
                             } else {
-                              Element.removeClassName( item, "selected" );
+                              item.removeClassName( "selected" );
                             }
                           } );
-
-  // set a cookie to show the preference
-  // console.debug( "pfFunctions.js:show: creating a cookie..." );
-  createCookie( "lastTab", id, "1d", serverRoot + "/" + section );
-  // console.debug( "pfFunctions.js:show: done creating a cookie" );
-
 }
 
 //------------------------------------------------------------
@@ -448,33 +440,49 @@ function unhighlight( e ) {
 // move a thin line across the image maps, by way of a cursor
 
 function moveCursor( e ) {
+  
   var cObj = $("cursor");
   var fObj = $("featuresMap");
-  var im   = $A( $("featuresMap").getElementsByTagName("img") ).first();
-
-  // set the cursor height to the height of the map
-  cObj.style.height = Element.getHeight( fObj ) - 1 + "px";
-
-  // get the positions of the various blocks
-  var co = Position.cumulativeOffset( fObj );
-  var px = Event.pointerX( e );
-  var ol = fObj.offsetLeft;
-
-  var x = px - co[0] + ol - 1;
   
-  var minX = im.offsetLeft + im.parentNode.offsetLeft;
-  var maxX = minX + Element.getDimensions( im ).width;
+  var images = $A( $("featuresMap").getElementsByTagName("img") ); 
 
-  if( x < minX ) x = minX;
-  if( x > maxX ) x = maxX;
+  var tl = Position.cumulativeOffset( images.first() );
+  var bl = Position.cumulativeOffset( images.last()  );
+  var br = [ bl[0] + images.last().getWidth(),
+             bl[1] + images.last().getHeight() ];
 
-  cObj.style.left = x + "px";
+  var px = Event.pointerX( e );
+  var py = Event.pointerY( e );
+  var co = Position.cumulativeOffset( fObj );
+  var po = Position.positionedOffset( fObj );
 
-  // update the status display
-  var r = x - (im.offsetLeft + im.parentNode.offsetLeft) + 1;
-  $("status").innerHTML = "Residue number: " + r;
+  var x = px    - co[0] + po[0] - 1;
+  var y = tl[1] - co[1] + po[1];
+  var h = br[1] - tl[1];
 
-  cObj.style.display = "block";
+  var minX = tl[0] - co[0] + po[0] + 2;
+  var maxX = br[0] - co[0] + po[0] - 1;
+  
+  if( x < minX ) { x = minX }
+  if( x > maxX ) { x = maxX }
+
+/*
+  console.debug( "------------------------------------------------" );
+  console.debug( "tl:   |" + tl + "|, br: |" + br + "|" );
+  console.debug( "minX: |" + minX + "|, maxX: |" + maxX + "|" );
+  console.debug( "px:   |" + px + "|" );
+  console.debug( "co:   |" + co + "|" );
+  console.debug( "po:   |" + po + "|" );
+  console.debug( "x:    |" + x + "|" );
+ */
+  cObj.setStyle( { left:   x + "px" } );
+  cObj.setStyle( { top:    y + "px" } );
+  cObj.setStyle( { width:  "1px" } );
+  cObj.setStyle( { height: h + "px" } );
+  cObj.setStyle( { display: "block" } );
+
+  var r = x - minX + 1;
+  $("status").update( "Residue number: " + r );
 }
 
 //------------------------------------------------------------
