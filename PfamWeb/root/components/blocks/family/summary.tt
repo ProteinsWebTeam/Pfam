@@ -5,9 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.22 2007-05-14 11:55:38 jt6 Exp $
-
-USE dumper;
+# $Id: summary.tt,v 1.23 2007-05-14 12:15:04 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -89,22 +87,21 @@ requirements.js.push( "family.js" );
       <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
     </h2>
 
-    [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
-        to contain <p> tags... -%]
-    [% pfam.interpro.abstract %]
+    [% # THIS IS A HACK ! the database entry for the interpro abstract appears
+       # to contain <p> tags...
+    pfam.interpro.abstract;
 
-    [%- IF pfam.clan_acc -%]
+    IF pfam.clan_acc -%]
       <h2 [% addTip("family","familyClan") %]>Clan</h2>
   
       [% membershipList = BLOCK;
         total = 0;
-        familyUri = c.uri_for( "/family" );
         FOREACH member IN clan.clan_membership.sort("pfamA_id") %]
           <span class="clanMember">
           [% IF member.pfamA_acc == pfam.pfamA_acc;
             member.pfamA_id;
           ELSE %]
-            <a href="[% familyUri %]?acc[% member.pfamA_acc %]">
+            <a href="[% base %]family?acc=[% member.pfamA_acc %]">
               [% member.pfamA_id %]</a>
           [% END %]
           </span>
