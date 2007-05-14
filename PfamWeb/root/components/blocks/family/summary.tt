@@ -5,7 +5,9 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.21 2007-05-10 08:40:04 jt6 Exp $
+# $Id: summary.tt,v 1.22 2007-05-14 11:55:38 jt6 Exp $
+
+USE dumper;
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -82,7 +84,10 @@ requirements.js.push( "family.js" );
       <hr class="short"/>
     [% END %]
 
-    <h2 id="interproTitle"><span [% addTip("family","interpro") %]>Interpro entry</span> <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a></h2>
+    <h2 id="interproTitle">
+      <span [% addTip("family","interpro") %]>Interpro entry</span> 
+      <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
+    </h2>
 
     [%#- THIS IS A HACK ! the database entry for the interpro abstract appears
         to contain <p> tags... -%]
@@ -119,6 +124,39 @@ requirements.js.push( "family.js" );
       <div class="cleaner"></div>
 
     [%- END # of "if clan_acc" -%]
+
+    [%- IF goTerms.size -%]
+    
+      <h2>Gene Ontology</h2>
+      
+      <table class="details" summary="Gene ontology data">
+        <tbody>
+          [%- FOREACH goTerm IN goTerms;
+          
+            # convert the db category into the readable one...
+            IF goTerm.category == "function";
+              category = "Molecular function";
+            ELSIF goTerm.category == "process";
+              category = "Biological process";
+            ELSIF goTerm.category == "component";
+              category = "Cellular component";
+            ELSE;
+              category = goTerm.category;
+            END;          
+          %]
+          <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+            <td class="label">[% category %]</td>
+            <td>
+              <a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">
+               [% goTerm.term %]</a>
+              (<a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">[% goTerm.go_id %]</a>)
+            </td>
+          </tr>
+          [% END -%]
+        </tbody>
+      </table>
+    
+    [%- END # of "if goTerms" -%]
 
     [% PROCESS components/links.tt %]
 
