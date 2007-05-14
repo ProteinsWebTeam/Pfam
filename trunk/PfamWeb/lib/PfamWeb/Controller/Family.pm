@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.21 2007-04-27 16:19:52 jt6 Exp $
+# $Id: Family.pm,v 1.22 2007-05-14 11:55:56 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.21 2007-04-27 16:19:52 jt6 Exp $
+$Id: Family.pm,v 1.22 2007-05-14 11:55:56 jt6 Exp $
 
 =cut
 
@@ -198,26 +198,15 @@ sub begin : Private {
         
     # if this request originates at the top level of the object hierarchy,
     # i.e. if it's a call on the "default" method of the Family object,
-    # then we'll need to do a few extra things. If it originates from a 
-    # sub-class of Family, we don't need, for example, to increment our
-    # count of views of the family
+    # then we'll need to do a few extra things
 
     if( ref $this eq "PfamWeb::Controller::Family" ) {
       
       # add extra data to the stash
       $c->forward( "_getSummaryData" );
       $c->forward( "_getDbXrefs" );
-  
-      # increment the "view count" for the family
-  
-      # first, retrieve or create a row in the Family_count table
-      #my $counter = $c->model("WebUser::Family_count")
-      #  ->find_or_create( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
-      #                      pfamA_id   => $c->stash->{pfam}->pfamA_id,
-      #                      pfamA_acc  => $c->stash->{pfam}->pfamA_acc } );
- 
-      # having now got hold of a row object, increment the count
-      #$counter->update( { view_count => $counter->view_count + 1 } );
+      $c->forward( "_getGoData" );
+        
     }
   }
 }
@@ -378,14 +367,32 @@ sub _getMapping : Private {
   my $auto_pfam = ($c->stash->{entryType} eq "A") ? $c->stash->{pfam}->auto_pfamA : $c->stash->{pfam}->auto_pfamB;
 
   my @mapping = $c->model("PfamDB::PdbMap")
-    ->search( { auto_pfam   => $auto_pfam,
-                pfam_region => $region },
-              { join        => [qw/pdb/ ],
-                prefetch    => [qw/pdb/]
-              } );
+                  ->search( { auto_pfam   => $auto_pfam,
+                              pfam_region => $region },
+                            { join        => [ qw/pdb/ ],
+                              prefetch    => [ qw/pdb/ ]
+                            } );
 
   $c->stash->{pfamMaps} = \@mapping;
 }
+
+#-------------------------------------------------------------------------------
+# retrieves GO terms
+
+sub _getGoData : Private {
+  my( $this, $c ) = @_;
+
+  # this is only relevant for PfamAs
+  return unless $c->stash->{entryType} eq "A";
+
+  my @goTerms = $c->model("PfamDB::Pfam")
+                  ->search( { "me.auto_pfamA" => $c->stash->{pfam}->auto_pfamA },
+                            { join            => [ qw/ go / ],
+                              prefetch        => [ qw/ go / ] } );
+
+  $c->stash->{goTerms} = \@goTerms;
+}
+
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
