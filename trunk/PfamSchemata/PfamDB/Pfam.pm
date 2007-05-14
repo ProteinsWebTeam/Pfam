@@ -1,5 +1,5 @@
 
-# $Id: Pfam.pm,v 1.5 2007-03-16 11:25:16 jt6 Exp $
+# $Id: Pfam.pm,v 1.6 2007-05-14 11:43:56 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -26,31 +26,33 @@ __PACKAGE__->set_primary_key( "auto_pfamA", "pfamA_id", "pfamA_acc" );
 #Now on to the relationships
 
 __PACKAGE__->might_have ( "interpro" => "PfamDB::Interpro",
-			  {"foreign.auto_pfamA"  => "self.auto_pfamA" },
-			  { proxy => [ qw/interpro_id abstract/ ] } );
+			  { "foreign.auto_pfamA"  => "self.auto_pfamA" },
+			  {  proxy => [ qw/interpro_id abstract/ ] } );
 
 __PACKAGE__->has_many   ( "pdbMap"   => "PfamDB::PdbMap",
-			  { "foreign.auto_pfam"  => "self.auto_pfamA" });
+			  { "foreign.auto_pfam"  => "self.auto_pfamA" } );
 
-__PACKAGE__->has_many   ( "go"       => "PfamDB::GO",
-			  { "foreign.auto_pfamA" => "self.auto_pfamA" } );
+__PACKAGE__->might_have ( "go"       => "PfamDB::GO",
+			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
+			  {  proxy               => [ qw/ go_id term category / ] } );
+			  
 
 __PACKAGE__->has_many   ( "pfamA_lit_refs" => "PfamDB::PfamA_literature_references",
-			  {"foreign.auto_pfamA"  => "self.auto_pfamA"} );
+			  { "foreign.auto_pfamA"  => "self.auto_pfamA" } );
 
 __PACKAGE__->might_have ( "clan_membership" => "PfamDB::Clan_membership",
-			  {"foreign.auto_pfamA" => "self.auto_pfamA"},
-			  {proxy => [ qw/clan_acc clan_id clan_description/]});
+			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
+			  {  proxy => [ qw/clan_acc clan_id clan_description/ ] } );
 
 __PACKAGE__->has_one    ( "pfamA_web" => "PfamDB::PfamA_web",
-			  {"foreign.auto_pfamA" => "self.auto_pfamA"},
-			  {proxy => [ qw/average_length percentage_id average_coverage status/]});
+			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
+			  {  proxy => [ qw/average_length percentage_id average_coverage status/ ] } );
 
 __PACKAGE__->has_many    ( "pfamA_arch" => "PfamDB::PfamA_architecture",
-			  {"foreign.auto_pfamA" => "self.auto_pfamA"});
+			  { "foreign.auto_pfamA" => "self.auto_pfamA" } );
 
 __PACKAGE__->has_many( "pfamA_database_links" => "PfamDB::PfamA_database_links",
-		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
+		    { "foreign.auto_pfamA" => "self.auto_pfamA" } );
 
 #PRC tables - todo
 
