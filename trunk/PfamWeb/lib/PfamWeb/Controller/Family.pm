@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.22 2007-05-14 11:55:56 jt6 Exp $
+# $Id: Family.pm,v 1.23 2007-05-14 12:14:22 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.22 2007-05-14 11:55:56 jt6 Exp $
+$Id: Family.pm,v 1.23 2007-05-14 12:14:22 jt6 Exp $
 
 =cut
 
@@ -80,7 +80,7 @@ sub begin : Private {
         $c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
 
         if( defined $c->stash->{pfam} ) {
-          $c->log->error( "Family::begin: found a PfamB: |$1|" );
+          $c->log->debug( "Family::begin: found a PfamB: |$1|" );
           $c->stash->{pageType} = "pfamb";
           $c->stash->{entryType} = "B";
           $c->stash->{acc} = $c->stash->{pfam}->pfamB_acc;
@@ -92,7 +92,7 @@ sub begin : Private {
         $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
 
         if( defined $c->stash->{pfam} ) {
-          $c->log->error( "Family::begin: found a PfamA: |$1|" );
+          $c->log->debug( "Family::begin: found a PfamA: |$1|" );
           $c->stash->{entryType} = "A";
           $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
           $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
@@ -385,10 +385,8 @@ sub _getGoData : Private {
   # this is only relevant for PfamAs
   return unless $c->stash->{entryType} eq "A";
 
-  my @goTerms = $c->model("PfamDB::Pfam")
-                  ->search( { "me.auto_pfamA" => $c->stash->{pfam}->auto_pfamA },
-                            { join            => [ qw/ go / ],
-                              prefetch        => [ qw/ go / ] } );
+  my @goTerms = $c->model("PfamDB::GO")
+                  ->search( { "me.auto_pfamA" => $c->stash->{pfam}->auto_pfamA } );
 
   $c->stash->{goTerms} = \@goTerms;
 }
