@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.11 2007-05-01 20:59:41 jt6 Exp $
+# $Id: links.tt,v 1.12 2007-05-14 11:57:10 jt6 Exp $
 
 USE dumper;
 
@@ -138,9 +138,10 @@ END; # of BLOCK buildLink
 # page output
 internalLinks = BLOCK;
   CALL c.log.debug( "links.tt: building internal links" );
+  oe = 0;
   FOREACH db IN internal;
     IF xrefs.$db.size -%]
-    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+    <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
       <td class="label">
         [%- IF labels.$db -%]
           [%- labels.$db -%]:
@@ -226,11 +227,12 @@ END; # of internalLinks block
 
 externalLinks = BLOCK;
   CALL c.log.debug( "links.tt: building extternal links" );
+  oe = 0;
   FOREACH db IN external;
     IF entryType == "A";
       IF db == "FUNSHIFT" OR db == "PANDIT" OR db == "SYSTERS" -%]
-      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
-       <td class="label">
+      <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+        <td class="label">
           [%- IF labels.$db -%]
             [%- labels.$db -%]:
           [%- ELSE -%]
@@ -248,7 +250,7 @@ externalLinks = BLOCK;
       [%- END; # of IF db == funshift...
     END; # of IF not pfamb
     IF xrefs.$db.size -%]
-    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+    <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
       <td class="label">
         [%- IF labels.$db -%]
           [%- labels.$db -%]:
@@ -305,7 +307,7 @@ END; # of externalLinks block -%]
 <div class="databaseReferences">
 
   [%- IF internalLinks -%]
-  <h3 [% addTip("family","intDbRefs") %]>Internal database links</h3>
+  <h2 [% addTip("family","intDbRefs") %]>Internal database links</h2>
   <table class="details" summary="Internal database links">
     <tbody>
       [% internalLinks %]
@@ -314,7 +316,7 @@ END; # of externalLinks block -%]
   [%- END # of "if internalLinks" -%]
 
   [%- IF externalLinks -%]
-  <h3 [% addTip("family","extDbRefs") %]>External database links</h3>
+  <h2 [% addTip("family","extDbRefs") %]>External database links</h2>
   <table class="details" summary="External database links">
     <tbody>
       [% externalLinks %]
