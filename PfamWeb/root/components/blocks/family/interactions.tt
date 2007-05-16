@@ -4,7 +4,7 @@
 # 
 # block for the interactions data for the family section
 #
-# $Id: interactions.tt,v 1.4 2007-03-15 10:57:09 jt6 Exp $
+# $Id: interactions.tt,v 1.5 2007-05-16 15:02:46 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt -%]
 
@@ -18,8 +18,7 @@ RETURN UNLESS summaryData.numInt -%]
 
     <p>
       There [%- summaryData.numInt > 1 ? "are " : "is "; summaryData.numInt %]
-       <a href="[% c.uri_for( "/int/domain", acc=pfam.pfamA_acc ) %]">
-         interaction[% summaryData.numInt > 1 ? "s" : "" %]</a> for this family.
+      interaction[% summaryData.numInt > 1 ? "s" : "" %] for this family.
      </p>
 
   </div>

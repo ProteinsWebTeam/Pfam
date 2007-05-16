@@ -4,7 +4,7 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.8 2007-05-01 21:14:36 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.9 2007-05-16 15:02:47 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -70,7 +70,7 @@ alignments.alignments.0;
 
 <script type="text/javascript">
   // <![CDATA[
-  formatAlignment( "[% c.uri_for( "/protein", entry="" ) %]" );
+  formatAlignment( "[% base %]protein?entry=" );
   // ]]>
 </script>
 

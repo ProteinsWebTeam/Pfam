@@ -1,10 +1,11 @@
-[%#
+
+[%
 # align.tt
 # jt6 20060411 WTSI
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.16 2007-05-01 21:03:03 jt6 Exp $
+# $Id: align.tt,v 1.17 2007-05-16 15:02:47 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -60,6 +61,9 @@
 
   	<script type="text/javascript">
       // <![CDATA[
+      // although the form action looks like it will download the alignment,
+      // in fact we catch the submission here and decide, based on the form
+      // values, which URL to go to next.
       function launch() {
         if( $F("viewer") == "jalview" ) {
         	url = "[% base %]family/jalview?" + Form.serialize("viewerForm");
@@ -73,8 +77,7 @@
       
         } else {
         	$("viewerForm").submit();
-        }
-      
+        }      
         return false;
       }
       // ]]>
