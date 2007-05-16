@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.31 2007-04-27 16:17:31 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.32 2007-05-16 15:35:15 jt6 Exp $
 
 =head1 NAME
 
@@ -18,38 +18,42 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.31 2007-04-27 16:17:31 jt6 Exp $
+$Id: PfamWeb.pm,v 1.32 2007-05-16 15:35:15 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
+# a useful trick to get Catalyst to confess errors on startup, rather than
+# simply dying with a cryptic error about barewords
+#use Carp; $SIG{__DIE__} = \&Carp::confess;
+
 # set flags and add plugins for the application
 use Catalyst qw/
-				PfamConfigLoader
-				Prototype
-				HTML::Widget
-				Email
-				Session
-				Session::Store::FastMmap
-				Session::State::Cookie
-				Cache::FileCache
-				/;
+                 PfamConfigLoader
+                 Prototype
+                 HTML::Widget
+                 Email
+                 Session
+                 Session::Store::FastMmap
+                 Session::State::Cookie
+                 Cache::FileCache
+               /;
 
-#				-Debug
-#				Compress::Deflate
-#				PageCache
+#        -Debug
+#        Compress::Deflate
+#        PageCache
 
 # some other plugins that could be used...
 
 # a cache backend. This one won't work when we're using multiple servers
-#				Cache::FastMmap
+#        Cache::FastMmap
 
 # user authentication. Not used currently, largely because it doesn't really work
-#				Authentication
-#				Authentication::Store::DBIC
-#				Authentication::Credential::Password
+#        Authentication
+#        Authentication::Store::DBIC
+#        Authentication::Credential::Password
 
 our $VERSION = '0.01';
 
@@ -116,44 +120,44 @@ sub reportError : Private {
   my $el = $c->model( "WebUser::ErrorLog" );
   foreach my $e ( @{$c->error} ) {
 
-  	$c->log->debug( "PfamWeb::reportError: reporting a site error: |$e|" );
+    $c->log->debug( "PfamWeb::reportError: reporting a site error: |$e|" );
  
     # see if we can access the table at all - basically, see if the DB is up 
     my $rs; 
-	  eval {
-    	$rs = $el->find( { message => $e } );
+    eval {
+      $rs = $el->find( { message => $e } );
     };
-	  if( $@ ) {
-  		# really bad; an error while reporting an error...
-  		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
-	  }
+    if( $@ ) {
+      # really bad; an error while reporting an error...
+      $c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+    }
   
     # if we can get a ResultSet, try to add a message
-  	if( $rs ) {
+    if( $rs ) {
 
       # we've seen this error before; update the error count
-  	  eval {
-    	  $rs->update( { num => $rs->num + 1 } );
-  	  };
-  	  if( $@ ) {
-    		# really bad; an error while reporting an error...
-    		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
-  	  }
+      eval {
+        $rs->update( { num => $rs->num + 1 } );
+      };
+      if( $@ ) {
+        # really bad; an error while reporting an error...
+        $c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+      }
 
-  	} else {
+    } else {
 
       # no log message like this has been registered so far; add the row 
-  	  eval {
-    		$el->create( { message => $e,
-  										num     => 1,
-  										first   => [ "CURRENT_TIMESTAMP" ] } );
-  	  };
-  	  if( $@ ) {
-    		# really bad; an error while reporting an error...
-    		$c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
-  	  }
+      eval {
+        $el->create( { message => $e,
+                       num     => 1,
+                       first   => [ "CURRENT_TIMESTAMP" ] } );
+      };
+      if( $@ ) {
+        # really bad; an error while reporting an error...
+        $c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+      }
 
-  	}
+    }
   }
 
 }
