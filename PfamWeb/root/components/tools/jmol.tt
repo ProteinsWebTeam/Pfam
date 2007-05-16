@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.5 2007-05-01 21:16:59 jt6 Exp $
+# $Id: jmol.tt,v 1.6 2007-05-16 14:54:32 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -67,7 +67,7 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
   jmolInitialize(" [% c.uri_for( "/jmol" ) %]"); // REQUIRED
   jmolSetAppletColor( "white" );
   jmolApplet(500, '[% script %]');
-  ]]>
+  // ]]>
 </script>
 
 <table class="details" summary="Mappings from PDB to UniProt to Pfam">
