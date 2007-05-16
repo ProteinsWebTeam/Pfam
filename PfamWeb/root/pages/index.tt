@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.26 2007-05-08 15:20:42 jt6 Exp $
+# $Id: index.tt,v 1.27 2007-05-16 15:16:01 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -140,8 +140,8 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         <textarea class="entryField" 
                   name="seq"
                   id="seq" 
-                  cols="40" 
-                  rows="5"></textarea>
+                  cols="50" 
+                  rows="6"></textarea>
       </div>
     </form>
     <div onclick="if( $('seq').present() )$('seqForm').submit()"
@@ -152,7 +152,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       This search will use the <code>pfam_ls</code> library (global) and the 
       <a href="[% helpBase %]?tab=helpGlossaryBlock">
         gathering threshold</a>. You can specify the search parameters using 
-      <a href="[% base %]seqsearch/seq?tab=searchSequenceBlock">this</a> form.      
+      <a href="[% base %]seqsearch?tab=searchSequenceBlock">this</a> form.      
     </p>
   </div>
 
@@ -188,7 +188,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     
   <div id="clan" class="panel" style="display: none">
     <h3>See groups of related families</h3>
-    <p>Enter a clan identifier or accesion to see information about that clan.</p>
+    <p>Enter a clan identifier or accession to see information about that clan.</p>
     <form action="[% jumpBase %]"
           method="get" 
           id="clanForm">
@@ -299,7 +299,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       <span class="authors">
         R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones, 
         V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
-        S.R. Eddy, E.L. L. Sonnhammer and A. Bateman
+        S.R. Eddy, E.L.L. Sonnhammer and A. Bateman
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2006)
