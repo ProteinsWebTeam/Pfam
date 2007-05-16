@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.37 2007-05-11 10:12:25 jt6 Exp $
+// $Id: pfFunctions.js,v 1.38 2007-05-16 15:33:12 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -186,7 +186,7 @@ highlight.mouseoutHandler = function( e ) {
 //------------------------------------------------------------
 
 // switch between panels on the index page
-function switchPanel( trigger, id ) {
+function switchPanel( oTrigger, sId ) {
   
   // hide all of the panels
   $$("div.panel").each(
@@ -198,10 +198,10 @@ function switchPanel( trigger, id ) {
   // show the selected panel. Note that we're not using Element.show() here, 
   // because we can't "show" an element that was hidden using CSS... see 
   // prototype docs
-  $(id).setStyle( { display: "block" } );
+  $(sId).setStyle( { display: "block" } );
 
   // as a nicety, if there's a form in the panel, focus it
-  $(id).getElementsBySelector(".entryField").each(
+  $(sId).getElementsBySelector(".entryField").each(
     function( field ){
       field.focus();
     }
@@ -214,8 +214,8 @@ function switchPanel( trigger, id ) {
       link.addClassName( "link" );
     }
   );
-  trigger.removeClassName( "link" );
-  trigger.addClassName( "currentLink" );
+  oTrigger.removeClassName( "link" );
+  oTrigger.addClassName( "currentLink" );
 }
 
 //------------------------------------------------------------
@@ -305,10 +305,10 @@ function chooseTab() {
 //------------------------------------------------------------
 // display the specified tab in the page body
 
-function show( id ) {
+function show( sId ) {
   // show/hide the blocks themselves
   $$("#content div.block").each( function( block ) {
-                                   if( id == block.id ) {
+                                   if( sId == block.id ) {
                                      block.setStyle( { display: "block" } );
                                    } else {
                                      block.hide();
@@ -317,7 +317,7 @@ function show( id ) {
 
   // set the appropriate selector in the sidebar
   $$("#sidebar li").each( function( item ) {
-                            if( id+"Selector" == item.id ) {
+                            if( sId+"Selector" == item.id ) {
                               item.addClassName( "selected" );
                             } else {
                               item.removeClassName( "selected" );
@@ -439,48 +439,67 @@ function unhighlight( e ) {
 
 // move a thin line across the image maps, by way of a cursor
 
-function moveCursor( e ) {
-  
-  var cObj = $("cursor");
-  var fObj = $("featuresMap");
-  
-  var images = $A( $("featuresMap").getElementsByTagName("img") ); 
+var cObj;       // the cursor div
+var fObj;       // the "featuresMap" div, which contains all this stuff
+var images;     // an array of all of the images in the features map div
+var tl, br, co, po; // various coordinates
+var minX, maxX; // limits for cursor movement
 
-  var tl = Position.cumulativeOffset( images.first() );
+var cursorInitialised = false; // flag to show whether the cursor is ready
+
+function initialiseCursor() {
+
+  // get some handles on important elements
+  cObj = $("cursor");
+  fObj = $("featuresMap");
+  images = $A( $("featuresMap").getElementsByTagName("img") ); 
+
+  // calculate the various coordinates and offsets... 
+  tl = Position.cumulativeOffset( images.first() );
   var bl = Position.cumulativeOffset( images.last()  );
-  var br = [ bl[0] + images.last().getWidth(),
-             bl[1] + images.last().getHeight() ];
+  br = [ bl[0] + images.last().getWidth(),
+         bl[1] + images.last().getHeight() ];
 
-  var px = Event.pointerX( e );
-  var py = Event.pointerY( e );
-  var co = Position.cumulativeOffset( fObj );
-  var po = Position.positionedOffset( fObj );
+  co = Position.cumulativeOffset( fObj );
+  po = Position.positionedOffset( fObj );
 
-  var x = px    - co[0] + po[0] - 1;
+  minX = tl[0] - co[0] + po[0] + 1;
+  maxX = br[0] - co[0] + po[0] - 2;
+
   var y = tl[1] - co[1] + po[1];
   var h = br[1] - tl[1];
 
-  var minX = tl[0] - co[0] + po[0] + 2;
-  var maxX = br[0] - co[0] + po[0] - 1;
+  // style the cursor div  
+  cObj.setStyle( { left:    minX + "px",
+                   top:     y + "px",
+                   width:   "1px",
+                   height:  h + "px",
+                   display: "block" } );
+
+  cursorInitialised = true;
+}
+
+function moveCursor( e ) {
+  // initialise the cursor the first time it's used
+  if( ! cursorInitialised ) {
+    initialiseCursor();
+  }
+
+  // the absolute position of the event on the page
+  var px = Event.pointerX( e );
   
+  // offset the cursor from the mouse pointer by one pixel, otherwise we
+  // mask some essential mouse events
+  var x = px - co[0] + po[0] - 1;
+
+  // stay over the images
   if( x < minX ) { x = minX }
   if( x > maxX ) { x = maxX }
 
-/*
-  console.debug( "------------------------------------------------" );
-  console.debug( "tl:   |" + tl + "|, br: |" + br + "|" );
-  console.debug( "minX: |" + minX + "|, maxX: |" + maxX + "|" );
-  console.debug( "px:   |" + px + "|" );
-  console.debug( "co:   |" + co + "|" );
-  console.debug( "po:   |" + po + "|" );
-  console.debug( "x:    |" + x + "|" );
- */
-  cObj.setStyle( { left:   x + "px" } );
-  cObj.setStyle( { top:    y + "px" } );
-  cObj.setStyle( { width:  "1px" } );
-  cObj.setStyle( { height: h + "px" } );
-  cObj.setStyle( { display: "block" } );
+  // move it
+  cObj.setStyle( { left: x + "px" } );
 
+  // fix the cursor offset here before updating the status display
   var r = x - minX + 1;
   $("status").update( "Residue number: " + r );
 }
@@ -488,23 +507,22 @@ function moveCursor( e ) {
 //------------------------------------------------------------
 // post-load all of the sequences with a given architecture
 
-function loadDomains( arch, index, uri, num ) {
+function loadDomains( sArch, iIndex, uri, iNum ) {
 
   // the message for the confirmation dialogue
-  var msg = "You are about to load " + num + " domain graphics, which may take some time.\n\nAre you sure you want to continue ?";
+  var msg = "You are about to load " + iNum + 
+            " domain graphics, which may take some time.\n\nAre you sure you want to continue ?";
 
   // only ask for confirmation if there are 50 or more sequences to load
-  var continueLoad = ( num >= 50 ) ? confirm( msg ) : true;
+  var continueLoad = ( iNum >= 50 ) ? confirm( msg ) : true;
 
   if( continueLoad ) {
-    ['adSpinner' + arch + index,
-     'loadSwitch' + index,
-     'showHideArchs' + index ].each( Element.toggle );
+    ['adSpinner' + sArch + iIndex,
+     'loadSwitch' + iIndex,
+     'showHideArchs' + iIndex ].each( Element.toggle );
 
     // and actually fire off a request to load the new graphics
-    new Ajax.Updater('domainArch' + index,
-                     uri,
-                     { asynchronous: 1 } );
+    new Ajax.Updater( 'domainArch' + iIndex, uri );
   }
 }
 
@@ -512,7 +530,7 @@ function loadDomains( arch, index, uri, num ) {
 // various functions used in the domain query tab
 
 // loads the list of IDs, chosen from the "alphabet" at the top of the form
-function chooseIds( letter ) {
+function chooseIds( sLetter ) {
 
   Element.show( "nlUpdateSpinner" );
   $( "domainSearchForm" ).disable();
@@ -520,7 +538,7 @@ function chooseIds( letter ) {
   new Ajax.Updater( "idSelectionWrapper",
                     queryURI,
                     {
-                      parameters: "list=1&browse=" + letter,
+                      parameters: "list=1&browse=" + sLetter,
                       onComplete: function () {
                                     Element.hide("nlUpdateSpinner");
                                     $( "domainSearchForm" ).enable();
