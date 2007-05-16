@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.45 2007-05-10 10:20:45 jt6 Exp $
+   $Id: pfam.css,v 1.46 2007-05-16 15:29:06 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -99,11 +99,6 @@ h3 {
 h4, h5, h6 {
   font-size: small;
   margin: 0.2em 0;
-}
-
-/* fix the huge boxes in IE */
-form {
-  display: inline;
 }
 
 /* ========================================
@@ -281,6 +276,39 @@ img.addAnnotation {
   background-image: url(/catalyst/pfam/images/exampleButton.png);  
 }
 
+/* ---------------------------------------- */
+/* search errors page */
+
+#tips {
+	margin: 0.2em auto;
+  width: 60em;
+}
+
+#tips h2 {
+	margin-top: 1em;
+}
+
+#tips dt {
+  float: left;
+  font-weight: bold;
+	text-align: right;
+}
+
+#tips dd {
+	line-height: 1.2em;
+  margin-left: 13em;
+	margin-bottom: 0.4em;
+}
+
+p.back {
+  text-align: center;
+	font-size: x-large;
+}
+
+p.back a {
+	font-size: x-large;
+}
+
 /* ======================================== */
 /* the footer. We use a wrapper div (#contentContainer) for the content
    when the page contains tabs, so add a separate style for that which 
@@ -362,13 +390,14 @@ table.details th {
 }
 
 table.details td {
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
   padding: 0.2em;
+  width: 30em;
 }
 
 table.details td.label {
-  width: 13.2em;
+  width: 14em;
   padding: 0.2em;
   background: #CCC;
   text-align: center;
@@ -491,24 +520,38 @@ a.sortheader {
 #key h2 {
   color: #074987;
   text-align: left;
-  margin: 4px auto;
-  padding: 2px;
+  margin: 0.2em auto;
+  padding: 0;
   font-size: large;
   font-weight: bold;
 }
 
 #key p {
-  margin: 0;
+  margin: 0.4em 0;
   text-align: left;
+}
+
+/* the top and bottom of the colour gradient in the functional similarity
+   search results */
+#key .gradTop {
+  font-weight: bold;
+  color: #FFF;
+  background: #008000;
+}
+
+#key .gradBot {
+  font-weight: bold;
+  color: #FFF;
+  background: #C00000;  
 }
 
 /* affects the key table */
 
 #keyTable {
-    margin-top: 4px;
-    margin-bottom: 4px;
-    width: 50%;
-    margin-left: 25%;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  width: 50%;
+  margin-left: 25%;
   margin-right: 25%;
 }
 
@@ -637,7 +680,7 @@ div.graphicRow h3 {
 }
 
 img.graphicImage {
-  margin: 0;
+  margin: 0.2em 0;
   padding: 0;
   float: left;
 }
@@ -655,19 +698,6 @@ div.allArchitectures .odd {
 
 div.allArchitectures .even {
   background: #CDC;
-}
-
-/* ---------------------------------------- */
-/* database links */
-
-div.databaseReferences td {
-  text-align: left;
-  width: 20em;
-}
-
-div.databaseReferences td.label {
-  text-align: right;
-  width: 6em;
 }
 
 /* ---------------------------------------- */
