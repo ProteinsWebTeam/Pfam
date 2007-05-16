@@ -4,13 +4,13 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.1 2006-09-27 13:54:39 rdf Exp $
+# $Id: tools.tt,v 1.2 2007-05-16 15:04:58 jt6 Exp $
 %]
 
 <!-- start the Tools block -->
 <div class="block" id="helpToolsBlock">
   <div class="handle">
-    <h1>Guideto the Tools and Webservices Provided By Pfam</h1>
+    <h1>Guide to the Tools and Webservices Provided By Pfam</h1>
   </div>
   <div class="blockContent">
 	<h3>Batch Upload</h3>
