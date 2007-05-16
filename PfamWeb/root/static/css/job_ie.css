@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: job_ie.css,v 1.1 2007-05-01 21:24:02 jt6 Exp $
+   $Id: job_ie.css,v 1.2 2007-05-16 15:28:09 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -29,6 +29,6 @@
 */
 
 div.progressBar {
-	background-image: none;
-    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/pb.png",sizingMethod="crop");
+  background-image: none;
+  filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/catalyst/pfam/images/pb.png",sizingMethod="crop");
 }
