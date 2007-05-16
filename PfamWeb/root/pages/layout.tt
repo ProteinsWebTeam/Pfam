@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.17 2007-05-01 21:21:56 jt6 Exp $
+# $Id: layout.tt,v 1.18 2007-05-16 15:17:16 jt6 Exp $
 
 USE String;
 USE date;
@@ -73,11 +73,20 @@ FOREACH block IN layouts.${pageType}.blocks;
   blockTitle = block.values.first;
 
   # build the contents of the tab, if it's active
-  TRY;
+  
+  # if we're in debug mode, just try to render the file, without a safety net,
+  # so that we can see where the template breaks (if it breaks at all)
+  IF c.debug;
     pageOutput = PROCESS $blockFile;
     CALL pageContent.append( pageOutput );
-  CATCH;
-    CALL c.log.error( "layout.tt: Couldn't render template file \"$blockFile\"" );
+  ELSE;
+    # we're not debugging, so catch the errors from the template and carry on
+    TRY;
+      pageOutput = PROCESS $blockFile;
+      CALL pageContent.append( pageOutput );
+    CATCH;
+      CALL c.log.error( "layout.tt: Couldn't render template file \"$blockFile\"" );
+    END;
   END;
 
   IF pageOutput;
@@ -142,10 +151,17 @@ END;
   // <![CDATA[
   serverRoot = "[% constants.root # the server root, e.g. /catalyst/PfamWeb %]";
   section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
-  showTab    = "[% showTab        # default tab; can be overridden by the cookie %]";
-  Event.observe( window, "load", chooseTab );
+  showTab    = "[% showTab        # the tab, specified by a parameter %]";
+  if( ! ( showTab === undefined ) && $(showTab) ) {
+    show( showTab );
+  } else {
+    $A( document.getElementsByClassName( "block" ) )
+      .first()
+      .setStyle( { display: "block" } );
+    // no need to turn on the selector, because the first item in the list is
+    // set to visible anyway
+  }
   // ]]>
 </script> 
 
 <!-- ====================================================================== -->
-
