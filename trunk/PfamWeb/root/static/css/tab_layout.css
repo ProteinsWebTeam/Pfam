@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.29 2007-05-08 16:07:35 jt6 Exp $
+   $Id: tab_layout.css,v 1.30 2007-05-16 15:31:15 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -213,7 +213,6 @@ div.disabled #specIcon   { background-image: url(/catalyst/pfam/images/logos/tre
 #sidebar li.selected a:hover {
   cursor: default;
   text-decoration: none;
-/*  color: #666; */
 }
 
 #sidebar li div.inactive {
@@ -243,39 +242,6 @@ div.disabled #specIcon   { background-image: url(/catalyst/pfam/images/logos/tre
   background-repeat: no-repeat;
   background-position: center left;
   padding-left: 16px;
-}
-
-/* ---------------------------------------- */
-/* search errors page */
-
-#tips {
-	margin: 0.2em auto;
-  width: 60em;
-}
-
-#tips h2 {
-	margin-top: 1em;
-}
-
-#tips dt {
-  float: left;
-  font-weight: bold;
-	text-align: right;
-}
-
-#tips dd {
-	line-height: 1.2em;
-  margin-left: 13em;
-	margin-bottom: 0.4em;
-}
-
-p.back {
-  text-align: center;
-	font-size: x-large;
-}
-
-p.back a {
-	font-size: x-large;
 }
 
 /* ======================================== */
@@ -361,6 +327,7 @@ table.layout td.label {
   font-weight: bold;
   vertical-align: top;
 }
+
 table.layout td.data {
   padding: 0.2em;
   vertical-align: top;
