@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_das_sources.pl,v 1.8 2007-03-16 10:32:42 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.9 2007-05-16 15:23:07 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -43,16 +43,12 @@
 use warnings;
 use strict;
 
-use lib qw( /nfs/team71/pfam/jt6/server/PfamLib );
+use lib qw( /nfs/team71/pfam/jt6/server/pfam-site );
 
 use Bio::Das::Lite;
-use Data::Dumper;
 use Data::Validate::URI qw( is_uri );
 use DBI;
 use Time::Local;
-
-#use Date::Parse;
-#use Date::Calc qw( Delta_Days Delta_DHMS );
 
 # config
 
@@ -62,7 +58,7 @@ my $DAS_TO    = 100;
 my $DAS_PROXY = "http://wwwcache.sanger.ac.uk:3128";
 
 # db setup
-my $DB_DSN  = "dbi:mysql:web_user:pfam:3306";
+my $DB_DSN  = "dbi:mysql:web_user:pfamdb1:3306";
 my $DB_USER = "web_user";
 my $DB_PASS = "web_user";
 
@@ -71,30 +67,30 @@ my $cd = time;
 
 # default servers
 my $defaultServers = { DS_109 => 1, # uniprot
-					   DS_120 => 1, # superfamily
-					   DS_210 => 1, # SMART
-					   DS_311 => 1, # Pfam Other Features
-					   DS_327 => 1, # interpro
-					 };
+                       DS_120 => 1, # superfamily
+                       DS_210 => 1, # SMART
+                       DS_311 => 1, # Pfam Other Features
+                       DS_327 => 1, # interpro
+                     };
 
 # ignore these servers
 my $ignoreServers = { DS_241 => 1, # Pfam
-					};
+                    };
 
 # main
 
 # get a Bio::Das::Lite object that's connected to the specified registry
 my $das = Bio::Das::Lite->new( { dsn     => $DAS_DSN,
-							   timeout => $DAS_TO,
-							   proxy   => $DAS_PROXY } );
+                                 timeout => $DAS_TO,
+                                 proxy   => $DAS_PROXY } );
 
 # get a database handle
 my $dbh = DBI->connect( $DB_DSN,
-						$DB_USER,
-						$DB_PASS,
-						{ RaiseError => 1,
-						  PrintError => 0,
-						  AutoCommit => 0 } );
+                        $DB_USER,
+                        $DB_PASS,
+                        { RaiseError => 1,
+                          PrintError => 0,
+                          AutoCommit => 0 } );
 
 # prepare the queries
 my $insertSth = $dbh->prepare( "INSERT INTO feature_das_sources ( server_id, name, url, system, sequence_type, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ?, ? )" );
@@ -102,37 +98,34 @@ my $insertSth = $dbh->prepare( "INSERT INTO feature_das_sources ( server_id, nam
 # get the full list of sources
 #my $sourcesList = $das->registry_sources( { category => [ "Protein Sequence", "Protein Structure" ] } );
 my $sourcesList = $das->registry_sources();
+print STDERR "(ii) retrieved " . scalar @$sourcesList . " sources from the registry\n"; 
 
 # decide which sources we want to use
 my $chosenList = [ ];
 foreach my $source ( @$sourcesList ) {
-
-#   print Dumper( $source );
-#   foreach ( strptime( $source->{leaseDate} ) ) {
-# 	print "strptime: $_\n";
-#   }
-
+  
   # check the lease date
   $source->{leaseDate} =~ m/^(\d{4})\-(\d{2})\-(\d{2})T(\d{2}):(\d{2}):(\d{2}).(\d{3})Z$/i;
 
-  # convert the lease date into seconds since the epoch. Note that we
-  # need to subtract 1 from the day and month, since we need them
-  # zero-based but the registry date comes with them as
-  # day-of-the-month and month-of-the-year
-  my $ld = timelocal( $6, $5, $4, $3 - 1, $2 - 1, $1 );
+  # convert the lease date into seconds since the epoch. Note that we need 
+  # to subtract 1 from the month, since we need it zero-based but the 
+  # registry date comes with it as and month-of-the-year, i.e. 1-based
+  my $ld = timelocal( $6, $5, $4, $3, $2 - 1, $1 );
 
   # delta, in seconds
   my $dd = $cd - $ld;
 
   # don't add the source if the lease is older than two days
   if( $dd > 172800 ) {
-	print STDERR "(ww) dropping \"$source->{nickname}\" ($source->{id}); down for ".int($dd/86400)." days\n";
-	next;
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); down for ".int($dd/86400)." days\n";
+    next;
   }
 
   # don't add the source if it's in the "ignore" list
-  print STDERR "(ww) ignoring \"$source->{nickname}\" ($source->{id})\n" and next
-	if $ignoreServers->{ $source->{id} };
+  if( $ignoreServers->{ $source->{id} } ) {
+    print STDERR "(ww) ignoring \"$source->{nickname}\" ($source->{id})\n";
+    next;
+  }
 
   my $entry = {};
   $entry->{id}        = $source->{id};
@@ -142,36 +135,42 @@ foreach my $source ( @$sourcesList ) {
 
   # trim any trailing slashes off the URLs
   {
-	$/ = "/";
-	chomp $entry->{url} if defined($entry->{url});
-	chomp $entry->{helperurl} if defined($entry->{helperurl});
+    $/ = "/";
+    chomp $entry->{url}       if defined $entry->{url};
+    chomp $entry->{helperurl} if defined $entry->{helperurl};
   };
 
   # validate the URLs
   unless( is_uri( $entry->{url} ) ) {
-	print STDERR "(ww) dropping \"$source->{nickname}\" ($source->{id}); invalid URL ($source->{url})\n";
-	next;
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); invalid URL ($source->{url})\n";
+    next;
   }
 
   if( $entry->{helperurl} and not is_uri( $entry->{helperurl} ) ) {
-	print STDERR "(ww) dropping \"$source->{nickname}\" ($source->{id}); invalid help URL ($entry->{helperurl})\n";
-	next;
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); invalid help URL ($entry->{helperurl})\n";
+    next;
   }
 
   # we're only interested in features
-  next unless grep /features/, @{$source->{capabilities}};
-  
-  foreach my $coords (@{$source->{coordinateSystem}})
-  {
-  	if (defined $entry->{coords}{$coords->{uniqueId}}) {
-		print STDERR "(ww) ignoring duplicate co-ordinate system for $source->{id}\n";
-		next;
-	}
-	$entry->{coords}{$coords->{uniqueId}} = { system => $coords->{name}, type => $coords->{category} };
+  unless( grep /features/, @{ $source->{capabilities} } ) {
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); no features\n";
+    next;
+  }
+
+  foreach my $coords ( @{ $source->{coordinateSystem} } ) {
+    if( defined $entry->{coords}{$coords->{uniqueId}} ) {
+      print STDERR "(ww) ignoring duplicate co-ordinate system for $source->{id}\n";
+      next;
+    }
+    $entry->{coords}{ $coords->{uniqueId} } = { system => $coords->{name}, 
+                                                type   => $coords->{category} };
   }
   
-  push (@$chosenList, $entry) if (defined $entry->{coords});
-
+  if( defined $entry->{coords} ) {
+    push @$chosenList, $entry;
+  } else {
+    print STDERR "(ww) no coordinates found for $source->{id}\n";
+  }
 }
 
 # make sure we have some sources before going any further
@@ -193,18 +192,19 @@ eval {
 
   # insert them
   foreach my $entry( sort { $a->{id} cmp $b->{id} } @$chosenList ) {
-  	foreach my $coord (values %{ $entry->{coords} }) {
-		print STDERR "(ii) inserting $entry->{name} [$coord->{system},$coord->{type}]... ";
-		$insertSth->execute( $entry->{id},
-						 $entry->{name},
-						 $entry->{url},
-						 $coord->{system},
-						 $coord->{type},
-						 $entry->{helperurl},
-					     exists $defaultServers->{ $entry->{id} } ? 1 : 0
-					   );
-		print STDERR "done\n";
-	}
+
+    foreach my $coord (values %{ $entry->{coords} } ) {
+      print STDERR "(ii) inserting $entry->{name} [$coord->{system},$coord->{type}]... ";
+      $insertSth->execute( $entry->{id},
+                           $entry->{name},
+                           $entry->{url},
+                           $coord->{system},
+                           $coord->{type},
+                           $entry->{helperurl},
+                           exists $defaultServers->{ $entry->{id} } ? 1 : 0
+                         );
+      print STDERR "done\n";
+    }
   }
 
   $dbh->commit;
