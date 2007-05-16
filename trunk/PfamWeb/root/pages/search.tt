@@ -4,7 +4,7 @@
 # 
 # search results page
 #
-# $Id: search.tt,v 1.7 2007-05-01 21:21:56 jt6 Exp $
+# $Id: search.tt,v 1.8 2007-05-16 15:19:24 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;
@@ -12,11 +12,7 @@ META fullPage = 1;
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
-UNLESS requirements;
-  requirements = { css      = []
-                   cssIe    = []
-                   js       = [] };
-END; 
+PROCESS "components/require.tt";
 
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
@@ -31,7 +27,7 @@ requirements.js.push( "sorttable.js" );
 
   <div id="key">
 
-    <h2>Search results</h2>
+    <h2>Keyword search results</h2>
 
     [% rowNums = {};
     hitsSummary = BLOCK;
@@ -47,7 +43,7 @@ requirements.js.push( "sorttable.js" );
         <tbody>
         [% FOREACH pluginName IN pluginsArray;
           rowNums.$pluginName = 0 %]
-          <tr class="[% IF loop.index % 2 %]odd[% ELSE %]even[% END %]">
+          <tr class="[% loop.index % 2 ? "odd" : "even" %]">
             <td>[% pluginName %]</td>
             <td class="desc">[% pluginsHash.$pluginName %]</td>
             <td>[% pluginHits.$pluginName || 0 %]</td>
