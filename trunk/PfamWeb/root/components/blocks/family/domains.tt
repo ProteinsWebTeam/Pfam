@@ -1,12 +1,12 @@
 
-[%#
+[%
 # domains.tt
 # jt6 20060410 WTSI
 #
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.10 2007-05-01 21:14:37 jt6 Exp $
+# $Id: domains.tt,v 1.11 2007-05-16 15:02:47 jt6 Exp $
 %]
 
 <!-- start domain architectures block -->
@@ -30,7 +30,7 @@
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.dg.uri    = "[% c.uri_for( "/family/domaingraphics" ) %]";
+  loadOptions.dg.uri    = "[% base %]family/domaingraphics";
   loadOptions.dg.params = "acc=[% pfam.pfamA_acc %]";
   // ]]>
 </script>

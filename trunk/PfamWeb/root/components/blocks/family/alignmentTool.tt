@@ -1,16 +1,25 @@
+
 [%
 # alignmentTool.tt
 # jt6 20061004 WTSI
 # 
 # build a page for the alignment viewer tool
 #
-# $Id: alignmentTool.tt,v 1.4 2007-05-01 21:14:37 jt6 Exp $
+# $Id: alignmentTool.tt,v 1.5 2007-05-16 15:02:47 jt6 Exp $
 
-# tell the wrapper not to add any header or footer. We'll generate a complete 
-# page here ourselves
 META naked = 1;
 
-CALL c.log.debug( "rendering alignmentTool.tt..." );
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+requirements.js.push( "family.js" );
+
+#-------------------------------------------------------------------------------
 
 pageContent = BLOCK
 -%]
@@ -18,7 +27,7 @@ pageContent = BLOCK
 <script type="text/javascript">
   // <![CDATA[
   Event.observe( window, "load", familyPostLoad, false );
-  loadOptions.ca.uri    = "[% c.uri_for( "/family/alignmentgenerator" ) %]";
+  loadOptions.ca.uri    = "[% base %]family/alignmentgenerator";
   loadOptions.ca.params = "acc=[% acc %]&alnType=[% alnType %]";
   // ]]>
 </script>
