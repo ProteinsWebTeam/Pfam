@@ -1,0 +1,121 @@
+
+[%
+# fsResult.tt
+# jt6 20070515 WTSI
+# 
+# funshift search results page
+#
+# $Id: fsResults.tt,v 1.1 2007-05-16 15:15:01 jt6 Exp $
+
+META title = "Functional similarity search results";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+requirements.js.push( "sorttable.js" );
+
+#-------------------------------------------------------------------------------
+
+-%]
+
+<div id="results">
+
+  <div id="key">
+
+    <h2>Functional similarity search results</h2>
+
+    <p>
+      We found <strong>[% results.size %]</strong> Pfam A families that appear
+      have some level of functionally similarity to your search family, 
+      <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %]).
+    </p>
+
+    <table id="keyTable" summary="Summary of search results">
+      <thead>
+        <tr class="titleRow">
+          <td>Column</td>
+          <td class="desc">Description</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="even">
+          <td>Pfam A ID/accession</td>
+          <td class="desc">The ID or accession for a Pfam family which is similar to your search family</td>
+        </tr>
+        <tr class="odd">
+          <td>Clan ID</td>
+          <td class="desc">The ID of the clan to which the family belongs (if any)</td>
+        </tr>
+        <tr class="even">
+          <td>rfunSim</td>
+          <td class="desc">The functional similarity score for the family</td>
+        </tr>
+        <tr class="odd">
+          <td>mpscore</td>
+          <td class="desc">The molecular function score</td>
+        </tr>
+        <tr class="even">
+          <td>bpscore</td>
+          <td class="desc">The biological process score</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <p>
+      This key shows a brief description of each of the columns in the
+      result table. The level of similarity between your each family in the
+      results and your search family is represented by the coloured background
+      in the <strong>rfunSim</strong> column, which is shaded from 
+      <span class="gradTop">most</span> to <span class="gradBot">least</span> 
+      similar families.
+    </p> 
+    <p>
+      The results may be sorted by clicking on the column 
+      titles, or restored to the original order 
+      <a onclick="_ts_resortTable($('resultTable'),'0');return
+      false;" href="#">here</a>. You can return to the 
+      <a href="[% base %]seqsearch?tab=searchFunshiftBlock">search page</a> to 
+      to search for another family.
+    </p>
+
+      
+  </div> <!-- end of div "key" -->
+
+  <table class="sortable" id="resultTable" summary="Search results">
+    <thead>
+      <tr class="titleRow">
+        <th class="rowNum">Original order</th>
+        <th>Pfam A ID</th>
+        <th>Pfam A acc.</th>
+        <th>Clan ID</th>
+        <th>rfunSim</th>
+        <th>mfscore</th>
+        <th>bpscore</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% base %]family?id=[% row.pfamA_id %]">[% row.pfamA_id %]</a></td>
+        <td><a href="[% base %]family?acc=[% row.pfamA_acc %]">[% row.pfamA_acc %]</a></td>
+        <td>
+          [% IF row.clan_id %]
+          <a href="[% base %]clan?id=[% row.clan_id %]">[% row.clan_id %]</a>
+          [% ELSE; "-"; END %]
+        </td>
+        <td style="color: #FFF; font-weight: bold; background: #[% gradient.${loop.index} %]">[% row.rfunSim ? row.rfunSim : "-" %]</td>
+        <td>[% row.mfscore ? row.mfscore : "-" %]</td>
+        <td>[% row.bpscore ? row.bpscore : "-" %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+
+</div> <!-- end of div "results" -->
