@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.8 2007-05-08 16:07:35 jt6 Exp $
+# $Id: summary.tt,v 1.9 2007-05-16 15:04:39 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -16,8 +16,6 @@ requirements.css.push( "help.css" );
 
 #-------------------------------------------------------------------------------
 
-# tell "icons.tt" to disable the icons for this set of pages
-iconsDisabled = 1;
 %]
 
 <!-- start summary block -->
