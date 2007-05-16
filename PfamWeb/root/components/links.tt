@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.12 2007-05-14 11:57:10 jt6 Exp $
+# $Id: links.tt,v 1.13 2007-05-16 14:54:00 jt6 Exp $
 
 USE dumper;
 
@@ -226,7 +226,7 @@ END; # of internalLinks block
 # build the external links
 
 externalLinks = BLOCK;
-  CALL c.log.debug( "links.tt: building extternal links" );
+  CALL c.log.debug( "links.tt: building external links" );
   oe = 0;
   FOREACH db IN external;
     IF entryType == "A";
