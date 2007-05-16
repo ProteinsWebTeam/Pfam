@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.13 2007-05-01 21:05:43 jt6 Exp $
+# $Id: summary.tt,v 1.14 2007-05-16 15:11:32 jt6 Exp $
 
 USE String;
 
@@ -21,7 +21,10 @@ requirements.js.push( "protein.js" );
 
 #-------------------------------------------------------------------------------
 
-# see family summary.tt for the explanation for this snippet... %]
+# a row counter
+oe = 0;
+-%]
+
 <script type="text/javascript">
   // <![CDATA[
   Event.observe( window, "load", proteinPostLoad, false );
@@ -44,15 +47,14 @@ requirements.js.push( "protein.js" );
       </p>  
     </div>
 
-    [% oe = 0 %]
-
     <table class="layout" summary="Protein summary information">
       <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Entry:</td>
           <td class="data">
               <span class="ext">
-                <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_acc %]</a>)
+                <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">
+                  [% pfamseq.pfamseq_acc %]</a>)
               </span>
             </td>
         </tr>
@@ -67,14 +69,15 @@ requirements.js.push( "protein.js" );
           <td class="data">
           [% IF pfamseq.ncbi_code %]
             <span class="ext">
-              <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.ncbi_code %]</a>)
+              <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">
+                [% pfamseq.ncbi_code %]</a>)
             </span>
-            [% ELSE %]  
-              [% pfamseq.species %]
-            [% END %]
-            [% IF genomeCode %]
+            [% ELSE;  
+              pfamseq.species;
+            END;
+            IF genomeCode %]
               <br />
-              <a href="[% c.uri_for( "/genome" ncbiCode=genomeCode ) %]">View</a> Pfam genome data.
+              <a href="[% base %]proteome?ncbiCode=[% genomeCode %]">View</a> Pfam genome data.
             [% END %]
           </td>
         </tr>
@@ -88,9 +91,12 @@ requirements.js.push( "protein.js" );
     </table>
 
     <div class="summaryGraphic">
-    [% image = pfamImageset.each_image;
-    CALL image.print_image %]
-      <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/><br/>      
+      [% image = pfamImageset.each_image;
+      CALL image.print_image %]
+      <img class="graphicImage" 
+           src="[% constants.tmp %]/[% image.file_location %]" 
+           alt="" 
+           usemap="#singleImageMap" />      
       <map id="singleImageMap" name="singleImageMap">
         [% image.image_map %]
       </map>
