@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.23 2007-05-14 12:14:22 jt6 Exp $
+# $Id: Family.pm,v 1.24 2007-05-16 13:58:02 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.23 2007-05-14 12:14:22 jt6 Exp $
+$Id: Family.pm,v 1.24 2007-05-16 13:58:02 jt6 Exp $
 
 =cut
 
@@ -76,16 +76,10 @@ sub begin : Private {
     
       # see if this is actually a PfamB...
       if( $2 eq 'B' or $2 eq 'b' ) {
-        $c->log->debug( "Family::begin: looks like a PfamB; retrieving" );
-        $c->stash->{pfam} = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );
-
-        if( defined $c->stash->{pfam} ) {
-          $c->log->debug( "Family::begin: found a PfamB: |$1|" );
-          $c->stash->{pageType} = "pfamb";
-          $c->stash->{entryType} = "B";
-          $c->stash->{acc} = $c->stash->{pfam}->pfamB_acc;
-        }
- 
+        $c->log->debug( "Family::begin: looks like a PfamB; redirecting" );
+        $c->res->redirect( $c->req->base . "pfamb?acc=$1" );
+        return 1;
+        
       } else {
 
         # no, must be a PfamA
@@ -95,8 +89,6 @@ sub begin : Private {
           $c->log->debug( "Family::begin: found a PfamA: |$1|" );
           $c->stash->{entryType} = "A";
           $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
-          $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
-            if defined $c->req->param( "alnType" );
         }
       }
     }
@@ -112,24 +104,22 @@ sub begin : Private {
     if( defined $c->stash->{pfam} ) {
       $c->stash->{entryType} = "A";
       $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
-      $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full"
-        if defined $c->req->param( "alnType" );
     }
     
   } elsif( defined $c->req->param( "entry" ) ) {
 
     if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5,6})$/i ) {
-    
-       # looks like an accession; redirect to this action, appending the accession
-       $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting" );
-       $c->res->redirect( $c->req->uri_with( { acc => $1 } ) );
-       return 1;
+
+      # looks like an accession; redirect to this action, appending the accession
+      $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting internally" );
+      $c->req->param( "acc" => $1 );
+      $c->detach( "begin" );
+      return 1;
 
     } elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
 
       # looks like an ID; redirect to this action, appending the ID
-      $c->log->debug( "Family::begin: might be a Pfam ID; redirecting" );
-      # $c->res->redirect( $c->req->uri_with( { id => $1 } ) );
+      $c->log->debug( "Family::begin: might be a Pfam ID; redirecting internally" );
       $c->req->param( "id" => $1 );
       $c->detach( "begin" );
       return 1;
@@ -363,12 +353,12 @@ sub _getDbXrefs : Private {
 sub _getMapping : Private {
   my( $this, $c ) = @_;
 
-  my $region = ($c->stash->{entryType} eq "A") ? "1" : "0";
-  my $auto_pfam = ($c->stash->{entryType} eq "A") ? $c->stash->{pfam}->auto_pfamA : $c->stash->{pfam}->auto_pfamB;
+#  my $region = ($c->stash->{entryType} eq "A") ? "1" : "0";
+#  my $auto_pfam = ($c->stash->{entryType} eq "A") ? $c->stash->{pfam}->auto_pfamA : $c->stash->{pfam}->auto_pfamB;
 
   my @mapping = $c->model("PfamDB::PdbMap")
-                  ->search( { auto_pfam   => $auto_pfam,
-                              pfam_region => $region },
+                  ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamA,
+                              pfam_region => 1 },
                             { join        => [ qw/pdb/ ],
                               prefetch    => [ qw/pdb/ ]
                             } );
@@ -381,9 +371,6 @@ sub _getMapping : Private {
 
 sub _getGoData : Private {
   my( $this, $c ) = @_;
-
-  # this is only relevant for PfamAs
-  return unless $c->stash->{entryType} eq "A";
 
   my @goTerms = $c->model("PfamDB::GO")
                   ->search( { "me.auto_pfamA" => $c->stash->{pfam}->auto_pfamA } );
