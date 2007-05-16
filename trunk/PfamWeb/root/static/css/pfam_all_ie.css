@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: pfam_all_ie.css,v 1.8 2007-04-27 16:10:29 jt6 Exp $
+   $Id: pfam_all_ie.css,v 1.9 2007-05-16 15:28:38 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -27,6 +27,11 @@
    or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
     
 */
+
+/* fix the huge boxes in IE */
+form {
+  display: inline;
+}
 
 /* make the drop-down menus semi-transparent */
 div.menuContent {
