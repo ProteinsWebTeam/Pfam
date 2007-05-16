@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.23 2007-05-08 15:19:51 jt6 Exp $
+# $Id: head.tt,v 1.24 2007-05-16 14:53:48 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -14,7 +14,7 @@
 <!-- ====================================================================== -->
 <!-- make the site RSS feed discoverable --> 
 
-<link href="[% c.uri_for( "/rss/pfam.rdf" ) %]" 
+<link href="[% base %]rss/pfam.rdf" 
       rel="alternate"
       type="application/rss+xml"
       title="Pfam News" />
