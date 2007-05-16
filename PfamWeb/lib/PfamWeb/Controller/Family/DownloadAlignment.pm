@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: DownloadAlignment.pm,v 1.7 2007-03-15 14:06:10 jt6 Exp $
+# $Id: DownloadAlignment.pm,v 1.8 2007-05-16 13:57:43 jt6 Exp $
 
 =head1 NAME
 
@@ -17,14 +17,13 @@ package PfamWeb::Controller::Family::DownloadAlignment;
 
 Generates a B<full page>.
 
-$Id: DownloadAlignment.pm,v 1.7 2007-03-15 14:06:10 jt6 Exp $
+$Id: DownloadAlignment.pm,v 1.8 2007-05-16 13:57:43 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dump qw( dump );
 use Compress::Zlib;
 
 use base "PfamWeb::Controller::Family";
@@ -33,47 +32,99 @@ use base "PfamWeb::Controller::Family";
 
 =head1 METHODS
 
+=head2 auto : Private
+
+Just decides whether we're dealing with a seed or full alignment.
+
+=cut
+
+sub auto : Private {
+  my( $this, $c ) = @_;
+  
+  if( defined $c->req->param( "alnType" ) ) {
+    $c->stash->{alnType} = ( $c->req->param( "alnType" ) eq "seed" ) ? "seed" : "full";
+    $c->log->debug( "DownloadAlignment::auto: setting alnType to |" . 
+                    $c->stash->{alnType} . "|" );
+  } else {
+    $c->stash->{alnType} = "seed";
+    $c->log->debug( "DownloadAlignment::auto: no alnType parameter; defaulting to seed " );
+  }
+  
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 downloadAlignment : Path
+
+A simple action to redirect to the static HTML file on disk, chosen according
+to the form parameters, i.e. seed or full alignment.
 
 =cut
 
 sub downloadAlignment : Path( "/family/downloadalignment" ) {
   my( $this, $c ) = @_;
 
+  my $url;
+  if( $c->stash->{alnType} eq "seed" ) {
+    $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/seed/"
+           . $c->stash->{acc} . ".shtml";
+  } else {
+    $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/full/"
+           . $c->stash->{acc} . ".shtml";
+  }
+  
+  $c->log->debug( "DownloadAlignment::downloadAlignment: redirecting to |$url|" );
+  $c->res->redirect( $url );
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 downloadGzippedAlignment : Path
+
+This is a version of the "downloadalignment" action that expects to find the 
+alignment files on disk already gzipped. As such, it's going to be disappointed
+these days... (20070503)
+
+=cut
+
+sub downloadGzippedAlignment : Path( "/family/downloadgzippedalignment" ) {
+  my( $this, $c ) = @_;
+
   if( $c->req->header( "Accept-Encoding" ) and
-	  $c->req->header( "Accept-Encoding" ) =~ /gzip/ ) {
-
-	$c->log->debug( "downloadAlignment: browser accepts gzipped content" );
-
-	my $url;
-	if( $c->req->param( "alnType" ) eq "seed" ) {
-	  $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/seed/"
-		. $c->stash->{acc} . ".shtml.gz";
-	} else {
-	  $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/full/"
-		. $c->stash->{acc} . ".shtml.gz";
-	}
-
-	$c->log->debug( "downloadAlignment: redirecting to |$url|" );
-	$c->res->redirect( $url );
-	return;
+    $c->req->header( "Accept-Encoding" ) =~ /gzip/ ) {
+  
+    $c->log->debug( "DownloadAlignment::downloadGzippedAlignment: browser accepts gzipped content" );
+  
+    my $url;
+    if( $c->req->param( "alnType" ) eq "seed" ) {
+      $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/seed/"
+             . $c->stash->{acc} . ".shtml.gz";
+    } else {
+      $url = "http://www.sanger.ac.uk/Software/Pfam/data/jtml/full/"
+             . $c->stash->{acc} . ".shtml.gz";
+    }
+  
+    $c->log->debug( "DownloadAlignment::downloadGzippedAlignment: redirecting to |$url|" );
+    $c->res->redirect( $url );
+    return;
 
   } else {
-
-	$c->log->debug( "downloadAlignment: browser doesn't accept gzipped content" );
-
-	my $file;
-	if( $c->req->param( "alnType" ) eq "seed" ) {
-	  $file = $this->{alnFileDir} . "/jtml/seed/" . $c->stash->{acc} . ".shtml.gz";
-	} else {
-	  # must want the full alignment
-	  $file = $this->{alnFileDir} . "/jtml/full/" . $c->stash->{acc} . ".shtml.gz";
-	}
-
-	$c->log->debug( "downloadAlignment: retrieving alignment from |$file|" );
-
-	$c->stash->{contentType} = "text/html";
-	$c->stash->{output} = $c->forward( "getAlignmentFile", [ $file ] );
+  
+    $c->log->debug( "DownloadAlignment::downloadGzippedAlignment: browser doesn't accept gzipped content" );
+  
+    my $file;
+    if( $c->req->param( "alnType" ) eq "seed" ) {
+      $file = $this->{alnFileDir} . "/jtml/seed/" . $c->stash->{acc} . ".shtml.gz";
+    } else {
+      # must want the full alignment
+      $file = $this->{alnFileDir} . "/jtml/full/" . $c->stash->{acc} . ".shtml.gz";
+    }
+  
+    $c->log->debug( "DownloadAlignment::downloadGzippedAlignment: retrieving alignment from |$file|" );
+  
+    $c->stash->{contentType} = "text/html";
+    $c->stash->{output} = $c->forward( "getAlignmentFile", [ $file ] );
   }
 
 }
@@ -122,23 +173,21 @@ sub formatAlignment : Path( "/family/formatalignment" ) {
   # see what type of family we have, A or B
   if ( $c->stash->{entryType} eq "A" ) {
 
-	my $file =
-	  $this->{alnFileDir} . "/"
-		. $c->stash->{alnType}
-		  . "/" . $c->stash->{acc} . ".full.gz";
-	$c->log->debug( "DownloadAlignment::formatAlignment: trying to load |$file|" );
-
-	# make sure that we've built a path to a real file...
-	unless( -f $file ) {
-	  $c->log->warn( "DownloadAlignment::formatAlignment: can't find file \"$file\"" );
-	  return;
-	}
-
-	# get hold of the alignment
-	$alignment = $c->forward( "getAlignmentFile", [ $file ] );
+    my $file = $this->{alnFileDir} . "/" . $c->stash->{alnType} . "/" . 
+               $c->stash->{acc} . ".full.gz";
+    $c->log->debug( "DownloadAlignment::formatAlignment: trying to load |$file|" );
+  
+    # make sure that we've built a path to a real file...
+    unless( -f $file ) {
+      $c->log->warn( "DownloadAlignment::formatAlignment: can't find file \"$file\"" );
+      return;
+    }
+  
+    # get hold of the alignment
+    $alignment = $c->forward( "getAlignmentFile", [ $file ] );
 
   } elsif ( $c->stash->{entryType} eq "B" ) {
-	$alignment = $c->forward( "getAlignmentDB" );
+    $alignment = $c->forward( "getAlignmentDB" );
   }
 
   my $pfamaln = new Bio::Pfam::AlignPfam->new;
@@ -151,14 +200,14 @@ sub formatAlignment : Path( "/family/formatalignment" ) {
 
   # gaps param can be default, dashes, dot or none
   if( $c->req->param("gaps") ) {
-	if( $c->req->param("gaps") eq "none" ) {
-	  $pfamaln->map_chars('-', '');
-	  $pfamaln->map_chars('\.', '');
-	}elsif( $c->req->param("gaps") eq "dots" ) {
-	  $pfamaln->map_chars('-', '.');
-	}elsif( $c->req->param("gaps") eq "dashes" ) {
-	  $pfamaln->map_chars('\.', '-');
-	}
+    if( $c->req->param("gaps") eq "none" ) {
+      $pfamaln->map_chars('-', '');
+      $pfamaln->map_chars('\.', '');
+    } elsif( $c->req->param("gaps") eq "dots" ) {
+      $pfamaln->map_chars('-', '.');
+    } elsif( $c->req->param("gaps") eq "dashes" ) {
+      $pfamaln->map_chars('\.', '-');
+    }
   }
 
   # case param can be u or l
@@ -174,16 +223,16 @@ sub formatAlignment : Path( "/family/formatalignment" ) {
   # format param can be one of pfam, stockholm, fasta or MSF
   my $output;
   if( $c->req->param( "format" ) ) {
-	if( $c->req->param( "format" ) eq "pfam" ) {
-	  $output = $pfamaln->write_Pfam;
-	}elsif( $c->req->param( "format" ) eq "fasta" ) {
-	  $output = $pfamaln->write_fasta;
-	}elsif( $c->req->param( "format" ) eq "msf" ) {
-	  $output = $pfamaln->write_MSF;
-	} else {
-	  # stockholm and "anything else"
-	  $output = $pfamaln->write_stockholm;
-	}
+    if( $c->req->param( "format" ) eq "pfam" ) {
+      $output = $pfamaln->write_Pfam;
+    } elsif( $c->req->param( "format" ) eq "fasta" ) {
+      $output = $pfamaln->write_fasta;
+    } elsif( $c->req->param( "format" ) eq "msf" ) {
+      $output = $pfamaln->write_MSF;
+    } else {
+      # stockholm and "anything else"
+      $output = $pfamaln->write_stockholm;
+    }
   }
 
   $c->stash->{output} = $output;
@@ -201,14 +250,14 @@ sub getAlignmentFile : Private {
   my( $this, $c, $file ) = @_;
 
   my $gz = gzopen( $file, "rb" )
-	or die "Couldn't open alignment file \"$file\": $gzerrno";
+  or die "Couldn't open alignment file \"$file\": $gzerrno";
 
   my( $input, $buffer );
   $input .= $buffer while $gz->gzread( $buffer ) > 0;
   my @input = split /\n/, $input;
 
   die "Error reading from alignment file \"$file\": $gzerrno" . ( $gzerrno+0)
-	unless $gzerrno == Z_STREAM_END;
+  unless $gzerrno == Z_STREAM_END;
 
   $gz->gzclose;
 
@@ -230,8 +279,9 @@ sub getAlignmentDB : Private {
 
   # need to tack on a header and a footer line before it's really
   # Stockholm-format... go figure
-  my @aln = split/\n/, "# STOCKHOLM 1.0\n"
-	. $c->stash->{pfam}->pfamB_stockholm->stockholm_data . "//\n";
+  my @aln = split /\n/, 
+                  "# STOCKHOLM 1.0\n"
+                  . $c->stash->{pfam}->pfamB_stockholm->stockholm_data . "//\n";
 
   return \@aln;
 }
@@ -253,21 +303,21 @@ sub end : Private {
 
   # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( "download" ) ) {
-	
-	# figure out the filename
-	my $filename;
-	if( $c->stash->{entryType} eq "A" ) {
-	  $filename = $c->stash->{acc} . "_" . $c->stash->{alnType}. ".txt";
-	} else {
-	  # don't bother sticking "seed" or "full" in there if it's a PfamB
-	  $filename = $c->stash->{acc} . ".txt";
-	}	
-
-	$c->res->headers->header( "Content-disposition" => "attachment; filename=$filename" );
+  
+    # figure out the filename
+    my $filename;
+    if( $c->stash->{entryType} eq "A" ) {
+      $filename = $c->stash->{acc} . "_" . $c->stash->{alnType}. ".txt";
+    } else {
+      # don't bother sticking "seed" or "full" in there if it's a PfamB
+      $filename = $c->stash->{acc} . ".txt";
+    }  
+  
+    $c->res->headers->header( "Content-disposition" => "attachment; filename=$filename" );
   }
 
   foreach ( @{$c->stash->{output}} ) {
-	$c->res->write( $_ );
+    $c->res->write( $_ );
   }
 
 }
