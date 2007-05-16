@@ -5,10 +5,10 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.6 2007-05-10 08:40:04 jt6 Exp $
+# $Id: annotation.tt,v 1.7 2007-05-16 15:14:35 jt6 Exp $
 
 META fullPage = 1;
-META title = "Submit an annotation";
+META title = "Annotation submission";
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
