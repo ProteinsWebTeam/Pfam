@@ -5,7 +5,7 @@
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.7 2007-05-01 21:05:33 jt6 Exp $
+# $Id: structure.tt,v 1.8 2007-05-16 15:08:51 jt6 Exp $
 
 RETURN UNLESS pfamMaps.size;
 -%]
@@ -22,9 +22,7 @@ RETURN UNLESS pfamMaps.size;
     </div>
 
     [%- mapping = {};
-    CALL c.log.debug( "structure.tt: starting first loop" );
     FOREACH pdbMap IN pfamMaps;
-    CALL c.log.debug( "structure.tt: next mapping..." );
       seqKey = pdbMap.pfamA_id; # N.B. seqKey is the Pfam ID here !!!
       IF ! mapping.$seqKey;
         mapping.$seqKey = {};
@@ -89,47 +87,47 @@ RETURN UNLESS pfamMaps.size;
             FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort;
               FOREACH chainKey IN mapping.$seqKey.$resKey.$pdbKey.keys.sort;
                 NEXT IF mapping.$seqKey.$resKey.$pdbKey == "COUNT";
-                  FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
-                    <tr>
-                      [% IF seqKey != prevSeqKey -%]
-                        <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
-                          <a href="[% base %]family?id=[% seqKey %]">[% seqKey %]</a>
-                        </td>
-                      [% END;
-                      IF seqKey != prevSeqKey OR resKey != prevResKey -%]
-                        <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>
-                          [% resKey %]
-                        </td>
-                      [% END;
-                      IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
-                        <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                          <a href="[% base %]structure?id=[% pdbKey %]">[% pdbKey %]</a>
+                FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+                  <tr>
+                    [% IF seqKey != prevSeqKey -%]
+                      <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
+                        <a href="[% base %]family?id=[% seqKey %]">[% seqKey %]</a>
                       </td>
-                      [% END;
-                      prevSeqKey = seqKey;
-                      prevResKey = resKey;
-                      prevPdbKey = pdbKey -%]
-                      <td class="[% oe % 2 ? "odd" : "even" %]">
-                        [% IF chainKey;
-                          chainKey;
-                        ELSE %]
-                          <span class="inactive">n/a</span>
-                        [% END %]
+                    [% END;
+                    IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+                      <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>
+                        [% resKey %]
                       </td>
-                      <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
-                      <td class="[% oe % 2 ? "odd" : "even" %]">
-                        <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=jmol"
-                           onclick="popUp(this.href,'console',800,800,'jmolWin');return false;">
-                           Jmol</a>  
-                        <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=av"
-                           onclick="popUp(this.href,'console',800,800,'avWin');return false;">
-                           AstexViewer</a>  
-                        <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
-                           onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                           class="ext">SPICE</a>  
-                      </td>
-                    </tr>
-                  [%- END; # of pdbResKey
+                    [% END;
+                    IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+                      <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                        <a href="[% base %]structure?id=[% pdbKey %]">[% pdbKey %]</a>
+                    </td>
+                    [% END;
+                    prevSeqKey = seqKey;
+                    prevResKey = resKey;
+                    prevPdbKey = pdbKey -%]
+                    <td class="[% oe % 2 ? "odd" : "even" %]">
+                      [% IF chainKey;
+                        chainKey;
+                      ELSE %]
+                        <span class="inactive">n/a</span>
+                      [% END %]
+                    </td>
+                    <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
+                    <td class="[% oe % 2 ? "odd" : "even" %]">
+                      <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=jmol"
+                         onclick="popUp(this.href,'console',800,800,'jmolWin');return false;">
+                         Jmol</a>  
+                      <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=av"
+                         onclick="popUp(this.href,'console',800,800,'avWin');return false;">
+                         AstexViewer</a>  
+                      <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
+                         onclick="popUp(this.href,'console',800,800,'avWin');return false;"
+                         class="ext">SPICE</a>  
+                    </td>
+                  </tr>
+                [%- END; # of pdbResKey
                 END; # of chainKey
               END; # of pdbKey
             END; # of resKey
