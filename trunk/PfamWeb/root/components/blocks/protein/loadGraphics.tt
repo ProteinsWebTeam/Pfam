@@ -6,7 +6,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.16 2007-05-01 21:05:43 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.17 2007-05-16 15:07:54 jt6 Exp $
 
 META naked = 1;
 -%]
@@ -18,12 +18,12 @@ META naked = 1;
   <div id="highlight"></div>
   <div id="cursor"></div>
   
-    [% c.prototype.form_remote_tag( {	  url         => "${base}protein/graphics",
-        			                       	  update      => "graphicsHolder",
-                							          evalScripts => 1 } ) %]
-      <div>
-        <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
-        <input type="hidden" name="reloadObjects" value="1" />
+  [% c.prototype.form_remote_tag( {	  url         => "${base}protein/graphics",
+      			                       	  update      => "graphicsHolder",
+              							          evalScripts => 1 } ) %]
+    <div>
+      <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
+      <input type="hidden" name="reloadObjects" value="1" />
   
       [% i = 0;
       FOREACH section IN sections %]
@@ -32,7 +32,8 @@ META naked = 1;
   	  <caption>
   	    <p align="left">
           [% section.system %] [% section.type %] ([% section.objects.size %])
-          <span class="link" onclick="reveal(this,'checkboxes_[% section.id %]',false)">Show</span>
+          <span class="link" 
+                onclick="reveal(this,'checkboxes_[% section.id %]',false)">Show</span>
         </p>
   	  </caption>
 	  
@@ -41,12 +42,12 @@ META naked = 1;
         <tr>
           <td colspan="2">
       	    <div id="checkboxes_[% section.id %]" class="dasObjectCheckboxes" style="display: none;">
-              [% FOREACH subsection IN section.objects %]
-                <div class="source">
+            [% FOREACH subsection IN section.objects %]
+              <div class="source">
           		  <input id="select_[% subsection.id %]" name="[% section.type %]//[% section.system %]//DO_[% subsection.object %]" type="checkbox" [% IF subsection.rows.size %]checked="1"[% END %] />
-                    <span class="checkboxLabel">[% subsection.object %]</span>
-         	        </div>
-              [% END %]
+                <span class="checkboxLabel">[% subsection.object %]</span>
+     	        </div>
+            [% END %]
         		  <input type="submit" value="Update" style="float: left; clear: left;"/>
       		  <div class="cleaner">&nbsp;</div>
     	    </div>
@@ -65,7 +66,9 @@ META naked = 1;
           </tr>
     			[% FOREACH row IN subsection.rows %]
   			  <tr>
-  			    <td class="graphics" valign="center" nowrap="nowrap"><p class="featuresLabel" id="featuresLabel[% i %]">[% row.server %]</p></td>
+  			    <td class="graphicsLabel">
+  			      <p class="featuresLabel" id="featuresLabel[% i %]">[% row.server %]</p>
+            </td>
     				<td class="graphics">
               <map name="featuresMap[% i %]" id="featuresMap[% i %]">
                 [% row.map %]
@@ -92,15 +95,28 @@ META naked = 1;
 
 <script type="text/javascript">
   // <![CDATA[
+
+  // move the cursor when the mouse moves and re-initialise it on window resizes 
+  Event.observe( "featuresMap", "mousemove", moveCursor );
+  Event.observe( window, "resize", initialiseCursor );
+  
+  // set the cursor as "uninitialised" when this page loads, so that it gets
+  // initialised after an update
+  cursorInitialised = false;
+
+  // add mouseover listeners to all features
   var areas = $("featuresMap").getElementsByTagName( "area" );
   $A( areas ).each( function( area ) {
 	  Event.observe( area, "mouseover", highlightFeature );
     }
   );
-  Event.observe( "featuresMap", "mousemove", moveCursor );
+  
+  // move the highlight div according to mouseovers on features
   Event.observe( "highlight",   "mousemove", moveCursor );
   Event.observe( "highlight",   "mouseout",  unhighlight ); 
   Event.observe( "highlight",   "click",     openHighlightURL );
+
+  // initialise the reusable tooltip
   ht = new YAHOO.widget.Tooltip( "highlightTip", { context: "highlight" } );
   // ]]>
 </script>
