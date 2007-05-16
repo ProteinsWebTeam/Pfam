@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.4 2007-05-09 13:16:41 jt6 Exp $
+# $Id: sequence.tt,v 1.5 2007-05-16 14:48:54 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -28,6 +28,35 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     <h1>Sequence search</h1>
   </div>
   <div class="blockContent">
+
+    <p>
+      Find Pfam families within your sequence of interest.
+      <span class="link" onclick="reveal(this,'seqNotes',false, true)">More...</span>
+    </p>
+
+    <div id="seqNotes" style="display: none">
+      <p>
+        Paste your plain sequence into the box below. 
+      </p>
+      <p>
+        You can choose to search using either or both of the HMMs that we 
+        produce for each family. Choose <em>Global</em> to search against the 
+        HMM that is optimised to look for full length families, or 
+        <em>Fragment</em> to search against the HMM that is optimised to find 
+        fragments of Pfam families in a sequence. Choose <em>Both</em> to 
+        search both HMMs, but please note that will increase the search time. 
+      </p>
+      <p>
+        The default threshold for the HMM search is the <em>gathering 
+          threshold</em> for each HMM but you can also give an 
+        <em>E-value</em>, which will be used as the search cut-off.
+      </p>
+      <p>
+        By default the search will only look for Pfam A families on your 
+        sequence but, by checking the box below, you can also search for 
+        Pfam Bs.
+      </p>
+    </div>
 
     <div class="formWrapper">
 

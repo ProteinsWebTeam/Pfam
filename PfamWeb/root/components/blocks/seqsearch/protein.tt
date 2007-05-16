@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.8 2007-05-08 16:07:35 jt6 Exp $
+# $Id: protein.tt,v 1.9 2007-05-16 14:48:54 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,9 +19,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 #-------------------------------------------------------------------------------
 
-# tell "icons.tt" to disable the icons for this set of pages
-iconsDisabled = 1;
-
 %]
 
 <!-- start protein search block -->
@@ -31,6 +28,19 @@ iconsDisabled = 1;
     <h1>Protein name or sequence search</h1>
   </div>
   <div class="blockContent">
+    
+    <p>
+      Find information about a specific UniProt sequence entry.
+      <span class="link" onclick="reveal(this,'pNotes',false, true)">More...</span>
+    </p>
+
+    <div id="pNotes" style="display: none">
+      <p>
+        You can enter either a UniProt accession or identifier. The search is 
+        case insensitive.
+      </p>
+    </div>
+
 
     <div class="formWrapper">
   

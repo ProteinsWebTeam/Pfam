@@ -1,0 +1,82 @@
+
+[%
+# funshift.tt
+# jt6 20070515 WTSI
+# 
+# build the function similarity search tab
+#
+# $Id: funshift.tt,v 1.1 2007-05-16 14:48:54 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# using styles from the help pages, plus the common styles for forms
+requirements.css.push( "help.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<!-- start funshift search block -->
+
+<div class="block" id="searchFunshiftBlock">
+  <div class="handle">
+    <h1>Functional similarity search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Search for Pfam families which are functionally similar to a specified
+      Pfam family.
+      <span class="link" onclick="reveal(this,'fsNotes',false, true)">More...</span>
+    </p>
+
+    <div id="fsNotes" style="display: none">
+      <p>
+        You can enter either an accession or an identifier for a Pfam
+        family. The search is case insensitive.
+      </p>
+      <p>
+        We calculate functional similarity using the method described 
+        <a href="http://www.biomedcentral.com/1471-2105/7/302/abstract">here</a>.
+        We currently apply an arbitrary cut-off of <strong>0.75</strong> to
+        the similarity score, to avoid generating excessive volumes of results.
+      </p>
+    </div>
+
+    <div class="formWrapper">
+
+      <form method="get" 
+            id="funshiftSearchForm"
+            action="[% base %]seqsearch/funshift">
+        <div>
+
+          <span class="row">
+            <label for="unp">Pfam ID or accession</label>
+            <input type="text" size="20" maxlength="40" name="entry" id="fs" />
+          </span>
+
+          <span class="row">
+            <input class="submit"  type="submit" name="submit" value="Submit" />
+            <input class="reset"   type="reset"  name="reset"  value="Reset" />
+            <input class="example" type="button" value="Example" onclick="$('fs').value=exFs" />
+          </span>
+
+        </div>
+      </form>
+        
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var exFs = "glyco_hydro_16";
+  // ]]>
+</script>
+
+<!-- end funshift search block -->

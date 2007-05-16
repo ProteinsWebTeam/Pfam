@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.1 2006-11-13 14:45:17 jt6 Exp $
+# $Id: dna.tt,v 1.2 2007-05-16 14:48:54 jt6 Exp $
 %]
 
 <!-- start dna search block -->
@@ -16,8 +16,11 @@
   </div>
   <div class="blockContent">
 
-	<h2>Search fields here</h2>
-
+  	<p>
+  	  This search tool is under review and may not be implemented in this 
+      release of the Pfam website.
+    </p>
+  
   </div>
 </div>
 
