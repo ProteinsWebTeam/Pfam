@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.18 2007-05-01 20:57:15 jt6 Exp $
+# $Id: header.tt,v 1.19 2007-05-16 14:53:24 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -14,16 +14,14 @@ navNames = {
   ftp    = "FTP",
   help   = "HELP" };
 
-# only run uri_for once...
-#base = c.uri_for( "/" );
-
 # the URIs for the links
 navLinks = {
   home   = base,
-  search = "${base}/seqsearch",
-  browse = "${base}/browseIndex",
-  ftp    = "${base}/help?tab=helpFtpBlock",
-  help   = "${base}/help" };
+  search = "${base}seqsearch",
+  browse = "${base}browseIndex",
+  ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/Pfam/",
+#  ftp    = "${base}help?tab=helpFtpBlock",
+  help   = "${base}help" };
 
 # the order of the items in the navbar - these are the keys for the two
 # hashes above
@@ -53,15 +51,15 @@ navItems = [ "home", "search", "browse", "ftp", "help" ];
     <a href="http://www.sanger.ac.uk/">
       <img alt="Wellcome Trust Sanger Institute" 
            id="siteLogo" 
-           src="[% base %]/images/blank.gif" /></a>
+           src="[% base %]images/blank.gif" /></a>
   </div>
 
   <div id="pfamLogoHolder" class="column">
     <a href="[% base %]">
       <img alt="Pfam" 
            id="pfamLogo" 
-           src="[% base %]/images/blank.gif" /></a>
-    <form action="[% c.uri_for( "/search" ) %]" 
+           src="[% base %]images/blank.gif" /></a>
+    <form action="[% base %]search" 
           method="get" 
           id="siteSearchForm">
       <div id="searchBox">
