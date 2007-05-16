@@ -4,7 +4,7 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.5 2007-05-01 21:07:47 jt6 Exp $
+# $Id: domain.tt,v 1.6 2007-05-16 14:48:54 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -37,6 +37,30 @@ pageList = BLOCK %]
     <h1>Domain search</h1>
   </div>
   <div class="blockContent">
+
+    <p>
+      Search for sequence architectures with the specified composition.
+      <span class="link" onclick="reveal(this,'dsNotes',false, true)">More...</span>
+    </p>
+
+    <div id="dsNotes" style="display: none">
+      <p>
+        You can specify one or more domains that <strong>must</strong> appear 
+        in an architecture and one or more domains that must 
+        <strong>not</strong> appear in the result architectures:
+      </p>
+      <ol>
+        <li>choose a group of families or the first letter of the family ID
+          from the list below</li>
+        <li>in the left-most list, select the ID of a domain</li>
+        <li>choose <em>Includes</em> or <em>Does NOT include</em> to add the
+          selected domain to the appropriate list</li>
+        <li>continue until the <em>Includes</em> and <em>Does NOT include</em>
+          lists show all of the domains that you need</li>
+        <li>press <em>Submit query</em> to search for architectures matching
+          your specification</li>
+      </ol>
+    </div>
 
     [% pageList;
 

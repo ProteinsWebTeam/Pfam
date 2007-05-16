@@ -5,7 +5,7 @@
 # 
 # build the keyword search block
 #
-# $Id: keyword.tt,v 1.4 2007-05-01 21:07:47 jt6 Exp $
+# $Id: keyword.tt,v 1.5 2007-05-16 14:48:54 jt6 Exp $
 %]
 
 <!-- start keyword search block -->
@@ -15,6 +15,28 @@
     <h1>Keyword search</h1>
   </div>
   <div class="blockContent">
+
+    <p>
+      Search for keywords within the textual data in the Pfam database.
+      <span class="link" onclick="reveal(this,'kwNotes',false, true)">More...</span>
+    </p>
+
+    <div id="kwNotes" style="display: none">
+      <p>
+        The search currently covers the following sections of the database:
+      </p>
+      <ul>
+        <li>text fields within Pfam entries, such as description and comments</li>
+        <li>sequence description and species fields</li>
+        <li>the HEADER and TITLE records from PDB files</li>
+        <li>Gene ontology (GO) IDs and terms</li>
+        <li>InterPro abstracts</li>
+      </ul>
+      <p>
+        You can perform the same search from anywhere within the Pfam site, using
+        the keyword search box at the top right-hand side of every page.
+      </p> 
+    </div>
 
     <div class="formWrapper">
 
