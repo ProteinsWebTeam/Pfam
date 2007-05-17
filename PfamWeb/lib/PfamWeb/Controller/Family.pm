@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.24 2007-05-16 13:58:02 jt6 Exp $
+# $Id: Family.pm,v 1.25 2007-05-17 13:51:55 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.24 2007-05-16 13:58:02 jt6 Exp $
+$Id: Family.pm,v 1.25 2007-05-17 13:51:55 jt6 Exp $
 
 =cut
 
@@ -202,6 +202,31 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 structureTab : Path
+
+Populates the stash with the mapping and hands off to the appropriate template.
+
+=cut
+
+sub structureTab : Path( "/family/structuretab" )  {
+  my($this, $c) = @_;
+
+  $c->log->debug( "Family::StructureTab::structureTab: acc: |"
+		  . $c->stash->{acc}  . "|" .  $c->stash->{entryType}. "|");
+
+  my @mapping = $c->model("PfamDB::PdbMap")
+                  ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamA,
+                              pfam_region => 1 },
+                            { join        => [ qw/pdb/ ],
+                              prefetch    => [ qw/pdb/ ]
+                            } );
+  $c->stash->{pfamMaps} = \@mapping;
+
+  $c->stash->{template} = "components/blocks/family/structureTab.tt";
+}
+
+#-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -345,25 +370,6 @@ sub _getDbXrefs : Private {
 
   $c->stash->{xrefs} = \%xRefs;
 
-}
-
-#-------------------------------------------------------------------------------
-# retrieves the mapping between Pfam, UniProt and PDB residues
-
-sub _getMapping : Private {
-  my( $this, $c ) = @_;
-
-#  my $region = ($c->stash->{entryType} eq "A") ? "1" : "0";
-#  my $auto_pfam = ($c->stash->{entryType} eq "A") ? $c->stash->{pfam}->auto_pfamA : $c->stash->{pfam}->auto_pfamB;
-
-  my @mapping = $c->model("PfamDB::PdbMap")
-                  ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamA,
-                              pfam_region => 1 },
-                            { join        => [ qw/pdb/ ],
-                              prefetch    => [ qw/pdb/ ]
-                            } );
-
-  $c->stash->{pfamMaps} = \@mapping;
 }
 
 #-------------------------------------------------------------------------------

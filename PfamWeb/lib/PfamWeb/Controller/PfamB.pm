@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.6 2007-05-17 08:35:11 jt6 Exp $
+# $Id: PfamB.pm,v 1.7 2007-05-17 13:51:55 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.6 2007-05-17 08:35:11 jt6 Exp $
+$Id: PfamB.pm,v 1.7 2007-05-17 13:51:55 jt6 Exp $
 
 =cut
 
@@ -88,6 +88,31 @@ sub default : Path {
 
   $c->forward( "_getSummaryData" );
   $c->forward( "_getDbXrefs" );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 structureTab : Path
+
+Populates the stash with the mapping and hands off to the appropriate template.
+
+=cut
+
+sub structureTab : Path( "/pfamb/structuretab" ) {
+  my($this, $c) = @_;
+
+  $c->log->debug( "PfamB::StructureTab::structureTab: acc: |"
+		  . $c->stash->{acc}  . "|" .  $c->stash->{entryType}. "|");
+
+  my @mapping = $c->model("PfamDB::PdbMap")
+                  ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamB,
+                              pfam_region => 0 },
+                            { join        => [ qw/pdb/ ],
+                              prefetch    => [ qw/pdb/ ]
+                            } );
+  $c->stash->{pfamMaps} = \@mapping;
+
+  $c->stash->{template} = "components/blocks/family/structureTab.tt";
 }
 
 #-------------------------------------------------------------------------------
