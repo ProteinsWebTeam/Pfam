@@ -4,7 +4,7 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.6 2007-05-16 14:48:54 jt6 Exp $
+# $Id: domain.tt,v 1.7 2007-05-17 13:48:01 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -40,7 +40,7 @@ pageList = BLOCK %]
 
     <p>
       Search for sequence architectures with the specified composition.
-      <span class="link" onclick="reveal(this,'dsNotes',false, true)">More...</span>
+      <span class="moreLink" onclick="reveal(this,'dsNotes',false, true)">More...</span>
     </p>
 
     <div id="dsNotes" style="display: none">
