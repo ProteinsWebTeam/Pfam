@@ -4,9 +4,10 @@
 # 
 # block for the interactions data for the family section
 #
-# $Id: interactions.tt,v 1.5 2007-05-16 15:02:46 jt6 Exp $
+# $Id: interactions.tt,v 1.6 2007-05-17 16:06:06 jt6 Exp $
 
-RETURN UNLESS summaryData.numInt -%]
+RETURN UNLESS summaryData.numInt;
+-%]
 
 <!-- start interactions block -->
 
@@ -19,10 +20,9 @@ RETURN UNLESS summaryData.numInt -%]
     <p>
       There [%- summaryData.numInt > 1 ? "are " : "is "; summaryData.numInt %]
       interaction[% summaryData.numInt > 1 ? "s" : "" %] for this family.
-     </p>
+    </p>
 
   </div>
-
 </div>
 
 <!-- end interactions block -->
