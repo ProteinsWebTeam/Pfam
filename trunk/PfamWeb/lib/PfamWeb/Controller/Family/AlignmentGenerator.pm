@@ -2,7 +2,7 @@
 # AlignmentGenerator.pm
 # jt6 20060601 WTSI
 #
-# $Id: AlignmentGenerator.pm,v 1.13 2007-03-15 14:06:10 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.14 2007-05-17 08:30:40 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::AlignmentGenerator;
 
 Various methods for viewing alignments.
 
-$Id: AlignmentGenerator.pm,v 1.13 2007-03-15 14:06:10 jt6 Exp $
+$Id: AlignmentGenerator.pm,v 1.14 2007-05-17 08:30:40 jt6 Exp $
 
 =cut
 
@@ -55,27 +55,30 @@ sub default : Path {
   # retrieve the DasLite client from the base model class and hand it
   # the list of DSNs
   my $dl = $c->model("PfamDB")->getDasLite;
-  if($c->req->param("alnType") and $c->req->param("alnType") eq "seed"){
+  if( $c->req->param("alnType") and $c->req->param("alnType") eq "seed" ) {
     $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamSeedAlign| ] );
-  }else{
+  } else {
     $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamFullAlign| ] )
   }
   # get the limits from the parameters
   my $rows;
   ( $rows ) = $c->req->param( "range" ) =~ m/^(\d+\-\d+)$/
-	if defined $c->req->param( "range" );
+    if defined $c->req->param( "range" );
 
   unless( defined $rows ) {
-	$c->log->debug( "AlignmentGenerator::default: rows undefined; calculating from start and end" );
-
-	my( $start, $end );
-	( $start ) = $c->req->param( "start" ) =~ m/^(\d+)$/ if defined $c->req->param( "start" );
-	( $end   ) = $c->req->param( "end"   ) =~ m/^(\d+)$/ if defined $c->req->param( "end" );
-
-	$rows = $start . "-" . $end if( defined $start and defined $end );
+    $c->log->debug( "AlignmentGenerator::default: rows undefined; calculating from start and end" );
+  
+    my( $start, $end );
+    ( $start ) = $c->req->param( "start" ) =~ m/^(\d+)$/
+      if defined $c->req->param( "start" );
+    ( $end   ) = $c->req->param( "end"   ) =~ m/^(\d+)$/
+      if defined $c->req->param( "end" );
+  
+    $rows = $start . "-" . $end if( defined $start and defined $end );
   }
 
-  $rows = $this->{defaultRows} unless( defined $rows && $rows =~ /^\d+\-\d+$/ );
+  $rows = $this->{defaultRows}
+    unless( defined $rows && $rows =~ /^\d+\-\d+$/ );
   $c->log->debug( "AlignmentGenerator::default: rows finally set to: |$rows|" );
 
   # store the start and end of the range
@@ -85,23 +88,24 @@ sub default : Path {
 
   # store the scroll position
   if ( defined $c->req->param( "scrollValue" ) ) {
-	$c->req->param( "scrollValue" ) =~ /^(\d+)$/;
-	$c->stash->{scroll} = $1;
-	$c->log->debug( "AlignmentGenerator::default: set scroll value to |"
-					. $c->stash->{scroll} . "|" );
+    $c->req->param( "scrollValue" ) =~ /^(\d+)$/;
+    $c->stash->{scroll} = $1;
+    $c->log->debug( "AlignmentGenerator::default: set scroll value to |"
+                    . $c->stash->{scroll} . "|" );
   }
 
   my $rawAlignment = $dl->alignment( { query => $c->stash->{acc},
-				       rows  => $rows} );
-  my $features     = $dl->features( $c->stash->{acc});
+                                       rows  => $rows} );
+  my $features     = $dl->features( $c->stash->{acc} );
   my $consensus    = Bio::Pfam::ColourAlign::parseConsensus( getConsensus( $features ) );
-  #$c->log->debug( "rawAlignment: " . dump $rawAlignment );
+  $c->log->debug( "rawAlignment: " . dump $rawAlignment );
+  $c->log->debug( "features:     " . dump $features );
 
   my( $alignments, $alignmentLengths ) = reconstructAli( $rawAlignment );
   my @markedUpAlignments;
   foreach my $alignment ( @$alignments ) {
- 	push @markedUpAlignments,
-	  Bio::Pfam::ColourAlign::markupAlignSeparate( $alignment, $consensus );
+    push @markedUpAlignments, 
+      Bio::Pfam::ColourAlign::markupAlignSeparate( $alignment, $consensus );
   }
 
   $c->stash->{alignments}->{alignments} = \@markedUpAlignments;
@@ -159,29 +163,26 @@ sub reconstructAli {
 
   my( @alignments, @alignmentLengths );
 
-  for (my $i = 0; $i < scalar(@$aliData); $i++) {
-	my %aliObjects = 
-	  map{ $_->{alignobject_intObjectId} => $_ } @{ $aliData->[$i]->{alignobject} };
-
-	push @alignmentLengths, $aliData->[$i]->{alignment_max};
-
-	foreach my $block ( sort { $a->{block_blockOrder} <=> $b->{block_blockOrder} }
-						@{$aliData->[$i]->{block} } ) {
-	  my %ali;
-	  foreach my $bseqRef (@{ $block->{segment} } ) {
-
-		my $key = $bseqRef->{segment_intObjectId}
-		  . "/" . $bseqRef->{segment_start}
-		  . "-" . $bseqRef->{segment_end};
-
-		$ali{$key} = &getAliString($bseqRef, \%aliObjects);
-
-	  }
-
-	  push @alignments, \%ali;
-	}
+  for( my $i = 0; $i < scalar(@$aliData); $i++ ) {
+    my %aliObjects = 
+      map{ $_->{alignobject_intObjectId} => $_ } @{ $aliData->[$i]->{alignobject} };
+  
+    push @alignmentLengths, $aliData->[$i]->{alignment_max};
+  
+    foreach my $block ( sort { $a->{block_blockOrder} <=> $b->{block_blockOrder} }
+                             @{$aliData->[$i]->{block} } ) {
+      my %ali;
+      foreach my $bseqRef (@{ $block->{segment} } ) {
+  
+        my $key = $bseqRef->{segment_intObjectId} . "/" . 
+                  $bseqRef->{segment_start}       . "-" . 
+                  $bseqRef->{segment_end};
+    
+        $ali{$key} = &getAliString($bseqRef, \%aliObjects);
+      }
+      push @alignments, \%ali;
+    }
   }
-
   return \@alignments, \@alignmentLengths;
 }
 
@@ -194,8 +195,8 @@ sub getAliString{
   my $seqStr = $aliObjectsRef->{ $bseqRef->{segment_intObjectId} }->{sequence};
 
   my $seq = substr( $seqStr,
-					$bseqRef->{segment_start} - 1,
-					$bseqRef->{segment_end} - $bseqRef->{segment_start} + 1 );
+                    $bseqRef->{segment_start} - 1,
+                    $bseqRef->{segment_end} - $bseqRef->{segment_start} + 1 );
 
   my $aliString = cigar2align( $bseqRef->{cigar}, $seq );
 
