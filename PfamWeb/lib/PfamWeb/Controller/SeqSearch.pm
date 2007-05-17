@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.14 2007-05-09 13:16:41 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.15 2007-05-17 08:36:10 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.14 2007-05-09 13:16:41 jt6 Exp $
+$Id: SeqSearch.pm,v 1.15 2007-05-17 08:36:10 jt6 Exp $
 
 =cut
 
@@ -28,6 +28,7 @@ use JSON;
 use Scalar::Util qw( looks_like_number );
 use Data::UUID;
 use Storable qw(thaw);
+use Sanger::Graphics::ColourMap;
 
 use Data::Dump qw(dump );
 
@@ -51,6 +52,9 @@ sub begin : Private {
 
   # tell the navbar where we are
   $c->stash->{nav} = "search";
+  
+  # tell the layout template to disable the summary icons
+  $c->stash->{iconsDisabled} = 1;
 
   # if there's no query parameter, we're done here; drop straight to the 
   # template that will render the search forms
@@ -73,22 +77,7 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
-
-=head2 index : Private
-
-Generates the default search page.
-
-=cut
-
-sub default : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "SeqSearch::default: captured a URL" );
-
-  # don't do anything; the template is set by Section.pm, according to the value
-  # of SECTION in the config.
-}
-
+#- exposed actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 batch : Local
@@ -101,6 +90,67 @@ sub batch : Local {
   my( $this, $c ) = @_;
 
   $c->log->debug( "SeqSearch::domain: executing a batch search" );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 funshift : Local
+
+Executes a functional similarity search.
+
+=cut
+
+sub funshift : Local {
+  my( $this, $c ) = @_;
+
+  return unless $c->req->param( "entry" ) =~ m/^([\w_-]+)$/;
+  $c->log->debug( "SeqSearch::funshift: executing a functional similarity search for |$1|" );
+
+  # check for an accession or an ID
+  if( $c->req->param( "entry" ) =~ /^(PF\d{5})$/i ) {
+
+    $c->log->debug( "SeqSearch::funshift: might be a Pfam accession" );
+    $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+
+  } elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
+
+    $c->log->debug( "SeqSearch::funshift: might be a Pfam accession" );
+    $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } );
+
+  } else {
+    
+    $c->log->debug( "SeqSearch::funshift: can't figure out whether it's an ID or acc" );
+    return;
+    
+  }
+  
+  # make sure the query actually found an entry
+  if( not defined $c->stash->{pfam} ) {
+    $c->log->debug( "SeqSearch::funshift: can't find a Pfam family |$1|" );
+    return;
+  }
+  
+  # yes; now do the funshift search
+  my @fs = $c->model("PfamDB::Funshift")
+             ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA,
+                         auto_pfamA_B => { '!=' => $c->stash->{pfam}->auto_pfamA },
+                         rfunSim      => { '>'  => 0.75 } },
+                       { join     => [ qw/ pfam clan / ],
+                         prefetch => [ qw/ pfam clan / ], 
+                         order_by => "rfunSim DESC" } );
+
+  $c->log->debug( "SeqSearch::funshift: found |" . scalar @fs . "| rows" );
+  
+  # stash the results
+  $c->stash->{results} = \@fs;
+
+  # generate a gradient for this many rows
+  my $cm = new Sanger::Graphics::ColourMap;
+  my @grad = $cm->build_linear_gradient( scalar @fs, "008000", "C00000" );
+  
+  # and stash the gradient  
+  $c->stash->{gradient} = \@grad;
+  $c->stash->{template} = "pages/fsResults.tt";
 }
 
 #-------------------------------------------------------------------------------
@@ -275,217 +325,10 @@ sub seq : Local {
 
 #-------------------------------------------------------------------------------
 
-=head2 parseSequence : Private
-
-Parses the sequence supplied by the CGI parameter "seq". Returns the sequence
-as a single string if it's parsed successfully, or the empty string if there
-was a problem parsing or if the final sequence contains a character other than
-[A-Za-z].
-
-=cut
-
-sub parseSequence : Private {
-  my( $this, $c ) = @_;
-
-  return unless defined $c->req->param( "seq" );
-  
-  my @seqs = split /\n/, $c->req->param( "seq" );
-  shift @seqs if $seqs[0] =~ /^\>/;
-  my $seq = uc( join "", @seqs );
-  $seq =~ s/[\s\r]+//g;
-
-  $c->log->debug( "SeqSearch::parseSequence: parsed sequence: |$seq|" );
-  return ( $seq =~ /^[A-Z]+$/ ) ? $seq : "";
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 queueSeqSearch : Private
-
-Executes a protein sequence search.
-
-=cut
-
-sub queueSeqSearch : Private {
-  my( $this, $c ) = @_;
-
-  # calculate the MD5 checksum for the sequence we've been handed and see if
-  # we've already seen that one
-  $c->stash->{md5} = md5_hex( uc( $c->stash->{seq} ) );
-  $c->log->debug( "SeqSearch::queueSeqSearch: MD5 for user sequence is: |"
-                  . $c->stash->{md5}."|" );
-
-  my $found = $c->model("PfamDB::Pfamseq")
-                ->find( { md5 => $c->stash->{md5} } );
-
-  # yes; no need to search
-  if( $found ) {
-
-    $c->log->debug( "SeqSearch::queueuSeqSearch: we've seen this sequence before" );
-    return 1;
-
-    #get storable for sequence based on md5
-    #Select regions out of database based on input i.e. take care of evalue
-    #Produce same XML result a script that runs on pvm cluster
-    #insert into database
-  }
-
-  # no; we need to search the sequence
-
-  # first, check there's room in the queue
-  my $rs = $c->model( "WebUser::JobHistory" )
-             ->find( { status => "PEND" },
-                     { select => [ { count => "status" } ],
-                       as     => [ "numberPending" ] } );
-
-  $c->stash->{numberPending} = $rs->get_column( "numberPending" );
-  $c->log->debug(   "SeqSearch::queueSeqSearch: |" . $c->stash->{numberPending}
-                  . "| jobs pending" );
-
-  if( $c->stash->{numberPending} > $this->{pendingLimit} ) {
-    $c->log->debug( "SeqSearch::queueSeqSearch: too many jobs in queue ("
-                    . $c->stash->{numberPending} . ")" );
-    $c->stash->{seqSearchError} = "There are currently too many jobs in the sequence search queue. Please try again in a little while.";
-    return -1;
-  }
-
-  # ok. There's room on the queue, so we can submit the hmmer job and the blast job
-
-  my @jobs; 
-  push @jobs, $c->forward( "queuePfamA" );
-  if( $c->req->param( "searchBs" ) ) {
-    push @jobs, $c->forward( "queuePfamB" );
-  }
-  
-  # build a job status data structure that we'll convert to JSON and hand back
-  # to the javascript on the client side
-  my $jobStatus = {
-                    checkURI => $c->uri_for( "/seqsearch/checkstatus" )->as_string,
-                    doneURI  => $c->uri_for( "/seqsearch/jobDone" )->as_string,
-                    jobs     => \@jobs,
-                  };
-
-  $c->log->debug( dump( $jobStatus ) );
-  $c->stash->{jobStatus} = objToJson( $jobStatus );
-  $c->log->debug( "json string: |" . $c->stash->{jobStatus} . "|" );
-  return 0;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 queuePfamA : Private
-
-Submits a pfam A search
-
-=cut
-
-sub queuePfamA : Private {
-  my( $this, $c ) = @_;
-
-  # make a guess at the runtime for the job
-  my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
-  $c->log->debug( "SeqSearch::queuePfamA: estimated search time: "
-                  . "|$estimatedTime| seconds" );
-
-  # generate a job ID
-  my $jobId = Data::UUID->new()->create_str();
-
-  # build the command to run
-  my $cmd = "/home/pfamweb/scripts/pfam_scan.pl -pvm -d /data/blastdb/Pfam/data";
-  $cmd .= " --mode " . $c->stash->{seqOpts} if $c->stash->{seqOpts} ne "both";
-  $cmd .= " -e " . $c->stash->{evalue}      if $c->stash->{evalue} && !$c->stash->{ga};
-  $cmd .= " --overlap "                     if $c->stash->{showOverlap};
-  $cmd .= " /tmp/$jobId.fa";
-
-  # add this job to the tracking table
-  my $resultHistory = $c->model('WebUser::JobHistory')
-                        ->create( { command        => $cmd,
-                                    priority       => "hmmer",
-                                    estimated_time => $estimatedTime,
-                                    job_id         => $jobId,
-                                    opened         => \'NOW()',
-                                    status         => 'PEND' } );
-
-  my $resultStream = $c->model('WebUser::JobStream')
-                       ->create( { id    => $resultHistory->id,
-                                   stdin => $c->stash->{seq} || q() } );
-
-  # check the submission time with a separate query
-  my $historyRow = $c->model( "WebUser::JobHistory" )
-                     ->find( { id => $resultHistory->id } );
-
-  # build a job status data structure that we'll convert to JSON and hand back
-  # to the javascript on the client side
-  my $jobStatus = {
-                    estimatedTime => $estimatedTime,
-                    interval      => $this->{pollingInterval},
-                    jobId         => $jobId,
-                    name          => 'Pfam A search',
-                    jobClass      => 'pfamASearch',
-                    opened        => $historyRow->opened,
-                  };
-  return $jobStatus;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 queuePfamB : Private
-
-Submits a pfam B search
-
-=cut
-
-sub queuePfamB : Private {
-  my( $this, $c ) = @_;
-
-  # make a guess at the runtime for the job
-  my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
-  $c->log->debug( "SeqSearch::queuePfamB: estimated search time: "
-                  . "|$estimatedTime| seconds" );
-
-  # generate a job ID
-  my $jobId = Data::UUID->new()->create_str();
-
-  # build the command to run
-  my $cmd = "/data/bin/wublastp /data/blastdb/Pfam/data/Pfam-B.fasta";
-  $cmd .= " /tmp/$jobId.fa";
-  $cmd .= " -cpus 2 -gapE=2000 -T=12";
-
-  # add this job to the tracking table
-  my $resultHistory = $c->model('WebUser::JobHistory')
-                        ->create( { command        => $cmd,
-                                    priority       => "fast",
-                                    estimated_time => $estimatedTime,
-                                    job_id         => $jobId,
-                                    opened         => \'NOW()',
-                                    status         => 'PEND' } );
-
-  my $resultStream = $c->model('WebUser::JobStream')
-                       ->create( { id    => $resultHistory->id,
-                                   stdin => $c->stash->{seq} || q() } );
-
-  # check the submission time with a separate query
-  my $historyRow = $c->model( "WebUser::JobHistory" )
-                     ->find( { id => $resultHistory->id } );
-
-  # build a job status data structure that we'll convert to JSON and hand back
-  # to the javascript on the client side
-  my $jobStatus = {
-                    estimatedTime => $estimatedTime,
-                    interval      => $this->{pollingInterval},
-                    jobId         => $jobId,
-                    name          => 'Pfam B search',
-                    jobClass      => 'pfamBSearch',
-                    opened        => $historyRow->opened,
-                  };
-  return $jobStatus;
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 checkStatus : Local
 
-Checks the status of the specified job and returns it as a plain text response.
+Returns the status of the specified job. Used by the javascript that polls for
+the status via XMLHttpRequest calls.
 
 =cut
 
@@ -569,10 +412,225 @@ sub checkStatus : Local {
 }
 
 #-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-=head2 returnStatus: Local
+=head2 parseSequence : Private
 
+Parses the sequence supplied by the CGI parameter "seq". Returns the sequence
+as a single string if it's parsed successfully, or the empty string if there
+was a problem parsing or if the final sequence contains a character other than
+[A-Za-z].
 
+=cut
+
+sub parseSequence : Private {
+  my( $this, $c ) = @_;
+
+  return unless defined $c->req->param( "seq" );
+  
+  my @seqs = split /\n/, $c->req->param( "seq" );
+  shift @seqs if $seqs[0] =~ /^\>/;
+  my $seq = uc( join "", @seqs );
+  $seq =~ s/[\s\r]+//g;
+
+  $c->log->debug( "SeqSearch::parseSequence: parsed sequence: |$seq|" );
+  return ( $seq =~ /^[A-Z]+$/ ) ? $seq : "";
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 queueSeqSearch : Private
+
+Executes a protein sequence search. Queues a Pfam A search to one queue
+and, if the appropriate box was checked in the submission form, a Pfam B search
+to another queue.
+
+=cut
+
+sub queueSeqSearch : Private {
+  my( $this, $c ) = @_;
+
+  # calculate the MD5 checksum for the sequence we've been handed and see if
+  # we've already seen that one
+  $c->stash->{md5} = md5_hex( uc( $c->stash->{seq} ) );
+  $c->log->debug( "SeqSearch::queueSeqSearch: MD5 for user sequence is: |"
+                  . $c->stash->{md5}."|" );
+
+  my $found = $c->model("PfamDB::Pfamseq")
+                ->find( { md5 => $c->stash->{md5} } );
+
+  # yes; no need to search
+  if( $found ) {
+
+    $c->log->debug( "SeqSearch::queueuSeqSearch: we've seen this sequence before" );
+    return 1;
+
+    #get storable for sequence based on md5
+    #Select regions out of database based on input i.e. take care of evalue
+    #Produce same XML result a script that runs on pvm cluster
+    #insert into database
+  }
+
+  # no; we need to search the sequence
+
+  # first, check there's room in the queue
+  my $rs = $c->model( "WebUser::JobHistory" )
+             ->find( { status => "PEND" },
+                     { select => [ { count => "status" } ],
+                       as     => [ "numberPending" ] } );
+
+  $c->stash->{numberPending} = $rs->get_column( "numberPending" );
+  $c->log->debug(   "SeqSearch::queueSeqSearch: |" . $c->stash->{numberPending}
+                  . "| jobs pending" );
+
+  if( $c->stash->{numberPending} > $this->{pendingLimit} ) {
+    $c->log->debug( "SeqSearch::queueSeqSearch: too many jobs in queue ("
+                    . $c->stash->{numberPending} . ")" );
+    $c->stash->{seqSearchError} = "There are currently too many jobs in the sequence search queue. Please try again in a little while.";
+    return -1;
+  }
+
+  # ok. There's room on the queue, so we can submit the hmmer job and the blast job
+
+  my @jobs; 
+  push @jobs, $c->forward( "queuePfamA" );
+  if( $c->req->param( "searchBs" ) ) {
+    push @jobs, $c->forward( "queuePfamB" );
+  }
+  
+  # build a job status data structure that we'll convert to JSON and hand back
+  # to the javascript on the client side
+  my $jobStatus = {
+                    checkURI => $c->uri_for( "/seqsearch/checkstatus" )->as_string,
+                    doneURI  => $c->uri_for( "/seqsearch/jobDone" )->as_string,
+                    jobs     => \@jobs,
+                  };
+
+  $c->log->debug( dump( $jobStatus ) );
+  $c->stash->{jobStatus} = objToJson( $jobStatus );
+  $c->log->debug( "json string: |" . $c->stash->{jobStatus} . "|" );
+  return 0;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 queuePfamA : Private
+
+Submits a pfam A search.
+
+=cut
+
+sub queuePfamA : Private {
+  my( $this, $c ) = @_;
+
+  # make a guess at the runtime for the job
+  my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
+  $c->log->debug( "SeqSearch::queuePfamA: estimated search time: "
+                  . "|$estimatedTime| seconds" );
+
+  # generate a job ID
+  my $jobId = Data::UUID->new()->create_str();
+
+  # build the command to run
+  my $cmd = "/home/pfamweb/scripts/pfam_scan.pl -pvm -d /data/blastdb/Pfam/data";
+  $cmd .= " --mode " . $c->stash->{seqOpts} if $c->stash->{seqOpts} ne "both";
+  $cmd .= " -e " . $c->stash->{evalue}      if $c->stash->{evalue} && !$c->stash->{ga};
+  $cmd .= " --overlap "                     if $c->stash->{showOverlap};
+  $cmd .= " /tmp/$jobId.fa";
+
+  # add this job to the tracking table
+  my $resultHistory = $c->model('WebUser::JobHistory')
+                        ->create( { command        => $cmd,
+                                    priority       => "hmmer",
+                                    estimated_time => $estimatedTime,
+                                    job_id         => $jobId,
+                                    opened         => \'NOW()',
+                                    status         => 'PEND' } );
+
+  my $resultStream = $c->model('WebUser::JobStream')
+                       ->create( { id    => $resultHistory->id,
+                                   stdin => $c->stash->{seq} || q() } );
+
+  # check the submission time with a separate query
+  my $historyRow = $c->model( "WebUser::JobHistory" )
+                     ->find( { id => $resultHistory->id } );
+
+  # build a job status data structure that we'll convert to JSON and hand back
+  # to the javascript on the client side
+  my $jobStatus = {
+                    estimatedTime => $estimatedTime,
+                    interval      => $this->{pollingInterval},
+                    jobId         => $jobId,
+                    name          => 'Pfam A search',
+                    jobClass      => 'pfamASearch',
+                    opened        => $historyRow->opened,
+                  };
+  return $jobStatus;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 queuePfamB : Private
+
+Submits a pfam B search.
+
+=cut
+
+sub queuePfamB : Private {
+  my( $this, $c ) = @_;
+
+  # make a guess at the runtime for the job
+  my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
+  $c->log->debug( "SeqSearch::queuePfamB: estimated search time: "
+                  . "|$estimatedTime| seconds" );
+
+  # generate a job ID
+  my $jobId = Data::UUID->new()->create_str();
+
+  # build the command to run
+  my $cmd = "/data/bin/wublastp /data/blastdb/Pfam/data/Pfam-B.fasta";
+  $cmd .= " /tmp/$jobId.fa";
+  $cmd .= " -cpus 2 -gapE=2000 -T=12";
+
+  # add this job to the tracking table
+  my $resultHistory = $c->model('WebUser::JobHistory')
+                        ->create( { command        => $cmd,
+                                    priority       => "fast",
+                                    estimated_time => $estimatedTime,
+                                    job_id         => $jobId,
+                                    opened         => \'NOW()',
+                                    status         => 'PEND' } );
+
+  my $resultStream = $c->model('WebUser::JobStream')
+                       ->create( { id    => $resultHistory->id,
+                                   stdin => $c->stash->{seq} || q() } );
+
+  # check the submission time with a separate query
+  my $historyRow = $c->model( "WebUser::JobHistory" )
+                     ->find( { id => $resultHistory->id } );
+
+  # build a job status data structure that we'll convert to JSON and hand back
+  # to the javascript on the client side
+  my $jobStatus = {
+                    estimatedTime => $estimatedTime,
+                    interval      => $this->{pollingInterval},
+                    jobId         => $jobId,
+                    name          => 'Pfam B search',
+                    jobClass      => 'pfamBSearch',
+                    opened        => $historyRow->opened,
+                  };
+  return $jobStatus;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 returnStatus : Local
+
+Returns the status of a polled job as a JSON snippet. Short-circuits the default
+end action because we're adding content directly to the response body. We also
+take care to set apropriate headers to avoid this response being cached on the
+client side.
 
 =cut
 
@@ -638,7 +696,8 @@ sub jobDone : Local {
 
 =head2 handleResults : Private
 
-Do something interesting with job results.
+Do something interesting with job results. This is where we would mess with the
+results of the searches and generate some useful graphics for the user.
 
 =cut
 
