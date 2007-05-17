@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.46 2007-05-16 15:29:06 jt6 Exp $
+   $Id: pfam.css,v 1.47 2007-05-17 13:51:09 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -390,10 +390,9 @@ table.details th {
 }
 
 table.details td {
-  text-align: left;
   vertical-align: middle;
   padding: 0.2em;
-  width: 30em;
+  text-align: center;
 }
 
 table.details td.label {
@@ -439,6 +438,12 @@ tr.continuation {
 
 td.left {
   text-align: left !important;
+}
+
+/* different flavours of details table... stop me when it's getting ridiculous */
+table.links td {
+  width: 30em;
+  text-align: left;
 }
 
 /* ======================================== */
@@ -718,6 +723,13 @@ span.clanMember {
   color: #074987;
 }
 
+.moreLink {
+  cursor: pointer;
+  text-decoration: none;
+  color: #074987;
+  font-weight: bold;
+}
+
 /* ---------------------------------------- */
 /* tooltip styles */
 
@@ -873,23 +885,27 @@ ul.mirrors li {
   padding: 0.2em 0 ! important;
 }
 
-a.mirror {
+.flag {
+  padding-left: 14px;
+}
+
+.mirror {
   padding-left: 14px;
   background-position: left;
   background-repeat: no-repeat;
 }
 
 /* the national flags */
-a.us {
+.us {
   background-image: url(/catalyst/pfam/images/flags/american_flag.gif);
 }
-a.se {
+.se {
   background-image: url(/catalyst/pfam/images/flags/swedish_flag.gif);
 }
-a.kr {
+.kr {
   background-image: url(/catalyst/pfam/images/flags/south_korea.gif);
 }
-a.fr {
+.fr {
   background-image: url(/catalyst/pfam/images/flags/french_flag.gif);
 }
 
