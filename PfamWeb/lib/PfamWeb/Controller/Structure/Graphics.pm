@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060710 WTSI
 #
-# $Id: Graphics.pm,v 1.4 2007-03-15 14:06:15 jt6 Exp $
+# $Id: Graphics.pm,v 1.5 2007-05-17 08:33:59 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ sequence - used in the structure section, confusingly.
 
 Generates a B<page component>.
 
-$Id: Graphics.pm,v 1.4 2007-03-15 14:06:15 jt6 Exp $
+$Id: Graphics.pm,v 1.5 2007-05-17 08:33:59 jt6 Exp $
 
 =cut
 
@@ -48,7 +48,7 @@ sub begin : Private {
   my( $this, $c ) = @_;
 
   $c->log->warn( "$this: no IDs" ) and return
-	unless defined $c->req->param("ids");
+  	unless defined $c->req->param("ids");
 
   my $ids;
   ( $ids ) = $c->req->param("ids") =~ m/^((\w+\_\w+\,*)+)$/;
@@ -56,7 +56,7 @@ sub begin : Private {
   # detaint the IDs
   my @idList;
   foreach ( split /\,/, $ids ) {
-	push @idList, $_ if /^(\w+\_\w+)$/;
+  	push @idList, $_ if /^(\w+\_\w+)$/;
   }
 
   $c->stash->{idList} = \@idList;
@@ -75,14 +75,14 @@ sub getData : Path {
 
   my @seqs;
   foreach my $id ( @{ $c->stash->{idList} } ) {
-
-	# retrieve the Storable with the data for this sequence
-	my $pfamseq = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $id } );
-
-	# thaw it out and stash it
-	push @seqs, thaw( $pfamseq->annseq_storable ) if defined $pfamseq;
+  
+  	# retrieve the Storable with the data for this sequence
+  	my $pfamseq = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $id } );
+  
+  	# thaw it out and stash it
+  	push @seqs, thaw( $pfamseq->annseq_storable ) if defined $pfamseq;
   }
-  $c->log->debug( "found " . scalar @seqs . " storables" );
+  $c->log->debug( "Structure::Graphics::getData: found " . scalar @seqs . " storables" );
 
   # render the sequences
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
@@ -107,22 +107,22 @@ sub getData : Path {
   my $chains;
   foreach my $unp ( keys %$chainsMapping ) {
 
-	# each key in %chains is a uniprot ID, pointing to an anonymous
-	# hash that has the PDB chain ID as keys and "" as values
-	my $chains = join ", ", sort keys %{$chainsMapping->{$unp}};
-	
-	$chainsToUnp{$chains} = $unp;
+  	# each key in %chains is a uniprot ID, pointing to an anonymous
+  	# hash that has the PDB chain ID as keys and "" as values
+  	my $chains = join ", ", sort keys %{$chainsMapping->{$unp}};
+  	
+  	$chainsToUnp{$chains} = $unp;
   }
 
   # build a UniProt ID-to-image mapping
   my %unpToImage;
   my $unp;
   foreach my $image ( $imageset->each_image ) {
-	$unp = $image->image_name;
-	$unpToImage{$unp} = $image;
-
-	# while we're iterating over all images, print them...
-	$image->print_image;
+  	$unp = $image->image_name;
+  	$unpToImage{$unp} = $image;
+  
+  	# while we're iterating over all images, print them...
+  	$image->print_image;
   }
 
   # and put both of those mappings into the stash for the template...
