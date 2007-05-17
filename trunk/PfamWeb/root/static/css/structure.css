@@ -4,7 +4,7 @@
 
    Stylesheet for the structure pages.
 
-   $Id: structure.css,v 1.7 2007-04-20 15:15:16 jt6 Exp $
+   $Id: structure.css,v 1.8 2007-05-17 15:40:03 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -37,5 +37,11 @@ ol {
 
 li {
   padding-bottom: 0.2em;
+}
+
+/* a warning if the structure is really a model */
+span.model {
+  color: #600;
+  font-weight: bold;
 }
 
