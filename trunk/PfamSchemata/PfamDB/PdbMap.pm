@@ -1,5 +1,5 @@
 
-# $Id: PdbMap.pm,v 1.4 2007-03-16 11:25:17 jt6 Exp $
+# $Id: PdbMap.pm,v 1.5 2007-05-17 08:41:02 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -29,7 +29,7 @@ __PACKAGE__->has_one( "pdb"  => "PfamDB::Pdb",
 
 __PACKAGE__->has_one( "pfamseq" => "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq" => "self.auto_pfamseq"},
-		      { proxy => [ qw/pfamseq_id pfamseq_acc/]});
+		      { proxy => [ qw/pfamseq_id pfamseq_acc ncbi_code species/]});
 
 =head1 COPYRIGHT
 
