@@ -2,7 +2,7 @@
 # GetImage.pm
 # jt6 20060314 WTSI
 #
-# $Id: GetImage.pm,v 1.10 2007-03-15 14:06:15 jt6 Exp $
+# $Id: GetImage.pm,v 1.11 2007-05-17 14:50:03 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ to extract the PDB ID from the URL.
 
 Generates an B<image file>, MIME type C<image/gif>.
 
-$Id: GetImage.pm,v 1.10 2007-03-15 14:06:15 jt6 Exp $
+$Id: GetImage.pm,v 1.11 2007-05-17 14:50:03 jt6 Exp $
 
 =cut
 
@@ -63,14 +63,14 @@ sub end : Private {
   return unless defined $c->stash->{pdb};
 
   if( defined $c->stash->{pdb}->pdb_image_sml ) {
-	$c->res->content_type( "image/gif" );
-	if( $c->req->param("size") and $c->req->param("size") eq "s" ) {
-	  $c->res->write( $c->stash->{pdb}->pdb_image_sml )
-	} else {
-	  $c->res->write( $c->stash->{pdb}->pdb_image )
-	}
+  	$c->res->content_type( "image/gif" );
+  	if( $c->req->param("size") and $c->req->param("size") eq "s" ) {
+  	  $c->res->write( $c->stash->{pdb}->pdb_image_sml )
+  	} else {
+  	  $c->res->write( $c->stash->{pdb}->pdb_image )
+  	}
   } else {
-	$c->res->redirect( $c->uri_for( "/images/blank.gif" ) );
+  	$c->res->redirect( $c->uri_for( "/images/blank.gif" ) );
   }
 
 }

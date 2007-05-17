@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.11 2007-05-17 08:37:10 jt6 Exp $
+# $Id: Structure.pm,v 1.12 2007-05-17 14:50:03 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.11 2007-05-17 08:37:10 jt6 Exp $
+$Id: Structure.pm,v 1.12 2007-05-17 14:50:03 jt6 Exp $
 
 =cut
 
@@ -75,26 +75,26 @@ sub begin : Private {
   my( $pdb, $pdbId );
   if( defined $c->req->param("id") ) {
 
-  $c->req->param("id") =~ m/^([0-9][A-Z0-9]{3})$/i;
-  $pdbId = $1  if defined $1;
-
+    $c->req->param("id") =~ m/^([0-9][A-Z0-9]{3})$/i;
+    $pdbId = $1  if defined $1;
+  
   } elsif( defined $c->req->param("entry") ) {
 
-  # handle requests that specify "entry" rather than "id"
-
-  $c->req->param("entry") =~ m/^([0-9][A-Z0-9]{3})$/i;
-  $pdbId = $1  if defined $1;
-
-  # previously we were redirecting back to this same action,
-  # exchanging "entry" for "id", but it's a bit daft, given really..
-  #$c->log->debug( "Structure::begin: looks like an ID ($1); redirecting" );
-  #$c->res->redirect( $c->uri_for( "/structure", { id => $1 } ) );
+    # handle requests that specify "entry" rather than "id"
+  
+    $c->req->param("entry") =~ m/^([0-9][A-Z0-9]{3})$/i;
+    $pdbId = $1  if defined $1;
+  
+    # previously we were redirecting back to this same action,
+    # exchanging "entry" for "id", but it's a bit daft, given really..
+    #$c->log->debug( "Structure::begin: looks like an ID ($1); redirecting" );
+    #$c->res->redirect( $c->uri_for( "/structure", { id => $1 } ) );
 
   } elsif( defined $pdbIdArg ) {
 
-  $c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." );
-  $pdbIdArg =~ /^(\d\w{3})/;
-  $pdbId = $1 if defined $1;
+    $c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." );
+    $pdbIdArg =~ /^(\d\w{3})/;
+    $pdbId = $1 if defined $1;
 
   }
 
@@ -103,28 +103,28 @@ sub begin : Private {
   # we're done here unless there's an entry specified
   unless( defined $pdb ) {
 
-  # de-taint the ID
-  my( $input ) = $c->req->param("id") =~ /^(\w+)/;
-
-  # see if this was an internal link and, if so, report it
-  my $b = $c->req->base;
-  if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
-
-    # report the error as a broken internal link
-    $c->error( "Found a broken internal link; no valid PDB ID "
-         . "(\"$input\") in \"" . $c->req->referer . "\"" );
-    $c->forward( "/reportError" );
-
-    $c->clear_errors;
-  }
-
-  $c->stash->{errorMsg} = "No valid PDB ID";
-
-  # log a warning and we're done; drop out to the end method which
-  # will put up the standard error page
-  $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$input|" );
-
-  return;
+    # de-taint the ID
+    my( $input ) = $c->req->param("id") =~ /^(\w+)/;
+  
+    # see if this was an internal link and, if so, report it
+    my $b = $c->req->base;
+    if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
+  
+      # report the error as a broken internal link
+      $c->error( "Found a broken internal link; no valid PDB ID "
+                 . "(\"$input\") in \"" . $c->req->referer . "\"" );
+      $c->forward( "/reportError" );
+  
+      $c->clear_errors;
+    }
+  
+    $c->stash->{errorMsg} = "No valid PDB ID";
+  
+    # log a warning and we're done; drop out to the end method which
+    # will put up the standard error page
+    $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$input|" );
+  
+    return;
   }
 
   $c->log->debug( "Structure::begin: successfully retrieved pdb object for $pdbId" );
