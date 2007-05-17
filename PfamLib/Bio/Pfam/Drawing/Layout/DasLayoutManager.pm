@@ -48,9 +48,7 @@ sub layout_DAS_sequences_and_features {
 		    #print STDERR Dumper($featureSet);
 		    if($featureSet->[0]->{'drawingType'} eq "Graph"){ 
 		     		     print STDERR "Hydro\n"; 
-		    }else{
-		     print STDERR "Feature or region\n";
-		     
+		    }else{		     
 	      my $l_seq = Bio::Pfam::Drawing::Layout::Sequence->new();
 	      $l_seq->colour1(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "EEEEEE"));
 	      $l_seq->colour2(Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "DDDDDD"));
