@@ -5,7 +5,7 @@
 # 
 # build the function similarity search tab
 #
-# $Id: funshift.tt,v 1.1 2007-05-16 14:48:54 jt6 Exp $
+# $Id: funshift.tt,v 1.2 2007-05-17 13:48:01 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -32,7 +32,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     <p>
       Search for Pfam families which are functionally similar to a specified
       Pfam family.
-      <span class="link" onclick="reveal(this,'fsNotes',false, true)">More...</span>
+      <span class="moreLink" onclick="reveal(this,'fsNotes',false, true)">More...</span>
     </p>
 
     <div id="fsNotes" style="display: none">
