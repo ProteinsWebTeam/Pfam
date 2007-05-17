@@ -1,13 +1,13 @@
-[%
+[%-
 # interactions.tt
 # jt6 20060706 WTSI
 # 
 # build the interactions block for structures
 #
-# $Id: interactions.tt,v 1.2 2007-05-17 15:39:22 jt6 Exp $
+# $Id: interactions.tt,v 1.3 2007-05-17 16:06:06 jt6 Exp $
 
-RETURN UNLESS summaryData.numInt
-%]
+RETURN UNLESS summaryData.numInt;
+-%]
 
 <!-- start interactions block -->
 
