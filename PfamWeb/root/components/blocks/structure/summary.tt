@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.14 2007-05-16 15:13:32 jt6 Exp $
+# $Id: summary.tt,v 1.15 2007-05-17 15:39:21 jt6 Exp $
 
 USE String;
 USE date;
@@ -72,7 +72,12 @@ requirements.js.push( "lightbox.js" );
   	    <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
     		  <td class="label">Experiment type:</td>
   	      <td class="data">
-            [% pdb.experiment_long %][% IF pdb.resolution AND pdb.resolution > 0 %], resolution [% pdb.resolution %]&Aring;[% END %]
+            [% IF pdb.experiment_short == "TMODEL" %]
+            <span class="model">[% pdb.experiment_long %]</span>
+            [% ELSE;
+              pdb.experiment_long;
+            END;
+            IF pdb.resolution AND pdb.resolution > 0 %], resolution [% pdb.resolution %]&Aring;[% END %]
           </td>
     		</tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
@@ -148,6 +153,7 @@ requirements.js.push( "lightbox.js" );
             [% END %]
           </td>
     		</tr>
+        [% IF pdb.pubmed_id != 0 %]
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
     		  <td class="label">PubMed reference:</td>
   	      <td class="data">
@@ -155,6 +161,7 @@ requirements.js.push( "lightbox.js" );
   	          [% pdb.pubmed_id %]</a>
           </td>
     		</tr>
+        [% END %]
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
     		  <td class="label">External links:</td>
   	      <td class="data">

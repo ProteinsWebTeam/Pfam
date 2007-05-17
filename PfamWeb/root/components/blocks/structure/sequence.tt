@@ -1,14 +1,13 @@
 
-[%#
+[%
 # sequence.tt
 # jt6 20060706 WTSI
 # 
 # build the sequence block for structures
 #
-# $Id: sequence.tt,v 1.3 2006-09-07 10:11:16 jt6 Exp $
-%]
+# $Id: sequence.tt,v 1.4 2007-05-17 15:39:22 jt6 Exp $
 
-[% # collect the unique uniprot IDs
+# collect the unique uniprot IDs
 
 unpIds = {};
 FOREACH m IN mapping;
@@ -25,7 +24,13 @@ END
   </div>
   <div class="blockContent">
 
-	<div id="structureGraphicsHolder">
+    <p>
+      Many structures in the PDB are linked to one or more UniProt protein 
+      sequence entries. This section shows the Pfam domains which are found 
+      on the UniProt sequence that are referred to by this structure.
+    </p>
+    
+  	<div id="structureGraphicsHolder">
       <p id="sgph" class="loading">
         Loading domain graphics...
       </p>
@@ -34,11 +39,11 @@ END
   </div>
 </div>
 
-[% unpIds = unpIds.keys.join(",") %]
+[% unpIdList = unpIds.keys.join(",") %]
 
 <script type="text/javascript">
-  loadOptions.sg.uri    = "[% c.uri_for( "/structure/graphics" ) %]";
-  loadOptions.sg.params = "ids=[% unpIds %]";
+  loadOptions.sg.uri    = "[% base %]structure/graphics";
+  loadOptions.sg.params = "ids=[% unpIdList %]";
 </script>
 
 <!-- end sequence block -->

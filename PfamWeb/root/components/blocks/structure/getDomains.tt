@@ -5,7 +5,7 @@
 # 
 # block for the structural domains data
 #
-# $Id: getDomains.tt,v 1.4 2007-03-14 10:03:53 jt6 Exp $
+# $Id: getDomains.tt,v 1.5 2007-05-17 15:39:22 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -25,18 +25,16 @@ requirements.js.push( "structure.js" );
   </div>
   <div class="blockContent">
 
-	<!-- start of Structural Domains graphics div -->
-
+  	<!-- start of Structural Domains graphics div -->
     <div id="getDomph">
       <p class="loading">
         Getting Data from CATH and SCOP...
       </p>
     </div>
-
     <!-- end of graphics div -->
 
     <script type="text/javascript">
-      loadOptions.getDomains.uri    = "[% c.uri_for( "/structure/structuraldomains" ) %]";
+      loadOptions.getDomains.uri    = "[% base %]structure/structuraldomains";
       loadOptions.getDomains.params = "id=[% pdbId %]";
   	</script>	
 
