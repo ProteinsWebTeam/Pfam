@@ -1,11 +1,12 @@
-
-[%#
+[%
 # interactions.tt
 # jt6 20060706 WTSI
 # 
 # build the interactions block for structures
 #
-# $Id: interactions.tt,v 1.1 2006-07-14 12:45:17 jt6 Exp $
+# $Id: interactions.tt,v 1.2 2007-05-17 15:39:22 jt6 Exp $
+
+RETURN UNLESS summaryData.numInt
 %]
 
 <!-- start interactions block -->
@@ -16,7 +17,10 @@
   </div>
   <div class="blockContent">
 
-	<h3>Interactions</h3>
+    <p>
+      There [%- summaryData.numInt > 1 ? "are " : "is "; summaryData.numInt %]
+      interaction[% summaryData.numInt > 1 ? "s" : "" %] for this structure.
+    </p>
 
   </div>
 </div>
