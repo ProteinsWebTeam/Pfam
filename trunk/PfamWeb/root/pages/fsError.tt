@@ -1,0 +1,37 @@
+[%
+# fsError.tt
+# jt6 20070518 WTSI
+# 
+# functional similarity search error page
+#
+# $Id: fsError.tt,v 1.1 2007-05-18 10:53:00 jt6 Exp $
+
+META title = "Functional similarity search results";
+META fullPage = 1;
+-%]
+
+<div class="tips">
+
+  <h1>No results</h1>
+
+  <p>
+    We did not find any families with significant functional similarity to
+    your search family <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %]).
+  </p>
+  [% IF goTerms.size %]
+  <p>
+    The functional similarity search relies on the assignment of 
+    <a href="http://www.ebi.ac.uk/GO/">Gene Ontology</a> (GO) terms to Pfam 
+    families. Unfortunately, your search family does not have any GO assigned
+    to it and therefore could not be included in functional similarity
+    calculations.
+  </p>
+  [% END %]
+    
+  <p class="back">
+    Go <a href="[% base %]seqsearch?tab=searchFunshiftBlock">back</a>
+    to the search form to search with a new family.
+  </p>
+
+</div>
+
