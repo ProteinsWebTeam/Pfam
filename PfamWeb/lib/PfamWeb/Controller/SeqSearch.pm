@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.15 2007-05-17 08:36:10 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.16 2007-05-18 10:55:48 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.15 2007-05-17 08:36:10 jt6 Exp $
+$Id: SeqSearch.pm,v 1.16 2007-05-18 10:55:48 jt6 Exp $
 
 =cut
 
@@ -61,8 +61,7 @@ sub begin : Private {
   return unless $c->req->param( "query" );
 
   # get the query
-  my $terms;
-  ( $terms ) = $c->req->param( "query" ) =~ /^([\w\:\;\-\.\s]+)/;
+  my( $terms ) = $c->req->param( "query" ) =~ /^([\w\:\;\-\.\s]+)/;
 
   # we're done here unless there's a query specified
   $c->log->warn( "Search::begin: no query terms supplied" ) and return
@@ -140,17 +139,24 @@ sub funshift : Local {
                          order_by => "rfunSim DESC" } );
 
   $c->log->debug( "SeqSearch::funshift: found |" . scalar @fs . "| rows" );
-  
-  # stash the results
-  $c->stash->{results} = \@fs;
 
-  # generate a gradient for this many rows
-  my $cm = new Sanger::Graphics::ColourMap;
-  my @grad = $cm->build_linear_gradient( scalar @fs, "008000", "C00000" );
+  if( scalar @fs ) {
+
+    $c->stash->{template} = "pages/fsResults.tt";
+    $c->stash->{results} = \@fs;
   
-  # and stash the gradient  
-  $c->stash->{gradient} = \@grad;
-  $c->stash->{template} = "pages/fsResults.tt";
+    # generate a gradient for this many rows
+    my $cm = new Sanger::Graphics::ColourMap;
+    my @grad = $cm->build_linear_gradient( scalar @fs, "008000", "C00000" );
+    $c->stash->{gradient} = \@grad;
+
+  } else {
+    # see if there are any GO terms for this family
+    $c->stash->{goTerms} = $c->model("PfamDB::GO")
+                             ->search( { "me.auto_pfamA" => $c->stash->{pfam}->auto_pfamA } );
+    
+    $c->stash->{template} = "pages/fsError.tt";    
+  }
 }
 
 #-------------------------------------------------------------------------------
