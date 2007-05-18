@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.47 2007-05-17 13:51:09 jt6 Exp $
+   $Id: pfam.css,v 1.48 2007-05-18 10:56:37 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -279,34 +279,34 @@ img.addAnnotation {
 /* ---------------------------------------- */
 /* search errors page */
 
-#tips {
+.tips {
 	margin: 0.2em auto;
   width: 60em;
 }
 
-#tips h2 {
+.tips h2 {
 	margin-top: 1em;
 }
 
-#tips dt {
+.tips dt {
   float: left;
   font-weight: bold;
 	text-align: right;
 }
 
-#tips dd {
+.tips dd {
 	line-height: 1.2em;
-  margin-left: 13em;
+  margin-left: 14em;
 	margin-bottom: 0.4em;
 }
 
-p.back {
+.tips p.back {
   text-align: center;
-	font-size: x-large;
+	font-size: large;
 }
 
-p.back a {
-	font-size: x-large;
+.tips p.back a {
+	font-size: large;
 }
 
 /* ======================================== */
