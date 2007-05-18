@@ -5,7 +5,7 @@
 # 
 # funshift search results page
 #
-# $Id: fsResults.tt,v 1.1 2007-05-16 15:15:01 jt6 Exp $
+# $Id: fsResults.tt,v 1.2 2007-05-18 10:54:39 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
@@ -14,9 +14,6 @@ META fullPage = 1;
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
-
-requirements.css.push( "family.css" );
-requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "sorttable.js" );
 
@@ -32,9 +29,17 @@ requirements.js.push( "sorttable.js" );
 
     <p>
       We found <strong>[% results.size %]</strong> Pfam A families that appear
-      have some level of functionally similarity to your search family, 
+      to have some level of functionally similarity to your search family, 
       <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %]).
     </p>
+    <p>
+      The key below shows a brief description of each of the columns in the
+      result table. The level of similarity between your each family in the
+      results and your search family is represented by the coloured background
+      in the <strong>rfunSim</strong> column, which is shaded from 
+      <span class="gradTop">most</span> to <span class="gradBot">least</span> 
+      similar families.
+    </p> 
 
     <table id="keyTable" summary="Summary of search results">
       <thead>
@@ -68,14 +73,6 @@ requirements.js.push( "sorttable.js" );
     </table>
     
     <p>
-      This key shows a brief description of each of the columns in the
-      result table. The level of similarity between your each family in the
-      results and your search family is represented by the coloured background
-      in the <strong>rfunSim</strong> column, which is shaded from 
-      <span class="gradTop">most</span> to <span class="gradBot">least</span> 
-      similar families.
-    </p> 
-    <p>
       The results may be sorted by clicking on the column 
       titles, or restored to the original order 
       <a onclick="_ts_resortTable($('resultTable'),'0');return
@@ -84,7 +81,6 @@ requirements.js.push( "sorttable.js" );
       to search for another family.
     </p>
 
-      
   </div> <!-- end of div "key" -->
 
   <table class="sortable" id="resultTable" summary="Search results">
