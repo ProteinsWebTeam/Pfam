@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.7 2007-04-27 16:23:03 jt6 Exp $
+# $Id: Section.pm,v 1.8 2007-05-21 12:51:58 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.7 2007-04-27 16:23:03 jt6 Exp $
+$Id: Section.pm,v 1.8 2007-05-21 12:51:58 jt6 Exp $
 
 =cut
 
@@ -66,7 +66,16 @@ generated earlier
 sub end : ActionClass( "RenderView" ) {
   my( $this, $c ) = @_;
 
-  # check for errors
+  # the "$c->detach" method is actually just "$c->forward" with an exception
+  # thrown immediately afterwards. We need to catch that exception and disregard
+  # it, otherwise we'll get a big stack trace on every "$c->detach"... Pretty
+  # ugly, I know.
+  foreach my $e ( @{ $c->error } ) {
+    $c->clear_errors if $e =~ /$Catalyst::DETACH/;
+  }
+
+  # and having made sure that we're not just being "detached", check for 
+  # real errors now
   if( scalar @{ $c->error } ) {
 
   	# there was a system error...
@@ -80,9 +89,8 @@ sub end : ActionClass( "RenderView" ) {
 
   } elsif ( $c->stash->{errorMsg} ) {
 
-  	# there was an error with user input, e.g. bad ID or
-  	# accession. Check the config for the location of the error
-  	# template file
+  	# there was an error with user input, e.g. bad ID or accession. Check the 
+  	# config for the location of the error template file
   	$c->stash->{template} =
   	  $c->config
   		->{"View::TT"}
