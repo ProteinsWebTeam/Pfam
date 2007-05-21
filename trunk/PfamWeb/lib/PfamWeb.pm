@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.32 2007-05-16 15:35:15 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.33 2007-05-21 12:49:55 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,13 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.32 2007-05-16 15:35:15 jt6 Exp $
+$Id: PfamWeb.pm,v 1.33 2007-05-21 12:49:55 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
 
 # a useful trick to get Catalyst to confess errors on startup, rather than
 # simply dying with a cryptic error about barewords
@@ -112,6 +113,9 @@ An external script or plain SQL query should then be able to retrieve
 error logs when required and we can keep track of errors without being
 deluged with mail.
 
+Note that this method does NOT clear_errors. It's up to the caller to decide
+whether that's required or not.
+
 =cut
 
 sub reportError : Private {
@@ -120,7 +124,7 @@ sub reportError : Private {
   my $el = $c->model( "WebUser::ErrorLog" );
   foreach my $e ( @{$c->error} ) {
 
-    $c->log->debug( "PfamWeb::reportError: reporting a site error: |$e|" );
+    $c->log->error( "PfamWeb::reportError: reporting a site error: |$e|" );
  
     # see if we can access the table at all - basically, see if the DB is up 
     my $rs; 
@@ -129,7 +133,8 @@ sub reportError : Private {
     };
     if( $@ ) {
       # really bad; an error while reporting an error...
-      $c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+      $c->log->error( "PfamWeb::reportError: couldn't create a error log; " .
+                      "couldn't read error table: $@" );
     }
   
     # if we can get a ResultSet, try to add a message
@@ -141,7 +146,8 @@ sub reportError : Private {
       };
       if( $@ ) {
         # really bad; an error while reporting an error...
-        $c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+        $c->log->error( "PfamWeb::reportError: couldn't create a error log; " .
+                        "couldn't increment error count: $@" );
       }
 
     } else {
@@ -154,7 +160,8 @@ sub reportError : Private {
       };
       if( $@ ) {
         # really bad; an error while reporting an error...
-        $c->log->error( "PfamWeb::reportError: couldn't create a error log: $@" );
+        $c->log->error( "PfamWeb::reportError: couldn't create a error log; " .
+                        "couldn't create a new error record : $@" );
       }
 
     }
