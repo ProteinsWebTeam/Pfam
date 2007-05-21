@@ -4,12 +4,9 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.13 2007-05-01 21:14:37 jt6 Exp $
+# $Id: pdb.tt,v 1.14 2007-05-21 12:48:02 jt6 Exp $
 
-numIds = summaryData.numStructures;
-UNLESS numIds;
-  RETURN;
-END;
+RETURN UNLESS summaryData.numStructures;
 -%]
 
 <!-- start pdb block -->
