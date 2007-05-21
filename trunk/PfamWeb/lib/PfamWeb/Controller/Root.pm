@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.12 2007-04-27 16:22:05 jt6 Exp $
+# $Id: Root.pm,v 1.13 2007-05-21 12:51:15 jt6 Exp $
 
 =head1 NAME
 
@@ -18,13 +18,12 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.12 2007-04-27 16:22:05 jt6 Exp $
+$Id: Root.pm,v 1.13 2007-05-21 12:51:15 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-use Data::Dump qw( dump );
 
 use base "Catalyst::Controller";
 
@@ -205,7 +204,7 @@ overridden by setting it in an action (eg for a 404 template).
 sub end : Private {
   my( $this, $c ) = @_;
 
-  if ( scalar @{ $c->error } ) {
+  if( scalar @{ $c->error } ) {
     $c->log->debug( "Root::end: found some errors from previous methods" );
     $c->stash->{errorMsg} = $c->error;
     $c->stash->{template} = "pages/error.tt";
@@ -213,17 +212,17 @@ sub end : Private {
     # make sure the error page isn't cached
     $c->res->header( 'Pragma' => 'no-cache' );
     $c->res->header( 'Expires' => 'Thu, 01 Jan 1970 00:00:00 GMT' );
-  	$c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
+    $c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
                                         'post-check=0, pre-check=0, max-age=0' );
     
     $c->forward( "PfamWeb::View::TT" );
     $c->clear_errors;
   }
-
+    
   return 1 if $c->response->status =~ /^3\d\d$/;
   return 1 if $c->response->body;
 
-  unless ( $c->response->content_type ) {
+  unless( $c->response->content_type ) {
     $c->response->content_type( "text/html; charset=utf-8" );
   }
 
