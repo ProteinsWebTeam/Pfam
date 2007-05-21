@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.28 2007-05-17 13:49:55 jt6 Exp $
+# $Id: index.tt,v 1.29 2007-05-21 12:49:16 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -166,9 +166,6 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         <input type="hidden"
                name="type"
                value="Family" />
-        <input type="hidden"
-               name="return"
-               value="1" />
         <input class="entryField" 
                type="text" 
                name="entry" 
