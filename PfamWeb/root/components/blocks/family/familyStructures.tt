@@ -4,11 +4,11 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.6 2006-11-17 11:38:47 jt6 Exp $
+# $Id: familyStructures.tt,v 1.7 2007-05-21 12:27:04 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
-# specific PDB entry to be displayed; if it's not populated, choose a random entry
-# and show the image for that
+# specific PDB entry to be displayed; if its not populated, choose a random 
+# entry and show the image for that
 
 USE dumper;
 
@@ -38,7 +38,7 @@ IF NOT pdbObj;
 	pdbObj = pdbUnique.$randomId;
 
   ELSE;
-    # if there's only one structure there's no array under pdbUnique, so we go 
+    # if theres only one structure theres no array under pdbUnique, so we go 
     # straight to the pdb object... I think
     pdbObj = pdbUnique.values.shift;
   END;
@@ -58,16 +58,16 @@ tips = {};
 
   [%- IF pdbObj.pdb_image -%]
 
-    <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]" [% addTip("family","structureImage") %]>
+    <a href="[% base %]structure?id=[% pdbObj.pdb_id %]" [% addTip("family","structureImage") %]>
       <img class="pdbImage" 
- 	       src="[% c.uri_for( "/structure/getimage", id=pdbObj.pdb_id, size="s" ) | uri | html %]"
+ 	       src="[% base %]structure/getimage?id=[% pdbObj.pdb_id %]&amp;size=s"
            alt="[% pdbObj.pdb_id %]" /></a>
 
     [%- IF randomId -%]
       <h1>Example structure</h1>
     [%- END -%]
 
-    <a href="[% c.uri_for( "/structure", id=pdbObj.pdb_id ) %]" class="pdbTitle">
+    <a href="[% base %]structure?id=[% pdbObj.pdb_id %]" class="pdbTitle">
       PDB entry [% pdbObj.pdb_id %]</a>: [% pdbObj.title %]
 
   [%- ELSE -%]
@@ -80,7 +80,7 @@ tips = {};
   [% IF pdbUnique.keys.size > 1 %]
 
     [% c.prototype.form_remote_tag( {
-             url    => c.uri_for( "/family/structures" ),
+             url    => "%{base}family/structures",
              update => "siph"
            } ) %]
       <input id="pfamAccField" name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
@@ -96,9 +96,9 @@ tips = {};
   [% END # of "if pdbUnique.keys.size > 1" %]
 </div>
 
-[% END # of "if pdbUnique.keys.size" %]
+[% END; # of "if pdbUnique.keys.size"
 
-[%# add tooltips %]
-[% PROCESS components/tooltips.tt %]
+# add tooltips
+PROCESS components/tooltips.tt %]
 
 <!-- end of pdb image block -->
