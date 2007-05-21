@@ -1,11 +1,10 @@
-
 [% 
 # structure.tt
 # jt6 20060719 WTSI
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.8 2007-05-16 15:08:51 jt6 Exp $
+# $Id: structure.tt,v 1.9 2007-05-21 12:48:42 jt6 Exp $
 
 RETURN UNLESS pfamMaps.size;
 -%]
