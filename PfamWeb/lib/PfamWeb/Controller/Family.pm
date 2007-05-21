@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.25 2007-05-17 13:51:55 jt6 Exp $
+# $Id: Family.pm,v 1.26 2007-05-21 12:50:37 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.25 2007-05-17 13:51:55 jt6 Exp $
+$Id: Family.pm,v 1.26 2007-05-21 12:50:37 jt6 Exp $
 
 =cut
 
@@ -162,12 +162,6 @@ sub begin : Private {
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
     $c->log->warn( "Family::begin: no valid Pfam family ID or accession" );
-
-    # should we redirect back to the referer or show an error page ?
-    if( $c->req->param("return") and defined $c->req->referer ) {
-      #$c->res->redirect( $c->uri_for( "/family", { acc => $acc } ) );
-      $c->log->debug( "Family::begin: referer: |" . $c->req->referer . "|" );
-    }
 
     return;
   }
