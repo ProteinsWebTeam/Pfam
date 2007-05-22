@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.16 2007-05-18 10:55:48 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.17 2007-05-22 15:33:55 rdf Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.16 2007-05-18 10:55:48 jt6 Exp $
+$Id: SeqSearch.pm,v 1.17 2007-05-22 15:33:55 rdf Exp $
 
 =cut
 
@@ -470,8 +470,12 @@ sub queueSeqSearch : Private {
   if( $found ) {
 
     $c->log->debug( "SeqSearch::queueuSeqSearch: we've seen this sequence before" );
+    if( $c->req->param( "searchBs" ) ) {
+      $c->stash->{pfambSearch} = 1;
+    }
+    $c->detach( 'getSeqGraphicOnMd5');
     return 1;
-
+    
     #get storable for sequence based on md5
     #Select regions out of database based on input i.e. take care of evalue
     #Produce same XML result a script that runs on pvm cluster
@@ -629,6 +633,124 @@ sub queuePfamB : Private {
   return $jobStatus;
 }
 
+
+#-------------------------------------------------------------------------------
+
+=head2 getSeqGraphicOnMd5 : Private
+
+  Get the graphic for the MD5
+
+=cut
+
+sub getSeqGraphicOnMd5 : Private {
+  my( $this, $c ) = @_;
+  # code here
+  
+  my $md5 = $c->stash->{md5};
+  my (@rs, @rawPfamAResults);
+  if ( $c->stash->{evalue} && !$c->stash->{ga} ){
+    #get the region information from database
+    $c->log->debug( "SeqSearch::getGraphicOnMD5 using evalue cut off:".$c->stash->{evalue});
+    if($c->stash->{seqOpts} eq 'both'){
+      @rs = $c->model( "PfamDB::PfamA_reg_full")
+              ->search( { md5      => $md5},
+                       { join     => [ qw( pfamseq pfamA ) ],
+                         prefetch => [ qw( pfamseq pfamA ) ] } );
+    }elsif($c->stash->{seqOpts}){
+       @rs = $c->model( "PfamDB::PfamA_reg_full")
+              ->search( { md5      => $md5,
+                          mode     => $c->stash->{seqOpts}},
+                       { join     => [ qw( pfamseq pfamA ) ],
+                         prefetch => [ qw( pfamseq pfamA ) ] } );
+    }else{
+      $c->log->debug( "SeqSearch::getGraphicOnMD5 no mode set");
+      $c->stash->{seqSearchError} = "You did not enter a valid a mode.";
+      return;
+    }
+    
+    foreach my $reg (@rs){
+      if($c->stash->{evalue} >= $reg->domain_evalue_score){
+
+       push(@rawPfamAResults, {  pfama_id    => $reg->pfamA_id,
+                                 pfama_acc   => $reg->pfamA_acc,
+                                 start       => $reg->seq_start,
+                                 end         => $reg->seq_end,
+                                 hmm_start   => $reg->model_start,
+                                 hmm_end     => $reg->model_end,
+                                 hmm_length  => $reg->model_length,
+                                 significant => $reg->significant,
+                                 mode        => $reg->mode,
+                                 in_full     => $reg->in_full,
+                                 evalue      => $reg->domain_evalue_score,
+                                 bits        => $reg->domain_bits_score,
+                                 desc        => $reg->description,
+                                 type        => $reg->type});
+      }
+    }                           
+    
+  }elsif($c->stash->{ga}){
+    $c->log->debug( "SeqSearch::getGraphicOnMD5 using GA cut off");
+    if($c->stash->{seqOpts} eq 'both'){
+     @rs = $c->model( "PfamDB::PfamA_reg_full_significant")
+             ->search( { md5      => $md5 },
+                       { join     => [ qw( pfamseq ) ],
+                         prefetch => [ qw( pfamseq ) ] } );
+    }elsif($c->stash->{seqOpts}){
+      $c->log->debug( "SeqSearch::getGraphicOnMD5 mode:".$c->stash->{seqOpts} );
+      @rs = $c->model( "PfamDB::PfamA_reg_full_significant")
+             ->search( { md5      => $md5,
+                         mode     => $c->stash->{seqOpts} },
+                       { join     => [ qw( pfamseq ) ],
+                         prefetch => [ qw( pfamseq ) ] } );
+    }else{
+      $c->log->debug( "SeqSearch::getGraphicOnMD5 no mode set");
+      $c->stash->{seqSearchError} = "You did not enter a valid a mode.";
+      return;
+    }        
+    foreach my $reg (@rs){
+       push(@rawPfamAResults, {  pfama_id    => $reg->pfamA_id,
+                                 pfama_acc   => $reg->pfamA_acc,
+                                 start       => $reg->seq_start,
+                                 end         => $reg->seq_end,
+                                 hmm_start   => $reg->model_start,
+                                 hmm_end     => $reg->model_end,
+                                 hmm_length  => $reg->model_length,
+                                 significant => 1,
+                                 mode        => $reg->mode,
+                                 in_full     => $reg->in_full,
+                                 evalue      => $reg->domain_evalue_score,
+                                 bits        => $reg->domain_bits_score,
+                                 desc        => $reg->description,
+                                 type        => $reg->type });
+    }      
+  }
+  
+  my @rawPfamBResults;  
+  if($c->stash->{pfambSearch}){
+      my @rs = $c->model( "PfamDB::PfamB_reg")
+                  ->search( { md5 => $md5 },
+                            { join => [ qw( pfamseq pfamB) ],
+                              prefetch => [ qw( pfamseq pfamB) ] } );
+      foreach my $reg (@rs) {
+          push(@rawPfamBResults, {  pfamb_id  => $reg->pfamB_id,
+                                    pfamb_acc => $reg->pfamB_acc,
+                                    start     => $reg->seq_start,
+                                    end       => $reg->seq_end });
+
+      }    
+  } 
+  $c->log->debug( "SeqSearch::getGraphicOnMD5: Got ".scalar(@rawPfamAResults)." PfamA results" );
+  $c->log->debug( dump(@rawPfamAResults));
+  $c->log->debug( "SeqSearch::getGraphicOnMD5: Got ".scalar(@rawPfamBResults)." PfamB results" );
+  $c->log->debug( dump(@rawPfamBResults));
+  
+  $c->stash->{genPfamARes} = \@rawPfamAResults;
+  $c->stash->{genPfamBRes} = \@rawPfamBResults;
+  
+  $c->forward( "generateGraphic" );
+  $c->stash->{template} = "pages/jobDone.tt";
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 returnStatus : Local
@@ -683,18 +805,23 @@ sub jobDone : Local {
 
     # job ID *looks* valid; try looking for that job
     my $job = $c->model( "WebUser::JobHistory" )
-                ->find( { job_id => $jobId } );
+                ->find( { job_id => $jobId },
+                        { join     => [ qw( job_stream ) ],
+                          prefetch => [ qw( job_stream ) ] } );
 
     # bail unless it exists
     next unless defined $job;
 
     # retrieve the results of the job and stash them
-    $c->stash->{results}->{$jobId} = $job->stdout;
+    $c->stash->{results}->{$jobId}->{rawData} = $job->stdout;
+    $c->stash->{results}->{$jobId}->{method}  = $job->priority;
+    $c->stash->{results}->{$jobId}->{command} = $job->command;
+    $c->{stash}->{seq} = $job->stdin;
   }
 
   # do something interesting with the results
   $c->forward( "handleResults" );
-
+  $c->forward( "generateGraphic" );
   $c->stash->{template} = "pages/jobDone.tt";
 }
 
@@ -709,14 +836,120 @@ results of the searches and generate some useful graphics for the user.
 
 sub handleResults : Private {
   my( $this, $c ) = @_;
-
+#TODO Add mode to hash of rawResults when mode is both!
+  my(@rawPfamAResults, @rawPfamBResults);
+  
+  
   foreach my $jobId ( keys %{ $c->stash->{results} } ) {
     $c->log->debug( "SeqSearch::handleResults: handling results for |$jobId|" );
+    if($c->{stash}->{results}->{$jobId}->{method} eq 'hmmer'){
+      my ($mode)   = $c->{stash}->{results}->{$jobId}->{command} =~ /--mode (\S+)/;
+      my ($userEvalue) = $c->{stash}->{results}->{$jobId}->{command} =~ /-e (\S+)/;
+      $c->stash->{evalue} = $userEvalue ? $userEvalue : 0; 
+      foreach my $line (split(/\n/, $c->{stash}->{results}->{$jobId}->{rawData})){
+        if(my($start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $bits, $evalue, $pfamA_id) = 
+            $line =~ /\S+\s+(\d+)\s+(\d+)\s+(PF\d{5})\.\d+\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)/){
+            my $pfamData = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $pfamA_acc});
+            my $s;
+            if($mode eq 'ls'){
+              $s = ($pfamData->ls_domain_GA < $bits ? 1 : 0); 
+            }elsif($mode eq 'fs'){
+              $s = ($pfamData->fs_domain_GA < $bits ? 1 : 0); 
+            }
+            push(@rawPfamAResults, {   pfama_id    => $pfamA_id,
+                                       pfama_acc   => $pfamA_acc,
+                                       start       => $start,
+                                       end         => $end,
+                                       hmm_start   => $hmmStart,
+                                       hmm_end     => $hmmEnd,
+                                       hmm_length  => $pfamData->model_length,
+                                       mode        => $mode,
+                                       significant => $s,
+                                       bits        => $bits,
+                                       evalue      => $evalue,
+                                       type        => $pfamData->type,
+                                       desc        => $pfamData->description });
+        }  
+      } 
+    }elsif($c->{stash}->{results}->{$jobId}->{method} eq 'fast'){
+       
+    }
   }
-
+  $c->log->debug( "SeqSearch::getGraphicOnMD5: Got ".scalar(@rawPfamAResults)." PfamA results" );
+  $c->log->debug( dump(@rawPfamAResults));
+  $c->log->debug( "SeqSearch::getGraphicOnMD5: Got ".scalar(@rawPfamBResults)." PfamB results" );
+  $c->log->debug( dump(@rawPfamBResults));
+  
+  $c->stash->{genPfamARes} = \@rawPfamAResults;
+  $c->stash->{genPfamBRes} = \@rawPfamBResults;
+  
+  
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 generateGraphic : Private
+
+Empty action stub.
+
+=cut
+
+sub generateGraphic : Private {
+  my( $this, $c ) = @_;
+
+  # Convert the generic results into BioPerl objects and subsequently generate the graphic....   
+  my $fac = Bio::Pfam::AnnSeqFactory->new;
+  my $annseq = $fac->createAnnotatedSequence();
+  my @seqs;
+  push(@seqs, $annseq);
+  
+  $annseq->sequence(
+    Bio::Pfam::SeqPfam->new('-seq' => $c->{stash}->{seq},
+                            '-start' => '1',
+                            '-end' => length($c->{stash}->{seq}),
+                            '-id'=> "QuerySeq",
+                            '-acc' => "QuerySeq",
+                            '-organism' => "Unknown",
+                            '-desc' => "QuerySeq"));
+
+  foreach my $pfamA (@{$c->{stash}->{genPfamARes}}){
+    if($pfamA->{significant}){
+    $annseq->addAnnotatedRegion(
+      Bio::Pfam::PfamRegion->new( '-PFAM_ACCESSION' => $pfamA->{pfama_acc},
+                                  '-PFAM_ID' => $pfamA->{pfama_id},
+                                  '-SEQ_ID' => $annseq->id,
+                                  '-FROM' => $pfamA->{start},
+                                  '-TO' => $pfamA->{end},
+                                  '-MODEL_FROM' => $pfamA->{hmm_start},
+                                  '-MODEL_TO' => $pfamA->{hmm_end},
+                                  '-MODEL_LENGTH'=>$pfamA->{hmm_length},
+                                  '-BITS' => $pfamA->{bits},
+                                  '-EVALUE' => $pfamA->{evalue},
+                                  '-TYPE' => "pfama",
+                                  '-ANNOTATION' => $pfamA->{desc},
+                                  '-REGION' => $pfamA->{type} ));
+    }
+  }
+                                                       
+  foreach my $pfamB (@{$c->{stash}->{genPfamBRes}}){
+    $annseq->addAnnotatedRegion( Bio::Pfam::PfamRegion->new('-PFAM_ACCESSION' => $pfamB->{pfamb_acc},
+                                                              '-PFAM_ID' => $pfamB->{pfamb_id},
+                                                              '-SEQ_ID' => $annseq->id,
+                                                              '-FROM' => $pfamB->{start},
+                                                              '-TO' => $pfamB->{end},
+                                                              '-TYPE' => "pfamb"));  
+  }
+  
+  my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
+  $layout->layout_sequences( @seqs);
+  #$c->log->debug($layout->layout_to_XMLDOM->toString(1));
+  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  $imageset->create_images( $layout->layout_to_XMLDOM );  
+  $c->stash->{images} = $imageset;
+
+}
+#-------------------------------------------------------------------------------
+
 
 =head1 AUTHOR
 
