@@ -3,7 +3,7 @@
 # jobDone.tt
 # jt6 20070414 WTSI
 #
-# $Id: jobDone.tt,v 1.2 2007-04-20 15:24:25 jt6 Exp $
+# $Id: jobDone.tt,v 1.3 2007-05-23 09:19:10 rdf Exp $
 
 META title    = "Results of your sequence search";
 META fullPage = 1;
@@ -21,6 +21,94 @@ requirements.css.push( "job.css" );
 
 <h1>Job results</h1>
 
+
+<h3>Graphic Showing Significant Pfam-A & Pfam-B matches</h3>
+<!-- Change title based on whether you get hits -->
+[% FOREACH image IN images.each_image %]
+[% CALL image.print_image; %]
+  [% id = image.image_name; %]
+	<img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#domainGraphicsMap[% auto_arch %][% loop.index %]"
+         alt="" />
+    <div class="cleaner">
+[% END %]
+
+<br>
+<!-- only print if matches -->
+<!-- Add a column that allow you to jump to the alignment below -->
+<!-- All tables need to be sortable -->
+<h3>Pfam-A Matches</h3>
+<table border=1>
+<tr>
+<td>Significant</td>
+<td>Pfam-A</td>
+<td>Description</td>
+<td>Entry Type</td>
+<td>Sequence Start</td>
+<td>Sequence End</td>
+<td>HMM From</td>
+<td>HMM To</td>
+<td>Bits Score</td>
+<td>E-value</td>
+<td>Alignment</td>
+</tr>
+<tr>
+[% FOREACH pfamA IN genPfamARes %]
+<td>[% pfamA.significant %] </td>
+<td>[% pfamA.pfama_id %]</td>
+<td>[% pfamA.desc %]</td>
+<td>[% pfamA.type %]</td>
+<td>[% pfamA.start %]</td>
+<td>[% pfamA.end %]</td>
+<td>[% pfamA.hmm_start %]</td>
+<td>[% pfamA.hmm_end %]</td>
+<td>[% pfamA.bits %]</td>
+<td>[% pfamA.evalue %]</td>
+<td>[% pfamA.mode %]</td>
+</tr>
+[% END %]
+</table>
+<!--download as text -->
+
+<!-- only print if matches -->
+<!-- Add a column that allow you to jump to the alignment below -->
+<h3>Pfam-B Matches</h3>
+<table border=1>
+<tr>
+<td>Pfam-B</td>
+<td>Sequence Start</td>
+<td>Sequence End</td>
+<td>Score</td>
+<td>E-value</td>
+</tr>
+<tr>
+[% FOREACH pfamB IN genPfamBRes %]
+<td>[% pfamB.pfamb_id %]</td>
+<td>[% pfamB.start %]</td>
+<td>[% pfamB.end %]</td>
+<td>[% pfamB.score %]</td>
+<td>[% pfamB.pvalue %]</td>
+</tr>
+[% END %]
+</table>
+
+	
+[% FOREACH pfamA IN genPfamARes %]
+<h5>Alignment to  [% pfamA.pfama_id %]</h5>
+<pre>[% pfamA.aliHmm %]</pre>
+<pre>[% pfamA.aliMatch %]</pre>
+<pre>[% pfamA.aliSeq %]</pre>
+<!-- Add button align to seed: Need to pass the aliSeq, pfama_id and mode -->
+[% END %]
+
+[% FOREACH pfamB IN genPfamBRes %]
+<h5>Alignment to  [% pfamB.pfamb_id %]</h5>
+<pre>[% pfamB.queryString %]</pre>
+<pre>[% pfamB.homoString %]</pre>
+<pre>[% pfamB.hitString %]</pre>
+<!-- Add button to align to pfamB -->
+[% END %]
 [% FOREACH jobId IN results.keys %]
 <h2>Job [% jobId %]</h2>
 
