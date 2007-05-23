@@ -1,7 +1,7 @@
 
-# $Id: PfamB_reg.pm,v 1.6 2007-03-16 11:25:16 jt6 Exp $
+# $Id: PfamB_reg.pm,v 1.7 2007-05-23 09:18:27 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamDB::PfamB_reg;
 
 use strict;
@@ -29,7 +29,7 @@ __PACKAGE__->has_one( "pfamB" =>  "PfamDB::PfamB",
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-		      { proxy => [ qw/pfamseq_acc pfamseq_id species taxonomy/ ] } );
+		      { proxy => [ qw/pfamseq_acc pfamseq_id md5 species taxonomy/ ] } );
 
 __PACKAGE__->might_have( "pfamseq_architecture" =>  "PfamDB::Pfamseq_architecture",
 			 { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
