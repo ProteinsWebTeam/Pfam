@@ -1,5 +1,5 @@
 
-# $Author: jt6 $
+# $Author: rdf $
 
 package Bio::Pfam::Drawing::Image::Image;
 
@@ -686,7 +686,7 @@ sub _add_regions{
 =cut 
 
 sub _get_colour_as_RGB {
-    my($self, $colour_dom) = @_;
+    my($self, $colour_dom, $pfamb) = @_;
 
     my %rgb;
     my @stripe_colours;
@@ -728,10 +728,12 @@ sub _get_colour_as_RGB {
 		$rgb{B}=$colNode->getAttribute("B");
 	  }
 	}
-    if(@stripe_colours){
-	  return(\@stripe_colours, %rgb);
+	
+   #return wantarray ? (\@stripe_colours, %rgb) : %rgb;  	
+   if(@stripe_colours && $pfamb){
+	   return(\@stripe_colours, %rgb);
     }else{
-	  return(%rgb);
+	   return(%rgb);
     }
 }
 
@@ -877,7 +879,7 @@ sub _draw_regions{
     my ($region, %colour1, %colour2, $leftStyle, $rightStyle);
     #All regions has colour1 element
     %colour1 = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift );
-
+    
     #work out what sort of region we want to draw, big, med, sml
     if($xc->find("pf:bigShape")){
       %colour2 = $self->_get_colour_as_RGB( $xc->findnodes( "pf:colour2/pf:colour" )->shift );
@@ -968,7 +970,7 @@ sub _draw_regions{
 	
     }else{
 	if( $reg_dom->getAttribute("label") =~ /pfam-b/i){
-	    my ($stripes, %stripe1) = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift );
+	    my ($stripes, %stripe1) = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift, 1 );
 	    foreach my $colour (@{$stripes}){
 		$key .= "~".$$colour{R}."~".$$colour{G}."~".$$colour{B};
 	    }
@@ -1171,7 +1173,7 @@ sub _draw_vertical_line {
 	}
     }
     $y2 = $self->y_start()+ $self->_max_domain_height + 10;
-    $y2 += $markup->getAttribute("offset")*3;
+    $y2 += $markup->getAttribute("offset") ? $markup->getAttribute("offset")*3 : 0;
   }
   
   
@@ -1713,28 +1715,28 @@ sub sml {
       $new_im->filledRectangle(0, 11*$dy, $region_length, 12*$dy, $stripe_colours[6]);      
     
   }
-  my $y_count = 1;
-  my($prev_x) = 0;
+  #my $y_count = 1;
+  #my($prev_x) = 0;
 
   #This part is doing the transparency
-  if(!$region->getAttribute("solid")){
-      my ($start_x) = 1;
-      my $x_trace = $start_x;
-      while ($y_count <= $im_height - 2) {
-	  while($x_trace <= $region_length - 2) {
-	      $new_im->filledRectangle($x_trace, $y_count, $x_trace , $y_count, $white);
-	      $x_trace = $x_trace + 4;
-	  }
-	  if ($start_x == 1) {
-	      $start_x = 3;
-	      $x_trace = 3;
-	  } else {
-	      $x_trace = 1;
-	      $start_x = 1;
-	  }
-	  $y_count++;
-      }
-  }
+  #if(!$region->getAttribute("solid")){
+  #    my ($start_x) = 1;
+  #    my $x_trace = $start_x;
+  #    while ($y_count <= $im_height - 2) {
+	#  while($x_trace <= $region_length - 2) {
+	#      $new_im->filledRectangle($x_trace, $y_count, $x_trace , $y_count, $white);
+	#      $x_trace = $x_trace + 4;
+	#  }
+	#  if ($start_x == 1) {
+	#      $start_x = 3;
+	#      $x_trace = 3;
+	#  } else {
+	#      $x_trace = 1;
+	#      $start_x = 1;
+	#  }
+	#  $y_count++;
+  #    }
+  #}
   return $new_im;
 }
 
