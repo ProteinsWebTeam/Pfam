@@ -1,7 +1,7 @@
 
-# $Id: PfamA_reg_full_significant.pm,v 1.3 2007-03-16 11:25:16 jt6 Exp $
+# $Id: PfamA_reg_full_significant.pm,v 1.4 2007-05-23 09:18:27 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamDB::PfamA_reg_full_significant;
 
 use strict;
@@ -27,7 +27,7 @@ __PACKAGE__->has_one( "pfamA" =>  "PfamDB::Pfam",
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-		      { proxy => [ qw/pfamseq_acc pfamseq_id species taxonomy/ ] } );
+		      { proxy => [ qw/pfamseq_acc pfamseq_id md5 species taxonomy/ ] } );
 
 
 
