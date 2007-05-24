@@ -2,6 +2,7 @@ addEvent(window, "load", sortables_init);
 
 var SORT_COLUMN_INDEX;
 
+/*
 function sortables_init() {
     // Find all tables with class sortable and make them sortable
     if (!document.getElementsByTagName) return;
@@ -13,6 +14,17 @@ function sortables_init() {
             ts_makeSortable(thisTbl);
         }
     }
+}
+*/
+/* a re-written init method. Let prototype walk the tree for us...
+ * jt6 20070524 WTSI.
+ */
+function sortables_init() {
+  $A( document.getElementsByClassName( "sortable" ) ).each(
+    function ( tbl ) {
+      ts_makeSortable( tbl );      
+    }
+  );  
 }
 
 function ts_makeSortable(table) {
@@ -79,7 +91,7 @@ function _ts_resortTable( table, column, img ) {
     sortfn = ts_sort_caseinsensitive;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d\d\d$/)) sortfn = ts_sort_date;
     if (itm.match(/^\d\d[\/-]\d\d[\/-]\d\d$/)) sortfn = ts_sort_date;
-    if (itm.match(/^[£$]/)) sortfn = ts_sort_currency;
+    if (itm.match(/^[?$]/)) sortfn = ts_sort_currency;
     if (itm.match(/^[\d\.]+$/)) sortfn = ts_sort_numeric;
     SORT_COLUMN_INDEX = column;
     var firstRow = new Array();
@@ -213,3 +225,4 @@ function addEvent(elm, evType, fn, useCapture)
     alert("Handler could not be removed");
   }
 } 
+
