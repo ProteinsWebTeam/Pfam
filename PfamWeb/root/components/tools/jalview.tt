@@ -4,15 +4,13 @@
 # 
 # build a page for the jalview applet
 #
-# $Id: jalview.tt,v 1.4 2006-11-16 10:00:13 jt6 Exp $
+# $Id: jalview.tt,v 1.5 2007-05-30 08:10:27 jt6 Exp $
 
-# tell the wrapper not to add any header or footer. We'll generate a complete 
+# tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
 META naked = 1;
 
 pageContent = BLOCK;
-
-CALL c.log.debug( "in jalview.tt" );
 
 title = "jalview"
 -%]
@@ -20,20 +18,20 @@ title = "jalview"
 <h1>jalview: alignment<em> for [% acc %]</em></h1>
 
  <applet code="jalview.bin.JalviewLite" width="140" height="35" archive="[% c.uri_for( "/jalview/jalviewApplet.jar" ) %]">
-  <param name="file" value="[% c.uri_for( "/family/formatalignment", acc=acc, format="stockholm", alnType=alnType ) | uri | html %]">
-  <param name="defaultColour" value="Taylor">
-  <param name="RGB"  value="#FFFFCC">
-  <param name="linkLabel_2" value="Uniprot">
-  <param name="linkUrl_2" value="[% c.uri_for( "/protein", acc=acc ) %]">
-  <param name="mailServer" value="www.sanger.ac.uk">
-  <param name="srsServer" value="www.sanger.ac.uk/srs5bin/cgi-bin/">
-  <param name="database" value="pfamseq">
+  <param name="file" value="[% base %]family/formatalignment?acc=[% acc %]&amp;format=stockholm&amp;alnType=alnType" />
+  <param name="defaultColour" value="Taylor" />
+  <param name="RGB"  value="#FFFFCC" />
+  <param name="linkLabel_2" value="Uniprot" />
+  <param name="linkUrl_2" value="[% base %]protein?acc=[% acc %]" />
+  <param name="mailServer" value="www.sanger.ac.uk" />
+  <param name="srsServer" value="www.sanger.ac.uk/srs5bin/cgi-bin/" />
+  <param name="database" value="pfamseq" />
 </applet>
 
 <br />
 
 <a href="#" onclick="window.close()" class="closer">Close window</a>
 
-[% END # of "pageContent = BLOCK" %]
+[% END; # of "pageContent = BLOCK"
 
-[% PROCESS components/tools/toolWindow.tt %]
+PROCESS components/tools/toolWindow.tt %]
