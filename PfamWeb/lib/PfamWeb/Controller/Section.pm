@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.8 2007-05-21 12:51:58 jt6 Exp $
+# $Id: Section.pm,v 1.9 2007-05-30 08:04:07 jt6 Exp $
 
 =head1 NAME
 
@@ -20,14 +20,12 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.8 2007-05-21 12:51:58 jt6 Exp $
+$Id: Section.pm,v 1.9 2007-05-30 08:04:07 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-
-use Data::Dump qw( dump );
 
 use base "Catalyst::Controller";
 
@@ -70,6 +68,8 @@ sub end : ActionClass( "RenderView" ) {
   # thrown immediately afterwards. We need to catch that exception and disregard
   # it, otherwise we'll get a big stack trace on every "$c->detach"... Pretty
   # ugly, I know.
+
+  my $d = $Catalyst::DETACH; # just to avoid warnings about single use...
   foreach my $e ( @{ $c->error } ) {
     $c->clear_errors if $e =~ /$Catalyst::DETACH/;
   }
