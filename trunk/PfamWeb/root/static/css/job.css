@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.5 2007-05-01 21:22:41 jt6 Exp $
+   $Id: job.css,v 1.6 2007-05-30 09:36:32 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -131,4 +131,57 @@ div.pfamBSearch .progressBar {
 
 #logger span.title {
   font-weight: bold;
+}
+
+/* styles for the job results page */
+
+/* override the floating of the Pfam graphic */
+img.graphicImage {
+  float: none;
+}
+
+.resultTable {
+  width: 100%;
+}
+
+/* shade the odd and even rows green for significant matches */
+.resultTable tr.oddlySignificant { /* normal odd is CCC */
+  background-color: #CDC;
+}
+.resultTable tr.evenlySignificant { /* normal even is DDD */
+  background-color: #DED;
+}
+
+/* make the background red for cells where there's something to note */
+.resultTable td.warning {
+  background-color: #A00;
+  color: white;
+  font-weight: bold;
+}
+
+.resultTable tr.alignment td {
+  text-align: left;
+  padding: 0;
+}
+
+.resultTable td.showSwitch {
+  padding: 0;
+}
+
+pre {
+  margin: 0;
+  padding: 0.4em;
+  overflow: auto;
+}
+
+.resultTable caption {
+  text-align: left;
+  padding: 0.2em;
+}
+
+span.tableTitle {
+  font-weight: bold;
+  font-size: larger;
+  display: block;
+  padding: 0.2em 0;
 }
