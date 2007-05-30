@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.48 2007-05-18 10:56:37 jt6 Exp $
+   $Id: pfam.css,v 1.49 2007-05-30 09:39:26 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -39,10 +39,10 @@ body {
 }
 
 .cleaner {
-    clear: both;
-    height: 1px;
-    margin: 0;
-    padding: 0;
+  clear: both;
+  height: 1px;
+  margin: 0;
+  padding: 0;
 }
 
 ul, dl, ol {
@@ -457,13 +457,13 @@ body.tool {
 
 a.closer {
   background: url(/catalyst/pfam/images/close.gif) no-repeat left;
-    padding-left: 11px;
+  padding-left: 11px;
   margin: 0.2em;
 }
 
 body.tool h1 {
   margin: 0;
-    padding: 0.4em 0;
+  padding: 0.4em 0;
 }
 
 /* ======================================== */
@@ -477,12 +477,6 @@ body.tool h1 {
 
 #results tr.even {
     background: #DDD;
-}
-
-.titleRow {
-   background: #AAA;
-   color: #FFF;
-   font-weight: bold;
 }
 
 .sortarrow {
@@ -560,40 +554,51 @@ a.sortheader {
   margin-right: 25%;
 }
 
-#keyTable .titleRow {
-  background: #AAA;
+#keyTable thead {
+  background: #AAA ! important;
+  color: #FFF;
   font-weight: bold;
 }
 
 /* affects the results table */
 
-#resultTable {
+.resultTable {
   clear: both;
 /*   border: 1px solid #000070; */
     margin: 0 auto;
 }
 
-#resultTable .rowNum {
+.resultTable thead tr {
+   background: #074987;
+   color: #FFF;
+   font-weight: bold;
+}
+.resultTable thead a {
+   color: #FFF;
+   font-weight: bold;
+}
+
+.resultTable .rowNum {
   display: none;
 }
 
-#resultTable p {
+.resultTable p {
   display: none;
 }
 
-#resultTable .fixedWidth {
+.resultTable .fixedWidth {
   width: 6em;
 }
 
-#resultTable .desc {
+.resultTable .desc {
   text-align: left;
 }
 
-#resultTable th {
+.resultTable th {
   padding: 3px;
 }
 
-#resultTable td {
+.resultTable td {
   padding: 3px;
   text-align: center;
   background-position: center center;
@@ -601,20 +606,12 @@ a.sortheader {
   background-image: url(/catalyst/pfam/images/blank_tick.gif);
 }
 
-#resultTable td.ticked {
+.resultTable td.ticked {
   background-image: url(/catalyst/pfam/images/tick.gif);
 }
 
-#resultTable thead tr a {
-  color: white;
-}
-
-#resultTable thead tr {
-  background: #074987;
-}
-
 #results span.highlight,
-#resultTable tr.highlight {
+.resultTable tr.highlight {
   background: #c2d2e1; /* #CBD */
 }
 
