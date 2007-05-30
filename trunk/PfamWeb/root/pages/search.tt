@@ -4,7 +4,7 @@
 # 
 # search results page
 #
-# $Id: search.tt,v 1.8 2007-05-16 15:19:24 jt6 Exp $
+# $Id: search.tt,v 1.9 2007-05-30 08:17:38 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;
@@ -34,7 +34,7 @@ requirements.js.push( "sorttable.js" );
       hitPlugins = 0 %]
       <table id="keyTable" summary="summary of search results">
         <thead>
-          <tr class="titleRow">
+          <tr>
             <td>Section</td>
             <td class="desc">Description</td>
             <td>Number of hits</td>
@@ -77,16 +77,16 @@ requirements.js.push( "sorttable.js" );
       sections, in the order that they were searched, along with the
       number of hits found in each one. The table of results may be
       sorted by clicking on the column titles, or restored to the
-      original order <a onclick="_ts_resortTable($('resultTable'),'0');return
-      false;" href="#">here</a>. Note that the final list of hits shows
-      only unique Pfam accessions.
+      original order <span class="link"
+      onclick="_ts_resortTable($('resultTable'),'0')">here</span>. 
+      Note that the final list of hits shows only unique Pfam accessions.
     </p>
 
   </div> <!-- end of div "key" -->
 
-  <table class="sortable" id="resultTable" summary="Search results">
+  <table class="sortable resultTable" id="resultTable" summary="Search results">
     <thead>
-      <tr class="titleRow">
+      <tr>
         <th class="rowNum">Original order</th>
         <th>Accession</th>
         <th>ID</th>
