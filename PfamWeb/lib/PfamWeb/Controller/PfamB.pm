@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.7 2007-05-17 13:51:55 jt6 Exp $
+# $Id: PfamB.pm,v 1.8 2007-05-30 08:04:52 jt6 Exp $
 
 =head1 NAME
 
@@ -20,14 +20,14 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.7 2007-05-17 13:51:55 jt6 Exp $
+$Id: PfamB.pm,v 1.8 2007-05-30 08:04:52 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Section";
+use base "PfamWeb::Controller::Family";
 
 # define the name of the section...
 __PACKAGE__->config( SECTION => "pfamb" );
@@ -43,31 +43,31 @@ Model objects into the hash.
 
 =cut
 
-sub begin : Private {
-  my( $this, $c ) = @_;
-
-  if( defined $c->req->param("acc") ) {
-
-  $c->req->param("acc") =~ m/^(PB\d{6})$/i;
-  $c->log->info( "PfamB::begin: found a PfamB, accession |$1|" );
-
-    if (defined $1){
-      $c->stash->{pfam}   = $c->model("PfamDB::PfamB")
-                              ->find( { pfamB_acc => $1 } );
-    }
-  }
-
-  # we're done here unless there's an entry specified
-  unless( defined $c->stash->{pfam} ) {
-    $c->log->warn( "PfamB::begin: no ID or accession" );
-    $c->error( "No valid Pfam family accession or ID" );
-    return;
-  }
-
-  # flag this as a PfamB
-  $c->stash->{entryType} = "B";
-  $c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
-}
+#sub begin : Private {
+#  my( $this, $c ) = @_;
+#
+#  if( defined $c->req->param("acc") ) {
+#
+#  $c->req->param("acc") =~ m/^(PB\d{6})$/i;
+#  $c->log->info( "PfamB::begin: found a PfamB, accession |$1|" );
+#
+#    if (defined $1){
+#      $c->stash->{pfam}   = $c->model("PfamDB::PfamB")
+#                              ->find( { pfamB_acc => $1 } );
+#    }
+#  }
+#
+#  # we're done here unless there's an entry specified
+#  unless( defined $c->stash->{pfam} ) {
+#    $c->log->warn( "PfamB::begin: no ID or accession" );
+#    $c->error( "No valid Pfam family accession or ID" );
+#    return;
+#  }
+#
+#  # flag this as a PfamB
+#  $c->stash->{entryType} = "B";
+#  $c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
+#}
 
 #-------------------------------------------------------------------------------
 
@@ -81,10 +81,14 @@ database cross-references.
 sub default : Path {
   my( $this, $c ) = @_;
 
-  # the accession should have been dropped into the stash by the begin
-  # method
+  # we're done here unless there's an entry specified
+  unless( defined $c->stash->{pfam} ) {
+    $c->log->warn( "PfamB::default: no ID or accession" );
+    $c->stash->{errorMsg} = "No valid Pfam-B accession";
+    return;
+  }
 
-  $c->log->debug( "PfamB::generateSummary: generating a page for a PfamB" );
+  $c->log->debug( "PfamB::default: generating a page for a PfamB" );
 
   $c->forward( "_getSummaryData" );
   $c->forward( "_getDbXrefs" );
@@ -101,7 +105,7 @@ Populates the stash with the mapping and hands off to the appropriate template.
 sub structureTab : Path( "/pfamb/structuretab" ) {
   my($this, $c) = @_;
 
-  $c->log->debug( "PfamB::StructureTab::structureTab: acc: |"
+  $c->log->debug( "PfamB::structureTab: acc: |"
 		  . $c->stash->{acc}  . "|" .  $c->stash->{entryType}. "|");
 
   my @mapping = $c->model("PfamDB::PdbMap")
@@ -111,7 +115,8 @@ sub structureTab : Path( "/pfamb/structuretab" ) {
                               prefetch    => [ qw/pdb/ ]
                             } );
   $c->stash->{pfamMaps} = \@mapping;
-
+  $c->log->debug( "PfamB::structureTab: found |" . scalar @mapping . "| mappings" );
+  
   $c->stash->{template} = "components/blocks/family/structureTab.tt";
 }
 
@@ -123,34 +128,57 @@ sub structureTab : Path( "/pfamb/structuretab" ) {
 
 sub _getSummaryData : Private {
   my( $this, $c ) = @_;
+  
+  $c->log->debug( "PfamB::_getSummaryData: getting summary information for a PfamB" );
 
   my %summaryData;
 
   # make things easier by getting hold of the auto_pfamA
   my $auto_pfam = $c->stash->{pfam}->auto_pfamB;
 
+  #----------------------------------------
+
   # get the PDB details
   my @maps = $c->model("PfamDB::PdbMap")
                ->search( { auto_pfam   => $auto_pfam,
                            pfam_region => 0 },
-                        { join        => [ qw/ pdb / ],
-                          prefetch    => [ qw/ pdb / ] } );
+                         { join        => [ qw/ pdb / ],
+                           prefetch    => [ qw/ pdb / ] } );
   $c->stash->{pfamMaps} = \@maps;
 
+  # number of structures known for the domain
+  my %pdb_unique = map {$_->pdb_id => $_} @maps;
+  $c->stash->{pdbUnique} = \%pdb_unique;
+  $c->log->debug( "PfamB::_getSummaryData: found |" . scalar @maps . "| mappings, |"
+                  . scalar( keys %pdb_unique ) . "| unique structures" );
+
+  $summaryData{numStructures} = scalar( keys %pdb_unique );
+
+  #----------------------------------------
+
   # count the number of architectures
-  my $rs = $c->model("PfamDB::PfamB_reg")
-             ->find( { auto_pfamB => $auto_pfam },
-                     { select => [
-                                   { count => { distinct => "auto_architecture" } }
-                                 ],
-                       as     => [ 'count' ],
-                       join   => [ qw/ pfamseq_architecture / ] } );
+  my @architectures = $c->model("PfamDB::PfamB_reg")
+                        ->search( { auto_pfamB => $auto_pfam },
+                                  { join      => [ qw/ pfamseq_architecture / ],
+                                    prefetch  => [ qw/ pfamseq_architecture / ] } );
+  $c->log->debug( "PfamB::default: found |" .scalar @architectures . "| architectures" );
+
+  # count the *unique* architectures
+  my $numArchs = 0;
+  my %seenArch;
+  foreach my $arch ( @architectures ) {
+    $numArchs++ unless $seenArch{ $arch->auto_architecture };
+    $seenArch{ $arch->auto_architecture }++;
+  }
+  $c->log->debug( "PfamB::default: found |$numArchs| unique architectures" );
 
   # number of architectures....
-  $summaryData{numArchitectures} = $rs->get_column( "count" );
+  $summaryData{numArchitectures} = $numArchs;
+
+  #----------------------------------------
 
   # count number of sequences in full alignment
-  $rs = $c->model("PfamDB::PfamB_reg")
+  my $rs = $c->model("PfamDB::PfamB_reg")
           ->find( { auto_pfamB => $auto_pfam },
                   { select => [
                                 { count => "auto_pfamB" }
@@ -160,10 +188,7 @@ sub _getSummaryData : Private {
   # number of sequences in full alignment
   $summaryData{numSequences} = $rs->get_column( "count" );
 
-  # number of structures known for the domain
-  my %pdb_unique = map {$_->pdb_id => $_} @maps;
-  $summaryData{numStructures} = scalar(keys %pdb_unique);
-  $c->stash->{pdbUnique} = \%pdb_unique;
+  #----------------------------------------
 
   # number of species
   my @species = $c->model("PfamDB::PfamB_reg")
@@ -173,6 +198,8 @@ sub _getSummaryData : Private {
 
   my %species_unique = map {$_->species => 1} @species;
   $summaryData{numSpecies} = scalar(keys %species_unique);
+
+  #----------------------------------------
 
   # number of interactions
 #   $rs = $c->model("PfamDB::Int_pfamAs")->find({ auto_pfamA_A => $auto_pfam },
@@ -186,6 +213,8 @@ sub _getSummaryData : Private {
 #  $summaryData{numInt} = $rs->get_column( "NumInts" );
 
   $summaryData{numInt} = 0;
+
+  #----------------------------------------
 
   $c->stash->{summaryData} = \%summaryData;
 

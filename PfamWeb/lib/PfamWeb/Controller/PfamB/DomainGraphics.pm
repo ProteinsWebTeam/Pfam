@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20061023 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.5 2007-05-17 08:31:27 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.6 2007-05-30 08:04:52 jt6 Exp $
 
 =head1 NAME
 
@@ -82,7 +82,7 @@ sub default : Path {
     }
 
   } else {
-    # we want to see the unique architectures containing this domain
+    # we want to see the unique architectures containing this domain3
 
     @architectures = $c->model("PfamDB::PfamB_reg")
                        ->search( { auto_pfamB => $auto },
@@ -103,10 +103,10 @@ sub default : Path {
     # generate the extra mapping for the architectures
     foreach my $seq ( @seqs ) {
       my $aa = $archStore{$seq->id}->auto_architecture || "";
-      $c->log->debug( "DomainGraphics::default: checking | " . $seq->id . 
-                      "|, architecture |" . $aa . "|" );
+      #$c->log->debug( "DomainGraphics::default: checking | " . $seq->id . 
+      #                "|, architecture |" . $aa . "|" );
       if( $aa =~ /^(\d+)$/ ) {
-        $c->log->debug( "DomainGraphics::default: found architecture |$1|" );
+        #$c->log->debug( "DomainGraphics::default: found architecture |$1|" );
         my $rs = $c->model("PfamDB::Architecture")
                    ->find( { auto_architecture => $1 } );
         my @domains = split /\~/, $rs->architecture;
@@ -114,7 +114,7 @@ sub default : Path {
         $seqInfo{$seq->id}{auto_arch} = $1;
         $seqInfo{$seq->id}{num} = $seenArch{ $1 } ;
       } else {
-        $c->log->debug( "DomainGraphics::default: no PfamA domains" );
+        #$c->log->debug( "DomainGraphics::default: no PfamA domains" );
         $seqInfo{$seq->id}{arch} = "no Pfam A domains";
         $seqInfo{$seq->id}{auto_arch} = "nopfama";
         $seqInfo{$seq->id}{num} = $seenArch{ $aa };
