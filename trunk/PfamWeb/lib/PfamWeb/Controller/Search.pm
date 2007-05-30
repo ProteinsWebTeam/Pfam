@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20060807 WTSI
 #
-# $Id: Search.pm,v 1.14 2007-05-10 10:30:56 jt6 Exp $
+# $Id: Search.pm,v 1.15 2007-05-30 08:04:51 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Search.pm,v 1.14 2007-05-10 10:30:56 jt6 Exp $
+$Id: Search.pm,v 1.15 2007-05-30 08:04:51 jt6 Exp $
 
 =cut
 
@@ -89,11 +89,11 @@ sub jump : Local {
       my $uri = new URI( $c->req->referer );
       $uri->query_form( $uri->query_form,
                         jumpErr => 1 );
-      $c->log->debug( "Search::guess: redirecting to referer ($uri)" );
+      $c->log->debug( "Search::jump: redirecting to referer ($uri)" );
       $c->res->redirect( $uri );
 
     } else {
-      $c->log->debug( "Search::guess: couldn't guess entry type and no referer; redirecting to home page" );
+      $c->log->debug( "Search::jump: couldn't guess entry type and no referer; redirecting to home page" );
       $c->res->redirect( $c->uri_for( "/" ) );
     }
     return 1;
@@ -127,10 +127,10 @@ sub jump : Local {
       my $uri = new URI( $c->req->referer );
       $uri->query_form( $uri->query_form,
                         jumpErr => 1 );
-      $c->log->debug( "Search::guess: redirecting to referer ($uri)" );
+      $c->log->debug( "Search::jump: redirecting to referer ($uri)" );
       $c->res->redirect( $uri );
     } else {
-      $c->log->debug( "Search::guess: couldn't guess entry type and no referer; redirecting to home page" );
+      $c->log->debug( "Search::jump: couldn't guess entry type and no referer; redirecting to home page" );
       $c->res->redirect( $c->uri_for( "/" ) );
     }
   }
@@ -154,25 +154,31 @@ sub guess : Private {
   # make sure we know the entry is upper case
   my $entry = uc( $entryUnknownCase );
 
-  $c->log->debug( "Search::guess: called with entry |$entry|" );
+  $c->log->debug( "Search::guess: guessing target for |$entry|" );
 
   # see if we can figure out what kind if ID or accession we've been handed
   my( $action, $found );  
 
-  if( $entry =~ /^(P([FB])\d{5,6})$/i ) {
-    # first, see if it's a Pfam family
-
-    if( $2 eq "F" ) {
-      $found = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
-    } elsif ( $2 eq "B" ) {
-      $found = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );      
-    }
+  # first, see if it's a PfamA family
+  if( $entry =~ /^(PF\d{5})$/i ) {
+    
+    $found = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
   
     if( defined $found ) {
-      $c->log->debug( "Search::guess: found a Pfam family (from accession)" );
+      $c->log->debug( "Search::guess: found a PfamA family (from accession)" );
       $action = "family";            
     }
+  }
+  
+  # or a PfamB ?
+  if( $entry =~ /^(PB\d{6})$/i ) {
 
+    $found = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );      
+  
+    if( defined $found ) {
+      $c->log->debug( "Search::guess: found a PfamB (from accession)" );
+      $action = "pfamb";            
+    }
   }
   
   # next, could it be a clan ?

@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.26 2007-05-21 12:50:37 jt6 Exp $
+# $Id: Family.pm,v 1.27 2007-05-30 08:04:51 jt6 Exp $
 
 =head1 NAME
 
@@ -22,14 +22,12 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.26 2007-05-21 12:50:37 jt6 Exp $
+$Id: Family.pm,v 1.27 2007-05-30 08:04:51 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 
 use base "PfamWeb::Controller::Section";
 
@@ -72,25 +70,30 @@ sub begin : Private {
     $c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
     $c->log->info( "Family::begin: found accession |$1|, family A / B ? |$2|" );
     
-    if( defined $1 ) {
-    
-      # see if this is actually a PfamB...
-      if( $2 eq 'B' or $2 eq 'b' ) {
-        $c->log->debug( "Family::begin: looks like a PfamB; redirecting" );
-        $c->res->redirect( $c->req->base . "pfamb?acc=$1" );
-        return 1;
-        
-      } else {
+    # is it a PfamB ?
+    if( $c->req->param("acc") =~ m/^(PB\d{6})$/i ) {
 
-        # no, must be a PfamA
-        $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+      $c->stash->{pfam} = $c->model("PfamDB::PfamB")
+                            ->find( { pfamB_acc => $1 } );
+
+      if( defined $c->stash->{pfam} ) {
+        $c->log->debug( "Family::begin: found a PfamB: |$1|" );
+        $c->stash->{entryType} = "B";
+        $c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
+      }
+
+    } elsif( $c->req->param("acc") =~ m/^(PF\d{5})$/i ) {
+
+      # no, must be a PfamA
+      $c->stash->{pfam} = $c->model("PfamDB::Pfam")
+                            ->find( { pfamA_acc => $1 } );
 
         if( defined $c->stash->{pfam} ) {
-          $c->log->debug( "Family::begin: found a PfamA: |$1|" );
-          $c->stash->{entryType} = "A";
-          $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
-        }
+        $c->log->debug( "Family::begin: found a PfamA: |$1|" );
+        $c->stash->{entryType} = "A";
+        $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
       }
+
     }
 
   } elsif( defined $c->req->param("id") ) {
@@ -108,12 +111,19 @@ sub begin : Private {
     
   } elsif( defined $c->req->param( "entry" ) ) {
 
-    if( $c->req->param( "entry" ) =~ /^(P[FB]\d{5,6})$/i ) {
+    if( $c->req->param( "entry" ) =~ /^(PF\d{5})$/i ) {
 
-      # looks like an accession; redirect to this action, appending the accession
-      $c->log->debug( "Family::begin: looks like a Pfam accession ($1); redirecting internally" );
+      # looks like a PfamA accession; redirect to this action, appending the accession
+      $c->log->debug( "Family::begin: looks like a PfamA accession ($1); redirecting internally" );
       $c->req->param( "acc" => $1 );
       $c->detach( "begin" );
+      return 1;
+
+    } elsif( $c->req->param( "entry" ) =~ /^(PB\d{6})$/i ) {
+
+      # looks like a PfamA accession; redirect to this action, appending the accession
+      $c->log->debug( "Family::begin: looks like a PfamB accession ($1); redirecting" );
+      $c->res->redirect( $c->uri_for( "/pfamb", { acc => $1 } ) );
       return 1;
 
     } elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
@@ -206,7 +216,7 @@ Populates the stash with the mapping and hands off to the appropriate template.
 sub structureTab : Path( "/family/structuretab" )  {
   my($this, $c) = @_;
 
-  $c->log->debug( "Family::StructureTab::structureTab: acc: |"
+  $c->log->debug( "Family::structureTab: acc: |"
 		  . $c->stash->{acc}  . "|" .  $c->stash->{entryType}. "|");
 
   my @mapping = $c->model("PfamDB::PdbMap")
