@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: help.css,v 1.6 2007-04-27 16:09:17 jt6 Exp $
+   $Id: help.css,v 1.7 2007-05-30 15:02:03 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -141,6 +141,27 @@ div.xmlFragment pre {
   padding: 0;
 }
 
+/* ---------------------------------------- */
+/* web services */
+
+pre.codeSnippet {
+  background: #EEE;
+  border: 1px solid #CCC;
+  padding: 0.8em;
+  margin: 1em 3em;
+}
+
+dl.methods dt {
+  float: left;
+  clear: left;
+  width: 15em;
+  text-align: right;
+  font-weight: bold;
+}
+
+dl.methods dd {
+  margin: 0.6em 16em;  
+}
 /* ---------------------------------------- */
 /* mirrors */
 
