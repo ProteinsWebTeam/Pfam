@@ -12,19 +12,18 @@ use Data::Dumper;
 use Carp;
 
 sub new {
- print "In PfamLive new\n\n";
     my $caller = shift;
     my $class = ref($caller) || $caller;
     my %dbiParams = ();
-    my $self = { user      => "pfamro",
-		 host      => "pfam",
-		 port      => "3306",
-		 database  => "pfam_21_0",
-		 driver    => "mysql",
-		 @_,};
-
-
-    print STDERR Dumper($self) && $self->{'debug'};
+    my $self = { user      => "pfam_web_ro",
+		             host      => "pfamdb1",
+		             port      => "3306",
+		             database  => "pfam_21_0_web",
+		             driver    => "mysql",
+	               debug     => 0,
+		             @_,};
+		 
+    #print STDERR Dumper($self);
     
     eval{
      $self->{'schema'} = PfamDB->connect("dbi".
@@ -39,6 +38,9 @@ sub new {
     if($@){
       croak("Failed to get schema for databse:".$self->database.". Error:[$@]\n");     
     }
+    
+    #print STDERR "HERE".Dumper($self);
+    
     return bless($self, $caller);
 } 
 
@@ -154,8 +156,8 @@ sub getClanMembership{
    @clanData = $self->getSchema
                      ->resultset("Clan_membership")
                       ->search({"clans.clan_id" => $clan},
-                               { join     => [ qw/clans pfam/],
-                                 prefetch => [ qw/clans pfam/] });
+                               { join     =>  qw( clans pfam ),
+                                 prefetch =>  qw( clans pfam ) });
   }else{
    cluck("$clan does not look like a clan accession or id")
   }
@@ -196,6 +198,62 @@ sub getPfamData{
  if(ref($familyData)){
    carp("Found family information for $family") if $self->{'debug'};
   return ($familyData);
+ } 
+ carp("Did not find family information for $family") if $self->{'debug'};
+}
+
+sub getPfamInterPro{
+  my($self, $family) = @_;
+  my $familyData;
+  if($family =~ /PF\d{5}/){
+    carp("Looking up information for $family. I think this is an accession") if $self->{'debug'};
+    $familyData = $self->getSchema
+                         ->resultset("Pfam")
+                           ->find({"pfamA_acc" => $family},
+                                  {join        => qw( interpro ),
+                                   prefetch    => qw( interpro )});
+                     
+  }elsif($family =~ /\S{1,16}/){
+    carp("Looking up information for $family. I think this is an id") if $self->{'debug'};
+    $familyData = $self->getSchema
+                      ->resultset("Pfam")
+                       ->find({"pfamA_id" => $family},
+                              {join        => qw( interpro ),
+                               prefetch    => qw( interpro )});
+ }else{
+  cluck("$family does not look like a family accession or id")
+ }
+ if(ref($familyData)){
+   carp("Found family information for $family") if $self->{'debug'};
+  return ($familyData);
+ } 
+ carp("Did not find family information for $family") if $self->{'debug'};
+}
+
+sub getPfamGO{
+  my($self, $family) = @_;
+  my @familyGO;
+  if($family =~ /PF\d{5}/){
+    carp("Looking up information for $family. I think this is an accession") if $self->{'debug'};
+    @familyGO = $self->getSchema
+                         ->resultset("Pfam")
+                           ->search({"pfamA_acc" => $family},
+                                    {join        => qw( go ),
+                                     prefetch    => qw( go )});
+                     
+  }elsif($family =~ /\S{1,16}/){
+    carp("Looking up information for $family. I think this is an id") if $self->{'debug'};
+    @familyGO = $self->getSchema
+                         ->resultset("Pfam")
+                           ->search({"pfamA_id" => $family},
+                                    {join        => qw( go ),
+                                     prefetch    => qw( go )});
+ }else{
+  cluck("$family does not look like a family accession or id")
+ }
+ if(scalar(@familyGO)){
+   carp("Found family information for $family") if $self->{'debug'};
+  return (\@familyGO);
  } 
  carp("Did not find family information for $family") if $self->{'debug'};
 }
