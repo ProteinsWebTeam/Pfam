@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.18 2007-05-23 09:20:51 rdf Exp $
+# $Id: SeqSearch.pm,v 1.19 2007-05-30 08:06:03 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.18 2007-05-23 09:20:51 rdf Exp $
+$Id: SeqSearch.pm,v 1.19 2007-05-30 08:06:03 jt6 Exp $
 
 =cut
 
@@ -24,14 +24,14 @@ use strict;
 use warnings;
 
 use Bio::SearchIO::blast;
-use File::Temp qw/ tempfile /;
+use File::Temp qw( tempfile );
 use JSON;
 use Scalar::Util qw( looks_like_number );
 use Data::UUID;
-use Storable qw(thaw);
+use Storable qw( thaw );
 use Sanger::Graphics::ColourMap;
 
-use Data::Dump qw(dump );
+use Data::Dump qw( dump );
 
 use base "PfamWeb::Controller::Section";
 
@@ -512,6 +512,8 @@ sub queuePfamA : Private {
 
   # make a guess at the runtime for the job
   my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
+  $c->log->debug( "SeqSearch::queuePfamA: estimated search time: "
+                  . "|$estimatedTime| seconds" );
   ($estimatedTime *= 2 ) if($c->stash->{seqOpts} =~ /both/);
   $c->log->debug( "SeqSearch::queuePfamA: estimated search time: "
                   . "|$estimatedTime| seconds" );
@@ -689,9 +691,9 @@ sub jobDone : Local {
 
 =head2 handleResults : Private
 
-Parse the results and filter based on the the users defined parameters.  The parsed
-results are put in a very generic format so that they can then be used for generating the
-the results tables and graphics.
+Parse the results and filter based on the the users defined parameters. The 
+parsed results are put in a very generic format so that they can then be used 
+for generating the results tables and graphics.
 
 =cut
 
@@ -700,66 +702,86 @@ sub handleResults : Private {
 
   #There two arrays will be populated with each hit represented as a hash.
   #We go through these step for two reasons
-  #1. Allows us to potentially use the data in the database rather than searching every sequence
+  #1. Allows us to potentially use the data in the database rather than 
+  #   searching every sequence
   #2. Removes redundancy in the pfamB results.
   my(@rawPfamAResults, @rawPfamBResults);
-  
-  
+
   foreach my $jobId ( keys %{ $c->stash->{results} } ) {
     $c->log->debug( "SeqSearch::handleResults: handling results for |$jobId|" );
+
     #Identify What sort of job we have performed.....
-    if($c->{stash}->{results}->{$jobId}->{method} eq 'hmmer'){
+    if( $c->{stash}->{results}->{$jobId}->{method} eq 'hmmer' ){
+      
       #We have performed a hmmer search, must be a pfamA
-      my ($userEvalue) = $c->{stash}->{results}->{$jobId}->{command} =~ /-e (\S+)/;
+      my( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{command} =~ /-e (\S+)/;
+      
       #Are we using GA cut-offs of Evalues?
       $c->stash->{evalue} = $userEvalue ? $userEvalue : 0;
       
-      #Read in the pfam_scan data.  This assumes that pfam_Scan is spitting out alignments
-      #so each domain is represented by 4 lines. 
+      #Read in the pfam_scan data. This assumes that pfam_Scan is spitting out 
+      #alignments so each domain is represented by 4 lines. 
       my @results = split(/\n/, $c->{stash}->{results}->{$jobId}->{rawData});
-      while (@results){
-        my @set = splice(@results, 0, 4);
+
+      while( @results ) {
+        my @set = splice( @results, 0, 4 );
         
-        my($start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, $evalue, $pfamA_id, $aliHmm, $aliMatch, $aliSeq, $s, $pfamData);
-        foreach (@set){
-          #Line 1 is the domain postional information, lines 2-4 contain the actual alignment
-          if(/^\S+\s+(\d+)\s+(\d+)\s+(PF\d{5})\.\d+\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/){
-             ($start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, $evalue, $pfamA_id) = ($1, $2, $3, $4, $5, $6, $7, $8, $9);
-              $pfamData = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $pfamA_acc});
-              if($mode eq 'ls'){
-                $s = ($pfamData->ls_domain_GA < $bits ? 1 : 0); 
-              }elsif($mode eq 'fs'){
-                $s = ($pfamData->fs_domain_GA < $bits ? 1 : 0); 
-              }
-            }elsif(/\#HMM/){
-               $aliHmm = $_;
-            }elsif(/\#MATCH/){
-              $aliMatch = $_; 
-            }elsif(/\#SEQ/){
-              $aliSeq = $_; 
+        my( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
+            $evalue, $pfamA_id, $aliHmm, $aliMatch, $aliSeq, $s, $pfamData );
+        foreach ( @set ) {
+
+          #Line 1 is the domain positional information, lines 2-4 contain the 
+          #actual alignment
+          if( /^\S+\s+(\d+)\s+(\d+)\s+(PF\d{5})\.\d+\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/ ) {
+
+            ( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
+              $evalue, $pfamA_id ) = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
+              
+            $pfamData = $c->model("PfamDB::Pfam")
+                          ->find( { pfamA_acc => $pfamA_acc } );
+                          
+            if( $mode eq 'ls' ) {
+              $s = $pfamData->ls_domain_GA < $bits ? 1 : 0; 
+            }elsif( $mode eq 'fs' ) {
+              $s = $pfamData->fs_domain_GA < $bits ? 1 : 0; 
             }
+          } elsif( /\#HMM/ ) {
+            $aliHmm = $_;
+            $aliHmm .= "-*" if $aliHmm =~ m/\<$/; 
+            $aliHmm .= "*"  if $aliHmm =~ m/\<\-$/; 
+          } elsif( /\#MATCH/ ) {
+            $aliMatch = $_; 
+          } elsif( /\#SEQ/ ) {
+            $aliSeq = $_; 
+          }
         }
+
         #Now shove all of the data elements into an anonymous hash
-        push(@rawPfamAResults, {   pfama_id    => $pfamA_id,
-                                   pfama_acc   => $pfamA_acc,
-                                       start       => $start,
-                                       end         => $end,
-                                       hmm_start   => $hmmStart,
-                                       hmm_end     => $hmmEnd,
-                                       hmm_length  => $pfamData->model_length,
-                                       mode        => $mode,
-                                       significant => $s,
-                                       bits        => $bits,
-                                       evalue      => $evalue,
-                                       type        => $pfamData->type,
-                                       desc        => $pfamData->description,
-                                       aliMatch    => $aliMatch,
-                                       aliHmm      => $aliHmm,
-                                       aliSeq      => $aliSeq });
-            
+        push @rawPfamAResults, { pfama_id     => $pfamA_id,
+                                 pfama_acc    => $pfamA_acc,
+                                 start        => $start,
+                                 end          => $end,
+                                 hmm_start    => $hmmStart,
+                                 hmm_end      => $hmmEnd,
+                                 model_length => $pfamData->model_length,
+                                 mode         => $mode,
+                                 significant  => $s,
+                                 bits         => $bits,
+                                 evalue       => $evalue,
+                                 type         => $pfamData->type,
+                                 desc         => $pfamData->description,
+                                 aliMatch     => $aliMatch,
+                                 aliHmm       => $aliHmm,
+                                 aliSeq       => $aliSeq };
+
       } 
-    }elsif($c->{stash}->{results}->{$jobId}->{method} eq 'fast'){
+
+    } elsif( $c->{stash}->{results}->{$jobId}->{method} eq 'fast' ) {
       #Okay, looks like we have a pfamB result
+      
+      # flag the fact that we're searching PfamBs in the stash, so the template
+      # can write some clever text...
+      $c->stash->{searchedPfamB} = 1;
       
       #Grr - Write results to file as this is the only way we can get BioPerl to read it.
       #However, bioperl does a good jobs (most of the time, although some wu-blast errors cause expections to be thrown  
@@ -771,7 +793,7 @@ sub handleResults : Private {
       } else {
         die "Can't set a temp directory for muscle output";
       }
-      ($tmpRoot) = $tmpRoot =~ m|([a-z0-9_\./]+)|i;
+      ( $tmpRoot ) = $tmpRoot =~ m|([a-z0-9_\./]+)|i;
 
       my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpRoot );
       print $tmpFh $c->{stash}->{results}->{$jobId}->{rawData};
@@ -779,68 +801,69 @@ sub handleResults : Private {
 
       #Parse the results and remove the redundancy
       my %results;  
-      my $searchio = new Bio::SearchIO::blast(-format => 'blast',
-						     	                            -file   => $tmpFile,
-						     	                            -signif => 0.001);
-			unlink($tmpFile);
-			
-			while( my $result = $searchio->next_result ) {
-			 $c->log->debug(" Pfam-B Query sequence:".$result->query_name);
-    			while( my $hit = $result->next_hit ) {
-    				my ($pfamB_acc, $pfamB_id) = split(";", $hit->description);
-     				
-       				HIT:
-     	  			while( my $hsp = $hit->next_hsp ) {
-       					if($results{$pfamB_acc}){
-     						foreach my $r (@{$results{$pfamB_acc}}){
-     						  
-     							next HIT if(( $r->{'start'} >= $hsp->start and $r->{'start'} <= $hsp->end ) or
-                        		( $r->{'end'}   >= $hsp->start and $r->{'end'}   <= $hsp->end ) or
-                         		( $r->{'start'} <= $hsp->start and $r->{'end'}   >= $hsp->end ) );          
-     						}
-						}  
-						#
-						$c->log->debug("PfamB hit |$hsp|".$pfamB_acc."\t".$hit->accession."\t".$hit->description."\t".$hit->length."\t".$hit->score."\t".$hsp->pvalue);
-     				push(@{$results{$pfamB_acc}}, {pfamB_acc => $pfamB_acc, 
-     				                               pfamB_id => $pfamB_id, 
-     				                               start => $hsp->start, 
-     				                               end => $hsp->end, 
-     				                               score => $hsp->score, 
-     				                               pvalue => $hsp->pvalue, 
-     				                               hitString => $hsp->hit_string,
-     				                               homoString => $hsp->homology_string,
-     				                               queryString => $hsp->query_string });
-        		
-        		$c->log->debug("Hit string". $hsp->query_string ."\t". $hsp->hit_string."\t". $hsp->homology_string);
-        		}
-  	 			}
-  	 		}
-  	 		
-  	 		#Now make the generic results for each Pfam-B.
-  	 		foreach my $pfamB_acc (keys %results){
-  	 		  foreach my $reg (@{$results{$pfamB_acc}}){
-            push(@rawPfamBResults, {  pfamb_id    => $reg->{pfamB_id},
-                                      pfamb_acc   => $reg->{pfamB_acc},
-                                      start       => $reg->{start},
-                                      end         => $reg->{end},
-                                      score       => $reg->{score},
-                                      pvalue      => $reg->{pvalue},
-                                      hitString   => $reg->{hitString},
-                                      homoString  => $reg->{homoString},
-                                      queryString => $reg->{queryString} })
-  	 		  }  	 		   
-  	 		}
+      my $searchio = new Bio::SearchIO::blast( -format => 'blast',
+                                                -file   => $tmpFile,
+                                                -signif => 0.001 );
+      unlink( $tmpFile );
+      
+      while( my $result = $searchio->next_result ) {
+        $c->log->debug(" Pfam-B Query sequence:".$result->query_name);
+        while( my $hit = $result->next_hit ) {
+          my( $pfamB_acc, $pfamB_id ) = split ";", $hit->description;
+           
+          HIT: while( my $hsp = $hit->next_hsp ) {
+            if($results{$pfamB_acc}){
+              foreach my $r (@{$results{$pfamB_acc}}){
+                 
+                next HIT if( ( $r->{'start'} >= $hsp->start and $r->{'start'} <= $hsp->end ) or
+                             ( $r->{'end'}   >= $hsp->start and $r->{'end'}   <= $hsp->end ) or
+                             ( $r->{'start'} <= $hsp->start and $r->{'end'}   >= $hsp->end ) );          
+              }
+            }
+
+              $c->log->debug("PfamB hit |$hsp|".$pfamB_acc."\t".$hit->accession."\t".$hit->description."\t".$hit->length."\t".$hit->score."\t".$hsp->pvalue);
+            push @{ $results{$pfamB_acc} }, { pfamB_acc => $pfamB_acc, 
+                                              pfamB_id => $pfamB_id, 
+                                              start => $hsp->start, 
+                                              end => $hsp->end, 
+                                              score => $hsp->score, 
+                                              pvalue => $hsp->pvalue, 
+                                              hitString => $hsp->hit_string,
+                                              homoString => $hsp->homology_string,
+                                              queryString => $hsp->query_string };
+            
+            $c->log->debug("Hit string". $hsp->query_string ."\t". $hsp->hit_string."\t". $hsp->homology_string);
+          }
+        }
+      }
+       
+      #Now make the generic results for each Pfam-B.
+      foreach my $pfamB_acc (keys %results){
+        foreach my $reg (@{$results{$pfamB_acc}}){
+          push @rawPfamBResults, { pfamb_id    => $reg->{pfamB_id},
+                                   pfamb_acc   => $reg->{pfamB_acc},
+                                   start       => $reg->{start},
+                                   end         => $reg->{end},
+                                   score       => $reg->{score},
+                                   pvalue      => $reg->{pvalue},
+                                   hitString   => $reg->{hitString},
+                                   homoString  => $reg->{homoString},
+                                   queryString => $reg->{queryString} };
+        }            
+      }
     }
   }
-  $c->log->debug( "SeqSearch::getGraphicOnMD5: Got ".scalar(@rawPfamAResults)." PfamA results" );
-  $c->log->debug( dump(@rawPfamAResults));
-  $c->log->debug( "SeqSearch::getGraphicOnMD5: Got ".scalar(@rawPfamBResults)." PfamB results" );
-  $c->log->debug( dump(@rawPfamBResults));
+
+  $c->log->debug( "SeqSearch::handleResults: got " . scalar @rawPfamAResults 
+                  . " PfamA results" );
+  $c->log->debug( dump @rawPfamAResults );
+  $c->log->debug( "SeqSearch::handleResults: got " . scalar @rawPfamBResults
+                  ." PfamB results" );
+  $c->log->debug( dump @rawPfamBResults );
   
   $c->stash->{genPfamARes} = \@rawPfamAResults;
   $c->stash->{genPfamBRes} = \@rawPfamBResults;
-  
-  
+
 }
 
 #-------------------------------------------------------------------------------
@@ -854,53 +877,56 @@ Generate the Pfam graphic from the generic results.
 sub generateGraphic : Private {
   my( $this, $c ) = @_;
 
-  # Convert the generic results into BioPerl objects and subsequently generate the graphic....
-  # This may seem a waste, but it abstracts us from changes to the XML.   
+  # Convert the generic results into BioPerl objects and subsequently generate 
+  # the graphic.... This may seem a waste, but it abstracts us from changes to 
+  # the XML.   
   
   # Generate a sequence object for the query sequence
   my $fac = Bio::Pfam::AnnSeqFactory->new;
   my $annseq = $fac->createAnnotatedSequence();
   my @seqs;
-  push(@seqs, $annseq);
-  
-  
-  $annseq->sequence(
-    Bio::Pfam::SeqPfam->new('-seq' => $c->{stash}->{seq},
-                            '-start' => '1',
-                            '-end' => length($c->{stash}->{seq}),
-                            '-id'=> "QuerySeq",
-                            '-acc' => "QuerySeq",
-                            '-organism' => "Unknown",
-                            '-desc' => "QuerySeq"));
+  push @seqs, $annseq;
+
+  $annseq->sequence( 
+    Bio::Pfam::SeqPfam->new( '-seq'      => $c->{stash}->{seq},
+                             '-start'    => '1',
+                             '-end'      => length($c->{stash}->{seq}),
+                             '-id'       => "QuerySeq",
+                             '-acc'      => "QuerySeq",
+                             '-organism' => "Unknown",
+                             '-desc'     => "QuerySeq" )
+  );
 
   # For each pfamA region, make the PfamRegion object
-  foreach my $pfamA (@{$c->{stash}->{genPfamARes}}){
-    if($pfamA->{significant}){
+  foreach my $pfamA ( @{ $c->{stash}->{genPfamARes} } ) {
+    next unless $pfamA->{significant};
     $annseq->addAnnotatedRegion(
       Bio::Pfam::PfamRegion->new( '-PFAM_ACCESSION' => $pfamA->{pfama_acc},
-                                  '-PFAM_ID' => $pfamA->{pfama_id},
-                                  '-SEQ_ID' => $annseq->id,
-                                  '-FROM' => $pfamA->{start},
-                                  '-TO' => $pfamA->{end},
-                                  '-MODEL_FROM' => $pfamA->{hmm_start},
-                                  '-MODEL_TO' => $pfamA->{hmm_end},
-                                  '-MODEL_LENGTH'=>$pfamA->{hmm_length},
-                                  '-BITS' => $pfamA->{bits},
-                                  '-EVALUE' => $pfamA->{evalue},
-                                  '-TYPE' => "pfama",
-                                  '-ANNOTATION' => $pfamA->{desc},
-                                  '-REGION' => $pfamA->{type} ));
-    }
+                                  '-PFAM_ID'        => $pfamA->{pfama_id},
+                                  '-SEQ_ID'         => $annseq->id,
+                                  '-FROM'           => $pfamA->{start},
+                                  '-TO'             => $pfamA->{end},
+                                  '-MODEL_FROM'     => $pfamA->{hmm_start},
+                                  '-MODEL_TO'       => $pfamA->{hmm_end},
+                                  '-MODEL_LENGTH'   => $pfamA->{hmm_length},
+                                  '-BITS'           => $pfamA->{bits},
+                                  '-EVALUE'         => $pfamA->{evalue},
+                                  '-ANNOTATION'     => $pfamA->{desc},
+                                  '-REGION'         => $pfamA->{type},
+                                  '-TYPE'           => "pfama" )
+    );
   }
                                                      
   #Now do the same for any PfamB hits  
-  foreach my $pfamB (@{$c->{stash}->{genPfamBRes}}){
-    $annseq->addAnnotatedRegion( Bio::Pfam::PfamRegion->new('-PFAM_ACCESSION' => $pfamB->{pfamb_acc},
-                                                              '-PFAM_ID' => $pfamB->{pfamb_id},
-                                                              '-SEQ_ID' => $annseq->id,
-                                                              '-FROM' => $pfamB->{start},
-                                                              '-TO' => $pfamB->{end},
-                                                              '-TYPE' => "pfamb"));  
+  foreach my $pfamB ( @{ $c->{stash}->{genPfamBRes} } ) {
+    $annseq->addAnnotatedRegion(
+      Bio::Pfam::PfamRegion->new( '-PFAM_ACCESSION' => $pfamB->{pfamb_acc},
+                                  '-PFAM_ID'        => $pfamB->{pfamb_id},
+                                  '-SEQ_ID'         => $annseq->id,
+                                  '-FROM'           => $pfamB->{start},
+                                  '-TO'             => $pfamB->{end},
+                                  '-TYPE'           => "pfamb" )
+    );  
   }
   
   #Now generate the image object that can be used for generating the graphic.
@@ -908,13 +934,13 @@ sub generateGraphic : Private {
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layout->layout_sequences( @seqs);
   #$c->log->debug($layout->layout_to_XMLDOM->toString(1));
+
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $imageset->create_images( $layout->layout_to_XMLDOM );  
   $c->stash->{images} = $imageset;
-
 }
-#-------------------------------------------------------------------------------
 
+#-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
