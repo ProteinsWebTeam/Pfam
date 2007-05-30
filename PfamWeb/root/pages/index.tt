@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.29 2007-05-21 12:49:16 jt6 Exp $
+# $Id: index.tt,v 1.30 2007-05-30 09:41:33 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -125,7 +125,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   <div id="protein" class="panel" style="display: none">
     <h3>Analyze your protein sequence for Pfam matches</h3>
     <p>
-      Paste your protein sequence here to find the matching Pfam families.
+      Paste your protein sequence here to find matching Pfam families.
     </p>
     <form action="[% base %]seqsearch/seq"
           method="get" 
@@ -170,7 +170,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
                type="text" 
                name="entry" 
                id="familyField" 
-               size="10" />
+               size="30" />
       </div>
     </form>
     <div onclick="if( $('familyField').present() )$('familyForm').submit()"
@@ -197,7 +197,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
                type="text" 
                name="entry" 
                id="clanField" 
-               size="10" />
+               size="30" />
       </div>
     </form>
     <div onclick="if( $('clanField').present() )$('clanForm').submit()"
@@ -212,8 +212,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     
   <div id="sequence" class="panel" style="display: none">
     <h3>View domain organisation of a UniProt sequence</h3>
-    <p>Enter the sequence identifier or accession for the UniProt sequence of 
-      interest.</p>
+    <p>Enter a UniProt sequence identifier or accession.</p>
     <form action="[% jumpBase %]"
           method="get" 
           id="proteinForm">
@@ -225,7 +224,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
                type="text" 
                name="entry" 
                id="proteinField" 
-               size="10" />
+               size="30" />
       </div>
     </form>
     <div onclick="if( $('proteinField').present() )$('proteinForm').submit()"
@@ -248,7 +247,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
                type="text" 
                name="entry" 
                id="structureField" 
-               size="10" />
+               size="30" />
       </div>
     </form>
     <div onclick="if( $('structureField').present() )$('structureForm').submit()"
