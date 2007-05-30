@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.14 2007-05-17 13:49:24 jt6 Exp $
+# $Id: links.tt,v 1.15 2007-05-30 08:14:18 jt6 Exp $
 
 USE dumper;
 
@@ -79,7 +79,7 @@ external = [
 #    "pdb",       
 
 BLOCK buildLink;
-  CALL c.log.debug( "links.tt: building a link, type |$type|" );
+  #CALL c.log.debug( "links.tt: building a link, type |$type|" );
   SWITCH type %]
     [% CASE "CATH" %]
       <a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=[% id %]">[% id %]</a>
@@ -137,7 +137,7 @@ END; # of BLOCK buildLink
 # otherwise the check for content below could include an empty section in the final
 # page output
 internalLinks = BLOCK;
-  CALL c.log.debug( "links.tt: building internal links" );
+  #CALL c.log.debug( "links.tt: building internal links" );
   oe = 0;
   FOREACH db IN internal;
     IF xrefs.$db.size -%]
@@ -184,11 +184,10 @@ internalLinks = BLOCK;
                   </span>
                 [%- END;
               CASE "btobPRC";
-                FOREACH ref IN xrefs.$db;
-                  CALL c.log.debug( "found a btobPRC reference: $ref" ) -%]
-                    <span class="entry">
-                      [%- PROCESS buildLink type="PFAMB" id=ref.get_column("r_pfamB_acc") -%]
-                    </span>
+                FOREACH ref IN xrefs.$db -%]
+                  <span class="entry">
+                    [%- PROCESS buildLink type="PFAMB" id=ref.get_column("r_pfamB_acc") -%]
+                  </span>
                 [%- END;
               CASE "btoaPRC";
                 FOREACH ref IN xrefs.$db -%]
@@ -226,7 +225,7 @@ END; # of internalLinks block
 # build the external links
 
 externalLinks = BLOCK;
-  CALL c.log.debug( "links.tt: building external links" );
+  #CALL c.log.debug( "links.tt: building external links" );
   oe = 0;
   FOREACH db IN external;
     IF entryType == "A";
