@@ -3,9 +3,9 @@
 # jobDone.tt
 # jt6 20070414 WTSI
 #
-# $Id: jobDone.tt,v 1.3 2007-05-23 09:19:10 rdf Exp $
+# $Id: jobDone.tt,v 1.4 2007-05-30 08:15:10 jt6 Exp $
 
-META title    = "Results of your sequence search";
+META title    = "Sequence search results";
 META fullPage = 1;
 
 #-------------------------------------------------------------------------------
@@ -15,104 +15,260 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "job.css" );
 
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+requirements.js.push( "sorttable.js" );
+
 #-------------------------------------------------------------------------------
 
+# the numbers of PfamA and PfamB matches that the search found
+numAs = genPfamARes.size;
+numBs = genPfamBRes.size;
+
+# shortcuts to the show/hide glass buttons
+showButton = "${base}images/showButton.png";
+hideButton = "${base}images/hideButton.png";
 %]
 
-<h1>Job results</h1>
+<script type="text/javascript">
+  // <![CDATA[
+ function toggleAlignment( sId, oSwitch ) {
+   $(sId).toggle();
+   oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
+  }
+  function showAllAlignments( sId, bState ) {
+    var sState = bState ? "show" : "hide";
+    var sSrc   = bState ? "[% hideButton %]" : "[% showButton %]";
+    $A( document.getElementsByClassName("alignment",sId)).invoke(sState);
+    $A( $$("td.showSwitch img") ).each(
+      function (s ) {
+        s.src = sSrc; 
+      }
+    );
+  }
+  // ]]>
+</script>
 
+<div id="results">
+   
+  <div id="key">
+    
+    <h2>Sequence search results</h2>
 
-<h3>Graphic Showing Significant Pfam-A & Pfam-B matches</h3>
-<!-- Change title based on whether you get hits -->
-[% FOREACH image IN images.each_image %]
-[% CALL image.print_image; %]
-  [% id = image.image_name; %]
-	<img class="graphicImage"
-         src="[% constants.tmp %]/[% image.file_location %]"
-         usemap="#domainGraphicsMap[% auto_arch %][% loop.index %]"
-         alt="" />
-    <div class="cleaner">
-[% END %]
+    <p>
+    [%- # all of this is a very convoluted way to write a nice, correct
+        # English sentence to summarise the results. It's possibly overkill...
+    
+    IF numAs -%]
+      We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %] 
+      to your search sequence
+    [%- ELSE -%]
+      We did not find any Pfam-A matches to your search sequence
+    [%- END;
+    IF numBs;
+      IF numAs;
+        " and "; 
+      ELSIF NOT numAs;
+        " but we did find "; 
+      END %]
+      <strong>[% numBs %]</strong> Pfam-B match[% "es" IF numBs > 1 %].
+    [% ELSIF searchedPfamB AND NOT numBs;
+      IF numAs;
+        " but we did not find any Pfam-B matches."; 
+      ELSIF NOT numAs;
+        " nor any Pfam-B matches."; 
+      END;       
+    ELSE;
+      ".";
+    END -%]
+    </p>
 
-<br>
-<!-- only print if matches -->
-<!-- Add a column that allow you to jump to the alignment below -->
-<!-- All tables need to be sortable -->
-<h3>Pfam-A Matches</h3>
-<table border=1>
-<tr>
-<td>Significant</td>
-<td>Pfam-A</td>
-<td>Description</td>
-<td>Entry Type</td>
-<td>Sequence Start</td>
-<td>Sequence End</td>
-<td>HMM From</td>
-<td>HMM To</td>
-<td>Bits Score</td>
-<td>E-value</td>
-<td>Alignment</td>
-</tr>
-<tr>
-[% FOREACH pfamA IN genPfamARes %]
-<td>[% pfamA.significant %] </td>
-<td>[% pfamA.pfama_id %]</td>
-<td>[% pfamA.desc %]</td>
-<td>[% pfamA.type %]</td>
-<td>[% pfamA.start %]</td>
-<td>[% pfamA.end %]</td>
-<td>[% pfamA.hmm_start %]</td>
-<td>[% pfamA.hmm_end %]</td>
-<td>[% pfamA.bits %]</td>
-<td>[% pfamA.evalue %]</td>
-<td>[% pfamA.mode %]</td>
-</tr>
-[% END %]
-</table>
-<!--download as text -->
+    [% IF numAs OR numBs %]
+      <p>
+        The Pfam graphic below shows the arrangement of the domains on your
+        search sequence. Clicking on any of the domains will take you to a page
+        of information about that domain.
+      </p>
 
-<!-- only print if matches -->
-<!-- Add a column that allow you to jump to the alignment below -->
-<h3>Pfam-B Matches</h3>
-<table border=1>
-<tr>
-<td>Pfam-B</td>
-<td>Sequence Start</td>
-<td>Sequence End</td>
-<td>Score</td>
-<td>E-value</td>
-</tr>
-<tr>
-[% FOREACH pfamB IN genPfamBRes %]
-<td>[% pfamB.pfamb_id %]</td>
-<td>[% pfamB.start %]</td>
-<td>[% pfamB.end %]</td>
-<td>[% pfamB.score %]</td>
-<td>[% pfamB.pvalue %]</td>
-</tr>
-[% END %]
-</table>
+      <div>
+      [%- FOREACH image IN images.each_image;
+        CALL image.print_image;
+        id = image.image_name -%]
 
-	
-[% FOREACH pfamA IN genPfamARes %]
-<h5>Alignment to  [% pfamA.pfama_id %]</h5>
-<pre>[% pfamA.aliHmm %]</pre>
-<pre>[% pfamA.aliMatch %]</pre>
-<pre>[% pfamA.aliSeq %]</pre>
-<!-- Add button align to seed: Need to pass the aliSeq, pfama_id and mode -->
-[% END %]
+      	<img class="graphicImage"
+             src="[% constants.tmp %]/[% image.file_location %]"
+             usemap="#domainGraphicsMap[% loop.index %]"
+             alt="" />
+        <div class="cleaner"><!-- empty --></div>
 
-[% FOREACH pfamB IN genPfamBRes %]
-<h5>Alignment to  [% pfamB.pfamb_id %]</h5>
-<pre>[% pfamB.queryString %]</pre>
-<pre>[% pfamB.homoString %]</pre>
-<pre>[% pfamB.hitString %]</pre>
-<!-- Add button to align to pfamB -->
-[% END %]
-[% FOREACH jobId IN results.keys %]
-<h2>Job [% jobId %]</h2>
+        <map name="domainGraphicsMap[% loop.index %]"
+             id="domainGraphicsMap[% loop.index %]">
+          [% image.image_map %]
+        </map>
+      [% END %]
+      </div>
 
-<pre>
-[% results.$jobId %]
-</pre>
-[% END %]
+      <p>
+        Below
+        [% IF numAs AND numBs;
+          "are tables";
+        ELSIF numA OR numB;
+          "is a table";
+        END %] showing the details of the domains that were found. The search
+        process generates alignments between your search sequence and, for 
+        Pfam-A hits, the HMM.
+        [% IF searchedPfamB %]For Pfam B the alignment is between your search
+        sequence and the matching sequence from our library of Pfam-B 
+        sequences.[% END %] You can show individual alignments by clicking on 
+        the &quot;Show&quot; button in each row of the result table, or you can
+        show all alignments using the links above the table.
+      </p>
+      <p>
+        <a href="[% base %]seqsearch?tab=searchSequenceBlock">Return</a> to the 
+        search form to look for Pfam domains on a new sequence.
+      </p> 
+    [% END %]
+
+  </div><!-- end of "key" -->
+
+  [% IF numAs %]
+  
+  <table id="pfamASummary"
+         class="resultTable" 
+         summary="Pfam-A search results">
+    <caption>
+      <span class="tableTitle">Pfam-A Matches</span>
+      <span class="link" onclick="showAllAlignments('pfamASummary',true)">Show</span> or
+      <span class="link" onclick="showAllAlignments('pfamASummary',false)">hide</span> 
+      all alignments.
+    </caption>
+    <thead>
+      <tr class="titleRow">
+        <th class="rowNum">Original order</th>
+        <th>Pfam-A</th>
+        <th class="nosort">Description</th>
+        <th>Entry Type</th>
+        <th>Sequence Start</th>
+        <th>Sequence End</th>
+        <th>HMM From</th>
+        <th>HMM To</th>
+        <th>Bits Score</th>
+        <th>E-value</th>
+        <th>Alignment mode</th>
+        <th>Show/hide alignment</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH pfamA IN genPfamARes;
+        IF loop.index % 2;
+          rowClass = pfamA.significant ? "oddlySignificant"  : "odd";
+        ELSE;
+          rowClass = pfamA.significant ? "evenlySignificant" : "even";
+        END -%]
+      <tr class="[% rowClass %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td>
+          <a href="[% base %]family?id=[% pfamA.pfama_id %]">
+            [% pfamA.pfama_id %]</a>
+        </td>
+        <td class="desc">[% pfamA.desc %]</td>
+        <td>[% pfamA.type %]</td>
+        <td>[% pfamA.start %]</td>
+        <td>[% pfamA.end %]</td>
+        <td[% IF pfamA.hmm_start != 1 %] class="warning"[% END %]>
+          [% pfamA.hmm_start %]
+        </td>
+        <td[% IF pfamA.hmm_end != pfamA.model_length %] class="warning"[% END %]>
+          [% pfamA.hmm_end %]
+        </td>
+        <td>[% pfamA.bits %]</td>
+        <td>[% pfamA.evalue %]</td>
+        <td>[% pfamA.mode %]</td>
+        <td class="showSwitch">
+          <img src="[% showButton %]" 
+               onclick="toggleAlignment( 'pfamAAlignment[% loop.index %]', this )"
+               alt="Show alignment" />
+        </td>
+      </tr>
+      <tr class="alignment [% rowClass %]" id="pfamAAlignment[% loop.index %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td colspan="11">
+          <pre>[% pfamA.aliHmm %]
+[% pfamA.aliMatch %]
+[% pfamA.aliSeq %]</pre>
+        </td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+
+  <!--download as text -->
+
+  [% END; # of "if numAs"
+
+  IF numBs %]
+
+  <table id="pfamBSummary"
+         class="resultTable" 
+         summary="Pfam-B search results">
+    <caption>
+      <span class="tableTitle">Pfam-B Matches</span>
+      <span class="link" onclick="showAllAlignments('pfamBSummary',true)">Show</span> or
+      <span class="link" onclick="showAllAlignments('pfamBSummary',false)">hide</span> 
+      all alignments.
+    </caption>
+    <thead>
+      <tr>
+        <th class="rowNum">Original order</th>
+        <th>Pfam-B</th>
+        <th>Sequence Start</th>
+        <th>Sequence End</th>
+        <th>Score</th>
+        <th>E-value</th>
+        <th>Show/hide alignment</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH pfamB IN genPfamBRes;
+        rowClass = loop.index % 2 ? "odd" : "even" %]
+      <tr class="[% rowClass %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td>
+          <span class="link"
+                onclick="showHits('pfamBHits','pfamBSwitch','pfamBAlignment[% loop.index %]')">
+            [% pfamB.pfamb_id %]
+          </span>
+        </td>
+        <td>[% pfamB.start %]</td>
+        <td>[% pfamB.end %]</td>
+        <td>[% pfamB.score %]</td>
+        <td>[% pfamB.pvalue %]</td>
+        <td class="showSwitch">
+          <img src="[% showButton %]" 
+               onclick="toggleAlignment( 'pfamBAlignment[% loop.index %]', this )"
+               alt="Show alignment" />
+        </td>
+      </tr>
+      <tr class="alignment [% rowClass %]" 
+          id="pfamBAlignment[% loop.index %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td colspan="6">
+          <pre>[% pfamB.queryString %]
+[% pfamB.homoString %]
+[% pfamB.hitString -%]</pre>
+        </td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+
+  [% END # of "if numBs" %]
+
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  $A( document.getElementsByClassName("alignment") ).invoke( "hide" );  
+  // ]]>
+</script>
+
+<!-- end of "results" -->
