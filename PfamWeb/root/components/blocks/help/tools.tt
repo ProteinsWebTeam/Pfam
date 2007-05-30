@@ -4,33 +4,62 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.3 2007-05-30 13:35:15 rdf Exp $
+# $Id: tools.tt,v 1.4 2007-05-30 15:01:49 jt6 Exp $
 %]
 
 <!-- start the Tools block -->
 <div class="block" id="helpToolsBlock">
   <div class="handle">
-    <h1>Guide to the Tools and Webservices Provided By Pfam</h1>
+    <h1>Guide to the tools and web services provided by Pfam</h1>
   </div>
   <div class="blockContent">
 	
-	<h3>Web Services</h3>
-	<h5>Service Description</h5>
-	<p>The set of Web Services provided by Pfam provides access to various parts
-	of the Pfam database, with the main focus on the family information.  The
-	current list of available methods are:<p>
-	<ul>
-	 <li>isAlive - Test to see is the services is up and running</li>
-	 <li>getIdByAcc - Get a Pfam ID given a Pfam accession (PFXXXXX)</li>
-	 <li>getPfamAnnotation</li>
-	 <li>getPfamGO</li>
-	 <li>getPfamInterPro</li>
-   <li>getPfamMembership</li>
-   <li>annotateSequenceById</li>
-   <li>annotateSequenceByAcc</li>
-  </ul> 
+	<h2>Web services</h2>
+
+	<h3>Service description</h3>
+
+	<p>
+	  The set of web services offered by Pfam provides access to various parts
+  	of the Pfam database, with the main focus on the family information. The
+  	currently available methods are:
+  </p>
+
+	<dl class="methods">
+	  <dt>isAlive</dt>
+    <dd>test to see if the services are up and running</dd>
+	  <dt>getIdByAcc</dt>
+    <dd>retrieve a Pfam ID, given a Pfam accession (<em>PFXXXXX</em>)</dd>
+	  <dt>getPfamAnnotation</dt>
+    <dd>retrieve a Pfam annotation</dd>
+	  <dt>getPfamGO</dt>
+    <dd>get the <a class="ext" href="http://www.ebi.ac.uk/GO/">Gene Ontology</a>
+      (GO) terms for a given Pfam family</dd>
+	  <dt>getPfamInterPro</dt>
+    <dd>get the <a class="ext" href="http://www.ebi.ac.uk/interpro">InterPro</a> 
+      information for a Pfam family</dd>
+    <dt>getPfamMembership</dt>
+    <dd>retrieve the sequences in a family, in the format &quot;
+      <em>acc / start - end</em>&quot;</dd>
+    <dt>annotateSequenceById</dt>
+    <dd>retrieve all of the Pfam domains for a given sequence, where the 
+      sequence is identified by its <a class="ext" 
+        href="http://www.ebi.uniprot.org/">UniProt</a> ID</dd>
+    <dt>annotateSequenceByAcc</dt>
+    <dd>retrieve all of the Pfam domains for a given sequence, where the 
+      sequence is identified by its <a class="ext" 
+        href="http://www.ebi.uniprot.org/">UniProt</a> accession</dd>
+    <dt>annotateSequenceByMd5</dt>
+    <dd>retrieve all of the Pfam domains for a given sequence, where the 
+      sequence is identified by its MD5 checksum</dd>
+  </dl> 
 	
-	<h5>Coming Soon</h5>
+	<h3>Proposed methods</h3>
+  
+  <p>
+    The following methods <strong>may</strong> be added to the service in 
+    the future:
+  </p>
+
 	<ul>
 		<li>getDomainGraphicByAcc</li>
 		<li>getDomainGraphicById</li>
@@ -39,36 +68,44 @@
 		<li>buildAndSearch</li>
 		<li>compareAlignToPfam</li>
 		<li>submitPfamScan</li>
-		<li>Pfam scan</li>
+
 	</ul>
 	
-	<h5>WSDL</h5>
-	<p>The WSDL for the services can be found at:<p>
-	<b><a href=http://services.sanger.ac.uk/Pfam/PfamWebServices.wsdl>http://services.sanger.ac.uk/Pfam/PfamWebServices.wsdl</a></b>
+	<h3>WSDL</h3>
+  
+	<p>
+	  The WSDL for the services can be found at:
+ 	  <a class="ext" href="http://services.sanger.ac.uk/Pfam/PfamWebServices.wsdl">
+	    http://services.sanger.ac.uk/Pfam/PfamWebServices.wsdl</a>
+  </p>
 	
-	<h5>Example Clients</h5>
-  <p> An example <acronym title="Practical Extraction and Report Language">Perl</acronym> client can be download from <a  href="http://notidea">here</a>.</p>
-		
-	<p>PreRequisites</p>
-	<p> To run the <acronym title="Practical Extraction and Report Language">Perl</acronym> 
-	client you should install <acronym title="Simple Object Access Protocol">SOAP</acronym>::Lite 
-	first. <acronym title="Simple Object Access Protocol">SOAP</acronym>::Lite is a collection of 
-	<acronym title="Practical Extraction and Report Language">Perl</acronym> modules which provides 
-	a simple and lightweight interface to the Simple Object Access Protocol 
-	(<acronym title="Simple Object Access Protocol">SOAP</acronym>) both on client and server side. 
-	You can get the latest version from <a href="http://search.cpan.org/">CPAN</a>.
-</p>
+	<h3>Prerequisites</h3>
+  
+	<p>
+	  To run the perl client you will need to install the <code><a class="ext"
+      href="http://search.cpan.org/~byrne/SOAP-Lite-0.69/">SOAP::Lite</a></code>
+    package from <a class="ext" href="http://www.cpan.org/">CPAN</a> first. 
+    <code>SOAP::Lite</code> is a collection of perl modules which provides a 
+    simple and lightweight interface to the Simple Object Access Protocol 
+    (SOAP).
+  </p>
 
-<p>To run, simple type: perl pfamClient.pl</p>
+	<h3>Example client</h3>
 
-<p>And you should start to see some output like:</p>
-<pre>
-perl pfamWebServiceClient.pl 
+  <p>
+    You can <a href="[% base %]documents/pfamClient.pl">download</a> an
+    example perl client.
+    To run it, simply type: <code>perl pfamClient.pl</code>
+    The output from the script should be similar to this:
+  </p>
+
+  <pre class="codeSnippet">shell% perl pfamClient.pl 
 Checking isAlive
-Service is AlivePfam Web Services are alive at Wed May 30 13:32:12 2007
+Service is alive: Pfam Web Services are alive at Wed May 30 13:32:12 2007
 Checking getId2Acc
-The id for PF00069 is:Pkinase
+The id for PF00069 is: Pkinase
 Checking getAcc2Id
+The acc for Pkinase is: PF00069
 Checking getPfamAnnotation
 The description for PF00069 is:
 ID   Pkinase
@@ -88,14 +125,24 @@ BM   hmmcalibrate --cpu 1 --seed 0 HMM_ls
 BM   hmmbuild -f -F HMM_fs SEED
 BM   hmmcalibrate --cpu 1 --seed 0 HMM_fs
 AM   globalfirst
+...</pre>
+
+<h3>Contact</h3>
+
+<p>
+  If you have questions or comments about the Pfam web services, please 
+  contact us via the email address below. If you plan to use Pfam web services 
+  for a course or if you intend to make a large number of requests, please 
+  let us know, so that we can make sure that sufficient resources are 
+  available to you. 
+</p>
 
 
-</pre>
-
-
+<!--
   <h3>Batch Upload</h3>
 	
 	<p>Some information about the batch upload.</p>
+-->
   </div>
 </div>
 
