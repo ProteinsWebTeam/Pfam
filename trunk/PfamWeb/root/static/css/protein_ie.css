@@ -4,7 +4,7 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: protein_ie.css,v 1.5 2007-03-15 14:57:19 jt6 Exp $
+   $Id: protein_ie.css,v 1.6 2007-05-30 09:37:10 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -30,14 +30,6 @@
 hr.short {
     border-color: #074987;
 }
-
-/* the curved corner for the page top tab */
-/* redundant if we switch to a GIF rather than a PNG...
-#icons {
-    background-image: none;
-    filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src="/images/right_top.png",sizingMethod="crop");
-}
-*/
 
 div.sequenceLine {
     font-size: 0.6em;
