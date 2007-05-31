@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.38 2007-05-16 15:33:12 jt6 Exp $
+// $Id: pfFunctions.js,v 1.39 2007-05-31 12:21:12 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -305,7 +305,7 @@ function chooseTab() {
 //------------------------------------------------------------
 // display the specified tab in the page body
 
-function show( sId ) {
+function switchTab( sId ) {
   // show/hide the blocks themselves
   $$("#content div.block").each( function( block ) {
                                    if( sId == block.id ) {

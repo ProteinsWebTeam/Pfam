@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.18 2007-05-16 15:17:16 jt6 Exp $
+# $Id: layout.tt,v 1.19 2007-05-31 12:21:12 jt6 Exp $
 
 USE String;
 USE date;
@@ -50,7 +50,7 @@ BLOCK generateTab;
     [% IF active -%]
 	  [%# this div is purely to avoid the IE box model bug... -%]
       <div>
-        <a href="javascript:show('[% blockName %]')">[% blockTitle %]</a>
+        <a href="javascript:switchTab('[% blockName %]')">[% blockTitle %]</a>
       </div>
     [% ELSE -%]
       <div class="inactive">[% blockTitle %]</div>
@@ -153,7 +153,7 @@ END;
   section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
   showTab    = "[% showTab        # the tab, specified by a parameter %]";
   if( ! ( showTab === undefined ) && $(showTab) ) {
-    show( showTab );
+    switchTab( showTab );
   } else {
     $A( document.getElementsByClassName( "block" ) )
       .first()
