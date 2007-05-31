@@ -4,7 +4,7 @@
 # 
 # functional similarity search error page
 #
-# $Id: fsError.tt,v 1.1 2007-05-18 10:53:00 jt6 Exp $
+# $Id: fsError.tt,v 1.2 2007-05-31 08:38:00 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
@@ -21,9 +21,9 @@ META fullPage = 1;
   [% IF goTerms.size %]
   <p>
     The functional similarity search relies on the assignment of 
-    <a href="http://www.ebi.ac.uk/GO/">Gene Ontology</a> (GO) terms to Pfam 
-    families. Unfortunately, your search family does not have any GO assigned
-    to it and therefore could not be included in functional similarity
+    <a class="ext" href="http://www.ebi.ac.uk/GO/">Gene Ontology</a> (GO) terms 
+    to Pfam families. Unfortunately, your search family does not have any GO 
+    assigned to it and therefore could not be included in functional similarity
     calculations.
   </p>
   [% END %]
