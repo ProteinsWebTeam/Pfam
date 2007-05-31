@@ -258,6 +258,76 @@ sub getPfamGO{
  carp("Did not find family information for $family") if $self->{'debug'};
 }
 
+sub getNSEInFull {
+  my($self, $family) = @_;
+  my @familyNSE;
+  if($family =~ /PF\d{5}/){
+    carp("Looking up information for $family. I think this is an accession") if $self->{'debug'};
+    @familyNSE = $self->getSchema
+                         ->resultset("PfamA_reg_full_significant")
+                           ->search({"pfamA.pfamA_acc" => $family,
+                                     "in_full"        => 1},
+                                    {join        => [ qw( pfamA pfamseq ) ] ,
+                                     prefetch    => [ qw( pfamA pfamseq ) ]});
+                     
+  }elsif($family =~ /\S{1,16}/){
+    carp("Looking up information for $family. I think this is an id") if $self->{'debug'};
+    @familyNSE = $self->getSchema
+                         ->resultset("PfamA_reg_full_significant")
+                           ->search({"pfamA.pfamA_id" => $family,
+                                     "in_full"        => 1},
+                                    {join        => [ qw( pfamA pfamseq ) ],
+                                     prefetch    => [ qw( pfamA pfamseq ) ]});
+
+   }else{
+    cluck("$family does not look like a family accession or id")
+  }
+  if(scalar(@familyNSE)){
+    carp("Found family information for $family") if $self->{'debug'};
+    return (\@familyNSE);
+  } 
+  carp("Did not find family information for $family") if $self->{'debug'};
+}
+
+sub getPfamRegionsForSeq{
+  my($self, $seq) = @_;
+  my @pfamRegions;
+  if($seq =~ /\S{6}/){
+    carp("Looking up information for $seq. I think this is an accession") if $self->{'debug'};
+    @pfamRegions = $self->getSchema
+                         ->resultset("PfamA_reg_full_significant")
+                           ->search({"pfamseq.pfamseq_acc" => $seq,
+                                     "in_full"             => 1},
+                                    {join        => [ qw( pfamA pfamseq ) ],
+                                     prefetch    => [ qw( pfamA pfamseq ) ]});
+                     
+  }elsif($seq =~ /\S+_\S+/){
+    carp("Looking up Pfam information for $seq. I think this is a seq id") if $self->{'debug'};
+    @pfamRegions = $self->getSchema
+                         ->resultset("PfamA_reg_full_significant")
+                           ->search({"pfamseq.pfamseq_id" => $seq,
+                                     "in_full"        => 1},
+                                    {join        => [ qw( pfamA pfamseq ) ],
+                                     prefetch    => [ qw( pfamA pfamseq ) ]});
+  
+  }elsif($seq =~ /\S{33}/){
+    carp("Looking up Pfam information for $seq. I think this is a seq MD5 checksum") if $self->{'debug'};
+    @pfamRegions = $self->getSchema
+                         ->resultset("PfamA_reg_full_significant")
+                           ->search({"pfamseq.pfamseq_md5" => $seq,
+                                     "in_full"        => 1},
+                                    {join        => [ qw( pfamA pfamseq ) ],
+                                     prefetch    => [ qw( pfamA pfamseq ) ]});
+  }else{
+    cluck("$seq does not look like a family accession or id");
+  }
+  if(scalar(@pfamRegions)){
+    carp("Found family information for $seq") if $self->{'debug'};
+    return (\@pfamRegions);
+  } 
+  carp("Did not find family information for $seq") if $self->{'debug'};
+}
+
 #Specific insert/update methods should go here
 
 
