@@ -6,7 +6,7 @@
 # builds the form for specifying a UniProt entry for which to show the graphics
 # XML.
 #
-# $Id: generatedUniprotGraphic.tt,v 1.2 2007-05-01 21:21:55 jt6 Exp $
+# $Id: generatedUniprotGraphic.tt,v 1.3 2007-05-31 12:21:44 jt6 Exp $
 
 META title = "Pfam graphic for UniProt entry";
 META fullPage = 1;
@@ -33,9 +33,9 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   generate the image itself.    
 </p>
  
-<div id="form">
-	<form method="post" 
-        action="[% c.uri_for( "/renderUniprotGraphic" ) %]">
+<form method="post" 
+      action="[% c.uri_for( "/renderUniprotGraphic" ) %]">
+  <div id="form">
     <input type="hidden"
            name="formSubmit"
            value="yes" />
@@ -56,8 +56,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
            name="Reset" 
            value="Reset" 
            class="button" />
-  </form>
-</div>
+  </div>
+</form>
 
 <script type="text/javascript">
   // <![CDATA[
@@ -67,12 +67,14 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 <div id="generatedGraphic" class="graphicItem">
 
+  [% IF pfamseq.description %]
   <p>[% pfamseq.description %]</p>
+  [% END %]
 
   <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/>
   <div class="cleaner"><!-- empty --></div>        
 
-  <map name="singleImageMap">
+  <map id="singleImageMap">
     [% image.image_map %]
   </map>
 

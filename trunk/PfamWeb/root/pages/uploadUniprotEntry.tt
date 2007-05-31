@@ -6,9 +6,9 @@
 # builds the form for specifying a UniProt entry for which to show the graphics
 # XML.
 #
-# $Id: uploadUniprotEntry.tt,v 1.2 2007-05-01 21:21:56 jt6 Exp $
+# $Id: uploadUniprotEntry.tt,v 1.3 2007-05-31 12:21:44 jt6 Exp $
 
-META title = "Generate graphics for a UniProt entry";
+META title = "Generate domain images for UniProt entries";
 META fullPage = 1;
 
 #-------------------------------------------------------------------------------
@@ -39,9 +39,9 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 </div>
 [% END %]
 
-<div id="form">
-	<form method="post" 
-        action="[% c.uri_for( "/renderUniprotGraphic" ) %]">
+<form method="post" 
+      action="[% c.uri_for( "/renderUniprotGraphic" ) %]">
+  <div id="form">
     <input type="hidden"
            name="formSubmit"
            value="yes" />
@@ -61,8 +61,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
            name="Reset" 
            value="Reset" 
            class="button" />
-  </form>
-</div>
+  </div>
+</form>
 
 <script type="text/javascript">
   // <![CDATA[
