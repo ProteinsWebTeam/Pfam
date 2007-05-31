@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.5 2007-05-01 21:03:25 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.6 2007-05-31 12:23:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -44,7 +44,16 @@ family = "${base}family";
       required. Each of the example graphics in this page is followed by a link
       that can be used to show the XML that produced it. 
     </p>
-    
+    <p>
+      We provide a set of tools, described in the 
+      <span class="link" onclick="switchTab('helpToolsBlock')">Tools &amp; Web 
+        Services</span> section of the help pages, that allow you to generate 
+      <a href="[% base %]generateGraphic">custom domain graphics</a> by
+      uploading your own XML file, or to generate graphics for a
+      <a href="[% base %]generateUniprotGraphic">specific UniProt</a> sequence, 
+      given the UniProt accession or ID. 
+    </p>
+
     <hr />
     
     <h2>The sequence</h2>
@@ -1177,33 +1186,6 @@ family = "${base}family";
   &lt;/sequence&gt;
 &lt;/image&gt;</pre>
     </div>
-    
-  	<p><a href="#graphicsTop">back to top</a></p>
-    
-    <hr />
-    
-    <h2>Producing your own graphics</h2>
-
-    <p>
-      As we are regularly approached for producing domain graphics for use in 
-      publications, we have produced a 
-      <a href="[% base %]generateGraphic">tool</a> for users to 
-      upload a &quot;domain graphics&quot; XML. This file will be validated 
-      against the
-      <a href="[% base %]documents/pfamDomainGraphics.xsd">schema</a>
-      and subseqeuently rendered. The images that the tool produces can then 
-      be saved for your own use. 
-    </p>
-    <p>
-      If there is an existing sequence in Pfam that you wish to alter/elaborate 
-      then the XML used by Pfam for this sequence can also be obtained using 
-      this tool.
-    </p>
-    <p>
-      There is a similar <a href="[% base %]generateUniprotGraphic">tool</a> 
-      which allows you to see the domain graphic for a given 
-      <a href="http://www.ebi.uniprot.org/">UniProt</a> entry.
-    </p>
     
   	<p><a href="#graphicsTop">back to top</a></p>
     
