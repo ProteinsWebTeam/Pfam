@@ -3,7 +3,7 @@
 # jobDone.tt
 # jt6 20070414 WTSI
 #
-# $Id: jobDone.tt,v 1.4 2007-05-30 08:15:10 jt6 Exp $
+# $Id: jobDone.tt,v 1.5 2007-05-31 09:00:37 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -87,6 +87,9 @@ hideButton = "${base}images/hideButton.png";
         The Pfam graphic below shows the arrangement of the domains on your
         search sequence. Clicking on any of the domains will take you to a page
         of information about that domain.
+        [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
+        overlapping Pfam-A domains, which are given higher priority when 
+        building the graphic.[% END %]
       </p>
 
       <div>
@@ -116,7 +119,7 @@ hideButton = "${base}images/hideButton.png";
         END %] showing the details of the domains that were found. The search
         process generates alignments between your search sequence and, for 
         Pfam-A hits, the HMM.
-        [% IF searchedPfamB %]For Pfam B the alignment is between your search
+        [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
         sequence and the matching sequence from our library of Pfam-B 
         sequences.[% END %] You can show individual alignments by clicking on 
         the &quot;Show&quot; button in each row of the result table, or you can
