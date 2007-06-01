@@ -4,7 +4,7 @@
 #
 # the main site 404 page
 #
-# $Id: 404.tt,v 1.1 2007-01-31 14:20:27 jt6 Exp $
+# $Id: 404.tt,v 1.2 2007-06-01 15:01:54 jt6 Exp $
 
 # tell the wrapper to add the full page footer
 META fullPage = 1;
@@ -14,7 +14,7 @@ META title = "Page not found"
 
 <!-- start 404 page -->
 
-<div id="tips">
+<div class="tips">
 
   <h1>404: Page not found</h1>
 
@@ -74,6 +74,8 @@ META title = "Page not found"
     </dd>  
   </dl>
  
+  <hr />
+  
 </div>
 
 <!-- end 404 page -->
