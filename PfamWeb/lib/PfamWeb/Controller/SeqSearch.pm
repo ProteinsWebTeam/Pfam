@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.19 2007-05-30 08:06:03 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.20 2007-06-01 15:05:45 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.19 2007-05-30 08:06:03 jt6 Exp $
+$Id: SeqSearch.pm,v 1.20 2007-06-01 15:05:45 jt6 Exp $
 
 =cut
 
@@ -856,10 +856,10 @@ sub handleResults : Private {
 
   $c->log->debug( "SeqSearch::handleResults: got " . scalar @rawPfamAResults 
                   . " PfamA results" );
-  $c->log->debug( dump @rawPfamAResults );
+  #$c->log->debug( dump @rawPfamAResults );
   $c->log->debug( "SeqSearch::handleResults: got " . scalar @rawPfamBResults
                   ." PfamB results" );
-  $c->log->debug( dump @rawPfamBResults );
+  #$c->log->debug( dump @rawPfamBResults );
   
   $c->stash->{genPfamARes} = \@rawPfamAResults;
   $c->stash->{genPfamBRes} = \@rawPfamBResults;
