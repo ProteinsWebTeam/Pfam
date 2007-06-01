@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.49 2007-05-30 09:39:26 jt6 Exp $
+   $Id: pfam.css,v 1.50 2007-06-01 15:05:07 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -292,11 +292,11 @@ img.addAnnotation {
   float: left;
   font-weight: bold;
 	text-align: right;
+  width: 15em;
 }
 
 .tips dd {
-	line-height: 1.2em;
-  margin-left: 14em;
+  margin-left: 16em;
 	margin-bottom: 0.4em;
 }
 
@@ -536,12 +536,14 @@ a.sortheader {
   font-weight: bold;
   color: #FFF;
   background: #008000;
+  padding: 0 0.2em;
 }
 
 #key .gradBot {
   font-weight: bold;
   color: #FFF;
   background: #C00000;  
+  padding: 0 0.2em;
 }
 
 /* affects the key table */
