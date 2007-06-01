@@ -4,8 +4,9 @@
 # 
 # search error page
 #
-# $Id: searchError.tt,v 1.4 2007-05-18 10:52:29 jt6 Exp $
+# $Id: searchError.tt,v 1.5 2007-06-01 15:04:04 jt6 Exp $
 
+META title = "No search results";
 META fullPage = 1
 -%]
 
@@ -21,7 +22,7 @@ META fullPage = 1
 
   <dl>
 	<dt>
-      avoid special characters:
+      avoid special characters
 	</dt>
 	<dd>
       your search term can only include standard word characters
@@ -33,7 +34,7 @@ META fullPage = 1
 	</dd>
 
 	<dt>
-      don&rsquo;t include wildcards:
+      don&rsquo;t include wildcards
 	</dt>
 	<dd>
       the search system will automatically add wildcards to the end of
@@ -42,14 +43,14 @@ META fullPage = 1
 	</dd>
 
 	<dt>
-      don&rsquo;t worry about case:
+      don&rsquo;t worry about case
 	</dt>
 	<dd>
       the search is case insensitive, so changing the case of your
       search terms will not affect the results
 	</dd>
 	<dt>
-		try fewer words:
+		try fewer words
 	</dt>
 	<dd>
       if you don&rsquo;t get any results, try making your query less
@@ -57,14 +58,14 @@ META fullPage = 1
       rhinovirus&nbsp;14&quot;
 	</dd>
 	<dt>
-      check your spelling:
+      check your spelling
 	</dt>
 	<dd>
       make sure that the spelling of your search terms is accurate;
       the database can&rsquo;t compensate for incorrect spelling
 	</dd>
 	<dt>
-      obsolete entries:
+      obsolete entries
 	</dt>
 	<dd>
       entries may be removed from the Pfam database occasionally, as
@@ -81,5 +82,7 @@ META fullPage = 1
          onclick="$('siteSearchField').focus();javascript:$('siteSearchField').value='[% c.req.param( "query" ) | html%]'">
          search box</span> above.</p>
 
+  <hr />
+  
 </div>
 
