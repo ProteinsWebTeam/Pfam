@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.30 2007-05-30 09:41:33 jt6 Exp $
+# $Id: index.tt,v 1.31 2007-06-01 15:03:23 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -51,7 +51,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 <div id="index">
   <div id="intro">
     <h2>Pfam [% relData.pfam_release %] ([% date.format( release_date ) %],
-    [% relData.number_families %] familes)</h2>
+    [% relData.number_families %] families)</h2>
     <p>
       The Pfam database is a large collection of protein 
       families, each represented by <em>multiple sequence alignments</em>
