@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.33 2007-05-21 12:49:55 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.34 2007-06-01 10:54:22 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.33 2007-05-21 12:49:55 jt6 Exp $
+$Id: PfamWeb.pm,v 1.34 2007-06-01 10:54:22 jt6 Exp $
 
 =cut
 
@@ -32,7 +32,7 @@ use warnings;
 
 # set flags and add plugins for the application
 use Catalyst qw/
-                 PfamConfigLoader
+                 ConfigLoader
                  Prototype
                  HTML::Widget
                  Email
@@ -78,6 +78,28 @@ __PACKAGE__->setup;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=head2 finalize_config
+
+Overrides the empty C<finalize_config> method from the ConfigLoader plugin, 
+turning it into a dumb by-pass of the perl taint checking on configuration
+parameters.
+
+=cut
+
+sub finalize_config {
+  my $c = shift;
+  my $v = Data::Visitor::Callback
+            ->new( plain_value => sub {
+               return unless defined $_;
+               /^(.*)$/;
+               $_ = $1;
+            }
+          );
+  $v->visit( $c->config );
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 reportError : Private
 
