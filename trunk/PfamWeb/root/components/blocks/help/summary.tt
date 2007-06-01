@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.9 2007-05-16 15:04:39 jt6 Exp $
+# $Id: summary.tt,v 1.10 2007-06-01 15:00:48 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -15,6 +15,15 @@ PROCESS "components/require.tt";
 requirements.css.push( "help.css" );
 
 #-------------------------------------------------------------------------------
+
+# format the date nicely
+USE date( format = "%b %Y" );
+r = String.new( relData.pfam_release_date );
+
+d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
+
+release_date = String.new( "00:00:00 " );
+CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 
 %]
 
@@ -28,16 +37,20 @@ requirements.css.push( "help.css" );
 
   	<h2>About Pfam</h2>
 
-  	<h3>Pfam 21.0 (November 2006, 8957 familes)</h3>
+  	<h3>
+  	  Pfam [% relData.pfam_release ? relData.pfam_release : "21.0" %]
+      ([% relData.pfam_release_date ? date.format( release_date ) : "Nov 2006" %]
+      [% IF relData.number_families %], [% relData.number_families %] families[% END %])
+    </h3>
   
-     <p>
-       Proteins are generally comprised of one or more functional regions, 
-       commonly termed domains. Different combinations of domains give rise to 
-       the diverse repertoire of proteins found in nature. Thus, the 
-       identification of domains that occur within proteins can provide insights 
-       to their function. The Pfam database is a large collection of protein 
-       domain families. Each family is represented by multiple sequence 
-       alignments and hidden Markov models (HMMs).
+    <p>
+      Proteins are generally comprised of one or more functional regions, 
+      commonly termed domains. Different combinations of domains give rise to 
+      the diverse repertoire of proteins found in nature. Thus, the 
+      identification of domains that occur within proteins can provide insights 
+      to their function. The Pfam database is a large collection of protein 
+      domain families. Each family is represented by multiple sequence 
+      alignments and hidden Markov models (HMMs).
     </p>
 <!--
     <p>
