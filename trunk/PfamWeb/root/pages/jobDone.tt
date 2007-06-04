@@ -3,7 +3,7 @@
 # jobDone.tt
 # jt6 20070414 WTSI
 #
-# $Id: jobDone.tt,v 1.5 2007-05-31 09:00:37 jt6 Exp $
+# $Id: jobDone.tt,v 1.6 2007-06-04 15:35:59 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -116,9 +116,15 @@ hideButton = "${base}images/hideButton.png";
           "are tables";
         ELSIF numA OR numB;
           "is a table";
-        END %] showing the details of the domains that were found. The search
-        process generates alignments between your search sequence and, for 
-        Pfam-A hits, the HMM.
+        END %] 
+        showing the details of the domains that were found. Rows containing 
+        significant hits are <span class="evenlySignificant">highlighted</span>.
+        Hits which do not start and end at the end points of the matching HMM 
+        are also <span class="warning">highlighted</span>.          
+      </p>
+      <p>
+        The search process generates alignments between your search sequence 
+        and, for Pfam-A hits, the HMM.
         [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
         sequence and the matching sequence from our library of Pfam-B 
         sequences.[% END %] You can show individual alignments by clicking on 
