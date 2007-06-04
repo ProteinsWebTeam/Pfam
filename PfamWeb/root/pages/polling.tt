@@ -3,7 +3,7 @@
 # polling.tt
 # jt6 20070410 WTSI
 #
-# $Id: polling.tt,v 1.5 2007-05-01 21:21:56 jt6 Exp $
+# $Id: polling.tt,v 1.6 2007-06-04 15:35:59 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;
@@ -34,26 +34,21 @@ requirements.js.push( "job.js" );
 <script type="text/javascript">
   // <![CDATA[
   
-  var jobStatus;
+  var oJobStatus;
   try {
-    jobStatus = '[% jobStatus %]'.evalJSON( true );
+    oJobStatus = '[% jobStatus %]'.evalJSON( true );
   } catch( e ) {
     $("errors")
-      .update( "There was a problem retrieving job parameters from the server.")
+      .update( "There was a problem retrieving job parameters from the server." )
       .show();
   }
   
-  if( ! ( jobStatus === undefined ) ) {
+  if( ! ( oJobStatus === undefined ) ) {
 
     var jobs = [];
-    $A( jobStatus.jobs ).each( 
-      function( job ) {
+    $A( oJobStatus ).each( 
+      function( jobConfig ) {
         
-        var jobConfig = {
-          'checkURI':  '[% base %]seqsearch/checkStatus',
-          'doneURI':   '[% base %]seqsearch/jobDone',
-          'status':    job
-        };
         var p;
         try {
           p  = new Job( jobConfig );
@@ -61,7 +56,7 @@ requirements.js.push( "job.js" );
           // console.error( e );
           $("errors")
             .update( "There was a problem submitting your job to the server: "
-					 + e ? e : e.description )
+                     + e ? e : e.description )
             .show();
         }
         jobs.push( p );

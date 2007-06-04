@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.4 2007-05-01 21:25:11 jt6 Exp $
+// $Id: job.js,v 1.5 2007-06-04 15:35:59 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -62,39 +62,41 @@ Job.prototype = {
 
     //----------------------------------------
 
-    // job parameters
+    // job parameters, encoded as a JSON string something like this
+    /*
+     * [
+     *   {
+     *     checkURI      => "/pfam/seqsearch/checkStatus",
+     *     doneURI       => "/pfam/seqsearch/jobDone",
+     *     estimatedTime => 24,
+     *     interval      => 3,
+     *     jobClass      => "pfamASearch",
+     *     jobId         => "7925AD28-12AF-11DC-AED1-AB9C94253275",
+     *     name          => "Pfam A search",
+     *     opened        => "2007-06-04 16:22:57",
+     *   },
+     *   {
+     *     checkURI      => "/pfam/seqsearch/checkStatus",
+     *     doneURI       => "/pfam/seqsearch/jobDone",
+     *     estimatedTime => 12,
+     *     interval      => 3,
+     *     jobClass      => "pfamBSearch",
+     *     jobId         => "792DF4C4-12AF-11DC-AED1-AB9C94253275",
+     *     name          => "Pfam B search",
+     *     opened        => "2007-06-04 16:22:57",
+     *   },
+     * ]
+     */
 
-/*
-{
-  checkURI => "http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/seqsearch/checkstatus",
-  doneURI => "http://deskpro16081.dynamic.sanger.ac.uk:8000/catalyst/pfam/seqsearch/jobDone",
-  jobs => [
-        {
-          estimatedTime => 8,
-          interval => 3,
-          jobId => "9FB12EA2-EF2F-11DB-B860-71AC15EABA95",
-          name => "Pfam A search",
-          submitted => "2007-04-20 12:09:35",
-        },
-        {
-          estimatedTime => 8,
-          interval => 3,
-          jobId => "9FB6F512-EF2F-11DB-B860-71AC15EABA95",
-          name => "Pfam A search",
-          submitted => "2007-04-20 12:09:35",
-        },
-      ],
-}*/
-
-    this.estimatedTime = jobConfig.status.estimatedTime; // estimated job run time
-    this.interval      = jobConfig.status.interval;      // polling interval
-    this.jobId         = jobConfig.status.jobId;         // the job ID, from the server
-    this.elId          = jobConfig.status.jobId;         // use the job ID as element ID
-    this.jobName       = jobConfig.status.name;          // a pretty name for the job
-    this.jobClass      = jobConfig.status.jobClass;      // job class - used for styling
-    this.opened        = jobConfig.status.opened;        // submission time
-    this.checkURI      = jobConfig.checkURI;             // URI to poll for status
-    this.doneURI       = jobConfig.doneURI;              // URI for retrieving results
+    this.estimatedTime = jobConfig.estimatedTime; // estimated job run time
+    this.interval      = jobConfig.interval;      // polling interval
+    this.jobId         = jobConfig.jobId;         // the job ID, from the server
+    this.elId          = jobConfig.jobId;         // use the job ID as element ID
+    this.jobName       = jobConfig.name;          // a pretty name for the job
+    this.jobClass      = jobConfig.jobClass;      // job class - used for styling
+    this.opened        = jobConfig.opened;        // submission time
+    this.checkURI      = jobConfig.checkURI;      // URI to poll for status
+    this.doneURI       = jobConfig.doneURI;       // URI for retrieving results
 
     //----------------------------------------
 
@@ -136,32 +138,32 @@ Job.prototype = {
   checkInput: function( jobConfig ) {
 
     // estimated run time
-    if( jobConfig.status.estimatedTime === undefined ) {
+    if( jobConfig.estimatedTime === undefined ) {
       throw "No estimated time specified";
     }
 
     // check for a polling interval
-    if( jobConfig.status.interval === undefined ) {
+    if( jobConfig.interval === undefined ) {
       throw "No polling interval specified";
     }
 
     // must have a job ID
-    if( jobConfig.status.jobId === undefined ) {
+    if( jobConfig.jobId === undefined ) {
       throw "No job ID specified";
     }
     
     // the presentable name for the job
-    if( jobConfig.status.name === undefined ) {
+    if( jobConfig.name === undefined ) {
       throw "No job name specified";
     }
 
     // the "class name" for the job
-    if( jobConfig.status.jobClass === undefined ) {
+    if( jobConfig.jobClass === undefined ) {
       throw "No class name specified";
     }
 
     // when was it started ?
-    if( jobConfig.status.opened === undefined ) {
+    if( jobConfig.opened === undefined ) {
       throw "No start time given";
     }
 
@@ -193,7 +195,7 @@ Job.prototype = {
           <dt>Started:</dt>\
           <dd class="started">-</dd>\
           <dt>Estimated run time:</dt>\
-          <dd>12 seconds</dd>\
+          <dd class="runtime">12 seconds</dd>\
           <dt>Progress:</dt>\
           <dd>\
             <div class="progressWrapper">\
@@ -203,15 +205,15 @@ Job.prototype = {
         </dl>\
       </div>';
 
-	// add the new div to the bottom of the "jobs" div
-	new Insertion.Bottom( $("jobs"), jobDivString );
-
-	// get a handle on this "job" div
-	var jobDiv = $A( document.getElementsByClassName( "job", $("jobs") ) ).last();
-
+  	// add the new div to the bottom of the "jobs" div
+  	new Insertion.Bottom( $("jobs"), jobDivString );
+  
+  	// get a handle on this "job" div
+  	var jobDiv = $A( document.getElementsByClassName( "job", $("jobs") ) ).last();
+  
     // store pointers to specific elements within this div
     this.statusMsg    = $A( document.getElementsByClassName( "status",      jobDiv ) )
-	                      .first();
+                        .first();
     this.startedValue = $A( document.getElementsByClassName( "started",     jobDiv ) )
                           .first();
     this.bar          = $A( document.getElementsByClassName( "progressBar", jobDiv ) )
@@ -219,21 +221,27 @@ Job.prototype = {
 
     // edit in the required unique values.
 
-	// an ID for the container element
-	jobDiv.setAttribute( "id", this.jobId );
+  	// an ID for the container element
+  	jobDiv.setAttribute( "id", this.jobId );
 
-	// set the CSS class for this job
-	jobDiv.addClassName( this.jobClass );
+  	// set the CSS class for this job
+  	jobDiv.addClassName( this.jobClass );
 
-	// the label for the job
+  	// the label for the job
     $A( document.getElementsByClassName( "jobTitle", jobDiv ) )
       .first()
       .innerHTML = this.jobName; 
 
-	// when was it started
+  	// when was it started
     $A( document.getElementsByClassName( "submitted", jobDiv ) )
       .first()
       .innerHTML = this.opened;
+
+  	// the estimated job length
+    $A( document.getElementsByClassName( "runtime", jobDiv ) )
+      .first()
+      .innerHTML = this.estimatedTime; 
+
   },
   
   //----------------------------------------------------------------------------
