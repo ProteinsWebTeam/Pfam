@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.7 2007-06-04 09:08:13 jt6 Exp $
+# $Id: sequence.tt,v 1.8 2007-06-05 15:57:37 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -42,7 +42,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         You can choose to search using either or both of the HMMs that we 
         produce for each family. Choose <em>Global</em> to search against the 
         HMM that is optimised to look for full length families, or 
-        <em>Fragment</em> to search against the HMM that is optimised to find 
+        <em>Local</em> to search against the HMM that is optimised to find 
         fragments of Pfam families in a sequence. Choose <em>Both</em> to 
         search both HMMs, but please note that will increase the search time. 
       </p>
@@ -67,81 +67,81 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </div>
       [% END %]
   
-      <form method="get" 
+      <form method="post" 
             id="proteinSeqSearchForm"
-            action="[% c.uri_for( "/seqsearch/seq" ) %]">
-        <div>
-          <span class="row">
-            <label for="seq">Sequence</label>
-            <textarea cols="60" rows="10" name="seq" id="seq"></textarea>
-          </span>
-  
-          <span class="row">
-            <label for="seqSearchSeqOpts">Search strategy</label>
-            <select name="seqOpts" id="seqSearchSeqOpts">
-              <option value="both">Global &amp; local (merged)</option>
-              <option value="bothNoMerge">Global &amp; local (separately)</option>
-              <option value="ls" selected="selected">Global</option>
-              <option value="fs">Local</option>
-            </select>
-          </span>
-  
-          <div class="row">
-            <span class="label">Cut-off</span>
-            <div class="formElement">
-              <label for="gaButton">
-                <input class="radio"
-                       type="radio" 
-                       name="ga" 
-                       id="gaButton" 
-                       value="1" 
-                       checked="checked" 
-                       onclick="$('evalue').disable()" />
-                Gathering threshold
-              </label>
-            </div>
-            <div class="formElement">
-              <label for="eButton">
-                <input class="radio"
-                       type="radio" 
-                       name="ga" 
-                       id="eButton" 
-                       value="0"
-                       onclick="$('evalue').enable()" />
-                Use E-value
-              </label>
-            </div>
-          </div>
-          
-          <span class="row">
-            <label for="evalue">E-value</label>
-            <input type="text" 
-                   size="10" 
-                   maxlength="10" 
-                   value="1.0" 
-                   name="evalue" 
-                   id="evalue" 
-                   disabled="disabled" />
-          </span>
-    
-          <div class="row">
-            <span class="label">Search for PfamBs</span>
-            <div class="formElement">
-              <input class="radio"
-                     type="checkbox" 
-                     name="searchBs" 
-                     value="1" />
-            </div>
-          </div>
-  
-          <span class="row">
-            <input class="submit"  type="submit" name="submit" value="Submit"
-                   onclick="if( ! $('seq').present() ){return false}"/>
-            <input class="reset"   type="reset"  name="reset"  value="Reset" />
-            <input class="example" type="button" value="Example" onclick="$('seq').value=exSeq" />
-          </span>
+            action="[% base %]seqsearch/seq"
+            enctype="multipart/form-data">
 
+        <div class="row">
+          <label for="seq">Sequence</label>
+          <textarea cols="60" rows="10" name="seq" id="seq"></textarea>
         </div>
+
+        <div class="row">
+          <label for="seqSearchSeqOpts">Search strategy</label>
+          <select name="seqOpts" id="seqSearchSeqOpts">
+            <option value="both">Global &amp; local (merged)</option>
+            <option value="bothNoMerge">Global &amp; local (separately)</option>
+            <option value="ls" selected="selected">Global</option>
+            <option value="fs">Local</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <span class="label">Cut-off</span>
+          <label for="gaButton" class="subLabel">
+            <input class="radio"
+                   type="radio" 
+                   name="ga" 
+                   id="gaButton" 
+                   value="1" 
+                   checked="checked" 
+                   onclick="$('evalue').disable()" />
+            Gathering threshold
+          </label>
+        </div>
+
+        <div class="row">
+          <span class="label blankLabel">Cut-off</span>
+          <label for="eButton" class="subLabel">
+            <input class="radio"
+                   type="radio" 
+                   name="ga" 
+                   id="eButton" 
+                   value="0"
+                   onclick="$('evalue').enable()" />
+            Use E-value
+          </label>
+        </div>
+        
+        <div class="row">
+          <label for="evalue">E-value</label>
+          <input type="text" 
+                 size="10" 
+                 maxlength="10" 
+                 value="1.0" 
+                 name="evalue" 
+                 id="evalue" 
+                 disabled="disabled" />
+        </div>
+  
+        <div class="row">
+          <label for="searchBs">Search for PfamBs</label>
+          <input class="radio"
+                 type="checkbox" 
+                 name="searchBs" 
+                 id="searchBs" 
+                 value="1" />
+        </div>
+
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit" type="submit" name="submit" value="Submit"
+                 onclick="if( ! $('seq').present() ){return false}"/>
+          <input class="reset"   type="reset"  name="reset"  value="Reset" />
+          <input class="example" type="button" value="Example" onclick="$('seq').value=exSeq" />
+        </div>
+
       </form>
   
     </div>
