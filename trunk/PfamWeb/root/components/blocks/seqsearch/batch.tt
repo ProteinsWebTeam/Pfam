@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.2 2007-05-01 21:07:47 jt6 Exp $
+# $Id: batch.tt,v 1.3 2007-06-05 15:57:37 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -25,42 +25,66 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 <div class="block" id="searchBatchBlock">
   <div class="handle">
-    <h1>Sequence search</h1>
+    <h1>Batch sequence search</h1>
   </div>
   <div class="blockContent">
 
+    <p>
+      Search multiple sequences for matching Pfam families. 
+      <span class="moreLink" onclick="reveal(this,'batchNotes',false, true)">More...</span>
+    </p>
+
+    <div id="batchNotes" style="display: none">
+      <p>
+        This tool allows you to upload a file containing a set of sequences that
+        will be searched for matching Pfam families. Results of the search will
+        be returned to you at the email address that you specify.
+      </p>
+    </div>
+
     <div class="formWrapper">
+
+      [% IF batchSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% batchSearchError %]
+      </div>
+      [% END %]
 
       <form method="get" 
             id="proteinBatchSearchForm"
-            action="[% base %]seqsearch/batch">
-        <div>
+            action="[% base %]seqsearch/batch"
+            enctype="multipart/form-data">
     
-          <span class="row">
-            <label for="seq">Sequence</label>
-            <input type="file" size="20" name="batchSeq" id="batchSeq" />
-          </span>
-    
-          <span class="row">
-            <label for="batchSearchSeqOpts">Search options</label>
-            <select name="seqOpts" id="batchSearchSeqOpts">
-              <option value="both">Both global &amp; fragment</option>
-              <option value="ls">Global</option>
-              <option value="fs">Fragment</option>
-            </select>
-          </span>
-    
-          <span class="row">
-            <label for="email">Email address</label>
-            <input type="text" size="20" maxlength="100" name="email" id="email" />
-          </span>
-    
-          <span class="row">
-            <input class="submit"  type="submit" name="submit" value="Submit" />
-            <input class="reset"   type="reset"  name="reset"  value="Reset" />
-          </span>
-  
+        <div class="row">
+          <label for="seq">Sequence</label>
+          <input type="file" 
+                 accept="text/plain"
+                 size="20"
+                 id="batchSeq" />
         </div>
+  
+        <div class="row">
+          <label for="batchSearchSeqOpts">Search options</label>
+          <select name="seqOpts" id="batchSearchSeqOpts">
+            <option value="both">Global &amp; local (merged)</option>
+            <option value="bothNoMerge">Global &amp; local (separately)</option>
+            <option value="ls" selected="selected">Global</option>
+            <option value="fs">Local</option>
+          </select>
+        </div>
+  
+        <div class="row">
+          <label for="email">Email address</label>
+          <input type="text" size="20" maxlength="100" name="email" id="email" />
+        </div>
+  
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit"  type="submit" name="submit" value="Submit" />
+          <input class="reset"   type="reset"  name="reset"  value="Reset" />
+        </div>
+
       </form>
 
     </div>

@@ -5,7 +5,7 @@
 # 
 # build the function similarity search tab
 #
-# $Id: funshift.tt,v 1.2 2007-05-17 13:48:01 jt6 Exp $
+# $Id: funshift.tt,v 1.3 2007-06-05 15:57:37 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -50,23 +50,29 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
     <div class="formWrapper">
 
+      [% IF fsSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% fsSearchError %]
+      </div>
+      [% END %]
+  
       <form method="get" 
             id="funshiftSearchForm"
             action="[% base %]seqsearch/funshift">
-        <div>
 
-          <span class="row">
-            <label for="unp">Pfam ID or accession</label>
-            <input type="text" size="20" maxlength="40" name="entry" id="fs" />
-          </span>
-
-          <span class="row">
-            <input class="submit"  type="submit" name="submit" value="Submit" />
-            <input class="reset"   type="reset"  name="reset"  value="Reset" />
-            <input class="example" type="button" value="Example" onclick="$('fs').value=exFs" />
-          </span>
-
+        <div class="row">
+          <label for="unp">Pfam ID or accession</label>
+          <input type="text" size="20" maxlength="40" name="entry" id="fs" />
         </div>
+
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit"  type="submit" name="submit" value="Submit" />
+          <input class="reset"   type="reset"  name="reset"  value="Reset" />
+          <input class="example" type="button" value="Example" onclick="$('fs').value=exFs" />
+        </div>
+
       </form>
         
     </div>
