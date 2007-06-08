@@ -6,10 +6,17 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.24 2007-05-16 14:53:48 jt6 Exp $
+# $Id: head.tt,v 1.25 2007-06-08 13:25:58 jt6 Exp $
 -%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+[% # if the stash contains a value for "refreshUri", we'll add a
+   # refresh header to redirect after the default delay of 5 seconds
+   # or after "refreshDelay" seconds, if specified
+IF refreshUri != "";
+  delay = refreshDelay ? refreshDelay : 5; -%]
+<meta http-equiv="Refresh" content="[% delay %]; URL=[% refreshUri %]" />
+[% END %]
 
 <!-- ====================================================================== -->
 <!-- make the site RSS feed discoverable --> 
