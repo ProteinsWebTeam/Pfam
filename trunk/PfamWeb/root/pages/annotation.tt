@@ -5,7 +5,7 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.7 2007-05-16 15:14:35 jt6 Exp $
+# $Id: annotation.tt,v 1.8 2007-06-08 13:27:38 jt6 Exp $
 
 META fullPage = 1;
 META title = "Annotation submission";
@@ -20,44 +20,133 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 #-------------------------------------------------------------------------------
 
-IF success;
+# these error codes MUST match up with those at the top of the form  
+# controller in Annotate.pm
+SUBMISSION_VALID        = 0;
+SUBMISSION_AJAX_FAILED  = 1;
+SUBMISSION_NO_COOKIE    = 2;
+SUBMISSION_MESSED_WITH  = 3;
+SUBMISSION_TIMED_OUT    = 4;
+SUBMISSION_INVALID      = 5;
+SUBMISSION_EMAIL_FAILED = 6;
 
-  # decide where we should redirect the user
-  IF type == "A";
-    uri = "${base}family?acc=${acc}";
-  ELSIF type == "B";
-    uri = "${base}pfamb?acc=${acc}";
-  ELSIF type == "C";
-    uri = "${base}clan?acc=${acc}";
-  END;
+# if there was a problem with submission, build an error message to explain
+# the problem, based on the error code that we were handed by the controller
+IF submissionError;
+
+  errorMsg = BLOCK;
+    SWITCH submissionError;
+      CASE SUBMISSION_AJAX_FAILED %]
+<h2>Submission failed</h2>
+<p>
+  There appears to have been a problem building the original submission form.
+  In order to prevent automated scripts submitting nuisance messages via this
+  form, we make an extra call to our server after the form has loaded into your
+  browser. It looks as though there was a problem making that extra call and 
+  therefore the server cannot validate your submission.
+</p>
+<p>
+  If you believe that this is a problem with our server, please let us know
+  via the email address below.
+</p>
+[%    CASE SUBMISSION_NO_COOKIE %]
+<h2>No cookies</h2>
+<p>
+  In order to prevent automated scripts submitting nuisance messages via this 
+  form, we use a cookie to check that submissions come from a real web browser.
+  The cookie stores no personally identifiable information and is used once and
+  once only, purely for the purpose of validating the form submission process. 
+  The cookie is set to expire one hour after the form was initially loaded.
+</p>
+<p>
+  Please make sure that you have cookies enabled in your browser and reload 
+  the form. If you continue to have problems submitting your annotation once 
+  you have enabled cookies and accepted cookies offered by the annotation form
+  page, please let us know at the email address below.
+</p>
+[%    CASE SUBMISSION_MESSED_WITH %]
+<h2>Suspicious form activity</h2>
+<p>
+  We take various steps to stop automated scripts submitting nuisance messages
+  via this form and, during the processing of your comments, one of our checks
+  failed.
+</p>
+<p>
+  The server has determined that the form was submitted by a script, rather than
+  by a regular user via a web browser.
+</p>
+<p>
+  Please try again and if the submission continues to fail, please let us know
+  via the email address below.
+</p>
+[%    CASE SUBMISSION_TIMED_OUT %]
+<h2>Submission timed out</h2>
+<p>
+  In order to prevent automated scripts submitting nuisance messages via this
+  form, we set a time limit of one hour on the submission process. The server
+  has decided that you took more than one hour to complete and submit the form
+  and it has therefore rejected the submission.
+</p>
+<p>
+  However, when this page was reloaded, the time limit was reset and you should
+  now be able to submit this form successfully. If you continue to have problems
+  with submission, please let us know via the email address below.
+</p>
+[%    CASE SUBMISSION_INVALID %]
+<h2>Invalid submission</h2>
+<p>
+  There was a problem with one or more of the values that you entered into the
+  form. Please check the messages beside the form fields and correct any problems
+  that are highlighted. If you believe you have corrected the problems that
+  were highlighted but still can't submit the annotation, please let us know
+  via the email address below.
+</p> 
+[%    CASE SUBMISSION_EMAIL_FAILED %]
+<h2>Submission failed</h2>
+<p>
+  There was a problem submitting your annotation to the Pfam group. It's 
+  possible that this was due to a problem with our email or tracking systems 
+  and everything may work correctly next time. Please try again in a little 
+  while. If you continue to have problems submitting your annotation, please
+  let us know via the email address below.
+</p>
+[%  END; # of "SWITCH"
+  END; # of "BLOCK"
   
+END; # of "if submissionError"
+
+# display the form if we were told to, or if there were submission errors from
+# the first time around
+IF buildForm OR submissionError;
 -%]
 
-  <h2>Your annotation was received successfully.</h2>
-
-  <p>
-    Thank you for submitting you annotation for entry [% acc %]. It will
-    be considered for incorporation into the Pfam database by one of our
-    annotators.
-  </p>
-  <p>
-    [% IF uri %]
-      You can now <a href="[% uri %]">return</a> to the previous page.
-    [% ELSE %]
-      You can now return to the <a href="[% base %]">Pfam home page</a>.
-    [% END %]
-  </p>
-
-[% ELSE %]
-
-  <h2>Submit an annotation[% acc ? " for entry $acc" : "" %]</h2>
-
-  <p>Please supply all of the fields marked with &quot;*&quot;.</p>
+  <h1>Submit an annotation[% acc ? " for entry $acc" : "" %]</h1>
 
   <div id="annForm" class="formWrapper">
-    [% IF error %]
-      <p>[% error %]</p>
+    [% IF submissionError %]
+    <div class="error">
+      [% errorMsg %]
+    </div>
     [% END %]
+
+    <p>
+      Please complete the form to submit an annotation to the Pfam group. 
+      Please supply information for all of the fields marked with a &quot;*&quot;.
+      When you submit the form, your annotation will be entered into our
+      request tracking system and you should receive an email at the 
+      address that you specify, giving you some information on how you can 
+      keep track of the progress of your submission.
+    </p>
+    <p>
+      After submitting the form, you should see a page confirming that your 
+      comments have been accepted, and you will then be redirected, after a
+      short delay, back to the 
+      [% IF refreshUri AND refreshUri != base %]
+      family, Pfam-B or clan page that you came from.
+      [% ELSE %]
+      Pfam home page.
+      [% END %]
+    </p>
 
     [% widget.as_xml %]
   </div>
@@ -65,7 +154,42 @@ IF success;
   <script type="text/javascript">
     // <![CDATA[
     $("annotationForm_user").focus();
+    
+    var url = "[% base %]annotate/getTs";
+    new Ajax.Request( url, {
+      method: 'get',
+      onSuccess: function( response ) {
+        $('annotationForm_ts').value = response.responseText;
+      }
+    } );
     // ]]>
   </script>
 
-[% END # of "if success" %]
+[% ELSE %]
+
+  <h1>Your annotation was submitted successfully</h1>
+
+  <p>
+    Thank you for submitting your annotation for entry [% acc %]. It will
+    be considered for incorporation into the Pfam database by one of our
+    annotators.
+  </p>
+  <p>
+    [% # work out where to redirect after the refresh delay
+    CALL c.log.debug( "annotate.pm: refreshUri: |$refreshUri|" );
+    IF refreshUri AND refreshUri != base %]
+      In 5 seconds you will be redirected to the page for the 
+      <a href="[% refreshUri %]">previous entry</a>, or you can click 
+      <a href="[% refreshUri %]">here</a> to go there immediately.
+    [% ELSE %]
+      In 5 seconds you will be redirected to the <a href="[% base %]">Pfam 
+        home page</a>, or you can click <a href="[% base %]">here</a> to go
+      there immediately.
+    [% END %]
+  </p>
+
+[% END # of "if buildForm" %]
+
+<div class="cleaner"><!-- empty --></div>
+
+<hr />
