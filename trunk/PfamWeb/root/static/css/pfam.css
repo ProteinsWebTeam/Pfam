@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.50 2007-06-01 15:05:07 jt6 Exp $
+   $Id: pfam.css,v 1.51 2007-06-14 21:30:37 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -156,7 +156,7 @@ h4, h5, h6 {
 }
 
 #pfamLogo {
-  background: #FFF url(/catalyst/pfam/images/pfam_logo.gif) no-repeat;
+  background: #FFF url(/catalyst/pfam/images/pfam_logo_beta.gif) no-repeat;
   width: 140px;
   height: 50px;
 }
@@ -274,6 +274,14 @@ img.addAnnotation {
   width: 66px;
   height: 20px;
   background-image: url(/catalyst/pfam/images/exampleButton.png);  
+}
+
+/* ajax loading image */
+.loading {
+  background-image: url(/catalyst/pfam/images/loading.gif);
+  background-repeat: no-repeat;
+  background-position: center left;
+  padding-left: 16px;
 }
 
 /* ---------------------------------------- */
