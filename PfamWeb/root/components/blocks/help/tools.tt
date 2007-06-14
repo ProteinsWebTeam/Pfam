@@ -4,13 +4,13 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.5 2007-05-31 12:24:11 jt6 Exp $
+# $Id: tools.tt,v 1.6 2007-06-14 21:27:11 jt6 Exp $
 %]
 
 <!-- start the Tools block -->
 <div class="block" id="helpToolsBlock">
   <div class="handle">
-    <h1>Guide to the tools and web services provided by Pfam</h1>
+    <h1>Guide to Pfam tools and services</h1>
   </div>
   <div class="blockContent">
 
@@ -25,7 +25,7 @@
       upload a &quot;domain graphics&quot; XML. This file will be validated 
       against the
       <a href="[% base %]documents/pfamDomainGraphics.xsd">schema</a>
-      and subseqeuently rendered. The images that the tool produces can then 
+      and subsequently rendered. The images that the tool produces can then 
       be saved for your own use. 
     </p>
     <p>
