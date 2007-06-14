@@ -2,7 +2,7 @@
 # AlignmentGenerator.pm
 # jt6 20060601 WTSI
 #
-# $Id: AlignmentGenerator.pm,v 1.14 2007-05-17 08:30:40 jt6 Exp $
+# $Id: AlignmentGenerator.pm,v 1.15 2007-06-14 09:33:19 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::AlignmentGenerator;
 
 Various methods for viewing alignments.
 
-$Id: AlignmentGenerator.pm,v 1.14 2007-05-17 08:30:40 jt6 Exp $
+$Id: AlignmentGenerator.pm,v 1.15 2007-06-14 09:33:19 jt6 Exp $
 
 =cut
 
@@ -24,6 +24,7 @@ use strict;
 use warnings;
 
 use Data::Dump qw( dump );
+use Data::Pageset;
 use Bio::Pfam::ColourAlign;
 
 use base "PfamWeb::Controller::Family";
@@ -53,54 +54,73 @@ sub default : Path {
   $c->stash->{alignments} = {};
 
   # retrieve the DasLite client from the base model class and hand it
-  # the list of DSNs
-  my $dl = $c->model("PfamDB")->getDasLite;
-  if( $c->req->param("alnType") and $c->req->param("alnType") eq "seed" ) {
-    $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamSeedAlign| ] );
+  # the DSN
+  my $dl = $c->model('PfamDB')->getDasLite;
+  my $numRowsInAlignment;
+  if( $c->req->param('alnType') and
+      $c->req->param('alnType') eq 'seed' ) {
+    $dl->dsn( [ qw|http://das.sanger.ac.uk/das/pfamSeedAlign| ] );
+    $numRowsInAlignment = $c->stash->{pfam}->num_seed;
   } else {
-    $dl->dsn( [ qw|http://pfam1b.internal.sanger.ac.uk:9000/das/pfamFullAlign| ] )
+    $dl->dsn( [ qw|http://das.sanger.ac.uk/das/pfamFullAlign| ] );
+    $numRowsInAlignment = $c->stash->{pfam}->num_full;
   }
-  # get the limits from the parameters
-  my $rows;
-  ( $rows ) = $c->req->param( "range" ) =~ m/^(\d+\-\d+)$/
-    if defined $c->req->param( "range" );
+  $c->log->debug( "Family::AlignmentGenerator::default: |$numRowsInAlignment| rows in alignment" );
 
-  unless( defined $rows ) {
-    $c->log->debug( "AlignmentGenerator::default: rows undefined; calculating from start and end" );
+  # get the scroll position
+  $c->stash->{scrollValue} = $c->req->param('scrollValue' ) || 0 =~ m/^(\d+)$/;
+  $c->log->debug( "Family::AlignmentGenerator::default: set scroll value to |"
+                  . $c->stash->{scrollValue} . "|" );
+
+  # get the number of alignment lines to display
+  my( $numRowsToShow ) =
+    $c->req->param('numRows') || $this->{defaultRows} =~ m/^(\d+)$/;
+  $c->log->debug( "Family::AlignmentGenerator::default: showing |$numRowsToShow| rows" );
+
+  # build a Data::Pageset object to help keep track of all this...
+  my $pager = Data::Pageset->new( { total_entries    => $numRowsInAlignment, 
+                                    entries_per_page => $numRowsToShow,
+                                    pages_per_set    => 11,
+                                    mode             => 'slide' } );
+  $c->stash->{pager} = $pager;
+
+  # find out what page we want for this request
+  my $page = 1;
   
-    my( $start, $end );
-    ( $start ) = $c->req->param( "start" ) =~ m/^(\d+)$/
-      if defined $c->req->param( "start" );
-    ( $end   ) = $c->req->param( "end"   ) =~ m/^(\d+)$/
-      if defined $c->req->param( "end" );
+  if( defined $c->req->param('page') ) {
+    ( $page ) = $c->req->param('page') =~ m/^(\d+)$/;
+    $c->log->debug( "Family::AlignmentGenerator::default: requested page number |$page|" );
+  } elsif( defined $c->req->param('next') ) {
+    $page = $pager->next;
+    $c->log->debug( 'Family::AlignmentGenerator::default: requested next page' );
+  } elsif( defined $c->req->param('prev') ) {
+    $page = $pager->prev;
+    $c->log->debug( 'Family::AlignmentGenerator::default: requested previous page' );
+  }
+  $c->log->debug( "Family::AlignmentGenerator::default: showing page |$page|" );
+  $page ||= 1;
   
-    $rows = $start . "-" . $end if( defined $start and defined $end );
-  }
+  $pager->current_page( $page ); 
 
-  $rows = $this->{defaultRows}
-    unless( defined $rows && $rows =~ /^\d+\-\d+$/ );
-  $c->log->debug( "AlignmentGenerator::default: rows finally set to: |$rows|" );
+  # decide which actual rows we need to use now
+  my $rows = $pager->first . "-" . $pager->last;
+  $c->log->debug( "Family::AlignmentGenerator::default: rows: |$rows|" );
 
-  # store the start and end of the range
-  $rows =~ m/^(\d+)\-(\d+)$/;
-  $c->stash->{alignments}->{start} = $1;
-  $c->stash->{alignments}->{end}   = $2;
-
-  # store the scroll position
-  if ( defined $c->req->param( "scrollValue" ) ) {
-    $c->req->param( "scrollValue" ) =~ /^(\d+)$/;
-    $c->stash->{scroll} = $1;
-    $c->log->debug( "AlignmentGenerator::default: set scroll value to |"
-                    . $c->stash->{scroll} . "|" );
-  }
-
+  # store the lists of page numbers before and after the current one, for use
+  # by the template in generating the list of available pages
+  $c->stash->{pagesBefore} = [         1 .. $page - 1         ] if $page > 1;
+  $c->stash->{pagesAfter}  = [ $page + 1 .. $pager->last_page ] if $page < $pager->last_page;
+  
+  # retrieve the raw alignment fragment and associated features via DAS and 
+  # generate the consensus sequence 
   my $rawAlignment = $dl->alignment( { query => $c->stash->{acc},
-                                       rows  => $rows} );
+                                       rows  => $rows } );
   my $features     = $dl->features( $c->stash->{acc} );
   my $consensus    = Bio::Pfam::ColourAlign::parseConsensus( getConsensus( $features ) );
-  $c->log->debug( "rawAlignment: " . dump $rawAlignment );
-  $c->log->debug( "features:     " . dump $features );
+#  $c->log->debug( "rawAlignment: " . dump $rawAlignment );
+#  $c->log->debug( "features:     " . dump $features );
 
+  # build the marked-up alignment
   my( $alignments, $alignmentLengths ) = reconstructAli( $rawAlignment );
   my @markedUpAlignments;
   foreach my $alignment ( @$alignments ) {
@@ -108,12 +128,12 @@ sub default : Path {
       Bio::Pfam::ColourAlign::markupAlignSeparate( $alignment, $consensus );
   }
 
+  # stash the stuff that we built
   $c->stash->{alignments}->{alignments} = \@markedUpAlignments;
   $c->stash->{alignments}->{lengths}    = $alignmentLengths;
 
-  # set up the view and rely on "end" from the parent class to render it
+  # hand off to the template
   $c->stash->{template} = "components/blocks/family/alignmentFragment.tt";
-
 }
 
 #-------------------------------------------------------------------------------

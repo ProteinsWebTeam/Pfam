@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.15 2007-03-15 15:03:50 jt6 Exp $
+// $Id: family.js,v 1.16 2007-06-14 09:33:19 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -30,60 +30,60 @@
 function familyPostLoad() {
   // structure image
   if( typeof( loadOptions.si.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.si.uri,
-					  { method:     'get', 
-						parameters: loadOptions.si.params,
-						onComplete: siSuccess
-						// not even bothering with a failure callback...
-					  } );
+  new Ajax.Request( loadOptions.si.uri,
+            { method:     'get', 
+            parameters: loadOptions.si.params,
+            onComplete: siSuccess
+            // not even bothering with a failure callback...
+            } );
   }
   
   // domain graphics
   if( typeof( loadOptions.dg.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.dg.uri,
-					  { method:     'get', 
-						parameters: loadOptions.dg.params,
-						onComplete: dgSuccess,
-						onFailure:  dgFailure
-					  } );
+  new Ajax.Request( loadOptions.dg.uri,
+            { method:     'get', 
+            parameters: loadOptions.dg.params,
+            onComplete: dgSuccess,
+            onFailure:  dgFailure
+            } );
   }
 
   // species tree
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.st.uri,
-					  { method:     'get', 
-						parameters: loadOptions.st.params,
-						onComplete: stSuccess,
-						onFailure:  stFailure
-					  } );
+  new Ajax.Request( loadOptions.st.uri,
+            { method:     'get', 
+            parameters: loadOptions.st.params,
+            onComplete: stSuccess,
+            onFailure:  stFailure
+            } );
   }
 
   // alignment tree
   if( typeof( loadOptions.at.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.at.uri,
-					  { method:     'get', 
-						parameters: loadOptions.at.params,
-						onComplete: atSuccess,
-						onFailure:  atFailure
-					  } );
+  new Ajax.Request( loadOptions.at.uri,
+            { method:     'get', 
+            parameters: loadOptions.at.params,
+            onComplete: atSuccess,
+            onFailure:  atFailure
+            } );
   }
   // clan structure tab
   if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
-	 new Ajax.Request( loadOptions.fstruc.uri,
-					   { method:     'get', 
-			 			 parameters: loadOptions.fstruc.params,
-						 onComplete: fstrucSuccess,
-						 onFailure:  fstrucFailure
-					   } );
+   new Ajax.Request( loadOptions.fstruc.uri,
+             { method:     'get', 
+              parameters: loadOptions.fstruc.params,
+             onComplete: fstrucSuccess,
+             onFailure:  fstrucFailure
+             } );
   }
   // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.ca.uri,
-					  { method:     'get', 
-						parameters: loadOptions.ca.params,
-						onComplete: caSuccess,
-						onFailure:  caFailure
-					  } );
+  new Ajax.Request( loadOptions.ca.uri,
+            { method:     'get', 
+            parameters: loadOptions.ca.params,
+            onComplete: caSuccess,
+            onFailure:  caFailure
+            } );
   }
 }
 
@@ -127,6 +127,7 @@ function stFailure() {
 function atSuccess( oResponse ) {
   Element.update( $("alignmentTree"), oResponse.responseText );
 }
+
 function atFailure() {
   var p = $("atph");
 
@@ -134,94 +135,102 @@ function atFailure() {
   // disappeared. We need to re-create it before trying to update it
   // with an error message...
   if( ! p ) {
-	p = document.createElement( "p" );
-	p.id = "atph";
-	var parent = $("alignmentTree");
-	parent.insertBefore( p, parent.firstChild );
+  p = document.createElement( "p" );
+  p.id = "atph";
+  var parent = $("alignmentTree");
+  parent.insertBefore( p, parent.firstChild );
   }
   Element.update( $("atph"), "Alignment tree loading failed." );
 }
 
 //------------------------------------------------------------
+//- DAS sequence alignment viewer methods --------------------
+//------------------------------------------------------------
+
 // callbacks for the coloured alignment
 
 function caSuccess( oResponse ) {
-  Element.update( $("caph"), oResponse.responseText );
+  $("caph").update( oResponse.responseText );
 }
 
 function caFailure() {
-  Element.update( $("caph"), "Coloured alignment loading failed." );
+  $("caph").update( "Coloured alignment loading failed." );
 }
 
 //------------------------------------------------------------
 // function to submit the alignment generation form  
 
-function generateAlignment( type, start, end ) {
+function generateAlignment( page ) {
+//  console.debug( "generateAlignment: showing page |" + page + "|" );
 
-  // are we rendering a specified range or the previous/next block ?
-  var range;
-  if( "pager" == type ) {
-	range = start + "-" + end;
-  } else {
-	range = $F("startSeq")+"-"+$F("endSeq");
-  }
-
-  // stuff that value into the form...
-  $("rowRange").value = range;
-
-  // store the scroll value for the alignment, so we can use it in the
-  // new page
-  $("scrollValue").value = $("alignmentData").scrollLeft;
+  // disable various bits of the page and show the spinner
+  $( "pagingForm" ).disable();
+  $( "handle" ).removeClassName( "sliderHandle" );
+  $( "handle" ).addClassName( "disabledSliderHandle" );
+  slider.setDisabled();
+ 
+  $( 'spinner' ).show();
 
   // submit the form
-  Form.disable( "pagingForm" );
   new Ajax.Updater( "caph",
                     loadOptions.ca.uri, 
-                    {   parameters:   Form.serialize( $("pagingForm") ),
-						asynchronous: 1,
-						evalScripts:  true
-					}
+                    {   parameters:  'page='         + page +
+                                     '&acc='         + $F('acc') +
+                                     '&numRows='     + $F('numRows') +
+                                     '&scrollValue=' + $F('scrollValue'),
+                        evalScripts: true
+                    }
                   );
 
-  return false;
 }
 
 //------------------------------------------------------------
-// tweak the alignment to scroll it horizontally to a saved point and
-// to add links to the sequence IDs
+// scroll the element horizontally based on its width and the slider 
+// maximum value
 
-function formatAlignment( urlBase) {
-  // scroll the alignment to the same point as the previously viewed
-  // alignment block
-  $("alignmentData").scrollLeft = $F("scrollValue");
+function scrollHorizontal( value, element, slider ) {
+  
+  // set the scroll position of the alignment
+	element.scrollLeft =
+    Math.round( value / slider.maximum * ( element.scrollWidth - element.offsetWidth ) );
 
-  // add links to the sequence IDs
+  // store the value of the slider in the form
+  $('scrollValue').value = value;
+
+}
+
+//------------------------------------------------------------
+// tweak the alignment to add links to the sequence IDs
+
+var slider;
+function formatAlignment( sURLBase, oSlider ) {
+  slider = oSlider;
 
   // pre-compile a regular expression to filter out the ID, start and
   // end residues
   var re = /^(.*?)\/(\d+)\-(\d+)$/;
 
-  // get all of the spans and walk the list to add tags to each
+  // get all of the spans in the key and walk the list to add link tags
   var spans = $("alignmentKey").getElementsByTagName( "span" );
-  $A( spans ).each( function( item ) {
-	  var s  = item.firstChild.nodeValue;
-	  var ar = re.exec( s );
-
+  $A( spans ).each( function( row ) {
+      var s  = row.firstChild.nodeValue;
+      var ar = re.exec( s );
+  
       // build the link
       var a = document.createElement( "a" );
-	  var t = document.createTextNode( ar[1] );
+      var t = document.createTextNode( ar[1] );
       a.appendChild( t );
-	  a.setAttribute( "href", urlBase + ar[1] );
-
-      item.replaceChild( a, item.firstChild );
-
+      a.setAttribute( "href", sURLBase + ar[1] );
+      a.setAttribute( "onclick", 
+                      "window.open(this.href,'pfamProteinWindow');return false;" );
+  
+      row.replaceChild( a, row.firstChild );
+  
       // tack on the residue range, as plain text for now at least
-	  var r = document.createTextNode( "/" + ar[2] + "-" + ar[3] );
-      item.appendChild( r );
+      var r = document.createTextNode( "/" + ar[2] + "-" + ar[3] );
+      row.appendChild( r );
     }
   );
-
-  Form.enable( "pagingForm" );
 }
 
 //------------------------------------------------------------
@@ -236,19 +245,19 @@ var seedsHighlighted = true;
 
 function toggleHighlightSeed() {
   if( seedsHighlighted ) {
-	var links = $A( document.getElementsByClassName("highlightSeed", "treeDiv") );
-	links.each( function( a ) {
-				  Element.removeClassName( a, "highlightSeed" );
-				} );
-	Element.update( "seedToggle", "Show" );
+  var links = $A( document.getElementsByClassName("highlightSeed", "treeDiv") );
+  links.each( function( a ) {
+          Element.removeClassName( a, "highlightSeed" );
+        } );
+  Element.update( "seedToggle", "Show" );
   } else {
-	var divs = $A( document.getElementsByClassName("seedNode", "treeDiv") );
-	divs.each( function( d ) {
-				 if( nodeMapping[d.id] ) {
-				   Element.addClassName( $(nodeMapping[d.id].labelElId), "highlightSeed" );
-				 }
-			   } );
-	Element.update( "seedToggle", "Hide" );
+  var divs = $A( document.getElementsByClassName("seedNode", "treeDiv") );
+  divs.each( function( d ) {
+         if( nodeMapping[d.id] ) {
+           Element.addClassName( $(nodeMapping[d.id].labelElId), "highlightSeed" );
+         }
+         } );
+  Element.update( "seedToggle", "Hide" );
   }
   seedsHighlighted = !seedsHighlighted;
 }
@@ -260,15 +269,15 @@ function toggleHighlightSeed() {
 //
 // function toggleHighlightSeedSlowly() {
 //   if( seedsHighlighted ) {
-// 	$$(".highlightSeed").each( function( summary ) {
-// 		Element.removeClassName( summary, "highlightSeed" );
-// 	  } );
+//   $$(".highlightSeed").each( function( summary ) {
+//     Element.removeClassName( summary, "highlightSeed" );
+//     } );
 //   } else {
-// 	$$(".seedNode").each( function( summary ) {
-// 		if( nodeMapping[summary.id] ) {
-// 		  Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
-// 		}
-// 	  } );
+//   $$(".seedNode").each( function( summary ) {
+//     if( nodeMapping[summary.id] ) {
+//       Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
+//     }
+//     } );
 //   }
 //   seedsHighlighted = !seedsHighlighted;
 // }
@@ -280,15 +289,15 @@ var summariesVisible = true;
 
 function toggleShowSummaries() {
   if( summariesVisible ) {
-	$$("div.nodeSummary").each( function( node ) {
+  $$("div.nodeSummary").each( function( node ) {
         Element.hide( node );
       } );
-	Element.update( "sumToggle", "Show" );
+  Element.update( "sumToggle", "Show" );
   } else {
-	$$("div.nodeSummary").each( function( node ) {
+  $$("div.nodeSummary").each( function( node ) {
         Element.show( node );
       } );
-	Element.update( "sumToggle", "Hide" );
+  Element.update( "sumToggle", "Hide" );
   }
   summariesVisible = !summariesVisible;
 }
@@ -300,13 +309,13 @@ function toggleShowSummaries() {
 // function toggleShowSummariesSlowly() {
 //   var divs = $A( document.getElementsByClassName("nodeSummary","treeDiv") );
 //   if( summariesVisible ) {
-// 	divs.each( function( d ) {
-// 				Element.hide( d );
-// 			  } );
+//   divs.each( function( d ) {
+//         Element.hide( d );
+//         } );
 //   } else {
-// 	divs.each( function( d ) {
-// 				Element.show( d );
-// 			  } );
+//   divs.each( function( d ) {
+//         Element.show( d );
+//         } );
 //   }
 //   summariesVisible = !summariesVisible;
 // }
@@ -322,11 +331,11 @@ function collectSequences( acc ) {
 
   var leaves = $A( document.getElementsByClassName( "leafNode", "treeDiv" ) );
   leaves.each( function( n ) {
-				 var taskNode = nodeMapping[n.id];
-				 if( taskNode.checked ) {
-				   seqs = seqs + nodeSequences[n.id] + " ";
-				 }
-			   } );
+         var taskNode = nodeMapping[n.id];
+         if( taskNode.checked ) {
+           seqs = seqs + nodeSequences[n.id] + " ";
+         }
+         } );
   
   // build the URI, escaping the sequences string, just to be on the safe side
   var url = selectURI + "?acc=" + acc + "&amp;seqs=" + escape( seqs );
@@ -353,13 +362,13 @@ function expandTo( finalDepth, node ) {
   if( currentDepth < finalDepth - 1 ) {
 
     for( var i=0; i< node.children.length; ++i ) {
-	  
+    
       var c = node.children[i];
       c.expand();
 
-	  currentDepth++;
+    currentDepth++;
       expandTo( finalDepth, c );
-	  currentDepth--;
+    currentDepth--;
     }
   }
 
@@ -370,11 +379,11 @@ function expandTo( finalDepth, node ) {
 
 function toggleTools() {
   if( Element.visible("treeToolsContent") ) {
-	Element.hide( "treeToolsContent" );
-	Element.update( "toolsToggle", "Show" );
+  Element.hide( "treeToolsContent" );
+  Element.update( "toolsToggle", "Show" );
   } else {
-	Element.show( "treeToolsContent" );
-	Element.update( "toolsToggle", "Hide" );
+  Element.show( "treeToolsContent" );
+  Element.update( "toolsToggle", "Hide" );
   }
 }
 
@@ -383,7 +392,7 @@ var numColsTable;
 
 function fstrucSuccess( oResponse ) {
   Element.update( "familyStructureTabHolder", oResponse.responseText );
-	      // how many columns are there in the table ?
+        // how many columns are there in the table ?
       var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
       numColsTable  = firstRow.getElementsByTagName("td").length;
 
@@ -393,7 +402,7 @@ function fstrucSuccess( oResponse ) {
           cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
           cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
         }
-	 );
+   );
 
 
 }
