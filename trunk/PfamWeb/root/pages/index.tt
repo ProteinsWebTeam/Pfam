@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.31 2007-06-01 15:03:23 jt6 Exp $
+# $Id: index.tt,v 1.32 2007-06-14 21:28:46 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -21,15 +21,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
-
-# format the date nicely
-USE date( format = "%B %Y" );
-r = String.new( relData.pfam_release_date );
-
-d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
-
-release_date = String.new( "00:00:00 " );
-CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 
 # a warning message for users who dont have javascript turned on. The 
 # message should be hidden immediately after its displayed, but if 
@@ -50,8 +41,23 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
 <!-- start of index page -->
 <div id="index">
   <div id="intro">
-    <h2>Pfam [% relData.pfam_release %] ([% date.format( release_date ) %],
-    [% relData.number_families %] families)</h2>
+
+    [% # if the database is down, we will be unable to retrieve release data, so
+       # change the construction of the page title accordingly
+    IF relData;
+    
+      # we have release data; format the date nicely
+      USE date( format = "%B %Y" );
+      r = String.new( relData.pfam_release_date );  
+      d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
+      
+      release_date = String.new( "00:00:00 " );
+      CALL release_date.append( d.2, ":", d.1, ":", d.0 ); %]
+      <h2>Pfam [% relData.pfam_release %] ([% date.format( release_date ) %],
+        [% relData.number_families %] families)</h2>
+    [% ELSE %]
+      <h2>Pfam - Protein Families Database</h2>
+    [% END %]
     <p>
       The Pfam database is a large collection of protein 
       families, each represented by <em>multiple sequence alignments</em>
