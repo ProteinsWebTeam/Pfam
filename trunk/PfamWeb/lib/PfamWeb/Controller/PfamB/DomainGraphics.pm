@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20061023 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.6 2007-05-30 08:04:52 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.7 2007-06-14 21:37:46 jt6 Exp $
 
 =head1 NAME
 
@@ -88,17 +88,18 @@ sub default : Path {
                        ->search( { auto_pfamB => $auto },
                                  { join      => [ qw/ pfamseq_architecture annseq pfamseq / ],
                                    prefetch  => [ qw/ pfamseq_architecture annseq pfamseq / ] } );
-    $c->log->debug( "DomainGraphics::default: found |" .scalar @architectures . "| architectures" );
+    $c->log->debug( "PfamB::DomainGraphics::default: found |" .scalar @architectures . "| architectures" );
 
     # grab only the unique architectures as they fly by
     foreach my $arch ( @architectures ) {
+      next unless $arch->auto_architecture;
       unless( $seenArch{ $arch->auto_architecture } ) {    
         push @seqs, thaw( $arch->annseq_storable );
         $archStore{ $arch->pfamseq_id } = $arch;
       }
       $seenArch{ $arch->auto_architecture }++;
     }
-    $c->log->debug( "DomainGraphics::default: thawed |" .scalar @seqs . "| sequences" );
+    $c->log->debug( "PfamB::DomainGraphics::default: thawed |" .scalar @seqs . "| sequences" );
 
     # generate the extra mapping for the architectures
     foreach my $seq ( @seqs ) {
@@ -126,7 +127,7 @@ sub default : Path {
     @seqs = sort { $seqInfo{$b->id}{num} <=> $seqInfo{$a->id}{num} } @seqs;
   }
 
-  $c->log->debug( "DomainGraphics::default: ended up with |" . scalar @seqs . "| storables" );
+  $c->log->debug( "PfamB::DomainGraphics::default: ended up with |" . scalar @seqs . "| storables" );
 
   # draw them...
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
