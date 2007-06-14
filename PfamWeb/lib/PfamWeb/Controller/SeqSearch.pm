@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.21 2007-06-04 15:35:59 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.22 2007-06-14 21:35:53 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.21 2007-06-04 15:35:59 jt6 Exp $
+$Id: SeqSearch.pm,v 1.22 2007-06-14 21:35:53 jt6 Exp $
 
 =cut
 
@@ -483,9 +483,7 @@ sub queueSeqSearch : Private {
 
   my @jobs; 
   push @jobs, $c->forward( 'queuePfamA' );
-  if( $c->req->param( 'searchBs' ) ) {
-    push @jobs, $c->forward( 'queuePfamB' );
-  }
+  push @jobs, $c->forward( 'queuePfamB' ) if $c->req->param( 'searchBs' );
   
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
