@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.15 2007-03-15 14:06:10 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.16 2007-06-14 21:37:02 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.15 2007-03-15 14:06:10 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.16 2007-06-14 21:37:02 jt6 Exp $
 
 =cut
 
@@ -42,38 +42,36 @@ Generates the tree and adds it to the stash.
 
 =cut
 
-sub auto : Private {
-  my( $this, $c ) = @_;
-
-  # retrieve the tree and stash it
-  $c->forward( "getTree" );
-
-}
-
-# caching done like this appears to be broken
-# TODO: switch to Catalyst::Plugin::Cache::Store::FastMmap, or some similar recent cache pluginpwd
 #sub auto : Private {
 #  my( $this, $c ) = @_;
 #
-#  my $tree = $c->cache->get( "species tree " . $c->stash->{pfam}->pfamA_acc );
-#  
-#  if( $tree ) {
-#    $c->log->debug( "Family::SpeciesTree::auto: successfully retrieved cached tree for "
-#                    . $c->stash->{pfam}->pfamA_acc ); 
-#    $c->stash->{rawTree} = $tree;
-#  } else {
-#    $c->log->debug( "Family::SpeciesTree::auto: no cached tree; generating one" );
-#
-#    # retrieve the tree and stash it
-#    $c->forward( "getTree" );
-#
-#    # and cache it
-#    $c->cache->set( "species tree " . $c->stash->{pfam}->pfamA_acc,
-#                    $c->stash->{rawTree},
-#                    "2 weeks" );
-#  }
+#  # retrieve the tree and stash it
+#  $c->forward( "getTree" );
 #
 #}
+
+# caching done like this appears to be broken
+# TODO switch to Catalyst::Plugin::Cache::Store::FastMmap, or some similar recent cache plugin
+sub auto : Private {
+  my( $this, $c ) = @_;
+
+  my $cacheKey = 'speciesTree' . $c->stash->{pfam}->pfamA_acc;
+  my $tree = $c->cache->get( $cacheKey );
+  
+  if( $tree ) {
+    $c->log->debug( 'Family::SpeciesTree::auto: successfully retrieved cached tree for '
+                    . $c->stash->{pfam}->pfamA_acc ); 
+    $c->stash->{rawTree} = $tree;
+  } else {
+    $c->log->debug( 'Family::SpeciesTree::auto: no cached tree; generating one' );
+
+    # retrieve the tree and stash it
+    $c->forward( 'getTree' );
+
+    # and cache it
+    $c->cache->set( $cacheKey, $c->stash->{rawTree}, '1209600' );
+  }
+}
 
 #-------------------------------------------------------------------------------
 
