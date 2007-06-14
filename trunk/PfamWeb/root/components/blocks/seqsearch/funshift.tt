@@ -5,7 +5,7 @@
 # 
 # build the function similarity search tab
 #
-# $Id: funshift.tt,v 1.3 2007-06-05 15:57:37 jt6 Exp $
+# $Id: funshift.tt,v 1.4 2007-06-14 21:27:47 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -42,7 +42,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </p>
       <p>
         We calculate functional similarity using the method described 
-        <a href="http://www.biomedcentral.com/1471-2105/7/302/abstract">here</a>.
+        <a class="ext" href="http://www.biomedcentral.com/1471-2105/7/302/abstract">here</a>.
         We currently apply an arbitrary cut-off of <strong>0.75</strong> to
         the similarity score, to avoid generating excessive volumes of results.
       </p>
