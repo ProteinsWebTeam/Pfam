@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.34 2007-06-01 10:54:22 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.35 2007-06-14 21:31:19 jt6 Exp $
 
 =head1 NAME
 
@@ -18,13 +18,12 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.34 2007-06-01 10:54:22 jt6 Exp $
+$Id: PfamWeb.pm,v 1.35 2007-06-14 21:31:19 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-
 
 # a useful trick to get Catalyst to confess errors on startup, rather than
 # simply dying with a cryptic error about barewords
@@ -36,12 +35,12 @@ use Catalyst qw/
                  Prototype
                  HTML::Widget
                  Email
+                 Cache::Memcached
                  Session
                  Session::Store::FastMmap
                  Session::State::Cookie
-                 Cache::FileCache
                /;
-
+               
 #        -Debug
 #        Compress::Deflate
 #        PageCache
@@ -50,6 +49,12 @@ use Catalyst qw/
 
 # a cache backend. This one won't work when we're using multiple servers
 #        Cache::FastMmap
+
+# sessions via cookies
+#                 Session
+#                 Session::Store::FastMmap
+#                 Session::State::Cookie
+
 
 # user authentication. Not used currently, largely because it doesn't really work
 #        Authentication
@@ -78,6 +83,21 @@ __PACKAGE__->setup;
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=head2 setup_plugins
+
+Overrides the default C<setup_plugins> to add the PageCache Catalyst plugin 
+iff we're running in debug mode.
+
+=cut
+
+#sub setup_plugins {
+#  my( $c, $plugins ) = @_;
+#  push @$plugins, 'PageCache' if not $c->debug;
+#  $c->NEXT::setup_plugins($plugins);
+#} 
+
+#-------------------------------------------------------------------------------
 
 =head2 finalize_config
 
