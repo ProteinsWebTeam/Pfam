@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.7 2007-03-15 14:06:10 jt6 Exp $
+# $Id: Tree.pm,v 1.8 2007-06-14 21:37:02 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.7 2007-03-15 14:06:10 jt6 Exp $
+$Id: Tree.pm,v 1.8 2007-06-14 21:37:02 jt6 Exp $
 
 =cut
 
@@ -53,11 +53,12 @@ sub auto : Private {
 
   # find out what type of tree to draw, seed or full, being careful
   # not to take what the user supplies directly...
-  my $type = (defined $c->req->param("type") and $c->req->param("type") eq "full")
+  my $type = (defined $c->req->param('type') and $c->req->param('type') eq 'full')
                ? "full" : "seed";
 
   # before generating it, see if we can retrieve it from the cache
-  my $tree = $c->cache->get( "tree" . $acc . $type ); 
+  my $cacheKey = "tree$acc$type";
+  my $tree = $c->cache->get( $cacheKey ); 
 
   if( $tree ) {
   	$c->log->debug( "Tree::auto: successfully retrieved tree from cache" );
@@ -68,12 +69,7 @@ sub auto : Private {
   	$tree = treefam::nhx_plot->new( -width => 600,
                   									-skip  => 14 );
   	# decide if we want the full or the seed alignment
-  	my $treeDataFile = $this->{treeFileDir};
-  	if( $c->req->param( "type" ) eq "full" ) {
-  	  $treeDataFile .= "/full/$acc.tree";
-  	} else {
-  	  $treeDataFile .= "/seed/$acc.tree";
-  	}
+  	my $treeDataFile = $this->{treeFileDir} . "/$type/$acc.tree";
   	$c->log->debug( "Tree::generateTree: loading tree file \"$treeDataFile\"" );
 
   	# open the data file
@@ -81,7 +77,7 @@ sub auto : Private {
   	  or $c->log->error( "Tree::generateTree: WARNING: couldn't open tree file for $acc: $!" ) and return;
 	
   	eval {
-  	  $tree->parse( join "", <TREE> );
+  	  $tree->parse( join '', <TREE> );
   	};
   	close TREE;  
   	if( $@ ) {
@@ -90,7 +86,7 @@ sub auto : Private {
   	}
 
     # cache the tree that we just generated
-  	$c->cache->set( "tree". $acc . $type, $tree, "2 weeks" )
+  	$c->cache->set( $cacheKey, $tree, '1209600' )
     	if defined $tree;
   }
 
