@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.11 2007-05-17 08:30:40 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.12 2007-06-14 21:36:26 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::DomainGraphics;
 
 Controller to build a set of domain graphics for a given Pfam.
 
-$Id: DomainGraphics.pm,v 1.11 2007-05-17 08:30:40 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.12 2007-06-14 21:36:26 jt6 Exp $
 
 =cut
 
@@ -101,7 +101,7 @@ sub default : Path {
 #    $sum += $arch->no_seqs;
 #  }
 
-  $c->log->debug( "SeqSearch::domain: found " . scalar @architectures
+  $c->log->debug( "Family::DomainGraphics::default: found " . scalar @architectures
           . " rows, with a total of $sum sequences" );
 
   $c->stash->{numRows} = scalar @architectures;
@@ -125,7 +125,7 @@ sub default : Path {
     # have an auto_architecture, so this won't work
     $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs unless $c->stash->{auto_arch};
   }
-  $c->log->debug( "found " . scalar @seqs . " storables" );
+  $c->log->debug( "Family::DomainGraphics::default: found " . scalar @seqs . " storables" );
 
   if( scalar @seqs ) {
     my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
