@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.6 2007-05-30 09:36:32 jt6 Exp $
+   $Id: job.css,v 1.7 2007-06-14 21:29:39 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -145,15 +145,15 @@ img.graphicImage {
 }
 
 /* shade the odd and even rows green for significant matches */
-.resultTable tr.oddlySignificant { /* normal odd is CCC */
+.oddlySignificant { /* normal odd is CCC */
   background-color: #CDC;
 }
-.resultTable tr.evenlySignificant { /* normal even is DDD */
+.evenlySignificant { /* normal even is DDD */
   background-color: #DED;
 }
 
 /* make the background red for cells where there's something to note */
-.resultTable td.warning {
+.warning {
   background-color: #A00;
   color: white;
   font-weight: bold;
