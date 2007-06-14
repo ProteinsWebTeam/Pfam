@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.8 2007-05-30 08:04:52 jt6 Exp $
+# $Id: PfamB.pm,v 1.9 2007-06-14 21:33:11 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.8 2007-05-30 08:04:52 jt6 Exp $
+$Id: PfamB.pm,v 1.9 2007-06-14 21:33:11 jt6 Exp $
 
 =cut
 
@@ -167,6 +167,7 @@ sub _getSummaryData : Private {
   my $numArchs = 0;
   my %seenArch;
   foreach my $arch ( @architectures ) {
+    next unless $arch->auto_architecture;
     $numArchs++ unless $seenArch{ $arch->auto_architecture };
     $seenArch{ $arch->auto_architecture }++;
   }
