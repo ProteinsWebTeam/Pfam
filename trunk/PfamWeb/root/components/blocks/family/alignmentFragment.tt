@@ -1,76 +1,153 @@
+
 [%
 # alignmentFragment.tt
 # jt6 20060628 WTSI
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.9 2007-05-16 15:02:47 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.10 2007-06-14 09:33:19 jt6 Exp $
 
-# tell the wrapper not to add any header or footer
 META naked = 1;
-
-start     = alignments.start ? alignments.start : 1 ;
-end       = alignments.end   ? alignments.end   : 20;
-interval  = end - start + 1;
-
-max       = alignments.lengths.0;
-
-nextStart = start + interval;
-nextEnd   = end   + interval;
-
-nextStart = ( nextStart > max ) ? start : nextStart;
-nextStart = ( nextStart >= nextEnd ) ? ( nextEnd - 1 ) : nextStart;
-nextEnd = ( nextEnd + interval > max ) ? max : nextEnd;
-
-nextRows  = "$nextStart-$nextEnd";
-
-prevStart = start - interval;
-prevEnd   = end   - interval;
-
-IF prevStart < 1;
-  prevStart = 1;
-  prevEnd   = prevStart + interval - 1;
-END;
-prevEnd = ( prevEnd + interval > max ) ? max : prevEnd; 
-prevEnd = ( prevEnd <= prevStart ) ? ( prevStart + 1 ) : prevEnd; 
-
-prevRows  = "$prevStart-$prevEnd";
-
-# dump the raw alignment
-alignments.alignments.0;
-
-# build the form for paging through the alignment
 %]
 
-<form method="post" id="pagingForm">
+<form id="pagingForm" 
+      method="post"
+      onsubmit="generateAlignment([% pager.current_page %]);return false">
 
-  <input type="hidden" name="acc"  value="[% acc %]" />
-  <input type="hidden" name="alnType" value="[% alnType %]" />
+  <input type="hidden" id="acc"         value="[% acc %]" />
+  <input type="hidden" id="scrollValue" value="[% scrollValue %]" />
 
-  <span>
-    <label for="startSeq">Start: </label>
-    <input name="start" id="startSeq" type="text" size="5"[% IF start %] value="[% start %]"[% END %] />
-  </span>
-  <span>
-    <label for="endSeq">End (max [% max %]): </label>
-    <input name="end" id="endSeq" type="input" size="5"[% IF end %] value="[% end %]"[% END %] />
-  </span>
+  <div class="formRow">
+ 
+    <div class="formRowElement">
+      Currently showing rows [% pager.first %] to [% pager.last %] of 
+      [% pager.total_entries %] rows in this alignment. Show
+      <input name="numRows" 
+             id="numRows" 
+             type="text" 
+             size="5"
+             value="[% pager.entries_per_page %]" />
+      rows of alignment&nbsp;
+    </div>
+    
+    <div onclick="generateAlignment( $F('page') )"
+         class="glassButton goButton">&nbsp;</div>
 
-  <input type="hidden" name="range" id="rowRange" />
-  <input type="hidden" name="scrollValue" id="scrollValue" [% IF scroll %]value="[% scroll %]" [% END %]/>
+    <div class="cleaner"><!-- empty --></div>
 
-  <input type="button" value="View" onclick="generateAlignment('submit')" />
-  <span> this range, or view the </span>
-  <input type="button" value="Prev" onclick="generateAlignment('pager', [% prevStart %], [% prevEnd %] )" />
-  <span> or </span>
-  <input type="button" value="Next" onclick="generateAlignment('pager', [% nextStart %], [% nextEnd %] )" />
-  <span> page.</span>
+  </div>
+  
+[% # dump the raw alignment
+alignments.alignments.0 %]
 
+  <div id="slider">
+    <div id="track"></div>
+    <div id="handle" class="sliderHandle"></div>
+  </div>
+  
+  <div class="cleaner"><!-- empty --></div>
+
+  <div class="formRow">
+    
+    <input type="button"
+           id="first"
+           onclick="generateAlignment([% pager.first_page %])"
+           value="&laquo;" />
+  
+    <input type="button"
+           id="prev"
+           onclick="generateAlignment([% pager.previous_page %])"
+           value="&lsaquo;" />
+  
+    <span id="pageList">
+      [% IF pager.pages_in_set.first > 1 %]
+      <span>&hellip;</span>
+      [% END;
+      FOREACH pageNumber IN pager.pages_in_set;
+        IF pageNumber == pager.current_page %]
+          <span>[% pageNumber %]</span>
+        [% ELSE %]
+          <span class="link" 
+                onclick="generateAlignment(this.innerHTML)">[% pageNumber %]</span>
+        [% END;
+      END;
+      IF pager.pages_in_set.last < pager.last_page %]
+      <span>&hellip;</span>
+      [% END %]
+    </span>
+  
+    <input type="button"
+           id="next"
+           onclick="generateAlignment([% pager.next_page %])"
+           value="&rsaquo;" />
+  
+    <input type="button"
+           id="last"
+           onclick="generateAlignment([% pager.last_page %])"
+           value="&raquo;" />
+
+    <span class="loading" id="spinner">Loading alignment...</span>
+
+  </div>
+  
+  <div class="formRow">
+
+    <div class="formRowElement">
+      There are [% pager.last_page %] pages in this alignment. Show page
+      <input name="page"
+             id="page" 
+             type="text" 
+             size="5"
+             value="1" />
+    </div>
+
+    <div onclick="generateAlignment( $F('page') )"
+         class="glassButton goButton">&nbsp;</div>
+
+    <div class="cleaner"><!-- empty --></div>
+
+  </div>
+  
 </form>
 
 <script type="text/javascript">
   // <![CDATA[
-  formatAlignment( "[% base %]protein?entry=" );
+
+  // hide the "loading alignment" spinner
+  $('spinner').hide();
+  
+  // add a listener to handle form submission when the user hits return in
+  // an input field
+  Event.observe( 'pagingForm', 'submit', generateAlignment ); 
+
+  // instantiate a Slider to handle scrolling the alignment  
+	var slider = new Control.Slider( 'handle', 'slider', {
+  		onSlide:     function(v) { scrollHorizontal( v, $('alignmentData'), slider ); },
+  		onChange:    function(v) { scrollHorizontal( v, $('alignmentData'), slider ); },
+      alignX:      -10,              // offset the slider to make the pointer line up
+      sliderValue: $F('scrollValue') // the starting value, obtained from the form on load
+	  }
+  );
+  
+  // although we set the slider so that it starts at the right position when 
+  // built, we also need to scroll the alignment according to the starting 
+  // value that's stored in the form
+  scrollHorizontal( $F('scrollValue'), $('alignmentData'), slider );
+
+  // reformat the UniProt accessions as links to Pfam protein pages
+  formatAlignment( "[% base %]protein?entry=", slider );
+  
+  [% IF pager.last_page == 1 %]
+  // there's only one page, so just hide the next/prev/first/last buttons 
+  $A( $('first','prev','pageList','next','last') ).invoke( 'hide' );
+  [% END;
+
+  # disable various of the buttons according to what pages we are currently on
+  IF 1 == pager.current_page               %]$('first').disable();[% END;
+  IF NOT pager.previous_page.defined       %]$('prev').disable();[% END;  
+  IF NOT pager.next_page.defined;          %]$('next').disable();[% END;
+  IF pager.last_page == pager.current_page %]$('last').disable();[% END;
+  %]
   // ]]>
 </script>
 
