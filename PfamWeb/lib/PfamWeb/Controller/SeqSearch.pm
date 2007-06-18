@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.22 2007-06-14 21:35:53 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.23 2007-06-18 12:26:43 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.22 2007-06-14 21:35:53 jt6 Exp $
+$Id: SeqSearch.pm,v 1.23 2007-06-18 12:26:43 jt6 Exp $
 
 =cut
 
@@ -286,7 +286,8 @@ sub seq : Local {
   if( defined $c->req->param( 'seqOpts' ) ) {
     $c->stash->{seqOpts} = $c->req->param( 'seqOpts' );
     unless( $c->stash->{seqOpts} eq 'both' or
-            $c->stash->{seqOpts} eq 'ls'   or
+            $c->stash->{seqOpts} eq 'bothNoMerge' or
+            $c->stash->{seqOpts} eq 'ls' or
             $c->stash->{seqOpts} eq 'fs' ) {
       $c->stash->{seqSearchError} = 'You must select a valid search option.';
 
