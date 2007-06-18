@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.20 2007-06-05 15:58:40 jt6 Exp $
+# $Id: layout.tt,v 1.21 2007-06-18 15:11:25 jt6 Exp $
 
 USE String;
 USE date;
@@ -14,6 +14,8 @@ USE date;
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 requirements.css.push( "tab_layout.css" );
 requirements.cssIe.push( "tab_layout_ie.css" );
@@ -30,7 +32,9 @@ requirements.css.push( "cb.css" );
 # stomps on the data that was generated.
 tips = {};
 
-# generate a sidebar tab
+#--------------------------------------
+# a BLOCK that will generate a sidebar tab
+
 BLOCK generateTab;
 
   # see if the tab should be activated or not
@@ -57,9 +61,11 @@ BLOCK generateTab;
     [% END -%]
   </li>
 
-[% END %]
+[% END; # of BLOCK
 
-[%
+#--------------------------------------
+# actually generate the blocks for this page
+
 firstTab    = 1;
 tabsContent = String.new;
 pageContent = String.new;
@@ -102,11 +108,17 @@ FOREACH block IN layouts.${pageType}.blocks;
 
   firstTab = 0;
 
-END;
+END; # of "FOREACH block"
+
+#--------------------------------------
+# add the icons
+
+PROCESS components/icons.tt;
+
+#--------------------------------------
+# and construct the page from the components that we've assembled
+
 %]
-
-[% PROCESS components/icons.tt %]
-
 <div id="tabTitle">
   [%
   titleFile = layouts.${pageType}.titleTemplate;
@@ -116,6 +128,10 @@ END;
     CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\" (page type \"$pageType\")" );
   END
   %]
+</div>
+
+<div id="loadingComponents" class="loading" style="display: none">
+  Loading page components&hellip;
 </div>
 
 <div class="cleaner"><!-- empty --></div>
@@ -155,10 +171,10 @@ END;
   if( ! ( showTab === undefined ) && $(showTab) ) {
     switchTab( showTab );
   } else if( $$('div.error').size() ) {
-  [% # see if there's an error message in the page. If there is, we'll walk back
-     # up the DOM tree from that error message node until we find the "block"
-     # that encloses it, grab the ID for that block and use the tab switcher
-     # to select it... %]
+  [%# see if there is an error message in the page. If there is, we walk back
+      up the DOM tree from that error message node until we find the "block"
+      that encloses it, grab the ID for that block and use the tab switcher
+      to select it... %]
     $$('.error')
       .first()
       .ancestors()
@@ -175,6 +191,25 @@ END;
     // no need to turn on the selector, because the first item in the list is
     // set to visible anyway
   }
+
+  // keep track of post-loading calls
+  
+  // hide the spinner until it's needed
+  $('loadingComponents').hide();
+
+  // register listeners for the start and end of each ajax call    
+  Ajax.Responders.register( {
+    onCreate: function() {
+      Ajax.activeRequestCount++;
+      $('loadingComponents').show();
+    },
+    onComplete: function() {
+      Ajax.activeRequestCount--;
+      if( Ajax.activeRequestCount < 1 ) {
+        $('loadingComponents').hide();
+      }
+    }
+  } );
   // ]]>
 </script> 
 
