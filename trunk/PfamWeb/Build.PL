@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.18 2007-04-20 15:38:42 jt6 Exp $
+# $Id: Build.PL,v 1.19 2007-06-18 15:14:34 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -110,6 +110,7 @@ my $build = PfamWeb::Builder
                           "Catalyst::View::TT"                         => 0,
                           "Class::Data::Accessor"                      => 0,
                           "Config::General"                            => 0.28,
+                          "Data::Pageset"                              => 0,
                           "Data::Validate::URI"                        => 0,
                           "Data::Visitor::Callback"                    => 0,
                           "DateTime"                                   => 0,
