@@ -4,7 +4,7 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.6 2007-06-14 21:27:11 jt6 Exp $
+# $Id: tools.tt,v 1.7 2007-06-18 21:41:17 jt6 Exp $
 %]
 
 <!-- start the Tools block -->
@@ -133,32 +133,32 @@
     </p>
   
     <pre class="codeSnippet">shell% perl pfamClient.pl 
-  Checking isAlive
-  Service is alive: Pfam Web Services are alive at Wed May 30 13:32:12 2007
-  Checking getId2Acc
-  The id for PF00069 is: Pkinase
-  Checking getAcc2Id
-  The acc for Pkinase is: PF00069
-  Checking getPfamAnnotation
-  The description for PF00069 is:
-  ID   Pkinase
-  AC   PF00069
-  DE   Protein kinase domain
-  PI   pkinase;
-  AU   Sonnhammer ELL
-  SE   Unknown
-  GA   -70.30 -70.30; 20.00 20.00;
-  TC   -70.30 -70.30; 20.00 20.00;
-  NC   -70.40 -70.40; 19.90 19.90;
-  TC   Protein kinase domain
-  NC   Protein kinase domain
-  TP   Domain
-  BM   hmmbuild -F HMM_ls SEED
-  BM   hmmcalibrate --cpu 1 --seed 0 HMM_ls
-  BM   hmmbuild -f -F HMM_fs SEED
-  BM   hmmcalibrate --cpu 1 --seed 0 HMM_fs
-  AM   globalfirst
-  ...</pre>
+Checking isAlive
+Service is alive: Pfam Web Services are alive at Wed May 30 13:32:12 2007
+Checking getId2Acc
+The id for PF00069 is: Pkinase
+Checking getAcc2Id
+The acc for Pkinase is: PF00069
+Checking getPfamAnnotation
+The description for PF00069 is:
+ID   Pkinase
+AC   PF00069
+DE   Protein kinase domain
+PI   pkinase;
+AU   Sonnhammer ELL
+SE   Unknown
+GA   -70.30 -70.30; 20.00 20.00;
+TC   -70.30 -70.30; 20.00 20.00;
+NC   -70.40 -70.40; 19.90 19.90;
+TC   Protein kinase domain
+NC   Protein kinase domain
+TP   Domain
+BM   hmmbuild -F HMM_ls SEED
+BM   hmmcalibrate --cpu 1 --seed 0 HMM_ls
+BM   hmmbuild -f -F HMM_fs SEED
+BM   hmmcalibrate --cpu 1 --seed 0 HMM_fs
+AM   globalfirst
+...</pre>
   
   <h3>Contact</h3>
   
