@@ -4,7 +4,7 @@
 # 
 # build the theTeam block for the help pages
 #
-# $Id: theTeam.tt,v 1.4 2007-05-17 13:33:51 jt6 Exp $
+# $Id: theTeam.tt,v 1.5 2007-06-18 12:06:22 jt6 Exp $
 %]
 
 <!-- start theTeam block -->
@@ -25,10 +25,11 @@
   
     <ul>
       <li>Alex Bateman - Co-ordinator of the Pfam, Merops and Rfam databases </li>
-      <li>Penny Coggill - Pfam Database Annotator</li>
-      <li>Rob Finn - Project Leader</li>
-      <li>Jaina Mistry - Pfam Research and Development</li>
-      <li>John Tate - Web Development</li>
+      <li>Penny Coggill - Pfam database annotator</li>
+      <li>Rob Finn - Project leader</li>
+      <li>Jaina Mistry - Pfam research and development</li>
+      <li>Benjamin Schuster-B&ouml;ckler - PhD student</li> 
+      <li>John Tate - Web development</li>
     </ul>
     
     <h3>Janelia Farm Research Center (USA)</h3>
@@ -52,7 +53,7 @@
     	<li class="kr mirror"><a href="http://pfam.ccbb.re.kr/" class="ext flag">Center for Computational Biology &amp; Bioinformatics, South Korea</a></li>
     </ul>	
   
-    <h5>Previous contributors</h5>
+    <h3>Previous contributors</h3>
   
     <ul>
       <li>Matthew Bashton</li>
@@ -65,10 +66,11 @@
       <li>Kevin Howe</li> 
       <li>Nicola Kerrison</li>
       <li>Mhairi Marshall</li>
-      <li>William Mifsud</li>
       <li>Nina Mian</li>
+      <li>William Mifsud</li>
       <li>Simon Moxon</li>
       <li>Stephen John Sammut</li>
+      <li>David Studholme</li>
       <li>Corin Yeats</li>
     </ul>
   
