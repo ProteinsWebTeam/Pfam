@@ -3,7 +3,7 @@
 # jobDone.tt
 # jt6 20070414 WTSI
 #
-# $Id: jobDone.tt,v 1.6 2007-06-04 15:35:59 jt6 Exp $
+# $Id: jobDone.tt,v 1.7 2007-06-18 12:27:32 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -123,8 +123,8 @@ hideButton = "${base}images/hideButton.png";
         are also <span class="warning">highlighted</span>.          
       </p>
       <p>
-        The search process generates alignments between your search sequence 
-        and, for Pfam-A hits, the HMM.
+        For Pfam-A hits we show the alignments between your search sequence 
+        and the matching HMM.
         [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
         sequence and the matching sequence from our library of Pfam-B 
         sequences.[% END %] You can show individual alignments by clicking on 
