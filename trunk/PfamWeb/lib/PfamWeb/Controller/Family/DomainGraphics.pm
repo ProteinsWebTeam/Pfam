@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.12 2007-06-14 21:36:26 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.13 2007-06-19 08:44:06 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::DomainGraphics;
 
 Controller to build a set of domain graphics for a given Pfam.
 
-$Id: DomainGraphics.pm,v 1.12 2007-06-14 21:36:26 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.13 2007-06-19 08:44:06 jt6 Exp $
 
 =cut
 
@@ -25,35 +25,11 @@ use warnings;
 
 use Storable qw(thaw);
 
-use base "PfamWeb::Controller::Section";
+use base "PfamWeb::Controller::Family";
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
-
-=head2 begin : Private
-
-Looks for a Pfam accession and populates the stash with the
-appropriate object.
-
-=cut
-
-sub begin : Private {
-  my( $this, $c ) = @_;
-
-  if( defined $c->req->param("acc") ) {
-
-    $c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
-    $c->log->info( "Family::begin: found accession |$1|, family A / B ? |$2|" );
-  
-    if( defined $1 ) {
-      $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
-      $c->stash->{acc}  = $c->stash->{pfam}->pfamA_acc;
-    }  
-  }
-}
-
-#-------------------------------------------------------------------------------
 
 =head2 default : Path
 
@@ -68,7 +44,7 @@ sub default : Path {
   # note in the stash to show that this is a post-load, so that we can
   # adjust what gets generated in the TT and stuffed into the existing
   # page
-  ( $c->stash->{auto_arch} ) = $c->req->param( "arch" ) =~ /^(\d+)$/
+  ( $c->stash->{auto_arch} ) = $c->req->param('arch') =~ /^(\d+)$/
     if $c->req->param( "arch" );
 
   my @architectures;
@@ -79,34 +55,41 @@ sub default : Path {
   if( $c->stash->{auto_arch} ) {
     # we want to see all of the sequences with a given architecture
 
-    @architectures = $c->model("PfamDB::Pfamseq_architecture")
-                       ->search( { "arch.auto_architecture" => $c->stash->{auto_arch} },
-                                 { join      => [ qw/ arch annseq /],
-                                   prefetch  => [ qw/ arch annseq/] } );
+    @architectures = $c->model('PfamDB::Pfamseq_architecture')
+                       ->search( { 'arch.auto_architecture' => $c->stash->{auto_arch} },
+                                 { join     => [ qw/ arch annseq /],
+                                   prefetch => [ qw/ arch annseq/] } );
     $regionsAndFeatures{PfamB} = 1;
   
   } else {
-  # we want to see the unique architectures containing this domain
+    # we want to see the unique architectures containing this domain
 
-    @architectures = $c->model("PfamDB::PfamA_architecture")
+    @architectures = $c->model('PfamDB::PfamA_architecture')
                        ->search( { pfamA_acc => $c->stash->{acc} },
-                                 { join      => [ qw/ arch pfam /],
-                                   prefetch  => [ qw/ arch pfam /],
-                                   order_by  => "arch.no_seqs DESC" } );
+                                 { join     => [ qw/ arch pfam /],
+                                   prefetch => [ qw/ arch pfam /],
+                                   order_by => 'arch.no_seqs DESC' } );
   }
 
+  # count the total number of sequences in these architectures  
   my $sum = 0;
   map { $sum += $_->no_seqs } @architectures;
-#  foreach my $arch ( @architectures ) {
-#    $sum += $arch->no_seqs;
-#  }
 
-  $c->log->debug( "Family::DomainGraphics::default: found " . scalar @architectures
+  $c->log->debug( 'Family::DomainGraphics::default: found '. scalar @architectures
           . " rows, with a total of $sum sequences" );
 
   $c->stash->{numRows} = scalar @architectures;
   $c->stash->{numSeqs} = $sum;
 
+#  my( $first, $last ) = ( 0, 99 );
+#  if( $c->stash->{numRows} < 100 ) {
+#    $last = $c->stash->{numRows} - 1;
+#  
+#  } elsif( $c->req->param('next') =~ m/^(\d+)$/ ) {
+#
+#    
+#  }
+    
   # build the mappings that we'll need to interpret all this...
   my( @seqs, %seqInfo );
   foreach my $arch ( @architectures ) {
@@ -125,7 +108,8 @@ sub default : Path {
     # have an auto_architecture, so this won't work
     $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs unless $c->stash->{auto_arch};
   }
-  $c->log->debug( "Family::DomainGraphics::default: found " . scalar @seqs . " storables" );
+  $c->log->debug( 'Family::DomainGraphics::default: retrieved '
+                  . scalar @seqs . ' storables' );
 
   if( scalar @seqs ) {
     my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
@@ -140,7 +124,7 @@ sub default : Path {
   }
 
   # set up the view and rely on "end" from the parent class to render it
-  $c->stash->{template} = "components/blocks/family/domainSummary.tt";
+  $c->stash->{template} = 'components/blocks/family/domainSummary.tt';
 
 }
 
