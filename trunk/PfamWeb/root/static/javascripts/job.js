@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.5 2007-06-04 15:35:59 jt6 Exp $
+// $Id: job.js,v 1.6 2007-06-19 08:42:19 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -240,7 +240,7 @@ Job.prototype = {
   	// the estimated job length
     $A( document.getElementsByClassName( "runtime", jobDiv ) )
       .first()
-      .innerHTML = this.estimatedTime; 
+      .innerHTML = this.estimatedTime + 's'; 
 
   },
   
