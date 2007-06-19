@@ -2,7 +2,7 @@
 # News.pm
 # jt 20061207 WTSI
 #
-# $Id: NewsFeed.pm,v 1.6 2007-06-14 21:32:39 jt6 Exp $
+# $Id: NewsFeed.pm,v 1.7 2007-06-19 08:43:09 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::NewsFeed;
 
 Generates the Pfam news feed RSS.
 
-$Id: NewsFeed.pm,v 1.6 2007-06-14 21:32:39 jt6 Exp $
+$Id: NewsFeed.pm,v 1.7 2007-06-19 08:43:09 jt6 Exp $
 
 =cut
 
@@ -81,7 +81,7 @@ sub rss : Global {
     $entries = \@entries;
 
     # cache the news items for later
-    $c->cache->set( "newsFeedEntries", $entries, 3600 );
+    $c->cache->set( "newsFeedEntries", $entries );
   }
 
   # add each item to the feed
