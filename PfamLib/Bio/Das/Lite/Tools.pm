@@ -1,6 +1,12 @@
 package Bio::Das::Lite::Tools;
 use strict;
 use warnings;
+use base qw( Exporter );
+our @EXPORT_OK = qw(
+	convertSegmentsToFeatures convertSegmentToFeature extractSegmentsFromAlignment
+	getMappingsForAlignment convertCigarAlignment convertCigarBlocks convertCigarBlock
+	cigar_to_gapped_sequence gapped_sequence_to_cigar convertFeatures convertFeature
+);
 
 =head1 METHODS
 
@@ -23,7 +29,7 @@ Returns either (depending on array or scalar context):
 =back
 =cut
 
-# $Author: jt6 $
+# $Author: aj5 $
 
 sub convertSegmentsToFeatures
 {
