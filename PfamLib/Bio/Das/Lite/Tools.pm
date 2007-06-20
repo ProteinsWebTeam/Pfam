@@ -680,7 +680,7 @@ sub getMappingsForAlignmentOld
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Andy Jenkinson (aj5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
