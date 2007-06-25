@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.51 2007-06-14 21:30:37 jt6 Exp $
+   $Id: pfam.css,v 1.52 2007-06-25 15:49:46 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -697,18 +697,18 @@ img.graphicImage {
   float: left;
 }
 
-div.allArchitectures {
+div.allSequences {
   overflow: auto;
   border: 1px solid #AAA;
   margin: 0.6em;
   max-height: 250px;
 }
 
-div.allArchitectures .odd {
+div.allSequences .odd {
   background: #DED;
 }
 
-div.allArchitectures .even {
+div.allSequences .even {
   background: #CDC;
 }
 
