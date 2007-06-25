@@ -120,7 +120,7 @@ sub db {
 	      $self->_moltype($db, 'n');
           }
           else {
-	      $self->throw("XDF database appears to be missing files");
+	      $self->throw("XDF database appears to be missing files [$db]");
           }
 	  push @{$self->{'_db'}}, $db;
       }
@@ -160,11 +160,11 @@ sub options {
 =cut
 
 sub get_Seq_by_acc {
-  my ($self, $acc) = @_;
-  
+  my ($self, $acc, $start, $end) = @_;
+
   $self->throw("No accession input") unless $acc;
   $self->throw("No database defined") unless $self->db;
-  
+
   my $xdget   = $self->executable;
   my $db      = $self->db;
   local       *FH;
@@ -173,11 +173,15 @@ sub get_Seq_by_acc {
   my $command;
   my @out;
 
+  my $displayid = $acc;
+  if( $end ) {
+    $displayid .= "/$start-$end";
+  }
+
   # maybe should have some checking here to see if -n/-p have
   # already been specified in options
 
   DB: foreach my $db (@{$self->db}) {
-
     my $options = $self->options;
 
     if ($self->_moltype($db) eq 'n') {
@@ -185,6 +189,18 @@ sub get_Seq_by_acc {
     }
     else {
       $options .= " -p";
+    }
+
+    if( $start and $end and $start > $end ) {
+      ($end,$start) = ($start,$end);
+      $options .= " -r";
+    }
+
+    if( $start ) {
+      $options .= " -a $start";
+    }
+    if( $end ) {
+      $options .= " -b $end";
     }
 
     $command = "$xdget $options $db $acc";
@@ -206,7 +222,7 @@ sub get_Seq_by_acc {
 
   $seq = Bio::Seq->new(
     -seq              => $seqstr,
-    -display_id       => $acc,
+    -display_id       => $displayid,
     -accession_number => $acc,
     -desc             => ""
   );
