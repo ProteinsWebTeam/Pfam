@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.39 2007-05-31 12:21:12 jt6 Exp $
+// $Id: pfFunctions.js,v 1.40 2007-06-26 11:57:43 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -507,7 +507,7 @@ function moveCursor( e ) {
 //------------------------------------------------------------
 // post-load all of the sequences with a given architecture
 
-function loadDomains( sArch, iIndex, uri, iNum ) {
+function loadDomains( iIndex, uri, iNum ) {
 
   // the message for the confirmation dialogue
   var msg = "You are about to load " + iNum + 
@@ -517,7 +517,7 @@ function loadDomains( sArch, iIndex, uri, iNum ) {
   var continueLoad = ( iNum >= 50 ) ? confirm( msg ) : true;
 
   if( continueLoad ) {
-    ['adSpinner' + sArch + iIndex,
+    ['adSpinner' + iIndex,
      'loadSwitch' + iIndex,
      'showHideArchs' + iIndex ].each( Element.toggle );
 
