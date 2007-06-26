@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.17 2007-06-15 16:16:35 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.18 2007-06-26 11:52:31 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ off to a template to be rendered as a clickable HTML tree.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.17 2007-06-15 16:16:35 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.18 2007-06-26 11:52:31 jt6 Exp $
 
 =cut
 
@@ -44,9 +44,10 @@ Generates the tree and adds it to the stash.
 
 sub auto : Private {
   my( $this, $c ) = @_;
+  $c->log->debug( 'Family::SpeciesTree::auto: in auto method' );
 
   # retrieve the tree and stash it
-  $c->forward( "getTree" );
+  $c->forward( 'getTree' );
 
 }
 
