@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.9 2007-06-14 21:33:11 jt6 Exp $
+# $Id: PfamB.pm,v 1.10 2007-06-26 11:54:38 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.9 2007-06-14 21:33:11 jt6 Exp $
+$Id: PfamB.pm,v 1.10 2007-06-26 11:54:38 jt6 Exp $
 
 =cut
 
@@ -71,14 +71,14 @@ Model objects into the hash.
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Path
+=head2 default : Private
 
 Just stuffs the hash with extra information, such as summary data and 
 database cross-references.
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my( $this, $c ) = @_;
 
   # we're done here unless there's an entry specified
