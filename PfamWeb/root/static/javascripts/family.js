@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.16 2007-06-14 09:33:19 jt6 Exp $
+// $Id: family.js,v 1.17 2007-06-26 11:56:53 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -32,9 +32,9 @@ function familyPostLoad() {
   if( typeof( loadOptions.si.uri ) != "undefined" ) {
   new Ajax.Request( loadOptions.si.uri,
             { method:     'get', 
-            parameters: loadOptions.si.params,
-            onComplete: siSuccess
-            // not even bothering with a failure callback...
+              parameters: loadOptions.si.params,
+              onSuccess:  siSuccess
+              // not even bothering with a failure callback...
             } );
   }
   
@@ -42,9 +42,9 @@ function familyPostLoad() {
   if( typeof( loadOptions.dg.uri ) != "undefined" ) {
   new Ajax.Request( loadOptions.dg.uri,
             { method:     'get', 
-            parameters: loadOptions.dg.params,
-            onComplete: dgSuccess,
-            onFailure:  dgFailure
+              parameters: loadOptions.dg.params,
+              onSuccess:  dgSuccess,
+              onFailure:  dgFailure
             } );
   }
 
@@ -52,9 +52,9 @@ function familyPostLoad() {
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
   new Ajax.Request( loadOptions.st.uri,
             { method:     'get', 
-            parameters: loadOptions.st.params,
-            onComplete: stSuccess,
-            onFailure:  stFailure
+              parameters: loadOptions.st.params,
+              onSuccess:  stSuccess,
+              onFailure:  stFailure
             } );
   }
 
@@ -62,27 +62,27 @@ function familyPostLoad() {
   if( typeof( loadOptions.at.uri ) != "undefined" ) {
   new Ajax.Request( loadOptions.at.uri,
             { method:     'get', 
-            parameters: loadOptions.at.params,
-            onComplete: atSuccess,
-            onFailure:  atFailure
+              parameters: loadOptions.at.params,
+              onSuccess:  atSuccess,
+              onFailure:  atFailure
             } );
   }
   // clan structure tab
   if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
    new Ajax.Request( loadOptions.fstruc.uri,
              { method:     'get', 
-              parameters: loadOptions.fstruc.params,
-             onComplete: fstrucSuccess,
-             onFailure:  fstrucFailure
+               parameters: loadOptions.fstruc.params,
+               onSuccess:  fstrucSuccess,
+               onFailure:  fstrucFailure
              } );
   }
   // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
   new Ajax.Request( loadOptions.ca.uri,
             { method:     'get', 
-            parameters: loadOptions.ca.params,
-            onComplete: caSuccess,
-            onFailure:  caFailure
+              parameters: loadOptions.ca.params,
+              onSuccess:  caSuccess,
+              onFailure:  caFailure
             } );
   }
 }
