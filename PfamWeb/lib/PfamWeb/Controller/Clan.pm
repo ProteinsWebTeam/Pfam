@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.12 2007-04-20 15:36:08 jt6 Exp $
+# $Id: Clan.pm,v 1.13 2007-06-26 11:48:41 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.12 2007-04-20 15:36:08 jt6 Exp $
+$Id: Clan.pm,v 1.13 2007-06-26 11:48:41 jt6 Exp $
 
 =cut
 
@@ -54,16 +54,16 @@ sub begin : Private {
   if( defined $c->req->param( "acc" ) ) {
 
     $c->req->param( "acc" ) =~ m/^(CL\d{4})$/i;
-    $c->log->info( "Clan::begin: found accession |$1|" );
+    $c->log->debug( "Clan::begin: found accession |$1|" );
   
     $co = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
       if defined $1;
 
   } elsif( defined $c->req->param( "id" ) ) {
 
-    $c->log->info( "Clan::begin: found param |".$c->req->param("id")."|" );
+    $c->log->debug( "Clan::begin: found param |".$c->req->param("id")."|" );
     $c->req->param( "id" ) =~ m/^([\w-]+)$/;
-    $c->log->info( "Clan::begin: found ID |$1|" );
+    $c->log->debug( "Clan::begin: found ID |$1|" );
     $co = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
       if defined $1;
 
