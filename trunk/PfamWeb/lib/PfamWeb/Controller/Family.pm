@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.27 2007-05-30 08:04:51 jt6 Exp $
+# $Id: Family.pm,v 1.28 2007-06-26 11:53:54 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.27 2007-05-30 08:04:51 jt6 Exp $
+$Id: Family.pm,v 1.28 2007-06-26 11:53:54 jt6 Exp $
 
 =cut
 
@@ -68,7 +68,7 @@ sub begin : Private {
   if( defined $c->req->param("acc") ) {
 
     $c->req->param("acc") =~ m/^(P([FB])\d{5,6})$/i;
-    $c->log->info( "Family::begin: found accession |$1|, family A / B ? |$2|" );
+    $c->log->debug( "Family::begin: found accession |$1|, family A / B ? |$2|" );
     
     # is it a PfamB ?
     if( $c->req->param("acc") =~ m/^(PB\d{6})$/i ) {
@@ -99,7 +99,7 @@ sub begin : Private {
   } elsif( defined $c->req->param("id") ) {
 
     $c->req->param("id") =~ /^([\w_-]+)$/;
-    $c->log->info( "Family::begin: found ID |$1|" );
+    $c->log->debug( "Family::begin: found ID |$1|" );
   
     $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } )
       if defined $1;
@@ -203,31 +203,6 @@ sub begin : Private {
         
     }
   }
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 structureTab : Path
-
-Populates the stash with the mapping and hands off to the appropriate template.
-
-=cut
-
-sub structureTab : Path( "/family/structuretab" )  {
-  my($this, $c) = @_;
-
-  $c->log->debug( "Family::structureTab: acc: |"
-		  . $c->stash->{acc}  . "|" .  $c->stash->{entryType}. "|");
-
-  my @mapping = $c->model("PfamDB::PdbMap")
-                  ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamA,
-                              pfam_region => 1 },
-                            { join        => [ qw/pdb/ ],
-                              prefetch    => [ qw/pdb/ ]
-                            } );
-  $c->stash->{pfamMaps} = \@mapping;
-
-  $c->stash->{template} = "components/blocks/family/structureTab.tt";
 }
 
 #-------------------------------------------------------------------------------
