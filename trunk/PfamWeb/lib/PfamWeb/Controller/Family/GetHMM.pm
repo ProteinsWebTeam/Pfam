@@ -2,7 +2,7 @@
 # GetHMM.pm
 # jt6 20061003 WTSI
 #
-# $Id: GetHMM.pm,v 1.2 2007-03-15 14:06:11 jt6 Exp $
+# $Id: GetHMM.pm,v 1.3 2007-06-28 13:33:34 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the raw HMM for a specified Pfam family.
 
 Generates a B<text file>.
 
-$Id: GetHMM.pm,v 1.2 2007-03-15 14:06:11 jt6 Exp $
+$Id: GetHMM.pm,v 1.3 2007-06-28 13:33:34 jt6 Exp $
 
 =cut
 
@@ -31,14 +31,14 @@ use base "PfamWeb::Controller::Family";
 
 =head1 METHODS
 
-=head2 default : Path
+=head2 default : Private
 
 Pick up http://localhost:3000/family/getHMM?acc=PF00001 and serve
 the HMM for that entry.
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my( $this, $c ) = @_;
 
   return unless defined $c->stash->{pfam};
