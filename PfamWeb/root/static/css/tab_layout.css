@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.33 2007-06-18 15:11:25 jt6 Exp $
+   $Id: tab_layout.css,v 1.34 2007-06-28 13:19:35 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -326,6 +326,136 @@ table.layout td.label {
 table.layout td.data {
   padding: 0.2em;
   vertical-align: top;
+}
+
+/* ======================================== */
+/* species tree styles */
+
+.highlightSeed {
+  background: #c2d2e1; /* #CBD */
+}
+
+td.nodeSummaryCell {
+  width: 16em;
+}
+
+div.nodeSummary {
+  margin-left: 0.2em;
+}
+
+div.nodeSummary div {
+  float: left;
+  border-width: 1px;
+  border-style: solid;
+  width: 3em;
+  height: 1.2em;
+  padding: 0.1em;
+  margin: 0.1em;
+  text-align: center;
+}
+
+.specSum {
+  background: #FDD;
+  border-color: #B99;
+}
+.seqSum {
+  background: #DFD;
+  border-color: #9B9;
+}
+.domSum {
+  background: #DDF;
+  border-color: #99B;
+}
+
+#treeDiv {
+  min-height: 31em;
+}
+
+#treeTools {
+  right: 2em;
+  width: 18em;
+  padding: 0.4em;
+  border: 1px solid #AAA;
+  background: #e8e8e8;
+  opacity: 0.75;
+}
+
+div.blockContent > #treeTools {
+  position: fixed;
+}
+
+#treeTools ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#treeTools li {
+  padding: 0.2em 0;
+}
+
+#treeTools h3 {
+  font-size: 1em;
+  padding: 0.4em 0 0.2em 0;
+  margin: 0;
+}
+
+#treeToolsHeader h3 {
+  margin: 0;
+  padding: 0.2em 0;
+  float: left;
+}
+
+#toolsToggle {
+  cursor: pointer;
+  float: right;
+  padding: 0.2em 0;
+}
+
+/* ======================================== */
+/* domain query rules */
+
+#nlUpdateSpinner {
+  margin: 0.2em;
+}
+
+#idList select,
+#haveList select,
+#notList select {
+  margin: 0.2em;
+}
+
+#idList,
+#haveList,
+#notList {
+  width: 30%;
+  margin: 0.2em;
+}
+
+#idList h3,
+#haveList h3,
+#notList h3 {
+  padding: 0.2em;
+  margin: 0;
+}
+
+#domainSearchButtons {
+  clear: both;
+}
+
+span.buttons {
+  padding: 0.2em;
+}
+
+p.domainQueryInstruction {
+  height: 5.2em;
+  float: left;
+  margin: 0;
+  padding: 0.2em;
+}
+
+#textResults {
+  margin: 0.4em 0.2em;
 }
 
 /* ======================================== */

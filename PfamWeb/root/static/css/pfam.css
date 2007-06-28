@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.52 2007-06-25 15:49:46 jt6 Exp $
+   $Id: pfam.css,v 1.53 2007-06-28 13:19:35 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -767,90 +767,6 @@ span.clanMember {
 }
 
 /* ---------------------------------------- */
-/* species tree styles */
-
-.highlightSeed {
-  background: #c2d2e1; /* #CBD */
-}
-
-td.nodeSummaryCell {
-  width: 16em;
-}
-
-div.nodeSummary {
-  margin-left: 0.2em;
-}
-
-div.nodeSummary div {
-  float: left;
-  border-width: 1px;
-  border-style: solid;
-  width: 3em;
-  height: 1.2em;
-  padding: 0.1em;
-  margin: 0.1em;
-  text-align: center;
-}
-
-.specSum {
-  background: #FDD;
-  border-color: #B99;
-}
-.seqSum {
-  background: #DFD;
-  border-color: #9B9;
-}
-.domSum {
-  background: #DDF;
-  border-color: #99B;
-}
-
-#treeDiv {
-  min-height: 31em;
-}
-
-#treeTools {
-  right: 2em;
-  width: 18em;
-  padding: 0.4em;
-  border: 1px solid #AAA;
-  background: #e8e8e8;
-  opacity: 0.75;
-}
-
-#speciesBlock > div.blockContent > #treeTools {
-  position: fixed;
-}
-
-#treeTools ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-#treeTools li {
-  padding: 0.2em 0;
-}
-
-#treeTools h3 {
-  font-size: 1em;
-  padding: 0.4em 0 0.2em 0;
-  margin: 0;
-}
-
-#treeToolsHeader h3 {
-  margin: 0;
-  padding: 0.2em 0;
-  float: left;
-}
-
-#toolsToggle {
-  cursor: pointer;
-  float: right;
-  padding: 0.2em 0;
-}
-
-/* ---------------------------------------- */
 /* format the mirrors list and citation */
 
 /* the citation on the index page */
@@ -914,52 +830,6 @@ ul.mirrors li {
 }
 .fr {
   background-image: url(/catalyst/pfam/images/flags/french_flag.gif);
-}
-
-/* ======================================== */
-/* domain query rules */
-
-#nlUpdateSpinner {
-  margin: 0.2em;
-}
-
-#idList select,
-#haveList select,
-#notList select {
-  margin: 0.2em;
-}
-
-#idList,
-#haveList,
-#notList {
-  width: 30%;
-  margin: 0.2em;
-}
-
-#idList h3,
-#haveList h3,
-#notList h3 {
-  padding: 0.2em;
-  margin: 0;
-}
-
-#domainSearchButtons {
-  clear: both;
-}
-
-span.buttons {
-  padding: 0.2em;
-}
-
-p.domainQueryInstruction {
-  height: 5.2em;
-  float: left;
-  margin: 0;
-  padding: 0.2em;
-}
-
-#textResults {
-  margin: 0.4em 0.2em;
 }
 
 /* ======================================== */
