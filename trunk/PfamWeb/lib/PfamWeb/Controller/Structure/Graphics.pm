@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060710 WTSI
 #
-# $Id: Graphics.pm,v 1.5 2007-05-17 08:33:59 jt6 Exp $
+# $Id: Graphics.pm,v 1.6 2007-06-28 13:32:32 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ sequence - used in the structure section, confusingly.
 
 Generates a B<page component>.
 
-$Id: Graphics.pm,v 1.5 2007-05-17 08:33:59 jt6 Exp $
+$Id: Graphics.pm,v 1.6 2007-06-28 13:32:32 jt6 Exp $
 
 =cut
 
@@ -64,7 +64,7 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Path
+=head2 getData : Path
 
 Picks up a URL like http://localhost:3000/structure/graphics?ids=Q6FRP6
 

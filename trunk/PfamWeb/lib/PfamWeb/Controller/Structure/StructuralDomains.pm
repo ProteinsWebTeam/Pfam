@@ -2,7 +2,7 @@
 # StructuralDomains.pm
 # rdf 20060823 WTSI
 #
-# $Id: StructuralDomains.pm,v 1.4 2007-03-15 14:06:15 jt6 Exp $
+# $Id: StructuralDomains.pm,v 1.5 2007-06-28 13:32:33 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ domains.
 
 Generates a B<page fragment>.
 
-$Id: StructuralDomains.pm,v 1.4 2007-03-15 14:06:15 jt6 Exp $
+$Id: StructuralDomains.pm,v 1.5 2007-06-28 13:32:33 jt6 Exp $
 
 =cut
 
@@ -45,7 +45,7 @@ use base "PfamWeb::Controller::Structure";
 
 =head1 METHODS
 
-=head2 default : Path
+=head2 getStructuralDomains : Path
 
 This method relies on the PDB ID being retrieved from the URL by the
 begin method from the parent. If it's handed a valid ID, it tries to
