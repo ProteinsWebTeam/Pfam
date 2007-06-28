@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.7 2007-03-15 14:06:15 jt6 Exp $
+# $Id: Viewer.pm,v 1.8 2007-06-28 13:33:33 jt6 Exp $
 
 =head1 NAME
 
@@ -20,14 +20,12 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.7 2007-03-15 14:06:15 jt6 Exp $
+$Id: Viewer.pm,v 1.8 2007-06-28 13:33:33 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-
-use Data::Dumper;
 
 use base "PfamWeb::Controller::Structure";
 
@@ -104,13 +102,13 @@ sub auto : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Path
+=head2 default : Private
 
 Picks up a URL like http://localhost:3000/structure/viewer?id=1abc
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my( $this, $c ) = @_;
 
   $c->log->debug( "showing " . $c->stash->{viewer}

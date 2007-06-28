@@ -2,7 +2,7 @@
 # GetPdbFile.pm
 # jt6 20060731 WTSI
 #
-# $Id: GetPdbFile.pm,v 1.4 2007-03-15 14:06:15 jt6 Exp $
+# $Id: GetPdbFile.pm,v 1.5 2007-06-28 13:33:33 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ extract the PDB ID from the URL.
 
 Generates a B<flat file>, MIME type C<chemical/x-pdb>.
 
-$Id: GetPdbFile.pm,v 1.4 2007-03-15 14:06:15 jt6 Exp $
+$Id: GetPdbFile.pm,v 1.5 2007-06-28 13:33:33 jt6 Exp $
 
 =cut
 
@@ -34,7 +34,7 @@ use base "PfamWeb::Controller::Structure";
 
 =head1 METHODS
 
-=head2 default : Path
+=head2 default : Private
 
 Pick up http://localhost:3000/structure/getpdbfile?id=1abc and similar
 URLs. Retrieves the file from the model. Currently the model uses the
@@ -42,7 +42,7 @@ WTSI pfetch server only.
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my( $this, $c, $pdbId ) = @_;
 
   return unless defined $c->stash->{pdbId};

@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.12 2007-05-17 14:50:03 jt6 Exp $
+# $Id: Structure.pm,v 1.13 2007-06-28 13:33:33 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.12 2007-05-17 14:50:03 jt6 Exp $
+$Id: Structure.pm,v 1.13 2007-06-28 13:33:33 jt6 Exp $
 
 =cut
 
@@ -140,7 +140,7 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Path
+=head2 default : Private
 
 Picks up a URL like
 
@@ -155,7 +155,7 @@ that's used by various subclasses, such as Viewer.
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my( $this, $c ) = @_;
 
   return 0 unless defined $c->stash->{pdb};

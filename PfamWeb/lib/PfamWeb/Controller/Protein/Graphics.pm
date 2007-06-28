@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.20 2007-05-17 08:33:18 jt6 Exp $
+# $Id: Graphics.pm,v 1.21 2007-06-28 13:33:34 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.20 2007-05-17 08:33:18 jt6 Exp $
+$Id: Graphics.pm,v 1.21 2007-06-28 13:33:34 jt6 Exp $
 
 =cut
 
@@ -39,14 +39,14 @@ use base "PfamWeb::Controller::Protein";
 
 =head1 METHODS
 
-=head2 default : Path
+=head2 default : Private
 
 Generates graphics for the list of DAS sources that were specified by the
 user through the list of checkboxes
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my ($this, $c) = @_;
   
   # retrieve the DasLite client from the model

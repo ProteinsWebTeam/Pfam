@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.9 2007-05-30 08:04:07 jt6 Exp $
+# $Id: Section.pm,v 1.10 2007-06-28 13:33:34 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.9 2007-05-30 08:04:07 jt6 Exp $
+$Id: Section.pm,v 1.10 2007-06-28 13:33:34 jt6 Exp $
 
 =cut
 
@@ -33,7 +33,7 @@ use base "Catalyst::Controller";
 
 =head1 METHODS
 
-=head2 default : Path
+=head2 default : Private
 
 An empty action to capture URLs like
 
@@ -45,7 +45,7 @@ An empty action to capture URLs like
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my( $this, $c ) = @_;
 
   # empty; just here to capture the URL

@@ -2,7 +2,7 @@
 # GetImage.pm
 # jt6 20060314 WTSI
 #
-# $Id: GetImage.pm,v 1.11 2007-05-17 14:50:03 jt6 Exp $
+# $Id: GetImage.pm,v 1.12 2007-06-28 13:33:33 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ to extract the PDB ID from the URL.
 
 Generates an B<image file>, MIME type C<image/gif>.
 
-$Id: GetImage.pm,v 1.11 2007-05-17 14:50:03 jt6 Exp $
+$Id: GetImage.pm,v 1.12 2007-06-28 13:33:33 jt6 Exp $
 
 =cut
 
@@ -35,7 +35,7 @@ use base "PfamWeb::Controller::Structure";
 
 =head1 METHODS
 
-=head2 default : Path
+=head2 default : Private
 
 Pick up http://localhost:3000/structure/getimage?id=1abc and serves
 the image for that entry. Returns a blank image if no image is found
@@ -43,7 +43,7 @@ for this entry.
 
 =cut
 
-sub default : Path {
+sub default : Private {
   my( $this, $c ) = @_;
 
   return unless defined $c->stash->{pdb};
