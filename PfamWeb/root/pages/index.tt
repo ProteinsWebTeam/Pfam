@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.32 2007-06-14 21:28:46 jt6 Exp $
+# $Id: index.tt,v 1.33 2007-06-28 12:14:16 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -62,11 +62,11 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
       The Pfam database is a large collection of protein 
       families, each represented by <em>multiple sequence alignments</em>
       and <em>hidden Markov models (HMMs)</em>.
-      <span onclick="reveal( this, 'extras', false, true )"
+      <span onclick="reveal( this, 'pfamNotes', false, true )"
             class="moreLink">
         More...</span>
     </p>
-    <div id="extras" style="display: none">
+    <div id="pfamNotes" style="display: none">
       <p>
         Proteins are generally composed of one or more functional regions, 
         commonly termed  <em>domains</em>. Different combinations of domains give 

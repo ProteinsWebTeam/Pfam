@@ -4,7 +4,7 @@
 # 
 # build the domains block for PfamBs
 #
-# $Id: domains.tt,v 1.4 2007-06-25 15:48:05 jt6 Exp $
+# $Id: domains.tt,v 1.5 2007-06-28 12:14:16 jt6 Exp $
 %]
 
 <!-- start domains block -->
@@ -17,11 +17,11 @@
     <p>
   	  Below is a listing of the unique domain organisations or architectures in which 
       this domain is found.
-      <span onclick="reveal( this, 'domainsHelp', false, true )"
+      <span onclick="reveal( this, 'domainsNotes', false, true )"
             class="moreLink">
         More...</span>
     </p>
-    <div id="domainsHelp" style="display: none">
+    <div id="domainsNotes" style="display: none">
       <p>
         The graphic that is shown by default represents the longest sequence
         with a given architecture. Each row contains the following information:
