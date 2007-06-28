@@ -1,23 +1,49 @@
 
-[%#
+[%
 # species.tt
-# jt6 20060718 WTSI
+# jt6 20060411 WTSI
 #
-# $Id: species.tt,v 1.1 2006-07-20 09:04:06 jt6 Exp $
+# block showing the species tree for clans
+#
+# $Id: species.tt,v 1.2 2007-06-28 13:28:26 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# YUI stuff - this is for the tree viewer
+requirements.css.push( "tree.css" );
+requirements.js.push( "yui/yahoo.js" );
+requirements.js.push( "yui/dom.js" );
+requirements.js.push( "yui/event.js" );
+requirements.js.push( "yui/treeview.js" );
+requirements.js.push( "yui/TaskNode.js" );
+requirements.js.push( "treeTweak.js" );
+
+#-------------------------------------------------------------------------------
 %]
 
 <!-- start species block -->
 
 <div class="block" id="clanSpeciesBlock">
   <div class="handle">
-    <h1>Species</h1>
+    <h1>Species distribution</h1>
   </div>
   <div class="blockContent">
 
-    <h3>Species...</h3>
+    [% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
+    
+    <!-- start of tree -->
+  	<div id="treeDiv">
+      <p id="stph" class="loading">Loading...</p>
+    </div>
+    <!-- end of tree -->
 
+    [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
+    
   </div>
-
 </div>
 
-<!-- end species block -->
+
+<!-- end of species block -->
