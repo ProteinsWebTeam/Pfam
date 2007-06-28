@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.12 2007-06-25 15:48:05 jt6 Exp $
+# $Id: domains.tt,v 1.13 2007-06-28 12:14:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -29,11 +29,11 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>
   	  Below is a listing of the unique domain organisations or architectures in which 
       this domain is found.
-      <span onclick="reveal( this, 'domainsHelp', false, true )"
+      <span onclick="reveal( this, 'domainsNotes', false, true )"
             class="moreLink">
         More...</span>
     </p>
-    <div id="domainsHelp" style="display: none">
+    <div id="domainsNotes" style="display: none">
       <p>
         The graphic that is shown by default represents the longest sequence
         with a given architecture. Each row contains the following information:
