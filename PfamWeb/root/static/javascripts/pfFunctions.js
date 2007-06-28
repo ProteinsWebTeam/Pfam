@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.40 2007-06-26 11:57:43 jt6 Exp $
+// $Id: pfFunctions.js,v 1.41 2007-06-28 13:22:13 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -785,3 +785,211 @@ function eraseCookie( name ) {
 }
 
 //------------------------------------------------------------
+//- species tree methods -------------------------------------
+//------------------------------------------------------------
+
+// toggle the highlighting of those sequences which are found in the 
+// seed alignment
+
+var seedsHighlighted = true;
+
+function toggleHighlightSeed() {
+  if( seedsHighlighted ) {
+    var links = $A( document.getElementsByClassName("highlightSeed", "treeDiv") );
+    links.each( function( a ) {
+                  a.removeClassName( "highlightSeed" );
+                } );
+    $("seedToggle").update( "Show" );
+  } else {
+    var divs = $A( document.getElementsByClassName("seedNode", "treeDiv") );
+    divs.each( function( d ) {
+                 if( nodeMapping[d.id] ) {
+                   Element.addClassName( $(nodeMapping[d.id].labelElId), "highlightSeed" );
+                 }
+               } );
+    $("seedToggle").update( "Hide" );
+  }
+  seedsHighlighted = !seedsHighlighted;
+}
+
+// the $$() function in prototype is variously described as wonderful
+// or immensely slow, so we'll ditch it in favour of walking the DOM
+// ourselves. This function is just here for historical reasons...
+// jt6 20061016 WTSI
+//
+// function toggleHighlightSeedSlowly() {
+//   if( seedsHighlighted ) {
+//   $$(".highlightSeed").each( function( summary ) {
+//     Element.removeClassName( summary, "highlightSeed" );
+//     } );
+//   } else {
+//   $$(".seedNode").each( function( summary ) {
+//     if( nodeMapping[summary.id] ) {
+//       Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
+//     }
+//     } );
+//   }
+//   seedsHighlighted = !seedsHighlighted;
+// }
+
+//------------------------------------------------------------
+// toggle showing/hiding of the node summaries
+
+var summariesVisible = true;
+
+function toggleShowSummaries() {
+  if( summariesVisible ) {
+    $$("div.nodeSummary").invoke( "hide" )
+    $("sumToggle").update( "Show" );
+  } else {
+    $$("div.nodeSummary").invoke( "show" );
+    $("sumToggle").update( "Hide" );
+  }
+  summariesVisible = !summariesVisible;
+}
+
+// turns out that the $$() function is quicker than walking the tree
+// in this case... who knew ?
+// jt6 20061016 WTSI
+//
+// function toggleShowSummariesSlowly() {
+//   var divs = $A( document.getElementsByClassName("nodeSummary","treeDiv") );
+//   if( summariesVisible ) {
+//   divs.each( function( d ) {
+//         Element.hide( d );
+//         } );
+//   } else {
+//   divs.each( function( d ) {
+//         Element.show( d );
+//         } );
+//   }
+//   summariesVisible = !summariesVisible;
+// }
+
+//------------------------------------------------------------
+// expand the tree to the depth specified in the little form in the
+// tools palette
+
+function expandToDepth() {
+  tree.collapseAll();
+  expandTo( $F("depthSelector"), tree.root );
+}
+
+// the method that actually expands to a given depth. Should really
+// only be called by expandToDepth()
+var currentDepth = 0;
+
+function expandTo( finalDepth, node ) {
+
+  if( currentDepth < finalDepth - 1 ) {
+
+    for( var i=0; i< node.children.length; ++i ) {
+    
+      var c = node.children[i];
+      c.expand();
+
+      currentDepth++;
+      expandTo( finalDepth, c );
+      currentDepth--;
+    }
+  }
+
+}
+
+//------------------------------------------------------------
+// show/hide the tree tools palette
+
+function toggleTools() {
+  if( $("treeToolsContent").visible() ) {
+    $("treeToolsContent").hide();
+    $("toolsToggle").update( "Show" );
+  } else {
+    $("treeToolsContent").show();
+    $("toolsToggle").update( "Hide" );
+  }
+}
+
+//------------------------------------------------------------
+// collect the sequences that are specified by the checked leaf nodes
+// in the species trees. Submits the form in the page which will act on those
+// accessions
+
+function collectSequences( acc ) {
+
+  var seqs = "";
+
+  var leaves = $A( document.getElementsByClassName( "leafNode", "treeDiv" ) );
+  leaves.each( function( n ) {
+                 var taskNode = nodeMapping[n.id];
+                 if( taskNode.checked ) {
+                   seqs = seqs + nodeSequences[n.id] + " ";
+                 }
+               } );
+  
+  // build the URI, escaping the sequences string, just to be on the safe side
+  var url = selectURI + "?acc=" + acc + "&seqs=" + escape( seqs );
+
+  // and submit the request
+  popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
+}
+
+//------------------------------------------------------------
+//- callbacks for the species tree generation calls ----------
+//------------------------------------------------------------
+// this stuff is used in Pfam-A, Pfam-B and clan pages
+
+var tree;
+function stSuccess( oResponse ) {
+  
+  // build the tree widget and get a handle on the root, which we'll need
+  // when eval'ing the javascript from the server
+  tree = new YAHOO.widget.TreeView("treeDiv");
+  var root = tree.getRoot();
+
+  // eval the JS that the server generates. This is the set of calls that
+  // build the TreeView widget object tree
+  try {
+    eval( oResponse.responseText );
+  } catch( e ) {
+    // don't care
+  }
+
+  // by this point the tree was successfully built, but the response might
+  // have contained a message rather than tree components. If there was a
+  // a tree, we must have more than just the root node
+  if( YAHOO.widget.TreeView.nodeCount > 1 ) {
+    // we got a tree; render it
+    tree.draw();
+    
+    // bring back the control panel
+    $("treeTools").show();
+  } else {
+    // we got a message from the server; display it
+    $("stph").update( oResponse.responseText )
+             .removeClassName("loading");
+
+    // hide the control panel too
+    $("treeTools").hide();
+  }
+}
+
+function stFailure() {
+  $("stph").update( "Tree loading failed." );
+}
+
+// this is an extra method to submit a new ajax request, this time with
+// the "loadTree" flag set, which tells the controller to load the tree
+// even it's large
+function forceLoad() {
+  
+  // show the new spinner and disable the button
+  $("secondaryLoadingSpinner").show();
+  $("generateButton").disable();
+  new Ajax.Request( loadOptions.st.uri, // same URI was for original call
+                    { method:     'get', 
+                      parameters: loadOptions.st.params + '&loadTree=1',
+                      onSuccess:  stSuccess,
+                      onFailure:  stFailure
+                    } );
+}
+

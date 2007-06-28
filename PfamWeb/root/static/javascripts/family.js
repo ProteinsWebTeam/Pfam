@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.17 2007-06-26 11:56:53 jt6 Exp $
+// $Id: family.js,v 1.18 2007-06-28 13:22:13 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -30,60 +30,60 @@
 function familyPostLoad() {
   // structure image
   if( typeof( loadOptions.si.uri ) != "undefined" ) {
-  new Ajax.Request( loadOptions.si.uri,
-            { method:     'get', 
-              parameters: loadOptions.si.params,
-              onSuccess:  siSuccess
-              // not even bothering with a failure callback...
-            } );
+    new Ajax.Request( loadOptions.si.uri,
+                      { method:     'get', 
+                        parameters: loadOptions.si.params,
+                        onSuccess:  siSuccess
+                        // not even bothering with a failure callback...
+                      } );
   }
   
   // domain graphics
   if( typeof( loadOptions.dg.uri ) != "undefined" ) {
-  new Ajax.Request( loadOptions.dg.uri,
-            { method:     'get', 
-              parameters: loadOptions.dg.params,
-              onSuccess:  dgSuccess,
-              onFailure:  dgFailure
-            } );
+    new Ajax.Request( loadOptions.dg.uri,
+                      { method:     'get', 
+                        parameters: loadOptions.dg.params,
+                        onSuccess:  dgSuccess,
+                        onFailure:  dgFailure
+                      } );
   }
 
   // species tree
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
-  new Ajax.Request( loadOptions.st.uri,
-            { method:     'get', 
-              parameters: loadOptions.st.params,
-              onSuccess:  stSuccess,
-              onFailure:  stFailure
-            } );
+    new Ajax.Request( loadOptions.st.uri,
+                    { method:     'get', 
+                      parameters: loadOptions.st.params,
+                      onSuccess:  stSuccess,
+                      onFailure:  stFailure
+                    } );
   }
 
   // alignment tree
   if( typeof( loadOptions.at.uri ) != "undefined" ) {
-  new Ajax.Request( loadOptions.at.uri,
-            { method:     'get', 
-              parameters: loadOptions.at.params,
-              onSuccess:  atSuccess,
-              onFailure:  atFailure
-            } );
+    new Ajax.Request( loadOptions.at.uri,
+                      { method:     'get', 
+                        parameters: loadOptions.at.params,
+                        onSuccess:  atSuccess,
+                        onFailure:  atFailure
+                      } );
   }
   // clan structure tab
   if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
-   new Ajax.Request( loadOptions.fstruc.uri,
-             { method:     'get', 
-               parameters: loadOptions.fstruc.params,
-               onSuccess:  fstrucSuccess,
-               onFailure:  fstrucFailure
-             } );
+     new Ajax.Request( loadOptions.fstruc.uri,
+                       { method:     'get', 
+                         parameters: loadOptions.fstruc.params,
+                         onSuccess:  fstrucSuccess,
+                         onFailure:  fstrucFailure
+                       } );
   }
   // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
-  new Ajax.Request( loadOptions.ca.uri,
-            { method:     'get', 
-              parameters: loadOptions.ca.params,
-              onSuccess:  caSuccess,
-              onFailure:  caFailure
-            } );
+    new Ajax.Request( loadOptions.ca.uri,
+                      { method:     'get', 
+                        parameters: loadOptions.ca.params,
+                        onSuccess:  caSuccess,
+                        onFailure:  caFailure
+                      } );
   }
 }
 
@@ -102,20 +102,6 @@ function dgSuccess( oResponse ) {
 }
 function dgFailure() {
   Element.update( $("dgph"), "Domain graphics loading failed." );
-}
-
-//------------------------------------------------------------
-// callbacks for the species tree generation call
-
-var tree;
-function stSuccess( oResponse ) {
-  tree = new YAHOO.widget.TreeView("treeDiv");
-  var root = tree.getRoot();
-  eval( oResponse.responseText );
-  tree.draw();
-}
-function stFailure() {
-  Element.update( $("stph"), "Tree loading failed." );
 }
 
 //------------------------------------------------------------
@@ -231,160 +217,6 @@ function formatAlignment( sURLBase, oSlider ) {
       row.appendChild( r );
     }
   );
-}
-
-//------------------------------------------------------------
-//- species tree methods -------------------------------------
-//------------------------------------------------------------
-
-//------------------------------------------------------------
-// toggle the highlighting of those sequences which are found in the 
-// seed alignment
-
-var seedsHighlighted = true;
-
-function toggleHighlightSeed() {
-  if( seedsHighlighted ) {
-  var links = $A( document.getElementsByClassName("highlightSeed", "treeDiv") );
-  links.each( function( a ) {
-          Element.removeClassName( a, "highlightSeed" );
-        } );
-  Element.update( "seedToggle", "Show" );
-  } else {
-  var divs = $A( document.getElementsByClassName("seedNode", "treeDiv") );
-  divs.each( function( d ) {
-         if( nodeMapping[d.id] ) {
-           Element.addClassName( $(nodeMapping[d.id].labelElId), "highlightSeed" );
-         }
-         } );
-  Element.update( "seedToggle", "Hide" );
-  }
-  seedsHighlighted = !seedsHighlighted;
-}
-
-// the $$() function in prototype is variously described as wonderful
-// or immensely slow, so we'll ditch it in favour of walking the DOM
-// ourselves. This function is just here for historical reasons...
-// jt6 20061016 WTSI
-//
-// function toggleHighlightSeedSlowly() {
-//   if( seedsHighlighted ) {
-//   $$(".highlightSeed").each( function( summary ) {
-//     Element.removeClassName( summary, "highlightSeed" );
-//     } );
-//   } else {
-//   $$(".seedNode").each( function( summary ) {
-//     if( nodeMapping[summary.id] ) {
-//       Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
-//     }
-//     } );
-//   }
-//   seedsHighlighted = !seedsHighlighted;
-// }
-
-//------------------------------------------------------------
-// toggle showing/hiding of the node summaries
-
-var summariesVisible = true;
-
-function toggleShowSummaries() {
-  if( summariesVisible ) {
-  $$("div.nodeSummary").each( function( node ) {
-        Element.hide( node );
-      } );
-  Element.update( "sumToggle", "Show" );
-  } else {
-  $$("div.nodeSummary").each( function( node ) {
-        Element.show( node );
-      } );
-  Element.update( "sumToggle", "Hide" );
-  }
-  summariesVisible = !summariesVisible;
-}
-
-// turns out that the $$() function is quicker than walking the tree
-// in this case... who knew ?
-// jt6 20061016 WTSI
-//
-// function toggleShowSummariesSlowly() {
-//   var divs = $A( document.getElementsByClassName("nodeSummary","treeDiv") );
-//   if( summariesVisible ) {
-//   divs.each( function( d ) {
-//         Element.hide( d );
-//         } );
-//   } else {
-//   divs.each( function( d ) {
-//         Element.show( d );
-//         } );
-//   }
-//   summariesVisible = !summariesVisible;
-// }
-
-//------------------------------------------------------------
-// collect the sequences that are specified by the checked leaf nodes
-// in the tree. Submit the form in the page which will act on those
-// accessions
-
-function collectSequences( acc ) {
-
-  var seqs = "";
-
-  var leaves = $A( document.getElementsByClassName( "leafNode", "treeDiv" ) );
-  leaves.each( function( n ) {
-         var taskNode = nodeMapping[n.id];
-         if( taskNode.checked ) {
-           seqs = seqs + nodeSequences[n.id] + " ";
-         }
-         } );
-  
-  // build the URI, escaping the sequences string, just to be on the safe side
-  var url = selectURI + "?acc=" + acc + "&amp;seqs=" + escape( seqs );
-
-  // and submit the request
-  popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
-}
-
-//------------------------------------------------------------
-// expand the tree to the depth specified in the little form in the
-// tools palette
-
-function expandToDepth() {
-  tree.collapseAll();
-  expandTo( $F("depthSelector"), tree.root );
-}
-
-// the method that actually expands to a given depth. Should really
-// only be called by expandToDepth()
-var currentDepth = 0;
-
-function expandTo( finalDepth, node ) {
-
-  if( currentDepth < finalDepth - 1 ) {
-
-    for( var i=0; i< node.children.length; ++i ) {
-    
-      var c = node.children[i];
-      c.expand();
-
-    currentDepth++;
-      expandTo( finalDepth, c );
-    currentDepth--;
-    }
-  }
-
-}
-
-//------------------------------------------------------------
-// show/hide the tree tools palette
-
-function toggleTools() {
-  if( Element.visible("treeToolsContent") ) {
-  Element.hide( "treeToolsContent" );
-  Element.update( "toolsToggle", "Show" );
-  } else {
-  Element.show( "treeToolsContent" );
-  Element.update( "toolsToggle", "Hide" );
-  }
 }
 
 //------------------------------------------------------------
