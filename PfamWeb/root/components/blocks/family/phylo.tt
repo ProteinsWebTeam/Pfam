@@ -5,10 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.10 2007-05-01 21:14:37 jt6 Exp $
-
-# URI shortcut
-tmURI = "${base}gettreemap";
+# $Id: phylo.tt,v 1.11 2007-06-29 14:45:42 jt6 Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -22,22 +19,42 @@ tmURI = "${base}gettreemap";
       This page displays the UPGMA based phylogentic tree, generated using 
       quicktree, for the given alignment.
     </p> 
-    [% # the form that controls the tree display
-    c.prototype.form_remote_tag( { url    => tmURI,
-                                   update => "alignmentTree" } ) %]
+    [% # the form that controls the tree display %]
+    <form action="[% base %]gettreemap">
       <div>
-        <input name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
         <span>
-          <input name="type" id="seedRb" type="radio" checked="checked" value="seed" />
+          <input id="seedRb" 
+                 name="type"
+                 type="radio" 
+                 checked="checked" 
+                 value="seed" />
           <label for="seedRb">Seed ([% pfam.num_seed %])</label>
         </span>
         <span>
-          <input name="type" id="fullRb" type="radio" value="full" />
+          <input id="fullRb" 
+                 name="type"
+                 type="radio" 
+                 value="full" />
           <label for="fullRb">Full ([% pfam.num_full %])</label>
         </span>
-        <input type="submit" name="submit" value="Change tree" />
+        <input type="button"
+               onclick="treeSubmitter()"
+               value="Change tree" />
       </div>
     </form>
+
+    <script type="text/javascript">
+      // <![CDATA[
+      treeSubmitter = function() {
+        var type = $("seedRb").checked ? "seed" : "full";
+        new Ajax.Updater( 'alignmentTree', 
+                          '[% base %]gettreemap', 
+                          { parameters: { acc:  '[% pfam.pfamA_acc %]',
+                                          type: type } }
+                        );
+      };
+      // ]]>
+    </script>
 
     <div id="alignmentTree">
       <p id="atph" class="loading">
@@ -45,10 +62,10 @@ tmURI = "${base}gettreemap";
         </p>  
     </div>
 
-    [%# set the options for the ajax call that populates the tree -%]
+    [%# set the options for the ajax call that populates the tree the first time -%]
     <script type="text/javascript">
       // <![CDATA[
-      loadOptions.at.uri    = "[% tmURI %]";
+      loadOptions.at.uri    = "[% base %]gettreemap";
       loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
       // ]]>
     </script>

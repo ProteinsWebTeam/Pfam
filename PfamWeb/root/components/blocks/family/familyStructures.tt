@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.8 2007-05-21 13:20:45 jt6 Exp $
+# $Id: familyStructures.tt,v 1.9 2007-06-29 14:45:42 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -75,19 +75,32 @@ tips = {};
   [%- END -%]
  
   [% # if there are multiple PDB entries, allow the user to choose a specific one
-  IF pdbUnique.keys.size > 1;
+  IF pdbUnique.keys.size > 1 %]
 
-    c.prototype.form_remote_tag( { url    => "${base}family/structures",
-                                   update => "siph" } ) %]
-    <input id="pfamAccField" name="acc" type="hidden" value="[% pfam.pfamA_acc %]" />
-	  <select name="pdbId" id="pdbIdField">
-	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
-  	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %]disabled="1"[% END %] />[% id %]</option>
-        [% END %]
-      </select>
+    <form action="[% base %]family/structures">
+      <div>
+    	  <select id="pdbIdField">
+    	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
+      	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %]disabled="1"[% END %] />[% id %]</option>
+          [% END %]
+        </select>
+        <input type="button" 
+               onclick="pdbImageSubmitter()",
+               value="View" />
+      </div>
+    </form>
 
-    <input type="submit" name="submit" value="View" />
-  </form>
+    <script type="text/javascript">
+      // <![CDATA[
+      pdbImageSubmitter = function() {
+        new Ajax.Updater( 'siph', 
+                          '[% base %]family/structures', 
+                          { parameters: { acc:  '[% pfam.pfamA_acc %]',
+                                          pdbId: $F("pdbIdField") } }
+                        );
+      };
+      // ]]>
+    </script>
 
   [% END # of "if pdbUnique.keys.size > 1" %]
 </div>
