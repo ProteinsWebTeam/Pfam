@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.41 2007-06-28 13:22:13 jt6 Exp $
+// $Id: pfFunctions.js,v 1.42 2007-07-02 10:00:55 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -220,6 +220,12 @@ function switchPanel( oTrigger, sId ) {
 
 //------------------------------------------------------------
 // show/hide the specified drop-down panel
+
+// These are the arguments:
+//   oSwitch     - object:  the element that acts as the toggle switch
+//   sId         - string:  the ID of the element to show/hide
+//   bStartState - boolean: the starting state of the element, true = visible
+//   bQuick      - boolean: false = slide element open, true = show immediately 
 
 showItems = {};
 
