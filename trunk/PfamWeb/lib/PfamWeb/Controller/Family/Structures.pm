@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.6 2007-06-26 11:51:19 jt6 Exp $
+# $Id: Structures.pm,v 1.7 2007-07-02 09:45:29 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.6 2007-06-26 11:51:19 jt6 Exp $
+$Id: Structures.pm,v 1.7 2007-07-02 09:45:29 jt6 Exp $
 
 =cut
 
@@ -67,18 +67,18 @@ sub default : Private {
 
   my $id;
   ( $id ) = $c->req->param('pdbId') =~ /^(\d\w{3})$/
-  	if defined $c->req->param('pdbId');
+    if defined $c->req->param('pdbId');
 
   $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
                           ->find( { pdb_id => $id } )
-  	if defined $id;
+    if defined $id;
 
   my @rs;
   if( defined $c->stash->{pfam}->auto_pfamA ) {
-	  @rs = $c->model('PfamDB::Pdb_pfamA_reg')
+    @rs = $c->model('PfamDB::Pdb_pfamA_reg')
             ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA},
-			  	            { join       => [qw/ pdb /],
-				                prefetch   => [qw/ pdb /] } );
+                      { join       => [ qw( pdb ) ],
+                        prefetch   => [ qw( pdb ) ] } );
   }
 
   my %pdbUnique = map{ $_->pdb_id => $_ } @rs;
@@ -100,13 +100,13 @@ sub structureTab : Path('/family/structuretab')  {
   my($this, $c) = @_;
 
   $c->log->debug( 'Family::Structures::structureTab: acc: |'
-            		  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|' );
+                  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|' );
 
   my @mapping = $c->model('PfamDB::PdbMap')
                   ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamA,
                               pfam_region => 1 },
-                            { join        => [ qw/pdb/ ],
-                              prefetch    => [ qw/pdb/ ]
+                            { join        => [ qw( pdb ) ],
+                              prefetch    => [ qw( pdb ) ]
                             } );
   $c->stash->{pfamMaps} = \@mapping;
 

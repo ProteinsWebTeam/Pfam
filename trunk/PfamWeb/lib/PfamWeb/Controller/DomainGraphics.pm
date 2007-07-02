@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.1 2007-06-25 15:50:50 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.2 2007-07-02 09:46:39 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.1 2007-06-25 15:50:50 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.2 2007-07-02 09:46:39 jt6 Exp $
 
 =cut
 
@@ -111,7 +111,7 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Private
+=head2 buildGraphics : Path
 
 The main entry point for the controller. The begin method populates the stash
 with the data for the entry type that we're dealing with, whilst this method
@@ -122,7 +122,7 @@ sequences for an architecture, we hand off to one of two separate templates.
 
 =cut
 
-sub default : Private {
+sub buildGraphics : Path {
   my( $this, $c ) = @_;
 
   if( scalar @{ $c->stash->{seqs} } ) {
@@ -225,8 +225,8 @@ sub getFamilyData : Private {
 
     @rows = $c->model('PfamDB::Pfamseq_architecture')
               ->search( { 'arch.auto_architecture' => $c->stash->{auto_arch} },
-                        { join     => [ qw/ arch annseq / ],
-                          prefetch => [ qw/ arch annseq / ] } );
+                        { join     => [ qw( arch annseq ) ],
+                          prefetch => [ qw( arch annseq ) ] } );
     $c->stash->{regionsAndFeatures}->{PfamB} = 1;
   
   } else {
@@ -236,8 +236,8 @@ sub getFamilyData : Private {
 
     @rows = $c->model('PfamDB::PfamA_architecture')
               ->search( { pfamA_acc => $c->stash->{acc} },
-                        { join     => [ qw/ arch pfam / ],
-                          prefetch => [ qw/ arch pfam / ],
+                        { join     => [ qw( arch pfam ) ],
+                          prefetch => [ qw( arch pfam ) ],
                           order_by => 'arch.no_seqs DESC' } );
   }
 
@@ -312,8 +312,8 @@ sub getPfamBData : Private {
 
       @rows= $c->model('PfamDB::PfamB_reg')
                ->search( { auto_pfamB => $c->stash->{autoPfamB} },
-                         { join      => [ qw/ pfamseq_architecture annseq pfamseq / ],
-                           prefetch  => [ qw/ pfamseq_architecture annseq pfamseq / ] } );
+                         { join      => [ qw( pfamseq_architecture annseq pfamseq ) ],
+                           prefetch  => [ qw) pfamseq_architecture annseq pfamseq ) ] } );
 
     } else {
       # we've got a real auto_architecture, so retrieve sequences with that
@@ -322,8 +322,8 @@ sub getPfamBData : Private {
       @rows = $c->model('PfamDB::PfamB_reg')
                 ->search( { auto_pfamB => $c->stash->{autoPfamB},
                             'pfamseq_architecture.auto_architecture' => $c->stash->{auto_arch} },
-                          { join      => [ qw/ pfamseq_architecture annseq pfamseq / ],
-                            prefetch  => [ qw/ pfamseq_architecture annseq pfamseq / ] } );
+                          { join      => [ qw( pfamseq_architecture annseq pfamseq ) ],
+                            prefetch  => [ qw( pfamseq_architecture annseq pfamseq ) ] } );
 
     }
 
@@ -332,8 +332,8 @@ sub getPfamBData : Private {
 
     my @allRows = $c->model('PfamDB::PfamB_reg')
                     ->search( { auto_pfamB => $c->stash->{autoPfamB} },
-                              { join      => [ qw/ pfamseq_architecture annseq pfamseq / ],
-                                prefetch  => [ qw/ pfamseq_architecture annseq pfamseq / ] } );
+                              { join      => [ qw( pfamseq_architecture annseq pfamseq ) ],
+                                prefetch  => [ qw( pfamseq_architecture annseq pfamseq ) ] } );
 
     # grab the unique architectures
     foreach my $arch ( @allRows) {
@@ -458,8 +458,8 @@ sub getClanData : Private {
   
     @rows = $c->model('PfamDB::Pfamseq_architecture')
               ->search( { "arch.auto_architecture" => $c->stash->{auto_arch} },
-                        { join      => [ qw/ arch annseq / ],
-                          prefetch  => [ qw/ arch annseq / ] } );
+                        { join      => [ qw( arch annseq ) ],
+                          prefetch  => [ qw( arch annseq ) ] } );
 
   } else {
 
@@ -468,9 +468,9 @@ sub getClanData : Private {
   
     @rows = $c->model('PfamDB::Architecture')
               ->search( { auto_clan => $c->stash->{autoClan} },
-                        { join      => [ qw/ storable type_example clan_arch / ],
-                          prefetch  => [ qw/ storable type_example / ],
-                          order_by  => "no_seqs DESC"
+                        { join      => [ qw( storable type_example clan_arch ) ],
+                          prefetch  => [ qw( storable type_example ) ],
+                          order_by  => 'no_seqs DESC'
                         } )->all;
   }
   
