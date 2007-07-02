@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.1 2007-06-25 15:46:49 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.2 2007-07-02 09:49:02 jt6 Exp $
 
 META naked = 1;
 
@@ -135,7 +135,8 @@ FOREACH image IN images.each_image;
       '[% base %]domaingraphics',
       {
         method:     'get',
-        parameters: 'acc=[% acc %]&start=[% last + 1 %]',
+        parameters: { acc:   '[% acc %]',
+                      start: '[% last + 1 %]' },
         onSuccess:  function( oResponse ) {
                       $('next[% first %]').update( oResponse.responseText );
                     },
@@ -147,27 +148,29 @@ FOREACH image IN images.each_image;
   }  
   // ]]>
 </script>
-  
-[% IF ( last + 1 ) < numRows %]
-<div id="next[% first %]">
-  <p>
-    Currently showing architectures 1 to [% last + 1 %], out of a
-    total of [% numRows %].
-  </p>
-  <input id="loadingButton"
-         type="button"
-         value="Show next [% count %]"
-         onclick="getMore()" />
-  <span id="loadingSpinner"
-        class="loading"
-        style="display: none">Loading next set...</span>
-</div>
-[% ELSE %]
-  <p>
-    [% IF numRows > 1 %]
-      Showing all [% numRows %] architectures.
-    [% ELSE %]
-      Showing the only architecture.
-    [% END %]
-  </p>
-[% END %]
+
+[% IF first.defined AND last.defined;
+  IF ( last + 1 ) < numRows %]
+    <div id="next[% first %]">
+      <p>
+        Currently showing architectures 1 to [% last + 1 %], out of a
+        total of [% numRows %].
+      </p>
+      <input id="loadingButton"
+             type="button"
+             value="Show next [% count %]"
+             onclick="getMore()" />
+      <span id="loadingSpinner"
+            class="loading"
+            style="display: none">Loading next set...</span>
+    </div>
+  [% ELSE %]
+    <p>
+      [% IF numRows > 1 %]
+        Showing all [% numRows %] architectures.
+      [% ELSE %]
+        Showing the only architecture.
+      [% END %]
+    </p>
+  [% END;
+END %]
