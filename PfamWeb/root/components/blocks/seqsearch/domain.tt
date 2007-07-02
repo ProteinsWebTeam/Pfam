@@ -4,7 +4,7 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.7 2007-05-17 13:48:01 jt6 Exp $
+# $Id: domain.tt,v 1.8 2007-07-02 09:50:32 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -62,22 +62,20 @@ pageList = BLOCK %]
       </ol>
     </div>
 
-    [% pageList;
+    [% pageList %]
 
-    c.prototype.form_remote_tag( { url          => "${base}seqsearch/domain",
-                                   update       => "textResults",
-                                   before       => "dsStarted()",
-                                   complete     => "dsCompleted()",
-                                   html_options => { method => "get",
-                                                     id     => "domainSearchForm" }
-                                 } ) %]
+    <form id="domainSearchForm" 
+          onsubmit="submitter();return false" 
+          method="get" 
+          action="[% base %]seqsearch/domain">
+
       <div id="idList" class="domainList">
-  
+
         <h3>Pfam domains</h3>
   
         <p class="domainQueryInstruction">
           Select a Pfam domain from this list and choose &quot;Includes&quot; or
-          &quot;Does not include&quot; to add it to the query.
+          &quot;Does NOT include&quot; to add it to the query.
         </p>
   
         <div class="cleaner"><!-- empty --></div>
@@ -96,17 +94,17 @@ pageList = BLOCK %]
         </span>
   
       </div>
-  
+
       <div id="haveList" class="domainList">
-  
+
       <h3>Architecture must include...</h3>
   
-      <p class="domainQueryInstruction">
-        These are the families that must appear in the architecture.
-        Remove unwanted domains by selecting them and pressing &quot;Remove&quot;.
-      </p>
-  
-      <div class="cleaner"><!-- empty --></div>
+        <p class="domainQueryInstruction">
+          These are the families that must appear in the architecture.
+          Remove unwanted domains by selecting them and pressing &quot;Remove&quot;.
+        </p>
+    
+        <div class="cleaner"><!-- empty --></div>
     
         <select id="have" size="15">
           <option id="haveBlank"></option>
@@ -117,9 +115,9 @@ pageList = BLOCK %]
         </span>
     
       </div>
-  
+
       <div id="notList" class="domainList">
-  
+
         <h3>Architecture must <em>not</em> include...</h3>
   
         <p class="domainQueryInstruction">
@@ -142,7 +140,7 @@ pageList = BLOCK %]
       <div id="domainSearchButtons">
         <input type="submit" value="Submit query" id="domainSearchSubmit" />
         <input type="button" value="Reset" onclick="resetDomainQueryForms()" />
-        <span id="searchUpdateSpinner" class="loading">Finding matching architectures...</span>
+        <span id="searchUpdateSpinner" class="loading">Finding matching architectures&hellip;</span>
       </div>
 
     </form>
@@ -156,6 +154,20 @@ pageList = BLOCK %]
 
 <script type="text/javascript">
   // <![CDATA[
+  function submitter() {
+    console.log( "in submitter" );
+    dsStarted();
+    new Ajax.Updater( 'textResults',
+                      '[% base %]seqsearch/domain', 
+                      {
+                        parameters: $("domainSearchForm").serialize(true),
+                        onComplete: function(request) {
+                                      dsCompleted(); 
+                                    }
+                      }
+                    );
+  }
+
   // hide the two spinners in the page and the results title
   $( "nlUpdateSpinner", "searchUpdateSpinner", "resultsHeader" ).invoke( "hide" );
 

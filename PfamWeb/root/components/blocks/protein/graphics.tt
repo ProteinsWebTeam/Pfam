@@ -5,7 +5,16 @@
 # 
 # block for graphics for the protein section
 #
-# $Id: graphics.tt,v 1.17 2007-05-01 21:05:42 jt6 Exp $
+# the main contents of this block, the DAS sequence feature viewer, is loaded
+# via ajax, and the various DAS sources can be turned on or off using the 
+# form in this block. 
+#
+# When the form is submitted, rather than the new contents entirely overwriting 
+# the old contents, we reload just the graphics, so that the form and the JS 
+# that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
+# onComplete callbacks, which turn on and off the "loading" spinner, etc.
+#
+# $Id: graphics.tt,v 1.18 2007-07-02 09:50:33 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -74,13 +83,10 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
           collect the data and generate the image.
         </p>
   
-        [% c.prototype.form_remote_tag( { url         => "${base}protein/graphics",
-                                          update      => "graphicsHolder",
-                                          before      => "pgStarted()",
-                                          complete    => "pgCompleted()",
-                                          evalScripts => 1 } ) %]
+        <form action="[% base %]protein/graphics"
+              id="updateGraphicsForm"
+              onsubmit="graphicsSubmitter();return false">
           <div>
-    
             <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
             <input type="hidden" name="reloadSources" value="1" />
     
@@ -109,12 +115,30 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
                    type="submit"
                    disabled="disabled" />
                    
-            <div id="pgUpdateSpinner" style="visibility: hidden" class="loading">
+            <div id="pgUpdateSpinner" style="display: none" class="loading">
               Loading features...
-             </div>
+            </div>
     
           </div>
         </form>
+
+        <script type="text/javascript">
+          // <![CDATA[
+          graphicsSubmitter = function() {
+            console.log( "submitting form update..." );
+            $("pgSubmitButton").disable();
+            $("pgUpdateSpinner").show();
+            new Ajax.Request( '[% base %]protein/graphics',
+                              {
+                                onSuccess:   pgSuccess,
+                                onFailure:   pgFailure,
+                                parameters:  $("updateGraphicsForm").serialize(true),
+                                evalScripts: true
+                              }
+                            );
+          }
+          // ]]>
+        </script>
   
         <div class="cleaner">&nbsp;</div>
    
