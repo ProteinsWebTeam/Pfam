@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.9 2007-03-28 14:41:46 jt6 Exp $
+// $Id: protein.js,v 1.10 2007-07-02 10:00:26 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -28,56 +28,46 @@
 // this will make the ajax calls for the protein page components
 
 function proteinPostLoad() {
-  new Ajax.Request( loadOptions.pg.uri,
- 					{ method: "get",
- 					  parameters: loadOptions.pg.params,
- 					  onComplete: pgSuccess,
- 					  onFailure:  pgFailure
- 					} );
-
-  new Ajax.Request( loadOptions.simap.uri,
-  					{ method: "get",
-					  parameters: loadOptions.simap.params,
-					  onComplete: simapSuccess,
-					  onFailure:  simapFailure
-					} );
-
-  Element.hide("checkboxes","plainSequence");
+  if( typeof( loadOptions.pg.uri ) != "undefined" ) {
+    new Ajax.Request( loadOptions.pg.uri,
+             					{ method:     "get",
+             					  parameters: loadOptions.pg.params,
+             					  onSuccess:  pgSuccess,
+             					  onFailure:  pgFailure
+             					} );
+  }
+  if( typeof( loadOptions.simap.uri ) != "undefined" ) {
+    new Ajax.Request( loadOptions.simap.uri,
+            					{ method:     "get",
+            					  parameters: loadOptions.simap.params,
+            					  onSuccess:  simapSuccess,
+            					  onFailure:  simapFailure
+            					} );
+  }
+  $("checkboxes").hide("plainSequence");
 }
 
 //------------------------------------------------------------
 // callbacks for the alignment/DAS graphics
 
-// called when the browser first fires the request - basically we
-// just disable the submit button and show the "loading" spinner
-
-function pgStarted( oResponse ) {
-  $("pgSubmitButton").disabled = true;
-  $("pgUpdateSpinner").style.visibility = "visible";
-}
-
-// called when the request completes - re-enable the button and 
-// hide the spinner
-
-function pgCompleted() {
-  $("pgUpdateSpinner").style.visibility = "hidden";
-  $("pgSubmitButton").disabled = false;
-}
-
 // called in response to a successful call - stuff the response
 // into the page and enable the submit button
 
 function pgSuccess( oResponse ) {
-  Element.update( $("graphicsHolder"), oResponse.responseText );
-  $("pgSubmitButton").disabled = false;
+  console.log( "pgSuccess: features loaded");
+  $("pgSubmitButton").enable();
+  $("pgUpdateSpinner").hide()
+  $("graphicsHolder").update( oResponse.responseText );
+  console.log( "pgSuccess: features updated");
 }
 
 // called in response to a failed call - bugger. Leave the
 // button disabled but hide the spinner
 
 function pgFailure() {
-  Element.update( $("pgph"), "Alignment loading failed." );
-  $("pgUpdateSpinner").style.visibility = "hidden";
+  $("pgSubmitButton").disable();
+  $("pgUpdateSpinner").hide();
+  $("graphicsHolder").update( "Alignment loading failed." );
 }
 
 //------------------------------------------------------------
