@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.21 2007-06-18 15:11:25 jt6 Exp $
+# $Id: layout.tt,v 1.22 2007-07-02 09:52:22 jt6 Exp $
 
 USE String;
 USE date;
@@ -130,8 +130,10 @@ PROCESS components/icons.tt;
   %]
 </div>
 
-<div id="loadingComponents" class="loading" style="display: none">
-  Loading page components&hellip;
+<div id="loadingComponents" 
+     class="loading" 
+     style="display: none">
+  Loading page components<span id="loadingComponentsCount"></span>&hellip;
 </div>
 
 <div class="cleaner"><!-- empty --></div>
@@ -194,17 +196,14 @@ PROCESS components/icons.tt;
 
   // keep track of post-loading calls
   
-  // hide the spinner until it's needed
-  $('loadingComponents').hide();
-
   // register listeners for the start and end of each ajax call    
   Ajax.Responders.register( {
     onCreate: function() {
-      Ajax.activeRequestCount++;
+      $('loadingComponentsCount').update( ' (' + Ajax.activeRequestCount + ' remaining)' );
       $('loadingComponents').show();
     },
     onComplete: function() {
-      Ajax.activeRequestCount--;
+      $('loadingComponentsCount').update( ' (' + Ajax.activeRequestCount + ' remaining)' );
       if( Ajax.activeRequestCount < 1 ) {
         $('loadingComponents').hide();
       }
