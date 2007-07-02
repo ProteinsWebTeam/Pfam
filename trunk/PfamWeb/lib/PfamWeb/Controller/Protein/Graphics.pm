@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.21 2007-06-28 13:33:34 jt6 Exp $
+# $Id: Graphics.pm,v 1.22 2007-07-02 10:02:26 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.21 2007-06-28 13:33:34 jt6 Exp $
+$Id: Graphics.pm,v 1.22 2007-07-02 10:02:26 jt6 Exp $
 
 =cut
 
@@ -39,21 +39,21 @@ use base "PfamWeb::Controller::Protein";
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 updateSources : Path
 
 Generates graphics for the list of DAS sources that were specified by the
 user through the list of checkboxes
 
 =cut
 
-sub default : Private {
+sub updateSources : Path {
   my ($this, $c) = @_;
   
   # retrieve the DasLite client from the model
-  my $dl = $c->model( "PfamDB" )->getDasLite;
+  my $dl = $c->model('PfamDB')->getDasLite;
   
   # retrieve the DSN from the configuration settings in the same model
-  my $dsn = $c->model( "PfamDB" )->{dasDsn};
+  my $dsn = $c->model('PfamDB')->{dasDsn};
   
   ## Get the sequence. ##
   $dl->dsn( [ $dsn ] );
@@ -63,6 +63,7 @@ sub default : Private {
     $c->log->warn("Protein::Graphics::updateSources: Unable to get sequence for '$seqAcc'");
     return; # Hopeless
   }
+  $c->log->debug("Protein::Graphics::updateSources: retrieved a sequence for |$seqAcc|" );
   
   # This is our reference co-ordinate system everything needs to be converted back to.
   my $baseSystem = 'UniProt';
@@ -78,12 +79,15 @@ sub default : Private {
   #----------------------------------------
 
   # Get the supported alignment servers, indexed by co-ord system.
-  my @availableAlignServers = 
-    $c->model("WebUser::Alignment_das_sources")->search( { from_system => $baseSystem,
-                                                           from_type   => $baseType,
-                                                           # to_type => $baseType,
-                                                         } );
-                                                         
+  my @availableAlignServers = $c->model('WebUser::Alignment_das_sources')
+                                ->search( { from_system => $baseSystem,
+                                            from_type   => $baseType,
+                                            # to_type => $baseType,
+                                          } );
+  $c->log->debug( 'Protein::Graphics::updateSources: found |'
+                  . scalar( @availableAlignServers ) 
+                  . '| AVAILABLE alignment servers' );
+
   my( %availableAlignServersForSystem, 
       %availableAlignServersForUrl );
 
@@ -93,6 +97,13 @@ sub default : Private {
   }
 #  my %availableAlignServersForUrl = map { $_->url => $_ } @availableAlignServerList;
     
+  $c->log->debug( 'Protein::Graphics::updateSources: found |'
+                  . scalar( keys %availableAlignServersForSystem )
+                  . '| AVAILABLE alignment servers for system' );
+  $c->log->debug( 'Protein::Graphics::updateSources: found |'
+                  . scalar( keys %availableAlignServersForUrl ) 
+                  . '| AVAILABLE alignment servers for URL' );
+
   #----------------------------------------
 
   # Get the supported feature servers, indexed by url.
@@ -101,10 +112,18 @@ sub default : Private {
 
   my %availableFeatureServersForUrl = map { $_->url => $_ } @availableFeatureServers;
   
+  $c->log->debug( 'Protein::Graphics::updateSources: found |'
+                  . scalar( keys %availableFeatureServersForUrl ) 
+                  . '| AVAILABLE feature servers for URL' );
+
   #----------------------------------------
 
   # Get the selected feature server IDs from the request, session or database.
   my $selectedFeatureServers = $c->forward( 'getServerList' );
+
+  $c->log->debug( 'Protein::Graphics::updateSources: found |'
+                  . scalar( keys %$selectedFeatureServers ) 
+                  . '| SELECTED feature servers for URL' );
 
   #----------------------------------------
 
@@ -120,10 +139,23 @@ sub default : Private {
     push @{ $selectedFeatureServersForSystem{$_->sequence_type}{$_->system} }, $_->url;
   }
 
+  $c->log->debug( 'Protein::Graphics::updateSources: found |'
+                  . scalar( keys %selectedFeatureServersForSystem )
+                  . '| SELECTED feature servers for system' );
+
   #----------------------------------------
+  print STDERR "done retrieving server details; looping\n";
   
   # retrieve the list of selected DAS objects
   my $selectedObjects = $c->forward( 'getSelectedDASObjects' );
+  
+  if( ref $selectedObjects ) {
+    $c->log->debug( 'Protein::Graphics::updateSources: found |'
+                    . scalar( keys %$selectedObjects )
+                    . '| SELECTED DAS objects' );
+  } else {
+    $c->log->debug( 'Protein::Graphics::updateSources: no SELECTED DAS objects' );
+  }
   
   my $types = sortByProperty( [ keys %selectedFeatureServersForSystem ],
                               undef,
@@ -131,6 +163,7 @@ sub default : Private {
 
   # loop over all possible types of server
   TYPE: foreach my $type ( @$types ) {
+    print STDERR "  server type |$type|\n";
 
     # sort the list of coordinate systems
     my $systems = sortByProperty( [ keys %{ $selectedFeatureServersForSystem{$type} } ], 
@@ -139,6 +172,7 @@ sub default : Private {
 
     # and loop over all types of coordinate system
     SYSTEM: foreach my $system ( @$systems ) {
+      print STDERR "    coordinate system |$system|\n";
       $c->log->debug("Protein::Graphics::updateSources: processing coord system '$type / $system'");
 
       my $imageSets = {};
@@ -147,6 +181,8 @@ sub default : Private {
       # Don't need to get any alignments, query sequence is the uniprot accession.
       if( $type   eq $baseType and 
           $system eq $baseSystem ) {
+         print STDERR "    working with base system\n";
+         $c->log->debug( 'Protein::Graphics::updateSources: working with base type and base system' );
       
         # Force it into the list of available objects, whether it is to be 
         # displayed in detail or not.
@@ -170,7 +206,8 @@ sub default : Private {
           my $numSetsAdded = 
             $layout->layout_DAS_sequences_and_features( $sequence, $features );
             
-          $c->log->debug("Protein::Graphics::updateSources: $numSetsAdded image rows added for '$seqAcc'");
+          print STDERR "    added |$numSetsAdded| image rows\n";
+          $c->log->debug("Protein::Graphics::updateSources: |$numSetsAdded| image rows added for '$seqAcc'");
 
           if( $numSetsAdded ) {
             my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
@@ -180,26 +217,37 @@ sub default : Private {
         }
 
       } else {
+         print STDERR "    NOT the base system\n";
+
         # If the co-ordinate system is not the same, aligned features are required.
         
         my $alignServer = $availableAlignServersForSystem{$type}{$system};   
            
         # Skip if we can't get any alignments in this co-ord system anyway.
         if( not defined $alignServer ) {
+          print STDERR "    couldn't find an alignment server for |$type|$system|\n";
           $c->log->debug("No alignment server found for co-ordinate system '$type / $system'");
           next SYSTEM;
         }
-        
+
         $dl->dsn( [ $alignServer->url ] );
+        print STDERR '    set DSN to |' . $alignServer->url . "|\n";
         my( $alnQuery, $alignments ) = each %{ $dl->alignment( { 'query' => $seqAcc } ) };
         $dl->dsn( $selectedFeatureServersForSystem{$type}{$system} );
+        print STDERR '    set DSN to |' . $alignServer->url . "|\n";
 
         # Each sequence in each alignment is a subsection
-        foreach my $aln ( @$alignments ) {
+        print STDERR "      looping through |" . scalar @$alignments . "| alignments\n";
+
+        # TODO figure out why this generates so many tracks that it kills the server !
+        foreach my $aln ( @$alignments[0..10] ) {
+          print STDERR "      aln: |$aln|\n";
 
           my $alnMap = Bio::Das::Lite::Tools::getMappingsForAlignment($aln);
+          print STDERR "      got alnMap\n";
           foreach my $ob (sort { lc $a->{alignobject_intObjectId} cmp 
                                  lc $b->{alignobject_intObjectId} } @{ $aln->{alignobject} } ) {
+            print STDERR "        ob: |$ob|\n";
 
             # Each aligned object has a subsection into which all associated 
             # features are placed.
@@ -232,17 +280,23 @@ sub default : Private {
 
             # Get any features available for this aligned object.
             my $features = $dl->features( $obId );
+            print STDERR "        got features\n";
             $features = Bio::Das::Lite::Tools::convertFeatures($features, $obMap); # DasLite method...
+            print STDERR "        converted features\n";
 
             # Add a set of segment features that represent the blocks of the aligned object.
             my $segments = Bio::Das::Lite::Tools::extractSegmentsFromAlignment($aln, $obId);
+            print STDERR "        extracted segments\n";
             $segments = Bio::Das::Lite::Tools::convertSegmentsToFeatures($segments);
+            print STDERR "        converted segments to features\n";
             $segments = Bio::Das::Lite::Tools::convertFeatures($segments, $obMap);
+            print STDERR "        converted features\n";
             $features->{$alnQuery} = $segments;
 
             # Use a layout manager to draw the graphics for this subsection.
             my $numSetsAdded = 
               $layout->layout_DAS_sequences_and_features( $sequence, $features );
+            print STDERR "        laid out |$numSetsAdded| sets\n";
 
             $c->log->debug("Protein::Graphics::updateSources: $numSetsAdded image rows added for '$obId'");
 
@@ -250,6 +304,7 @@ sub default : Private {
               my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
               $imageset->create_images( $layout->layout_to_XMLDOM );
               push @{ $imageSets->{$obId} }, $imageset;
+              print STDERR "        pushed imageset\n";
             }
           }
         }
@@ -333,7 +388,7 @@ sub getSelectedDASObjects : Private {
 
   my $acc = $c->stash->{pfamseq}->pfamseq_acc;
   unless( $acc ) {
-    $c->log->warn("Protein::Graphics::getSelectedObjects: no sequence accession found");
+    $c->log->warn( 'Protein::Graphics::getSelectedObjects: no sequence accession found' );
     return;
   }
   
@@ -356,7 +411,7 @@ sub getSelectedDASObjects : Private {
       if scalar keys %$selectedObjs;
 
   } elsif( defined $c->session->{selectedDASObjects}{$acc} ) {
-    $c->log->debug( "Protein::Graphics::getSelectedObjects: getting DAS objects for $acc from session" );
+    $c->log->debug( 'Protein::Graphics::getSelectedObjects: getting DAS objects for $acc from session' );
 
     $selectedObjs = $c->session->{selectedDASObjects}{$acc};
     
@@ -383,14 +438,14 @@ sub getServerList : Private {
   # later
   my $servers;
 
-  if( $c->req->param( "reloadSources" ) ) {
+  if( $c->req->param('reloadSources') ) {
     # first, see if there's a list in the request parameters
 
-    $c->log->debug( "Protein::Graphics::getServerList: getting DAS server IDs from request");
+    $c->log->debug( 'Protein::Graphics::getServerList: getting DAS server IDs from request' );
     foreach ( sort keys %{$c->req->parameters} ) {
 
       # we want only the server IDs
-      next unless m|^(.+)//(.+)//(DS_\d+)$| and $c->req->param( $_ ) eq "on";
+      next unless m|^(.+)//(.+)//(DS_\d+)$| and $c->req->param( $_ ) eq 'on';
   
       if( defined $3 ) {
         $servers->{$1}{$2}{$3} = 1;
@@ -401,20 +456,22 @@ sub getServerList : Private {
   } elsif( $c->session->{selectedDASFeatureServers} ) {
     # next, see if there's a list of servers set in the session
 
-    $c->log->debug( "Protein::Graphics::getServerList: getting server IDs from session" );
+    $c->log->debug( 'Protein::Graphics::getServerList: getting server IDs from session' );
     $servers = $c->session->{selectedDASFeatureServers};
 
   } else {
     # finally, if we don't have a list of servers from either the
     # session or the request, get the default list from the DB
     
-    $c->log->debug( "Protein::Graphics::getServerList: getting server IDs from database" );
+    $c->log->debug( 'Protein::Graphics::getServerList: getting server IDs from database' );
     
-    my @defaultServers = $c->model("WebUser::Feature_das_sources")
+    my @defaultServers = $c->model('WebUser::Feature_das_sources')
                            ->search( { default_server => 1 } );
     foreach( @defaultServers ) {
       $servers->{$_->sequence_type}{$_->system}{$_->server_id} = 1;
-      $c->log->debug( "Protein::Graphics::getServerList:   extracted '".$_->sequence_type." / ".$_->system." / ".$_->server_id."'" );
+      $c->log->debug( "Protein::Graphics::getServerList:   extracted '"
+                      . $_->sequence_type . " / " . $_->system . " / " . $_->server_id
+                      . "'" );
     }
 
   }
