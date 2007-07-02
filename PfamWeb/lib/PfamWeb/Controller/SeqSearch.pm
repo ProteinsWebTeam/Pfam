@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.23 2007-06-18 12:26:43 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.24 2007-07-02 09:47:35 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.23 2007-06-18 12:26:43 jt6 Exp $
+$Id: SeqSearch.pm,v 1.24 2007-07-02 09:47:35 jt6 Exp $
 
 =cut
 
@@ -137,8 +137,8 @@ sub funshift : Local {
              ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA,
                          auto_pfamA_B => { '!=' => $c->stash->{pfam}->auto_pfamA },
                          rfunSim      => { '>'  => 0.75 } },
-                       { join     => [ qw/ pfam clan / ],
-                         prefetch => [ qw/ pfam clan / ], 
+                       { join     => [ qw( pfam clan ) ],
+                         prefetch => [ qw( pfam clan ) ], 
                          order_by => "rfunSim DESC" } );
 
   $c->log->debug( 'SeqSearch::funshift: found |' . scalar @fs . '| rows' );
@@ -175,20 +175,20 @@ sub domain : Local {
 
   $c->log->debug( 'SeqSearch::domain: executing a domain search' );
 
-  $c->log->debug( 'SeqSearch::domain: |' . $c->req->param( 'have' ) . '|' );
-
   # point at the template right away
-  $c->stash->{template} = 'components/blocks/family/domainSummary.tt';
+  $c->stash->{template} = 'components/allArchitectures.tt';
 
-  my $list;
+  my $list = '';
   if( defined $c->req->param( 'have' ) ) {
-    foreach ( split /\s+/, $c->req->param( 'have' ) ) {
+    $c->log->debug( 'SeqSearch::domain: must have:     |' . $c->req->param('have') . '|' );
+    foreach ( split /\s+/, $c->req->param('have') ) {
       next unless /(PF\d{5})/;
       $list .= "+$1 ";
     }
   }
   if( defined $c->req->param( 'not' ) ) {
-    foreach ( split /\s+/, $c->req->param( 'not' ) ) {
+    $c->log->debug( 'SeqSearch::domain: must not have: |' . $c->req->param('not') . '|' );
+    foreach ( split /\s+/, $c->req->param('not') ) {
       next unless /(PF\d{5})/;
       $list .= "-$1 ";
     }
@@ -200,8 +200,8 @@ sub domain : Local {
 
   my @architectures = $c->model('PfamDB::Architecture')
                         ->search( {},
-                                  { join     => [ qw/ annseq / ],
-                                    prefetch => [ qw/ annseq / ],
+                                  { join     => [ qw( annseq ) ],
+                                    prefetch => [ qw( annseq ) ],
                                     order_by => "no_seqs DESC" } )
                         ->search_literal( 'MATCH( architecture_acc ) ' .
                                           'AGAINST( ? IN BOOLEAN MODE )',
@@ -212,8 +212,9 @@ sub domain : Local {
     $sum += $arch->no_seqs;
   }
 
-  $c->log->debug( 'SeqSearch::domain: found ' . scalar @architectures .
-                  ' rows, with a total of $sum sequences' );
+  $c->log->debug( 'SeqSearch::domain: found '
+                  . scalar @architectures
+                  . ' rows, with a total of $sum sequences' );
 
   $c->stash->{numRows} = scalar @architectures;
   $c->stash->{numSeqs} = $sum;
