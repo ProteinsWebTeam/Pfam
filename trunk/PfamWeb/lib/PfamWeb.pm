@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.36 2007-06-18 12:11:10 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.37 2007-07-06 10:00:20 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.36 2007-06-18 12:11:10 jt6 Exp $
+$Id: PfamWeb.pm,v 1.37 2007-07-06 10:00:20 jt6 Exp $
 
 =cut
 
@@ -31,20 +31,16 @@ use warnings;
 
 # set flags and add plugins for the application
 use Catalyst qw/
+                 Cache
                  ConfigLoader
-                 Prototype
                  HTML::Widget
                  Email
-                 Cache::FastMmap
                  Session
                  Session::Store::FastMmap
                  Session::State::Cookie
+                 PageCache
                /;
                
-#        -Debug
-#        Compress::Deflate
-#        PageCache
-
 # some other plugins that could be used...
 
 # a cache backend. This one won't work when we're using multiple servers
@@ -55,13 +51,7 @@ use Catalyst qw/
 #                 Session::Store::FastMmap
 #                 Session::State::Cookie
 
-
-# user authentication. Not used currently, largely because it doesn't really work
-#        Authentication
-#        Authentication::Store::DBIC
-#        Authentication::Credential::Password
-
-our $VERSION = '0.01';
+our $VERSION = '1.0b';
 
 #-------------------------------------------------------------------------------
 
@@ -167,7 +157,6 @@ sub reportError : Private {
   foreach my $e ( @{$c->error} ) {
 
     $c->log->error( "PfamWeb::reportError: reporting a site error: |$e|" );
- 
     # see if we can access the table at all - basically, see if the DB is up 
     my $rs; 
     eval {
