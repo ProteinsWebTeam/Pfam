@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.10 2007-06-28 13:33:34 jt6 Exp $
+# $Id: Section.pm,v 1.11 2007-07-06 10:03:06 jt6 Exp $
 
 =head1 NAME
 
@@ -20,14 +20,14 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.10 2007-06-28 13:33:34 jt6 Exp $
+$Id: Section.pm,v 1.11 2007-07-06 10:03:06 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "Catalyst::Controller";
+use base 'Catalyst::Controller';
 
 #-------------------------------------------------------------------------------
 
@@ -48,7 +48,8 @@ An empty action to capture URLs like
 sub default : Private {
   my( $this, $c ) = @_;
 
-  # empty; just here to capture the URL
+  # set the page to be cached for one week
+  $c->cache_page( 604800 );
 
 }
 
@@ -61,7 +62,7 @@ generated earlier
 
 =cut
 
-sub end : ActionClass( "RenderView" ) {
+sub end : ActionClass( 'RenderView' ) {
   my( $this, $c ) = @_;
 
   # the "$c->detach" method is actually just "$c->forward" with an exception
@@ -79,10 +80,10 @@ sub end : ActionClass( "RenderView" ) {
   if( scalar @{ $c->error } ) {
 
   	# there was a system error...
-  	$c->stash->{template} = "components/systemError.tt";
+  	$c->stash->{template} = 'components/systemError.tt';
 
   	# report the error as a broken internal link
-  	$c->forward( "/reportError" );
+  	$c->forward( '/reportError' );
 
   	# clear the errors before we finish up
   	$c->clear_errors;
@@ -93,7 +94,7 @@ sub end : ActionClass( "RenderView" ) {
   	# config for the location of the error template file
   	$c->stash->{template} =
   	  $c->config
-  		->{"View::TT"}
+  		->{'View::TT'}
   		  ->{VARIABLES}
   			->{layouts}
   			  ->{ $this->{SECTION} }
@@ -103,7 +104,7 @@ sub end : ActionClass( "RenderView" ) {
 
   	# no problems; set up the template and let it rip
   	$c->stash->{pageType} ||= $this->{SECTION};
-  	$c->stash->{template} ||= "pages/layout.tt";
+  	$c->stash->{template} ||= 'pages/layout.tt';
 
   }
 

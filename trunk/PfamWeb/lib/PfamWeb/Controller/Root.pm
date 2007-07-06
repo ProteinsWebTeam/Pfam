@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.14 2007-06-14 21:35:00 jt6 Exp $
+# $Id: Root.pm,v 1.15 2007-07-06 10:02:37 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.14 2007-06-14 21:35:00 jt6 Exp $
+$Id: Root.pm,v 1.15 2007-07-06 10:02:37 jt6 Exp $
 
 =cut
 
@@ -35,23 +35,26 @@ __PACKAGE__->config->{namespace} = '';
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 siteIndex : Path
 
 Generates the main site index page. Also traps 404s and redirects to a 404 page.
 
 =cut
 
-sub default : Private {
+sub siteIndex : Path {
   my ( $this, $c ) = @_;
 
   # before we go too far, make sure this isn't a broken URL
   $c->res->redirect( $c->uri_for('/404') )
     unless $c->req->uri eq $c->req->base;
   
+  # set the page to be cached for one week
+  $c->cache_page( 604800 );
+
   # tell the navbar where we are
   $c->stash->{nav} = 'home';
 
-  $c->log->debug('PfamWeb::default: generating site index');
+  $c->log->debug('PfamWeb::siteIndex: generating site index');
 }
 
 #-------------------------------------------------------------------------------
@@ -128,6 +131,9 @@ Show an index page for the various "browse" pages.
 
 sub browseIndex : Global {
   my ( $this, $c ) = @_;
+
+  # set the page to be cached for one week
+  $c->cache_page( 604800 );
 
   # tell the navbar where we are
   $c->stash->{nav} = 'browse';
