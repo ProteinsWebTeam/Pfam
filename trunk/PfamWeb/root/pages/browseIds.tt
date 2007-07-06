@@ -1,10 +1,10 @@
 [%
-# browse.tt
+# browseIds.tt
 # jt6 20060717 WTSI
 # 
-# build a "browse" page
+# builds a form selection field with a list of family IDs.
 #
-# $Id: browseIds.tt,v 1.1 2006-11-27 16:26:27 jt6 Exp $
+# $Id: browseIds.tt,v 1.2 2007-07-06 09:59:52 jt6 Exp $
 
 META naked = 1
 %]
