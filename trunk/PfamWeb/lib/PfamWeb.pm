@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.37 2007-07-06 10:00:20 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.38 2007-07-10 19:46:19 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.37 2007-07-06 10:00:20 jt6 Exp $
+$Id: PfamWeb.pm,v 1.38 2007-07-10 19:46:19 jt6 Exp $
 
 =cut
 
@@ -40,13 +40,14 @@ use Catalyst qw/
                  Session::State::Cookie
                  PageCache
                /;
-               
-# some other plugins that could be used...
 
-# a cache backend. This one won't work when we're using multiple servers
-#        Cache::FastMmap
+# if using Cache::FastMmap for caching, add this after the Cache plugin. We
+# still need Cache though !
+#                 Cache::Store::FastMmap
 
-# sessions via cookies
+# PageCache must be last in the list
+
+# in order to use sessions via cookies
 #                 Session
 #                 Session::Store::FastMmap
 #                 Session::State::Cookie
@@ -74,21 +75,6 @@ __PACKAGE__->setup;
 
 =head1 METHODS
 
-=head2 setup_plugins
-
-Overrides the default C<setup_plugins> to add the PageCache Catalyst plugin 
-iff we're running in debug mode.
-
-=cut
-
-#sub setup_plugins {
-#  my( $c, $plugins ) = @_;
-#  push @$plugins, 'PageCache' if not $c->debug;
-#  $c->NEXT::setup_plugins($plugins);
-#} 
-
-#-------------------------------------------------------------------------------
-
 =head2 finalize_config
 
 Overrides the empty C<finalize_config> method from the ConfigLoader plugin, 
@@ -107,97 +93,6 @@ sub finalize_config {
             }
           );
   $v->visit( $c->config );
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 reportError : Private
-
-Records site errors in the database. Because we could be getting
-failures constantly, e.g. from SIMAP web service, we want to avoid
-just mailing admins about that, so instead we insert an error message
-into a database table.
-
-The table has four columns:
-
-=over 8
-
-=item message
-
-the raw message from the caller
-
-=item num
-
-the number of times this precise message has been seen
-
-=item first
-
-the timestamp for the first occurrence of the message
-
-=item last
-
-the timestamp for that most recent occurence of the
-message. Automatically updated on insert or update
-
-=back
-
-An external script or plain SQL query should then be able to retrieve
-error logs when required and we can keep track of errors without being
-deluged with mail.
-
-Note that this method does NOT clear_errors. It's up to the caller to decide
-whether that's required or not.
-
-=cut
-
-sub reportError : Private {
-  my( $this, $c ) = @_;
-
-  my $el = $c->model( "WebUser::ErrorLog" );
-  foreach my $e ( @{$c->error} ) {
-
-    $c->log->error( "PfamWeb::reportError: reporting a site error: |$e|" );
-    # see if we can access the table at all - basically, see if the DB is up 
-    my $rs; 
-    eval {
-      $rs = $el->find( { message => $e } );
-    };
-    if( $@ ) {
-      # really bad; an error while reporting an error...
-      $c->log->error( "PfamWeb::reportError: couldn't create a error log; " .
-                      "couldn't read error table: $@" );
-    }
-  
-    # if we can get a ResultSet, try to add a message
-    if( $rs ) {
-
-      # we've seen this error before; update the error count
-      eval {
-        $rs->update( { num => $rs->num + 1 } );
-      };
-      if( $@ ) {
-        # really bad; an error while reporting an error...
-        $c->log->error( "PfamWeb::reportError: couldn't create a error log; " .
-                        "couldn't increment error count: $@" );
-      }
-
-    } else {
-
-      # no log message like this has been registered so far; add the row 
-      eval {
-        $el->create( { message => $e,
-                       num     => 1,
-                       first   => [ "CURRENT_TIMESTAMP" ] } );
-      };
-      if( $@ ) {
-        # really bad; an error while reporting an error...
-        $c->log->error( "PfamWeb::reportError: couldn't create a error log; " .
-                        "couldn't create a new error record : $@" );
-      }
-
-    }
-  }
-
 }
 
 #-------------------------------------------------------------------------------
