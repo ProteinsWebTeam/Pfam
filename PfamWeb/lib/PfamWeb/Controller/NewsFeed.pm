@@ -2,7 +2,7 @@
 # News.pm
 # jt 20061207 WTSI
 #
-# $Id: NewsFeed.pm,v 1.7 2007-06-19 08:43:09 jt6 Exp $
+# $Id: NewsFeed.pm,v 1.8 2007-07-10 19:47:47 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::NewsFeed;
 
 Generates the Pfam news feed RSS.
 
-$Id: NewsFeed.pm,v 1.7 2007-06-19 08:43:09 jt6 Exp $
+$Id: NewsFeed.pm,v 1.8 2007-07-10 19:47:47 jt6 Exp $
 
 =cut
 
@@ -26,28 +26,39 @@ use warnings;
 use XML::Feed;
 use DateTime::Format::MySQL;
 
-use base "Catalyst::Controller";
+use base 'Catalyst::Controller';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 newsFeed : Path
 
 Shows all Pfam news feed items in full.
 
 =cut
 
-sub default : Private {
+sub newsFeed : Path {
   my( $this, $c ) = @_;
 
   # retrieve the news items from the feed
-  my @entries = $c->model("WebUser::News")
-    ->search( {}, { order_by => "pubDate DESC" } );
+  my @entries = $c->model('WebUser::News')
+                  ->search( { },
+                            { order_by => 'pubDate DESC' } );
   $c->stash->{newsItems} = \@entries;
 
-  $c->stash->{template} = "pages/news.tt";
+  $c->stash->{template} = 'pages/news.tt';
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 end : ActionClass
+
+An empty C<end> to hand off to L<RenderView>.
+
+=cut
+
+sub end : ActionClass( 'RenderView' ) {}
 
 #-------------------------------------------------------------------------------
 
@@ -60,42 +71,44 @@ Generates an RSS feed.
 sub rss : Global {
   my( $this, $c ) = @_;
 
-  # start a feed
-  my $feed = XML::Feed->new("RSS");
+  my $cacheKey = 'newsFeed';
+  my $feedXML = $c->cache->get( $cacheKey );
+  
+  if( $feedXML ) {
+    $c->log->debug( 'NewsFeed::rss: retrieved feed from cache' );
+  } else { 
 
-  # build the channel info
-  $feed->title("Pfam RSS Feed");
-  $feed->link( $c->req->base );
-  $feed->description("Pfam News");
-  $feed->language("en-GB");
-
-  # see if the entries can be extracted from the cache rather than the DB
-  my $entries= $c->cache->get( "newsFeedEntries" );
-  $c->log->debug( "NewsFeed::RSS: extracted news entries from cache" ) if $entries;
-
-  unless( $entries ) {
-    $c->log->debug( "NewsFeed::RSS: retrieving news entries from database" );
-
+    # start a feed
+    my $feed = XML::Feed->new("RSS");
+  
+    # build the channel info
+    $feed->title("Pfam RSS Feed");
+    $feed->link( $c->req->base );
+    $feed->description("Pfam News");
+    $feed->language("en-GB");
+  
     # query the DB for news items, in reverse chronological order
     my @entries = $c->model("WebUser::News")->search( {}, { order_by => "pubDate DESC" } );
-    $entries = \@entries;
+  
+    # add each item to the feed
+    foreach my $entry (@entries) {
+      my $feedEntry = XML::Feed::Entry->new('RSS');
+      $feedEntry->title( $entry->title );
+      $feedEntry->link( $c->uri_for( "/newsfeed#" . $entry->auto_news ) );
+      $feedEntry->issued(
+                     DateTime::Format::MySQL->parse_datetime( $entry->pubDate ) );
+      $feed->add_entry($feedEntry);
+    }
 
-    # cache the news items for later
-    $c->cache->set( "newsFeedEntries", $entries );
+    # convert the feed to XML and cache it for a day 
+    $feedXML = $feed->as_xml;
+    $c->cache->set( $cacheKey, $feedXML, 86400 );
+    $c->log->debug( 'NewsFeed::rss: cached feed XML for one day' );
   }
 
-  # add each item to the feed
-  foreach my $entry (@$entries) {
-    my $feedEntry = XML::Feed::Entry->new("RSS");
-    $feedEntry->title( $entry->title );
-    $feedEntry->link( $c->uri_for( "/newsfeed#" . $entry->auto_news ) );
-    $feedEntry->issued(
-                   DateTime::Format::MySQL->parse_datetime( $entry->pubDate ) );
-    $feed->add_entry($feedEntry);
-  }
-
-  # just dump the raw XML to the body
-  $c->res->body( $feed->as_xml );
+  # set the headers and dump the raw XML to the body
+  $c->res->content_type('application/rss+xml');
+  $c->res->body( $feedXML );
 }
 
 #-------------------------------------------------------------------------------
