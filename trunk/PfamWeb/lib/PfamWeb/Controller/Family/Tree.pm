@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.9 2007-06-15 16:16:35 jt6 Exp $
+# $Id: Tree.pm,v 1.10 2007-07-10 19:53:37 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.9 2007-06-15 16:16:35 jt6 Exp $
+$Id: Tree.pm,v 1.10 2007-07-10 19:53:37 jt6 Exp $
 
 =cut
 
@@ -44,44 +44,6 @@ Tries to retrieve it from cache before actually generating it though.
 
 =cut
 
-sub auto : Private {
-  my( $this, $c ) = @_;
-
-  # the accession should have been dropped into the stash by the begin
-  # method
-  my $acc = $c->stash->{pfam}->pfamA_acc;
-
-  # find out what type of tree to draw, seed or full, being careful
-  # not to take what the user supplies directly...
-  my $type = (defined $c->req->param('type') and $c->req->param('type') eq 'full')
-               ? "full" : "seed";
-  # get a new tree object...
-  my $tree = treefam::nhx_plot->new( -width => 600,
-                  									 -skip  => 14 );
-
-	# decide if we want the full or the seed alignment
-	my $treeDataFile = $this->{treeFileDir} . "/$type/$acc.tree";
-	$c->log->debug( "Tree::generateTree: loading tree file \"$treeDataFile\"" );
-
-  	# open the data file
-	open TREE, $treeDataFile
-	  or $c->log->error( "Tree::generateTree: WARNING: couldn't open tree file for $acc: $!" ) and return;
-
-	eval {
-	  $tree->parse( join '', <TREE> );
-	};
-	close TREE;  
-	if( $@ ) {
-	  $c->log->error( "Tree::generateTree: ERROR: failed to parse tree for $acc: $@" );
-	  return 0;
-	}
-
-  # stash the stuff we have now
-  $c->stash->{type} = $type;
-  $c->stash->{tree} = $tree;
-
-}
-
 #sub auto : Private {
 #  my( $this, $c ) = @_;
 #
@@ -93,46 +55,84 @@ sub auto : Private {
 #  # not to take what the user supplies directly...
 #  my $type = (defined $c->req->param('type') and $c->req->param('type') eq 'full')
 #               ? "full" : "seed";
+#  # get a new tree object...
+#  my $tree = treefam::nhx_plot->new( -width => 600,
+#                  									 -skip  => 14 );
 #
-#  # before generating it, see if we can retrieve it from the cache
-#  my $cacheKey = "tree$acc$type";
-#  my $tree = $c->cache->get( $cacheKey ); 
-#
-#  if( $tree ) {
-#  	$c->log->debug( "Tree::auto: successfully retrieved tree from cache" );
-#  } else {
-#  	$c->log->debug( "Tree::auto: no cached tree; generating from file" );
-#
-#  	# get a new tree object...
-#  	$tree = treefam::nhx_plot->new( -width => 600,
-#                  									-skip  => 14 );
-#  	# decide if we want the full or the seed alignment
-#  	my $treeDataFile = $this->{treeFileDir} . "/$type/$acc.tree";
-#  	$c->log->debug( "Tree::generateTree: loading tree file \"$treeDataFile\"" );
+#	# decide if we want the full or the seed alignment
+#	my $treeDataFile = $this->{treeFileDir} . "/$type/$acc.tree";
+#	$c->log->debug( "Tree::generateTree: loading tree file \"$treeDataFile\"" );
 #
 #  	# open the data file
-#  	open TREE, $treeDataFile
-#  	  or $c->log->error( "Tree::generateTree: WARNING: couldn't open tree file for $acc: $!" ) and return;
-#	
-#  	eval {
-#  	  $tree->parse( join '', <TREE> );
-#  	};
-#  	close TREE;  
-#  	if( $@ ) {
-#  	  $c->log->error( "Tree::generateTree: ERROR: failed to parse tree for $acc: $@" );
-#  	  return 0;
-#  	}
+#	open TREE, $treeDataFile
+#	  or $c->log->error( "Tree::generateTree: WARNING: couldn't open tree file for $acc: $!" ) and return;
 #
-#    # cache the tree that we just generated
-#  	$c->cache->set( $cacheKey, $tree, '1209600' )
-#    	if defined $tree;
-#  }
+#	eval {
+#	  $tree->parse( join '', <TREE> );
+#	};
+#	close TREE;  
+#	if( $@ ) {
+#	  $c->log->error( "Tree::generateTree: ERROR: failed to parse tree for $acc: $@" );
+#	  return 0;
+#	}
 #
 #  # stash the stuff we have now
 #  $c->stash->{type} = $type;
 #  $c->stash->{tree} = $tree;
 #
 #}
+
+sub auto : Private {
+  my( $this, $c ) = @_;
+
+  # the accession should have been dropped into the stash by the begin
+  # method
+  my $acc = $c->stash->{pfam}->pfamA_acc;
+
+  # find out what type of tree to draw, seed or full, being careful
+  # not to take what the user supplies directly...
+  my $type = (defined $c->req->param('type') and $c->req->param('type') eq 'full')
+               ? "full" : "seed";
+
+  # before generating it, see if we can retrieve it from the cache
+  my $cacheKey = "tree$acc$type";
+  my $tree = $c->cache->get( $cacheKey ); 
+
+  if( $tree ) {
+  	$c->log->debug( "Tree::auto: successfully retrieved tree from cache" );
+  } else {
+  	$c->log->debug( "Tree::auto: no cached tree; generating from file" );
+
+  	# get a new tree object...
+  	$tree = treefam::nhx_plot->new( -width => 600,
+                  									-skip  => 14 );
+  	# decide if we want the full or the seed alignment
+  	my $treeDataFile = $this->{treeFileDir} . "/$type/$acc.tree";
+  	$c->log->debug( "Tree::generateTree: loading tree file \"$treeDataFile\"" );
+
+  	# open the data file
+  	open TREE, $treeDataFile
+  	  or $c->log->error( "Tree::generateTree: WARNING: couldn't open tree file for $acc: $!" ) and return;
+	
+  	eval {
+  	  $tree->parse( join '', <TREE> );
+  	};
+  	close TREE;  
+  	if( $@ ) {
+  	  $c->log->error( "Tree::generateTree: ERROR: failed to parse tree for $acc: $@" );
+  	  return 0;
+  	}
+
+    # cache the tree that we just generated
+  	$c->cache->set( $cacheKey, $tree )
+    	if defined $tree;
+  }
+
+  # stash the stuff we have now
+  $c->stash->{type} = $type;
+  $c->stash->{tree} = $tree;
+
+}
 
 #-------------------------------------------------------------------------------
 
