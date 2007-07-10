@@ -2,7 +2,7 @@
 # GetHMM.pm
 # jt6 20061003 WTSI
 #
-# $Id: GetHMM.pm,v 1.3 2007-06-28 13:33:34 jt6 Exp $
+# $Id: GetHMM.pm,v 1.4 2007-07-10 19:51:13 jt6 Exp $
 
 =head1 NAME
 
@@ -18,60 +18,61 @@ Retrieves the raw HMM for a specified Pfam family.
 
 Generates a B<text file>.
 
-$Id: GetHMM.pm,v 1.3 2007-06-28 13:33:34 jt6 Exp $
+$Id: GetHMM.pm,v 1.4 2007-07-10 19:51:13 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Family";
+use base 'PfamWeb::Controller::Family';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 getHMM : Private
 
-Pick up http://localhost:3000/family/getHMM?acc=PF00001 and serve
-the HMM for that entry.
+Serve the contents of the HMM file for a Pfam-A entry. Requires the "mode"
+parameter to be set either to ls" or "fs".
 
 =cut
 
-sub default : Private {
+sub getHMM : Path {
   my( $this, $c ) = @_;
 
   return unless defined $c->stash->{pfam};
 
   # find out which file we want...
-  my( $mode ) = $c->req->param( "mode" ) =~ /^(ls|fs)$/;
-  return unless $mode ne "";
+  my( $mode ) = $c->req->param( 'mode' ) =~ /^(fs|ls)$/;
+  if( not defined $mode ) {
+    $c->stash->{errorMsg} = 'There was no HMM type specified. '
+                            . '&quot;mode&quot; should be either "ls" or "fs"';
+    return;
+  }
 
   # the file
-  $c->stash->{HMMFile} = $this->{HMMFileDir} . "/$mode/" . $c->stash->{pfam}->pfamA_acc;
-  $c->log->debug( "Family::GetHMM::default: looking for HMM file |".$c->stash->{HMMFile}."|" );
-}
+  $c->stash->{HMMFile} = $this->{HMMFileDir} . "/$mode/" . $c->stash->{acc};
+  $c->log->debug( 'Family::getHMM: looking for HMM file |'
+                  . $c->stash->{HMMFile} . '|' );
 
-#-------------------------------------------------------------------------------
+  unless( open( HMM, $c->stash->{HMMFile} ) ) {
+    $c->stash->{errorMsg} = "We could not find the $mode HMM file for " 
+                            . $c->stash->{acc};
+    return;
+  }    
 
-=head2 end : Private
+  # set the response headers
+  $c->res->content_type( 'text/plain' );
+  $c->res->headers->header( 'Content-disposition' => 'attachment; filename='
+                                                     . $c->stash->{pfam}->pfamA_id.'.hmm' );
 
-Push the file to the response
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  return unless defined $c->stash->{HMMFile};
-
-  open( HMM, $c->stash->{HMMFile} )
-	or die "Couldn't open the HMM file (" . $c->stash->{HMMFile} . ": $!";
-
-  $c->res->content_type( "text/plain" );
-  $c->res->headers->header( "Content-disposition" => "attachment; filename=" . $c->stash->{pfam}->pfamA_id . ".hmm" );
+  # at this point we should have the HMM file open, so suck it in and spit it
+  # out to the response
   while( <HMM> ) { $c->res->write( $_ ) };
 
+  # the RenderView action on the end method in Section.pm will spot that there's
+  # content in the response and return without trying to render any templates
 }
 
 #-------------------------------------------------------------------------------
