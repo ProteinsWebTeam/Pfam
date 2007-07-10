@@ -4,34 +4,7 @@
 # 
 # build the ftp block for the help pages
 #
-# $Id: ftp.tt,v 1.2 2007-05-31 08:42:29 jt6 Exp $
-
-USE mb = Format( '%.0fMb' ) ;
-USE kb = Format( '%.0fkb' ) ;
-
-# a bit of error checking...
-TRY;
-  USE ftpDir = Directory( "/nfs/disk69/ftp/pub/databases/Pfam/current_release" );
-  ftpDir = 1;
-CATCH;
-  CALL c.log.debug( "ftp.tt: couldn't read current_release directory from the FTP area: ${error.info}" );
-  ftpDir = 0;
-END;
-
-IF ftpDir;
-  TRY;
-    USE pfamseq   = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/pfamseq.gz" );
-    USE pfam_ls   = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam_ls.gz" );
-    USE pfam_fs   = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam_fs.gz" );
-    USE pfamAFull = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-A.full.gz" );
-    USE pfamASeed = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-A.seed.gz" );
-    USE pfamB     = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-B.gz" );
-    USE pfamC     = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/Pfam-C.gz" );
-    USE swisspfam = File( "/nfs/disk69/ftp/pub/databases/Pfam/current_release/swisspfam.gz" );
-  CATCH;
-    CALL c.log.debug( "ftp.tt: couldn't retrieve a file size from the FTP area: ${error.info}" );
-  END;
-END;
+# $Id: ftp.tt,v 1.3 2007-07-10 19:36:10 jt6 Exp $
 %]
 
 <!-- start ftp block -->
@@ -44,7 +17,11 @@ END;
 	
 	<p>
 	  The following list describes a few of the important files in the Pfam 
-	  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>.
+	  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>. Some of
+		these files may be <em>very</em> large (of the order of several hundred
+		megabytes). Please check the sizes on the 
+		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> before
+		trying to download them over a slow connection.
 	</p>
 
 	<dl>
@@ -56,101 +33,93 @@ END;
 		Release notes
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
-		  pfamseq.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
+			  pfamseq.gz</a>
 	  </dt>
 	  <dd>
-		A fasta version of Pfam's underlying sequence database 
-    [% IF ftpDir AND pfamSeq.size %]([% x=pfamseq.size / 1048576;mb(x) %])[% END %]
+			A fasta version of Pfam's underlying sequence database 
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_ls.gz">
-		  Pfam_ls.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_ls.gz">
+			  Pfam_ls.gz</a>
 	  </dt>
 	  <dd>
-		The Pfam HMM library
-    [% IF ftpDir AND pfam_ls.size %]([% x=pfam_ls.size / 1048576;mb(x) %])[% END %]
+			The Pfam HMM library
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_fs.gz">
-		  Pfam_fs.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_fs.gz">
+			  Pfam_fs.gz</a>
 	  </dt>
 	  <dd>
-		The Pfam fragment HMM library
-    [% IF ftpDir AND pfam_fs.size %]([% x=pfam_fs.size / 1048576;mb(x) %])[% END %]
+			The Pfam fragment HMM library
+    </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
+	 		  Pfam-A.full.gz</a>
+	  </dt>
+	  <dd>
+			The full alignments of the curated families
+   </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
+			  Pfam-A.seed.gz</a>
+	  </dt>
+	  <dd>
+			 The seed alignments of the curated families
+    </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/current_release/Pfam-B.gz">
+			  Pfam-B.gz</a>
+	  </dt>
+	  <dd>
+			Automatically generated alignments of sequence clusters in SWISSPROT and TrEMBL 
+			that are not modelled in the curated part of Pfam
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
- 		  Pfam-A.full.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
+			  Pfam-C.gz</a>
 	  </dt>
 	  <dd>
-		The full alignments of the curated families
-    [% IF ftpDir AND pfamAFull.size %]([% x=pfamAFull.size / 1048576;mb(x) %])[% END %]
+			The contains the information about clans and the Pfam-A membership
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
-		  Pfam-A.seed.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
+			  swisspfam.gz</a>
 	  </dt>
 	  <dd>
-		 The seed alignments of the curated families
-     [% IF ftp AND pfamASeed.size %]([% x=pfamASeed.size / 1048576;mb(x) %])[% END %]
+			The domain structure of SWISSPROT and TrEMBL proteins according to Pfam
+    </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/prior.tar">
+        prior.tar</a>
+	  </dt>
+	  <dd>
+			A set of prior files for specific Pfam families
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/current_release/Pfam-B.gz">
-		  Pfam-B.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/diff">diff</a>
 	  </dt>
 	  <dd>
-		Automatically generated alignments of sequence clusters in SWISSPROT and TrEMBL 
-		that are not modelled in the curated part of Pfam
-    [% IF ftpDir AND pfamB.size %]([% x=pfamB.size / 1048576;mb(x) %])[% END %]
+			Summary of changes since the last release
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
-		  Pfam-C.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/Icarus">Icarus</a>
 	  </dt>
 	  <dd>
-		The contains the information about clans and the Pfam-A membership
-    [% IF ftpDir AND pfamC.size %]([% x=pfamC.size / 1024;kb(x) %])[% END %]
+			Icarus files for SRS indexing of the files in the Pfam distribution
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
-		  swisspfam.gz</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/COPYRIGHT">COPYRIGHT</a>
 	  </dt>
 	  <dd>
-		The domain structure of SWISSPROT and TrEMBL proteins according to Pfam
-    [% IF ftpDir AND swisspfam.size %]([% x=swisspfam.size / 1048576;mb(x) %])[% END %]
+			Copyright notice for Pfam
 	  </dd>
 	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/prior.tar">
-	       prior.tar</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/GNULICENSE">GNULICENSE</a>
 	  </dt>
 	  <dd>
-		A set of prior files for specific Pfam families
-	  </dd>
-	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/diff">diff</a>
-	  </dt>
-	  <dd>
-		Summary of changes since the last release
-	  </dd>
-	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/Icarus">Icarus</a>
-	  </dt>
-	  <dd>
-		Icarus files for SRS indexing of the files in the Pfam distribution
-	  </dd>
-	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/COPYRIGHT">COPYRIGHT</a>
-	  </dt>
-	  <dd>
-		Copyright notice for Pfam
-	  </dd>
-	  <dt>
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/GNULICENSE">GNULICENSE</a>
-	  </dt>
-	  <dd>
-		The full text of the GNU Library General Public License under which Pfam is
-		licensed
+			The full text of the GNU Library General Public License under which Pfam is
+			licensed
 	  </dd>
 	</dl>
 
