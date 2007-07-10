@@ -4,7 +4,7 @@
 # 
 # build the contactUS block for the help pages
 #
-# $Id: contactUs.tt,v 1.2 2007-04-16 16:07:19 jt6 Exp $
+# $Id: contactUs.tt,v 1.3 2007-07-10 19:35:42 jt6 Exp $
 %]
 
 <!-- start ContactUs block -->
@@ -17,7 +17,12 @@
 
     <h3>Contact Pfam</h3>
     <p>
-      Please use the Pfam help form.
+      You can find the email address for the 
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">Pfam helpdesk</a>
+      at the bottom of every page. We use a request tracking system to monitor 
+      emails to Pfam, so you should receive an automated response to your
+      email, letting you know that the system has logged your mail and notified
+      us of its arrival. 
     </p>
 
     <h3>Mailing list</h3>
@@ -41,6 +46,6 @@
       Alternatively you can keep in touch with the latest goings on using the 
       Pfam <a href="[% c.uri_for( "/rss" ) %]">RSS feed</a>.
     </p>
-    		
+            
   </div>
 </div>
