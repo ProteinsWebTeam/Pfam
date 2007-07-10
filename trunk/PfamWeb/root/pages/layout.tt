@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.22 2007-07-02 09:52:22 jt6 Exp $
+# $Id: layout.tt,v 1.23 2007-07-10 19:44:05 jt6 Exp $
 
 USE String;
 USE date;
@@ -199,11 +199,11 @@ PROCESS components/icons.tt;
   // register listeners for the start and end of each ajax call    
   Ajax.Responders.register( {
     onCreate: function() {
-      $('loadingComponentsCount').update( ' (' + Ajax.activeRequestCount + ' remaining)' );
+      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
       $('loadingComponents').show();
     },
     onComplete: function() {
-      $('loadingComponentsCount').update( ' (' + Ajax.activeRequestCount + ' remaining)' );
+      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
       if( Ajax.activeRequestCount < 1 ) {
         $('loadingComponents').hide();
       }
