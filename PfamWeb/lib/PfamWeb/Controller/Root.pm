@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.15 2007-07-06 10:02:37 jt6 Exp $
+# $Id: Root.pm,v 1.16 2007-07-10 19:49:02 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.15 2007-07-06 10:02:37 jt6 Exp $
+$Id: Root.pm,v 1.16 2007-07-10 19:49:02 jt6 Exp $
 
 =cut
 
@@ -35,30 +35,6 @@ __PACKAGE__->config->{namespace} = '';
 
 =head1 METHODS
 
-=head2 siteIndex : Path
-
-Generates the main site index page. Also traps 404s and redirects to a 404 page.
-
-=cut
-
-sub siteIndex : Path {
-  my ( $this, $c ) = @_;
-
-  # before we go too far, make sure this isn't a broken URL
-  $c->res->redirect( $c->uri_for('/404') )
-    unless $c->req->uri eq $c->req->base;
-  
-  # set the page to be cached for one week
-  $c->cache_page( 604800 );
-
-  # tell the navbar where we are
-  $c->stash->{nav} = 'home';
-
-  $c->log->debug('PfamWeb::siteIndex: generating site index');
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 auto : Private
 
 Checks the request parameters for a "tab" parameter and sets the
@@ -74,27 +50,7 @@ different behaviours...
 =cut
 
 sub auto : Private {
-  my ( $this, $c ) = @_;
-
-#  # check for the existence of the various files that act as switches for
-#  # various server behaviours
-#  if( -e $this->{BREAK_SWITCH} ) {
-#    $c->log->warn( 'Root::auto: found the break file; redirecting' );
-#    $c->stash->{template} = $this->{BREAK_TEMPLATE}; 
-#    return 0;
-#  }
-#
-#  # add a service message to the index page
-#  if( -e $this->{ANNOUNCE_SWITCH} ) {
-#    $c->log->warn( 'Root::auto: found the announcement switch; adding announcement to index page' );
-#    $c->stash->{serverAnnouncement} = $this->{ANNOUNCE_TEMPLATE};
-#  }
-#
-#  # add a message to the navbar
-#  if( -e $this->{MESSAGE_SWITCH} ) {
-#    $c->log->warn( 'Root::auto: found the message file; adding message to header' );
-#    $c->stash->{serverMessage} = $this->{MESSAGE_TEMPLATE};
-#  }
+  my( $this, $c ) = @_;
 
   # pick a tab
   my $tab;
@@ -109,7 +65,8 @@ sub auto : Private {
   my $releaseData;
   eval {
     # stash some details of the Pfam release
-    $releaseData = $c->model( 'PfamDB::Version' )->find( {} );
+    $releaseData = $c->model( 'PfamDB::Version' )
+                     ->find( {} );
   };
   if( $@ ) {
     $c->error( 'There appears to be a problem with the Pfam database.' );
@@ -123,59 +80,153 @@ sub auto : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 browseIndex : Global
+=head2 index : Private
 
-Show an index page for the various "browse" pages.
+Generates the main site index page.
 
 =cut
 
-sub browseIndex : Global {
-  my ( $this, $c ) = @_;
+sub index : Private {
+  my( $this, $c ) = @_;
 
   # set the page to be cached for one week
   $c->cache_page( 604800 );
 
   # tell the navbar where we are
-  $c->stash->{nav} = 'browse';
+  $c->stash->{nav} = 'home';
 
-  $c->stash->{template} = 'pages/browseIndex.tt';
+  $c->log->debug('PfamWeb::index: generating site index');
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 fourOhFour : Path( '/404' )
+=head2 default : Private
 
 Generates a '404' page.
 
 =cut
 
-sub fourOhFour : Path('/404') {
-  my ( $this, $c ) = @_;
+sub default : Private {
+  my( $this, $c ) = @_;
 
   # first, figure out where the broken link was, internal or external
-
   my $ref = ( defined $c->req->referer ) ? $c->req->referer : '';
   $c->stash->{where} = ( $ref =~ /sanger/ ) ? 'internal' : 'external';
 
   # record the error
-  $c->error(   'Found a broken '
+  $c->error( 'Found a broken '
              . $c->stash->{where}
-             . ' link: \''
+             . q( link: ')
              . $c->req->uri
-             . '\', referer: '
-             . ( $ref eq '' ? 'unknown' : '\'' . $ref . '\'' ) );
+             . q(', referer: )
+             . ( $ref eq '' ? 'unknown' : qq('$ref') ) );
 
-  # report it
+  # report it...
   $c->forward('/reportError');
 
-  # and clear the errors before we render the page
+  # ...and clear the errors before we render the page
   $c->clear_errors;
 
-  #----------------------------------------
   # set the HTTP status and point at the 404 page
-
   $c->res->status(404);
   $c->stash->{template} = 'pages/404.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 reportError : Private
+
+Records site errors in the database. Because we could be getting
+failures constantly, e.g. from SIMAP web service, we want to avoid
+just mailing admins about that, so instead we insert an error message
+into a database table.
+
+The table has four columns:
+
+=over 8
+
+=item message
+
+the raw message from the caller
+
+=item num
+
+the number of times this precise message has been seen
+
+=item first
+
+the timestamp for the first occurrence of the message
+
+=item last
+
+the timestamp for that most recent occurence of the
+message. Automatically updated on insert or update
+
+=back
+
+An external script or plain SQL query should then be able to retrieve
+error logs when required and we can keep track of errors without being
+deluged with mail.
+
+Note that this method does NOT clear_errors. It's up to the caller to decide
+whether that's required or not.
+
+=cut
+
+sub reportError : Private {
+  my( $this, $c ) = @_;
+
+  my $el = $c->model( 'WebUser::ErrorLog' );
+  foreach my $e ( @{$c->error} ) {
+
+    $c->log->error( "PfamWeb::reportError: reporting a site error: |$e|" );
+    # see if we can access the table at all - basically, see if the DB is up 
+    my $rs; 
+    eval {
+      print STDERR "attempting a find...\n";
+      $rs = $el->find( { message => $e } );
+      print STDERR "done find\n";
+    };
+    if( $@ ) {
+      # really bad; an error while reporting an error...
+      $c->log->error( "PfamWeb::reportError: couldn't create a error log; "
+                      . "couldn't read error table: $@" );
+    }
+  
+    # if we can get a ResultSet, try to add a message
+    if( $rs ) {
+
+      # we've seen this error before; update the error count
+      eval {
+        print STDERR "attempting an update...\n";
+        $rs->update( { num => $rs->num + 1 } );
+        print STDERR "done update\n";
+      };
+      if( $@ ) {
+        # really bad; an error while reporting an error...
+        $c->log->error( "PfamWeb::reportError: couldn't create a error log; "
+                        . "couldn't increment error count: $@" );
+      }
+
+    } else {
+
+      # no log message like this has been registered so far; add the row 
+      eval {
+        print STDERR "attempting a create...\n";
+        $el->create( { message => $e,
+                       num     => 1,
+                       first   => [ 'CURRENT_TIMESTAMP' ] } );
+        print STDERR "done create\n";
+      };
+      if( $@ ) {
+        # really bad; an error while reporting an error...
+        $c->log->error( "PfamWeb::reportError: couldn't create a error log; "
+                        . "couldn't create a new error record : $@" );
+      }
+
+    }
+  }
+
 }
 
 #-------------------------------------------------------------------------------
