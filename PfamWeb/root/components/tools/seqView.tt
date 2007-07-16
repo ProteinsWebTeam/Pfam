@@ -5,7 +5,7 @@
 # 
 # build a page for viewing the sequences selected from a species tree
 #
-# $Id: seqView.tt,v 1.2 2007-03-14 10:03:23 jt6 Exp $
+# $Id: seqView.tt,v 1.3 2007-07-16 10:13:11 rdf Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -34,6 +34,25 @@ title = "View selected sequences"
 	<li>[% seq %]</li>
 	[% END %]
 </ul>
+
+<div>
+		
+      [%- FOREACH image IN images.each_image;
+        CALL image.print_image;
+        id = image.image_name -%]
+
+        <img class="graphicImage"
+             src="[% constants.tmp %]/[% image.file_location %]"
+             usemap="#domainGraphicsMap[% loop.index %]"
+             alt="" />
+        <div class="cleaner"><!-- empty --></div>
+
+        <map name="domainGraphicsMap[% loop.index %]"
+             id="domainGraphicsMap[% loop.index %]">
+          [% image.image_map %]
+        </map>
+      [% END %]
+      </div>
 
 <a href="#" onclick="window.close()" class="closer">Close window</a>
 
