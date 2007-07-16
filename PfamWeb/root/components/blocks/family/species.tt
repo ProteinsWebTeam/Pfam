@@ -6,7 +6,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.17 2007-07-16 10:06:50 rdf Exp $
+# $Id: species.tt,v 1.18 2007-07-16 16:06:05 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -36,42 +36,9 @@ requirements.js.push( "treeTweak.js" );
     [% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
     
     <!-- start of tree -->
-  	<div id="treeDiv">
+    <div id="treeDiv">
       <p id="stph" class="loading">Loading...</p>
     </div>
-	  <div id="treeToolsContent">
-      <ul>
-	      <li><a href="#" onclick="tree.getRoot().children[0].uncheck();return false">Uncheck</a> all</li>
-	      <li>Fully <a href="#" onclick="tree.expandAll();return false">expand</a> tree</li>
-	      <li>Fully <a href="#" onclick="tree.collapseAll();return false">collapse</a> tree</li>
-	      <li><div id="ddph">Expand tree...</div></li>
-	    </ul>
-	    <h3>Annotation</h3>
-      <ul> 
-        [% IF entryType == "A" %]
-	      <li><a id="seedToggle" href="#" onclick="toggleHighlightSeed();return false">Hide</a> highlighting of species in seed</li>
-        [% END %]
-	      <li><a id="sumToggle" href="#" onclick="toggleShowSummaries();return false">Hide</a> summaries</li>
-        <li>Key: <span class="specSum">species</span>, <span class="seqSum">sequences</span>, <span class="domSum">domains</span></li>
-      </ul>
-      <h3>Download</h3>
-      <ul>
-        <li><a href="[% c.uri_for( "/family/texttree", acc=pfam.pfamA_acc ) %]">Save</a> a text representation</li>
-      </ul>
-      <h3>View selected sequences</h3>
-      <ul>
-        <li><span class="link" onclick="collectSequences( '[% acc %]', true )">Graphically</span></li>
-	      [% UNLESS entryType == "C" %]
-          <li>As an <span class="link" onclick="collectSequences( '[% acc %]', false )">alignment</span></li>
-	      [% END %]
-      </ul>
-    </div>
-  </div>
-
-  <!-- start of tree -->
-	<div id="treeDiv">
-    <p id="stph" class="loading">Loading...</p>
-  </div>
 
     [% PROCESS components/speciesTreeJS.tt  # add the JS that sets up the post-load %]
     
