@@ -1,5 +1,5 @@
 
-# $Id: PfamA_reg_full_significant.pm,v 1.4 2007-05-23 09:18:27 rdf Exp $
+# $Id: PfamA_reg_full_significant.pm,v 1.5 2007-07-16 10:26:35 rdf Exp $
 #
 # $Author: rdf $
 package PfamDB::PfamA_reg_full_significant;
@@ -23,12 +23,15 @@ __PACKAGE__->set_primary_key("auto_pfamA_reg_full", "auto_pfamA", "auto_pfamseq"
 #Now setup the relationship
 __PACKAGE__->has_one( "pfamA" =>  "PfamDB::Pfam",
 		      { "foreign.auto_pfamA"  => "self.auto_pfamA" },
-		      { proxy => [ qw/pfamA_id pfamA_acc description model_length type/ ] } );
+		      { proxy => [ qw ( pfamA_id pfamA_acc description model_length type) ] } );
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-		      { proxy => [ qw/pfamseq_acc pfamseq_id md5 species taxonomy/ ] } );
-
+		      { proxy => [ qw( pfamseq_acc pfamseq_id md5 species taxonomy sequence) ] } );
+		      
+__PACKAGE__->has_one( "pfam_annseq" =>  "PfamDB::Pfam_annseq",
+		                  { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
+		                  { proxy => [ qw( annseq_storable ) ] } );
 
 
 =head1 COPYRIGHT
