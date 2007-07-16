@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.12 2007-07-10 19:49:42 jt6 Exp $
+# $Id: Section.pm,v 1.13 2007-07-16 09:55:41 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.12 2007-07-10 19:49:42 jt6 Exp $
+$Id: Section.pm,v 1.13 2007-07-16 09:55:41 jt6 Exp $
 
 =cut
 
@@ -105,9 +105,6 @@ sub end : ActionClass( 'RenderView' ) {
   	# no problems; set up the template and let it rip
   	$c->stash->{pageType} ||= $this->{SECTION};
   	$c->stash->{template} ||= 'pages/layout.tt';
-
-    # and set the page to be cached for one week
-    $c->cache_page( 604800 );
     
   }
 
