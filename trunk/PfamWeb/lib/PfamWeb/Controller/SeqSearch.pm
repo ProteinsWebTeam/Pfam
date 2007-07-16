@@ -2,7 +2,7 @@
 # SeqSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.24 2007-07-02 09:47:35 jt6 Exp $
+# $Id: SeqSearch.pm,v 1.25 2007-07-16 09:59:54 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::SeqSearch;
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.24 2007-07-02 09:47:35 jt6 Exp $
+$Id: SeqSearch.pm,v 1.25 2007-07-16 09:59:54 jt6 Exp $
 
 =cut
 
@@ -828,14 +828,14 @@ sub handleResults : Private {
             }
 
             $c->log->debug( "PfamB hit |$hsp|".$pfamB_acc."\t".$hit->accession."\t".$hit->description."\t".$hit->length."\t".$hit->score."\t".$hsp->pvalue);
-            push @{ $results{$pfamB_acc} }, { pfamB_acc => $pfamB_acc, 
-                                              pfamB_id => $pfamB_id, 
-                                              start => $hsp->start, 
-                                              end => $hsp->end, 
-                                              score => $hsp->score, 
-                                              pvalue => $hsp->pvalue, 
-                                              hitString => $hsp->hit_string,
-                                              homoString => $hsp->homology_string,
+            push @{ $results{$pfamB_acc} }, { pfamB_acc   => $pfamB_acc, 
+                                              pfamB_id    => $pfamB_id, 
+                                              start       => $hsp->start, 
+                                              end         => $hsp->end, 
+                                              score       => $hsp->score, 
+                                              pvalue      => $hsp->pvalue, 
+                                              hitString   => $hsp->hit_string,
+                                              homoString  => $hsp->homology_string,
                                               queryString => $hsp->query_string };
             
             $c->log->debug("Hit string". $hsp->query_string ."\t". $hsp->hit_string."\t". $hsp->homology_string);
