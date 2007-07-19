@@ -80,9 +80,9 @@ if(!$has_ac) {
     die "rfci: Your DESC file has no AC line. This is bad!\n";
 }
 
-unless( &RfamQC::valid_sequences( $acc ) ) {
-    die "rfci: Your sequences don't all match the database\n";
-}
+#unless( &RfamQC::valid_sequences( $acc ) ) {
+#    die "rfci: Your sequences don't all match the database\n";
+#}
 
 my $db = Rfam::default_db();
 my $oldid = $db->acc2id( $acc );
