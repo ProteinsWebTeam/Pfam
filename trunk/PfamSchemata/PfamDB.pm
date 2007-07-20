@@ -2,7 +2,7 @@
 # PfamDB.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamDB.pm,v 1.6 2007-05-17 08:41:20 jt6 Exp $
+# $Id: PfamDB.pm,v 1.7 2007-07-20 12:30:33 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -19,7 +19,7 @@ package PfamDB;
 The base class for the whole Pfam database model. Config comes from the catalyst 
 application class.
 
-$Id: PfamDB.pm,v 1.6 2007-05-17 08:41:20 jt6 Exp $
+$Id: PfamDB.pm,v 1.7 2007-07-20 12:30:33 jt6 Exp $
 
 =cut
 
@@ -33,6 +33,7 @@ use base "DBIx::Class::Schema";
 __PACKAGE__->load_classes( qw/
 Architecture          Interpro                     PfamA_reg_seed
 Ligands               PfamA_web
+PfamA_HMM_ls          PfamA_HMM_fs
 ClanArchitecture      Literature_references        PfamB
 Clan_database_links   Markup_key                   PfamB2pfamA_PRC_results
 Clan_lit_refs         Ncbi_taxonomy                PfamB2pfamB_PRC_results
