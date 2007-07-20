@@ -2,7 +2,7 @@
 # GetHMM.pm
 # jt6 20061003 WTSI
 #
-# $Id: GetHMM.pm,v 1.5 2007-07-20 10:23:52 jt6 Exp $
+# $Id: GetHMM.pm,v 1.6 2007-07-20 10:28:25 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the raw HMM for a specified Pfam family.
 
 Generates a B<text file>.
 
-$Id: GetHMM.pm,v 1.5 2007-07-20 10:23:52 jt6 Exp $
+$Id: GetHMM.pm,v 1.6 2007-07-20 10:28:25 jt6 Exp $
 
 =cut
 
@@ -92,7 +92,6 @@ sub getHMM : Path {
 
   # at this point we should have the HMM in hand, so spit it out to the 
   # response and we're done
-  $c->log->debug( "Family::getHMM:HMM: |$hmm|" );
   $c->res->write( $hmm );
 
   # the RenderView action on the end method in Section.pm will spot that there's
