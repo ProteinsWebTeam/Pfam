@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.53 2007-06-28 13:19:35 jt6 Exp $
+   $Id: pfam.css,v 1.54 2007-07-20 13:25:20 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -50,7 +50,7 @@ ul, dl, ol {
 }
 
 .ext {
-  background: url(/catalyst/pfam/images/external.gif) no-repeat center right;
+  background: url(/static/images/external.gif) no-repeat center right;
   padding-right: 12px;
 }
 
@@ -148,7 +148,7 @@ h4, h5, h6 {
 }
 
 #siteLogo {
-  background-image: url(/catalyst/pfam/images/sanger_logo_light.png);
+  background-image: url(/static/images/sanger_logo_light.png);
 /*  background-image: url(jfrc_gray_logo.gif); */
   background-repeat: no-repeat;
   width: 218px;
@@ -156,7 +156,7 @@ h4, h5, h6 {
 }
 
 #pfamLogo {
-  background: #FFF url(/catalyst/pfam/images/pfam_logo_beta.gif) no-repeat;
+  background: #FFF url(/static/images/pfam_logo.gif) no-repeat;
   width: 140px;
   height: 50px;
 }
@@ -221,7 +221,7 @@ img.addAnnotation {
 
 .entryField {
   border: 1px inset #074987;
-  background: #cbdced url(/catalyst/pfam/images/search_gradient.png) repeat-x top left;
+  background: #cbdced url(/static/images/search_gradient.png) repeat-x top left;
   margin: 1px 0;
   padding: 2px;
   color: #074987;
@@ -262,23 +262,23 @@ img.addAnnotation {
 .goButton {
   width: 33px;
   height: 20px;
-  background-image: url(/catalyst/pfam/images/go.png);
+  background-image: url(/static/images/go.png);
 }
 .disabledGoButton {
   width: 33px;
   height: 20px;
-  background-image: url(/catalyst/pfam/images/disabledGo.png);
+  background-image: url(/static/images/disabledGo.png);
 }
 
 .exampleButton {
   width: 66px;
   height: 20px;
-  background-image: url(/catalyst/pfam/images/exampleButton.png);  
+  background-image: url(/static/images/exampleButton.png);  
 }
 
 /* ajax loading image */
 .loading {
-  background-image: url(/catalyst/pfam/images/loading.gif);
+  background-image: url(/static/images/loading.gif);
   background-repeat: no-repeat;
   background-position: center left;
   padding-left: 16px;
@@ -459,12 +459,12 @@ table.links td {
 
 body.tool {
   padding: 80px 2px 2px 2px;
-  background: #FFF url(/catalyst/pfam/images/about_back.png) left top no-repeat; 
+  background: #FFF url(/static/images/about_back.png) left top no-repeat; 
   color: #15538e;
 }
 
 a.closer {
-  background: url(/catalyst/pfam/images/close.gif) no-repeat left;
+  background: url(/static/images/close.gif) no-repeat left;
   padding-left: 11px;
   margin: 0.2em;
 }
@@ -497,15 +497,15 @@ body.tool h1 {
 }
 
 .sortarrow.updown {
-  background-image: url(/catalyst/pfam/images/updown.gif);
+  background-image: url(/static/images/updown.gif);
 }
 
 .sortarrow.down {
-  background-image: url(/catalyst/pfam/images/downsimple.gif);
+  background-image: url(/static/images/downsimple.gif);
 }
 
 .sortarrow.up {
-  background-image: url(/catalyst/pfam/images/upsimple.gif);
+  background-image: url(/static/images/upsimple.gif);
 }
 
 /* this is the auto-generated link for sorting the column */
@@ -613,11 +613,11 @@ a.sortheader {
   text-align: center;
   background-position: center center;
   background-repeat: no-repeat;
-  background-image: url(/catalyst/pfam/images/blank_tick.gif);
+  background-image: url(/static/images/blank_tick.gif);
 }
 
 .resultTable td.ticked {
-  background-image: url(/catalyst/pfam/images/tick.gif);
+  background-image: url(/static/images/tick.gif);
 }
 
 #results span.highlight,
@@ -820,16 +820,16 @@ ul.mirrors li {
 
 /* the national flags */
 .us {
-  background-image: url(/catalyst/pfam/images/flags/american_flag.gif);
+  background-image: url(/static/images/flags/american_flag.gif);
 }
 .se {
-  background-image: url(/catalyst/pfam/images/flags/swedish_flag.gif);
+  background-image: url(/static/images/flags/swedish_flag.gif);
 }
 .kr {
-  background-image: url(/catalyst/pfam/images/flags/south_korea.gif);
+  background-image: url(/static/images/flags/south_korea.gif);
 }
 .fr {
-  background-image: url(/catalyst/pfam/images/flags/french_flag.gif);
+  background-image: url(/static/images/flags/french_flag.gif);
 }
 
 /* ======================================== */
