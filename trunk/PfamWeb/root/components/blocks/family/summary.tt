@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.23 2007-05-14 12:15:04 jt6 Exp $
+# $Id: summary.tt,v 1.24 2007-07-20 09:08:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -56,7 +56,7 @@ requirements.js.push( "family.js" );
       <a href="[% base %]annotate?acc=[% pfam.pfamA_acc %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
-             src="[% base %]images/annotation.png" /></a>
+             src="[% base %]static/images/annotation.png" /></a>
     </h1>
 
     [% IF pfam.comment.length %]
@@ -82,10 +82,12 @@ requirements.js.push( "family.js" );
       <hr class="short"/>
     [% END %]
 
+    [% IF pfam.interpro.interpro_id %]
     <h2 id="interproTitle">
       <span [% addTip("family","interpro") %]>Interpro entry</span> 
       <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
     </h2>
+    [% END %]
 
     [% # THIS IS A HACK ! the database entry for the interpro abstract appears
        # to contain <p> tags...
