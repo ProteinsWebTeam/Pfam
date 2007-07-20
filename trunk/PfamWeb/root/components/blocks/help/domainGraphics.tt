@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.6 2007-05-31 12:23:16 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.7 2007-07-20 16:00:00 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,7 +19,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 #-------------------------------------------------------------------------------
 
 # some URI shortcuts
-imgs   = "${base}images/help";
+imgs   = "${base}static/images/help";
 family = "${base}family";
 %]
 
