@@ -2,7 +2,7 @@
 # GetHMM.pm
 # jt6 20061003 WTSI
 #
-# $Id: GetHMM.pm,v 1.6 2007-07-20 10:28:25 jt6 Exp $
+# $Id: GetHMM.pm,v 1.7 2007-07-20 10:58:06 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the raw HMM for a specified Pfam family.
 
 Generates a B<text file>.
 
-$Id: GetHMM.pm,v 1.6 2007-07-20 10:28:25 jt6 Exp $
+$Id: GetHMM.pm,v 1.7 2007-07-20 10:58:06 jt6 Exp $
 
 =cut
 
@@ -88,11 +88,11 @@ sub getHMM : Path {
 
   # set the response headers
   $c->res->content_type( 'text/plain' );
-  $c->res->headers->header( 'Content-disposition' => "attachment; filename=$filename" );
+  #$c->res->headers->header( 'Content-disposition' => "attachment; filename=$filename" );
 
   # at this point we should have the HMM in hand, so spit it out to the 
   # response and we're done
-  $c->res->write( $hmm );
+  $c->res->body( $hmm );
 
   # the RenderView action on the end method in Section.pm will spot that there's
   # content in the response and return without trying to render any templates
