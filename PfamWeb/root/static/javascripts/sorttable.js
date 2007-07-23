@@ -44,7 +44,7 @@ function ts_makeSortable(table) {
         var txt = ts_getInnerText(cell);
         cell.innerHTML = '<a href="#" class="sortheader" '+ 
         'onclick="ts_resortTable(this, '+i+');return false;">' + 
-        txt+'<img class="sortarrow updown" src="/catalyst/pfam/images/blank.gif" /></a>';
+        txt+'<img class="sortarrow updown" src="/static/images/blank.gif" /></a>';
 		//        txt+'<span class="sortarrow">&nbsp;&nbsp;&nbsp;</span></a>';
     }
 }

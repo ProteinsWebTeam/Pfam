@@ -4,7 +4,7 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.5 2007-04-27 15:57:26 jt6 Exp $
+# $Id: getStarted.tt,v 1.6 2007-07-23 14:35:12 jt6 Exp $
 %]
 
 <!-- start getStarted block -->
@@ -16,7 +16,7 @@
   <div class="blockContent">
     
     <img class="jumpTo" 
-         src="[% c.uri_for( "/images/jumpTo.gif" ) %]" 
+         src="[% base %]static/images/jumpTo.gif" 
          alt="jump to..." />
 
     <h2>Using the &quot;Jump to&quot; search</h2>
@@ -62,7 +62,7 @@
     <hr />
     
     <img class="jumpTo" 
-         src="[% c.uri_for( "/images/kwSearch.gif" ) %]" 
+         src="[% base %]static/images/kwSearch.gif" 
          alt="keyword search" />
 
     <h2>Keyword search</h2>

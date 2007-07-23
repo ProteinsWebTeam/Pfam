@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.7 2007-06-14 21:29:39 jt6 Exp $
+   $Id: job.css,v 1.8 2007-07-23 14:35:12 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -84,7 +84,7 @@ div.progressWrapper {
 }
 
 div.progressBar {
-  background: transparent url( /catalyst/pfam/images/pb.png );
+  background: transparent url( /static/images/pb.png );
   border-right: 1px solid #666;
   width: 1px;
   height: 20px;
@@ -105,7 +105,7 @@ div.pfamBSearch .progressBar {
 /* a spinner image */
 .spinner {
   padding-left: 16px;
-  background: transparent url( /catalyst/pfam/images/loading.gif ) left center no-repeat;
+  background: transparent url( /static/images/loading.gif ) left center no-repeat;
 }
 
 /* the status logger */
