@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.6 2007-05-16 14:54:32 jt6 Exp $
+# $Id: jmol.tt,v 1.7 2007-07-23 14:51:25 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -64,7 +64,7 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
   [% # we apparently need to set explicitly the name of the window, otherwise it takes the 
      # name of the parent, so targetted links back to the parent won't work %]
   window.name = "jmolWin";
-  jmolInitialize(" [% c.uri_for( "/jmol" ) %]"); // REQUIRED
+  jmolInitialize(" [% base %]static/jmol"); // REQUIRED
   jmolSetAppletColor( "white" );
   jmolApplet(500, '[% script %]');
   // ]]>
