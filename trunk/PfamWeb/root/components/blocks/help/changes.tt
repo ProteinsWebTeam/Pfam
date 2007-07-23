@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.6 2007-07-23 10:36:41 jt6 Exp $
+# $Id: changes.tt,v 1.7 2007-07-23 10:50:34 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -30,7 +30,7 @@
       all proteins in Pfamseq contain a match to at least one Pfam
       domain. 50.79% of all residues in the sequence database fall within
       Pfam domains. Pfam 22.0 is based on UniProt release 9.7, a
-      composite of Swiss-Prot release 51.7 and STrEMBL release 34.7. 
+      composite of Swiss-Prot release 51.7 and TrEMBL release 34.7. 
     </p>
 
     <span onclick="reveal( this, 'moreChanges', false, true )"
@@ -93,9 +93,9 @@
         an example:
       </p>   
       <pre>
-     \#=GR ODP2_AZOVI/418-637 AS        ...........*..............
-     \#=GR Q5KEQ8_CRYNE/111-270 pAS     ...........*..............
-     \#=GR YN14_YEAST/124-327 sAS       ........*.................
+      #=GR ODP2_AZOVI/418-637 AS        ...........*..............
+      #=GR Q5KEQ8_CRYNE/111-270 pAS     ...........*..............
+      #=GR YN14_YEAST/124-327 sAS       ........*.................
       </pre>
     
       <h3>Changes between Pfam releases 17 and 18</h3>
