@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.16 2007-07-10 19:49:02 jt6 Exp $
+# $Id: Root.pm,v 1.17 2007-07-23 14:35:43 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.16 2007-07-10 19:49:02 jt6 Exp $
+$Id: Root.pm,v 1.17 2007-07-23 14:35:43 jt6 Exp $
 
 =cut
 
@@ -183,9 +183,7 @@ sub reportError : Private {
     # see if we can access the table at all - basically, see if the DB is up 
     my $rs; 
     eval {
-      print STDERR "attempting a find...\n";
       $rs = $el->find( { message => $e } );
-      print STDERR "done find\n";
     };
     if( $@ ) {
       # really bad; an error while reporting an error...
@@ -198,9 +196,7 @@ sub reportError : Private {
 
       # we've seen this error before; update the error count
       eval {
-        print STDERR "attempting an update...\n";
         $rs->update( { num => $rs->num + 1 } );
-        print STDERR "done update\n";
       };
       if( $@ ) {
         # really bad; an error while reporting an error...
@@ -212,11 +208,9 @@ sub reportError : Private {
 
       # no log message like this has been registered so far; add the row 
       eval {
-        print STDERR "attempting a create...\n";
         $el->create( { message => $e,
                        num     => 1,
                        first   => [ 'CURRENT_TIMESTAMP' ] } );
-        print STDERR "done create\n";
       };
       if( $@ ) {
         # really bad; an error while reporting an error...
