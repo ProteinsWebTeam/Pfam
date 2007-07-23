@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd"
-    targetNamespace="http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd"
+    xmlns="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd"
+    targetNamespace="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd"
     elementFormDefault="qualified" attributeFormDefault="unqualified" version="0.1">
     <xs:element name="image">
         <xs:complexType>

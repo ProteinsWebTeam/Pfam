@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.9 2007-05-10 10:21:12 jt6 Exp $
+# $Id: jumpBox.tt,v 1.10 2007-07-23 14:35:12 jt6 Exp $
 
 META naked = 1;
 
@@ -19,7 +19,7 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
 		<span>Jump to...</span>
 		<a href="[% base %]help?tab=helpGetStartedBlock"
        title="View help on the &quot;Jump to...&quot; search">
-	 		<img src="[% base %]images/info.gif" 
+	 		<img src="[% base %]static/images/info.gif" 
            alt="View help on the &quot;Jump to...&quot; search" 
            class="info" /></a>
 	</h1>

@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the iPfam pages.
 
-   $Id: ipfam.css,v 1.8 2007-03-15 14:57:20 jt6 Exp $
+   $Id: ipfam.css,v 1.9 2007-07-23 14:35:12 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -37,11 +37,11 @@
 
 #contentContainer {
   background-color: #f0e8e6; /* natural 9 */
-  background-image: url(/catalyst/pfam/images/ipfam/page_border.gif);
+  background-image: url(/static/images/ipfam/page_border.gif);
 }
 
 #wrap {
-  background: url(/catalyst/pfam/images/ipfam/bg.gif) repeat-y 15% 0;
+  background: url(/static/images/ipfam/bg.gif) repeat-y 15% 0;
 }
 
 /* ======================================== */

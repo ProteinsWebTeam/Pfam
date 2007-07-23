@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.34 2007-06-28 13:19:35 jt6 Exp $
+   $Id: tab_layout.css,v 1.35 2007-07-23 14:35:12 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -64,7 +64,7 @@
 }
 
 #wrap {
-  background: url(/catalyst/pfam/images/bg.gif) repeat-y 15% 0;
+  background: url(/static/images/bg.gif) repeat-y 15% 0;
   position: relative; /* needed to fix the IE peekaboo bug... */
   border-right: 1px solid #074987;
 }
@@ -108,18 +108,18 @@
 }
 
 /* the logos themselves */
-#seqIcon    { background-image: url(/catalyst/pfam/images/logos/alignment.png) }
-#archIcon   { background-image: url(/catalyst/pfam/images/logos/domains.png) }
-#structIcon { background-image: url(/catalyst/pfam/images/logos/structure.png) }
-#ipfamIcon  { background-image: url(/catalyst/pfam/images/logos/ipfam.png) }
-#specIcon   { background-image: url(/catalyst/pfam/images/logos/tree.png) }
+#seqIcon    { background-image: url(/static/images/logos/alignment.png) }
+#archIcon   { background-image: url(/static/images/logos/domains.png) }
+#structIcon { background-image: url(/static/images/logos/structure.png) }
+#ipfamIcon  { background-image: url(/static/images/logos/ipfam.png) }
+#specIcon   { background-image: url(/static/images/logos/tree.png) }
 
 /* and versions for pages where we show the icons but they're disabled */
-div.disabled #seqIcon    { background-image: url(/catalyst/pfam/images/logos/alignment_disabled.png) }
-div.disabled #archIcon   { background-image: url(/catalyst/pfam/images/logos/domains_disabled.png) }
-div.disabled #structIcon { background-image: url(/catalyst/pfam/images/logos/structure_disabled.png) }
-div.disabled #ipfamIcon  { background-image: url(/catalyst/pfam/images/logos/ipfam_disabled.png) }
-div.disabled #specIcon   { background-image: url(/catalyst/pfam/images/logos/tree_disabled.png) }
+div.disabled #seqIcon    { background-image: url(/static/images/logos/alignment_disabled.png) }
+div.disabled #archIcon   { background-image: url(/static/images/logos/domains_disabled.png) }
+div.disabled #structIcon { background-image: url(/static/images/logos/structure_disabled.png) }
+div.disabled #ipfamIcon  { background-image: url(/static/images/logos/ipfam_disabled.png) }
+div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disabled.png) }
 
 /* ======================================== */
 /* components of the remainder of the page */
@@ -209,7 +209,7 @@ div.disabled #specIcon   { background-image: url(/catalyst/pfam/images/logos/tre
   border: 1px solid #074897;
   border-right: none;
   padding: 0.2em 0 0.2em 0.4em;
-  background-image: url(/catalyst/pfam/images/selected_bg.gif);
+  background-image: url(/static/images/selected_bg.gif);
 }
 
 #sidebar li.selected a:hover {

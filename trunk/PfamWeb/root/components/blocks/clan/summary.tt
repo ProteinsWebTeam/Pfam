@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.9 2007-05-10 08:40:04 jt6 Exp $
+# $Id: summary.tt,v 1.10 2007-07-23 14:35:12 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -55,7 +55,7 @@ END;
       <a href="[% base %]annotate?acc=[% clan.clan_acc %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
-             src="[% base %]images/annotation.png" /></a>
+             src="[% base %]static/images/annotation.png" /></a>
     </h1>
 
     <p>[% clan.clan_comment %]</p>
