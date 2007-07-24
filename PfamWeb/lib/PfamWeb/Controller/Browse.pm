@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.2 2007-07-10 19:47:15 jt6 Exp $
+# $Id: Browse.pm,v 1.3 2007-07-24 12:48:30 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.2 2007-07-10 19:47:15 jt6 Exp $
+$Id: Browse.pm,v 1.3 2007-07-24 12:48:30 jt6 Exp $
 
 =cut
 
@@ -49,13 +49,13 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 browseIndex : Global
+=head2 browse : Global
 
 Show an index page for the various "browse" pages.
 
 =cut
 
-sub browseIndex : Global {
+sub browse : Global {
   my ( $this, $c ) = @_;
 
   $c->stash->{template} = 'pages/browseIndex.tt';
