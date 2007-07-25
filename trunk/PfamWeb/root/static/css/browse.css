@@ -4,7 +4,7 @@
 
    Style the various "browse" pages
    
-   $Id: browse.css,v 1.2 2007-07-24 12:54:09 jt6 Exp $
+   $Id: browse.css,v 1.3 2007-07-25 13:22:40 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -44,7 +44,7 @@ td.type {
   text-align: right;
   vertical-align: top;
   font-weight: bold;
-  color: #074987;
+  color: #666;
 }
 
 td.links {
