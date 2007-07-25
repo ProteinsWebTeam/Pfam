@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.8 2007-07-25 13:23:12 jt6 Exp $
+# $Id: changes.tt,v 1.9 2007-07-25 13:29:22 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -23,6 +23,8 @@
     
     <h2>Latest changes</h2>
   
+    <h3>Changes between Pfam releases 21 and 22</h3>
+
     <p>
       This is the new Pfam website, running on Pfam release 22.0. 
       Release 22.0 contains a total of 9318 families, with 380 new
@@ -31,6 +33,11 @@
       domain. 50.79% of all residues in the sequence database fall within
       Pfam domains. Pfam 22.0 is based on UniProt release 9.7, a
       composite of Swiss-Prot release 51.7 and TrEMBL release 34.7. 
+    </p>
+    <p>
+      The only change in this release is that Phobius has been used to
+      calculate both signal peptides and transmembrane regions, instead of 
+      signalp and tmhmm.
     </p>
 
     <span onclick="reveal( this, 'moreChanges', false, true )"
@@ -41,20 +48,6 @@
 
       <h2>Past changes</h2>
       
-      <h3>Changes between Pfam releases 21 and 22</h3>
-      
-      <p>
-        Release 22.0 contains a total of 9318 families, with 380 new families 
-        and 19 families killed since the latest release. 73.23% of all proteins
-        in Pfamseq contain a match to at least one Pfam domain. 50.79% of all
-        residues in the sequence database fall within Pfam domains.
-      </p>
-      <p>
-        The only change in this release is that Phobius has been used to
-        calculate both signal peptides and transmembrane regions, instead of 
-        signalp and tmhmm.
-      </p>
-
       <h3>Changes between Pfam releases 20 and 21</h3>
 
       <p>
