@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.10 2007-06-01 15:00:48 jt6 Exp $
+# $Id: summary.tt,v 1.11 2007-07-25 13:22:08 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -63,7 +63,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       entries cover a large proportion of the sequences in the underlying 
       sequence database, to give a more comprehensive coverage of known proteins 
       we generate a supplement automatically using the PRODOM database. These 
-      entries automatically generated entries are called Pfam-B. Although of 
+      automatically generated entries are called Pfam-B. Although of 
       lower quality, Pfam-B families can be useful for identifying functionally 
       conserved regions when no Pfam-A entries are found.
     </p>
