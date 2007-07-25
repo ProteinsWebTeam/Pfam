@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.3 2007-07-24 12:48:30 jt6 Exp $
+# $Id: Browse.pm,v 1.4 2007-07-25 10:26:17 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.3 2007-07-24 12:48:30 jt6 Exp $
+$Id: Browse.pm,v 1.4 2007-07-25 10:26:17 jt6 Exp $
 
 =cut
 
@@ -58,7 +58,7 @@ Show an index page for the various "browse" pages.
 sub browse : Global {
   my ( $this, $c ) = @_;
 
-  $c->stash->{template} = 'pages/browseIndex.tt';
+  $c->stash->{template} = 'pages/browse/index.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -167,10 +167,10 @@ sub browseFamilies : Path( '/family/browse' ) {
   if( $c->req->param('list') ) {
     # we want to return just the list of Pfam IDs, as a snippet of HTML.
     # This is used in the domain query search form
-    $c->stash->{template} = 'pages/browseIds.tt';
+    $c->stash->{template} = 'pages/browse/ids.tt';
   } else {
     # just render as a regular 'browse' page
-    $c->stash->{template} = 'pages/browseFamilies.tt';
+    $c->stash->{template} = 'pages/browse/families.tt';
   }
 }
 
@@ -193,7 +193,7 @@ sub browseClans : Path( '/clan/browse' ) {
   $c->stash->{browse} = \@res if scalar @res;
 
   # render the page
-	$c->stash->{template} = 'pages/browseClans.tt';
+	$c->stash->{template} = 'pages/browse/clans.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -215,7 +215,7 @@ sub browseProteomes : Path( '/proteome/browse' ) {
   $c->stash->{browse} = \@res if scalar @res;
 
   # render the page
-	$c->stash->{template} = 'pages/browseProteomes.tt';
+	$c->stash->{template} = 'pages/browse/proteomes.tt';
 }
 
 #-------------------------------------------------------------------------------

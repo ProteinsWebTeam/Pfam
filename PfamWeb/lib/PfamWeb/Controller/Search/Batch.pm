@@ -1,34 +1,22 @@
 
-# Interpro.pm
-# jt6 20060816 WTSI
+# Batch.pm
+# jt6 20061108 WTSI
 #
-# $Id: Interpro.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
+# $Id: Batch.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Searches::Plugin::Pfam - search plugin for the interpro table
+PfamWeb::Controller::Search::Batch - perform batch sequence searches
 
 =cut
 
-package PfamWeb::Controller::Search::Plugin::Interpro;
+package PfamWeb::Controller::Search::Batch;
 
 =head1 DESCRIPTION
 
-Performs a MySQL "fulltext" query of the interpro gene_ontology table, on the
-following columns:
+This controller is responsible for running batch sequence searches.
 
-=over
-
-=item o interpro_id
-
-=item o abstract
-
-=back
-
-There's an explicit join against the pfamA table, so that we can
-retrieve pfamA accession, ID and description.
-
-$Id: Interpro.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
+$Id: Batch.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 =cut
 
@@ -41,26 +29,16 @@ use base 'PfamWeb::Controller::Search';
 
 =head1 METHODS
 
-=head2 process : Private
+=head2 batchSearch : Path
 
-Executes the query.
+Executes a batch search.
 
 =cut
 
-sub process : Private {
+sub batchSearch : Path {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Search::Plugin::Interpro::process: text querying table interpro" );
-
-  my $results = $c->model("PfamDB::Interpro")
-	->search( {},
-			  { join     => [ qw/pfamA/ ],
-				prefetch => [ qw/pfamA/ ] } )
-	  ->search_literal( "MATCH( interpro_id, abstract ) " .
-						"AGAINST( ? IN BOOLEAN MODE )",
-						$c->stash->{terms} );
-
-  return $results;
+  $c->log->debug( 'Search::Batch::batchSearch: executing a batch search' );
 }
 
 #-------------------------------------------------------------------------------

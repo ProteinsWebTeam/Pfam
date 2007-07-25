@@ -2,7 +2,7 @@
 # Pdb.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pdb.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
+# $Id: Pdb.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
 
 =head1 NAME
 
@@ -32,14 +32,14 @@ we can retrieve pfam accession, ID and description from there, and
 another join against the pdb table for the actual text-query against
 the PDB ID.
 
-$Id: Pdb.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
+$Id: Pdb.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Search";
+use base 'PfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 

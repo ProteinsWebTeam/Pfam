@@ -4,7 +4,7 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.8 2007-07-02 09:50:32 jt6 Exp $
+# $Id: domain.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -67,7 +67,7 @@ pageList = BLOCK %]
     <form id="domainSearchForm" 
           onsubmit="submitter();return false" 
           method="get" 
-          action="[% base %]seqsearch/domain">
+          action="[% base %]search/domain">
 
       <div id="idList" class="domainList">
 
@@ -158,7 +158,7 @@ pageList = BLOCK %]
     console.log( "in submitter" );
     dsStarted();
     new Ajax.Updater( 'textResults',
-                      '[% base %]seqsearch/domain', 
+                      '[% base %]search/domain', 
                       {
                         parameters: $("domainSearchForm").serialize(true),
                         onComplete: function(request) {

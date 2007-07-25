@@ -3,7 +3,9 @@
 # polling.tt
 # jt6 20070410 WTSI
 #
-# $Id: polling.tt,v 1.6 2007-06-04 15:35:59 jt6 Exp $
+# a page that polls the server for results of a sequence search 
+#
+# $Id: polling.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;

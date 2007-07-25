@@ -1,22 +1,22 @@
 
-# SeqSearch.pm
+# Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: SeqSearch.pm,v 1.25 2007-07-16 09:59:54 jt6 Exp $
+# $Id: Sequence.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::SeqSearch - perform various sequence searches
+PfamWeb::Controller::Sequence - perform sequence searches
 
 =cut
 
-package PfamWeb::Controller::SeqSearch;
+package PfamWeb::Controller::Search::Sequence;
 
 =head1 DESCRIPTION
 
 This controller is responsible for running sequence searches.
 
-$Id: SeqSearch.pm,v 1.25 2007-07-16 09:59:54 jt6 Exp $
+$Id: Sequence.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 =cut
 
@@ -33,234 +33,11 @@ use Sanger::Graphics::ColourMap;
 
 use Data::Dump qw( dump );
 
-use base "PfamWeb::Controller::Section";
-
-# set the name of the section
-__PACKAGE__->config( SECTION => 'seqsearch' );
+use base 'PfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
-
-=head2 begin : Private
-
-Tries to extract the query terms from the URL and de-taint them.
-
-=cut
-
-sub begin : Private {
-  my( $this, $c ) = @_;
-
-  # tell the navbar where we are
-  $c->stash->{nav} = 'search';
-  
-  # tell the layout template to disable the summary icons
-  $c->stash->{iconsDisabled} = 1;
-
-  # if there's no query parameter, we're done here; drop straight to the 
-  # template that will render the search forms
-  return unless $c->req->param( 'query' );
-
-  # get the query
-  my( $terms ) = $c->req->param( 'query' ) =~ /^([\w\:\;\-\.\s]+)/;
-
-  # we're done here unless there's a query specified
-  $c->log->warn( 'Search::begin: no query terms supplied' ) and return
-  unless defined $terms;
-
-  # stash the de-tainted terms so we can safely display them later
-  $c->stash->{rawQueryTerms} = $terms;
-
-  # somewhere for the results of this search
-  $c->stash->{results} = {};
-
-}
-
-#-------------------------------------------------------------------------------
-#- exposed actions -------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-=head2 batch : Local
-
-Executes a batch search.
-
-=cut
-
-sub batch : Local {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( "SeqSearch::domain: executing a batch search" );
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 funshift : Local
-
-Executes a functional similarity search.
-
-=cut
-
-sub funshift : Local {
-  my( $this, $c ) = @_;
-
-  return unless $c->req->param( 'entry' ) =~ m/^([\w_-]+)$/;
-  $c->log->debug( "SeqSearch::funshift: executing a functional similarity search for |$1|" );
-
-  # check for an accession or an ID
-  if( $c->req->param( 'entry' ) =~ /^(PF\d{5})$/i ) {
-
-    $c->log->debug( 'SeqSearch::funshift: might be a Pfam accession' );
-    $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
-
-  } elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
-
-    $c->log->debug( 'SeqSearch::funshift: might be a Pfam accession' );
-    $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } );
-
-  } else {
-    
-    $c->log->debug( q(SeqSearch::funshift: can't figure out whether it's an ID or acc) );
-    $c->stash->{fsSearchError} = q(Couldn't find a Pfam family with that ID or accession.);
-    return;
-    
-  }
-  
-  # make sure the query actually found an entry
-  if( not defined $c->stash->{pfam} ) {
-    $c->log->debug( "SeqSearch::funshift: can't find a Pfam family |$1|" );
-    $c->stash->{fsSearchError} = q(Couldn't find a family with that ID or accession.);
-    return;
-  }
-  
-  # yes; now do the funshift search
-  my @fs = $c->model('PfamDB::Funshift')
-             ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA,
-                         auto_pfamA_B => { '!=' => $c->stash->{pfam}->auto_pfamA },
-                         rfunSim      => { '>'  => 0.75 } },
-                       { join     => [ qw( pfam clan ) ],
-                         prefetch => [ qw( pfam clan ) ], 
-                         order_by => "rfunSim DESC" } );
-
-  $c->log->debug( 'SeqSearch::funshift: found |' . scalar @fs . '| rows' );
-
-  if( scalar @fs ) {
-
-    $c->stash->{template} = "pages/fsResults.tt";
-    $c->stash->{results} = \@fs;
-  
-    # generate a gradient for this many rows
-    my $cm = new Sanger::Graphics::ColourMap;
-    my @grad = $cm->build_linear_gradient( scalar @fs, '008000', 'C00000' );
-    $c->stash->{gradient} = \@grad;
-
-  } else {
-    # see if there are any GO terms for this family
-    $c->stash->{goTerms} = $c->model('PfamDB::GO')
-                             ->search( { 'me.auto_pfamA' => $c->stash->{pfam}->auto_pfamA } );
-    
-    $c->stash->{template} = 'pages/fsError.tt';
-  }
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 domain : Local
-
-Executes a domain query.
-
-=cut
-
-sub domain : Local {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( 'SeqSearch::domain: executing a domain search' );
-
-  # point at the template right away
-  $c->stash->{template} = 'components/allArchitectures.tt';
-
-  my $list = '';
-  if( defined $c->req->param( 'have' ) ) {
-    $c->log->debug( 'SeqSearch::domain: must have:     |' . $c->req->param('have') . '|' );
-    foreach ( split /\s+/, $c->req->param('have') ) {
-      next unless /(PF\d{5})/;
-      $list .= "+$1 ";
-    }
-  }
-  if( defined $c->req->param( 'not' ) ) {
-    $c->log->debug( 'SeqSearch::domain: must not have: |' . $c->req->param('not') . '|' );
-    foreach ( split /\s+/, $c->req->param('not') ) {
-      next unless /(PF\d{5})/;
-      $list .= "-$1 ";
-    }
-  }
-
-  $c->log->debug( "SeqSearch::domain: list: |$list|" );
-
-  return unless $list;
-
-  my @architectures = $c->model('PfamDB::Architecture')
-                        ->search( {},
-                                  { join     => [ qw( annseq ) ],
-                                    prefetch => [ qw( annseq ) ],
-                                    order_by => "no_seqs DESC" } )
-                        ->search_literal( 'MATCH( architecture_acc ) ' .
-                                          'AGAINST( ? IN BOOLEAN MODE )',
-                                          $list );
-
-  my $sum = 0;
-  foreach my $arch ( @architectures ) {
-    $sum += $arch->no_seqs;
-  }
-
-  $c->log->debug( 'SeqSearch::domain: found '
-                  . scalar @architectures
-                  . ' rows, with a total of $sum sequences' );
-
-  $c->stash->{numRows} = scalar @architectures;
-  $c->stash->{numSeqs} = $sum;
-
-  # if there are too many results, bail here and let the TT just
-  # display the text summary, plus an admonition to the user to
-  # restrict their search a bit
-  return if scalar @architectures > 500;
-
-  # build the mappings that we'll need to interpret all this...
-  my( @seqs, %seqInfo );
-  foreach my $arch ( @architectures ) {
-
-    # thaw out the sequence object for this architecture
-    push @seqs, thaw( $arch->annseq_storable );
-  
-    # work out which domains are present on this sequence
-    my @domains = split /\~/, $arch->architecture;
-    $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
-  
-    # store a mapping between the sequence and the auto_architecture
-    $seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
-  
-    # if this is a call to retrieve all of the architectures, we don't
-    # have an auto_architecture, so this won't work
-    $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs unless $c->stash->{auto_arch};
-  }
-  $c->log->debug( 'found ' . scalar @seqs . ' storables' );
-
-  if( scalar @seqs ) {
-    my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-    
-    $layout->layout_sequences_with_regions_and_features( \@seqs, { PfamA      => 1,
-                                                                   PfamB      => 1,
-                                                                   noFeatures => 1 } );
-    
-    my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-    $imageset->create_images( $layout->layout_to_XMLDOM );
-  
-    $c->stash->{images} = $imageset;
-    $c->stash->{seqInfo}  = \%seqInfo;
-  }
-
-}
-
-#-------------------------------------------------------------------------------
 
 =head2 seq : Local
 
@@ -269,10 +46,10 @@ results.
 
 =cut
 
-sub seq : Local {
+sub sequenceSearch : Path {
   my( $this, $c ) = @_;
   
-  $c->log->debug( 'SeqSearch::seq: form was submitted' );
+  $c->log->debug( 'Search::Sequence::sequenceSearch: form was submitted' );
 
   # check the input
 
@@ -292,11 +69,11 @@ sub seq : Local {
             $c->stash->{seqOpts} eq 'fs' ) {
       $c->stash->{seqSearchError} = 'You must select a valid search option.';
 
-      $c->log->debug( 'SeqSearch::seq: bad search option; returning to form' );
+      $c->log->debug( 'Search::Sequence::sequenceSearch: bad search option; returning to form' );
       return;
     }
   } else {
-    $c->log->debug( 'SeqSearch::seq: search options not specified; returning to form' );
+    $c->log->debug( 'Search::Sequence::sequenceSearch: search options not specified; returning to form' );
     $c->stash->{seqSearchError} = 'You must select a search option.';
     return;
   }
@@ -310,7 +87,7 @@ sub seq : Local {
       looks_like_number( $c->req->param( 'evalue' ) ) ) {
       $c->stash->{evalue} = $c->req->param( "evalue" );
     } else {
-      $c->log->debug( 'SeqSearch::seq: bad evalue; returning to form' );
+      $c->log->debug( 'Search::Sequence::sequenceSearch: bad evalue; returning to form' );
       $c->stash->{seqSearchError} = 'You did not enter a valid E-value.';
       return;
     }
@@ -321,16 +98,16 @@ sub seq : Local {
 
   # and see if we managed it...
   if( $submissionStatus > 0 ) {
-    $c->log->debug( 'SeqSearch::seq: sequence is pre-calculated; returning results' ); 
-    $c->stash->{template} = 'pages/seqSearchDone.tt';
+    $c->log->debug( 'Search::Sequence::sequenceSearch: sequence is pre-calculated; returning results' ); 
+    $c->stash->{template} = 'pages/search/sequence/results.tt';
 
   } elsif( $submissionStatus < 0 ) {
-    $c->log->debug( 'SeqSearch::seq: problem with submission; re-rendering form' ); 
+    $c->log->debug( 'Search::Sequence::sequenceSearch: problem with submission; re-rendering form' ); 
     return;
 
   } else {
-    $c->log->debug( 'SeqSearch::seq: sequence search submitted; polling' ); 
-    $c->stash->{template} = 'pages/polling.tt';
+    $c->log->debug( 'Search::Sequence::sequenceSearch: sequence search submitted; polling' ); 
+    $c->stash->{template} = 'pages/search/sequence/polling.tt';
   }
 }
 
@@ -352,7 +129,7 @@ sub checkStatus : Local {
   my $jobId = $c->req->param( 'jobId' );
 
   if( length( $jobId ) != 36 or $jobId !~ /[A-F0-9\-]/ ) {
-    $c->log->debug( 'SeqSearch::checkStatus: bad job id' );
+    $c->log->debug( 'Search::Sequence::checkStatus: bad job id' );
     $c->stash->{status}->{error} = 'Invalid job ID';
     $c->detach( 'returnStatus' );
   }
@@ -363,36 +140,36 @@ sub checkStatus : Local {
 
   # make sure the query returned *something*
   if( not defined $jobStatus ) {
-    $c->log->debug( "SeqSearch::checkStatus: problem retrieving job status for job |$jobId|" );
+    $c->log->debug( "Search::Sequence::checkStatus: problem retrieving job status for job |$jobId|" );
     $c->stash->{status}->{error} = 'Could not retrieve job status';
     $c->detach( 'returnStatus' );
   }
 
   # finally, check the real status 
   if( $jobStatus->status eq 'PEND' ) {
-    $c->log->debug( 'SeqSearch::checkStatus: job is pending' );
+    $c->log->debug( 'Search::Sequence::checkStatus: job is pending' );
     $c->stash->{status}->{status} = 'PEND';
 
   } elsif( $jobStatus->status eq 'RUN' ) {
-    $c->log->debug( 'SeqSearch::checkStatus: job is running' );
+    $c->log->debug( 'Search::Sequence::checkStatus: job is running' );
     $c->stash->{status}->{status} = 'RUN';
 
   } elsif( $jobStatus->status eq 'DONE' ) {
-    $c->log->debug( 'SeqSearch::checkStatus: job is done' );
+    $c->log->debug( 'Search::Sequence::checkStatus: job is done' );
     $c->stash->{status}->{status} = 'DONE';
 
   } elsif( $jobStatus->status eq 'FAIL' ) {
-    $c->log->debug( 'SeqSearch::checkStatus: job failed' );
+    $c->log->debug( 'Search::Sequence::checkStatus: job failed' );
     $c->stash->{status}->{status} = 'FAIL';
 
   } else {
-    $c->log->error( q(SeqSearch::checkStatus: can't determine job status) );
+    $c->log->error( q(Search::Sequence::checkStatus: can't determine job status) );
     $c->stash->{status}->{status} = 'UNKNOWN';
   }
 
-#  $c->log->debug( 'SeqSearch::checkStatus: opened:  |' . $jobStatus->opened .'|' );
-#  $c->log->debug( 'SeqSearch::checkStatus: started: |' . $jobStatus->started .'|' );
-#  $c->log->debug( 'SeqSearch::checkStatus: closed:  |' . $jobStatus->closed .'|' );
+#  $c->log->debug( 'Search::Sequence::checkStatus: opened:  |' . $jobStatus->opened .'|' );
+#  $c->log->debug( 'Search::Sequence::checkStatus: started: |' . $jobStatus->started .'|' );
+#  $c->log->debug( 'Search::Sequence::checkStatus: closed:  |' . $jobStatus->closed .'|' );
 
   # see how many jobs are pending
   my $rs = $c->model( 'WebUser::JobHistory' )
@@ -408,9 +185,9 @@ sub checkStatus : Local {
   $c->stash->{status}->{numPending} = $rs->first()->get_column( 'num' );
   $c->stash->{status}->{waitTime}   = $rs->first()->get_column( 'wait' ) || 0;
 
-  $c->log->debug( 'SeqSearch::checkStatus: found      |' .
+  $c->log->debug( 'Search::Sequence::checkStatus: found      |' .
                   $c->stash->{status}->{numPending} . '| pending jobs' );
-  $c->log->debug( 'SeqSearch::checkStatus: wait time: |' .
+  $c->log->debug( 'Search::Sequence::checkStatus: wait time: |' .
                   $c->stash->{status}->{waitTime} . '|' );
 
   # add the times to the response
@@ -445,7 +222,7 @@ sub parseSequence : Private {
   my $seq = uc( join '', @seqs );
   $seq =~ s/[\s\r]+//g;
 
-  $c->log->debug( "SeqSearch::parseSequence: parsed sequence: |$seq|" );
+  $c->log->debug( "Search::Sequence::parseSequence: parsed sequence: |$seq|" );
   return ( $seq =~ /^[A-Z]+$/ ) ? $seq : '';
 }
 
@@ -471,11 +248,11 @@ sub queueSeqSearch : Private {
                        as     => [ "numberPending" ] } );
 
   $c->stash->{numberPending} = $rs->get_column( 'numberPending' );
-  $c->log->debug( 'SeqSearch::queueSeqSearch: |' . $c->stash->{numberPending} .
+  $c->log->debug( 'Search::Sequence::queueSeqSearch: |' . $c->stash->{numberPending} .
                   '| jobs pending' );
 
   if( $c->stash->{numberPending} > $this->{pendingLimit} ) {
-    $c->log->debug( 'SeqSearch::queueSeqSearch: too many jobs in queue (' .
+    $c->log->debug( 'Search::Sequence::queueSeqSearch: too many jobs in queue (' .
                     $c->stash->{numberPending} . ')' );
     $c->stash->{seqSearchError} = 'There are currently too many jobs in the sequence search queue. Please try again in a little while.';
     return -1;
@@ -511,11 +288,11 @@ sub queuePfamA : Private {
 
   # make a guess at the runtime for the job
   my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
-  $c->log->debug(  q(SeqSearch::queuePfamA: estimated search time: ) . 
+  $c->log->debug(  q(Search::Sequence::queuePfamA: estimated search time: ) . 
                   qq(|$estimatedTime| seconds) );
   ($estimatedTime *= 2 ) if( $c->stash->{seqOpts} eq 'both' or
                              $c->stash->{seqOpts} eq 'bothNoMerge' );
-  $c->log->debug(  q(SeqSearch::queuePfamA: estimated search time: ) .
+  $c->log->debug(  q(Search::Sequence::queuePfamA: estimated search time: ) .
                   qq(|$estimatedTime| seconds) );
 
   # generate a job ID
@@ -551,8 +328,8 @@ sub queuePfamA : Private {
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $jobStatus = {
-                    checkURI      => $c->uri_for( '/seqsearch/checkStatus' )->as_string,
-                    doneURI       => $c->uri_for( '/seqsearch/jobDone' )->as_string,    
+                    checkURI      => $c->uri_for( '/search/sequence/checkStatus' )->as_string,
+                    doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,    
                     estimatedTime => $estimatedTime,
                     interval      => $this->{pollingInterval},
                     jobId         => $jobId,
@@ -576,7 +353,7 @@ sub queuePfamB : Private {
 
   # make a guess at the runtime for the job
   my $estimatedTime = int( length( $c->stash->{seq} ) / 100 );
-  $c->log->debug( "SeqSearch::queuePfamB: estimated search time: |$estimatedTime| seconds" );
+  $c->log->debug( "Search::Sequence::queuePfamB: estimated search time: |$estimatedTime| seconds" );
 
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
@@ -607,8 +384,8 @@ sub queuePfamB : Private {
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $jobStatus = {
-                    checkURI      => $c->uri_for( '/seqsearch/checkStatus' )->as_string,
-                    doneURI       => $c->uri_for( '/seqsearch/jobDone' )->as_string,    
+                    checkURI      => $c->uri_for( '/search/sequence/checkStatus' )->as_string,
+                    doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,    
                     estimatedTime => $estimatedTime,
                     interval      => $this->{pollingInterval},
                     jobId         => $jobId,
@@ -636,7 +413,7 @@ sub returnStatus : Private {
   # convert the status hash to a JSON object and return it
   my $status = objToJson( $c->stash->{status} );
 
-  $c->log->debug( 'SeqSearch::returnStatus: returning: ' );
+  $c->log->debug( 'Search::Sequence::returnStatus: returning: ' );
   $c->log->debug( dump( $c->stash->{status} ) );
 
   $c->res->content_type( 'application/json' );
@@ -652,13 +429,13 @@ sub returnStatus : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 jobDone : Local
+=head2 results : Local
 
 Returns the URI of the Pfam graphic that is the result of the specified job.
 
 =cut
 
-sub jobDone : Local {
+sub results : Local {
   my( $this, $c ) = @_;
 
   # extract the list of IDs from the URI
@@ -667,7 +444,7 @@ sub jobDone : Local {
 
     # detaint the job ID
     ( my $jobId ) = $_ =~ m/^([A-F0-9\-]+)$/;
-    $c->log->debug( "SeqSearch::jobDone: looking up details for job ID: |$jobId|" );
+    $c->log->debug( "Search::Sequence::results: looking up details for job ID: |$jobId|" );
 
     next unless defined $jobId;
 
@@ -690,7 +467,7 @@ sub jobDone : Local {
   # do something interesting with the results
   $c->forward( 'handleResults' );
   $c->forward( 'generateGraphic' );
-  $c->stash->{template} = 'pages/jobDone.tt';
+  $c->stash->{template} = 'pages/search/sequence/results.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -714,7 +491,7 @@ sub handleResults : Private {
   my(@rawPfamAResults, @rawPfamBResults);
 
   foreach my $jobId ( keys %{ $c->stash->{results} } ) {
-    $c->log->debug( "SeqSearch::handleResults: handling results for |$jobId|" );
+    $c->log->debug( "Search::Sequence::handleResults: handling results for |$jobId|" );
 
     #Identify What sort of job we have performed.....
     if( $c->{stash}->{results}->{$jobId}->{method} eq 'hmmer' ){
@@ -860,10 +637,10 @@ sub handleResults : Private {
     }
   }
 
-  $c->log->debug( 'SeqSearch::handleResults: got ' . scalar @rawPfamAResults . 
+  $c->log->debug( 'Search::Sequence::handleResults: got ' . scalar @rawPfamAResults . 
                   ' PfamA results' );
   #$c->log->debug( dump @rawPfamAResults );
-  $c->log->debug( 'SeqSearch::handleResults: got ' . scalar @rawPfamBResults .
+  $c->log->debug( 'Search::Sequence::handleResults: got ' . scalar @rawPfamBResults .
                   ' PfamB results' );
   #$c->log->debug( dump @rawPfamBResults );
   

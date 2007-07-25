@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.7 2007-04-27 15:56:32 jt6 Exp $
+# $Id: faq.tt,v 1.8 2007-07-25 10:26:17 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -237,7 +237,7 @@
 	</p>
 	<ul>
 	  <li>
-		<a href="[% c.uri_for( "/seqsearch", tab="searchProteinBlock" ) %]">
+		<a href="[% base %]search?tab=searchProteinBlock">
 		  Wellcome Trust Sanger Institute (UK)</a>
 	  </li>
 	  <li>
@@ -250,7 +250,7 @@
 	Pfam ?</a></h3>
 
 	<p>
-	  Yes you can, on the <a href="[% c.uri_for( "/seqsearch", tab="searchDnaBlock" ) %]">
+	  Yes you can, on the <a href="[% base %]search?tab=searchDnaBlock">
 	    DNA search page</a>.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>

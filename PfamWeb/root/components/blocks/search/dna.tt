@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.2 2007-05-16 14:48:54 jt6 Exp $
+# $Id: dna.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
 %]
 
 <!-- start dna search block -->

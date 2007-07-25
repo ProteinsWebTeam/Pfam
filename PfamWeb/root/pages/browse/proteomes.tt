@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Completed Proteomes
 #
-# $Id: browseProteomes.tt,v 1.4 2007-05-01 21:21:55 jt6 Exp $
+# $Id: proteomes.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
 
 META title = "Browse Pfam proteomes";
 META fullPage = 1;
