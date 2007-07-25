@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.7 2007-07-23 10:50:34 jt6 Exp $
+# $Id: changes.tt,v 1.8 2007-07-25 13:23:12 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -40,6 +40,47 @@
     <div id="moreChanges" style="display: none">
 
       <h2>Past changes</h2>
+      
+      <h3>Changes between Pfam releases 21 and 22</h3>
+      
+      <p>
+        Release 22.0 contains a total of 9318 families, with 380 new families 
+        and 19 families killed since the latest release. 73.23% of all proteins
+        in Pfamseq contain a match to at least one Pfam domain. 50.79% of all
+        residues in the sequence database fall within Pfam domains.
+      </p>
+      <p>
+        The only change in this release is that Phobius has been used to
+        calculate both signal peptides and transmembrane regions, instead of 
+        signalp and tmhmm.
+      </p>
+
+      <h3>Changes between Pfam releases 20 and 21</h3>
+
+      <p>
+        Release 21.0 contains a total of 8957 families, with 669 new families 
+        and 8 families killed since the latest release. 73.92% of all proteins 
+        in Pfamseq contain a match to at least one Pfam domain. 51.48% of all 
+        residues in the sequence database fall within Pfam domains.
+      </p>
+      <p>
+        Pfam now contains the UniProt versions for each sequence in the format 
+        of accession.version as used by UniProt. This should allow users to 
+        perform a complete audit between release.
+      </p>
+      <p>
+        There are also a number of additional tables in the RDB. Many of these 
+        have been introduced as part of the overhaul of the database that has
+        been performed in preparation for the new Pfam website (UK). Some of 
+        these new tables will replace some of the existing tables in the next 
+        release.
+      </p>
+      <p>
+        We have also removed solvent accessibility from the alignments as the 
+        consensus lines produced were often misleading when combining 
+        information from different structures. For example, a dimer versus 
+        a monomer.
+      </p>
       
       <h3>Changes between Pfam releases 19 and 20</h3>
   
