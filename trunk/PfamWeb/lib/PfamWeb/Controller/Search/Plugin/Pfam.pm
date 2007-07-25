@@ -2,7 +2,7 @@
 # Pfam.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pfam.pm,v 1.4 2007-03-15 14:06:10 jt6 Exp $
+# $Id: Pfam.pm,v 1.5 2007-07-25 10:26:16 jt6 Exp $
 
 =head1 NAME
 
@@ -36,7 +36,7 @@ against the following columns:
 Also does a simple look up in the pfam table, checking to see if the
 raw search terms match a Pfam family accession or ID.
 
-$Id: Pfam.pm,v 1.4 2007-03-15 14:06:10 jt6 Exp $
+$Id: Pfam.pm,v 1.5 2007-07-25 10:26:16 jt6 Exp $
 
 =cut
 
@@ -51,7 +51,7 @@ $Id: Pfam.pm,v 1.4 2007-03-15 14:06:10 jt6 Exp $
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Search";
+use base 'PfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 

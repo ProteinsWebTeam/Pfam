@@ -5,7 +5,7 @@
 #
 # build the titles for the search pages
 #
-# $Id: title.tt,v 1.2 2007-04-24 16:08:44 jt6 Exp $
+# $Id: title.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
 %]
 
 [% IF titleType == "tab" %]

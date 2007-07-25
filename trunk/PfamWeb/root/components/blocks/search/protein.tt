@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.11 2007-06-05 15:57:37 jt6 Exp $
+# $Id: protein.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 

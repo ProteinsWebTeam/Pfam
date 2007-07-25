@@ -2,7 +2,7 @@
 # Seq_info.pm
 # jt6 20060810 WTSI
 #
-# $Id: Seq_info.pm,v 1.3 2007-03-15 14:06:10 jt6 Exp $
+# $Id: Seq_info.pm,v 1.4 2007-07-25 10:26:16 jt6 Exp $
 
 =head1 NAME
 
@@ -26,7 +26,7 @@ following columns:
 
 =back
 
-$Id: Seq_info.pm,v 1.3 2007-03-15 14:06:10 jt6 Exp $
+$Id: Seq_info.pm,v 1.4 2007-07-25 10:26:16 jt6 Exp $
 
 =cut
 
@@ -40,7 +40,7 @@ $Id: Seq_info.pm,v 1.3 2007-03-15 14:06:10 jt6 Exp $
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Search";
+use base 'PfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 

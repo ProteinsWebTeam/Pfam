@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.33 2007-06-28 12:14:16 jt6 Exp $
+# $Id: index.tt,v 1.34 2007-07-25 10:26:16 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -133,7 +133,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>
       Paste your protein sequence here to find matching Pfam families.
     </p>
-    <form action="[% base %]seqsearch/seq"
+    <form action="[% base %]search/sequence"
           method="get" 
           id="seqForm">
       <div>
@@ -158,7 +158,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
       This search will use the <code>pfam_ls</code> library (global) and the 
       <a href="[% helpBase %]?tab=helpGlossaryBlock">
         gathering threshold</a>. You can specify the search parameters using 
-      <a href="[% base %]seqsearch?tab=searchSequenceBlock">this</a> form.      
+      <a href="[% base %]search?tab=searchSequenceBlock">this</a> form.      
     </p>
   </div>
 

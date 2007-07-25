@@ -2,9 +2,9 @@
 # searchError.tt
 # jt6 20060807 WTSI
 # 
-# search error page
+# keyword search error page
 #
-# $Id: searchError.tt,v 1.5 2007-06-01 15:04:04 jt6 Exp $
+# $Id: error.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 META title = "No search results";
 META fullPage = 1

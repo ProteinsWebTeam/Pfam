@@ -2,7 +2,7 @@
 # GO.pm
 # jt6 20060816 WTSI
 #
-# $Id: GO.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
+# $Id: GO.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ following columns:
 There's an explicit join against the pfamA table, so that we can
 retrieve pfamA accession, ID and description.
 
-$Id: GO.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
+$Id: GO.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
 
 =cut
 
@@ -44,7 +44,7 @@ $Id: GO.pm,v 1.2 2007-03-15 14:06:10 jt6 Exp $
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Search";
+use base 'PfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 

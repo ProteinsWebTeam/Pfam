@@ -5,7 +5,7 @@
 # 
 # build a "browse" index page
 #
-# $Id: browseIndex.tt,v 1.2 2007-05-01 21:21:55 jt6 Exp $
+# $Id: index.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
 
 META title = "Browse Pfam";
 META fullPage = 1;
@@ -26,8 +26,8 @@ familyPages = [ "new", "top twenty", "numbers" ];
 clanPages =   [ "numbers" ];
 
 # shortcuts for URIs
-familyURI = "${base}family/browse";
-clanURI = "${base}clan/browse";
+familyURI   = "${base}family/browse";
+clanURI     = "${base}clan/browse";
 proteomeURI = "${base}proteome/browse";
 %]
 

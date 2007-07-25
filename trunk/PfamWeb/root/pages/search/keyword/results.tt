@@ -1,10 +1,10 @@
 [%
-# search.tt
+# searchResults.tt
 # jt6 20060807 WTSI
 # 
-# search results page
+# keyword search results page
 #
-# $Id: search.tt,v 1.9 2007-05-30 08:17:38 jt6 Exp $
+# $Id: results.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;

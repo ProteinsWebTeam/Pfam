@@ -1,9 +1,11 @@
 
 [%
-# jobDone.tt
+# searchResults.tt
 # jt6 20070414 WTSI
 #
-# $Id: jobDone.tt,v 1.7 2007-06-18 12:27:32 jt6 Exp $
+# show the results of a sequence search
+#
+# $Id: results.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -25,8 +27,8 @@ numAs = genPfamARes.size;
 numBs = genPfamBRes.size;
 
 # shortcuts to the show/hide glass buttons
-showButton = "${base}images/showButton.png";
-hideButton = "${base}images/hideButton.png";
+showButton = "${base}static/images/showButton.png";
+hideButton = "${base}static/images/hideButton.png";
 %]
 
 <script type="text/javascript">
@@ -132,7 +134,7 @@ hideButton = "${base}images/hideButton.png";
         show all alignments using the links above the table.
       </p>
       <p>
-        <a href="[% base %]seqsearch?tab=searchSequenceBlock">Return</a> to the 
+        <a href="[% base %]search?tab=searchSequenceBlock">Return</a> to the 
         search form to look for Pfam domains on a new sequence.
       </p> 
     [% END %]
