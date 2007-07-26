@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.18 2007-06-28 13:22:13 jt6 Exp $
+// $Id: family.js,v 1.19 2007-07-26 14:58:54 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -156,14 +156,17 @@ function generateAlignment( page ) {
   slider.setDisabled();
  
   $( 'spinner' ).show();
+  
+  var params = { page:        page,
+                 acc:         $F('acc'),
+                 alnType:     $F('alnType'),
+                 numRows:     $F('numRows'),
+                 scrollValue: $F('scrollValue') };
 
   // submit the form
   new Ajax.Updater( "caph",
                     loadOptions.ca.uri, 
-                    {   parameters:  'page='         + page +
-                                     '&acc='         + $F('acc') +
-                                     '&numRows='     + $F('numRows') +
-                                     '&scrollValue=' + $F('scrollValue'),
+                    {   parameters:  params,
                         evalScripts: true
                     }
                   );
@@ -182,7 +185,6 @@ function scrollHorizontal( value, element, slider ) {
 
   // store the value of the slider in the form
   $('scrollValue').value = value;
-
 }
 
 //------------------------------------------------------------

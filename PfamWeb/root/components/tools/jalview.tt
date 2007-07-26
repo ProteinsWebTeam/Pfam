@@ -4,7 +4,7 @@
 # 
 # build a page for the jalview applet
 #
-# $Id: jalview.tt,v 1.6 2007-07-25 13:39:13 jt6 Exp $
+# $Id: jalview.tt,v 1.7 2007-07-26 14:58:54 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -21,7 +21,7 @@ title = "jalview"
          width="140" 
          height="35" 
          archive="[% base %]static/jalview/jalviewApplet.jar">
-  <param name="file" value="[% base %]family/formatalignment?acc=[% acc %]&amp;format=stockholm&amp;alnType=alnType" />
+  <param name="file" value="[% base %]family/alignment/download/format?acc=[% acc %]&amp;format=stockholm&amp;alnType=[% alnType %]" />
   <param name="defaultColour" value="Taylor" />
   <param name="RGB"  value="#FFFFCC" />
   <param name="linkLabel_2" value="Uniprot" />

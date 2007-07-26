@@ -5,7 +5,7 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.10 2007-06-14 09:33:19 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.11 2007-07-26 14:58:54 jt6 Exp $
 
 META naked = 1;
 %]
@@ -16,6 +16,7 @@ META naked = 1;
 
   <input type="hidden" id="acc"         value="[% acc %]" />
   <input type="hidden" id="scrollValue" value="[% scrollValue %]" />
+  <input type="hidden" id="alnType"     value="[% alnType %]" />
 
   <div class="formRow">
  
