@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.10 2007-06-26 11:54:38 jt6 Exp $
+# $Id: PfamB.pm,v 1.11 2007-07-26 14:41:34 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam B entries.
 
 Generates a B<full page>.
 
-$Id: PfamB.pm,v 1.10 2007-06-26 11:54:38 jt6 Exp $
+$Id: PfamB.pm,v 1.11 2007-07-26 14:41:34 jt6 Exp $
 
 =cut
 
@@ -178,16 +178,8 @@ sub _getSummaryData : Private {
 
   #----------------------------------------
 
-  # count number of sequences in full alignment
-  my $rs = $c->model("PfamDB::PfamB_reg")
-          ->find( { auto_pfamB => $auto_pfam },
-                  { select => [
-                                { count => "auto_pfamB" }
-                              ],
-                    as => [ 'count' ] } );
-
   # number of sequences in full alignment
-  $summaryData{numSequences} = $rs->get_column( "count" );
+  $summaryData{numSequences} = $c->stash->{pfam}->number_regions; 
 
   #----------------------------------------
 
