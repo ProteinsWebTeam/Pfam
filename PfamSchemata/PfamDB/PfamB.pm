@@ -1,5 +1,5 @@
 
-# $Id: PfamB.pm,v 1.5 2007-03-16 11:25:16 jt6 Exp $
+# $Id: PfamB.pm,v 1.6 2007-07-26 14:41:05 jt6 Exp $
 #
 # $Author: jt6 $
 package PfamDB::PfamB;
@@ -15,7 +15,10 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamB" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamB pfamB_acc pfamB_id/);
+__PACKAGE__->add_columns( qw/ auto_pfamB 
+                              pfamB_acc
+                              pfamB_id
+                              number_regions /);
 
 #Now set up the primary keys/contraints
 __PACKAGE__->set_primary_key("auto_pfamB", "pfamB_acc");
