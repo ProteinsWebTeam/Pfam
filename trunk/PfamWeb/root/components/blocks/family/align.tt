@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.17 2007-05-16 15:02:47 jt6 Exp $
+# $Id: align.tt,v 1.18 2007-07-26 14:58:54 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -19,14 +19,16 @@
     <h3>View options</h3>
 
     <form id="viewerForm"
-          action="[% base %]family/downloadalignment"
+          action="[% base %]family/alignment/download/html"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
   
+        [% oe = 0 %]
     	  <table class="details alignOpts" summary="Alignment display options">
           <tbody>
-            <tr class="odd">
+            [% IF entryType != 'B' %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
@@ -39,16 +41,21 @@
                 </span>
       	      </td>
             </tr>
-            <tr class="even">
+            [% END %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Viewer:</td>
               <td>
                 <span class="button">
                   <select name="viewer" id="viewer">
                     <option value="jalview" selected="selected">jalview</option>
                     <option value="html">HTML</option>
+                    [% IF entryType != 'B' %]
                     <option value="viewer">Pfam viewer</option>
+                    [% END %]
                   </select>
                 </span>
+                [%# this is a bit naughty... just pad this row to double the width %]
+                <span>&nbsp;</span>
       	      </td>
             </tr>
           </tbody>
@@ -66,13 +73,13 @@
       // values, which URL to go to next.
       function launch() {
         if( $F("viewer") == "jalview" ) {
-        	url = "[% base %]family/jalview?" + Form.serialize("viewerForm");
-          //console.debug( "visiting: |" + url + "|" );
+        	url = "[% base %]family/alignment/jalview?" + Form.serialize("viewerForm");
+          console.debug( "visiting: |" + url + "|" );
           popUp( url, 'console', 800, 800, 'jalviewWin');
       
         } else if( $F("viewer") == "viewer" ) {
-        	url = "[% base %]family/alignmentviewer?" + Form.serialize("viewerForm");
-          //console.debug( "visiting: |" + url + "|" );
+        	url = "[% base %]family/alignment/pfamviewer?" + Form.serialize("viewerForm");
+          console.debug( "visiting: |" + url + "|" );
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
@@ -85,13 +92,15 @@
 
     <h3>Formatting options</h3>
 
-    <form action="[% base %]family/formatalignment" method="get">
+    <form action="[% base %]family/alignment/download/format" method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
 
+        [% oe = 0 %]
         <table class="details alignOpts" summary="Alignment formatting options">
           <tbody>
-            <tr class="odd">
+            [% IF entryType != 'B' %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
@@ -104,7 +113,8 @@
                 </span>
       	      </td>
             </tr>
-            <tr class="even">
+            [% END %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Format:</td>
               <td>
                 <span class="button">
@@ -117,7 +127,8 @@
                 </span>
       	      </td>
             </tr>
-            <tr class="odd">
+            [% IF entryType != 'B' %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Order:</td>
               <td>
                 <span class="button">
@@ -130,7 +141,7 @@
                 </span>
       	      </td>
             </tr>
-            <tr class="even">
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Sequence:</td>
               <td>
                 <span class="button">
@@ -143,7 +154,8 @@
                 </span>
       	      </td>
             </tr>
-            <tr class="odd">
+            [% END %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Gaps:</td>
               <td>
                 <span class="button">
@@ -156,7 +168,7 @@
                 </span>
       	      </td>
             </tr>
-            <tr class="even">
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Download/view:</td>
               <td>
                 <span class="button">

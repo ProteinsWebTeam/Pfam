@@ -5,7 +5,7 @@
 # 
 # build a page for the alignment viewer tool
 #
-# $Id: alignmentTool.tt,v 1.6 2007-06-14 09:33:19 jt6 Exp $
+# $Id: alignmentTool.tt,v 1.7 2007-07-26 14:58:54 jt6 Exp $
 
 META naked = 1;
 
@@ -29,7 +29,7 @@ pageContent = BLOCK
 <script type="text/javascript">
   // <![CDATA[
   Event.observe( window, "load", familyPostLoad, false );
-  loadOptions.ca.uri    = "[% base %]family/alignmentgenerator";
+  loadOptions.ca.uri    = "[% base %]family/alignment/pfamviewer/view";
   loadOptions.ca.params = "acc=[% acc %]&alnType=[% alnType %]";
   // ]]>
 </script>
