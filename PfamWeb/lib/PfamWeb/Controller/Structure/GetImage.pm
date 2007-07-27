@@ -2,7 +2,7 @@
 # GetImage.pm
 # jt6 20060314 WTSI
 #
-# $Id: GetImage.pm,v 1.12 2007-06-28 13:33:33 jt6 Exp $
+# $Id: GetImage.pm,v 1.13 2007-07-27 15:27:27 jt6 Exp $
 
 =head1 NAME
 
@@ -22,58 +22,57 @@ to extract the PDB ID from the URL.
 
 Generates an B<image file>, MIME type C<image/gif>.
 
-$Id: GetImage.pm,v 1.12 2007-06-28 13:33:33 jt6 Exp $
+$Id: GetImage.pm,v 1.13 2007-07-27 15:27:27 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Structure";
+use base 'PfamWeb::Controller::Structure';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 getImage : Path
 
-Pick up http://localhost:3000/structure/getimage?id=1abc and serves
-the image for that entry. Returns a blank image if no image is found
-for this entry.
-
-=cut
-
-sub default : Private {
-  my( $this, $c ) = @_;
-
-  return unless defined $c->stash->{pdb};
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Push the file to the response
+Serves the image for the specified PDB entryentry. Redirects to a blank image 
+if no image is found for this entry.
 
 =cut
 
-sub end : Private {
+sub getImage : Path {
   my( $this, $c ) = @_;
 
   return unless defined $c->stash->{pdb};
 
   if( defined $c->stash->{pdb}->pdb_image_sml ) {
   	$c->res->content_type( "image/gif" );
-  	if( $c->req->param("size") and $c->req->param("size") eq "s" ) {
-  	  $c->res->write( $c->stash->{pdb}->pdb_image_sml )
+  	if( defined $c->req->param("size") and
+  	    $c->req->param('size') eq 's' ) {
+  	  $c->res->body( $c->stash->{pdb}->pdb_image_sml )
   	} else {
-  	  $c->res->write( $c->stash->{pdb}->pdb_image )
+  	  $c->res->body( $c->stash->{pdb}->pdb_image )
   	}
   } else {
-  	$c->res->redirect( $c->uri_for( "/images/blank.gif" ) );
+    # TODO we shouldn't be hard-coding the location for blank images...
+  	$c->res->redirect( $c->uri_for( '/static/images/blank.gif' ) );
   }
 
+  # may as well hit the cache instead of the database...
+  $c->cache_page( 604800 );
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 end : ActionClass
+
+Override "end" from the super-class and let RenderView take care of things.
+
+=cut
+
+sub end : ActionClass( 'RenderView' ) {}
 
 #-------------------------------------------------------------------------------
 
