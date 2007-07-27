@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.42 2007-07-02 10:00:55 jt6 Exp $
+// $Id: pfFunctions.js,v 1.43 2007-07-27 13:47:34 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -528,7 +528,9 @@ function loadDomains( iIndex, uri, iNum ) {
      'showHideArchs' + iIndex ].each( Element.toggle );
 
     // and actually fire off a request to load the new graphics
-    new Ajax.Updater( 'domainArch' + iIndex, uri );
+    new Ajax.Updater( 'domainArch' + iIndex, 
+                      uri,
+                      { method: 'get' } );
   }
 }
 
@@ -544,6 +546,7 @@ function chooseIds( sLetter ) {
   new Ajax.Updater( "idSelectionWrapper",
                     queryURI,
                     {
+                      method: 'get',
                       parameters: "list=1&browse=" + sLetter,
                       onComplete: function () {
                                     Element.hide("nlUpdateSpinner");
