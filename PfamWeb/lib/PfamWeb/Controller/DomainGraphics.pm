@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.2 2007-07-02 09:46:39 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.3 2007-07-27 13:49:06 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.2 2007-07-02 09:46:39 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.3 2007-07-27 13:49:06 jt6 Exp $
 
 =cut
 
@@ -61,7 +61,7 @@ sub begin : Private {
   if( defined $c->req->param('arch') and 
       $c->req->param('arch') =~ m/^(\d+)$/ ) {
     $c->stash->{auto_arch} = $1;
-    $c->log->debug( 'DomainGraphics::default: arch = |' . $c->stash->{auto_arch} . '|' ); 
+    $c->log->debug( 'DomainGraphics::begin: arch = |' . $c->stash->{auto_arch} . '|' ); 
   }   
   
   # MUST have an accession
@@ -111,7 +111,7 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 buildGraphics : Path
+=head2 domainGraphics : Path
 
 The main entry point for the controller. The begin method populates the stash
 with the data for the entry type that we're dealing with, whilst this method
@@ -122,7 +122,7 @@ sequences for an architecture, we hand off to one of two separate templates.
 
 =cut
 
-sub buildGraphics : Path {
+sub domainGraphics : Path {
   my( $this, $c ) = @_;
 
   if( scalar @{ $c->stash->{seqs} } ) {
@@ -144,8 +144,13 @@ sub buildGraphics : Path {
   } else {
     $c->stash->{template} = 'components/allArchitectures.tt';
   }
+  
+  # cache the page (fragment) for one week
+  $c->cache_page( 604800 );
 }
 
+#-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 calculateRange : Private
