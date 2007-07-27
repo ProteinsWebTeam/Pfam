@@ -5,7 +5,7 @@
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.1 2007-06-28 13:28:47 jt6 Exp $
+# $Id: speciesTree.tt,v 1.2 2007-07-27 10:51:37 jt6 Exp $
 
 META naked = 1;
 
@@ -91,7 +91,7 @@ IF rawTree;
   
     # this tree is just too big to do anything with; all done %] 
     <p>
-      This [% SWITCH type;
+      This [% SWITCH entryType;
         CASE "A"; "family";
         CASE "B"; "Pfam-B";
         CASE "C"; "clan";
@@ -106,7 +106,7 @@ IF rawTree;
     # this tree is too big to render as an interactive tree, but we can still
     # generate a text representation %]
     <p>
-      This [% SWITCH type;
+      This [% SWITCH entryType;
         CASE "A"; "family";
         CASE "B"; "Pfam-B";
         CASE "C"; "clan";
@@ -122,7 +122,7 @@ IF rawTree;
     # this tree is pretty big, but we can still have a stab at generating
     # the interactive tree if the user asks for it %]
     <p>
-      This [% SWITCH type;
+      This [% SWITCH entryType;
         CASE "A"; "family";
         CASE "B"; "Pfam-B";
         CASE "C"; "clan";
