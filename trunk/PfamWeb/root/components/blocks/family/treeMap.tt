@@ -4,30 +4,23 @@
 #
 # format the image map for the species tree
 #
-# $Id: treeMap.tt,v 1.2 2006-09-22 10:36:16 jt6 Exp $
+# $Id: treeMap.tt,v 1.3 2007-07-27 10:59:09 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
-%]
 
-[%# url for uniprot: http://www.ebi.uniprot.org/uniprot-srv/uniProtView.do?proteinId=acc %]
+-%]
 
-[% CALL c.log.debug( "generating image map..." ) -%]
-
-<img src="[% c.uri_for( "/gettreeimage", 
-                        { acc  => pfam.pfamA_acc,
-                          type => type } ) %]"
+<img src="[% base %]family/tree/image?acc=[% acc %]&amp;alnType=[% alnType %]" 
      usemap="#nhxmap" />
 
 <map name="nhxmap">
-[% FOREACH node IN tree.node_array -%]
-  [% matches = node.N.match( '^(.*?)\/\d+-\d+$' ) -%]
-  <!-- include when we have some information to add here... 
-  <area coords="[% node.node_area.join( "," ) %]" title="node" />
-  -->
-  [% IF node.area AND matches.0 -%]
-  <area coords="[% node.area.join( "," ) %]" href="[% c.uri_for( "/protein", id=matches.0 ) %]" />
-  [% END -%]
-[% END -%]
+[% FOREACH node IN tree.node_array;
+  matches = node.N.match( '^(.*?)\/\d+-\d+$' );
+  IF node.area AND matches.0 -%]
+  <area coords="[% node.area.join( "," ) %]" 
+        href="[% base %]protein?id=[% matches.0 %]" />
+  [% END;
+END -%]
 </map>
 
