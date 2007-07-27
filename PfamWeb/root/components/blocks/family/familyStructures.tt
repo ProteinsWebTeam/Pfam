@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.9 2007-06-29 14:45:42 jt6 Exp $
+# $Id: familyStructures.tt,v 1.10 2007-07-27 13:46:50 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -95,7 +95,8 @@ tips = {};
       pdbImageSubmitter = function() {
         new Ajax.Updater( 'siph', 
                           '[% base %]family/structures', 
-                          { parameters: { acc:  '[% pfam.pfamA_acc %]',
+                          { method:     'get',
+                            parameters: { acc:  '[% pfam.pfamA_acc %]',
                                           pdbId: $F("pdbIdField") } }
                         );
       };

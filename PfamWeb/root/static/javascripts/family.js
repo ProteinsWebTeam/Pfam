@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.20 2007-07-27 10:52:25 jt6 Exp $
+// $Id: family.js,v 1.21 2007-07-27 13:47:34 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -170,8 +170,9 @@ function generateAlignment( page ) {
   // submit the form
   new Ajax.Updater( "caph",
                     loadOptions.ca.uri, 
-                    {   parameters:  params,
-                        evalScripts: true
+                    { method:      'get', 
+                      parameters:  params,
+                      evalScripts: true
                     }
                   );
 
