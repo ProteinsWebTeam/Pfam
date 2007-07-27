@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.13 2007-06-28 12:14:16 jt6 Exp $
+# $Id: domains.tt,v 1.14 2007-07-27 13:14:08 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -88,7 +88,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 <script type="text/javascript">
   // <![CDATA[
   loadOptions.dg.uri    = "[% base %]domaingraphics";
-  loadOptions.dg.params = "acc=[% pfam.pfamA_acc %]";
+  loadOptions.dg.params = "acc=[% acc %]";
   // ]]>
 </script>
 
