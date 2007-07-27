@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.19 2007-07-26 14:58:54 jt6 Exp $
+// $Id: family.js,v 1.20 2007-07-27 10:52:25 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -111,22 +111,26 @@ function dgFailure() {
 // callbacks for the alignment tree generation call
 
 function atSuccess( oResponse ) {
+  console.debug( "atSuccess: successfully generated a tree..." );
   Element.update( $("alignmentTree"), oResponse.responseText );
 }
 
 function atFailure() {
   var p = $("atph");
 
-  // if a previous update succeeds, the "atph" should have
+  // if a previous update succeeded, the "atph" should have
   // disappeared. We need to re-create it before trying to update it
   // with an error message...
   if( ! p ) {
-  p = document.createElement( "p" );
-  p.id = "atph";
-  var parent = $("alignmentTree");
-  parent.insertBefore( p, parent.firstChild );
+    p = document.createElement( "p" );
+    p.id = "atph";
+    var parent = $("alignmentTree");
+    parent.insertBefore( p, parent.firstChild );
   }
-  Element.update( $("atph"), "Alignment tree loading failed." );
+  $("alignmentTree").update( "Alignment tree loading failed." );
+
+  // disable the form now, otherwise we'll end up chasing our tail...
+  $('phyloForm').disable();
 }
 
 //------------------------------------------------------------
