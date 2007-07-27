@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.11 2007-06-29 14:45:42 jt6 Exp $
+# $Id: phylo.tt,v 1.12 2007-07-27 10:57:56 jt6 Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -20,7 +20,8 @@
       quicktree, for the given alignment.
     </p> 
     [% # the form that controls the tree display %]
-    <form action="[% base %]gettreemap">
+    <form id="phyloForm"
+          action="[% base %]family/tree">
       <div>
         <span>
           <input id="seedRb" 
@@ -43,37 +44,39 @@
       </div>
     </form>
 
-    <script type="text/javascript">
-      // <![CDATA[
-      treeSubmitter = function() {
-        var type = $("seedRb").checked ? "seed" : "full";
-        new Ajax.Updater( 'alignmentTree', 
-                          '[% base %]gettreemap', 
-                          { parameters: { acc:  '[% pfam.pfamA_acc %]',
-                                          type: type } }
-                        );
-      };
-      // ]]>
-    </script>
-
     <div id="alignmentTree">
       <p id="atph" class="loading">
           Loading alignment tree...
         </p>  
     </div>
 
-    [%# set the options for the ajax call that populates the tree the first time -%]
     <script type="text/javascript">
       // <![CDATA[
-      loadOptions.at.uri    = "[% base %]gettreemap";
-      loadOptions.at.params = "acc=[% pfam.pfamA_acc %]";
+      // set the options for the ajax call that populates the tree the first time
+      loadOptions.at.uri    = "[% base %]family/tree";
+      loadOptions.at.params = "acc=[% acc %]";
+
+      // a function that submits subsequent requests 
+      treeSubmitter = function() {
+        var type = $("seedRb").checked ? "seed" : "full";
+        new Ajax.Updater( 'alignmentTree', 
+                          '[% base %]family/tree', 
+                          {
+                            parameters: { acc:     '[% acc %]',
+                                          alnType: type } 
+                          }
+                        );
+        return false;
+      };
       // ]]>
     </script>
-    
-    <p><strong>Note:</strong> You can also download the data files for the
+
+    <p>
+      <strong>Note:</strong> You can also download the data files for the
       <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
       <a href="[% constants.treeURLRoot %]/full/[% pfam.pfamA_acc %].tree">full</a> 
-        trees.</p>
+        trees.
+    </p>
 
   </div>
 </div>
