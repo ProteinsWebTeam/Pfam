@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.11 2007-06-08 13:27:38 jt6 Exp $
+# $Id: Annotate.pm,v 1.12 2007-07-27 15:25:56 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.11 2007-06-08 13:27:38 jt6 Exp $
+$Id: Annotate.pm,v 1.12 2007-07-27 15:25:56 jt6 Exp $
 
 =cut
 
@@ -111,15 +111,17 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
+#- visible actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-=head2 index : Private
+=head2 annotate : Path
 
 The main entry point for the annotation form. Builds the form widget
 and hands straight off to the template.
 
 =cut
 
-sub default : Private {
+sub annotate : Path {
   my( $this, $c ) = @_;
 
   # create the widget
@@ -130,6 +132,11 @@ sub default : Private {
   $c->stash->{widget}    = $w->result;
   $c->stash->{buildForm} = 1;
   $c->stash->{template}  = 'pages/annotation.tt';
+
+  # cache the annotation form for two weeks. We should be able to cache the
+  # raw form safely, because the JS in it will still fire to retrieve the
+  # time stamp. As long as we don't cache that, we should be fine !
+  $c->cache_page( 1209600 );
 }
 
 #-------------------------------------------------------------------------------
@@ -259,6 +266,8 @@ sub checkInput : Local {
   $c->stash->{template}  = 'pages/annotation.tt';
 }
 
+#-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 checkTimeOut : Private
