@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.13 2007-07-16 09:55:41 jt6 Exp $
+# $Id: Section.pm,v 1.14 2007-07-30 12:38:21 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.13 2007-07-16 09:55:41 jt6 Exp $
+$Id: Section.pm,v 1.14 2007-07-30 12:38:21 jt6 Exp $
 
 =cut
 
@@ -55,7 +55,7 @@ sub default : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 end : Private
+=head2 end : ActionClass
 
 Hands off to the tab layout template or catches any errors that were
 generated earlier
