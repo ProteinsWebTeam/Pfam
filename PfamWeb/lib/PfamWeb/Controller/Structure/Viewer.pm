@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.8 2007-06-28 13:33:33 jt6 Exp $
+# $Id: Viewer.pm,v 1.9 2007-07-30 12:39:42 jt6 Exp $
 
 =head1 NAME
 
@@ -20,14 +20,14 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.8 2007-06-28 13:33:33 jt6 Exp $
+$Id: Viewer.pm,v 1.9 2007-07-30 12:39:42 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Structure";
+use base 'PfamWeb::Controller::Structure';
 
 #-------------------------------------------------------------------------------
 
@@ -43,78 +43,76 @@ the stash
 sub auto : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Viewer::auto: is there a PDB object in the stash ?" );
+  $c->log->debug( 'Viewer::auto: is there a PDB object in the stash ?' );
 
   return 0 unless defined $c->stash->{pdb};
 
   # we need the mapping from structure-to-UniProt
-  $c->forward( "addMapping" );
+  $c->forward( 'addMapping' );
 
   # get the markup for this entry
   my %seenChainAutoPfamseq;
   my( @allMarkups, $ap, $chain );
   foreach my $map ( @{$c->stash->{mapping}}  ) {
 
-	# all this crap is to avoid warnings when we try to build a hash
-	# key using a chain ID that is not defined...
-	$ap    = ( defined $map->auto_pfamseq ) ? $map->auto_pfamseq : "";
-	$chain = ( defined $map->chain ) ? $map->chain : "";
-
-	$c->log->debug( "Viewer::auto: auto_pfamseq, chain: |$ap|$chain|" );
-
-	next if $seenChainAutoPfamseq{$ap.$chain};
-#  	my @markups = $c->model("PfamDB::Pfamseq_markup")
-# 	  ->search(
-# 			   { "pdbResidue.auto_pfamseq" => $map->auto_pfamseq,
-# 				 "pdbResidue.chain"        => $map->chain,
-# 				 "pdbResidue.auto_pdb"     => $c->stash->{pdb}->auto_pdb },
-# 			   { join     => [qw/pdbResidue/],
-# 				 prefetch => [qw/pdbResidue/] }
-# 			  );
-
-	$c->log->debug( "Viewer::auto: about to do query; DBIC_TRACE = |".$ENV{DBIC_TRACE}."|" );
-
- 	my @markups = $c->model("PfamDB::Pdb_residue")
-	  ->search( { "pfamseqMarkup.auto_pfamseq" => $map->auto_pfamseq,
-				  chain                        => $map->chain,
-				  auto_pdb                     => $c->stash->{pdb}->auto_pdb },
-				{ join                         => [ qw/pfamseqMarkup/ ],
-				 prefetch                      => [ qw/pfamseqMarkup/ ] } );
-	$c->log->debug( "Viewer::auto: found " . scalar @markups . " markups for mapping to "
-					. $map->auto_pfamseq );
-
-	$seenChainAutoPfamseq{$ap.$chain}++;
-	push @allMarkups, @markups;
+    # all this crap is to avoid warnings when we try to build a hash
+    # key using a chain ID that is not defined...
+    $ap    = ( defined $map->auto_pfamseq ) ? $map->auto_pfamseq : '';
+    $chain = ( defined $map->chain ) ? $map->chain : '';
+  
+    $c->log->debug( "Viewer::auto: auto_pfamseq, chain: |$ap|$chain|" );
+  
+    next if $seenChainAutoPfamseq{$ap.$chain};
+#    my @markups = $c->model("PfamDB::Pfamseq_markup")
+#     ->search(
+#          { "pdbResidue.auto_pfamseq" => $map->auto_pfamseq,
+#          "pdbResidue.chain"        => $map->chain,
+#          "pdbResidue.auto_pdb"     => $c->stash->{pdb}->auto_pdb },
+#          { join     => [qw/pdbResidue/],
+#          prefetch => [qw/pdbResidue/] }
+#         );
+  
+     my @markups = $c->model('PfamDB::Pdb_residue')
+                    ->search( { 'pfamseqMarkup.auto_pfamseq' => $map->auto_pfamseq,
+                                chain                        => $map->chain,
+                                auto_pdb                     => $c->stash->{pdb}->auto_pdb },
+                              { join                         => [ qw( pfamseqMarkup ) ],
+                               prefetch                      => [ qw( pfamseqMarkup ) ] } );
+    $c->log->debug( 'Viewer::auto: found ' . scalar @markups
+                    . ' markups for mapping to ' . $map->auto_pfamseq );
+  
+    $seenChainAutoPfamseq{$ap.$chain}++;
+    push @allMarkups, @markups;
   }
 
   $c->stash->{markups} = \@allMarkups;
 
-  if( defined $c->req->param("viewer") ) {
-	$c->req->param("viewer") =~ m/^(av|jmol)$/i;
-	$c->stash->{viewer} = $1 if defined $1;
+  if( defined $c->req->param('viewer') ) {
+    $c->req->param('viewer') =~ m/^(av|jmol)$/i;
+    $c->stash->{viewer} = $1 if defined $1;
   }
 
   # default to jmol
-  $c->stash->{viewer} ||= "jmol";
+  $c->stash->{viewer} ||= 'jmol';
 
   return 1;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 default : Private
+=head2 viewer : Path
 
 Picks up a URL like http://localhost:3000/structure/viewer?id=1abc
 
 =cut
 
-sub default : Private {
+sub viewer : Path {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "showing " . $c->stash->{viewer}
-				  . " for entry " . $c->stash->{pdbId} );
+  $c->log->debug( 'Structure::Viewer::viewer: showing ' . $c->stash->{viewer}
+                  . ' for entry ' . $c->stash->{pdbId} );
 
-  $c->stash->{template} = "components/tools/" . $c->stash->{viewer} . ".tt";
+  $c->stash->{template} = 'components/tools/' . $c->stash->{viewer} . '.tt';
 }
 
 #-------------------------------------------------------------------------------
