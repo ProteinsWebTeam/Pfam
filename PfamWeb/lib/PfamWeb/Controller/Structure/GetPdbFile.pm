@@ -2,7 +2,7 @@
 # GetPdbFile.pm
 # jt6 20060731 WTSI
 #
-# $Id: GetPdbFile.pm,v 1.5 2007-06-28 13:33:33 jt6 Exp $
+# $Id: GetPdbFile.pm,v 1.6 2007-07-30 12:39:12 jt6 Exp $
 
 =head1 NAME
 
@@ -21,56 +21,56 @@ extract the PDB ID from the URL.
 
 Generates a B<flat file>, MIME type C<chemical/x-pdb>.
 
-$Id: GetPdbFile.pm,v 1.5 2007-06-28 13:33:33 jt6 Exp $
+$Id: GetPdbFile.pm,v 1.6 2007-07-30 12:39:12 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Structure";
+use LWP::Simple;
+
+use base 'PfamWeb::Controller::Structure';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 getPdbFile : Path
 
-Pick up http://localhost:3000/structure/getpdbfile?id=1abc and similar
-URLs. Retrieves the file from the model. Currently the model uses the
-WTSI pfetch server only.
+Returns the contents of the PDB file for the specified PDB entry. The PDB
+entry can be specified in various ways. See L<begin> for details.
 
 =cut
 
-sub default : Private {
+sub getPdbFile : Path {
   my( $this, $c, $pdbId ) = @_;
 
   return unless defined $c->stash->{pdbId};
 
-  $c->stash->{pdbFile} = 
-    $c->model( "Pfetch" )->retrieve( { "--pdb" => $c->stash->{pdbId} } );
+  my $cacheKey = 'pdb' . $c->stash->{pdbId};
 
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Push the file to the response
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  # don't try to render a page unless there's a Pdb object in the stash
-  return 0 unless defined $c->stash->{pdbFile};
-
-  $c->res->content_type( "chemical/x-pdb" );
-  foreach ( @{$c->stash->{pdbFile}} ) {
-	$c->res->write( $_ );
+  my $pdbFile;
+  if( $pdbFile = $c->cache->get( $cacheKey ) ) {
+    $c->log->debug( 'Structure::GetPdbFile::getPdbFile: retrieved |'
+                    . $c->stash->{pdbId} . '| from cache' ); 
+  } else {
+    $c->log->debug( 'Structure::GetPdbFile::getPdbFile: retrieving |'
+                    . $c->stash->{pdbId} . '| from remote site' ); 
+  
+    my $url = $this->{pdbFileUrl} . 'pdb' . $c->stash->{pdbId} . '.ent';
+    $c->log->debug( "Structure::GetPdbFile::getPdbFile: looking for file at: |$url|" );
+  
+    $pdbFile = get( $url );
+    $c->cache->set( $cacheKey, $pdbFile );
   }
+  
+  return unless defined $pdbFile;
 
+  my $filename = 'pdb' . $c->stash->{pdbId} . '.ent';
+  $c->res->headers->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->content_type( 'chemical/x-pdb' );
+  $c->res->body( $pdbFile );
 }
 
 #-------------------------------------------------------------------------------
