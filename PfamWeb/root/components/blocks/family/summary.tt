@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.24 2007-07-20 09:08:16 jt6 Exp $
+# $Id: summary.tt,v 1.25 2007-07-31 13:08:11 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -74,7 +74,7 @@ requirements.js.push( "family.js" );
       [% FOREACH ref IN pfam.pfamA_lit_refs %]
         <li>
           [% ref.author %], [% ref.journal %]: [% ref.title %]
-          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">PUBMED:[% ref.medline %]</a>
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">PUBMED:[% ref.pmid %]</a>
         </li>
       [% END %]
       </ol>

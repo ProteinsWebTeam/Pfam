@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.10 2007-07-23 14:35:12 jt6 Exp $
+# $Id: summary.tt,v 1.11 2007-07-31 13:08:00 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -69,7 +69,7 @@ END;
       [% FOREACH ref IN clan.clan_lit_refs %]
         <li>
           [% ref.author %], [% ref.journal %]: [% ref.title %]
-          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.medline %]">[% ref.medline %]</a>
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">[% ref.pmid %]</a>
         </li>
       [% END %]
     </ol>
