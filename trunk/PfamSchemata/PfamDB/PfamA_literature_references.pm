@@ -1,5 +1,5 @@
 
-# $Id: PfamA_literature_references.pm,v 1.4 2007-03-16 11:25:17 jt6 Exp $
+# $Id: PfamA_literature_references.pm,v 1.5 2007-07-31 13:07:00 jt6 Exp $
 #
 # $Author: jt6 $
 package PfamDB::PfamA_literature_references;
@@ -27,7 +27,7 @@ __PACKAGE__->has_one( "pfamA" => "PfamDB::Pfam",
 
 __PACKAGE__->has_one( "literature" => "PfamDB::Literature_references",
 		       {"foreign.auto_lit"  => "self.auto_lit"},
-		       {proxy => [qw/medline title author journal/]});
+		       {proxy => [qw/medline pmid title author journal/]});
 
 
 =head1 COPYRIGHT
