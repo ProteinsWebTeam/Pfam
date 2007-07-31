@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: Sequence.pm,v 1.2 2007-07-31 12:53:01 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+$Id: Sequence.pm,v 1.2 2007-07-31 12:53:01 jt6 Exp $
 
 =cut
 
@@ -135,30 +135,30 @@ sub checkStatus : Local {
   }
 
   # job ID appears to be valid; try querying for the status of that job
-  my $jobStatus = $c->model( 'WebUser::JobHistory' )
-                    ->find( { job_id => $jobId } );
+  my $jobHistory = $c->model( 'WebUser::JobHistory' )
+                     ->find( { job_id => $jobId } );
 
   # make sure the query returned *something*
-  if( not defined $jobStatus ) {
+  if( not defined $jobHistory ) {
     $c->log->debug( "Search::Sequence::checkStatus: problem retrieving job status for job |$jobId|" );
     $c->stash->{status}->{error} = 'Could not retrieve job status';
     $c->detach( 'returnStatus' );
   }
 
   # finally, check the real status 
-  if( $jobStatus->status eq 'PEND' ) {
+  if( $jobHistory->status eq 'PEND' ) {
     $c->log->debug( 'Search::Sequence::checkStatus: job is pending' );
     $c->stash->{status}->{status} = 'PEND';
 
-  } elsif( $jobStatus->status eq 'RUN' ) {
+  } elsif( $jobHistory->status eq 'RUN' ) {
     $c->log->debug( 'Search::Sequence::checkStatus: job is running' );
     $c->stash->{status}->{status} = 'RUN';
 
-  } elsif( $jobStatus->status eq 'DONE' ) {
+  } elsif( $jobHistory->status eq 'DONE' ) {
     $c->log->debug( 'Search::Sequence::checkStatus: job is done' );
     $c->stash->{status}->{status} = 'DONE';
 
-  } elsif( $jobStatus->status eq 'FAIL' ) {
+  } elsif( $jobHistory->status eq 'FAIL' ) {
     $c->log->debug( 'Search::Sequence::checkStatus: job failed' );
     $c->stash->{status}->{status} = 'FAIL';
 
@@ -167,15 +167,15 @@ sub checkStatus : Local {
     $c->stash->{status}->{status} = 'UNKNOWN';
   }
 
-#  $c->log->debug( 'Search::Sequence::checkStatus: opened:  |' . $jobStatus->opened .'|' );
-#  $c->log->debug( 'Search::Sequence::checkStatus: started: |' . $jobStatus->started .'|' );
-#  $c->log->debug( 'Search::Sequence::checkStatus: closed:  |' . $jobStatus->closed .'|' );
+#  $c->log->debug( 'Search::Sequence::checkStatus: opened:  |' . $jobHistory->opened .'|' );
+#  $c->log->debug( 'Search::Sequence::checkStatus: started: |' . $jobHistory->started .'|' );
+#  $c->log->debug( 'Search::Sequence::checkStatus: closed:  |' . $jobHistory->closed .'|' );
 
   # see how many jobs are pending
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->search( { status => 'PEND',
-                         id     => { '<',  $jobStatus->id },
-                         job_id => { 'not like', $jobStatus->job_id } },
+                         id     => { '<',        $jobHistory->id },
+                         job_id => { 'not like', $jobHistory->job_id } },
                        { select => [
                                      { count => 'id' },
                                      { sum   => 'estimated_time' }
@@ -191,9 +191,9 @@ sub checkStatus : Local {
                   $c->stash->{status}->{waitTime} . '|' );
 
   # add the times to the response
-  $c->stash->{status}->{opened}  = $jobStatus->opened;
-  $c->stash->{status}->{started} = $jobStatus->started;
-  $c->stash->{status}->{closed}  = $jobStatus->closed;
+  $c->stash->{status}->{opened}  = $jobHistory->opened;
+  $c->stash->{status}->{started} = $jobHistory->started;
+  $c->stash->{status}->{closed}  = $jobHistory->closed;
 
   # and hand back that status
   $c->forward( 'returnStatus' );
@@ -309,21 +309,21 @@ sub queuePfamA : Private {
   $cmd .= qq( /tmp/$jobId.fa);
 
   # add this job to the tracking table
-  my $resultHistory = $c->model('WebUser::JobHistory')
-                        ->create( { command        => $cmd,
-                                    priority       => 'hmmer',
-                                    estimated_time => $estimatedTime,
-                                    job_id         => $jobId,
-                                    opened         => \'NOW()',
-                                    status         => 'PEND' } );
+  my $jobHistory = $c->model('WebUser::JobHistory')
+                     ->create( { command        => $cmd,
+                                 priority       => 'hmmer',
+                                 estimated_time => $estimatedTime,
+                                 job_id         => $jobId,
+                                 opened         => \'NOW()',
+                                 status         => 'PEND' } );
 
-  my $resultStream = $c->model('WebUser::JobStream')
-                       ->create( { id    => $resultHistory->id,
-                                   stdin => $c->stash->{seq} || q() } );
+  my $jobStream = $c->model('WebUser::JobStream')
+                    ->create( { id    => $jobHistory->id,
+                                stdin => $c->stash->{seq} || q() } );
 
   # check the submission time with a separate query
   my $historyRow = $c->model( 'WebUser::JobHistory' )
-                     ->find( { id => $resultHistory->id } );
+                     ->find( { id => $jobHistory->id } );
 
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
@@ -373,7 +373,7 @@ sub queuePfamB : Private {
                                     opened         => \'NOW()',
                                     status         => 'PEND' } );
 
-  my $resultStream = $c->model('WebUser::JobStream')
+  my $jobStream = $c->model('WebUser::JobStream')
                        ->create( { id    => $resultHistory->id,
                                    stdin => $c->stash->{seq} || q() } );
 
