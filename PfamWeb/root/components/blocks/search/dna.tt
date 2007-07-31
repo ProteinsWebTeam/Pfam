@@ -5,7 +5,20 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: dna.tt,v 1.2 2007-07-31 22:02:16 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# using styles from the help pages, plus the common styles for forms
+requirements.css.push( "help.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+
 %]
 
 <!-- start dna search block -->
@@ -16,12 +29,71 @@
   </div>
   <div class="blockContent">
 
-  	<p>
-  	  This search tool is under review and may not be implemented in this 
-      release of the Pfam website.
-    </p>
+    [% IF dnaSearchError %]
+    <div class="error">
+      <h2>Error</h2>
+      [% dnaSearchError %]
+    </div>
+    [% END %]
+
+    <div class="formWrapper">
+
+      <form method="post" 
+            id="dnaSeqSearchForm"
+            action="[% base %]search/dna"
+            enctype="multipart/form-data">
+  
+        <div class="row">
+          <label for="seq">Sequence</label>
+          <textarea cols="60" rows="10" name="seq" id="dnaSeq"></textarea>
+        </div>
+  
+          <div class="row">
+            <label for="dEmail">Email address</label>
+            <input type="text" size="20" maxlength="100" name="email" id="dEmail" />
+          </div>
+    
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit" 
+                 type="submit" 
+                 name="submit" 
+                 value="Submit"
+                 onclick="if( ! $('dnaSeq').present() ){return false}"/>
+          <input class="reset"
+                 type="reset"
+                 name="reset"
+                 value="Reset" />
+          <input class="example" 
+                 type="button"
+                 value="Example" 
+                 onclick="$('dnaSeq').value=exDNASeq" />
+        </div>
+  
+      </form>
+
+    </div>
   
   </div>
 </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var exDNASeq = "GCTCACAGCTGTGTCCTCCCCACCCCCTGGGACCACAAAGCTCCACCCCT\n\
+GCCACCCCCTGACATCCTCAAGCCAAGGAGCCTGACCCAGGGCTCAGGGT\n\
+GGGGTCACAAACCTGGGGGGGGTCTGATTTGCATGGATGGACTCTCCCCC\n\
+TCTCAGAGTATGAAGAAAGGGAGAGATTTGGGGGAAGCTCAGCTTCAGCT\n\
+GCGGGTAGAGAAGACAGGACTCAGGACAATCTCCAGCATGGCCTGGTCCC\n\
+CTCTCTTCCTCACCCTCATCACTCACTGTGCAGGGTCCTGGGCCCAGTCT\n\
+GTGCTGACTCAGCCACCCTCGGTGTCTGAAGCCCCCAGGCAGAGGGTCAC\n\
+CATCTCCTGTTCTGGAAGCAGCTCCAACATCGGAAATAATGCTGTAAACT\n\
+GGTACCAGCAGCTCCCAGGAAAGGCTCCCAAACTCCTCATCTATTATGAT\n\
+GATCTGCTGCCCTCAGGGGTCTCTGACCGATTCTCTGGCTCCAAGTCTGG\n\
+CACCTCAGCCTCCCTGGCCATCAGTGGGCTCCAGTCTGAGGATGAGGCTG\n\
+ATTATTACTGTGCAGCATGGGATGACAGCCTGAATGGTCCCACAGTGCTC\n\
+CAGGCCCAGGGGGAACAGAGACAAGAACCCCCTTCCTTTTCTGCCAGGAG\n\
+GTATAATGTTGACTATGGGTTTGAAAGAGTGGGCTTTTCTTACCATAAG";
+  // ]]>
+</script>
 
 <!-- end dna search block -->
