@@ -4,7 +4,7 @@
 #
 # Model for the job_history table.
 #
-# $Id: JobHistory.pm,v 1.2 2007-05-01 21:27:04 jt6 Exp $
+# $Id: JobHistory.pm,v 1.3 2007-07-31 12:53:17 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -13,34 +13,37 @@ package WebUser::JobHistory;
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( qw( Core ) );
 
 # set up the table
-__PACKAGE__->table( "job_history" );
+__PACKAGE__->table( 'job_history' );
 
 # get the columns that we want to keep
-__PACKAGE__->add_columns( qw/ id
-							  job_id
-							  status
-							  command
-							  priority
-							  estimated_time
-							  opened
-							  closed
-							  started/);
+__PACKAGE__->add_columns( qw( id
+                              job_id
+                              status
+                              command
+                              priority
+                              estimated_time
+                              opened
+                              closed
+                              started
+                              email )
+                        );
 
 # set up the primary keys/contraints
 __PACKAGE__->set_primary_key( "id" );
 
 # relationships
 
-__PACKAGE__->has_one( job_stream => "WebUser::JobStream",
-					  { "foreign.id" => "self.id"},
-					  { proxy            => [ qw/ stdin
-												  stdout
-												  stderr / ] } );
+__PACKAGE__->has_one( job_stream => 'WebUser::JobStream',
+                      { 'foreign.id' => 'self.id' },
+                      { proxy            => [ qw( stdin
+                                                  stdout
+                                                  stderr ) ] }
+                    );
 
 =head1 COPYRIGHT
 
