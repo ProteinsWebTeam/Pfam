@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.2 2007-07-31 12:53:01 jt6 Exp $
+# $Id: Sequence.pm,v 1.3 2007-07-31 22:01:00 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.2 2007-07-31 12:53:01 jt6 Exp $
+$Id: Sequence.pm,v 1.3 2007-07-31 22:01:00 jt6 Exp $
 
 =cut
 
@@ -173,14 +173,15 @@ sub checkStatus : Local {
 
   # see how many jobs are pending
   my $rs = $c->model( 'WebUser::JobHistory' )
-             ->search( { status => 'PEND',
-                         id     => { '<',        $jobHistory->id },
-                         job_id => { 'not like', $jobHistory->job_id } },
-                       { select => [
-                                     { count => 'id' },
-                                     { sum   => 'estimated_time' }
-                                   ],
-                         as     => [ qw( num wait ) ] }
+             ->search( { status   => 'PEND',
+                         priority => $jobHistory->priority,
+                         id       => { '<',        $jobHistory->id },
+                         job_id   => { 'not like', $jobHistory->job_id } },
+                       { select   => [
+                                       { count => 'id' },
+                                       { sum   => 'estimated_time' }
+                                     ],
+                         as       => [ qw( num wait ) ] }
                      );
   $c->stash->{status}->{numPending} = $rs->first()->get_column( 'num' );
   $c->stash->{status}->{waitTime}   = $rs->first()->get_column( 'wait' ) || 0;
