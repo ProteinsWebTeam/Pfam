@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.12 2007-07-27 15:25:56 jt6 Exp $
+# $Id: Annotate.pm,v 1.13 2007-07-31 12:52:17 jt6 Exp $
 
 =head1 NAME
 
@@ -16,19 +16,19 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.12 2007-07-27 15:25:56 jt6 Exp $
+$Id: Annotate.pm,v 1.13 2007-07-31 12:52:17 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "Catalyst::Controller";
+use base 'Catalyst::Controller';
 
 use PfamWeb::CustomContainer;
 use HTML::Widget::Element;
 use IO::All;
-use Digest::MD5 qw/ md5_hex /;
+use Digest::MD5 qw( md5_hex );
 
 # constants to encode the result of checking the form submission for tampering
 # and timeouts, etc.
@@ -43,7 +43,7 @@ use constant SUBMISSION_EMAIL_FAILED => 6;
 # set a custom container for the HTML::Widget form, to make it a wee bit 
 # easier to style
 BEGIN {
-  HTML::Widget::Element->container_class( "PfamWeb::CustomContainer" );
+  HTML::Widget::Element->container_class( 'PfamWeb::CustomContainer' );
 }
 
 #-------------------------------------------------------------------------------
@@ -184,7 +184,7 @@ sub getTs : Local {
 
 #-------------------------------------------------------------------------------
 
-=head2 checkInput : Local
+=head2 submit : Local
 
 Validates the input from the annotation form. Returns to the
 annotation form if there were problems or forwards to the method that
@@ -192,7 +192,7 @@ sends an email.
 
 =cut
 
-sub checkInput : Local {
+sub submit : Local {
   my( $this, $c ) = @_;
 
   # create the widget again
@@ -209,7 +209,7 @@ sub checkInput : Local {
   # on, we don't care what the input was  
   if( $submissionFault ) {
 
-    $c->log->debug( 'Annotate::checkInput: fault with form submission' );
+    $c->log->debug( 'Annotate::submit: fault with form submission' );
 
     # drop the widget into the stash, along with the status value from the 
     # form submission check. That will be interpreted by the template, which
@@ -222,14 +222,14 @@ sub checkInput : Local {
     # the input parameters
 
     if ( $r->has_errors ) {
-      $c->log->debug( 'Annotate::checkInput: there were validation errors' );
+      $c->log->debug( 'Annotate::submit: there were validation errors' );
 
       # drop the widget into the stash, along with the status flag
       $c->stash->{widget} = $r;
       $c->stash->{submissionError} = SUBMISSION_INVALID;
 
     } else {
-      $c->log->debug( 'Annotate::checkInput: no errors in the user input' );
+      $c->log->debug( 'Annotate::submit: no errors in the user input' );
 
       # the input parameters validated, so send an email
       my $mailErrors = $c->forward( 'sendMail' );
@@ -239,7 +239,7 @@ sub checkInput : Local {
         $c->stash->{widget} = $r;
         $c->stash->{submissionError} = SUBMISSION_EMAIL_FAILED;
       } else {
-        $c->log->debug( "Annotate::checkInput: submission was valid" );
+        $c->log->debug( "Annotate::submit: submission was valid" );
       
         # finally, if we got to here, it worked !
         $c->stash->{submissionError} = SUBMISSION_VALID;
@@ -433,7 +433,7 @@ sub buildForm : Private {
   $w->subcontainer( 'div' );
 
   # set the action - always the same for the annotation form
-  $w->action( $c->uri_for( 'checkInput' ) );
+  $w->action( $c->uri_for( 'submit' ) );
 
   #----------------------------------------
   # add the form fields
