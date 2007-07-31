@@ -2,11 +2,11 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.2 2007-07-31 12:52:47 jt6 Exp $
+# $Id: Batch.pm,v 1.3 2007-07-31 22:00:07 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Search::Batch - perform batch sequence searches
+PfamWeb::Controller::Search::Batch - perform protein sequence batch searches
 
 =cut
 
@@ -14,9 +14,11 @@ package PfamWeb::Controller::Search::Batch;
 
 =head1 DESCRIPTION
 
-This controller is responsible for running batch sequence searches.
+This controller is responsible for running batch searches for protein sequences.
+It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
+care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.2 2007-07-31 12:52:47 jt6 Exp $
+$Id: Batch.pm,v 1.3 2007-07-31 22:00:07 jt6 Exp $
 
 =cut
 
@@ -26,7 +28,7 @@ use warnings;
 use Scalar::Util qw( looks_like_number );
 use Email::Valid;
 
-use base 'PfamWeb::Controller::Search';
+use base 'PfamWeb::Controller::Search::BatchSearch';
 
 #-------------------------------------------------------------------------------
 
@@ -34,7 +36,7 @@ use base 'PfamWeb::Controller::Search';
 
 =head2 search : Path
 
-Executes a batch search. 
+Executes a protein sequence batch search. 
 
 =cut
 
@@ -43,17 +45,39 @@ sub search : Path {
 
   # validate the input
   $c->forward( 'validateInput' );
-  return if $c->stash->{batchSearchError};
+  if( $c->stash->{searchError} ) {
+    $c->stash->{batchSearchError } = $c->stash->{searchError};
+    return;
+  }
 
-  # submit the search
+  # build the command to run
+  my $cmd;
+  $cmd  =  q(pfam_scan.pl -pvm -align -d ) . $this->{blastDb};
+  $cmd .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and 
+                                                    $c->stash->{batchOpts} ne 'bothNoMerge' );
+  $cmd .=  q( --no_merge )                      if( $c->stash->{batchOpts} eq 'bothNoMerge' );
+  $cmd .=  q( -e )     . $c->stash->{evalue}    if( $c->stash->{evalue} and not $c->stash->{ga} );
+  $cmd .=  q( --overlap )                       if( $c->stash->{showOverlap} );
+  $cmd .=  q( /tmp/) . $c->stash->{jobId} . q(.fa );
+  
+  $c->stash->{cmd} = $cmd;
+
+  # set the queue
+  $c->stash->{priority} = 'batch';
+
+  # and submit the job...
   $c->forward( 'queueSearch' );
-  return if $c->stash->{batchSearchError};
+  if( $c->stash->{searchError} ) {
+    $c->stash->{batchSearchError } = $c->stash->{searchError};
+    return;
+  }
 
-  # set a refresh URI that will be picked up by head.tt and used in a 
-  # meta refresh element
+  # if we get to here then the job was submitted successfully. Before handing
+  # off to the template, set a refresh URI that will be picked up by head.tt 
+  # and used in a meta refresh element
   $c->stash->{refreshUri} = $c->uri_for( '/search' ); 
   
-  $c->log->debug( 'Search::Batch::search: batch search submitted' ); 
+  $c->log->debug( 'Search::Batch::search: protein batch search submitted' ); 
   $c->stash->{template} = 'pages/search/sequence/batchSubmitted.tt';
 }
 
@@ -63,7 +87,8 @@ sub search : Path {
 
 =head2 validateInput : Private
 
-Validate the form input.
+Validate the form input. Error messages are returned in the stash as 
+"searchError".
 
 =cut
 
@@ -72,9 +97,10 @@ sub validateInput : Private {
   
   # the sequence itself
   $c->forward( 'parseUpload' );
-  unless( $c->stash->{seqs} ) {
-    $c->stash->{batchSearchError} =
-      'No valid sequence found. Please enter a valid FASTA-format file and try again.';
+  
+  unless( $c->stash->{input} ) {
+    $c->stash->{searchError} =
+      'No valid sequence file found. Please enter a valid FASTA-format file and try again.';
 
     $c->log->debug( 'Search::Batch::search: bad FASTA file; returning to form' );
     return;
@@ -87,14 +113,14 @@ sub validateInput : Private {
             $c->stash->{batchOpts} eq 'bothNoMerge' or
             $c->stash->{batchOpts} eq 'ls' or
             $c->stash->{batchOpts} eq 'fs' ) {
-      $c->stash->{batchSearchError} = 'You must select a valid search option.';
+      $c->stash->{searchError} = 'You must select a valid search option.';
 
       $c->log->debug( 'Search::Batch::search: bad search option; returning to form' );
       return;
     }
   } else {
     $c->log->debug( 'Search::Batch::search: search options not specified; returning to form' );
-    $c->stash->{batchSearchError} = 'You must select a search option.';
+    $c->stash->{searchError} = 'You must select a search option.';
     return;
   }
 
@@ -107,7 +133,7 @@ sub validateInput : Private {
         looks_like_number( $c->req->param( 'evalue' ) ) ) {
       $c->stash->{evalue} = $c->req->param( 'evalue' );
     } else {
-      $c->stash->{batchSearchError} = 'You did not enter a valid E-value.';
+      $c->stash->{searchError} = 'You did not enter a valid E-value.';
 
       $c->log->debug( 'Search::Batch::search: bad evalue; returning to form' );
       return;
@@ -118,7 +144,8 @@ sub validateInput : Private {
   if( Email::Valid->address( -address => $c->req->param('email') ) ) {
     $c->stash->{email} = $c->req->param('email');
   } else {
-    $c->stash->{batchSearchError} = 'You did not enter a valid email address.';
+    $c->stash->{searchError} = 'You did not enter a valid email address.';
+
     $c->log->debug( 'Search::Batch::search: bad email address; returning to form' );
     return;
   }  
@@ -131,7 +158,7 @@ sub validateInput : Private {
 
 =head2 parseUpload : Attribute
 
-Parses the uploaded file.
+Parses the uploaded file and, if it's valid, copies it to the stash.
 
 =cut
 
@@ -160,81 +187,7 @@ sub parseUpload : Private {
   }
 
   # the upload passed the illegal characters test; stash it as a string
-  $c->stash->{seqs} = $seqs;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 queueSearch : Private
-
-Queues a batch search.
-
-=cut
-
-sub queueSearch : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( 'Search::Batch::queueSearch: queueing a batch search' );
-
-  # generate a job ID
-  my $jobId = Data::UUID->new()->create_str();
-
-  # build the command to run
-  my $cmd;
-  $cmd  =  q(pfam_scan.pl -pvm -align -d ) . $this->{blastDb};
-  $cmd .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and 
-                                                    $c->stash->{batchOpts} ne 'bothNoMerge' );
-  $cmd .=  q( --no_merge )                      if( $c->stash->{batchOpts} eq 'bothNoMerge' );
-  $cmd .=  q( -e )     . $c->stash->{evalue}    if( $c->stash->{evalue} and not $c->stash->{ga} );
-  $cmd .=  q( --overlap )                       if( $c->stash->{showOverlap} );
-  $cmd .= qq( /tmp/$jobId.fa);
-
-  $c->log->debug( "Search::Batch::queueSearch: using command: |$cmd|" );
-
-  # add this job to the tracking tables
-  my $jobHistory = $c->model('WebUser::JobHistory')
-                     ->create( { command        => $cmd,
-                                 priority       => 'batch',
-                                 job_id         => $jobId,
-                                 opened         => \'NOW()',
-                                 status         => 'PEND',
-                                 email          => $c->stash->{email} } );
-
-  unless( defined $jobHistory ) { 
-    $c->log->warn( q(Search::Batch::queueSearch: couldn't submit ) );
-    $c->stash->{batchSearchError} = 'There was a problem submitting your job.';
-    return;
-  }
-
-  # add the sequences file to the data table     
-  my $jobStream = $c->model('WebUser::JobStream')
-                    ->create( { id    => $jobHistory->id,
-                                stdin => $c->stash->{seqs} || q() } );
-
-  unless( defined $jobStream ) { 
-    $c->stash->{batchSearchError} = 'There was a problem submitting your job.';
-    return;
-  }
-  
-  # check the submission time with a separate query
-  my $historyRow = $c->model( 'WebUser::JobHistory' )
-                     ->find( { id => $jobHistory->id } );
-
-  # count the number of jobs in the queue before this one
-  # see how many jobs are pending
-  my $rs = $c->model( 'WebUser::JobHistory' )
-             ->search( { status => 'PEND',
-                         id     => { '<',        $jobHistory->id },
-                         job_id => { 'not like', $jobHistory->job_id } },
-                       { select => [
-                                     { count => 'id' },
-                                   ],
-                         as     => [ qw( num ) ] }
-                     );
-  $c->stash->{numPending} = $rs->first()->get_column( 'num' );
-
-  # stash the job submission time
-  $c->stash->{opened} = $historyRow->opened;
+  $c->stash->{input} = $seqs;
 }
 
 #-------------------------------------------------------------------------------
