@@ -1,0 +1,43 @@
+
+[%
+# batchSubmitted.tt
+# jt6 20070731 WTSI
+# 
+# build the page saying that a batch search has been submitted
+#
+# $Id: batchSubmitted.tt,v 1.1 2007-07-31 12:54:09 jt6 Exp $
+
+META title    = "Batch sequence search";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+#PROCESS "components/require.tt";
+
+# none
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<h1>Searching</h1>
+
+<p>
+  Thanks for using the Pfam batch search tool. Your search has been submitted 
+  to the server and your results will be emailed to you at <em>[% email %]</em>
+  when they are ready.  
+</p>
+[% IF numPending > 0 %]
+  <p>
+    There are <strong>[% numPending %]</strong> jobs ahead of yours in the 
+    batch queue.
+  </p>
+[% END %]
+<p>
+  In 5 seconds you will be redirected to the <a href="[% refreshUri %]">Pfam 
+  search page</a>, or you can click <a href="[% refreshUri %]">here</a> to go
+  there immediately.
+</p>
+
+<hr />
