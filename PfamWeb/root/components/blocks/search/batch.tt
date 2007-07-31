@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.2 2007-07-31 12:53:32 jt6 Exp $
+# $Id: batch.tt,v 1.3 2007-07-31 22:02:49 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -114,8 +114,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </div>
   
         <div class="row">
-          <label for="email">Email address</label>
-          <input type="text" size="20" maxlength="100" name="email" id="email" />
+          <label for="pEmail">Email address</label>
+          <input type="text" size="20" maxlength="100" name="email" id="pEmail" />
         </div>
   
         <div class="row">
