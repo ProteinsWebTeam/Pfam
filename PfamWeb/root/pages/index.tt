@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.34 2007-07-25 10:26:16 jt6 Exp $
+# $Id: index.tt,v 1.35 2007-08-01 10:32:17 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -280,6 +280,11 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
          class="glassButton goButton">&nbsp;</div>
     <div onclick="$('keywordField').value=exKw"
          class="glassButton exampleButton">&nbsp;</div>
+    <p class="small nlh">
+      You can also use the
+      <a onclick="$('siteSearchField').focus();return false;" href="#">
+        keyword search box</a> at the top of every page.
+    </p>
   </div>
     
   <div class="cleaner"><!-- empty --></div>
