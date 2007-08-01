@@ -4,7 +4,7 @@
 //
 // javascript glue for the structure section
 //
-// $Id: structure.js,v 1.3 2007-03-15 15:03:52 jt6 Exp $
+// $Id: structure.js,v 1.4 2007-08-01 14:47:28 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -33,12 +33,12 @@ function structurePostLoad() {
  					  onComplete: sgSuccess,
  					  onFailure:  sgFailure
  					} );
-   new Ajax.Request( loadOptions.getDomains.uri,
- 					{ method: "get",
- 					  parameters: loadOptions.getDomains.params,
- 					  onComplete: getDomainsSuccess,
- 					  onFailure:  getDomainsFailure
- 					} );
+//   new Ajax.Request( loadOptions.getDomains.uri,
+//					{ method: "get",
+// 					  parameters: loadOptions.getDomains.params,
+// 					  onComplete: getDomainsSuccess,
+// 					  onFailure:  getDomainsFailure
+// 					} );
 }
 
 // called in response to a successful call
