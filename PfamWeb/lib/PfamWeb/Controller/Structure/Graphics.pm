@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060710 WTSI
 #
-# $Id: Graphics.pm,v 1.6 2007-06-28 13:32:32 jt6 Exp $
+# $Id: Graphics.pm,v 1.7 2007-08-01 14:43:55 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ sequence - used in the structure section, confusingly.
 
 Generates a B<page component>.
 
-$Id: Graphics.pm,v 1.6 2007-06-28 13:32:32 jt6 Exp $
+$Id: Graphics.pm,v 1.7 2007-08-01 14:43:55 jt6 Exp $
 
 =cut
 
@@ -38,59 +38,75 @@ use base "PfamWeb::Controller::Structure";
 =head2 begin : Private
 
 Overrides the L<begin|/PfamWeb::Controller::Structure> method from the
-parent class, and looks for a single parameter with a comma-separated
+parent class and looks for a single parameter with a comma-separated
 list of IDs. Those IDs are the UniProt IDs for the sequences that
 should be drawn.
 
 =cut
 
-sub begin : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->warn( "$this: no IDs" ) and return
-  	unless defined $c->req->param("ids");
-
-  my $ids;
-  ( $ids ) = $c->req->param("ids") =~ m/^((\w+\_\w+\,*)+)$/;
-
-  # detaint the IDs
-  my @idList;
-  foreach ( split /\,/, $ids ) {
-  	push @idList, $_ if /^(\w+\_\w+)$/;
-  }
-
-  $c->stash->{idList} = \@idList;
-}
+#sub begin : Private {
+#  my( $this, $c ) = @_;
+#
+#	unless( defined $c->req->param('ids') and
+#	        $c->req->param('ids') =~ m/^((\w+\_\w+\,*)+)$/ ) {
+#    $c->log->warn( 'Structure::Graphics::begin: no IDs found' );
+#    return;
+#	}
+#
+#  # detaint the IDs - maybe redundant
+#  foreach ( split /\,/, $1 ) {
+#  	push @{ $c->stash->{idList} }, $_ if /^(\w+\_\w+)$/;
+#  }
+#
+#  # add the family to sequence to structure mapping
+#  $c->forward( 'addMapping' );
+#
+#}
 
 #-------------------------------------------------------------------------------
 
-=head2 getData : Path
+=head2 generateGraphics : Path
 
-Picks up a URL like http://localhost:3000/structure/graphics?ids=Q6FRP6
+Generate a Pfam graphic for each of the sequences specified by the parameter
+"ids".
 
 =cut
 
-sub getData : Path {
+sub generateGraphics : Path {
   my( $this, $c ) = @_;
+
+  unless( defined $c->req->param('seqIds') and
+          $c->req->param('seqIds') =~ m/^((\w+\_\w+\,*)+)$/ ) {
+    $c->log->warn( 'Structure::Graphics::begin: no IDs found' );
+    return;
+  }
+
+  # detaint the IDs - maybe redundant
+  foreach ( split /\,/, $1 ) {
+    push @{ $c->stash->{idList} }, $_ if /^(\w+\_\w+)$/;
+  }
 
   my @seqs;
   foreach my $id ( @{ $c->stash->{idList} } ) {
+    $c->log->debug( "Structure::Graphics::generateGraphics: looking for |$id|" );
   
   	# retrieve the Storable with the data for this sequence
-  	my $pfamseq = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $id } );
+  	my $pfamseq = $c->model('PfamDB::Pfamseq')
+  	                ->find( { pfamseq_id => $id } );
   
   	# thaw it out and stash it
   	push @seqs, thaw( $pfamseq->annseq_storable ) if defined $pfamseq;
   }
-  $c->log->debug( "Structure::Graphics::getData: found " . scalar @seqs . " storables" );
+  $c->log->debug( 'Structure::Graphics::generateGraphics: found '
+                  . scalar @seqs . ' storables' );
 
   # render the sequences
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layout->scale_x( $this->{scale_x} ); #0.33
   $layout->scale_y( $this->{scale_y} ); #0.45
 
-  my %regionsAndFeatures = ( "PfamA"      => 1,
-							 "noFeatures" => 1 );
+  my %regionsAndFeatures = ( 'PfamA'      => 1,
+              							 'noFeatures' => 1  );
   $layout->layout_sequences_with_regions_and_features( \@seqs,
 													   \%regionsAndFeatures );
 
@@ -100,7 +116,7 @@ sub getData : Path {
   $c->stash->{images} = $imageset;
 
   # get the PDB chain/uniprot mapping from the cache
-  my $chainsMapping = $c->cache->get( "chain_mapping" );
+  my $chainsMapping = $c->stash->{chainsMapping};
 
   # build a chains-to-UniProt ID mapping
   my %chainsToUnp;
@@ -108,8 +124,8 @@ sub getData : Path {
   foreach my $unp ( keys %$chainsMapping ) {
 
   	# each key in %chains is a uniprot ID, pointing to an anonymous
-  	# hash that has the PDB chain ID as keys and "" as values
-  	my $chains = join ", ", sort keys %{$chainsMapping->{$unp}};
+  	# hash that has the PDB chain ID as keys and '' as values
+  	my $chains = join ', ', sort keys %{$chainsMapping->{$unp}};
   	
   	$chainsToUnp{$chains} = $unp;
   }
@@ -129,8 +145,8 @@ sub getData : Path {
   $c->stash->{chainsToUnp} = \%chainsToUnp;
   $c->stash->{unpToImage}  = \%unpToImage;
 
-  # set up the view and rely on "end" from the parent class to render it
-  $c->stash->{template} = "components/blocks/structure/loadGraphics.tt";
+  # set up the view and rely on 'end' from the parent class to render it
+  $c->stash->{template} = 'components/blocks/structure/loadGraphics.tt';
 
 }
 
