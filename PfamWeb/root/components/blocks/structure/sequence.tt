@@ -5,7 +5,7 @@
 # 
 # build the sequence block for structures
 #
-# $Id: sequence.tt,v 1.5 2007-08-01 14:44:49 jt6 Exp $
+# $Id: sequence.tt,v 1.6 2007-08-01 14:46:30 jt6 Exp $
 
 # collect the unique uniprot IDs
 
@@ -42,8 +42,9 @@ END
 [% unpIdList = unpIds.keys.join(",") %]
 
 <script type="text/javascript">
-  loadOptions.sg.uri    = "[% base %]structure/graphics?id=[% pdbId %]";
-  loadOptions.sg.params = "seqIds=[% unpIdList %]";
+  loadOptions.sg.uri    = "[% base %]structure/graphics";
+  loadOptions.sg.params = { seqIds: '[% unpIdList %]',
+                            id:     '[% pdbId %]' };
 </script>
 
 <!-- end sequence block -->
