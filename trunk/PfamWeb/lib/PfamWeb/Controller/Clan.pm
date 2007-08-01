@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.13 2007-06-26 11:48:41 jt6 Exp $
+# $Id: Clan.pm,v 1.14 2007-08-01 14:50:01 jt6 Exp $
 
 =head1 NAME
 
@@ -24,17 +24,17 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.13 2007-06-26 11:48:41 jt6 Exp $
+$Id: Clan.pm,v 1.14 2007-08-01 14:50:01 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Section";
+use base 'PfamWeb::Controller::Section';
 
 # define the name of the section...
-__PACKAGE__->config( SECTION => "clan" );
+__PACKAGE__->config( SECTION => 'clan' );
 
 #-------------------------------------------------------------------------------
 
@@ -51,35 +51,35 @@ sub begin : Private {
   my( $this, $c ) = @_;
 
   my $co;
-  if( defined $c->req->param( "acc" ) ) {
+  if( defined $c->req->param( 'acc' ) ) {
 
-    $c->req->param( "acc" ) =~ m/^(CL\d{4})$/i;
+    $c->req->param( 'acc' ) =~ m/^(CL\d{4})$/i;
     $c->log->debug( "Clan::begin: found accession |$1|" );
   
-    $co = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } )
+    $co = $c->model('PfamDB::Clans')->find( { clan_acc => $1 } )
       if defined $1;
 
-  } elsif( defined $c->req->param( "id" ) ) {
+  } elsif( defined $c->req->param('id') ) {
 
-    $c->log->debug( "Clan::begin: found param |".$c->req->param("id")."|" );
-    $c->req->param( "id" ) =~ m/^([\w-]+)$/;
+    $c->log->debug( 'Clan::begin: found param |' . $c->req->param('id') . '|' );
+    $c->req->param( 'id' ) =~ m/^([\w-]+)$/;
     $c->log->debug( "Clan::begin: found ID |$1|" );
-    $co = $c->model("PfamDB::Clans")->find( { clan_id => $1 } )
+    $co = $c->model('PfamDB::Clans')->find( { clan_id => $1 } )
       if defined $1;
 
-  } elsif( defined $c->req->param( "entry" ) ) {
+  } elsif( defined $c->req->param('entry') ) {
 
     # see if this is really an accession...
-    if( $c->req->param( "entry" ) =~ /^(CL\d{4})$/i ) {
+    if( $c->req->param('entry') =~ /^(CL\d{4})$/i ) {
   
       $c->log->debug( "Clan::begin: looks like a clan accession ($1); redirecting" );
-      $c->res->redirect( $c->uri_for( "/clan", { acc => $1 } ) );
+      $c->res->redirect( $c->uri_for( '/clan', { acc => $1 } ) );
   
     } else {
   
       # no; assume it's an ID and see what happens...
       $c->log->debug( "Clan::begin: doesn't look like a clan accession ($1); redirecting with an ID" );
-      $c->res->redirect( $c->uri_for( "/clan", { id => $c->req->param( "entry" ) } ) );
+      $c->res->redirect( $c->uri_for( '/clan', { id => $c->req->param( "entry" ) } ) );
     }
 
     return 1;
@@ -89,9 +89,9 @@ sub begin : Private {
   unless( defined $co ) {
 
     # de-taint the accession or ID
-    my $input = $c->req->param("acc")
-      || $c->req->param("id")
-      || $c->req->param("entry");
+    my $input = $c->req->param('acc')
+      || $c->req->param('id')
+      || $c->req->param('entry');
     $input =~ s/^(\w+)/$1/;
   
     # see if this was an internal link and, if so, report it
@@ -103,9 +103,9 @@ sub begin : Private {
       # doesn't actually exist in the DB
   
       # report the error as a broken internal link
-      $c->error( "Found a broken internal link; no valid clan accession or ID "
-           . "(\"$input\") in \"" . $c->req->referer . "\"" );
-      $c->forward( "/reportError" );
+      $c->error( 'Found a broken internal link; no valid clan accession or ID '
+           . '("$input") in "' . $c->req->referer . '"' );
+      $c->forward( '/reportError' );
   
       # now reset the errors array so that we can add the message for
       # public consumption
@@ -114,24 +114,24 @@ sub begin : Private {
     }
   
     # the message that we'll show to the user
-    $c->stash->{errorMsg} = "No valid clan accession or ID";
+    $c->stash->{errorMsg} = 'No valid clan accession or ID';
   
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
-    $c->log->warn( "Family::begin: no valid clan ID or accession" );
+    $c->log->warn( 'Clan::begin: no valid clan ID or accession' );
   
     return;
   }
 
-  $c->log->debug( "Clan::begin: successfully retrieved a clan object" );
+  $c->log->debug( 'Clan::begin: successfully retrieved a clan object' );
 
   # set up the pointers to the clan data in the stash
-  $c->stash->{entryType} = "C";
+  $c->stash->{entryType} = 'C';
   $c->stash->{acc} = $co->clan_acc;
-  my @rs = $c->model("PfamDB::Clan_membership")
+  my @rs = $c->model('PfamDB::Clan_membership')
     ->search( { auto_clan => $co->auto_clan },
-              { join      => [qw/pfam/],
-                prefetch  => [qw/pfam/] }
+              { join      => [ qw( pfam ) ],
+                prefetch  => [ qw( pfam ) ] }
             );
   $c->stash->{clanMembers} = \@rs;
 
@@ -140,23 +140,27 @@ sub begin : Private {
   #----------------------------------------
   # populate the stash with other data
 
-  $c->forward( "_getSummaryData" );
-  $c->forward( "_getXrefs" );
-  
+  # if this request originates at the top level of the object hierarchy,
+  # i.e. if it's a call on the "default" method of the Clan object,
+  # then we'll need to do a few extra things
+  if( ref $this eq 'PfamWeb::Controller::Clan' ) {
+    $c->forward( 'getSummaryData' );
+    $c->forward( 'getXrefs' );        
+  }
 
 }
 
 #-------------------------------------------------------------------------------
-#- private methods -------------------------------------------------------------
+#- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 default: Private
+=head2 _getSummaryData : Private
 
 Populates the stash with data for the summary icons.
 
 =cut
 
-sub _getSummaryData : Private {
+sub getSummaryData : Private {
   my( $this, $c ) = @_;
 
   my %summaryData;
@@ -176,13 +180,13 @@ sub _getSummaryData : Private {
   # number of structures known for the domain
   $summaryData{numStructures} = $c->stash->{clan}->number_structures;
 
-  my @mapping = $c->model("PfamDB::Pdb_pfamA_reg")
-    ->search( { "clanMembers.auto_clan" =>  $c->stash->{clan}->auto_clan },
-        { join      => [ qw/pdb clanMembers / ],
-    prefetch  => [ qw/ pdb/ ]});
+  my @mapping = $c->model('PfamDB::Pdb_pfamA_reg')
+                  ->search( { 'clanMembers.auto_clan' =>  $c->stash->{clan}->auto_clan },
+                            { join      => [ qw( pdb clanMembers ) ],
+                              prefetch  => [ qw( pdb ) ] } );
 
   my %pdb_unique = map {$_->pdb_id => 1} @mapping;
-  $c->log->debug("Got ".scalar(@mapping)." pdb mappings");
+  $c->log->debug( 'Clan::_getSummaryData: got ' . scalar(@mapping) . ' pdb mappings' );
   $c->stash->{pdbUnique} = \%pdb_unique;
 
   #Number of species
@@ -194,21 +198,21 @@ sub _getSummaryData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 default: Private
+=head2 _getXrefs : Private
 
 Retrieves database cross-references. 
 
 =cut
 
-sub _getXrefs : Private {
+sub getXrefs : Private {
   my( $this, $c ) = @_;
 
-  my @refs = $c->model("PfamDB::Clan_database_links")
-  ->search( { auto_clan => $c->stash->{clan}->auto_clan } );
+  my @refs = $c->model('PfamDB::Clan_database_links')
+              ->search( { auto_clan => $c->stash->{clan}->auto_clan } );
 
   my %xRefs;
   foreach ( @refs ) {
-  $xRefs{$_->db_id} = $_;
+    $xRefs{$_->db_id} = $_;
   }
   $c->stash->{xrefs} = \%xRefs;
 
@@ -216,42 +220,41 @@ sub _getXrefs : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 default: Private
+=head2 _getMapping : Private
 
 Retrieves the structure mappings for this clan. 
 
 =cut
 
-sub _getMapping : Private {
+sub getMapping : Private {
   my( $this, $c ) = @_;
 
-   my @mapping = $c->model("PfamDB::Clan_membership")
-   ->search( { auto_clan => $c->stash->{clan}->auto_clan,
-         pfam_region => 1 },
-       { select => [ qw/pfamseq.pfamseq_id
-                  pfamA.pfamA_id
-                  pfamA.pfamA_acc
-                  pdbmap.pfam_start_res
-                  pdbmap.pfam_end_res
-                  pdb.pdb_id
-                  pdbmap.chain
-                  pdbmap.pdb_start_res
-                  pdbmap.pdb_end_res/ ],
-         as     => [ qw/pfamseq_id
-                  pfamA_id
-                  pfamA_acc
-                  pfam_start_res
-                  pfam_end_res
-                  pdb_id
-                  chain
-                  pdb_start_res
-                  pdb_end_res/ ],
-         join => { pdbmap => [qw/pfamA
-               pfamseq
-               pdb/ ]
-             }
-         }
-       );
+   my @mapping = $c->model('PfamDB::Clan_membership')
+                   ->search( { auto_clan => $c->stash->{clan}->auto_clan,
+                               pfam_region => 1 },
+                             { select => [ qw( pfamseq.pfamseq_id
+                                               pfamA.pfamA_id
+                                               pfamA.pfamA_acc
+                                               pdbmap.pfam_start_res
+                                               pdbmap.pfam_end_res
+                                               pdb.pdb_id
+                                               pdbmap.chain
+                                               pdbmap.pdb_start_res
+                                               pdbmap.pdb_end_res ) ],
+                               as     => [ qw( pfamseq_id
+                                               pfamA_id
+                                               pfamA_acc
+                                               pfam_start_res
+                                               pfam_end_res
+                                               pdb_id
+                                               chain
+                                               pdb_start_res
+                                               pdb_end_res ) ],
+                               join   => { pdbmap => [ qw( pfamA
+                                                           pfamseq
+                                                           pdb ) ] }
+                             }
+                           );
 
   $c->stash->{pfamMaps} = \@mapping;
 }
