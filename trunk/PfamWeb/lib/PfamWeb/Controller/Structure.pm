@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.14 2007-07-30 12:38:56 jt6 Exp $
+# $Id: Structure.pm,v 1.15 2007-08-01 14:43:55 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.14 2007-07-30 12:38:56 jt6 Exp $
+$Id: Structure.pm,v 1.15 2007-08-01 14:43:55 jt6 Exp $
 
 =cut
 
@@ -78,7 +78,7 @@ sub begin : Private {
     $c->req->param('id') =~ m/^([0-9][A-Z0-9]{3})$/i;
     $pdbId = $1 if defined $1;
   
-  } elsif( defined $c->req->param("entry") ) {
+  } elsif( defined $c->req->param('entry') ) {
     $c->log->debug( 'Structure::begin: found param "entry"; checking...' );
 
     $c->req->param('entry') =~ m/^([0-9][A-Z0-9]{3})$/i;
@@ -102,16 +102,13 @@ sub begin : Private {
   # we're done here unless there's an entry specified
   unless( defined $pdb ) {
 
-    # de-taint the ID
-    my( $input ) = $c->req->param('id') =~ /^(\w+)/;
-  
     # see if this was an internal link and, if so, report it
     my $b = $c->req->base;
     if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
   
       # report the error as a broken internal link
-      $c->error( 'Found a broken internal link; no valid PDB ID '
-                 . "(\"$input\") in \"" . $c->req->referer . '"' );
+      $c->error( q|Found a broken internal link; no valid PDB ID |
+                 . qq|("$pdbId") in "| . $c->req->referer . q|"| );
       $c->forward( '/reportError' );
   
       $c->clear_errors;
@@ -121,7 +118,7 @@ sub begin : Private {
   
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
-    $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$input|" );
+    $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdbId|" );
   
     return;
   }
@@ -136,93 +133,27 @@ sub begin : Private {
   # i.e. the one that generates the structure page rather than the sub-classes
   # that build page components
   if( ref $this eq 'PfamWeb::Controller::Structure' ) {
-    $c->forward( '_getSummaryData' );
+    $c->forward( 'getSummaryData' );
+    $c->forward( 'getAuthors' );
   }
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 structure : Path
-
-Picks up a URL like
-
-=over
-
-=item http://localhost:3000/structure?id=1abc
-
-=back
-
-Also adds the structure-sequence-pfam mapping to the stash, since
-that's used by various subclasses, such as Viewer.
-
-=cut
-
-sub structure : Path {
-  my( $this, $c ) = @_;
-
-  return 0 unless defined $c->stash->{pdb};
-
+  
+  # add the mapping between structure, sequence and family. We need this for 
+  # more or less all of the sub-classes, so always do this
   $c->forward( 'addMapping' );
 
-  # get the authors list
-  my @authors = $c->model('PfamDB::PdbAuthor')
-                  ->search( { auto_pdb => $c->stash->{pdb}->auto_pdb },
-                            { order_by => 'author_order ASC' } );
-
-  $c->stash->{authors} = \@authors;
 }
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 addMapping : Private
+=head2 getSummaryData : Private
 
-Adds the structure-to-UniProt mapping to the stash. Required by a
-couple of subclasses, such as
-L<Viewer|/"PfamWeb::Controller::Structure::Viewer">.
-
-Call using a C<forward>, e.g. C<$c->forward( "addMapping" );>
+Gets the data items for the overview bar
 
 =cut
 
-sub addMapping : Private {
-  my( $this, $c ) = @_;
-
-  $c->log->debug( 'Structure::addMapping: adding mappings for PDB entry '
-          . $c->stash->{pdb}->pdb_id );
-
-  # add the structure-to-UniProt mapping to the stash
-  my @unpMap = $c->model('PfamDB::PdbMap')
-                 ->search( { auto_pdb    => $c->stash->{pdb}->auto_pdb,
-                             pfam_region => 1 },
-                           { join        => [ qw( pfamA pfamseq ) ],
-                             prefetch    => [ qw( pfamA pfamseq ) ],
-                             order_by    => 'chain ASC' } );
-
-  $c->log->debug( 'Structure::addMapping: found ' . scalar @unpMap . ' mappings' );
-  $c->stash->{mapping} = \@unpMap;
-
-  # build a little data structure to map PDB chains to uniprot IDs and
-  # then cache that for the post-loaded graphics component
-  my( %chains, $chain );
-  foreach my $row ( @unpMap ) {
-    $chain = ( defined $row->chain ) ? $row->chain : ' ';
-    # N.B. Need to think more about the consequences of setting null
-    # chain ID to " "...
-  
-    $chains{$row->pfamseq_id}->{$chain} = '';
-  }
-  $c->cache->set( 'chain_mapping', \%chains );
-
-}
-
-#-------------------------------------------------------------------------------
-
-# get the data items for the overview bar
-
-sub _getSummaryData : Private {
+sub getSummaryData : Private {
   my( $this, $c ) = @_;
 
   my %summaryData;
@@ -279,6 +210,64 @@ sub _getSummaryData : Private {
   $summaryData{numStructures} = 1;
 
   $c->stash->{summaryData} = \%summaryData;
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getAuthors : Private
+
+Add the list of authors to the stash.
+
+=cut
+
+sub getAuthors : Private {
+  my( $this, $c ) = @_;
+
+  # get the authors list
+  my @authors = $c->model('PfamDB::PdbAuthor')
+                  ->search( { auto_pdb => $c->stash->{pdb}->auto_pdb },
+                            { order_by => 'author_order ASC' } );
+
+  $c->stash->{authors} = \@authors;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 addMapping : Private
+
+Adds the structure-to-UniProt mapping to the stash.
+
+=cut
+
+sub addMapping : Private {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( 'Structure::addMapping: adding mappings for PDB entry '
+          . $c->stash->{pdb}->pdb_id );
+
+  # add the structure-to-UniProt mapping to the stash
+  my @unpMap = $c->model('PfamDB::PdbMap')
+                 ->search( { auto_pdb    => $c->stash->{pdb}->auto_pdb,
+                             pfam_region => 1 },
+                           { join        => [ qw( pfamA pfamseq ) ],
+                             prefetch    => [ qw( pfamA pfamseq ) ],
+                             order_by    => 'chain ASC' } );
+
+  $c->log->debug( 'Structure::addMapping: found ' . scalar @unpMap . ' mappings' );
+  $c->stash->{mapping} = \@unpMap;
+
+  # build a little data structure to map PDB chains to uniprot IDs and
+  # then cache that for the post-loaded graphics component
+  my( %chains, $chain );
+  foreach my $row ( @unpMap ) {
+    $chain = ( defined $row->chain ) ? $row->chain : ' ';
+    # N.B. Need to think more about the consequences of setting null
+    # chain ID to " "...
+  
+    $chains{$row->pfamseq_id}->{$chain} = '';
+  }
+  $c->stash->{chainsMapping} = \%chains;
 
 }
 

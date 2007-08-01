@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.9 2007-07-30 12:39:42 jt6 Exp $
+# $Id: Viewer.pm,v 1.10 2007-08-01 14:43:55 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.9 2007-07-30 12:39:42 jt6 Exp $
+$Id: Viewer.pm,v 1.10 2007-08-01 14:43:55 jt6 Exp $
 
 =cut
 
@@ -33,52 +33,36 @@ use base 'PfamWeb::Controller::Structure';
 
 =head1 METHODS
 
-=head2 auto : Private
+=head2 viewer : Path
 
-Retrieves any annotations for the chosen structure and drops them into
-the stash
+Show a structure viewer. Which viewer is specified by the "viewer" parameter.
 
 =cut
 
-sub auto : Private {
+sub viewer : Path {
   my( $this, $c ) = @_;
-
-  $c->log->debug( 'Viewer::auto: is there a PDB object in the stash ?' );
-
-  return 0 unless defined $c->stash->{pdb};
-
-  # we need the mapping from structure-to-UniProt
-  $c->forward( 'addMapping' );
 
   # get the markup for this entry
   my %seenChainAutoPfamseq;
   my( @allMarkups, $ap, $chain );
-  foreach my $map ( @{$c->stash->{mapping}}  ) {
+  foreach my $map ( @{$c->stash->{mapping}} ) {
 
     # all this crap is to avoid warnings when we try to build a hash
     # key using a chain ID that is not defined...
     $ap    = ( defined $map->auto_pfamseq ) ? $map->auto_pfamseq : '';
     $chain = ( defined $map->chain ) ? $map->chain : '';
   
-    $c->log->debug( "Viewer::auto: auto_pfamseq, chain: |$ap|$chain|" );
+    $c->log->debug( "Structure::Viewer::viewer: auto_pfamseq, chain: |$ap|$chain|" );
   
     next if $seenChainAutoPfamseq{$ap.$chain};
-#    my @markups = $c->model("PfamDB::Pfamseq_markup")
-#     ->search(
-#          { "pdbResidue.auto_pfamseq" => $map->auto_pfamseq,
-#          "pdbResidue.chain"        => $map->chain,
-#          "pdbResidue.auto_pdb"     => $c->stash->{pdb}->auto_pdb },
-#          { join     => [qw/pdbResidue/],
-#          prefetch => [qw/pdbResidue/] }
-#         );
   
-     my @markups = $c->model('PfamDB::Pdb_residue')
+    my @markups = $c->model('PfamDB::Pdb_residue')
                     ->search( { 'pfamseqMarkup.auto_pfamseq' => $map->auto_pfamseq,
                                 chain                        => $map->chain,
                                 auto_pdb                     => $c->stash->{pdb}->auto_pdb },
                               { join                         => [ qw( pfamseqMarkup ) ],
                                prefetch                      => [ qw( pfamseqMarkup ) ] } );
-    $c->log->debug( 'Viewer::auto: found ' . scalar @markups
+    $c->log->debug( 'Structure::Viewer::viewer: found ' . scalar @markups
                     . ' markups for mapping to ' . $map->auto_pfamseq );
   
     $seenChainAutoPfamseq{$ap.$chain}++;
@@ -94,20 +78,6 @@ sub auto : Private {
 
   # default to jmol
   $c->stash->{viewer} ||= 'jmol';
-
-  return 1;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 viewer : Path
-
-Picks up a URL like http://localhost:3000/structure/viewer?id=1abc
-
-=cut
-
-sub viewer : Path {
-  my( $this, $c ) = @_;
 
   $c->log->debug( 'Structure::Viewer::viewer: showing ' . $c->stash->{viewer}
                   . ' for entry ' . $c->stash->{pdbId} );
