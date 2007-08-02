@@ -21,6 +21,7 @@ my( $noaction,
     $rename,
     $queue,
     $file,
+    $mapfile,
     $verbose );
 
 &GetOptions( "noaction" => \$noaction,
@@ -29,7 +30,9 @@ my( $noaction,
 	     "rename"   => \$rename,
 	     "f=s"      => \$file,
 	     "q=s"      => \$queue,
-	     "v"        => \$verbose );
+	     "v"        => \$verbose,
+	     "map=s"    => \$mapfile,
+	     );
 
 if( $dir ) {
     chdir $dir or die "can't chdir to $dir\n";
@@ -59,6 +62,7 @@ foreach my $acc ( @list ) {
     my $aln = new Rfam::RfamAlign;
     open( SEED, "$acc/SEED" ) or die;
     $aln -> read_stockholm( \*SEED );
+    close SEED;
 
     my $newaln = Rfam::RfamAlign -> new();
     if( $aln->ss_cons ) {
@@ -106,30 +110,41 @@ foreach my $acc ( @list ) {
 	  }
 
 	  if( $seq->version() == $emblsv{$seq->accession_number} ) {
-	      # leave alone
-	      push( @tags, "UNCHANGED" );
-	      last;
+	      push( @tags, "VERSION_OK" );
+#	      last;
 	  }
-
-	  # change the version and carry on with checks
-	  $seq->version( $emblsv{$seq->accession_number} );
-	  push( @tags, "NEW_VERSION" );
+	  else {
+	      # change the version and carry on with checks
+	      $seq->version( $emblsv{$seq->accession_number} );
+	      push( @tags, "VERSION_FIXED" );
+	      $cosmetic_change = 1;
+	  }
 
 	  my( $newstart, $newend ) = &subseq_is_unchanged( $seq );
 	  if( $newend ) {
+	      if( $newstart == $oldstart and $newend == $oldend ) {
+		  push( @tags, "SEQ_OK" );
+		  last;
+	      }
+
 	      $seq->start( $newstart );
 	      $seq->end( $newend );
-	      push( @tags, "SEQ_OK" );
+	      push( @tags, "SEQ_FIXED" );
 	      $cosmetic_change = 1;
 	      last;
 	  }
 
 	  # sequence has changed
 	  push( @tags, "SEQ_CHANGED" );
-	  push( @tags, "DELETE" );
-	  undef $seq;
+	  my( $newseq ) = &align_to_new( $oldseq );
+	  if( $newseq ) {
+	      $seq = $newseq;
+	  }
+	  else {
+	      push( @tags, "DELETE" );
+	      undef $seq;
+	  }
 	  $seq_change = 1;
-
       };
 
 	if( $verbose ) {
@@ -253,22 +268,34 @@ sub subseq_is_unchanged {
 
 
 sub align_to_new {
-    my $seq = shift;
-    my $fullseq = &get_seq( $seq->accession_number() );
+#    my $oldseq = shift;
+#    my $newid = shift || $oldseq->accession_number;
+#    my $fullseq = &get_seq( $newid );
 
-    open( FA, ">$$.fa" ) or die;
-    my $faout = Bio::SeqIO->new( '-fh'     => \*FA,
-				 '-format' => 'Fasta' );
-    $faout -> write_seq( $seq );
-    open( FA, ">$$.db" ) or die;
-    $faout -> write_seq( $fullseq );
-    close FA;
+#    open( FA, ">$$.fa" ) or die;
+#    my $faout = Bio::SeqIO->new( '-fh'     => \*FA,
+#				 '-format' => 'Fasta' );
+#    $faout -> write_seq( $oldseq );
+#    open( FA, ">$$.db" ) or die;
+#    $faout -> write_seq( $fullseq );
+#    close FA;
 
-    system "water $$.db $$.fa -gapopen 5 -gapextend 2 -outfile $$.out > /dev/null 2>&1" and die;
-    my $alnin  = Bio::AlignIO -> new( -format => 'emboss', 
-				      -file   => "$$.out" ); 
-    my $aln    = $alnin->next_aln();
-    return $aln;
+#    system "ssearch3 -b 1 -d 1 -E $matevalue -Q -H -n $$.fa $$.db > $$.ssearch" and die;
+#    my $in = Bio::SearchIO -> new( -format => 'fasta', 
+#				   -file   => "$$.ssearch" ); 
+    
+#    my $best;
+#    while( my $res = $in->next_result ) {
+#        while( my $hit = $res->next_hit ) {
+#            while( my $hsp = $hit->next_hsp ) {
+#		if( !$best or $hsp->score > $best->score ) {
+#		    $best = $hsp;
+#		}
+#	    }
+#	}
+#    }   
+
+    return undef;
 }
 
 
