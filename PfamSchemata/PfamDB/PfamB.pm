@@ -1,5 +1,5 @@
 
-# $Id: PfamB.pm,v 1.6 2007-07-26 14:41:05 jt6 Exp $
+# $Id: PfamB.pm,v 1.7 2007-08-02 15:21:43 jt6 Exp $
 #
 # $Author: jt6 $
 package PfamDB::PfamB;
@@ -7,40 +7,39 @@ package PfamDB::PfamB;
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( qw( Core ) );
 
-#Set up the table
-__PACKAGE__->table( "pfamB" );
+# the table
+__PACKAGE__->table( 'pfamB' );
 
-#Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/ auto_pfamB 
+# columns that we want to keep
+__PACKAGE__->add_columns( qw( auto_pfamB 
                               pfamB_acc
                               pfamB_id
-                              number_regions /);
+                              number_regions ) );
 
-#Now set up the primary keys/contraints
-__PACKAGE__->set_primary_key("auto_pfamB", "pfamB_acc");
+# primary keys
+__PACKAGE__->set_primary_key( qw( auto_pfamB pfamB_acc ) );
 
-#Now setup the relationship 
+# relationships 
 
-#PfamB joins are to pfamB_reg, pdbmap & pfamB_stockholm 
+# pfamB joins are to pfamB_reg, pdbmap & pfamB_stockholm 
 
-__PACKAGE__->has_many( pfamb_reg => "PfamDB::PfamB_reg",
-		      { "foreign.auto_pfamB"  => "self.auto_pfamB" } );
+__PACKAGE__->has_many( pfamb_reg => 'PfamDB::PfamB_reg',
+                       { 'foreign.auto_pfamB' => 'self.auto_pfamB' } );
 
-__PACKAGE__->has_many( pdbMap => "PfamDB::PdbMap",
-			  { "foreign.auto_pfam"  => "self.auto_pfamB" },
-			  { proxy => [ qw/pdb_id/ ] } );
+__PACKAGE__->has_many( pdbMap => 'PfamDB::PdbMap',
+                       { 'foreign.auto_pfam' => 'self.auto_pfamB' },
+                       { proxy => [ qw( pdb_id ) ] } );
 
-__PACKAGE__->has_one( pfamB_stockholm => "PfamDB::PfamB_stockholm",
-		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
-		      { proxy => qw[/stockholm_data/] } );
+__PACKAGE__->has_one( pfamB_stockholm => 'PfamDB::PfamB_stockholm',
+                      { 'foreign.auto_pfamB'  => 'self.auto_pfamB' },
+                      { proxy => [ qw( stockholm_data jtml ) ] } );
 
-__PACKAGE__->has_many( pfamB_database_links => "PfamDB::PfamB_database_links",
-					   { "foreign.auto_pfamB" => "self.auto_pfamB" } );
-
+__PACKAGE__->has_many( pfamB_database_links => 'PfamDB::PfamB_database_links',
+                       { 'foreign.auto_pfamB' => 'self.auto_pfamB' } );
 
 =head1 COPYRIGHT
 
