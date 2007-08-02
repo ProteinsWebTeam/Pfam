@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.1 2007-07-26 14:58:54 jt6 Exp $
+# $Id: Download.pm,v 1.2 2007-08-02 15:24:13 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.1 2007-07-26 14:58:54 jt6 Exp $
+$Id: Download.pm,v 1.2 2007-08-02 15:24:13 jt6 Exp $
 
 =cut
 
@@ -32,92 +32,71 @@ use base 'PfamWeb::Controller::Family::Alignment';
 
 =head1 METHODS
 
-=head2 auto : Private
-
-Override "auto" from the parent class to avoid checking parameters twice.
-
-=cut
-
-sub auto : Private {
-  return 1;
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 html : Path
 
-A simple action to redirect to the static HTML file on disk, chosen according
-to the form parameters, i.e. seed or full alignment.
+Retrieves the JTML alignment and dumps it to the response. We first try to 
+extract the JTML from the cache or, if that fails, we retrieve it from the DB.
+
+Note that we can't use C<$c->cache_page> here because we're printing directly
+to the response, which causes problems for the cache plugin. 
 
 =cut
 
 sub html : Local {
   my( $this, $c ) = @_;
 
-  # TODO change these URLs, or at least set them in the configuration files 
-  my $url;
-  if( $c->stash->{entryType} eq 'B' ) {
-    $url = 'http://www.sanger.ac.uk/Software/Pfam/data/jtml/pfamB/'
-           . $c->stash->{acc} . '.shtml';
+  my $cacheKey = 'jtml' . $c->stash->{acc} . $c->stash->{alnType};
+  
+  my $jtml = $c->cache->get( $cacheKey );
+  if( defined $jtml ) {
+    $c->log->debug( 'Family::Alignment::Download::html: extracted JTML from cache' );
   } else {
-    $url = 'http://www.sanger.ac.uk/Software/Pfam/data/jtml/'
-           . $c->stash->{alnType} . '/' . $c->stash->{acc} . '.shtml';
+    $c->log->debug( 'Family::Alignment::Download::html: failed to extract JTML from cache; going to DB' );  
+
+    # see what type of family we have, A or B
+    my $row;
+    if ( $c->stash->{entryType} eq 'A' ) {
+  
+      # retrieve the JTML from the DB
+      my $rs = $c->model('PfamDB::AlignmentsAndTrees')
+                 ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+                             type       => $c->stash->{alnType} } );
+      $row = $rs->first;
+    
+      # final check...
+      unless( defined $row->jtml ) {
+        $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
+                                . $c->stash->{acc};
+        return;
+      }
+  
+    } elsif ( $c->stash->{entryType} eq 'B' ) {
+
+      # make sure the Pfam-B JTML is already available
+      unless( defined $c->stash->{pfam}->pfamB_stockholm->jtml ) {
+        $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
+                                . $c->stash->{acc};
+        return;
+      }
+
+      $row = $c->stash->{pfam}->pfamB_stockholm;
+    }
+
+    # uncompress the row to get the raw JTML
+    $jtml = Compress::Zlib::memGunzip( $row->jtml );
+    unless( defined $jtml ) {
+      $c->stash->{errorMsg} = 'We could not extract the alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $c->log->debug( 'Family::Alignment::Download::html: retrieved JTML from DB' );
+    $c->cache->set( $cacheKey, $jtml );
   }
 
-  $c->log->debug( "Alignment::Download::html: redirecting to |$url|" );
-  $c->res->redirect( $url );
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 gzippedHtml : Local
-
-This is a version of the "html" action that expects to find the alignment files 
-on disk already gzipped. As such, it's going to be disappointed these days... 
-(20070503)
-
-=cut
-
-sub gzippedHtml : Local {
-  my( $this, $c ) = @_;
-
-  if( $c->req->header( 'Accept-Encoding' ) and
-      $c->req->header( 'Accept-Encoding' ) =~ /gzip/ ) {
-  
-    $c->log->debug( 'Alignment::Download::gzippedHtml: browser accepts gzipped content' );
-  
-    my $url;
-    if( $c->req->param( 'alnType' ) eq 'seed' ) {
-      $url = 'http://www.sanger.ac.uk/Software/Pfam/data/jtml/seed/'
-             . $c->stash->{acc} . '.shtml.gz';
-    } else {
-      $url = 'http://www.sanger.ac.uk/Software/Pfam/data/jtml/full/'
-             . $c->stash->{acc} . '.shtml.gz';
-    }
-  
-    $c->log->debug( "Alignment::Download::gzippedHtml: redirecting to |$url|" );
-    $c->res->redirect( $url );
-    return;
-
-  } else {
-  
-    $c->log->debug( "Alignment::Download::gzippedHtml: browser doesn't accept gzipped content" );
-  
-    my $file;
-    if( $c->req->param( 'alnType' ) eq 'seed' ) {
-      $file = $this->{alnFileDir} . '/jtml/seed/' . $c->stash->{acc} . '.shtml.gz';
-    } else {
-      # must want the full alignment
-      $file = $this->{alnFileDir} . '/jtml/full/' . $c->stash->{acc} . '.shtml.gz';
-    }
-  
-    $c->log->debug( "Alignment::Download::gzippedHtml: retrieving alignment from |$file|" );
-  
-    $c->stash->{contentType} = 'text/html';
-    $c->stash->{output} = $c->forward( 'getAlignmentFile', [ $file ] );
-  }
-
+  # write the JTML to the output stream
+  $c->res->content_type( 'text/html' );
+  $c->res->write( $jtml );
 }
 
 #-------------------------------------------------------------------------------
@@ -159,34 +138,18 @@ The exact styles (other than C<pfam>) are defined by BioPerl.
 sub format : Local {
   my( $this, $c ) = @_;
 
-  my $alignment;
+  # retrieve the alignment
+  $c->forward( 'getAlignment' );
 
-  # see what type of family we have, A or B
-  if ( $c->stash->{entryType} eq 'A' ) {
-
-    my $file = $this->{alnFileDir} . '/' . $c->stash->{alnType} . '/' . 
-               $c->stash->{acc} . '.full.gz';
-    $c->log->debug( "Alignment::Download::format: trying to load |$file|" );
-  
-    # make sure that we've built a path to a real file...
-    unless( -f $file ) {
-      $c->log->warn( "Alignment::Download::format: can't find file \"$file\"" );
-      return;
-    }
-  
-    # get hold of the alignment
-    $alignment = $c->forward( 'getAlignmentFile', [ $file ] );
-
-  } elsif ( $c->stash->{entryType} eq 'B' ) {
-    $alignment = $c->forward( 'getAlignmentDB' );
-  }
-
+  # drop it into an AlignPfam object
   my $pfamaln = new Bio::Pfam::AlignPfam->new;
   eval {
-    $pfamaln->read_stockholm( $alignment );
+    $pfamaln->read_stockholm( $c->stash->{alignment} );
   };
-  if($@){
-    $pfamaln->throw("Error reading stockholm file:[$@]");
+  if( $@ ) {
+    $c->stash->{errorMsg} = 'There was a problem with the alignment data for '
+                            . $c->stash->{acc};
+    return;
   };
 
   # gaps param can be default, dashes, dot or none
@@ -239,12 +202,9 @@ Writes the sequence alignment directly to the response object.
 
 sub end : Private {
   my( $this, $c ) = @_;
-
-  # set the content type either according to what the caller gave us,
-  # or default to plain text
-  $c->res->content_type( $c->stash->{contentType}
-                           ? $c->stash->{contentType}
-                           : 'text/plain' );
+  
+  # we only return plain text from this controller
+  $c->res->content_type( 'text/plain' );
 
   # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( 'download' ) ) {
@@ -258,7 +218,7 @@ sub end : Private {
       $filename = $c->stash->{acc} . '.txt';
     }  
   
-    $c->res->headers->header( 'Content-disposition' => "attachment; filename=$filename" );
+    $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   }
 
   foreach ( @{$c->stash->{output}} ) {
@@ -271,50 +231,70 @@ sub end : Private {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 getAlignmentFile : Private
+=head2 getAlignment : Private
 
-Reads a gzipped alignment file from disk and returns it as an array reference.
-
-=cut
-
-sub getAlignmentFile : Private {
-  my( $this, $c, $file ) = @_;
-
-  my $gz = gzopen( $file, 'rb' )
-  or die "Couldn't open alignment file \"$file\": $gzerrno";
-
-  my( $input, $buffer );
-  $input .= $buffer while $gz->gzread( $buffer ) > 0;
-  my @input = split /\n/, $input;
-
-  die "Error reading from alignment file \"$file\": $gzerrno" . ( $gzerrno+0)
-    unless $gzerrno == Z_STREAM_END;
-
-  $gz->gzclose;
-
-  return \@input;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 getAlignmentDB : Private
-
-Reads a (butchered) Stockholm-format alignment file from the database
-and returns it as an array reference. The only alignments that are
-stored in the DB are for B<PfamB> families.
+Retrieves the alignment.
 
 =cut
 
-sub getAlignmentDB : Private {
+sub getAlignment : Private {
   my( $this, $c ) = @_;
 
-  # need to tack on a header and a footer line before it's really
-  # Stockholm-format... go figure
-  my @aln = split /\n/, 
-                  "# STOCKHOLM 1.0\n"
-                  . $c->stash->{pfam}->pfamB_stockholm->stockholm_data . "//\n";
+  # see if we can extract the raw alignment from the cache first
+  my $cacheKey  = 'alignment' . $c->stash->{acc} . $c->stash->{alnType};
+  my $alignment = $c->cache->get( $cacheKey );
 
-  return \@aln;
+  if( defined $alignment ) {
+    $c->log->debug( 'Family::Alignment::Download::getAlignment: extracted alignment from cache' );
+  } else {
+    $c->log->debug( 'Family::Alignment::Download::getAlignment: failed to extract alignment from cache; going to DB' );
+
+    # see what type of family we have, A or B
+    if ( $c->stash->{entryType} eq 'A' ) {
+  
+      # retrieve the alignment from the DB
+      my $rs = $c->model('PfamDB::AlignmentsAndTrees')
+                 ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+                             type       => $c->stash->{alnType} } );
+      my $row = $rs->first;
+  
+      unless( defined $row->alignment ) {
+        $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
+                                . $c->stash->{acc};
+        return;
+      }
+  
+      # uncompress it
+      $alignment = Compress::Zlib::memGunzip( $row->alignment );
+      unless( defined $alignment ) {
+        $c->stash->{errorMsg} = 'We could not extract the alignment for '
+                                . $c->stash->{acc};
+        return;
+      }
+  
+    } elsif ( $c->stash->{entryType} eq 'B' ) {
+
+      # make sure the Pfam-B alignment is already available
+      unless( defined $c->stash->{pfam}->pfamB_stockholm->stockholm_data ) {
+        $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
+                                . $c->stash->{acc};
+        return;
+      }
+
+      # need to tack on a header and a footer line before it's really
+      # Stockholm-format... go figure
+      $alignment = "# STOCKHOLM 1.0\n" .
+                   $c->stash->{pfam}->pfamB_stockholm->stockholm_data .
+                   "//\n";
+    }
+
+    # cache the raw alignment
+    $c->cache->set( $cacheKey, $alignment );
+  }
+
+  # we need the alignment as an array ref, so...
+  my @alignment = split /\n/, $alignment;
+  $c->stash->{alignment} = \@alignment;
 }
 
 #-------------------------------------------------------------------------------
