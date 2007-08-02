@@ -1,5 +1,5 @@
 
-# $Id: PfamB_stockholm.pm,v 1.4 2007-03-16 11:25:18 jt6 Exp $
+# $Id: PfamB_stockholm.pm,v 1.5 2007-08-02 15:21:25 jt6 Exp $
 #
 # $Author: jt6 $
 package PfamDB::PfamB_stockholm;
@@ -7,26 +7,29 @@ package PfamDB::PfamB_stockholm;
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( qw( Core ) );
 
-#Set up the table
-__PACKAGE__->table( "pfamB_stockholm" );
+# the table
+__PACKAGE__->table( 'pfamB_stockholm' );
 
-#Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamB stockholm_data/);
+# columns that we want to keep
+__PACKAGE__->add_columns( qw( auto_pfamB 
+                              stockholm_data
+                              jtml ) );
 
-#Now set up the primary keys/contraints
-__PACKAGE__->set_primary_key("auto_pfamB");
+# primary keys
+__PACKAGE__->set_primary_key( 'auto_pfamB' );
 
-#Now setup the relationship 
+# relationships 
 
-#pfamB_stockholm joins are to pfamB
+# pfamB_stockholm joins are to pfamB
 
-__PACKAGE__->has_one( "pfamB" => "PfamDB::PfamB",
-		      { "foreign.auto_pfamB"  => "self.auto_pfamB" },
-		      {proxy => [ qw/pfamB_id pfamB_acc/]});
+__PACKAGE__->has_one( pfamB => 'PfamDB::PfamB',
+            		      { 'foreign.auto_pfamB' => 'self.auto_pfamB' },
+            		      { proxy => [ qw( pfamB_id pfamB_acc ) ] } );
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
