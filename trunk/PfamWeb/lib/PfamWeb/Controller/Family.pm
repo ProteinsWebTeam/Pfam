@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.29 2007-07-06 10:02:08 jt6 Exp $
+# $Id: Family.pm,v 1.30 2007-08-02 15:25:00 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.29 2007-07-06 10:02:08 jt6 Exp $
+$Id: Family.pm,v 1.30 2007-08-02 15:25:00 jt6 Exp $
 
 =cut
 
@@ -143,6 +143,20 @@ sub begin : Private {
 
   }
 
+  #----------------------------------------
+
+  # find out what type of tree to draw, seed or full
+  if( defined $c->req->param('alnType') ) {
+    $c->stash->{alnType} = ( $c->req->param( 'alnType' ) eq 'seed' ) ? 'seed' : 'full';
+    $c->log->debug( 'Family::begin: setting alnType to |' . 
+                    $c->stash->{alnType} . '|' );
+  } else {
+    $c->stash->{alnType} = 'seed';
+    $c->log->debug( 'Family::begin: no alnType parameter; defaulting to "seed"' );
+  }    
+
+  #----------------------------------------
+
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfam} ) {
 
@@ -212,7 +226,7 @@ sub begin : Private {
 }
 
 #-------------------------------------------------------------------------------
-#- private methods -------------------------------------------------------------
+#- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 getSummaryData : Private
@@ -281,7 +295,8 @@ sub getDbXrefs : Private {
   # PfamA relationship based on SCOOP
   push @{ $xRefs->{scoop} },
        $c->model('PfamDB::PfamA2pfamA_scoop_results')
-         ->search( { auto_pfamA1 => $c->stash->{pfam}->auto_pfamA },
+         ->search( { auto_pfamA1 => $c->stash->{pfam}->auto_pfamA,
+                     score       => { '>', 50.0 } },
                    { join        => [ qw( pfamA1 pfamA2 ) ],
                      select      => [ qw( pfamA1.pfamA_id pfamA2.pfamA_id score ) ],
                      as          => [ qw( l_pfamA_id r_pfamA_id score ) ]
