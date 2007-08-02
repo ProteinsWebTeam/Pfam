@@ -1,5 +1,5 @@
 
-# $Id: AlignmentsAndTrees.pm,v 1.1 2007-08-02 15:20:39 jt6 Exp $
+# $Id: AlignmentsAndTrees.pm,v 1.2 2007-08-02 16:05:44 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -23,9 +23,10 @@ __PACKAGE__->add_columns( qw( auto_pfamA
                               type ) );
 
 # keys
-__PACKAGE__->set_primary_key( qw( auto_pfamA ) );
+__PACKAGE__->set_primary_key( qw( auto_pfamA 
+                                  type ) );
 
-#relationships
+# relationships
 
 __PACKAGE__->has_one( pfam => 'PfamDB::Pfam',
                       { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
