@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.11 2007-07-27 10:57:27 jt6 Exp $
+# $Id: Tree.pm,v 1.12 2007-08-02 15:24:28 jt6 Exp $
 
 =head1 NAME
 
@@ -19,12 +19,14 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.11 2007-07-27 10:57:27 jt6 Exp $
+$Id: Tree.pm,v 1.12 2007-08-02 15:24:28 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Compress::Zlib;
 
 use treefam::nhx_plot;
 
@@ -38,29 +40,24 @@ use base 'PfamWeb::Controller::Family';
 
 We get here after the begin method from the parent class has handled
 the extraction of the family accession from the URL, so we can jump
-straight in and generate the tree.
+straight in and retrieve the tree data for the required family.
 
-Tries to retrieve it from cache before actually generating it though.
+Breaks out of the processing chain if the tree can't be generated for
+whatever reason.
 
 =cut
 
 sub auto : Private {
   my( $this, $c ) = @_;
 
-  # find out what type of tree to draw, seed or full
-  if( defined $c->req->param('alnType') ) {
-    $c->stash->{alnType} = ( $c->req->param( 'alnType' ) eq 'seed' ) ? 'seed' : 'full';
-    $c->log->debug( 'Family::Tree::auto: setting alnType to |' . 
-                    $c->stash->{alnType} . '|' );
-  } else {
-    $c->stash->{alnType} = 'seed';
-    $c->log->debug( 'Family::Tree::auto: no alnType parameter; defaulting to seed ' );
-  }  
-  
-  # get hold of the tree data, either from cache or (currently) file
+  # stash of the tree data
   $c->forward( 'getTree' );
+
+  return defined $c->stash->{tree};
 }
 
+#-------------------------------------------------------------------------------
+#- exposed actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 showTree : Path
@@ -102,77 +99,71 @@ sub image : Local {
     # TODO this is bad. We should avoid hard-coding a path to an image here
     $c->res->redirect( $c->uri_for( '/static/images/blank.gif' ) );
   }
-  
-  # cache the image for one week
-  $c->cache_page( 604800 ); 
+
 }
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Override the end method from the parent class and use RenderView to take care
-of displaying things.
-
-=cut
-
-sub end : ActionClass( 'RenderView' ) {}
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 image : Local
+=head2 getTree : Private
 
-If we successfully generated a tree image, returns it directly as
-an "image/gif". Otherwise returns a blank image.
+Retrieves and stashed the raw tree data. Tries first to extract the data
+from cache and if that fails, retrieves it from the database.
 
 =cut
 
 sub getTree : Private {
   my( $this, $c) = @_;
 
-  my $acc  = $c->stash->{acc};
-  my $type = $c->stash->{alnType};
+  # see if we can extract the pre-built tree object from cache
+  my $cacheKey = 'tree' . $c->stash->{acc} . $c->stash->{alnType};
+  my $tree     = $c->cache->get( $cacheKey );
   
-  # build a cache key...
-  my $cacheKey = "tree$acc$type";
-
-  # see if it retrieves anything
-  my $tree = $c->cache->get( $cacheKey ); 
-
-  if( $tree ) {
-    $c->log->debug( 'Family::Tree::getTree: successfully retrieved tree from cache' );
+  if( defined $tree ) {
+    $c->log->debug( 'Family::Tree::getTree: extracted tree from cache' );  
   } else {
-    $c->log->debug( 'Family::Tree::getTree: no cached tree; generating from file' );
+    $c->log->debug( 'Family::Tree::getTree: failed to extract tree from cache; going to DB' );  
 
     # get a new tree object...
     $tree = treefam::nhx_plot->new( -width => 600,
                                     -skip  => 14 );
-                                    
-    # decide if we want the full or the seed alignment
-    # TODO trees need to be in the database
-    my $treeDataFile = $this->{treeFileDir} . "/$type/$acc.tree";
-    $c->log->debug( "Family::Tree::getTree: loading tree file |$treeDataFile|" );
 
-    # open the data file
-    open TREE, $treeDataFile
-      or $c->log->error( "Family::Tree::getTree: WARNING: couldn't open tree file for $acc: $!" ) and return;
-  
-    eval {
-      $tree->parse( join '', <TREE> );
-    };
-    close TREE;  
-    if( $@ ) {
-      $c->log->error( "Family::Tree::getTree: ERROR: failed to parse tree for $acc: $@" );
-      return 0;
+    # retrieve the tree from the DB
+    my $rs = $c->model('PfamDB::AlignmentsAndTrees')
+               ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+                           type       => $c->stash->{alnType} } );
+    my $row = $rs->first;
+
+    unless( defined $row->tree ) {
+      $c->stash->{errorMsg} = 'We could not retrieve the tree data for '
+                              . $c->stash->{acc};
+      return;
     }
 
-    # cache the tree that we just generated
-    $c->cache->set( $cacheKey, $tree )
-      if defined $tree;
-  }
+    # make sure we can uncompress it
+    my $treeData = Compress::Zlib::memGunzip( $row->tree );
+    unless( defined $treeData ) {
+      $c->stash->{errorMsg} = 'We could not extract the tree data for '
+                              . $c->stash->{acc};
+      return;
+    }
+  
+    # parse the data
+    eval {
+      $tree->parse( $treeData );
+    };
+    if( $@ ) {
+      $c->log->error( "Family::Tree::getTree: ERROR: failed to parse tree: $@" );
+      $c->stash->{errorMsg} = 'There was a problem with the tree data for '
+                              . $c->stash->{acc};
+      return;
+    }
 
+    # and now cache the populated tree object
+    $c->cache->set( $cacheKey, $tree );
+  }
+  
   $c->stash->{tree} = $tree;
 }
 

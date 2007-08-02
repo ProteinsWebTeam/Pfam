@@ -2,7 +2,7 @@
 # Alignment.pm
 # jt6 20070725 WTSI
 #
-# $Id: Alignment.pm,v 1.1 2007-07-26 14:58:54 jt6 Exp $
+# $Id: Alignment.pm,v 1.2 2007-08-02 15:24:28 jt6 Exp $
 
 =head1 NAME
 
@@ -15,10 +15,9 @@ package PfamWeb::Controller::Family::Alignment;
 =head1 DESCRIPTION
 
 This is intended as the basis for alignment-related code. Its only function
-is to check the alignment type (seed or full) and to set that in the stash for
-sub-classes to find.
+is to set up the paths to make the URLs for sub-classes sensible.
 
-$Id: Alignment.pm,v 1.1 2007-07-26 14:58:54 jt6 Exp $
+$Id: Alignment.pm,v 1.2 2007-08-02 15:24:28 jt6 Exp $
 
 =cut
 
@@ -31,25 +30,9 @@ use base 'PfamWeb::Controller::Family';
 
 =head1 METHODS
 
-=head2 auto : Private
-
-Just decides whether we're dealing with a seed or full alignment and sets a
-flag in the stash accordingly.
+None.
 
 =cut
-
-sub auto : Private {
-  my( $this, $c ) = @_;
-  
-  if( defined $c->req->param( 'alnType' ) ) {
-    $c->stash->{alnType} = ( $c->req->param( 'alnType' ) eq 'seed' ) ? 'seed' : 'full';
-    $c->log->debug( 'Alignment::auto: setting alnType to |' . 
-                    $c->stash->{alnType} . '|' );
-  } else {
-    $c->stash->{alnType} = 'seed';
-    $c->log->debug( 'Alignment::auto: no alnType parameter; defaulting to seed ' );
-  }  
-}
 
 #-------------------------------------------------------------------------------
 
