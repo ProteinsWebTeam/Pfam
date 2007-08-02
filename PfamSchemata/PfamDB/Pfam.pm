@@ -1,5 +1,5 @@
 
-# $Id: Pfam.pm,v 1.7 2007-06-14 21:38:26 jt6 Exp $
+# $Id: Pfam.pm,v 1.8 2007-08-02 15:21:10 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -85,11 +85,17 @@ __PACKAGE__->has_one    ( "pfamA_web" => "PfamDB::PfamA_web",
 			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
 			  {  proxy => [ qw/average_length percentage_id average_coverage status/ ] } );
 
-__PACKAGE__->has_many    ( "pfamA_arch" => "PfamDB::PfamA_architecture",
+__PACKAGE__->has_many   ( "pfamA_arch" => "PfamDB::PfamA_architecture",
 			  { "foreign.auto_pfamA" => "self.auto_pfamA" } );
 
 __PACKAGE__->has_many( "pfamA_database_links" => "PfamDB::PfamA_database_links",
 		    { "foreign.auto_pfamA" => "self.auto_pfamA" } );
+
+__PACKAGE__->has_one    ( pfamA_alignments => 'PfamDB::AlignmentsAndTrees',
+        { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+        {  proxy => [ qw( full full_tree full_jtml
+                          seed seed_tree seed_jtml ) ] } );
+
 
 #PRC tables - todo
 
