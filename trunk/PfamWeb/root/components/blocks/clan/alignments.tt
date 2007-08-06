@@ -3,7 +3,7 @@
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.9 2007-05-03 15:20:33 jt6 Exp $
+# $Id: alignments.tt,v 1.10 2007-08-06 16:12:31 jt6 Exp $
 %]
 
 <!-- start clan alignments block -->
@@ -87,7 +87,7 @@ FOREACH pfam IN pfams;
     <td><strong>Total:</strong> [% totalSeq %]</td>
     <td>
       <strong>
-        <a href="[% constants.clanDataURLRoot %]/alignment/[% clan.clan_acc %].shtml"
+        <a href="[% base %]clan/alignment?acc=[% clan.clan_acc %]"
            onclick="window.open( this.href );return false;">
            Clan alignment</a>  
       </strong>
