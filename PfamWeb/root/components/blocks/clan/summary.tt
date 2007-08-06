@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.11 2007-07-31 13:08:00 jt6 Exp $
+# $Id: summary.tt,v 1.12 2007-08-06 16:13:31 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -16,9 +16,6 @@ requirements.css.push( "clans.css" );
 requirements.cssIe.push( "clans_ie.css" );
 
 requirements.js.push( "clans.js" );
-
-# we also need "stSuccess", from the family section
-requirements.js.push( "family.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -86,6 +83,9 @@ END;
 
   </div>
 </div>
+
+[% # for loading the example structure image we use the call to the family
+   # controller, rather than having a separate one %]
 
 <script type="text/javascript">
   // <![CDATA[
