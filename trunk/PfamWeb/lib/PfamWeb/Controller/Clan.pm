@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.14 2007-08-01 14:50:01 jt6 Exp $
+# $Id: Clan.pm,v 1.15 2007-08-06 16:09:19 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.14 2007-08-01 14:50:01 jt6 Exp $
+$Id: Clan.pm,v 1.15 2007-08-06 16:09:19 jt6 Exp $
 
 =cut
 
@@ -129,10 +129,9 @@ sub begin : Private {
   $c->stash->{entryType} = 'C';
   $c->stash->{acc} = $co->clan_acc;
   my @rs = $c->model('PfamDB::Clan_membership')
-    ->search( { auto_clan => $co->auto_clan },
-              { join      => [ qw( pfam ) ],
-                prefetch  => [ qw( pfam ) ] }
-            );
+             ->search( { auto_clan => $co->auto_clan },
+                       { join      => [ qw( pfam ) ],
+                         prefetch  => [ qw( pfam ) ] } );
   $c->stash->{clanMembers} = \@rs;
 
   $c->stash->{clan} = $co;
@@ -148,6 +147,76 @@ sub begin : Private {
     $c->forward( 'getXrefs' );        
   }
 
+}
+
+#-------------------------------------------------------------------------------
+#- exposed actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 alignment : Local
+
+Serves the clan alignment. We first try to retrieve the alignment from cache
+before falling back to the DB.
+
+=cut
+
+sub alignment : Local {
+  my( $this, $c ) = @_;
+  
+  $c->log->debug( 'Clan::alignment: serving clan alignment' );
+  
+  my $cacheKey = 'clanAlignment' . $c->stash->{acc};
+  my $alignment = $c->cache->get( $cacheKey );
+  
+  if( defined $alignment ) {
+    $c->log->debug( 'Clan::alignment: extracted clan alignment from cache' );
+  } else {
+    $c->log->debug( 'Clan::alignment: failed to extract clan alignment from '
+                    . 'cache; going to DB' );
+    
+    # try to retrieve the appropriate row of the alignment table
+    my $row = $c->model('PfamDB::ClanRelationship')
+                ->find( $c->stash->{clan}->auto_clan );
+
+    # see if we succeeded in at least retrieving it
+    unless( defined $row->alignment ) {
+      $c->stash->{errorMsg} = 'We were unable to retrieve the clan alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+    
+    # and see if we can uncompress the alignment
+    $alignment = Compress::Zlib::memGunzip( $row->alignment );
+    unless( defined $alignment ) {
+      $c->stash->{errorMsg} = 'We were unable to extract the clan alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $c->cache->set( $cacheKey, $alignment );    
+  }
+  
+  $c->res->body( $alignment )
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 structures : Local
+
+Adds the structure-to-sequence-to-family mapping to the stash and hands off
+to the template that generates a table showing that mapping.
+
+=cut
+
+sub structures : Local {
+  my( $this, $c) = @_;
+
+  # all we need to do extra for this action is retrieve the mapping between
+  # structure, sequence and family
+  $c->forward( 'getMapping' );
+
+  $c->stash->{template} = 'components/blocks/clan/structureTab.tt';
 }
 
 #-------------------------------------------------------------------------------
