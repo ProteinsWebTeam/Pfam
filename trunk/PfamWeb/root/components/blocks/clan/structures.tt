@@ -3,7 +3,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.9 2007-05-01 21:01:51 jt6 Exp $
+# $Id: structures.tt,v 1.10 2007-08-06 16:13:15 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -38,7 +38,7 @@ requirements.js.push( "ttTweak.js" );
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.cstruc.uri    = "[% base %]clan/structuretab";
+  loadOptions.cstruc.uri    = "[% base %]clan/structures";
   loadOptions.cstruc.params = "acc=[% clan.clan_acc %]";
   // ]]>
 </script>
