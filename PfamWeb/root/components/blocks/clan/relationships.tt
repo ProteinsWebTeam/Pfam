@@ -1,11 +1,11 @@
-[%
+  [%
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.10 2007-05-01 21:00:27 jt6 Exp $
+# $Id: relationships.tt,v 1.11 2007-08-06 16:12:54 jt6 Exp $
 
-image = "${constants.clanDataURLRoot}/relationship/${clan.clan_acc}.png";
-map   = "${constants.clanDataFileRoot}/relationship/${clan.clan_acc}.html"
+#image = "${constants.clanDataURLRoot}/relationship/${clan.clan_acc}.png";
+#map   = "${constants.clanDataFileRoot}/relationship/${clan.clan_acc}.html"
 -%]
 
 <!-- start relationships block -->
@@ -16,7 +16,10 @@ map   = "${constants.clanDataFileRoot}/relationship/${clan.clan_acc}.html"
   </div>
   <div class="blockContent">
 
-    <img id="clanImage" src="[% image %]" alt="" usemap="#clanMap" />
+    <img id="clanImage"
+         src="[% base %]clan/relationship/image?acc=[% acc %]"
+         alt=""
+         usemap="#clanMap" />
     [% TRY %]
 	  <map name="clanMap" id="clanMap">
       [% INSERT $map %]
