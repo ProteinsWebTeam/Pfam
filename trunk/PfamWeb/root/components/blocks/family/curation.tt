@@ -5,12 +5,12 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.16 2007-07-23 14:35:12 jt6 Exp $
+# $Id: curation.tt,v 1.17 2007-08-07 12:45:10 jt6 Exp $
 
 # URI shortcuts
 infoGIF = "${base}static/images/info.gif";
-help    = "${base}/help";
-getHmm  = "${base}/family/gethmm";
+help    = "${base}help";
+getHmm  = "${base}family/gethmm";
 %]
 
 <!-- start curation block -->
@@ -31,11 +31,11 @@ getHmm  = "${base}/family/gethmm";
     </h3>
 
     [% IF pfam.status == "NEW" %]
-      <p>This family is new in this Pfam release.</p>
+      <p>This family is <strong>new</strong> in this Pfam release.</p>
     [% ELSIF pfam.status == "NOCHANGE" %]
       <p>This family has not been changed since the last Pfam release.</p>
     [% ELSIF pfam.status == "CHANGE" %]
-      <p>This family has changed since the last Pfam release.</p>
+      <p>This family <strong>has changed</strong> since the last Pfam release.</p>
     [% END %]
 
   	[% oe = 0 %]
