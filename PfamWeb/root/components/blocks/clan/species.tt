@@ -5,7 +5,7 @@
 #
 # block showing the species tree for clans
 #
-# $Id: species.tt,v 1.2 2007-06-28 13:28:26 jt6 Exp $
+# $Id: species.tt,v 1.3 2007-08-07 12:43:45 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -34,6 +34,58 @@ requirements.js.push( "treeTweak.js" );
 
     [% PROCESS components/speciesTreeTools.tt  # add the "control panel %]
     
+    <div id="speciesTreeDesc">
+      <p>
+        This tree shows the occurence of the domains in this clan across
+        different species.
+        <span onclick="reveal( this, 'speciesNotes', false, true )"
+              class="moreLink">
+          More...</span>
+      </p>
+  
+      <div id="speciesNotes" style="display: none">
+        <p>
+          For all of the domain matches in a full alignment we count the 
+          number of domains that are found on all sequences in the alignment. 
+          This total is shown in the <span class="domSum">purple</span> box.
+        </p>
+        <p>
+          We also count the number of unique sequences on which each domain is 
+          found, which is shown in <span class="seqSum">green</span>.
+          <strong>Note</strong> that a domain may appear multiple times on the
+          same sequence, leading to the difference between these two numbers.
+        </p>
+        <p>
+          Finally, we group sequences from the same organism according to the 
+          NCBI code that is assigned by
+          <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>, 
+          allowing us to count the number of distinct sequences on which the 
+          domain is found. This value is shown in the <span class="specSum">
+            pink</span> boxes.
+        </p>
+        <p>
+          We use the NCBI species tree to group organisms according to their 
+          taxonomy and this forms the structure of the displayed tree.
+          <strong>Note</strong> that in some cases the trees are too large (have
+          too many nodes) to allow us to build an interactive tree, but in most
+          cases you can still view the tree in a plain text, non-interactive
+          representation.
+        </p>
+        <p>
+          You can use the tree controls to manipulate how the interactive tree
+          is displayed:
+        </p>
+        <ul>
+          <li>show/hide the summary boxes</li>
+          <li>expand/collapse the tree or expand it to a given depth</li>
+          <li>select a sub-tree or a set of species within the tree and view
+            them graphically or as an alignment</li>
+          <li>save a plain text representation of the tree</li>
+        </ul>
+        <hr />
+      </div>
+    </div>
+
     <!-- start of tree -->
   	<div id="treeDiv">
       <p id="stph" class="loading">Loading...</p>
