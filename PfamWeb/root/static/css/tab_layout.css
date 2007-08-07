@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.35 2007-07-23 14:35:12 jt6 Exp $
+   $Id: tab_layout.css,v 1.36 2007-08-07 12:46:31 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -378,6 +378,10 @@ div.nodeSummary div {
   border: 1px solid #AAA;
   background: #e8e8e8;
   opacity: 0.75;
+}
+
+#speciesTreeDesc {
+  margin-right: 19em;
 }
 
 div.blockContent > #treeTools {
