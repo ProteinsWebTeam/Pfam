@@ -5,7 +5,7 @@
 #
 # the domain organisation block for the clans sections
 #
-# $Id: domains.tt,v 1.7 2007-06-28 12:14:16 jt6 Exp $
+# $Id: domains.tt,v 1.8 2007-08-07 12:42:55 jt6 Exp $
 %]
 
 <!-- start domain organisation block -->
@@ -65,6 +65,7 @@
         If you want to see more architectures, click the button at the bottom
         of the page to load the next set.
       </p>
+      <hr />
     </div>
 
   	<div id="clanGraphicsHolder">
