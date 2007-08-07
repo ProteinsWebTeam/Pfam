@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.15 2007-08-06 16:09:19 jt6 Exp $
+# $Id: Clan.pm,v 1.16 2007-08-07 12:41:21 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.15 2007-08-06 16:09:19 jt6 Exp $
+$Id: Clan.pm,v 1.16 2007-08-07 12:41:21 jt6 Exp $
 
 =cut
 
@@ -144,9 +144,11 @@ sub begin : Private {
   # then we'll need to do a few extra things
   if( ref $this eq 'PfamWeb::Controller::Clan' ) {
     $c->forward( 'getSummaryData' );
-    $c->forward( 'getXrefs' );        
+    $c->forward( 'getXrefs' );
   }
 
+  # put the clan relationship diagram into the stash
+  $c->forward( 'getDiagram' );
 }
 
 #-------------------------------------------------------------------------------
@@ -326,6 +328,64 @@ sub getMapping : Private {
                            );
 
   $c->stash->{pfamMaps} = \@mapping;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getDiagram : Private
+
+Retrieves the two components of the clan relationship diagram from the DB, 
+namely the image showing the relationship and the HTML snippet with the 
+image map.
+
+=cut
+
+sub getDiagram : Private {
+  my( $this, $c ) = @_;
+
+  my $cacheKeyRoot = 'clanRelationship' . $c->stash->{acc};
+
+  my $image = $c->cache->get( $cacheKeyRoot . 'image' );
+  my $map   = $c->cache->get( $cacheKeyRoot . 'map' );
+
+  if( defined $image and defined $map ) { 
+    $c->log->debug( 'Clan::Relationship::getDiagram: extracted image and map from cache' );
+  } else {
+    $c->log->debug( 'Clan::Relationship::getDiagram: failed to extract both image '
+                    . 'and map from cache; going to DB' );
+
+    my $row = $c->model('PfamDB::ClanRelationship')
+                ->find( $c->stash->{clan}->auto_clan );
+  
+    # check we actually retrieved a row
+    unless( defined $row->relationship ) {
+      $c->stash->{errorMsg} = 'We could not retrieve the relationship data for '
+                              . $c->stash->{acc};
+      return;
+    }
+  
+    # we'll need both the image and the image map HTML uncompressed
+    $image = Compress::Zlib::memGunzip( $row->relationship );
+    unless( defined $image ) {  
+      $c->stash->{errorMsg} = 'We could not extract the relationship image for '
+                              . $c->stash->{acc};
+      return;
+    }
+  
+    $map = Compress::Zlib::memGunzip( $row->image_map );
+    unless( defined $map ) {  
+      $c->stash->{errorMsg} = 'We could not extract the relationship image map for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $c->cache->set( $cacheKeyRoot . 'image', $image );
+    $c->cache->set( $cacheKeyRoot . 'map',   $map );
+
+  }
+
+  $c->stash->{relationshipImage}    = $image;
+  $c->stash->{relationshipImageMap} = $map;
 }
 
 #-------------------------------------------------------------------------------
