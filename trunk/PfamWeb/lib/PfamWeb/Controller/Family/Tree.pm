@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.12 2007-08-02 15:24:28 jt6 Exp $
+# $Id: Tree.pm,v 1.13 2007-08-07 12:42:20 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.12 2007-08-02 15:24:28 jt6 Exp $
+$Id: Tree.pm,v 1.13 2007-08-07 12:42:20 jt6 Exp $
 
 =cut
 
@@ -36,26 +36,6 @@ use base 'PfamWeb::Controller::Family';
 
 =head1 METHODS
 
-=head2 auto : Private
-
-We get here after the begin method from the parent class has handled
-the extraction of the family accession from the URL, so we can jump
-straight in and retrieve the tree data for the required family.
-
-Breaks out of the processing chain if the tree can't be generated for
-whatever reason.
-
-=cut
-
-sub auto : Private {
-  my( $this, $c ) = @_;
-
-  # stash of the tree data
-  $c->forward( 'getTree' );
-
-  return defined $c->stash->{tree};
-}
-
 #-------------------------------------------------------------------------------
 #- exposed actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -69,6 +49,9 @@ builds HTML for the image and associated image map.
 
 sub showTree : Path {
   my( $this, $c ) = @_;
+
+  # stash the tree object
+  $c->forward( 'getTree' );
 
   # populate the tree nodes with the areas for the image map
   $c->stash->{tree}->plot_core;
@@ -92,6 +75,9 @@ an "image/gif". Otherwise returns a blank image.
 sub image : Local {
   my( $this, $c ) = @_;
 
+  # stash the tree object
+  $c->forward( 'getTree' );
+
   if( defined $c->stash->{tree} ) {
     $c->res->content_type( 'image/gif' );
     $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
@@ -103,13 +89,42 @@ sub image : Local {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 download : Local
+
+Serves the raw tree data as a downloadable file.
+
+=cut
+
+sub download : Local {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::Tree::download: dumping tree data to the response' );
+
+  # stash the raw tree data
+  $c->forward( 'getTreeData' );
+
+  return unless defined $c->stash->{treeData};
+
+  my $filename = $c->stash->{acc} . '_' . $c->stash->{alnType} . '.nhx';
+  $c->log->debug( 'Family::Tree::download: tree data: |' . $c->stash->{treeData} . '|' );
+
+  $c->log->debug( "Family::Tree::download: tree filename: |$filename|" );
+
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->body( $c->stash->{treeData} );
+}
+
+#-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 getTree : Private
 
-Retrieves and stashed the raw tree data. Tries first to extract the data
-from cache and if that fails, retrieves it from the database.
+Builds the TreeFam tree object for the specified family and alignment type 
+(seed or full). We first check the cache for the pre-built tree object and 
+then fall back to the database if it's not already available in the cache.
 
 =cut
 
@@ -130,28 +145,16 @@ sub getTree : Private {
                                     -skip  => 14 );
 
     # retrieve the tree from the DB
-    my $rs = $c->model('PfamDB::AlignmentsAndTrees')
-               ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
-                           type       => $c->stash->{alnType} } );
-    my $row = $rs->first;
-
-    unless( defined $row->tree ) {
-      $c->stash->{errorMsg} = 'We could not retrieve the tree data for '
-                              . $c->stash->{acc};
-      return;
-    }
-
-    # make sure we can uncompress it
-    my $treeData = Compress::Zlib::memGunzip( $row->tree );
-    unless( defined $treeData ) {
-      $c->stash->{errorMsg} = 'We could not extract the tree data for '
-                              . $c->stash->{acc};
+    $c->forward( 'getTreeData' );
+    unless( defined $c->stash->{treeData} ) {
+      $c->stash->{errorMsg} = 'We could not extract the ' . $c->stash->{alnType}
+                              . 'tree for ' . $c->stash->{acc};
       return;
     }
   
     # parse the data
     eval {
-      $tree->parse( $treeData );
+      $tree->parse( $c->stash->{treeData} );
     };
     if( $@ ) {
       $c->log->error( "Family::Tree::getTree: ERROR: failed to parse tree: $@" );
@@ -166,6 +169,55 @@ sub getTree : Private {
   
   $c->stash->{tree} = $tree;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 getTreeData : Private
+
+Retrieves the raw tree data. We first check the cache and then fall back to the 
+database.
+
+=cut
+
+sub getTreeData : Private {
+  my( $this, $c) = @_;
+
+  # see if we can extract the pre-built tree object from cache
+  my $cacheKey = 'treeData' . $c->stash->{acc} . $c->stash->{alnType};
+  my $treeData = $c->cache->get( $cacheKey );
+  
+  if( defined $treeData ) {
+    $c->log->debug( 'Family::Tree::getTree: extracted tree data from cache' );  
+  } else {
+    $c->log->debug( 'Family::Tree::getTree: failed to extract tree data from cache; going to DB' );  
+
+    # retrieve the tree from the DB
+    my $rs = $c->model('PfamDB::AlignmentsAndTrees')
+               ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+                           type       => $c->stash->{alnType} } );
+    my $row = $rs->first;
+
+    unless( defined $row->tree ) {
+      $c->stash->{errorMsg} = 'We could not retrieve the tree data for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # make sure we can uncompress it
+    $treeData = Compress::Zlib::memGunzip( $row->tree );
+    unless( defined $treeData ) {
+      $c->stash->{errorMsg} = 'We could not extract the tree data for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # and now cache the populated tree data
+    $c->cache->set( $cacheKey, $treeData );
+  }
+  
+    # stash the uncompressed tree
+    $c->stash->{treeData} = $treeData;
+  }
 
 #-------------------------------------------------------------------------------
 
