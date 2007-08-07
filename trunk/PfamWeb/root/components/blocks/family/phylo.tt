@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.13 2007-07-27 13:46:50 jt6 Exp $
+# $Id: phylo.tt,v 1.14 2007-08-07 12:45:35 jt6 Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -72,9 +72,9 @@
 
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% constants.treeURLRoot %]/seed/[% pfam.pfamA_acc %].tree">seed</a> or the
-      <a href="[% constants.treeURLRoot %]/full/[% pfam.pfamA_acc %].tree">full</a> 
-        trees.
+      <a href="[% base %]family/tree/download?alnType=seed&amp;acc=[% acc %]">seed</a> or the
+      <a href="[% base %]family/tree/download?alnType=full&amp;acc=[% acc %]">full</a>
+      trees.
     </p>
 
   </div>
