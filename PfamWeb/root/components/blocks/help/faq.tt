@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.8 2007-07-25 10:26:17 jt6 Exp $
+# $Id: faq.tt,v 1.9 2007-08-08 09:51:40 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -39,10 +39,10 @@
 
 	<p>
 	  Pfam is a collection of multiple sequence alignments and profile
-	  hidden Markov models (HMMs).  Each Pfam HMM represents a protein
-	  family or domain.  By searching a protein sequence against our
+	  hidden Markov models (HMMs). Each Pfam HMM represents a protein
+	  family or domain. By searching a protein sequence against our
 	  the Pfam library of HMMs you can find out its domain
-	  architecture.  You can also use Pfam to analyse proteomes and
+	  architecture. You can also use Pfam to analyse proteomes and
 	  domain architectures.
 	</p>
 	<p>
@@ -54,7 +54,7 @@
 	  alignments and annotation (including annotation from the
 	  InterPro database where available), view the species
 	  distribution of a domain, access cross-links to other databases
-	  and use other tools for protein analysis.  We display structural
+	  and use other tools for protein analysis. We display structural
 	  information for each family where available.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
@@ -63,24 +63,24 @@
 	families ?</a></h3>
 
 	<p>
-	  Pfam contains two types of families, Pfam-A and Pfam-B.  Pfam-A
+	  Pfam contains two types of families, Pfam-A and Pfam-B. Pfam-A
 	  families are manually curated HMM based families which we build
 	  using an alignment of a small number of representative sequences
-	  (we call this alignment the 'seed' alignment).  We manually set
+	  (we call this alignment the 'seed' alignment). We manually set
 	  a threshold value for each HMM, and this determines the minimum
 	  score a sequence must attain to belong to the family.  We search
-	  all of our HMMs against the <a
+	  all of our HMMs against the <a class="ext"
 	  href="http://www.ebi.uniprot.org/index.shtml">UniProt</a>
 	  database, and include all sequences that score above the cut-off
 	  value for a particular family in the family's full alignment.
 	  For each family we build two HMMs, one to represent fragment
 	  matches and one to represent full length matches. We use the
-	  HMMER2 software to build and search our profile HMMs.  Pfam-A
+	  HMMER2 software to build and search our profile HMMs. Pfam-A
 	  matches are very unlikely to be false matches.
 	</p>
 	<p>
 	  To complement the Pfam-A families, we automatically generate
-	  Pfam-B families using the <a
+	  Pfam-B families using the <a class="ext"
 	  href="http://prodom.prabi.fr/prodom/current/html/home.php">PRODOM</a>
 	  database. Pfam-B families are formed by taking alignments of
 	  sequence segments from PRODOM, and removing any Pfam-A residues
@@ -91,7 +91,7 @@
 	</p>
 	<p>
 	  All families in Pfam are non-overlapping such that no amino acid
-	  belongs to more that one family/domain.  At each Pfam release we
+	  belongs to more that one family/domain. At each Pfam release we
 	  search all of our models against an updated version of UniProt,
 	  and regenerate our Pfam-B families using the most recent version
 	  of PRODOM.
@@ -101,19 +101,19 @@
 	<h3><a name="clan">What is a clan ?</a></h3>
 
 	<p>
-	  Some of the Pfam families are grouped into 'clans'. Pfam defines
+	  Some of the Pfam families are grouped into &apos;clans&apos;. Pfam defines
 	  a clan as a collection of families that have arisen from a
 	  single evolutionary origin. Evidence of their evolutionary
 	  relationship can be in the form of similarity in tertiary
 	  structures, or when structures are not available, by common
 	  sequence motifs. The seed alignments for all families within a
 	  clan are aligned and the resulting alignment (called the clan
-	  alignment) can be accessed from a link on the clan page.  Each
+	  alignment) can be accessed from a link on the clan page. Each
 	  clan page includes a clan alignment, a description of the clan
 	  and database links where appropriate. The clan pages can be
 	  accessed by following a link from the family page, or
-	  alternatively they can be accessed by clicking on 'clans' under
-	  the 'browse' by menu on tab on any Pfam page.
+	  alternatively they can be accessed by clicking on &apos;clans&apos; under
+	  the &apos;browse&apos; by menu on tab on any Pfam page.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
@@ -122,7 +122,7 @@
 	<p>
 	  For each Pfam entry we build two HMMs, one to represent full
 	  length matches (ls model), and one to represent fragment matches
-	  (fs model).  When you search a protein on our site we search
+	  (fs model). When you search a protein on our site we search
 	  them against both the ls and fs models.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
@@ -131,7 +131,7 @@
 
 	<p>
 	  The Wise2 software package allows the comparison of protein HMMs
-	  to genomic DNA.  We use this package to allow users to search
+	  to genomic DNA. We use this package to allow users to search
 	  single DNA sequences against the library of Pfam HMMs. To do
 	  this, you will need to go to the Pfam website hosted at the
 	  Sanger Institute and paste your DNA sequence in the DNA search
@@ -145,13 +145,13 @@
 
 	<p>
 	  If you know of a domain that is not present in Pfam, you can
-	  submit it to us by email (<a href="mailto:pfam@sanger.ac.uk">
-		Pfam email</a>) and we will endeavour to build a Pfam entry
-	  for it.  We ask that you supply us with a multiple sequence
+	  submit it to us by email 
+    (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>) and we will endeavour to build a Pfam entry
+	  for it. We ask that you supply us with a multiple sequence
 	  alignment of the domain (please send the alignment file as a
-	  text file (eg. .txt) and not in the format of a specific
-	  application such as a Word (.doc) document), and associated
-	  literature evidence if available.
+	  text file (e.g. <code>.txt</code>) and <strong>not</strong> in the format of
+    a specific application such as Microsoft Word (e.g. a <code>.doc</code>) 
+    file), and associated literature evidence if available.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
@@ -159,9 +159,9 @@
 
 	<p>
 	  iPfam is a resource that describes domain-domain interactions
-	  that are observed in PDB entries.  Where two or more Pfam
+	  that are observed in PDB entries. Where two or more Pfam
 	  domains occur in a single structure, it analyses them to see if
-	  the are close enough to form an interaction.  If they are close
+	  the are close enough to form an interaction. If they are close
 	  enough it calculates the bonds forming the interaction. Further
 	  information can be found on the iPfam help pages.
 	</p>
@@ -170,22 +170,22 @@
 	<h3><a name="localSearch">How can I search Pfam locally ?</a></h3>
 
 	<p>
-	  If you have a large number of sequences, or your boss will not
-	  allow you to post your sequence across the web you can search
+	  If you have a large number of sequences or you don&apos;t want to 
+	  post your sequence across the web, you can search
 	  your sequence locally. Please see the help page on 
-	  <a href="[% c.uri_for( "/help", tab="helpGetStartedBlock" ) %]">
-	    getting started</a> with Pfam.
+	  <span class="link" onclick="switchTab('helpGetStartedBlock')">
+	    getting started with Pfam</span>.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="noSeq">Why doesn't Pfam doesn't include my sequence ?</a></h3>
 
 	<p>
-	  Pfam is built from a fixed release of UniProt.  At each Pfam
+	  Pfam is built from a fixed release of UniProt. At each Pfam
 	  release we incorporate sequences from the latest release of
-	  UniProt.  This means that at any time the sequences used by Pfam
+	  UniProt. This means that at any time the sequences used by Pfam
 	  could be several months behind those in the most up-to-date
-	  versions of the sequence databases.  If your sequence isn't in
+	  versions of the sequence databases. If your sequence isn't in
 	  Pfam you can still find out what domains it contains by pasting
 	  it into the search box in Pfam.
 	</p>
@@ -224,8 +224,10 @@
 	<h3><a name="howMany">How many accurate alignments do you have ?</a></h3>
 
 	<p>
-	  Release 7.0 has 3,360 families. Over 69% of the proteins in
-	  SWISSPROT 40 and TrEMBL-18 have at least one match to a Pfam-A
+	  Release [% relData.pfam_release %] has [% relData.number_families %]
+    families. Over [% relData.pfamA_coverage %] of the proteins in
+	  SWISSPROT [% relData.swiss_prot_version %] and TrEMBL 
+    [% relData.trembl_version %] have at least one match to a Pfam-A
 	  family.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
@@ -233,17 +235,9 @@
 	<h3><a name="mySearch">Can I search my protein against Pfam ?</a></h3>
 
 	<p>
-	  Of course! Please use one of the two servers listed below.
-	</p>
-	<ul>
-	  <li>
-		<a href="[% base %]search?tab=searchProteinBlock">
-		  Wellcome Trust Sanger Institute (UK)</a>
-	  </li>
-	  <li>
-		<a href="http://pfam.janelia.org/">Washington D.C. (USA)</a>
-	  </li>
-	</ul>
+	  Of course! Please use  
+    <a href="[% base %]search?tab=searchProteinBlock">this</a> search form. 
+  </p>
 	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="transSearch">Can I search my dna sequence in translation against
@@ -259,17 +253,16 @@
 	your full alignments ?</a></h3>
 
 	<p>
-	  The - and . characters both represent gap characters.  However
-	  they do tell you some extra information about how the HMM has
-	  generated the alignment. The - symbols are where the alignment
-	  of the sequence has used a delete state in the HMM to jump past
-	  a match state.  This means that the sequence is missing a column
-	  that the HMM was expecting to be there.  The . character is used
-	  to pad gaps where one sequence in the alignment has sequence
-	  from the HMMs insert state. See the alignment below where both
-	  characters are used.  The HMM states emitting each column are
-	  shown. Note that residues emitted from the Insert (I) state are
-	  in lower case.
+	  The &apos;-&apos; and &apos;.&apos; characters both represent gap 
+    characters. However they do tell you some extra information about how the 
+    HMM has generated the alignment. The &apos;-&apos; symbols are where the 
+    alignment of the sequence has used a delete state in the HMM to jump past a 
+    match state. This means that the sequence is missing a column that the HMM 
+    was expecting to be there. The &apos;.&apos; character is used to pad gaps 
+    where one sequence in the alignment has sequence from the HMMs insert state. 
+    See the alignment below where both characters are used. The HMM states 
+    emitting each column are shown. Note that residues emitted from the 
+    <em>Insert</em> (I) state are in lower case.
 	</p>
 
 	<pre>
@@ -321,7 +314,8 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 	<p>
 	  You can find more information 
-	 <a href="http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html">here</a>.
+	  <a class="ext"
+       href="http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html">here</a>.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
@@ -332,8 +326,8 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  provide us with a multiple alignment then we will try hard to
 	  incorporate it into the database. If you know of a domain, but
 	  don't have a multiple alignment, we still want to know, for
-	  simple families just one sequence is enough. Again E-mail <a
-	  href="mailto:pfam@sanger.ac.uk">Pfam</a>.
+	  simple families just one sequence is enough. Again E-mail 
+    <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
@@ -341,7 +335,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	software to support Pfam locally?</h3>
 
 	<p>
-	  In terms on HMMs and formats, Pfam is based around the <a
+	  In terms on HMMs and formats, Pfam is based around the <a class="ext"
 	  href="http://hmmer.janelia.org/">HMMER2</a> package. This will
 	  need to be installed on your local machine, and you will need to
 	  also download the Pfam HMM libraries from the FTP site. These
@@ -359,24 +353,26 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  include:
 	</p>
 	<dl>
-	  <dt><a href="http://www.isrec.isb-sib.ch/software/PFSCAN_form.html">
+	  <dt><a class="ext" href="http://www.isrec.isb-sib.ch/software/PFSCAN_form.html">
 	    PROSITE</a></dt>
 	  <dd>This originally was based around regular expression patterns
 	  but now also includes profiles.</dd>
-	  <dt><a href="http://www.bioinf.man.ac.uk/dbbrowser/PRINTS/">PRINTS</a></dt>
+	  <dt><a class="ext" href="http://www.bioinf.man.ac.uk/dbbrowser/PRINTS/">
+	      PRINTS</a></dt>
 	  <dd>This is based around protein &quot;finger-prints&quot; of a series of
 	  small conserved motifs making up a domain.</dd>
-	  <dt><a href="http://www.blocks.fhcrc.org/">BLOCKS</a></dt>
+	  <dt><a class="ext" href="http://www.blocks.fhcrc.org/">BLOCKS</a></dt>
 	  <dd>This is based around automatic ungapped alignments.</dd>
-	  <dt><a href="http://smart.embl-heidelberg.de/">SMART</a></dt>
+	  <dt><a class="ext" href="http://smart.embl-heidelberg.de/">SMART</a></dt>
 	  <dd>This is a database concentrating on extracellular modules
 	  and signaling domains.</dd>
-	  <dt><a href="http://www.toulouse.inra.fr/prodom.html">PRODOM</a></dt>
+	  <dt><a class="ext" href="http://www.toulouse.inra.fr/prodom.html">PRODOM</a></dt>
 	  <dd>This is an automatically generated domain database based on PSI-BLAST
 	   searching.</dd>
-	  <dt><a href="http://www.ebi.ac.uk/interpro">InterPro</a></dt>
+	  <dt><a class="ext" href="http://www.ebi.ac.uk/interpro">InterPro</a></dt>
 	  <dd>Combines information from Pfam, Prints, SMART, Prosite and PRODOM.</dd>
-	  <dt><a href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">CDD</a></dt>
+	  <dt><a class="ext" href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">
+	      CDD</a></dt>
 	  <dd>The Conserved Domain Database is derived from Pfam and SMART databases.</dd>
 	</dl>
 	<p><a href="#faqTop">back to top</a></p>
