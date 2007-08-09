@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.30 2007-08-02 15:25:00 jt6 Exp $
+# $Id: Family.pm,v 1.31 2007-08-09 09:34:36 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.30 2007-08-02 15:25:00 jt6 Exp $
+$Id: Family.pm,v 1.31 2007-08-09 09:34:36 jt6 Exp $
 
 =cut
 
@@ -86,7 +86,7 @@ sub begin : Private {
       if( defined $c->stash->{pfam} ) {
         $c->log->debug( "Family::begin: found a Pfam-A: |$1|" );
         $c->stash->{entryType} = 'A';
-        $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
+        $c->stash->{acc}       = $c->stash->{pfam}->pfamA_acc;
       }
 
     } elsif( $c->req->param('acc') =~ m/^(PB\d{6})$/i ) {
@@ -98,21 +98,39 @@ sub begin : Private {
       if( defined $c->stash->{pfam} ) {
         $c->log->debug( "Family::begin: found a Pfam-B: |$1|" );
         $c->stash->{entryType} = 'B';
-        $c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
+        $c->stash->{acc}       = $c->stash->{pfam}->pfamB_acc;
       }
 
     }
 
   } elsif( defined $c->req->param('id') and
            $c->req->param('id') =~ /^([\w_-]+)$/ ) {
-    $c->log->debug( "Family::begin: found ID |$1|" );
+    $c->log->debug( "Family::begin: found an ID |$1|" );
+    my $id = $1;
   
-    $c->stash->{pfam} = $c->model('PfamDB::Pfam')
-                          ->find( { pfamA_id => $1 } );
+    # but now we need to decide if it's a Pfam-A or a Pfam-B ID...
+    if( $id =~ /^(Pfam-B_\d+)$/ ) {
+      
+      $c->stash->{pfam} = $c->model('PfamDB::PfamB')
+                            ->find( { pfamB_id => $1 } );
 
-    if( defined $c->stash->{pfam} ) {
-      $c->stash->{entryType} = 'A';
-      $c->stash->{acc} = $c->stash->{pfam}->pfamA_acc;
+      if( defined $c->stash->{pfam} ) {
+        $c->log->debug( "Family::begin: found a Pfam-B: |$1|" );
+        $c->stash->{entryType} = 'B';
+        $c->stash->{acc}       = $c->stash->{pfam}->pfamB_acc;
+      }
+
+    } else {
+      
+      # must be a Pfam-A ID (?)
+      $c->stash->{pfam} = $c->model('PfamDB::Pfam')
+                            ->find( { pfamA_id => $1 } );
+
+      if( defined $c->stash->{pfam} ) {
+        $c->stash->{entryType} = 'A';
+        $c->stash->{acc}       = $c->stash->{pfam}->pfamA_acc;
+      }
+
     }
     
   } elsif( defined $c->req->param( 'entry' ) ) {
@@ -120,16 +138,23 @@ sub begin : Private {
     if( $c->req->param('entry') =~ /^(PF\d{5})$/i ) {
 
       # looks like a PfamA accession; redirect to this action, appending the accession
-      $c->log->debug( "Family::begin: looks like a PfamA accession ($1); redirecting internally" );
+      $c->log->debug( "Family::begin: looks like a Pfam-A accession ($1); redirecting internally" );
       $c->req->param( 'acc' => $1 );
       $c->detach( 'begin' );
       return 1;
 
     } elsif( $c->req->param( 'entry' ) =~ /^(PB\d{6})$/i ) {
 
-      # looks like a PfamA accession; redirect to this action, appending the accession
-      $c->log->debug( "Family::begin: looks like a PfamB accession ($1); redirecting" );
+      # looks like a Pfam-B accession; redirect to this action, appending the accession
+      $c->log->debug( "Family::begin: looks like a Pfam-B accession ($1); redirecting" );
       $c->res->redirect( $c->uri_for( '/pfamb', { acc => $1 } ) );
+      return 1;
+
+    } elsif( $c->req->param( 'entry' ) =~ /^(Pfam-B_\d+)$/i ) {
+
+      # looks like a Pfam-B ID; redirect to this action, appending the accession
+      $c->log->debug( "Family::begin: looks like a Pfam-B id ($1); redirecting" );
+      $c->res->redirect( $c->uri_for( '/pfamb', { id => $1 } ) );
       return 1;
 
     } elsif( $c->req->param( 'entry' ) =~ /^([\w_-]+)$/ ) {
