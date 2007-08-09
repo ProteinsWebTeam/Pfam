@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.11 2007-07-26 14:41:34 jt6 Exp $
+# $Id: PfamB.pm,v 1.12 2007-08-09 09:34:36 jt6 Exp $
 
 =head1 NAME
 
@@ -16,120 +16,91 @@ package PfamWeb::Controller::PfamB;
 
 =head1 DESCRIPTION
 
-A C<Controller> to handle pages for Pfam B entries.
+A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
+on the Family controller, which is responsible for deciding whether the input
+parameters on the URL are pointing to a Pfam-B accession or ID.
 
-Generates a B<full page>.
-
-$Id: PfamB.pm,v 1.11 2007-07-26 14:41:34 jt6 Exp $
+$Id: PfamB.pm,v 1.12 2007-08-09 09:34:36 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "PfamWeb::Controller::Family";
+use base 'PfamWeb::Controller::Family';
 
 # define the name of the section...
-__PACKAGE__->config( SECTION => "pfamb" );
+__PACKAGE__->config( SECTION => 'pfamb' );
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 begin : Private
-
-Extract the PfamB accession from the URL and load the appropriate
-Model objects into the hash.
-
-=cut
-
-#sub begin : Private {
-#  my( $this, $c ) = @_;
-#
-#  if( defined $c->req->param("acc") ) {
-#
-#  $c->req->param("acc") =~ m/^(PB\d{6})$/i;
-#  $c->log->info( "PfamB::begin: found a PfamB, accession |$1|" );
-#
-#    if (defined $1){
-#      $c->stash->{pfam}   = $c->model("PfamDB::PfamB")
-#                              ->find( { pfamB_acc => $1 } );
-#    }
-#  }
-#
-#  # we're done here unless there's an entry specified
-#  unless( defined $c->stash->{pfam} ) {
-#    $c->log->warn( "PfamB::begin: no ID or accession" );
-#    $c->error( "No valid Pfam family accession or ID" );
-#    return;
-#  }
-#
-#  # flag this as a PfamB
-#  $c->stash->{entryType} = "B";
-#  $c->stash->{acc}  = $c->stash->{pfam}->pfamB_acc;
-#}
-
-#-------------------------------------------------------------------------------
-
-=head2 default : Private
+=head2 pfamB : Path
 
 Just stuffs the hash with extra information, such as summary data and 
-database cross-references.
+database cross-references. We rely on the Family controller having 
+figured out what the Pfam-B entry is and retrieving the appropriate row
+for us.
 
 =cut
 
-sub default : Private {
+sub pfamB : Path {
   my( $this, $c ) = @_;
 
   # we're done here unless there's an entry specified
   unless( defined $c->stash->{pfam} ) {
-    $c->log->warn( "PfamB::default: no ID or accession" );
-    $c->stash->{errorMsg} = "No valid Pfam-B accession";
+    $c->log->warn( 'PfamB::default: no ID or accession' );
+    $c->stash->{errorMsg} = 'No valid Pfam-B ID or accession';
     return;
   }
 
-  $c->log->debug( "PfamB::default: generating a page for a PfamB" );
+  $c->log->debug('PfamB::default: generating a page for a PfamB' );
 
-  $c->forward( "_getSummaryData" );
-  $c->forward( "_getDbXrefs" );
+  $c->forward( 'getSummaryData' );
+  $c->forward( 'getDbXrefs' );
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 structureTab : Path
+=head2 structuretab : Path
 
 Populates the stash with the mapping and hands off to the appropriate template.
 
 =cut
 
-sub structureTab : Path( "/pfamb/structuretab" ) {
+sub structuretab : Local {
   my($this, $c) = @_;
 
-  $c->log->debug( "PfamB::structureTab: acc: |"
-		  . $c->stash->{acc}  . "|" .  $c->stash->{entryType}. "|");
+  $c->log->debug( 'PfamB::structuretab: acc: |'
+		  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|');
 
-  my @mapping = $c->model("PfamDB::PdbMap")
+  my @mapping = $c->model('PfamDB::PdbMap')
                   ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamB,
                               pfam_region => 0 },
-                            { join        => [ qw/pdb/ ],
-                              prefetch    => [ qw/pdb/ ]
+                            { join        => [ qw( pdb ) ],
+                              prefetch    => [ qw( pdb ) ]
                             } );
   $c->stash->{pfamMaps} = \@mapping;
-  $c->log->debug( "PfamB::structureTab: found |" . scalar @mapping . "| mappings" );
+  $c->log->debug( 'PfamB::structuretab: found |' . scalar @mapping . '| mappings' );
   
-  $c->stash->{template} = "components/blocks/family/structureTab.tt";
+  $c->stash->{template} = 'components/blocks/family/structureTab.tt';
 }
 
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-# get the data items for the overview bar
+=head2 getSummaryData : Private
 
-sub _getSummaryData : Private {
+Retrieves the data items for the overview bar.
+
+=cut
+
+sub getSummaryData : Private {
   my( $this, $c ) = @_;
   
-  $c->log->debug( "PfamB::_getSummaryData: getting summary information for a PfamB" );
+  $c->log->debug( 'PfamB::getSummaryData: getting summary information for a PfamB' );
 
   my %summaryData;
 
@@ -139,29 +110,29 @@ sub _getSummaryData : Private {
   #----------------------------------------
 
   # get the PDB details
-  my @maps = $c->model("PfamDB::PdbMap")
+  my @maps = $c->model('PfamDB::PdbMap')
                ->search( { auto_pfam   => $auto_pfam,
                            pfam_region => 0 },
-                         { join        => [ qw/ pdb / ],
-                           prefetch    => [ qw/ pdb / ] } );
+                         { join        => [ qw( pdb ) ],
+                           prefetch    => [ qw( pdb ) ] } );
   $c->stash->{pfamMaps} = \@maps;
 
   # number of structures known for the domain
   my %pdb_unique = map {$_->pdb_id => $_} @maps;
   $c->stash->{pdbUnique} = \%pdb_unique;
-  $c->log->debug( "PfamB::_getSummaryData: found |" . scalar @maps . "| mappings, |"
-                  . scalar( keys %pdb_unique ) . "| unique structures" );
+  $c->log->debug( 'PfamB::getSummaryData: found |' . scalar @maps . '| mappings, |'
+                  . scalar( keys %pdb_unique ) . '| unique structures' );
 
   $summaryData{numStructures} = scalar( keys %pdb_unique );
 
   #----------------------------------------
 
   # count the number of architectures
-  my @architectures = $c->model("PfamDB::PfamB_reg")
+  my @architectures = $c->model('PfamDB::PfamB_reg')
                         ->search( { auto_pfamB => $auto_pfam },
-                                  { join      => [ qw/ pfamseq_architecture / ],
-                                    prefetch  => [ qw/ pfamseq_architecture / ] } );
-  $c->log->debug( "PfamB::default: found |" .scalar @architectures . "| architectures" );
+                                  { join      => [ qw( pfamseq_architecture ) ],
+                                    prefetch  => [ qw( pfamseq_architecture ) ] } );
+  $c->log->debug( 'PfamB::getSummaryData: found |' .scalar @architectures . '| architectures' );
 
   # count the *unique* architectures
   my $numArchs = 0;
@@ -184,10 +155,10 @@ sub _getSummaryData : Private {
   #----------------------------------------
 
   # number of species
-  my @species = $c->model("PfamDB::PfamB_reg")
+  my @species = $c->model('PfamDB::PfamB_reg')
                   ->search( { auto_pfamB => $auto_pfam },
-                            { join       => [ qw/pfamseq/ ],
-                              prefetch   => [ qw/pfamseq/ ] } );
+                            { join       => [ qw( pfamseq ) ],
+                              prefetch   => [ qw( pfamseq ) ] } );
 
   my %species_unique = map {$_->species => 1} @species;
   $summaryData{numSpecies} = scalar(keys %species_unique);
@@ -205,6 +176,8 @@ sub _getSummaryData : Private {
 #
 #  $summaryData{numInt} = $rs->get_column( "NumInts" );
 
+  # TODO need to properly calculate the number of interactions for a Pfam-B
+
   $summaryData{numInt} = 0;
 
   #----------------------------------------
@@ -214,17 +187,22 @@ sub _getSummaryData : Private {
 }
 
 #-------------------------------------------------------------------------------
-# retrieves database cross-references
 
-sub _getDbXrefs : Private {
+=head2 getDbXrefs : Private
+
+Retrieves database cross-references.
+
+=cut
+
+sub getDbXrefs : Private {
   my( $this, $c ) = @_;
 
   # get just the row from the prodom table, used to get hold of the PRODOM link
-  $c->stash->{prodom} = $c->model("PfamDB::PfamB_database_links")
+  $c->stash->{prodom} = $c->model('PfamDB::PfamB_database_links')
                           ->find( { auto_pfamB => $c->stash->{pfam}->auto_pfamB,
-                                    db_id      => "PRODOM" } );
-  $c->log->debug( "PfamB::_getDbXrefs: prodom:  |" . $c->stash->{prodom} . "|" );
-  $c->log->debug( "PfamB::_getDbXrefs: db_link: |" . $c->stash->{prodom}->db_link . "|" );
+                                    db_id      => 'PRODOM' } );
+  $c->log->debug( 'PfamB::getDbXrefs: prodom:  |' . $c->stash->{prodom} . '|' );
+  $c->log->debug( 'PfamB::getDbXrefs: db_link: |' . $c->stash->{prodom}->db_link . '|' );
 
   # cross references
   my %xRefs;
@@ -236,7 +214,7 @@ sub _getDbXrefs : Private {
   # PfamB to PfamA links based on PRODOM
   my %btoaPRODOM;
   foreach my $xref ( $c->stash->{pfam}->pfamB_database_links ) {
-    if( $xref->db_id eq "PFAMA_PRODOM" ) {
+    if( $xref->db_id eq 'PFAMA_PRODOM' ) {
       $btoaPRODOM{$xref->db_link} = $xref;
     } else {
       push @{ $xRefs{$xref->db_id} }, $xref;
@@ -244,27 +222,27 @@ sub _getDbXrefs : Private {
   }
 
   # PfamB to PfamB links based on PRC
-  my @btobPRC = $c->model("PfamDB::PfamB2pfamB_PRC_results")
+  my @btobPRC = $c->model('PfamDB::PfamB2pfamB_PRC_results')
                   ->search( { "pfamB1.pfamB_acc" => $c->stash->{pfam}->pfamB_acc },
-                            { join               => [ qw/pfamB1 pfamB2/ ],
-                              select             => [ qw/pfamB1.pfamB_acc pfamB2.pfamB_acc evalue/ ],
-                              as                 => [ qw/l_pfamB_acc r_pfamB_acc evalue/ ],
-                              order_by           => "pfamB2.auto_pfamB ASC" } );
+                            { join               => [ qw( pfamB1 pfamB2 ) ],
+                              select             => [ qw( pfamB1.pfamB_acc pfamB2.pfamB_acc evalue ) ],
+                              as                 => [ qw( l_pfamB_acc r_pfamB_acc evalue ) ],
+                              order_by           => 'pfamB2.auto_pfamB ASC' } );
 
   $xRefs{btobPRC} = [];
   foreach ( @btobPRC ) {
-    next if $_->get_column( "evalue" ) <= 0.001;
-    next if $_->get_column("l_pfamB_acc") eq $_->get_column("r_pfamB_acc");
+    next if $_->get_column( 'evalue' ) <= 0.001;
+    next if $_->get_column( 'l_pfamB_acc') eq $_->get_column( 'r_pfamB_acc' );
     push @{$xRefs{btobPRC}}, $_;
   }
 
 #  $xRefs{btobPRC} = \@btobPRC if scalar @btobPRC;
 
   # PfamB to PfamA links based on PRC
-  my @btoaPRC = $c->model("PfamDB::PfamB2pfamA_PRC_results")
-                  ->search( { "pfamB.pfamB_acc" => $c->stash->{pfam}->pfamB_acc, },
-                            { join      => [ qw/pfamA pfamB/ ],
-                              prefetch  => [ qw/pfamA pfamB/ ] } );
+  my @btoaPRC = $c->model('PfamDB::PfamB2pfamA_PRC_results')
+                  ->search( { 'pfamB.pfamB_acc' => $c->stash->{pfam}->pfamB_acc, },
+                            { join      => [ qw( pfamA pfamB ) ],
+                              prefetch  => [ qw( pfamA pfamB ) ] } );
 
   # find the union between PRC and PRODOM PfamB links
   my %btoaPRC;

@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.26 2007-06-26 11:49:37 jt6 Exp $
+# $Id: Protein.pm,v 1.27 2007-08-09 09:34:36 jt6 Exp $
 
 =head1 NAME
 
@@ -19,16 +19,16 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.26 2007-06-26 11:49:37 jt6 Exp $
+$Id: Protein.pm,v 1.27 2007-08-09 09:34:36 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dumper;
+use Data::Dump qw( dump );
 
-use Storable qw(thaw);
+use Storable qw( thaw );
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
 use Bio::Pfam::AnnotatedSequence;
@@ -45,9 +45,9 @@ use Bio::Pfam::HMMOtherRegion;
 use Bio::Pfam::Drawing::Image::ImageSet;
 use Bio::SeqFeature::Generic;
 
-use base "PfamWeb::Controller::Section";
+use base 'PfamWeb::Controller::Section';
 
-__PACKAGE__->config( SECTION => "protein" );
+__PACKAGE__->config( SECTION => 'protein' );
 
 #-------------------------------------------------------------------------------
 
@@ -66,49 +66,51 @@ sub begin : Private {
   # get the accession or ID code
 
   my $p;
-  if ( defined $c->req->param("acc") ) {
+  if ( defined $c->req->param('acc') ) {
 
-    $c->req->param( "acc" ) =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/i;
+    $c->req->param('acc') =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/i;
     $c->log->debug( "Protein::begin: found a uniprot accession |$1|" );
   
     # try a lookup in the main pfamseq table first
-    $p = $c->model("PfamDB::Pfamseq")->find( { pfamseq_acc => $1 } );
+    $p = $c->model('PfamDB::Pfamseq')
+           ->find( { pfamseq_acc => $1 } );
   
     # if we got a result there, so much the better...
     unless( defined $p ) {
   
       # ... otherwise, see if this is really a secondary accession
-      $p = $c->model("PfamDB::Secondary_pfamseq_acc")
-        ->find( { secondary_acc => $1 },
-                { join          => [ qw/pfamseq/ ],
-  				prefetch      => [ qw/pfamseq/ ] } );
+      $p = $c->model('PfamDB::Secondary_pfamseq_acc')
+            ->find( { secondary_acc => $1 },
+                    { join          => [ qw( pfamseq ) ],
+                      prefetch      => [ qw( pfamseq ) ] } );
     }
   
-  } elsif ( defined $c->req->param("id") ) {
+  } elsif ( defined $c->req->param('id') ) {
 
-    $c->req->param("id") =~ m/^(\w+)$/;
+    $c->req->param('id') =~ m/^(\w+)$/;
     $c->log->debug("Protein::begin: found a uniprot ID |$1|");
   
     # try a lookup in the main pfamseq table first
-    $p = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $1 } );
+    $p = $c->model('PfamDB::Pfamseq')
+           ->find( { pfamseq_id => $1 } );
   
-  } elsif ( defined $c->req->param("entry") ) {
+  } elsif ( defined $c->req->param('entry') ) {
 
     # we don't know if this is an accession or an ID; try both
   
-    if ( $c->req->param("entry") =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/i ) {
+    if ( $c->req->param('entry') =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/i ) {
   
       # looks like an accession; redirect to this action, appending the accession
       $c->log->debug(
              "Protein::begin: looks like a uniprot accession ($1); redirecting");
-      $c->res->redirect( $c->uri_for( "/protein", { acc => $1 } ) );
+      $c->res->redirect( $c->uri_for( '/protein', { acc => $1 } ) );
       return 1;
   
-    } elsif ( $c->req->param("entry") =~ m/^(\w+_\w+)$/ ) {
+    } elsif ( $c->req->param('entry') =~ m/^(\w+_\w+)$/ ) {
   
       # looks like an ID; redirect to this action, appending the ID
-      $c->log->debug("Protein::begin: looks like a uniprot ID; redirecting");
-      $c->res->redirect( $c->uri_for( "/protein", { id => $1 } ) );
+      $c->log->debug('Protein::begin: looks like a uniprot ID; redirecting');
+      $c->res->redirect( $c->uri_for( '/protein', { id => $1 } ) );
       return 1;
     }
   }
@@ -117,10 +119,10 @@ sub begin : Private {
   unless ( defined $p ) {
 
     # de-taint the accession or ID
-    my $input = $c->req->param("acc")
-      || $c->req->param("id")
-      || $c->req->param("entry")
-        || "";
+    my $input = $c->req->param('acc')
+      || $c->req->param('id')
+      || $c->req->param('entry')
+      || '';
     $input =~ s/^(\w+)/$1/;
   
     # see if this was an internal link and, if so, report it
@@ -133,11 +135,9 @@ sub begin : Private {
   
       # report the error as a broken internal link
       $c->error(
-          "Found a broken internal link; no valid UniProt accession or ID "
-          . "(\"$input\") in \""
-          . $c->req->referer
-          . "\"" );
-      $c->forward("/reportError");
+          'Found a broken internal link; no valid UniProt accession or ID ("'
+          . $input . '") in "' . $c->req->referer . '"' );
+      $c->forward('/reportError');
   
       # now reset the errors array so that we can add the message for
       # public consumption
@@ -146,49 +146,49 @@ sub begin : Private {
     }
   
     # the message that we'll show to the user
-    $c->stash->{errorMsg} = "No valid UniProt accession or ID";
+    $c->stash->{errorMsg} = 'No valid UniProt accession or ID';
   
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
-    $c->log->warn("Family::begin: no valid UniProt ID or accession");
+    $c->log->warn('Family::begin: no valid UniProt ID or accession');
   
     return;
   }
 
-  $c->log->debug("Protein::begin: successfully retrieved a pfamseq object");
+  $c->log->debug('Protein::begin: successfully retrieved a pfamseq object');
   $c->stash->{pfamseq} = $p;
   
   #----------------------------------------
   # add extra data to the stash
 
-  $c->forward("_generatePfamGraphic");
-  $c->forward("_getDasSources");
-  $c->forward("_getMapping");
-  $c->forward("_getSummaryData");
-  $c->forward("_getGenomeData");
+  $c->forward('generatePfamGraphic');
+  $c->forward('getDasSources');
+  $c->forward('getMapping');
+  $c->forward('getSummaryData');
+  $c->forward('getGenomeData');
 
 }
 
 #-------------------------------------------------------------------------------
-#- private methods -------------------------------------------------------------
+#- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 _getDasSources : Private
+=head2 getDasSources : Private
 
 Retrieves DAS sources with the appropriate object type and coordinate system.
 
-(Author aj5)
-
 =cut
 
-sub _getDasSources : Private {
-  my ($this, $c) = @_;
+sub getDasSources : Private {
+  my( $this, $c) = @_;
   
-  my @dasSources = $c->model("WebUser::Feature_das_sources")->search();
+  my @dasSources = $c->model('WebUser::Feature_das_sources')
+                     ->search();
   my $keptSources = {};
-  my ($baseCoord, $baseType) = ('UniProt', 'Protein Sequence');
+  my( $baseCoord, $baseType ) = ('UniProt', 'Protein Sequence');
   my $seqAcc = $c->stash->{pfamseq}->pfamseq_acc;
-  my $dl = $c->model("PfamDB")->getDasLite;
+  my $dl = $c->model('PfamDB')
+             ->getDasLite;
   my %alignMatches;
   
   FEATURE: foreach my $f (@dasSources) {
@@ -229,46 +229,24 @@ sub _getDasSources : Private {
   }
   $c->stash->{dasSourcesRs} = \@keptSourcesArr;
 
-  $c->log->debug("Protein::begin: added DAS sources to the stash");
+  $c->log->debug('Protein::getDasSources: added DAS sources to the stash');
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 _sortWithPref
-
-A regular Perl method implementing a sort
-
-=cut
-
-sub _sortWithPref {
-  my $pref = shift;
-  return sort {
-    my $i = (lc $a) cmp (lc $b);
-    return $i if $i == 0;
-    if( $a eq $pref ) {
-      $i = -1;
-    } elsif( $b eq $pref ) {
-      $i = 1;
-    }
-    return $i;
-  } @_;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 _getGenomeData : Private
+=head2 getGenomeData : Private
 
 Retrieves the genome information for a given sequence.
 
 =cut
 
-sub _getGenomeData : Private {
+sub getGenomeData : Private {
   my ( $this, $c ) = @_;
 
-  my $rs = $c->model( "PfamDB::Genome_pfamseq")
+  my $rs = $c->model('PfamDB::Genome_pfamseq')
              ->find( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
-                     { join         => [ qw/genome_species/ ],
-                       prefetch     => [ qw/genome_species/ ] } );
+                     { join         => [ qw( genome_species ) ],
+                       prefetch     => [ qw( genome_species ) ] } );
 
   $c->stash->{genomeCode} = $rs->ncbi_code if $rs;
 
@@ -277,43 +255,41 @@ sub _getGenomeData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 _getMapping : Private
+=head2 getMapping : Private
 
-Gets the structure mapping
+Gets the structure-to-sequence-to-family mapping.
 
 =cut
 
-sub _getMapping : Private {
+sub getMapping : Private {
   my ( $this, $c ) = @_;
 
-  # get a layout manager and set the X scale
-
-  my @mapping = $c->model("PfamDB::PdbMap")
-    ->search( { "pfamseq.auto_pfamseq" => $c->stash->{pfamseq}->auto_pfamseq,
-                "pfam_region"          => 1 },
-              {  join                  => [ qw/pfamA pfamseq pdb/ ],
-                 prefetch              => [ qw/pfamA pfamseq pdb/ ] } );
+  my @mapping = $c->model('PfamDB::PdbMap')
+                  ->search( { 'pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
+                              'pfam_region'          => 1 },
+                            {  join                  => [ qw( pfamA pfamseq pdb ) ],
+                               prefetch              => [ qw( pfamA pfamseq pdb ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
 
-  $c->log->debug("Protein::begin: added the structure mapping to the stash");
+  $c->log->debug('Protein::begin: added the structure mapping to the stash');
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 _generatePfamGraphic : Private
+=head2 generatePfamGraphic : Private
 
-Generates the Pfam graphic
+Generates the Pfam graphic.
 
 =cut
 
-sub _generatePfamGraphic : Private {
+sub generatePfamGraphic : Private {
   my ( $this, $c ) = @_;
 
   # get a layout manager and set the X scale
   my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layoutPfam->scale_x(1);
-  $c->log->debug("Protein::begin: instantiated a layout manager");
+  $c->log->debug('Protein::generatePfamGraphic: instantiated a layout manager');
 
   # retrieve the Storable containing the annotated sequence, thaw it
   # and hand it off to the layout manager
@@ -330,25 +306,72 @@ sub _generatePfamGraphic : Private {
                                                              PfamB      => 1,
                                                              noFeatures => 0 } );
 
+  # if we've arrived here from the top-level controller, rather than from one 
+  # of the sub-classes, we will be displaying a key for the domain graphic.
+  # For now at least, the sub-classes, such as the interactive feature viewer,
+  # don't bother with the key, so they don't need this extra blob of data in 
+  # the stash. 
+  $c->forward( 'generateKey', [ $layoutPfam ] )
+    if ref $this eq 'PfamWeb::Controller::Protein';
+
   # and build an imageset
   my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $pfamImageset->create_images( $layoutPfam->layout_to_XMLDOM );
-  $c->log->debug("Protein::begin: created images");
+  $c->log->debug('Protein::generatePfamGraphic: created images');
 
   $c->stash->{pfamImageset} = $pfamImageset;
 
-  $c->log->debug("Protein::begin: successfully generated an imageset object");
+  $c->log->debug('Protein::generatePfamGraphic: successfully generated an imageset object');
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 _getSummaryData : Private
+=head2 generateKey : Private
 
-Get the data items for the overview bar
+Generates a data structure representing the key to the domain image, which 
+can be formatted sensibly by the view.
 
 =cut
 
-sub _getSummaryData : Private {
+sub generateKey : Private {
+  my( $this, $c, $lm ) = @_;
+  
+  # retrieve a hash of BioPerl objects indexed on sequence ID
+  my %hash = $lm->seqHash;
+
+  # pull out the sequence object for just the sequence that we're dealing with
+  # (there should be only that one anyway) 
+  my $seq = $hash{ $c->stash->{pfamseq}->pfamseq_id };
+
+  # and get the raw key data from that
+  my %key = $seq->getKey;
+
+  # from this point on we're mimicking old, crufty code...
+  
+  # sort the rows according to the start position of the domain
+  my @rows;
+  foreach my $row ( sort{$key{$a}{start} <=> $key{$b}{start} } keys %key ) {
+
+    # shouldn't they always be a number ?
+    next unless $key{$row}{start} =~ /^\d+$/;
+   
+    # just store the hash for this row and we're done here; let the view
+    # figure out what to render 
+    push @rows, $key{$row};
+  }
+  
+  $c->stash->{imageKey} = \@rows;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getSummaryData : Private
+
+Gets the data items for the overview bar
+
+=cut
+
+sub getSummaryData : Private {
   my ( $this, $c ) = @_;
 
   my %summaryData;
@@ -363,32 +386,56 @@ sub _getSummaryData : Private {
   $summaryData{numSpecies} = 1;
 
   # number of structures
-  my $rs = $c->model("PfamDB::Pdb_residue")
+  my $rs = $c->model('PfamDB::Pdb_residue')
              ->find( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
-			               { select       => [
-							                           {
-    								                       count => [ { distinct => [qw/auto_pdb/] } ]
-							                           }
-							                         ],
-                       as           => [ qw/numberPdbs/ ] } );
+                     { select       => [
+                                         {
+                                           count => [ { distinct => [ qw( auto_pdb )] } ]
+                                         }
+                                       ],
+                       as           => [ qw( numberPdbs ) ] } );
 
-  $summaryData{numStructures} = $rs->get_column("numberPdbs");
+  $summaryData{numStructures} = $rs->get_column( 'numberPdbs' );
 
   # number of interactions
-  $rs = $c->model("PfamDB::Interactions")
+  $rs = $c->model('PfamDB::Interactions')
           ->find( { auto_pfamseq_A => $c->stash->{pfamseq}->auto_pfamseq },
                   { select         => [
-								                        {
-								                          count => [ { distinct => ["auto_int_pfamAs"] } ]
-								                        }
-								                      ],
-			              as             => [ qw/numInts/ ] } );
+                                        {
+                                          count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
+                                        }
+                                      ],
+                    as             => [ qw( numInts ) ] } );
 
-  $summaryData{numInt} = $rs->get_column("numInts");
+  $summaryData{numInt} = $rs->get_column( 'numInts' );
 
   $c->stash->{summaryData} = \%summaryData;
 
-  $c->log->debug("Protein::begin: added the summary data to the stash");
+  $c->log->debug('Protein::getSummaryData: added the summary data to the stash');
+}
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 _sortWithPref
+
+A regular Perl method implementing a sort.
+
+=cut
+
+sub _sortWithPref {
+  my $pref = shift;
+  return sort {
+    my $i = (lc $a) cmp (lc $b);
+    return $i if $i == 0;
+    if( $a eq $pref ) {
+      $i = -1;
+    } elsif( $b eq $pref ) {
+      $i = 1;
+    }
+    return $i;
+  } @_;
 }
 
 #-------------------------------------------------------------------------------
