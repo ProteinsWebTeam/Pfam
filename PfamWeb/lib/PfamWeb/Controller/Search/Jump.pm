@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: Jump.pm,v 1.2 2007-08-09 15:34:10 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+$Id: Jump.pm,v 1.2 2007-08-09 15:34:10 jt6 Exp $
 
 =cut
 
@@ -138,14 +138,27 @@ sub guess : Private {
     }
   }
   
-  # or a PfamB ?
-  if( $entry =~ /^(PB\d{6})$/ ) {
+  # or a PfamB accession ?
+  if( not $action and $entry =~ /^(PB\d{6})$/ ) {
 
-    $found = $c->model("PfamDB::PfamB")->find( { pfamB_acc => $1 } );      
+    $found = $c->model('PfamDB::PfamB')
+              ->find( { pfamB_acc => $1 } );      
   
     if( defined $found ) {
-      $c->log->debug( "Search::Jump::guess: found a PfamB (from accession)" );
-      $action = "pfamb";            
+      $c->log->debug( 'Search::Jump::guess: found a PfamB (from accession)' );
+      $action = 'pfamb';
+    }
+  }
+  
+  # maybe a PfamB ID ?
+  if( not $action and $entry =~ /^(Pfam-B_\d+)$/ ) {
+
+    $found = $c->model('PfamDB::PfamB')
+              ->find( { pfamB_id => $1 } );      
+  
+    if( defined $found ) {
+      $c->log->debug( 'Search::Jump::guess: found a PfamB (from ID)' );
+      $action = 'pfamb';
     }
   }
   
