@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.3 2007-07-31 22:01:00 jt6 Exp $
+# $Id: Sequence.pm,v 1.4 2007-08-09 15:35:02 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.3 2007-07-31 22:01:00 jt6 Exp $
+$Id: Sequence.pm,v 1.4 2007-08-09 15:35:02 jt6 Exp $
 
 =cut
 
@@ -301,7 +301,7 @@ sub queuePfamA : Private {
 
   # build the command to run
   my $cmd;
-  $cmd  =  q(/home/pfamweb/scripts/pfam_scan.pl -pvm -align -d /data/blastdb/Pfam/data);
+  $cmd  =  q(pfam_scan.pl -pvm -align -d /data/blastdb/Pfam/data);
   $cmd .=  q( --mode ) . $c->stash->{seqOpts} if( $c->stash->{seqOpts} ne 'both' and 
                                                   $c->stash->{seqOpts} ne 'bothNoMerge' );
   $cmd .=  q( --no_merge )                    if( $c->stash->{seqOpts} eq 'bothNoMerge' );
@@ -361,7 +361,7 @@ sub queuePfamB : Private {
 
   # build the command to run
   my $cmd;
-  $cmd  =  q(/data/bin/wublastp /data/blastdb/Pfam/data/Pfam-B.fasta);
+  $cmd  =  q(wublastp /data/blastdb/Pfam/data/Pfam-B.fasta);
   $cmd .= qq( /tmp/$jobId.fa);
   $cmd .=  q( -cpus 2 -gapE=2000 -T=12);
 
