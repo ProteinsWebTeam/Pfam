@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.14 2007-08-07 12:45:35 jt6 Exp $
+# $Id: phylo.tt,v 1.15 2007-08-10 09:42:38 jt6 Exp $
 %]
 
 <!-- start of phyloBlock -->
@@ -16,8 +16,10 @@
   </div>
   <div class="blockContent">
     <p>
-      This page displays the UPGMA based phylogentic tree, generated using 
-      quicktree, for the given alignment.
+      This page displays the <acronym title="Unweighted Pair Group Method with 
+        Arithmetic mean">UPGMA</acronym>-based phylogenetic tree, generated using 
+      <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/quicktree/">
+        quicktree</a> for the given alignment.
     </p> 
     [% # the form that controls the tree display %]
     <form id="phyloForm"

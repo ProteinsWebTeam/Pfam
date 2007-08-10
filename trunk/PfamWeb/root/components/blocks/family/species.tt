@@ -6,7 +6,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.19 2007-08-07 12:45:48 jt6 Exp $
+# $Id: species.tt,v 1.20 2007-08-10 09:42:38 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -58,7 +58,9 @@ requirements.js.push( "treeTweak.js" );
         </p>
         <p>
           Finally, we group sequences from the same organism according to the 
-          NCBI code that is assigned by
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/"><acronym 
+          title="National Center for Biotechnology Information">NCBI</acronym></a> 
+          code that is assigned by
           <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>, 
           allowing us to count the number of distinct sequences on which the 
           domain is found. This value is shown in the <span class="specSum">

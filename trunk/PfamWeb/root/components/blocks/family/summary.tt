@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.26 2007-08-02 15:22:28 jt6 Exp $
+# $Id: summary.tt,v 1.27 2007-08-10 09:42:38 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -15,17 +15,8 @@ PROCESS "components/require.tt";
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
-# YUI stuff - this is for tooltips
-requirements.css.push( "tree.css" );
-requirements.js.push( "yui/yahoo.js" );
-requirements.js.push( "yui/dom.js" );
-requirements.js.push( "yui/event.js" );
-requirements.js.push( "yui/container.js" );
-requirements.js.push( "ttTweak.js" );
-
 requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
-# load this last, after the YUI stuff is parsed and in place 
 requirements.js.push( "family.js" );
 
 #-------------------------------------------------------------------------------
@@ -37,7 +28,7 @@ requirements.js.push( "family.js" );
 
 <script type="text/javascript">
   // <![CDATA[
-  [% IF c.debug; "// "; pfam.auto_pfamA; END %]
+  [% IF c.debug; "// ${pfam.auto_pfamA}"; END %]
   Event.observe( window, "load", familyPostLoad, false );
   // ]]>
 </script>
@@ -52,7 +43,8 @@ requirements.js.push( "family.js" );
 
     <div id="siph">&nbsp;</div>
 
-    <h1><span [% addTip("family","description") %]>[% pfam.description %]</span>
+    <h1>
+      [% pfam.description %]
       <a href="[% base %]annotate?acc=[% pfam.pfamA_acc %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
@@ -68,7 +60,7 @@ requirements.js.push( "family.js" );
     <hr class="short"/>
 
     [% IF pfam.pfamA_lit_refs.size %]
-      <h4 [% addTip("family","litRefs") %]>Literature references</h4>
+      <h2>Literature references</h2>
   
       <ol>
       [% FOREACH ref IN pfam.pfamA_lit_refs %]
@@ -84,7 +76,7 @@ requirements.js.push( "family.js" );
 
     [% IF pfam.interpro.interpro_id %]
     <h2 id="interproTitle">
-      <span [% addTip("family","interpro") %]>Interpro entry</span> 
+      Interpro entry 
       <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
     </h2>
     [% END %]
@@ -94,7 +86,7 @@ requirements.js.push( "family.js" );
     pfam.interpro.abstract;
 
     IF pfam.clan_acc -%]
-      <h2 [% addTip("family","familyClan") %]>Clan</h2>
+      <h2>Clan</h2>
   
       [% membershipList = BLOCK;
         total = 0;
@@ -165,7 +157,7 @@ requirements.js.push( "family.js" );
 <script type="text/javascript">
   // <![CDATA[
   loadOptions.si.uri    = "[% base %]family/structures";
-  loadOptions.si.params = "acc=[% pfam.pfamA_acc %]";
+  loadOptions.si.params = { acc: "[% pfam.pfamA_acc %]" };
   // ]]>
 </script>
 

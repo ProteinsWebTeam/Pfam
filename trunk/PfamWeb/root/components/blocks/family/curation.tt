@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.17 2007-08-07 12:45:10 jt6 Exp $
+# $Id: curation.tt,v 1.18 2007-08-10 09:42:38 jt6 Exp $
 
 # URI shortcuts
 infoGIF = "${base}static/images/info.gif";
@@ -21,14 +21,23 @@ getHmm  = "${base}family/gethmm";
   </div>
   <div class="blockContent">
 
-    <h3>
-      <span class="tipped" [% addTip("curation","curationTitle") %]>Curation</span>
-  		<a href="[% help %]?tab=helpScoresBlock"
+    <p>
+      This section shows the detailed information about the Pfam family. You 
+      can see the definitions of many of the terms in this section in the 
+      <a href="[% base %]help?tab=helpGlossaryBlock">glossary</a> and a fuller
+      explanation of the scoring system that we use in the 
+      <a href="[% base %]help?tab=helpScoresBlock">scores</a> section of the
+      help pages. 
+    </p>
+
+    <h2>
+      Curation
+      <a href="[% help %]?tab=helpScoresBlock"
          title="View help on the curation process">
   	 		<img src="[% infoGIF %]" 
              alt="View help on the curation process"
              class="info" /></a>
-    </h3>
+    </h2>
 
     [% IF pfam.status == "NEW" %]
       <p>This family is <strong>new</strong> in this Pfam release.</p>
@@ -43,13 +52,13 @@ getHmm  = "${base}family/gethmm";
     <table class="layout" summary="Curation information for this family">
   	  <tbody>
         <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
-    		  <td class="label" [% addTip("curation","seedSource") %]>Seed source:</td>
+    		  <td class="label">Seed source:</td>
   	      <td class="data">
   	        [% pfam.seed_source %]
             </td>
     		</tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-  	      <td class="label" [% addTip("curation","prevIds") %]>Previous IDs:</td>
+  	      <td class="label">Previous IDs:</td>
           <td class="data">
             [% IF pfam.previous_id %]
               [% pfam.previous_id %]
@@ -59,19 +68,23 @@ getHmm  = "${base}family/gethmm";
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-  	      <td class="label" [% addTip("curation","familyType") %]>Type:</td>
+  	      <td class="label">Type:</td>
   	      <td class="data">
               [% pfam.type %]
   	      </td>
   	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-  	      <td class="label" [% addTip("curation","numSeed") %]>Number in seed:</td>
+          <td class="label">Author:</td>
+          <td class="data">[% pfam.author %]</td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+  	      <td class="label">Number in seed:</td>
   	      <td class="data">
             [% pfam.num_seed %]
   	      </td>
   	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label" [% addTip("curation","numFull") %]>Number in full:</td>
+          <td class="label">Number in full:</td>
     		  <td class="data">
             [% pfam.num_full %]
   	      </td>
@@ -90,21 +103,21 @@ getHmm  = "${base}family/gethmm";
   	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Average coverage of the sequence by the domain:</td>
-    		  <td class="data">
+          <td class="data">
             [% pfam.average_coverage %] %
-  	      </td>
-  	    </tr>
+          </td>
+        </tr>
       </tbody>
   	</table>
 
-    <h3>
-      <span class="tipped" [% addTip("curation","hmm") %]>HMM information</span>
+    <h2>
+      HMM information
   	  <a href="[% help %]?tab=helpScoresBlock"
          title="View help on HMM parameters">
         <img src="[% infoGIF %]" 
              class="info" 
              alt="View help on HMM parameters" /></a>
-    </h3>
+    </h2>
 
     <table class="layout" summary="HMM information for this family">
       <tbody>
