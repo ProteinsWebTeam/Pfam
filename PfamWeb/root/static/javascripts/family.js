@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.21 2007-07-27 13:47:34 jt6 Exp $
+// $Id: family.js,v 1.22 2007-08-10 15:11:30 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -111,8 +111,7 @@ function dgFailure() {
 // callbacks for the alignment tree generation call
 
 function atSuccess( oResponse ) {
-  console.debug( "atSuccess: successfully generated a tree..." );
-  Element.update( $("alignmentTree"), oResponse.responseText );
+  $("alignmentTree").update( oResponse.responseText );
 }
 
 function atFailure() {

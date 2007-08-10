@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.10 2007-07-02 10:00:26 jt6 Exp $
+// $Id: protein.js,v 1.11 2007-08-10 15:11:15 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -54,11 +54,9 @@ function proteinPostLoad() {
 // into the page and enable the submit button
 
 function pgSuccess( oResponse ) {
-  console.log( "pgSuccess: features loaded");
   $("pgSubmitButton").enable();
   $("pgUpdateSpinner").hide()
   $("graphicsHolder").update( oResponse.responseText );
-  console.log( "pgSuccess: features updated");
 }
 
 // called in response to a failed call - bugger. Leave the
