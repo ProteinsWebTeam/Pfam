@@ -4,7 +4,7 @@
 
    IE stylesheet to handle transparency...
    
-   $Id: protein_ie.css,v 1.6 2007-05-30 09:37:10 jt6 Exp $
+   $Id: protein_all_ie.css,v 1.1 2007-08-10 15:23:23 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -31,14 +31,10 @@ hr.short {
     border-color: #074987;
 }
 
-div.sequenceLine {
-    font-size: 0.6em;
-}
-
 #plainSequence {
     font-size: 0.6em;
 }
 
-#highlight {
+#overlay {
   filter: alpha( opacity=50 );
 }

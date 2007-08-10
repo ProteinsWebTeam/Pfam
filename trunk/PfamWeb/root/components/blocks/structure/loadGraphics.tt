@@ -2,15 +2,13 @@
 # loadGraphics.tt
 # jt6 20060713 WTSI
 #
-# $Id: loadGraphics.tt,v 1.6 2007-07-16 10:38:21 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.7 2007-08-10 15:23:23 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
 
-USE String
+USE String;
 
-# we cheat and use "oe" as a counter as well as the usual odd or even token here
-oe = 0;
 -%]
 
 <div id="structureGraphics">
@@ -19,8 +17,10 @@ oe = 0;
 
   unp = chainsToUnp.$chainIds;
   image = unpToImage.$unp;
-  chainLabel = String.new( chainIds ) -%]
-
+  chainLabel = String.new( chainIds );
+  # we cheat and use "oe" as a counter as well as the usual odd or even token here
+  oe = 0;
+-%]
   <div class="graphicRow [% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
     <span class="graphicLabel">Chain[% IF chainLabel.search("\,") %]s[% END %] [% chainIds %] (UniProt entry <a href="[% c.uri_for( "/protein", id=unp ) %]">[% unp %]</a>):</span>
     <img class="graphicImage"

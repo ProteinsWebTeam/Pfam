@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.24 2007-05-16 15:30:10 jt6 Exp $
+   $Id: protein.css,v 1.25 2007-08-10 15:23:23 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -108,7 +108,9 @@ img.featuresImage {
   border: none;
 }
 
-#highlight {
+/* this is the div that is overlaid on areas in the features display when the 
+ * user moves the mouse over them */
+#overlay {
   /* need this to avoid IE making the box way bigger than specified... */
   font-size: 1px; 
   background: #99F;
@@ -123,7 +125,8 @@ img.featuresImage {
   opacity: 0.5;
 }
 
-#highlight.linked {
+/* change the pointer when there's a URL to be clicked */
+#overlay.linked {
   background: #074987;
   cursor: pointer;
 }
@@ -151,7 +154,7 @@ img.featuresImage {
 div.sequenceLine {
   margin: 0;
   padding: 0;
-  clear:both;
+  clear: both;
   font-family: mono, Courier;
   font-size: 0.8em;
 }
@@ -161,7 +164,7 @@ div.leftAlignmentLabel {
   padding: 0.1em 0.4em;
   float: left;
   text-align: right;
-  width: 4em;
+  width: 3em;
 }
 
 div.alignmentRow {  
@@ -175,7 +178,7 @@ div.rightAlignmentLabel {
   padding: 0.1em;
   text-align: right;
   float: left;
-  width: 4em;
+  width: 3em;
 }
 
 #plainSequence {
@@ -190,6 +193,19 @@ div.rightAlignmentLabel {
 
 div.summaryGraphic {
   margin: 0.75em 0;
+}
+
+/* ---------------------------------------- */
+/* domain image and key */
+
+#imageKey {
+  float: left;
+  clear: left; 
+  margin-top: 0.6em; 
+}
+
+#imageKey td.pfamA {
+  font-weight: bold;
 }
 
 /* ---------------------------------------- */

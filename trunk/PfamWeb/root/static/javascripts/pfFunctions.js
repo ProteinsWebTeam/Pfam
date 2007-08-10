@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.43 2007-07-27 13:47:34 jt6 Exp $
+// $Id: pfFunctions.js,v 1.44 2007-08-10 15:23:23 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -334,19 +334,11 @@ function switchTab( sId ) {
 //------------------------------------------------------------
 // highlight an "area" in an image map by overlaying a coloured div
 
-// hide the feature highlight div before we start
-if( $("highlight" ) ) {
-  Element.hide( "highlight" );
-}
+// the URL from the overlay area
+var overlayURL = "";
 
-// a re-usable tooltip
-var ht;
-
-// the URL from the highlighted area
-var highlightURL = "";
-
-function highlightFeature( e ) {
-  // console.debug( "entering highlight" )
+function showOverlay( e ) {
+  //console.debug( "entering showOverlay" )
 
   var target;
   if( e.target ) {
@@ -362,14 +354,14 @@ function highlightFeature( e ) {
   // this is the <map> that contains this <area>
   var mapName = target.parentNode.name;
 
-  // console.debug( "target:   |" + target.id + "|" );
-  // console.debug( "mapName:  |" + mapName + "|" );
+  //console.debug( "target:   |" + target.id + "|" );
+  //console.debug( "mapName:  |" + mapName + "|" );
 
   // find the ID of the <img> that uses this <map>
   var num = mapName.substring( 11 );
   var image = $("featuresImage" + num);
 
-  // where to place the highlight...
+  // where to place the overlay...
   var coords = target.coords.split(",");
   var width  = coords[2] - coords[0];
   var height = coords[3] - coords[1];
@@ -384,61 +376,65 @@ function highlightFeature( e ) {
            - findPosY( $("featuresMap") )
            + $("featuresMap").offsetTop;
 
-  // console.debug( "WxH+X,Y:  " + width + "x" + height + "+" + left + "," + top );
+  //console.debug( "WxH+X,Y:  " + width + "x" + height + "+" + left + "," + top );
 
   // position the div
-  Element.setStyle( $("highlight"),
-                    {
-                      "width":   width + "px",
-                      "height":  height + "px",
-                      "left":    left + "px",
-                      "top":     top + "px"
-                    }
-                  );
+  $("overlay").setStyle( { width:  width + "px",
+                           height: height + "px",
+                           left:   left + "px",
+                           top:    top + "px" } );
 
   // find the contents of the label for the row containing this feature
   var mapNum = target.parentNode.id.substring( 11 );
   var label = $("featuresLabel" + mapNum).innerHTML;
-  // console.debug( "features label: |" + label + "|" );
+  //console.debug( "features label: |" + label + "|" );
 
-  // set the tooltip contents
-  ht.setBody( target.alt );
+  // set the tooltip contents. For IE we're going to make do with the tooltips
+  // that IE adds anyway. For other browsers we'll make a prettier version
+  if( ! Prototype.Browser.IE ) {
+    
+    // retrieve a URL from the feature, if present, and set various
+    // other bits and pieces...
+    var title = label + " feature" + ( target.href ? " (click for details)" : "" );
 
-  // retrieve a URL from the feature, if present, and set various
-  // other bits and pieces...
-  if( target.href ) {
-    highlightURL = target.href;
-    Element.addClassName( "highlight", "linked" );
-    ht.setHeader( label +" feature (click for details)" );
-  } else {
-    highlightURL = "";
-    Element.removeClassName( "highlight", "linked" );
-    ht.setHeader( label +" feature" );
+    // set the options on the tooltip
+    var options = { title: title,
+                    offset: { x: 10, y: 10 } };
+
+    // and create the tooltip 
+    new Tip( "overlay", target.alt, options );
   }
 
-  // "render" the tooltip, to make sure that the header and footer are
-  // added correctly
-  ht.render();
-  
-  // and finally, display the highlight div  
-  Element.show( "highlight" );
+  // if there's a target for the overlaid area, set that as the URL for the 
+  // overlay div
+  if( target.href ) {
+    overlayURL = target.href;
+    $("overlay").addClassName( "linked" );
+  } else {
+    overlayURL = "";
+    $("overlay").removeClassName( "linked" );
+  }
 
-  // console.debug( "leaving highlight" )
+  // and finally, display the overlay
+  $("overlay").show();
+
+  //console.debug( "leaving showOverlay" )
 }
 
 //----------------------------------------
 // open a new window with the URL from a given feature
 
-function openHighlightURL( e ) {
-  if( highlightURL != "" ) {
-    window.open( highlightURL );
+function openOverlayURL( e ) {
+  if( overlayURL != "" ) {
+    window.open( overlayURL );
   }
 }
 //----------------------------------------
 
 // hide the div on mouseout
-function unhighlight( e ) {
-  Element.hide( "highlight" );
+function removeOverlay( e ) {
+  //console.debug( "removing overlay" );
+  $("overlay").hide();
 }
 
 //----------------------------------------
@@ -452,6 +448,7 @@ var tl, br, co, po; // various coordinates
 var minX, maxX; // limits for cursor movement
 
 var cursorInitialised = false; // flag to show whether the cursor is ready
+var initialiseFailed  = false; // flag to show whether cursor initialisation failed
 
 function initialiseCursor() {
 
@@ -462,9 +459,11 @@ function initialiseCursor() {
 
   // calculate the various coordinates and offsets... 
   tl = Position.cumulativeOffset( images.first() );
-  var bl = Position.cumulativeOffset( images.last()  );
-  br = [ bl[0] + images.last().getWidth(),
-         bl[1] + images.last().getHeight() ];
+  var lastImage = images.last();
+  var bl = Position.cumulativeOffset( lastImage );
+  var d = lastImage.getDimensions();
+  br = [ bl[0] + d.width,
+         bl[1] + d.height ];
 
   co = Position.cumulativeOffset( fObj );
   po = Position.positionedOffset( fObj );
@@ -488,7 +487,15 @@ function initialiseCursor() {
 function moveCursor( e ) {
   // initialise the cursor the first time it's used
   if( ! cursorInitialised ) {
-    initialiseCursor();
+    try {
+      initialiseCursor();
+    } catch( e ) {
+      initialiseFailed  = true;
+    }
+  }
+
+  if( initialiseFailed ) {
+    return;
   }
 
   // the absolute position of the event on the page

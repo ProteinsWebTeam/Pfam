@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.54 2007-07-20 13:25:20 jt6 Exp $
+   $Id: pfam.css,v 1.55 2007-08-10 15:23:23 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -740,28 +740,21 @@ span.clanMember {
 /* ---------------------------------------- */
 /* tooltip styles */
 
-.tt {
-  visibility:hidden;
-  position:absolute;
-  padding: 0;
-  margin: 0;
-  font:100% sans-serif;
-  width:auto;
+.tooltip {
   background: #cbdced;
   border: 1px solid #074987;
   font-size: 0.8em;
   opacity: 0.8;
 }
 
-.hd {
-  padding: 0.1em;
+.tooltip .title {
   background: #074987;
   color: #cbdced;
   font-weight: bold;
+  padding: 0.1em;
 }
 
-.bd {
-  background: #cbdced;
+.tooltip .content {
   color: #074987;
   padding: 0.1em;
 }
