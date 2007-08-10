@@ -5,7 +5,7 @@
 # 
 # block for the sequence, raw and formatted, for the protein page
 #
-# $Id: sequence.tt,v 1.9 2007-05-01 21:05:10 jt6 Exp $
+# $Id: sequence.tt,v 1.10 2007-08-10 10:18:12 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -27,7 +27,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div class="blockContent">
     <p>
       This is the amino acid sequence of the UniProt sequence database entry
-      with the identifier [% pfamseq.pfamseq_acc %]. This sequence is stored in
+      with the identifier <strong>[% pfamseq.pfamseq_acc %]</strong>. This 
+      sequence is stored in
       the Pfam database and updated with each new Pfam release, but this means
       that the sequence we store may differ from that stored by UniProt.
     </p>
@@ -37,9 +38,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
       <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
           <td class="label">Sequence:</td>
-          <td class="data">
-
-            [% # an array containing the individual residues
+          <td class="data">[%
+            # an array containing the individual residues
             sa = String.new( pfamseq.sequence ).split("");
   
             # a string with the bare lines of the sequence, without numbering
@@ -53,9 +53,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
             # version of TT that we have right now...
 
             CALL sb.append( sa.0 );
-            CALL sl.append( sa.0 ) -%]
-
-            <div class="sequenceLine">
+            CALL sl.append( sa.0 );
+            -%]<div class="sequenceLine">
               [% i = 1;
                  label = 1 -%] 
               <div class="leftAlignmentLabel">[%- i %]</div>

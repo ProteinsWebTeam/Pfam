@@ -6,7 +6,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.18 2007-07-02 09:50:33 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.19 2007-08-10 10:18:12 jt6 Exp $
 
 META naked = 1;
 -%]
@@ -15,7 +15,7 @@ META naked = 1;
 
 <div id="featuresMap">
 
-  <div id="highlight"></div>
+  <div id="overlay" style="display: none"></div>
   <div id="cursor"></div>
   
   <form onsubmit="updateSubmitter();return false" 
@@ -118,17 +118,14 @@ META naked = 1;
   // add mouseover listeners to all features
   var areas = $("featuresMap").getElementsByTagName( "area" );
   $A( areas ).each( function( area ) {
-	  Event.observe( area, "mouseover", highlightFeature );
+	  Event.observe( area, "mouseover", showOverlay );
     }
   );
   
-  // move the highlight div according to mouseovers on features
-  Event.observe( "highlight",   "mousemove", moveCursor );
-  Event.observe( "highlight",   "mouseout",  unhighlight ); 
-  Event.observe( "highlight",   "click",     openHighlightURL );
-
-  // initialise the reusable tooltip
-  ht = new YAHOO.widget.Tooltip( "highlightTip", { context: "highlight" } );
+  // move the overlay div according to mouseovers on features
+  Event.observe( "overlay", "mousemove", moveCursor );
+  Event.observe( "overlay", "mouseout",  removeOverlay ); 
+  Event.observe( "overlay", "click",     openOverlayURL );
   // ]]>
 </script>
 

@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.14 2007-05-16 15:11:32 jt6 Exp $
+# $Id: summary.tt,v 1.15 2007-08-10 10:18:12 jt6 Exp $
 
 USE String;
 
@@ -15,7 +15,7 @@ USE String;
 PROCESS "components/require.tt";
 
 requirements.css.push( "protein.css" );
-requirements.cssIe.push( "protein_ie.css" );
+requirements.cssIeAll.push( "protein_all_ie.css" );
 
 requirements.js.push( "protein.js" );
 
@@ -38,23 +38,21 @@ oe = 0;
     <h1>UniProt entry</h1>
   </div>
   <div class="blockContent">
+    
+    <h1>[% pfamseq.pfamseq_id %]</h1>
 
-    <div class="explanatoryText">
-      <p>
-        Overview of the protein, containing details from the 
-        <a class="ext" href="http://www.uniprot.org/">UniProt</a> entry and a
-        graphical view of the Pfam domain organisation.
-      </p>  
-    </div>
+    <h2>Summary</h2>
 
     <table class="layout" summary="Protein summary information">
       <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Entry:</td>
+          <td class="label">UniProt entry:</td>
           <td class="data">
               <span class="ext">
-                <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">[% pfamseq.pfamseq_id %]</a> (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">
-                  [% pfamseq.pfamseq_acc %]</a>)
+                <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">
+                  [% pfamseq.pfamseq_id %]</a>
+                  (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">
+                    [% pfamseq.pfamseq_acc %]</a>)
               </span>
             </td>
         </tr>
@@ -89,6 +87,24 @@ oe = 0;
         </tr>
       </tbody>
     </table>
+    <p class="small">
+      <strong>Please note:</strong> when we start each new Pfam data release,
+      we take a copy of the UniProt sequence database. This snapshot of 
+      UniProt forms the basis of the overview that you see here. It is 
+      important to note that although some UniProt entries may be removed 
+      <em>after</em> a Pfam release, these entries will not be removed from 
+      Pfam until the <em>next</em> Pfam data release.
+    </p>
+
+    <h2>Pfam domains</h2>
+
+    <p>
+      This image shows the arrangement of the Pfam domains that we found on 
+      this sequence. Clicking on a domain will take you to the page describing 
+      that Pfam entry. The table below gives the domain boundaries for each of 
+      the domains. Note that some domains may be obscured by other, overlapping 
+      domains. This is noted in the table where applicable.
+    </p>
 
     <div class="summaryGraphic">
       [% image = pfamImageset.each_image;
@@ -101,6 +117,46 @@ oe = 0;
         [% image.image_map %]
       </map>
     </div>
+
+    <table id="imageKey"
+           class="details"
+           summary="Key for the Pfam domain image">
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Domain</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        [% oe = 0; 
+        FOREACH row IN imageKey;
+          IF row.colour;
+            colour = " style=\"color: \#${row.colour}\"";
+          END %]
+          <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <td [% IF row.type.match( '(?i)pfama' ); colour %] class="pfamA"[% END %]>
+              [% row.source ? row.source : row.type %]
+            </td>
+            <td>
+              [% IF row.type.match( '(?i)pfama' ) %]
+                <a href="[% base %]family?id=[% row.label %]">
+                  [% row.label %]</a>
+                [% IF row.hidden %] (hidden)[% END;
+              ELSIF row.type.match( '(?i)pfamb' ) %]
+                <a href="[% base %]pfamb?id=[% row.label %]">
+                  [% row.label %]</a>
+                [% IF row.hidden %] (hidden)[% END;
+              END %]
+            </td>
+            <td>[% row.start %]</td>
+            <td>[% row.end %]</td>
+          </tr>
+        [% END %]
+      </tbody>
+    </table>
+    
   </div> <!-- end of "blockContent" -->
 </div>
 
