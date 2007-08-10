@@ -1,0 +1,72 @@
+
+[%
+# mapping.tt
+# jt6 20070810 WTSI
+# 
+# build the table showing the mapping between this structure and UniProt/Pfam
+#
+# $Id$
+
+# a counter for odd/even
+oe = 0;
+%]
+
+<!-- start mapping block -->
+
+<div class="block" id="structureMappingBlock">
+  <div class="handle">
+    <h1>Sequence mapping</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      For those sequences which have a structure in the
+      <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
+      use the mapping between <a class="ext" 
+        href="http://www.ebi.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
+      systems from the <a class="ext" 
+        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
+      Pfam domains onto UniProt three-dimensional structures. The table below
+      shows the sequences and Pfam domains that correspond to this structure.
+    </p>
+
+    <table class="details" summary="Mapping to Uniprot and Pfam">
+      <thead>
+        <tr class="caption">
+          <th colspan="3">PDB</th>
+          <th colspan="3">UniProt</th>
+          <th rowspan="2">Pfam family</th>
+        </tr>
+        <tr class="caption">
+          <th>Chain</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>ID</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH m IN mapping -%]
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
+          <td>[% m.pdb_start_res %]</td>
+          <td>[% m.pdb_end_res %]</td>
+          <td><a href="[% base %]protein?id=[% m.pfamseq_id %]">[% m.pfamseq_id %]</a></td>
+          <td>[% m.pfam_start_res %]</td>
+          <td>[% m.pfam_end_res %]</td>
+          <td><a href="[% base %]family?id=[% m.pfamA_id %]">[% m.pfamA_id %]</a> 
+            (<a href="[% base %]family?acc=[% m.pfamA_acc %]">[% m.pfamA_acc %]</a>)</td>
+        </tr>
+      [% END %]
+      </tbody>
+    </table>
+
+    <p class="small">
+      <strong>Note:</strong> This mapping was provided by the 
+      <a class="ext" href="http://www.ebi.ac.uk/msd/">MSD</a> group.
+    </p>
+
+  </div>
+</div>
+
+<!-- end mapping block -->
