@@ -14,20 +14,15 @@
 # that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
 # onComplete callbacks, which turn on and off the "loading" spinner, etc.
 #
-# $Id: graphics.tt,v 1.18 2007-07-02 09:50:33 jt6 Exp $
+# $Id: graphics.tt,v 1.19 2007-08-10 10:18:12 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
-# YUI stuff - this is for tooltips
-requirements.css.push( "tree.css" );
-requirements.js.push( "yui/yahoo.js" );
-requirements.js.push( "yui/dom.js" );
-requirements.js.push( "yui/event.js" );
-requirements.js.push( "yui/container.js" );
-requirements.js.push( "ttTweak.js" );
+# the tooltips script
+requirements.js.push( "prototip.js" );
 
 requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
@@ -43,11 +38,61 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div class="blockContent">
 
     <p>
-      This section shows a graphical representation of the sequence from this 
-      UniProt entry, shown as Pfam domains, aligned with features from various 
-      other sequence databases. You can choose which features are displayed 
+      This section shows a graphical representation of this sequence, with 
+      Pfam domains shown in the standard Pfam format. Under the Pfam domain
+      image we show various tracks, illustrating features on this sequence that 
+      we found in other databases. You can choose which databases to include 
       using the drop-down panel under the image.
+      <span onclick="reveal( this, 'featuresNotes', false, true )"
+            class="moreLink">
+        More...</span>
     </p>
+    <div id="featuresNotes" style="display: none">
+      <p>
+        We generate the topmost image from data in the Pfam database, but
+        subsequent images are constructed on-the-fly using data retrieved from
+        other sources using the Distributed Annotation System (DAS). DAS is a 
+        system for sharing sequence annotations in a standard format
+        and we use it to find features and sequence information from a wide
+        variety of other sources, from <a class="ext" 
+          href="http://www.ebi.uniprot.org/">UniProt</a> to <a class="ext" 
+          href="http://www.ebi.ac.uk/interpro/">InterPro</a> to <a class="ext"
+          href="http://supfam.mrc-lmb.cam.ac.uk/SUPERFAMILY/">Superfamily</a>.
+      </p>
+      <p>
+        Each DAS source is represented in a new track, although some sources
+        may generate more than one track, if they have features which overlap.
+        Each feature that we find is shown as a simple box, positioned according 
+        to its residue position on the sequence.
+      </p>
+      <p>
+        Moving your mouse over a feature in the display will highlight the 
+        feature and show a tooltip giving details of the feature. If the
+        DAS source supplied a URL, you can also click on the feature to visit
+        that URL. In some browsers you will also see a thin, vertical cursor,
+        which follows the mouse and shows the residue position within the
+        sequence.
+      </p>
+      <p>
+        You can turn DAS sources on and off using the control panel under the
+        sequence images. Check the boxes for the DAS sources that you want to
+        see; uncheck those that you are not interested in. Press <em>Update</em>
+        to query the new set of DAS sources and re-generate the image. Note that
+        if you have lots of sources turned on, the time taken to generate the
+        images will increase. You can see the homepage for each of the DAS
+        sources by clicking on its name in the update panel. The 
+        &quot;source&quot; link next to each source points directly at the DAS
+        source. Depending on how the source is configured, that link may return
+        some usage information or simply an XML fragment with the response to 
+        the empty query that you just made.
+      </p>
+      <p>
+        <strong>Please note:</strong> this is an experimental feature and there
+        are several known bugs and limitations. Please be patient as we improve
+        the tool.
+      </p>
+      <hr />      
+    </div>
 
     <p class="small">
       <strong>Note:</strong> it can take a few seconds for this image
@@ -65,7 +110,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <script type="text/javascript">
       // <![CDATA[
       loadOptions.pg.uri    = "[% base %]protein/graphics";
-      loadOptions.pg.params = "acc=[% pfamseq.pfamseq_acc %]";
+      loadOptions.pg.params = { acc: "[% pfamseq.pfamseq_acc %]" };
       // ]]>
     </script>
 
@@ -125,7 +170,6 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
         <script type="text/javascript">
           // <![CDATA[
           graphicsSubmitter = function() {
-            console.log( "submitting form update..." );
             $("pgSubmitButton").disable();
             $("pgUpdateSpinner").show();
             new Ajax.Request( '[% base %]protein/graphics',
