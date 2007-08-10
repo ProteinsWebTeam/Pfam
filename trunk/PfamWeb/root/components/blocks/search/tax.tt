@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: tax.tt,v 1.2 2007-08-10 15:12:41 jt6 Exp $
 %]
 
 <!-- start taxonomy search block -->
@@ -16,9 +16,9 @@
   </div>
   <div class="blockContent">
 
-  	<p>
-  	  This search tool is under review and may not be implemented in this 
-      release of the Pfam website.
+    <p class="small">
+      <strong>Please note:</strong>
+      Taxonomy searches are currently unavailable. We hope to reinstate them shortly.
     </p>
   
   </div>
