@@ -4,7 +4,7 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: domain.tt,v 1.2 2007-08-10 15:13:01 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -155,7 +155,6 @@ pageList = BLOCK %]
 <script type="text/javascript">
   // <![CDATA[
   function submitter() {
-    console.log( "in submitter" );
     dsStarted();
     new Ajax.Updater( 'textResults',
                       '[% base %]search/domain', 
