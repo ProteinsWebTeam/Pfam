@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.23 2007-07-10 19:44:05 jt6 Exp $
+# $Id: layout.tt,v 1.24 2007-08-10 15:23:23 jt6 Exp $
 
 USE String;
 USE date;
@@ -22,15 +22,6 @@ requirements.cssIe.push( "tab_layout_ie.css" );
 
 requirements.js.push( "cb.js" );
 requirements.css.push( "cb.css" );
-
-#-------------------------------------------------------------------------------
-
-# this is a store for tooltip information that will be used to write the 
-# javascript that actually generates the tooltip objects. This needs to be in
-# here rather than in the wrapper because the content is generated here and
-# then passed into the wrapper. If we define "tips" in the wrapper it just
-# stomps on the data that was generated.
-tips = {};
 
 #--------------------------------------
 # a BLOCK that will generate a sidebar tab

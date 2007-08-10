@@ -3,20 +3,12 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.10 2007-08-06 16:13:15 jt6 Exp $
+# $Id: structures.tt,v 1.11 2007-08-10 15:23:23 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
-
-# YUI stuff - this is for tooltips
-requirements.css.push( "tree.css" );
-requirements.js.push( "yui/yahoo.js" );
-requirements.js.push( "yui/dom.js" );
-requirements.js.push( "yui/event.js" );
-requirements.js.push( "yui/container.js" );
-requirements.js.push( "ttTweak.js" );
 
 #-------------------------------------------------------------------------------
 -%]
@@ -28,18 +20,32 @@ requirements.js.push( "ttTweak.js" );
     <h1>Structures</h1>
   </div>
   <div class="blockContent">
+    <p>
+      For those sequences which have a structure in the
+      <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
+      use the mapping between <a class="ext" 
+        href="http://www.ebi.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
+      systems from the <a class="ext" 
+        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
+      Pfam domains onto UniProt three-dimensional structures. The table below
+      shows the mapping between the Pfam families in this clan, the 
+      corresponding UniProt entries, and the region of the three-dimensional
+      structures that are available for that sequence.
+    </p>
+
   	<div id="clanStructureTabHolder">
-      	<p id="cstrucph" class="loading">
-        Loading structure mapping...
-       </p>	
-    </div> <!-- end of clanStructureTabHolder -->
+    	<p id="cstrucph" class="loading">
+      Loading structure mapping...
+     </p>	
+    </div>
+
   </div>
 </div>
 
 <script type="text/javascript">
   // <![CDATA[
   loadOptions.cstruc.uri    = "[% base %]clan/structures";
-  loadOptions.cstruc.params = "acc=[% clan.clan_acc %]";
+  loadOptions.cstruc.params = { acc: "[% clan.clan_acc %]" };
   // ]]>
 </script>
 

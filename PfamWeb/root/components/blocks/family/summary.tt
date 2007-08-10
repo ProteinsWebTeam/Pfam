@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.27 2007-08-10 09:42:38 jt6 Exp $
+# $Id: summary.tt,v 1.28 2007-08-10 15:23:23 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -28,7 +28,7 @@ requirements.js.push( "family.js" );
 
 <script type="text/javascript">
   // <![CDATA[
-  [% IF c.debug; "// ${pfam.auto_pfamA}"; END %]
+  // [% IF c.debug; pfam.auto_pfamA; END %]
   Event.observe( window, "load", familyPostLoad, false );
   // ]]>
 </script>
@@ -41,6 +41,7 @@ requirements.js.push( "family.js" );
   </div>
   <div class="blockContent">
 
+    [%- # a placeholder for the structure image -%]
     <div id="siph">&nbsp;</div>
 
     <h1>

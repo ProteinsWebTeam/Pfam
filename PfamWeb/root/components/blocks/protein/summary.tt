@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.15 2007-08-10 10:18:12 jt6 Exp $
+# $Id: summary.tt,v 1.16 2007-08-10 15:23:23 jt6 Exp $
 
 USE String;
 
@@ -35,27 +35,22 @@ oe = 0;
 
 <div class="block" id="proteinSummaryBlock">
   <div class="handle">
-    <h1>UniProt entry</h1>
+    <h1>Summary</h1>
   </div>
   <div class="blockContent">
     
     <h1>[% pfamseq.pfamseq_id %]</h1>
 
-    <h2>Summary</h2>
+    <p>
+      This is the summary of UniProt entry 
+      <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]"
+         class="ext">[% pfamseq.pfamseq_id %]</a>
+      (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]"
+          class="ext">[% pfamseq.pfamseq_acc %]</a>).
+    </p>
 
     <table class="layout" summary="Protein summary information">
       <tbody>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">UniProt entry:</td>
-          <td class="data">
-              <span class="ext">
-                <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">
-                  [% pfamseq.pfamseq_id %]</a>
-                  (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]">
-                    [% pfamseq.pfamseq_acc %]</a>)
-              </span>
-            </td>
-        </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Description:</td>
           <td class="data">

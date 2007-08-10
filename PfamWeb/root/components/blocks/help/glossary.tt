@@ -4,7 +4,7 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.6 2007-07-10 19:36:40 jt6 Exp $
+# $Id: glossary.tt,v 1.7 2007-08-10 15:23:23 jt6 Exp $
 %]
 
 <!-- start glossary.tt block -->
@@ -80,10 +80,11 @@
     <h3>Gathering threshold (GA)</h3>
     
     <p>
-      The search threshold used to build the full alignment. The GA is the 
-      minimum score a sequence must attain to belong the the full alignment of 
-      a Pfam entry. For each Pfam HMM we have two GA cutoff values, a sequence 
-      cutoff and domain a cutoff.
+      Also called the gathering cut-off, this value is the search threshold 
+      used to build the full alignment. The GA is the minimum score a sequence 
+      must attain in order to belong the the full alignment of a Pfam entry. 
+      For each Pfam HMM we have two GA cutoff values, a sequence cutoff and 
+      a domain cutoff.
     </p>
 
     <h3>Hidden Markov model (HMM)</h3>
