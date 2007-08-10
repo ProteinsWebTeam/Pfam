@@ -12,11 +12,11 @@
 # browser window or browser tab. This one shouldn't contain any HTML, and it will
 # be prefixed with "Pfam: " in the page wrapper template.
 #
-# $Id: title.tt,v 1.3 2007-04-24 16:08:36 jt6 Exp $
+# $Id: title.tt,v 1.4 2007-08-10 10:34:48 jt6 Exp $
 %]
 
 [% IF titleType == "tab" %]
 <h1>Family: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
 [% ELSIF titleType == "page" %]
-Family [% pfam.pfamA_id %] ([% pfam.pfamA_acc %])
+Family: [% pfam.pfamA_id %] ([% pfam.pfamA_acc %])
 [% END %]
