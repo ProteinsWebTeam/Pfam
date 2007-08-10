@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.14 2007-07-27 13:14:08 jt6 Exp $
+# $Id: domains.tt,v 1.15 2007-08-10 09:42:38 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -66,7 +66,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
       <p>
         Note that you can see the family page for a particular domain by 
         clicking on the graphic. You can also choose to see all sequences which
-        have a given architecture by clicking on the <code>Show</code> link
+        have a given architecture by clicking on the <em>Show</em> link
         in each row.
       </p>
       <p>

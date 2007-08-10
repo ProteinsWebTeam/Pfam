@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.5 2007-05-02 15:52:05 jt6 Exp $
+# $Id: structureTab.tt,v 1.6 2007-08-10 09:42:38 jt6 Exp $
 
 USE dumper;
 USE String;
@@ -64,7 +64,7 @@ END -%]
       <th id="pdbId">PDB ID</th>
       <th id="chId">PDB chain ID</th>
       <th id="pdbRes">PDB residues</th>
-      <th id="viewCol" [% addTip("family","pdbTableView","viewCol") %]>View</th>
+      <th id="viewCol">View</th>
     </tr>
   </thead>
   <tbody>

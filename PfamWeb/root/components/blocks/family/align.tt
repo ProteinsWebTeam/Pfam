@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.18 2007-07-26 14:58:54 jt6 Exp $
+# $Id: align.tt,v 1.19 2007-08-10 09:42:38 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -15,8 +15,70 @@
     <h1>Alignments</h1>
   </div>
   <div class="blockContent">
+    <p>
+      There are various ways to view or download the sequence alignments that
+      we store. You can use a sequence viewer to look at either the seed or
+      full alignment for the family, or you can look at a plain text version
+      of the sequence in a variety of different formats.
+      <span onclick="reveal( this, 'alignmentsNotes', false, true )"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="alignmentsNotes" style="display: none">
+      <h3>Viewing</h3>
+      <p>
+        You can choose from three different sequence viewers:
+      </p>
+      <dl>
+        <dt>
+          <a class="ext" href="http://www.jalview.org/">jalview</a>
+        </dt>
+        <dd>
+          a Java applet developed at the University of Dundee. You will
+          need <a class="ext" href="http://java.sun.com/">Java</a> installed
+          before running jalview
+        </dd>
+        <dt>
+          HTML
+        </dt>
+        <dd>
+          an HTML page showing the whole alignment.
+          <strong>Please note:</strong> full Pfam alignments can be <em>very</em>
+          large. These HTML views are extremely large and often cause problems
+          for browsers. Please use either jalview or the Pfam viewer if you have
+          trouble viewing the HTML version
+        </dd>
+        <dt>
+          Pfam viewer
+        </dt>
+        <dd>
+          an HTML-based viewer that uses <acronym title="Distributed
+          Annotation System">DAS</acronym> to retrieve alignment fragments on
+          request
+        </dd>
+      </dl>
+      <h3>Downloading</h3>
+      <p>
+        You can download (or view in your browser) a text representation of a
+        Pfam alignment in various formats:
+      </p>
+      <ul>
+        <li>Selex</li>
+        <li>Stockholm</li>
+        <li>FASTA</li>
+        <li>MSF</li>
+      </ul>
+      <p>
+        You can also change the order in which sequences are listed in the 
+        alignment, change how insertions are represented, alter the characters
+        that are used to represent gaps in sequences and, finally, choose 
+        whether to download the alignment or to view it in your browser 
+        directly.
+      </p>
+      <hr />
+    </div>
 
-    <h3>View options</h3>
+    <h2>View options</h2>
 
     <form id="viewerForm"
           action="[% base %]family/alignment/download/html"
@@ -74,12 +136,10 @@
       function launch() {
         if( $F("viewer") == "jalview" ) {
         	url = "[% base %]family/alignment/jalview?" + Form.serialize("viewerForm");
-          console.debug( "visiting: |" + url + "|" );
           popUp( url, 'console', 800, 800, 'jalviewWin');
       
         } else if( $F("viewer") == "viewer" ) {
         	url = "[% base %]family/alignment/pfamviewer?" + Form.serialize("viewerForm");
-          console.debug( "visiting: |" + url + "|" );
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
@@ -90,7 +150,7 @@
       // ]]>
     </script>
 
-    <h3>Formatting options</h3>
+    <h2>Formatting options</h2>
 
     <form action="[% base %]family/alignment/download/format" method="get">
       <div>

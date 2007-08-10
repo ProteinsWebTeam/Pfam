@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.10 2007-07-27 13:46:50 jt6 Exp $
+# $Id: familyStructures.tt,v 1.11 2007-08-10 09:42:38 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -45,9 +45,6 @@ END;
 
 IF pdbUnique.keys.size;
 
-# initialise the store for tooltips
-tips = {};
-
 -%]
 
 <!-- start of pdb image block -->
@@ -56,7 +53,7 @@ tips = {};
 
   [%- IF pdbObj.pdb_image -%]
 
-    <a href="[% base %]structure?id=[% pdbObj.pdb_id %]" [% addTip("family","structureImage") %]>
+    <a href="[% base %]structure?id=[% pdbObj.pdb_id %]">
       <img class="pdbImage" 
  	       src="[% base %]structure/getimage?id=[% pdbObj.pdb_id %]&amp;size=s"
            alt="[% pdbObj.pdb_id %]" /></a>
@@ -106,9 +103,6 @@ tips = {};
   [% END # of "if pdbUnique.keys.size > 1" %]
 </div>
 
-[% END; # of "if pdbUnique.keys.size"
-
-# add tooltips
-PROCESS components/tooltips.tt %]
+[% END # of "if pdbUnique.keys.size" %]
 
 <!-- end of pdb image block -->
