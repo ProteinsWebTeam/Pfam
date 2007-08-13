@@ -2,9 +2,9 @@
 # WebUser.pm
 # jt 20060912 WTSI
 #
-# $Id: WebUser.pm,v 1.13 2007-08-10 15:53:41 jt6 Exp $
+# $Id: WebUser.pm,v 1.14 2007-08-13 14:45:13 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package WebUser;
 The base class for the whole web_user database model. Config comes from the
 catalyst application class.
 
-$Id: WebUser.pm,v 1.13 2007-08-10 15:53:41 jt6 Exp $
+$Id: WebUser.pm,v 1.14 2007-08-13 14:45:13 rdf Exp $
 
 =cut
 
@@ -30,16 +30,15 @@ use base "DBIx::Class::Schema";
 
 #-------------------------------------------------------------------------------
 
-__PACKAGE__->load_classes( qw( 
-                               News
-                               Family_count
-                               ErrorLog
-                               Alignment_das_sources
-                               Feature_das_sources
-                               Das_sources
-                               JobStream
-                               JobHistory
-                             ) );
+__PACKAGE__->load_classes( qw/Feature_das_sources
+                              Alignment_das_sources
+                              Das_sources
+                              ErrorLog
+                              Family_count
+                              News
+                              JobHistory
+                              JobStream
+                              / );
 
 #-------------------------------------------------------------------------------
 
