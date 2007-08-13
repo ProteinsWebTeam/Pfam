@@ -4,9 +4,9 @@
 #
 # Model for the job_history table.
 #
-# $Id: JobHistory.pm,v 1.3 2007-07-31 12:53:17 jt6 Exp $
+# $Id: JobHistory.pm,v 1.4 2007-08-13 14:46:02 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package WebUser::JobHistory;
 
@@ -24,12 +24,12 @@ __PACKAGE__->table( 'job_history' );
 __PACKAGE__->add_columns( qw( id
                               job_id
                               status
-                              command
-                              priority
+                              options
                               estimated_time
                               opened
                               closed
                               started
+                              job_type
                               email )
                         );
 

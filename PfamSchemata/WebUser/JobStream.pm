@@ -4,7 +4,7 @@
 #
 # Model for the job_stream table.
 #
-# $Id: JobStream.pm,v 1.1 2007-04-30 09:44:19 rdf Exp $
+# $Id: JobStream.pm,v 1.2 2007-08-13 14:46:02 rdf Exp $
 #
 # $Author: rdf $
 
@@ -31,9 +31,10 @@ __PACKAGE__->set_primary_key( "id" );
 __PACKAGE__->has_one( job_history => "WebUser::JobHistory",
 					  { "foreign.id" => "self.id"},
 					  { proxy            => [ qw/job_id
+                                                 job_type
 					                             status
-					                             command
-					                             priority
+					                             options
+					                             email
 					                             estimated_time
 					                             opened
 					                             closed
