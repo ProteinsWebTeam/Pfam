@@ -3,8 +3,8 @@ package Bio::Pfam::WebServices::PfamQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2007-04-30 09:35:11 $
-# Id:            $Id: PfamQueue.pm,v 1.2 2007-04-30 09:35:11 rdf Exp $
+# Last Modified: $Date: 2007-08-13 08:53:55 $
+# Id:            $Id: PfamQueue.pm,v 1.3 2007-08-13 08:53:55 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -19,106 +19,138 @@ use Sys::Hostname;
 use English qw(-no_match_vars);
 use Carp;
 use Data::UUID;
+use Data::Dumper;
+use Config::General;
 use Bio::Pfam::WebUserDBManager;
 
-our $VERSION      = do { my @r = (q$Revision: 1.2 $ =~ /\d+/mxg); sprintf '%d.'.'%03d' x $#r, @r };
-our $DATE_FORMATS = {
-		     'hour'  => '%Y-%m-%d-%k',
-		     'day'   => '%Y-%m-%d',
-		     'week'  => '%Y-%U',
-		     'month' => '%Y-%m',
-		     'year'  => '%Y',
-		    };
-		    
-our $QUEUES       = {
-		     'hmmer'      => 'hmmer',
-		     'pfamb'      => 'fast'
-		    };
-
-
-our $DEFAULTS     = {
-		     'command'      => 'hostname',
-		     'stderr'       => q(),
-		     'stdout'       => q(),
-		     'masterhost'   => '127.0.0.1',
-		     'masterport'   => 3337,
-		     'masterdbuser' => 'web_user',
-		     'masterdbpass' => 'web_user',
-		     'masterdbname' => 'web_user',
-		    };
-		    
-our $AUTOLOAD;  
-
-
-sub postinit   {}
-sub presubmit  {}
-sub postsubmit {}
-
-sub fields {
-  my $self = shift;
-  return @{$self->{'_fields'}};
-}
-
 sub new {
-  my ($class, $ref) = @_;
+  my ($class, $queueType, $ref) = @_;
   my $self = {
 	      '_fields' => [qw(debug
-                         command
-                         priority
-                               stdin
-                               stderr
-                               stdout
-                               id
-                               tracker
-                               blocking)],
+                           options
+                           job_type
+                           stdin
+                           stderr
+                           stdout
+                           status
+                           id
+                           email
+                           command)],
 	     };
   bless $self, $class;
-  $self->preinit();
-
+  
+  my $conf = new Config::General("../conf/pfam_backend.conf");
+  my %config = $conf->getall;
+  #print Dumper (%config);
+  my $qConfig = $config{queue}->{$queueType}->{jobType};		
+  $self->knownJobs($qConfig);
+ 
+  $self->getSchema($config{Model}->{WebUser});
+  
+  $self->tmpDir($config{queue}->{$queueType}->{tmpDir});
+  $self->dataFileDir($config{queue}->{$queueType}->{dataFileDir});
+  $self->cpus($config{queue}->{$queueType}->{cpus}) if($config{queue}->{$queueType}->{cpus});
+  $self->pvm($config{queue}->{$queueType}->{pvm}) if($config{queue}->{$queueType}->{pvm});
+  $self->email($config{queue}->{$queueType}->{email}) if ($config{queue}->{$queueType}->{email});
+  $self->thirdPartyQueue($config{queue}->{$queueType}->{thirdPartyQueue}) if ($config{queue}->{$queueType}->{thirdPartyQueue});
   for my $f ($self->fields()) {
     if(exists $ref->{$f}) {
       $self->{$f} = $ref->{$f};
     }
   }
 
-  if($self->{'tracker'} && !$self->{'id'}) {
-    my ($j, $id)  = split /:/mx, $self->{'tracker'}, 2;
-    $self->{'id'} = $id;
-  }
-
-  shift @_;
-  $self->postinit(@_);
   return $self;
 }
 
-sub tracker {
+
+
+sub fields {
   my $self = shift;
-  return $self->id(@_);
+  return @{$self->{'_fields'}};
 }
 
-#sub priority {
-#  my ($self, $priority) = @_;
-#  if($priority){
-#  print STDERR "Setting priority\n";
-#    $self->{priority} = $priority;
-#  }
-#  return $self->{priority};  
-#}
+sub getCommand{
+	my($self, $job_type) = @_;
+	if($self->{'jobTypes'}->{$job_type}){
+		return $self->{'jobTypes'}->{$job_type};
+	}else{
+		warn "Unrecognised Job type\n";
+	}
+}
 
-#########
-# overload autoload so we can retrieve command information from the db after submission
-# Done
-sub command {
-  my ($self, $command) = @_;
+sub knownJobs{
+	my ($self, $jobRefs) = @_;
+	
+	if($jobRefs and ref($jobRefs) eq "HASH"){
+		$self->{'jobTypes'} = $jobRefs
+	}
+}
+
+sub knownJobTypes{
+	my $self = shift;
+	if($self->{'jobTypes'}){
+		return (keys %{$self->{'jobTypes'}});
+	}
+}
+
+sub tmpDir {
+	my ($self, $tmpDir) = @_;
+	if($tmpDir){
+		$self->{'tmpDir'} = $tmpDir;
+	}
+	return $self->{'tmpDir'};
+}
+
+sub dataFileDir {
+	my ($self, $dataFileDir) = @_;
+	if($dataFileDir){
+		$self->{'dataFileDir'} = $dataFileDir;
+	}
+	return $self->{'dataFileDir'};
+}
+
+sub pvm {
+	my ($self, $pvm) = @_;
+	if($pvm){
+		$self->{'pvm'} = $pvm;
+	}
+	return $self->{'pvm'} || 0;
+}
+
+sub email {
+	my ($self, $email) = @_;
+	print STDERR Dumper($email);
+	if($email){
+		$self->{'email'} = $email;
+	}
+	return $self->{'email'};
+}
+
+sub thirdPartyQueue {
+	my ($self, $queue) = @_;
+	if($queue){
+		$self->{'3Pqueue'} = $queue->{location};
+	}
+	return $self->{'3Pqueue'};
+}
+sub cpus {
+	my ($self, $cpus) = @_;
+	if($cpus){
+		$self->{'cpus'} = $cpus;
+	}
+	return $self->{'cpus'} || 1;
+}
+
+sub job_type {
+  my ($self, $job_type) = @_;
   my $id;
   if($self->tracker()) {
     ($id) = split /:/mx, $self->tracker();
   }
 
-  if($command) {
-    $self->{'command'} = $command;
+  
 
-  } elsif($id) {
+   elsif($id) {
     my $result = $self->getSchema
                        ->resultset("jobHistory")
                         ->find({id => $id});
@@ -129,44 +161,15 @@ sub command {
   return $self->{'command'};
 }
 
-sub AUTOLOAD {
-  my ($self, $arg) = @_;
-  my ($func) = $AUTOLOAD =~ /^.*::(.*?)$/mx;
-  if(!grep { $_ eq $func } ($self->fields())) {
-    carp qq(Website::QueueStub::AUTOLOAD: Unsupported accessor: $func\n);
-  }
-
-  if(scalar @_ >= 2) {
-    if($func eq 'tracker' && !$self->{'id'}) {
-      my ($j,$id) = split /:/mx, $arg, 2;
-      $self->id($id);
-      $self->{'tracker'} = $arg;
-
-    } else {
-      $self->{$func} = $arg ;
-    }
-  }
-  return $self->{$func} || $DEFAULTS->{$func} || q();
-}
-
 sub getSchema {
-  my ($self) = @_;
+  my ($self, $connectionParams) = @_;
 
   if(!$self->{'dbSchema'}) {
-    my $webUserDB = Bio::Pfam::WebUserDBManager->new();
+    my $webUserDB = Bio::Pfam::WebUserDBManager->new( %$connectionParams);
     $self->{'dbSchema'} = $webUserDB->getSchema;
   }
 
   return $self->{'dbSchema'};
-}
-
-sub queue {
-  my ($self) = @_;
-  return $QUEUES->{$self->priority()};
-}
-
-sub queues {
-  return keys %{$QUEUES};
 }
 
 sub statuses {
@@ -186,7 +189,7 @@ sub submit {
                           ->create({'command' => $self->command,
                                     'priority' => $self->priority,
                                     'status'  => 'PEND',
-                                    'opened'  => \'NOW()'});
+                                    'opened'  => \'NOW()' });
                                     
     my $trackerid = $resultHistory->id;
     print STDERR "tracker id = $trackerid\n";
@@ -230,7 +233,7 @@ sub submit {
     }
   }
 
-  $self->postsubmit();
+  #$self->postsubmit();
 
   $self->debug() and print {*STDERR} qq(submit returning tracker=@{[$self->tracker()]}\n);
   my ($id) = split /:/mx, $self->tracker();
@@ -262,14 +265,33 @@ sub satisfy_pending_job {
   return $self->satisfy_pending_jobs(1);
 }
 
+sub numberPendingJobs {
+	my($self, $email ) = @_;
+	print STDERR "Calculating priority for $email\n";
+	my $result = $self->getSchema
+					->resultset('JobHistory')
+						->find( {email  => [ $email],
+								 status => [ qw/PEND RUN/ ] },
+								{select => [
+									{ count => "email" },
+									],
+									as =>  'count'
+									}
+									);
+	my $c = $result->get_column('count');
+	
+	return $c;
+}
+
 sub satisfy_pending_jobs {
   my ($self, $num) = @_;
   $num           ||= 1;
-
+  
+  
   my @results = $self->getSchema
                       ->resultset('JobHistory')
                        ->search({status => "PEND",
-                                 priority => $self->priority },
+                                 job_type => [$self->knownJobTypes] },
                                 {join     => [ qw/job_stream/],
                                  prefetch => [ qw/job_stream/],
                                  order_by => 'me.id ASC' });
@@ -286,10 +308,52 @@ sub satisfy_pending_jobs {
       'id'      => $result->id,
       'job_id'  => $result->job_id,
       'stdin'   => $result->stdin,
-      'command' => $result->command
+      'status'  => $result->status,
+      'job_type' => $result->job_type,
+      'options' => $result->options,
+      'email'   => $result->email,
+      'command' => $self->getCommand($result->job_type)
     });
   }
 }
+
+
+
+
+sub get_job {
+	my ($self, $id) = @_;
+	my $result;
+	
+	if($id){
+		$result = $self->getSchema
+                      ->resultset('JobHistory')
+                       ->find({  status   => "PEND",
+                       		     id       => $id },
+                               { join     => [ qw/job_stream/],
+                                 prefetch => [ qw/job_stream/] });
+				
+	}
+
+	if($result){
+		return ( 
+    	{
+      		'id'      => $result->id,
+      		'job_id'  => $result->job_id,
+      		'job_type'=> $result->job_type,
+      		'options' => $result->options,
+      		'stdin'   => $result->stdin,
+      		'stderr'  => $result->stderr,
+      		'status'  => $result->status,
+      		'email'   => $result->email,
+      		'command' => $self->getCommand($result->job_type)
+    });
+		
+	}
+
+}
+
+
+
 
 sub update_job_status {
   my ($self, $id, $status) = @_;
@@ -332,36 +396,7 @@ sub job_stream {
   return $results->$streamid || q();
 }
 
-sub job_times {
-  my ($self, $id) = @_;
-  my $q           = $self->queue();
-  my $dbh         = $self->dbh();
-  my $ref         = [];
 
-  if(!$id && $self->tracker()) {
-    ($id) = split /:/mx, $self->tracker();
-  }
-
-  eval {
-    my $sth = $dbh->prepare(qq(SELECT opened,started,closed,
-                                      TIMEDIFF(closed,started) AS wallclock,
-                                      TIMEDIFF(closed,opened)  AS total,
-                                      TIMEDIFF(started,opened) AS waiting
-                               FROM   ${q}_history
-                               WHERE  id=?));
-    $sth->execute($id);
-    $ref = $sth->fetchrow_hashref();
-    $dbh->commit();
-  };
-
-  if($EVAL_ERROR) {
-    carp $EVAL_ERROR;
-    $dbh->rollback();
-    return {};
-  }
-
-  return $ref;
-}
 
 #Done
 sub update_job_stream {
@@ -383,150 +418,208 @@ sub update_job_stream {
   return;
 }
 
-sub statistics {
-  my ($self, $id) = @_;
-  my ($position, $pending, $running, $throughput);
-  my $q           = $self->queue();
-  my $dbh         = $self->dbh();
 
-  if(!$id && $self->tracker()) {
-    ($id) = split /:/mx, $self->tracker();
-  }
 
-  eval {
-    $pending    = $dbh->selectall_arrayref(qq(SELECT count(*)
-                                              FROM   ${q}_history
-                                              WHERE  status='PEND'));
 
-    $running    = $dbh->selectall_arrayref(qq(SELECT count(*)
-                                              FROM   ${q}_history
-                                              WHERE  status='RUN'));
-    $throughput = $dbh->selectall_arrayref(qq(SELECT COUNT(id) /
-                                                     TIME_TO_SEC(
-                                                      TIMEDIFF(
-                                                       MAX(closed),
-                                                       MIN(closed)
-                                                      )
-                                                     )
-                                              FROM   ${q}_history
-                                              WHERE  closed > current_date));
 
-    if($id) {
-      $position = $dbh->selectall_arrayref(qq(SELECT count(*)
-                                              FROM   ${q}_history
-                                              WHERE  status='PEND'
-                                              AND    id < ?), {}, $id);
-    }
-    $dbh->commit();
-  };
-  if($EVAL_ERROR) {
-    carp $EVAL_ERROR;
-    $dbh->rollback();
-    return {};
-  }
 
-  return {
-	  'pending'    => $pending->[0]->[0]  || '0',
-	  'running'    => $running->[0]->[0]  || '0',
-	  'position'   => $position->[0]->[0] || '0',
-	  'throughput' => $position->[0]->[0] || '0.00',
-	 };
-}
 
-sub statistics_history {
-  my ($self, $resolution, $limit) = @_;
-  my $q                   = $self->queue();
-  my $dbh                 = $self->dbh();
-  $resolution           ||= 'month';
-  my $date_fmt            = $DATE_FORMATS->{$resolution};
-  my $history             = [];
-  $limit                  = $limit?"LIMIT $limit":q();
-  eval {
-    $history = $dbh->selectall_arrayref(qq(SELECT date,status,count
-                                           FROM   (SELECT DATE_FORMAT(opened, '$date_fmt') AS date,
-                                                          status,
-                                                          COUNT(*) AS count
-                                                   FROM   ${q}_history
-                                                   WHERE  opened >= subdate(now(), interval 12 month)
-                                                   GROUP by date,status
-                                                   ORDER BY date DESC $limit) revdata
-                                           ORDER BY date));
-  };
-  carp $EVAL_ERROR if($EVAL_ERROR);
 
-  my $munged = {};
-  my $attrs  = {};
 
-  for my $row (@{$history}) {
-    $munged->{$row->[0]}->{$row->[1]} = $row->[2];
-    $attrs->{$row->[1]}++;
-  }
 
-  return [map {
-    my $d = $_;
-    [$d,
-     map {
-       $munged->{$d}->{$_}||0;
-     } $self->statuses()
-    ];
-  } sort keys %{$munged}];
-}
 
-sub statistics_wallclocktime_distribution {
-  my ($self, $resolution) = @_;
-  my $q                   = $self->queue();
-  my $dbh                 = $self->dbh();
-  $resolution           ||= 'hour';
-  my $date_fmt            = $DATE_FORMATS->{$resolution};
-  my $history             = [];
 
-  eval {
-    my $query = qq(SELECT FLOOR( d1 / l ) * l AS D, SUM(n1) AS N
-                   FROM        (SELECT   d1,
-                                         POWER(10, FLOOR( if(d1=0,1,log10(d1)))) AS l,
-                                         n1
-                                FROM    (SELECT UNIX_TIMESTAMP(closed) - UNIX_TIMESTAMP(opened) AS d1,
-                                                COUNT(*) AS n1
-                                         FROM   ${q}_history
-                                         WHERE  opened  != 0
-                                         AND    closed  != 0
-                                         AND    started != 0
-                                         GROUP BY d1) AS X1
-                               ) AS X2
-                   GROUP BY D);
 
-    $history = $dbh->selectall_arrayref($query);
-  };
-  carp $EVAL_ERROR if($EVAL_ERROR);
-  return $history;
-}
 
-sub statistics_avg_times {
-  my ($self, $resolution) = @_;
-  my $q                   = $self->queue();
-  my $dbh                 = $self->dbh();
-  $resolution           ||= 'month';
-  my $date_fmt            = $DATE_FORMATS->{$resolution};
-  my $history             = [];
+#Deal with this stuff later!
 
-  eval {
-    my $query = qq(SELECT DATE_FORMAT(opened, '%Y-%m') AS date,
-                          SUM(UNIX_TIMESTAMP(closed)  - UNIX_TIMESTAMP(started)) /COUNT(*) AS avg_execution_time,
-                          SUM(UNIX_TIMESTAMP(started) - UNIX_TIMESTAMP(opened))  /COUNT(*) AS avg_wait_time
-                   FROM  ${q}_history
-                   WHERE closed  != 0
-                   AND   started != 0
-                   GROUP BY date);
-    $history = $dbh->selectall_arrayref($query);
-  };
-  carp $EVAL_ERROR if($EVAL_ERROR);
-  return $history;
-}
 
-sub DESTROY {
-  my $self = shift;
-  $self->getSchema->storage->disconnect;
-}
+
+
+
+
+
+
+
+
+
+
+
+
+# sub job_times {
+#   my ($self, $id) = @_;
+#   my $q           = $self->queue();
+#   my $dbh         = $self->dbh();
+#   my $ref         = [];
+# 
+#   if(!$id && $self->tracker()) {
+#     ($id) = split /:/mx, $self->tracker();
+#   }
+# 
+#   eval {
+#     my $sth = $dbh->prepare(qq(SELECT opened,started,closed,
+#                                       TIMEDIFF(closed,started) AS wallclock,
+#                                       TIMEDIFF(closed,opened)  AS total,
+#                                       TIMEDIFF(started,opened) AS waiting
+#                                FROM   ${q}_history
+#                                WHERE  id=?));
+#     $sth->execute($id);
+#     $ref = $sth->fetchrow_hashref();
+#     $dbh->commit();
+#   };
+# 
+#   if($EVAL_ERROR) {
+#     carp $EVAL_ERROR;
+#     $dbh->rollback();
+#     return {};
+#   }
+# 
+#   return $ref;
+# }
+# sub statistics {
+#   my ($self, $id) = @_;
+#   my ($position, $pending, $running, $throughput);
+#   my $q           = $self->queue();
+#   my $dbh         = $self->dbh();
+# 
+#   if(!$id && $self->tracker()) {
+#     ($id) = split /:/mx, $self->tracker();
+#   }
+# 
+#   eval {
+#     $pending    = $dbh->selectall_arrayref(qq(SELECT count(*)
+#                                               FROM   ${q}_history
+#                                               WHERE  status='PEND'));
+# 
+#     $running    = $dbh->selectall_arrayref(qq(SELECT count(*)
+#                                               FROM   ${q}_history
+#                                               WHERE  status='RUN'));
+#     $throughput = $dbh->selectall_arrayref(qq(SELECT COUNT(id) /
+#                                                      TIME_TO_SEC(
+#                                                       TIMEDIFF(
+#                                                        MAX(closed),
+#                                                        MIN(closed)
+#                                                       )
+#                                                      )
+#                                               FROM   ${q}_history
+#                                               WHERE  closed > current_date));
+# 
+#     if($id) {
+#       $position = $dbh->selectall_arrayref(qq(SELECT count(*)
+#                                               FROM   ${q}_history
+#                                               WHERE  status='PEND'
+#                                               AND    id < ?), {}, $id);
+#     }
+#     $dbh->commit();
+#   };
+#   if($EVAL_ERROR) {
+#     carp $EVAL_ERROR;
+#     $dbh->rollback();
+#     return {};
+#   }
+# 
+#   return {
+# 	  'pending'    => $pending->[0]->[0]  || '0',
+# 	  'running'    => $running->[0]->[0]  || '0',
+# 	  'position'   => $position->[0]->[0] || '0',
+# 	  'throughput' => $position->[0]->[0] || '0.00',
+# 	 };
+# }
+# 
+# sub statistics_history {
+#   my ($self, $resolution, $limit) = @_;
+#   my $q                   = $self->queue();
+#   my $dbh                 = $self->dbh();
+#   $resolution           ||= 'month';
+#   my $date_fmt            = $DATE_FORMATS->{$resolution};
+#   my $history             = [];
+#   $limit                  = $limit?"LIMIT $limit":q();
+#   eval {
+#     $history = $dbh->selectall_arrayref(qq(SELECT date,status,count
+#                                            FROM   (SELECT DATE_FORMAT(opened, '$date_fmt') AS date,
+#                                                           status,
+#                                                           COUNT(*) AS count
+#                                                    FROM   ${q}_history
+#                                                    WHERE  opened >= subdate(now(), interval 12 month)
+#                                                    GROUP by date,status
+#                                                    ORDER BY date DESC $limit) revdata
+#                                            ORDER BY date));
+#   };
+#   carp $EVAL_ERROR if($EVAL_ERROR);
+# 
+#   my $munged = {};
+#   my $attrs  = {};
+# 
+#   for my $row (@{$history}) {
+#     $munged->{$row->[0]}->{$row->[1]} = $row->[2];
+#     $attrs->{$row->[1]}++;
+#   }
+# 
+#   return [map {
+#     my $d = $_;
+#     [$d,
+#      map {
+#        $munged->{$d}->{$_}||0;
+#      } $self->statuses()
+#     ];
+#   } sort keys %{$munged}];
+# }
+# 
+# sub statistics_wallclocktime_distribution {
+#   my ($self, $resolution) = @_;
+#   my $q                   = $self->queue();
+#   my $dbh                 = $self->dbh();
+#   $resolution           ||= 'hour';
+#   my $date_fmt            = $DATE_FORMATS->{$resolution};
+#   my $history             = [];
+# 
+#   eval {
+#     my $query = qq(SELECT FLOOR( d1 / l ) * l AS D, SUM(n1) AS N
+#                    FROM        (SELECT   d1,
+#                                          POWER(10, FLOOR( if(d1=0,1,log10(d1)))) AS l,
+#                                          n1
+#                                 FROM    (SELECT UNIX_TIMESTAMP(closed) - UNIX_TIMESTAMP(opened) AS d1,
+#                                                 COUNT(*) AS n1
+#                                          FROM   ${q}_history
+#                                          WHERE  opened  != 0
+#                                          AND    closed  != 0
+#                                          AND    started != 0
+#                                          GROUP BY d1) AS X1
+#                                ) AS X2
+#                    GROUP BY D);
+# 
+#     $history = $dbh->selectall_arrayref($query);
+#   };
+#   carp $EVAL_ERROR if($EVAL_ERROR);
+#   return $history;
+# }
+# 
+# sub statistics_avg_times {
+#   my ($self, $resolution) = @_;
+#   my $q                   = $self->queue();
+#   my $dbh                 = $self->dbh();
+#   $resolution           ||= 'month';
+#   my $date_fmt            = $DATE_FORMATS->{$resolution};
+#   my $history             = [];
+# 
+#   eval {
+#     my $query = qq(SELECT DATE_FORMAT(opened, '%Y-%m') AS date,
+#                           SUM(UNIX_TIMESTAMP(closed)  - UNIX_TIMESTAMP(started)) /COUNT(*) AS avg_execution_time,
+#                           SUM(UNIX_TIMESTAMP(started) - UNIX_TIMESTAMP(opened))  /COUNT(*) AS avg_wait_time
+#                    FROM  ${q}_history
+#                    WHERE closed  != 0
+#                    AND   started != 0
+#                    GROUP BY date);
+#     $history = $dbh->selectall_arrayref($query);
+#   };
+#   carp $EVAL_ERROR if($EVAL_ERROR);
+#   return $history;
+# }
+# 
+# sub DESTROY {
+#   my $self = shift;
+#   $self->getSchema->storage->disconnect;
+# }
 
 1;
 
@@ -538,7 +631,7 @@ Bio::Pfam::WebServices::PfamQueue - A transactional-database-backed queuing syst
 
 =head1 VERSION
 
-$Revision: 1.2 $
+$Revision: 1.3 $
 
 =head1 SYNOPSIS
 
