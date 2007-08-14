@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.3 2007-07-27 13:49:06 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.4 2007-08-14 11:34:56 rdf Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.3 2007-07-27 13:49:06 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.4 2007-08-14 11:34:56 rdf Exp $
 
 =cut
 
@@ -440,7 +440,7 @@ sub getPfamBData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getFamilyData : Private
+=head2 getClanData : Private
 
 Retrieves architecture or sequence information pertaining to the specified
 clan.
