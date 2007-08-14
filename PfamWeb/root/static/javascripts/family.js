@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.22 2007-08-10 15:11:30 jt6 Exp $
+// $Id: family.js,v 1.23 2007-08-14 11:44:01 rdf Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -47,7 +47,15 @@ function familyPostLoad() {
                         onFailure:  dgFailure
                       } );
   }
-
+	// species tree domain graphics
+  if( typeof( loadOptions.stdg.uri ) != "undefined" ) {
+    new Ajax.Request( loadOptions.stdg.uri,
+                      { method:     'get', 
+                        parameters: loadOptions.stdg.params,
+                        onSuccess:  stdgSuccess,
+                        onFailure:  stdgFailure
+                      } );
+  }
   // species tree
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
     new Ajax.Request( loadOptions.st.uri,
@@ -102,6 +110,16 @@ function dgSuccess( oResponse ) {
 }
 function dgFailure() {
   Element.update( $("dgph"), "Domain graphics loading failed." );
+}
+
+//------------------------------------------------------------
+// callbacks for the species tree domain graphics generation call
+
+function stdgSuccess( oResponse ) {
+  Element.update( $("stdgph"), oResponse.responseText );
+}
+function stdgFailure() {
+  Element.update( $("stdgph"), "Domain graphics loading failed." );
 }
 
 //------------------------------------------------------------

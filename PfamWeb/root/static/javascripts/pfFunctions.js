@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.44 2007-08-10 15:23:23 jt6 Exp $
+// $Id: pfFunctions.js,v 1.45 2007-08-14 11:44:01 rdf Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -37,6 +37,7 @@ loadOptions.pg = {}; // protein graphics
 loadOptions.ca = {}; // coloured alignment
 loadOptions.sg = {}; // sequence graphics
 loadOptions.cg = {}; // clan graphics
+loadOptions.stdg = {}; // species tree domain graphics
 loadOptions.cstruc = {}; // clan structure tab
 loadOptions.fstruc = {}; // family structure tab
 loadOptions.simap ={}; //simap graphics
@@ -930,7 +931,7 @@ function toggleTools() {
 // in the species trees. Submits the form in the page which will act on those
 // accessions
 
-function collectSequences( acc ) {
+function collectSequences( acc, style ) {
 
   var seqs = "";
 
@@ -943,7 +944,7 @@ function collectSequences( acc ) {
                } );
   
   // build the URI, escaping the sequences string, just to be on the safe side
-  var url = selectURI + "?acc=" + acc + "&seqs=" + escape( seqs );
+  var url = selectURI + "?acc=" + acc  + "&style=" + style + "&seqs=" + escape( seqs );
 
   // and submit the request
   popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
