@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.4 2007-08-09 15:35:02 jt6 Exp $
+# $Id: Sequence.pm,v 1.5 2007-08-14 11:36:46 rdf Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.4 2007-08-09 15:35:02 jt6 Exp $
+$Id: Sequence.pm,v 1.5 2007-08-14 11:36:46 rdf Exp $
 
 =cut
 
@@ -174,7 +174,7 @@ sub checkStatus : Local {
   # see how many jobs are pending
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->search( { status   => 'PEND',
-                         priority => $jobHistory->priority,
+                         job_type => $jobHistory->job_type,
                          id       => { '<',        $jobHistory->id },
                          job_id   => { 'not like', $jobHistory->job_id } },
                        { select   => [
@@ -299,20 +299,18 @@ sub queuePfamA : Private {
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
 
-  # build the command to run
-  my $cmd;
-  $cmd  =  q(pfam_scan.pl -pvm -align -d /data/blastdb/Pfam/data);
-  $cmd .=  q( --mode ) . $c->stash->{seqOpts} if( $c->stash->{seqOpts} ne 'both' and 
+  # build the command options to run
+  my $opts;
+  $opts .=  q( --mode ) . $c->stash->{seqOpts} if( $c->stash->{seqOpts} ne 'both' and 
                                                   $c->stash->{seqOpts} ne 'bothNoMerge' );
-  $cmd .=  q( --no_merge )                    if( $c->stash->{seqOpts} eq 'bothNoMerge' );
-  $cmd .=  q( -e )     . $c->stash->{evalue}  if( $c->stash->{evalue} and not $c->stash->{ga} );
-  $cmd .=  q( --overlap )                     if( $c->stash->{showOverlap} );
-  $cmd .= qq( /tmp/$jobId.fa);
-
+  $opts .=  q( --no_merge )                    if( $c->stash->{seqOpts} eq 'bothNoMerge' );
+  $opts .=  q( -e )     . $c->stash->{evalue}  if( $c->stash->{evalue} and not $c->stash->{ga} );
+  $opts .=  q( --overlap )                     if( $c->stash->{showOverlap} );
+  
   # add this job to the tracking table
   my $jobHistory = $c->model('WebUser::JobHistory')
-                     ->create( { command        => $cmd,
-                                 priority       => 'hmmer',
+                     ->create( { options        => $opts,
+                                 job_type       => 'hmmer',
                                  estimated_time => $estimatedTime,
                                  job_id         => $jobId,
                                  opened         => \'NOW()',
@@ -359,16 +357,9 @@ sub queuePfamB : Private {
   # generate a job ID
   my $jobId = Data::UUID->new()->create_str();
 
-  # build the command to run
-  my $cmd;
-  $cmd  =  q(wublastp /data/blastdb/Pfam/data/Pfam-B.fasta);
-  $cmd .= qq( /tmp/$jobId.fa);
-  $cmd .=  q( -cpus 2 -gapE=2000 -T=12);
-
   # add this job to the tracking table
   my $resultHistory = $c->model('WebUser::JobHistory')
-                        ->create( { command        => $cmd,
-                                    priority       => 'fast',
+                        ->create( { job_type        => 'pfamb',
                                     estimated_time => $estimatedTime,
                                     job_id         => $jobId,
                                     opened         => \'NOW()',
@@ -460,8 +451,8 @@ sub results : Local {
 
     # retrieve the results of the job and stash them
     $c->stash->{results}->{$jobId}->{rawData} = $job->stdout;
-    $c->stash->{results}->{$jobId}->{method}  = $job->priority;
-    $c->stash->{results}->{$jobId}->{command} = $job->command;
+    $c->stash->{results}->{$jobId}->{method}  = $job->job_type;
+    $c->stash->{results}->{$jobId}->{options} = $job->options;
     $c->{stash}->{seq} = $job->stdin;
   }
 
@@ -498,7 +489,7 @@ sub handleResults : Private {
     if( $c->{stash}->{results}->{$jobId}->{method} eq 'hmmer' ){
       
       #We have performed a hmmer search, must be a pfamA
-      my( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{command} =~ /-e (\S+)/;
+      my( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{options} =~ /-e (\S+)/;
       
       #Are we using GA cut-offs of Evalues?
       $c->stash->{evalue} = $userEvalue ? $userEvalue : 0;
@@ -560,7 +551,7 @@ sub handleResults : Private {
 
       } 
 
-    } elsif( $c->{stash}->{results}->{$jobId}->{method} eq 'fast' ) {
+    } elsif( $c->{stash}->{results}->{$jobId}->{method} eq 'pfamb' ) {
       #Okay, looks like we have a pfamB result
       
       # flag the fact that we're searching PfamBs in the stash, so the template

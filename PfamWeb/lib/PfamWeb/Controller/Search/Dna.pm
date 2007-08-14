@@ -2,7 +2,7 @@
 # Dna.pm
 # jt6 20070731 WTSI
 #
-# $Id: Dna.pm,v 1.1 2007-07-31 21:59:36 jt6 Exp $
+# $Id: Dna.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Dna;
 
 This controller is responsible for running batch DNA sequence searches.
 
-$Id: Dna.pm,v 1.1 2007-07-31 21:59:36 jt6 Exp $
+$Id: Dna.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
 
 =cut
 
@@ -47,20 +47,8 @@ sub search : Path {
     return;
   }
 
-  # build the command to run
-  my $cmd;
-  $cmd  =  q(pfam_scan.pl -pvm -align -d ) . $this->{blastDb};
-  $cmd .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and 
-                                                    $c->stash->{batchOpts} ne 'bothNoMerge' );
-  $cmd .=  q( --no_merge )                      if( $c->stash->{batchOpts} eq 'bothNoMerge' );
-  $cmd .=  q( -e )     . $c->stash->{evalue}    if( $c->stash->{evalue} and not $c->stash->{ga} );
-  $cmd .=  q( --overlap )                       if( $c->stash->{showOverlap} );
-  $cmd .=  q( /tmp/) . $c->stash->{jobId} . q(.fa );
-
-  $c->stash->{cmd} = $cmd;
-
   # set the queue
-  $c->stash->{priority} = 'dna';
+  $c->stash->{job_type} = 'dna';
 
   # and submit the job...
   $c->forward( 'queueSearch' );
