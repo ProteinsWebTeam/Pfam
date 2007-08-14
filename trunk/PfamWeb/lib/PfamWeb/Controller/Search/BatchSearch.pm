@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: BatchSearch.pm,v 1.1 2007-07-31 22:00:30 jt6 Exp $
+# $Id: BatchSearch.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::BatchSearch;
 
 This is the parent class for batch search operations.
 
-$Id: BatchSearch.pm,v 1.1 2007-07-31 22:00:30 jt6 Exp $
+$Id: BatchSearch.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
 
 =cut
 
@@ -58,12 +58,12 @@ sub queueSearch : Private {
                   . $c->stash->{priority} . '|' );
 
   $c->log->debug( 'Search::BatchSearch::queueSearch: using command: |'
-                  . $c->stash->{cmd} . '|' );
+                  . $c->stash->{options} . '|' );
 
   # add this job to the tracking tables
   my $jobHistory = $c->model('WebUser::JobHistory')
-                     ->create( { command        => $c->stash->{cmd},
-                                 priority       => $c->stash->{priority},
+                     ->create( { options        => $c->stash->{options},
+                                 job_type       => $c->stash->{job_type},
                                  job_id         => $c->stash->{jobId},
                                  opened         => \'NOW()',
                                  status         => 'PEND',
@@ -93,7 +93,7 @@ sub queueSearch : Private {
   # see how many jobs are pending
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->search( { status   => 'PEND',
-                         priority => $jobHistory->priority,
+                         job_type => $jobHistory->job_type,
                          id       => { '<',        $jobHistory->id },
                          job_id   => { 'not like', $jobHistory->job_id } },
                        { select   => [

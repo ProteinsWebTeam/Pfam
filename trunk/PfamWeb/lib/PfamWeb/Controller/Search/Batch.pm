@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.3 2007-07-31 22:00:07 jt6 Exp $
+# $Id: Batch.pm,v 1.4 2007-08-14 11:36:46 rdf Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.3 2007-07-31 22:00:07 jt6 Exp $
+$Id: Batch.pm,v 1.4 2007-08-14 11:36:46 rdf Exp $
 
 =cut
 
@@ -51,19 +51,17 @@ sub search : Path {
   }
 
   # build the command to run
-  my $cmd;
-  $cmd  =  q(pfam_scan.pl -pvm -align -d ) . $this->{blastDb};
-  $cmd .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and 
+  my $opts;
+  $opts .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and 
                                                     $c->stash->{batchOpts} ne 'bothNoMerge' );
-  $cmd .=  q( --no_merge )                      if( $c->stash->{batchOpts} eq 'bothNoMerge' );
-  $cmd .=  q( -e )     . $c->stash->{evalue}    if( $c->stash->{evalue} and not $c->stash->{ga} );
-  $cmd .=  q( --overlap )                       if( $c->stash->{showOverlap} );
-  $cmd .=  q( /tmp/) . $c->stash->{jobId} . q(.fa );
+  $opts .=  q( --no_merge )                      if( $c->stash->{batchOpts} eq 'bothNoMerge' );
+  $opts .=  q( -e )     . $c->stash->{evalue}    if( $c->stash->{evalue} and not $c->stash->{ga} );
+  $opts .=  q( --overlap )                       if( $c->stash->{showOverlap} );
   
-  $c->stash->{cmd} = $cmd;
+  $c->stash->{options} = $opts;
 
   # set the queue
-  $c->stash->{priority} = 'batch';
+  $c->stash->{job_type} = 'batch';
 
   # and submit the job...
   $c->forward( 'queueSearch' );
