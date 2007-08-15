@@ -4,41 +4,41 @@
 #
 # Model for the job_stream table.
 #
-# $Id: JobStream.pm,v 1.2 2007-08-13 14:46:02 rdf Exp $
+# $Id: JobStream.pm,v 1.3 2007-08-15 14:33:59 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 
 package WebUser::JobStream;
 
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( qw( Core ) );
 
 # set up the table
-__PACKAGE__->table( "job_stream" );
+__PACKAGE__->table( 'job_stream' );
 
 # get the columns that we want to keep
-__PACKAGE__->add_columns( qw/id stdin stdout stderr/);
+__PACKAGE__->add_columns( qw( id stdin stdout stderr ) );
 
 # set up the primary keys/contraints
-__PACKAGE__->set_primary_key( "id" );
+__PACKAGE__->set_primary_key( 'id' );
 
 # relationships
 
-__PACKAGE__->has_one( job_history => "WebUser::JobHistory",
-					  { "foreign.id" => "self.id"},
-					  { proxy            => [ qw/job_id
-                                                 job_type
-					                             status
-					                             options
-					                             email
-					                             estimated_time
-					                             opened
-					                             closed
-					                             started/] } );
+__PACKAGE__->has_one( job_history => 'WebUser::JobHistory',
+            { 'foreign.id' => "self.id"},
+            { proxy            => [ qw( job_id
+                                        job_type
+                                        status
+                                        options
+                                        email
+                                        estimated_time
+                                        opened
+                                        closed
+                                        started ) ] } );
 
 =head1 COPYRIGHT
 
