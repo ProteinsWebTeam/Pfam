@@ -5,7 +5,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: results.tt,v 1.2 2007-08-15 14:34:23 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -188,7 +188,7 @@ hideButton = "${base}static/images/hideButton.png";
         <td[% IF pfamA.hmm_start != 1 %] class="warning"[% END %]>
           [% pfamA.hmm_start %]
         </td>
-        <td[% IF pfamA.hmm_end != pfamA.model_length %] class="warning"[% END %]>
+        <td[% IF pfamA.hmm_end != pfamA.hmm_length %] class="warning"[% END %]>
           [% pfamA.hmm_end %]
         </td>
         <td>[% pfamA.bits %]</td>

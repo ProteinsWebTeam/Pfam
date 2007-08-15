@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.5 2007-08-14 11:36:46 rdf Exp $
+# $Id: Sequence.pm,v 1.6 2007-08-15 14:33:35 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.5 2007-08-14 11:36:46 rdf Exp $
+$Id: Sequence.pm,v 1.6 2007-08-15 14:33:35 jt6 Exp $
 
 =cut
 
@@ -302,7 +302,7 @@ sub queuePfamA : Private {
   # build the command options to run
   my $opts;
   $opts .=  q( --mode ) . $c->stash->{seqOpts} if( $c->stash->{seqOpts} ne 'both' and 
-                                                  $c->stash->{seqOpts} ne 'bothNoMerge' );
+                                                   $c->stash->{seqOpts} ne 'bothNoMerge' );
   $opts .=  q( --no_merge )                    if( $c->stash->{seqOpts} eq 'bothNoMerge' );
   $opts .=  q( -e )     . $c->stash->{evalue}  if( $c->stash->{evalue} and not $c->stash->{ga} );
   $opts .=  q( --overlap )                     if( $c->stash->{showOverlap} );
@@ -504,14 +504,21 @@ sub handleResults : Private {
         my( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
             $evalue, $pfamA_id, $aliHmm, $aliMatch, $aliSeq, $s, $pfamData );
         foreach ( @set ) {
+          $c->log->debug( "Search::Sequence::handleResults: line: |$_|" );
 
           #Line 1 is the domain positional information, lines 2-4 contain the 
           #actual alignment
+          # UserSeq     33   142 PF00169.20      1    92 ls    42.8   1.2e-09  PH
           if( /^\S+\s+(\d+)\s+(\d+)\s+(PF\d{5})\.\d+\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/ ) {
 
             ( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
               $evalue, $pfamA_id ) = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
               
+            unless( $3 =~ /^PF\d{5}$/ ) {
+              $c->log->warn( "Search::Sequence::handleResults: couldn't find a Pfam accession: |$3|" );
+              next;
+            } 
+
             $pfamData = $c->model('PfamDB::Pfam')
                           ->find( { pfamA_acc => $pfamA_acc } );
                           
@@ -538,7 +545,7 @@ sub handleResults : Private {
                                  end          => $end,
                                  hmm_start    => $hmmStart,
                                  hmm_end      => $hmmEnd,
-                                 model_length => $pfamData->model_length,
+                                 hmm_length   => $pfamData->model_length,
                                  mode         => $mode,
                                  significant  => $s,
                                  bits         => $bits,
