@@ -101,7 +101,7 @@ Please find your Pfam search results below.
 
 This is an experimental service, so if the results are not as expected, 
 or if you have any comments about the use of this service, then please 
-contact Pfam at: pfam@sanger.ac.uk.
+contact Pfam at: pfam-help@sanger.ac.uk.
 
 For REALLY large jobs, you should probably download Pfam and run locally.
 Please see the FAQ at http://pfam.sanger.ac.uk/help if you need 
@@ -114,9 +114,9 @@ Output format is:
 
 Results:
 
-$results  
- 
 __MESSAGE__
+
+$message .= $results."\n";
 print $mailer $message;
 $mailer->close;
 }

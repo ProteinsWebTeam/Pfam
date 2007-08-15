@@ -52,27 +52,27 @@ while(1) {
 	
 	
 	if($ref->{'job_type'} eq "batch"){
-		$cmd = "perl preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && perl ";
+		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
 		$cmd .= " ".$ref->{'command'};
 		if($qsout->pvm){
 			$cmd .= " -pvm"
 		}else{
 			$cmd .= " -cpu ".$qsout->cpus;
 		}
-		$cmd .= " -align -d ".$qsout->dataFileDir;
+		$cmd .= " -d ".$qsout->dataFileDir;
 		$cmd .= " ".$ref->{'options'};
 		$cmd .= " ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
 		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
-		$cmd .= " && perl postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
+		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
 	}elsif($ref->{'job_type'} eq "dna"){
-		$cmd = "perl preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && perl";
+		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
 		$cmd .= " ".$ref->{'command'};
 		$cmd .= " -in ".$ref->{job_id}.".fa";
 		$cmd .= " -tmp ".$qsout->tmpDir;
 		$cmd .= " -data ".$qsout->dataFileDir;
 		$cmd .= " -cpu ".$qsout->cpus;
 		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
-		$cmd .= " && perl postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
+		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
 	}
 	$DEBUG && print STDERR "Submitting id=$ref->{'id'}, command=$cmd\n";
 	
@@ -87,7 +87,7 @@ while(1) {
 			  $p =1 if($p < 1);
 			  #Now set up the LSF job
 			  my $fh = IO::File->new;
- 		      $fh->open( "| bsub -q pfam_slow -sp $c -n ".$qsout->cpus);
+ 		      $fh->open( "| bsub -q pfam_slow -sp $c -n ".$qsout->cpus." -R \"span[hosts=1]\"");
  		      $fh->print( "$cmd\n");
      		  $fh->close;
 		}else{
