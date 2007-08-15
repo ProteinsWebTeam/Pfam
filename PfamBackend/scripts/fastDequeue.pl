@@ -66,11 +66,6 @@ while(1) {
 
 	$DEBUG &&  print STDERR Dumper($success, $error_code, $full_buf, $stdout_buf, $stderr_buf);
           
-    if($success){
-    	$qsout->update_job_status($ref->{'id'}, 'DONE');
-    }else{
-    	$qsout->update_job_status($ref->{'id'}, 'FAIL');
-    }
     
     #Put anything we have captured in stdout and stderr back in the database
     if(scalar(@$stdout_buf)){
@@ -79,7 +74,14 @@ while(1) {
     if(scalar(@$stderr_buf)){
     	$qsout->update_job_stream($ref->{id}, 'stderr', join "", @$stdout_buf);
     }
-    #Clean up any output files
+
+    if($success){
+       $qsout->update_job_status($ref->{'id'}, 'DONE');
+    }else{
+       $qsout->update_job_status($ref->{'id'}, 'FAIL');
+    }
+
+     #Clean up any output files
     if(-e $qsout->tmpDir."/".$ref->{job_id}.".fa"){
       unlink($qsout->tmpDir."/".$ref->{job_id}.".fa") || warn "Could not remove tmp fasta file:[$!]\n";
  	}
