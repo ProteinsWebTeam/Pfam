@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.14 2007-08-10 15:23:23 jt6 Exp $
+# $Id: summary.tt,v 1.15 2007-08-15 08:17:04 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -22,7 +22,7 @@ requirements.js.push( "clans.js" );
 membershipList = BLOCK;
   total = 0;
   size = 0;
-  FOREACH pfam IN clan.clan_membership.nsort("num_full").reverse -%]
+  FOREACH pfam IN clan.clan_membership.sort("pfamA_id") -%]
   <span class="clanMember">
     <a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">
       [% pfam.pfamA_id %]</a></span>
