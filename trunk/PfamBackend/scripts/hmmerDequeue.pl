@@ -18,7 +18,7 @@ use Data::Dumper;
 use IPC::Cmd qw(run);
 use Bio::Pfam::WebServices::PfamQueue;
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 #Get a queue stub of type hmmer
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("hmmer");
@@ -65,18 +65,18 @@ while(1) {
 
 	$DEBUG &&  print STDERR Dumper($success, $error_code, $full_buf, $stdout_buf, $stderr_buf);
 	      
-    if($success){
-    	$qsout->update_job_status($ref->{'id'}, 'DONE');
-    }else{
-    	$qsout->update_job_status($ref->{'id'}, 'FAIL');
-    }
-    
     if(scalar(@$stdout_buf)){
     	$qsout->update_job_stream($ref->{id}, 'stdout', join "", @$stdout_buf);
     }     
     if(scalar(@$stderr_buf)){
     	$qsout->update_job_stream($ref->{id}, 'stderr', join "", @$stdout_buf);
     } 
+    
+    if($success){
+       $qsout->update_job_status($ref->{'id'}, 'DONE');
+    }else{
+       $qsout->update_job_status($ref->{'id'}, 'FAIL');
+    }
     unlink($qsout->tmpDir."/".$ref->{job_id}.".fa") || warn "Could not remove tmp fasta file:[$!]\n";
   } 
 }
