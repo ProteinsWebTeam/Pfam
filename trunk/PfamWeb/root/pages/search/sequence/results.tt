@@ -5,7 +5,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.2 2007-08-15 14:34:23 jt6 Exp $
+# $Id: results.tt,v 1.3 2007-08-15 14:59:36 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -154,18 +154,22 @@ hideButton = "${base}static/images/hideButton.png";
     </caption>
     <thead>
       <tr class="titleRow">
-        <th class="rowNum">Original order</th>
-        <th>Pfam-A</th>
-        <th class="nosort">Description</th>
-        <th>Entry Type</th>
-        <th>Sequence Start</th>
-        <th>Sequence End</th>
-        <th>HMM From</th>
-        <th>HMM To</th>
-        <th>Bits Score</th>
-        <th>E-value</th>
-        <th>Alignment mode</th>
-        <th>Show/hide alignment</th>
+        <th rowspan="2" class="rowNum">Original order</th>
+        <th rowspan="2">Pfam-A</th>
+        <th rowspan="2" class="nosort">Description</th>
+        <th rowspan="2">Entry type</th>
+        <th colspan="2">Sequence</th>
+        <th colspan="2">HMM</th>
+        <th rowspan="2">Bits score</th>
+        <th rowspan="2">E-value</th>
+        <th rowspan="2">Alignment mode</th>
+        <th rowspan="2">Show/hide alignment</th>
+      </tr>
+      <tr class="titleRow">
+        <th>Start</th>
+        <th>End</th>
+        <th>From</th>
+        <th>To</th>
       </tr>
     </thead>
     <tbody>
