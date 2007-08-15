@@ -103,6 +103,7 @@ while( my $result = $blastio->next_result ) {
 if(keys %pfamHits){
 	my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpDir );
   	foreach my $pfamA (keys %pfamHits){
+		($pfamA) = $pfamA =~ /(\S+)\.\d+/;
 		#Get the HMM from the flatfile
 		open(HMM,"hmmfetch $dataFileDir/Pfam_ls.bin $pfamA |") ||
 			die "Failed to get open hmmfetch pipe, hmmfetch $dataFileDir/Pfam_ls.bin $pfamA:[$!] \n";
@@ -110,7 +111,7 @@ if(keys %pfamHits){
     		print $tmpFh $_;
   		}
   		close(HMM) || 
-  			die "Could not clode hmmfetch pipe:[$!]\n";;
+  			die "Could not close hmmfetch pipe:[$!]\n";;
 	}
 	close $tmpFh;
 	$DEBUG && print STDERR "Going to run: genewise -pretty -hmmer $tmpFile $tmpDir/$faFile\n";	
