@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.5 2007-08-14 11:39:33 rdf Exp $
+# $Id: batch.tt,v 1.6 2007-08-15 12:08:14 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -126,14 +126,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
       </form>
       
-      <p class="small">
-        <strong>Please note:</strong>
-        Batch searches are currently unavailable. We hope to reinstate them shortly. 
-      </p>
-      #<script type="text/javascript">
-      #  $("proteinBatchSearchForm").disable();
-      #</script>
-
     </div>
   </div>
 </div>
