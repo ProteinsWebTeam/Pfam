@@ -2,7 +2,7 @@
 # Dna.pm
 # jt6 20070731 WTSI
 #
-# $Id: Dna.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
+# $Id: Dna.pm,v 1.3 2007-08-15 13:22:28 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Dna;
 
 This controller is responsible for running batch DNA sequence searches.
 
-$Id: Dna.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
+$Id: Dna.pm,v 1.3 2007-08-15 13:22:28 jt6 Exp $
 
 =cut
 
@@ -87,6 +87,15 @@ sub validateInput : Private {
       'You did not supply a valid DNA sequence. Please try again.';
 
     $c->log->debug( 'Search::Dna::validateInput: no DNA sequence; returning to form' );
+    return;
+  }
+
+  # check it's not too long
+  if( length $c->req->param('seq') > 80_000 ) {
+    $c->stash->{searchError} =
+      'Your sequence was too long. We can only accept DNA sequences upto 80kb.';
+
+    $c->log->debug( 'Search::Dna::validateInput: sequence too long; returning to form' );
     return;
   }
 
