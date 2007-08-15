@@ -2,7 +2,7 @@
 # GetPdbFile.pm
 # jt6 20060731 WTSI
 #
-# $Id: GetPdbFile.pm,v 1.6 2007-07-30 12:39:12 jt6 Exp $
+# $Id: GetPdbFile.pm,v 1.7 2007-08-15 12:13:50 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ extract the PDB ID from the URL.
 
 Generates a B<flat file>, MIME type C<chemical/x-pdb>.
 
-$Id: GetPdbFile.pm,v 1.6 2007-07-30 12:39:12 jt6 Exp $
+$Id: GetPdbFile.pm,v 1.7 2007-08-15 12:13:50 jt6 Exp $
 
 =cut
 
@@ -38,39 +38,65 @@ use base 'PfamWeb::Controller::Structure';
 
 =head2 getPdbFile : Path
 
-Returns the contents of the PDB file for the specified PDB entry. The PDB
-entry can be specified in various ways. See L<begin> for details.
+Returns the contents of the PDB file for the specified PDB entry.
 
 =cut
 
 sub getPdbFile : Path {
-  my( $this, $c, $pdbId ) = @_;
+  my( $this, $c ) = @_;
 
   return unless defined $c->stash->{pdbId};
 
   my $cacheKey = 'pdb' . $c->stash->{pdbId};
 
-  my $pdbFile;
-  if( $pdbFile = $c->cache->get( $cacheKey ) ) {
+  if( $c->stash->{pdbFile} = $c->cache->get( $cacheKey ) ) {
     $c->log->debug( 'Structure::GetPdbFile::getPdbFile: retrieved |'
                     . $c->stash->{pdbId} . '| from cache' ); 
   } else {
     $c->log->debug( 'Structure::GetPdbFile::getPdbFile: retrieving |'
                     . $c->stash->{pdbId} . '| from remote site' ); 
   
-    my $url = $this->{pdbFileUrl} . 'pdb' . $c->stash->{pdbId} . '.ent';
-    $c->log->debug( "Structure::GetPdbFile::getPdbFile: looking for file at: |$url|" );
+    # right now we're just forwarding to the only method for retrieving a
+    # PDB file, which gets it from a URL using LWP::Simple. Ideally we should
+    # be checking the configuration to see if there's a local copy of the 
+    # PDB and retrieving a file directly from there, if possible.
+    # TODO check for a local PDB mirror
+    $c->forward( 'getPdbFileFromUrl' );
   
-    $pdbFile = get( $url );
-    $c->cache->set( $cacheKey, $pdbFile );
+    # cache it
+    $c->cache->set( $cacheKey, $c->stash->{pdbFile} );
+
   }
   
-  return unless defined $pdbFile;
+  return unless defined $c->stash->{pdbFile};
 
   my $filename = 'pdb' . $c->stash->{pdbId} . '.ent';
   $c->res->headers->header( 'Content-disposition' => "attachment; filename=$filename" );
   $c->res->content_type( 'chemical/x-pdb' );
-  $c->res->body( $pdbFile );
+  $c->res->body( $c->stash->{pdbFile} );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getPdbFileFromUrl : Path
+
+Retrieves the specified PDB file from a URL.
+
+=cut
+
+sub getPdbFileFromUrl : Private {
+  my( $this, $c ) = @_;
+
+  # build the full URL
+  my $url = $this->{pdbFileUrl} . 'pdb' . $c->stash->{pdbId} . '.ent';
+  $c->log->debug( "Structure::GetPdbFile::getPdbFileFromUrl: looking for file at: |$url|" );
+
+  # retrieve the file itself
+  my $pdbFile = get( $url );
+  return unless defined $pdbFile;
+
+  # and stash it
+  $c->stash->{pdbFile} = $pdbFile;  
 }
 
 #-------------------------------------------------------------------------------
