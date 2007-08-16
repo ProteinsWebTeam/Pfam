@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.45 2007-08-14 11:44:01 rdf Exp $
+// $Id: pfFunctions.js,v 1.46 2007-08-16 16:14:34 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -929,22 +929,23 @@ function toggleTools() {
 //------------------------------------------------------------
 // collect the sequences that are specified by the checked leaf nodes
 // in the species trees. Submits the form in the page which will act on those
-// accessions
+// accessions. The argument should be either "G" or "A", for graphical or
+// sequence alignment view of the collected sequences.
 
-function collectSequences( acc, style ) {
+function collectSequences( sStyle ) {
 
-  var seqs = "";
+  var seqAccs = "";
 
   var leaves = $A( document.getElementsByClassName( "leafNode", "treeDiv" ) );
   leaves.each( function( n ) {
                  var taskNode = nodeMapping[n.id];
                  if( taskNode.checked ) {
-                   seqs = seqs + nodeSequences[n.id] + " ";
+                   seqAccs = seqAccs + nodeSequences[n.id] + " ";
                  }
                } );
   
   // build the URI, escaping the sequences string, just to be on the safe side
-  var url = selectURI + "?acc=" + acc  + "&style=" + style + "&seqs=" + escape( seqs );
+  var url = selectURI + "?style=" + sStyle + "&seqAccs=" + escape( seqAccs );
 
   // and submit the request
   popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
