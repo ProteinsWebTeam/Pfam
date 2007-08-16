@@ -2,7 +2,7 @@
 # PfamGraphicsTools.pm
 # jt 20070402 WTSI
 #
-# $Id: PfamGraphicsTools.pm,v 1.1 2007-04-20 15:33:12 jt6 Exp $
+# $Id: PfamGraphicsTools.pm,v 1.2 2007-08-16 16:10:15 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,15 @@ A couple of utility methods for generating Pfam graphics from a user-supplied
 XML file and for displaying the XML that builds the graphic for a specified 
 UniProt entry.
 
-$Id: PfamGraphicsTools.pm,v 1.1 2007-04-20 15:33:12 jt6 Exp $
+$Id: PfamGraphicsTools.pm,v 1.2 2007-08-16 16:10:15 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Data::Dump qw( dump );
+use File::Temp qw( tempfile );
 
 use XML::LibXML;
 
@@ -91,12 +94,15 @@ sub renderXML : Global {
    
   #----------------------------------------
 
-  # copy the file to our temp area
-  my $filename = $upload->filename;
-  my $tmpFile  = $this->{uploadDir} . "/$filename";
-  $c->log->debug( "PfamGraphicsTools::renderXML: copying uploaded file to |$tmpFile|" );
+  # copy the file to our temp area. Generate a temporary filehandle and
+  # and filename, rather than using the user specified one
+  my($fh, $filename) = tempfile( 'uploadedPfamGraphicXXXXXXXXXXXX',
+                                 SUFFIX => 'xml',
+                                 DIR    => $this->{uploadDir} );
 
-  unless( $upload->copy_to( $tmpFile ) ) {
+  $c->log->debug( "PfamGraphicsTools::renderXML: copying uploaded file to |$filename|" );
+
+  unless( $upload->copy_to( $filename ) ) {
     $c->log->error( "PfamGraphicsTools::renderXML: couldn't copy the uploaded file" );
     $c->stash->{error} = "There was a problem accepting your upload.";
     $c->stash->{template} = "pages/uploadXml.tt";
@@ -109,13 +115,15 @@ sub renderXML : Global {
   # ok; the upload seems to have worked
 
   # try validating the uploaded file against our schema
-  if( not $c->forward( "validateXML", [ $tmpFile ] ) ) {
+  if( not $c->forward( "validateXML", [ $filename ] ) ) {
     $c->log->error( "PfamGraphicsTools::renderXML: there were validation errors." );
     $c->stash->{template} = "pages/uploadXml.tt";
     return 0;  
   }
   $c->log->debug( "PfamGraphicsTools::renderXML: 3) the uploaded XML validated successfully" );
 
+  # validation will drop the XML document into the stash
+  
   #----------------------------------------
 
   # at this point we should have a valid XML file
@@ -124,13 +132,16 @@ sub renderXML : Global {
   my $imageSet = Bio::Pfam::Drawing::Image::ImageSet->new;
   $imageSet->create_images( $c->stash->{xmlDocument}, 1 );
 
+  print STDERR dump $c->stash->{xmlDocument};
+  print STDERR dump $imageSet;
+
   if( not defined $imageSet ) {
     $c->log->error( "PfamGraphicsTools::renderXML: image generation failed" );
     $c->stash->{error} = "There was a problem generating the Pfam graphic from your XML.";
     $c->stash->{template} = "pages/uploadXml.tt";
     return 0;
   }
-  $c->log->debug( "PfamGraphicsTools::renderXML: 5) we *might* have generated an image..." );
+  $c->log->debug( "PfamGraphicsTools::renderXML: 4) we *might* have generated an image..." );
 
   # hand off to another action, which will decide whether to return the raw image
   # or to render the specified template
@@ -268,11 +279,12 @@ Stashes the L<XML::LibXML::Document|Document> object on the way past.
 =cut
 
 sub validateXML : Private {
-   my( $this, $c, $xmlFile ) = @_;
-   
-  # see if we can load the schema from file or fall back on getting via the URI 
-  my $schemaLoc = -f $this->{schemaFile} ? $this->{schemaFile} : $this->{schemaURI}; 
-  $c->log->debug( "PfamGraphicsTools::validateXML: retrieving schema from: |$this->{schemaLoc}|" );
+  my( $this, $c, $xmlFile ) = @_;
+  
+  $c->log->debug( "PfamGraphicsTools::validateXML: loading XML from |$xmlFile|" );
+
+  my $schemaLoc = -f $this->{schemaFile} ? $this->{schemaFile} : $this->{schemaURI};
+  $c->log->debug( "PfamGraphicsTools::validateXML: retrieving schema from: |$schemaLoc|" );
 
   my $schema;
   eval {
@@ -280,24 +292,28 @@ sub validateXML : Private {
   };
   if( $@ or not defined $schema ) {
     $c->log->error( "PfamGraphicsTools::validateXML: couldn't get a valid schema object..." );
-    $c->stash->{error} = "There was a problem validating your XML.";
+    $c->stash->{error} = 'There was a problem validating your XML.';
     return 0;
   }
-
+  $c->log->debug( 'PfamGraphicsTools::validateXML: got a Schema object' );  
+  
   # parse the XML Document and stash it so we can use it later without re-parsing
   my $parser = XML::LibXML->new;
   eval {
     $c->stash->{xmlDocument} = $parser->parse_file( $xmlFile );
-    $c->stash->{xml} = $c->stash->{xmlDocument}->toString( 1 );
+
+    $c->log->debug( 'PfamGraphicsTools::validateXML: xmlDocument->toString: |'
+                    . $c->stash->{xmlDocument}->toString( 1 ) . '|' );
+
     $schema->validate( $c->stash->{xmlDocument} );
   };
   if( $@ ) {
     $c->log->error( "PfamGraphicsTools::validateXML: validation errors: |$@|" );
-    $c->stash->{error} = "Your XML was not valid.";
+    $c->stash->{error} = 'Your XML was not valid.';
     return 0;
   }
 
-  return 1
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
