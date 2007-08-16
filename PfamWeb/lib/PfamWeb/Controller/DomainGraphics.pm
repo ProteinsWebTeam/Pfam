@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.5 2007-08-16 09:05:46 rdf Exp $
+# $Id: DomainGraphics.pm,v 1.6 2007-08-16 15:27:18 jt6 Exp $
 
 =head1 NAME
 
@@ -28,13 +28,14 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.5 2007-08-16 09:05:46 rdf Exp $
+$Id: DomainGraphics.pm,v 1.6 2007-08-16 15:27:18 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
+use URI::Escape;
 use Storable qw(thaw);
 
 use base 'Catalyst::Controller';
@@ -64,58 +65,81 @@ sub begin : Private {
     $c->log->debug( 'DomainGraphics::begin: arch = |' . $c->stash->{auto_arch} . '|' ); 
   }
   
-  if( defined $c->req->param('subTree') and 
-        defined $c->req->param('seq' ) and
-          $c->req->param('seq') =~ m/^([\S{6}\,?]+)/){
-          my $seqString = $1;
-    @{ $c->stash->{subTreeSeqs} } = split(/\,/, $seqString);
-    $c->log->debug( 'DomainGraphics::begin: seq = |' . $c->stash->{subTreeSeqs} . '|' );       
-  }    
+  #----------------------------------------
+
+  # do we have an accession ?
+  if( defined $c->req->param('acc') ) {
   
-  # MUST have an accession
-  return unless defined $c->req->param('acc');
+    # what type of accession is it ?
+    if( $c->req->param('acc') =~ m/^(PF\d{5})$/i ) {
   
-  # what type of accession is it ?
-  if( $c->req->param('acc') =~ m/^(PF\d{5})$/i ) {
-
-    # pfam A
-    $c->stash->{acc} = $1;
-    $c->log->debug( 'DomainGraphics::begin: found Pfam A accession |'
-                    . $c->stash->{acc} . '|' );
-
-    $c->forward( 'getFamilyData' );
+      # pfam A
+      $c->stash->{acc} = $1;
+      $c->log->debug( 'DomainGraphics::begin: found Pfam A accession |'
+                      . $c->stash->{acc} . '|' );
   
-  } elsif( $c->req->param('acc') =~ m/^(PB\d{6})$/i ) {
+      $c->forward( 'getFamilyData' );
+    
+    } elsif( $c->req->param('acc') =~ m/^(PB\d{6})$/i ) {
+  
+      # pfam B
+      $c->stash->{acc}  = $1;
+  
+      # we'll need the auto number for the pfam B later so retrieve it now
+      my $pfam = $c->model('PfamDB::PfamB')
+                   ->find( { pfamB_acc => $1 } );
+      $c->stash->{autoPfamB} = $pfam->auto_pfamB;
+  
+      $c->log->debug( 'DomainGraphics::begin: found Pfam B accession |'
+                      . $c->stash->{acc} . '| (auto number ' 
+                      . $c->stash->{autoPfamB} . ')' );
+  
+      $c->forward( 'getPfamBData' ); 
+        
+    } elsif( $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
+  
+      # looks like a clan
+      $c->stash->{acc} = $1;
+      $c->log->debug( 'DomainGraphics::begin: found Clan accession |'
+                      . $c->stash->{acc} . '|' );
+  
+      my $clan = $c->model('PfamDB::Clans')
+                   ->find( { clan_acc => $1 } );
+      $c->stash->{autoClan} = $clan->auto_clan;
+  
+      $c->forward( 'getClanData' );
+    }
+  }
+  
+  #----------------------------------------
 
-    # pfam B
-    $c->stash->{acc}  = $1;
+  # do we have a sub-tree flag ? If so we should also have a list of sequence
+  # accessions to process 
+  if( $c->req->param('subTree') and 
+      $c->req->param('seqAccs') ) {
 
-    # we'll need the auto number for the pfam B later so retrieve it now
-    my $pfam = $c->model('PfamDB::PfamB')
-                 ->find( { pfamB_acc => $1 } );
-    $c->stash->{autoPfamB} = $pfam->auto_pfamB;
+    $c->log->debug( 'DomainGraphics::begin: checking for sub-tree sequences' );    
 
-    $c->log->debug( 'DomainGraphics::begin: found Pfam B accession |'
-                    . $c->stash->{acc} . '| (auto number ' 
-                    . $c->stash->{autoPfamB} . ')' );
+    # detaint the list of sequence accessions (again... we've already done this
+    # in SpeciesTree, but since the user can have put their sticky little hands
+    # on them in between, we'll do it once more)
+    my @seqAccs;
+    
+    # retrieve the list of accessions from the Request...
+    my @taintedSeqAccs = $c->req->param('seqAccs'); 
+           
+    foreach ( @taintedSeqAccs ) {
+      next unless m/^\s*([AOPQ]\d[A-Z0-9]{3}\d)\s*$/i;
+      push @seqAccs, $1;
+    }
+    $c->log->debug( 'DomainGraphics::begin: found |' . scalar @seqAccs
+                    . '| valid sequence accessions' );    
 
-    $c->forward( 'getPfamBData' ); 
-      
-  } elsif( $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
-
-    # looks like a clan
-    $c->stash->{acc} = $1;
-    $c->log->debug( 'DomainGraphics::begin: found Clan accession |'
-                    . $c->stash->{acc} . '|' );
-
-    my $clan = $c->model('PfamDB::Clans')
-                 ->find( { clan_acc => $1 } );
-    $c->stash->{autoClan} = $clan->auto_clan;
-
-    $c->forward( 'getClanData' );
+    $c->stash->{selectedSeqAccs} = \@seqAccs; 
+    $c->forward( 'getSelectedSeqs' );
   }
 
-}
+} # end of the "begin" method
 
 #-------------------------------------------------------------------------------
 
@@ -146,15 +170,29 @@ sub domainGraphics : Path {
   }
 
   # set up the view and rely on "end" from the parent class to render it. Use
-  # a different template for rendering sequences vs architectures
+  # a different template for rendering sequences vs architectures vs selected
+  # sequences
   if( $c->stash->{auto_arch} ) {
+    $c->log->debug( 'DomainGraphics::domainGraphics: rendering "allSequences.tt"' );
     $c->stash->{template} = 'components/allSequences.tt';
+
+    # cache the page (fragment) for one week
+    $c->cache_page( 604800 );
+
+  } elsif( $c->req->param('subTree') ) {
+    $c->log->debug( 'DomainGraphics::domainGraphics: rendering "someSequences.tt"' );
+    $c->stash->{template} = 'components/someSequences.tt';
+
+    # we won't even *try* to cache something user-generated like this...
+    
   } else {
+    $c->log->debug( 'DomainGraphics::domainGraphics: rendering "allArchitectures.tt"' );
     $c->stash->{template} = 'components/allArchitectures.tt';
+
+    # cache the page (fragment) for one week
+    $c->cache_page( 604800 );
   }
   
-  # cache the page (fragment) for one week
-  $c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------
@@ -241,18 +279,7 @@ sub getFamilyData : Private {
                         { join     => [ qw( arch annseq ) ],
                           prefetch => [ qw( arch annseq ) ] } );
   
-  } elsif ($c->stash->{subTreeSeqs}){ 
-    $c->log->debug( 'DomainGraphics::getFamilyData: getting all sequences for |'. $c->stash->{subTreeSeqs} .'|');
-      
-      foreach my $s (@{$c->stash->{subTreeSeqs}}){
-        my $r =  $c->model('PfamDB::Pfamseq')
-                               ->find( { 'pfamseq_acc' => $s },
-                                { join     => [ qw( annseq ) ],
-                                  prefetch => [ qw( annseq ) ] } );
-        $c->log->debug('DomainGraphics::getFamilyData: getting data for |'.$s.'|');
-        push(@rows, $r); 
-      }
-  }else {
+  } else {
   
     # we want to see the unique architectures containing this domain
     $c->log->debug( 'DomainGraphics::getFamilyData: getting unique architectures' );
@@ -269,13 +296,7 @@ sub getFamilyData : Private {
 
   # how many sequences in these architectures ?  
   $c->stash->{numSeqs} = 0;
-  
-  # If we drawing  the subTree 
-  if( $c->stash->{subTreeSeqs} ){
-    $c->stash->{numSeqs} = $c->stash->{numRows};
-  }else{  
-    map { $c->stash->{numSeqs} += $_->no_seqs } @rows;
-  }
+  map { $c->stash->{numSeqs} += $_->no_seqs } @rows;
   
   $c->log->debug( 'DomainGraphics::getFamilyData: found |' . $c->stash->{numRows}
                   . ' rows, with a total of ' . $c->stash->{numSeqs} . ' sequences' );
@@ -294,7 +315,6 @@ sub getFamilyData : Private {
     # thaw out the sequence object for this architecture
     push @seqs, thaw( $arch->annseq_storable );
   
-    if(!$c->stash->{subTreeSeqs}){
     # work out which domains are present on this sequence
     my @domains = split /\~/, $arch->architecture;
     $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
@@ -306,7 +326,6 @@ sub getFamilyData : Private {
     # have an auto_architecture, so this won't work
     $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs
       unless $c->stash->{auto_arch};
-    } 
   }
   
   $c->log->debug( 'DomainGraphics::getFamilyData: retrieved '
@@ -389,7 +408,6 @@ sub getPfamBData : Private {
 
   # work out the range for the architectures that we actually want to return
   $c->forward( 'calculateRange' );
-  my $rows  = $c->stash->{rows};
   my $first = $c->stash->{first};
   my $last  = $c->stash->{last};
 
@@ -536,6 +554,53 @@ sub getClanData : Private {
 
   $c->stash->{seqs}    = \@seqs;
   $c->stash->{seqInfo} = \%seqInfo;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getSelectedSeqs : Private
+
+Retrieves the sequences for the user-specified sequence accessions. Used by the
+"display selected sequences" feature of the interactive species tree.
+
+=cut
+
+sub getSelectedSeqs : Private {
+  my( $this, $c ) = @_;
+  
+  # select the graphical features that we want to display
+  $c->stash->{regionsAndFeatures} = { PfamA      => 1,
+                                      PfamB      => 1,
+                                      noFeatures => 0 };
+
+  # get each of the sequences in turn...
+  my @rows;
+  foreach my $seqAcc ( @{ $c->stash->{selectedSeqAccs} } ) {
+    $c->log->debug("DomainGraphics::getSelectedSeqs: getting sequence for |$seqAcc|...");
+    my $r = $c->model('PfamDB::Pfamseq')
+              ->find( { 'pfamseq_acc' => $seqAcc },
+                      { join     => [ qw( annseq ) ],
+                        prefetch => [ qw( annseq ) ] } );
+    push @rows, $r; 
+  }
+  
+  # how many sequences did we end up with ?
+  $c->log->debug( 'DomainGraphics::getSelectedSeqs: found |' . scalar @rows
+                  . '| sequences to draw' );
+  $c->stash->{numRows} = scalar @rows;
+
+  # work out the range for the sequences that we actually want to return
+  $c->forward( 'calculateRange' );
+  my $first = $c->stash->{first};
+  my $last  = $c->stash->{last};
+
+  my( @seqs, %seqInfo );
+  foreach my $arch ( @rows[ $first .. $last ] ) {
+    push @seqs, thaw( $arch->annseq_storable );
+  }
+
+  $c->stash->{seqs}    = \@seqs;
+#  $c->stash->{seqInfo} = \%seqInfo;
 }
 
 #-------------------------------------------------------------------------------
