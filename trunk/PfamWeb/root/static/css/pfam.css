@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.55 2007-08-10 15:23:23 jt6 Exp $
+   $Id: pfam.css,v 1.56 2007-08-16 16:14:01 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -710,6 +710,18 @@ div.allSequences .odd {
 
 div.allSequences .even {
   background: #CDC;
+}
+
+#selectedAccs {
+  width: 90%;
+  margin: 0 auto;
+}
+
+#selectedAccs a,
+#selectedAccs span {
+  width: 6em;
+  float: left;
+  margin-bottom: 0.4em;
 }
 
 /* ---------------------------------------- */
