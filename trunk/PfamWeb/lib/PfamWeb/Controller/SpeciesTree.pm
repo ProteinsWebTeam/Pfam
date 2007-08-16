@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.4 2007-08-16 09:05:46 rdf Exp $
+# $Id: SpeciesTree.pm,v 1.5 2007-08-16 15:27:18 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.4 2007-08-16 09:05:46 rdf Exp $
+$Id: SpeciesTree.pm,v 1.5 2007-08-16 15:27:18 jt6 Exp $
 
 =cut
 
@@ -58,8 +58,6 @@ use URI::Escape;
 
 use base 'Catalyst::Controller';
 
-#-------------------------------------------------------------------------------
-#- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
@@ -74,10 +72,10 @@ table for that entry.
 sub begin : Private {
   my( $this, $c ) = @_;
 
-  # MUST have an accession
-  die 'No accession specified' unless defined $c->req->param('acc');
+  # do we have an accession ?
+  return unless $c->req->param('acc');
   
-  # what type of accession is it ?
+  # yes; what type of accession is it ?
   if( $c->req->param('acc') =~ m/^(PF\d{5})$/i ) {
 
     # pfam A
@@ -111,8 +109,10 @@ sub begin : Private {
   }
 
   # make sure we actually got a VALID accession  
-  die 'No valid accession specified'
-    unless( $c->stash->{acc} and $c->stash->{entry} );
+  unless( $c->stash->{acc} and $c->stash->{entry} ) {
+    $c->stash->{errorMsg} = 'No valid accession specified';
+    return;    
+  }
 
   # see if we should override the "too many species" check
   $c->stash->{loadTree} = defined $c->req->param('loadTree');
@@ -179,36 +179,36 @@ sub interactive : Local {
 
 =head2 subTree : Local
 
-Generates a sub-tree for the selected species.
+The species tree includes check-boxes that can be used to select nodes, or 
+whole sub-trees, from the initial species tree. This action decides whether to
+render the selected sequences as Pfam graphics or to align them and return the
+sequence alignment.
 
 =cut
-
-# TODO put the guts into this method
 
 sub subtree : Local {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'SpeciesTree::subTree: acc:  |'
-                  . $c->req->param( 'acc' ) . '|' );
-  $c->log->debug( 'SpeciesTree::subTree: seqs: |'
-                  . $c->req->param( 'seqs' ) . '|' );
-  $c->log->debug( 'SpeciesTree::subTree: style: |'
-                  . $c->req->param( 'style' ) . '|' );                
-  
-  $c->stash->{subTreeStyle} = $c->req->param( 'style' );
-  $c->stash->{subTreeAcc} = $c->req->param( 'acc' );
-  my @seqs;
-  foreach ( split / /, uri_unescape( $c->req->param('seqs') ) ) {
-    $c->log->debug( "SpeciesTree::subTree:   id: |$_|" );
-    push @seqs, $_;
+  # detaint the list of sequence accessions
+  my @seqAccs;
+  foreach ( split /\s+/, uri_unescape( $c->req->param('seqAccs') ) ) {
+    next unless  m/^([AOPQ]\d[A-Z0-9]{3}\d)$/i;
+    push @seqAccs, $1;
   }
-  $c->stash->{subTreeSeq} = join ",", @seqs;
+  $c->log->debug( 'SpeciesTree::subtree: found |' . scalar @seqAccs
+                  . '| valid sequence accessions' );
+  $c->stash->{selectedSeqAccs} = \@seqAccs;
 
-  if($c->req->param( 'style' ) eq 'G'){
+  # find out whether we're rendering the Pfam graphics for these sequences,
+  # or returning a sequence alignment  
+  if( ( $c->req->param('style') || '' ) eq 'G' ) {
+    $c->log->debug( 'SpeciesTree::subtree: rendering subtree as Pfam graphics' );
     $c->stash->{template} = "components/tools/seqViewGraphic.tt";
-  }else{    
+  } else {  
+    $c->log->debug( 'SpeciesTree::subtree: rendering subtree as a sequence alignment' );
     $c->stash->{template} = "components/tools/seqView.tt";
-  }
+  }  
+
 }
 
 #-------------------------------------------------------------------------------
