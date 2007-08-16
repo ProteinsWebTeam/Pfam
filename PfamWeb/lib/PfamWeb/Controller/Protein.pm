@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.27 2007-08-09 09:34:36 jt6 Exp $
+# $Id: Protein.pm,v 1.28 2007-08-16 14:59:00 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.27 2007-08-09 09:34:36 jt6 Exp $
+$Id: Protein.pm,v 1.28 2007-08-16 14:59:00 jt6 Exp $
 
 =cut
 
@@ -68,7 +68,7 @@ sub begin : Private {
   my $p;
   if ( defined $c->req->param('acc') ) {
 
-    $c->req->param('acc') =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/i;
+    $c->req->param('acc') =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)$/i;
     $c->log->debug( "Protein::begin: found a uniprot accession |$1|" );
   
     # try a lookup in the main pfamseq table first
@@ -98,7 +98,7 @@ sub begin : Private {
 
     # we don't know if this is an accession or an ID; try both
   
-    if ( $c->req->param('entry') =~ m/^([OPQ]\d[A-Z0-9]{3}\d)$/i ) {
+    if ( $c->req->param('entry') =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)$/i ) {
   
       # looks like an accession; redirect to this action, appending the accession
       $c->log->debug(
