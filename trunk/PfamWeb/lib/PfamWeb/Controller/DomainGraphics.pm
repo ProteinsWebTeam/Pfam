@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.6 2007-08-16 15:27:18 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.7 2007-08-16 16:10:28 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.6 2007-08-16 15:27:18 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.7 2007-08-16 16:10:28 jt6 Exp $
 
 =cut
 
@@ -576,7 +576,6 @@ sub getSelectedSeqs : Private {
   # get each of the sequences in turn...
   my @rows;
   foreach my $seqAcc ( @{ $c->stash->{selectedSeqAccs} } ) {
-    $c->log->debug("DomainGraphics::getSelectedSeqs: getting sequence for |$seqAcc|...");
     my $r = $c->model('PfamDB::Pfamseq')
               ->find( { 'pfamseq_acc' => $seqAcc },
                       { join     => [ qw( annseq ) ],
