@@ -1,0 +1,103 @@
+[%
+# someSequences.tt
+# jt6 20060410 WTSI
+#
+# This template generates a page fragment showing the domain graphics for
+# the user-selected sequences that came from the species tree. It should be 
+# called by the DomainGraphics controller, via ajax.
+#
+# $Id: someSequences.tt,v 1.1 2007-08-16 16:11:43 jt6 Exp $
+
+META naked = 1;
+
+# an ugly catch-all...
+IF numRows < 1 %]
+  <span>No sequences found.</span>
+  [% RETURN;
+END;
+
+FOREACH image IN images.each_image;
+  CALL image.print_image;
+  id = image.image_name %]
+
+  <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
+
+    <span class="graphicLabel">
+      <a href="[% base %]protein?id=[% image.image_name %]">
+        [% image.image_name %]</a>
+      [% image.image_info %]
+      ([% image.length / image.scale_x %] residues)
+    </span>
+
+    <img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#domainGraphicsMap[% loop.index %]"
+         alt="" />
+    <div class="cleaner">&nbsp;</div>
+
+    <map name="domainGraphicsMap[% loop.index %]">
+      [% image.image_map %]
+    </map>
+
+  </div> <!-- end of graphics row -->
+
+[% END; # of FOREACH image 
+
+# N.B. this snippet of javascript will not appear in the page source or DOM 
+# tree after loading, because prototype will execute it but not store it
+%]
+<script type="text/javascript">
+  // <![CDATA[
+  getMore = function() {
+    $('loadingSpinner').show();
+    $('loadingButton').disable();
+    selectedSeqAccs = [
+    [%- FOREACH seqAcc IN selectedSeqAccs %]
+       "[% seqAcc %]",
+    [%- END %]
+    ];
+    
+    new Ajax.Request( 
+      '[% base %]domaingraphics',
+      {
+        method:     'get',
+        parameters: { seqAccs: selectedSeqAccs,
+                      start:   '[% last + 1 %]',
+                      subTree: 1 },
+        onSuccess:  function( oResponse ) {
+                      $('next[% first %]').update( oResponse.responseText );
+                    },
+        onFailure:  function() {
+                      $('next[% first %]').innerHTML = 'There was a problem retrieving the next set of domain graphics';
+                    },
+      }
+    );
+  }  
+  // ]]>
+</script>
+
+[% IF first.defined AND last.defined;
+  IF ( last + 1 ) < numRows %]
+    <div id="next[% first %]">
+      <p>
+        Currently showing sequences 1 to [% last + 1 %], out of a
+        total of [% numRows %].
+      </p>
+      <input id="loadingButton"
+             type="button"
+             value="Show next [% count %]"
+             onclick="getMore()" />
+      <span id="loadingSpinner"
+            class="loading"
+            style="display: none">Loading next set...</span>
+    </div>
+  [% ELSE %]
+    <p>
+      [% IF numRows > 1 %]
+        Showing all [% numRows %] sequences.
+      [% ELSE %]
+        Showing the only sequence.
+      [% END %]
+    </p>
+  [% END;
+END %]
