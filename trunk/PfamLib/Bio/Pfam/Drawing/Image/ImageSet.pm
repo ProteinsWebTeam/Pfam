@@ -50,6 +50,7 @@ sub create_images {
   } else {
 	$dom = $origDom;
   }
+#print STDERR "creating image from XML: |" . $dom->toString(1) . "|\n";
 
   my $root = $dom->documentElement;
   my $xc = XML::LibXML::XPathContext->new( $root );
@@ -57,11 +58,11 @@ sub create_images {
 
   foreach my $seqNode ( $xc->findnodes( "pf:sequence" ) ) {
 	
-#	print STDERR "creating image for |$seqNode|", $seqNode->nodeName, "|\n";
+#print STDERR "creating image for |$seqNode|", $seqNode->nodeName, "|\n";
 
     my $image = Bio::Pfam::Drawing::Image::Image->new( { timeStamp => $self->{timeStamp} } );
 
-#	print STDERR "imageset: length: |", $seqNode->getAttribute( "length" ), "|\n";
+#print STDERR "imageset: length: |", $seqNode->getAttribute( "length" ), "|\n";
 
     $image->scale_x( $root->getAttribute( "scale_x" ) );
     $image->scale_y( $root->getAttribute( "scale_y" ) );
