@@ -5,9 +5,9 @@
 # 
 # build a page for viewing the sequences selected from a species tree
 #
-# $Id: seqViewGraphic.tt,v 1.2 2007-08-16 09:08:26 rdf Exp $
+# $Id: seqViewGraphic.tt,v 1.3 2007-08-16 16:13:33 jt6 Exp $
 
-# tell the wrapper not to add any header or footer. We'll generate a complete 
+# tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
 META naked = 1;
 
@@ -22,34 +22,49 @@ requirements.js.push( "family.js" );
 
 pageContent = BLOCK;
 
-CALL c.log.debug( "in seqView.tt" );
-
 title = "View selected sequences"
 -%]
 
-<p>You selected the following sequences: [% subTreeSeq %]</p>
+<h1>Pfam graphics for your selected sequences</h1>
 
-<div>
+<p>
+  You selected <strong>[% selectedSeqAccs.size %]</strong> sequences.
+  [% IF selectedSeqAccs.size >= 10 %]
+    <span onclick="reveal( this, 'extraAccs', false, true )"
+          class="moreLink">Show all accessions...</span>
+  [% END %]
+</p>
+<div id="selectedAccs">
+[% IF selectedSeqAccs.size >= 10 %]
+  <p>
+    [% i = 0;
+    WHILE i < 10 %]
+      <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+        [% selectedSeqAccs.$i %]</a>
+    [% i = i + 1;
+    END %]
+    <span>&hellip;</span>
+  </p>
+  <div class="cleaner"><!-- empty --></div>
+      
+  <div id="extraAccs" style="display: none">
+    [% i = 10;
+    WHILE i < selectedSeqAccs.size %]
+    <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+      [% selectedSeqAccs.$i %]</a>
+    [% i = i + 1;
+    END %]
+  </div>
+  <div class="cleaner"><!-- empty --></div>
+[% ELSE %]
+  <p>
+  [% FOREACH seq IN selectedSeqAccs %]
+    <a href="[% base %]protein?acc=[% seq %]">[% seq %]</a>
+  [% END %]
+  </p>
+[% END %]  
+</div>
 
-		<p>Style requsted:[% subTreeStyle %]</p>
-		
-      [%- FOREACH image IN images.each_image;
-        CALL image.print_image;
-        id = image.image_name -%]
-
-        <img class="graphicImage"
-             src="[% constants.tmp %]/[% image.file_location %]"
-             usemap="#domainGraphicsMap[% loop.index %]"
-             alt="" />
-        <div class="cleaner"><!-- empty --></div>
-
-        <map name="domainGraphicsMap[% loop.index %]"
-             id="domainGraphicsMap[% loop.index %]">
-          [% image.image_map %]
-        </map>
-      [% END %]
-      </div>
-     
 <div id="stdgph">
   <p class="loading">
   Loading domain graphics...
@@ -58,16 +73,19 @@ title = "View selected sequences"
 
 <script type="text/javascript">
   // <![CDATA[
-    new Ajax.Request( "[% base %]domaingraphics",
-                      { method:     'get', 
-                        parameters: { acc:     "[% subTreeAcc %]",
-                        							seq:     "[% subTreeSeq %]",
-                        							subTree: "1"},
-                        onSuccess:  stdgSuccess,
-                        onFailure:  stdgFailure
-                      } );
+  seqAccs = [
+  [%- FOREACH seqAcc IN selectedSeqAccs %]
+     "[% seqAcc %]",
+  [%- END %]
+  ];
+  new Ajax.Request( "[% base %]domaingraphics",
+                    { method:     'get', 
+                      parameters: { seqAccs:  seqAccs,
+                                    subTree:  1 },
+                      onSuccess:  stdgSuccess,
+                      onFailure:  stdgFailure
+                    } );
   // ]]>
-  
 </script>
 
 <a href="#" onclick="window.close()" class="closer">Close window</a>
