@@ -6,13 +6,13 @@
 # build the javascript boiler plate that controls loading of the species
 # tree
 #
-# $Id: speciesTreeJS.tt,v 1.1 2007-06-28 13:28:47 jt6 Exp $
+# $Id: speciesTreeJS.tt,v 1.2 2007-08-16 16:12:09 jt6 Exp $
 %]
 
 <script type="text/javascript">
   // <![CDATA[
   [%# the parameters for the initial ajax call to build the tree -%]
-  loadOptions.st.params = "acc=[% acc %]";
+  loadOptions.st.params = { acc: "[% acc %]" };
   loadOptions.st.uri    = "[% base %]speciestree/interactive";
 
   [%# the URL to visit when the user selects nodes and wants to view the subtree -%]
