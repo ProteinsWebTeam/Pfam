@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.3 2007-08-14 11:34:56 rdf Exp $
+# $Id: SpeciesTree.pm,v 1.4 2007-08-16 09:05:46 rdf Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.3 2007-08-14 11:34:56 rdf Exp $
+$Id: SpeciesTree.pm,v 1.4 2007-08-16 09:05:46 rdf Exp $
 
 =cut
 
@@ -197,15 +197,16 @@ sub subtree : Local {
   
   $c->stash->{subTreeStyle} = $c->req->param( 'style' );
   $c->stash->{subTreeAcc} = $c->req->param( 'acc' );
-  $c->stash->{subTreeSeq} = $c->req->param('seqs');
+  my @seqs;
   foreach ( split / /, uri_unescape( $c->req->param('seqs') ) ) {
     $c->log->debug( "SpeciesTree::subTree:   id: |$_|" );
-    push @{ $c->stash->{selectedSeqs} }, $_;
+    push @seqs, $_;
   }
+  $c->stash->{subTreeSeq} = join ",", @seqs;
 
   if($c->req->param( 'style' ) eq 'G'){
     $c->stash->{template} = "components/tools/seqViewGraphic.tt";
-  }else{
+  }else{    
     $c->stash->{template} = "components/tools/seqView.tt";
   }
 }
