@@ -5,7 +5,7 @@
 # 
 # build a page for viewing the sequences selected from a species tree
 #
-# $Id: seqViewGraphic.tt,v 1.1 2007-08-14 11:42:12 rdf Exp $
+# $Id: seqViewGraphic.tt,v 1.2 2007-08-16 09:08:26 rdf Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -27,13 +27,7 @@ CALL c.log.debug( "in seqView.tt" );
 title = "View selected sequences"
 -%]
 
-<p>You selected the following sequences:</p>
-
-<ul>
-	[% FOR seq IN selectedSeqs %]
-	<li>[% seq %]</li>
-	[% END %]
-</ul>
+<p>You selected the following sequences: [% subTreeSeq %]</p>
 
 <div>
 
@@ -64,10 +58,16 @@ title = "View selected sequences"
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.stdg.uri    = "[% base %]domaingraphics";
-  loadOptions.stdg.params = "acc=[% subTreeAcc %]";
-  loadOptions.stdg.params = "seqs=[% subTreeSeq %]";
+    new Ajax.Request( "[% base %]domaingraphics",
+                      { method:     'get', 
+                        parameters: { acc:     "[% subTreeAcc %]",
+                        							seq:     "[% subTreeSeq %]",
+                        							subTree: "1"},
+                        onSuccess:  stdgSuccess,
+                        onFailure:  stdgFailure
+                      } );
   // ]]>
+  
 </script>
 
 <a href="#" onclick="window.close()" class="closer">Close window</a>

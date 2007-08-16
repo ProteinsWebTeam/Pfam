@@ -5,7 +5,7 @@
 # 
 # build a page for viewing the sequences selected from a species tree
 #
-# $Id: seqView.tt,v 1.4 2007-08-14 11:42:12 rdf Exp $
+# $Id: seqView.tt,v 1.5 2007-08-16 09:08:26 rdf Exp $
 
 # tell the wrapper not to add any header or footer. We'll generate a complete 
 # page here ourselves
@@ -62,11 +62,16 @@ title = "View selected sequences"
   Loading subtree alignment...
   </p>
 </div>
-
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.dg.uri    = "[% base %]domaingraphics";
-  loadOptions.dg.params = "acc=[% subTreeAcc %]";
+    new Ajax.Request( "[% base %]alignment",
+                      { method:     'get', 
+                        parameters: { acc:     "[% subTreeAcc %]",
+                        							seq:     "[% subTreeSeq %]",
+                        							subTree: "1"},
+                        onSuccess:  stdgSuccess,
+                        onFailure:  stdgFailure
+                      } );
   // ]]>
 </script>
 
