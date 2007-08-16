@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.4 2007-08-14 11:34:56 rdf Exp $
+# $Id: DomainGraphics.pm,v 1.5 2007-08-16 09:05:46 rdf Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.4 2007-08-14 11:34:56 rdf Exp $
+$Id: DomainGraphics.pm,v 1.5 2007-08-16 09:05:46 rdf Exp $
 
 =cut
 
@@ -62,7 +62,15 @@ sub begin : Private {
       $c->req->param('arch') =~ m/^(\d+)$/ ) {
     $c->stash->{auto_arch} = $1;
     $c->log->debug( 'DomainGraphics::begin: arch = |' . $c->stash->{auto_arch} . '|' ); 
-  }   
+  }
+  
+  if( defined $c->req->param('subTree') and 
+        defined $c->req->param('seq' ) and
+          $c->req->param('seq') =~ m/^([\S{6}\,?]+)/){
+          my $seqString = $1;
+    @{ $c->stash->{subTreeSeqs} } = split(/\,/, $seqString);
+    $c->log->debug( 'DomainGraphics::begin: seq = |' . $c->stash->{subTreeSeqs} . '|' );       
+  }    
   
   # MUST have an accession
   return unless defined $c->req->param('acc');
@@ -232,9 +240,19 @@ sub getFamilyData : Private {
               ->search( { 'arch.auto_architecture' => $c->stash->{auto_arch} },
                         { join     => [ qw( arch annseq ) ],
                           prefetch => [ qw( arch annseq ) ] } );
-    $c->stash->{regionsAndFeatures}->{PfamB} = 1;
   
-  } else {
+  } elsif ($c->stash->{subTreeSeqs}){ 
+    $c->log->debug( 'DomainGraphics::getFamilyData: getting all sequences for |'. $c->stash->{subTreeSeqs} .'|');
+      
+      foreach my $s (@{$c->stash->{subTreeSeqs}}){
+        my $r =  $c->model('PfamDB::Pfamseq')
+                               ->find( { 'pfamseq_acc' => $s },
+                                { join     => [ qw( annseq ) ],
+                                  prefetch => [ qw( annseq ) ] } );
+        $c->log->debug('DomainGraphics::getFamilyData: getting data for |'.$s.'|');
+        push(@rows, $r); 
+      }
+  }else {
   
     # we want to see the unique architectures containing this domain
     $c->log->debug( 'DomainGraphics::getFamilyData: getting unique architectures' );
@@ -251,8 +269,14 @@ sub getFamilyData : Private {
 
   # how many sequences in these architectures ?  
   $c->stash->{numSeqs} = 0;
-  map { $c->stash->{numSeqs} += $_->no_seqs } @rows;
-
+  
+  # If we drawing  the subTree 
+  if( $c->stash->{subTreeSeqs} ){
+    $c->stash->{numSeqs} = $c->stash->{numRows};
+  }else{  
+    map { $c->stash->{numSeqs} += $_->no_seqs } @rows;
+  }
+  
   $c->log->debug( 'DomainGraphics::getFamilyData: found |' . $c->stash->{numRows}
                   . ' rows, with a total of ' . $c->stash->{numSeqs} . ' sequences' );
 
@@ -270,6 +294,7 @@ sub getFamilyData : Private {
     # thaw out the sequence object for this architecture
     push @seqs, thaw( $arch->annseq_storable );
   
+    if(!$c->stash->{subTreeSeqs}){
     # work out which domains are present on this sequence
     my @domains = split /\~/, $arch->architecture;
     $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
@@ -281,6 +306,7 @@ sub getFamilyData : Private {
     # have an auto_architecture, so this won't work
     $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs
       unless $c->stash->{auto_arch};
+    } 
   }
   
   $c->log->debug( 'DomainGraphics::getFamilyData: retrieved '
@@ -292,7 +318,7 @@ sub getFamilyData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getFamilyData : Private
+=head2 getPfamBData : Private
 
 Retrieves architecture or sequence information pertaining to the specified
 Pfam-B.
