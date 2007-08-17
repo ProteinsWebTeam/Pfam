@@ -6,7 +6,7 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.1 2007-08-16 16:11:43 jt6 Exp $
+# $Id: someSequences.tt,v 1.2 2007-08-17 08:55:58 jt6 Exp $
 
 META naked = 1;
 
