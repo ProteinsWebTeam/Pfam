@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.6 2007-08-15 14:33:35 jt6 Exp $
+# $Id: Sequence.pm,v 1.7 2007-08-20 08:58:05 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.6 2007-08-15 14:33:35 jt6 Exp $
+$Id: Sequence.pm,v 1.7 2007-08-20 08:58:05 jt6 Exp $
 
 =cut
 
@@ -39,7 +39,7 @@ use base 'PfamWeb::Controller::Search';
 
 =head1 METHODS
 
-=head2 seq : Local
+=head2 sequenceSearch : Path
 
 Queues a sequence search job and returns a page that polls the server for
 results.
@@ -113,91 +113,30 @@ sub sequenceSearch : Path {
 
 #-------------------------------------------------------------------------------
 
-=head2 checkStatus : Local
+=head2 results : Local
 
-Returns the status of the specified job. Used by the javascript that polls for
-the status via XMLHttpRequest calls.
+Returns the URI of the Pfam graphic that is the result of the specified job.
 
 =cut
 
-sub checkStatus : Local {
+sub results : Local {
   my( $this, $c ) = @_;
 
-  # build a hash that we'll convert into JSON and return
-  $c->stash->{status} = {};
+  # the template that will format the results  
+  $c->stash->{template} = 'pages/search/sequence/results.tt';
 
-  my $jobId = $c->req->param( 'jobId' );
+  # try to retrieve the results for the specified jobs
+  $c->forward( 'JobManager', 'retrieveResults' );
+  unless( scalar keys %{ $c->stash->{results} } ) {
+    $c->log->debug( 'Search::Sequence::results: no results found' );
+    $c->stash->{template} = 'pages/search/sequence/error.tt';
+    return;
+  } 
 
-  if( length( $jobId ) != 36 or $jobId !~ /[A-F0-9\-]/ ) {
-    $c->log->debug( 'Search::Sequence::checkStatus: bad job id' );
-    $c->stash->{status}->{error} = 'Invalid job ID';
-    $c->detach( 'returnStatus' );
-  }
-
-  # job ID appears to be valid; try querying for the status of that job
-  my $jobHistory = $c->model( 'WebUser::JobHistory' )
-                     ->find( { job_id => $jobId } );
-
-  # make sure the query returned *something*
-  if( not defined $jobHistory ) {
-    $c->log->debug( "Search::Sequence::checkStatus: problem retrieving job status for job |$jobId|" );
-    $c->stash->{status}->{error} = 'Could not retrieve job status';
-    $c->detach( 'returnStatus' );
-  }
-
-  # finally, check the real status 
-  if( $jobHistory->status eq 'PEND' ) {
-    $c->log->debug( 'Search::Sequence::checkStatus: job is pending' );
-    $c->stash->{status}->{status} = 'PEND';
-
-  } elsif( $jobHistory->status eq 'RUN' ) {
-    $c->log->debug( 'Search::Sequence::checkStatus: job is running' );
-    $c->stash->{status}->{status} = 'RUN';
-
-  } elsif( $jobHistory->status eq 'DONE' ) {
-    $c->log->debug( 'Search::Sequence::checkStatus: job is done' );
-    $c->stash->{status}->{status} = 'DONE';
-
-  } elsif( $jobHistory->status eq 'FAIL' ) {
-    $c->log->debug( 'Search::Sequence::checkStatus: job failed' );
-    $c->stash->{status}->{status} = 'FAIL';
-
-  } else {
-    $c->log->error( q(Search::Sequence::checkStatus: can't determine job status) );
-    $c->stash->{status}->{status} = 'UNKNOWN';
-  }
-
-#  $c->log->debug( 'Search::Sequence::checkStatus: opened:  |' . $jobHistory->opened .'|' );
-#  $c->log->debug( 'Search::Sequence::checkStatus: started: |' . $jobHistory->started .'|' );
-#  $c->log->debug( 'Search::Sequence::checkStatus: closed:  |' . $jobHistory->closed .'|' );
-
-  # see how many jobs are pending
-  my $rs = $c->model( 'WebUser::JobHistory' )
-             ->search( { status   => 'PEND',
-                         job_type => $jobHistory->job_type,
-                         id       => { '<',        $jobHistory->id },
-                         job_id   => { 'not like', $jobHistory->job_id } },
-                       { select   => [
-                                       { count => 'id' },
-                                       { sum   => 'estimated_time' }
-                                     ],
-                         as       => [ qw( num wait ) ] }
-                     );
-  $c->stash->{status}->{numPending} = $rs->first()->get_column( 'num' );
-  $c->stash->{status}->{waitTime}   = $rs->first()->get_column( 'wait' ) || 0;
-
-  $c->log->debug( 'Search::Sequence::checkStatus: found      |' .
-                  $c->stash->{status}->{numPending} . '| pending jobs' );
-  $c->log->debug( 'Search::Sequence::checkStatus: wait time: |' .
-                  $c->stash->{status}->{waitTime} . '|' );
-
-  # add the times to the response
-  $c->stash->{status}->{opened}  = $jobHistory->opened;
-  $c->stash->{status}->{started} = $jobHistory->started;
-  $c->stash->{status}->{closed}  = $jobHistory->closed;
-
-  # and hand back that status
-  $c->forward( 'returnStatus' );
+  # we got some results, so format them appropriately and generate a Pfam
+  # graphic
+  $c->forward( 'handleResults' );
+  $c->forward( 'generateGraphic' );
 }
 
 #-------------------------------------------------------------------------------
@@ -327,7 +266,7 @@ sub queuePfamA : Private {
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $jobStatus = {
-                    checkURI      => $c->uri_for( '/search/sequence/checkStatus' )->as_string,
+                    checkURI      => $c->uri_for( '/jobmanager/checkStatus' )->as_string,
                     doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,    
                     estimatedTime => $estimatedTime,
                     interval      => $this->{pollingInterval},
@@ -376,7 +315,7 @@ sub queuePfamB : Private {
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $jobStatus = {
-                    checkURI      => $c->uri_for( '/search/sequence/checkStatus' )->as_string,
+                    checkURI      => $c->uri_for( '/jobmanager/checkStatus' )->as_string,
                     doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,    
                     estimatedTime => $estimatedTime,
                     interval      => $this->{pollingInterval},
@@ -386,80 +325,6 @@ sub queuePfamB : Private {
                     opened        => $historyRow->opened,
                   };
   return $jobStatus;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 returnStatus : Local
-
-Returns the status of a polled job as a JSON snippet. Short-circuits the default
-end action because we're adding content directly to the response body. We also
-take care to set apropriate headers to avoid this response being cached on the
-client side.
-
-=cut
-
-sub returnStatus : Private {
-  my( $this, $c ) = @_;
-
-  # convert the status hash to a JSON object and return it
-  my $status = objToJson( $c->stash->{status} );
-
-  $c->log->debug( 'Search::Sequence::returnStatus: returning: ' );
-  $c->log->debug( dump( $c->stash->{status} ) );
-
-  $c->res->content_type( 'application/json' );
-  $c->res->body( $status );
-
-  # make damned sure this isn't cached...
-  $c->res->header( 'Pragma'        => 'no-cache' );
-  $c->res->header( 'Expires'       => 'Thu, 01 Jan 1970 00:00:00 GMT' );
-  $c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
-                                      'post-check=0, pre-check=0, max-age=0' );
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 results : Local
-
-Returns the URI of the Pfam graphic that is the result of the specified job.
-
-=cut
-
-sub results : Local {
-  my( $this, $c ) = @_;
-
-  # extract the list of IDs from the URI
-  my @jobIds = $c->req->param( 'jobId' );
-  foreach ( @jobIds ) {
-
-    # detaint the job ID
-    ( my $jobId ) = $_ =~ m/^([A-F0-9\-]+)$/;
-    $c->log->debug( "Search::Sequence::results: looking up details for job ID: |$jobId|" );
-
-    next unless defined $jobId;
-
-    # job ID *looks* valid; try looking for that job
-    my $job = $c->model( 'WebUser::JobHistory' )
-                ->find( { job_id => $jobId },
-                        { join     => [ qw( job_stream ) ],
-                          prefetch => [ qw( job_stream ) ] } );
-
-    # bail unless it exists
-    next unless defined $job;
-
-    # retrieve the results of the job and stash them
-    $c->stash->{results}->{$jobId}->{rawData} = $job->stdout;
-    $c->stash->{results}->{$jobId}->{method}  = $job->job_type;
-    $c->stash->{results}->{$jobId}->{options} = $job->options;
-    $c->{stash}->{seq} = $job->stdin;
-  }
-
-  # do something interesting with the results
-  $c->forward( 'handleResults' );
-  $c->forward( 'generateGraphic' );
-  $c->stash->{template} = 'pages/search/sequence/results.tt';
 }
 
 #-------------------------------------------------------------------------------
