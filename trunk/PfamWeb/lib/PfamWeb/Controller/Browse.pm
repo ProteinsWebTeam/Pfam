@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.5 2007-08-20 09:00:44 rdf Exp $
+# $Id: Browse.pm,v 1.6 2007-08-20 15:46:43 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.5 2007-08-20 09:00:44 rdf Exp $
+$Id: Browse.pm,v 1.6 2007-08-20 15:46:43 jt6 Exp $
 
 =cut
 
@@ -199,7 +199,7 @@ Retrieves the list of proteomes from the DB and stashes them for the template.
 sub browseProteomes : Path( '/proteome/browse' ) {
   my( $this, $c ) = @_;
 
-  my @res = $c->model('PfamDB::Genome_species')
+  my @res = $c->model('PfamDB::Proteome_species')
               ->search( {},
                 			  { order_by => 'species ASC' } );
 
