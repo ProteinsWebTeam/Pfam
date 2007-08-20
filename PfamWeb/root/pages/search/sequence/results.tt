@@ -5,7 +5,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.3 2007-08-15 14:59:36 jt6 Exp $
+# $Id: results.tt,v 1.4 2007-08-20 09:02:20 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -30,25 +30,6 @@ numBs = genPfamBRes.size;
 showButton = "${base}static/images/showButton.png";
 hideButton = "${base}static/images/hideButton.png";
 %]
-
-<script type="text/javascript">
-  // <![CDATA[
- function toggleAlignment( sId, oSwitch ) {
-   $(sId).toggle();
-   oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
-  }
-  function showAllAlignments( sId, bState ) {
-    var sState = bState ? "show" : "hide";
-    var sSrc   = bState ? "[% hideButton %]" : "[% showButton %]";
-    $A( document.getElementsByClassName("alignment",sId)).invoke(sState);
-    $A( $$("td.showSwitch img") ).each(
-      function (s ) {
-        s.src = sSrc; 
-      }
-    );
-  }
-  // ]]>
-</script>
 
 <div id="results">
    
@@ -84,61 +65,62 @@ hideButton = "${base}static/images/hideButton.png";
     END -%]
     </p>
 
-    [% IF numAs OR numBs %]
-      <p>
-        The Pfam graphic below shows the arrangement of the domains on your
-        search sequence. Clicking on any of the domains will take you to a page
-        of information about that domain.
-        [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
-        overlapping Pfam-A domains, which are given higher priority when 
-        building the graphic.[% END %]
-      </p>
+    <p>
+      The Pfam graphic below shows the arrangement of the domains on your
+      search sequence. Clicking on any of the domains will take you to a page
+      of information about that domain.
+      [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
+      overlapping Pfam-A domains, which are given higher priority when 
+      building the graphic.[% END %]
+    </p>
 
-      <div>
-      [%- FOREACH image IN images.each_image;
-        CALL image.print_image;
-        id = image.image_name -%]
+    <div>
+    [%- FOREACH image IN images.each_image;
+      CALL image.print_image;
+      id = image.image_name -%]
 
-      	<img class="graphicImage"
-             src="[% constants.tmp %]/[% image.file_location %]"
-             usemap="#domainGraphicsMap[% loop.index %]"
-             alt="" />
-        <div class="cleaner"><!-- empty --></div>
+    	<img class="graphicImage"
+           src="[% constants.tmp %]/[% image.file_location %]"
+           usemap="#domainGraphicsMap[% loop.index %]"
+           alt="" />
+      <div class="cleaner"><!-- empty --></div>
 
-        <map name="domainGraphicsMap[% loop.index %]"
-             id="domainGraphicsMap[% loop.index %]">
-          [% image.image_map %]
-        </map>
-      [% END %]
-      </div>
-
-      <p>
-        Below
-        [% IF numAs AND numBs;
-          "are tables";
-        ELSIF numA OR numB;
-          "is a table";
-        END %] 
-        showing the details of the domains that were found. Rows containing 
-        significant hits are <span class="evenlySignificant">highlighted</span>.
-        Hits which do not start and end at the end points of the matching HMM 
-        are also <span class="warning">highlighted</span>.          
-      </p>
-      <p>
-        For Pfam-A hits we show the alignments between your search sequence 
-        and the matching HMM.
-        [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
-        sequence and the matching sequence from our library of Pfam-B 
-        sequences.[% END %] You can show individual alignments by clicking on 
-        the &quot;Show&quot; button in each row of the result table, or you can
-        show all alignments using the links above the table.
-      </p>
-      <p>
-        <a href="[% base %]search?tab=searchSequenceBlock">Return</a> to the 
-        search form to look for Pfam domains on a new sequence.
-      </p> 
+      <map name="domainGraphicsMap[% loop.index %]"
+           id="domainGraphicsMap[% loop.index %]">
+        [% image.image_map %]
+      </map>
     [% END %]
+    </div>
 
+    <p>
+      Below
+      [% IF numAs AND numBs;
+        "are tables";
+      ELSIF numA OR numB;
+        "is a table";
+      END %] 
+      showing the details of the domains that were found. Rows containing 
+      significant hits are <span class="evenlySignificant">highlighted</span>.
+      Hits which do not start and end at the end points of the matching HMM 
+      are also <span class="warning">highlighted</span>.          
+    </p>
+    <p>
+      For Pfam-A hits we show the alignments between your search sequence 
+      and the matching HMM.
+      [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
+      sequence and the matching sequence from our library of Pfam-B 
+      sequences.[% END %] You can show individual alignments by clicking on 
+      the &quot;Show&quot; button in each row of the result table, or you can
+      show all alignments using the links above the table.
+    </p>
+    <p>
+      You can bookmark this page and return to it later, but please note that 
+      old results will be removed after <strong>one week</strong>.
+    </p>
+    <p>
+      <a href="[% base %]search?tab=searchSequenceBlock">Return</a> to the 
+      search form to look for Pfam domains on a new sequence.
+    </p> 
   </div><!-- end of "key" -->
 
   [% IF numAs %]
@@ -216,8 +198,6 @@ hideButton = "${base}static/images/hideButton.png";
     </tbody>
   </table>
 
-  <!--download as text -->
-
   [% END; # of "if numAs"
 
   IF numBs %]
@@ -282,7 +262,27 @@ hideButton = "${base}static/images/hideButton.png";
 
 <script type="text/javascript">
   // <![CDATA[
-  $A( document.getElementsByClassName("alignment") ).invoke( "hide" );  
+  // hide all of the alignment rows once the table is built
+  Event.observe( window, "load", function() {
+      $A( document.getElementsByClassName("alignment") ).invoke( "hide" );
+    }
+  );
+  // a function to show or hide the alignment rows
+  function toggleAlignment( sId, oSwitch ) {
+   $(sId).toggle();
+   oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
+  }
+  // a function to show or hide all of the alignments in one fell swoop...
+  function showAllAlignments( sId, bState ) {
+    var sState = bState ? "show" : "hide";
+    var sSrc   = bState ? "[% hideButton %]" : "[% showButton %]";
+    $A( document.getElementsByClassName("alignment",sId)).invoke(sState);
+    $A( $$("td.showSwitch img") ).each(
+      function (s ) {
+        s.src = sSrc; 
+      }
+    );
+  }
   // ]]>
 </script>
 
