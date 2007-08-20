@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Completed Proteomes
 #
-# $Id: proteomes.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: proteomes.tt,v 1.2 2007-08-20 15:49:47 jt6 Exp $
 
 META title = "Browse Pfam proteomes";
 META fullPage = 1;
@@ -38,12 +38,12 @@ pageList = PROCESS "components/pageList.tt",
 <table class="details browse" summary="Browse proteomes">
   <thead>
     <tr class="caption">
-      <th>Species Name</th>
-      <th>NCBI Code</th>
+      <th>Species name</th>
+      <th>Taxonomy ID</th>
       <th>Kingdom</th>
-      <th>Proteome Size</th>
-      <th>Sequence Coverage</th>
-      <th>Residue Coverage</th>
+      <th>Proteome size</th>
+      <th>Sequence coverage</th>
+      <th>Residue coverage</th>
     </tr>
   </thead>
   <tbody>
@@ -53,7 +53,7 @@ pageList = PROCESS "components/pageList.tt",
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
   	  <td>
         <a class="species" 
-           href="[% proteomeURI %]?ncbiCode=[% proteome.ncbi_code %]"
+           href="[% proteomeURI %]?taxId=[% proteome.ncbi_code %]"
            [%- IF initialLetter != first -%]
              name="[% initialLetter %]"
              [%- first = initialLetter | lower;
