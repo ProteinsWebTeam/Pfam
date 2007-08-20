@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam Proteome page.
 #
-# $Id: Proteome.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
+# $Id: Proteome.pm,v 1.6 2007-08-20 09:02:26 rdf Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Proteome.pm,v 1.5 2007-03-15 14:06:14 jt6 Exp $
+$Id: Proteome.pm,v 1.6 2007-08-20 09:02:26 rdf Exp $
 
 =cut
 
@@ -49,21 +49,58 @@ row for it.
 sub begin : Private {
   my( $this, $c ) = @_;
 
-  if( defined $c->req->param( "ncbiCode" ) ) {
-
-    my ($ncbiCode) = $c->req->param( "ncbiCode" ) =~ m/^(\d+)$/i;
+  if( defined $c->req->param( "ncbiCode" ) and $c->req->param( "ncbiCode" ) =~ m/^(\d+)$/i ) {
+    my $ncbiCode = $1;
     $c->log->info( "Proteome::begin: found ncbiCode |$ncbiCode|" );
-
-    $c->stash->{proteomeSpecies} = $c->model("PfamDB::Genome_species")->find( { ncbi_code => $ncbiCode});
-
+    $c->stash->{ncbiCode} = $ncbiCode;
+    $c->stash->{proteomeSpecies} = $c->model("PfamDB::Proteome_species")->find( { ncbi_code => $ncbiCode},
+                                                                               {join      => [ qw(ncbi_tax) ],
+                                                                                prefetch  => [ qw(ncbi_tax) ] });
     $c->forward( "_getSummaryData" );
+    $c->forward( "_getStatsData");
+  }
+  
+   # we're done here unless there's an entry specified
+  unless( defined $c->stash->{proteomeSpecies} and $c->stash->{proteomeSpecies}->ncbi_code  ) {
+
+    # de-taint the ncbi code
+    my $input = $c->req->param('ncbiCode') || '';
+    $input =~ s/^(\w+)/$1/;
+    
+    # see if this was an internal link and, if so, report it
+    my $b = $c->req->base;
+    if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
+  
+      # this means that the link that got us here was somewhere within
+      # the Pfam site and that the ncbi code which it specified
+      # doesn't actually exist in the DB
+  
+      # report the error as a broken internal link
+      $c->error( "Found a broken internal link; no valid Pfam family accession or ID "
+                 . "(\"$input\") in \"" . $c->req->referer . "\"" );
+      $c->forward( '/reportError' );
+  
+      # now reset the errors array so that we can add the message for
+      # public consumption
+      $c->clear_errors;
+  
+    }
+
+    # the message that we'll show to the user
+    $c->stash->{errorMsg} = 'NCBI code either invalid or not found';
+    
+    # log a warning and we're done; drop out to the end method which
+    # will put up the standard error page
+    $c->log->warn( 'Proteome::begin: NCBI code either invalid or not found' );
+     
+     return; 
   }
 }
 
 
 #-------------------------------------------------------------------------------
 
-=head2 begin : Private
+=head2 _getSummaryData : Private
 
 Just gets the data items for the overview bar.
 
@@ -83,7 +120,7 @@ sub _getSummaryData : Private {
 									   ]
 							}
 						   ],
-			 as         => [ qw/numArch/ ] } );
+			 as         => [ qw( numArch ) ] } );
   $summaryData{numArchitectures} = $rs->get_column( "numArch" );;
 
   # number of sequences in proteome.
@@ -103,8 +140,8 @@ sub _getSummaryData : Private {
 												 ]
 									  }
 									 ],
-			 as                   => [ qw/numPdb/ ],
-			 join                 => [ qw/pfamseq/ ] } );
+			 as                   => [ qw( numPdb ) ],
+			 join                 => [ qw( pfamseq ) ] } );
    $summaryData{numStructures}  = $rs->get_column( "numPdb" );
 
   # number of species
@@ -116,7 +153,40 @@ sub _getSummaryData : Private {
 
 }
 
+
 #-------------------------------------------------------------------------------
+
+=head2 _getStatsData : Private
+
+Just gets the data items for the stats Page. This is really quick
+
+=cut
+
+sub _getStatsData : Private {
+  my( $this, $c ) = @_;
+  $c->log->debug("Proteome::_getStatusData getting stats data");
+  #select distinct auto_architecture from pfamseq where ncbi_code=62977 and genome_seq=1;
+  my @rs = $c->model("PfamDB::Proteome_seqs")
+    ->search({ ncbi_code  => $c->stash->{proteomeSpecies}->ncbi_code },
+		   { join      => [qw(pfam)],
+		     select    => [ "pfam.pfamA_id",
+		                    "pfam.pfamA_acc",
+		                    "pfam.description",
+		                    "me.auto_pfamA", 
+		                  { count => "auto_pfamseq"}, 
+		                  { sum   => "me.count" } ],
+		      as       => [ qw( pfamA_id pfamA_acc description auto_pfamA numberSeqs numberRegs )],
+		      group_by => [ qw( me.auto_pfamA ) ],
+          order_by =>  \'sum(me.count) DESC' , 
+          #prefetch => [ qw( pfam ) ]
+          }
+		     );
+  $c->stash->{statsData} = \@rs;
+}
+#-------------------------------------------------------------------------------
+
+
+
 
 =head1 AUTHOR
 
