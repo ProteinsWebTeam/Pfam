@@ -1,7 +1,7 @@
 
-# $Id: Clans.pm,v 1.5 2007-03-16 11:25:17 jt6 Exp $
+# $Id: Clans.pm,v 1.6 2007-08-20 08:58:47 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamDB::Clans;
 
@@ -30,9 +30,6 @@ __PACKAGE__->has_many( "clan_database_links" => "PfamDB::Clan_database_links",
 
 
 
-#		       {proxy => [qw/pfamA_id pfamA_acc/]});
-
-#? to 1 or many - ask jt6
 #__PACKAGE__->might_have();
 
 =head1 COPYRIGHT

@@ -1,7 +1,7 @@
 
-# $Id: PdbAuthor.pm,v 1.4 2007-03-16 11:25:18 jt6 Exp $
+# $Id: PdbAuthor.pm,v 1.5 2007-08-20 08:58:48 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamDB::PdbAuthor;
 
@@ -15,7 +15,7 @@ __PACKAGE__->table( "pdb_author" );
 __PACKAGE__->add_columns( qw/auto_pdb author_order last_name name_initials/ );
 __PACKAGE__->set_primary_key( "auto_pdb" );
 
-__PACKAGE__->has_one(    "pdb" => "PfamDB::PdbNew",
+__PACKAGE__->has_one(    "pdb" => "PfamDB::Pdb",
 			 { "foreign.auto_pdb" => "self.auto_pdb" } );
 
 

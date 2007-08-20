@@ -1,7 +1,7 @@
 
-# $Id: Seq_info.pm,v 1.4 2007-03-16 11:25:18 jt6 Exp $
+# $Id: Seq_info.pm,v 1.5 2007-08-20 08:58:48 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamDB::Seq_info;
 
@@ -55,10 +55,6 @@ __PACKAGE__->has_many("pfamA_reg_seed",  => "PfamDB::PfamA_reg_seed",
 __PACKAGE__->has_many("pfamB_reg",  => "PfamDB::PfamB_reg",
               {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
 
-##smart_regions
-__PACKAGE__->has_many("smart_reg",  => "PfamDB::Smart_reg",
-              {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-
 ##context_pfam_regions
 __PACKAGE__->has_many("context",  => "PfamDB::Context_pfam_regions",
               {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
@@ -99,14 +95,7 @@ __PACKAGE__->might_have( "pdb_residue" => "PfamDB::Pdb_residue",
 # Things that should be removed once some rationale is applied - We
 # should then just be able to add the column name, but the call should
 # be the same; pfamseq_ncbi
-__PACKAGE__->has_one("ncbi", => "PfamDB::Pfamseq_ncbi",
-					 {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
-					 { proxy => [qw/ncbi_code/]});
 
-##pfamseq_architecture
-__PACKAGE__->has_one("arch" =>  "PfamDB::Pfamseq_architecture",
-					 {"foreign.type_example" => "self.auto_pfamseq"},
-					 { proxy => [qw/architecture/]});
 ##Storable
 #'__PACKAGE__->has_one("pfamseqStorable" =>  "PfamDB::Pfam_annseq",
 #            {"foreign.auto_pfamseq" => "self.auto_pfamseq"},

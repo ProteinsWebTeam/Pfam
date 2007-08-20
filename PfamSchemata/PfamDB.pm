@@ -2,9 +2,9 @@
 # PfamDB.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamDB.pm,v 1.9 2007-08-06 16:11:48 jt6 Exp $
+# $Id: PfamDB.pm,v 1.10 2007-08-20 08:58:47 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamDB;
 The base class for the whole Pfam database model. Config comes from the catalyst 
 application class.
 
-$Id: PfamDB.pm,v 1.9 2007-08-06 16:11:48 jt6 Exp $
+$Id: PfamDB.pm,v 1.10 2007-08-20 08:58:47 rdf Exp $
 
 =cut
 
@@ -32,8 +32,7 @@ use base 'DBIx::Class::Schema';
 
 __PACKAGE__->load_classes( qw(
   Architecture          AlignmentsAndTrees           Interpro
-  PfamA_reg_seed        Ligands                      PfamA_web
-  PfamA_HMM_ls          PfamA_HMM_fs
+  PfamA_reg_seed        PfamA_HMM_ls                 PfamA_HMM_fs
   ClanArchitecture      ClanRelationship
   Literature_references PfamB
   Clan_database_links   Markup_key                   PfamB2pfamA_PRC_results
@@ -42,18 +41,18 @@ __PACKAGE__->load_classes( qw(
   Clans                 Pdb                          PfamB_reg
   Context_pfam_regions  PdbAuthor                    PfamB_stockholm
   Dead_clans            PdbImage                     Pfam_annseq
-  Dead_families         PdbMap                       Pfamseq
-  EC_info               Pdb_pfamA_reg                Pfamseq_architecture
+  Dead_families         Pfamseq
+  EC_info               Pdb_pfamA_reg                
   EC_seq                Pdb_residue                  Pfamseq_disulphide
   Funshift
   GO                    Pfam                         Pfamseq_markup
-  Genome_pfamseq        PfamA2pfamA_PRC_results      Pfamseq_ncbi
-  Genome_species        PfamA2pfamA_scoop_results    Secondary_pfamseq_acc
-  Int_atoms             PfamA_architecture           Seq_info
-  Int_bonds             PfamA_database_links         Smart
-  Int_ext_links         PfamA_literature_references  Smart_reg
-  Int_pfamAs            PfamA_reg_full               Version
-  Interactions          PfamA_reg_full_significant
+  PfamA2pfamA_PRC_results
+  Proteome_species  Proteome_seqs       PfamA2pfamA_scoop_results    Secondary_pfamseq_acc
+               PfamA_architecture           Seq_info
+               PfamA_database_links         
+           PfamA_literature_references  
+              PfamA_reg_full               Version
+            PfamA_reg_full_significant PfamA_interactions Pdb_pfamB_reg
   )
 );
 

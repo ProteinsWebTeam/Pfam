@@ -1,7 +1,7 @@
 
-# $Id: Architecture.pm,v 1.6 2007-03-16 11:25:16 jt6 Exp $
+# $Id: Architecture.pm,v 1.7 2007-08-20 08:58:47 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamDB::Architecture;
 
@@ -32,7 +32,10 @@ __PACKAGE__->has_one    ( "pfamA_architecture" => "PfamDB::PfamA_architecture",
 __PACKAGE__->has_one    ( "type_example" => "PfamDB::Pfamseq",
 			  {"foreign.auto_pfamseq" => "self.type_example"},
 			  {proxy => [ qw/pfamseq_id pfamseq_acc/ ]});
-
+			  
+__PACKAGE__->has_many ( "pfamseq" => "PfamDB::Pfamseq",
+			  {"foreign.auto_architecture" => "self.auto_architecture"});
+			  
 __PACKAGE__->has_one    ( "storable" => "PfamDB::Pfam_annseq",
 			  {"foreign.auto_pfamseq" => "self.type_example"},
 			  {proxy => [ qw/annseq_storable/ ]});
@@ -41,8 +44,6 @@ __PACKAGE__->has_one    ( "clan_arch" => "PfamDB::ClanArchitecture",
 			  {"foreign.auto_architecture" => "self.auto_architecture"},
 			{proxy => [qw/auto_clan/]});
 
-__PACKAGE__->has_many( annseq => "PfamDB::Pfam_annseq",
-					   { "foreign.auto_pfamseq"  => "self.type_example" } );
 
 =head1 COPYRIGHT
 

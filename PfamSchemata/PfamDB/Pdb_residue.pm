@@ -1,7 +1,7 @@
 
-# $Id: Pdb_residue.pm,v 1.5 2007-03-16 11:25:16 jt6 Exp $
+# $Id: Pdb_residue.pm,v 1.6 2007-08-20 08:58:48 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamDB::Pdb_residue;
 
@@ -35,11 +35,7 @@ __PACKAGE__->has_one( "pfamseq" => "PfamDB::Pfamseq",
 					  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
 					  { proxy => [ qw/ pfamseq_id pfamseq_acc length/ ] }
 					);
-
-__PACKAGE__->has_one( "pfamseq_arch" => "PfamDB::Pfamseq_architecture",
-					  { "foreign.auto_pfamseq" => "self.auto_pfamseq" },
-					  { proxy => [ qw/auto_architecture/ ] }
-					);
+					
 __PACKAGE__->has_one( "pfam_anseq" => "PfamDB::Pfam_annseq",
 					  { "foreign.auto_pfam" => "self.auto_pfam" },
 					  { proxy => [ qw/ pfamseq_storable / ] }
