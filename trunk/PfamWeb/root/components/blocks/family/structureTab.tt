@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.6 2007-08-10 09:42:38 jt6 Exp $
+# $Id: structureTab.tt,v 1.7 2007-08-20 09:06:33 rdf Exp $
 
 USE dumper;
 USE String;
@@ -19,7 +19,7 @@ FOREACH pdbMap IN pfamMaps;
     mapping.$seqKey = {};
   END;
   
-  resKey = "${pdbMap.pfam_start_res} - ${pdbMap.pfam_end_res}";
+  resKey = "${pdbMap.seq_start} - ${pdbMap.seq_end}";
   IF ! mapping.$seqKey.$resKey;
     mapping.$seqKey.$resKey = {};
   END;
@@ -44,7 +44,7 @@ FOREACH pdbMap IN pfamMaps;
     mapping.$seqKey.$resKey.$pdbKey.COUNT = mapping.$seqKey.$resKey.$pdbKey.COUNT + 1;
   END;
   
-  pdbResKey = "${pdbMap.pdb_start_res} - ${pdbMap.pdb_end_res}";
+  pdbResKey = "${pdbMap.pdb_res_start} - ${pdbMap.pdb_res_end}";
   IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey;
     mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap;
  	END;

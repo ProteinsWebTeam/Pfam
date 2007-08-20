@@ -4,7 +4,7 @@
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.10 2007-08-10 10:18:12 jt6 Exp $
+# $Id: structure.tt,v 1.11 2007-08-20 09:06:33 rdf Exp $
 
 RETURN UNLESS pfamMaps.size;
 -%]
@@ -35,7 +35,7 @@ RETURN UNLESS pfamMaps.size;
         mapping.$seqKey = {};
       END;
     
-      resKey = "${pdbMap.pfam_start_res} - ${pdbMap.pfam_end_res}";
+      resKey = "${pdbMap.seq_start} - ${pdbMap.seq_end}";
       IF ! mapping.$seqKey.$resKey;
         mapping.$seqKey.$resKey = {};
       END;
@@ -60,7 +60,7 @@ RETURN UNLESS pfamMaps.size;
         mapping.$seqKey.$resKey.$pdbKey.COUNT = mapping.$seqKey.$resKey.$pdbKey.COUNT + 1;
       END;
     
-      pdbResKey = "${pdbMap.pdb_start_res} - ${pdbMap.pdb_end_res}";
+      pdbResKey = "${pdbMap.pdb_res_start} - ${pdbMap.pdb_res_end}";
       IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey;
         mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap;
       END;
