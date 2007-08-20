@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.2 2007-07-02 09:49:02 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.3 2007-08-20 15:48:02 jt6 Exp $
 
 META naked = 1;
 
@@ -26,12 +26,10 @@ FOREACH image IN images.each_image;
   id = image.image_name;
 
   archString = String.new;
-  archs = seqInfo.$id.arch;
   prev = "";
   i = 1;
-  USE archIter = iterator( archs );
 
-  FOREACH arch IN archIter;
+  FOREACH arch IN seqInfo.$id.arch;
     IF arch != prev;
 
       IF i > 1;
@@ -50,7 +48,7 @@ FOREACH image IN images.each_image;
       i = i + 1;
     END; # of IF arch...
 
-    IF archIter.last;
+    IF loop.last;
       IF i > 1;
         CALL archString.append( arch, " x $i, " );
       ELSE;
@@ -104,7 +102,7 @@ FOREACH image IN images.each_image;
       [% # switch to actually generate the domains and load them into a div -%]
       <span id="loadSwitch[% loop.index %]">
         <span class="link" 
-              onclick="loadDomains( '[% loop.index %]', '[% base %]domaingraphics?acc=[% acc %]&amp;arch=[% seqInfo.$id.auto_arch %]', '[% seqInfo.$id.num %]' )">
+              onclick="loadDomains( '[% loop.index %]', '[% base %]domaingraphics?acc=[% acc %]&amp;arch=[% seqInfo.$id.auto_arch %]&amp;taxId=[% taxId %]', '[% seqInfo.$id.num %]' )">
           Show</span> all sequences with this architecture.
       </span>
 
