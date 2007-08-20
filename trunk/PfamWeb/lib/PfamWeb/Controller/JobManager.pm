@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.1 2007-08-20 08:56:27 jt6 Exp $
+# $Id: JobManager.pm,v 1.2 2007-08-20 15:46:57 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.1 2007-08-20 08:56:27 jt6 Exp $
+$Id: JobManager.pm,v 1.2 2007-08-20 15:46:57 jt6 Exp $
 
 =cut
 
@@ -171,6 +171,8 @@ sub retrieveResults : Private {
 
     # bail unless it exists
     next unless defined $job;
+
+    $c->log->debug( "JobManager::retrieveResults: stashing results for |$jobId|..." );
 
     # retrieve the results of the job and stash them
     $c->stash->{results}->{$jobId}->{rawData} = $job->stdout;
