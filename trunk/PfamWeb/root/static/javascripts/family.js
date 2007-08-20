@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.24 2007-08-16 09:09:57 rdf Exp $
+// $Id: family.js,v 1.25 2007-08-20 09:02:41 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -102,16 +102,6 @@ function dgSuccess( oResponse ) {
 }
 function dgFailure() {
   Element.update( $("dgph"), "Domain graphics loading failed." );
-}
-
-//------------------------------------------------------------
-// callbacks for the species tree domain graphics generation call
-
-function stdgSuccess( oResponse ) {
-  Element.update( $("stdgph"), oResponse.responseText );
-}
-function stdgFailure() {
-  Element.update( $("stdgph"), "Domain graphics loading failed." );
 }
 
 //------------------------------------------------------------
