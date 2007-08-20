@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.5 2007-08-20 09:04:46 rdf Exp $
+# $Id: summary.tt,v 1.6 2007-08-20 15:49:33 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,74 +14,127 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "proteome.css" );
 
+# YUI stuff - this is for the tree viewer
+requirements.css.push( "tree.css" );
+requirements.js.push( "yui/yahoo.js" );
+requirements.js.push( "yui/dom.js" );
+requirements.js.push( "yui/event.js" );
+requirements.js.push( "yui/treeview.js" );
+requirements.js.push( "treeTweak.js" );
+
+#requirements.js.push( "proteome.js" );
+
 #-------------------------------------------------------------------------------
 
+oe = 0;
 %]
 
+<script type="text/javascript">
+  // <![CDATA[
+  //Event.observe( window, "load", proteomePostLoad, false );
+  // ]]>
+</script>
+  
 <!-- start proteome summary block -->
 
 <div class="block" id="proteomeSummaryBlock">
   <div class="handle">
-    <h1>Proteome Summary</h1>
+    <h1>Summary</h1>
   </div>
-
-
   <div class="blockContent">
 
-	[% oe = 0 %]	
+    <p>
+      This section gives details of the Pfam domains that are found on 
+      the completed proteome of
+      <a href="http://www.ebi.ac.uk/integr8/QuickSearch.do?action=doOrgSearch&amp;organismName=[% proteomeSpecies.ncbi_code %]"
+         class="ext"><em>[% proteomeSpecies.species %]</em></a>
+      (<acronym title="National Center for Biotechnology Information">NCBI</acronym> 
+      taxonomy ID
+      <a href="http://www.ebi.ac.uk/newt/display?search=[% proteomeSpecies.ncbi_code %]"
+         class="ext">[% proteomeSpecies.ncbi_code %]</a>).
+    </p>
 
-    <table class="layout">
-	<tbody>
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Name:</td>		
-	      <td class="data">	
-	        <i>[% proteomeSpecies.species %]</i>
-          </td>	
-	</tr>
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>NCBI code</td>		
-	      <td class="data">	
-	        [% proteomeSpecies.ncbi_code %]
-          </td>	
-	</tr>
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Taxonomic Classification</td>		
-	      <td class="data">	
-	        [% proteomeSpecies.taxonomy %]
-          </td>	
-	</tr>
-
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Number Sequences:</td>		
-	      <td class="data">	
-	        [% proteomeSpecies.total_genome_proteins %] 
-          </td>	
-	</tr>	
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Number of Domains:</td>		
-	      <td class="data">	
-	        [% proteomeSpecies.num_total_regions %] 
-          </td>	
-	</tr>
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Percentage Sequence Coverage:</td>		
-	      <td class="data">	
-	        [% proteomeSpecies.sequence_coverage %] %
-       	  </td>
-		
-	</tr>
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Precentage Residue Coverage:</td>		
-	      <td class="data">	
-	        [% proteomeSpecies.residue_coverage %] %
-       	  </td>
-		
-	</tr>
-
-	
-	</tbody>
-	</table>
+    <table class="layout" summary="Summary of information for the proteome">
+      <tbody>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Taxonomic lineage</td>    
+          <td class="data" id="lineage">
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Number of sequences:</td>    
+          <td class="data">  
+            [% proteomeSpecies.total_genome_proteins %] 
+            </td>
+        </tr>  
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Number of domains:</td>    
+          <td class="data">  
+            [% proteomeSpecies.num_total_regions %] 
+            </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Sequence coverage:</td>    
+          <td class="data">  
+            [% proteomeSpecies.sequence_coverage %]%
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Residue coverage:</td>    
+          <td class="data">  
+            [% proteomeSpecies.residue_coverage %]%
+           </td>
+        </tr>
+      </tbody>
+    </table>
+    
   </div>
 </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  Event.observe(
+    window,
+    "load",
+    function() {
+      new Ajax.Request( "[% base %]domaingraphics",
+                        { method:     'get',
+                          parameters: { taxId: "[% taxId %]" },
+                          onSuccess:  function( oResponse ) {
+                                        $("pdgph").update( oResponse.responseText );
+                                      },
+                          onFailure:  function( oResponse ) {
+                                        $("pdgph").update( "Domain graphics loading failed." );
+                                      }
+                        } );
+    },
+    false );
+
+  // post-load parameters
+//  loadOptions.pdg.uri    = "[% base %]domaingraphics";
+//  loadOptions.pdg.params = { taxId: "[% taxId %]" };
+  
+  // build the little taxonomy tree
+/*
+  try {
+    var tree = new YAHOO.widget.TreeView("lineage"); 
+    var parent = tree.getRoot();
+    [% FOREACH node IN proteomeSpecies.taxonomy.split(';') %]
+      var [% node %]Node = new YAHOO.widget.TextNode( 
+        { label: "[% node %]",
+          href:  "http://www.ebi.ac.uk/newt/display?match=complete%20word&search=[% node %]" },
+        parent,
+        true );
+      parent = [% node %]Node;
+    [%- END %]
+    tree.draw();
+  } catch( e ) {
+*/
+    // fall-back to the lineage string itself
+    $("lineage").update("[% proteomeSpecies.taxonomy %]");
+//  }
+  // ]]>
+</script>
 
 <!-- end proteome summary block -->
