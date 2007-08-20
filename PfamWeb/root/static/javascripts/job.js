@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.6 2007-06-19 08:42:19 jt6 Exp $
+// $Id: job.js,v 1.7 2007-08-20 09:09:18 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -336,7 +336,7 @@ Job.prototype = {
     } else if( statusObj.status == "FAIL" ) {
       this.jobFailed( statusObj );
     } else {
-        // something unexpected happened...
+      // something unexpected happened...
     }
   },
 
@@ -403,15 +403,15 @@ Job.prototype = {
   jobDone: function( statusObj ) {
     // console.debug( "Job.jobDone: the job completed successfully" );
 
-	// set the status message
-	this.statusMsg.innerHTML = "done";
-
-	// log it
-	this.log( this.jobName + ": completed", "finished at " + statusObj.closed );
-
-	// max out the progress bar
-	this.bar.setStyle( { width: '100%' } );
-	
+  	// set the status message
+  	this.statusMsg.innerHTML = "done";
+  
+  	// log it
+  	this.log( this.jobName + ": completed", "finished at " + statusObj.closed );
+  
+  	// max out the progress bar
+  	this.bar.setStyle( { width: '100%' } );
+  	
     this.jobEnded( statusObj );
 
     // tidy up here
@@ -424,14 +424,14 @@ Job.prototype = {
   jobFailed: function( statusObj ) {
     // console.debug( "Job.jobFailed: the job failed" );
 
-	// set the status message
-	this.statusMsg.innerHTML = "failed";
-
-	// log it
-	this.log( this.jobName + ": failed", "finished at " + statusObj.closed );
-
-	// max out the progress bar
-	this.bar.setStyle( { width: '100%' } );
+  	// set the status message
+  	this.statusMsg.innerHTML = "failed";
+  
+  	// log it
+  	this.log( this.jobName + ": failed", "finished at " + statusObj.closed );
+  
+  	// max out the progress bar
+  	this.bar.setStyle( { width: '100%' } );
 	
     this.jobEnded( statusObj );
 
@@ -452,11 +452,11 @@ Job.prototype = {
     this.stop();
 
     // update the status message
-    if( statusObj.status == "FAIL" ) {
-      // console.debug( "Job.jobEnded: job failed..." );  
-    } else {
-      // console.debug( "Job.jobEnded: job successful" );  
-    }
+    //if( statusObj.status == "FAIL" ) {
+    //   console.debug( "Job.jobEnded: job failed..." );  
+    //} else {
+    //   console.debug( "Job.jobEnded: job successful" );  
+    //}
 
     // update the list of currently running jobs and then see if we should
     // finish off
@@ -504,10 +504,15 @@ Job.prototype = {
     // console.debug( "Job.finish: finishing up" );
     
     // need to build the URI with the job IDs given as parameters
-    var doneLoc = this.doneURI + "?";
+    var doneLoc;
+    if( this.doneURI.indexOf( "?" ) ) {
+      doneLoc = this.doneURI + "&";
+    } else {
+      doneLoc = this.doneURI + "?";
+    }
     var buildURI = $A( Job.LIST.keys() ).inject( doneLoc,
                        function( uri, jobId ) {
-                         return uri + "jobId=" + jobId + "&amp;";
+                         return uri + "jobId=" + jobId + "&";
                        }
                      );
     // chop of the last ampersand
