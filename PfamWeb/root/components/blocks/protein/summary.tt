@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.16 2007-08-10 15:23:23 jt6 Exp $
+# $Id: summary.tt,v 1.17 2007-08-20 15:48:19 jt6 Exp $
 
 USE String;
 
@@ -62,7 +62,10 @@ oe = 0;
           <td class="data">
           [% IF pfamseq.ncbi_code %]
             <span class="ext">
-              <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">[% pfamseq.species %]</a> (NCBI TaxID <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">
+              <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">
+                [% pfamseq.species %]</a> 
+              (<acronym title="National Center for Biotechnology Information">NCBI</acronym> taxonomy ID 
+              <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">
                 [% pfamseq.ncbi_code %]</a>)
             </span>
             [% ELSE;  
@@ -70,7 +73,7 @@ oe = 0;
             END;
             IF genomeCode %]
               <br />
-              <a href="[% base %]proteome?ncbiCode=[% genomeCode %]">View</a> Pfam genome data.
+              <a href="[% base %]proteome?taxId=[% genomeCode %]">View</a> Pfam genome data.
             [% END %]
           </td>
         </tr>
