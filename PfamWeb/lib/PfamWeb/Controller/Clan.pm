@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.16 2007-08-07 12:41:21 jt6 Exp $
+# $Id: Clan.pm,v 1.17 2007-08-20 09:00:44 rdf Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.16 2007-08-07 12:41:21 jt6 Exp $
+$Id: Clan.pm,v 1.17 2007-08-20 09:00:44 rdf Exp $
 
 =cut
 
@@ -301,17 +301,16 @@ sub getMapping : Private {
   my( $this, $c ) = @_;
 
    my @mapping = $c->model('PfamDB::Clan_membership')
-                   ->search( { auto_clan => $c->stash->{clan}->auto_clan,
-                               pfam_region => 1 },
+                   ->search( { auto_clan => $c->stash->{clan}->auto_clan },
                              { select => [ qw( pfamseq.pfamseq_id
                                                pfamA.pfamA_id
                                                pfamA.pfamA_acc
-                                               pdbmap.pfam_start_res
-                                               pdbmap.pfam_end_res
+                                               pdb_pfamA_reg.seq_start
+                                               pdb_pfamA_reg.seq_end
                                                pdb.pdb_id
-                                               pdbmap.chain
-                                               pdbmap.pdb_start_res
-                                               pdbmap.pdb_end_res ) ],
+                                               pdb_pfamA_reg.chain
+                                               pdb_pfamA_reg.pdb_res_start
+                                               pdb_pfamA_reg.pdb_res_end ) ],
                                as     => [ qw( pfamseq_id
                                                pfamA_id
                                                pfamA_acc
@@ -321,9 +320,9 @@ sub getMapping : Private {
                                                chain
                                                pdb_start_res
                                                pdb_end_res ) ],
-                               join   => { pdbmap => [ qw( pfamA
-                                                           pfamseq
-                                                           pdb ) ] }
+                               join   => { pdb_pfamA_reg => [ qw( pfamA
+                                                                 pfamseq
+                                                                 pdb ) ] }
                              }
                            );
 

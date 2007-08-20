@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.31 2007-08-09 09:34:36 jt6 Exp $
+# $Id: Family.pm,v 1.32 2007-08-20 09:00:44 rdf Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.31 2007-08-09 09:34:36 jt6 Exp $
+$Id: Family.pm,v 1.32 2007-08-20 09:00:44 rdf Exp $
 
 =cut
 
@@ -281,7 +281,7 @@ sub getSummaryData : Private {
 
   # number of interactions
   my $auto_pfamA = $c->stash->{pfam}->auto_pfamA;
-  my $rs = $c->model('PfamDB::Int_pfamAs')
+  my $rs = $c->model('PfamDB::PfamA_interactions')
              ->find( { auto_pfamA_A => $auto_pfamA },
                      { select => [ { count => 'auto_pfamA_A' } ],
                        as     => [ qw( numInts ) ]

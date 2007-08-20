@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.28 2007-08-16 14:59:00 jt6 Exp $
+# $Id: Protein.pm,v 1.29 2007-08-20 09:00:44 rdf Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.28 2007-08-16 14:59:00 jt6 Exp $
+$Id: Protein.pm,v 1.29 2007-08-20 09:00:44 rdf Exp $
 
 =cut
 
@@ -157,7 +157,9 @@ sub begin : Private {
 
   $c->log->debug('Protein::begin: successfully retrieved a pfamseq object');
   $c->stash->{pfamseq} = $p;
-  
+  $c->stash->{genomeCode} = $p->ncbi_code if ( $p->genome_seq );
+
+    
   #----------------------------------------
   # add extra data to the stash
 
@@ -165,8 +167,6 @@ sub begin : Private {
   $c->forward('getDasSources');
   $c->forward('getMapping');
   $c->forward('getSummaryData');
-  $c->forward('getGenomeData');
-
 }
 
 #-------------------------------------------------------------------------------
@@ -234,24 +234,6 @@ sub getDasSources : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getGenomeData : Private
-
-Retrieves the genome information for a given sequence.
-
-=cut
-
-sub getGenomeData : Private {
-  my ( $this, $c ) = @_;
-
-  my $rs = $c->model('PfamDB::Genome_pfamseq')
-             ->find( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
-                     { join         => [ qw( genome_species ) ],
-                       prefetch     => [ qw( genome_species ) ] } );
-
-  $c->stash->{genomeCode} = $rs->ncbi_code if $rs;
-
-  # Rob says we (he) might be able to improve this...
-}
 
 #-------------------------------------------------------------------------------
 
@@ -264,9 +246,8 @@ Gets the structure-to-sequence-to-family mapping.
 sub getMapping : Private {
   my ( $this, $c ) = @_;
 
-  my @mapping = $c->model('PfamDB::PdbMap')
-                  ->search( { 'pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
-                              'pfam_region'          => 1 },
+  my @mapping = $c->model('PfamDB::Pdb_pfamA_reg')
+                  ->search( { 'pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
                             {  join                  => [ qw( pfamA pfamseq pdb ) ],
                                prefetch              => [ qw( pfamA pfamseq pdb ) ] } );
 
@@ -398,17 +379,18 @@ sub getSummaryData : Private {
   $summaryData{numStructures} = $rs->get_column( 'numberPdbs' );
 
   # number of interactions
-  $rs = $c->model('PfamDB::Interactions')
-          ->find( { auto_pfamseq_A => $c->stash->{pfamseq}->auto_pfamseq },
-                  { select         => [
-                                        {
-                                          count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
-                                        }
-                                      ],
-                    as             => [ qw( numInts ) ] } );
+  # TODO Has interactions
+  #$rs = $c->model('PfamDB::Interactions')
+  #        ->find( { auto_pfamseq_A => $c->stash->{pfamseq}->auto_pfamseq },
+   #               { select         => [
+   #                                     {
+   #                                       count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
+    #                                    }
+   #                                   ],
+   #                 as             => [ qw( numInts ) ] } );
 
-  $summaryData{numInt} = $rs->get_column( 'numInts' );
-
+  #$summaryData{numInt} = $rs->get_column( 'numInts' );
+  $summaryData{numInt} = 0;
   $c->stash->{summaryData} = \%summaryData;
 
   $c->log->debug('Protein::getSummaryData: added the summary data to the stash');
