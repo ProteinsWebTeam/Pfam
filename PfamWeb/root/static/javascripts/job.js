@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.7 2007-08-20 09:09:18 jt6 Exp $
+// $Id: job.js,v 1.8 2007-08-20 11:33:24 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -501,8 +501,8 @@ Job.prototype = {
   // all jobs are done; redirect to the "done" page
 
   finish: function( result ) {
-    // console.debug( "Job.finish: finishing up" );
-    
+    //console.debug( "Job.finish: finishing up" );
+
     // need to build the URI with the job IDs given as parameters
     var doneLoc;
     if( this.doneURI.indexOf( "?" ) ) {
@@ -515,10 +515,10 @@ Job.prototype = {
                          return uri + "jobId=" + jobId + "&";
                        }
                      );
-    // chop of the last ampersand
-    var uri = buildURI.substr( 0, buildURI.length-5 )
+    // chop off the last ampersand
+    var uri = buildURI.substr( 0, buildURI.length - 1 )
 
-    // console.debug( "Job.finish: redirecting to: |" + uri + "|" )
+    //console.debug( "Job.finish: redirecting to: |" + uri + "|" )
     document.location = uri;
   },
   
