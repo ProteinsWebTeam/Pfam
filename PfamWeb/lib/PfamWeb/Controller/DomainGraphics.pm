@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.7 2007-08-16 16:10:28 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.8 2007-08-20 09:02:26 rdf Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.7 2007-08-16 16:10:28 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.8 2007-08-20 09:02:26 rdf Exp $
 
 =cut
 
@@ -138,7 +138,13 @@ sub begin : Private {
     $c->stash->{selectedSeqAccs} = \@seqAccs; 
     $c->forward( 'getSelectedSeqs' );
   }
-
+  
+  if($c->req->param('ncbicode') and $c->req->param( "ncbicode" ) =~ m/^(\d+)$/i){
+    $c->stash->{ncbiCode} = $1;
+    $c->log->debug( 'DomainGraphics::begin: Getting genome sequences' );
+    $c->forward( 'getGenomeSeqs');
+    
+  }
 } # end of the "begin" method
 
 #-------------------------------------------------------------------------------
@@ -274,8 +280,8 @@ sub getFamilyData : Private {
     $c->log->debug( 'DomainGraphics::getFamilyData: getting all sequences for |'
                     . $c->stash->{auto_arch} . '|' );
 
-    @rows = $c->model('PfamDB::Pfamseq_architecture')
-              ->search( { 'arch.auto_architecture' => $c->stash->{auto_arch} },
+    @rows = $c->model('PfamDB::Pfamseq')
+              ->search( { 'me.auto_architecture' => $c->stash->{auto_arch} },
                         { join     => [ qw( arch annseq ) ],
                           prefetch => [ qw( arch annseq ) ] } );
   
@@ -360,30 +366,30 @@ sub getPfamBData : Private {
       # retrieve all sequences for this PfamB, regardless of whether they have 
       # a PfamA in their architecture
 
-      @rows= $c->model('PfamDB::PfamB_reg')
+      @rows= $c->model('PfamDB::Pfamseq')
                ->search( { auto_pfamB => $c->stash->{autoPfamB} },
-                         { join      => [ qw( pfamseq_architecture annseq pfamseq ) ],
-                           prefetch  => [ qw) pfamseq_architecture annseq pfamseq ) ] } );
+                         { join      => [ qw( pfamB_reg annseq ) ],
+                           prefetch  => [ qw( pfamB_reg annseq ) ] } );
 
     } else {
       # we've got a real auto_architecture, so retrieve sequences with that
       # just that specific architecture
 
-      @rows = $c->model('PfamDB::PfamB_reg')
+      @rows = $c->model('PfamDB::Pfamseq')
                 ->search( { auto_pfamB => $c->stash->{autoPfamB},
-                            'pfamseq_architecture.auto_architecture' => $c->stash->{auto_arch} },
-                          { join      => [ qw( pfamseq_architecture annseq pfamseq ) ],
-                            prefetch  => [ qw( pfamseq_architecture annseq pfamseq ) ] } );
+                            'auto_architecture' => $c->stash->{auto_arch} },
+                          { join      => [ qw( pfamB_reg annseq ) ],
+                            prefetch  => [ qw( pfamB_reg annseq ) ] } );
 
     }
 
   } else {
     # we want to see the unique architectures containing this domain
 
-    my @allRows = $c->model('PfamDB::PfamB_reg')
+    my @allRows = $c->model('PfamDB::Pfamseq')
                     ->search( { auto_pfamB => $c->stash->{autoPfamB} },
-                              { join      => [ qw( pfamseq_architecture annseq pfamseq ) ],
-                                prefetch  => [ qw( pfamseq_architecture annseq pfamseq ) ] } );
+                              { join      => [ qw( pfamB_reg annseq ) ],
+                                prefetch  => [ qw( pfamB_reg annseq ) ] } );
 
     # grab the unique architectures
     foreach my $arch ( @allRows) {
@@ -505,8 +511,8 @@ sub getClanData : Private {
     $c->log->debug( 'DomainGraphics::getClanData: getting all sequences for |'
                     . $c->stash->{auto_arch} . '|' );
   
-    @rows = $c->model('PfamDB::Pfamseq_architecture')
-              ->search( { "arch.auto_architecture" => $c->stash->{auto_arch} },
+    @rows = $c->model('PfamDB::Pfamseq')
+              ->search( { "me.auto_architecture" => $c->stash->{auto_arch} },
                         { join      => [ qw( arch annseq ) ],
                           prefetch  => [ qw( arch annseq ) ] } );
 
@@ -600,6 +606,63 @@ sub getSelectedSeqs : Private {
 
   $c->stash->{seqs}    = \@seqs;
 #  $c->stash->{seqInfo} = \%seqInfo;
+}
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 getGenomeSeqs : Private
+
+Retrieves the sequences for the user-specified sequence accessions. Used by the
+"display selected sequences" feature of the interactive species tree.
+
+=cut
+
+sub getGenomeSeqs : Private {
+  my( $this, $c ) = @_;
+  
+  # select the graphical features that we want to display
+  $c->stash->{regionsAndFeatures} = { PfamA      => 1,
+                                      PfamB      => 1,
+                                      noFeatures => 0 };
+
+  # get each of the sequences in turn...
+  $c->log->debug("DomainGraphics::getGenomeSeqs: getting sequence for |".$c->stash->{ncbiCode}."|...");
+  my @rows = $c->model("PfamDB::Pfamseq")
+    ->search({ ncbi_code  => $c->stash->{ncbiCode},
+               genome_seq => 1 },
+		   { join      => [qw( annseq arch )],
+		     select    => [ "pfamseq_id", "annseq_storable", "architecture", "me.auto_architecture", 
+		                  { count => "me.auto_pfamseq"} ],
+		      as       => [ qw( pfamseq_id annseq_storable architecture auto_archiecture numberArchs )],
+		      group_by => [ qw( me.auto_architecture ) ],
+          order_by =>  \'count(me.auto_pfamseq) DESC'
+          }
+		     );
+
+  # how many sequences did we end up with ?
+  $c->log->debug( 'DomainGraphics::getGenomeSeqs: found |' . scalar @rows
+                  . '| sequences to draw' );
+  $c->stash->{numRows} = scalar @rows;
+
+  # work out the range for the sequences that we actually want to return
+  $c->forward( 'calculateRange' );
+  my $first = $c->stash->{first};
+  my $last  = $c->stash->{last};
+
+  my( @seqs, %seqInfo );
+  foreach my $arch ( @rows[ $first .. $last ] ) {
+    push @seqs, thaw( $arch->get_column('annseq_storable') );
+    unless( $c->stash->{auto_arch} ) {
+      my @domains = split /\~/, $arch->get_column('architecture');
+      $seqInfo{$arch->get_column('pfamseq_id')}{arch}      = \@domains;
+      $seqInfo{$arch->get_column('pfamseq_id')}{auto_arch} = $arch->get_column('auto_architecture');
+      $seqInfo{$arch->get_column('pfamseq_id')}{num}       = $arch->get_column('numberArchs');
+    }    
+  }
+
+  $c->stash->{seqs}    = \@seqs;
+  $c->stash->{seqInfo} = \%seqInfo;
 }
 
 #-------------------------------------------------------------------------------
