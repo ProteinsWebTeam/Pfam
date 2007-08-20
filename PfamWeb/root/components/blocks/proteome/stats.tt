@@ -1,0 +1,55 @@
+
+[%
+# summary.tt
+# jt6 20060821 WTSI
+# 
+# build the summary block for the proteome pages
+#
+# $Id: stats.tt,v 1.1 2007-08-20 09:04:46 rdf Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "proteome.css" );
+
+#-------------------------------------------------------------------------------
+
+%]
+
+<!-- start proteome summary block -->
+
+<div class="block" id="proteomeStatsBlock">
+  <div class="handle">
+    <h1>Pfam Domain Composition</h1>
+  </div>
+
+
+  <div class="blockContent">
+
+	[% oe = 0 %]	
+	
+    <table class="layout">
+	<tbody>
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>Pfam</td>
+		<td>Description</td>
+		<td>Number of Sequences (link numbers to domain graphics view)</td>
+		<td>Number of Domains (link numbers to alignment section)</td>
+	<tr>
+	[% FOREACH row IN statsData %]
+	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		<td>[% row.get_column('pfamA_id') %],[% row.get_column('pfamA_acc') %]</td>
+		<td>[% row.get_column('description') %]</td>
+		<td>[% row.get_column('numberSeqs') %]</td>
+		<td>[% row.get_column('numberRegs') %]</td>
+	</tr>
+	[% END %]
+	
+	</tbody>
+	</table>
+  </div>
+</div>
+
+<!-- end proteome summary block -->
