@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.8 2007-08-20 09:02:26 rdf Exp $
+# $Id: DomainGraphics.pm,v 1.9 2007-08-20 15:36:03 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.8 2007-08-20 09:02:26 rdf Exp $
+$Id: DomainGraphics.pm,v 1.9 2007-08-20 15:36:03 jt6 Exp $
 
 =cut
 
@@ -62,13 +62,16 @@ sub begin : Private {
   if( defined $c->req->param('arch') and 
       $c->req->param('arch') =~ m/^(\d+)$/ ) {
     $c->stash->{auto_arch} = $1;
-    $c->log->debug( 'DomainGraphics::begin: arch = |' . $c->stash->{auto_arch} . '|' ); 
+    $c->log->debug( 'DomainGraphics::begin: arch: |' . $c->stash->{auto_arch} . '|' ); 
   }
   
   #----------------------------------------
 
   # do we have an accession ?
-  if( defined $c->req->param('acc') ) {
+  if( defined $c->req->param('acc') and
+      $c->req->param('acc') ne '' ) {
+  
+    $c->log->debug( 'DomainGraphics::begin: found an accession' ); 
   
     # what type of accession is it ?
     if( $c->req->param('acc') =~ m/^(PF\d{5})$/i ) {
@@ -109,16 +112,16 @@ sub begin : Private {
   
       $c->forward( 'getClanData' );
     }
-  }
   
   #----------------------------------------
 
   # do we have a sub-tree flag ? If so we should also have a list of sequence
   # accessions to process 
-  if( $c->req->param('subTree') and 
-      $c->req->param('seqAccs') ) {
+  
+  } elsif( $c->req->param('subTree') and 
+           $c->req->param('seqAccs') ) {
 
-    $c->log->debug( 'DomainGraphics::begin: checking for sub-tree sequences' );    
+    $c->log->debug( 'DomainGraphics::begin: checking for selected sequences' );    
 
     # detaint the list of sequence accessions (again... we've already done this
     # in SpeciesTree, but since the user can have put their sticky little hands
@@ -137,14 +140,31 @@ sub begin : Private {
 
     $c->stash->{selectedSeqAccs} = \@seqAccs; 
     $c->forward( 'getSelectedSeqs' );
-  }
   
-  if($c->req->param('ncbicode') and $c->req->param( "ncbicode" ) =~ m/^(\d+)$/i){
-    $c->stash->{ncbiCode} = $1;
-    $c->log->debug( 'DomainGraphics::begin: Getting genome sequences' );
-    $c->forward( 'getGenomeSeqs');
+  #----------------------------------------
+
+  # do we have an NCBI-code ?
+
+  } elsif( $c->req->param('taxId') and 
+           $c->req->param('taxId') =~ m/^(\d+)$/i ){
+             
+    $c->log->debug( 'DomainGraphics::begin: getting proteome sequences' );
+    $c->stash->{taxId} = $1;
     
-  }
+    # see if we have a pfam family accession, which, when found in conjunction
+    # with the taxId, means that we need to draw all of the architectures for
+    # which include the given family from the given species 
+    if( defined $c->req->param('pfamAcc') and
+        $c->req->param('pfamAcc')=~ m/(PF\d{5})$/ ) {
+      $c->stash->{pfamAcc} = $1;
+    }
+    
+    # retrieve the data for we need regarding the specified proteome. This
+    # action will decide for itself which exact query to run...
+    $c->forward( 'getProteomeSeqs' );
+    
+  } 
+
 } # end of the "begin" method
 
 #-------------------------------------------------------------------------------
@@ -326,6 +346,8 @@ sub getFamilyData : Private {
     $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
   
     # store a mapping between the sequence and the auto_architecture
+    $c->log->debug( 'DomainGraphics::getFamilyData: auto architecture: |'
+                    . $arch->auto_architecture . '|' );
     $seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
   
     # if this is a call to retrieve all of the architectures, we don't
@@ -609,40 +631,80 @@ sub getSelectedSeqs : Private {
 }
 
 #-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
 
-=head2 getGenomeSeqs : Private
+=head2 getProteomeSeqs : Private
 
-Retrieves the sequences for the user-specified sequence accessions. Used by the
-"display selected sequences" feature of the interactive species tree.
+Retrieves the sequences for the specified proteome.
 
 =cut
 
-sub getGenomeSeqs : Private {
+sub getProteomeSeqs : Private {
   my( $this, $c ) = @_;
-  
+
   # select the graphical features that we want to display
   $c->stash->{regionsAndFeatures} = { PfamA      => 1,
                                       PfamB      => 1,
                                       noFeatures => 0 };
 
   # get each of the sequences in turn...
-  $c->log->debug("DomainGraphics::getGenomeSeqs: getting sequence for |".$c->stash->{ncbiCode}."|...");
-  my @rows = $c->model("PfamDB::Pfamseq")
-    ->search({ ncbi_code  => $c->stash->{ncbiCode},
-               genome_seq => 1 },
-		   { join      => [qw( annseq arch )],
-		     select    => [ "pfamseq_id", "annseq_storable", "architecture", "me.auto_architecture", 
-		                  { count => "me.auto_pfamseq"} ],
-		      as       => [ qw( pfamseq_id annseq_storable architecture auto_archiecture numberArchs )],
-		      group_by => [ qw( me.auto_architecture ) ],
-          order_by =>  \'count(me.auto_pfamseq) DESC'
-          }
-		     );
+  $c->log->debug( 'DomainGraphics::getProteomeSeqs: getting sequence for |'
+                  . $c->stash->{taxId} . '|' );
+
+  my @rows;
+  if( $c->stash->{auto_arch} ) {
+
+    @rows = $c->model("PfamDB::Pfamseq")
+              ->search( { ncbi_code  => $c->stash->{taxId},
+                           genome_seq => 1,
+                           auto_architecture => $c->stash->{auto_arch} },
+                         { join      => [ qw( annseq ) ],
+                           select    => [ qw( pfamseq_id
+                                              annseq_storable ) ],
+                            as       => [ qw( pfamseq_id 
+                                              annseq_storable  ) ],
+                         }
+                       );
+
+#  } elsif( $c->stash->{pfamAcc} ) {
+#
+#    @rows = $c->model("PfamDB::Pfamseq")
+#              ->search( { ncbi_code  => $c->stash->{taxId},
+#                           genome_seq => 1,
+#                           auto_architecture => $c->stash->{auto_arch} },
+#                         { join      => [ qw( annseq ) ],
+#                           select    => [ qw( pfamseq_id
+#                                              annseq_storable ) ],
+#                            as       => [ qw( pfamseq_id 
+#                                              annseq_storable  ) ],
+#                         }
+#                       );
+#
+  } else {
+
+    @rows = $c->model("PfamDB::Pfamseq")
+              ->search( { ncbi_code  => $c->stash->{taxId},
+                           genome_seq => 1 },
+                         { join      => [ qw( annseq arch ) ],
+                           select    => [ qw( pfamseq_id
+                                              annseq_storable
+                                              architecture
+                                              me.auto_architecture ), 
+                                          { count => 'me.auto_pfamseq' } ],
+                            as       => [ qw( pfamseq_id 
+                                              annseq_storable 
+                                              architecture 
+                                              auto_architecture 
+                                              numberArchs ) ],
+                            group_by => [ qw( me.auto_architecture ) ],
+                            order_by => \'count(me.auto_pfamseq) DESC'
+                         }
+                       );
+
+  }
 
   # how many sequences did we end up with ?
-  $c->log->debug( 'DomainGraphics::getGenomeSeqs: found |' . scalar @rows
-                  . '| sequences to draw' );
+  $c->log->debug( 'DomainGraphics::getProteomeSeqs: found |'
+                  . scalar @rows . '| sequences to draw' );
   $c->stash->{numRows} = scalar @rows;
 
   # work out the range for the sequences that we actually want to return
