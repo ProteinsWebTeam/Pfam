@@ -1,7 +1,7 @@
 
-# $Id: Clan_membership.pm,v 1.4 2007-03-16 11:25:16 jt6 Exp $
+# $Id: Clan_membership.pm,v 1.5 2007-08-20 08:58:47 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamDB::Clan_membership;
 
 use strict;
@@ -37,12 +37,8 @@ __PACKAGE__->has_one( "clans" => "PfamDB::Clans",
 __PACKAGE__->has_many( "pfamARegFull" => "PfamDB::PfamA_reg_full",
 		      {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
-__PACKAGE__->might_have( "pfamAInts" => "PfamDB::Int_pfamAs",
-		      {"foreign.auto_pfamA_A" => "self.auto_pfamA"});
-
-__PACKAGE__->might_have( "pdbmap" => "PfamDB::PdbMap",
-		      {"foreign.auto_pfam" => "self.auto_pfamA"});
-
+__PACKAGE__->has_many( "pdb_pfamA_reg" => "PfamDB::Pdb_pfamA_reg",
+		      {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
 =head1 COPYRIGHT
 

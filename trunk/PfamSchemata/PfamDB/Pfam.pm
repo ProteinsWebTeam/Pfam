@@ -1,7 +1,7 @@
 
-# $Id: Pfam.pm,v 1.8 2007-08-02 15:21:10 jt6 Exp $
+# $Id: Pfam.pm,v 1.9 2007-08-20 08:58:48 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamDB::Pfam;
 
@@ -53,6 +53,10 @@ __PACKAGE__->add_columns( qw/ auto_pfamA
                               number_archs 
                               number_structures 
                               number_species
+                              average_length 
+                              percentage_id 
+                              average_coverage 
+                              change_status
                             / );
 
 
@@ -66,8 +70,8 @@ __PACKAGE__->might_have ( "interpro" => "PfamDB::Interpro",
 			  { "foreign.auto_pfamA"  => "self.auto_pfamA" },
 			  {  proxy => [ qw/interpro_id abstract/ ] } );
 
-__PACKAGE__->has_many   ( "pdbMap"   => "PfamDB::PdbMap",
-			  { "foreign.auto_pfam"  => "self.auto_pfamA" } );
+__PACKAGE__->has_many   ( "pdbMap"   => "PfamDB::Pdb_pfamA_reg",
+			  { "foreign.auto_pfamA"  => "self.auto_pfamA" } );
 
 __PACKAGE__->might_have ( "go"       => "PfamDB::GO",
 			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
@@ -81,10 +85,6 @@ __PACKAGE__->might_have ( "clan_membership" => "PfamDB::Clan_membership",
 			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
 			  {  proxy => [ qw/clan_acc clan_id clan_description/ ] } );
 
-__PACKAGE__->has_one    ( "pfamA_web" => "PfamDB::PfamA_web",
-			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
-			  {  proxy => [ qw/average_length percentage_id average_coverage status/ ] } );
-
 __PACKAGE__->has_many   ( "pfamA_arch" => "PfamDB::PfamA_architecture",
 			  { "foreign.auto_pfamA" => "self.auto_pfamA" } );
 
@@ -97,7 +97,7 @@ __PACKAGE__->has_one    ( pfamA_alignments => 'PfamDB::AlignmentsAndTrees',
                           seed seed_tree seed_jtml ) ] } );
 
 
-#PRC tables - todo
+#TODO -PRC tables - todo
 
 
 #All of the region tables that join on to pfamA
@@ -111,9 +111,9 @@ __PACKAGE__->has_many ("pfamA_reg_seed" => "PfamDB::PfamA_reg_seed",
 __PACKAGE__->has_many ("context" => "PfamDB::Context_pfam_regions",
 		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
 
-#Interaction tables - todo
+#TODO Interaction tables - todo
 
-#Genome tables - todo
+#TODO Genome tables - todo
 
 
 

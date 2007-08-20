@@ -1,5 +1,5 @@
 
-# $Id: PfamB_reg.pm,v 1.7 2007-05-23 09:18:27 rdf Exp $
+# $Id: PfamB_reg.pm,v 1.8 2007-08-20 08:58:48 rdf Exp $
 #
 # $Author: rdf $
 package PfamDB::PfamB_reg;
@@ -30,10 +30,6 @@ __PACKAGE__->has_one( "pfamB" =>  "PfamDB::PfamB",
 __PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
 		      { proxy => [ qw/pfamseq_acc pfamseq_id md5 species taxonomy/ ] } );
-
-__PACKAGE__->might_have( "pfamseq_architecture" =>  "PfamDB::Pfamseq_architecture",
-			 { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-			 { proxy => [ qw/auto_architecture/ ] } );
 
 __PACKAGE__->has_one("annseq" => "PfamDB::Pfam_annseq",
 		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},

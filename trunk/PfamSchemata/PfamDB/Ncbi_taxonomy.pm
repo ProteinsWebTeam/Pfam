@@ -1,7 +1,7 @@
 
-# $Id: Ncbi_taxonomy.pm,v 1.4 2007-03-16 11:25:17 jt6 Exp $
+# $Id: Ncbi_taxonomy.pm,v 1.5 2007-08-20 08:58:47 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamDB::Ncbi_taxonomy;
 
 use strict;
@@ -18,7 +18,7 @@ __PACKAGE__->add_columns(qw/ncbi_code species taxonomy/);
 
 __PACKAGE__->set_primary_key("ncbi_code");
 
-__PACKAGE__->has_many("auto_pfamseq" => "PfamDB::Pfamseq_ncbi",
+__PACKAGE__->has_many("auto_pfamseq" => "PfamDB::Pfamseq",
 		      {"foreign.ncbi_code" => "self.ncbi_code"});
 
 =head1 COPYRIGHT

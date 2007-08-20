@@ -1,7 +1,7 @@
 
-# $Id: ClanArchitecture.pm,v 1.4 2007-03-16 11:25:17 jt6 Exp $
+# $Id: ClanArchitecture.pm,v 1.5 2007-08-20 08:58:47 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamDB::ClanArchitecture;
 
 use strict;
@@ -23,10 +23,6 @@ __PACKAGE__->set_primary_key( "auto_clan", "auto_architecture" );
 
 
 #Now on to the relationships
-
-#__PACKAGE__->has_one    ( "pfamA_web" => "PfamDB::PfamA_web",
-#			  {"foreign.auto_pfamA" => "self.auto_pfamA"},
-	#		  {proxy => [ qw/average_length percentage_id average_coverage status/]});
 
 __PACKAGE__->has_one    ( "clan" => "PfamDB::Pfam",
 			  {"foreign.auto_clan" => "self.clan"},
