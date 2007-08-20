@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.47 2007-08-20 09:03:25 jt6 Exp $
+// $Id: pfFunctions.js,v 1.48 2007-08-20 09:07:49 rdf Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -38,6 +38,7 @@ loadOptions.ca = {}; // coloured alignment
 loadOptions.sg = {}; // sequence graphics
 loadOptions.cg = {}; // clan graphics
 loadOptions.stdg = {}; // species tree domain graphics
+loadOptions.pdg = {}; // proteome domain graphics
 loadOptions.cstruc = {}; // clan structure tab
 loadOptions.fstruc = {}; // family structure tab
 loadOptions.simap ={}; //simap graphics
