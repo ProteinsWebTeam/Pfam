@@ -5,51 +5,48 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: stats.tt,v 1.1 2007-08-20 09:04:46 rdf Exp $
+# $Id: stats.tt,v 1.2 2007-08-20 15:48:49 jt6 Exp $
 
-#-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
-
-PROCESS "components/require.tt";
-
-requirements.css.push( "proteome.css" );
-
-#-------------------------------------------------------------------------------
-
+oe = 0;
 %]
 
-<!-- start proteome summary block -->
+<!-- start proteome statistics block -->
 
 <div class="block" id="proteomeStatsBlock">
   <div class="handle">
     <h1>Pfam Domain Composition</h1>
   </div>
-
-
   <div class="blockContent">
 
-	[% oe = 0 %]	
-	
-    <table class="layout">
-	<tbody>
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>Pfam</td>
-		<td>Description</td>
-		<td>Number of Sequences (link numbers to domain graphics view)</td>
-		<td>Number of Domains (link numbers to alignment section)</td>
-	<tr>
-	[% FOREACH row IN statsData %]
-	<tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
-		<td>[% row.get_column('pfamA_id') %],[% row.get_column('pfamA_acc') %]</td>
-		<td>[% row.get_column('description') %]</td>
-		<td>[% row.get_column('numberSeqs') %]</td>
-		<td>[% row.get_column('numberRegs') %]</td>
-	</tr>
-	[% END %]
-	
-	</tbody>
-	</table>
+    <table class="details" summary="Domain statistics for this proteome">
+    	<tbody>
+      	<tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+      		<th>Pfam</th>
+      		<th>Description</th>
+      		<th>Number of sequences<!-- link numbers to domain graphics view --></th>
+      		<th>Number of domains  <!-- link numbers to alignment section --></th>
+        </tr>
+      	[% FOREACH row IN statsData.slice( 0, 100 ) %]
+      	<tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+      		<td>
+      		  <a href="[% base %]family?acc=[% row.get_column('pfamA_acc') %]">
+      		    [% row.get_column('pfamA_id') %]</a>
+          </td>
+      		<td>[% row.get_column('description') %]</td>
+      		<td>
+      		  <a href="[% base %]domaingraphics?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]">
+              [% row.get_column('numberSeqs') %]</a>
+          </td>
+      		<td>
+            <a href="[% base %]domaingraphics?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]">
+        		  [% row.get_column('numberRegs') %]</a>
+          </td>
+      	</tr>
+      	[% END %]
+    	</tbody>
+  	</table>
+
   </div>
 </div>
 
-<!-- end proteome summary block -->
+<!-- end proteome statistics block -->
