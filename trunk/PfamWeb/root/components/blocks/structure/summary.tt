@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.16 2007-08-10 15:23:23 jt6 Exp $
+# $Id: summary.tt,v 1.17 2007-08-20 10:30:22 jt6 Exp $
 
 USE String;
 USE date;
@@ -107,10 +107,14 @@ oe    = 0;
               FOREACH m IN mapping;
                 collectedSpecies.${m.species} = m.ncbi_code;
               END;
-              FOREACH species IN collectedSpecies.keys %]
-              <em><a href="http://www.ebi.ac.uk/newt/display?search=[% collectedSpecies.${species} %]">
-                [% String.new(species).trim.chop; ", " UNLESS loop.last %]</a></em>
-            [% END %]
+              IF collectedSpecies.keys.size;
+                FOREACH species IN collectedSpecies.keys %]
+                <em><a href="http://www.ebi.ac.uk/newt/display?search=[% collectedSpecies.${species} %]">
+                  [% String.new(species).trim.chop; ", " UNLESS loop.last %]</a></em>
+                [% END;
+              ELSE %]
+              <span class="inactive">n/a</span>
+              [% END %]
           </td>
     		</tr>
         [% IF pdb.pubmed_id != 0 %]
