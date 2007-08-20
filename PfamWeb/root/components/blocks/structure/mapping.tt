@@ -49,11 +49,11 @@ oe = 0;
       [% FOREACH m IN mapping -%]
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
-          <td>[% m.pdb_start_res %]</td>
-          <td>[% m.pdb_end_res %]</td>
+          <td>[% m.pdb_res_start %]</td>
+          <td>[% m.pdb_res_end %]</td>
           <td><a href="[% base %]protein?id=[% m.pfamseq_id %]">[% m.pfamseq_id %]</a></td>
-          <td>[% m.pfam_start_res %]</td>
-          <td>[% m.pfam_end_res %]</td>
+          <td>[% m.seq_start %]</td>
+          <td>[% m.seq_end %]</td>
           <td><a href="[% base %]family?id=[% m.pfamA_id %]">[% m.pfamA_id %]</a> 
             (<a href="[% base %]family?acc=[% m.pfamA_acc %]">[% m.pfamA_acc %]</a>)</td>
         </tr>
