@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.46 2007-08-16 16:14:34 jt6 Exp $
+// $Id: pfFunctions.js,v 1.47 2007-08-20 09:03:25 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -932,7 +932,7 @@ function toggleTools() {
 // accessions. The argument should be either "G" or "A", for graphical or
 // sequence alignment view of the collected sequences.
 
-function collectSequences( sStyle ) {
+function collectSequences( sStyle, sAcc ) {
 
   var seqAccs = "";
 
@@ -944,8 +944,20 @@ function collectSequences( sStyle ) {
                  }
                } );
   
-  // build the URI, escaping the sequences string, just to be on the safe side
-  var url = selectURI + "?style=" + sStyle + "&seqAccs=" + escape( seqAccs );
+  // build the URI
+  var url;
+  if( sStyle == 'G' ) {
+    // view the selected sequences as domain graphics
+    url = selectGraphicsURI + "?style="   + sStyle
+                            + "&seqAccs=" + escape( seqAccs );
+    console.debug( "viewing the selected sequences as domain graphics: |" + url + "|" );
+  } else {
+    // view the selected sequences as an alignment
+    url = selectAlignmentURI + "?style="   + sStyle
+                             + "&acc="     + sAcc
+                             + "&seqAccs=" + escape( seqAccs );
+    console.debug( "viewing the selected sequences as an alignment: |" + url + "|" );
+  }
 
   // and submit the request
   popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
