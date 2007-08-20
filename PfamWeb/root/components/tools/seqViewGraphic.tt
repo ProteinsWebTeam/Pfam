@@ -3,22 +3,15 @@
 # seqView.tt
 # jt6 20061101 WTSI
 # 
-# build a page for viewing the sequences selected from a species tree
+# build a page for viewing the sequences selected from a species tree. This
+# template uses an ajax call to hand off to a controller that generates domain
+# graphics for each of the selected sequences.
 #
-# $Id: seqViewGraphic.tt,v 1.3 2007-08-16 16:13:33 jt6 Exp $
+# $Id: seqViewGraphic.tt,v 1.4 2007-08-20 09:00:22 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
 META naked = 1;
-
-#-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
-
-PROCESS "components/require.tt";
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
-requirements.js.push( "family.js" );
-
-#-------------------------------------------------------------------------------
 
 pageContent = BLOCK;
 
@@ -82,8 +75,12 @@ title = "View selected sequences"
                     { method:     'get', 
                       parameters: { seqAccs:  seqAccs,
                                     subTree:  1 },
-                      onSuccess:  stdgSuccess,
-                      onFailure:  stdgFailure
+                      onSuccess:  function( oResponse ) {
+                                    $("stdgph").update( oResponse.responseText );
+                                  },
+                      onFailure:  function( oResponse ) {
+                                    $("stdgph").update( "Domain graphics loading failed." );
+                                  }
                     } );
   // ]]>
 </script>
