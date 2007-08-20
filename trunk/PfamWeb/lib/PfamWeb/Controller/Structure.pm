@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.15 2007-08-01 14:43:55 jt6 Exp $
+# $Id: Structure.pm,v 1.16 2007-08-20 09:00:44 rdf Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.15 2007-08-01 14:43:55 jt6 Exp $
+$Id: Structure.pm,v 1.16 2007-08-20 09:00:44 rdf Exp $
 
 =cut
 
@@ -186,26 +186,26 @@ sub getSummaryData : Private {
   # number architectures
   $rs = $c->model('PfamDB::Pdb_residue')
           ->find( { auto_pdb => $autoPdb },
-                  { join     => [ qw/pfamseq_arch/],
+                  { join     => [ qw/pfamseq/],
                     select   => [
                                   {
-                                   count => [ { distinct => [ 'pfamseq_arch.auto_architecture' ] } ]
+                                   count => [ { distinct => [ 'pfamseq.auto_architecture' ] } ]
                                   }
                                 ],
                     as       => [ qw( numArch ) ] } );
   $summaryData{numArchitectures} = $rs->get_column( 'numArch' );
 
   # number of interactions.
-  $rs = $c->model('PfamDB::Interactions')
-          ->find( { auto_pdb => $autoPdb },
-                  { select   => [
-                                  {
-                                    count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
-                                  }
-                                ],
-                    as       => [ qw( numInts ) ] } );
-  $summaryData{numInt} = $rs->get_column( 'numInts' );
-
+  #$rs = $c->model('PfamDB::Interactions')
+  #        ->find( { auto_pdb => $autoPdb },
+  #                { select   => [
+  #                                {
+  #                                  count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
+  #                                }
+  #                              ],
+  #                  as       => [ qw( numInts ) ] } );
+  #$summaryData{numInt} = $rs->get_column( 'numInts' );
+  $summaryData{numInt} = 0;
   # number of structures is one
   $summaryData{numStructures} = 1;
 
@@ -247,9 +247,8 @@ sub addMapping : Private {
           . $c->stash->{pdb}->pdb_id );
 
   # add the structure-to-UniProt mapping to the stash
-  my @unpMap = $c->model('PfamDB::PdbMap')
-                 ->search( { auto_pdb    => $c->stash->{pdb}->auto_pdb,
-                             pfam_region => 1 },
+  my @unpMap = $c->model('PfamDB::Pdb_pfamA_reg')
+                 ->search( { auto_pdb    => $c->stash->{pdb}->auto_pdb},
                            { join        => [ qw( pfamA pfamseq ) ],
                              prefetch    => [ qw( pfamA pfamseq ) ],
                              order_by    => 'chain ASC' } );

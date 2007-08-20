@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.4 2007-07-25 10:26:17 jt6 Exp $
+# $Id: Browse.pm,v 1.5 2007-08-20 09:00:44 rdf Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.4 2007-07-25 10:26:17 jt6 Exp $
+$Id: Browse.pm,v 1.5 2007-08-20 09:00:44 rdf Exp $
 
 =cut
 
@@ -103,9 +103,7 @@ sub browseFamilies : Path( '/family/browse' ) {
     # run the query to get back all families starting with a number
     @res = $c->model('PfamDB::Pfam')
              ->search( { pfamA_id => { 'REGEXP', '^[0-9]' } },
-                       { join     => [ qw( pfamA_web ) ],
-                         prefetch => [ qw( pfamA_web ) ],
-                         order_by => 'pfamA_id ASC' } );
+                       { order_by => 'pfamA_id ASC' } );
 
   } elsif( lc $c->req->param('browse') eq 'top twenty' ) {
     $c->log->debug( 'Browse::browseFamilies: browsing "top twenty"...' );
@@ -115,9 +113,7 @@ sub browseFamilies : Path( '/family/browse' ) {
     # sequences in the family
     @res = $c->model('PfamDB::Pfam')
             ->search( { },
-                      { join     => [ qw( pfamA_web ) ],
-                        prefetch => [ qw( pfamA_web ) ],
-                        rows     => 20,
+                      { rows     => 20,
                         page     => 1,
                         order_by => 'num_full DESC' }
                       )->all;
@@ -138,9 +134,7 @@ sub browseFamilies : Path( '/family/browse' ) {
       # specified letter, ordered by ID
       @res = $c->model('PfamDB::Pfam')
                ->search( { pfamA_id => { 'LIKE', qq($char%) } },
-                         { join     => [ qw( pfamA_web ) ],
-                           prefetch => [ qw( pfamA_web ) ],
-                           order_by => 'pfamA_id' } );
+                         { order_by => 'pfamA_id' } );
 
     } else {
 
@@ -151,9 +145,7 @@ sub browseFamilies : Path( '/family/browse' ) {
   
       @res = $c->model('PfamDB::Pfam')
                ->search( { change_status => 'NEW' },
-                         { join     => [ qw( pfamA_web ) ],
-                           prefetch => [ qw( pfamA_web ) ],
-                           order_by => 'pfamA_id ASC' } );
+                         {order_by => 'pfamA_id ASC' } );
 
     }
 

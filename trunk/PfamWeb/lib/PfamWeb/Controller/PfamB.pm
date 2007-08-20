@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.12 2007-08-09 09:34:36 jt6 Exp $
+# $Id: PfamB.pm,v 1.13 2007-08-20 09:00:44 rdf Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
 on the Family controller, which is responsible for deciding whether the input
 parameters on the URL are pointing to a Pfam-B accession or ID.
 
-$Id: PfamB.pm,v 1.12 2007-08-09 09:34:36 jt6 Exp $
+$Id: PfamB.pm,v 1.13 2007-08-20 09:00:44 rdf Exp $
 
 =cut
 
@@ -110,9 +110,8 @@ sub getSummaryData : Private {
   #----------------------------------------
 
   # get the PDB details
-  my @maps = $c->model('PfamDB::PdbMap')
-               ->search( { auto_pfam   => $auto_pfam,
-                           pfam_region => 0 },
+  my @maps = $c->model('PfamDB::Pdb_pfamB_reg')
+               ->search( { auto_pfamB   => $auto_pfam },
                          { join        => [ qw( pdb ) ],
                            prefetch    => [ qw( pdb ) ] } );
   $c->stash->{pfamMaps} = \@maps;
@@ -128,16 +127,16 @@ sub getSummaryData : Private {
   #----------------------------------------
 
   # count the number of architectures
-  my @architectures = $c->model('PfamDB::PfamB_reg')
+  my @archAndSpecies = $c->model('PfamDB::Pfamseq')
                         ->search( { auto_pfamB => $auto_pfam },
-                                  { join      => [ qw( pfamseq_architecture ) ],
-                                    prefetch  => [ qw( pfamseq_architecture ) ] } );
-  $c->log->debug( 'PfamB::getSummaryData: found |' .scalar @architectures . '| architectures' );
+                                  { join      => [ qw( pfamB_reg ) ],
+                                    prefetch  => [ qw( pfamB_reg ) ] } );
+  $c->log->debug( 'PfamB::getSummaryData: found |' .scalar @archAndSpecies . '| architectures' );
 
   # count the *unique* architectures
   my $numArchs = 0;
   my %seenArch;
-  foreach my $arch ( @architectures ) {
+  foreach my $arch ( @archAndSpecies ) {
     next unless $arch->auto_architecture;
     $numArchs++ unless $seenArch{ $arch->auto_architecture };
     $seenArch{ $arch->auto_architecture }++;
@@ -155,27 +154,12 @@ sub getSummaryData : Private {
   #----------------------------------------
 
   # number of species
-  my @species = $c->model('PfamDB::PfamB_reg')
-                  ->search( { auto_pfamB => $auto_pfam },
-                            { join       => [ qw( pfamseq ) ],
-                              prefetch   => [ qw( pfamseq ) ] } );
-
-  my %species_unique = map {$_->species => 1} @species;
+  my %species_unique = map {$_->species => 1} @archAndSpecies;
   $summaryData{numSpecies} = scalar(keys %species_unique);
 
   #----------------------------------------
 
-  # number of interactions
-#   $rs = $c->model("PfamDB::Int_pfamAs")->find({ auto_pfamA_A => $auto_pfam },
-#   { select => [
-#          { count => "auto_pfamA_A" }
-#         ],
-#     as => [ qw/NumInts/ ]
-#     }
-#   );
-#
-#  $summaryData{numInt} = $rs->get_column( "NumInts" );
-
+  # number of interactions - not yet......
   # TODO need to properly calculate the number of interactions for a Pfam-B
 
   $summaryData{numInt} = 0;
