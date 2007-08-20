@@ -6,16 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.1 2007-08-20 09:04:46 rdf Exp $
-
-#-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
-
-PROCESS "components/require.tt";
-
-requirements.js.push( "proteome.js" );
-#-------------------------------------------------------------------------------
-
+# $Id: domains.tt,v 1.2 2007-08-20 15:48:39 jt6 Exp $
 %]
 
 <!-- start domain architectures block -->
@@ -82,19 +73,5 @@ requirements.js.push( "proteome.js" );
     </div>
   </div>
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-  ncbiCode =  [% ncbiCode %];
-  new Ajax.Request( "[% base %]domaingraphics",
-                    { method:     'get', 
-                      parameters: { ncbicode: ncbiCode },
-                      onSuccess:  pdgSuccess,
-                      onFailure:  pdgFailure
-                    } );
-  // ]]>
-</script>
-
-
 
 <!-- end domain architectures block -->
