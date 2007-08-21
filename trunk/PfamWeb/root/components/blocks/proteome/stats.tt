@@ -1,52 +1,89 @@
 
 [%
-# summary.tt
+# stats.tt
 # jt6 20060821 WTSI
 # 
-# build the summary block for the proteome pages
+# build the domain composition block for the proteome pages
 #
-# $Id: stats.tt,v 1.2 2007-08-20 15:48:49 jt6 Exp $
+# $Id: stats.tt,v 1.3 2007-08-21 09:46:46 jt6 Exp $
 
 oe = 0;
 %]
 
-<!-- start proteome statistics block -->
+<!-- start domain composition block -->
 
 <div class="block" id="proteomeStatsBlock">
   <div class="handle">
-    <h1>Pfam Domain Composition</h1>
+    <h1>Domain composition</h1>
   </div>
   <div class="blockContent">
+    
+    <p>
+      This section shows the composition of this proteome, in terms of the Pfam
+      domains which are found on its consitituent sequences.
+      <span onclick="reveal( this, 'statsNotes', false, true )"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="statsNotes" style="display: none">
+      <p>
+       Each row of the table shows a Pfam domain that was found on one
+       or more of the sequences from this proteome. The two data columns show:       
+      </p>
+      <dl>
+        <dt>
+          <em>number of sequences</em>
+        </dt>
+        <dd>
+          the number of distinct protein sequences from this proteome that are
+          found to have the given Pfam domain present 
+        </dd>
+        <dt>
+          <em>occurrences</em>
+        </dt>
+        <dd>
+          the number of times that the Pfam domain occurs throughout this 
+          proteome
+        </dd>
+      </dl>
+      <p>
+        Finally, the &apos;View graphics&apos; and &apos;View alignment&apos;
+        columns allow you to view the sequences for a given domain either
+        as a set of Pfam graphics, one per sequence, or as a sequence alignment. 
+        The domain graphics and sequence alignment are shown in a separate 
+        browser window.
+      </p>
 
-    <table class="details" summary="Domain statistics for this proteome">
-    	<tbody>
-      	<tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
-      		<th>Pfam</th>
-      		<th>Description</th>
-      		<th>Number of sequences<!-- link numbers to domain graphics view --></th>
-      		<th>Number of domains  <!-- link numbers to alignment section --></th>
-        </tr>
-      	[% FOREACH row IN statsData.slice( 0, 100 ) %]
-      	<tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
-      		<td>
-      		  <a href="[% base %]family?acc=[% row.get_column('pfamA_acc') %]">
-      		    [% row.get_column('pfamA_id') %]</a>
-          </td>
-      		<td>[% row.get_column('description') %]</td>
-      		<td>
-      		  <a href="[% base %]domaingraphics?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]">
-              [% row.get_column('numberSeqs') %]</a>
-          </td>
-      		<td>
-            <a href="[% base %]domaingraphics?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]">
-        		  [% row.get_column('numberRegs') %]</a>
-          </td>
-      	</tr>
-      	[% END %]
-    	</tbody>
-  	</table>
+      <hr />
+    </div>
+    
+    <div id="statsTableDiv">
+      <p class="loading">Loading domain composition table...</p>
+    </div>
+    
+    <script type="text/javascript">
+      // <![CDATA[
+      Event.observe(
+        window,
+        "load",
+        function() {
+          new Ajax.Request( "[% base %]proteome/stats",
+                            { method: 'get',
+                              parameters: { taxId: "[% taxId %]" },
+                              onSuccess:  function( oResponse ) {
+                                            $("statsTableDiv").update( oResponse.responseText );
+                                          },
+                              onFailure:  function( oResponse ) {
+                                            $("statsTableDiv").update( "There was a problem loading the statistics table." );
+                                          }
+                            }
+                          );
+        },
+        false );
+      // ]]>
+    </script>
 
   </div>
 </div>
 
-<!-- end proteome statistics block -->
+<!-- end domain composition block -->
