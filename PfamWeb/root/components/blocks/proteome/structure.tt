@@ -4,7 +4,7 @@
 #
 # Get a list of the proteome structures;
 #
-# $Id: structure.tt,v 1.3 2007-08-21 11:54:29 jt6 Exp $
+# $Id: structure.tt,v 1.4 2007-08-21 12:34:16 rdf Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -34,12 +34,11 @@ RETURN UNLESS summaryData.numStructures;
     
     <script type="text/javascript">
       // <![CDATA[
-/*
       Event.observe(
         window,
         "load",
         function() {
-          new Ajax.Request( "[% base %]proteome/stats",
+          new Ajax.Request( "[% base %]proteome/getStructure",
                             { method: 'get',
                               parameters: { taxId: "[% taxId %]" },
                               onSuccess:  function( oResponse ) {
@@ -52,7 +51,6 @@ RETURN UNLESS summaryData.numStructures;
                           );
         },
         false );
-*/
       // ]]>
     </script>
 
