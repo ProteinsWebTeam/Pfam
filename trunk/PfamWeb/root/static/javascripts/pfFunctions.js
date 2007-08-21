@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.48 2007-08-20 09:07:49 rdf Exp $
+// $Id: pfFunctions.js,v 1.49 2007-08-21 09:43:47 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -951,13 +951,13 @@ function collectSequences( sStyle, sAcc ) {
     // view the selected sequences as domain graphics
     url = selectGraphicsURI + "?style="   + sStyle
                             + "&seqAccs=" + escape( seqAccs );
-    console.debug( "viewing the selected sequences as domain graphics: |" + url + "|" );
+    // console.debug( "viewing the selected sequences as domain graphics: |" + url + "|" );
   } else {
     // view the selected sequences as an alignment
     url = selectAlignmentURI + "?style="   + sStyle
                              + "&acc="     + sAcc
                              + "&seqAccs=" + escape( seqAccs );
-    console.debug( "viewing the selected sequences as an alignment: |" + url + "|" );
+    // console.debug( "viewing the selected sequences as an alignment: |" + url + "|" );
   }
 
   // and submit the request
