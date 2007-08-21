@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.2 2007-08-20 15:48:39 jt6 Exp $
+# $Id: domains.tt,v 1.3 2007-08-21 16:08:54 jt6 Exp $
 %]
 
 <!-- start domain architectures block -->
@@ -64,6 +64,7 @@
         If you want to see more architectures, click the button at the bottom
         of the page to load the next set.
       </p>
+      <hr />
     </div>
 
     <div id="pdgph">
