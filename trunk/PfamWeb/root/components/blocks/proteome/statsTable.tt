@@ -7,7 +7,7 @@
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
 #
-# $Id: statsTable.tt,v 1.2 2007-08-21 09:50:22 jt6 Exp $
+# $Id: statsTable.tt,v 1.3 2007-08-21 16:07:54 jt6 Exp $
 
 # no wrapper thank you
 META naked = 1;
@@ -75,7 +75,7 @@ IF c.req.param('full');
         <img class="link" 
              src="[% base %]static/images/showButton.png"
              alt="Show domain graphics"
-             onclick="popUp( '[% base %]domaingraphics?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]', 'console', 800, 800, 'domainsWin' )" />
+             onclick="popUp( '[% base %]proteome/graphics?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
       <td class="showSwitch">
         <img src="[% base %]static/images/showButton.png"
@@ -98,8 +98,7 @@ IF c.req.param('full');
     $("spinner").show();
     
     // and finally make the AJAX call
-    new Ajax.Updater( "statsTableDiv",
-                      "[% base %]proteome/stats",
+    new Ajax.Request( "[% base %]proteome/stats",
                       { method: 'get',
                         parameters: { taxId: "[% taxId %]",
                                       full:  1 },
