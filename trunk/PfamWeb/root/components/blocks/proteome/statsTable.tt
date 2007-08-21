@@ -7,7 +7,7 @@
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
 #
-# $Id: statsTable.tt,v 1.1 2007-08-21 09:46:46 jt6 Exp $
+# $Id: statsTable.tt,v 1.2 2007-08-21 09:50:22 jt6 Exp $
 
 # no wrapper thank you
 META naked = 1;
