@@ -1,0 +1,56 @@
+
+[%
+# graphicsTool.tt
+# jt6 20070821 WTSI
+# 
+# build a page to show the domain graphics for a Pfam domain on a proteome.
+#
+# $Id: graphicsTool.tt,v 1.1 2007-08-21 16:06:24 jt6 Exp $
+
+META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+#PROCESS "components/require.tt";
+
+#-------------------------------------------------------------------------------
+
+pageContent = BLOCK
+-%]
+
+<h1>Domain graphics</h1> 
+
+<p>
+  This window shows the domain graphics for sequences from 
+  <strong><em>[% proteomeSpecies.species %]</em></strong> that contain the 
+  Pfam domain <strong>[% pfam.pfamA_id %]</strong>.
+</p>
+
+<div id="dgph">
+  <p class="loading">Loading domain graphics...</p>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  new Ajax.Updater( "dgph",
+                    "[% base %]domaingraphics",
+                    { method: 'get',
+                      parameters: { pfamAcc: "[% pfamAcc %]",
+                                    taxId:   "[% taxId %]" },
+                      onSuccess:  function( oResponse ) {
+                                    $("dgph").update( oResponse.responseText );
+                                  },
+                      onFailure:  function( oResponse ) {
+                                    $("dgph").update( "There was a problem loading the domain graphics." );
+                                  },
+                    }
+                  );
+  // ]]>
+</script>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]
