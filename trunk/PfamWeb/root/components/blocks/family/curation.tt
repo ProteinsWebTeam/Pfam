@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.18 2007-08-10 09:42:38 jt6 Exp $
+# $Id: curation.tt,v 1.19 2007-08-21 09:43:26 jt6 Exp $
 
 # URI shortcuts
 infoGIF = "${base}static/images/info.gif";
@@ -17,7 +17,7 @@ getHmm  = "${base}family/gethmm";
 
 <div class="block" id="curationBlock">
   <div class="handle">
-    <h1>Curation and Family Details</h1>
+    <h1>Curation and family details</h1>
   </div>
   <div class="blockContent">
 
