@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.5 2007-08-21 11:28:53 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.6 2007-08-21 16:03:31 jt6 Exp $
 
 META naked = 1;
 
@@ -93,23 +93,23 @@ FOREACH image IN images.each_image;
 
     [% # don't show the "show all sequences" link for this row unless there 
        # is more than just one sequence 
-    IF seqInfo.$id.num.defined AND 
-       seqInfo.$id.num == 1;
-
-      # switch to show/hide the domains %]
-      <span id="showHideArchs[% loop.index %]" style="display: none">
-        <span class="link" onclick="reveal(this,'domainArch[% loop.index %]',true)">Hide</span>
-        all sequences with this architecture.
-      </span>
-
-      [% # switch to actually generate the domains and load them into a div -%]
-      <span id="loadSwitch[% loop.index %]">
-        <span class="link" 
-              onclick="loadDomains( '[% loop.index %]', '[% base %]domaingraphics?acc=[% acc %]&amp;arch=[% seqInfo.$id.auto_arch %]&amp;taxId=[% taxId %]', '[% seqInfo.$id.num %]' )">
-          Show</span> all sequences with this architecture.
-      </span>
+    IF seqInfo.$id.num.defined; 
+      IF seqInfo.$id.num != 1;
+        # switch to show/hide the domains %]
+        <span id="showHideArchs[% loop.index %]" style="display: none">
+          <span class="link" onclick="reveal(this,'domainArch[% loop.index %]',true)">Hide</span>
+          all sequences with this architecture.
+        </span>
+  
+        [% # switch to actually generate the domains and load them into a div -%]
+        <span id="loadSwitch[% loop.index %]">
+          <span class="link" 
+                onclick="loadDomains( '[% loop.index %]', '[% base %]domaingraphics?acc=[% acc %]&amp;arch=[% seqInfo.$id.auto_arch %]&amp;taxId=[% taxId %]', '[% seqInfo.$id.num %]' )">
+            Show</span> all sequences with this architecture.
+        </span>
 
     [% END; # of "UNLESS seqInfo..."
+    END; # of "UNLESS seqInfo..."
 
     # somewhere to stuff the post-post-loaded graphics... %]
     <div id="domainArch[% loop.index %]">
