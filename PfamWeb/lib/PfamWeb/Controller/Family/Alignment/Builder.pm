@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.2 2007-08-20 11:33:00 jt6 Exp $
+# $Id: Builder.pm,v 1.3 2007-08-21 08:19:05 rdf Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.2 2007-08-20 11:33:00 jt6 Exp $
+$Id: Builder.pm,v 1.3 2007-08-21 08:19:05 rdf Exp $
 
 =cut
 
@@ -30,6 +30,8 @@ use Data::UUID;
 use Storable qw( thaw );
 
 use Data::Dump qw( dump );
+
+use  Bio::Pfam::ColourAlign;
 
 use base 'PfamWeb::Controller::Family::Alignment';
 
@@ -95,13 +97,28 @@ sub results : Local {
     return;
   }   
 
-
+  
+  my (@markedUpAlignments, @alignmentLengths);
   foreach my $jobId ( keys %{ $c->stash->{results} } ) {
+    my (%ali, $consensus, $aliLength); 
     $c->log->debug( 'Family::Alignment::Builder:results: job results: |'
                    . $c->stash->{results}->{$jobId}->{rawData} . '|' );
-  }
-  
-#  $c->forward( 'handleResults' );
+        foreach my $line (split /\n/, $c->stash->{results}->{$jobId}->{rawData}){
+          if($line =~/ConSeq\s+(\S+)/){
+            $consensus = $1;
+          }elsif($line =~ m|(\S+/\d+\-\d+)\s+(\S+)|){
+            $ali{$1} = $2;
+            $aliLength++;
+          }  
+        }
+        
+        my %aliData = ( alignment => \%ali,
+                        consensus => $consensus,
+                        maxLength => $aliLength);
+        push( @{$c->stash->{localAli}}, \%aliData);  
+   }
+   
+   $c->forward("Family::Alignment::PfamViewer", "showPfamViewer");
 
 }
 
