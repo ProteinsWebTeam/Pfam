@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam Proteome page.
 #
-# $Id: Proteome.pm,v 1.7 2007-08-20 15:47:29 jt6 Exp $
+# $Id: Proteome.pm,v 1.8 2007-08-21 09:42:28 jt6 Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Proteome.pm,v 1.7 2007-08-20 15:47:29 jt6 Exp $
+$Id: Proteome.pm,v 1.8 2007-08-21 09:42:28 jt6 Exp $
 
 =cut
 
@@ -51,20 +51,21 @@ sub begin : Private {
 
   if( defined $c->req->param('taxId') and 
       $c->req->param('taxId') =~ m/^(\d+)$/i ) {
-    my $taxId = $1;
-    $c->log->info( "Proteome::begin: found tax ID |$taxId|" );
-    $c->stash->{taxId} = $taxId;
-    $c->stash->{proteomeSpecies} = 
-      $c->model("PfamDB::Proteome_species")
-        ->find( { ncbi_code => $taxId},
-                { join      => [ qw( ncbi_tax ) ],
-                  prefetch  => [ qw( ncbi_tax ) ] } 
-              );
+    
+    $c->log->info( "Proteome::begin: found tax ID |$1|" );
+    $c->stash->{taxId} = $1;
+    
+    $c->stash->{proteomeSpecies} = $c->model("PfamDB::Proteome_species")
+                                     ->find( { ncbi_code => $1},
+                                             { join      => [ qw( ncbi_tax ) ],
+                                               prefetch  => [ qw( ncbi_tax ) ] } 
+                                           );
+
     $c->forward( 'getSummaryData' );
-    $c->forward( 'getStatsData');
+    $c->forward( 'getStats');
   }
   
-   # we're done here unless there's an entry specified
+  # throw an error unless there's something in the stash
   unless( defined $c->stash->{proteomeSpecies} and 
           $c->stash->{proteomeSpecies}->ncbi_code  ) {
 
@@ -104,6 +105,25 @@ sub begin : Private {
 
 
 #-------------------------------------------------------------------------------
+#- exposed actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Description...
+
+=cut
+
+sub stats : Local {
+  my( $this, $c ) = @_;
+  
+  $c->stash->{template} = 'components/blocks/proteome/statsTable.tt';
+  
+}
+
+#-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 =head2 getSummaryData : Private
 
@@ -118,6 +138,7 @@ sub getSummaryData : Private {
 
   #----------------------------------------
 
+  # number of architectures
   my $rs = $c->model( 'PfamDB::Pfamseq' )
              ->find( { ncbi_code  => $c->stash->{proteomeSpecies}->ncbi_code,
                        genome_seq => 1 },
@@ -134,12 +155,12 @@ sub getSummaryData : Private {
 
   #----------------------------------------
 
-  # number of sequences in proteome.
+  # number of sequences
   $summaryData{numSequences} = $c->stash->{proteomeSpecies}->total_genome_proteins;
 
   #----------------------------------------
 
-  # number of structures known for the domain
+  # number of structures
   $rs = $c->model( 'PfamDB::Pdb_pfamA_reg' )
           ->find( { 'pfamseq.ncbi_code'  => $c->stash->{proteomeSpecies}->ncbi_code,
                     'pfamseq.genome_seq' => 1 },
@@ -172,15 +193,15 @@ sub getSummaryData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getStatsData : Private
+=head2 getStats : Private
 
 Just gets the data items for the stats Page. This is really quick
 
 =cut
 
-sub getStatsData : Private {
+sub getStats : Private {
   my( $this, $c ) = @_;
-  $c->log->debug( 'Proteome::getStatusData: getting domain statistics...' );
+  $c->log->debug( 'Proteome::getStatus: getting domain statistics...' );
 
   my @rs = $c->model("PfamDB::Proteome_seqs")
              ->search( { ncbi_code => $c->stash->{proteomeSpecies}->ncbi_code },
@@ -198,18 +219,15 @@ sub getStatsData : Private {
                                             numberSeqs 
                                             numberRegs ) ],
                          group_by => [ qw( me.auto_pfamA ) ],
-                         order_by => 'sum(me.count) DESC', 
+                         order_by => \'sum(me.count) DESC', 
                          #prefetch => [ qw( pfam ) ]
                        }
                      );
-  $c->log->debug( 'Proteome::getStatusData: found |' . scalar @rs . '| rows' );
+  $c->log->debug( 'Proteome::getStats: found |' . scalar @rs . '| rows' );
 
   $c->stash->{statsData} = \@rs;
 }
 #-------------------------------------------------------------------------------
-
-
-
 
 =head1 AUTHOR
 
