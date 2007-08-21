@@ -8,15 +8,14 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.4 2007-08-21 10:40:33 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.5 2007-08-21 11:28:53 jt6 Exp $
 
 META naked = 1;
 
 USE String;
 
 # an ugly catch-all...
-IF numRows < 1;
-  CALL c.log.debug( "allArchitectures.tt: too few architectures" ); %]
+IF numRows < 1 %]
   <span>No architectures found.</span>
   [% RETURN;
 END;
@@ -62,15 +61,18 @@ FOREACH image IN images.each_image;
 
   <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
-    <h3>
-    [% IF seqInfo.$id.num > 1 -%]
-        There are [% seqInfo.$id.num %] sequences
-      [%- ELSE # and this really ought to be just "1"... -%]
-        There is [% seqInfo.$id.num %] sequence
-      [%- END -%]
-      with the following architecture: 
-      [%- archString -%]
-    </h3>
+    [% # describe the architecture, if there is one
+    IF seqInfo.$id.num %]
+      <h3>
+        [% IF seqInfo.$id.num > 1 -%]
+          There are [% seqInfo.$id.num %] sequences
+        [%- ELSE # and this really ought to be just "1"... -%]
+          There is [% seqInfo.$id.num %] sequence
+        [%- END -%]
+        with the following architecture: 
+        [%- archString -%]
+      </h3>
+    [% END %]
 
     <span class="graphicLabel">
       <a href="[% base %]protein?id=[% image.image_name %]">
@@ -89,9 +91,10 @@ FOREACH image IN images.each_image;
       [% image.image_map %]
     </map>
 
-    [% # don't show the "show all sequences" link for rows where the number 
-       # of sequences with this architectures is one
-    UNLESS seqInfo.$id.num == 1;
+    [% # don't show the "show all sequences" link for this row unless there 
+       # is more than just one sequence 
+    IF seqInfo.$id.num.defined AND 
+       seqInfo.$id.num == 1;
 
       # switch to show/hide the domains %]
       <span id="showHideArchs[% loop.index %]" style="display: none">
