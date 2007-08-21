@@ -4,7 +4,7 @@
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.11 2007-08-20 09:06:33 rdf Exp $
+# $Id: structure.tt,v 1.12 2007-08-21 09:43:26 jt6 Exp $
 
 RETURN UNLESS pfamMaps.size;
 -%]
@@ -13,7 +13,7 @@ RETURN UNLESS pfamMaps.size;
 
 <div class="block" id="proteinStructureBlock">
   <div class="handle">
-    <h1>Structure</h1>
+    <h1>Structures</h1>
   </div>
   <div class="blockContent">
     <p>
