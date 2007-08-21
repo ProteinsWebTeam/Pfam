@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam Proteome page.
 #
-# $Id: Proteome.pm,v 1.8 2007-08-21 09:42:28 jt6 Exp $
+# $Id: Proteome.pm,v 1.9 2007-08-21 12:35:24 rdf Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Proteome.pm,v 1.8 2007-08-21 09:42:28 jt6 Exp $
+$Id: Proteome.pm,v 1.9 2007-08-21 12:35:24 rdf Exp $
 
 =cut
 
@@ -229,6 +229,34 @@ sub getStats : Private {
 }
 #-------------------------------------------------------------------------------
 
+
+=head2 getStats : Private
+
+Just gets the data items for the stats Page. This is really quick
+
+=cut
+
+sub getStructure : Local {
+  my ($this, $c) = @_;
+  
+  $c->log->debug( 'Proteome::getStructure: getting structure mapping...' );
+  
+  my @mapping = $c->model("PfamDB::Pdb_PfamA_reg")
+                ->search({ 'pfamseq.ncbi_code'  => $c->stash->{proteomeSpecies}->ncbi_code,
+                           'pfamseq.genome_seq' => 1 },
+                          { join => [ qw(pfamseq pdb) ],
+                            prefetch => [ qw (pfamseq pdb ) ]});
+    
+  $c->stash->{pfamMaps} = \@mapping;
+
+  $c->stash->{template} = 'components/blocks/family/structureTab.tt';
+  
+  # cache the template output for one week
+  $c->cache_page( 604800 );
+  
+}
+
+#-------------------------------------------------------------------------------
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
