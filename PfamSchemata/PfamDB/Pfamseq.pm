@@ -1,5 +1,5 @@
 
-# $Id: Pfamseq.pm,v 1.8 2007-08-20 08:58:48 rdf Exp $
+# $Id: Pfamseq.pm,v 1.9 2007-08-21 11:04:31 rdf Exp $
 #
 # $Author: rdf $
 package PfamDB::Pfamseq;
@@ -61,7 +61,9 @@ __PACKAGE__->has_many("disulphide"  => "PfamDB::Pfamseq_disulphide",
 ##pfamseq_markup
 __PACKAGE__->has_many("markup"  => "PfamDB::Pfamseq_markup", 
               {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
-
+##proteome_seq
+__PACKAGE__->has_many("proteome_seqs"  => "PfamDB::Proteome_seqs", 
+              {"foreign.auto_pfamseq" => "self.auto_pfamseq"});
 #Now views
 
 ##architecture
