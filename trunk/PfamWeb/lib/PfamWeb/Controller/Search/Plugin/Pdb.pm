@@ -2,7 +2,7 @@
 # Pdb.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pdb.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
+# $Id: Pdb.pm,v 1.4 2007-08-21 08:20:03 rdf Exp $
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ we can retrieve pfam accession, ID and description from there, and
 another join against the pdb table for the actual text-query against
 the PDB ID.
 
-$Id: Pdb.pm,v 1.3 2007-07-25 10:26:16 jt6 Exp $
+$Id: Pdb.pm,v 1.4 2007-08-21 08:20:03 rdf Exp $
 
 =cut
 
@@ -54,11 +54,8 @@ sub process : Private {
 
   $c->log->debug( "Search::Plugin::Pdb::process: text querying table pdb" );
 
-  my $results = $c->model("PfamDB::PdbMap")
-    ->search(
-             {
-              pfam_region => 1
-             },
+  my $results = $c->model("PfamDB::Pdb_pfamA_reg")
+    ->search({},
              {
               join        => [ qw/pfamA pdb/ ],
               prefetch    => [ qw/pfamA/ ]
