@@ -64,16 +64,43 @@ if($seed){
   close $tmpSeedFh;
 }
 
+my  $tmpAliFile = "/tmp/$$.ali"; 
 #Okay, if we have the HMM, fa (and seed)
 my $cmd = "hmmalign --oneline -q";
 $cmd .= " --withali $tmpSeedFile" if($seed);
 $cmd .= " $tmpHMMFile $tmpDir/$faFile";
 
+
 $DEBUG && print STDERR "Going to run:$cmd\n"; 
 open( OUT, "$cmd |") or die "failed to open pipe on $cmd:[$!]\n";
+open( OUT2, "> $tmpAliFile") or die "failed to open $tmpAliFile:[$1]\n";
+my $displayLength;
 while(<OUT>){
-  print $_ if( $_ !~ m{^[#|//]} and m{^\S+} );
+  if( $_ !~ m{^[#|//]} and m{^\S+} ){
+    if(!$displayLength) {
+      if( my ($d) = $_ =~ /^(\S+\s+)\S+$/){
+        $displayLength = length($d); 
+      }
+    }
+   print $_;
+   print OUT2 $_; 
+  }
 }
+close(OUT);
+close(OUT2);
+
+$DEBUG && print STDERR "Going to run:consensus.pl\n"; 
+open(CONS, "consensus.pl $tmpAliFile 60 |") or die "Failed to get consensus string\n";
+my $con;
+while(<CONS>){
+  $con = $1 if(/consensus\/60%\s+(\S+)/);
+}
+close(CONS);
+print sprintf('%-'.$displayLength.'s%s', "ConSeq", "$con");
+
+unlink($tmpAliFile);
+unlink($tmpHMMFile);
+unlink($tmpSeedFile) if ($tmpSeedFile);
 
 sub usage {
 
