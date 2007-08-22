@@ -22,7 +22,7 @@ use IPC::Cmd qw(run);
 use Bio::Pfam::WebServices::PfamQueue;
 
 #Switch on or off debugging
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 # Get a new queue stub of the type fast
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast");
@@ -30,7 +30,7 @@ my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast");
 while(1) {
   #Get a pending job
   my $ref   = $qsout->satisfy_pending_job();
-  $DEBUG && print Dumper($ref);
+  #$DEBUG && print Dumper($ref);
   
   unless($ref->{'id'}){
 	#No pending jobs
@@ -39,25 +39,38 @@ while(1) {
   	my $error = 0;
 	my $cmd;
   	if($ref->{'job_type'} eq "pfamb"){
-		#Write the users sequence to file
-		open(FA, ">".$qsout->tmpDir."/".$ref->{job_id}.".fa") ||  ($error .= "Could not open file for writing:[$!].");
-		print FA ">UserSeq\n";
-		print FA $ref->{'stdin'}."\n";
-		close(FA)  || ($error .= "Could close fasta file:[$!].");
+  		#Write the users sequence to file
+	  	open(FA, ">".$qsout->tmpDir."/".$ref->{job_id}.".fa") ||  ($error .= "Could not open file for writing:[$!].");
+	  	print FA ">UserSeq\n";
+	   	print FA $ref->{'stdin'}."\n";
+		  close(FA)  || ($error .= "Could close fasta file:[$!].");
 		   
-		if($error){
-		  $qsout->update_job_status($ref->{id}, 'FAIL');
-		  $qsout->update_job_stream($ref->{id}, 'stderr', $error);
-		  next;
-		}
+		  if($error){
+		    $qsout->update_job_status($ref->{id}, 'FAIL');
+		    $qsout->update_job_stream($ref->{id}, 'stderr', $error);
+		    next;
+		  }
 		
-		#There are no options from the user for these jobs at the moment.
-		#Append on the file locations of Pfam-B.fasta and tmp file
-		$cmd = $ref->{'command'}." ".$qsout->dataFileDir."/Pfam-B.fasta ".$qsout->tmpDir.
-				"/".$ref->{job_id}.".fa -cpus ".$qsout->cpus." -gapE=2000 -T=12";
+		  #There are no options from the user for these jobs at the moment.
+		  #Append on the file locations of Pfam-B.fasta and tmp file
+		  $cmd = $ref->{'command'}." ".$qsout->dataFileDir."/Pfam-B.fasta ".$qsout->tmpDir.
+			   	"/".$ref->{job_id}.".fa -cpus ".$qsout->cpus." -gapE=2000 -T=12";
 		
-	}
-	
+	   }elsif($ref->{'job_type'} eq "align" ){
+        open(FA, ">".$qsout->tmpDir."/".$ref->{job_id}.".fa") ||  ($error .= "Could not open file for writing:[$!].");
+	  	  print FA ">UserSeq\n" if ($ref->{'stdin'} !~ /^>/);
+	   	  print FA $ref->{'stdin'}."\n";
+		    close(FA)  || ($error .= "Could close fasta file:[$!].");
+		   
+		  if($error){
+		    $qsout->update_job_status($ref->{id}, 'FAIL');
+		    $qsout->update_job_stream($ref->{id}, 'stderr', $error);
+		    next;
+		  }
+		  $cmd = $ref->{'command'}." -in ".$ref->{job_id}.".fa -tmp ".$qsout->tmpDir." -data ".$qsout->dataFileDir." ".$ref->{'options'};
+		  
+		  
+  	 }	 
 	$DEBUG && print STDERR "Executing id=$ref->{'id'}, command=$cmd\n";
 	
 	#Run the executable via IPC::Cmd
@@ -74,14 +87,13 @@ while(1) {
     if(scalar(@$stderr_buf)){
     	$qsout->update_job_stream($ref->{id}, 'stderr', join "", @$stdout_buf);
     }
-
+    
     if($success){
-       $qsout->update_job_status($ref->{'id'}, 'DONE');
+    	$qsout->update_job_status($ref->{'id'}, 'DONE');
     }else{
-       $qsout->update_job_status($ref->{'id'}, 'FAIL');
+    	$qsout->update_job_status($ref->{'id'}, 'FAIL');
     }
-
-     #Clean up any output files
+    #Clean up any output files
     if(-e $qsout->tmpDir."/".$ref->{job_id}.".fa"){
       unlink($qsout->tmpDir."/".$ref->{job_id}.".fa") || warn "Could not remove tmp fasta file:[$!]\n";
  	}
