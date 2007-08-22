@@ -78,7 +78,7 @@ while(1) {
 	
 	#Now for the lsf bit
 	if($cmd) {
-		print STDERR "$cmd";
+		$DEBUG && print STDERR "$cmd";
 		
 		if($qsout->thirdPartyQueue eq 'WTSI'){
 			  #Work out the Users priority
