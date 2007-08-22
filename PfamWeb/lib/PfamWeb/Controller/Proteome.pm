@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam Proteome page.
 #
-# $Id: Proteome.pm,v 1.9 2007-08-21 12:35:24 rdf Exp $
+# $Id: Proteome.pm,v 1.10 2007-08-22 08:18:41 jt6 Exp $
 
 =head1 NAME
 
@@ -23,7 +23,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Proteome.pm,v 1.9 2007-08-21 12:35:24 rdf Exp $
+$Id: Proteome.pm,v 1.10 2007-08-22 08:18:41 jt6 Exp $
 
 =cut
 
@@ -41,8 +41,8 @@ __PACKAGE__->config( SECTION => 'proteome' );
 
 =head2 begin : Private
 
-Tries to extract an NCBI code from the parameters and retrieves the appropriate
-row for it.
+Tries to extract an NCBI tqaxonomy ID from the parameters and retrieves the 
+details of the proteome with that tax ID.
 
 =cut
 
@@ -65,6 +65,23 @@ sub begin : Private {
     $c->forward( 'getStats');
   }
   
+  # this controller could be handed a parameter "pfamAcc", which is a Pfam-A
+  # accession. We steer clear of using the standard parameter "acc" because 
+  # that's used interchangably throughout the app to represent an accession for
+  # whatever type of entity we're dealing with, from Pfam-A to clan to sequence.
+  # In this case that would imply at "acc" represents a proteome, but in fact 
+  # that's represented in the parameter "taxId", hence the use of "pfamAcc"
+  # instead...
+  
+  if( defined $c->req->param('pfamAcc') and
+      $c->req->param('pfamAcc') =~ m/^(PF\d{5})$/ ) {
+    $c->log->debug( "Proteome::begin: found a Pfam-A accession: |$1|" );
+
+    $c->stash->{pfamAcc} = $1;
+    $c->stash->{pfam} = $c->model('PfamDB::Pfam')
+                          ->find( { pfamA_acc => $1 } );
+  }
+
   # throw an error unless there's something in the stash
   unless( defined $c->stash->{proteomeSpecies} and 
           $c->stash->{proteomeSpecies}->ncbi_code  ) {
@@ -119,6 +136,20 @@ sub stats : Local {
   
   $c->stash->{template} = 'components/blocks/proteome/statsTable.tt';
   
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Description...
+
+=cut
+
+sub graphics : Local {
+  my( $this, $c ) = @_;
+  
+  $c->stash->{template} = 'components/blocks/proteome/graphicsTool.tt';
 }
 
 #-------------------------------------------------------------------------------
