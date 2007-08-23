@@ -5,7 +5,7 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.1 2007-08-23 09:08:29 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.2 2007-08-23 16:25:36 jt6 Exp $
 
 META naked = 1;
 %]
@@ -96,17 +96,20 @@ alignments.alignments.0 %]
     <div class="formRowElement">
       [% IF pager.last_page > 1 %]
         There are [% pager.last_page %] pages in this alignment. Show page
-        <input name="page"
-               id="page" 
-               type="text" 
-               size="5"
-               value="1" />
-        <div onclick="generate( $F('page') )"
-             class="glassButton goButton">&nbsp;</div>
-      [% ELSE  %]
+      [% ELSE %]
         There is 1 page in this alignment.
       [% END %]
+      <input name="page"
+             id="page" 
+             type="[% pager.last_page > 1 ? "text" : "hidden" %]" 
+             size="5"
+             value="1" />
     </div>
+
+    [% IF pager.last_page > 1 %]
+      <div onclick="generate( $F('page') )"
+           class="glassButton goButton">&nbsp;</div>
+    [% END %]
 
     <div class="cleaner"><!-- empty --></div>
 
