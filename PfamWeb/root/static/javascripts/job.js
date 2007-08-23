@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.8 2007-08-20 11:33:24 jt6 Exp $
+// $Id: job.js,v 1.9 2007-08-23 09:17:29 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -505,7 +505,7 @@ Job.prototype = {
 
     // need to build the URI with the job IDs given as parameters
     var doneLoc;
-    if( this.doneURI.indexOf( "?" ) ) {
+    if( this.doneURI.indexOf( "?" ) > 0 ) {
       doneLoc = this.doneURI + "&";
     } else {
       doneLoc = this.doneURI + "?";
