@@ -5,7 +5,7 @@
 # 
 # build a page for the alignment viewer tool
 #
-# $Id: alignmentTool.tt,v 1.1 2007-08-23 09:08:29 jt6 Exp $
+# $Id: alignmentTool.tt,v 1.2 2007-08-23 16:25:57 jt6 Exp $
 
 META naked = 1;
 
@@ -51,7 +51,11 @@ pageContent = BLOCK
   // ]]>
 </script>
 
-<h1>Pfam alignment viewer</h1>
+[% IF params.title %]
+  <h1>[% params.title %]</h1>
+[% ELSE %]
+  <h1>Pfam alignment viewer</h1>
+[% END %]
 
 <div id="caph">
   <p class="loading">
