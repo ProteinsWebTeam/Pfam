@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.2 2007-08-20 15:46:57 jt6 Exp $
+# $Id: JobManager.pm,v 1.3 2007-08-23 16:14:31 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.2 2007-08-20 15:46:57 jt6 Exp $
+$Id: JobManager.pm,v 1.3 2007-08-23 16:14:31 jt6 Exp $
 
 =cut
 
@@ -146,7 +146,8 @@ sub returnStatus : Private {
 
 =head2 retrieveResults : Private
 
-Populates the stash with the results of a specified job.
+Populates the stash with the results of a specified job. Checks the C<Request>
+parameters to find the jobId.
 
 =cut
 
@@ -158,8 +159,8 @@ sub retrieveResults : Private {
   foreach ( @jobIds ) {
 
     # detaint the job id...
-    ( my $jobId ) = $_ =~ /^([A-F0-9\-]+)$/;
-    next unless( defined $jobId and 36 == length( $jobId ) );
+    ( my $jobId ) = $_ || '' =~ /^([A-F0-9\-]{36})$/;
+    next unless defined $jobId;
 
     $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$jobId|" );
 
