@@ -1,0 +1,257 @@
+
+# PfamViewer.pm
+# jt6 20060601 WTSI
+#
+# $Id: PfamViewer.pm,v 1.1 2007-08-23 09:01:16 jt6 Exp $
+
+=head1 NAME
+
+PfamWeb::Controller::PfamViewer - viewing sequence alignments
+
+=cut
+
+package PfamWeb::Controller::PfamViewer;
+
+=head1 DESCRIPTION
+
+Various methods for viewing alignments.
+
+$Id: PfamViewer.pm,v 1.1 2007-08-23 09:01:16 jt6 Exp $
+
+=cut
+
+use strict;
+use warnings;
+
+use JSON;
+use Data::Pageset;
+use Data::Dump qw( dump );
+
+use base 'Catalyst::Controller';
+
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=head2 showPfamViewer : Private
+
+This is the way into the Pfam sequence alignment viewer.
+
+Hands straight off to a template that generates a "tool" page containing the 
+necessary hooks to load the interactive alignment viewer.
+
+=cut
+
+sub showPfamViewer : Private {
+  my( $this, $c ) = @_;
+
+  # these settings come directly from another controller, so they haven't
+  # have been exposed to the user and don't need detainting
+  $c->stash->{paramString} = objToJson( $c->stash->{params} );
+
+  # hand off to the tool window template
+  $c->log->debug( 'PfamViewer::showPfamViewer: handing off to alignmentTool.tt' );
+  $c->stash->{template} = 'components/tools/pfamviewer/alignmentTool.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 view : Local
+
+Description...
+
+=cut
+
+sub view : Local {
+  my( $this, $c ) = @_;
+
+  # the parameters for this action were handed to us by the caller and although 
+  # they *should* have been specified by the original caller, they've also been 
+  # exposed to the user, so we need to detaint them before storing 
+  
+  # we also need to take care to store and pass on the input parameters, 
+  # so that we keep any that the "getAlignment" method needs to do its job
+  
+  my %params;
+  foreach my $param ( keys %{ $c->req->params } ) {
+    next unless $c->req->param( $param ) =~ /^(\w+)$/;
+    $c->log->debug( "PfamViewer::view: stashing parameter: |$param|$1|" );
+    $c->stash->{$param} = $1;
+    $params{$param} = $1;
+  }
+
+  # this is now the record of the input parameters that we'll pass on
+  $c->stash->{paramString} = objToJson( \%params );
+  $c->log->debug( 'PfamViewer::view: build a paramString: |'
+                  . $c->stash->{paramString} . '|' );  
+
+  # set up the paging
+  $c->forward( 'setPage' );
+
+  # forward to the action on the caller that will:
+  #   stash the number of rows in the alignment
+  #   return an alignment fragment 
+
+  # look up the class that we need to forward to
+  unless( defined $c->req->param('source') and 
+          $c->req->param('source') =~ /^([A-Za-z]+)$/ ) { 
+    $c->error( 'The alignment source must be set.' );
+    return;
+  }
+  my $source = $1;
+  my $class  = $this->{sources}->{$source};
+  $c->log->debug( "PfamViewer::view: class: |$class|" );
+
+  # make sure we can actually use the source to get an alignment
+  unless( $class->can( 'getAlignment' ) ) {
+    $c->error( "'$source' is not a valid alignment source." );
+    return;
+  }
+
+  # forward to that class
+  $c->log->debug( "PfamViewer::view: forwarding to '$class getAlignment'" ); 
+  $c->forward( $class, 'getAlignment' );
+  
+  # shortcut to the hash with the details of the alignments that were returned
+  my $alignments = $c->stash->{alignments};
+
+  # mark up the alignments in HTML  
+  my @markedUpAlignments;
+  for( my $i = 0; $i < length @{ $alignments->{rawAlignments} }; $i++ ) {
+    my $alignment = $alignments->{rawAlignments}->[$i];
+    my $consensus = $alignments->{consensus}->[$i];
+    push @markedUpAlignments,
+      Bio::Pfam::ColourAlign::markupAlignSeparate( $alignment, $consensus );
+  }
+
+  # stash the marked up alignments
+  $c->stash->{alignments}->{alignments} = \@markedUpAlignments;
+
+  # hand off to the template that will render the alignment fragment
+  $c->stash->{template} = 'components/tools/pfamviewer/alignmentFragment.tt';
+}
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Stashed values used by this action:
+
+  numRowsInAlignment - total number of rows in the alignment
+
+Parameters used by this action:
+
+  scrollValue - horizontal scroll position
+  numRows     - number of rows of alignment to be displayed
+  page        - jump to the specified page in the alignment
+
+Values stashed by this actions:
+
+  scrollValue - scroll position
+  pager       - the Data::Pageset object
+  rows        - e.g. "1 - 100"
+  pagesBefore \ arrays with a list of pages before and after this one
+  pagesAfter  /
+
+=cut
+
+sub setPage : Private {
+  my( $this, $c ) = @_;
+  
+  # get the scroll position
+  if( defined $c->req->param('scrollValue') and
+      $c->req->param('scrollValue') =~ m/^(\d+\.\d+)$/ ) {
+    $c->stash->{scrollValue} = $1;
+  } else {
+    $c->stash->{scrollValue} = 0;
+  }
+  $c->log->debug( 'PfamViewer::setPage: set scroll value to |'
+                  . $c->stash->{scrollValue} . '|' );
+
+  #----------------------------------------
+
+  # get the number of alignment lines to display
+  my( $numRowsToShow ) =
+    $c->req->param('numRows') || $this->{defaultRows} =~ m/^(\d+)$/;
+
+  # if the number of rows to show is less than the total number of rows in the
+  # alignment, reset it
+  $numRowsToShow = $c->stash->{numRowsInAlignment}
+    if $c->stash->{numRowsInAlignment} < $numRowsToShow;
+
+  $c->log->debug( "PfamViewer::view: showing |$numRowsToShow| rows" );
+
+  #----------------------------------------
+
+  # use a Data::Pageset object to keep track of all this...
+  my $pager = Data::Pageset->new( { total_entries    => $c->stash->{numRowsInAlignment}, 
+                                    entries_per_page => $numRowsToShow,
+                                    pages_per_set    => 11,
+                                    mode             => 'slide' } );
+  $c->stash->{pager} = $pager;
+
+  # find out what page we want for this request
+  my $page;
+  if( defined $c->req->param('page') ) {
+    ( $page ) = $c->req->param('page') =~ m/^(\d+)$/;
+    $c->log->debug( "PfamViewer::view: requested page number |$page|" );
+  } elsif( defined $c->req->param('next') ) {
+    $page = $pager->next;
+    $c->log->debug( 'PfamViewer::view: requested next page' );
+  } elsif( defined $c->req->param('prev') ) {
+    $page = $pager->prev;
+    $c->log->debug( 'PfamViewer::view: requested previous page' );
+  }
+  $page ||= 1;
+  $c->log->debug( "PfamViewer::view: showing page |$page|" );
+  
+  $pager->current_page( $page ); 
+
+  #----------------------------------------
+
+  # decide which actual rows we need to use now
+  $c->stash->{rows} = $pager->first . '-' . $pager->last;
+  $c->log->debug( 'PfamViewer::view: rows: |'
+                  . $c->stash->{rows} . '|' );
+
+  # store the lists of page numbers before and after the current one, for use
+  # by the template in generating the list of available pages
+  $c->stash->{pagesBefore} = [         1 .. $page - 1         ] if $page > 1;
+  $c->stash->{pagesAfter}  = [ $page + 1 .. $pager->last_page ] if $page < $pager->last_page;
+  
+}
+
+#-------------------------------------------------------------------------------
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+
+=cut
+
+1;
