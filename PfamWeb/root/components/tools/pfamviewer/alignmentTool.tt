@@ -1,0 +1,66 @@
+
+[%
+# alignmentTool.tt
+# jt6 20061004 WTSI
+# 
+# build a page for the alignment viewer tool
+#
+# $Id: alignmentTool.tt,v 1.1 2007-08-23 09:08:29 jt6 Exp $
+
+META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "alignment.css" );
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+requirements.js.push( "family.js" );
+requirements.js.push( "scriptaculous/scriptaculous.js?load=slider" );
+
+#-------------------------------------------------------------------------------
+
+# set the title for the window
+title = "Pfam alignment viewer";
+
+pageContent = BLOCK
+-%]
+
+<script type="text/javascript">
+  // <![CDATA[
+  
+  var paramString = [% paramString %];
+
+  postLoad = function() {
+    new Ajax.Request( "[% base %]pfamviewer/view",
+                      { method:     'get', 
+                        parameters: paramString,
+                        onSuccess:  function( oResponse ) {
+                                      $("caph").update( oResponse.responseText );
+                                    },
+                        onFailure:  function( oResponse ) {
+                                      $("caph").update( "Alignment loading failed." );
+                                    }
+                      } );
+  };
+  
+  Event.observe( window, "load", postLoad );
+  // ]]>
+</script>
+
+<h1>Pfam alignment viewer</h1>
+
+<div id="caph">
+  <p class="loading">
+    Loading alignment...
+  </p>
+</div>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]
