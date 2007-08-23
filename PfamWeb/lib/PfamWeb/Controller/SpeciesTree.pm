@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.6 2007-08-20 08:56:53 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.7 2007-08-23 16:16:18 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.6 2007-08-20 08:56:53 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.7 2007-08-23 16:16:18 jt6 Exp $
 
 =cut
 
@@ -175,14 +175,13 @@ sub interactive : Local {
   $c->cache_page( 604800 );
 }
 
- #-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 =head2 selected : Local
 
 The species tree includes check-boxes that can be used to select nodes, or 
-whole sub-trees, from the initial species tree. This action decides whether to
-render the selected sequences as Pfam graphics or to align them and return the
-sequence alignment.
+whole sub-trees, from the initial species tree. This action renders the 
+selected sequences as Pfam graphics
 
 =cut
 
@@ -200,16 +199,8 @@ sub selected : Local {
                   . '| valid sequence accessions' );
   $c->stash->{selectedSeqAccs} = \@seqAccs;
 
-  # find out whether we're rendering the Pfam graphics for these sequences,
-  # or returning a sequence alignment
-  if( ( $c->req->param('style') || '' ) eq 'G' ) {
-    $c->log->debug( 'SpeciesTree::selected: rendering selected seqs as Pfam graphics' );
-    $c->stash->{template} = "components/tools/seqViewGraphic.tt";
-  } else {  
-    $c->log->debug( 'SpeciesTree::selected: rendering selected seqs as an alignment' );
-    $c->stash->{template} = "components/tools/seqViewAlignment.tt";
-  }  
-
+  $c->log->debug( 'SpeciesTree::selected: rendering selected seqs as Pfam graphics' );
+  $c->stash->{template} = "components/tools/seqViewGraphic.tt";
 }
 
 #-------------------------------------------------------------------------------
