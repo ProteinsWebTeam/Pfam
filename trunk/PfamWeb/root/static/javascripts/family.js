@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.25 2007-08-20 09:02:41 jt6 Exp $
+// $Id: family.js,v 1.26 2007-08-23 09:09:19 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -136,48 +136,6 @@ function atFailure() {
 //- DAS sequence alignment viewer methods --------------------
 //------------------------------------------------------------
 
-// callbacks for the coloured alignment
-
-function caSuccess( oResponse ) {
-  $("caph").update( oResponse.responseText );
-}
-
-function caFailure() {
-  $("caph").update( "Coloured alignment loading failed." );
-}
-
-//------------------------------------------------------------
-// function to submit the alignment generation form  
-
-function generateAlignment( page ) {
-//  console.debug( "generateAlignment: showing page |" + page + "|" );
-
-  // disable various bits of the page and show the spinner
-  $( "pagingForm" ).disable();
-  $( "handle" ).removeClassName( "sliderHandle" );
-  $( "handle" ).addClassName( "disabledSliderHandle" );
-  slider.setDisabled();
- 
-  $( 'spinner' ).show();
-  
-  var params = { page:        page,
-                 acc:         $F('acc'),
-                 alnType:     $F('alnType'),
-                 numRows:     $F('numRows'),
-                 scrollValue: $F('scrollValue') };
-
-  // submit the form
-  new Ajax.Updater( "caph",
-                    loadOptions.ca.uri, 
-                    { method:      'get', 
-                      parameters:  params,
-                      evalScripts: true
-                    }
-                  );
-
-}
-
-//------------------------------------------------------------
 // scroll the element horizontally based on its width and the slider 
 // maximum value
 
@@ -196,6 +154,8 @@ function scrollHorizontal( value, element, slider ) {
 
 var slider;
 function formatAlignment( sURLBase, oSlider ) {
+  console.debug( "in formatAlignment" );
+  
   slider = oSlider;
 
   // pre-compile a regular expression to filter out the ID, start and
