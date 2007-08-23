@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Pfam families
 #
-# $Id: families.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: families.tt,v 1.2 2007-08-23 13:42:35 jt6 Exp $
 
 META title = "Browse Pfam families";
 META fullPage = 1;
@@ -48,29 +48,32 @@ pageList = PROCESS "components/pageList.tt",
 
 <table class="details browse" summary="Details of Pfam families">
   <thead>
-    <tr class="caption">
-      <th>Name</th>
-      <th>Type</th>
-      <th>No. seed</th>
-      <th>No. full</th>
-      <th>Av. length</th>
-      <th>Av. %id</th>
-      <th>Av. coverage</th>
-      <th>Has 3D</th>
-      <th>Status</th>
-      <th>Description</th>
+    <tr>
+      <th rowspan="2">Name</th>
+      <th rowspan="2">Type</th>
+      <th colspan="2">Alignment length</th>
+      <th rowspan="2">Average length</th>
+      <th rowspan="2">Average %id</th>
+      <th rowspan="2">Average coverage</th>
+      <th rowspan="2">Has 3D</th>
+      <th rowspan="2">Change status</th>
+      <th rowspan="2">Description</th>
+    </tr>
+    <tr>
+      <th>seed</th>
+      <th>full</th>
     </tr>
   </thead>
   <tbody>
   [% FOREACH pfam IN browse;
-    IF pfam.status == "NEW";
+    IF pfam.change_status == "NEW";
 	  status = "New";
-    ELSIF pfam.status == "CHANGE";
+    ELSIF pfam.change_status == "CHANGE";
       status = "Changed";
-    ELSIF pfam.status == "NOCHANGE";
+    ELSIF pfam.change_status == "NOCHANGE";
       status = "Unchanged";
     ELSE;
-      status = pfam.status;
+      status = pfam.change_status;
 	END %]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
