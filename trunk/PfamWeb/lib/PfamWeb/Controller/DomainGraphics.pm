@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.10 2007-08-21 08:18:26 rdf Exp $
+# $Id: DomainGraphics.pm,v 1.11 2007-08-23 09:00:57 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.10 2007-08-21 08:18:26 rdf Exp $
+$Id: DomainGraphics.pm,v 1.11 2007-08-23 09:00:57 jt6 Exp $
 
 =cut
 
@@ -666,21 +666,19 @@ sub getProteomeSeqs : Private {
                        );
 
   } elsif( $c->stash->{pfamAcc} ) {
-    
      
-     my $pfam = $c->model('PfamDB::Pfam')
-                   ->find( { pfamA_acc => $c->stash->{pfamAcc} } );
-      $c->stash->{auto_pfamA} = $pfam->auto_pfamA;
-    
-    
-    
-    @rows = $c->model("PfamDB::Pfamseq")
-              ->search( { "me.ncbi_code"  => $c->stash->{taxId},
-                          "proteome_seqs.auto_pfamA" => $c->stash->{auto_pfamA} },
+    my $pfam = $c->model('PfamDB::Pfam')
+                 ->find( { pfamA_acc => $c->stash->{pfamAcc} } );
+    $c->stash->{auto_pfamA} = $pfam->auto_pfamA;
+        
+    @rows = $c->model('PfamDB::Pfamseq')
+              ->search( { 'me.ncbi_code'             => $c->stash->{taxId},
+                          'proteome_seqs.auto_pfamA' => $c->stash->{auto_pfamA} },
                          { join      => [ qw( proteome_seqs annseq ) ],
-                           select    => [  { distinct => [ "me.auto_pfamseq" ] } ,
-                                            qw( pfamseq_id
-                                                annseq_storable ) ],
+                           select    => [
+                                          { distinct => [ 'me.auto_pfamseq' ] },
+                                          qw( pfamseq_id
+                                              annseq_storable ) ],
                             as       => [ qw( auto_pfamseq pfamseq_id 
                                               annseq_storable  ) ],
                          }
@@ -688,7 +686,7 @@ sub getProteomeSeqs : Private {
 
   } else {
 
-    @rows = $c->model("PfamDB::Pfamseq")
+    @rows = $c->model('PfamDB::Pfamseq')
               ->search( { ncbi_code  => $c->stash->{taxId},
                            genome_seq => 1 },
                          { join      => [ qw( annseq arch ) ],
