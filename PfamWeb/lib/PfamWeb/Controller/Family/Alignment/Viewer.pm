@@ -2,7 +2,7 @@
 # PfamViewer.pm
 # jt6 20060601 WTSI
 #
-# $Id: Viewer.pm,v 1.1 2007-08-23 09:02:40 jt6 Exp $
+# $Id: Viewer.pm,v 1.2 2007-08-23 16:22:57 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::Alignment::Viewer;
 
 Various methods for viewing alignments.
 
-$Id: Viewer.pm,v 1.1 2007-08-23 09:02:40 jt6 Exp $
+$Id: Viewer.pm,v 1.2 2007-08-23 16:22:57 jt6 Exp $
 
 =cut
 
@@ -34,29 +34,6 @@ use base 'PfamWeb::Controller::Family::Alignment';
 
 =head1 METHODS
 
-=head2 auto : Private
-
-Decides which DAS source to use (pfamSeedAlign or pfamFullAlign) based on the
-parameter C<alnType>.
-
-=cut
-
-sub auto : Private {
-  my( $this, $c ) = @_;
-
-  if( $c->stash->{alnType} eq 'seed' ) {
-    $c->stash->{dsn}                = 'http://das.sanger.ac.uk/das/pfamSeedAlign';
-    $c->stash->{numRowsInAlignment} = $c->stash->{pfam}->num_seed;
-  } else {
-    $c->stash->{dsn}                = 'http://das.sanger.ac.uk/das/pfamFullAlign';
-    $c->stash->{numRowsInAlignment} = $c->stash->{pfam}->num_full;
-  }
-
-  return 1;
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 view : Local
 
 Sets up the PfamViewer for this alignment.
@@ -65,16 +42,30 @@ Sets up the PfamViewer for this alignment.
 
 sub showPfamViewer : Path {
   my( $this, $c ) = @_;
+
+  # seed or full alignment
+  if( $c->stash->{alnType} eq 'seed' ) {
+    $c->stash->{dsn}                = 'http://das.sanger.ac.uk/das/pfamSeedAlign';
+    $c->stash->{numRowsInAlignment} = $c->stash->{pfam}->num_seed;
+  } else {
+    $c->stash->{dsn}                = 'http://das.sanger.ac.uk/das/pfamFullAlign';
+    $c->stash->{numRowsInAlignment} = $c->stash->{pfam}->num_full;
+  }
+  
+  # build a "title" string, which will be used as the heading for the 
+  # alignment tool window
+  my $title = 'Pfam ' . $c->stash->{alnType} . ' alignment for '
+              . $c->stash->{acc};
   
   $c->log->debug( 'Family::Alignment::Viewer::showPfamViewer: setting up getAlignment' );
   $c->stash->{params} = { source             => 'family',
+                          title              => $title,
                           acc                => $c->stash->{acc},
                           alnType            => $c->stash->{alnType},
                           numRowsInAlignment => $c->stash->{numRowsInAlignment} };
 
   $c->log->debug( 'Family::Alignment::Viewer::showPfamViewer: forwarding...' );
   $c->forward( 'PfamViewer', 'showPfamViewer' );
-
 }  
 
 #-------------------------------------------------------------------------------
