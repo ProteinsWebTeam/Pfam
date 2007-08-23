@@ -5,7 +5,7 @@
 # 
 # build a "browse" index page
 #
-# $Id: index.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: index.tt,v 1.2 2007-08-23 13:42:20 jt6 Exp $
 
 META title = "Browse Pfam";
 META fullPage = 1;
@@ -63,21 +63,29 @@ proteomeURI = "${base}proteome/browse";
       <tr>
         <td class="type">CLANS</td>
         <td class="links">
-          [% FOREACH letter IN alphabet %]
-          <a href="[% clanURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
-          [% END %]
+          [% FOREACH letter IN alphabet;
+            IF loop.first %]
+              <a href="[% clanURI %]">[% letter | ucfirst %]</a>
+            [% ELSE %]
+              <a href="[% clanURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
+            [% END;
+          END %]
           <br />
           [% FOREACH letter IN clanPages %]
-          <a href="[% clanURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
+            <a href="[% clanURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
           [% END %]
         </td>
       </tr>
       <tr>
         <td class="type">PROTEOMES</td>
         <td class="links">
-          [% FOREACH letter IN alphabet %]
-          <a href="[% proteomeURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
-          [% END %]
+          [% FOREACH letter IN alphabet;
+            IF loop.first %]
+              <a href="[% proteomeURI %]">[% letter | ucfirst %]</a>
+            [% ELSE %]
+              <a href="[% proteomeURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
+            [% END;
+          END %]
         </td>
       </tr>
     </tbody>
