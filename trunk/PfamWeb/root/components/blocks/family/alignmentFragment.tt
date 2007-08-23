@@ -5,14 +5,14 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.11 2007-07-26 14:58:54 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.12 2007-08-23 09:03:45 jt6 Exp $
 
 META naked = 1;
 %]
 
 <form id="pagingForm" 
       method="post"
-      onsubmit="generateAlignment([% pager.current_page %]);return false">
+      onsubmit="generate([% pager.current_page %]);return false">
 
   <input type="hidden" id="acc"         value="[% acc %]" />
   <input type="hidden" id="scrollValue" value="[% scrollValue %]" />
@@ -31,7 +31,7 @@ META naked = 1;
       rows of alignment&nbsp;
     </div>
     
-    <div onclick="generateAlignment( $F('page') )"
+    <div onclick="generate( $F('page') )"
          class="glassButton goButton">&nbsp;</div>
 
     <div class="cleaner"><!-- empty --></div>
@@ -52,12 +52,12 @@ alignments.alignments.0 %]
     
     <input type="button"
            id="first"
-           onclick="generateAlignment([% pager.first_page %])"
+           onclick="generate([% pager.first_page %])"
            value="&laquo;" />
   
     <input type="button"
            id="prev"
-           onclick="generateAlignment([% pager.previous_page %])"
+           onclick="generate([% pager.previous_page %])"
            value="&lsaquo;" />
   
     <span id="pageList">
@@ -69,7 +69,7 @@ alignments.alignments.0 %]
           <span>[% pageNumber %]</span>
         [% ELSE %]
           <span class="link" 
-                onclick="generateAlignment(this.innerHTML)">[% pageNumber %]</span>
+                onclick="generate(this.innerHTML)">[% pageNumber %]</span>
         [% END;
       END;
       IF pager.pages_in_set.last < pager.last_page %]
@@ -79,12 +79,12 @@ alignments.alignments.0 %]
   
     <input type="button"
            id="next"
-           onclick="generateAlignment([% pager.next_page %])"
+           onclick="generate([% pager.next_page %])"
            value="&rsaquo;" />
   
     <input type="button"
            id="last"
-           onclick="generateAlignment([% pager.last_page %])"
+           onclick="generate([% pager.last_page %])"
            value="&raquo;" />
 
     <span class="loading" id="spinner">Loading alignment...</span>
@@ -102,7 +102,7 @@ alignments.alignments.0 %]
              value="1" />
     </div>
 
-    <div onclick="generateAlignment( $F('page') )"
+    <div onclick="generate( $F('page') )"
          class="glassButton goButton">&nbsp;</div>
 
     <div class="cleaner"><!-- empty --></div>
@@ -113,13 +113,43 @@ alignments.alignments.0 %]
 
 <script type="text/javascript">
   // <![CDATA[
+  
+  generate = function( page ) { 
+    console.debug( "in the 'generate' function" );
+
+    // disable various bits of the page and show the spinner
+    $( "pagingForm" ).disable();
+    $( "handle" ).removeClassName( "sliderHandle" );
+    $( "handle" ).addClassName( "disabledSliderHandle" );
+    slider.setDisabled();
+   
+    $( 'spinner' ).show();
+    
+    [% # we need to merge two sets of parameters: one comes from the controller
+       # and another comes from the form. Convert both into prototype Hash
+       # objects so that we can merge them easily %]
+    // build the list of parameters for the next requested alignment fragment
+    var viewerParams = $H( [% viewerParams %] );
+    var pageParams   = $H( { page:        page,
+                             numRows:     $F('numRows'),
+                             scrollValue: $F('scrollValue') } );
+
+    // submit the form
+    new Ajax.Updater( "caph",
+                      "[% base %]family/alignment/viewer/view", 
+                      { method:      'get', 
+                        parameters:  viewerParams.merge( pageParams ),
+                        evalScripts: true
+                      }
+                    );
+  };
 
   // hide the "loading alignment" spinner
   $('spinner').hide();
   
   // add a listener to handle form submission when the user hits return in
   // an input field
-  Event.observe( 'pagingForm', 'submit', generateAlignment ); 
+  Event.observe( 'pagingForm', 'submit', generate ); 
 
   // instantiate a Slider to handle scrolling the alignment  
 	var slider = new Control.Slider( 'handle', 'slider', {
