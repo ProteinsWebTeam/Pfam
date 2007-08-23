@@ -2,7 +2,7 @@
 # Alignment.pm
 # jt6 20070725 WTSI
 #
-# $Id: Alignment.pm,v 1.2 2007-08-02 15:24:28 jt6 Exp $
+# $Id: Alignment.pm,v 1.3 2007-08-23 09:01:49 jt6 Exp $
 
 =head1 NAME
 
@@ -17,12 +17,14 @@ package PfamWeb::Controller::Family::Alignment;
 This is intended as the basis for alignment-related code. Its only function
 is to set up the paths to make the URLs for sub-classes sensible.
 
-$Id: Alignment.pm,v 1.2 2007-08-02 15:24:28 jt6 Exp $
+$Id: Alignment.pm,v 1.3 2007-08-23 09:01:49 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Family';
 
@@ -30,9 +32,156 @@ use base 'PfamWeb::Controller::Family';
 
 =head1 METHODS
 
-None.
+=head2 getAlignment : Private
+
+Retrieves the alignment from the DAS source.
 
 =cut
+
+sub getAlignment : Private {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::Alignment::getAlignment: retrieving alignment' );
+
+  # set the DAS dsn based on the alignment type parameter
+  if( $c->stash->{alnType} eq 'seed' ) {
+    $c->stash->{dsn}                = 'http://das.sanger.ac.uk/das/pfamSeedAlign';
+  } else {
+    $c->stash->{dsn}                = 'http://das.sanger.ac.uk/das/pfamFullAlign';
+  }
+
+  $c->log->debug( 'Family::Alignment::getAlignment: dsn:  |' . $c->stash->{dsn} . '|' ); 
+  $c->log->debug( 'Family::Alignment::getAlignment: acc:  |' . $c->stash->{acc} . '|' ); 
+  $c->log->debug( 'Family::Alignment::getAlignment: rows: |' . $c->stash->{rows} . '|' ); 
+
+  # retrieve the DasLite client from the base model class and hand it
+  # the DSN
+  my $dl = $c->model('PfamDB')->getDasLite;
+  $dl->dsn( $c->stash->{dsn} );
+
+  # retrieve the raw alignment fragment and associated features via DAS and 
+  # generate the consensus sequence 
+  my $rawAlignment = $dl->alignment( { query => $c->stash->{acc},
+                                       rows  => $c->stash->{rows} } );
+  my $features     = $dl->features( $c->stash->{acc} );
+  my $consensus    = [];
+  push @$consensus, 
+    Bio::Pfam::ColourAlign::parseConsensus( getConsensus( $features ) );
+  #$c->log->debug( 'Family::Alignment::getAlignment: rawAlignment: ' . dump $rawAlignment );
+  #$c->log->debug( 'Family::Alignment::getAlignment: features:     ' . dump $features );
+
+  # build the marked-up alignment
+  my( $alignments, $alignmentLengths ) = reconstructAli( $rawAlignment );
+
+  # stash the arrays of alignments, alignment lengths and consensus strings  
+  $c->stash->{alignments}->{rawAlignments} = $alignments;
+  $c->stash->{alignments}->{lengths}    = $alignmentLengths;
+  $c->stash->{alignments}->{consensus}  = $consensus;
+}
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 reconstructAli
+
+Reconstructs a blocked alignment from a raw alignment.
+
+=cut
+
+sub reconstructAli {
+  my $ali = shift;
+  my ($source, $aliData) = each %$ali;
+
+  my( @alignments, @alignmentLengths );
+
+  for( my $i = 0; $i < scalar(@$aliData); $i++ ) {
+    my %aliObjects = 
+      map{ $_->{alignobject_intObjectId} => $_ } @{ $aliData->[$i]->{alignobject} };
+  
+    push @alignmentLengths, $aliData->[$i]->{alignment_max};
+  
+    foreach my $block ( sort { $a->{block_blockOrder} <=> $b->{block_blockOrder} }
+                             @{$aliData->[$i]->{block} } ) {
+      my %ali;
+      foreach my $bseqRef (@{ $block->{segment} } ) {
+  
+        my $key = $bseqRef->{segment_intObjectId} . '/' . 
+                  $bseqRef->{segment_start}       . '-' . 
+                  $bseqRef->{segment_end};
+    
+        $ali{$key} = &getAliString($bseqRef, \%aliObjects);
+      }
+      push @alignments, \%ali;
+    }
+  }
+  return \@alignments, \@alignmentLengths;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getAliString
+
+Gets the alignment string from the alignment.
+
+=cut
+
+sub getAliString{
+  my( $bseqRef, $aliObjectsRef ) = @_;
+
+  my $seqStr = $aliObjectsRef->{ $bseqRef->{segment_intObjectId} }->{sequence};
+
+  my $seq = substr( $seqStr,
+                    $bseqRef->{segment_start} - 1,
+                    $bseqRef->{segment_end} - $bseqRef->{segment_start} + 1 );
+
+  my $aliString = cigar2align( $bseqRef->{cigar}, $seq );
+
+  return $aliString;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 cigar2align
+
+Converts a cigar string into an alignment row.
+
+=cut
+
+sub cigar2align  {
+  my $cigar = shift;
+
+  $cigar =~ s/\"//g;
+
+  my $seq = shift;
+  my $tmp = $cigar;
+  my $start = 0;
+  my $len = length($seq);
+
+  $tmp =~ s/(\d+)D/'-'x$1/eg;
+  $tmp =~ s/D/\-/g;
+  $tmp =~ s/(\d+)I/'.'x$1/eg;
+  $tmp =~ s/I/\./g;
+
+  $tmp =~ s/(\d{0,5})M/if($1){$start+=$1,($start<=$len)?substr($seq,$start-$1,$1):'~'x$1}else{$start+=1,($start<=$len)?substr($seq,$start-1,1):'~'}/eg;
+
+  return $tmp;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getConsensus
+
+Calculates the consensus sequence.
+
+=cut
+
+sub getConsensus {
+  my $con = shift;
+
+  my( $source, $featuresRef ) = each %$con;
+  return $featuresRef->[0]->{feature_label};
+}
 
 #-------------------------------------------------------------------------------
 
