@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.9 2007-08-20 09:00:44 rdf Exp $
+# $Id: Structures.pm,v 1.10 2007-08-23 09:49:40 rdf Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.9 2007-08-20 09:00:44 rdf Exp $
+$Id: Structures.pm,v 1.10 2007-08-23 09:49:40 rdf Exp $
 
 =cut
 
@@ -110,8 +110,8 @@ sub mapping : Local  {
 
   my @mapping = $c->model('PfamDB::Pdb_PfamA_reg')
                   ->search( { auto_pfamA   => $c->stash->{pfam}->auto_pfamA },
-                            { join        => [ qw( pdb ) ],
-                              prefetch    => [ qw( pdb ) ]
+                            { join        => [ qw( pdb pfamseq ) ],
+                              prefetch    => [ qw( pdb pfamseq) ]
                             } );
   $c->stash->{pfamMaps} = \@mapping;
 
