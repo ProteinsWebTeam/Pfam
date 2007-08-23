@@ -2,13 +2,11 @@
 # Proteome.pm
 # rdf 20060821 WTSI
 #
-# Controller to build the main Pfam Proteome page.
-#
-# $Id: Proteome.pm,v 1.10 2007-08-22 08:18:41 jt6 Exp $
+# $Id: Proteome.pm,v 1.11 2007-08-23 16:15:45 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Proteome- controller for the proteome section
+PfamWeb::Controller::Proteome - controller for the proteome section
 
 =cut
 
@@ -16,14 +14,9 @@ package PfamWeb::Controller::Proteome;
 
 =head1 DESCRIPTION
 
-This is intended to be the base class for everything related to clans
-across the site. The L<begin|/"begin : Private"> method will try to
-extract a clan ID or accession from the captured URL and then try to
-load a Clan object from the model into the stash.
+Controller to build the main Pfam Proteome page.
 
-Generates a B<tabbed page>.
-
-$Id: Proteome.pm,v 1.10 2007-08-22 08:18:41 jt6 Exp $
+$Id: Proteome.pm,v 1.11 2007-08-23 16:15:45 jt6 Exp $
 
 =cut
 
@@ -41,7 +34,7 @@ __PACKAGE__->config( SECTION => 'proteome' );
 
 =head2 begin : Private
 
-Tries to extract an NCBI tqaxonomy ID from the parameters and retrieves the 
+Tries to extract an NCBI taxonomy ID from the parameters and retrieves the 
 details of the proteome with that tax ID.
 
 =cut
@@ -55,7 +48,7 @@ sub begin : Private {
     $c->log->info( "Proteome::begin: found tax ID |$1|" );
     $c->stash->{taxId} = $1;
     
-    $c->stash->{proteomeSpecies} = $c->model("PfamDB::Proteome_species")
+    $c->stash->{proteomeSpecies} = $c->model('PfamDB::Proteome_species')
                                      ->find( { ncbi_code => $1},
                                              { join      => [ qw( ncbi_tax ) ],
                                                prefetch  => [ qw( ncbi_tax ) ] } 
@@ -120,29 +113,29 @@ sub begin : Private {
   }
 }
 
-
 #-------------------------------------------------------------------------------
 #- exposed actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 stats : Local
 
-Description...
+Builds a table showing the domain composition of the proteome. Intended to be 
+called via AJAX and builds a page B<fragment>.
 
 =cut
 
 sub stats : Local {
   my( $this, $c ) = @_;
   
-  $c->stash->{template} = 'components/blocks/proteome/statsTable.tt';
-  
+  $c->stash->{template} = 'components/blocks/proteome/statsTable.tt';  
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 graphics : Local
 
-Description...
+Generates domain graphics for each of the sequences containing the specified
+Pfam-A domain.
 
 =cut
 
@@ -257,34 +250,6 @@ sub getStats : Private {
   $c->log->debug( 'Proteome::getStats: found |' . scalar @rs . '| rows' );
 
   $c->stash->{statsData} = \@rs;
-}
-#-------------------------------------------------------------------------------
-
-
-=head2 getStats : Private
-
-Just gets the data items for the stats Page. This is really quick
-
-=cut
-
-sub getStructure : Local {
-  my ($this, $c) = @_;
-  
-  $c->log->debug( 'Proteome::getStructure: getting structure mapping...' );
-  
-  my @mapping = $c->model("PfamDB::Pdb_PfamA_reg")
-                ->search({ 'pfamseq.ncbi_code'  => $c->stash->{proteomeSpecies}->ncbi_code,
-                           'pfamseq.genome_seq' => 1 },
-                          { join => [ qw(pfamseq pdb) ],
-                            prefetch => [ qw (pfamseq pdb ) ]});
-    
-  $c->stash->{pfamMaps} = \@mapping;
-
-  $c->stash->{template} = 'components/blocks/family/structureTab.tt';
-  
-  # cache the template output for one week
-  $c->cache_page( 604800 );
-  
 }
 
 #-------------------------------------------------------------------------------
