@@ -5,7 +5,7 @@
 # 
 # build a page for the alignment viewer tool
 #
-# $Id: alignmentTool.tt,v 1.8 2007-08-21 11:10:45 jt6 Exp $
+# $Id: alignmentTool.tt,v 1.9 2007-08-23 09:04:03 jt6 Exp $
 
 META naked = 1;
 
@@ -23,15 +23,26 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=slider" );
 
 #-------------------------------------------------------------------------------
 
+CALL c.log.debug( "viewerParams: |$viewerParams|" );
+
 pageContent = BLOCK
 -%]
 
 <script type="text/javascript">
   // <![CDATA[
-  Event.observe( window, "load", familyPostLoad, false );
-  loadOptions.ca.uri    = "[% base %]family/alignment/pfamviewer/view";
-  loadOptions.ca.params = { acc:     "[% acc %]",
-                            alnType: "[% alnType %]" };
+  postLoad = function() {
+    new Ajax.Request( "[% base %]family/alignment/pfamviewer/view",
+                      { method:     'get', 
+                        parameters: [% viewerParams %],
+                        onSuccess:  function( oResponse ) {
+                                      $("caph").update( oResponse.responseText );
+                                    },
+                        onFailure:  function( oResponse ) {
+                                      $("caph").update( "Alignment loading failed." );
+                                    }
+                      } );
+  };
+  Event.observe( window, "load", postLoad );
   // ]]>
 </script>
 
