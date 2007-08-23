@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.3 2007-08-21 08:19:05 rdf Exp $
+# $Id: Builder.pm,v 1.4 2007-08-23 16:22:14 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.3 2007-08-21 08:19:05 rdf Exp $
+$Id: Builder.pm,v 1.4 2007-08-23 16:22:14 jt6 Exp $
 
 =cut
 
@@ -27,11 +27,10 @@ use warnings;
 use URI::Escape;
 use JSON;
 use Data::UUID;
-use Storable qw( thaw );
 
 use Data::Dump qw( dump );
 
-use  Bio::Pfam::ColourAlign;
+use Bio::Pfam::ColourAlign;
 
 use base 'PfamWeb::Controller::Family::Alignment';
 
@@ -57,8 +56,9 @@ sub build : Path {
   
   # make sure we got something...
   unless( length $c->stash->{fasta} ) {
-    # TODO how (and where) the hell do we flag an error ?
     $c->log->debug( 'Family::Alignment::Builder::build: failed to get a FASTA sequence' );
+    $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
+    $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
   }
 
@@ -68,7 +68,8 @@ sub build : Path {
   # and see if we managed it...
   if( $submissionStatus < 0 ) {
     $c->log->debug( 'Family::Alignment::Builder::build: problem with submission; returning error page' ); 
-    $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
+    $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
+    $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
   } else {
     $c->log->debug( 'Family::Alignment::Builder::build: alignment job submitted; polling' ); 
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
@@ -77,53 +78,115 @@ sub build : Path {
 
 #-------------------------------------------------------------------------------
 
-=head2 results : Local
+=head2 view : Local
 
 Retrieves the sequence alignment that we generated.
 
 =cut
 
-sub results : Local {
+sub view : Local {
   my( $this, $c ) = @_;
-
-  # the template that will format the results  
-  $c->stash->{template} = 'components/tools/seqViewAlignment.tt';
 
   # retrieve the job results
   $c->forward( 'JobManager', 'retrieveResults' );
   unless( scalar keys %{ $c->stash->{results} } ) {
-    $c->log->debug( 'Family::Alignment::Builder::results: no results found' );
-    $c->stash->{errorMsg} = 'No results found.';
+    $c->log->debug( 'Family::Alignment::Builder::view: no results found' );
+    $c->stash->{errorMsg} = 'No sequence alignment found.';
+    $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
   }   
 
-  
-  my (@markedUpAlignments, @alignmentLengths);
-  foreach my $jobId ( keys %{ $c->stash->{results} } ) {
-    my (%ali, $consensus, $aliLength); 
-    $c->log->debug( 'Family::Alignment::Builder:results: job results: |'
-                   . $c->stash->{results}->{$jobId}->{rawData} . '|' );
-        foreach my $line (split /\n/, $c->stash->{results}->{$jobId}->{rawData}){
-          if($line =~/ConSeq\s+(\S+)/){
-            $consensus = $1;
-          }elsif($line =~ m|(\S+/\d+\-\d+)\s+(\S+)|){
-            $ali{$1} = $2;
-            $aliLength++;
-          }  
-        }
-        
-        my %aliData = ( alignment => \%ali,
-                        consensus => $consensus,
-                        maxLength => $aliLength);
-        push( @{$c->stash->{localAli}}, \%aliData);  
-   }
-   
-   $c->forward("Family::Alignment::PfamViewer", "showPfamViewer");
+  # we're only interested in the first job ID, since this type of job should
+  # only ever HAVE one job ID
+  my $jobId = ( keys %{ $c->stash->{results} } )[0];
+  $c->log->debug( "Family::Alignment::Builder::view: building an alignment from jobId: |$jobId|" );
 
+  # count the number of rows in the alignment. The raw alignment includes 
+  # the consensus string as the last line
+  my @rows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
+  my $numRowsInAlignment = scalar @rows - 1;
+  $c->log->debug( "Family::Alignment::Builder::view: alignment has |$numRowsInAlignment| rows" );
+
+  # configure the viewer...
+  $c->stash->{params} = { source             => 'species',
+                          title              => 'Alignment for selected sequences',
+                          jobId              => $jobId,
+                          numRowsInAlignment => $numRowsInAlignment };
+
+  # and hand off to it
+  $c->forward( 'PfamViewer', 'showPfamViewer' );
 }
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 getAlignment : Private
+
+Builds an alignment of the selected sequences.
+
+=cut
+
+sub getAlignment : Private {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::Alignment::Builder::getAlignment: retrieving alignment...' );
+
+  # first get a job ID. The call to retrieve results will get the job ID for
+  # itself, but we'll need it here anyway
+  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/;
+
+  unless( defined $jobId ) {
+    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no job ID found' );
+    $c->stash->{errorMsg} = 'No job ID found for the sequence alignment job.';
+    return;
+  }   
+
+  # retrieve the job results
+  $c->forward( 'JobManager', 'retrieveResults' );
+  unless( scalar keys %{ $c->stash->{results} } ) {
+    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no results found' );
+    $c->stash->{errorMsg} = 'No sequence alignment found.';
+    return;
+  }   
+
+#  $c->log->debug( 'Family::Alignment::Builder:getAlignment: job results: |'
+#                  . $c->stash->{results}->{$jobId}->{rawData} . '|' );
+
+  # the rawData is just a string containing the alignment lines
+  my @alignmentRows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
+  
+  # the consensus string is the last row of the alignment
+  my $consensusString = pop @alignmentRows;
+  
+  # take a slice of that array, based on the "rows" setting from PfamViewer.
+  # Rows are numbered from 1, not zero, so we need to offset the row values
+  my $from = $c->stash->{rows}->[0] - 1;
+  my $to   = $c->stash->{rows}->[1] - 1;
+  $c->log->debug( 'Family::Alignment::Builder::getAlignment: showing rows |'
+                  . "$from| to |$to|" );
+  
+  my %alignment;
+  my $length;
+  foreach ( @alignmentRows[ $from .. $to ] ) {
+    # rows are either a consensus string or an alignment row
+    if( m/ConSeq\s+(\S+)/ ){
+      $consensusString = $1;
+    } elsif ( m|(\S+/\d+\-\d+)\s+(\S+)| ) {
+      $alignment{$1} = $2;
+      $length++;
+    }  
+  }
+  
+  # parse the consensus string
+  my $consensus = Bio::Pfam::ColourAlign::parseConsensus( $consensusString );
+ 
+  # stash everything
+  $c->stash->{alignments}->{rawAlignments} = [ \%alignment ];
+  $c->stash->{alignments}->{lengths}       = [ $length ];
+  $c->stash->{alignments}->{consensus}     = [ $consensus ];
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 getSequences : Private
@@ -214,14 +277,14 @@ sub queueAlignment : Private {
                     {
                       checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
-                      doneURI       => $c->uri_for( '/family/alignment/builder/results',
+                      doneURI       => $c->uri_for( '/family/alignment/builder/view',
                                                     { acc => $c->stash->{acc} } )
                                          ->as_string,
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
                       jobId         => $jobId,
-                      name          => 'Alignment',
-                      jobClass      => 'Alignment',
+                      name          => 'Sequence alignment',
+                      jobClass      => 'alignment',
                       opened        => $historyRow->opened,
                     }
                   ];
