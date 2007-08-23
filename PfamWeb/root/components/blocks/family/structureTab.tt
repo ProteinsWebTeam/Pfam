@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.7 2007-08-20 09:06:33 rdf Exp $
+# $Id: structureTab.tt,v 1.8 2007-08-23 09:04:30 jt6 Exp $
 
 USE dumper;
 USE String;
@@ -144,8 +144,8 @@ END -%]
   // walk over all of the cells in the table and add listeners for mouseover and 
   // mouseout events
   $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
-        cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
-        cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+        Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
+        Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
       }
     );
   // ]]>
