@@ -2,7 +2,7 @@
 # PfamViewer.pm
 # jt6 20060601 WTSI
 #
-# $Id: PfamViewer.pm,v 1.1 2007-08-23 09:01:16 jt6 Exp $
+# $Id: PfamViewer.pm,v 1.2 2007-08-23 16:15:15 jt6 Exp $
 
 =head1 NAME
 
@@ -14,15 +14,16 @@ package PfamWeb::Controller::PfamViewer;
 
 =head1 DESCRIPTION
 
-Various methods for viewing alignments.
-
-$Id: PfamViewer.pm,v 1.1 2007-08-23 09:01:16 jt6 Exp $
+An HTML-based sequence alignment viewer.
+ 
+$Id: PfamViewer.pm,v 1.2 2007-08-23 16:15:15 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
+use URI::Escape;
 use JSON;
 use Data::Pageset;
 use Data::Dump qw( dump );
@@ -40,14 +41,31 @@ This is the way into the Pfam sequence alignment viewer.
 Hands straight off to a template that generates a "tool" page containing the 
 necessary hooks to load the interactive alignment viewer.
 
+The viewer requires a set of input parameters, given in the stash as a hash.
+This hash must contain at least the B<source> key, the value of which should
+be one of the enumeration in the config for the viewer. The B<source> setting
+tells the viewer which controller to forward to when it needs to retrieve the
+alignment.
+
+Another, optional, parameter is B<title>, which will be used as an HTML 
+heading for the tool window that shows the alignment. This should be kept
+fairly short.
+
 =cut
 
 sub showPfamViewer : Private {
   my( $this, $c ) = @_;
 
   # these settings come directly from another controller, so they haven't
-  # have been exposed to the user and don't need detainting
-  $c->stash->{paramString} = objToJson( $c->stash->{params} );
+  # have been exposed to the user and don't need detainting, but we'll
+  # escape them anyway
+  foreach ( keys %{ $c->stash->{params} } ) {
+    $c->stash->{escapedParams}->{$_} = uri_escape( $c->stash->{params}->{$_} );
+  }
+  
+  $c->stash->{paramString} = objToJson( $c->stash->{escapedParams} );
+  $c->log->debug( 'PfamViewer::showPfamViewer: paramString: |'
+                  . $c->stash->{paramString} . '|' );
 
   # hand off to the tool window template
   $c->log->debug( 'PfamViewer::showPfamViewer: handing off to alignmentTool.tt' );
@@ -58,7 +76,10 @@ sub showPfamViewer : Private {
 
 =head2 view : Local
 
-Description...
+This is the main action for the viewer. This action is responsible for 
+coordinating the calculation of which page to show, retrieving the alignment
+and marking it up as HTML, before handing off to the template that renders
+the alignment fragment.
 
 =cut
 
@@ -74,11 +95,17 @@ sub view : Local {
   
   my %params;
   foreach my $param ( keys %{ $c->req->params } ) {
-    next unless $c->req->param( $param ) =~ /^(\w+)$/;
-    $c->log->debug( "PfamViewer::view: stashing parameter: |$param|$1|" );
-    $c->stash->{$param} = $1;
-    $params{$param} = $1;
+    my $escapedValue   = $c->req->param($param);
+    my $unescapedValue = uri_unescape( $escapedValue );
+
+    next unless $unescapedValue =~ m/([A-Za-z0-9\-\s]+)$/;    
+    
+    $c->log->debug( "PfamViewer::view: stashing parameter: |$param|$unescapedValue|" );
+    $c->stash->{$param} = $unescapedValue;
+    $params{$param} = $escapedValue;
   }
+  # note that the values in the params hash are still escaped, but the stash
+  # has unescaped values
 
   # this is now the record of the input parameters that we'll pass on
   $c->stash->{paramString} = objToJson( \%params );
@@ -135,27 +162,29 @@ sub view : Local {
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 setPage : Private
 
-Stashed values used by this action:
-
-  numRowsInAlignment - total number of rows in the alignment
-
-Parameters used by this action:
-
-  scrollValue - horizontal scroll position
-  numRows     - number of rows of alignment to be displayed
-  page        - jump to the specified page in the alignment
-
-Values stashed by this actions:
-
-  scrollValue - scroll position
-  pager       - the Data::Pageset object
-  rows        - e.g. "1 - 100"
-  pagesBefore \ arrays with a list of pages before and after this one
-  pagesAfter  /
+Calculates which page of the alignment to show. 
 
 =cut
+
+# Stashed values used by this action:
+#
+#  numRowsInAlignment - total number of rows in the alignment
+#
+# Parameters used by this action:
+#
+#  scrollValue - horizontal scroll position
+#  numRows     - number of rows of alignment to be displayed
+#  page        - jump to the specified page in the alignment
+#
+# Values stashed by this actions:
+#
+#  scrollValue - scroll position
+#  pager       - the Data::Pageset object
+#  rows        - e.g. "1 - 100"
+#  pagesBefore \ arrays with a list of pages before and after this one
+#  pagesAfter  /
 
 sub setPage : Private {
   my( $this, $c ) = @_;
@@ -212,9 +241,10 @@ sub setPage : Private {
   #----------------------------------------
 
   # decide which actual rows we need to use now
-  $c->stash->{rows} = $pager->first . '-' . $pager->last;
+  $c->stash->{rows} = [ $pager->first, $pager->last ];
   $c->log->debug( 'PfamViewer::view: rows: |'
-                  . $c->stash->{rows} . '|' );
+                  . $c->stash->{rows}->[0] . '| to |'
+                  . $c->stash->{rows}->[1] . '|' );
 
   # store the lists of page numbers before and after the current one, for use
   # by the template in generating the list of available pages
