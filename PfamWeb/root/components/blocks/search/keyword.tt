@@ -5,7 +5,7 @@
 # 
 # build the keyword search block
 #
-# $Id: keyword.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: keyword.tt,v 1.2 2007-08-28 14:17:09 jt6 Exp $
 %]
 
 <!-- start keyword search block -->
@@ -35,7 +35,8 @@
       <p>
         You can perform the same search from anywhere within the Pfam site, using
         the keyword search box at the top right-hand side of every page.
-      </p> 
+      </p>
+      <hr />
     </div>
 
     <div class="formWrapper">
