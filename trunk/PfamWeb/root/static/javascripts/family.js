@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.26 2007-08-23 09:09:19 jt6 Exp $
+// $Id: family.js,v 1.27 2007-08-28 15:14:21 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -154,8 +154,7 @@ function scrollHorizontal( value, element, slider ) {
 
 var slider;
 function formatAlignment( sURLBase, oSlider ) {
-  console.debug( "in formatAlignment" );
-  
+ 
   slider = oSlider;
 
   // pre-compile a regular expression to filter out the ID, start and
