@@ -29,25 +29,29 @@
           <img src="[% base %]static/images/rasmollogo.jpg" 
                alt="RasMol" /></a>
       </div>
-      <h2>Jmol</h2>
+      <h3>
+        <a href="http://jmol.sourceforge.net/"
+           class="ext">Jmol</a>
+      </h3>
       <p>
-        <a href="http://jmol.sourceforge.net/" class="ext">Jmol</a> is a
-        lightweight Java applet for viewing protein structures. It uses a 
+        A lightweight Java applet for viewing protein structures. It uses a 
         scripting language that is similar to that used by 
         <a class="ext" href="http://www.openrasmol.org/">RasMol</a>, which may
         be familiar to some users.
       </p>
 
       <div style="float: right">
-        <a href="http://http://www.astex-therapeutics.com/AstexViewer/index.php/">
+        <a href="http://www.astex-therapeutics.com/AstexViewer/index.php">
           <img src="[% base %]static/images/astexlogo.jpg"
                alt="AstexViewer" /></a>
       </div>
-      <h2>AstexViewer</h2>
+      <h3>
+        <a href="http://www.astex-therapeutics.com/AstexViewer/index.php" 
+           class="ext">AstexViewer</a>
+      </h3>
       <p>
-        <a href="http://http://www.astex-therapeutics.com/AstexViewer/index.php/" 
-           class="ext">AstexViewer</a> is another Java applet, which was 
-        developed by <a class="ext" href="http://www.astextherapeutics.com/">
+        Another Java applet, developed by 
+        <a class="ext" href="http://www.astextherapeutics.com/">
           Astex Therapeutics</a>. It has sophisticated three dimensional
         graphics capabilities, such as the ability to render transparent
         surfaces.
@@ -58,11 +62,12 @@
           <img src="[% base %]static/images/spicelogo.jpg"
                alt="SPICE" /></a>
       </div>
-      <h2>SPICE</h2>
-      <p>
+      <h3>
         <a href="http://www.efamily.org.uk/software/dasclients/spice/"
-          class="ext">SPICE</a> is a Java applet that can display protein 
-        structure, protein sequence and
+           class="ext">SPICE</a>  
+      </h3>
+      <p>
+        A Java applet that can display protein structure, protein sequence and
         <acronym title="Distributed Annotation System">DAS</acronym> 
         annotations of structure or sequence.
       </p>
