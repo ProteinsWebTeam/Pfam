@@ -29,7 +29,9 @@ oe = 0;
       shows the sequences and Pfam domains that correspond to this structure.
     </p>
 
-    <table class="details" summary="Mapping to Uniprot and Pfam">
+    <table id="structuresTable"
+           class="details" 
+           summary="Mapping to Uniprot and Pfam">
       <thead>
         <tr class="caption">
           <th colspan="3">PDB</th>
@@ -68,5 +70,22 @@ oe = 0;
 
   </div>
 </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // how many columns are there in the table ?
+  var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+  var numColsTable  = firstRow.getElementsByTagName("td").length;
+
+  // walk over all of the cells in the table and add listeners for mouseover and 
+  // mouseout events
+  $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+        Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
+        Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
+      }
+    );
+  // ]]>
+</script>
 
 <!-- end mapping block -->
