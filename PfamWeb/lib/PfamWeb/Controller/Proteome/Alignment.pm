@@ -2,7 +2,7 @@
 # Alignment.pm
 # jt6 20070823 WTSI
 #
-# $Id: Alignment.pm,v 1.1 2007-08-23 16:23:34 jt6 Exp $
+# $Id: Alignment.pm,v 1.2 2007-08-28 15:03:46 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Alignment;
 This is the controller than handles the generation of alignments of
 sequences from a given proteome.
 
-$Id: Alignment.pm,v 1.1 2007-08-23 16:23:34 jt6 Exp $
+$Id: Alignment.pm,v 1.2 2007-08-28 15:03:46 jt6 Exp $
 
 =cut
 
@@ -80,9 +80,7 @@ sub getAlignment : Private {
   my $length;
   foreach ( @alignmentRows[ $from .. $to ] ) {
     # rows are either a consensus string or an alignment row
-    if( m/ConSeq\s+(\S+)/ ){
-      $consensusString = $1;
-    } elsif ( m|(\S+/\d+\-\d+)\s+(\S+)| ) {
+    if ( m|(\S+/\d+\-\d+)\s+(\S+)| ) {
       $alignment{$1} = $2;
       $length++;
     }  
