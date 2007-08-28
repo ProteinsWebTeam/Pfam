@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.5 2007-08-28 15:03:56 jt6 Exp $
+# $Id: Builder.pm,v 1.6 2007-08-28 15:28:07 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.5 2007-08-28 15:03:56 jt6 Exp $
+$Id: Builder.pm,v 1.6 2007-08-28 15:28:07 jt6 Exp $
 
 =cut
 
@@ -158,22 +158,21 @@ sub getAlignment : Private {
   
   # the consensus string is the last row of the alignment
   my $consensusString = pop @alignmentRows;
+  $consensusString =~ s/^ConSeq\s+(\S+)$/$1/;
   
   # take a slice of that array, based on the "rows" setting from PfamViewer.
   # Rows are numbered from 1, not zero, so we need to offset the row values
   my $from = $c->stash->{rows}->[0] - 1;
   my $to   = $c->stash->{rows}->[1] - 1;
-  $c->log->debug( 'Family::Alignment::Builder::getAlignment: showing rows |'
-                  . "$from| to |$to|" );
+  #$c->log->debug( 'Family::Alignment::Builder::getAlignment: showing rows |'
+  #                . "$from| to |$to|" );
   
   my %alignment;
   my $length;
   foreach ( @alignmentRows[ $from .. $to ] ) {
-    # rows are either a consensus string or an alignment row
-    if ( m|(\S+/\d+\-\d+)\s+(\S+)| ) {
-      $alignment{$1} = $2;
-      $length++;
-    }  
+    next unless m|(\S+/\d+\-\d+)\s+(\S+)|;
+    $alignment{$1} = $2;
+    $length++;
   }
   
   # parse the consensus string
