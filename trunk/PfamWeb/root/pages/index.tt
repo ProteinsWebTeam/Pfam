@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.35 2007-08-01 10:32:17 jt6 Exp $
+# $Id: index.tt,v 1.36 2007-08-28 12:22:51 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -48,9 +48,9 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     
       # we have release data; format the date nicely
       USE date( format = "%B %Y" );
-      r = String.new( relData.pfam_release_date );  
       d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
-      
+
+      USE String;
       release_date = String.new( "00:00:00 " );
       CALL release_date.append( d.2, ":", d.1, ":", d.0 ); %]
       <h2>Pfam [% relData.pfam_release %] ([% date.format( release_date ) %],
