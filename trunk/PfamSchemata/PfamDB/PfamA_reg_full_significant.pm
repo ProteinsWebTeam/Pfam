@@ -1,5 +1,5 @@
 
-# $Id: PfamA_reg_full_significant.pm,v 1.5 2007-07-16 10:26:35 rdf Exp $
+# $Id: PfamA_reg_full_significant.pm,v 1.6 2007-08-28 11:01:39 rdf Exp $
 #
 # $Author: rdf $
 package PfamDB::PfamA_reg_full_significant;
@@ -23,7 +23,7 @@ __PACKAGE__->set_primary_key("auto_pfamA_reg_full", "auto_pfamA", "auto_pfamseq"
 #Now setup the relationship
 __PACKAGE__->has_one( "pfamA" =>  "PfamDB::Pfam",
 		      { "foreign.auto_pfamA"  => "self.auto_pfamA" },
-		      { proxy => [ qw ( pfamA_id pfamA_acc description model_length type) ] } );
+		      { proxy => [ qw ( pfamA_id pfamA_acc description model_length type version) ] } );
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamDB::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
