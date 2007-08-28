@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Pfam families
 #
-# $Id: families.tt,v 1.2 2007-08-23 13:42:35 jt6 Exp $
+# $Id: families.tt,v 1.3 2007-08-28 13:51:18 jt6 Exp $
 
 META title = "Browse Pfam families";
 META fullPage = 1;
