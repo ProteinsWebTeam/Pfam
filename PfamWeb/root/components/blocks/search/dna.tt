@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.3 2007-08-15 13:22:28 jt6 Exp $
+# $Id: dna.tt,v 1.4 2007-08-28 14:16:33 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
