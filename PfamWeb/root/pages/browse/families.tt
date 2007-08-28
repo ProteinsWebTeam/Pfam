@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Pfam families
 #
-# $Id: families.tt,v 1.3 2007-08-28 13:51:18 jt6 Exp $
+# $Id: families.tt,v 1.4 2007-08-28 14:12:43 jt6 Exp $
 
 META title = "Browse Pfam families";
 META fullPage = 1;
@@ -44,12 +44,15 @@ pageList = PROCESS "components/pageList.tt",
 
 <!-- start browse page -->
 
+<h1 class="pageHeader">Browse Pfam families</h1>
+
 [% pageList %]
 
 <table class="details browse" summary="Details of Pfam families">
   <thead>
     <tr>
-      <th rowspan="2">Name</th>
+      <th rowspan="2">ID</th>
+      <th rowspan="2">Accession</th>
       <th rowspan="2">Type</th>
       <th colspan="2">Alignment length</th>
       <th rowspan="2">Average length</th>
@@ -60,8 +63,8 @@ pageList = PROCESS "components/pageList.tt",
       <th rowspan="2">Description</th>
     </tr>
     <tr>
-      <th>seed</th>
-      <th>full</th>
+      <th>Seed</th>
+      <th>Full</th>
     </tr>
   </thead>
   <tbody>
@@ -78,6 +81,9 @@ pageList = PROCESS "components/pageList.tt",
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
         <a href="[% familyURI %]?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_id %]</a>
+      </td>
+      <td>
+        <a href="[% familyURI %]?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_acc %]</a>
       </td>
       <td>[% pfam.type %]</td>
       <td>[% pfam.num_seed %]</td>
