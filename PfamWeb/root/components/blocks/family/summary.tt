@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.28 2007-08-10 15:23:23 jt6 Exp $
+# $Id: summary.tt,v 1.29 2007-08-28 14:51:33 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -55,7 +55,7 @@ requirements.js.push( "family.js" );
     [% IF pfam.comment.length %]
     <p>[% pfam.comment %]</p>
     [% ELSE %]
-    <p class="inactive">No further details</p>
+    <p class="inactive">No Pfam abstract.</p>
     [% END %]
   
     <hr class="short"/>
