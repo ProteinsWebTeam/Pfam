@@ -4,7 +4,7 @@
 # 
 # build the ftp block for the help pages
 #
-# $Id: ftp.tt,v 1.3 2007-07-10 19:36:10 jt6 Exp $
+# $Id: ftp.tt,v 1.4 2007-08-28 15:40:28 jt6 Exp $
 %]
 
 <!-- start ftp block -->
@@ -68,7 +68,7 @@
 			 The seed alignments of the curated families
     </dd>
 	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/current_release/Pfam-B.gz">
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
 			  Pfam-B.gz</a>
 	  </dt>
 	  <dd>
