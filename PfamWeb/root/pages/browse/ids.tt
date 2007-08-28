@@ -4,7 +4,7 @@
 # 
 # builds a form selection field with a list of family IDs.
 #
-# $Id: ids.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: ids.tt,v 1.2 2007-08-28 13:51:18 jt6 Exp $
 
 META naked = 1
 %]
