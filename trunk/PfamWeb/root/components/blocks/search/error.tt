@@ -4,7 +4,7 @@
 #
 # show an error report for the search page.
 #
-# $Id: error.tt,v 1.1 2007-07-25 10:26:16 jt6 Exp $
+# $Id: error.tt,v 1.2 2007-08-28 14:16:33 jt6 Exp $
 
 # tell the wrapper to add the full page footer
 META fullPage = 1;
