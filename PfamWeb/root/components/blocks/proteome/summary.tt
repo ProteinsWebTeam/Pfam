@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.6 2007-08-20 15:49:33 jt6 Exp $
+# $Id: summary.tt,v 1.7 2007-08-28 15:47:53 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -94,6 +94,7 @@ oe = 0;
 <script type="text/javascript">
   // <![CDATA[
 
+  // set up the post-load AJAX call
   Event.observe(
     window,
     "load",
@@ -111,12 +112,7 @@ oe = 0;
     },
     false );
 
-  // post-load parameters
-//  loadOptions.pdg.uri    = "[% base %]domaingraphics";
-//  loadOptions.pdg.params = { taxId: "[% taxId %]" };
-  
   // build the little taxonomy tree
-/*
   try {
     var tree = new YAHOO.widget.TreeView("lineage"); 
     var parent = tree.getRoot();
@@ -130,10 +126,9 @@ oe = 0;
     [%- END %]
     tree.draw();
   } catch( e ) {
-*/
     // fall-back to the lineage string itself
     $("lineage").update("[% proteomeSpecies.taxonomy %]");
-//  }
+  }
   // ]]>
 </script>
 
