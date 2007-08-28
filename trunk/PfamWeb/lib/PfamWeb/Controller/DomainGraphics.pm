@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.11 2007-08-23 09:00:57 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.12 2007-08-28 11:21:03 rdf Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.11 2007-08-23 09:00:57 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.12 2007-08-28 11:21:03 rdf Exp $
 
 =cut
 
@@ -312,8 +312,8 @@ sub getFamilyData : Private {
 
     @rows = $c->model('PfamDB::PfamA_architecture')
               ->search( { pfamA_acc => $c->stash->{acc} },
-                        { join     => [ qw( arch pfam ) ],
-                          prefetch => [ qw( arch pfam ) ],
+                        { join     => [ 'pfam', { 'arch' => [ qw(type_example storable) ] }],
+                          prefetch => [ 'pfam', { 'arch' => [ qw(type_example storable) ] }],
                           order_by => 'arch.no_seqs DESC' } );
   }
 
@@ -548,7 +548,7 @@ sub getClanData : Private {
                         { join      => [ qw( storable type_example clan_arch ) ],
                           prefetch  => [ qw( storable type_example ) ],
                           order_by  => 'no_seqs DESC'
-                        } )->all;
+                        } );
   }
   
   # how many architectures/sequences ?
@@ -666,27 +666,30 @@ sub getProteomeSeqs : Private {
                        );
 
   } elsif( $c->stash->{pfamAcc} ) {
+    
      
-    my $pfam = $c->model('PfamDB::Pfam')
-                 ->find( { pfamA_acc => $c->stash->{pfamAcc} } );
-    $c->stash->{auto_pfamA} = $pfam->auto_pfamA;
-        
-    @rows = $c->model('PfamDB::Pfamseq')
-              ->search( { 'me.ncbi_code'             => $c->stash->{taxId},
-                          'proteome_seqs.auto_pfamA' => $c->stash->{auto_pfamA} },
+     my $pfam = $c->model('PfamDB::Pfam')
+                   ->find( { pfamA_acc => $c->stash->{pfamAcc} } );
+      $c->stash->{auto_pfamA} = $pfam->auto_pfamA;
+    
+    
+    
+    @rows = $c->model("PfamDB::Pfamseq")
+              ->search( { "me.ncbi_code"  => $c->stash->{taxId},
+                          "proteome_seqs.auto_pfamA" => $c->stash->{auto_pfamA} },
                          { join      => [ qw( proteome_seqs annseq ) ],
-                           select    => [
-                                          { distinct => [ 'me.auto_pfamseq' ] },
-                                          qw( pfamseq_id
-                                              annseq_storable ) ],
+                           select    => [  { distinct => [ "me.auto_pfamseq" ] } ,
+                                            qw( pfamseq_id
+                                                annseq_storable ) ],
                             as       => [ qw( auto_pfamseq pfamseq_id 
                                               annseq_storable  ) ],
+                            
                          }
                        );
 
   } else {
 
-    @rows = $c->model('PfamDB::Pfamseq')
+    @rows = $c->model("PfamDB::Pfamseq")
               ->search( { ncbi_code  => $c->stash->{taxId},
                            genome_seq => 1 },
                          { join      => [ qw( annseq arch ) ],
