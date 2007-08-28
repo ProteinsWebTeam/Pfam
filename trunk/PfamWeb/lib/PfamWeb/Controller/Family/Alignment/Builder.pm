@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.4 2007-08-23 16:22:14 jt6 Exp $
+# $Id: Builder.pm,v 1.5 2007-08-28 15:03:56 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.4 2007-08-23 16:22:14 jt6 Exp $
+$Id: Builder.pm,v 1.5 2007-08-28 15:03:56 jt6 Exp $
 
 =cut
 
@@ -170,9 +170,7 @@ sub getAlignment : Private {
   my $length;
   foreach ( @alignmentRows[ $from .. $to ] ) {
     # rows are either a consensus string or an alignment row
-    if( m/ConSeq\s+(\S+)/ ){
-      $consensusString = $1;
-    } elsif ( m|(\S+/\d+\-\d+)\s+(\S+)| ) {
+    if ( m|(\S+/\d+\-\d+)\s+(\S+)| ) {
       $alignment{$1} = $2;
       $length++;
     }  
