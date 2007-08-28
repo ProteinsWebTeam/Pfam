@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.11 2007-08-10 09:42:38 jt6 Exp $
+# $Id: familyStructures.tt,v 1.12 2007-08-28 13:23:02 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -78,7 +78,7 @@ IF pdbUnique.keys.size;
       <div>
     	  <select id="pdbIdField">
     	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
-      	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %]disabled="1"[% END %] />[% id %]</option>
+      	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %] disabled="1" selected="1"[% END %] />[% id %]</option>
           [% END %]
         </select>
         <input type="button" 
