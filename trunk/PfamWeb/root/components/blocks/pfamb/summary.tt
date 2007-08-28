@@ -5,7 +5,7 @@
 # 
 # build the summary block for PfamB's
 #
-# $Id: summary.tt,v 1.8 2007-07-23 14:35:12 jt6 Exp $
+# $Id: summary.tt,v 1.9 2007-08-28 14:47:22 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -48,7 +48,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
     <p>
       This family was generated <em>automatically</em> from an alignment taken from
-  	  Prodom 2004.1 (<a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% prodom.db_link %]">[% prodom.db_link %]</a>)
+  	  Prodom 2005.1 (<a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% prodom.db_link %]">[% prodom.db_link %]</a>)
       subtracting sequence segments already covered by Pfam-A.
     </p>
 
