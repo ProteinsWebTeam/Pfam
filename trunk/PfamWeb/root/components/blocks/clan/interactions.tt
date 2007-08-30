@@ -4,7 +4,7 @@
 #
 # block for the interactions data for the clan section
 #
-# $Id: interactions.tt,v 1.4 2007-08-30 13:04:44 jt6 Exp $
+# $Id: interactions.tt,v 1.5 2007-08-30 14:49:08 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 
@@ -62,7 +62,7 @@ END;
       <tbody>
         [% USE aIter = iterator( intHash.keys );
         FOREACH a IN aIter;
-          FOREACH b IN intHash.$a;
+          FOREACH b IN intHash.$a %]
             <tr>
               [% IF loop.first %]
               <td class="fixed" rowspan="[% loop.size %]">
