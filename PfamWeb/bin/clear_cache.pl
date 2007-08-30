@@ -18,24 +18,27 @@ my @production  = qw( 172.17.36.3:11211
                       172.17.36.10:11211 );
 
 my %options;
-getopt( 'adp', \%options ) or usage();
+getopt( 'adpqh', \%options ) or usage();
 
 my @servers;
+
 if( $options{h} ) {
   usage();
 } elsif( exists $options{a} ) {
-  print STDERR "clearing all caches:\n";
+  print STDERR "clearing all caches:\n" unless exists $options{q};
   @servers = ( @development, @production );
 } elsif( exists $options{p} ) {
-  print STDERR "clearing production cache:\n";
+  print STDERR "clearing production cache:\n" unless exists $options{q};
   @servers = @production;
 } else {
-  print STDERR "clearing development cache:\n";
+  print STDERR "clearing development cache:\n" unless exists $options{q};
   @servers = @development;
 }
 
-foreach ( @servers ) {
-  print "$_\n";
+unless( exists $options{q} ) {
+  foreach ( @servers ) {
+    print "$_\n";
+  }
 }
 
 my $cache = new Cache::Memcached(
