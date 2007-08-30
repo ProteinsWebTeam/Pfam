@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.10 2007-08-01 14:43:55 jt6 Exp $
+# $Id: Viewer.pm,v 1.11 2007-08-30 14:47:43 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.10 2007-08-01 14:43:55 jt6 Exp $
+$Id: Viewer.pm,v 1.11 2007-08-30 14:47:43 jt6 Exp $
 
 =cut
 
@@ -57,13 +57,13 @@ sub viewer : Path {
     next if $seenChainAutoPfamseq{$ap.$chain};
   
     my @markups = $c->model('PfamDB::Pdb_residue')
-                    ->search( { 'pfamseqMarkup.auto_pfamseq' => $map->auto_pfamseq,
-                                chain                        => $map->chain,
+                    ->search( { 'pfamseqMarkup.auto_pfamseq' => $ap,
+                                chain                        => $chain,
                                 auto_pdb                     => $c->stash->{pdb}->auto_pdb },
                               { join                         => [ qw( pfamseqMarkup ) ],
                                prefetch                      => [ qw( pfamseqMarkup ) ] } );
     $c->log->debug( 'Structure::Viewer::viewer: found ' . scalar @markups
-                    . ' markups for mapping to ' . $map->auto_pfamseq );
+                    . ' markups for mapping to ' . $ap );
   
     $seenChainAutoPfamseq{$ap.$chain}++;
     push @allMarkups, @markups;
