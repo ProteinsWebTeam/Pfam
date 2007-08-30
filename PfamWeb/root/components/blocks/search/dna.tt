@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.4 2007-08-28 14:16:33 jt6 Exp $
+# $Id: dna.tt,v 1.5 2007-08-30 15:18:05 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -29,15 +29,38 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   </div>
   <div class="blockContent">
 
-    [% IF dnaSearchError %]
-    <div class="error">
-      <h2>Error</h2>
-      [% dnaSearchError %]
+    <p>
+      Search for Pfam domains on a DNA sequence.
+      <span onclick="reveal(this,'dnaNotes',false, true)"
+            class="moreLink">More...</span>
+    </p>    
+
+    <div id="dnaNotes" style="display: none">
+      <p>
+        This tool allows you to search DNA sequences of upto 80kb against Pfam
+        HMMs, using the 
+        <a href="http://www.ebi.ac.uk/wise2/">Wise2</a> package. You can see
+        more information about Wise2 at the 
+        <a href="http://www.ebi.ac.uk/Wise2/doc_wise2.html">homepage</a>.
+      </p>
+      <p>
+        Because these searches can be time consuming, we run the searches 
+        offline and mail the results to you. Please ensure that the email 
+        address that you enter is correct, as no checking is performed before 
+        the search is run.
+      </p>
+      <hr />
     </div>
-    [% END %]
 
     <div class="formWrapper">
 
+      [% IF dnaSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% dnaSearchError %]
+      </div>
+      [% END %]
+  
       <form method="post" 
             id="dnaSeqSearchForm"
             action="[% base %]search/dna"
