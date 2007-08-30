@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.29 2007-08-28 14:51:33 jt6 Exp $
+# $Id: summary.tt,v 1.30 2007-08-30 09:41:59 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -92,7 +92,7 @@ requirements.js.push( "family.js" );
       [% membershipList = BLOCK;
         total = 0;
         FOREACH member IN clan.clan_membership.sort("pfamA_id") %]
-          <span class="clanMember">
+          <span class="listItem">
           [% IF member.pfamA_acc == pfam.pfamA_acc;
             member.pfamA_id;
           ELSE %]
