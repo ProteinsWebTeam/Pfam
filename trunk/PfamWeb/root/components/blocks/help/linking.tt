@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.3 2007-05-01 21:03:26 jt6 Exp $
+# $Id: linking.tt,v 1.4 2007-08-30 13:03:12 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -15,71 +15,81 @@
   </div>
   <div class="blockContent">
     <p>
-      Pfam is maintained by a consortium of researchers based in Cambridge,
-      Stockholm, and St. Louis. Although the data files are identical, the
-      web servers are not mirrors of each other; they are maintained
-      separately and only loosely coordinated by code-sharing.
+      Pfam is maintained by a consortium of researchers based at the 
+      <a href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a>, 
+      Cambridge, UK, <a href="http://www.sbc.su.se/">Stockholm Bioinformatics 
+      Center</a>, Stockholm, Sweden, and <a href="http://pfam.janelia.org/">
+        Janelia Farm</a>, Maryland, USA. Although the data files are identical, 
+      the web servers are not currently mirrors of each other, though we hope to 
+      have this website running in all three locations soon.
     </p>
     <p>
-      All the servers are in a continuous state of flux, especially near
-      the time of new Pfam releases. Webmasters are not advised to make
-      links to just any Pfam page. However, we promise to make every effort
-      to maintain the following links that other webmasters may find useful.
+      Although we have no plans to dramatically change the locations of 
+      resources within this site, webmasters are advised to link only to
+      the following types of page within the site.
     </p>
     
-    <h3> Home pages </h3>
-    <ul>
-      <li>Cambridge: <a href="http://www.sanger.ac.uk/Software/Pfam/">http://www.sanger.ac.uk/Software/Pfam/</a></li>
-      <li>Stockholm: <a href="http://www.cgr.ki.se/Pfam/">http://www.cgr.ki.se/Pfam/</a></li>
-      <li>St. Louis: <a href="http://pfam.wustl.edu/">http://pfam.wustl.edu/</a></li>
-    </ul>
+    <h3>Home pages</h3>
+    <dl class="sitesList">
+      <dt>WTSI:</dt>
+      <dd><a href="http://pfam.sanger.ac.uk/">http://pfam.sanger.ac.uk/</a></dd>
+      <dt>SBC:</dt>
+      <dd><a href="http://pfam.cgb.ki.se/">http://pfam.cgb.ki.se/</a></dd>
+      <dt>Janelia:</dt>
+      <dd><a href="http://pfam.janelia.edu/">http://pfam.janelia.edu/</a></dd>
+    </dl>
     
-    <h3> Searching a protein sequence against Pfam </h3>
-    <ul>
-      <li>Cambridge: <a href="http://www.sanger.ac.uk/Software/Pfam/search.shtml">http://www.sanger.ac.uk/Software/Pfam/search.shtml</a></li>
-      <li>Stockholm: <a href="http://pfam.cgb.ki.se/hmmsearch.shtml">http://pfam.cgb.ki.se/hmmsearch.shtml</a></li>
-      <li>St. Louis: <a href="http://pfam.wustl.edu/hmmsearch.shtml">http://pfam.wustl.edu/hmmsearch.shtml</a></li>
-    </ul>
+    <h3>Searching a protein sequence against Pfam</h3>
+    <dl class="sitesList">
+      <dt>WTSI:</dt>
+      <dd><a href="http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock">
+        http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock</a></dd>
+      <dt>SBC:</dt>
+      <dd><a href="http://pfam.cgb.ki.se/hmmsearch.shtml">
+        http://pfam.cgb.ki.se/hmmsearch.shtml</a></dd>
+      <dt>Janelia:</dt>
+      <dd><a href="http://pfam.janelia.edu/hmmsearch.shtml">
+        http://pfam.janelia.edu/hmmsearch.shtml</a></dd>
+    </dl>
 
-    <h3> Searching a DNA sequence against Pfam </h3>
-    <ul>
-      <li>Cambridge: <a href="http://www.sanger.ac.uk/Software/Pfam/dnasearch.shtml">http://www.sanger.ac.uk/Software/Pfam/dnasearch.shtml</a></li>
-      <li>Stockholm: not yet available</li>
-      <li>St. Louis: not yet available</li>
-    </ul>
-    
-    <h3> Retrieving Pfam family description pages </h3>
+    <h3>Searching a DNA sequence against Pfam</h3>
+    <dl class="sitesList">
+      <dt>WTSI:</dt>
+      <dd><a href="http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock">
+        http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock</a></dd>
+      <dt>SBC:</dt>
+      <dd>Not currently available</dd>
+      <dt>Janelia:</dt>
+      <dd>Not currently available</dd>
+    </dl>
+
+    <h3>Retrieving Pfam family pages</h3>
+    <dl class="sitesList">
+      <dt>WTSI:</dt>
+      <dd>
+        <div>
+          <a href="http://pfam.sanger.ac.uk/family?acc=PF00002">
+            http://pfam.sanger.ac.uk/family?acc=PF00002</a>
+          or<br />
+          <a href="http://pfam.sanger.ac.uk/family?id=7tm_2">
+            http://pfam.sanger.ac.uk/family?id=7tm_2</a>
+        </div>
+      </dd>
+      <dt>SBC:</dt>
+      <dd><a href="http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002">
+        http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002</a></dd>
+      <dt>Janelia:</dt>
+      <dd><a href="http://pfam.janelia.edu/cgi-bin/getdesc?acc=PF00002">
+        http://pfam.janelia.edu/cgi-bin/getdesc?acc=PF00002</a></dd>
+    </dl>
+
     <p>
-      example: retrieve PF00002
-    </p>
-    <ul>
-      <li>Cambridge: <a href="http://www.sanger.ac.uk/cgi-bin/Pfam/getacc?PF00002">http://www.sanger.ac.uk/cgi-bin/Pfam/getacc?PF00002</a></li>
-      <li>Stockholm: <a href="http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002">http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002</a></li>
-      <li>St. Louis: <a href="http://pfam.wustl.edu/cgi-bin/getdesc?acc=PF00002">http://pfam.wustl.edu/cgi-bin/getdesc?acc=PF00002</a></li>
-    </ul>
-    <p>
-      The St. Louis server also supports fetching this page by name;
-      substitute "name=pkinase" (for instance), instead of "acc=PF00002".
-      However, accession numbers are more stable from release to release
-      than names are, so we strongly recommend that you link by accession number.
-    </p>
-    
-    <h3> Retrieving Pfam alignments </h3>
-    <p>
-      example: retrieve Seed alignment for PF00002
-    </p>
-    <ul>
-      <li>Cambridge: <a href="http://www.sanger.ac.uk/cgi-bin/Pfam/getalignment.pl?acc=PF00002&amp;type=seed">http://www.sanger.ac.uk/cgi-bin/Pfam/getalignment.pl?acc=PF00002&amp;type=seed</a></li>
-      <li>Stockholm: <a href="http://www.cgr.ki.se/cgi-bin/Pfam/getalignment.pl?acc=PF00002&amp;type=seed">http://www.cgr.ki.se/cgi-bin/Pfam/getalignment.pl?acc=PF00002&amp;type=seed</a></li>
-      <li>St. Louis: <a href="http://pfam.wustl.edu/cgi-bin/getalignment?acc=PF00002&amp;type=seed">http://pfam.wustl.edu/cgi-bin/getalignment?acc=PF00002&amp;type=seed</a></li>
-    </ul>
-    
-    <p>
-      To get the Full alignment instead, use "type=full" instead of "type=seed".
-    </p>
-    <p>
-      To retrieve the alignment by name, use "name=pkinase" (for instance) instead
-      of "acc=PF00002". (St. Louis only). 
+      Both the WTSI and Janelia servers support retrieving family data using 
+      either accession or ID. For WTSI, use &quot;entry=7tm_2&quot; or
+      &quot;entry=PF00002&quot;; for Janelia use &quot;name=7tm_2&quot;
+      and &quot;name=PF00002&quot;. However, accession numbers are more stable 
+      from release to release than IDs, so we strongly recommend that you link 
+      by accession number.
     </p>
     
   </div>
