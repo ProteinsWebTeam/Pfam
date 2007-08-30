@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.56 2007-08-16 16:14:01 jt6 Exp $
+   $Id: pfam.css,v 1.57 2007-08-30 09:27:03 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -448,6 +448,11 @@ td.left {
   text-align: left !important;
 }
 
+/* fix the width of some columns */
+table.details td.fixed {
+  width: 10em;
+}
+
 /* different flavours of details table... stop me when it's getting ridiculous */
 table.links td {
   width: 30em;
@@ -725,9 +730,9 @@ div.allSequences .even {
 }
 
 /* ---------------------------------------- */
-/* a list of clan members */
+/* a list of items */
 
-span.clanMember {
+span.listItem {
   float: left;
   padding-left: 0.8em;
   width: 12em;
