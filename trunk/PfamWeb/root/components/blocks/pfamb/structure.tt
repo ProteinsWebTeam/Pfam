@@ -4,7 +4,7 @@
 # 
 # build the structure block for PfamBs
 #
-# $Id: structure.tt,v 1.3 2007-05-30 08:08:57 jt6 Exp $
+# $Id: structure.tt,v 1.4 2007-08-30 15:25:14 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 %]
@@ -16,6 +16,18 @@ RETURN UNLESS summaryData.numStructures;
     <h1>Structures</h1>
   </div>
   <div class="blockContent">
+
+    <p>
+      For those sequences which have a structure in the
+      <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
+      use the mapping between <a class="ext" 
+        href="http://www.ebi.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
+      systems from the <a class="ext" 
+        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
+      Pfam domains onto UniProt three-dimensional structures. The table below
+      shows the structures on which <strong>[% pfam.pfamB_acc %]</strong>
+      has been found. 
+    </p>
 
     <div id="familyStructureTabHolder">
       <p id="fstrucph" class="loading">
