@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.13 2007-08-20 09:00:44 rdf Exp $
+# $Id: PfamB.pm,v 1.14 2007-08-30 15:25:24 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
 on the Family controller, which is responsible for deciding whether the input
 parameters on the URL are pointing to a Pfam-B accession or ID.
 
-$Id: PfamB.pm,v 1.13 2007-08-20 09:00:44 rdf Exp $
+$Id: PfamB.pm,v 1.14 2007-08-30 15:25:24 jt6 Exp $
 
 =cut
 
@@ -75,9 +75,8 @@ sub structuretab : Local {
   $c->log->debug( 'PfamB::structuretab: acc: |'
 		  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|');
 
-  my @mapping = $c->model('PfamDB::PdbMap')
-                  ->search( { auto_pfam   => $c->stash->{pfam}->auto_pfamB,
-                              pfam_region => 0 },
+  my @mapping = $c->model('PfamDB::Pdb_pfamB_reg')
+                  ->search( { auto_pfamB  => $c->stash->{pfam}->auto_pfamB },
                             { join        => [ qw( pdb ) ],
                               prefetch    => [ qw( pdb ) ]
                             } );
