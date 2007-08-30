@@ -4,7 +4,7 @@
 #
 # block for the interactions data for the clan section
 #
-# $Id: interactions.tt,v 1.3 2007-08-30 09:41:04 jt6 Exp $
+# $Id: interactions.tt,v 1.4 2007-08-30 13:04:44 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 
@@ -18,9 +18,6 @@ FOREACH interaction IN interactions;
   END;
   intHash.$a.push( b );
 END;
-
-USE dumper;
-CALL c.log.debug( dumper.dump( intHash ) );
 -%]
 
 <!-- start interactions block -->
@@ -65,9 +62,7 @@ CALL c.log.debug( dumper.dump( intHash ) );
       <tbody>
         [% USE aIter = iterator( intHash.keys );
         FOREACH a IN aIter;
-          CALL c.log.debug( "iterating; a: |$a|" ); 
           FOREACH b IN intHash.$a;
-            CALL c.log.debug( "iterating; b: |$b|" ) %]
             <tr>
               [% IF loop.first %]
               <td class="fixed" rowspan="[% loop.size %]">
