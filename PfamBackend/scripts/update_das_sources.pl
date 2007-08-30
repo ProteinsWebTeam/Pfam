@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_das_sources.pl,v 1.9 2007-05-16 15:23:07 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.10 2007-08-30 15:41:35 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -43,7 +43,7 @@
 use warnings;
 use strict;
 
-use lib qw( /nfs/team71/pfam/jt6/server/pfam-site );
+#use lib qw( /nfs/team71/pfam/jt6/server/pfam-site );
 
 use Bio::Das::Lite;
 use Data::Validate::URI qw( is_uri );
@@ -59,8 +59,8 @@ my $DAS_PROXY = "http://wwwcache.sanger.ac.uk:3128";
 
 # db setup
 my $DB_DSN  = "dbi:mysql:web_user:pfamdb1:3306";
-my $DB_USER = "web_user";
-my $DB_PASS = "web_user";
+my $DB_USER = "webuseradmin";
+my $DB_PASS = "Dakota41";
 
 # todays date, in seconds since the epoch
 my $cd = time;
@@ -71,6 +71,7 @@ my $defaultServers = { DS_109 => 1, # uniprot
                        DS_210 => 1, # SMART
                        DS_311 => 1, # Pfam Other Features
                        DS_327 => 1, # interpro
+                       DS_359 => 1, # phobius
                      };
 
 # ignore these servers
