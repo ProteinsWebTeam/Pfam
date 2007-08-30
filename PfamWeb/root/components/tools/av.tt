@@ -5,7 +5,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.6 2007-07-23 14:51:25 jt6 Exp $
+# $Id: av.tt,v 1.7 2007-08-30 14:45:35 jt6 Exp $
 
 META naked = 1;
 
@@ -35,7 +35,7 @@ display lines off all;
 color '0xDDDDDD' aminoacid;
 [%- FOREACH m IN mapping;
   IF m.hex_colour %]
-    color '0x[% m.hex_colour ? m.hex_colour : "red" %]' residue [% m.pdb_start_res %] to [% m.pdb_end_res %][% IF m.chain %] and chain [% m.chain ; END %];
+    color '0x[% m.hex_colour ? m.hex_colour : "red" %]' residue [% m.pdb_res_start %] to [% m.pdb_res_end %][% IF m.chain %] and chain [% m.chain ; END %];
   [%- END;
 END -%]
 secstruc molecule mol;
@@ -87,11 +87,11 @@ object surfObj -map { current };
     FOREACH m IN mapping %]
     <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
       <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
-      <td>[% m.pdb_start_res %]</td>
-      <td>[% m.pdb_end_res %]</td>
+      <td>[% m.pdb_res_start %]</td>
+      <td>[% m.pdb_res_end %]</td>
       <td><a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]" target="pfamParentWin">[% m.pfamseq_id %]</a></td>
-      <td>[% m.pfam_start_res %]</td>
-      <td>[% m.pfam_end_res %]</td>
+      <td>[% m.seq_start %]</td>
+      <td>[% m.seq_end %]</td>
       <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]" target="pfamParentWin">[% m.pfamA_acc %]</a>)</td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
     </tr>
