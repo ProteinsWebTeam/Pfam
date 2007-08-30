@@ -1,0 +1,39 @@
+
+[%
+# dead.tt
+# jt6 20070830 WTSI
+#
+# build a page that redirects from a dead family to its replacement
+#
+# $Id: dead.tt,v 1.1 2007-08-30 09:26:28 jt6 Exp $
+
+META title    = "Dead family";
+META fullPage = 1;
+
+%]
+
+<h1>Dead Pfam-A family</h1>
+
+<p>
+  The Pfam-A family that you are trying to view is now a dead family. That
+  means that it has been removed from the Pfam database and is no longer
+  available through the website.
+</p>
+[% IF pfam.forward_to %]
+<p>
+  However, <strong>[% pfam.pfamA_id %]</strong> ([% pfam.pfamA_acc %]) has been
+  replaced by <a href="[% refreshUri %]"><strong>[% pfam.forward_to %]</strong></a>.
+</p>
+<p>
+  In 5 seconds you will be redirected to the Pfam family page for 
+  <a href="[% refreshUri %]">[% pfam.forward_to %]</a>, or you can click 
+  <a href="[% refreshUri %]">here</a> to go there immediately.
+</p>
+[% ELSE %]
+<p>
+  In 5 seconds you will be redirected to the Pfam home page, or you can click 
+  <a href="[% refreshUri %]">here</a> to go there immediately.
+</p>
+[% END %]
+
+<hr />
