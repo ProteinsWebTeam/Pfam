@@ -4,7 +4,7 @@
 # 
 # sequence search error page
 #
-# $Id: error.tt,v 1.1 2007-08-20 09:01:09 jt6 Exp $
+# $Id: error.tt,v 1.2 2007-08-30 08:29:56 jt6 Exp $
 
 META title = "No search results";
 META fullPage = 1

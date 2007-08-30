@@ -5,7 +5,7 @@
 # 
 # build the page saying that a batch search has been submitted
 #
-# $Id: batchSubmitted.tt,v 1.3 2007-07-31 22:03:23 jt6 Exp $
+# $Id: batchSubmitted.tt,v 1.4 2007-08-30 08:29:56 jt6 Exp $
 
 META title    = "Batch sequence search";
 META fullPage = 1;

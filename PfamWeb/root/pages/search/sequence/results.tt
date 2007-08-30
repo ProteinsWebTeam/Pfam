@@ -5,7 +5,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.4 2007-08-20 09:02:20 jt6 Exp $
+# $Id: results.tt,v 1.5 2007-08-30 08:29:56 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;

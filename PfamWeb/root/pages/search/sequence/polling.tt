@@ -5,7 +5,7 @@
 #
 # a page that polls the server for results of a sequence search 
 #
-# $Id: polling.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: polling.tt,v 1.2 2007-08-30 08:29:56 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;
