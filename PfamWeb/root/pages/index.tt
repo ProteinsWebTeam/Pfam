@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.36 2007-08-28 12:22:51 jt6 Exp $
+# $Id: index.tt,v 1.37 2007-08-30 15:03:54 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -265,7 +265,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div id="keyword" class="panel" style="display: none">
     <h3>Query Pfam by keyword</h3>
     <p>Search for keywords in text data in the Pfam database.</p> 
-    <form action="[% base %]search"
+    <form action="[% base %]search/keyword"
           method="get" 
           id="keywordForm">
       <div>
