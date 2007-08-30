@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: help.css,v 1.7 2007-05-30 15:02:03 jt6 Exp $
+   $Id: help.css,v 1.8 2007-08-30 13:03:34 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -95,7 +95,7 @@ img.jumpTo {
 
 #alignmentData {
   width: 55em;
-  font-family: mono, Courier;
+  font-family: monospace;
   font-size: smaller;
   overflow: auto;
 }
@@ -105,7 +105,7 @@ img.jumpTo {
 
 #alignmentKey {
   width: 12em;
-  font-family: mono, Courier;
+  font-family: monospace;
   font-size: smaller;
   overflow: auto;
   float: left;
@@ -162,9 +162,23 @@ dl.methods dt {
 dl.methods dd {
   margin: 0.6em 16em;  
 }
+
 /* ---------------------------------------- */
 /* mirrors */
 
 ul.mirrors {
   padding: 0 0 0 1em;
+}
+
+/* ---------------------------------------- */
+/* linking page */
+
+dl.sitesList dt {
+  text-align: right;
+  float: left;
+  width: 8em;
+}
+
+dl.sitesList dd {
+  margin-left: 8.2em;
 }
