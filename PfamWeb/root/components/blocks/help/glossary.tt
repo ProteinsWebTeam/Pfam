@@ -4,7 +4,7 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.7 2007-08-10 15:23:23 jt6 Exp $
+# $Id: glossary.tt,v 1.8 2007-08-30 13:06:09 jt6 Exp $
 %]
 
 <!-- start glossary.tt block -->
@@ -44,8 +44,7 @@
     <h3>Domain</h3>
     
     <p>
-      A structural unit or unit which can be found in multiple protein 
-      contexts.
+      A structural unit which can be found in multiple protein contexts.
     </p>
 
     <h3>Domain score</h3>
