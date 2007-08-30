@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.27 2007-08-28 15:14:21 jt6 Exp $
+// $Id: family.js,v 1.28 2007-08-30 11:02:06 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -173,7 +173,7 @@ function formatAlignment( sURLBase, oSlider ) {
       a.appendChild( t );
       a.setAttribute( "href", sURLBase + ar[1] );
       a.setAttribute( "onclick", 
-                      "window.open(this.href,'pfamProteinWindow');return false;" );
+                      "opener.location=this.href;return false;" );
   
       row.replaceChild( a, row.firstChild );
   
