@@ -6,7 +6,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.19 2007-08-10 10:18:12 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.20 2007-08-30 15:20:03 jt6 Exp $
 
 META naked = 1;
 -%]
@@ -34,7 +34,7 @@ META naked = 1;
     	    <p align="left">
             [% section.system %] [% section.type %] ([% section.objects.size %])
             <span class="link" 
-                  onclick="reveal(this,'checkboxes_[% section.id %]',true)">Show</span>
+                  onclick="reveal(this,'checkboxes_[% section.id %]',false)">Show</span>
           </p>
     	  </caption>
   	  
