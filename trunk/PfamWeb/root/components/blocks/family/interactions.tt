@@ -4,7 +4,7 @@
 # 
 # block for the interactions data for the family section
 #
-# $Id: interactions.tt,v 1.6 2007-05-17 16:06:06 jt6 Exp $
+# $Id: interactions.tt,v 1.7 2007-08-30 09:42:52 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 -%]
@@ -18,9 +18,33 @@ RETURN UNLESS summaryData.numInt;
   <div class="blockContent">
 
     <p>
-      There [%- summaryData.numInt > 1 ? "are " : "is "; summaryData.numInt %]
+      There [%- summaryData.numInt > 1 ? "are " : "is " %]
+      <b>[% summaryData.numInt %]</b> 
       interaction[% summaryData.numInt > 1 ? "s" : "" %] for this family.
+      <span onclick="reveal( this, 'intNotes', false, true )"
+            class="moreLink">
+        More...</span>
     </p>
+    <div id="intNotes" style="display: none">
+      <p>
+        We determine these interactions using 
+        <a href="http://www.sanger.ac.uk/Software/Pfam/iPfam"><em>i</em>Pfam</a>, 
+        which considers the interactions between residues in three-dimensional 
+        protein structures and maps those interactions back to Pfam families. 
+        You can find more information about the <em>i</em>Pfam algorithm in  
+        <a href="http://bioinformatics.oupjournals.org/cgi/content/full/21/3/410">
+          journal article</a> that accompanies the website.
+      </p>
+      <hr />
+    </div>
+
+    
+    [%FOREACH interaction IN interactions.sort( pfamA_id ) %]
+      <span class="listItem">
+        <a href="[% base %]family?acc=[% interaction.pfamA_acc %]">
+          [% interaction.pfamA_id %]</a>
+      </span>
+    [% END %]
 
   </div>
 </div>
