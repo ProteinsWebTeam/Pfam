@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.7 2007-08-28 15:47:53 jt6 Exp $
+# $Id: summary.tt,v 1.8 2007-08-30 12:37:34 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -20,9 +20,6 @@ requirements.js.push( "yui/yahoo.js" );
 requirements.js.push( "yui/dom.js" );
 requirements.js.push( "yui/event.js" );
 requirements.js.push( "yui/treeview.js" );
-requirements.js.push( "treeTweak.js" );
-
-#requirements.js.push( "proteome.js" );
 
 #-------------------------------------------------------------------------------
 
