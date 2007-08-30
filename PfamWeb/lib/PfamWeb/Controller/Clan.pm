@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.17 2007-08-20 09:00:44 rdf Exp $
+# $Id: Clan.pm,v 1.18 2007-08-30 09:40:03 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.17 2007-08-20 09:00:44 rdf Exp $
+$Id: Clan.pm,v 1.18 2007-08-30 09:40:03 jt6 Exp $
 
 =cut
 
@@ -246,7 +246,18 @@ sub getSummaryData : Private {
   $summaryData{numArchitectures} = $c->stash->{clan}->number_archs;
 
   # number of interactions
-  $summaryData{numInt} = 0;
+  my @interactions = $c->model('PfamDB::PfamA_interactions')
+                       ->search( { 'clan_membership.auto_clan' => $c->stash->{clan}->auto_clan },
+                                 { join     => [ qw( pfamA_A pfamA_B clan_membership ) ],
+                                   select   => [ qw( pfamA_A.pfamA_id pfamA_A.pfamA_acc
+                                                     pfamA_B.pfamA_id pfamA_B.pfamA_acc ) ],
+                                   as       => [ qw( pfamA_A_id pfamA_A_acc
+                                                     pfamA_B_id pfamA_B_acc ) ] } );
+  # stash this for later...
+  $c->stash->{interactions} = \@interactions;
+  $c->log->debug( 'Clan::getSummaryData: got ' . scalar(@interactions) . ' interactions' );
+  
+  $summaryData{numInt} = scalar @interactions;
 
   # number of structures known for the domain
   $summaryData{numStructures} = $c->stash->{clan}->number_structures;
@@ -257,7 +268,7 @@ sub getSummaryData : Private {
                               prefetch  => [ qw( pdb ) ] } );
 
   my %pdb_unique = map {$_->pdb_id => 1} @mapping;
-  $c->log->debug( 'Clan::_getSummaryData: got ' . scalar(@mapping) . ' pdb mappings' );
+  $c->log->debug( 'Clan::getSummaryData: got ' . scalar(@mapping) . ' pdb mappings' );
   $c->stash->{pdbUnique} = \%pdb_unique;
 
   #Number of species
