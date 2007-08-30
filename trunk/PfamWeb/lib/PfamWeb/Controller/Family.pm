@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.32 2007-08-20 09:00:44 rdf Exp $
+# $Id: Family.pm,v 1.33 2007-08-30 09:26:28 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.32 2007-08-20 09:00:44 rdf Exp $
+$Id: Family.pm,v 1.33 2007-08-30 09:26:28 jt6 Exp $
 
 =cut
 
@@ -87,8 +87,19 @@ sub begin : Private {
         $c->log->debug( "Family::begin: found a Pfam-A: |$1|" );
         $c->stash->{entryType} = 'A';
         $c->stash->{acc}       = $c->stash->{pfam}->pfamA_acc;
-      }
 
+      } else {
+        $c->log->debug( 'Family::begin: testing for a dead family by accession' );
+        
+        my $rs = $c->model('PfamDB::Dead_families')
+                   ->find( { pfamA_acc => $1 } );
+        if( defined $rs ) {
+          $c->log->debug( "Family::begin: |$1| is dead; redirecting" );
+          $c->res->redirect( $c->uri_for( '/dead', { acc => $1 } ) );
+          return;
+        }
+      }
+          
     } elsif( $c->req->param('acc') =~ m/^(PB\d{6})$/i ) {
       # no; could be a Pfam-B
 
@@ -129,8 +140,18 @@ sub begin : Private {
       if( defined $c->stash->{pfam} ) {
         $c->stash->{entryType} = 'A';
         $c->stash->{acc}       = $c->stash->{pfam}->pfamA_acc;
-      }
 
+      } else {
+        $c->log->debug( 'Family::begin: testing for a dead family by ID' );
+        
+        my $rs = $c->model('PfamDB::Dead_families')
+                   ->find( { pfamA_id => $1 } );
+        if( defined $rs ) {
+          $c->log->debug( "Family::begin: |$1| is dead; redirecting" );
+          $c->res->redirect( $c->uri_for( '/dead', { id => $1 } ) );
+          return;
+        }
+      }
     }
     
   } elsif( defined $c->req->param( 'entry' ) ) {
@@ -245,6 +266,7 @@ sub begin : Private {
       $c->forward( 'getSummaryData' );
       $c->forward( 'getDbXrefs' );
       $c->forward( 'getGoData' );
+      $c->forward( 'getInteractions' );
         
     }
   }
@@ -422,6 +444,25 @@ sub getGoData : Private {
                   ->search( { 'me.auto_pfamA' => $c->stash->{pfam}->auto_pfamA } );
 
   $c->stash->{goTerms} = \@goTerms;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getInteractions : Private
+
+Retrieves details of the interactions between this family and others.
+
+=cut
+
+sub getInteractions : Private {
+  my( $this, $c ) = @_;
+  
+  my @interactions = $c->model('PfamDB::PfamA_interactions')
+                       ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
+                                 { join     => [ qw( pfamA_B ) ],
+                                   prefetch => [ qw( pfamA_B ) ] } );
+
+  $c->stash->{interactions} = \@interactions;
 }
 
 #-------------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.2 2007-08-09 15:34:10 jt6 Exp $
+# $Id: Jump.pm,v 1.3 2007-08-30 09:26:28 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.2 2007-08-09 15:34:10 jt6 Exp $
+$Id: Jump.pm,v 1.3 2007-08-30 09:26:28 jt6 Exp $
 
 =cut
 
@@ -41,7 +41,7 @@ sub jump : Path {
 
   # de-taint the entry ID or accession
   my $entry = "";
-  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_]+)/;
+  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()]+)/;
   $c->log->debug( "Search::Jump::jump: called with entry |$entry|" );
 
   # bail immediately if there's no entry given
@@ -81,7 +81,7 @@ sub jump : Path {
 
   # let's guess !
   $c->log->debug( 'Search::Jump::jump: no valid entry type specified; guessing instead' );
-  my $action = $c->forward( "guess", [ $entry ] );
+  my $action = $c->forward( 'guess', [ $entry ] );
 
   if( $action ) {
     $c->log->debug( "Search::Jump::jump: we've made a guess; redirecting to |$action|" );
@@ -96,7 +96,7 @@ sub jump : Path {
       $c->res->redirect( $uri );
     } else {
       $c->log->debug( "Search::Jump::jump: couldn't guess entry type and no referer; redirecting to home page" );
-      $c->res->redirect( $c->uri_for( "/" ) );
+      $c->res->redirect( $c->uri_for( '/' ) );
     }
   }
   return 1;
@@ -134,7 +134,17 @@ sub guess : Private {
   
     if( defined $found ) {
       $c->log->debug( 'Search::Jump::guess: found a PfamA family (from accession)' );
-      $action = "family";
+      $action = 'family';
+
+    } else {
+
+      $found = $c->model('PfamDB::Dead_families')
+                 ->find( { pfamA_acc => $1 } );
+
+      if( defined $found ) {
+        $c->log->debug( 'Search::Jump::guess: found a dead family (from accession)' );
+        $action = 'dead';
+      }
     }
   }
   
@@ -165,11 +175,12 @@ sub guess : Private {
   # next, could it be a clan ?
   if( not $action and $entry =~ /^(CL\d{4})$/ ) {
 
-    $found = $c->model("PfamDB::Clans")->find( { clan_acc => $1 } );
+    $found = $c->model("PfamDB::Clans")
+               ->find( { clan_acc => $1 } );
 
     if( $found ) {
-      $c->log->debug( "Search::Jump::guess: found a clan" );
-      $action = "clan";
+      $c->log->debug( 'Search::Jump::guess: found a clan' );
+      $action = 'clan';
     }
   
   }
@@ -177,20 +188,21 @@ sub guess : Private {
   # how about a sequence entry ?
   if( not $action and $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)$/ ) {
   
-    $found = $c->model("PfamDB::Pfamseq")->find( { pfamseq_acc => $1 } );
+    $found = $c->model('PfamDB::Pfamseq')
+               ->find( { pfamseq_acc => $1 } );
   
     if( defined $found ) {
-      $c->log->debug( "Search::Jump::guess: found a sequence entry" );
-      $action = "protein";
+      $c->log->debug( 'Search::Jump::guess: found a sequence entry' );
+      $action = 'protein';
     } else {
       # see if it's a secondary accession
-      $found = $c->model("PfamDB::Secondary_pfamseq_acc")
+      $found = $c->model('PfamDB::Secondary_pfamseq_acc')
                  ->find( { secondary_acc => $1 },
-                         { join =>     [ qw/pfamseq/ ],
-                           prefetch => [ qw/pfamseq/ ] } );
+                         { join =>     [ qw( pfamseq ) ],
+                           prefetch => [ qw( pfamseq ) ] } );
       if ( defined $found ) {
-        $c->log->debug( "Search::Jump::guess: found a secondary sequence entry" );
-        $action = "protein";
+        $c->log->debug( 'Search::Jump::guess: found a secondary sequence entry' );
+        $action = 'protein';
       }
     }
   }
@@ -198,11 +210,12 @@ sub guess : Private {
   # see if it's a protein sequence ID (e.g. CANX_CHICK)
   if( not $action and $entry =~ /^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
   
-    $found = $c->model("PfamDB::Pfamseq")->find( { pfamseq_id => $1 } );
+    $found = $c->model('PfamDB::Pfamseq')
+               ->find( { pfamseq_id => $1 } );
   
     if( $found ) {
-      $c->log->debug( "Search::Jump::guess: found a sequence entry (from ID)" );
-      $action = "protein";
+      $c->log->debug( 'Search::Jump::guess: found a sequence entry (from ID)' );
+      $action = 'protein';
     }
   
   }
@@ -210,32 +223,61 @@ sub guess : Private {
   # maybe a structure ?
   if( not $action and $entry =~ /^([0-9][A-Za-z0-9]{3})$/ ) {
   
-    $found = $c->model("PfamDB::Pdb")->find( { pdb_id => $1 } );
+    $found = $c->model('PfamDB::Pdb')
+               ->find( { pdb_id => $1 } );
   
     if( defined $found ) {
-      $c->log->debug( "Search::Jump::guess: found a structure" );
-      $action = "structure";
+      $c->log->debug( 'Search::Jump::guess: found a structure' );
+      $action = 'structure';
     }
     
   }
   
-  # finally, see if it's a Pfam family ID or a clan ID
+  # finally, see if it's some sort of ID
+  
+  # a proteome ID ?
   if( not $action ) {
   
-    # a Pfam family ID ?    
-    $found = $c->model("PfamDB::Pfam")->find( { pfamA_id => $entry } );
-  
+    $found = $c->model('PfamDB::Proteome_species')
+               ->find( { species => $entry } );
     if( $found ) {
-      $c->log->debug( "Search::Jump::guess: found a Pfam family (from ID)" );
-      $action = "family";
+      $c->log->debug( 'Search::Jump::guess: found a proteome (from ID)' );
+      $action = 'proteome';
+    }
+  }
+
+  # a Pfam family ID ?
+  if( not $action ) {
+
+    $found = $c->model('PfamDB::Pfam')
+               ->find( { pfamA_id => $entry } );
+               
+    if( $found ) {
+      $c->log->debug( 'Search::Jump::guess: found a Pfam family (from ID)' );
+      $action = 'family';
+
     } else {
-      $found = $c->model("PfamDB::Clans")->find( { clan_id => $entry } );
-      if( $found ) {
-        $c->log->debug( "Search::Jump::guess: found a clan (from ID)" );
-        $action = "clan";
+      
+      $found = $c->model('PfamDB::Dead_families')
+                 ->find( { pfamA_id => $entry } );
+
+      if( defined $found ) {
+        $c->log->debug( 'Search::Jump::guess: found a dead family (from ID)' );
+        $action = 'dead';
       }
     }
+  }
 
+  # a clan ID ?
+  if( not $action ) {
+
+    $found = $c->model('PfamDB::Clans')
+               ->find( { clan_id => $entry } );
+        
+    if( $found ) {
+      $c->log->debug( 'Search::Jump::guess: found a clan (from ID)' );
+      $action = 'clan';
+    }
   }
 
   return $action;
