@@ -4,9 +4,23 @@
 #
 # block for the interactions data for the clan section
 #
-# $Id: interactions.tt,v 1.2 2007-05-17 16:06:06 jt6 Exp $
+# $Id: interactions.tt,v 1.3 2007-08-30 09:41:04 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
+
+# build a hash to store the interactions data in a more useful data structure
+intHash = {};
+FOREACH interaction IN interactions;
+  a = interaction.get_column('pfamA_A_id');
+  b = interaction.get_column('pfamA_B_id');
+  IF NOT intHash.$a.defined;
+    intHash.$a = [];
+  END;
+  intHash.$a.push( b );
+END;
+
+USE dumper;
+CALL c.log.debug( dumper.dump( intHash ) );
 -%]
 
 <!-- start interactions block -->
@@ -18,9 +32,70 @@ RETURN UNLESS summaryData.numInt;
   <div class="blockContent">
 
     <p>
-      There [%- summaryData.numInt > 1 ? "are " : "is "; summaryData.numInt %]
+      There [%- summaryData.numInt > 1 ? "are " : "is " %]
+      <b>[% summaryData.numInt %]</b>
       interaction[% summaryData.numInt > 1 ? "s" : "" %] for this clan.
+      <span onclick="reveal( this, 'intNotes', false, true )"
+            class="moreLink">
+        More...</span>
     </p>
+    <div id="intNotes" style="display: none">
+      <p>
+        We determine these interactions using 
+        <a href="http://www.sanger.ac.uk/Software/Pfam/iPfam"><em>i</em>Pfam</a>, 
+        which considers the interactions between residues in three-dimensional 
+        protein structures and maps those interactions back to Pfam families. 
+        You can find more information about the <em>i</em>Pfam algorithm in  
+        <a href="http://bioinformatics.oupjournals.org/cgi/content/full/21/3/410">
+          journal article</a> that accompanies the website.
+      </p>
+      <hr />
+    </div>
+
+    <table class="details">
+      <thead>          
+        <tr>
+          <th colspan="2">Interacting families</th>
+        </tr>
+        <tr>
+          <th>A</th>
+          <th>B</th>
+        </tr>
+      </thead>
+      <tbody>
+        [% USE aIter = iterator( intHash.keys );
+        FOREACH a IN aIter;
+          CALL c.log.debug( "iterating; a: |$a|" ); 
+          FOREACH b IN intHash.$a;
+            CALL c.log.debug( "iterating; b: |$b|" ) %]
+            <tr>
+              [% IF loop.first %]
+              <td class="fixed" rowspan="[% loop.size %]">
+                <a href="[% base %]family?id=[% a %]">
+                  [% a %]</a>
+              </td>
+              [% END %]
+              <td class="fixed">
+                <a href="[% base %]family?id=[% b %]">
+                  [% b %]</a>
+              </td>
+            </tr>
+          [% END;
+        END %]
+<!--
+      [%FOREACH interaction IN interactions %]
+        <tr>
+          <td>
+            [% interaction.get_column('pfamA_A_id') %]
+          </td>
+          <td>
+            [% interaction.get_column('pfamA_B_id') %]
+          </td>
+        </tr>
+      [% END %]
+-->
+      </tbody>
+    </table>
 
   </div>
 </div>
