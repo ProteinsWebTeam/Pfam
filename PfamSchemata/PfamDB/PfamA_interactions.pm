@@ -1,7 +1,7 @@
 
-# $Id: PfamA_interactions.pm,v 1.1 2007-08-20 08:57:17 rdf Exp $
+# $Id: PfamA_interactions.pm,v 1.2 2007-08-30 09:40:45 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 package PfamDB::PfamA_interactions;
 
 use strict;
@@ -28,6 +28,8 @@ __PACKAGE__->has_one( "pfamA_B" => "PfamDB::Pfam",
 		      {"foreign.auto_pfamA"  => "self.auto_pfamA_B"},
 		      {proxy => [ qw/pfamA_id pfamA_acc/] } );
 
+__PACKAGE__->might_have( clan_membership => 'PfamDB::Clan_membership',
+                         { 'foreign.auto_pfamA' => 'self.auto_pfamA_A' } );
 
 =head1 COPYRIGHT
 
