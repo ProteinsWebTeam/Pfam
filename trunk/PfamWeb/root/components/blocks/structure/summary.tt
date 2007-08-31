@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.17 2007-08-20 10:30:22 jt6 Exp $
+# $Id: summary.tt,v 1.18 2007-08-31 14:14:26 jt6 Exp $
 
 USE String;
 USE date;
@@ -18,7 +18,6 @@ PROCESS "components/require.tt";
 requirements.css.push( "lightbox.css" );
 requirements.css.push( "structure.css" );
 
-requirements.js.push( "structure.js" );
 requirements.js.push( "lightbox.js" );
 
 #-------------------------------------------------------------------------------
@@ -28,12 +27,6 @@ title = pdb.title;
 oe    = 0;
 %]
 
-<script type="text/javascript">
-  // <![CDATA[
-  Event.observe( window, "load", structurePostLoad, false );
-  // ]]>
-</script>
-
 <!-- start summary block -->
 
 <div class="block" id="structureSummaryBlock">
@@ -42,23 +35,25 @@ oe    = 0;
   </div>
   <div class="blockContent">
 
-    <div class="pdbImageFragment">
-      [% IF pdb.pdb_image %]
-      <a href="[% base %]structure/getimage?id=[% pdbId %]" 
-         rel="lightbox" 
-         title="PDB entry [% pdbId %]">
-        <img class="pdbImage" 
-             src="[% base %]structure/getimage?id=[% pdbId %]&amp;size=s" 
-             alt="[% pdbId %]" /></a>
-      <br />
-      <span class="pdbTitle">PDB entry [% pdbId %]</span>: [% title %]
-      <br />
-      <a href="[% base %]structure/getimage?id=[% pdbId %]" 
-         rel="lightbox" 
-         title="PDB entry [% pdbId %]"
-         class="small">Click</a> image to enlarge.
-      [% END %]
-    </div>
+    [% IF mapping.size %]
+      <div class="pdbImageFragment">
+        [% IF pdb.pdb_image %]
+        <a href="[% base %]structure/getimage?id=[% pdbId %]" 
+           rel="lightbox" 
+           title="PDB entry [% pdbId %]">
+          <img class="pdbImage" 
+               src="[% base %]structure/getimage?id=[% pdbId %]&amp;size=s" 
+               alt="[% pdbId %]" /></a>
+        <br />
+        <span class="pdbTitle">PDB entry [% pdbId %]</span>: [% title %]
+        <br />
+        <a href="[% base %]structure/getimage?id=[% pdbId %]" 
+           rel="lightbox" 
+           title="PDB entry [% pdbId %]"
+           class="small">Enlarge</a> image.
+        [% END %]
+      </div>
+    [% END %]
 
     <h1>PDB entry [% pdb.pdb_id %]</h1>
 
@@ -176,19 +171,45 @@ oe    = 0;
   </div>
 </div>
 
-<!-- end summary block -->
+[% # if there are any mappings between structure and family, we need to build a
+   # list of unique IDs, and we need to make an AJAX call to retrieve the
+   # domain graphics
 
-[%#
-select pfamA_id, pfamA_acc, 
-       chain, pdb_start_res, pdb_end_res, 
-       pfamseq_acc, pfam_start_res, pfam_end_res
-from   pdbmap m, 
-       pdb p,
-       pfamseq s,
-       pfamA a 
-where  p.auto_pdb=m.auto_pdb 
-and    m.auto_pfamseq=s.auto_pfamseq 
-and    a.auto_pfamA=m.auto_pfam
-and    p.pdb_id="2abl" 
-and    m.pfam_region=1 
+IF mapping.size;
+
+  # collect the unique uniprot IDs
+  unpIds = {};
+  FOREACH m IN mapping;
+    unp = m.pfamseq_id;
+    unpIds.$unp = m ;
+  END;
+  
+  unpIdList = unpIds.keys.join(",");
 %]
+<script type="text/javascript">
+  // <![CDATA[
+
+  // set up the post-load AJAX call
+  Event.observe(
+    window,
+    "load",
+    function() {
+      new Ajax.Request( "[% base %]structure/graphics",
+                        { method:     'get',
+                          parameters: { seqIds: '[% unpIdList %]',
+                                        id:     '[% pdbId %]' },
+                          onSuccess:  function( oResponse ) {
+                                        $("structureGraphicsHolder").update( oResponse.responseText );
+                                      },
+                          onFailure:  function( oResponse ) {
+                                        $("structureGraphicsHolder").update( "Graphics loading failed." );
+                                      }
+                        } );
+    },
+    false );
+
+  // ]]>
+</script>
+[% END; # of "if mapping.size" %]
+
+<!-- end summary block -->
