@@ -5,16 +5,7 @@
 # 
 # block for the structural domains data
 #
-# $Id: getDomains.tt,v 1.6 2007-08-31 14:14:26 jt6 Exp $
-
-#-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
-
-PROCESS "components/require.tt";
-
-requirements.js.push( "structure.js" );
-
-#-------------------------------------------------------------------------------
+# $Id: getDomains.tt,v 1.7 2007-08-31 14:15:47 jt6 Exp $
 -%]
 
 <!-- start structural domains block -->
