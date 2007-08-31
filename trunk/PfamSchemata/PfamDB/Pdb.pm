@@ -1,7 +1,7 @@
-
-# $Id: Pdb.pm,v 1.6 2007-08-20 08:58:47 rdf Exp $
+  
+# $Id: Pdb.pm,v 1.7 2007-08-31 13:38:11 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 
 package PfamDB::Pdb;
 
@@ -19,7 +19,7 @@ __PACKAGE__->set_primary_key( "auto_pdb" );
 __PACKAGE__->has_many( "pdbAuthor" => "PfamDB::PdbAuthor",
 		       { "foreign.auto_pdb" => "self.auto_pdb" });
 
-__PACKAGE__->has_many( "pdbResidueData" => "PfamDB::PdbResidueData",
+__PACKAGE__->has_many( "pdbResidueData" => "PfamDB::Pdb_residue",
 		       { "foreign.auto_pdb" => "self.auto_pdb" });
 
 __PACKAGE__->might_have( "image"  => "PfamDB::PdbImage",
