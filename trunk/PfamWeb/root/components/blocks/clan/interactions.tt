@@ -4,7 +4,7 @@
 #
 # block for the interactions data for the clan section
 #
-# $Id: interactions.tt,v 1.5 2007-08-30 14:49:08 jt6 Exp $
+# $Id: interactions.tt,v 1.6 2007-08-31 08:49:00 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 
@@ -77,18 +77,6 @@ END;
             </tr>
           [% END;
         END %]
-<!--
-      [%FOREACH interaction IN interactions %]
-        <tr>
-          <td>
-            [% interaction.get_column('pfamA_A_id') %]
-          </td>
-          <td>
-            [% interaction.get_column('pfamA_B_id') %]
-          </td>
-        </tr>
-      [% END %]
--->
       </tbody>
     </table>
 
