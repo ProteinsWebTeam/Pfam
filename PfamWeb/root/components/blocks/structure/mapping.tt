@@ -1,4 +1,3 @@
-
 [%
 # mapping.tt
 # jt6 20070810 WTSI
@@ -6,6 +5,9 @@
 # build the table showing the mapping between this structure and UniProt/Pfam
 #
 # $Id$
+
+# there will be no rows in the table unless there is data in the mapping array
+RETURN UNLESS mapping.size; 
 
 # a counter for odd/even
 oe = 0;

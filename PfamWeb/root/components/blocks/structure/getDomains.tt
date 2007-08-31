@@ -5,7 +5,7 @@
 # 
 # block for the structural domains data
 #
-# $Id: getDomains.tt,v 1.5 2007-05-17 15:39:22 jt6 Exp $
+# $Id: getDomains.tt,v 1.6 2007-08-31 14:14:26 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -33,13 +33,32 @@ requirements.js.push( "structure.js" );
     </div>
     <!-- end of graphics div -->
 
-    <script type="text/javascript">
-      loadOptions.getDomains.uri    = "[% base %]structure/structuraldomains";
-      loadOptions.getDomains.params = "id=[% pdbId %]";
-  	</script>	
-
-  </div> <!-- end of "blockContent" -->
+  </div>
 
 </div> <!-- end of "block" -->
+
+<script type="text/javascript">
+  // <![CDATA[
+  
+  // set up the post-load AJAX call
+  Event.observe(
+    window,
+    "load",
+    function() {
+      new Ajax.Request( "[% base %]structure/structuraldomains",
+                        { method:     'get',
+                          parameters: { id:     '[% pdbId %]' },
+                          onSuccess:  function( oResponse ) {
+                                        ("getDomph").update( oResponse.responseText );
+                                      },
+                          onFailure:  function( oResponse ) {
+                                        ("getDomph").update( "Graphics loading failed." );
+                                      }
+                        } );
+    },
+    false );
+
+    // ]]>
+  </script> 
 
 <!-- end structural domains block -->
