@@ -2,7 +2,7 @@
 # StructuralDomains.pm
 # rdf 20060823 WTSI
 #
-# $Id: StructuralDomains.pm,v 1.5 2007-06-28 13:32:33 jt6 Exp $
+# $Id: StructuralDomains.pm,v 1.6 2007-08-31 13:50:04 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ domains.
 
 Generates a B<page fragment>.
 
-$Id: StructuralDomains.pm,v 1.5 2007-06-28 13:32:33 jt6 Exp $
+$Id: StructuralDomains.pm,v 1.6 2007-08-31 13:50:04 jt6 Exp $
 
 =cut
 
@@ -65,34 +65,34 @@ sub getStructuralDomains : Path {
 
   my $cathSuccess = 0;
   eval {
-	my $cathClient = Bio::Pfam::WebServices::Client::Cath->new(-proxy => $this->{wsProxy},
-															   -pdbId => $c->stash->{pdbId});
-	$cathClient->queryService;
-
-	die "No valid response from CATH service" unless ref $cathClient->_response;
-
-	if($cathClient->_response){
-	  #Step 1: get a sequence for each chain.
-	  $annSeqs->{CATH} = $c->forward( "getStructureSeqs", [ qw/CATH/ ] );
-	  #Step 2: parse the response and add the CATH domains
-	  $cathSuccess = $c->forward( "addCathDomains", [ $annSeqs, $cathClient ] );
-	}
+    my $cathClient = Bio::Pfam::WebServices::Client::Cath->new(-proxy => $this->{wsProxy},
+                                   -pdbId => $c->stash->{pdbId});
+    $cathClient->queryService;
+  
+    die "No valid response from CATH service" unless ref $cathClient->_response;
+  
+    if($cathClient->_response){
+      #Step 1: get a sequence for each chain.
+      $annSeqs->{CATH} = $c->forward( "getStructureSeqs", [ qw/CATH/ ] );
+      #Step 2: parse the response and add the CATH domains
+      $cathSuccess = $c->forward( "addCathDomains", [ $annSeqs, $cathClient ] );
+    }
   };
 
   my $scopSuccess = 0;
   eval {
-	my $scopClient = Bio::Pfam::WebServices::Client::Scop->new(-proxy => $this->{wsProxy},
-															   -pdbId => $c->stash->{pdbId});
-	$scopClient->queryService;
-	
-	die "No valid response from CATH service" unless ref $scopClient->_response;
-
-	if($scopClient->_response){
-	  #Step 1: get a sequence for each chain.
-	  $annSeqs->{SCOP} = $c->forward( "getStructureSeqs", [ qw/SCOP/ ] );
-	  #Step 2: parse the response and add the SCOP domains
-	  $scopSuccess = $c->forward( "addScopDomains", [ $annSeqs, $scopClient ] );
-	}
+    my $scopClient = Bio::Pfam::WebServices::Client::Scop->new(-proxy => $this->{wsProxy},
+                                   -pdbId => $c->stash->{pdbId});
+    $scopClient->queryService;
+    
+    die "No valid response from CATH service" unless ref $scopClient->_response;
+  
+    if($scopClient->_response){
+      #Step 1: get a sequence for each chain.
+      $annSeqs->{SCOP} = $c->forward( "getStructureSeqs", [ qw/SCOP/ ] );
+      #Step 2: parse the response and add the SCOP domains
+      $scopSuccess = $c->forward( "addScopDomains", [ $annSeqs, $scopClient ] );
+    }
   };
 
   # make sure that either Cath or SCOP gave us something sensible
@@ -112,20 +112,20 @@ sub getStructuralDomains : Path {
   $c->stash->{seqMapping} = {};
 
   foreach my $pfamseqId (keys %{$annSeqs->{PFAM}}){
-	$c->log->debug("Got $pfamseqId");
-
-	push @seqs, $annSeqs->{PFAM}->{$pfamseqId}->{seq};
-	$c->stash->{seqMapping}->{0} = "Pfam";
-
-	foreach my $chain ( sort{ $a cmp $b } keys %{ $annSeqs->{PFAM}->{$pfamseqId}->{chains} } ){
-	  foreach my $structureDB (qw/SCOP CATH/){
-		if($annSeqs->{$structureDB}->{$pfamseqId}->{$chain}->{seq}){
-		  $c->log->debug("Got $pfamseqId, $chain, $structureDB bioperl object");
-		  push @seqs, $annSeqs->{$structureDB}->{$pfamseqId}->{$chain}->{seq};
-		  $c->stash->{seqMapping}->{scalar @seqs - 1} = $structureDB;
-		}
-	  }
-	}
+    $c->log->debug("Got $pfamseqId");
+  
+    push @seqs, $annSeqs->{PFAM}->{$pfamseqId}->{seq};
+    $c->stash->{seqMapping}->{0} = "Pfam";
+  
+    foreach my $chain ( sort{ $a cmp $b } keys %{ $annSeqs->{PFAM}->{$pfamseqId}->{chains} } ){
+      foreach my $structureDB (qw/SCOP CATH/){
+        if($annSeqs->{$structureDB}->{$pfamseqId}->{$chain}->{seq}){
+          $c->log->debug("Got $pfamseqId, $chain, $structureDB bioperl object");
+          push @seqs, $annSeqs->{$structureDB}->{$pfamseqId}->{$chain}->{seq};
+          $c->stash->{seqMapping}->{scalar @seqs - 1} = $structureDB;
+        }
+      }
+    }
   }
 
   # render All the sequences
@@ -134,13 +134,13 @@ sub getStructuralDomains : Path {
   $layout->scale_y( $this->{scale_y} );
 
   my %regionsAndFeatures = ( PfamA      => 1,
-							 SCOP       => 1,
-							 CATH       => 1,
-							 Disordered => 1,
-							 noFeatures => 0 );
+               SCOP       => 1,
+               CATH       => 1,
+               Disordered => 1,
+               noFeatures => 0 );
 
   $layout->layout_sequences_with_regions_and_features( \@seqs,
-													   \%regionsAndFeatures );
+                             \%regionsAndFeatures );
 
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $imageset->create_images( $layout->layout_to_XMLDOM );
@@ -165,10 +165,10 @@ sub end : Private {
 
   # check for errors
   if ( scalar @{ $c->error } ) {
-	$c->forward( "/reportError" );
-	$c->stash->{template} = "components/blocks/structure/domainsError.tt";
+    $c->forward( "/reportError" );
+    $c->stash->{template} = "components/blocks/structure/domainsError.tt";
   } else {
-	$c->stash->{template} = "components/blocks/structure/domains.tt";
+    $c->stash->{template} = "components/blocks/structure/domains.tt";
   }
 
   # and render the page - need to make sure the templates tell the
@@ -184,44 +184,48 @@ sub end : Private {
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+=head2 getStructureSeqs : Private
+
+=cut
+
 sub getStructureSeqs : Private {
   my( $this, $c, $name ) = @_;
 
   my $fac = Bio::Pfam::PfamAnnSeqFactory->instance();
   my $seqs = {};
   my @rs = $c->model("PfamDB::Pdb_residue")->search({auto_pdb => $c->stash->{pdb}->auto_pdb},
-													{join     => [ qw/pfamseq/ ],
-													 prefetch => [ qw/pfamseq/ ]});
+                          {join     => [ qw/pfamseq/ ],
+                           prefetch => [ qw/pfamseq/ ]});
   foreach my $r (@rs){
     if($r->chain =~ /\S{1}/){
       unless($seqs->{$r->pfamseq_id}->{$r->chain}){
-		$seqs->{$r->pfamseq_id}->{$r->chain}->{seq} = $fac->createAnnotatedSequence();
-		$seqs->{$r->pfamseq_id}->{$r->chain}->{seq}->id($name.":".$c->stash->{pdbId}.":".$r->chain);
-		$seqs->{$r->pfamseq_id}->{$r->chain}->{seq}->length($r->length);
-		#Make an array of the sequence and make every residue
-		for(my $n = 1; $n <= $r->length; $n++){
-		  $seqs->{$r->pfamseq_id}->{$r->chain}->{disordered}->[$n] = 1;
-		}
+        $seqs->{$r->pfamseq_id}->{$r->chain}->{seq} = $fac->createAnnotatedSequence();
+        $seqs->{$r->pfamseq_id}->{$r->chain}->{seq}->id($name.":".$c->stash->{pdbId}.":".$r->chain);
+        $seqs->{$r->pfamseq_id}->{$r->chain}->{seq}->length($r->length);
+        #Make an array of the sequence and make every residue
+        for(my $n = 1; $n <= $r->length; $n++){
+          $seqs->{$r->pfamseq_id}->{$r->chain}->{disordered}->[$n] = 1;
+        }
       }
       if($r->pdb_seq_number && $r->pfamseq_seq_number){
-		$seqs->{$r->pfamseq_id}->{$r->chain}->{disordered}->[$r->pfamseq_seq_number]=0;
-		$seqs->{$r->pfamseq_id}->{$r->chain}->{mapping}->{$r->pdb_seq_number} = $r->pfamseq_seq_number;
+        $seqs->{$r->pfamseq_id}->{$r->chain}->{disordered}->[$r->pfamseq_seq_number]=0;
+        $seqs->{$r->pfamseq_id}->{$r->chain}->{mapping}->{$r->pdb_seq_number} = 
+          $r->pfamseq_seq_number;
       }
-    }else{
+    } else {
       unless($seqs->{$r->pfamseq_id}->{"_"}){
-		$seqs->{$r->pfamseq_id}->{"_"}->{seq} = $fac->createAnnotatedSequence();
-		$seqs->{$r->pfamseq_id}->{"_"}->{seq}->id($name.":".$c->stash->{pdbId}.":_");
-		$seqs->{$r->pfamseq_id}->{"_"}->{seq}->length($r->length);
-		for(my $n = 1; $n <= $r->length; $n++){
-		  $seqs->{$r->pfamseq_id}->{"_"}->{disordered}->[$n] = 1;
-		}
-		
-		#$c->log->debug("Before:".Dumper(@{$seqs->{$r->pfamseq_id}->{"_"}->{disordered}}));
+        $seqs->{$r->pfamseq_id}->{"_"}->{seq} = $fac->createAnnotatedSequence();
+        $seqs->{$r->pfamseq_id}->{"_"}->{seq}->id($name.":".$c->stash->{pdbId}.":_");
+        $seqs->{$r->pfamseq_id}->{"_"}->{seq}->length($r->length);
+        for(my $n = 1; $n <= $r->length; $n++){
+          $seqs->{$r->pfamseq_id}->{"_"}->{disordered}->[$n] = 1;
+        }
+    
+        #$c->log->debug("Before:".Dumper(@{$seqs->{$r->pfamseq_id}->{"_"}->{disordered}}));
       }
       if($r->pdb_seq_number  && $r->pfamseq_seq_number ){
-		$seqs->{$r->pfamseq_id}->{"_"}->{disordered}->[$r->pfamseq_seq_number] = 0;
-		$seqs->{$r->pfamseq_id}->{"_"}->{mapping}->{$r->pdb_seq_number} = $r->pfamseq_seq_number;
-		
+        $seqs->{$r->pfamseq_id}->{"_"}->{disordered}->[$r->pfamseq_seq_number] = 0;
+        $seqs->{$r->pfamseq_id}->{"_"}->{mapping}->{$r->pdb_seq_number} = $r->pfamseq_seq_number;
       }
     }
     #$c->log->debug("After:".Dumper(@{$seqs->{$r->pfamseq_id}->{"_"}->{disordered}}));
@@ -229,40 +233,45 @@ sub getStructureSeqs : Private {
 
   #Now make disordered regions
   foreach my $seqId (keys %$seqs){
-	foreach my $chain (keys %{$seqs->{$seqId}}){
-	  $c->log->debug("Building chains for $chain");
-	  my ($ds, $de);
-	  for(my $m = 1; $m <= $seqs->{$seqId}->{$chain}->{seq}->length; $m++){
-		if(($ds and $de) && ($seqs->{$seqId}->{$chain}->{disordered}->[$m] == 1)){
-		  $de=$m;
-		}elsif(($ds and $de) && ($seqs->{$seqId}->{$chain}->{disordered}->[$m] == 0)){
-		  #new disorder region, add to the annotated sequence object.
-		  $seqs->{$seqId}->{$chain}->{seq}->addAnnotatedRegion( Bio::Pfam::OtherRegion->new('-SEQ_ID' => $seqs->{$seqId}->{$chain}->{seq}->id,
-																							'-FROM' => $ds,
-																							'-TO' => $de,
-																							'-TYPE' => "Disordered",
-																							'-SOURCE' => "structure"));
-		  $de = 0;
-		  $ds = 0;
-		}elsif($seqs->{$seqId}->{$chain}->{disordered}->[$m] == 1){
-		  #start new disordered region
-		  $ds=$de=$m;
-		}
-	  }
-	  if($de and $ds){
-		$seqs->{$seqId}->{$chain}->{seq}->addAnnotatedRegion( Bio::Pfam::OtherRegion->new('-SEQ_ID' => $seqs->{$seqId}->{$chain}->{seq}->id,
-																						  '-FROM' => $ds,
-																						  '-TO' => $de,
-																						  '-TYPE' => "Disordered",
-																						  '-SOURCE' => "structure"));
-	  }
-	}
+    foreach my $chain (keys %{$seqs->{$seqId}}){
+      $c->log->debug("Building chains for $chain");
+      my ($ds, $de);
+      for(my $m = 1; $m <= $seqs->{$seqId}->{$chain}->{seq}->length; $m++){
+        if(($ds and $de) && ($seqs->{$seqId}->{$chain}->{disordered}->[$m] == 1)){
+          $de=$m;
+        }elsif(($ds and $de) && ($seqs->{$seqId}->{$chain}->{disordered}->[$m] == 0)){
+          #new disorder region, add to the annotated sequence object.
+          $seqs->{$seqId}->{$chain}->{seq}->addAnnotatedRegion( Bio::Pfam::OtherRegion->new('-SEQ_ID' => $seqs->{$seqId}->{$chain}->{seq}->id,
+                                                  '-FROM' => $ds,
+                                                  '-TO' => $de,
+                                                  '-TYPE' => "Disordered",
+                                                  '-SOURCE' => "structure"));
+          $de = 0;
+          $ds = 0;
+        }elsif($seqs->{$seqId}->{$chain}->{disordered}->[$m] == 1){
+          #start new disordered region
+          $ds=$de=$m;
+        }
+      }
+      if($de and $ds){
+      $seqs->{$seqId}->{$chain}->{seq}->addAnnotatedRegion( Bio::Pfam::OtherRegion->new('-SEQ_ID' => $seqs->{$seqId}->{$chain}->{seq}->id,
+                                                '-FROM' => $ds,
+                                                '-TO' => $de,
+                                                '-TYPE' => "Disordered",
+                                                '-SOURCE' => "structure"));
+      }
+    }
   }
   return($seqs);
 }
 
 #-------------------------------------------------------------------------------
-# retrieves the sequence data for the required PDB entry
+
+=head2 getPfamSeqs : Private
+
+Retrieves the sequence data for the required PDB entry
+
+=cut
 
 sub getPfamSeqs : Private {
   my ($this, $c) = @_;
@@ -270,17 +279,18 @@ sub getPfamSeqs : Private {
   my $seqs = {};
 
   # retrieve the Storable with the data for this sequence
-  my @pfamseqs = $c->model("PfamDB::Pfamseq")->search( { "pdb_residue.auto_pdb" => $c->stash->{pdb}->auto_pdb },
-													   { select   => [ {distinct => "pdb_residue.chain"}, "pfamseq_id" ],
-														 as       => [ qw/chain pfamseq_id/ ],
-														 join     => [ qw/pdb_residue annseq/ ],
-														 prefetch => [ qw/annseq/]}
-													 );
+  my @pfamseqs = $c->model('PfamDB::Pfamseq')
+                   ->search( { 'pdb_residue.auto_pdb' => $c->stash->{pdb}->auto_pdb },
+                             { select   => [ {distinct => 'pdb_residue.chain' }, 
+                                             'pfamseq_id' ],
+                               as       => [ qw( chain pfamseq_id ) ],
+                               join     => [ qw( annseq pdb_residue ) ],
+                               prefetch => [ qw( annseq ) ] } );
 
   foreach my $pfamseq (@pfamseqs){
 
-	$seqs->{$pfamseq->get_column("pfamseq_id")}->{seq} = thaw( $pfamseq->annseq_storable )
-	  unless $seqs->{$pfamseq->get_column("pfamseq_id")}->{seq};
+  $seqs->{$pfamseq->get_column("pfamseq_id")}->{seq} = thaw( $pfamseq->annseq_storable )
+    unless $seqs->{$pfamseq->get_column("pfamseq_id")}->{seq};
 
     my $chain = ($pfamseq->get_column("chain") =~ /(\S+)/) ? $1 : "_";
 
@@ -293,171 +303,181 @@ sub getPfamSeqs : Private {
 }
 
 #-------------------------------------------------------------------------------
-# tries to retrieve the SCOP domain definitions from the SCOP web
-# service. If it gets a valid SOAP response, it walks the XML and
-# extracts what it can...
 
-  sub addScopDomains : Private {
-	my ($this, $c, $annSeqs, $scopClient) = @_;
-	my $ns = "http://scop.mrc-lmb.cam.ac.uk/test1/";
-	my $xc = XML::LibXML::XPathContext->new($scopClient->_response);
-	$xc->registerNs( "scop" => $ns );
-	foreach my $pdbIdNode ($xc->findnodes("scop:document/scop:list-of-scop-domains/scop:pdbEntry")) {
-	  if ($pdbIdNode->hasAttribute("pdbid")) {
-		my $pdbId = $pdbIdNode->getAttribute("pdbid");
-		$xc = XML::LibXML::XPathContext->new($pdbIdNode);
-		$xc->registerNs( "scop" => $ns );
-		foreach my $domainNode ($xc->findnodes("scop:domain")) {
-		  $xc = XML::LibXML::XPathContext->new($domainNode);
-		  $xc->registerNs( "scop" => $ns );
-		  my $nameNode = $xc->findnodes("scop:attribute/scop:node")->shift;
-		  my $sunid = $nameNode->getAttribute("sunid");
-		  my $name = $nameNode->textContent;
+=head2 addScopDomains : Private
 
+Tries to retrieve the SCOP domain definitions from the SCOP web
+service. If it gets a valid SOAP response, it walks the XML and
+extracts what it can...
 
-		  my $previous_end;
-		  my $annRegions = {};
-		  my @features;
-		  #Multiple regions on a single domain indicate nested or discontinuous domain
-		  foreach my $region ($xc->findnodes("scop:region")) {
-			my $chain = $region->getAttribute("chain");
-			my (%mapping, @range);
-			foreach my $pfamseqId (keys %{$annSeqs->{SCOP}}) {
-			  if ($annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{mapping}) {
-				%mapping = %{$annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{mapping}};
-				foreach (sort{$a <=> $b} keys %mapping) {
-				  if ($annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{disordered}->[$mapping{$_}] == 0) {
-					push(@range, $_);
-				  }
-				}
-				last;
-			  }
-			}
-			#Find the sequence in the list
-			my $start = $range[0];
-			my $end = $range[$#range];
-			my $start_frag=0;
-			my $end_frag=0;
-			if ($region->getAttribute("start")) {
-			  my $s = $region->getAttribute("start");
-			  $start = $mapping{$s} if($mapping{$s});
-			}
-			if ($region->getAttribute("stop")) {
-			  my $e = $region->getAttribute("stop");
-			  $end = $mapping{$region->getAttribute("stop")} if($mapping{$region->getAttribute("stop")});
-			}
+=cut
 
-			if ($previous_end && $start) {
-			  #add feature as must be fragment of the domain;
-			  push(@features, (Bio::SeqFeature::Generic->new('-start' => $previous_end,
-															 '-end' => $start,
-															 '-primary' => "nested")));
-			  $annRegions->{$chain}->[$#{$annRegions->{$chain}}]->end_frag(1);
-			  $start_frag=1;
-			}
-
-			$previous_end = $end;
-			push(@{$annRegions->{$chain}}, Bio::Pfam::SCOPRegion->new('-scop_name' => $name,
-																	  '-scop_id' => $sunid,
-																	  '-type' => "SCOP",
-																	  '-from' => $start,
-																	  '-to' => $end,
-																	  '-start_frag' => $start_frag,
-																	  '-end_frag' => $end_frag
-																	 ));
-		  }
-		  foreach my $chain (keys %$annRegions) {
-			foreach my $pfamseqId (keys %{$annSeqs->{SCOP}}) {
-			  if ($annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{seq}) {
-				foreach my $r (@{$annRegions->{$chain}}) {
-				  $annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{seq}->addAnnotatedRegion($r);
-				}
-				foreach my $f (@features) {
-				  $annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{seq}->addFeature($f);
-				}
-			  }
-			}
-		  }
-		}
-	  }
-	}
-	return 1;
+sub addScopDomains : Private {
+  my ($this, $c, $annSeqs, $scopClient) = @_;
+  my $ns = "http://scop.mrc-lmb.cam.ac.uk/test1/";
+  my $xc = XML::LibXML::XPathContext->new($scopClient->_response);
+  $xc->registerNs( "scop" => $ns );
+  foreach my $pdbIdNode ($xc->findnodes("scop:document/scop:list-of-scop-domains/scop:pdbEntry")) {
+    if ($pdbIdNode->hasAttribute("pdbid")) {
+      my $pdbId = $pdbIdNode->getAttribute("pdbid");
+      $xc = XML::LibXML::XPathContext->new($pdbIdNode);
+      $xc->registerNs( "scop" => $ns );
+      foreach my $domainNode ($xc->findnodes("scop:domain")) {
+        $xc = XML::LibXML::XPathContext->new($domainNode);
+        $xc->registerNs( "scop" => $ns );
+        my $nameNode = $xc->findnodes("scop:attribute/scop:node")->shift;
+        my $sunid = $nameNode->getAttribute("sunid");
+        my $name = $nameNode->textContent;
+  
+  
+        my $previous_end;
+        my $annRegions = {};
+        my @features;
+        #Multiple regions on a single domain indicate nested or discontinuous domain
+        foreach my $region ($xc->findnodes("scop:region")) {
+        my $chain = $region->getAttribute("chain");
+        my (%mapping, @range);
+        foreach my $pfamseqId (keys %{$annSeqs->{SCOP}}) {
+          if ($annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{mapping}) {
+            %mapping = %{$annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{mapping}};
+            foreach (sort{$a <=> $b} keys %mapping) {
+              if ($annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{disordered}->[$mapping{$_}] == 0) {
+                push(@range, $_);
+              }
+            }
+            last;
+          }
+        }
+        #Find the sequence in the list
+        my $start = $range[0];
+        my $end = $range[$#range];
+        my $start_frag=0;
+        my $end_frag=0;
+        if ($region->getAttribute("start")) {
+          my $s = $region->getAttribute("start");
+          $start = $mapping{$s} if($mapping{$s});
+        }
+        if ($region->getAttribute("stop")) {
+          my $e = $region->getAttribute("stop");
+          $end = $mapping{$region->getAttribute("stop")} if($mapping{$region->getAttribute("stop")});
+        }
+  
+        if ($previous_end && $start) {
+          #add feature as must be fragment of the domain;
+          push(@features, (Bio::SeqFeature::Generic->new('-start' => $previous_end,
+                                 '-end' => $start,
+                                 '-primary' => "nested")));
+          $annRegions->{$chain}->[$#{$annRegions->{$chain}}]->end_frag(1);
+          $start_frag=1;
+        }
+  
+        $previous_end = $end;
+        push(@{$annRegions->{$chain}}, Bio::Pfam::SCOPRegion->new('-scop_name' => $name,
+                                      '-scop_id' => $sunid,
+                                      '-type' => "SCOP",
+                                      '-from' => $start,
+                                      '-to' => $end,
+                                      '-start_frag' => $start_frag,
+                                      '-end_frag' => $end_frag
+                                     ));
+        }
+        foreach my $chain (keys %$annRegions) {
+          foreach my $pfamseqId (keys %{$annSeqs->{SCOP}}) {
+            if ($annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{seq}) {
+              foreach my $r (@{$annRegions->{$chain}}) {
+                $annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{seq}->addAnnotatedRegion($r);
+              }
+              foreach my $f (@features) {
+                $annSeqs->{SCOP}->{$pfamseqId}->{$chain}->{seq}->addFeature($f);
+              }
+            }
+          }
+        }
+      }
+    }
   }
+  return 1;
+}
 
 #-------------------------------------------------------------------------------
-# tries to retrieve the CATH domain definitions from the CATH web
-# service. If it gets a valid CATH response, it walks the XML and
-# extracts what it can...
+
+=head2 addCathDomains : Private
+
+Tries to retrieve the CATH domain definitions from the CATH web
+service. If it gets a valid CATH response, it walks the XML and
+extracts what it can...
+
+=cut
 
 sub addCathDomains : Private {
   my ($this, $c, $annSeqs, $cathClient) = @_;
 
   foreach my $pdbIdNode ( $cathClient->_response->findnodes("document/cath_pdb_query") ) {
-	if ($pdbIdNode->hasAttribute("pdb_code")) {
-	  my $chain;
-	  if ($pdbIdNode->getAttribute("chain_code") =~ /(\S+)/) {
-		$chain = $1;
-	  } else {
-		$chain = "_";
-	  }
-	  my $pdbId = $pdbIdNode->getAttribute("pdb_code");
-	  foreach my $domainNode ($pdbIdNode->findnodes("cath_domain")) {
-		my $id = $domainNode->getAttribute("domain_id");
-		my $cathcode = $domainNode->findnodes("cath_code")->shift;
-		my $cathcodeString = $cathcode->getAttribute("class_code").".".$cathcode->getAttribute("arch_code").".".$cathcode->getAttribute("top_code").".".$cathcode->getAttribute("homol_code");
-		
-		my $previous_end;
-		my $annRegions = {};
-		my @features;
-		#Multiple regions on a single domain indicate nested or discontinuous domain
-		foreach my $region ($domainNode->findnodes("segments/segment")) {
-		  $c->log->debug("Working on segments");
-		  my (%mapping, @range);
-		  foreach my $pfamseqId (keys %{$annSeqs->{CATH}}) {
-			if ($annSeqs->{CATH}->{$pfamseqId}->{$chain}->{mapping}) {
-			  %mapping = %{$annSeqs->{CATH}->{$pfamseqId}->{$chain}->{mapping}};
-			  @range = sort{$a <=> $b} keys %mapping;
-			  last;
-			}
-		  }
-		  #Find the sequence in the list
-		  my $start = $range[0];
-		  my $end = $range[$#range];
-		  my $start_frag=0;
-		  my $end_frag=0;
-		  $start = $mapping{$region->getAttribute("pdb_start")} if ($region->getAttribute("pdb_start"));
-		  $end = $mapping{$region->getAttribute("pdb_stop")} if ($region->getAttribute("pdb_stop"));
-		  if ($previous_end && $start) {
-			#add feature as must be fragment of the domain;
-			push(@features, (Bio::SeqFeature::Generic->new('-start' => $previous_end,
-														   '-end' => $start,
-														   '-primary' => "nested")));
-			$annRegions->{$chain}->[$#{$annRegions->{$chain}}]->end_frag(1);
-			$start_frag=1;
-		  }
-		  $previous_end = $end;
-		  push(@{$annRegions->{$chain}}, Bio::Pfam::CATHRegion->new('-cath_name' => $id,
-																	'-cath_id' => $cathcodeString,
-																	'-type' => "CATH",
-																	'-from' => $start,
-																	'-to' => $end,
-																	'-start_frag' => $start_frag,
-																	'-end_frag' => $end_frag));
-		}
-		foreach my $chain (keys %$annRegions) {
-		  foreach my $pfamseqId (keys %{$annSeqs->{CATH}}) {
-			if ($annSeqs->{CATH}->{$pfamseqId}->{$chain}->{seq}) {
-			  foreach my $r (@{$annRegions->{$chain}}) {
-				$annSeqs->{CATH}->{$pfamseqId}->{$chain}->{seq}->addAnnotatedRegion($r);
-			  }
-			  foreach my $f (@features) {
-				$annSeqs->{CATH}->{$pfamseqId}->{$chain}->{seq}->addFeature($f);
-			  }
-			}
-		  }
-		}
-	  }
-	}
+    if ($pdbIdNode->hasAttribute("pdb_code")) {
+      my $chain;
+      if ($pdbIdNode->getAttribute("chain_code") =~ /(\S+)/) {
+        $chain = $1;
+      } else {
+        $chain = "_";
+      }
+      my $pdbId = $pdbIdNode->getAttribute("pdb_code");
+      foreach my $domainNode ($pdbIdNode->findnodes("cath_domain")) {
+        my $id = $domainNode->getAttribute("domain_id");
+        my $cathcode = $domainNode->findnodes("cath_code")->shift;
+        my $cathcodeString = $cathcode->getAttribute("class_code").".".$cathcode->getAttribute("arch_code").".".$cathcode->getAttribute("top_code").".".$cathcode->getAttribute("homol_code");
+        
+        my $previous_end;
+        my $annRegions = {};
+        my @features;
+        #Multiple regions on a single domain indicate nested or discontinuous domain
+        foreach my $region ($domainNode->findnodes("segments/segment")) {
+          $c->log->debug("Working on segments");
+          my (%mapping, @range);
+          foreach my $pfamseqId (keys %{$annSeqs->{CATH}}) {
+            if ($annSeqs->{CATH}->{$pfamseqId}->{$chain}->{mapping}) {
+              %mapping = %{$annSeqs->{CATH}->{$pfamseqId}->{$chain}->{mapping}};
+              @range = sort{$a <=> $b} keys %mapping;
+              last;
+            }
+          }
+          #Find the sequence in the list
+          my $start = $range[0];
+          my $end = $range[$#range];
+          my $start_frag=0;
+          my $end_frag=0;
+          $start = $mapping{$region->getAttribute("pdb_start")} if ($region->getAttribute("pdb_start"));
+          $end = $mapping{$region->getAttribute("pdb_stop")} if ($region->getAttribute("pdb_stop"));
+          if ($previous_end && $start) {
+            #add feature as must be fragment of the domain;
+            push(@features, (Bio::SeqFeature::Generic->new('-start' => $previous_end,
+                                     '-end' => $start,
+                                     '-primary' => "nested")));
+            $annRegions->{$chain}->[$#{$annRegions->{$chain}}]->end_frag(1);
+            $start_frag=1;
+          }
+          $previous_end = $end;
+          push(@{$annRegions->{$chain}}, Bio::Pfam::CATHRegion->new('-cath_name' => $id,
+                                      '-cath_id' => $cathcodeString,
+                                      '-type' => "CATH",
+                                      '-from' => $start,
+                                      '-to' => $end,
+                                      '-start_frag' => $start_frag,
+                                      '-end_frag' => $end_frag));
+        }
+        foreach my $chain (keys %$annRegions) {
+          foreach my $pfamseqId (keys %{$annSeqs->{CATH}}) {
+            if ($annSeqs->{CATH}->{$pfamseqId}->{$chain}->{seq}) {
+              foreach my $r (@{$annRegions->{$chain}}) {
+              $annSeqs->{CATH}->{$pfamseqId}->{$chain}->{seq}->addAnnotatedRegion($r);
+              }
+              foreach my $f (@features) {
+              $annSeqs->{CATH}->{$pfamseqId}->{$chain}->{seq}->addFeature($f);
+              }
+            }
+          }
+        }
+      }
+    }
   }
   return 1;
 }
