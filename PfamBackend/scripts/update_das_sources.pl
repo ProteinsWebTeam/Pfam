@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_das_sources.pl,v 1.10 2007-08-30 15:41:35 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.11 2007-09-03 09:34:21 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -43,40 +43,81 @@
 use warnings;
 use strict;
 
-#use lib qw( /nfs/team71/pfam/jt6/server/pfam-site );
-
 use Bio::Das::Lite;
 use Data::Validate::URI qw( is_uri );
 use DBI;
 use Time::Local;
+use Config::General;
+use Getopt::Std;
 
-# config
+use Data::Dump qw( dump );
+
+my %options;
+getopt( 'f', \%options ) or usage();
+
+unless( defined $options{f} and -f $options{f} ) {
+  print STDERR "error: must specify a configuration file\n";
+  exit 1;
+}
+
+# get the configuration from the Apache-style site config file
+my $conf;
+eval {
+  $conf = new Config::General( $options{f} );
+};
+if( $@ ) {
+  die "error: there was a problem parsing the configuration file\n$@";
+}
+
+my %config;
+eval {
+  %config = $conf->getall;
+};
+if( $@ ) {
+  die "error: there was a problem retrieving the configuration\n$@";
+}
+
+print "config\n";
+print dump( %config );
+exit;
 
 # Bio::Das::Lite setup
-my $DAS_DSN   = "http://das.sanger.ac.uk/das/pfam";
-my $DAS_TO    = 100;
-my $DAS_PROXY = "http://wwwcache.sanger.ac.uk:3128";
+my $DAS_DSN   = $config{das}->{dasDsn};
+my $DAS_PROXY = $config{das}->{dasProxy};
+my $DAS_TO    = $config{das}->{dasProxy};
 
 # db setup
-my $DB_DSN  = "dbi:mysql:web_user:pfamdb1:3306";
-my $DB_USER = "webuseradmin";
-my $DB_PASS = "Dakota41";
+my $DB_NAME   = $config{Model}->{WebUser}->{name};
+my $DB_HOST   = $config{Model}->{WebUser}->{host};
+my $DB_PORT   = $config{Model}->{WebUser}->{port};
+my $DB_USER   = $config{Model}->{WebUser}->{user};
+my $DB_PASS   = $config{Model}->{WebUser}->{password};
+
+my $DB_DSN    = "dbi:mysql:database=$DB_NAME;host=$DB_HOST;port=$DB_PORT";
 
 # todays date, in seconds since the epoch
 my $cd = time;
 
 # default servers
-my $defaultServers = { DS_109 => 1, # uniprot
-                       DS_120 => 1, # superfamily
-                       DS_210 => 1, # SMART
-                       DS_311 => 1, # Pfam Other Features
-                       DS_327 => 1, # interpro
-                       DS_359 => 1, # phobius
-                     };
+my $defaultServers = {};
+foreach ( $config{das}->{defaultServer} ) {
+  $defaultServers->{$_} = 1;
+}
+#my $defaultServers = { DS_109 => 1, # uniprot
+#                       DS_120 => 1, # superfamily
+#                       DS_210 => 1, # SMART
+#                       DS_311 => 1, # Pfam Other Features
+#                       DS_327 => 1, # interpro
+#                       DS_359 => 1, # phobius
+#                     };
 
 # ignore these servers
-my $ignoreServers = { DS_241 => 1, # Pfam
-                    };
+my $ignoreServers = {};
+foreach ( $config{das}->{ignoreServer} ) {
+  $ignoreServers->{$_} = 1;
+}
+#my $ignoreServers = { DS_241 => 1, # Pfam
+#                    };
 
 # main
 
@@ -92,6 +133,13 @@ my $dbh = DBI->connect( $DB_DSN,
                         { RaiseError => 1,
                           PrintError => 0,
                           AutoCommit => 0 } );
+
+print "default\n";
+print dump( $defaultServers );
+print "ignore\n";
+print dump( $ignoreServers );
+
+exit;
 
 # prepare the queries
 my $insertSth = $dbh->prepare( "INSERT INTO feature_das_sources ( server_id, name, url, system, sequence_type, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ?, ? )" );
@@ -222,3 +270,17 @@ if( $@ ) {
 }
 
 # done
+exit;
+
+sub usage {
+  print <<EOF_help;
+usage: $0 [-h] -f config_file
+
+ -f config_file : the Apache-style configuration file
+ -h             : prints this message
+ 
+EOF_help
+
+  exit;
+}
+
