@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_das_sources.pl,v 1.11 2007-09-03 09:34:21 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.12 2007-09-03 10:07:14 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -50,8 +50,6 @@ use Time::Local;
 use Config::General;
 use Getopt::Std;
 
-use Data::Dump qw( dump );
-
 my %options;
 getopt( 'f', \%options ) or usage();
 
@@ -77,10 +75,6 @@ if( $@ ) {
   die "error: there was a problem retrieving the configuration\n$@";
 }
 
-print "config\n";
-print dump( %config );
-exit;
-
 # Bio::Das::Lite setup
 my $DAS_DSN   = $config{das}->{dasDsn};
 my $DAS_PROXY = $config{das}->{dasProxy};
@@ -90,34 +84,17 @@ my $DAS_TO    = $config{das}->{dasProxy};
 my $DB_NAME   = $config{Model}->{WebUser}->{name};
 my $DB_HOST   = $config{Model}->{WebUser}->{host};
 my $DB_PORT   = $config{Model}->{WebUser}->{port};
-my $DB_USER   = $config{Model}->{WebUser}->{user};
-my $DB_PASS   = $config{Model}->{WebUser}->{password};
+my $DB_USER   = $config{Model}->{WebUser}->{admin_user};
+my $DB_PASS   = $config{Model}->{WebUser}->{admin_pass};
 
 my $DB_DSN    = "dbi:mysql:database=$DB_NAME;host=$DB_HOST;port=$DB_PORT";
 
 # todays date, in seconds since the epoch
 my $cd = time;
 
-# default servers
-my $defaultServers = {};
-foreach ( $config{das}->{defaultServer} ) {
-  $defaultServers->{$_} = 1;
-}
-#my $defaultServers = { DS_109 => 1, # uniprot
-#                       DS_120 => 1, # superfamily
-#                       DS_210 => 1, # SMART
-#                       DS_311 => 1, # Pfam Other Features
-#                       DS_327 => 1, # interpro
-#                       DS_359 => 1, # phobius
-#                     };
-
-# ignore these servers
-my $ignoreServers = {};
-foreach ( $config{das}->{ignoreServer} ) {
-  $ignoreServers->{$_} = 1;
-}
-#my $ignoreServers = { DS_241 => 1, # Pfam
-#                    };
+# get the lists of default servers and those to ignore entirely
+my %defaultServers = map { $_ => 1 } @{ $config{das}->{defaultServer} };
+my %ignoreServers  = map { $_ => 1 } @{ $config{das}->{ignoreServer} };
 
 # main
 
@@ -133,13 +110,6 @@ my $dbh = DBI->connect( $DB_DSN,
                         { RaiseError => 1,
                           PrintError => 0,
                           AutoCommit => 0 } );
-
-print "default\n";
-print dump( $defaultServers );
-print "ignore\n";
-print dump( $ignoreServers );
-
-exit;
 
 # prepare the queries
 my $insertSth = $dbh->prepare( "INSERT INTO feature_das_sources ( server_id, name, url, system, sequence_type, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ?, ? )" );
@@ -171,7 +141,7 @@ foreach my $source ( @$sourcesList ) {
   }
 
   # don't add the source if it's in the "ignore" list
-  if( $ignoreServers->{ $source->{id} } ) {
+  if( $ignoreServers{ $source->{id} } ) {
     print STDERR "(ww) ignoring \"$source->{nickname}\" ($source->{id})\n";
     next;
   }
@@ -250,7 +220,7 @@ eval {
                            $coord->{system},
                            $coord->{type},
                            $entry->{helperurl},
-                           exists $defaultServers->{ $entry->{id} } ? 1 : 0
+                           exists $defaultServers{ $entry->{id} } ? 1 : 0
                          );
       print STDERR "done\n";
     }
