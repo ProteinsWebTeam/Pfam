@@ -28,8 +28,21 @@ use Data::Dump qw(dump);
 
 die "No such file" unless( $ARGV[0] and -f $ARGV[0] );
 
-my $conf = new Config::General( $ARGV[0] );
-my %config = $conf->getall;
+my $conf;
+eval {
+  $conf = new Config::General( $ARGV[0] );
+};
+if( $@ ) {
+  die "error: problem parsing configuration file:\n$@";
+}
+
+my %config;
+eval {
+  %config = $conf->getall;
+};
+if( $@ ) {
+  die "error: problem retrieving configuration from file:\n$@";
+}
 
 dump( \%config );
 
