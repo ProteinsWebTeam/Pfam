@@ -4,7 +4,7 @@
 #
 # The main build script for the PfamWeb installation
 #
-# $Id: Build.PL,v 1.20 2007-07-16 09:59:25 jt6 Exp $
+# $Id: Build.PL,v 1.21 2007-09-03 10:16:56 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -40,13 +40,13 @@ use Data::Dump qw(dump);
 
 # this is the default location for all of the configuration files in the
 # distribution
-my $configDir  = "conf";
+my $configDir  = 'conf';
 
 # this is the default location for the main configuration file
-my $configFile = "$configDir/pfamweb.jcf";
+my $configFile = "$configDir/pfamweb.conf";
 
 # and for the apache config file
-my $httpdFile = "$configDir/httpd.jcf";
+my $httpdFile = "$configDir/httpd.conf";
 
 #-------------------------------------------------------------------------------
 #- setup Module::Build ---------------------------------------------------------
@@ -59,8 +59,8 @@ my $build = PfamWeb::Builder
     # these are modules that are required for the build process, as opposed
     # to just the normal operation of the site
     build_requires  => {
-                          "Config::General" => 0.28,
-                          "DBI"             => 0,
+                         'Config::General' => 0.28,
+                         'DBI'             => 0,
                        },
 
     create_packlist => 0,
@@ -68,64 +68,65 @@ my $build = PfamWeb::Builder
 
     # define the command line options for the installation
     get_options     => {
-                        "accept_defaults" => { type    => "!"  },
-                        "config_file"     => { type    => ":s" },
-                        "help|usage"      => { type    => "!"  },
-                        "httpd_file"      => { type    => ":s" },
-                        "no_help"         => { type    => "!",
-                                               default => 0    },
-                        "verbose_log"     => { type    => "+",
-                                               default => 0    },
+                         'accept_defaults' => { type    => '!'  },
+                         'config_file'     => { type    => ':s' },
+                         'help|usage'      => { type    => '!'  },
+                         'httpd_file'      => { type    => ':s' },
+                         'no_help'         => { type    => '!',
+                                                default => 0    },
+                         'verbose_log'     => { type    => '+',
+                                                default => 0    },
                      },
 
-    license         => "perl",
-    module_name     => "PfamWeb",
+    license         => 'perl',
+    module_name     => 'PfamWeb',
 
     # recommended but not essential prerequisites. Since there
     # doesn't seem to be any sensible way to detect BioPerl if
     # it's not installed as a Bundle, it's recommended rather than
     # required
     recommends      => {
-                          "Bundle::BioPerl"                            => 0,
-                          "Catalyst::Devel"                            => 1.0,
-                          "Module::Build"                              => 0.28,
-                          "Cache::Memcached"                           => 1.23,
-                     },
+                         'Bundle::BioPerl'                            => 0,
+                         'Cache::FastMmap'                            => 0,
+                         'Cache::Memcached'                           => 1.23,
+                         'Catalyst::Devel'                            => 1.0,
+                         'IPC::Cmd'                                   => 0,
+                         'Module::Build'                              => 0.28,
+                       },
 
     # these are the absolutely required prerequisites
     requires        => {
-                          "Bio::Das::Lite"                             => 1.048,
-                          "Catalyst::Action::RenderView"               => 0,
-                          "Catalyst::Engine::Apache2"                  => 0,
-                          "Catalyst::Model::DBIC::Schema"              => 0,
-                          "Catalyst::Plugin::Cache"                    => 0.03,
-                          "Catalyst::Plugin::Cache::FastMmap"          => 0,
-                          "Catalyst::Plugin::ConfigLoader"             => 0,
-                          "Catalyst::Plugin::Email"                    => 0,
-                          "Catalyst::Plugin::HTML::Widget"             => 0,
-                          "Catalyst::Plugin::PageCache"                => 0.15,
-                          "Catalyst::Plugin::Session::State::Cookie"   => 0,
-                          "Catalyst::Plugin::Session::Store::FastMmap" => 0,
-                          "Catalyst::Runtime"                          => 5.7,
-                          "Catalyst::View::TT"                         => 0,
-                          "Class::Data::Accessor"                      => 0,
-                          "Config::General"                            => 0.28,
-                          "Data::Pageset"                              => 0,
-                          "Data::Validate::URI"                        => 0,
-                          "Data::Visitor::Callback"                    => 0,
-                          "DateTime"                                   => 0,
-                          "DateTime::Format::MySQL"                    => 0,
-                          "DBD::mysql"                                 => 0,
-                          "DBIx::Class"                                => 0,
-                          "DBIx::Class::HTMLWidget"                    => 0,
-                          "GD"                                         => 0,
-                          "GD::Graph"                                  => 0,
-                          "HTML::Tree"                                 => 0,
-                          "HTML::Widget"                               => 0,
-                          "JSON"                                       => 0,
-                          "LWP::Parallel::UserAgent"                   => 0,
-                          "SOAP::Data::Builder"                        => 0,
-                          "XML::Feed"                                  => 0,
+                         'Bio::Das::Lite'                             => 1.048,
+                         'Catalyst::Action::RenderView'               => 0,
+                         'Catalyst::Engine::Apache2'                  => 0,
+                         'Catalyst::Model::DBIC::Schema'              => 0,
+                         'Catalyst::Plugin::Cache'                    => 0.03,
+                         'Catalyst::Plugin::ConfigLoader'             => 0,
+                         'Catalyst::Plugin::Email'                    => 0,
+                         'Catalyst::Plugin::HTML::Widget'             => 0,
+                         'Catalyst::Plugin::PageCache'                => 0.15,
+                         'Catalyst::Plugin::Session::State::Cookie'   => 0,
+                         'Catalyst::Plugin::Session::Store::FastMmap' => 0,
+                         'Catalyst::Runtime'                          => 5.7,
+                         'Catalyst::View::TT'                         => 0,
+                         'Class::Data::Accessor'                      => 0,
+                         'Config::General'                            => 0.28,
+                         'Data::Pageset'                              => 0,
+                         'Data::Validate::URI'                        => 0,
+                         'Data::Visitor::Callback'                    => 0,
+                         'Data::UUID'                                 => 0,
+                         'DateTime'                                   => 0,
+                         'DateTime::Format::MySQL'                    => 0,
+                         'DBD::mysql'                                 => 0,
+                         'DBIx::Class'                                => 0,
+                         'DBIx::Class::HTMLWidget'                    => 0,
+                         'GD'                                         => 0,
+                         'HTML::Tree'                                 => 0,
+                         'HTML::Widget'                               => 0,
+                         'JSON'                                       => 0,
+                         'LWP::Parallel::UserAgent'                   => 0,
+                         'SOAP::Data::Builder'                        => 0,
+                         'XML::Feed'                                  => 0,
                        },
 
     # for what they're worth...
@@ -142,12 +143,11 @@ my $build = PfamWeb::Builder
 # that will be processed using methods in PfamBuilder. The methods are
 # responsible for knowing what to do with the files in each directory.
 
-$build->add_build_element( "conf" );
-$build->add_build_element( "data" );
-$build->add_build_element( "htdocs" );
+$build->add_build_element( 'conf' );
+$build->add_build_element( 'static' );
 
-$build->add_build_element( "pfamCore" );
-$build->add_build_element( "pfamModel" );
+$build->add_build_element( 'pfamCore' );
+$build->add_build_element( 'pfamModel' );
 
 #--------------------------------------
 
@@ -157,10 +157,9 @@ $build->add_build_element( "pfamModel" );
 # directory inserted somewhere, all of which breaks the catalyst app 
 # pretty terminally
 
-$build->install_base_relpaths( lib     => "lib" );
-$build->install_base_relpaths( conf    => "conf" );
-$build->install_base_relpaths( data    => "data" );
-$build->install_base_relpaths( htdocs  => "htdocs" );
+$build->install_base_relpaths( lib     => 'lib' );
+$build->install_base_relpaths( conf    => 'conf' );
+$build->install_base_relpaths( root    => 'static' );
 
 # remove paths for things that we don't want installed at all
 $build->install_base_relpaths( arch    => undef );
@@ -174,18 +173,18 @@ $build->install_base_relpaths( script  => undef );
 #--------------------------------------
 
 # see if we should use the whatever defaults we find
-$ENV{PERL_MM_USE_DEFAULT} = 1 if $build->args( "accept_defaults" );
+$ENV{PERL_MM_USE_DEFAULT} = 1 if $build->args( 'accept_defaults' );
 
 #--------------------------------------
 
 # should we just provide some help ?
-if( $build->args( "help" ) or $build->args( "usage" ) ) {
+if( $build->args( 'help' ) or $build->args( 'usage' ) ) {
   usage($build);
   exit;
 }
 
 # or should we just shut up and not print any help messages between prompts ?
-my $quiet = $build->args( "no_help" );
+my $quiet = $build->args( 'no_help' );
 
 #-------------------------------------------------------------------------------
 #- start the configuration -----------------------------------------------------
@@ -220,7 +219,7 @@ from the configuration files that it reads.
 
 EOFloc
 
-$build->prompt( "Hit return when you're ready to start.", "" ) unless $quiet;
+$build->prompt( "Hit return when you're ready to start.", '' ) unless $quiet;
 
 #--------------------------------------
 
@@ -232,7 +231,7 @@ $build->prompt( "Hit return when you're ready to start.", "" ) unless $quiet;
 # around it by calling $build->check_installed_status and peeking into the
 # hash that it returns, just like check_installed_version appears to...
 
-my $cgStatus = $build->check_installed_status( "Config::General", 2.30 );
+my $cgStatus = $build->check_installed_status( 'Config::General', 2.30 );
 if( $cgStatus->{ok} ) {
   eval {
     require Config::General;
@@ -265,12 +264,13 @@ EOFcgMissing
 # if the user specified the value on the command line, we'll use that, otherwise
 # we ask for file names
 
-unless( $build->args( "config_file" ) and $build->args( "httpd_file" ) ) {
+unless( $build->args( 'config_file' ) and 
+        $build->args( 'httpd_file' ) ) {
   print <<EOFloc unless $quiet;
 --------------------------------------------------------------------------------
 
 This installation uses two configuration files to provide the default values for
-the questions it asks. The first file if used by the PfamWeb application and the
+the questions it asks. The first file is used by the PfamWeb application and the
 second is for Apache.
 
 The distribution includes versions of those two files and they are presented
@@ -279,29 +279,29 @@ as the default values here.
 EOFloc
 }
 
-if( $build->args( "config_file" ) ) {
-  $configFile = $build->args( "config_file" );
+if( $build->args( 'config_file' ) ) {
+  $configFile = $build->args( 'config_file' );
   print <<EOFloc;
 
-We're taking default PfamWeb config values from the file \"$configFile\",
+We're taking default PfamWeb config values from the file '$configFile',
 as specified on the command line.
 EOFloc
 } else {
-  $configFile = $build->prompt( "Where is the default PfamWeb configuration file ?",
+  $configFile = $build->prompt( 'Where is the default PfamWeb configuration file ?',
                                 $configFile );
   die "(EE) ERROR: couldn't read PfamWeb configuration file \"$configFile\": $!"
     unless -f $configFile;
 }
 
-if( $build->args( "httpd_file" ) ) {
-  $httpdFile = $build->args( "httpd_file" );
+if( $build->args( 'httpd_file' ) ) {
+  $httpdFile = $build->args( 'httpd_file' );
   print <<EOFloc;
 
-We're taking default Apache config values from the file \"$httpdFile\",
+We're taking default Apache config values from the file \'$httpdFile\',
 as specified on the command line.
 EOFloc
 } else {
-  $httpdFile = $build->prompt( "Where is the default Apache configuration file ?",
+  $httpdFile = $build->prompt( 'Where is the default Apache configuration file ?',
                                 $httpdFile );
   die "(EE) ERROR: couldn't read Apache configuration file \"$httpdFile\": $!"
     unless -f $httpdFile;
@@ -314,8 +314,7 @@ EOFloc
 my( $configCG, %config, $parsed );
 eval {
   # throws an exception if there's a real parsing error
-  $configCG = new Config::General( -ConfigFile      => $configFile,
-                                   -IncludeRelative => 1 );
+  $configCG = new Config::General( -ConfigFile      => $configFile );
 
   # otherwise we should get a Config::General module...
   %config = $configCG->getall;
@@ -332,8 +331,11 @@ eval {
 if( $@ or not $parsed ) {
   print STDERR <<EOFcgError;
 
-(EE) ERROR: there was a problem parsing configuration file \"$configFile\".
-            Please check that the file you specified is valid: $@
+(EE) ERROR: there was a problem parsing configuration file '$configFile'.
+            Please check that the file you specified is valid. This is the
+            error log from the configuration parsing module, Config::General:
+            
+$@
 
 EOFcgError
   exit 1;
@@ -367,7 +369,10 @@ if( $@ or not $parsed ) {
   print <<EOFhttpdProblem;
 
 (EE) ERROR: there was a problem loading the Apache configuration file from
-            the distribution (\"$httpdFile\"): $@
+            the distribution (\"$httpdFile\"). This is the error log from
+            the configuration parsing module, Config::General:
+            
+$@
 
 If this is a parsing problem, or the file is just missing, then this is a
 problem with the distribution...
@@ -401,23 +406,23 @@ entirely separate, e.g. /opt/webapps/PfamWeb.
 EOFloc
 
 # store the starting value of the installation root
-$build->notes( "defaultInstallRoot", $config{installRoot} );
+$build->notes( 'defaultInstallRoot', $config{installRoot} );
 
 my( $validResponse, $rawResponse );
 
 # loop until we get a response that we like...
 until( $validResponse ) {
   $rawResponse = 
-    $build->prompt( "In what directory do you want to install the PfamWeb application ?",
+    $build->prompt( 'In what directory do you want to install the PfamWeb application ?',
                     $config{installRoot} );
 
   # trim off trailing slashes
   $rawResponse =~ s/(.*?)\/*$/$1/;
 
   if( -d $rawResponse ) {
-    $validResponse= $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
+    $validResponse= $build->y_n( '(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)', 'Y' );
   } elsif( -f $1 ) {
-    $validResponse= $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+    $validResponse= $build->y_n( '(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)', 'N' );
   } else {
     $validResponse = 1;
   }
@@ -431,7 +436,7 @@ $config{installRoot} = $rawResponse;
 $build->install_base( $rawResponse );
 
 # and set the INCLUDE_PATH value in the View::TT config
-$config{View}->{TT}->{INCLUDE_PATH} = $rawResponse . "/data/templates";
+$config{View}->{TT}->{INCLUDE_PATH} = $rawResponse . '/data/templates';
 
 print <<EOFloc unless $quiet;
 
@@ -450,7 +455,7 @@ unless( $quiet ) {
 
 # we'll store the starting value for the application root as a note, so 
 # that we can do a search and replace for it at the Build stage
-$build->notes( "defaultAppRoot", $config{View}->{TT}->{CONSTANTS}->{root} );
+$build->notes( 'defaultAppRoot', $config{View}->{TT}->{CONSTANTS}->{root} );
 
 print <<EOFloc unless $quiet;
 
@@ -471,7 +476,7 @@ trailing slash.
 EOFloc
 
 $rawResponse = 
-  $build->prompt( "What is the application root for your site ?",
+  $build->prompt( 'What is the application root for your site ?',
                   $config{View}->{TT}->{CONSTANTS}->{root} );
 
 # trim off trailing slashes
@@ -482,7 +487,7 @@ $config{View}->{TT}->{CONSTANTS}->{root} = $rawResponse;
 
 # add a note so we can compare the default application root to the user-
 # specified value at build time
-$build->notes( "appRoot", $rawResponse );
+$build->notes( 'appRoot', $rawResponse );
 
 #--------------------------------------
 # annotation email
@@ -505,7 +510,7 @@ comments. The comments are then emailed to the email address of your choice.
 EOFloc
 
 $config{Controller}->{Annotate}->{annotationEmail} =
-  $build->prompt( "To what email address should we send annotation comments ?",
+  $build->prompt( 'To what email address should we send annotation comments ?',
                   $config{Controller}->{Annotate}->{annotationEmail} );
 
 #--------------------------------------
@@ -529,18 +534,18 @@ EOFloc
 
 # get the file system path to the temp directory
 # NOTE: COMPILE_DIR is the same as the temp directory...
-# TODO: this is probably a bad idea; we should use a web-INaccessible area for COMPILE_DIR
+# TODO this is probably a bad idea; we should use a web-INaccessible area for COMPILE_DIR
 
 my $tmpDirPath;
 $validResponse = 0;
 until( $validResponse ) {
   $tmpDirPath =
-    $build->prompt( "What is the absolute path for the temporary directory ?",
+    $build->prompt( 'What is the absolute path for the temporary directory ?',
                     $config{View}->{TT}->{COMPILE_DIR} );
 
   # see if the directory is already there, otherwise offer to create it
   if( -d $tmpDirPath ) {
-    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
+    $validResponse = $build->y_n( '(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)', 'Y' );
   } else {
     if( $build->y_n( "(WW) WARNING: that directory doesn't exist; should we create it now ? (Y/n)", "Y" ) ) {
       # make sure we catch possible errors with creating the directory
@@ -560,7 +565,7 @@ until( $validResponse ) {
 
 # and get the URL for the same directory
 my $tmpDirURL =
-  $build->prompt( "What is the URL for the temporary directory ?",
+  $build->prompt( 'What is the URL for the temporary directory ?',
                   $config{View}->{TT}->{CONSTANTS}->{tmp} );
 
 $config{View}->{TT}->{COMPILE_DIR} = $tmpDirPath;
@@ -592,27 +597,27 @@ EOFloc
 $validResponse = 0;
 until( $validResponse ) {
 
-  my $pfamDSN = "dbi:mysql";
+  my $pfamDSN = 'dbi:mysql';
 
-  $pfamDSN .= ":" .
-    $build->prompt( "What is the name of the Pfam database ?",
-                    "pfam_21_0" );
+  $pfamDSN .= ':' .
+    $build->prompt( 'What is the name of the Pfam database ?',
+                    'pfam_21_0' );
 
-  $pfamDSN .= ":" .
-    $build->prompt( "What is the name of the machine on which the Pfam database is running ?",
-                    "pfam" );
+  $pfamDSN .= ':' .
+    $build->prompt( 'What is the name of the machine on which the Pfam database is running ?',
+                    'pfam' );
 
-  $pfamDSN .= ":" .
-    $build->prompt( "What is the port number for connecting to the Pfam database ?",
-                    "3306" );
+  $pfamDSN .= ':' .
+    $build->prompt( 'What is the port number for connecting to the Pfam database ?',
+                    '3306' );
 
   my $pfamUser =
-    $build->prompt( "What is the username for connecting to the Pfam database ?",
-                    "pfamro" );
+    $build->prompt( 'What is the username for connecting to the Pfam database ?',
+                    'pfamro' );
 
   my $pfamPass =
-    $build->prompt( "What is the password for connecting to the Pfam database ?",
-                    "pfamro" );
+    $build->prompt( 'What is the password for connecting to the Pfam database ?',
+                    'pfamro' );
 
   $config{Model}->{PfamDB}->{connect_info}[0] = $pfamDSN;
   $config{Model}->{PfamDB}->{connect_info}[1] = $pfamUser;
@@ -629,27 +634,27 @@ Now the "web_user" database details.
 
 EOFloc
 
-  my $wuDSN = "dbi:mysql";
+  my $wuDSN = 'dbi:mysql';
   
-  $wuDSN .= ":" .
-    $build->prompt( "What is the name of the web_user database ?",
-                    "web_user" );
+  $wuDSN .= ':' .
+    $build->prompt( 'What is the name of the web_user database ?',
+                    'web_user' );
   
-  $wuDSN .= ":" .
-    $build->prompt( "What is the name of the machine on which it is running ?",
-                    "pfam" );
+  $wuDSN .= ':' .
+    $build->prompt( 'What is the name of the machine on which it is running ?',
+                    'pfam' );
   
-  $wuDSN .= ":" .
-    $build->prompt( "What is the port for connecting to it ?",
-                    "3306" );
+  $wuDSN .= ':' .
+    $build->prompt( 'What is the port for connecting to it ?',
+                    '3306' );
   
   my $wuUser =
-    $build->prompt( "What is the username for the read/write account ?",
-                    "web_user" );
+    $build->prompt( 'What is the username for the read/write account ?',
+                    'web_user' );
   
   my $wuPass =
-    $build->prompt( "What is the password for the read/write account ?",
-                    "web_user" );
+    $build->prompt( 'What is the password for the read/write account ?',
+                    'web_user' );
   
   $config{Model}->{WebUser}->{connect_info}[0] = $wuDSN;
   $config{Model}->{WebUser}->{connect_info}[1] = $wuUser;
@@ -666,7 +671,7 @@ We will try to connect to the web_user database using the following parameters:
 EOFloc
   
   # should we test the connections ?
-  if( $build->y_n( "Would you like to try connect to the databases now ?", "N" ) ) {
+  if( $build->y_n( 'Would you like to try connect to the databases now ?', 'N' ) ) {
   
     eval {
       require DBI;
@@ -692,7 +697,7 @@ EOFloc
         $validResponse = 1;
 
       } else {
-        $validResponse = not $build->y_n( "Do you want to try entering the connection parameters again ? (Y/n)", "Y" );
+        $validResponse = not $build->y_n( 'Do you want to try entering the connection parameters again ? (Y/n)', 'Y' );
       } 
     }
   } else {
@@ -733,7 +738,7 @@ my $pfamCoreDir;
 $validResponse = 0;
 until( $validResponse ) {
   $pfamCoreDir =
-    $build->prompt( "Where should we put the contents of the pfamCore directory ?",
+    $build->prompt( 'Where should we put the contents of the pfamCore directory ?',
                     "$installRootParent/pfamCore" );
 
   # trim off trailing slashes
@@ -741,9 +746,9 @@ until( $validResponse ) {
 
   # see if the directory is already there
   if( -d $pfamCoreDir ) {
-    $validResponse = $build->y_n( "(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)", "Y" );
+    $validResponse = $build->y_n( '(WW) WARNING: that directory already exists; do you want to continue ? (Y/n)', 'Y' );
   } elsif( -f $pfamCoreDir ) {
-    $validResponse = $build->y_n( "(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)", "N" );
+    $validResponse = $build->y_n( '(WW) WARNING: a file with that name already exists; do you want to continue ? (y/N)', 'N' );
   } else {
     $validResponse = 1;
   }
@@ -753,7 +758,7 @@ my $pfamModelDir;
 $validResponse = 0;
 until( $validResponse ) {
   $pfamModelDir =
-    $build->prompt( "Where should we put the contents of the pfamModel directory ?",
+    $build->prompt( 'Where should we put the contents of the pfamModel directory ?',
                     "$installRootParent/pfamModel" );
 
   # trim off trailing slashes
@@ -841,14 +846,14 @@ foreach ( @{$httpdConfig{PerlSetEnv}} ) {
 
 $validResponse = 0;
 until( $validResponse ) {
-  $rawResponse = $build->prompt( "Where is the muscle binary ?", $muscleBin );
+  $rawResponse = $build->prompt( 'Where is the muscle binary ?', $muscleBin );
   if( -e $rawResponse and -x $rawResponse ) {
     print "\nOK. Found the muscle binary.\n" unless $quiet;
     $validResponse = 1;
   } else {
     print "(WW) WARNING: no such file or directory.\n";
     
-    if( $build->y_n( "Do you want to keep the location you specified ($rawResponse) ? (Y/n)", "Y" ) ) {
+    if( $build->y_n( 'Do you want to keep the location you specified ($rawResponse) ? (Y/n)', 'Y' ) ) {
       print "\nOK. Accepting the location for muscle that you provided ($rawResponse).\n";
       $validResponse = 1;
     } else {    
@@ -872,8 +877,8 @@ $httpdConfig{PerlSetEnv} = [
 # RewriteRule and Alias lines, and the second pattern just to the Aliases
 my @rules;
 foreach ( @{$httpdConfig{RewriteRule}}, @{$httpdConfig{Alias}} ) {
-  s/(??{$build->notes("defaultAppRoot")})/$config{View}->{TT}->{CONSTANTS}->{root}/eog;
-  s/(??{$build->notes("defaultInstallRoot")})/$config{installRoot}/eog;
+  s/(??{$build->notes('defaultAppRoot')})/$config{View}->{TT}->{CONSTANTS}->{root}/eog;
+  s/(??{$build->notes('defaultInstallRoot')})/$config{installRoot}/eog;
 }
 
 print <<EOFloc unless $quiet;
@@ -888,10 +893,10 @@ EOFloc
 
 # we can complete the editing of httpd.conf by tweaking the PerlSwitches
 # directives
-$httpdConfig{PerlSwitches} = [ "-wT",
-                               "-I$pfamCoreDir",
-                               "-I$pfamModelDir",
-                               "-I$config{installRoot}/lib" ];
+$httpdConfig{PerlSwitches} = [  q(-wT),
+                               qq(-I$pfamCoreDir),
+                               qq(-I$pfamModelDir),
+                               qq(-I$config{installRoot}/lib) ];
 
 # finally, delete the Directory and Location directives from the configuration
 # hash, because otherwise they'll be duplicated when we append them to the
