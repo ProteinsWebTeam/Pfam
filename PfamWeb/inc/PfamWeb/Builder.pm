@@ -2,7 +2,7 @@
 # PfamBuilder.pm
 # jt 20070208 WTSI.
 #
-# $Id: Builder.pm,v 1.11 2007-03-16 11:28:09 jt6 Exp $
+# $Id: Builder.pm,v 1.12 2007-09-03 10:15:53 jt6 Exp $
 
 =head1 NAME
 
@@ -20,14 +20,14 @@ module provides the extra methods that L<Module::Build> requires to
 install the various extra file types and directories in the PfamWeb
 distribution, such as the static HTML content in htdocs.
 
-$Id: Builder.pm,v 1.11 2007-03-16 11:28:09 jt6 Exp $
+$Id: Builder.pm,v 1.12 2007-09-03 10:15:53 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base "Module::Build";
+use base 'Module::Build';
 
 use File::Basename;
 use File::Path;
@@ -63,11 +63,11 @@ sub process_htdocs_files {
   my $this = shift;
 
   # shortcuts...
-  my $defRoot = $this->notes( "defaultAppRoot" );
-  my $appRoot = $this->notes( "appRoot" );
+  my $defRoot = $this->notes( 'defaultAppRoot' );
+  my $appRoot = $this->notes( 'appRoot' );
 
   # make a directory for all of this...
-  mkpath( catdir( $this->blib, "htdocs" ) );
+  mkpath( catdir( $this->blib, 'htdocs' ) );
 
   my $files = $this->find_htdocs_files;
 
@@ -159,21 +159,21 @@ types in the specified directories.
 =cut
 
 sub find_conf_files {
-  return shift->local_find_file_by_type( "conf", "conf" );
+  return shift->local_find_file_by_type( 'conf', 'conf' );
 }
 
 sub find_data_files {
-  return shift->local_find_file_by_type( "tt", "data" );
+  return shift->local_find_file_by_type( 'tt', 'data' );
 }
 
 sub find_pfamCore_files {
   my $this = shift;
-  return $this->local_find_file_by_type( "pm", "pfamCore" ); 
+  return $this->local_find_file_by_type( 'pm', 'pfamCore' ); 
 }
 
 sub find_pfamModel_files {
   my $this = shift;
-  return $this->local_find_file_by_type( "pm", "pfamModel" );
+  return $this->local_find_file_by_type( 'pm', 'pfamModel' );
 }
 
 #-------------------------------------------------------------------------------
@@ -218,7 +218,7 @@ sub ACTION_fakeinstall {
 #  print "install_path:\n" . ( dump $this->install_path ) . "\n";
 #  print "install_map:\n" . ( dump $this->install_map ) . "\n";
 
-  $this->depends_on( "build" );
+  $this->depends_on( 'build' );
   ExtUtils::Install::install( $this->install_map, 0, 1, 0 ); 
 }
 
@@ -236,7 +236,7 @@ egregiously broken syntax, etc.
 sub ACTION_check_config {
   my $this = shift;
 
-  my $configFile = $this->args( "config_file" );
+  my $configFile = $this->args( 'config_file' );
 
   unless( $configFile ) {
     print STDERR <<EOFccUsage;
@@ -256,9 +256,9 @@ EOFccUsage
   my $conf = new Config::General( $configFile );
   my %config = $conf->getall;
 
-  dump( \%config ) if $this->args( "verbose_log" );
+  dump( \%config ) if $this->args( 'verbose_log' );
 
-  print "(ii) done parsing configuration\n";
+  print '(ii) done parsing configuration\n';
 }
 
 #-------------------------------------------------------------------------------
