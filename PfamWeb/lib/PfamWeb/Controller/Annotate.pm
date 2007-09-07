@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.13 2007-07-31 12:52:17 jt6 Exp $
+# $Id: Annotate.pm,v 1.14 2007-09-07 15:44:48 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.13 2007-07-31 12:52:17 jt6 Exp $
+$Id: Annotate.pm,v 1.14 2007-09-07 15:44:48 jt6 Exp $
 
 =cut
 
@@ -27,7 +27,6 @@ use base 'Catalyst::Controller';
 
 use PfamWeb::CustomContainer;
 use HTML::Widget::Element;
-use IO::All;
 use Digest::MD5 qw( md5_hex );
 
 # constants to encode the result of checking the form submission for tampering
