@@ -103,7 +103,6 @@ while( my $result = $blastio->next_result ) {
 if(keys %pfamHits){
 	my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpDir );
   	foreach my $pfamA (keys %pfamHits){
-		($pfamA) = $pfamA =~ /(\S+)\.\d+/;
 		#Get the HMM from the flatfile
 		open(HMM,"hmmfetch $dataFileDir/Pfam_ls.bin $pfamA |") ||
 			die "Failed to get open hmmfetch pipe, hmmfetch $dataFileDir/Pfam_ls.bin $pfamA:[$!] \n";
