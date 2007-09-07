@@ -3,8 +3,8 @@ package Bio::Pfam::WebServices::PfamQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2007-08-13 08:53:55 $
-# Id:            $Id: PfamQueue.pm,v 1.3 2007-08-13 08:53:55 rdf Exp $
+# Last Modified: $Date: 2007-09-07 14:55:58 $
+# Id:            $Id: PfamQueue.pm,v 1.4 2007-09-07 14:55:58 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -39,7 +39,12 @@ sub new {
 	     };
   bless $self, $class;
   
-  my $conf = new Config::General("../conf/pfam_backend.conf");
+  my $conf;
+  if($ENV{PFAMOFFLINE_CONFIG}){
+    $conf = new Config::General($ENV{PFAMOFFLINE_CONFIG});    
+  }else{
+    die "Do not know where the config directory is\n"; 
+  }
   my %config = $conf->getall;
   #print Dumper (%config);
   my $qConfig = $config{queue}->{$queueType}->{jobType};		
@@ -631,7 +636,7 @@ Bio::Pfam::WebServices::PfamQueue - A transactional-database-backed queuing syst
 
 =head1 VERSION
 
-$Revision: 1.3 $
+$Revision: 1.4 $
 
 =head1 SYNOPSIS
 
