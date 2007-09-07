@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.4 2007-08-14 11:36:46 rdf Exp $
+# $Id: Batch.pm,v 1.5 2007-09-07 15:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.4 2007-08-14 11:36:46 rdf Exp $
+$Id: Batch.pm,v 1.5 2007-09-07 15:59:24 jt6 Exp $
 
 =cut
 
@@ -165,7 +165,10 @@ sub parseUpload : Private {
 
   # check that we can get an Catalyst::Request::Upload object from the request 
   my $u;
-  return unless( $u = $c->req->upload('batchSeq') );
+  unless( $u = $c->req->upload('batchSeq') ) {
+    $c->log->warn( 'Search::Batch::parseUpload: no "batchSeq" parameter found or content empty' );
+    return;
+  }
   
   # check that the Upload object returns us a filehandle
   my $fh;
@@ -176,12 +179,16 @@ sub parseUpload : Private {
 
   # read through the file and bail if we find any illegal characters in it  
   my $seqs;
+  my $lineNumber = 1;
   while( <$fh> ) {
-    unless( /^>[A-Za-z0-9\-_]+$/ or /^[A-Za-z]+$/ ) {
+    next if m/^\s*$/;
+    unless( m/^>[\w\-]+\r?$/ or m/^[A-Za-z]+\r?$/ ) {
       $c->log->debug( 'Search::Batch::parseUpload: illegal character in upload; bailing' );
+      $c->stash->{errorLine} = "line $lineNumber: $_";
       return;
     }
     $seqs .= $_;
+    $lineNumber++;
   }
 
   # the upload passed the illegal characters test; stash it as a string
