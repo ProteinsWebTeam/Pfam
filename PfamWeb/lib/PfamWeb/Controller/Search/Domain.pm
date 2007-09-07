@@ -2,7 +2,7 @@
 # Domain.pm
 # jt6 20061108 WTSI
 #
-# $Id: Domain.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: Domain.pm,v 1.2 2007-09-07 16:14:16 jt6 Exp $
 
 =head1 NAME
 
@@ -16,12 +16,14 @@ package PfamWeb::Controller::Search::Domain;
 
 Searches for sequence architectures with the specified set of Pfam domains.
 
-$Id: Domain.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+$Id: Domain.pm,v 1.2 2007-09-07 16:14:16 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Storable qw( thaw );
 
 use base 'PfamWeb::Controller::Search';
 
@@ -65,8 +67,8 @@ sub domainSearch : Path {
 
   my @architectures = $c->model('PfamDB::Architecture')
                         ->search( {},
-                                  { join     => [ qw( annseq ) ],
-                                    prefetch => [ qw( annseq ) ],
+                                  { join     => [ qw( storable ) ],
+                                    prefetch => [ qw( storable ) ],
                                     order_by => "no_seqs DESC" } )
                         ->search_literal( 'MATCH( architecture_acc ) ' .
                                           'AGAINST( ? IN BOOLEAN MODE )',
