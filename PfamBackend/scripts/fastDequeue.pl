@@ -26,6 +26,7 @@ our $DEBUG = 1;
 
 # Get a new queue stub of the type fast
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("fast");
+$qsout->daemonise unless($DEBUG);
 
 while(1) {
   #Get a pending job
@@ -33,8 +34,8 @@ while(1) {
   #$DEBUG && print Dumper($ref);
   
   unless($ref->{'id'}){
-	#No pending jobs
-	sleep 2;
+	 #No pending jobs
+	 sleep 2;
   }else {
   	my $error = 0;
 	my $cmd;
