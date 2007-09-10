@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.37 2007-08-30 15:03:54 jt6 Exp $
+# $Id: index.tt,v 1.38 2007-09-10 15:37:24 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -321,12 +321,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p class="small">The following are official Pfam 
       <a href="[% helpBase %]?tab=helpTheTeamBlock">mirror</a> sites:
     </p>
-    <ul class="mirrors">
-      <li class="se mirror"><a href="http://pfam.cgb.ki.se/" class="ext flag">SBC, Sweden</a></li>
-      <li class="us mirror"><a href="http://pfam.janelia.org/" class="ext flag">JFRC, USA</a></li>
-      <li class="fr mirror"><a href="http://pfam.jouy.inra.fr/" class="ext flag">INRA, France</a></li>
-      <li class="kr mirror"><a href="http://pfam.ccbb.re.kr/" class="ext flag">CCBB, South Korea</a></li>
-    </ul>
+    [% PROCESS "components/mirrors.tt" %]
 
   </div>
 
