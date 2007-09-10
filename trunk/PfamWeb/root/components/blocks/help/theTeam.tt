@@ -4,7 +4,7 @@
 # 
 # build the theTeam block for the help pages
 #
-# $Id: theTeam.tt,v 1.5 2007-06-18 12:06:22 jt6 Exp $
+# $Id: theTeam.tt,v 1.6 2007-09-10 15:37:24 jt6 Exp $
 %]
 
 <!-- start theTeam block -->
@@ -45,13 +45,8 @@
     </ul>
     
     <h3>Mirror Sites</h3>
-  
-    <ul class="mirrors">
-    	<li class="se mirror"><a href="http://pfam.cgb.ki.se/" class="ext flag">Stockholm Bioinformatics Center, Sweden</a></li>
-    	<li class="us mirror"><a href="http://pfam.janelia.org/" class="ext flag">Janelia Farm Research Campus, USA</a></li>
-    	<li class="fr mirror"><a href="http://pfam.jouy.inra.fr/" class="ext flag">Institut National de la Recherche Agronomique, France</a></li>
-    	<li class="kr mirror"><a href="http://pfam.ccbb.re.kr/" class="ext flag">Center for Computational Biology &amp; Bioinformatics, South Korea</a></li>
-    </ul>	
+
+    [% PROCESS "components/mirrors.tt" %]  
   
     <h3>Previous contributors</h3>
   
