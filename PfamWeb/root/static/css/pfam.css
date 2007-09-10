@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.57 2007-08-30 09:27:03 jt6 Exp $
+   $Id: pfam.css,v 1.58 2007-09-10 15:37:49 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -829,6 +829,9 @@ ul.mirrors li {
 }
 
 /* the national flags */
+.uk {
+  background-image: url(/static/images/flags/british_flag.gif);
+}
 .us {
   background-image: url(/static/images/flags/american_flag.gif);
 }
