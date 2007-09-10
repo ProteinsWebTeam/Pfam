@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.40 2007-08-30 09:39:44 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.41 2007-09-10 15:09:38 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,14 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.40 2007-08-30 09:39:44 jt6 Exp $
+$Id: PfamWeb.pm,v 1.41 2007-09-10 15:09:38 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Sys::Hostname;
 
 # a useful trick to get Catalyst to confess errors on startup, rather than
 # simply dying with a cryptic error about barewords
@@ -62,10 +64,15 @@ configuration files.
 # grab the location of the configuration file from the environment and
 # detaint it. Doing this means we can configure the location of the
 # config file in httpd.conf rather than in the code
-my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ /([\d\w\/-]+)/;
+my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
 
-__PACKAGE__->config( file => $conf );
+# use the ConfigLoader plugin to read the configuration
+__PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
 __PACKAGE__->setup;
+
+# add to the configuration the name of the host that's actually serving 
+# the site. This will be pulled out later in the header template
+__PACKAGE__->config->{server_name} = hostname();
 
 #-------------------------------------------------------------------------------
 
