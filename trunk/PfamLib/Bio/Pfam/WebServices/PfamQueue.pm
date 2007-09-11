@@ -3,8 +3,8 @@ package Bio::Pfam::WebServices::PfamQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2007-09-10 21:11:52 $
-# Id:            $Id: PfamQueue.pm,v 1.5 2007-09-10 21:11:52 rdf Exp $
+# Last Modified: $Date: 2007-09-11 10:41:31 $
+# Id:            $Id: PfamQueue.pm,v 1.6 2007-09-11 10:41:31 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -20,6 +20,7 @@ use English qw(-no_match_vars);
 use Carp;
 use Data::UUID;
 use Data::Dumper;
+use File::Basename;
 use Config::General;
  use POSIX qw(setsid);
 use Bio::Pfam::WebUserDBManager;
@@ -434,7 +435,7 @@ sub daemonise {
   open STDERR, '>/dev/null' or die "Can't write to /dev/null: $!";
   defined(my $pid = fork)   or die "Can't fork: $!";
   
-  my $pidFile = $0;
+  my $pidFile = basename($0);
   $pidFile =~ s/\.pl/\.pid/;
   
   if($pid){
@@ -442,8 +443,7 @@ sub daemonise {
     print PIDFILE $pid;
     close PIDFILE;
     exit 0;
-  } 
-  #exit if $pid;
+  }
   setsid                    or die "Can't start a new session: $!"; 
 }
 
@@ -657,7 +657,7 @@ Bio::Pfam::WebServices::PfamQueue - A transactional-database-backed queuing syst
 
 =head1 VERSION
 
-$Revision: 1.5 $
+$Revision: 1.6 $
 
 =head1 SYNOPSIS
 
