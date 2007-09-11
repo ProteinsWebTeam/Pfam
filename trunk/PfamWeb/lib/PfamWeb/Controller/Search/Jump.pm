@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.3 2007-08-30 09:26:28 jt6 Exp $
+# $Id: Jump.pm,v 1.4 2007-09-11 10:33:46 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.3 2007-08-30 09:26:28 jt6 Exp $
+$Id: Jump.pm,v 1.4 2007-09-11 10:33:46 jt6 Exp $
 
 =cut
 
@@ -40,10 +40,19 @@ sub jump : Path {
   my( $this, $c ) = @_;
 
   # de-taint the entry ID or accession
-  my $entry = "";
-  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()]+)/;
+  my $entry = '';
+  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()]+)$/;
   $c->log->debug( "Search::Jump::jump: called with entry |$entry|" );
 
+  # strip off leading and trailing whitespace
+  $entry =~ s/^\s*(.*?)\s*$/$1/;
+  $c->log->debug( "Search::Jump::jump: trimmed entry to |$entry|" );
+
+  # we've detainted and trimmed whitespace from the "entry" parameter, so
+  # override the original version with our cleaned up one
+  my $params = $c->req->params;
+  $params->{entry} = $entry;
+    
   # bail immediately if there's no entry given
   unless( $entry ) {
     if( defined $c->req->referer )  {
@@ -72,7 +81,13 @@ sub jump : Path {
   if( $entryType and defined $this->{jumpTargets}->{$entryType} ) {
     my $action = '/' . $this->{jumpTargets}->{$entryType};
     $c->log->debug( "Search::Jump::jump: called on entry type |$entryType|; redirecting to |$action|" );
-    $c->res->redirect( $c->uri_for( $action, $c->req->params ) );
+    
+    # again, we've cleaned up "entryType", so override that parameter in our
+    # parameters list
+    $params->{type} = $entryType;
+
+    # and actually redirect
+    $c->res->redirect( $c->uri_for( $action, $params ) );
     return 1;
   }
   
@@ -85,7 +100,7 @@ sub jump : Path {
 
   if( $action ) {
     $c->log->debug( "Search::Jump::jump: we've made a guess; redirecting to |$action|" );
-    $c->res->redirect( $c->uri_for( "/$action", $c->req->params ) );
+    $c->res->redirect( $c->uri_for( "/$action", $params ) );
   } else {
     $c->log->debug( "Search::Jump::jump: couldn't guess entry type..." );
     if( defined $c->req->referer ) {
