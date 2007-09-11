@@ -409,6 +409,7 @@ if( -s "$pfamdir/Pfam-A.scan.dat" ) {
 	    }
 	}
     }
+    close(SEED);
 }elsif( -s "$pfamdir/Pfam-A.seed" ) {
     my $id;
     open( SEED, "$pfamdir/Pfam-A.seed" ) or die "FATAL: can't open Pfam-A.seed file\n";
@@ -431,6 +432,7 @@ if( -s "$pfamdir/Pfam-A.scan.dat" ) {
 	    }
 	}
     }
+    close(SEED);
 }elsif( -s "$pfamdir/Pfam-A.fasta" ) {
     open( FASTA, "$pfamdir/Pfam-A.fasta" ) or die;
     while(<FASTA>) {
@@ -763,15 +765,16 @@ sub parse_hmmpfam {
 						my @aliPart;
 						for (my $i = 0; $i <=3; $i++ ){
 							$aliPart[$i] = <$file>;
+							redo ALIGN if($aliPart[$i] =~ /^                RF/);
 							chomp($aliPart[$i]);
-							print STDERR "SET alipart to $aliPart[$i]\n";
+							#print STDERR "SET alipart to $aliPart[$i]\n";
 						}
 						
 						$ali{hmm}   .= substr($aliPart[0],19,48);
 						$ali{match} .= substr($aliPart[1],19,48);
 						$ali{seq}   .= substr($aliPart[2],19,48);
 						
-						if($aliPart[0] =~ /\<\-/){
+						if($aliPart[0] =~ /\</){
 							$unit->align_hmm($ali{hmm});
 							$unit->align_match($ali{match});
 							$unit->align_seq($ali{seq});
