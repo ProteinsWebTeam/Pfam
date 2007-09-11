@@ -5,7 +5,7 @@
 #
 # builds form for uploading XML describing a Pfam graphic
 #
-# $Id: uploadXml.tt,v 1.3 2007-05-31 12:21:44 jt6 Exp $
+# $Id: uploadXml.tt,v 1.4 2007-09-11 08:34:45 jt6 Exp $
 
 META title = "Generate domain images";
 META fullPage = 1;
@@ -27,9 +27,9 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 <p>
   This tool allows you to generate your own domain images, by uploading an XML 
   file describing the image you need. The XML must conform to the Pfam 
-  <a href="[% c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]">schema</a>.
+  <a href="[% base %]static/documents/pfamDomainGraphics.xsd">schema</a>.
   Badly formed or non-validating XML uploads will be rejected. Please
-  <a href="[% c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]">download the schema</a>
+  <a href="[% base %]static/documents/pfamDomainGraphics.xsd">download the schema</a>
   and validate your XML locally before uploading it. Please note that only one 
   image (the first one in the XML description) will be generated, even if the 
   XML contains multiple &lt;sequence&gt; tags.
