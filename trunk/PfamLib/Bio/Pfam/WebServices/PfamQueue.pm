@@ -3,8 +3,8 @@ package Bio::Pfam::WebServices::PfamQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2007-09-11 10:41:31 $
-# Id:            $Id: PfamQueue.pm,v 1.6 2007-09-11 10:41:31 rdf Exp $
+# Last Modified: $Date: 2007-09-11 11:34:47 $
+# Id:            $Id: PfamQueue.pm,v 1.7 2007-09-11 11:34:47 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -428,7 +428,7 @@ sub update_job_stream {
 
 sub daemonise {
   my $self = shift;
-  chdir '/'                 or die "Can't chdir to /: $!";
+  chdir '/var/lock'                 or die "Can't chdir to /: $!";
   umask 0;
   open STDIN, '/dev/null'   or die "Can't read /dev/null: $!";
   open STDOUT, '>/dev/null' or die "Can't write to /dev/null: $!";
@@ -657,7 +657,7 @@ Bio::Pfam::WebServices::PfamQueue - A transactional-database-backed queuing syst
 
 =head1 VERSION
 
-$Revision: 1.6 $
+$Revision: 1.7 $
 
 =head1 SYNOPSIS
 
