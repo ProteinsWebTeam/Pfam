@@ -22,7 +22,7 @@ our $DEBUG = 0;
 
 #Get a queue stub of type hmmer
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("hmmer");
-
+$qsout->daemonise unless($DEBUG);
 #An infinite loop to keep submitting jobs.
 while(1) {
   #See if there are any jobs in the queue
