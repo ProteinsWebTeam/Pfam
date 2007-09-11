@@ -4,7 +4,7 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.8 2007-08-16 16:12:46 jt6 Exp $
+# $Id: tools.tt,v 1.9 2007-09-11 08:38:02 jt6 Exp $
 
 USE dumper;
 
@@ -123,7 +123,7 @@ schema = c.config.$controller.schemaURI;
     
   	<p>
   	  To run the perl client you will need to install the <code><a class="ext"
-        href="http://search.cpan.org/~byrne/SOAP-Lite-0.69/">SOAP::Lite</a></code>
+        href="http://search.cpan.org/~byrne/SOAP-Lite/">SOAP::Lite</a></code>
       package from <a class="ext" href="http://www.cpan.org/">CPAN</a> first. 
       <code>SOAP::Lite</code> is a collection of perl modules which provides a 
       simple and lightweight interface to the Simple Object Access Protocol 
@@ -133,7 +133,7 @@ schema = c.config.$controller.schemaURI;
   	<h3>Example client</h3>
   
     <p>
-      You can <a href="[% base %]documents/pfamClient.pl">download</a> an
+      You can <a href="[% base %]static/documents/pfamClient.pl">download</a> an
       example perl client.
       To run it, simply type: <code>perl pfamClient.pl</code>
       The output from the script should be similar to this:
