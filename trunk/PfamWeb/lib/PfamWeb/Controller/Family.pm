@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.33 2007-08-30 09:26:28 jt6 Exp $
+# $Id: Family.pm,v 1.34 2007-09-11 12:31:23 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.33 2007-08-30 09:26:28 jt6 Exp $
+$Id: Family.pm,v 1.34 2007-09-11 12:31:23 jt6 Exp $
 
 =cut
 
@@ -73,12 +73,12 @@ sub begin : Private {
   # get the accession or ID code
 
   if( defined $c->req->param('acc') and 
-      $c->req->param('acc') =~ m/^(P([FB])\d{5,6})$/i ) {
+      $c->req->param('acc') =~ m/^(P([FB])\d{5,6})(\.\d+)?$/i ) {
 
     $c->log->debug( "Family::begin: found accession |$1|, family A / B ? |$2|" );
     
     # is it a Pfam-A ?
-    if( $c->req->param('acc') =~ m/^(PF\d{5})$/i ) {
+    if( $c->req->param('acc') =~ m/^(PF\d{5})(\.\d+)?$/i ) {
 
       $c->stash->{pfam} = $c->model('PfamDB::Pfam')
                             ->find( { pfamA_acc => $1 } );
@@ -156,7 +156,7 @@ sub begin : Private {
     
   } elsif( defined $c->req->param( 'entry' ) ) {
 
-    if( $c->req->param('entry') =~ /^(PF\d{5})$/i ) {
+    if( $c->req->param('entry') =~ /^(PF\d{5})(\.\d+)$/i ) {
 
       # looks like a PfamA accession; redirect to this action, appending the accession
       $c->log->debug( "Family::begin: looks like a Pfam-A accession ($1); redirecting internally" );

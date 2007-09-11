@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.4 2007-09-11 10:33:46 jt6 Exp $
+# $Id: Jump.pm,v 1.5 2007-09-11 12:31:23 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.4 2007-09-11 10:33:46 jt6 Exp $
+$Id: Jump.pm,v 1.5 2007-09-11 12:31:23 jt6 Exp $
 
 =cut
 
@@ -41,7 +41,7 @@ sub jump : Path {
 
   # de-taint the entry ID or accession
   my $entry = '';
-  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()]+)$/;
+  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()\.]+)$/;
   $c->log->debug( "Search::Jump::jump: called with entry |$entry|" );
 
   # strip off leading and trailing whitespace
@@ -142,7 +142,7 @@ sub guess : Private {
   my( $action, $found );  
 
   # first, see if it's a PfamA family
-  if( $entry =~ /^(PF\d{5})$/ ) {
+  if( $entry =~ /^(PF\d{5})(\.\d+)?$/ ) {
     
     $found = $c->model('PfamDB::Pfam')
                ->find( { pfamA_acc => $1 } );
@@ -201,7 +201,7 @@ sub guess : Private {
   }
   
   # how about a sequence entry ?
-  if( not $action and $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)$/ ) {
+  if( not $action and $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/ ) {
   
     $found = $c->model('PfamDB::Pfamseq')
                ->find( { pfamseq_acc => $1 } );
@@ -248,7 +248,7 @@ sub guess : Private {
     
   }
   
-  # finally, see if it's some sort of ID
+  # finally, see if it's some other sort of ID
   
   # a proteome ID ?
   if( not $action ) {
