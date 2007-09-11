@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.18 2007-08-30 09:40:03 jt6 Exp $
+# $Id: Clan.pm,v 1.19 2007-09-11 13:25:44 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.18 2007-08-30 09:40:03 jt6 Exp $
+$Id: Clan.pm,v 1.19 2007-09-11 13:25:44 jt6 Exp $
 
 =cut
 
@@ -369,23 +369,23 @@ sub getDiagram : Private {
   
     # check we actually retrieved a row
     unless( defined $row->relationship ) {
-      $c->stash->{errorMsg} = 'We could not retrieve the relationship data for '
-                              . $c->stash->{acc};
+      $c->log->warn( 'Clan::getDiagram: could not retrieve the relationship data for '
+                     . $c->stash->{acc} );
       return;
     }
   
     # we'll need both the image and the image map HTML uncompressed
     $image = Compress::Zlib::memGunzip( $row->relationship );
     unless( defined $image ) {  
-      $c->stash->{errorMsg} = 'We could not extract the relationship image for '
-                              . $c->stash->{acc};
+      $c->log->warn( 'Clan::getDiagram: could not extract the relationship image for '
+                     . $c->stash->{acc} );
       return;
     }
   
     $map = Compress::Zlib::memGunzip( $row->image_map );
-    unless( defined $map ) {  
-      $c->stash->{errorMsg} = 'We could not extract the relationship image map for '
-                              . $c->stash->{acc};
+    unless( defined $map ) {
+      $c->log->warn( 'Clan::getDiagram: could not extract the relationship image map for '
+                     . $c->stash->{acc} );
       return;
     }
 
