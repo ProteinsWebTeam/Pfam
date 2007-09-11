@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_das_sources.pl,v 1.12 2007-09-03 10:07:14 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.13 2007-09-11 15:11:21 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -78,7 +78,7 @@ if( $@ ) {
 # Bio::Das::Lite setup
 my $DAS_DSN   = $config{das}->{dasDsn};
 my $DAS_PROXY = $config{das}->{dasProxy};
-my $DAS_TO    = $config{das}->{dasProxy};
+my $DAS_TO    = $config{das}->{dasTo};
 
 # db setup
 my $DB_NAME   = $config{Model}->{WebUser}->{name};
