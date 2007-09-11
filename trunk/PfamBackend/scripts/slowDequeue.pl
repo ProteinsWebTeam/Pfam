@@ -39,7 +39,7 @@ our $DEBUG = 0;
 
 # Get a new queue stub
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("slow");
-
+$qsout->daemonise unless($DEBUG);
 while(1) {
   my $ref   = $qsout->satisfy_pending_job();
   $DEBUG && print Dumper($ref, $qsout->{'jobTypes'});
