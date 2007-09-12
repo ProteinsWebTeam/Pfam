@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.2 2007-08-02 15:24:13 jt6 Exp $
+# $Id: Download.pm,v 1.3 2007-09-12 14:28:37 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.2 2007-08-02 15:24:13 jt6 Exp $
+$Id: Download.pm,v 1.3 2007-09-12 14:28:37 jt6 Exp $
 
 =cut
 
@@ -97,6 +97,34 @@ sub html : Local {
   # write the JTML to the output stream
   $c->res->content_type( 'text/html' );
   $c->res->write( $jtml );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 gzipped : Local
+
+Returns a gzip-compressed file with the full or seed alignment for the specified
+family. 
+
+=cut
+
+sub gzipped : Local {
+  my( $this, $c ) = @_;
+  
+  # retrieve the alignment
+  my $rs = $c->model('PfamDB::AlignmentsAndTrees')
+             ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+                         type       => $c->stash->{alnType} } );
+
+  my $alignment = $rs->first->alignment;
+  
+  # build a filename for it
+  my $filename = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.gz';
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  
+  # ... and dump it straight to the response
+  $c->res->content_type( 'application/x-gzip' );
+  $c->res->write( $alignment );
 }
 
 #-------------------------------------------------------------------------------
