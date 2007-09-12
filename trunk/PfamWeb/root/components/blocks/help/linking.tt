@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.4 2007-08-30 13:03:12 jt6 Exp $
+# $Id: linking.tt,v 1.5 2007-09-12 12:59:05 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -17,16 +17,17 @@
     <p>
       Pfam is maintained by a consortium of researchers based at the 
       <a href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a>, 
-      Cambridge, UK, <a href="http://www.sbc.su.se/">Stockholm Bioinformatics 
-      Center</a>, Stockholm, Sweden, and <a href="http://pfam.janelia.org/">
-        Janelia Farm</a>, Maryland, USA. Although the data files are identical, 
-      the web servers are not currently mirrors of each other, though we hope to 
-      have this website running in all three locations soon.
+      Cambridge, UK (WTSI), <a href="http://www.sbc.su.se/">Stockholm 
+      Bioinformatics Center</a>, Stockholm, Sweden (SBC), and 
+      <a href="http://pfam.janelia.org/">Janelia Farm</a>, Maryland, USA. 
+      Although the data files are identical, the web servers are not currently 
+      mirrors of each other, though we hope to have this website running in all 
+      three locations soon.
     </p>
     <p>
-      Although we have no plans to dramatically change the locations of 
-      resources within this site, webmasters are advised to link only to
-      the following types of page within the site.
+      Although we have no plans to change the locations of resources within 
+      this site dramatically, webmasters are advised to link only to the 
+      following types of page within the site.
     </p>
     
     <h3>Home pages</h3>
@@ -36,7 +37,7 @@
       <dt>SBC:</dt>
       <dd><a href="http://pfam.cgb.ki.se/">http://pfam.cgb.ki.se/</a></dd>
       <dt>Janelia:</dt>
-      <dd><a href="http://pfam.janelia.edu/">http://pfam.janelia.edu/</a></dd>
+      <dd><a href="http://pfam.janelia.org/">http://pfam.janelia.org/</a></dd>
     </dl>
     
     <h3>Searching a protein sequence against Pfam</h3>
@@ -48,8 +49,8 @@
       <dd><a href="http://pfam.cgb.ki.se/hmmsearch.shtml">
         http://pfam.cgb.ki.se/hmmsearch.shtml</a></dd>
       <dt>Janelia:</dt>
-      <dd><a href="http://pfam.janelia.edu/hmmsearch.shtml">
-        http://pfam.janelia.edu/hmmsearch.shtml</a></dd>
+      <dd><a href="http://pfam.janelia.org/hmmsearch.shtml">
+        http://pfam.janelia.org/hmmsearch.shtml</a></dd>
     </dl>
 
     <h3>Searching a DNA sequence against Pfam</h3>
@@ -63,35 +64,94 @@
       <dd>Not currently available</dd>
     </dl>
 
-    <h3>Retrieving Pfam family pages</h3>
+    <h3>Linking to Pfam family pages</h3>
+    
+    <p>
+      In the new Pfam website you can refer to Pfam families 
+      either by accession or ID. You can also refer to a family by 
+      &quot;entry&quot;, although this is a convenience that should be used
+      only if you&apos;re not sure if what you have is an accession or an ID.
+    </p>
+    <p>
+      Pfam accession numbers are more stable between releases than IDs and
+      we <strong>strongly</strong> recommend that you link by accession number.
+    </p>
+    <p>
+      Here are some examples of linking to Pfam at WTSI: 
+    </p>
     <dl class="sitesList">
-      <dt>WTSI:</dt>
+      <dt>By accession:</dt>
       <dd>
-        <div>
-          <a href="http://pfam.sanger.ac.uk/family?acc=PF00002">
-            http://pfam.sanger.ac.uk/family?acc=PF00002</a>
-          or<br />
-          <a href="http://pfam.sanger.ac.uk/family?id=7tm_2">
-            http://pfam.sanger.ac.uk/family?id=7tm_2</a>
-        </div>
+        <a href="http://pfam.sanger.ac.uk/family?acc=PF00002">
+          http://pfam.sanger.ac.uk/family?acc=PF00002</a>
       </dd>
-      <dt>SBC:</dt>
-      <dd><a href="http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002">
-        http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002</a></dd>
-      <dt>Janelia:</dt>
-      <dd><a href="http://pfam.janelia.edu/cgi-bin/getdesc?acc=PF00002">
-        http://pfam.janelia.edu/cgi-bin/getdesc?acc=PF00002</a></dd>
+      <dt>By ID:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/family?id=7tm_2">
+          http://pfam.sanger.ac.uk/family?id=7tm_2</a>
+      </dd>
+      <dt>Using &quot;entry&quot;:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/family?entry=PF00002">
+          http://pfam.sanger.ac.uk/family?entry=PF00002</a>
+        or<br />
+        <a href="http://pfam.sanger.ac.uk/family?entry=7tm_2">
+          http://pfam.sanger.ac.uk/family?entry=7tm_2</a>
+      </dd>
     </dl>
 
     <p>
-      Both the WTSI and Janelia servers support retrieving family data using 
-      either accession or ID. For WTSI, use &quot;entry=7tm_2&quot; or
-      &quot;entry=PF00002&quot;; for Janelia use &quot;name=7tm_2&quot;
-      and &quot;name=PF00002&quot;. However, accession numbers are more stable 
-      from release to release than IDs, so we strongly recommend that you link 
-      by accession number.
+      You can link to Pfam family data at the other sites as follows:
     </p>
     
+    <dl class="sitesList">
+      <dt>SBC:</dt>
+      <dd>
+        <a href="http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002">
+          http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002</a>
+      </dd>
+      <dt>Janelia:</dt>
+      <dd>
+        <a href="http://pfam.janelia.org/cgi-bin/getdesc?acc=PF00002">
+          http://pfam.janelia.org/cgi-bin/getdesc?acc=PF00002</a>
+        or<br />
+        <a href="http://pfam.janelia.org/cgi-bin/getdesc?name=7tm_2">
+          http://pfam.janelia.org/cgi-bin/getdesc?name=7tm_2</a>
+      </dd>
+    </dl>
+
+    <h3>Linking to protein sequence pages</h3>
+    
+    <p>
+      As for Pfam family pages, you can refer to protein sequence pages by
+      accession, ID or entry. Protein IDs are unstable and do change between
+      releases, so, again, we <strong>strongly</strong> recommend that you use
+      protein accessions where possible.
+    </p>
+    <p>
+      Here are some examples of linking to protein sequence pages at WTSI: 
+    </p>
+    <dl class="sitesList">
+      <dt>By accession:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/protein?acc=P15498">
+          http://pfam.sanger.ac.uk/protein?acc=P15498</a>
+      </dd>
+      <dt>By ID:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/protein?id=VAV_HUMAN">
+          http://pfam.sanger.ac.uk/protein?id=VAV_HUMAN</a>
+      </dd>
+      <dt>Using &quot;entry&quot;:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/protein?entry=P15498">
+          http://pfam.sanger.ac.uk/protein?entry=P15498</a>
+        or<br />
+        <a href="http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN">
+          http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN</a>
+      </dd>
+    </dl>
+
   </div>
 </div>
 
