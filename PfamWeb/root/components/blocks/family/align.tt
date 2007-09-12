@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.20 2007-08-23 09:02:59 jt6 Exp $
+# $Id: align.tt,v 1.21 2007-09-12 14:28:53 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -246,6 +246,49 @@
     
         <input type="submit" value="Generate" />
     
+      </div>
+    </form>
+
+    <h2>Download options</h2>
+
+    <p>
+      <em>Very</em> large alignments can often cause problems for the formatting
+      tool above. If you find that downloading or viewing a large alignment is
+      problematic, you can also download a 
+      <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
+      Stockholm-format file containing the 
+      <a href="[% base %]family/alignment/download/gzipped?acc=[% acc %]&amp;alnType=full">
+        full</a> or 
+      <a href="[% base %]family/alignment/download/gzipped?acc=[% acc %]&amp;alnType=seed">
+        seed</a> alignment for this family. 
+    </p>
+
+    <form action="[% base %]family/alignment/download/gzipped"
+          method="get">
+      <div>
+        <input type="hidden" name="acc" value="[% acc %]" />
+  
+        [% oe = 0 %]
+        <table class="details alignOpts" summary="Download options">
+          <tbody>
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Alignment:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="alnType" id="dlTypeS" value="seed" checked="checked" />
+                  <label for="dlTypeS">Seed ([% pfam.num_seed %])</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="alnType" id="dlTypeF" value="full" />
+                  <label for="dlTypeF">Full ([% pfam.num_full %])</label>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <input type="submit" value="Download" />
+  
       </div>
     </form>
 
