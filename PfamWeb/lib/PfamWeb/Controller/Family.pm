@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.34 2007-09-11 12:31:23 jt6 Exp $
+# $Id: Family.pm,v 1.35 2007-09-12 12:58:14 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.34 2007-09-11 12:31:23 jt6 Exp $
+$Id: Family.pm,v 1.35 2007-09-12 12:58:14 jt6 Exp $
 
 =cut
 
@@ -156,7 +156,7 @@ sub begin : Private {
     
   } elsif( defined $c->req->param( 'entry' ) ) {
 
-    if( $c->req->param('entry') =~ /^(PF\d{5})(\.\d+)$/i ) {
+    if( $c->req->param('entry') =~ /^(PF\d{5})(\.\d+)?$/i ) {
 
       # looks like a PfamA accession; redirect to this action, appending the accession
       $c->log->debug( "Family::begin: looks like a Pfam-A accession ($1); redirecting internally" );
