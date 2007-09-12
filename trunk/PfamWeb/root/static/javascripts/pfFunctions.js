@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.49 2007-08-21 09:43:47 jt6 Exp $
+// $Id: pfFunctions.js,v 1.50 2007-09-12 12:57:37 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -1016,9 +1016,13 @@ function forceLoad() {
   // show the new spinner and disable the button
   $("secondaryLoadingSpinner").show();
   $("generateButton").disable();
+  
+  // add an extra parameter...
+  loadOptions.st.params['loadTree'] = 1;
+  
   new Ajax.Request( loadOptions.st.uri, // same URI was for original call
                     { method:     'get', 
-                      parameters: loadOptions.st.params + '&loadTree=1',
+                      parameters: loadOptions.st.params,
                       onSuccess:  stSuccess,
                       onFailure:  stFailure
                     } );
