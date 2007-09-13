@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.7 2007-08-23 16:16:18 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.8 2007-09-13 13:50:19 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.7 2007-08-23 16:16:18 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.8 2007-09-13 13:50:19 jt6 Exp $
 
 =cut
 
@@ -76,7 +76,7 @@ sub begin : Private {
   return unless $c->req->param('acc');
   
   # yes; what type of accession is it ?
-  if( $c->req->param('acc') =~ m/^(PF\d{5})$/i ) {
+  if( $c->req->param('acc') =~ m/^(PF\d{5})(\.\d+)?$/i ) {
 
     # pfam A
     $c->stash->{acc}  = $1;
