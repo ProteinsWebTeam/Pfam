@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 use strict;
 use Rfam;
@@ -15,7 +15,7 @@ my %TP_hash = (
 		    'sRNA' => 1,
 		    'snRNA' => {
 			'splicing' => 1,
-			'guide' => {
+			'snoRNA' => {
 				'CD-box' => 1,
 				'HACA-box' => 1,
 				'scaRNA' => 1,				    
@@ -313,6 +313,15 @@ sub desc_is_OK {
                         }
                         last SWITCH;
                     };
+		     /^DR   snoRNABase;\s+/ && do {
+                        if( !/^DR   snoRNABase;\s[0-9,A-Z,a-z,-]+\;$/ ) {
+                            warn "$family: Bad snoRNABase reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+                        }
+                        last SWITCH;
+                    };
+		    
 		    /^DR   URL;\s+(\S+);$/ && do {
                        # warn "$family: Please check the URL $1\n";
                         last SWITCH;
