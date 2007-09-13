@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.17 2007-08-20 15:48:19 jt6 Exp $
+# $Id: summary.tt,v 1.18 2007-09-13 10:19:26 jt6 Exp $
 
 USE String;
 
@@ -45,7 +45,7 @@ oe = 0;
       This is the summary of UniProt entry 
       <a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]"
          class="ext">[% pfamseq.pfamseq_id %]</a>
-      (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_id %]"
+      (<a href="http://www.ebi.uniprot.org/entry/[% pfamseq.pfamseq_acc %]"
           class="ext">[% pfamseq.pfamseq_acc %]</a>).
     </p>
 
