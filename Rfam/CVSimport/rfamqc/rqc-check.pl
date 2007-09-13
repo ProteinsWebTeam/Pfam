@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 # This script compares the working and current versions of the 
 # full alignment to check that no sequences are lose.
@@ -9,10 +9,10 @@
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+            ?$ENV{'RFAM_MODULES_DIR'}:"/lustre/pfam/rfam/scripts/Modules";
     $bioperl_dir =
         (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
+            ?$ENV{'BIOPERL_DIR'}:"/lustre/pfam/db/bioperl";
 }
 
 use lib $rfam_mod_dir;

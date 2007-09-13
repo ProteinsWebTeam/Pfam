@@ -1,19 +1,21 @@
-#! /usr/local/bin/perl -w
+#! /software/bin/perl -w
 
 # A program to run all checks
 
 use strict;
 
 foreach my $family (@ARGV){
-    print STDERR "\nSPELL CHECK\n\n";
-    system ("pqc-spell $family");
-    print STDERR "\nOVERLAP CHECK - ignoring $family\n\n";
+    print STDERR "\n**SPELL CHECK**\n\n";
+    system ("rqc-spell $family");
+    print STDERR "\n**OVERLAP CHECK** - ignoring $family\n\n";
     system ("rqc-overlap-rdb $family -i $family");
-    print STDERR "\nFORMAT CHECK\n\n";
+    print STDERR "\n**FORMAT CHECK**\n\n";
     system ("rqc-format $family");
-    print STDERR "\nMISSING CHECK\n\n";
+    print STDERR "\n**STRUCTURE CHECK**\n\n";
+    system ("rqc-ss-cons $family");
+    print STDERR "\n**MISSING CHECK**\n\n";
     system ("rqc-check $family");
-    print STDERR "\nSEQUENCE CHECK\n\n";
+    print STDERR "\n**SEQUENCE CHECK**\n\n";
     system ("rqc-seqs $family");
 }
 

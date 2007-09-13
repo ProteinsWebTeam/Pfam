@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 use strict;
 use Rfam;
@@ -31,6 +31,7 @@ if( $#ARGV == -1 ) {
 
 #family to check against db
 my $family_dir = shift; 
+$family_dir=~ s/\///g;
 
 if( ! defined $nolog ) {
     open(LOG,">$family_dir/overlap") || die "Could not open log file $family_dir/overlap - can use -n option $!";
@@ -41,7 +42,7 @@ if( ! defined $nolog ) {
 my %ignore;
 push (@ignore, $family_dir); # add self to ignore list
 foreach my $ignorefam ( @ignore ) {
-    print STDERR "ignoring $ignorefam\n";
+    #print STDERR "ignoring $ignorefam\n";
     $ignore{$ignorefam} = 1;
 }
 
@@ -170,9 +171,12 @@ sub get_overlaps {
     }
     
     if( $report ) {
-	print sprintf("Done Model %-25s - Found %d same strand and %d opposite strand overlaps\n",$dir, $sscount, $opcount);
+	if ($sscount ==0 && $opcount==0){
+	    print sprintf("Done Model %-25s\nNo overlaps found\n",$dir);
+	}else {
+	    print sprintf("Done Model %-25s\nFound %d same strand and %d opposite strand overlaps\n",$dir, $sscount, $opcount);
+	}
     }
-
    #print out report for same strand and opp strand overlaps
     foreach my $seqid (keys (%sshash )){
 	foreach my $fam1 (keys ( %{$sshash{$seqid}} )){
