@@ -22,6 +22,7 @@ unless( -e "checked_sequences" ) {
     print STDERR "Checking sequences ....\n";
     chdir "$Rfam::current_dir" or die "failed to cd to $Rfam::current_dir";
     foreach my $acc ( @family_list ) {
+	print STDERR "Checking seqs for $acc\n";
 	unless( &RfamQC::valid_sequences( $acc ) ) {
 	    warn "$acc: sequence up-to-date check failed\n";
 	    $error ++;
