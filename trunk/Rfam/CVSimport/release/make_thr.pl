@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 # input Rfam.seed
 # output Rfam.thr
