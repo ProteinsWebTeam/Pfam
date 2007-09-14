@@ -1,12 +1,12 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+            ?$ENV{'RFAM_MODULES_DIR'}:"/software/rfam/scripts/Modules";
     $bioperl_dir =
         (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
+            ?$ENV{'BIOPERL_DIR'}:"/lustre/pfam/db/bioperl";
 }
 
 use lib $bioperl_dir;
