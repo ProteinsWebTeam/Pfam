@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/software/bin/perl -w
 
 
 #

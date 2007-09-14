@@ -1,9 +1,10 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
-#
+# jd7 fixed for lustre move
+
 # Author sgj
 # heavily borrowed from Ewan's pfam code
-#
+
 
 BEGIN {
     $rfam_mod_dir = 
