@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/software/bin/perl
 
 # input Rfam.full
 # output Rfam.fasta (non-redundant to x%)

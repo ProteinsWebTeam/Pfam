@@ -1,9 +1,9 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+            ?$ENV{'RFAM_MODULES_DIR'}:"/software/rfam/scripts/Modules";
 }
 
 use lib $rfam_mod_dir;
