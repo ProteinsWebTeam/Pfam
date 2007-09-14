@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 # performs seed surgery on Rfam families at rfamseq update time
 # (also handy during familiy building!)
