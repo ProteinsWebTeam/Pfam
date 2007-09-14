@@ -1,12 +1,12 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 BEGIN {
     $rfam_mod_dir = 
         (defined $ENV{'RFAM_MODULES_DIR'})
-            ?$ENV{'RFAM_MODULES_DIR'}:"/pfam/db/Rfam/scripts/Modules";
+            ?$ENV{'RFAM_MODULES_DIR'}:"/software/rfam/scripts/Modules";
     $bioperl_dir = 
         (defined $ENV{'BIOPERL_DIR'})
-            ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
+            ?$ENV{'BIOPERL_DIR'}:"lustre/pfam/db/bioperl";
 }
 
 use lib $bioperl_dir;
@@ -15,6 +15,7 @@ use strict;
 use Rfam;
 
 my $flatfile = shift;
+
 my @accs;
 if( $flatfile ) {
     my $acc;
@@ -38,10 +39,16 @@ else {
 
 foreach my $acc ( @accs ) {
     my $psfile;
-    if( -s "/pfam/db/Rfam/PICTURES/$acc.ps" ) {
-	$psfile = "/pfam/db/Rfam/PICTURES/$acc.ps";
-	system "pstopnm --landscape --stdout --xsize 800 $psfile | pnmtojpeg --quality 90 | jpegtran -rotate 180 > $acc.jpg" and die;
-	system "pstopnm --landscape --stdout --xsize 300 $psfile | pnmtojpeg --quality 90 | jpegtran -rotate 180 > tn_$acc.jpg" and die;
+    if ($acc eq "RF00017" && -s "/lustre/pfam/rfam/Production/Rfam/PICTURES/$acc.jpg" ){
+	$psfile = "/lustre/pfam/rfam/Production/Rfam/PICTURES/$acc.jpg";
+	system ("convert $psfile -resize 800x800 $acc.jpg") and die;
+	system ("convert $psfile -resize 300x300 tn_$acc.jpg") and die;
+	next;
+    }
+    if( -s "/lustre/pfam/rfam/Production/Rfam/PICTURES/$acc.ps" ) {
+	$psfile = "/lustre/pfam/rfam/Production/Rfam/PICTURES/$acc.ps";
+	system ("convert $psfile -quality 95 -density 144 -rotate 90 $acc.jpg") and die;
+        system ("convert $psfile -resize 195x195 -quality 95 -density 144 -rotate 90 tn_$acc.jpg")and die;
     }
     else {
 	$psfile = "./$acc.ps";
@@ -53,9 +60,9 @@ foreach my $acc ( @accs ) {
 	    $file = "$Rfam::current_dir/$acc/SEED";
 	}
 	system "$Rfam::scripts_dir/make/aln2ps.pl $file > $psfile" and die;
-	system "pstopnm --portrait --stdout $psfile | pnmtojpeg --quality 90 > $acc.jpg" and die;
-	system "pstopnm --portrait --stdout --xsize 200 $psfile | pnmtojpeg --quality 90 > tn_$acc.jpg" and die;
-    }
+	system ("convert $psfile -quality 95 -density 144 $acc.jpg") and die;
+        system ("convert $psfile -resize 195x195 -quality 95 -density 144 tn_$acc.jpg")and die;
+     }
     if( -s "./$acc.ps" ) {
 	unlink( "./$acc.ps" ) or die;
     }
