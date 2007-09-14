@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 #
 # author sgj
@@ -76,13 +76,15 @@ while(<DESC>) {
 }    
 close(DESC);
 
+
 if(!$has_ac) {
     die "rfci: Your DESC file has no AC line. This is bad!\n";
 }
 
-#unless( &RfamQC::valid_sequences( $acc ) ) {
-#    die "rfci: Your sequences don't all match the database\n";
-#}
+unless( &RfamQC::valid_sequences( $acc ) ) {
+    die "rfci: Your sequences don't all match the database\n";
+}
+
 
 my $db = Rfam::default_db();
 my $oldid = $db->acc2id( $acc );
@@ -143,8 +145,10 @@ eval {
 $@ and do {
     die "rfci: RDB update; Could not update relational database for family $acc [$@]\n";
 };
+
 print STDERR "RDB update succesful\n";
 
-&RfamRCS::make_view_files($acc); 
+&RfamRCS::make_view_files($acc);
 
 print STDERR "\n\nChecked in family [$acc]\n";
+

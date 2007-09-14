@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 use strict;
 use Getopt::Long;
@@ -10,10 +10,11 @@ my $nolock;
 &GetOptions( "n" => \$nolock );
 
 my $acc = shift;
-chdir "$Rfam::current_dir/$acc" or die;
+
+chdir "$Rfam::current_dir/$acc" or die "cant move to the current dir for this family $acc";
 
 my @ann;
-open( DESC, "DESC" ) or die;
+open( DESC, "DESC" ) or die "cant open DESC file";
 while( <DESC> ) {
     chomp;  # remove newline and add it again to make sure
     unless( /^\*\*\s+/ ) {
@@ -24,8 +25,8 @@ close DESC;
 
 foreach my $file ( @Rfam::align_file_set ) {
     my $aln = new Rfam::RfamAlign;
-    open( AOU, ">$file.tmp" ) or die;
-    open( ALN, $file ) or die;
+    open( AOU, ">$file.tmp" ) or die "cant open $file.tmp file";
+    open( ALN, $file ) or die "cant open $file";
     $aln -> read_stockholm( \*ALN );
     close ALN;
     my $newaln = $aln -> order_by_embl_taxonomy();
@@ -33,9 +34,9 @@ foreach my $file ( @Rfam::align_file_set ) {
 
     my $numseq = scalar ( $aln -> each_seq() );
 
-    open( ALNOUT, ">$file.ann" ) or die;
+    open( ALNOUT, ">$file.ann" ) or die "cant open $file.ann";;
     my $seen;
-    open( REF, "sreformat --gapsym '.' -r -u --mingap stockholm $file.tmp |" ) or die;
+    open( REF, "sreformat --gapsym '.' -r -u --mingap stockholm $file.tmp |" ) or die "cant run the sreformat";
     while( <REF> ) {
 	next if( /^\#=GF AU / );
 	if( /^\#=G/ and not $seen ) {
@@ -53,7 +54,7 @@ foreach my $file ( @Rfam::align_file_set ) {
     close REF or die;
     close ALNOUT;
 
-    unlink "$file.tmp" or die;
+    unlink "$file.tmp" or die "cant remove the $file.tmp";
 }
 
 
