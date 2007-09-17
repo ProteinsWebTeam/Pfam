@@ -15,7 +15,8 @@ use Bio::Pfam::Drawing::Image::Graph;
 
 use Time::HiRes qw( gettimeofday );
 
-my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
+# take the namespace from an environment variable 
+my $ns = $ENV{PFAM_XML_NS};
 
 sub new{
   my $class = shift;
@@ -45,10 +46,10 @@ sub create_images {
 
   my $dom;
   unless( $skipReparse ) {
-	my $parser = XML::LibXML->new;
-	$dom = $parser->parse_string( $origDom->toString );
+  	my $parser = XML::LibXML->new;
+  	$dom = $parser->parse_string( $origDom->toString );
   } else {
-	$dom = $origDom;
+  	$dom = $origDom;
   }
 #print STDERR "creating image from XML: |" . $dom->toString(1) . "|\n";
 
@@ -100,7 +101,7 @@ sub add_image {
   my ($self, $pointer) = @_;
   if($pointer){
     push(@{$self->{'images'}}, $pointer);
-	#print STDERR "imageset: added image: |$pointer|\n";
+# print STDERR "imageset: added image: |$pointer|\n";
   }
 }
 
