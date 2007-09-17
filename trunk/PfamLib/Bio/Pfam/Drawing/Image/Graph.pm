@@ -20,9 +20,6 @@ use GD::Graph::colour;
 GD::Graph::colour::add_colour("offblack1" => [1,1,1]);
 GD::Graph::colour::add_colour("offblack2" => [2,2,2]);
 
-my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
-
-
 sub new {
   my $class = shift;
   my $params = shift;
@@ -43,6 +40,9 @@ sub new {
   $self->{'allocated_colours'} = {};
   $self->{'axis_colour'} = "offblack1";
   $self->{'dataSeries'} = 1;
+
+  # take the namespace from an environment variable, if set 
+  $self->{ns} = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
 
   $self->{timeStamp} = $params->{timeStamp}
     if defined $params->{timeStamp};

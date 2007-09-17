@@ -15,15 +15,16 @@ use Bio::Pfam::Drawing::Image::Graph;
 
 use Time::HiRes qw( gettimeofday );
 
-# take the namespace from an environment variable 
-my $ns = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
-
 sub new{
   my $class = shift;
   my $self = bless {}, ref($class) || $class;
   $self->{ 'images' } = [];
   $self->{ 'graphs' } = [];
   $self->{timeStamp} = gettimeofday * 100000;
+  
+  # take the namespace from an environment variable, if set 
+  $self->{ns} = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
+
   return $self;
 }
 
@@ -51,11 +52,11 @@ sub create_images {
   } else {
   	$dom = $origDom;
   }
-#print STDERR "creating image from XML: |" . $dom->toString(1) . "|\n";
+print STDERR "creating image from XML: |" . $dom->toString(1) . "|\n";
 
   my $root = $dom->documentElement;
   my $xc = XML::LibXML::XPathContext->new( $root );
-  $xc->registerNs( "pf" => $ns );
+  $xc->registerNs( "pf" => $self->{ns} );
 
   foreach my $seqNode ( $xc->findnodes( "pf:sequence" ) ) {
 	
