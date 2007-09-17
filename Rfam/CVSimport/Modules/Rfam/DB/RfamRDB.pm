@@ -52,13 +52,13 @@ sub new {
 
   my %params = @_;
 
-
-  my ($db_name, $driver, $host, $user, $db_password) = 
+  my ($db_name, $driver, $host, $user, $db_password, $db_port) = 
     ( ($params{'-DB_NAME'} || $params{'-db_name'}),
       ($params{'-DB_DRIVER'} || $params{'-db_driver'}),
       ($params{'-DB_HOST'} || $params{'-db_host'}),
       ($params{'-DB_USER'} || $params{'-db_user'}),
-      ($params{'-DB_PASSWORD'} || $params{'-db_password'}));
+      ($params{'-DB_PASSWORD'} || $params{'-db_password'}),
+      ($params{'-DB_PORT'} || $params{'-db_port'}));
   
   
   
@@ -67,10 +67,12 @@ sub new {
   $self->_database_user($user);
   $self->_database_host($host);
   $self->_database_password( $db_password );
+  $self->_database_port($db_port );
 
   return $self;
 
 }
+
 
 
 
@@ -108,15 +110,16 @@ sub connect {
        my $db_name = $self->_database_name();
        my $user = $self->_database_user();
        my $password = $self->_database_password(); 
-
+       my $port = $self->_database_port();
+ 
        $self->{'_connection_count'} = 0;
 
        my ($dbh);
 
-       $dbh = DBI->connect("dbi:$driver:database=$db_name;host=$host", $user, $password); 
+       $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port;host=$host", $user, $password); 
 
        if( not ($dbh) or defined($DBI::err)) {
-	   $self->throw("Could not open connection to dbi:$driver:database=$db_name;host=$host with user $user"); 
+	   $self->throw("Could not open connection to dbi:$driver:database=$db_name;host=$host with user $user and port $port"); 
        }
        $self->_database_handle( $dbh );
 
@@ -251,17 +254,18 @@ sub open_transaction{
        my $db_name = $self->_database_name();
        my $user = $self->_database_user();
        my $password = $self->_database_password();
+       my $port = $self->_database_port();
 
 
        $self->{'_connection_count'} = 0;
 
        $self->report_mode and print STDERR "Connecting to database...\n";
 
-       $dbh = DBI->connect("dbi:$driver:database=$db_name;host=$host", $user, $password);
+       $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port;host=$host", $user, $password);
 
 
        if( not ($dbh) or defined($DBI::err)) {
-	   $self->throw("Could not open connection to dbi:$driver:database=$db_name;host=$host with user $user"); 
+	   $self->throw("Could not open connection to dbi:$driver:database=$db_name:port=$port;host=$host with user $user"); 
        }
 
        $self->_database_handle( $dbh );
@@ -455,6 +459,29 @@ sub _database_password {
    }
    return $self->{'_rdb_password'};
 }
+
+
+=head2 _database_port
+
+ Title   : _database_port
+ Usage   : $pass = $self->__database_port();
+ Function:
+    Gets/sets the port for this relation database
+ Returns : A database port understood by the database server
+ Args    : A database port understood by the database server (optional)
+
+=cut
+
+sub _database_port {
+   my ($self,$value) = @_;
+
+   if (defined $value) {
+       $self->{'_rdb_port'} = $value;
+   }
+   return $self->{'_rdb_port'};
+}
+
+
 
 
 

@@ -25,7 +25,8 @@ my $acc_lock      = "$Rfam::accession_dir/lock";
 my $access_list   = "$Rfam::accession_dir/access_list";
 my $allowed_user_string = "";
 
-my $view_maker = "$Rfam::scripts_dir/rfamrcs/makerfamview.pl";
+my $view_maker = "/software/rfam/scripts/rfamrcs/makerfamview.pl";
+#my $view_maker = "$Rfam::scripts_dir/rfamrcs/makerfamview.pl";
 
 open (_LIST, $access_list) or die "Fatal error - could not open the access list file";
 while(<_LIST>) {
@@ -781,11 +782,10 @@ sub make_view_files {
     
     # get lock on family
 
-    &lock_family($family, "VIEW");
+    &lock_family($family, "VIEW") || die "cant lock family";
 
     # submit makeview
-
-    system("bsub -m 'pfam1a pfam1b' -o /dev/null $view_maker $family");
+    system("$view_maker $family") ;
 
     # when the view files have finished being built, the lock will be released
 

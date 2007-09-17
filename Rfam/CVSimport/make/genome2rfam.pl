@@ -21,7 +21,7 @@ my( $agp, $con, $search, @add, $clean, $outfile, $help );
 	     );
 
 my $file = shift;
-my $rfamseqlist = '/pfam/db/rfamseq/CURRENT/embl_sv.txt';
+my $rfamseqlist = '/lustre/pfam/rfam/production/rfamseq/CURRENT/embl_sv.txt';
 
 sub help {
     print STDERR <<EOF;

@@ -281,40 +281,43 @@ sub order_by_embl_taxonomy {
     while( @seqs ) {
 	my @tonseq = splice( @seqs, 0, 100 );
 	my @tonid;
-	foreach my $seq ( @tonseq ) {
-	    my( $id ) = $seq->id() =~ /^(\S+?)(\.|$)/;
-					       push( @tonid, $id );
-					   }
-					       
-	my $idstr = join( ']|[EMBL-acc:', @tonid );
-#	print "getz -f sv -f tax -f sl \'[EMBL-acc:$idstr]\'\n";
 
-	my( $ocstring, @accs );
-	my $fh = IO::File->new;
-	$fh -> open( "getz -f acc -f tax -f id '[EMBL-acc:$idstr]' |" );
-	while(<$fh>) {
-#	    print;
-	    if( my ($accs) = /^AC\s+(.*)/ ) {
-		while( $accs =~ /(\S+?)\;/g ) {
-		    push( @accs, $1 );
+	#get array of seq accessions
+	foreach my $seq ( @tonseq ) {
+	    my( $id ) = $seq->id();
+	    push( @tonid, $id );
+	}
+				       
+	my $idstr = join(" ", @tonid) ;
+	my( $acstring, $ocstring );
+        
+        my $fh = IO::File->new;
+	print STDERR "making the view files....\n";
+
+        #using the full accession and version for mfetch
+	$fh -> open( "mfetch -d embl_89 -f \"acc  tax sl\" $idstr | " );
+	    while(<$fh>) {
+		if( /^AC\s+(.*)/) {
+		    $acstring .= "$1 ";
 		}
-	    }
-	    if( /^OC\s+(.*)/ ) {
-		$ocstring .= "$1 ";
-	    }
-	    if( /^ID\s+/ ) {
-#		print "$acc      $ocstring\n";
-		foreach my $acc ( @accs ) {
-#		    print "[$acc]\n";
-		    $tax{$acc} = $ocstring;
+		if( /^OC\s+(.*)/) {
+		    $ocstring .= "$1 ";
 		}
-		$ocstring = undef;
-		@accs = ();
-	    }
+		#when reach end of embl entry
+		if( /^SQ/ && $ocstring ) {
+		    my @a=split(";", $acstring);
+		    my $accn=$a[0];
+		   
+		    #print STDERR "'$accn'||$ocstring\n";
+		    $tax{$accn} = $ocstring;
+		    $ocstring = undef;
+		    $acstring = undef;
+		}
 	}
 	$fh -> close;
+        
 	foreach my $seq ( @tonseq ) {
-	    my( $acc ) = $seq->id() =~ /^(\S+?)(\.|$)/;
+	    my( $acc ) = $seq->id()=~ /^(\S+?)(\.|$)/;
 	    if( !exists $tax{$acc} ) {
 		warn "failed to get taxonomy for ", $seq->id, "\n";
 		$tax{$acc} = "zz_unknown";

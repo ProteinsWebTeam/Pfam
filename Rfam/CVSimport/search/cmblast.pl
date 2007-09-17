@@ -1,9 +1,9 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 BEGIN {
     $pfam_mod_dir = 
         (defined $ENV{'PFAM_MOD_DIR'})
-            ?$ENV{'PFAM_MOD_DIR'}:"/pfam/db/Pfam/scripts/Modules";
+            ?$ENV{'PFAM_MOD_DIR'}:"/software/rfam/scripts/Modules";
     $bioperl_dir = 
         (defined $ENV{'BIOPERL_DIR'})
             ?$ENV{'BIOPERL_DIR'}:"/pfam/db/bioperl";
@@ -75,13 +75,13 @@ EOF
 exit(1);
 }
 
-not $blast_dir and $blast_dir = "/pfam/db/Rfam/BLASTDB";
+not $blast_dir and $blast_dir = "/lustre/pfam/rfam/Production/Rfam/BLASTDB";
 not $blastdb   and $blastdb   = "$blast_dir/Rfam.fasta";
 not $blastcut  and $blastcut  = 10;
 
 my $model_dir    = "$blast_dir";
 my $thr_file     = "$blast_dir/Rfam.thr";
-my $blastcmd     = "/usr/local/ensembl/bin/blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W7 -F F";
+my $blastcmd     = "/software/bin/blastall -p blastn -i $fafile -d $blastdb -e $blastcut -W 7 -F F";
 
 # read threshold file
 my %thr;

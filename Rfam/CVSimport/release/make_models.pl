@@ -18,6 +18,7 @@ chdir "$tmpspace" or die;
 my $list;
 my $db = Rfam::default_db();
 foreach my $acc ( $db->get_allacc() ) {
+    print "$Rfam::current_dir/$acc/CM";
     system "cp $Rfam::current_dir/$acc/CM $acc.cm" and die;
     $list .= "$acc.cm ";
 }

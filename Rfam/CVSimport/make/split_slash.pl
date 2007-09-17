@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software//bin/perl -w
 
 # split a stockholm format file into accessioned files
 

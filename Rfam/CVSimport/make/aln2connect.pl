@@ -1,7 +1,7 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
-use lib '/pfam/db/bioperl';
-use lib "$ENV{HOME}/rfam/scripts/Modules";
+#use lib '/pfam/db/bioperl';
+#use lib "$ENV{HOME}/rfam/scripts/Modules";
 use Rfam::RfamAlign;
 
 my $file = shift;

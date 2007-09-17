@@ -1,9 +1,8 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 # This is mostly pretty NFS friendly now.  Should run rfsearch itself on 
 # something with local storage, but the jobs all get sent off to blades
 # using nice socket things, pfetch etc.  
-
 
 use strict;
 use Getopt::Long;
@@ -25,9 +24,12 @@ my( $quiet,
 my $blast_eval = 10;
 my $window;#     = 100;  # bad bad
 my $cpus       = 20;
-my $queue      = 'long -Rlinux';
-my $bqueue     = 'long -Rlinux';
-my $queue2     = 'normal';
+my $queue      = 'long -R \"select[type=LINUX64]\"';
+my $queue2     = 'small -R \"select[type=LINUX64]\"';
+my $lustre = "/lustre/scratch1/sanger/rfam/$$";
+
+system("lsrun -m farm-login mkdir -p $lustre") and die "Failed to make directory $lustre\n";
+system("lsrun -m farm-login lfs setstripe $lustre 0 4 4") and die "Failed to set stripe\n";
 
 sub help {
     print STDERR <<EOF;
@@ -39,7 +41,7 @@ Options:       -h              show this help
 	       -e <n>          use blast evalue of <n>
                -q <queue>      use lsf queue <queue> for the cmsearch step
                -bq <queue>     use lsf queue <queue> for the blast jobs
-	       -w <n>          window size <n> basepairs
+	      # -w <n>          window size <n> basepairs # no longer valid option with infernal 0.81
 	       --name <str>    give lsf a name for the cmsearch jobs
 	       --local         run cmsearch with --local option
 	       --global        run cmsearch in global mode (override DESC cmsearch command)
@@ -52,7 +54,7 @@ EOF
 
 &GetOptions( "e=s"      => \$blast_eval,
 	     "q=s"      => \$queue,
-	     "bq=s"     => \$bqueue,
+	    # "bq=s"     => \$bqueue,
 	     "local"    => \$local,
 	     "global"   => \$global,
 	     "cpu=s"    => \$cpus,
@@ -70,6 +72,7 @@ if( $help or not -e "SEED" ) {
 }
 
 
+#Read cmbuild/cmsearch flags from the DESC file:
 my $buildopts;
 if( -s "DESC" ) {
     open( D, "DESC" ) or die "DESC exists but I can't open it";
@@ -91,12 +94,6 @@ if( -s "DESC" ) {
 	};
     }
 }
-
-if( !$window ) {
-    $window = 200;
-    &printlog( "WARN: Using default window [$window]" );
-}
-
 
 $buildopts = "" unless $buildopts;
 open( S, "SEED" ) or die;
@@ -130,14 +127,48 @@ my $fafile = "$$.fa";
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 unless( $nobuild ) {
     &printlog( "Building model" );
-    system "/pfam/db/Rfam/bin/cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
+    system "cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
 }
 
-#my $i = 0;
+#########################
+##new CM window stuff
+
+##overide the window value for cmsearch from the DESC file with that from CM file.
+##get the window size from the CM file. want to use this for both updating the DESC file
+##and for setting the window for the blastprefiltering.(rather than the inflexible value of 200)
+
 my $pwd   = `pwd`;
 my $phost = `uname -n`;
 chomp $pwd;
 chomp $phost;
+
+##get the cmsearch W value from the new CM file.
+open( CMD, "grep \"^W\"  $pwd/CM |" )
+    or die "failed miserably: $!";
+my $string = <CMD>;
+close CMD;
+my $cmwindow; #for updating DESC file
+    if ($string =~ /^W\s+(\d+)\b/){
+	$cmwindow=$1;
+        &printlog( "Obtained cmwindow from CM file =$cmwindow" );
+    }else {
+	die "Failed to get cmwindow value from the CM file $!";
+    }
+
+$window=$cmwindow;
+&printlog( "Set blastfilter window =$window" );
+
+# the following should never end up being used... but leave in place for moment.
+#This looks pretty dodgy. $window should vanish with Infernal >=0.8 thanks to QDB. 
+#Still used for the BLAST prefiltering however:
+#i failed to set it, use default;
+if( !$window ) {
+    $window = 200;
+    $cmwindow = 200;
+    &printlog( "WARN: Using default window [$window]" );
+}
+
+##############
 
 my @blastdb;
 if( $update ) {      # run over the new.fa.* databases
@@ -148,11 +179,19 @@ else {               # run over *.fa databases
     @blastdb = glob( "$blastdbdir/*.fa.nhr" );
 }    
 
+
 # make sure writable by group
 umask(002);
-mkdir( "/pfam/db/Rfam/tmp/log/$$", 0775 );
+my $user = `whoami`;
+chomp($user);
+
+#user must have log dir!
+mkdir( "$pwd/$$", 0775 ) or  die "cant create the dir for error logs" ;
 my @index = ( 1..scalar(@blastdb) );
 my $round = 0;
+
+#things to copy to lustre file system
+system("/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile");
 
 unless( $minidb ) {
   BLAST: {
@@ -163,30 +202,46 @@ unless( $minidb ) {
 	      my $blastdb = $blastdb[$i-1];
 	      $blastdb =~ s/\.nhr$//g;
 	      $blastdb =~ s/$blastdbdir/$blastdbdir2/g;
-	      my $blastcmd = "blastall -p blastn -d $blastdb -i /tmp/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 9";
-	  
-	      my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
+	      #setenv WUBLASTDB /lustre/pfam/rfam/Production/rfamseq/CURRENT
+	      #my $blastcmd = "wublastn $blastdb $lustre/$fafile B=9999999 V=9999999 E=10 mformat=3 hspsepSmax=1000";
+	      my $blastcmd = "blastall -p blastn -d $blastdb -i $lustre/$fafile -F F -W 7 -b 100000 -v 100000 -e 10 -m 9";
+  	      my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	      my $fh = new IO::File;
-	      $fh -> open("| bsub -q $bqueue -J\"rf$$\" -o /pfam/db/Rfam/tmp/log/$blast/$blast.berr.$i") or die "$!";
+	      $fh -> open("| bsub -q $queue -J\"rf$$\" -o $pwd/$$/$blast.berr.$i") or die "$!";
 	      $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
-	      $fh -> print("PATH=\$\{PATH\}:/usr/local/ensembl/bin\n");  # so we can find blastall
-	      $fh -> print("scp $phost:$pwd/$fafile /tmp/$fafile\n");
-	      $fh -> print("$blastcmd > /tmp/$blast.blastlist.$i\n");
-	      $fh -> print("scp /tmp/$blast.blastlist.$i $phost:$pwd/$blast.blastlist.$i\n");
-	      $fh -> print("rm -f /tmp/$blast.blastlist.$i /tmp/$fafile\n");
+	      $fh -> print("$blastcmd > $lustre/$blast.blastlist.$i\n");
+              $fh -> print("/usr/bin/scp farm-login:$lustre/$blast.blastlist.$i $phost:$pwd/$blast.blastlist.$i\n") or die "$!";
 	      $fh -> close;
 	  }
       
 	  &printlog( "Waiting for blast jobs" );
-	  my $fh = new IO::File;
-	  $fh -> open("| bsub -I -q $queue2 -w\'done(rf$blast)\'") or die "$!";
-	  $fh -> print("echo \"blast jobs finished at:\" > /tmp/$blast.berr\n");
-	  $fh -> print("date >> /tmp/$blast.berr\n");
-	  $fh -> print("scp /tmp/$blast.berr $phost:$pwd/$blast.berr\n");
-	  $fh -> print("rm -f /tmp/$blast.berr\n");
-	  $fh -> close;
-      }
-
+	  # my $fh = new IO::File;
+# 	  $fh -> open("| bsub -I -q $queue2 -w\'done(rf$blast)\'") or die "$!";
+# 	  $fh -> print("echo \"blast jobs finished at:\" > /tmp/$blast.berr\n");
+# 	  $fh -> print("date >> /tmp/$blast.berr\n");
+# 	  $fh -> print("scp /tmp/$blast.berr $phost:$pwd/$blast.berr\n");
+# 	  $fh -> print("rm -f /tmp/$blast.berr\n");
+# 	  $fh -> close;
+#       }
+	  my $wait = 1;
+	  while($wait){
+	  	sleep(15);
+	  	system("bjobs -J rf$blast > rf$blast.log");
+	  	my $jobs;
+	  	open(LOG, "rf$blast.log") || die "Failed to open blast log\n";
+	  	while(<LOG>){
+	  		if(/rf$blast/){
+	  			$jobs++;
+	  		}
+	  	}
+	  	close(LOG);
+	  	if($jobs){
+	  		print STDERR "There are $jobs blast job still running\n"; 
+	  	}else{
+	  		$wait = 0;
+	  	}
+	  }
+	}
       &printlog( "checking blast result integrity" );
       my @rerun;
       foreach my $i ( @index ) {
@@ -260,7 +315,7 @@ else {
 	    my $nse = pop( @nses );
 	    my( $n, $s, $e ) = $nse =~ /(\S+)\:(\d+)-(\d+)/;
 	    my $fh = IO::File->new();
-	    $fh -> open( "xdget -n -a $s -b $e /pfam/db/rfamseq/CURRENT/rfamseq.fa $n |" ) or die "\nFATAL:pfetch failure\n";
+	    $fh -> open( "xdget -n -a $s -b $e /lustre/pfam/rfam/Production/rfamseq/CURRENT/rfamseq.fa $n |" ) or die "\nFATAL:xdget failure\n";
 	    while(<$fh>) {
 		if( /^\>/ ) {
 		    print FA ">$n/$s-$e\n";
@@ -269,7 +324,7 @@ else {
 		    print FA $_;
 		}
 	    }
-	    $fh -> close or die "\nFATAL:pfetch failure\n";
+	    $fh -> close or die "\nFATAL:xdget failure\n";
 	    $seen_count ++;
 
 	}
@@ -278,10 +333,12 @@ else {
     undef( $seqlist );             # free up memory
 }
 
-my $command = "/pfam/db/Rfam/bin/linux/cmsearch";
+my $command = "cmsearch";
 my $options = "";
 $options .= "--local " if( $local );
-$options .= "-W $window";
+#$options .= "-W $window"; ##currently removed this as version 0.73 calculates this by default.
+
+my $cmopts= $options . "-W $cmwindow";  #use this for updating DESC file
 
 $name = "cm$$" if( not $name );
 system "cp CM $$.CM" and die;
@@ -291,26 +348,38 @@ system "cp CM $$.CM" and die;
 my $fh = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
-$fh -> open( "| bsub -q $queue -o /pfam/db/Rfam/tmp/log/$$/$$.err.\%I -E '/pfam/db/Rfam/scripts/make/rfsearch_preexec.pl $phost $pwd $minidb.minidb.\$\{LSB_JOBINDEX\} $$.CM' -J$name\"[1-$k]\"" ) or die "$!";
+
+#&printlog( "\nRunning: scp $pwd/$$.CM farm-login:$lustre/$$.CM\n");
+system("scp $pwd/$$.CM farm-login:$lustre/$$.CM") and die "error scp-ing $$.CM model to lustre filesystem";
+for  (my $i = 1; $i <= $k; $i++){
+#   &printlog( "\nRunning: scp $pwd/$minidb.minidb.$i farm-login:$lustre/$minidb.minidb.$i\n");
+   system("scp $pwd/$minidb.minidb.$i farm-login:$lustre/$minidb.minidb.$i") and die "error scp-ing mini db:$minidb.minidb.$i to lustre filesystem";
+}
+
+$fh -> open( "| bsub -q $queue -o $pwd/$$/$$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
-$fh -> print( "$command $options /tmp/$$.CM /tmp/$minidb.minidb.\$\{LSB_JOBINDEX\} > /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "scp /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} $phost:$pwd/OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fh -> print( "rm -f /tmp/$minidb.minidb.\$\{LSB_JOBINDEX\} /tmp/$$.OUTPUT.\$\{LSB_JOBINDEX\} /tmp/$$.CM\n" );
+&printlog( "\nRunning: $command $options $lustre/$$.CM $lustre/$minidb.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n\n");
+$fh -> print( "$command $options $lustre/$$.CM $lustre/$minidb.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fh -> close;
 
-
 # send something to clean up
+print STDERR "set cm searches set running, copy files and clean up....\n";
+
 $fh = new IO::File;
 $fh -> open("| bsub -q $queue2 -w\'done($name)\'") or die "$!";
 $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
+$fh -> print("cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full\n") or  die "cant catenate output files on the farm\n";
+$fh -> print("/usr/bin/scp $lustre/$$.OUTPUT_full  $phost:$pwd/OUTPUT\n") or  die "failed to copy output files from the farm\n";
 $fh -> print("date >> /tmp/$$.cmerr\n");
-$fh -> print("scp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n");
-$fh -> print("rm -f /tmp/$$.cmerr\n");
+$fh -> print("/usr/bin/scp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n");
+$fh -> print("rm -rf /tmp/$$.cmerr\n");
+##PPG: remember to uncomment these:
+$fh -> print("rm -rf $lustre/$$.*\n") || die "failed to clean up files on the farm\n";
 $fh -> close;
 
-&update_desc( $buildopts, $options ) unless( !-e "DESC" );
+&update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
 
-
+print STDERR "finished cleaning up... wait for cm searches to complete\n ";
 ##############
 
 sub printlog {
@@ -394,7 +463,7 @@ sub parse_list {
 sub update_output { 
     my $oldfile = shift;
     my $newfile = shift;
-
+    
     my %delup;
     my $difffile = "$Rfam::rfamseq_current_dir/rfamseq.diff";
     my $svfile   = "$Rfam::rfamseq_current_dir/embl_sv.txt";
@@ -438,8 +507,7 @@ sub update_output {
 
 
 sub update_desc {
-    my $buildopts = shift;
-    my $searchopts = shift;
+    my ($buildopts,$searchopts) = @_;
     open( DNEW, ">DESC.new" ) or die;
     open( DESC, "DESC" ) or die;
     while(<DESC>) {
@@ -453,7 +521,7 @@ sub update_desc {
 	    next;
 	}
 	if( /^BM   cmsearch\s+/ ) {
-	    print DNEW "BM   cmsearch $searchopts CM SEQDB\n";
+	    print DNEW "BM   cmsearch ", $searchopts, " CM SEQDB\n";
 	    next;
 	}
 	print DNEW $_;

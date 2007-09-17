@@ -48,15 +48,20 @@ sub new {
   my $caller = shift;
   my $self = bless {}, ref($caller) || $caller;
 
+#this version shall be deleted. is historic copy for some reason (jd7)
+print STDERR "WARNING!! -----using wrong version of RfamRDB.pm !\n";
+  exit;
+
 
   my %params = @_;
 
 
-  my ($db_name, $driver, $host, $user, $db_password) = 
+  my ($db_name, $driver, $host, $user, $port, $db_password) = 
     ( ($params{'-DB_NAME'} || $params{'-db_name'}),
       ($params{'-DB_DRIVER'} || $params{'-db_driver'}),
       ($params{'-DB_HOST'} || $params{'-db_host'}),
       ($params{'-DB_USER'} || $params{'-db_user'}),
+      ($params{'-DB_PORT'} || $params{'-db_port'}),
       ($params{'-DB_PASSWORD'} || $params{'-db_password'}));
   
   
@@ -65,6 +70,7 @@ sub new {
   $self->_database_driver($driver);
   $self->_database_user($user);
   $self->_database_host($host);
+  $self->_database_port($port);
   $self->_database_password( $db_password );
 
   return $self;
@@ -106,16 +112,17 @@ sub connect {
        my $host = $self->_database_host();
        my $db_name = $self->_database_name();
        my $user = $self->_database_user();
+       my $port = $self->_database_port();
        my $password = $self->_database_password(); 
 
        $self->{'_connection_count'} = 0;
 
        my ($dbh);
 
-       $dbh = DBI->connect("dbi:$driver:database=$db_name;host=$host", $user, $password); 
+       $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port:host=$host", $user, $password); 
 
        if( not ($dbh) or defined($DBI::err)) {
-	   $self->throw("Could not open connection to dbi:$driver:database=$db_name;host=$host with user $user"); 
+	   $self->throw("Could not open connection to dbi:$driver:database=$db_name;port=$port:host=$host with user $user"); 
        }
        $self->_database_handle( $dbh );
 
@@ -249,6 +256,7 @@ sub open_transaction{
        my $host = $self->_database_host();
        my $db_name = $self->_database_name();
        my $user = $self->_database_user();
+       my $port = $self->_database_port();
        my $password = $self->_database_password();
 
 
@@ -256,11 +264,11 @@ sub open_transaction{
 
        $self->report_mode and print STDERR "Connecting to database...\n";
 
-       $dbh = DBI->connect("dbi:$driver:database=$db_name;host=$host", $user, $password);
+       $dbh = DBI->connect("dbi:$driver:database=$db_name:host=$host:port=$port", $user, $password);
 
 
        if( not ($dbh) or defined($DBI::err)) {
-	   $self->throw("Could not open connection to dbi:$driver:database=$db_name;host=$host with user $user"); 
+	   $self->throw("Could not open connection to dbi:$driver:database=$db_name:host=$host:port=$port with user $user"); 
        }
 
        $self->_database_handle( $dbh );
@@ -366,6 +374,27 @@ sub _database_driver {
 }
 
 
+
+
+=head2 _database_port
+
+ Title   : _database_port
+ Usage   : $dbh = _database_port();
+ Function:
+    Gets/sets the port for this relation database
+ Returns : A database port
+ Args    : A database port
+
+=cut
+
+sub _database_port {
+   my ($self,$value) = @_;
+
+   if (defined $value) {
+       $self->{'_rdb_port'} = $value;
+   }
+   return $self->{'_rdb_port'};
+}
 
 
 =head2 _database_host
