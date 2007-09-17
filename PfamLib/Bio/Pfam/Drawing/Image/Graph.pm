@@ -137,7 +137,7 @@ sub graphImage {
 sub create_graph{
   my ($self, $graphDom) = @_;
   my $xc = XML::LibXML::XPathContext->new( $graphDom );
-  $xc->registerNs( "pf" => $ns );
+  $xc->registerNs( "pf" => $self->{ns} );
   #First get the graph type and get the corresponding GD::graph object
   $self->graphType($graphDom->getAttribute("graphType"));
   $self->length($graphDom->getAttribute("length")+45);
@@ -162,7 +162,7 @@ sub create_graph{
   my @type;
   foreach my $dataSeries ($xc->findnodes( "pf:graphData/pf:dataSeries" )){
     $xc = XML::LibXML::XPathContext->new( $dataSeries );
-    $xc->registerNs( "pf" => $ns );
+    $xc->registerNs( "pf" => $self->{ns} );
     if($dataSeries->hasAttribute("colour")){
       $dataSeriesColour[$self->{'dataSeries'}-1] = $dataSeries->getAttribute("colour")
     }else{
