@@ -5,7 +5,7 @@
 #
 # builds form for uploading XML describing a Pfam graphic
 #
-# $Id: uploadXml.tt,v 1.4 2007-09-11 08:34:45 jt6 Exp $
+# $Id: uploadXml.tt,v 1.5 2007-09-17 12:31:13 jt6 Exp $
 
 META title = "Generate domain images";
 META fullPage = 1;
@@ -27,12 +27,12 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 <p>
   This tool allows you to generate your own domain images, by uploading an XML 
   file describing the image you need. The XML must conform to the Pfam 
-  <a href="[% base %]static/documents/pfamDomainGraphics.xsd">schema</a>.
-  Badly formed or non-validating XML uploads will be rejected. Please
-  <a href="[% base %]static/documents/pfamDomainGraphics.xsd">download the schema</a>
-  and validate your XML locally before uploading it. Please note that only one 
-  image (the first one in the XML description) will be generated, even if the 
-  XML contains multiple &lt;sequence&gt; tags.
+  <a href="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd">
+    schema</a>. Badly formed or non-validating XML uploads will be rejected. Please
+  <a href="http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd">
+    download the schema</a> and validate your XML locally before uploading it. 
+  Please note that only one image (the first one in the XML description) will 
+  be generated, even if the XML contains multiple &lt;sequence&gt; tags.
 </p>
 <p>
   Check the &quot;Image only&quot; box to return just the generated domain 
@@ -58,12 +58,15 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
            tabindex="1"  
            size="30" 
            id="uploadField" />
+[%# disabling until we have time to look at it more closely
+  # jt6 20070917 WTSI.
     <label>
       <input type="checkbox" 
              name="image_only" 
              value="1" 
              tabindex="2" />Image only
     </label>
+%]
     <input type="submit" 
            tabindex="3" 
            name="upload" 
@@ -90,7 +93,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     rendering features of the domain image generator.
   </p>
 
-  <img src="http://www.sanger.ac.uk/Software/Pfam/images/domain_image_example.png" 
+  <img src="[% base %]static/images/domain_image_example.png" 
        alt="Example Pfam graphic" />
 
 </div>
@@ -99,14 +102,13 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
   <span class="link" onclick="reveal( this, 'xmlFragment', false )">Show XML</span>
 
-  [% schema = c.uri_for( "/documents/pfamDomainGraphics.xsd" ) %]
   <div id="xmlFragment" style="display: none">
     <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;[% schema %]&quot;
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot;
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-       xsi:schemaLocation=&quot;[% schema %]
-                           [% schema %]&quot;
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot;
        format=&quot;png&quot; 
        layout=&quot;continuous&quot; 
        scale_x=&quot;0.5&quot; 
