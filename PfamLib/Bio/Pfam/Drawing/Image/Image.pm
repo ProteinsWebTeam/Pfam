@@ -1,5 +1,5 @@
 
-# $Author: rdf $
+# $Author: jt6 $
 
 package Bio::Pfam::Drawing::Image::Image;
 
@@ -11,7 +11,8 @@ use Digest::MD5 qw(md5_hex);
 use GD;
 use Sanger::Graphics::ColourMap;
 
-my $ns = "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd";
+# take the namespace from an environment variable 
+my $ns = $ENV{PFAM_XML_NS};
 
 =head1 
 
