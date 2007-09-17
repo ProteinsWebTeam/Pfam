@@ -95,7 +95,7 @@ unless( -s "$Rfam::releases_dir/$rel/Rfam.pics.tar" ) {
     chdir "$Rfam::releases_dir/$rel/pics" or die;
     system "$Rfam::scripts_dir/release/make_ss_pics.pl $Rfam::releases_dir/$rel/Rfam.seed" and die;
     system "tar -cvf $Rfam::releases_dir/$rel/Rfam.pics.tar RF*.jpg tn_RF*.jpg" and die;
-    chdir "$Rfam::releases_dir/$rel/" and die;
+    chdir "$Rfam::releases_dir/$rel/" or die;
     system "rm -rf $Rfam::releases_dir/$rel/pics" and die;
 }
 
