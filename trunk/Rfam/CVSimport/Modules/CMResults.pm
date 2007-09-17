@@ -74,6 +74,7 @@ sub parse_infernal {
 	next if( /^\*\*\*/ );
 	next if( /^alignment strategy:/ );
 	next if( /CPU time:\s+/ or /memory:\s+/ );
+	next if( /^CPU time \(search\)\s+:/ || /^CYK memory\s+:/ || /CPU time \(band calc\):/); #Infernal >0.6
 	next if( /^\s*$/ );
 	next if( /^\s+-\s+-\s*$/ );
 
@@ -123,7 +124,6 @@ sub parse_infernal {
 
 	    $self -> addHMMUnit( $unit );
 	}
-
         elsif( /^\s*$/ or
 	       /^\s+\-\s+/ or
 	       /^\s+(\d*)\s*(.+?)\s*(\d*)\s*$/ ) {
@@ -143,7 +143,7 @@ sub parse_infernal {
 			$unit -> end_hmm( $end );
 		    }
 		    elsif( $wholeline =~ /\s+\-\s+/ ) {
-			# ignore these annoying local alignment lines
+			# ignore local alignment lines, CPU/MEM usage info
 		    }
 		    else {
 			warn "failed to parse alignment line 1 [$wholeline]\n";

@@ -58,6 +58,7 @@ open( F, $file ) or die;
 
 my $allres = new CMResults;
 
+printf STDERR "Parsing infernal OUTPUT\n";
 if( $cove ) {
     $allres -> parse_cove( \*F );
 }
@@ -87,26 +88,18 @@ if( $list ) {
 
     my @goodhits = grep{ $_->bits >= $thr } $res->eachHMMUnit();
     my @allnames = map{ $_->seqname } @goodhits;
-
-#    if( $inxfile ne $Rfam::rfamseq ) {
-#	forach my $id ( @allnames ) {
-#	    my $seq = &get_seq( $id );
-#	    $desc{ $id } = $seq->desc;
-#	}
-#    }
-#    else {
-	while( scalar @allnames ) {
-	    my $string = join( " ", splice( @allnames, 0, $chunksize ) );
-	    ##we had to take the -d embl option out of here for the new version of pfetch
-	    open( P, "pfetch -a -D $string |" ) or die;
-	    while( <P> ) {
-		if( /^(\w+\s+)?(\w+)\.\d+\s+(.{1,$desclength})/ ) {
-		    $desc{$2} = $3;
-		}
+    
+    while( scalar @allnames ) {
+	my $string = join( " ", splice( @allnames, 0, $chunksize ) );
+	##we had to take the -d embl option out of here for the new version of pfetch
+	open( P, "pfetch -a -D $string |" ) or die;
+	while( <P> ) {
+	    if( /^(\w+\s+)?(\w+)\.\d+\s+(.{1,$desclength})/ ) {
+		$desc{$2} = $3;
 	    }
-	    close P or die "can't close pfetch pipe";
 	}
-#    }
+	close P or die "can't close pfetch pipe";
+    }
 
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	my( $emblacc );
@@ -187,12 +180,14 @@ if( $local ) {
 else {
     $options .= " --hbanded";
 }
+printf STDERR "Running: cmalign $options CM $$.fa\n";
 system "cmalign $options CM $$.fa" and die "failed to run cmalign";
 
 my $tc_bits = $res -> lowest_true( $thr );
 my $nc_bits = $res -> highest_noise( $thr );
 $nc_bits = "undefined" if( $nc_bits == -100000 );    # hack!
 
+printf STDERR "Updating DESC file\n";
 if( -s "DESC" ) {
     open( DNEW, ">DESC.new" ) or die;
     open( DESC, "DESC" ) or die;
