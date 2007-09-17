@@ -16,7 +16,7 @@ use Bio::Pfam::Drawing::Image::Graph;
 use Time::HiRes qw( gettimeofday );
 
 # take the namespace from an environment variable 
-my $ns = $ENV{PFAM_XML_NS};
+my $ns = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
 
 sub new{
   my $class = shift;
