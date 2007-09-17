@@ -1,4 +1,4 @@
-#!/sotware/bin/perl -w
+#!/software/bin/perl -w
 
 # Kills an Rfam family
 #
