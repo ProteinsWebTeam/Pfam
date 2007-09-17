@@ -11,9 +11,6 @@ use Digest::MD5 qw(md5_hex);
 use GD;
 use Sanger::Graphics::ColourMap;
 
-# take the namespace from an environment variable 
-my $ns = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
-
 =head1 
 
    This module can roughly be divided in to three section.
@@ -52,7 +49,10 @@ sub new {
   $self->{'colourMap'} = Sanger::Graphics::ColourMap->new();
 
   $self->{timeStamp} = $params->{timeStamp}
-	if defined $params->{timeStamp};
+  	if defined $params->{timeStamp};
+
+  # take the namespace from an environment variable, if set 
+  $self->{ns} = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
 
   return $self;
 }
@@ -694,7 +694,7 @@ sub _get_colour_as_RGB {
     if($colour_dom) {
 	my $colNode;
 	my $xc = XML::LibXML::XPathContext->new( $colour_dom );
-	  $xc->registerNs( "pf" => $ns );
+	  $xc->registerNs( "pf" => $self->{ns} );
 	  if( $colNode = $xc->findnodes( "pf:hex" )->shift ) {
 	    #foreach my $hexnode ($colour_dom->getChildNodes){
 	    my $hexcode = $colNode->getAttribute("hexcode");
@@ -767,7 +767,7 @@ sub create_image {
 
   # store a single XPathContext for this object
   my $xc = XML::LibXML::XPathContext->new( $seq_dom );
-  $xc->registerNs( "pf" => $ns );
+  $xc->registerNs( "pf" => $self->{ns} );
 
   # set the length and current y_pos;
   $self->length($seq_dom->getAttribute("length")*$self->scale_x);
@@ -811,7 +811,7 @@ sub _draw_sequence{
   my (%colour1, %colour2);
 
   my $xc = XML::LibXML::XPathContext->new;
-  $xc->registerNs( "pf" => $ns );
+  $xc->registerNs( "pf" => $self->{ns} );
   $xc->setContextNode( $seq_dom );
   if($xc->findnodes("pf:colour1/pf:colour")->shift ){
     %colour1 = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift );
@@ -870,7 +870,7 @@ sub _draw_regions{
 		'big' => 26 * $self->scale_y, );
 
   my $xc = XML::LibXML::XPathContext->new;
-  $xc->registerNs( "pf" => $ns );
+  $xc->registerNs( "pf" => $self->{ns} );
 
   foreach my $reg_dom (@{ $self->{regions} } ){
 
@@ -1047,7 +1047,7 @@ sub _draw_top_markup{
   foreach my $markup ($self->each_top_markup) {
       #Changed to use LibXML.
       my $xc = XML::LibXML::XPathContext->new( $markup );
-      $xc->registerNs( "pf" => $ns );
+      $xc->registerNs( "pf" => $self->{ns} );
 
       #get the line colour
       my $line = $xc->findnodes( "pf:line")->shift;
@@ -1106,7 +1106,7 @@ sub _draw_bottom_markup{
   foreach my $markup ($self->each_bottom_markup) {
       #get the line colour
       my $xc = XML::LibXML::XPathContext->new( $markup );
-      $xc->registerNs( "pf" => $ns );
+      $xc->registerNs( "pf" => $self->{ns} );
       
       my $line = $xc->findnodes( "pf:line")->shift;
       my %colour = $self->_get_colour_as_RGB($xc->findnodes( "pf:line/pf:colour" )->shift);
@@ -1240,7 +1240,7 @@ sub _draw_head {
   my $start = $markup->getAttribute("start"); # This is a speed-up as we are going to it a lot
   #The head colour
   my $xc = XML::LibXML::XPathContext->new( $head );
-  $xc->registerNs( "pf" => $ns );
+  $xc->registerNs( "pf" => $self->{ns} );
   my %colour = $self->_get_colour_as_RGB($xc->findnodes("pf:colour"));
 	
   my $h_colour = $self->get_colour(%colour);

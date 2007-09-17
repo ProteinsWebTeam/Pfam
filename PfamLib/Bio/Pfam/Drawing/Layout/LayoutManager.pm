@@ -52,6 +52,8 @@ sub new {
   $self->{'layout'} = undef;
   $self->{'format'} = undef;
   
+  $self->{ns} = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
+  
   #Set up the defaults or override with the params
   $self->scale_x($params{'scale_x'});
   $self->scale_y($params{'scale_y'});
@@ -282,11 +284,9 @@ sub layout_to_XMLDOM {
   my $dom = XML::LibXML->createDocument(); #This should generate an empty document.....
   my $image = $dom->createElement( "image");
 
-#  $image->setAttribute("xmlns:pf", "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd");
-
-  $image->setNamespace( "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd", "", 0);
+  $image->setNamespace( $self->{ns}, "", 0);
   $image->setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-  $image->setAttribute("xsi:schemaLocation", "http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd");
+  $image->setAttribute("xsi:schemaLocation", $self->{ns} . ' ' . $self->{ns} );
 
   #Set up the root element
   $image->setAttribute("layout", $self->layout);
