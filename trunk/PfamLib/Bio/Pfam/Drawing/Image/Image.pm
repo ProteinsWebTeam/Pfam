@@ -12,7 +12,7 @@ use GD;
 use Sanger::Graphics::ColourMap;
 
 # take the namespace from an environment variable 
-my $ns = $ENV{PFAM_XML_NS};
+my $ns = $ENV{PFAM_XML_NS} || 'http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd';
 
 =head1 
 
