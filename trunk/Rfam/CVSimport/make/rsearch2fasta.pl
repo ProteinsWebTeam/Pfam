@@ -1,10 +1,10 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 use strict;
 use Getopt::Long;
 
-use lib "/pfam/db/Pfam/scripts/Modules";
-use lib "/pfam/db/Rfam/scripts/Modules";
+#use lib "/pfam/db/Pfam/scripts/Modules";
+#use lib "/pfam/db/Rfam/scripts/Modules";
 use CMResults;
 use Rfam;
 

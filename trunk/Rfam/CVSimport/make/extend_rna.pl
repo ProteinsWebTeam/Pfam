@@ -1,4 +1,5 @@
-#!/usr/local/bin/perl
+#!/software/bin/perl
+
 use strict;
 use Getopt::Long;
 use Bio::SeqFetcher::xdget;

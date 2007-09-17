@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 =head1 NAME
 
@@ -298,6 +298,7 @@ foreach my $acc ( @families ) {
     }
 
     my $options = "-W ". ( $window || $thr{$acc}{'win'} );
+  
     if( $global ) {
 	# don't use local mode
     }
