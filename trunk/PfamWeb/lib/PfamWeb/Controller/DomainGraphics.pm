@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.12 2007-08-28 11:21:03 rdf Exp $
+# $Id: DomainGraphics.pm,v 1.13 2007-09-18 16:04:11 rdf Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.12 2007-08-28 11:21:03 rdf Exp $
+$Id: DomainGraphics.pm,v 1.13 2007-09-18 16:04:11 rdf Exp $
 
 =cut
 
@@ -60,7 +60,7 @@ sub begin : Private {
   # adjust what gets generated in the TT and stuffed into the existing
   # page
   if( defined $c->req->param('arch') and 
-      $c->req->param('arch') =~ m/^(\d+)$/ ) {
+      $c->req->param('arch') =~ m/^(\d+|nopfama)$/ ) {
     $c->stash->{auto_arch} = $1;
     $c->log->debug( 'DomainGraphics::begin: arch: |' . $c->stash->{auto_arch} . '|' ); 
   }
@@ -388,11 +388,12 @@ sub getPfamBData : Private {
       # retrieve all sequences for this PfamB, regardless of whether they have 
       # a PfamA in their architecture
 
-      @rows= $c->model('PfamDB::Pfamseq')
-               ->search( { auto_pfamB => $c->stash->{autoPfamB} },
+      @rows = $c->model('PfamDB::Pfamseq')
+                    ->search( { auto_pfamB => $c->stash->{autoPfamB} },
                          { join      => [ qw( pfamB_reg annseq ) ],
                            prefetch  => [ qw( pfamB_reg annseq ) ] } );
-
+ 
+  
     } else {
       # we've got a real auto_architecture, so retrieve sequences with that
       # just that specific architecture
@@ -415,13 +416,20 @@ sub getPfamBData : Private {
 
     # grab the unique architectures
     foreach my $arch ( @allRows) {
-      next unless $arch->auto_architecture;
-      unless( $seenArch{ $arch->auto_architecture } ) {    
+      $c->log->debug("Got the following architecture:|".$arch->auto_architecture."|");
+      my $autoArch;
+      if($arch->auto_architecture){
+        $autoArch = $arch->auto_architecture;
+      }else{
+        $autoArch = "nopfama"; 
+      }
+      #next unless $arch->auto_architecture;
+      unless( $seenArch{ $autoArch } ) {    
         push @rows, $arch;
         push @seqs, thaw( $arch->annseq_storable );
         $archStore{ $arch->pfamseq_id } = $arch;
       }
-      $seenArch{ $arch->auto_architecture }++;
+      $seenArch{ $autoArch }++;
     }
     
   }
@@ -470,7 +478,7 @@ sub getPfamBData : Private {
 
     # generate the extra mapping for the architectures
     foreach my $seq ( @seqs ) {
-      my $aa = $archStore{$seq->id}->auto_architecture || '';
+      my $aa = $archStore{$seq->id}->auto_architecture || 'nopfama';
 
       $c->log->debug( 'DomainGraphics::getPfamBData: checking |'
                       . $seq->id . '|, architecture |' . $aa . '|' );
