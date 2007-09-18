@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Completed Proteomes
 #
-# $Id: proteomes.tt,v 1.6 2007-08-28 14:12:43 jt6 Exp $
+# $Id: proteomes.tt,v 1.7 2007-09-18 19:54:29 jt6 Exp $
 
 META title = "Browse Pfam proteomes";
 META fullPage = 1;
@@ -43,7 +43,7 @@ pageList = PROCESS "components/pageList.tt",
       <th rowspan="2">Species name</th>
       <th rowspan="2">Kingdom</th>
       <th rowspan="2">Proteome size</th>
-      <th colspan="2">Coverage</th>
+      <th colspan="2">Coverage (%)</th>
     </tr>
     <tr>
       <th>Sequence</th>
