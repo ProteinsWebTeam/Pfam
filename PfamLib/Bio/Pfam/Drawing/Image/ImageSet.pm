@@ -52,7 +52,7 @@ sub create_images {
   } else {
   	$dom = $origDom;
   }
-print STDERR "creating image from XML: |" . $dom->toString(1) . "|\n";
+#print STDERR "creating image from XML: |" . $dom->toString(1) . "|\n";
 
   my $root = $dom->documentElement;
   my $xc = XML::LibXML::XPathContext->new( $root );
