@@ -1,12 +1,15 @@
-#!/usr/local/bin/perl
+#!/software/bin/perl
 
 
 use Getopt::Long;
 #use lib '/nfs/WWW/SANGER_docs/perl/bioperl-1.2';
-use lib '/pfam/db/bioperl';
+#use lib '/pfam/db/bioperl';
+
 use lib '/nfs/WWWdev/SANGER_docs/lib/rfam';
+
 #use lib '/nfs/WWWdev/SANGER_docs/cgi-bin/Rfam/Rfam';
 #use lib '/nfs/team71/pfam/mm1/rfam_cvs/scripts/Modules';
+
 use Rfam;
 use RfamWWWConfig;
 use vars qw(%all_rfamseq);
@@ -29,9 +32,10 @@ die "need file_type , either seed or full \n" if (!$file_type);
 
 my $rdb = Rfam::DB::DB_RDB->new('-db_name' => $dbname,
                                 '-db_driver' => 'mysql',
-                                '-db_host' => 'pfam',
-                                '-db_user' => 'rfam',
-                                '-db_password' => 'mafp1' );
+                                '-db_host' => 'pfamdb2a',
+                                '-db_user' => 'pfamadmin',
+                                '-db_password' => 'mafpAdmin',
+				'-db_port' => '3302' );
 
 
 my(@results);
@@ -677,7 +681,7 @@ sub _add_markup {
   
   my($seq, $sec_struc, $print) = @_;
  #  print "\n$seq\n$sec_struc \n";
-  my $new_seq, $new_sec_struc, %seqs_ma;
+  my ($new_seq, $new_sec_struc, %seqs_ma);
   
   
  
