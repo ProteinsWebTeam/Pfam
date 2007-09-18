@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.38 2007-09-10 15:37:24 jt6 Exp $
+# $Id: index.tt,v 1.39 2007-09-18 08:42:48 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -115,8 +115,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   </div><!-- end of "controlPanel" -->
     
   <div id="help" class="panel">
+    <h3>You can find data in Pfam in various ways...</h3>
     <ul>
-      <li>You can find data in Pfam in various ways... </li>
       <li>Analyze your protein sequence for Pfam matches</li>
       <li>View Pfam family annotation and alignments</li>
       <li>See groups of related families</li>
