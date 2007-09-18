@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Pfam families
 #
-# $Id: families.tt,v 1.4 2007-08-28 14:12:43 jt6 Exp $
+# $Id: families.tt,v 1.5 2007-09-18 19:54:29 jt6 Exp $
 
 META title = "Browse Pfam families";
 META fullPage = 1;
@@ -54,7 +54,7 @@ pageList = PROCESS "components/pageList.tt",
       <th rowspan="2">ID</th>
       <th rowspan="2">Accession</th>
       <th rowspan="2">Type</th>
-      <th colspan="2">Alignment length</th>
+      <th colspan="2">Number of sequences</th>
       <th rowspan="2">Average length</th>
       <th rowspan="2">Average %id</th>
       <th rowspan="2">Average coverage</th>
