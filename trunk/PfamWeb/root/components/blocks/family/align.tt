@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.21 2007-09-12 14:28:53 jt6 Exp $
+# $Id: align.tt,v 1.22 2007-09-18 08:46:56 jt6 Exp $
 %]
 
 <!-- start align block -->
@@ -249,6 +249,7 @@
       </div>
     </form>
 
+    [% IF entryType != 'B' %]
     <h2>Download options</h2>
 
     <p>
@@ -291,6 +292,7 @@
   
       </div>
     </form>
+    [% END %]
 
   </div>
 
