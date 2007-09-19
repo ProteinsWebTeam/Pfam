@@ -5,7 +5,7 @@
 #
 # builds form for uploading XML describing a Pfam graphic
 #
-# $Id: uploadXml.tt,v 1.5 2007-09-17 12:31:13 jt6 Exp $
+# $Id: uploadXml.tt,v 1.6 2007-09-19 12:35:46 jt6 Exp $
 
 META title = "Generate domain images";
 META fullPage = 1;
@@ -34,10 +34,13 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   Please note that only one image (the first one in the XML description) will 
   be generated, even if the XML contains multiple &lt;sequence&gt; tags.
 </p>
+[%# disabling until we have time to look at it more closely
+  # jt6 20070917 WTSI.
 <p>
   Check the &quot;Image only&quot; box to return just the generated domain 
   image, with no surrounding HTML.
 </p>
+%]
 
 [% IF error %]
 <div class="error">
