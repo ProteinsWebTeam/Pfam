@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.5 2007-09-12 12:59:05 jt6 Exp $
+# $Id: linking.tt,v 1.6 2007-09-19 13:40:56 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -16,13 +16,13 @@
   <div class="blockContent">
     <p>
       Pfam is maintained by a consortium of researchers based at the 
-      <a href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a>, 
-      Cambridge, UK (WTSI), <a href="http://www.sbc.su.se/">Stockholm 
-      Bioinformatics Center</a>, Stockholm, Sweden (SBC), and 
-      <a href="http://pfam.janelia.org/">Janelia Farm</a>, Maryland, USA. 
-      Although the data files are identical, the web servers are not currently 
-      mirrors of each other, though we hope to have this website running in all 
-      three locations soon.
+      <a class="ext" href="http://www.sanger.ac.uk/">Wellcome Trust 
+        Sanger Institute</a>, Cambridge, UK (WTSI), 
+      <a class="ext" href="http://www.sbc.su.se/">Stockholm Bioinformatics Center</a>, 
+      Stockholm, Sweden (SBC), and 
+      <a class="ext" href="http://pfam.janelia.org/">Janelia Farm</a>, Maryland, USA. 
+      All three sites run the same Pfam website and linking to different sites
+      only requires that you change the site name, not the parameters in the URL.
     </p>
     <p>
       Although we have no plans to change the locations of resources within 
@@ -33,44 +33,68 @@
     <h3>Home pages</h3>
     <dl class="sitesList">
       <dt>WTSI:</dt>
-      <dd><a href="http://pfam.sanger.ac.uk/">http://pfam.sanger.ac.uk/</a></dd>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/">http://pfam.sanger.ac.uk/</a>
+      </dd>
       <dt>SBC:</dt>
-      <dd><a href="http://pfam.cgb.ki.se/">http://pfam.cgb.ki.se/</a></dd>
+      <dd>
+        <a class="ext" href="http://pfam.sbc.su.se/">http://pfam.sbc.su.se/</a>
+      </dd>
       <dt>Janelia:</dt>
-      <dd><a href="http://pfam.janelia.org/">http://pfam.janelia.org/</a></dd>
+      <dd>
+        <a class="ext" href="http://pfam.janelia.org/">http://pfam.janelia.org/</a>
+      </dd>
     </dl>
     
     <h3>Searching a protein sequence against Pfam</h3>
     <dl class="sitesList">
       <dt>WTSI:</dt>
-      <dd><a href="http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock">
-        http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock</a></dd>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock">
+          http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock</a>
+      </dd>
       <dt>SBC:</dt>
-      <dd><a href="http://pfam.cgb.ki.se/hmmsearch.shtml">
-        http://pfam.cgb.ki.se/hmmsearch.shtml</a></dd>
+      <dd>
+        <a class="ext" 
+           href="http://pfam.sbc.su.se/search?tab=sequenceSearchBlock">
+          http://pfam.sbc.su.se/search?tab=sequenceSearchBlock</a>
+      </dd>
       <dt>Janelia:</dt>
-      <dd><a href="http://pfam.janelia.org/hmmsearch.shtml">
-        http://pfam.janelia.org/hmmsearch.shtml</a></dd>
+      <dd>
+        <a class="ext" 
+           href="http://pfam.janelia.org/search?tab=sequenceSearchBlock">
+          http://pfam.janelia.org/search?tab=sequenceSearchBlock</a>
+      </dd>
     </dl>
 
     <h3>Searching a DNA sequence against Pfam</h3>
     <dl class="sitesList">
       <dt>WTSI:</dt>
-      <dd><a href="http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock">
-        http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock</a></dd>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock">
+          http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock</a>
+      </dd>
       <dt>SBC:</dt>
-      <dd>Not currently available</dd>
+      <dd>
+        <a class="ext" 
+           href="http://pfam.sbc.su.se/search?tab=sequenceDnaBlock">
+          http://pfam.sbc.su.se/search?tab=sequenceDnaBlock</a>
+      </dd>
       <dt>Janelia:</dt>
-      <dd>Not currently available</dd>
+      <dd>
+         <a class="ext" 
+            href="http://pfam.janelia.org/search?tab=sequenceDnaBlock">
+           http://pfam.janelia.org/search?tab=sequenceDnaBlock</a>
+      </dd>
     </dl>
 
     <h3>Linking to Pfam family pages</h3>
     
     <p>
-      In the new Pfam website you can refer to Pfam families 
-      either by accession or ID. You can also refer to a family by 
-      &quot;entry&quot;, although this is a convenience that should be used
-      only if you&apos;re not sure if what you have is an accession or an ID.
+      You can refer to Pfam families either by accession or ID. You can also 
+      refer to a family by &quot;entry&quot;, although this is a convenience 
+      that should be used only if you&apos;re not sure if what you have is an 
+      accession or an ID.
     </p>
     <p>
       Pfam accession numbers are more stable between releases than IDs and
@@ -101,24 +125,10 @@
     </dl>
 
     <p>
-      You can link to Pfam family data at the other sites as follows:
+      You can link to Pfam family data at the other sites by changing
+      &quot;<tt>pfam.sanger.ac.uk</tt>&quot; to &quot;<tt>pfam.sbc.su.se</tt>&quot;
+      or &quot;<tt>pfam.janelia.org</tt>&quot;.
     </p>
-    
-    <dl class="sitesList">
-      <dt>SBC:</dt>
-      <dd>
-        <a href="http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002">
-          http://www.cgr.ki.se/cgi-bin/Pfam/getacc?PF00002</a>
-      </dd>
-      <dt>Janelia:</dt>
-      <dd>
-        <a href="http://pfam.janelia.org/cgi-bin/getdesc?acc=PF00002">
-          http://pfam.janelia.org/cgi-bin/getdesc?acc=PF00002</a>
-        or<br />
-        <a href="http://pfam.janelia.org/cgi-bin/getdesc?name=7tm_2">
-          http://pfam.janelia.org/cgi-bin/getdesc?name=7tm_2</a>
-      </dd>
-    </dl>
 
     <h3>Linking to protein sequence pages</h3>
     
@@ -151,6 +161,12 @@
           http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN</a>
       </dd>
     </dl>
+
+    <p>
+      Again, to generate links to the other Pfam sites, change
+      &quot;<tt>pfam.sanger.ac.uk</tt>&quot; to &quot;<tt>pfam.sbc.su.se</tt>&quot;
+      or &quot;<tt>pfam.janelia.org</tt>&quot;.
+    </p>
 
   </div>
 </div>
