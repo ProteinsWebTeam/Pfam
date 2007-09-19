@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.16 2007-07-25 10:26:17 jt6 Exp $
+# $Id: Search.pm,v 1.17 2007-09-19 15:44:28 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search;
 
 This controller is responsible for running sequence searches.
 
-$Id: Search.pm,v 1.16 2007-07-25 10:26:17 jt6 Exp $
+$Id: Search.pm,v 1.17 2007-09-19 15:44:28 jt6 Exp $
 
 =cut
 
@@ -48,6 +48,29 @@ sub begin : Private {
   
   # tell the layout template to disable the summary icons
   $c->stash->{iconsDisabled} = 1;
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 formatTerms : Private
+
+Inherited by the search plugins, this action formats the query terms to add 
+wildcard and fulltext operators to each word in the list. This base 
+implementation just prepends a "+" (require that the word is present in every 
+returned row; necessary for "IN BOOLEAN MODE" queries) and appends a "*" 
+(wildcard) to each term.
+
+This method should be over-ridden by plugin search classes if they
+need some other processing to be performed on the search terms.
+
+=cut
+
+sub formatTerms : Private {
+  my( $this, $c ) = @_;
+
+  $c->stash->{terms} =
+    join " ", map { $_ = "+$_*" } split /\s+|\W|\:|\-|\_/, $c->stash->{rawQueryTerms};
 
 }
 
