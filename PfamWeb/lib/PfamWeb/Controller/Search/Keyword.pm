@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: Keyword.pm,v 1.2 2007-09-19 15:44:08 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+$Id: Keyword.pm,v 1.2 2007-09-19 15:44:08 jt6 Exp $
 
 =cut
 
@@ -141,10 +141,6 @@ sub runSearches : Private {
   # keep track of the number of hits for each query
   $c->stash->{pluginHits} = {};
 
-  # firkle with the user input if necessary and build a string that
-  # we can pass straight to the DB
-  $c->forward( 'formatTerms' );
-
   # walk the plugins and run each query in turn. The list of plugins comes
   # from Module::Pluggable, via our parent class, Search. The plugin object
   # stringifies to the fully qualified class name, e.g. Search::Plugin::Pfam
@@ -154,8 +150,13 @@ sub runSearches : Private {
     # check that the plugin is switched on in the config
     next unless $c->stash->{pluginsHash}->{$pluginName};
 
-    # check that the plugin is properly formed and is enabled
+    # check that the plugin is properly formed
     next unless $plugin->can( 'process' );
+    next unless $plugin->can( 'formatTerms' );
+
+    # firkle with the user input if necessary and build a string that
+    # we can pass straight to the DB
+    $c->forward( $plugin, 'formatTerms' );
 
     # and run the query
     $c->log->debug( "Search::Keyword::runSearches: running query for plugin $pluginName" );
@@ -224,28 +225,6 @@ sub runSearches : Private {
 
   # set the page template and we're done
   $c->stash->{template} = 'pages/search/keyword/results.tt';
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 formatTerms : Private
-
-Formats the query terms to add wildcard and fulltext operators to each
-word in the list. This base implementation just prepends a "+"
-(require that the word is present in every returned row; necessary for
-"IN BOOLEAN MODE" queries) and appends a "*" (wildcard) to each term.
-
-This method should be over-ridden by plugin search classes if they
-need some other processing to be performed on the search terms.
-
-=cut
-
-sub formatTerms : Private {
-  my( $this, $c ) = @_;
-
-  $c->stash->{terms} =
-    join " ", map { $_ = "+$_*" } split /\s+|\W|\:|\-|\_/, $c->stash->{rawQueryTerms};
 
 }
 
