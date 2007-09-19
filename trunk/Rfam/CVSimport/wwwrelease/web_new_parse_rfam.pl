@@ -681,7 +681,7 @@ sub _add_markup {
   
   my($seq, $sec_struc, $print) = @_;
  #  print "\n$seq\n$sec_struc \n";
-  my ($new_seq, $new_sec_struc, %seqs_ma);
+  my $new_seq, $new_sec_struc, %seqs_ma;
   
   
  
