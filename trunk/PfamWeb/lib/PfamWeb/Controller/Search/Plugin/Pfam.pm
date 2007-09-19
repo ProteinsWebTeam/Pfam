@@ -2,7 +2,7 @@
 # Pfam.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pfam.pm,v 1.5 2007-07-25 10:26:16 jt6 Exp $
+# $Id: Pfam.pm,v 1.6 2007-09-19 15:43:22 jt6 Exp $
 
 =head1 NAME
 
@@ -36,7 +36,7 @@ against the following columns:
 Also does a simple look up in the pfam table, checking to see if the
 raw search terms match a Pfam family accession or ID.
 
-$Id: Pfam.pm,v 1.5 2007-07-25 10:26:16 jt6 Exp $
+$Id: Pfam.pm,v 1.6 2007-09-19 15:43:22 jt6 Exp $
 
 =cut
 
@@ -68,22 +68,22 @@ columns.
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Search::Plugin::Pfam::process: text querying table pfamA" );
+  $c->log->debug( 'Search::Plugin::Pfam::process: text querying table pfamA' );
 
-  my $m = $c->model("PfamDB::Pfam");
+  my $m = $c->model('PfamDB::Pfam');
 
   # do a full blown query...
   my $results =
-	$m->search( {},
-				{} )
-	  ->search_literal( "MATCH( pfamA_acc, pfamA_id, description, comment, previous_id ) " .
-						"AGAINST( ? IN BOOLEAN MODE )",
-						$c->stash->{terms} );
+    $m->search( {},
+                {} )
+      ->search_literal( 'MATCH( pfamA_acc, pfamA_id, description, comment, previous_id ) ' .
+                        'AGAINST( ? IN BOOLEAN MODE )',
+                        $c->stash->{terms} );
 
   # do a simple lookup for the ID or accession...
-  my $lookup =
-	$m->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
-				  { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
+  my( $term ) = $c->stash->{rawQueryTerms} =~ m/^(PF\d{5})(\.\d+)?$/i;
+  my $lookup = $m->search( [ { pfamA_acc => $term },
+                             { pfamA_id  => $term } ] );
 
   return $results, $lookup;
 }
