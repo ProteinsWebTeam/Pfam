@@ -1,4 +1,5 @@
-#!/usr/local/bin/perl
+#!/software//bin/perl
+
 use lib '/nfs/WWWdev/SANGER_docs/lib/rfam';
 use lib '/nfs/WWWdev/SANGER_docs/lib/rfam/Rfam/DB';
 
@@ -23,12 +24,13 @@ die "need outdir\n" if(!$outdir);
 #my  $rdb = Bio::Rfam->switchover_rdb();
 #print "RDB: $rdb \n";
 
-
 my $rdb = Rfam::DB::DB_RDB->new('-db_name' => $dbname,
                                 '-db_driver' => 'mysql',
-                                '-db_host' => 'pfam',
-                                '-db_user' => 'rfam',
-                                '-db_password' => 'mafp1' );
+                                '-db_host' => 'pfamdb2a',
+                                '-db_user' => 'pfamadmin',
+                                '-db_password' => 'mafpAdmin',
+                                '-db_port' => '3302' );
+
 
 my (@blee) = $rdb->query("select auto_rfam, rfam_id, rfam_acc from rfam");
 
