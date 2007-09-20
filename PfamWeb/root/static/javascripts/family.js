@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.28 2007-08-30 11:02:06 jt6 Exp $
+// $Id: family.js,v 1.29 2007-09-20 16:06:25 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -91,17 +91,17 @@ function familyPostLoad() {
 // callback for the structure image call
 
 function siSuccess( oResponse ) {
-  Element.update( $("siph"), oResponse.responseText );
+  $("siph").update( oResponse.responseText );
 }
 
 //------------------------------------------------------------
 // callbacks for the domain graphics generation call
 
 function dgSuccess( oResponse ) {
-  Element.update( $("dgph"), oResponse.responseText );
+  $("dgph").update( oResponse.responseText );
 }
 function dgFailure() {
-  Element.update( $("dgph"), "Domain graphics loading failed." );
+  $("dgph").update( "Domain graphics loading failed." );
 }
 
 //------------------------------------------------------------
@@ -188,7 +188,7 @@ function formatAlignment( sURLBase, oSlider ) {
 var numColsTable;
 
 function fstrucSuccess( oResponse ) {
-  Element.update( "familyStructureTabHolder", oResponse.responseText );
+  $("familyStructureTabHolder").update( oResponse.responseText );
         // how many columns are there in the table ?
       var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
       numColsTable  = firstRow.getElementsByTagName("td").length;
@@ -205,5 +205,5 @@ function fstrucSuccess( oResponse ) {
 }
 
 function fstrucFailure() {
-  Element.update( "fstrucph", "Graphics loading failed." );
+  $("fstrucph").update( "Graphics loading failed." );
 }
