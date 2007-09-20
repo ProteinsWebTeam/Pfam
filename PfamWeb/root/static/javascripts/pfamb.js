@@ -4,7 +4,7 @@
 //
 // javascript glue for the PfamB section
 //
-// $Id: pfamb.js,v 1.4 2007-03-15 15:03:52 jt6 Exp $
+// $Id: pfamb.js,v 1.5 2007-09-20 16:05:35 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -29,30 +29,30 @@
 
 function pfambPostLoad() {
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.st.uri,
-					  { method:     "get", 
-						parameters: loadOptions.st.params,
-						onComplete: stSuccess,
-						onFailure:  stFailure
-					  } );
+    new Ajax.Request( loadOptions.st.uri,
+                      { method:     "get", 
+                        parameters: loadOptions.st.params,
+                        onComplete: stSuccess,
+                        onFailure:  stFailure
+                      } );
   }
   if( typeof( loadOptions.dg.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.dg.uri,
-					  { method:     'get', 
-						parameters: loadOptions.dg.params,
-						onComplete: dgSuccess,
-						onFailure:  dgFailure
-					  } );
+    new Ajax.Updater( loadOptions.dg.uri,
+                      { method:     'get', 
+                        parameters: loadOptions.dg.params,
+                        onComplete: dgSuccess,
+                        onFailure:  dgFailure
+                      } );
   }
   // pfamb structure tab
   if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
-	 new Ajax.Request( loadOptions.fstruc.uri,
-		 			 	 { method:     'get', 
-			 			parameters: loadOptions.fstruc.params,
-						onComplete: fstrucSuccess,
-						onFailure:  fstrucFailure
-					  } );
-  }	
+    new Ajax.Request( loadOptions.fstruc.uri,
+                      { method:     'get', 
+                        parameters: loadOptions.fstruc.params,
+                        onComplete: fstrucSuccess,
+                        onFailure:  fstrucFailure
+                      } );
+  }
 }
 
 //------------------------------------------------------------
