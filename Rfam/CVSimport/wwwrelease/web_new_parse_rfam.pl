@@ -61,7 +61,7 @@ foreach (@results) {
 }
 
 
-my @colours = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
+my @colours = ("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj",);
 
 my %colours_count;
 my $count = 0;
@@ -244,11 +244,11 @@ sub _do_one_family {
   my $last = undef;
 
  # print "OLD: @col_colours_blocks\n";
+#  print "OLD: " , join ("|", @col_colours_blocks), "\n";
 
   foreach (@col_colours_blocks) {
     
-    if(defined($fix_colours{$_})) {
-      
+    if(defined($fix_colours{$_})) {      
     } else {
       
       $fix_colours{$_} = $colours[$colour_count];
@@ -261,10 +261,10 @@ sub _do_one_family {
 
   }
 
- # foreach (sort keys %fix_colours) {
- #   print "key: $_ :: val: " .$fix_colours{$_} . "\n";
- # }
-#print "NEW: @colour_map \n";
+#  foreach (sort keys %fix_colours) {
+#    print "key: $_ :: val: " .$fix_colours{$_} . "\n";
+#  }
+#print "NEW: ", join("|", @colour_map)," \n";
 
   while($key <= $length) {
   #  print "key: $key \n";sleep 1;
@@ -849,12 +849,14 @@ sub _add_markup {
   my $start = 0;
   my ($last_arrow, $last_col, $num_start, $num_end , $last_num);
   while ($start <= $length) {
-  #foreach my $key (sort keys %arrows) {
+        #foreach my $key (sort keys %arrows) {
     if (defined($arrows{$start}  ) ) {
       if ( ( $last_arrow ne $arrows{$start}) || ($last_col ne   $seq_colour{$start}  ) ) {
 
-    #  if ($last_col ne   $seq_colour{$start}) {  
-	
+    #  if ($last_col ne   $seq_colour{$start}) { 
+	 # print "last col, seqscolourstart, start\n";
+	 # print  $last_col, ",", $seq_colour{$start}, ",$start\n";
+
 	push @blocks, $num_start . "~" . $last_num if ($num_start);
 	push @col_blocks, $seq_colour{$start};
  
