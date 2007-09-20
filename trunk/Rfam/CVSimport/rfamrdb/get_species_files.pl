@@ -1,24 +1,37 @@
 #!/usr/local/bin/perl
-use lib '/nfs/WWWdev/SANGER_docs/cgi-bin/Rfam';
+use lib '/nfs/WWWdev/SANGER_docs/lib/rfam';
+use lib '/nfs/WWWdev/SANGER_docs/lib/rfam/Rfam/DB';
 
 use RfamWWWConfig;
 use EntryWWW;
-
-use lib '/nfs/team71/pfam/mm1/rfam/scripts/Modules';
-
-require "/nfs/team71/pfam/mm1/rfam/scripts/Modules/Bio/Rfam/DB_RDB.pm";
-require "/nfs/team71/pfam/mm1/rfam/scripts/Modules/Bio/Rfam.pm";
+use Getopt::Long;
+#use lib '/nfs/team71/pfam/mm1/rfam/scripts/Modules';
+use Rfam;
+use DB_RDB; 
+#require "/nfs/team71/pfam/mm1/rfam/scripts/Modules/Bio/Rfam/DB_RDB.pm";
+#require "/nfs/team71/pfam/mm1/rfam/scripts/Modules/Bio/Rfam.pm";
 
 use strict;
 
-my $outdir = shift;
+my ($dbname, $outdir);
+&GetOptions(  'db=s' => \$dbname,
+	      'outdir=s' => \$outdir );
 
-die "need output dir dopey! \n" if(!$outdir);
+die "need db name\n" if(!$dbname);
+die "need outdir\n" if(!$outdir);
 
-my  $rdb = Bio::Rfam->switchover_rdb();
-print "RDB: $rdb \n";
+#my  $rdb = Bio::Rfam->switchover_rdb();
+#print "RDB: $rdb \n";
+
+
+my $rdb = Rfam::DB::DB_RDB->new('-db_name' => $dbname,
+                                '-db_driver' => 'mysql',
+                                '-db_host' => 'pfam',
+                                '-db_user' => 'rfam',
+                                '-db_password' => 'mafp1' );
 
 my (@blee) = $rdb->query("select auto_rfam, rfam_id, rfam_acc from rfam");
+
 #$rdb->add_rfamseq(  "/nfs/team71/pfam/mm1/scripts/Rfam/embl.dat");
 
 foreach my $res (@blee) {
