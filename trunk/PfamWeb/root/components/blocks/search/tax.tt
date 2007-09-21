@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.3 2007-08-28 14:16:33 jt6 Exp $
+# $Id: tax.tt,v 1.4 2007-09-21 11:25:29 jt6 Exp $
 %]
 
 <!-- start taxonomy search block -->
@@ -16,12 +16,66 @@
   </div>
   <div class="blockContent">
 
-    <p class="small">
-      <strong>Please note:</strong>
-      Taxonomy searches are currently unavailable. We hope to reinstate them shortly.
+    <p>
+      Find Pfam families according to taxonomy.
+      <span class="moreLink" onclick="reveal(this,'taxNotes',false, true)">More...</span>
     </p>
+
+    <div id="taxNotes" style="display: none">
+      <p>
+        Paste your query into the box below. 
+      </p>
+    </div>
+
+    <div class="formWrapper">
+
+      [% IF taxSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% taxSearchError %]
+      </div>
+      [% END %]
+  
+      <form method="post" 
+            id="proteinTaxSearchForm"
+            action="[% base %]search/taxonomy">
+
+        <div class="row">
+          <label for="q">Query</label>
+          <input type="text" 
+                 size="40" 
+                 name="q" 
+                 id="q" />
+        </div>
+  
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit"
+                 type="submit"
+                 name="submit"
+                 value="Submit"
+                 onclick="if( ! $('q').present() ){return false}"/>
+          <input class="reset"
+                 type="reset"
+                 name="reset"
+                 value="Reset" />
+          <input class="example" 
+                 type="button" 
+                 value="Example"
+                 onclick="$('q').value=exTax" />
+        </div>
+
+      </form>
+  
+    </div>
   
   </div>
 </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var exTax = "a AND b";
+  // ]]>
+</script>
 
 <!-- end taxonomy search block -->
