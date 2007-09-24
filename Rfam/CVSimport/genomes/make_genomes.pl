@@ -1,12 +1,11 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 use strict;
 use LWP;
 use IO::File;
 
-#my $consfile = "/pfam/rfam1/rfamseq/CURRENT/embl.con";
-my $consfile = "/pfam/db/rfamseq/CURRENT/embl.con";
-my $rfamseq  = "/pfam/db/rfamseq/CURRENT/embl_sv.txt";
+my $consfile = "//lustre/pfam/rfam/Production/rfamseq/CURRENT/embl.con";
+my $rfamseq  = "/lustre/pfam/rfam/Production/rfamseq/CURRENT/embl_sv.txt";
 
 my %ignore = ( 'M29000'   => 1,
 	       'BA000009' => 1 );
