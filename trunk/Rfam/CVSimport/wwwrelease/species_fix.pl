@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl
+#! /software/bin/perl
 
 use strict;
 
@@ -19,6 +19,7 @@ foreach my $temp_file ( readdir(_EX_DIR) ) {
  # print "FILE: $temp_file ";
   my $fix = 0;
   while(<_FILE>) {
+      print STDERR "processing $temp_file\n";
     
     if ($_ !~ /;/) {
       print _OUT $_;
