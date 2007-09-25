@@ -34,9 +34,8 @@ use vars qw($AUTOLOAD
 	    @EXPORT_OK ); 
 
 #use strict;
-#use Rfam::RfamRDB;
-#@ISA = qw(Rfam::RfamRDB);
 use Rfam::DB::RfamRDB;
+
 @ISA = qw(Rfam::DB::RfamRDB);
 
 #my $Attributes = ('-db_name' => "-db_name");
@@ -155,12 +154,18 @@ sub empty_tables {
 
 ##############################################
 #
-# This updates the rfam.com file - not really used as Sam has to tweak the file first!!
+# Jen#edited method to fill the genome_entry table with the genome_assemblies.rgp data
+# and updating the rfamseq with auto_genome mapping
 #
 ###############################################
 
+##each genome_acc is entered into the genome_entry table
+##and the auto_genome entry generated is used to update the rfamseq table with this 
+##auto_genome value;
+##nv each rfamseq_acc and auto_rfamseq are unique so dont need to use the starts and stops.
+
 sub genomic_species_data {
-  my($self, $ac, $de, $joined_tax, @rf) = @_;
+  my($self, $ac, $de, $ci, $joined_tax, @rf) = @_;
 
   my ($dbh, $stat);
 
@@ -168,14 +173,14 @@ sub genomic_species_data {
   my ($genome_auto);
   eval {
     if (not defined $stat) {
-      $stat = $dbh->prepare($self->__replace_sql('genome_entry', 4));
+      $stat = $dbh->prepare($self->__replace_sql('genome_entry', 5 ));
     }
-    
-    # print "ADDING DATA $rdb_auto_num, $rdb_acc, \n";
-    $stat->execute( $genome_auto, 
+
+    $stat->execute( $genome_auto,
 		    $ac,
 		    $de,
-		    $joined_tax
+		    $joined_tax,
+		    $ci
 		  );
     $rows += $stat->rows;
     $genome_auto = $stat->{mysql_insertid}; ## get the auto number
@@ -187,27 +192,95 @@ sub genomic_species_data {
     
     last;
   }
-#  print "GENOME_AUTO: $genome_auto\n";
+
   foreach my $rfamseq_acc (@rf) {
 
-    my $auto_sql = "select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'";
-    $stat = $dbh->prepare($auto_sql);
-    $stat->execute();
-    my $auto_rfamseq = $stat->fetchrow;
-    $stat->finish();
+      my $auto_sql = "select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'";
+      $stat = $dbh->prepare($auto_sql);
+      $stat->execute();
+      my $auto_rfamseq = $stat->fetchrow;
+      $stat->finish();
 
-#    print "AUTO: $auto_rfamseq\n";
-    my $sql = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq'";
-    $stat = $dbh->prepare($sql);
-    $stat->execute();
-    
-    
+      my $sql = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq'";
+      $stat = $dbh->prepare($sql);
+      $stat->execute();
+      $stat->finish();
+      
   }
 
-
-
-
 }
+
+
+#################################################################
+#
+# jen ##New method to load chromosome build info  
+# for all the genomes entered into the genome_entry table
+# hte relevant rfamseq acc are mapped to this auto_genome number,
+# not all auto_genomes have rfmaseqs mapped to it.
+################################################################
+
+sub chromosome_data {
+  my($self, $ac, @chr) = @_;
+
+  my ($dbh, $insert);
+
+  $dbh = $self->open_transaction('genome_entry','rfamseq', 'chromosome_build');
+ 
+
+  ##get the auto_genome number for this genome
+    my $auto_sql = "select  auto_genome from genome_entry where genome_acc= '$ac' ";
+    $stat = $dbh->prepare($auto_sql);
+    $stat->execute();
+    my $auto_genome= $stat->fetchrow;
+    $stat->finish();
+
+    print STDERR "autogenome=$auto_genome\n";
+    print STDERR "number of entries should be", scalar(@chr), "\n";
+
+  ##process eah GP line in @chr
+  ##get the accesion number for the seqeunce to be mapped;
+  foreach my $chrline (@chr){
+      my ($xsome_start, $xsome_end, $gbacc, $clone_start, $clone_end, $strand) = @{$chrline}; 
+    #  print STDERR join("|", $xsome_start, $xsome_end, $gbacc, $clone_start, $clone_end, $strand), "\n";
+      
+      ##get the relevant auto_rfamseq number for this sequence ##this should be unique i think...
+      my $sql = "select auto_rfamseq from rfamseq where rfamseq_acc= '$gbacc' ";
+      $stat = $dbh->prepare($sql);
+      $stat->execute();
+      my $auto_rfamseq= $stat->fetchrow();
+      $stat->finish();
+
+      if (!$auto_rfamseq) { 
+	  print STDERR "no entry for this $gbacc in rfamseq\n"; 
+	  next;
+      }
+      print STDERR "got $auto_rfamseq from rfamseq table\n";
+      
+      ##insert the GP line data using this auto_genome and auto_rfamseq number
+       eval {
+       if (not defined $insert) {
+       $insert = $dbh->prepare($self->__insert_sql('chromosome_build', 7 ));
+       }
+       ##print "ADDING DATA to chromosome build\n";
+       $insert->execute( $auto_genome,
+			 $auto_rfamseq,
+			 $xsome_start, 
+			 $xsome_end,
+			 $clone_start, 
+			 $clone_end, 
+			 $strand 
+			 );
+       $rows += $insert->rows;
+   };
+      if ($@) {
+	  $error = "Could not do the insertion/update on the chromosome_build table [$@]";
+	  last;
+      }
+
+  } #end of each GP line in @chr
+      
+} # end of chromosome_data
+
 
 ################################
 #
