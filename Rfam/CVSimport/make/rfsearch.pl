@@ -4,8 +4,6 @@
 # something with local storage, but the jobs all get sent off to blades
 # using nice socket things, pfetch etc.  
 
-
-
 use strict;
 use Getopt::Long;
 use IO::File;
@@ -18,26 +16,34 @@ my( $quiet,
     $nobuild, 
     $local,
     $global,
-    $name,
-    $blast,
+    $pname,
+    $blastpname,
     $help,
     $update,
-    $minidb,
+    $minidbpname,
     $nowublast,
     $long
     );
 
-my $blast_eval = 10;
-my $window;#     = 100;  # bad bad
-my $cpus       = 20;
-my $queue      = 'long -R \"select[type=LINUX64]\"';
-my $queue2     = 'small -R \"select[type=LINUX64]\"';
 my $lustre = "/lustre/scratch1/sanger/rfam/$$";
 my $wublastdb = "/lustre/pfam/rfam/Production/rfamseq/CURRENT";
+my $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N"
+my $blast_eval = 10;
+my $window;
+my $cpus       = 20;
+#ADD MULTI-CPU OPTIONS FOR BSUB? Compile MPI Infernal! Find mpirun on the farm!
+#-n4 -R "span[hosts=1]"
+#select[type==X86_64] -> See mail from Tim Cutts:
+#my $queue      = 'long -R \"select[type=LINUX64]\"';
+my $queue      = 'long -R \"select[type=X86_64]\"';
+#my $queue      = 'long -n4 -R \"span[hosts=1]\"';
+my $queue2     = 'small -R \"select[type=LINUX64]\"';
 
-
+#Set the stripe pattern on the lustre file system:
+#lfs setstripe <filename> <strip-esize> <start-ost> <stripe-cnt>
 system("lsrun -m farm-login mkdir -p $lustre") and die "Failed to make directory $lustre\n";
 system("lsrun -m farm-login lfs setstripe $lustre 0 4 4") and die "Failed to set stripe\n";
+#See the wiki page "LustreStripeSize" for more detail. 
 
 sub help {
     print STDERR <<EOF;
@@ -49,53 +55,46 @@ rfsearch.pl: builds and searches a covariance model against a sequence database.
 	     Rfam documentation describing each RNA family. 
 
 Usage:   rfsearch.pl <options>
-Options:       -h              show this help
-	       -e <n>          use blast evalue of <n>
-               -q <queue>      use lsf queue <queue> for the cmsearch step
-	       --local         run cmsearch with --local option
-	       --global        run cmsearch in global mode (override DESC cmsearch command)
-	       --cpu           number of cpus to run cmsearch job over
-	       --nobuild       skip cmbuild step
-	       --name <str>    give lsf a name for the cmsearch jobs
-	       --blast         ??????????
-	       --minidb        ??????????
-	       --update        update the family to a new underlying sequence db (expert!)
-	       --nowu          use ncbi-blast rather than wu-blast (default).
-	       --long          [TO BE IMPLEMENTED] an option for long models (eg. SSU/LSU rRNA, Xist, AIR,...),
-	                       runs "cmsearch -hmmfilter", requires infernal version >0.81. 
+Options:       -h                  show this help
+	       -e <n>              use blast evalue of <n>
+               -q <queue>          use lsf queue <queue> for the cmsearch step
+	       --local             run cmsearch with --local option
+	       --global            run cmsearch in global mode (override DESC cmsearch command)
+	       --cpu               number of cpus to run cmsearch job over
+	       --nobuild           skip cmbuild step
+	       --pname <str>       give lsf a process name, "str", for the cmsearch jobs
+	       --blastpname <str>  restart a job with pname "str" from after the blast runs
+	       --minidbpname <str> restart a job with pname "str" from after the minidb creation
+	       --update            update the family to a new underlying sequence db (expert!)
+	       --nowu              use ncbi-blast rather than wu-blast (default).
+	       --long              [TO BE IMPLEMENTED] an option for long models (eg. SSU/LSU rRNA, Xist, AIR,...),
+	                           This runs "cmsearch -hmmfilter", requires infernal version >0.81. 
+	       --window <str>      Use this window size for fetching blast sequences rather than from CM.
 EOF
 }
 
-&GetOptions( "e=s"      => \$blast_eval,
-	     "q=s"      => \$queue,
-	    # "bq=s"     => \$bqueue,
-	     "local"    => \$local,
-	     "global"   => \$global,
-	     "cpu=s"    => \$cpus,
-	     "nobuild"  => \$nobuild,
-	     "name=s"   => \$name,
-	     "blast=s"  => \$blast,
-	     "minidb=s" => \$minidb,
-	     "update"   => \$update,
-	     "nowu"     => \$nowublast,
-	     "long"     => \$long,
-	     "h"        => \$help );
+&GetOptions( "e=s"           => \$blast_eval,
+	     "q=s"           => \$queue,
+	    # "bq=s"          => \$bqueue,
+	     "local"         => \$local,
+	     "global"        => \$global,
+	     "cpu=s"         => \$cpus,
+	     "nobuild"       => \$nobuild,
+	     "pname=s"       => \$pname,
+	     "blastpname=s"  => \$blastpname,
+	     "minidbpname=s" => \$minidbpname,
+	     "update"        => \$update,
+	     "nowu"          => \$nowublast,
+	     "long"          => \$long,
+	     "window"        => \$window,
+	     "h"             => \$help );
 
 if( $help or not -e "SEED" ) {
     &help();
     exit(1);
 }
 elsif ($long) {
-    die("Sorry: --long is not supported yet!");
-}
-
-
-##get the cmsearch W value from the .CM file.
-if (!is_integer($window)){
-    my $string = `grep \"^W\" $pwd/CM`;
-    my @string = split('\s+', $string);
-    my $cmwindow = $string[1];
-    $window=scalar($cmwindow); #convert string so we can use it
+    die("Sorry: --long is not supported yet. Wait for Infernal 0.8!");
 }
 
 #Read cmbuild/cmsearch flags from the DESC file:
@@ -112,12 +111,6 @@ if( -s "DESC" ) {
 		&printlog( "Using --local mode as specified in DESC file" );
 	    }
 	};
-	/^BM\s+cmsearch.*-W\s+(\d+)/ and do {#PPG: In the next step we overide this!: DELETE?
-	    unless( $window ) {
-		$window = $1;
-		&printlog( "WARN: Using window [$window] from DESC file" );
-	    }
-	};
     }
 }
 
@@ -126,36 +119,8 @@ my $phost = `uname -n`;
 chomp $pwd;
 chomp $phost;
 
-#If all else fails use a really dumb value for window:
-if( !$window || !is_integer($window)) {
-    $window = 200;
-    &printlog( "WARNING: Using dodgy default window [$window], check CM file for W!" );
-}
-&printlog( "Set blastfilter window =$window" );
-
-#############
-#PPG: Grap the lengths of each seed seq, store in array %seed_seq_lengths. Used for fancy calculation of seq boundaries:
-my $seqstatout = `seqstat -a SEED`;
-my @seqstatout = split('\n',$seqstatout);
-my %seed_seq_lengths=();
-my $ave_length = 0;
-my $min_length = 0;
-foreach my $sqa (@seqstatout) {
-    if ($sqa =~ /^\*\s+(\S+)\s+(\d+)/){
-	$seed_seq_lengths{$1}=$2;
-    }
-    elsif ($sqa =~ /^Average length:\s+(\d+)/){
-	$ave_length = int($1);
-    }
-    if (defined($2) && $2>$min_length){
-	$min_length=$2;
-    }
-    
-}
-#############
-
 $buildopts = "" unless $buildopts;
-open( S, "SEED" ) or die;
+open( S, "SEED" ) or die("SEED exists but couldn't be opened!");
 my $seenrf;
 while(<S>) {
     if( /^\#=GC RF/ ) {
@@ -170,6 +135,33 @@ if( !$seenrf and $buildopts =~ /--rf/ ) {
     $buildopts =~ s/--rf //g;
 }
 
+unless( $nobuild ) {
+    &printlog( "Building model" );
+    system "cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
+}
+
+##get the cmsearch W value from the CM file.
+my $cmwindow = 0;
+if (-e "$pwd/CM"){
+    my $string = `grep \"^W\" $pwd/CM`;
+    my @string = split('\s+', $string);
+    $cmwindow = $string[1];
+}
+else {
+    die ("The $pwd/CM file is missing! SEED file exists, check cmbuild ran."); 
+}
+
+if ( (int($cmwindow) == $cmwindow) && $cmwindow>0 && !(defined($window) && (int($window) == $window)) ){
+    $window=$cmwindow; #convert string so we can use it
+    &printlog( "Using window [$window] from CM file" );
+}
+elsif (defined(($window)) && (int($window) == $window) && $window>0){
+    &printlog( "Using window [$window] from user input" );
+}
+else {
+    die( "Failed to read window parameter from CM or the command line!" );     
+}
+
 if( -e "CMSEARCH_JOBS_COMPLETE" ) {
     unlink( "CMSEARCH_JOBS_COMPLETE" ) or die "can't remove file [CMSEARCH_JOBS_COMPLETE]\n";
 }
@@ -179,15 +171,33 @@ if( -e "CMSEARCH_JOBS_COMPLETE" ) {
 
 # defaults
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
-my $blastdbdir2 = "/data/blastdb/Rfam/rfamseq";  # but run things from here
+my $blastdbdir2 = $Rfam::rfamseq_run_dir;      # but run things from here
 my $fafile = "$$.fa";
 
-#PPG: replace sreformat to mask out low scoring regions of each sequence?:
+#PPG: mask out (lower case) low-scoring/high-indel regions of each sequence for the BLAST searches with "-lcmask"?
+#     Requires replacing sreformat. 
 system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
-unless( $nobuild ) {
-    &printlog( "Building model" );
-    system "cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
+
+
+#############
+#PPG: Grap the lengths of each seed seq, store in hash %seed_seq_lengths. 
+#     Used for fancy calculation of seq boundaries:
+my %seed_seq_lengths=();
+my $ave_length = 0;
+my $min_length = 0;
+open(SEQSTAT,"seqstat -a SEED|") || die "cannot run \"seqstat -a SEED\" pipe";
+while(my $sqst = <SEQSTAT>){
+    if ($sqst =~ /^\*\s+(\S+)\s+(\d+)/){
+	$seed_seq_lengths{$1}=$2;
+	if ($2>$min_length){
+	    $min_length=$2;
+	}
+    }
+    elsif ($sqst =~ /^Average length:\s+(\d+)/){
+	$ave_length = int($1);
+    }
 }
+#############
 
 my @blastdb;
 if( $update ) {      # run over the new.fa.* databases
@@ -205,18 +215,19 @@ chomp($user);
 
 #user must have log dir!
 mkdir( "$pwd/$$", 0775 ) or  die "cant create the dir for error logs" ;
-my @index = ( 1..scalar(@blastdb) );
+my $nobjobs = scalar(@blastdb);
+my @index = ( 1..$nobjobs );
 my $round = 0;
-
 #things to copy to lustre file system
 system("/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile") and die "error scp-ing $pwd/$fafile to farm-login:$lustre/$fafile\n$!\n";
 
-unless( $minidb ) {
-  BLAST: {
-      if( $round or !$blast ) {
+unless( $minidbpname ) {
+  BLAST: { #JT6 thinks this GOTO is evil - but then he thinks "needs fixed" is evil too. 
+      if( $round or !$blastpname ) {
 	  &printlog( "Queuing up blast jobs [round ".$round."]" );
-	  $blast = $$ if( !$blast );
-	  foreach my $i ( @index ) {
+	  $blastpname = $$ if( !$blastpname );
+	  #for (my $i = 1; $i < scalar(@blastdb)+1; $i++) {
+	  foreach my $i ( @index ) { #This is cleverer than it looks, see below for rerunning failed jobs:
 	      my $blastdb = $blastdb[$i-1];
 	      $blastdb =~ s/\.nhr$//g;
 	      $blastdb =~ s/$blastdbdir/$blastdbdir2/g;
@@ -224,10 +235,12 @@ unless( $minidb ) {
 	      #PPG: WU-BLAST is now the default. MYAHAHAHAHA!:
 	      if (!$nowublast){
 		  #system("setenv WUBLASTDB $wublastdb");
-		  $blastcmd = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval mformat=3 hspsepSmax=$window";
+		  #ADD MULTI-CPU OPTIONS? eg. "-cpus 4". DOCS SAY THAT BLAST USES AS MANY AS POSS (upto 4) BY DEFAULT... 
+		  #NB. memory usages grows linearly, but wu-blast seems to deal with this sensibly...
+		  $blastcmd = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval mformat=3 hspsepSmax=$window cpus=$wublastcpus";
 		  #PPG: SHALL WE MASK OUT LOW-PROB/HIGH-INDEL SEQUENCE?: 
-		  #- requires writing our own sreformat fasta tool.
-                  #qrecmin and qrecmax, filter=<filter>, lcmask (mask out low prob nucs?), wordmask=<mask>
+		  #- requires writing a tool to identify low-prob nucs.
+                  #see '-lcmask' option.
 	      }
 	      else {
 		  &printlog( "WARNING: using NCBI-BLAST instead of WU-BLAST. Deprecated and not recommended!");
@@ -235,42 +248,63 @@ unless( $minidb ) {
 	      }
   	      my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	      my $fh = new IO::File;
-	      $fh -> open("| bsub -q $queue -J\"rf$blast\" -o $pwd/$$/$blast.berr.$i") or die "$!";
+	      $fh -> open("| bsub -q $queue -J\"rf$blastpname\" -o $pwd/$$/$blastpname\.berr.$i") or die "$!";
 	      $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
-	      $fh -> print("$blastcmd > $lustre/$blast.blastlist.$i\n");
-              $fh -> print("/usr/bin/scp farm-login:$lustre/$blast.blastlist.$i $phost:$pwd/$blast.blastlist.$i\n") or die "error scp-ing farm-login:$lustre/$blast.blastlist.$i to $phost:$pwd/$blast.blastlist.$i\n$!\n"; 
+	      $fh -> print("$blastcmd > $lustre/$blastpname\.blastlist.$i\n");
+	      #&printlog( "$blastcmd > $lustre/$blastpname\.blastlist.$i" );
+              $fh -> print("/usr/bin/scp farm-login:$lustre/$blastpname\.blastlist.$i $phost:$pwd/$blastpname\.blastlist.$i\n") or die "error scp-ing farm-login:$lustre/$blastpname\.blastlist.$i to $phost:$pwd/$blastpname\.blastlist.$i\n$!\n"; 
 	      $fh -> close;
 	  }
 	  
 	  #PPG: There must be an easier way to do this. Check bjobs output.
+	  #     MAKE THIS INTO A FUNCTION?
 	  &printlog( "Waiting for blast jobs" );
 	  my $wait = 1;
+	  my $bjobcount = 1;
+	  my $bjobinterval = 15;
+	  my $jobs = $nobjobs;
 	  while($wait){
-	  	sleep(15);
-	  	system("bjobs -J rf$blast > rf$blast.log");
-	  	my $jobs;
-	  	open(LOG, "rf$blast.log") || die "Failed to open blast log\n";
-	  	while(<LOG>){
-	  		if(/rf$blast/){
-	  			$jobs++;
-	  		}
-	  	}
-	  	close(LOG);
-	  	if($jobs){
-	  		print STDERR "There are $jobs blast job still running\n"; 
-	  	}else{
-	  		$wait = 0;
-	  	}
+	      
+	      sleep($bjobinterval); 
+	      
+	      $jobs = 0;
+	      system("bjobs -J rf$blastpname > rf$blastpname\.log");
+	      open(LOG, "rf$blastpname\.log") || die "Failed to open blast log\n";
+	      while(<LOG>){
+		  if(/rf$blastpname/){
+		      $jobs++;
+		  }
+	      }
+	      close(LOG);
+	      
+	      if ($jobs < int($nobjobs*(1-0.95)) ){#Once 95% of jobs are finished, check frequently.
+		  $bjobinterval=15;
+	      }	      
+	      elsif ($jobs < int($nobjobs*(1-0.80)) ){#Once 80% of jobs are finished, check a little more frequently.
+		  $bjobinterval=15 + int(log($bjobcount/2)); 
+	      }
+	      else {#otherwise check less & less frequently (max. interval is ~150 secs).
+		  if ($bjobinterval<150){ $bjobinterval = $bjobinterval + int(log($bjobcount));}
+	      }
+	      
+	      if($jobs){
+		  print STDERR "There are $jobs blast job still running after $bjobcount checks. Check interval is now $bjobinterval secs.\n"; 
+	      }else{
+		  $wait = 0;
+	      }
+	      $bjobcount++;
 	  }
-	}
+      }
       &printlog( "checking blast result integrity" );
       
       my @rerun = ();
-      foreach my $i ( @index ) {
+      
+      #for (my $ii = 1; $ii < scalar(@blastdb)+1; $ii++) {
+      foreach my $ii ( @index ) {
 	  #PPG: Add a check to see if all the jobs need rerunning! Indicates farm is fucked up! Or ssh keys not generated! Or ...
-	  if( !-s "$blast.blastlist.$i" ) {
-	      &printlog( "Zero size output [$blast.blastlist.$i] -- rerun blast search." );
-	      push( @rerun, $i );
+	  if( !-s "$blastpname\.blastlist.$ii" ) {
+	      &printlog( "Zero size output [$blastpname\.blastlist.$ii] -- rerun blast search." );
+	      push( @rerun, $ii );
 	  }
       }
       if( @rerun ) {
@@ -279,32 +313,39 @@ unless( $minidb ) {
 	      &printlog( "FATAL: Maximum number of Blast failures" );
 	      die;
 	  }
-	  @index = @rerun;
+	  if (scalar(@rerun) == $nobjobs){
+	      &printlog( "FATAL: all the bsub jobs need rerunning! Indicates farm is fucked up! Or your ssh keys to and from the farm have not been generated! Or the bsub paramaters are screwed! Or ..." );
+	      die;
+	  }
+	  else {
+	      @index = @rerun;
+	  }
 	  redo BLAST;
       }
   }
 }
 
 
-my $k = 0;  # number of minidb files. PPG: only runs if --minidb flag was used.
-if( $minidb ) {
-    if( my @t = glob( "$minidb.minidb.*" ) ) {
+my $k = 0;  # number of minidb files. 
+if( $minidbpname ) {
+    if( my @t = glob( "$minidbpname\.minidb.*" ) ) {
 	$k = @t;
     }
     else {
-	&printlog( "FATAL: no minidb files [$minidb.minidb.*]" );
+	&printlog( "FATAL: no minidb files [$minidbpname\.minidb.*]" );
 	die;
     }
 }
 else {
-    #PPG: Should we just skim off the most significant 100,000 or so blast hits? This will save considerable compute for the huge families. 
-    #It'd require sorting every hit on e-val/score which is probably more efficient than running Infernal! 
+    #PPG: If there are a stupid number of hits we could just skim off the most significant 100,000 or so blast hits? 
+    #This will save considerable compute for the huge families. eg. RF00177?
+    #It'd require sorting every hit on e-val/score, which is probably more efficient than running Infernal! 
     #What's the limit here? Can (or should) we increase the number of nodes we run on?
     &printlog( "parsing blast list" );
-    $minidb = $$;
+    $minidbpname = $$;
     my $seqlist = {};
-    for( my $i=1; $i <= scalar(@blastdb); $i++ ) {
-	$seqlist = &parse_list( $seqlist, "$blast.blastlist.$i" );
+    for( my $iii=1; $iii <= scalar(@blastdb); $iii++ ) {
+	$seqlist = &parse_list( $seqlist, "$blastpname\.blastlist.$iii" );
     }
     
     &printlog( "Building mini database" );
@@ -335,9 +376,7 @@ else {
 	my $nse_count = 100; #PPG: What the hell is this for?
 	my $seen_count = 0;
 	
-	#PPG: split into seperate + & - strand files. This'd fix coordinate issues with rfmake and
-	#further parallelise the code.
-	open( FA, "> $minidb.minidb.$k" ) or die;
+	open( FA, "> $minidbpname\.minidb.$k" ) or die;
 	while( @nses ) {
 	    # replace pfetch with xdget -- find old revisions to
 	    # see pfetch code
@@ -356,10 +395,10 @@ else {
 		    $xdcmd = "xdget -n -a $s -b $e $Rfam::rfamseq $n";
 		}
 		#print "$xdcmd\n";
-		my $fh = IO::File->new();
-		#$fh -> open( "$xdcmd |" ) or die "\nFATAL:xdget failure 1\n$xdcmd\n$!";
-		$fh -> open( "$xdcmd |" ) or &printlog( "\nWARNING: xdget failure 1\n$xdcmd\nCheck: $minidb.minidb.$k\n$!");
-		while(<$fh>) {
+		my $fhxd = IO::File->new();
+		#$fhxd -> open( "$xdcmd |" ) or die "\nFATAL:xdget failure 1\n$xdcmd\n$!";
+		$fhxd -> open( "$xdcmd |" ) or &printlog( "\nWARNING: xdget failure 1\n$xdcmd\nCheck: $minidbpname\.minidb.$k\n$!");
+		while(<$fhxd>) {
 
 		    if( /^\>/ ) {
 			print FA ">$n/$s-$e\t$strnd\n";
@@ -370,8 +409,8 @@ else {
 		    
 		    
 		}
-		#$fh -> close or die "\nFATAL:xdget failure 2\nclose failed\n$xdcmd\n$!";
-		$fh -> close or &printlog("WARNING: xdget failure 2. Close failed. \"$xdcmd\". Check: $minidb.minidb.$k: $!");
+		#$fhxd -> close or die "\nFATAL:xdget failure 2\nclose failed\n$xdcmd\n$!";
+		$fhxd -> close or &printlog("WARNING: xdget failure 2. Close failed. \"$xdcmd\". Check: $minidbpname\.minidb.$k: $!");
 		$seen_count++;
 	    }#PPG: close paranoid "if".
 	    else {
@@ -392,58 +431,58 @@ $options .= "--local " if( $local );
 #$options .= "-W $cmwindow"; ##currently removed this as version 0.73 calculates this by default.
 my $cmopts=$options . "-W $window"; #use this for updating DESC file
 
-$name = "cm$$" if( not $name );
+$pname = "cm$$" if( not $pname );
 system "cp CM $$.CM" and die;
 
 &printlog( "Queueing cmsearch jobs" );
 
-my $fh = IO::File->new();
+my $fhcm = IO::File->new();
 # preexec script copies files across and then tests for their presence
 # if this fails then the job should reschedule for another go
 
 system("scp $pwd/$$.CM farm-login:$lustre/$$.CM") and die "error scp-ing $pwd/$$.CM to farm-login:$lustre/$$.CM\n$!\n";
-for  (my $i = 1; $i <= $k; $i++){
-   system("scp $pwd/$minidb.minidb.$i farm-login:$lustre/$minidb.minidb.$i") and die "error scp-ing mini db:$minidb.minidb.$i to farm-login:$lustre/$minidb.minidb.$i\n$!";
+for  (my $ij = 1; $ij <= $k; $ij++){
+   system("scp $pwd/$minidbpname\.minidb.$ij farm-login:$lustre/$minidbpname\.minidb.$ij") and die "error scp-ing mini db:$minidbpname\.minidb.$ij to farm-login:$lustre/$minidbpname\.minidb.$ij\n$!";
 }
 &printlog( "" );
-&printlog( "Running: | bsub -q $queue -o $pwd/$$/$$.err.\%I -J$name\"[1-$k]\"" );
-$fh -> open( "| bsub -q $queue -o $pwd/$$/$$.err.\%I -J$name\"[1-$k]\"" ) or die "$!";
-$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
-&printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidb.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}");
-$fh -> print( "$command $options $lustre/$$.CM $lustre/$minidb.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fh -> close;
+&printlog( "Running: | bsub -q $queue -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
+$fhcm -> open( "| bsub -q $queue -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
+$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
+&printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}");
+$fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+$fhcm -> close;
 
 # send something to clean up
 print STDERR "set cm searches running, copy files and clean up....\n";
 
-$fh = new IO::File;
+$fhcm = new IO::File;
 
-$fh -> open("| bsub -q $queue2 -w\'done($name)\'") or die "$!";
-$fh -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
-$fh -> print("cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full\n")  or  die "cant concatenate output files on the farm\n$!\n";
-$fh -> print("/usr/bin/scp $lustre/$$.OUTPUT_full  $phost:$pwd/OUTPUT\n") or die "cant copy $lustre/$$.OUTPUT_full to $phost:$pwd/OUTPUT\n$!\n";
-$fh -> print("date >> /tmp/$$.cmerr\n");
-$fh -> print("/usr/bin/scp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n") or die "cant copy /tmp/$$.cmerr to $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n$!\n";
-$fh -> print("rm -rf /tmp/$$.cmerr\n");
-$fh -> print("rm -rf $lustre\n") or die "failed to clean up files on the farm\n";
-$fh -> close;
+$fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "$!";
+$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
+$fhcm -> print("cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full\n")  or  die "cant concatenate output files on the farm\n$!\n";
+$fhcm -> print("/usr/bin/scp $lustre/$$.OUTPUT_full  $phost:$pwd/OUTPUT\n") or die "cant copy $lustre/$$.OUTPUT_full to $phost:$pwd/OUTPUT\n$!\n";
+$fhcm -> print("date >> /tmp/$$.cmerr\n");
+$fhcm -> print("/usr/bin/scp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n") or die "cant copy /tmp/$$.cmerr to $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n$!\n";
+$fhcm -> print("rm -rf /tmp/$$.cmerr\n");
+$fhcm -> print("rm -rf $lustre\n") or die "failed to clean up files on the farm\n";
+$fhcm -> close;
 
 &update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
 print STDERR "finished cleaning up... wait for cm searches to complete\n ";
 
 
 &printlog( "Waiting for cmsearch jobs." );
-my $wait = 1;
-while($wait){
+my $waitcm = 1;
+while($waitcm){
     
-    my $bjobs_out = `bjobs  -J\"$name\[1-$k\]\" | grep $name`; 
-    my @jobs = split(/\n/,$bjobs_out);
-    my $jobs = @jobs;
-    if($jobs){
-	print STDERR "There are $jobs cmsearch job still running\n"; 
+    my $bjobs_out = `bjobs  -J\"$pname\[1-$k\]\" | grep $pname`; 
+    my @jobscm = split(/\n/,$bjobs_out);
+    my $jobscm = @jobscm;
+    if($jobscm){
+	print STDERR "There are $jobscm cmsearch job still running\n"; 
 	sleep(15);
     }else{
-	$wait = 0;
+	$waitcm = 0;
     }
 
 }
