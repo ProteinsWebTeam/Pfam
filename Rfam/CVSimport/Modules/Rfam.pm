@@ -25,6 +25,7 @@ use vars qw( @ISA
 	     $rfamseq_new_dir
 	     $rfamseq_current_inx
 	     $rfamseq_new_inx
+	     $rfamseq_run_dir
 	     @view_file_set
              @align_file_set
              @model_file_set
@@ -57,6 +58,7 @@ $rfamseq_new_dir     = "$rfamseq_root_dir/NEW";
 $rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi";
 $rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";
 $rfamseq             = "$rfamseq_current_dir/rfamseq.fa";
+$rfamseq_run_dir     = "/data/blastdb/Rfam/rfamseq"; 
 
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
