@@ -42,8 +42,8 @@ foreach my $res (@blee) {
   my $rfam_id = $boo[1];
   my $rfam_acc = $boo[2];
   open(_OUT, ">$outdir/$rfam_acc.species") or die "Canna write to: $outdir/$rfam_acc.species as $! \n";
-  print _OUT "ID $rfam_id\n";
-  my (@rfamseq) = $rdb->query("select distinct rfamseq_acc, species, taxonomy from rfamseq, rfam_reg_full where auto_rfam = '$auto_rfam' and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq");
+#  print _OUT "ID $rfam_id\n";
+  my (@rfamseq) = $rdb->query("select rfamseq_acc, species, taxonomy from rfamseq, rfam_reg_full where auto_rfam = '$auto_rfam' and rfam_reg_full.auto_rfamseq = rfamseq.auto_rfamseq");
 
   foreach my $seq (@rfamseq) {
     my (@res) = @{$seq};
