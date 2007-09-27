@@ -7,7 +7,7 @@
 use strict;
 use Getopt::Long;
 use IO::File;
-
+use Data::Dumper; #Great for printing diverse data-structures.
 use Rfam;
 
 my $starttime = time();
@@ -27,7 +27,7 @@ my( $quiet,
 
 my $lustre = "/lustre/scratch1/sanger/rfam/$$"; #path for dumping data to on the farm
 my $wublastdb = "/lustre/pfam/rfam/Production/rfamseq/CURRENT";
-my $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N"
+my $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N". Not used at present!
 my $blast_eval = 10;
 my $window;
 my $cpus       = 20;
@@ -54,11 +54,11 @@ my $fh0 = new IO::File;
 $fh0 -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
 &printlog( "Making lustre run directory on the farm: $lustre" );
 &printlog( "lsrun -m farm-login mkdir -p $lustre" );
-$fh0 -> print("lsrun -m farm-login mkdir -p $lustre\n") or die "$!";
+$fh0 -> print("lsrun -m farm-login mkdir -p $lustre\n") or die "FATAL: lsrun -m farm-login mkdir -p $lustre\n$!";
 &printlog( "lsrun -m farm-login lfs setstripe $lustre 0 4 4" );
-$fh0 -> print("lsrun -m farm-login lfs setstripe $lustre 0 4 4\n") or die "$!";
-&printlog( "See the wiki page \"LustreStripeSize\" for more detail" );
+$fh0 -> print("lsrun -m farm-login lfs setstripe $lustre 0 4 4\n") or die "FATAL: lsrun -m farm-login lfs setstripe $lustre 0 4 4\n$!";
 $fh0 -> close;
+#See the wiki page "LustreStripeSize" for more detail. 
 
 
 
@@ -257,7 +257,7 @@ unless( $minidbpname ) {
 		  #system("setenv WUBLASTDB $wublastdb");
 		  #ADD MULTI-CPU OPTIONS? eg. "-cpus 4". DOCS SAY THAT BLAST USES AS MANY AS POSS (upto 4) BY DEFAULT... 
 		  #NB. memory usages grows linearly, but wu-blast seems to deal with this sensibly...
-		  $blastcmd = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval mformat=3 hspsepSmax=$window cpus=$wublastcpus";
+		  $blastcmd = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval mformat=3 hspsepSmax=$window"; # cpus=$wublastcpus";
 		  #PPG: SHALL WE MASK OUT LOW-PROB/HIGH-INDEL SEQUENCE?: 
 		  #- requires writing a tool to identify low-prob nucs.
                   #see '-lcmask' option.
@@ -363,22 +363,22 @@ else {
     #What's the limit here? Can (or should) we increase the number of nodes we run on?
     &printlog( "parsing blast list" );
     $minidbpname = $$;
-    my $seqlist = {};
+    my %seqlist;
     for( my $iii=1; $iii <= scalar(@blastdb); $iii++ ) {
-	$seqlist = &parse_list( $seqlist, "$blastpname\.blastlist.$iii" );
+	&parse_list( \%seqlist, "$blastpname\.blastlist.$iii" );
     }
     
-    &printlog( "Building mini database" );
-    my $numseqs = scalar( keys %{ $seqlist } );
+    &printlog( "Building mini database " );
+    my $numseqs = scalar( keys %seqlist );
     my $count = int( $numseqs/$cpus ) + 1;
-    my @seqids = keys %{ $seqlist };
+    my @seqids = keys %seqlist;
 
     while( @seqids ) {
 	my @tmpids = splice( @seqids, 0, $count ); 
 	my @nses;
 	
 	foreach my $seqid ( @tmpids ) {
-	    foreach my $reg ( @{ $seqlist->{$seqid} } ) {
+	    foreach my $reg ( @{ $seqlist{$seqid} } ) {
 		# this is a bit complex just to get an array of nses
 		#PPG: Can't we xdget the seqs from in here instead?
 		my( $start, $end, $strand ) = ( $reg->{'start'}, $reg->{'end'}, $reg->{'strand'} );
@@ -439,7 +439,7 @@ else {
 	}
 	close FA;
     }
-    undef( $seqlist );             # free up memory
+    #undef( $seqlist );             # free up memory
 }
 
 my $endblast = time();
@@ -467,16 +467,34 @@ for  (my $ij = 1; $ij <= $k; $ij++){
 &printlog( "" );
 &printlog( "Running: | bsub -q $queue -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
 $fhcm -> open( "| bsub -q $queue -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
-$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
+#$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
 &printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}");
 $fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
 $fhcm -> close;
+
+&printlog( "Waiting for cmsearch jobs." );
+my $waitcm = 1;
+while($waitcm){
+    
+    my $bjobs_out = `bjobs  -J\"$pname\" | grep $pname`; 
+    my @jobscm = split(/\n/,$bjobs_out);
+    my $jobscm = @jobscm;
+    if($jobscm){
+	print STDERR "There are $jobscm cmsearch job still running\n"; 
+	sleep(15);
+    }else{
+	$waitcm = 0;
+    }
+
+}
+
 
 # send something to clean up
 print STDERR "set cm searches running, copy files and clean up....\n";
 
 $fhcm = new IO::File;
-
+&printlog( "bsub -q $queue2 -w\'done($pname)\'");
+&printlog( "");
 $fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "$!";
 $fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
 $fhcm -> print("cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full\n")  or  die "cant concatenate output files on the farm\n$!\n";
@@ -490,23 +508,10 @@ $fhcm -> close;
 &update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
 print STDERR "finished cleaning up... wait for cm searches to complete\n ";
 
+#cmsearch --toponly /lustre/scratch1/sanger/rfam/21964/21964.CM /lustre/scratch1/sanger/rfam/21964/21964.minidb.1 >/lustre/scratch1/sanger/rfam/21964/21964.OUTPUT.1
 
-&printlog( "Waiting for cmsearch jobs." );
-my $waitcm = 1;
-while($waitcm){
-    
-    my $bjobs_out = `bjobs  -J\"$pname\[1-$k\]\" | grep $pname`; 
-    my @jobscm = split(/\n/,$bjobs_out);
-    my $jobscm = @jobscm;
-    if($jobscm){
-	print STDERR "There are $jobscm cmsearch job still running\n"; 
-	sleep(15);
-    }else{
-	$waitcm = 0;
-    }
 
-}
-
+&printlog( "" );
 &printlog( "FINISHED! See OUTPUT file." );
 
 my $endtime = time();
@@ -625,8 +630,10 @@ sub parse_list {
 	
 	# avoid having multiple copies of one region in minidb
 	my $already;
-	if( exists $list->{$name} ) {
-	    foreach my $se ( sort @{ $list->{$name} } ) {
+#	if( exists $list->{$name} ) {
+#	&printlog( "defined($name) && defined($start) && defined($end) && exists($list)");
+	if( defined($name) && defined($start) && defined($end) && exists($list->{$name}) ) {
+		    foreach my $se ( sort @{ $list->{$name} } ) {
 		
 		if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
 		    $se->{'start'} = $start;
@@ -653,13 +660,16 @@ sub parse_list {
     }
     
     if (!defined($name) || !defined($start) || !defined($end)){
-	&printlog( "WARNING: no significant (or non-significant) blast results.");
+	&printlog( "MILD WARNING: no significant blast results in $blastfile");
     }
     elsif ($end<1 || $start<1 || $start>$end || !is_integer($start) || !is_integer($end)){#Add some paranoia checks:
 	&printlog( "WARNING: malformed NSE: $name/($start)-($end)\t$strand.");
     }
+    elsif ($list == 1){#
+	&printlog( "WARNING: $list = 1!");
+    }
     else {
-	return $list;
+	#return $list;
     }
 }
 
