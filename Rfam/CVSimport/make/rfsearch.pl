@@ -25,7 +25,7 @@ my( $quiet,
     $long
     );
 
-my $lustre = "/lustre/scratch1/sanger/rfam/$$";
+my $lustre = "/lustre/scratch1/sanger/rfam/$$"; #path for dumping data to on the farm
 my $wublastdb = "/lustre/pfam/rfam/Production/rfamseq/CURRENT";
 my $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N"
 my $blast_eval = 10;
@@ -35,15 +35,32 @@ my $cpus       = 20;
 #-n4 -R "span[hosts=1]"
 #select[type==X86_64] -> See mail from Tim Cutts:
 #my $queue      = 'long -R \"select[type=LINUX64]\"';
-my $queue      = 'long -R \"select[type=X86_64]\"';
+my $queue      = 'long -R \"select[type==X86_64]\"';
 #my $queue      = 'long -n4 -R \"span[hosts=1]\"';
-my $queue2     = 'small -R \"select[type=LINUX64]\"';
+#my $queue2     = 'small -R \"select[type=LINUX64]\"';
+my $queue2     = 'small -R \"select[type==X86_64]\"';
 
 #Set the stripe pattern on the lustre file system:
 #lfs setstripe <filename> <strip-esize> <start-ost> <stripe-cnt>
-system("lsrun -m farm-login mkdir -p $lustre") and die "Failed to make directory $lustre\n";
-system("lsrun -m farm-login lfs setstripe $lustre 0 4 4") and die "Failed to set stripe\n";
+#&printlog( "Making lustre run directory on the farm: $lustre" );
+#&printlog( "lsrun -m farm-login mkdir -p $lustre" );
+#system("lsrun -m farm-login mkdir -p $lustre") and die "Failed to make directory $lustre\n";
+#&printlog( "lsrun -m farm-login lfs setstripe $lustre 0 4 4" );
+#system("lsrun -m farm-login lfs setstripe $lustre 0 4 4") and die "Failed to set stripe\n";
+#&printlog( "See the wiki page \"LustreStripeSize\" for more detail" );
 #See the wiki page "LustreStripeSize" for more detail. 
+
+my $fh0 = new IO::File;
+$fh0 -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
+&printlog( "Making lustre run directory on the farm: $lustre" );
+&printlog( "lsrun -m farm-login mkdir -p $lustre" );
+$fh0 -> print("lsrun -m farm-login mkdir -p $lustre\n") or die "$!";
+&printlog( "lsrun -m farm-login lfs setstripe $lustre 0 4 4" );
+$fh0 -> print("lsrun -m farm-login lfs setstripe $lustre 0 4 4\n") or die "$!";
+&printlog( "See the wiki page \"LustreStripeSize\" for more detail" );
+$fh0 -> close;
+
+
 
 sub help {
     print STDERR <<EOF;
@@ -98,6 +115,7 @@ elsif ($long) {
 }
 
 #Read cmbuild/cmsearch flags from the DESC file:
+&printlog( "Read cmbuild/cmsearch flags from the DESC file" );
 my $buildopts;
 if( -s "DESC" ) {
     open( D, "DESC" ) or die "DESC exists but can't be opened";
@@ -136,11 +154,12 @@ if( !$seenrf and $buildopts =~ /--rf/ ) {
 }
 
 unless( $nobuild ) {
-    &printlog( "Building model" );
+    &printlog( "Building model: cmbuild -F $buildopts CM SEED" );
     system "cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
 }
 
 ##get the cmsearch W value from the CM file.
+&printlog( "get the cmsearch W value from the CM file" );
 my $cmwindow = 0;
 if (-e "$pwd/CM"){
     my $string = `grep \"^W\" $pwd/CM`;
@@ -214,12 +233,13 @@ my $user = `whoami`;
 chomp($user);
 
 #user must have log dir!
+&printlog( "Making log directory: $pwd/$$" );
 mkdir( "$pwd/$$", 0775 ) or  die "cant create the dir for error logs" ;
 my $nobjobs = scalar(@blastdb);
 my @index = ( 1..$nobjobs );
 my $round = 0;
 #things to copy to lustre file system
-system("/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile") and die "error scp-ing $pwd/$fafile to farm-login:$lustre/$fafile\n$!\n";
+system("/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile") and die "/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile\nerror scp-ing $pwd/$fafile to farm-login:$lustre/$fafile\n$!\n";
 
 unless( $minidbpname ) {
   BLAST: { #JT6 thinks this GOTO is evil - but then he thinks "needs fixed" is evil too. 
@@ -632,11 +652,15 @@ sub parse_list {
 	}
     }
     
-    if ($end<1 || $start<1 || $start>$end || !is_integer($start) || !is_integer($end)){#Add some paranoia checks:
+    if (!defined($name) || !defined($start) || !defined($end)){
+	&printlog( "WARNING: no significant (or non-significant) blast results.");
+    }
+    elsif ($end<1 || $start<1 || $start>$end || !is_integer($start) || !is_integer($end)){#Add some paranoia checks:
 	&printlog( "WARNING: malformed NSE: $name/($start)-($end)\t$strand.");
     }
-    
-    return $list;
+    else {
+	return $list;
+    }
 }
 
 
