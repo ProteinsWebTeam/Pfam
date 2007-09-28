@@ -40,23 +40,31 @@ my $queue      = 'long -R \"select[type==X86_64]\"';
 #my $queue2     = 'small -R \"select[type=LINUX64]\"';
 my $queue2     = 'small -R \"select[type==X86_64]\"';
 
-#Set the stripe pattern on the lustre file system:
-#lfs setstripe <filename> <strip-esize> <start-ost> <stripe-cnt>
-#&printlog( "Making lustre run directory on the farm: $lustre" );
-#&printlog( "lsrun -m farm-login mkdir -p $lustre" );
-#system("lsrun -m farm-login mkdir -p $lustre") and die "Failed to make directory $lustre\n";
-#&printlog( "lsrun -m farm-login lfs setstripe $lustre 0 4 4" );
-#system("lsrun -m farm-login lfs setstripe $lustre 0 4 4") and die "Failed to set stripe\n";
-#&printlog( "See the wiki page \"LustreStripeSize\" for more detail" );
-#See the wiki page "LustreStripeSize" for more detail. 
+#Check files:
+if (-e "rfsearch.log" && -w "rfsearch.log"){
+    unlink("rfsearch.log");
+}
+elsif (-e "rfsearch.log") {
+    die("FATAL: check permissions on rfsearch.log");
+}
+else {
+    &printlog( "creating rfsearch.log" );
+}
 
+if (not -e "SEED"){
+    die("FATAL: check SEED exists");
+}
+
+
+
+#Set the stripe pattern on the lustre file system:
 my $fh0 = new IO::File;
 $fh0 -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
 &printlog( "Making lustre run directory on the farm: $lustre" );
-&printlog( "lsrun -m farm-login mkdir -p $lustre" );
-$fh0 -> print("lsrun -m farm-login mkdir -p $lustre\n") or die "FATAL: lsrun -m farm-login mkdir -p $lustre\n$!";
-&printlog( "lsrun -m farm-login lfs setstripe $lustre 0 4 4" );
-$fh0 -> print("lsrun -m farm-login lfs setstripe $lustre 0 4 4\n") or die "FATAL: lsrun -m farm-login lfs setstripe $lustre 0 4 4\n$!";
+&printlog( "mkdir -p $lustre" );
+$fh0 -> print("mkdir -p $lustre\n") or die "FATAL: lsrun -m farm-login mkdir -p $lustre\n$!";
+&printlog( "lfs setstripe $lustre 0 4 4" );
+$fh0 -> print("lfs setstripe $lustre 0 4 4\n") or die "FATAL: lsrun -m farm-login lfs setstripe $lustre 0 4 4\n$!";
 $fh0 -> close;
 #See the wiki page "LustreStripeSize" for more detail. 
 
@@ -106,7 +114,7 @@ EOF
 	     "window"        => \$window,
 	     "h"             => \$help );
 
-if( $help or not -e "SEED" ) {
+if( $help ) {
     &help();
     exit(1);
 }
@@ -154,8 +162,13 @@ if( !$seenrf and $buildopts =~ /--rf/ ) {
 }
 
 unless( $nobuild ) {
-    &printlog( "Building model: cmbuild -F $buildopts CM SEED" );
-    system "cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
+    if (-w "CM" or not -e "CM"){
+	&printlog( "Building model: cmbuild -F $buildopts CM SEED" );
+	system "cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
+    }
+    elsif (-e "CM") {
+	die("FATAL: CM file exists but you don't have write access");
+    }
 }
 
 ##get the cmsearch W value from the CM file.
@@ -228,7 +241,7 @@ else {               # run over *.fa databases
 }    
 
 # make sure writable by group
-umask(002);
+umask(022);
 my $user = `whoami`;
 chomp($user);
 
