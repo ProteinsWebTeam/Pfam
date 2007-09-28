@@ -74,9 +74,11 @@ sub parse_infernal {
 	next if( /^\*\*\*/ );
 	next if( /^alignment strategy:/ );
 	next if( /CPU time:\s+/ or /memory:\s+/ );
-	next if( /^CPU time \(search\)\s+:/ || /^CYK memory\s+:/ || /CPU time \(band calc\):/); #Infernal >0.6
+	next if( /^CPU time \(search\)\s+:/ || /^CYK memory\s+:/ || /CPU time \(band calc\):/ ); #Infernal >0.6
 	next if( /^\s*$/ );
 	next if( /^\s+-\s+-\s*$/ );
+	next if (/^CPU time (band calc):*Elapsed:*/ || /^CPU time (search)\s+:*Elapsed:*/ );
+	next if (/^CYK memory\s+:/);
 
 	if( /^sequence:\s+(\S+)\s*/ ) {
 	    if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
