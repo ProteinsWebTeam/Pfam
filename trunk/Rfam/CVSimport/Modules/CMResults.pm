@@ -63,8 +63,8 @@ sub parse_cove {
 sub parse_infernal {
     my $self = shift;
     my $file = shift;
-
-    my( $id, $start, $end, $alnline );
+    
+    my( $id, $start, $end, $alnline, $strand );
     my( $alnst, $alnen );
     my $unit;  # this should always be the last added HMMUnit
 
@@ -81,8 +81,13 @@ sub parse_infernal {
 	next if (/^CYK memory\s+:/);
 
 	if( /^sequence:\s+(\S+)\s*/ ) {
-	    if( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
-		( $id, $start, $end ) = ( $1, $2, $3 );
+	    if( $1 =~ /^(\S+)\/(\d+)-(\d+):(\S+)/ ) {
+		( $id, $start, $end, $strand ) = ( $1, $2, $3, $4 );
+		if ($strand<0){
+		    my $temp = $start;
+		    $start = $end;
+		    $end = $temp; 
+		}
 	    }
 	    elsif( ($id) = $1 =~ /^(\S+)/ ) {
 		$start = 1;
@@ -104,7 +109,7 @@ sub parse_infernal {
 	    $alnline = 0;
 	
 	    if( $start and $end ) {
-		if( $start < $end ) {
+		if( $start < $end && $strand > 0 ) {
 		    $st += $start - 1;
 		    $en += $start - 1;
 		}
@@ -160,8 +165,8 @@ sub parse_infernal {
 		    if( my( $space, $ast, $stuff, $aen ) = $wholeline =~ /^(\s+)(\d+)\s+(.+)\s+(\d+)/ ) {
 			my $origaln = $stuff;
 			$stuff =~ s/[-\.]//g;
-
-			my $strand = 1;
+			
+			#my $strand = 1;
 			if( $unit->start_seq > $unit->end_seq ) {
 			    $strand = -1;
 			}
