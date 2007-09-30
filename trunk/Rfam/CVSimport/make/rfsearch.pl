@@ -40,7 +40,7 @@ my $queue      = 'long -R \"select[type==X86_64]\"';
 #my $queue2     = 'small -R \"select[type=LINUX64]\"';
 my $queue2     = 'small -R \"select[type==X86_64]\"';
 
-#Check files:
+#Check for the existence and correct permissions of essential files:
 if (-e "rfsearch.log" && -w "rfsearch.log"){
     unlink("rfsearch.log");
 }
@@ -397,10 +397,11 @@ else {
 		my( $start, $end, $strand ) = ( $reg->{'start'}, $reg->{'end'}, $reg->{'strand'} );
 		
 		if ($start>0 && $end>$start){
-		    push( @nses, "$seqid:$start-$end\t$strand" );
+		    #push( @nses, "$seqid:$start-$end\t$strand" );
+		    push( @nses, "$seqid:$start-$end:$strand" );
 		}
 		else {
-		    &printlog( "\nWARNING: malformed NSE:\n $seqid:($start)-($end)\t$strand");
+		    &printlog( "\nWARNING: malformed NSE:\n $seqid:($start)-($end):$strand");
 		}
 	    }
 	}
@@ -414,8 +415,8 @@ else {
 	    # replace pfetch with xdget -- find old revisions to
 	    # see pfetch code
 	    my $nse = pop( @nses );
-	    my( $n, $s, $e, $strnd ) = $nse =~ /(\S+)\:(\d+)-(\d+)\t(\S+)/;
-
+	    my( $n, $s, $e, $strnd ) = $nse =~ /(\S+)\:(\d+)-(\d+):(\S+)/;
+	    
 	    #PPG: slightly paranoid checks here. Could add "is_integer()" checks also:
 	    if (defined($n) && defined($s) && defined($e) && defined($strnd) && $s>0 && $e>$s){
 		my $xdcmd = "";
@@ -434,7 +435,7 @@ else {
 		while(<$fhxd>) {
 
 		    if( /^\>/ ) {
-			print FA ">$n/$s-$e\t$strnd\n";
+			print FA ">$n/$s-$e:$strnd\n";
 		    }
 		    else {
 			print FA $_;
@@ -498,15 +499,13 @@ while($waitcm){
     }else{
 	$waitcm = 0;
     }
-
 }
-
 
 # send something to clean up
 print STDERR "set cm searches running, copy files and clean up....\n";
 
 $fhcm = new IO::File;
-&printlog( "bsub -q $queue2 -w\'done($pname)\'");
+#&printlog( "bsub -q $queue2 -w\'done($pname)\'");
 &printlog( "");
 $fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "$!";
 $fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
@@ -558,10 +557,11 @@ sub printlog {
 sub parse_list {
     my $list       = shift;
     my $blastfile  = shift;
-    open( BL, $blastfile ) or die;
     my( $qname, $name, $qstart, $qend, $sstart, $send, $start, $end, $strand );
+    open( BL, $blastfile ) or die;
     while( <BL> ) {
 	next if( /^\#/ );
+	
 	#PPG: Added a wu-blast parser and made the calculation of the 
 	#sequence boundaries slightly more elegant, now we pad either 
 	#end of the hit with the lengths either end of the query plus 
@@ -678,12 +678,7 @@ sub parse_list {
     elsif ($end<1 || $start<1 || $start>$end || !is_integer($start) || !is_integer($end)){#Add some paranoia checks:
 	&printlog( "WARNING: malformed NSE: $name/($start)-($end)\t$strand.");
     }
-    elsif ($list == 1){#
-	&printlog( "WARNING: $list = 1!");
-    }
-    else {
-	#return $list;
-    }
+
 }
 
 
