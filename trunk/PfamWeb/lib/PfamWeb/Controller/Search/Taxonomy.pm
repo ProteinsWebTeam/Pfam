@@ -2,7 +2,7 @@
 # Taxonomy.pm
 # jt6 20070918 WTSI
 #
-# $Id: Taxonomy.pm,v 1.1 2007-09-21 11:21:50 jt6 Exp $
+# $Id: Taxonomy.pm,v 1.2 2007-10-01 13:24:09 rdf Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Taxonomy;
 
 A search controller for performing taxonomy searches
 
-$Id: Taxonomy.pm,v 1.1 2007-09-21 11:21:50 jt6 Exp $
+$Id: Taxonomy.pm,v 1.2 2007-10-01 13:24:09 rdf Exp $
 
 =cut
 
@@ -50,18 +50,46 @@ sub process : Path {
   }
 
   # make sure it was plain text
-  unless( $c->req->param('q') =~ m/^([\w().\s]+)$/ ) {
+  # But how do we deal with a case like "Escherichia coli O157:H7"? 
+  unless( $c->req->param('q') =~ m/^([\S().\s]+)$/ ) {
     $c->stash->{taxSearchError} = 'You did not supply a valid query string.';
     return;
   }
-  $c->log->debug( "Search::Taxonomy::process: found query string: |$1|" );
-
-  # we got a valid string, but does it parse ?
-  my $qp = new Search::QueryParser;
-  my $pq = $qp->parse( $1 );
-  $c->log->debug( 'Search::Taxonomy::process: parsed query: ', dump $pq );
-
+  my $query = $1;
+  if( $query =~ /^unique (.*)$/i ){
+    my $term = $1;
+    $c->stash->{term} = $term;
+    $c->log->debug( "Search::Taxonomy::process: Going to find unique matches for string: |$term|" );
+    my $allCountRef  = $c->forward('getAllFamilyCount');   
+    my $termCountRef = $c->forward('getAllFamilyCount');
+    
+    
+    my %uniqueFams;
+    while (my ( $k, $v ) = each( %$termCountRef )){
+      #Now see if the count is the same, if it is then it must be unique to the term. 
+      if( $$allCountRef{$k} == $v ) {
+         $uniqueFams{$k}++;
+      }
+    }
+    #Now stuff the list of unique families to the stash 
+    $c->stash->{uniqueFamsToTerm} = \%uniqueFams
+  }else{
+    $c->log->debug( "Search::Taxonomy::process: found query string: |$query|" );
+    # we got a valid string, but does it parse ?
+    my $qp = new Search::QueryParser;
+    my $pq = $qp->parse( $1 );
+    unless($pq){
+       $c->stash->{taxSearchError} = 'Error parsing query string.';
+       return;
+    }  
+    $c->log->debug( 'Search::Taxonomy::process: parsed query: ', dump $pq );
+    $c->{parsedQuery} = $pq;
+    my $famsRef = $c->forward('descend');
+    $c->stash->{famsForTerm} = $famsRef;
+    $c->log->debug( 'Search::Taxonomy::process: got the following families ', dump $famsRef);
+  } 
   
+  #Set the templter
   $c->stash->{template} = 'pages/search/taxonomy/results.tt';
 }
 
@@ -70,6 +98,198 @@ sub process : Path {
 #-------------------------------------------------------------------------------
 
 # none
+
+sub getAllFamilyCount : Private {
+  my( $this, $c ) = @_;  
+    
+  my (@rs, %res);
+  if($c->{term}){
+    my ($l, $r) = $c->forward('_getRange');
+    $c->log->debug( "Getting count for ".$c->{term}.", $l, $r");
+    @rs = $c->model("PfamDB::Taxonomy")
+                    ->search({  "lft"    => { ">=" => $l },
+                                "rgt"    => { "<=" => $r }},
+                              { join     => [ qw(pfamAncbi) ],
+                                select    => [ qw( pfamAncbi.pfamA_acc
+                                                   ), 
+                                                 { count => 'pfamAncbi.auto_pfamA' } ],
+                                as        => [ qw( pfamA_acc 
+                                                   count ) ],
+                                group_by => [ qw( pfamAncbi.auto_pfamA ) ],
+                                                   });
+  }else{
+    @rs = $c->model("PfamDB::PfamA_ncbi")
+                    ->search( {},
+                              {
+                                select    => [ qw( pfamA_acc ), 
+                                                 { count => 'auto_pfamA' } ],
+                                as        => [ qw( pfamA_acc count ) ],
+                                group_by => [ qw( me.auto_pfamA ) ],
+                                                   });
+      print "Getting count for all\n";
+  } 
+  %res = map{$_->get_column("pfamA_acc") => $_->get_column("count")} @rs;
+  print $c->log->debug("Search::Taxonomy::getAllFamiliesCoun  Got: ".scalar(keys(%res))." family counts");
+  return \%res;
+}
+
+sub getFamiliesForTerm : Private {
+  my( $this, $c ) = @_;
+  
+  if($c->{term}){
+    
+    
+    my $lrRef = $c->forward('_getRange');
+    my $lft = $$lrRef[0];
+    my $rgt = $$lrRef[1];
+   #  my ($lft, $rgt) = $c->forward('_getRange');
+    $c->log->debug("Got lft:|".$lft."|, Got rgt:|".$rgt."|");
+   my @rs = $c->model("PfamDB::PfamA_ncbi")
+                  ->search({  "tax.lft"    => { '>=' => $lft },
+                              "tax.rgt"    => { '<=' => $rgt } },
+                            { join     => [ qw(tax) ],
+                              prefetch => [ qw(tax)] }); 
+  my %res = map{$_->pfamA_acc => 1} @rs; 
+  return \%res;
+  
+  }
+  
+  
+}
+
+sub descend : Private {
+  my( $this, $c ) = @_;
+  
+  #Take copies of everything, as the recursive nature of this code 
+  #means that this data will be lost otherwise.
+  my $query = $c->{parsedQuery};
+  my $operator = $c->{operator} if($c->{operator});
+  my $famAllRef = $c->{allFams};
+  
+  foreach my $k ("+", "-", "", "value"){
+    next unless($$query{$k});
+    $c->log->debug("Search::Taxonomy::descend key = $k");
+    my $v = $$query{$k};   
+    if(ref($v) eq "ARRAY" ){
+        $c->log->debug("*** array ***");
+        $operator = $k;
+        
+        foreach my $e (@$v){
+           $c->{operator} = $operator;
+           $c->{parsedQuery} = $e;
+           my $f = $c->forward('descend');
+           if(keys %$famAllRef){
+              if($operator eq "+"){
+                 $famAllRef = &common($famAllRef, $f);
+              }elsif($operator eq "-"){
+                #NOT
+                $famAllRef = &unique($famAllRef, $f);
+              }else{
+                #Match OR
+                $famAllRef = &merge($famAllRef, $f);
+              } 
+           }else{
+              $famAllRef = $f; 
+           }
+           
+        }
+        next;
+        #return $famAllRef;
+    }elsif(($k) eq "value"){
+      if( ref($v) eq "HASH"){
+        $c->{operator} = $operator;
+        $c->{parsedQuery} = $v;
+        my $f = $c->forward('descend');
+      }else{
+        #print "Terminal hash?\n"; 
+        #print "|$operator|";
+        #print dump( $v ), "\n";
+        $c->{term} = $v;
+        $famAllRef = $c->forward('getFamiliesForTerm');
+      } 
+    }else{
+      #print "Did not do anything with $k, $v\n";
+    }
+  }
+  
+  return ($famAllRef) if(ref($famAllRef) eq "HASH");
+}
+
+sub _getRange : Private {
+  my( $this, $c ) = @_;
+  #We want to get the left and right ranges for the term from the taxomony table.
+  my $rs;
+  
+  #We need to remove double quotes added round the term by QueryPaser
+  $c->{term} =~ s/\"//g;
+  $c->log->debug("Search::Taxonomy::_getRange looking up term|".$c->{term}."|");
+  if($c->{term} =~/\S+\s+\S+/){
+    #Looks like a spcies name
+    $c->log->debug("Search::Taxonomy::_getRange, looks like a species term");   
+    $rs = $c->model("PfamDB::Taxonomy")
+                    ->find({ "species" => $c->{term}});  
+  }elsif($c->{term} =~/\S+/){
+    #Looks like a taxonomic level other than species.
+    $c->log->debug("Search::Taxonomy::_getRange, looks like a level term");      
+    $rs = $c->model("PfamDB::Taxonomy")
+                  ->find({ "level" => $c->{term}});
+  }
+  
+  if($rs->lft and $rs->rgt){
+    $c->log->debug("Search::Taxonomy::_getRange, got range for term!");   
+    return ([ $rs->lft, $rs->rgt ]);  
+  }else{
+    $c->{taxSearchError} = "Could not find ".$c->{term}." in the database\n";
+    return;
+  }
+}
+
+sub common {
+  my ($hashRef1, $hashRef2) = @_;
+
+  print dump( $hashRef1, $hashRef2)."\n";
+  my %common;
+  foreach (keys %{$hashRef1}) {
+        $common{$_} = 1 if exists $$hashRef2{$_};
+  }
+  # %common now contains keys 
+  return \%common;
+}
+
+sub merge {
+  my ($hashRef1, $hashRef2) = @_;
+  my %merged;
+  foreach my $hashRef ( $hashRef1, $hashRef2 ) {
+    while (my($k, $v) = each %$hashRef) {
+        $merged{$k} = $v;
+    }
+  } 
+  return \%merged
+}
+
+
+sub unique {
+ my ($hashRef1, $hashRef2) = @_;
+ my %this_not_that;
+  foreach (keys %$hashRef1) {
+    $this_not_that{$_} = 1 unless exists $$hashRef2{$_};
+  }
+  return \%this_not_that;
+}
+
+
+=head1 METHODS
+
+=head2 process : Path
+
+Perform a taxonomy search
+
+=cut
+
+
+
+
+
 
 #-------------------------------------------------------------------------------
 
