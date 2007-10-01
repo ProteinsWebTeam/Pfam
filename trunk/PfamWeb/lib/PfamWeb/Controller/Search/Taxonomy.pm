@@ -2,7 +2,7 @@
 # Taxonomy.pm
 # jt6 20070918 WTSI
 #
-# $Id: Taxonomy.pm,v 1.2 2007-10-01 13:24:09 rdf Exp $
+# $Id: Taxonomy.pm,v 1.3 2007-10-01 15:56:06 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Taxonomy;
 
 A search controller for performing taxonomy searches
 
-$Id: Taxonomy.pm,v 1.2 2007-10-01 13:24:09 rdf Exp $
+$Id: Taxonomy.pm,v 1.3 2007-10-01 15:56:06 jt6 Exp $
 
 =cut
 
@@ -91,6 +91,108 @@ sub process : Path {
   
   #Set the templter
   $c->stash->{template} = 'pages/search/taxonomy/results.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Suggest something why don't you...
+
+=cut
+
+sub suggest : Local {
+  my( $this, $c ) = @_;
+
+  local( $/ ) = ' ';
+  
+  # detaint the parameter
+  my( $q ) = $c->req->param('q') =~ m/^([\w\s\(\)]+)$/;
+  $c->log->debug( "Search::Taxonomy::suggest: got raw parameter; q = |$q|" );
+
+  # put spaces around braces to make sure we see them in the list of words when 
+  # we split on spaces
+  $q =~ s|([\(\)])| $1 |g;
+  $c->log->debug( "Search::Taxonomy::suggest: braces padded: |$q|" );
+
+  # strip leading and trailing spaces 
+  $q =~ s/^\s*(.*?)\s*$/$1/;
+  $c->log->debug( "Search::Taxonomy::suggest: leading/trailing spaces stripped: |$q|" );
+  
+  # break up the search term into "words"
+  my @words = split /\s+/, $q;
+  foreach ( @words ) {
+    $c->log->debug( "Search::Taxonomy::suggest: split word: |$_|" );
+  }
+
+  my( @terms, @sentence );
+  my $term = '';
+  foreach my $index ( 0 .. $#words ) {
+    my $word = $words[$index];
+
+    # filter out the debris of merging AND and NOT
+    if( not defined $word ) {
+      $c->log->debug( 'Search::Taxonomy::suggest: skipping null word' );
+      next;
+    }
+    
+    $c->log->debug( "Search::Taxonomy::suggest: raw word: |$word|" );
+
+    if( $word =~ /^AND$/i ) {
+      $c->log->debug( 'Search::Taxonomy::suggest: found AND' );
+      
+      if( $words[$index + 1] eq 'NOT' ) {
+        $c->log->debug( 'Search::Taxonomy::suggest:   next term is NOT' );
+        delete $words[$index + 1];
+        push @sentence, $term, 'AND NOT';
+        $term = '';
+
+      } else {
+        chomp $term;
+        push @sentence, $term, 'AND';
+        $c->log->debug( "Search::Taxonomy::suggest: pushed term |$term|" );
+        $term = '';
+      }
+
+    } elsif( $word =~ m/^(OR|NOT|\(|\))$/i ) {
+
+      $c->log->debug( "Search::Taxonomy::suggest: found OR, NOT or braces ('$word')" );
+      unless( $term =~ /^\s*$/ ) {
+        chomp $term;
+        push @sentence, $term;
+        push @terms, $term;
+        $c->log->debug( "Search::Taxonomy::suggest: pushed term |$term|" );
+      }
+      push @sentence, $word;
+      $term = '';
+
+    } else {
+      
+      $term .= $word . ' ';
+      $c->log->debug( "Search::Taxonomy::suggest: term is now |$term|" );
+    }
+
+  }
+  # push in the last term in the list, which will be otherwise omitted    
+  chomp $term;
+  push @sentence, $term;
+  push @terms, $term;
+  $c->log->debug( "Search::Taxonomy::suggest: pushed term |$term|" );
+
+  my $responseString = '<ul>';
+  foreach ( @terms ) {
+    $c->log->debug( "Search::Taxonomy::suggest: term: |$_|" );
+    $responseString .= "<li>$_</li>";
+  }
+  $responseString .= '</ul>';
+
+  foreach ( @sentence ) {
+    $c->log->debug( "Search::Taxonomy::suggest: sentence: |$_|" );
+  }
+
+  $c->log->debug( "Search::Taxonomy::suggest: built response string: |$responseString|" );
+
+  $c->res->body( $responseString );
 }
 
 #-------------------------------------------------------------------------------
