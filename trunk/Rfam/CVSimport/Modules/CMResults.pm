@@ -89,6 +89,9 @@ sub parse_infernal {
 		    $end = $temp; 
 		}
 	    }
+	    elsif( $1 =~ /^(\S+)\/(\d+)-(\d+)/ ) {
+		( $id, $start, $end ) = ( $1, $2, $3 );
+	    }	    
 	    elsif( ($id) = $1 =~ /^(\S+)/ ) {
 		$start = 1;
 	    }
