@@ -80,7 +80,7 @@ if ($nopairs==0 && scalar(@list)<2){
 }
 
 if ($nopairs==0){
-    printf STDERR "WARNING: your alignment is boring and has no secondary structure! Computing sequence stats only.\n";
+    printf STDERR "WARNING: your alignment is boring and has no secondary structure (or the structure is munged)! Computing sequence stats only.\n";
 }
 
 if (scalar(@list)<2){
@@ -296,7 +296,7 @@ sub make_pair_table {
     foreach my $symb5p (keys %bpsymbs5p3p){
 	my $symb3p = $bpsymbs5p3p{$symb5p};
 	$bpsymbs3p5p{$symb3p} = $symb5p;
-	$bpsymbs5p3p_counts{$symb3p} = 0;
+	$bpsymbs3p5p_counts{$symb3p} = 0;
     }
     
     my %unpairedsymbs = (
