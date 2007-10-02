@@ -76,15 +76,15 @@ for( my $i = 1; $i<$len+1; $i++ ){
 }
 
 if ($nopairs==0 && scalar(@list)<2){
-    die("FATAL: your alignment has less than two sequences and no structure! NEEDS FIXED!\n");
+    die("FATAL: $shortname_family_dir has less than two sequences and no structure! NEEDS FIXED!\n");
 }
 
 if ($nopairs==0){
-    printf STDERR "WARNING: your alignment is boring and has no secondary structure (or the structure is munged)! Computing sequence stats only.\n";
+    printf STDERR "WARNING: $shortname_family_dir is boring and has no secondary structure (or the structure is munged)! Computing sequence stats only.\n";
 }
 
 if (scalar(@list)<2){
-    printf STDERR "WARNING: your alignment is boring and less than two sequences! Computing base-pair stats only.\n";
+    printf STDERR "WARNING: $shortname_family_dir is boring and less than two sequences! Computing base-pair stats only.\n";
 }
 
 my @list2 = @list;
@@ -155,7 +155,7 @@ foreach my $seqobj ( @list ) {
 	    $pid = $pid/$maxlen;
 	}
 	else {
-	    printf STDERR "WARNING: $seqname has length \'$len1\' and $seqname2 has length \'$len2\' in $family_dir/SEED!\n";
+	    printf STDERR "WARNING: $shortname_family_dir $seqname has length \'$len1\' and $seqname2 has length \'$len2\' in $family_dir/SEED!\n";
 	}
 	
 	$mean_pid += $pid;
@@ -218,7 +218,7 @@ if ($noseqs>0 && $nopairs>0){
 	}
 	
 	if ($perbasepair{$bpposns}<6/16){
-	    printf STDERR "WARNING: base-pair $bpposns has an FCbp of only %0.3f (<6/16). NEEDS FIXED!\n", $perbasepair{$bpposns};
+	    printf STDERR "WARNING: $shortname_family_dir base-pair $bpposns has an FCbp of only %0.3f (<6/16). NEEDS FIXED!\n", $perbasepair{$bpposns};
 	}
 	
     }
