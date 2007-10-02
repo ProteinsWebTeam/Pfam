@@ -1,25 +1,27 @@
 
-# $Id: Ncbi_taxonomy.pm,v 1.5 2007-08-20 08:58:47 rdf Exp $
+# $Id: Ncbi_taxonomy.pm,v 1.6 2007-10-02 09:14:38 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 package PfamDB::Ncbi_taxonomy;
 
 use strict;
 use warnings;
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( qw( Core ) );
 
-#Set up the table
-__PACKAGE__->table( "ncbi_taxonomy" );
+# set up the table
+__PACKAGE__->table( 'ncbi_taxonomy' );
 
-#Get the columns that we want to keep
-__PACKAGE__->add_columns(qw/ncbi_code species taxonomy/);
+# get the columns that we want to keep
+__PACKAGE__->add_columns( qw( ncbi_code
+                              species 
+                              taxonomy ) );
 
-__PACKAGE__->set_primary_key("ncbi_code");
+__PACKAGE__->set_primary_key( 'ncbi_code' );
 
-__PACKAGE__->has_many("auto_pfamseq" => "PfamDB::Pfamseq",
-		      {"foreign.ncbi_code" => "self.ncbi_code"});
+__PACKAGE__->has_many( 'auto_pfamseq' => 'PfamDB::Pfamseq',
+		                   { 'foreign.ncbi_code' => 'self.ncbi_code' } );
 
 =head1 COPYRIGHT
 
