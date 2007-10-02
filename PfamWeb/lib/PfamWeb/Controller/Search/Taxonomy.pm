@@ -2,7 +2,7 @@
 # Taxonomy.pm
 # jt6 20070918 WTSI
 #
-# $Id: Taxonomy.pm,v 1.3 2007-10-01 15:56:06 jt6 Exp $
+# $Id: Taxonomy.pm,v 1.4 2007-10-02 15:21:20 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Taxonomy;
 
 A search controller for performing taxonomy searches
 
-$Id: Taxonomy.pm,v 1.3 2007-10-01 15:56:06 jt6 Exp $
+$Id: Taxonomy.pm,v 1.4 2007-10-02 15:21:20 jt6 Exp $
 
 =cut
 
@@ -41,7 +41,8 @@ Perform a taxonomy search
 sub process : Path {
   my( $this, $c ) = @_;
   
-  $c->log->debug( 'Search::Taxonomy::process: starting a taxonomy search' );
+  $c->log->debug( 'Search::Taxonomy::process: starting a taxonomy search' )
+    if $c->debug;
 
   # make sure we got *something*
   unless( defined $c->req->param('q') ) {
@@ -56,141 +57,173 @@ sub process : Path {
     return;
   }
   my $query = $1;
+  
   if( $query =~ /^unique (.*)$/i ){
     my $term = $1;
     $c->stash->{term} = $term;
-    $c->log->debug( "Search::Taxonomy::process: Going to find unique matches for string: |$term|" );
+    $c->log->debug( "Search::Taxonomy::process: Going to find unique matches for string: |$term|" )
+      if $c->debug;
     my $allCountRef  = $c->forward('getAllFamilyCount');   
-    my $termCountRef = $c->forward('getAllFamilyCount');
-    
+    my $termCountRef = $c->forward('getFamiliesForTerm');    
     
     my %uniqueFams;
-    while (my ( $k, $v ) = each( %$termCountRef )){
-      #Now see if the count is the same, if it is then it must be unique to the term. 
-      if( $$allCountRef{$k} == $v ) {
+    while( my( $k, $v ) = each %$termCountRef ) {
+      # now see if the count is the same; if it is then it must be unique to 
+      # the term
+      if( $allCountRef->{$k} == $v ) {
          $uniqueFams{$k}++;
       }
     }
-    #Now stuff the list of unique families to the stash 
+
+    # now stuff the list of unique families to the stash
     $c->stash->{uniqueFamsToTerm} = \%uniqueFams
-  }else{
-    $c->log->debug( "Search::Taxonomy::process: found query string: |$query|" );
+
+  } else {
     # we got a valid string, but does it parse ?
+    $c->log->debug( "Search::Taxonomy::process: found query string: |$query|" )
+      if $c->debug;
+
     my $qp = new Search::QueryParser;
-    my $pq = $qp->parse( $1 );
+    my $pq = $qp->parse( $query );
     unless($pq){
-       $c->stash->{taxSearchError} = 'Error parsing query string.';
-       return;
-    }  
-    $c->log->debug( 'Search::Taxonomy::process: parsed query: ', dump $pq );
-    $c->{parsedQuery} = $pq;
+      $c->stash->{taxSearchError} = 'Error parsing query string.';
+      return;
+    }
+    
+    $c->log->debug( 'Search::Taxonomy::process: parsed query: ', dump $pq )
+      if $c->debug;
+    $c->stash->{parsedQuery} = $pq;
+
+    # walk down the tree
     my $famsRef = $c->forward('descend');
+
     $c->stash->{famsForTerm} = $famsRef;
-    $c->log->debug( 'Search::Taxonomy::process: got the following families ', dump $famsRef);
+    $c->log->debug( 'Search::Taxonomy::process: got the following families ',
+                    dump $famsRef )
+      if $c->debug;
   } 
   
-  #Set the templter
   $c->stash->{template} = 'pages/search/taxonomy/results.tt';
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 suggest : Local
 
-Suggest something why don't you...
+Returns a list of possible completions for species names as an HTML list.
+
+This action is intended to be called only by an AJAX call from the taxonomy 
+search form. The resulting list is presented as auto-completion lines under the 
+form field, letting the user know immediately that they can't spell 
+Caenorhabditis elegans after all...
 
 =cut
 
 sub suggest : Local {
   my( $this, $c ) = @_;
 
-  local( $/ ) = ' ';
-  
-  # detaint the parameter
-  my( $q ) = $c->req->param('q') =~ m/^([\w\s\(\)]+)$/;
-  $c->log->debug( "Search::Taxonomy::suggest: got raw parameter; q = |$q|" );
+  # first, split up the search string into individual 'words'
+  $c->forward( 'parseTerms' );
 
-  # put spaces around braces to make sure we see them in the list of words when 
-  # we split on spaces
-  $q =~ s|([\(\)])| $1 |g;
-  $c->log->debug( "Search::Taxonomy::suggest: braces padded: |$q|" );
+  #----------------------------------------
 
-  # strip leading and trailing spaces 
-  $q =~ s/^\s*(.*?)\s*$/$1/;
-  $c->log->debug( "Search::Taxonomy::suggest: leading/trailing spaces stripped: |$q|" );
+  # perform a database look-up for the LAST species name in the search string, 
+  # if there is one at this point
+
+  my( $rawSpecies, @speciesSuggestions );
   
-  # break up the search term into "words"
-  my @words = split /\s+/, $q;
-  foreach ( @words ) {
-    $c->log->debug( "Search::Taxonomy::suggest: split word: |$_|" );
+  if( defined $c->stash->{terms}->[-1] ) {
+    
+    $rawSpecies = $c->stash->{terms}->[-1];
+  
+    $c->log->debug( "Search::Taxonomy::suggest: raw species name: |$rawSpecies|" )
+      if $c->debug;
+
+    # collect the list of matching species names    
+    my @species = $c->model('PfamDB::Taxonomy')
+                    ->search_like( { species => "$rawSpecies%" } );
+    foreach ( @species ) {
+      push @speciesSuggestions, $_->species;
+    }
+                 
+    # collect the list of matching levels, which are distinct from the actual
+    # species name    
+    my @levels  = $c->model('PfamDB::Taxonomy')
+                    ->search_like( { level => "$rawSpecies%" } );
+    foreach ( @levels ) {
+      push @speciesSuggestions, $_->level;
+    }
+  
+    $c->log->debug( 'Search::Taxonomy::suggest: found a total of |'
+                    . scalar @speciesSuggestions . "| suggestions for |$rawSpecies|" )
+      if $c->debug;
   }
+  
+  #----------------------------------------
 
-  my( @terms, @sentence );
-  my $term = '';
-  foreach my $index ( 0 .. $#words ) {
-    my $word = $words[$index];
+  # rebuild the search string using the suggestions
 
-    # filter out the debris of merging AND and NOT
-    if( not defined $word ) {
-      $c->log->debug( 'Search::Taxonomy::suggest: skipping null word' );
-      next;
+  # limit the number of suggestions that we return; set in the config
+  my $limit = $this->{numSuggestions} || 10;
+  my $i = 0;
+
+  my @searchSuggestions;
+  my $suggestionLine = '';
+  my $limited = 0;
+
+  WORD:
+  foreach my $word ( @{ $c->stash->{sentence} } ) {
+    $c->log->debug( "Search::Taxonomy::suggest: suggesting for word |$word|" );
+
+    # if this word is not the same as the last search term (which will be the
+    # case if it's AND, OR, NOT or a brace), include it as is
+    unless( $word eq $rawSpecies ) {
+      $suggestionLine .= $word . ' ';
+      next WORD;
+    }
+
+    # only add suggestions for the last search term
+    unless( $word eq $c->stash->{sentence}->[-1] ) { 
+      $suggestionLine .= $word . ' ';
+      next WORD;
     }
     
-    $c->log->debug( "Search::Taxonomy::suggest: raw word: |$word|" );
-
-    if( $word =~ /^AND$/i ) {
-      $c->log->debug( 'Search::Taxonomy::suggest: found AND' );
-      
-      if( $words[$index + 1] eq 'NOT' ) {
-        $c->log->debug( 'Search::Taxonomy::suggest:   next term is NOT' );
-        delete $words[$index + 1];
-        push @sentence, $term, 'AND NOT';
-        $term = '';
-
-      } else {
-        chomp $term;
-        push @sentence, $term, 'AND';
-        $c->log->debug( "Search::Taxonomy::suggest: pushed term |$term|" );
-        $term = '';
+    # build the list of suggestions based on the suggestions for the current
+    # word
+    SUGGESTION: 
+    foreach my $suggestion ( sort @speciesSuggestions ) {
+      push @searchSuggestions, $suggestionLine . $suggestion;
+      if( $i >= $limit ) {
+        $limited = 1;
+        last WORD;
       }
-
-    } elsif( $word =~ m/^(OR|NOT|\(|\))$/i ) {
-
-      $c->log->debug( "Search::Taxonomy::suggest: found OR, NOT or braces ('$word')" );
-      unless( $term =~ /^\s*$/ ) {
-        chomp $term;
-        push @sentence, $term;
-        push @terms, $term;
-        $c->log->debug( "Search::Taxonomy::suggest: pushed term |$term|" );
-      }
-      push @sentence, $word;
-      $term = '';
-
-    } else {
-      
-      $term .= $word . ' ';
-      $c->log->debug( "Search::Taxonomy::suggest: term is now |$term|" );
+      $i++;
     }
 
+    $c->log->debug( "Search::Taxonomy::suggest: we now have |$i| suggestion lines ("
+                    . scalar @searchSuggestions . ' according to array)' )
+      if $c->debug;
   }
-  # push in the last term in the list, which will be otherwise omitted    
-  chomp $term;
-  push @sentence, $term;
-  push @terms, $term;
-  $c->log->debug( "Search::Taxonomy::suggest: pushed term |$term|" );
 
   my $responseString = '<ul>';
-  foreach ( @terms ) {
-    $c->log->debug( "Search::Taxonomy::suggest: term: |$_|" );
-    $responseString .= "<li>$_</li>";
+  foreach my $i ( 0 .. $#searchSuggestions ) {
+    my $suggestion = $searchSuggestions[$i];
+
+    $c->log->debug( "Search::Taxonomy::suggest: search suggestion: |$suggestion|" )
+      if $c->debug;
+
+    if( $limited and $i == $#searchSuggestions ) {
+      $c->log->debug( 'Search::Taxonomy::suggest: suggestion list limited' )
+        if $c->debug;
+      $responseString .= qq(<li>$suggestion<span class="informal"><br />(Showing only first $limit suggestions)</span></li>); 
+    } else {
+      $responseString .= "<li>$suggestion</li>";
+    }
   }
+  
   $responseString .= '</ul>';
-
-  foreach ( @sentence ) {
-    $c->log->debug( "Search::Taxonomy::suggest: sentence: |$_|" );
-  }
-
-  $c->log->debug( "Search::Taxonomy::suggest: built response string: |$responseString|" );
+  
+  #----------------------------------------
 
   $c->res->body( $responseString );
 }
@@ -199,199 +232,374 @@ sub suggest : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-# none
+=head2 parseTerms : Private
+
+Description...
+
+=cut
+
+sub parseTerms : Private {
+  my( $this, $c ) = @_;
+
+  # later we'll want to chomp to remove trailing spaces... 
+  local( $/ ) = ' ';
+  
+  # detaint the parameter
+  my( $q ) = $c->req->param('q') =~ m/^([\w\s\(\)\.]+)$/;
+
+  # put spaces around braces to make sure we see them in the list of words when 
+  # we split on spaces
+  $q =~ s|([\(\)])| $1 |g;
+
+  # strip leading and trailing spaces 
+  $q =~ s/^\s*(.*?)\s*$/$1/;
+  
+  # break up the search term into "words"
+  my @words = split /\s+/, $q;
+
+  #----------------------------------------
+  
+  # next, filter the terms to collect the actual species names separately from
+  # the boolean terms and braces. We'll also need to keep track of the order
+  # of everything though, so that we can reconstruct the whole string, corrected
+  # by the searches
+
+  my( @terms, @sentence );
+  my $term = '';
+  foreach my $index ( 0 .. $#words ) {
+    my $word = $words[$index];
+
+    # filter out the debris of merging AND and NOT
+    next if not defined $word;
+
+    # and actually merge AND and NOT...
+    if( $word =~ /^AND$/i ) {
+      
+      # check if the next word in the sentence is NOT and, if it is, merge
+      # it with the current AND before deleting the NOT from the sentence
+      # altogether
+      if( $words[$index + 1] and 
+          $words[$index + 1] eq 'NOT' ) {
+        delete $words[$index + 1];
+        push @sentence, $term, 'AND NOT';
+        $term = '';
+
+      } else {
+        chomp $term;
+        push @sentence, $term, 'AND';
+        $term = '';
+      }
+
+    } elsif( $word =~ m/^(OR|NOT|\(|\))$/i ) {
+
+      # just stuff this term (OR, NOT or braces) into the sentence, but ignore
+      # terms that are just composed of spaces
+      unless( $term =~ /^\s*$/ ) {
+        chomp $term;
+        push @sentence, $term;
+        push @terms, $term;
+      }
+      push @sentence, uc $word;
+      $term = '';
+
+    } else {      
+
+      # the word that we have is a search term; add it to the growing search 
+      # term string
+      $term .= $word . ' ';
+    }
+
+  }
+
+  # finally, if we had a non-whitespace term at the end of the search string, 
+  # push in it into the list
+  unless( $term =~ /^\s*$/ ) {
+    chomp $term;
+    push @sentence, $term;
+    push @terms, $term;
+  }
+
+  # now we should have two arrays, one with the species names that we'll need
+  # to search (@term), one with the whole search term broken up into 'words'
+  # (@sentence)
+  $c->stash->{terms}    = \@terms;
+  $c->stash->{sentence} = \@sentence;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getAllFamilyCount : Private
+
+Description...
+
+=cut
 
 sub getAllFamilyCount : Private {
   my( $this, $c ) = @_;  
+
+  my @rs;
+  if( $c->stash->{term} ) {
     
-  my (@rs, %res);
-  if($c->{term}){
-    my ($l, $r) = $c->forward('_getRange');
-    $c->log->debug( "Getting count for ".$c->{term}.", $l, $r");
-    @rs = $c->model("PfamDB::Taxonomy")
-                    ->search({  "lft"    => { ">=" => $l },
-                                "rgt"    => { "<=" => $r }},
-                              { join     => [ qw(pfamAncbi) ],
-                                select    => [ qw( pfamAncbi.pfamA_acc
-                                                   ), 
-                                                 { count => 'pfamAncbi.auto_pfamA' } ],
-                                as        => [ qw( pfamA_acc 
-                                                   count ) ],
-                                group_by => [ qw( pfamAncbi.auto_pfamA ) ],
-                                                   });
-  }else{
-    @rs = $c->model("PfamDB::PfamA_ncbi")
-                    ->search( {},
-                              {
-                                select    => [ qw( pfamA_acc ), 
-                                                 { count => 'auto_pfamA' } ],
-                                as        => [ qw( pfamA_acc count ) ],
-                                group_by => [ qw( me.auto_pfamA ) ],
-                                                   });
-      print "Getting count for all\n";
+    my $range = $c->forward('getRange');
+    
+    $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: getting count for |'
+                    . $c->stash->{term} . "|, |$range->[0]|, |$range->[1]|" )
+      if $c->debug;
+
+    @rs = $c->model('PfamDB::Taxonomy')
+            ->search( { lft => { '>=' => $range->[0] },
+                        rgt => { '<=' => $range->[1] } },
+                      { join     => [ 'pfamAncbi' ],
+                        select   => [ 'pfamAncbi.pfamA_acc', 
+                                      { count => 'pfamAncbi.auto_pfamA' } ],
+                        as       => [ 'pfamA_acc', 'count' ],
+                        group_by => [ 'pfamAncbi.auto_pfamA' ],
+                      } );
+  } else {
+
+    $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: no search term provided' )
+      if $c->debug;
+
+    @rs = $c->model('PfamDB::PfamA_ncbi')
+            ->search( {},
+                      { select   => [ 'pfamA_acc', 
+                                      { count => 'auto_pfamA' } ],
+                        as       => [ 'pfamA_acc', 'count' ],
+                        group_by => [ 'me.auto_pfamA' ],
+                      } );
   } 
-  %res = map{$_->get_column("pfamA_acc") => $_->get_column("count")} @rs;
-  print $c->log->debug("Search::Taxonomy::getAllFamiliesCoun  Got: ".scalar(keys(%res))." family counts");
+
+  my %res = map{ $_->get_column('pfamA_acc') => $_->get_column('count') } @rs;
+
+  $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: got |'
+                  . scalar( keys %res ) . '| family counts' )
+    if $c->debug;
+
   return \%res;
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 getFamiliesForTerm : Private
+
+Description...
+
+=cut
+
 sub getFamiliesForTerm : Private {
   my( $this, $c ) = @_;
+
+  my $rv;
   
-  if($c->{term}){
+  if( $c->stash->{term} ) {
     
-    
-    my $lrRef = $c->forward('_getRange');
-    my $lft = $$lrRef[0];
-    my $rgt = $$lrRef[1];
-   #  my ($lft, $rgt) = $c->forward('_getRange');
-    $c->log->debug("Got lft:|".$lft."|, Got rgt:|".$rgt."|");
-   my @rs = $c->model("PfamDB::PfamA_ncbi")
-                  ->search({  "tax.lft"    => { '>=' => $lft },
-                              "tax.rgt"    => { '<=' => $rgt } },
-                            { join     => [ qw(tax) ],
-                              prefetch => [ qw(tax)] }); 
-  my %res = map{$_->pfamA_acc => 1} @rs; 
-  return \%res;
-  
+    my $range = $c->forward('getRange');
+
+    $c->log->debug( "Search::Taxnomoy::getFamiliesForTerm: got lft: |$range->[0]|; "
+                    . "got rgt: |$range->[1]|")
+      if $c->debug;
+
+    my @rs = $c->model('PfamDB::PfamA_ncbi')
+               ->search( { 'tax.lft'    => { '>=' => $range->[0] },
+                           'tax.rgt'    => { '<=' => $range->[1] } },
+                         { join     => [ 'tax' ],
+                           prefetch => [ 'tax' ] }
+                       ); 
+
+    my %res = map{ $_->pfamA_acc => 1 } @rs; 
+    $rv = \%res;
   }
   
-  
+  return $rv;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 descend : Private
+
+Description...
+
+=cut
 
 sub descend : Private {
   my( $this, $c ) = @_;
   
-  #Take copies of everything, as the recursive nature of this code 
-  #means that this data will be lost otherwise.
-  my $query = $c->{parsedQuery};
-  my $operator = $c->{operator} if($c->{operator});
+  # take copies of everything, as the recursive nature of this code 
+  # means that this data will be lost otherwise.
+  my $query     = $c->stash->{parsedQuery};
+  my $operator  = $c->stash->{operator} || '';
   my $famAllRef = $c->{allFams};
-  
-  foreach my $k ("+", "-", "", "value"){
-    next unless($$query{$k});
-    $c->log->debug("Search::Taxonomy::descend key = $k");
-    my $v = $$query{$k};   
-    if(ref($v) eq "ARRAY" ){
-        $c->log->debug("*** array ***");
-        $operator = $k;
-        
-        foreach my $e (@$v){
-           $c->{operator} = $operator;
-           $c->{parsedQuery} = $e;
-           my $f = $c->forward('descend');
-           if(keys %$famAllRef){
-              if($operator eq "+"){
-                 $famAllRef = &common($famAllRef, $f);
-              }elsif($operator eq "-"){
-                #NOT
-                $famAllRef = &unique($famAllRef, $f);
-              }else{
-                #Match OR
-                $famAllRef = &merge($famAllRef, $f);
-              } 
-           }else{
-              $famAllRef = $f; 
-           }
-           
-        }
-        next;
-        #return $famAllRef;
-    }elsif(($k) eq "value"){
-      if( ref($v) eq "HASH"){
-        $c->{operator} = $operator;
-        $c->{parsedQuery} = $v;
+
+  # walk over these specific keys. Need to have this as a literal list in order
+  # to fix the order of precedence
+  foreach my $k ( '+', '-', '', 'value'){
+    next unless $query->{$k};
+    
+    $c->log->debug( "Search::Taxonomy::descend: key: |$k|" ) if $c->debug;
+    
+    # there's an array of values
+    my $v = $query->{$k};
+    if( ref($v) eq 'ARRAY' ){
+
+      $c->log->debug( 'Search::Taxonomy::descend: got an array' ) if $c->debug;
+      $operator = $k;
+
+      # walk over the values
+      foreach my $e ( @$v ){
+        $c->stash->{operator}    = $operator;
+        $c->stash->{parsedQuery} = $e;
+
+        # descend further down the tree
         my $f = $c->forward('descend');
-      }else{
-        #print "Terminal hash?\n"; 
-        #print "|$operator|";
-        #print dump( $v ), "\n";
-        $c->{term} = $v;
+
+        # there's another level below this one
+        if( keys %$famAllRef ) {
+          if( $operator eq '+' ) {
+            $famAllRef = common( $famAllRef, $f ); # AND
+          } elsif( $operator eq '-' ) {
+            $famAllRef = unique( $famAllRef, $f ); # NOT
+          } else {
+            $famAllRef = merge( $famAllRef, $f );  # OR
+          }          
+        } else {
+          $famAllRef = $f;
+        }
+      } # end of "foreach value"
+
+    } elsif( $k eq 'value' ) {
+      # there's a single value
+
+      if( ref($v) eq 'HASH' ) {
+        # reset the operators and query and descend down from here
+        $c->stash->{operator}    = $operator;
+        $c->stash->{parsedQuery} = $v;
+        $c->forward('descend');
+      } else {
+        $c->stash->{term} = $v;
         $famAllRef = $c->forward('getFamiliesForTerm');
       } 
-    }else{
-      #print "Did not do anything with $k, $v\n";
+    } else {
+      $c->log->warn( "Search::Taxonomy::descend: didn't do anything with |$k|$v|" );
     }
   }
-  
-  return ($famAllRef) if(ref($famAllRef) eq "HASH");
+
+  return $famAllRef if ref($famAllRef) eq 'HASH';
 }
 
-sub _getRange : Private {
+#-------------------------------------------------------------------------------
+
+=head2 getRange: Private
+
+Looks up the left and right values for a given species or taxonomic level.
+If it finds both left and right values, they are returned as a reference to 
+an array, undef otherwise.
+
+=cut
+
+sub getRange : Private {
   my( $this, $c ) = @_;
-  #We want to get the left and right ranges for the term from the taxomony table.
+  
+  # we want to get the left and right ranges for the term from the taxomony 
+  # table
+  
+  # we need to remove double quotes added round the term by QueryParser
+  $c->stash->{term} =~ s/\"//g;
+  
+  $c->log->debug( 'Search::Taxonomy::getRange: looking up term: |'
+                  . $c->stash->{term} . '|' )
+    if $c->debug;
+
   my $rs;
-  
-  #We need to remove double quotes added round the term by QueryPaser
-  $c->{term} =~ s/\"//g;
-  $c->log->debug("Search::Taxonomy::_getRange looking up term|".$c->{term}."|");
-  if($c->{term} =~/\S+\s+\S+/){
-    #Looks like a spcies name
-    $c->log->debug("Search::Taxonomy::_getRange, looks like a species term");   
-    $rs = $c->model("PfamDB::Taxonomy")
-                    ->find({ "species" => $c->{term}});  
-  }elsif($c->{term} =~/\S+/){
-    #Looks like a taxonomic level other than species.
-    $c->log->debug("Search::Taxonomy::_getRange, looks like a level term");      
-    $rs = $c->model("PfamDB::Taxonomy")
-                  ->find({ "level" => $c->{term}});
+  if( $c->stash->{term} =~ m/\S+\s+\S+/ ){
+    # looks like a species name
+    $c->log->debug( 'Search::Taxonomy::getRange: looks like a species term')
+      if $c->debug;
+         
+    $rs = $c->model('PfamDB::Taxonomy')
+            ->find( { species => $c->stash->{term} } );  
+
+  } elsif( $c->stash->{term} =~/\S+/ ) {
+    # looks like a taxonomic level other than species.
+    $c->log->debug( 'Search::Taxonomy::getRange: looks like a level term' )
+      if $c->debug;
+
+    $rs = $c->model('PfamDB::Taxonomy')
+            ->find( { level => $c->stash->{term} } );
   }
   
-  if($rs->lft and $rs->rgt){
-    $c->log->debug("Search::Taxonomy::_getRange, got range for term!");   
-    return ([ $rs->lft, $rs->rgt ]);  
-  }else{
-    $c->{taxSearchError} = "Could not find ".$c->{term}." in the database\n";
-    return;
+  my $rv;
+  if( $rs->lft and $rs->rgt ) {
+    $c->log->debug( 'Search::Taxonomy::getRange: got range for term' );   
+    $rv = [ $rs->lft, $rs->rgt ];  
+  } else {
+    $c->{taxSearchError} = 
+      'Could not find ' . $c->stash->{term} . " in the database\n";
   }
+
+  return $rv;
 }
+
+#-------------------------------------------------------------------------------
+#- private methods -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 common
+
+Returns a reference to a hash with keys that are common to both input hashes. 
+Note that the values in the hash are always 1.
+
+=cut
 
 sub common {
-  my ($hashRef1, $hashRef2) = @_;
+  my( $hashRef1, $hashRef2 ) = @_;
 
-  print dump( $hashRef1, $hashRef2)."\n";
   my %common;
-  foreach (keys %{$hashRef1}) {
-        $common{$_} = 1 if exists $$hashRef2{$_};
+  foreach ( keys %$hashRef1 ) {
+    $common{$_} = 1
+      if exists $hashRef2->{$_};
   }
-  # %common now contains keys 
   return \%common;
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 merge
+
+Returns a reference to a hash containing the key/value pairs from the two input
+hashes. The hashes are merged in the order hash1, hash2, so that duplicate keys
+in hash2 will overwrite those from hash1.
+
+=cut
+
 sub merge {
-  my ($hashRef1, $hashRef2) = @_;
+  my( $hashRef1, $hashRef2 ) = @_;
   my %merged;
   foreach my $hashRef ( $hashRef1, $hashRef2 ) {
-    while (my($k, $v) = each %$hashRef) {
-        $merged{$k} = $v;
+    while( my( $k, $v) = each %$hashRef ) {
+      $merged{$k} = $v;
     }
   } 
   return \%merged
 }
 
+#-------------------------------------------------------------------------------
 
-sub unique {
- my ($hashRef1, $hashRef2) = @_;
- my %this_not_that;
-  foreach (keys %$hashRef1) {
-    $this_not_that{$_} = 1 unless exists $$hashRef2{$_};
-  }
-  return \%this_not_that;
-}
+=head2 unique
 
-
-=head1 METHODS
-
-=head2 process : Path
-
-Perform a taxonomy search
+Returns a reference to a hash containing those keys from the first input hash
+that are not found in the second input hash.
 
 =cut
 
-
-
-
-
+sub unique {
+  my( $hashRef1, $hashRef2 ) = @_;
+  my %this_not_that;
+  foreach ( keys %$hashRef1 ) {
+    $this_not_that{$_} = 1
+      unless exists $hashRef2->{$_};
+  }
+  return \%this_not_that;
+}
 
 #-------------------------------------------------------------------------------
 
