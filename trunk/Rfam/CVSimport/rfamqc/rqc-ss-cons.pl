@@ -49,9 +49,10 @@ else {
     printf "You're stupidly not writing to log-file!\n";
 }
 
-open( SEED, "$family_dir/SEED" ) or die;
+open( SEED, "$family_dir/SEED" ) or die ("FATAL: Couldn't open SEED!\n $!\n");
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
+close(SEED);
 my @list = $seed->each_seq();
 my $ss_cons = $seed->ss_cons->getInfernalString(); #This is damned confusing!
 
@@ -91,8 +92,8 @@ my @list2 = @list;
 my $mean_pid = 0.0;
 my $min_pid  = 1.0;
 my $max_pid  = 0.0;
-my $nocomps = 0;
-my $nocovs = 0;
+my $nocomps  = 0;
+my $nocovs   = 0;
 my $covariation = 0.0;
 #Calculate persequence info:
 foreach my $seqobj ( @list ) {
@@ -103,7 +104,7 @@ foreach my $seqobj ( @list ) {
     $seqname = "$seqname/$start-$end";
     my @seq = split(//,$seq);
     $persequence{$seqname} = 0;
-    #Count canonical base-pairs:
+    #Count the canonical base-pairs in each sequence:
     if($nopairs>0){
 	foreach my $bpposns ( keys %perbasepair ) {
 	    my @bpposns = split(/:/,$bpposns);
@@ -126,7 +127,7 @@ foreach my $seqobj ( @list ) {
     }
 
     #Computing pairwise stats (PID & Covariation):
-    shift(@list2);    
+    shift(@list2);    #shift current list1 seq off list2 - don't want to compare the sequence to itself.
     foreach my $seqobj2 ( @list2 ) {
 	my $seq2 = $seqobj2->seq;
 	my $seqname2 = $seqobj2->id;
@@ -134,9 +135,10 @@ foreach my $seqobj ( @list ) {
 	my $end2 = $seqobj2->end;
 	$seqname2 = "$seqname2/$start2-$end2";
 	my @seq2 = split(//,$seq2);
-	my $pid = 0;
+	my $pid  = 0;
 	my $len1 = 0;
 	my $len2 = 0;
+	#Compute sequence identity measures (Could've used alistat, it does too much rounding tho):
 	for (my $i=0; $i<$len; $i++){
 	    if ( is_nucleotide($seq[$i]) && is_nucleotide($seq2[$i]) && ($seq[$i] eq $seq2[$i]) ){
 		$pid += 1.0;
@@ -175,9 +177,9 @@ foreach my $seqobj ( @list ) {
 	    my $OM = 0;
 	    foreach my $bpposns ( keys %perbasepair ) {
 		my @bpposns = split(/:/,$bpposns);
-		my $ispair  = is_complementary( $seq[$bpposns[0]-1], $seq[$bpposns[1]-1]);
-		my $ispair2 = is_complementary($seq2[$bpposns[0]-1],$seq2[$bpposns[1]-1]);
-		if (is_nucleotide($seq[$bpposns[0]-1]) && is_nucleotide($seq[$bpposns[1]-1]) && is_nucleotide($seq2[$bpposns[0]-1]) && is_nucleotide($seq2[$bpposns[1]-1]) ){
+		if (is_nucleotide($seq[$bpposns[0]-1]) && is_nucleotide($seq[$bpposns[1]-1]) && is_nucleotide($seq2[$bpposns[0]-1]) && is_nucleotide($seq2[$bpposns[1]-1]) ){#Only compute covariation on valid nucleotides:
+		    my $ispair  = is_complementary( $seq[$bpposns[0]-1], $seq[$bpposns[1]-1]);
+		    my $ispair2 = is_complementary($seq2[$bpposns[0]-1],$seq2[$bpposns[1]-1]);
 		    if ($ispair && $ispair2){
 			$PI=1;
 			$OM=0;
@@ -194,18 +196,18 @@ foreach my $seqobj ( @list ) {
 		}
 	    }
 	}
-	
     }
-    
 }
 
 if ($nocomps>0){
     $mean_pid = $mean_pid/$nocomps;
 }
+
 if($nopairs>0 && $nocomps>0){
 	$covariation = $covariation/($nopairs*$nocomps); #$nocovs
 }
 
+#Print data to file and warnings for dodgy pairs:
 if ($noseqs>0 && $nopairs>0){
     foreach my $bpposns ( keys %perbasepair ) {
 	$perbasepair{$bpposns} = $perbasepair{$bpposns}/$noseqs;
@@ -247,7 +249,7 @@ close(LOGps);
 ######################################################################
 #make_pair_table: takes a structure string and returns an array/pair_table.
 #                 pair_table[0] contains the length of the string.
-#                 pair_table[1..pair_table[0]] contains 0 if no basepair exists 
+#                 pair_table[1..pair_table[0]] contains 0's if no basepair exists 
 #                 for this position, otherwise it contains the index for the 
 #                 corresponding pair.
 #                 Eg. make_pair_table(".((...))") returns:
@@ -323,14 +325,14 @@ sub make_pair_table {
 	$pair_table[$j] = 0;
 	
 	if ( defined( $unpairedsymbs{$char} ) ) {
-	    next;
+	    next; #Boring unpaired region.
 	}
 	elsif ( defined( $bpsymbs5p3p{$char}) ){#Record position of open bps:
 	    push( @{ $bpsymbs_posns{$char} }, $j);
 	    ++$count;
 	    $bpsymbs5p3p_counts{$char}++;
 	}
-	elsif ( defined( $bpsymbs3p5p{$char}) ){#close bp, save positions of matches:
+	elsif ( defined( $bpsymbs3p5p{$char}) ){#close bp, save positions of matches in pair_table:
 	    my $mchar = $bpsymbs3p5p{$char};
 	    $prime5 = pop( @{ $bpsymbs_posns{$mchar} } );
 	    $prime3 = $j;
@@ -344,6 +346,7 @@ sub make_pair_table {
 	}
     }
     
+    #Check basepair symbols are all matched:
     foreach my $symb5p (keys %bpsymbs5p3p_counts){
 	my $symb3p = $bpsymbs5p3p{$symb5p};
 	my $diff = $bpsymbs5p3p_counts{$symb5p} - $bpsymbs3p5p_counts{$symb3p};
@@ -355,7 +358,7 @@ sub make_pair_table {
     
     
     if ($count != 0 || $unbalanced){
-	printf STDERR "Unbalanced brackets in secondary structure:\n$str\n";
+	printf STDERR "Unbalanced basepair symbols in secondary structure:\n$str\n";
 	return ();
     }    
     else {
@@ -365,11 +368,14 @@ sub make_pair_table {
 }
 
 ######################################################################
-#returns true if input character is a nucleotide
+#returns true if input character is a nucleotide (IUPAC codes):
 sub is_nucleotide {
     my $a = shift;
-    $a =~ tr/a-z/A-Z/;
     
+    if (defined($a){
+	$a =~ tr/a-z/A-Z/;
+    }
+	
     if (defined($a) && length($a) && ($a =~ /[ACGUTRYWSMKBDHVN]/) ){
 	return 1;
     }
@@ -380,12 +386,18 @@ sub is_nucleotide {
 }
 
 ######################################################################
-#returns true if the two input characters can form a canonical basepair
+#returns true if the two input characters can form a canonical/watson-crick basepair
 sub is_complementary {
     my $a = shift;
     my $b = shift;
-    $a =~ tr/a-z/A-Z/;
-    $b =~ tr/a-z/A-Z/;
+
+    if (defined($a){
+	$a =~ tr/a-z/A-Z/;
+    }
+
+    if (defined($b){
+	$b =~ tr/a-z/A-Z/;
+    }
     
     my $ab = $a . $b;
     
@@ -422,8 +434,14 @@ sub is_complementary {
 sub dist {
     my $a = shift;
     my $b = shift;
-    $a =~ tr/a-z/A-Z/;
-    $b =~ tr/a-z/A-Z/;
+
+    if (defined($a){
+	$a =~ tr/a-z/A-Z/;
+    }
+
+    if (defined($b){
+	$b =~ tr/a-z/A-Z/;
+    }
 
     if ( defined($a) && defined($b) && (length($a)==1) && (length($b)==1) && ($a ne $b) ) {
 	return 1;
