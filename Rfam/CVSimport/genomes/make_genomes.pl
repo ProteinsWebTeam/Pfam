@@ -12,6 +12,7 @@ my %ignore = ( 'M29000'   => 1,
 
 my $cons = read_cons( $consfile );
 
+print STDERR "READING in rfamseqs\n";
 my %rfamseq;
 open( L, $rfamseq ) or die;
 while(<L>) {
@@ -21,9 +22,14 @@ while(<L>) {
 }
 close L;
 
+my $numberseqs = keys %rfamseq;
+print STDERR "GOT $numberseqs in rfmaseq\n";
+
+print STDERR "GETTING EBI list of genomes\n";
+
 my $ua = new LWP::UserAgent;
 $ua->agent("AVAce Indexer/1.1");
-$ua->proxy(http => 'http://wwwcache.sanger.ac.uk');
+$ua->proxy( [ 'http' ], 'http://wwwcache.sanger.ac.uk:3128' );
 
 my @url = qw( http://www.ebi.ac.uk/genomes/archaea.txt
     	      http://www.ebi.ac.uk/genomes/bacteria.txt
@@ -41,11 +47,25 @@ foreach my $url ( @url ) {
 }
 
 my %seqs;
+print STDERR "Sequences in acc array (list of genomes) =", scalar(@acc), "\n";
+
+my $count=0;
  ACC: foreach my $acc ( @acc ) {
      if( exists $rfamseq{$acc} ) {
+	 ++$count;
+     }
+ }
+print STDERR "should be looking to pfetch $count seqs\n";
+
+my $pfetching=0;
+print STDERR "Starting the pfetch\n";
+ ACC: foreach my $acc ( @acc ) {
+     if( exists $rfamseq{$acc} ) {
+	  print STDERR "FETCHINg $acc\n";
+	  ++$pfetching;
 	 open( P, "pfetch -F $acc |" ) or die;
 	 while(<P>) {
-	     if( /^FH/ ) {
+	    if( /^FH/ ) {
 		 last;
 	     }
 	     if( /^ID\s+\S.*\s+(\d+)\s+BP\./ ) {
@@ -55,11 +75,11 @@ my %seqs;
 	     }
 	     if( /^(DE)\s+(.*)/ or /^(OC)\s+(.*)/ or /^(OS)\s+(.*)/ ) {
 		 $cons->{$acc}->{$1} .= "$2 ";
-		 next ACC if( $2 =~ /mitochondri/i or $2 =~ /chloroplast/i );
-	     }
-	     if( /^SV\s+(\S+)\.(\d+)/ ) {
+       	 next ACC if( $2 =~ /mitochondri/i or $2 =~ /chloroplast/i );
+            }
+            if( /^SV\s+(\S+)\.(\d+)/ ) {
 		 push( @{ $cons->{$acc}->{'ctg'} }, { 'id'   => $1,
-						      'ver'  => $2,
+       					      'ver'  => $2,
 						      'clst' => 1,
 						      'clen' => $cons->{$acc}->{'length'},
 						      'chrst' => 1,
@@ -94,9 +114,10 @@ my %seqs;
      }
      
      print "\/\/\n";
+     sleep 3;
  }
 
-
+print STDERR "Tried to pfetch $pfetching seqs\n";
 ##########
 
 sub read_cons {
@@ -144,7 +165,7 @@ sub read_cons {
 						   } );
 		}
 		else {
-		    warn "WARNING: don't understand CO element [$el]\n";
+		    warn "WARNING: don't understand CO element [$el] for this $acc\n";
 		}
 
 #		print "$el\t$strand\n";
