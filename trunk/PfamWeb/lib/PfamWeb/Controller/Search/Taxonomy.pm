@@ -2,7 +2,7 @@
 # Taxonomy.pm
 # jt6 20070918 WTSI
 #
-# $Id: Taxonomy.pm,v 1.4 2007-10-02 15:21:20 jt6 Exp $
+# $Id: Taxonomy.pm,v 1.5 2007-10-03 16:00:05 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Taxonomy;
 
 A search controller for performing taxonomy searches
 
-$Id: Taxonomy.pm,v 1.4 2007-10-02 15:21:20 jt6 Exp $
+$Id: Taxonomy.pm,v 1.5 2007-10-03 16:00:05 jt6 Exp $
 
 =cut
 
@@ -32,85 +32,184 @@ use base 'PfamWeb::Controller::Search';
 
 =head1 METHODS
 
-=head2 process : Path
+=head2 taxonomy : Path
 
-Perform a taxonomy search
+Perform a taxonomy search and retrieves Pfam-A families selected by the
+user-supplied boolean query strings, such as
+
+  "Caenorhabditis elegans AND NOT Homo sapiens"
 
 =cut
 
-sub process : Path {
+sub taxonomy : Path {
   my( $this, $c ) = @_;
   
-  $c->log->debug( 'Search::Taxonomy::process: starting a taxonomy search' )
+  $c->log->debug( 'Search::Taxonomy::taxonomy: starting a taxonomy search' )
     if $c->debug;
 
   # make sure we got *something*
   unless( defined $c->req->param('q') ) {
-    $c->stash->{taxSearchError} = 'You did not supply a query string.';
+    $c->stash->{taxSearchError} = 'There was a problem with your query. '
+      . 'You did not supply a query string.';
     return;
   }
 
   # make sure it was plain text
   # But how do we deal with a case like "Escherichia coli O157:H7"? 
   unless( $c->req->param('q') =~ m/^([\S().\s]+)$/ ) {
-    $c->stash->{taxSearchError} = 'You did not supply a valid query string.';
+    $c->stash->{taxSearchError} = 'There was a problem with your query. '
+      . 'Please check that there are no illegal characters in your query string and try again.';
+    return;
+  }
+  my $query = $1;
+  $c->log->debug( "Search::Taxonomy::taxonomy: found query string: |$query|" )
+    if $c->debug;
+  
+  #----------------------------------------
+  
+  # call parseTerms, to parse the query string and return it with the species 
+  # names quoted. That method also puts two arrays into the stash: @terms 
+  # stores the raw terms, @sentence stores the terms plus the boolean operators 
+  # and braces
+  
+  my $quotedQuery = $c->forward('parseTerms', [ $query ] );
+
+  #----------------------------------------
+  
+  # we got a valid string, but does it parse ?
+  $c->log->debug( "Search::Taxonomy::taxonomy: got quoted query string: |$quotedQuery|" )
+    if $c->debug;
+
+  # see if we can retrieve this result from cache. Need to get rid of the 
+  # stranger characters in the quoted string, like quotes, for a start...
+  my $cacheKey = 'taxonomySearch' . $quotedQuery;
+  $cacheKey =~ s/[\W\s]/_/g;
+  my $families = $c->cache->get( $cacheKey );
+  
+  if( defined $families ) {
+    $c->log->debug( 'Search::Taxonomy::taxonomy: retrieved families from cache' )
+      if $c->debug;
+  } else {
+    $c->log->debug( 'Search::Taxonomy::taxonomy: failed to retrieve families from cache; going to DB' )
+      if $c->debug;
+   
+    my $qp = new Search::QueryParser;
+    my $pq = $qp->parse( $quotedQuery );
+    unless( $pq ) {
+      $c->stash->{taxSearchError} = 'There was a problem with your query. '
+        . 'Please check that you entered a valid boolean query and try again.';
+      return;
+    }
+      
+    $c->log->debug( 'Search::Taxonomy::taxonomy: parsed query: ', dump $pq )
+      if $c->debug;
+  
+    # walk down the tree and accumulate the list of Pfam-As for the specified
+    # species
+    $families = $c->forward('descend', [ $pq, '' ] );
+  
+    # cache the result
+    $c->cache->set( $cacheKey, $families );
+  }
+  
+  $c->log->debug( 'Search::Taxonomy::taxonomy: got the following families ',
+                  dump $families )
+    if $c->debug;
+  
+  $c->stash->{families} = $families;
+  $c->stash->{template} = 'pages/search/taxonomy/results.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 unique : Local
+
+Retrieves the list of Pfam-A accessions for families that are unique to the
+specified taxonomic level (species, e.g. "C. elegans", or level, 
+e.g. "Metazoa").
+
+=cut
+
+sub unique : Local {
+  my( $this, $c ) = @_;
+
+  # make sure we got *something*
+  unless( defined $c->req->param('q') ) {
+    $c->stash->{taxSearchError} = 'There was a problem with your query. '
+      . 'You did not supply a query string.';
+    return;
+  }
+
+  # make sure it was plain text
+  # But how do we deal with a case like "Escherichia coli O157:H7"? 
+  unless( $c->req->param('q') =~ m/^([\S().\s]+)$/ ) {
+    $c->stash->{taxSearchError} = 'There was a problem with your query. '
+      . 'Please check that you have not included any illegal characters and try again.';
     return;
   }
   my $query = $1;
   
-  if( $query =~ /^unique (.*)$/i ){
-    my $term = $1;
-    $c->stash->{term} = $term;
-    $c->log->debug( "Search::Taxonomy::process: Going to find unique matches for string: |$term|" )
+  #----------------------------------------
+
+  # call parseTerms, to parse the query string and return it with the species 
+  # names quoted. That method also puts two arrays into the stash: @terms 
+  # stores the raw terms, @sentence stores the terms plus the boolean operators 
+  # and braces
+  
+  my $quotedQuery = $c->forward('parseTerms', [ $query ] );
+
+  # we should have only one species name in the query
+  if( scalar @{ $c->stash->{terms} } > 1 ) {
+    $c->stash->{taxSearchError} = 'You can only find unique families for a single species.'
+      . ' Please enter only one species name and try again.';
+    return;
+  }
+  
+  $c->log->debug( "Search::Taxonomy::unique: finding unique matches for |$quotedQuery|" )
+    if $c->debug;
+
+  #----------------------------------------
+
+  # see if we can retrieve this result from cache. Need to get rid of the 
+  # stranger characters in the quoted string, like quotes, for a start...
+  my $cacheKey = 'uniqueFamilies' . $quotedQuery;
+  $cacheKey =~ s/[\W\s]/_/g;
+  my $unique = $c->cache->get( $cacheKey );
+  
+  if( defined $unique ) {
+    $c->log->debug( 'Search::Taxonomy::unique: retrieved unique families from cache' )
       if $c->debug;
-    my $allCountRef  = $c->forward('getAllFamilyCount');   
-    my $termCountRef = $c->forward('getFamiliesForTerm');    
+  } else { 
+    $c->log->debug( 'Search::Taxonomy::unique: failed to retrieve unique families from cache; going to DB' )
+      if $c->debug;
     
-    my %uniqueFams;
-    while( my( $k, $v ) = each %$termCountRef ) {
+    my $allCount  = $c->forward('getAllFamilyCount');
+    my $termCount = $c->forward('getFamilyCount', [ $quotedQuery ] );
+
+    $unique = {};
+    while( my( $k, $v ) = each %$termCount ) {
       # now see if the count is the same; if it is then it must be unique to 
       # the term
-      if( $allCountRef->{$k} == $v ) {
-         $uniqueFams{$k}++;
-      }
+      $unique->{$k}++ if $allCount->{$k} == $v;
     }
 
-    # now stuff the list of unique families to the stash
-    $c->stash->{uniqueFamsToTerm} = \%uniqueFams
-
-  } else {
-    # we got a valid string, but does it parse ?
-    $c->log->debug( "Search::Taxonomy::process: found query string: |$query|" )
-      if $c->debug;
-
-    my $qp = new Search::QueryParser;
-    my $pq = $qp->parse( $query );
-    unless($pq){
-      $c->stash->{taxSearchError} = 'Error parsing query string.';
-      return;
-    }
-    
-    $c->log->debug( 'Search::Taxonomy::process: parsed query: ', dump $pq )
-      if $c->debug;
-    $c->stash->{parsedQuery} = $pq;
-
-    # walk down the tree
-    my $famsRef = $c->forward('descend');
-
-    $c->stash->{famsForTerm} = $famsRef;
-    $c->log->debug( 'Search::Taxonomy::process: got the following families ',
-                    dump $famsRef )
-      if $c->debug;
-  } 
+    # cache the result
+    $c->cache->set( $cacheKey, $unique );
+  }
   
-  $c->stash->{template} = 'pages/search/taxonomy/results.tt';
+  $c->log->debug( 'Search::Taxonomy::unique: got the following families ',
+                  dump $unique )
+    if $c->debug;
+
+  $c->stash->{uniqueFamilies} = $unique;
+  $c->stash->{template}       = 'pages/search/taxonomy/results.tt';
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 suggest : Local
 
-Returns a list of possible completions for species names as an HTML list.
+Returns a list of possible completions for species names as an HTML list (ul).
 
 This action is intended to be called only by an AJAX call from the taxonomy 
 search form. The resulting list is presented as auto-completion lines under the 
@@ -122,8 +221,14 @@ Caenorhabditis elegans after all...
 sub suggest : Local {
   my( $this, $c ) = @_;
 
-  # first, split up the search string into individual 'words'
-  $c->forward( 'parseTerms' );
+  # make sure we got *something*
+  return unless( defined $c->req->param('q') and 
+                 $c->req->param('q') =~ m/^([\w\s\(\)\.]+)$/ );
+
+  # split up the search string into individual 'words'. We don't care about
+  # the return value, which gives the search string with the species names
+  # quoted
+  $c->forward( 'parseTerms', [ $1 ] );
 
   #----------------------------------------
 
@@ -193,7 +298,7 @@ sub suggest : Local {
     SUGGESTION: 
     foreach my $suggestion ( sort @speciesSuggestions ) {
       push @searchSuggestions, $suggestionLine . $suggestion;
-      if( $i >= $limit ) {
+      if( $i >= $limit - 1 ) {
         $limited = 1;
         last WORD;
       }
@@ -234,29 +339,31 @@ sub suggest : Local {
 
 =head2 parseTerms : Private
 
-Description...
+Parses the query string into two arrays, @terms and @sentence, containing the 
+species names and all of the tokens within the query respectively. The two 
+arrays are dropped into the stash. Returns the query string with the species 
+names quoted.
 
 =cut
 
 sub parseTerms : Private {
-  my( $this, $c ) = @_;
+  my( $this, $c, $query ) = @_;
 
   # later we'll want to chomp to remove trailing spaces... 
-  local( $/ ) = ' ';
+  local $/ = ' ';
   
-  # detaint the parameter
-  my( $q ) = $c->req->param('q') =~ m/^([\w\s\(\)\.]+)$/;
-
   # put spaces around braces to make sure we see them in the list of words when 
   # we split on spaces
-  $q =~ s|([\(\)])| $1 |g;
+  $query =~ s|([\(\)])| $1 |g;
 
   # strip leading and trailing spaces 
-  $q =~ s/^\s*(.*?)\s*$/$1/;
+  $query =~ s/^\s*(.*?)\s*$/$1/;
+  $c->log->debug( "Search::Taxonomy::parseTerms: starting with search term: |$query|" )
+    if $c->debug;
   
   # break up the search term into "words"
-  my @words = split /\s+/, $q;
-
+  my @words = split /\s+/, $query;
+  
   #----------------------------------------
   
   # next, filter the terms to collect the actual species names separately from
@@ -281,12 +388,15 @@ sub parseTerms : Private {
       if( $words[$index + 1] and 
           $words[$index + 1] eq 'NOT' ) {
         delete $words[$index + 1];
+        chomp $term;
         push @sentence, $term, 'AND NOT';
+        push @terms, $term;
         $term = '';
 
       } else {
         chomp $term;
         push @sentence, $term, 'AND';
+        push @terms, $term;
         $term = '';
       }
 
@@ -302,8 +412,7 @@ sub parseTerms : Private {
       push @sentence, uc $word;
       $term = '';
 
-    } else {      
-
+    } else {
       # the word that we have is a search term; add it to the growing search 
       # term string
       $term .= $word . ' ';
@@ -319,84 +428,173 @@ sub parseTerms : Private {
     push @terms, $term;
   }
 
+  #----------------------------------------
+
   # now we should have two arrays, one with the species names that we'll need
   # to search (@term), one with the whole search term broken up into 'words'
   # (@sentence)
   $c->stash->{terms}    = \@terms;
   $c->stash->{sentence} = \@sentence;
+  
+  # finally, put double-quotes around each of the search terms in the input
+  # string and return that
+  foreach my $term ( @{ $c->stash->{terms} } ) {
+    $query =~ s/($term)/"$1"/ig;
+  }
+
+  return $query;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 getFamilyCount : Private
+
+Retrieves the list of families in a given species. Returns a reference to a 
+hash containing the Pfam-A accession and the count of the number of families.
+
+=cut
+
+sub getFamilyCount : Private {
+  my( $this, $c, $term ) = @_;  
+
+  # see if we can retrieve the families from cache
+  my $cacheKey = 'familyCount' . $term;
+  $cacheKey =~ s/[\W\s]/_/g;
+  $c->log->debug( "Search::Taxonomy::getFamilyCount: cacheKey: |$cacheKey|" )
+    if $c->debug;
+  my $res      = $c->cache->get( $cacheKey );
+
+  if( defined $res ) {
+    $c->log->debug( 'Search::Taxonomy::getFamilyCount: retrieved family counts from cache' )
+      if $c->debug;
+  } else {
+    $c->log->debug( 'Search::Taxonomy::getFamilyCount: failed to retrieve family counts from cache; going to DB' )
+      if $c->debug;
+
+    my $range = $c->forward('getRange', [ $term ] );
+    
+    if( not defined $range ) {
+      $c->log->debug( 'Search::Taxonomy::getFamilyCount: range error' );
+      $c->stash->{rangeError} = "Could not find $term";
+      return;
+    }
+      
+    $c->log->debug( 'Search::Taxonomy::getFamilyCount: getting count for '
+                    . "|$term|, |$range->[0]|, |$range->[1]|" )
+      if $c->debug;
+  
+    my @rs = $c->model('PfamDB::Taxonomy')
+               ->search( { lft => { '>=' => $range->[0] },
+                           rgt => { '<=' => $range->[1] } },
+                         { join     => [ 'pfamAncbi' ],
+                           select   => [ 'pfamAncbi.pfamA_acc', 
+                                         { count => 'pfamAncbi.auto_pfamA' } ],
+                           as       => [ 'pfamA_acc', 'count' ],
+                           group_by => [ 'pfamAncbi.auto_pfamA' ],
+                         } );
+  
+    my %res = map{ $_->get_column('pfamA_acc') => $_->get_column('count') } @rs;
+  
+    $c->log->debug( 'Search::Taxonomy::getFamilyCount: got |'
+                    . scalar( keys %res ) . '| family counts' )
+      if $c->debug;
+
+    $res = \%res;
+    
+    # cache the result
+    $c->cache->set( $cacheKey, $res );
+  }
+  
+  return $res;
 }
 
 #-------------------------------------------------------------------------------
 
 =head2 getAllFamilyCount : Private
 
-Description...
+Retrieves, for each Pfam-A family, the count of the number of times that family
+occurs for each species. Returns a reference to a hash with Pfam-A accession 
+and count.
 
 =cut
 
 sub getAllFamilyCount : Private {
   my( $this, $c ) = @_;  
 
-  my @rs;
-  if( $c->stash->{term} ) {
-    
-    my $range = $c->forward('getRange');
-    
-    $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: getting count for |'
-                    . $c->stash->{term} . "|, |$range->[0]|, |$range->[1]|" )
-      if $c->debug;
-
-    @rs = $c->model('PfamDB::Taxonomy')
-            ->search( { lft => { '>=' => $range->[0] },
-                        rgt => { '<=' => $range->[1] } },
-                      { join     => [ 'pfamAncbi' ],
-                        select   => [ 'pfamAncbi.pfamA_acc', 
-                                      { count => 'pfamAncbi.auto_pfamA' } ],
-                        as       => [ 'pfamA_acc', 'count' ],
-                        group_by => [ 'pfamAncbi.auto_pfamA' ],
-                      } );
-  } else {
-
-    $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: no search term provided' )
-      if $c->debug;
-
-    @rs = $c->model('PfamDB::PfamA_ncbi')
-            ->search( {},
-                      { select   => [ 'pfamA_acc', 
-                                      { count => 'auto_pfamA' } ],
-                        as       => [ 'pfamA_acc', 'count' ],
-                        group_by => [ 'me.auto_pfamA' ],
-                      } );
-  } 
-
-  my %res = map{ $_->get_column('pfamA_acc') => $_->get_column('count') } @rs;
-
-  $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: got |'
-                  . scalar( keys %res ) . '| family counts' )
+  my $cacheKey = 'allFamilyCount';
+  $c->log->debug( "Search::Taxonomy::getAllFamilyCount: cacheKey: |$cacheKey|" )
     if $c->debug;
+  my $res      = $c->cache->get( $cacheKey );
 
-  return \%res;
+  if( defined $res ) {
+    $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: retrieved family counts from cache' )
+      if $c->debug;
+  } else {
+    $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: failed to retrieve family counts from cache; going toDB' )
+      if $c->debug;
+
+    my @rs = $c->model('PfamDB::PfamA_ncbi')
+               ->search( {},
+                         { select   => [ 'pfamA_acc', 
+                                         { count => 'auto_pfamA' } ],
+                           as       => [ 'pfamA_acc', 'count' ],
+                           group_by => [ 'me.auto_pfamA' ],
+                         } );
+  
+    # hash the results
+    my %res = map{ $_->get_column('pfamA_acc') => $_->get_column('count') } @rs;
+
+    $c->log->debug( 'Search::Taxonomy::getAllFamilyCount: found |'
+                    . scalar( keys %res ) . '| family counts' )
+      if $c->debug;
+  
+    $res = \%res;
+    
+    # and cache that result
+    $c->cache->set( $cacheKey, $res );
+  }
+
+  return $res;
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 getFamiliesForTerm : Private
+=head2 getFamiliesForSpecies : Private
 
-Description...
+Returns the families that are found for the single specified taxonomic term. 
+This is used only by the "descend" method, to build the list of Pfam-A families 
+for a set of species.
+
+The first job is to find the range, the lft and rgt values, for the given
+species in the table that stores the species tree.
 
 =cut
 
 sub getFamiliesForTerm : Private {
-  my( $this, $c ) = @_;
-
-  my $rv;
+  my( $this, $c, $term ) = @_;
   
-  if( $c->stash->{term} ) {
-    
-    my $range = $c->forward('getRange');
+  # see if we can retrieve the families for this species from cache
+  my $cacheKey = 'familiesForTerm' . $term;
+  $cacheKey =~ s/[\W\s]/_/g;  
+  $c->log->debug( "Search::Taxonomy::getFamilies: cacheKey: |$cacheKey|" )
+    if $c->debug;
+  my $res      = $c->cache->get( $cacheKey );
+  
+  if( defined $res ) {
+    $c->log->debug( 'Search::Taxonomy::getFamiliesForTerm: retrieved families from cache' )
+      if $c->debug;
+  } else { 
 
-    $c->log->debug( "Search::Taxnomoy::getFamiliesForTerm: got lft: |$range->[0]|; "
-                    . "got rgt: |$range->[1]|")
+    # find the left and right values for this specific species name
+    my $range = $c->forward('getRange', [ $term ] );
+  
+    # "getRange" returns 0 if it couldn't find a range for the given term, or
+    # a hash ref if it found the lft/rgt values
+  
+    # return "0" by default, as this is what $c->forward will enforce anyway
+    return 0 unless ref($range) eq 'ARRAY';
+  
+    $c->log->debug( 'Search::Taxonomy::getFamiliesForTerm: failed to retrieve families from cache; going to DB' )
       if $c->debug;
 
     my @rs = $c->model('PfamDB::PfamA_ncbi')
@@ -404,13 +602,21 @@ sub getFamiliesForTerm : Private {
                            'tax.rgt'    => { '<=' => $range->[1] } },
                          { join     => [ 'tax' ],
                            prefetch => [ 'tax' ] }
-                       ); 
-
+                       );
+  
     my %res = map{ $_->pfamA_acc => 1 } @rs; 
-    $rv = \%res;
+
+    $c->log->debug( 'Search::Taxonomy::getFamiliesForSpecies: found |'
+                    . scalar( keys %res ) . '| families' )
+      if $c->debug;
+      
+    $res = \%res;
+      
+    # cache the result
+    $c->cache->set( $cacheKey, $res );
   }
   
-  return $rv;
+  return $res;
 }
 
 #-------------------------------------------------------------------------------
@@ -422,13 +628,9 @@ Description...
 =cut
 
 sub descend : Private {
-  my( $this, $c ) = @_;
-  
-  # take copies of everything, as the recursive nature of this code 
-  # means that this data will be lost otherwise.
-  my $query     = $c->stash->{parsedQuery};
-  my $operator  = $c->stash->{operator} || '';
-  my $famAllRef = $c->{allFams};
+  my( $this, $c, $query, $operator ) = @_;
+
+  my $famAllRef = {};
 
   # walk over these specific keys. Need to have this as a literal list in order
   # to fix the order of precedence
@@ -437,29 +639,27 @@ sub descend : Private {
     
     $c->log->debug( "Search::Taxonomy::descend: key: |$k|" ) if $c->debug;
     
-    # there's an array of values
+    # if there's an array of values...
     my $v = $query->{$k};
-    if( ref($v) eq 'ARRAY' ){
+    if( ref($v) eq 'ARRAY' ) {
 
       $c->log->debug( 'Search::Taxonomy::descend: got an array' ) if $c->debug;
-      $operator = $k;
 
-      # walk over the values
-      foreach my $e ( @$v ){
-        $c->stash->{operator}    = $operator;
-        $c->stash->{parsedQuery} = $e;
+      # walk over the array of values
+      foreach my $e ( @$v ) {
 
         # descend further down the tree
-        my $f = $c->forward('descend');
+        my $f = $c->forward('descend', [ $e, $k ] );
+        $f = undef if $f eq 0;
 
         # there's another level below this one
         if( keys %$famAllRef ) {
-          if( $operator eq '+' ) {
-            $famAllRef = common( $famAllRef, $f ); # AND
-          } elsif( $operator eq '-' ) {
-            $famAllRef = unique( $famAllRef, $f ); # NOT
+          if( $k eq '+' ) {
+            $famAllRef = findCommon( $famAllRef, $f ); # AND
+          } elsif( $k eq '-' ) {
+            $famAllRef = uniquify(   $famAllRef, $f ); # NOT
           } else {
-            $famAllRef = merge( $famAllRef, $f );  # OR
+            $famAllRef = merge(      $famAllRef, $f ); # OR
           }          
         } else {
           $famAllRef = $f;
@@ -470,13 +670,12 @@ sub descend : Private {
       # there's a single value
 
       if( ref($v) eq 'HASH' ) {
-        # reset the operators and query and descend down from here
-        $c->stash->{operator}    = $operator;
-        $c->stash->{parsedQuery} = $v;
-        $c->forward('descend');
+        # still at a branch; recurse further
+        $famAllRef = $c->forward('descend', [ $v, $operator ] );
+        
       } else {
-        $c->stash->{term} = $v;
-        $famAllRef = $c->forward('getFamiliesForTerm');
+        # leaf node; $v is now a species term
+        $famAllRef = $c->forward('getFamiliesForTerm', [ $v ] );
       } 
     } else {
       $c->log->warn( "Search::Taxonomy::descend: didn't do anything with |$k|$v|" );
@@ -492,50 +691,50 @@ sub descend : Private {
 
 Looks up the left and right values for a given species or taxonomic level.
 If it finds both left and right values, they are returned as a reference to 
-an array, undef otherwise.
+an array, "0" otherwise.
 
 =cut
 
 sub getRange : Private {
-  my( $this, $c ) = @_;
+  my( $this, $c, $term ) = @_;
   
   # we want to get the left and right ranges for the term from the taxomony 
   # table
   
   # we need to remove double quotes added round the term by QueryParser
-  $c->stash->{term} =~ s/\"//g;
+  $term =~ s/\"//g;
   
-  $c->log->debug( 'Search::Taxonomy::getRange: looking up term: |'
-                  . $c->stash->{term} . '|' )
+  $c->log->debug( "Search::Taxonomy::getRange: looking up term: |$term|" )
     if $c->debug;
 
   my $rs;
-  if( $c->stash->{term} =~ m/\S+\s+\S+/ ){
+  if( $term =~ m/\S+\s+\S+/ ){
     # looks like a species name
     $c->log->debug( 'Search::Taxonomy::getRange: looks like a species term')
       if $c->debug;
          
     $rs = $c->model('PfamDB::Taxonomy')
-            ->find( { species => $c->stash->{term} } );  
+            ->find( { species => $term } );  
 
-  } elsif( $c->stash->{term} =~/\S+/ ) {
+  } elsif( $term =~/\S+/ ) {
     # looks like a taxonomic level other than species.
     $c->log->debug( 'Search::Taxonomy::getRange: looks like a level term' )
       if $c->debug;
 
     $rs = $c->model('PfamDB::Taxonomy')
-            ->find( { level => $c->stash->{term} } );
+            ->find( { level => $term } );
   }
   
-  my $rv;
+  # return "0" by default, as this is what $c->forward will enforce anyway
+  my $rv = 0;
   if( $rs->lft and $rs->rgt ) {
-    $c->log->debug( 'Search::Taxonomy::getRange: got range for term' );   
+    $c->log->debug( 'Search::Taxonomy::getRange: got range for term: '
+                    . '|' . $rs->lft . '|' . $rs->rgt . '|' )
+      if $c->debug;   
     $rv = [ $rs->lft, $rs->rgt ];  
-  } else {
-    $c->{taxSearchError} = 
-      'Could not find ' . $c->stash->{term} . " in the database\n";
   }
 
+  # return 0 if we don't get a range
   return $rv;
 }
 
@@ -543,14 +742,14 @@ sub getRange : Private {
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 common
+=head2 findCommon
 
 Returns a reference to a hash with keys that are common to both input hashes. 
 Note that the values in the hash are always 1.
 
 =cut
 
-sub common {
+sub findCommon {
   my( $hashRef1, $hashRef2 ) = @_;
 
   my %common;
@@ -591,7 +790,7 @@ that are not found in the second input hash.
 
 =cut
 
-sub unique {
+sub uniquify {
   my( $hashRef1, $hashRef2 ) = @_;
   my %this_not_that;
   foreach ( keys %$hashRef1 ) {
