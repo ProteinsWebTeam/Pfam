@@ -1,10 +1,10 @@
-#!/usr/local/bin/perl -w
+#!/software/bin/perl -w
 
 use strict;
 
 my $agp      = shift;
 my $rfamfull = shift;
-my $rfamseqlist = shift;
+#my $rfamseqlist = shift;
 
 #my %rfamseq;
 #open( L, $rfamseqlist ) or die;
@@ -48,6 +48,7 @@ while(<AGP>) {
     if( /^AC\s+(\S+)/ ) {
 	$chr = $1;
     }
+
     if( my( $chrst, $chren, $clone, $clst, $clen, $clstr ) = 
 	/^GP\s+(\d+)\s+(\d+)\s+(\S+)\s+(\d+)\s+(\d+)\s+([+|-])/ ) {
 
@@ -70,17 +71,21 @@ while(<AGP>) {
 		}
 		
 		
-		printf( "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
-			$chr,
-			$start,
-			$end,
-			$clone,
-			$hit->{'st'},
-			$hit->{'en'},
-			$hit->{'acc'},
-			$hit->{'id'},
-			);
+	printf( "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
+		$chr,
+	       	$start,
+		$end,
+		$clone,
+		$hit->{'st'},
+		$hit->{'en'},
+		$hit->{'acc'},
+		$hit->{'id'},
+		);
 	    }
+	}
+    }else {
+	if (exists $hits{$chr}) {
+	    print "This seq has no GP mappings $chr need to print out\n";
 	}
     }
 }
