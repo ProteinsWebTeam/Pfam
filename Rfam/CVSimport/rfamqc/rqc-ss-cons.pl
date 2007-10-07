@@ -372,7 +372,7 @@ sub make_pair_table {
 sub is_nucleotide {
     my $a = shift;
     
-    if (defined($a){
+    if (defined($a)){
 	$a =~ tr/a-z/A-Z/;
     }
 	
