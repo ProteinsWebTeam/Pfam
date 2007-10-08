@@ -41,7 +41,7 @@ if( ! defined $nolog ) {
     open(LOGpb,">$family_dir/ss-stats-perbasepair") || die "Could not open log file $family_dir/ss-stats-perbasepair - can use -n option (but you'd be mental to do this!) $!";
 #Print headers:
     printf LOGps     "FAMILY\tSEQID\tFRACTN_CANONICAL_BPs\tLEN\n";
-    printf LOGpf     "FAMILY\tMEAN_FRACTN_CANONICAL_BPs\tCOVARIATION\tNO_SEQs\tALN_LENGTH\tNO_BPs\tNO_NUCs\tmean_PID\tmax_PID\tmin_PID\tmean_LEN\tmax_LEN\tmin_LEN\n";
+    printf LOGpf     "FAMILY\tMEAN_FRACTN_CANONICAL_BPs\tCOVARIATION\tNO_SEQs\tALN_LENGTH\tNO_BPs\tNO_NUCs\tmean_PID\tmax_PID\tmin_PID\tmean_LEN\tmax_LEN\tmin_LEN\tFRACTN_NUCs\n";
     printf LOGpb      "FAMILY\tBP_COORDS\tFRACTN_CANONICAL_BPs\n";
 }
 else {
@@ -249,10 +249,10 @@ else {
 }
 
 if( ! defined $nolog ) {
-    printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length;    
+    printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len);    
 }
 else {
-    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length;    
+    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len);    
 }
 
 close(LOGpb);
