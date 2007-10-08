@@ -1,0 +1,49 @@
+
+[%
+# summary.tt
+# jt6 20071008 WTSI
+# 
+# build the summary block for metagenomics sequences
+#
+# $Id: summary.tt,v 1.1 2007-10-08 16:12:10 jt6 Exp $
+
+USE String;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+#PROCESS "components/require.tt";
+
+#requirements.css.push( "metaseq.css" );
+#requirements.cssIeAll.push( "metaseq_all_ie.css" );
+
+#requirements.js.push( "metaseq.js" );
+
+#-------------------------------------------------------------------------------
+
+# a row counter
+oe = 0;
+-%]
+
+<!-- start metaseq summary block -->
+
+<div class="block" id="metaSummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+    
+    <h1>[% metaseq.metaseq_id %]</h1>
+
+    <p>
+      This is the summary of MetaSeq entry 
+      <a href="http://www.ebi.uniprot.org/entry/[% metaseq.metaseq_id %]"
+         class="ext">[% metaseq.metaseq_id %]</a>
+      (<a href="http://www.ebi.uniprot.org/entry/[% metaseq.metaseq_acc %]"
+          class="ext">[% metaseq.metaseq_acc %]</a>).
+    </p>
+    
+  </div> <!-- end of "blockContent" -->
+</div>
+
+<!-- end protein summary block -->
