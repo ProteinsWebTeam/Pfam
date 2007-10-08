@@ -103,7 +103,7 @@ function _ts_resortTable( table, column, img ) {
   // set the image class to reflect the sort order
   // jt6 20060821 WTSI
   if( img ) {
-    var sortOrder = img.hasClassName( "up" );
+    var sortOrder = Element.hasClassName( "img", "up" );
     $A( document.getElementsByClassName( "sortarrow" ) ).each( function( el ) {
         el.removeClassName( "up" )
           .removeClassName( "down" )
