@@ -29,9 +29,8 @@ my $family_dir = shift; # family dir to use
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
 
-my $perfamily = 0;
-my %persequence = ();
-my %perbasepair = ();
+my (%persequence, %perbasepair, %persequence_lens);
+my $perfamily=0;
 tie %persequence, "Tie::IxHash"; #keys returns elements in the same order they were added.
 tie %perbasepair, "Tie::IxHash";
 
@@ -41,8 +40,8 @@ if( ! defined $nolog ) {
     open(LOGps,">$family_dir/ss-stats-persequence") || die "Could not open log file $family_dir/ss-stats-persequence - can use -n option (but you'd be mental to do this!) $!";
     open(LOGpb,">$family_dir/ss-stats-perbasepair") || die "Could not open log file $family_dir/ss-stats-perbasepair - can use -n option (but you'd be mental to do this!) $!";
 #Print headers:
-    printf LOGps     "FAMILY\tSEQID\tFRACTN_CANONICAL_BPs\n";
-    printf LOGpf     "FAMILY\tMEAN_FRACTN_CANONICAL_BPs\tNO_SEQs\tALN_LENGTH\tNO_BPs\tmean_PID\tmax_PID\tmin_PID\tCOVARIATION\n";
+    printf LOGps     "FAMILY\tSEQID\tFRACTN_CANONICAL_BPs\tLEN\n";
+    printf LOGpf     "FAMILY\tMEAN_FRACTN_CANONICAL_BPs\tCOVARIATION\tNO_SEQs\tALN_LENGTH\tNO_BPs\tNO_NUCs\tmean_PID\tmax_PID\tmin_PID\tmean_LEN\tmax_LEN\tmin_LEN\n";
     printf LOGpb      "FAMILY\tBP_COORDS\tFRACTN_CANONICAL_BPs\n";
 }
 else {
@@ -89,12 +88,7 @@ if (scalar(@list)<2){
 }
 
 my @list2 = @list;
-my $mean_pid = 0.0;
-my $min_pid  = 1.0;
-my $max_pid  = 0.0;
-my $nocomps  = 0;
-my $nocovs   = 0;
-my $covariation = 0.0;
+my ($mean_pid, $min_pid, $max_pid, $nocomps, $nocovs, $covariation, $mean_length, $min_length, $max_length, $nonucleotides) = (0.0, 1.0, 0.0, 0, 0, 0.0, 0.0, 9999999999, 0, 0);
 #Calculate persequence info:
 foreach my $seqobj ( @list ) {
     my $seq = $seqobj->seq;
@@ -103,6 +97,26 @@ foreach my $seqobj ( @list ) {
     my $end = $seqobj->end;
     $seqname = "$seqname/$start-$end";
     my @seq = split(//,$seq);
+    
+    #Compute, number of nucleotides & seq length stats:
+    my $nuccount = 0;
+    for (my $i=0; $i<$len; $i++){
+	if ( is_nucleotide($seq[$i]) ){
+	    $nonucleotides++;
+	    $nuccount++;
+	}
+    }
+
+    $persequence_lens{$seqname} = $nuccount;
+    $mean_length += $nuccount;
+    if ($min_length>$nuccount){
+	$min_length=$nuccount;
+    }
+
+    if ($max_length<$nuccount){
+	$max_length=$nuccount;
+    }
+    
     $persequence{$seqname} = 0;
     #Count the canonical base-pairs in each sequence:
     if($nopairs>0){
@@ -120,10 +134,10 @@ foreach my $seqobj ( @list ) {
     }
     
     if( ! defined $nolog ) {
-	printf LOGps "$shortname_family_dir\t$seqname\t%0.4f\n", $persequence{$seqname};
+	printf LOGps "$shortname_family_dir\t$seqname\t%0.4f\t%d\n", $persequence{$seqname}, $persequence_lens{$seqname};
     }
     else {
-	printf "PERSEQUENCE: $shortname_family_dir\t$seqname\t%0.4f\n", $persequence{$seqname};
+	printf "PERSEQUENCE: $shortname_family_dir\t$seqname\t%0.4f\t%d\n", $persequence{$seqname}, $persequence_lens{$seqname};
     }
 
     #Computing pairwise stats (PID & Covariation):
@@ -207,6 +221,10 @@ if($nopairs>0 && $nocomps>0){
 	$covariation = $covariation/($nopairs*$nocomps); #$nocovs
 }
 
+if ($noseqs>0){
+    $mean_length = $mean_length/$noseqs;
+}
+
 #Print data to file and warnings for dodgy pairs:
 if ($noseqs>0 && $nopairs>0){
     foreach my $bpposns ( keys %perbasepair ) {
@@ -231,10 +249,10 @@ else {
 }
 
 if( ! defined $nolog ) {
-    printf LOGpf "$shortname_family_dir\t%0.5f\t$noseqs\t$len\t$nopairs\t%0.3f\t%0.3f\t%0.3f\t%0.5f\n", $perfamily, $mean_pid, $max_pid, $min_pid, $covariation;
+    printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length;    
 }
 else {
-    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t$noseqs\t$len\t$nopairs\t%0.3f\t%0.3f\t%0.3f\t%0.5f\n", $perfamily, $mean_pid, $max_pid, $min_pid, $covariation;    
+    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length;    
 }
 
 close(LOGpb);
@@ -391,11 +409,11 @@ sub is_complementary {
     my $a = shift;
     my $b = shift;
 
-    if (defined($a){
+    if (defined($a)){
 	$a =~ tr/a-z/A-Z/;
     }
 
-    if (defined($b){
+    if (defined($b)){
 	$b =~ tr/a-z/A-Z/;
     }
     
@@ -435,14 +453,14 @@ sub dist {
     my $a = shift;
     my $b = shift;
 
-    if (defined($a){
+    if (defined($a)){
 	$a =~ tr/a-z/A-Z/;
     }
 
-    if (defined($b){
+    if (defined($b)){
 	$b =~ tr/a-z/A-Z/;
     }
-
+    
     if ( defined($a) && defined($b) && (length($a)==1) && (length($b)==1) && ($a ne $b) ) {
 	return 1;
     }
