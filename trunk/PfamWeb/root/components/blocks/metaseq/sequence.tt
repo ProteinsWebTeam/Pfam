@@ -1,0 +1,116 @@
+
+[%
+# sequence.tt
+# jt6 20060619 WTSI
+# 
+# block for the sequence, raw and formatted, for the protein page
+#
+# $Id: sequence.tt,v 1.1 2007-10-08 16:12:10 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+-%]
+
+<!-- start protein sequence block -->
+
+<div class="block" id="proteinSequenceBlock">
+  <div class="handle">
+    <h1>Sequence information</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      This is the amino acid sequence of the UniProt sequence database entry
+      with the identifier <strong>[% pfamseq.pfamseq_acc %]</strong>. This 
+      sequence is stored in
+      the Pfam database and updated with each new Pfam release, but this means
+      that the sequence we store may differ from that stored by UniProt.
+    </p>
+    [% oe = 0 %]
+
+    <table class="layout" summary="Protein sequence">
+      <tbody>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
+          <td class="label">Sequence:</td>
+          <td class="data">[%
+            # an array containing the individual residues
+            sa = String.new( pfamseq.sequence ).split("");
+  
+            # a string with the bare lines of the sequence, without numbering
+            sl = String.new;
+
+            # a string with the sequence, plus spacing and numbering
+            sb = String.new;
+
+            # build the strings... this is a bit long-winded, because it's a 
+            # workaround. The "substr" virtual method seems to be broken in the
+            # version of TT that we have right now...
+
+            CALL sb.append( sa.0 );
+            CALL sl.append( sa.0 );
+            -%]<div class="sequenceLine">
+              [% i = 1;
+                 label = 1 -%] 
+              <div class="leftAlignmentLabel">[%- i %]</div>
+
+              [% # if you look closely at this block, you'll see that there's an 
+                 # extra </div>, which is required because we're building the line
+                 # on the fly and closing the <div> somewhere dependent on where the
+                 # end of the line falls. It's fine. Really.
+
+              i = 1;
+              FOREACH char IN sa;
+                CALL sb.append( char );
+                CALL sl.append( char );
+                IF ! ( (i+1) % 10 );
+                  CALL sb.append(" ");
+                END;
+                IF ! ( (i+1) % 60 );
+                  CALL sl.append( "<br />" );
+                  label = i + 1 %]
+                  <div class="alignmentRow">[% sb %]</div>
+                  <div class="rightAlignmentLabel">[% label %]</div>
+                  [%- sb = String.new -%]
+                </div> [% # extra, extra ! %]
+                <div class="sequenceLine">
+                  [%- label = label + 1 -%]
+                <div class="leftAlignmentLabel">[%- label %]</div>
+                [%- END;
+                i = i + 1;
+              END -%]
+
+              <div class="alignmentRow">[% String.new( sb ).left(65).replace(" ", "&nbsp;" ) %]</div>
+              <div class="rightAlignmentLabel">[% i %]</div>
+
+            </div> [% # end of sequenceLine %]
+
+            <div class="cleaner">&nbsp;</div>
+      
+            <p>
+              <span class="link" onclick="reveal(this,'plainSequence',false)">Show</span> the unformatted sequence.
+            </p>
+
+            <div id="plainSequence" style="display: none">[% sl %]</div>
+            
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
+          <td class="label">Checksums:</td>
+          <td class="data">
+            <div><span class="subLabel">CRC64:</span><span class="subRowData">[% pfamseq.crc64 %]</span></div>
+            <div><span class="subLabel">MD5:</span><span class="subRowData">[% pfamseq.md5 %]</span></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div> <!-- end of "blockContent" -->
+</div> <!-- end of "block" -->
+
+<!-- end protein sequence block -->
