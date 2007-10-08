@@ -37,37 +37,37 @@ function ts_makeSortable(table) {
     for (var i=0;i<firstRow.cells.length;i++) {
         var cell = firstRow.cells[i];
 
-		// don't sort on columns where the header has class "nosort"
-		// jt6 20060821 WTSI
-		if( Element.hasClassName( cell, "nosort" ) ) continue;
+    // don't sort on columns where the header has class "nosort"
+    // jt6 20060821 WTSI
+    if( Element.hasClassName( cell, "nosort" ) ) continue;
 
         var txt = ts_getInnerText(cell);
         cell.innerHTML = '<a href="#" class="sortheader" '+ 
         'onclick="ts_resortTable(this, '+i+');return false;">' + 
         txt+'<img class="sortarrow updown" src="/static/images/blank.gif" /></a>';
-		//        txt+'<span class="sortarrow">&nbsp;&nbsp;&nbsp;</span></a>';
+    //        txt+'<span class="sortarrow">&nbsp;&nbsp;&nbsp;</span></a>';
     }
 }
 
 function ts_getInnerText(el) {
-	if (typeof el == "string") return el;
-	if (typeof el == "undefined") { return el };
-	if (el.innerText) return el.innerText;	//Not needed but it is faster
-	var str = "";
-	
-	var cs = el.childNodes;
-	var l = cs.length;
-	for (var i = 0; i < l; i++) {
-		switch (cs[i].nodeType) {
-			case 1: //ELEMENT_NODE
-				str += ts_getInnerText(cs[i]);
-				break;
-			case 3:	//TEXT_NODE
-				str += cs[i].nodeValue;
-				break;
-		}
-	}
-	return str;
+  if (typeof el == "string") return el;
+  if (typeof el == "undefined") { return el };
+  if (el.innerText) return el.innerText;  //Not needed but it is faster
+  var str = "";
+  
+  var cs = el.childNodes;
+  var l = cs.length;
+  for (var i = 0; i < l; i++) {
+    switch (cs[i].nodeType) {
+      case 1: //ELEMENT_NODE
+        str += ts_getInnerText(cs[i]);
+        break;
+      case 3:  //TEXT_NODE
+        str += cs[i].nodeValue;
+        break;
+    }
+  }
+  return str;
 }
 
 function ts_resortTable(lnk,clid) {
@@ -80,7 +80,7 @@ function ts_resortTable(lnk,clid) {
     var column = clid || td.cellIndex;
     var table = getParent(td,'TABLE');
 
-	_ts_resortTable( table, column, img );
+  _ts_resortTable( table, column, img );
 }    
 
 function _ts_resortTable( table, column, img ) {
@@ -100,23 +100,23 @@ function _ts_resortTable( table, column, img ) {
     for (j=1;j<table.rows.length;j++) { newRows[j-1] = table.rows[j]; }
 
     newRows.sort(sortfn);
-	// set the image class to reflect the sort order
-	// jt6 20060821 WTSI
-	if( img ) {
-	  var sortOrder = Element.hasClassName( img, "down" );
-	  $A( document.getElementsByClassName( "sortarrow" ) ).each( function( el ) {
-	      Element.removeClassName( el, "up" );
-	      Element.removeClassName( el, "down" );
-	      Element.removeClassName( el, "updown" );
-	    }
-	  );
-	  if( sortOrder ) {
-		Element.addClassName( img, "up" );
-		newRows.reverse();
-	  } else {
-		Element.addClassName( img, "down" );
-	  }
-	}
+  // set the image class to reflect the sort order
+  // jt6 20060821 WTSI
+  if( img ) {
+    var sortOrder = img.hasClassName( "up" );
+    $A( document.getElementsByClassName( "sortarrow" ) ).each( function( el ) {
+        el.removeClassName( "up" )
+          .removeClassName( "down" )
+          .removeClassName( "updown" );
+      }
+    );
+    if( sortOrder ) {
+      img.addClassName( "down" );
+      newRows.reverse();
+    } else {
+      img.addClassName( "up" );
+    }
+  }
     
     // We appendChild rows that already exist to the tbody, so it moves them rather than creating new ones
     // don't do sortbottom rows
@@ -136,25 +136,25 @@ function _ts_resortTable( table, column, img ) {
         
     //span.innerHTML = ARROW;
 
-	// re-tag the rows as odd or even
-	// jt6 20060821 WTSI
-	var tbody = $A(table.getElementsByTagName("tbody")).first();
-	var i = 0;
-	$A(tbody.getElementsByTagName("tr")).each( function( tr ) {
-	    Element.removeClassName( tr, "odd" );
-	    Element.removeClassName( tr, "even" );
-	    Element.addClassName( tr, i++ % 2 ? "odd" : "even" );
-	  }
-	);
+  // re-tag the rows as odd or even
+  // jt6 20060821 WTSI
+  var tbody = $A(table.getElementsByTagName("tbody")).first();
+  var i = 0;
+  $A(tbody.getElementsByTagName("tr")).each( function( tr ) {
+      tr.removeClassName( "odd" )
+        .removeClassName( "even" )
+        .addClassName( i++ % 2 ? "odd" : "even" );
+    }
+  );
 
 }
 
 function getParent(el, pTagName) {
-	if (el == null) return null;
-	else if (el.nodeType == 1 && el.tagName.toLowerCase() == pTagName.toLowerCase())	// Gecko bug, supposed to be uppercase
-		return el;
-	else
-		return getParent(el.parentNode, pTagName);
+  if (el == null) return null;
+  else if (el.nodeType == 1 && el.tagName.toLowerCase() == pTagName.toLowerCase())  // Gecko bug, supposed to be uppercase
+    return el;
+  else
+    return getParent(el.parentNode, pTagName);
 }
 function ts_sort_date(a,b) {
     // y2k notes: two digit years less than 50 are treated as 20XX, greater than 50 are treated as 19XX
