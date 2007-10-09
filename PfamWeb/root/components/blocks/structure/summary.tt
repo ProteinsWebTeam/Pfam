@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.18 2007-08-31 14:14:26 jt6 Exp $
+# $Id: summary.tt,v 1.19 2007-10-09 09:43:04 jt6 Exp $
 
 USE String;
 USE date;
@@ -59,7 +59,8 @@ oe    = 0;
 
     <p>
     [% IF title;
-      title | lower | ucfirst;
+      t = String.new(title);
+      t.trim.lower.capital;
     ELSE %]
       This is the summary of <acronym title="Protein DataBank">PDB</acronym>
       entry <strong>[% pdbId %]</strong>. 
