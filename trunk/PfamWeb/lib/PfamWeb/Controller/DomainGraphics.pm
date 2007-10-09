@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.13 2007-09-18 16:04:11 rdf Exp $
+# $Id: DomainGraphics.pm,v 1.14 2007-10-09 15:14:43 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.13 2007-09-18 16:04:11 rdf Exp $
+$Id: DomainGraphics.pm,v 1.14 2007-10-09 15:14:43 jt6 Exp $
 
 =cut
 
@@ -74,7 +74,7 @@ sub begin : Private {
     $c->log->debug( 'DomainGraphics::begin: found an accession' ); 
   
     # what type of accession is it ?
-    if( $c->req->param('acc') =~ m/^(PF\d{5})$/i ) {
+    if( $c->req->param('acc') =~ m/^(PF\d{5})(\.\d+)?$/i ) {
   
       # pfam A
       $c->stash->{acc} = $1;
@@ -155,7 +155,7 @@ sub begin : Private {
     # with the taxId, means that we need to draw all of the architectures for
     # which include the given family from the given species 
     if( defined $c->req->param('pfamAcc') and
-        $c->req->param('pfamAcc')=~ m/(PF\d{5})$/ ) {
+        $c->req->param('pfamAcc')=~ m/(PF\d{5})(\.\d+)?$/ ) {
       $c->stash->{pfamAcc} = $1;
     }
     
@@ -202,8 +202,8 @@ sub domainGraphics : Path {
     $c->log->debug( 'DomainGraphics::domainGraphics: rendering "allSequences.tt"' );
     $c->stash->{template} = 'components/allSequences.tt';
 
-    # cache the page (fragment) for one week
-    $c->cache_page( 604800 );
+    # cache the page (fragment) for three days
+    $c->cache_page( 259200 );
 
   } elsif( $c->req->param('subTree') ) {
     $c->log->debug( 'DomainGraphics::domainGraphics: rendering "someSequences.tt"' );
@@ -215,8 +215,8 @@ sub domainGraphics : Path {
     $c->log->debug( 'DomainGraphics::domainGraphics: rendering "allArchitectures.tt"' );
     $c->stash->{template} = 'components/allArchitectures.tt';
 
-    # cache the page (fragment) for one week
-    $c->cache_page( 604800 );
+    # cache the page (fragment) for three days
+    $c->cache_page( 259200 );
   }
   
 }
@@ -415,23 +415,22 @@ sub getPfamBData : Private {
                                 prefetch  => [ qw( pfamB_reg annseq ) ] } );
 
     # grab the unique architectures
-    foreach my $arch ( @allRows) {
-      $c->log->debug("Got the following architecture:|".$arch->auto_architecture."|");
+    foreach my $arch ( @allRows ) {
       my $autoArch;
-      if($arch->auto_architecture){
+      if( defined $arch->auto_architecture ) {
         $autoArch = $arch->auto_architecture;
-      }else{
-        $autoArch = "nopfama"; 
+      } else {
+        $autoArch = 'nopfama';
       }
-      #next unless $arch->auto_architecture;
-      unless( $seenArch{ $autoArch } ) {    
+      $c->log->debug( "DomainGraphics::getPfamBData: got the following architecture:|$autoArch|" );
+
+      if( not $seenArch{$autoArch} ) {    
         push @rows, $arch;
         push @seqs, thaw( $arch->annseq_storable );
         $archStore{ $arch->pfamseq_id } = $arch;
       }
       $seenArch{ $autoArch }++;
     }
-    
   }
 
   #----------------------------------------
