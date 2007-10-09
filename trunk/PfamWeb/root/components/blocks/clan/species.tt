@@ -5,7 +5,7 @@
 #
 # block showing the species tree for clans
 #
-# $Id: species.tt,v 1.3 2007-08-07 12:43:45 jt6 Exp $
+# $Id: species.tt,v 1.4 2007-10-09 09:24:50 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -36,7 +36,7 @@ requirements.js.push( "treeTweak.js" );
     
     <div id="speciesTreeDesc">
       <p>
-        This tree shows the occurence of the domains in this clan across
+        This tree shows the occurrence of the domains in this clan across
         different species.
         <span onclick="reveal( this, 'speciesNotes', false, true )"
               class="moreLink">
