@@ -1,5 +1,5 @@
 
-# $Id: Meta_pfama_reg.pm,v 1.1 2007-10-08 16:12:09 jt6 Exp $
+# $Id: Meta_pfama_reg.pm,v 1.2 2007-10-10 14:50:57 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -35,7 +35,12 @@ __PACKAGE__->has_one( metaseq => 'PfamDB::Metaseq',
                       { 'foreign.auto_metaseq' => 'self.auto_metaseq' } );
 
 __PACKAGE__->has_one( pfamA => 'PfamDB::Pfam',
-                      { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
+                      { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+                      { proxy => [ qw( pfamA_acc 
+                                       pfamA_id 
+                                       description
+                                       model_length
+                                       type ) ] } );
 
 =head1 COPYRIGHT
 
