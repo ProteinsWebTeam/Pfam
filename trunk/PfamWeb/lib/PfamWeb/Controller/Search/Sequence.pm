@@ -2,11 +2,11 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.7 2007-08-20 08:58:05 jt6 Exp $
+# $Id: Sequence.pm,v 1.8 2007-10-10 14:54:49 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Sequence - perform sequence searches
+PfamWeb::Controller::Search::Sequence - perform sequence searches
 
 =cut
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.7 2007-08-20 08:58:05 jt6 Exp $
+$Id: Sequence.pm,v 1.8 2007-10-10 14:54:49 jt6 Exp $
 
 =cut
 
