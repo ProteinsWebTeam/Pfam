@@ -1,22 +1,22 @@
 
-# $Id: Pfam.pm,v 1.9 2007-08-20 08:58:48 rdf Exp $
+# $Id: Pfam.pm,v 1.10 2007-10-10 09:30:19 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 
 package PfamDB::Pfam;
 
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( 'Core' );
 
 #Set up the table
-__PACKAGE__->table( "pfamA" );
+__PACKAGE__->table( 'pfamA' );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/ auto_pfamA 
+__PACKAGE__->add_columns( qw( auto_pfamA 
                               pfamA_acc 
                               pfamA_id 
                               description 
@@ -57,44 +57,45 @@ __PACKAGE__->add_columns( qw/ auto_pfamA
                               percentage_id 
                               average_coverage 
                               change_status
-                            / );
+                            ) );
 
 
 #Set the the keys
-__PACKAGE__->set_primary_key( "auto_pfamA", "pfamA_id", "pfamA_acc" );
+__PACKAGE__->set_primary_key( qw( auto_pfamA 
+                                  pfamA_id 
+                                  pfamA_acc ) );
 
 
 #Now on to the relationships
 
-__PACKAGE__->might_have ( "interpro" => "PfamDB::Interpro",
-			  { "foreign.auto_pfamA"  => "self.auto_pfamA" },
-			  {  proxy => [ qw/interpro_id abstract/ ] } );
+__PACKAGE__->might_have ( 'interpro' => 'PfamDB::Interpro',
+                          { 'foreign.auto_pfamA'  => 'self.auto_pfamA' },
+                          {  proxy                => [ qw( interpro_id abstract ) ] } );
 
-__PACKAGE__->has_many   ( "pdbMap"   => "PfamDB::Pdb_pfamA_reg",
-			  { "foreign.auto_pfamA"  => "self.auto_pfamA" } );
+__PACKAGE__->has_many   ( 'pdbMap'                => 'PfamDB::Pdb_pfamA_reg',
+                          { 'foreign.auto_pfamA'  => 'self.auto_pfamA' } );
 
-__PACKAGE__->might_have ( "go"       => "PfamDB::GO",
-			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
-			  {  proxy               => [ qw/ go_id term category / ] } );
-			  
+__PACKAGE__->might_have ( 'go'       => 'PfamDB::GO',
+                          { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+                          {  proxy               => [ qw( go_id term category ) ] } );
+        
+__PACKAGE__->has_many   ( 'pfamA_lit_refs'       => 'PfamDB::PfamA_literature_references',
+                          { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
 
-__PACKAGE__->has_many   ( "pfamA_lit_refs" => "PfamDB::PfamA_literature_references",
-			  { "foreign.auto_pfamA"  => "self.auto_pfamA" } );
+__PACKAGE__->might_have ( 'clan_membership'      => 'PfamDB::Clan_membership',
+                          { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+                          {  proxy => [ qw( clan_acc clan_id clan_description ) ] } );
 
-__PACKAGE__->might_have ( "clan_membership" => "PfamDB::Clan_membership",
-			  { "foreign.auto_pfamA" => "self.auto_pfamA" },
-			  {  proxy => [ qw/clan_acc clan_id clan_description/ ] } );
+__PACKAGE__->has_many   ( 'pfamA_arch'           => 'PfamDB::PfamA_architecture',
+                          { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
 
-__PACKAGE__->has_many   ( "pfamA_arch" => "PfamDB::PfamA_architecture",
-			  { "foreign.auto_pfamA" => "self.auto_pfamA" } );
+__PACKAGE__->has_many   ( 'pfamA_database_links' => 'PfamDB::PfamA_database_links',
+                          { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
 
-__PACKAGE__->has_many( "pfamA_database_links" => "PfamDB::PfamA_database_links",
-		    { "foreign.auto_pfamA" => "self.auto_pfamA" } );
-
-__PACKAGE__->has_one    ( pfamA_alignments => 'PfamDB::AlignmentsAndTrees',
-        { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
-        {  proxy => [ qw( full full_tree full_jtml
-                          seed seed_tree seed_jtml ) ] } );
+__PACKAGE__->has_one    ( 'pfamA_alignments'     => 'PfamDB::AlignmentsAndTrees',
+                          { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+                          {  proxy => [ qw( full full_tree full_jtml
+                                            seed seed_tree seed_jtml ) ] } );
 
 
 #TODO -PRC tables - todo
@@ -102,19 +103,21 @@ __PACKAGE__->has_one    ( pfamA_alignments => 'PfamDB::AlignmentsAndTrees',
 
 #All of the region tables that join on to pfamA
 
-__PACKAGE__->has_many ("pfamA_reg_full" => "PfamDB::PfamA_reg_full",
-		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
+__PACKAGE__->has_many ( 'pfamA_reg_full' => 'PfamDB::PfamA_reg_full',
+                        { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
 
-__PACKAGE__->has_many ("pfamA_reg_seed" => "PfamDB::PfamA_reg_seed",
-		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
+__PACKAGE__->has_many ( 'pfamA_reg_seed' => 'PfamDB::PfamA_reg_seed',
+                        { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
 
-__PACKAGE__->has_many ("context" => "PfamDB::Context_pfam_regions",
-		       {"foreign.auto_pfamA" => "self.auto_pfamA"});
+__PACKAGE__->has_many ( 'context' => 'PfamDB::Context_pfam_regions',
+                        { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
 
 #TODO Interaction tables - todo
 
 #TODO Genome tables - todo
 
+__PACKAGE__->has_many ( 'meta_pfama_reg' => 'PfamDB::Meta_pfama_reg',
+                        { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
 
 
 =head1 COPYRIGHT
