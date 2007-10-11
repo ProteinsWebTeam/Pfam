@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.14 2007-10-09 15:14:43 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.15 2007-10-11 09:35:06 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.14 2007-10-09 15:14:43 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.15 2007-10-11 09:35:06 jt6 Exp $
 
 =cut
 
@@ -63,14 +63,16 @@ sub begin : Private {
       $c->req->param('arch') =~ m/^(\d+|nopfama)$/ ) {
     $c->stash->{auto_arch} = $1;
     $c->log->debug( 'DomainGraphics::begin: arch: |' . $c->stash->{auto_arch} . '|' ); 
-  }
+    $c->forward( 'getFamilyData' );
   
   #----------------------------------------
 
-  # do we have an accession ?
-  if( defined $c->req->param('acc') and
-      $c->req->param('acc') ne '' ) {
+  # do we have a family accessions ? 
   
+  } elsif( defined $c->req->param('acc') and
+           $c->req->param('acc') ne '' ) {
+             
+    # we got a regular family accession...
     $c->log->debug( 'DomainGraphics::begin: found an accession' ); 
   
     # what type of accession is it ?
