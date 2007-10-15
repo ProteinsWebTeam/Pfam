@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.8 2007-09-13 13:50:19 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.9 2007-10-15 09:10:16 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.8 2007-09-13 13:50:19 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.9 2007-10-15 09:10:16 jt6 Exp $
 
 =cut
 
@@ -81,7 +81,9 @@ sub begin : Private {
     # pfam A
     $c->stash->{acc}  = $1;
     $c->stash->{entryType} = 'A';
-    $c->log->debug( 'SpeciesTree::begin: found Pfam A accession |' . $c->stash->{acc} . '|' );
+    $c->log->debug( 'SpeciesTree::begin: found Pfam A accession |' 
+                    . $c->stash->{acc} . '|' )
+      if $c->debug;
 
     # make sure we can retrieve data for that entry
     $c->stash->{entry} = $c->model('PfamDB::Pfam')
@@ -92,7 +94,9 @@ sub begin : Private {
     # pfam B
     $c->stash->{acc}  = $1;
     $c->stash->{entryType} = 'B';
-    $c->log->debug( 'SpeciesTree::begin: found Pfam B accession |' . $c->stash->{acc} . '|' );      
+    $c->log->debug( 'SpeciesTree::begin: found Pfam B accession |'
+                    . $c->stash->{acc} . '|' )
+      if $c->debug;      
 
     $c->stash->{entry} = $c->model('PfamDB::PfamB')
                            ->find( { pfamB_acc => $c->stash->{acc} } );
@@ -102,7 +106,9 @@ sub begin : Private {
     # looks like a clan
     $c->stash->{acc}  = $1;
     $c->stash->{entryType} = 'C';
-    $c->log->debug( 'SpeciesTree::begin: found Clan accession |' . $c->stash->{acc} . '|' );
+    $c->log->debug( 'SpeciesTree::begin: found Clan accession |'
+                    . $c->stash->{acc} . '|' )
+      if $c->debug;
 
     $c->stash->{entry} = $c->model('PfamDB::Clans')
                            ->find( { clan_acc => $c->stash->{acc} } );
@@ -117,6 +123,12 @@ sub begin : Private {
   # see if we should override the "too many species" check
   $c->stash->{loadTree} = defined $c->req->param('loadTree');
 
+  # see if we're serving to Internet Exploder...
+  $c->stash->{isIE} = ( defined $c->req->param('ie') and
+                        $c->req->param('ie') eq 'true' );
+  
+  $c->log->debug( 'SpeciesTree::begin: isIE: |' . $c->stash->{isIE} . '|' )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -132,21 +144,28 @@ render whatever template was previously specified in the stash.
 sub end : ActionClass( 'RenderView' ) {
   my( $this, $c ) = @_;
 
-  # if there's no text representation of the tree, we need to hand off
-  # straight to RenderView and let it render the template
-  return unless $c->stash->{textTree};
-    
-  # as we HAVE generated a text representation, we want to dump it to the 
-  # response before forwarding to RenderView. That way, when RenderView
-  # does its stuff, it will see that the response body is populated and
-  # not try to render a template
-  
-  # make it a plain text download
-  $c->res->content_type( "text/plain" );
-  $c->res->headers->header( 'Content-disposition' => 'attachment; filename='
-                            . $c->stash->{acc} . '_tree.txt' );
+  if( not $c->stash->{isIE} and 
+      defined $c->stash->{textTree} ) {
 
-  $c->res->body( $c->stash->{textTree} );
+    $c->log->debug( 'SpeciesTree::end: NOT in IE and we got a text tree' )
+      if $c->debug;
+
+    # we got a text tree; make it a plain text download
+    $c->res->content_type( "text/plain" );
+    $c->res->headers->header( 'Content-disposition' => 'attachment; filename='
+                              . $c->stash->{acc} . '_tree.txt' );
+  
+    $c->res->body( $c->stash->{textTree} );
+    
+  } else {
+    
+    $c->log->debug( 'SpeciesTree::end: handing off to template...' )
+      if $c->debug;
+
+    # hand off to the template and let it display an apologetic message
+    $c->stash->{template} ||= 'components/speciesTree.tt';
+  }
+
 }
 
 #-------------------------------------------------------------------------------
@@ -163,7 +182,8 @@ sub interactive : Local {
   my( $this, $c ) = @_;
 
   $c->log->debug( 'SpeciesTree::interactive: rendering the species tree for acc: |'
-                  . $c->stash->{acc} . '|' );
+                  . $c->stash->{acc} . '|' )
+    if $c->debug;
 
   $c->forward('buildTree');
 
@@ -173,6 +193,61 @@ sub interactive : Local {
   
   # cache the output of the template for one week
   $c->cache_page( 604800 );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 text : Local
+
+Generates a text representation of the species tree for the specified entry.
+
+=cut
+
+sub text : Local {
+  my( $this, $c ) = @_;
+
+  # see if we can simply retrieve the tree from cache first
+  my $cacheKey = 'speciesTree'
+                 . $c->stash->{acc}
+                 . $c->stash->{entryType};
+
+  my $textTree;
+  if( $textTree = $c->cache->get( $cacheKey ) ) {
+    $c->log->debug( 'SpeciesTree::text: retrieved the text tree from cache' )
+      if $c->debug;
+  } else {
+    $c->log->debug( 'SpeciesTree::text: no cached text tree; generating' )
+      if $c->debug;
+
+    # actually retrieve the data and build the in-memory representation
+    $c->forward('buildTree');
+
+    # did we build a tree ? If the entry has too many species, the getData
+    # method will refuse to retrieve the raw data, even after we've set the 
+    # "loadTree" flag, so we don't find anything in the stash 
+    if( $c->stash->{rawTree} ) {
+
+      # yes; convert the tree to plain text
+      my $treeBody;
+      convertToText( $c->stash->{rawTree}, \$treeBody );
+     
+      # add a couple of header lines
+      $textTree = '# Species tree for ' . $c->stash->{acc} . "\n";
+    
+      # see if we can get the release version
+      if( my $release = $c->stash->{relData}->pfam_release ) {
+        $textTree .= "# Generated from Pfam version $release\n";
+      }
+
+      # tack on the actual tree and we're done
+      $textTree .= $treeBody;
+    }
+
+    # cache the text tree
+    $c->cache->set( $cacheKey, $textTree );
+  }
+  
+  $c->stash->{textTree} = $textTree;
 }
 
 #-------------------------------------------------------------------------------
@@ -201,74 +276,6 @@ sub selected : Local {
 
   $c->log->debug( 'SpeciesTree::selected: rendering selected seqs as Pfam graphics' );
   $c->stash->{template} = "components/tools/seqViewGraphic.tt";
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 text : Local
-
-Generates a text representation of the species tree for the specified entry.
-
-=cut
-
-sub text : Local {
-  my( $this, $c ) = @_;
-
-  # see if we can simply retrieve the tree from cache first
-  my $cacheKey = 'speciesTree'
-                 . $c->stash->{acc}
-                 . $c->stash->{type};
-
-  my $textTree;
-  if( $textTree = $c->cache->get( $cacheKey ) ) {
-    $c->log->debug( 'SpeciesTree::text: retrieved the text tree from cache' );
-  } else {
-    $c->log->debug( 'SpeciesTree::text: no cached text tree; generating' );
-
-    # set the flag that will override the limits, because we always want to 
-    # return the text tree, even for entries that have too many species for the
-    # interactive tree
-    $c->stash->{loadTree} = 1; 
-  
-    # actually retrieve the data and build the in-memory representation
-    $c->forward('buildTree');
-
-    # did we build a tree ? If the entry has too many species, the getData
-    # method will refuse to retrieve the raw data, even after we've set the 
-    # "loadTree" flag, so we don't find anything in the stash 
-    if( $c->stash->{rawTree} ) {
-
-      # yes; convert the tree to plain text
-      my $treeBody;
-      convertToText( $c->stash->{rawTree}, \$treeBody );
-     
-      # add a couple of header lines
-      $textTree = '# Species tree for ' . $c->stash->{acc} . "\n";
-    
-      # see if we can get the release version
-      if( my $release = $c->stash->{relData}->pfam_release ) {
-        $textTree .= "# Generated from Pfam version $release\n";
-      }
-
-      # tack on the actual tree and we're done
-      $textTree .= $treeBody;
-    }
-  }
-    
-  # did it work ?
-  if( $textTree ) {
-
-    # yes; we got a text tree, so stash it and let the end method stuff it 
-    # into the response
-    $c->stash->{textTree} = $textTree;
-    
-  } else {
-   
-    # no; something went wrong. Hand off to the template that will render a 
-    # suitably apologetic message...
-    $c->stash->{template} = 'components/interactiveTree.tt';
-    
-  }
 }
 
 #-------------------------------------------------------------------------------
@@ -352,10 +359,10 @@ sub getData : Private {
 
   $c->forward('countSpecies');
 
-  my $limits = {
-    allowInteractiveLimit => $this->{allowInteractiveLimit},
-    denyInteractiveLimit  => $this->{denyInteractiveLimit},
-    denyAllLimit          => $this->{denyAllLimit}
+  my $limits = {                                             # set to...
+    allowInteractiveLimit => $this->{allowInteractiveLimit}, # 1000
+    denyInteractiveLimit  => $this->{denyInteractiveLimit},  # 2000
+    denyAllLimit          => $this->{denyAllLimit}           # 3000
   };
 
   # this is a hard limit
@@ -366,11 +373,9 @@ sub getData : Private {
     return;
   }
 
-  # this is a soft limit, overridden by the "loadTree" flag and accessible only
-  # to the text tree action
+  # this is a soft limit, overridden by the "loadTree" flag
   if( $c->stash->{numSpecies} > $this->{denyInteractiveLimit} and
-      not $c->stash->{loadTree} and
-      $c->action eq 'text' ) {
+      not $c->stash->{loadTree} ) {
     $c->log->debug( 'SpeciesTree::getData: too many families ('
                     . $c->stash->{numSpecies} . ', loadTree = '
                     . ($c->stash->{loadTree} || 0) . '); hit "denyInteractive" limit' );
@@ -419,7 +424,7 @@ sub countSpecies : Private {
 
   # for Pfam-As or clans we can just look up the number of species in the 
   # main table, via the "entry" that was put in the stash by C<begin>, but
-  # for Pfam-Bs, we'll actually have to count the number of species
+  # for Pfam-Bs we'll actually have to count the number of species
 
   if( $c->stash->{entryType} eq 'B' ) {
     
@@ -439,6 +444,9 @@ sub countSpecies : Private {
     $c->stash->{numSpecies} = $c->stash->{entry}->number_species;
   }
 
+  $c->log->debug( 'SpeciesTree::countSpecies: numSpecies: |'
+                  . $c->stash->{numSpecies} . '|' )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -520,7 +528,7 @@ sub getClanData : Private {
 }
 
 #-------------------------------------------------------------------------------
-#- private actions -------------------------------------------------------------
+#- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 addBranch

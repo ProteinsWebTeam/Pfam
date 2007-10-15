@@ -6,7 +6,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.22 2007-10-09 09:25:00 jt6 Exp $
+# $Id: species.tt,v 1.23 2007-10-15 09:10:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -37,16 +37,40 @@ requirements.js.push( "treeTweak.js" );
     
     <div id="speciesTreeDesc">
       <p>
-        This tree shows the occurrence of this domain across different species.
+        The tree shows the occurrence of this domain across different species.
         <span onclick="reveal( this, 'speciesNotes', false, true )"
               class="moreLink">
           More...</span>
       </p>
   
       <div id="speciesNotes" style="display: none">
+        <h2>Species trees</h2>
         <p>
-          For all of the domain matches in a full alignment we count the 
-          number of domains that are found on all sequences in the alignment. 
+          We show the species tree in one of two ways. For smaller trees we try
+          to show an interactive representation, which allows you to select
+          specific nodes in the tree and view them as an alignment or as a set 
+          of Pfam domain graphics.
+        </p>
+        <p>
+          Unfortunately we have found that there are problems viewing the 
+          interactive tree when the it becomes larger than a certain limit. 
+          Furthermore, we have found that Internet Explorer can become 
+          unresponsive when viewing some trees, regardless of their size. 
+          We therefore show a text representation of the species tree when the
+          size is above a certain limit or if you are using Internet Explorer
+          to view the site.
+        </p>
+        <p>
+          If you are using IE you can still load the interactive tree by 
+          clicking the &quot;Generate interactive tree&quot; button, but please 
+          be aware of the potential problems that the interactive species tree 
+          can cause.
+        </p>
+        
+        <h3>Interactive tree</h3>
+        <p>
+          For all of the domain matches in a full alignment, we count the 
+          number that are found on all sequences in the alignment. 
           This total is shown in the <span class="domSum">purple</span> box.
         </p>
         <p>
