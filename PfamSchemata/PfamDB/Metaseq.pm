@@ -1,5 +1,5 @@
 
-# $Id: Metaseq.pm,v 1.1 2007-10-08 16:12:09 jt6 Exp $
+# $Id: Metaseq.pm,v 1.2 2007-10-15 09:46:12 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -30,6 +30,11 @@ __PACKAGE__->set_primary_key( qw( auto_metaseq ) );
 # set up the relationships
 __PACKAGE__->has_many( meta_pfama_reg => 'PfamDB::Meta_pfama_reg',
                        { 'foreign.auto_metaseq' => 'self.auto_metaseq' } );
+
+# TODO this is actually wrong; there can be multiple rows for each source (multiple refs)
+__PACKAGE__->has_one( meta_ref => 'PfamDB::Metagenomics_refs',
+                      { 'foreign.source' => 'self.source' },
+                      { proxy => [ qw( long_source pmid ) ] } );
 
 =head1 COPYRIGHT
 
