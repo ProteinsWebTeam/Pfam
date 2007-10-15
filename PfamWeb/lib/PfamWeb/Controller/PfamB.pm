@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.15 2007-09-18 16:06:07 rdf Exp $
+# $Id: PfamB.pm,v 1.16 2007-10-15 09:13:44 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
 on the Family controller, which is responsible for deciding whether the input
 parameters on the URL are pointing to a Pfam-B accession or ID.
 
-$Id: PfamB.pm,v 1.15 2007-09-18 16:06:07 rdf Exp $
+$Id: PfamB.pm,v 1.16 2007-10-15 09:13:44 jt6 Exp $
 
 =cut
 
@@ -130,17 +130,22 @@ sub getSummaryData : Private {
                         ->search( { auto_pfamB => $auto_pfam },
                                   { join      => [ qw( pfamB_reg ) ],
                                     prefetch  => [ qw( pfamB_reg ) ] } );
-  $c->log->debug( 'PfamB::getSummaryData: found |' .scalar @archAndSpecies . '| architectures' );
+  $c->log->debug( 'PfamB::getSummaryData: found a total of |' 
+                  . scalar @archAndSpecies . '| architectures' );
 
   # count the *unique* architectures
   my $numArchs = 0;
   my %seenArch;
   foreach my $arch ( @archAndSpecies ) {
-    #next unless $arch->auto_architecture;
-    $numArchs++ unless $seenArch{ $arch->auto_architecture };
-    $seenArch{ $arch->auto_architecture }++;
+    if( defined $arch->auto_architecture ) {
+      $numArchs++ unless $seenArch{$arch->auto_architecture};
+      $seenArch{$arch->auto_architecture}++;
+    } else {
+      $numArchs++ unless $seenArch{nopfama};
+      $seenArch{nopfama}++;
+    }
   }
-  $c->log->debug( "PfamB::default: found |$numArchs| unique architectures" );
+  $c->log->debug( "PfamB::getSummaryData: found |$numArchs| *unique* architectures" );
 
   # number of architectures....
   $summaryData{numArchitectures} = $numArchs;
@@ -154,7 +159,7 @@ sub getSummaryData : Private {
 
   # number of species
   my %species_unique = map {$_->species => 1} @archAndSpecies;
-  $summaryData{numSpecies} = scalar(keys %species_unique);
+  $summaryData{numSpecies} = scalar( keys %species_unique );
 
   #----------------------------------------
 
