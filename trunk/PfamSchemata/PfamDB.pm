@@ -2,7 +2,7 @@
 # PfamDB.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamDB.pm,v 1.13 2007-10-10 14:52:57 jt6 Exp $
+# $Id: PfamDB.pm,v 1.14 2007-10-15 09:46:40 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -19,7 +19,7 @@ package PfamDB;
 The base class for the whole Pfam database model. Config comes from the catalyst 
 application class.
 
-$Id: PfamDB.pm,v 1.13 2007-10-10 14:52:57 jt6 Exp $
+$Id: PfamDB.pm,v 1.14 2007-10-15 09:46:40 jt6 Exp $
 
 =cut
 
@@ -49,6 +49,7 @@ __PACKAGE__->load_classes( qw(
   Interpro
   Literature_references
   Markup_key
+  Metagenomics_refs
   Meta_pfama_reg
   Metaseq
   Ncbi_map
