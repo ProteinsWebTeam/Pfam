@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.39 2007-09-18 08:42:48 jt6 Exp $
+# $Id: index.tt,v 1.40 2007-10-15 09:41:02 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -223,9 +223,6 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
           method="get" 
           id="proteinForm">
       <div>
-        <input type="hidden"
-               name="type"
-               value="Protein" />
         <input class="entryField"
                type="text" 
                name="entry" 
