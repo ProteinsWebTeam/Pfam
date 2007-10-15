@@ -5,7 +5,26 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.4 2007-09-21 11:25:29 jt6 Exp $
+# $Id: tax.tt,v 1.5 2007-10-15 09:41:38 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# we include the actual scriptaculous file here, because the scriptaculous
+# "load" call fails if we have already loaded other modules.  We need
+# scriptaculous for the auto-completion control
+requirements.js.push( "scriptaculous/controls.js" );
+
+# using styles from the help pages, plus the common styles for forms
+requirements.css.push( "help.css" );
+requirements.css.push( "search.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+
 %]
 
 <!-- start taxonomy search block -->
@@ -17,14 +36,99 @@
   <div class="blockContent">
 
     <p>
-      Find Pfam families according to taxonomy.
+      This form supports two types of query: you can enter a complex boolean
+      expression that precisely defines the species distribution of families
+      that you want, such as &quot;Caenorhabditis elegans AND NOT Homo 
+      sapiens&quot;, or you can enter a single species term, e.g. 
+      &quot;Caenorhabditis elegans&quot; and find all Pfam-A families that are 
+      unique to that particular taxonomic level.
       <span class="moreLink" onclick="reveal(this,'taxNotes',false, true)">More...</span>
     </p>
-
     <div id="taxNotes" style="display: none">
+
+      <h2>Species names</h2>
       <p>
-        Paste your query into the box below. 
+        In order to find species names in our database, you must give the full,
+        unabbreviated name in your query. For example, if you want to find
+        families in <em>Caenorhabditis elegans</em>, you must spell out 
+        &quot;Caenorhabditis&quot;; &quot;C. elegans&quot; does not exist in 
+        the species database and will not return any results. The capitalisation
+        of your query does not affect the results: 
+        &quot;<strong>C</strong>aenorhabditis&quot; is the same as
+        &quot;<strong>c</strong>aenorhabditis&quot;.
       </p>
+      
+      <h2>Term suggestions</h2>
+      <p>
+        Because species names can be long, complex and easily misspelt, the
+        form will offer suggestions for possible completions of terms that you
+        enter. For example, as you start typing c-a-e-n, a drop-down panel will
+        appear, showing the possible completions:
+      </p>
+      <img src="[% base %]static/images/completion_1.png"
+           class="suggestion"
+           alt="Completion of 'caen'" />
+      <p>
+        As you enter more letters, the suggestions will be refined accordingly:
+      </p>
+      <img src="[% base %]static/images/completion_2.png"
+           class="suggestion"
+           alt="Completion of 'caenorhab'" />
+      <p>
+        Note that only the last term in the field is used to offer completions,
+        so if you have already entered &quot;caenorhabditis elegans&quot;, going
+        back and shortening the first word to give &quot;caen elegans&quot;
+        will not give any suggestions.
+      </p>
+
+      <h2>Boolean queries</h2>
+      <p>
+        Boolean queries can contain logical operators, such as AND, NOT and OR,
+        combined with braces (&quot;(&quot; and &quot;)&quot;) to form a 
+        description of a set of families with a particular species distribution.
+      </p>
+      <p>
+        For example, the following query:
+      </p>
+      <p class="exampleQuery">
+        Caenorhabditis elegans AND NOT Homo sapiens
+      </p>
+      <p>
+        will retrieve all families which are found in <em>C. elegans</em> but not
+        in human, whilst
+      </p>
+      <p class="exampleQuery">
+        Caenorhabditis elegans AND Caenorhabditis briggsae AND NOT Homo 
+        sapiens
+      </p>
+      <p>
+        will retrieve all families which are found in both <em>C. elegans</em> 
+        and <em>C. briggsae</em> but not in human, and
+      </p>
+      <p class="exampleQuery">
+        ( Caenorhabditis elegans OR Caenorhabditis briggsae ) AND NOT Homo 
+        sapiens
+      </p>
+      <p>
+        will retrieve families that are found in either <em>C. elegans</em> 
+        or <em>C. briggsae</em> but not in human.
+      </p>
+      
+      <h2>Families unique to a single species</h2>
+      <p>
+        By checking the box marked &quot;Find domains unique to species&quot;
+        you can limit the query to finding those domains which are found only
+        in a single species or taxonomic level. For example, checking the box
+        and entering &quot;Caenorhabditis elegans&quot; will return a list of
+        Pfam-A domains that are present only in C. elegans, and 
+        &quot;metazoa&quot; will find families that exist in metazoans.
+      </p>
+      <p>
+        Note that you can only enter a single species term when looking for
+        unique sequences. You will see an error message if the search field
+        contains more than one species.
+      </p>
+      <hr />
     </div>
 
     <div class="formWrapper">
@@ -43,11 +147,22 @@
         <div class="row">
           <label for="q">Query</label>
           <input type="text" 
-                 size="40" 
+                 size="60" 
                  name="q" 
                  id="q" />
         </div>
-  
+
+        <div id="taxSuggestions" class="autocomplete"></div>
+          
+        <div class="row">
+          <label for="unique">Find domains unique to species</label>
+          <input class="radio"
+                 type="checkbox" 
+                 name="unique" 
+                 id="unique" 
+                 value="1" />
+        </div>
+
         <div class="row">
           <label class="blankLabel">Submit</label>
           <input class="submit"
@@ -62,7 +177,7 @@
           <input class="example" 
                  type="button" 
                  value="Example"
-                 onclick="$('q').value=exTax" />
+                 onclick="$('q').value=($F('unique')?exUnique:exTax)" />
         </div>
 
       </form>
@@ -74,7 +189,17 @@
 
 <script type="text/javascript">
   // <![CDATA[
-  var exTax = "a AND b";
+  var exTax    = 'Caenorhabditis elegans AND NOT Homo sapiens';
+  var exUnique = 'Caenorhabditis elegans';
+
+  new Ajax.Autocompleter(
+    'q',
+    'taxSuggestions',
+    '/catalyst/pfam/search/taxonomy/suggest',
+    { minChars:  3,
+      frequency: 0.6 }
+  );
+
   // ]]>
 </script>
 
