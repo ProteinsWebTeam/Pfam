@@ -1,0 +1,54 @@
+[%
+# resultsTable.tt
+# jt6 20071011 WTSI
+# 
+# a page fragment that builds the results table for taxonomy or unique
+# domains searches
+#
+# $Id: resultsTable.tt,v 1.1 2007-10-15 09:39:22 jt6 Exp $
+
+META naked = 1;
+%]
+
+<table class="sortable resultTable"
+       id="resultTable"
+       summary="Taxonomy search results">
+  <thead>
+    <tr>
+      <th>Accession</th>
+      <th>ID</th>
+      <th class="nosort">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH family IN families.keys.sort -%]
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td>
+        <a href="[% base %]family?acc=[% family %]">[% family %]</a>
+      </td>
+      <td>
+        <a href="[% base %]family?acc=[% family %]">
+          [% families.$family.pfamA_id %]</a>
+      </td>
+      <td>
+        [% families.$family.description %]
+      </td>
+    </tr>
+  [% END -%]
+  </tbody>
+</table>
+
+<p>
+  You can also see the accessions for the results families as a simple list 
+  that can be cut-and-pasted into an editor.
+  <span class="link" onclick="reveal(this,'textList',false)">Show</span> 
+  the unformatted list.
+</p>
+
+<div id="textList" style="display: none">
+  <pre>
+    [%- FOREACH family IN families.keys.sort;
+family %]
+[% END -%]
+  </pre>
+</div>

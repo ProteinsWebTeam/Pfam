@@ -1,0 +1,43 @@
+[%
+# taxSearchResults.tt
+# jt6 20071004 WTSI
+# 
+# a page fragment showing taxonomy search results
+#
+# $Id: taxSearchResults.tt,v 1.1 2007-10-15 09:39:22 jt6 Exp $
+
+META naked = 1;
+
+# first, check for error messages
+IF taxSearchError %]
+
+  <div class="error">
+    <h2>Error</h2>
+    [% taxSearchError %]
+  </div>
+  
+  <p>
+    Please return to the <a href="[% base %]search?tab=searchTaxBlock">
+      taxonomy search</a> page to try another query.
+  </p>
+
+[% ELSE;
+
+  IF families.keys.size > 0 -%]
+
+    <p>
+      We found <strong>[% families.keys.size %]</strong> families matching your
+      criteria:
+    </p>
+    
+    [% PROCESS pages/search/taxonomy/resultsTable.tt;
+
+  ELSE; # there are no families with this query... %]
+    <p>
+      We did not find any families using this query. Please return to the 
+      <a href="[% base %]search?tab=searchTaxBlock">search form</a> to try
+      another.
+    </p>
+  [% END; # of "IF families.keys.size"
+
+END; # of "IF taxSearchError" %]
