@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.32 2007-10-15 15:38:43 jt6 Exp $
+# $Id: Protein.pm,v 1.33 2007-10-15 15:45:50 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.32 2007-10-15 15:38:43 jt6 Exp $
+$Id: Protein.pm,v 1.33 2007-10-15 15:45:50 jt6 Exp $
 
 =cut
 
@@ -269,7 +269,7 @@ sub generatePfamGraphic : Private {
 
   # get a layout manager and set the X scale
   my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layoutPfam->scale_x(0.5);
+  $layoutPfam->scale_x(1);
   $c->log->debug('Protein::generatePfamGraphic: instantiated a layout manager');
 
   # retrieve the Storable containing the annotated sequence, thaw it
