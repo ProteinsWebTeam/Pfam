@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.7 2007-08-28 14:42:40 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.8 2007-10-15 09:10:16 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -15,7 +15,7 @@
 		<div class="cleaner"><!-- empty --></div>
   </div>
 
-  <div id="treeToolsContent">
+  <div id="treeToolsContent" style="display: none">
 
     <ul>
       <li>
