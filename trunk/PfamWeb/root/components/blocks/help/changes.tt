@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.9 2007-07-25 13:29:22 jt6 Exp $
+# $Id: changes.tt,v 1.10 2007-10-15 10:32:25 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -20,9 +20,10 @@
       This includes changes to the flatfiles, MySQL database and the public 
       website.
     </p>
+    <hr />
     
-    <h2>Latest changes</h2>
-  
+    <h2>Latest changes to Pfam data</h2>
+ 
     <h3>Changes between Pfam releases 21 and 22</h3>
 
     <p>
@@ -40,15 +41,17 @@
       signalp and tmhmm.
     </p>
 
-    <span onclick="reveal( this, 'moreChanges', false, true )"
-          class="moreLink">
-      More...</span>
+    <p>
+      <span onclick="reveal( this, 'dataChanges', false, true )"
+            class="moreLink">
+        Show</span> past changes.
+    </p>
 
-    <div id="moreChanges" style="display: none">
+    <div id="dataChanges" style="display: none">
 
-      <h2>Past changes</h2>
+      <h3>Past changes</h3>
       
-      <h3>Changes between Pfam releases 20 and 21</h3>
+      <h4>Changes between Pfam releases 20 and 21</h4>
 
       <p>
         Release 21.0 contains a total of 8957 families, with 669 new families 
@@ -75,7 +78,7 @@
         a monomer.
       </p>
       
-      <h3>Changes between Pfam releases 19 and 20</h3>
+      <h4>Changes between Pfam releases 19 and 20</h4>
   
       <p>
         Release 20.0 contains a total of 8296 families, with 123 new
@@ -85,7 +88,7 @@
         within Pfam domains.
        </p>
      
-      <h3>Changes between Pfam releases 18 and 19</h3>
+      <h4>Changes between Pfam releases 18 and 19</h4>
   
       <p>
         Pfam 19.0 is based on UniProt 6.1 (a composite of SWISSPROT
@@ -132,7 +135,7 @@
       #=GR YN14_YEAST/124-327 sAS       ........*.................
       </pre>
     
-      <h3>Changes between Pfam releases 17 and 18</h3>
+      <h4>Changes between Pfam releases 17 and 18</h4>
     
       <p>
         Pfam 18.0 is based on UniProt 5.0 (a composite of SWISSPROT
@@ -152,7 +155,7 @@
         version 18.0.
         </p>
     
-      <h3>Changes between Pfam releases 16 and 17</h3>
+      <h4>Changes between Pfam releases 16 and 17</h4>
     
       <p>
         Pfam 17.0 is based on UniProt 4.0 (a composite of SWISSPROT
@@ -183,7 +186,7 @@
         over.
       </p>
     
-      <h3>Changes between Pfam releases 15 and 16</h3>
+      <h4>Changes between Pfam releases 15 and 16</h4>
     
       <p>
         Pfam 16.0 is based on UniProt 2.5 (a composite of SWISSPROT
@@ -202,7 +205,7 @@
         provided.
       </p>
     
-      <h3>Changes between Pfam releases 14 and 15</h3>
+      <h4>Changes between Pfam releases 14 and 15</h4>
     
       <p>
         Pfam 15.0 is based on UniProt 2.0 (a composite of SWISSPROT
@@ -214,7 +217,7 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
     
-      <h3>Changes between Pfam releases 13 and 14</h3>
+      <h4>Changes between Pfam releases 13 and 14</h4>
     
       <p>
         Pfam 14.0 is based on UniProt 1.8 (a composite of SWISSPROT
@@ -235,7 +238,7 @@
         feedback on the new layout then please let us know.
       </p>
     
-      <h3>Changes between Pfam releases 12 and 13</h3>
+      <h4>Changes between Pfam releases 12 and 13</h4>
     
       <p>
         Pfam 13.0 is based on UniProt 1.4 (a composite of SWISSPROT
@@ -285,7 +288,7 @@
         numbers are obsolete for the website.
       </p>
     
-      <h3>Changes between Pfam releases 11 and 12</h3>
+      <h4>Changes between Pfam releases 11 and 12</h4>
     
       <p>
         Pfam 12.0 is based in a composite of SWISSPROT release 42.5 and
@@ -305,7 +308,7 @@
         different genomes.
       </p>
     
-      <h3>Changes between Pfam releases 10 and 11</h3>
+      <h4>Changes between Pfam releases 10 and 11</h4>
     
       <p>
         Pfam 11.0 is based in a composite of SWISSPROT release 41.25 and
@@ -323,7 +326,7 @@
         system.
       </p>
     
-      <h3>Changes between Pfam releases 9 and 10</h3>
+      <h4>Changes between Pfam releases 9 and 10</h4>
     
       <h4>Alignment mode</h4>
     
@@ -371,7 +374,7 @@
         by Nigel Brown at EMBL.
       </p>
     
-      <h3>Changes between Pfam releases 7 and 8</h3>
+      <h4>Changes between Pfam releases 7 and 8</h4>
     
       <p>
         Pfam 8.0 is based in a composite of SWISSPROT release 40.31 and
@@ -395,7 +398,7 @@
         partial matches are taken before global matches.
       </p>
     
-      <h3>Changes between Pfam releases 6 and 7</h3>
+      <h4>Changes between Pfam releases 6 and 7</h4>
     
       <p>
         Pfam 7.0 is based on a composite of SWISSPROT release 40 and
@@ -423,7 +426,63 @@
       </p>
 
     </div>
-    <!-- end of "moreChanges" -->
+    
+    <!-- end of "dataChanges" -->
+
+    <hr />
+
+    <h2>Latest changes to website</h2>
+
+    <h3>Release 1.2 (15th October 2007)</h3>
+    <ul>
+      <li><strong>Taxonomy searches have been reinstated:</strong>
+        you can now search for families that are found in a particular set of
+        species, or families that are unique to a given species or taxonomic
+        level.
+      </li>
+      <li><strong>Performance and stability improvements in IE:</strong>
+        there have been problems with the interactive species tree in 
+        Internet Explorer. We now show a text representation of the species
+        tree for IE, with the option to load the interactive tree on demand.
+        These changes will hopefully improve the performance of the pages that
+        include a species tree and should reduce the number of crashes in
+        IE with larger families.
+      </li>
+      <li><strong>Metaseq data are now available:</strong>
+        we have added summary pages for metaseq data and you can now visit a 
+        particular entry by putting the ID or accession in the 
+        &quot;view a sequence&quot; field on the homepage or via the 
+        &quot;jump to&quot; box.
+      </li>
+      <li><strong>Find sequences using NCBI &quot;GI&quot; number:</strong>
+        we have added summary pages for sequences with an NCBI &quot;GI&quot;
+        number and, as for metaseq pages, you can visit them from the homepage
+        or the &quot;jump to&quot; box.
+      </li>
+    </ul>
+
+    <p>
+      <span onclick="reveal( this, 'siteChanges', false, true )"
+            class="moreLink">
+        Show</span> past changes.
+    </p>
+
+    <div id="siteChanges" style="display: none">
+
+      <h3>Past changes</h3>
+
+      <h4>Release 1.1 (18th September 2007)</h4>
+      <p>
+        This was a bug-fix release.
+      </p>
+
+      <h4>Release 1.0 (31st October 2007)</h4>
+      <p>
+        Initial release.
+      </p>
+
+    </div>
+    <!-- end of "siteChanges" -->
 
   </div>
 </div>
