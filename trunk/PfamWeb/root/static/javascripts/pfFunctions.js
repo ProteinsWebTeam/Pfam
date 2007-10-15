@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.50 2007-09-12 12:57:37 jt6 Exp $
+// $Id: pfFunctions.js,v 1.51 2007-10-15 09:37:53 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -995,9 +995,9 @@ function stSuccess( oResponse ) {
     // bring back the control panel
     $("treeTools").show();
   } else {
+
     // we got a message from the server; display it
-    $("stph").update( oResponse.responseText )
-             .removeClassName("loading");
+    $("treeDiv").update( oResponse.responseText );
 
     // hide the control panel too
     $("treeTools").hide();
@@ -1005,7 +1005,7 @@ function stSuccess( oResponse ) {
 }
 
 function stFailure() {
-  $("stph").update( "Tree loading failed." );
+  $("treeDiv").update( "Tree loading failed." );
 }
 
 // this is an extra method to submit a new ajax request, this time with
@@ -1017,8 +1017,12 @@ function forceLoad() {
   $("secondaryLoadingSpinner").show();
   $("generateButton").disable();
   
-  // add an extra parameter...
+  // override the limits on tree size
   loadOptions.st.params['loadTree'] = 1;
+
+  // and override the browser check that will return a text tree when it 
+  // sees IE coming 
+  loadOptions.st.params['ie'] = false;
   
   new Ajax.Request( loadOptions.st.uri, // same URI was for original call
                     { method:     'get', 
