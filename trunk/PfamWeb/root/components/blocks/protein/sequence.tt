@@ -5,7 +5,7 @@
 # 
 # block for the sequence, raw and formatted, for the protein page
 #
-# $Id: sequence.tt,v 1.10 2007-08-10 10:18:12 jt6 Exp $
+# $Id: sequence.tt,v 1.11 2007-10-15 09:20:31 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -86,7 +86,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
               END -%]
 
               <div class="alignmentRow">[% String.new( sb ).left(65).replace(" ", "&nbsp;" ) %]</div>
-              <div class="rightAlignmentLabel">[% i %]</div>
+              <div class="rightAlignmentLabel">[% i - 1 %]</div>
 
             </div> [% # end of sequenceLine %]
 
@@ -96,7 +96,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
               <span class="link" onclick="reveal(this,'plainSequence',false)">Show</span> the unformatted sequence.
             </p>
 
-            <div id="plainSequence">[% sl %]</div>
+            <div id="plainSequence" style="display: none">[% sl %]</div>
             
           </td>
         </tr>
@@ -112,11 +112,5 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
   </div> <!-- end of "blockContent" -->
 </div> <!-- end of "block" -->
-
-<script type="text/javascript">
-  // <![CDATA[
-  Element.hide( "plainSequence" );
-  // ]]>
-</script>
 
 <!-- end protein sequence block -->
