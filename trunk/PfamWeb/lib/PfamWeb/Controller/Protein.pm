@@ -2,11 +2,11 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.30 2007-09-11 12:31:23 jt6 Exp $
+# $Id: Protein.pm,v 1.31 2007-10-15 09:12:19 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Family - controller to build the main protein
+PfamWeb::Controller::Protein - controller to build the main protein
 page
 
 =cut
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.30 2007-09-11 12:31:23 jt6 Exp $
+$Id: Protein.pm,v 1.31 2007-10-15 09:12:19 jt6 Exp $
 
 =cut
 
