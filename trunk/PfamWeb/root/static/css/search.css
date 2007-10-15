@@ -1,0 +1,128 @@
+
+/* search.css
+   jt6 20071004 WTSI
+
+   Stylesheet for the search pages, both the forms and the result pages.
+
+   $Id: search.css,v 1.1 2007-10-15 09:23:35 jt6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; either version 2
+   of the License, or (at your option) any later version.
+    
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+    
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+    
+*/   
+
+/* ---------------------------------------- */
+/* error messages */
+
+div.error {
+  border: 1px solid #900;
+  background: #f8e7e7;
+  color: #300;
+  width: 60%;
+  padding: 0.2em;
+  margin: 0.2em auto;
+}
+
+div.error h2 {
+  margin: 0.2em;
+}
+
+/* ---------------------------------------- */
+/* taxonomy search form */
+
+img.suggestion {
+  margin: 0.4em auto;
+  width: 570px;
+  height: 330px;
+  display: block;
+}
+
+.exampleQuery {
+  margin: 0.2em 2em;
+  font-family: monospace;
+}
+
+/* ---------------------------------------- */
+/* taxonomy search, specifically the suggestions drop-down */
+
+div.autocomplete {
+  position: absolute;
+  width: 250px;
+  background-color: white;
+  border: 1px solid #888;
+  margin: 0;
+  padding: 0;
+  z-index: 9999;
+}
+
+div.autocomplete ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+div.autocomplete ul li.selected {
+  background-color: #eee;
+}
+
+div.autocomplete ul li {
+  list-style: none;
+  display: block;
+  margin: 0;
+  padding: 2px;
+  cursor: pointer;
+}
+
+div.autocomplete span.informal {
+  color: #888;
+}
+
+/* ---------------------------------------- */
+/* ajax loading indicator */
+
+.loadingBar {
+  width: 220px;
+  height: 19px;
+  background-image: url(/static/images/loading_bar.gif);
+  background-repeat: no-repeat;
+  background-position: center left;
+}
+
+/* ---------------------------------------- */
+/* taxonomy search results */
+
+#textList ul {
+  list-style: none;
+}
+
+#textList pre {
+  font-family: monospace;
+  font-size: 0.8em;
+  margin: 0.2em;
+  padding: 0.2em;
+  border: 1px solid #CCC;
+  background: #DDD;
+  width: 5em;
+}
+
+#taxonomyQuery {
+  margin-left: 2em ! important;
+  font-family: monospace;
+  font-size: 0.8em;
+}
