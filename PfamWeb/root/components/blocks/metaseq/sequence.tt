@@ -1,11 +1,12 @@
 
 [%
 # sequence.tt
-# jt6 20060619 WTSI
+# jt6 20071010 WTSI
 # 
-# block for the sequence, raw and formatted, for the protein page
+# block for the sequence, raw and formatted, for the metaseq page. An almost
+# exact copy of the sequence block from the protein section...
 #
-# $Id: sequence.tt,v 1.1 2007-10-08 16:12:10 jt6 Exp $
+# $Id: sequence.tt,v 1.2 2007-10-15 09:08:52 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -16,31 +17,29 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 
+oe = 0;
 -%]
 
-<!-- start protein sequence block -->
+<!-- start metaseq sequence block -->
 
-<div class="block" id="proteinSequenceBlock">
+<div class="block" id="metaSequenceBlock">
   <div class="handle">
     <h1>Sequence information</h1>
   </div>
   <div class="blockContent">
-    <p>
-      This is the amino acid sequence of the UniProt sequence database entry
-      with the identifier <strong>[% pfamseq.pfamseq_acc %]</strong>. This 
-      sequence is stored in
-      the Pfam database and updated with each new Pfam release, but this means
-      that the sequence we store may differ from that stored by UniProt.
-    </p>
-    [% oe = 0 %]
 
-    <table class="layout" summary="Protein sequence">
+    <p>
+      This is the amino acid sequence of the metaseq entry
+      with the identifier <strong>[% metaseq.metaseq_acc %]</strong>.
+    </p>
+
+    <table class="layout" summary="Metaseq entry sequence">
       <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
           <td class="label">Sequence:</td>
           <td class="data">[%
             # an array containing the individual residues
-            sa = String.new( pfamseq.sequence ).split("");
+            sa = String.new( metaseq.sequence ).split("");
   
             # a string with the bare lines of the sequence, without numbering
             sl = String.new;
@@ -100,17 +99,10 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
             
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
-          <td class="label">Checksums:</td>
-          <td class="data">
-            <div><span class="subLabel">CRC64:</span><span class="subRowData">[% pfamseq.crc64 %]</span></div>
-            <div><span class="subLabel">MD5:</span><span class="subRowData">[% pfamseq.md5 %]</span></div>
-          </td>
-        </tr>
       </tbody>
     </table>
 
   </div> <!-- end of "blockContent" -->
 </div> <!-- end of "block" -->
 
-<!-- end protein sequence block -->
+<!-- end metaseq sequence block -->
