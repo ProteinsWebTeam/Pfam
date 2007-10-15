@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.5 2007-09-11 12:31:23 jt6 Exp $
+# $Id: Jump.pm,v 1.6 2007-10-15 09:16:55 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.5 2007-09-11 12:31:23 jt6 Exp $
+$Id: Jump.pm,v 1.6 2007-10-15 09:16:55 jt6 Exp $
 
 =cut
 
@@ -136,11 +136,14 @@ sub guess : Private {
   # make sure we know the entry is upper case
   my $entry = uc( $entryUnknownCase );
 
-  $c->log->debug( "Search::Jump::guess: guessing target for |$entry|" );
+  $c->log->debug( "Search::Jump::guess: guessing target for |$entry|" )
+    if $c->debug;
 
   # see if we can figure out what kind if ID or accession we've been handed
   my( $action, $found );  
 
+  #----------------------------------------
+  
   # first, see if it's a PfamA family
   if( $entry =~ /^(PF\d{5})(\.\d+)?$/ ) {
     
@@ -148,7 +151,8 @@ sub guess : Private {
                ->find( { pfamA_acc => $1 } );
   
     if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a PfamA family (from accession)' );
+      $c->log->debug( 'Search::Jump::guess: found a PfamA family (from accession)' )
+        if $c->debug;
       $action = 'family';
 
     } else {
@@ -157,11 +161,14 @@ sub guess : Private {
                  ->find( { pfamA_acc => $1 } );
 
       if( defined $found ) {
-        $c->log->debug( 'Search::Jump::guess: found a dead family (from accession)' );
+        $c->log->debug( 'Search::Jump::guess: found a dead family (from accession)' )
+        if $c->debug;
         $action = 'dead';
       }
     }
   }
+  
+  #----------------------------------------
   
   # or a PfamB accession ?
   if( not $action and $entry =~ /^(PB\d{6})$/ ) {
@@ -170,10 +177,13 @@ sub guess : Private {
               ->find( { pfamB_acc => $1 } );      
   
     if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a PfamB (from accession)' );
+      $c->log->debug( 'Search::Jump::guess: found a PfamB (from accession)' )
+        if $c->debug;
       $action = 'pfamb';
     }
   }
+  
+  #----------------------------------------
   
   # maybe a PfamB ID ?
   if( not $action and $entry =~ /^(Pfam-B_\d+)$/ ) {
@@ -182,10 +192,13 @@ sub guess : Private {
               ->find( { pfamB_id => $1 } );      
   
     if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a PfamB (from ID)' );
+      $c->log->debug( 'Search::Jump::guess: found a PfamB (from ID)' )
+        if $c->debug;
       $action = 'pfamb';
     }
   }
+  
+  #----------------------------------------
   
   # next, could it be a clan ?
   if( not $action and $entry =~ /^(CL\d{4})$/ ) {
@@ -194,11 +207,14 @@ sub guess : Private {
                ->find( { clan_acc => $1 } );
 
     if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a clan' );
+      $c->log->debug( 'Search::Jump::guess: found a clan' )
+        if $c->debug;
       $action = 'clan';
     }
   
   }
+  
+  #----------------------------------------
   
   # how about a sequence entry ?
   if( not $action and $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/ ) {
@@ -207,7 +223,8 @@ sub guess : Private {
                ->find( { pfamseq_acc => $1 } );
   
     if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a sequence entry' );
+      $c->log->debug( 'Search::Jump::guess: found a sequence entry' )
+        if $c->debug;
       $action = 'protein';
     } else {
       # see if it's a secondary accession
@@ -216,11 +233,14 @@ sub guess : Private {
                          { join =>     [ qw( pfamseq ) ],
                            prefetch => [ qw( pfamseq ) ] } );
       if ( defined $found ) {
-        $c->log->debug( 'Search::Jump::guess: found a secondary sequence entry' );
+        $c->log->debug( 'Search::Jump::guess: found a secondary sequence entry' )
+        if $c->debug;
         $action = 'protein';
       }
     }
   }
+  
+  #----------------------------------------
   
   # see if it's a protein sequence ID (e.g. CANX_CHICK)
   if( not $action and $entry =~ /^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
@@ -229,11 +249,14 @@ sub guess : Private {
                ->find( { pfamseq_id => $1 } );
   
     if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a sequence entry (from ID)' );
+      $c->log->debug( 'Search::Jump::guess: found a sequence entry (from ID)' )
+        if $c->debug;
       $action = 'protein';
     }
   
   }
+  
+  #----------------------------------------
   
   # maybe a structure ?
   if( not $action and $entry =~ /^([0-9][A-Za-z0-9]{3})$/ ) {
@@ -242,13 +265,34 @@ sub guess : Private {
                ->find( { pdb_id => $1 } );
   
     if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a structure' );
+      $c->log->debug( 'Search::Jump::guess: found a structure' )
+        if $c->debug;
       $action = 'structure';
     }
     
   }
   
-  # finally, see if it's some other sort of ID
+  #----------------------------------------
+  
+  # an NCBI GI number ?
+  if( not $action and $entry =~ /^(\d+)$/ ) {
+  
+    $found = $c->model('PfamDB::Ncbi_seq')
+               ->find( { gi => $1 } );
+  
+    if( defined $found ) {
+      $c->log->debug( 'Search::Jump::guess: found a GI number' )
+        if $c->debug;
+      $action = 'ncbiseq';
+    }
+    
+  }
+  
+  #----------------------------------------
+  
+  # finally, see if it's some other sort of ID. These are essentially those
+  # identifiers that we can't pick out using a regex, so we have to go to 
+  # the database to find them
   
   # a proteome ID ?
   if( not $action ) {
@@ -256,11 +300,14 @@ sub guess : Private {
     $found = $c->model('PfamDB::Proteome_species')
                ->find( { species => $entry } );
     if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a proteome (from ID)' );
+      $c->log->debug( 'Search::Jump::guess: found a proteome (from ID)' )
+        if $c->debug;
       $action = 'proteome';
     }
   }
 
+  #----------------------------------------
+  
   # a Pfam family ID ?
   if( not $action ) {
 
@@ -268,7 +315,8 @@ sub guess : Private {
                ->find( { pfamA_id => $entry } );
                
     if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a Pfam family (from ID)' );
+      $c->log->debug( 'Search::Jump::guess: found a Pfam family (from ID)' )
+        if $c->debug;
       $action = 'family';
 
     } else {
@@ -277,12 +325,15 @@ sub guess : Private {
                  ->find( { pfamA_id => $entry } );
 
       if( defined $found ) {
-        $c->log->debug( 'Search::Jump::guess: found a dead family (from ID)' );
+        $c->log->debug( 'Search::Jump::guess: found a dead family (from ID)' )
+        if $c->debug;
         $action = 'dead';
       }
     }
   }
 
+  #----------------------------------------
+  
   # a clan ID ?
   if( not $action ) {
 
@@ -290,11 +341,48 @@ sub guess : Private {
                ->find( { clan_id => $entry } );
         
     if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a clan (from ID)' );
+      $c->log->debug( 'Search::Jump::guess: found a clan (from ID)' )
+        if $c->debug;
       $action = 'clan';
     }
   }
 
+  #----------------------------------------
+  
+  # a metaseq ID or accession ?
+  if( not $action ) {
+
+    my @rs = $c->model('PfamDB::Metaseq')
+               ->search( [ { metaseq_acc => $entry }, 
+                           { metaseq_id  => $entry } ] );
+    my $found = scalar @rs;
+
+    if( $found ) {
+      $c->log->debug( 'Search::Jump::guess: found a metaseq accession or ID' )
+        if $c->debug;
+      $action = 'metaseq';
+    }
+  }
+
+  #----------------------------------------
+  
+  # an NCBI secondary accession
+  if( not $action ) {
+
+    my @rs = $c->model('PfamDB::Ncbi_seq')
+               ->search( { secondary_acc => { 'like', "$entry%" } } );
+    $found = scalar @rs;
+    
+    if( $found ) {
+      $c->log->debug( 'Search::Jump::guess: found an NCBI secondary accession' )
+        if $c->debug;
+      $action = 'ncbiseq';
+    }
+  }
+
+  #----------------------------------------
+  
+  # hand back whatever we ended up with 
   return $action;
 }
 
