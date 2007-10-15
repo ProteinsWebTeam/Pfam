@@ -1,0 +1,149 @@
+
+[%
+# summary.tt
+# jt6 20071010 WTSI
+# 
+# build the summary block for NCBI sequences
+#
+# $Id: summary.tt,v 1.1 2007-10-15 09:09:06 jt6 Exp $
+
+USE String;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# we use the same stylesheets and JS for both uniprot and ncbiseq sequences 
+requirements.css.push( "protein.css" );
+requirements.cssIeAll.push( "protein_all_ie.css" );
+
+requirements.js.push( "protein.js" );
+
+#-------------------------------------------------------------------------------
+
+# a row counter
+oe = 0;
+-%]
+
+<!-- start ncbiseq summary block -->
+
+<div class="block" id="ncbiSummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+    
+    <h1>GI:[% ncbiseq.gi %]</h1>
+
+    <p>
+      This is the summary of 
+      <acronym title="National Center for Biotechnology Information">NCBI</acronym>
+      sequence entry 
+      <a href="http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=protein&amp;id=[% ncbiseq.gi %]"
+         class="ext">GI:[% ncbiseq.gi %]</a>
+      (<a href="http://www.ncbi.nlm.nih.gov/entrez/viewer.fcgi?db=protein&amp;id=[% ncbiseq.gi %]"
+          class="ext">[% ncbiseq.secondary_acc %]</a>).
+    </p>
+
+    <table class="layout" summary="NCBI sequence summary information">
+      <tbody>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Description:</td>
+          <td class="data">
+            [% ncbiseq.description %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Length:</td>
+          <td class="data">
+            [% ncbiseq.length %] amino acids
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Pfam domains</h2>
+
+    [% IF imageKey.size %]
+      <p>
+        This image shows the arrangement of the Pfam domains that we found on 
+        this sequence. Clicking on a domain will take you to the page describing 
+        that Pfam entry. The table below gives the domain boundaries for each of 
+        the domains. Note that some domains may be obscured by other, overlapping 
+        domains. This is noted in the table where applicable.
+      </p>
+      <p class="small">
+        <strong>Please note</strong> that partial domain matches and full length
+        domain matches are represented in the same way for metagenomics sequences.
+        This is not the case for the rest of Pfam, for which partial matches are 
+        depicted with a jagged edge.
+      </p>
+    [% ELSE %]
+      <p>
+        There were no Pfam domains found on this sequence.
+      </p>
+    [% END %]
+
+    <div class="summaryGraphic">
+      [% image = imageSet.each_image;
+      CALL image.print_image %]
+      <img class="graphicImage" 
+           src="[% constants.tmp %]/[% image.file_location %]" 
+           alt="" 
+           usemap="#singleImageMap" />      
+      [% IF image.image_map %]
+        <map id="singleImageMap" name="singleImageMap">
+          [% image.image_map %]
+        </map>
+      [% END %]
+    </div>
+
+    [% # only show the key if there was a domain hit
+    IF imageKey.size %]
+
+      <table id="imageKey"
+             class="details"
+             summary="Key for the Pfam domain image">
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Domain</th>
+            <th>Start</th>
+            <th>End</th>
+          </tr>
+        </thead>
+        <tbody>
+          [% oe = 0; 
+          FOREACH row IN imageKey;
+            IF row.colour;
+              colour = " style=\"color: \#${row.colour}\"";
+            END %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td [% IF row.type.match( '(?i)pfama' ); colour %] class="pfamA"[% END %]>
+                [% row.source ? row.source : row.type %]
+              </td>
+              <td>
+                [% IF row.type.match( '(?i)pfama' ) %]
+                  <a href="[% base %]family?id=[% row.label %]">
+                    [% row.label %]</a>
+                  [% IF row.hidden %] (hidden)[% END;
+                ELSIF row.type.match( '(?i)pfamb' ) %]
+                  <a href="[% base %]pfamb?id=[% row.label %]">
+                    [% row.label %]</a>
+                  [% IF row.hidden %] (hidden)[% END;
+                END %]
+              </td>
+              <td>[% row.start %]</td>
+              <td>[% row.end %]</td>
+            </tr>
+          [% END %]
+        </tbody>
+      </table>
+      
+    [% END %]
+
+  </div> <!-- end of "blockContent" -->
+</div>
+
+<!-- end protein summary block -->
