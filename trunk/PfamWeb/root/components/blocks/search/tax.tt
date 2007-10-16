@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.5 2007-10-15 09:41:38 jt6 Exp $
+# $Id: tax.tt,v 1.6 2007-10-16 12:10:27 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -195,7 +195,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   new Ajax.Autocompleter(
     'q',
     'taxSuggestions',
-    '/catalyst/pfam/search/taxonomy/suggest',
+    '[% base %]search/taxonomy/suggest',
     { minChars:  3,
       frequency: 0.6 }
   );
