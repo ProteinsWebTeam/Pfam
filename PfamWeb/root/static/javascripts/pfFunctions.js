@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.51 2007-10-15 09:37:53 jt6 Exp $
+// $Id: pfFunctions.js,v 1.52 2007-10-16 09:15:07 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -463,7 +463,13 @@ function initialiseCursor() {
   tl = Position.cumulativeOffset( images.first() );
   var lastImage = images.last();
   var bl = Position.cumulativeOffset( lastImage );
-  var d = lastImage.getDimensions();
+  var d;
+  try {
+    d = lastImage.getDimensions(); // throws an error in IE...
+  } catch( e ) {
+    d = { width:  bl[0]+1,
+          height: bl[1]+1 };
+  }
   br = [ bl[0] + d.width,
          bl[1] + d.height ];
 
