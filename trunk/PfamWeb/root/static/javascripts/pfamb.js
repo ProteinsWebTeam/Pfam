@@ -4,7 +4,7 @@
 //
 // javascript glue for the PfamB section
 //
-// $Id: pfamb.js,v 1.5 2007-09-20 16:05:35 jt6 Exp $
+// $Id: pfamb.js,v 1.6 2007-10-16 15:31:38 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -37,7 +37,7 @@ function pfambPostLoad() {
                       } );
   }
   if( typeof( loadOptions.dg.uri ) != "undefined" ) {
-    new Ajax.Updater( loadOptions.dg.uri,
+    new Ajax.Request( loadOptions.dg.uri,
                       { method:     'get', 
                         parameters: loadOptions.dg.params,
                         onComplete: dgSuccess,
