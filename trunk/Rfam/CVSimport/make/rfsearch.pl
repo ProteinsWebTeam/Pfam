@@ -9,6 +9,9 @@ use Getopt::Long;
 use IO::File;
 use Data::Dumper; #Great for printing diverse data-structures.
 use Rfam;
+use Rfam::RfamAlign;
+
+#BLOCK 0: INITIALISE: 
 
 my $starttime = time();
 
@@ -17,58 +20,18 @@ my( $quiet,
     $local,
     $global,
     $pname,
+    $blast_eval,
     $blastpname,
     $help,
     $update,
     $minidbpname,
     $nowublast,
-    $long
+    $nolcmask,
+    $long,
+    $queue,
+    $window,
+    $cpus
     );
-
-my $lustre = "/lustre/scratch1/sanger/rfam/$$"; #path for dumping data to on the farm
-my $wublastdb = "/lustre/pfam/rfam/Production/rfamseq/CURRENT";
-my $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N". Not used at present!
-my $blast_eval = 10;
-my $window;
-my $cpus       = 20;
-#ADD MULTI-CPU OPTIONS FOR BSUB? Compile MPI Infernal! Find mpirun on the farm!
-#-n4 -R "span[hosts=1]"
-#select[type==X86_64] -> See mail from Tim Cutts:
-#my $queue      = 'long -R \"select[type=LINUX64]\"';
-my $queue      = 'long -R \"select[type==X86_64]\"';
-#my $queue      = 'long -n4 -R \"span[hosts=1]\"';
-#my $queue2     = 'small -R \"select[type=LINUX64]\"';
-my $queue2     = 'small -R \"select[type==X86_64]\"';
-
-#Check for the existence and correct permissions of essential files:
-if (-e "rfsearch.log" && -w "rfsearch.log"){
-    unlink("rfsearch.log");
-}
-elsif (-e "rfsearch.log") {
-    die("FATAL: check permissions on rfsearch.log");
-}
-else {
-    &printlog( "creating rfsearch.log" );
-}
-
-if (not -e "SEED"){
-    die("FATAL: check SEED exists");
-}
-
-
-
-#Set the stripe pattern on the lustre file system:
-my $fh0 = new IO::File;
-$fh0 -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
-&printlog( "Making lustre run directory on the farm: $lustre" );
-&printlog( "mkdir -p $lustre" );
-$fh0 -> print("mkdir -p $lustre\n") or die "FATAL: lsrun -m farm-login mkdir -p $lustre\n$!";
-&printlog( "lfs setstripe $lustre 0 4 4" );
-$fh0 -> print("lfs setstripe $lustre 0 4 4\n") or die "FATAL: lsrun -m farm-login lfs setstripe $lustre 0 4 4\n$!";
-$fh0 -> close;
-#See the wiki page "LustreStripeSize" for more detail. 
-
-
 
 sub help {
     print STDERR <<EOF;
@@ -110,6 +73,7 @@ EOF
 	     "minidbpname=s" => \$minidbpname,
 	     "update"        => \$update,
 	     "nowu"          => \$nowublast,
+	     "nolcmask"      => \$nolcmask,
 	     "long"          => \$long,
 	     "window"        => \$window,
 	     "h"             => \$help );
@@ -121,6 +85,36 @@ if( $help ) {
 elsif ($long) {
     die("Sorry: --long is not supported yet. Wait for Infernal 0.8!");
 }
+
+# make sure writable by group
+umask(002);
+my $user = `whoami`;
+chomp($user);
+
+#Check for the existence and correct permissions of essential files:
+if (-e "rfsearch.log" && -w "rfsearch.log"){
+    unlink("rfsearch.log");
+}
+elsif (-e "rfsearch.log") {
+    die("FATAL: check permissions on rfsearch.log");
+}
+
+if (not -e "SEED"){
+    die("FATAL: check SEED exists");
+}
+
+#Set the stripe pattern on the lustre file system:
+my $queue2     = 'small -R \"select[type==X86_64]\"';
+my $lustre = "/lustre/scratch1/sanger/rfam/$$"; #path for dumping data to on the farm
+my $fh0 = new IO::File;
+$fh0 -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
+&printlog( "Making lustre run directory on the farm: $lustre" );
+&printlog( "mkdir -p $lustre" );
+$fh0 -> print("mkdir -p $lustre\n") or die "FATAL: lsrun -m farm-login mkdir -p $lustre\n$!";
+&printlog( "lfs setstripe $lustre 0 4 4" );
+$fh0 -> print("lfs setstripe $lustre 0 4 4\n") or die "FATAL: lsrun -m farm-login lfs setstripe $lustre 0 4 4\n$!";
+$fh0 -> close;
+#See the wiki page "LustreStripeSize" for more detail. 
 
 #Read cmbuild/cmsearch flags from the DESC file:
 &printlog( "Read cmbuild/cmsearch flags from the DESC file" );
@@ -154,10 +148,11 @@ while(<S>) {
 	last;
     }
 }
+
 if( $seenrf and $buildopts !~ /--rf/ ) {
     $buildopts = "--rf $buildopts";
 }   
-if( !$seenrf and $buildopts =~ /--rf/ ) {
+elsif( !$seenrf and $buildopts =~ /--rf/ ) {
     $buildopts =~ s/--rf //g;
 }
 
@@ -175,7 +170,7 @@ unless( $nobuild ) {
 &printlog( "get the cmsearch W value from the CM file" );
 my $cmwindow = 0;
 if (-e "$pwd/CM"){
-    my $string = `grep \"^W\" $pwd/CM`;
+    my $string = `grep \"^W\" $pwd/CM`; #GREP! HAHAHAHA!!! ;-)
     my @string = split('\s+', $string);
     $cmwindow = $string[1];
 }
@@ -183,6 +178,7 @@ else {
     die ("The $pwd/CM file is missing! SEED file exists, check cmbuild ran."); 
 }
 
+#Moderately paranoid checking of the all important window parameter:
 if ( (int($cmwindow) == $cmwindow) && $cmwindow>0 && !(defined($window) && (int($window) == $window)) ){
     $window=$cmwindow; #convert string so we can use it
     &printlog( "Using window [$window] from CM file" );
@@ -198,38 +194,31 @@ if( -e "CMSEARCH_JOBS_COMPLETE" ) {
     unlink( "CMSEARCH_JOBS_COMPLETE" ) or die "can't remove file [CMSEARCH_JOBS_COMPLETE]\n";
 }
 
+my $initendtime = time();
+
+#BLOCK 1: RUN BLAST
 &printlog( "" );
 &printlog( "Starting rfsearch" );
-
-# defaults
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
 my $blastdbdir2 = $Rfam::rfamseq_run_dir;      # but run things from here
 my $fafile = "$$.fa";
-
-#PPG: mask out (lower case) low-scoring/high-indel regions of each sequence for the BLAST searches with "-lcmask"?
-#     Requires replacing sreformat. 
-system "sreformat fasta SEED > $fafile" and die "can't convert SEED to $fafile";
-
-
-#############
-#PPG: Grap the lengths of each seed seq, store in hash %seed_seq_lengths. 
-#     Used for fancy calculation of seq boundaries:
-my %seed_seq_lengths=();
-my $ave_length = 0;
-my $min_length = 0;
-open(SEQSTAT,"seqstat -a SEED|") || die "cannot run \"seqstat -a SEED\" pipe";
-while(my $sqst = <SEQSTAT>){
-    if ($sqst =~ /^\*\s+(\S+)\s+(\d+)/){
-	$seed_seq_lengths{$1}=$2;
-	if ($2>$min_length){
-	    $min_length=$2;
-	}
-    }
-    elsif ($sqst =~ /^Average length:\s+(\d+)/){
-	$ave_length = int($1);
-    }
+my $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N". 
+if(!defined($blast_eval)){
+    $blast_eval = 10;
 }
-#############
+
+if (!defined($queue)){
+    $queue      = "long -n$wublastcpus -R \"span[hosts=1] && select[type==X86_64]\"";
+}
+
+if ($nolcmask) {
+    system "sreformat -u fasta SEED > $fafile" and die "can't convert SEED to $fafile";
+}
+else {
+    make_lcmask_file("SEED", $fafile);
+}
+#system " ~/bin/stk2lcmaskfasta.pl -outfile=$fafile SEED" and die "can't convert SEED to $fafile";
+
 
 my @blastdb;
 if( $update ) {      # run over the new.fa.* databases
@@ -240,13 +229,9 @@ else {               # run over *.fa databases
     @blastdb = glob( "$blastdbdir/*.fa.nhr" );
 }    
 
-# make sure writable by group
-umask(022);
-my $user = `whoami`;
-chomp($user);
-
 #user must have log dir!
 &printlog( "Making log directory: $pwd/$$" );
+#umask(002);
 mkdir( "$pwd/$$", 0775 ) or  die "cant create the dir for error logs" ;
 my $nobjobs = scalar(@blastdb);
 my @index = ( 1..$nobjobs );
@@ -267,13 +252,8 @@ unless( $minidbpname ) {
 	      my $blastcmd = "";
 	      #PPG: WU-BLAST is now the default. MYAHAHAHAHA!:
 	      if (!$nowublast){
-		  #system("setenv WUBLASTDB $wublastdb");
-		  #ADD MULTI-CPU OPTIONS? eg. "-cpus 4". DOCS SAY THAT BLAST USES AS MANY AS POSS (upto 4) BY DEFAULT... 
-		  #NB. memory usages grows linearly, but wu-blast seems to deal with this sensibly...
-		  $blastcmd = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval mformat=3 hspsepSmax=$window"; # cpus=$wublastcpus";
-		  #PPG: SHALL WE MASK OUT LOW-PROB/HIGH-INDEL SEQUENCE?: 
-		  #- requires writing a tool to identify low-prob nucs.
-                  #see '-lcmask' option.
+
+		  $blastcmd = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval mformat=3 hspsepSmax=$window cpus=$wublastcpus -lcmask";
 	      }
 	      else {
 		  &printlog( "WARNING: using NCBI-BLAST instead of WU-BLAST. Deprecated and not recommended!");
@@ -358,6 +338,32 @@ unless( $minidbpname ) {
   }
 }
 
+my $blastendtime = time();
+
+#BLOCK 2: PARSE BLAST OUTPUT AND BUILD MINIDBs.
+#############
+#PPG: Grap the lengths of each seed seq, store in hash %seed_seq_lengths. 
+#     Used for fancy calculation of seq boundaries:
+my %seed_seq_lengths=();
+my $ave_length = 0;
+my $min_length = 0;
+open(SEQSTAT,"seqstat -a SEED|") || die "cannot run \"seqstat -a SEED\" pipe";
+while(my $sqst = <SEQSTAT>){
+    if ($sqst =~ /^\*\s+(\S+)\s+(\d+)/){
+	$seed_seq_lengths{$1}=$2;
+	if ($2>$min_length){
+	    $min_length=$2;
+	}
+    }
+    elsif ($sqst =~ /^Average length:\s+(\d+)/){
+	$ave_length = int($1);
+    }
+}
+#############
+
+if (!defined($cpus)){
+    $cpus       = 20;
+}
 
 my $k = 0;  # number of minidb files. 
 if( $minidbpname ) {
@@ -421,16 +427,12 @@ else {
 	    if (defined($n) && defined($s) && defined($e) && defined($strnd) && $s>0 && $e>$s){
 		my $xdcmd = "";
 		if ($strnd<0){#Grab minus strand:
-#		    $xdcmd = "xdget -n -r -a $s -b $e /lustre/pfam/rfam/Production/rfamseq/CURRENT/rfamseq.fa $n";
 		    $xdcmd = "xdget -n -r -a $s -b $e $Rfam::rfamseq $n";
 		}
 		else {
-#		    $xdcmd = "xdget -n -a $s -b $e /lustre/pfam/rfam/Production/rfamseq/CURRENT/rfamseq.fa $n";
 		    $xdcmd = "xdget -n -a $s -b $e $Rfam::rfamseq $n";
 		}
-		#print "$xdcmd\n";
 		my $fhxd = IO::File->new();
-		#$fhxd -> open( "$xdcmd |" ) or die "\nFATAL:xdget failure 1\n$xdcmd\n$!";
 		$fhxd -> open( "$xdcmd |" ) or &printlog( "\nWARNING: xdget failure 1\n$xdcmd\nCheck: $minidbpname\.minidb.$k\n$!");
 		while(<$fhxd>) {
 
@@ -443,7 +445,6 @@ else {
 		    
 		    
 		}
-		#$fhxd -> close or die "\nFATAL:xdget failure 2\nclose failed\n$xdcmd\n$!";
 		$fhxd -> close or &printlog("WARNING: xdget failure 2. Close failed. \"$xdcmd\". Check: $minidbpname\.minidb.$k: $!");
 		$seen_count++;
 	    }#PPG: close paranoid "if".
@@ -456,9 +457,11 @@ else {
     #undef( $seqlist );             # free up memory
 }
 
-my $endblast = time();
+my $minidbendtime = time();
 
+#BLOCK 3: RUN CMSEARCH:
 
+my $queuecm      = 'long -R \"select[type=X86_64]\"';
 my $command = "cmsearch";
 my $options = " --toponly "; #add the hmm filter? still using 0.71 - not yet
 $options .= "--local " if( $local );
@@ -479,8 +482,8 @@ for  (my $ij = 1; $ij <= $k; $ij++){
    system("scp $pwd/$minidbpname\.minidb.$ij farm-login:$lustre/$minidbpname\.minidb.$ij") and die "error scp-ing mini db:$minidbpname\.minidb.$ij to farm-login:$lustre/$minidbpname\.minidb.$ij\n$!";
 }
 &printlog( "" );
-&printlog( "Running: | bsub -q $queue -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
-$fhcm -> open( "| bsub -q $queue -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
+&printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
+$fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
 #$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
 &printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}");
 $fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
@@ -503,7 +506,7 @@ while($waitcm){
 
 # send something to clean up
 print STDERR "set cm searches running, copy files and clean up....\n";
-
+#umask(002);
 $fhcm = new IO::File;
 #&printlog( "bsub -q $queue2 -w\'done($pname)\'");
 &printlog( "");
@@ -527,12 +530,19 @@ print STDERR "finished cleaning up... wait for cm searches to complete\n ";
 &printlog( "FINISHED! See OUTPUT file." );
 
 my $endtime = time();
+#$initendtime
+#$blastendtime
+#$minidbendtime
 my $runtime = $endtime - $starttime;
-my $blasttime = $endblast-$starttime;
-my $cmsearchtime = $endtime - $endblast;
+my $inittime = $initendtime - $starttime;
+my $blasttime = $blastendtime-$initendtime;
+my $minidbtime = $minidbendtime - $blastendtime;
+my $cmsearchtime = $endtime - $minidbendtime;
 
 &printlog( "" );
+&printlog( "INIT Runtime:     $inittime secs" );
 &printlog( "BLAST Runtime:    $blasttime secs" );
+&printlog( "MINIDB Runtime:   $minidbtime secs" );
 &printlog( "CMSEARCH Runtime: $cmsearchtime secs" );
 &printlog( "Total Runtime:    $runtime secs" );
 
@@ -557,9 +567,11 @@ sub printlog {
 sub parse_list {
     my $list       = shift;
     my $blastfile  = shift;
-    my( $qname, $name, $qstart, $qend, $sstart, $send, $start, $end, $strand );
+    my $linenumber = 0;
+    my( $qname, $name, $qstart, $qend, $sstart, $send, $start, $end, $strand, @bline );
     open( BL, $blastfile ) or die;
     while( <BL> ) {
+	$linenumber++;
 	next if( /^\#/ );
 	
 	#PPG: Added a wu-blast parser and made the calculation of the 
@@ -567,15 +579,25 @@ sub parse_list {
 	#end of the hit with the lengths either end of the query plus 
 	#W2, which is (W-L)/2. 
 	#WU parser (see $BLASTDIR/tabular.html):
-	#                     1      2     3    4    5    6    7    8    9   10   11   12   13   14   15   16   17    18     19    20    21     22
-	if(!$nowublast && /^(\S+)\t(\S+)\t\S+\t\d+\t\S+\t\d+\t\d+\t\d+\t\d+\t\d+\t\S+\t\S+\t\d+\t\d+\t\d+\t\S+\t(\S+)\t(\d+)\t(\d+)\t(\S+)\t(\d+)\t(\d+)/){
-	    $qname  = $1;
-	    $name   = $2;
-	    $qstart = $4;
-	    $qend   = $5;
-	    $strand = $3*$6;
-	    $sstart = $7;
-	    $send   = $8;
+	#                     1      2     3    4    5    6    7    8    9   10   11   12   13   14   15   16     17    18     19     20     21     22
+#	if(!$nowublast && /^(\S+)\t(\S+)\t\S+\t\d+\t\S+\t\d+\t\d+\t\d+\t\d+\t\d+\t\S+\t\S+\t\d+\t\d+\t\d+\t\S+\t(\S+)\t(\d+)\t(\d+)\t(\S+)\t(\d+)\t(\d+)/){
+	@bline = split(/\t/,$_);
+	if(!$nowublast && scalar(@bline) == 22 ){
+	    #Is this really better than a regex?: More informative errors....
+	    if ($bline[0]  =~ /\S+/){$qname  = $bline[0];}  else {printf STDERR "qname error   =\'$bline[0]\' in $blastfile line number $linenumber\n"};
+	    if ($bline[1]  =~ /\S+/){$name   = $bline[1];}  else {printf STDERR "name error    =\'$bline[1]\' in $blastfile line number $linenumber\n"};
+	    if ($bline[17] =~ /\d+/){$qstart = $bline[17];} else {printf STDERR "qstart error  =\'$bline[17]\' in $blastfile line number $linenumber\n"};
+	    if ($bline[18] =~ /\d+/){$qend   = $bline[18];} else {printf STDERR "qend error    =\'$bline[18]\' in $blastfile line number $linenumber\n"};
+	    if ($bline[20] =~ /\d+/){$sstart = $bline[20];} else {printf STDERR "sstart error  =\'$bline[20]\' in $blastfile line number $linenumber\n"};
+	    if ($bline[21] =~ /\d+/){$send   = $bline[21];} else {printf STDERR "send error    =\'$bline[21]\' in $blastfile line number $linenumber\n"};
+	    if ($bline[16] =~ /\S+/ && $bline[19] =~ /\S+/){$strand = $bline[16]*$bline[19];}  else {printf STDERR "strand error =\'$bline[16]\' and \'$bline[19]\' in $blastfile line number $linenumber\n"};
+	    
+#	    $name   = $bline[1];
+#	    $qstart = $bline[17];
+#	    $qend   = $bline[18];
+#	    $strand = $bline[16]*$bline[19];
+#	    $sstart = $bline[20];
+#	    $send   = $bline[21];
 	    
 	    if ($qend<$qstart){#If the hit is to the minus strand of the query we 
 			       #need to switch $qstart & $qend.  
@@ -583,7 +605,7 @@ sub parse_list {
 		$qstart = $qend;
 		$qend = $temp;
 	    }
-
+	    
 	    if ($send<$sstart){#I don't think this ever happens, but best to switch if it does.
 		my $temp = $sstart;
 		$sstart = $send;
@@ -603,10 +625,15 @@ sub parse_list {
 	    }
 	    my $window2 = int( abs($window - $qseq_len)/2 );
 	    
-	    
-	    
-	    $start = $sstart - $qstart - $window2;
-	    $end   = $send + abs($qseq_len-$qend) + $window2;
+	    if ($strand>0){
+		$start = $sstart - $qstart - $window2;
+		$end   = $send + abs($qseq_len-$qend) + $window2;
+	    }
+	    else {
+		$start = $sstart - $qend - $window2;
+		$end   = $send + abs($qseq_len-$qstart) + $window2;
+	    }
+
 	    $start = 1 if( $start < 1 );
 	    	    
 	}
@@ -646,7 +673,7 @@ sub parse_list {
 #	if( exists $list->{$name} ) {
 #	&printlog( "defined($name) && defined($start) && defined($end) && exists($list)");
 	if( defined($name) && defined($start) && defined($end) && exists($list->{$name}) ) {
-		    foreach my $se ( sort @{ $list->{$name} } ) {
+	    foreach my $se ( sort @{ $list->{$name} } ) {
 		
 		if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
 		    $se->{'start'} = $start;
@@ -766,3 +793,108 @@ sub is_integer {
     }
 
 }
+
+##########
+#make_lcmask_file: takes as input a stockholm formatted filename and an output filename. 
+#                  Writes the sequences from the stockholm file to the output file in 
+#                  fasta format. Gappy columns and low frequency nucleotides are masked.
+sub make_lcmask_file {
+my $stk_file = shift; # stockholm file to use
+my $out_file = shift; # output file
+
+my $gap_thresh = 0.5;      #Gap threshold for lcmask
+my $nuc_freq_thresh = 0.1; #Nucleotide frequency threshold for lcmask
+
+if(!defined($out_file)){
+    my @stk_file = split(/\./, $stk_file);
+    my $out_file = pop(@stk_file); # 
+    $out_file = $out_file . ".fa";
+}
+
+open( STK, "$stk_file" ) or die ("FATAL: Couldn't open $stk_file [$!]\n $!\n");
+my $seed = new Rfam::RfamAlign;
+$seed -> read_stockholm( \*STK );
+close(STK);
+my @list = $seed->each_seq();
+
+my $length = length($list[0]->seq);
+my $noseqs = @list;
+my @aofh_nuc_counts; #array of hashes to store nuc-counts.
+
+foreach my $seqobj ( @list ) {
+    my $seq = $seqobj->seq;
+    my $seqname = $seqobj->id;
+    my $start = $seqobj->start;
+    my $end = $seqobj->end;
+    $seqname = "$seqname/$start-$end";
+    $seq =~ tr/a-ztT/A-ZUU/; #Must be uppercase,T->U!
+    my @seq = split(//,$seq);
+    for (my $i=0; $i<$length; $i++){
+	if (is_nucleotide($seq[$i])){
+	    if (defined($aofh_nuc_counts[$i]{$seq[$i]})){
+		$aofh_nuc_counts[$i]{$seq[$i]}++;
+	    }
+	    else {
+		$aofh_nuc_counts[$i]{$seq[$i]}=1;
+	    }
+	}
+    }
+}
+
+my @fract_nucs;
+for (my $i=0; $i<$length; $i++){
+    $fract_nucs[$i]=0;
+    foreach my $n ( keys %{ $aofh_nuc_counts[$i] } ) {
+	$fract_nucs[$i]+=$aofh_nuc_counts[$i]{$n};
+	$aofh_nuc_counts[$i]{$n} = $aofh_nuc_counts[$i]{$n}/$noseqs;
+    }
+    $fract_nucs[$i]=$fract_nucs[$i]/$noseqs;
+}
+
+open( OUT, ">$out_file" ) or die ("FATAL: Couldn't open $out_file [$!]\n $!\n");
+foreach my $seqobj ( @list ) {
+    my $seq = $seqobj->seq;
+    my $seqname = $seqobj->id;
+    my $start = $seqobj->start;
+    my $end = $seqobj->end;
+    $seqname = "$seqname/$start-$end";
+    $seq =~ tr/a-z/A-Z/;#Must be uppercase!
+    my @seq = split(//,$seq);
+    printf OUT ">$seqname\n";
+    for (my $i=0; $i<$length; $i++){
+	if (is_nucleotide($seq[$i])){
+	    if (defined($aofh_nuc_counts[$i]{$seq[$i]}) && $aofh_nuc_counts[$i]{$seq[$i]}>$nuc_freq_thresh && $fract_nucs[$i]>$gap_thresh){
+		printf OUT "$seq[$i]";
+	    }
+	    else {
+		$seq[$i] =~ tr/A-Z/a-z/;
+		printf OUT "$seq[$i]";
+	    }
+	}
+    }
+    printf OUT "\n";
+}
+close(OUT);
+
+return 1;
+
+}
+
+######################################################################
+#returns true if input character is a nucleotide (IUPAC codes):
+sub is_nucleotide {
+    my $a = shift;
+    
+    if (defined($a)){
+	$a =~ tr/a-z/A-Z/;
+    }
+	
+    if (defined($a) && length($a) && ($a =~ /[ACGUTRYWSMKBDHVN]/) ){
+	return 1;
+    }
+    else {
+	return 0;
+    }
+    
+}
+
