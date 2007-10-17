@@ -1,4 +1,7 @@
-#! /software/bin/perl -w
+#! /software/bin/perl -w 
+#-d:DProf 
+#dprofpp -u tmon.out
+
 
 # A program to run checks on alignment consistency with structure.
 
@@ -24,12 +27,13 @@ if( $#ARGV == -1 ) {
     exit(1);
 }
 
+##$|++;
 
 my $family_dir = shift; # family dir to use
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
 
-my (%persequence, %perbasepair, %persequence_lens);
+my (%persequence, %perbasepair, %persequence_lens, %composition);
 my $perfamily=0;
 tie %persequence, "Tie::IxHash"; #keys returns elements in the same order they were added.
 tie %perbasepair, "Tie::IxHash";
@@ -40,13 +44,14 @@ if( ! defined $nolog ) {
     open(LOGps,">$family_dir/ss-stats-persequence") || die "Could not open log file $family_dir/ss-stats-persequence - can use -n option (but you'd be mental to do this!) $!";
     open(LOGpb,">$family_dir/ss-stats-perbasepair") || die "Could not open log file $family_dir/ss-stats-perbasepair - can use -n option (but you'd be mental to do this!) $!";
 #Print headers:
-    printf LOGps     "FAMILY\tSEQID\tFRACTN_CANONICAL_BPs\tLEN\n";
-    printf LOGpf     "FAMILY\tMEAN_FRACTN_CANONICAL_BPs\tCOVARIATION\tNO_SEQs\tALN_LENGTH\tNO_BPs\tNO_NUCs\tmean_PID\tmax_PID\tmin_PID\tmean_LEN\tmax_LEN\tmin_LEN\tFRACTN_NUCs\n";
+    printf LOGps     "FAMILY\tSEQID\tFRACTN_CANONICAL_BPs\tLEN\tFRAC_A\tFRAC_C\tFRAC_G\tFRAC_U\tMAX_DINUC\tCG_CONTENT\n";
+    printf LOGpf     "FAMILY\tMEAN_FRACTN_CANONICAL_BPs\tCOVARIATION\tNO_SEQs\tALN_LENGTH\tNO_BPs\tNO_NUCs\tmean_PID\tmax_PID\tmin_PID\tmean_LEN\tmax_LEN\tmin_LEN\tFRACTN_NUCs\tFRAC_A\tFRAC_C\tFRAC_G\tFRAC_U\tMAX_DINUC\tCG_CONTENT\n";
     printf LOGpb      "FAMILY\tBP_COORDS\tFRACTN_CANONICAL_BPs\n";
 }
 else {
     printf "You're stupidly not writing to log-file!\n";
 }
+
 
 open( SEED, "$family_dir/SEED" ) or die ("FATAL: Couldn't open SEED!\n $!\n");
 my $seed = new Rfam::RfamAlign;
@@ -57,10 +62,9 @@ my $ss_cons = $seed->ss_cons->getInfernalString(); #This is damned confusing!
 
 #Make a pair table & initialise hashes:
 my @table = make_pair_table($ss_cons);
-my $noseqs = @list;
+my $noseqs = scalar(@list);
 my $len = $table[0];
-my $loop = 0;
-my $nopairs = 0;
+my ($loop, $nopairs) = (0,0);
 for( my $i = 1; $i<$len+1; $i++ ){
     if ($table[$i]){
 	my $j = $table[$i];
@@ -74,6 +78,7 @@ for( my $i = 1; $i<$len+1; $i++ ){
 	$loop++;
     }
 }
+
 
 if ($nopairs==0 && scalar(@list)<2){
     die("FATAL: $shortname_family_dir has less than two sequences and no structure! NEEDS FIXED!\n");
@@ -92,27 +97,39 @@ my ($mean_pid, $min_pid, $max_pid, $nocomps, $nocovs, $covariation, $mean_length
 #Calculate persequence info:
 foreach my $seqobj ( @list ) {
     my $seq = $seqobj->seq;
+    $seq =~ tr/a-z/A-Z/;
     my $seqname = $seqobj->id;
     my $start = $seqobj->start;
     my $end = $seqobj->end;
     $seqname = "$seqname/$start-$end";
     my @seq = split(//,$seq);
+    my %seq_composition = ();
     
-    #Compute, number of nucleotides & seq length stats:
+    #Compute, number of nucleotides, composition & seq length stats:
     my $nuccount = 0;
     for (my $i=0; $i<$len; $i++){
-	if ( is_nucleotide($seq[$i]) ){
+	my $c = $seq[$i];
+	if ( is_nucleotide($c) ){
 	    $nonucleotides++;
 	    $nuccount++;
+	    
+	    if ( defined($composition{$c}) ){
+		$composition{$c}++;
+		$seq_composition{$c}++;
+	    }
+	    else {
+		$composition{$c}=1;
+		$seq_composition{$c}=1;
+	    }
 	}
     }
-
+    
     $persequence_lens{$seqname} = $nuccount;
     $mean_length += $nuccount;
     if ($min_length>$nuccount){
 	$min_length=$nuccount;
     }
-
+    
     if ($max_length<$nuccount){
 	$max_length=$nuccount;
     }
@@ -132,37 +149,44 @@ foreach my $seqobj ( @list ) {
     else {
 	$persequence{$seqname} = 1.0;
     }
+
+    my ($seq_refmononuccounts, $seq_maxdinucstr, $seq_maxdinuc, $seq_CGcontent) = compute_compositions( \%seq_composition, $nuccount);
     
     if( ! defined $nolog ) {
-	printf LOGps "$shortname_family_dir\t$seqname\t%0.4f\t%d\n", $persequence{$seqname}, $persequence_lens{$seqname};
+	printf LOGps "$shortname_family_dir\t$seqname\t%0.4f\t%d \t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$seq_maxdinucstr:%0.3f\t%0.3f\n", $persequence{$seqname}, $persequence_lens{$seqname}, $seq_refmononuccounts->{'A'}, $seq_refmononuccounts->{'C'}, $seq_refmononuccounts->{'G'}, $seq_refmononuccounts->{'U'}, $seq_maxdinuc, $seq_CGcontent;
     }
     else {
-	printf "PERSEQUENCE: $shortname_family_dir\t$seqname\t%0.4f\t%d\n", $persequence{$seqname}, $persequence_lens{$seqname};
+	printf "PERSEQUENCE: $shortname_family_dir\t$seqname\t%0.4f\t%d \t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$seq_maxdinucstr:%0.3f\t%0.3f\n", $persequence{$seqname}, $persequence_lens{$seqname}, $seq_refmononuccounts->{'A'}, $seq_refmononuccounts->{'C'}, $seq_refmononuccounts->{'G'}, $seq_refmononuccounts->{'U'}, $seq_maxdinuc, $seq_CGcontent;
     }
 
     #Computing pairwise stats (PID & Covariation):
     shift(@list2);    #shift current list1 seq off list2 - don't want to compare the sequence to itself.
     foreach my $seqobj2 ( @list2 ) {
 	my $seq2 = $seqobj2->seq;
+	$seq2 =~ tr/a-z/A-Z/;
 	my $seqname2 = $seqobj2->id;
 	my $start2 = $seqobj2->start;
 	my $end2 = $seqobj2->end;
 	$seqname2 = "$seqname2/$start2-$end2";
+	
 	my @seq2 = split(//,$seq2);
 	my $pid  = 0;
 	my $len1 = 0;
 	my $len2 = 0;
 	#Compute sequence identity measures (Could've used alistat, it does too much rounding tho):
 	for (my $i=0; $i<$len; $i++){
-	    if ( is_nucleotide($seq[$i]) && is_nucleotide($seq2[$i]) && ($seq[$i] eq $seq2[$i]) ){
+	    my $check1 = is_nucleotide($seq[$i]);
+	    my $check2 = is_nucleotide($seq2[$i]);
+	    
+	    if ( $check1 && $check2 && ($seq[$i] eq $seq2[$i]) ){
 		$pid += 1.0;
 	    }
 
-	    if ( is_nucleotide($seq[$i]) ){
+	    if ( $check1 ){
 		$len1++;
 	    }
 
-	    if ( is_nucleotide($seq2[$i]) ){
+	    if ( $check2 ){
 		$len2++;
 	    }
 	}
@@ -225,6 +249,11 @@ if ($noseqs>0){
     $mean_length = $mean_length/$noseqs;
 }
 
+#my $msg = Dumper(%composition);
+#print $msg;
+
+my ($refmononuccounts, $maxdinucstr, $maxdinuc, $CGcontent) = compute_compositions( \%composition, $nonucleotides);
+
 #Print data to file and warnings for dodgy pairs:
 if ($noseqs>0 && $nopairs>0){
     foreach my $bpposns ( keys %perbasepair ) {
@@ -249,10 +278,10 @@ else {
 }
 
 if( ! defined $nolog ) {
-    printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len);    
+    printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len), $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;    
 }
 else {
-    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len);    
+    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len), $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;
 }
 
 close(LOGpb);
@@ -390,9 +419,9 @@ sub make_pair_table {
 sub is_nucleotide {
     my $a = shift;
     
-    if (defined($a)){
-	$a =~ tr/a-z/A-Z/;
-    }
+#    if (defined($a)){
+#	$a =~ tr/a-z/A-Z/;
+#    }
 	
     if (defined($a) && length($a) && ($a =~ /[ACGUTRYWSMKBDHVN]/) ){
 	return 1;
@@ -409,13 +438,13 @@ sub is_complementary {
     my $a = shift;
     my $b = shift;
 
-    if (defined($a)){
-	$a =~ tr/a-z/A-Z/;
-    }
+#    if (defined($a)){
+#	$a =~ tr/a-z/A-Z/;
+#    }
 
-    if (defined($b)){
-	$b =~ tr/a-z/A-Z/;
-    }
+#    if (defined($b)){
+#	$b =~ tr/a-z/A-Z/;
+#    }
     
     my $ab = $a . $b;
     
@@ -468,6 +497,175 @@ sub dist {
         return 0;
     }
 
+}
+
+######################################################################
+#
+sub compute_compositions {
+    my $nuc_counts = shift;
+    my $total = shift;
+    
+    my %nuc_counts = %$nuc_counts;
+    #This is a monstrous hash of hashes that standardises any possible IUPAC char:
+    my %IUPAC2counts = (
+	A => {
+	    A => 1,
+	    C => 0,
+	    G => 0,
+	    U => 0,
+	},
+	C => {
+	    A => 0,
+	    C => 1,
+	    G => 0,
+	    U => 0,
+	},
+	G => {
+	    A => 0,
+	    C => 0,
+	    G => 1,
+	    U => 0,
+	},
+	U => {
+	    A => 0,
+	    C => 0,
+	    G => 0,
+	    U => 1,
+	},
+	T => {
+	    A => 0,
+	    C => 0,
+	    G => 0,
+	    U => 1,
+	},
+	R => {
+	    A => 0.5,
+	    C => 0,
+	    G => 0.5,
+	    U => 0,
+	},
+	Y => {
+	    A => 0,
+	    C => 0.5,
+	    G => 0,
+	    U => 0.5,
+	},
+	S => {
+	    A => 0,
+	    C => 0.5,
+	    G => 0.5,
+	    U => 0,
+	},
+	W => {
+	    A => 0.5,
+	    C => 0,
+	    G => 0,
+	    U => 0.5,
+	},
+	M => {
+	    A => 0.5,
+	    C => 0.5,
+	    G => 0,
+	    U => 0,
+	},
+	K => {
+	    A => 0,
+	    C => 0,
+	    G => 0.5,
+	    U => 0.5,
+	},
+	B => {
+	    A => 0,
+	    C => 0.3,
+	    G => 0.3,
+	    U => 0.3,
+	},
+	D => {
+	    A => 0.3,
+	    C => 0,
+	    G => 0.3,
+	    U => 0.3,
+	},
+	H => {
+	    A => 0.3,
+	    C => 0.3,
+	    G => 0,
+	    U => 0.3,
+	},
+	V => {
+	    A => 0.3,
+	    C => 0.3,
+	    G => 0.3,
+	    U => 0,
+	},
+	N => {
+	    A => 0.25,
+	    C => 0.25,
+	    G => 0.25,
+	    U => 0.25,
+	},
+	);
+        
+    my %mononuc2dinuc = (
+	A => ['R', 'W', 'M'],
+	C => ['Y', 'S', 'M'],
+	G => ['R', 'S', 'K'],
+	U => ['Y', 'W', 'K']
+	);
+    
+    my %mononuccounts = (
+	A => 0,
+	C => 0,
+	G => 0,
+	U => 0
+	);
+    
+    my %dinuccounts = (
+	R => 0,
+	Y => 0,
+	S => 0,
+	W => 0,
+	M => 0,
+	K => 0
+	);
+    
+    
+    foreach my $nucchar (keys %nuc_counts){
+	foreach my $n (keys %{ $IUPAC2counts{$nucchar} } ){
+	    if ( defined( $IUPAC2counts{$nucchar}{$n} ) ){
+		$mononuccounts{$n} += $IUPAC2counts{$nucchar}{$n}*$nuc_counts{$nucchar};
+	    }
+	}
+    }
+	
+    foreach my $nuc (keys %mononuc2dinuc){
+	foreach my $dinuc ( @{ $mononuc2dinuc{$nuc} } ){
+	    $dinuccounts{$dinuc} += $mononuccounts{$nuc};
+	}
+    }
+
+    foreach my $mononuc ( keys %mononuccounts ) {
+	$mononuccounts{$mononuc} = $mononuccounts{$mononuc}/$total;
+    }
+    
+    my ($maxdinuc,$maxdinucstr) = (0, "");
+    foreach my $dinuc ( keys %dinuccounts ) {
+	$dinuccounts{$dinuc} = $dinuccounts{$dinuc}/$total;
+	if ($maxdinuc < $dinuccounts{$dinuc}) {
+	    $maxdinuc = $dinuccounts{$dinuc};
+	    $maxdinucstr = $dinuc;
+	}
+    }
+    
+#    my $msg = Dumper(%IUPAC2counts, "\n\n", %mononuc2dinuc);
+#    print "$msg\n\n";
+
+#    $msg = Dumper(%mononuccounts, "\n\n", %dinuccounts);
+#    print "$msg\n\n";
+ 
+   
+    return (\%mononuccounts, $maxdinucstr, $maxdinuc, $dinuccounts{'S'} );
+    
 }
 
 #######
