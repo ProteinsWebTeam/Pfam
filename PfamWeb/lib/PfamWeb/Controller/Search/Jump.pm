@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.6 2007-10-15 09:16:55 jt6 Exp $
+# $Id: Jump.pm,v 1.7 2007-10-24 08:42:17 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.6 2007-10-15 09:16:55 jt6 Exp $
+$Id: Jump.pm,v 1.7 2007-10-24 08:42:17 jt6 Exp $
 
 =cut
 
@@ -217,7 +217,7 @@ sub guess : Private {
   #----------------------------------------
   
   # how about a sequence entry ?
-  if( not $action and $entry =~ /^([OPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/ ) {
+  if( not $action and $entry =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
   
     $found = $c->model('PfamDB::Pfamseq')
                ->find( { pfamseq_acc => $1 } );
@@ -234,7 +234,7 @@ sub guess : Private {
                            prefetch => [ qw( pfamseq ) ] } );
       if ( defined $found ) {
         $c->log->debug( 'Search::Jump::guess: found a secondary sequence entry' )
-        if $c->debug;
+          if $c->debug;
         $action = 'protein';
       }
     }
