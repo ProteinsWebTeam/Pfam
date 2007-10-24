@@ -77,5 +77,5 @@ if( -e "$Rfam::current_dir/$acc/todo.view" ) {
 }
 
 unless( $nolock ) {
-    system("rfabort -u VIEW $acc") and warn "$acc: abort view lock failed - no lock?";
+    system("rfabort.pl -u VIEW $acc") ==0 or warn "$acc: abort view lock failed - no lock?";
 }
