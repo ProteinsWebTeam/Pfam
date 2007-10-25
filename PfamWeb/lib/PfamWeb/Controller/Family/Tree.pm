@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.13 2007-08-07 12:42:20 jt6 Exp $
+# $Id: Tree.pm,v 1.14 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.13 2007-08-07 12:42:20 jt6 Exp $
+$Id: Tree.pm,v 1.14 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -60,7 +60,7 @@ sub showTree : Path {
   $c->stash->{template} = 'components/blocks/family/treeMap.tt';
 
   # cache the page (fragment) for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------

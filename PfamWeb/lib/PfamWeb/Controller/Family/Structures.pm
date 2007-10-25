@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.10 2007-08-23 09:49:40 rdf Exp $
+# $Id: Structures.pm,v 1.11 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.10 2007-08-23 09:49:40 rdf Exp $
+$Id: Structures.pm,v 1.11 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -90,7 +90,7 @@ sub structures : Path {
   $c->stash->{template} = 'components/blocks/family/familyStructures.tt';
 
   # cache the template output for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------
@@ -118,7 +118,7 @@ sub mapping : Local  {
   $c->stash->{template} = 'components/blocks/family/structureTab.tt';
   
   # cache the template output for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------

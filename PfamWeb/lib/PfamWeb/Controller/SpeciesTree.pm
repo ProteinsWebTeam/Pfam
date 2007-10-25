@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.9 2007-10-15 09:10:16 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.10 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.9 2007-10-15 09:10:16 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.10 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -192,7 +192,7 @@ sub interactive : Local {
   $c->stash->{template} = "components/speciesTree.tt";
   
   # cache the output of the template for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------
