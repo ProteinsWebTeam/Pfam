@@ -4,7 +4,7 @@
 # 
 # keyword search results page
 #
-# $Id: results.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: results.tt,v 1.2 2007-10-25 10:06:21 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;
@@ -64,9 +64,10 @@ requirements.js.push( "sorttable.js" );
       [% IF lookupHit %]
         Your query also appears to be a match for Pfam entry
         <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
-        [% lookupHit.pfamA_id %]</a></em>
-        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
-        [% lookupHit.pfamA_acc %]</a>) and this row is <span class="highlight">highlighted</span> in the results table.
+          [% lookupHit.pfamA_id %]</a></em>
+        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">[% lookupHit.pfamA_acc %]</a>)
+        and this row is <span class="highlight">highlighted</span> in the
+        results table.
       [% END %]
     </p>
 
