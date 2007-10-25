@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.24 2007-08-10 15:23:23 jt6 Exp $
+# $Id: layout.tt,v 1.25 2007-10-25 10:22:52 jt6 Exp $
 
 USE String;
 USE date;
@@ -158,7 +158,6 @@ PROCESS components/icons.tt;
 [% # do we want to highlight a particular tab ? %]
 <script type="text/javascript">
   // <![CDATA[
-  serverRoot = "[% constants.root # the server root, e.g. /catalyst/PfamWeb %]";
   section    = "[% pageType       # the site section, e.g. family, protein, etc. %]";
   showTab    = "[% showTab        # the tab, specified by a parameter %]";
   if( ! ( showTab === undefined ) && $(showTab) ) {
