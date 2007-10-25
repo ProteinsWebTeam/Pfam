@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.17 2007-09-19 15:44:28 jt6 Exp $
+# $Id: Search.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search;
 
 This controller is responsible for running sequence searches.
 
-$Id: Search.pm,v 1.17 2007-09-19 15:44:28 jt6 Exp $
+$Id: Search.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -70,7 +70,7 @@ sub formatTerms : Private {
   my( $this, $c ) = @_;
 
   $c->stash->{terms} =
-    join " ", map { $_ = "+$_*" } split /\s+|\W|\:|\-|\_/, $c->stash->{rawQueryTerms};
+    join " ", map { $_ = "+$_*" } split /\s+|\W|\_/, $c->stash->{rawQueryTerms};
 
 }
 

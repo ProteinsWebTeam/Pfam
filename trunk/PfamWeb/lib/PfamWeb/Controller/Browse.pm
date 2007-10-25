@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.6 2007-08-20 15:46:43 jt6 Exp $
+# $Id: Browse.pm,v 1.7 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.6 2007-08-20 15:46:43 jt6 Exp $
+$Id: Browse.pm,v 1.7 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -41,7 +41,7 @@ sub begin : Private {
   my( $this, $c ) = @_;
 
   # set the page to be cached for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 
   # tell the navbar where we are
   $c->stash->{nav} = 'browse';

@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.2 2007-09-19 15:44:08 jt6 Exp $
+# $Id: Keyword.pm,v 1.3 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.2 2007-09-19 15:44:08 jt6 Exp $
+$Id: Keyword.pm,v 1.3 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -47,14 +47,14 @@ sub textSearch : Path {
   return unless $c->req->param('query');
 
   # get the query
-  my( $terms ) = $c->req->param('query') =~ /^([\w\:\;\-\.\s]+)/;
+  my( $terms ) = $c->req->param('query') =~ m/^([\w:.\-\s]+)/;
 
   # we're done here unless there's a query specified
   $c->log->warn( 'Search::Keyword::textSearch: no query terms supplied' ) and return
     unless defined $terms;
 
   $c->log->debug( 'Search::Keyword::textSearch: running query with: |' 
-                  . $terms . '|' );
+                  . $terms . '|' ) if $c->debug;
 
   # stash the de-tainted terms so we can safely display them later
   $c->stash->{rawQueryTerms} = $terms;
@@ -108,8 +108,10 @@ those from earlier ones.
 sub runSearches : Private {
   my( $this, $c, $searchSet ) = @_;
 
-  $c->log->debug( 'Search::Keyword::runSearches: running a search' );
+  $c->log->debug( 'Search::Keyword::runSearches: running a search' )
+    if $c->debug;
 
+  # TODO this is a bit sloppy...
   $c->error( 'You did not supply any valid search terms' )
     unless $c->stash->{rawQueryTerms};
 
@@ -120,8 +122,8 @@ sub runSearches : Private {
 
     next unless( $pluginDesc = $this->{plugins}->{$pluginName} );
 
-    $c->log->debug( 'Search::Keyword::runSearches: adding plugin '
-                    . "|$pluginName| from |$searchSet|" );
+    $c->log->debug( 'Search::Keyword::runSearches: adding plugin ' .
+                    "|$searchSet|$pluginName|" ) if $c->debug;
 
     # keep track of the order of the configured plugins. Store the
     # list forwards and backwards, since we'll use it both ways
@@ -151,24 +153,24 @@ sub runSearches : Private {
     next unless $c->stash->{pluginsHash}->{$pluginName};
 
     # check that the plugin is properly formed
-    next unless $plugin->can( 'process' );
-    next unless $plugin->can( 'formatTerms' );
+    next unless( $plugin->can( 'process' ) and
+                 $plugin->can( 'formatTerms' ) );
 
     # firkle with the user input if necessary and build a string that
     # we can pass straight to the DB
     $c->forward( $plugin, 'formatTerms' );
 
     # and run the query
-    $c->log->debug( "Search::Keyword::runSearches: running query for plugin $pluginName" );
+    $c->log->debug( "Search::Keyword::runSearches: running query for plugin $pluginName" )
+      if $c->debug;
     my $results = $c->forward( $plugin );
 
     # merge results from the individual query
     $c->forward( 'mergeResults', [ $pluginName, $results ] );
-
   }
 
   $c->log->debug( 'Search::Keyword::runSearches: found a total of ' .
-          scalar( keys %{$c->stash->{results}} ) . ' rows' );
+          scalar( keys %{$c->stash->{results}} ) . ' rows' ) if $c->debug;
 
   #----------------------------------------
 
@@ -182,11 +184,11 @@ sub runSearches : Private {
   #----------------------------------------
 
   # if there's only one result, redirect straight to it
-
   if( $numHits == 1 ) {
     my( $acc ) = keys %{$c->stash->{results}};
-    $c->log->debug( "Search::Keyword::runSearches: found a single hit: |$acc|; redirecting" );
-    $c->res->redirect( $c->uri_for( "/family", { acc => $acc } ) );
+    $c->log->debug( "Search::Keyword::runSearches: found a single hit: |$acc|; redirecting" )
+      if $c->debug;
+    $c->res->redirect( $c->uri_for( '/family', { acc => $acc } ) );
     return 1;
   }
 
@@ -214,7 +216,7 @@ sub runSearches : Private {
 
     my $rs = $c->model('PfamDB::Pfam')
                ->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
-                         { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
+                           { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
   
     # we're going to assume that there's only one hit here... we're in
     # trouble if there's more than one, certainly
@@ -255,8 +257,6 @@ sub mergeResults : Private {
 #- methods ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head1 NON-ACTION METHODS
-
 =head2 _mergeResults
 
 Merges results from plugins. If the plugin returns an array of
@@ -285,6 +285,8 @@ sub _mergeResults : Private {
 }
 
 #-------------------------------------------------------------------------------
+
+=head1 NON-ACTION METHODS
 
 =head2 _computeScore
 

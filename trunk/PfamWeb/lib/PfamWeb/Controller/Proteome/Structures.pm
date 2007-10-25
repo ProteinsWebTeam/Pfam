@@ -2,7 +2,7 @@
 # Structures.pm
 # jt6 20070823 WTSI
 #
-# $Id: Structures.pm,v 1.1 2007-08-23 16:23:58 jt6 Exp $
+# $Id: Structures.pm,v 1.2 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Structures;
 Controller to build the mapping between sequence and structure for the 
 proteome section
 
-$Id: Structures.pm,v 1.1 2007-08-23 16:23:58 jt6 Exp $
+$Id: Structures.pm,v 1.2 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -53,7 +53,7 @@ sub getMapping : Path {
   $c->stash->{template} = 'components/blocks/family/structureTab.tt';
   
   # cache the template output for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------

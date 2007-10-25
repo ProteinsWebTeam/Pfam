@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.14 2007-07-30 12:38:21 jt6 Exp $
+# $Id: Section.pm,v 1.15 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.14 2007-07-30 12:38:21 jt6 Exp $
+$Id: Section.pm,v 1.15 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -49,7 +49,7 @@ sub default : Private {
   my( $this, $c ) = @_;
 
   # set the page to be cached for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 
 }
 

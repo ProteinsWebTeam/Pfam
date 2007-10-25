@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.17 2007-07-23 14:35:43 jt6 Exp $
+# $Id: Root.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.17 2007-07-23 14:35:43 jt6 Exp $
+$Id: Root.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -90,7 +90,7 @@ sub index : Private {
   my( $this, $c ) = @_;
 
   # set the page to be cached for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 
   # tell the navbar where we are
   $c->stash->{nav} = 'home';

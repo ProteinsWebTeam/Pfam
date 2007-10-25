@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.14 2007-09-07 15:44:48 jt6 Exp $
+# $Id: Annotate.pm,v 1.15 2007-10-25 09:28:04 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.14 2007-09-07 15:44:48 jt6 Exp $
+$Id: Annotate.pm,v 1.15 2007-10-25 09:28:04 jt6 Exp $
 
 =cut
 
@@ -135,7 +135,7 @@ sub annotate : Path {
   # cache the annotation form for two weeks. We should be able to cache the
   # raw form safely, because the JS in it will still fire to retrieve the
   # time stamp. As long as we don't cache that, we should be fine !
-  $c->cache_page( 1209600 );
+  #$c->cache_page( 1209600 );
 }
 
 #-------------------------------------------------------------------------------
