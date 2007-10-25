@@ -2,7 +2,7 @@
 # GetImage.pm
 # jt6 20060314 WTSI
 #
-# $Id: GetImage.pm,v 1.13 2007-07-27 15:27:27 jt6 Exp $
+# $Id: GetImage.pm,v 1.14 2007-10-25 09:35:19 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ to extract the PDB ID from the URL.
 
 Generates an B<image file>, MIME type C<image/gif>.
 
-$Id: GetImage.pm,v 1.13 2007-07-27 15:27:27 jt6 Exp $
+$Id: GetImage.pm,v 1.14 2007-10-25 09:35:19 jt6 Exp $
 
 =cut
 
@@ -61,7 +61,7 @@ sub getImage : Path {
   }
 
   # may as well hit the cache instead of the database...
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 }
 
 #-------------------------------------------------------------------------------
