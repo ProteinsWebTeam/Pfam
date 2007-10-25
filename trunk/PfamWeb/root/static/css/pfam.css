@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.59 2007-09-13 12:48:32 jt6 Exp $
+   $Id: pfam.css,v 1.60 2007-10-25 10:06:55 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -627,7 +627,7 @@ a.sortheader {
 
 #results span.highlight,
 .resultTable tr.highlight {
-  background: #c2d2e1; /* #CBD */
+  background: #c2d2e1 ! important; /* #CBD */
 }
 
 /* ======================================== */
