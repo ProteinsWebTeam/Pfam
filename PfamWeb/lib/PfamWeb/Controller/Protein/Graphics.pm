@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.22 2007-07-02 10:02:26 jt6 Exp $
+# $Id: Graphics.pm,v 1.23 2007-10-30 14:54:10 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.22 2007-07-02 10:02:26 jt6 Exp $
+$Id: Graphics.pm,v 1.23 2007-10-30 14:54:10 jt6 Exp $
 
 =cut
 
@@ -424,7 +424,7 @@ sub getSelectedDASObjects : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getServerList: Private
+=head2 getServerList : Private
 
 Retrieves the list of servers from either the request (in the parameters), 
 the session or, finally, the database
@@ -487,6 +487,12 @@ sub getServerList : Private {
 #- functions -------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+=head2 sortByProperty
+
+Sort the server list according to the properties of the individual servers.
+
+=cut
+
 sub sortByProperty {
   my ($arrIn, $propName, @prefList) = @_;
   
@@ -509,6 +515,12 @@ sub sortByProperty {
 
 #-------------------------------------------------------------------------------
 
+=head2 indexOf
+
+Find the array index of the supplied property. 
+
+=cut
+
 sub indexOf {
   my ($el, $arr) = @_;
   for (my $i=0; $i<@$arr; $i++) {
@@ -518,6 +530,12 @@ sub indexOf {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 extractServerName
+
+Get the server name. 
+
+=cut
 
 sub extractServerName {
   my( $image, $featureServers, $alignServers ) = @_;

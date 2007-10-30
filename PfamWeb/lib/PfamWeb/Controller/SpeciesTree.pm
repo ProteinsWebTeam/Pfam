@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.10 2007-10-25 09:28:04 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.11 2007-10-30 14:54:10 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.10 2007-10-25 09:28:04 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.11 2007-10-30 14:54:10 jt6 Exp $
 
 =cut
 
@@ -133,7 +133,7 @@ sub begin : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 end : Private
+=head2 end : ActionClass
 
 Renders the tree. If there's a text representation of the tree in the stash,
 it's returned directly in the response. If not, we hand off to the view to 
@@ -282,7 +282,7 @@ sub selected : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 buildtree : Private
+=head2 buildTree : Private
 
 Tries to retrieve the pre-built tree from cache and, if it can't be simply
 retrieved, forwards to C<_buildTree> which will actually construct it from

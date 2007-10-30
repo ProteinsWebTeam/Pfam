@@ -2,7 +2,7 @@
 # Taxonomy.pm
 # jt6 20070918 WTSI
 #
-# $Id: Taxonomy.pm,v 1.7 2007-10-15 09:17:31 jt6 Exp $
+# $Id: Taxonomy.pm,v 1.8 2007-10-30 14:54:10 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Taxonomy;
 
 A search controller for performing taxonomy searches
 
-$Id: Taxonomy.pm,v 1.7 2007-10-15 09:17:31 jt6 Exp $
+$Id: Taxonomy.pm,v 1.8 2007-10-30 14:54:10 jt6 Exp $
 
 =cut
 
@@ -918,7 +918,7 @@ sub descend : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getRange: Private
+=head2 getRange : Private
 
 Looks up the left and right values for a given species or taxonomic level.
 If it finds both left and right values, they are returned as a reference to 
@@ -1017,7 +1017,7 @@ sub merge {
 
 #-------------------------------------------------------------------------------
 
-=head2 unique
+=head2 uniquify
 
 Returns a reference to a hash containing those keys from the first input hash
 that are not found in the second input hash. Values are taken from hash1.

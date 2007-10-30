@@ -2,7 +2,7 @@
 # Structures.pm
 # jt6 20070823 WTSI
 #
-# $Id: Structures.pm,v 1.2 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Structures.pm,v 1.3 2007-10-30 14:54:10 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Structures;
 Controller to build the mapping between sequence and structure for the 
 proteome section
 
-$Id: Structures.pm,v 1.2 2007-10-25 09:28:04 jt6 Exp $
+$Id: Structures.pm,v 1.3 2007-10-30 14:54:10 jt6 Exp $
 
 =cut
 
@@ -30,7 +30,7 @@ use base 'PfamWeb::Controller::Proteome';
 
 =head1 METHODS
 
-=head2 getMapping: Private
+=head2 getMapping : Path
 
 Just gets the data items for the structure mapping table.
 

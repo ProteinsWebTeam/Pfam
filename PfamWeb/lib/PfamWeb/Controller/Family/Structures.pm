@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.11 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Structures.pm,v 1.12 2007-10-30 14:54:10 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.11 2007-10-25 09:28:04 jt6 Exp $
+$Id: Structures.pm,v 1.12 2007-10-30 14:54:10 jt6 Exp $
 
 =cut
 
@@ -55,7 +55,7 @@ use base 'PfamWeb::Controller::Family';
 
 =head1 METHODS
 
-=head2 familyStructures : Path
+=head2 structures : Path
 
 Retrieves the list of PDB entries for this family. If a PDB ID is specified,
 the method also retrieves the row of the "pdb" table for that entry.
