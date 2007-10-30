@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.19 2007-09-11 13:25:44 jt6 Exp $
+# $Id: Clan.pm,v 1.20 2007-10-30 14:54:10 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.19 2007-09-11 13:25:44 jt6 Exp $
+$Id: Clan.pm,v 1.20 2007-10-30 14:54:10 jt6 Exp $
 
 =cut
 
@@ -225,7 +225,7 @@ sub structures : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 _getSummaryData : Private
+=head2 getSummaryData : Private
 
 Populates the stash with data for the summary icons.
 
@@ -280,7 +280,7 @@ sub getSummaryData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 _getXrefs : Private
+=head2 getXrefs : Private
 
 Retrieves database cross-references. 
 
@@ -302,7 +302,7 @@ sub getXrefs : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 _getMapping : Private
+=head2 getMapping : Private
 
 Retrieves the structure mappings for this clan. 
 

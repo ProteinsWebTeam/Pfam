@@ -2,7 +2,7 @@
 # PfamViewer.pm
 # jt6 20060601 WTSI
 #
-# $Id: Viewer.pm,v 1.2 2007-08-23 16:22:57 jt6 Exp $
+# $Id: Viewer.pm,v 1.3 2007-10-30 14:54:10 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Family::Alignment::Viewer;
 
 Various methods for viewing alignments.
 
-$Id: Viewer.pm,v 1.2 2007-08-23 16:22:57 jt6 Exp $
+$Id: Viewer.pm,v 1.3 2007-10-30 14:54:10 jt6 Exp $
 
 =cut
 
@@ -34,7 +34,7 @@ use base 'PfamWeb::Controller::Family::Alignment';
 
 =head1 METHODS
 
-=head2 view : Local
+=head2 showPfamViewer : Path
 
 Sets up the PfamViewer for this alignment.
 
