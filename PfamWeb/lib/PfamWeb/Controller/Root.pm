@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Root.pm,v 1.19 2007-10-30 15:41:11 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
+$Id: Root.pm,v 1.19 2007-10-30 15:41:11 jt6 Exp $
 
 =cut
 
@@ -225,6 +225,50 @@ sub reportError : Private {
 
 #-------------------------------------------------------------------------------
 
+=head2 robots : Path
+
+Serve a "robots.txt" file. We first try to retrieve the file from cache but
+if we don't find a cached version we try to extract it from the server
+configuration. Finally, if that fails, we fall back to a estrictive
+generic version that just disallows all robots to all URLs.
+
+=cut
+
+sub robots : Path( '/robots.txt' ) {
+  my( $this, $c ) = @_;
+  
+  my $cacheKey = 'robots.txt';
+  my $r = $c->cache->get( $cacheKey );
+  
+  if( defined $r ) {
+    $c->log->debug( 'Root::robots: retrieved robots.txt from cache' )
+      if $c->debug
+  } else {
+    $c->log->debug( 'Root::robots: returning robots.txt from config' )
+      if $c->debug;
+
+    # find out at which site we're running 
+    my $site = $c->config->{site};
+    
+    # and retrieve the specific robots.txt for that site
+    $r = $c->config->{robots}->{$site};
+    
+    # fall back on a generic, restrictive version
+    $r ||= <<'EOF_default_robots';
+User-agent: *
+Disallow: /
+EOF_default_robots
+
+    $c->cache->set( $cacheKey, $r );
+  }
+  
+  # put the file into the response and we're done
+  $c->res->content_type( 'text/plain' );
+  $c->res->body( $r );
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 end : Private
 
 Renders the index page for the site by default, but the default template can be 
@@ -243,8 +287,8 @@ sub end : Private {
     $c->stash->{template} = 'pages/error.tt';
     
     # make sure the error page isn't cached
-    $c->res->header( 'Pragma' => 'no-cache' );
-    $c->res->header( 'Expires' => 'Thu, 01 Jan 1970 00:00:00 GMT' );
+    $c->res->header( 'Pragma'        => 'no-cache' );
+    $c->res->header( 'Expires'       => 'Thu, 01 Jan 1970 00:00:00 GMT' );
     $c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
                                         'post-check=0, pre-check=0, max-age=0' );
     
