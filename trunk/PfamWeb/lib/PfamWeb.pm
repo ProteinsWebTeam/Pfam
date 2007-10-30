@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.43 2007-10-25 09:28:04 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.44 2007-10-30 15:53:58 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.43 2007-10-25 09:28:04 jt6 Exp $
+$Id: PfamWeb.pm,v 1.44 2007-10-30 15:53:58 jt6 Exp $
 
 =cut
 
@@ -91,7 +91,7 @@ sub finalize_config {
   my $v = Data::Visitor::Callback
             ->new( plain_value => sub {
                return unless defined $_;
-               /^(.*)$/;
+               /^(.*)$/s;
                $_ = $1;
             }
           );
