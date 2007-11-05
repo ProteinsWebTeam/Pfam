@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.44 2007-10-30 15:53:58 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.45 2007-11-05 13:38:56 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.44 2007-10-30 15:53:58 jt6 Exp $
+$Id: PfamWeb.pm,v 1.45 2007-11-05 13:38:56 jt6 Exp $
 
 =cut
 
@@ -40,8 +40,8 @@ use Catalyst qw/
                  Session
                  Session::Store::FastMmap
                  Session::State::Cookie
+                 PageCache
                /;
-                 #PageCache
 
 # PageCache must be last in the list
 
@@ -50,7 +50,7 @@ use Catalyst qw/
 #                 Session::Store::FastMmap
 #                 Session::State::Cookie
 
-our $VERSION = '1.2';
+our $VERSION = '1.3';
 
 #-------------------------------------------------------------------------------
 
