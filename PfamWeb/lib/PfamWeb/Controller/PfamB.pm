@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.16 2007-10-15 09:13:44 jt6 Exp $
+# $Id: PfamB.pm,v 1.17 2007-11-05 13:37:19 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
 on the Family controller, which is responsible for deciding whether the input
 parameters on the URL are pointing to a Pfam-B accession or ID.
 
-$Id: PfamB.pm,v 1.16 2007-10-15 09:13:44 jt6 Exp $
+$Id: PfamB.pm,v 1.17 2007-11-05 13:37:19 jt6 Exp $
 
 =cut
 
@@ -63,13 +63,13 @@ sub pfamB : Path {
 
 #-------------------------------------------------------------------------------
 
-=head2 structuretab : Path
+=head2 structures : Path
 
 Populates the stash with the mapping and hands off to the appropriate template.
 
 =cut
 
-sub structuretab : Local {
+sub structures : Local {
   my($this, $c) = @_;
 
   $c->log->debug( 'PfamB::structuretab: acc: |'
