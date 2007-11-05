@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.19 2007-10-30 15:41:11 jt6 Exp $
+# $Id: Root.pm,v 1.20 2007-11-05 13:37:04 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.19 2007-10-30 15:41:11 jt6 Exp $
+$Id: Root.pm,v 1.20 2007-11-05 13:37:04 jt6 Exp $
 
 =cut
 
@@ -229,7 +229,7 @@ sub reportError : Private {
 
 Serve a "robots.txt" file. We first try to retrieve the file from cache but
 if we don't find a cached version we try to extract it from the server
-configuration. Finally, if that fails, we fall back to a estrictive
+configuration. Finally, if that fails, we fall back to a restrictive
 generic version that just disallows all robots to all URLs.
 
 =cut
