@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.15 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Annotate.pm,v 1.16 2007-11-05 12:57:36 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.15 2007-10-25 09:28:04 jt6 Exp $
+$Id: Annotate.pm,v 1.16 2007-11-05 12:57:36 jt6 Exp $
 
 =cut
 
@@ -244,17 +244,18 @@ sub submit : Local {
         $c->stash->{submissionError} = SUBMISSION_VALID;
       
         # decide where we should redirect the user
-        my $uri;
+        my $target;
         if( $c->stash->{type} eq 'A' ) {
-          $uri = $c->req->base . 'family?acc=' . $c->stash->{acc};
+          $target = '/family';
         } elsif( $c->stash->{type} eq 'B' ) {
-          $uri = $c->req->base . 'pfamb?acc=' . $c->stash->{acc};
+          $target = '/pfamb';
         } elsif( $c->stash->{type} eq 'C' ) {
-          $uri = $c->req->base . 'clan?acc=' . $c->stash->{acc};
+          $target = '/clan';
         } else {
-          $uri = $c->req->base;
+          $target = '/';
         }
-        $c->stash->{refreshUri} = $uri;
+        $c->stash->{refreshUri} = $c->uri_for( $target, 
+                                               { acc => $c->stash->{acc} } );
       }
     }
   }
