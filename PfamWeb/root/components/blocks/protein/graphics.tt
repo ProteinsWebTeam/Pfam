@@ -14,7 +14,7 @@
 # that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
 # onComplete callbacks, which turn on and off the "loading" spinner, etc.
 #
-# $Id: graphics.tt,v 1.19 2007-08-10 10:18:12 jt6 Exp $
+# $Id: graphics.tt,v 1.20 2007-11-05 13:38:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -27,6 +27,8 @@ requirements.js.push( "prototip.js" );
 requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
+
+graphicsUri = c.uri_for( "/protein/graphics" );
 -%]
 
 <!-- start protein graphics block -->
@@ -109,7 +111,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
     <script type="text/javascript">
       // <![CDATA[
-      loadOptions.pg.uri    = "[% base %]protein/graphics";
+      loadOptions.pg.uri    = "[% graphicsUri %]";
       loadOptions.pg.params = { acc: "[% pfamseq.pfamseq_acc %]" };
       // ]]>
     </script>
@@ -128,7 +130,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
           collect the data and generate the image.
         </p>
   
-        <form action="[% base %]protein/graphics"
+        <form action="[% graphicsUri %]"
               id="updateGraphicsForm"
               onsubmit="graphicsSubmitter();return false">
           <div>
@@ -172,7 +174,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
           graphicsSubmitter = function() {
             $("pgSubmitButton").disable();
             $("pgUpdateSpinner").show();
-            new Ajax.Request( '[% base %]protein/graphics',
+            new Ajax.Request( '[% graphicsUri %]',
                               {
                                 onSuccess:   pgSuccess,
                                 onFailure:   pgFailure,

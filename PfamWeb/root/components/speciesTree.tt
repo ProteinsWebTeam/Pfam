@@ -5,7 +5,7 @@
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.3 2007-10-15 09:10:16 jt6 Exp $
+# $Id: speciesTree.tt,v 1.4 2007-11-05 13:38:18 jt6 Exp $
 
 META naked = 1;
 
@@ -90,7 +90,7 @@ IF textTree;
 <script type="text/javascript">
   // <![CDATA[
   [%# set the URI to point specifically to the interactive tree %]
-  loadOptions.st.uri = "[% base %]speciestree/interactive";
+  loadOptions.st.uri = "[% c.uri_for( "/speciestree/interactive" ) %]";
   // ]]>
 </script>
 
@@ -162,7 +162,7 @@ ELSE;
         CASE "C"; "clan";
       END %] has [% numSpecies %] species, which means that displaying the 
       interactive tree is not feasible, but you can still 
-      <a href="[% base %]speciestree/text?acc=[% acc %]&amp;loadTree=1">download</a>
+      <a href="[% stUri %]/text?acc=[% acc %]&amp;loadTree=1">download</a>
       a text representation of the tree. Please note that, due to the 
       volume of data involved, this can still be slow.
     </p>
@@ -181,7 +181,7 @@ ELSE;
       END %] has [% numSpecies %] species, which means that generating and
       displaying the interactive tree could take up to a minute or more, 
       depending on your browser and the speed of your computer. You can 
-      <a href="[% base %]speciestree/text?acc=[% acc %]&amp;loadTree=1">download</a>
+      <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">download</a>
       a text representation of the tree, which should be quicker, but if you
       want to see the interactive tree, please use the button below.
     </p>
@@ -204,7 +204,7 @@ ELSE;
       loadOptions.st.params['loadTree'] = 1;
       
       [%# set the URI to point specifically to the interactive tree %]
-      loadOptions.st.uri = "[% base %]speciestree/interactive",
+      loadOptions.st.uri = "[% c.uri_for( "/speciestree/interactive" ) %]",
       // ]]>
     </script>
     

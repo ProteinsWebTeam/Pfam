@@ -6,7 +6,9 @@
 # build the javascript boiler plate that controls loading of the species
 # tree
 #
-# $Id: speciesTreeJS.tt,v 1.4 2007-10-15 09:10:16 jt6 Exp $
+# $Id: speciesTreeJS.tt,v 1.5 2007-11-05 13:38:18 jt6 Exp $
+
+stUri = c.uri_for( "/speciestree" );
 %]
 
 <script type="text/javascript">
@@ -15,18 +17,18 @@
   loadOptions.st.params  = { acc: "[% acc %]",
                              ie:  Prototype.Browser.IE };
   if( Prototype.Browser.IE ) {
-    loadOptions.st.uri = "[% base %]speciestree/text";
+    loadOptions.st.uri = "[% stUri %]/text";
   } else {
-    loadOptions.st.uri = "[% base %]speciestree/interactive";
+    loadOptions.st.uri = "[% stUri %]/interactive";
   }
 
   [%# the URL to visit when the user selects nodes and wants to view the 
     # selected sequences as domain graphics -%]
-  var selectGraphicsURI  = "[% base %]speciestree/selected";
+  var selectGraphicsURI  = "[% stUri %]/selected";
 
   [%# the URL to visit when the user selects nodes and wants to view the 
     # selected sequences as an alignment -%]
-  var selectAlignmentURI = "[% base %]family/alignment/builder";
+  var selectAlignmentURI = "[% c.uri_for( "/family/alignment/builder" ) %]";
 
   [%# a hash that maps between the ID of the summary node and the TaskNode object -%]
   nodeMapping = {};

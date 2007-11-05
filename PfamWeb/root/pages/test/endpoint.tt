@@ -1,0 +1,25 @@
+
+[%
+# endpoint.tt
+# jt6 20071031 WTSI
+# 
+# build a simple test page.
+#
+# $Id: endpoint.tt,v 1.1 2007-11-05 13:38:19 jt6 Exp $
+
+META title = "Endpoint test page";
+META fullPage = 1;
+-%]
+
+<h1>Endpoint test page</h1>
+
+<p>
+  This is a PfamWeb test page. The following flags were set in the stash in
+  the process of generating it:
+</p>
+
+<ul>
+  [% FOREACH flag IN flags.keys %]
+  <li>[% flag %]</li>
+  [% END %]
+</ul>

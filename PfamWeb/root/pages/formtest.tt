@@ -1,0 +1,5 @@
+  <!-- Display the "foo" form -->
+  [% forms.foo_form.FormBuilder.render %]
+  
+  <!-- Display the "bar" form -->
+  [% forms.bar_form.FormBuilder.render %]

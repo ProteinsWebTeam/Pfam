@@ -5,7 +5,7 @@
 # 
 # installation instructions for the website
 #
-# $Id: install.tt,v 1.1 2007-09-14 09:35:23 jt6 Exp $
+# $Id: install.tt,v 1.2 2007-11-05 13:38:19 jt6 Exp $
 %]
 
 <!-- start install block -->
@@ -148,19 +148,20 @@
         PDF-reader</a> in order to view these instructions.
     </p>
 
+    [% docsUri = c.uri_for( "/static/documents" ); -%]
     <dl>
       <dt>
-        <a class="ext" href="[% base %]static/documents/database_installation_notes.pdf">
+        <a class="ext" href="[% docsUri %]/database_installation_notes.pdf">
           Database installation notes</a>
         </dt>
       <dd>installing the Pfam databases</dd>
       <dt>
-        <a class="ext" href="[% base %]static/documents/backend_installation_notes.pdf">
+        <a class="ext" href="[% docsUri %]/backend_installation_notes.pdf">
           Offline script installation notes</a>
         </dt>
       <dd>installing the &quot;backend&quot; scripts that run the job queuing system</dd> 
       <dt>
-        <a class="ext" href="[% base %]static/documents/website_installation_notes.pdf">
+        <a class="ext" href="[% docsUri %]/website_installation_notes.pdf">
           PfamWeb installation notes</a>
         </dt>
       <dd>installing the website itself</dd>

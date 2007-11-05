@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.5 2007-08-30 15:18:05 jt6 Exp $
+# $Id: dna.tt,v 1.6 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -63,7 +63,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="post" 
             id="dnaSeqSearchForm"
-            action="[% base %]search/dna"
+            action="[% c.uri_for( "/search/dna" ) %]"
             enctype="multipart/form-data"
             onsubmit="return checkLength()">
   

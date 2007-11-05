@@ -4,7 +4,7 @@
 # 
 # build the domains block for PfamBs
 #
-# $Id: domains.tt,v 1.6 2007-09-21 11:23:21 jt6 Exp $
+# $Id: domains.tt,v 1.7 2007-11-05 13:38:18 jt6 Exp $
 %]
 
 <!-- start domains block -->
@@ -81,7 +81,7 @@
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.dg.uri    = "[% base %]domaingraphics";
+  loadOptions.dg.uri    = "[% c.uri_for( "/domaingraphics" ) %]";
   loadOptions.dg.params = { acc: "[% pfam.pfamB_acc %]" };
   // ]]>
 </script>

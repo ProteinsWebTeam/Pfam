@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.30 2007-08-30 09:41:59 jt6 Exp $
+# $Id: summary.tt,v 1.31 2007-11-05 13:38:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -46,10 +46,10 @@ requirements.js.push( "family.js" );
 
     <h1>
       [% pfam.description %]
-      <a href="[% base %]annotate?acc=[% pfam.pfamA_acc %]">
+      <a href="[% c.uri_for( "/annotate", { acc = pfam.pfamA_acc } ) %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
-             src="[% base %]static/images/annotation.png" /></a>
+             src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
     </h1>
 
     [% IF pfam.comment.length %]
@@ -96,7 +96,7 @@ requirements.js.push( "family.js" );
           [% IF member.pfamA_acc == pfam.pfamA_acc;
             member.pfamA_id;
           ELSE %]
-            <a href="[% base %]family?acc=[% member.pfamA_acc %]">
+            <a href="[% c.uri_for( "/family", { acc = member.pfamA_acc } ) %]">
               [% member.pfamA_id %]</a>
           [% END %]
           </span>
@@ -106,8 +106,8 @@ requirements.js.push( "family.js" );
 
       <p>
         This family is a member of clan <strong>
-        <a href="[% base %]clan?id=[% pfam.clan_id %]">[% pfam.clan_id %]</a></strong>
-        (<a href="[% base %]clan?acc=[% pfam.clan_acc %]">[% pfam.clan_acc %]</a>),
+        <a href="[% c.uri_for( "/clan", { id = pfam.clan_id } ) %]">[% pfam.clan_id %]</a></strong>
+        (<a href="[% c.uri_for( "/clan", { acc = pfam.clan_acc } ) %]">[% pfam.clan_acc %]</a>),
         which contains the following [% total %] member[% total > 1 ? "s" : "" %]:
       </p>
     
@@ -157,7 +157,7 @@ requirements.js.push( "family.js" );
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.si.uri    = "[% base %]family/structures";
+  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
   loadOptions.si.params = { acc: "[% pfam.pfamA_acc %]" };
   // ]]>
 </script>

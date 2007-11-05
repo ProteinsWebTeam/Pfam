@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.8 2007-08-30 12:37:34 jt6 Exp $
+# $Id: summary.tt,v 1.9 2007-11-05 13:38:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -96,7 +96,7 @@ oe = 0;
     window,
     "load",
     function() {
-      new Ajax.Request( "[% base %]domaingraphics",
+      new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
                         { method:     'get',
                           parameters: { taxId: "[% taxId %]" },
                           onSuccess:  function( oResponse ) {

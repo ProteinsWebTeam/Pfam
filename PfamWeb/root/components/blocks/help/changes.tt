@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.10 2007-10-15 10:32:25 jt6 Exp $
+# $Id: changes.tt,v 1.11 2007-11-05 13:38:19 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -433,31 +433,10 @@
 
     <h2>Latest changes to website</h2>
 
-    <h3>Release 1.2 (15th October 2007)</h3>
+    <h3>Release 1.3 (date)</h3>
     <ul>
-      <li><strong>Taxonomy searches have been reinstated:</strong>
-        you can now search for families that are found in a particular set of
-        species, or families that are unique to a given species or taxonomic
-        level.
-      </li>
-      <li><strong>Performance and stability improvements in IE:</strong>
-        there have been problems with the interactive species tree in 
-        Internet Explorer. We now show a text representation of the species
-        tree for IE, with the option to load the interactive tree on demand.
-        These changes will hopefully improve the performance of the pages that
-        include a species tree and should reduce the number of crashes in
-        IE with larger families.
-      </li>
-      <li><strong>Metaseq data are now available:</strong>
-        we have added summary pages for metaseq data and you can now visit a 
-        particular entry by putting the ID or accession in the 
-        &quot;view a sequence&quot; field on the homepage or via the 
-        &quot;jump to&quot; box.
-      </li>
-      <li><strong>Find sequences using NCBI &quot;GI&quot; number:</strong>
-        we have added summary pages for sequences with an NCBI &quot;GI&quot;
-        number and, as for metaseq pages, you can visit them from the homepage
-        or the &quot;jump to&quot; box.
+      <li><strong>Title:</strong>
+      description
       </li>
     </ul>
 
@@ -470,6 +449,34 @@
     <div id="siteChanges" style="display: none">
 
       <h3>Past changes</h3>
+
+      <h4>Release 1.2 (15th October 2007)</h4>
+      <ul>
+        <li><strong>Taxonomy searches have been reinstated:</strong>
+          you can now search for families that are found in a particular set of
+          species, or families that are unique to a given species or taxonomic
+          level.
+        </li>
+        <li><strong>Performance and stability improvements in IE:</strong>
+          there have been problems with the interactive species tree in 
+          Internet Explorer. We now show a text representation of the species
+          tree for IE, with the option to load the interactive tree on demand.
+          These changes will hopefully improve the performance of the pages that
+          include a species tree and should reduce the number of crashes in
+          IE with larger families.
+        </li>
+        <li><strong>Metaseq data are now available:</strong>
+          we have added summary pages for metaseq data and you can now visit a 
+          particular entry by putting the ID or accession in the 
+          &quot;view a sequence&quot; field on the homepage or via the 
+          &quot;jump to&quot; box.
+        </li>
+        <li><strong>Find sequences using NCBI &quot;GI&quot; number:</strong>
+          we have added summary pages for sequences with an NCBI &quot;GI&quot;
+          number and, as for metaseq pages, you can visit them from the homepage
+          or the &quot;jump to&quot; box.
+        </li>
+      </ul>
 
       <h4>Release 1.1 (18th September 2007)</h4>
       <p>

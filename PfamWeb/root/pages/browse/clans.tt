@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for clans
 #
-# $Id: clans.tt,v 1.3 2007-08-28 14:12:43 jt6 Exp $
+# $Id: clans.tt,v 1.4 2007-11-05 13:38:19 jt6 Exp $
 
 META title = "Browse Pfam clans";
 META fullPage = 1;
@@ -26,7 +26,7 @@ pages = [ "numbers",
 	        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
 
 # shortcuts for URIs
-clanURI = "${base}clan";
+clanURI = c.uri_for( "/clan" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 
@@ -60,7 +60,7 @@ pageList = PROCESS "components/pageList.tt",
   	  <td>
         <a [%- IF initialLetter != first %]name="[% initialLetter %]" 
            id="[% initialLetter %]"[% first = initialLetter | lower %][% END %] 
-           href="[% clanURI %]?id=[% clan.clan_id %]">
+           href="[% clanURI %]?acc=[% clan.clan_acc %]">
           [% clan.clan_id %]</a>
       </td>
       <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>

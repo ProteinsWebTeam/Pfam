@@ -7,7 +7,7 @@
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
 #
-# $Id: statsTable.tt,v 1.4 2007-08-23 16:24:37 jt6 Exp $
+# $Id: statsTable.tt,v 1.5 2007-11-05 13:38:19 jt6 Exp $
 
 # no wrapper thank you
 META naked = 1;
@@ -61,7 +61,7 @@ IF c.req.param('full');
     [% FOREACH row IN data %]
     <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
       <td>
-        <a href="[% base %]family?acc=[% row.get_column('pfamA_acc') %]">
+        <a href="[% c.uri_for( "/family", { acc = row.get_column('pfamA_acc') } ) %]">
           [% row.get_column('pfamA_id') %]</a>
       </td>
       <td>[% row.get_column('description') %]</td>
@@ -73,14 +73,14 @@ IF c.req.param('full');
       </td>
       <td class="showSwitch">
         <img class="link" 
-             src="[% base %]static/images/showButton.png"
+             src="[% c.uri_for( "/static/images/showButton.png" ) %]"
              alt="Show domain graphics"
-             onclick="popUp( '[% base %]proteome/graphics?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]', 'console', 800, 800, 'domainsWin' )" />
+             onclick="popUp( '[% c.uri_for( "/proteome/graphics", { pfamAcc = row.get_column('pfamA_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
       <td class="showSwitch">
-        <img src="[% base %]static/images/showButton.png"
+        <img src="[% c.uri_for( "/static/images/showButton.png" ) %]"
              alt="Show sequence alignment"
-             onclick="popUp( '[% base %]proteome/alignment/builder?pfamAcc=[% row.get_column('pfamA_acc') %]&amp;taxId=[% taxId %]', 'console', 800, 800, 'domainsWin' )" />
+             onclick="popUp( '[% c.uri_for( "/proteome/alignment/builder", { pfamAcc = row.get_column('pfamA_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
     </tr>
     [% END %]
@@ -98,7 +98,7 @@ IF c.req.param('full');
     $("spinner").show();
     
     // and finally make the AJAX call
-    new Ajax.Request( "[% base %]proteome/stats",
+    new Ajax.Request( "[% c.uri_for( "/proteome/stats" ) %]",
                       { method: 'get',
                         parameters: { taxId: "[% taxId %]",
                                       full:  1 },

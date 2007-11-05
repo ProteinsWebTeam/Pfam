@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.7 2007-08-28 14:16:33 jt6 Exp $
+# $Id: batch.tt,v 1.8 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -53,7 +53,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
       <form method="post" 
             id="proteinBatchSearchForm"
-            action="[% base %]search/batch"
+            action="[% c.uri_for( "/search/batch" ) %]"
             enctype="multipart/form-data">
     
         <div class="row">

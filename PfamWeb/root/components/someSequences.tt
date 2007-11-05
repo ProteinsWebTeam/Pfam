@@ -6,7 +6,7 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.3 2007-10-11 10:33:48 jt6 Exp $
+# $Id: someSequences.tt,v 1.4 2007-11-05 13:38:18 jt6 Exp $
 
 META naked = 1;
 
@@ -23,7 +23,7 @@ FOREACH image IN images.each_image;
   <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
     <span class="graphicLabel">
-      <a href="[% base %]protein?id=[% image.image_name %]">
+      <a href="[% c.uri_for( "/protein", { id = image.image_name } ) %]">
         [% image.image_name %]</a>
       [% image.image_info %]
       ([% image.length / image.scale_x %] residues)
@@ -58,7 +58,7 @@ FOREACH image IN images.each_image;
     ];
     
     new Ajax.Request( 
-      '[% base %]domaingraphics',
+      '[% c.uri_for( "/domaingraphics" ) %]',
       {
         method:     'get',
         parameters: { seqAccs: selectedSeqAccs,

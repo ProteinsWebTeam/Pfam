@@ -3,7 +3,7 @@
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.11 2007-08-10 15:23:23 jt6 Exp $
+# $Id: alignments.tt,v 1.12 2007-11-05 13:38:18 jt6 Exp $
 
 # calculate the percentages for the table 
 totalFam = 0;
@@ -19,7 +19,7 @@ END;
 # the number of rows gets too large to display comfortably in a single table,
 # hence the definition of a block build the table header 
 tableHeader = BLOCK -%]
-    <table class="details[% IF float %] [% float %][% END %]" summary="Details of alignments">
+    <table class="details[% IF float; ' '; float; END %]" summary="Details of alignments">
       <thead>
         <tr>
           <th>Pfam family</th>
@@ -104,10 +104,14 @@ tableFooter = BLOCK -%]
       percentS = String.new(percent).format("%.1f") -%]
 
       <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-        <td><a href="[% base %]family?id=[% pfam.pfamA_id %]">[% pfam.pfamA_id %]</a>
-          (<a href="[% base %]family?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_acc %]</a>)</td>
+        <td>
+          <a href="[% c.uri_for( "/family", { id = pfam.pfamA_id } ) %]">[% pfam.pfamA_id %]</a>
+         (<a href="[% c.uri_for( "/family", { acc = pfam.pfamA_acc } ) %]">[% pfam.pfamA_acc %]</a>)
+        </td>
         <td>[% pfam.num_full %] ([% percentS %]%)</td>
-        <td><a href="[% base %]family?id=[% pfam.pfamA_id %]&amp;tab=alignBlock">View</a></td>
+        <td>
+          <a href="[% c.uri_for( "/family", { id = pfam.pfamA_id, tab = "alignBlock" } ) | html %]">View</a>
+        </td>
       </tr>
     
     [%- END # of FOREACH pfam -%]
@@ -117,7 +121,7 @@ tableFooter = BLOCK -%]
       <td><strong>Total:</strong> [% totalSeq %]</td>
       <td>
         <strong>
-          <a href="[% base %]clan/alignment?acc=[% clan.clan_acc %]"
+          <a href="[% c.uri_for( "/clan/alignment", { acc = clan.clan_acc } ) %]"
              onclick="window.open( this.href );return false;">
              Clan alignment</a>  
         </strong>

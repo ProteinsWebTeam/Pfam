@@ -5,7 +5,7 @@
 # 
 # block for the structural domains data
 #
-# $Id: getDomains.tt,v 1.7 2007-08-31 14:15:47 jt6 Exp $
+# $Id: getDomains.tt,v 1.8 2007-11-05 13:38:19 jt6 Exp $
 -%]
 
 <!-- start structural domains block -->
@@ -36,7 +36,7 @@
     window,
     "load",
     function() {
-      new Ajax.Request( "[% base %]structure/structuraldomains",
+      new Ajax.Request( "[% c.uri_for( "/structure/structuraldomains" ) %]",
                         { method:     'get',
                           parameters: { id:     '[% pdbId %]' },
                           onSuccess:  function( oResponse ) {

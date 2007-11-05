@@ -5,7 +5,7 @@
 #
 # show an error report for one of the sections, e.g. family
 #
-# $Id: sectionError.tt,v 1.4 2007-07-10 19:44:45 jt6 Exp $
+# $Id: sectionError.tt,v 1.5 2007-11-05 13:38:19 jt6 Exp $
 %]
 
 <!-- start error report -->
@@ -42,7 +42,7 @@
 
   <p>
     You might like to go <a href="javascript:history.go(-1)">back</a> to the
-    previous page[% IF searchTerm %], <a href="[% base %]search?query=[% searchTerm %]">
+    previous page[% IF searchTerm %], <a href="[% c.uri_for( "/search", { query = searchTerm } ) %]">
     	search</a> for the entry you&rsquo;re looking for[% END %] or report a 
 		broken link in the Pfam site.
   </p>

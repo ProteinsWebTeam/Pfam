@@ -6,9 +6,11 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.20 2007-08-30 15:20:03 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.21 2007-11-05 13:38:19 jt6 Exp $
 
 META naked = 1;
+
+graphicsUri = c.uri_for( "/protein/graphics" );
 -%]
 
 <!-- start of features map -->
@@ -20,7 +22,7 @@ META naked = 1;
   
   <form onsubmit="updateSubmitter();return false" 
         method="post" 
-        action="[% base %]protein/graphics">    
+        action="[% graphicsUri %]">    
     <div>
       <input type="hidden" name="acc" value="[% pfamseq.pfamseq_acc %]" />
       <input type="hidden" name="reloadObjects" value="1" />
@@ -99,7 +101,7 @@ META naked = 1;
   // a function to submit the form and update the graphics
   updateSubmitter = function() {
     new Ajax.Updater( 'graphicsHolder', 
-                      '[% base %]protein/graphics',
+                      '[% graphicsUri %]',
                       { parameters:   this.serialize(true),
                         asynchronous: 1,
                         evalScripts:  true

@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.8 2007-10-15 09:10:16 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.9 2007-11-05 13:38:18 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -54,7 +54,7 @@
     <h3>Download</h3>
     <ul>
       <li>
-        <a href="[% base %]speciestree/text?acc=[% acc %]">Save</a> 
+        <a href="[% c.uri_for( "/speciestree/text", { acc = acc } ) %]">Save</a> 
         a text representation
       </li>
     </ul>

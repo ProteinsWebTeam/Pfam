@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.6 2007-10-16 12:10:27 jt6 Exp $
+# $Id: tax.tt,v 1.7 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -65,13 +65,13 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         enter. For example, as you start typing c-a-e-n, a drop-down panel will
         appear, showing the possible completions:
       </p>
-      <img src="[% base %]static/images/completion_1.png"
+      <img src="[% c.uri_for( "/static/images/completion_1.png" ) %]"
            class="suggestion"
            alt="Completion of 'caen'" />
       <p>
         As you enter more letters, the suggestions will be refined accordingly:
       </p>
-      <img src="[% base %]static/images/completion_2.png"
+      <img src="[% c.uri_for( "/static/images/completion_2.png" ) %]"
            class="suggestion"
            alt="Completion of 'caenorhab'" />
       <p>
@@ -142,7 +142,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="post" 
             id="proteinTaxSearchForm"
-            action="[% base %]search/taxonomy">
+            action="[% c.uri_for( "/search/taxonomy" ) %]">
 
         <div class="row">
           <label for="q">Query</label>
@@ -195,7 +195,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   new Ajax.Autocompleter(
     'q',
     'taxSuggestions',
-    '[% base %]search/taxonomy/suggest',
+    '[% c.uri_for( "/search/taxonomy/suggest" ) %]',
     { minChars:  3,
       frequency: 0.6 }
   );

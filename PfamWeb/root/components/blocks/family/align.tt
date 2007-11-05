@@ -5,7 +5,10 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.22 2007-09-18 08:46:56 jt6 Exp $
+# $Id: align.tt,v 1.23 2007-11-05 13:38:19 jt6 Exp $
+
+# shortcut to the alignment tools
+alignmentUri = c.uri_for( "/family/alignment" );
 %]
 
 <!-- start align block -->
@@ -81,7 +84,7 @@
     <h2>View options</h2>
 
     <form id="viewerForm"
-          action="[% base %]family/alignment/download/html"
+          action="[% alignmentUri %]/download/html"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -135,11 +138,11 @@
       // values, which URL to go to next.
       function launch() {
         if( $F("viewer") == "jalview" ) {
-        	url = "[% base %]family/alignment/jalview?" + Form.serialize("viewerForm");
+        	url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
           popUp( url, 'console', 800, 800, 'jalviewWin');
       
         } else if( $F("viewer") == "viewer" ) {
-        	url = "[% base %]family/alignment/viewer?" + Form.serialize("viewerForm");
+        	url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
@@ -152,7 +155,7 @@
 
     <h2>Formatting options</h2>
 
-    <form action="[% base %]family/alignment/download/format" method="get">
+    <form action="[% alignmentUri %]/download/format" method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
 
@@ -258,13 +261,13 @@
       problematic, you can also download a 
       <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
       Stockholm-format file containing the 
-      <a href="[% base %]family/alignment/download/gzipped?acc=[% acc %]&amp;alnType=full">
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
         full</a> or 
-      <a href="[% base %]family/alignment/download/gzipped?acc=[% acc %]&amp;alnType=seed">
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed">
         seed</a> alignment for this family. 
     </p>
 
-    <form action="[% base %]family/alignment/download/gzipped"
+    <form action="[% alignmentUri %]/download/gzipped"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />

@@ -6,7 +6,7 @@
 # part of the species tree. This template sets up the polling when a user
 # opts to align a set of selected sequences. 
 #
-# $Id: seqViewAlignmentPolling.tt,v 1.1 2007-08-20 09:00:43 jt6 Exp $
+# $Id: seqViewAlignmentPolling.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -41,7 +41,7 @@ title = "Align selected sequences"
   <p>
     [% i = 0;
     WHILE i < 10 %]
-      <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+      <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
         [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -52,7 +52,7 @@ title = "Align selected sequences"
   <div id="extraAccs" style="display: none">
     [% i = 10;
     WHILE i < selectedSeqAccs.size %]
-    <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+    <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
       [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -61,7 +61,7 @@ title = "Align selected sequences"
 [% ELSE %]
   <p>
   [% FOREACH seq IN selectedSeqAccs %]
-    <a href="[% base %]protein?acc=[% seq %]">[% seq %]</a>
+    <a href="[% c.uri_for( "/protein", { acc = seq } ) %]">[% seq %]</a>
   [% END %]
   </p>
 [% END %]  

@@ -5,7 +5,7 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.8 2007-06-08 13:27:38 jt6 Exp $
+# $Id: annotation.tt,v 1.9 2007-11-05 13:38:19 jt6 Exp $
 
 META fullPage = 1;
 META title = "Annotation submission";
@@ -155,7 +155,7 @@ IF buildForm OR submissionError;
     // <![CDATA[
     $("annotationForm_user").focus();
     
-    var url = "[% base %]annotate/getTs";
+    var url = "[% c.uri_for( "/annotate/getTs" ) %]";
     new Ajax.Request( url, {
       method: 'get',
       onSuccess: function( response ) {
@@ -182,8 +182,8 @@ IF buildForm OR submissionError;
       <a href="[% refreshUri %]">previous entry</a>, or you can click 
       <a href="[% refreshUri %]">here</a> to go there immediately.
     [% ELSE %]
-      In 5 seconds you will be redirected to the <a href="[% base %]">Pfam 
-        home page</a>, or you can click <a href="[% base %]">here</a> to go
+      In 5 seconds you will be redirected to the <a href="[% c.uri_for( "/" ) %]">Pfam 
+        home page</a>, or you can click <a href="[% c.uri_for( "/" ) %]">here</a> to go
       there immediately.
     [% END %]
   </p>

@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Pfam families
 #
-# $Id: families.tt,v 1.5 2007-09-18 19:54:29 jt6 Exp $
+# $Id: families.tt,v 1.6 2007-11-05 13:38:19 jt6 Exp $
 
 META title = "Browse Pfam families";
 META fullPage = 1;
@@ -31,9 +31,9 @@ pages = [ "new", "top twenty", "numbers",
 # the page
 
 # shortcuts for URIs
-familyURI    = "${base}family";
-tickURI      = "${base}static/images/tick.gif";
-blankTickURI = "${base}static/images/blank_tick.gif";
+familyURI    = c.uri_for( "/family" );
+tickURI      = c.uri_for( "/static/images/tick.gif" );
+blankTickURI = c.uri_for( "/static/images/blank_tick.gif" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 

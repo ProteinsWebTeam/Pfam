@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.8 2007-08-23 09:04:30 jt6 Exp $
+# $Id: structureTab.tt,v 1.9 2007-11-05 13:38:19 jt6 Exp $
 
 USE dumper;
 USE String;
@@ -70,9 +70,9 @@ END -%]
   <tbody>
 
   [%- 
-    proteinUri = "${base}protein";
-    structureUri = "${base}structure";
-    structureViewerUri = "${base}structure/viewer";
+    proteinUri         = c.uri_for( "/protein" );
+    structureUri       = c.uri_for( "/structure" );
+    structureViewerUri = c.uri_for( "/structure/viewer" );
     
     USE seqKeyIter = iterator( mapping.keys.sort );
     FOREACH seqKey IN seqKeyIter;

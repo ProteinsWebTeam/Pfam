@@ -4,7 +4,7 @@
 #
 # block for the interactions data for the clan section
 #
-# $Id: interactions.tt,v 1.6 2007-08-31 08:49:00 jt6 Exp $
+# $Id: interactions.tt,v 1.7 2007-11-05 13:38:18 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 
@@ -66,12 +66,12 @@ END;
             <tr>
               [% IF loop.first %]
               <td class="fixed" rowspan="[% loop.size %]">
-                <a href="[% base %]family?id=[% a %]">
+                <a href="[% c.uri_for( "/family", { id = a } ) %]">
                   [% a %]</a>
               </td>
               [% END %]
               <td class="fixed">
-                <a href="[% base %]family?id=[% b %]">
+                <a href="[% c.uri_for( "/family", { id = b } ) %]">
                   [% b %]</a>
               </td>
             </tr>
