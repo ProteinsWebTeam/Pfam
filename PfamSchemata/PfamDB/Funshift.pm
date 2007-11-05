@@ -1,7 +1,7 @@
 
 # Table definition for functional_similarity table. 
 #
-# $Id: Funshift.pm,v 1.1 2007-05-17 08:39:36 jt6 Exp $
+# $Id: Funshift.pm,v 1.2 2007-11-05 11:50:02 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -10,27 +10,27 @@ package PfamDB::Funshift;
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( qw( Core ) );
 
-__PACKAGE__->table( "functional_similarity" );
+__PACKAGE__->table( 'functional_similarity' );
 
-__PACKAGE__->add_columns( qw/ auto_pfamA_A
+__PACKAGE__->add_columns( qw( auto_pfamA_A
                               auto_pfamA_B
                               rfunSim
                               mfscore
-                              bpscore / );
+                              bpscore ) );
 
-__PACKAGE__->set_primary_key( "auto_pfamA_A" );
+__PACKAGE__->set_primary_key( 'auto_pfamA_A' );
 
-__PACKAGE__->has_one( pfam => "PfamDB::Pfam",
-                      { "foreign.auto_pfamA" => "self.auto_pfamA_B" },
-                      { proxy                => [ qw/ pfamA_acc pfamA_id / ] } );
+__PACKAGE__->has_one( pfam => 'PfamDB::Pfam',
+                      { 'foreign.auto_pfamA' => 'self.auto_pfamA_B' },
+                      { proxy                => [ qw( pfamA_acc pfamA_id ) ] } );
 
-__PACKAGE__->might_have( clan => "PfamDB::Clan_membership",
-                      { "foreign.auto_pfamA" => "self.auto_pfamA_B" },
-                      { proxy                => [ qw/ clan_id / ] } );
+__PACKAGE__->might_have( clan => 'PfamDB::Clan_membership',
+                         { 'foreign.auto_pfamA' => 'self.auto_pfamA_B' },
+                         { proxy                => [ qw( clan_acc clan_id ) ] } );
 
 =head1 COPYRIGHT
 
