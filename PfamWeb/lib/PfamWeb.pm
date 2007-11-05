@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.45 2007-11-05 13:38:56 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.46 2007-11-05 14:37:41 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.45 2007-11-05 13:38:56 jt6 Exp $
+$Id: PfamWeb.pm,v 1.46 2007-11-05 14:37:41 jt6 Exp $
 
 =cut
 
@@ -71,8 +71,10 @@ __PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
 __PACKAGE__->setup;
 
 # add to the configuration the name of the host that's actually serving 
-# the site. This will be pulled out later in the header template
+# the site and its process ID. These will be pulled out later in the header 
+# template
 __PACKAGE__->config->{server_name} = hostname();
+__PACKAGE__->config->{server_pid}  = $$;
 
 #-------------------------------------------------------------------------------
 
