@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.9 2007-08-08 09:51:40 jt6 Exp $
+# $Id: faq.tt,v 1.10 2007-11-05 13:38:19 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -236,7 +236,8 @@
 
 	<p>
 	  Of course! Please use  
-    <a href="[% base %]search?tab=searchProteinBlock">this</a> search form. 
+    <a href="[% c.uri_for( "/search", { tab = "searchProteinBlock" } ) %]">this</a> 
+    search form. 
   </p>
 	<p><a href="#faqTop">back to top</a></p>
 
@@ -244,7 +245,7 @@
 	Pfam ?</a></h3>
 
 	<p>
-	  Yes you can, on the <a href="[% base %]search?tab=searchDnaBlock">
+	  Yes you can, on the <a href="[% c.uri_for( "/search", { tab = "searchDnaBlock" } ) %]">
 	    DNA search page</a>.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>

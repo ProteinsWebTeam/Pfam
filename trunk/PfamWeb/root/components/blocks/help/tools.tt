@@ -4,13 +4,12 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.9 2007-09-11 08:38:02 jt6 Exp $
+# $Id: tools.tt,v 1.10 2007-11-05 13:38:19 jt6 Exp $
 
 USE dumper;
 
 # figure out the location of the schema document
 controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
-schema = c.config.$controller.schemaURI;
 
 %]
 
@@ -28,10 +27,10 @@ schema = c.config.$controller.schemaURI;
     <p>
       As we are regularly approached for producing domain graphics for use in 
       publications, we have produced a 
-      <a href="[% base %]generateGraphic">tool</a> for users to 
+      <a href="[% c.uri_for( "/generateGraphic" ) %]">tool</a> for users to 
       upload a &quot;domain graphics&quot; XML. This file will be validated 
       against the
-      <a href="[% base; schema %]">schema</a>
+      <a href="[% c.uri_for( "/status/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
       and subsequently rendered. The images that the tool produces can then 
       be saved for your own use. 
     </p>
@@ -47,9 +46,9 @@ schema = c.config.$controller.schemaURI;
         Guide to Graphics</span> section of the help pages. 
     </p>
     <p>
-      There is a similar <a href="[% base %]generateUniprotGraphic">tool</a> 
+      There is a similar <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">tool</a> 
       which allows you to see the domain graphic for a given 
-      <a href="http://www.ebi.uniprot.org/">UniProt</a> entry.
+      <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a> entry.
     </p>
     
     <hr />
@@ -133,8 +132,8 @@ schema = c.config.$controller.schemaURI;
   	<h3>Example client</h3>
   
     <p>
-      You can <a href="[% base %]static/documents/pfamClient.pl">download</a> an
-      example perl client.
+      You can <a href="[% c.uri_for( "/static/documents/pfamClient.pl" ) %]">download</a> 
+      an example perl client.
       To run it, simply type: <code>perl pfamClient.pl</code>
       The output from the script should be similar to this:
     </p>

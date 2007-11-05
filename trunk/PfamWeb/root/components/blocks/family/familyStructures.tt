@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.12 2007-08-28 13:23:02 jt6 Exp $
+# $Id: familyStructures.tt,v 1.13 2007-11-05 13:38:19 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -53,16 +53,16 @@ IF pdbUnique.keys.size;
 
   [%- IF pdbObj.pdb_image -%]
 
-    <a href="[% base %]structure?id=[% pdbObj.pdb_id %]">
+    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id } ) %]">
       <img class="pdbImage" 
- 	       src="[% base %]structure/getimage?id=[% pdbObj.pdb_id %]&amp;size=s"
+ 	       src="[% c.uri_for( "/structure/getimage", { id = pdbObj.pdb_id, size = "s" } ) | html %]"
            alt="[% pdbObj.pdb_id %]" /></a>
 
     [%- IF randomId -%]
       <h1>Example structure</h1>
     [%- END -%]
 
-    <a href="[% base %]structure?id=[% pdbObj.pdb_id %]" class="pdbTitle">
+    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id } ) %]" class="pdbTitle">
       PDB entry [% pdbObj.pdb_id %]</a>: [% pdbObj.title %]
 
   [%- ELSE -%]
@@ -74,7 +74,7 @@ IF pdbUnique.keys.size;
   [% # if there are multiple PDB entries, allow the user to choose a specific one
   IF pdbUnique.keys.size > 1 %]
 
-    <form action="[% base %]family/structures">
+    <form action="[% c.uri_for( "/family/structures" ) %]">
       <div>
     	  <select id="pdbIdField">
     	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
@@ -91,7 +91,7 @@ IF pdbUnique.keys.size;
       // <![CDATA[
       pdbImageSubmitter = function() {
         new Ajax.Updater( 'siph', 
-                          '[% base %]family/structures', 
+                          '[% c.uri_for( "/family/structures" ) %]', 
                           { method:     'get',
                             parameters: { acc:  '[% pfam.pfamA_acc %]',
                                           pdbId: $F("pdbIdField") } }

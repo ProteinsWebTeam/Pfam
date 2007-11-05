@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.19 2007-10-09 09:43:04 jt6 Exp $
+# $Id: summary.tt,v 1.20 2007-11-05 13:38:19 jt6 Exp $
 
 USE String;
 USE date;
@@ -38,16 +38,16 @@ oe    = 0;
     [% IF mapping.size %]
       <div class="pdbImageFragment">
         [% IF pdb.pdb_image %]
-        <a href="[% base %]structure/getimage?id=[% pdbId %]" 
+        <a href="[% c.uri_for( "/structure/getimage", { id = pdbId } ) %]" 
            rel="lightbox" 
            title="PDB entry [% pdbId %]">
           <img class="pdbImage" 
-               src="[% base %]structure/getimage?id=[% pdbId %]&amp;size=s" 
+               src="[% c.uri_for( "/structure/getimage", { id = pdbId, size = "s" } ) | html %]"
                alt="[% pdbId %]" /></a>
         <br />
         <span class="pdbTitle">PDB entry [% pdbId %]</span>: [% title %]
         <br />
-        <a href="[% base %]structure/getimage?id=[% pdbId %]" 
+        <a href="[% c.uri_for( "/structure/getimage", { id = pdbId } ) %]" 
            rel="lightbox" 
            title="PDB entry [% pdbId %]"
            class="small">Enlarge</a> image.
@@ -195,7 +195,7 @@ IF mapping.size;
     window,
     "load",
     function() {
-      new Ajax.Request( "[% base %]structure/graphics",
+      new Ajax.Request( "[% c.uri_for( "/structure/graphics" ) %]",
                         { method:     'get',
                           parameters: { seqIds: '[% unpIdList %]',
                                         id:     '[% pdbId %]' },

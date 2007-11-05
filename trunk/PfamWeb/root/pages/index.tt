@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.40 2007-10-15 09:41:02 jt6 Exp $
+# $Id: index.tt,v 1.41 2007-11-05 13:38:19 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -97,8 +97,9 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <hr />
  
    [% # URI shortcuts
-   helpBase = "${base}help";
-   jumpBase = "${base}search/jump";
+   helpBase   = c.uri_for( "/help" );
+   searchBase = c.uri_for( "/search" );
+   jumpUri    = "${searchBase}/jump";
    %]
  
   <div id="controlPanel">
@@ -133,7 +134,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>
       Paste your protein sequence here to find matching Pfam families.
     </p>
-    <form action="[% base %]search/sequence"
+    <form action="[% searchBase %]/sequence"
           method="get" 
           id="seqForm">
       <div>
@@ -158,14 +159,14 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
       This search will use the <code>pfam_ls</code> library (global) and the 
       <a href="[% helpBase %]?tab=helpGlossaryBlock">
         gathering threshold</a>. You can specify the search parameters using 
-      <a href="[% base %]search?tab=searchSequenceBlock">this</a> form.      
+      <a href="[% searchBase %]?tab=searchSequenceBlock">this</a> form.      
     </p>
   </div>
 
   <div id="family" class="panel" style="display: none">
     <h3>View Pfam family annotation and alignments</h3>
     <p>Enter a family identifier or accession to see all data for that family.</p>
-    <form action="[% jumpBase %]"
+    <form action="[% jumpUri %]"
           method="get" 
           id="familyForm">
       <div>
@@ -184,7 +185,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <div onclick="$('familyField').value=exPfamId"
          class="glassButton exampleButton">&nbsp;</div>
     <p class="small nlh">
-      You can also <a href="[% base %]/family/browse">browse</a> 
+      You can also <a href="[% c.uri_for( "/family/browse" ) %]">browse</a> 
       through the list of all Pfam families.
     </p>
   </div>
@@ -192,7 +193,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div id="clan" class="panel" style="display: none">
     <h3>See groups of related families</h3>
     <p>Enter a clan identifier or accession to see information about that clan.</p>
-    <form action="[% jumpBase %]"
+    <form action="[% jumpUri %]"
           method="get" 
           id="clanForm">
       <div>
@@ -211,7 +212,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <div onclick="$('clanField').value=exClanId"
          class="glassButton exampleButton">&nbsp;</div>
     <p class="small nlh">
-      You can also <a href="[% base %]clan/browse">browse</a>
+      You can also <a href="[% c.uri_for( "/clan/browse" ) %]">browse</a>
       through a list of clans.
     </p>
   </div>
@@ -219,7 +220,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div id="sequence" class="panel" style="display: none">
     <h3>View domain organisation of a UniProt sequence</h3>
     <p>Enter a UniProt sequence identifier or accession.</p>
-    <form action="[% jumpBase %]"
+    <form action="[% jumpUri%]"
           method="get" 
           id="proteinForm">
       <div>
@@ -239,7 +240,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div id="structure" class="panel" style="display: none">
     <h3>Find the domains on a PDB structure</h3>
     <p>Enter the PDB identifier for the structure in the Protein DataBank.</p>
-    <form action="[% jumpBase %]"
+    <form action="[% jumpUri %]"
           method="get" 
           id="structureForm">
       <div>
@@ -262,7 +263,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div id="keyword" class="panel" style="display: none">
     <h3>Query Pfam by keyword</h3>
     <p>Search for keywords in text data in the Pfam database.</p> 
-    <form action="[% base %]search/keyword"
+    <form action="[% searchBase %]/keyword"
           method="get" 
           id="keywordForm">
       <div>

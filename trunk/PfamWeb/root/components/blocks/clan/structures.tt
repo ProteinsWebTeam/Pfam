@@ -2,7 +2,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.12 2007-08-30 09:41:26 jt6 Exp $
+# $Id: structures.tt,v 1.13 2007-11-05 13:38:18 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 
@@ -45,7 +45,7 @@ PROCESS "components/require.tt";
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.cstruc.uri    = "[% base %]clan/structures";
+  loadOptions.cstruc.uri    = "[% c.uri_for( "/clan/structures" ) %]";
   loadOptions.cstruc.params = { acc: "[% clan.clan_acc %]" };
   // ]]>
 </script>

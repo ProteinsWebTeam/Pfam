@@ -4,7 +4,7 @@
 #
 # Get a list of the proteome structures;
 #
-# $Id: structure.tt,v 1.6 2007-08-30 09:43:09 jt6 Exp $
+# $Id: structure.tt,v 1.7 2007-11-05 13:38:19 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -38,7 +38,7 @@ RETURN UNLESS summaryData.numStructures;
         window,
         "load",
         function() {
-          new Ajax.Request( "[% base %]proteome/structures",
+          new Ajax.Request( "[% c.uri_for( "/proteome/structures" ) %]",
                             { method: 'get',
                               evalScripts: true,
                               parameters: { taxId: "[% taxId %]" },

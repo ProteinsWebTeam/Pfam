@@ -5,12 +5,13 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.19 2007-08-21 09:43:26 jt6 Exp $
+# $Id: curation.tt,v 1.20 2007-11-05 13:38:19 jt6 Exp $
 
 # URI shortcuts
-infoGIF = "${base}static/images/info.gif";
-help    = "${base}help";
-getHmm  = "${base}family/gethmm";
+rootUri = c.uri_for( "/" );
+infoGIF = "${rootUri}static/images/info.gif";
+help    = "${rootUri}help";
+getHmm  = "${rootUri}family/gethmm";
 %]
 
 <!-- start curation block -->
@@ -24,9 +25,9 @@ getHmm  = "${base}family/gethmm";
     <p>
       This section shows the detailed information about the Pfam family. You 
       can see the definitions of many of the terms in this section in the 
-      <a href="[% base %]help?tab=helpGlossaryBlock">glossary</a> and a fuller
+      <a href="[% help %]?tab=helpGlossaryBlock">glossary</a> and a fuller
       explanation of the scoring system that we use in the 
-      <a href="[% base %]help?tab=helpScoresBlock">scores</a> section of the
+      <a href="[% help %]?tab=helpScoresBlock">scores</a> section of the
       help pages. 
     </p>
 

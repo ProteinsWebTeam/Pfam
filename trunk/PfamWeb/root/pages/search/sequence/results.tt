@@ -5,7 +5,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.5 2007-08-30 08:29:56 jt6 Exp $
+# $Id: results.tt,v 1.6 2007-11-05 13:38:19 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -27,8 +27,9 @@ numAs = genPfamARes.size;
 numBs = genPfamBRes.size;
 
 # shortcuts to the show/hide glass buttons
-showButton = "${base}static/images/showButton.png";
-hideButton = "${base}static/images/hideButton.png";
+imageUri   = c.uri_for( "/static/images" );
+showButton = "${imageUri}/showButton.png";
+hideButton = "${imageUri}/hideButton.png";
 %]
 
 <div id="results">
@@ -118,8 +119,8 @@ hideButton = "${base}static/images/hideButton.png";
       old results will be removed after <strong>one week</strong>.
     </p>
     <p>
-      <a href="[% base %]search?tab=searchSequenceBlock">Return</a> to the 
-      search form to look for Pfam domains on a new sequence.
+      <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
+      to the search form to look for Pfam domains on a new sequence.
     </p> 
   </div><!-- end of "key" -->
 
@@ -164,7 +165,7 @@ hideButton = "${base}static/images/hideButton.png";
       <tr class="[% rowClass %]">
         <td class="rowNum">[% loop.index %]</td>
         <td>
-          <a href="[% base %]family?id=[% pfamA.pfama_id %]">
+          <a href="[% c.uri_for( "/family", { acc = pfamA.pfama_acc } ) %]">
             [% pfamA.pfama_id %]</a>
         </td>
         <td class="desc">[% pfamA.desc %]</td>
@@ -228,10 +229,8 @@ hideButton = "${base}static/images/hideButton.png";
       <tr class="[% rowClass %]">
         <td class="rowNum">[% loop.index %]</td>
         <td>
-          <span class="link"
-                onclick="showHits('pfamBHits','pfamBSwitch','pfamBAlignment[% loop.index %]')">
-            [% pfamB.pfamb_id %]
-          </span>
+          <a href="[% c.uri_for( "/pfamb", { acc = pfamB.pfamb_acc } ) %]">
+            [% pfamB.pfamb_id %]</a>
         </td>
         <td>[% pfamB.start %]</td>
         <td>[% pfamB.end %]</td>
@@ -269,8 +268,8 @@ hideButton = "${base}static/images/hideButton.png";
   );
   // a function to show or hide the alignment rows
   function toggleAlignment( sId, oSwitch ) {
-   $(sId).toggle();
-   oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
+    $(sId).toggle();
+    oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
   }
   // a function to show or hide all of the alignments in one fell swoop...
   function showAllAlignments( sId, bState ) {

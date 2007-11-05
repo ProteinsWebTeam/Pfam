@@ -6,7 +6,7 @@
 # part of the species tree. This template displays the alignment of the 
 # sequences that the user selected from the species tree.
 #
-# $Id: seqViewAlignmentResults.tt,v 1.1 2007-08-20 09:00:43 jt6 Exp $
+# $Id: seqViewAlignmentResults.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -44,7 +44,7 @@ title = "View selected sequences"
   <p>
     [% i = 0;
     WHILE i < 10 %]
-      <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+      <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
         [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -55,7 +55,7 @@ title = "View selected sequences"
   <div id="extraAccs" style="display: none">
     [% i = 10;
     WHILE i < selectedSeqAccs.size %]
-    <a href="[% base %]protein?acc=[% selectedSeqAccs.$i %]">
+    <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
       [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -64,7 +64,7 @@ title = "View selected sequences"
 [% ELSE %]
   <p>
   [% FOREACH seq IN selectedSeqAccs %]
-    <a href="[% base %]protein?acc=[% seq %]">[% seq %]</a>
+    <a href="[% c.uri_for( "/protein", { acc = seq } ) %]">[% seq %]</a>
   [% END %]
   </p>
 [% END %]  

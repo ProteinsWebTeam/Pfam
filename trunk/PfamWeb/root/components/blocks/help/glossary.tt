@@ -4,7 +4,7 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.8 2007-08-30 13:06:09 jt6 Exp $
+# $Id: glossary.tt,v 1.9 2007-11-05 13:38:19 jt6 Exp $
 %]
 
 <!-- start glossary.tt block -->
@@ -92,7 +92,7 @@
       A HMM is a probablistic model. In Pfam we use HMMs to transform the 
       information contained within a multiple sequence alignment into a 
       position-specific scoring system. We search our HMMs against the 
-      <a href="http://www.ebi.uniprot.org/index.shtml">(UniProt)</a>
+      <a class="ext "href="http://www.ebi.uniprot.org/index.shtml">(UniProt)</a>
       protein database to find homologous sequences.
     </p>
 
@@ -100,7 +100,7 @@
     
     <p>
       The suite of programs that Pfam uses to build and search HMMs. See 
-      the <a href="http://hmmer.janelia.org/">HMMER</a> site.
+      the <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site.
     </p>
 
     <h3>iPfam</h3>
@@ -131,7 +131,7 @@
       A HMM based hand curated Pfam entry which is built using a small number 
       of representative sequences. We manually set a threshold value for each
       HMM and search our models against the 
-      <a href="http://www.ebi.uniprot.org/">UniProt</a> database. All of the 
+      <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a> database. All of the 
       sequnces which score above the threshold for a Pfam entry are included in 
       the entry's full alignment.
     </p>
@@ -140,7 +140,7 @@
     
     <p>
       An automatically generated alignment which is formed by an alignment 
-      from the <a href="http://prodom.prabi.fr/prodom/current/html/home.php">PRODOM</a>
+      from the <a class="ext" href="http://prodom.prabi.fr/prodom/current/html/home.php">PRODOM</a>
       database and removing Pfam-A residues from them. Since Pfam-B families 
       are automatically generated we recommend that you verify that the 
       sequences in a Pfam-B are related, using other methods such as BLAST.

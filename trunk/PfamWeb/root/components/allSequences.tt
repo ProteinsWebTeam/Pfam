@@ -6,7 +6,7 @@
 # a given architecture. It should be called by the DomainGraphics controller,
 # via ajax.
 #
-# $Id: allSequences.tt,v 1.1 2007-06-25 15:46:49 jt6 Exp $
+# $Id: allSequences.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
 
 META naked = 1;
 
@@ -65,7 +65,7 @@ USE String;
     <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
     <span class="graphicLabel">
-      <a href="[% base %]protein?id=[% image.image_name %]">
+      <a href="[% c.uri_for( "/protein", { id = image.image_name } ) %]">
         [% image.image_name %]</a>
       [% image.image_info %]
       ([% image.length / image.scale_x %] residues)

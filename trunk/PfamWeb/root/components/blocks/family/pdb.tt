@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.17 2007-08-21 09:43:26 jt6 Exp $
+# $Id: pdb.tt,v 1.18 2007-11-05 13:38:19 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -38,7 +38,7 @@ RETURN UNLESS summaryData.numStructures;
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.fstruc.uri    = "[% base %]family/structures/mapping";
+  loadOptions.fstruc.uri    = "[% c.uri_for( "/family/structures/mapping" ) %]";
   loadOptions.fstruc.params = { acc:"[% acc %]" };
   // ]]>
 </script>

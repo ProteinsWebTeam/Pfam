@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.2 2007-08-28 14:16:33 jt6 Exp $
+# $Id: protein.tt,v 1.3 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -45,7 +45,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="get" 
             id="proteinSearchForm"
-            action="[% base %]protein">
+            action="[% c.uri_for( "/protein" ) %]">
         <div>
           <input type="hidden" name="type" value="Protein" />
         </div>

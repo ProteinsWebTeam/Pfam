@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.2 2007-08-28 14:16:33 jt6 Exp $
+# $Id: sequence.tt,v 1.3 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -69,7 +69,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="post" 
             id="proteinSeqSearchForm"
-            action="[% base %]search/sequence"
+            action="[% c.uri_for( "/search/sequence" ) %]"
             enctype="multipart/form-data">
 
         <div class="row">

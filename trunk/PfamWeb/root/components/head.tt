@@ -2,12 +2,21 @@
 # head.tt
 # jt6 20060314 WTSI
 #
-# the contents of the <head> section of the web page. This template controls the
+# the contents of the "head" section of the web page. This template controls the
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.26 2007-07-23 14:35:12 jt6 Exp $
--%]
+# $Id: head.tt,v 1.27 2007-11-05 13:38:18 jt6 Exp $
+
+# these first meta tags are google webmasters verification tags. They're here
+# so that google can verify that we control the websites and we can control,
+# to some extent, how the googlebot indexes them.
+
+# pfam.sanger.ac.uk -%]
+<meta name="verify-v1" content="GjV+z5lf7mSCShhAOJZh1UW8J+iiCgWmbxIFg2GkG0Q=" />
+
+[%- # pfam.sbc.su.se -%]
+<meta name="verify-v1" content="FA9AR+bh3BmS05vcSp0mbiAB80DgELEAkFvu4q9ViC8=" />
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 [% # if the stash contains a value for "refreshUri", we'll add a
@@ -21,7 +30,7 @@ IF refreshUri != "";
 <!-- ====================================================================== -->
 <!-- make the site RSS feed discoverable --> 
 
-<link href="[% base %]rss/pfam.rdf" 
+<link href="[% c.uri_for( "/rss/pfam.rdf" ) %]" 
       rel="alternate"
       type="application/rss+xml"
       title="Pfam News" />
@@ -29,14 +38,17 @@ IF refreshUri != "";
 <!-- ====================================================================== -->
 <!-- load the common files first -->
 
+[% # use uri_for to get the root for the static directory
+   staticUri = c.uri_for( "/static" ); %]
+
 <!-- prototype -->
-<script type="text/javascript" src="[% base %]static/javascripts/prototype.js"></script>
+<script type="text/javascript" src="[% staticUri %]/javascripts/prototype.js"></script>
 
 <!-- local javascript -->
-<script type="text/javascript" src="[% base %]static/javascripts/pfFunctions.js"></script>
+<script type="text/javascript" src="[% staticUri %]/javascripts/pfFunctions.js"></script>
 
 <!-- global stylesheet -->
-<link rel="stylesheet" href="[% base %]static/css/pfam.css" type="text/css" />
+<link rel="stylesheet" href="[% staticUri %]/css/pfam.css" type="text/css" />
 
 <!-- ====================================================================== -->
 <!-- load dynamically required stylesheets and javascript files-->
@@ -48,23 +60,27 @@ cssIeAllIncludes = [];
 jsIncludes  = [];
 
 # merge the requirements
+USE String;
+includeHead = String.new(  );
+includeTail = String.new( "' type='text/css' />" );
+
 FOREACH key IN requirements.keys;
   SWITCH key;
     CASE "css";
       FOREACH stylesheet IN requirements.css;
-        cssIncludes.push( "<link rel='stylesheet' href='${base}static/css/$stylesheet' type='text/css' />" );
+        cssIncludes.push( "<link rel='stylesheet' href='$staticUri/css/$stylesheet' type='text/css' />" );
       END;
     CASE "cssIe";
       FOREACH stylesheet IN requirements.cssIe;
-        cssIeIncludes.push( "<link rel='stylesheet' href='${base}static/css/$stylesheet' type='text/css' />" );
+        cssIeIncludes.push( "<link rel='stylesheet' href='$staticUri/css/$stylesheet' type='text/css' />" );
       END;
     CASE "cssIeAll";
       FOREACH stylesheet IN requirements.cssIeAll;
-        cssIeAllIncludes.push( "<link rel='stylesheet' href='${base}static/css/$stylesheet' type='text/css' />" );
+        cssIeAllIncludes.push( "<link rel='stylesheet' href='$staticUri/css/$stylesheet' type='text/css' />" );
       END;
     CASE "js";
       FOREACH js IN requirements.js;
-        jsIncludes.push( "<script type='text/javascript' src='${base}static/javascripts/$js'></script>" );
+        jsIncludes.push( "<script type='text/javascript' src='$staticUri/javascripts/$js'></script>" );
       END;
   END; # of SWITCH
 END -%]
@@ -86,7 +102,7 @@ END %]
 [% IF cssIeIncludes.size -%]
 <!-- styles applicable to IE6 and below -->
 <!--[if lt IE 7 ]>
-  <link rel="stylesheet" href="[% base %]static/css/pfam_ie.css" type="text/css" />
+  <link rel="stylesheet" href="[% staticUri %]/css/pfam_ie.css" type="text/css" />
 [%- FOREACH stylesheet IN cssIeIncludes.unique %]
   [% stylesheet;
 END %]
@@ -96,7 +112,7 @@ END %]
 [% IF cssIeAllIncludes.size -%]
 <!-- styles applicable to all versions of IE -->
 <!--[if IE ]>
-  <link rel="stylesheet" href="[% base %]static/css/pfam_all_ie.css" type="text/css" / >
+  <link rel="stylesheet" href="[% staticUri %]/css/pfam_all_ie.css" type="text/css" / >
 [%- FOREACH stylesheet IN cssIeAllIncludes.unique %]
   [% stylesheet;
 END %]
@@ -108,6 +124,6 @@ END %]
 
 <link rel="shortcut icon" 
       type="image/png" 
-      href="[% base %]static/images/favicon.png" />
+      href="[% staticUri %]/images/favicon.png" />
       
 <!-- ====================================================================== -->

@@ -4,7 +4,7 @@
 # 
 # taxonomy search results page
 #
-# $Id: taxonomyResults.tt,v 1.1 2007-10-15 09:39:22 jt6 Exp $
+# $Id: taxonomyResults.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -55,12 +55,13 @@ META fullPage = 1;
       </p>
       <img class="loadingBar"
            alt="Searching..."
-           src="[% base %]static/images/blank.gif" />
+           src="[% c.uri_for( "/static/images/blank.gif" ) %]" />
     </div>
 
     <div id="returnDiv" style="display: none">
       <p>
-        You can return to the <a href="[% base %]search?tab=searchTaxBlock">
+        You can return to the 
+        <a href="[% c.uri_for( "/search", { tab = "searchTaxBlock" } ) %]">
           taxonomy search</a> page to try a different query.
       </p>
     </div>
@@ -75,7 +76,7 @@ META fullPage = 1;
   // <![CDATA[
 
   new Ajax.Updater( "results",
-                    "[% base %]search/taxonomy/results",
+                    "[% c.uri_for( "/search/taxonomy/results" ) %]",
                     {
                       parameters: { q: encodeURI('[% q %]') },
                       onFailure: function() {

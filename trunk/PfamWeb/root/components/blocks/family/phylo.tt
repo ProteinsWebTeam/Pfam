@@ -5,7 +5,9 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.15 2007-08-10 09:42:38 jt6 Exp $
+# $Id: phylo.tt,v 1.16 2007-11-05 13:38:19 jt6 Exp $
+
+treeUri = c.uri_for( "/family/tree" );
 %]
 
 <!-- start of phyloBlock -->
@@ -23,7 +25,7 @@
     </p> 
     [% # the form that controls the tree display %]
     <form id="phyloForm"
-          action="[% base %]family/tree">
+          action="[% treeUri %]">
       <div>
         <span>
           <input id="seedRb" 
@@ -55,14 +57,14 @@
     <script type="text/javascript">
       // <![CDATA[
       // set the options for the ajax call that populates the tree the first time
-      loadOptions.at.uri    = "[% base %]family/tree";
-      loadOptions.at.params = "acc=[% acc %]";
+      loadOptions.at.uri    = "[% treeUri %]";
+      loadOptions.at.params = { acc: "[% acc %]" };
 
       // a function that submits subsequent requests 
       treeSubmitter = function() {
         var type = $("seedRb").checked ? "seed" : "full";
         new Ajax.Updater( 'alignmentTree', 
-                          '[% base %]family/tree', 
+                          '[% treeUri %]', 
                           { method:     'get',
                             parameters: { acc:     '[% acc %]',
                                           alnType: type } 
@@ -74,8 +76,8 @@
 
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% base %]family/tree/download?alnType=seed&amp;acc=[% acc %]">seed</a> or the
-      <a href="[% base %]family/tree/download?alnType=full&amp;acc=[% acc %]">full</a>
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc = acc } ) | html %]">seed</a> or the
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc = acc } ) | html %]">full</a>
       trees.
     </p>
 

@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.10 2007-07-23 14:35:12 jt6 Exp $
+# $Id: jumpBox.tt,v 1.11 2007-11-05 13:38:18 jt6 Exp $
 
 META naked = 1;
 
@@ -17,9 +17,9 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
 <div id="jumpBox" class="sidebarComponent">
 	<h1>
 		<span>Jump to...</span>
-		<a href="[% base %]help?tab=helpGetStartedBlock"
+		<a href="[% c.uri_for( "help", { tab = "helpGetStartedBlock" } ) %]"
        title="View help on the &quot;Jump to...&quot; search">
-	 		<img src="[% base %]static/images/info.gif" 
+	 		<img src="[% c.uri_for( "/static/images/info.gif" ) %]" 
            alt="View help on the &quot;Jump to...&quot; search" 
            class="info" /></a>
 	</h1>
@@ -31,7 +31,7 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
   </p>
   [% END %]
   
-	<form action="[% base %]search/jump" 
+	<form action="[% c.uri_for( "/search/jump" ) %]" 
         method="get" 
         id="jumpForm">
     <div>

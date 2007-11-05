@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Completed Proteomes
 #
-# $Id: proteomes.tt,v 1.7 2007-09-18 19:54:29 jt6 Exp $
+# $Id: proteomes.tt,v 1.8 2007-11-05 13:38:19 jt6 Exp $
 
 META title = "Browse Pfam proteomes";
 META fullPage = 1;
@@ -23,7 +23,7 @@ pages = [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
           "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
 
 # shortcuts for URIs
-proteomeURI = "${base}proteome";
+proteomeURI = c.uri_for( "/proteome" );
 
 # generate the page list
 pageList = PROCESS "components/pageList.tt", 

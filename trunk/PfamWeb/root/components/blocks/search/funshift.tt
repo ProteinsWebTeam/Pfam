@@ -5,7 +5,7 @@
 # 
 # build the function similarity search tab
 #
-# $Id: funshift.tt,v 1.3 2007-09-21 11:24:58 jt6 Exp $
+# $Id: funshift.tt,v 1.4 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -59,7 +59,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   
       <form method="get" 
             id="funshiftSearchForm"
-            action="[% base %]search/funshift">
+            action="[% c.uri_for( "/search/funshift" ) %]">
 
         <div class="row">
           <label for="fs">Pfam ID or accession</label>

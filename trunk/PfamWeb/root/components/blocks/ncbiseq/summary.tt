@@ -5,7 +5,7 @@
 # 
 # build the summary block for NCBI sequences
 #
-# $Id: summary.tt,v 1.1 2007-10-15 09:09:06 jt6 Exp $
+# $Id: summary.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
 
 USE String;
 
@@ -125,11 +125,11 @@ oe = 0;
               </td>
               <td>
                 [% IF row.type.match( '(?i)pfama' ) %]
-                  <a href="[% base %]family?id=[% row.label %]">
+                  <a href="[% c.uri_for( "/family", { id = row.label } ) %]">
                     [% row.label %]</a>
                   [% IF row.hidden %] (hidden)[% END;
                 ELSIF row.type.match( '(?i)pfamb' ) %]
-                  <a href="[% base %]pfamb?id=[% row.label %]">
+                  <a href="[% c.uri_for( "/pfamb", { id = row.label } ) %]">
                     [% row.label %]</a>
                   [% IF row.hidden %] (hidden)[% END;
                 END %]

@@ -4,7 +4,7 @@
 # 
 # block for the interactions data for the family section
 #
-# $Id: interactions.tt,v 1.7 2007-08-30 09:42:52 jt6 Exp $
+# $Id: interactions.tt,v 1.8 2007-11-05 13:38:19 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 -%]
@@ -41,7 +41,7 @@ RETURN UNLESS summaryData.numInt;
     
     [%FOREACH interaction IN interactions.sort( pfamA_id ) %]
       <span class="listItem">
-        <a href="[% base %]family?acc=[% interaction.pfamA_acc %]">
+        <a href="[% c.uri_for( "/family", { acc = interaction.pfamA_acc } ) %]">
           [% interaction.pfamA_id %]</a>
       </span>
     [% END %]

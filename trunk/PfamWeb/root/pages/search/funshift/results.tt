@@ -5,7 +5,7 @@
 # 
 # funshift search results page
 #
-# $Id: results.tt,v 1.1 2007-07-25 10:26:17 jt6 Exp $
+# $Id: results.tt,v 1.2 2007-11-05 13:38:19 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
@@ -77,7 +77,7 @@ requirements.js.push( "sorttable.js" );
       titles, or restored to the original order 
       <a onclick="_ts_resortTable($('resultTable'),'0');return
       false;" href="#">here</a>. You can return to the 
-      <a href="[% base %]search?tab=searchFunshiftBlock">search page</a> to 
+      <a href="[% c.uri_for( "/search", { tab = "searchFunshiftBlock" } ) %]">search page</a> to 
       to search for another family.
     </p>
 
@@ -96,14 +96,15 @@ requirements.js.push( "sorttable.js" );
       </tr>
     </thead>
     <tbody>
-      [% FOREACH row IN results %]
+      [% FOREACH row IN results;
+      familyUri = c.uri_for( "/family", { acc = row.pfamA_acc } ) %]
       <tr class="[% loop.index % 2 ? "odd" : "even" %]">
         <td class="rowNum">[% loop.index %]</td>
-        <td><a href="[% base %]family?id=[% row.pfamA_id %]">[% row.pfamA_id %]</a></td>
-        <td><a href="[% base %]family?acc=[% row.pfamA_acc %]">[% row.pfamA_acc %]</a></td>
+        <td><a href="[% familyUri %]">[% row.pfamA_id %]</a></td>
+        <td><a href="[% familyUri %]">[% row.pfamA_acc %]</a></td>
         <td>
           [% IF row.clan_id %]
-          <a href="[% base %]clan?id=[% row.clan_id %]">[% row.clan_id %]</a>
+          <a href="[% c.uri_for( "/clan", { id = row.clan_id } ) %]">[% row.clan_id %]</a>
           [% ELSE; "-"; END %]
         </td>
         <td style="color: #FFF; font-weight: bold; background: #[% gradient.${loop.index} %]">[% row.rfunSim ? row.rfunSim : "-" %]</td>

@@ -4,7 +4,7 @@
 # 
 # build the structure block for PfamBs
 #
-# $Id: structure.tt,v 1.5 2007-09-21 11:23:44 jt6 Exp $
+# $Id: structure.tt,v 1.6 2007-11-05 13:38:18 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 %]
@@ -40,7 +40,7 @@ RETURN UNLESS summaryData.numStructures;
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.fstruc.uri    = "[% base %]pfamb/structuretab";
+  loadOptions.fstruc.uri    = "[% c.uri_for( "/pfamb/structures" ) %]";
   loadOptions.fstruc.params = { acc: "[% acc %]" };
   // ]]>
 </script>

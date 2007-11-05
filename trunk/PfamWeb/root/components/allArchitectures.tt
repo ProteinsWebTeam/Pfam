@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.7 2007-09-20 16:05:13 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.8 2007-11-05 13:38:18 jt6 Exp $
 
 META naked = 1;
 
@@ -75,7 +75,7 @@ FOREACH image IN images.each_image;
     [% END %]
 
     <span class="graphicLabel">
-      <a href="[% base %]protein?id=[% image.image_name %]">
+      <a href="[% c.uri_for( "/protein", { id = image.image_name } ) %]">
         [% image.image_name %]</a>
       [% image.image_info %]
       ([% image.length / image.scale_x %] residues)
@@ -104,7 +104,7 @@ FOREACH image IN images.each_image;
         [% # switch to actually generate the domains and load them into a div -%]
         <span id="loadSwitch[% loop.index %]">
           <span class="link" 
-                onclick="loadDomains( '[% loop.index %]', '[% base %]domaingraphics?acc=[% acc %]&amp;arch=[% seqInfo.$id.auto_arch %]&amp;taxId=[% taxId %]', '[% seqInfo.$id.num %]' )">
+                onclick="loadDomains( '[% loop.index %]', '[% c.uri_for( "/domaingraphics", { acc = acc, arch = seqInfo.$id.auto_arch, taxId = taxId } ) | html %]', '[% seqInfo.$id.num %]' )">
             Show</span> all sequences with this architecture.
         </span>
 
@@ -133,7 +133,7 @@ FOREACH image IN images.each_image;
     $("loadingSpinner").show();
     $("loadingButton").disable();
     new Ajax.Request( 
-      "[% base %]domaingraphics",
+      "[% c.uri_for( "/domaingraphics" ) %]",
       {
         method:     "get",
         parameters: { acc:   "[% acc %]",

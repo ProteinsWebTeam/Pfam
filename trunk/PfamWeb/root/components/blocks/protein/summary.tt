@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.20 2007-10-23 14:31:03 jt6 Exp $
+# $Id: summary.tt,v 1.21 2007-11-05 13:38:19 jt6 Exp $
 
 USE String;
 
@@ -73,7 +73,7 @@ oe = 0;
             END;
             IF genomeCode %]
               <br />
-              <a href="[% base %]proteome?taxId=[% genomeCode %]">View</a> Pfam genome data.
+              <a href="[% c.uri_for( "/proteome", { taxId = genomeCode } ) %]">View</a> Pfam genome data.
             [% END %]
           </td>
         </tr>
@@ -150,11 +150,11 @@ oe = 0;
               </td>
               <td>
                 [% IF row.type.match( '(?i)pfama' ) %]
-                  <a href="[% base %]family?id=[% row.label %]">
+                  <a href="[% c.uri_for( "/family", { id = row.label } ) %]">
                     [% row.label %]</a>
                   [% IF row.hidden %] (hidden)[% END;
                 ELSIF row.type.match( '(?i)pfamb' ) %]
-                  <a href="[% base %]pfamb?id=[% row.label %]">
+                  <a href="[% c.uri_for( "/pfamb", { id = row.label } ) %]">
                     [% row.label %]</a>
                   [% IF row.hidden %] (hidden)[% END;
                 END %]

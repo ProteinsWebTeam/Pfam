@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.16 2007-08-30 09:41:47 jt6 Exp $
+# $Id: summary.tt,v 1.17 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -49,10 +49,10 @@ END;
     <div id="siph">&nbsp;</div>
 
     <h1>[% clan.clan_description %]
-      <a href="[% base %]annotate?acc=[% clan.clan_acc %]">
+      <a href="[% c.uri_for( "/annotate", { acc = clan.clan_acc } ) %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
-             src="[% base %]static/images/annotation.png" /></a>
+             src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
     </h1>
 
     <p>[% clan.clan_comment %]</p>
@@ -89,7 +89,7 @@ END;
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.si.uri    = "[% base %]family/structures";
+  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
   loadOptions.si.params = { acc: "[% pfam.pfamA_acc %]" };
   // ]]>
 </script>

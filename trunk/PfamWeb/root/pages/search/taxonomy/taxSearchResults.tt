@@ -4,9 +4,11 @@
 # 
 # a page fragment showing taxonomy search results
 #
-# $Id: taxSearchResults.tt,v 1.1 2007-10-15 09:39:22 jt6 Exp $
+# $Id: taxSearchResults.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
 
 META naked = 1;
+
+searchUri = c.uri_for( "/search", { tab = "searchTaxBlock" } );
 
 # first, check for error messages
 IF taxSearchError %]
@@ -17,7 +19,8 @@ IF taxSearchError %]
   </div>
   
   <p>
-    Please return to the <a href="[% base %]search?tab=searchTaxBlock">
+    Please return to the 
+    <a href="[% searchUri %]">
       taxonomy search</a> page to try another query.
   </p>
 
@@ -35,7 +38,7 @@ IF taxSearchError %]
   ELSE; # there are no families with this query... %]
     <p>
       We did not find any families using this query. Please return to the 
-      <a href="[% base %]search?tab=searchTaxBlock">search form</a> to try
+      <a href="[% searchUri %]">search form</a> to try
       another.
     </p>
   [% END; # of "IF families.keys.size"

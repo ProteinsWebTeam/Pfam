@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.7 2007-07-20 16:00:00 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.8 2007-11-05 13:38:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,8 +19,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 #-------------------------------------------------------------------------------
 
 # some URI shortcuts
-imgs   = "${base}static/images/help";
-family = "${base}family";
+imgs   = c.uri_for( "/static/images/help" );
+family = c.uri_for( "/family" );
 %]
 
 <!-- start domain graphics block -->
@@ -48,9 +48,9 @@ family = "${base}family";
       We provide a set of tools, described in the 
       <span class="link" onclick="switchTab('helpToolsBlock')">Tools &amp; Web 
         Services</span> section of the help pages, that allow you to generate 
-      <a href="[% base %]generateGraphic">custom domain graphics</a> by
+      <a href="[% c.uri_for( "/generateGraphic" ) %]">custom domain graphics</a> by
       uploading your own XML file, or to generate graphics for a
-      <a href="[% base %]generateUniprotGraphic">specific UniProt</a> sequence, 
+      <a href="[% c.uri_for( "/generateUniprotGraphic" ) %]">specific UniProt</a> sequence, 
       given the UniProt accession or ID. 
     </p>
 
@@ -97,7 +97,7 @@ family = "${base}family";
     <p>
       The high quality, curated <em>Pfam-A</em> domains are classified into one of four 
       different types: <em>family, domain, repeat</em> and <em>motif</em> 
-      (<a href="[% base %]help?tab=helpSummaryBlock">more details</a>). 
+      (<a href="[% c.uri_for( "/help", { tab = "helpSummaryBlock" } ) %]">more details</a>). 
       These different classification types are rendered slightly differently.
     </p>
     
@@ -576,7 +576,7 @@ family = "${base}family";
       <em>Pfam-B</em> regions are automatically generated clusters that 
       supplement the high quality Pfam-A regions. The mechanism for generating 
       Pfam-B regions is detailed 
-      <a href="[% base %]help?tab=helpSummaryBlock">here</a>.
+      <a href="[% c.uri_for( "/help", { tab = "helpSummaryBlock" } ) %]">here</a>.
       These regions are represented by a small rectangle, coloured with three 
       stripes. As for Pfam-A regions, clicking on a Pfam-B domain takes the 
       user to the Pfam-B summary page for that entry. Moving the mouse over the 

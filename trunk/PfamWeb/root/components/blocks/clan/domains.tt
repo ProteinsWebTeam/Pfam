@@ -5,7 +5,7 @@
 #
 # the domain organisation block for the clans sections
 #
-# $Id: domains.tt,v 1.8 2007-08-07 12:42:55 jt6 Exp $
+# $Id: domains.tt,v 1.9 2007-11-05 13:38:18 jt6 Exp $
 %]
 
 <!-- start domain organisation block -->
@@ -78,8 +78,8 @@
 </div>
 
 <script type="text/javascript">
-  loadOptions.cg.uri    = "[% base %]domaingraphics";
-  loadOptions.cg.params = "acc=[% clan.clan_acc %]";
+  loadOptions.cg.uri    = "[% c.uri_for( "/domaingraphics" ) %]";
+  loadOptions.cg.params = { acc: "[% clan.clan_acc %]" };
 </script>
 
 <!-- end domain organisation block -->

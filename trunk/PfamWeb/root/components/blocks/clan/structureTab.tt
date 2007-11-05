@@ -2,7 +2,7 @@
 # structuresTab.tt
 # jt6 20060424 WTSI
 #
-# $Id: structureTab.tt,v 1.4 2007-05-02 15:52:09 jt6 Exp $
+# $Id: structureTab.tt,v 1.5 2007-11-05 13:38:18 jt6 Exp $
 
 USE String;
 
@@ -95,12 +95,12 @@ END -%]
                 <tr>
                 [% IF famKey != prevFamKey -%]
                   <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]>
-                    <a href="[% base %]family?id=[% famKey %]">[% famKey %]</a>
+                    <a href="[% c.uri_for( "/family", { id = famKey } ) %]">[% famKey %]</a>
                   </td>
                 [% END;
                 IF seqKey != prevSeqKey -%]
                   <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]>
-                    <a href="[% base %]protein?id=[% seqKey %]">[% seqKey %]</a>
+                    <a href="[% c.uri_for( "/protein", { id = seqKey } ) %]">[% seqKey %]</a>
                   </td>
                 [% END;
                 IF seqKey != prevSeqKey OR resKey != prevResKey -%]
@@ -108,7 +108,7 @@ END -%]
                 [% END;
                 IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
                   <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                    <a href="[% base %]structure?id=[% pdbKey %]">[% pdbKey %]</a>
+                    <a href="[% c.uri_for( "/structure", { id = pdbKey } ) %]">[% pdbKey %]</a>
                   </td>
                 [% END;
                 prevFamKey = famKey;
@@ -124,10 +124,10 @@ END -%]
                   </td>
                   <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
                   <td class="[% oe % 2 ? "odd" : "even" %]">
-                    <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=jmol"
+                    <a href="[% c.uri_for( "/structure/viewer", { id = pdbKey } ) %]&amp;viewer=jmol"
                        onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;">
                        Jmol</a>  
-                    <a href="[% base %]structure/viewer?id=[% pdbKey %]&amp;viewer=av"
+                    <a href="[% c.uri_for( "/structure/viewer", { id = pdbKey } ) %]&amp;viewer=av"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;">
                        AstexViewer</a>  
                     <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"

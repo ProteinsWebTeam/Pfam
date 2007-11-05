@@ -1,0 +1,20 @@
+[% 
+META fullPage = 1;
+USE dumper;
+%]
+
+<h1>Form submitted</h1>
+
+<ul>
+[% FOREACH formName IN forms.keys;
+  fb = forms.$formName.FormBuilder %]
+  <li>
+  [% IF fb.submitted %]
+    <strong>[% fb.name %]</strong>
+  [% ELSE;
+    fb.name;
+  END %]
+  </li>
+[% END %]
+</ul>
+ 

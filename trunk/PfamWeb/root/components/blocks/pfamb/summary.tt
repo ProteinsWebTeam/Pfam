@@ -5,7 +5,7 @@
 # 
 # build the summary block for PfamB's
 #
-# $Id: summary.tt,v 1.9 2007-08-28 14:47:22 jt6 Exp $
+# $Id: summary.tt,v 1.10 2007-11-05 13:38:18 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -40,10 +40,10 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div class="blockContent">
 
     <h1>PfamB [% pfam.pfamB_acc %]
-      <a href="[% base %]annotate?acc=[% pfam.pfamB_acc %]">
+      <a href="[% c.uri_for( "/annotate", { acc = pfam.pfamB_acc } ) %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
-             src="[% base %]static/images/annotation.png" /></a>
+             src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
   	</h1>
 
     <p>

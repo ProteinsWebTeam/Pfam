@@ -5,7 +5,7 @@
 # 
 # build the domain composition block for the proteome pages
 #
-# $Id: stats.tt,v 1.4 2007-08-21 16:07:20 jt6 Exp $
+# $Id: stats.tt,v 1.5 2007-11-05 13:38:19 jt6 Exp $
 
 oe = 0;
 %]
@@ -64,7 +64,7 @@ oe = 0;
     <script type="text/javascript">
       // <![CDATA[
       postLoad = function() {
-        new Ajax.Request( "[% base %]proteome/stats",
+        new Ajax.Request( "[% c.uri_for( "/proteome/stats" ) %]",
                           { method: 'get',
                             parameters: { taxId: "[% taxId %]" },
                             onSuccess:  function( oResponse ) {
