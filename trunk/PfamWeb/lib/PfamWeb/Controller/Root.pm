@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.21 2007-11-05 14:38:00 jt6 Exp $
+# $Id: Root.pm,v 1.22 2007-11-08 16:59:27 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.21 2007-11-05 14:38:00 jt6 Exp $
+$Id: Root.pm,v 1.22 2007-11-08 16:59:27 jt6 Exp $
 
 =cut
 
@@ -96,6 +96,69 @@ sub index : Private {
   $c->stash->{nav} = 'home';
 
   $c->log->debug('PfamWeb::index: generating site index');
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Description...
+
+fortnight = 1209600
+
+=cut
+
+sub new_features : Local {
+  my( $this, $c ) = @_;
+
+  # get the cookie that stores the state and retrieve the data as a hash with
+  # key/value pairs storing feature timestamps and last-seen dates 
+  my $cookie = $c->req->cookie( 'features' );
+  my %last_seen = ();
+  %last_seen = split /,/, $cookie->value if defined $cookie;
+  
+  # the available changelog entries
+  my $changelog = $c->config->{changelog}->{entries};
+  my @entries = sort keys %$changelog;
+  
+  # work out the range of entries that we should consider
+  my $first = scalar @entries - $c->config->{changelog}->{show_last};
+  $first = 0 if $first < 0;
+  my $last  = scalar @entries - 1;
+
+  my @features;
+  my $body = '<ul>';
+  foreach my $feature_time ( reverse @entries[$first..$last] ) {
+    $c->log->debug( "Root::new_features: checking changelog entry: |$feature_time|..." )
+      if $c->debug;
+
+    # find out if and when the user last saw this message
+    my $saw_feature_at = $last_seen{$feature_time} || 0;
+
+    # flag to say that we've decided to show this entry
+    my $show = 0;
+
+    # if it's less than, say, two weeks since we saw this entry, or if the
+    # feature is previously unseen, show it now
+    if( time - $saw_feature_at < $c->config->{changelog}->{show_for} or
+        $feature_time > $saw_feature_at ) {
+      $c->log->debug( 'Root::new_features: showing this feature' ) if $c->debug;
+      $body .= '<li>' . $changelog->{$feature_time} . '</li>';
+    }
+      
+    # set a cookie saying "we saw feature X at time Y"
+    push @features, $feature_time, 
+                    $saw_feature_at > 0 ? $saw_feature_at : time;
+
+  }
+  $body .= '</ul>';
+
+  $c->res->body( $body );
+
+  # turn the features "hash" into a cookie value
+  my $value = join ',', @features;
+  $c->res->cookies->{features} = { value   => $value,
+                                   expires => '+3M' };
 }
 
 #-------------------------------------------------------------------------------
@@ -227,41 +290,24 @@ sub reportError : Private {
 
 =head2 robots : Path
 
-Serve a "robots.txt" file. We first try to retrieve the file from cache but
-if we don't find a cached version we try to extract it from the server
-configuration. Finally, if that fails, we fall back to a restrictive
-generic version that just disallows all robots to all URLs.
+Serve a "robots.txt" file. We try to retrieve the file from the configuration
+and fall back onto a restrictive generic version that just disallows all robots 
+to all URLs.
 
 =cut
 
 sub robots : Path( '/robots.txt' ) {
   my( $this, $c ) = @_;
   
-  my $cacheKey = 'robots.txt';
-  my $r = $c->cache->get( $cacheKey );
+  # try to get the file from config
+  my $r = $c->config->{robots};
   
-  if( defined $r ) {
-    $c->log->debug( 'Root::robots: retrieved robots.txt from cache' )
-      if $c->debug
-  } else {
-    $c->log->debug( 'Root::robots: returning robots.txt from config' )
-      if $c->debug;
-
-    # find out at which site we're running 
-    my $site = $c->config->{site};
-    
-    # and retrieve the specific robots.txt for that site
-    $r = $c->config->{robots}->{$site};
-    
-    # fall back on a generic, restrictive version
-    $r ||= <<'EOF_default_robots';
+  # fall back on a generic, restrictive version
+  $r ||= <<'EOF_default_robots';
 User-agent: *
 Disallow: /
 EOF_default_robots
 
-    $c->cache->set( $cacheKey, $r );
-  }
-  
   # put the file into the response and we're done
   $c->res->content_type( 'text/plain' );
   $c->res->body( $r );
