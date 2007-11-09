@@ -625,34 +625,41 @@ sub sort_and_resolve_markups {
 sub _add_map{
   my ($self, $region, @coords) = @_;
   
-
-  if($region){
-      
-      my $area = qq(<area shape=\"rect\" coords=\");
-      $area .= $coords[0].",".$coords[1].",".$coords[2].",".$coords[3];
-	  
-      # Add the href
-      if ( defined $region->getAttribute("link_URL" ) ) {
-		  $area .= "\" href=\"".$region->getAttribute("link_URL") . "\"";
-      } else {
-		  $area .= "\" nohref=\"nohref\"";
-      }
-      
-      if(defined $region->getAttribute("unique_id")){
-		  $area .= " id=\"featuresArea".$region->getAttribute("unique_id")."\"";
-      }
-	  # Add the alt text
-      $area .= " alt=\"";
-	  if ($region->getAttribute("start")) {
-	  	$area .=  $region->getAttribute("start")/$self->scale_x;
-		$area .= "-".$region->getAttribute("end")/$self->scale_x if ($region->getAttribute("end"));
-		$area .= " -> " if ($region->getAttribute("label"));
-	  }
-      $area .= $region->getAttribute("label") if($region->getAttribute("label"));
-	  $area .= "\" />";
-
-      $self->image_map($area);
+  return unless $region;
+  
+  my $area = '<area shape="rect" coords="';
+  $area .= $coords[0].','.$coords[1].','.$coords[2].','.$coords[3].'"';
+  
+  # Add the href
+  if ( defined $region->getAttribute('link_URL' ) ) {
+    $area .= ' href="' . $region->getAttribute('link_URL') . '"';
+  } else {
+    $area .= ' nohref="nohref"';
   }
+  
+  # add the ID, if we have one
+  $area .= ' id="featuresArea'.$region->getAttribute('unique_id').'"'
+    if defined $region->getAttribute('unique_id');
+    
+  # add a blank "alt" attribute, required by the spec
+  $area .= ' alt=""';
+
+  # try to build a title string. We use title to give us the tooltips rather 
+  # than alt because it seems to behave better in IE 
+  my $title = '';
+  $title .= $region->getAttribute('label') . ': '
+    if $region->getAttribute('label');
+
+  $title .= $region->getAttribute('start') / $self->scale_x . ' - ' . 
+            $region->getAttribute('end')   / $self->scale_x
+    if( $region->getAttribute('start') and $region->getAttribute('end') );
+  
+  $area .= qq( title="$title") if $title;
+  
+  $area .= " />\n";
+  
+  $self->image_map($area);
+
 }
 
 =head2 _add_regions
