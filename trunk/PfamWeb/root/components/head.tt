@@ -6,9 +6,9 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.27 2007-11-05 13:38:18 jt6 Exp $
+# $Id: head.tt,v 1.28 2007-11-12 17:06:41 jt6 Exp $
 
-# these first meta tags are google webmasters verification tags. They're here
+# these first meta tags are google webmasters verification tags. They are here
 # so that google can verify that we control the websites and we can control,
 # to some extent, how the googlebot indexes them.
 
@@ -99,25 +99,25 @@ END %]
 [% stylesheet;
 END %]
 
-[% IF cssIeIncludes.size -%]
 <!-- styles applicable to IE6 and below -->
 <!--[if lt IE 7 ]>
   <link rel="stylesheet" href="[% staticUri %]/css/pfam_ie.css" type="text/css" />
-[%- FOREACH stylesheet IN cssIeIncludes.unique %]
-  [% stylesheet;
-END %]
+[% IF cssIeIncludes.size;
+  FOREACH stylesheet IN cssIeIncludes.unique %]
+    [% stylesheet;
+  END;
+END -%]
 <![endif]-->
-[%- END -%]
 
-[% IF cssIeAllIncludes.size -%]
 <!-- styles applicable to all versions of IE -->
 <!--[if IE ]>
   <link rel="stylesheet" href="[% staticUri %]/css/pfam_all_ie.css" type="text/css" / >
-[%- FOREACH stylesheet IN cssIeAllIncludes.unique %]
-  [% stylesheet;
-END %]
+[% IF cssIeAllIncludes.size;
+  FOREACH stylesheet IN cssIeAllIncludes.unique %]
+    [% stylesheet;
+  END;
+END -%]
 <![endif]-->
-[%- END -%]
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
