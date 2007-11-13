@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.26 2007-11-05 14:38:20 jt6 Exp $
+# $Id: header.tt,v 1.27 2007-11-13 16:42:25 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -67,10 +67,10 @@ staticUri = c.uri_for( "/static" );
       <div id="searchBox">
         <input class="entryField"
              type="text" 
-             onfocus="if(!ssCleared){this.value='';ssCleared=true}" 
+             onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
              name="query" 
              id="siteSearchField" />
-        <div onclick="if($F('siteSearchField')&amp;&amp;ssCleared)$('siteSearchForm').submit()"
+        <div onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}"
              class="glassButton goButton">&nbsp;</div>
       </div>
     </form>

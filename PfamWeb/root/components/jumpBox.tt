@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.11 2007-11-05 13:38:18 jt6 Exp $
+# $Id: jumpBox.tt,v 1.12 2007-11-13 16:42:36 jt6 Exp $
 
 META naked = 1;
 
@@ -37,7 +37,7 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
     <div>
   		<input class="entryField" 
              type="text" 
-             onfocus="if(!jbCleared){this.value='';jbCleared=true}" 
+             onfocus="if(!jbCleared){this.value='';jbCleared=true;}" 
              size="10" 
              name="entry" 
              id="entry" />
@@ -51,7 +51,7 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
     // ]]>
 	</script>
   
-	<div onclick="if($F('entry')&amp;&amp;jbCleared)$('jumpForm').submit()"
+	<div onclick="if($F('entry')){if(jbCleared){$('jumpForm').submit();}}"
 		   class="glassButton goButton">&nbsp;</div>
        
 	<div class="cleaner"><!-- empty --></div>
