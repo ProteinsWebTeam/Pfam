@@ -77,7 +77,7 @@ sub fetchSeqs{
 		   
 		   if($reverseStrand){
 		       $domSeq = substr($tmpSeq, $se->{start} - 1, $se->{end} - $se->{start} + 1);
-		       $domSeq =~ tr/[ACGTUacgtuRYSWMKBDHVNryswmkbdhvn]/[TGCAAtgcaaYRSWKMVHDBNyrswkmvhdbn]/;
+		       $domSeq =~ tr/[ACGTUacgtuRYSWMKBDHVNryswmkbdhvn]/[UGCAAugcaaYRSWKMVHDBNyrswkmvhdbn]/;
 		       $domSeq = reverse($domSeq);
 		   }else{
 		       $domSeq = substr($tmpSeq, $se->{start} - 1, $se->{end} - $se->{start} + 1);
