@@ -5,7 +5,7 @@
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.4 2007-11-05 13:38:18 jt6 Exp $
+# $Id: speciesTree.tt,v 1.5 2007-11-13 16:40:55 jt6 Exp $
 
 META naked = 1;
 
@@ -204,7 +204,7 @@ ELSE;
       loadOptions.st.params['loadTree'] = 1;
       
       [%# set the URI to point specifically to the interactive tree %]
-      loadOptions.st.uri = "[% c.uri_for( "/speciestree/interactive" ) %]",
+      loadOptions.st.uri = "[% c.uri_for( "/speciestree/interactive" ) %]";
       // ]]>
     </script>
     
