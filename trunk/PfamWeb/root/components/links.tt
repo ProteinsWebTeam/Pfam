@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.16 2007-08-10 15:09:06 jt6 Exp $
+# $Id: links.tt,v 1.17 2007-11-13 13:31:18 jt6 Exp $
 
 USE dumper;
 
@@ -158,12 +158,10 @@ internalLinks = BLOCK;
                   </span>[% 
                 END;
               CASE "atoaPRC";
-                FOREACH ref IN xrefs.$db;
-                  IF ref.get_column("l_pfamA_id") != ref.get_column("r_pfamA_id") %]
-                    <span class="entry">
-                      [%- PROCESS buildLink type="PFAMA" id=ref.get_column("r_pfamA_id") -%]
-                    </span>
-                  [%- END;
+                FOREACH ref IN xrefs.$db -%]
+                  <span class="entry">
+                    [%- PROCESS buildLink type="PFAMA" id=ref.get_column("r_pfamA_acc") -%]
+                  </span>[%
                 END;
               CASE "atobPRC";
                 FOREACH ref IN xrefs.$db -%]
