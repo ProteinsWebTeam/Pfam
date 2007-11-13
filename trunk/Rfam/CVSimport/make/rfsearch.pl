@@ -623,16 +623,18 @@ sub parse_list {
 	    if ($qseq_len<$qend){
 		&printlog( "WARNING: Query length ($qseq_len) is less than Query end ($qend) in $qname with $name.");
 	    }
-	    my $window2 = int( abs($window - $qseq_len)/2 );
 	    
-	    if ($strand>0){
-		$start = $sstart - $qstart - $window2;
-		$end   = $send + abs($qseq_len-$qend) + $window2;
-	    }
-	    else {
-		$start = $sstart - $qend - $window2;
-		$end   = $send + abs($qseq_len-$qstart) + $window2;
-	    }
+	    $start = $send - $window;
+	    $end   = $sstart + $window;
+	    
+#	    if ($strand>0){
+#		$start = $sstart - $qstart - $window2;
+#		$end   = $send + abs($qseq_len-$qend) + $window2;
+#	    }
+#	    else {
+#		$start = $sstart - $qend - $window2;
+#		$end   = $send + abs($qseq_len-$qstart) + $window2;
+#	    }
 
 	    $start = 1 if( $start < 1 );
 	    	    
