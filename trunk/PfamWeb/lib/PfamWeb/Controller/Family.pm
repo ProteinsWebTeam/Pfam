@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.35 2007-09-12 12:58:14 jt6 Exp $
+# $Id: Family.pm,v 1.36 2007-11-13 13:30:50 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.35 2007-09-12 12:58:14 jt6 Exp $
+$Id: Family.pm,v 1.36 2007-11-13 13:30:50 jt6 Exp $
 
 =cut
 
@@ -363,17 +363,26 @@ sub getDbXrefs : Private {
   my @atoaPRC = $c->model('PfamDB::PfamA2pfamA_PRC_results')
                   ->search( { 'pfamA1.pfamA_acc' => $c->stash->{pfam}->pfamA_acc },
                             { join               => [ qw( pfamA1 pfamA2 ) ],
-                              select             => [ qw( pfamA1.pfamA_id pfamA2.pfamA_id evalue ) ],
-                              as                 => [ qw( l_pfamA_id r_pfamA_id evalue ) ],
+                              select             => [ qw( pfamA1.pfamA_id 
+                                                          pfamA1.pfamA_acc
+                                                          pfamA2.pfamA_id 
+                                                          pfamA2.pfamA_acc 
+                                                          evalue ) ],
+                              as                 => [ qw( l_pfamA_id 
+                                                          l_pfamA_acc 
+                                                          r_pfamA_id 
+                                                          r_pfamA_acc 
+                                                          evalue ) ],
                               order_by           => 'pfamA2.auto_pfamA ASC'
                             } );
 
   $xRefs->{atoaPRC} = [];
   foreach ( @atoaPRC ) {
-    push @{ $xRefs->{atoaPRC} }, $_ if $_->get_column( 'evalue' ) <= 0.001;
+    if( $_->get_column( 'evalue' ) <= 0.001 and
+        $_->get_column( 'l_pfamA_id' ) ne $_->get_column( 'r_pfamA_id' ) ) {
+      push @{ $xRefs->{atoaPRC} }, $_;
+    } 
   }
-
-  # $xRefs{atoaPRC} = \@atoaPRC if scalar @atoaPRC;
 
   # PfamB to PfamA links based on PRC
   my @atobPRC = $c->model('PfamDB::PfamB2pfamA_PRC_results')
