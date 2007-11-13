@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.25 2007-10-25 10:22:52 jt6 Exp $
+# $Id: layout.tt,v 1.26 2007-11-13 16:41:40 jt6 Exp $
 
 USE String;
 USE date;
@@ -172,7 +172,7 @@ PROCESS components/icons.tt;
       .ancestors()
       .each( function( el ) {
                if( el.hasClassName( "block" ) ) { 
-                 switchTab( el.id )
+                 switchTab( el.id );
                }
              }
            );
