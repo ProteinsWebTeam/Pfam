@@ -49,7 +49,7 @@ use Bio::SeqIO;
 
 my @tmp = ("chromosome_build");
 ##care with this !!!!!!
-#$rdb->empty_tables( \@tmp );
+$rdb->empty_tables( \@tmp );
 
 local $/="//";
 open(_FILE, "$read_file");
@@ -76,7 +76,7 @@ foreach my $entry (@file) {
 	    my @gpdata=split("\t", $gpline);
 	    my ($xsome_start, $xsome_end, $gbacc, $clone_start, $clone_end, $strand) =@gpdata;  
 	    $xsome_start=~ s/^GP\s+//;
-	    $gbacc=~ s/\.\d//;
+	    $gbacc=~ s/\.\d+//;
 	    my $gp=[$xsome_start, $xsome_end, $gbacc, $clone_start, $clone_end, $strand];
 	    push (@chr, $gp); #each row of gp mappings
 
@@ -100,7 +100,7 @@ foreach my $entry (@file) {
     #print "entry=$ac=\t@chr\n";
     
 #add data to tables
-    # $rdb->chromosome_data ($ac, @chr);
+     $rdb->chromosome_data ($ac, @chr);
      
  }
  
