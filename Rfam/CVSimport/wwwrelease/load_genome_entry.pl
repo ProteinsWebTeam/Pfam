@@ -45,7 +45,7 @@ use Bio::SeqIO;
 
 my @tmp = ("genome_entry");
 ##care with this!!!!
-##$rdb->empty_tables( \@tmp );
+#$rdb->empty_tables( \@tmp );
 
 local $/="//";
 open(_FILE, "$read_file");
@@ -79,7 +79,7 @@ foreach my $entry (@file) {
 	foreach my $gpline (@gparray){
 	    my @gpdata=split("\t", $gpline);
 	    my $gbacc=$gpdata[2];
-	    $gbacc=~ s/\.\d//;
+	    $gbacc=~ s/\.\d+//;
 	    push (@rf, $gbacc);
 	}
     }
@@ -136,12 +136,12 @@ foreach my $entry (@file) {
     ##### end of section taken from new_genome_species.pl
  
 ##print reports for checking processed data  
-    #print "entry=|$ac|$de|$ci|$joined_tax|@rf|\n";
-    #print "entry=|$ac|$de|$ci|\n";
+    print "entry=|$ac|$de|$ci|$joined_tax|@rf|\n";
+    print "entry=|$ac|$de|$ci|\n";
     $count+=scalar(@rf);
 ##fill tables
     # care with this for loading genome_entry and rfam_reg_full tables
-    # $rdb->genomic_species_data($ac, $de, $ci, $joined_tax, @rf);
+    #$rdb->genomic_species_data($ac, $de, $ci, $joined_tax, @rf);
 }
  
 print "total mapped rfamseqs=$count\n"; 
