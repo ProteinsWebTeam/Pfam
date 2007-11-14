@@ -1,110 +1,458 @@
 ######################################################
+###### RFAM RELEASE procedure  ##################
+######################################################
+Rfam release procedure
+----------------------
+
+1. Wait for Hans to mail about new EMBL release
+
+2. Make new rfamseq directory
+   > mkdir /pfam/rfam1/rfamseq/?/
+   > cd /pfam/rfam1/rfamseq/?/
+
+3. Pick up .dat files from srspartition
+   > /pfam/db/Rfam/scripts/release/get_embl_files.pl
+
+4. Build rfamseq files
+   > /pfam/db/Rfam/scripts/release/make_rfamseq.pl
+
+5. Make diff file and new fasta files
+   > /pfam/db/Rfam/scripts/release/make_diff.pl embl_sv.txt /pfam/db/rfamseq/CURRENT/embl_sv.txt
+
+6. Copy accross to /pfam/db/rfamseq/?/
+   Don't need *.dat files and hopefully soon *.fa files
+
+7. Flip the CURRENT symlink in /pfam/db/rfamseq/
+
+8. Get isg to copy /pfam/db/rfamseq/CURRENT/ to
+   /data/blastdb/Rfam/Large
+
+9. mkdir /pfam/rfam2/NEW
+   cd /pfam/rfam2/NEW
+
+10. Checkout all families (get people to scrap locks)
+    > /pfam/db/Rfam/scripts/release/rfco_all.pl
+
+11. Run seed surgery
+    > /pfam/db/Rfam/scripts/release/seed_surgery -v >& surgery.log
+
+12. Any that have changed need full rebuild
+    Any that haven't can just be updated
+
+.
+.
+.
+.
+
+??. Make release files
+    > /pfam/db/Rfam/scripts/release/make_release.pl 6.0
+
+??. Genome data:
+    > /pfam/db/Rfam/scripts/genomes/make_genomes.pl > genome_assemblies.rgp
+    > /pfam/db/Rfam/scripts/genomes/rfam2chr.pl genome_assemblies.rgp Rfam.full.gz Rfamseq.sv.gz
+
+
+######################################################
 ###### WEB RELEASE DOCUMENT ##################
 ######################################################
 
-## Ok presently everything is in my dir, but will be moved at somepoint !
+/pfam/db/Rfam/scripts/release/README file
 
+
+****DIRECTORIES****
+release files>>>>/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+images>>>>>>>>>>>/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs
+webtext files >>>/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/help (.th files)
+modules >>>>>>>>>/nfs/WWWdev/SANGER_docs/lib/rfam/
+cgi-bin .pl>>>>>>/nfs/WWWdev/SANGER_docs/cgi-bin
+
+
+release files>>>/pfam/db/Rfam/RELEASES/8.0
+database files>>/pfam/db/Rfam/BLASTDB/
+
+
+
+****WEBLOGS********
+
+
+
+##############################################
+##############################################
+##############################################
+
+
+This is jens edit as of 08/02/07. My first pass through this process and lots changed hugely since this was done.
+All notes are the commands as I ran them for release 8. 
+The old README contains the commands I was originally given but in most case are not what was actually run.
+
+
+Basic flow through:
+1) Prepare WWWdev for the new data
+2) Perform shatterflat
+3) Make browse files AND copy of the currently live database
+4) Create alignment files (new databse must be made for this to work)
+5) Create species files (flat files made from the DB)
+6) Copy fasta files and models to blastDB dir. Also the new gif files.
+7) genome stuff entered into genome_entry and chromosome_build tables.
+8) point dev site at new db version
+9)
+10)
+
+11) make the mysql database dumps and add to ftp site
 #############################################################
 1) Prepare WWWdev for the new data
 #############################################################
 
-rm -f -r /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/*
-mkdir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/desc /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/species /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align/seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align/full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/images
+notes on dev site.
+
+/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+
+this directory eventually contains all the data for this release (the rfam.fasta files etc). The previous release files are already there but they are either usually deleted (or moved to a different name) so that the new files can be in /data.
+
+$$ mv data data_7_0
+$$ mkdir data
+
+to remove could have run 
+
+$$ rm -f -r /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/*
+
+repopulate the empty dir with the appropriate directories. can doa simple copy and paste.
+
+$$ mkdir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/desc /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/species /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align/seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align/full /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/images
+
 
 #############################################################
 2) Perform shatterflat
 #############################################################
 
-cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+This takes the flat files made previously and splits them up into relevant files for each family.
+In order to do this needed to unzip the files that are in /pfam/db/Rfam/RELEASES/8.0 so that the shatterflat.pl can read them in.
+Need to remember to zip them up again after
 
-perl ../shatterflat.pl /pfam/db/Rfam/RELEASES/X.X/Rfam.full /pfam/db/Rfam/RELEASES/X.X/Rfam.seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data &
+$$ cd /pfam/db/Rfam/RELEASES/8.0
+$$ gunzip  Rfam.full.gz
+$$ gunzip Rfam.seed.gz
+$$ cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+$$ perl ../shatterflat.pl /pfam/db/Rfam/RELEASES/8.0/Rfam.full /pfam/db/Rfam/RELEASES/8.0/Rfam.seed /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data &
+$$ cd /pfam/db/Rfam/RELEASES/8.
+$$ gzip Rfam.full
+$$ gzip Rfam.seed 
+
 
 #############################################################
 3) Make browse files
 #############################################################
 
-cd  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam
-makebrowse.pl data/family.index
+There were problems running this. Sam eidted it at somepoint.
+I think I had to temporarily reset my path to find Update_RDB.pm
 
-./install -c
+$$ cd  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam
+$$ makebrowse.pl data/family.index
 
+Its is ok to ignore the comments that get written out at the end of the makebrowse.pl 
+"" Now you have to move the cgi-directory to /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/cgi-bin and make the
+scripts in them executable. Then open the top page (index.html) from your web site, and it should be live""
+
+the make the sthml pages 
+
+$$ ./install -c
+
+In release 8.0 this initally wasnt made properly, think this is when sam fixed makebrowse and reran it. 
+ 
 3a) gzip
 
-gzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/*.full
-gzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/*.full
+the list families was too long to run a simple gzip on *full etc. so I did this with a less and foreach
 
-3a) Upload rfam2 database 
+$$ cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/
+$$ foreach fam ( `ls` )
+$$ gunzip $fam
+$$ end
 
-mkdir /pfam/data3/database_backups/Rfam/RELEASES/X.X
-chmod 777 /pfam/data3/database_backups/Rfam/RELEASES/X.X
-/pfam/db/Rfam/scripts/rfamrdb/rdb_flatfiles.pl --dir /pfam/data3/database_backups/Rfam/RELEASES/X.X --dump_to_file --database rfamlive
-/pfam/db/Rfam/scripts/rfamrdb/rdb_flatfiles.pl --dir /pfam/data3/database_backups/Rfam/RELEASES/X.X --load_from_file --database rfam2 
+$$ cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/
+$$ foreach fam ( `ls` )
+$$ gunzip $fam
+$$ end
+
+3a) Make a copy of the livedatabase
+
+This was previously done into rfam2 by dumping data to file and then reloading it. tis now simpler just to copy the db.
+
+on command line:
+$$ echo "create database rfam_8_0;" | mysql -h pfam -u rfam -pmafp1
+$$ mysqldump -h pfam -u rfam -pmafp1 --opt rfamlive | mysql -h pfam -u rfam -pmafp1 -C rfam_8_0
 
 
 #############################################################
-4) Create alignment files (rfam2 must be updated for this to work)
+4) Create alignment files (new database must be updated for this to work)
 #############################################################
+** not for release > 8.0 remember to make sure the ebi/sanger link for the alignment seqs has been changed in the code before running****
 
-hhhhm, might be best to use parser.pl for these are they keep failing!
+Lots of this had to be changed from the way done previously: Sam had to recheck out lots of modules/scripts from the rfam cvs.
+into /nfs/WWWdev/SANGER_docs/lib/rfam/. He did keep a copy of the old one...
+a few modules were missing EntryA etc so he had to manually update/copy a few of them.
+also had to edit the web_new_parse_rfam.pl (had to edit the switch_db part)
+changed code in RfamWWWconfig.pl for the srs server.
 
+these were pretty quick to run (10 mins or so)
+FULL>>  Has flag for full only having SS_con 
+SEED>> this is the command that was used. this took around 20 mins to run
 
-FULL: Has flag for full only having SS_cons 
-bsub -q pfam_slow -R alpha '/pfam/db/Rfam/scripts/wwwrelease/web_new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only'
+$$ nice +19 ~/rfam/scripts/wwwrelease/web_new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only -db rfam_8_0
 
-SEED:
-bsub -q pfam_slow -R alpha '/pfam/db/Rfam/scripts/wwwrelease/web_new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed'
+$$ ~/rfam/scripts/wwwrelease/web_new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed
+
 
 #############################################################
 5) Create species files - This makes sure that the species format is correct
 #############################################################
 
-rm -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/*
-/nfs/team71/pfam/mm1/rfam_cvs/scripts/rfamrdb/get_species_files.pl /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/
+Again this was heavily edited from the previous run. hd to edit the get_species_files.pl to use
+the correct modules and fix the switch_db options. ran my version so possibly need to update this in ~cvs*
+This all ran quickly
 
+$$ rm -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/*
+$$ ~/rfam/scripts/rfamrdb/get_species_files.pl -outdir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/ -db rfam_8_0
+ 
+not quite sure what this does. had problems with two entries ( AJ274379 , AF278571 ) which i basically manually fixed and then it ran ok. these are wrong in the DB so ther is an error when this data is filled.
 
-/nfs/team71/pfam/mm1/rfam_cvs/scripts/wwwrelease/species_fix.pl /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/
+$$ /pfam/db/Rfam/scripts/wwwrelease/species_fix.pl /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/tmp_species/
+
 
 #############################################################
-6) copy fasta files and index them
+6) copy fasta files (and index them) and gif files
 #############################################################
-mkdir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM
 
-Hassle Sam if the BLASTDB has not been updated
-cp -f /pfam/db/Rfam/BLASTDB/*.cm /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM
-cp -f /pfam/db/Rfam/RELEASES/X.X/Rfam.fasta.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
-gunzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/Rfam.fasta.gz
+This part basically makes copies of the release 8 fasta, threshold and CM models in 
+BLASTDB directory AND fasta and thr in the Software/Rfam/data directory.
+Need to unzip them and format the fasta file into searchable database with xdformat and formatdb.
 
-cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+$$ cd /pfam/db/Rfam/RELEASES/8.0
+$$ cp Rfam.fasta.gz /pfam/db/Rfam/BLASTDB/ (fasta files)
+$$ cp Rfam.thr.gz  /pfam/db/Rfam/BLASTDB/  (thr files)
+$$ cp Rfam.tar.gz  /pfam/db/Rfam/BLASTDB/  (all CM models)
 
-formatdb -p F -i Rfam.fasta
-xdformat -n  Rfam.fasta
+unzip the fasta and thr files.
+$$ cd /pfam/db/Rfam/BLASTDB/
+$$ gunzip Rfam.fasta.gz
+$$ gunzip Rfam.thr.gz
+unzip and untar the CM files
 
-### Rfam threshold file
-cp -f /pfam/db/Rfam/RELEASES/X.X/Rfam.thr.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
-gunzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/Rfam.thr.gz
+$$ gunzip Rfam.tar.gz
+$$ tar -xvf Rfam.tar
 
-### Family page pictures
+format the database>>
 
-rm -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/*
-cp -f /pfam/db/Rfam/RELEASES/7.0/Rfam.pics.tar.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/
-cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/
-gunzip Rfam.pics.tar.gz
-tar xvf Rfam.pics.tar
+$$ formatdb -i Rfam.fasta -p F
+$$ xdformat -n -I Rfam.fasta
+
+the basically copy all the CM models to /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM
+
+$$ cp -f /pfam/db/Rfam/BLASTDB/*.cm /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/CM
+
+New family page pictures
+
+$$ rm -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/*
+$$ cp -f /pfam/db/Rfam/RELEASES/7.0/Rfam.pics.tar.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/
+$$ cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families/
+$$ gunzip Rfam.pics.tar.gz
+$$ tar xvf Rfam.pics.tar
+
+make copies of data in the /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam//data dirctory
+
+$$ cp -f /pfam/db/Rfam/RELEASES/8.0/Rfam.fasta.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+$$ gunzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/Rfam.fasta.gz
+$$ cp -f /pfam/db/Rfam/RELEASES/8.0/Rfam.thr.gz /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+$$ gunzip /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/Rfam.thr.gz
+$$ cd /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data
+
+format the db.
+
+formatdb -i Rfam.fasta -p F
+xdformat -n -I Rfam.fasta
 
 #############################################################
 7) Genome stuff
 #############################################################
-/nfs/team71/pfam/mm1/rfam_cvs/scripts/wwwrelease/genome_species.pl --read /pfam/db/Rfam/RELEASES/RELEASE_NUM/embl.rfam
+
+Again this totally changed from last release. Was unclear exactly what had to be done
+use the embl.con file to make mapping of rfam seqs to genome seqs.
+these are the last two points mentioned at the top of this README for the rfam release procedure
+ 
+$$ /pfam/db/Rfam/scripts/genomes/make_genomes.pl > genome_assemblies.rgp  (mappign file)
+
+got lots of errors running this from pfetch close pfetch handle etc ( eg CR380947) and doesnt know anything about (DQ480489 )
+but sam says not to worry about these.
+then mapping the Rfam hits list
+ 
+$$ /pfam/db/Rfam/scripts/genomes/rfam2chr.pl genome_assemblies.rgp Rfam.full.gz > genome_hits.rfam
+
+The need to fill this genome/chromosome info into the database:
+Use the mapping file to fill the genome_entry and the chromosome_build tables in the db
+It wasnt clear which script was correct to use 
+Had to edit /nfs/team71/pfam/jd7/rfam/scripts/wwwreleas/new_genome_species.pl --read /pfam/db/rfamseq/CURRENT/embl.con
+Sam originally thought this should parse the embl.con but realised not.
+Re:wrote the script to parse the genome_assemblies.rg file.
+had to edit the UpdateRDB.pm module in order to do this.
+So note currently the script specifies my directory at top of the .pl need to check this one in to cvs.
+
+$$ perl ~/rfam/scripts/wwwrelease/test_genome_species.pl --read /pfam/db/Rfam/RELEASES/8.0/genome_assemblies.rgp --dbname rfam_8_0 > ~/rfam_builds/RELEASE_8.0/MKrelease/DB_genome_entry_data
+
+later foubd out chromosome build had to be filled eidted the .pl and the updateRDB.pm to deal with this.
+
+perl ~/rfam/scripts/wwwrelease/test2_genome_species.pl --read /pfam/db/Rfam/RELEASES/8.0/genome_assemblies.rgp --dbname rfam_8_0 
+
+##realised also data that didnt have GP lines in the genome-assemblies needs to go into the database still***
+This was done retrosectively for the no_GP line entries.
+The code shoud run fine now for either GP or no GP lines but for this time I had to ## out the GP line stuff so it wasnt entered twice.
+need to ensure when I run this again that i uncomment out the appropriate lines (empty table and GP line stuff)
 
 
+#######################################
+
+point dev site to new db
+
+#####################################
+
+# point dev site at new database
+
+8) edit RfamWWWConfig and change database name
+emacs  /nfs/WWWdev/SANGER_docs/lib/rfam/RfamWWWConfig.pm
+change the db to current db rfam_8_0
+
+look up errors for the dev website
+log onto webdev1
+ssh webdev1
+/GPFS/data1/WWW/logs/webdev1b
+tail -F error_log
+
+problems with fasta file views and species views
+membersequences.pl and speciesview.pl
+
+found these two are not the same.
+./scripts/cgi-bin/membersequences.pl
+./scripts/webscripts/cgi-bin/membersequences.pl
+
+editing this version of the RfamWWWConfig.pm
+/nfs/WWWdev/SANGER_docs/lib/rfam/RfamWWWConfig.pm
+/nfs/WWWdev/SANGER_docs/lib/rfam/Rfam/RfamRegion.pm
+
+there were several errors at many points where sam either edited the .pm or .pl code
+
+#####################################################
+ ####    Pushing web site live     ##################
+#####################################################
+
+
+##need to edit the index html table 
+/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam
+
+edit the index.th
+then need to run ./install -c to recreate the pages
+
+
+pushing pages live had to do
+
+
+/nfs/WWWdev/SANGER_docs/lib/rfam/
+    RfamWWWConfig.pm
+    -r Rfam
+
+/nfs/WWWdev/SANGER_docs/cgi-bin/Rfam/
+    genome_view.pl
+    speciesview.pl
+    membersequences.pl
+ok webpublished this on 1/03/07
+getalignment.pl as the version in DEV was different and new and fixed ~ 13Feb thougth might be due to release....
+
+
+
+/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/
+    *.shtml
+    -r data
+
+/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/help/
+    *.shtml
+
+/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/browse/
+    *.shtml
+ 
+
+also  the familes directory with gifs.....
+/nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/gifs/families
+
+
+also the ftp site
+
+
+
+checking out code from the live site:
+
+ssh web-2-02
+cd /GPFS/data1/WWW/SANGER_docs/cgi-bin/Rfam/
+scp -r species_alignment.pl jd7@pfam:~/species_alignment.pl
+on web-2-02
+/GPFS/data1/WWW/SANGER_docs/cgi-bin/Rfam/bin
+scp -r new_parse_rfam.pl jd7@pfam/new_parse_rfam.pl
+
+checking out the errors on the dev site
+
+ssh webdev1
+/GPFS/data1/WWW/logs/webdev1b
+tail -F error_log
+
+also for the new_parse_rfam.pl
+/GPFS/data1/WWW/SANGER_docs/cgi-bin/Rfam/bin
+perl -wTc new_parse_rfam.pl
+
+
+possible also
+
+tidy up /pfam/db move data to archive on rfam2
+
+cp the old files in
+/pfam/db/Rfam/RELEASE/x.x to /pfam/rfam2/ARCHIVE/Rfam/
+
+and
+
+/pfam/db/Rfam/rfamseq/x.x to /pfam/rfam2/ARCHIVE/Rfam/
+
+
+######################################################
+# 
+# Make sql db dumps
+#
 ########################################################
+did this for rfam 8.0 only after user emailed to say they were missing. had no idea they should be made.. so this is a bit of an add on.
+
+need to log onto pfam1 machine where web instance of db is:
+ssh pfam1
+cd /tmp
+mkdir database_files
+chmod 777 database_files
+mysqldump -h pfamdb1 -u pfamwebadmin -pmafpwa rfam_8_0  -P 3306 -T database_files rfam_8_0 
+rm -rf database_files/*.sql
+scp -r database_files/ jd7@pfam3a:~/
+cd ~/database_files
+gzip *txt
+cd ..
+mv database_files //lustre/pfam/rfam/Production/Rfam/RELEASES/8.0/
+put onto ftp site
+ cp -r database_files/ ~ftp/pub/databases/Rfam/8.0/
+check these look ok..
+
+takes around 30 mins to update...
+
+
+################tail########################################
 # 
 # DATABASE UPLOAD- THESE ARE THE OLD SCRIPTS
 #
 ########################################################
 
 
+# embl files in /pfam/rfam1/rfamseq/
 
+# build rfamseq in somewhere with space, copy indices to /pfam/db/rfamseq/
 
 /pfam/db/Rfam/scripts/rfamrdb/parse_embl_files.pl  /pfam/db/rfamseq/CURRENT
 
