@@ -28,6 +28,7 @@ correctly with secondary structure markup etc from stockholm format.
 =cut
 
 package Rfam::RfamAlign;
+use lib "/nfs/team71/pfam/jd7/Rfam/";
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
 use IO::File;
@@ -35,7 +36,10 @@ use IO::File;
 use Bio::SimpleAlign;
 use Rfam::SS;
 
-@ISA = qw( Bio::SimpleAlign );
+#needed to use RDB to get taxonomy for order_by_taxonomy
+use Rfam;
+
+@ISA = qw( Bio::SimpleAlign  Rfam );
 
 
 # new is probably not needed at the moment, but we have it
@@ -270,54 +274,74 @@ sub merge_alignment {
     return $self;
 }
 
-
+#######
+##This subroutine has now been changed to get the taxonomy string from RDB instead of mfetch.
+##uses the family acc to get all the taxonomy lines in one query
+##
 
 sub order_by_embl_taxonomy {
-    my $self = shift;
+    my ($self, $acc, $type) = @_;
+    #my $acc=shift;
+    #my $type=shift; #SEED or ALIGN;
     my $newaln = Rfam::RfamAlign->new();
-
     my( %tax, %order );
     my @seqs = $self->each_seq;
-    while( @seqs ) {
-	my @tonseq = splice( @seqs, 0, 100 );
-	my @tonid;
+    
+    ## get the tax strings from the rdb
+    ##get DB connection parameters from Rfam.pm
+  
+    my $dbName=$Rfam::live_rdb_name;
+    my $dbdriver=$Rfam::rdb_driver;
+    my $dbUser=$Rfam::rdb_user;
+    my $dbPass=$Rfam::rdb_pass;
+    my $dbPort=$Rfam::rdb_port;
+    my $dbHost=$Rfam::rdb_host;   
+    
+    #prepare DB connection and statement handles
+    my $dsn    = "dbi:$dbdriver:$dbName:$dbHost:$dbPort";
+    my $dbAttr = { RaiseError => 1,  PrintError => 1 };
 
-	#get array of seq accessions
-	foreach my $seq ( @tonseq ) {
-	    my( $id ) = $seq->id();
-	    push( @tonid, $id );
-	}
-				       
-	my $idstr = join(" ", @tonid) ;
-	my( $acstring, $ocstring );
-        
-        my $fh = IO::File->new;
-	print STDERR "making the view files....\n";
+    # connect
+    my $dbh = DBI->connect( $dsn, $dbUser, $dbPass, $dbAttr )
+	or die "(EE) ERROR: couldn't connect to database: $!";
 
-        #using the full accession and version for mfetch
-	$fh -> open( "mfetch -d embl_89 -f \"acc  tax sl\" $idstr | " );
-	    while(<$fh>) {
-		if( /^AC\s+(.*)/) {
-		    $acstring .= "$1 ";
-		}
-		if( /^OC\s+(.*)/) {
-		    $ocstring .= "$1 ";
-		}
-		#when reach end of embl entry
-		if( /^SQ/ && $ocstring ) {
-		    my @a=split(";", $acstring);
-		    my $accn=$a[0];
-		   
-		    #print STDERR "'$accn'||$ocstring\n";
-		    $tax{$accn} = $ocstring;
-		    $ocstring = undef;
-		    $acstring = undef;
-		}
-	}
-	$fh -> close;
-        
-	foreach my $seq ( @tonseq ) {
-	    my( $acc ) = $seq->id()=~ /^(\S+?)(\.|$)/;
+    #need different query for SEED or ALIGN file
+    my $asth;
+    if ($type eq 'SEED'){ 
+	$asth=$dbh->prepare( 'select rs.rfamseq_acc, rs.taxonomy from rfamseq as rs join rfam_reg_seed as rrs on rrs.auto_rfamseq=rs.auto_rfamseq join rfam as rf on rrs.auto_rfam=rf.auto_rfam and rf.rfam_acc=?' )
+	    or die '(EE) ERROR: couldn\'t prepare query to retrieve the taxonomy info: ' . $dbh->errstr;}
+    elsif($type eq 'ALIGN') {
+	$asth=$dbh->prepare( 'select rs.rfamseq_acc, rs.taxonomy from rfamseq as rs join rfam_reg_full as rrf on rrf.auto_rfamseq=rs.auto_rfamseq join rfam as rf on rrf.auto_rfam=rf.auto_rfam and rf.rfam_acc=?' )
+	    or die '(EE) ERROR: couldn\'t prepare query to retrieve the taxonomy info: ' . $dbh->errstr;}
+    else {
+	die '(EE) ERROR: dont recognise the file type?'};
+
+    print STDERR "(ii) getting the taxonomy info from rdb for  \"$acc\"\n";
+    
+    $asth->execute($acc);
+    
+    if( $DBI::err ) {
+	print STDERR "(WW) WARNING: error executing  query to get taxonomy data: "
+	    .  $dbh->errstr . "\n";
+    }
+    
+    my $data =  $asth->fetchall_arrayref();
+    if( $asth->err ) {
+	print STDERR "(WW) WARNING: error whilst retrieving query asth"
+	    . $dbh->errstr . "\n";
+	return;
+    }
+    #store all the rdb data for this family SEED or ALIGN file 
+    foreach my $row (@$data){
+	$tax{$$row[0]}=$$row[1]; #accession and tax string
+	print $$row[0], "\t", $$row[1], "\n";
+    }
+    
+    ###-----------------------------------------------------------
+
+    #get array of seq accessions order the seqs by taxonomy
+    foreach my $seq ( @seqs ) {
+	    my ( $acc ) = $seq->id()=~ /^(\S+?)(\.|$)/;
 	    if( !exists $tax{$acc} ) {
 		warn "failed to get taxonomy for ", $seq->id, "\n";
 		$tax{$acc} = "zz_unknown";
@@ -325,9 +349,9 @@ sub order_by_embl_taxonomy {
 	    $order{ $seq->id."/".$seq->start."-".$seq->end } = { 'seq' => $seq,
 								 'oc'  => $tax{$acc} };
 	}
-    }
+
     foreach my $nse ( sort { $order{$a}->{'oc'} cmp $order{$b}->{'oc'} } keys %order ) {
-#	print "$nse\n";
+	#print STDERR "$nse\n";
 	$newaln->add_seq( $order{$nse}->{'seq'} );
     }
 
