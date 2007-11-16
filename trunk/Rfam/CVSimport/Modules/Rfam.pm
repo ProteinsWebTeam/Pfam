@@ -37,6 +37,7 @@ use vars qw( @ISA
 	     $view_maker );
 
 @ISA    = qw( Exporter );
+
 use Rfam::DB::DB_RCS;
 use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
@@ -71,15 +72,15 @@ $rfamseq_run_dir     = "/data/blastdb/Rfam/rfamseq";
 $view_maker = "/software/rfam/scripts/rfamrcs/makerfamview.pl";
 
 #for Curation (rfamlive)
-my $rdb_host = "pfamdb2a";
-my $rdb_driver = "mysql";
-my $rdb_user = "pfam";
-my $rdb_pass = "mafp1";
-my $rdb_port= "3303";
+our $rdb_host = "pfamdb2a";
+our $rdb_driver = "mysql";
+our $rdb_user = "pfam";
+our $rdb_pass = "mafp1";
+our $rdb_port= "3303";
 
 my $external_rdb_name = "rfam";
 my $switchover_rdb_name = "rfam2";
-my $live_rdb_name = "rfamlive";
+our $live_rdb_name = "rfamlive";
 my $temp_rdb_name = "rfam_temp"; ## to be deleted!!
 
 sub default_db{
