@@ -316,7 +316,7 @@ sub order_by_embl_taxonomy {
     else {
 	die '(EE) ERROR: dont recognise the file type?'};
 
-    print STDERR "(ii) getting the taxonomy info from rdb for  \"$acc\" file $file\n";
+    print STDERR "(ii) getting the taxonomy info from rdb for  \"$acc\" file $type\n";
     
     $asth->execute($acc);
     
