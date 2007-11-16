@@ -28,7 +28,7 @@ correctly with secondary structure markup etc from stockholm format.
 =cut
 
 package Rfam::RfamAlign;
-use lib "/nfs/team71/pfam/jd7/Rfam/";
+
 use vars qw( $AUTOLOAD @ISA @EXPORT_OK );
 use strict;
 use IO::File;
