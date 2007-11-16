@@ -1,5 +1,6 @@
 #!/software/bin/perl -w
 
+
 use strict;
 use Getopt::Long;
 use Rfam;
@@ -12,6 +13,7 @@ my $nolock;
 my $acc = shift;
 
 chdir "$Rfam::current_dir/$acc" or die "cant move to the current dir for this family $acc";
+print STDERR "moved to $acc dir\n";
 
 my @ann;
 open( DESC, "DESC" ) or die "cant open DESC file";
@@ -29,7 +31,8 @@ foreach my $file ( @Rfam::align_file_set ) {
     open( ALN, $file ) or die "cant open $file";
     $aln -> read_stockholm( \*ALN );
     close ALN;
-    my $newaln = $aln -> order_by_embl_taxonomy();
+ 
+    my $newaln = $aln -> order_by_embl_taxonomy($acc, $file);
     $newaln -> write_stockholm( \*AOU );
 
     my $numseq = scalar ( $aln -> each_seq() );
@@ -57,18 +60,6 @@ foreach my $file ( @Rfam::align_file_set ) {
     unlink "$file.tmp" or die "cant remove the $file.tmp";
 }
 
-
-# copy web based stuff around
-
-#system("cp -f $Rfam::current_dir/$acc/ALIGN /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
-#system("gzip -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/full/$acc.full");
-
-#system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir  /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type full --ss_cons_only --family $acc ");
-
-#system("cp -f $Rfam::current_dir/$acc/SEED /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
-#system("gzip  -f /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/seed/$acc.full");
-
-#system("/pfam/db/Rfam/scripts/wwwrelease/new_parse_rfam.pl --input_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data --output_dir /nfs/WWWdev/SANGER_docs/htdocs/Software/Rfam/data/markup_align --file_type seed --family $acc");
 
 # remove locks, tmp files etc
 
