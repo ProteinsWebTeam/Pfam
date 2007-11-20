@@ -10,6 +10,7 @@ use IO::File;
 use Data::Dumper; #Great for printing diverse data-structures.
 use Rfam;
 use Rfam::RfamAlign;
+use SeqFetch;
 
 #BLOCK 0: INITIALISE: 
 
@@ -219,15 +220,32 @@ else {
 }
 #system " ~/bin/stk2lcmaskfasta.pl -outfile=$fafile SEED" and die "can't convert SEED to $fafile";
 
-
 my @blastdb;
 if( $update ) {      # run over the new.fa.* databases
-    @blastdb = glob( "$blastdbdir/new.fa.*[0-9].nhr" );
+    @blastdb = glob( "$blastdbdir/new.fa.*[0-9].xnd" );
     &update_output( "OUTPUT", "OUTPUT.0" );
 }
 else {               # run over *.fa databases
-    @blastdb = glob( "$blastdbdir/*.fa.nhr" );
+    @blastdb = glob( "$blastdbdir/*.fa.xnd" );
+    my @tmparray;
+    foreach my $bdb (@blastdb) {
+	if ($bdb !~ /rfamseq.fa.xnd/){
+	    push(@tmparray, $bdb);
+	}
+    }
+    @blastdb = @tmparray;
 }    
+
+#Find out how big the database is (used for e-value computations for blast & HMMer):
+my( $dbsize);
+open( DBSIZE, "$blastdbdir/DBSIZE" ) or die "FATAL: $blastdbdir/DBSIZE file doesn't exist\n";
+while(<DBSIZE>) {
+    if( /(\d+)/ ) {
+        $dbsize = $1;
+        last;
+    }
+}
+close DBSIZE;
 
 #user must have log dir!
 &printlog( "Making log directory: $pwd/$$" );
@@ -239,6 +257,10 @@ my $round = 0;
 #things to copy to lustre file system
 system("/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile") and die "/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile\nerror scp-ing $pwd/$fafile to farm-login:$lustre/$fafile\n$!\n";
 
+#PPG: If there are going to be a stupid number of hits we should lower the threshold. 
+#Sample ~3 sequences using "squid/weight -s 3" - run blast with default threshold. Extrapolate from this the 
+#estimated total number of hits - choose a lower sensible threshold if this is greater than 100,000.
+
 unless( $minidbpname ) {
   BLAST: { #JT6 thinks this GOTO is evil - but then he thinks "needs fixed" is evil too. 
       if( $round or !$blastpname ) {
@@ -247,7 +269,7 @@ unless( $minidbpname ) {
 	  #for (my $i = 1; $i < scalar(@blastdb)+1; $i++) {
 	  foreach my $i ( @index ) { #This is cleverer than it looks, see below for rerunning failed jobs:
 	      my $blastdb = $blastdb[$i-1];
-	      $blastdb =~ s/\.nhr$//g;
+	      $blastdb =~ s/\.xnd$//g;
 	      $blastdb =~ s/$blastdbdir/$blastdbdir2/g;
 	      my $blastcmd = "";
 	      #PPG: WU-BLAST is now the default. MYAHAHAHAHA!:
@@ -376,9 +398,7 @@ if( $minidbpname ) {
     }
 }
 else {
-    #PPG: If there are a stupid number of hits we could just skim off the most significant 100,000 or so blast hits? 
-    #This will save considerable compute for the huge families. eg. RF00177?
-    #It'd require sorting every hit on e-val/score, which is probably more efficient than running Infernal! 
+    
     #What's the limit here? Can (or should) we increase the number of nodes we run on?
     &printlog( "parsing blast list" );
     $minidbpname = $$;
@@ -387,73 +407,95 @@ else {
 	&parse_list( \%seqlist, "$blastpname\.blastlist.$iii" );
     }
     
-    &printlog( "Building mini database " );
     my $numseqs = scalar( keys %seqlist );
     my $count = int( $numseqs/$cpus ) + 1;
     my @seqids = keys %seqlist;
-
+    &printlog( "Building mini database of $numseqs sequences spread across $count files" );
+    
     while( @seqids ) {
 	my @tmpids = splice( @seqids, 0, $count ); 
-	my @nses;
-	
+	my(%forward, %reverse);
+	open( FA, ">$$.minidb.$k" ) or die;
 	foreach my $seqid ( @tmpids ) {
 	    foreach my $reg ( @{ $seqlist{$seqid} } ) {
+		if($reg->{'strand'} == 1){
+		    push( @{ $forward{$seqid} }, $reg); 
+		}else{
+		    push( @{ $reverse{$seqid} }, $reg); 
+		} 
+	    }
+	}
+	SeqFetch::fetchSeqs(\%forward, $Rfam::rfamseq, 0, \*FA);
+	SeqFetch::fetchSeqs(\%reverse, $Rfam::rfamseq, 1, \*FA);
+	close(FA) || die "Could not close fasta file:[$!]\n";
+	system("scp $$.minidb.$k farm-login:$lustre/$$.minidb.$k") and die "Failed to copy $$.minidb.$k to lustre file system\n";  
+	$k++;
+    }
+    $k--;
+    
+#THIS IS THE RIDICULOUS WAY TO FETCH SEQUENCES:
+#    while( @seqids ) {
+#	my @tmpids = splice( @seqids, 0, $count ); 
+#	my @nses;
+#	
+#	foreach my $seqid ( @tmpids ) {
+#	    foreach my $reg ( @{ $seqlist{$seqid} } ) {
 		# this is a bit complex just to get an array of nses
 		#PPG: Can't we xdget the seqs from in here instead?
-		my( $start, $end, $strand ) = ( $reg->{'start'}, $reg->{'end'}, $reg->{'strand'} );
-		
-		if ($start>0 && $end>$start){
-		    #push( @nses, "$seqid:$start-$end\t$strand" );
-		    push( @nses, "$seqid:$start-$end:$strand" );
-		}
-		else {
-		    &printlog( "\nWARNING: malformed NSE:\n $seqid:($start)-($end):$strand");
-		}
-	    }
-	}
+#		my( $start, $end, $strand ) = ( $reg->{'start'}, $reg->{'end'}, $reg->{'strand'} );
+#		
+#		if ($start>0 && $end>$start){
+#		    #push( @nses, "$seqid:$start-$end\t$strand" );
+#		    push( @nses, "$seqid:$start-$end:$strand" );
+#		}
+#		else {
+#		    &printlog( "\nWARNING: malformed NSE:\n $seqid:($start)-($end):$strand");
+#		}
+#	    }
+#	}
 	
-	$k++;
-	my $nse_count = 100; #PPG: What the hell is this for?
-	my $seen_count = 0;
-	
-	open( FA, "> $minidbpname\.minidb.$k" ) or die;
-	while( @nses ) {
-	    # replace pfetch with xdget -- find old revisions to
-	    # see pfetch code
-	    my $nse = pop( @nses );
-	    my( $n, $s, $e, $strnd ) = $nse =~ /(\S+)\:(\d+)-(\d+):(\S+)/;
-	    
-	    #PPG: slightly paranoid checks here. Could add "is_integer()" checks also:
-	    if (defined($n) && defined($s) && defined($e) && defined($strnd) && $s>0 && $e>$s){
-		my $xdcmd = "";
-		if ($strnd<0){#Grab minus strand:
-		    $xdcmd = "xdget -n -r -a $s -b $e $Rfam::rfamseq $n";
-		}
-		else {
-		    $xdcmd = "xdget -n -a $s -b $e $Rfam::rfamseq $n";
-		}
-		my $fhxd = IO::File->new();
-		$fhxd -> open( "$xdcmd |" ) or &printlog( "\nWARNING: xdget failure 1\n$xdcmd\nCheck: $minidbpname\.minidb.$k\n$!");
-		while(<$fhxd>) {
-
-		    if( /^\>/ ) {
-			print FA ">$n/$s-$e:$strnd\n";
-		    }
-		    else {
-			print FA $_;
-		    }
-		    
-		    
-		}
-		$fhxd -> close or &printlog("WARNING: xdget failure 2. Close failed. \"$xdcmd\". Check: $minidbpname\.minidb.$k: $!");
-		$seen_count++;
-	    }#PPG: close paranoid "if".
-	    else {
-		&printlog("WARNING: malformed NSE: $nse");
-	    }
-	}
-	close FA;
-    }
+#	$k++;
+#
+#	my $seen_count = 0;
+#	
+#	open( FA, "> $minidbpname\.minidb.$k" ) or die;
+#	while( @nses ) {
+#	    # replace pfetch with xdget -- find old revisions to
+#	    # see pfetch code
+#	    my $nse = pop( @nses );
+#	    my( $n, $s, $e, $strnd ) = $nse =~ /(\S+)\:(\d+)-(\d+):(\S+)/;
+#	    
+#	    #PPG: slightly paranoid checks here. Could add "is_integer()" checks also:
+#	    if (defined($n) && defined($s) && defined($e) && defined($strnd) && $s>0 && $e>$s){
+#		my $xdcmd = "";
+#		if ($strnd<0){#Grab minus strand:
+#		    $xdcmd = "xdget -n -r -a $s -b $e $Rfam::rfamseq $n";
+#		}
+#		else {
+#		    $xdcmd = "xdget -n -a $s -b $e $Rfam::rfamseq $n";
+#		}
+#		my $fhxd = IO::File->new();
+#		$fhxd -> open( "$xdcmd |" ) or &printlog( "\nWARNING: xdget failure 1\n$xdcmd\nCheck: $minidbpname\.minidb.$k\n$!");
+#		while(<$fhxd>) {
+#
+#		    if( /^\>/ ) {
+#			print FA ">$n/$s-$e:$strnd\n";
+#		    }
+#		    else {
+#			print FA $_;
+#		    }
+#		    
+#		    
+#		}
+#		$fhxd -> close or &printlog("WARNING: xdget failure 2. Close failed. \"$xdcmd\". Check: $minidbpname\.minidb.$k: $!");
+#		$seen_count++;
+#	    }#PPG: close paranoid "if".
+#	    else {
+#		&printlog("WARNING: malformed NSE: $nse");
+#	    }
+#	}
+#	close FA;
+#    }
     #undef( $seqlist );             # free up memory
 }
 
@@ -510,8 +552,10 @@ print STDERR "set cm searches running, copy files and clean up....\n";
 $fhcm = new IO::File;
 #&printlog( "bsub -q $queue2 -w\'done($pname)\'");
 &printlog( "");
-$fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "$!";
+#$fhcm -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
+$fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "FATAL: bsub -q $queue2 -w\'done($pname)\'\n[$!]";
 $fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
+                   #$lustre/$$.OUTPUT.
 $fhcm -> print("cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full\n")  or  die "cant concatenate output files on the farm\n$!\n";
 $fhcm -> print("/usr/bin/scp $lustre/$$.OUTPUT_full  $phost:$pwd/OUTPUT\n") or die "cant copy $lustre/$$.OUTPUT_full to $phost:$pwd/OUTPUT\n$!\n";
 $fhcm -> print("date >> /tmp/$$.cmerr\n");
@@ -523,16 +567,10 @@ $fhcm -> close;
 &update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
 print STDERR "finished cleaning up... wait for cm searches to complete\n ";
 
-#cmsearch --toponly /lustre/scratch1/sanger/rfam/21964/21964.CM /lustre/scratch1/sanger/rfam/21964/21964.minidb.1 >/lustre/scratch1/sanger/rfam/21964/21964.OUTPUT.1
-
-
 &printlog( "" );
 &printlog( "FINISHED! See OUTPUT file." );
 
 my $endtime = time();
-#$initendtime
-#$blastendtime
-#$minidbendtime
 my $runtime = $endtime - $starttime;
 my $inittime = $initendtime - $starttime;
 my $blasttime = $blastendtime-$initendtime;
@@ -568,7 +606,7 @@ sub parse_list {
     my $list       = shift;
     my $blastfile  = shift;
     my $linenumber = 0;
-    my( $qname, $name, $qstart, $qend, $sstart, $send, $start, $end, $strand, @bline );
+    my( $qname, $name, $qstart, $qend, $sstart, $send, $start, $end, $strand, @bline, $evalue );
     open( BL, $blastfile ) or die;
     while( <BL> ) {
 	$linenumber++;
@@ -591,6 +629,7 @@ sub parse_list {
 	    if ($bline[20] =~ /\d+/){$sstart = $bline[20];} else {printf STDERR "sstart error  =\'$bline[20]\' in $blastfile line number $linenumber\n"};
 	    if ($bline[21] =~ /\d+/){$send   = $bline[21];} else {printf STDERR "send error    =\'$bline[21]\' in $blastfile line number $linenumber\n"};
 	    if ($bline[16] =~ /\S+/ && $bline[19] =~ /\S+/){$strand = $bline[16]*$bline[19];}  else {printf STDERR "strand error =\'$bline[16]\' and \'$bline[19]\' in $blastfile line number $linenumber\n"};
+	    
 	    
 #	    $name   = $bline[1];
 #	    $qstart = $bline[17];
@@ -701,12 +740,12 @@ sub parse_list {
 	}
     }
     
-    if (!defined($name) || !defined($start) || !defined($end)){
-	&printlog( "MILD WARNING: no significant blast results in $blastfile");
-    }
-    elsif ($end<1 || $start<1 || $start>$end || !is_integer($start) || !is_integer($end)){#Add some paranoia checks:
-	&printlog( "WARNING: malformed NSE: $name/($start)-($end)\t$strand.");
-    }
+#    if (!defined($name) || !defined($start) || !defined($end)){
+#	&printlog( "MILD WARNING: no significant blast results in $blastfile");
+#    }
+#    elsif ($end<1 || $start<1 || $start>$end || !is_integer($start) || !is_integer($end)){#Add some paranoia checks:
+#	&printlog( "WARNING: malformed NSE: $name/($start)-($end)\t$strand.");
+#    }
 
 }
 
@@ -900,3 +939,4 @@ sub is_nucleotide {
     
 }
 
+#
