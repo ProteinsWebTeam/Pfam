@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.9 2007-11-05 13:38:19 jt6 Exp $
+# $Id: structureTab.tt,v 1.10 2007-11-20 13:56:25 jt6 Exp $
 
 USE dumper;
 USE String;
@@ -77,7 +77,6 @@ END -%]
     USE seqKeyIter = iterator( mapping.keys.sort );
     FOREACH seqKey IN seqKeyIter;
       NEXT IF mapping.$seqKey == "COUNT";
-      oe=oe+1;
       FOREACH resKey IN mapping.$seqKey.keys.sort;
 	      NEXT IF mapping.$seqKey.$resKey == "COUNT";
         FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort;
@@ -130,6 +129,7 @@ END -%]
 	        END; # of chainKey
         END; # of pdbKey
 	    END; # of resKey
+      oe=oe+1;
     END # of seqKey -%]
   </tbody>
 </table>
