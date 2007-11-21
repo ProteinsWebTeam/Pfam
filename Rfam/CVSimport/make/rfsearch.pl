@@ -31,7 +31,8 @@ my( $quiet,
     $long,
     $queue,
     $window,
-    $cpus
+    $cpus,
+    $wublastcpus
     );
 
 sub help {
@@ -49,7 +50,8 @@ Options:       -h                  show this help
                -q <queue>          use lsf queue <queue> for the cmsearch step
 	       --local             run cmsearch with --local option
 	       --global            run cmsearch in global mode (override DESC cmsearch command)
-	       --cpu               number of cpus to run cmsearch job over
+	       --cpus <n>          number of cpus to run cmsearch job over
+	       --wublastcpus <n>   number of cpus to run a single wublast job over
 	       --nobuild           skip cmbuild step
 	       --pname <str>       give lsf a process name, "str", for the cmsearch jobs
 	       --blastpname <str>  restart a job with pname "str" from after the blast runs
@@ -67,7 +69,8 @@ EOF
 	    # "bq=s"          => \$bqueue,
 	     "local"         => \$local,
 	     "global"        => \$global,
-	     "cpu=s"         => \$cpus,
+	     "cpus=s"        => \$cpus,
+	     "wublastcpus=s" => \$wublastcpus,
 	     "nobuild"       => \$nobuild,
 	     "pname=s"       => \$pname,
 	     "blastpname=s"  => \$blastpname,
@@ -203,7 +206,10 @@ my $initendtime = time();
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
 my $blastdbdir2 = $Rfam::rfamseq_run_dir;      # but run things from here
 my $fafile = "$$.fa";
-my $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N". 
+if(!defined($wublastcpus)){
+    $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N". 
+}
+
 if(!defined($blast_eval)){
     $blast_eval = 10;
 }
@@ -294,41 +300,43 @@ unless( $minidbpname ) {
 	  #PPG: There must be an easier way to do this. Check bjobs output.
 	  #     MAKE THIS INTO A FUNCTION?
 	  &printlog( "Waiting for blast jobs" );
-	  my $wait = 1;
-	  my $bjobcount = 1;
-	  my $bjobinterval = 15;
-	  my $jobs = $nobjobs;
-	  while($wait){
-	      
-	      sleep($bjobinterval); 
-	      
-	      $jobs = 0;
-	      system("bjobs -J rf$blastpname > rf$blastpname\.log");
-	      open(LOG, "rf$blastpname\.log") || die "Failed to open blast log\n";
-	      while(<LOG>){
-		  if(/rf$blastpname/){
-		      $jobs++;
-		  }
-	      }
-	      close(LOG);
-	      
-	      if ($jobs < int($nobjobs*(1-0.95)) ){#Once 95% of jobs are finished, check frequently.
-		  $bjobinterval=15;
-	      }	      
-	      elsif ($jobs < int($nobjobs*(1-0.80)) ){#Once 80% of jobs are finished, check a little more frequently.
-		  $bjobinterval=15 + int(log($bjobcount/2)); 
-	      }
-	      else {#otherwise check less & less frequently (max. interval is ~150 secs).
-		  if ($bjobinterval<150){ $bjobinterval = $bjobinterval + int(log($bjobcount));}
-	      }
-	      
-	      if($jobs){
-		  print STDERR "There are $jobs blast job still running after $bjobcount checks. Check interval is now $bjobinterval secs.\n"; 
-	      }else{
-		  $wait = 0;
-	      }
-	      $bjobcount++;
-	  }
+	  wait_for_farm("rf$blastpname", "blast", $nobjobs);
+	  
+#	  my $wait = 1;
+#	  my $bjobcount = 1;
+#	  my $bjobinterval = 15;
+#	  my $jobs = $nobjobs;
+#	  while($wait){
+#	      
+#	      sleep($bjobinterval); 
+#	      
+#	      $jobs = 0;
+#	      system("bjobs -J rf$blastpname > rf$blastpname\.log");
+#	      open(LOG, "rf$blastpname\.log") || die "Failed to open blast log\n";
+#	      while(<LOG>){
+#		  if(/rf$blastpname/){
+#		      $jobs++;
+#		  }
+#	      }
+#	      close(LOG);
+#	      
+#	      if ($jobs < int($nobjobs*(1-0.95)) ){#Once 95% of jobs are finished, check frequently.
+#		  $bjobinterval=15;
+#	      }	      
+#	      elsif ($jobs < int($nobjobs*(1-0.80)) ){#Once 80% of jobs are finished, check a little more frequently.
+#		  $bjobinterval=15 + int(log($bjobcount/2)); 
+#	      }
+#	      else {#otherwise check less & less frequently (max. interval is ~150 secs).
+#		  if ($bjobinterval<150){ $bjobinterval = $bjobinterval + int(log($bjobcount));}
+#	      }
+#	      
+#	      if($jobs){
+#		  print STDERR "There are $jobs blast jobs still running after $bjobcount checks. Check interval is now $bjobinterval secs.\n"; 
+#	      }else{
+#		  $wait = 0;
+#	      }
+#	      $bjobcount++;
+#	  }
       }
       &printlog( "checking blast result integrity" );
       
@@ -532,19 +540,21 @@ $fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$
 $fhcm -> close;
 
 &printlog( "Waiting for cmsearch jobs." );
-my $waitcm = 1;
-while($waitcm){
-    
-    my $bjobs_out = `bjobs  -J\"$pname\" | grep $pname`; 
-    my @jobscm = split(/\n/,$bjobs_out);
-    my $jobscm = @jobscm;
-    if($jobscm){
-	print STDERR "There are $jobscm cmsearch job still running\n"; 
-	sleep(15);
-    }else{
-	$waitcm = 0;
-    }
-}
+wait_for_farm($pname, "cmsearch", $k);
+
+#my $waitcm = 1;
+#while($waitcm){
+#    
+#    my $bjobs_out = `bjobs  -J\"$pname\" | grep $pname`; 
+#    my @jobscm = split(/\n/,$bjobs_out);
+#    my $jobscm = @jobscm;
+#    if($jobscm){
+#	print STDERR "There are $jobscm cmsearch jobs still running\n"; 
+#	sleep(15);
+#    }else{
+#	$waitcm = 0;
+#    }
+#}
 
 # send something to clean up
 print STDERR "set cm searches running, copy files and clean up....\n";
@@ -940,3 +950,53 @@ sub is_nucleotide {
 }
 
 #
+######################################################################
+#function sits checking for status of jobs on the farm - returns true when the job is finished:
+#eg.
+#wait_for_farm("rf$blastpname", "blast")
+
+sub wait_for_farm {
+    
+    my $bjobname = shift;
+    my $jobtype  = shift;
+    my $nobjobs  = shift;
+    my $wait = 1;
+    my $bjobcount = 1;
+    my $bjobinterval = 15;
+    my $jobs = $nobjobs;
+    while($wait){
+	
+	sleep($bjobinterval); 
+	
+	$jobs = 0;
+	
+	open(S, "bjobs -J $bjobname |") or die;
+	while(<S>) {
+	    if(/$bjobname/){
+		$jobs++;
+	    }
+	}
+	close(S);# || die "failed to close pipe on bjobs:[$!]\n"; <- this caused a "die" once all the jobs were finished!
+	
+	if ($jobs < int($nobjobs*(1-0.95)) ){#Once 95% of jobs are finished, check frequently.
+	    $bjobinterval=15;
+	}	      
+	elsif ($jobs < int($nobjobs*(1-0.80)) ){#Once 80% of jobs are finished, check a little more frequently.
+	    $bjobinterval=15 + int(log($bjobcount/2)); 
+	}
+	else {#otherwise check less & less frequently (max. interval is ~150 secs).
+	    if ($bjobinterval<150){ $bjobinterval = $bjobinterval + int(log($bjobcount));}
+	}
+	
+	if($jobs){
+	    print STDERR "There are $jobs $jobtype jobs of $nobjobs still running after $bjobcount checks. Check interval is now $bjobinterval secs.\n"; 
+	}else{
+	    $wait = 0;
+	}
+	$bjobcount++;
+    }
+    
+    return 1;
+    
+}
+
