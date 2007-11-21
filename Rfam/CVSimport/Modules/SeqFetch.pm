@@ -48,8 +48,13 @@ sub fetchSeqs{
   $FH = *STDOUT if not defined $FH; 
   $reverseStrand = 0 if not defined $reverseStrand;
   
+  my $strand = 1;
+  if ($reverseStrand){
+      $strand = -1;
+  }
+  
   my $noSeqsFound = 0;
-
+  
   my @seqList = keys %$seqListRef;
 
   while(@seqList){
@@ -60,11 +65,11 @@ sub fetchSeqs{
     while(<XD>){
       if(/^>(\S+)/){
         my $tmpSeqId = $1;
-
+	
         if($seqId){
            foreach my $se (@{$$seqListRef{$seqId}}){
                if($se->{whole}){
-                   print $FH ">$seqId/1-".length($seq)."\n";
+                   print $FH ">$seqId/1-" . length($seq) . ":$strand\n";
                    print $FH "$seq\n";
                    $noSeqsFound++;
                }else{
@@ -85,7 +90,7 @@ sub fetchSeqs{
 		   
 		   if(($se->{end} - $se->{start} + 1) eq length($domSeq)){#Is this needed? 
 		       $noSeqsFound++;
-		       print $FH ">$seqId/".$se->{start}."-".$se->{end}."\n";
+		       print $FH ">$seqId/".$se->{start}."-".$se->{end}.":$strand\n";
 		       print $FH "$domSeq\n";
 		   }else{
 		       printf "$seqId s=%d e=%d diff=%d len-domSeq=%d len-tmpSeq=%d\n$domSeq\n", $se->{start}, $se->{end}, $se->{end} - $se->{start} + 1, length($domSeq), $tmpSeq_len;
@@ -106,7 +111,7 @@ sub fetchSeqs{
   if($seqId){
     foreach my $se (@{$$seqListRef{$seqId}}){
             if($se->{whole}){
-              print $FH ">$seqId/1-".length($seq)."\n";
+              print $FH ">$seqId/1-".length($seq).":$strand\n";
               print $FH "$seq\n";
               $noSeqsFound++;
             }else{
@@ -119,7 +124,7 @@ sub fetchSeqs{
               my $domSeq = substr($tmpSeq, $se->{start} - 1, $se->{end} - $se->{start} + 1);
               if(($se->{end} - $se->{start} + 1) eq length($domSeq)){
                 $noSeqsFound++;
-                print $FH ">$seqId/".$se->{start}."-".$se->{end}."\n";
+                print $FH ">$seqId/".$se->{start}."-".$se->{end}.":$strand\n";
                 print $FH "$domSeq\n";
               }else{
 		  printf "$seqId s=%d e=%d diff=%d len-domSeq=%d len-tmpSeq=%d\n$domSeq\n", $se->{start}, $se->{end}, $se->{end} - $se->{start} + 1, length($domSeq), $tmpSeq_len;
