@@ -207,7 +207,7 @@ my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
 my $blastdbdir2 = $Rfam::rfamseq_run_dir;      # but run things from here
 my $fafile = "$$.fa";
 if(!defined($wublastcpus)){
-    $wublastcpus = 4; #Number of CPUs wu-blast will run on "-cpu N". 
+    $wublastcpus = 2; #Number of CPUs wu-blast will run on "-cpu N". 
 }
 
 if(!defined($blast_eval)){
