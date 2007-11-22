@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.18 2007-11-22 16:10:15 jt6 Exp $
+# $Id: links.tt,v 1.19 2007-11-22 16:50:51 jt6 Exp $
 
 USE String;
 
@@ -107,7 +107,6 @@ END; # of "buildLinksTable" block
 BLOCK addLinks;
 
   FOREACH token IN input.split( '(\s+|\.|\;|\(|\))' );
-    CALL c.log.debug( "links.tt: addLink: token: |${token}|" );
 
     # a database reference, like "Swiss:Q15629"
     IF ( tags = token.match( '(\w+)\:(\w+)' ) );
