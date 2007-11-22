@@ -4,11 +4,16 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.17 2007-11-13 13:31:18 jt6 Exp $
+# $Id: links.tt,v 1.18 2007-11-22 16:10:15 jt6 Exp $
 
-USE dumper;
+USE String;
 
-# these are the labels for the links that will appear in the page
+#-------------------------------------------------------------------------------
+#- setup -----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# these are the labels for the links that will appear in the internal or
+# external links tables
 labels = {
     atoaPRC    = "Similarity to PfamA using PRC"
     atobBOTH   = "Similarity to PfamB PRODOM &amp; PRC"
@@ -41,7 +46,8 @@ labels = {
     URL        = "External sites"
    };
 
-# this is the order in which those links will be shown
+# these two arrays store the order in which those links will be shown in
+# the respective tables
 internal = [
     "scoop",
     "atoaPRC",
@@ -78,189 +84,286 @@ external = [
 #    "interpro",  
 #    "pdb",       
 
+#-------------------------------------------------------------------------------
+#- "public" blocks -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# these blocks are the "public" interface into this template. These are the ones
+# that are intended to be called from the page generation templates.
+
+#-------------------------------------------------------------------------------
+# a block to construct HTML tables showing database links for a family 
+
+BLOCK buildLinksTable;
+  PROCESS internalLinks;
+  PROCESS externalLinks;
+END; # of "buildLinksTable" block
+
+#-------------------------------------------------------------------------------
+# a block to take a string and convert the crudely marked up links into 
+# proper HTML links
+
+# parameters: input - the string to parse
+BLOCK addLinks;
+
+  FOREACH token IN input.split( '(\s+|\.|\;|\(|\))' );
+    CALL c.log.debug( "links.tt: addLink: token: |${token}|" );
+
+    # a database reference, like "Swiss:Q15629"
+    IF ( tags = token.match( '(\w+)\:(\w+)' ) );
+      PROCESS buildLink type=tags.0
+                        id=tags.1;
+
+    # a reference citation, like "[1]"
+    ELSIF ( tags = token.match( '\[([0-9]+)\]' ) );
+      "[";
+      PROCESS buildLink type="URL"
+                        number=tags.0
+                        internal=1
+                        id="#ref${tags.0}";
+      "]";
+
+    ELSE;
+      token;
+    END;
+  END;
+
+END; # of "addLinks" block
+
+#-------------------------------------------------------------------------------
+#- "private" blocks ------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+# these blocks are intended to be "private" to this template. They should be 
+# called by the public blocks, rather than by anything outside of this template
+
+#-------------------------------------------------------------------------------
+# a BLOCK that constructs the actual HTML links
+
 BLOCK buildLink;
-  #CALL c.log.debug( "links.tt: building a link, type |$type|" );
   SWITCH type %]
-    [% CASE "CATH" %]
-      <a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=[% id %]">[% id %]</a>
-    [% CASE "CAZY" %]
-      <a class="ext" href="http://afmb.cnrs-mrs.fr/CAZY/[% id %].html">[% id %]</a>
-    [% CASE "COGS" %]
-      <a class="ext" href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
-    [% CASE "FUNSHIFT" %]
-      <a class="ext" href="http://funshift.cgb.ki.se/cgi-bin/stksub.cgi?domain=[% id %]">[% id %]</a>
-    [% CASE "HOMSTRAD" %]
-      <a class="ext" href="http://www-cryst.bioc.cam.ac.uk/cgi-bin/homstrad.cgi?family=[% id %]">[% id %]</a>
-    [% CASE "interpro" %]
-      <a class="ext" href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
-    [% CASE "LOAD" %]
-      <a class="ext" href="http://afmb.cnrs-mrs.fr/CAZY/[% id %].html">[% id %]</a>
-    [% CASE "MEROPS" %]
-      <a class="ext" href="http://merops.sanger.ac.uk/cgi-bin/merops.cgi?id=[% id %]">[% id %]</a>
-    [% CASE "MIM" %]
-      <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/dispomim.cgi?id=[% id %]">[% id %]</a>
-    [% CASE "PANDIT" %]
-      <a class="ext" href="http://www.ebi.ac.uk/goldman-srv/pandit/pandit.cgi?action=browse&amp;fam=[% id %]">[% id %]</a>
-    [% CASE "pdb" %]
-      <a href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
-    [% CASE "PFAMA" %]
-      <a href="[% c.uri_for( "/family", entry=id ) %]">[% id %]</a>
-    [% CASE "PFAMB" %]
-      <a href="[% c.uri_for( "/pfamb", acc=id ) %]">[% id %]</a>
-    [% CASE "PRINTS" %]
-      <a class="ext" href="http://umber.sbs.man.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&amp;category=None&amp;queryform=false&amp;prints_accn=[% id %]">[% id %]</a>
-    [% CASE "PRODOM" %]
-      <a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% id %]">[% id %]</a>
-    [% CASE [ "PROSITE", "PROSITE_PROFILE" ] %]
-      <a class="ext" href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
-    [% CASE "SCOP" %]
-      [% IF other %]
-      <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=[% other %]&amp;pdb=[% id %]">[% id %]</a>
-      [% ELSE %]
-      <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% id %]">[% id %]</a>
-      [% END %]
-    [% CASE "SMART" %]
-      <a class="ext" href="http://smart.embl-heidelberg.de/smart/do_annotation.pl?BLAST=dummy&amp;DOMAIN=[% id %]">[% id %]</a>
-    [% CASE "SYSTERS" %]
-      <a class="ext" href="http://systers.molgen.mpg.de/cgi-bin/nph-fetchcluster.pl?PFAM=[% id %]">[% id %]</a>
-    [% CASE "TC" %]
-      <a class="ext" href="http://www.tcdb.org/tcdb/index.php?tc=[% id %]">[% id %]</a>
-    [% CASE "URL" %]
-      <a class="ext" href="[% id %]">[% number %]</a>
-    [% CASE %]
-      Other link: [% type %]
-  [% END; # of SWITCH
-END; # of BLOCK buildLink
+    [%- CASE "CATH" -%]
+<a class="ext" href="http://cathwww.biochem.ucl.ac.uk/cgi-bin/cath/GotoCath.pl?cath=[% id %]">[% id %]</a>
+    [%- CASE "CAZY" -%]
+<a class="ext" href="http://afmb.cnrs-mrs.fr/CAZY/[% id %].html">[% id %]</a>
+    [%- CASE "COGS" -%]
+<a class="ext" href="http://www.ncbi.nlm.nih.gov/COG/old/palox.cgi?[% id %]">[% id %]</a>
+    [%- CASE "FUNSHIFT" -%]
+<a class="ext" href="http://funshift.cgb.ki.se/cgi-bin/stksub.cgi?domain=[% id %]">[% id %]</a>
+    [%- CASE "HOMSTRAD" -%]
+<a class="ext" href="http://www-cryst.bioc.cam.ac.uk/cgi-bin/homstrad.cgi?family=[% id %]">[% id %]</a>
+    [%- CASE "interpro" -%]
+<a class="ext" href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
+    [%- CASE "LOAD" -%]
+<a class="ext" href="http://afmb.cnrs-mrs.fr/CAZY/[% id %].html">[% id %]</a>
+    [%- CASE "MEROPS" -%]
+<a class="ext" href="http://merops.sanger.ac.uk/cgi-bin/merops.cgi?id=[% id %]">[% id %]</a>
+    [%- CASE "MIM" -%]
+<a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/dispomim.cgi?id=[% id %]">[% id %]</a>
+    [%- CASE "PANDIT" -%]
+<a class="ext" href="http://www.ebi.ac.uk/goldman-srv/pandit/pandit.cgi?action=browse&amp;fam=[% id %]">[% id %]</a>
+    [%- CASE "pdb" -%]
+<a href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
+    [%- CASE [ "PFAMA", "Pfam" ] -%]
+<a href="[% c.uri_for( "/family", entry=id ) %]">[% id %]</a>
+    [%- CASE "PFAMB" -%]
+<a href="[% c.uri_for( "/pfamb", acc=id ) %]">[% id %]</a>
+    [%- CASE "PRINTS" -%]
+<a class="ext" href="http://umber.sbs.man.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&amp;category=None&amp;queryform=false&amp;prints_accn=[% id %]">[% id %]</a>
+    [%- CASE "PRODOM" -%]
+<a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% id %]">[% id %]</a>
+    [%- CASE [ "PROSITE", "PROSITE_PROFILE" ] -%]
+<a class="ext" href="http://www.expasy.org/cgi-bin/prosite-search-ac?[% id %]">[% id %]</a>
+    [%- CASE "SCOP" -%]
+      [%- IF other -%]
+<a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?tlev=[% other %]&amp;pdb=[% id %]">[% id %]</a>
+      [%- ELSE -%]
+<a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% id %]">[% id %]</a>
+      [%- END -%]
+    [%- CASE "Swiss" -%]
+<a class="ext" href="http://www.ebi.uniprot.org/entry/[% id %]">[% id %]</a>
+    [%- CASE "SMART" -%]
+<a class="ext" href="http://smart.embl-heidelberg.de/smart/do_annotation.pl?BLAST=dummy&amp;DOMAIN=[% id %]">[% id %]</a>
+    [%- CASE "SYSTERS" -%]
+<a class="ext" href="http://systers.molgen.mpg.de/cgi-bin/nph-fetchcluster.pl?PFAM=[% id %]">[% id %]</a>
+    [%- CASE "TC" -%]
+<a class="ext" href="http://www.tcdb.org/tcdb/index.php?tc=[% id %]">[% id %]</a>
+    [%- CASE "URL" -%]
+<a [% UNLESS internal %]class="ext" [% END %]href="[% id %]">[% number %]</a>
+    [%- CASE -%]
+      Other link: [% type -%]
+  [%- END; # of SWITCH
+END; # of "buildLink" block
 
+#-------------------------------------------------------------------------------
+# a block that builds the HTML table showing "internal" links table, i.e. those
+# links that are within the Pfam website. This block should only be called from 
+# the buildLinksTable block
 
-# build the internal links. This block should have produce no spaces or blank lines,
-# otherwise the check for content below could include an empty section in the final
-# page output
-internalLinks = BLOCK;
-  #CALL c.log.debug( "links.tt: building internal links" );
-  oe = 0;
-  FOREACH db IN internal;
-    IF xrefs.$db.size -%]
-    <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
-      <td class="label">
-        [%- IF labels.$db -%]
-          [%- labels.$db -%]:
-        [%- ELSE -%]
-          Unknown links ([% db %]):
-        [%- END -%]
-      </td>
-      <td>
-        [%- SWITCH db;
-              CASE "interpro";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="interpro" id=ref -%]
-                  </span>[% 
-                END;
-              CASE "atoaPRC";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMA" id=ref.get_column("r_pfamA_acc") -%]
-                  </span>[%
-                END;
-              CASE "atobPRC";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMB" id=ref.pfamB_acc -%]
-                  </span>
-                [%- END;
-              CASE "atobPRODOM";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMB" id=ref.db_link -%]
-                  </span>
-                [%- END;
-              CASE "atobBOTH";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMB" id=ref.pfamB_acc -%]
-                  </span>
-                [%- END;
-              CASE "btobPRC";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMB" id=ref.get_column("r_pfamB_acc") -%]
-                  </span>
-                [%- END;
-              CASE "btoaPRC";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMA" id=ref.pfamA_id -%]
-                  </span>
-                [%- END;
-              CASE "btoaPRODOM";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMA" id=ref.db_link -%]
-                  </span>
-                [%- END;
-              CASE "btoaBOTH";
-                FOREACH ref IN xrefs.$db -%]
-                  <span class="entry">
-                    [%- PROCESS buildLink type="PFAMA" id=ref.pfamA_id -%]
-                  </span>
-                [%- END;
-              CASE "scoop";
-                FOREACH ref IN xrefs.$db;
-                  IF ref.get_column("l_pfamA_id") != ref.get_column("r_pfamA_id") %]
-                    <span class="entry">
-                      [%- PROCESS buildLink type="PFAMA" id=ref.get_column("r_pfamA_id") -%]
-                    </span>
-                  [%- END;
-                END;
-            END # of SWITCH db -%]
-      </td>
-    </tr>
-    [%- END; # end of "if xrefs..."
-  END; # end of "foreach db"
-END; # of internalLinks block
+BLOCK internalLinks;
 
-# build the external links
-
-externalLinks = BLOCK;
-  #CALL c.log.debug( "links.tt: building external links" );
-  oe = 0;
-  FOREACH db IN external;
-    IF entryType == "A";
-      IF db == "FUNSHIFT" OR db == "PANDIT" OR db == "SYSTERS" -%]
+  # inside of the internalLinks block, we define another block that actually
+  # walks the link data in the stash and tries to generate rows of an HTML 
+  # table, storing it in a variable
+  # NOTE: this block must produce no spaces or blank lines, otherwise the check 
+  # for content below could include an empty section in the final page output
+  
+  internalLinksContent = BLOCK;
+    oe = 0;
+    FOREACH db IN internal;
+      IF xrefs.$db.size -%]
       <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
-        <td class="label">
-          [%- IF labels.$db -%]
-            [%- labels.$db -%]:
-          [%- ELSE -%]
+        <td class="label">[% 
+          IF labels.$db;
+            labels.$db; ": ";
+          ELSE -%]
             Unknown links ([% db %]):
-          [%- END -%]
-        </td>
-        <td>
-          [%- IF db == "SYSTERS" -%]
-            [%- PROCESS buildLink type=db id=xrefs.entryId -%]
-          [% ELSE %]
-            [%- PROCESS buildLink type=db id=xrefs.entryAcc -%]
-          [%- END -%]
-        </td>
+          [%- END;
+      %]</td>
+        <td>[%- 
+          SWITCH db;
+            CASE "interpro";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="interpro" 
+                                        id=ref -%]
+                </span>[% 
+              END;
+            CASE "atoaPRC";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMA" 
+                                        id=ref.get_column("r_pfamA_acc") -%]
+                </span>[%
+              END;
+            CASE "atobPRC";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMB" 
+                                        id=ref.pfamB_acc -%]
+                </span>
+              [%- END;
+            CASE "atobPRODOM";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMB" 
+                                        id=ref.db_link -%]
+                </span>
+              [%- END;
+            CASE "atobBOTH";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMB" 
+                                        id=ref.pfamB_acc -%]
+                </span>
+              [%- END;
+            CASE "btobPRC";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMB" 
+                                        id=ref.get_column("r_pfamB_acc") -%]
+                </span>
+              [%- END;
+            CASE "btoaPRC";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMA" 
+                                        id=ref.pfamA_id -%]
+                </span>
+              [%- END;
+            CASE "btoaPRODOM";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMA" 
+                                        id=ref.db_link -%]
+                </span>
+              [%- END;
+            CASE "btoaBOTH";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMA" 
+                                        id=ref.pfamA_id -%]
+                </span>
+              [%- END;
+            CASE "scoop";
+              FOREACH ref IN xrefs.$db;
+                IF ref.get_column("l_pfamA_id") != ref.get_column("r_pfamA_id") %]
+                  <span class="entry">
+                    [%- PROCESS buildLink type="PFAMA"  
+                                          id=ref.get_column("r_pfamA_id") -%]
+                  </span>
+                [%- END;
+              END;
+          END; # of SWITCH db 
+      -%]</td>
       </tr>
-      [%- END; # of IF db == funshift...
-    END; # of IF not pfamb
-    IF xrefs.$db.size -%]
-    <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
-      <td class="label">
-        [%- IF labels.$db -%]
-          [%- labels.$db -%]:
-        [%- ELSE -%]
-          Unknown links ([% db %]):
-        [%- END -%]
-      </td>
-      <td>
-        [%- SWITCH db;
+      [%- END; # end of "if xrefs..."
+    END; # end of "foreach db"
+  END; # of "internalLinksContent" block
+  
+  # now we check the output of that nested block above, to see if there were
+  # any link lines generated. If there were, we can go ahead and build the
+  # HTML table and drop it into the output. If not, we don't have any output.
+  IF internalLinksContent -%]
+    <h2>Internal database links</h2>
+    <table class="details links" summary="Internal database links">
+      <tbody>
+        [% internalLinksContent %]
+      </tbody>
+    </table>
+  [%- END; # of "if internalLinksContent"
+
+END; # of "internalLinks" block
+
+#-------------------------------------------------------------------------------
+# a block to build an HTML table showing the "external" links table, i.e. those
+# links that point to resources outside of the Pfam website. This should only 
+# be called from the buildLinksTable block
+
+BLOCK externalLinks;
+
+  # a nested block that tries to build lines of the table using external links
+  externalLinksContent = BLOCK;
+    oe = 0;
+    FOREACH db IN external;
+      IF entryType == "A";
+        IF db == "FUNSHIFT" OR db == "PANDIT" OR db == "SYSTERS" -%]
+        <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+          <td class="label">[% 
+            IF labels.$db;
+              labels.$db; ": ";
+            ELSE -%]
+              Unknown links ([% db %]):
+            [%- END -%]
+          </td>
+          <td>
+            [%- IF db == "SYSTERS";
+              PROCESS buildLink type=db 
+                                id=xrefs.entryId;
+            ELSE;
+              PROCESS buildLink type=db 
+                                id=xrefs.entryAcc;
+            END -%]
+          </td>
+        </tr>
+        [%- END; # of IF db == funshift...
+      END; # of IF entryType == "A"...
+      IF xrefs.$db.size -%]
+        <tr class="[% oe % 2 ? "odd" : "even"; oe = oe + 1 %]">
+          <td class="label">
+            [%- IF labels.$db;
+              labels.$db; ": ";
+            ELSE -%]
+              Unknown links ([% db %]):
+            [%- END -%]
+          </td>
+          <td>[% 
+            SWITCH db;
               CASE "pdb";
                 FOREACH pdb IN pdbUnique.keys.sort -%]
                   <span class="entry pdbEntry">
-                    [%- PROCESS buildLink type="pdb" id=pdb -%]
+                    [%- PROCESS buildLink type="pdb" 
+                                          id=pdb -%]
                   </span>
                 [%- END;
               CASE "COGS";
@@ -270,56 +373,53 @@ externalLinks = BLOCK;
                 END;
                 FOREACH id IN cogs.sort -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type="COGS" id=id -%]
+                    [%- PROCESS buildLink type="COGS" 
+                                          id=id -%]
                   </span>
                 [%- END;
               CASE [ "CATH", "CAZY", "HOMSTRAD", "MEROPS", "MIM", "PRINTS", "PRODOM", 
                      "PROSITE", "PROSITE_PROFILE", "SMART", "TC" ];
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type=db id=ref.db_link -%]
+                    [%- PROCESS buildLink type=db 
+                                          id=ref.db_link -%]
                   </span>
                 [%- END;
               CASE "SCOP";
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type=db id=ref.db_link other=ref.other_params -%]
+                    [%- PROCESS buildLink type=db 
+                                          id=ref.db_link 
+                                          other=ref.other_params -%]
                   </span>
                 [%- END;
               CASE "URL";
                 count = 1;
                 FOREACH ref IN xrefs.$db -%]
                   <span class="entry">
-                    [%- PROCESS buildLink type="URL" id=ref.db_link number=count;
+                    [%- PROCESS buildLink type="URL" 
+                                          id=ref.db_link 
+                                          number=count;
                         count = count + 1 -%]
                   </span>
                 [%- END;
-            END # of SWITCH db -%]
-      </td>
-    </tr>
-    [%- END; # end of "if xrefs..."
-  END; # end of "foreach db"
-END; # of externalLinks block -%]
+            END; # of SWITCH db
+        %]</td>
+        </tr>
+      [%- END; # end of "if xrefs..."
+    END; # end of "foreach db"
+  END; # of "externalLinksContent" block
 
-<div class="databaseReferences">
+  IF externalLinksContent -%]
+    <h2>External database links</h2>
+    <table class="details links" summary="External database links">
+      <tbody>
+        [% externalLinksContent %]
+      </tbody>
+    </table>
+  [%- END; # of "if externalLinksContent"
 
-  [%- IF internalLinks -%]
-  <h2>Internal database links</h2>
-  <table class="details links" summary="Internal database links">
-    <tbody>
-      [% internalLinks %]
-    </tbody>
-  </table>
-  [%- END # of "if internalLinks" -%]
+END; # of "externalLinks" block
 
-  [%- IF externalLinks -%]
-  <h2>External database links</h2>
-  <table class="details links" summary="External database links">
-    <tbody>
-      [% externalLinks %]
-    </tbody>
-  </table>
-  [%- END # of "if externalLinks" -%]
-
-</div>
-
+#-------------------------------------------------------------------------------
+-%]
