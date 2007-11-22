@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.31 2007-11-05 13:38:19 jt6 Exp $
+# $Id: summary.tt,v 1.32 2007-11-22 16:10:48 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -20,6 +20,11 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 requirements.js.push( "family.js" );
 
 #-------------------------------------------------------------------------------
+
+# process the template that defines the blocks that do various things with
+# database links. We use it later to convert IDs in the Pfam comment and to
+# build tables of database links 
+PROCESS components/links.tt;
 
 # on the assumption that the family page will always contain at least this
 # block, we need to add the snippet of javascript here that will trigger
@@ -53,7 +58,7 @@ requirements.js.push( "family.js" );
     </h1>
 
     [% IF pfam.comment.length %]
-    <p>[% pfam.comment %]</p>
+    <p>[% PROCESS addLinks, input = pfam.comment %]</p>
     [% ELSE %]
     <p class="inactive">No Pfam abstract.</p>
     [% END %]
@@ -64,12 +69,17 @@ requirements.js.push( "family.js" );
       <h2>Literature references</h2>
   
       <ol>
-      [% FOREACH ref IN pfam.pfamA_lit_refs %]
+      [% refNum = 1;
+      FOREACH ref IN pfam.pfamA_lit_refs %]
         <li>
           [% ref.author %], [% ref.journal %]: [% ref.title %]
-          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">PUBMED:[% ref.pmid %]</a>
+          <a name="ref[% refNum %]"
+             class="ext" 
+             href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">
+            PUBMED:[% ref.pmid %]</a>
         </li>
-      [% END %]
+        [%- refNum = refNum + 1; 
+      END %]
       </ol>
   
       <hr class="short"/>
@@ -148,17 +158,30 @@ requirements.js.push( "family.js" );
         </tbody>
       </table>
     
-    [%- END # of "if goTerms" -%]
+    [%- END; # of "if goTerms"
 
-    [% PROCESS components/links.tt %]
+    # add the tables showing internal and external database links 
+    PROCESS buildLinksTable; -%]
 
   </div>
 </div>
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
-  loadOptions.si.params = { acc: "[% pfam.pfamA_acc %]" };
+
+  // set up the post-load AJAX call to load the structure image
+  Event.observe( window, "load", 
+    function() {
+      var r = new Ajax.Request( "[% c.uri_for( '/family/structures' ) %]",
+                        { method:     'get',
+                          parameters: { acc: "[% pfam.pfamA_acc %]" },
+                          onSuccess:  function( oResponse ) {
+                            $("siph").update( oResponse.responseText );
+                          }
+                          // not even bothering with a failure callback...
+                        } );
+    }
+  );
   // ]]>
 </script>
 
