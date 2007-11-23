@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.26 2007-08-30 13:06:38 jt6 Exp $
+   $Id: protein.css,v 1.27 2007-11-23 12:38:50 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -199,9 +199,12 @@ div.summaryGraphic {
 /* domain image and key */
 
 #imageKey {
-  float: left;
   clear: left; 
-  margin-top: 0.6em; 
+  margin: 1em 0;
+}
+
+#imageKey td {
+  width: auto;
 }
 
 #imageKey td.pfamA {
