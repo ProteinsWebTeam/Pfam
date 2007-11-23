@@ -5,7 +5,7 @@
 # a page fragment that builds the results table for taxonomy or unique
 # domains searches
 #
-# $Id: resultsTable.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
+# $Id: resultsTable.tt,v 1.3 2007-11-23 10:46:04 jt6 Exp $
 
 META naked = 1;
 %]
@@ -40,8 +40,8 @@ META naked = 1;
 </table>
 
 <p>
-  You can also see the accessions for the results families as a simple list 
-  that can be cut-and-pasted into an editor.
+  You can also see the accessions and IDs for the results families as a simple 
+  list that can be cut-and-pasted into an editor.
   <span class="link" onclick="reveal(this,'textList',false)">Show</span> 
   the unformatted list.
 </p>
@@ -49,7 +49,7 @@ META naked = 1;
 <div id="textList" style="display: none">
   <pre>
     [%- FOREACH family IN families.keys.sort;
-family %]
+family; " "; families.${family}.pfamA_id %]
 [% END -%]
   </pre>
 </div>
