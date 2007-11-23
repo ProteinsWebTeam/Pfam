@@ -4,7 +4,7 @@
 
    Stylesheet for the search pages, both the forms and the result pages.
 
-   $Id: search.css,v 1.1 2007-10-15 09:23:35 jt6 Exp $
+   $Id: search.css,v 1.2 2007-11-23 10:45:46 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -118,7 +118,7 @@ div.autocomplete span.informal {
   padding: 0.2em;
   border: 1px solid #CCC;
   background: #DDD;
-  width: 5em;
+  width: 15em;
 }
 
 #taxonomyQuery {
