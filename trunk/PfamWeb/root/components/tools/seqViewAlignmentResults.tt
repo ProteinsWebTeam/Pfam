@@ -6,7 +6,7 @@
 # part of the species tree. This template displays the alignment of the 
 # sequences that the user selected from the species tree.
 #
-# $Id: seqViewAlignmentResults.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
+# $Id: seqViewAlignmentResults.tt,v 1.3 2007-11-23 12:39:55 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
