@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.20 2007-11-05 13:38:19 jt6 Exp $
+# $Id: curation.tt,v 1.21 2007-11-27 14:55:17 jt6 Exp $
 
 # URI shortcuts
 rootUri = c.uri_for( "/" );
@@ -40,11 +40,11 @@ getHmm  = "${rootUri}family/gethmm";
              class="info" /></a>
     </h2>
 
-    [% IF pfam.status == "NEW" %]
+    [% IF pfam.change_status == "NEW" %]
       <p>This family is <strong>new</strong> in this Pfam release.</p>
-    [% ELSIF pfam.status == "NOCHANGE" %]
+    [% ELSIF pfam.change_status == "NOCHANGE" %]
       <p>This family has not been changed since the last Pfam release.</p>
-    [% ELSIF pfam.status == "CHANGE" %]
+    [% ELSIF pfam.change_status == "CHANGE" %]
       <p>This family <strong>has changed</strong> since the last Pfam release.</p>
     [% END %]
 
