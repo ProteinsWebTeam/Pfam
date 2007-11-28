@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.8 2007-11-05 13:38:18 jt6 Exp $
+# $Id: batch.tt,v 1.9 2007-11-28 12:20:33 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -30,7 +30,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   <div class="blockContent">
 
     <p>
-      Search multiple sequences for matching Pfam families. 
+      Search multiple FASTA-format sequences for matching Pfam families. 
       <span class="moreLink" onclick="reveal(this,'batchNotes',false, true)">More...</span>
     </p>
 
@@ -40,6 +40,45 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         will be searched for matching Pfam families. Results of the search will
         be returned to you at the email address that you specify.
       </p>
+      <p>
+        The sequence file that you upload should conform to the 
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/blast/fasta.shtml">
+          FASTA-format</a> specification. The format of your file will be 
+        checked before your search is submitted and files that do not conform 
+        to the specification will be rejected. 
+      </p>
+      <p>
+        Files must contain header lines and sequence lines only. Header lines, 
+        which begin with &quot;&gt;&quot;, can be used to describe the sequence 
+        that follows. There is no fixed format for header lines but, for 
+        security reasons, we restrict the characters that are allowed. If your 
+        header lines contain any of the following characters, your file will be 
+        rejected:
+      </p>
+      <code>; \ ! *</code>
+      <p>
+        Note that we explicitly include the semi-colon (;) in the list of 
+        forbidden characters, although this may be used to denote comments in 
+        some versions of the FASTA-format. Please do not use comments in the 
+        FASTA files that you upload here.
+      </p>
+      <p>
+        The FASTA-format specification recommends that header lines are kept 
+        shorter than 80 characters. Note that although we do not restrict the
+        length of header lines, the output that you will receive only shows
+        the first <strong>20</strong> characters of each header line. You 
+        should therefore ensure that the sequence is identifiable using only
+        the first twenty characters of its header.
+      </p>
+      <p>
+        Finally, the sequence lines of your file should contain only amino-acid 
+        symbols, i.e. capital letters excluding &quot;J&quot;, and 
+        &quot;O&quot;, plus &quot;-&quot; or &quot;*&quot; to denote gaps and 
+        translation stops respectively. Note that in the context of a Pfam
+        search, gaps and translation stops have little meaning and should not 
+        normally be used.
+      </p>
+      <hr />
     </div>
 
     <div class="formWrapper">
@@ -68,9 +107,9 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <div class="row">
           <label for="batchOpts">Search strategy</label>
           <select name="batchOpts" id="batchOpts">
-            <option value="both">Global &amp; local (merged)</option>
+            <option value="both" selected="selected">Global &amp; local (merged)</option>
             <option value="bothNoMerge">Global &amp; local (separately)</option>
-            <option value="ls" selected="selected">Global</option>
+            <option value="ls">Global</option>
             <option value="fs">Local</option>
           </select>
         </div>
@@ -83,7 +122,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    name="ga" 
                    id="batchGaButton" 
                    value="1" 
-                   checked="checked" 
                    onclick="$('batchEvalue').disable()" />
             Gathering threshold
           </label>
@@ -97,6 +135,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    name="ga" 
                    id="batchEButton" 
                    value="0"
+                   checked="checked" 
                    onclick="$('batchEvalue').enable()" />
             Use E-value
           </label>
@@ -109,8 +148,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  maxlength="10" 
                  value="1.0" 
                  name="evalue" 
-                 id="batchEvalue" 
-                 disabled="disabled" />
+                 id="batchEvalue" />
         </div>
   
         <div class="row">
