@@ -4,14 +4,24 @@ use strict;
 use Rfam;
 use RfamQC;
 use RfamRCS;
+use Getopt::Long;
 
-my $rel = shift;
+my $rel;
+
+GetOptions( 'rel=s' => \$rel,
+	   );
+
+if (! $rel){
+    die "No release directory specified. Please give a release number $!";
+}
+
 $rel =~ s/_/\./;
 my $error;
 
+
 print STDERR "--------------------\nMaking release $rel\n--------------------\n";
 if( not -d "$Rfam::releases_dir/$rel" ) {
-    mkdir( "$Rfam::releases_dir/$rel", 0755 ) or die;
+    mkdir( "$Rfam::releases_dir/$rel", 0755 ) or die "Cant make release directory $!";
 }
 chdir "$Rfam::releases_dir/$rel" or die;
 
