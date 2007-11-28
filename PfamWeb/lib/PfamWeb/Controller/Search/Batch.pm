@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.5 2007-09-07 15:59:24 jt6 Exp $
+# $Id: Batch.pm,v 1.6 2007-11-28 12:20:21 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.5 2007-09-07 15:59:24 jt6 Exp $
+$Id: Batch.pm,v 1.6 2007-11-28 12:20:21 jt6 Exp $
 
 =cut
 
@@ -53,7 +53,7 @@ sub search : Path {
   # build the command to run
   my $opts;
   $opts .=  q( --mode ) . $c->stash->{batchOpts} if( $c->stash->{batchOpts} ne 'both' and 
-                                                    $c->stash->{batchOpts} ne 'bothNoMerge' );
+                                                     $c->stash->{batchOpts} ne 'bothNoMerge' );
   $opts .=  q( --no_merge )                      if( $c->stash->{batchOpts} eq 'bothNoMerge' );
   $opts .=  q( -e )     . $c->stash->{evalue}    if( $c->stash->{evalue} and not $c->stash->{ga} );
   $opts .=  q( --overlap )                       if( $c->stash->{showOverlap} );
@@ -75,7 +75,8 @@ sub search : Path {
   # and used in a meta refresh element
   $c->stash->{refreshUri} = $c->uri_for( '/search' ); 
   
-  $c->log->debug( 'Search::Batch::search: protein batch search submitted' ); 
+  $c->log->debug( 'Search::Batch::search: protein batch search submitted' )
+    if $c->debug; 
   $c->stash->{template} = 'pages/search/sequence/batchSubmitted.tt';
 }
 
@@ -100,7 +101,8 @@ sub validateInput : Private {
     $c->stash->{searchError} =
       'No valid sequence file found. Please enter a valid FASTA-format file and try again.';
 
-    $c->log->debug( 'Search::Batch::search: bad FASTA file; returning to form' );
+    $c->log->debug( 'Search::Batch::search: bad FASTA file; returning to form' )
+      if $c->debug;
     return;
   }
 
@@ -113,11 +115,13 @@ sub validateInput : Private {
             $c->stash->{batchOpts} eq 'fs' ) {
       $c->stash->{searchError} = 'You must select a valid search option.';
 
-      $c->log->debug( 'Search::Batch::search: bad search option; returning to form' );
+      $c->log->debug( 'Search::Batch::search: bad search option; returning to form' )
+        if $c->debug;
       return;
     }
   } else {
-    $c->log->debug( 'Search::Batch::search: search options not specified; returning to form' );
+    $c->log->debug( 'Search::Batch::search: search options not specified; returning to form' )
+      if $c->debug;
     $c->stash->{searchError} = 'You must select a search option.';
     return;
   }
@@ -133,7 +137,8 @@ sub validateInput : Private {
     } else {
       $c->stash->{searchError} = 'You did not enter a valid E-value.';
 
-      $c->log->debug( 'Search::Batch::search: bad evalue; returning to form' );
+      $c->log->debug( 'Search::Batch::search: bad evalue; returning to form' )
+        if $c->debug;
       return;
     }
   }
@@ -144,12 +149,15 @@ sub validateInput : Private {
   } else {
     $c->stash->{searchError} = 'You did not enter a valid email address.';
 
-    $c->log->debug( 'Search::Batch::search: bad email address; returning to form' );
+    $c->log->debug( 'Search::Batch::search: bad email address; returning to form' )
+      if $c->debug;
+    
     return;
   }  
 
   # passed !
-  $c->log->debug( 'Search::Batch::search: input parameters all validated' );
+  $c->log->debug( 'Search::Batch::search: input parameters all validated' )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -182,10 +190,23 @@ sub parseUpload : Private {
   my $lineNumber = 1;
   while( <$fh> ) {
     next if m/^\s*$/;
-    unless( m/^>[\w\-]+\r?$/ or m/^[A-Za-z]+\r?$/ ) {
-      $c->log->debug( 'Search::Batch::parseUpload: illegal character in upload; bailing' );
-      $c->stash->{errorLine} = "line $lineNumber: $_";
-      return;
+    
+    if( m/^>/ ) {
+      # header line
+      if( m/\;\\\!\*/ ) {
+        $c->log->debug( 'Search::Batch::parseUpload: illegal character in header; bailing' )
+          if $c->debug;
+        $c->stash->{errorLine} = "line $lineNumber: $_";
+        return;
+      }
+    } else {
+      # regular line (no "J" or "O" allowed)
+      unless( m/^[ABCDEFGHIKLMNPQRSTUVWXYZ\-\*]+\r?$/i ) {
+        $c->log->debug( 'Search::Batch::parseUpload: illegal character in sequence; bailing' )
+          if $c->debug;
+        $c->stash->{errorLine} = "line $lineNumber: $_";
+        return;
+      }
     }
     $seqs .= $_;
     $lineNumber++;
