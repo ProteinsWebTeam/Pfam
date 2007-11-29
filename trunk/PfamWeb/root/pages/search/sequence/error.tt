@@ -4,7 +4,7 @@
 # 
 # sequence search error page
 #
-# $Id: error.tt,v 1.3 2007-11-05 13:38:19 jt6 Exp $
+# $Id: error.tt,v 1.4 2007-11-29 10:19:01 jt6 Exp $
 
 META title = "No search results";
 META fullPage = 1
@@ -51,7 +51,7 @@ META fullPage = 1
   </dl>
 
   <p class="back">
-    Go <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]>back</a> 
+    Go <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">back</a> 
     to the search form and try another sequence.
   </p>
 
