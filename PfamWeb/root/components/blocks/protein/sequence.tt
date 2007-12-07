@@ -5,7 +5,7 @@
 # 
 # block for the sequence, raw and formatted, for the protein page
 #
-# $Id: sequence.tt,v 1.11 2007-10-15 09:20:31 jt6 Exp $
+# $Id: sequence.tt,v 1.12 2007-12-07 14:53:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -27,10 +27,10 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   <div class="blockContent">
     <p>
       This is the amino acid sequence of the UniProt sequence database entry
-      with the identifier <strong>[% pfamseq.pfamseq_acc %]</strong>. This 
-      sequence is stored in
-      the Pfam database and updated with each new Pfam release, but this means
-      that the sequence we store may differ from that stored by UniProt.
+      with the accession <strong>[% pfamseq.pfamseq_acc %]</strong>. This 
+      sequence is stored in the Pfam database and updated with each new Pfam 
+      release, but this means that the sequence we store may differ from that 
+      stored by UniProt.
     </p>
     [% oe = 0 %]
 
@@ -39,6 +39,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
         <tr class="[% oe % 2 ? "odd" : "even"; oe = oe +1 %]">
           <td class="label">Sequence:</td>
           <td class="data">[%
+          
             # an array containing the individual residues
             sa = String.new( pfamseq.sequence ).split("");
   
@@ -52,26 +53,24 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
             # workaround. The "substr" virtual method seems to be broken in the
             # version of TT that we have right now...
 
-            CALL sb.append( sa.0 );
-            CALL sl.append( sa.0 );
             -%]<div class="sequenceLine">
               [% i = 1;
                  label = 1 -%] 
-              <div class="leftAlignmentLabel">[%- i %]</div>
+              <div class="leftAlignmentLabel">[% i %]</div>
 
               [% # if you look closely at this block, you'll see that there's an 
                  # extra </div>, which is required because we're building the line
                  # on the fly and closing the <div> somewhere dependent on where the
                  # end of the line falls. It's fine. Really.
 
-              i = 1;
+              i = 0;
               FOREACH char IN sa;
                 CALL sb.append( char );
                 CALL sl.append( char );
                 IF ! ( (i+1) % 10 );
                   CALL sb.append(" ");
                 END;
-                IF ! ( (i+1) % 60 );
+                IF ! ( (i+1) % 50 );
                   CALL sl.append( "<br />" );
                   label = i + 1 %]
                   <div class="alignmentRow">[% sb %]</div>
@@ -85,8 +84,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
                 i = i + 1;
               END -%]
 
-              <div class="alignmentRow">[% String.new( sb ).left(65).replace(" ", "&nbsp;" ) %]</div>
-              <div class="rightAlignmentLabel">[% i - 1 %]</div>
+              <div class="alignmentRow">[% String.new( sb ).left(54).replace(" ", "&nbsp;" ) %]</div>
+              <div class="rightAlignmentLabel">[% i %]</div>
 
             </div> [% # end of sequenceLine %]
 
