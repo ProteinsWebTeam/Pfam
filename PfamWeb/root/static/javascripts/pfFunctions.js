@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.52 2007-10-16 09:15:07 jt6 Exp $
+// $Id: pfFunctions.js,v 1.53 2007-12-07 14:46:03 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -404,7 +404,7 @@ function showOverlay( e ) {
                     offset: { x: 10, y: 10 } };
 
     // and create the tooltip 
-    new Tip( "overlay", target.alt, options );
+    new Tip( "overlay", target.title, options );
   }
 
   // if there's a target for the overlaid area, set that as the URL for the 
@@ -1038,3 +1038,31 @@ function forceLoad() {
                     } );
 }
 
+//------------------------------------------------------------
+//- event handlers to add underlining to hovered links -------
+//------------------------------------------------------------
+
+// add listeners to all of the links in the page
+function addHoverListeners() {
+  $A( document.getElementsByClassName('link') ).each(
+    function( l ) {
+      Event.observe( l, 'mouseover', hoverHandler.bindAsEventListener(l), false );
+      Event.observe( l, 'mouseout',  hoverHandler.bindAsEventListener(l), false );
+    }
+  );
+}
+
+// a function to make "links" underlined when hovered over
+function hoverHandler(e) {
+  if( e.type == 'mouseover' ) {
+    var element = Event.element(e);
+    if( ! ( typeof element === 'undefined' ) ) {
+      element.addClassName('hover');
+    }
+  } else if( e.type == 'mouseout' ) {
+    var element = Event.element(e);
+    if( ! ( typeof element === 'undefined' ) ) {
+      element.removeClassName('hover');
+    }
+  }
+}
