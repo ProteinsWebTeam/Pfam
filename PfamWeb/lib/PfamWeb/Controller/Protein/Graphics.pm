@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.23 2007-10-30 14:54:10 jt6 Exp $
+# $Id: Graphics.pm,v 1.24 2007-12-07 14:45:29 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.23 2007-10-30 14:54:10 jt6 Exp $
+$Id: Graphics.pm,v 1.24 2007-12-07 14:45:29 jt6 Exp $
 
 =cut
 
@@ -144,7 +144,8 @@ sub updateSources : Path {
                   . '| SELECTED feature servers for system' );
 
   #----------------------------------------
-  print STDERR "done retrieving server details; looping\n";
+  $c->log->debug( 'Protein::Graphics::updateSources: done retrieving server details; looping' )
+    if $c->debug;
   
   # retrieve the list of selected DAS objects
   my $selectedObjects = $c->forward( 'getSelectedDASObjects' );
@@ -163,7 +164,8 @@ sub updateSources : Path {
 
   # loop over all possible types of server
   TYPE: foreach my $type ( @$types ) {
-    print STDERR "  server type |$type|\n";
+    $c->log->debug( "Protein::Graphics::updateSources: server type |$type|" )
+      if $c->debug;
 
     # sort the list of coordinate systems
     my $systems = sortByProperty( [ keys %{ $selectedFeatureServersForSystem{$type} } ], 
@@ -172,8 +174,8 @@ sub updateSources : Path {
 
     # and loop over all types of coordinate system
     SYSTEM: foreach my $system ( @$systems ) {
-      print STDERR "    coordinate system |$system|\n";
-      $c->log->debug("Protein::Graphics::updateSources: processing coord system '$type / $system'");
+      $c->log->debug( "Protein::Graphics::updateSources: processing coord system '$type / $system'" )
+        if $c->debug;
 
       my $imageSets = {};
       my $layout = Bio::Pfam::Drawing::Layout::DasLayoutManager->new;
@@ -181,8 +183,8 @@ sub updateSources : Path {
       # Don't need to get any alignments, query sequence is the uniprot accession.
       if( $type   eq $baseType and 
           $system eq $baseSystem ) {
-         print STDERR "    working with base system\n";
-         $c->log->debug( 'Protein::Graphics::updateSources: working with base type and base system' );
+        $c->log->debug( 'Protein::Graphics::updateSources: working with base type and base system' )
+          if $c->debug;
       
         # Force it into the list of available objects, whether it is to be 
         # displayed in detail or not.
@@ -206,8 +208,8 @@ sub updateSources : Path {
           my $numSetsAdded = 
             $layout->layout_DAS_sequences_and_features( $sequence, $features );
             
-          print STDERR "    added |$numSetsAdded| image rows\n";
-          $c->log->debug("Protein::Graphics::updateSources: |$numSetsAdded| image rows added for '$seqAcc'");
+          $c->log->debug( "Protein::Graphics::updateSources: |$numSetsAdded| image rows added for '$seqAcc'" )
+            if $c->debug;
 
           if( $numSetsAdded ) {
             my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
@@ -217,7 +219,8 @@ sub updateSources : Path {
         }
 
       } else {
-         print STDERR "    NOT the base system\n";
+         $c->log->debug( "Protein::Graphics::updateSources:     NOT the base system" )
+           if $c->debug;
 
         # If the co-ordinate system is not the same, aligned features are required.
         
@@ -225,29 +228,35 @@ sub updateSources : Path {
            
         # Skip if we can't get any alignments in this co-ord system anyway.
         if( not defined $alignServer ) {
-          print STDERR "    couldn't find an alignment server for |$type|$system|\n";
-          $c->log->debug("No alignment server found for co-ordinate system '$type / $system'");
+          $c->log->debug( "Protein::Graphics::updateSources: No alignment server found for co-ordinate system '$type / $system'" )
+            if $c->debug;
           next SYSTEM;
         }
 
         $dl->dsn( [ $alignServer->url ] );
-        print STDERR '    set DSN to |' . $alignServer->url . "|\n";
+        $c->log->debug( 'Protein::Graphics::updateSources:     set DSN to |' . 
+                        $alignServer->url . '|' ) if $c->debug;
         my( $alnQuery, $alignments ) = each %{ $dl->alignment( { 'query' => $seqAcc } ) };
         $dl->dsn( $selectedFeatureServersForSystem{$type}{$system} );
-        print STDERR '    set DSN to |' . $alignServer->url . "|\n";
+        $c->log->debug( 'Protein::Graphics::updateSources:     set DSN to |' . 
+                        $alignServer->url . '|' ) if $c->debug;
 
         # Each sequence in each alignment is a subsection
-        print STDERR "      looping through |" . scalar @$alignments . "| alignments\n";
+        $c->log->debug( 'Protein::Graphics::updateSources:       looping through |' .
+                        scalar @$alignments . '| alignments' ) if $c->debug;
 
         # TODO figure out why this generates so many tracks that it kills the server !
         foreach my $aln ( @$alignments[0..10] ) {
-          print STDERR "      aln: |$aln|\n";
+          $c->log->debug( "Protein::Graphics::updateSources:       aln: |$aln|" )
+            if $c->debug;
 
           my $alnMap = Bio::Das::Lite::Tools::getMappingsForAlignment($aln);
-          print STDERR "      got alnMap\n";
+          $c->log->debug( 'Protein::Graphics::updateSources:       got alnMap' )
+            if $c->debug;
           foreach my $ob (sort { lc $a->{alignobject_intObjectId} cmp 
                                  lc $b->{alignobject_intObjectId} } @{ $aln->{alignobject} } ) {
-            print STDERR "        ob: |$ob|\n";
+            $c->log->debug( "Protein::Graphics::updateSources:         ob: |$ob|" )
+              if $c->debug;
 
             # Each aligned object has a subsection into which all associated 
             # features are placed.
@@ -280,31 +289,36 @@ sub updateSources : Path {
 
             # Get any features available for this aligned object.
             my $features = $dl->features( $obId );
-            print STDERR "        got features\n";
+            $c->log->debug( 'Protein::Graphics::updateSources:         got features' )
+              if $c->debug;
             $features = Bio::Das::Lite::Tools::convertFeatures($features, $obMap); # DasLite method...
-            print STDERR "        converted features\n";
+            $c->log->debug( 'Protein::Graphics::updateSources:         converted features' )
+              if $c->debug;
 
             # Add a set of segment features that represent the blocks of the aligned object.
             my $segments = Bio::Das::Lite::Tools::extractSegmentsFromAlignment($aln, $obId);
-            print STDERR "        extracted segments\n";
+            $c->log->debug( 'Protein::Graphics::updateSources:         extracted segments' )
+              if $c->debug;
             $segments = Bio::Das::Lite::Tools::convertSegmentsToFeatures($segments);
-            print STDERR "        converted segments to features\n";
+            $c->log->debug( 'Protein::Graphics::updateSources:         converted segments to features' )
+              if $c->debug;
             $segments = Bio::Das::Lite::Tools::convertFeatures($segments, $obMap);
-            print STDERR "        converted features\n";
+            $c->log->debug( 'Protein::Graphics::updateSources:         converted features' )
+              if $c->debug;
             $features->{$alnQuery} = $segments;
 
             # Use a layout manager to draw the graphics for this subsection.
             my $numSetsAdded = 
               $layout->layout_DAS_sequences_and_features( $sequence, $features );
-            print STDERR "        laid out |$numSetsAdded| sets\n";
-
-            $c->log->debug("Protein::Graphics::updateSources: $numSetsAdded image rows added for '$obId'");
+            $c->log->debug( "Protein::Graphics::updateSources: $numSetsAdded image rows added for '$obId'" )
+              if $c->debug;
 
             if( $numSetsAdded ) {
               my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
               $imageset->create_images( $layout->layout_to_XMLDOM );
               push @{ $imageSets->{$obId} }, $imageset;
-              print STDERR "        pushed imageset\n";
+              $c->log->debug( 'Protein::Graphics::updateSources:         pushed imageset' )
+                if $c->debug;
             }
           }
         }
