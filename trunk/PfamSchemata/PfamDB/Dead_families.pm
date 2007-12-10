@@ -1,5 +1,5 @@
 
-# $Id: Dead_families.pm,v 1.4 2007-03-16 11:25:18 jt6 Exp $
+# $Id: Dead_families.pm,v 1.5 2007-12-10 14:35:58 jt6 Exp $
 #
 # $Author: jt6 $
 package PfamDB::Dead_families;
@@ -7,20 +7,27 @@ package PfamDB::Dead_families;
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( 'Core' );
 
 #Set up the table
-__PACKAGE__->table( "dead_families" );
+__PACKAGE__->table( 'dead_families' );
 
 #Add the columns
-__PACKAGE__->add_columns(qw/pfamA_acc pfamA_id comment forward_to/);
+__PACKAGE__->add_columns(qw( pfamA_acc 
+                             pfamA_id 
+                             comment 
+                             forward_to ) );
 
 #Set up the primary key
-__PACKAGE__->set_primary_key("pfamA_acc");
+__PACKAGE__->set_primary_key('pfamA_acc');
 
 #In theory the forward_to could join onto self or pfamA...... -todo
+# something like this...
+#__PACKAGE__->has_one( pfamA => 'PfamDB::Pfam',
+#                      { 'foreign.pfamA_acc' => 'self.forward_to' },
+#                      {  proxy => [ qw( pfamA_id ) ] } );
 
 =head1 COPYRIGHT
 
