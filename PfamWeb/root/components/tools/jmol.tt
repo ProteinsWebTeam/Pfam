@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.10 2007-11-05 13:38:18 jt6 Exp $
+# $Id: jmol.tt,v 1.11 2007-12-10 14:51:11 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -25,22 +25,37 @@ pageContent = BLOCK;
 
 title = "Jmol";
 
-script = String.new( "background [xe7e7e7]; load \"" );
-activeSites = String.new( "select none; " );
+activeSites = String.new( 'select none; ' );
+unassigned  = String.new( 'select not (' );
 
+script      = String.new( 'background [xe7e7e7]; load "' );
 CALL script.append( c.uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) );
-CALL script.append( "\"; select all; cartoons on; cpk off; wireframe off; " );
+CALL script.append( '"; select all; cartoons on; cpk off; wireframe off; ' );
 
 FOREACH m IN mapping;
 
+  CALL unassigned.append( " ${m.pdb_res_start}-${m.pdb_res_end}" );
+
   CALL script.append( "select ${m.pdb_res_start}-${m.pdb_res_end}" );
+
   IF m.chain;
     CALL script.append( ":${m.chain}; " );
+    CALL unassigned.append( ":${m.chain} " );
   ELSE;
     CALL script.append( "; " );
   END;
+  IF loop.last;
+    CALL unassigned.append( "); isoSurface surface_unassigned molecular; " );
+    CALL unassigned.append( "color isoSurface [xe7e7e7]; " ); 
+  ELSE;
+    CALL unassigned.append( " or " );
+  END; 
+
   IF m.hex_colour;
     CALL script.append( "color [x${m.hex_colour}]; " );
+    surfName = "surface_${m.chain}${m.pdb_res_start}${m.pdb_res_end}";
+    CALL script.append( "isoSurface ${surfName} molecular; " );
+    CALL script.append( "color isoSurface [x${m.hex_colour}]; " );
   END;
 
   FOREACH markup IN markups;
@@ -65,6 +80,7 @@ END; # of FOREACH mapping
 
 CALL script.append( activeSites );
 CALL script.append( "select none; select ligand; cpk on; color cpk; " );
+CALL script.append( unassigned );
 -%]
 
 <h1>PDB entry [% pdb.pdb_id %]</h1>
