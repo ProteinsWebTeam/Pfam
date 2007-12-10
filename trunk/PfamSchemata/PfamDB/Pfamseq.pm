@@ -1,37 +1,57 @@
 
-# $Id: Pfamseq.pm,v 1.9 2007-08-21 11:04:31 rdf Exp $
+# $Id: Pfamseq.pm,v 1.10 2007-12-10 14:36:50 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 package PfamDB::Pfamseq;
 
 use strict;
 use warnings;
 
-use base "DBIx::Class";
+use base 'DBIx::Class';
 
-__PACKAGE__->load_components( qw/Core/ );
+__PACKAGE__->load_components( 'Core' );
 
 #Set up the table
-__PACKAGE__->table( "pfamseq" );
+__PACKAGE__->table( 'pfamseq' );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc seq_version crc64 md5 description length species taxonomy ncbi_code is_fragment current non_cons sequence updated created genome_seq auto_architecture treefam_acc /);
+__PACKAGE__->add_columns( qw( auto_pfamseq 
+                              pfamseq_id 
+                              pfamseq_acc 
+                              seq_version 
+                              crc64 
+                              md5 
+                              description 
+                              length 
+                              species 
+                              taxonomy 
+                              ncbi_code 
+                              is_fragment 
+                              current 
+                              non_cons 
+                              sequence 
+                              updated 
+                              created 
+                              genome_seq 
+                              auto_architecture 
+                              treefam_acc ) );
 
 #Set the the keys
-__PACKAGE__->set_primary_key( "auto_pfamseq", "pfamseq_acc", "crc64", "pfamseq_id");
-
-
+__PACKAGE__->set_primary_key( qw( auto_pfamseq
+                                  pfamseq_acc
+                                  crc64
+                                  pfamseq_id ) );
 
 #Now Set up the relationships
 
 #Tables that pfamseq joins onto: pfamA_reg_full, pfamA_reg_seed, pfamB_reg,  context_pfam_regions, architecture, genome_pfamseq,  genome_seqs, pfamseq_architecture, pfam_annseq, pfamseq_disulphide, pfamseq_markup, pfamseq_ncbi, secondary_pfamseq_acc, seq_info, smart_regions, msd_data, other_reg
 
-
 #Do all of the annotated regions
 
 ##pfamA_reg_full
-__PACKAGE__->has_many("pfamA_reg_full"  => "PfamDB::PfamA_reg_full",
-              {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
+__PACKAGE__->has_many("pfamA_reg_full"  => "PfamDB::PfamA_reg_full_significant",
+              {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
+              { proxy => [ qw( seq_start seq_end ) ] } );
 
 ##pfamA_reg_seed
 __PACKAGE__->has_many("pfamA_reg_seed"   => "PfamDB::PfamA_reg_seed", 
