@@ -4,7 +4,7 @@
 
    Style the main site index page.
    
-   $Id: index.css,v 1.7 2007-05-17 13:50:34 jt6 Exp $
+   $Id: index.css,v 1.8 2007-12-10 14:59:19 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -75,6 +75,7 @@
   cursor: auto;
   font-weight: bold;
   color: #666;
+  text-decoration: none ! important;
 }
 
 /* ---------------------------------------- */
@@ -120,3 +121,22 @@ div.panel h3 {
   float: left;
 }
 
+/* ---------------------------------------- */
+/* the new features list */
+
+div.featureDate {
+  float: left;
+  width: 8em;
+  padding: 0;
+  margin: 0;
+}
+
+div.featureEntry {
+  padding: 0;
+  margin: 0 0 0 8em;
+}
+
+#newFeatures li {
+  padding: 0;
+  margin: 0;
+}
