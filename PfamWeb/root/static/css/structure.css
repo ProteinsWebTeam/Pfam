@@ -4,7 +4,7 @@
 
    Stylesheet for the structure pages.
 
-   $Id: structure.css,v 1.9 2007-08-10 15:23:23 jt6 Exp $
+   $Id: structure.css,v 1.10 2007-12-10 14:59:45 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -49,4 +49,12 @@ span.model {
  * disappear under the structure image */
 table.narrow td.data {
   padding-right: 208px;
+}
+
+table.narrow {
+  width: auto;
+}
+
+table.narrow td.data {
+  width: 30em;
 }
