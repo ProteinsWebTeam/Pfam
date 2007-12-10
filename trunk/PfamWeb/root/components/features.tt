@@ -1,0 +1,63 @@
+
+[%
+# features.tt
+# jt6 20071112 WTSI
+#
+# a page fragment that shows a list of the new features in the site. Loaded
+# via an AJAX request from the index page.
+#
+# $Id: features.tt,v 1.1 2007-12-10 14:44:42 jt6 Exp $
+
+META naked = 1; 
+-%]
+
+<h2>New features</h2>
+
+<p>
+  The following new features have been added to the Pfam website.
+  For a full list of recent changes to the 
+  Pfam database and website, please check the
+  <a href="[% c.uri_for( "/help", { tab = "helpChangesBlock" } ) %]">help</a>
+  pages. 
+  <span id="showFeaturesSwitch"
+        onclick="showOldFeatures()"
+        class="moreLink">Show</span> 
+  other recently added features. 
+</p>
+[% # we only want to show the features if they're really new, i.e. if the user
+   # hasn't seen them before. Older features get added but are immediately 
+   # hidden, except for the first one, which is always shown, otherwise we'll 
+   # end up with a strangely empty bit of page...
+ 
+ FOREACH feature IN features %]
+  <div class="feature [% feature.old ? "old" : "new" %]"
+       [% IF feature.old AND NOT loop.first %]style="display: none"[% END -%]
+       id="[% feature.id %]">
+    <div class="featureDate">[% feature.time %]:</div>
+    <div class="featureEntry">[% feature.entry %]</div>
+  </div>
+[% END %]
+
+<hr />
+
+<script type="text/javascript">
+  // <![CDATA[
+  if( $("newFeatures").getElementsByClassName("old").size() < 1 ) {
+    $("showFeaturesSwitch").hide();
+  }
+
+  // a function to toggle the older features on and off
+  showOldFeatures = function() {
+    oldFeatures = $("newFeatures").getElementsByClassName("old")   
+    oldFeatures.shift(); // leave the first feature untouched...
+    oldFeatures.invoke("toggle");
+    var newIH;
+    if( $("showFeaturesSwitch").innerHTML.include( "Show" ) ) {
+      newIH = $("showFeaturesSwitch").innerHTML.sub( "Show", "Hide" );
+    } else if( $("showFeaturesSwitch").innerHTML.include( "Hide" ) ) {
+      newIH = $("showFeaturesSwitch").innerHTML.sub( "Hide", "Show" );
+    }
+    $("showFeaturesSwitch").innerHTML = newIH;
+  };
+  // ]]>
+</script>
