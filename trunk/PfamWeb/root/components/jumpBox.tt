@@ -4,12 +4,9 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.12 2007-11-13 16:42:36 jt6 Exp $
+# $Id: jumpBox.tt,v 1.13 2007-12-10 14:44:58 jt6 Exp $
 
 META naked = 1;
-
-# decide if we want the long or short starting message in the field
-msg = short ? "enter ID/acc" : "enter an ID or accession";
 %]
 
 <!-- start of the jump box -->
@@ -46,7 +43,7 @@ msg = short ? "enter ID/acc" : "enter an ID or accession";
   
 	<script type="text/javascript">
 	  // <![CDATA[
-		$("entry").value = "[% msg %]";
+		$("entry").value = "enter ID/acc";
 		var jbCleared = false;
     // ]]>
 	</script>
