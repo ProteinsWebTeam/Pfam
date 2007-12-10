@@ -1,5 +1,5 @@
 
-# $Id: PfamB.pm,v 1.7 2007-08-02 15:21:43 jt6 Exp $
+# $Id: PfamB.pm,v 1.8 2007-12-10 14:36:33 jt6 Exp $
 #
 # $Author: jt6 $
 package PfamDB::PfamB;
@@ -18,6 +18,7 @@ __PACKAGE__->table( 'pfamB' );
 __PACKAGE__->add_columns( qw( auto_pfamB 
                               pfamB_acc
                               pfamB_id
+                              number_archs
                               number_regions ) );
 
 # primary keys
