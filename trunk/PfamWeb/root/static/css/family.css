@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.30 2007-08-30 09:43:29 jt6 Exp $
+   $Id: family.css,v 1.31 2007-12-10 14:58:48 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -186,3 +186,10 @@ table.alignOpts td span {
 }
 
 /* ---------------------------------------- */
+/* dead families page */
+
+div.dead_comment {
+  margin-left: 2em;
+  font-style: italic;
+}
+
