@@ -4,7 +4,7 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.9 2007-11-05 13:38:19 jt6 Exp $
+# $Id: glossary.tt,v 1.10 2007-12-10 14:48:44 jt6 Exp $
 %]
 
 <!-- start glossary.tt block -->
@@ -112,6 +112,12 @@
       interaction. If they are close enough it calculates the bonds forming 
       the interaction.
     </p> 
+
+    <h3>Metaseq</h3>
+    
+    <p>
+      A collection of sequences derived from various metagenomics datasets.
+    </p>
 
     <h3>Motif</h3>
     
