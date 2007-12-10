@@ -1,0 +1,13 @@
+[% 
+# error_xml.tt
+# jt6 20071123 WTSI
+#
+# template for returning an XML message from the Family controller
+#
+# $Id: error_xml.tt,v 1.1 2007-12-10 14:54:44 jt6 Exp $
+
+META naked = 1;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<error>[% errorMsg %]</error>
