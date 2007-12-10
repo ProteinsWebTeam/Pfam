@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.32 2007-11-22 16:10:48 jt6 Exp $
+# $Id: summary.tt,v 1.33 2007-12-10 14:47:27 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -131,7 +131,7 @@ PROCESS components/links.tt;
     
       <h2>Gene Ontology</h2>
       
-      <table class="details" summary="Gene ontology data">
+      <table class="details links" summary="Gene ontology data">
         <tbody>
           [%- FOREACH goTerm IN goTerms;
           
