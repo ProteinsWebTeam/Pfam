@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>pfam-site</name>
+	<name>PfamWeb</name>
 	<comment></comment>
 	<projects>
+		<project>PfamConfig</project>
+		<project>PfamConfigWTSI</project>
+		<project>PfamLib</project>
+		<project>PfamSchemata</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
