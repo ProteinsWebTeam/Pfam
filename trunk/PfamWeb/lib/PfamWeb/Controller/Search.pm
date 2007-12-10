@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Search.pm,v 1.19 2007-12-10 14:41:05 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search;
 
 This controller is responsible for running sequence searches.
 
-$Id: Search.pm,v 1.18 2007-10-25 09:28:04 jt6 Exp $
+$Id: Search.pm,v 1.19 2007-12-10 14:41:05 jt6 Exp $
 
 =cut
 
@@ -48,6 +48,14 @@ sub begin : Private {
   
   # tell the layout template to disable the summary icons
   $c->stash->{iconsDisabled} = 1;
+  
+  #----------------------------------------
+
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  $c->stash->{output_xml} = ( defined $c->req->param('output') and
+                              $c->req->param('output') eq 'xml' );
 
 }
 
