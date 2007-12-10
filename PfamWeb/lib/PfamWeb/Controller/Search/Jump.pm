@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.7 2007-10-24 08:42:17 jt6 Exp $
+# $Id: Jump.pm,v 1.8 2007-12-10 14:43:59 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.7 2007-10-24 08:42:17 jt6 Exp $
+$Id: Jump.pm,v 1.8 2007-12-10 14:43:59 jt6 Exp $
 
 =cut
 
@@ -163,7 +163,7 @@ sub guess : Private {
       if( defined $found ) {
         $c->log->debug( 'Search::Jump::guess: found a dead family (from accession)' )
         if $c->debug;
-        $action = 'dead';
+        $action = 'family';
       }
     }
   }
@@ -327,7 +327,7 @@ sub guess : Private {
       if( defined $found ) {
         $c->log->debug( 'Search::Jump::guess: found a dead family (from ID)' )
         if $c->debug;
-        $action = 'dead';
+        $action = 'family';
       }
     }
   }
