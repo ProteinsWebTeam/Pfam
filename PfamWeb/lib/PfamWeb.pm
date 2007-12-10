@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.46 2007-11-05 14:37:41 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.47 2007-12-10 14:39:23 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.46 2007-11-05 14:37:41 jt6 Exp $
+$Id: PfamWeb.pm,v 1.47 2007-12-10 14:39:23 jt6 Exp $
 
 =cut
 
@@ -26,6 +26,7 @@ use strict;
 use warnings;
 
 use Sys::Hostname;
+use Config::General;
 
 # a useful trick to get Catalyst to confess errors on startup, rather than
 # simply dying with a cryptic error about barewords
@@ -50,7 +51,7 @@ use Catalyst qw/
 #                 Session::Store::FastMmap
 #                 Session::State::Cookie
 
-our $VERSION = '1.3';
+our $VERSION = '1.4';
 
 #-------------------------------------------------------------------------------
 
@@ -61,20 +62,26 @@ configuration files.
 
 =cut
 
-# grab the location of the configuration file from the environment and
-# detaint it. Doing this means we can configure the location of the
-# config file in httpd.conf rather than in the code
-my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
-
-# use the ConfigLoader plugin to read the configuration
-__PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
-__PACKAGE__->setup;
-
 # add to the configuration the name of the host that's actually serving 
 # the site and its process ID. These will be pulled out later in the header 
 # template
 __PACKAGE__->config->{server_name} = hostname();
 __PACKAGE__->config->{server_pid}  = $$;
+
+# grab the location of the configuration file from the environment and
+# detaint it. Doing this means we can configure the location of the
+# config file in httpd.conf rather than in the code
+my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
+
+# set up Config::General to allow us to load external configuration files with
+# a relative path and using apache-style "include" directives
+__PACKAGE__->config->{'Plugin::ConfigLoader'}->{driver} =
+  { General => { -IncludeRelative  => 1,
+                 -UseApacheInclude => 1 } };
+
+# use the ConfigLoader plugin to read the configuration
+__PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
+__PACKAGE__->setup;
 
 #-------------------------------------------------------------------------------
 
