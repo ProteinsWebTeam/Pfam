@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.22 2007-11-08 16:59:27 jt6 Exp $
+# $Id: Root.pm,v 1.23 2007-12-10 14:40:50 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,14 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.22 2007-11-08 16:59:27 jt6 Exp $
+$Id: Root.pm,v 1.23 2007-12-10 14:40:50 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use DateTime;
 
 use base 'Catalyst::Controller';
 
@@ -59,9 +61,10 @@ sub auto : Private {
 
   $c->stash->{showTab} = $1 if defined $tab;
 
-  # see if we can get a DB ResultSet, which is effectively a test of whether we
-  # can connect to the DB. If we can't, thrown an error and let the end action
-  # clean up
+  # see if we can get a DB ResultSet from the VERSION table, which is 
+  # effectively a test of whether we can connect to the DB. If we can't, 
+  # set the template to point to a page that will apologise and let the "end"
+  # actin do its stuff
   my $releaseData;
   eval {
     # stash some details of the Pfam release
@@ -69,8 +72,10 @@ sub auto : Private {
                      ->find( {} );
   };
   if( $@ ) {
-    $c->error( 'There appears to be a problem with the Pfam database.' );
-    $c->forward('/reportError');
+    $c->stash->{template} = 'pages/db_down.tt';
+
+    # break out of the processing chain now and go straight to the "end" action
+    return 0;
   }
   
   $c->stash->{relData} = $releaseData if $releaseData;
@@ -90,7 +95,7 @@ sub index : Private {
   my( $this, $c ) = @_;
 
   # set the page to be cached for one week
-  $c->cache_page( 604800 );
+  #$c->cache_page( 604800 );
 
   # tell the navbar where we are
   $c->stash->{nav} = 'home';
@@ -113,9 +118,9 @@ sub new_features : Local {
 
   # get the cookie that stores the state and retrieve the data as a hash with
   # key/value pairs storing feature timestamps and last-seen dates 
-  my $cookie = $c->req->cookie( 'features' );
+  my $cookie = $c->req->cookie( 'features' ); 
   my %last_seen = ();
-  %last_seen = split /,/, $cookie->value if defined $cookie;
+  %last_seen = split /;/, $cookie->value if defined $cookie;
   
   # the available changelog entries
   my $changelog = $c->config->{changelog}->{entries};
@@ -126,39 +131,58 @@ sub new_features : Local {
   $first = 0 if $first < 0;
   my $last  = scalar @entries - 1;
 
-  my @features;
-  my $body = '<ul>';
+  my( @times, @features );
   foreach my $feature_time ( reverse @entries[$first..$last] ) {
-    $c->log->debug( "Root::new_features: checking changelog entry: |$feature_time|..." )
-      if $c->debug;
 
     # find out if and when the user last saw this message
     my $saw_feature_at = $last_seen{$feature_time} || 0;
 
-    # flag to say that we've decided to show this entry
-    my $show = 0;
+    # format the timestamp
+    my $ft = DateTime->from_epoch( epoch => $feature_time );
+    my $ts = sprintf( '%02d', $ft->day ) . ' ' . $ft->month_abbr . ' ' . $ft->year();
 
-    # if it's less than, say, two weeks since we saw this entry, or if the
-    # feature is previously unseen, show it now
-    if( time - $saw_feature_at < $c->config->{changelog}->{show_for} or
-        $feature_time > $saw_feature_at ) {
-      $c->log->debug( 'Root::new_features: showing this feature' ) if $c->debug;
-      $body .= '<li>' . $changelog->{$feature_time} . '</li>';
+    # if it's less than, say, two weeks since we saw this entry, show it now
+    if( time - $saw_feature_at < $c->config->{changelog}->{show_for} ) {
+
+      push @features, { id    => $feature_time,
+                        time  => $ts,
+                        entry => $changelog->{$feature_time},
+                        old   => 1 };
+    }
+    # if the feature is previously unseen, show it now
+    elsif( $feature_time > $saw_feature_at ) {
+
+      push @features, { id    => $feature_time,
+                        time  => $ts,
+                        entry => $changelog->{$feature_time} };
     }
       
-    # set a cookie saying "we saw feature X at time Y"
-    push @features, $feature_time, 
-                    $saw_feature_at > 0 ? $saw_feature_at : time;
+    # these will be used to set a cookie saying "we saw feature X at time Y"
+    push @times, $feature_time, 
+                 $saw_feature_at > 0 ? $saw_feature_at : time;
 
   }
-  $body .= '</ul>';
 
-  $c->res->body( $body );
+  $c->stash->{features} = \@features; 
 
-  # turn the features "hash" into a cookie value
-  my $value = join ',', @features;
+  # turn the times "hash" into a cookie value
+  my $value = join ';', @times;
   $c->res->cookies->{features} = { value   => $value,
-                                   expires => '+3M' };
+                                   expires => 'Fri, 01-Jan-2038 00:00:00 GMT' };
+
+  # if we didn't find any features, set the response status to 204, "No 
+  # content" and let "end" worry about it
+  $c->res->status( 204 ) unless scalar @features;
+
+  # make sure the new features fragment isn't cached
+  $c->res->header( 'Pragma'        => 'no-cache' );
+  $c->res->header( 'Expires'       => 'Thu, 01 Jan 1970 00:00:00 GMT' );
+  $c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
+                                      'post-check=0, pre-check=0, max-age=0' );
+    
+  # if we did find some features to shout about, "end" should render this 
+  # template
+  $c->stash->{template} = 'components/features.tt';
 }
 
 #-------------------------------------------------------------------------------
@@ -342,13 +366,15 @@ sub end : Private {
     $c->clear_errors;
   }
 
-  # don't render anything else if the response already has content
-  return 1 if $c->response->body;
-  return 1 if $c->response->status =~ /^3\d\d$/;
+  # don't render anything else if the response already has content or if we're
+  # specifically not returning content
+  return 1 if $c->res->body;
+  return 1 if $c->res->status =~ /^3\d\d$/;
+  return 1 if $c->res->status == 204;
 
   # set the content type to the default of "text/html", unless it's already set
   $c->response->content_type( 'text/html; charset=utf-8' )
-    unless $c->response->content_type;
+    unless $c->res->content_type;
 
   # finally, default to the index page template and we're done
   $c->stash->{template} ||= 'pages/index.tt';
