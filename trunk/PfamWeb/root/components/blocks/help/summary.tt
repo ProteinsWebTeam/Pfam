@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.11 2007-07-25 13:22:08 jt6 Exp $
+# $Id: summary.tt,v 1.12 2007-12-10 14:49:06 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -42,36 +42,56 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       ([% relData.pfam_release_date ? date.format( release_date ) : "Nov 2006" %]
       [% IF relData.number_families %], [% relData.number_families %] families[% END %])
     </h3>
-  
     <p>
       Proteins are generally comprised of one or more functional regions, 
-      commonly termed domains. Different combinations of domains give rise to 
-      the diverse repertoire of proteins found in nature. Thus, the 
-      identification of domains that occur within proteins can provide insights 
-      to their function. The Pfam database is a large collection of protein 
-      domain families. Each family is represented by multiple sequence 
-      alignments and hidden Markov models (HMMs).
+      commonly termed domains. The presence of different domains in varying 
+      combinations in different proteins gives rise to the diverse repertoire 
+      of proteins found in nature. Identifing the domains present in a protein
+      can provide insights into the function of that protein.
     </p>
-<!--
     <p>
-      There should be something about HMMER in here!
+      The Pfam database is a large collection of protein domain families.
+      Each family is represented by multiple sequence alignments and hidden 
+      Markov models (HMMs).
     </p>
--->    
     <p>
-      There are two components to Pfam: Pfam-A and Pfam-B. Pfam-A entries are 
-      high quality, manually curated domain families. Although these Pfam-A 
-      entries cover a large proportion of the sequences in the underlying 
-      sequence database, to give a more comprehensive coverage of known proteins 
-      we generate a supplement automatically using the PRODOM database. These 
-      automatically generated entries are called Pfam-B. Although of 
-      lower quality, Pfam-B families can be useful for identifying functionally 
-      conserved regions when no Pfam-A entries are found.
+      There are two levels of quality to Pfam families: Pfam-A and Pfam-B. 
+      <em>Pfam-A</em> entries are derived from the underlying sequence database, 
+      known as <em>Pfamseq</em>, which is built from the most recent release of 
+      UniProtKB at a given time-point. Each Pfam-A family consists of a curated 
+      seed alignment containing a small set of representative members of the 
+      family, profile hidden Markov models (profile HMMs) built from the seed 
+      alignment, and an automatically generated full alignment, which contains 
+      all detectable protein sequences belonging to the family, as defined by 
+      profile HMM searches of primary sequence databases.
     </p>
-<!--
-  	<p>
-  	  Define the different types using in Pfam: family, domain, type and motif.
+    <p>
+      <em>Pfam-B</em> families are un-annotated and of lower quality as they 
+      are generated automatically from the non-redundant clusters of the latest 
+      ProDom release. Although of lower quality, Pfam-B families can be useful 
+      for identifying functionally conserved regions when no Pfam-A entries 
+      are found.
     </p>
--->
+    <p>
+      Pfam entries are classified in one of four ways:
+    </p>
+    <dl>
+      <dt>Family:</dt>
+      <dd>A collection of related proteins</dd>
+      <dt>Domain:</dt>
+      <dd>A structural unit which can be found in multiple protein contexts</dd>
+      <dt>Repeat:</dt>
+      <dd>A short unit which is unstable in isolation but forms a stable 
+        structure when multiple copies are present</dd>
+      <dt>Motifs:</dt>
+      <dd>A short unit found outside globular domains</dd>
+    </dl>
+    <p>
+      Related Pfam entries are grouped together into <em>clans</em>; the 
+      relationship may be defined by similarity of sequence, structure or 
+      profile-HMM.
+    </p>
+
   </div>
 </div>
 
