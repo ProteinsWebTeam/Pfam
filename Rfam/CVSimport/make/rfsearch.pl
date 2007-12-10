@@ -287,8 +287,8 @@ unless( $minidbpname ) {
 	      my $blastcmdspec = "";
 	      #PPG: WU-BLAST is now the default. MYAHAHAHAHA!:
 	      if (!$nowublast){
-		  $blastcmdsens = "wublastn $blastdb $fafile W=7 B=100000 V=100000 E=$blast_eval_sens mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize filter=seg filter=dust"; 
-		  $blastcmdspec = "wublastn $blastdb $fafile W=7 B=100000 V=100000 E=$blast_eval_spec mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize M=1 N=-3 Q=3 R=3  filter=seg filter=dust";
+		  $blastcmdsens = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_sens mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize filter=seg filter=dust"; 
+		  $blastcmdspec = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_spec mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize M=1 N=-3 Q=3 R=3  filter=seg filter=dust";
 	      }
 	      else {
 		  &printlog( "WARNING: using NCBI-BLAST instead of WU-BLAST. Deprecated and not recommended!");
