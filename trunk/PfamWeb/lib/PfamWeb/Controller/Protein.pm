@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.33 2007-10-15 15:45:50 jt6 Exp $
+# $Id: Protein.pm,v 1.34 2007-12-10 14:40:29 jt6 Exp $
 
 =head1 NAME
 
@@ -19,18 +19,15 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.33 2007-10-15 15:45:50 jt6 Exp $
+$Id: Protein.pm,v 1.34 2007-12-10 14:40:29 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dump qw( dump );
-
 use Storable qw( thaw );
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
-
 use Bio::Pfam::AnnotatedSequence;
 use Bio::Pfam::AnnotatedRegion;
 use Bio::Pfam::PfamAnnSeqFactory;
@@ -60,126 +57,139 @@ Get the data from the database for the UniProt entry.
 =cut
 
 sub begin : Private {
-  my ( $this, $c ) = @_;
+  my( $this, $c, $entry_arg ) = @_;
 
-  #----------------------------------------
-  # get the accession or ID code
-
-  my $p;
-  if ( defined $c->req->param('acc') ) {
-
-    $c->req->param('acc') =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/i;
-    $c->log->debug( "Protein::begin: found a uniprot accession |$1|" );
-  
-    # try a lookup in the main pfamseq table first
-    $p = $c->model('PfamDB::Pfamseq')
-           ->find( { pfamseq_acc => $1 } );
-  
-    # if we got a result there, so much the better...
-    unless( defined $p ) {
-  
-      # ... otherwise, see if this is really a secondary accession
-      $p = $c->model('PfamDB::Secondary_pfamseq_acc')
-            ->find( { secondary_acc => $1 },
-                    { join          => [ qw( pfamseq ) ],
-                      prefetch      => [ qw( pfamseq ) ] } );
-    }
-  
-  } elsif ( defined $c->req->param('id') ) {
-
-    $c->req->param('id') =~ m/^(\w+)$/;
-    $c->log->debug("Protein::begin: found a uniprot ID |$1|");
-  
-    # try a lookup in the main pfamseq table first
-    $p = $c->model('PfamDB::Pfamseq')
-           ->find( { pfamseq_id => $1 } );
-  
-  } elsif ( defined $c->req->param('entry') ) {
-
-    # we don't know if this is an accession or an ID; try both
-  
-    if ( $c->req->param('entry') =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
-  
-      # looks like an accession; redirect to this action, appending the accession
-      $c->log->debug(
-             "Protein::begin: looks like a uniprot accession ($1); redirecting");
-      $c->res->redirect( $c->uri_for( '/protein', { acc => $1 } ) );
-      return 1;
-  
-    } elsif ( $c->req->param('entry') =~ m/^(\w+_\w+)$/ ) {
-  
-      # looks like an ID; redirect to this action, appending the ID
-      $c->log->debug('Protein::begin: looks like a uniprot ID; redirecting');
-      $c->res->redirect( $c->uri_for( '/protein', { id => $1 } ) );
-      return 1;
-    }
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if( defined $c->req->param('output') and
+      $c->req->param('output') eq 'xml' ) {
+    $c->stash->{output_xml} = 1;
+    $c->res->content_type('text/xml');
   }
 
-  # we're done here unless there's an entry specified
-  unless ( defined $p ) {
+  #----------------------------------------
 
-    # de-taint the accession or ID
-    my $input = $c->req->param('acc')
-      || $c->req->param('id')
-      || $c->req->param('entry')
-      || '';
-    $input =~ s/^(\w+)/$1/;
+  # get a handle on the entry and detaint it
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('id')    ||
+                      $c->req->param('entry') ||
+                      $entry_arg              ||
+                      '';
   
-    # see if this was an internal link and, if so, report it
-    my $b = $c->req->base;
-    if ( $c->req->referer =~ /^$b/ ) {
+  my $entry;
+  if( $tainted_entry ) {
+    ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
+    $c->stash->{errorMsg} = 'Invalid UniProt accession or ID' 
+      unless defined $entry;
+  } else {
+    $c->stash->{errorMsg} = 'No UniProt accession or ID specified';
+  }
+
+  # retrieve the data for this sequence entry  
+  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
   
-      # this means that the link that got us here was somewhere within
-      # the Pfam site and that the accession or ID which it specified
-      # doesn't actually exist in the DB
-  
-      # report the error as a broken internal link
-      $c->error(
-          'Found a broken internal link; no valid UniProt accession or ID ("'
-          . $input . '") in "' . $c->req->referer . '"' );
-      $c->forward('/reportError');
-  
-      # now reset the errors array so that we can add the message for
-      # public consumption
-      $c->clear_errors;
-  
-    }
-  
-    # the message that we'll show to the user
-    $c->stash->{errorMsg} = 'No valid UniProt accession or ID';
-  
-    # log a warning and we're done; drop out to the end method which
-    # will put up the standard error page
-    $c->log->warn('Family::begin: no valid UniProt ID or accession');
-  
+  #----------------------------------------
+
+  # if we're outputting HTML, we're done here
+  unless( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Protein::begin: emitting HTML' ) if $c->debug;
     return;
   }
 
-  $c->log->debug('Protein::begin: successfully retrieved a pfamseq object');
-  $c->stash->{pfamseq} = $p;
-  $c->stash->{genomeCode} = $p->ncbi_code if ( $p->genome_seq );
-
-    
   #----------------------------------------
-  # add extra data to the stash
+  # from here on we're handling XML output
 
-  $c->forward('generatePfamGraphic');
-  $c->forward('getDasSources');
-  $c->forward('getMapping');
-  $c->forward('getSummaryData');
+  $c->log->debug( 'Protein::begin: emitting XML' ) if $c->debug;
+
+  # if there was an error...
+  if( $c->stash->{errorMsg} ) {
+    $c->log->debug( 'Protein::begin: there was an error: |' .
+                    $c->stash->{errorMsg} . '|' ) if $c->debug;
+    $c->stash->{template} = 'rest/protein/error_xml.tt';
+    return;
+  } else {    
+    $c->stash->{template} = 'rest/protein/entry_xml.tt';
+  }
+  
 }
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 getDasSources : Private
+=head2 get_data : Private
+
+Retrieves the data for the specified entry from the pfamseq table. Requires
+a single argument, the ID or accession of the entry. Drops the resulting row,
+if any, into the stash. The entry identifier should be detainted before calling
+this method.
+
+=cut
+
+sub get_data : Private {
+  my( $this, $c, $entry ) = @_;
+  
+  # look for the entry itself
+  my $rs = $c->model('PfamDB::Pfamseq')
+             ->search( [ { pfamseq_acc => $entry },
+                         { pfamseq_id  => $entry } ] );
+                           
+  my $p;
+  if( defined $rs ) {
+    # we got a resultset using that accession/id
+    $p = $rs->first;
+  
+  } else {
+    # ... otherwise, see if this is really a secondary accession
+    $p = $c->model('PfamDB::Secondary_pfamseq_acc')
+          ->find( { secondary_acc => $1 },
+                  { join          => [ qw( pfamseq ) ],
+                    prefetch      => [ qw( pfamseq ) ] } );
+  }
+  
+  unless( $p ) {
+    $c->log->debug('Protein::get_data: failed to retrieve a pfamseq object')
+      if $c->debug;
+    $c->stash->{errorMsg} = 'No valid UniProt accession or ID';
+    return;
+  }
+    
+  $c->stash->{pfamseq} = $p;
+
+  # add Pfam-A regions  
+  $c->log->debug( 'Protein::get_data: adding region info' ) if $c->debug;
+  my @a_regions = $c->model('PfamDB::PfamA_reg_full_significant')
+                    ->search( { 'me.auto_pfamseq' => $p->auto_pfamseq,
+                                in_full           => 1 },
+                              { join     => [ qw( pfamA ) ],
+                                prefetch => [ qw( pfamA ) ] } );
+  $c->stash->{pfama_regions} = \@a_regions;
+  
+  # add Pfam-B regions
+  my @b_regions = $c->model('PfamDB::PfamB_reg')
+                    ->search( { 'me.auto_pfamseq' => $p->auto_pfamseq },
+                              { join     => [ qw( pfamB ) ],
+                                prefetch => [ qw( pfamB ) ] } );
+  $c->stash->{pfamb_regions} = \@b_regions;
+  
+  # add extra data to the stash  
+  $c->forward('generate_pfam_graphic');
+  $c->forward('get_das_sources');
+  $c->forward('get_mapping');
+  $c->forward('get_summary_data');
+  
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_das_sources : Private
 
 Retrieves DAS sources with the appropriate object type and coordinate system.
 
 =cut
 
-sub getDasSources : Private {
+sub get_das_sources : Private {
   my( $this, $c) = @_;
   
   my @dasSources = $c->model('WebUser::Feature_das_sources')
@@ -229,21 +239,18 @@ sub getDasSources : Private {
   }
   $c->stash->{dasSourcesRs} = \@keptSourcesArr;
 
-  $c->log->debug('Protein::getDasSources: added DAS sources to the stash');
+  $c->log->debug('Protein::get_das_sources: added DAS sources to the stash');
 }
 
 #-------------------------------------------------------------------------------
 
-
-#-------------------------------------------------------------------------------
-
-=head2 getMapping : Private
+=head2 get_mapping : Private
 
 Gets the structure-to-sequence-to-family mapping.
 
 =cut
 
-sub getMapping : Private {
+sub get_mapping : Private {
   my ( $this, $c ) = @_;
 
   my @mapping = $c->model('PfamDB::Pdb_pfamA_reg')
@@ -258,19 +265,19 @@ sub getMapping : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 generatePfamGraphic : Private
+=head2 generate_pfam_graphic : Private
 
 Generates the Pfam graphic.
 
 =cut
 
-sub generatePfamGraphic : Private {
+sub generate_pfam_graphic : Private {
   my ( $this, $c ) = @_;
 
   # get a layout manager and set the X scale
   my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layoutPfam->scale_x(1);
-  $c->log->debug('Protein::generatePfamGraphic: instantiated a layout manager');
+  $c->log->debug('Protein::generate_pfam_graphic: instantiated a layout manager');
 
   # retrieve the Storable containing the annotated sequence, thaw it
   # and hand it off to the layout manager
@@ -292,29 +299,30 @@ sub generatePfamGraphic : Private {
   # For now at least, the sub-classes, such as the interactive feature viewer,
   # don't bother with the key, so they don't need this extra blob of data in 
   # the stash. 
-  $c->forward( 'generateKey', [ $layoutPfam ] )
+  $c->forward( 'generate_key', [ $layoutPfam ] )
     if ref $this eq 'PfamWeb::Controller::Protein';
 
   # and build an imageset
   my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $pfamImageset->create_images( $layoutPfam->layout_to_XMLDOM );
-  $c->log->debug('Protein::generatePfamGraphic: created images');
+  $c->log->debug('Protein::generate_pfam_graphic: created images');
 
   $c->stash->{pfamImageset} = $pfamImageset;
 
-  $c->log->debug('Protein::generatePfamGraphic: successfully generated an imageset object');
+  $c->log->debug('Protein::generate_pfam_graphic: successfully generated an imageset object');
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 generateKey : Private
+=head2 generate_key : Private
 
 Generates a data structure representing the key to the domain image, which 
-can be formatted sensibly by the view.
+can be formatted sensibly by the view. Needs a reference to the 
+L<LayoutManager> that will build the Pfam graphic.
 
 =cut
 
-sub generateKey : Private {
+sub generate_key : Private {
   my( $this, $c, $lm ) = @_;
   
   # retrieve a hash of BioPerl objects indexed on sequence ID
@@ -346,13 +354,13 @@ sub generateKey : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getSummaryData : Private
+=head2 get_summary_data : Private
 
 Gets the data items for the overview bar
 
 =cut
 
-sub getSummaryData : Private {
+sub get_summary_data : Private {
   my ( $this, $c ) = @_;
 
   my %summaryData;
@@ -382,18 +390,18 @@ sub getSummaryData : Private {
   # TODO Has interactions
   #$rs = $c->model('PfamDB::Interactions')
   #        ->find( { auto_pfamseq_A => $c->stash->{pfamseq}->auto_pfamseq },
-   #               { select         => [
-   #                                     {
-   #                                       count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
-    #                                    }
-   #                                   ],
-   #                 as             => [ qw( numInts ) ] } );
+  #                { select         => [
+  #                                      {
+  #                                        count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
+  #                                     }
+  #                                    ],
+  #                  as             => [ qw( numInts ) ] } );
 
   #$summaryData{numInt} = $rs->get_column( 'numInts' );
   $summaryData{numInt} = 0;
   $c->stash->{summaryData} = \%summaryData;
 
-  $c->log->debug('Protein::getSummaryData: added the summary data to the stash');
+  $c->log->debug('Protein::get_summary_data: added the summary data to the stash');
 }
 
 #-------------------------------------------------------------------------------
