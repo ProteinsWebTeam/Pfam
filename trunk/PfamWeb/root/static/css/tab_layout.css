@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.36 2007-08-07 12:46:31 jt6 Exp $
+   $Id: tab_layout.css,v 1.37 2007-12-10 14:59:54 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -177,7 +177,7 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   list-style: none;
 }
 
-#sidebar li a {
+#sidebar li span.link {
   color: #074987;
   outline: none;
   margin: 0;
@@ -186,10 +186,6 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   text-decoration: none;
   font-weight: bold;
   height: 100%; /* only needed to convince IE to make the whole block clickable */
-}
-
-#sidebar li a:hover {
-  text-decoration: underline;
 }
 
 #sidebar li {
@@ -202,7 +198,7 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   margin-left: 0.2em;
 }
 
-#sidebar li.selected a {
+#sidebar li.selected span.link {
   position: relative;
   left: 1px;
   outline: none;
@@ -210,9 +206,11 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   border-right: none;
   padding: 0.2em 0 0.2em 0.4em;
   background-image: url(/static/images/selected_bg.gif);
+  text-decoration: none ! important;
+  color: #074987 ! important;
 }
 
-#sidebar li.selected a:hover {
+#sidebar li.selected span.link {
   cursor: default;
   text-decoration: none;
 }

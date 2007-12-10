@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.60 2007-10-25 10:06:55 jt6 Exp $
+   $Id: pfam.css,v 1.61 2007-12-10 14:59:34 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -60,8 +60,11 @@ a:focus,
 a:active {
   color: #074987;
 }
+
+.hover,
 a:hover {
-  color: #666;
+  color: #666 ! important;
+  text-decoration: underline ! important;
 }
 
 img {
@@ -416,10 +419,6 @@ table.details tr.newRow td {
   border-top: 1px solid #BBB;
 }
 
-table.details tr {
-  background: #DDD;
-}
-
 td.stripeHover {
   background: #c2d2e1;
 }
@@ -481,16 +480,6 @@ body.tool h1 {
 
 /* ======================================== */
 /* search results */
-
-/* affects the whole page */
-
-#results tr.odd {
-    background: #CCC;
-}
-
-#results tr.even {
-    background: #DDD;
-}
 
 .sortarrow {
   width: 11px;
@@ -747,11 +736,13 @@ span.listItem {
   color: #074987;
 }
 
+/* a slightly heavier link class... */
 .moreLink {
   cursor: pointer;
   text-decoration: none;
   color: #074987;
-  font-weight: bold;
+  font-weight: bold ! important;
+  text-decoration: underline ! important;
 }
 
 /* ---------------------------------------- */
@@ -846,3 +837,33 @@ ul.mirrors li {
 }
 
 /* ======================================== */
+/* a few rules for a page that apologises when the database is down */
+
+#dbd {
+  margin: 120px auto 0 auto;
+  width: 485px;
+  color: #074987;
+  text-align: justify;
+  font-size: 12px;
+}
+
+#dbd h1 {
+  font-size: 20px;
+  text-align: center;
+}
+
+#dbdSiteLogo {
+  background: url(/static/images/sanger_logo_light.png) no-repeat;
+  width: 200px;
+  height: 70px;
+  left: 0;
+  position: relative;  
+}
+
+#dbdPfamLogo {
+  background: url(/static/images/pfam_logo_large.gif) no-repeat;
+  width: 200px;
+  height: 70px;
+  right: 0;
+  position: relative;  
+}
