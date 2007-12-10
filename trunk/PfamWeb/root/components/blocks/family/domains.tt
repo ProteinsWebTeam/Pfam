@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.17 2007-11-05 13:38:19 jt6 Exp $
+# $Id: domains.tt,v 1.18 2007-12-10 14:46:25 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -29,7 +29,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>
   	  Below is a listing of the unique domain organisations or architectures in which 
       this domain is found.
-      <span onclick="reveal( this, 'domainsNotes', false, true )"
+      <span onclick="reveal( this, 'domainsNotes', false, true );"
             class="moreLink">
         More...</span>
     </p>

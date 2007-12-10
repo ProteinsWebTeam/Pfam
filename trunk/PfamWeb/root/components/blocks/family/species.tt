@@ -6,7 +6,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.23 2007-10-15 09:10:16 jt6 Exp $
+# $Id: species.tt,v 1.24 2007-12-10 14:47:08 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -38,7 +38,7 @@ requirements.js.push( "treeTweak.js" );
     <div id="speciesTreeDesc">
       <p>
         The tree shows the occurrence of this domain across different species.
-        <span onclick="reveal( this, 'speciesNotes', false, true )"
+        <span onclick="reveal( this, 'speciesNotes', false, true );"
               class="moreLink">
           More...</span>
       </p>

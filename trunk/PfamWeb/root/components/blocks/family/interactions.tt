@@ -4,7 +4,7 @@
 # 
 # block for the interactions data for the family section
 #
-# $Id: interactions.tt,v 1.8 2007-11-05 13:38:19 jt6 Exp $
+# $Id: interactions.tt,v 1.9 2007-12-10 14:46:40 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 -%]
@@ -21,7 +21,7 @@ RETURN UNLESS summaryData.numInt;
       There [%- summaryData.numInt > 1 ? "are " : "is " %]
       <b>[% summaryData.numInt %]</b> 
       interaction[% summaryData.numInt > 1 ? "s" : "" %] for this family.
-      <span onclick="reveal( this, 'intNotes', false, true )"
+      <span onclick="reveal( this, 'intNotes', false, true );"
             class="moreLink">
         More...</span>
     </p>

@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.16 2007-11-05 13:38:19 jt6 Exp $
+# $Id: phylo.tt,v 1.17 2007-12-10 14:46:59 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -18,8 +18,9 @@ treeUri = c.uri_for( "/family/tree" );
   </div>
   <div class="blockContent">
     <p>
-      This page displays the <acronym title="Unweighted Pair Group Method with 
-        Arithmetic mean">UPGMA</acronym>-based phylogenetic tree, generated using 
+      This page displays the 
+      <acronym title="Unweighted Pair Group Method with Arithmetic mean">UPGMA</acronym>-based 
+      phylogenetic tree, generated using 
       <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/quicktree/">
         quicktree</a> for the given alignment.
     </p> 
@@ -43,7 +44,7 @@ treeUri = c.uri_for( "/family/tree" );
           <label for="fullRb">Full ([% pfam.num_full %])</label>
         </span>
         <input type="button"
-               onclick="treeSubmitter()"
+               onclick="treeSubmitter();"
                value="Change tree" />
       </div>
     </form>
@@ -63,7 +64,7 @@ treeUri = c.uri_for( "/family/tree" );
       // a function that submits subsequent requests 
       treeSubmitter = function() {
         var type = $("seedRb").checked ? "seed" : "full";
-        new Ajax.Updater( 'alignmentTree', 
+        var u = new Ajax.Updater( 'alignmentTree', 
                           '[% treeUri %]', 
                           { method:     'get',
                             parameters: { acc:     '[% acc %]',

@@ -4,12 +4,12 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.10 2007-11-09 16:38:36 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.11 2007-12-10 14:45:26 jt6 Exp $
 %]
 
 <div id="treeTools">
 
-  <div id="treeToolsHeader" onclick="toggleTools()">
+  <div id="treeToolsHeader" onclick="toggleTools();">
     <h3>Tree controls</h3>
     <span id="toolsToggle">Hide</span>
 		<div class="cleaner"><!-- empty --></div>
@@ -19,10 +19,10 @@
 
     <ul>
       <li>
-        Fully <a href="#" onclick="tree.expandAll();return false">expand</a> tree
+        Fully <a href="#" onclick="tree.expandAll();return false;">expand</a> tree
       </li>
       <li>
-        Fully <a href="#" onclick="tree.collapseAll();return false">collapse</a> tree
+        Fully <a href="#" onclick="tree.collapseAll();return false;">collapse</a> tree
       </li>
       <li>
         <div id="ddph">Expand tree...</div>
@@ -35,14 +35,14 @@
       <li>
         <a id="seedToggle" 
            href="#"
-           onclick="toggleHighlightSeed();return false">Hide</a> highlighting 
+           onclick="toggleHighlightSeed();return false;">Hide</a> highlighting 
         of species in seed
       </li>
       [% END %]
       <li>
         <a id="sumToggle"
            href="#"
-           onclick="toggleShowSummaries();return false">Hide</a> summaries
+           onclick="toggleShowSummaries();return false;">Hide</a> summaries
       </li>
       <li>
         Key: <span class="specSum">species</span>, 
@@ -62,16 +62,16 @@
     <h3>View selected sequences</h3>
     <ul>
       <li>
-        <a onclick="tree.getRoot().children[0].uncheck();return false"
+        <a onclick="tree.getRoot().children[0].uncheck();return false;"
            href="#">Uncheck</a> all
       </li>
       <li>
-        <span class="link" onclick="collectSequences( 'G', '[% acc %]' )">
+        <span class="link" onclick="collectSequences( 'G', '[% acc %]' );">
           Graphically</span>
       </li>
       [% IF entryType == "A" %]
         <li>
-          As an <span class="link" onclick="collectSequences( 'A', '[% acc %]' )">
+          As an <span class="link" onclick="collectSequences( 'A', '[% acc %]' );">
             alignment</span>
         </li>
       [% END %]
