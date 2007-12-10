@@ -1,11 +1,13 @@
-/* $RCSfile: Jmol.js,v $
- * $Author: jt6 $
- * $Date: 2007-04-26 12:22:17 $
- * $Revision: 1.1 $
+
+/* Jmol 11.0 script library Jmol.js (aka Jmol-11.js) 1:34 AM 3/19/2007
+
+ checkbox heirarchy -- see http://www.stolaf.edu/academics/jmol/docs/examples-11/check.htm
+
+    based on:
  *
  * Copyright (C) 2004-2005  Miguel, Jmol Development, www.jmol.org
  *
- * Contact: miguel@jmol.org
+ * Contact: hansonr@stolaf.edu
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public
@@ -25,32 +27,76 @@
 
 // for documentation see www.jmol.org/jslibrary
 
+try{if(typeof(_jmol)!="undefined")exit()
+
+// place "?NOAPPLET" on your command line to check applet control action with a textarea
+
+// bob hanson -- jmolResize(w,h) -- resizes absolutely or by percent (w or h 0.5 means 50%)
+// bob hanson -- jmolEvaluate -- evaluates molecular math 8:37 AM 2/23/2007
+// bob hanson -- jmolScriptMessage -- returns all "scriptStatus" messages 8:37 AM 2/23/2007
+// bob hanson -- jmolScriptEcho -- returns all "scriptEcho" messages 8:37 AM 2/23/2007
+// bob hanson -- jmolScriptWait -- 11:31 AM 5/2/2006
+// bob hanson -- remove trailing separatorHTML in radio groups -- 12:18 PM 5/6/2006
+// bob hanson -- adds support for dynamic DOM script nodes 7:04 AM 5/19/2006
+// bob hanson -- adds try/catch for wiki - multiple code passes 7:05 AM 5/19/2006
+// bob hanson -- auto-initiates to defaultdir/defaultjar -- change as desired.
+// bob hanson -- adding save/restore orientation w/ and w/o delay 11:49 AM 5/25/2006
+// bob hanson -- adding AjaxJS service 11:16 AM 6/3/2006
+// bob hanson -- fix for iframes not available for finding applet
+// bob hanson -- added applet fake ?NOAPPLET URL flag
+// bob hanson -- added jmolSetCallback(calbackName, funcName) 3:32 PM 6/13/2006
+//			used PRIOR to jmolApplet() or jmolAppletInline()
+//               added 4th array element in jmolRadioGroup -- title
+//               added <span> and id around link, checkbox, radio, menu
+//               fixing AJAX loads for MSIE/Opera-Mozilla incompatibility
+//            -- renamed Jmol-11.js from Jmol-new.js; JmolApplet.jar from JmolAppletProto.jar
+//	 	 renamed Jmol.js for Jmol 11 distribution
+//            -- modified jmolRestoreOrientation() to be immediate, no 1-second delay
+// bob hanson -- jmolScriptWait always returns a string -- 11:23 AM 9/16/2006
+// bh         -- jmolCommandInput()
+// bh         -- jmolSetTranslation(TF) -- forces translation even if there might be message callback issues
+// bh         -- minor fixes suggested by Angel
+	  	
+var defaultdir = "."
+var defaultjar = "JmolApplet.jar"
+
 var undefined; // for IE 5 ... wherein undefined is undefined
 
 ////////////////////////////////////////////////////////////////
 // Basic Scripting infrastruture
 ////////////////////////////////////////////////////////////////
 
-function jmolInitialize(codebaseDirectory, useSignedApplet) {
+function jmolInitialize(codebaseDirectory, fileNameOrUseSignedApplet) {
   if (_jmol.initialized) {
-    alert("jmolInitialize() should only be called *ONCE* within a page");
+    //alert("jmolInitialize() should only be called *ONCE* within a page");
     return;
   }
   if (! codebaseDirectory) {
     alert("codebaseDirectory is a required parameter to jmolInitialize");
     codebaseDirectory = ".";
   }
+
   if (codebaseDirectory.indexOf("http://") == 0 ||
       codebaseDirectory.indexOf("https://") == 0)
-    alert("An absolute URL is not recommended for codebaseDirectory.\n" +
-	  "A directory or docroot relative reference is recommended.\n\n" +
-          "If you are experienced enough to go 'off piste' then you\n" +
-          "can override this warning by inserting a space before\n" +
-          "http in your URL.");
+    alert("In general, an absolute URL is not recommended for codebaseDirectory.\n" +
+	  "A directory- or docroot-relative reference is recommended.\n\n" +
+	  "If you need to use an absolute URL (because, for example, the JAR and data\n" +
+	  "files are on another server), then insert a space before\n" +
+	  "\"http\" in your URL to avoid this warning message.");
+
   _jmolSetCodebase(codebaseDirectory);
-  _jmolUseSignedApplet(useSignedApplet);
+  _jmolGetJarFilename(fileNameOrUseSignedApplet);
   _jmolOnloadResetForms();
   _jmol.initialized = true;
+}
+
+function jmolSetTranslation(TF) {
+  _jmol.params.doTranslate = ''+TF;
+}
+
+function _jmolGetJarFilename(fileNameOrFlag) {
+  _jmol.archivePath =
+    (typeof(fileNameOrFlag) == "string"  ? fileNameOrFlag : (fileNameOrFlag ?  "JmolAppletSigned" : "JmolApplet") + "0.jar");
 }
 
 function jmolSetDocument(doc) {
@@ -59,19 +105,19 @@ function jmolSetDocument(doc) {
 
 function jmolSetAppletColor(boxbgcolor, boxfgcolor, progresscolor) {
   _jmolInitCheck();
-  _jmol.boxbgcolor = boxbgcolor;
+  _jmol.params.boxbgcolor = boxbgcolor;
   if (boxfgcolor)
-    _jmol.boxfgcolor = boxfgcolor
+    _jmol.params.boxfgcolor = boxfgcolor
   else if (boxbgcolor == "white" || boxbgcolor == "#FFFFFF")
-    _jmol.boxfgcolor = "black";
+    _jmol.params.boxfgcolor = "black";
   else
-    _jmol.boxfgcolor = "white";
+    _jmol.params.boxfgcolor = "white";
   if (progresscolor)
-    _jmol.progresscolor = progresscolor;
+    _jmol.params.progresscolor = progresscolor;
   if (_jmol.debugAlert)
-    alert(" boxbgcolor=" + _jmol.boxbgcolor +
-          " boxfgcolor=" + _jmol.boxfgcolor +
-          " progresscolor=" + _jmol.progresscolor);
+    alert(" boxbgcolor=" + _jmol.params.boxbgcolor +
+          " boxfgcolor=" + _jmol.params.boxfgcolor +
+          " progresscolor=" + _jmol.params.progresscolor);
 }
 
 function jmolApplet(size, script, nameSuffix) {
@@ -83,7 +129,7 @@ function jmolApplet(size, script, nameSuffix) {
 // Basic controls
 ////////////////////////////////////////////////////////////////
 
-function jmolButton(script, label, id) {
+function jmolButton(script, label, id, title) {
   _jmolInitCheck();
   if (id == undefined || id == null)
     id = "jmolButton" + _jmol.buttonCount;
@@ -91,19 +137,19 @@ function jmolButton(script, label, id) {
     label = script.substring(0, 32);
   ++_jmol.buttonCount;
   var scriptIndex = _jmolAddScript(script);
-  var t = "<input type='button' name='" + id + "' id='" + id +
+  var t = "<span id=\"span_"+id+"\""+(title ? " title =\"" + title + "\"":"")+"><input type='button' name='" + id + "' id='" + id +
           "' value='" + label +
           "' onClick='_jmolClick(" + scriptIndex + _jmol.targetText +
           ")' onMouseover='_jmolMouseOver(" + scriptIndex +
           ");return true' onMouseout='_jmolMouseOut()' " +
-          _jmol.buttonCssText + "/>";
+          _jmol.buttonCssText + "/></span>";
   if (_jmol.debugAlert)
     alert(t);
   return _jmolDocumentWrite(t);
 }
 
 function jmolCheckbox(scriptWhenChecked, scriptWhenUnchecked,
-                      labelHtml, isChecked, id) {
+                      labelHtml, isChecked, id, title) {
   _jmolInitCheck();
   if (id == undefined || id == null)
     id = "jmolCheckbox" + _jmol.checkboxCount;
@@ -119,20 +165,36 @@ function jmolCheckbox(scriptWhenChecked, scriptWhenUnchecked,
   }
   var indexChecked = _jmolAddScript(scriptWhenChecked);
   var indexUnchecked = _jmolAddScript(scriptWhenUnchecked);
-  var t = "<input type='checkbox' name='" + id + "' id='" + id +
+  var eospan = "</span>"
+  var t = "<span id=\"span_"+id+"\""+(title ? " title =\"" + title + "\"":"")+"><input type='checkbox' name='" + id + "' id='" + id +
           "' onClick='_jmolCbClick(this," +
           indexChecked + "," + indexUnchecked + _jmol.targetText +
           ")' onMouseover='_jmolCbOver(this," + indexChecked + "," +
           indexUnchecked +
           ");return true' onMouseout='_jmolMouseOut()' " +
-	  (isChecked ? "checked " : "") + _jmol.checkboxCssText + "/>" +
-          labelHtml;
+	  (isChecked ? "checked " : "") + _jmol.checkboxCssText + "/>" 
+  if (labelHtml.toLowerCase().indexOf("<td>")>=0) {
+	t += eospan
+	eospan = "";
+  }
+  t += labelHtml +eospan;
   if (_jmol.debugAlert)
     alert(t);
   return _jmolDocumentWrite(t);
 }
 
-function jmolRadioGroup(arrayOfRadioButtons, separatorHtml, groupName) {
+function jmolStartNewRadioGroup() {
+  ++_jmol.radioGroupCount;
+}
+
+function jmolRadioGroup(arrayOfRadioButtons, separatorHtml, groupName, id, title) {
+  /*
+
+    array: [radio1,radio2,radio3...]
+    where radioN = ["script","label",isSelected,"id","title"]
+
+  */
+
   _jmolInitCheck();
   var type = typeof arrayOfRadioButtons;
   if (type != "object" || type == null || ! arrayOfRadioButtons.length) {
@@ -141,24 +203,40 @@ function jmolRadioGroup(arrayOfRadioButtons, separatorHtml, groupName) {
   }
   if (separatorHtml == undefined || separatorHtml == null)
     separatorHtml = "&nbsp; ";
-  var length = arrayOfRadioButtons.length;
-  var t = "";
+  var len = arrayOfRadioButtons.length;
   jmolStartNewRadioGroup();
-  for (var i = 0; i < length; ++i) {
+  if (!groupName)
+    groupName = "jmolRadioGroup" + (_jmol.radioGroupCount - 1);
+  var t = "<span id='"+(id ? id : groupName)+"'>";
+  for (var i = 0; i < len; ++i) {
+    if (i == len - 1)
+      separatorHtml = "";
     var radio = arrayOfRadioButtons[i];
     type = typeof radio;
     if (type == "object") {
-      t += _jmolRadio(radio[0], radio[1], radio[2], separatorHtml, groupName);
+      t += _jmolRadio(radio[0], radio[1], radio[2], separatorHtml, groupName, (radio.length > 3 ? radio[3]: (id ? id : groupName)+"_"+i), (radio.length > 4 ? radio[4] : 0), title);
     } else {
-      t += _jmolRadio(radio, null, null, separatorHtml, groupName);
+      t += _jmolRadio(radio, null, null, separatorHtml, groupName, (id ? id : groupName)+"_"+i, title);
     }
   }
+  t+="</span>"
   if (_jmol.debugAlert)
     alert(t);
   return _jmolDocumentWrite(t);
 }
 
-function jmolLink(script, label, id) {
+
+function jmolRadio(script, labelHtml, isChecked, separatorHtml, groupName, id, title) {
+  _jmolInitCheck();
+  if (_jmol.radioGroupCount == 0)
+    ++_jmol.radioGroupCount;
+  var t = _jmolRadio(script, labelHtml, isChecked, separatorHtml, groupName, (id ? id : groupName + "_" + _jmol.radioCount), title ? title : 0);
+  if (_jmol.debugAlert)
+    alert(t);
+  return _jmolDocumentWrite(t);
+}
+
+function jmolLink(script, label, id, title) {
   _jmolInitCheck();
   if (id == undefined || id == null)
     id = "jmolLink" + _jmol.linkCount;
@@ -166,35 +244,48 @@ function jmolLink(script, label, id) {
     label = script.substring(0, 32);
   ++_jmol.linkCount;
   var scriptIndex = _jmolAddScript(script);
-  var t = "<a name='" + id + "' id='" + id + 
-          "' href='javascript:_jmolClick(" + scriptIndex +
-          _jmol.targetText +
-          ");' onMouseover='_jmolMouseOver(" + scriptIndex +
+  var t = "<span id=\"span_"+id+"\""+(title ? " title =\"" + title + "\"":"")+"><a name='" + id + "' id='" + id + 
+          "' href='javascript:_jmolClick(" + scriptIndex + _jmol.targetText + ");' onMouseover='_jmolMouseOver(" + scriptIndex +
           ");return true;' onMouseout='_jmolMouseOut()' " +
-          _jmol.linkCssText + ">" + label + "</a>";
+          _jmol.linkCssText + ">" + label + "</a></span>";
   if (_jmol.debugAlert)
     alert(t);
   return _jmolDocumentWrite(t);
 }
 
-function jmolMenu(arrayOfMenuItems, size, id) {
+function jmolCommandInput(label, size, id, title) {
+  _jmolInitCheck();
+  if (id == undefined || id == null)
+    id = "jmolCmd" + _jmol.cmdCount;
+  if (label == undefined || label == null)
+    label = "Execute";
+  if (size == undefined || isNaN(size))
+    size = 60;
+  ++_jmol.cmdCount;
+  var t = "<span id=\"span_"+id+"\""+(title ? " title =\"" + title + "\"":"")+"><input name='" + id + "' id='" + id + 
+          "' size='"+size+"'><input type=button value = '"+label+"' onClick='jmolScript(document.getElementById(\""+id+"\").value" + _jmol.targetText + ")'/></span>";
+  if (_jmol.debugAlert)
+    alert(t);
+  return _jmolDocumentWrite(t);
+}
+
+function jmolMenu(arrayOfMenuItems, size, id, title) {
   _jmolInitCheck();
   if (id == undefined || id == null)
     id = "jmolMenu" + _jmol.menuCount;
   ++_jmol.menuCount;
   var type = typeof arrayOfMenuItems;
   if (type != null && type == "object" && arrayOfMenuItems.length) {
-    var length = arrayOfMenuItems.length;
+    var len = arrayOfMenuItems.length;
     if (typeof size != "number" || size == 1)
       size = null;
     else if (size < 0)
-      size = length;
+      size = len;
     var sizeText = size ? " size='" + size + "' " : "";
-    var t = "<select name='" + id + "' id='" + id +
-            "' onChange='_jmolMenuSelected(this" +
-            _jmol.targetText + ")'" +
+    var t = "<span id=\"span_"+id+"\""+(title ? " title =\"" + title + "\"":"")+"><select name='" + id + "' id='" + id +
+            "' onChange='_jmolMenuSelected(this" + _jmol.targetText + ")'" +
             sizeText + _jmol.menuCssText + ">";
-    for (var i = 0; i < length; ++i) {
+    for (var i = 0; i < len; ++i) {
       var menuItem = arrayOfMenuItems[i];
       type = typeof menuItem;
       var script, text;
@@ -207,12 +298,18 @@ function jmolMenu(arrayOfMenuItems, size, id) {
         script = text = menuItem;
       }
       if (text == undefined || text == null)
-        text = script;
-      var scriptIndex = _jmolAddScript(script);
-      var selectedText = isSelected ? "' selected>" : "'>";
-      t += "<option value='" + scriptIndex + selectedText + text + "</option>";
+        text = script;		
+	  if (script=="#optgroup") {
+        t += "<optgroup label='" + text + "'>";	  
+	  } else if (script=="#optgroupEnd") {
+        t += "</optgroup>";	  
+	  } else {		
+        var scriptIndex = _jmolAddScript(script);
+        var selectedText = isSelected ? "' selected>" : "'>";
+        t += "<option value='" + scriptIndex + selectedText + text + "</option>";
+	  }
     }
-    t += "</select>";
+    t += "</select></span>";
     if (_jmol.debugAlert)
       alert(t);
     return _jmolDocumentWrite(t);
@@ -236,6 +333,7 @@ function jmolDebugAlert(enableAlerts) {
 }
 
 function jmolAppletInline(size, inlineModel, script, nameSuffix) {
+  _jmolInitCheck();
   return _jmolApplet(size, _jmolSterilizeInline(inlineModel),
                      script, nameSuffix);
 }
@@ -251,56 +349,34 @@ function jmolScript(script, targetSuffix) {
     if (targetSuffix == "all") {
       with (_jmol) {
 	for (var i = 0; i < appletSuffixes.length; ++i) {
-	  var target = "jmolApplet" + appletSuffixes[i];
-          var applet = _jmolFindApplet(target);
-          if (applet)
-            applet.script(script);
-          else
-            alert("could not find applet " + target);
+	  var applet = _jmolGetApplet(appletSuffixes[i]);
+          if (applet) applet.script(script);
         }
       }
     } else {
-      var target = "jmolApplet" + (targetSuffix ? targetSuffix : "0");
-      var applet = _jmolFindApplet(target);
-      if (applet)
-        return applet.script(script);
-      else
-        alert("could not find applet " + target);
+      var applet=_jmolGetApplet(targetSuffix);
+      if (applet) applet.script(script);
     }
   }
 }
 
 function jmolLoadInline(model, targetSuffix) {
-  if (model) {
-    var target = "jmolApplet" + (targetSuffix ? targetSuffix : "0");
-//    while (! _jmol.ready[target])
-//      alert("The Jmol applet " + target + " is not loaded yet");
-//    if (! _jmol.ready[target])
-//      alert("The Jmol applet " + target + " is not loaded yet");
-//    if (document.applets[target] && ! document.applets[target].isActive())
-//       alert("The Jmol applet " + target + " is not yet active");
-//    else {
-      var applet = _jmolFindApplet(target);
-      if (applet)
-        return applet.loadInline(model);
-      else
-        alert("could not find applet " + target);
-//    }
-  }
+  if (!model)return
+  var applet=_jmolGetApplet(targetSuffix);
+  if (applet)applet.loadInline(model);
 }
 
-function jmolStartNewRadioGroup() {
-  ++_jmol.radioGroupCount;
+function jmolLoadInlineScript(model, script, targetSuffix) {
+  if (!model)return
+  var applet=_jmolGetApplet(targetSuffix);
+  if (applet)applet.loadInline(model, script);
 }
 
-function jmolRadio(script, labelHtml, isChecked, separatorHtml, groupName) {
-  _jmolInitCheck();
-  if (_jmol.radioGroupCount == 0)
-    ++_jmol.radioGroupCount;
-  var t = _jmolRadio(script, labelHtml, isChecked, separatorHtml, groupName);
-  if (_jmol.debugAlert)
-    alert(t);
-  return _jmolDocumentWrite(t);
+function jmolLoadInlineArray(ModelArray, script, targetSuffix) {
+  if (!model)return
+  if (!script)script=""
+  var applet=_jmolGetApplet(targetSuffix);
+  if (applet)applet.loadInlineArray(ModelArray, script);
 }
 
 function jmolCheckBrowser(action, urlOrMessage, nowOrLater) {
@@ -323,12 +399,6 @@ function jmolCheckBrowser(action, urlOrMessage, nowOrLater) {
   }
   if (typeof nowOrLater == "string" && nowOrLater.toLowerCase() == "now")
     _jmolCheckBrowser();
-}
-
-function _jmolDocumentWrite(text) {
-  if (_jmol.currentDocument)
-    _jmol.currentDocument.write(text);
-  return text;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -381,16 +451,10 @@ function jmolSetMenuCssClass(menuCssClass) {
 // functions for INTERNAL USE ONLY which are subject to change
 // use at your own risk ... you have been WARNED!
 ////////////////////////////////////////////////////////////////
-
 var _jmol = {
   currentDocument: document,
 
   debugAlert: false,
-  bgcolor: "black",
-  progresscolor: "blue",
-  boxbgcolor: "black",
-  boxfgcolor: "white",
-  boxmessage: "Downloading JmolApplet ...",
   
   codebase: ".",
   modelbase: ".",
@@ -401,6 +465,7 @@ var _jmol = {
   buttonCount: 0,
   checkboxCount: 0,
   linkCount: 0,
+  cmdCount: 0,
   menuCount: 0,
   radioCount: 0,
   radioGroupCount: 0,
@@ -421,7 +486,13 @@ var _jmol = {
   targetSuffix: 0,
   targetText: "",
   scripts: [""],
-  
+  params: {
+	progressbar: "true",
+	progresscolor: "blue",
+	boxbgcolor: "black",
+	boxfgcolor: "white",
+	boxmessage: "Downloading JmolApplet ..."
+  },
   ua: navigator.userAgent.toLowerCase(),
   uaVersion: parseFloat(navigator.appVersion),
   
@@ -437,7 +508,7 @@ var _jmol = {
   
   windowsClassId: "clsid:8AD9C840-044E-11D1-B3E9-00805F499D93",
   windowsCabUrl:
-   "http://java.sun.com/update/1.5.0/jinstall-1_5_0_07-windows-i586.cab",
+   "http://java.sun.com/update/1.5.0/jinstall-1_5_0_05-windows-i586.cab",
 
   isBrowserCompliant: false,
   isJavaCompliant: false,
@@ -531,14 +602,37 @@ with (_jmol) {
    (os != "mac" && browser == "mozilla" && browserVersion >= 5) ||
    (os == "win" && browser == "opera" && browserVersion >= 8) ||
    (os == "mac" && browser == "safari" && browserVersion >= 412.2);
+
+ doTranslate = true;
+ haveSetTranslate = false;
 }
 
-function _jmolUseSignedApplet(useSignedApplet) {
-  _jmol.archivePath =
-    (useSignedApplet ? "JmolAppletSigned" : "JmolApplet") + "0.jar";
+function jmolSetCallback(callbackName,funcName) {
+  _jmol.params[callbackName] = funcName
 }
 
+function jmolSetLogLevel(n) {
+  _jmol.params.logLevel = ''+n;
+}
+
+	/*  AngelH, mar2007:
+		By (re)setting these variables in the webpage before calling jmolApplet(), 
+		a custom message can be provided (e.g. localized for user's language) when no Java is installed.
+	*/
+if (noJavaMsg==undefined) var noJavaMsg = 
+        "You do not have Java applets enabled in your web browser, or your browser is blocking this applet.<br />\n" +
+        "Check the warning message from your browser and/or enable Java applets in<br />\n" +
+        "your web browser preferences, or install the Java Runtime Environment from <a href='http://www.java.com'>www.java.com</a><br />";
+if (noJavaMsg2==undefined) var noJavaMsg2 = 
+        "You do not have the<br />\n" +
+        "Java Runtime Environment<br />\n" +
+        "installed for applet support.<br />\n" +
+        "Visit <a href='http://www.java.com'>www.java.com</a>";
 function _jmolApplet(size, inlineModel, script, nameSuffix) {
+	/*  AngelH, mar2007
+		Fixed percent / pixel business, to avoid browser errors:
+		put "px" where needed, avoid where not.		
+	*/
   with (_jmol) {
     if (! nameSuffix)
       nameSuffix = appletCount;
@@ -548,22 +642,21 @@ function _jmolApplet(size, inlineModel, script, nameSuffix) {
       script = "select *";
     var sz = _jmolGetAppletSize(size);
     var widthAndHeight = " width='" + sz[0] + "' height='" + sz[1] + "' ";
-
     var tHeader, tFooter;
 
+    if (useIEObject || useHtml4Object) {
+      params.name = 'jmolApplet' + nameSuffix;
+      params.archive = archivePath;
+      params.mayscript = 'true';
+      params.codebase = codebase;
+    }
     if (useIEObject) { // use MSFT IE6 object tag with .cab file reference
-      var winCodebase = "";
-      if (windowsCabUrl)
-         winCodebase = " codebase='" + windowsCabUrl + "'\n";
+      winCodebase = (windowsCabUrl ? " codebase='" + windowsCabUrl + "'\n" : "");
       tHeader = 
         "<object name='jmolApplet" + nameSuffix +
         "' id='jmolApplet" + nameSuffix + "' " + appletCssText + "\n" +
-	" classid='" + windowsClassId + "'\n" +
-        winCodebase + widthAndHeight + ">\n" +
-        "  <param name='code' value='JmolApplet' />\n" +
-        "  <param name='archive' value='" + archivePath + "' />\n" +
-        "  <param name='mayscript' value='true' />\n" +
-        "  <param name='codebase' value='" + codebase + "' />\n";
+	" classid='" + windowsClassId + "'\n" + winCodebase + widthAndHeight + ">\n";
+        params.code = 'JmolApplet';
       tFooter = "</object>";
     } else if (useHtml4Object) { // use HTML4 object tag
       tHeader = 
@@ -571,10 +664,7 @@ function _jmolApplet(size, inlineModel, script, nameSuffix) {
         "' id='jmolApplet" + nameSuffix + "' " + appletCssText + "\n" +
 	" classid='java:JmolApplet'\n" +
         " type='application/x-java-applet'\n" +
-        widthAndHeight + ">\n" +
-        "  <param name='archive' value='" + archivePath + "' />\n" +
-        "  <param name='mayscript' value='true' />\n" +
-        "  <param name='codebase' value='" + codebase + "' />\n";
+        widthAndHeight + ">\n";
       tFooter = "</object>";
     } else { // use applet tag
       tHeader = 
@@ -583,53 +673,33 @@ function _jmolApplet(size, inlineModel, script, nameSuffix) {
         "' " + appletCssText +
         " code='JmolApplet'" +
         " archive='" + archivePath + "' codebase='" + codebase + "'\n" +
-        " width='" + sz[0] + "' height='" + sz[1] +
-        "' mayscript='true'>\n";
+		widthAndHeight +
+        " mayscript='true'>\n";
       tFooter = "</applet>";
     }
-    var tParams =
-      "  <param name='progressbar' value='true' />\n" +
-      "  <param name='progresscolor' value='" +
-      progresscolor + "' />\n" +
-      "  <param name='boxmessage' value='" +
-      boxmessage + "' />\n" +
-      "  <param name='boxbgcolor' value='" +
-      boxbgcolor + "' />\n" +
-      "  <param name='boxfgcolor' value='" +
-      boxfgcolor + "' />\n" +
-      "  <param name='ReadyCallback' value='_jmolReadyCallback' />\n";
-    
-    if (inlineModel)
-      tParams += "  <param name='loadInline' value='" + inlineModel + "' />\n";
-    if (script)
-      tParams += "  <param name='script' value='" +
-                 _jmolSterilizeScript(script) + "' />\n";
     var visitJava;
     if (isIEWin || useHtml4Object) {
+		var szX = "width:" + sz[0]
+		if ( szX.indexOf("%")==-1 ) szX+="px" 
+		var szY = "height:" + sz[1]
+		if ( szY.indexOf("%")==-1 ) szY+="px" 
       visitJava =
-        "<p style='background-color:yellow;" +
-        "width:" + sz[0] + ";height:" + sz[1] + ";" + 
+        "<p style='background-color:yellow; color:black; " +
+		szX + ";" + szY + ";" +
         // why doesn't this vertical-align work?
 	"text-align:center;vertical-align:middle;'>\n" +
-        "You do not have Java applets<br />\n" +
-        "enabled in your web browser.<br />\n" +
-        "Install the Java Runtime Environment<br />\n" +
-        "from <a href='http://www.java.com'>www.java.com</a><br />" +
-        "and/or enable Java applets in<br />\n" +
-        "your web browser preferences." +
+		noJavaMsg +
         "</p>";
     } else {
       visitJava =
-        "<table bgcolor='yellow' width='" + sz[0] + "'><tr>" +
-        "<td align='center' valign='middle' height='" + sz[1] + "'>\n" +
-        "You do not have the<br />\n" +
-        "Java Runtime Environment<br />\n" +
-        "installed for applet support.<br />\n" +
-        "Visit <a href='http://www.java.com'>www.java.com</a>" +
-        "</td></tr></table>";
+        "<table bgcolor='yellow'><tr>" +
+        "<td align='center' valign='middle' " + widthAndHeight + "><font color='black'>\n" +
+		noJavaMsg2 +
+        "</font></td></tr></table>";
     }
-
-    var t = tHeader + tParams + visitJava + tFooter;
+    params.loadInline = (inlineModel ? inlineModel : "");
+    params.script = (script ? _jmolSterilizeScript(script) : "");
+    var t = tHeader + _jmolParams() + visitJava + tFooter;
     jmolSetTarget(nameSuffix);
     ready["jmolApplet" + nameSuffix] = false;
     if (_jmol.debugAlert)
@@ -638,14 +708,21 @@ function _jmolApplet(size, inlineModel, script, nameSuffix) {
   }
 }
 
+function _jmolParams() {
+ var t = "";
+ for (i in _jmol.params)
+	if(_jmol.params[i]!="")
+		 t+="  <param name='"+i+"' value='"+_jmol.params[i]+"' />\n";
+ return t
+}
+
 function _jmolInitCheck() {
   if (_jmol.initChecked)
     return;
   _jmol.initChecked = true;
   if (_jmol.initialized)
     return;
-  alert("jmolInitialize({codebase}, {useSignedApplet})\n" +
-        "  must be called before any other Jmol.js functions");
+  jmolInitialize(defaultdir, defaultjar)
 }
 
 function _jmolCheckBrowser() {
@@ -673,6 +750,12 @@ function _jmolCheckBrowser() {
     }
   }
   return false;
+}
+
+function _jmolDocumentWrite(text) {
+  if (_jmol.currentDocument)
+    _jmol.currentDocument.write(text);
+  return text;
 }
 
 function _jmolPopup(url) {
@@ -706,22 +789,44 @@ function _jmolSterilizeInline(model) {
   return inlineModel;
 }
 
+	/*  AngelH, mar2007:
+		By (re)setting this variable in the webpage before calling jmolApplet(), limits for applet size can be overriden.
+	*/
+
+	/* hansonr, jun2007:
+		2048 standard for GeoWall (http://geowall.geo.lsa.umich.edu/home.html)
+	*/
+
+if (allowedJmolSize==undefined) var allowedJmolSize = [25, 2048, 300]   // min, max, default (pixels)
 function _jmolGetAppletSize(size) {
+	/*  AngelH, mar2007
+		Accepts single number or 2-value array, each one can be either:
+	   percent (text string ending %), decimal 0 to 1 (percent/100), number, or text string (interpreted as nr.)
+	   Size is now returned as string or number, no "px".
+	*/
   var width, height;
-  var type = typeof size;
-  if (type == "number")
-    width = height = size;
-  else if (type == "object" && size != null) {
+  if ( (typeof size) == "object" && size != null ) {
     width = size[0]; height = size[1];
+  } else {
+    width = height = size;
   }
-  if (! (width >= 25 && width <= 2000))
-    width = 300;
-  if (! (height >= 25 && height <= 2000))
-    height = 300;
+  // if percent, leave it as it is:
+  if ( width.toString().charAt(width.toString().length-1) != "%" ) {
+    width = parseFloat(width);	// convert to nr., or strip text, or make zero
+	if ( width <= 1 && width > 0 ) { width = (width*100)+"%" }	// decimal: convert to percent and quit
+	else if ( width >= allowedJmolSize[0] && width <= allowedJmolSize[1] ) { width = parseInt(width) }	// accept only that range (pixels)
+	else { width = allowedJmolSize[2] }	// default size 300 pixels
+  }
+  if ( height.toString().charAt(height.toString().length-1) != "%" ) {
+    height = parseFloat(height);
+	if ( height <= 1 && height > 0 ) { height = (height*100)+"%" }
+	else if ( height >= allowedJmolSize[0] && height <= allowedJmolSize[1] ) { height = parseInt(height) }
+	else { height = allowedJmolSize[2] }
+  }
   return [width, height];
 }
 
-function _jmolRadio(script, labelHtml, isChecked, separatorHtml, groupName) {
+function _jmolRadio(script, labelHtml, isChecked, separatorHtml, groupName, id, title) {
   ++_jmol.radioCount;
   if (groupName == undefined || groupName == null)
     groupName = "jmolRadioGroup" + (_jmol.radioGroupCount - 1);
@@ -732,22 +837,39 @@ function _jmolRadio(script, labelHtml, isChecked, separatorHtml, groupName) {
   if (! separatorHtml)
     separatorHtml = "";
   var scriptIndex = _jmolAddScript(script);
-  return "<input name='" + groupName +
-         "' type='radio' onClick='_jmolClick(" +
-         scriptIndex + _jmol.targetText +
-         ");return true;' onMouseover='_jmolMouseOver(" +
-         scriptIndex +
-         ");return true;' onMouseout='_jmolMouseOut()' " +
-	 (isChecked ? "checked " : "") + _jmol.radioCssText + "/>" +
-         labelHtml + separatorHtml;
+  var eospan = "</span>"
+  var t = "<span id=\"span_"+id+"\""+(title ? " title =\"" + title + "\"":"")+"><input name='" 
+	+ groupName + "' id='"+id+"' type='radio' onClick='_jmolClick(" +
+         scriptIndex + _jmol.targetText + ");return true;' onMouseover='_jmolMouseOver(" +
+         scriptIndex + ");return true;' onMouseout='_jmolMouseOut()' " +
+	 (isChecked ? "checked " : "") + _jmol.radioCssText + "/>"
+  if (labelHtml.toLowerCase().indexOf("<td>")>=0) {
+	t += eospan
+	eospan = "";
+  }
+  t += labelHtml +eospan + separatorHtml;
+  return t;
 }
 
 function _jmolFindApplet(target) {
   // first look for the target in the current window
-  var applet = _jmolSearchFrames(window, target);
+  var applet = _jmolFindAppletInWindow(window, target);
+  // THEN look for the target in child frames
+  if (applet == undefined)
+    applet = _jmolSearchFrames(window, target);
+  // FINALLY look for the target in sibling frames
   if (applet == undefined)
     applet = _jmolSearchFrames(top, target); // look starting in top frame
   return applet;
+}
+
+function _jmolGetApplet(targetSuffix){
+ var target = "jmolApplet" + (targetSuffix ? targetSuffix : "0");
+ var applet = _jmolFindApplet(target);
+ if (applet) return applet
+ if(!_jmol.alerted)alert("could not find applet " + target);
+ _jmol.alerted = true;
+ return null
 }
 
 function _jmolSearchFrames(win, target) {
@@ -760,16 +882,20 @@ function _jmolSearchFrames(win, target) {
         break;
     }
   } else { // look for the applet in this window
-    var doc = win.document;
-// getElementById fails on MacOSX Safari & Mozilla	
-    if (_jmol.useHtml4Object || _jmol.useIEObject)
-      applet = doc.getElementById(target);
-    else if (doc.applets)
-      applet = doc.applets[target];
-    else
-      applet = doc[target];
+   applet = _jmolFindAppletInWindow(win, target)
   }
   return applet;
+}
+
+function _jmolFindAppletInWindow(win, target) {
+    var doc = win.document;
+    // getElementById fails on MacOSX Safari & Mozilla	
+    if (_jmol.useHtml4Object || _jmol.useIEObject)
+      return doc.getElementById(target);
+    else if (doc.applets)
+      return doc.applets[target];
+    else
+      return doc[target]; 
 }
 
 function _jmolAddScript(script) {
@@ -790,9 +916,9 @@ function _jmolMenuSelected(menuObject, targetSuffix) {
     jmolScript(_jmol.scripts[scriptIndex], targetSuffix);
     return;
   }
-  var length = menuObject.length;
-  if (typeof length == "number") {
-    for (var i = 0; i < length; ++i) {
+  var len = menuObject.length;
+  if (typeof len == "number") {
+    for (var i = 0; i < len; ++i) {
       if (menuObject[i].selected) {
         _jmolClick(menuObject[i].value, targetSuffix);
 	return;
@@ -802,8 +928,60 @@ function _jmolMenuSelected(menuObject, targetSuffix) {
   alert("?Que? menu selected bug #8734");
 }
 
+
+_jmol.checkboxMasters = new Array();
+_jmol.checkboxItems = new Array();
+
+function jmolSetCheckboxGroup(chkMaster,chkBox) {
+	var id = chkMaster;
+	if(typeof(id)=="number")id = "jmolCheckbox" + id;
+	chkMaster = document.getElementById(id);
+	if (!chkMaster)alert("jmolSetCheckboxGroup: master checkbox not found: " + id);
+	var m = _jmol.checkboxMasters[id] = new Array();
+	m.chkMaster = chkMaster;
+	m.chkGroup = new Array();
+	for (var i = 1; i < arguments.length; i++){
+		var id = arguments[i];
+		if(typeof(id)=="number")id = "jmolCheckbox" + id;
+		checkboxItem = document.getElementById(id);
+		if (!checkboxItem)alert("jmolSetCheckboxGroup: group checkbox not found: " + id);
+		m.chkGroup[id] = checkboxItem;
+		_jmol.checkboxItems[id] = m;
+	}
+}
+
+function _jmolNotifyMaster(m){
+	//called when a group item is checked
+	var allOn = true;
+	var allOff = true;
+	for (var chkBox in m.chkGroup){
+		if(m.chkGroup[chkBox].checked)
+			allOff = false;
+		else
+			allOn = false;
+	}
+	if (allOn)m.chkMaster.checked = true;	
+	if (allOff)m.chkMaster.checked = false;
+	if ((allOn || allOff) && _jmol.checkboxItems[m.chkMaster.id])
+		_jmolNotifyMaster(_jmol.checkboxItems[m.chkMaster.id])
+}
+
+function _jmolNotifyGroup(m, isOn){
+	//called when a master item is checked
+	for (var chkBox in m.chkGroup){
+		var item = m.chkGroup[chkBox]
+		item.checked = isOn;
+		if (_jmol.checkboxMasters[item.id])
+			_jmolNotifyGroup(_jmol.checkboxMasters[item.id], isOn)
+	}
+}
+
 function _jmolCbClick(ckbox, whenChecked, whenUnchecked, targetSuffix) {
   _jmolClick(ckbox.checked ? whenChecked : whenUnchecked, targetSuffix);
+  if(_jmol.checkboxMasters[ckbox.id])
+	_jmolNotifyGroup(_jmol.checkboxMasters[ckbox.id], ckbox.checked)
+  if(_jmol.checkboxItems[ckbox.id])
+	_jmolNotifyMaster(_jmol.checkboxItems[ckbox.id])
 }
 
 function _jmolCbOver(ckbox, whenChecked, whenUnchecked) {
@@ -839,5 +1017,415 @@ function _jmolOnloadResetForms() {
         previousOnloadHandler();
     }
   }
+}
+
+////////////////////////////////////
+/////extensions for getProperty/////
+////////////////////////////////////
+
+
+function _jmolEvalJSON(s,key){
+ s=s+""
+ if(!s)return []
+ if(s.charAt(0)!="{"){
+	if(s.indexOf(" | ")>=0)s=s.replace(/\ \|\ /g, "\n")
+	return s
+ }
+ var A = eval("("+s+")")
+ if(!A)return
+ if(key && A[key])A=A[key]
+ return A
+}
+
+function _jmolEnumerateObject(A,key){
+ var sout=""
+ if(typeof(A) == "string" && A!="null"){
+	sout+="\n"+key+"=\""+A+"\""
+ }else if(!isNaN(A)||A==null){
+	sout+="\n"+key+"="+(A+""==""?"null":A)
+ }else if(A.length){
+    sout+=key+"=new Array()"
+    for(var i=0;i<A.length;i++){
+	sout+="\n"
+	if(typeof(A[i]) == "object"||typeof(A[i]) == "array"){
+		sout+=_jmolEnumerateObject(A[i],key+"["+i+"]")
+	}else{
+		sout+=key+"["+i+"]="+(typeof(A[i]) == "string" && A[i]!="null"?"\""+A[i].replace(/\"/g,"\\\"")+"\"":A[i])
+	}
+    }
+ }else{
+    if(key != ""){
+	sout+=key+"=new Array()"
+	key+="."
+    }
+    
+    for(var i in A){
+	sout+="\n"
+	if(typeof(A[i]) == "object"||typeof(A[i]) == "array"){
+		sout+=_jmolEnumerateObject(A[i],key+i)
+	}else{
+		sout+=key+i+"="+(typeof(A[i]) == "string" && A[i]!="null"?"\""+A[i].replace(/\"/g,"\\\"")+"\"":A[i])
+	}
+    }
+ } 
+ return sout
+}
+
+
+function _jmolSortKey0(a,b){
+ return (a[0]<b[0]?1:a[0]>b[0]?-1:0)
+}
+
+function _jmolSortMessages(A){
+ if(!A || typeof(A)!="object")return []
+ var B = new Array()
+ for(var i=A.length-1;i>=0;i--)for(var j=0;j<A[i].length;j++)B[B.length]=A[i][j]
+ if(B.length == 0) return
+ B=B.sort(_jmolSortKey0)
+ return B
+}
+
+/////////additional extensions //////////
+
+
+function _jmolDomScriptLoad(URL){
+ //open(URL) //to debug
+ _jmol.servercall=URL
+ var node = document.getElementById("_jmolScriptNode")
+ if (node && _jmol.browser!="msie"){
+    document.getElementsByTagName("HEAD")[0].removeChild(node)
+    node=null
+ }
+ if (node) {
+   node.setAttribute("src",URL)
+ } else {
+   node=document.createElement("script")
+   node.setAttribute("id","_jmolScriptNode")
+   node.setAttribute("type","text/javascript")
+   node.setAttribute("src",URL)
+   document.getElementsByTagName("HEAD")[0].appendChild(node)
+ }
+}
+
+
+function _jmolExtractPostData(url){
+ S=url.split("&POST:")
+ var s=""
+ for(var i=1;i<S.length;i++){
+	KV=S[i].split("=")
+	s+="&POSTKEY"+i+"="+KV[0]
+	s+="&POSTVALUE"+i+"="+KV[1]
+ }
+ return "&url="+escape(S[0])+s
+}
+
+function _jmolLoadModel(targetSuffix,remoteURL,array,isError,errorMessage){
+ //called by server, but in client
+ //overload this function to customize return
+ _jmol.remoteURL=remoteURL
+ if(isError)alert(errorMessage)
+ jmolLoadInlineScript(array.join("\n"),_jmol.optionalscript,targetSuffix)
+}
+
+//////////user property/status functions/////////
+
+function jmolGetStatus(strStatus,targetSuffix){
+ return _jmolSortMessages(jmolGetPropertyAsArray("jmolStatus",strStatus,targetSuffix))
+}
+
+function jmolGetPropertyAsArray(sKey,sValue,targetSuffix) {
+ return _jmolEvalJSON(jmolGetPropertyAsJSON(sKey,sValue,targetSuffix),sKey)
+}
+
+function jmolGetPropertyAsString(sKey,sValue,targetSuffix) {
+ var applet = _jmolGetApplet(targetSuffix);
+ if(!sValue)sValue=""
+ return (applet ? applet.getPropertyAsString(sKey,sValue) + "" : "")
+}
+
+function jmolGetPropertyAsJSON(sKey,sValue,targetSuffix) {
+ if(!sValue)sValue = ""
+ var applet = _jmolGetApplet(targetSuffix);
+ try {
+  return (applet ? applet.getPropertyAsJSON(sKey,sValue) + "" : "")
+ } catch(e) {
+  return ""
+ }
+}
+
+function jmolGetPropertyAsJavaObject(sKey,sValue,targetSuffix) {
+ if(!sValue)sValue = ""
+ var applet = _jmolGetApplet(targetSuffix);
+ return (applet ? applet.getProperty(sKey,sValue) : null)
+}
+
+
+function jmolDecodeJSON(s) {
+ return _jmolEnumerateObject(_jmolEvalJSON(s),"")
+}
+
+
+///////// synchronous scripting ////////
+
+function jmolScriptWait(script, targetSuffix) {
+  if(!targetSuffix)targetSuffix="0"
+  var Ret=jmolScriptWaitAsArray(script, targetSuffix)
+  var s = ""
+  for(i=Ret.length;--i>=0;)
+  for(j=0;j< Ret[i].length;j++)
+	s+=Ret[i][j]+"\n"
+  return s
+}
+
+function jmolEvaluate(molecularMath, targetSuffix) {
+
+  //carries out molecular math on a model
+
+  if(!targetSuffix)targetSuffix="0"
+  var result = "" + jmolGetPropertyAsJavaObject("evaluate", molecularMath, targetSuffix);
+  var s = result.replace(/\-*\d+/,"")
+  if (s == "" && !isNaN(parseInt(result)))return parseInt(result);
+  var s = result.replace(/\-*\d*\.\d*/,"")
+  if (s == "" && !isNaN(parseFloat(result)))return parseFloat(result);
+  return result;
+}
+
+function jmolScriptEcho(script, targetSuffix) {
+  // returns a newline-separated list of all echos from a script
+  if(!targetSuffix)targetSuffix="0"
+  var Ret=jmolScriptWaitAsArray(script, targetSuffix)
+  var s = ""
+  for(i=Ret.length;--i>=0;)
+  for(j=Ret[i].length;--j>=0;)
+        if (Ret[i][j][1] == "scriptEcho")s+=Ret[i][j][3]+"\n"
+  return s.replace(/ \| /g, "\n")
+}
+
+
+function jmolScriptMessage(script, targetSuffix) {
+  // returns a newline-separated list of all messages from a script, ending with "script completed\n"
+  if(!targetSuffix)targetSuffix="0"
+  var Ret=jmolScriptWaitAsArray(script, targetSuffix)
+  var s = ""
+  for(i=Ret.length;--i>=0;)
+  for(j=Ret[i].length;--j>=0;)
+        if (Ret[i][j][1] == "scriptStatus")s+=Ret[i][j][3]+"\n"
+  return s.replace(/ \| /g, "\n")
+}
+
+
+function jmolScriptWaitAsArray(script, targetSuffix) {
+ var ret = ""
+ try{
+  jmolGetStatus("scriptEcho,scriptMessage,scriptStatus,scriptError",targetSuffix)
+  if (script) {
+    _jmolCheckBrowser();
+    var applet=_jmolGetApplet(targetSuffix);
+    if (applet) ret += applet.scriptWait(script);
+    ret = _jmolEvalJSON(ret,"jmolStatus")
+    if(typeof ret == "object")
+	return ret
+  }
+ }catch(e){
+ }
+  return [[ret]]
+}
+
+
+
+////////////   save/restore orientation   /////////////
+
+function jmolSaveOrientation(id, targetSuffix) {  
+ if(!targetSuffix)targetSuffix="0"
+  return _jmol["savedOrientation"+id] = jmolGetPropertyAsArray("orientationInfo","info",targetSuffix).moveTo
+}
+
+function jmolRestoreOrientation(id, targetSuffix) {
+ if(!targetSuffix)targetSuffix="0"
+ var s=_jmol["savedOrientation"+id]
+ if (!s || s == "")return
+ s=s.replace(/1\.0/,"0")
+ return jmolScriptWait(s,targetSuffix)
+}
+
+function jmolRestoreOrientationDelayed(id, delay, targetSuffix) {
+ if(arguments.length < 2)delay=1;
+ if(!targetSuffix)targetSuffix="0"
+ var s=_jmol["savedOrientation"+id]
+ if (!s || s == "")return
+ s=s.replace(/1\.0/,delay)
+ return jmolScriptWait(s,targetSuffix)
+}
+
+////////////  add parameter /////////////
+/*
+ * for adding callbacks or other parameters. Use:
+
+   jmolSetDocument(0)
+   var s= jmolApplet(....)
+   s = jmolAppletAddParam(s,"messageCallback", "myFunctionName")
+   document.write(s)
+   jmolSetDocument(document) // if you want to then write buttons and such normally
+ 
+ */
+
+function jmolAppletAddParam(appletCode,name,value){
+  if(value == "")return appletCode
+  return appletCode.replace(/\<param/,"\n<param name='"+name+"' value='"+value+"' />\n<param")
+}
+
+///////////////auto load Research Consortium for Structural Biology (RCSB) data ///////////
+
+function jmolLoadAjax_STOLAF_RCSB(fileformat,pdbid,optionalscript,targetSuffix){
+
+ if(!_jmol.thismodel)_jmol.thismodel = "1crn"
+ if(!_jmol.serverURL)_jmol.serverURL="http://fusion.stolaf.edu/chemistry/jmol/getajaxjs.cfm"
+ if(!_jmol.RCSBserver)_jmol.RCSBserver="http://www.rcsb.org"
+ if(!_jmol.defaultURL_RCSB)_jmol.defaultURL_RCSB=_jmol.RCSBserver+"/pdb/files/1CRN.CIF"
+ if(!fileformat)fileformat="PDB"
+ if(!pdbid)pdbid=prompt("Enter a 4-digit PDB ID:",_jmol.thismodel)
+ if(!pdbid || pdbid.length != 4)return ""
+ if(!targetSuffix)targetSuffix="0"
+ if(!optionalscript)optionalscript=""
+ var url=_jmol.defaultURL_RCSB.replace(/1CRN/g,pdbid.toUpperCase())
+ if(fileformat!="CIF")url=url.replace(/CIF/,fileformat)
+ _jmol.optionalscript=optionalscript
+ _jmol.thismodel=pdbid
+ _jmol.thistargetsuffix=targetSuffix
+ _jmol.thisurl=url
+ _jmol.modelArray = new Array()
+ url=_jmol.serverURL+"?returnfunction=_jmolLoadModel&returnArray=_jmol.modelArray&id="+targetSuffix+_jmolExtractPostData(url)
+ _jmolDomScriptLoad(url)
+ return url
+}
+
+/////////////// St. Olaf College AJAX server -- ANY URL ///////////
+
+function jmolLoadAjax_STOLAF_ANY(url, userid, optionalscript,targetSuffix){
+ _jmol.serverURL="http://fusion.stolaf.edu/chemistry/jmol/getajaxjs.cfm"
+ if(!_jmol.thisurlANY)_jmol.thisurlANY = "http://www.stolaf.edu/depts/chemistry/mo/struc/data/ycp3-1.mol"
+ if(!url)url=prompt("Enter any (uncompressed file) URL:", _jmol.thisurlANY)
+ if(!userid)userid="0"
+ if(!targetSuffix)targetSuffix="0"
+ if(!optionalscript)optionalscript=""
+ _jmol.optionalscript=optionalscript
+ _jmol.thistargetsuffix=targetSuffix
+ _jmol.modelArray = new Array()
+ _jmol.thisurl = url
+ url=_jmol.serverURL+"?returnfunction=_jmolLoadModel&returnArray=_jmol.modelArray&id="+targetSuffix+_jmolExtractPostData(url)
+ _jmolDomScriptLoad(url)
+}
+
+
+/////////////// Mineralogical Society of America (MSA) data /////////
+
+function jmolLoadAjax_MSA(key,value,optionalscript,targetSuffix){
+
+ if(!_jmol.thiskeyMSA)_jmol.thiskeyMSA = "mineral"
+ if(!_jmol.thismodelMSA)_jmol.thismodelMSA = "quartz"
+ if(!_jmol.ajaxURL_MSA)_jmol.ajaxURL_MSA="http://rruff.geo.arizona.edu/AMS/result.php?mineral=quartz&viewing=ajaxjs"
+ if(!key)key=prompt("Enter a field:", _jmol.thiskeyMSA)
+ if(!key)return ""
+ if(!value)value=prompt("Enter a "+key+":", _jmol.thismodelMSA)
+ if(!value)return ""
+ if(!targetSuffix)targetSuffix="0"
+ if(!optionalscript)optionalscript=""
+ if(optionalscript == 1)optionalscript='load "" {1 1 1}'
+ var url=_jmol.ajaxURL_MSA.replace(/mineral/g,key).replace(/quartz/g,value)
+ _jmol.optionalscript=optionalscript
+ _jmol.thiskeyMSA=key
+ _jmol.thismodelMSA=value
+ _jmol.thistargetsuffix=targetSuffix
+ _jmol.thisurl=url
+ _jmol.modelArray = new Array()
+ loadModel=_jmolLoadModel
+ _jmolDomScriptLoad(url)
+ return url
+}
+
+
+
+function jmolLoadAjaxJS(url, userid, optionalscript,targetSuffix){
+ if(!userid)userid="0"
+ if(!targetSuffix)targetSuffix="0"
+ if(!optionalscript)optionalscript=""
+ _jmol.optionalscript=optionalscript
+ _jmol.thismodel=userid
+ _jmol.thistargetsuffix=targetSuffix
+ _jmol.modelArray = new Array()
+ _jmol.thisurl = url
+ url+="&returnFunction=_jmolLoadModel&returnArray=_jmol.modelArray&id="+targetSuffix
+ _jmolDomScriptLoad(url)
+}
+
+
+//// in case Jmol library has already been loaded:
+
+}catch(e){}
+
+///////////////moving atoms //////////////
+
+// HIGHLY experimental!!
+
+function jmolSetAtomCoord(i,x,y,z,targetSuffix){
+    _jmolCheckBrowser();
+      var applet=_jmolGetApplet(targetSuffix);
+      if (applet) applet.getProperty('jmolViewer').setAtomCoord(i,x,y,z)
+}
+
+function jmolSetAtomCoordRelative(i,x,y,z,targetSuffix){
+    _jmolCheckBrowser();
+      var applet=_jmolGetApplet(targetSuffix);
+      if (applet) applet.getProperty('jmolViewer').setAtomCoordRelative(i,x,y,z)
+}
+
+
+///////////////applet fake for testing buttons/////////////
+
+
+if(document.location.search.indexOf("NOAPPLET")>=0){
+	jmolApplet = function(w){
+		var s="<table style='background-color:black' width="+w+"><tr height="+w+">"
+		+"<td align=center valign=center style='background-color:white'>"
+		+"Applet would be here"
+		+"<p><textarea id=fakeApplet rows=5 cols=50></textarea>"
+		+"</td></tr></table>"
+		return _jmolDocumentWrite(s)
+	}
+
+	_jmolFindApplet = function(){return jmolApplet0}
+
+	jmolApplet0 = {
+	 script: function(script){document.getElementById("fakeApplet").value="\njmolScript:\n"+script}
+	,scriptWait: function(script){document.getElementById("fakeApplet").value="\njmolScriptWait:\n"+script}	
+	,loadInline: function(data,script){document.getElementById("fakeApplet").value="\njmolLoadInline data:\n"+data+"\n\nscript:\n"+script}
+	}
+}
+
+
+///////////////////////////////////////////
+
+//new 9:49 AM 3/6/2007:
+
+//both w and h are optional. 
+//if either is between 0 and 1, then it is taken as percent/100.
+//if either is greater than 1, then it is taken as a size. 
+function jmolResize(w,h) {
+ _jmol.alerted = true;
+ var percentW = (!w ? 100 : w <= 1  && w > 0 ? w * 100 : 0)
+ var percentH = (!h ? percentW : h <= 1 && h > 0 ? h * 100 : 0)
+ if (_jmol.browser=="msie") {
+   var width=document.body.clientWidth;
+   var height=document.body.clientHeight;
+ } else {
+   var netscapeScrollWidth=15;
+   var width=window.innerWidth - netscapeScrollWidth;
+   var height=window.innerHeight-netscapeScrollWidth;
+ }
+ var applet = _jmolGetApplet(0);
+ if(!applet)return;
+ applet.style.width = (percentW ? width * percentW/100 : w)+"px"
+ applet.style.height = (percentH ? height * percentH/100 : h)+"px"
+ title=width +  " " + height + " " + (new Date())
 }
 
