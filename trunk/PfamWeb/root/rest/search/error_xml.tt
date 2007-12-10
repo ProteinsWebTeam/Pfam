@@ -1,0 +1,14 @@
+[% 
+# error_xml.tt
+# jt6 20071128 WTSI
+#
+# template for returning an error message. Specifically intended for use when
+# submitting a sequence search and requesting XML output
+#
+# $Id: error_xml.tt,v 1.1 2007-12-10 14:55:53 jt6 Exp $
+
+META naked = 1;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<error>[% seqSearchError %]</error>
