@@ -1,0 +1,21 @@
+[% 
+# pfamb_xml.tt
+# jt6 20071127 WTSI
+#
+# template for serialising Pfam-B data to XML format
+#
+# $Id: pfamb_xml.tt,v 1.1 2007-12-10 14:55:09 jt6 Exp $
+
+USE date;
+
+META naked = 1 
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- information on Pfam-B family [% pfam.pfamB_acc %] ([% pfam.pfamB_id %]), generated: [% date.format %] -->
+<pfam accession="[% pfam.pfamB_acc %]" id="[% pfam.pfamB_id %]">
+  <curation_details>
+    <num_archs>[% pfam.number_archs %]</num_archs>
+    <num_regions>[% pfam.number_regions %]</num_regions>
+  </curation_details>
+</pfam>
