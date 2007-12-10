@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.29 2007-09-20 16:06:25 jt6 Exp $
+// $Id: family.js,v 1.30 2007-12-10 15:01:10 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -28,16 +28,6 @@
 // this will make the ajax calls for the family page components
 
 function familyPostLoad() {
-  // structure image
-  if( typeof( loadOptions.si.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.si.uri,
-                      { method:     'get', 
-                        parameters: loadOptions.si.params,
-                        onSuccess:  siSuccess
-                        // not even bothering with a failure callback...
-                      } );
-  }
-  
   // domain graphics
   if( typeof( loadOptions.dg.uri ) != "undefined" ) {
     new Ajax.Request( loadOptions.dg.uri,
@@ -47,7 +37,6 @@ function familyPostLoad() {
                         onFailure:  dgFailure
                       } );
   }
-	
   // species tree
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
     new Ajax.Request( loadOptions.st.uri,
@@ -57,7 +46,6 @@ function familyPostLoad() {
                       onFailure:  stFailure
                     } );
   }
-
   // alignment tree
   if( typeof( loadOptions.at.uri ) != "undefined" ) {
     new Ajax.Request( loadOptions.at.uri,
@@ -85,13 +73,6 @@ function familyPostLoad() {
                         onFailure:  caFailure
                       } );
   }
-}
-
-//------------------------------------------------------------
-// callback for the structure image call
-
-function siSuccess( oResponse ) {
-  $("siph").update( oResponse.responseText );
 }
 
 //------------------------------------------------------------
