@@ -3,9 +3,19 @@
 	<name>PfamLib</name>
 	<comment></comment>
 	<projects>
+		<project>PfamConfig</project>
+		<project>PfamConfigWTSI</project>
+		<project>PfamSchemata</project>
+		<project>PfamWeb</project>
 	</projects>
 	<buildSpec>
+		<buildCommand>
+			<name>org.epic.perleditor.perlbuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
+		<nature>org.epic.perleditor.perlnature</nature>
 	</natures>
 </projectDescription>
