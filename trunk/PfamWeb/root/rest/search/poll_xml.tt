@@ -1,0 +1,23 @@
+[% 
+# poll_xml.tt
+# jt6 20071128 WTSI
+#
+# template for returning the URL for the results of a sequence search
+#
+# $Id: poll_xml.tt,v 1.1 2007-12-10 14:56:15 jt6 Exp $
+
+USE dumper;
+
+META naked = 1;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs>
+[% FOREACH job IN jobStatus -%]
+  <job job_id="[% job.jobId %]" type="[% job.jobClass %]">
+    <opened>[% job.opened %]</opened>
+    <estimated_time>[% job.estimatedTime %]</estimated_time>
+    <result_url>[% job.doneURI %]?output=xml&jobId=[% job.jobId %]</result_url>
+  </job>
+[% END -%]
+</jobs>
