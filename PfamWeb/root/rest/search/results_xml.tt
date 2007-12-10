@@ -1,0 +1,91 @@
+[% 
+# results_xml.tt
+# jt6 20071129 WTSI
+#
+# template for returning the results of a sequence search as XML
+#
+# $Id: results_xml.tt,v 1.1 2007-12-10 14:56:32 jt6 Exp $
+
+USE dumper;
+
+META naked = 1;
+
+# get the length of the first sequence. Since all of the results are for the
+# same search string, this should be fine. Pretty ugly though.
+seqLength = results.${results.keys.shift}.length;
+
+# build hashes of hits, keyed on the family ID  
+a_hits = {};
+b_hits = {};
+FOREACH row IN genPfamARes;
+  IF ! a_hits.${row.pfama_id}.defined;
+    a_hits.${row.pfama_id} = [];
+  END;
+  a_hits.${row.pfama_id}.push( row );  
+END;
+FOREACH row IN genPfamBRes;
+  IF ! b_hits.${row.pfamb_id}.defined;
+    b_hits.${row.pfamb_id} = [];
+  END;
+  b_hits.${row.pfamb_id}.push( row );  
+END;
+
+# get the length of the first sequence. Since all of the results are for the
+# same search string, this should be fine. Pretty ugly though.
+seqLength = results.${results.keys.shift}.length;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+[% IF results.keys.size -%]
+<pfam pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
+  <results>
+    <matches>
+      <protein length="[% seqLength %]">
+        <database id="pfam" pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
+[% 
+# Pfam-A hits
+FOREACH hitId IN a_hits.keys;
+  hit = a_hits.${hitId} -%]
+          <match accession="[% hit.0.pfama_acc %]" id="[% hit.0.pfama_id %]" type="Pfam-A" class="[% hit.0.type %]">
+[% 
+# location lines
+FOREACH row IN hit;
+
+  # decide whether this location (hit) is significant or not
+  significant = 0;
+  IF hit.0.mode == 'ls' AND row.bits >= hit.0.ls_domain_GA;
+    significant = 1;
+  END;
+  IF hit.0.mode == 'fs' AND row.bits >= hit.0.fs_domain_GA;
+    significant = 1;
+  END; 
+-%]
+            <location start="[% row.start %]" end="[% row.end %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" mode="[% hit.0.mode %]" evidence="hmmer v[% relData.hmmer_version %]" significant="[% significant %]" />
+[% END -%]
+          </match>
+[% END; # of Pfam-A hits
+  
+# Pfam-B hits
+FOREACH hitId IN b_hits.keys;
+  hit = b_hits.${hitId} -%]
+          <match accession="[% hit.0.pfamb_acc %]" id="[% hit.0.pfamb_id %]" type="Pfam-B">
+[% FOREACH row IN hit -%]
+            <location start="[% row.start %]" end="[% row.end %]" pvalue="[% row.pvalue %]" score="[% row.score %]" evidence="blast" />
+[% END -%]
+          </match>
+[% END -%]
+        </database>
+      </protein>
+    </matches>
+  </results>
+</pfam>
+[% 
+
+# no results yet...
+
+ELSE;
+ -%]
+<pfam pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
+  <results />
+</pfam>
+[% END; # of "if results..." -%]
