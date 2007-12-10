@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.23 2007-11-05 13:38:19 jt6 Exp $
+# $Id: align.tt,v 1.24 2007-12-10 14:46:15 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -23,7 +23,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       we store. You can use a sequence viewer to look at either the seed or
       full alignment for the family, or you can look at a plain text version
       of the sequence in a variety of different formats.
-      <span onclick="reveal( this, 'alignmentsNotes', false, true )"
+      <span onclick="reveal( this, 'alignmentsNotes', false, true );"
             class="moreLink">
         More...</span>
     </p>
@@ -55,9 +55,9 @@ alignmentUri = c.uri_for( "/family/alignment" );
           Pfam viewer
         </dt>
         <dd>
-          an HTML-based viewer that uses <acronym title="Distributed
-          Annotation System">DAS</acronym> to retrieve alignment fragments on
-          request
+          an HTML-based viewer that uses 
+          <acronym title="Distributed Annotation System">DAS</acronym> 
+          to retrieve alignment fragments on request
         </dd>
       </dl>
       <h3>Downloading</h3>
@@ -126,7 +126,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
           </tbody>
         </table>
   
-        <input type="button" value="View" onclick="launch()" />
+        <input type="button" value="View" onclick="launch();" />
   
       </div>
     </form>
