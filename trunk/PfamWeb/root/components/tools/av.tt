@@ -5,9 +5,133 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.8 2007-11-05 13:38:18 jt6 Exp $
+# $Id: av.tt,v 1.9 2007-12-10 14:50:48 jt6 Exp $
 
 META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "av.css" );
+requirements.cssIeAll.push( "av_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+
+USE String;
+
+#----------------------------------------
+
+# build the script for AstexViewer
+
+avScript = BLOCK;
+
+# set the background -%]
+background '0xEEEEEE';
+
+[%- # load the PDB file from the server -%]
+molecule load mol '[% c.uri_for( "/structure/getpdbfile", pdbId ) %].pdb';
+
+[%- # hide the default wireframe display of atoms -%]
+display lines off all;
+
+[%- # colour the whole backbone a dull grey initially -%]
+color '0xDDDDDD' aminoacid;
+
+[% # for each Pfam domain on the structure:
+   #   colour the backbone according to the colour that we get from the DB
+   #   add a surface of the same colour
+   #   make the surface slightly transparent
+
+# keep a list of the regions that are assigned to Pfam domains, so that we
+# can later invert that to draw surfaces around regions that are not in 
+# Pfam domains
+unassigned = String.new( "select aminoacid; " );
+
+FOREACH m IN mapping;
+  NEXT UNLESS m.hex_colour;
+
+  # add an "exclude" selection command for this region
+  CALL unassigned.append( "exclude residue ${m.pdb_res_start} to ${ m.pdb_res_end }" );
+  CALL unassigned.append( " and chain '${m.chain}'" ) IF m.chain;
+  CALL unassigned.append( "; " );
+  
+  # build a label for the surface from the chain ID and residue numbers. This
+  # label is stuffed into the mapping hash, so that we can use it later when
+  # building the key table at the bottom of the [age 
+  m.surfLabel = String.new( m.chain );
+  CALL m.surfLabel.append( m.pdb_res_start, m.pdb_res_end ) -%]
+  
+  color 
+    '0x[% m.hex_colour ? m.hex_colour : "red" %]' 
+    residue [% m.pdb_res_start %] to [% m.pdb_res_end %]
+    [% IF m.chain %]and chain '[% m.chain %]'[% END %];
+  surface -solid true
+    surface_[% m.surfLabel %]
+    '0x[% m.hex_colour ? m.hex_colour : "red" %]'
+    residue [% m.pdb_res_start %] to [% m.pdb_res_end %]
+    [% IF m.chain %]and chain '[% m.chain %]'[% END %];
+  object 
+    surface_[% m.surfLabel %]
+    transparency 200;
+[% END;
+
+# calculate the secondary structure composition of the protein -%]
+secstruc molecule mol;
+
+[%- # actually draw the secondary structure cartoon. The cartoon will adopt the 
+    # colours that we just assigned above -%]
+schematic -name cartoonObj molecule mol;
+
+[%- # if there are markups for individual residues, we add them to the view.
+    # First, color all atoms according to their type and set the radius for
+    # the bonds to be a little larger than default
+IF markups.size %]
+  color_by_atom;
+  cylinder_radius 10 aminoacid;
+[% END;
+
+# and now set the colour for each marked-up residue 
+FOREACH markup IN markups;
+  IF markup.auto_markup == 1 %]
+    color 
+      '255,51,102'
+      residue [% markup.pdb_seq_number %]
+      [% IF markup.chain %]and chain '[% markup.chain %]'[% END %];
+
+  [%- ELSIF markup.auto_markup == 2 %]
+    color
+      '153,0,204'
+      residue [% markup.pdb_seq_number %]
+      [% IF markup.chain %]and chain '[% markup.chain %]'[% END %];
+
+  [%- ELSE %]
+    select 
+      residue [% markup.pdb_seq_number %]
+      [% IF markup.chain %]and chain '[% markup.chain %]'[% END %];
+  [%- END;
+  
+  # actually draw the residue -%]
+  display 
+    sticks
+    on 
+    residue [% markup.pdb_seq_number %]
+    [% IF markup.chain %]and chain '[% markup.chain %]'[% END %];
+[%- END;
+
+# as the last thing in the script, put a surface around unassigned residues
+# NOTE: not using "CALL" here, because we actually want the output to appear
+# in the script
+unassigned.append( "surface -solid true surface_unassigned '0xE7E7E7' current; " );
+
+# set the transparency for the "unassigned" surface too -%]
+object surface_unassigned transparency 200;
+
+[% END;
+
+#----------------------------------------
+# build the page itself
 
 pageContent = BLOCK;
 
@@ -21,57 +145,81 @@ title = "AstexViewer"
   // ]]>
 </script>
 
+<div id="explanation">
 <h1>PDB entry [% pdb.pdb_id %]</h1>
+<p>
+  The applet to the left shows the structure of PDB entry, along with the 
+  Pfam domains that map onto that structure. 
+</p>
+<p>
+  The <em>protein backbone</em> is drawn as secondary structure elements, 
+  and is coloured according to the Pfam domains found on the structure.
+  Regions of the protein that represent Pfam domains are also surrounded
+  by a semi-transparent <em>molecular surface</em>, representing the van 
+  der Waal&apos;s surface for the atoms that fall within the domain. Regions 
+  of protein that are not assigned to a Pfam-A region are shown in grey.
+</p>
+<p>
+  Molecular surfaces can be turned on and off using the buttons in the table 
+  below. Details of the mapping between the PDB structure, UniProt sequence and 
+  Pfam domain are also given in the table.
+</p>
+<p>
+  All surfaces are initially drawn as semi-transparent membranes, but you 
+  may find it quicker to manipulate the view if the surfaces are drawn as
+  solids. <span class="link" onclick="toggleTransparency();">
+    Toggle surface transparency</span>.
+</p>
+</div>
 
-<applet width="500"
+<!--[if !IE]> Firefox and others will use outer object -->
+<object classid="java:MoleculeViewerApplet.class" 
+        id="av"
+        type="application/x-java-applet"
+        archive="[% c.uri_for( "/static/av/AstexViewer2.jar" ) %]" 
         height="500"
-        name="av"
-        code="MoleculeViewerApplet"
-        archive="[% c.uri_for( "/static/av/AstexViewer2.jar" ) %]">
-  <param name="script" value="
-background '0xE7E7E7';
-molecule load mol '[% c.uri_for( "/structure/getpdbfile", pdbId ) %].pdb';
-display lines off all;
-color '0xDDDDDD' aminoacid;
-[%- FOREACH m IN mapping;
-  IF m.hex_colour %]
-    color '0x[% m.hex_colour ? m.hex_colour : "red" %]' residue [% m.pdb_res_start %] to [% m.pdb_res_end %][% IF m.chain %] and chain [% m.chain ; END %];
-  [%- END;
-END -%]
-secstruc molecule mol;
-schematic -name cartoonObj
-          -quality 3
-          molecule mol;
-cylinder_radius 10 aminoacid;
-[%- FOREACH markup IN markups;
-  IF markup.auto_markup == 1 -%]
-    color '255,51,102' residue [% markup.pdb_seq_number %][% IF markup.chain %] and chain [% markup.chain ; END %];
-  [%- ELSIF markup.auto_markup == 2 -%]
-    color '153,0,204' residue [% markup.pdb_seq_number %][% IF markup.chain %] and chain [% markup.chain ; END %];
-  [%- ELSE -%]
-    select residue [% markup.pdb_seq_number %][% IF markup.chain %] and chain [% markup.chain ; END %];
-    color_by_atom;
-  [%- END -%]
-  display sticks on residue [% markup.pdb_seq_number %][% IF markup.chain %] and chain [% markup.chain ; END %];
-[%- END -%]
-select none;
-/*
-surface -solid true surfObj '0xE7E7E7' aminoacid;
-object surfObj transparency 128;
-texture close simple;
-object surfObj texture close;
-object surfObj -map { current }; 
-*/
-" />
-</applet>
+        width="500">
+  <!-- Konqueror browser needs the following param -->
+  <param name="archive" value="[% c.uri_for( "/static/av/AstexViewer2.jar" ) %]" />
+  <param name="script" value="[% avScript %]" />
+<!--<![endif]-->
+  <!-- MSIE (Microsoft Internet Explorer) will use inner object --> 
+  <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
+          id="avIE"
+          codebase="http://java.sun.com/update/1.5.0/jinstall-1_5_0-windows-i586.cab"
+          height="500"
+          width="500">
+    <param name="archive" value="[% c.uri_for( "/static/av/AstexViewer2.jar" ) %]" />
+    <param name="code" value="MoleculeViewerApplet" />
+    <param name="script" value="[% avScript %]" />
+    <strong>
+      This browser does not have a Java Plug-in.
+      <br />
+      <a href="http://java.sun.com/products/plugin/downloads/index.html">
+        Get the latest Java Plug-in here.
+      </a>
+    </strong>
+  </object> 
+<!--[if !IE]> close outer object -->
+</object>
+<!--<![endif]-->
 
-<table class="details" summary="Mappings from PDB to UniProt to Pfam">
+[% 
+imageUri   = c.uri_for( "/static/images" );
+showButton = "${imageUri}/showButton.png";
+hideButton = "${imageUri}/hideButton.png";
+%]
+
+<table class="details"
+       summary="Mappings from PDB to UniProt to Pfam"
+       style="width:100%">
   <thead>
     <tr class="caption">
       <th colspan="3">PDB</th>
       <th colspan="3">UniProt</th>
       <th rowspan="2">Pfam family</th>
       <th rowspan="2">Colour</th>
+      <th rowspan="2">Show/hide surface</th>
     </tr>
     <tr class="caption">
       <th>Chain</th>
@@ -85,7 +233,7 @@ object surfObj -map { current };
   <tbody>
     [% oe = 0;
     FOREACH m IN mapping %]
-    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
+    <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
       <td>[% IF m.chain; m.chain; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
@@ -94,8 +242,22 @@ object surfObj -map { current };
       <td>[% m.seq_end %]</td>
       <td><a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]">[% m.pfamA_id %]</a> (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]" target="pfamParentWin">[% m.pfamA_acc %]</a>)</td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
+      <td>
+        <img src="[% hideButton %]" 
+             onclick="toggleSurface('surface_[% m.surfLabel %]', this )"
+             alt="Show/hide surface" />
+      </td>
     </tr>
     [% END %]
+    <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
+      <td colspan="7">Not assigned to a Pfam-A region</td>
+      <td style="background: #e7e7e7">&nbsp;</td>
+      <td>
+        <img src="[% hideButton %]" 
+             onclick="toggleSurface('surface_unassigned', this )"
+             alt="Show/hide surface" />
+      </td>
+    </tr>
   </tbody>
 </table>
 
@@ -103,6 +265,30 @@ object surfObj -map { current };
   <a href="#" onclick="window.close()" class="closer">Close window</a>
 </div>
 
-[% END # of "pageContent = BLOCK" %]
+<script type="text/javascript">
+  // <![CDATA[
+  function toggleSurface( sId, oSwitch ) {
+    var av = document.getElementById( "av" );
+    if( av == null ) {
+      av = document.getElementById( "avIE" );
+    }
+    av.execute( "object " + sId + " display toggle;");
+    if( '[% showButton %]' == oSwitch.src ) {
+      oSwitch.src = '[% hideButton %]';
+    } else {
+      oSwitch.src = '[% showButton %]';
+    }
+  }
+  var transparent = true;
+  function toggleTransparency() {
+    var av = document.getElementById( "av" );
+    var transparency = transparent ? 255 : 200;
+    transparent = ! transparent;
+    av.execute( 'object surface_* transparency ' + transparency + ';' );
+  }
+  // ]]>  
+</script>
 
-[% PROCESS components/tools/toolWindow.tt %]
+[% END; # of "pageContent = BLOCK"
+
+PROCESS components/tools/toolWindow.tt %]
