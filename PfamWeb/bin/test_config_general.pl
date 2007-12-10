@@ -30,7 +30,10 @@ die "No such file" unless( $ARGV[0] and -f $ARGV[0] );
 
 my $conf;
 eval {
-  $conf = new Config::General( $ARGV[0] );
+  #$conf = new Config::General( $ARGV[0] );
+  $conf = new Config::General( -ConfigFile => $ARGV[0],
+                               -IncludeRelative => 1,
+                               -UseApacheInclude => 1 );
 };
 if( $@ ) {
   die "error: problem parsing configuration file:\n$@";
