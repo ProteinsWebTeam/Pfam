@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.12 2007-11-05 14:38:39 jt6 Exp $
+# $Id: changes.tt,v 1.13 2007-12-10 14:48:31 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -47,11 +47,13 @@
         Show</span> past changes.
     </p>
 
-    <div id="dataChanges" style="display: none">
+    <div id="dataChanges" 
+         class="pastChanges"
+         style="display: none">
 
-      <h3>Past changes</h3>
+      <h2>Past changes</h2>
       
-      <h4>Changes between Pfam releases 20 and 21</h4>
+      <h3>Changes between Pfam releases 20 and 21</h3>
 
       <p>
         Release 21.0 contains a total of 8957 families, with 669 new families 
@@ -78,7 +80,7 @@
         a monomer.
       </p>
       
-      <h4>Changes between Pfam releases 19 and 20</h4>
+      <h3>Changes between Pfam releases 19 and 20</h3>
   
       <p>
         Release 20.0 contains a total of 8296 families, with 123 new
@@ -88,7 +90,7 @@
         within Pfam domains.
        </p>
      
-      <h4>Changes between Pfam releases 18 and 19</h4>
+      <h3>Changes between Pfam releases 18 and 19</h3>
   
       <p>
         Pfam 19.0 is based on UniProt 6.1 (a composite of SWISSPROT
@@ -100,7 +102,7 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
   
-      <h4>Format Change</h4>
+      <h3>Format Change</h3>
   
       <p>
          The active site markup in Pfam has changed. The feature name AS
@@ -135,7 +137,7 @@
       #=GR YN14_YEAST/124-327 sAS       ........*.................
       </pre>
     
-      <h4>Changes between Pfam releases 17 and 18</h4>
+      <h3>Changes between Pfam releases 17 and 18</h3>
     
       <p>
         Pfam 18.0 is based on UniProt 5.0 (a composite of SWISSPROT
@@ -147,7 +149,7 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
     
-      <h4>Format Change</h4>
+      <h3>Format Change</h3>
     
       <p>
         In previous versions of Pfam, nested domains in alignments were
@@ -155,7 +157,7 @@
         version 18.0.
         </p>
     
-      <h4>Changes between Pfam releases 16 and 17</h4>
+      <h3>Changes between Pfam releases 16 and 17</h3>
     
       <p>
         Pfam 17.0 is based on UniProt 4.0 (a composite of SWISSPROT
@@ -167,7 +169,7 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
     
-        <h4>New clans</h4>
+        <h3>New clans</h3>
     
       <p>
         Since the last release, we have added over 70 new clans -
@@ -177,7 +179,7 @@
         of the clan members SEED alignments.
       </p>
     
-      <h4>New graphical views</h4>
+      <h3>New graphical views</h3>
     
       <p>
         After initial deployment and testing of this release we will
@@ -186,7 +188,7 @@
         over.
       </p>
     
-      <h4>Changes between Pfam releases 15 and 16</h4>
+      <h3>Changes between Pfam releases 15 and 16</h3>
     
       <p>
         Pfam 16.0 is based on UniProt 2.5 (a composite of SWISSPROT
@@ -198,14 +200,14 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
     
-      <h4>MySQL database documentation</h4>
+      <h3>MySQL database documentation</h3>
     
       <p>
         Comprehensive documentation on the Pfam MySQL database is now
         provided.
       </p>
     
-      <h4>Changes between Pfam releases 14 and 15</h4>
+      <h3>Changes between Pfam releases 14 and 15</h3>
     
       <p>
         Pfam 15.0 is based on UniProt 2.0 (a composite of SWISSPROT
@@ -217,7 +219,7 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
     
-      <h4>Changes between Pfam releases 13 and 14</h4>
+      <h3>Changes between Pfam releases 13 and 14</h3>
     
       <p>
         Pfam 14.0 is based on UniProt 1.8 (a composite of SWISSPROT
@@ -230,7 +232,7 @@
         within Pfam entries.
       </p>
     
-      <h4>New look website</h4>
+      <h3>New look website</h3>
     
       <p>
         The Pfam website has undergone some changes. The tabs have been
@@ -238,7 +240,7 @@
         feedback on the new layout then please let us know.
       </p>
     
-      <h4>Changes between Pfam releases 12 and 13</h4>
+      <h3>Changes between Pfam releases 12 and 13</h3>
     
       <p>
         Pfam 13.0 is based on UniProt 1.4 (a composite of SWISSPROT
@@ -251,7 +253,7 @@
         within Pfam entries.
       </p>
     
-      <h4>iPfam</h4>
+      <h3>iPfam</h3>
     
       <p>
         Released during the last release, a new resource called iPfam
@@ -263,7 +265,7 @@
         on the FTP site.
       </p>
     
-      <h4>Clans</h4>
+      <h3>Clans</h3>
     
       <p>
         Pfam release 13 sees the introduction of Clans. Clans are
@@ -277,7 +279,7 @@
         of the families within the clan.
       </p>
     
-      <h4>Versions in the HMMs</h4>
+      <h3>Versions in the HMMs</h3>
     
       <p>
         In the flatfiles and when HMMs are downloads, Pfam families now
@@ -288,7 +290,7 @@
         numbers are obsolete for the website.
       </p>
     
-      <h4>Changes between Pfam releases 11 and 12</h4>
+      <h3>Changes between Pfam releases 11 and 12</h3>
     
       <p>
         Pfam 12.0 is based in a composite of SWISSPROT release 42.5 and
@@ -300,7 +302,7 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
     
-      <h4>Genomes</h4>
+      <h3>Genomes</h3>
     
       <p>
         This is a new section in Pfam that allows users to browse
@@ -308,7 +310,7 @@
         different genomes.
       </p>
     
-      <h4>Changes between Pfam releases 10 and 11</h4>
+      <h3>Changes between Pfam releases 10 and 11</h3>
     
       <p>
         Pfam 11.0 is based in a composite of SWISSPROT release 41.25 and
@@ -326,9 +328,9 @@
         system.
       </p>
     
-      <h4>Changes between Pfam releases 9 and 10</h4>
+      <h3>Changes between Pfam releases 9 and 10</h3>
     
-      <h4>Alignment mode</h4>
+      <h3>Alignment mode</h3>
     
       <p>
         The previous major release, Pfam 7.0, introduced full alignments
@@ -343,7 +345,7 @@
         full alignment.
       </p>
     
-      <h4>Context Domains</h4>
+      <h3>Context Domains</h3>
     
       <p>
         This release of Pfam also includes the full implementation of
@@ -353,7 +355,7 @@
         as likely matches. More information is available.
       </p>
     
-      <h4>Nested Domains</h4>
+      <h3>Nested Domains</h3>
     
       <p>
         Pfam 8.0 also allows some overlaps between families when one
@@ -364,7 +366,7 @@
         information is available.
       </p>
     
-      <h4>Alignment mark up</h4>
+      <h3>Alignment mark up</h3>
     
       <p>
         Pfam alignments are now supplied with the consensus sequence for
@@ -374,7 +376,7 @@
         by Nigel Brown at EMBL.
       </p>
     
-      <h4>Changes between Pfam releases 7 and 8</h4>
+      <h3>Changes between Pfam releases 7 and 8</h3>
     
       <p>
         Pfam 8.0 is based in a composite of SWISSPROT release 40.31 and
@@ -386,7 +388,7 @@
         all residues in the sequence database fall within Pfam entries.
       </p>
     
-      <h4>Alignment mode</h4>
+      <h3>Alignment mode</h3>
     
       <p>
         The previous major release, Pfam 7.0, introduced full alignments
@@ -398,7 +400,7 @@
         partial matches are taken before global matches.
       </p>
     
-      <h4>Changes between Pfam releases 6 and 7</h4>
+      <h3>Changes between Pfam releases 6 and 7</h3>
     
       <p>
         Pfam 7.0 is based on a composite of SWISSPROT release 40 and
@@ -433,23 +435,65 @@
 
     <h2>Latest changes to website</h2>
 
-    <h3>Release 1.3 (5th November 2007)</h3>
+    <h3>Release 1.4 (10th December 2007)</h3>
 
-    <p>
-      This is an internal release, for testing purposes only.
-    </p>
-    
+    <ul>
+      <li><strong>New help section on privacy:</strong>
+        we now have a brief overview of the privacy issues surrounding use
+        of the Pfam website.          
+      </li>
+      <li><strong>New features notification:</strong>
+        the index page includes a section listing those features that have
+        been added to the site since your last visit.          
+      </li>
+      <li><strong>Tooltips on domain graphics:</strong>
+        as you move your mouse over domain graphics you should now see small
+        tooltips which give details of the domain under the cursor, as in the
+        old Pfam website.          
+      </li>
+      <li><strong>Molecular surfaces in AstexViewer:</strong>
+        when you view a protein structure using AstexViewer, you will now see
+        the Pfam-A regions outlined with a semi-transparent molecular surface.          
+      </li>
+      <li><strong>Links underlined:</strong>
+        all links should now be underlined, either permananently, or when you 
+        move your mouse over them.          
+      </li>
+      <li><strong>Change status:</strong>
+        the page for a Pfam-A family now shows whether the family has changed
+        since the previous Pfam release.
+      </li>
+      <li><strong>Sequence display:</strong>
+        the page for a protein sequence now shows the correct sequence for the
+        entry. Previously duplicated the first residue in the sequence.
+      </li>
+      <li><strong>Sequence search defaults changed:</strong>
+        the defaults for the Pfam sequence search in the homepage have been
+        changed, so that the search now produces results from both
+        &quot;ls&quot; and &quot;fs&quot; models, merged according to the rules
+        for each family.
+      </li>
+    </ul>
+  
     <p>
       <span onclick="reveal( this, 'siteChanges', false, true )"
             class="moreLink">
         Show</span> past changes.
     </p>
 
-    <div id="siteChanges" style="display: none">
+    <div id="siteChanges" 
+         class="pastChanges" 
+         style="display: none">
 
-      <h3>Past changes</h3>
+      <h2>Past changes</h2>
 
-      <h4>Release 1.2 (15th October 2007)</h4>
+      <h3>Release 1.3 (5th November 2007)</h3>
+  
+      <p>
+        This is an internal release, for testing purposes only.
+      </p>
+    
+      <h3>Release 1.2 (15th October 2007)</h3>
       <ul>
         <li><strong>Taxonomy searches have been reinstated:</strong>
           you can now search for families that are found in a particular set of
@@ -477,12 +521,12 @@
         </li>
       </ul>
 
-      <h4>Release 1.1 (18th September 2007)</h4>
+      <h3>Release 1.1 (18th September 2007)</h3>
       <p>
         This was a bug-fix release.
       </p>
 
-      <h4>Release 1.0 (31st October 2007)</h4>
+      <h3>Release 1.0 (31st October 2007)</h3>
       <p>
         Initial release.
       </p>
