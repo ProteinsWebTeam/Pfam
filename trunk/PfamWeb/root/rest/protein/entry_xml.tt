@@ -1,0 +1,41 @@
+[% 
+# pfama_xml.tt
+# jt6 20071123 WTSI
+#
+# template for serialising uniprot sequence data to XML format
+#
+# $Id: entry_xml.tt,v 1.1 2007-12-10 14:55:30 jt6 Exp $
+
+META naked = 1;
+
+USE String;
+USE date;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- information on UniProt entry [% pfamseq.pfamseq_acc %] ([% pfamseq.pfamseq_id %]), generated: [% date.format %] -->
+<pfam release="[% relData.pfam_release %]" release_date="[% relData.pfam_release_date %]">
+  <entry entry_type="sequence" db="uniprot" db_release="[% relData.swiss_prot_version %]" accession="[% pfamseq.pfamseq_acc %]" id="[% pfamseq.pfamseq_id %]">
+    <description>
+<![CDATA[
+[% pfamseq.description | html %]
+]]>
+    </description>
+    <taxonomy tax_id="[% pfamseq.ncbi_code %]" species_name="[% String.new( pfamseq.species ).trim %]">[% pfamseq.taxonomy %]</taxonomy>
+    <sequence length="[% pfamseq.length %]" md5="[% pfamseq.md5 %]" crc64="[% pfamseq.crc64 %]" version="[% pfamseq.seq_version %]">[% pfamseq.sequence %]</sequence>
+[% IF pfama_regions.size OR pfamb_regions.size -%]
+    <matches>
+[% FOREACH region IN pfama_regions -%]
+      <match accession="[% region.pfamA_acc %]" id="[% region.pfamA_id %]" type="Pfam-A" class="[% region.type %]">
+        <location start="[% region.seq_start %]" end="[% region.seq_end %]" />
+      </match>
+[% END;
+FOREACH region IN pfamb_regions -%]
+      <match accession="[% region.pfamB_acc %]" id="[% region.pfamB_id %]" type="Pfam-B">
+        <location start="[% region.seq_start %]" end="[% region.seq_end %]" />
+      </match>
+[% END -%]
+    </matches>
+[% END -%]
+  </entry>
+</pfam>
