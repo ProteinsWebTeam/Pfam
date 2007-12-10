@@ -5,7 +5,7 @@
 #
 # a page that polls the server for results of a sequence search 
 #
-# $Id: polling.tt,v 1.2 2007-08-30 08:29:56 jt6 Exp $
+# $Id: polling.tt,v 1.3 2007-12-10 14:53:31 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;
@@ -38,7 +38,7 @@ requirements.js.push( "job.js" );
   
   var oJobStatus;
   try {
-    oJobStatus = '[% jobStatus %]'.evalJSON( true );
+    oJobStatus = '[% jobStatusJSON %]'.evalJSON( true );
   } catch( e ) {
     $("errors")
       .update( "There was a problem retrieving job parameters from the server." )
