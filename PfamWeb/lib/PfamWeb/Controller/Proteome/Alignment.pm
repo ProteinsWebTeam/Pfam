@@ -2,7 +2,7 @@
 # Alignment.pm
 # jt6 20070823 WTSI
 #
-# $Id: Alignment.pm,v 1.2 2007-08-28 15:03:46 jt6 Exp $
+# $Id: Alignment.pm,v 1.3 2007-12-10 14:42:35 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Alignment;
 This is the controller than handles the generation of alignments of
 sequences from a given proteome.
 
-$Id: Alignment.pm,v 1.2 2007-08-28 15:03:46 jt6 Exp $
+$Id: Alignment.pm,v 1.3 2007-12-10 14:42:35 jt6 Exp $
 
 =cut
 
@@ -53,7 +53,7 @@ sub getAlignment : Private {
   }   
 
   # retrieve the job results
-  $c->forward( 'JobManager', 'retrieveResults' );
+  $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   unless( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Proteome::Alignment:::getAlignment: no results found' );
     $c->stash->{errorMsg} = 'No sequence alignment found.';

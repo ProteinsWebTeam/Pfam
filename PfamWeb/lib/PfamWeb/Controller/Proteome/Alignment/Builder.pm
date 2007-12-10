@@ -2,7 +2,7 @@
 # Builder.pm
 # jt6 20070823 WTSI
 #
-# $Id: Builder.pm,v 1.1 2007-08-23 16:24:22 jt6 Exp $
+# $Id: Builder.pm,v 1.2 2007-12-10 14:43:30 jt6 Exp $
 
 =head1 NAME
 
@@ -17,9 +17,11 @@ package PfamWeb::Controller::Proteome::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.1 2007-08-23 16:24:22 jt6 Exp $
+$Id: Builder.pm,v 1.2 2007-12-10 14:43:30 jt6 Exp $
 
 =cut
+
+# TODO there's way too much overlap with Family::Alignment::Builder 
 
 use strict;
 use warnings;
@@ -86,18 +88,15 @@ sub view : Local {
   my( $this, $c ) = @_;
 
   # retrieve the job results
-  $c->forward( 'JobManager', 'retrieveResults' );
+  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/;
+  $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
+  
   unless( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Proteome::Alignment::Builder::view: no results found' );
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
   }   
-
-  # we're only interested in the first job ID, since this type of job should
-  # only ever HAVE one job ID
-  my $jobId = ( keys %{ $c->stash->{results} } )[0];
-  $c->log->debug( "Proteome::Alignment::Builder::view: building an alignment from jobId: |$jobId|" );
 
   # count the number of rows in the alignment. The raw alignment includes 
   # the consensus string as the last line
@@ -217,7 +216,7 @@ sub queueAlignment : Private {
                       opened        => $historyRow->opened,
                     }
                   ];
-  $c->stash->{jobStatus} = objToJson( $jobStatus );
+  $c->stash->{jobStatusJSON} = objToJson( $jobStatus );
 
   $c->log->debug( 'Proteome::Alignment::Builder::queueAlignment: built a job status string: ',
                   dump( $jobStatus ) );
