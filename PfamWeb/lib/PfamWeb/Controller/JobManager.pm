@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.3 2007-08-23 16:14:31 jt6 Exp $
+# $Id: JobManager.pm,v 1.4 2007-12-10 14:40:19 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.3 2007-08-23 16:14:31 jt6 Exp $
+$Id: JobManager.pm,v 1.4 2007-12-10 14:40:19 jt6 Exp $
 
 =cut
 
@@ -131,7 +131,7 @@ sub returnStatus : Private {
   $c->log->debug( 'JobManager::returnStatus: returning: ' );
   $c->log->debug( dump( $c->stash->{status} ) );
 
-  $c->res->content_type( 'application/json' );
+  $c->res->content_type( 'application/x-json' );
   $c->res->body( $status );
 
   # make damned sure this isn't cached...
@@ -152,35 +152,32 @@ parameters to find the jobId.
 =cut
 
 sub retrieveResults : Private {
-  my( $this, $c ) = @_;
+  my( $this, $c, $job_id ) = @_;
 
-  # extract the list of IDs from the URI
-  my @jobIds = $c->req->param( 'jobId' );
-  foreach ( @jobIds ) {
-
-    # detaint the job id...
-    ( my $jobId ) = $_ || '' =~ /^([A-F0-9\-]{36})$/;
-    next unless defined $jobId;
-
-    $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$jobId|" );
-
-    # job ID *looks* valid; try looking for that job
-    my $job = $c->model( 'WebUser::JobHistory' )
-                ->find( { job_id => $jobId },
-                        { join     => [ qw( job_stream ) ],
-                          prefetch => [ qw( job_stream ) ] } );
-
-    # bail unless it exists
-    next unless defined $job;
-
-    $c->log->debug( "JobManager::retrieveResults: stashing results for |$jobId|..." );
-
-    # retrieve the results of the job and stash them
-    $c->stash->{results}->{$jobId}->{rawData} = $job->stdout;
-    $c->stash->{results}->{$jobId}->{method}  = $job->job_type;
-    $c->stash->{results}->{$jobId}->{options} = $job->options;
-    $c->{stash}->{seq} = $job->stdin;
+  unless( $job_id =~ m/^([A-F0-9\-]{36})$/ ) {
+    $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" );
+    return;
   }
+
+  $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" );
+  
+  # job ID *looks* valid; try looking for that job
+  my $job = $c->model( 'WebUser::JobHistory' )
+              ->find( { job_id => $job_id },
+                      { join     => [ qw( job_stream ) ],
+                        prefetch => [ qw( job_stream ) ] } );
+  
+  # bail unless it exists
+  return unless defined $job;
+  
+  $c->log->debug( "JobManager::retrieveResults: stashing results for |$job_id|..." );
+  
+  # retrieve the results of the job and stash them
+  $c->stash->{results}->{$job_id}->{rawData} = $job->stdout;
+  $c->stash->{results}->{$job_id}->{length}  = length( $job->stdin );
+  $c->stash->{results}->{$job_id}->{method}  = $job->job_type;
+  $c->stash->{results}->{$job_id}->{options} = $job->options;
+  $c->{stash}->{seq} = $job->stdin;
 }
 
 #-------------------------------------------------------------------------------
