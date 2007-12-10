@@ -2,9 +2,11 @@
 
 use strict;
 use Getopt::Long;
-use Bio::SeqFetcher::xdget;
+use Bio::SeqFetcher::xdget; #BIOPERL IS EVIL! REPLACE WITH SeqFetch ASAP!
 use CMResults;
 use Rfam;
+use DBI;
+
 
 my( $thr, 
     $inxfile,
@@ -13,7 +15,8 @@ my( $thr,
     $cove,
 #    $fasta,
     $trim,
-    $overlaps );
+    $overlaps,
+    $file);
 
 &GetOptions( "t=s"      => \$thr,
 	     "d=s"      => \$inxfile,
@@ -22,7 +25,21 @@ my( $thr,
 	     "cove"     => \$cove,
 #	     "fa=s"     => \$fasta,
 	     "trim=s"   => \$trim,
-	     "h"        => \$help );
+	     "file=s"         => \$file,
+	     "h|help"        => \$help );
+
+sub help {
+    print STDERR <<EOF;
+    rfmake.pl
+    Usage:      rfmake.pl -t <bits> 
+                          -file <infernal output file> (uses OUTPUT file in current dir by default)
+    	                  -l           option lists hits but does not build ALIGN
+			  -d <blastdb> use a different blast database
+			  -overlaps    do something with overlapping hits
+			  -cove        dont be silly, use Infernal
+			  -trim <?>    dunno, seems to run filter_on_cutoff() function? 
+EOF
+}
 
 if( $help ) {
     &help();
@@ -32,20 +49,65 @@ if( $help ) {
 not $inxfile and $inxfile = $Rfam::rfamseq;
 my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 
-my $file = shift;
+if (!defined($file)){
+    $file = "OUTPUT";
+}
 
-my $local;
-if( not $list and not $overlaps ) {
+if (!defined($thr)){
+    $thr = 5;
+}
+my $thrcurr = 5;
+
+my ($local, @family_terms, %family_terms);
+if( not $overlaps ) {
     open( DESC, "DESC" ) or warn "Can't open DESC to determine global/local requirement\n";
     while( <DESC> ) {
 	/^GA\s+(\S+)/ and do {
+	    $thrcurr = $1;
 	    $thr = $1 if not defined $thr;
 	};
+	
+	/^ID/ || /^DE/ and do {
+	    substr($_,0,3) = "";
+	    my @terms = split(/[\_\s+\/]/,$_);
+	    push(@family_terms,@terms);
+	};
+	
 	/^BM\s+cmsearch.*-local.*/ and do {
 	    $local = 1;
 	};
     }
     close DESC;
+}
+
+foreach my $t (@family_terms) {
+    if ($t =~ /\S+/){
+	$family_terms{$t}=1;
+    }
+}
+@family_terms = keys %family_terms;
+my @forbidden_terms = qw(repeat pseudogene transpos);
+
+my (%seedseqs_start,%seedseqs_end);
+if( $list ) {
+    open( SEED, "SEED" ) or warn "Can't open SEED to determine overlapping hits\n";
+    while( <SEED> ) {
+	/^(\S+)\/(\d+)\-(\d+)\s+\S+/ and do {
+	    my $a = $2;
+	    my $b = $3;
+	    
+	    if ($b<$a){
+		my $temp=$a;
+		$a = $b;
+		$b = $temp;
+	    }
+	    
+	    if( int($a) == $a && $a>0 && int($b) == $b && $b>0 ){
+		push(@{$seedseqs_start{$1}},$a);
+		push(@{$seedseqs_end{$1}},$b);
+	    }
+	};
+    }
 }
 
 my $already;
@@ -81,39 +143,142 @@ if( !$already or $trim ) {
 my $res = $allres -> remove_overlaps();
 
 if( $list ) {
-    my $chunksize = 100;
-    my $desclength = 35;
+
     my %desc;
     $thr = 0 if( not defined $thr );
 
     my @goodhits = grep{ $_->bits >= $thr } $res->eachHMMUnit();
     my @allnames = map{ $_->seqname } @goodhits;
     
-    while( scalar @allnames ) {
-	my $string = join( " ", splice( @allnames, 0, $chunksize ) );
-	##we had to take the -d embl option out of here for the new version of pfetch
-	open( P, "pfetch -a -D $string |" ) or die;
-	while( <P> ) {
-	    if( /^(\w+\s+)?(\w+)\.\d+\s+(.{1,$desclength})/ ) {
-		$desc{$2} = $3;
+    # MySQL connection details.
+    my $database = $Rfam::embl;
+    my $host     = "cbi3";
+    my $user     = "genero";
+#    my $accession = "AJ489952.1";
+    
+    # Create a connection to the database.
+    my $dbh = DBI->connect(
+	"dbi:mysql:$database;$host", $user, "",
+	);
+    
+    # Query to search for the accession and description of uniprot entries with the gene name offered.
+    my $query = qq(
+           select entry.accession_version, description.description
+           from entry, description
+           where entry.accession_version=?
+           and entry.entry_id=description.entry_id;
+   );
+    
+# Prepare the query for execution.
+    my $sth = $dbh->prepare($query);
+    
+    foreach my $seqid (@allnames) {
+	
+	# Run the query 
+	$sth->execute($seqid);
+	
+	my $res = $sth->fetchall_arrayref;
+	foreach my $row (@$res){
+	    $desc{$row->[0]} .= $row->[1];
+	}
+   }
+    $dbh->disconnect;
+    
+    #OPEN files for R:
+    my %filehandles = (
+	seed   => \*OUTSEED,
+	align  => \*OUTALIGN,
+	family => \*OUTFAM,
+	forbid => \*OUTFORBID,
+	thresh => \*OUTTHRESH
+    );
+    my %counts;
+    
+    foreach my $ty (keys %filehandles){
+	open( $filehandles{$ty}, ">out.list_$ty\.dat" ) or die("Problem opening out.list_$ty\.dat\n[$!]");
+	$counts{$ty}=0;
+    }
+    
+    if ($thrcurr){
+	printf OUTTHRESH "$thrcurr\n";
+	$counts{'thresh'}++;
+    }
+    
+    my $prev_bits = 999999;
+    foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
+	
+	if( not exists $desc{$unit->seqname} ) {
+	    $desc{$unit->seqname} = "no description available";
+	}
+	
+	if ( ($unit->bits)<$thrcurr && $thrcurr<=$prev_bits ){
+	    printf "CURRENT THRESHOLD: $thrcurr bits.\n";
+	}
+	
+	my $seqlabel = "ALIGN";
+	if ( defined($seedseqs_start{$unit->seqname}) ){
+	    my $n=$unit->seqname;
+	    for (my $i=0; $i<scalar(@{$seedseqs_start{$n}}); $i++){
+		my $a = $seedseqs_start{$n}[$i];
+		my $b = $seedseqs_end{$n}[$i];
+		#print "overlap($a,$b,$unit->start_seq, $unit->end_seq)\n";
+		if (overlap($a,$b,$unit->start_seq, $unit->end_seq)){
+		    $seqlabel = "SEED";
+		    printf OUTSEED "%0.2f\n", $unit->bits;
+		    $counts{'seed'}++;
+		    last;
+		}
 	    }
 	}
-	close P or die "can't close pfetch pipe";
+	
+	if ($seqlabel =~ /ALIGN/){
+	    printf OUTALIGN "%0.2f\n", $unit->bits;
+	    $counts{'align'}++;
+	}
+	
+	my $fammatch=0;
+	foreach my $ft (@family_terms) {
+	    if ($desc{$unit->seqname} =~ /$ft/){
+		$fammatch=1;
+	    }
+	}
+	
+	if ($fammatch){
+	    printf OUTFAM "%0.2f\n", $unit->bits;
+	    $counts{'family'}++;
+	}
+	
+	my $forbidmatch=0;
+	foreach my $ft (@forbidden_terms) {
+	    if ($desc{$unit->seqname} =~ /$ft/){
+		$forbidmatch=1;
+	    }
+	}
+	
+	if ($forbidmatch){
+	    printf OUTFORBID "%0.2f\n", $unit->bits;
+	    $counts{'forbid'}++;
+	}
+	
+	printf "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
+	$prev_bits = $unit->bits;
     }
-
-    foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
-	my( $emblacc );
-	if( $unit->seqname =~ /^(\S+)\.\d+$/ ) {
-	    $emblacc = $1;
+    
+    #R fails on empty files:
+    foreach my $ty (keys %filehandles){
+	if ($counts{$ty}==0){
+	    my $fh = $filehandles{$ty};
+	    printf $fh "0\n";
+	    printf "$filehandles{$ty} $ty counts=$counts{$ty}\n";
 	}
-	else {
-	    $emblacc = $unit->seqname;
-	}
-	if( not exists $desc{$emblacc} ) {
-	    $desc{$emblacc} = "no description available";
-	}
-	printf( "%-12s%-".$desclength."s%8d%8d%5d%5d%8s\n", $unit->seqname, $desc{$emblacc}, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, $unit->bits );
     }
+    #Run R script, making the out.list.pdf figure:
+    system(" /software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R");
+    close( OUTSEED);
+    close( OUTALIGN);
+    close( OUTFAM);
+    close( OUTFORBID);
+    
     exit(0);
 }
 elsif( $overlaps ) {
@@ -221,13 +386,6 @@ if( -s "DESC" ) {
 
 #######################################
 
-sub help {
-    print STDERR <<EOF;
-    rfmake.pl
-    Usage:      rfmake.pl -t <bits> <output file>
-	           -l option lists hits but does not build ALIGN
-EOF
-}
 
 
 sub get_seq {
@@ -267,3 +425,15 @@ sub get_seq {
 }
 
 
+######################################################################
+
+sub overlap {
+    my($x1, $y1, $x2, $y2) = @_;
+    
+    if ( ($x1<=$x2 && $x2<=$y1) || ($x1<=$y2 && $y2<=$y1) || ($x2<=$x1 && $x1<=$y2) || ($x2<=$y1 && $y1<=$y2)  ){
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
