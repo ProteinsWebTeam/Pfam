@@ -5,7 +5,16 @@
 #
 # build a page that redirects from a dead family to its replacement
 #
-# $Id: dead.tt,v 1.1 2007-08-30 09:26:28 jt6 Exp $
+# $Id: dead.tt,v 1.2 2007-12-10 14:52:18 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "family.css" );
+
+#-------------------------------------------------------------------------------
 
 META title    = "Dead family";
 META fullPage = 1;
@@ -18,11 +27,20 @@ META fullPage = 1;
   The Pfam-A family that you are trying to view is now a dead family. That
   means that it has been removed from the Pfam database and is no longer
   available through the website.
+[% IF pfam.comment %]
+  The family was removed for the following reason: 
 </p>
-[% IF pfam.forward_to %]
+<div class="dead_comment">
+  [% pfam.comment %]
+</div>
+[% ELSE %]
+</p>
+[% END;
+IF pfam.forward_to %]
 <p>
   However, <strong>[% pfam.pfamA_id %]</strong> ([% pfam.pfamA_acc %]) has been
-  replaced by <a href="[% refreshUri %]"><strong>[% pfam.forward_to %]</strong></a>.
+  replaced by or merged into 
+  <a href="[% refreshUri %]"><strong>[% pfam.forward_to %]</strong></a>.  
 </p>
 <p>
   In 5 seconds you will be redirected to the Pfam family page for 
