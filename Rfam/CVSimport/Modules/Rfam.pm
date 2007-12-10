@@ -9,6 +9,7 @@ use strict;
 
 use vars qw( @ISA
 	     @EXPORT
+             $embl
 	     $root_dir
 	     $current_dir
 	     $accession_dir
@@ -26,6 +27,13 @@ use vars qw( @ISA
 	     $rfamseq_current_inx
 	     $rfamseq_new_inx
 	     $rfamseq_run_dir
+	     $rfamseq_farm
+	     $rfamseq_farm_root_dir
+	     $rfamseq_farm_current_dir
+	     $rfamseq_farm_new_dir
+	     $rfamseq_farm_current_inx
+	     $rfamseq_farm_new_inx
+	     $rfamseq_farm_run_dir
 	     @view_file_set
              @align_file_set
              @model_file_set
@@ -41,6 +49,8 @@ use vars qw( @ISA
 use Rfam::DB::DB_RCS;
 use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
+
+$embl = "embl_92";
 
 $root_dir       = "/lustre/pfam/rfam/Production/Rfam";
 $current_dir    = "$root_dir/CURRENT";
@@ -60,6 +70,15 @@ $rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi";
 $rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";
 $rfamseq             = "$rfamseq_current_dir/rfamseq.fa";
 $rfamseq_run_dir     = "/data/blastdb/Rfam/rfamseq"; 
+
+#RFAMSEQ On THE FARM:
+$rfamseq_farm_root_dir    = "/lustre/pfam/rfam/Production/rfamseq";
+$rfamseq_farm_current_dir = "$rfamseq_farm_root_dir/CURRENT";
+$rfamseq_farm_new_dir     = "$rfamseq_farm_root_dir/NEW";
+$rfamseq_farm_current_inx = "$rfamseq_farm_current_dir/rfamseq.fa.bpi";
+$rfamseq_farm_new_inx     = "$rfamseq_farm_new_dir/rfamseq.fa.bpi";
+$rfamseq_farm             = "$rfamseq_farm_current_dir/rfamseq.fa";
+$rfamseq_farm_run_dir     = "/data/blastdb/Rfam/rfamseq"; 
 
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
