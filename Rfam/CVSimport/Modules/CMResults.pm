@@ -64,10 +64,10 @@ sub parse_infernal {
     my $self = shift;
     my $file = shift;
     
-    my( $id, $start, $end, $alnline, $strand );
-    my( $alnst, $alnen );
+    my( $id, $start, $end, $alnline, $alnst, $alnen );
+    my $strand = 1; #Assume positve strand
     my $unit;  # this should always be the last added HMMUnit
-
+    
     while( <$file> ) {
 	chomp;
 	next if( /^\#/ );
@@ -182,7 +182,7 @@ sub parse_infernal {
 			    $alnst = $unit->start_seq;
 			}
 			$alnen = $alnst + $strand*( length($stuff)-1 );
-
+			
 			my $spacing = length($space)+length($ast);
 			$wholeline = sprintf( "%".$spacing."s %s %s", $alnst, $origaln, $alnen );
 		    }
