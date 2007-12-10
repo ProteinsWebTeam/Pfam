@@ -1,0 +1,81 @@
+[% 
+# pfama_xml.tt
+# jt6 20071123 WTSI
+#
+# template for serialising Pfam-A data to XML format
+#
+# $Id: pfama_xml.tt,v 1.1 2007-12-10 14:54:56 jt6 Exp $
+
+USE date;
+
+META naked = 1;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- information on Pfam-A family [% pfam.pfamA_acc %] ([% pfam.pfamA_id %]), generated: [% date.format %] -->
+<pfam release="[% relData.pfam_release %]" release_date="[% relData.pfam_release_date %]">
+  <entry entry_type="Pfam-A" accession="[% pfam.pfamA_acc %]" id="[% pfam.pfamA_id %]">
+    <description>
+<![CDATA[
+[% pfam.description | html %]
+]]>
+    </description>
+    <comment>
+<![CDATA[
+[% pfam.comment | html %]
+]]>
+    </comment>
+    <curation_details>
+      <status>[% pfam.change_status %]</status>
+      <seed_source>[% pfam.seed_source %]</seed_source>
+[% IF pfam.previous_id -%]
+      <previous_id>[% pfam.previous_id %]</previous_id>
+[% END -%]
+      <num_archs>[% number_archs %]</num_archs>
+      <num_seqs>
+        <seed>[% pfam.num_seed %]</seed>
+        <full>[% pfam.num_full %]</full>
+      </num_seqs>
+      <num_species>[% number_species %]</num_species>
+      <percentage_identity>[% pfam.percentage_id %]</percentage_identity>
+      <av_length>[% pfam.average_length %]</av_length>
+      <av_coverage>[% pfam.average_coverage %]</av_coverage>
+    </curation_details>
+    <hmm_details hmmer_version="[% relData.hmmer_version %]" model_version="[% pfam.version %]" model_length="[% pfam.model_length %]">
+      <ls>
+        <build_commands>[% pfam.hmmbuild_ls %]</build_commands>      
+        <cutoffs>
+          <gathering>
+            <sequence>[% pfam.ls_sequence_GA | format( "%.1f" ) %]</sequence>
+            <domain>[% pfam.ls_domain_GA | format( "%.1f" ) %]</domain>
+          </gathering>
+          <trusted>
+            <sequence>[% pfam.ls_sequence_TC | format( "%.1f" ) %]</sequence>
+            <domain>[% pfam.ls_domain_TC | format( "%.1f" ) %]</domain>
+          </trusted>
+          <noise>
+            <sequence>[% pfam.ls_sequence_NC | format( "%.1f" ) %]</sequence>
+            <domain>[% pfam.ls_domain_NC | format( "%.1f" ) %]</domain>
+          </noise>
+        </cutoffs>
+      </ls>    
+      <fs>
+        <build_commands>[% pfam.hmmbuild_fs %]</build_commands>
+        <cutoffs>
+          <gathering>
+            <sequence>[% pfam.fs_sequence_GA | format( "%.1f" ) %]</sequence>
+            <domain>[% pfam.fs_domain_GA | format( "%.1f" ) %]</domain>
+          </gathering>
+          <trusted>
+            <sequence>[% pfam.fs_sequence_TC | format( "%.1f" ) %]</sequence>
+            <domain>[% pfam.fs_domain_TC | format( "%.1f" ) %]</domain>
+          </trusted>
+          <noise>
+            <sequence>[% pfam.fs_sequence_NC | format( "%.1f" ) %]</sequence>
+            <domain>[% pfam.fs_domain_NC | format( "%.1f" ) %]</domain>
+          </noise>
+        </cutoffs>
+      </fs>
+    </hmm_details>
+  </entry>
+</pfam>
