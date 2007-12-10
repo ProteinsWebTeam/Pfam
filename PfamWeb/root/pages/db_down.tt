@@ -1,0 +1,58 @@
+[%
+# db_down.tt
+# jt6 20071109 WTSI
+#
+# A simple page to say that the Pfam database is currently down.
+#
+# $Id: db_down.tt,v 1.1 2007-12-10 14:51:58 jt6 Exp $
+
+META naked = 1;
+
+# the base URL for static content
+staticUri = c.uri_for( "/static" );
+-%]
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html>
+
+  <head>
+    <title>Pfam: Database unavailable</title>
+    <link rel="stylesheet" 
+          href="[% staticUri %]/css/pfam.css"
+          type="text/css" />
+  </head>
+
+  <body>
+
+    <div id="dbd">
+
+      <a style="float: left" href="http://www.sanger.ac.uk/">
+        <img alt="Wellcome Trust Sanger Institute" 
+             id="dbdSiteLogo"
+             src="[% staticUri %]/images/blank.gif" /></a>
+      
+      <a style="float: right" href="[% c.uri_for( "/" ) %]">
+        <img alt="Pfam" 
+             id="dbdPfamLogo" 
+             src="[% staticUri %]/images/blank.gif" /></a>
+
+      <div class="cleaner"><!-- empty --></div>
+  
+      <h1>The Pfam database is currently unavailable</h1>
+
+      <p>
+        We are currently unable to connect to the database that drives the 
+        Pfam website. We apologise for this temporary outage. We're working
+        to fix the problem as soon as possible.
+      </p>
+      <p>
+        The Pfam Group.
+      </p>
+    </div>
+
+    [% PROCESS components/footer.tt %]
+
+  </body>
+
+</html>
