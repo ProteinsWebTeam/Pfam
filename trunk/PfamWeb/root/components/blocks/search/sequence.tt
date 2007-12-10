@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.3 2007-11-05 13:38:18 jt6 Exp $
+# $Id: sequence.tt,v 1.4 2007-12-10 14:50:20 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -41,15 +41,28 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <p>
         You can choose to search using either or both of the HMMs that we 
         produce for each family. Choose <em>Global</em> to search against the 
-        HMM that is optimised to look for full length families, or 
-        <em>Local</em> to search against the HMM that is optimised to find 
-        fragments of Pfam families in a sequence. Choose <em>Both</em> to 
-        search both HMMs, but please note that will increase the search time. 
+        HMM that is optimised to look for full length families, known as the 
+        &quot;ls&quot; model, or <em>Local</em> to search against the HMM that 
+        is optimised to find fragments of Pfam families in a sequence, the 
+        &quot;fs&quot; model.
       </p>
       <p>
-        The default threshold for the HMM search is the <em>gathering 
-          threshold</em> for each HMM but you can also give an 
-        <em>E-value</em>, which will be used as the search cut-off.
+        Rather than viewing hits from just one of the two models, you can also 
+        choose <em>Global &amp; local (separately)</em> to see the results from 
+        both &quot;ls&quot; and &quot;fs&quot; models, or <em>Global &amp; local 
+          (merged)</em> to have the results from the two models merged.
+      </p>
+      <p>
+        When we build a Pfam family, we remove overlapping hits on the same
+        sequence in one of three ways: by taking global hits first, taking local
+        hits first, or by taking the highest scoring overlapping hit. The rule
+        that we use is recorded for each family and if you choose 
+        <em>Global &amp; local (merged)</em>, we will use the same rule to 
+        resolve overlaps between hits in your search.
+      </p>
+      <p>
+        The default threshold for the HMM search is an <em>E-value</em> of 1.0,
+        but you can also use the <em>gathering threshold</em> for each HMM.
       </p>
       <p>
         By default the search will only look for Pfam A families on your 
@@ -80,9 +93,9 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <div class="row">
           <label for="seqSearchSeqOpts">Search strategy</label>
           <select name="seqOpts" id="seqSearchSeqOpts">
-            <option value="both">Global &amp; local (merged)</option>
+            <option value="both" selected="selected">Global &amp; local (merged)</option>
             <option value="bothNoMerge">Global &amp; local (separately)</option>
-            <option value="ls" selected="selected">Global</option>
+            <option value="ls">Global</option>
             <option value="fs">Local</option>
           </select>
         </div>
@@ -94,8 +107,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    type="radio" 
                    name="ga" 
                    id="gaButton" 
-                   value="1" 
-                   checked="checked" 
+                   value="1"
                    onclick="$('evalue').disable()" />
             Gathering threshold
           </label>
@@ -109,6 +121,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                    name="ga" 
                    id="eButton" 
                    value="0"
+                   checked="checked" 
                    onclick="$('evalue').enable()" />
             Use E-value
           </label>
@@ -121,8 +134,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  maxlength="10" 
                  value="1.0" 
                  name="evalue" 
-                 id="evalue" 
-                 disabled="disabled" />
+                 id="evalue" />
         </div>
   
         <div class="row">
