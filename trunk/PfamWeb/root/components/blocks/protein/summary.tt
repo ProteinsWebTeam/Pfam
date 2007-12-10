@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.21 2007-11-05 13:38:19 jt6 Exp $
+# $Id: summary.tt,v 1.22 2007-12-10 14:49:52 jt6 Exp $
 
 USE String;
 
@@ -60,7 +60,7 @@ oe = 0;
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
         <td class="label">Source organism:</td>
           <td class="data">
-          [% IF pfamseq.ncbi_code %]
+            [% IF pfamseq.ncbi_code %]
             <span class="ext">
               <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">
                 [% pfamseq.species %]</a> 
@@ -68,13 +68,12 @@ oe = 0;
               <a href="http://www.ebi.ac.uk/newt/display?search=[% pfamseq.ncbi_code %]">
                 [% pfamseq.ncbi_code %]</a>)
             </span>
+            <br />
+            <a href="[% c.uri_for( "/proteome", { taxId = pfamseq.ncbi_code } ) %]">
+              View</a> Pfam genome data.
             [% ELSE;  
               pfamseq.species;
-            END;
-            IF genomeCode %]
-              <br />
-              <a href="[% c.uri_for( "/proteome", { taxId = genomeCode } ) %]">View</a> Pfam genome data.
-            [% END %]
+            END -%]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
