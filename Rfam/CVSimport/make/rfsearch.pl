@@ -1,8 +1,6 @@
 #!/software/bin/perl -w
 
-# This is mostly pretty NFS friendly now.  Should run rfsearch itself on 
-# something with local storage, but the jobs all get sent off to blades
-# using nice socket things, pfetch etc.  
+# 
 
 use strict;
 use Getopt::Long;
@@ -11,6 +9,8 @@ use Data::Dumper; #Great for printing diverse data-structures.
 use Rfam;
 use Rfam::RfamAlign;
 use SeqFetch;
+use Sys::Hostname;
+use Cwd;
 
 #BLOCK 0: INITIALISE: 
 
@@ -22,6 +22,8 @@ my( $quiet,
     $global,
     $pname,
     $blast_eval,
+    $blast_eval_sens,
+    $blast_eval_spec,
     $blastpname,
     $help,
     $update,
@@ -64,6 +66,7 @@ Options:       -h                  show this help
 EOF
 }
 
+#ADD A VERBOSE OPTION!!!
 &GetOptions( "e=s"           => \$blast_eval,
 	     "q=s"           => \$queue,
 	    # "bq=s"          => \$bqueue,
@@ -138,10 +141,8 @@ if( -s "DESC" ) {
     }
 }
 
-my $pwd   = `pwd`;
-my $phost = `uname -n`;
-chomp $pwd;
-chomp $phost;
+my $pwd = getcwd;
+my $phost = hostname;
 
 $buildopts = "" unless $buildopts;
 open( S, "SEED" ) or die("SEED exists but couldn't be opened!");
@@ -211,7 +212,12 @@ if(!defined($wublastcpus)){
 }
 
 if(!defined($blast_eval)){
-    $blast_eval = 10;
+    $blast_eval_sens = 100;
+    $blast_eval_spec = 10;
+}
+else {
+    $blast_eval_sens = $blast_eval;
+    $blast_eval_spec = $blast_eval;
 }
 
 if (!defined($queue)){
@@ -224,7 +230,6 @@ if ($nolcmask) {
 else {
     make_lcmask_file("SEED", $fafile);
 }
-#system " ~/bin/stk2lcmaskfasta.pl -outfile=$fafile SEED" and die "can't convert SEED to $fafile";
 
 my @blastdb;
 if( $update ) {      # run over the new.fa.* databases
@@ -255,7 +260,7 @@ close DBSIZE;
 
 #user must have log dir!
 &printlog( "Making log directory: $pwd/$$" );
-#umask(002);
+umask(002);
 mkdir( "$pwd/$$", 0775 ) or  die "cant create the dir for error logs" ;
 my $nobjobs = scalar(@blastdb);
 my @index = ( 1..$nobjobs );
@@ -278,10 +283,12 @@ unless( $minidbpname ) {
 	      $blastdb =~ s/\.xnd$//g;
 	      $blastdb =~ s/$blastdbdir/$blastdbdir2/g;
 	      my $blastcmd = "";
+	      my $blastcmdsens = "";
+	      my $blastcmdspec = "";
 	      #PPG: WU-BLAST is now the default. MYAHAHAHAHA!:
 	      if (!$nowublast){
-
-		  $blastcmd = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval mformat=3 hspsepSmax=$window cpus=$wublastcpus -lcmask";
+		  $blastcmdsens = "wublastn $blastdb $fafile W=7 B=100000 V=100000 E=$blast_eval_sens mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize filter=seg filter=dust"; 
+		  $blastcmdspec = "wublastn $blastdb $fafile W=7 B=100000 V=100000 E=$blast_eval_spec mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize M=1 N=-3 Q=3 R=3  filter=seg filter=dust";
 	      }
 	      else {
 		  &printlog( "WARNING: using NCBI-BLAST instead of WU-BLAST. Deprecated and not recommended!");
@@ -291,7 +298,8 @@ unless( $minidbpname ) {
 	      my $fh = new IO::File;
 	      $fh -> open("| bsub -q $queue -J\"rf$blastpname\" -o $pwd/$$/$blastpname\.berr.$i") or die "$!";
 	      $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
-	      $fh -> print("$blastcmd > $lustre/$blastpname\.blastlist.$i\n");
+	      $fh -> print("$blastcmdspec >  $lustre/$blastpname\.blastlist.$i\n");
+	      $fh -> print("$blastcmdsens >> $lustre/$blastpname\.blastlist.$i\n");
 	      #&printlog( "$blastcmd > $lustre/$blastpname\.blastlist.$i" );
               $fh -> print("/usr/bin/scp farm-login:$lustre/$blastpname\.blastlist.$i $phost:$pwd/$blastpname\.blastlist.$i\n") or die "error scp-ing farm-login:$lustre/$blastpname\.blastlist.$i to $phost:$pwd/$blastpname\.blastlist.$i\n$!\n"; 
 	      $fh -> close;
@@ -302,41 +310,6 @@ unless( $minidbpname ) {
 	  &printlog( "Waiting for blast jobs" );
 	  wait_for_farm("rf$blastpname", "blast", $nobjobs);
 	  
-#	  my $wait = 1;
-#	  my $bjobcount = 1;
-#	  my $bjobinterval = 15;
-#	  my $jobs = $nobjobs;
-#	  while($wait){
-#	      
-#	      sleep($bjobinterval); 
-#	      
-#	      $jobs = 0;
-#	      system("bjobs -J rf$blastpname > rf$blastpname\.log");
-#	      open(LOG, "rf$blastpname\.log") || die "Failed to open blast log\n";
-#	      while(<LOG>){
-#		  if(/rf$blastpname/){
-#		      $jobs++;
-#		  }
-#	      }
-#	      close(LOG);
-#	      
-#	      if ($jobs < int($nobjobs*(1-0.95)) ){#Once 95% of jobs are finished, check frequently.
-#		  $bjobinterval=15;
-#	      }	      
-#	      elsif ($jobs < int($nobjobs*(1-0.80)) ){#Once 80% of jobs are finished, check a little more frequently.
-#		  $bjobinterval=15 + int(log($bjobcount/2)); 
-#	      }
-#	      else {#otherwise check less & less frequently (max. interval is ~150 secs).
-#		  if ($bjobinterval<150){ $bjobinterval = $bjobinterval + int(log($bjobcount));}
-#	      }
-#	      
-#	      if($jobs){
-#		  print STDERR "There are $jobs blast jobs still running after $bjobcount checks. Check interval is now $bjobinterval secs.\n"; 
-#	      }else{
-#		  $wait = 0;
-#	      }
-#	      $bjobcount++;
-#	  }
       }
       &printlog( "checking blast result integrity" );
       
@@ -398,7 +371,12 @@ if (!defined($cpus)){
 my $k = 0;  # number of minidb files. 
 if( $minidbpname ) {
     if( my @t = glob( "$minidbpname\.minidb.*" ) ) {
-	$k = @t;
+	$k = scalar(@t);
+	
+	for  (my $ij = 0; $ij < $k; $ij++){
+	    system("scp $pwd/$minidbpname\.minidb.$ij farm-login:$lustre/$minidbpname\.minidb.$ij") and die "error scp-ing mini db:$minidbpname\.minidb.$ij to farm-login:$lustre/$minidbpname\.minidb.$ij\n$!";
+	}
+	
     }
     else {
 	&printlog( "FATAL: no minidb files [$minidbpname\.minidb.*]" );
@@ -418,7 +396,7 @@ else {
     my $numseqs = scalar( keys %seqlist );
     my $count = int( $numseqs/$cpus ) + 1;
     my @seqids = keys %seqlist;
-    &printlog( "Building mini database of $numseqs sequences spread across $count files" );
+    &printlog( "Building mini database of $numseqs sequences spread across $cpus files" );
     
     while( @seqids ) {
 	my @tmpids = splice( @seqids, 0, $count ); 
@@ -441,70 +419,7 @@ else {
     }
     $k--;
     
-#THIS IS THE RIDICULOUS WAY TO FETCH SEQUENCES:
-#    while( @seqids ) {
-#	my @tmpids = splice( @seqids, 0, $count ); 
-#	my @nses;
-#	
-#	foreach my $seqid ( @tmpids ) {
-#	    foreach my $reg ( @{ $seqlist{$seqid} } ) {
-		# this is a bit complex just to get an array of nses
-		#PPG: Can't we xdget the seqs from in here instead?
-#		my( $start, $end, $strand ) = ( $reg->{'start'}, $reg->{'end'}, $reg->{'strand'} );
-#		
-#		if ($start>0 && $end>$start){
-#		    #push( @nses, "$seqid:$start-$end\t$strand" );
-#		    push( @nses, "$seqid:$start-$end:$strand" );
-#		}
-#		else {
-#		    &printlog( "\nWARNING: malformed NSE:\n $seqid:($start)-($end):$strand");
-#		}
-#	    }
-#	}
-	
-#	$k++;
-#
-#	my $seen_count = 0;
-#	
-#	open( FA, "> $minidbpname\.minidb.$k" ) or die;
-#	while( @nses ) {
-#	    # replace pfetch with xdget -- find old revisions to
-#	    # see pfetch code
-#	    my $nse = pop( @nses );
-#	    my( $n, $s, $e, $strnd ) = $nse =~ /(\S+)\:(\d+)-(\d+):(\S+)/;
-#	    
-#	    #PPG: slightly paranoid checks here. Could add "is_integer()" checks also:
-#	    if (defined($n) && defined($s) && defined($e) && defined($strnd) && $s>0 && $e>$s){
-#		my $xdcmd = "";
-#		if ($strnd<0){#Grab minus strand:
-#		    $xdcmd = "xdget -n -r -a $s -b $e $Rfam::rfamseq $n";
-#		}
-#		else {
-#		    $xdcmd = "xdget -n -a $s -b $e $Rfam::rfamseq $n";
-#		}
-#		my $fhxd = IO::File->new();
-#		$fhxd -> open( "$xdcmd |" ) or &printlog( "\nWARNING: xdget failure 1\n$xdcmd\nCheck: $minidbpname\.minidb.$k\n$!");
-#		while(<$fhxd>) {
-#
-#		    if( /^\>/ ) {
-#			print FA ">$n/$s-$e:$strnd\n";
-#		    }
-#		    else {
-#			print FA $_;
-#		    }
-#		    
-#		    
-#		}
-#		$fhxd -> close or &printlog("WARNING: xdget failure 2. Close failed. \"$xdcmd\". Check: $minidbpname\.minidb.$k: $!");
-#		$seen_count++;
-#	    }#PPG: close paranoid "if".
-#	    else {
-#		&printlog("WARNING: malformed NSE: $nse");
-#	    }
-#	}
-#	close FA;
-#    }
-    #undef( $seqlist );             # free up memory
+    undef( %seqlist );             # free up memory
 }
 
 my $minidbendtime = time();
@@ -528,9 +443,9 @@ my $fhcm = IO::File->new();
 # if this fails then the job should reschedule for another go
 
 system("scp $pwd/$$.CM farm-login:$lustre/$$.CM") and die "error scp-ing $pwd/$$.CM to farm-login:$lustre/$$.CM\n$!\n";
-for  (my $ij = 1; $ij <= $k; $ij++){
-   system("scp $pwd/$minidbpname\.minidb.$ij farm-login:$lustre/$minidbpname\.minidb.$ij") and die "error scp-ing mini db:$minidbpname\.minidb.$ij to farm-login:$lustre/$minidbpname\.minidb.$ij\n$!";
-}
+#for  (my $ij = 0; $ij < $k; $ij++){
+#   system("scp $pwd/$minidbpname\.minidb.$ij farm-login:$lustre/$minidbpname\.minidb.$ij") and die "error scp-ing mini db:$minidbpname\.minidb.$ij to farm-login:$lustre/$minidbpname\.minidb.$ij\n$!";
+#}
 &printlog( "" );
 &printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
 $fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
@@ -649,7 +564,7 @@ sub parse_list {
 #	    $send   = $bline[21];
 	    
 	    if ($qend<$qstart){#If the hit is to the minus strand of the query we 
-			       #need to switch $qstart & $qend.  
+		               #need to switch $qstart & $qend.  
 		my $temp = $qstart;
 		$qstart = $qend;
 		$qend = $temp;
@@ -724,23 +639,23 @@ sub parse_list {
 #	if( exists $list->{$name} ) {
 #	&printlog( "defined($name) && defined($start) && defined($end) && exists($list)");
 	if( defined($name) && defined($start) && defined($end) && exists($list->{$name}) ) {
-	    foreach my $se ( sort @{ $list->{$name} } ) {
+	    foreach my $se ( sort @{ $list->{$name} } ) {#What are we sorting on here? Is this wise &/or necessary?
 		
-		if( $se->{'start'} >= $start and $se->{'start'} <= $end ) {
+		if( $se->{'strand'} == $strand and $start <= $se->{'start'} and $se->{'start'} <= $end ) {
 		    $se->{'start'} = $start;
 		    $already = 1;
 		}
-		if( $se->{'end'} >= $start and $se->{'end'} <= $end ) {
+
+		if( $se->{'strand'} == $strand and $start <= $se->{'end'} and $se->{'end'} <= $end ) {
 		    $se->{'end'} = $end;
 		    $already = 1;
 		}
-		if( $se->{'start'} <= $start and $se->{'end'} >= $end ) {
+
+		if( $se->{'strand'} == $strand and $se->{'start'} <= $start and $end <= $se->{'end'} ) {
 		    $already = 1;
 		}
 	    }
 	}
-	
-#	print "$name/$start-$end";
 	
 	if( !$already ) {
 #	    print " .... KEEP\n";
@@ -969,11 +884,19 @@ sub wait_for_farm {
 	sleep($bjobinterval); 
 	
 	$jobs = 0;
-	
+	my ($bjpend, $bjrun)  = (0, 0);
 	open(S, "bjobs -J $bjobname |") or die;
 	while(<S>) {
 	    if(/$bjobname/){
 		$jobs++;
+	    }
+	    
+	    if (/PEND/){
+		$bjpend++;
+	    }
+	    
+	    if (/RUN/){
+		$bjrun++;
 	    }
 	}
 	close(S);# || die "failed to close pipe on bjobs:[$!]\n"; <- this caused a "die" once all the jobs were finished!
@@ -981,7 +904,7 @@ sub wait_for_farm {
 	if ($jobs < int($nobjobs*(1-0.95)) ){#Once 95% of jobs are finished, check frequently.
 	    $bjobinterval=15;
 	}	      
-	elsif ($jobs < int($nobjobs*(1-0.80)) ){#Once 80% of jobs are finished, check a little more frequently.
+	elsif ($jobs < int($nobjobs*(1-0.90)) ){#Once 90% of jobs are finished, check a little more frequently.
 	    $bjobinterval=15 + int(log($bjobcount/2)); 
 	}
 	else {#otherwise check less & less frequently (max. interval is ~150 secs).
@@ -989,7 +912,7 @@ sub wait_for_farm {
 	}
 	
 	if($jobs){
-	    print STDERR "There are $jobs $jobtype jobs of $nobjobs still running after $bjobcount checks. Check interval is now $bjobinterval secs.\n"; 
+	    print STDERR "There are $jobs $jobtype jobs of $nobjobs still running after $bjobcount checks (PEND:$bjpend,RUN:$bjrun). Check interval:$bjobinterval secs.\n"; 
 	}else{
 	    $wait = 0;
 	}
