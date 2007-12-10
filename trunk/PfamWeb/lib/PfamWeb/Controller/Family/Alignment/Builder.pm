@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.6 2007-08-28 15:28:07 jt6 Exp $
+# $Id: Builder.pm,v 1.7 2007-12-10 14:42:13 jt6 Exp $
 
 =head1 NAME
 
@@ -17,9 +17,11 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.6 2007-08-28 15:28:07 jt6 Exp $
+$Id: Builder.pm,v 1.7 2007-12-10 14:42:13 jt6 Exp $
 
 =cut
+
+# TODO there's way too much overlap with Proteome::Alignment::Builder 
 
 use strict;
 use warnings;
@@ -88,18 +90,15 @@ sub view : Local {
   my( $this, $c ) = @_;
 
   # retrieve the job results
-  $c->forward( 'JobManager', 'retrieveResults' );
+  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/;
+  $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
+  
   unless( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Family::Alignment::Builder::view: no results found' );
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
   }   
-
-  # we're only interested in the first job ID, since this type of job should
-  # only ever HAVE one job ID
-  my $jobId = ( keys %{ $c->stash->{results} } )[0];
-  $c->log->debug( "Family::Alignment::Builder::view: building an alignment from jobId: |$jobId|" );
 
   # count the number of rows in the alignment. The raw alignment includes 
   # the consensus string as the last line
@@ -143,7 +142,7 @@ sub getAlignment : Private {
   }   
 
   # retrieve the job results
-  $c->forward( 'JobManager', 'retrieveResults' );
+  $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   unless( scalar keys %{ $c->stash->{results} } ) {
     $c->log->debug( 'Family::Alignment::Builder::getAlignment: no results found' );
     $c->stash->{errorMsg} = 'No sequence alignment found.';
@@ -285,9 +284,9 @@ sub queueAlignment : Private {
                       opened        => $historyRow->opened,
                     }
                   ];
-  $c->stash->{jobStatus} = objToJson( $jobStatus );
+  $c->stash->{jobStatusJSON} = objToJson( $jobStatus );
 
-  $c->log->debug( 'Family::Alignment::Builder::queueAlignment: built a job status string: ',
+  $c->log->debug( 'Family::Alignment::Builder::queueAlignment: job status: ',
                   dump( $jobStatus ) );
   $c->log->debug( 'Family::Alignment::Builder::queueAlignment: submitted job '
                   . "|$jobId| at |" . $historyRow->opened . '|' );
