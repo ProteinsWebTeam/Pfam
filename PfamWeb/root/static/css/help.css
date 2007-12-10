@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: help.css,v 1.8 2007-08-30 13:03:34 jt6 Exp $
+   $Id: help.css,v 1.9 2007-12-10 14:59:02 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -45,6 +45,22 @@ div.blockContent ol {
 
 #tableLabel {
   padding-top: 0.4em;
+}
+
+/* ---------------------------------------- */
+/* summary */
+
+#helpSummaryBlock dt {
+  float: left;
+  width: 6em;
+  padding: 0.2em 0.6em;
+  font-weight: bold;
+  text-align: right;
+}
+
+#helpSummaryBlock dd {
+  margin-left: 6.1em;
+  padding: 0.2em;
 }
 
 /* ---------------------------------------- */
@@ -181,4 +197,15 @@ dl.sitesList dt {
 
 dl.sitesList dd {
   margin-left: 8.2em;
+}
+
+/* ---------------------------------------- */
+/* changes */
+
+div.pastChanges h2 {
+  font-size: small;
+}
+
+div.pastChanges h3 {
+  font-size: x-small;
 }
