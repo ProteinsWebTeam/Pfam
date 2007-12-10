@@ -5,7 +5,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.6 2007-11-05 13:38:19 jt6 Exp $
+# $Id: results.tt,v 1.7 2007-12-10 14:53:46 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -62,7 +62,7 @@ hideButton = "${imageUri}/hideButton.png";
         " nor any Pfam-B matches."; 
       END;       
     ELSE;
-      ".";
+      ". You did not choose to search for Pfam-B matches.";
     END -%]
     </p>
 
