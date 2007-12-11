@@ -30,8 +30,9 @@ my( $thr,
 
 sub help {
     print STDERR <<EOF;
-    rfmake.pl
+    rfmake.pl  
     Usage:      rfmake.pl -t <bits> 
+                rfmake.pl -l
                           -file <infernal output file> (uses OUTPUT file in current dir by default)
     	                  -l           option lists hits but does not build ALIGN
 			  -d <blastdb> use a different blast database
@@ -67,9 +68,10 @@ if( not $overlaps ) {
 	    $thr = $1 if not defined $thr;
 	};
 	
-	/^ID/ || /^DE/ and do {
+	/^ID/ || /^DE/ || /^PI/ and do {
 	    substr($_,0,3) = "";
-	    my @terms = split(/[\_\s+\/]/,$_);
+	    $_ =~ tr/a-z/A-Z/;
+	    my @terms = split(/[\_\s+\/\;]/,$_);
 	    push(@family_terms,@terms);
 	};
 	
@@ -80,13 +82,49 @@ if( not $overlaps ) {
     close DESC;
 }
 
+my %forbidden_family_terms = (
+    ARCHAEA => 1,
+    ARCHAEAL => 1,
+    BACT => 1,
+    BACTERIA => 1,
+    BACTERIAL => 1,
+    BODY => 1,
+    DNA => 1,
+    ELEMENT => 1,
+    EUK => 1,
+    EUKARYOTE => 1,
+    EUKARYOTIC => 1,
+    EXON => 1,
+    FAMILY  => 1,
+    GENE => 1,
+    GENOME => 1,
+    INTRON => 1,
+    NUCLEAR => 1,
+    PHAGE => 1,
+    PLANT => 1,
+    PRIMER => 1,
+    PROMOTER => 1,
+    PROTEIN => 1,
+    RNA => 1,
+    SEQUENCE => 1,
+    SIGNAL => 1,
+    SMALL   => 1,
+    SUBUNIT => 1,
+    TYPE => 1,
+    UTR => 1,
+    VIRUS => 1
+);
+
+print STDERR "family terms: ";
 foreach my $t (@family_terms) {
-    if ($t =~ /\S+/){
+    if ($t =~ /\S+/ && (length($t)>1) && $t =~ /[A-Z]/ && !$forbidden_family_terms{$t} && !$family_terms{$t}){
+	print STDERR "$t, ";
 	$family_terms{$t}=1;
     }
 }
+print STDERR "\n";
 @family_terms = keys %family_terms;
-my @forbidden_terms = qw(repeat pseudogene transpos);
+my @forbidden_terms = qw(repeat repetitive pseudogene transpos);
 
 my (%seedseqs_start,%seedseqs_end);
 if( $list ) {
@@ -212,7 +250,7 @@ if( $list ) {
 	}
 	
 	if ( ($unit->bits)<$thrcurr && $thrcurr<=$prev_bits ){
-	    printf "CURRENT THRESHOLD: $thrcurr bits.\n";
+	    printf "***********CURRENT THRESHOLD: $thrcurr bits***********\n";
 	}
 	
 	my $seqlabel = "ALIGN";
@@ -269,15 +307,20 @@ if( $list ) {
 	if ($counts{$ty}==0){
 	    my $fh = $filehandles{$ty};
 	    printf $fh "0\n";
-	    printf "$filehandles{$ty} $ty counts=$counts{$ty}\n";
+	    #printf "$filehandles{$ty} $ty counts=$counts{$ty}\n";
 	}
     }
     #Run R script, making the out.list.pdf figure:
-    system(" /software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R");
+    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R");
     close( OUTSEED);
     close( OUTALIGN);
     close( OUTFAM);
     close( OUTFORBID);
+    
+    #Cleanup R files:
+    foreach my $ty (keys %filehandles){
+	system( "rm out.list_$ty\.dat" );
+    }
     
     exit(0);
 }
