@@ -368,14 +368,14 @@ if (!defined($cpus)){
     $cpus       = 20;
 }
 
-my $k = 0;  # number of minidb files. 
+my $k = 1;  # number of minidb files. 
 if( $minidbpname ) {
     if( my @t = glob( "$minidbpname\.minidb.*" ) ) {
 	$k = scalar(@t);
 	
-	for  (my $ij = 0; $ij < $k; $ij++){
-	    system("scp $pwd/$minidbpname\.minidb.$ij farm-login:$lustre/$minidbpname\.minidb.$ij") and die "error scp-ing mini db:$minidbpname\.minidb.$ij to farm-login:$lustre/$minidbpname\.minidb.$ij\n$!";
-	}
+#	for  (my $ij = 0; $ij < $k; $ij++){
+	    system("scp $pwd/$minidbpname\.minidb.* farm-login:$lustre/") and die "error scp-ing mini db:$minidbpname\.minidb.* to farm-login:$lustre/\n$!";
+	#}
 	
     }
     else {
@@ -394,14 +394,20 @@ else {
     }
     
     my $numseqs = scalar( keys %seqlist );
+    if ($numseqs == 0){
+	&printlog("FATAL: There were 0 hits in the BLAST files. Check BLAST files. Malformed WUBLASTFILTER and/or WUBLASTMAT environment variables?");
+	die;
+    }
+    
     my $count = int( $numseqs/$cpus ) + 1;
     my @seqids = keys %seqlist;
     &printlog( "Building mini database of $numseqs sequences spread across $cpus files" );
     
+    $k=1;
     while( @seqids ) {
 	my @tmpids = splice( @seqids, 0, $count ); 
 	my(%forward, %reverse);
-	open( FA, ">$$.minidb.$k" ) or die;
+	open( FA, ">$minidbpname\.minidb.$k" ) or die;
 	foreach my $seqid ( @tmpids ) {
 	    foreach my $reg ( @{ $seqlist{$seqid} } ) {
 		if($reg->{'strand'} == 1){
@@ -414,7 +420,7 @@ else {
 	SeqFetch::fetchSeqs(\%forward, $Rfam::rfamseq, 0, \*FA);
 	SeqFetch::fetchSeqs(\%reverse, $Rfam::rfamseq, 1, \*FA);
 	close(FA) || die "Could not close fasta file:[$!]\n";
-	system("scp $$.minidb.$k farm-login:$lustre/$$.minidb.$k") and die "Failed to copy $$.minidb.$k to lustre file system\n";  
+	system("scp $minidbpname\.minidb.$k farm-login:$lustre/$minidbpname\.minidb.$k") and die "Failed to copy $minidbpname\.minidb.$k to lustre file system\n";  
 	$k++;
     }
     $k--;
@@ -431,7 +437,8 @@ my $command = "cmsearch";
 my $options = " --toponly "; #add the hmm filter? still using 0.71 - not yet
 $options .= "--local " if( $local );
 #$options .= "-W $cmwindow"; ##currently removed this as version 0.73 calculates this by default.
-my $cmopts=$options . "-W $window"; #use this for updating DESC file
+#my $cmopts=$options . "-W $window"; #use this for updating DESC file
+my $cmopts=$options . "";
 
 $pname = "cm$$" if( not $pname );
 system "cp CM $$.CM" and die;
@@ -476,9 +483,12 @@ print STDERR "set cm searches running, copy files and clean up....\n";
 #umask(002);
 $fhcm = new IO::File;
 #&printlog( "bsub -q $queue2 -w\'done($pname)\'");
+&printlog( "cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full");
+&printlog( "/usr/bin/scp $lustre/$$.OUTPUT_full  $phost:$pwd/OUTPUT");
 &printlog( "");
-#$fhcm -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
-$fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "FATAL: bsub -q $queue2 -w\'done($pname)\'\n[$!]";
+
+$fhcm -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
+#$fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "FATAL: bsub -q $queue2 -w\'done($pname)\'\n[$!]";
 $fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
                    #$lustre/$$.OUTPUT.
 $fhcm -> print("cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full\n")  or  die "cant concatenate output files on the farm\n$!\n";
