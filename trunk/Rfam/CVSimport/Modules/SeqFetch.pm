@@ -56,7 +56,6 @@ sub fetchSeqs{
   my $noSeqsFound = 0;
   
   my @seqList = keys %$seqListRef;
-
   while(@seqList){
     my $seqListAll = join(" ", splice(@seqList, 0, 3000));
     
@@ -65,7 +64,6 @@ sub fetchSeqs{
     while(<XD>){
       if(/^>(\S+)/){
         my $tmpSeqId = $1;
-	
         if($seqId){
            foreach my $se (@{$$seqListRef{$seqId}}){
                if($se->{whole}){
@@ -123,9 +121,17 @@ sub fetchSeqs{
 	      
               my $domSeq = substr($tmpSeq, $se->{start} - 1, $se->{end} - $se->{start} + 1);
               if(($se->{end} - $se->{start} + 1) eq length($domSeq)){
-                $noSeqsFound++;
-                print $FH ">$seqId/".$se->{start}."-".$se->{end}.":$strand\n";
-                print $FH "$domSeq\n";
+		  
+		  if($reverseStrand){
+		      $domSeq = substr($tmpSeq, $se->{start} - 1, $se->{end} - $se->{start} + 1);
+		      $domSeq =~ tr/[ACGTUacgtuRYSWMKBDHVNryswmkbdhvn]/[UGCAAugcaaYRSWKMVHDBNyrswkmvhdbn]/;
+		      $domSeq = reverse($domSeq);
+		  }
+
+		   $noSeqsFound++;
+		   print $FH ">$seqId/".$se->{start}."-".$se->{end}.":$strand\n";
+		   print $FH "$domSeq\n";
+
               }else{
 		  printf "$seqId s=%d e=%d diff=%d len-domSeq=%d len-tmpSeq=%d\n$domSeq\n", $se->{start}, $se->{end}, $se->{end} - $se->{start} + 1, length($domSeq), $tmpSeq_len;
 		  die "2: Length mismatch for $seqId/".$se->{start}."-".$se->{end}."\n"; 
