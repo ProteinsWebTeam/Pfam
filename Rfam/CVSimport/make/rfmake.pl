@@ -16,7 +16,8 @@ my( $thr,
 #    $fasta,
     $trim,
     $overlaps,
-    $file);
+    $file,
+    @extrafamily);
 
 &GetOptions( "t=s"      => \$thr,
 	     "d=s"      => \$inxfile,
@@ -26,6 +27,7 @@ my( $thr,
 #	     "fa=s"     => \$fasta,
 	     "trim=s"   => \$trim,
 	     "file=s"         => \$file,
+	     "extrafamily=s@"   => \@extrafamily,
 	     "h|help"        => \$help );
 
 sub help {
@@ -34,11 +36,12 @@ sub help {
     Usage:      rfmake.pl -t <bits> 
                 rfmake.pl -l
                           -file <infernal output file> (uses OUTPUT file in current dir by default)
-    	                  -l           option lists hits but does not build ALIGN
-			  -d <blastdb> use a different blast database
-			  -overlaps    do something with overlapping hits
-			  -cove        dont be silly, use Infernal
-			  -trim <?>    dunno, seems to run filter_on_cutoff() function? 
+    	                  -l                           option lists hits but does not build ALIGN
+			  -d <blastdb>                 use a different blast database for sesquence fetching
+			  -overlaps                    do something with overlapping hits
+			  -cove                        Sean says 'COVE SUX!', so dont be silly, use Infernal.
+			  -trim <?>                    dunno, seems to run filter_on_cutoff() function? 
+			  -extrafamily <str>           add an extra family term for making the histograms
 EOF
 }
 
@@ -83,6 +86,7 @@ if( not $overlaps ) {
 }
 
 my %forbidden_family_terms = (
+    ARCH => 1,
     ARCHAEA => 1,
     ARCHAEAL => 1,
     BACT => 1,
@@ -107,7 +111,6 @@ my %forbidden_family_terms = (
     PROTEIN => 1,
     RNA => 1,
     SEQUENCE => 1,
-    SIGNAL => 1,
     SMALL   => 1,
     SUBUNIT => 1,
     TYPE => 1,
@@ -115,15 +118,20 @@ my %forbidden_family_terms = (
     VIRUS => 1
 );
 
-print STDERR "family terms: ";
 foreach my $t (@family_terms) {
     if ($t =~ /\S+/ && (length($t)>1) && $t =~ /[A-Z]/ && !$forbidden_family_terms{$t} && !$family_terms{$t}){
-	print STDERR "$t, ";
 	$family_terms{$t}=1;
     }
 }
-print STDERR "\n";
+
 @family_terms = keys %family_terms;
+
+if (@extrafamily){ #Perl gives a warning if I try using defined(@array)
+    push(@family_terms,@extrafamily);
+}
+my $family_terms = join(", ",@family_terms);
+print STDERR "family terms: $family_terms\n";
+
 my @forbidden_terms = qw(repeat repetitive pseudogene transpos);
 
 my (%seedseqs_start,%seedseqs_end);
@@ -276,7 +284,7 @@ if( $list ) {
 	
 	my $fammatch=0;
 	foreach my $ft (@family_terms) {
-	    if ($desc{$unit->seqname} =~ /$ft/){
+	    if ($desc{$unit->seqname} =~ m/$ft/i){
 		$fammatch=1;
 	    }
 	}
@@ -288,7 +296,7 @@ if( $list ) {
 	
 	my $forbidmatch=0;
 	foreach my $ft (@forbidden_terms) {
-	    if ($desc{$unit->seqname} =~ /$ft/){
+	    if ($desc{$unit->seqname} =~ m/$ft/i){
 		$forbidmatch=1;
 	    }
 	}
@@ -311,7 +319,7 @@ if( $list ) {
 	}
     }
     #Run R script, making the out.list.pdf figure:
-    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R");
+    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
     close( OUTSEED);
     close( OUTALIGN);
     close( OUTFAM);
@@ -319,7 +327,7 @@ if( $list ) {
     
     #Cleanup R files:
     foreach my $ty (keys %filehandles){
-	system( "rm out.list_$ty\.dat" );
+	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
     }
     
     exit(0);
