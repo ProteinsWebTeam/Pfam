@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.9 2007-12-10 14:44:13 jt6 Exp $
+# $Id: Sequence.pm,v 1.10 2007-12-12 13:30:23 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.9 2007-12-10 14:44:13 jt6 Exp $
+$Id: Sequence.pm,v 1.10 2007-12-12 13:30:23 jt6 Exp $
 
 =cut
 
@@ -137,7 +137,7 @@ sub sequenceSearch : Path {
 
     $c->log->debug( 'Search::Sequence::sequenceSearch: problem with submission; re-rendering form' )
       if $c->debug;       
-    $c->stash->{seqSearchError} = 'There was an unknown problem submitting your search';
+    $c->stash->{seqSearchError} ||= 'There was an unknown problem submitting your search';
 
     # point to the XML error template if emitting XML, otherwise, we're just 
     # done here 
@@ -251,7 +251,7 @@ sub queueSeqSearch : Private {
   $c->log->debug( 'Search::Sequence::queueSeqSearch: |' . $c->stash->{numberPending} .
                   '| jobs pending' ) if $c->debug;
 
-  if( $c->stash->{numberPending} > $this->{pendingLimit} ) {
+  if( $c->stash->{numberPending} >= $this->{pendingLimit} ) {
     $c->log->debug( 'Search::Sequence::queueSeqSearch: too many jobs in queue (' .
                     $c->stash->{numberPending} . ')' ) if $c->debug;
     $c->stash->{seqSearchError} = 'There are currently too many jobs in the sequence search queue. Please try again in a little while.';
