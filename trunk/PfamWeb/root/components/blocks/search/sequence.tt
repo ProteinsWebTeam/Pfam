@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.4 2007-12-10 14:50:20 jt6 Exp $
+# $Id: sequence.tt,v 1.5 2007-12-12 15:01:49 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -30,14 +30,43 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   <div class="blockContent">
 
     <p>
-      Find Pfam families within your sequence of interest.
+      Find Pfam families within your sequence of interest. Paste your protein
+      sequence into the box below, to have it searched for matching Pfam
+      families. 
       <span class="moreLink" onclick="reveal(this,'seqNotes',false, true)">More...</span>
     </p>
 
     <div id="seqNotes" style="display: none">
+      <h3>Sequence validation</h3>
       <p>
-        Paste your plain sequence into the box below. 
+        We check all sequences before running a search. In order to avoid 
+        problems with the validation of your sequence, you should use only
+        plain, unformatted text. Here are some of the validation checks
+        that we apply to sequences:
       </p>
+      <ul>
+        <li>sequence length must be less than 10,000 residues</li>
+        <li>the sequence must be a protein sequence; nucleotide sequences will 
+          not be accepted</li>
+        <li>only residue symbols allowed in the sequence; sequences containing
+          other characters, such as &quot;#&quot; or &quot;*&quot;, will not be
+          accepted</li>
+        <li>FASTA-header lines are accepted but will be removed</li>
+      </ul>
+      <p>
+        If you have problems getting your sequence to upload, please check that
+        it passes all of these tests. Note that although we do allow 
+        FASTA-style header lines on a sequence, some characters in header lines
+        can still cause the sequence to be rejected. If in doubt, please remove 
+        header lines before pasting in your sequence.   
+      </p>
+      <p>
+        You can see an example of a sequence that will successfully pass all of
+        the validation tests by clicking the <em>Example</em> button below
+        the search form.
+      </p>
+
+      <h3>Search options</h3>
       <p>
         You can choose to search using either or both of the HMMs that we 
         produce for each family. Choose <em>Global</em> to search against the 
@@ -69,6 +98,8 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         sequence but, by checking the box below, you can also search for 
         Pfam Bs.
       </p>
+      
+      <hr />
     </div>
 
     <div class="formWrapper">
