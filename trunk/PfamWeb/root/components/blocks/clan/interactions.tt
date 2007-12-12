@@ -4,7 +4,7 @@
 #
 # block for the interactions data for the clan section
 #
-# $Id: interactions.tt,v 1.7 2007-11-05 13:38:18 jt6 Exp $
+# $Id: interactions.tt,v 1.8 2007-12-12 17:00:56 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 
@@ -63,7 +63,7 @@ END;
         [% USE aIter = iterator( intHash.keys );
         FOREACH a IN aIter;
           FOREACH b IN intHash.$a %]
-            <tr>
+            <tr class="[% aIter.index % 2 ? "odd" : "even" %]">
               [% IF loop.first %]
               <td class="fixed" rowspan="[% loop.size %]">
                 <a href="[% c.uri_for( "/family", { id = a } ) %]">
