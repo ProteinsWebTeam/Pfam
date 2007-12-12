@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.27 2007-12-10 14:53:17 jt6 Exp $
+# $Id: layout.tt,v 1.28 2007-12-12 12:12:58 jt6 Exp $
 
 USE String;
 USE date;
@@ -38,8 +38,8 @@ BLOCK generateTab;
 -%]
 
   <li id="[% blockName %]Selector"[% IF suffix %] class="[% suffix %]"[% END %]>
-    [% IF active -%]
-	  [%# this div is purely to avoid the IE box model bug... -%]
+    [% IF active;
+	    # this div is purely to avoid the IE box model bug... -%]
       <div>
         <span class="link" 
               onclick="switchTab('[% blockName %]');">
@@ -71,10 +71,14 @@ FOREACH block IN layouts.${pageType}.blocks;
   
   # if we're in debug mode, just try to render the file, without a safety net,
   # so that we can see where the template breaks (if it breaks at all)
-  IF c.debug;
-    pageOutput = PROCESS $blockFile;
-    CALL pageContent.append( pageOutput );
-  ELSE;
+
+# a bit dangerous. If we happen to leave debugging on in the live server, we
+# expose all sorts of stuff when we hit an error.
+# jt6 20071212 WTSI. 
+#  IF c.debug;
+#    pageOutput = PROCESS $blockFile;
+#    CALL pageContent.append( pageOutput );
+#  ELSE;
     # we're not debugging, so catch the errors from the template and carry on
     TRY;
       pageOutput = PROCESS $blockFile;
@@ -82,7 +86,7 @@ FOREACH block IN layouts.${pageType}.blocks;
     CATCH;
       CALL c.log.error( "layout.tt: Couldn't render template file \"$blockFile\"" );
     END;
-  END;
+#  END;
 
   blockActive = pageOutput ? 1 : 0;
   activity.$blockName = blockActive;
@@ -106,7 +110,7 @@ PROCESS components/icons.tt;
 %]
 <div id="tabTitle">
   [%
-  titleFile = layouts.${pageType}.titleTemplate;
+  titleFile = "components/blocks/${pageType}/title.tt";
   TRY;
     PROCESS $titleFile titleType="tab";
   CATCH;

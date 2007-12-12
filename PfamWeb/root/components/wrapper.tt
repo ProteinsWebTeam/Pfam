@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.33 2007-12-10 14:45:52 jt6 Exp $
+# $Id: wrapper.tt,v 1.34 2007-12-12 12:12:58 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -21,14 +21,14 @@ ELSE;
 <html>
 
   <head>
-    [% IF template.title %]
+    [% IF template.title -%]
       <title>Pfam: [% template.title %]</title>
     [% ELSIF pageType;
-      titleFile = layouts.${pageType}.titleTemplate %]
+      titleFile = "components/blocks/${pageType}/title.tt" -%]
       <title>Pfam: [% PROCESS $titleFile titleType="page" %]</title>
-    [% ELSE %]
+    [% ELSE -%]
       <title>Pfam</title>
-    [% END %]
+    [% END -%]
 
     [% # import javascripts, stylesheets, etc.
     PROCESS components/head.tt %]
