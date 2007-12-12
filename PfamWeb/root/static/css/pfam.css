@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.61 2007-12-10 14:59:34 jt6 Exp $
+   $Id: pfam.css,v 1.62 2007-12-12 16:39:21 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -429,6 +429,10 @@ table.details tr.odd {
 
 table.details tr.even {
   background: #DDD;
+}
+
+table.details tr.summaryRow {
+  background: #AAA;
 }
 
 /* these two rules are for the details table when it is split into
