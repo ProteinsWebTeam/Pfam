@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.10 2007-12-12 13:30:23 jt6 Exp $
+# $Id: Sequence.pm,v 1.11 2007-12-12 15:02:54 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.10 2007-12-12 13:30:23 jt6 Exp $
+$Id: Sequence.pm,v 1.11 2007-12-12 15:02:54 jt6 Exp $
 
 =cut
 
@@ -56,10 +56,14 @@ sub sequenceSearch : Path {
   CHECK:
   {
 
-    # the sequence itself
+    # parse and validate the sequence itself
     $c->stash->{seq} = $c->forward('parseSequence');
-    unless( defined $c->stash->{seq} ) {
-      $c->stash->{seqSearchError} = 'Invalid sequence. Please try again with a valid amino-acid sequence';
+    unless( $c->stash->{seq} ) {
+      # the parseSequence method will return undef if there's a problem, but
+      # if the sequence looks like DNA or if the sequence is too long, it also 
+      # stuffs an error message into the stash. Hence, we only set a general 
+      # error message here if we don't already have one from earlier
+      $c->stash->{seqSearchError} ||= 'Invalid sequence. Please try again with a valid amino-acid sequence';
       last CHECK;
     }
     
@@ -205,24 +209,52 @@ sub results : Local {
 =head2 parseSequence : Private
 
 Parses the sequence supplied by the CGI parameter "seq". Returns the sequence
-as a single string if it's parsed successfully, or the empty string if there
-was a problem parsing or if the final sequence contains a character other than
-[A-Za-z].
+as a single string if it's parsed successfully, or undef otherwise. Sets an
+error message in the stash if there was a specific problem.
 
 =cut
 
 sub parseSequence : Private {
   my( $this, $c ) = @_;
 
-  return unless( defined $c->req->param( 'seq' ) and
-                 $c->req->param('seq') ne '' );
+  return undef unless( defined $c->req->param( 'seq' ) and
+                       $c->req->param('seq') ne '' );
   
   my @seqs = split /\n/, $c->req->param( 'seq' );
-  shift @seqs if $seqs[0] =~ /^\>/;
+  shift @seqs if $seqs[0] =~ /^\>/; # strip off FASTA header lines
   my $seq = uc( join '', @seqs );
-  $seq =~ s/[\s\r]+//g;
+  $seq =~ s/[\s\r]+//g; # handle various line endings
+  
+  # check the length of the sequence at this point. If it's too long, bail
+  my $length = length $seq;
+  if( $length > $this->{maxSeqLength} ) {
+    $c->stash->{seqSearchError} = 'Your sequence is too long. The maximum length of search sequences is ' .
+                                  $this->{maxSeqLength} . 
+                                  '. Please try again with a shorter sequence';
+    return undef;
+  }
 
-  return ( $seq =~ m/^[A-Z]+$/ ) ? $seq : undef;
+  # we need to make sure that the sequence is really protein and not, as we
+  # commonly get, a bloody great DNA sequence. Count the number of potential 
+  # nucleotides in the sequence and see what proportion of the total sequence
+  # that makes
+  my( $nucleotide_count )= $seq =~ tr/ATCGU/ATCGU/;
+  
+  # if the sequence is more than 100 residues (or bases) and is more than
+  # 95% nucleotides, there's a problem
+  if( $length > 100 and $nucleotide_count / $length > 0.95 ) {
+    $c->stash->{seqSearchError} = 'Your sequence does not look like protein. Please upload a protein sequence';
+    return undef;
+  }
+
+  # finally, check that the sequence string contains only letters. Return undef
+  # if it has anything else in it
+  unless( $seq =~ m/^[A-Za-z]+$/ ) {
+    $c->stash->{seqSearchError} = 'Invalid sequence. Please try again with a valid amino-acid sequence';
+    return undef;
+  }
+  
+  return $seq;
 }
 
 #-------------------------------------------------------------------------------
