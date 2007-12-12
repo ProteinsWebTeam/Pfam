@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.7 2007-11-05 13:38:18 jt6 Exp $
+# $Id: tax.tt,v 1.8 2007-12-12 16:04:14 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -46,7 +46,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     </p>
     <div id="taxNotes" style="display: none">
 
-      <h2>Species names</h2>
+      <h3>Species names</h3>
       <p>
         In order to find species names in our database, you must give the full,
         unabbreviated name in your query. For example, if you want to find
@@ -58,7 +58,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         &quot;<strong>c</strong>aenorhabditis&quot;.
       </p>
       
-      <h2>Term suggestions</h2>
+      <h3>Term suggestions</h3>
       <p>
         Because species names can be long, complex and easily misspelt, the
         form will offer suggestions for possible completions of terms that you
@@ -81,7 +81,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         will not give any suggestions.
       </p>
 
-      <h2>Boolean queries</h2>
+      <h3>Boolean queries</h3>
       <p>
         Boolean queries can contain logical operators, such as AND, NOT and OR,
         combined with braces (&quot;(&quot; and &quot;)&quot;) to form a 
