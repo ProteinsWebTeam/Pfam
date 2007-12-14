@@ -5,11 +5,11 @@ Pfam entry:   [% id %] ([% acc %])
 [%- END %]
 Pfam version: [% relData.pfam_release %]
 
-Name:       [% user %]
-Email:      [% email %]
+Name:       [% user | html %]
+Email:      [% email | html %]
 Annotation:
-[% annotation %]
+[% annotation | html %]
 
 [% IF refs -%]
-References: [% refs %]
+References: [% refs | html %]
 [%- END -%]
