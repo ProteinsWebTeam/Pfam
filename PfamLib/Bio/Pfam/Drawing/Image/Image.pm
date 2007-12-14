@@ -647,15 +647,17 @@ sub _add_map{
   # try to build a title string. We use title to give us the tooltips rather 
   # than alt because it seems to behave better in IE 
   my $title = '';
-  $title .= $region->getAttribute('label') . ': '
+  $title .= $region->getAttribute('label')
     if $region->getAttribute('label');
 
-  $title .= $region->getAttribute('start') / $self->scale_x . ' - ' . 
-            $region->getAttribute('end')   / $self->scale_x
-    if( $region->getAttribute('start') and $region->getAttribute('end') );
+
+  if( $region->getAttribute('start') and $region->getAttribute('end') ) {
+    $title .= ': ' if $title ne '';
+    $title .= $region->getAttribute('start') / $self->scale_x . ' - ' . 
+              $region->getAttribute('end')   / $self->scale_x;
+  }
   
   $area .= qq( title="$title") if $title;
-  
   $area .= " />\n";
   
   $self->image_map($area);
