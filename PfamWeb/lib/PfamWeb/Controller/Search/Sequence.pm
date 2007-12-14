@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.11 2007-12-12 15:02:54 jt6 Exp $
+# $Id: Sequence.pm,v 1.12 2007-12-14 11:40:31 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.11 2007-12-12 15:02:54 jt6 Exp $
+$Id: Sequence.pm,v 1.12 2007-12-14 11:40:31 jt6 Exp $
 
 =cut
 
@@ -220,11 +220,19 @@ sub parseSequence : Private {
   return undef unless( defined $c->req->param( 'seq' ) and
                        $c->req->param('seq') ne '' );
   
+  # break the string into individual lines and get rid of any FASTA header lines
   my @seqs = split /\n/, $c->req->param( 'seq' );
-  shift @seqs if $seqs[0] =~ /^\>/; # strip off FASTA header lines
+  shift @seqs if $seqs[0] =~ /^\>/;
+
+  # recombine the lines into a single string so we can pattern match it nicely
   my $seq = uc( join '', @seqs );
-  $seq =~ s/[\s\r]+//g; # handle various line endings
-  
+
+  # handle various line endings. No need to worry about \n, since we got rid of
+  # those when we split on them earlier. Also get rid of numbers 
+  $c->log->debug( "Search::Sequence::parseSequence: seq before: |$seq|" ) if $c->debug;
+  $seq =~ s/[\s\r\d]+//g;
+  $c->log->debug( "Search::Sequence::parseSequence: seq after:  |$seq|" ) if $c->debug;
+
   # check the length of the sequence at this point. If it's too long, bail
   my $length = length $seq;
   if( $length > $this->{maxSeqLength} ) {
