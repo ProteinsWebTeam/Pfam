@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.16 2007-11-05 12:57:36 jt6 Exp $
+# $Id: Annotate.pm,v 1.17 2007-12-14 10:45:57 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.16 2007-11-05 12:57:36 jt6 Exp $
+$Id: Annotate.pm,v 1.17 2007-12-14 10:45:57 jt6 Exp $
 
 =cut
 
@@ -25,6 +25,7 @@ use warnings;
 
 use base 'Catalyst::Controller';
 
+use Email::Valid;
 use PfamWeb::CustomContainer;
 use HTML::Widget::Element;
 use Digest::MD5 qw( md5_hex );
@@ -379,6 +380,13 @@ sub sendMail : Private {
   $c->log->debug( 'Annotate::sendMail:   email: |' . $c->req->param('email') . '|' );
   $c->log->debug( 'Annotate::sendMail:   ann:   |' . $c->req->param('annotation') . '|' );
   $c->log->debug( 'Annotate::sendMail:   refs:  |' . $c->req->param('refs') . '|' );
+
+  # validate the user-supplied email address. We check this because it could be a
+  # conduit for email header injection, but the other params are used only in the 
+  # template, where they get passed through the HTML filter before the email
+  # is sent to RT
+  return 'Not a valid E-mail address' 
+    unless Email::Valid->address( -address => $c->req->param('email') );
 
   # see if there was an uploaded alignment
   my @parts;
