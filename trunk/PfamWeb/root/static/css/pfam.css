@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.62 2007-12-12 16:39:21 jt6 Exp $
+   $Id: pfam.css,v 1.63 2007-12-20 13:06:28 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -566,6 +566,14 @@ a.sortheader {
   background: #AAA ! important;
   color: #FFF;
   font-weight: bold;
+}
+
+#keyTable tr.odd {
+  background-color: #DDD;
+}
+
+#keyTable tr.even {
+  background-color: #CCC;
 }
 
 /* affects the results table */
