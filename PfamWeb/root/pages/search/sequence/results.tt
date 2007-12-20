@@ -5,7 +5,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.7 2007-12-10 14:53:46 jt6 Exp $
+# $Id: results.tt,v 1.8 2007-12-20 14:05:57 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -101,7 +101,7 @@ hideButton = "${imageUri}/hideButton.png";
         "is a table";
       END %] 
       showing the details of the domains that were found. Rows containing 
-      significant hits are <span class="evenlySignificant">highlighted</span>.
+      significant hits are <span class="oddlySignificant">highlighted</span>.
       Hits which do not start and end at the end points of the matching HMM 
       are also <span class="warning">highlighted</span>.          
     </p>
