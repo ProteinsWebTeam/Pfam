@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.8 2007-07-23 14:35:12 jt6 Exp $
+   $Id: job.css,v 1.9 2007-12-20 13:14:25 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -40,14 +40,14 @@
 }
 
 #jobs {
-  margin: 0.4em;
+  margin: 8px;
 }
 
 /* the job div */
 .job {
   border: 1px solid #CCC;
   background: #e7e7e7;
-  margin: 0.4em 0;
+  margin: 4px 0;
 }
  
 .job div.jobTitle {
@@ -110,9 +110,10 @@ div.pfamBSearch .progressBar {
 
 /* the status logger */
 #logger {
+  text-align: left ! important;
   font-size: smaller;
-  border: 1px solid #ccc;
-  background: #e7e7e7;
+  border: 1px solid #AAA;
+  background: #CCC;
   padding: 0.4em;
   margin: 0 auto;
   width: 60%;
@@ -145,10 +146,10 @@ img.graphicImage {
 }
 
 /* shade the odd and even rows green for significant matches */
-.oddlySignificant { /* normal odd is CCC */
+.oddlySignificant {
   background-color: #CDC;
 }
-.evenlySignificant { /* normal even is DDD */
+.evenlySignificant {
   background-color: #DED;
 }
 
