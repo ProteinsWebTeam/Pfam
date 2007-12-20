@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.42 2007-12-10 14:52:47 jt6 Exp $
+# $Id: index.tt,v 1.43 2007-12-20 13:54:15 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -69,20 +69,20 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <div id="pfamNotes" style="display: none">
       <p>
         Proteins are generally composed of one or more functional regions, 
-        commonly termed  <em>domains</em>. Different combinations of domains give 
+        commonly termed <em>domains</em>. Different combinations of domains give 
         rise to the diverse range of proteins found in nature. The identification 
-        of domains that occur within  proteins can therefore provide insights 
-        into their function. 
+        of domains that occur within proteins can therefore provide insights 
+        into their function.
       </p>
       <p>
-        There are two components to Pfam: Pfam-A and Pfam-B. Pfam-A entries are 
-        high quality, manually curated families. Although these 
-        <em>Pfam-A</em> entries cover a  large proportion of the sequences in the
-        underlying sequence database, to give a more  comprehensive coverage of 
-        known  proteins we generate a supplement automatically using the 
+        There are two components to Pfam: Pfam-A and Pfam-B. <em>Pfam-A</em> 
+        entries are high quality, manually curated families. Although these 
+        Pfam-A entries cover a large proportion of the sequences in the
+        underlying sequence database, in order to give a more comprehensive 
+        coverage of known proteins we also generate a supplement using the 
         <a class="ext" title="Prodom" href="http://prodom.prabi.fr/prodom.html">PRODOM</a>
         database. These automatically generated entries are called 
-        <em>Pfam-B</em>.  Although of lower quality, Pfam-B families can be 
+        <em>Pfam-B</em>. Although of lower quality, Pfam-B families can be
         useful for identifying functionally conserved regions when no Pfam-A 
         entries are found.
       </p>
