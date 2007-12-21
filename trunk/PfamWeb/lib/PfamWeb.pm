@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.47 2007-12-10 14:39:23 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.48 2007-12-21 11:38:08 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.47 2007-12-10 14:39:23 jt6 Exp $
+$Id: PfamWeb.pm,v 1.48 2007-12-21 11:38:08 jt6 Exp $
 
 =cut
 
@@ -34,8 +34,8 @@ use Config::General;
 
 # set flags and add plugins for the application
 use Catalyst qw/
-                 Cache
                  ConfigLoader
+                 Cache
                  HTML::Widget
                  Email
                  Session
@@ -73,14 +73,16 @@ __PACKAGE__->config->{server_pid}  = $$;
 # config file in httpd.conf rather than in the code
 my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
 
-# set up Config::General to allow us to load external configuration files with
+# set up the ConfigLoader plugin. Point to the configuration file and set up 
+# Config::General to allow us to load external configuration files with
 # a relative path and using apache-style "include" directives
-__PACKAGE__->config->{'Plugin::ConfigLoader'}->{driver} =
-  { General => { -IncludeRelative  => 1,
-                 -UseApacheInclude => 1 } };
+__PACKAGE__->config->{'Plugin::ConfigLoader'} = {
+  file   => $conf,
+  driver => { General => { -IncludeRelative  => 1,
+                           -UseApacheInclude => 1 } }
+};
 
-# use the ConfigLoader plugin to read the configuration
-__PACKAGE__->config( 'Plugin::ConfigLoader' => { file => $conf } );
+# read the configuration
 __PACKAGE__->setup;
 
 #-------------------------------------------------------------------------------
@@ -89,9 +91,10 @@ __PACKAGE__->setup;
 
 =head2 finalize_config
 
-Overrides the empty C<finalize_config> method from the ConfigLoader plugin, 
+Overrides the default C<finalize_config> method from the ConfigLoader plugin, 
 turning it into a dumb by-pass of the perl taint checking on configuration
-parameters.
+parameters. Note that this also overrides the default behaviour of the original
+method, which subsitutes macros in configuration values.
 
 =cut
 
