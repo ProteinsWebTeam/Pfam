@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.13 2007-12-20 13:55:10 jt6 Exp $
+# $Id: Sequence.pm,v 1.14 2007-12-21 11:38:49 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.13 2007-12-20 13:55:10 jt6 Exp $
+$Id: Sequence.pm,v 1.14 2007-12-21 11:38:49 jt6 Exp $
 
 =cut
 
@@ -28,8 +28,6 @@ use File::Temp qw( tempfile );
 use JSON;
 use Scalar::Util qw( looks_like_number );
 use Data::UUID;
-use Storable qw( thaw );
-use Sanger::Graphics::ColourMap;
 
 use constant SUBMISSION_ERROR   => -1;
 use constant SUBMISSION_SUCCESS => 0;
@@ -763,7 +761,7 @@ sub handlePfamBResults : Private {
   ( $tmpRoot ) = $tmpRoot =~ m|([a-z0-9_\./]+)|i;
   
   my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpRoot );
-  print $tmpFh $c->{stash}->{results}->{$jobId}->{rawData};
+  print $tmpFh $c->stash->{results}->{$jobId}->{rawData};
   close $tmpFh;
   
   #Parse the results and remove the redundancy
