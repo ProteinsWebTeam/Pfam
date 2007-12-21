@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: pfam_all_ie.css,v 1.9 2007-05-16 15:28:38 jt6 Exp $
+   $Id: pfam_all_ie.css,v 1.10 2007-12-21 11:34:57 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -57,4 +57,9 @@ div.menuContent {
 hr {
   border: 1px solid #e7e7e7;
   margin: 1em;
+}
+
+/* increase the line spacing a little (IE is ugly) */
+p {
+  line-height: 1.4em;
 }
