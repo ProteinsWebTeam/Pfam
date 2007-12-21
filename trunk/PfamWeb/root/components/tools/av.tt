@@ -5,7 +5,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.10 2007-12-21 10:54:14 jt6 Exp $
+# $Id: av.tt,v 1.11 2007-12-21 11:39:48 jt6 Exp $
 
 META naked = 1;
 
@@ -292,6 +292,9 @@ hideButton = "${imageUri}/hideButton.png";
   var transparent = true;
   function toggleTransparency() {
     var av = document.getElementById( "av" );
+    if( av == null ) {
+      av = document.getElementById( "avIE" );
+    }
     var transparency = transparent ? 255 : 200;
     transparent = ! transparent;
     av.execute( 'object surface_* transparency ' + transparency + ';' );
