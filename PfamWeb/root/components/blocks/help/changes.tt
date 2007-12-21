@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.13 2007-12-10 14:48:31 jt6 Exp $
+# $Id: changes.tt,v 1.14 2007-12-21 11:39:25 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -435,9 +435,13 @@
 
     <h2>Latest changes to website</h2>
 
-    <h3>Release 1.4 (10th December 2007)</h3>
+    <h3>Release 1.4 (21th December 2007)</h3>
 
     <ul>
+      <li><strong>Improved sequence validation:</strong>
+        the sequence search tool now accepts the commonly seen FASTA header
+        styles
+      </li>
       <li><strong>New help section on privacy:</strong>
         we now have a brief overview of the privacy issues surrounding use
         of the Pfam website.          
