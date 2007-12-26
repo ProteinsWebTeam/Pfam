@@ -2,7 +2,6 @@
 #-d:DProf 
 #dprofpp -u tmon.out
 
-
 # A program to run checks on alignment consistency with structure.
 
 use strict;
@@ -12,18 +11,26 @@ use Rfam::RfamAlign;
 use Getopt::Long;
 #use Data::Dumper; #Great for printing diverse data-structures.
 use Tie::IxHash;  #Use to return hash keys in the order they were added
+use bigint;
+use Math::BigFloat;
 
 my( $nolog );
 
 &GetOptions("n!"   => \$nolog );
 
 if( $#ARGV == -1 ) {
-    print "rqc-ss-con.pl - calculate statistics for how well the ";
-    print "                structure annotation corresponds with \n";
+    print "rqc-ss-con.pl - calculate statistics for how well the\n";
+    print "                structure annotation corresponds with\n";
     print "                the sequences.\n";
     print "Usage:    rqc-ss-con.pl <directory>\n";
     print "Options:\n";
     print "  -n             no log file\n";
+    print "\n";
+    print "TO ADD: -remove seqs annotated as pseudogene, retro-element, transposon,...\n";
+    print "        -iterate CM\n";
+    print "        \n";
+    print "        \n";
+    print "        \n";
     exit(1);
 }
 
@@ -33,7 +40,7 @@ my $family_dir = shift; # family dir to use
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
 
-my (%persequence, %perbasepair, %persequence_lens, %composition);
+my (%persequence, %perbasepair, %persequence_lens, %composition, %perbasepaircovariation, %perbasepaircovcounts);
 my $perfamily=0;
 tie %persequence, "Tie::IxHash"; #keys returns elements in the same order they were added.
 tie %perbasepair, "Tie::IxHash";
@@ -46,7 +53,7 @@ if( ! defined $nolog ) {
 #Print headers:
     printf LOGps     "FAMILY\tSEQID\tFRACTN_CANONICAL_BPs\tLEN\tFRAC_A\tFRAC_C\tFRAC_G\tFRAC_U\tMAX_DINUC\tCG_CONTENT\n";
     printf LOGpf     "FAMILY\tMEAN_FRACTN_CANONICAL_BPs\tCOVARIATION\tNO_SEQs\tALN_LENGTH\tNO_BPs\tNO_NUCs\tmean_PID\tmax_PID\tmin_PID\tmean_LEN\tmax_LEN\tmin_LEN\tFRACTN_NUCs\tFRAC_A\tFRAC_C\tFRAC_G\tFRAC_U\tMAX_DINUC\tCG_CONTENT\n";
-    printf LOGpb      "FAMILY\tBP_COORDS\tFRACTN_CANONICAL_BPs\n";
+    printf LOGpb      "FAMILY\tBP_COORDS\tFRACTN_CANONICAL_BPs\tCOVARIATION\n";
 }
 else {
     printf "You're stupidly not writing to log-file!\n";
@@ -71,6 +78,8 @@ for( my $i = 1; $i<$len+1; $i++ ){
 	if ($i<$j){
 	    my $bpstr = "$i:$j";
 	    $perbasepair{$bpstr} = 0;
+	    $perbasepaircovariation{$bpstr} = 0;
+	    $perbasepaircovcounts{$bpstr} = 0;
 	    $nopairs++;
 	}
     }
@@ -93,7 +102,9 @@ if (scalar(@list)<2){
 }
 
 my @list2 = @list;
-my ($mean_pid, $min_pid, $max_pid, $nocomps, $nocovs, $covariation, $mean_length, $min_length, $max_length, $nonucleotides) = (0.0, 1.0, 0.0, 0, 0, 0.0, 0.0, 9999999999, 0, 0);
+my ($min_pid, $max_pid, $nocomps, $nocovs, $covariation, $mean_length, $min_length, $max_length, $nonucleotides) = (1.0, 0.0, 0, 0, 0.0, 0.0, inf, 0, 0);
+my $mean_pid = new Math::BigFloat "0.00";
+
 #Calculate persequence info:
 foreach my $seqobj ( @list ) {
     my $seq = $seqobj->seq;
@@ -144,7 +155,9 @@ foreach my $seqobj ( @list ) {
 	    $persequence{$seqname} += $ispair;
 	    $perfamily += $ispair;
 	}
-	$persequence{$seqname} = $persequence{$seqname}/$nopairs;
+	my $a  = new Math::BigFloat $persequence{$seqname};
+	my $b  = new Math::BigFloat $nopairs;
+	$persequence{$seqname} = new Math::BigFloat $a/$b; 
     }
     else {
 	$persequence{$seqname} = 1.0;
@@ -192,7 +205,9 @@ foreach my $seqobj ( @list ) {
 	}
 	my $maxlen = max($len1,$len2);
 	if ($maxlen>0){
-	    $pid = $pid/$maxlen;
+	    my $a  = new Math::BigFloat $pid;
+	    my $b  = new Math::BigFloat $maxlen;
+	    $pid = new Math::BigFloat $a/$b; 
 	}
 	else {
 	    printf STDERR "WARNING: $shortname_family_dir $seqname has length \'$len1\' and $seqname2 has length \'$len2\' in $family_dir/SEED!\n";
@@ -215,7 +230,11 @@ foreach my $seqobj ( @list ) {
 	    my $OM = 0;
 	    foreach my $bpposns ( keys %perbasepair ) {
 		my @bpposns = split(/:/,$bpposns);
-		if (is_nucleotide($seq[$bpposns[0]-1]) && is_nucleotide($seq[$bpposns[1]-1]) && is_nucleotide($seq2[$bpposns[0]-1]) && is_nucleotide($seq2[$bpposns[1]-1]) ){#Only compute covariation on valid nucleotides:
+		my $nuccount = is_nucleotide(  $seq[$bpposns[0]-1]) + is_nucleotide( $seq[$bpposns[1]-1]);
+		my $nuccount2 = is_nucleotide($seq2[$bpposns[0]-1]) + is_nucleotide($seq2[$bpposns[1]-1]);
+		
+		if ($nuccount>0 && $nuccount2>0){#Only compute covariation if there is at least 1 nucleotide 
+                                                 #in each pair. Agnostic metric wrt gap-gap comparisons:
 		    my $ispair  = is_complementary( $seq[$bpposns[0]-1], $seq[$bpposns[1]-1]);
 		    my $ispair2 = is_complementary($seq2[$bpposns[0]-1],$seq2[$bpposns[1]-1]);
 		    if ($ispair && $ispair2){
@@ -226,11 +245,14 @@ foreach my $seqobj ( @list ) {
 			$OM=1;
 			$PI=0;
 		    }
+		    
 		    my $d1 = dist($seq[$bpposns[0]-1], $seq2[$bpposns[0]-1]);
 		    my $d2 = dist($seq[$bpposns[1]-1], $seq2[$bpposns[1]-1]);
 		    my $d = $d1 + $d2;
 		    $nocovs++;
 		    $covariation += ($PI*$d - $OM*$d);
+		    $perbasepaircovariation{$bpposns} += ($PI*$d - $OM*$d);
+		    $perbasepaircovcounts{$bpposns}++;
 		}
 	    }
 	}
@@ -238,15 +260,29 @@ foreach my $seqobj ( @list ) {
 }
 
 if ($nocomps>0){
-    $mean_pid = $mean_pid/$nocomps;
+    my $a  =  $mean_pid;
+    my $b  = new Math::BigFloat $nocomps;
+    $mean_pid = new Math::BigFloat $a/$b;
 }
 
-if($nopairs>0 && $nocomps>0){
-	$covariation = $covariation/($nopairs*$nocomps); #$nocovs
+#if($nopairs>0 && $nocomps>0){
+if($nocovs>0){
+    my $a  = new Math::BigFloat $covariation;
+    my $b  = new Math::BigFloat $nocovs;
+    $covariation = new Math::BigFloat $a/$b; #($nopairs*$nocomps); #$nocovs
 }
 
 if ($noseqs>0){
-    $mean_length = $mean_length/$noseqs;
+    my $a  = new Math::BigFloat $mean_length;
+    my $b  = new Math::BigFloat $noseqs;
+    $mean_length = new Math::BigFloat $a/$b; 
+}
+
+my $fracnuc;
+if($noseqs>0 && $len>0){
+    my $a  = new Math::BigFloat $nonucleotides;
+    my $b  = new Math::BigFloat $noseqs*$len;
+    $fracnuc = new Math::BigFloat $a/$b; 
 }
 
 #my $msg = Dumper(%composition);
@@ -257,13 +293,20 @@ my ($refmononuccounts, $maxdinucstr, $maxdinuc, $CGcontent) = compute_compositio
 #Print data to file and warnings for dodgy pairs:
 if ($noseqs>0 && $nopairs>0){
     foreach my $bpposns ( keys %perbasepair ) {
-	$perbasepair{$bpposns} = $perbasepair{$bpposns}/$noseqs;
+
+	my $a  = new Math::BigFloat $perbasepair{$bpposns};
+	my $b  = new Math::BigFloat $noseqs;
+	$perbasepair{$bpposns} = new Math::BigFloat $a/$b;
+
+	my $c  = new Math::BigFloat $perbasepaircovariation{$bpposns};
+	my $d  = new Math::BigFloat $perbasepaircovcounts{$bpposns};
+	$perbasepaircovariation{$bpposns}  = new Math::BigFloat $c/$d;
 	
 	if( ! defined $nolog ) {
-	    printf LOGpb "$shortname_family_dir\t$bpposns\t%0.4f\n", $perbasepair{$bpposns};
+	    printf LOGpb "$shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
 	else {
-	    printf "PERBASEPAIR: $shortname_family_dir\t$bpposns\t%0.4f\n", $perbasepair{$bpposns};
+	    printf "PERBASEPAIR: $shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
 	
 	if ($perbasepair{$bpposns}<6/16){
@@ -271,17 +314,19 @@ if ($noseqs>0 && $nopairs>0){
 	}
 	
     }
-    $perfamily = $perfamily/($noseqs*$nopairs);
+    my $e  = new Math::BigFloat $perfamily;
+    my $f  = new Math::BigFloat $noseqs*$nopairs;
+    $perfamily =  new Math::BigFloat $e/$f;
 }
 else {
     $perfamily = 1.0;
 }
 
 if( ! defined $nolog ) {
-    printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len), $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;    
+    printf LOGpf "$shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;    
 }
 else {
-    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $nonucleotides/($noseqs*$len), $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;
+    printf "PERFAMILY:   $shortname_family_dir\t%0.5f\t%0.5f\t$noseqs\t$len\t$nopairs\t$nonucleotides\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%d\t%d\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t$maxdinucstr:%0.3f\t%0.3f\n", $perfamily, $covariation, $mean_pid, $max_pid, $min_pid, $mean_length, $max_length, $min_length, $fracnuc, $refmononuccounts->{'A'}, $refmononuccounts->{'C'}, $refmononuccounts->{'G'}, $refmononuccounts->{'U'}, $maxdinuc, $CGcontent;
 }
 
 close(LOGpb);
@@ -634,27 +679,41 @@ sub compute_compositions {
 	foreach my $n (keys %{ $IUPAC2counts{$nucchar} } ){
 	    if ( defined( $IUPAC2counts{$nucchar}{$n} ) ){
 		$mononuccounts{$n} += $IUPAC2counts{$nucchar}{$n}*$nuc_counts{$nucchar};
+		#print "mononuccounts:$n = $mononuccounts{$n} nuc_counts:$nucchar $nuc_counts{$nucchar} IUPAC2counts:$nucchar:$n $IUPAC2counts{$nucchar}{$n} total:$total\n";
 	    }
 	}
     }
-	
+    
     foreach my $nuc (keys %mononuc2dinuc){
 	foreach my $dinuc ( @{ $mononuc2dinuc{$nuc} } ){
 	    $dinuccounts{$dinuc} += $mononuccounts{$nuc};
 	}
     }
 
+
     foreach my $mononuc ( keys %mononuccounts ) {
-	$mononuccounts{$mononuc} = $mononuccounts{$mononuc}/$total;
+	#printf "mononuc:$mononuc mononuccounts:$mononuccounts{$mononuc} total:$total mononuccounts:%0.4f\n", $mononuccounts{$mononuc};
+	my $a  = new Math::BigFloat $mononuccounts{$mononuc};
+	my $b  = new Math::BigFloat $total;
+	#my $rat  = new Math::BigFloat $a/$b;
+	$mononuccounts{$mononuc} = new Math::BigFloat $a/$b;
+
+	#printf "mononuc:$mononuc mononuccounts:$mononuccounts{$mononuc} total:$total mononuccounts:%0.4f rat:$rat\n", $mononuccounts{$mononuc};
     }
     
-    my ($maxdinuc,$maxdinucstr) = (0, "");
+    my $maxdinuc = new Math::BigFloat "0.00";
+    my $maxdinucstr =  "";
     foreach my $dinuc ( keys %dinuccounts ) {
-	$dinuccounts{$dinuc} = $dinuccounts{$dinuc}/$total;
+	my $a  = new Math::BigFloat $dinuccounts{$dinuc};
+	my $b  = new Math::BigFloat $total;
+	#print "dinuc:$dinuc dinuccounts:$dinuccounts{$dinuc} total:$total\n";
+	$dinuccounts{$dinuc} = new Math::BigFloat $a/$b;
+	#print "dinuc:$dinuc dinuccounts:$dinuccounts{$dinuc} total:$total\n";
 	if ($maxdinuc < $dinuccounts{$dinuc}) {
 	    $maxdinuc = $dinuccounts{$dinuc};
 	    $maxdinucstr = $dinuc;
 	}
+	#print "dinuc:$dinuc dinuccounts:$dinuccounts{$dinuc} total:$total maxdinucstr:$maxdinucstr maxdinuc:$maxdinuc\n";
     }
     
 #    my $msg = Dumper(%IUPAC2counts, "\n\n", %mononuc2dinuc);
