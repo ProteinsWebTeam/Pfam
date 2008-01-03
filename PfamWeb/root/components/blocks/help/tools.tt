@@ -4,7 +4,7 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.10 2007-11-05 13:38:19 jt6 Exp $
+# $Id: tools.tt,v 1.11 2008-01-03 10:09:13 jt6 Exp $
 
 USE dumper;
 
@@ -30,7 +30,7 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
       <a href="[% c.uri_for( "/generateGraphic" ) %]">tool</a> for users to 
       upload a &quot;domain graphics&quot; XML. This file will be validated 
       against the
-      <a href="[% c.uri_for( "/status/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
+      <a href="[% c.uri_for( "/static/documents/pfamDomainGraphics.xsd" ) %]">schema</a>
       and subsequently rendered. The images that the tool produces can then 
       be saved for your own use. 
     </p>
