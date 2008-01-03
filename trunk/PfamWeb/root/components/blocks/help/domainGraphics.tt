@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.8 2007-11-05 13:38:19 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.9 2008-01-03 10:09:30 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -68,10 +68,10 @@ family = c.uri_for( "/family" );
     <div id="seqXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        format=&quot;png&quot;
        layout=&quot;continuous&quot; 
        scale_x=&quot;0.5&quot; 
@@ -131,10 +131,10 @@ family = c.uri_for( "/family" );
     <div id="seqDomainXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        format=&quot;png&quot; 
        layout=&quot;continuous&quot; 
        scale_x=&quot;0.5&quot; 
@@ -189,10 +189,10 @@ family = c.uri_for( "/family" );
     <div id="partialDomainXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        format=&quot;png&quot; 
        layout=&quot;continuous&quot; 
        scale_x=&quot;0.5&quot;
@@ -259,10 +259,10 @@ family = c.uri_for( "/family" );
     <div id="repeatXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot;
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot;
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
@@ -372,10 +372,10 @@ family = c.uri_for( "/family" );
     <div id="nestedXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
@@ -481,10 +481,10 @@ family = c.uri_for( "/family" );
     <div id="contextXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
@@ -597,10 +597,10 @@ family = c.uri_for( "/family" );
     <div id="pfamBXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
@@ -657,10 +657,10 @@ family = c.uri_for( "/family" );
     <div id="motifsXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
@@ -850,10 +850,10 @@ family = c.uri_for( "/family" );
     <div id="activeSiteXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
@@ -1024,10 +1024,10 @@ family = c.uri_for( "/family" );
     <div id="arrowsXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
@@ -1090,10 +1090,10 @@ family = c.uri_for( "/family" );
     <div id="lollipopXML" class="xmlFragment" style="display: none">
       <pre>
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;image xmlns=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+&lt;image xmlns=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; 
-       xsi:schemaLocation=&quot;http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd 
-                           http://www.sanger.ac.uk/Software/Pfam/xml/pfamDomainGraphics.xsd&quot; 
+       xsi:schemaLocation=&quot;http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd 
+                           http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd&quot; 
        layout=&quot;continuous&quot; 
        format=&quot;png&quot; 
        scale_x=&quot;0.5&quot; 
