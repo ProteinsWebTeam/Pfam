@@ -770,9 +770,9 @@ sub parse_hmmpfam {
 							#print STDERR "SET alipart to $aliPart[$i]\n";
 						}
 						
-						$ali{hmm}   .= substr($aliPart[0],19,48);
-						$ali{match} .= substr($aliPart[1],19,48);
-						$ali{seq}   .= substr($aliPart[2],19,48);
+						$ali{hmm}   .= substr($aliPart[0],19,50);
+						$ali{match} .= substr($aliPart[1],19,50);
+						$ali{seq}   .= substr($aliPart[2],19,50);
 						
 						if($aliPart[0] =~ /\</){
 							$unit->align_hmm($ali{hmm});
