@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.12 2008-01-07 13:52:48 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.13 2008-01-07 16:48:07 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -65,6 +65,7 @@
         (<a onclick="tree.getRoot().children[0].uncheck();$('stError').hide();return false;"
            href="#">Uncheck</a> all)
       </li>
+      [% IF entryType == "A" %]
       <li>
         <em>View</em>
         <ul>
@@ -72,13 +73,11 @@
             <span onclick="collectSequences( 'G', '[% acc %]' );"
                   class="link">graphically</span>
           </li>
-          [% IF entryType == "A" %]
             <li>
               as an
               <span onclick="collectSequences( 'A', '[% acc %]' );"
                     class="link">alignment</span>
             </li>
-          [% END %]
         </ul>
       </li>
       <li>
@@ -94,6 +93,14 @@
           </li>
         </ul>
       </li>
+      [% ELSE %]
+      <li>
+        View
+        <span onclick="collectSequences( 'G', '[% acc %]' );"
+                  class="link">graphically</span>
+      </li>
+      [% END %]
+      
       <li id="stError"
          class="error"
          style="display: none" ></li>
