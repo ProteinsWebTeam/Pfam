@@ -100,8 +100,8 @@ sub getClanDataByPfam {
   $result = $self->getSchema
                      ->resultset("Clan_membership")
                       ->find({ "pfam.pfamA_id" => $family},
-                             {join     => [qw/pfam clans/],
-                              prefetch => [qw/clans/] });
+                             {join     => [qw( pfam clans)],
+                              prefetch => [qw( clans )] });
                               
  }else{
   cluck("$family does not look like a pfamA accession or id");
@@ -140,6 +140,7 @@ sub getClanData {
  carp("Did not find clan information for $clan") if $self->{'debug'};
 }
 
+
 sub getClanMembership{
   my($self, $clan) = @_;
   my @clanData;
@@ -170,7 +171,7 @@ sub getClanMembership{
   }
 }
 
-sub getClanAllClanData {
+sub getAllClanData {
   my($self) = shift; 
   my @clanData = $self->getSchema
                         ->resultset("Clans")
