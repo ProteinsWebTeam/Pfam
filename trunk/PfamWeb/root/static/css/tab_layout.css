@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.37 2007-12-10 14:59:54 jt6 Exp $
+   $Id: tab_layout.css,v 1.38 2008-01-07 13:51:55 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -387,6 +387,10 @@ div.blockContent > #treeTools {
 }
 
 #treeTools ul {
+  padding-left: 2em;
+}
+
+#treeTools ul.bare {
   list-style: none;
   margin: 0;
   padding: 0;
