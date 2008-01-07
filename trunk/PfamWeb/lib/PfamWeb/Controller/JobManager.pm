@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.4 2007-12-10 14:40:19 jt6 Exp $
+# $Id: JobManager.pm,v 1.5 2008-01-07 14:00:09 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.4 2007-12-10 14:40:19 jt6 Exp $
+$Id: JobManager.pm,v 1.5 2008-01-07 14:00:09 jt6 Exp $
 
 =cut
 
@@ -24,7 +24,6 @@ use strict;
 use warnings;
 
 use JSON;
-use Data::UUID;
 
 use Data::Dump qw( dump );
 
