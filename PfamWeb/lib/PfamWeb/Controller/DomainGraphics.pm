@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.17 2008-01-07 13:58:16 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.18 2008-01-07 16:45:33 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.17 2008-01-07 13:58:16 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.18 2008-01-07 16:45:33 jt6 Exp $
 
 =cut
 
@@ -141,6 +141,8 @@ sub begin : Private {
       return;
     }
     
+    $c->stash->{subTree}         = 1;
+    $c->stash->{jobId}           = $jobId;
     $c->stash->{selectedSeqAccs} = $accession_list;
     
     $c->forward( 'getSelectedSeqs' );
