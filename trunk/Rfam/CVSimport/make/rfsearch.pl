@@ -158,10 +158,10 @@ while(<S>) {
     }
 }
 
-if( $seenrf and $buildopts !~ /--rf/ ) {
-    $buildopts = "--rf $buildopts";
-}   
-elsif( !$seenrf and $buildopts =~ /--rf/ ) {
+#if( $seenrf and $buildopts !~ /--rf/ ) {
+#    $buildopts = "--rf $buildopts";
+#}   
+if( !$seenrf and $buildopts =~ /--rf/ ) {
     $buildopts =~ s/--rf //g;
 }
 
