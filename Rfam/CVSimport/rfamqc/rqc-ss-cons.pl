@@ -107,12 +107,8 @@ my $mean_pid = new Math::BigFloat "0.00";
 
 #Calculate persequence info:
 foreach my $seqobj ( @list ) {
-    my $seq = $seqobj->seq;
-    $seq =~ tr/a-z/A-Z/;
-    my $seqname = $seqobj->id;
-    my $start = $seqobj->start;
-    my $end = $seqobj->end;
-    $seqname = "$seqname/$start-$end";
+    my $seq = uc($seqobj->seq);
+    my $seqname = $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end;
     my @seq = split(//,$seq);
     my %seq_composition = ();
     
@@ -175,12 +171,8 @@ foreach my $seqobj ( @list ) {
     #Computing pairwise stats (PID & Covariation):
     shift(@list2);    #shift current list1 seq off list2 - don't want to compare the sequence to itself.
     foreach my $seqobj2 ( @list2 ) {
-	my $seq2 = $seqobj2->seq;
-	$seq2 =~ tr/a-z/A-Z/;
-	my $seqname2 = $seqobj2->id;
-	my $start2 = $seqobj2->start;
-	my $end2 = $seqobj2->end;
-	$seqname2 = "$seqname2/$start2-$end2";
+	my $seq2 = uc($seqobj2->seq);
+	my $seqname2 = $seqobj2->id . "/" . $seqobj2->start . "-" . $seqobj2->end;
 	
 	my @seq2 = split(//,$seq2);
 	my $pid  = 0;
@@ -290,6 +282,8 @@ if($noseqs>0 && $len>0){
 
 my ($refmononuccounts, $maxdinucstr, $maxdinuc, $CGcontent) = compute_compositions( \%composition, $nonucleotides);
 
+my $threshold = new Math::BigFloat (new Math::BigFloat 6)/(new Math::BigFloat 16);
+print STDERR "threshold=$threshold\n";
 #Print data to file and warnings for dodgy pairs:
 if ($noseqs>0 && $nopairs>0){
     foreach my $bpposns ( keys %perbasepair ) {
@@ -309,7 +303,7 @@ if ($noseqs>0 && $nopairs>0){
 	    printf "PERBASEPAIR: $shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
 	
-	if ($perbasepair{$bpposns}<6/16){
+	if ($perbasepair{$bpposns}<$threshold){
 	    printf STDERR "WARNING: $shortname_family_dir base-pair $bpposns has an FCbp of only %0.3f (<6/16). NEEDS FIXED!\n", $perbasepair{$bpposns};
 	}
 	
@@ -527,13 +521,13 @@ sub dist {
     my $a = shift;
     my $b = shift;
 
-    if (defined($a)){
-	$a =~ tr/a-z/A-Z/;
-    }
+#    if (defined($a)){
+#	$a =~ tr/a-z/A-Z/;
+#    }
 
-    if (defined($b)){
-	$b =~ tr/a-z/A-Z/;
-    }
+#    if (defined($b)){
+#	$b =~ tr/a-z/A-Z/;
+#    }
     
     if ( defined($a) && defined($b) && (length($a)==1) && (length($b)==1) && ($a ne $b) ) {
 	return 1;
