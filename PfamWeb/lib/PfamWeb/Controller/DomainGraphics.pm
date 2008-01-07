@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.16 2007-10-25 09:28:04 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.17 2008-01-07 13:58:16 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.16 2007-10-25 09:28:04 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.17 2008-01-07 13:58:16 jt6 Exp $
 
 =cut
 
@@ -117,31 +117,32 @@ sub begin : Private {
   
   #----------------------------------------
 
-  # do we have a sub-tree flag ? If so we should also have a list of sequence
-  # accessions to process 
+  # do we have a sub-tree flag ? If so we should also have a job ID, which we 
+  # can use to retrieve the list of sequence accessions to process
   
   } elsif( $c->req->param('subTree') and 
-           $c->req->param('seqAccs') ) {
-
+           $c->req->param('jobId') ) {
+    
     $c->log->debug( 'DomainGraphics::begin: checking for selected sequences' )
       if $c->debug;
-
-    # detaint the list of sequence accessions (again... we've already done this
-    # in SpeciesTree, but since the user can have put their sticky little hands
-    # on them in between, we'll do it once more)
-    my @seqAccs;
     
-    # retrieve the list of accessions from the Request...
-    my @taintedSeqAccs = $c->req->param('seqAccs'); 
-           
-    foreach ( @taintedSeqAccs ) {
-      next unless m/^\s*([AOPQ]\d[A-Z0-9]{3}\d)\s*$/i;
-      push @seqAccs, $1;
+    # validate the UUID
+    my $jobId = $c->req->param('jobId');
+    if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+      $c->log->debug( 'DomainGraphics::begin: bad job id' ) if $c->debug;
+      $c->stash->{errorMsg} = 'Invalid job ID';
+      return;
     }
-    $c->log->debug( 'DomainGraphics::begin: found |' . scalar @seqAccs
-                    . '| valid sequence accessions' ) if $c->debug;    
-
-    $c->stash->{selectedSeqAccs} = \@seqAccs; 
+    
+    # retrieve the accessions for that job ID
+    my $accession_list = $c->forward( '/utils/retrieve_accessions', [ $jobId ] );
+    unless( $accession_list ) {
+      $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
+      return;
+    }
+    
+    $c->stash->{selectedSeqAccs} = $accession_list;
+    
     $c->forward( 'getSelectedSeqs' );
   
   #----------------------------------------

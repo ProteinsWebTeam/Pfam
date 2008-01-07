@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.7 2007-12-10 14:42:13 jt6 Exp $
+# $Id: Builder.pm,v 1.8 2008-01-07 13:58:02 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.7 2007-12-10 14:42:13 jt6 Exp $
+$Id: Builder.pm,v 1.8 2008-01-07 13:58:02 jt6 Exp $
 
 =cut
 
@@ -42,7 +42,9 @@ use base 'PfamWeb::Controller::Family::Alignment';
 
 =head2 build : Path
 
-Builds a sequence alignment from the specified sequences.
+Builds a sequence alignment from the specified sequences. The "jobId" parameter
+in this action refers to the list of accessions that were previously stored in
+the species_collection table, rather than the job that we run to align them.
 
 =cut
 
@@ -51,10 +53,24 @@ sub build : Path {
   
   $c->log->debug( 'Family::Alignment::Builder::build: checking for sequences' );
 
-  return unless( $c->req->param('seqAccs') );
+  unless( $c->req->param('jobId') ) {
+    $c->log->debug( 'Family::Alignment::Builder::build: no job ID supplied' );
+    $c->stash->{errorMsg} = 'There was no job ID for this alignment..';
+    $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
+    return;
+  }
+
+  # validate the UUID
+  my $job_id = $c->req->param('jobId');
+  if( length( $job_id ) != 36 or $job_id !~ /^[A-F0-9\-]+$/ ) {
+    $c->log->debug( 'Family::Alignment::Builder: bad job id' ) if $c->debug;
+    $c->stash->{errorMsg} = 'Invalid job ID';
+    $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
+    return;
+  }
 
   # retrieve the sequences
-  $c->forward( 'getSequences' );
+  $c->stash->{fasta} = $c->forward( '/utils/get_sequences', [ $job_id ] );
   
   # make sure we got something...
   unless( length $c->stash->{fasta} ) {
@@ -181,51 +197,6 @@ sub getAlignment : Private {
   $c->stash->{alignments}->{rawAlignments} = [ \%alignment ];
   $c->stash->{alignments}->{lengths}       = [ $length ];
   $c->stash->{alignments}->{consensus}     = [ $consensus ];
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 getSequences : Private
-
-Retrieves the sequences for the specified sequence accessions and drops them
-into the stash as a single FASTA-format string.
-
-=cut
-
-sub getSequences : Private {
-  my( $this, $c ) = @_;
-  
-  # detaint the list of sequence accessions. These accessions are passed as
-  # a single value, space-separated and uri_encoded
-  my @seqAccs;
-  foreach ( split /\s+/, uri_unescape( $c->req->param('seqAccs') ) ) {
-    next unless  m/^([AOPQ]\d[A-Z0-9]{3}\d)$/i;
-    push @seqAccs, $1;
-  }
-  $c->log->debug( 'Family::Alignment::Builder::getSequences: found |' 
-                  . scalar @seqAccs . '| valid sequence accessions' );
-  $c->stash->{selectedSeqAccs} = \@seqAccs;
-
-  # get each of the sequences in turn and turn them into FASTA format
-  foreach my $seqAcc ( @seqAccs ) {
-    my @rows = $c->model('PfamDB::PfamA_reg_full_significant')
-                 ->search( { 'pfamseq.pfamseq_acc' => $seqAcc,
-                             auto_pfamA            => $c->stash->{pfam}->auto_pfamA,
-                             in_full               => 1 },
-                           { join                  => [ qw( pfamseq ) ],
-                             prefetch              => [ qw( pfamseq ) ] } );
-    $c->stash->{numRows} = scalar @rows;
-
-    foreach my $r (@rows){
-      $c->stash->{fasta} .= '>'.$r->pfamseq_acc.'/'.$r->seq_start.'-'.$r->seq_end."\n";
-      $c->stash->{fasta} .= substr( $r->sequence,
-                                    $r->seq_start - 1,
-                                    $r->seq_end - $r->seq_start + 1 )."\n";
-    }
-  }
-
-#  $c->log->debug( 'Family::Alignment::Builder::generateAlignment: built a FASTA file: |'
-#                  . $c->stash->{fasta} . '|' );
 }
 
 #-------------------------------------------------------------------------------
