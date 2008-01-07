@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.14 2007-12-21 11:39:25 jt6 Exp $
+# $Id: changes.tt,v 1.15 2008-01-07 14:13:15 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -435,7 +435,7 @@
 
     <h2>Latest changes to website</h2>
 
-    <h3>Release 1.4 (21th December 2007)</h3>
+    <h3>Release 1.4 (7th January 2008)</h3>
 
     <ul>
       <li><strong>Improved sequence validation:</strong>
@@ -455,10 +455,6 @@
         tooltips which give details of the domain under the cursor, as in the
         old Pfam website.          
       </li>
-      <li><strong>Molecular surfaces in AstexViewer:</strong>
-        when you view a protein structure using AstexViewer, you will now see
-        the Pfam-A regions outlined with a semi-transparent molecular surface.          
-      </li>
       <li><strong>Links underlined:</strong>
         all links should now be underlined, either permananently, or when you 
         move your mouse over them.          
@@ -467,15 +463,32 @@
         the page for a Pfam-A family now shows whether the family has changed
         since the previous Pfam release.
       </li>
-      <li><strong>Sequence display:</strong>
-        the page for a protein sequence now shows the correct sequence for the
-        entry. Previously duplicated the first residue in the sequence.
-      </li>
       <li><strong>Sequence search defaults changed:</strong>
         the defaults for the Pfam sequence search in the homepage have been
         changed, so that the search now produces results from both
         &quot;ls&quot; and &quot;fs&quot; models, merged according to the rules
         for each family.
+      </li>
+      <li><strong>Molecular surfaces in AstexViewer:</strong>
+        when you view a protein structure using AstexViewer, you will now see
+        the Pfam-A regions outlined with a semi-transparent molecular surface.          
+      </li>
+      <li><strong>New species tree tools:</strong>
+        you can now download sequences (in FASTA format) or sequence accessions 
+        for selected nodes in a species tree.
+      </li>
+      <li><strong>Fixed sequence display:</strong>
+        the page for a protein sequence now shows the correct sequence for the
+        entry. Previously duplicated the first residue in the sequence.
+      </li>
+      <li><strong>Fixed URL for XML schema in help pages:</strong>
+        uploaded XML files describing domain graphics are validated against an
+        XML schema. In the example XML snippets in the domain graphics help 
+        page, the URL for that document was wrong. 
+      </li>
+      <li><strong>Fixed a bug in sequence search output:</strong>
+        there was a bug in the output of batch sequence searches, causing 
+        occasional missing residues in the output. This has been corrected.  
       </li>
     </ul>
   
