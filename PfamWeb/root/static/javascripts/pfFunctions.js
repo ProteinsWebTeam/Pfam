@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.53 2007-12-07 14:46:03 jt6 Exp $
+// $Id: pfFunctions.js,v 1.54 2008-01-07 13:54:21 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -941,33 +941,88 @@ function toggleTools() {
 
 function collectSequences( sStyle, sAcc ) {
 
-  var seqAccs = "";
+  // get all leaf nodes
+  var leaves = document.getElementsByClassName( "leafNode", "treeDiv" );
 
-  var leaves = $A( document.getElementsByClassName( "leafNode", "treeDiv" ) );
-  leaves.each( function( n ) {
-                 var taskNode = nodeMapping[n.id];
-                 if( taskNode.checked ) {
-                   seqAccs = seqAccs + nodeSequences[n.id] + " ";
-                 }
-               } );
-  
-  // build the URI
-  var url;
-  if( sStyle == 'G' ) {
-    // view the selected sequences as domain graphics
-    url = selectGraphicsURI + "?style="   + sStyle
-                            + "&seqAccs=" + escape( seqAccs );
-    // console.debug( "viewing the selected sequences as domain graphics: |" + url + "|" );
-  } else {
-    // view the selected sequences as an alignment
-    url = selectAlignmentURI + "?style="   + sStyle
-                             + "&acc="     + sAcc
-                             + "&seqAccs=" + escape( seqAccs );
-    // console.debug( "viewing the selected sequences as an alignment: |" + url + "|" );
+  // and collect IDs from the checked ones
+  var bail = true;
+  var seqAccs = leaves.inject( "", function( accumulator, n ) {
+      var taskNode = nodeMapping[n.id];
+      if( taskNode.checked ) {
+        bail = false;
+        return accumulator + nodeSequences[n.id] + " ";
+      } else {
+        return accumulator;
+      }
+    }
+  );
+
+  // make sure we have at least one checked node
+  if( bail ) {
+    $("stError")
+      .update( "Please select some nodes" )
+      .show();
+    return;
   }
 
-  // and submit the request
-  popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
+  // TODO we could optimise this a bit, by storing the list of selected 
+  // accessions at this point and then checking the new list against the old
+  // list before making another AJAX request to store a second, identical list
+  // in the DB. 
+
+  // store the IDs and get back a "job id"
+  var jobId;
+  var r = new Ajax.Request( selectStoreURI, {
+    method: 'post',
+    parameters: { ids: escape( seqAccs ) },
+    onSuccess: function( oResponse ) {
+
+      // the response should contain only the "job ID", which points to the list
+      // of accessions
+      jobId = oResponse.responseText;
+
+      // build the URI for the next request, the one that actually does the 
+      // work here
+      var url;
+      var popup = true;
+
+      // view the selected sequences as...
+      switch( sStyle ) {
+        case 'G':
+          url = selectGraphicsURI;   // domain graphics
+          break;
+        case 'L':
+          url = selectAccessionsURI; // sequence accessions
+          popup = false;
+          break;
+        case 'F':
+          url = selectFastaURI;      // FASTA format
+          popup = false;
+          break;
+        default:
+          url = selectAlignmentURI;  // an alignment
+      }
+
+      // tack on the parameters that we need
+      url +=   "?acc="   + sAcc
+             + "&jobId=" + jobId;
+        
+      // load that URL, either in a popup or in the main window
+      if( popup ) {
+        popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
+      } else {
+        window.location = url;
+      }
+      
+    },
+    onFailure: function( oResponse ) {
+      $("stError")
+        .update( "There was a problem collecting sequence accessions" )
+        .show();
+      return;
+    }
+  });
+
 }
 
 //------------------------------------------------------------
