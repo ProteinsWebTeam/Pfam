@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.9 2008-01-03 10:09:30 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.10 2008-01-07 16:10:05 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -1124,7 +1124,7 @@ family = c.uri_for( "/family" );
       &lt;/head&gt;
     &lt;/markup&gt;
     &lt;markup start=&quot;80&quot; v_align=&quot;bottom&quot; label=&quot;bold line, Diamond head&quot;&gt;
-      &lt;line style=&quot;bold line&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
         &lt;colour&gt;
           &lt;hex hexcode=&quot;666666&quot;/&gt;
         &lt;/colour&gt;
@@ -1160,7 +1160,7 @@ family = c.uri_for( "/family" );
       &lt;/head&gt;
     &lt;/markup&gt;
     &lt;markup start=&quot;100&quot; v_align=&quot;top&quot; label=&quot;bold line, Diamond head&quot;&gt;
-      &lt;line style=&quot;bold line&quot;&gt;
+      &lt;line style=&quot;bold&quot;&gt;
         &lt;colour&gt;
           &lt;hex hexcode=&quot;666666&quot;/&gt;
         &lt;/colour&gt;
