@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.11 2007-12-10 14:45:26 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.12 2008-01-07 13:52:48 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -17,7 +17,7 @@
 
   <div id="treeToolsContent" style="display: none">
 
-    <ul>
+    <ul class="bare">
       <li>
         Fully <a href="#" onclick="tree.expandAll();return false;">expand</a> tree
       </li>
@@ -30,7 +30,7 @@
     </ul>
 
     <h3>Annotation</h3>
-    <ul> 
+    <ul class="bare"> 
       [% IF entryType == "A" %]
       <li>
         <a id="seedToggle" 
@@ -51,30 +51,52 @@
       </li>
     </ul>
 
-    <h3>Download</h3>
-    <ul>
+    <h3>Download tree</h3>
+    <ul class="bare">
       <li>
         <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">Save</a> 
         a text representation
       </li>
     </ul>
 
-    <h3>View selected sequences</h3>
-    <ul>
-      <li>
-        <a onclick="tree.getRoot().children[0].uncheck();return false;"
-           href="#">Uncheck</a> all
+    <h3>Selected sequences</h3>
+    <ul class="bare">
+      <li class="small">
+        (<a onclick="tree.getRoot().children[0].uncheck();$('stError').hide();return false;"
+           href="#">Uncheck</a> all)
       </li>
       <li>
-        <span class="link" onclick="collectSequences( 'G', '[% acc %]' );">
-          Graphically</span>
+        <em>View</em>
+        <ul>
+          <li>
+            <span onclick="collectSequences( 'G', '[% acc %]' );"
+                  class="link">graphically</span>
+          </li>
+          [% IF entryType == "A" %]
+            <li>
+              as an
+              <span onclick="collectSequences( 'A', '[% acc %]' );"
+                    class="link">alignment</span>
+            </li>
+          [% END %]
+        </ul>
       </li>
-      [% IF entryType == "A" %]
-        <li>
-          As an <span class="link" onclick="collectSequences( 'A', '[% acc %]' );">
-            alignment</span>
-        </li>
-      [% END %]
+      <li>
+        <em>Download</em>
+        <ul>
+          <li>
+            <span onclick="collectSequences( 'L', '[% acc %]' );"
+                  class="link">sequence accessions</span>
+          </li>
+          <li>
+            <span onclick="collectSequences( 'F', '[% acc %]' );"
+                  class="link">sequences</span> in FASTA format
+          </li>
+        </ul>
+      </li>
+      <li id="stError"
+         class="error"
+         style="display: none" ></li>
     </ul>
 
   </div>
