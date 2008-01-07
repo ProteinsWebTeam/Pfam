@@ -7,7 +7,7 @@
 # template uses an ajax call to hand off to a controller that generates domain
 # graphics for each of the selected sequences.
 #
-# $Id: seqViewGraphic.tt,v 1.6 2007-11-05 13:38:18 jt6 Exp $
+# $Id: seqViewGraphic.tt,v 1.7 2008-01-07 13:53:42 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -51,8 +51,8 @@ title = "View selected sequences"
   <div class="cleaner"><!-- empty --></div>
 [% ELSE %]
   <p>
-  [% FOREACH seq IN selectedSeqAccs %]
-    <a href="[% c.uri_for( "/protein", { acc = seq } ) %]">[% seq %]</a>
+  [% FOREACH seqAcc IN selectedSeqAccs %]
+    <a href="[% c.uri_for( "/protein", { acc = seqAcc } ) %]">[% seqAcc %]</a>
   [% END %]
   </p>
 [% END %]  
@@ -66,23 +66,17 @@ title = "View selected sequences"
 
 <script type="text/javascript">
   // <![CDATA[
-  seqAccs = [
-  [%- FOREACH seqAcc IN selectedSeqAccs %]
-     "[% seqAcc %]"[% UNLESS loop.last; ","; END %]
-  [%- END %]
-  ];
-  new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
-                    { method:     'get', 
-                      parameters: { seqAccs:  seqAccs,
-                                    subTree:  1 },
-                      onSuccess:  function( oResponse ) {
-                                    $("stdgph").update( oResponse.responseText );
-                                    console.log( oResponse.responseText);
-                                  },
-                      onFailure:  function( oResponse ) {
-                                    $("stdgph").update( "Domain graphics loading failed." );
-                                  }
-                    } );
+  var r = new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
+                            { method:     "get",
+                              parameters: { jobId:   "[% jobId %]",
+                                            subTree: 1 },
+                              onSuccess:  function( oResponse ) {
+                                            $("stdgph").update( oResponse.responseText );
+                                          },
+                              onFailure:  function( oResponse ) {
+                                            $("stdgph").update( "Domain graphics loading failed." );
+                                          }
+                            } );
   // ]]>
 </script>
 
