@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.11 2007-10-30 14:54:10 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.12 2008-01-07 13:58:37 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.11 2007-10-30 14:54:10 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.12 2008-01-07 13:58:37 jt6 Exp $
 
 =cut
 
@@ -55,6 +55,7 @@ use strict;
 use warnings;
 
 use URI::Escape;
+use Data::UUID;
 
 use base 'Catalyst::Controller';
 
@@ -125,7 +126,7 @@ sub begin : Private {
 
   # see if we're serving to Internet Exploder...
   $c->stash->{isIE} = ( defined $c->req->param('ie') and
-                        $c->req->param('ie') eq 'true' );
+                        $c->req->param('ie') eq 'true' ) ? 1 : 0;
   
   $c->log->debug( 'SpeciesTree::begin: isIE: |' . $c->stash->{isIE} . '|' )
     if $c->debug;
@@ -151,25 +152,102 @@ sub end : ActionClass( 'RenderView' ) {
       if $c->debug;
 
     # we got a text tree; make it a plain text download
-    $c->res->content_type( "text/plain" );
+    $c->res->content_type( 'text/plain' );
     $c->res->headers->header( 'Content-disposition' => 'attachment; filename='
                               . $c->stash->{acc} . '_tree.txt' );
   
     $c->res->body( $c->stash->{textTree} );
-    
-  } else {
-    
-    $c->log->debug( 'SpeciesTree::end: handing off to template...' )
-      if $c->debug;
-
-    # hand off to the template and let it display an apologetic message
-    $c->stash->{template} ||= 'components/speciesTree.tt';
   }
+  
+  # hand off to the template
+  $c->stash->{template} ||= 'components/speciesTree.tt';
 
 }
 
 #-------------------------------------------------------------------------------
 #- public actions --------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 storeids : Local
+
+Stores a set of sequence accessions in a DB table and returns a unique ID for
+the set. Expects the sequence accessions to be stored as an escaped, semi-colon-
+separated list. The list is unescaped before being stored.
+
+This is intended to be called from an AJAX requests, so we hand back
+raw information:
+
+=over 4
+
+=item 
+
+If everything goes well, we hand back the ID as a simple, plain text string. 
+
+=item 
+
+If the sequence list has illegal characters we set the response status to 
+400 and set the body to "Bad request", although we don't really expect it to 
+be used.
+
+=item 
+
+If there's a problem adding the row to the DB, we set the response status
+to 500 and put "Failed" into the response body.
+
+=back
+
+The DB table is intended to be used as a staging post for features of the
+species tree that pop up a new window to show things like sequence alignments or
+domain graphics.
+
+=cut
+
+sub storeids : Local {
+  my( $this, $c ) = @_;
+  
+  my $id_list = uri_unescape( $c->req->param('ids') ); 
+  
+  unless( $id_list =~ m/^([\w]{6}\s+)+$/ ) {
+    $c->log->debug( 'SpeciesTree::storeids: not a valid ID string' )
+      if $c->debug;
+
+    $c->res->body( 'Bad request' );
+    $c->res->status( 400 );
+    return;
+  }
+  
+  $c->log->debug( 'SpeciesTree::storeids: got some valid ids' ) if $c->debug;
+  
+  # build an ID for this set of IDs
+  my $job_id = Data::UUID->new()->create_str();
+  
+  # add it to the DB
+  my $row;
+  eval {
+    # we use "update_or_create" because we don't really care if this ID has 
+    # been used before; it's not important enough to spend time making sure 
+    # it's unique
+    $row = $c->model('WebUser::Species_collection')
+             ->update_or_create( { job_id => $job_id,
+                                   id_list => $id_list } );
+  };
+  if( $@ ) {
+    # oops...
+    $c->log->error( "SpeciesTree::storeids: error from query: |$@|" )
+      if $c->debug;
+
+    $c->res->body( 'Failed' );
+    $c->res->status( 500 );
+    return;
+  }
+
+  # the row was successfully added to the table. Hand back the job ID as the 
+  # response
+  $c->res->body( $job_id );
+  $c->res->content_type( 'text/plain' );    
+
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 interactive : Local
@@ -182,14 +260,13 @@ sub interactive : Local {
   my( $this, $c ) = @_;
 
   $c->log->debug( 'SpeciesTree::interactive: rendering the species tree for acc: |'
-                  . $c->stash->{acc} . '|' )
-    if $c->debug;
+                  . $c->stash->{acc} . '|' ) if $c->debug;
 
   $c->forward('buildTree');
 
   # point to the template that will generate the javascript that
   # builds the tree in the client
-  $c->stash->{template} = "components/speciesTree.tt";
+  $c->stash->{template} = 'components/speciesTree.tt';
   
   # cache the output of the template for one week
   #$c->cache_page( 604800 );
@@ -252,30 +329,173 @@ sub text : Local {
 
 #-------------------------------------------------------------------------------
 
-=head2 selected : Local
+=head2 graphics : Local
 
-The species tree includes check-boxes that can be used to select nodes, or 
-whole sub-trees, from the initial species tree. This action renders the 
-selected sequences as Pfam graphics
+Each node of the species tree represents a species which has one or more
+sequences containing the Pfam domain in question. Users can select a subset of
+nodes, thereby selecting a set of sequences which contain the Pfam domain. This
+action renders those sequences as domain graphics. The process by which that
+happens is a little convoluted:
+
+=over 4
+
+=item 
+
+When the "generate graphics" link is clicked in the main page, which contains
+the species tree with some nodes selected, we run a javascript snippet that 
+collects the selected sequence accessions.
+
+=item
+
+The javascript makes an AJAX request to store the IDs in the DB and is handed
+a "job ID" that identifies that list of accessions.
+
+=item
+
+The javascript builds a URL that points to this action, including the job ID 
+parameter.
+
+=item
+
+This action retrieves the list of accessions from the DB, using the job ID, and
+stuffs them into the stash, before handing off to the template which renders
+the contents of the pop-up window.
+
+=item
+
+The template contains javascript that submits a further AJAX request, this time
+to the DomainGraphics controller, which again retrieves the list of sequence 
+accessions and builds a domain graphic for each one.
+
+=back
+
+Similar (tortuous) logic is used to generate the sequence alignment for selected
+nodes in the species tree.
 
 =cut
 
-sub selected : Local {
+sub graphics : Local {
   my( $this, $c ) = @_;
 
-  # detaint the list of sequence accessions. These accessions are passed as
-  # a single value, space-separated and uri_encoded
-  my @seqAccs;
-  foreach ( split /\s+/, uri_unescape( $c->req->param('seqAccs') ) ) {
-    next unless  m/^([AOPQ]\d[A-Z0-9]{3}\d)$/i;
-    push @seqAccs, $1;
+  # validate the UUID
+  my $jobId = $c->req->param('jobId');
+  if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+    $c->log->debug( 'SpeciesTree::graphics: bad job id' ) if $c->debug;
+    $c->stash->{errorMsg} = 'Invalid job ID';
+    return;
   }
-  $c->log->debug( 'SpeciesTree::selected: found |' . scalar @seqAccs
-                  . '| valid sequence accessions' );
-  $c->stash->{selectedSeqAccs} = \@seqAccs;
 
-  $c->log->debug( 'SpeciesTree::selected: rendering selected seqs as Pfam graphics' );
-  $c->stash->{template} = "components/tools/seqViewGraphic.tt";
+  # retrieve the accessions for that job ID
+  my $accession_list = $c->forward( '/utils/retrieve_accessions', [ $jobId ] );
+  unless( $accession_list ) {
+    $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
+    return;
+  }
+
+  $c->stash->{jobId}           = $jobId;
+  $c->stash->{selectedSeqAccs} = $accession_list;
+  
+  $c->log->debug( 'SpeciesTree::graphics: rendering selected seqs as Pfam graphics' )
+    if $c->debug;
+  $c->stash->{template} = 'components/tools/seqViewGraphic.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 accessions : Local
+
+Returns the sequence accessions from selected nodes in the species tree as a 
+plain text file.
+
+=cut
+
+sub accessions : Local {
+  my( $this, $c ) = @_;
+  
+  # validate the UUID
+  my $jobId = $c->req->param('jobId');
+  if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+    $c->log->debug( 'SpeciesTree::accessions: bad job id' ) if $c->debug;
+    $c->stash->{errorMsg} = 'Invalid job ID';
+    return;
+  }
+
+  # retrieve the accessions for that job ID
+  my $accession_list = $c->forward( '/utils/retrieve_accessions', [ $jobId ] );
+  unless( $accession_list ) {
+    $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
+    return;
+  }
+
+  # we got a list of accessions; make it a plain text download
+  $c->res->content_type( 'text/plain' );
+  $c->res->headers->header( 'Content-disposition' => 'attachment; ' .
+                            'filename=selected_sequence_accessions.txt' );
+
+  # format the list nicely and drop it straight into the response
+  my $output = '# Sequence accessions for selected nodes from the species tree for Pfam entry '
+               . $c->stash->{acc} . "\n";
+
+  # see if we can get the release version
+  if( my $release = $c->stash->{relData}->pfam_release ) {
+    $output .= "# Generated from Pfam version $release\n";
+  }
+
+  # the accessions themselves
+  $output .= join "\n", @$accession_list;
+  
+  $c->res->body( $output );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 sequences : Local
+
+Returns the sequences from selected nodes in the species tree as a FASTA
+formatted text file.
+
+=cut
+
+sub sequences : Local {
+  my( $this, $c ) = @_;
+  
+  # validate the UUID
+  my $jobId = $c->req->param('jobId');
+  if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+    $c->log->debug( 'SpeciesTree::sequences: bad job id' ) if $c->debug;
+    $c->stash->{errorMsg} = 'Invalid job ID';
+    return;
+  }
+
+  # retrieve the sequences
+  my $fasta = $c->forward( '/utils/get_sequences', [ $jobId ] );
+  
+  # make sure we got something...
+  unless( length $fasta ) {
+    $c->log->debug( 'SpeciesTree::sequences: failed to get a FASTA sequence' );
+    $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
+    $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
+    return;
+  }
+
+  # we got a FASTA file; make it a plain text download
+  $c->res->content_type( 'text/plain' );
+  $c->res->headers->header( 'Content-disposition' => 'attachment; filename='
+                            . 'selected_species.fasta' );
+
+  # format it nicely and drop it straight into the response
+  my $output = '# Sequences for selected nodes from the species tree for Pfam entry '
+               . $c->stash->{acc} . "\n";
+
+  # see if we can get the release version
+  if( my $release = $c->stash->{relData}->pfam_release ) {
+    $output .= "# Generated from Pfam version $release\n";
+  }
+
+  # the accessions themselves
+  $output .= $fasta;
+  
+  $c->res->body( $output );
 }
 
 #-------------------------------------------------------------------------------
@@ -368,7 +588,8 @@ sub getData : Private {
   # this is a hard limit
   if( $c->stash->{numSpecies} > $this->{denyAllLimit} ) {
     $c->log->debug( 'SpeciesTree::getData: too many families ('
-                    . $c->stash->{numSpecies} . '); hit "denyAll" limit' );
+                    . $c->stash->{numSpecies} . '); hit "denyAll" limit' )
+      if $c->debug;
     $c->stash->{limits} = $limits;
     return;
   }
@@ -378,7 +599,8 @@ sub getData : Private {
       not $c->stash->{loadTree} ) {
     $c->log->debug( 'SpeciesTree::getData: too many families ('
                     . $c->stash->{numSpecies} . ', loadTree = '
-                    . ($c->stash->{loadTree} || 0) . '); hit "denyInteractive" limit' );
+                    . ($c->stash->{loadTree} || 0) . '); hit "denyInteractive" limit' )
+      if $c->debug;
     $c->stash->{limits} = $limits;
     return;
   }
@@ -388,7 +610,8 @@ sub getData : Private {
       not $c->stash->{loadTree} ) {
     $c->log->debug( 'SpeciesTree::getData: too many families ('
                     . $c->stash->{numSpecies} . ', loadTree = '
-                    . ($c->stash->{loadTree} || 0) . '); hit "allowInteractive" limit' );
+                    . ($c->stash->{loadTree} || 0) . '); hit "allowInteractive" limit' )
+      if $c->debug;
     $c->stash->{limits} = $limits;
     return;
   }
@@ -472,7 +695,7 @@ sub getFamilyData : Private {
   $c->stash->{regions} = \@regions;
 
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
-                  . scalar @regions . '| full regions' );
+                  . scalar @regions . '| full regions' ) if $c->debug;
 
   # get the species information for the seed alignment
   my @resultsSeed = $c->model('PfamDB::PfamA_reg_seed')
@@ -480,7 +703,7 @@ sub getFamilyData : Private {
                                 { join              => [ qw( pfamseq pfamA ) ],
                                   prefetch          => [ qw( pfamseq ) ] } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
-                  . scalar @resultsSeed . '| seed regions' );
+                  . scalar @resultsSeed . '| seed regions' ) if $c->debug;
                 
   # hash the seed info so we can easily look up whether a sequence is 
   # found in the seed alignment
@@ -515,7 +738,7 @@ sub getClanData : Private {
   my(@allRegions, @regions );
   foreach my $auto_pfamA ( @auto_pfamAs ) {
     
-    @regions = $c->model("PfamDB::PfamA_reg_full")
+    @regions = $c->model('PfamDB::PfamA_reg_full')
                  ->search( { 'auto_pfamA' => $auto_pfamA->auto_pfamA,
                              'in_full'     => 1 },
                              { join              => [ qw( pfamseq ) ],
