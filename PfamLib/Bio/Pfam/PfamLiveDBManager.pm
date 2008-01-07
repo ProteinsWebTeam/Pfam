@@ -2,7 +2,7 @@
 #
 # BioPerl module for Bio::Pfam::PfamLiveDBManager
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package Bio::Pfam::PfamLiveDBManager;
 
@@ -20,8 +20,8 @@ sub new {
     my $class = ref($caller) || $caller;
     my %dbiParams = ();
     my $self = { user      => "pfamro",
-		 host      => "pfam",
-		 port      => "3306",
+		 host      => "pfamdb2a",
+		 port      => "3303",
 		 database  => "pfamlive",
 		 driver    => "mysql",
 		 @_,};
