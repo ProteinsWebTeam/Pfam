@@ -29,11 +29,12 @@ my( $quiet,
     $update,
     $minidbpname,
     $nolcmask,
-    $long,
     $queue,
     $window,
     $cpus,
-    $wublastcpus
+    $wublastcpus,
+    $nofilters,
+    $hmmonly
     );
 
 sub help {
@@ -55,14 +56,16 @@ Options:       -h                  show this help
 	       --wublastcpus <n>   number of cpus to run a single wublast job over
 	       --nobuild           skip cmbuild step
 	       --pname <str>       give lsf a process name, "str", for the cmsearch jobs
-	       --blastpname <str>  restart a job with pname "str" from after the blast runs
-	       --minidbpname <str> restart a job with pname "str" from after the minidb creation
+	       --blastpname <str>  restart a job with pname "str" from after the blast runs (also works with -b or -blast)
+	       --minidbpname <str> restart a job with pname "str" from after the minidb creation (also works with -m, -mini or -minidb)
 	       --update            update the family to a new underlying sequence db (expert!)
 	       --nowu              use ncbi-blast rather than wu-blast (default).
-	       --long              [TO BE IMPLEMENTED] an option for long models (eg. SSU/LSU rRNA, Xist, AIR,...),
-	                           This runs "cmsearch -hmmfilter", requires infernal version >0.81. 
+	       --long              [TO BE IMPLEMENTED] 
+	                           
 	       --window <str>      Use this window size for fetching blast sequences rather than from CM.
-
+	       --nofilters         Skip the blast filters.
+	       --hmmonly/--long    an option for long models (eg. SSU/LSU rRNA,...),
+	                           This runs "cmsearch -hmmfilter", requires infernal version >0.81. 
 TO ADD:
 	An option to skip BLAST filters
 	
@@ -80,20 +83,18 @@ EOF
 	     "wublastcpus=s" => \$wublastcpus,
 	     "nobuild"       => \$nobuild,
 	     "pname=s"       => \$pname,
-	     "blast|blastpname=s"  => \$blastpname,
+	     "b|blast|blastpname=s"  => \$blastpname,
 	     "m|mini|minidb|minidbpname=s" => \$minidbpname,
+	     "nf|nofilters"  => \$nofilters,
 	     "update"        => \$update,
 	     "nolcmask"      => \$nolcmask,
-	     "long"          => \$long,
+	     "long|hmmonly"  => \$hmmonly,
 	     "window"        => \$window,
 	     "h"             => \$help );
 
 if( $help ) {
     &help();
     exit(1);
-}
-elsif ($long) {
-    die("Sorry: --long is not supported yet. Wait for Infernal 0.8!");
 }
 
 # make sure writable by group
@@ -275,7 +276,7 @@ system("/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile") and die "/usr/bin
 #Sample ~3 sequences using "squid/weight -s 3" - run blast with default threshold. Extrapolate from this the 
 #estimated total number of hits - choose a lower sensible threshold if this is greater than 100,000.
 
-unless( $minidbpname ) {
+unless( $minidbpname || $nofilters ) {
   BLAST: { #JT6 thinks this GOTO is evil - but then he thinks "needs fixed" is evil too. 
       if( $round or !$blastpname ) {
 	  &printlog( "Queuing up blast jobs [round ".$round."]" );
@@ -315,16 +316,18 @@ unless( $minidbpname ) {
       #for (my $ii = 1; $ii < scalar(@blastdb)+1; $ii++) {
       foreach my $ii ( @index ) {
 	  
-	  my( $blastlistsize);
-	  open( BLASTLISTSIZE, "$blastpname\.blastlistsize.$ii" ) or die "FATAL: $blastpname\.blastlistsize.$ii file doesn't exist\n";
-	  while(<BLASTLISTSIZE>) {
-	      if( /(\d+)\s+\S+/ ) {
-		  $blastlistsize = $1;
-		  last;
+	  my $blastlistsize=0;
+	  if (-e "$blastpname\.blastlistsize.$ii"){
+	      open( BLASTLISTSIZE, "$blastpname\.blastlistsize.$ii" ) or die "FATAL: $blastpname\.blastlistsize.$ii file doesn't exist\n";
+	      while(<BLASTLISTSIZE>) {
+		  if( /(\d+)\s+\S+/ ) {
+		      $blastlistsize = $1;
+		      last;
+		  }
 	      }
+	      close BLASTLISTSIZE;
+	      system("rm $blastpname\.blastlistsize.$ii");
 	  }
-	  close BLASTLISTSIZE;
-	  system("rm $blastpname\.blastlistsize.$ii");
 	  
 	  if( $blastlistsize<25 ) {
 	      &printlog( "Zero size output [$blastpname\.blastlist.$ii] -- rerun blast search." );
@@ -391,7 +394,7 @@ if( $minidbpname ) {
 	die;
     }
 }
-else {
+elsif (!$nofilters) {
     
     #What's the limit here? Can (or should) we increase the number of nodes we run on?
     &printlog( "parsing blast list" );
@@ -443,11 +446,10 @@ my $minidbendtime = time();
 
 my $queuecm      = 'long -R \"select[type=X86_64]\"';
 my $command = "cmsearch";
-my $options = " --toponly "; #add the hmm filter? still using 0.72 - not yet
-$options .= "--local " if( $local );
-#$options .= "-W $cmwindow"; ##currently removed this as version 0.73 calculates this by default.
-#my $cmopts=$options . "-W $window"; #use this for updating DESC file
-my $cmopts=$options . "";
+my $options = "  "; #add the hmm filter? still using 0.72 - not yet
+$options .= " --local "   if( $local );
+$options .= " --hmmonly " if( $hmmonly );
+$options .= " --toponly " if( !$nofilters );
 
 $pname = "cm$$" if( not $pname );
 system "cp CM $$.CM" and die;
@@ -455,24 +457,38 @@ system "cp CM $$.CM" and die;
 &printlog( "Queueing cmsearch jobs" );
 
 my $fhcm = IO::File->new();
-# preexec script copies files across and then tests for their presence
-# if this fails then the job should reschedule for another go
 
 system("scp $pwd/$$.CM farm-login:$lustre/$$.CM") and die "error scp-ing $pwd/$$.CM to farm-login:$lustre/$$.CM\n$!\n";
-#for  (my $ij = 0; $ij < $k; $ij++){
-#   system("scp $pwd/$minidbpname\.minidb.$ij farm-login:$lustre/$minidbpname\.minidb.$ij") and die "error scp-ing mini db:$minidbpname\.minidb.$ij to farm-login:$lustre/$minidbpname\.minidb.$ij\n$!";
-#}
-&printlog( "" );
-&printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
-$fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
-#$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
-&printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}");
-$fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-$fhcm -> close;
 
+&printlog( "" );
+
+if ($nofilters){
+    my @seqdb = glob( "$blastdbdir/*.fa.gz" );
+    $k=0;
+    foreach my $sdb (@seqdb) {
+	$sdb =~ s/\.gz$//g;
+	$sdb =~ s/$blastdbdir/$blastdbdir2/g;
+
+	&printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname" );
+	$fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I  -J$pname" ) or die "$!";
+	&printlog( "Running: $command $options $lustre/$$.CM $sdb > $lustre/$$.OUTPUT.$k");
+	$fhcm -> print( "$command $options $lustre/$$.CM $sdb > $lustre/$$.OUTPUT.$k\n" );
+	$fhcm -> close;
+	$k++;
+    }    
+}
+else {
+    &printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
+    $fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
+#$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
+    &printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}");
+    $fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+    $fhcm -> close;
+}
+
+my $cmopts=$options . "";
 &printlog( "Waiting for cmsearch jobs." );
 wait_for_farm($pname, "cmsearch", $k);
-
 
 # send something to clean up
 print STDERR "set cm searches running, copy files and clean up....\n";
@@ -837,7 +853,7 @@ sub wait_for_farm {
 	    $bjobinterval=15 + int(log($bjobcount/2)); 
 	}
 	else {#otherwise check less & less frequently (max. interval is ~300 secs = 5 mins).
-	    if ($bjobinterval<300){ $bjobinterval = $bjobinterval + int(log($bjobcount));}
+	    if ($bjobinterval<600){ $bjobinterval = $bjobinterval + int(log($bjobcount));}
 	}
 	
 	if($jobs){
