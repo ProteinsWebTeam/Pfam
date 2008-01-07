@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.12 2008-01-07 13:58:37 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.13 2008-01-07 16:48:28 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.12 2008-01-07 13:58:37 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.13 2008-01-07 16:48:28 jt6 Exp $
 
 =cut
 
@@ -468,7 +468,8 @@ sub sequences : Local {
   }
 
   # retrieve the sequences
-  my $fasta = $c->forward( '/utils/get_sequences', [ $jobId ] );
+  my $fasta = $c->forward( '/utils/get_sequences', 
+                           [ $jobId, $c->stash->{entry} ] );
   
   # make sure we got something...
   unless( length $fasta ) {

@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.8 2008-01-07 13:58:02 jt6 Exp $
+# $Id: Builder.pm,v 1.9 2008-01-07 16:47:16 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.8 2008-01-07 13:58:02 jt6 Exp $
+$Id: Builder.pm,v 1.9 2008-01-07 16:47:16 jt6 Exp $
 
 =cut
 
@@ -61,8 +61,8 @@ sub build : Path {
   }
 
   # validate the UUID
-  my $job_id = $c->req->param('jobId');
-  if( length( $job_id ) != 36 or $job_id !~ /^[A-F0-9\-]+$/ ) {
+  my $collection_id = $c->req->param('jobId');
+  if( length( $collection_id ) != 36 or $collection_id !~ /^[A-F0-9\-]+$/ ) {
     $c->log->debug( 'Family::Alignment::Builder: bad job id' ) if $c->debug;
     $c->stash->{errorMsg} = 'Invalid job ID';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
@@ -70,7 +70,8 @@ sub build : Path {
   }
 
   # retrieve the sequences
-  $c->stash->{fasta} = $c->forward( '/utils/get_sequences', [ $job_id ] );
+  $c->stash->{fasta} = $c->forward( '/utils/get_sequences', 
+                                    [ $collection_id, $c->stash->{pfam} ] );
   
   # make sure we got something...
   unless( length $c->stash->{fasta} ) {
