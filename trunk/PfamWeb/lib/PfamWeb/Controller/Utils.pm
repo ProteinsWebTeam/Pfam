@@ -1,7 +1,7 @@
 # Utils.pm
 # jt6 20080104 WTSI
 #
-# $Id: Utils.pm,v 1.1 2008-01-07 13:57:29 jt6 Exp $
+# $Id: Utils.pm,v 1.2 2008-01-07 16:46:18 jt6 Exp $
 
 =head1 NAME
 
@@ -14,9 +14,8 @@ package PfamWeb::Controller::Utils;
 =head1 DESCRIPTION
 
 These are a few actions that can be used in various places around the code. 
-They're private but can be accessed by C<$c->forward>ing to them.
 
-$Id: Utils.pm,v 1.1 2008-01-07 13:57:29 jt6 Exp $
+$Id: Utils.pm,v 1.2 2008-01-07 16:46:18 jt6 Exp $
 
 =cut
 
@@ -83,7 +82,7 @@ and returns those sequences as a fasta-format file.
 =cut
 
 sub get_sequences : Private {
-  my( $this, $c, $job_id ) = @_;
+  my( $this, $c, $job_id, $pfam ) = @_;
   
   # retrieve the accessions for that job ID
   my $accession_list = $c->forward( '/utils/retrieve_accessions', [ $job_id ] );
@@ -100,12 +99,13 @@ sub get_sequences : Private {
   foreach my $seqAcc ( @$accession_list ) {
     my @rows = $c->model('PfamDB::PfamA_reg_full_significant')
                  ->search( { 'pfamseq.pfamseq_acc' => $seqAcc,
-                             auto_pfamA            => $c->stash->{entry}->auto_pfamA,
+                             auto_pfamA            => $pfam->auto_pfamA,
                              in_full               => 1 },
                            { join                  => [ qw( pfamseq ) ],
                              prefetch              => [ qw( pfamseq ) ] } );
     $c->stash->{numRows} = scalar @rows;
 
+    # need to remember the final character in each row, the "\n"
     $Text::Wrap::columns = 61;
 
     foreach my $r (@rows){
