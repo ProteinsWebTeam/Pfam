@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.13 2008-01-07 16:48:28 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.14 2008-01-08 16:19:51 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.13 2008-01-07 16:48:28 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.14 2008-01-08 16:19:51 jt6 Exp $
 
 =cut
 
@@ -433,8 +433,15 @@ sub accessions : Local {
                             'filename=selected_sequence_accessions.txt' );
 
   # format the list nicely and drop it straight into the response
-  my $output = '# Sequence accessions for selected nodes from the species tree for Pfam entry '
-               . $c->stash->{acc} . "\n";
+  my $output = "# Sequence accessions for selected nodes from the species tree\n";
+  if( $c->stash->{entryType} eq 'A' ) {
+    $output .= '# for Pfam-A entry ';
+  } elsif( $c->stash->{entryType} eq 'B' ) {
+    $output .= '# for Pfam-B entry ';
+  } elsif( $c->stash->{entryType} eq 'C' ) {
+    $output .= '# for Pfam clan ';
+  }
+  $output .= $c->stash->{acc} . "\n";
 
   # see if we can get the release version
   if( my $release = $c->stash->{relData}->pfam_release ) {
