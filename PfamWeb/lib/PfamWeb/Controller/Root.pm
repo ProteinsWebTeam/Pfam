@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.23 2007-12-10 14:40:50 jt6 Exp $
+# $Id: Root.pm,v 1.24 2008-01-08 10:32:33 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.23 2007-12-10 14:40:50 jt6 Exp $
+$Id: Root.pm,v 1.24 2008-01-08 10:32:33 jt6 Exp $
 
 =cut
 
@@ -29,7 +29,7 @@ use DateTime;
 
 use base 'Catalyst::Controller';
 
-# sets the actions in this controller to be registered with no prefix
+# set the actions in this controller to be registered with no prefix
 # so they function identically to actions created in MyApp.pm
 __PACKAGE__->config->{namespace} = '';
 
