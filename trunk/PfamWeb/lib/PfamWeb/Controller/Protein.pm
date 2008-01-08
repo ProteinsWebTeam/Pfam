@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.34 2007-12-10 14:40:29 jt6 Exp $
+# $Id: Protein.pm,v 1.35 2008-01-08 15:43:55 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.34 2007-12-10 14:40:29 jt6 Exp $
+$Id: Protein.pm,v 1.35 2008-01-08 15:43:55 jt6 Exp $
 
 =cut
 
@@ -85,6 +85,9 @@ sub begin : Private {
   } else {
     $c->stash->{errorMsg} = 'No UniProt accession or ID specified';
   }
+  
+  # strip off sequence versions, if present
+  $entry =~ s/^(.{6})\.\d+$/$1/;
 
   # retrieve the data for this sequence entry  
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
