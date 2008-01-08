@@ -34,7 +34,7 @@ my $printname="";
 	    "h|help"             => \$help
     );
 
-if( $help ) {
+if( $help || !defined($name) ) {
     &help();
     exit(1);
 }
@@ -411,15 +411,40 @@ sub make_html {
 
     my @pngfile = glob("domain_gfx/*png");
     my $htmlbody = "";
-
+    my (%markupstarts,%markupends);
+    if (-e "domain_gfx/markup"){
+	open(MARKUP, "<domain_gfx/markup") or warn "Cannot open domain_gfx/markup: [$!]\n";
+	while (my $l = <MARKUP>){
+	    if ($l =~ m/(\S+)\.(\d+)\_(\d+)\-(\d+)\.png/){
+		push(@{ $markupstarts{$1} }, $3);
+		push(@{ $markupends{$1} },   $4);
+	    }
+	    elsif ($l =~ m/(\S+)\.(\d+)\/(\d+)\-(\d+)/){
+		push(@{ $markupstarts{$1} }, $3);
+		push(@{ $markupends{$1} },   $4);
+	    }
+	}
+	close(MARKUP);
+    }
+    
     foreach my $pf (@pngfile){
 	
 	$pf =~ m/^domain_gfx\/(\S+)\.(\d+)\_(\d+)\-(\d+)\.png/;
 	my ($name, $version, $start, $end) = ($1, $2, $3, $4);
+	my ($markupstart,$markupend) = ("", "");
 	my @shortpf = split(/\//, $pf);
 	my $shortpf = $shortpf[1];
 	
-	$htmlbody .= "<small><b>$name\.$version\/$start\-$end</b></small><br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$shortpf\"\n     usemap=\"#$name\.$version\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+	if (defined($markupstarts{$name}) && defined($markupends{$name}) ){
+	    for (my $i=0; $i<scalar(@{$markupstarts{$name}}); $i++){
+		if ( ($markupstarts{$name}[$i]==$start && $markupends{$name}[$i]==$end) || ($markupends{$name}[$i]==$start && $markupstarts{$name}[$i]==$end) ){
+		    $markupstart = "<font color=\"\#FF0000\">";
+		    $markupend = "</font>";
+		}
+	    }
+	}
+	
+	$htmlbody .= "$markupstart<small><b>$name\.$version\/$start\-$end</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$shortpf\"\n     usemap=\"#$name\.$version\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
 	
     }
     
@@ -476,9 +501,12 @@ sub help {
     print STDERR <<EOF;
 
 find_flanking_features.pl - Connects to the mole database, fetches regions from the EMBL file within 
-dist nucleotides either side of the input region. Returns the results in a tabular format to STDOUT 
+\"dist\" nucleotides either side of the input region. Returns the results in a tabular format to STDOUT 
 and graphical format to domain_gfx/index_auto.html 
                 
+One can markup fonts in index_auto.html adding either png filenames or name/start-end strings to the file 
+\"domain_gfx/markup\", NB. one entry per line. 
+
 Usage:   find_flanking_features.pl <options>
 
 Options:       
@@ -491,13 +519,17 @@ Options:
   -minusstrand|-m              Minus strand     (optional)
   -d|-dist|-distance    <num>  Distance between coordinates and 
                                features for printing (default=$dist)
+EXAMPLES: 
+On ALIGN2SEED:
+grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
+grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \$1}\' > domain_gfx/markup
 
-Popular run modes:
 On SEED:
 sreformat --pfam stockholm SEED | grep \"/\" | grep -v \"//\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
 
-On ALIGN2SEED:
-grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
+TO ADD:
+A schema for sorting the graphics such that nearest neighbours are most similar.
+
 
 EOF
 }
