@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.48 2007-12-21 11:38:08 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.49 2008-01-09 14:46:36 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.48 2007-12-21 11:38:08 jt6 Exp $
+$Id: PfamWeb.pm,v 1.49 2008-01-09 14:46:36 jt6 Exp $
 
 =cut
 
@@ -108,6 +108,10 @@ sub finalize_config {
             }
           );
   $v->visit( $c->config );
+
+  # make sure we run the original finalize_config, so that the substitutions
+  # happen as per the documentation
+  $c->NEXT::finalize_config( @_ );
 }
 
 #-------------------------------------------------------------------------------
