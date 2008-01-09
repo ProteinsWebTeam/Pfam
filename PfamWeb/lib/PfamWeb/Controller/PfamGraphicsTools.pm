@@ -2,7 +2,7 @@
 # PfamGraphicsTools.pm
 # jt 20070402 WTSI
 #
-# $Id: PfamGraphicsTools.pm,v 1.3 2007-09-17 12:10:46 jt6 Exp $
+# $Id: PfamGraphicsTools.pm,v 1.4 2008-01-09 14:47:31 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ A couple of utility methods for generating Pfam graphics from a user-supplied
 XML file and for displaying the XML that builds the graphic for a specified 
 UniProt entry.
 
-$Id: PfamGraphicsTools.pm,v 1.3 2007-09-17 12:10:46 jt6 Exp $
+$Id: PfamGraphicsTools.pm,v 1.4 2008-01-09 14:47:31 jt6 Exp $
 
 =cut
 
@@ -97,10 +97,10 @@ sub renderXML : Global {
   # copy the file to our temp area. Generate a temporary filehandle and
   # and filename, rather than using the user specified one
   my($fh, $filename) = tempfile( 'uploadedPfamGraphicXXXXXXXXXXXX',
-                                 SUFFIX => 'xml',
+                                 SUFFIX => '.xml',
                                  DIR    => $this->{uploadDir} );
 
-  $c->log->debug( 'PfamGraphicsTools::renderXML: copying uploaded file to |$filename|' );
+  $c->log->debug( "PfamGraphicsTools::renderXML: copying uploaded file to |$filename|" );
 
   unless( $upload->copy_to( $filename ) ) {
     $c->log->error( "PfamGraphicsTools::renderXML: couldn't copy the uploaded file" );
@@ -282,14 +282,14 @@ Stashes the L<XML::LibXML::Document|Document> object on the way past.
 sub validateXML : Private {
   my( $this, $c, $xmlFile ) = @_;
   
-  $c->log->debug( "PfamGraphicsTools::validateXML: loading XML from |$xmlFile|" );
+  $c->log->debug( 'PfamGraphicsTools::validateXML: retrieving schema from: |'
+                  . $this->{schemaFile} . '|' ) if $c->debug;
 
-  my $schemaLoc = -f $this->{schemaFile} ? $this->{schemaFile} : $this->{schemaURI};
-  $c->log->debug( "PfamGraphicsTools::validateXML: retrieving schema from: |$schemaLoc|" );
-
+  # parse the schema
+  # TODO cache the Schema object
   my $schema;
   eval {
-    $schema = XML::LibXML::Schema->new( location => $schemaLoc );
+    $schema = XML::LibXML::Schema->new( location => $this->{schemaFile} );
   };
   if( $@ or not defined $schema ) {
     $c->log->error( "PfamGraphicsTools::validateXML: couldn't get a valid schema object..." );
@@ -298,6 +298,9 @@ sub validateXML : Private {
   }
   $c->log->debug( 'PfamGraphicsTools::validateXML: got a Schema object' );  
   
+  $c->log->debug( "PfamGraphicsTools::validateXML: loading XML from |$xmlFile|" )
+    if $c->debug;
+
   # parse the XML Document and stash it so we can use it later without re-parsing
   my $parser = XML::LibXML->new;
   eval {
