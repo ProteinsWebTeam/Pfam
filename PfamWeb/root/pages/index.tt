@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.43 2007-12-20 13:54:15 jt6 Exp $
+# $Id: index.tt,v 1.44 2008-01-09 14:38:19 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -242,7 +242,8 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
       and <a href="[% c.uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
         metaseq</a> accessions or identifiers, as well as<br />
       NCBI <a class="ext" href="http://www.ncbi.nlm.nih.gov/Sitemap/sequenceIDs.html">
-        &quot;GI&quot; numbers</a>.
+        &quot;GI&quot; numbers</a>. GI numbers should be in the form 
+        &quot;113594566&quot;.
     </p>
   </div>
   
