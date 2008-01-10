@@ -8,10 +8,11 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.8 2007-11-05 13:38:18 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.9 2008-01-10 11:02:13 jt6 Exp $
 
 META naked = 1;
 
+USE dumper;
 USE String;
 
 # an ugly catch-all...
@@ -101,10 +102,18 @@ FOREACH image IN images.each_image;
           all sequences with this architecture.
         </span>
   
-        [% # switch to actually generate the domains and load them into a div -%]
+        [% # switch to actually generate the domains and load them into a div
+        loadParams = { acc = acc, 
+                       arch = seqInfo.$id.auto_arch };
+        # don't add an empty "taxId" parameter if we don't actually have a taxId
+        IF taxId != "";
+          loadParams.taxId = taxId;
+        END;
+        loadUri = c.uri_for( "/domaingraphics", loadParams );
+         -%]
         <span id="loadSwitch[% loop.index %]">
           <span class="link" 
-                onclick="loadDomains( '[% loop.index %]', '[% c.uri_for( "/domaingraphics", { acc = acc, arch = seqInfo.$id.auto_arch, taxId = taxId } ) | html %]', '[% seqInfo.$id.num %]' )">
+                onclick="loadDomains( '[% loop.index %]', '[% loadUri | html %]', '[% seqInfo.$id.num %]' )">
             Show</span> all sequences with this architecture.
         </span>
 
