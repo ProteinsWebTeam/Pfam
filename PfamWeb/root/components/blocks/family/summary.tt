@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.33 2007-12-10 14:47:27 jt6 Exp $
+# $Id: summary.tt,v 1.34 2008-01-10 10:23:05 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -72,11 +72,13 @@ PROCESS components/links.tt;
       [% refNum = 1;
       FOREACH ref IN pfam.pfamA_lit_refs %]
         <li>
-          [% ref.author %], [% ref.journal %]: [% ref.title %]
-          <a name="ref[% refNum %]"
-             class="ext" 
-             href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">
-            PUBMED:[% ref.pmid %]</a>
+          <p>
+            [% ref.author %], [% ref.journal %]: [% ref.title %]
+            <a name="ref[% refNum %]"
+               class="ext" 
+               href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">
+              PUBMED:[% ref.pmid %]</a>
+          </p>
         </li>
         [%- refNum = refNum + 1; 
       END %]
