@@ -4,11 +4,14 @@
 #
 # template for returning the results of a sequence search as XML
 #
-# $Id: results_xml.tt,v 1.1 2007-12-10 14:56:32 jt6 Exp $
+# $Id: results_xml.tt,v 1.2 2008-01-10 11:48:41 jt6 Exp $
 
 USE dumper;
 
 META naked = 1;
+
+# get the job ID
+jobId = results.keys.shift;
 
 # get the length of the first sequence. Since all of the results are for the
 # same search string, this should be fine. Pretty ugly though.
@@ -38,7 +41,7 @@ seqLength = results.${results.keys.shift}.length;
 <?xml version="1.0" encoding="UTF-8"?>
 [% IF results.keys.size -%]
 <pfam pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
-  <results>
+  <results job_id="[% jobId %]">
     <matches>
       <protein length="[% seqLength %]">
         <database id="pfam" pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
@@ -60,7 +63,7 @@ FOREACH row IN hit;
     significant = 1;
   END; 
 -%]
-            <location start="[% row.start %]" end="[% row.end %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" mode="[% hit.0.mode %]" evidence="hmmer v[% relData.hmmer_version %]" significant="[% significant %]" />
+            <location start="[% row.start %]" end="[% row.end %]" hmm_start="[% row.hmm_start %]" hmm_end="[% row.hmm_end %]" evalue="[% row.evalue %]" bitscore="[% row.bits %]" mode="[% hit.0.mode %]" evidence="hmmer v[% relData.hmmer_version %]" significant="[% significant %]" />
 [% END -%]
           </match>
 [% END; # of Pfam-A hits
@@ -77,6 +80,11 @@ FOREACH hitId IN b_hits.keys;
         </database>
       </protein>
     </matches>
+    <raw_output>
+      <![CDATA[
+[% results.${jobId}.rawData -%]
+      ]]>
+    </raw_output>
   </results>
 </pfam>
 [% 
