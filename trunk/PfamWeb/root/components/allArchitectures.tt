@@ -8,11 +8,10 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.9 2008-01-10 11:02:13 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.10 2008-01-10 14:54:11 jt6 Exp $
 
 META naked = 1;
 
-USE dumper;
 USE String;
 
 # an ugly catch-all...
@@ -103,9 +102,14 @@ FOREACH image IN images.each_image;
         </span>
   
         [% # switch to actually generate the domains and load them into a div
-        loadParams = { acc = acc, 
-                       arch = seqInfo.$id.auto_arch };
-        # don't add an empty "taxId" parameter if we don't actually have a taxId
+           # taking care not to add empty parameters
+        loadParams = {};
+        IF acc != "";
+          loadParams.acc = acc;
+        END; 
+        IF seqInfo.$id.auto_arch.defined;
+          loadParams.arch = seqInfo.$id.auto_arch;
+        END;
         IF taxId != "";
           loadParams.taxId = taxId;
         END;
