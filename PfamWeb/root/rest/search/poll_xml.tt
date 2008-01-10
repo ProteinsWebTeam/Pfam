@@ -4,7 +4,7 @@
 #
 # template for returning the URL for the results of a sequence search
 #
-# $Id: poll_xml.tt,v 1.1 2007-12-10 14:56:15 jt6 Exp $
+# $Id: poll_xml.tt,v 1.2 2008-01-10 17:00:09 jt6 Exp $
 
 USE dumper;
 
@@ -17,7 +17,11 @@ META naked = 1;
   <job job_id="[% job.jobId %]" type="[% job.jobClass %]">
     <opened>[% job.opened %]</opened>
     <estimated_time>[% job.estimatedTime %]</estimated_time>
-    <result_url>[% job.doneURI %]?output=xml&jobId=[% job.jobId %]</result_url>
+    <result_url>
+      <![CDATA[
+[% job.doneURI %]?output=xml&jobId=[% job.jobId %]
+      ]]>
+    </result_url>
   </job>
 [% END -%]
 </jobs>
