@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.18 2008-01-07 16:45:33 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.19 2008-01-10 14:54:47 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.18 2008-01-07 16:45:33 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.19 2008-01-10 14:54:47 jt6 Exp $
 
 =cut
 
@@ -64,13 +64,18 @@ sub begin : Private {
     $c->stash->{auto_arch} = $1;
     $c->log->debug( 'DomainGraphics::begin: arch: |' . $c->stash->{auto_arch} . '|')
       if $c->debug; 
+      
+    # although we don't have a single family accession, we still need to call
+    # getFamilyData, which will retrieve sequences according to the auto_arch
+    # number rather than accession
+    $c->forward( 'getFamilyData' );
   }
 
   #----------------------------------------
   
   # do we have a family accessions ? 
   if( defined $c->req->param('acc') and
-           $c->req->param('acc') ne '' ) {
+              $c->req->param('acc') ne '' ) {
              
     # we got a regular family accession...
     $c->log->debug( 'DomainGraphics::begin: found an accession' ) if $c->debug; 
@@ -360,8 +365,6 @@ sub getFamilyData : Private {
     $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
   
     # store a mapping between the sequence and the auto_architecture
-    $c->log->debug( 'DomainGraphics::getFamilyData: auto architecture: |'
-                    . $arch->auto_architecture . '|' ) if $c->debug;
     $seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
   
     # if this is a call to retrieve all of the architectures, we don't
