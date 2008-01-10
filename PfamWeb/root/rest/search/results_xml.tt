@@ -4,7 +4,7 @@
 #
 # template for returning the results of a sequence search as XML
 #
-# $Id: results_xml.tt,v 1.2 2008-01-10 11:48:41 jt6 Exp $
+# $Id: results_xml.tt,v 1.3 2008-01-10 17:00:46 jt6 Exp $
 
 USE dumper;
 
@@ -39,8 +39,8 @@ seqLength = results.${results.keys.shift}.length;
 
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
-[% IF results.keys.size -%]
 <pfam pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
+[% IF results.$jobId.rawData != '' -%]
   <results job_id="[% jobId %]">
     <matches>
       <protein length="[% seqLength %]">
@@ -86,14 +86,12 @@ FOREACH hitId IN b_hits.keys;
       ]]>
     </raw_output>
   </results>
-</pfam>
 [% 
 
 # no results yet...
 
 ELSE;
  -%]
-<pfam pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
   <results />
-</pfam>
 [% END; # of "if results..." -%]
+</pfam>
