@@ -21,76 +21,121 @@ my $database = "embl_93";
 my $host     = "cbi3";
 my $user     = "genero";
 my $dist     = 10000;
-my ($start,$end,$name,$plusstrand,$minusstrand,$strand,$help);
-my $printname="";
+my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$outlist,$makehtml,$help);
 
-&GetOptions("a|s|start|begin=s"  => \$start,
-            "e|b|end=s"          => \$end,
-            "i|n|id|embl|name=s" => \$name,
-	    "strand|str=s"       => \$strand,
-	    "plusstrand|p"       => \$plusstrand,
-	    "minusstrand|m"      => \$minusstrand,
-	    "d|dist|distance=s"  => \$dist,
-	    "h|help"             => \$help
+&GetOptions("a|s|start|begin=i@"  => \@start,
+            "e|b|end=i@"          => \@end,
+            "i|n|id|embl|name=s@" => \@name,
+	    "strand|str=s@"       => \@strand,
+	    "plusstrand|p"        => \$plusstrand,
+	    "minusstrand|m"       => \$minusstrand,
+	    "d|dist|distance=i"  => \$dist,
+	    "o|outlist"           => \$outlist,
+	    "makehtml"                => \$makehtml,
+	    "h|help"              => \$help
     );
 
-if( $help || !defined($name) ) {
+if( $help ) {
     &help();
     exit(1);
 }
 
-if ($name =~ /(\S+)\/(\d+)\-(\d+)\:(\S+)/){
-    $name = $1;
-    $start = $2;
-    $end = $3;
-    $strand = $4;
-}
-elsif ($name =~ /(\S+)\/(\d+)\-(\d+)/){
-    $name  = $1;
-    $start = $2;
-    $end   = $3;
+if ($makehtml){
+    make_html();
 }
 
-if (!defined($strand) && (defined($plusstrand) || defined($minusstrand)) ){
-    if (defined($plusstrand) && defined($minusstrand)){
-	die("Cant be both + and - minus stranded you muppet!");
-    }
-    
-    if (defined($plusstrand)){
-	$strand = 1;
-	$printname = "$name\/$start\-$end";
-    }
-    elsif (defined($minusstrand)){
-	$strand = -1;
-	$printname = "$name\/$end\-$start";
-    }
-}
-elsif ( (!defined($strand) && !defined($plusstrand) && !defined($minusstrand)) && defined($start) && defined($end) ) {
-    if ($start<$end){
-	$strand = 1;
-	print "Fetching: $name\/$start\-$end\tstrand=$strand\n";
-	$printname = "$name\/$start\-$end";
+#Initialise @name, @start, @end, @strand
+my (@type,@score,$threshold);
+if (defined($outlist)){
+    if (-e "out.list"){
+	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
     }
     else {
-	$strand = -1;
-	print "Fetching: $name\/$start\-$end\tstrand=$strand\n";
-	$printname = "$name\/$start\-$end";
-	my $tmp = $start;
-	$start = $end;
-	$end = $tmp;
+	print "FATAL: could not find the file \42out.list\42\n\n";
+	&help();
+	exit(1);
+    }
+    
+    (@name,@start,@end,@strand,@printname) = ((),(),(),(),(),());
+    while (my $line = <OUTLIST>){
+	if ($line =~ m/^(\S+)\t(\S+)\t(\S+)\t(\d+)\t(\d+)/){
+	    push(@score, $1);
+	    push(@type, $2);
+	    my ($oname, $ostart, $oend) = ($3, $4, $5);
+	    push(@name, $oname);
+	    push(@printname, "$oname\_$ostart\-$oend");
+	    if ($ostart<$oend){
+		push(@strand, 1);
+		push(@start, $ostart);
+		push(@end, $oend);
+	    }
+	    else {
+		push(@strand, -1);
+		push(@start, $oend);
+		push(@end, $ostart);
+	    }
+	}
+	elsif ($line =~ m/CURRENT THRESHOLD: (\S+) bits/) {
+	    $threshold = $1;
+	}
+	
+    }
+    close(OUTLIST);
+}
+elsif (@name) {
+    $score[0]=0;
+    if ($name[0] =~ /(\S+)\/(\d+)\-(\d+)\:(\S+)/){
+	push(@name, $1);
+	push(@start, $2);
+	push(@end, $3);
+	push(@strand, $4);
+    }
+    elsif ($name[0] =~ /(\S+)\/(\d+)\-(\d+)/){
+	push(@name, $1);
+	push(@start, $2);
+	push(@end, $3);
+    }
+
+    if (!@strand && (defined($plusstrand) || defined($minusstrand)) ){
+	if (defined($plusstrand) && defined($minusstrand)){
+	    print "Cant be both + and - minus stranded you muppet!";
+	    &help();
+	    exit(1);
+	}
+	
+	if (defined($plusstrand)){
+	    push(@strand, 1);
+	    push(@printname, "$name[0]\_$start[0]\-$end[0]");
+	}
+	elsif (defined($minusstrand)){
+	    push(@strand, -1);
+	    push(@printname, "$name[0]\_$end[0]\-$start[0]");
+	}
+    }
+    elsif ( (!@strand && !defined($plusstrand) && !defined($minusstrand)) && @start && @end ) {
+	
+	push(@printname, "$name[0]\_$start[0]\-$end[0]");
+	if ($start[0]<$end[0]){
+	    push(@strand, 1);
+	}
+	else {
+	    push(@strand, -1);
+	    my $tmp = $start[0];
+	    push(@start, $end[0]);
+	    push(@end, $tmp);
+	}
     }
 }
 
-if( !defined($name) && !defined($start) && !defined($end) && !defined($strand) ) {
-    print "FATAL: one of name [$name] or start [$start] or end [$end] or strand [$strand] is not defined\n";
+if( !@name || !@start || !@end || !@strand ) {
+    print "FATAL: one of name [$name[0]] or start [$start[0]] or end [$end[0]] or strand [$strand[0]] is not defined\n";
     &help();
     exit(1);
 }
-elsif (length($printname)==0 && $strand>0) {
-    $printname = "$name\/$start\-$end";
-}
-elsif (length($printname)==0 && $strand<0) {
-    $printname = "$name\/$end\-$start";
+elsif ( scalar(@name)!=scalar(@start) || scalar(@name)!=scalar(@end) || scalar(@name)!=scalar(@strand) || scalar(@name)!=scalar(@printname) ) {
+    print "FATAL: one of name [@name] or start [@start] or end [@end] or strand [@strand] is unmatched\n";
+    &help();
+    exit(1);
 }
 
 my $query0 = qq(
@@ -107,35 +152,50 @@ my $dbh = DBI->connect(
 	RaiseError => 1
 }    );
 
-my $features0;
-my $sequencelength=0;
+my $htmlbody="";
+my @xmlString;
+###############BIG LOOP BEGINS HERE##############
+for (my $ii=0; $ii<scalar(@name); $ii++){
+    my $name   = $name[$ii];
+    my $start  = $start[$ii];
+    my $end    = $end[$ii];
+    my $strand = $strand[$ii];
+    
+    my $type   = $type[$ii];
+    my $score  = $score[$ii];
+    my $printname = $printname[$ii];
+    my $features0;
+    my $sequencelength=0;
+    
+    print "FEATURE: $score\t$type\t$name\t$start\t$end\t$strand\n";
+    
 ###########
 # Prepare the query for execution.
-my $sth0 = $dbh->prepare($query0);
- $sth0->execute($name);
-my $res0 = $sth0->fetchall_arrayref;
-foreach my $row (@$res0){
-    $features0 .= join("\t", (@{$row}, "\n") );
-    $sequencelength = pop(@{$row});
-}
-
+    my $sth0 = $dbh->prepare($query0);
+    $sth0->execute($name);
+    my $res0 = $sth0->fetchall_arrayref;
+    foreach my $row (@$res0){
+	$features0 .= join("\t", (@{$row}, "\n") );
+	$sequencelength = pop(@{$row});
+    }
+    
 #######
-my $unfound=0;
-if( !defined($features0) ) {
-    $features0 = "no features available";
-    $unfound = 1;
-}
-
-my $totallength  = 2*$dist + ($end-$start+1);
-my $rfamend      = $dist + ($end-$start+1);
-my $xscale       = 1000/$totallength;
-
-my $delta5 = $dist-$start;
-my $delta3 = ($delta5+$sequencelength) - $totallength + 1;
-
-my ($xmlrfamstart,$xmlrfamend)=seq2xmlblock($start, $end, $delta5, $delta3, $strand, $sequencelength);
-
-my $xmlhead = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+    my $unfound=0;
+    if( !defined($features0) ) {
+	$features0 = "no features available";
+	$unfound = 1;
+    }
+    
+    my $totallength  = 2*$dist + $end-$start+1;
+    my $rfamend      =   $dist + $end-$start+1;
+    my $xscale       = 1000/$totallength;
+    
+    my $delta5       = $dist-$start;
+    my $delta3       = ($delta5+$sequencelength) - $totallength + 1;
+    
+    my ($xmlrfamstart,$xmlrfamend)=seq2xmlblock($start, $end, $delta5, $delta3, $strand, $sequencelength);
+    
+    my $xmlhead = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <image xmlns=\"http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd\"
        xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"
        xsi:schemaLocation=\"http://pfam.sanger.ac.uk/static/documents/pfamDomainGraphics.xsd
@@ -156,12 +216,11 @@ my $xmlhead = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
     </region>
 ";
 
-my ($xmlseqstart,$xmlseqend)=seq2xmlblock(1, $sequencelength, $delta5, $delta3, $strand, $sequencelength);
-#print "xmlseqstart=$xmlseqstart, xmlseqend=$xmlseqend\n\n";
+    my ($xmlseqstart,$xmlseqend)=seq2xmlblock(1, $sequencelength, $delta5, $delta3, $strand, $sequencelength);
 
 #Mark beginning
-if ($xmlseqstart>0){
-$xmlhead .= "    <markup start=\"$xmlseqstart\" v_align=\"top\" label=\"start\">
+    if (0<$xmlseqstart && $xmlseqstart<$totallength ){
+    $xmlhead .= "    <markup start=\"$xmlseqstart\" v_align=\"top\" label=\"start\">
       <line style=\"bold\">
         <colour>
           <hex hexcode=\"666666\"/>
@@ -174,12 +233,12 @@ $xmlhead .= "    <markup start=\"$xmlseqstart\" v_align=\"top\" label=\"start\">
       </head>
     </markup>
 ";
-}
+    }
 
 #Mark end
-if ( $xmlseqend<$totallength){
+    if ( 0<$xmlseqend && $xmlseqend<$totallength ){
 
-     $xmlhead .= "    <markup start=\"$xmlseqend\" v_align=\"top\" label=\"end\">
+         $xmlhead .= "    <markup start=\"$xmlseqend\" v_align=\"top\" label=\"end\">
       <line style=\"bold\">
         <colour>
           <hex hexcode=\"666666\"/>
@@ -192,78 +251,78 @@ if ( $xmlseqend<$totallength){
       </head>
     </markup>
 ";
-}
+    }
 
-my $xmltail = "  </sequence>
+    my $xmltail = "  </sequence>
 </image>
 ";
 
-if (!(-e "domain_gfx")){
-     mkdir "domain_gfx" or die "Can't create directory: domain_gfx\n[$!]";
-}
+    if (!(-e "domain_gfx")){
+         mkdir "domain_gfx" or die "Can't create directory: domain_gfx\n[$!]";
+    }
 
-my $xmlfeature = "";
-my ($cdscolour1, $cdscolour2) = ("hex hexcode=\"339999\"","RGB R=\"51\" G=\"204\" B=\"204\"");
-my ($rnacolour1, $rnacolour2) = ("hex hexcode=\"666666\"","hex hexcode=\"9966cc\"");
+    my $xmlfeature = "";
+    my ($cdscolour1, $cdscolour2) = ("hex hexcode=\"339999\"","RGB R=\"51\" G=\"204\" B=\"204\"");
+    my ($rnacolour1, $rnacolour2) = ("hex hexcode=\"666666\"","hex hexcode=\"9966cc\"");
 
-my $featurecount = 0;
-my @features0 = split(/\n/, $features0);
-for (my $i = 0; $i < scalar(@features0); $i++) { 
-    
-    if ($unfound || scalar(@features0) == 0){
-	print "$i: $features0[$i]\n";
-	last;
-    }
-    
-    my $sstrand=1;
-    my ($sstart, $send); 
-    if ($features0[$i] =~ m/\s+(\d+)\.\.(\d+)/){
-	$sstart = $1;
-	$send = $2;
-    }
-    elsif ($features0[$i] =~ m/\s+complement\((\d+)\.\.(\d+)\)/){
-	$sstart = $1;
-	$send = $2;	
-	$sstrand = -1;
-    }
-    
-    my ($colour1, $colour2) = ("hex hexcode=\"9999ff\"","hex hexcode=\"99ccff\"");
-    my $featurename = "";
-    if ($features0[$i] =~ m/^\S+\s+(\S+)/){
-        $featurename = $1;
-        $featurename =~ s/EMBL\-//g;
-        if ($featurename =~ m/CDS/){
-                ($colour1, $colour2) = ($cdscolour1, $cdscolour2);
-        }
-        elsif ($featurename =~ m/RNA/){
-                ($colour1, $colour2) = ($rnacolour1, $rnacolour2);
-        }
-    }
-    
-    if (defined($start) && defined($end) && defined($sstart) && defined($send)) {
+    my $featurecount = 0;
+    my @features0 = split(/\n/, $features0);
+    for (my $i = 0; $i < scalar(@features0); $i++) { 
         
-        my ($xmlfeaturestart,$xmlfeatureend)=seq2xmlblock($sstart, $send, $delta5, $delta3, $strand, $sequencelength);
+        if ($unfound || scalar(@features0) == 0){
+	    print "$i: $features0[$i]\n";
+	    last;
+        }
         
-	if ( (0<$xmlfeaturestart && $xmlfeaturestart<$totallength) || (0<$xmlfeatureend && $xmlfeatureend<$totallength)  ) {
-	    $featurecount++;
-            
-            my $ol = overlap($start, $end, $sstart, $send);
-            my $sdist = 0;
-            
-            if ($ol){
-                  $sdist = minabs($sstart-$start, $send-$end);
+        my $sstrand=1;
+        my ($sstart, $send); 
+        if ($features0[$i] =~ m/\s+(\d+)\.\.(\d+)/){
+	    $sstart = $1;
+	    $send = $2;
+        }
+        elsif ($features0[$i] =~ m/\s+complement\((\d+)\.\.(\d+)\)/){
+	    $sstart = $1;
+	    $send = $2;	
+	    $sstrand = -1;
+        }
+    
+        my ($colour1, $colour2) = ("hex hexcode=\"9999ff\"","hex hexcode=\"99ccff\"");
+        my $featurename = "";
+        if ($features0[$i] =~ m/^\S+\s+(\S+)/){
+            $featurename = $1;
+            $featurename =~ s/EMBL\-//g;
+            if ($featurename =~ m/CDS/){
+                    ($colour1, $colour2) = ($cdscolour1, $cdscolour2);
             }
-            else {
-                  $sdist = minabs($send-$start, $sstart-$end);
+            elsif ($featurename =~ m/RNA/){
+                    ($colour1, $colour2) = ($rnacolour1, $rnacolour2);
             }
+        }
+        
+        if (defined($start) && defined($end) && defined($sstart) && defined($send)) {
             
-            print "$i: $features0[$i]\t$sdist\n";
+            my ($xmlfeaturestart,$xmlfeatureend)=seq2xmlblock($sstart, $send, $delta5, $delta3, $strand, $sequencelength);
+            
+	    if ( (0<$xmlfeaturestart && $xmlfeaturestart<$totallength) || (0<$xmlfeatureend && $xmlfeatureend<$totallength)  ) {
+	        $featurecount++;
+                
+                my $ol = overlap($start, $end, $sstart, $send);
+                my $sdist = 0;
+                
+                if ($ol){
+                      $sdist = minabs($sstart-$start, $send-$end);
+                }
+                else {
+                      $sdist = minabs($send-$start, $sstart-$end);
+                }
+                
+                print "$i: $features0[$i]\t$sdist\n";
 
 #print "sequencelength=$sequencelength, totallength=$totallength, delta5=$delta5, delta3=$delta3, dist=$dist\n";
 #print "sstart=$sstart, send=$send\n";
 #print "xmlfeaturestart=$xmlfeaturestart, xmlfeatureend=$xmlfeatureend\n\n";
 
-            $xmlfeature .= "    <region start=\"$xmlfeaturestart\" end=\"$xmlfeatureend\" label=\"$featurename\">
+                $xmlfeature .= "    <region start=\"$xmlfeaturestart\" end=\"$xmlfeatureend\" label=\"$featurename\">
       <colour1>
         <colour><$colour1/></colour>
       </colour1>
@@ -273,10 +332,10 @@ for (my $i = 0; $i < scalar(@features0); $i++) {
       <bigShape leftStyle=\"curved\" rightStyle=\"curved\"/>
     </region>
 ";
-        $xmlfeatureend=$xmlfeatureend-1;
+               $xmlfeatureend=$xmlfeatureend-1;
 
-        if ($sstrand*$strand<0 && (0<$xmlfeatureend && $xmlfeatureend<$totallength) ){
-            $xmlfeature .= "    <markup start=\"$xmlfeatureend\" v_align=\"bottom\" label=\"negative strand\">
+               if ($sstrand*$strand<0 && (0<$xmlfeatureend && $xmlfeatureend<$totallength) ){
+                   $xmlfeature .= "    <markup start=\"$xmlfeatureend\" v_align=\"bottom\" label=\"negative strand\">
       <line style=\"bold\">
         <colour>
           <hex hexcode=\"666666\"/>
@@ -289,25 +348,21 @@ for (my $i = 0; $i < scalar(@features0); $i++) {
       </head>
     </markup>
 ";
-           }        
-#	
-	}
+             }	
+	 }
     }
-    elsif (!defined($start) && !defined($end)) {
-	print "$i: $features0[$i]\t$name\n";
-    }
+#    elsif (!defined($sstart) && !defined($send)) {
+#	print "$i: $features0[$i]\t$name\n";
+#    }
     
-}
+   }
 
-$dbh->disconnect;
-
-if ($featurecount>0){
-    $printname =~ s/\//\_/;
-#    my $pngfilename = "domain_gfx/$name\_$start-$end.png";
-#    my $xmlfilename = "domain_gfx/$name\_$start-$end.xml";
+    my $xmlString = $xmlhead . $xmlfeature . $xmltail;
+    push(@xmlString, $xmlString);
+    
     my $pngfilename = "domain_gfx/$printname\.png";
     my $xmlfilename = "domain_gfx/$printname\.xml";
-    my $xmlString = $xmlhead . $xmlfeature . $xmltail;
+
     open(OUTFILE, ">$xmlfilename") or warn "Cannot print $xmlfilename: [$!]\n";
     printf OUTFILE $xmlString . "\n";
     close(OUTFILE);
@@ -322,9 +377,28 @@ if ($featurecount>0){
       print_image_ppg($im,$pngfilename);
     }
     
-    make_html();
+    my ($markupstart,$markupend) = ("", "");
+    if ($type =~ /ALIGN/ && $score>$threshold){
+	$markupstart = "<font color=\"\#0000A0\">";
+	$markupend = "</font>";
+    }
+    elsif ($type =~ /ALIGN/ && $score<$threshold ){
+	$markupstart = "<font color=\"\#006400\">";
+	$markupend = "</font>";
+    }
+    elsif ($type =~ /SEED/ && $score<$threshold ){
+	$markupstart = "<font color=\"\#FF0000\">";
+	$markupend = "</font>";
+    }
+    
+    $pngfilename =~ s/domain_gfx\///;
+    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+    
+    
 }
+$dbh->disconnect;
 
+make_html_ordered($htmlbody);
 
 exit();
 
@@ -366,6 +440,53 @@ sub print_image_ppg {
   warn "try to convert from png to different format, this is not implemented!\n"
         if( $self->format && $self->format ne "png" );
   
+}
+
+######################################################################
+#Collate all the png images into a single html page:
+sub make_html_ordered {
+    my $htmlbody = shift;
+    my $htmlhead = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"
+  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">
+<html>
+<head>
+    
+<title>Rfam: synteny map</title>
+<body>
+
+<h1>Rfam: synteny map</h1>\n\n\n";
+    
+    my $htmltail = "
+<!-- ====================================================================== -->
+
+    <!-- end of content -->
+
+    
+    <!-- start of footer -->
+    <div id=\"footer\"></div>
+
+    <div class=\"cleaner\"><!-- wrap --></div>
+    <!-- end of footer -->
+
+    </div>
+
+<!-- footer start -->
+
+<div id=\"siteFooter\">
+  <p>Comments or questions on the site? Send a mail to <a href=\"mailto:rfam\@sanger.ac.uk\">rfam\@sanger.ac.uk</a></p>
+  <p class=\"spaced\"><a href=\"http://www.wellcome.ac.uk/\">The Wellcome Trust</a></p>
+</div>
+
+<!-- footer end -->
+
+  </body>
+
+</html>\n";
+
+    open(OUTFILE, ">domain_gfx/index_auto.html") or warn "Cannot print to domain_gfx/index_auto.html: [$!]\n";
+    print OUTFILE $htmlhead . $htmlbody . $htmltail;    
+    close(OUTFILE);
+
 }
 
 ######################################################################
@@ -519,7 +640,11 @@ Options:
   -minusstrand|-m              Minus strand     (optional)
   -d|-dist|-distance    <num>  Distance between coordinates and 
                                features for printing (default=$dist)
+  -o|-outlist                  Read in sequences and coords from out.list
 EXAMPLES: 
+On out.list (from rfmake.pl -l):
+find_flanking_features.pl -o 
+
 On ALIGN2SEED:
 grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
 grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \$1}\' > domain_gfx/markup
@@ -530,6 +655,8 @@ sreformat --pfam stockholm SEED | grep \"/\" | grep -v \"//\" | awk \'{print \"f
 TO ADD:
 A schema for sorting the graphics such that nearest neighbours are most similar.
 
+Make  graphics prettier, arrows instead of lollipops to indicate strand, show sequence start and ends on the backbone (addOffSet).
+Sort graphics on out.list...
 
 EOF
 }
