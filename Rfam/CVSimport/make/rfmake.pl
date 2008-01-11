@@ -17,7 +17,8 @@ my( $thr,
     $trim,
     $overlaps,
     $file,
-    @extrafamily);
+    @extrafamily,
+    $output);
 
 &GetOptions( "t=s"      => \$thr,
 	     "d=s"      => \$inxfile,
@@ -27,8 +28,9 @@ my( $thr,
 #	     "fa=s"     => \$fasta,
 	     "trim=s"   => \$trim,
 	     "file=s"         => \$file,
-	     "extrafamily=s@"   => \@extrafamily,
-	     "h|help"        => \$help );
+	     "extrafamily=s@" => \@extrafamily,
+	     "o|output=s"     => \$output,
+	     "h|help"         => \$help );
 
 sub help {
     print STDERR <<EOF;
@@ -42,6 +44,7 @@ sub help {
 			  -cove                        Sean says 'COVE SUX!', so dont be silly, use Infernal.
 			  -trim <?>                    dunno, seems to run filter_on_cutoff() function? 
 			  -extrafamily <str>           add an extra family term for making the histograms
+			  -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
 EOF
 }
 
@@ -55,6 +58,10 @@ my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 
 if (!defined($file)){
     $file = "OUTPUT";
+}
+
+if (!defined($output)){
+    $output = "out.list";
 }
 
 if (!defined($thr)){
@@ -250,6 +257,7 @@ if( $list ) {
 	$counts{'thresh'}++;
     }
     
+    open(OUTFILE, ">$output") or die "Could not open $output\n[$!]\n";   
     my $prev_bits = 999999;
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	
@@ -258,7 +266,7 @@ if( $list ) {
 	}
 	
 	if ( ($unit->bits)<$thrcurr && $thrcurr<=$prev_bits ){
-	    printf "***********CURRENT THRESHOLD: $thrcurr bits***********\n";
+	    printf OUTFILE "***********CURRENT THRESHOLD: $thrcurr bits***********\n";
 	}
 	
 	my $seqlabel = "ALIGN";
@@ -306,7 +314,7 @@ if( $list ) {
 	    $counts{'forbid'}++;
 	}
 	
-	printf "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
+	printf OUTFILE "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
 	$prev_bits = $unit->bits;
     }
     
@@ -324,6 +332,7 @@ if( $list ) {
     close( OUTALIGN);
     close( OUTFAM);
     close( OUTFORBID);
+    close( OUTFILE);
     
     #Cleanup R files:
     foreach my $ty (keys %filehandles){
