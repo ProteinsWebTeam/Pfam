@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.44 2008-01-09 14:38:19 jt6 Exp $
+# $Id: index.tt,v 1.45 2008-01-14 17:03:59 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -135,7 +135,7 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
       Paste your protein sequence here to find matching Pfam families.
     </p>
     <form action="[% searchBase %]/sequence"
-          method="get" 
+          method="post"
           id="seqForm">
       <div>
         <input type="hidden"
@@ -170,26 +170,31 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>Enter a family identifier or accession to see all data for that family.</p>
     <form action="[% jumpUri %]"
           method="get" 
-          id="familyForm">
+          id="familyForm"
+          onsubmit="return jump(this);">
       <div>
-        <input type="hidden"
-               name="type"
-               value="Family" />
         <input class="entryField" 
                type="text" 
                name="entry" 
                id="familyField" 
                size="30" />
+        <input type="hidden"
+               name="type"
+               value="Family" />
       </div>
+      <div onclick="if( $('familyField').present() ){jump('familyForm');};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('familyField').value=exPfamId"
+           class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+      <p class="small nlh">
+        You can also <a href="[% c.uri_for( "/family/browse" ) %]">browse</a> 
+        through the list of all Pfam families.
+      </p>
     </form>
-    <div onclick="if( $('familyField').present() ){$('familyForm').submit()};"
-         class="glassButton goButton">&nbsp;</div>
-    <div onclick="$('familyField').value=exPfamId"
-         class="glassButton exampleButton">&nbsp;</div>
-    <p class="small nlh">
-      You can also <a href="[% c.uri_for( "/family/browse" ) %]">browse</a> 
-      through the list of all Pfam families.
-    </p>
   </div>
     
   <div id="clan" class="panel" style="display: none">
@@ -197,26 +202,31 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>Enter a clan identifier or accession to see information about that clan.</p>
     <form action="[% jumpUri %]"
           method="get" 
-          id="clanForm">
+          id="clanForm"
+          onsubmit="return jump(this);">
       <div>
-        <input type="hidden"
-               name="type"
-               value="Clan" />
         <input class="entryField"
                type="text" 
                name="entry" 
                id="clanField" 
                size="30" />
+        <input type="hidden"
+               name="type"
+               value="Clan" />
       </div>
+      <div onclick="if( $('clanField').present() ){jump('clanForm');};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('clanField').value=exClanId"
+           class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+      <p class="small nlh">
+        You can also <a href="[% c.uri_for( "/clan/browse" ) %]">browse</a>
+        through a list of clans.
+      </p>
     </form>
-    <div onclick="if( $('clanField').present() ){$('clanForm').submit()};"
-         class="glassButton goButton">&nbsp;</div>
-    <div onclick="$('clanField').value=exClanId"
-         class="glassButton exampleButton">&nbsp;</div>
-    <p class="small nlh">
-      You can also <a href="[% c.uri_for( "/clan/browse" ) %]">browse</a>
-      through a list of clans.
-    </p>
   </div>
     
   <div id="sequence" class="panel" style="display: none">
@@ -224,27 +234,35 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>Enter a sequence identifier or accession.</p>
     <form action="[% jumpUri%]"
           method="get" 
-          id="proteinForm">
+          id="proteinForm"
+          onsubmit="return jump(this);">
       <div>
         <input class="entryField"
                type="text" 
                name="entry" 
                id="proteinField" 
                size="30" />
+        <input type="hidden"
+               name="type"
+               value="Protein" />
       </div>
+      <div onclick="if( $('proteinField').present() ){jump('proteinForm');};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('proteinField').value=exUnpId"
+           class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+      <p class="small nlh">
+        You can use <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>
+        and <a href="[% c.uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
+          metaseq</a> accessions or identifiers, as well as<br />
+        NCBI <a class="ext" href="http://www.ncbi.nlm.nih.gov/Sitemap/sequenceIDs.html">
+          &quot;GI&quot; numbers</a>. GI numbers should be in the form 
+          &quot;113594566&quot;.
+      </p>
     </form>
-    <div onclick="if( $('proteinField').present() ){$('proteinForm').submit()};"
-         class="glassButton goButton">&nbsp;</div>
-    <div onclick="$('proteinField').value=exUnpId"
-         class="glassButton exampleButton">&nbsp;</div>
-    <p class="small nlh">
-      You can use <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>
-      and <a href="[% c.uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
-        metaseq</a> accessions or identifiers, as well as<br />
-      NCBI <a class="ext" href="http://www.ncbi.nlm.nih.gov/Sitemap/sequenceIDs.html">
-        &quot;GI&quot; numbers</a>. GI numbers should be in the form 
-        &quot;113594566&quot;.
-    </p>
   </div>
   
   <div id="structure" class="panel" style="display: none">
@@ -252,22 +270,27 @@ requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <p>Enter the PDB identifier for the structure in the Protein DataBank.</p>
     <form action="[% jumpUri %]"
           method="get" 
-          id="structureForm">
+          id="structureForm"
+          onsubmit="return jump(this);">
       <div>
-        <input type="hidden"
-               name="type"
-               value="Structure" />
         <input class="entryField"
                type="text" 
                name="entry" 
                id="structureField" 
                size="30" />
+        <input type="hidden"
+               name="type"
+               value="Structure" />
       </div>
+      <div onclick="if( $('structureField').present() ){jump('structureForm');};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('structureField').value=exPdbId"
+           class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
     </form>
-    <div onclick="if( $('structureField').present() ){$('structureForm').submit()};"
-         class="glassButton goButton">&nbsp;</div>
-    <div onclick="$('structureField').value=exPdbId"
-         class="glassButton exampleButton">&nbsp;</div>
   </div>
     
   <div id="keyword" class="panel" style="display: none">
