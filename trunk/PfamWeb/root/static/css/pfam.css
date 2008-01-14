@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.65 2008-01-07 14:15:20 jt6 Exp $
+   $Id: pfam.css,v 1.66 2008-01-14 17:04:37 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -248,10 +248,20 @@ img.addAnnotation {
   width: 110px; /* set to 145px for the right sidebar on the index page */
 }
 
-.error {
+div.jumpError {
+  clear: both;
   font-size: smaller;
   font-weight: bold;
   color: #600;
+}
+
+div.jumpSpinner {
+  background-image: url(/static/images/loading.gif);
+  background-repeat: no-repeat;
+  background-position: center left;
+  padding-left: 16px;
+  clear: both;
+  font-size: smaller;
 }
 
 .glassButton {
