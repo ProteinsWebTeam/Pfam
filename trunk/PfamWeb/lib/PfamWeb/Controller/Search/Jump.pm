@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.8 2007-12-10 14:43:59 jt6 Exp $
+# $Id: Jump.pm,v 1.9 2008-01-14 17:03:12 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.8 2007-12-10 14:43:59 jt6 Exp $
+$Id: Jump.pm,v 1.9 2008-01-14 17:03:12 jt6 Exp $
 
 =cut
 
@@ -29,16 +29,18 @@ use base 'PfamWeb::Controller::Search';
 
 =head1 METHODS
 
-=head2 jump : Local
+=head2 jump : Path
 
-Re-directs to one of the main page type controllers, such as Family, Clan, etc.,
-which can handle directly the entry ID or accession.
+Tries to find the URL for the specified entry accession or ID. If the 
+"entryType" parameter is specified and if the value is found in the 
+configuration, we look only for that particualr type of entry. If no "entryType"
+is specified, we'll look for any type.
 
 =cut
 
 sub jump : Path {
   my( $this, $c ) = @_;
-
+  
   # de-taint the entry ID or accession
   my $entry = '';
   ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()\.]+)$/;
@@ -48,73 +50,56 @@ sub jump : Path {
   $entry =~ s/^\s*(.*?)\s*$/$1/;
   $c->log->debug( "Search::Jump::jump: trimmed entry to |$entry|" );
 
-  # we've detainted and trimmed whitespace from the "entry" parameter, so
-  # override the original version with our cleaned up one
-  my $params = $c->req->params;
-  $params->{entry} = $entry;
-    
-  # bail immediately if there's no entry given
+  # bail immediately if there's no valid entry given
   unless( $entry ) {
-    if( defined $c->req->referer )  {
-
-      # build a new URI for the referrer. We want to append a parameter to tell
-      # the jump box that we couldn't find the entry, but there could already
-      # *be* parameters, so we use URI to tack the new one on, just to be safe      
-      my $uri = new URI( $c->req->referer );
-      $uri->query_form( $uri->query_form,
-                        jumpErr => 1 );
-      $c->log->debug( "Search::Jump::jump: redirecting to referer ($uri)" );
-      $c->res->redirect( $uri );
-
-    } else {
-      $c->log->debug( "Search::Jump::jump: couldn't guess entry type and no referer; redirecting to home page" );
-      $c->res->redirect( $c->uri_for( '/' ) );
-    }
-    return 1;
+    $c->stash->{error} = 'No valid accession or ID';
+    return;
   }
 
-  # now we know we have an entry. De-taint the ID type
-  my $entryType;
-  ( $entryType ) = $c->req->param('type') || ''  =~ /^(\w+)/;
-
-  # see if that entry type is valid and, if so, redirect to it
-  if( $entryType and defined $this->{jumpTargets}->{$entryType} ) {
-    my $action = '/' . $this->{jumpTargets}->{$entryType};
-    $c->log->debug( "Search::Jump::jump: called on entry type |$entryType|; redirecting to |$action|" );
-    
-    # again, we've cleaned up "entryType", so override that parameter in our
-    # parameters list
-    $params->{type} = $entryType;
-
-    # and actually redirect
-    $c->res->redirect( $c->uri_for( $action, $params ) );
-    return 1;
+  # now we know we have an entry. See if the caller specified the type of that
+  # entry. If it did, we don't bother trying to guess the type, but just
+  # redirect straight to the appropriate URL 
+  my $entry_type;
+  if( $c->req->param('type') ) {
+    $entry_type = $this->{jumpTargets}->{ $c->req->param('type') };
+    $c->log->debug( 'Search::Jump::jump: looking for entry type: |'
+                    . ( $entry_type || '' ) . '|' )
   }
   
-  # if we get to here we have an entry accession or ID, but we have no idea what 
-  # kind of entry it refers to
-
   # let's guess !
-  $c->log->debug( 'Search::Jump::jump: no valid entry type specified; guessing instead' );
-  my $action = $c->forward( 'guess', [ $entry ] );
+  my $action = $c->forward( 'guess', [ $entry, $entry_type ] );
 
   if( $action ) {
     $c->log->debug( "Search::Jump::jump: we've made a guess; redirecting to |$action|" );
-    $c->res->redirect( $c->uri_for( "/$action", $params ) );
+    $c->stash->{url} = $c->uri_for( "/$action", { entry => $entry } );
   } else {
     $c->log->debug( "Search::Jump::jump: couldn't guess entry type..." );
-    if( defined $c->req->referer ) {
-      my $uri = new URI( $c->req->referer );
-      $uri->query_form( $uri->query_form,
-                        jumpErr => 1 );
-      $c->log->debug( "Search::Jump::jump: redirecting to referer ($uri)" );
-      $c->res->redirect( $uri );
-    } else {
-      $c->log->debug( "Search::Jump::jump: couldn't guess entry type and no referer; redirecting to home page" );
-      $c->res->redirect( $c->uri_for( '/' ) );
-    }
+    $c->stash->{error} = 'Entry not found';
   }
-  return 1;
+  
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 end : Private
+
+Return either a text/plain response with the guessed URL in the body, or an
+error response (status 400) with the error message in the body.
+
+=cut
+
+sub end : Private {
+  my( $this, $c ) = @_;
+
+  $c->res->content_type( 'text/plain' );
+  
+  if( $c->stash->{error} ) {
+    $c->res->body( $c->stash->{error} );
+    $c->res->status( 400 );
+  } else {
+    $c->res->body( $c->stash->{url} );
+  }
+    
 }
 
 #-------------------------------------------------------------------------------
@@ -123,267 +108,215 @@ sub jump : Path {
 
 =head2 guess : Private
 
-Tries to guess what kind of entity is referred to by the argument. It's assumed
-that the entry is already de-tainted before it's passed in here.
-
-Returns the action to which the entry maps, or undef if guessing fails.
+Coordinates the guessing. All this action does is forward to one or more other
+actions, which actually try to figure out what the user-specified entry actually
+refers to. If the C<$entry_type> argument is not null, guesses are restricted
+to that particular type of entry, e.g. "family", "protein", etc.
 
 =cut
 
 sub guess : Private {
-  my( $this, $c, $entryUnknownCase ) = @_;
+  my( $this, $c, $entry, $entry_type ) = @_;
   
-  # make sure we know the entry is upper case
-  my $entry = uc( $entryUnknownCase );
-
   $c->log->debug( "Search::Jump::guess: guessing target for |$entry|" )
     if $c->debug;
-
-  # see if we can figure out what kind if ID or accession we've been handed
-  my( $action, $found );  
-
-  #----------------------------------------
-  
-  # first, see if it's a PfamA family
-  if( $entry =~ /^(PF\d{5})(\.\d+)?$/ ) {
     
-    $found = $c->model('PfamDB::Pfam')
-               ->find( { pfamA_acc => $1 } );
+  my %action_types= ( family    => 'guess_family',
+                      protein   => 'guess_sequence',
+                      clan      => 'guess_clan',
+                      structure => 'guess_structure',
+                      proteome  => 'guess_proteome' );
+
+  my @available_actions = qw( guess_family
+                              guess_sequence
+                              guess_clan
+                              guess_structure
+                              guess_proteome );
+
+  my $guess_actions;
+  if( $entry_type and $action_types{$entry_type} ) {
+    $c->log->debug( "Search::Jump::guess: guessing only for type: |$entry_type|" )
+      if $c->debug;
+    push @$guess_actions, $action_types{$entry_type};
+  } else {
+    $c->log->debug( 'Search::Jump::guess: guessing for any type' ) if $c->debug;
+    $guess_actions = \@available_actions;
+  }
+
+  my $action;
+  foreach my $guess_action( @$guess_actions ) {
+    last if $action = $c->forward( $guess_action, [ uc $entry ] );
+  }
+
+  return $action;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 guess_family : Private
+
+Look for a Pfam family (A or B) with the specified accession or ID.
+
+=cut
+
+sub guess_family : Private {
+  my( $this, $c, $entry ) = @_;
+
+  $c->log->debug( 'Search::Jump::guess_family: looking for a family...' )
+    if $c->debug;
   
-    if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a PfamA family (from accession)' )
-        if $c->debug;
-      $action = 'family';
+  # first, see if it's a Pfam-A family accession
+  my $found;
+  if( $entry =~ m/^(PF\d{5})(\.\d+)?$/ ) {
+    
+    return 'family' if $c->model('PfamDB::Pfam')
+                         ->find( { pfamA_acc => $1 } );
+  } else {
+    # a Pfam family ID ?
+    return 'family' if $c->model('PfamDB::Pfam')
+                         ->find( { pfamA_id => $entry } );
+  }
 
-    } else {
+  # see if this could be a dead family
+  my @rs = $c->model('PfamDB::Dead_families')
+             ->search( [ { pfamA_acc => $entry },
+                         { pfamA_id  => $entry } ] );
+  return 'family' if scalar @rs;
+  
+  # or a Pfam-B accession ?
+  if( $entry =~ m/^(PB\d{6})$/ ) {
 
-      $found = $c->model('PfamDB::Dead_families')
-                 ->find( { pfamA_acc => $1 } );
+    return 'pfamb' if $c->model('PfamDB::PfamB')
+                        ->find( { pfamB_acc => $1 } );      
+  }
+    
+  # maybe a Pfam-B ID ?
+  if( $entry =~ m/^(Pfam-B_\d+)$/ ) {
 
-      if( defined $found ) {
-        $c->log->debug( 'Search::Jump::guess: found a dead family (from accession)' )
-        if $c->debug;
-        $action = 'family';
-      }
-    }
+    return 'pfamb' if $c->model('PfamDB::PfamB')
+                        ->find( { pfamB_id => $1 } );
   }
   
-  #----------------------------------------
-  
-  # or a PfamB accession ?
-  if( not $action and $entry =~ /^(PB\d{6})$/ ) {
+}
 
-    $found = $c->model('PfamDB::PfamB')
-              ->find( { pfamB_acc => $1 } );      
-  
-    if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a PfamB (from accession)' )
-        if $c->debug;
-      $action = 'pfamb';
-    }
-  }
-  
-  #----------------------------------------
-  
-  # maybe a PfamB ID ?
-  if( not $action and $entry =~ /^(Pfam-B_\d+)$/ ) {
+#-------------------------------------------------------------------------------
 
-    $found = $c->model('PfamDB::PfamB')
-              ->find( { pfamB_id => $1 } );      
-  
-    if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a PfamB (from ID)' )
-        if $c->debug;
-      $action = 'pfamb';
-    }
-  }
-  
-  #----------------------------------------
-  
-  # next, could it be a clan ?
-  if( not $action and $entry =~ /^(CL\d{4})$/ ) {
+=head2 guess_sequence : Private
 
-    $found = $c->model("PfamDB::Clans")
-               ->find( { clan_acc => $1 } );
+Look for a sequence with the specified accession or ID. We check for UniProt
+and metaseq accessions/IDs, as well as NCBI GIs.
 
-    if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a clan' )
-        if $c->debug;
-      $action = 'clan';
-    }
+=cut
+
+sub guess_sequence : Private {
+  my( $this, $c, $entry ) = @_;
   
-  }
-  
-  #----------------------------------------
-  
+  $c->log->debug( 'Search::Jump::guess_sequence: looking for a sequence...' )
+    if $c->debug;
+    
   # how about a sequence entry ?
-  if( not $action and $entry =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
+  my $found;
+  if( $entry =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
   
-    $found = $c->model('PfamDB::Pfamseq')
-               ->find( { pfamseq_acc => $1 } );
-  
-    if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a sequence entry' )
-        if $c->debug;
-      $action = 'protein';
-    } else {
-      # see if it's a secondary accession
-      $found = $c->model('PfamDB::Secondary_pfamseq_acc')
-                 ->find( { secondary_acc => $1 },
-                         { join =>     [ qw( pfamseq ) ],
-                           prefetch => [ qw( pfamseq ) ] } );
-      if ( defined $found ) {
-        $c->log->debug( 'Search::Jump::guess: found a secondary sequence entry' )
-          if $c->debug;
-        $action = 'protein';
-      }
-    }
+    return 'protein' if $c->model('PfamDB::Pfamseq')
+                          ->find( { pfamseq_acc => $1 } );
   }
-  
-  #----------------------------------------
-  
+
   # see if it's a protein sequence ID (e.g. CANX_CHICK)
-  if( not $action and $entry =~ /^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
+  if( $entry =~ m/^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
   
-    $found = $c->model('PfamDB::Pfamseq')
-               ->find( { pfamseq_id => $1 } );
-  
-    if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a sequence entry (from ID)' )
-        if $c->debug;
-      $action = 'protein';
-    }
-  
+    return 'protein' if $c->model('PfamDB::Pfamseq')
+                          ->find( { pfamseq_id => $1 } );
   }
   
-  #----------------------------------------
-  
-  # maybe a structure ?
-  if( not $action and $entry =~ /^([0-9][A-Za-z0-9]{3})$/ ) {
-  
-    $found = $c->model('PfamDB::Pdb')
-               ->find( { pdb_id => $1 } );
-  
-    if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a structure' )
-        if $c->debug;
-      $action = 'structure';
-    }
-    
-  }
-  
-  #----------------------------------------
+  # see if it's a secondary accession; a bit gnarly...
+  return 'protein' if $c->model('PfamDB::Secondary_pfamseq_acc')
+                        ->find( { secondary_acc => $1 },
+                                { join =>     [ qw( pfamseq ) ],
+                                  prefetch => [ qw( pfamseq ) ] } );
   
   # an NCBI GI number ?
-  if( not $action and $entry =~ /^(\d+)$/ ) {
+  if( $entry =~ m/^(gi)?(\d+)$/ ) {
   
-    $found = $c->model('PfamDB::Ncbi_seq')
-               ->find( { gi => $1 } );
-  
-    if( defined $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a GI number' )
-        if $c->debug;
-      $action = 'ncbiseq';
-    }
-    
+    return 'ncbiseq' if $c->model('PfamDB::Ncbi_seq')
+                          ->find( { gi => $2 } );
   }
   
-  #----------------------------------------
-  
-  # finally, see if it's some other sort of ID. These are essentially those
-  # identifiers that we can't pick out using a regex, so we have to go to 
-  # the database to find them
-  
-  # a proteome ID ?
-  if( not $action ) {
-  
-    $found = $c->model('PfamDB::Proteome_species')
-               ->find( { species => $entry } );
-    if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a proteome (from ID)' )
-        if $c->debug;
-      $action = 'proteome';
-    }
-  }
+  # an NCBI secondary accession ?
+  my @rs = $c->model('PfamDB::Ncbi_seq')
+             ->search( { secondary_acc => { 'like', "$entry%" } } );
+  return 'ncbiseq' if scalar @rs;
 
-  #----------------------------------------
-  
-  # a Pfam family ID ?
-  if( not $action ) {
-
-    $found = $c->model('PfamDB::Pfam')
-               ->find( { pfamA_id => $entry } );
-               
-    if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a Pfam family (from ID)' )
-        if $c->debug;
-      $action = 'family';
-
-    } else {
-      
-      $found = $c->model('PfamDB::Dead_families')
-                 ->find( { pfamA_id => $entry } );
-
-      if( defined $found ) {
-        $c->log->debug( 'Search::Jump::guess: found a dead family (from ID)' )
-        if $c->debug;
-        $action = 'family';
-      }
-    }
-  }
-
-  #----------------------------------------
-  
-  # a clan ID ?
-  if( not $action ) {
-
-    $found = $c->model('PfamDB::Clans')
-               ->find( { clan_id => $entry } );
-        
-    if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a clan (from ID)' )
-        if $c->debug;
-      $action = 'clan';
-    }
-  }
-
-  #----------------------------------------
-  
   # a metaseq ID or accession ?
-  if( not $action ) {
+  @rs = $c->model('PfamDB::Metaseq')
+          ->search( [ { metaseq_acc => $entry }, 
+                      { metaseq_id  => $entry } ] );
+  return 'metaseq' if scalar @rs;
 
-    my @rs = $c->model('PfamDB::Metaseq')
-               ->search( [ { metaseq_acc => $entry }, 
-                           { metaseq_id  => $entry } ] );
-    my $found = scalar @rs;
+}
 
-    if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found a metaseq accession or ID' )
-        if $c->debug;
-      $action = 'metaseq';
-    }
-  }
+#-------------------------------------------------------------------------------
 
-  #----------------------------------------
+=head2 guess_clan : Private
+
+Look for a Pfam clan with the specified accession or ID.
+
+=cut
+
+sub guess_clan : Private {
+  my( $this, $c, $entry ) = @_;
   
-  # an NCBI secondary accession
-  if( not $action ) {
-
-    my @rs = $c->model('PfamDB::Ncbi_seq')
-               ->search( { secondary_acc => { 'like', "$entry%" } } );
-    $found = scalar @rs;
+  $c->log->debug( 'Search::Jump::guess_clan: looking for a clan...' )
+    if $c->debug;
     
-    if( $found ) {
-      $c->log->debug( 'Search::Jump::guess: found an NCBI secondary accession' )
-        if $c->debug;
-      $action = 'ncbiseq';
-    }
-  }
+  # no point worrying about whether we can match to a regex for clan accession,
+  # since we'd end up doing essentially this query whether $entry looks like
+  # an accession or not
+  my @rs = $c->model('PfamDB::Clans')
+             ->search( [ { clan_acc => $entry },
+                         { clan_id  => $entry } ] );
+  return 'clan' if scalar @rs;
 
-  #----------------------------------------
+}  
+
+#-------------------------------------------------------------------------------
+
+=head2 guess_structure : Private
+
+Look for a PDB structure with the specified ID.
+
+=cut
+
+sub guess_structure : Private {
+  my( $this, $c, $entry ) = @_;
   
-  # hand back whatever we ended up with 
-  return $action;
+  $c->log->debug( 'Search::Jump::guess_structure: looking for a structure...' )
+    if $c->debug;
+    
+  # maybe a structure ?
+  if( $entry =~ m/^([0-9][A-Za-z0-9]{3})$/ ) {
+    return 'structure' if $c->model('PfamDB::Pdb')
+                            ->find( { pdb_id => $1 } );
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 guess_structure : Private
+
+Look for a proteome with the specified species name.
+
+=cut
+
+sub guess_proteome : Private {
+  my( $this, $c, $entry ) = @_;
+  
+  $c->log->debug( 'Search::Jump::guess_proteome: looking for a proteome...' )
+    if $c->debug;
+    
+  # a proteome ID ?
+  return 'proteome' if $c->model('PfamDB::Proteome_species')
+                         ->find( { species => $entry } );
 }
 
 #-------------------------------------------------------------------------------
