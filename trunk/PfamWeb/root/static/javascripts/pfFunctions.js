@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.54 2008-01-07 13:54:21 jt6 Exp $
+// $Id: pfFunctions.js,v 1.55 2008-01-14 17:04:13 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -1120,4 +1120,69 @@ function hoverHandler(e) {
       element.removeClassName('hover');
     }
   }
+}
+
+//------------------------------------------------------------
+//- a function to handle the "jump box" ----------------------
+//------------------------------------------------------------
+
+// this function should be called as the target of the onSubmit event
+// for a "jump to"-style form. The first element of the form should be
+// the single field that should be submitted to the form action. Any
+// hidden fields must come AFTER that entry field.
+
+function jump(form) {
+  // get a handle on the form itself
+  var oForm = $(form);
+  
+  // get the spinner and display it, bearing in mind that there may not
+  // actually BE a spinner
+  var spinner;
+  try {
+    spinner = oForm.select("[class='jumpSpinner']").first()
+                .show(); // if we find a spinner, make it visible immediately
+  } catch( e ) {}
+  
+  // get the entry field in the form, which we assume to be the first field
+  var entryField = oForm.findFirstElement();
+
+  // submit the request
+  var r = new Ajax.Request( oForm.action, {
+    method: 'get',
+    parameters: oForm.serialize( true ),
+
+    // if the request was successful, we get back a URL. Redirect there
+    onSuccess: function(oResponse) {
+      if( spinner !== undefined ) {
+        spinner.update("Loading entry...");
+      }
+      window.location = oResponse.responseText;
+    },
+
+    // if it failed, we show the error message
+    onFailure: function(oResponse) {
+      var errorDiv = oForm.select("[class='jumpError']").first()
+                       .update( oResponse.responseText )
+                       .show();
+      
+      // select the contents of the entry field, to make it easy for the
+      // user to overwrite it
+      entryField.select();
+
+      // we want to hide the error message if the user starts to change the
+      // contents of the entry field. Add an event listener to do that
+      Event.observe( oForm.findFirstElement(),
+                     "change", 
+                     function() { errorDiv.hide(); } );
+
+      // and we're done with the spinner now
+      if( spinner !== undefined ) {
+        spinner.hide();
+      }
+    }
+  } );
+  
+  // we always return false, since a call to the "jump" URL will only return 
+  // a raw URL, not page contents
+  return false;
 }
