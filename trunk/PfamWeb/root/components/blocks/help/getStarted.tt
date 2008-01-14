@@ -4,7 +4,7 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.7 2007-11-05 13:38:19 jt6 Exp $
+# $Id: getStarted.tt,v 1.8 2008-01-14 17:02:17 jt6 Exp $
 %]
 
 <!-- start getStarted block -->
@@ -42,7 +42,7 @@
       if you enter <code>kazal</code>, the search will first look for a 
       family called <em>kazal</em> and, if it doesn't find one, will then 
       look for a clan called <em>kazal</em>. If all of the guesses fail, you'll 
-      be returned to the page where you started the search.
+      see an error message saying &quot;Entry not found&quot;.
     </p>
     <p>
       The order in which the search tries the various types of ID and accession
@@ -50,13 +50,20 @@
     </p>
     <ul>
       <li>Pfam A accession, e.g. PF02171</li>
-      <li>Pfam B, e.g. PB000001</li>
-      <li>Pfam clan accession, e.g. CL0005</li>
+      <li>Pfam A identifier, e.g. piwi</li>
+      <li>Pfam B accession, e.g. PB000001</li>
+      <li>Pfam B identifier, e.g. Pfam-B_1</li>
       <li>UniProt sequence accession, e.g. P00789</li>
       <li>UniProt sequence ID, e.g. CANX_CHICK</li>
-      <li>PDB entry, e.g. 2abl</li>
-      <li>Pfam A ID, e.g. Piwi</li>
+      <li>NCBI &quot;GI&quot; number, e.g. 113594566</li>
+      <li>NCBI secondary accession, e.g. BAF18440.1</li>
+      <li>Pfam clan accession, e.g. CL0005</li>
+      <li>metaseq ID, e.g. JCVI_ORF_1096665732460</li>
+      <li>metaseq accession, e.g. JCVI_PEP_1096665732461</li>
+      <li>Pfam clan accession, e.g. CL0005</li>
       <li>Pfam clan ID, e.g. Kazal</li>
+      <li>PDB entry, e.g. 2abl</li>
+      <li>Proteome species name, e.g. Homo sapiens</li>
     </ul>
 
     <hr />
