@@ -43,6 +43,7 @@ if( $help ) {
 
 if ($makehtml){
     make_html();
+    exit();
 }
 
 #Initialise @name, @start, @end, @strand
@@ -87,18 +88,20 @@ if (defined($outlist)){
 }
 elsif (@name) {
     $score[0]=0;
+    $type[0]="ALIGN";
+    $threshold = $printthreshold;
     if ($name[0] =~ /(\S+)\/(\d+)\-(\d+)\:(\S+)/){
-	push(@name, $1);
-	push(@start, $2);
-	push(@end, $3);
-	push(@strand, $4);
+	$name[0] = $1;
+	$start[0] = $2;
+	$end[0] = $3;
+	$strand[0] = $4;
     }
     elsif ($name[0] =~ /(\S+)\/(\d+)\-(\d+)/){
-	push(@name, $1);
-	push(@start, $2);
-	push(@end, $3);
+	$name[0] = $1;
+	$start[0] = $2;
+	$end[0] = $3;
     }
-
+    
     if (!@strand && (defined($plusstrand) || defined($minusstrand)) ){
 	if (defined($plusstrand) && defined($minusstrand)){
 	    print "Cant be both + and - minus stranded you muppet!";
@@ -107,25 +110,25 @@ elsif (@name) {
 	}
 	
 	if (defined($plusstrand)){
-	    push(@strand, 1);
-	    push(@printname, "$name[0]\_$start[0]\-$end[0]");
+	    $strand[0] = 1;
+	    $printname[0] = "$name[0]\_$start[0]\-$end[0]";
 	}
 	elsif (defined($minusstrand)){
-	    push(@strand, -1);
-	    push(@printname, "$name[0]\_$end[0]\-$start[0]");
+	    $strand[0] = -1;
+	    $printname[0] = "$name[0]\_$end[0]\-$start[0]";
 	}
     }
     elsif ( (!@strand && !defined($plusstrand) && !defined($minusstrand)) && @start && @end ) {
 	
-	push(@printname, "$name[0]\_$start[0]\-$end[0]");
+	$printname[0] = "$name[0]\_$start[0]\-$end[0]";
 	if ($start[0]<$end[0]){
-	    push(@strand, 1);
+	    $strand[0] = 1;
 	}
 	else {
-	    push(@strand, -1);
+	    $strand[0] = -1;
 	    my $tmp = $start[0];
-	    push(@start, $end[0]);
-	    push(@end, $tmp);
+	    $start[0] = $end[0];
+	    $end[0] = $tmp;
 	}
     }
 }
@@ -157,6 +160,7 @@ my $dbh = DBI->connect(
 
 my $htmlbody="";
 my @xmlString;
+my $firstbelowthresh=1;
 ###############BIG LOOP BEGINS HERE##############
 for (my $ii=0; $ii<scalar(@name); $ii++){
     my $name   = $name[$ii];
@@ -170,7 +174,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     my $features0;
     my $sequencelength=0;
     
-    print "FEATURE: $score\t$type\t$name\t$start\t$end\t$strand\n";
+    print "FEATURE: $score\t$type\t$name\t$start\t$end\tstrand=$strand\n";
     
 ###########
 # Prepare the query for execution.
@@ -394,8 +398,13 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 	$markupend = "</font>";
     }
     
+    if ($score<$threshold && $firstbelowthresh){
+	$htmlbody .= "<br /><br />" . "&#42;" x 11 . "CURRENT THRESHOLD: $threshold bits" . "&#42;" x 11 . "<br/><br />\n";
+	$firstbelowthresh=0;
+    }
+    
     $pngfilename =~ s/domain_gfx\///;
-    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
     
     
 }
@@ -643,6 +652,7 @@ Options:
   -minusstrand|-m              Minus strand     (optional)
   -d|-dist|-distance    <num>  Distance between coordinates and 
                                features for printing (default=$dist)
+  -makehtml                    Generates unordered html for all previously generated graphics.
   -o|-outlist                  Read in sequences and coords from out.list
   -t|-thresh|-threshold <num>  Only used in conjunction with the -o option, only produces graphics for 
                                regions with score greater than <num>.
@@ -654,9 +664,12 @@ find_flanking_features.pl -o
 On ALIGN2SEED:
 grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
 grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \$1}\' > domain_gfx/markup
+find_flanking_features.pl -makehtml
 
 On SEED:
 sreformat --pfam stockholm SEED | grep \"/\" | grep -v \"//\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
+\#Should be followed by running:
+find_flanking_features.pl -makehtml
 
 TO ADD:
 A schema for sorting the graphics such that nearest neighbours are most similar.
