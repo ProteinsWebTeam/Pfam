@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.13 2007-12-10 14:44:58 jt6 Exp $
+# $Id: jumpBox.tt,v 1.14 2008-01-14 17:03:37 jt6 Exp $
 
 META naked = 1;
 %]
@@ -14,7 +14,7 @@ META naked = 1;
 <div id="jumpBox" class="sidebarComponent">
 	<h1>
 		<span>Jump to...</span>
-		<a href="[% c.uri_for( "help", { tab = "helpGetStartedBlock" } ) %]"
+		<a href="[% c.uri_for( "/help", { tab = "helpGetStartedBlock" } ) %]"
        title="View help on the &quot;Jump to...&quot; search">
 	 		<img src="[% c.uri_for( "/static/images/info.gif" ) %]" 
            alt="View help on the &quot;Jump to...&quot; search" 
@@ -28,29 +28,38 @@ META naked = 1;
   </p>
   [% END %]
   
-	<form action="[% c.uri_for( "/search/jump" ) %]" 
-        method="get" 
-        id="jumpForm">
+	<form action="[% c.uri_for( '/search/jump' ) %]"
+        id="jumpForm"
+        onsubmit="return jump(this);">
+
     <div>
   		<input class="entryField" 
              type="text" 
-             onfocus="if(!jbCleared){this.value='';jbCleared=true;}" 
+             onfocus="if(!jbCleared){this.value='';jbCleared=true;}"
              size="10" 
              name="entry" 
              id="entry" />
     </div>
-	</form>
+
+  	<div onclick="if($F('entry')){if(jbCleared){jump('jumpForm');}};"
+  		   class="glassButton goButton">&nbsp;</div>
+
+    <div style="display: none"
+         class="jumpSpinner">Searching...</div>
+
+    <div style="display: none"
+         class="jumpError"></div>
+
+  </form>
   
-	<script type="text/javascript">
-	  // <![CDATA[
-		$("entry").value = "enter ID/acc";
-		var jbCleared = false;
+  <script type="text/javascript">
+    // <![CDATA[
+    $("entry").value = "enter ID/acc";
+    var jbCleared = false;
     // ]]>
-	</script>
+  </script>
   
-	<div onclick="if($F('entry')){if(jbCleared){$('jumpForm').submit();}}"
-		   class="glassButton goButton">&nbsp;</div>
-       
+
 	<div class="cleaner"><!-- empty --></div>
 
   [% IF c.req.param( "jumpErr" ) %]
