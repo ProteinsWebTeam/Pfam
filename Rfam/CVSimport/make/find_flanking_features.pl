@@ -403,8 +403,10 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 	$firstbelowthresh=0;
     }
     
+    $name =~ m/^(\S+)\.\d+/;
+    my $shortname = $1;
     $pngfilename =~ s/domain_gfx\///;
-    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
     
     
 }
