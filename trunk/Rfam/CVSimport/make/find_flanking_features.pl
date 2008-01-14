@@ -22,7 +22,7 @@ my $host     = "cbi3";
 my $user     = "genero";
 my $dist     = 10000;
 my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$outlist,$makehtml,$help);
-
+my $printthreshold=0;
 &GetOptions("a|s|start|begin=i@"  => \@start,
             "e|b|end=i@"          => \@end,
             "i|n|id|embl|name=s@" => \@name,
@@ -31,6 +31,7 @@ my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$outlist,$make
 	    "minusstrand|m"       => \$minusstrand,
 	    "d|dist|distance=i"  => \$dist,
 	    "o|outlist"           => \$outlist,
+	    "t|thresh|threshold=s"  => \$printthreshold,
 	    "makehtml"                => \$makehtml,
 	    "h|help"              => \$help
     );
@@ -59,20 +60,22 @@ if (defined($outlist)){
     (@name,@start,@end,@strand,@printname) = ((),(),(),(),(),());
     while (my $line = <OUTLIST>){
 	if ($line =~ m/^(\S+)\t(\S+)\t(\S+)\t(\d+)\t(\d+)/){
-	    push(@score, $1);
-	    push(@type, $2);
-	    my ($oname, $ostart, $oend) = ($3, $4, $5);
-	    push(@name, $oname);
-	    push(@printname, "$oname\_$ostart\-$oend");
-	    if ($ostart<$oend){
-		push(@strand, 1);
-		push(@start, $ostart);
-		push(@end, $oend);
-	    }
-	    else {
-		push(@strand, -1);
-		push(@start, $oend);
-		push(@end, $ostart);
+	    if ($printthreshold<$1){
+		push(@score, $1);
+		push(@type, $2);
+		my ($oname, $ostart, $oend) = ($3, $4, $5);
+		push(@name, $oname);
+		push(@printname, "$oname\_$ostart\-$oend");
+		if ($ostart<$oend){
+		    push(@strand, 1);
+		    push(@start, $ostart);
+		    push(@end, $oend);
+		}
+		else {
+		    push(@strand, -1);
+		    push(@start, $oend);
+		    push(@end, $ostart);
+		}
 	    }
 	}
 	elsif ($line =~ m/CURRENT THRESHOLD: (\S+) bits/) {
@@ -294,7 +297,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
             if ($featurename =~ m/CDS/){
                     ($colour1, $colour2) = ($cdscolour1, $cdscolour2);
             }
-            elsif ($featurename =~ m/RNA/){
+            elsif ($featurename =~ m/RNA/i || $featurename =~ m/RFAM/i){
                     ($colour1, $colour2) = ($rnacolour1, $rnacolour2);
             }
         }
@@ -641,6 +644,9 @@ Options:
   -d|-dist|-distance    <num>  Distance between coordinates and 
                                features for printing (default=$dist)
   -o|-outlist                  Read in sequences and coords from out.list
+  -t|-thresh|-threshold <num>  Only used in conjunction with the -o option, only produces graphics for 
+                               regions with score greater than <num>.
+
 EXAMPLES: 
 On out.list (from rfmake.pl -l):
 find_flanking_features.pl -o 
@@ -657,6 +663,8 @@ A schema for sorting the graphics such that nearest neighbours are most similar.
 
 Make  graphics prettier, arrows instead of lollipops to indicate strand, show sequence start and ends on the backbone (addOffSet).
 Sort graphics on out.list...
+
+Use \"image_map\" so that nice pop-up windows can bee added. 
 
 EOF
 }
