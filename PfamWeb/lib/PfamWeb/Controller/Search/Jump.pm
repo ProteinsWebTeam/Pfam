@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.9 2008-01-14 17:03:12 jt6 Exp $
+# $Id: Jump.pm,v 1.10 2008-01-15 14:17:16 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.9 2008-01-14 17:03:12 jt6 Exp $
+$Id: Jump.pm,v 1.10 2008-01-15 14:17:16 jt6 Exp $
 
 =cut
 
@@ -74,7 +74,10 @@ sub jump : Path {
     $c->stash->{url} = $c->uri_for( "/$action", { entry => $entry } );
   } else {
     $c->log->debug( "Search::Jump::jump: couldn't guess entry type..." );
-    $c->stash->{error} = 'Entry not found';
+
+    # set the error message differently according to whether we were trying to
+    # "look up" and entry or guess the type
+    $c->stash->{error} = $entry_type ? 'Entry not found' : "Couldn't guess entry";
   }
   
 }
