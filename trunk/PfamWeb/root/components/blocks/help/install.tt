@@ -5,7 +5,7 @@
 # 
 # installation instructions for the website
 #
-# $Id: install.tt,v 1.2 2007-11-05 13:38:19 jt6 Exp $
+# $Id: install.tt,v 1.3 2008-01-15 13:15:56 jt6 Exp $
 %]
 
 <!-- start install block -->
@@ -59,13 +59,13 @@
     <h4>Web server</h4>
     
     <p>
-      The Pfam website includes mainly dynamically generated page, with a large
+      The Pfam website includes mainly dynamically generated pages, with a large
       number of statically served items. The best performance can be gained by
       separating the two kinds of data onto two (or more) separate machines,
       so that dynamic data are served by one server, static data by another.
-      If this is not possible, a single, large machine should still give 
-      resonable performance. We serve a development site from a 3GHz Xeon with
-      4Gb of physical memory.
+      If this is not possible, a single large machine should still give 
+      resonable performance. We serve a development site from a 3GHz Intel Xeon
+      with 4Gb of physical memory.
     </p>
 
     <h4>Database server</h4>
@@ -73,9 +73,9 @@
     <p>
       You will first need a reasonable amount of disk space for the database 
       files. The database is distributed as a set of gzip-compressed table
-      dumps, which total about 12Gb. Once uncompress these table files take up
-      around 35Gb. Finally, once the tables are installed into MySQL, the 
-      database will require around 150Gb of disk space.
+      dumps, which total about 12Gb. Once uncompressed these table files take up
+      around 35Gb and once the tables are installed into MySQL, the database 
+      will require around 150Gb of disk space.
     </p>
     <p>      
       The MySQL database daemon will run happily on most machines, but in order
