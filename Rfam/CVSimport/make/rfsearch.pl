@@ -24,6 +24,8 @@ my( $quiet,
     $blast_eval,
     $blast_eval_sens,
     $blast_eval_spec,
+    $nolowcomplexityseg,
+    $nolowcomplexitydust,
     $blastpname,
     $help,
     $update,
@@ -34,7 +36,8 @@ my( $quiet,
     $cpus,
     $wublastcpus,
     $nofilters,
-    $hmmonly
+    $hmmonly,
+    @warnings
     );
 
 sub help {
@@ -54,6 +57,8 @@ Options:       -h                  show this help
 	       --global            run cmsearch in global mode (override DESC cmsearch command)
 	       --cpus <n>          number of cpus to run cmsearch job over
 	       --wublastcpus <n>   number of cpus to run a single wublast job over
+	       --nolowcomplexityseg  turn off WU-BLAST low complexity filter seq
+	       --nolowcomplexitydust turn off WU-BLAST low complexity filter dust
 	       --nobuild           skip cmbuild step
 	       --pname <str>       give lsf a process name, "str", for the cmsearch jobs
 	       --blastpname <str>  restart a job with pname "str" from after the blast runs (also works with -b or -blast)
@@ -81,6 +86,8 @@ EOF
 	     "global"        => \$global,
 	     "cpus=s"        => \$cpus,
 	     "wublastcpus=s" => \$wublastcpus,
+	     "nolowcomplexityseg" => \$nolowcomplexityseg,
+	     "nolowcomplexitydust" => \$nolowcomplexitydust,
 	     "nobuild"       => \$nobuild,
 	     "pname=s"       => \$pname,
 	     "b|blast|blastpname=s"  => \$blastpname,
@@ -121,9 +128,9 @@ my $fh0 = new IO::File;
 $fh0 -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
 &printlog( "Making lustre run directory on the farm: $lustre" );
 &printlog( "mkdir -p $lustre" );
-$fh0 -> print("mkdir -p $lustre\n") or die "FATAL: lsrun -m farm-login mkdir -p $lustre\n$!";
+$fh0 -> print("mkdir -p $lustre\n") or die "FATAL: \42mkdir -p $lustre\42 on the farm failed\n$!";
 &printlog( "lfs setstripe $lustre 0 4 4" );
-$fh0 -> print("lfs setstripe $lustre 0 4 4\n") or die "FATAL: lsrun -m farm-login lfs setstripe $lustre 0 4 4\n$!";
+$fh0 -> print("lfs setstripe $lustre 0 4 4\n") or die "FATAL: \42lfs setstripe $lustre 0 4 4\42 on the farm failed\n$!"; #lsrun -m farm-login lfs setstripe $lustre 0 4 4
 $fh0 -> close;
 #See the wiki page "LustreStripeSize" for more detail. 
 
@@ -184,7 +191,7 @@ if (-e "$pwd/CM"){
     $cmwindow = $string[1];
 }
 else {
-    die ("The $pwd/CM file is missing! SEED file exists, check cmbuild ran."); 
+    die ("The $pwd/CM file is missing! SEED file exists, check cmbuild ran. Check directory is mounted."); 
 }
 
 #Moderately paranoid checking of the all important window parameter:
@@ -224,15 +231,34 @@ else {
     $blast_eval_spec = $blast_eval;
 }
 
+my $blastfiltersstring;
+if (!defined($nolowcomplexityseg) && !defined($nolowcomplexitydust)){
+    $blastfiltersstring = " filter=seg filter=dust";
+}
+elsif (defined($nolowcomplexityseg) && !defined($nolowcomplexitydust)){
+    $blastfiltersstring = " filter=dust";
+    &printlog( "WARNING: turning off the the seg low complexity filter!" );
+}
+elsif (!defined($nolowcomplexityseg) && defined($nolowcomplexitydust)){
+    $blastfiltersstring = " filter=seg";
+    &printlog( "WARNING: turning off the the dust low complexity filter!" );    
+}
+else {
+    $blastfiltersstring = " ";
+    &printlog( "WARNING: turning off the the seg and dust low complexity filters!" );
+}
+
+
 if (!defined($queue)){
     $queue      = "long -n$wublastcpus -R \"span[hosts=1] && select[type==X86_64]\"";
 }
 
+my %seedseqlist;
 if ($nolcmask) {
     system "sreformat -u fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 }
 else {
-    make_lcmask_file("SEED", $fafile);
+    make_lcmask_file("SEED", $fafile, \%seedseqlist);
 }
 
 my @blastdb;
@@ -289,8 +315,8 @@ unless( $minidbpname || $nofilters ) {
 	      my $blastcmdsens = "";
 	      my $blastcmdspec = "";
 	      #PPG: WU-BLAST is now the default. MYAHAHAHAHA!:
-	      $blastcmdsens = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_sens mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize filter=seg filter=dust"; 
-	      $blastcmdspec = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_spec mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize M=1 N=-3 Q=3 R=3  filter=seg filter=dust";
+	      $blastcmdsens = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_sens mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize $blastfiltersstring"; 
+	      $blastcmdspec = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_spec mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize M=1 N=-3 Q=3 R=3  $blastfiltersstring";
 
   	      my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	      my $fh = new IO::File;
@@ -356,24 +382,6 @@ my $blastendtime = time();
 
 #BLOCK 2: PARSE BLAST OUTPUT AND BUILD MINIDBs.
 #############
-#PPG: Grap the lengths of each seed seq, store in hash %seed_seq_lengths. 
-#     Used for fancy calculation of seq boundaries:
-my %seed_seq_lengths=();
-my $ave_length = 0;
-my $min_length = 0;
-open(SEQSTAT,"seqstat -a SEED|") || die "cannot run \"seqstat -a SEED\" pipe";
-while(my $sqst = <SEQSTAT>){
-    if ($sqst =~ /^\*\s+(\S+)\s+(\d+)/){
-	$seed_seq_lengths{$1}=$2;
-	if ($2>$min_length){
-	    $min_length=$2;
-	}
-    }
-    elsif ($sqst =~ /^Average length:\s+(\d+)/){
-	$ave_length = int($1);
-    }
-}
-#############
 
 if (!defined($cpus)){
     $cpus       = 20;
@@ -384,7 +392,7 @@ if( $minidbpname ) {
     if( my @t = glob( "$minidbpname\.minidb.*" ) ) {
 	$k = scalar(@t);
 	
-#	for  (my $ij = 0; $ij < $k; $ij++){
+	#for  (my $ij = 0; $ij < $k; $ij++){
 	system("scp $pwd/$minidbpname\.minidb.* farm-login:$lustre/") and die "error scp-ing mini db:$minidbpname\.minidb.* to farm-login:$lustre/\n$!";
 	#}
 	
@@ -404,14 +412,49 @@ elsif (!$nofilters) {
 	&parse_list( \%seqlist, "$blastpname\.blastlistmerged.$iii" );
     }
     
-    my $numseqs = scalar( keys %seqlist );
+    #Check that the SEED and BLAST results overlap.
+    foreach my $seedseqid (keys %seedseqlist){
+	    foreach my $seedreg ( @{ $seedseqlist{$seedseqid} } ) {
+		my $seedstart = $seedreg->{'start'};
+		my $seedend = $seedreg->{'end'};
+		my $printname = $seedseqid . "/" . $seedstart . "-" . $seedend;
+		if ($seedend < $seedstart){
+		    my $tmp = $seedend; 
+		    $seedend = $seedstart;
+		    $seedstart = $tmp;
+		}
+		
+		my $found_overlap=0;
+		foreach my $reg ( @{ $seqlist{$seedseqid} } ) {
+		    my $start = $reg->{'start'};
+		    my $end = $reg->{'end'};
+		    if ($end < $start){
+			my $tmp = $end; 
+			$end = $start;
+			$start = $tmp;
+		    }
+		    
+		    my $ov = overlap($start, $end, $seedstart, $seedend);
+		    if ($ov){
+			$found_overlap=1;
+		    }
+		}
+		
+		if (!$found_overlap){
+		    push(@warnings, "WARNING: SEED sequence " . $printname . " was not found by the BLAST filters! Try turning of the low complexity filters eg. --nolowcomplexityseg\n");
+		}
+		
+	    }
+    }
+    
+    my @seqids = keys %seqlist;
+    my $numseqs = scalar( @seqids );
     if ($numseqs == 0){
 	&printlog("FATAL: There were 0 hits in the BLAST files. Check BLAST files. Malformed WUBLASTFILTER and/or WUBLASTMAT environment variables?");
 	die;
     }
     
     my $count = int( $numseqs/$cpus ) + 1;
-    my @seqids = keys %seqlist;
     &printlog( "Building mini database of $numseqs sequences spread across $cpus files" );
     
     $k=1;
@@ -533,6 +576,13 @@ my $cmsearchtime = $endtime - $minidbendtime;
 &printlog( "CMSEARCH Runtime: $cmsearchtime secs" );
 &printlog( "Total Runtime:    $runtime secs" );
 
+if (scalar(@warnings)){
+    print "There were " . scalar(@warnings) . " warnings:\n";
+    foreach my $w (@warnings) {
+	print $w;
+    }
+}
+
 ##############
 
 sub printlog {
@@ -601,7 +651,6 @@ sub parse_list {
 				         'strand' => $strand} );
 	}
     }
-    
 
 }
 #########
@@ -701,6 +750,7 @@ sub is_integer {
 sub make_lcmask_file {
 my $stk_file = shift; # stockholm file to use
 my $out_file = shift; # output file
+my $list = shift;
 
 my $gap_thresh = 0.5;      #Gap threshold for lcmask
 my $nuc_freq_thresh = 0.1; #Nucleotide frequency threshold for lcmask
@@ -726,6 +776,12 @@ my @aofh_nuc_counts; #array of hashes to store nuc-counts.
 foreach my $seqobj ( @list ) {
     
     my $seqname = $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end;
+    
+    push( @{ $list->{$seqobj->id} }, { 'start'  => $seqobj->start,
+				       'end'    => $seqobj->end
+	  } );
+    
+    
     my $seq = uc($seqobj->seq); #Must be uppercase,U->T!
     $seq =~ tr/U/T/;
     my @seq = split(//,$seq);
@@ -918,3 +974,14 @@ sub min {
   $_[0] < $_[1] ? $_[0] : $_[1]
 }
 
+######################################################################
+sub overlap {
+    my($x1, $y1, $x2, $y2) = @_;
+    
+    if ( ($x1<=$x2 && $x2<=$y1) || ($x1<=$y2 && $y2<=$y1) || ($x2<=$x1 && $x1<=$y2) || ($x2<=$y1 && $y1<=$y2)  ){
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
