@@ -1,6 +1,6 @@
 #! /software/bin/perl -w
 
-# A program to run checks on alignment consistency with structure.
+# A program to take "good" sequences from the Rfam full ALIGN, adding them to the SEED using the CM, producing a SEED.new file. 
 
 use strict;
 use Rfam;
@@ -9,7 +9,13 @@ use Getopt::Long;
 use Log::Log4perl qw(get_logger :levels); #Damn Ben! 
 use DBI;
 
-my ($minpid,$maxpid,$nucends,$bpconsistency,$forbidden,$info)=(0.6,0.95,5,0.75,1,1);
+my $minpid=0.6;
+my $maxpid=0.95;
+my $nucends=5;
+my $bpconsistency=0.75;
+my $forbidden=1;
+my $info=1;
+
 my @forbidden_terms = qw(
 repeat
 repetitive
@@ -17,57 +23,60 @@ pseudogene
 pseudo-gene
 transpos
 );
-my $forbidden_terms = join(',',@forbidden_terms);
-my (@required_terms, $required, $help);
 
-&GetOptions("minpid=s"   => \$minpid,
-            "maxpid=s"   => \$maxpid,
-	    "nucends=s"  => \$nucends,
-	    "bpcons=s"   => \$bpconsistency,
-	    "required=s" => \$required,
-	    "forbidden=s"=> \$forbidden,
-	    "info=s"     => \$info,
-	    "h"          => \$help,
-	    "help"       => \$help
+# MySQL connection details.
+my $database = $Rfam::embl;
+my $host     = "cbi3";
+my $user     = "genero";
+
+# Query to search for the accession and description of embl entries with the embl id
+my $query = qq(
+           select entry.accession_version, description.description
+           from entry, description
+           where entry.accession_version=?
+           and entry.entry_id=description.entry_id;
+   );
+
+#Global variable for the "is_complementary" function - saves reinitialising each time:
+my %canonical_basepair = (
+    AU => 1,
+    AT => 1,
+    UA => 1,
+    TA => 1,
+    CG => 1,
+    GC => 1,
+    UG => 1,
+    GU => 1,
+    TG => 1,
+    GT => 1,
+    RY => 1,
+    YR => 1,
+    MK => 1,
+    KM => 1,
+    SS => 1,
+    WW => 1
     );
 
-sub help {
-    print STDERR <<EOF;
+my (@required_terms, @extra_forbidden_terms, $help);
 
-ALIGN2SEED.pl - reads in Stockholm format files SEED and ALIGN from the current dir. 
-                Identifies sequences (S) in the ALIGN file that may be useful for including
-                in the SEED. Sequences to be shifted into ALIGN must fulfil some criteria.
-                For inclusion Max_ID(S) compared to the SEED seqs in ALIGN must lie between 
-                $minpid and $maxpid. Also, to prevent truncated sequences from inclusion into SEED
-                we make the restriction that at least one standard nucleotide character must
-                lie within the first and last $nucends nucleotides in the ALIGN alignment. The minumum
-                basepair consistency is $bpconsistency.
-                
-Usage:   ALIGN2SEED.pl <options>
-
-Options:       -h                  show this help
-  -minpid    <num>  (default is $minpid)
-  -maxpid    <num>  (default is $maxpid)
-  -nucends   <num>  (default is $nucends)
-  -bpcons    <num>  (default is $bpconsistency)
-  -required  <str>  (comma seperated list of required terms for DE lines, eg. \"-required tRNA,transfer\", 
-                     only accepts sequences matching either of those terms, default is the empty string)
-  -forbidden <1|0>  (1 => rejects seqs with  DE lines matching the forbidden terms: $forbidden_terms)
-                     0 => do nothing, default is $forbidden)
-  -info      <1|0>  (1 => print lots of info, 0 => print minimal info, default is $info)
-                                
-To Add: -Only accept seqs from Higher score threshold? Eg. top 50%
-
-EOF
-}
+&GetOptions("minpid=s"         => \$minpid,
+            "maxpid=s"         => \$maxpid,
+	    "nucends=s"        => \$nucends,
+	    "bpcons=s"         => \$bpconsistency,
+	    "required=s@"      => \@required_terms,
+	    "forbidden!"       => \$forbidden,
+	    "extraforbidden=s@"=> \@extra_forbidden_terms,
+	    "info!"            => \$info,
+	    "h|help"           => \$help
+    );
 
 if( $help ) {
     &help();
     exit(1);
 }
 
-if ( defined($required) ){
-    @required_terms = split(/,/, $required);
+if (@extra_forbidden_terms){
+    push(@forbidden_terms, @extra_forbidden_terms);
 }
 
 ############Ben's Logging Crap:#############
@@ -88,35 +97,26 @@ log4perl.rootLogger=ERROR, SCREEN
 log4perl.appender.SCREEN=Log::Log4perl::Appender::Screen
 log4perl.appender.SCREEN.mode=append
 log4perl.appender.SCREEN.layout=PatternLayout
-log4perl.appender.SCREEN.layout.ConversionPattern=%d %p> %F{1} on %H line %L: %M - %m%n
+#log4perl.appender.SCREEN.layout.ConversionPattern=%d %p> %F{1} on %H line %L: %M - %m%n
 EOF
         );
 }
 ############Ben's Logging Crap Ends#########
 
 #READ SEED:
-open( SEED, "SEED" ) or die ("FATAL: Couldn't open SEED [$!]\n $!\n");
+open( SEED, "SEED" ) or $logger->logdie("FATAL: Couldn't open SEED\n [$!]");
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 close(SEED);
-my @seedlist = $seed->each_seq();
 
-my $seedlength = length($seedlist[0]->seq);
-my $seednoseqs = @seedlist;
 my (%SEEDhash, %SEEDseqs, %SEEDstarts, %SEEDends); #
 
 #Read SEED into hashes. This maybe daft. Could use "$seed" directly. But then we lose the niceties of hashes. Rewrite "read_stockholm()"?:
-foreach my $seqobj ( @seedlist ) {
-    my $seq = $seqobj->seq;
-    my $seqname = $seqobj->id;
-    my $start = $seqobj->start;
-    my $end = $seqobj->end;
-    my $longseqname = "$seqname/$start-$end";
-    $seq =~ tr/a-z/A-Z/;#Must be uppercase!
-    $SEEDhash{$longseqname}=$seq;
-    
-    push( @{ $SEEDstarts{$seqname} }, $start );
-    push( @{ $SEEDends{$seqname} }, $end );
+foreach my $seqobj ( $seed->each_seq() ) {
+    my $longseqname = $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end;
+    $SEEDhash{$longseqname}= 1;
+    push( @{ $SEEDstarts{$seqobj->id} }, $seqobj->start );
+    push( @{ $SEEDends{$seqobj->id} }, $seqobj->end );
 }
 
 #READ ALIGN:
@@ -130,46 +130,41 @@ my $ss_cons = $align->ss_cons->getInfernalString(); #This is damned confusing!
 #Make a pair table from the secondary structure & initialise basepair hash:
 my @table = make_pair_table($ss_cons);
 my %basepairs;
-my $noseqs = @alignlist;
+my $noseqs = scalar(@alignlist);
 my $len = $table[0];
-my $loop = 0;
 my $nopairs = 0;
 for( my $i = 1; $i<$len+1; $i++ ){
-    if ($table[$i]){
-	my $j = $table[$i];
-	if ($i<$j){
-	    my $bpstr = "$i:$j";
-	    $basepairs{$bpstr} = 0;
-	    $nopairs++;
-	}
-    }
-    else {
-	$loop++;
+    next unless $table[$i];
+    
+    my $j = $table[$i];
+    if ($i<$j){
+	my $bpstr = "$i:$j";
+	$basepairs{$bpstr} = 0;
+	$nopairs++;
     }
 }
 
 my $alignlength = length($alignlist[0]->seq);
-my $alignnoseqs = @alignlist;
-my (%ALIGNhash, %ALIGNandSEEDhash, %ALIGNnames); #array of hashes to store nuc-counts.
+my (%ALIGNhash, %ALIGNandSEEDhash
+, %ALIGNnames); #array of hashes to store nuc-counts.
 
 #Read ALIGN info into hashes and test for overlaps with SEED:
 foreach my $seqobj ( @alignlist ) {
-    my $seq = $seqobj->seq;
-    my $seqname = $seqobj->id;
+
     my $start = $seqobj->start;
     my $end = $seqobj->end;
-    my $longseqname = "$seqname/$start-$end";
-    $seq =~ tr/a-z/A-Z/;#Must be uppercase!
-    $ALIGNhash{$longseqname}=$seq;
-    $ALIGNnames{$longseqname}=$seqname;
+    my $longseqname = $seqobj->id . "/" . $start . "-" . $end;
+
+    $ALIGNhash{$longseqname}=uc($seqobj->seq); #A hash of arrays might be more efficient. Saves all the splitting, substr's of length 1. 
+    $ALIGNnames{$longseqname}=$seqobj->id;
     
     if (defined($SEEDhash{$longseqname})){
 	$ALIGNandSEEDhash{$longseqname}=1;
     }
-    elsif ( defined($SEEDstarts{$seqname}) ) {
- 	for (my $i=0; $i<scalar(@{ $SEEDends{$seqname} }); $i++){
-	    my $e = $SEEDends{$seqname}[$i];
-	    my $s = $SEEDstarts{$seqname}[$i];
+    elsif ( defined($SEEDstarts{$seqobj->id}) ) {
+ 	for (my $i=0; $i<scalar(@{ $SEEDends{$seqobj->id} }); $i++){
+	    my $e = $SEEDends{$seqobj->id}[$i];
+	    my $s = $SEEDstarts{$seqobj->id}[$i];
 	    
 	    if ($e<$s){
 		my $tmp = $s;
@@ -185,28 +180,18 @@ foreach my $seqobj ( @alignlist ) {
 	    
 	    if (overlap($start, $end, $s, $e)){
 		$ALIGNandSEEDhash{$longseqname}=1;
-	    }	    
+	    }
 	}
     }
 }
 
-# MySQL connection details.
-my $database = $Rfam::embl;
-my $host     = "cbi3";
-my $user     = "genero";
 
 # Create a connection to the database.
 my $dbh = DBI->connect(
-    "dbi:mysql:$database;$host", $user, "",
-    );
-
-# Query to search for the accession and description of uniprot entries with the gene name offered.
-my $query = qq(
-           select entry.accession_version, description.description
-           from entry, description
-           where entry.accession_version=?
-           and entry.entry_id=description.entry_id;
-   );
+    "dbi:mysql:$database;$host", $user, "", {
+	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+	RaiseError => 1
+}    );
 
 # Prepare the query for execution.
 my $sth = $dbh->prepare($query);
@@ -230,7 +215,6 @@ open( OUT, ">ALIGN2SEED" ) or die ("FATAL: Couldn't open ALIGN2SEED [$!]\n $!\n"
 my (%minpid, %maxpid, %ALIGN2SEEDcandidates);
 my ($align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $counter) = (0, 0, 0, 0, 0, 0, 0);
 
-#Evil GOTO! 
 BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
     
     if ($info){
@@ -247,28 +231,30 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
     if (!defined($ALIGNandSEEDhash{$longseqname})){
 	$minpid{$longseqname}=1.0;
 	$maxpid{$longseqname}=0.0;
-	my ($ok,$oks,$oke,$persequence) = (1,0,0,0.0);
+	my ($ok,$oks,$oke,$persequence,$pidcounts) = (1,0,0,0.0,0);
+	
 	
 	#Perform the fast and easy checks first, on the first fail goto next seq.
 	
 	#Check that the sequence ends are OK:
+
 	for (my $i=0; $i<$nucends; $i++){
 	    my $a= substr($ALIGNhash{$longseqname},$i,1);
 	    
 	    if (is_nucleotide($a)){
 		$oks=1; 
 	    }
-	    my $b= substr($ALIGNhash{$longseqname},$alignlength-$i,1);
+	    my $b= substr($ALIGNhash{$longseqname},$alignlength-$i-1,1);
 	    
 	    if (is_nucleotide($b)){
-		$oke=1; 
+		$oke=1;
 	    }
 	}
 	
 	if (!$oks || !$oke){
 	    my $a= substr($ALIGNhash{$longseqname},0,$nucends);
 	    my $b= substr($ALIGNhash{$longseqname},$alignlength-$nucends,$nucends);
-	    $logger->info("REJECTED: $longseqname TRUNCATED! (a=$a, b=$b)\n");
+	    $logger->info("REJECTED: $longseqname TRUNCATED!\t(start=$a, end=$b)\n");
 	    $truncrejected++;
 	    next BIGLOOP;
 	}
@@ -289,7 +275,7 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	
 	if ($persequence<$bpconsistency){
 	    if ($info){
-		printf "REJECTED: $longseqname doesn't match the consensus structure (Fcbp=%0.3f>=$bpconsistency)!\n", $persequence; 
+		printf "REJECTED: $longseqname doesn't match the consensus structure (FCBP=%0.3f<thresh=$bpconsistency)!\n", $persequence; 
                 #Logger still doesn't support formatted output! :-(
 	    }
 	    $structrejected++;
@@ -304,8 +290,12 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	    $desc .= $row->[1];
 	}
 	
+	if( !defined($desc) ) {
+	    $desc = "no description available";
+	}
+	
 	#Check for matches to required desc terms:
-	if(defined($required)){
+	if(@required_terms){
 	    my $nomatch = 1;
 	    foreach my $rt (@required_terms){
 		if ($desc =~ m/$rt/i){
@@ -314,24 +304,27 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	    }
 	    
 	    if ($nomatch){
-		$logger->info("REJECTED: $longseqname description did not match your required terms $required [$desc]!\n");
+		$logger->info("REJECTED: $longseqname description did not match your required terms [$desc]!\n");
 		$descrequirerejected++;
 		next BIGLOOP;
 	    }
 	}
 	
 	#Check for matches to forbidden desc terms:
-	foreach my $ft (@forbidden_terms){
-	    if ($desc =~ m/$ft/i){
-		$logger->info("REJECTED: $longseqname description matched a forbidden term, $ft desc=[$desc]!\n");
-		$descforbidrejected++;
-		next BIGLOOP;
+	if ($forbidden){
+	    foreach my $ft (@forbidden_terms){
+		if ($desc =~ m/$ft/i){
+		    $logger->info("REJECTED: $longseqname description matched a forbidden term, $ft desc=[$desc]!\n");
+		    $descforbidrejected++;
+		    next BIGLOOP;
+		}
 	    }
 	}
 	
 	#Check ALIGN seq is not too similar to the other seqs we've selected:
 	foreach my $longseqname3 (keys %ALIGN2SEEDcandidates){
 	    my $p2 = pid($ALIGNhash{$longseqname},$ALIGN2SEEDcandidates{$longseqname3});
+	    $pidcounts++;
 	    if ($p2>=$maxpid){
 		$ok = 0;
 		$pidrejected++;
@@ -346,6 +339,7 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	my $longseqname_max = "";
 	foreach my $longseqname2 (keys %ALIGNandSEEDhash){
 	    my $p = pid($ALIGNhash{$longseqname},$ALIGNhash{$longseqname2});
+	    $pidcounts++;
 	    if ($minpid{$longseqname}>$p){
 		$minpid{$longseqname}=$p;
 	    }
@@ -356,7 +350,11 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	    }
 	    
 	}
-
+	
+	if ($pidcounts==0 || $maxpid{$longseqname}==0.0){
+	    $maxpid{$longseqname} = ($minpid+$maxpid)/2;
+	}
+	
 	#If the max PID between ALIGN seq and SEED seqs is outside our limits:
 	if ( $maxpid{$longseqname} < $minpid || $maxpid < $maxpid{$longseqname} ){
 	    $ok = 0;
@@ -380,15 +378,19 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
     }
     else {#Print DE lines for the SEED sequences:
 	
+	#Grab seq description:
 	my $desc; 
-	open( P, "pfetch -a -D $ALIGNnames{$longseqname} |" ) or die;
-	while( <P> ) {
-	    if( /^(\w+\s+)?(\w+)\.\d+\s+(.{1,50})/ ) {
-		$desc = $3;
-	    }
+	$sth->execute($ALIGNnames{$longseqname});
+	my $res = $sth->fetchall_arrayref;
+	foreach my $row (@$res){
+	    $desc .= $row->[1];
 	}
-	close P or die "can't close pfetch pipe";
-	printf "SEED\t\t$longseqname\t$desc\n";
+
+	if( !defined($desc) ) {
+	    $desc = "no description available";
+	}
+	
+	printf "SEED\t\t$longseqname\t%s\n", substr($desc,0,70);
     }
 }
 close(OUT);
@@ -401,16 +403,19 @@ $logger->info("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$str
 if ($align2seedcount>0){
     $logger->info( "Building new SEED (adding $align2seedcount squences):");
     
-    system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED");
-    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED");
+    system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and $logger->logdie("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
+    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and $logger->logdie( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
     
     $logger->info("Added $align2seedcount sequences\n");
     $logger->info("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected\n");
 }
 else {
     $logger->info( "No ALIGN2SEED candidates.\n");
-    $logger->info( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, PID:$pidrejected DESC.forbid:$descforbidrejected DESC.require:$descrequirerejected\n");
+    $logger->info( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected\n");
 }
+
+#Finished!
+exit();
 
 ######################################################################
 # Should add these functions to Rfam modules: 
@@ -467,18 +472,7 @@ sub pid {
 #returns true if input character is a nucleotide (IUPAC codes):
 sub is_nucleotide {
     my $a = shift;
-    
-    if (defined($a) ){
-	$a =~ tr/a-z/A-Z/;
-    }
-	
-    if (defined($a) && length($a) && ($a =~ /[ACGUTRYWSMKBDHVN]/) ){
-	return 1;
-    }
-    else {
-	return 0;
-    }
-    
+    return ($a =~ m/[ACGUTRYWSMKBDHVN]/i) ? 1 : 0; #Tried using "$_", didn't work...
 }
 
 ######################################################################
@@ -486,43 +480,9 @@ sub is_nucleotide {
 sub is_complementary {
     my $a = shift;
     my $b = shift;
-
-    if (defined($a)){
-	$a =~ tr/a-z/A-Z/;
-    }
-
-    if (defined($b)){
-	$b =~ tr/a-z/A-Z/;
-    }
+    my $ab = uc($a . $b);
     
-    my $ab = $a . $b;
-    
-    my %canonical_basepair = (
-	AU => 1,
-	AT => 1,
-	UA => 1,
-	TA => 1,
-	CG => 1,
-	GC => 1,
-	UG => 1,
-	GU => 1,
-	TG => 1,
-	GT => 1,
-	RY => 1,
-	YR => 1,
-	MK => 1,
-	KM => 1,
-	SS => 1,
-	WW => 1
-	);
-    
-    if ( defined($canonical_basepair{$ab} ) ) {
-	return 1;
-    }
-    else {
-        return 0;
-    }
-	 
+    return (defined($canonical_basepair{$ab} )) ? 1 : 0;
 }
 
 
@@ -538,8 +498,11 @@ sub is_complementary {
 sub make_pair_table {
 
     my $str = shift;
-    
-    my $unbalanced = 0;
+        
+    my (%bpsymbs_posns, @pair_table, $prime5, $prime3, %bpsymbs3p5p, %bpsymbs3p5p_counts);
+    my ($count, $unbalanced) = (0,0);
+
+    #Match up the 5' and 3' basepair simbols:
     my %bpsymbs5p3p = (
 	'(' => ')',
 	'<' => '>',
@@ -571,10 +534,8 @@ sub make_pair_table {
 	H => 0,
 	I => 0
 	);
-
-    my %bpsymbs3p5p = ();
-    my %bpsymbs3p5p_counts = ();
     
+    #We also need the reverse of the above hashes (ie. Match the 3' symbols with the 5'):
     foreach my $symb5p (keys %bpsymbs5p3p){
 	my $symb3p = $bpsymbs5p3p{$symb5p};
 	$bpsymbs3p5p{$symb3p} = $symb5p;
@@ -588,13 +549,6 @@ sub make_pair_table {
 	':' => 4,
 	'_' => 5
 	);
-    
-    my %bpsymbs_posns = ();
-    
-    my @pair_table;
-    my $prime5;
-    my $prime3;
-    my $count = 0;
     
     my @ss = split(//,$str);
     $pair_table[0]  = length($str);
@@ -656,4 +610,40 @@ sub max {
 sub min {
   return $_[0] if @_ == 1;
   $_[0] < $_[1] ? $_[0] : $_[1]
+}
+
+######################################################################
+sub help {
+    
+    my $forbidden_terms = join(',',@forbidden_terms); 
+    print STDERR <<EOF;
+
+ALIGN2SEED.pl - reads in Stockholm format files SEED and ALIGN from the current dir. 
+                Identifies sequences (S) in the ALIGN file that may be useful for including
+                in the SEED. Sequences to be shifted into ALIGN must fulfil some criteria.
+                For inclusion Max_ID(S) compared to the SEED seqs in ALIGN must lie between 
+                $minpid and $maxpid. Also, to prevent truncated sequences from inclusion into SEED
+                we make the restriction that at least one standard nucleotide character must
+                lie within the first and last $nucends nucleotides in the ALIGN alignment. The minumum
+                basepair consistency is $bpconsistency.
+                
+Usage:   ALIGN2SEED.pl <options>
+
+Options:       
+  -h or -help       (show this help)
+  -minpid    <num>  (default is $minpid)
+  -maxpid    <num>  (default is $maxpid)
+  -nucends   <num>  (default is $nucends)
+  -bpcons    <num>  (default is $bpconsistency)
+  -required  <str>  (a required term for DE lines, eg. \"-required tRNA\", only accepts sequences matching this term. 
+		     For multiple terms use another instance eg. \"-required transfer\", this matches tRNA \42OR\42 
+		     transfer. Default is the empty string)
+  -forbidden        (rejects seqs with  DE lines matching the forbidden terms: $forbidden_terms)
+  -noforbidden      (dont use the forbidden terms, default is to use them [forbidden=$forbidden])
+  -info             (print lots of info)
+  -noinfo           (dont print lots of info, default is to print [info=$info])
+
+To Add:  -Only accept seqs from Higher score threshold? Eg. top 50%
+        
+EOF
 }
