@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.12 2007-12-10 14:49:06 jt6 Exp $
+# $Id: summary.tt,v 1.13 2008-01-18 12:38:58 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -46,7 +46,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       Proteins are generally comprised of one or more functional regions, 
       commonly termed domains. The presence of different domains in varying 
       combinations in different proteins gives rise to the diverse repertoire 
-      of proteins found in nature. Identifing the domains present in a protein
+      of proteins found in nature. Identifying the domains present in a protein
       can provide insights into the function of that protein.
     </p>
     <p>
