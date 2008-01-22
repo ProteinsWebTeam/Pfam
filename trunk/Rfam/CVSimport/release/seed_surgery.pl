@@ -115,7 +115,7 @@ foreach my $acc ( @list ) {
         
       SWITCH: {
 	 
-	  print STDERR "(ii) Doing query to get accession info from rfamlive\n";
+	  #print STDERR "(ii) Doing query to get accession info from rfamlive\n";
 	  my $dbdata;
 	  unless( $dbdata= getAcc($seq->accession_number) ) {
 	      push( @tags, "DELETE" );
