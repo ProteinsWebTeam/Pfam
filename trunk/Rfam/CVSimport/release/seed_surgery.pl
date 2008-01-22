@@ -14,6 +14,7 @@ use Bio::AlignIO;
 use Rfam;
 use Rfam::RfamAlign;
 use Bio::SeqFetcher::xdget;
+use DBI;
 
 my( $noaction,
     $dir,
@@ -22,7 +23,8 @@ my( $noaction,
     $queue,
     $file,
     $mapfile,
-    $verbose );
+    $verbose,
+);
 
 &GetOptions( "noaction" => \$noaction,
 	     "dir"      => \$dir,
@@ -40,16 +42,27 @@ if( $dir ) {
 
 my $inx = Bio::SeqFetcher::xdget->new( '-db' => [$Rfam::rfamseq] );
 
-# read in the current sequence versions
-my %emblsv;
-open( E, "$Rfam::rfamseq_current_dir/embl_sv.txt" ) or die;
-while(<E>) {
-    if( /^(\S+)\.(\d+)/ ) {
-	$emblsv{$1} = $2;
-    }
-}
-close E;
+#Check the sequence accession & version in the RDB- can't read in the embl_sv.txt file anymore
+#Rfamlive RDB stuff
+my $rdbName=$Rfam::live_rdb_name;
+my $rdbHost=$Rfam::rdb_host;
+my $rdbUser=$Rfam::rdb_user;
+my $rdbPass=$Rfam::rdb_pass;
+my $rdbPort=$Rfam::rdb_port;
+my $rdbdriver=$Rfam::rdb_driver;
 
+my $rdbAttr = { RaiseError => 1,
+                           PrintError => 1 };
+my $dsn    = "dbi:$rdbdriver:$rdbName:$rdbHost:$rdbPort";
+my $rdb = DBI->connect( $dsn, $rdbUser, $rdbPass, $rdbAttr )
+        or die "(EE) ERROR: couldn't connect to database: $!";
+
+# Rfamlive queries
+my $asth = $rdb->prepare("select rfamseq_acc, version from rfamseq where rfamseq_acc=?")
+  or die '(EE) ERROR: couldn\'t prepare statement to get the : ' . $rdb->errstr;
+
+
+my %emblsv;
 my %cache;
 my $db = Rfam::default_db();
 my @list;
@@ -73,6 +86,7 @@ foreach my $acc ( @list ) {
     }
 
     foreach my $oldseq ( $aln -> each_seq() ) {
+
 	my @tags;
 	my( $oldstart, $oldend ) = ( $oldseq->start, $oldseq->end );
 
@@ -85,7 +99,7 @@ foreach my $acc ( @list ) {
 					    '-end'   => $oldseq->end(),
 					    '-seq'   => $oldseq->seq(),
 					    '-strand' => 1 );
-
+	
 	if( $seq->id() =~ /^(\S+)\.(\d+)$/ ) {
 	    $seq->accession_number($1);
 	    $seq->version($2);
@@ -98,29 +112,37 @@ foreach my $acc ( @list ) {
 	    push( @tags, "T_TO_U" );
 	    $cosmetic_change = 1;
 	}
-
-
+        
       SWITCH: {
-	  if( !exists $emblsv{$seq->accession_number} ) {
-	      # deleted
+	 
+	  print STDERR "(ii) Doing query to get accession info from rfamlive\n";
+	  my $dbdata;
+	  unless( $dbdata= getAcc($seq->accession_number) ) {
 	      push( @tags, "DELETE" );
 	      undef $seq;
 	      $seq_change = 1;
+	      print STDERR "(EE) ERROR: no tax data in rfamlive for this $acc!\n";
 	      last;
 	  }
 
-	  if( $seq->version() == $emblsv{$seq->accession_number} ) {
+	  if (! $$dbdata[1] ){die " problem with the version for this",  $seq->accession_number, "\n";}
+
+	  #my ($dbacc, $dbversion) =@$dbdata;
+	  #print "'$dbacc' and '$dbversion'\n";
+          #print "seem to have data for this $acc?";
+	 
+	  if( $seq->version() == $$dbdata[1] ){
 	      push( @tags, "VERSION_OK" );
 #	      last;
 	  }
 	  else {
 	      # change the version and carry on with checks
-	      $seq->version( $emblsv{$seq->accession_number} );
+	      $seq->version( $$dbdata[1] );
 	      push( @tags, "VERSION_FIXED" );
 	      $cosmetic_change = 1;
 	  }
 
-	  my( $newstart, $newend ) = &subseq_is_unchanged( $seq );
+	  my( $newstart, $newend ) = &subseq_is_unchanged( $seq, $$dbdata[1]);
 	  if( $newend ) {
 	      if( $newstart == $oldstart and $newend == $oldend ) {
 		  push( @tags, "SEQ_OK" );
@@ -197,7 +219,7 @@ sub get_seq {
 	$cache{$acc} = $inx->get_Seq_by_acc( $acc ) unless exists $cache{$acc};
     };
     if( $@ or not $cache{$acc} ) {
-#	warn "$acc not found in your database: $@\n";
+	warn "$acc not found in your database: $@\n";
 	return undef;
     }
     return $cache{$acc};
@@ -215,7 +237,8 @@ sub new_sv {
 
 sub subseq_is_unchanged {
     my $seq    = shift;
-    my $newseq = &get_seq( $seq->accession_number().".".$emblsv{$seq->accession_number()} );
+    my $dbversion   = shift;
+    my $newseq = &get_seq( $seq->accession_number().".".$dbversion );
 
     my $reverse;
     my( $oldstr, $oldstr2 );
@@ -448,3 +471,29 @@ sub find_match {
 
     return $fixed;
 }
+
+
+
+sub getAcc {
+    my $acc=shift;
+    $asth->execute($acc);
+
+    if( $DBI::err ) {
+        print STDERR "(WW) WARNING: error executing  query to get accession & version from RDB: "
+            . $rdb->errstr . "\n";
+        return;
+    }
+
+    my @row = $asth->fetchrow();
+    if( $asth->err ) {
+        print STDERR "(WW) WARNING: error whilst retrieving query asth"
+            . $rdb->errstr . "\n";
+        return ;
+    }
+    
+    if (@row==0){ return 0;}
+    else {return \@row;}
+
+}
+
+
