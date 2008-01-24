@@ -48,6 +48,7 @@ if ($makehtml){
 
 #Initialise @name, @start, @end, @strand
 my (@type,@score,$threshold, @desc);
+my $rfamdesc = "Rfam";
 if (defined($outlist)){
     if (-e "out.list"){
 	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
@@ -57,6 +58,15 @@ if (defined($outlist)){
 	&help();
 	exit(1);
     }
+    
+    open( DESC, "DESC" ) or warn "Can't open DESC to determine global/local requirement\n";
+    while( <DESC> ) {
+	/^ID/ and do {
+	    substr($_,0,3) = "";
+	    $rfamdesc = $_;
+	};
+    }
+    close DESC;
     
     (@name,@start,@end,@strand,@printname) = ((),(),(),(),(),());
     while (my $line = <OUTLIST>){
@@ -216,14 +226,14 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
        scale_x=\"$xscale\" 
        scale_y=\"1.0\">
   <sequence length=\"$totallength\" display_data=\"test all drawing features\" name=\"TestSeq\">
-    <region start=\"$xmlrfamstart\" end=\"$xmlrfamend\" label=\"Rfam\">
+    <region start=\"$xmlrfamstart\" end=\"$xmlrfamend\" label=\"$rfamdesc\">
       <colour1>
         <colour><hex hexcode=\"c00f0f\"/></colour>
       </colour1>
       <colour2>
         <colour><hex hexcode=\"e83737\"/></colour>
       </colour2>
-      <bigShape leftStyle=\"curved\" rightStyle=\"curved\"/>
+      <bigShape leftStyle=\"straight\" rightStyle=\"jagged\"/>
     </region>
 ";
 
@@ -298,9 +308,11 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
         }
     
         my ($colour1, $colour2) = ("hex hexcode=\"9999ff\"","hex hexcode=\"99ccff\"");
-        my $featurename = "";
-        if ($features0[$i] =~ m/^\S+\s+(\S+)/){
+        my ($featurename,$featuredesc) = ("","");
+        if ($features0[$i] =~ m/^\S+\t(\S+)\t\S+\t\S+\t\S+\t(\S+)/){
+            #print "features0[$i] $features0[$i]\n";
             $featurename = $1;
+            $featuredesc = $2;
             $featurename =~ s/EMBL\-//g;
             if ($featurename =~ m/CDS/){
                     ($colour1, $colour2) = ($cdscolour1, $cdscolour2);
@@ -332,34 +344,23 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 #print "sequencelength=$sequencelength, totallength=$totallength, delta5=$delta5, delta3=$delta3, dist=$dist\n";
 #print "sstart=$sstart, send=$send\n";
 #print "xmlfeaturestart=$xmlfeaturestart, xmlfeatureend=$xmlfeatureend\n\n";
+               
+               my ($leftStyle,$rightStyle) = ("straight","jagged");
+               if ($sstrand*$strand<0 && (0<$xmlfeatureend && $xmlfeatureend<$totallength) ){
+                              ($leftStyle,$rightStyle) = ("jagged","straight");
+               }
 
-                $xmlfeature .= "    <region start=\"$xmlfeaturestart\" end=\"$xmlfeatureend\" label=\"$featurename\">
+                $xmlfeature .= "    <region start=\"$xmlfeaturestart\" end=\"$xmlfeatureend\" label=\"$featurename $featuredesc\">
       <colour1>
         <colour><$colour1/></colour>
       </colour1>
       <colour2>
         <colour><$colour2/></colour>
       </colour2>
-      <bigShape leftStyle=\"curved\" rightStyle=\"curved\"/>
+      <bigShape leftStyle=\"$leftStyle\" rightStyle=\"$rightStyle\"/>
     </region>
 ";
-               $xmlfeatureend=$xmlfeatureend-1;
-
-               if ($sstrand*$strand<0 && (0<$xmlfeatureend && $xmlfeatureend<$totallength) ){
-                   $xmlfeature .= "    <markup start=\"$xmlfeatureend\" v_align=\"bottom\" label=\"negative strand\">
-      <line style=\"bold\">
-        <colour>
-          <hex hexcode=\"666666\"/>
-        </colour>
-      </line>
-      <head style=\"circle\">
-        <colour>
-          <hex hexcode=\"333399\"/>
-        </colour>
-      </head>
-    </markup>
-";
-             }	
+              	
 	 }
     }
 #    elsif (!defined($sstart) && !defined($send)) {
@@ -372,11 +373,11 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     push(@xmlString, $xmlString);
     
     my $pngfilename = "domain_gfx/$printname\.png";
-    my $xmlfilename = "domain_gfx/$printname\.xml";
+#    my $xmlfilename = "domain_gfx/$printname\.xml";
 
-    open(OUTFILE, ">$xmlfilename") or warn "Cannot print $xmlfilename: [$!]\n";
-    printf OUTFILE $xmlString . "\n";
-    close(OUTFILE);
+#    open(OUTFILE, ">$xmlfilename") or warn "Cannot print $xmlfilename: [$!]\n";
+#    printf OUTFILE $xmlString . "\n";
+#    close(OUTFILE);
     my $parser = XML::LibXML->new;
     my $dom = $parser->parse_string( $xmlString );
 
