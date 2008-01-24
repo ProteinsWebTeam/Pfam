@@ -47,7 +47,7 @@ if ($makehtml){
 }
 
 #Initialise @name, @start, @end, @strand
-my (@type,@score,$threshold);
+my (@type,@score,$threshold, @desc);
 if (defined($outlist)){
     if (-e "out.list"){
 	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
@@ -60,12 +60,13 @@ if (defined($outlist)){
     
     (@name,@start,@end,@strand,@printname) = ((),(),(),(),(),());
     while (my $line = <OUTLIST>){
-	if ($line =~ m/^(\S+)\t(\S+)\t(\S+)\t(\d+)\t(\d+)/){
+	if ($line =~ m/^(\S+)\t(\S+)\t(\S+)\t(\d+)\t(\d+)\s+(.+)/){
 	    if ($printthreshold<$1){
 		push(@score, $1);
 		push(@type, $2);
-		my ($oname, $ostart, $oend) = ($3, $4, $5);
+		my ($oname, $ostart, $oend, $odesc) = ($3, $4, $5, $6);
 		push(@name, $oname);
+		push(@desc,$odesc);
 		push(@printname, "$oname\_$ostart\-$oend");
 		if ($ostart<$oend){
 		    push(@strand, 1);
@@ -95,11 +96,13 @@ elsif (@name) {
 	$start[0] = $2;
 	$end[0] = $3;
 	$strand[0] = $4;
+	$desc[0] = "";
     }
     elsif ($name[0] =~ /(\S+)\/(\d+)\-(\d+)/){
 	$name[0] = $1;
 	$start[0] = $2;
 	$end[0] = $3;
+	$desc[0] = "";
     }
     
     if (!@strand && (defined($plusstrand) || defined($minusstrand)) ){
@@ -145,7 +148,7 @@ elsif ( scalar(@name)!=scalar(@start) || scalar(@name)!=scalar(@end) || scalar(@
 }
 
 my $query0 = qq(
-           select entry.accession_version, dbxref.database_id, dbxref.primary_id, dbxref.secondary_id, dbxref.tertiary_id, entry.sequence_length
+           select entry.accession_version, dbxref.database_id, dbxref.primary_id, dbxref.secondary_id, dbxref.tertiary_id, dbxref.quaternary_id, entry.sequence_length
            from entry, dbxref
            where entry.accession_version=?
            and entry.entry_id=dbxref.entry_id;
@@ -167,6 +170,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     my $start  = $start[$ii];
     my $end    = $end[$ii];
     my $strand = $strand[$ii];
+    my $desc   = $desc[$ii];
     
     my $type   = $type[$ii];
     my $score  = $score[$ii];
@@ -406,7 +410,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     $name =~ m/^(\S+)\.\d+/;
     my $shortname = $1;
     $pngfilename =~ s/domain_gfx\///;
-    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
     
     
 }
