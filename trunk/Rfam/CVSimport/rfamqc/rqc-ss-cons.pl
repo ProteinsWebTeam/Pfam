@@ -1,4 +1,4 @@
-#! /software/bin/perl -w 
+#!/software/bin/perl -w 
 #-d:DProf 
 #dprofpp -u tmon.out
 
@@ -13,32 +13,41 @@ use Getopt::Long;
 use Tie::IxHash;  #Use to return hash keys in the order they were added
 use bigint;
 use Math::BigFloat;
+use Cwd;
 
-my( $nolog );
+my( $nolog, $help, $file );
 
-&GetOptions("n!"   => \$nolog );
+&GetOptions(
+    "f=s"  => \$file,
+    "n!"   => \$nolog,
+    "h|help" => \$help
+    );
 
-if( $#ARGV == -1 ) {
-    print "rqc-ss-con.pl - calculate statistics for how well the\n";
-    print "                structure annotation corresponds with\n";
-    print "                the sequences.\n";
-    print "Usage:    rqc-ss-con.pl <directory>\n";
-    print "Options:\n";
-    print "  -n             no log file\n";
-    print "\n";
-    print "TO ADD: -remove seqs annotated as pseudogene, retro-element, transposon,...\n";
-    print "        -iterate CM\n";
-    print "        \n";
-    print "        \n";
-    print "        \n";
+##$|++;
+if (defined($help) ) {
+    help();
     exit(1);
 }
 
-##$|++;
+my $family_dir;
 
-my $family_dir = shift; # family dir to use
+if( $#ARGV > 0 ) {
+    $family_dir = shift; # family dir to use
+}
+else {
+    $family_dir = getcwd;
+}
+
+if ( !(-e "$family_dir/SEED")){
+    print "FATAL: missing essential input file: [$family_dir/SEED]\n";
+    help();
+    exit(1);    
+}
+
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
+
+print "family dir: $shortname_family_dir\n";
 
 my (%persequence, %perbasepair, %persequence_lens, %composition, %perbasepaircovariation, %perbasepaircovcounts);
 my $perfamily=0;
@@ -59,8 +68,13 @@ else {
     printf "You're stupidly not writing to log-file!\n";
 }
 
+if (defined($file)){
+    open( SEED, "$file" ) or die ("FATAL: Couldn't open $file!\n $!\n");
+}
+else {
+    open( SEED, "$family_dir/SEED" ) or die ("FATAL: Couldn't open SEED!\n $!\n");
+}
 
-open( SEED, "$family_dir/SEED" ) or die ("FATAL: Couldn't open SEED!\n $!\n");
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
 close(SEED);
@@ -281,9 +295,8 @@ if($noseqs>0 && $len>0){
 #print $msg;
 
 my ($refmononuccounts, $maxdinucstr, $maxdinuc, $CGcontent) = compute_compositions( \%composition, $nonucleotides);
-
 my $threshold = new Math::BigFloat (new Math::BigFloat 6)/(new Math::BigFloat 16);
-print STDERR "threshold=$threshold\n";
+
 #Print data to file and warnings for dodgy pairs:
 if ($noseqs>0 && $nopairs>0){
     foreach my $bpposns ( keys %perbasepair ) {
@@ -730,4 +743,20 @@ sub max {
 sub min {
   return $_[0] if @_ == 1;
   $_[0] < $_[1] ? $_[0] : $_[1]
+}
+
+######################################################################
+sub help {
+    
+    print STDERR <<EOF;
+
+rqc-ss-con.pl - calculate statistics for how well the structure annotation 
+                corresponds with the SEED sequences.
+
+Usage:    rqc-ss-con.pl <directory>
+Options:
+  -n             no log file
+  -f <stkfile>   calculate statistics on \47stkfile\47 instead of SEED
+
+EOF
 }
