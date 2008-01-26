@@ -231,6 +231,7 @@ else {
     $blast_eval_spec = $blast_eval;
 }
 
+#WU-BLAST low-complexity filteres on or off. Default is on.
 my $blastfiltersstring;
 if (!defined($nolowcomplexityseg) && !defined($nolowcomplexitydust)){
     $blastfiltersstring = " filter=seg filter=dust";
@@ -763,7 +764,7 @@ if(!defined($out_file)){
 }
 
 #Read sequences into hashes:
-open( STK, "$stk_file" ) or die ("FATAL: Couldn't open $stk_file [$!]\n $!\n");
+open( STK, "$stk_file" ) or die ("FATAL: Couldn't open $stk_file \n[$!]");
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*STK );
 close(STK);
@@ -809,7 +810,7 @@ for (my $i=0; $i<$length; $i++){
 }
 
 my @accepted_seqs;
-open( OUT, ">$out_file" ) or die ("FATAL: Couldn't open $out_file [$!]\n $!\n");
+open( OUT, ">$out_file" ) or die ("FATAL: Couldn't open $out_file \n[$!]");
 foreach my $seqobj ( @list ) {
 
     my $seqname = $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end;
@@ -888,9 +889,9 @@ sub wait_for_farm {
 	my ($bjpend, $bjrun)  = (0, 0);
 	open(S, "bjobs -J $bjobname |") or die;
 	while(<S>) {
-	    if(/$bjobname/){
-		$jobs++;
-	    }
+	    #if(/$bjobname/){
+		#$jobs++;
+	    #}
 	    
 	    if (/PEND/){
 		$bjpend++;
@@ -901,6 +902,7 @@ sub wait_for_farm {
 	    }
 	}
 	close(S);# || die "failed to close pipe on bjobs:[$!]\n"; <- this caused a "die" once all the jobs were finished!
+	$jobs = $bjpend + $bjrun;
 	
 	if ($jobs < int($nobjobs*(1-0.95)) ){#Once 95% of jobs are finished, check frequently.
 	    $bjobinterval=15;
