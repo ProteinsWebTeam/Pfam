@@ -31,12 +31,15 @@ if (defined($help) ) {
 
 my $family_dir;
 
-if( $#ARGV > 0 ) {
+if( $#ARGV == 0 ) {
     $family_dir = shift; # family dir to use
+    print "$#ARGV family_dir: $family_dir\n";
 }
 else {
     $family_dir = getcwd;
 }
+
+print "ARGV $#ARGV family_dir: $family_dir\n";
 
 if ( !(-e "$family_dir/SEED")){
     print "FATAL: missing essential input file: [$family_dir/SEED]\n";
@@ -47,7 +50,8 @@ if ( !(-e "$family_dir/SEED")){
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
 
-print "family dir: $shortname_family_dir\n";
+print "family_dir: $family_dir\n";
+print "shortname family dir: $shortname_family_dir\n";
 
 my (%persequence, %perbasepair, %persequence_lens, %composition, %perbasepaircovariation, %perbasepaircovcounts);
 my $perfamily=0;
