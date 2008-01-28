@@ -640,6 +640,7 @@ Options:
 		     transfer. Default is the empty string)
   -forbidden        (rejects seqs with  DE lines matching the forbidden terms: $forbidden_terms)
   -noforbidden      (dont use the forbidden terms, default is to use them [forbidden=$forbidden])
+  -extraforbidden   (add additional forbidden terms)
   -info             (print lots of info)
   -noinfo           (dont print lots of info, default is to print [info=$info])
 
