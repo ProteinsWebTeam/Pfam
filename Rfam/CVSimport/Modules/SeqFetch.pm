@@ -57,7 +57,7 @@ sub fetchSeqs{
   
   my @seqList = keys %$seqListRef;
   while(@seqList){
-    my $seqListAll = join(" ", splice(@seqList, 0, 100));
+    my $seqListAll = join(" ", splice(@seqList, 0, 10));
     
     open( XD, "xdget -n $index $seqListAll |") || die "Could not open xdget pipe:[$!]\n";
     my ($seqId, $seq);
@@ -164,7 +164,7 @@ sub verifySeqs{
   my @seqList = keys %$seqListRef;
 
   while(@seqList){
-    my $seqListAll = join(" ", splice(@seqList, 0, 100));
+    my $seqListAll = join(" ", splice(@seqList, 0, 10));
     
     open( XD, "xdget -n $index $seqListAll |") || die "Could not open xdget pipe:[$!]\n";
     my ($seqId, $seq);
