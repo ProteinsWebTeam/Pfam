@@ -81,7 +81,7 @@ if( not $overlaps ) {
 	/^ID/ || /^DE/ || /^PI/ and do {
 	    substr($_,0,3) = "";
 	    $_ =~ tr/a-z/A-Z/;
-	    my @terms = split(/[\_\s+\/\;]/,$_);
+	    my @terms = split(/[\_\s+\/\;\(\)]/,$_);
 	    push(@family_terms,@terms);
 	};
 	
@@ -486,7 +486,6 @@ sub get_seq {
 
 
 ######################################################################
-
 sub overlap {
     my($x1, $y1, $x2, $y2) = @_;
     
