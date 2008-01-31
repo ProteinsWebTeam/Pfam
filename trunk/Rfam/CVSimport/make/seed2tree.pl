@@ -150,7 +150,7 @@ foreach my $seqobj ( @list ) {
     $species =~ s/\s+/\_/g;
     #print "$id\t$newid\t$species\t$tax_string\n";
     $speciesnames{$newid} = $score_string . $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end . "_" . $species;
-    
+    $speciesnames{$newid} =~ tr/\:\(\)\[\]\,//d; 
 }
 
 $dbh->disconnect;
