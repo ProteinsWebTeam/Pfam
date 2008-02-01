@@ -214,18 +214,16 @@ my $sth = $dbh->prepare($query);
 ###########
 
 my ($rfdbh, $rfsth);
-if (scalar(@taxonomy)>0){
 # Create a connection to the database.
-    $rfdbh = DBI->connect(
-	"dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
-	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
-	    RaiseError => 1
-	}    );
-    
+$rfdbh = DBI->connect(
+    "dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
+	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+	RaiseError => 1
+    }    );
+
 # Prepare the query for execution.
-    $rfsth = $rfdbh->prepare($rfquery);
+$rfsth = $rfdbh->prepare($rfquery);
 ###########
-}
 
 my %timer_hash = (
     0 => 1,
@@ -717,7 +715,7 @@ Options:
   -h or -help          show this help
 
 To Add:  -Only accept seqs from Higher score threshold? Eg. top 50%
-         -Add an option to restrict seqs to a specific taxonomy Eg. Bacteria. 
+
         
 EOF
 }
