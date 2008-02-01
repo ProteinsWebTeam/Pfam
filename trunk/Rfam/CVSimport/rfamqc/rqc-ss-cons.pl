@@ -33,13 +33,14 @@ my $family_dir;
 
 if( $#ARGV == 0 ) {
     $family_dir = shift; # family dir to use
-    print "$#ARGV family_dir: $family_dir\n";
+    #print "$#ARGV family_dir: $family_dir\n";
+    
 }
 else {
     $family_dir = getcwd;
 }
 
-print "ARGV $#ARGV family_dir: $family_dir\n";
+#print "ARGV $#ARGV family_dir: $family_dir\n";
 
 if ( !(-e "$family_dir/SEED")){
     print "FATAL: missing essential input file: [$family_dir/SEED]\n";
@@ -50,8 +51,8 @@ if ( !(-e "$family_dir/SEED")){
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
 
-print "family_dir: $family_dir\n";
-print "shortname family dir: $shortname_family_dir\n";
+print "family_dir: $shortname_family_dir\n";
+#print "shortname family dir: $shortname_family_dir\n";
 
 my (%persequence, %perbasepair, %persequence_lens, %composition, %perbasepaircovariation, %perbasepaircovcounts);
 my $perfamily=0;
@@ -106,7 +107,6 @@ for( my $i = 1; $i<$len+1; $i++ ){
     }
 }
 
-
 if ($nopairs==0 && scalar(@list)<2){
     die("FATAL: $shortname_family_dir has less than two sequences and no structure! NEEDS FIXED!\n");
 }
@@ -121,7 +121,7 @@ if (scalar(@list)<2){
 
 my @list2 = @list;
 my ($min_pid, $max_pid, $nocomps, $nocovs, $covariation, $mean_length, $min_length, $max_length, $nonucleotides) = (1.0, 0.0, 0, 0, 0.0, 0.0, inf, 0, 0);
-my $mean_pid = new Math::BigFloat "0.00";
+my $mean_pid = Math::BigFloat->new(0.00);
 
 #Calculate persequence info:
 foreach my $seqobj ( @list ) {
