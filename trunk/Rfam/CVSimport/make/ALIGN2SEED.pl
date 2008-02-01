@@ -37,6 +37,21 @@ my $query = qq(
            and entry.entry_id=description.entry_id;
    );
 
+# MySQL rfamlive connection details.
+my $rfdatabase = "rfamlive";
+my $rfhost     = "pfamdb2a";
+my $rfuser     = "pfamadmin";
+my $rfpw       = "mafpAdmin";
+my $rfport     = 3303;
+
+# Query to search for the accession and description of embl entries with the embl id
+my $rfquery = qq(
+           select t.species, t.tax_string 
+           from taxonomy as t, rfamseq as r 
+           where t.auto_taxid=r.taxon and rfamseq_acc=?;
+   );
+
+
 #Global variable for the "is_complementary" function - saves reinitialising each time:
 my %canonical_basepair = (
     AU => 1,
@@ -57,17 +72,18 @@ my %canonical_basepair = (
     WW => 1
     );
 
-my (@required_terms, @extra_forbidden_terms, $help);
+my (@required_terms, @extra_forbidden_terms, @taxonomy, $help);
 
-&GetOptions("minpid=s"         => \$minpid,
-            "maxpid=s"         => \$maxpid,
-	    "nucends=s"        => \$nucends,
-	    "bpcons=s"         => \$bpconsistency,
-	    "required=s@"      => \@required_terms,
-	    "forbidden!"       => \$forbidden,
-	    "extraforbidden=s@"=> \@extra_forbidden_terms,
-	    "info!"            => \$info,
-	    "h|help"           => \$help
+&GetOptions("min|minpid=s"       => \$minpid,
+            "max|maxpid=s"       => \$maxpid,
+	    "n|nucends=s"        => \$nucends,
+	    "b|bpcons=s"         => \$bpconsistency,
+	    "r|required=s@"      => \@required_terms,
+	    "f|forbidden!"       => \$forbidden,
+	    "e|extraforbidden=s@"=> \@extra_forbidden_terms,
+	    "t|taxonomy=s@"      => \@taxonomy,
+	    "i|info!"            => \$info,
+	    "h|help"             => \$help
     );
 
 if( $help ) {
@@ -197,6 +213,20 @@ my $dbh = DBI->connect(
 my $sth = $dbh->prepare($query);
 ###########
 
+my ($rfdbh, $rfsth);
+if (scalar(@taxonomy)>0){
+# Create a connection to the database.
+    $rfdbh = DBI->connect(
+	"dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
+	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+	    RaiseError => 1
+	}    );
+    
+# Prepare the query for execution.
+    $rfsth = $rfdbh->prepare($rfquery);
+###########
+}
+
 my %timer_hash = (
     0 => 1,
     1 => 1,
@@ -213,7 +243,7 @@ my %timer_hash = (
 #The big loop, locate sequences in align that fulfil our criteria and print to ALIGN2SEED:
 open( OUT, ">ALIGN2SEED" ) or die ("FATAL: Couldn't open ALIGN2SEED [$!]\n $!\n");
 my (%minpid, %maxpid, %ALIGN2SEEDcandidates);
-my ($align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $counter) = (0, 0, 0, 0, 0, 0, 0);
+my ($align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $taxonomyrejected, $counter) = (0, 0, 0, 0, 0, 0, 0, 0);
 
 BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
     
@@ -280,6 +310,41 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	    }
 	    $structrejected++;
 	    next BIGLOOP;
+	}
+	
+	my ($species, $tax_string); 
+	
+	$longseqname =~ m/(\S+)\.\d+\/\d+\-\d+/;
+	my $id = $1;
+	
+	$rfsth->execute($id);
+	my $rfres = $rfsth->fetchall_arrayref;
+	foreach my $row (@$rfres){
+	    $species .= $row->[0];
+	    $tax_string .= $row->[1];
+	}
+	
+	if( !defined($tax_string) ) {
+	    $tax_string = "taxonomy unavailable";
+	}
+	    
+	if( !defined($species) ) {
+	    $species = "species unavailable";
+	}
+	
+	if (scalar(@taxonomy)>0){
+	    my $nomatch = 1;
+	    foreach my $rft (@taxonomy){
+		if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
+		    $nomatch = 0;
+		}
+	    }
+	    
+	    if ($nomatch){
+		$logger->info("REJECTED: $longseqname taxonomy did not match your required terms [$tax_string; $species]!\n");
+		$taxonomyrejected++;
+		next BIGLOOP;
+	    }
 	}
 	
 	#Grab seq description, check it passes required & forbidden terms tests: 
@@ -369,7 +434,7 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	my $ungapped = $ALIGNhash{$longseqname};
 	$ungapped =~ s/[,\.\-:_]//g;
 	
-	printf OUT ">$longseqname\t%0.3f\t%0.3f\t$desc\n$ungapped\n", $maxpid{$longseqname}, $persequence; 
+	printf OUT ">$longseqname\t%0.3f\t%0.3f\t$tax_string; $species\t$desc\n$ungapped\n", $maxpid{$longseqname}, $persequence; 
 	    if ($info){
 		printf "ACCEPTED: maxpid:%0.3f\tFcbp:%0.3f\t$longseqname\t$desc\n", $maxpid{$longseqname}, $persequence; #It'd be damned embarrassing if logger did turn out to support formatted output afterall...
 	    }
@@ -396,8 +461,12 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 close(OUT);
 $dbh->disconnect;
 
-my $tot = $truncrejected+$structrejected+$pidrejected+$descforbidrejected+$descrequirerejected;
-$logger->info("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected");
+if (scalar(@taxonomy)>0){
+    $rfdbh->disconnect;
+}
+
+my $tot = $truncrejected+$structrejected+$pidrejected+$descforbidrejected+$descrequirerejected+$taxonomyrejected;
+$logger->info("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected");
 
 
 if ($align2seedcount>0){
@@ -407,11 +476,11 @@ if ($align2seedcount>0){
     system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and $logger->logdie( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
     
     $logger->info("Added $align2seedcount sequences\n");
-    $logger->info("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected\n");
+    $logger->info("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected\n");
 }
 else {
     $logger->info( "No ALIGN2SEED candidates.\n");
-    $logger->info( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected\n");
+    $logger->info( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected\n");
 }
 
 #Finished!
@@ -630,21 +699,25 @@ ALIGN2SEED.pl - reads in Stockholm format files SEED and ALIGN from the current 
 Usage:   ALIGN2SEED.pl <options>
 
 Options:       
-  -h or -help       (show this help)
-  -minpid    <num>  (default is $minpid)
-  -maxpid    <num>  (default is $maxpid)
-  -nucends   <num>  (default is $nucends)
-  -bpcons    <num>  (default is $bpconsistency)
-  -required  <str>  (a required term for DE lines, eg. \"-required tRNA\", only accepts sequences matching this term. 
-		     For multiple terms use another instance eg. \"-required transfer\", this matches tRNA \42OR\42 
-		     transfer. Default is the empty string)
-  -forbidden        (rejects seqs with  DE lines matching the forbidden terms: $forbidden_terms)
-  -noforbidden      (dont use the forbidden terms, default is to use them [forbidden=$forbidden])
-  -extraforbidden   (add additional forbidden terms)
-  -info             (print lots of info)
-  -noinfo           (dont print lots of info, default is to print [info=$info])
+  -min|-minpid  <num>  Minimum max-pairwise-sequence-identity between S and SEED sequences. Default is $minpid.
+  -max|-maxpid  <num>  Maximum max-pairwise-sequence-identity between S and SEED sequences. Default is $maxpid.
+  -n|-nucends   <num>  Number of columns from alignment ends within which S must contain a valid nucleotide character. Default is $nucends.
+  -b|-bpcons    <num>  Minimum fraction of canonical basepairs (relative to SS_cons) that S must have. Default is $bpconsistency.
+  -r|-required  <str>  A required term for DE lines, eg. \"-required tRNA\", only accepts sequences matching this term. 
+		       For multiple terms use another instance eg. \"-required transfer\", this matches tRNA \42OR\42 
+		       transfer. (Default is the empty string)
+  -f|-forbidden        Rejects S\47s with DE lines matching the forbidden terms: $forbidden_terms
+  -nof|-noforbidden    Dont use the forbidden terms, default is to use them [forbidden=$forbidden]
+  -e|-extraforbidden   Add additional DE forbidden terms.
+  -t|-taxonomy         Restrict S\47s to tax_strings and species containing a specific string. Eg. \47-t Bacteria -t Archea\47 
+                       will only accept bacterial and archeal sequences. 
+  
+  -i|-info             print lots of info
+  -noinfo              dont print lots of info, default is to print [info=$info]
+  -h or -help          show this help
 
 To Add:  -Only accept seqs from Higher score threshold? Eg. top 50%
+         -Add an option to restrict seqs to a specific taxonomy Eg. Bacteria. 
         
 EOF
 }
