@@ -72,18 +72,19 @@ my %canonical_basepair = (
     WW => 1
     );
 
-my (@required_terms, @extra_forbidden_terms, @taxonomy, $help);
+my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $help);
 
-&GetOptions("min|minpid=s"       => \$minpid,
-            "max|maxpid=s"       => \$maxpid,
-	    "n|nucends=s"        => \$nucends,
-	    "b|bpcons=s"         => \$bpconsistency,
-	    "r|required=s@"      => \@required_terms,
-	    "f|forbidden!"       => \$forbidden,
-	    "e|extraforbidden=s@"=> \@extra_forbidden_terms,
-	    "t|taxonomy=s@"      => \@taxonomy,
-	    "i|info!"            => \$info,
-	    "h|help"             => \$help
+&GetOptions("min|minpid=s"                 => \$minpid,
+            "max|maxpid=s"                 => \$maxpid,
+	    "n|nucends=s"                  => \$nucends,
+	    "b|bpcons=s"                   => \$bpconsistency,
+	    "r|required=s@"                => \@required_terms,
+	    "f|forbidden!"                 => \$forbidden,
+	    "ef|extraforbidden=s@"         => \@extra_forbidden_terms,
+	    "t|taxonomy=s@"                => \@taxonomy,
+	    "ft|forbiddentaxonomy=s@"      => \@forbiddentaxonomy,
+	    "i|info!"                      => \$info,
+	    "h|help"                       => \$help
     );
 
 if( $help ) {
@@ -330,7 +331,7 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	    $species = "species unavailable";
 	}
 	
-	if (scalar(@taxonomy)>0){
+	if (scalar(@taxonomy)>0 || scalar(@forbiddentaxonomy)>0){
 	    my $nomatch = 1;
 	    foreach my $rft (@taxonomy){
 		if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
@@ -338,8 +339,15 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 		}
 	    }
 	    
-	    if ($nomatch){
-		$logger->info("REJECTED: $longseqname taxonomy did not match your required terms [$tax_string; $species]!\n");
+	    my $nomatch2 = 0;
+	    foreach my $rft (@forbiddentaxonomy){
+		if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
+		    $nomatch2 = 1;
+		}
+	    }
+	    
+	    if ($nomatch || $nomatch2){
+		$logger->info("REJECTED: $longseqname taxonomy did not match your required/forbidden terms [$tax_string; $species]!\n");
 		$taxonomyrejected++;
 		next BIGLOOP;
 	    }
@@ -697,22 +705,24 @@ ALIGN2SEED.pl - reads in Stockholm format files SEED and ALIGN from the current 
 Usage:   ALIGN2SEED.pl <options>
 
 Options:       
-  -min|-minpid  <num>  Minimum max-pairwise-sequence-identity between S and SEED sequences. Default is $minpid.
-  -max|-maxpid  <num>  Maximum max-pairwise-sequence-identity between S and SEED sequences. Default is $maxpid.
-  -n|-nucends   <num>  Number of columns from alignment ends within which S must contain a valid nucleotide character. Default is $nucends.
-  -b|-bpcons    <num>  Minimum fraction of canonical basepairs (relative to SS_cons) that S must have. Default is $bpconsistency.
-  -r|-required  <str>  A required term for DE lines, eg. \"-required tRNA\", only accepts sequences matching this term. 
-		       For multiple terms use another instance eg. \"-required transfer\", this matches tRNA \42OR\42 
-		       transfer. (Default is the empty string)
-  -f|-forbidden        Rejects S\47s with DE lines matching the forbidden terms: $forbidden_terms
-  -nof|-noforbidden    Dont use the forbidden terms, default is to use them [forbidden=$forbidden]
-  -e|-extraforbidden   Add additional DE forbidden terms.
-  -t|-taxonomy         Restrict S\47s to tax_strings and species containing a specific string. Eg. \47-t Bacteria -t Archea\47 
-                       will only accept bacterial and archeal sequences. 
+  -min|-minpid  <num>      Minimum max-pairwise-sequence-identity between S and SEED sequences. Default is $minpid.
+  -max|-maxpid  <num>      Maximum max-pairwise-sequence-identity between S and SEED sequences. Default is $maxpid.
+  -n|-nucends   <num>      Number of columns from alignment ends within which S must contain a valid nucleotide character. Default is $nucends.
+  -b|-bpcons    <num>      Minimum fraction of canonical basepairs (relative to SS_cons) that S must have. Default is $bpconsistency.
+  -r|-required  <str>      A required term for DE lines, eg. \"-required tRNA\", only accepts sequences matching this term. 
+		           For multiple terms use another instance eg. \"-required transfer\", this matches tRNA \42OR\42 
+		           transfer. (Default is the empty string)
+  -f|-forbidden            Rejects S\47s with DE lines matching the forbidden terms: $forbidden_terms
+  -nof|-noforbidden        Dont use the forbidden terms, default is to use them [forbidden=$forbidden]
+  -ef|-extraforbidden      Add additional DE forbidden terms.
+  -t|-taxonomy             Restrict S\47s to tax_strings and species containing a specific string. Eg. \47-t Bacteria -t Archea\47 
+                           will only accept bacterial and archeal sequences. 
+  -ft|-forbiddentaxonomy   Restrict S\47s to tax_strings and species not containing a specific string. Eg. \47-t sapiens\47 or \47-t mammal\47 
+                           will reject human and mammalian sequences respectively. 
   
-  -i|-info             print lots of info
-  -noinfo              dont print lots of info, default is to print [info=$info]
-  -h or -help          show this help
+  -i|-info                 print lots of info
+  -noinfo                  dont print lots of info, default is to print [info=$info]
+  -h or -help              show this help
 
 To Add:  -Only accept seqs from Higher score threshold? Eg. top 50%
 
