@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.9 2007-08-23 09:17:29 jt6 Exp $
+// $Id: job.js,v 1.10 2008-02-04 17:14:29 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -213,7 +213,7 @@ Job.prototype = {
   
     // store pointers to specific elements within this div
     this.statusMsg    = $A( document.getElementsByClassName( "status",      jobDiv ) )
-                        .first();
+                          .first();
     this.startedValue = $A( document.getElementsByClassName( "started",     jobDiv ) )
                           .first();
     this.bar          = $A( document.getElementsByClassName( "progressBar", jobDiv ) )
@@ -273,14 +273,14 @@ Job.prototype = {
 
     // only poll the server for the job status at the required interval    
     if( 0 != this.tick++ % this.interval ) {
-      new Ajax.Request( this.checkURI, 
-                        {
-                          method:     'get',
-                          onSuccess:  this.checkStatus.bind( this ),
-                          onFailure:  this.pollingFailed.bind( this ),
-                          parameters: { jobId: this.jobId }
-                        }
-                      );
+      var r = new Ajax.Request( this.checkURI, 
+                                {
+                                  method:     'get',
+                                  onSuccess:  this.checkStatus.bind( this ),
+                                  onFailure:  this.pollingFailed.bind( this ),
+                                  parameters: { jobId: this.jobId }
+                                }
+                              );
     }
   },
 
@@ -452,15 +452,15 @@ Job.prototype = {
     this.stop();
 
     // update the status message
-    //if( statusObj.status == "FAIL" ) {
-    //   console.debug( "Job.jobEnded: job failed..." );  
-    //} else {
-    //   console.debug( "Job.jobEnded: job successful" );  
-    //}
+    // if( statusObj.status == "FAIL" ) {
+      // console.debug( "Job.jobEnded: job failed..." );  
+    // } else {
+      // console.debug( "Job.jobEnded: job successful" );  
+    // }
 
     // update the list of currently running jobs and then see if we should
     // finish off
-    Job.RUNNING.remove( this.jobId );
+    Job.RUNNING.unset( this.jobId );
 
     var left = Job.RUNNING.keys().size();
     // console.debug( "Job.jobEnded: " + left + " jobs left" );
@@ -501,7 +501,7 @@ Job.prototype = {
   // all jobs are done; redirect to the "done" page
 
   finish: function( result ) {
-    //console.debug( "Job.finish: finishing up" );
+    // console.debug( "Job.finish: finishing up" );
 
     // need to build the URI with the job IDs given as parameters
     var doneLoc;
@@ -518,7 +518,7 @@ Job.prototype = {
     // chop off the last ampersand
     var uri = buildURI.substr( 0, buildURI.length - 1 )
 
-    //console.debug( "Job.finish: redirecting to: |" + uri + "|" )
+    // console.debug( "Job.finish: redirecting to: |" + uri + "|" )
     document.location = uri;
   },
   
