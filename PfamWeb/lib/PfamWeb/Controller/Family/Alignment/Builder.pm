@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.9 2008-01-07 16:47:16 jt6 Exp $
+# $Id: Builder.pm,v 1.10 2008-02-04 17:13:45 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.9 2008-01-07 16:47:16 jt6 Exp $
+$Id: Builder.pm,v 1.10 2008-02-04 17:13:45 jt6 Exp $
 
 =cut
 
@@ -246,7 +246,8 @@ sub queueAlignment : Private {
                       checkURI      => $c->uri_for( '/jobmanager/checkStatus' )
                                          ->as_string,
                       doneURI       => $c->uri_for( '/family/alignment/builder/view',
-                                                    { acc => $c->stash->{acc} } )
+                                                    { acc => $c->stash->{acc},
+                                                      jobId => $jobId } )
                                          ->as_string,
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
