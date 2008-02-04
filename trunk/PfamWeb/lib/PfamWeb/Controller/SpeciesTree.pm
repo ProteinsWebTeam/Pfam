@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.14 2008-01-08 16:19:51 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.15 2008-02-04 17:15:41 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.14 2008-01-08 16:19:51 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.15 2008-02-04 17:15:41 jt6 Exp $
 
 =cut
 
@@ -168,7 +168,7 @@ sub end : ActionClass( 'RenderView' ) {
 #- public actions --------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 storeids : Local
+=head2 store_ids : Local
 
 Stores a set of sequence accessions in a DB table and returns a unique ID for
 the set. Expects the sequence accessions to be stored as an escaped, semi-colon-
@@ -202,13 +202,13 @@ domain graphics.
 
 =cut
 
-sub storeids : Local {
+sub store_ids : Local {
   my( $this, $c ) = @_;
   
   my $id_list = uri_unescape( $c->req->param('ids') ); 
   
   unless( $id_list =~ m/^([\w]{6}\s+)+$/ ) {
-    $c->log->debug( 'SpeciesTree::storeids: not a valid ID string' )
+    $c->log->debug( 'SpeciesTree::store_ids: not a valid ID string' )
       if $c->debug;
 
     $c->res->body( 'Bad request' );
@@ -216,7 +216,7 @@ sub storeids : Local {
     return;
   }
   
-  $c->log->debug( 'SpeciesTree::storeids: got some valid ids' ) if $c->debug;
+  $c->log->debug( 'SpeciesTree::store_ids: got some valid ids' ) if $c->debug;
   
   # build an ID for this set of IDs
   my $job_id = Data::UUID->new()->create_str();
@@ -233,7 +233,7 @@ sub storeids : Local {
   };
   if( $@ ) {
     # oops...
-    $c->log->error( "SpeciesTree::storeids: error from query: |$@|" )
+    $c->log->error( "SpeciesTree::store_ids: error from query: |$@|" )
       if $c->debug;
 
     $c->res->body( 'Failed' );
@@ -386,7 +386,7 @@ sub graphics : Local {
   }
 
   # retrieve the accessions for that job ID
-  my $accession_list = $c->forward( '/utils/retrieve_accessions', [ $jobId ] );
+  my $accession_list = $c->forward( '/utils/retrieve_ids', [ $jobId ] );
   unless( $accession_list ) {
     $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
     return;
@@ -421,7 +421,7 @@ sub accessions : Local {
   }
 
   # retrieve the accessions for that job ID
-  my $accession_list = $c->forward( '/utils/retrieve_accessions', [ $jobId ] );
+  my $accession_list = $c->forward( '/utils/retrieve_ids', [ $jobId ] );
   unless( $accession_list ) {
     $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
     return;
