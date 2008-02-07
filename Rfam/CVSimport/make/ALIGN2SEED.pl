@@ -73,7 +73,7 @@ my %canonical_basepair = (
     WW => 1
     );
 
-my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $ont, $help);
+my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $ont, $scorethreshold, $help);
 
 &GetOptions("min|minpid=s"                 => \$minpid,
             "max|maxpid=s"                 => \$maxpid,
@@ -82,9 +82,10 @@ my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $ont
 	    "r|required=s@"                => \@required_terms,
 	    "f|forbidden!"                 => \$forbidden,
 	    "ef|extraforbidden=s@"         => \@extra_forbidden_terms,
-	    "t|taxonomy=s@"                => \@taxonomy,
+	    "rt|taxonomy=s@"               => \@taxonomy,
 	    "ft|forbiddentaxonomy=s@"      => \@forbiddentaxonomy,
 	    "ont"                          => \$ont,
+	    "s|scorethresh"                => \$scorethreshold,
 	    "i|info!"                      => \$info,
 	    "h|help"                       => \$help
     );
@@ -206,7 +207,7 @@ foreach my $seqobj ( @alignlist ) {
 #If using ONT option, need to fetch scores:
 my %ALIGNscores;
 #tie %ALIGNscores, "Tie::IxHash";
-if (defined($ont)){
+if (defined($ont) || defined($scorethreshold)){
     open(SC, "<scores")  or $logger->logdie("FATAL: Couldn't open SEED\n [$!]"); 
     while (my $sc = <SC>){
 	if ($sc =~ /(\S+)\s+(\S+)/){
@@ -260,7 +261,7 @@ my %timer_hash = (
 
 open( OUT, ">ALIGN2SEED" ) or die ("FATAL: Couldn't open ALIGN2SEED [$!]\n $!\n");
 my (%minpid, %maxpid, %ALIGN2SEEDcandidates, @names_array, %seen_taxa);
-my ($align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $taxonomyrejected, $counter) = (0, 0, 0, 0, 0, 0, 0, 0);
+my ($scorerejected, $align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $taxonomyrejected, $counter) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 if (defined($ont)){
     @names_array = keys %ALIGNscores;
@@ -305,7 +306,22 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	#Perform the fast and easy checks first, on the first fail goto next seq.
 	
 	#Check that the sequence ends are OK:
-
+	
+	if (defined($scorethreshold)){
+	    if ($ALIGNscores{$longseqname} && $scorethreshold<$ALIGNscores{$longseqname}){
+		$logger->info("REJECTED: $longseqname score is too low!\t($ALIGNscores{$longseqname})\n");
+		$scorerejected++;
+		next BIGLOOP;
+		
+	    }
+	    elsif (!$ALIGNscores{$longseqname}) {
+		$logger->info("REJECTED: $longseqname score is missing!\t(check \42scores\42 file)\n");
+		$scorerejected++;
+		next BIGLOOP;
+	    }
+	}
+	
+	
 	for (my $i=0; $i<$nucends; $i++){
 	    my $a= substr($ALIGNhash{$longseqname},$i,1);
 	    
@@ -525,8 +541,8 @@ if (scalar(@taxonomy)>0){
     $rfdbh->disconnect;
 }
 
-my $tot = $truncrejected+$structrejected+$pidrejected+$descforbidrejected+$descrequirerejected+$taxonomyrejected;
-$logger->info("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected");
+my $tot = $truncrejected+$structrejected+$pidrejected+$descforbidrejected+$descrequirerejected+$taxonomyrejected+$scorerejected;
+$logger->info("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected");
 
 
 if ($align2seedcount>0){
@@ -536,11 +552,11 @@ if ($align2seedcount>0){
     system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and $logger->logdie( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
     
     $logger->info("Added $align2seedcount sequences\n");
-    $logger->info("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected\n");
+    $logger->info("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
 }
 else {
     $logger->info( "No ALIGN2SEED candidates.\n");
-    $logger->info( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected\n");
+    $logger->info( "rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
 }
 
 #Finished!
@@ -774,14 +790,17 @@ Options:
   -ef|-extraforbidden      Add additional DE forbidden terms.
 
                            TAXONOMY BASED FILTERS
-  -t|-taxonomy             Restrict S\47s to tax_strings and species containing a specific string. Eg. \47-t Bacteria -t Archea\47 
+  -rt|-taxonomy            Restrict S\47s to tax_strings and species containing a specific string. Eg. \47-t Bacteria -t Archea\47 
                            will only accept bacterial and archeal sequences. 
   -ft|-forbiddentaxonomy   Restrict S\47s to tax_strings and species not containing a specific string. Eg. \47-t sapiens\47 or \47-t mammal\47 
                            will reject human and mammalian sequences respectively. 
-  -ont                     Only New Taxa. This option indexes the current Taxa in the SEED and only accepts sequences from taxa that are not 
-                           in the index or have been seen previously. It only checks the high scoring sequences first to ensure the best scoring
-			   representative is selected. Warning: your \42scores\42 file and \42ALIGN\42 should correspond to the same data - 
-			   check time-stamps. [YET TO BE IMPLEMENTED] 
+  -ont                     Only New Taxa. This option filters sequences from taxa that are already present in the SEED or have been selected 
+                           previously. It checks the high scoring sequences first to ensure the highest scoring representative is selected. 
+			   Warning: your \42scores\42 file and \42ALIGN\42 should correspond to the same data - check time-stamps. 
+			   
+			   CM BIT-SCORE BASED FILTERS
+  -s|-scorethresh <num>    Filters sequences with CM bit-score below num.          
+			   Warning: your \42scores\42 file and \42ALIGN\42 should correspond to the same data - check time-stamps. 
                            
                            PRINTING
   -i|-info                 print lots of info
