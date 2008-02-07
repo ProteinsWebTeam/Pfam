@@ -8,6 +8,7 @@ use Rfam::RfamAlign;
 use Getopt::Long;
 use Log::Log4perl qw(get_logger :levels); #Damn Ben! 
 use DBI;
+#use Tie::IxHash;  #Use to return hash keys in the order they were added
 
 my $minpid=0.6;
 my $maxpid=0.95;
@@ -46,7 +47,7 @@ my $rfport     = 3303;
 
 # Query to search for the accession and description of embl entries with the embl id
 my $rfquery = qq(
-           select t.species, t.tax_string 
+           select t.species, t.tax_string, t.ncbi_id 
            from taxonomy as t, rfamseq as r 
            where t.auto_taxid=r.taxon and rfamseq_acc=?;
    );
@@ -72,7 +73,7 @@ my %canonical_basepair = (
     WW => 1
     );
 
-my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $help);
+my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $ont, $help);
 
 &GetOptions("min|minpid=s"                 => \$minpid,
             "max|maxpid=s"                 => \$maxpid,
@@ -83,6 +84,7 @@ my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $hel
 	    "ef|extraforbidden=s@"         => \@extra_forbidden_terms,
 	    "t|taxonomy=s@"                => \@taxonomy,
 	    "ft|forbiddentaxonomy=s@"      => \@forbiddentaxonomy,
+	    "ont"                          => \$ont,
 	    "i|info!"                      => \$info,
 	    "h|help"                       => \$help
     );
@@ -162,8 +164,7 @@ for( my $i = 1; $i<$len+1; $i++ ){
 }
 
 my $alignlength = length($alignlist[0]->seq);
-my (%ALIGNhash, %ALIGNandSEEDhash
-, %ALIGNnames); #array of hashes to store nuc-counts.
+my (%ALIGNhash, %ALIGNandSEEDhash, %ALIGNnames); #array of hashes to store nuc-counts.
 
 #Read ALIGN info into hashes and test for overlaps with SEED:
 foreach my $seqobj ( @alignlist ) {
@@ -202,6 +203,24 @@ foreach my $seqobj ( @alignlist ) {
     }
 }
 
+#If using ONT option, need to fetch scores:
+my %ALIGNscores;
+#tie %ALIGNscores, "Tie::IxHash";
+if (defined($ont)){
+    open(SC, "<scores")  or $logger->logdie("FATAL: Couldn't open SEED\n [$!]"); 
+    while (my $sc = <SC>){
+	if ($sc =~ /(\S+)\s+(\S+)/){
+	    if ($ALIGNnames{$2}){
+		$ALIGNscores{$2}=$1;
+	    }
+	    else {
+		$logger->logwarn("$2 is in scores but does not appear to be in ALIGN!");
+	    }
+	}
+    }
+}
+
+my @ALIGNscoreskeys = sort { $ALIGNscores{$a} <=> $ALIGNscores{$b} } keys %ALIGNscores;
 
 # Create a connection to the database.
 my $dbh = DBI->connect(
@@ -239,12 +258,32 @@ my %timer_hash = (
     9 => 1
     );
 
-#The big loop, locate sequences in align that fulfil our criteria and print to ALIGN2SEED:
 open( OUT, ">ALIGN2SEED" ) or die ("FATAL: Couldn't open ALIGN2SEED [$!]\n $!\n");
-my (%minpid, %maxpid, %ALIGN2SEEDcandidates);
+my (%minpid, %maxpid, %ALIGN2SEEDcandidates, @names_array, %seen_taxa);
 my ($align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $taxonomyrejected, $counter) = (0, 0, 0, 0, 0, 0, 0, 0);
 
-BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
+if (defined($ont)){
+    @names_array = keys %ALIGNscores;
+
+    foreach my $n (keys %SEEDhash){
+	$n =~ m/(\S+)\.\d+\/\d+\-\d+/;
+	my $id = $1;
+	my $ncbi_id;
+	$rfsth->execute($id);
+	my $rfres = $rfsth->fetchall_arrayref;
+	foreach my $row (@$rfres){
+	    $ncbi_id  .= $row->[2];
+	}
+	$seen_taxa{$ncbi_id}=1;
+    }
+    $seen_taxa{0}=1;
+}
+else {
+    @names_array = @ALIGNhashkeys;
+}
+
+#The big loop, locate sequences in align that fulfil our criteria and print to ALIGN2SEED:
+BIGLOOP: foreach my $longseqname (@names_array){
     
     if ($info){
 	#Progress bar. Some thing to look at for the really long boring runs:
@@ -311,7 +350,7 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	    next BIGLOOP;
 	}
 	
-	my ($species, $tax_string); 
+	my ($species, $tax_string, $ncbi_id); 
 	
 	$longseqname =~ m/(\S+)\.\d+\/\d+\-\d+/;
 	my $id = $1;
@@ -321,6 +360,7 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	foreach my $row (@$rfres){
 	    $species .= $row->[0];
 	    $tax_string .= $row->[1];
+	    $ncbi_id  .= $row->[2];
 	}
 	
 	if( !defined($tax_string) ) {
@@ -330,7 +370,17 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	if( !defined($species) ) {
 	    $species = "species unavailable";
 	}
-	
+
+	if( !defined($ncbi_id) ) {
+	    $ncbi_id = 0;
+	}
+
+	if (defined($ont) && $seen_taxa{$ncbi_id}){
+	    $logger->info("REJECTED: $longseqname taxonomy has already been seen [$ncbi_id; $tax_string; $species]!\n");
+	    $taxonomyrejected++;
+	    next BIGLOOP;
+	}
+
 	if (scalar(@taxonomy)>0 || scalar(@forbiddentaxonomy)>0){
 	    my $nomatch = 1;
 	    foreach my $rft (@taxonomy){
@@ -347,7 +397,7 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	    }
 	    
 	    if ($nomatch || $nomatch2){
-		$logger->info("REJECTED: $longseqname taxonomy did not match your required/forbidden terms [$tax_string; $species]!\n");
+		$logger->info("REJECTED: $longseqname taxonomy did not match your required/forbidden terms [$ncbi_id; $tax_string; $species]!\n");
 		$taxonomyrejected++;
 		next BIGLOOP;
 	    }
@@ -440,6 +490,10 @@ BIGLOOP: foreach my $longseqname (keys %ALIGNhash){
 	my $ungapped = $ALIGNhash{$longseqname};
 	$ungapped =~ s/[,\.\-:_]//g;
 	
+	if (defined($ont)){
+	    $seen_taxa{$ncbi_id}=1;
+	}
+
 	printf OUT ">$longseqname\t%0.3f\t%0.3f\t$tax_string; $species\t$desc\n$ungapped\n", $maxpid{$longseqname}, $persequence; 
 	    if ($info){
 		printf "ACCEPTED: maxpid:%0.3f\tFcbp:%0.3f\t$longseqname\t$desc\n", $maxpid{$longseqname}, $persequence; #It'd be damned embarrassing if logger did turn out to support formatted output afterall...
@@ -705,27 +759,37 @@ ALIGN2SEED.pl - reads in Stockholm format files SEED and ALIGN from the current 
 Usage:   ALIGN2SEED.pl <options>
 
 Options:       
+                           SEQUENCE BASED FILTERS
   -min|-minpid  <num>      Minimum max-pairwise-sequence-identity between S and SEED sequences. Default is $minpid.
   -max|-maxpid  <num>      Maximum max-pairwise-sequence-identity between S and SEED sequences. Default is $maxpid.
   -n|-nucends   <num>      Number of columns from alignment ends within which S must contain a valid nucleotide character. Default is $nucends.
   -b|-bpcons    <num>      Minimum fraction of canonical basepairs (relative to SS_cons) that S must have. Default is $bpconsistency.
+
+                           EMBL-DESCRIPTION BASED FILTERS
   -r|-required  <str>      A required term for DE lines, eg. \"-required tRNA\", only accepts sequences matching this term. 
 		           For multiple terms use another instance eg. \"-required transfer\", this matches tRNA \42OR\42 
 		           transfer. (Default is the empty string)
   -f|-forbidden            Rejects S\47s with DE lines matching the forbidden terms: $forbidden_terms
   -nof|-noforbidden        Dont use the forbidden terms, default is to use them [forbidden=$forbidden]
   -ef|-extraforbidden      Add additional DE forbidden terms.
+
+                           TAXONOMY BASED FILTERS
   -t|-taxonomy             Restrict S\47s to tax_strings and species containing a specific string. Eg. \47-t Bacteria -t Archea\47 
                            will only accept bacterial and archeal sequences. 
   -ft|-forbiddentaxonomy   Restrict S\47s to tax_strings and species not containing a specific string. Eg. \47-t sapiens\47 or \47-t mammal\47 
                            will reject human and mammalian sequences respectively. 
-  
+  -ont                     Only New Taxa. This option indexes the current Taxa in the SEED and only accepts sequences from taxa that are not 
+                           in the index or have been seen previously. It only checks the high scoring sequences first to ensure the best scoring
+			   representative is selected. Warning: your \42scores\42 file and \42ALIGN\42 should correspond to the same data - 
+			   check time-stamps. [YET TO BE IMPLEMENTED] 
+                           
+                           PRINTING
   -i|-info                 print lots of info
   -noinfo                  dont print lots of info, default is to print [info=$info]
   -h or -help              show this help
 
 To Add:  -Only accept seqs from Higher score threshold? Eg. top 50%
-
+         -ont|onlynewtaxa 
         
 EOF
 }
