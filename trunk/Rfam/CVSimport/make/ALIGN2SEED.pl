@@ -279,7 +279,7 @@ if (defined($ont)){
     $seen_taxa{0}=1;
 }
 else {
-    @names_array = @ALIGNhashkeys;
+    @names_array = @ALIGNscoreskeys;
 }
 
 #The big loop, locate sequences in align that fulfil our criteria and print to ALIGN2SEED:
