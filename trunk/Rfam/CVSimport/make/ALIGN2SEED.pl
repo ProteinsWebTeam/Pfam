@@ -85,7 +85,7 @@ my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $ont
 	    "rt|taxonomy=s@"               => \@taxonomy,
 	    "ft|forbiddentaxonomy=s@"      => \@forbiddentaxonomy,
 	    "ont"                          => \$ont,
-	    "s|scorethresh"                => \$scorethreshold,
+	    "s|scorethresh=s"              => \$scorethreshold,
 	    "i|info!"                      => \$info,
 	    "h|help"                       => \$help
     );
@@ -264,7 +264,7 @@ my (%minpid, %maxpid, %ALIGN2SEEDcandidates, @names_array, %seen_taxa);
 my ($scorerejected, $align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $taxonomyrejected, $counter) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
 
 if (defined($ont)){
-    @names_array = keys %ALIGNscores;
+    @names_array = @ALIGNscoreskeys;
 
     foreach my $n (keys %SEEDhash){
 	$n =~ m/(\S+)\.\d+\/\d+\-\d+/;
@@ -280,7 +280,7 @@ if (defined($ont)){
     $seen_taxa{0}=1;
 }
 else {
-    @names_array = @ALIGNscoreskeys;
+    @names_array = keys %ALIGNnames;
 }
 
 #The big loop, locate sequences in align that fulfil our criteria and print to ALIGN2SEED:
@@ -308,7 +308,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	#Check that the sequence ends are OK:
 	
 	if (defined($scorethreshold)){
-	    if ($ALIGNscores{$longseqname} && $scorethreshold<$ALIGNscores{$longseqname}){
+	    if ($ALIGNscores{$longseqname} && $ALIGNscores{$longseqname} < $scorethreshold){
 		$logger->info("REJECTED: $longseqname score is too low!\t($ALIGNscores{$longseqname})\n");
 		$scorerejected++;
 		next BIGLOOP;
