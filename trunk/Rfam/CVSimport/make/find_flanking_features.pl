@@ -233,7 +233,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
       <colour2>
         <colour><hex hexcode=\"e83737\"/></colour>
       </colour2>
-      <bigShape leftStyle=\"straight\" rightStyle=\"jagged\"/>
+      <bigShape leftStyle=\"straight\" rightStyle=\"arrow\"/>
     </region>
 ";
 
@@ -345,9 +345,9 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 #print "sstart=$sstart, send=$send\n";
 #print "xmlfeaturestart=$xmlfeaturestart, xmlfeatureend=$xmlfeatureend\n\n";
                
-               my ($leftStyle,$rightStyle) = ("straight","jagged");
+               my ($leftStyle,$rightStyle) = ("straight","arrow");
                if ($sstrand*$strand<0 && (0<$xmlfeatureend && $xmlfeatureend<$totallength) ){
-                              ($leftStyle,$rightStyle) = ("jagged","straight");
+                              ($leftStyle,$rightStyle) = ("arrow","straight");
                }
 
                 $xmlfeature .= "    <region start=\"$xmlfeaturestart\" end=\"$xmlfeatureend\" label=\"$featurename $featuredesc\">
@@ -411,9 +411,22 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     $name =~ m/^(\S+)\.\d+/;
     my $shortname = $1;
     $pngfilename =~ s/domain_gfx\///;
-    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n";
     
-    
+#    $htmlbody .=  "<img src=" . $pngfilename . " usemap=\#" . $imageset->Bio::Pfam::Drawing::Image::Image::image_name . " border=0>";
+#    $htmlbody .=  "<map name =".$imageset->Bio::Pfam::Drawing::Image::Image::image_name.">";
+#    $htmlbody .=  $imageset->Bio::Pfam::Drawing::Image::Image::image_map;
+#    $htmlbody .=  "</map>\n\n\n";
+
+
+
+#print "<img src=".$image->file_location." usemap=\#".$image->image_name." border=0>"
+#print "<map name =".$image->image_name.">";
+#print $image->image_map;
+#print "</map>    
+
+
+
 }
 $dbh->disconnect;
 
@@ -679,12 +692,12 @@ sreformat --pfam stockholm SEED | grep \"/\" | grep -v \"//\" | awk \'{print \"f
 find_flanking_features.pl -makehtml
 
 TO ADD:
-A schema for sorting the graphics such that nearest neighbours are most similar.
 
 Make  graphics prettier, arrows instead of lollipops to indicate strand, show sequence start and ends on the backbone (addOffSet).
-Sort graphics on out.list...
 
 Use \"image_map\" so that nice pop-up windows can bee added. 
+
+Could switch to one of biograph, Zmap, gff2ps, gbrowse, ...
 
 EOF
 }
