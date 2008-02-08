@@ -872,6 +872,7 @@ sub _draw_regions{
 		'straight' => 2,
 		'curved' => 13,
 		'curvedsmall' => 3,
+		'arrowsmall' => 5,
 		'arrow' => 13,
 		'jaggedsmall' => 3,
 		#These deal with heights
@@ -2042,6 +2043,59 @@ sub arrow {
   return ($im_border, $im_border);
 }
 
+sub arrowsmall {
+  my($self, $region, $colour1, $colour2, $straight, $reverse) = @_;
+  my $image_height = $self->_max_domain_height;
+  my $image_width = 10;
+  
+  my $im_border = new GD::Image($image_width,$image_height);
+  
+  my $bg_colour = $self->bg_colour;
+  my $white = $im_border->colorAllocate($$bg_colour{R},$$bg_colour{G},$$bg_colour{B});
+  $im_border->transparent($white);
+  $im_border->interlaced('true');
+
+  my $c1 = $im_border->colorAllocate($$colour1{R}, $$colour1{G}, $$colour1{B});
+  my $c2 = $im_border->colorAllocate($$colour2{R}, $$colour2{G}, $$colour2{B});
+  
+  #allow us to colour the curved domain according to the image
+  #Outer edge
+  my $poly1 = new GD::Polygon;
+  $poly1->addPt(($image_width/2)-1,0);
+  $poly1->addPt(($image_width/2)+1,0);
+  $poly1->addPt($image_width,($image_height/2)-1);
+  $poly1->addPt($image_width,($image_height/2)+1);
+  $poly1->addPt(($image_width/2)-1, $image_height);
+  $poly1->addPt(($image_width/2)+1, $image_height);
+  $poly1->addPt(0, $image_height/2-1);
+  $poly1->addPt(0, $image_height/2+1);
+  # draw the polygon, filling it with a colour
+  $im_border->filledPolygon($poly1, $c1);
+  my $poly2 = new GD::Polygon;
+  $poly2->addPt(($image_width/2)-1,1);
+  $poly2->addPt(($image_width/2)+1,1);
+  $poly2->addPt($image_width-1,$image_height/2-1);
+  $poly2->addPt($image_width-1,$image_height/2+1);
+  $poly2->addPt(($image_width/2)-1, $image_height-1);
+  $poly2->addPt(($image_width/2)+1, $image_height-1);
+  $poly2->addPt(2, $image_height/2-1);
+  $poly2->addPt(2, $image_height/2+1);
+  $im_border->setTile($straight);
+  $im_border->filledPolygon($poly2, gdTiled);
+  my $poly3 = new GD::Polygon;
+  $poly3->addPt($image_width/2-1,2);
+  $poly3->addPt($image_width/2+1,2);
+  $poly3->addPt($image_width-2,$image_height/2-1);
+  $poly3->addPt($image_width-2,$image_height/2+1);
+  $poly3->addPt($image_width/2-1, $image_height-2);
+  $poly3->addPt($image_width/2+1, $image_height-2);
+  $poly3->addPt(4, $image_height/2-1);
+  $poly3->addPt(4, $image_height/2+1);
+  $im_border->setTile($straight);
+  $im_border->filledPolygon($poly3, gdTiled);
+  
+  return ($im_border, $im_border);
+}
 
 sub addOffSet{
   my ($self,$offSet) = @_;
