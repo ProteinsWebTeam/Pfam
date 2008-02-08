@@ -221,7 +221,7 @@ if (defined($ont) || defined($scorethreshold)){
     }
 }
 
-my @ALIGNscoreskeys = sort { $ALIGNscores{$a} <=> $ALIGNscores{$b} } keys %ALIGNscores;
+my @ALIGNscoreskeys = sort { $ALIGNscores{$b} <=> $ALIGNscores{$a} } keys %ALIGNscores;
 
 # Create a connection to the database.
 my $dbh = DBI->connect(
