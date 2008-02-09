@@ -48,7 +48,8 @@ if ($makehtml){
 
 #Initialise @name, @start, @end, @strand
 my (@type,@score,$threshold, @desc);
-my $rfamdesc = "Rfam";
+my $rfamid = "Rfam";
+my $rfamde = "";
 if (defined($outlist)){
     if (-e "out.list"){
 	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
@@ -63,7 +64,12 @@ if (defined($outlist)){
     while( <DESC> ) {
 	/^ID/ and do {
 	    substr($_,0,3) = "";
-	    $rfamdesc = $_;
+	    $rfamid = $_;
+	};
+
+	/^DE/ and do {
+	    substr($_,0,3) = "";
+	    $rfamde = $_;
 	};
     }
     close DESC;
@@ -226,7 +232,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
        scale_x=\"$xscale\" 
        scale_y=\"1.0\">
   <sequence length=\"$totallength\" display_data=\"test all drawing features\" name=\"TestSeq\">
-    <region start=\"$xmlrfamstart\" end=\"$xmlrfamend\" label=\"$rfamdesc\">
+    <region start=\"$xmlrfamstart\" end=\"$xmlrfamend\" label=\"$rfamid\">
       <colour1>
         <colour><hex hexcode=\"c00f0f\"/></colour>
       </colour1>
@@ -389,6 +395,10 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
       print_image_ppg($im,$pngfilename);
     }
     
+    if (!defined($threshold)){
+       $threshold=0;
+    }
+    
     my ($markupstart,$markupend) = ("", "");
     if ($type =~ /ALIGN/ && $score>$threshold){
 	$markupstart = "<font color=\"\#0000A0\">";
@@ -412,6 +422,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     my $shortname = $1;
     $pngfilename =~ s/domain_gfx\///;
     $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n";
+
     
 #    $htmlbody .=  "<img src=" . $pngfilename . " usemap=\#" . $imageset->Bio::Pfam::Drawing::Image::Image::image_name . " border=0>";
 #    $htmlbody .=  "<map name =".$imageset->Bio::Pfam::Drawing::Image::Image::image_name.">";
@@ -423,7 +434,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 #print "<img src=".$image->file_location." usemap=\#".$image->image_name." border=0>"
 #print "<map name =".$image->image_name.">";
 #print $image->image_map;
-#print "</map>    
+#print "</map>\n";    
 
 
 
@@ -483,10 +494,10 @@ sub make_html_ordered {
 <html>
 <head>
     
-<title>Rfam: synteny map</title>
+<title>Rfam synteny map: $rfamid $rfamde</title>
 <body>
 
-<h1>Rfam: synteny map</h1>\n\n\n";
+<h1>Rfam synteny map: $rfamid $rfamde</h1>\n\n\n";
     
     my $htmltail = "
 <!-- ====================================================================== -->
