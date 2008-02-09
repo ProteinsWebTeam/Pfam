@@ -494,10 +494,11 @@ sub make_html_ordered {
 <html>
 <head>
     
-<title>Rfam synteny map: $rfamid $rfamde</title>
+<title>Rfam synteny map: $rfamid</title>
 <body>
 
-<h1>Rfam synteny map: $rfamid $rfamde</h1>\n\n\n";
+<h1>Rfam synteny map: $rfamid</h1>
+<h2>$rfamde</h2>\n\n\n";
     
     my $htmltail = "
 <!-- ====================================================================== -->
