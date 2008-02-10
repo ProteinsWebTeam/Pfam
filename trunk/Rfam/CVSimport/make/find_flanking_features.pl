@@ -21,7 +21,7 @@ my $database = "embl_93";
 my $host     = "cbi3";
 my $user     = "genero";
 my $dist     = 10000;
-my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$outlist,$makehtml,$help);
+my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$makehtml,$outlist,$help);
 my $printthreshold=0;
 &GetOptions("a|s|start|begin=i@"  => \@start,
             "e|b|end=i@"          => \@end,
@@ -290,7 +290,8 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 
     my $xmlfeature = "";
     my ($cdscolour1, $cdscolour2) = ("hex hexcode=\"339999\"","RGB R=\"51\" G=\"204\" B=\"204\"");
-    my ($rnacolour1, $rnacolour2) = ("hex hexcode=\"666666\"","hex hexcode=\"9966cc\"");
+#    my ($rnacolour1, $rnacolour2) = ("hex hexcode=\"666666\"","hex hexcode=\"9966cc\"");
+    my ($rnacolour1, $rnacolour2) = ("hex hexcode=\"9900ff\"","hex hexcode=\"9900ff\"");
 
     my $featurecount = 0;
     my @features0 = split(/\n/, $features0);
@@ -313,27 +314,43 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 	    $sstrand = -1;
         }
     
-        my ($colour1, $colour2) = ("hex hexcode=\"9999ff\"","hex hexcode=\"99ccff\"");
-        my ($featurename,$featuredesc) = ("","");
-        if ($features0[$i] =~ m/^\S+\t(\S+)\t\S+\t\S+\t\S+\t(\S+)/){
-            #print "features0[$i] $features0[$i]\n";
-            $featurename = $1;
-            $featuredesc = $2;
-            $featurename =~ s/EMBL\-//g;
-            if ($featurename =~ m/CDS/){
-                    ($colour1, $colour2) = ($cdscolour1, $cdscolour2);
-            }
-            elsif ($featurename =~ m/RNA/i || $featurename =~ m/RFAM/i){
-                    ($colour1, $colour2) = ($rnacolour1, $rnacolour2);
-            }
-        }
-        
+
         if (defined($start) && defined($end) && defined($sstart) && defined($send)) {
             
             my ($xmlfeaturestart,$xmlfeatureend)=seq2xmlblock($sstart, $send, $delta5, $delta3, $strand, $sequencelength);
             
 	    if ( (0<$xmlfeaturestart && $xmlfeaturestart<$totallength) || (0<$xmlfeatureend && $xmlfeatureend<$totallength)  ) {
 	        $featurecount++;
+
+
+        my ($colour1, $colour2) = ("hex hexcode=\"9999ff\"","hex hexcode=\"99ccff\"");
+        my ($featurename,$featuredesc) = ("","");
+        if ($features0[$i] =~ m/CDS/ || $features0[$i] =~ m/RNA/ || $features0[$i] =~ m/RFAM/i){
+                    
+                    my @splitfeatures = split(/\t/,$features0[$i]);
+                    $featurename = $splitfeatures[1];
+                    $featurename =~ s/EMBL\-//g;
+                    $featurename =~ s/\ //g;
+
+                    if (length($splitfeatures[5])>2){
+                         $featuredesc = $splitfeatures[5];
+                    }
+                    else {
+                         my @tmp = ($splitfeatures[3], $splitfeatures[2]);
+                         $featuredesc = join(":",@tmp);
+                    }
+#                    my $tmp = $features0[$i];
+#                    $tmp =~ s/\t/::/g;
+#                    print "features0=[$features0[$i]] featuredes=[$featuredesc] tmp=[$tmp]\n";
+            
+                    if ($features0[$i] =~ m/CDS/){
+                            ($colour1, $colour2) = ($cdscolour1, $cdscolour2);
+                    }
+                    elsif ($features0[$i] =~ m/RNA/i || $features0[$i] =~ m/RFAM/){
+                            ($colour1, $colour2) = ($rnacolour1, $rnacolour2);
+                    }
+                }
+
                 
                 my $ol = overlap($start, $end, $sstart, $send);
                 my $sdist = 0;
@@ -420,7 +437,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     
     $name =~ m/^(\S+)\.\d+/;
     my $shortname = $1;
-    $pngfilename =~ s/domain_gfx\///;
+#    $pngfilename =~ s/domain_gfx\///;
     $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n";
 
     
@@ -527,7 +544,8 @@ sub make_html_ordered {
 
 </html>\n";
 
-    open(OUTFILE, ">domain_gfx/index_auto.html") or warn "Cannot print to domain_gfx/index_auto.html: [$!]\n";
+#    open(OUTFILE, ">domain_gfx/index_auto.html") or warn "Cannot print to domain_gfx/index_auto.html: [$!]\n";
+    open(OUTFILE, ">index_auto.html") or warn "Cannot print to index_auto.html: [$!]\n";
     print OUTFILE $htmlhead . $htmlbody . $htmltail;    
     close(OUTFILE);
 
@@ -597,8 +615,8 @@ sub make_html {
 	$pf =~ m/^domain_gfx\/(\S+)\.(\d+)\_(\d+)\-(\d+)\.png/;
 	my ($name, $version, $start, $end) = ($1, $2, $3, $4);
 	my ($markupstart,$markupend) = ("", "");
-	my @shortpf = split(/\//, $pf);
-	my $shortpf = $shortpf[1];
+#	my @shortpf = split(/\//, $pf);
+#	my $shortpf = $shortpf[1];
 	
 	if (defined($markupstarts{$name}) && defined($markupends{$name}) ){
 	    for (my $i=0; $i<scalar(@{$markupstarts{$name}}); $i++){
@@ -609,11 +627,13 @@ sub make_html {
 	    }
 	}
 	
-	$htmlbody .= "$markupstart<small><b>$name\.$version\/$start\-$end</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$shortpf\"\n     usemap=\"#$name\.$version\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+#	$htmlbody .= "$markupstart<small><b>$name\.$version\/$start\-$end</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"$shortpf\"\n     usemap=\"#$name\.$version\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
+	$htmlbody .= "$markupstart<small><b>$name\.$version\/$start\-$end</b></small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$name]\"><img src=\"domain_gfx/$pf\"\n     usemap=\"#$name\.$version\/$start\-$end\"\n     alt=\"\" /></a><br />\n\n\n";
 	
     }
     
-    open(OUTFILE, ">domain_gfx/index_auto.html") or warn "Cannot print to domain_gfx/index_auto.html: [$!]\n";
+#    open(OUTFILE, ">domain_gfx/index_auto.html") or warn "Cannot print to domain_gfx/index_auto.html: [$!]\n";
+    open(OUTFILE, ">index_auto.html") or warn "Cannot print to index_auto.html: [$!]\n";
     print OUTFILE $htmlhead . $htmlbody . $htmltail;    
     close(OUTFILE);
 }
@@ -667,11 +687,8 @@ sub help {
 
 find_flanking_features.pl - Connects to the mole database, fetches regions from the EMBL file within 
 \"dist\" nucleotides either side of the input region. Returns the results in a tabular format to STDOUT 
-and graphical format to domain_gfx/index_auto.html 
+and graphical format to index_auto.html 
                 
-One can markup fonts in index_auto.html adding either png filenames or name/start-end strings to the file 
-\"domain_gfx/markup\", NB. one entry per line. 
-
 Usage:   find_flanking_features.pl <options>
 
 Options:       
@@ -685,9 +702,9 @@ Options:
   -d|-dist|-distance    <num>  Distance between coordinates and 
                                features for printing (default=$dist)
   -makehtml                    Generates unordered html for all previously generated graphics.
-  -o|-outlist                  Read in sequences and coords from out.list
+  -o|-outlist                  Read in sequences and coords from out.list [DEFAULT]
   -t|-thresh|-threshold <num>  Only used in conjunction with the -o option, only produces graphics for 
-                               regions with score greater than <num>.
+                               regions with score greater than <num> [DEFAULT: 0]
 
 EXAMPLES: 
 On out.list (from rfmake.pl -l):
