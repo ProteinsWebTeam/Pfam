@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.18 2007-12-12 16:34:21 jt6 Exp $
+# $Id: summary.tt,v 1.19 2008-02-18 16:07:43 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -18,6 +18,11 @@ requirements.cssIe.push( "clans_ie.css" );
 requirements.js.push( "clans.js" );
 
 #-------------------------------------------------------------------------------
+
+# process the template that defines the blocks that do various things with
+# database links. We use it later to convert IDs in the Pfam comment and to
+# build tables of database links 
+PROCESS components/links.tt;
 
 membershipList = BLOCK;
   total = 0;
@@ -79,9 +84,8 @@ END;
 
     [% membershipList %]
 
-    <div class="cleaner"></div>
-
-    [% PROCESS components/links.tt %]
+    [% # add the tables showing internal and external database links 
+    PROCESS buildLinksTable; -%]
 
   </div>
 </div>
@@ -91,7 +95,7 @@ END;
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.si.uri    = "[% c.uri_for( "/family/structures" ) %]";
+  loadOptions.si.uri    = "[% c.uri_for( '/family/structures' ) %]";
   loadOptions.si.params = { acc: "[% pfam.pfamA_acc %]" };
   // ]]>
 </script>
