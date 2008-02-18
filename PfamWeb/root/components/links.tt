@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.19 2007-11-22 16:50:51 jt6 Exp $
+# $Id: links.tt,v 1.20 2008-02-18 16:07:19 jt6 Exp $
 
 USE String;
 
@@ -304,7 +304,7 @@ BLOCK internalLinks;
   # any link lines generated. If there were, we can go ahead and build the
   # HTML table and drop it into the output. If not, we don't have any output.
   IF internalLinksContent -%]
-    <h2>Internal database links</h2>
+    <h2 class="padded">Internal database links</h2>
     <table class="details links" summary="Internal database links">
       <tbody>
         [% internalLinksContent %]
@@ -410,7 +410,7 @@ BLOCK externalLinks;
   END; # of "externalLinksContent" block
 
   IF externalLinksContent -%]
-    <h2>External database links</h2>
+    <h2 class="padded">External database links</h2>
     <table class="details links" summary="External database links">
       <tbody>
         [% externalLinksContent %]
