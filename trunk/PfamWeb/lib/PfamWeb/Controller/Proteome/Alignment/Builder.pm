@@ -2,7 +2,7 @@
 # Builder.pm
 # jt6 20070823 WTSI
 #
-# $Id: Builder.pm,v 1.2 2007-12-10 14:43:30 jt6 Exp $
+# $Id: Builder.pm,v 1.3 2008-02-18 13:47:31 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.2 2007-12-10 14:43:30 jt6 Exp $
+$Id: Builder.pm,v 1.3 2008-02-18 13:47:31 jt6 Exp $
 
 =cut
 
@@ -206,7 +206,8 @@ sub queueAlignment : Private {
                                          ->as_string,
                       doneURI       => $c->uri_for( '/proteome/alignment/builder/view',
                                                     { pfamAcc => $c->stash->{pfam}->pfamA_acc,
-                                                      taxId   => $c->stash->{taxId} } )
+                                                      taxId   => $c->stash->{taxId},
+                                                      jobId => $jobId } )
                                          ->as_string,
                       estimatedTime => $estimatedTime,
                       interval      => $this->{pollingInterval},
