@@ -5,7 +5,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.22 2007-12-10 14:49:52 jt6 Exp $
+# $Id: summary.tt,v 1.23 2008-02-18 11:43:59 jt6 Exp $
 
 USE String;
 
@@ -70,7 +70,7 @@ oe = 0;
             </span>
             <br />
             <a href="[% c.uri_for( "/proteome", { taxId = pfamseq.ncbi_code } ) %]">
-              View</a> Pfam genome data.
+              View</a> Pfam proteome data.
             [% ELSE;  
               pfamseq.species;
             END -%]
