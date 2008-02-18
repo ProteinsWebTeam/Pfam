@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.66 2008-01-14 17:04:37 jt6 Exp $
+   $Id: pfam.css,v 1.67 2008-02-18 16:03:17 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -751,6 +751,13 @@ span.listItem {
   float: left;
   padding-left: 0.8em;
   width: 12em;
+}
+
+/* a padded heading, which we use after the list of items... */
+h2.padded {
+  margin: 0;
+  padding: 1em 0;
+  clear: left;
 }
 
 /* ---------------------------------------- */
