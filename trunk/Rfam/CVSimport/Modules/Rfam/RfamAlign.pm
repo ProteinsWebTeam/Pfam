@@ -65,6 +65,14 @@ sub consensus {
     return $self -> { 'CONSENSUS' };
 }
 
+sub mis {
+    my $self = shift;
+    if( not $self -> { 'CONSENSUS' } ) {
+	$self -> { 'CONSENSUS' } = $self -> _compute_mis();
+    }
+    return $self -> { 'CONSENSUS' };
+}
+
 sub ss_cons {
     my $self = shift;
     $self -> { 'SS_CONS' } = shift if @_;
@@ -1330,6 +1338,233 @@ sub _compute_consensus {
 	$str .= $best;
     }
     return $str;
+}
+
+# Computes the most-informative-sequence, Freyhult, Moulton & Gardner (2005)
+sub _compute_mis {
+    my $self = shift;
+    
+    my $tol = 0.05;
+    my $gapthresh = 0.5;
+    my %nucs2IUPAC = (
+	A => 'A',
+	C => 'C',
+	G => 'G',
+	U => 'U',
+	AG => 'R',
+	CU => 'Y',
+	CG => 'S',
+	AU => 'W',
+	AC => 'M',
+	GU => 'K',
+	CGU => 'B',
+	AGU => 'D',
+	ACU => 'H',
+	ACG => 'V',
+	ACGU => 'N'
+	);
+
+    my %IUPAC2counts = (
+	A => {
+	    A => 1,
+	    C => 0,
+	    G => 0,
+	    U => 0,
+	},
+	C => {
+	    A => 0,
+	    C => 1,
+	    G => 0,
+	    U => 0,
+	},
+	G => {
+	    A => 0,
+	    C => 0,
+	    G => 1,
+	    U => 0,
+	},
+	U => {
+	    A => 0,
+	    C => 0,
+	    G => 0,
+	    U => 1,
+	},
+	T => {
+	    A => 0,
+	    C => 0,
+	    G => 0,
+	    U => 1,
+	},
+	R => {
+	    A => 0.5,
+	    C => 0,
+	    G => 0.5,
+	    U => 0,
+	},
+	Y => {
+	    A => 0,
+	    C => 0.5,
+	    G => 0,
+	    U => 0.5,
+	},
+	S => {
+	    A => 0,
+	    C => 0.5,
+	    G => 0.5,
+	    U => 0,
+	},
+	W => {
+	    A => 0.5,
+	    C => 0,
+	    G => 0,
+	    U => 0.5,
+	},
+	M => {
+	    A => 0.5,
+	    C => 0.5,
+	    G => 0,
+	    U => 0,
+	},
+	K => {
+	    A => 0,
+	    C => 0,
+	    G => 0.5,
+	    U => 0.5,
+	},
+	B => {
+	    A => 0,
+	    C => 0.3,
+	    G => 0.3,
+	    U => 0.3,
+	},
+	D => {
+	    A => 0.3,
+	    C => 0,
+	    G => 0.3,
+	    U => 0.3,
+	},
+	H => {
+	    A => 0.3,
+	    C => 0.3,
+	    G => 0,
+	    U => 0.3,
+	},
+	V => {
+	    A => 0.3,
+	    C => 0.3,
+	    G => 0.3,
+	    U => 0,
+	},
+	N => {
+	    A => 0.25,
+	    C => 0.25,
+	    G => 0.25,
+	    U => 0.25,
+	},
+	);
+
+    my %mononuccounts = (
+	A => 0,
+	C => 0,
+	G => 0,
+	U => 0
+	);
+    
+    my (@columns, @nuccolumns, $totalnucs, $totalseqs);
+    #my %background; #hold background frequencies of each nucleotide
+    
+    foreach my $seq ( $self -> each_seq() ) {
+	my @ary = split( //, $seq->seq );
+	for( my $i=0; $i<@ary; $i++ ) {
+	    #$columns[$i]->{$ary[$i]} ++;
+	    my $ary = uc($ary[$i]);
+	    if ( defined($IUPAC2counts{$ary}) ){
+		foreach my $nuc (keys %{ $IUPAC2counts{$ary} }){
+		    $mononuccounts{$nuc} += $IUPAC2counts{$ary}{$nuc};
+		    $columns[$i] -> {$nuc} += $IUPAC2counts{$ary}{$nuc};
+		}
+		$totalnucs++;
+		$nuccolumns[$i]++;
+	    }
+	}
+	$totalseqs++;
+    }
+    
+    foreach my $n (keys %mononuccounts){
+	#my $ov = $mononuccounts{$n};
+	$mononuccounts{$n} = $mononuccounts{$n}/$totalnucs;
+	#printf "$n\t%0.3f\t$ov\n", $mononuccounts{$n};
+    }
+    
+    my $str;
+    my $i=0;
+    foreach my $col ( @columns ) {
+	my @sym;
+	if (defined($nuccolumns[$i])){
+	    $nuccolumns[$i] = $nuccolumns[$i]/$totalseqs;
+	}
+	else {
+	    $nuccolumns[$i]=0;
+	}
+
+	foreach my $sym ( keys %{$col} ) {
+	    if( ($tol * $totalseqs + $col->{$sym})/$totalseqs > $mononuccounts{$sym} ) {
+		push(@sym, $sym);
+	    }
+	}
+	my $mis = "-";
+	if (@sym){
+	    my @ssym = sort {$a cmp $b} @sym;
+	    my $ssym = join('',@ssym);
+	    $mis =  $nucs2IUPAC{$ssym};
+	    #$gapthresh
+	}
+	
+	if ($nuccolumns[$i]<=$gapthresh){
+	    $mis = lc($mis);
+	}
+	
+	$str .= $mis;
+	$i++;
+    }
+    return $str;
+}
+
+######################################################################
+#returns true if input character is a nucleotide (IUPAC codes):
+sub is_nucleotide {
+    my $a = shift;
+    return ($a =~ m/[ACGUTRYWSMKBDHVN]/i) ? 1 : 0; 
+}
+
+#Global variable for the "is_complementary" function - saves reinitialising each time:
+my %canonical_basepair = (
+    AU => 1,
+    AT => 1,
+    UA => 1,
+    TA => 1,
+    CG => 1,
+    GC => 1,
+    UG => 1,
+    GU => 1,
+    TG => 1,
+    GT => 1,
+    RY => 1,
+    YR => 1,
+    MK => 1,
+    KM => 1,
+    SS => 1,
+    WW => 1
+    );
+
+######################################################################
+#returns true if the two input characters can form a canonical/watson-crick basepair
+sub is_complementary {
+    my $a = shift;
+    my $b = shift;
+    my $ab = uc($a . $b);
+    
+    return (defined($canonical_basepair{$ab} )) ? 1 : 0;
 }
 
 
