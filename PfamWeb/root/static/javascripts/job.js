@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.10 2008-02-04 17:14:29 jt6 Exp $
+// $Id: job.js,v 1.11 2008-02-22 11:39:18 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -119,8 +119,8 @@ Job.prototype = {
     //----------------------------------------
 
     // keep track of how many jobs are running concurrently
-    Job.LIST[ this.jobId ] = 1;
-    Job.RUNNING[ this.jobId ] = 1;
+    Job.LIST.set( this.jobId, 1 );
+    Job.RUNNING.set( this.jobId, 1 );
     
     //----------------------------------------
 
