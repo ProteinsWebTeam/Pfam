@@ -1555,7 +1555,7 @@ sub compute_pos_entropy {
     my $self = shift;
     my @entropy;
     
-    my $pseudocount = 0.01;
+    my $pseudocount = 0.0;
     my %mononuccounts = (
 	A => 0,
 	C => 0,
