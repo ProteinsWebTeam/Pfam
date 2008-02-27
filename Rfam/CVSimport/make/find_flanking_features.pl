@@ -20,7 +20,7 @@ use Digest::MD5 qw(md5_hex);
 my $database = "embl_93";
 my $host     = "cbi3";
 my $user     = "genero";
-my $dist     = 10000;
+my $dist     = 5000;
 my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$makehtml,$outlist,$help);
 my $printthreshold=0;
 my $outlist=1; #This forces this usage now!!! No such thing as a non-output run...
