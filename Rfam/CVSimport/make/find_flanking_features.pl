@@ -23,6 +23,7 @@ my $user     = "genero";
 my $dist     = 10000;
 my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$makehtml,$outlist,$help);
 my $printthreshold=0;
+my $outlist=1; #This forces this usage now!!! No such thing as a non-output run...
 &GetOptions("a|s|start|begin=i@"  => \@start,
             "e|b|end=i@"          => \@end,
             "i|n|id|embl|name=s@" => \@name,
@@ -77,7 +78,7 @@ if (defined($outlist)){
     (@name,@start,@end,@strand,@printname) = ((),(),(),(),(),());
     while (my $line = <OUTLIST>){
 	if ($line =~ m/^(\S+)\t(\S+)\t(\S+)\t(\d+)\t(\d+)\s+(.+)/){
-	    if ($printthreshold<$1){
+	    if ($printthreshold <= $1){
 		push(@score, $1);
 		push(@type, $2);
 		my ($oname, $ostart, $oend, $odesc) = ($3, $4, $5, $6);
@@ -330,7 +331,6 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
                     my @splitfeatures = split(/\t/,$features0[$i]);
                     $featurename = $splitfeatures[1];
                     $featurename =~ s/EMBL\-//g;
-                    $featurename =~ s/\ //g;
 
                     if (length($splitfeatures[5])>2){
                          $featuredesc = $splitfeatures[5];
@@ -339,9 +339,6 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
                          my @tmp = ($splitfeatures[3], $splitfeatures[2]);
                          $featuredesc = join(":",@tmp);
                     }
-#                    my $tmp = $features0[$i];
-#                    $tmp =~ s/\t/::/g;
-#                    print "features0=[$features0[$i]] featuredes=[$featuredesc] tmp=[$tmp]\n";
             
                     if ($features0[$i] =~ m/CDS/){
                             ($colour1, $colour2) = ($cdscolour1, $cdscolour2);
@@ -545,7 +542,8 @@ sub make_html_ordered {
 </html>\n";
 
 #    open(OUTFILE, ">domain_gfx/index_auto.html") or warn "Cannot print to domain_gfx/index_auto.html: [$!]\n";
-    open(OUTFILE, ">index_auto.html") or warn "Cannot print to index_auto.html: [$!]\n";
+#    open(OUTFILE, ">index_auto.html") or warn "Cannot print to index_auto.html: [$!]\n";
+    open(OUTFILE, ">domain_gfx.html") or warn "Cannot print to domain_gfx.html: [$!]\n";
     print OUTFILE $htmlhead . $htmlbody . $htmltail;    
     close(OUTFILE);
 
@@ -633,7 +631,8 @@ sub make_html {
     }
     
 #    open(OUTFILE, ">domain_gfx/index_auto.html") or warn "Cannot print to domain_gfx/index_auto.html: [$!]\n";
-    open(OUTFILE, ">index_auto.html") or warn "Cannot print to index_auto.html: [$!]\n";
+#    open(OUTFILE, ">index_auto.html") or warn "Cannot print to index_auto.html: [$!]\n";
+    open(OUTFILE, ">domain_gfx.html") or warn "Cannot print to domain_gfx.html: [$!]\n";
     print OUTFILE $htmlhead . $htmlbody . $htmltail;    
     close(OUTFILE);
 }
@@ -685,10 +684,10 @@ sub help {
     
     print STDERR <<EOF;
 
-find_flanking_features.pl - Connects to the mole database, fetches regions from the EMBL file within 
+find_flanking_features.pl - Connects to the mole database, fetches features from the EMBL file within 
 \"dist\" nucleotides either side of the input region. Returns the results in a tabular format to STDOUT 
-and graphical format to index_auto.html 
-                
+and graphical format to domain_gfx.html (graphics are all written to domain_gfx/).
+
 Usage:   find_flanking_features.pl <options>
 
 Options:       
@@ -710,19 +709,9 @@ EXAMPLES:
 On out.list (from rfmake.pl -l):
 find_flanking_features.pl -o 
 
-On ALIGN2SEED:
-grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
-grep \">\" ALIGN2SEED | tr -d \">\" | awk \'{print \$1}\' > domain_gfx/markup
-find_flanking_features.pl -makehtml
-
-On SEED:
-sreformat --pfam stockholm SEED | grep \"/\" | grep -v \"//\" | awk \'{print \"find_flanking_features.pl -d 5000 -n \"\$1}\' | sh
-\#Should be followed by running:
-find_flanking_features.pl -makehtml
-
 TO ADD:
 
-Make  graphics prettier, arrows instead of lollipops to indicate strand, show sequence start and ends on the backbone (addOffSet).
+Make graphics prettier, show sequence start and ends on the backbone (addOffSet).
 
 Use \"image_map\" so that nice pop-up windows can bee added. 
 
