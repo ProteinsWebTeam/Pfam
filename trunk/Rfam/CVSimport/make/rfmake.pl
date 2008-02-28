@@ -328,6 +328,10 @@ if( $list ) {
     }
     #Run R script, making the out.list.pdf figure:
     system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
+    system("convert -density 600 -geometry 50% out.list.pdf out.list.png");
+    system("convert -density 600 -geometry 50% out.list.trunc.pdf out.list.trunc.png");
+    
+#    system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~/scripts/make/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
     close( OUTSEED);
     close( OUTALIGN);
     close( OUTFAM);
