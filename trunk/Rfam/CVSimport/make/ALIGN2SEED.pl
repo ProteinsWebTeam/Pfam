@@ -85,7 +85,7 @@ my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $ont
 	    "rt|taxonomy=s@"               => \@taxonomy,
 	    "ft|forbiddentaxonomy=s@"      => \@forbiddentaxonomy,
 	    "ont"                          => \$ont,
-	    "s|scorethresh=s"              => \$scorethreshold,
+	    "t|thresh|threshold|s|scorethresh=s"              => \$scorethreshold,
 	    "i|info!"                      => \$info,
 	    "h|help"                       => \$help
     );
@@ -799,7 +799,8 @@ Options:
 			   Warning: your \42scores\42 file and \42ALIGN\42 should correspond to the same data - check time-stamps. 
 			   
 			   CM BIT-SCORE BASED FILTERS
-  -s|-scorethresh <num>    Filters sequences with CM bit-score below num.          
+  -t|-thresh|-threshold|-s|-scorethresh 
+                           <num>    Filters sequences with CM bit-score below num.          
 			   Warning: your \42scores\42 file and \42ALIGN\42 should correspond to the same data - check time-stamps. 
                            
                            PRINTING
