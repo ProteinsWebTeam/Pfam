@@ -435,7 +435,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     $name =~ m/^(\S+)\.\d+/;
     my $shortname = $1;
 #    $pngfilename =~ s/domain_gfx\///;
-    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></a><br />\n";
+    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></img></a><br />\n";
 
     
 #    $htmlbody .=  "<img src=" . $pngfilename . " usemap=\#" . $imageset->Bio::Pfam::Drawing::Image::Image::image_name . " border=0>";
@@ -512,8 +512,30 @@ sub make_html_ordered {
 <body>
 
 <h1>Rfam synteny map: $rfamid</h1>
-<h2>$rfamde</h2>\n\n\n";
+<h2>$rfamde</h2>\n\n
+
+<hr>
+
+<TABLE ALIGN=CENTER > 
+  <TR>
+    <TD>
+      <IMG SRC=\"domain_gfx/out.list.png\" WIDTH=\"90%\">
+      </TD> 
+    <TD>
+      <IMG SRC=\"domain_gfx/out.list.trunc.png\" WIDTH=\"90%\">
+    </TD> 
+  </TR>
+  <TR>
+    <TD>
+      <IMG SRC=\"domain_gfx/out.list.accuracy_stats.png\" WIDTH=\"90%\">
+    </TD> 
+  </TR>
+</TABLE> 
     
+<hr>\n\n\n";
+    
+#<img src=\"out.list.pdf\"></img>
+
     my $htmltail = "
 <!-- ====================================================================== -->
 
