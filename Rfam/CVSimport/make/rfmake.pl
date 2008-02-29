@@ -18,6 +18,7 @@ my( $thr,
     $overlaps,
     $file,
     @extrafamily,
+    @extra_forbidden_terms,
     $output);
 
 &GetOptions( "t=s"      => \$thr,
@@ -28,25 +29,11 @@ my( $thr,
 #	     "fa=s"     => \$fasta,
 	     "trim=s"   => \$trim,
 	     "file=s"         => \$file,
-	     "extrafamily=s@" => \@extrafamily,
+	     "efam|extrafamily=s@" => \@extrafamily,
+	     "efor|extraforbidden=s@"         => \@extra_forbidden_terms,
 	     "o|output=s"     => \$output,
 	     "h|help"         => \$help );
 
-sub help {
-    print STDERR <<EOF;
-    rfmake.pl  
-    Usage:      rfmake.pl -t <bits> 
-                rfmake.pl -l
-                          -file <infernal output file> (uses OUTPUT file in current dir by default)
-    	                  -l                           option lists hits but does not build ALIGN
-			  -d <blastdb>                 use a different blast database for sesquence fetching
-			  -overlaps                    do something with overlapping hits
-			  -cove                        Sean says 'COVE SUX!', so dont be silly, use Infernal.
-			  -trim <?>                    dunno, seems to run filter_on_cutoff() function? 
-			  -extrafamily <str>           add an extra family term for making the histograms
-			  -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
-EOF
-}
 
 if( $help ) {
     &help();
@@ -133,13 +120,27 @@ foreach my $t (@family_terms) {
 
 @family_terms = keys %family_terms;
 
-if (@extrafamily){ #Perl gives a warning if I try using defined(@array)
+if (@extrafamily){ 
     push(@family_terms,@extrafamily);
 }
-my $family_terms = join(", ",@family_terms);
-print STDERR "family terms: $family_terms\n";
 
-my @forbidden_terms = qw(repeat repetitive pseudogene transpos);
+my $family_terms = join(", ",@family_terms);
+print STDERR "Using family terms: $family_terms\n";
+
+my @forbidden_terms = qw(
+repeat
+repetitive
+pseudogene
+pseudo-gene
+transpos
+);
+
+if (@extra_forbidden_terms){
+    push(@forbidden_terms, @extra_forbidden_terms);
+}
+
+my $forbidden_terms = join(", ",@forbidden_terms);
+print STDERR "Using forbidden terms: $forbidden_terms\n";
 
 my (%seedseqs_start,%seedseqs_end);
 if( $list ) {
@@ -245,7 +246,9 @@ if( $list ) {
 	forbid => \*OUTFORBID,
 	thresh => \*OUTTHRESH
     );
-    my %counts;
+
+    my (%counts, @family_scores, @forbidden_scores);
+    my $max_score=0;
     
     foreach my $ty (keys %filehandles){
 	open( $filehandles{$ty}, ">out.list_$ty\.dat" ) or die("Problem opening out.list_$ty\.dat\n[$!]");
@@ -261,12 +264,17 @@ if( $list ) {
     my $prev_bits = 999999;
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	
+	my $term_label;
 	if( not exists $desc{$unit->seqname} ) {
 	    $desc{$unit->seqname} = "no description available";
 	}
 	
 	if ( ($unit->bits)<$thrcurr && $thrcurr<=$prev_bits ){
 	    printf OUTFILE "***********CURRENT THRESHOLD: $thrcurr bits***********\n";
+	}
+	
+	if ($max_score<$unit->bits){
+	    $max_score=$unit->bits;
 	}
 	
 	my $seqlabel = "ALIGN";
@@ -280,6 +288,7 @@ if( $list ) {
 		    $seqlabel = "SEED";
 		    printf OUTSEED "%0.2f\n", $unit->bits;
 		    $counts{'seed'}++;
+		    push(@family_scores,$unit->bits);
 		    last;
 		}
 	    }
@@ -300,6 +309,8 @@ if( $list ) {
 	if ($fammatch){
 	    printf OUTFAM "%0.2f\n", $unit->bits;
 	    $counts{'family'}++;
+	    push(@family_scores,$unit->bits);
+	    $term_label .= "T";
 	}
 	
 	my $forbidmatch=0;
@@ -312,9 +323,15 @@ if( $list ) {
 	if ($forbidmatch){
 	    printf OUTFORBID "%0.2f\n", $unit->bits;
 	    $counts{'forbid'}++;
+	    push(@forbidden_scores,$unit->bits);
+	    $term_label .= "F";
 	}
 	
-	printf OUTFILE "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
+	if (!defined($term_label)){
+	    $term_label = ".";
+	}
+
+	printf OUTFILE "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t$term_label\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
 	$prev_bits = $unit->bits;
     }
     
@@ -326,22 +343,135 @@ if( $list ) {
 	    #printf "$filehandles{$ty} $ty counts=$counts{$ty}\n";
 	}
     }
-    #Run R script, making the out.list.pdf figure:
-    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
-    system("convert -density 600 -geometry 50% out.list.pdf out.list.png");
-    system("convert -density 600 -geometry 50% out.list.trunc.pdf out.list.trunc.png");
-    
-#    system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~/scripts/make/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
     close( OUTSEED);
     close( OUTALIGN);
     close( OUTFAM);
     close( OUTFORBID);
     close( OUTFILE);
     
-    #Cleanup R files:
-    foreach my $ty (keys %filehandles){
-	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
+    
+    #Calculate suggested threshold range using family terms as TPs & forbidden terms as FPs:
+    @family_scores = sort { $a <=> $b } @family_scores;
+    @forbidden_scores = sort { $a <=> $b } @forbidden_scores;
+    
+    #@family_scores, @forbidden_scores
+    #MCC = ($TP*$TN - $FP*$FN)/sqrt(($TP+$FP)*($TP+$FN)*($TN+$FP)*($TN+$FN))
+    #ACC = (TP + TN) / (P + N)
+
+    #SEN = TP / (TP + FN)
+    #SPC = TN / (FP + TN) = 1 − FPR
+
+    #FDR = FP / (FP + TP)
+    #FPR = FP / N = FP / (FP + TN)
+    
+    open( OUTACC, ">out.list_accuracy\.dat" ) or die("Problem opening out.list_accuracy\.dat\n[$!]");
+    print OUTACC "THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
+    my (@MCC, @ACC, @SEN, @SPC, @FDR, @FPR, @THRESH);
+    my ($max_MCC, $max_ACC)=(0,0);
+    for (my $threshold = 0; $threshold<$max_score; $threshold++){
+	my ($TP, $FP, $TN, $FN) = (0, 0, 0, 0);
+	foreach my $fam (@family_scores){
+	    if ($fam<$threshold){
+		$FN++;
+	    }
+	    else {
+		last;
+	    }
+	}
+	$TP = @family_scores - $FN;
+	
+	foreach my $forbid (@forbidden_scores){
+	    if ($forbid<$threshold){
+		$TN++;
+	    }
+	    else {
+		last;
+	    }
+	}
+	$FP = @forbidden_scores - $TN;
+	
+	my $denom = sqrt(($TP+$FP)*($TP+$FN)*($TN+$FP)*($TN+$FN));
+	my ($MCC, $ACC, $SEN, $SPC, $FDR, $FPR, $THRESH) = (0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+	if ($denom>0){
+	    $MCC = ($TP*$TN - $FP*$FN)/sqrt(($TP+$FP)*($TP+$FN)*($TN+$FP)*($TN+$FN));
+	}
+	
+	if (@family_scores + @forbidden_scores>0){
+	    $ACC = ($TP + $TN) / (@family_scores + @forbidden_scores);
+	}
+
+	if ($TP + $FN>0){
+	    $SEN = $TP / ($TP + $FN);
+	}
+
+	if ($FP + $TN>0){
+	    $SPC = $TN / ($FP + $TN);
+	}
+
+	if ($FP + $TP>0){
+	    $FDR = $FP / ($FP + $TP);
+	}
+	
+	if ($FP + $TN>0){
+	    $FPR = $FP / ($FP + $TN);
+	}
+	
+	if ($max_MCC<$MCC){
+	    $max_MCC=$MCC;
+	}
+	
+	if ($max_ACC<$ACC){
+	    $max_ACC=$ACC;
+	}
+	
+	push(@MCC,$MCC);
+	push(@ACC,$ACC);
+	push(@SEN,$SEN);
+	push(@SPC,$SPC);
+	push(@FDR,$FDR);
+	push(@FPR,$FPR);
+	push(@THRESH, $threshold);
+	print OUTACC "$threshold\t$MCC\t$ACC\t$SEN\t$SPC\t$FDR\t$FPR\n";
     }
+    close(OUTACC);
+    
+    print "Suggested thresholds:
+THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
+    for (my $i=0; $i<@MCC; $i++){
+	my $printme;
+	
+	if ($MCC[$i]>$max_MCC-0.01){
+	    $printme=1;
+	}
+	
+	if ($ACC[$i]>$max_ACC-0.01){
+	    $printme=1;
+	}
+	
+	if (defined($printme)){
+	    printf "%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\t%0.3f\n", $THRESH[$i], $MCC[$i], $ACC[$i], $SEN[$i], $SPC[$i], $FDR[$i], $FPR[$i];
+	}
+	
+	if ( $THRESH[$i]<$thrcurr && $thrcurr<=$THRESH[$i+1] ){
+	    printf "***********CURRENT THRESHOLD: $thrcurr bits***********\n";
+	}
+
+	
+    }
+    
+    #Run R script, making the out.list.pdf figure:
+#    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
+#FOR TESTING:    
+    system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~/scripts/make/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
+    system("convert -density 600 -geometry 50% out.list.pdf out.list.png");
+    system("convert -density 600 -geometry 50% out.list.trunc.pdf out.list.trunc.png");
+    system("convert -density 600 -geometry 50% out.list.accuracy_stats.pdf out.list.accuracy_stats.png");
+
+    #Cleanup R files:
+#    foreach my $ty (keys %filehandles){
+#	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
+#    }
+#    system( "rm out.list_accuracy\.dat" ) and die "File cleanup failed [rm out.list_accuracy\.dat]\n"; 
     
     exit(0);
 }
@@ -499,4 +629,22 @@ sub overlap {
     else {
         return 0;
     }
+}
+
+sub help {
+    print STDERR <<EOF;
+    rfmake.pl  
+    Usage:      rfmake.pl -t <bits> 
+                rfmake.pl -l
+                          -file <infernal output file> (uses OUTPUT file in current dir by default)
+    	                  -l                           option lists hits but does not build ALIGN
+			  -d <blastdb>                 use a different blast database for sesquence fetching
+			  -overlaps                    do something with overlapping hits
+			  -cove                        Sean says 'COVE SUX!', so dont be silly, use Infernal.
+			  -trim <?>                    dunno, seems to run filter_on_cutoff() function? 
+			  -efam|-extrafamily <str>     add an extra family term for making the histograms
+			  -efor|-extraforbidden        add additional DE forbidden terms for making the histograms
+
+			  -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
+EOF
 }
