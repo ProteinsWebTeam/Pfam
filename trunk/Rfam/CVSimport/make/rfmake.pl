@@ -473,10 +473,10 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
     system("convert -density 600 -geometry 50% out.list.accuracy_stats.pdf domain_gfx/out.list.accuracy_stats.png");
 
     #Cleanup R files:
-#    foreach my $ty (keys %filehandles){
-#	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
-#    }
-#    system( "rm out.list_accuracy\.dat" ) and die "File cleanup failed [rm out.list_accuracy\.dat]\n"; 
+    foreach my $ty (keys %filehandles){
+	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
+    }
+    system( "rm out.list_accuracy\.dat" ) and die "File cleanup failed [rm out.list_accuracy\.dat]\n"; 
     
     exit(0);
 }
