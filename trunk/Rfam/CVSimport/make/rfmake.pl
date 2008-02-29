@@ -463,9 +463,14 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
 #    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
 #FOR TESTING:    
     system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~/scripts/make/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
-    system("convert -density 600 -geometry 50% out.list.pdf out.list.png");
-    system("convert -density 600 -geometry 50% out.list.trunc.pdf out.list.trunc.png");
-    system("convert -density 600 -geometry 50% out.list.accuracy_stats.pdf out.list.accuracy_stats.png");
+    
+    if (!(-e "domain_gfx")){
+	mkdir "domain_gfx" or die "Can't create directory: domain_gfx\n[$!]";
+    }
+    
+    system("convert -density 600 -geometry 50% out.list.pdf                domain_gfx/out.list.png");
+    system("convert -density 600 -geometry 50% out.list.trunc.pdf          domain_gfx/out.list.trunc.png");
+    system("convert -density 600 -geometry 50% out.list.accuracy_stats.pdf domain_gfx/out.list.accuracy_stats.png");
 
     #Cleanup R files:
 #    foreach my $ty (keys %filehandles){
