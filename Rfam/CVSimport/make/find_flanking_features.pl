@@ -710,6 +710,12 @@ find_flanking_features.pl - Connects to the mole database, fetches features from
 \"dist\" nucleotides either side of the input region. Returns the results in a tabular format to STDOUT 
 and graphical format to domain_gfx.html (graphics are all written to domain_gfx/).
 
+\#prints to standard out: 
+\"FEATURE: \$score\t\$type\t\$name\t\$start\t\$end\tstrand=\$strand\"
+\#and if coordinates overlap the window if interest:
+\"\$i: entry.accession_version\tdbxref.database_id\tdbxref.primary_id\tdbxref.secondary_id\tdbxref.tertiary_id\tdbxref.quaternary_id\tentry.sequence_length\t\$sdist\"
+
+
 Usage:   find_flanking_features.pl <options>
 
 Options:       
