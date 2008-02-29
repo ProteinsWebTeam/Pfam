@@ -285,7 +285,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 </image>
 ";
 
-    if (!(-e "domain_gfx")){
+    if (!(-d "domain_gfx")){
          mkdir "domain_gfx" or die "Can't create directory: domain_gfx\n[$!]";
     }
 
