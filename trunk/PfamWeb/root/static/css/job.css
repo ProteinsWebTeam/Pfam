@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.9 2007-12-20 13:14:25 jt6 Exp $
+   $Id: job.css,v 1.10 2008-03-03 16:53:12 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -155,8 +155,7 @@ img.graphicImage {
 
 /* make the background red for cells where there's something to note */
 .warning {
-  background-color: #A00;
-  color: white;
+  color: #600;
   font-weight: bold;
 }
 
