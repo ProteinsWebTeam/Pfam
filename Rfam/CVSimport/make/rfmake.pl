@@ -393,7 +393,7 @@ if( $list ) {
 	my $denom = sqrt(($TP+$FP)*($TP+$FN)*($TN+$FP)*($TN+$FN));
 	my ($MCC, $ACC, $SEN, $SPC, $FDR, $FPR, $THRESH) = (0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
 	if ($denom>0){
-	    $MCC = ($TP*$TN - $FP*$FN)/sqrt(($TP+$FP)*($TP+$FN)*($TN+$FP)*($TN+$FN));
+	    $MCC = ($TP*$TN - $FP*$FN)/$denom;
 	}
 	
 	if (@family_scores + @forbidden_scores>0){
@@ -440,11 +440,11 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
     for (my $i=0; $i<@MCC; $i++){
 	my $printme;
 	
-	if ($MCC[$i]>$max_MCC-0.01){
+	if ($MCC[$i]==$max_MCC){
 	    $printme=1;
 	}
 	
-	if ($ACC[$i]>$max_ACC-0.01){
+	if ($ACC[$i]==$max_ACC){
 	    $printme=1;
 	}
 	
@@ -460,9 +460,9 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
     }
     
     #Run R script, making the out.list.pdf figure:
-#    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
+    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
 #FOR TESTING:    
-    system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~/scripts/make/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
+#    system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~/scripts/make/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
     
     if (!(-e "domain_gfx")){
 	mkdir "domain_gfx" or die "Can't create directory: domain_gfx\n[$!]";
@@ -476,7 +476,7 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
     foreach my $ty (keys %filehandles){
 	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
     }
-    system( "rm out.list_accuracy\.dat" ) and die "File cleanup failed [rm out.list_accuracy\.dat]\n"; 
+#    system( "rm out.list_accuracy\.dat" ) and die "File cleanup failed [rm out.list_accuracy\.dat]\n"; 
     
     exit(0);
 }
