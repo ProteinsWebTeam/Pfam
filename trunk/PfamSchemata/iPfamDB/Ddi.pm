@@ -8,34 +8,22 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("Core");
 __PACKAGE__->table("ddi");
 __PACKAGE__->add_columns(
+  "ddi",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "region_id_a",
   { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "region_id_b",
   { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
-  "residue_a",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 11 },
-  "residue_b",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 11 },
   "intrachain",
-  { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 4 },
-  "quality_control",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
+  { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 1 },
 );
-__PACKAGE__->belongs_to(
-  "region_id_b",
-  "iPfamDB::Domain",
-  { region_id => "region_id_b" },
-);
-__PACKAGE__->belongs_to(
-  "region_id_a",
-  "iPfamDB::Domain",
-  { region_id => "region_id_a" },
-);
+__PACKAGE__->set_primary_key("ddi");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2007-10-26 10:08:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ozYm7DzgJqfkkX+kttbPgg
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:f/YtXUE76gUbAg81Ekofng
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+__PACKAGE__->add_unique_constraint("ddiConst", ["region_id_a", "region_id_b", "intrachain"]);
 1;

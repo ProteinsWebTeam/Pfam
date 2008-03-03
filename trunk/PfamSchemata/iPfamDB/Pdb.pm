@@ -32,7 +32,12 @@ __PACKAGE__->add_columns(
     size => 65535,
   },
   "date",
-  { data_type => "DATE", default_value => "", is_nullable => 0, size => 10 },
+  {
+    data_type => "TINYTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 255,
+  },
   "resolution",
   { data_type => "DECIMAL", default_value => "", is_nullable => 0, size => 5 },
   "experiment_short",
@@ -45,17 +50,11 @@ __PACKAGE__->add_columns(
   { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 4 },
 );
 __PACKAGE__->set_primary_key("accession");
-__PACKAGE__->add_unique_constraint("pdb_accession_Idx", ["accession"]);
-__PACKAGE__->add_unique_constraint("pdb_pdb_id_Idx", ["pdb_id"]);
-__PACKAGE__->has_many(
-  "ligands",
-  "iPfamDB::Ligands",
-  { "foreign.accession" => "self.pdb_id" },
-);
+__PACKAGE__->add_unique_constraint("pdb_accession_Idx", ["pdb_id", "biological_unit"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2007-10-26 10:08:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vLqYEXvG6husn4w9+S/qsA
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fadvli9zZizARcjeQnxobQ
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
