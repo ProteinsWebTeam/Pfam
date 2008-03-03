@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.49 2008-01-09 14:46:36 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.50 2008-03-03 16:46:06 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the main class for the Pfam website catalyst application. It
 handles configuration of the application classes and error reporting
 for the whole application.
 
-$Id: PfamWeb.pm,v 1.49 2008-01-09 14:46:36 jt6 Exp $
+$Id: PfamWeb.pm,v 1.50 2008-03-03 16:46:06 jt6 Exp $
 
 =cut
 
@@ -93,8 +93,7 @@ __PACKAGE__->setup;
 
 Overrides the default C<finalize_config> method from the ConfigLoader plugin, 
 turning it into a dumb by-pass of the perl taint checking on configuration
-parameters. Note that this also overrides the default behaviour of the original
-method, which subsitutes macros in configuration values.
+parameters.
 
 =cut
 
