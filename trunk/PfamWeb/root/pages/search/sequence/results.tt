@@ -1,11 +1,10 @@
-
 [%
 # searchResults.tt
 # jt6 20070414 WTSI
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.8 2007-12-20 14:05:57 jt6 Exp $
+# $Id: results.tt,v 1.9 2008-03-03 16:52:51 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -30,6 +29,90 @@ numBs = genPfamBRes.size;
 imageUri   = c.uri_for( "/static/images" );
 showButton = "${imageUri}/showButton.png";
 hideButton = "${imageUri}/hideButton.png";
+
+#-------------------------------------------------------------------------------
+
+# store the number of significant and insignificant matches
+numSignificantMatches = 0;
+numInsignificantMatches = 0;
+
+# a block walk the list of matches and show only significant ones
+BLOCK buildTableBody;
+  
+  # we use loop.index to build an ID for each row, since that really will
+  # be unique, but for the purposes of deciding if a row is odd or even, we
+  # need a separate counter, tableRow
+  tableRow = 0;
+  FOREACH pfamA IN genPfamARes;
+
+    # decided whether we should skip this row. If the parameter 
+    # "showSignificant" is true, we skip rows with insignificant matches, and 
+    # vice versa. We also set the row CSS class and the row ID here
+    IF showSignificant;
+      NEXT IF NOT pfamA.significant;
+
+      # this is a significant row
+      rowClass = tableRow % 2 ? "oddlySignificant" : "evenlySignificant";
+      rowId    = "pfamAAlignment${loop.index}";
+    ELSE;
+      NEXT IF     pfamA.significant;
+
+      # this is an INsignificant row
+      rowClass = tableRow % 2 ? "odd" : "even";
+      rowId    = "pfamAAlignmentI${loop.index}";
+    END;
+    
+    tableRow = tableRow + 1 -%]
+    <tr class="[% rowClass %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td>
+        <a href="[% c.uri_for( "/family", { acc = pfamA.pfama_acc } ) %]">
+          [% pfamA.pfama_id %]</a>
+      </td>
+      <td class="desc">[% pfamA.desc %]</td>
+      <td>[% pfamA.type %]</td>
+      <td>[% pfamA.start %]</td>
+      <td>[% pfamA.end %]</td>
+      <td[% IF pfamA.hmm_start != 1 %] class="warning"[% END %]>
+        [% pfamA.hmm_start %]
+      </td>
+      <td[% IF pfamA.hmm_end != pfamA.hmm_length %] class="warning"[% END %]>
+        [% pfamA.hmm_end %]
+      </td>
+      <td>[% pfamA.bits %]</td>
+      <td>[% pfamA.evalue %]</td>
+      <td>[% pfamA.mode %]</td>
+      <td class="showSwitch">
+        <img src="[% showButton %]" 
+             onclick="toggleAlignment( '[% rowId %]', this )"
+             alt="Show alignment" />
+      </td>
+    </tr>
+    <tr class="alignment [% rowClass %]" id="[% rowId %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td colspan="11">
+        <pre>[% pfamA.aliHmm %]
+[% pfamA.aliMatch %]
+[% pfamA.aliSeq %]</pre>
+      </td>
+    </tr>
+  [% END; # of "FOREACH pfamA"
+  IF showSignificant;
+    numSignificantMatches = tableRow;
+  ELSE;
+    numInsignificantMatches = tableRow;
+  END;
+END; # of BLOCK
+
+#-------------------------------------------------------------------------------
+
+# now we actually run the "buildTableRows" block for the significant and 
+# insignificant matches, so that we can see if we actually HAVE significant or
+# insignificant matches before we try to build the page
+
+  significantMatches = PROCESS buildTableBody showSignificant = 1;
+insignificantMatches = PROCESS buildTableBody showSignificant = 0;
+
 %]
 
 <div id="results">
@@ -39,40 +122,38 @@ hideButton = "${imageUri}/hideButton.png";
     <h2>Sequence search results</h2>
 
     <p>
-    [%- # all of this is a very convoluted way to write a nice, correct
-        # English sentence to summarise the results. It's possibly overkill...
-    
-    IF numAs -%]
-      We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %] 
-      to your search sequence
-    [%- ELSE -%]
-      We did not find any Pfam-A matches to your search sequence
-    [%- END;
-    IF numBs;
-      IF numAs;
-        " and "; 
-      ELSIF NOT numAs;
-        " but we did find "; 
-      END %]
-      <strong>[% numBs %]</strong> Pfam-B match[% "es" IF numBs > 1 %].
-    [% ELSIF searchedPfamB AND NOT numBs;
-      IF numAs;
-        " but we did not find any Pfam-B matches."; 
-      ELSIF NOT numAs;
-        " nor any Pfam-B matches."; 
-      END;       
-    ELSE;
-      ". You did not choose to search for Pfam-B matches.";
-    END -%]
-    </p>
-
-    <p>
-      The Pfam graphic below shows the arrangement of the domains on your
-      search sequence. Clicking on any of the domains will take you to a page
-      of information about that domain.
-      [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
-      overlapping Pfam-A domains, which are given higher priority when 
-      building the graphic.[% END %]
+      [%- # all of this is a very convoluted way to write a nice, correct
+          # English sentence to summarise the results. It's possibly overkill...
+      
+      IF numAs -%]
+        We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %] 
+        to your search sequence
+        [% IF numSignificantMatches AND numInsignificantMatches -%]
+          (<strong>[% numSignificantMatches %]</strong> significant and 
+          <strong>[% numInsignificantMatches %]</strong> insignificant)
+        [% ELSIF numInsignificantMatches;
+          "(there were <strong>no</strong> significant matches)";
+        END;
+      ELSE;
+        "We did not find any Pfam-A matches to your search sequence";
+      END;
+      IF numBs;
+        IF numAs;
+          " and "; 
+        ELSIF NOT numAs;
+          " but we did find "; 
+        END %]
+        <strong>[% numBs %]</strong> Pfam-B match[% "es" IF numBs > 1 %].
+      [% ELSIF searchedPfamB AND NOT numBs;
+        IF numAs;
+          " but we did not find any Pfam-B matches."; 
+        ELSIF NOT numAs;
+          " nor any Pfam-B matches."; 
+        END;       
+      ELSE;
+        ". You did not choose to search for Pfam-B matches.";
+      END -%]
+      The graphic below shows the arrangement of matches on your sequence: 
     </p>
 
     <div>
@@ -80,30 +161,51 @@ hideButton = "${imageUri}/hideButton.png";
       CALL image.print_image;
       id = image.image_name -%]
 
-    	<img class="graphicImage"
+      <img class="graphicImage"
            src="[% constants.tmp %]/[% image.file_location %]"
            usemap="#domainGraphicsMap[% loop.index %]"
            alt="" />
       <div class="cleaner"><!-- empty --></div>
 
-      <map name="domainGraphicsMap[% loop.index %]"
-           id="domainGraphicsMap[% loop.index %]">
-        [% image.image_map %]
-      </map>
-    [% END %]
+      [% IF image.image_map -%]
+        <map name="domainGraphicsMap[% loop.index %]"
+             id="domainGraphicsMap[% loop.index %]">
+          [% image.image_map %]
+        </map>
+      [% END;
+    END -%]
     </div>
 
     <p>
-      Below
-      [% IF numAs AND numBs;
-        "are tables";
-      ELSIF numA OR numB;
-        "is a table";
-      END %] 
-      showing the details of the domains that were found. Rows containing 
-      significant hits are <span class="oddlySignificant">highlighted</span>.
+      <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
+      to the search form to look for Pfam domains on a new sequence.
+    </p> 
+  </div><!-- end of "key" -->
+
+  <p>
+    <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
+    the detailed description of the results page.
+  </p>
+
+  <div id="resultsNotes" style="display: none">
+    <p>
+      The Pfam graphic above shows only the <strong>significant</strong> 
+      matches to your sequence. A significant match is one where the bits score 
+      is greater than or equal to the gathering threshhold for the Pfam domain. 
+      Clicking on any of the domains in the image will take you to a page of 
+      information about that domain.
+      [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
+      overlapping Pfam-A domains, which are given higher priority when 
+      building the graphic.[% END %]
+    </p>
+    <p>
+      Below are the details of the matches that were found. 
+      [% IF significantMatches AND insignificantMatches -%]
+      We separate Pfam-A matches in two tables, containing the significant and
+      insignificant matches.
+      [% END -%] 
       Hits which do not start and end at the end points of the matching HMM 
-      are also <span class="warning">highlighted</span>.          
+      are <span class="warning">highlighted</span>.
     </p>
     <p>
       For Pfam-A hits we show the alignments between your search sequence 
@@ -116,21 +218,22 @@ hideButton = "${imageUri}/hideButton.png";
     </p>
     <p>
       You can bookmark this page and return to it later, but please note that 
-      old results will be removed after <strong>one week</strong>.
+      old results may be removed after <strong>one week</strong>.
     </p>
-    <p>
-      <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
-      to the search form to look for Pfam domains on a new sequence.
-    </p> 
-  </div><!-- end of "key" -->
+    <hr />
+  </div><!-- end of "resultsNotes" -->
 
-  [% IF numAs %]
+  [% IF numAs;
   
+  #-----------------------------------------------------------------------------
+  # show significant matches
+    
+  IF numSignificantMatches -%]
   <table id="pfamASummary"
          class="resultTable" 
          summary="Pfam-A search results">
     <caption>
-      <span class="tableTitle">Pfam-A Matches</span>
+      <span class="tableTitle">Significant Pfam-A Matches</span>
       <span class="link" onclick="showAllAlignments('pfamASummary',true)">Show</span> or
       <span class="link" onclick="showAllAlignments('pfamASummary',false)">hide</span> 
       all alignments.
@@ -156,50 +259,55 @@ hideButton = "${imageUri}/hideButton.png";
       </tr>
     </thead>
     <tbody>
-      [% FOREACH pfamA IN genPfamARes;
-        IF loop.index % 2;
-          rowClass = pfamA.significant ? "oddlySignificant"  : "odd";
-        ELSE;
-          rowClass = pfamA.significant ? "evenlySignificant" : "even";
-        END -%]
-      <tr class="[% rowClass %]">
-        <td class="rowNum">[% loop.index %]</td>
-        <td>
-          <a href="[% c.uri_for( "/family", { acc = pfamA.pfama_acc } ) %]">
-            [% pfamA.pfama_id %]</a>
-        </td>
-        <td class="desc">[% pfamA.desc %]</td>
-        <td>[% pfamA.type %]</td>
-        <td>[% pfamA.start %]</td>
-        <td>[% pfamA.end %]</td>
-        <td[% IF pfamA.hmm_start != 1 %] class="warning"[% END %]>
-          [% pfamA.hmm_start %]
-        </td>
-        <td[% IF pfamA.hmm_end != pfamA.hmm_length %] class="warning"[% END %]>
-          [% pfamA.hmm_end %]
-        </td>
-        <td>[% pfamA.bits %]</td>
-        <td>[% pfamA.evalue %]</td>
-        <td>[% pfamA.mode %]</td>
-        <td class="showSwitch">
-          <img src="[% showButton %]" 
-               onclick="toggleAlignment( 'pfamAAlignment[% loop.index %]', this )"
-               alt="Show alignment" />
-        </td>
+      [% significantMatches -%]
+    </tbody>
+  </table>
+  [% END;
+  
+  #-----------------------------------------------------------------------------
+  # show INsignificant matches
+  
+  IF numInsignificantMatches -%]
+  <table id="pfamASummaryI"
+         class="resultTable" 
+         summary="Insignificant Pfam-A matches">
+    <caption>
+      <span class="tableTitle">Insignificant Pfam-A Matches</span>
+      <span class="link" onclick="showAllAlignments('pfamASummaryI',true)">Show</span> or
+      <span class="link" onclick="showAllAlignments('pfamASummaryI',false)">hide</span> 
+      all alignments.
+    </caption>
+    <thead>
+      <tr class="titleRow">
+        <th rowspan="2" class="rowNum">Original order</th>
+        <th rowspan="2">Pfam-A</th>
+        <th rowspan="2" class="nosort">Description</th>
+        <th rowspan="2">Entry type</th>
+        <th colspan="2">Sequence</th>
+        <th colspan="2">HMM</th>
+        <th rowspan="2">Bits score</th>
+        <th rowspan="2">E-value</th>
+        <th rowspan="2">Alignment mode</th>
+        <th rowspan="2">Show/hide alignment</th>
       </tr>
-      <tr class="alignment [% rowClass %]" id="pfamAAlignment[% loop.index %]">
-        <td class="rowNum">[% loop.index %]</td>
-        <td colspan="11">
-          <pre>[% pfamA.aliHmm %]
-[% pfamA.aliMatch %]
-[% pfamA.aliSeq %]</pre>
-        </td>
+      <tr class="titleRow">
+        <th>Start</th>
+        <th>End</th>
+        <th>From</th>
+        <th>To</th>
       </tr>
-      [% END %]
+    </thead>
+    <tbody>
+      [% insignificantMatches -%]
     </tbody>
   </table>
 
-  [% END; # of "if numAs"
+  [% END; # of "if numInsignificantMatches"
+  
+  END; # of "if numAs"
+
+  #-----------------------------------------------------------------------------
+  # Pfam-B matches
 
   IF numBs %]
 
