@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.15 2008-02-04 17:15:41 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.16 2008-03-03 16:48:25 jt6 Exp $
 
 =head1 NAME
 
@@ -47,7 +47,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.15 2008-02-04 17:15:41 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.16 2008-03-03 16:48:25 jt6 Exp $
 
 =cut
 
@@ -306,8 +306,15 @@ sub text : Local {
 
       # yes; convert the tree to plain text
       my $treeBody;
-      convertToText( $c->stash->{rawTree}, \$treeBody );
-     
+      if ( $c->req->param( 'pnh' ) ) {
+        $treeBody  = "(\n";
+        convertToPnh( $c->stash->{rawTree}, \$treeBody );
+        $treeBody .= ");\n";
+      }
+      else {
+        convertToText( $c->stash->{rawTree}, \$treeBody );
+      }
+      
       # add a couple of header lines
       $textTree = '# Species tree for ' . $c->stash->{acc} . "\n";
     
@@ -542,7 +549,7 @@ sub buildTree : Private {
     # next, the taxonomy above the species
     my $tax = $region->taxonomy;
     $tax =~ s/\s+//g;
-    my @tax = split /\;/, $tax;
+    my @tax = split m/\;/, $tax;
 
     # add the species onto the end of the taxonomy, so we have it all in
     # one place
@@ -840,6 +847,80 @@ sub convertToText {
       $nodeCount++;
     }
   }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 convertToPnh
+
+Walks the tree and generates a plain-text representation.
+
+Not a Catalyst controller. Called as a regular method because it's called 
+recursively when walking the tree.
+
+=cut
+
+sub convertToPnh {
+  my ($tree, $ptrOutput, $indent, $flag1, $flag2 ) = @_;
+
+  # add an increment, either a bar or whitespace
+  #$indent .= ( not $flag1 and $flag2 ) ? '|  ' : '   ';
+  $indent .= '  ';
+
+  # we're done unless there are more branches to walk down 
+  my @keys = keys %{ $tree->{branches} };
+  if( my $numNodes = scalar @keys ) {
+
+    my $nodeCount = 1;
+
+    for ( my $i = 0; $i < scalar @keys; $i++ ) {
+      my $node = $keys[$i];
+
+      my $node_text = $node;
+      $node_text =~ tr/()/[]/;
+
+      $flag1 = ( $numNodes != $nodeCount ) ?  0 : 1;
+      $$ptrOutput .= $indent;
+
+      # are there branches under this one ?
+      if( $tree->{branches}->{$node}->{branches} ) {
+        # yes; add this node and then keep going down
+        $flag2 = $nodeCount eq $numNodes ? 0 : 1;
+        
+        $$ptrOutput .= "(\n";
+
+        convertToPnh( $tree->{branches}->{$node}, 
+                      $ptrOutput, 
+                      $indent, 
+                      $flag1, 
+                      $flag2 );
+
+        $$ptrOutput .= $indent . ") ";
+        $$ptrOutput .= $node_text . ':' . $tree->{branches}->{$node}->{frequency} . "\n";
+#        if ( $i <= scalar @keys - 1 ) {
+#          $$ptrOutput .= ",\n";
+#        }
+#        else {
+#          $$ptrOutput .= "\n";
+#        }
+        
+      } 
+
+      # no; just add this node
+      else {
+        $$ptrOutput .= $node_text . ':' . $tree->{branches}->{$node}->{frequency};
+        if ( $i <= scalar @keys - 2 ) {
+          $$ptrOutput .= ",\n";
+        }
+        else {
+          $$ptrOutput .= "\n";
+        }
+      }
+
+      $nodeCount++;
+    }
+  }
+
 }
 
 #-------------------------------------------------------------------------------
