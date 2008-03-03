@@ -7,7 +7,7 @@
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
 #
-# $Id: statsTable.tt,v 1.5 2007-11-05 13:38:19 jt6 Exp $
+# $Id: statsTable.tt,v 1.6 2008-03-03 16:51:39 jt6 Exp $
 
 # no wrapper thank you
 META naked = 1;
@@ -47,7 +47,7 @@ IF c.req.param('full');
       <th rowspan="2">Pfam</th>
       <th rowspan="2">Description</th>
       <th rowspan="2">Number of sequences</th>
-      <th rowspan="2">Occurrences</th>
+      <th rowspan="2">Number of occurrences</th>
       <th colspan="2">
         View as
       </th>
