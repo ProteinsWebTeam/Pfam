@@ -21,7 +21,7 @@ my $database = "embl_93";
 my $host     = "cbi3";
 my $user     = "genero";
 my $dist     = 5000;
-my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$makehtml,$outlist,$help);
+my (@name,@start,@end,@strand,@printname,$plusstrand,$minusstrand,$makehtml,$help);
 my $printthreshold=0;
 my $outlist=1; #This forces this usage now!!! No such thing as a non-output run...
 &GetOptions("a|s|start|begin=i@"  => \@start,
@@ -526,8 +526,9 @@ sub make_html_ordered {
     </TD> 
   </TR>
   <TR>
-    <TD>
-      <IMG SRC=\"domain_gfx/out.list.accuracy_stats.png\" WIDTH=\"90%\">
+    <TD><a href=\"http://en.wikipedia.org/wiki/Receiver_operating_characteristic\">
+         <IMG SRC=\"domain_gfx/out.list.accuracy_stats.png\" WIDTH=\"90%\">
+        </a>
     </TD> 
   </TR>
 </TABLE> 
