@@ -65,10 +65,10 @@ if( not $overlaps ) {
 	    $thr = $1 if not defined $thr;
 	};
 	
-	/^ID/ || /^DE/ || /^PI/ and do {
+	/^ID/ || /^DE/ || /^PI/ || /^TP/ and do {
 	    substr($_,0,3) = "";
 	    $_ =~ tr/a-z/A-Z/;
-	    my @terms = split(/[\_\s+\/\;\(\)]/,$_);
+	    my @terms = split(/[\_\s+\/\;\(\)\-]/,$_);
 	    push(@family_terms,@terms);
 	};
 	
@@ -651,5 +651,9 @@ sub help {
 			  -efor|-extraforbidden        add additional DE forbidden terms for making the histograms
 
 			  -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
+
+To add:
+Taxonomic restrictions for the forbidden/family (FP/TP) terms. Easier when OS and OC have been added to the DESC files. 
+
 EOF
 }
