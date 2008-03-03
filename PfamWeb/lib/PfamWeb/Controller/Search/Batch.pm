@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.7 2008-01-18 15:31:01 jt6 Exp $
+# $Id: Batch.pm,v 1.8 2008-03-03 16:50:01 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.7 2008-01-18 15:31:01 jt6 Exp $
+$Id: Batch.pm,v 1.8 2008-03-03 16:50:01 jt6 Exp $
 
 =cut
 
@@ -395,8 +395,7 @@ sub check_sequence : Private {
         if $c->debug;
       $low_deviations++;
     }
-  }  
-
+  }
   
   if( $low_deviations > 10 ) {
     $c->log->debug( "Search::Batch::check_sequence: too many low deviations ($low_deviations > 10" )
@@ -406,6 +405,69 @@ sub check_sequence : Private {
 
   return 1;
 }
+
+# Ben's solution to the problem of finding repeats in sequences
+#
+##!/usr/bin/env perl
+#use warnings;
+#use strict;
+#use IO::File;
+#
+#my $seq;
+#my $in_f = shift;
+#if ($in_f)
+#{
+#    my $fh = IO::File->new($in_f, 'r') or die "Error reading $in_f: $!";
+#    while (<$fh>)
+#    {
+#        chomp;
+#        $seq .= $_ unless /^>/;
+#    }
+#}
+#else
+#{
+#    while (<STDIN>)
+#    {
+#        chomp;
+#        $seq .= $_ unless /^>/;
+#    }
+#}
+#
+#die "Usage: $0 [infile]\n" unless $seq;
+#
+#my $len = length($seq);
+#my @factors = split /\s+/, `factor $len`;
+#shift @factors;
+#
+#if (@factors == 1)
+#{
+#    exit;
+#}
+#
+#my $factor = 1;
+#foreach (sort sort {$a <=> $b} @factors)
+#{
+#    push(@factors, ($factor * $_));
+#    $factor *= $_;
+#}
+#
+#@factors = sort {$a <=> $b} @factors;
+#
+#my %seen;
+#foreach (@factors)
+#{
+#    next if $seen{$_}++;
+#    print STDERR "Factor $_\n";
+#    my $num = $len/$_;
+#    print STDERR "Num $num\n";
+#    my $pattern = unpack "a$_", $seq;
+#    if ($seq eq ($pattern x $num))
+#    {
+#        print "Found a repeated pattern of length $_ repeated $num times!\n";
+#    }
+#}
+
+
 
 #-------------------------------------------------------------------------------
 
