@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.24 2008-01-08 10:32:33 jt6 Exp $
+# $Id: Root.pm,v 1.25 2008-03-03 16:47:45 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.24 2008-01-08 10:32:33 jt6 Exp $
+$Id: Root.pm,v 1.25 2008-03-03 16:47:45 jt6 Exp $
 
 =cut
 
@@ -120,7 +120,7 @@ sub new_features : Local {
   # key/value pairs storing feature timestamps and last-seen dates 
   my $cookie = $c->req->cookie( 'features' ); 
   my %last_seen = ();
-  %last_seen = split /;/, $cookie->value if defined $cookie;
+  %last_seen = split m/;/, $cookie->value if defined $cookie;
   
   # the available changelog entries
   my $changelog = $c->config->{changelog}->{entries};
