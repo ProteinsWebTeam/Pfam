@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.5 2008-01-07 14:00:09 jt6 Exp $
+# $Id: JobManager.pm,v 1.6 2008-03-03 16:46:53 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.5 2008-01-07 14:00:09 jt6 Exp $
+$Id: JobManager.pm,v 1.6 2008-03-03 16:46:53 jt6 Exp $
 
 =cut
 
@@ -48,7 +48,7 @@ sub checkStatus : Local {
 
   my $jobId = $c->req->param( 'jobId' );
   if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
-    $c->log->debug( 'JobManager::checkStatus: bad job id' );
+    $c->log->debug( 'JobManager::checkStatus: bad job id' ) if $c->debug;
     $c->stash->{status}->{error} = 'Invalid job ID';
     $c->detach( 'returnStatus' );
   }
@@ -59,7 +59,8 @@ sub checkStatus : Local {
 
   # make sure the query returned *something*
   if( not defined $jobHistory ) {
-    $c->log->debug( "JobManager::checkStatus: problem retrieving job status for job |$jobId|" );
+    $c->log->debug( "JobManager::checkStatus: problem retrieving job status for job |$jobId|" )
+      if $c->debug;
     $c->stash->{status}->{error} = 'Could not retrieve job status';
     $c->detach( 'returnStatus' );
   }
@@ -72,7 +73,7 @@ sub checkStatus : Local {
                        
   if( $statusValues{ $jobHistory->status } ) {
     $c->log->debug( 'JobManager::checkStatus: job status is: |'
-                    . $jobHistory->status . '|' );
+                    . $jobHistory->status . '|' )  if $c->debug;
     $c->stash->{status}->{status} = $jobHistory->status;
   } else {
     $c->log->error( q(JobManager::checkStatus: can't determine job status) );
@@ -95,9 +96,11 @@ sub checkStatus : Local {
   $c->stash->{status}->{waitTime}   = $rs->first()->get_column( 'wait' ) || 0;
 
   $c->log->debug( 'JobManager::checkStatus: found      |' .
-                  $c->stash->{status}->{numPending} . '| pending jobs' );
+                  $c->stash->{status}->{numPending} . '| pending jobs' )
+    if $c->debug;
   $c->log->debug( 'JobManager::checkStatus: wait time: |' .
-                  $c->stash->{status}->{waitTime} . '|' );
+                  $c->stash->{status}->{waitTime} . '|' )
+    if $c->debug;
 
   # add the times to the response
   $c->stash->{status}->{opened}  = $jobHistory->opened;
@@ -127,8 +130,8 @@ sub returnStatus : Private {
   # convert the status hash to a JSON object and return it
   my $status = objToJson( $c->stash->{status} );
 
-  $c->log->debug( 'JobManager::returnStatus: returning: ' );
-  $c->log->debug( dump( $c->stash->{status} ) );
+  $c->log->debug( 'JobManager::returnStatus: returning: ' ) if $c->debug;
+  $c->log->debug( dump( $c->stash->{status} ) ) if $c->debug;
 
   $c->res->content_type( 'application/x-json' );
   $c->res->body( $status );
@@ -154,11 +157,13 @@ sub retrieveResults : Private {
   my( $this, $c, $job_id ) = @_;
 
   unless( $job_id =~ m/^([A-F0-9\-]{36})$/ ) {
-    $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" );
+    $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" )
+      if $c->debug;
     return;
   }
 
-  $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" );
+  $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" )
+    if $c->debug;
   
   # job ID *looks* valid; try looking for that job
   my $job = $c->model( 'WebUser::JobHistory' )
@@ -169,7 +174,8 @@ sub retrieveResults : Private {
   # bail unless it exists
   return unless defined $job;
   
-  $c->log->debug( "JobManager::retrieveResults: stashing results for |$job_id|..." );
+  $c->log->debug( "JobManager::retrieveResults: stashing results for |$job_id|..." )
+    if $c->debug;
   
   # retrieve the results of the job and stash them
   $c->stash->{results}->{$job_id}->{rawData} = $job->stdout;
