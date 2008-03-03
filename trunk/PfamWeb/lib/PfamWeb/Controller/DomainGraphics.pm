@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.19 2008-01-10 14:54:47 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.20 2008-03-03 16:46:33 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.19 2008-01-10 14:54:47 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.20 2008-03-03 16:46:33 jt6 Exp $
 
 =cut
 
@@ -140,7 +140,7 @@ sub begin : Private {
     }
     
     # retrieve the accessions for that job ID
-    my $accession_list = $c->forward( '/utils/retrieve_accessions', [ $jobId ] );
+    my $accession_list = $c->forward( '/utils/retrieve_ids', [ $jobId ] );
     unless( $accession_list ) {
       $c->stash->{errorMsg} ||= 'Could not retrieve sequences for that job ID';
       return;
