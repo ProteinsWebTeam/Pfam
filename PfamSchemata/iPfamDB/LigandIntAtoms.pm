@@ -12,24 +12,23 @@ __PACKAGE__->add_columns(
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 10 },
   "atom_number",
   { data_type => "INT", default_value => "", is_nullable => 0, size => 11 },
-  "residue",
-  { data_type => "BIGINT", default_value => "", is_nullable => 0, size => 20 },
+  "ligand",
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 4 },
   "atom_acc",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "atom",
-  { data_type => "BIGINT", default_value => "", is_nullable => 0, size => 20 },
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 4 },
 );
 __PACKAGE__->set_primary_key("atom_acc");
-__PACKAGE__->belongs_to(
-  "internal_ligand_id",
-  "iPfamDB::Ligands",
-  { internal_ligand_id => "internal_ligand_id" },
-);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2007-10-26 10:08:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:p0uYLnz33+vU/qKT2Sqopw
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uISk6L2K6NV4JIgVllrmXw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
+
+__PACKAGE__->add_unique_constraint(
+    intAtomsConst => [ qw(internal_ligand_id atom_number) ],
+);
 1;

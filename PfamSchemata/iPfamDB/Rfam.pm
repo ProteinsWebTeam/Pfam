@@ -18,8 +18,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("rfam_acc");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2007-10-26 10:08:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gd0z5yN3gkVmMdyu2E9PnA
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:UmpLKUFJuwdqY5O8IRXOag
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

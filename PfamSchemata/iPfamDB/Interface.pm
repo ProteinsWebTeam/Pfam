@@ -23,8 +23,8 @@ __PACKAGE__->add_columns(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2007-10-26 10:08:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2gal6hbgFq23JZ5WJGztuA
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-19 10:48:40
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ZLF0lyoi9ZgvK01LIBEEjA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

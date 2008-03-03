@@ -18,15 +18,10 @@ __PACKAGE__->add_columns(
   { data_type => "TEXT", default_value => "", is_nullable => 0, size => 65535 },
 );
 __PACKAGE__->set_primary_key("pfama_acc");
-__PACKAGE__->has_many(
-  "domains",
-  "iPfamDB::Domain",
-  { "foreign.pfam_acc" => "self.pfama_acc" },
-);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2007-10-26 10:08:46
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:L1ZfKIRGBNCvS9LyOx+B3Q
+# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0J5+9nwjyJrY8lIDl1JIhw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
