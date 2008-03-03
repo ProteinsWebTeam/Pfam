@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.14 2007-12-21 11:38:49 jt6 Exp $
+# $Id: Sequence.pm,v 1.15 2008-03-03 16:51:17 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.14 2007-12-21 11:38:49 jt6 Exp $
+$Id: Sequence.pm,v 1.15 2008-03-03 16:51:17 jt6 Exp $
 
 =cut
 
@@ -57,7 +57,7 @@ sub sequence_search : Path {
 
     # parse and validate the sequence itself
     $c->forward('parse_sequence');
-    unless( defined $c->stash->{seq} ) {
+    unless ( defined $c->stash->{seq} ) {
       # the parse_sequence method will put the sequence into the stash if it
       # passes validation, but if the sequence looks like DNA or if it's
       # too long, we also get an error message in the stash. So, we only set 
@@ -69,10 +69,10 @@ sub sequence_search : Path {
     
     # sequence search options. Default to "both"
     $c->stash->{seqOpts} = $c->req->param('seqOpts') || 'both';
-    unless( $c->stash->{seqOpts} eq 'both' or
-            $c->stash->{seqOpts} eq 'bothNoMerge' or
-            $c->stash->{seqOpts} eq 'ls' or
-            $c->stash->{seqOpts} eq 'fs' ) {
+    unless ( $c->stash->{seqOpts} eq 'both' or
+             $c->stash->{seqOpts} eq 'bothNoMerge' or
+             $c->stash->{seqOpts} eq 'ls' or
+             $c->stash->{seqOpts} eq 'fs' ) {
       $c->log->debug( 'Search::Sequence::sequence_search: bad search option; returning to form' )
         if $c->debug;
       $c->stash->{seqSearchError} = 'You must use a valid search option';
@@ -81,28 +81,31 @@ sub sequence_search : Path {
 
     # if we have an evalue, we'll use that, unless we've been asked to use
     # the gathering threshold. Default to using an evalue of 1.0
-    if( defined $c->req->param('evalue') ) {
+    if ( defined $c->req->param('evalue') ) {
       $c->log->debug( 'Search::Sequence::sequence_search: got an evalue' )
         if $c->debug;
       
-      if( looks_like_number( $c->req->param('evalue') ) ) {
+      if ( looks_like_number( $c->req->param('evalue') ) ) {
         $c->log->debug( 'Search::Sequence::sequence_search: evalue looks like a number' )
           if $c->debug;
         $c->stash->{evalue} = $c->req->param('evalue');
-      } else {
+      }
+      else {
         $c->log->debug( 'Search::Sequence::sequence_search: bad evalue; returning to form' )
           if $c->debug;
         $c->stash->{seqSearchError} = 'You did not give a valid E-value';
         last CHECK;
       }
 
-    } elsif( defined $c->req->param('ga') and 
-             $c->req->param('ga') ) {
+    }
+    elsif ( defined $c->req->param('ga') and 
+            $c->req->param('ga') ) {
       $c->log->debug( 'Search::Sequence::sequence_search: using ga' )
         if $c->debug;
       $c->stash->{ga} = 1;
 
-    } else {
+    }
+    else {
       $c->log->debug( 'Search::Sequence::sequence_search: using default evalue' )
         if $c->debug;
       $c->stash->{evalue} = 1.0;
@@ -117,13 +120,13 @@ sub sequence_search : Path {
   #----------------------------------------
 
   # if there was an error, decide how to show it to the user
-  if( $c->stash->{seqSearchError} ) {
+  if ( $c->stash->{seqSearchError} ) {
 
     # if we're returning XML, we need to set a template to render the error
     # message. If we're emitting HTML, the end action (ultimately on Section) 
     # will take of us and return us to the HTML page containing search form 
     # and show the error message
-    if( $c->stash->{output_xml} ) {
+    if ( $c->stash->{output_xml} ) {
       $c->stash->{template} = 'rest/search/error_xml.tt';
       $c->res->content_type('text/xml');
     }
@@ -137,7 +140,7 @@ sub sequence_search : Path {
   my $submissionStatus = $c->forward( 'queue_seq_search' );
 
   # and see if we managed it...
-  if( $submissionStatus < 0 ) {
+  if ( $submissionStatus < 0 ) {
 
     $c->log->debug( 'Search::Sequence::sequence_search: problem with submission; re-rendering form' )
       if $c->debug;       
@@ -146,17 +149,18 @@ sub sequence_search : Path {
 
     # point to the XML error template if emitting XML, otherwise, we're just 
     # done here 
-    if( $c->stash->{output_xml} ) {
+    if ( $c->stash->{output_xml} ) {
       $c->stash->{template} = 'rest/search/error_xml.tt';
       $c->res->content_type('text/xml');
     }
   
-  } else {
+  }
+  else {
 
     $c->log->debug( 'Search::Sequence::sequence_search: sequence search submitted; polling' )
       if $c->debug; 
 
-    if( $c->stash->{output_xml} ) {
+    if ( $c->stash->{output_xml} ) {
       $c->stash->{template} = 'rest/search/poll_xml.tt';
       $c->res->content_type('text/xml');
     } else {
@@ -176,7 +180,7 @@ Returns the result of the specified job(s).
 =cut
 
 sub results : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # try to retrieve the results for the specified jobs
   my @jobIds = $c->req->param( 'jobId' );
@@ -186,19 +190,20 @@ sub results : Local {
     $c->forward( 'handleResults', [ $job_id  ] ) if $c->stash->{results};
   }
 
-  if( $c->stash->{output_xml} ) {
+  # should we output XML ?
+  if ( $c->stash->{output_xml} ) {
     $c->stash->{template} = 'rest/search/results_xml.tt';
     $c->res->content_type('text/xml');    
-  } else {
-
-    if( scalar keys %{ $c->stash->{results} } ) {
+  }
+  # no; render the HTML template
+  else {
+    if ( scalar keys %{ $c->stash->{results} } ) {
       $c->stash->{template} = 'pages/search/sequence/results.tt';
       $c->forward( 'generateGraphic' );
     } else {
       $c->log->debug( 'Search::Sequence::results: no results found' ) if $c->debug;
       $c->stash->{template} = 'pages/search/sequence/error.tt';
     }
-
   }
 
 }
@@ -216,11 +221,11 @@ there was a specific problem.
 =cut
 
 sub parse_sequence : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # make sure we actually have a sequence...
-  return unless( defined $c->req->param('seq') and
-                 $c->req->param('seq') ne '' );
+  return unless ( defined $c->req->param('seq') and
+                  $c->req->param('seq') ne '' );
   
   # break the string into individual lines and get rid of any FASTA header lines
   # before recombining
@@ -234,7 +239,7 @@ sub parse_sequence : Private {
 
   # check the length of the sequence at this point. If it's too long, bail
   my $length = length $seq;
-  if( $length > $this->{maxSeqLength} ) {
+  if ( $length > $this->{maxSeqLength} ) {
     $c->stash->{seqSearchError} = 
       'Your sequence is too long. The maximum length of search sequences is ' .
       $this->{maxSeqLength} . '. Please try again with a shorter sequence';
@@ -245,11 +250,11 @@ sub parse_sequence : Private {
   # commonly get, a bloody great DNA sequence. Count the number of potential 
   # nucleotides in the sequence and see what proportion of the total sequence
   # that makes
-  my( $nucleotide_count )= $seq =~ tr/ATCGU/ATCGU/;
+  my ( $nucleotide_count )= $seq =~ tr/ATCGU/ATCGU/;
   
   # if the sequence is more than 100 residues (or bases) and is more than
   # 95% nucleotides, there's a problem
-  if( $length > 100 and $nucleotide_count / $length > 0.95 ) {
+  if ( $length > 100 and $nucleotide_count / $length > 0.95 ) {
     $c->stash->{seqSearchError} = 
       'Your sequence does not look like protein. Please upload a protein sequence';
     return;
@@ -257,7 +262,7 @@ sub parse_sequence : Private {
 
   # finally, check that the sequence string contains only letters. Bail if it 
   # has anything else in it
-  unless( $seq =~ m/^[A-Za-z]+$/ ) {
+  unless ( $seq =~ m/^[A-Za-z]+$/ ) {
     $c->stash->{seqSearchError} = 
       'Invalid sequence. Please try again with a valid amino-acid sequence';
     return;
@@ -278,66 +283,68 @@ to another queue.
 =cut
 
 sub queue_seq_search : Private {
-  my( $this, $c ) = @_;
-
+  my ( $this, $c ) = @_;
+  
   # first, check there's room on the queue
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->find( { status => 'PEND' },
                      { select => [ { count => 'status' } ],
                        as     => [ 'numberPending' ] } );
-
+  
   $c->stash->{numberPending} = $rs->get_column( 'numberPending' );
   $c->log->debug( 'Search::Sequence::queue_seq_search: |' . 
                   $c->stash->{numberPending} . '| jobs pending' ) if $c->debug;
-
-  if( $c->stash->{numberPending} >= $this->{pendingLimit} ) {
-    $c->log->debug( 'Search::Sequence::queue_seq_search: too many jobs in queue (' .
-                    $c->stash->{numberPending} . ')' ) if $c->debug;
+  
+  if ( $c->stash->{numberPending} >= $this->{pendingLimit} ) {
+    $c->log->debug( 'Search::Sequence::queue_seq_search: too many jobs in queue ('
+                    . $c->stash->{numberPending} . ')' ) if $c->debug;
     $c->stash->{seqSearchError} = 
       'There are currently too many jobs in the sequence search queue. ' . 
       'Please try again in a little while';
     return SUBMISSION_ERROR;
   }
-
+  
   #----------------------------------------
-
+  
   # ok. There's room on the queue, so we can submit the hmmer job and, if 
   # required, the blast job
   my @jobs;
    
   my $status = $c->forward( 'queue_pfam_a' );
-  if( ref $status ) {
+  if ( ref $status ) {
     push @jobs, $status;
-  } else {
+  }
+  else {
     $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-A search' )
       if $c->debug;
     $c->stash->{seqSearchError} = 'There was a problem queuing your Pfam-A search';
     return SUBMISSION_ERROR;
   } 
-
-  if( $c->stash->{searchBs} ) {
+  
+  if ( $c->stash->{searchBs} ) {
     $status = $c->forward( 'queue_pfam_b' );
-    if( ref $status ) {
+    if ( ref $status ) {
       push @jobs, $status;
-    } else {
+    }
+    else {
       $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-B search' )
         if $c->debug;
       $c->stash->{seqSearchError} = 'There was a problem queuing your Pfam-B search';
       return SUBMISSION_ERROR;
     } 
   }
-
+  
   #----------------------------------------
-
+  
   # if we get to here, the job submissions worked. Now build a job status data 
   # structure that we'll convert to JSON and hand back to the javascript on the 
   # client side
   $c->stash->{jobStatus}     = \@jobs;
   $c->stash->{jobStatusJSON} = objToJson( \@jobs );
-
-  $c->log->debug( 'json string: |' . $c->stash->{jobStatusJSON} . '|' ) 
+  
+  $c->log->debug( 'Search::Sequence::queue_seq_search: json string: |' . $c->stash->{jobStatusJSON} . '|' ) 
     if $c->debug;
-
+  
   return SUBMISSION_SUCCESS;
 }
 
@@ -350,18 +357,18 @@ Submits a pfam A search.
 =cut
 
 sub queue_pfam_a : Private {
-  my( $this, $c ) = @_;
-
+  my ( $this, $c ) = @_;
+  
   # make a guess at the runtime for the job
   my $estimated_time = int( length( $c->stash->{seq} ) / 100 );
-  ( $estimated_time *= 2 ) if( $c->stash->{seqOpts} eq 'both' or
-                               $c->stash->{seqOpts} eq 'bothNoMerge' );
+  ( $estimated_time *= 2 ) if ( $c->stash->{seqOpts} eq 'both' or
+                                $c->stash->{seqOpts} eq 'bothNoMerge' );
   $c->log->debug(  q(Search::Sequence::queue_pfam_a: estimated search time: ) .
                   qq(|$estimated_time| seconds) ) if $c->debug;
-
+  
   # generate a job ID
   my $job_id = Data::UUID->new()->create_str();
-
+  
   # build the command options to run
   my $opts;
   $opts .=  q( --mode ) . $c->stash->{seqOpts} if( $c->stash->{seqOpts} ne 'both' and 
@@ -377,21 +384,21 @@ sub queue_pfam_a : Private {
                    estimated_time => $estimated_time,
                    opened         => \'NOW()',
                    status         => 'PEND' };
-
+  
   # queue it up and retrieve the row in the job_history table for this job
   my $history_row = $c->forward( 'queue_job', [ $job_spec ] );
-
+  
   # build a job status data structure that we'll convert to JSON and hand back
   # to the javascript on the client side
   my $job_status;
-
+  
   # first, check if the submission was a success...
-  if( ref $history_row ) {
+  if ( ref $history_row ) {
     $c->log->debug( 'Search::Sequence::queue_pfam_a: successfully queued job' )
       if $c->debug;
     
     $job_status = { checkURI      => $c->uri_for( '/jobmanager/checkStatus' )->as_string,
-                    doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,    
+                    doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,
                     estimatedTime => $estimated_time,
                     interval      => $this->{pollingInterval},
                     jobId         => $job_id,
@@ -399,7 +406,7 @@ sub queue_pfam_a : Private {
                     jobClass      => 'pfamASearch',
                     opened        => $history_row->opened };
   }
-
+  
   return $job_status;
 }
 
@@ -412,7 +419,7 @@ Submits a pfam B search.
 =cut
 
 sub queue_pfam_b : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # make a guess at the runtime for the job
   my $estimated_time = int( length( $c->stash->{seq} ) / 100 );
@@ -437,12 +444,12 @@ sub queue_pfam_b : Private {
   my $job_status;
 
   # first, check if the submission was a success...
-  if( ref $history_row ) {
+  if ( ref $history_row ) {
     $c->log->debug( 'Search::Sequence::queue_pfam_b: successfully queued job' )
       if $c->debug;
     
     $job_status = { checkURI      => $c->uri_for( '/jobmanager/checkStatus' )->as_string,
-                    doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,    
+                    doneURI       => $c->uri_for( '/search/sequence/results' )->as_string,
                     estimatedTime => $estimated_time,
                     interval      => $this->{pollingInterval},
                     jobId         => $job_id,
@@ -466,7 +473,7 @@ if the submission is successful, -1 (constant SEARCH_ERROR) otherwise.
 =cut
 
 sub queue_job : Private {
-  my( $this, $c, $job_spec ) = @_;
+  my ( $this, $c, $job_spec ) = @_;
   
   # set up an anonymous code block to define a transaction. We want to make sure
   # that we can add a row to both tables before we know that this job has been 
@@ -474,14 +481,14 @@ sub queue_job : Private {
 
   # somewhere to stuff the rows from the job_history and job_stream tables, 
   # if we get them
-  my( $job_history, $job_stream );
+  my ( $job_history, $job_stream );
 
   my $transaction = sub {
     $c->log->debug( 'Search::Sequence::queue_job: starting transaction...' )
       if $c->debug;
 
     # add this job to the tracking table
-    $job_history = $c->model('WebUser::JobHistory')
+    $job_history = $c->model( 'WebUser::JobHistory' )
                      ->create( $job_spec );
                                    
     die 'error: failed to add job_history row' unless defined $job_history;
@@ -490,7 +497,7 @@ sub queue_job : Private {
       if $c->debug;
 
     # and to the input/output table
-    my $job_stream = $c->model('WebUser::JobStream')
+    my $job_stream = $c->model( 'WebUser::JobStream' )
                        ->create( { id    => $job_history->id,
                                    stdin => $c->stash->{seq} || q() } );
 
@@ -507,8 +514,8 @@ sub queue_job : Private {
 
     die "error: couldn't retrieve job history row" unless defined $history_row;
 
-    $c->log->debug( 'Search::Sequence::queue_job: job opened: |' .
-                    $history_row->opened . '|' ) if $c->debug;
+    $c->log->debug( 'Search::Sequence::queue_job: job opened: |'
+                    . $history_row->opened . '|' ) if $c->debug;
   
     return $history_row; # return from anonymous transaction sub 
   };
@@ -517,18 +524,19 @@ sub queue_job : Private {
   eval {
     $history_row = $c->model('PfamDB')->schema->txn_do( $transaction );
   };
-  if( $@ ) {
+  if ( $@ ) {
     $c->log->error( "Search::Sequence::queue_job: error in transaction: |$@|" )
       if $c->debug;
 
-    if( defined $job_history ) {
+    if ( defined $job_history ) {
       $job_history->status('FAIL');
       
       my $updated = $job_history->update;
-      if( $updated ) {
+      if ( $updated ) {
         $c->log->debug( 'Search::Sequence::queue_job: successfully rolled back job_history' )
           if $c->debug;
-      } else {
+      }
+      else {
         $c->log->warn( 'Search::Sequence::queue_job: failed to roll back job_history' )
           if $c->debug;
       }
@@ -549,7 +557,7 @@ Generate the Pfam graphic from the generic results.
 =cut
 
 sub generateGraphic : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # Convert the generic results into BioPerl objects and subsequently generate 
   # the graphic.... This may seem a waste, but it abstracts us from changes to 
@@ -624,14 +632,15 @@ for generating the results tables and graphics.
 =cut
 
 sub handleResults : Private {
-  my( $this, $c, $jobId ) = @_;
+  my ( $this, $c, $jobId ) = @_;
 
   $c->log->debug( "Search::Sequence::handleResults: handling results for |$jobId|" )
     if $c->debug;
   
   if( $c->{stash}->{results}->{$jobId}->{method} eq 'hmmer' ) {
     $c->forward( 'handlePfamAResults', [ $jobId ] );
-  } elsif( $c->{stash}->{results}->{$jobId}->{method} eq 'pfamb' ) {
+  }
+  elsif ( $c->{stash}->{results}->{$jobId}->{method} eq 'pfamb' ) {
     $c->forward( 'handlePfamBResults', [ $jobId ] );
   }
 
@@ -646,10 +655,10 @@ Does exactly what it says on the tin. Rob's handiwork...
 =cut
 
 sub handlePfamAResults : Private {
-  my( $this, $c, $jobId ) = @_;
+  my ( $this, $c, $jobId ) = @_;
   
   #We have performed a hmmer search, must be a pfamA
-  my( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{options} =~ /-e (\S+)/;
+  my ( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{options} =~ /-e (\S+)/;
   
   #Are we using GA cut-offs of Evalues?
   $c->stash->{evalue} = $userEvalue ? $userEvalue : 0;
@@ -659,67 +668,72 @@ sub handlePfamAResults : Private {
   my @results = split(/\n/, $c->{stash}->{results}->{$jobId}->{rawData});
   
   my @rawPfamAResults;
-  while( @results ) {
+  while ( @results ) {
     my @set = splice( @results, 0, 4 );
     
-    my( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
-        $evalue, $pfamA_id, $aliHmm, $aliMatch, $aliSeq, $s, $pfamData );
+    my ( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
+         $evalue, $pfamA_id, $aliHmm, $aliMatch, $aliSeq, $s, $pfamData );
     foreach ( @set ) {
       
       #Line 1 is the domain positional information, lines 2-4 contain the 
       #actual alignment
       # UserSeq     33   142 PF00169.20      1    92 ls    42.8   1.2e-09  PH
-      if( /^\S+\s+(\d+)\s+(\d+)\s+(PF\d{5})\.\d+\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/ ) {
+      if ( /^\S+\s+(\d+)\s+(\d+)\s+(PF\d{5})\.\d+\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/ ) {
         
         ( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
           $evalue, $pfamA_id ) = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
           
-        unless( $3 =~ /^PF\d{5}$/ ) {
+        unless ( $3 =~ /^PF\d{5}$/ ) {
           $c->log->warn( "Search::Sequence::handlePfamAResults: couldn't find a Pfam accession: |$3|" );
           next;
         } 
         
-        $pfamData = $c->model('PfamDB::Pfam')
+        $pfamData = $c->model( 'PfamDB::Pfam' )
                       ->find( { pfamA_acc => $pfamA_acc } );
                       
-        if( $mode eq 'ls' ) {
+        if ( $mode eq 'ls' ) {
           $s = $pfamData->ls_domain_GA < $bits ? 1 : 0; 
-        }elsif( $mode eq 'fs' ) {
+        }
+        elsif ( $mode eq 'fs' ) {
           $s = $pfamData->fs_domain_GA < $bits ? 1 : 0; 
         }
-      } elsif( /\#HMM/ ) {
+      }
+      elsif ( /\#HMM/ ) {
         $aliHmm = $_;
         $aliHmm .= "-*" if $aliHmm =~ m/\<$/; 
         $aliHmm .= "*"  if $aliHmm =~ m/\<\-$/; 
-      } elsif( /\#MATCH/ ) {
+      }
+      elsif ( /\#MATCH/ ) {
         $aliMatch = $_; 
-      } elsif( /\#SEQ/ ) {
+      }
+      elsif ( /\#SEQ/ ) {
         $aliSeq = $_; 
       }
     }
     
     #Now shove all of the data elements into an anonymous hash
     my $results = { pfama_id     => $pfamA_id,
-                             pfama_acc    => $pfamA_acc,
-                             start        => $start,
-                             end          => $end,
-                             hmm_start    => $hmmStart,
-                             hmm_end      => $hmmEnd,
-                             hmm_length   => $pfamData->model_length,
-                             mode         => $mode,
-                             significant  => $s,
-                             bits         => $bits,
-                             evalue       => $evalue,
-                             type         => $pfamData->type,
-                             desc         => $pfamData->description,
-                             aliMatch     => $aliMatch,
-                             aliHmm       => $aliHmm,
-                             aliSeq       => $aliSeq };
+                    pfama_acc    => $pfamA_acc,
+                    start        => $start,
+                    end          => $end,
+                    hmm_start    => $hmmStart,
+                    hmm_end      => $hmmEnd,
+                    hmm_length   => $pfamData->model_length,
+                    mode         => $mode,
+                    significant  => $s,
+                    bits         => $bits,
+                    evalue       => $evalue,
+                    type         => $pfamData->type,
+                    desc         => $pfamData->description,
+                    aliMatch     => $aliMatch,
+                    aliHmm       => $aliHmm,
+                    aliSeq       => $aliSeq };
 
     # add data that's dependent on model type
-    if( $mode eq 'ls' ) {
+    if ( $mode eq 'ls' ) {
       $results->{ls_domain_GA} = $pfamData->ls_domain_GA;
-    } elsif( $mode eq 'fs' ) {    
+    }
+    elsif ( $mode eq 'fs' ) {    
       $results->{fs_domain_GA} = $pfamData->fs_domain_GA;
     }
     
@@ -727,8 +741,8 @@ sub handlePfamAResults : Private {
     push @rawPfamAResults, $results; 
   }
 
-  $c->log->debug( 'Search::Sequence::handlePfamAResults: got ' . scalar @rawPfamAResults . 
-                  ' PfamA results' ) if $c->debug;
+  $c->log->debug( 'Search::Sequence::handlePfamAResults: got '
+                  . scalar @rawPfamAResults . ' PfamA results' ) if $c->debug;
   
   $c->stash->{genPfamARes} = \@rawPfamAResults;
 }
@@ -742,7 +756,7 @@ Does exactly what it says on the tin. Rob's handiwork...
 =cut
 
 sub handlePfamBResults : Private {
-  my( $this, $c, $jobId ) = @_;
+  my ( $this, $c, $jobId ) = @_;
   
   # flag the fact that we're searching PfamBs in the stash, so the template
   # can write some clever text...
@@ -751,16 +765,18 @@ sub handlePfamBResults : Private {
   #Grr - Write results to file as this is the only way we can get BioPerl to read it.
   #However, bioperl does a good jobs (most of the time, although some wu-blast errors cause expections to be thrown  
   my $tmpRoot;
-  if( $ENV{PFAM_DOMAIN_IMAGES} ) {
+  if ( $ENV{PFAM_DOMAIN_IMAGES} ) {
     $tmpRoot = $ENV{PFAM_DOMAIN_IMAGES};
-  } elsif( $ENV{DOCUMENT_ROOT} ) {
+  }
+  elsif ( $ENV{DOCUMENT_ROOT} ) {
     $tmpRoot = "$ENV{DOCUMENT_ROOT}/tmp/pfam";
-  } else {
+  }
+  else {
     die q(Can't set a temp directory for muscle output);
   }
   ( $tmpRoot ) = $tmpRoot =~ m|([a-z0-9_\./]+)|i;
   
-  my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpRoot );
+  my ( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpRoot );
   print $tmpFh $c->stash->{results}->{$jobId}->{rawData};
   close $tmpFh;
   
@@ -771,18 +787,18 @@ sub handlePfamBResults : Private {
                                             -signif => 0.001 );
   unlink( $tmpFile );
   
-  while( my $result = $searchio->next_result ) {
+  while ( my $result = $searchio->next_result ) {
     #$c->log->debug( 'Search::Sequence::handlePfamBResults: Pfam-B Query sequence: ' . 
     #                $result->query_name ) if $c->debug;
-    while( my $hit = $result->next_hit ) {
-      my( $pfamB_acc, $pfamB_id ) = split ';', $hit->description;
+    while ( my $hit = $result->next_hit ) {
+      my ( $pfamB_acc, $pfamB_id ) = split ';', $hit->description;
        
       HIT: while( my $hsp = $hit->next_hsp ) {
-        if($results{$pfamB_acc}){
+        if ($results{$pfamB_acc}){
           foreach my $r (@{$results{$pfamB_acc}}){
-            next HIT if( ( $r->{start} >= $hsp->start and $r->{start} <= $hsp->end ) or
-                         ( $r->{end}   >= $hsp->start and $r->{end}   <= $hsp->end ) or
-                         ( $r->{start} <= $hsp->start and $r->{end}   >= $hsp->end ) );          
+            next HIT if ( ( $r->{start} >= $hsp->start and $r->{start} <= $hsp->end ) or
+                          ( $r->{end}   >= $hsp->start and $r->{end}   <= $hsp->end ) or
+                          ( $r->{start} <= $hsp->start and $r->{end}   >= $hsp->end ) );          
           }
         }
         
