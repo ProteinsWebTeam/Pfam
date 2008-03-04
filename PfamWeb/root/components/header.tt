@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.27 2007-11-13 16:42:25 jt6 Exp $
+# $Id: header.tt,v 1.28 2008-03-04 09:59:25 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -36,27 +36,27 @@ staticUri = c.uri_for( "/static" );
 
   <div id="navbar" class="column">
     <ul>
-    [% FOREACH navItem IN navItems %]
+    [% FOREACH navItem IN navItems -%]
       <li>
-        [% IF c.stash.nav == navItem %]
+        [% IF c.stash.nav == navItem -%]
           <a class="here" href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
-        [% ELSE %]
+        [% ELSE -%]
           <a href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
         [% END;
-           IF ! loop.last %]&nbsp;|&nbsp;[% END %]
+        IF ! loop.last %]&nbsp;|&nbsp;[% END -%]
        </li>
-    [% END %]
+    [% END -%]
     </ul>
   </div>
   
-  <div id="siteLogoHolder" class="column">
-    <a href="http://www.sanger.ac.uk/">
-      <img alt="Wellcome Trust Sanger Institute" 
+  <div class="siteLogoHolder column">
+    <a href="[% c.config.site_home %]">
+      <img alt="[% c.config.site_name %]" 
            id="siteLogo" 
            src="[% staticUri %]/images/blank.gif" /></a>
   </div>
 
-  <div id="pfamLogoHolder" class="column">
+  <div class="pfamLogoHolder column">
     <a href="[% c.uri_for( "/" ) %]">
       <img alt="Pfam" 
            id="pfamLogo" 
@@ -87,10 +87,7 @@ staticUri = c.uri_for( "/static" );
   // ]]>
 </script>
 
-[% # dump out the name of the host that served the file %] 
-<!-- [% c.config.server_name %] / [% c.config.server_pid %] -->
+[%- # dump out the name of the host that served the file -%] 
+[%- # <!-- {% c.config.server_name %} / {% c.config.server_pid %} --> -%]
 
 <!-- header end -->
-
-  
-
