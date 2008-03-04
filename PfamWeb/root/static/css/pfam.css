@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.67 2008-02-18 16:03:17 jt6 Exp $
+   $Id: pfam.css,v 1.68 2008-03-04 10:02:25 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -129,28 +129,28 @@ h4, h5, h6 {
   width: 100%;
 }
 
-#siteLogoHolder { /* left */
+div.siteLogoHolder { /* left */
   width: 250px;
   margin-left: -100%;
   left: 250px;
   padding: 10px 0 0 10px;
 }
 
-#pfamLogoHolder { /* right */
+div.pfamLogoHolder { /* right */
   width: 250px;
   margin-right: -250px;
   padding: 10px 0 0 0;
 }
 
-#header > #siteLogoHolder {
+#header > div.siteLogoHolder {
   left: -250px;
 }
 
 /* we need the right "column" to be the same width as the left in order to 
  * centre the navbar, but then we need to push the contents of the right column
  * back right to account for that */
-#pfamLogoHolder a,
-#pfamLogoHolder #searchBox {
+div.pfamLogoHolder a,
+div.pfamLogoHolder #searchBox {
   margin-left: 100px;
 }
 
@@ -341,6 +341,7 @@ div.jumpSpinner {
 
 #siteFooter {
   margin: 0.4em 0 0 0;
+  padding: 0 0 0.4em 0;
   text-align: center;
   font-size: x-small;
 }
