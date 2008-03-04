@@ -1,0 +1,115 @@
+
+Submitting Pfam sequence searches programmatically
+
+This is an example of submitting a sequence to the Pfam sequence search service
+using command line tools. Here we're using the unix utility "curl" to submit
+requests and retrieve results but we're not parsing the resulting XML in any
+way.
+
+First, save your unformatted sequence into a plain text file, something like:
+
+shell% cat test.seq 
+MMASTENNEKDNFMRDTASRSKKSRRRSLWIAAGAVPTAIALSLSLASPA
+AVAQSSFGSSDIIDSGVLDSITRGLTDYLTPRDEALPAGEVTYPAIEGLP
+AGVRVNSAEYVTSHHVVLSIQSAAMPERPIKVQLLLPRDWYSSPDRDFPE
+IWALDGLRAIEKQSGWTIETNIEQFFADKNAIVVLPVGGESSFYTDWNEP
+NNGKNYQWETFLTEELAPILDKGFRSNGERAITGISMGGTAAVNIATHNP
+EMFNFVGSFSGYLDTTSNGMPAAIGAALADAGGYNVNAMWGPAGSERWLE
+NDPKRNVDQLRGKQVYVSAGSGADDYGQDGSVATGPANAAGVGLELISRM
+TSQTFVDAANGAGVNVIANFRPSGVHAWPYWQFEMTQAWPYMADSLGMSR
+EDRGADCVALGAIADATADGSLGSCLNNEYLVANGVGRAQDFTNGRAYWS
+PNTGAFGLFGRINARYSELGGPDSWLGFPKTRELSTPDGRGRYVHFENGS
+IYWSAATGPWEIPGDMFTAWGTQGYEAGGLGYPVGPAKDFNGGLAQEFQG
+GYVLRTPQNRAYWVRGAISAKYMEPGVATTLGFPTGNERLIPGGAFQEFT
+NGNIYWSASTGAHYILRGGIFDAWGAKGYEQGEYGWPTTDQTSIAAGGET
+ITFQNGTIRQVNGRIEESR
+shell%
+
+To submit the search:
+
+shell% curl -F seq='<test.seq' -F output=xml http://pfam.sanger.ac.uk/search/sequence
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs>
+  <job job_id="8B39C37A-BF7D-11DC-9E70-862FEF792CB2" type="pfamASearch">
+    <opened>2008-01-10 13:11:24</opened>
+    <estimated_time>12</estimated_time>
+    <result_url>http://pfam.sanger.ac.uk/search/sequence/results?output=xml&jobId=8B39C37A-BF7D-11DC-9E70-862FEF792CB2</result_url>
+  </job>
+</jobs>
+shell%
+
+The value of the parameter "seq" needs to be quoted so that its value is taken
+correctly from the file "test.seq". The second parameter can be added directly
+to the URL, as a regular CGI-style parameter, if you prefer.
+
+The XML that's returned from the first query gives a rough estimate of how long 
+the server thinks the search should take, along with a URL for retrieving 
+results:
+
+shell% curl 'http://pfam.sanger.ac.uk/search/sequence/results?output=xml&jobId=8B39C37A-BF7D-11DC-9E70-862FEF792CB2'
+<?xml version="1.0" encoding="UTF-8"?>
+<pfam pfam_release="22.0" pfam_release_date="2007-07-10">
+  <results job_id="8B39C37A-BF7D-11DC-9E70-862FEF792CB2">
+    <matches>
+      <protein length="669">
+        <database id="pfam" pfam_release="22.0" pfam_release_date="2007-07-10">
+          <match accession="PF08310" id="LGFP" type="Pfam-A" class="Repeat">
+            <location start="422" end="475" hmm_start="1" hmm_end="55" evalue="7.9e-10" bitscore="43.4" mode="ls" evidence="hmmer v2.3.2" significant="1" />
+            <location start="476" end="529" hmm_start="1" hmm_end="55" evalue="9.2e-30" bitscore="109.6" mode="ls" evidence="hmmer v2.3.2" significant="1" />
+            <location start="530" end="579" hmm_start="1" hmm_end="55" evalue="0.0049" bitscore="13.3" mode="ls" evidence="hmmer v2.3.2" significant="0" />
+            <location start="581" end="633" hmm_start="1" hmm_end="55" evalue="6.6e-25" bitscore="93.5" mode="ls" evidence="hmmer v2.3.2" significant="1" />
+            <location start="635" end="658" hmm_start="1" hmm_end="26" evalue="0.22" bitscore="7.5" mode="ls" evidence="hmmer v2.3.2" significant="0" />
+          </match>
+          <match accession="PF00756" id="Esterase" type="Pfam-A" class="Family">
+            <location start="114" end="392" hmm_start="1" hmm_end="307" evalue="1.8e-94" bitscore="324.6" mode="ls" evidence="hmmer v2.3.2" significant="1" />
+          </match>
+          <match accession="PF04310" id="MukB" type="Pfam-A" class="Family">
+            <location start="66" end="85" hmm_start="208" hmm_end="227" evalue="0.62" bitscore="3.6" mode="fs" evidence="hmmer v2.3.2" significant="0" />
+          </match>
+        </database>
+      </protein>
+    </matches>
+    <raw_output>
+      <![CDATA[
+UserSeq     66    85 PF04310.3     208   227 fs     3.6      0.62  MukB
+#HMM       *->GissAitRsLRDYLLPensG<-*
+#MATCH        G+   itR L DYL P+
+#SEQ          GVLDSITRGLTDYLTPRDEA    85
+UserSeq    114   392 PF00756.11      1   307 ls   324.6   1.8e-94  Esterase
+#HMM       *->pleylrhnSeal.grerkvqvyLPpdYyappgrkyPvlylLDGLrAqddatgwfqngpakealerlaaegeippviivgiPaGdessfysdwdlgqGarfylnategpgayayeMYtfltqELlPlldanfptapdgdrravaGqSmGGlgALylALkyPdrFgsVssfSPivnPssafgpvaIgaaLsdAGGydansmWGpkafsaylgeddgaWqegdpvllakalsaslralrIyldvGtredflgdqlpvei.........levaarnrelaeqlaargvgghdhvyy.FppsGgHdwaydmWraaLiaalidl<-*
+#MATCH         +++l+++S+a+++r++kvq++LP+d+y++p r +P +++LDGLrA++ ++gw +++++++++   a+++     +iv++P+G+essfy+dw ++          +++++y++e  tflt+EL P+ld+ f+ +++   ra++G+SmGG++A ++A ++P++F +V+sfS++++++s ++p aIgaaL+dAGGy+ n+mWGp        + +++W+e+dp  ++    + lr++ +y+ +G++ d++g + +v+ ++ +  + +le ++r+++++  ++++++g  + v ++F+psG+H w y  W++++++a +++
+#SEQ          HHVVLSIQSAAMpERPIKVQLLLPRDWYSSPDRDFPEIWALDGLRAIEKQSGWTIETNIEQFF---ADKN-----AIVVLPVGGESSFYTDWNEP----------NNGKNYQWE--TFLTEELAPILDKGFRSNGE---RAITGISMGGTAAVNIATHNPEMFNFVGSFSGYLDTTSNGMPAAIGAALADAGGYNVNAMWGP--------AGSERWLENDPKRNV----DQLRGKQVYVSAGSGADDYGQDGSVATgpanaagvgLELISRMTSQT--FVDAANGAGVNVIAnFRPSGVHAWPY--WQFEMTQAWPYM    392
+UserSeq    422   475 PF08310.2       1    55 ls    43.4   7.9e-10  LGFP
+#HMM       *->LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp<-*
+#MATCH        LG +  +E   ++GvGr q F +G  YWsp+TGA+    G I +++++lG+ +++
+#SEQ          LGSCLNNEYLVANGVGRAQDFTNGRAYWSPNTGAFGL-FGRINARYSELGGPDSW    475
+UserSeq    476   529 PF08310.2       1    55 ls   109.6   9.2e-30  LGFP
+#HMM       *->LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp<-*
+#MATCH        LGfP+t+E+ tpDG+Gr+++F++G+IYWs++TG++++ pG+++++Wg++G+E+G
+#SEQ          LGFPKTRELSTPDGRGRYVHFENGSIYWSAATGPWEI-PGDMFTAWGTQGYEAGG    529
+UserSeq    530   579 PF08310.2       1    55 ls    13.3    0.0049  LGFP
+#HMM       *->LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp<-*
+#MATCH        LG+P+++ ++ ++G    qeFqgG +  +pq  A+ V  GaI +k+ + G+++
+#SEQ          LGYPVGPAKDFNGG--LAQEFQGGYVLRTPQNRAYWV-RGAISAKYMEPGVAT--    579
+UserSeq    581   633 PF08310.2       1    55 ls    93.5   6.6e-25  LGFP
+#HMM       *->LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp<-*
+#MATCH        LGfP+++E  +p+G   fqeF +G+IYWs++TGAh +  G I+d+Wga+G+E+G+
+#SEQ          LGFPTGNERLIPGG--AFQEFTNGNIYWSASTGAHYILRGGIFDAWGAKGYEQGE    633
+UserSeq    635   658 PF08310.2       1    26 fs     7.5      0.22  LGFP
+#HMM       *->LGfPitdEavtpDGvGrfqeFqgGaI<-*
+#MATCH         G P+td++ ++ G G   +Fq+G+I
+#SEQ          -GWPTTDQTSIAAG-GETITFQNGTI    658
+      ]]>
+    </raw_output>
+  </results>
+</pfam>
+shell%
+
+If you visit that URL before the search is completed, you'll get back an XML
+document where the <results> element is empty. If there is a problem somewhere,
+the root element of the XML will be an <error> tag, the contents of which
+should give some idea of what the problem was.
+
+If you want to compare the contents of the XML with what you would get if you 
+ran the same search through the website, you can modify the results URL to
+remove "output=xml" and paste the new URL into a web browser.
