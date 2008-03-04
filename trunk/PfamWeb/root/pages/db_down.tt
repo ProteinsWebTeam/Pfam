@@ -4,7 +4,7 @@
 #
 # A simple page to say that the Pfam database is currently down.
 #
-# $Id: db_down.tt,v 1.1 2007-12-10 14:51:58 jt6 Exp $
+# $Id: db_down.tt,v 1.2 2008-03-04 10:01:24 jt6 Exp $
 
 META naked = 1;
 
@@ -18,23 +18,22 @@ staticUri = c.uri_for( "/static" );
 
   <head>
     <title>Pfam: Database unavailable</title>
-    <link rel="stylesheet" 
-          href="[% staticUri %]/css/pfam.css"
-          type="text/css" />
+    <link rel="stylesheet" type="text/css" href="[% staticUri %]/css/pfam.css" />
+    <link rel="stylesheet" type="text/css" href="[% staticUri %]/css/[% c.config.site %].css" /> 
   </head>
 
   <body>
 
     <div id="dbd">
 
-      <a style="float: left" href="http://www.sanger.ac.uk/">
-        <img alt="Wellcome Trust Sanger Institute" 
-             id="dbdSiteLogo"
+      <a class="siteLogoHolder" style="float: left" href="[% c.config.site_home %]">
+        <img alt="[% c.config.site_name %]" 
+             id="siteLogo"
              src="[% staticUri %]/images/blank.gif" /></a>
       
-      <a style="float: right" href="[% c.uri_for( "/" ) %]">
+      <a class="pfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
         <img alt="Pfam" 
-             id="dbdPfamLogo" 
+             id="pfamLogo" 
              src="[% staticUri %]/images/blank.gif" /></a>
 
       <div class="cleaner"><!-- empty --></div>
@@ -51,7 +50,11 @@ staticUri = c.uri_for( "/static" );
       </p>
     </div>
 
-    [% PROCESS components/footer.tt %]
+    [% TRY;
+      PROCESS "components/footer_${c.config.site}.tt";
+    CATCH file;
+      CALL c.log.error( "wrapper.tt: couldn't find the site-specific footer" );
+    END -%]
 
   </body>
 
