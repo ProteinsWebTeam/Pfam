@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.28 2007-11-12 17:06:41 jt6 Exp $
+# $Id: head.tt,v 1.29 2008-03-04 09:58:01 jt6 Exp $
 
 # these first meta tags are google webmasters verification tags. They are here
 # so that google can verify that we control the websites and we can control,
@@ -25,7 +25,7 @@
 IF refreshUri != "";
   delay = refreshDelay ? refreshDelay : 5; -%]
 <meta http-equiv="Refresh" content="[% delay %]; URL=[% refreshUri %]" />
-[% END %]
+[% END -%]
 
 <!-- ====================================================================== -->
 <!-- make the site RSS feed discoverable --> 
@@ -38,8 +38,8 @@ IF refreshUri != "";
 <!-- ====================================================================== -->
 <!-- load the common files first -->
 
-[% # use uri_for to get the root for the static directory
-   staticUri = c.uri_for( "/static" ); %]
+[%- # use uri_for to get the root for the static directory
+   staticUri = c.uri_for( "/static" ); -%]
 
 <!-- prototype -->
 <script type="text/javascript" src="[% staticUri %]/javascripts/prototype.js"></script>
@@ -118,6 +118,9 @@ END -%]
   END;
 END -%]
 <![endif]-->
+
+<!-- site-specific stylesheet -->
+<link rel="stylesheet" href="[% staticUri %]/css/[% c.config.site %].css" type="text/css" />
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
