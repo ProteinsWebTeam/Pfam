@@ -1,0 +1,15 @@
+[%
+# footer_sbc.tt
+# jt6 20080220 WTSI
+#
+# $Id: footer_sbc.tt,v 1.1 2008-03-04 10:00:43 jt6 Exp $
+%]
+
+<!-- footer start -->
+
+<div id="siteFooter">
+  <p>Comments or questions on the site? Send a mail to <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a></p>
+  <p class="spaced"><a href="http://www.stratresearch.se/">Foundation for Strategic Research</a></p>
+</div>
+
+<!-- footer end -->
