@@ -5,7 +5,7 @@
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.5 2007-11-13 16:40:55 jt6 Exp $
+# $Id: speciesTree.tt,v 1.6 2008-03-04 10:00:00 jt6 Exp $
 
 META naked = 1;
 
@@ -162,7 +162,7 @@ ELSE;
         CASE "C"; "clan";
       END %] has [% numSpecies %] species, which means that displaying the 
       interactive tree is not feasible, but you can still 
-      <a href="[% stUri %]/text?acc=[% acc %]&amp;loadTree=1">download</a>
+      <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">download</a>
       a text representation of the tree. Please note that, due to the 
       volume of data involved, this can still be slow.
     </p>
