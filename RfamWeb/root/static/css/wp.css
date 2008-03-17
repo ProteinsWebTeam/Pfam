@@ -1,0 +1,332 @@
+
+/* crudely style the whole block */
+#wpData {
+	background: white;
+	color: black;
+	line-height: 1.5em;
+  border: 1px solid #CCC;
+  padding: 0.4em;
+}
+
+#wpData a.external {
+	background: url(http://en.wikipedia.org/skins-1.5/monobook/external.png) center right no-repeat;
+	padding-right: 13px;
+}
+
+/* the following styles are ripped straight from en.wikipedia.org/skins-1.5/monobook/main.css
+   but with "#wpData" pre-pended, just in case they should class with existing rules...
+*/
+
+/* general styles */
+
+#wpData table {
+	font-size: 100%;
+	color: black;
+	/* we dont want the bottom borders of <h2>s to be visible through
+	   floated tables */
+	background-color: white;
+}
+#wpData a {
+	text-decoration: none;
+	color: #002bb8;
+	background: none;
+}
+#wpData a:visited {
+	color: #5a3696;
+}
+#wpData a:active {
+	color: #faa700;
+}
+#wpData a:hover {
+	text-decoration: underline;
+}
+#wpData a.stub {
+	color: #772233;
+}
+#wpData a.new, #p-personal a.new {
+	color: #ba0000;
+}
+#wpData a.new:visited, #p-personal a.new:visited {
+	color: #a55858;
+}
+
+#wpData img {
+	border: none;
+	vertical-align: middle;
+}
+/* @media screen, projection { */
+#wpData 	p {
+		margin: .4em 0 .5em 0;
+		line-height: 1.5em;
+	}
+/* } */
+#wpData p img {
+	margin: 0;
+}
+
+#wpData hr {
+	height: 1px;
+	color: #aaa;
+	background-color: #aaa;
+	border: 0;
+	margin: .2em 0 .2em 0;
+}
+
+#wpData h1, #wpData h2, #wpData h3, #wpData h4, #wpData h5, #wpData h6 {
+	color: black;
+	background: none;
+	font-weight: normal;
+	margin: 0;
+	padding-top: .5em;
+	padding-bottom: .17em;
+	border-bottom: 1px solid #aaa;
+}
+#wpData h1 { font-size: 188%; }
+#wpData h1 .editsection { font-size: 53%; }
+#wpData h2 { font-size: 150%; }
+#wpData h2 .editsection { font-size: 67%; }
+#wpData h3, #wpData h4, #wpData h5, #wpData h6 {
+	border-bottom: none;
+	font-weight: bold;
+}
+#wpData h3 { font-size: 132%; }
+#wpData h3 .editsection { font-size: 76%; font-weight: normal; }
+#wpData h4 { font-size: 116%; }
+#wpData h4 .editsection { font-size: 86%; font-weight: normal; }
+#wpData h5 { font-size: 100%; }
+#wpData h5 .editsection { font-weight: normal; }
+#wpData h6 { font-size: 80%;  }
+#wpData h6 .editsection { font-size: 125%; font-weight: normal; }
+
+/* actually, we don't want this at all. Although we try to edit it out of the HTML,
+   we will also hide it, just to be sure...
+#wpData .editsection {
+	float: right;
+	margin-left: 5px;
+}
+*/
+#wpData .editsection {
+	display: none;
+}
+
+#wpData ul {
+	line-height: 1.5em;
+	list-style-type: square;
+	margin: .3em 0 0 1.5em;
+	padding: 0;
+/* 	list-style-image: url(bullet.gif); */
+}
+#wpData ol {
+	line-height: 1.5em;
+	margin: .3em 0 0 3.2em;
+	padding: 0;
+	list-style-image: none;
+}
+#wpData li {
+	margin-bottom: .1em;
+}
+#wpData dt {
+	font-weight: bold;
+	margin-bottom: .1em;
+}
+#wpData dl {
+	margin-top: .2em;
+	margin-bottom: .5em;
+}
+#wpData dd {
+	line-height: 1.5em;
+	margin-left: 2em;
+	margin-bottom: .1em;
+}
+
+#wpData fieldset {
+	border: 1px solid #2f6fab;
+	margin: 1em 0 1em 0;
+	padding: 0 1em 1em;
+	line-height: 1.5em;
+}
+#wpData legend {
+	padding: .5em;
+	font-size: 95%;
+}
+#wpData form {
+	border: none;
+	margin: 0;
+}
+
+#wpData textarea {
+	width: 100%;
+	padding: .1em;
+}
+
+#wpData input.historysubmit {
+	padding: 0 .3em .3em .3em !important;
+	font-size: 94%;
+	cursor: pointer;
+	height: 1.7em !important;
+	margin-left: 1.6em;
+}
+#wpData select {
+	vertical-align: top;
+}
+#wpData abbr, #wpData acronym, #wpData .explain {
+	border-bottom: 1px dotted black;
+	color: black;
+	background: none;
+	cursor: help;
+}
+#wpData q {
+	font-family: Times, "Times New Roman", serif;
+	font-style: italic;
+}
+/* disabled for now
+blockquote {
+	font-family: Times, "Times New Roman", serif;
+	font-style: italic;
+}*/
+#wpData code {
+	background-color: #f9f9f9;
+}
+#wpData pre {
+	padding: 1em;
+	border: 1px dashed #2f6fab;
+	color: black;
+	background-color: #f9f9f9;
+	line-height: 1.1em;
+}
+
+/*
+** content styles
+*/
+
+#toc,
+#wpData .toc,
+#wpData .mw-warning {
+	border: 1px solid #aaa;
+	background-color: #f9f9f9;
+	padding: 5px;
+	font-size: 95%;
+}
+#toc h2,
+#wpData .toc h2 {
+	display: inline;
+	border: none;
+	padding: 0;
+	font-size: 100%;
+	font-weight: bold;
+}
+#toc #toctitle,
+#wpData .toc #toctitle,
+#toc .toctitle,
+#wpData .toc .toctitle {
+	text-align: center;
+}
+#toc ul,
+#wpData .toc ul {
+	list-style-type: none;
+	list-style-image: none;
+	margin-left: 0;
+	padding-left: 0;
+	text-align: left;
+}
+#toc ul ul,
+#wpData .toc ul ul {
+	margin: 0 0 0 2em;
+}
+#toc .toctoggle,
+#wpData .toc .toctoggle {
+	font-size: 94%;
+}
+
+#wpData .mw-warning {
+	margin-left: 50px;
+	margin-right: 50px;
+	text-align: center;
+}
+
+/* images */
+#wpData div.floatright, #wpData table.floatright {
+	clear: right;
+	float: right;
+	position: relative;
+	margin: 0 0 .5em .5em;
+	border: 0;
+/*
+	border: .5em solid white;
+	border-width: .5em 0 .8em 1.4em;
+*/
+}
+#wpData div.floatright p { font-style: italic; }
+#wpData div.floatleft, #wpData table.floatleft {
+	float: left;
+	clear: left;
+	position: relative;
+	margin: 0 .5em .5em 0;
+	border: 0;
+/*
+	margin: .3em .5em .5em 0;
+	border: .5em solid white;
+	border-width: .5em 1.4em .8em 0;
+*/
+}
+#wpData div.floatleft p { font-style: italic; }
+/* thumbnails */
+#wpData div.thumb {
+	margin-bottom: .5em;
+	border-style: solid;
+	border-color: white;
+	width: auto;
+}
+#wpData div.thumbinner {
+	border: 1px solid #ccc;
+	padding: 3px !important;
+	background-color: #f9f9f9;
+	font-size: 94%;
+	text-align: center;
+	overflow: hidden;
+}
+#wpData html .thumbimage {
+	border: 1px solid #ccc;
+}
+#wpData html .thumbcaption {
+	border: none;
+	text-align: left;
+	line-height: 1.4em;
+	padding: 3px !important;
+	font-size: 94%;
+}
+#wpData div.magnify {
+	float: right;
+	border: none !important;
+	background: none !important;
+}
+#wpData div.magnify a, #wpData div.magnify img {
+	display: block;
+	border: none !important;
+	background: none !important;
+}
+#wpData div.tright {
+	clear: right;
+	float: right;
+	border-width: .5em 0 .8em 1.4em;
+}
+#wpData div.tleft {
+	float: left;
+	clear: left;
+	margin-right: .5em;
+	border-width: .5em 1.4em .8em 0;
+}
+#wpData img.thumbborder {
+	border: 1px solid #dddddd;
+}
+#wpData .hiddenStructure {
+	display: none;
+	speak: none;
+}
+#wpData img.tex {
+	vertical-align: middle;
+}
+#wpData span.texhtml {
+	font-family: serif;
+}
+

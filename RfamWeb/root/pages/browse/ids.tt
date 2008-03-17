@@ -1,0 +1,15 @@
+[%
+# browseIds.tt
+# jt6 20060717 WTSI
+# 
+# builds a form selection field with a list of family IDs.
+#
+# $Id: ids.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+META naked = 1
+%]
+<select id="idSelection" size="15">
+[%- FOREACH pfam IN browse %]
+  <option value="[% pfam.pfamA_acc %]">[% pfam.pfamA_id %]</option>
+[%- END %]
+</select>

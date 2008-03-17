@@ -1,0 +1,304 @@
+
+[%
+# align.tt
+# jt6 20060411 WTSI
+#
+# block showing the family alignment.
+#
+# $Id: align.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+# shortcut to the alignment tools
+alignmentUri = c.uri_for( "/family/alignment" );
+%]
+
+<!-- start align block -->
+
+<div class="block" id="alignBlock">
+  <div class="handle">
+    <h1>Alignments</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      There are various ways to view or download the sequence alignments that
+      we store. You can use a sequence viewer to look at either the seed or
+      full alignment for the family, or you can look at a plain text version
+      of the sequence in a variety of different formats.
+      <span onclick="reveal( this, 'alignmentsNotes', false, true );"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="alignmentsNotes" style="display: none">
+      <h3>Viewing</h3>
+      <p>
+        You can choose from three different sequence viewers:
+      </p>
+      <dl>
+        <dt>
+          <a class="ext" href="http://www.jalview.org/">jalview</a>
+        </dt>
+        <dd>
+          a Java applet developed at the University of Dundee. You will
+          need <a class="ext" href="http://java.sun.com/">Java</a> installed
+          before running jalview
+        </dd>
+        <dt>
+          HTML
+        </dt>
+        <dd>
+          an HTML page showing the whole alignment.
+          <strong>Please note:</strong> full Pfam alignments can be <em>very</em>
+          large. These HTML views are extremely large and often cause problems
+          for browsers. Please use either jalview or the Pfam viewer if you have
+          trouble viewing the HTML version
+        </dd>
+        <dt>
+          Pfam viewer
+        </dt>
+        <dd>
+          an HTML-based viewer that uses 
+          <acronym title="Distributed Annotation System">DAS</acronym> 
+          to retrieve alignment fragments on request
+        </dd>
+      </dl>
+      <h3>Downloading</h3>
+      <p>
+        You can download (or view in your browser) a text representation of a
+        Pfam alignment in various formats:
+      </p>
+      <ul>
+        <li>Selex</li>
+        <li>Stockholm</li>
+        <li>FASTA</li>
+        <li>MSF</li>
+      </ul>
+      <p>
+        You can also change the order in which sequences are listed in the 
+        alignment, change how insertions are represented, alter the characters
+        that are used to represent gaps in sequences and, finally, choose 
+        whether to download the alignment or to view it in your browser 
+        directly.
+      </p>
+      <hr />
+    </div>
+
+    <h2>View options</h2>
+
+    <form id="viewerForm"
+          action="[% alignmentUri %]/download/html"
+          method="get">
+      <div>
+        <input type="hidden" name="acc" value="[% acc %]" />
+  
+        [% oe = 0 %]
+    	  <table class="details alignOpts" summary="Alignment display options">
+          <tbody>
+            [% IF entryType != 'B' %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Alignment:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="alnType" id="viewerTypeS" value="seed" checked="checked" />
+                  <label for="viewerTypeS">Seed ([% pfam.num_seed %])</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="alnType" id="viewerTypeF" value="full" />
+                  <label for="viewerTypeF">Full ([% pfam.num_full %])</label>
+                </span>
+      	      </td>
+            </tr>
+            [% END %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Viewer:</td>
+              <td>
+                <span class="button">
+                  <select name="viewer" id="viewer">
+                    <option value="jalview" selected="selected">jalview</option>
+                    <option value="html">HTML</option>
+                    [% IF entryType != 'B' %]
+                    <option value="viewer">Pfam viewer</option>
+                    [% END %]
+                  </select>
+                </span>
+                [%# this is a bit naughty... just pad this row to double the width %]
+                <span>&nbsp;</span>
+      	      </td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <input type="button" value="View" onclick="launch();" />
+  
+      </div>
+    </form>
+
+  	<script type="text/javascript">
+      // <![CDATA[
+      // although the form action looks like it will download the alignment,
+      // in fact we catch the submission here and decide, based on the form
+      // values, which URL to go to next.
+      function launch() {
+        if( $F("viewer") == "jalview" ) {
+        	url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
+          popUp( url, 'console', 800, 800, 'jalviewWin');
+      
+        } else if( $F("viewer") == "viewer" ) {
+        	url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
+          popUp( url, 'console', 800, 800, 'viewerWin');
+      
+        } else {
+        	$("viewerForm").submit();
+        }      
+        return false;
+      }
+      // ]]>
+    </script>
+
+    <h2>Formatting options</h2>
+
+    <form action="[% alignmentUri %]/download/format" method="get">
+      <div>
+        <input type="hidden" name="acc" value="[% acc %]" />
+
+        [% oe = 0 %]
+        <table class="details alignOpts" summary="Alignment formatting options">
+          <tbody>
+            [% IF entryType != 'B' %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Alignment:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="alnType" id="typeS" value="seed" checked="checked" />
+                  <label for="typeS">Seed ([% pfam.num_seed %])</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="alnType" id="typeF" value="full" />
+                  <label for="typeF">Full ([% pfam.num_full %])</label>
+                </span>
+      	      </td>
+            </tr>
+            [% END %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Format:</td>
+              <td>
+                <span class="button">
+                  <select name="format" id="format">
+                    <option value="pfam" selected="selected">Selex</option>
+                    <option value="stockholm">Stockholm</option>
+                    <option value="fasta">FASTA</option>
+                    <option value="msf">MSF</option>
+                  </select>
+                </span>
+      	      </td>
+            </tr>
+            [% IF entryType != 'B' %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Order:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="order" id="orderT" value="t" checked="checked" />
+                  <label for="orderT">Tree</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="order" id="orderA" value="a" />
+                  <label for="orderA">Alphabetical</label>
+                </span>
+      	      </td>
+            </tr>
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Sequence:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="case" id="caseL" value="l" checked="checked" />
+                  <label for="caseL">Inserts lower case</label>
+                </span>
+          			<span class="button">
+                  <input type="radio" name="case" id="caseU" value="u" />
+                  <label for="caseU">All upper case</label>
+                </span>
+      	      </td>
+            </tr>
+            [% END %]
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Gaps:</td>
+              <td>
+                <span class="button">
+                  <select name="gaps" id="gaps">
+                    <option value="default" selected="selected">Gaps as "." or "-" (mixed)</option>
+                    <option value="dots">Gaps as "." (dots)</option>
+                    <option value="dashes">Gaps as "-" (dashes)</option>
+                    <option value="none">No gaps (unaligned)</option>
+                  </select>
+                </span>
+      	      </td>
+            </tr>
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Download/view:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="download" id="downloadD" value="1" checked="checked" />
+                  <label for="downloadD">Download</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="download" id="downloadV" value="0" />
+                  <label for="downloadV">View</label>
+                </span>
+      	      </td>
+            </tr>
+          </tbody>
+        </table>    
+    
+        <input type="submit" value="Generate" />
+    
+      </div>
+    </form>
+
+    [% IF entryType != 'B' %]
+    <h2>Download options</h2>
+
+    <p>
+      <em>Very</em> large alignments can often cause problems for the formatting
+      tool above. If you find that downloading or viewing a large alignment is
+      problematic, you can also download a 
+      <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
+      Stockholm-format file containing the 
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
+        full</a> or 
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed">
+        seed</a> alignment for this family. 
+    </p>
+
+    <form action="[% alignmentUri %]/download/gzipped"
+          method="get">
+      <div>
+        <input type="hidden" name="acc" value="[% acc %]" />
+  
+        [% oe = 0 %]
+        <table class="details alignOpts" summary="Download options">
+          <tbody>
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Alignment:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="alnType" id="dlTypeS" value="seed" checked="checked" />
+                  <label for="dlTypeS">Seed ([% pfam.num_seed %])</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="alnType" id="dlTypeF" value="full" />
+                  <label for="dlTypeF">Full ([% pfam.num_full %])</label>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <input type="submit" value="Download" />
+  
+      </div>
+    </form>
+    [% END %]
+
+  </div>
+
+</div>
+
+<!-- end of align block -->

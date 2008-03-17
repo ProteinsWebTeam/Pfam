@@ -1,0 +1,53 @@
+
+[%
+# browseIndex.tt
+# jt6 20070426 WTSI
+# 
+# build a "browse" index page
+#
+# $Id: index.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+META title = "Browse Pfam";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+pages = { 'A' => 'F',
+          'G' => 'L',
+          'M' => 'S',
+          'T' => 'Z' };
+%]
+
+<!-- start of browse index page -->
+<div id="browseIndex">
+  
+  <h2>Browse Pfam</h2>
+  
+  <table summary="Browse the Rfam database">
+    <tbody>
+      <tr>
+        <td class="type">FAMILIES</td>
+        <td class="links">
+          [% FOREACH from IN pages.keys.sort;
+            to = pages.$from; %]
+          <a href="[% c.uri_for( '/browse', from => from, to => to ) | html %]">
+            [% from | ucfirst %] - [% to | ucfirst %]</a>
+          [% END %]
+        </td>
+      </tr>
+    </tbody>
+  </table>  
+  
+  <hr />
+  
+</div>
+
+<!-- end of browse index page -->
+

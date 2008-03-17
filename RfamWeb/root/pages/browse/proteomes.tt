@@ -1,0 +1,77 @@
+
+[%
+# browseProteome.tt
+# rdf 20061109 WTSI
+# 
+# build a "browse" page for Completed Proteomes
+#
+# $Id: proteomes.tt,v 1.1.1.1 2008-03-17 16:37:44 jt6 Exp $
+
+META title = "Browse Pfam proteomes";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+pages = [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+          "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+# shortcuts for URIs
+proteomeURI = c.uri_for( "/proteome" );
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar,
+                   pageURI = "#";
+%]
+
+<!-- start browse page -->
+
+<h1 class="pageHeader">Browse Pfam proteomes</h1>
+
+[% pageList %]
+
+<table class="details browse" summary="Browse proteomes">
+  <thead>
+    <tr>
+      <th rowspan="2">Species name</th>
+      <th rowspan="2">Kingdom</th>
+      <th rowspan="2">Proteome size</th>
+      <th colspan="2">Coverage (%)</th>
+    </tr>
+    <tr>
+      <th>Sequence</th>
+      <th>Residue</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% first = "";
+  FOREACH proteome IN browse;
+    initialLetter = proteome.species.split("").first | lower %]
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+  	  <td>
+        <a class="species" 
+           href="[% proteomeURI %]?taxId=[% proteome.ncbi_code %]"
+           [%- IF initialLetter != first -%]
+             name="[% initialLetter %]"
+             [%- first = initialLetter | lower;
+           END %]>[% proteome.species %]</a>
+       </td>
+      <td>[% proteome.grouping %]</td>
+      <td>[% proteome.total_genome_proteins %]</td>
+      <td>[% proteome.sequence_coverage %]</td>
+      <td>[% proteome.residue_coverage %]</td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<!-- end browse page -->

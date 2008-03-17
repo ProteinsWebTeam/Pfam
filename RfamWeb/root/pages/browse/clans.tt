@@ -1,0 +1,75 @@
+
+[%
+# browseClans.tt
+# jt6 20060821 WTSI
+# 
+# build a "browse" page for clans
+#
+# $Id: clans.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+META title = "Browse Pfam clans";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+lcChar = char | lower;
+
+pages = [ "numbers",
+          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+	        "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+# shortcuts for URIs
+clanURI = c.uri_for( "/clan" );
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar,
+                   pageURI = "#";
+%]
+
+<!-- start browse page -->
+
+<h1 class="pageHeader">Browse Pfam clans</h1>
+
+[% pageList %]
+
+<table class="details browse" summary="Browse Pfam clans">
+  <thead>
+    <tr class="caption">
+      <th>ID</th>
+      <th>Accession</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% first = "";
+  FOREACH clan IN browse;
+    IF clan.clan_id.match('^\d');
+      initialLetter = "numbers";
+    ELSE;
+	    initialLetter = clan.clan_id.split("").first | lower;
+    END %]
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+  	  <td>
+        <a [%- IF initialLetter != first %]name="[% initialLetter %]" 
+           id="[% initialLetter %]"[% first = initialLetter | lower %][% END %] 
+           href="[% clanURI %]?acc=[% clan.clan_acc %]">
+          [% clan.clan_id %]</a>
+      </td>
+      <td><a href="[% clanURI %]?acc=[% clan.clan_acc %]">[% clan.clan_acc %]</a></td>
+      <td>[% clan.clan_description %]</td>
+    </tr>
+  [% END # of FOREACH %]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<!-- end browse page -->

@@ -1,0 +1,25 @@
+[%
+# footer.tt
+# jt6 20060921 WTSI
+#
+# $Id: footer_janelia.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+%]
+
+<!-- footer start -->
+
+<div id="siteFooter">
+  <p>
+    Questions or comments:
+    <img src="[% c.uri_for( '/static/images/pfam-email.png' ) %]" 
+         alt="pfam webmaster email"
+         id="emailImage"/>
+  </p>
+  <p class="spaced">
+    <a href="http://www.hhmi.org/" 
+       title="HHMI"
+       onclick="window.open(this.getAttribute('href'), '_blank');return false;">
+      Howard Hughes Medical Institute</a>
+  </p>
+</div>
+
+<!-- footer end -->
