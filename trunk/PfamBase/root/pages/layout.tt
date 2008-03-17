@@ -1,0 +1,206 @@
+
+[%
+# layout.tt
+# jt6 20060406 WTSI
+# 
+# build a tab-layout page
+#
+# $Id: layout.tt,v 1.1.1.1 2008-03-17 15:36:36 jt6 Exp $
+
+USE String;
+USE date;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+requirements.css.push( "tab_layout.css" );
+requirements.cssIe.push( "tab_layout_ie.css" );
+
+# get the javascript for the curved corners from the shared area, but the CSS
+# from the application-specific area, so that we can have differently coloured
+# backgrounds
+sharedRequirements.js.push( "cb.js" );
+requirements.css.push( "cb.css" );
+
+#--------------------------------------
+# a BLOCK that will generate a sidebar tab
+
+BLOCK generateTab;
+
+  # see if the tab should be activated or not
+  suffix = String.new;
+  IF NOT active OR firstTab;
+    CALL suffix.append( "inactive" )  IF NOT active;
+    CALL suffix.append( " selected" ) IF firstTab;
+    CALL suffix.trim();
+  END
+-%]
+
+  <li id="[% blockName %]Selector"[% IF suffix %] class="[% suffix %]"[% END %]>
+    [% IF active;
+	    # this div is purely to avoid the IE box model bug... -%]
+      <div>
+        <span class="link" 
+              onclick="switchTab('[% blockName %]');">
+          [% blockTitle %]</span>
+      </div>
+    [% ELSE -%]
+      <div class="inactive">[% blockTitle %]</div>
+    [% END -%]
+  </li>
+
+[% END; # of BLOCK
+
+#--------------------------------------
+# actually generate the blocks for this page
+
+firstTab    = 1;
+tabsContent = String.new;
+pageContent = String.new;
+
+activity = {};
+
+FOREACH block IN layouts.${pageType}.blocks;
+
+  blockName  = block.keys.first;
+  blockFile  = blocks.${blockName};
+  blockTitle = block.values.first;
+
+  # build the contents of the tab, if it's active
+  
+  # if we're in debug mode, just try to render the file, without a safety net,
+  # so that we can see where the template breaks (if it breaks at all)
+
+  # a bit dangerous. If we happen to leave debugging on in the live server, we
+  # expose all sorts of stuff when we hit an error.
+  # jt6 20071212 WTSI. 
+  IF c.debug;
+    pageOutput = PROCESS $blockFile;
+    CALL pageContent.append( pageOutput );
+  ELSE;
+    # we're not debugging, so catch the errors from the template and carry on
+    TRY;
+      pageOutput = PROCESS $blockFile;
+      CALL pageContent.append( pageOutput );
+    CATCH;
+      CALL c.log.error( "layout.tt: Couldn't render template file \"$blockFile\"" );
+    END;
+  END;
+
+  blockActive = pageOutput ? 1 : 0;
+  activity.$blockName = blockActive;
+
+  # build the tab label
+  tabsOutput = PROCESS generateTab, active = blockActive;
+  CALL tabsContent.append( tabsOutput );
+
+  firstTab = 0;
+
+END; # of "FOREACH block"
+
+#--------------------------------------
+# add the icons
+
+PROCESS components/icons.tt;
+
+#--------------------------------------
+# and construct the page from the components that we've assembled
+
+%]
+<div id="tabTitle">
+  [%
+  titleFile = "components/blocks/${pageType}/title.tt";
+  TRY;
+    PROCESS $titleFile titleType="tab";
+  CATCH;
+    CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\" (page type \"$pageType\")" );
+  END
+  %]
+</div>
+
+<div id="loadingComponents" 
+     class="loading" 
+     style="display: none">
+  Loading page components<span id="loadingComponentsCount"></span>&hellip;
+</div>
+
+<div class="cleaner"><!-- empty --></div>
+
+<div id="wrap">
+
+  [% # this is only here to avoid the IE peekaboo bug... -%]
+  <div id="spacer">&nbsp;</div>
+
+  <div id="topBorder"><!-- empty --></div>
+
+  <div id="sidebar">
+    <ul>
+      [% tabsContent %]
+    </ul>
+
+  	[% PROCESS components/jumpBox.tt %]
+
+  </div> <!-- end of "sidebar" -->
+
+  <div id="content">
+    [% pageContent %]
+  </div> <!-- end of "content" -->
+
+  <div class="cleaner"></div>
+
+</div> <!-- end of "wrap" -->
+
+<!-- tab selection -->
+
+[% # do we want to highlight a particular tab ? %]
+<script type="text/javascript">
+  // <![CDATA[
+  section    = "[% pageType # the site section, e.g. family, protein, etc. %]";
+  showTab    = "[% showTab  # the tab, specified by a parameter %]";
+  if( ! ( showTab === undefined ) && $(showTab) ) {
+    switchTab( showTab );
+  } else if( $$('div.error').size() ) {
+  [%# see if there is an error message in the page. If there is, we walk back
+      up the DOM tree from that error message node until we find the "block"
+      that encloses it, grab the ID for that block and use the tab switcher
+      to select it... %]
+    $$('.error')
+      .first()
+      .ancestors()
+      .each( function( el ) {
+               if( el.hasClassName( "block" ) ) { 
+                 switchTab( el.id );
+               }
+             }
+           );
+  } else {
+    $A( document.getElementsByClassName( "block" ) )
+      .first()
+      .setStyle( { display: "block" } );
+    // no need to turn on the selector, because the first item in the list is
+    // set to visible anyway
+  }
+
+  // keep track of post-loading calls
+  
+  // register listeners for the start and end of each ajax call    
+  Ajax.Responders.register( {
+    onCreate: function() {
+      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
+      $('loadingComponents').show();
+    },
+    onComplete: function() {
+      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
+      if( Ajax.activeRequestCount < 1 ) {
+        $('loadingComponents').hide();
+      }
+    }
+  } );
+  // ]]>
+</script> 
+
+<!-- ====================================================================== -->
