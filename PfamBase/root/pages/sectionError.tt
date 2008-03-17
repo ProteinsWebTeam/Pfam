@@ -1,0 +1,53 @@
+
+[%
+# sectionError.tt
+# jt6 20060918 WTSI
+#
+# show an error report for one of the sections, e.g. family
+#
+# $Id: sectionError.tt,v 1.1.1.1 2008-03-17 15:36:36 jt6 Exp $
+%]
+
+<!-- start error report -->
+
+<div class="errorReport">
+
+  [% IF message;
+	  message;
+  ELSE -%]
+    <p>There was a problem loading the requested page.</p>
+  [%- END -%]
+
+  <p>
+    This could be due to an error in the site, or because you followed a broken 
+    link from within this website or on an external site that links to us. 
+    Alternatively you may have entered an accession or ID which does not exist
+		[%- IF c.req.param("acc") 
+		    OR c.req.param("id") 
+		    OR c.req.param("entry");
+      IF c.req.param( "acc" );
+        searchTerm = c.req.param( "acc" ) -%]
+        (accession &quot;<em>[% c.req.param( "acc" ) %]</em>&quot;).
+	    [%- ELSIF c.req.param( "id" );
+	      searchTerm = c.req.param( "id" ) -%]
+	      (ID &quot;<em>[% c.req.param( "id" ) %]</em>&quot;).
+	    [%- ELSE;
+	      searchTerm = c.req.param( "entry" ) -%]
+	      (&quot;<em>[% c.req.param( "entry" ) %]</em>&quot;).
+	    [%- END;
+    ELSE;
+		  ".";
+	  END -%]
+  </p>
+
+  <p>
+    You might like to go <a href="javascript:history.go(-1)">back</a> to the
+    previous page[% IF searchTerm %], 
+    <a href="[% c.uri_for( "/search", { query = searchTerm } ) %]">search</a> 
+    for the entry you&rsquo;re looking for[% END %] or report a broken link in
+    the site.
+  </p>
+
+</div>
+
+<!-- end error report -->

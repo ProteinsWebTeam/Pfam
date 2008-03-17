@@ -1,0 +1,21 @@
+
+[%
+# require.tt
+# jt6 20070313 WTSI
+# 
+# make sure that the "requirements" hash exists, along with all necessary arrays
+# within it
+#
+# $Id: require.tt,v 1.1.1.1 2008-03-17 15:36:36 jt6 Exp $
+
+UNLESS       requirements;                requirements          = {}; END;
+UNLESS       requirements.js;             requirements.js       = []; END;
+UNLESS       requirements.css ;           requirements.css      = []; END;
+UNLESS       requirements.cssIe ;         requirements.cssIe    = []; END;
+UNLESS       requirements.cssIeAll;       requirements.cssIeAll = []; END;
+UNLESS sharedRequirements;          sharedRequirements          = {}; END;
+UNLESS sharedRequirements.js;       sharedRequirements.js       = []; END;
+UNLESS sharedRequirements.css ;     sharedRequirements.css      = []; END;
+UNLESS sharedRequirements.cssIe ;   sharedRequirements.cssIe    = []; END;
+UNLESS sharedRequirements.cssIeAll; sharedRequirements.cssIeAll = []; END;
+%]
