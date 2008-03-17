@@ -33,6 +33,13 @@ __PACKAGE__->belongs_to(
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z2fTz1E2Md9PzpqMOUWKzw
 
+# add proxies to from LiteratureReferences table
+__PACKAGE__->belongs_to(
+  "auto_lit",
+  "RfamDB::LiteratureReferences",
+  { auto_lit => "auto_lit" },
+  { proxy    => [ qw( medline title author journal ) ] },
+);
 
 #-------------------------------------------------------------------------------
 
@@ -48,7 +55,7 @@ Jennifer Daub, C<jd7@sanger.ac.uk>
 Copyright (c) 2007: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk),
-         Paul Gardner, C<pg5@sanger.ac.uk>, Jennifer Daub, C<jd7@sanger.ac.uk>
+         Paul Gardner (pg5@sanger.ac.uk), Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

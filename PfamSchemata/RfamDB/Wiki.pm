@@ -24,6 +24,12 @@ __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" 
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LZa+tNhIZ26Dojg44qdEDQ
 
+__PACKAGE__->belongs_to(
+  "wikitext",
+  "RfamDB::Wikitext",
+  { auto_wiki => "auto_wiki" },
+  { proxy    => [ qw( text ) ] },
+);
 
 #-------------------------------------------------------------------------------
 
