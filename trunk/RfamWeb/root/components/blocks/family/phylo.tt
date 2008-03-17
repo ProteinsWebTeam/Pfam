@@ -1,0 +1,88 @@
+
+[%
+# phylo.tt
+# jt6 20060515 WTSI
+#
+# block showing the phylogenetic tree for a family
+#
+# $Id: phylo.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+treeUri = c.uri_for( "/family/tree" );
+%]
+
+<!-- start of phyloBlock -->
+
+<div class="block" id="phyloBlock">
+  <div class="handle">
+    <h1>Trees</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      This page displays the 
+      <acronym title="Unweighted Pair Group Method with Arithmetic mean">UPGMA</acronym>-based 
+      phylogenetic tree, generated using 
+      <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/quicktree/">
+        quicktree</a> for the given alignment.
+    </p> 
+    [% # the form that controls the tree display %]
+    <form id="phyloForm"
+          action="[% treeUri %]">
+      <div>
+        <span>
+          <input id="seedRb" 
+                 name="type"
+                 type="radio" 
+                 checked="checked" 
+                 value="seed" />
+          <label for="seedRb">Seed ([% pfam.num_seed %])</label>
+        </span>
+        <span>
+          <input id="fullRb" 
+                 name="type"
+                 type="radio" 
+                 value="full" />
+          <label for="fullRb">Full ([% pfam.num_full %])</label>
+        </span>
+        <input type="button"
+               onclick="treeSubmitter();"
+               value="Change tree" />
+      </div>
+    </form>
+
+    <div id="alignmentTree">
+      <p id="atph" class="loading">
+          Loading alignment tree...
+        </p>  
+    </div>
+
+    <script type="text/javascript">
+      // <![CDATA[
+      // set the options for the ajax call that populates the tree the first time
+      loadOptions.at.uri    = "[% treeUri %]";
+      loadOptions.at.params = { acc: "[% acc %]" };
+
+      // a function that submits subsequent requests 
+      treeSubmitter = function() {
+        var type = $("seedRb").checked ? "seed" : "full";
+        var u = new Ajax.Updater( 'alignmentTree', 
+                          '[% treeUri %]', 
+                          { method:     'get',
+                            parameters: { acc:     '[% acc %]',
+                                          alnType: type } 
+                          } );
+        return false;
+      };
+      // ]]>
+    </script>
+
+    <p>
+      <strong>Note:</strong> You can also download the data files for the
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc = acc } ) | html %]">seed</a> or the
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc = acc } ) | html %]">full</a>
+      trees.
+    </p>
+
+  </div>
+</div>
+
+<!-- end of phyloBlock -->

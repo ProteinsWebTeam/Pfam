@@ -1,0 +1,18 @@
+[%
+# mirrors.tt
+# jt6 20070910 WTSI
+# 
+# build the list of Pfam mirrors
+#
+# $Id: mirrors.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+META naked = 1;
+%]
+
+<ul class="mirrors">
+  <li class="uk mirror"><a href="http://pfam.sanger.ac.uk/" class="ext flag">WTSI, UK</a></li>
+  <li class="se mirror"><a href="http://pfam.sbc.su.se/" class="ext flag">SBC, Sweden</a></li>
+  <li class="us mirror"><a href="http://pfam.janelia.org/" class="ext flag">JFRC, USA</a></li>
+  <li class="fr mirror"><a href="http://pfam.jouy.inra.fr/" class="ext flag">INRA, France</a></li>
+  <li class="kr mirror"><a href="http://pfam.ccbb.re.kr/" class="ext flag">CCBB, South Korea</a></li>
+</ul>

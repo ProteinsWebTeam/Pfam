@@ -1,0 +1,153 @@
+
+[%
+# structuresTab.tt
+# jt6 20060424 WTSI
+#
+# build a table showing the mapping between UniProt accession and PDB regions
+#
+# $Id: structureTab.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+USE dumper;
+USE String;
+META naked = 1;
+
+oe = 0;
+mapping = {};
+FOREACH pdbMap IN pfamMaps;
+  seqKey = pdbMap.pfamseq_id;
+  IF ! mapping.$seqKey;
+    mapping.$seqKey = {};
+  END;
+  
+  resKey = "${pdbMap.seq_start} - ${pdbMap.seq_end}";
+  IF ! mapping.$seqKey.$resKey;
+    mapping.$seqKey.$resKey = {};
+  END;
+
+  pdbKey = pdbMap.pdb_id;
+  IF ! mapping.$seqKey.$resKey.$pdbKey;
+    mapping.$seqKey.$resKey.$pdbKey = {};
+  END;
+  IF ! mapping.$seqKey.$resKey.COUNT;
+    mapping.$seqKey.$resKey.COUNT = 1;
+  ELSE;
+    mapping.$seqKey.$resKey.COUNT = mapping.$seqKey.$resKey.COUNT + 1;
+  END;
+
+  chainKey = pdbMap.chain;
+  IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey;
+    mapping.$seqKey.$resKey.$pdbKey.$chainKey = {};
+  END;
+  IF ! mapping.$seqKey.$resKey.$pdbKey.COUNT;
+    mapping.$seqKey.$resKey.$pdbKey.COUNT = 1;
+  ELSE;
+    mapping.$seqKey.$resKey.$pdbKey.COUNT = mapping.$seqKey.$resKey.$pdbKey.COUNT + 1;
+  END;
+  
+  pdbResKey = "${pdbMap.pdb_res_start} - ${pdbMap.pdb_res_end}";
+  IF ! mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey;
+    mapping.$seqKey.$resKey.$pdbKey.$chainKey.$pdbResKey = pdbMap;
+ 	END;
+  IF ! mapping.$seqKey.COUNT;
+    mapping.$seqKey.COUNT = 1;
+  ELSE;
+    mapping.$seqKey.COUNT = mapping.$seqKey.COUNT + 1;
+  END;
+
+END -%]
+
+<table class="details" id="structuresTable">
+  <thead>
+    <tr class="caption">
+      <th id="unpId">UniProt entry</th>
+      <th id="unpRes">UniProt residues</th>
+      <th id="pdbId">PDB ID</th>
+      <th id="chId">PDB chain ID</th>
+      <th id="pdbRes">PDB residues</th>
+      <th id="viewCol">View</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  [%- 
+    proteinUri         = c.uri_for( "/protein" );
+    structureUri       = c.uri_for( "/structure" );
+    structureViewerUri = c.uri_for( "/structure/viewer" );
+    
+    USE seqKeyIter = iterator( mapping.keys.sort );
+    FOREACH seqKey IN seqKeyIter;
+      NEXT IF mapping.$seqKey == "COUNT";
+      FOREACH resKey IN mapping.$seqKey.keys.sort;
+	      NEXT IF mapping.$seqKey.$resKey == "COUNT";
+        FOREACH pdbKey IN mapping.$seqKey.$resKey.keys.sort;
+          FOREACH chainKey IN mapping.$seqKey.$resKey.$pdbKey.keys.sort;
+	          NEXT IF mapping.$seqKey.$resKey.$pdbKey == "COUNT";
+            FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
+              <tr>
+  		        [% IF seqKey != prevSeqKey -%]
+  		          <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
+                  <a href="[% proteinUri %]?id=[% seqKey %]">[% seqKey %]</a>
+                </td>
+              [% END;
+
+	            IF seqKey != prevSeqKey OR resKey != prevResKey -%]
+	              <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>
+                  [% resKey %]
+                </td>
+              [% END;
+
+  		        IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
+	              <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                  <a href="[% structureUri %]?id=[% pdbKey %]">[% pdbKey %]</a>
+                </td>
+              [% END;
+      				prevSeqKey = seqKey;
+      				prevResKey = resKey;
+      				prevPdbKey = pdbKey -%]
+
+	            <td class="[% IF oe % 2 %]odd[% ELSE %]even[% END %]">
+	            [% IF chainKey;
+	              chainKey;
+              ELSE -%]
+                <span class="inactive">n/a</span>
+              [% END %]
+              </td>
+    			    <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
+    			    <td class="[% oe % 2 ? "odd" : "even" %]">
+                <a href="[% structureViewerUri %]?viewer=jmol&amp;id=[% pdbKey %]"
+                   onclick="popUp(this.href,'console',800,800,'jmolWin');return false;">
+                   Jmol</a>
+                <a href="[% structureViewerUri %]?viewer=av&amp;id=[% pdbKey %]"
+                   onclick="popUp(this.href,'console',800,800,'avWin');return false;">
+                   AstexViewer</a>	
+                <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
+                   onclick="popUp(this.href,'console',800,800,'avWin');return false;"
+                   class="ext">SPICE</a>	
+	            </td>
+	          </tr>
+	          [%- END; # of pdbResKey
+	        END; # of chainKey
+        END; # of pdbKey
+	    END; # of resKey
+      oe=oe+1;
+    END # of seqKey -%]
+  </tbody>
+</table>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // how many columns are there in the table ?
+  var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+  var numColsTable  = firstRow.getElementsByTagName("td").length;
+
+  // walk over all of the cells in the table and add listeners for mouseover and 
+  // mouseout events
+  $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+        Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
+        Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
+      }
+    );
+  // ]]>
+</script>
+

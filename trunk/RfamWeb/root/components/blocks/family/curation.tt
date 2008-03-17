@@ -1,0 +1,95 @@
+[%
+# curation.tt
+# jt6 20080314 WTSI
+#
+# the curation details for the family section
+#
+# $Id: curation.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+%]
+
+<!-- start curation block -->
+
+<div class="block" id="curationBlock">
+  <div class="handle">
+    <h1>Curation and family details</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This section shows the detailed information about the Rfam family.
+    </p>
+
+    <h2>Curation</h2>
+
+  	[% oe = 0 %]
+
+    <table class="layout" summary="Curation information for this family">
+  	  <tbody>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Seed source:</td>
+          <td class="data">
+              [% rfam.seed_source %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Type:</td>
+          <td class="data">
+              [% rfam.type %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Author:</td>
+          <td class="data">[% rfam.author %]</td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+  	      <td class="label">Number in seed:</td>
+  	      <td class="data">
+            [% rfam.num_seed %]
+  	      </td>
+  	    </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Number in full:</td>
+    		  <td class="data">
+            [% rfam.num_full %]
+  	      </td>
+  	    </tr>
+      </tbody>
+  	</table>
+
+    <h2>Model information</h2>
+
+    <table class="layout" summary="Model information for this family">
+      <tbody>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+	      <td class="label">Build commands:</td>
+          <td class="data">
+            <div>[% rfam.cmbuild %]</div>
+            <div>[% rfam.cmcalibrate %]</div>
+          </td>
+  	    </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Gathering cutoff:</td>
+          <td class="data">
+            [% rfam.gathering_cutoff | format( "%5.1f" ) %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Trusted cutoff:</td>
+          <td class="data">
+            [% rfam.trusted_cutoff | format( "%5.1f" ) %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Noise cutoff:</td>
+          <td class="data">
+            [% rfam.noise_cutoff | format( "%5.1f" ) %]
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+<!-- end curation block --> 

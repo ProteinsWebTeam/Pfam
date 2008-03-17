@@ -1,0 +1,381 @@
+
+[%
+# index.tt
+# jt6 20060717 WTSI
+# 
+# build the main Rfam home page.
+#
+# $Id: index.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+
+META title = "Home page";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "index.css" );
+requirements.cssIeAll.push( "index_all_ie.css" );
+
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+
+#-------------------------------------------------------------------------------
+
+# a warning message for users who dont have javascript turned on. The 
+# message should be hidden immediately after its displayed, but if 
+# javascript is not working, the prototype call will fail and the message
+# will stay visible
+%]
+<div id="jsWarning">
+  <strong>Please note:</strong> this site relies heavily on the use of javascript. 
+  Without a javascript-enabled browser, this site will not function correctly. 
+  Please enable javascript and reload the page, or switch to a different browser.
+</div>
+<script type="text/javascript">
+  // <![CDATA[
+  $("jsWarning").hide();
+  // ]]>
+</script>
+
+<!-- start of index page -->
+<div id="index">
+  <div id="intro">
+
+    [% # if the database is down, we will be unable to retrieve release data, so
+       # change the construction of the page title accordingly
+    IF relData;
+    
+      # we have release data; format the date nicely
+      USE date( format = "%B %Y" );
+      d = relData.rfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
+
+      USE String;
+      release_date = String.new( "00:00:00 " );
+      CALL release_date.append( d.2, ":", d.1, ":", d.0 ); %]
+      <h2>Rfam [% relData.rfam_release %] ([% date.format( release_date ) %],
+        [% relData.number_families %] families)</h2>
+    [% ELSE %]
+      <h2>Rfam - RNA  Families Database</h2>
+    [% END %]
+    <p>
+      The Rfam database is a large collection of protein 
+      families, each represented by <em>multiple sequence alignments</em>
+      and <em>hidden Markov models (HMMs)</em>.
+      <span onclick="reveal( this, 'rfamNotes', false, true )"
+            class="link moreLink">
+        More...</span>
+    </p>
+    <div id="rfamNotes" style="display: none">
+      <p>
+        Proteins are generally composed of one or more functional regions, 
+        commonly termed <em>domains</em>. Different combinations of domains give 
+        rise to the diverse range of proteins found in nature. The identification 
+        of domains that occur within proteins can therefore provide insights 
+        into their function.
+      </p>
+      <p>
+        There are two components to Rfam: Rfam-A and Rfam-B. <em>Rfam-A</em> 
+        entries are high quality, manually curated families. Although these 
+        Rfam-A entries cover a large proportion of the sequences in the
+        underlying sequence database, in order to give a more comprehensive 
+        coverage of known proteins we also generate a supplement using the 
+        <a class="ext" title="Prodom" href="http://prodom.prabi.fr/prodom.html">PRODOM</a>
+        database. These automatically generated entries are called 
+        <em>Rfam-B</em>. Although of lower quality, Rfam-B families can be
+        useful for identifying functionally conserved regions when no Rfam-A 
+        entries are found.
+      </p>
+      <p>
+        Rfam also generates higher-level groupings of related families, known as
+        <em>clans</em>. A clan is a collection of Rfam-A entries which are
+        related by similarity of sequence, structure or profile-HMM.
+      </p>
+    </div>
+  </div>
+
+  <hr />
+ 
+   [% # URI shortcuts
+   helpBase   = c.uri_for( "/help" );
+   searchBase = c.uri_for( "/search" );
+   jumpUri    = "${searchBase}/jump";
+   %]
+ 
+  <div id="controlPanel">
+    <ul>
+      <li class="link currentLink" onclick="switchPanel(this,'help')">USING RFAM</li>
+      <li class="link" onclick="switchPanel(this,'protein')">SEQUENCE SEARCH</li>
+      <li class="link" onclick="switchPanel(this,'family')">VIEW A RFAM FAMILY</li>
+      <li class="link" onclick="switchPanel(this,'clan')">VIEW A CLAN</li>
+      <li class="link" onclick="switchPanel(this,'sequence')">VIEW A SEQUENCE</li>
+      <li class="link" onclick="switchPanel(this,'structure')">VIEW A STRUCTURE</li>
+      <li class="link" onclick="switchPanel(this,'keyword')">KEYWORD SEARCH</li>
+      <li>&nbsp;</li>
+    </ul>
+  </div><!-- end of "controlPanel" -->
+    
+  <div id="help" class="panel">
+    <h3>You can find data in Rfam in various ways...</h3>
+    <ul>
+      <li>Analyze your protein sequence for Rfam matches</li>
+      <li>View Rfam family annotation and alignments</li>
+      <li>See groups of related families</li>
+      <li>Look at the domain organisation of a protein sequence</li>
+      <li>Find the domains on a PDB structure</li>
+      <li>Query Rfam by keywords</li>
+      <li>Or view the <a href="[% helpBase %]">help</a> pages for 
+        more information</li>
+    </ul>
+  </div>
+
+  <div id="protein" class="panel" style="display: none">
+    <h3>Analyze your protein sequence for Rfam matches</h3>
+    <p>
+      Paste your protein sequence here to find matching Rfam families.
+    </p>
+    <form action="[% searchBase %]/sequence"
+          method="post"
+          id="seqForm">
+      <div>
+        <input type="hidden"
+               name="seqOpts"
+               value="both" />
+        <input type="hidden"
+               name="ga"
+               value="0" />
+        <input type="hidden"
+               name="evalue"
+               value="1.0" />
+        <textarea class="entryField" 
+                  name="seq"
+                  id="seq" 
+                  cols="50" 
+                  rows="6"></textarea>
+      </div>
+    </form>
+    <div onclick="if( $('seq').present() ){$('seqForm').submit()};"
+         class="glassButton goButton">&nbsp;</div>
+    <div onclick="$('seq').value=exSeq"
+         class="glassButton exampleButton">&nbsp;</div>
+    <p class="small nlh">
+      This search will use both global and local models (merged) and an
+      E-value of 1.0. You can set your own search parameters using 
+      <a href="[% searchBase %]?tab=searchSequenceBlock">this</a> form.      
+    </p>
+  </div>
+
+  <div id="family" class="panel" style="display: none">
+    <h3>View Rfam family annotation and alignments</h3>
+    <p>Enter a family identifier or accession to see all data for that family.</p>
+    <form action="[% jumpUri %]"
+          method="get" 
+          id="familyForm"
+          onsubmit="return jump(this);">
+      <div>
+        <input class="entryField" 
+               type="text" 
+               name="entry" 
+               id="familyField" 
+               size="30" />
+        <input type="hidden"
+               name="type"
+               value="Family" />
+      </div>
+      <div onclick="if( $('familyField').present() ){jump('familyForm');};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('familyField').value=exRfamId"
+           class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+      <p class="small nlh">
+        You can also <a href="[% c.uri_for( "/family/browse" ) %]">browse</a> 
+        through the list of all Rfam families.
+      </p>
+    </form>
+  </div>
+    
+  <div id="sequence" class="panel" style="display: none">
+    <h3>View domain organisation of a protein sequence</h3>
+    <p>Enter a sequence identifier or accession.</p>
+    <form action="[% jumpUri%]"
+          method="get" 
+          id="proteinForm"
+          onsubmit="return jump(this);">
+      <div>
+        <input class="entryField"
+               type="text" 
+               name="entry" 
+               id="proteinField" 
+               size="30" />
+        <input type="hidden"
+               name="type"
+               value="Protein" />
+      </div>
+      <div onclick="if( $('proteinField').present() ){jump('proteinForm');};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('proteinField').value=exUnpId"
+           class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+      <p class="small nlh">
+        You can use <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>
+        and <a href="[% c.uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
+          metaseq</a> accessions or identifiers, as well as<br />
+        NCBI <a class="ext" href="http://www.ncbi.nlm.nih.gov/Sitemap/sequenceIDs.html">
+          &quot;GI&quot; numbers</a>. GI numbers should be in the form 
+          &quot;113594566&quot;.
+      </p>
+    </form>
+  </div>
+  
+  <div id="structure" class="panel" style="display: none">
+    <h3>Find the domains on a PDB structure</h3>
+    <p>Enter the PDB identifier for the structure in the Protein DataBank.</p>
+    <form action="[% jumpUri %]"
+          method="get" 
+          id="structureForm"
+          onsubmit="return jump(this);">
+      <div>
+        <input class="entryField"
+               type="text" 
+               name="entry" 
+               id="structureField" 
+               size="30" />
+        <input type="hidden"
+               name="type"
+               value="Structure" />
+      </div>
+      <div onclick="if( $('structureField').present() ){jump('structureForm');};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('structureField').value=exPdbId"
+           class="glassButton exampleButton">&nbsp;</div>
+      <div style="display: none"
+           class="jumpSpinner">Searching...</div>
+      <div style="display: none"
+           class="jumpError"></div>
+    </form>
+  </div>
+    
+  <div id="keyword" class="panel" style="display: none">
+    <h3>Query Rfam by keyword</h3>
+    <p>Search for keywords in text data in the Rfam database.</p> 
+    <form action="[% searchBase %]/keyword"
+          method="get" 
+          id="keywordForm">
+      <div>
+        <input class="entryField" 
+               type="text" 
+               name="query"
+               id="keywordField"
+               size="30" />
+      </div>
+    </form>
+    <div onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};"
+         class="glassButton goButton">&nbsp;</div>
+    <div onclick="$('keywordField').value=exKw"
+         class="glassButton exampleButton">&nbsp;</div>
+    <p class="small nlh">
+      You can also use the
+      <a onclick="$('siteSearchField').focus();return false;" href="#">
+        keyword search box</a> at the top of every page.
+    </p>
+  </div>
+    
+  <div class="cleaner"><!-- empty --></div>
+
+  <hr />
+ 
+  <div id="newFeatures" style="display: none">
+  </div>
+  
+  <div id="citation">
+    <h2>Citing Rfam</h2>
+    <p>
+      If you find Rfam useful, please consider 
+      <a href="[% helpBase %]?tab=helpReferencesBlock">citing</a> the reference 
+      that describes this work:
+    </p>
+    <div class="citation">
+      <span class="title">
+        <a class="ext" 
+           href="http://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">
+          Rfam: clans, web tools and services</a>: 
+      </span>
+      <span class="authors">
+        R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones, 
+        V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
+        S.R. Eddy, E.L.L. Sonnhammer and A. Bateman
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2006)
+        &nbsp;Database Issue 34:D247-D251
+      </span>
+    </div>
+  </div>
+  
+  <div class="cleaner"><!-- empty --></div>
+
+  <hr />
+  
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  
+  // load the list of new features
+  //Event.observe( window, 'load', function() {
+  //  new Ajax.Request( '[% c.uri_for( "/new_features" ) %]', 
+  //    { 
+  //      method:    "get",
+  //      on204:     function( oResponse ) {},
+  //      onSuccess: function( oResponse ) {
+  //        $("newFeatures").update( oResponse.responseText );
+  //        $("newFeatures").show();
+  //        $("newFeatures").getElementsByClassName("new").each(
+  //          function(f) {
+  //            new Effect.Highlight( f, { startcolor: '#cbdced' } );
+  //          }
+  //        );         
+  //       }
+  //    } );
+  //  }
+  //);
+  
+  // example values for the various forms
+  var exRfamId = "tRNA";
+  var exClanId = "Kazal";
+  var exUnpId  = "VAV_HUMAN";
+  var exPdbId  = "2abl";
+  var exKw     = "apoptosis";
+  var exSeq    = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
+TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
+SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
+LSQVNYRVPNMRFLRERLTDLEQRTSDITYGQFAQLYRSLMYSAQKTMDLPFLEASALRA\n\
+GERPELCRVSLPEFQQFLLEYQGELWAVDRLQVQEFMLSFLRDPLREIEEPYFFLDEFVT\n\
+FLFSKENSIWNSQLDEVCPDTMNNPLSHYWISSSHNTYLTGDQFSSESSLEAYARCLRMG\n\
+CRCIELDCWDGPDGMPVIYHGHTLTTKIKFSDVLHTIKEHAFVASEYPVILSIEDHCSIA\n\
+QQRNMAQYFKKVLGDTLLTKPVDIAADGLPSPNQLKRKILIKHKKLAEGSAYEEVPTSVM\n\
+YSENDISNSIKNGILYLEDPVNHEWYPHYFVLTSSKIYYSEETSSDQGNEDEEEPKEASG\n\
+STELHSNEKWFHGKLGAGRDGRHIAERLLTEYCIETGAPDGSFLVRESETFVGDYTLSFW\n\
+RNGKVQHCRIHSRQDAGTPKFFLTDNLVFDSLYDLITHYQQVPLRCNEFEMRLSEPVPQT\n\
+NAHESKEWYHASLTRAQAEHMLMRVPRDGAFLVRKRNEPNSYAISFRAEGKIKHCRVQQE\n\
+GQTVMLGNSEFDSLVDLISYYEKHPLYRKMKLRYPINEEALEKIGTAEPDYGALYEGRNP\n\
+GFYVEANPMPTFKCAVKALFDYKAQREDELTFTKSAIIQNVEKQEGGWWRGDYGGKKQLW\n\
+FPSNYVEEMVSPAALEPEREHLDENSPLGDLLRGVLDVPACQIAVRPEGKNNRLFVFSIS\n\
+MASVAHWSLDVAADSQEELQDWVKKIREVAQTADARLTEGKMMERRKKIALELSELVVYC\n\
+RPVPFDEEKIGTERACYRDMSSFPETKAEKYVNKAKGKKFLQYNRLQLSRIYPKGQRLDS\n\
+SNYDPLPMWICGSQLVALNFQTPDKPMQMNQALFLAGGHCGYVLQPSVMRDEAFDPFDKS\n\
+SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
+PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
+ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
+FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+
+  // ]]>
+</script>
+
+<!-- end of index page -->

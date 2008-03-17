@@ -1,0 +1,47 @@
+[%-
+IF NOT pfam.clan_acc;
+  RETURN;
+END;
+-%]
+
+<!-- start clan block -->
+
+<div class="block[% IF NOT pfam.clan_acc %] inactive[% END %]" id="clanBlock">
+  <div class="handle">
+    <h1>Pfam Clans</h1>
+  </div>
+  <div class="blockContent">
+
+  [% oe = 0 %]
+
+    <table class="layout">
+	  <tbody>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Clan:</td>
+	      <td class="data">
+            <a href="[% c.uri_for( "/clan", id=pfam.clan_id ) %]">[% pfam.clan_id %]</a> (<a href="[% c.uri_for( "/clan", acc=pfam.clan_acc ) %]">[% pfam.clan_acc %]</a>)
+          </td>
+		</tr>
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Description:</td>
+	      <td class="data">
+            [% pfam.clan_description %]
+          </td>
+		</tr>
+		</tr>
+        [% IF pfam.clan_comment %]
+        <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe=oe+1 %]">
+		  <td class="label">Comment:</td>
+	      <td class="data">
+            [% pfam.clan_comment %]
+          </td>
+		</tr>
+        [% END %]
+      </tbody>
+    </table>
+
+  </div>
+
+</div>
+
+<!-- end clan block -->
