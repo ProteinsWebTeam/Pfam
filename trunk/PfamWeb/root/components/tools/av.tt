@@ -5,7 +5,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.11 2007-12-21 11:39:48 jt6 Exp $
+# $Id: av.tt,v 1.12 2008-03-18 14:50:10 jt6 Exp $
 
 META naked = 1;
 
@@ -148,8 +148,9 @@ title = "AstexViewer"
 <div id="explanation">
 <h1>PDB entry [% pdb.pdb_id %]</h1>
 <p>
-  The applet to the left shows the structure of PDB entry, along with the 
-  Pfam domains that map onto that structure. 
+  The applet to the left shows the structure of PDB entry 
+  <strong>[% pdb.pdb_id %]</strong>, along with the Pfam domains that map 
+  onto that structure. 
 </p>
 <p>
   The <em>protein backbone</em> is drawn as secondary structure elements, 
