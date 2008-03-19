@@ -6,14 +6,14 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.18 2007-12-10 14:46:25 jt6 Exp $
+# $Id: domains.tt,v 1.19 2008-03-19 13:37:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 

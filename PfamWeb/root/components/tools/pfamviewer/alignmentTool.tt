@@ -5,7 +5,7 @@
 # 
 # build a page for the alignment viewer tool
 #
-# $Id: alignmentTool.tt,v 1.4 2007-12-10 14:51:46 jt6 Exp $
+# $Id: alignmentTool.tt,v 1.5 2008-03-19 13:38:07 jt6 Exp $
 
 META naked = 1;
 
@@ -19,7 +19,7 @@ requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
-requirements.js.push( "scriptaculous/scriptaculous.js?load=slider" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=slider" );
 
 #-------------------------------------------------------------------------------
 

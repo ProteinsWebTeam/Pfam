@@ -6,7 +6,7 @@
 # part of the species tree. This template sets up the polling when a user
 # opts to align a set of selected sequences. 
 #
-# $Id: seqViewAlignmentPolling.tt,v 1.4 2007-12-10 14:51:27 jt6 Exp $
+# $Id: seqViewAlignmentPolling.tt,v 1.5 2008-03-19 13:38:07 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -15,8 +15,8 @@ META naked = 1;
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
-requirements.css.push( "job.css" );
-requirements.js.push( "job.js" );
+sharedRequirements.css.push( "job.css" );
+sharedRequirements.js.push( "job.js" );
 
 #-------------------------------------------------------------------------------
 

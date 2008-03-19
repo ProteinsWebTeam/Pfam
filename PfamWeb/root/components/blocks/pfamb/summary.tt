@@ -5,7 +5,7 @@
 # 
 # build the summary block for PfamB's
 #
-# $Id: summary.tt,v 1.10 2007-11-05 13:38:18 jt6 Exp $
+# $Id: summary.tt,v 1.11 2008-03-19 13:38:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,7 +19,7 @@ requirements.cssIe.push( "family_ie.css" );
 requirements.js.push( "family.js" );
 requirements.js.push( "pfamb.js" );
 
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 

@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.21 2007-12-10 14:50:39 jt6 Exp $
+# $Id: summary.tt,v 1.22 2008-03-19 13:38:07 jt6 Exp $
 
 USE String;
 USE date;
@@ -15,10 +15,10 @@ USE date;
 
 PROCESS "components/require.tt";
 
-requirements.css.push( "lightbox.css" );
+sharedRequirements.css.push( "lightbox.css" );
 requirements.css.push( "structure.css" );
 
-requirements.js.push( "lightbox.js" );
+sharedRequirements.js.push( "lightbox.js" );
 
 #-------------------------------------------------------------------------------
 

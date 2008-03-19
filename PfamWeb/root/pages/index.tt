@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.45 2008-01-14 17:03:59 jt6 Exp $
+# $Id: index.tt,v 1.46 2008-03-19 13:39:17 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -18,7 +18,7 @@ PROCESS "components/require.tt";
 requirements.css.push( "index.css" );
 requirements.cssIeAll.push( "index_all_ie.css" );
 
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 

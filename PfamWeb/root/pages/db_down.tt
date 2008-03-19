@@ -4,12 +4,13 @@
 #
 # A simple page to say that the Pfam database is currently down.
 #
-# $Id: db_down.tt,v 1.2 2008-03-04 10:01:24 jt6 Exp $
+# $Id: db_down.tt,v 1.3 2008-03-19 13:39:17 jt6 Exp $
 
 META naked = 1;
 
 # the base URL for static content
 staticUri = c.uri_for( "/static" );
+sharedUri = c.uri_for( "/shared" );
 -%]
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -29,12 +30,12 @@ staticUri = c.uri_for( "/static" );
       <a class="siteLogoHolder" style="float: left" href="[% c.config.site_home %]">
         <img alt="[% c.config.site_name %]" 
              id="siteLogo"
-             src="[% staticUri %]/images/blank.gif" /></a>
+             src="[% sharedUri %]/images/blank.gif" /></a>
       
       <a class="pfamLogoHolder" style="float: right" href="[% c.uri_for( "/" ) %]">
         <img alt="Pfam" 
              id="pfamLogo" 
-             src="[% staticUri %]/images/blank.gif" /></a>
+             src="[% sharedUri %]/images/blank.gif" /></a>
 
       <div class="cleaner"><!-- empty --></div>
   
