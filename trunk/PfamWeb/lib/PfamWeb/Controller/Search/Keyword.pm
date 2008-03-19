@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.3 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Keyword.pm,v 1.4 2008-03-19 14:43:31 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.3 2007-10-25 09:28:04 jt6 Exp $
+$Id: Keyword.pm,v 1.4 2008-03-19 14:43:31 jt6 Exp $
 
 =cut
 
@@ -147,7 +147,7 @@ sub runSearches : Private {
   # from Module::Pluggable, via our parent class, Search. The plugin object
   # stringifies to the fully qualified class name, e.g. Search::Plugin::Pfam
   foreach my $plugin ( $this->plugins ) {
-    my $pluginName = ( split /\:\:/, $plugin )[-1];
+    my $pluginName = ( split m/\:\:/, $plugin )[-1];
 
     # check that the plugin is switched on in the config
     next unless $c->stash->{pluginsHash}->{$pluginName};

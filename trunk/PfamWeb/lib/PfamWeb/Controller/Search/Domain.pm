@@ -2,7 +2,7 @@
 # Domain.pm
 # jt6 20061108 WTSI
 #
-# $Id: Domain.pm,v 1.2 2007-09-07 16:14:16 jt6 Exp $
+# $Id: Domain.pm,v 1.3 2008-03-19 14:44:30 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Domain;
 
 Searches for sequence architectures with the specified set of Pfam domains.
 
-$Id: Domain.pm,v 1.2 2007-09-07 16:14:16 jt6 Exp $
+$Id: Domain.pm,v 1.3 2008-03-19 14:44:30 jt6 Exp $
 
 =cut
 
@@ -99,7 +99,7 @@ sub domainSearch : Path {
     push @seqs, thaw( $arch->annseq_storable );
   
     # work out which domains are present on this sequence
-    my @domains = split /\~/, $arch->architecture;
+    my @domains = split m/\~/, $arch->architecture;
     $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
   
     # store a mapping between the sequence and the auto_architecture
