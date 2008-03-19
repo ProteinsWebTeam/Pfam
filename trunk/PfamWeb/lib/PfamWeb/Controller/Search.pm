@@ -2,11 +2,11 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.20 2008-03-19 13:34:42 jt6 Exp $
+# $Id: Search.pm,v 1.21 2008-03-19 14:43:15 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::SeqSearch - perform various sequence searches
+PfamWeb::Controller::Search - top-level platform for performing various searches
 
 =cut
 
@@ -14,16 +14,24 @@ package PfamWeb::Controller::Search;
 
 =head1 DESCRIPTION
 
-This controller is responsible for running sequence searches.
+This controller is responsible for running searches. This is actually just an
+empty wrapper around a shared base class. See
+L<PfamBase::Controller::Search> for more details.
 
-$Id: Search.pm,v 1.20 2008-03-19 13:34:42 jt6 Exp $
+$Id: Search.pm,v 1.21 2008-03-19 14:43:15 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
+# need to use Module::Pluggable here, otherwise the Search plugins don't 
+# get correctly registered
+use Module::Pluggable;
+
 use base 'PfamBase::Controller::Search';
+
+__PACKAGE__->config( SECTION => 'search' );
 
 #-------------------------------------------------------------------------------
 
