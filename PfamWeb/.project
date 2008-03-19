@@ -3,6 +3,7 @@
 	<name>PfamWeb</name>
 	<comment></comment>
 	<projects>
+		<project>PfamBase</project>
 		<project>PfamConfig</project>
 		<project>PfamConfigWTSI</project>
 		<project>PfamLib</project>
