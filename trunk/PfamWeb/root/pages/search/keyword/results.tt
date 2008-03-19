@@ -4,7 +4,7 @@
 # 
 # keyword search results page
 #
-# $Id: results.tt,v 1.2 2007-10-25 10:06:21 jt6 Exp $
+# $Id: results.tt,v 1.3 2008-03-19 14:48:51 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;
@@ -17,7 +17,7 @@ PROCESS "components/require.tt";
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
-requirements.js.push( "sorttable.js" );
+sharedRequirements.js.push( "sorttable.js" );
 
 #-------------------------------------------------------------------------------
 

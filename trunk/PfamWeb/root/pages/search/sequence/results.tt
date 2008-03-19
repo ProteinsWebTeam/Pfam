@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.9 2008-03-03 16:52:51 jt6 Exp $
+# $Id: results.tt,v 1.10 2008-03-19 14:48:51 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -14,10 +14,11 @@ META fullPage = 1;
 
 PROCESS "components/require.tt";
 
-requirements.css.push( "job.css" );
+sharedRequirements.css.push( "job.css" );
+sharedRequirements.css.push( "job_ie.css" );
 
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
-requirements.js.push( "sorttable.js" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+sharedRequirements.js.push( "sorttable.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -175,53 +176,53 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
       [% END;
     END -%]
     </div>
-
+  
     <p>
       <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
       to the search form to look for Pfam domains on a new sequence.
     </p> 
+
+    <p>
+      <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
+      the detailed description of this results page.
+    </p>
+
+    <div id="resultsNotes" style="display: none">
+      <p>
+        The Pfam graphic above shows only the <strong>significant</strong> 
+        matches to your sequence. A significant match is one where the bits score 
+        is greater than or equal to the gathering threshhold for the Pfam domain. 
+        Clicking on any of the domains in the image will take you to a page of 
+        information about that domain.
+        [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
+        overlapping Pfam-A domains, which are given higher priority when 
+        building the graphic.[% END %]
+      </p>
+      <p>
+        Below are the details of the matches that were found. 
+        [% IF significantMatches AND insignificantMatches -%]
+        We separate Pfam-A matches in two tables, containing the significant and
+        insignificant matches.
+        [% END -%] 
+        Hits which do not start and end at the end points of the matching HMM 
+        are <span class="warning">highlighted</span>.
+      </p>
+      <p>
+        For Pfam-A hits we show the alignments between your search sequence 
+        and the matching HMM.
+        [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
+        sequence and the matching sequence from our library of Pfam-B 
+        sequences.[% END %] You can show individual alignments by clicking on 
+        the &quot;Show&quot; button in each row of the result table, or you can
+        show all alignments using the links above the table.
+      </p>
+      <p>
+        You can bookmark this page and return to it later, but please note that 
+        old results may be removed after <strong>one week</strong>.
+      </p>
+    </div><!-- end of "resultsNotes" -->
+
   </div><!-- end of "key" -->
-
-  <p>
-    <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
-    the detailed description of the results page.
-  </p>
-
-  <div id="resultsNotes" style="display: none">
-    <p>
-      The Pfam graphic above shows only the <strong>significant</strong> 
-      matches to your sequence. A significant match is one where the bits score 
-      is greater than or equal to the gathering threshhold for the Pfam domain. 
-      Clicking on any of the domains in the image will take you to a page of 
-      information about that domain.
-      [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
-      overlapping Pfam-A domains, which are given higher priority when 
-      building the graphic.[% END %]
-    </p>
-    <p>
-      Below are the details of the matches that were found. 
-      [% IF significantMatches AND insignificantMatches -%]
-      We separate Pfam-A matches in two tables, containing the significant and
-      insignificant matches.
-      [% END -%] 
-      Hits which do not start and end at the end points of the matching HMM 
-      are <span class="warning">highlighted</span>.
-    </p>
-    <p>
-      For Pfam-A hits we show the alignments between your search sequence 
-      and the matching HMM.
-      [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
-      sequence and the matching sequence from our library of Pfam-B 
-      sequences.[% END %] You can show individual alignments by clicking on 
-      the &quot;Show&quot; button in each row of the result table, or you can
-      show all alignments using the links above the table.
-    </p>
-    <p>
-      You can bookmark this page and return to it later, but please note that 
-      old results may be removed after <strong>one week</strong>.
-    </p>
-    <hr />
-  </div><!-- end of "resultsNotes" -->
 
   [% IF numAs;
   

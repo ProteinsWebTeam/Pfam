@@ -5,7 +5,7 @@
 #
 # a page that polls the server for results of a sequence search 
 #
-# $Id: polling.tt,v 1.4 2007-12-20 13:14:37 jt6 Exp $
+# $Id: polling.tt,v 1.5 2008-03-19 14:48:51 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;
@@ -15,8 +15,8 @@ META fullPage = 1;
 
 PROCESS "components/require.tt";
 
-requirements.css.push( "job.css" );
-requirements.js.push( "job.js" );
+sharedRequirements.css.push( "job.css" );
+sharedRequirements.js.push( "job.js" );
 
 #-------------------------------------------------------------------------------
 
