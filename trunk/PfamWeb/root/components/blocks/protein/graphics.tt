@@ -14,7 +14,7 @@
 # that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
 # onComplete callbacks, which turn on and off the "loading" spinner, etc.
 #
-# $Id: graphics.tt,v 1.20 2007-11-05 13:38:19 jt6 Exp $
+# $Id: graphics.tt,v 1.21 2008-03-19 13:38:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -22,9 +22,9 @@
 PROCESS "components/require.tt";
 
 # the tooltips script
-requirements.js.push( "prototip.js" );
+sharedRequirements.js.push( "prototip.js" );
 
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 

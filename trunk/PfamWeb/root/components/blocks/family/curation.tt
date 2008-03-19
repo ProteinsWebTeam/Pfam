@@ -5,11 +5,11 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.21 2007-11-27 14:55:17 jt6 Exp $
+# $Id: curation.tt,v 1.22 2008-03-19 13:37:07 jt6 Exp $
 
 # URI shortcuts
 rootUri = c.uri_for( "/" );
-infoGIF = "${rootUri}static/images/info.gif";
+infoGIF = "${rootUri}shared/images/info.gif";
 help    = "${rootUri}help";
 getHmm  = "${rootUri}family/gethmm";
 %]

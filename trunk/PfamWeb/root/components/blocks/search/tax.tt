@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.8 2007-12-12 16:04:14 jt6 Exp $
+# $Id: tax.tt,v 1.9 2008-03-19 13:38:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -15,7 +15,7 @@ PROCESS "components/require.tt";
 # we include the actual scriptaculous file here, because the scriptaculous
 # "load" call fails if we have already loaded other modules.  We need
 # scriptaculous for the auto-completion control
-requirements.js.push( "scriptaculous/controls.js" );
+sharedRequirements.js.push( "scriptaculous/controls.js" );
 
 # using styles from the help pages, plus the common styles for forms
 requirements.css.push( "help.css" );

@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.29 2008-03-04 09:58:01 jt6 Exp $
+# $Id: head.tt,v 1.30 2008-03-19 13:36:21 jt6 Exp $
 
 # these first meta tags are google webmasters verification tags. They are here
 # so that google can verify that we control the websites and we can control,
@@ -39,12 +39,14 @@ IF refreshUri != "";
 <!-- load the common files first -->
 
 [%- # use uri_for to get the root for the static directory
-   staticUri = c.uri_for( "/static" ); -%]
+   staticUri = c.uri_for( "/static" );
+   sharedUri = c.uri_for( "/shared" ); -%]
 
 <!-- prototype -->
-<script type="text/javascript" src="[% staticUri %]/javascripts/prototype.js"></script>
+<script type="text/javascript" src="[% sharedUri %]/javascripts/prototype.js"></script>
 
 <!-- local javascript -->
+<script type="text/javascript" src="[% sharedUri %]/javascripts/sharedFunctions.js"></script>
 <script type="text/javascript" src="[% staticUri %]/javascripts/pfFunctions.js"></script>
 
 <!-- global stylesheet -->
@@ -81,6 +83,27 @@ FOREACH key IN requirements.keys;
     CASE "js";
       FOREACH js IN requirements.js;
         jsIncludes.push( "<script type='text/javascript' src='$staticUri/javascripts/$js'></script>" );
+      END;
+  END; # of SWITCH
+END;
+
+FOREACH key IN sharedRequirements.keys;
+  SWITCH key;
+    CASE "css";
+      FOREACH stylesheet IN sharedRequirements.css;
+        cssIncludes.push( "<link rel='stylesheet' href='$sharedUri/css/$stylesheet' type='text/css' />" );
+      END;
+    CASE "cssIe";
+      FOREACH stylesheet IN sharedRequirements.cssIe;
+        cssIeIncludes.push( "<link rel='stylesheet' href='$sharedUri/css/$stylesheet' type='text/css' />" );
+      END;
+    CASE "cssIeAll";
+      FOREACH stylesheet IN sharedRequirements.cssIeAll;
+        cssIeAllIncludes.push( "<link rel='stylesheet' href='$sharedUri/css/$stylesheet' type='text/css' />" );
+      END;
+    CASE "js";
+      FOREACH js IN sharedRequirements.js;
+        jsIncludes.push( "<script type='text/javascript' src='$sharedUri/javascripts/$js'></script>" );
       END;
   END; # of SWITCH
 END -%]

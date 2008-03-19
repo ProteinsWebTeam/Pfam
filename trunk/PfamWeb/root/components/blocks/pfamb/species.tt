@@ -5,7 +5,7 @@
 #
 # block showing the species tree for Pfam-Bs
 #
-# $Id: species.tt,v 1.2 2007-06-28 13:28:26 jt6 Exp $
+# $Id: species.tt,v 1.3 2008-03-19 13:38:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -13,13 +13,13 @@
 PROCESS "components/require.tt";
 
 # YUI stuff - this is for the tree viewer
-requirements.css.push( "tree.css" );
-requirements.js.push( "yui/yahoo.js" );
-requirements.js.push( "yui/dom.js" );
-requirements.js.push( "yui/event.js" );
-requirements.js.push( "yui/treeview.js" );
-requirements.js.push( "yui/TaskNode.js" );
-requirements.js.push( "treeTweak.js" );
+sharedRequirements.css.push( "tree.css" );
+sharedRequirements.js.push( "yui/yahoo.js" );
+sharedRequirements.js.push( "yui/dom.js" );
+sharedRequirements.js.push( "yui/event.js" );
+sharedRequirements.js.push( "yui/treeview.js" );
+sharedRequirements.js.push( "yui/TaskNode.js" );
+sharedRequirements.js.push( "treeTweak.js" );
 
 #-------------------------------------------------------------------------------
 %]

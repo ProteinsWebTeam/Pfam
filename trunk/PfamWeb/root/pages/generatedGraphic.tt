@@ -5,7 +5,7 @@
 #
 # show the generated graphic for an uploaded XML file
 #
-# $Id: generatedGraphic.tt,v 1.5 2007-09-17 12:31:13 jt6 Exp $
+# $Id: generatedGraphic.tt,v 1.6 2008-03-19 13:39:17 jt6 Exp $
 
 META title = "Generated Pfam graphic";
 META fullPage = 1;
@@ -17,7 +17,7 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "graphicTools.css" );
 
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 
