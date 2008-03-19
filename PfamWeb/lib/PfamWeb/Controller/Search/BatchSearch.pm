@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: BatchSearch.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
+# $Id: BatchSearch.pm,v 1.3 2008-03-19 14:44:53 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::BatchSearch;
 
 This is the parent class for batch search operations.
 
-$Id: BatchSearch.pm,v 1.2 2007-08-14 11:36:46 rdf Exp $
+$Id: BatchSearch.pm,v 1.3 2008-03-19 14:44:53 jt6 Exp $
 
 =cut
 
@@ -55,10 +55,10 @@ sub queueSearch : Private {
   my( $this, $c ) = @_;
 
   $c->log->debug( 'Search::BatchSearch::queueSearch: queueing a batch search to |'
-                  . $c->stash->{priority} . '|' );
+                  . $c->stash->{job_type} . '|' ) if $c->debug;
 
   $c->log->debug( 'Search::BatchSearch::queueSearch: using command: |'
-                  . $c->stash->{options} . '|' );
+                  . $c->stash->{options} . '|' ) if $c->debug;
 
   # add this job to the tracking tables
   my $jobHistory = $c->model('WebUser::JobHistory')
@@ -70,7 +70,8 @@ sub queueSearch : Private {
                                  email          => $c->stash->{email} } );
 
   unless( defined $jobHistory ) { 
-    $c->log->warn( q(Search::BatchSearch::queueSearch: couldn't submit ) );
+    $c->log->warn( "Search::BatchSearch::queueSearch: couldn't submit" )
+      if $c->debug;
     $c->stash->{searchError} = 'There was a problem submitting your job.';
     return;
   }
