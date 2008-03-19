@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.14 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Tree.pm,v 1.15 2008-03-19 13:35:31 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.14 2007-10-25 09:28:04 jt6 Exp $
+$Id: Tree.pm,v 1.15 2008-03-19 13:35:31 jt6 Exp $
 
 =cut
 
@@ -83,7 +83,7 @@ sub image : Local {
     $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
   } else {
     # TODO this is bad. We should avoid hard-coding a path to an image here
-    $c->res->redirect( $c->uri_for( '/static/images/blank.gif' ) );
+    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
   }
 
 }

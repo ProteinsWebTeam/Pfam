@@ -2,7 +2,7 @@
 # GetImage.pm
 # jt6 20060314 WTSI
 #
-# $Id: GetImage.pm,v 1.14 2007-10-25 09:35:19 jt6 Exp $
+# $Id: GetImage.pm,v 1.15 2008-03-19 13:35:48 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ to extract the PDB ID from the URL.
 
 Generates an B<image file>, MIME type C<image/gif>.
 
-$Id: GetImage.pm,v 1.14 2007-10-25 09:35:19 jt6 Exp $
+$Id: GetImage.pm,v 1.15 2008-03-19 13:35:48 jt6 Exp $
 
 =cut
 
@@ -57,7 +57,7 @@ sub getImage : Path {
   	}
   } else {
     # TODO we shouldn't be hard-coding the location for blank images...
-  	$c->res->redirect( $c->uri_for( '/static/images/blank.gif' ) );
+  	$c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
   }
 
   # may as well hit the cache instead of the database...
