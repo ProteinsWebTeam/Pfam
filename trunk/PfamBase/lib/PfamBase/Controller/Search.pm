@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20080314 WTSI
 #
-# $Id: Search.pm,v 1.1.1.1 2008-03-17 15:36:38 jt6 Exp $
+# $Id: Search.pm,v 1.2 2008-03-19 14:49:55 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search;
 
 This controller is responsible for running searches.
 
-$Id: Search.pm,v 1.1.1.1 2008-03-17 15:36:38 jt6 Exp $
+$Id: Search.pm,v 1.2 2008-03-19 14:49:55 jt6 Exp $
 
 =cut
 
@@ -88,16 +88,13 @@ sub formatTerms : Private {
 
 John Tate, C<jt6@sanger.ac.uk>
 
-Paul Gardner, C<pg5@sanger.ac.uk>
-
-Jennifer Daub, C<jd7@sanger.ac.uk>
+Rob Finn, C<rdf@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
-         Jennifer Daub (jd7@sanger.ac.uk)
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
