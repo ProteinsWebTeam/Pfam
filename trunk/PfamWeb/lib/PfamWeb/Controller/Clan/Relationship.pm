@@ -4,7 +4,7 @@
 #
 # Controller to return the clan relationship image.
 #
-# $Id: Relationship.pm,v 1.2 2007-08-07 12:41:50 jt6 Exp $
+# $Id: Relationship.pm,v 1.3 2008-03-19 13:35:21 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Clan::Relationship;
 A simple controller with just one action, which returns the clan relationship
 image file.
 
-$Id: Relationship.pm,v 1.2 2007-08-07 12:41:50 jt6 Exp $
+$Id: Relationship.pm,v 1.3 2008-03-19 13:35:21 jt6 Exp $
 
 =cut
 
@@ -48,7 +48,7 @@ sub image : Local {
     $c->res->body( $c->stash->{relationshipImage} );
   } else {
     # TODO this is bad. We should avoid hard-coding a path to an image here
-    $c->res->redirect( $c->uri_for( '/static/images/blank.gif' ) );
+    $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) );
   }
 
 }
