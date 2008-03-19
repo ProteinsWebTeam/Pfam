@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.10 2008-01-15 14:17:16 jt6 Exp $
+# $Id: Jump.pm,v 1.11 2008-03-19 14:44:08 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.10 2008-01-15 14:17:16 jt6 Exp $
+$Id: Jump.pm,v 1.11 2008-03-19 14:44:08 jt6 Exp $
 
 =cut
 
@@ -23,87 +23,16 @@ use warnings;
 
 use URI;
 
-use base 'PfamWeb::Controller::Search';
+use base 'PfamBase::Controller::Search::Jump';
 
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
 
-=head2 jump : Path
-
-Tries to find the URL for the specified entry accession or ID. If the 
-"entryType" parameter is specified and if the value is found in the 
-configuration, we look only for that particualr type of entry. If no "entryType"
-is specified, we'll look for any type.
+This is a concrete sub-class of the base C<Jump> controller, specifically for
+the PfamWeb application.
 
 =cut
-
-sub jump : Path {
-  my( $this, $c ) = @_;
-  
-  # de-taint the entry ID or accession
-  my $entry = '';
-  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()\.]+)$/;
-  $c->log->debug( "Search::Jump::jump: called with entry |$entry|" );
-
-  # strip off leading and trailing whitespace
-  $entry =~ s/^\s*(.*?)\s*$/$1/;
-  $c->log->debug( "Search::Jump::jump: trimmed entry to |$entry|" );
-
-  # bail immediately if there's no valid entry given
-  unless( $entry ) {
-    $c->stash->{error} = 'No valid accession or ID';
-    return;
-  }
-
-  # now we know we have an entry. See if the caller specified the type of that
-  # entry. If it did, we don't bother trying to guess the type, but just
-  # redirect straight to the appropriate URL 
-  my $entry_type;
-  if( $c->req->param('type') ) {
-    $entry_type = $this->{jumpTargets}->{ $c->req->param('type') };
-    $c->log->debug( 'Search::Jump::jump: looking for entry type: |'
-                    . ( $entry_type || '' ) . '|' )
-  }
-  
-  # let's guess !
-  my $action = $c->forward( 'guess', [ $entry, $entry_type ] );
-
-  if( $action ) {
-    $c->log->debug( "Search::Jump::jump: we've made a guess; redirecting to |$action|" );
-    $c->stash->{url} = $c->uri_for( "/$action", { entry => $entry } );
-  } else {
-    $c->log->debug( "Search::Jump::jump: couldn't guess entry type..." );
-
-    # set the error message differently according to whether we were trying to
-    # "look up" and entry or guess the type
-    $c->stash->{error} = $entry_type ? 'Entry not found' : "Couldn't guess entry";
-  }
-  
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Return either a text/plain response with the guessed URL in the body, or an
-error response (status 400) with the error message in the body.
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-
-  $c->res->content_type( 'text/plain' );
-  
-  if( $c->stash->{error} ) {
-    $c->res->body( $c->stash->{error} );
-    $c->res->status( 400 );
-  } else {
-    $c->res->body( $c->stash->{url} );
-  }
-    
-}
 
 #-------------------------------------------------------------------------------
 #- private methods -------------------------------------------------------------
