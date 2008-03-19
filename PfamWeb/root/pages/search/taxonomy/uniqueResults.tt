@@ -4,7 +4,7 @@
 # 
 # taxonomy search results page
 #
-# $Id: uniqueResults.tt,v 1.2 2007-11-05 13:38:18 jt6 Exp $
+# $Id: uniqueResults.tt,v 1.3 2008-03-19 14:48:51 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -15,11 +15,11 @@ requirements.css.push( "search.css" );
 
 # the effects are used in the results rather than this page, but we need 
 # to load them here so that they will be available later
-requirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 # similarly, load the JS for table sorting here, for use in the post-loaded
 # results 
-requirements.js.push( "sorttable.js" );
+sharedRequirements.js.push( "sorttable.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ META fullPage = 1;
       </p>
       <img class="loadingBar"
            alt="Searching..."
-           src="[% c.uri_for( "/static/images/blank.gif" ) %]" />
+           src="[% c.uri_for( "/shared/images/blank.gif" ) %]" />
     </div>
 
     <div id="returnDiv" style="display: none">
