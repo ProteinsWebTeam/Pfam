@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.20 2008-03-03 16:46:33 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.21 2008-03-19 13:33:51 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.20 2008-03-03 16:46:33 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.21 2008-03-19 13:33:51 jt6 Exp $
 
 =cut
 
@@ -361,7 +361,7 @@ sub getFamilyData : Private {
     push @seqs, thaw( $arch->annseq_storable );
   
     # work out which domains are present on this sequence
-    my @domains = split /\~/, $arch->architecture;
+    my @domains = split m/\~/, $arch->architecture;
     $seqInfo{$arch->pfamseq_id}{arch} = \@domains;
   
     # store a mapping between the sequence and the auto_architecture
@@ -434,8 +434,8 @@ sub getPfamBData : Private {
     # grab the unique architectures
     foreach my $arch ( @allRows ) {
       my $autoArch = $arch->auto_architecture || 'nopfama';
-      $c->log->debug( "DomainGraphics::getPfamBData: got the following architecture:|$autoArch|" )
-        if $c->debug;
+#      $c->log->debug( "DomainGraphics::getPfamBData: got the following architecture:|$autoArch|" )
+#        if $c->debug;
       
       if( not $seenArch{$autoArch} ) {
         push @rows, $arch;
