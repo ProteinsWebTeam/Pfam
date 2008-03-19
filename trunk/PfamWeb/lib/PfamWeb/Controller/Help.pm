@@ -2,7 +2,7 @@
 # Help.pm
 # jt6 20060925 WTSI
 #
-# $Id: Help.pm,v 1.7 2007-07-18 08:14:31 jt6 Exp $
+# $Id: Help.pm,v 1.8 2008-03-19 13:34:04 jt6 Exp $
 
 =head1 NAME
 
@@ -18,38 +18,17 @@ Displays the help pages for the PfamWeb site.
 
 Generates a B<tabbed page>.
 
-$Id: Help.pm,v 1.7 2007-07-18 08:14:31 jt6 Exp $
+$Id: Help.pm,v 1.8 2008-03-19 13:34:04 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base 'PfamWeb::Controller::Section';
+use base 'PfamBase::Controller::Section';
 
 # set the name of the section
-__PACKAGE__->config( SECTION => 'help' );
-
-#-------------------------------------------------------------------------------
-
-=head1 METHODS
-
-=head2 begin : Private
-
-Just sets up the look of the page. Tell the navbar where we are and set the
-summary icons to "disabled".
-
-=cut
-
-sub begin : Private {
-  my( $this, $c ) = @_;
-
-  # tell the navbar where we are
-  $c->stash->{nav} = 'help';
-
-  # tell the layout template to disable the summary icons
-  $c->stash->{iconsDisabled} = 1;
-}
+__PACKAGE__->config( { SECTION => 'help' } );
 
 #-------------------------------------------------------------------------------
 

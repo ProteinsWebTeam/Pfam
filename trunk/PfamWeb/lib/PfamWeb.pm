@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.50 2008-03-03 16:46:06 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.51 2008-03-19 13:33:22 jt6 Exp $
 
 =head1 NAME
 
@@ -14,11 +14,9 @@ package PfamWeb;
 
 =head1 DESCRIPTION
 
-This is the main class for the Pfam website catalyst application. It
-handles configuration of the application classes and error reporting
-for the whole application.
+This is the main class for the Pfam website catalyst application.
 
-$Id: PfamWeb.pm,v 1.50 2008-03-03 16:46:06 jt6 Exp $
+$Id: PfamWeb.pm,v 1.51 2008-03-19 13:33:22 jt6 Exp $
 
 =cut
 
@@ -28,30 +26,9 @@ use warnings;
 use Sys::Hostname;
 use Config::General;
 
-# a useful trick to get Catalyst to confess errors on startup, rather than
-# simply dying with a cryptic error about barewords
-#use Carp; $SIG{__DIE__} = \&Carp::confess;
+use base 'PfamBase';
 
-# set flags and add plugins for the application
-use Catalyst qw/
-                 ConfigLoader
-                 Cache
-                 HTML::Widget
-                 Email
-                 Session
-                 Session::Store::FastMmap
-                 Session::State::Cookie
-                 PageCache
-               /;
-
-# PageCache must be last in the list
-
-# in order to use sessions via cookies
-#                 Session
-#                 Session::Store::FastMmap
-#                 Session::State::Cookie
-
-our $VERSION = '1.4';
+our $VERSION = '1.6';
 
 #-------------------------------------------------------------------------------
 
@@ -62,8 +39,8 @@ configuration files.
 
 =cut
 
-# add to the configuration the name of the host that's actually serving 
-# the site and its process ID. These will be pulled out later in the header 
+# add to the configuration the name of the host that's actually serving
+# the site and its process ID. These will be pulled out later in the header
 # template
 __PACKAGE__->config->{server_name} = hostname();
 __PACKAGE__->config->{server_pid}  = $$;
@@ -73,45 +50,18 @@ __PACKAGE__->config->{server_pid}  = $$;
 # config file in httpd.conf rather than in the code
 my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
 
-# set up the ConfigLoader plugin. Point to the configuration file and set up 
-# Config::General to allow us to load external configuration files with
-# a relative path and using apache-style "include" directives
-__PACKAGE__->config->{'Plugin::ConfigLoader'} = {
-  file   => $conf,
-  driver => { General => { -IncludeRelative  => 1,
-                           -UseApacheInclude => 1 } }
-};
+# set up the ConfigLoader plugin. Point to the configuration file
+__PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf,
 
-# read the configuration
-__PACKAGE__->setup;
-
-#-------------------------------------------------------------------------------
-
-=head1 METHODS
-
-=head2 finalize_config
-
-Overrides the default C<finalize_config> method from the ConfigLoader plugin, 
-turning it into a dumb by-pass of the perl taint checking on configuration
-parameters.
-
-=cut
-
-sub finalize_config {
-  my $c = shift;
-  my $v = Data::Visitor::Callback
-            ->new( plain_value => sub {
-               return unless defined $_;
-               /^(.*)$/s;
-               $_ = $1;
-            }
-          );
-  $v->visit( $c->config );
-
-  # make sure we run the original finalize_config, so that the substitutions
-  # happen as per the documentation
-  $c->NEXT::finalize_config( @_ );
-}
+# read the configuration, configure the application and load these
+# catalyst plugins
+__PACKAGE__->setup( qw(
+                        HTML::Widget
+                        Email
+                        Session
+                        Session::Store::FastMmap
+                        Session::State::Cookie
+                      ) );
 
 #-------------------------------------------------------------------------------
 
@@ -145,3 +95,4 @@ or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
 =cut
 
 1;
+

@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.19 2007-12-10 14:41:05 jt6 Exp $
+# $Id: Search.pm,v 1.20 2008-03-19 13:34:42 jt6 Exp $
 
 =head1 NAME
 
@@ -16,71 +16,14 @@ package PfamWeb::Controller::Search;
 
 This controller is responsible for running sequence searches.
 
-$Id: Search.pm,v 1.19 2007-12-10 14:41:05 jt6 Exp $
+$Id: Search.pm,v 1.20 2008-03-19 13:34:42 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Module::Pluggable;
-
-use base 'PfamWeb::Controller::Section';
-
-# set the name of the section
-__PACKAGE__->config( SECTION => 'search' );
-
-#-------------------------------------------------------------------------------
-
-=head1 METHODS
-
-=head2 begin : Private
-
-Tries to extract the query terms from the URL and de-taint them.
-
-=cut
-
-sub begin : Private {
-  my( $this, $c ) = @_;
-
-  # tell the navbar where we are
-  $c->stash->{nav} = 'search';
-  
-  # tell the layout template to disable the summary icons
-  $c->stash->{iconsDisabled} = 1;
-  
-  #----------------------------------------
-
-  # decide what format to emit. The default is HTML, in which case
-  # we don't set a template here, but just let the "end" method on
-  # the Section controller take care of us
-  $c->stash->{output_xml} = ( defined $c->req->param('output') and
-                              $c->req->param('output') eq 'xml' );
-
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 formatTerms : Private
-
-Inherited by the search plugins, this action formats the query terms to add 
-wildcard and fulltext operators to each word in the list. This base 
-implementation just prepends a "+" (require that the word is present in every 
-returned row; necessary for "IN BOOLEAN MODE" queries) and appends a "*" 
-(wildcard) to each term.
-
-This method should be over-ridden by plugin search classes if they
-need some other processing to be performed on the search terms.
-
-=cut
-
-sub formatTerms : Private {
-  my( $this, $c ) = @_;
-
-  $c->stash->{terms} =
-    join " ", map { $_ = "+$_*" } split /\s+|\W|\_/, $c->stash->{rawQueryTerms};
-
-}
+use base 'PfamBase::Controller::Search';
 
 #-------------------------------------------------------------------------------
 
