@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.15 2008-03-03 16:51:17 jt6 Exp $
+# $Id: Sequence.pm,v 1.16 2008-03-20 12:56:48 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.15 2008-03-03 16:51:17 jt6 Exp $
+$Id: Sequence.pm,v 1.16 2008-03-20 12:56:48 jt6 Exp $
 
 =cut
 
@@ -360,7 +360,11 @@ sub queue_pfam_a : Private {
   my ( $this, $c ) = @_;
   
   # make a guess at the runtime for the job
-  my $estimated_time = int( length( $c->stash->{seq} ) / 100 );
+  $c->log->debug( 'Search::Sequence: multiplier is '
+                  . $this->{pfamA_search_multiplier} . '|' ) if $c->debug;
+  $c->log->debug( 'Search::Sequence: sequence is :'
+                  . length( $c->stash->{seq} ) . '| residues long' ) if $c->debug;
+  my $estimated_time = int( $this->{pfamA_search_multiplier} * length( $c->stash->{seq} ) / 100 );
   ( $estimated_time *= 2 ) if ( $c->stash->{seqOpts} eq 'both' or
                                 $c->stash->{seqOpts} eq 'bothNoMerge' );
   $c->log->debug(  q(Search::Sequence::queue_pfam_a: estimated search time: ) .
@@ -422,7 +426,7 @@ sub queue_pfam_b : Private {
   my ( $this, $c ) = @_;
 
   # make a guess at the runtime for the job
-  my $estimated_time = int( length( $c->stash->{seq} ) / 100 );
+  my $estimated_time = int( $this->{pfamB_search_multiplier} * length( $c->stash->{seq} ) / 100 );
   $c->log->debug(  q(Search::Sequence::queue_pfam_b: estimated search time: ) .
                   qq(|$estimated_time| seconds) ) if $c->debug;
 
