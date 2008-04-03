@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.11 2008-03-19 14:44:08 jt6 Exp $
+# $Id: Jump.pm,v 1.12 2008-04-03 12:28:10 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.11 2008-03-19 14:44:08 jt6 Exp $
+$Id: Jump.pm,v 1.12 2008-04-03 12:28:10 jt6 Exp $
 
 =cut
 
@@ -123,7 +123,7 @@ sub guess_family : Private {
   }
     
   # maybe a Pfam-B ID ?
-  if( $entry =~ m/^(Pfam-B_\d+)$/ ) {
+  if( $entry =~ m/^(PFAM-B_\d+)$/ ) {
 
     return 'pfamb' if $c->model('PfamDB::PfamB')
                         ->find( { pfamB_id => $1 } );
