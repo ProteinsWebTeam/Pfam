@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.2 2008-04-07 10:03:42 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.3 2008-04-07 10:12:56 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -288,28 +288,7 @@ function chooseTab() {
 //------------------------------------------------------------
 // display the specified tab in the page body
 
-/*
-  
-function switchTab( sId, oHistory ) {
-
-  //if( ! oHistory || ! oHistory.calledFromHistory ) {
-  //  dsHistory.addFunction( switchTab, window, sId );
-  //}
-
-
-  if ( sId && $(sId) ) {
-    console.debug( "switchTab: switching to requested tab" );
-    _switchTab( sId );
-  }
-  else {
-    console.debug( "switchTab: switching to first tab" );
-    _switchTab( $$(".block").first().id );
-  }
-}
-
-function _switchTab( sId ) {
-  console.debug( "_switchTab: switching to tab |" + sId + "|" );
-
+function switchTab( sId ) {
   // show/hide the blocks themselves
   $$("#content div.block").each( function( block ) {
                                    if( sId == block.id ) {
@@ -327,43 +306,7 @@ function _switchTab( sId ) {
                               item.removeClassName( "selected" );
                             }
                           } );
-
-  updateTabCookie( sId ); 
 }
-
-function updateTabCookie( sId ) {
-
-  var sHistory = readCookie( "tabHistory" );
-  var history  = {};
-  if ( ! sHistory ) {
-    console.debug( "updateTabCookie: no tab history cookie" );
-  }
-  else {
-    console.debug( "updateTabCookie: existing history: |" + sHistory + "|" );
-    
-    try {
-      history = sHistory.evalJSON(true);
-    } catch( e ) {
-      console.error( "updateTabCookie: couldn't parse JSON from cookie: |" + e + "|" );
-      return;
-    }
-
-    console.debug( "updateTabCookie: JSON from cookie: |" + history + "|" );
-  }
-}
-
-function addToHistory( sId, oHistory ) {
-  console.debug( "calling dsHistory.addFunction, for sId = |" + sId + "|" ); 
-
-  // see if there's a history cookie
-  var tabHistory;
-
-  console.debug( "creating cookie; lastTab = |" + sId + "|, pathname = |" 
-                 + window.location.pathname + "|" );
-  createCookie( "lastTab", sId, "7d", window.location.pathname );
-}
-
-*/
 
 //------------------------------------------------------------
 //- external functions ---------------------------------------
