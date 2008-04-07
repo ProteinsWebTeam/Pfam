@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.2 2008-04-07 09:43:49 jt6 Exp $
+# $Id: layout.tt,v 1.3 2008-04-07 10:02:23 jt6 Exp $
 
 USE String;
 USE date;
@@ -26,10 +26,6 @@ requirements.cssIe.push( "tab_layout_ie.css" );
 sharedRequirements.js.push( "cb.js" );
 requirements.css.push( "cb.css" );
 
-# history manager
-sharedRequirements.js.push( "dshistory.js" );
-sharedRequirements.js.push( "history.js" );
-
 #--------------------------------------
 # a BLOCK that will generate a sidebar tab
 
@@ -49,7 +45,7 @@ BLOCK generateTab;
 	    # this div is purely to avoid the IE box model bug... -%]
       <div>
         <span class="link" 
-              onclick="s.switchTab('[% blockName %]');">
+              onclick="switchTab('[% blockName %]');">
           [% blockTitle %]</span>
       </div>
     [% ELSE -%]
@@ -163,54 +159,31 @@ PROCESS components/icons.tt;
 [% # do we want to highlight a particular tab ? %]
 <script type="text/javascript">
   // <![CDATA[
-  var section = "[% pageType # the site section, e.g. family, protein, etc. %]";
-  var acc     = "[% acc      # entry accession %]";
-  var showTab = "[% showTab  # the tab, specified by a parameter %]";
-  
-  console.debug( "window: getting a switcher object" );
-  var s;
-  Event.observe( window, "load", function() {
-    s = new Switcher( section, acc );
-    s.chooseTab( showTab );
-  
-    /*
-    [%# see if there is an error message in the page. If there is, we walk back
-        up the DOM tree from that error message node until we find the "block"
-        that encloses it, grab the ID for that block and use the tab switcher
-        to select it... %]
-    if( $$('div.error').size() ) {
-      console.debug( "window: switching to first error tab" );
-      $$('.error')
-        .first()
-        .ancestors()
-        .each( function( el ) {
-                 if( el.hasClassName( "block" ) ) { 
-                   s.forceTab( el.id );
-                 }
+  section    = "[% pageType # the site section, e.g. family, protein, etc. %]";
+  showTab    = "[% showTab  # the tab, specified by a parameter %]";
+  if( ! ( showTab === undefined ) && $(showTab) ) {
+    switchTab( showTab );
+  } else if( $$('div.error').size() ) {
+    /* [%# see if there is an error message in the page. If there is, we walk back
+           up the DOM tree from that error message node until we find the "block"
+           that encloses it, grab the ID for that block and use the tab switcher
+           to select it... %] */
+    $$('.error')
+      .first()
+      .ancestors()
+      .each( function( el ) {
+               if( el.hasClassName( "block" ) ) { 
+                 switchTab( el.id );
                }
-             );
-    } 
-    
-    [%# the server wants us to select a particular tab %]  
-    else if ( showTab ) {
-      console.debug( "window: switching to server-nominated tab" );
-      s.forceTab( showTab );
-    }
-    
-    [%# there is a cookie; use that to initialise the history %]
-    else if ( s.getBreadcrumbs().size() ) {
-      console.debug( "window: switching to history tab" );
-      s.forceTab( s.getBreadcrumbs().last() );
-    }
-        
-    [%# no tab specified; show the first one %]
-    else {
-      console.debug( "window: switching to first tab" );
-      s.firstTab();
-    }
-    */
-
-  } );
+             }
+           );
+  } else {
+    $A( document.getElementsByClassName( "block" ) )
+      .first()
+      .setStyle( { display: "block" } );
+    // no need to turn on the selector, because the first item in the list is
+    // set to visible anyway
+  }
 
   // keep track of post-loading calls
   
@@ -221,10 +194,10 @@ PROCESS components/icons.tt;
       $('loadingComponents').show();
     },
     onComplete: function() {
+      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
       if( Ajax.activeRequestCount < 1 ) {
         $('loadingComponents').hide();
       }
-      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
     }
   } );
   // ]]>
