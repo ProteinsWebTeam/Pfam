@@ -48,7 +48,7 @@ The rest of the documentation details each of the object methods. Internal metho
 
 =cut
 
-# $Author: jt6 $
+# $Author: rdf $
 
 # Let the code begin...
 
@@ -673,7 +673,7 @@ sub read_Prodom{
 sub read_selex {
     my $self = shift;
     my $in = shift;
-    my ($start,$end,%align,$name,$seqname,$seq,$count,%hash,%c2name, %accession, $no);
+    my ($start,$end,%align,$name,$seqname,$seq,$count,%hash,%c2name, %accession, $no, $version);
    
     # in selex format, every non-blank line that does not start
     # with '#=' is an alignment segment; the '#=' lines are mark up lines.
@@ -705,10 +705,12 @@ sub read_selex {
     foreach $no ( sort { $a <=> $b } keys %c2name ) {
         $name = $c2name{$no};
 
-        if( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
+        if( $name =~ /(\S+)\.?(\d+)?\/(\d+)-(\d+)/ ) {
             $seqname = $1;
-            $start = $2;
-            $end = $3;
+            $version = $2;
+	    $start = $3;
+            $end = $4;
+     
         } else {
             $seqname=$name;
             $start = 1;
@@ -717,6 +719,7 @@ sub read_selex {
 
         $seq = Bio::Pfam::SeqPfam->new('-seq'=>$align{$name},
 				       '-id'=>$seqname,
+                                       '-version' => $version,
 				       '-start'=>$start,
 				       '-end'=>$end, 
 				       '-type'=>'aligned',
@@ -737,7 +740,10 @@ sub read_selex {
 =head2 read_stockholm
 
  Title     : read_stockholm
- Usage     : $ali->read_stockholm(\*INPUT) 
+ Usage     : $ali->read_stockholm(\*INPUT) or $ali->read_stockholm(\@array_ref)
+             (Can also give additional argument (1) to make it store all the features 
+             above the alignment in a pfam flatfile 
+             usage: $ali->read_stockholm(\*INPUT, 1)
  Function  : reads stockholm  format alignments
  Notes     : 
     This function over-rides the one defined in Bio::SimpleAlign,
@@ -784,6 +790,9 @@ sub read_selex {
               (0=0.00-0.05; 1=0.05-0.15; *=0.95-1.00)
     LI        LIgand binding         [*]
     RF        Match states Notation  [xX.]
+    AS        Active site
+    pAS       Pfam pred active site
+    sAS       SwissProt pred act site
     con_seq   Consensus sequence     [ARNDCQEGHILKMFPSTWYVol.ach-p+sut]
 
     "X" in SA and SS means "residue with unknown structure".
@@ -807,17 +816,19 @@ sub read_selex {
 sub read_stockholm {
     my $self = shift;
     my $in = shift;
+    my $complete = shift;
+    my $input;
 
-	my $input;
-	if( ref $in eq "GLOB" ) {
-	  $input = [ <$in> ];
-	} else {
-	  $input = $in;
-	}
+    if( ref $in eq "GLOB" ) {
+      $input = [ <$in> ];
+    } else {
+      $input = $in;
+    }
 
     my ($start,
 	$end,
 	$seqname,
+	$version,
 	$seq,
 	$name, 
 	$count,
@@ -826,8 +837,8 @@ sub read_stockholm {
 	$cons_post_prob, $cons_lig_bind, $cons_active_site, 
 	$sequence_consensus, $match_state_str,
 	%hash,  %c2name, %align,
-	%accession, %sec_struct, %surf_access, 
-	%trans_mem, %post_prob, %lig_bind, %active_site, %annotation
+	%accession, %version, %sec_struct, %surf_access, 
+	%trans_mem, %post_prob, %lig_bind, %active_site, %pfampred_active_site, %sprotpred_active_site, %annotation
 	);
 #    while( <$in> ) {
 	foreach ( @$input ) {
@@ -838,11 +849,18 @@ sub read_stockholm {
 	    last;
 	};
 
-	/^\#=GS\s+(\S+)\s+AC\s+(\S+)/ && do {
-	    $accession{ $1 } = $2; 
-	    next;
+	/^\#=GF/ && do {
+	  push(@{$self->{'GF_lines'}}, $_);
+	  next;
 	};
 
+	/^\#=GS\s+(\S+)\s+AC\s+(\S+)\.(\d+)/ && do {
+            $accession{ $1 } = $2;
+            $version{$1} = $3;
+            next;
+        };
+
+	
 	/^\#=GS\s+(\S+)\s+DR\s+(\S+);\s+(\S+\s*\S*)\s*;\s*(.*)/ && do {
 	    my ($nse, $db, $prim_id, $rest) = ($1, $2, $3, $4);
 	    if (! $annotation{$nse}) {
@@ -853,7 +871,7 @@ sub read_stockholm {
 	    $link->database( $db );
 	    $link->primary_id( $prim_id );
 	   # map { $link->add_additional( $_ ) } split(/\s*;\s*/, $rest);
-	     map { $link->optional_id( $_ ) } split(/\s*;\s*/, $rest);
+	     $link->optional_id( $rest );
 	   # $annotation{ $nse }->add_link( $link );
 	    $annotation{ $nse }->add_Annotation('dblink', $link);
 	    next;
@@ -865,7 +883,7 @@ sub read_stockholm {
 		#$annotation{$nse} = Bio::Annotation->new();
 	      $annotation{$nse} = Bio::Annotation::Collection->new();
 	    }
-	    $annotation{ $nse }->description( $rest );
+	    $annotation{ $nse }->add_Annotation('description', $rest );
 	    next;
 	};
 
@@ -894,6 +912,14 @@ sub read_stockholm {
 	};
 	/^\#=GR\s+(\S+)\s+AS\s+(.+)/ && do {
 	    $active_site{ $1 } .= $2; 
+	    next;
+	};
+	/^\#=GR\s+(\S+)\s+pAS\s+(.+)/ && do {
+	    $pfampred_active_site{ $1 } .= $2; 
+	    next;
+	};
+	/^\#=GR\s+(\S+)\s+sAS\s+(.+)/ && do {
+	    $sprotpred_active_site{ $1 } .= $2; 
 	    next;
 	};
 
@@ -967,10 +993,25 @@ sub read_stockholm {
     foreach $no ( sort { $a <=> $b } keys %c2name ) {
 	$name = $c2name{$no};
 
-	if( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
+	
+	if( $name =~ /(\S+)\.(\d+)\/(\d+)-(\d+)/ ) {
+	    #Here, accession.version is the id
+	    $seqname = $1; 
+	    $version = $2;
+	    $start = $3;
+	    $end = $4; 
+	} elsif ($name =~ /(\S+_\S+)\/(\d+)-(\d+)/ ) {
+	    #Here, the id is the id (i.e. proper stockholm).
 	    $seqname = $1;
 	    $start = $2;
 	    $end = $3;
+	    $version = 	$version{$name} if ($version{$name});
+	} elsif( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
+	    #Here, accession.version is the id
+	    $seqname = $1; 
+	    $version = $2;
+	    $start = $3;
+	    $end = $4;        
 	} else {
 	    $seqname=$name;
 	    $start = 1;
@@ -983,6 +1024,7 @@ sub read_stockholm {
 				       '-end' => $end, 
 				       '-type' => 'aligned',
 				       '-acc' => $accession{$name},
+				       '-version' =>$version,
 				       '-annotation' => $annotation{$name});
 	$sec_struct{$name} and do {
 	    $seq->sec_struct( Bio::Pfam::OtherRegion->new('-seq_id' => $seqname,
@@ -1035,6 +1077,24 @@ sub read_stockholm {
 							  '-to' => $end,
 							  '-type' => "active_site",
 							  '-display' => $active_site{$name},
+							  '-source' => 'Pfam')
+				 );
+	};
+	$pfampred_active_site{ $name } and do {
+	    $seq->active_site(Bio::Pfam::OtherRegion->new('-seq_id' => $seqname,
+							  '-from' => $start,
+							  '-to' => $end,
+							  '-type' => "pfam_pred_active_site",
+							  '-display' => $pfampred_active_site{$name},
+							  '-source' => 'Pfam')
+				 );
+	};
+	$sprotpred_active_site{ $name } and do {
+	    $seq->active_site(Bio::Pfam::OtherRegion->new('-seq_id' => $seqname,
+							  '-from' => $start,
+							  '-to' => $end,
+							  '-type' => "sprot_pred_active_site",
+							  '-display' => $sprotpred_active_site{$name},
 							  '-source' => 'Pfam')
 				 );
 	};
@@ -1243,6 +1303,11 @@ sub write_selex {
 
  Title     : write_stockholm
  Usage     : $ali->write_stockholm(\*OUTPUT) 
+             (if you have used read_stockholm in the form
+             $ali->read_stockholm(\*INPUT, 1) or $ali->read_stockholm(\@arrayref, 1) 
+             you can also give an additional argument (1) to
+             make it print all the features  above the alignment in a pfam flatfile 
+             usage: $ali->read_stockholm(\*OUTPUT, 1) 
  Function  : writes the alignment in full Stockholm format, unwrapped
 
 =cut
@@ -1250,6 +1315,8 @@ sub write_selex {
 sub write_stockholm {
     my $self = shift;
     my $out  = shift;
+    my $complete = shift;
+
     my ($namestr);
     my ($maxn, $maxh, $annot);
     # The first char of each char. in the alignment should appear in
@@ -1258,35 +1325,42 @@ sub write_stockholm {
     # each part of the sequence.
 
     my @output;
-
-	push @output, "# STOCKHOLM 1.0\n";
-
+    push @output, "# STOCKHOLM 1.0\n";
     $maxn = $self->maxdisplayname_length();
     $maxh = $self->maxdisplayname_length()
 	+ 4  # for the '#=G*
-	+ 2  # for the 2 letter code, e.g. SS
-	+ 3; # plus some whitespace for good measure
+	+ 3  # for the 2/3 letter code, e.g. SS, pAS
+	+ 5; # plus some whitespace for good measure
+
+    if($complete) {
+	foreach (@{$self->{'GF_lines'}}){
+	    chomp;
+	    push @output, "$_\n";
+	}
+      #push @output, @{$self->{'GF_lines'}} if($self->{'GF_lines'});
+    }
 
     foreach my $seq ($self->each_seq()) {
-	  $namestr = $seq->get_nse();
-	  $seq->acc and push @output, sprintf("#=GS %-${maxn}s  AC %s\n", $namestr, $seq->acc());
+      $namestr = $seq->get_nse();
+	  $seq->acc and push @output, sprintf("#=GS %-${maxn}s  AC %s\.\%s\n", $namestr, $seq->acc, $seq->version);
+	  if ($annot = $seq->annotation) {
+	    $annot->get_Annotations('description') and 
+		  push @output, sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->get_Annotations('description'));
+		foreach my $ln ($annot->get_Annotations('dblink') ) {
+		  my $dblink = sprintf("#=GS %-${maxn}s  DR %s; %s;", $namestr, $ln->database(), $ln->primary_id);
+		  if($ln->optional_id()){
+		    $dblink .= " ".$ln->optional_id();
+		  }
+		  $dblink .= "\n";
+		  push @output, $dblink;
+		}
+	  }
     }
 
     foreach my $seq ( $self->each_seq() ) {
 	  $namestr = $seq->get_nse();
 	  push @output, sprintf("%-${maxh}s %s\n", $namestr, $seq->seq());
-	  if ($annot = $seq->annotation) {
-	    $annot->description and 
-		  push @output, sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->description());
-		# foreach my $ln ($annot->each_link) {
-		foreach my $ln ($annot->get_Annotations('dblink') ) {
-		  push @output, sprintf("#=GS %-${maxn}s  DR %s; %s;", $namestr, $ln->database(), $ln->primary_id);
-		  #	foreach my $other ($ln->each_additional) {
-		  push @output, $ln->optional_id(). " ";
-		  #	}
-		  push @output, "\n";
-	    }
-	  }
+	  
 	  $seq->sec_struct and do {
 	    my $head = sprintf("#=GR %-${maxn}s  SS", $namestr);
 	    push @output, sprintf("%-${maxh}s %s\n", $head,  $seq->sec_struct->display );
@@ -1306,13 +1380,22 @@ sub write_stockholm {
 	  $seq->ligand_binding and do {
 	    my $head = sprintf("#=GR %-${maxn}s  LI", $namestr);
 	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->ligand_binding->display );
-	  };
-	  $seq->active_site and do {
-	    my $head = sprintf("#=GR %-${maxn}s  AS", $namestr);
+	};
+	$seq->active_site and do {
+            my $head;
+            if($seq->active_site->type eq "active_site") {
+ 	      $head = sprintf("#=GR %-${maxn}s  AS", $namestr);
+	    }
+            elsif($seq->active_site->type eq "pfam_pred_active_site") {
+ 	      $head = sprintf("#=GR %-${maxn}s  pAS", $namestr);
+	    }
+            elsif($seq->active_site->type eq "sprot_pred_active_site") {
+ 	      $head = sprintf("#=GR %-${maxn}s  sAS", $namestr);
+	    }
 	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->active_site->display );
-	  };
+	};
     }
-
+    
     ####### finally, the concesnsus information
 
     if ($self->cons_sec_struct) {
