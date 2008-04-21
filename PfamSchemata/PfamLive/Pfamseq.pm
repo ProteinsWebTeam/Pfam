@@ -1,7 +1,7 @@
 
-# $Id: Pfamseq.pm,v 1.3 2007-03-16 11:25:19 jt6 Exp $
+# $Id: Pfamseq.pm,v 1.4 2008-04-21 15:42:55 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamLive::Pfamseq;
 
 use strict;
@@ -15,7 +15,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamseq" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc crc64 md5 description length species taxonomy is_fragment version current non_cons sequence updated created /);
+__PACKAGE__->add_columns( qw/auto_pfamseq pfamseq_id pfamseq_acc crc64 md5 description length species taxonomy is_fragment current non_cons sequence updated created seq_version ncbi_code/);
 
 #Set the the keys
 __PACKAGE__->set_primary_key( "auto_pfamseq", "pfamseq_acc", "crc64", "pfamseq_id" );
@@ -32,7 +32,9 @@ __PACKAGE__->set_primary_key( "auto_pfamseq", "pfamseq_acc", "crc64", "pfamseq_i
 ##pfamA_reg_full
 __PACKAGE__->has_many("pfamA_reg_full",  => "PfamLive::PfamA_reg_full",
 		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
-
+		      
+__PACKAGE__->has_many("pfamA_reg_full_significant",  => "PfamLive::PfamA_reg_full_significant",
+		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
 ##pfamA_reg_seed
 __PACKAGE__->has_many("pfamA_reg_seed",  => "PfamLive::PfamA_reg_seed",
 		      {"foreign.auto_pfamseq" => "self.auto_pfamseq"} );
@@ -88,9 +90,6 @@ __PACKAGE__->might_have( "genome_pfamseq" => "PfamLive::genome_pfamseq",
 #Things that should be removed once some rationale is applied - We should then just be able to add the column name, but the call should be the same;
 ##pfamseq_ncbi
 
-__PACKAGE__->has_one("ncbi", => "PfamLive::Pfamseq_ncbi",
-		     {"foreign.auto_pfamseq" => "self.auto_pfamseq"},
-		     { proxy => [qw/ncbi_code/]});
 
 ##pfamseq_architecture
 __PACKAGE__->has_one("arch" =>  "PfamLive::Pfamseq_architecture",

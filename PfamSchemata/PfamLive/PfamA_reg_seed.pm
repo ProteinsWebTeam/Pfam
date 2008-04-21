@@ -1,7 +1,7 @@
 
-# $Id: PfamA_reg_seed.pm,v 1.3 2007-03-16 11:25:19 jt6 Exp $
+# $Id: PfamA_reg_seed.pm,v 1.4 2008-04-21 15:42:55 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamLive::PfamA_reg_seed;
 
 use strict;
@@ -15,7 +15,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamA_reg_seed" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq auto_pfamA seq_start seq_end /);
+__PACKAGE__->add_columns( qw/auto_pfamseq auto_pfamA seq_start seq_end cigar tree_order /);
 
 #Now set up the primary keys/contraints
 __PACKAGE__->set_primary_key("auto_pfamA", "auto_pfamseq");
@@ -23,11 +23,11 @@ __PACKAGE__->set_primary_key("auto_pfamA", "auto_pfamseq");
 #Now setup the relationship
 __PACKAGE__->has_one( "pfamA" =>  "PfamLive::Pfam",
 		      { "foreign.auto_pfamA"  => "self.auto_pfamA" },
-		      { proxy => [ qw/pfamA_id/ ] } );
+		      { proxy => [ qw (pfamA_id ) ] } );
 
 __PACKAGE__->has_one( "pfamseq" =>  "PfamLive::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
-		      { proxy => [ qw/pfamseq_acc pfamseq_id/ ] } );
+		      { proxy => [ qw ( pfamseq_acc pfamseq_id seq_version) ] } );
 
 =head1 COPYRIGHT
 
