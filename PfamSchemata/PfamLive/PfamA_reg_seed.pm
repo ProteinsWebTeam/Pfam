@@ -1,5 +1,5 @@
 
-# $Id: PfamA_reg_seed.pm,v 1.4 2008-04-21 15:42:55 rdf Exp $
+# $Id: PfamA_reg_seed.pm,v 1.5 2008-04-21 21:01:59 rdf Exp $
 #
 # $Author: rdf $
 package PfamLive::PfamA_reg_seed;
@@ -29,6 +29,10 @@ __PACKAGE__->has_one( "pfamseq" =>  "PfamLive::Pfamseq",
 		      { "foreign.auto_pfamseq"  => "self.auto_pfamseq" },
 		      { proxy => [ qw ( pfamseq_acc pfamseq_id seq_version) ] } );
 
+
+__PACKAGE__->add_unique_constraint(
+	 region => [ qw/auto_pfamA auto_pfamseq seq_start seq_end/]
+);
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
