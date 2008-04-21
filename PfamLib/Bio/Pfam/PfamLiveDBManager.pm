@@ -15,7 +15,6 @@ use strict;
 use warnings;
 
 sub new {
- print "In PfamLive new\n\n";
     my $caller = shift;
     my $class = ref($caller) || $caller;
     my %dbiParams = ();
@@ -119,6 +118,10 @@ sub removeClan {
   }
   return($result);
 }
+
+
+
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.

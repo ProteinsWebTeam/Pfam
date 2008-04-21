@@ -50,10 +50,10 @@ sub getSchema{
     return $self->{schema};
 }
 
-sub DESTROY {
-  my $self = shift;
-  $self->{'schema'}->storage->disconnect;
-}
+#sub DESTROY {
+#  my $self = shift;
+#  $self->{'schema'}->storage->disconnect;
+#}
 
 
 #Select methods should go in here.
