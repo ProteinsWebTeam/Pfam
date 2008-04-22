@@ -4,16 +4,22 @@
 #
 # template for serialising Pfam-A data to XML format
 #
-# $Id: pfama_xml.tt,v 1.1 2007-12-10 14:54:56 jt6 Exp $
+# $Id: pfama_xml.tt,v 1.2 2008-04-22 11:53:27 jt6 Exp $
 
 USE date;
 
 META naked = 1;
 
+baseUri = "http://pfam.sanger.ac.uk/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on Pfam-A family [% pfam.pfamA_acc %] ([% pfam.pfamA_id %]), generated: [% date.format %] -->
-<pfam release="[% relData.pfam_release %]" release_date="[% relData.pfam_release_date %]">
+<pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/pfam_family.xsd"
+      release="[% relData.pfam_release %]" 
+      release_date="[% relData.pfam_release_date %]">
   <entry entry_type="Pfam-A" accession="[% pfam.pfamA_acc %]" id="[% pfam.pfamA_id %]">
     <description>
 <![CDATA[
@@ -25,18 +31,45 @@ META naked = 1;
 [% pfam.comment | html %]
 ]]>
     </comment>
+[% IF pfam.clan_acc -%]
+    <clan_membership clan_acc="[% pfam.clan_acc %]" clan_id="[% pfam.clan_id %]" />
+[% END;
+CALL c.log.debug( "goTerms.size: |" _ goTerms.size _ "|" );
+IF goTerms.size;
+  categories = { 
+    function  => { label   => "Molecular function",
+                   goTerms => [] },
+    process   => { label   => "Biological process",
+                   goTerms => [] },
+    component => { label   => "Cellular component",
+                   goTerms => [] }
+  };
+  FOREACH goTerm IN goTerms;
+    categories.${goTerm.category}.goTerms.push( goTerm ); 
+  END -%]
+    <go_terms>
+[% FOREACH categoryName IN categories.keys.sort;
+      category = categories.${categoryName} -%]
+      <category name="[% categoryName %]">
+[% FOREACH goTerm IN category.goTerms.sort('go_id') -%]
+        <term go_id="[% goTerm.go_id %]">[% goTerm.term %]</term>
+[% END -%]
+      </category>
+[% END -%]
+    </go_terms>
+[% END; # of "if goTerms" -%]
     <curation_details>
       <status>[% pfam.change_status %]</status>
       <seed_source>[% pfam.seed_source %]</seed_source>
 [% IF pfam.previous_id -%]
       <previous_id>[% pfam.previous_id %]</previous_id>
 [% END -%]
-      <num_archs>[% number_archs %]</num_archs>
+      <num_archs>[% pfam.number_archs %]</num_archs>
       <num_seqs>
         <seed>[% pfam.num_seed %]</seed>
         <full>[% pfam.num_full %]</full>
       </num_seqs>
-      <num_species>[% number_species %]</num_species>
+      <num_species>[% pfam.number_species %]</num_species>
       <percentage_identity>[% pfam.percentage_id %]</percentage_identity>
       <av_length>[% pfam.average_length %]</av_length>
       <av_coverage>[% pfam.average_coverage %]</av_coverage>
