@@ -1,5 +1,5 @@
 
-# $Id: Pfamseq_markup.pm,v 1.4 2008-04-21 15:42:55 rdf Exp $
+# $Id: Pfamseq_markup.pm,v 1.5 2008-04-22 12:02:24 rdf Exp $
 #
 # $Author: rdf $
 package PfamLive::Pfamseq_markup;
@@ -37,6 +37,10 @@ __PACKAGE__->might_have("pdbResidue" => "PfamLive::Pdb_residue",
 __PACKAGE__->might_have("pfamA_reg_full_significant" => "PfamLive::PfamA_reg_full_significant",
 						{"foreign.auto_pfamseq" => "self.auto_pfamseq"},
 						{proxy => [qw(pfamseq_id pfamseq_acc)]});
+
+__PACKAGE__->add_unique_constraint( 
+        positionMarkup => [ qw(auto_pfamseq auto_markup residue) ]
+);
 
 =head1 COPYRIGHT
 
