@@ -53,9 +53,8 @@ sub initiateViewProcess {
   
   #Lets tran 
   eval {
-    $db->getSchema
-        ->schema
-          ->txn_do( $transaction );
+       $db->getSchema
+           ->txn_do( $transaction );
   };
   if ( $@ ) {
     die "Failed during job submission transaction!: [$@]\n"; 
