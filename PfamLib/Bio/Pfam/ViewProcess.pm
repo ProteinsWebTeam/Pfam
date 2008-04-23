@@ -8,7 +8,7 @@ use Data::UUID;
 use strict;
 use warnings;
 
-sub intiateViewProcess {
+sub initiateViewProcess {
   my($en, $name) = @_;
   
   unless( $en->isa("Bio::Pfam::EntryA_RCS") ){
