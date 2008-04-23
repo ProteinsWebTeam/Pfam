@@ -4,17 +4,23 @@
 #
 # template for serialising uniprot sequence data to XML format
 #
-# $Id: entry_xml.tt,v 1.1 2007-12-10 14:55:30 jt6 Exp $
+# $Id: entry_xml.tt,v 1.2 2008-04-23 13:18:10 jt6 Exp $
 
 META naked = 1;
 
 USE String;
 USE date;
 
+baseUri = "http://pfam.sanger.ac.uk/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on UniProt entry [% pfamseq.pfamseq_acc %] ([% pfamseq.pfamseq_id %]), generated: [% date.format %] -->
-<pfam release="[% relData.pfam_release %]" release_date="[% relData.pfam_release_date %]">
+<pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/protein.xsd"
+      release="[% relData.pfam_release %]" 
+      release_date="[% relData.pfam_release_date %]">
   <entry entry_type="sequence" db="uniprot" db_release="[% relData.swiss_prot_version %]" accession="[% pfamseq.pfamseq_acc %]" id="[% pfamseq.pfamseq_id %]">
     <description>
 <![CDATA[
@@ -27,7 +33,7 @@ USE date;
     <matches>
 [% FOREACH region IN pfama_regions -%]
       <match accession="[% region.pfamA_acc %]" id="[% region.pfamA_id %]" type="Pfam-A" class="[% region.type %]">
-        <location start="[% region.seq_start %]" end="[% region.seq_end %]" />
+        <location start="[% region.seq_start %]" end="[% region.seq_end %]" hmm_start="[% region.model_start %]" hmm_end="[% region.model_end %]" evalue="[% region.domain_evalue_score %]" bitscore="[% region.domain_bits_score %]" mode="[% region.mode %]" />
       </match>
 [% END;
 FOREACH region IN pfamb_regions -%]
