@@ -4,7 +4,7 @@
 #
 # Model for the job_history table.
 #
-# $Id: JobHistory.pm,v 1.1 2008-01-31 10:38:48 rdf Exp $
+# $Id: JobHistory.pm,v 1.2 2008-04-23 15:31:42 rdf Exp $
 #
 # $Author: rdf $
 
@@ -27,6 +27,7 @@ __PACKAGE__->add_columns( qw( id
                               lsf_id
                               family_id
                               family_acc
+                              family_size
                               job_type
                               options
                               opened
