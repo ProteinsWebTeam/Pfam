@@ -31,20 +31,25 @@ sub initiateViewProcess {
     die ("Could not get a connection to the PfamJob database!");
   }
   
-
+  my $size = '';
+  
+  unless($en->num_full){
+     $size = $en->num_full;
+  }
   #Add the job to the pfam_jobs database.
   #Need to steal the transactions part from John.
   my $transaction = sub {
     my $r = $db->getSchema
               ->resultset('JobHistory')
                 ->create({ status     => 'PEND',
-                                          job_id     => $uid,
-                                          family_acc => $en->acc,
-                                          family_id  => $en->id,
-                                          job_type   => 'view',
-                                          options    => '',
-                                          opened     => \'NOW()',
-                                          user_id    => $name });
+                                          job_id      => $uid,
+                                          family_acc  => $en->acc,
+                                          family_id   => $en->id,
+                                          family_size => $size,
+                                          job_type    => 'view',
+                                          options     => '',
+                                          opened      => \'NOW()',
+                                          user_id     => $name });
                                           
     my $s = $db->getSchema
               ->resultset('JobStream')
