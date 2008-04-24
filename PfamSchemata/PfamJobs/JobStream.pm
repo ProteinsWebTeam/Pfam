@@ -4,7 +4,7 @@
 #
 # Model for the job_stream table.
 #
-# $Id: JobStream.pm,v 1.1 2008-01-31 10:38:48 rdf Exp $
+# $Id: JobStream.pm,v 1.2 2008-04-24 16:15:12 rdf Exp $
 #
 # $Author: rdf $
 
@@ -35,6 +35,7 @@ __PACKAGE__->has_one( job_history => 'PfamJobs::JobHistory',
                                         lsf_id
                                         family_id
                                         family_acc
+                                        family_size
                                         job_type
                                         options
                                         opened
