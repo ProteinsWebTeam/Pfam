@@ -4,7 +4,7 @@
 #
 # template for serialising Pfam-A data to XML format
 #
-# $Id: pfama_xml.tt,v 1.2 2008-04-22 11:53:27 jt6 Exp $
+# $Id: pfama_xml.tt,v 1.3 2008-04-24 13:24:11 jt6 Exp $
 
 USE date;
 
@@ -49,7 +49,8 @@ IF goTerms.size;
   END -%]
     <go_terms>
 [% FOREACH categoryName IN categories.keys.sort;
-      category = categories.${categoryName} -%]
+      category = categories.${categoryName};
+      NEXT UNLESS category.goTerms.size -%]
       <category name="[% categoryName %]">
 [% FOREACH goTerm IN category.goTerms.sort('go_id') -%]
         <term go_id="[% goTerm.go_id %]">[% goTerm.term %]</term>
