@@ -3,8 +3,8 @@ package Bio::Pfam::Queues::IntQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2008-01-31 10:37:28 $
-# Id:            $Id: IntQueue.pm,v 1.1 2008-01-31 10:37:28 rdf Exp $
+# Last Modified: $Date: 2008-04-24 16:04:43 $
+# Id:            $Id: IntQueue.pm,v 1.2 2008-04-24 16:04:43 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -21,7 +21,7 @@ use Carp;
 use Data::UUID;
 use Data::Dumper;
 use File::Basename;
-use Config::General;
+#use Config::General;
 use POSIX qw(setsid);
 use Bio::Pfam::PfamJobsDBManager;
 
@@ -46,8 +46,10 @@ sub new {
   $self->getSchema({password => 'mafp1' });
   #Start setting up the local information for setting up the jobs
   $self->tmpDir("/lustre/scratch1/sanger/pfam/");
+  $self->currentDir("/lustre/pfam/pfam/Production/Pfam/CURRENT");
   $self->farmNode("farm-login");
-  
+  $self->hugeMemNode("turing");
+  self->hugeMemTmpDir("/tmp");
   #Return the blessed object
   return ($self);
 }
@@ -74,8 +76,32 @@ sub farmNode{
 	if($farmNode){
 		$self->{'farmNode'} = $farmNode
 	}
+	return $self->{'farmNode'};
+}
+sub hugeMemNode{
+	my ($self, $farmNode) = @_;
+	if($farmNode){
+		$self->{'hugeMemNode'} = $farmNode
+	}
+	return $self->{'hugMemNode'};
 }
 
+sub hugeMemTmpDir{
+	my ($self, $tmpDir) = @_;
+	if($tmpDir){
+		$self->{'hugeMemTmpDir'} = $tmpDir;
+	}
+	return $self->{'hugMemTmpDir'};
+}
+
+
+sub farmNode{
+	my ($self, $farmNode) = @_;
+	if($farmNode){
+		$self->{'farmNode'} = $farmNode
+	}
+	return $self->{'farmNode'};
+}
 
 sub knownJobTypes{
 	my $self = shift;
@@ -90,6 +116,14 @@ sub tmpDir {
 		$self->{'tmpDir'} = $tmpDir;
 	}
 	return $self->{'tmpDir'};
+}
+
+sub currentDir {
+	my ($self, $cDir) = @_;
+	if($cDir){
+		$self->{'currentDir'} = $cDir;
+	}
+	return $self->{'currentDir'};
 }
 
 #sub job_type {
@@ -251,7 +285,9 @@ sub satisfy_pending_jobs {
       'job_type'   => $result->job_type,
       'family_id'  => $result->family_id,
       'family_acc' => $result->family_acc,
+      'family_size' => $result->family_size,
       'options'    => $result->options,
+      'user_id'    => $result->user_id,
       'command'    => $self->getCommand($result->job_type)
     });
   }
