@@ -4,7 +4,7 @@
 
    Stylesheet for the search pages, both the forms and the result pages.
 
-   $Id: search.css,v 1.4 2008-03-19 13:40:41 jt6 Exp $
+   $Id: search.css,v 1.5 2008-04-25 13:21:18 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -41,6 +41,11 @@ div.error {
 
 div.error h2 {
   margin: 0.2em;
+}
+
+.warning {
+  color: #900;
+  font-weight: bold;
 }
 
 /* ---------------------------------------- */
