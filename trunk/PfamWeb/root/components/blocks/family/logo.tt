@@ -1,0 +1,60 @@
+
+[%
+# logo.tt
+# jt6 20080411 WTSI
+#
+# block showing the HMM logo for this family.
+#
+# $Id: logo.tt,v 1.1 2008-04-25 13:34:33 jt6 Exp $
+%]
+
+<!-- start logo block -->
+
+<div class="block" id="logoBlock">
+  <div class="handle">
+    <h1>HMM logo</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      HMM logos are one way of visualising profile HMMs. They provide a
+      quick overview of the properties of an HMM in a graphical form. You can 
+      see a more detailed description of HMM logos and find out how you can 
+      interpret them
+      <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/logomat-m/help.shtml">
+        here</a>.
+      <span onclick="reveal( this, 'logoNotes', false, true );"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="logoNotes" style="display: none">
+      <p>
+        If you find these logos useful in your own work, please consider citing
+        the following article:
+      </p>
+      <div class="citation">
+        <span class="title">
+          <a class="ext" 
+             href="http://dx.doi.org/10.1186/1471-2105-5-7">
+            HMM Logos for visualization of protein families</a>: 
+        </span>
+        <span class="authors">
+          B. Schuster-B&#246;ckler, J. Schultz, S. Rahmann
+        </span>
+        <span class="ref">
+          <span class="jrnl">BMC Bioinformatics</span>&nbsp;(2004)
+          &nbsp;5:7
+        </span>
+      </div>
+      <hr />
+    </div>
+
+    <div id="logo" style="width: 100%; overflow: auto">
+      <img alt="HMM logo"
+           src="[% c.uri_for( '/family/logo', entry => acc ) %]" />
+    </div>
+
+  </div>
+
+</div>
+
+<!-- end of logo block -->
