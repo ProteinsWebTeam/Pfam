@@ -1,0 +1,95 @@
+[%
+# html_alignment.tt
+# jt6 20080422 WTSI
+# 
+# build a page for the HTML alignment fragment
+#
+# $Id: html_alignment.tt,v 1.1 2008-04-25 13:35:16 jt6 Exp $
+
+# tell the wrapper not to add any header or footer. We will generate a complete 
+# page here ourselves
+META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "alignment.css" );
+
+#-------------------------------------------------------------------------------
+
+pageContent = BLOCK;
+
+type = alnType | ucfirst;
+title = type _ " sequence alignment for " _ acc;
+-%]
+
+<h1>[% title %]</h1>
+
+<div id="html_alignment">
+[% html_alignment %]
+</div>
+
+<div id="key">
+
+  <p>
+    This alignment is coloured according to the ClustalX colouring scheme:
+  </p>
+
+  <dl class="colours">
+    <dt class="o">&nbsp;</dt>
+    <dd>Glycine (G)</dd>
+    <dt class="y">&nbsp;</dt>
+    <dd>Proline (P)</dd>
+    <dt class="b">&nbsp;</dt>
+    <dd>Small and hydrophobic (A,V,L,I,M,F,W)</dd>
+    <dt class="g">&nbsp;</dt>
+    <dd>Hydroxyl and amine amino acids (S,T,N,Q)</dd>
+    <dt class="r">&nbsp;</dt>
+    <dd>Charged amino-acids (D,E,R,K)</dd>
+    <dt class="c">&nbsp;</dt>
+    <dd>Histidine and tyrosine (H,Y)</dd>
+    <dt class="as">&nbsp;</dt>
+    <dd>Active site (residue annotated in SwissProt as an active site)</dd>
+    <dt class="pas">&nbsp;</dt>
+    <dd>Predicted active site (residue aligns in a Pfam alignment with a 
+      SwissProt active site)</dd>
+    <dt class="sas">&nbsp;</dt>
+    <dd>Predicted active site (residue annotated in SwissProt as a potential 
+      active site)</dd>
+  </dl>
+
+  <p>
+    Some sequences can be mapped to protein structures, in which case we also
+    show the secondary structure definition. These lines are shown below the 
+    sequence to which they apply and are marked <code>(SS)</code>. The meaning of 
+    each of the symbols is as follows:
+  </p>
+
+  <dl>
+    <dt>C</dt>
+    <dd>Random coil</dd>
+    <dt class="H">H</dt>
+    <dd>Alpha-helix</dd>
+    <dt>G</dt>
+    <dd>3(10) helix</dd>
+    <dt>I</dt>
+    <dd>Pi-helix</dd>
+    <dt class="E">E</dt>
+    <dd>Hydrogen bonded beta-strand (extended strand)</dd>
+    <dt>B</dt>
+    <dd>Residue in isolated beta-bridge</dd>
+    <dt>T</dt>
+    <dd>H-bonded turn (3-turn, 4-turn, or 5-turn)</dd>
+    <dt>S</dt>
+    <dd>Bend (five-residue bend centered at residue i)</dd>
+  </dl>
+
+</div>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END; # of "pageContent = BLOCK"
+
+PROCESS components/tools/toolWindow.tt %]
