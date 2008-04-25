@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.3 2008-04-04 10:11:34 jt6 Exp $
+# $Id: database.tt,v 1.4 2008-04-25 13:29:29 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -25,7 +25,8 @@
 
     <h2>VERSION table</h2>
 
-    <img alt="Version table"
+    <img class="tables"
+         alt="Version table"
          src="[% c.uri_for( "/static/images/db_schema/Version.png" ) %]" />
 
     <p>
@@ -221,8 +222,9 @@ pfamB_additional_residue_coverage: 6.5
     <h2>Other regions, active site and disulphide bond information for a 
       sequence</h2>
 
-        <img alt="Other regions, sites, disulphides"
-         src="[% c.uri_for( "/static/images/db_schema/Other_reg.png" ) %]" />
+        <img class="tables"
+             alt="Other regions, sites, disulphides"
+             src="[% c.uri_for( "/static/images/db_schema/Other_reg.png" ) %]" />
 
     <p>
       These tables contain-sequence specific information about the sequences 
@@ -375,7 +377,8 @@ pfamB_additional_residue_coverage: 6.5
 
     <h2>Architecture information for a family</h2>
 
-    <img alt="Architecture table"
+    <img class="tables"
+         alt="Architecture table"
          src="[% c.uri_for( "/static/images/db_schema/Architecture.png" ) %]" />
 
     <p>
@@ -421,7 +424,8 @@ pfamB_additional_residue_coverage: 6.5
     
     <h2>Annotation information for a family</h2>
 
-    <img alt="Literature references"
+    <img class="tables"
+         alt="Literature references"
          src="[% c.uri_for( "/static/images/db_schema/Lit_ref.png" ) %]" />
 
     <p>
@@ -621,7 +625,8 @@ order_added: 6
 
     <h2>Clan data</h2>
 
-    <img alt="Clan table"
+    <img class="tables"
+         alt="Clan table"
          src="[% c.uri_for( "/static/images/db_schema/Clan.png" ) %]" />
 
     <p>
@@ -804,7 +809,8 @@ type_example: 57059
 
     <h2>Dead families and clans</h2>
 
-    <img alt="Dead families"
+    <img class="tables"
+         alt="Dead families"
          src="[% c.uri_for( "/static/images/db_schema/Dead.png" ) %]" />
 
     <p>
@@ -837,7 +843,8 @@ type_example: 57059
 
     <h2>Hidden Markov model (HMM) tables</h2>
 
-    <img alt="HMM tables"
+    <img class="tables"
+         alt="HMM tables"
          src="[% c.uri_for( "/static/images/db_schema/Hmm.png" ) %]" />
 
     <p>
@@ -853,7 +860,8 @@ type_example: 57059
 
     <h2>Nested domains</h2>
 
-    <img alt="Nested domains"
+    <img class="tables"
+         alt="Nested domains"
          src="[% c.uri_for( "/static/images/db_schema/Nested.png" ) %]" />
 
     <p>
@@ -898,7 +906,8 @@ type_example: 57059
     
     <h2>Structural data</h2>
 
-    <img alt="PDB table"
+    <img class="tables"
+         alt="PDB table"
          src="[% c.uri_for( "/static/images/db_schema/Pdb.png" ) %]" />
 
     <p>
@@ -995,7 +1004,8 @@ type_example: 57059
 
     <h2>Genomes</h2>
 
-    <img alt="Genome tables"
+    <img class="tables"
+         alt="Genome tables"
          src="[% c.uri_for( "/static/images/db_schema/Genome.png" ) %]" />
 
     <p>
@@ -1148,7 +1158,8 @@ total_genome_proteins: 5397</pre>
 
     <h2>Related families</h2>
 
-    <img alt="Related families"
+    <img class="tables"
+         alt="Related families"
          src="[% c.uri_for( "/static/images/db_schema/Prc.png" ) %]" />
 
     <p>
@@ -1293,7 +1304,8 @@ total_genome_proteins: 5397</pre>
     
     <h2>NCBI data</h2>
 
-    <img alt="Version table"
+    <img class="tables"
+         alt="Version table"
          src="[% c.uri_for( "/static/images/db_schema/Ncbiseq.png" ) %]" />
 
     <p>
@@ -1376,7 +1388,8 @@ total_genome_proteins: 5397</pre>
  
     <h2>Metagenomics data</h2>
 
-    <img alt="Metaseq tables"
+    <img class="tables"
+         alt="Metaseq tables"
          src="[% c.uri_for( "/static/images/db_schema/Metaseq.png" ) %]" />
 
     <p>
