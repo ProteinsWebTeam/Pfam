@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.7 2007-10-25 09:28:04 jt6 Exp $
+# $Id: Browse.pm,v 1.8 2008-04-25 10:15:33 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.7 2007-10-25 09:28:04 jt6 Exp $
+$Id: Browse.pm,v 1.8 2008-04-25 10:15:33 jt6 Exp $
 
 =cut
 
@@ -201,13 +201,38 @@ sub browseProteomes : Path( '/proteome/browse' ) {
 
   my @res = $c->model('PfamDB::Proteome_species')
               ->search( {},
-                			  { order_by => 'species ASC' } );
+                        { order_by => 'species ASC' } );
 
   # stash the results for the template
   $c->stash->{browse} = \@res if scalar @res;
 
   # render the page
-	$c->stash->{template} = 'pages/browse/proteomes.tt';
+  $c->stash->{template} = 'pages/browse/proteomes.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 browseMetaseq : Path
+
+Retrieves the list of metaseq datasets from the DB and stashes them for the 
+template.
+
+=cut
+
+sub browseMetaseq : Path( '/metaseq/browse' ) {
+  my( $this, $c ) = @_;
+
+  my @res = $c->model('PfamDB::Metagenomics_refs')
+              ->search( {},
+                        { select => [ { distinct => [ 'source' ] }, 'long_source' ],
+                          as     => [ qw( src long_src ) ],
+                          order_by => 'source ASC' } );
+
+  # stash the results for the template
+  $c->stash->{browse} = \@res if scalar @res;
+
+  # render the page
+  $c->stash->{template} = 'pages/browse/metaseq.tt';
 }
 
 #-------------------------------------------------------------------------------
