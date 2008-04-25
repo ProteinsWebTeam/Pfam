@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://pfam.sanger.ac.uk/"
+           targetNamespace="http://pfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+  
+  <!-- widely used types -->
+  
+  <xs:simpleType name="pfamDate">
+    <xs:annotation>
+      <xs:documentation>A date, formatted as "YYYY-MM-DD"</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{4}-\d{2}-\d{2}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="pfamDateTime">
+    <xs:annotation>
+      <xs:documentation>A date and time, formatted as "YYYY-MM-DD HH:MM:SS"</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="pfamAccession">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="PF\d{5}|PB\d{6}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="pfamId">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-z0-9_\-]{1,15}" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="pfamAType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Domain"></xs:enumeration>
+      <xs:enumeration value="Family"></xs:enumeration>
+      <xs:enumeration value="Motif"></xs:enumeration>
+      <xs:enumeration value="Repeat"></xs:enumeration>
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <!-- ===================================================================== -->
+  <!-- these types are mainly used in the protein page XML -->
+  
+  <xs:simpleType name="proteinSequence">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Z]+" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="uniprotAccession">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\w{6}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="clanAccession">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="CL\d{4}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="md5">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-f0-9]{32}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="crc64">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-Za-f0-9]{16}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="jobId">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="goId">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="GO:\d{7}" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:simpleType name="searchType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="pfamASearch" />
+      <xs:enumeration value="pfamBSearch" />
+    </xs:restriction>
+  </xs:simpleType>  
+  
+  <xs:simpleType name="modelType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="fs" />
+      <xs:enumeration value="ls" />
+    </xs:restriction>
+  </xs:simpleType>  
+  
+</xs:schema>

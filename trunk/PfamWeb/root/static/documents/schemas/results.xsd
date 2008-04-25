@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://pfam.sanger.ac.uk/"
+           targetNamespace="http://pfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+  
+  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/elements.xsd" />
+  
+  <xs:element name="pfam">
+    <xs:annotation>
+      <xs:documentation>Information from the Pfam database</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="results" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="release" type="xs:float" use="required" />
+      <xs:attribute name="release_date" type="pfamDate" use="required" />
+    </xs:complexType>
+    <xs:key name="entry">
+      <xs:selector xpath="results" />
+      <xs:field xpath="@job_id" />
+    </xs:key>
+  </xs:element>
+
+  <xs:element name="results">
+    <xs:annotation>
+      <xs:documentation>Sequence search results</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+	    <xs:all>
+	      <xs:element ref="matches"    minOccurs="0" />
+	      <xs:element ref="raw_output" minOccurs="0" />
+	    </xs:all>
+      <xs:attribute name="job_id" type="jobId" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="matches">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="protein" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="protein">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="database" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="length" type="xs:positiveInteger" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="database">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="match" minOccurs="0" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="id"           type="xs:string" use="required" />
+      <xs:attribute name="release"      type="xs:string" use="required" />
+      <xs:attribute name="release_date" type="pfamDate"  use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="raw_output" type="xs:string" />
+
+</xs:schema>

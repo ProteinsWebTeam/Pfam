@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://pfam.sanger.ac.uk/"
+           targetNamespace="http://pfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+  
+  <xs:element name="jobs">
+    <xs:annotation>
+      <xs:documentation>Information about the jobs that were submitted</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="job" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+    <xs:key name="job">
+      <xs:selector xpath="job" />
+      <xs:field xpath="@job_id" />
+    </xs:key>
+  </xs:element>
+  
+  <xs:element name="job">
+    <xs:annotation>
+      <xs:documentation>Information about a particular sequence search job</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="opened"         type="pfamDateTime" />
+        <xs:element name="estimated_time" type="xs:positiveInteger" />
+        <xs:element name="result_url"     type="xs:anyURI" />
+      </xs:all>
+      <xs:attribute name="job_id" type="jobId"      use="required" />
+      <xs:attribute name="type"   type="searchType" use="required" />
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

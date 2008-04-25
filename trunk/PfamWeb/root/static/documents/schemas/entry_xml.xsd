@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://pfam.sanger.ac.uk/"
+           targetNamespace="http://pfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+  
+  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+  
+  <xs:element name="pfam">
+    <xs:annotation>
+      <xs:documentation>Information from the Pfam database</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="entry" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="release" type="xs:float" use="required" />
+      <xs:attribute name="release_date" type="pfamDate" use="required" />
+    </xs:complexType>
+    <xs:key name="entry">
+      <xs:selector xpath="entry" />
+      <xs:field xpath="@accession" />
+    </xs:key>
+  </xs:element>
+  
+  <xs:element name="entry">
+    <xs:annotation>
+      <xs:documentation>Information about a Pfam database entity</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="entry_type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Pfam-A" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="accession" type="pfamAccession" use="required" />
+      <xs:attribute name="id" type="pfamId" use="required" />
+    </xs:complexType>
+  </xs:element>
+  
+  
+</xs:schema>

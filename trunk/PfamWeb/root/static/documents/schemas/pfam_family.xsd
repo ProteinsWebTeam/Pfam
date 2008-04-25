@@ -1,0 +1,182 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://pfam.sanger.ac.uk/"
+           targetNamespace="http://pfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+
+  <xs:element name="pfam">
+    <xs:annotation>
+      <xs:documentation>Information from the Pfam database</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="entry" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="release" type="xs:float" use="required" />
+      <xs:attribute name="release_date" type="pfamDate" use="required" />
+    </xs:complexType>
+    <xs:key name="entry">
+      <xs:selector xpath="entry" />
+      <xs:field xpath="@accession" />
+    </xs:key>
+  </xs:element>
+
+  <xs:element name="entry">
+    <xs:annotation>
+      <xs:documentation>Information about a Pfam database entity</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="description" type="xs:string" minOccurs="0" />
+        <xs:element name="comment"     type="xs:string" minOccurs="0" />
+        <xs:element ref="go_terms" minOccurs="0" />
+        <xs:element ref="clan_membership" minOccurs="0" />
+        <xs:element ref="curation_details" minOccurs="0" />
+        <xs:element ref="hmm_details" minOccurs="0" />
+      </xs:all>
+      <xs:attribute name="entry_type">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Pfam-A" />
+            <xs:enumeration value="Pfam-B" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+      <xs:attribute name="accession" type="pfamAccession" use="required" />
+      <xs:attribute name="id" type="pfamId" use="required" />
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="clan_membership">
+    <xs:annotation>
+      <xs:documentation>Details of the Pfam clan to which the entity belongs</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:attribute name="clan_acc" type="clanAccession" />
+      <xs:attribute name="clan_id" type="xs:string" />
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="go_terms">
+    <xs:annotation>
+      <xs:documentation>Details of the Gene Ontology (GO) terms for this family</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="category" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="category">
+    <xs:annotation>
+      <xs:documentation>Details of the Gene Ontology (GO) categories for this family</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="term" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="name">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="component" />
+            <xs:enumeration value="function" />
+            <xs:enumeration value="process" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="term">
+    <xs:annotation>
+      <xs:documentation>A Gene Ontology (GO) term</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+		      <xs:attribute name="go_id" type="goId" />      
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="curation_details">
+    <xs:annotation>
+      <xs:documentation>Detailed curation information</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="status" type="xs:string" minOccurs="0" />
+        <xs:element name="seed_source" type="xs:string" minOccurs="0" />
+        <xs:element name="previous_id" type="xs:string" minOccurs="0" />
+        <xs:element name="num_archs" type="xs:positiveInteger" />
+        <xs:element ref="num_seqs" minOccurs="0" />
+        <xs:element name="num_regions" type="xs:positiveInteger" minOccurs="0" />
+        <xs:element name="num_species" type="xs:positiveInteger" minOccurs="0" />
+        <xs:element name="percentage_identity" type="xs:float" minOccurs="0" />
+        <xs:element name="av_length" type="xs:float" minOccurs="0" />
+        <xs:element name="av_coverage" type="xs:float" minOccurs="0" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="hmm_details">
+    <xs:annotation>
+      <xs:documentation>Detailed information about a model</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="ls" type="cutoffs" />
+        <xs:element name="fs" type="cutoffs" />
+      </xs:all>
+      <xs:attribute name="hmmer_version" type="xs:string" />
+      <xs:attribute name="model_version" type="xs:positiveInteger" />
+      <xs:attribute name="model_length" type="xs:positiveInteger" />
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:complexType name="cutoffs">
+    <xs:annotation>
+      <xs:documentation>Model cutoff values</xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="build_commands" type="xs:string" />
+      <xs:element name="cutoffs">
+        <xs:complexType>
+          <xs:all>
+            <xs:element name="gathering" type="cutoff" />
+            <xs:element name="trusted" type="cutoff" />
+            <xs:element name="noise" type="cutoff" />
+          </xs:all>
+        </xs:complexType>
+      </xs:element>
+    </xs:all>
+  </xs:complexType>
+
+  <xs:complexType name="cutoff">
+    <xs:annotation>
+      <xs:documentation>Values for a specific type of cutoff</xs:documentation>
+    </xs:annotation>
+    <xs:all>
+      <xs:element name="sequence" type="xs:float" />
+      <xs:element name="domain" type="xs:float" />
+    </xs:all>
+  </xs:complexType>
+
+  <xs:element name="num_seqs">
+    <xs:annotation>
+      <xs:documentation>The number of sequences in the alignment(s)</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="seed" type="xs:integer" minOccurs="1" maxOccurs="1" />
+        <xs:element name="full" type="xs:integer" minOccurs="1" maxOccurs="1" />
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>
