@@ -5,7 +5,7 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.4 2007-11-05 13:38:19 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.5 2008-04-25 13:35:48 jt6 Exp $
 
 META naked = 1;
 %]
@@ -27,7 +27,8 @@ META naked = 1;
              id="numRows" 
              type="text" 
              size="5"
-             value="[% pager.entries_per_page %]" />
+             value="[% pager.entries_per_page %]" 
+             onchange="generate( $F('page') )" />
       rows of alignment&nbsp;
     </div>
     
@@ -52,11 +53,13 @@ alignments.alignments.0 %]
     
     <input type="button"
            id="first"
+           title="First page"
            onclick="generate([% pager.first_page %])"
            value="&laquo;" />
   
     <input type="button"
            id="prev"
+           title="Previous page"
            onclick="generate([% pager.previous_page %])"
            value="&lsaquo;" />
   
@@ -79,11 +82,13 @@ alignments.alignments.0 %]
   
     <input type="button"
            id="next"
+           title="Next page"
            onclick="generate([% pager.next_page %])"
            value="&rsaquo;" />
   
     <input type="button"
            id="last"
+           title="Last page"
            onclick="generate([% pager.last_page %])"
            value="&raquo;" />
 
@@ -103,7 +108,8 @@ alignments.alignments.0 %]
              id="page" 
              type="[% pager.last_page > 1 ? "text" : "hidden" %]" 
              size="5"
-             value="1" />
+             value="1"
+             onchange="generate( $F('page') )" />
     </div>
 
     [% IF pager.last_page > 1 %]
