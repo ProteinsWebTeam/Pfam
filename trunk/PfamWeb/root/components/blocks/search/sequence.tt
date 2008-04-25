@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.6 2008-03-03 16:52:08 jt6 Exp $
+# $Id: sequence.tt,v 1.7 2008-04-25 13:32:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -118,8 +118,25 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label for="seq">Sequence</label>
-          <textarea cols="60" rows="10" name="seq" id="seq"></textarea>
+          <textarea cols="60" rows="10" name="seq" id="seq">
+            [%- preseq -%] 
+          </textarea>
         </div>
+
+        [% IF preseq -%]
+        <div class="row">
+          <span class="label blankLabel">Pre-filled</span>
+          <span class="warning">Please note:</span> the sequence field has been 
+          pre-filled, based on the link that you clicked on
+          [% IF c.req.referer -%] 
+          <a class="ext" href="[% c.req.referer %]">the referring site</a>.
+          [% ELSE -%]
+          the referring site.
+          [% END -%]
+          Just hit the &quot;Submit&quot; button below to search for Pfam
+          domains on this sequence.
+        </div>
+        [% END -%]
 
         <div class="row">
           <label for="seqSearchSeqOpts">Search strategy</label>
