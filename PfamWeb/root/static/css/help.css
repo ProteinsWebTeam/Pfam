@@ -1,11 +1,11 @@
 
-/* family.css
+/* help.css
    jt6 20060413 WTSI
 
    Stylesheet for the items that are specific to the tab layout for
-   the Pfam family pages.
+   the Pfam help pages.
 
-   $Id: help.css,v 1.10 2008-04-02 13:06:04 jt6 Exp $
+   $Id: help.css,v 1.11 2008-04-25 13:20:19 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -237,3 +237,55 @@ legend {
   background: #DDD;
   padding: 0.4em;
 }
+
+img.tables {
+  overflow: auto;
+}
+
+/* ---------------------------------------- */
+/* rest services documentation */
+
+pre {
+  margin: 0;
+}
+
+pre.url {
+  margin-left: 2em;
+}
+
+pre.script {
+  overflow: auto;
+  margin: 1em 2em;
+  border: 1px solid #CCC;
+  background-color: #EEE;
+  padding: 0.4em;
+}
+
+pre.prettyprint {
+  max-height: 30em;
+}
+
+div.code {
+  overflow: auto;
+  width: 100%;
+}
+
+#sections {
+  border: 1px solid #CCC;
+  background-color: #EEE;
+  padding: 0.4em;
+  margin: 0.2em;
+  float: right;
+}
+
+#sections p {
+  margin: 0;
+  padding: 0;
+}
+
+#sections ol {
+  width: 100%;
+  margin: 0.2em;
+  padding: 0 1.4em;
+}
+ 
