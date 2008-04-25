@@ -5,7 +5,7 @@
 # 
 # build the page saying that a batch search has been submitted
 #
-# $Id: batchSubmitted.tt,v 1.4 2007-08-30 08:29:56 jt6 Exp $
+# $Id: batchSubmitted.tt,v 1.5 2008-04-25 13:43:24 jt6 Exp $
 
 META title    = "Batch sequence search";
 META fullPage = 1;
@@ -28,6 +28,11 @@ META fullPage = 1;
   to the server and your results will be emailed to you at <em>[% email %]</em>
   when they are ready.  
 </p>
+<p>
+  The identifier for this search is <strong>[% jobId %]</strong>. Please make
+  a note of this if you are submitting multiple jobs; this is the unique 
+  identifier for this particular job. 
+</p>
 [% IF numPending > 1 %]
   <p>
     There are <strong>[% numPending %]</strong> jobs ahead of yours in the 
@@ -39,9 +44,9 @@ META fullPage = 1;
   </p>
 [% END %]
 <p>
-  In 5 seconds you will be redirected to the <a href="[% refreshUri %]">Pfam 
-  search page</a>, or you can click <a href="[% refreshUri %]">here</a> to go
-  there immediately.
+  In [% refreshDelay || 30 %] seconds you will be redirected to the 
+  <a href="[% refreshUri %]">Pfam search page</a>, or you can click 
+  <a href="[% refreshUri %]">here</a> to go there immediately.
 </p>
 
 <hr />
