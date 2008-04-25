@@ -5,7 +5,7 @@
 # 
 # build a "browse" index page
 #
-# $Id: index.tt,v 1.4 2007-11-05 13:38:19 jt6 Exp $
+# $Id: index.tt,v 1.5 2008-04-25 13:41:42 jt6 Exp $
 
 META title = "Browse Pfam";
 META fullPage = 1;
@@ -30,6 +30,7 @@ baseUri     = c.uri_for( "/" );
 familyURI   = "${baseUri}/family/browse";
 clanURI     = "${baseUri}/clan/browse";
 proteomeURI = "${baseUri}/proteome/browse";
+metaseqURI  = "${baseUri}/metaseq/browse";
 %]
 
 <!-- start of browse index page -->
@@ -85,6 +86,18 @@ proteomeURI = "${baseUri}/proteome/browse";
               <a href="[% proteomeURI %]">[% letter | ucfirst %]</a>
             [% ELSE %]
               <a href="[% proteomeURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
+            [% END;
+          END %]
+        </td>
+      </tr>
+      <tr>
+        <td class="type">METASEQ</td>
+        <td class="links">
+          [% FOREACH letter IN alphabet;
+            IF loop.first %]
+              <a href="[% metaseqURI %]">[% letter | ucfirst %]</a>
+            [% ELSE %]
+              <a href="[% metaseqURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
             [% END;
           END %]
         </td>
