@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20080314 WTSI
 #
-# $Id: Search.pm,v 1.2 2008-03-19 14:49:55 jt6 Exp $
+# $Id: Search.pm,v 1.3 2008-04-25 09:46:38 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search;
 
 This controller is responsible for running searches.
 
-$Id: Search.pm,v 1.2 2008-03-19 14:49:55 jt6 Exp $
+$Id: Search.pm,v 1.3 2008-04-25 09:46:38 jt6 Exp $
 
 =cut
 
@@ -48,6 +48,23 @@ sub begin : Private {
   
   # tell the layout template to disable the summary icons
   $c->stash->{iconsDisabled} = 1;
+  
+  #----------------------------------------
+  
+  # see if we should pre-fill the sequence field, based on the sequence that
+  # was handed to us by the referring site
+  
+  # detaint it, naturally, and accept only sequences that are shorter than some
+  # limit, which is set in the config
+  if ( defined $c->req->param('preseq') and 
+       $c->req->param('preseq') =~ m/^([A-Z]+)$/ and
+       length( $1 ) < $this->{maxPrefillLength} ) {
+    $c->log->debug( 'Search::begin: found a sequence with which to pre-fill the search form' )
+      if $c->debug;
+
+    # stash it and let the template stuff the value into the form    
+    $c->stash->{preseq} = $1;
+  }
   
   #----------------------------------------
 
