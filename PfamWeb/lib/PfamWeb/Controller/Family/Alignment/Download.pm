@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.3 2007-09-12 14:28:37 jt6 Exp $
+# $Id: Download.pm,v 1.4 2008-04-25 12:58:12 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.3 2007-09-12 14:28:37 jt6 Exp $
+$Id: Download.pm,v 1.4 2008-04-25 12:58:12 jt6 Exp $
 
 =cut
 
@@ -43,37 +43,39 @@ to the response, which causes problems for the cache plugin.
 =cut
 
 sub html : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   my $cacheKey = 'jtml' . $c->stash->{acc} . $c->stash->{alnType};
   
   my $jtml = $c->cache->get( $cacheKey );
-  if( defined $jtml ) {
-    $c->log->debug( 'Family::Alignment::Download::html: extracted JTML from cache' );
-  } else {
-    $c->log->debug( 'Family::Alignment::Download::html: failed to extract JTML from cache; going to DB' );  
+  if ( defined $jtml ) {
+    $c->log->debug( 'Family::Alignment::Download::html: extracted HTML from cache' );
+  }
+  else {
+    $c->log->debug( 'Family::Alignment::Download::html: failed to extract HTML from cache; going to DB' );  
 
     # see what type of family we have, A or B
     my $row;
     if ( $c->stash->{entryType} eq 'A' ) {
   
-      # retrieve the JTML from the DB
+      # retrieve the HTML from the DB
       my $rs = $c->model('PfamDB::AlignmentsAndTrees')
                  ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
                              type       => $c->stash->{alnType} } );
       $row = $rs->first;
     
       # final check...
-      unless( defined $row->jtml ) {
+      unless ( defined $row->jtml ) {
         $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                                 . $c->stash->{acc};
         return;
       }
   
-    } elsif ( $c->stash->{entryType} eq 'B' ) {
+    }
+    elsif ( $c->stash->{entryType} eq 'B' ) {
 
-      # make sure the Pfam-B JTML is already available
-      unless( defined $c->stash->{pfam}->pfamB_stockholm->jtml ) {
+      # make sure the Pfam-B HTML is already available
+      unless ( defined $c->stash->{pfam}->pfamB_stockholm->jtml ) {
         $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                                 . $c->stash->{acc};
         return;
@@ -82,21 +84,24 @@ sub html : Local {
       $row = $c->stash->{pfam}->pfamB_stockholm;
     }
 
-    # uncompress the row to get the raw JTML
+    # uncompress the row to get the raw HTML
     $jtml = Compress::Zlib::memGunzip( $row->jtml );
-    unless( defined $jtml ) {
+    unless ( defined $jtml ) {
       $c->stash->{errorMsg} = 'We could not extract the alignment for '
                               . $c->stash->{acc};
       return;
     }
 
-    $c->log->debug( 'Family::Alignment::Download::html: retrieved JTML from DB' );
+    $c->log->debug( 'Family::Alignment::Download::html: retrieved HTML from DB' );
     $c->cache->set( $cacheKey, $jtml );
   }
 
-  # write the JTML to the output stream
-  $c->res->content_type( 'text/html' );
-  $c->res->write( $jtml );
+  # stash the HTML
+  $c->stash->{html_alignment} = $jtml;
+  
+  # point to the "tool" window
+  $c->stash->{template} = 'components/tools/html_alignment.tt';
+  
 }
 
 #-------------------------------------------------------------------------------
@@ -124,7 +129,7 @@ sub gzipped : Local {
   
   # ... and dump it straight to the response
   $c->res->content_type( 'application/x-gzip' );
-  $c->res->write( $alignment );
+  $c->res->body( $alignment );
 }
 
 #-------------------------------------------------------------------------------
@@ -217,26 +222,9 @@ sub format : Local {
     }
   }
 
-  $c->stash->{output} = $output;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 end : Private
-
-Writes the sequence alignment directly to the response object.
-
-=cut
-
-sub end : Private {
-  my( $this, $c ) = @_;
-  
-  # we only return plain text from this controller
-  $c->res->content_type( 'text/plain' );
-
   # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( 'download' ) ) {
-  
+
     # figure out the filename
     my $filename;
     if( $c->stash->{entryType} eq 'A' ) {
@@ -249,11 +237,25 @@ sub end : Private {
     $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   }
 
-  foreach ( @{$c->stash->{output}} ) {
-    $c->res->write( $_ );
-  }
-
+  $c->res->content_type( 'text/plain' );
+  $c->res->body( join '', @$output );
+#  foreach ( @$output ) {
+#    $c->res->write( $_ );
+#  }
 }
+
+
+#-------------------------------------------------------------------------------
+
+=head2 end : ActionClass
+
+Override the default end action from the parent class and replace it with an
+end that uses RenderView to take care of rendering. No need to check the
+contents of the response etc., since RenderView looks after all of that.
+
+=cut
+
+sub end : ActionClass( 'RenderView' ) {}
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
