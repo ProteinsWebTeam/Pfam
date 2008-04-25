@@ -5,7 +5,9 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.35 2008-03-19 13:37:07 jt6 Exp $
+# $Id: summary.tt,v 1.36 2008-04-25 13:28:00 jt6 Exp $
+
+USE Dump;
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -127,39 +129,47 @@ PROCESS components/links.tt;
     
       <div class="cleaner"></div>
 
-    [%- END # of "if clan_acc" -%]
+    [%- END; # of "if clan_acc"
 
-    [%- IF goTerms.size -%]
-    
+    IF goTerms.size -%]
+
       <h2>Gene Ontology</h2>
+
+      [% categories = { 
+        function  => { label   => "Molecular function",
+                       goTerms => [] },
+        process   => { label   => "Biological process",
+                       goTerms => [] },
+        component => { label   => "Cellular component",
+                       goTerms => [] }
+      };
+
+      FOREACH goTerm IN goTerms;
+        categories.${goTerm.category}.goTerms.push( goTerm ); 
+      END -%]
       
       <table class="details links" summary="Gene ontology data">
         <tbody>
-          [%- FOREACH goTerm IN goTerms;
-          
-            # convert the db category into the readable one...
-            IF goTerm.category == "function";
-              category = "Molecular function";
-            ELSIF goTerm.category == "process";
-              category = "Biological process";
-            ELSIF goTerm.category == "component";
-              category = "Cellular component";
-            ELSE;
-              category = goTerm.category;
-            END;          
-          %]
+        [% FOREACH categoryName IN categories.keys.sort;
+          category = categories.${categoryName};
+          FOREACH goTerm IN category.goTerms -%]
           <tr class="[% loop.index % 2 ? "odd" : "even" %]">
-            <td class="label">[% category %]</td>
+            [% IF loop.first -%]
+              <td class="label"[% IF loop.first %] rowspan="[% category.goTerms.size %]"[% END %]>
+                [% category.label %]
+              </td>
+            [% END -%]
             <td>
               <a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">
-               [% goTerm.term %]</a>
+                [% goTerm.term %]</a>
               (<a href="http://www.ebi.ac.uk/ego/DisplayGoTerm?id=[% goTerm.go_id %]">[% goTerm.go_id %]</a>)
             </td>
           </tr>
-          [% END -%]
+          [% END;
+        END -%]
         </tbody>
       </table>
-    
+      
     [%- END; # of "if goTerms"
 
     # add the tables showing internal and external database links 
