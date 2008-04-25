@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.46 2008-03-19 13:39:17 jt6 Exp $
+# $Id: index.tt,v 1.47 2008-04-25 13:40:29 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -104,7 +104,7 @@ sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
  
   <div id="controlPanel">
     <ul>
-      <li class="link currentLink" onclick="switchPanel(this,'help')">USING PFAM</li>
+      <li class="link currentLink" onclick="switchPanel(this,'help')">QUICK LINKS</li>
       <li class="link" onclick="switchPanel(this,'protein')">SEQUENCE SEARCH</li>
       <li class="link" onclick="switchPanel(this,'family')">VIEW A PFAM FAMILY</li>
       <li class="link" onclick="switchPanel(this,'clan')">VIEW A CLAN</li>
@@ -160,8 +160,8 @@ sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
          class="glassButton exampleButton">&nbsp;</div>
     <p class="small nlh">
       This search will use both global and local models (merged) and an
-      E-value of 1.0. You can set your own search parameters using 
-      <a href="[% searchBase %]?tab=searchSequenceBlock">this</a> form.      
+      E-value of 1.0. You can set your own search parameters and perform
+      a range of other searches <a href="[% searchBase %]">here</a>.
     </p>
   </div>
 
@@ -352,7 +352,7 @@ sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
   
   <div id="mirrors">
     <h2>Mirrors</h2>
-    <p class="small">The following are official Pfam 
+    <p>The following are official Pfam 
       <a href="[% helpBase %]?tab=helpTheTeamBlock">mirror</a> sites:
     </p>
     [% PROCESS "components/mirrors.tt" %]
