@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.1.1.1 2008-03-17 15:36:38 jt6 Exp $
+# $Id: Section.pm,v 1.2 2008-04-25 09:45:51 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.1.1.1 2008-03-17 15:36:38 jt6 Exp $
+$Id: Section.pm,v 1.2 2008-04-25 09:45:51 jt6 Exp $
 
 =cut
 
@@ -33,24 +33,47 @@ use base 'Catalyst::Controller';
 
 =head1 METHODS
 
-=head2 default : Private
+=head2 auto : Private
 
-An empty action to capture URLs like
-
-=over
-
-=item http://localhost:3000/SECTION?id=ID
-
-=back
+An attempt to detect the requested output format, HTML or XML. This is pretty
+much redundant, since it runs after the begin method in any controller, which
+is where we actually need to know what format we're writing...
 
 =cut
 
-sub default : Private {
+sub auto : Private {
   my ( $this, $c ) = @_;
 
-  # set the page to be cached for one week
-  #$c->cache_page( 604800 );
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
+    $c->stash->{output_xml} = 1;
+  }
+  
+  return 1;
+}
 
+#-------------------------------------------------------------------------------
+
+=head2 default : Private
+
+An empty action to capture URLs.
+
+=cut
+
+#sub default : Private {
+#  my ( $this, $c ) = @_;
+#
+#  # set the page to be cached for one week
+#  #$c->cache_page( 604800 );
+#
+#}
+
+sub default : Path : Args(1) {
+  my ( $this, $c, $arg ) = @_;
+  $c->log->debug( "Section::default: arg: |$arg|" ) if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
