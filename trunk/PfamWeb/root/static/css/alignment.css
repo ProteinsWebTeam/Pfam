@@ -4,7 +4,7 @@
 
    Style the markup of multiple sequence alignments
    
-   $Id: alignment.css,v 1.4 2007-03-15 14:57:22 jt6 Exp $
+   $Id: alignment.css,v 1.5 2008-04-25 13:21:03 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -27,40 +27,98 @@
     
 */
 
-span.T1  { color: #009900 }
-span.T2  { color: #33cc00 }
-span.T3  { color: #33cc00 }
-span.T4  { color: #cc0000 }
-span.T5  { color: #0033ff }
-span.T6  { color: #6600cc }
-span.T7  { color: #0099ff }
-span.T8  { color: #0099ff }
-span.T9  { color: #33cc00 }
-span.T10 { color: #33cc00 }
-span.T11 { color: #33cc00 }
-span.T12 { color: #197fe5 }
-span.T13 { color: #ff11ff }
-span.T14 { color: #ffff11 }
-span.T15 { color: #ff11ff }
-span.T16 { color: #ff11ff }
-span.T17 { color: #197fe5 }
-span.T18 { color: #ff7f11 }
-span.T19 { color: #197fe5 }
-span.T20 { color: #197fe5 }
-span.T21 { color: #ff1111 }
-span.T22 { color: #197fe5 }
-span.T23 { color: #197fe5 }
-span.T24 { color: #11dd11 }
-span.T25 { color: #ffff11 }
-span.T26 { color: #11dd11 }
-span.T27 { color: #ff1111 }
-span.T28 { color: #11dd11 }
-span.T29 { color: #11dd11 }
-span.T30 { color: #197fe5 }
-span.T31 { color: #197fe5 }
-span.T32 { color: #666666 }
-span.T33 { color: #11ffff }
-span.T34 { color: #ff11ff }
+/* rules for the static HTML rendering */
+
+#html_alignment {
+  font-family: monospace;
+  color: #000;
+}
+
+.o  { background-color: #ff7f11 } /* orange */
+.y, .Y { background-color: #ffff11 } /* yellow */
+.b  { background-color: #9999FF } /* lilac */
+.g  { background-color: #99FF99 } /* light green */
+.r  { background-color: #FF9999 } /* pink */
+.c  { background-color: #99FFFF } /* cyan */
+.w  { background-color: #FFFFFF } /* white */
+.as { background-color: #000;             color: #FFF }
+.pas{ background-color: #666;             color: #FFF }
+.sas{ background-color: #999;             color: #FFF }
+.H  { background-color: #F00  !important; color: #FFF }
+.E  { background-color: #FF0  !important; color: #000 }
+
+/* outer wrapper */
+div.align {}
+
+/* alignment block */
+div.aliblock {
+  margin: 1em 0;
+}
+
+/* alignment row */
+div.alirow {}
+
+/* secondary structure row */
+div.ssrow span {
+  background-color: #EEEEEE;
+}
+div.ssrow span.nse {
+  background-color: #FFF;
+}
+
+/* row header */
+span.nse {
+  width: 16em;
+  float: left;
+}
+
+/* key */
+dt {
+  width: 1em;
+  float: left;
+}
+dd{
+  margin-left: 1.4em;
+  text-align: left;
+  margin-bottom: 0.1em;
+}
+
+/* rules for the Pfam viewer rendering */
+
+span.T1  { color: black } /* span.T1  { background-color: #009900; color: black } */
+span.T2  { color: black } /* span.T2  { background-color: #33cc00; color: black } */
+span.T3  { color: black } /* span.T3  { background-color: #33cc00; color: black } */
+span.T4  { color: black } /* span.T4  { background-color: #cc0000; color: black } */
+span.T5  { color: black } /* span.T5  { background-color: #0033ff; color: black } */
+span.T6  { color: black } /* span.T6  { background-color: #6600cc; color: black } */
+span.T7  { color: black } /* span.T7  { background-color: #0099ff; color: black } */
+span.T8  { color: black } /* span.T8  { background-color: #0099ff; color: black } */
+span.T9  { color: black } /* span.T9  { background-color: #33cc00; color: black } */
+span.T10 { color: black } /* span.T10 { background-color: #33cc00; color: black } */
+span.T11 { color: black } /* span.T11 { background-color: #33cc00; color: black } */
+span.T12 { color: black } /* span.T12 { background-color: #197fe5; color: black } */
+span.T13 { color: black } /* span.T13 { background-color: #ff11ff; color: black } */
+span.T14 { color: black } /* span.T14 { background-color: #ffff11; color: black } */
+span.T15 { color: black } /* span.T15 { background-color: #ff11ff; color: black } */
+span.T16 { color: black } /* span.T16 { background-color: #ff11ff; color: black } */
+span.T17 { color: black } /* span.T17 { background-color: #197fe5; color: black } */
+span.T18 { background-color: #ff7f11; color: black }
+span.T19 { color: black } /* span.T19 { background-color: #197fe5; color: black } */
+span.T20 { color: black } /* span.T20 { background-color: #197fe5; color: black } */
+span.T21 { color: black } /* span.T21 { background-color: #ff1111; color: black } */
+span.T22 { color: black } /* span.T22 { background-color: #197fe5; color: black } */
+span.T23 { background-color: #9999FF; color: black } /* span.T23 { background-color: #197fe5; color: black } */
+span.T24 { color: black } /* span.T24 { background-color: #11dd11; color: black } */
+span.T25 { background-color: #ffff11; color: black }
+span.T26 { color: black } /* span.T26 { background-color: #11dd11; color: black } */
+span.T27 { color: black } /* span.T27 { background-color: #ff1111; color: black } */
+span.T28 { color: black } /* span.T28 { background-color: #11dd11; color: black } */
+span.T29 { color: black } /* span.T29 { background-color: #11dd11; color: black } */
+span.T30 { background-color: #9999FF; color: black } /* span.T30 { background-color: #197fe5; color: black } */
+span.T31 { color: black } /* span.T31 { background-color: #197fe5; color: black } */
+span.T32 { color: black } /* span.T32 { background-color: #666666; color: black } */
+span.T33 { color: black } /* span.T33 { background-color: #11ffff; color: black } */
+span.T34 { color: black } /* span.T34 { background-color: #ff11ff; color: black } */
 span.S1  { background-color: #009900; color: black }
 span.S2  { background-color: #33cc00; color: black }
 span.S3  { background-color: #33cc00; color: black }
@@ -72,26 +130,26 @@ span.S8  { background-color: #0099ff; color: black }
 span.S9  { background-color: #33cc00; color: black }
 span.S10 { background-color: #33cc00; color: black }
 span.S11 { background-color: #33cc00; color: black }
-span.S12 { background-color: #197fe5; color: black }
+span.S12 { background-color: #9999FF; color: black } /* span.S12 { background-color: #197fe5; color: black } */
 span.S13 { background-color: #ff11ff; color: black }
 span.S14 { background-color: #ffff11; color: black } /* !!!! */
-span.S15 { background-color: #ff11ff; color: black }
-span.S16 { background-color: #ff11ff; color: black }
-span.S17 { background-color: #197fe5; color: black }
+span.S15 { background-color: #FF9999; color: black } /* span.S15 { background-color: #ff11ff; color: black } */
+span.S16 { background-color: #FF9999; color: black } /* span.S16 { background-color: #ff11ff; color: black } */
+span.S17 { background-color: #9999FF; color: black } /* span.S17 { background-color: #197fe5; color: black } */
 span.S18 { background-color: #ff7f11; color: black }
 span.S19 { background-color: #197fe5; color: black }
-span.S20 { background-color: #197fe5; color: black }
+span.S20 { background-color: #9999FF; color: black } /* span.S20 { background-color: #197fe5; color: black } */
 span.S21 { background-color: #ff1111; color: black }
-span.S22 { background-color: #197fe5; color: black }
+span.S22 { background-color: #9999FF; color: black } /* span.S22 { background-color: #197fe5; color: black } */
 span.S23 { background-color: #197fe5; color: black }
-span.S24 { background-color: #11dd11; color: black }
+span.S24 { background-color: #99FF99; color: black } /* span.S24 { background-color: #11dd11; color: black } */
 span.S25 { background-color: #ffff11; color: black }
-span.S26 { background-color: #11dd11; color: black }
-span.S27 { background-color: #ff1111; color: black }
-span.S28 { background-color: #11dd11; color: black }
+span.S26 { background-color: #99FF99; color: black } /* span.S26 { background-color: #11dd11; color: black } */
+span.S27 { background-color: #FF9999; color: black } /* span.S27 { background-color: #ff1111; color: black } */
+span.S28 { background-color: #99FF99; color: black } /* span.S28 { background-color: #11dd11; color: black } */
 span.S29 { background-color: #11dd11; color: black }
-span.S30 { background-color: #197fe5; color: black }
+span.S30 { background-color: #9999FF; color: black } /* span.S30 { background-color: #197fe5; color: black } */
 span.S31 { background-color: #197fe5; color: black }
 span.S32 { background-color: #666666; color: black }
-span.S33 { background-color: #11ffff; color: black } /* !!!! */
+span.S33 { background-color: #99FFFF; color: black } /* !!!! */ /* span.S33 { background-color: #11ffff; color: black } /* !!!! */
 span.S34 { background-color: #ff11ff; color: black }
