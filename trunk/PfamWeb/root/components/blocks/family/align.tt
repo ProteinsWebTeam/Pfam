@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.24 2007-12-10 14:46:15 jt6 Exp $
+# $Id: align.tt,v 1.25 2008-04-25 13:27:02 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -85,6 +85,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <form id="viewerForm"
           action="[% alignmentUri %]/download/html"
+          onsubmit="launch();"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -146,7 +147,17 @@ alignmentUri = c.uri_for( "/family/alignment" );
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
-        	$("viewerForm").submit();
+          var cont = true;
+          if ( ( $F("viewerTypeS") && [% pfam.num_seed %] > 1000 ) || 
+               ( $F("viewerTypeF") && [% pfam.num_full %] > 1000 ) ) {
+            cont = confirm("This alignment contains a large number of sequences, " +
+                           "which can cause problems for browsers. \nAre you " +
+                           "sure that you want to try to view it as HTML ?" );
+          }
+          if ( cont ) {
+            url = "[% alignmentUri %]/download/html?" + Form.serialize("viewerForm");
+            popUp( url, 'console', 800, 800, 'viewerWin');
+          }
         }      
         return false;
       }
