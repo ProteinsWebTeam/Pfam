@@ -1,0 +1,59 @@
+
+[%
+# metaseq.tt
+# jt6 20080320 WTSI
+# 
+# build a "browse" page for metaseq sources
+#
+# $Id: metaseq.tt,v 1.1 2008-04-25 13:41:22 jt6 Exp $
+
+META title = "Browse Pfam metaseq datasets";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+pages = [ "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+          "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+# shortcuts for URIs
+metaseqURI = c.uri_for( "/metaseq" );
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar,
+                   pageURI = "#";
+%]
+
+<!-- start browse page -->
+
+<h1 class="pageHeader">Browse Pfam metaseq datasets</h1>
+
+[% pageList %]
+
+<table class="details browse" summary="Browse metaseq datasets">
+  <thead>
+    <tr>
+      <th>Source</th>
+      <th>Source ID</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH source IN browse %]
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td>[% source.get_column('long_src') %]</td>
+      <td>[% source.get_column('src') %]</td>
+    </tr>
+  [% END %]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<!-- end browse page -->
