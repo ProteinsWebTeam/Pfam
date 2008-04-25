@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.10 2007-11-05 13:38:19 jt6 Exp $
+# $Id: faq.tt,v 1.11 2008-04-25 13:28:24 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -29,7 +29,7 @@
 	  <li><a href="#mySearch">Can I search my protein against Pfam ?</a></li>
 	  <li><a href="#transSearch">Can I search my dna sequence in translation against Pfam ?</a></li>
 	  <li><a href="#gaps">What is the difference between the - and . characters in your full alignments ?</a></li>
-	  <li><a href="#sssa">What do the SS and SA lines in the alignment mean ?</a></li>
+	  <li><a href="#sssa">What do the SS lines in the alignment mean ?</a></li>
 	  <li><a href="#missing">You don't have domain YYYY in Pfam !</a></li>
 	  <li><a href="#other">Are there other databases which do this ?</a></li>
 	  <li><a href="#best">So which database is better ?</a></li>
@@ -280,7 +280,7 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	</pre>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3><a name="sssa">What do the SS and SA lines in the alignment mean ?</a></h3>
+	<h3><a name="sssa">What do the SS lines in the alignment mean ?</a></h3>
 
 	<p>
 	  These lines are structural information. The SS stands for
@@ -307,17 +307,6 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  <dd>Bend (five-residue bend centered at residue i)</dd>
 	</dl>
 
-	<p>
-	  The SA stands for surface accessibility. It is expressed on a
-	  scale between 0 and 9 where 0 is a buried residue and 9 is a
-	  solvent exposed residue.
-	</p>
-
-	<p>
-	  You can find more information 
-	  <a class="ext"
-       href="http://www.cgr.ki.se/cgr/groups/sonnhammer/Stockholm.html">here</a>.
-	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
 	<h3><a name="missing">You don't have domain YYYY in Pfam !</a></h3>
