@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.21 2008-03-19 13:33:51 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.22 2008-04-25 10:16:11 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.21 2008-03-19 13:33:51 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.22 2008-04-25 10:16:11 jt6 Exp $
 
 =cut
 
@@ -596,7 +596,7 @@ sub getClanData : Private {
     push @seqs, thaw( $arch->annseq_storable );
 
     unless( $c->stash->{auto_arch} ) {
-      my @domains = split /\~/, $arch->architecture;
+      my @domains = split m/\~/, $arch->architecture;
       $seqInfo{$arch->pfamseq_id}{arch}      = \@domains;
       $seqInfo{$arch->pfamseq_id}{auto_arch} = $arch->auto_architecture;
       $seqInfo{$arch->pfamseq_id}{num}       = $arch->no_seqs;
