@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://pfam.sanger.ac.uk/"
+           targetNamespace="http://pfam.sanger.ac.uk/"
+           elementFormDefault="qualified" 
+           attributeFormDefault="unqualified">
+
+  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+  
+  <!-- widely used types -->
+  
+  <xs:element name="match">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="location" minOccurs="1" maxOccurs="unbounded" />
+      </xs:sequence>
+      <xs:attribute name="accession" type="pfamAccession" use="required" />
+      <xs:attribute name="id"        type="xs:string"     use="required" />
+      <xs:attribute name="class"     type="pfamAType"     use="optional" />
+      <xs:attribute name="type" use="required">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="Pfam-A" />
+            <xs:enumeration value="Pfam-B" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="location">
+    <xs:complexType>
+      <xs:attribute name="start" type="xs:integer" use="required" />
+      <xs:attribute name="end"   type="xs:integer" use="required" />
+      <xs:attribute name="hmm_start" type="xs:integer" use="optional" />
+      <xs:attribute name="hmm_end"   type="xs:integer" use="optional" />
+      <xs:attribute name="bitscore"  type="xs:float" use="optional" />
+      <xs:attribute name="evalue"    type="xs:float" use="optional" />
+      <xs:attribute name="mode" use="optional">
+        <xs:simpleType>
+          <xs:restriction base="xs:string">
+            <xs:enumeration value="ls" />
+            <xs:enumeration value="fs" />
+          </xs:restriction>
+        </xs:simpleType>
+      </xs:attribute>
+    </xs:complexType>
+  </xs:element>
+    
+</xs:schema>
