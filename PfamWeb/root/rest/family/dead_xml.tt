@@ -4,16 +4,25 @@
 #
 # template for serialising data about a dead Pfam-A family to XML format
 #
-# $Id: dead_xml.tt,v 1.1 2007-12-10 14:54:15 jt6 Exp $
+# $Id: dead_xml.tt,v 1.2 2008-04-25 13:36:49 jt6 Exp $
 
 USE date;
 
 META naked = 1;
 
+baseUri = "http://pfam.sanger.ac.uk/;
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on dead Pfam-A family [% pfam.pfamA_acc %] ([% pfam.pfamA_id %]), generated: [% date.format %] -->
-<dead_pfam accession="[% pfam.pfamA_acc %]" id="[% pfam.pfamA_id %]">
-  <forward_to>[% pfam.forward_to %]</forward_to>
-  <comment>[% pfam.comment %]</comment>
+<dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="[% baseUri %]"
+           xsi:schemaLocation="[% baseUri %]
+                               [% baseUri %]static/documents/schemas/pfam_family.xsd"
+           release="[% relData.pfam_release %]" 
+           release_date="[% relData.pfam_release_date %]">
+  <entry accession="[% pfam.pfamA_acc %]"
+         id="[% pfam.pfamA_id %]">
+    <forward_to>[% pfam.forward_to %]</forward_to>
+    <comment>[% pfam.comment %]</comment>
+  </entry>
 </dead_pfam>

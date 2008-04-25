@@ -1,0 +1,26 @@
+[% 
+# families_xml.tt
+# jt6 20080326 WTSI
+#
+# template for serialising the list of all Pfam-A families to XML format
+#
+# $Id: families.tt,v 1.1 2008-04-25 13:36:49 jt6 Exp $
+
+USE date;
+
+META naked = 1;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- all Pfam-A families, generated: [% date.format %] -->
+<pfam release="[% relData.pfam_release %]" release_date="[% relData.pfam_release_date %]">
+[% FOREACH pfam IN entries -%]
+  <entry entry_type="Pfam-A" accession="[% pfam.pfamA_acc %]" id="[% pfam.pfamA_id %]">
+    <description>
+<![CDATA[
+[% pfam.description | html %]
+]]>
+    </description>
+  </entry>
+[% END -%]
+</pfam>

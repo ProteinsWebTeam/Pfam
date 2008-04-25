@@ -4,18 +4,26 @@
 #
 # template for serialising Pfam-B data to XML format
 #
-# $Id: pfamb_xml.tt,v 1.1 2007-12-10 14:55:09 jt6 Exp $
+# $Id: pfamb_xml.tt,v 1.2 2008-04-25 13:36:49 jt6 Exp $
 
 USE date;
 
-META naked = 1 
+META naked = 1;
 
+baseUri = "http://pfam.sanger.ac.uk/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- information on Pfam-B family [% pfam.pfamB_acc %] ([% pfam.pfamB_id %]), generated: [% date.format %] -->
-<pfam accession="[% pfam.pfamB_acc %]" id="[% pfam.pfamB_id %]">
-  <curation_details>
-    <num_archs>[% pfam.number_archs %]</num_archs>
-    <num_regions>[% pfam.number_regions %]</num_regions>
-  </curation_details>
+<pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/pfam_family.xsd"
+      release="[% relData.pfam_release %]" 
+      release_date="[% relData.pfam_release_date %]">
+  <entry entry_type="Pfam-B" accession="[% pfam.pfamB_acc %]" id="[% pfam.pfamB_id %]">
+    <curation_details>
+      <num_archs>[% pfam.number_archs %]</num_archs>
+      <num_regions>[% pfam.number_regions %]</num_regions>
+   </curation_details>
+ </entry>
 </pfam>

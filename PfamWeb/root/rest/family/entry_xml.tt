@@ -1,0 +1,36 @@
+[% 
+# entry_xml.tt
+# jt6 20080418 WTSI
+#
+# template for a simple XML giving Pfam family accession/ID information
+#
+# $Id: entry_xml.tt,v 1.1 2008-04-25 13:36:49 jt6 Exp $
+
+USE date;
+
+META naked = 1;
+
+baseUri = "http://pfam.sanger.ac.uk/";
+
+c.debug.log( "template found a pfam of type " + pfam.type );
+IF entryType == "A";
+  type = "Pfam-A";
+  acc  = pfam.pfamA_acc;
+  id   = pfam.pfamA_id;
+ELSIF entryType == "B";
+  type = "Pfam-B";
+  acc  = pfam.pfamB_acc;
+  id   = pfam.pfamB_id;
+END;
+
+-%]
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- information on [% type %] family [% acc %] ([% id %]), generated: [% date.format %] -->
+<pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="[% baseUri %]"
+      xsi:schemaLocation="[% baseUri %]
+                          [% baseUri %]static/documents/schemas/pfam_family.xsd"
+      release="[% relData.pfam_release %]" 
+      release_date="[% relData.pfam_release_date %]">
+  <entry entry_type="[% type %]" accession="[% acc %]" id="[% id %]" />
+</pfam>
