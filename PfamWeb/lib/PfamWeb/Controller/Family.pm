@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.37 2007-12-10 14:39:57 jt6 Exp $
+# $Id: Family.pm,v 1.38 2008-04-25 13:10:27 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.37 2007-12-10 14:39:57 jt6 Exp $
+$Id: Family.pm,v 1.38 2008-04-25 13:10:27 jt6 Exp $
 
 =cut
 
@@ -63,15 +63,14 @@ either an ID or accession
 =cut
 
 sub begin : Private {
-  my( $this, $c, $entry_arg ) = @_;
+  my ( $this, $c, $entry_arg ) = @_;
   
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  if( defined $c->req->param('output') and
-      $c->req->param('output') eq 'xml' ) {
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
     $c->stash->{output_xml} = 1;
-    $c->res->content_type('text/xml');
   }
   
   # get a handle on the entry and detaint it
@@ -82,11 +81,12 @@ sub begin : Private {
                       '';
   
   my $entry;
-  if( $tainted_entry ) {
+  if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
     $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
       unless defined $entry;
-  } else {
+  }
+  else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
   }
   
@@ -96,15 +96,16 @@ sub begin : Private {
   #----------------------------------------
   
   # dead families are a special case...
-  if( $c->stash->{entryType} eq 'D' ) {
+  if ( $c->stash->{entryType} eq 'D' ) {
     
     $c->log->debug( 'Family::begin: got a dead family; setting a refresh URI' ) 
       if $c->debug;
 
-    if( $c->stash->{pfam}->forward_to ) {
+    if ( $c->stash->{pfam}->forward_to ) {
       $c->stash->{refreshUri} =
         $c->uri_for( '/family', { acc => $c->stash->{pfam}->forward_to } );
-    } else {
+    }
+    else {
       $c->stash->{refreshUri} = $c->uri_for( '/' );
     }
     
@@ -115,40 +116,61 @@ sub begin : Private {
   #----------------------------------------
 
   # if we're outputting HTML, we're done here
-  unless( $c->stash->{output_xml} ) {
-    $c->log->debug( 'Family::begin: emitting HTML' ) if $c->debug;
-    return;
-  }
+  return unless $c->stash->{output_xml};
 
   #----------------------------------------
   # from here on we're handling XML output
 
-  $c->log->debug( 'Family::begin: emitting XML' ) if $c->debug;
-
   # if there was an error...
-  if( $c->stash->{errorMsg} ) {
+  if ( $c->stash->{errorMsg} ) {
     $c->log->debug( 'Family::begin: there was an error: |' .
                     $c->stash->{errorMsg} . '|' ) if $c->debug;
     $c->stash->{template} = 'rest/family/error_xml.tt';
+    $c->res->content_type('text/xml');
     return;
   }
   
   # decide on the output template, based on the type of family that we have
-  if( $c->stash->{entryType} eq 'A' ) {
+  if ( $c->stash->{entryType} eq 'A' ) {
     $c->log->debug( 'Family::begin: got data for a Pfam-A' ) if $c->debug;
     $c->stash->{template} = 'rest/family/pfama_xml.tt';
-  } elsif( $c->stash->{entryType} eq 'B' ) {
+    $c->res->content_type('text/xml');
+  }
+  elsif( $c->stash->{entryType} eq 'B' ) {
     $c->log->debug( 'Family::begin: got data for a Pfam-B' ) if $c->debug;
     $c->stash->{template} = 'rest/family/pfamb_xml.tt';
-  } elsif( $c->stash->{entryType} eq 'D' ) {
+    $c->res->content_type('text/xml');
+  }
+  elsif( $c->stash->{entryType} eq 'D' ) {
     $c->log->debug( 'Family::begin: got data for a dead family' ) if $c->debug;
     $c->stash->{template} = 'rest/family/dead_xml.tt';
-  } else {
+    $c->res->content_type('text/xml');
+  }
+  else {
     $c->log->debug( 'Family::begin: got an error' ) if $c->debug;
     $c->stash->{template} = 'rest/family/error_xml.tt';
+    $c->res->content_type('text/xml');
   }
 
 }
+
+#-------------------------------------------------------------------------------
+#- public actions --------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=pod
+
+The main action in this package is the one that generates the family page. For 
+that action we need to add extra data to the stash, such as summary values for 
+the icons. For most other actions that are related to families, we don't need 
+all of that extra stuff.
+
+The actions that are associated with families are all in the 
+L<FamilyActions|PfamWeb::Controller::Family::FamilyActions> controller, so that 
+we can distinguish them from the actions that need summary data, and just avoid 
+the overhead of adding it for no reason. 
+
+=cut
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
@@ -163,7 +185,7 @@ for the relevant row into the stash.
 =cut
 
 sub get_data : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
   
   # check for a Pfam-A
   my $rs = $c->model('PfamDB::Pfam')
@@ -171,24 +193,25 @@ sub get_data : Private {
                          { pfamA_id  => $entry } ] );
   my $pfam = $rs->first if defined $rs;
   
-  if( $pfam ) {
+  if ( $pfam ) {
     $c->log->debug( 'Family::get_data: got a Pfam-A' ) if $c->debug;
     $c->stash->{pfam}      = $pfam;
     $c->stash->{acc}       = $pfam->pfamA_acc;
     $c->stash->{entryType} = 'A';
     
-    unless( $c->stash->{output_xml} ) {
-      $c->log->debug( 'Family::get_data: NOT returning XML; adding extra info' ) 
-          if $c->debug;
+    # GO data are used by both the XML and HTML outputs, so always get those
+    $c->forward( 'get_go_data' );
+
+    unless ( $c->stash->{output_xml} ) {
       
       # if this request originates at the top level of the object hierarchy,
       # i.e. if it's a call on the "default" method of the Family object,
       # then we'll need to do a few extra things
-      if( ref $this eq 'PfamWeb::Controller::Family' ) {
+      if ( ref $this eq 'PfamWeb::Controller::Family' ) {
         $c->log->debug( 'Family::get_data: adding extra family info' ) if $c->debug;
 
         # add the clan details, if any
-        if( defined $pfam->clan_acc ) {
+        if ( defined $pfam->clan_acc ) {
           $c->log->debug( 'Family::get_data: adding clan info' ) if $c->debug;
           $c->stash->{clan} = $c->model('PfamDB::Clans')
                                 ->find( { clan_acc => $pfam->clan_acc } );
@@ -196,14 +219,14 @@ sub get_data : Private {
         
         $c->forward( 'get_summary_data' );
         $c->forward( 'get_db_xrefs' );
-        $c->forward( 'get_go_data' );
         $c->forward( 'get_interactions' );
       }
 
-      # find out what type of tree to draw, seed or full
+      #  find out what type of tree to draw, seed or full
       if( defined $c->req->param('alnType') ) {
         $c->stash->{alnType} = ( $c->req->param( 'alnType' ) eq 'seed' ) ? 'seed' : 'full';
-      } else {
+      }
+      else {
         $c->stash->{alnType} = 'seed';
       }
 
@@ -221,7 +244,7 @@ sub get_data : Private {
                       { pfamB_id  => $entry } ] );
   $pfam = $rs->first if defined $rs;
     
-  if( $pfam ) {
+  if ( $pfam ) {
     $c->log->debug( 'Family::get_data: got a Pfam-B' ) if $c->debug;
     $c->stash->{pfam}      = $pfam;
     $c->stash->{acc}       = $pfam->pfamB_acc;
@@ -235,7 +258,7 @@ sub get_data : Private {
   $pfam = $c->model('PfamDB::Dead_families')
             ->find( { pfamA_acc => $entry } );
   
-  if( $pfam ) {
+  if ( $pfam ) {
     $c->log->debug( 'Family::get_data: got a dead family' ) if $c->debug;
     $c->stash->{pfam}      = $pfam;
     $c->stash->{acc}       = $pfam->pfamA_acc;
@@ -261,7 +284,7 @@ we have to do one more query.
 =cut
 
 sub get_summary_data : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   my $summaryData = {};
 
@@ -298,7 +321,7 @@ Retrieve the database cross-references for the family.
 =cut
 
 sub get_db_xrefs : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   my $xRefs = {};
 
@@ -328,9 +351,10 @@ sub get_db_xrefs : Private {
   # PfamA to PfamB links based on PRODOM
   my %atobPRODOM;
   foreach my $xref ( $c->stash->{pfam}->pfamA_database_links ) {
-    if( $xref->db_id eq 'PFAMB' ) {
+    if ( $xref->db_id eq 'PFAMB' ) {
       $atobPRODOM{$xref->db_link} = $xref;
-    } else {
+    }
+    else {
       push @{ $xRefs->{$xref->db_id} }, $xref;
     }
   }
@@ -354,8 +378,8 @@ sub get_db_xrefs : Private {
 
   $xRefs->{atoaPRC} = [];
   foreach ( @atoaPRC ) {
-    if( $_->get_column( 'evalue' ) <= 0.001 and
-        $_->get_column( 'l_pfamA_id' ) ne $_->get_column( 'r_pfamA_id' ) ) {
+    if ( $_->get_column( 'evalue' ) <= 0.001 and
+         $_->get_column( 'l_pfamA_id' ) ne $_->get_column( 'r_pfamA_id' ) ) {
       push @{ $xRefs->{atoaPRC} }, $_;
     } 
   }
@@ -380,7 +404,7 @@ sub get_db_xrefs : Private {
   my %atobBOTH;
   foreach ( keys %atobPRC, keys %atobPRODOM ) {
     $atobBOTH{$_} = $atobPRC{$_}
-      if( exists( $atobPRC{$_} ) and exists( $atobPRODOM{$_} ) );
+      if ( exists( $atobPRC{$_} ) and exists( $atobPRODOM{$_} ) );
   }
 
   # and then prune out those accessions that are in both lists
@@ -423,10 +447,10 @@ Retrieves the gene ontology (GO) data for the family.
 =cut
 
 sub get_go_data : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   my @goTerms = $c->model('PfamDB::GO')
-                  ->search( { 'me.auto_pfamA' => $c->stash->{pfam}->auto_pfamA } );
+                  ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA } );
 
   $c->stash->{goTerms} = \@goTerms;
 }
@@ -440,7 +464,7 @@ Retrieves details of the interactions between this family and others.
 =cut
 
 sub get_interactions : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
   
   my @interactions = $c->model('PfamDB::PfamA_interactions')
                        ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
