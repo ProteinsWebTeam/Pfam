@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.9 2008-03-19 14:45:42 jt6 Exp $
+# $Id: Batch.pm,v 1.10 2008-04-25 10:17:26 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.9 2008-03-19 14:45:42 jt6 Exp $
+$Id: Batch.pm,v 1.10 2008-04-25 10:17:26 jt6 Exp $
 
 =cut
 
@@ -73,7 +73,8 @@ sub search : Path {
   # if we get to here then the job was submitted successfully. Before handing
   # off to the template, set a refresh URI that will be picked up by head.tt 
   # and used in a meta refresh element
-  $c->stash->{refreshUri} = $c->uri_for( '/search' ); 
+  $c->stash->{refreshUri}   = $c->uri_for( '/search' );
+  $c->stash->{refreshDelay} = 30;
   
   $c->log->debug( 'Search::Batch::search: protein batch search submitted' )
     if $c->debug; 

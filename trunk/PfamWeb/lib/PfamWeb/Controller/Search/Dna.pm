@@ -2,7 +2,7 @@
 # Dna.pm
 # jt6 20070731 WTSI
 #
-# $Id: Dna.pm,v 1.3 2007-08-15 13:22:28 jt6 Exp $
+# $Id: Dna.pm,v 1.4 2008-04-25 10:17:02 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Dna;
 
 This controller is responsible for running batch DNA sequence searches.
 
-$Id: Dna.pm,v 1.3 2007-08-15 13:22:28 jt6 Exp $
+$Id: Dna.pm,v 1.4 2008-04-25 10:17:02 jt6 Exp $
 
 =cut
 
@@ -59,7 +59,8 @@ sub search : Path {
 
   # set a refresh URI that will be picked up by head.tt and used in a 
   # meta refresh element
-  $c->stash->{refreshUri} = $c->uri_for( '/search' );
+  $c->stash->{refreshUri}   = $c->uri_for( '/search' );
+  $c->stash->{refreshDelay} = 30;
 
   $c->log->debug( 'Search::Dna::search: batch dna search submitted' ); 
   $c->stash->{template} = 'pages/search/sequence/batchSubmitted.tt';
