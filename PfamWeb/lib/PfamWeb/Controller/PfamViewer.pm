@@ -2,7 +2,7 @@
 # PfamViewer.pm
 # jt6 20060601 WTSI
 #
-# $Id: PfamViewer.pm,v 1.2 2007-08-23 16:15:15 jt6 Exp $
+# $Id: PfamViewer.pm,v 1.3 2008-04-25 10:18:11 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::PfamViewer;
 
 An HTML-based sequence alignment viewer.
  
-$Id: PfamViewer.pm,v 1.2 2007-08-23 16:15:15 jt6 Exp $
+$Id: PfamViewer.pm,v 1.3 2008-04-25 10:18:11 jt6 Exp $
 
 =cut
 
@@ -54,7 +54,7 @@ fairly short.
 =cut
 
 sub showPfamViewer : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # these settings come directly from another controller, so they haven't
   # have been exposed to the user and don't need detainting, but we'll
@@ -65,7 +65,7 @@ sub showPfamViewer : Private {
   
   $c->stash->{paramString} = objToJson( $c->stash->{escapedParams} );
   $c->log->debug( 'PfamViewer::showPfamViewer: paramString: |'
-                  . $c->stash->{paramString} . '|' );
+                  . $c->stash->{paramString} . '|' ) if $c->debug;
 
   # hand off to the tool window template
   $c->log->debug( 'PfamViewer::showPfamViewer: handing off to alignmentTool.tt' );
@@ -84,7 +84,7 @@ the alignment fragment.
 =cut
 
 sub view : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # the parameters for this action were handed to us by the caller and although 
   # they *should* have been specified by the original caller, they've also been 
@@ -100,7 +100,9 @@ sub view : Local {
 
     next unless $unescapedValue =~ m/([A-Za-z0-9\-\s]+)$/;    
     
-    $c->log->debug( "PfamViewer::view: stashing parameter: |$param|$unescapedValue|" );
+    $c->log->debug( "PfamViewer::view: stashing parameter: |$param|$unescapedValue|" )
+      if $c->debug;
+    
     $c->stash->{$param} = $unescapedValue;
     $params{$param} = $escapedValue;
   }
@@ -110,7 +112,7 @@ sub view : Local {
   # this is now the record of the input parameters that we'll pass on
   $c->stash->{paramString} = objToJson( \%params );
   $c->log->debug( 'PfamViewer::view: build a paramString: |'
-                  . $c->stash->{paramString} . '|' );  
+                  . $c->stash->{paramString} . '|' ) if $c->debug;
 
   # set up the paging
   $c->forward( 'setPage' );
@@ -120,23 +122,24 @@ sub view : Local {
   #   return an alignment fragment 
 
   # look up the class that we need to forward to
-  unless( defined $c->req->param('source') and 
-          $c->req->param('source') =~ /^([A-Za-z]+)$/ ) { 
+  unless ( defined $c->req->param('source') and 
+           $c->req->param('source') =~ /^([A-Za-z]+)$/ ) { 
     $c->error( 'The alignment source must be set.' );
     return;
   }
   my $source = $1;
   my $class  = $this->{sources}->{$source};
-  $c->log->debug( "PfamViewer::view: class: |$class|" );
+  $c->log->debug( "PfamViewer::view: class: |$class|" ) if $c->debug;
 
   # make sure we can actually use the source to get an alignment
-  unless( $class->can( 'getAlignment' ) ) {
+  unless ( $class->can( 'getAlignment' ) ) {
     $c->error( "'$source' is not a valid alignment source." );
     return;
   }
 
   # forward to that class
-  $c->log->debug( "PfamViewer::view: forwarding to '$class getAlignment'" ); 
+  $c->log->debug( "PfamViewer::view: forwarding to 'getAlignment' on '$class'" )
+    if $c->debug;
   $c->forward( $class, 'getAlignment' );
   
   # shortcut to the hash with the details of the alignments that were returned
@@ -144,7 +147,7 @@ sub view : Local {
 
   # mark up the alignments in HTML  
   my @markedUpAlignments;
-  for( my $i = 0; $i < length @{ $alignments->{rawAlignments} }; $i++ ) {
+  for ( my $i = 0; $i < length @{ $alignments->{rawAlignments} }; $i++ ) {
     my $alignment = $alignments->{rawAlignments}->[$i];
     my $consensus = $alignments->{consensus}->[$i];
     push @markedUpAlignments,
@@ -187,22 +190,23 @@ Calculates which page of the alignment to show.
 #  pagesAfter  /
 
 sub setPage : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
   
   # get the scroll position
-  if( defined $c->req->param('scrollValue') and
-      $c->req->param('scrollValue') =~ m/^(\d+\.\d+)$/ ) {
+  if ( defined $c->req->param('scrollValue') and
+       $c->req->param('scrollValue') =~ m/^(\d+\.\d+)$/ ) {
     $c->stash->{scrollValue} = $1;
-  } else {
+  }
+  else {
     $c->stash->{scrollValue} = 0;
   }
   $c->log->debug( 'PfamViewer::setPage: set scroll value to |'
-                  . $c->stash->{scrollValue} . '|' );
+                  . $c->stash->{scrollValue} . '|' ) if $c->debug;
 
   #----------------------------------------
 
   # get the number of alignment lines to display
-  my( $numRowsToShow ) =
+  my ( $numRowsToShow ) =
     $c->req->param('numRows') || $this->{defaultRows} =~ m/^(\d+)$/;
 
   # if the number of rows to show is less than the total number of rows in the
@@ -210,31 +214,38 @@ sub setPage : Private {
   $numRowsToShow = $c->stash->{numRowsInAlignment}
     if $c->stash->{numRowsInAlignment} < $numRowsToShow;
 
-  $c->log->debug( "PfamViewer::view: showing |$numRowsToShow| rows" );
+  $c->log->debug( "PfamViewer::view: showing |$numRowsToShow| rows" )
+    if $c->debug;
 
   #----------------------------------------
 
   # use a Data::Pageset object to keep track of all this...
   my $pager = Data::Pageset->new( { total_entries    => $c->stash->{numRowsInAlignment}, 
-                                    entries_per_page => $numRowsToShow,
-                                    pages_per_set    => 11,
-                                    mode             => 'slide' } );
+                                     entries_per_page => $numRowsToShow,
+                                     pages_per_set    => 11,
+                                     mode             => 'slide' } );
   $c->stash->{pager} = $pager;
 
   # find out what page we want for this request
   my $page;
-  if( defined $c->req->param('page') ) {
+  if ( defined $c->req->param('page') ) {
     ( $page ) = $c->req->param('page') =~ m/^(\d+)$/;
-    $c->log->debug( "PfamViewer::view: requested page number |$page|" );
-  } elsif( defined $c->req->param('next') ) {
-    $page = $pager->next;
-    $c->log->debug( 'PfamViewer::view: requested next page' );
-  } elsif( defined $c->req->param('prev') ) {
-    $page = $pager->prev;
-    $c->log->debug( 'PfamViewer::view: requested previous page' );
+    $c->log->debug( "PfamViewer::view: requested page number |$page|" )
+      if $c->debug;
   }
+  
+  elsif( defined $c->req->param('next') ) {
+    $page = $pager->next;
+    $c->log->debug( 'PfamViewer::view: requested next page' ) if $c->debug;
+  }
+  
+  elsif( defined $c->req->param('prev') ) {
+    $page = $pager->prev;
+    $c->log->debug( 'PfamViewer::view: requested previous page' ) if $c->debug;
+  }
+  
   $page ||= 1;
-  $c->log->debug( "PfamViewer::view: showing page |$page|" );
+  $c->log->debug( "PfamViewer::view: showing page |$page|" ) if $c->debug;
   
   $pager->current_page( $page ); 
 
