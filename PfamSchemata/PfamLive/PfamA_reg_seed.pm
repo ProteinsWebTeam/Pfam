@@ -1,5 +1,5 @@
 
-# $Id: PfamA_reg_seed.pm,v 1.5 2008-04-21 21:01:59 rdf Exp $
+# $Id: PfamA_reg_seed.pm,v 1.6 2008-05-01 14:41:16 rdf Exp $
 #
 # $Author: rdf $
 package PfamLive::PfamA_reg_seed;
@@ -18,7 +18,7 @@ __PACKAGE__->table( "pfamA_reg_seed" );
 __PACKAGE__->add_columns( qw/auto_pfamseq auto_pfamA seq_start seq_end cigar tree_order /);
 
 #Now set up the primary keys/contraints
-__PACKAGE__->set_primary_key("auto_pfamA", "auto_pfamseq");
+__PACKAGE__->set_primary_key("auto_pfamA", "auto_pfamseq", "seq_start");
 
 #Now setup the relationship
 __PACKAGE__->has_one( "pfamA" =>  "PfamLive::Pfam",
