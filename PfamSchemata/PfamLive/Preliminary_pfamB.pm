@@ -1,5 +1,5 @@
 
-# $Id: Preliminary_pfamB.pm,v 1.1 2008-05-02 09:43:01 rdf Exp $
+# $Id: Preliminary_pfamB.pm,v 1.2 2008-05-02 10:23:12 rdf Exp $
 #
 # $Author: rdf $
 package PfamLive::Preliminary_pfamB;
@@ -18,7 +18,8 @@ __PACKAGE__->table( 'preliminary_pfamB' );
 __PACKAGE__->add_columns( qw( auto_pfamB 
                               number_species
                               number_archs
-                              number_regions ) );
+                              number_regions
+                              number_structures ) );
 
 # primary keys
 __PACKAGE__->set_primary_key( qw( auto_pfamB) );
