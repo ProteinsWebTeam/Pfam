@@ -1,5 +1,5 @@
 
-# $Id: PfamB_reg.pm,v 1.1 2008-05-02 09:43:01 rdf Exp $
+# $Id: PfamB_reg.pm,v 1.2 2008-05-02 15:15:29 rdf Exp $
 #
 # $Author: rdf $
 package PfamLive::PfamB_reg;
@@ -15,7 +15,7 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamB_reg" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq auto_pfamB seq_start seq_end /);
+__PACKAGE__->add_columns( qw/auto_pfamB_reg auto_pfamseq auto_pfamB seq_start seq_end /);
 
 #Now set up the primary keys/contraints
 __PACKAGE__->set_primary_key("auto_pfamB", "auto_pfamseq");
