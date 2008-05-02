@@ -1,5 +1,5 @@
 
-# $Id: Pdb_residue.pm,v 1.1 2008-04-21 15:42:00 rdf Exp $
+# $Id: Pdb_residue.pm,v 1.2 2008-05-02 09:43:01 rdf Exp $
 #
 # $Author: rdf $
 
@@ -52,6 +52,8 @@ __PACKAGE__->might_have( pfamA_reg_full_significant => "PfamLive::PfamA_reg_full
 __PACKAGE__->might_have( pfamA_reg_seed => "PfamLive::PfamA_reg_seed",
 						 { "foreign.auto_pfamseq" => "self.auto_pfamseq"});
 
+__PACKAGE__->might_have( pfamB_reg => "PfamLive::PfamB_reg",
+						 { "foreign.auto_pfamseq" => "self.auto_pfamseq"});
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
