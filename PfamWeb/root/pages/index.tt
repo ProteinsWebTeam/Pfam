@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.47 2008-04-25 13:40:29 jt6 Exp $
+# $Id: index.tt,v 1.48 2008-05-06 10:41:15 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -335,17 +335,16 @@ sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
     <div class="citation">
       <span class="title">
         <a class="ext" 
-           href="http://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">
-          Pfam: clans, web tools and services</a>: 
+           href="http://nar.oxfordjournals.org/cgi/content/full/36/suppl_1/D281">
+          The Pfam protein families database</a>: 
       </span>
       <span class="authors">
-        R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones, 
-        V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
-        S.R. Eddy, E.L.L. Sonnhammer and A. Bateman
+        R.D. Finn, J. Tate, J. Mistry, P.C. Coggill, J.S. Sammut, H.R. Hotz, 
+        G. Ceric, K. Forslund, S.R. Eddy, E.L. Sonnhammer and A. Bateman
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2006)
-        &nbsp;Database Issue 34:D247-D251
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2008)
+        &nbsp;Database Issue 36:D281-D288
       </span>
     </div>
   </div>
