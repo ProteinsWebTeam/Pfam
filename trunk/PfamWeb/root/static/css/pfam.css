@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.69 2008-03-19 13:43:36 jt6 Exp $
+   $Id: pfam.css,v 1.70 2008-05-06 09:22:29 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -808,10 +808,6 @@ h2.padded {
 #citation {
   width: 60%;
   float: left;
-}
-
-#citation div.citation span.authors {
-  font-size: smaller ! important;
 }
 
 /* all other citations */
