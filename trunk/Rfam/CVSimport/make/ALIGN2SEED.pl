@@ -18,10 +18,11 @@ my $forbidden=1;
 my $info=1;
 
 my @forbidden_terms = qw(
-repeat
-repetitive
+contaminat
 pseudogene
 pseudo-gene
+repeat
+repetitive
 transpos
 );
 
@@ -84,7 +85,7 @@ my (@required_terms, @extra_forbidden_terms, @taxonomy, @forbiddentaxonomy, $ont
 	    "ef|extraforbidden=s@"         => \@extra_forbidden_terms,
 	    "rt|taxonomy=s@"               => \@taxonomy,
 	    "ft|forbiddentaxonomy=s@"      => \@forbiddentaxonomy,
-	    "ont"                          => \$ont,
+	    "ont:i"                        => \$ont,
 	    "t|thresh|threshold|s|scorethresh=s"              => \$scorethreshold,
 	    "i|info!"                      => \$info,
 	    "h|help"                       => \$help
@@ -204,6 +205,10 @@ foreach my $seqobj ( @alignlist ) {
     }
 }
 
+if (defined($ont) && $ont == 0){
+    $ont++;
+}
+
 #If using ONT option, need to fetch scores:
 my %ALIGNscores;
 #tie %ALIGNscores, "Tie::IxHash";
@@ -211,7 +216,7 @@ if (defined($ont) || defined($scorethreshold)){
     open(SC, "<scores")  or $logger->logdie("FATAL: Couldn't open SEED\n [$!]"); 
     while (my $sc = <SC>){
 	if ($sc =~ /(\S+)\s+(\S+)/){
-	    if ($ALIGNnames{$2}){
+	    if (defined($ALIGNnames{$2})){
 		$ALIGNscores{$2}=$1;
 	    }
 	    else {
@@ -263,21 +268,28 @@ open( OUT, ">ALIGN2SEED" ) or die ("FATAL: Couldn't open ALIGN2SEED [$!]\n $!\n"
 my (%minpid, %maxpid, %ALIGN2SEEDcandidates, @names_array, %seen_taxa);
 my ($scorerejected, $align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $taxonomyrejected, $counter) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+#Index taxonomy strings:
 if (defined($ont)){
     @names_array = @ALIGNscoreskeys;
-
+    
     foreach my $n (keys %SEEDhash){
 	$n =~ m/(\S+)\.\d+\/\d+\-\d+/;
 	my $id = $1;
-	my $ncbi_id;
+	my $ncbi_id = "";
 	$rfsth->execute($id);
 	my $rfres = $rfsth->fetchall_arrayref;
 	foreach my $row (@$rfres){
 	    $ncbi_id  .= $row->[2];
 	}
-	$seen_taxa{$ncbi_id}=1;
+	
+	if (defined($seen_taxa{$ncbi_id})){
+	    $seen_taxa{$ncbi_id}+=1;
+	}
+	else {
+	    $seen_taxa{$ncbi_id}=1;
+	}
     }
-    $seen_taxa{0}=1;
+    $seen_taxa{0}=$ont;
 }
 else {
     @names_array = keys %ALIGNnames;
@@ -291,8 +303,9 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	$counter++;
 	my $frac_done = int(10*$counter/$noseqs);
 	if ($timer_hash{$frac_done}){
+	    my $timer_str=sprintf("%d%% of ALIGN seqs tested\n", 10*$frac_done); 
 	    $timer_hash{$frac_done}=0;
-	    printf "%d%% of ALIGN seqs tested\n", 10*$frac_done; #Use sprintf & logger or just printf? Bloody logger doesn't seem to do formatted output!
+	    $logger->info("$timer_str");
 	}
     }
     
@@ -358,10 +371,14 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	}
 	
 	if ($persequence<$bpconsistency){
+	    
+	    my $structrejected_string = "";
 	    if ($info){
-		printf "REJECTED: $longseqname doesn't match the consensus structure (FCBP=%0.3f<thresh=$bpconsistency)!\n", $persequence; 
+		$structrejected_string = sprintf( "REJECTED: $longseqname doesn't match the consensus structure (FCBP=%0.3f<thresh=$bpconsistency)!\n", $persequence); 
                 #Logger still doesn't support formatted output! :-(
 	    }
+	    
+	    $logger->info("$structrejected_string");
 	    $structrejected++;
 	    next BIGLOOP;
 	}
@@ -391,13 +408,14 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	    $ncbi_id = 0;
 	}
 
-	if (defined($ont) && $seen_taxa{$ncbi_id}){
-	    $logger->info("REJECTED: $longseqname taxonomy has already been seen [$ncbi_id; $tax_string; $species]!\n");
+
+	if (defined($ont) && defined($seen_taxa{$ncbi_id}) && $seen_taxa{$ncbi_id} >= $ont){
+	    $logger->info("REJECTED: $longseqname taxonomy is already well represented (count=$seen_taxa{$ncbi_id} > thresh=$ont) [$ncbi_id; $tax_string; $species]!\n");
 	    $taxonomyrejected++;
 	    next BIGLOOP;
 	}
 
-	if (scalar(@taxonomy)>0 || scalar(@forbiddentaxonomy)>0){
+	if ( scalar(@taxonomy)>0 ){
 	    my $nomatch = 1;
 	    foreach my $rft (@taxonomy){
 		if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
@@ -405,15 +423,26 @@ BIGLOOP: foreach my $longseqname (@names_array){
 		}
 	    }
 	    
+	    if ($nomatch){
+		$logger->info("REJECTED: $longseqname taxonomy did not match your required terms [$ncbi_id; $tax_string; $species]!\n");
+		$taxonomyrejected++;
+		next BIGLOOP;
+	    }
+	}
+	
+	if ( scalar(@forbiddentaxonomy)>0 ){
 	    my $nomatch2 = 0;
+	    my $matchterm = "";
 	    foreach my $rft (@forbiddentaxonomy){
 		if ($tax_string =~ m/$rft/i || $species =~ m/$rft/i){
 		    $nomatch2 = 1;
+		    $matchterm=$rft;
+		    last;
 		}
 	    }
 	    
-	    if ($nomatch || $nomatch2){
-		$logger->info("REJECTED: $longseqname taxonomy did not match your required/forbidden terms [$ncbi_id; $tax_string; $species]!\n");
+	    if ($nomatch2){
+		$logger->info("REJECTED: $longseqname taxonomy did not match your forbidden term: \47$matchterm\47 [$ncbi_id; $tax_string; $species]!\n");
 		$taxonomyrejected++;
 		next BIGLOOP;
 	    }
@@ -465,9 +494,12 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	    if ($p2>=$maxpid){
 		$ok = 0;
 		$pidrejected++;
+		my $pidrejected_str="";
 		if ($info){
-		     printf "REJECTED: $longseqname too similar to $longseqname3 in ALIGN2SEEDcandidates (id=%0.3f)!\n", $p2; #Logger is really pants, eh!
+		     $pidrejected_str = sprintf( "REJECTED: $longseqname too similar to $longseqname3 in ALIGN2SEEDcandidates (id=%0.3f)!\n", $p2); 
 		}
+		$logger->info("$pidrejected_str");
+		
 		next BIGLOOP;
 	    }
 	}
@@ -495,9 +527,12 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	#If the max PID between ALIGN seq and SEED seqs is outside our limits:
 	if ( $maxpid{$longseqname} < $minpid || $maxpid < $maxpid{$longseqname} ){
 	    $ok = 0;
+	    my $pidrejected_str = "";
 	    if ($info){
-		printf "REJECTED: $longseqname max pid outside allowed range, ID=$longseqname_max (id=%0.3f)!\n", $maxpid{$longseqname}; #Yep, totally underwhelmed by this logger thing.
+		$pidrejected_str = sprintf( "REJECTED: $longseqname max pid outside allowed range, ID=$longseqname_max (id=%0.3f)!\n", $maxpid{$longseqname}); 
 	    }
+	    $logger->info("$pidrejected_str");
+	    
 	    $pidrejected++;
 	    next BIGLOOP;
 	}
@@ -507,15 +542,21 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	$ungapped =~ s/[,\.\-:_]//g;
 	
 	if (defined($ont)){
-	    $seen_taxa{$ncbi_id}=1;
+	    if ($seen_taxa{$ncbi_id}){
+		$seen_taxa{$ncbi_id}+=1;
+	    }
+	    else {
+		$seen_taxa{$ncbi_id}=1;
+	    }
 	}
 
 	printf OUT ">$longseqname\t%0.3f\t%0.3f\t$tax_string; $species\t$desc\n$ungapped\n", $maxpid{$longseqname}, $persequence; 
-	    if ($info){
-		printf "ACCEPTED: maxpid:%0.3f\tFcbp:%0.3f\t$longseqname\t$desc\n", $maxpid{$longseqname}, $persequence; #It'd be damned embarrassing if logger did turn out to support formatted output afterall...
-	    }
+	my $summary_txt = "";
+	if ($info){
+	    $summary_txt = sprintf( "ACCEPTED: maxpid:%0.3f\tFcbp:%0.3f\t$longseqname\t$desc\n", $maxpid{$longseqname}, $persequence); 
+	}
+	$logger->info("$summary_txt");
 	$ALIGN2SEEDcandidates{$longseqname}=$ALIGNhash{$longseqname};
-	
     }
     else {#Print DE lines for the SEED sequences:
 	
@@ -531,7 +572,8 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	    $desc = "no description available";
 	}
 	
-	printf "SEED\t\t$longseqname\t%s\n", substr($desc,0,70);
+	my $seedinfo_txt = sprintf( "SEED\t\t$longseqname\t%s\n", substr($desc,0,70));
+	$logger->info("$seedinfo_txt");
     }
 }
 close(OUT);
@@ -794,9 +836,10 @@ Options:
                            will only accept bacterial and archeal sequences. 
   -ft|-forbiddentaxonomy   Restrict S\47s to tax_strings and species not containing a specific string. Eg. \47-t sapiens\47 or \47-t mammal\47 
                            will reject human and mammalian sequences respectively. 
-  -ont                     Only New Taxa. This option filters sequences from taxa that are already present in the SEED or have been selected 
+  -ont|-ont <int>          Only New Taxa. This option filters sequences from taxa that are already present in the SEED or have been selected 
                            previously. It checks the high scoring sequences first to ensure the highest scoring representative is selected. 
 			   Warning: your \42scores\42 file and \42ALIGN\42 should correspond to the same data - check time-stamps. 
+			   Optionally add an integer to accept  at most \47int\47 sequences from any taxa. 
 			   
 			   CM BIT-SCORE BASED FILTERS
   -t|-thresh|-threshold|-s|-scorethresh 
@@ -808,8 +851,8 @@ Options:
   -noinfo                  dont print lots of info, default is to print [info=$info]
   -h or -help              show this help
 
-To Add:  -Only accept seqs from Higher score threshold? Eg. top 50%
-         -ont|onlynewtaxa 
-        
+To Add:
+  -A blacklist of sequences.
+  
 EOF
 }
