@@ -316,7 +316,7 @@ unless( $minidbpname || $nofilters ) {
 	      $fh -> open("| bsub -q $queue -J\"rf$blastpname\" -o $pwd/$$/$blastpname\.berr.$i\n") or die "$!";
 	      $fh -> print("$blastcmdspec >  $lustre/$blastpname\.blastout.$i;\n");
 	      $fh -> print("$blastcmdsens >> $lustre/$blastpname\.blastout.$i;\n");
-	      $fh -> print("~/scripts/make/wublast2minidb.pl -d $blastdb -w $window -l $maxseqs4cmsearchlimits -f $lustre/$blastpname\.blastout.$i -o $lustre/$blastpname\.minidb.$i;\n");
+	      $fh -> print("wublast2minidb.pl -d $blastdb -w $window -l $maxseqs4cmsearchlimits -f $lustre/$blastpname\.blastout.$i -o $lustre/$blastpname\.minidb.$i;\n");
 	      $fh -> print("[ -f $lustre/$blastpname\.blastout.$i\.error ] && /usr/bin/scp farm-login:$lustre/$blastpname\.blastout.$i\.error $phost:$pwd/;\n") or die "error scp-ing farm-login:$lustre/$blastpname\.blastout.$i\.error to $phost:$pwd/\n$!\n"; 
 	      $fh -> print("[ -f $lustre/$blastpname\.blastout.$i\.error ] && rm -f $lustre/$blastpname\.blastout.$i.error\n");
 	      $fh -> close;
@@ -895,8 +895,9 @@ Options:       --h                  show this help
 	       --nolowcomplexityseg  turn off WU-BLAST low complexity filter seq
 	       --nolowcomplexitydust turn off WU-BLAST low complexity filter dust
 	       --pname <str>         give lsf a process name, "str", for the cmsearch jobs
-	       --altdb <YOURDIR>     Give a directory name in \42$Rfam::rfamseq_current_dir\42 containing xdformat\47ted blastdbs. Remember
-	                             to \42scp -r $Rfam::rfamseq_current_dir/YOURDIR farm-login:$Rfam::rfamseq_run_dir/\42 before running.
+	       --altdb <YOURDIR>     Give a directory name in \42$Rfam::rfamseq_current_dir\42 containing xdformat\47ted blastdbs 
+	                             (xdformat -n  -o blastdb.fa -I blastdb.fa). Remember to: 
+	                             \42scp -r $Rfam::rfamseq_current_dir/YOURDIR farm-login:$Rfam::rfamseq_run_dir/\42 before running.
 				     
 	       MINIDB OPTIONS
 	       -m|--minidbpname <str>    restart a job with pname \42str\42 from after the minidb creation (also works with -m, -mini or -minidb)
@@ -921,7 +922,9 @@ Options:       --h                  show this help
 		
 TO ADD:
 Alternative filters: fasta, hmmsearch, ...
-Add a cmsensitive option - usinf indels \& local \& --learninserts
+Add a cmsensitive option - using indels \& local
+Run and store both global \& glocal modes. 
+Add a check that all the cmsearch jobs completed!
 
 EOF
 }
