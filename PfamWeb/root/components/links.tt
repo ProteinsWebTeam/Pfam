@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.20 2008-02-18 16:07:19 jt6 Exp $
+# $Id: links.tt,v 1.21 2008-05-07 13:24:32 jt6 Exp $
 
 USE String;
 
@@ -190,7 +190,7 @@ BLOCK buildLink;
     [%- CASE "URL" -%]
 <a [% UNLESS internal %]class="ext" [% END %]href="[% id %]">[% number %]</a>
     [%- CASE -%]
-      Other link: [% type -%]
+      [% type; ":"; id %]
   [%- END; # of SWITCH
 END; # of "buildLink" block
 
