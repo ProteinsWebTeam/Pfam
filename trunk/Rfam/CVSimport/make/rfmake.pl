@@ -19,6 +19,9 @@ my( $thr,
     $file,
     @extrafamily,
     @extra_forbidden_terms,
+    @taxonomy,
+    @forbiddentaxonomy,
+    @forbiddentaxonomynot,
     $output);
 
 &GetOptions( "t=s"      => \$thr,
@@ -28,9 +31,12 @@ my( $thr,
 	     "cove"     => \$cove,
 #	     "fa=s"     => \$fasta,
 	     "trim=s"   => \$trim,
-	     "file=s"         => \$file,
-	     "efam|extrafamily=s@" => \@extrafamily,
-	     "efor|extraforbidden=s@"         => \@extra_forbidden_terms,
+	     "file=s"   => \$file,
+	     "efam|extrafamily=s@"      => \@extrafamily,
+	     "efor|extraforbidden=s@"   => \@extra_forbidden_terms,
+	     "rt|taxonomy=s@"           => \@taxonomy,
+	     "ft|forbiddentaxonomy=s@"  => \@forbiddentaxonomy,
+	     "ftn|forbiddentaxonomynot=s@"  => \@forbiddentaxonomynot,
 	     "o|output=s"     => \$output,
 	     "h|help"         => \$help );
 
@@ -57,7 +63,7 @@ if (!defined($thr)){
 my $thrcurr = 5;
 
 my ($local, @family_terms, %family_terms);
-if( not $overlaps ) {
+if( not $overlaps && -e "DESC" ) {
     open( DESC, "DESC" ) or warn "Can't open DESC to determine global/local requirement\n";
     while( <DESC> ) {
 	/^GA\s+(\S+)/ and do {
@@ -68,7 +74,7 @@ if( not $overlaps ) {
 	/^ID/ || /^DE/ || /^PI/ || /^TP/ and do {
 	    substr($_,0,3) = "";
 	    $_ =~ tr/a-z/A-Z/;
-	    my @terms = split(/[\_\s+\/\;\(\)\-]/,$_);
+	    my @terms = split(/[\_\s+\/\;\(\)\-\,\.\'\"\:]/,$_);
 	    push(@family_terms,@terms);
 	};
 	
@@ -80,6 +86,7 @@ if( not $overlaps ) {
 }
 
 my %forbidden_family_terms = (
+    AND => 1,
     ARCH => 1,
     ARCHAEA => 1,
     ARCHAEAL => 1,
@@ -87,13 +94,17 @@ my %forbidden_family_terms = (
     BACTERIA => 1,
     BACTERIAL => 1,
     BODY => 1,
+    CD => 1,
+    CHROMOSOME => 1,
     DNA => 1,
+    DS => 1,
     ELEMENT => 1,
     EUK => 1,
     EUKARYOTE => 1,
     EUKARYOTIC => 1,
     EXON => 1,
     FAMILY  => 1,
+    FOR => 1,
     GENE => 1,
     GENOME => 1,
     INTRON => 1,
@@ -107,6 +118,7 @@ my %forbidden_family_terms = (
     SEQUENCE => 1,
     SMALL   => 1,
     SUBUNIT => 1,
+    THE => 1,
     TYPE => 1,
     UTR => 1,
     VIRUS => 1
@@ -128,10 +140,11 @@ my $family_terms = join(", ",@family_terms);
 print STDERR "Using family terms: $family_terms\n";
 
 my @forbidden_terms = qw(
-repeat
-repetitive
+contaminat
 pseudogene
 pseudo-gene
+repeat
+repetitive
 transpos
 );
 
@@ -142,14 +155,16 @@ if (@extra_forbidden_terms){
 my $forbidden_terms = join(", ",@forbidden_terms);
 print STDERR "Using forbidden terms: $forbidden_terms\n";
 
-my (%seedseqs_start,%seedseqs_end);
+my (%seedseqs_start,%seedseqs_end, %seedseqs_found);
 if( $list ) {
     open( SEED, "SEED" ) or warn "Can't open SEED to determine overlapping hits\n";
     while( <SEED> ) {
 	/^(\S+)\/(\d+)\-(\d+)\s+\S+/ and do {
+	    my $id = $1;
 	    my $a = $2;
 	    my $b = $3;
-	    
+	    my $n = $id . "/" . $a . "-" . $b;
+	    $seedseqs_found{$n} = 0;
 	    if ($b<$a){
 		my $temp=$a;
 		$a = $b;
@@ -160,6 +175,10 @@ if( $list ) {
 		push(@{$seedseqs_start{$1}},$a);
 		push(@{$seedseqs_end{$1}},$b);
 	    }
+	};
+	
+	/^(\S+)\s+\S+\n/ and do {
+	    $seedseqs_found{$1} = 0;
 	};
     }
 }
@@ -198,7 +217,7 @@ my $res = $allres -> remove_overlaps();
 
 if( $list ) {
 
-    my %desc;
+    my (%desc, %spec);
     $thr = 0 if( not defined $thr );
 
     my @goodhits = grep{ $_->bits >= $thr } $res->eachHMMUnit();
@@ -208,12 +227,26 @@ if( $list ) {
     my $database = $Rfam::embl;
     my $host     = "cbi3";
     my $user     = "genero";
-#    my $accession = "AJ489952.1";
+    
+    # MySQL rfamlive connection details.
+    my $rfdatabase = "rfamlive";
+    my $rfhost     = "pfamdb2a";
+    my $rfuser     = "pfamadmin";
+    my $rfpw       = "mafpAdmin";
+    my $rfport     = 3303;
     
     # Create a connection to the database.
     my $dbh = DBI->connect(
 	"dbi:mysql:$database;$host", $user, "",
 	);
+    
+    my ($rfdbh, $rfsth);
+# Create a connection to the database.
+    $rfdbh = DBI->connect(
+	"dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
+	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+	    RaiseError => 1
+	}    );
     
     # Query to search for the accession and description of uniprot entries with the gene name offered.
     my $query = qq(
@@ -223,8 +256,18 @@ if( $list ) {
            and entry.entry_id=description.entry_id;
    );
     
+    # Query to search for the accession and description of embl entries with the embl id
+    my $rfquery = qq(
+           select t.species, t.tax_string, t.ncbi_id 
+           from taxonomy as t, rfamseq as r 
+           where t.auto_taxid=r.taxon and rfamseq_acc=?;
+   );
+    
+    
 # Prepare the query for execution.
     my $sth = $dbh->prepare($query);
+# Prepare the query for execution.
+    $rfsth = $rfdbh->prepare($rfquery);
     
     foreach my $seqid (@allnames) {
 	
@@ -235,9 +278,25 @@ if( $list ) {
 	foreach my $row (@$res){
 	    $desc{$row->[0]} .= $row->[1];
 	}
-   }
+	
+	$seqid =~ s/(\.\d+)//;
+	$rfsth->execute($seqid);
+	if (!defined($spec{$seqid})){
+	    my $rfres = $rfsth->fetchall_arrayref;
+	    my ($species, $taxonomy, $ncbi) = ("", "", "");
+	    foreach my $row (@$rfres){
+		$species .= $row->[0];
+		$taxonomy .= $row->[1];
+		$ncbi .= $row->[2];
+	    }
+	    
+	    $spec{$seqid} = $ncbi . "\t" . $species . "\t" . $taxonomy;
+	}
+	
+    }
     $dbh->disconnect;
-    
+#    $rfdbh->disconnect;
+
     #OPEN files for R:
     my %filehandles = (
 	seed   => \*OUTSEED,
@@ -260,7 +319,16 @@ if( $list ) {
 	$counts{'thresh'}++;
     }
     
+    if (-e "species"){
+	system("cp species species.old");
+    }
+    
+    if (-e $output){
+	system("cp $output $output\.old");
+    }
+    
     open(OUTFILE, ">$output") or die "Could not open $output\n[$!]\n";   
+    open(SPECFILE, ">species") or die "Could not open species\n[$!]\n";   
     my $prev_bits = 999999;
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
 	
@@ -279,16 +347,22 @@ if( $list ) {
 	
 	my $seqlabel = "ALIGN";
 	if ( defined($seedseqs_start{$unit->seqname}) ){
-	    my $n=$unit->seqname;
-	    for (my $i=0; $i<scalar(@{$seedseqs_start{$n}}); $i++){
-		my $a = $seedseqs_start{$n}[$i];
-		my $b = $seedseqs_end{$n}[$i];
+	    my $id=$unit->seqname;
+	    for (my $i=0; $i<scalar(@{$seedseqs_start{$id}}); $i++){
+		my $a = $seedseqs_start{$id}[$i];
+		my $b = $seedseqs_end{$id}[$i];
 		#print "overlap($a,$b,$unit->start_seq, $unit->end_seq)\n";
 		if (overlap($a,$b,$unit->start_seq, $unit->end_seq)){
 		    $seqlabel = "SEED";
 		    printf OUTSEED "%0.2f\n", $unit->bits;
 		    $counts{'seed'}++;
 		    push(@family_scores,$unit->bits);
+		    my $n = $id . "/" . $a . "-" . $b;
+		    if ( !defined($seedseqs_found{$n}) ){
+			$n = $id . "/" . $b . "-" . $a;
+		    }
+		    
+		    $seedseqs_found{$n}++;
 		    last;
 		}
 	    }
@@ -302,6 +376,14 @@ if( $list ) {
 	my $fammatch=0;
 	foreach my $ft (@family_terms) {
 	    if ($desc{$unit->seqname} =~ m/$ft/i){
+		$fammatch=1;
+	    }
+	}
+	
+	my $shortid = $unit->seqname;
+	$shortid =~ s/(\.\d+)//;
+	foreach my $ft (@taxonomy) {
+	    if (defined($spec{$shortid}) && $spec{$shortid} =~ m/$ft/i){
 		$fammatch=1;
 	    }
 	}
@@ -320,6 +402,19 @@ if( $list ) {
 	    }
 	}
 	
+	foreach my $ft (@forbiddentaxonomy) {
+	    if (defined($spec{$shortid}) && $spec{$shortid} =~ m/$ft/i){
+		$forbidmatch=1;
+	    }
+	}
+
+	foreach my $ft (@forbiddentaxonomynot) {
+	    if (defined($spec{$shortid}) && $spec{$shortid} !~ m/$ft/i){
+		$forbidmatch=1;
+	    }
+	}
+	
+
 	if ($forbidmatch){
 	    printf OUTFORBID "%0.2f\n", $unit->bits;
 	    $counts{'forbid'}++;
@@ -327,13 +422,28 @@ if( $list ) {
 	    $term_label .= "F";
 	}
 	
+	
 	if (!defined($term_label)){
 	    $term_label = ".";
 	}
-
+	
+	
+	
 	printf OUTFILE "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t$term_label\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
+
+	my $seqid = $unit->seqname;
+	$seqid =~ s/(\.\d+)//;
+	if (defined($spec{$seqid})){
+	    printf SPECFILE "%0.2f\t$seqlabel\t%s\t%s\n", $unit->bits, $unit->seqname, $spec{$seqid};
+	}
+	else {
+	    printf SPECFILE "%0.2f\t%s\tNo Taxonomy information available\tNA\tNA\n", $unit->bits, $unit->seqname, $spec{$seqid};	    
+	}
+	
 	$prev_bits = $unit->bits;
     }
+    
+    
     
     #R fails on empty files:
     foreach my $ty (keys %filehandles){
@@ -348,7 +458,7 @@ if( $list ) {
     close( OUTFAM);
     close( OUTFORBID);
     close( OUTFILE);
-    
+    close( SPECFILE);
     
     #Calculate suggested threshold range using family terms as TPs & forbidden terms as FPs:
     @family_scores = sort { $a <=> $b } @family_scores;
@@ -458,9 +568,26 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
 
 	
     }
+
+    if (-e "warnings"){
+	unlink( "warnings" ) or die "can't remove file [warnings]\n";
+    }
+    
+    foreach my $n (keys %seedseqs_found){
+	
+	if ($seedseqs_found{$n}<1){
+	    
+	    
+	    open( WARN, ">>warnings" ) or warn "Can't open warnings files\n";
+	    printf WARN "WARNING: SEED sequence $n was not in the OUTPUT!\n";
+	    printf      "WARNING: SEED sequence $n was not in the OUTPUT!\n";
+	    close(WARN);
+	}
+    }
+    
     
     #Run R script, making the out.list.pdf figure:
-    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
+    system("/software/R-2.6.0/bin/R CMD BATCH --no-save /software/rfam/bin/plot_outlist.R") and warn "WARNING: system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
 #FOR TESTING:    
 #    system("/software/R-2.6.0/bin/R CMD BATCH --no-save ~/scripts/make/plot_outlist.R") and die "system call for /software/R-2.6.0/bin/R failed. Check binary exists and is executable.\n";
     
@@ -638,22 +765,50 @@ sub overlap {
 
 sub help {
     print STDERR <<EOF;
-    rfmake.pl  
-    Usage:      rfmake.pl -t <bits> 
-                rfmake.pl -l
-                          -file <infernal output file> (uses OUTPUT file in current dir by default)
-    	                  -l                           option lists hits but does not build ALIGN
-			  -d <blastdb>                 use a different blast database for sesquence fetching
-			  -overlaps                    do something with overlapping hits
-			  -cove                        Sean says 'COVE SUX!', so dont be silly, use Infernal.
-			  -trim <?>                    dunno, seems to run filter_on_cutoff() function? 
-			  -efam|-extrafamily <str>     add an extra family term for making the histograms
-			  -efor|-extraforbidden        add additional DE forbidden terms for making the histograms
+    
+rfmake.pl - designed to process the results of rfsearch.pl. 
+          - rfmake.pl processes OUTPUT files from rfsearch/cmsearch. In the first round \42-l\42
+	    is used to produce a \42out.list\42 file that contains a tabular summary of the hits,
+	    based upon this output, the score distributions in out.list.pdf \& out.list.trunc.pdf 
+	    and the MCC plot in out.list_accuracy.dat the CURATOR chooses a threshold with which 
+	    a full ALIGNment is built using the \42-t <bits>\42 option. 
 
-			  -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
+Usage:      rfmake.pl -t <bits> 
+            rfmake.pl -l
 
+Options:    MAJOR MODES:
+	    -t <bits>
+    	    -l                           option lists hits but does not build ALIGN
+	    
+            I/O
+	    -file <infernal output file> Use an alternative cmsearch output [Default: OUTPUT].
+	    -d <blastdb>                 Use a different blast database for sesquence fetching.
+	    -o|-output <str>             Output file for the \'-l\' option [Default: out.list]
+	    
+	    THRESHOLDs/PLOTs 
+	    -efam|-extrafamily <str>     Add an extra family term for making the histograms. 
+	                                 Scans EMBL DE lines for matches to <str>.
+	    -efor|-extraforbidden <str>  Add an extra forbidden term for making the histograms. 
+	                                 Scans EMBL DE lines for matches to <str>.
+	    -rt|-taxonomy <str>          Taxonomy strings matching <str> are treated as true for the
+	                                 distribution plots. 
+            -ft|-forbiddentaxonomy       Taxonomy strings matching <str> are treated as false for the
+	                                 distribution plots.
+	    -ftn|-forbiddentaxonomynot   Taxonomy strings NOT matching <str> are treated as false for the
+	                                 distribution plots.
+
+	    ARCHAIC UNSUPPORTED OPTIONS:
+	    -overlaps                    do something with overlapping hits
+	    -cove                        Sean says 'COVE SUX!', so dont be silly, use Infernal.
+	    -trim <?>                    dunno, seems to run filter_on_cutoff() function? 
+	    
+	    -h|-help                     Print this help
+	    
 To add:
-Taxonomic restrictions for the forbidden/family (FP/TP) terms. Easier when OS and OC have been added to the DESC files. 
+-Taxonomic restrictions for the forbidden/family (FP/TP) terms. Easier when OS and OC have been added to the DESC files. 
+-Clean up DBI code - make a function call - also in rfmake.
+-add a warning if a seed sequence matches a forbidden term
+-Markup up highest scoring representative for each species
 
 EOF
 }
