@@ -43,12 +43,10 @@ if (defined($idfile)){
 	}
 	
 	if (defined($valid) && $start < $end ){
-	    print "fwd: $name $start $end\n";
 	    push( @{ $forward{$name} }, { 'start'  => $start,
 					  'end'    => $end} );
 	}
 	elsif (defined($valid) && $start > $end ){
-	    print "rev: $name $start $end\n";
 	    push( @{ $reverse{$name} }, { 'start'  => $end,
 					  'end'    => $start} );
 	}
@@ -100,14 +98,17 @@ if (defined($iter)){
     open(SDOUT, ">$tmpseed" ) or die ("FATAL: Couldn't open $tmpseed\n[$!]");
     Rfam::RfamAlign::write_stockholm($self, \*SDOUT, $len);
     close(SDOUT);
-    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.81 $seqfile") and die( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.81 $seqfile].\n[$!]");
+    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.81 $seqfile > SEED.new.scores") and die( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.81 $seqfile > SEED.new.scores].\n[$!]");
     system("sreformat --pfam stockholm /tmp/$$.SEED.new | grep -v ^DELME$$\. > /tmp/$$.SEED.new2" ) and die( "FATAL: Error in [sreformat --pfam stockholm /tmp/$$.SEED.new | grep -v ^DELME$$\. > /tmp/$$.SEED.new2]\n[$!]");
     system("sreformat --pfam stockholm /tmp/$$.SEED.new2 > SEED.new") and die( "FATAL: Error in [sreformat --pfam stockholm /tmp/$$.SEED.new2 > SEED.new]\n[$!]");
-    printf "but don't look at it, this one is much more interesting: SEED.new\n";
+    printf "Updated alignment and scores: SEED.new & SEED.new.scores\n";
 #    system("/software/rfam/extras/infernal-0.81/src/cmalign -o SEED.new CM.81 $seqfile") and die( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign -o SEED.new CM.81 $seqfile].\n");
 }
-else {
+elsif (defined($seqfile)) {
     system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 $seqfile") and die( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 $seqfile].\n[$!]");
+}
+else {
+    help();
 }
 
 exit();
@@ -118,16 +119,21 @@ sub help {
     print STDERR <<EOF;
 
 addseqs2seed.pl - reads in either a fasta sequence file or a file of sequence ids and coordinates 
-                - this can be either tab-delimited or in n/s-e format, one entry per line. The 
-		sequences are aligned to the SEED file in the current directory using cmalign.
+                - this can be either tab-delimited or in n/s-e format, one entry per line. 
+		The sequences are aligned to the SEED file in the current directory using cmalign.
+		Alternatively, \47--iterate\47 will strip sequences from the SEED and realign each 
+		to the CM.
 
 Usage:   addseqs2seed.pl -s  seqfile.fa
          addseqs2seed.pl -id  idfile
+	 addseqs2seed.pl -iterate
 Options:       
 -h or -help                    show this help
   -f|-s|-seqfile  <seqfile>    add sequences in seqfile to SEED
   -id|-idfile     <idfile>     add sequences corresponding to n/s-e\47s to SEED
-  -i|-iter|-iterate            iteratively realign SEED sequences to the CM. NEEDS A METRIC! 
+  -i|-iter|-iterate            iteratively realign SEED sequences to the CM. \47Someone\47 needs to implement 
+                               a metric comparing the original and resulting alignments/structures! For now use
+			       rqc-ss-cons.pl
 EOF
 }
 
