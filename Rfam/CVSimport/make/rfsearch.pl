@@ -16,11 +16,12 @@ use Cwd;
 
 my $starttime = time();
 
-my( $quiet, 
+my( 
     $nobuild, 
     $local,
     $global,
     $pname,
+    $blastonly,
     $blast_eval,
     $blast_eval_sens,
     $blast_eval_spec,
@@ -28,76 +29,62 @@ my( $quiet,
     $nolowcomplexitydust,
     $blastpname,
     $help,
-    $update,
     $minidbpname,
     $nolcmask,
-    $queue,
     $window,
-    $cpus,
     $wublastcpus,
     $nofilters,
     $hmmonly,
+    $gap_thresh,
+    $nuc_freq_thresh,
+    $max_pid_thresh,
+    $minseqs4cmsearchlimits,
+    $maxseqs4cmsearchlimits,
+    $altdb,
+    $dirty,
+    $onlybuildminis,
+    $nomerge,
     @warnings
     );
 
-sub help {
-    print STDERR <<EOF;
+#BLAST/MINIDB defaults
+$wublastcpus = 1; #Number of CPUs wu-blast will run on "-cpu N". 
+$blast_eval_sens = 100;
+$blast_eval_spec = 10;
+$maxseqs4cmsearchlimits=2000;
+$minseqs4cmsearchlimits=20;
 
-rfsearch.pl: builds and searches a covariance model against a sequence database.
-             Run from within a directory containing "SEED" & "DESC" files. 
-	     Eg, after running "rfupdate RFXXXXX" or "rfco RFXXXXX".
-	     SEED contains a stockholm format alignment and DESC is an internal 
-	     Rfam documentation describing each RNA family. 
+#lcmask defaults:
+$gap_thresh = 0.5;      #Gap threshold for lcmask
+$nuc_freq_thresh = 0.1; #Nucleotide frequency threshold for lcmask
+$max_pid_thresh = 0.95; 
 
-Usage:   rfsearch.pl <options>
-Options:       -h                  show this help
-	       -e <n>              use blast evalue of <n>
-               -q <queue>          use lsf queue <queue> for the cmsearch step
-	       --local             run cmsearch with --local option
-	       --global            run cmsearch in global mode (override DESC cmsearch command)
-	       --cpus <n>          number of cpus to run cmsearch job over
-	       --wublastcpus <n>   number of cpus to run a single wublast job over
-	       --nolowcomplexityseg  turn off WU-BLAST low complexity filter seq
-	       --nolowcomplexitydust turn off WU-BLAST low complexity filter dust
-	       --nobuild           skip cmbuild step
-	       --pname <str>       give lsf a process name, "str", for the cmsearch jobs
-	       --blastpname <str>  restart a job with pname "str" from after the blast runs (also works with -b or -blast)
-	       --minidbpname <str> restart a job with pname "str" from after the minidb creation (also works with -m, -mini or -minidb)
-	       --update            update the family to a new underlying sequence db (expert!)
-	       --nowu              use ncbi-blast rather than wu-blast (default).
-	       --long              [TO BE IMPLEMENTED] 
-	                           
-	       --window <str>      Use this window size for fetching blast sequences rather than from CM.
-	       --nofilters         Skip the blast filters.
-	       --hmmonly/--long    an option for long models (eg. SSU/LSU rRNA,...),
-	                           This runs "cmsearch -hmmfilter", requires infernal version >0.81. 
-TO ADD:
-	An option to skip BLAST filters
-	
-
-EOF
-}
-
-#ADD A VERBOSE OPTION!!!
-&GetOptions( "e=s"           => \$blast_eval,
-	     "q=s"           => \$queue,
-	    # "bq=s"          => \$bqueue,
-	     "local"         => \$local,
-	     "global"        => \$global,
-	     "cpus=s"        => \$cpus,
-	     "wublastcpus=s" => \$wublastcpus,
-	     "nolowcomplexityseg" => \$nolowcomplexityseg,
+&GetOptions( 
+             "e=s"                 => \$blast_eval,
+	     "local"               => \$local,
+	     "global"              => \$global,
+             "bo|blastonly:s"      => \$blastonly,
+	     "wublastcpus=s"       => \$wublastcpus,
+	     "nolowcomplexityseg"  => \$nolowcomplexityseg,
 	     "nolowcomplexitydust" => \$nolowcomplexitydust,
-	     "nobuild"       => \$nobuild,
-	     "pname=s"       => \$pname,
-	     "b|blast|blastpname=s"  => \$blastpname,
+	     "nobuild"             => \$nobuild,
+	     "pname=s"             => \$pname,
+             "altdb=s"             => \$altdb,
 	     "m|mini|minidb|minidbpname=s" => \$minidbpname,
+             "obm|onlybuildminis" => \$onlybuildminis,
 	     "nf|nofilters"  => \$nofilters,
-	     "update"        => \$update,
 	     "nolcmask"      => \$nolcmask,
 	     "long|hmmonly"  => \$hmmonly,
-	     "window"        => \$window,
-	     "h"             => \$help );
+	     "gapthresh=s"     => \$gap_thresh,
+	     "nucfreqthresh=s" => \$nuc_freq_thresh,
+	     "maxpidthresh=s"  => \$max_pid_thresh,
+	     "window"          => \$window,
+             "maxseqs4cmsearchlimits"          => \$maxseqs4cmsearchlimits,
+             "minseqs4cmsearchlimits"          => \$minseqs4cmsearchlimits,
+             "dirty"           => \$dirty,
+             "nomerge"         => \$nomerge,
+	     "h"               => \$help 
+    );
 
 if( $help ) {
     &help();
@@ -106,6 +93,8 @@ if( $help ) {
 
 # make sure writable by group
 umask(002);
+#umask(000); #givese everyone write access
+
 my $user = `whoami`;
 chomp($user);
 
@@ -117,11 +106,7 @@ elsif (-e "rfsearch.log") {
     die("FATAL: check permissions on rfsearch.log");
 }
 
-if (not -e "SEED"){
-    die("FATAL: check SEED exists");
-}
-
-#Set the stripe pattern on the lustre file system:
+#Set the stripe pattern on the lustre (farm) file system:
 my $queue2     = 'small -R \"select[type==X86_64]\"';
 my $lustre = "/lustre/scratch1/sanger/rfam/$$"; #path for dumping data to on the farm
 my $fh0 = new IO::File;
@@ -156,23 +141,27 @@ my $pwd = getcwd;
 my $phost = hostname;
 
 $buildopts = "" unless $buildopts;
-open( S, "SEED" ) or die("SEED exists but couldn't be opened!");
-my $seenrf;
-while(<S>) {
-    if( /^\#=GC RF/ ) {
-	$seenrf = 1;
-	last;
+
+if (-e "SEED"){
+    open( S, "SEED" ) or die("SEED exists but couldn't be opened!");
+    my $seenrf;
+    while(<S>) {
+	if( /^\#=GC RF/ ) {
+	    $seenrf = 1;
+	    last;
+	}
+    }
+    
+#Using a reference coordinate system
+    if( !$seenrf and $buildopts =~ /--rf/ ) {
+	$buildopts =~ s/--rf //g;
     }
 }
-
-#if( $seenrf and $buildopts !~ /--rf/ ) {
-#    $buildopts = "--rf $buildopts";
-#}   
-if( !$seenrf and $buildopts =~ /--rf/ ) {
-    $buildopts =~ s/--rf //g;
+elsif (!(-e $blastonly)) {
+    die("FATAL: check SEED or $blastonly exists");
 }
 
-unless( $nobuild ) {
+unless( $nobuild || $blastonly ) {
     if (-w "CM" or not -e "CM"){
 	&printlog( "Building model: cmbuild -F $buildopts CM SEED" );
 	system "cmbuild -F $buildopts CM SEED" and die "can't build CM from SEED";
@@ -190,20 +179,22 @@ if (-e "$pwd/CM"){
     my @string = split('\s+', $string);
     $cmwindow = $string[1];
 }
-else {
+elsif (!(-e $blastonly)) {
     die ("The $pwd/CM file is missing! SEED file exists, check cmbuild ran. Check directory is mounted."); 
 }
 
 #Moderately paranoid checking of the all important window parameter:
 if ( (int($cmwindow) == $cmwindow) && $cmwindow>0 && !(defined($window) && (int($window) == $window)) ){
-    $window=$cmwindow; #convert string so we can use it
+    $window=$cmwindow; 
     &printlog( "Using window [$window] from CM file" );
 }
 elsif (defined(($window)) && (int($window) == $window) && $window>0){
     &printlog( "Using window [$window] from user input" );
 }
 else {
-    die( "Failed to read window parameter from CM or the command line!" );     
+    $window=200;
+    push(@warnings, "WARNING: essential window parameter not given, using a dodgy default: $window\n");
+    &printlog( "WARNING: essential window parameter not given, using a dodgy default: $window" );
 }
 
 if( -e "CMSEARCH_JOBS_COMPLETE" ) {
@@ -217,16 +208,15 @@ my $initendtime = time();
 &printlog( "Starting rfsearch" );
 my $blastdbdir  = $Rfam::rfamseq_current_dir;  # glob files from here
 my $blastdbdir2 = $Rfam::rfamseq_run_dir;      # but run things from here
-my $fafile = "$$.fa";
-if(!defined($wublastcpus)){
-    $wublastcpus = 2; #Number of CPUs wu-blast will run on "-cpu N". 
+
+if (defined($altdb)){
+    $blastdbdir .= "/" . $altdb;
+    $blastdbdir2 .= "/" . $altdb;
 }
 
-if(!defined($blast_eval)){
-    $blast_eval_sens = 100;
-    $blast_eval_spec = 10;
-}
-else {
+my $fafile = "$$.fa";
+
+if(defined($blast_eval)){
     $blast_eval_sens = $blast_eval;
     $blast_eval_spec = $blast_eval;
 }
@@ -249,34 +239,39 @@ else {
     &printlog( "WARNING: turning off the the seg and dust low complexity filters!" );
 }
 
-
-if (!defined($queue)){
-    $queue      = "long -n$wublastcpus -R \"span[hosts=1] && select[type==X86_64]\"";
-}
+my $queue = "long -n$wublastcpus -R \"span[hosts=1] && select[type==X86_64]\"";
 
 my %seedseqlist;
-if ($nolcmask) {
+if (defined($blastonly) && -e $blastonly) {
+    system "sreformat -u fasta $blastonly > $fafile" and die "can't convert $blastonly to $fafile";
+}
+elsif ($nolcmask) {
     system "sreformat -u fasta SEED > $fafile" and die "can't convert SEED to $fafile";
 }
 else {
     make_lcmask_file("SEED", $fafile, \%seedseqlist);
 }
 
-my @blastdb;
-if( $update ) {      # run over the new.fa.* databases
-    @blastdb = glob( "$blastdbdir/new.fa.*[0-9].xnd" );
-    &update_output( "OUTPUT", "OUTPUT.0" );
-}
-else {               # run over *.fa databases
-    @blastdb = glob( "$blastdbdir/*.fa.xnd" );
-    my @tmparray;
-    foreach my $bdb (@blastdb) {
-	if ($bdb !~ /rfamseq.fa.xnd/){
-	    push(@tmparray, $bdb);
-	}
+my @blastdb = glob( "$blastdbdir/*.fa.xnd" );
+my @tmparray;
+foreach my $bdb (@blastdb) {
+    if ($bdb !~ /rfamseq.fa.xnd/){
+	push(@tmparray, $bdb);
     }
-    @blastdb = @tmparray;
-}    
+}
+@blastdb = @tmparray;
+
+if (@blastdb==0){
+    my @files = glob( "$blastdbdir/*" );
+    
+    &printlog( "RUN:");
+    foreach my $f (@files){
+	&printlog( "xdformat -n -I -o $f $f; seqstat $f | grep ^Total | tr -d \42a-zA-Z#: \42 >> $$.dbsize");
+    }
+    &printlog( "cat $$.dbsize | perl -lane \47\$a=\$a+\$_; print \$a\47 | tail -n 1 >$blastdbdir/DBSIZE");
+    die("No BLASTDBs in $blastdbdir/*.fa.xnd");
+    
+}
 
 #Find out how big the database is (used for e-value computations for blast & HMMer):
 my( $dbsize);
@@ -294,16 +289,14 @@ close DBSIZE;
 umask(002);
 mkdir( "$pwd/$$", 0775 ) or  die "cant create the dir for error logs" ;
 my $nobjobs = scalar(@blastdb);
+
 my @index = ( 1..$nobjobs );
 my $round = 0;
 #things to copy to lustre file system
 system("/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile") and die "/usr/bin/scp $pwd/$fafile farm-login:$lustre/$fafile\nerror scp-ing $pwd/$fafile to farm-login:$lustre/$fafile\n$!\n";
 
-#PPG: If there are going to be a stupid number of hits we should lower the threshold. 
-#Sample ~3 sequences using "squid/weight -s 3" - run blast with default threshold. Extrapolate from this the 
-#estimated total number of hits - choose a lower sensible threshold if this is greater than 100,000.
-
 unless( $minidbpname || $nofilters ) {
+  &printlog( "Running $nobjobs blast jobs" );
   BLAST: { #JT6 thinks this GOTO is evil - but then he thinks "needs fixed" is evil too. 
       if( $round or !$blastpname ) {
 	  &printlog( "Queuing up blast jobs [round ".$round."]" );
@@ -319,16 +312,13 @@ unless( $minidbpname || $nofilters ) {
 	      $blastcmdsens = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_sens mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize $blastfiltersstring"; 
 	      $blastcmdspec = "wublastn $blastdb $lustre/$fafile W=7 B=100000 V=100000 E=$blast_eval_spec mformat=3 hspsepSmax=$window -lcmask cpus=$wublastcpus Z=$dbsize M=1 N=-3 Q=3 R=3  $blastfiltersstring";
 
-  	      my( $div ) = $blastdb =~ /$blastdbdir\/(\S+)$/;
 	      my $fh = new IO::File;
-	      $fh -> open("| bsub -q $queue -J\"rf$blastpname\" -o $pwd/$$/$blastpname\.berr.$i") or die "$!";
-	      $fh -> print(". /usr/local/lsf/conf/profile.lsf\n");       # so we can find lsrcp
-	      $fh -> print("$blastcmdspec >  $lustre/$blastpname\.blastlist.$i\n");
-	      $fh -> print("$blastcmdsens >> $lustre/$blastpname\.blastlist.$i\n");
-	      $fh -> print("mergelines.pl -f $lustre/$blastpname\.blastlist.$i -o $lustre/$blastpname\.blastlistmerged.$i\n");
-	      $fh -> print("wc -l $lustre/$blastpname\.blastlist.$i > $lustre/$blastpname\.blastlistsize.$i\n");
-              $fh -> print("/usr/bin/scp farm-login:$lustre/$blastpname\.blastlistmerged.$i $phost:$pwd/$blastpname\.blastlistmerged.$i\n") or die "error scp-ing farm-login:$lustre/$blastpname\.blastlistmerged.$i to $phost:$pwd/$blastpname\.blastlistmerged.$i\n$!\n"; 
-              $fh -> print("/usr/bin/scp farm-login:$lustre/$blastpname\.blastlistsize.$i $phost:$pwd/$blastpname\.blastlistsize.$i\n") or die "error scp-ing farm-login:$lustre/$blastpname\.blastlistsize.$i to $phost:$pwd/$blastpname\.blastlistsize.$i\n$!\n"; 
+	      $fh -> open("| bsub -q $queue -J\"rf$blastpname\" -o $pwd/$$/$blastpname\.berr.$i\n") or die "$!";
+	      $fh -> print("$blastcmdspec >  $lustre/$blastpname\.blastout.$i;\n");
+	      $fh -> print("$blastcmdsens >> $lustre/$blastpname\.blastout.$i;\n");
+	      $fh -> print("~/scripts/make/wublast2minidb.pl -d $blastdb -w $window -l $maxseqs4cmsearchlimits -f $lustre/$blastpname\.blastout.$i -o $lustre/$blastpname\.minidb.$i;\n");
+	      $fh -> print("[ -f $lustre/$blastpname\.blastout.$i\.error ] && /usr/bin/scp farm-login:$lustre/$blastpname\.blastout.$i\.error $phost:$pwd/;\n") or die "error scp-ing farm-login:$lustre/$blastpname\.blastout.$i\.error to $phost:$pwd/\n$!\n"; 
+	      $fh -> print("[ -f $lustre/$blastpname\.blastout.$i\.error ] && rm -f $lustre/$blastpname\.blastout.$i.error\n");
 	      $fh -> close;
 	  }
 	  
@@ -340,27 +330,15 @@ unless( $minidbpname || $nofilters ) {
       
       my @rerun = ();
       
-      #for (my $ii = 1; $ii < scalar(@blastdb)+1; $ii++) {
       foreach my $ii ( @index ) {
 	  
-	  my $blastlistsize=0;
-	  if (-e "$blastpname\.blastlistsize.$ii"){
-	      open( BLASTLISTSIZE, "$blastpname\.blastlistsize.$ii" ) or die "FATAL: $blastpname\.blastlistsize.$ii file doesn't exist\n";
-	      while(<BLASTLISTSIZE>) {
-		  if( /(\d+)\s+\S+/ ) {
-		      $blastlistsize = $1;
-		      last;
-		  }
-	      }
-	      close BLASTLISTSIZE;
-	      system("rm $blastpname\.blastlistsize.$ii");
-	  }
-	  
-	  if( $blastlistsize<25 ) {
-	      &printlog( "Zero size output [$blastpname\.blastlist.$ii] -- rerun blast search." );
+	  if (-e "$blastpname\.blastout.$ii.error"){
+	      &printlog( "Blast job didn't finish [$blastpname\.blastout.$ii] -- rerunning blast search." );
 	      push( @rerun, $ii );
+	      system("rm $blastpname\.blastout.$ii.error");
 	  }
       }
+
       if( @rerun ) {
 	  $round ++;
 	  if( $round > 3 ) {
@@ -373,124 +351,138 @@ unless( $minidbpname || $nofilters ) {
 	  }
 	  else {
 	      @index = @rerun;
+	      my $rerun = scalar(@rerun);
+	      push(@warnings, "WARNING: rerunning $rerun blast jobs\n");
+
 	  }
 	  redo BLAST;
       }
   }
+
+##
 }
+
 
 my $blastendtime = time();
 
-#BLOCK 2: PARSE BLAST OUTPUT AND BUILD MINIDBs.
+#BLOCK 2: BUILD MINIDBs.
 #############
 
-if (!defined($cpus)){
-    $cpus       = 20;
-}
-
-my $k = 1;  # number of minidb files. 
+my @minidbnames = ();
+my $numminidbs = 0;  # number of minidb files. 
 if( $minidbpname ) {
-    if( my @t = glob( "$minidbpname\.minidb.*" ) ) {
-	$k = scalar(@t);
-	
-	#for  (my $ij = 0; $ij < $k; $ij++){
-	system("scp $pwd/$minidbpname\.minidb.* farm-login:$lustre/") and die "error scp-ing mini db:$minidbpname\.minidb.* to farm-login:$lustre/\n$!";
-	#}
-	
+    @minidbnames = glob( "$minidbpname\.minidb.*" );
+    if( @minidbnames ) {
+	foreach my $minidbname (@minidbnames){
+	    #This loop is required - can be too many files for a full glob:
+	    system("scp $pwd/$minidbname farm-login:$lustre/") and die "error scp-ing mini db:$minidbname to farm-login:$lustre/\n$!";
+	}
     }
     else {
 	&printlog( "FATAL: no minidb files [$minidbpname\.minidb.*]" );
 	die;
     }
 }
-elsif (!$nofilters) {
+elsif (!$nofilters && !$minidbpname) {
+
+
+    my $fh01 = new IO::File;
+    $fh01 -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
+    $fh01 -> print("ls -1 $lustre/$blastpname\.minidb\.* > $lustre/$blastpname\.filelist ; \n") or die "FATAL: \47ls -1 $lustre/$blastpname\.minidb\.* > $lustre/$blastpname\.filelist\47 failed\n$!";
+    $fh01 -> close;
     
-    #What's the limit here? Can (or should) we increase the number of nodes we run on?
-    &printlog( "parsing blast list" );
-    $minidbpname = $$;
-    my %seqlist;
-    for( my $iii=1; $iii <= scalar(@blastdb); $iii++ ) {
-	&parse_list( \%seqlist, "$blastpname\.blastlistmerged.$iii" );
+    system("scp farm-login:$lustre/$blastpname\.filelist $pwd/") and die "error scp-ing minidb filelist farm-login:$lustre/$blastpname\.filelist to $pwd/\n$!";
+    
+    open( FL, "$blastpname\.filelist" ) or die "$blastpname\.filelist failed to open";
+    @minidbnames = <FL>;
+    close(FL);
+    
+    $minidbpname = $blastpname;
+#    @minidbnames = glob( "$minidbpname\.minidb.*" );
+    my (@toosmalldbname, @toosmallnumseqs, @numseqs, $minlargeminidbname);
+    my $minlargeminidbnumseqs=0;
+    #Gather info on minidbs: 
+    foreach my $mdb (@minidbnames){
+	
+	chomp($mdb);
+	system("scp farm-login:$mdb $pwd/") and warn "error scp-ing mini db farm-login:$mdb to $pwd/\n$!";
+	$mdb =~ s/$lustre\///;
+	my $numseqs=0;
+	if ($mdb =~ /\d+\.minidb\.\d+\.\d+\.(\d+)/){
+	    $numseqs=$1;
+	    push(@numseqs,$numseqs);
+	}
+	
+	if ($numseqs<$minseqs4cmsearchlimits){
+	    push(@toosmalldbname,$mdb);
+	    push(@toosmallnumseqs,$numseqs);
+	}
+	elsif ( $numseqs < $minlargeminidbnumseqs){
+	    $minlargeminidbname = $mdb;
+	    $minlargeminidbnumseqs = $numseqs;
+	}
     }
+
+    if (defined($onlybuildminis)){
+	&printlog( "Only build minidb\47s option invoked. Stopping here." );
+	exit();
+    }
+
     
-    #Check that the SEED and BLAST results overlap.
-    foreach my $seedseqid (keys %seedseqlist){
-	    foreach my $seedreg ( @{ $seedseqlist{$seedseqid} } ) {
-		my $seedstart = $seedreg->{'start'};
-		my $seedend = $seedreg->{'end'};
-		my $printname = $seedseqid . "/" . $seedstart . "-" . $seedend;
-		if ($seedend < $seedstart){
-		    my $tmp = $seedend; 
-		    $seedend = $seedstart;
-		    $seedstart = $tmp;
-		}
-		
-		my $found_overlap=0;
-		foreach my $reg ( @{ $seqlist{$seedseqid} } ) {
-		    my $start = $reg->{'start'};
-		    my $end = $reg->{'end'};
-		    if ($end < $start){
-			my $tmp = $end; 
-			$end = $start;
-			$start = $tmp;
-		    }
-		    
-		    my $ov = overlap($start, $end, $seedstart, $seedend);
-		    if ($ov){
-			$found_overlap=1;
-		    }
-		}
-		
-		if (!$found_overlap){
-		    push(@warnings, "WARNING: SEED sequence " . $printname . " was not found by the BLAST filters! Try turning of the low complexity filters eg. --nolowcomplexityseg\n");
-		}
-		
+    #Merge small files!
+    if (!$nomerge){
+	while (@toosmalldbname>1){
+	    my $dbname1    = pop(@toosmalldbname);
+	    my $dbname2    = pop(@toosmalldbname);
+	    my $dbnumseq1  = pop(@toosmallnumseqs);
+	    my $dbnumseq2  = pop(@toosmallnumseqs);
+	    my $ttlnumseqs = $dbnumseq1+$dbnumseq2;
+	    my $newdbname  = $dbname1 . ".m" . $ttlnumseqs;
+	    
+	    if (!(-e $newdbname)){#only merge and rm if new does not exist
+		system("cat $dbname1 $dbname2 > $newdbname");
+		system("rm $dbname1 $dbname2");
 	    }
-    }
-    
-    my @seqids = keys %seqlist;
-    my $numseqs = scalar( @seqids );
-    if ($numseqs == 0){
-	&printlog("FATAL: There were 0 hits in the BLAST files. Check BLAST files. Malformed WUBLASTFILTER and/or WUBLASTMAT environment variables?");
-	die;
-    }
-    
-    my $count = int( $numseqs/$cpus ) + 1;
-    &printlog( "Building mini database of $numseqs sequences spread across $cpus files" );
-    
-    $k=1;
-    while( @seqids ) {
-	my @tmpids = splice( @seqids, 0, $count ); 
-	my(%forward, %reverse);
-	open( FA, ">$minidbpname\.minidb.$k" ) or die;
-	foreach my $seqid ( @tmpids ) {
-	    foreach my $reg ( @{ $seqlist{$seqid} } ) {
-		if($reg->{'strand'} == 1){
-		    push( @{ $forward{$seqid} }, $reg); 
-		}else{
-		    push( @{ $reverse{$seqid} }, $reg); 
-		} 
+	    
+	    if ($ttlnumseqs<$minseqs4cmsearchlimits){
+		unshift(@toosmalldbname,$newdbname);
+		unshift(@toosmallnumseqs,$ttlnumseqs);
+	    }
+	    elsif ($ttlnumseqs < $minlargeminidbnumseqs){
+		$minlargeminidbname = $newdbname;
+		$minlargeminidbnumseqs = $ttlnumseqs;
 	    }
 	}
-	SeqFetch::fetchSeqs(\%forward, $Rfam::rfamseq, 0, \*FA);
-	SeqFetch::fetchSeqs(\%reverse, $Rfam::rfamseq, 1, \*FA);
-	close(FA) || die "Could not close fasta file:[$!]\n";
-	$k++;
-    }
-    $k--;
     
-    system("scp $minidbpname\.minidb.* farm-login:$lustre/") and die "Failed to copy $minidbpname\.minidb.\* to lustre file system\n";  
-
-    undef( %seqlist );             # free up memory
+	if (@toosmalldbname==1 && defined($minlargeminidbname) && defined($toosmallnumseqs[0])){
+	    my $ttlnumseqs = $minlargeminidbnumseqs+$toosmallnumseqs[0];
+	    my $newdbname = $minlargeminidbname . ".m" . $ttlnumseqs;
+	    system("cat $toosmalldbname[0] $minlargeminidbname > $newdbname");
+	    system("rm $toosmalldbname[0] $minlargeminidbname");
+	}
+    }
+    
+    if (defined($blastonly)){
+	&printlog( "--blastonly option invoked - stopping. Cleanup $$ files on the farm!");
+	exit();
+    }
+    
+    @minidbnames = glob( "$minidbpname\.minidb.*" );
+    if (!$nomerge){
+	foreach my $mdb (@minidbnames){
+	    system("scp $mdb farm-login:$lustre/") and die "Failed to copy $mdb to lustre file system\n";  
+	}
+    }
 }
+
+$numminidbs = scalar(@minidbnames);
+&printlog( "Submit $numminidbs minidbs.");
 
 my $minidbendtime = time();
 
 #BLOCK 3: RUN CMSEARCH:
-
-my $queuecm      = 'long -R \"select[type=X86_64]\"';
 my $command = "cmsearch";
-my $options = "  "; #add the hmm filter? still using 0.72 - not yet
+my $options = "  "; #
 $options .= " --local "   if( $local );
 $options .= " --hmmonly " if( $hmmonly );
 $options .= " --toponly " if( !$nofilters );
@@ -506,33 +498,43 @@ system("scp $pwd/$$.CM farm-login:$lustre/$$.CM") and die "error scp-ing $pwd/$$
 
 &printlog( "" );
 
+#my $queue = "long -n$wublastcpus -R \"span[hosts=1] && select[type==X86_64]\"";
+my $queuecm      = 'long -R \"select[type=X86_64]\"';
 if ($nofilters){
     my @seqdb = glob( "$blastdbdir/*.fa.gz" );
-    $k=0;
+    $numminidbs=0;
     foreach my $sdb (@seqdb) {
 	$sdb =~ s/\.gz$//g;
 	$sdb =~ s/$blastdbdir/$blastdbdir2/g;
 
-	&printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname" );
+#	&printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname" );
 	$fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I  -J$pname" ) or die "$!";
-	&printlog( "Running: $command $options $lustre/$$.CM $sdb > $lustre/$$.OUTPUT.$k");
-	$fhcm -> print( "$command $options $lustre/$$.CM $sdb > $lustre/$$.OUTPUT.$k\n" );
+#	&printlog( "Running: $command $options $lustre/$$.CM $sdb > $lustre/$$.OUTPUT.$numminidbs");
+	$fhcm -> print( "$command $options $lustre/$$.CM $sdb > $lustre/$$.OUTPUT.$numminidbs\n" );
 	$fhcm -> close;
-	$k++;
+	$numminidbs++;
     }    
 }
 else {
-    &printlog( "Running: | bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" );
-    $fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$k]\"" ) or die "$!";
-#$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
-    &printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}");
-    $fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-    $fhcm -> close;
+    my $i=0;
+ #   &printlog( "Submitting: @minidbnames to the farm.");
+    foreach my $minidb ( @minidbnames ) { 
+#	&printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidb > $lustre/$$.OUTPUT.$i");
+	my $fhcm = new IO::File;
+	$fhcm -> open("| bsub -q $queue -J$pname -o $pwd/$$/$$.cmsearch.err.$i") or die "$!";
+	$fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidb > $lustre/$$.OUTPUT.$i\n" );
+	$fhcm -> close;
+	$i++;
+    }
+
+#    $fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$numminidbs]\"" ) or die "$!";
+#    $fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
+#    $fhcm -> close;
 }
 
 my $cmopts=$options . "";
 &printlog( "Waiting for cmsearch jobs." );
-wait_for_farm($pname, "cmsearch", $k);
+wait_for_farm($pname, "cmsearch", $numminidbs);
 
 # send something to clean up
 print STDERR "set cm searches running, copy files and clean up....\n";
@@ -547,14 +549,16 @@ $fhcm = new IO::File;
 
 $fhcm -> open("| bsub -I -q $queue2") or die "FATAL: bsub -I -q $queue2\n$!";
 #$fhcm -> open("| bsub -q $queue2 -w\'done($pname)\'") or die "FATAL: bsub -q $queue2 -w\'done($pname)\'\n[$!]";
-$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
+#$fhcm -> print(". /usr/local/lsf/conf/profile.lsf\n");   # so we can find scp
                    #$lustre/$$.OUTPUT.
 $fhcm -> print("cat $lustre/$$.OUTPUT.* > $lustre/$$.OUTPUT_full\n")  or  die "cant concatenate output files on the farm\n$!\n";
 $fhcm -> print("/usr/bin/scp $lustre/$$.OUTPUT_full  $phost:$pwd/OUTPUT\n") or die "cant copy $lustre/$$.OUTPUT_full to $phost:$pwd/OUTPUT\n$!\n";
 $fhcm -> print("date >> /tmp/$$.cmerr\n");
 $fhcm -> print("/usr/bin/scp /tmp/$$.cmerr $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n") or die "cant copy /tmp/$$.cmerr to $phost:$pwd/CMSEARCH_JOBS_COMPLETE\n$!\n";
 $fhcm -> print("rm -rf /tmp/$$.cmerr\n");
-$fhcm -> print("rm -rf $lustre\n") or die "failed to clean up files on the farm\n";
+if (!defined($dirty)){
+    $fhcm -> print("rm -rf $lustre\n") or die "failed to clean up files on the farm\n";
+}
 $fhcm -> close;
 
 &update_desc( $buildopts, $cmopts ) unless( !-e "DESC" );
@@ -588,8 +592,9 @@ if (scalar(@warnings)){
 
 sub printlog {
     my $m = join( '', @_ );
-    my $time = `date`;
-    chomp $time;
+    #my $time = `date`;
+    my  $time = localtime();
+    #chomp $time;
     open( LOG, ">>rfsearch.log" ) or die;
     if( $m ) {
         printf LOG    "%-40s [%s]\n", $m, $time;
@@ -600,108 +605,6 @@ sub printlog {
     }
     close LOG;
 }
-
-##############
-#Parse "merged" wu-blast output:  
-sub parse_list {
-    my $list       = shift;
-    my $blastfile  = shift;
-    my $linenumber = 0;
-    my( $name, $start, $end, $strand );
-    open( BL, $blastfile ) or die;
-    while( <BL> ) {
-	$linenumber++;
-       
-	if( /^(\S+)\s+(\S+)\s+(\d+)\s+(\d+)/ ) {
-	    $name  =  $1;
-	    $strand = $2;
-	    $start =  min($4 - $window,$3); #This looks strange but is correct.
-	    $end   =  max($3 + $window,$4);  #Ditto.
-	    $start = 1 if( $start < 1 );
-	}
-	else {
-	    chomp;
-	    warn "failed to parse blast line $linenumber in file $blastfile [$_]\n";
-	    next;
-	}
-	
-	# avoid having multiple copies of one region in minidb
-	my $already;
-	if( defined($name) && defined($start) && defined($end) && exists($list->{$name}) ) {
-	    foreach my $se ( @{ $list->{$name} } ) {
-		
-		if( $se->{'strand'} == $strand and $start <= $se->{'start'} and $se->{'start'} <= $end ) {
-		    $se->{'start'} = $start;
-		    $already = 1;
-		}
-		
-		if( $se->{'strand'} == $strand and $start <= $se->{'end'} and $se->{'end'} <= $end ) {
-		    $se->{'end'} = $end;
-		    $already = 1;
-		}
-		
-		if( $se->{'strand'} == $strand and $se->{'start'} <= $start and $end <= $se->{'end'} ) {
-		    $already = 1;
-		}
-	    }
-	}
-	
-	if( !$already ) {
-	    push( @{ $list->{$name} }, { 'start'  => $start,
-					 'end'    => $end,
-				         'strand' => $strand} );
-	}
-    }
-
-}
-#########
-#########
-
-sub update_output { 
-    my $oldfile = shift;
-    my $newfile = shift;
-    
-    my %delup;
-    my $difffile = "$Rfam::rfamseq_current_dir/rfamseq.diff";
-    my $svfile   = "$Rfam::rfamseq_current_dir/embl_sv.txt";
-    open( DIFF, $difffile ) or die;
-    while(<DIFF>) {
-	if( my( $acc ) = /^(\S+)\.(\d+)\s+(UPDATE|DELETE)/ ) {
-	    $delup{ $acc } = $2;
-	}
-    }
-    close DIFF;
-
-    my %sv;
-    open( SV, $svfile ) or die;
-    while(<SV>) {
-	if( my( $acc, $ver ) = /^(\S+)\.(\d+)/ ) {
-	    $sv{ $acc } = $ver;
-	}
-    }
-    close SV;
-
-    my $skip;
-    open( NEW, ">$newfile" ) or die;
-    open( OLD, "$oldfile" ) or die;
-    while(<OLD>) {
-	if( my( $acc, $junk ) = /^sequence\:\s+(\w+)\.?\d*(.*)/ ) {
-#	    print STDERR "$_\n$acc;$junk\n";
-	    if( $delup{ $acc } ) {
-		$skip = 1;
-		next;
-	    }
-	    else {
-		$_ = "sequence: $acc.$sv{$acc}".$junk."\n";
-		$skip = 0;
-	    }
-	}
-	print NEW $_ unless $skip;
-    }
-    close OLD;
-    close NEW;
-}
-
 
 sub update_desc {
     my ($buildopts, $searchopts) = @_;
@@ -729,19 +632,6 @@ sub update_desc {
     rename( "DESC.new", "DESC" ) or die;
 }
 
-sub is_integer {
-    
-    my $test = shift;
-    
-    if (defined($test) && $test =~ /^(\-|\+)?(0|[1-9])\d*$/){
-	return 1;
-    }
-    else {
-	return 0;
-    }
-
-}
-
 ######################################################################
 ##########
 #make_lcmask_file: takes as input a stockholm formatted filename and an output filename. 
@@ -753,9 +643,10 @@ my $stk_file = shift; # stockholm file to use
 my $out_file = shift; # output file
 my $list = shift;
 
-my $gap_thresh = 0.5;      #Gap threshold for lcmask
-my $nuc_freq_thresh = 0.1; #Nucleotide frequency threshold for lcmask
-my $max_pid_thresh = 0.95; 
+#my $gap_thresh = 0.5;      #Gap threshold for lcmask
+#my $nuc_freq_thresh = 0.1; #Nucleotide frequency threshold for lcmask
+#my $max_pid_thresh = 0.95; 
+
 
 if(!defined($out_file)){
     my @stk_file = split(/\./, $stk_file);
@@ -977,13 +868,61 @@ sub min {
 }
 
 ######################################################################
-sub overlap {
-    my($x1, $y1, $x2, $y2) = @_;
-    
-    if ( ($x1<=$x2 && $x2<=$y1) || ($x1<=$y2 && $y2<=$y1) || ($x2<=$x1 && $x1<=$y2) || ($x2<=$y1 && $y1<=$y2)  ){
-        return 1;
-    }
-    else {
-        return 0;
-    }
+
+sub help {
+    print STDERR <<EOF;
+
+rfsearch.pl: builds and searches a covariance model against a sequence database.
+             Run from within a directory containing "SEED" & "DESC" files. 
+	     Eg, after running "rfupdate.pl RFXXXXX" or "rfco.pl RFXXXXX".
+	     SEED contains a stockholm format alignment and DESC is an internal 
+	     Rfam documentation describing each RNA family. 
+
+Usage:   rfsearch.pl <options>
+Options:       --h                  show this help
+	       
+	       make_lcmask_file options
+	       --gapthresh <num>      For the blast-filters, soft-mask sites in a sequence in columns with gap-freq > num. [Default = $gap_thresh].
+	       --nucfreqthresh <num>  For the blast-filters, soft-mask sites in a sequence in columns with nuc-freq < num. [Default = $nuc_freq_thresh].
+	       --maxpidthresh <num>   For the blast-filters, only search with sequences with max-pid < num, (max-pid is computed relative 
+				      to sequences that\47ve already been searched.) [Default = $max_pid_thresh].
+
+	       BLAST OPTIONS:
+	       --nf|--nofilters      Skip the blast filters. This option still needs some work - it should use \42--hmmonly\42 
+	                             to build minidbs - then to the full cmsearches. 
+	       --e <n>               use blast evalue of <n> [Defaults: blast_eval_sens=$blast_eval_sens/blast_eval_spec=$blast_eval_spec]
+	       --wublastcpus <n>     number of cpus to run a single wublast job over [Default: wublastcpus=$wublastcpus]
+	       --nolowcomplexityseg  turn off WU-BLAST low complexity filter seq
+	       --nolowcomplexitydust turn off WU-BLAST low complexity filter dust
+	       --pname <str>         give lsf a process name, "str", for the cmsearch jobs
+	       --altdb <YOURDIR>     Give a directory name in \42$Rfam::rfamseq_current_dir\42 containing xdformat\47ted blastdbs. Remember
+	                             to \42scp -r $Rfam::rfamseq_current_dir/YOURDIR farm-login:$Rfam::rfamseq_run_dir/\42 before running.
+				     
+	       MINIDB OPTIONS
+	       -m|--minidbpname <str>    restart a job with pname \42str\42 from after the minidb creation (also works with -m, -mini or -minidb)
+	       -minseqs4cmsearchlimits   Set a minimum number of sequences for adding to the minidbs [Default: $minseqs4cmsearchlimits]
+	       -maxseqs4cmsearchlimits   Set a maximum number of sequences for adding to the minidbs [Default: $maxseqs4cmsearchlimits]
+	       -nomerge                  Do not merge the small minidb\47s
+	       
+	       EARLY EXIT STRATEGIES
+	       -obm|--onlybuildminis     Build minidbs and stop
+	       --blastonly <opt:str>     Run the BLAST jobs, build and merge the minidbs and stop. Optionally takes a fasta file as input.
+	       
+	       INFERNAL/CM OPTIONS:
+	       --nobuild           skip cmbuild step
+	       --local             run cmsearch with --local option
+	       --global            run cmsearch in global mode (override DESC cmsearch command) [Default]
+	       --window <str>      Use this window size for fetching blast sequences rather than from CM.
+	       --hmmonly|--long    an option for long models (eg. SSU/LSU rRNA,...),
+	                           This runs "cmsearch -hmmfilter", requires infernal version >0.7 
+				   
+		CLEANUP
+		--dirty            Leave the files on the cluster. 
+		
+TO ADD:
+Alternative filters: fasta, hmmsearch, ...
+Add a cmsensitive option - usinf indels \& local \& --learninserts
+
+EOF
 }
+
