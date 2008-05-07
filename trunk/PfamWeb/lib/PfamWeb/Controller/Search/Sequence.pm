@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.16 2008-03-20 12:56:48 jt6 Exp $
+# $Id: Sequence.pm,v 1.17 2008-05-07 15:43:49 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.16 2008-03-20 12:56:48 jt6 Exp $
+$Id: Sequence.pm,v 1.17 2008-05-07 15:43:49 jt6 Exp $
 
 =cut
 
@@ -67,6 +67,29 @@ sub sequence_search : Path {
       last CHECK;
     }
     
+    # search for Pfam-Bs ?
+    $c->stash->{searchBs} = ( defined $c->req->param('searchBs') and
+                              $c->req->param('searchBs') );
+
+    # should we search for Pfam-As or just skip them and search only Pfam-Bs ?
+    if ( defined $c->req->param('skipAs') and
+         $c->req->param('skipAs') ) {
+      
+      $c->log->debug( 'Search::Sequence::sequence_search: skipping Pfam-A search' )
+        if $c->debug;
+
+      # flag up the fact that we want to skip Pfam-A searches
+      $c->stash->{skipAs} = 1;
+
+      # and force a search for Pfam-Bs
+      $c->stash->{searchBs} = 1;
+      
+      # no need to check these parameters unless we're actually doing a Pfam-A
+      # search, so we're done checking
+      last CHECK;
+      
+    }
+    
     # sequence search options. Default to "both"
     $c->stash->{seqOpts} = $c->req->param('seqOpts') || 'both';
     unless ( $c->stash->{seqOpts} eq 'both' or
@@ -94,7 +117,6 @@ sub sequence_search : Path {
         $c->log->debug( 'Search::Sequence::sequence_search: bad evalue; returning to form' )
           if $c->debug;
         $c->stash->{seqSearchError} = 'You did not give a valid E-value';
-        last CHECK;
       }
 
     }
@@ -110,10 +132,6 @@ sub sequence_search : Path {
         if $c->debug;
       $c->stash->{evalue} = 1.0;
     }
-
-    # search for Pfam-Bs too ?
-    $c->stash->{searchBs} = ( defined $c->req->param('searchBs') and
-                              $c->req->param('searchBs') );
 
   } # end of "CHECK"
   
@@ -309,20 +327,22 @@ sub queue_seq_search : Private {
   # ok. There's room on the queue, so we can submit the hmmer job and, if 
   # required, the blast job
   my @jobs;
-   
-  my $status = $c->forward( 'queue_pfam_a' );
-  if ( ref $status ) {
-    push @jobs, $status;
-  }
-  else {
-    $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-A search' )
-      if $c->debug;
-    $c->stash->{seqSearchError} = 'There was a problem queuing your Pfam-A search';
-    return SUBMISSION_ERROR;
+  
+  if ( not $c->stash->{skipAs} ) {
+    my $status = $c->forward( 'queue_pfam_a' );
+    if ( ref $status ) {
+      push @jobs, $status;
+    }
+    else {
+      $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-A search' )
+        if $c->debug;
+      $c->stash->{seqSearchError} = 'There was a problem queuing your Pfam-A search';
+      return SUBMISSION_ERROR;
+    } 
   } 
   
   if ( $c->stash->{searchBs} ) {
-    $status = $c->forward( 'queue_pfam_b' );
+    my $status = $c->forward( 'queue_pfam_b' );
     if ( ref $status ) {
       push @jobs, $status;
     }
@@ -332,6 +352,14 @@ sub queue_seq_search : Private {
       $c->stash->{seqSearchError} = 'There was a problem queuing your Pfam-B search';
       return SUBMISSION_ERROR;
     } 
+  }
+  
+  # make sure we have at least one job...
+  unless ( scalar @jobs ) {
+    $c->log->warn( 'Search::Sequence::queue_seq_search: no searches submitted' )
+      if $c->debug;
+    $c->stash->{seqSearchError} = 'You must run at least one type of search';
+    return SUBMISSION_ERROR;
   }
   
   #----------------------------------------
