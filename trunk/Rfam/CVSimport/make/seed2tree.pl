@@ -29,11 +29,14 @@ my $query = qq(
 #select r.rfamseq_acc, r.taxon  from rfamseq as r ,taxonomy as t where r.taxon=t.auto_taxid and t.ncbi_id=272562;
 
 my $infile = "SEED";
-my ($quick, $outlist, $help);
+my ($quick, $slow, $outlist, $help);
+$quick=1;
+$outlist=1;
 &GetOptions(
             "f|infile=s"       => \$infile,
             "o|outlist"        => \$outlist,
             "q|quickonly"      => \$quick,
+            "s|slowalso"       => \$slow,
 	    "h|help"           => \$help
     );
 
@@ -203,7 +206,7 @@ if (-e "outfile"){
     system("rm outfile");
 }
 
-if (defined($quick)){
+if (defined($quick) && !defined($slow)){
     print "View your tree in $infile\.njtree\.dnd\n";
     exit();
 }
