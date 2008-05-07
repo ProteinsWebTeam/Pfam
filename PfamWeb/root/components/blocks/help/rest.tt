@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.1 2008-04-25 13:34:03 jt6 Exp $
+# $Id: rest.tt,v 1.2 2008-05-07 15:17:01 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -42,7 +42,8 @@ sharedRequirements.css.push( "prettify.css" );
           <span><a href="#services">Available services</a></span>
           <ol>
             <li><a href="#id2acc">ID/accession conversion</a></li>
-            <li><a href="#pfama">Pfam-A data</a></li>
+            <li><a href="#pfama">Pfam-A annotations</a></li>
+            <li><a href="#families">Pfam-A family list  </a></li>
             <li><a href="#protein">Protein sequence data</a></li>
             <li><a href="#search">Sequence searches</a></li>
           </ol>
@@ -226,8 +227,7 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
                           http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
       release="22.0" 
       release_date="2007-07-10"&gt;
-  &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi"&gt;
-  &lt;/entry&gt;
+  &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi" /&gt;
 &lt;/pfam&gt;</pre>
       </div>
     </fieldset>
@@ -255,7 +255,7 @@ Piwi</pre>
 
     <p><a href="#restTop">back to top</a></p>
     
-    <h3><a name="pfama">Pfam-A data</a></h3>
+    <h3><a name="pfama">Pfam-A annotations</a></h3>
 
     <p>
       You can retrieve a sub-set of the data in a Pfam-A family page
@@ -294,7 +294,18 @@ Piwi domain
     &lt;/description&gt;
     &lt;comment&gt;
 &lt;![CDATA[
- This domain is found in the protein Piwi and its relatives.  The function of this domain is the dsRNA guided hydrolysis of ssRNA. Determination of the crystal structure of Argonaute reveals that PIWI is an RNase H domain, and identifies Argonaute as Slicer, the enzyme that cleaves mRNA in the RNAi RISC complex [2].  In addition, Mg+2 dependence and production of 3'-OH and 5' phosphate products are shared characteristics of RNaseH and RISC. The PIWI domain core has a tertiary structure belonging to the RNase H family of enzymes.  RNase H fold proteins all have a five-stranded mixed beta-sheet surrounded by helices. By analogy to RNase H enzymes which cleave single-stranded RNA guided by the DNA strand in an RNA/DNA hybrid, the PIWI domain can be inferred to cleave single-stranded RNA, for example mRNA, guided by double stranded siRNA.
+ This domain is found in the protein Piwi and its relatives.  The function of 
+ this domain is the dsRNA guided hydrolysis of ssRNA. Determination of the 
+ crystal structure of Argonaute reveals that PIWI is an RNase H domain, and 
+ identifies Argonaute as Slicer, the enzyme that cleaves mRNA in the RNAi RISC 
+ complex [2].  In addition, Mg+2 dependence and production of 3'-OH and 5' 
+ phosphate products are shared characteristics of RNaseH and RISC. The PIWI 
+ domain core has a tertiary structure belonging to the RNase H family of 
+ enzymes.  RNase H fold proteins all have a five-stranded mixed beta-sheet 
+ surrounded by helices. By analogy to RNase H enzymes which cleave single-
+ stranded RNA guided by the DNA strand in an RNA/DNA hybrid, the PIWI domain 
+ can be inferred to cleave single-stranded RNA, for example mRNA, guided by 
+ double stranded siRNA.
 ]]&gt;
     &lt;/comment&gt;
     &lt;clan_membership clan_acc="CL0219" clan_id="RNase_H" /&gt;
@@ -394,6 +405,53 @@ Piwi domain
     </p>
     <p><a href="#restTop">back to top</a></p>
 
+    <h3><a name="families">Pfam-A family list</a></h3>
+
+    <p>
+      You can retrieve a list of all Pfam-A families in the latest Pfam release,
+      either as an XML document or as a tab-delimited text file. Both formats 
+      contain the Pfam-A accession, Pfam-A identifier and description:
+    </p>
+
+    <pre class="url">
+[% c.uri_for( '/families', output => 'xml' ) | html %]
+[% c.uri_for( '/families', output => 'text' ) | html %]</pre>
+
+    <p>
+      You can also view the list in a web browser by removing the 
+      <code>output=xml</code> parameter from the URL.
+    </p>
+
+    <fieldset class="query">
+      <legend>Example</legend>
+      <div class="code">
+        <pre>shell% curl -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
+        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!-- all Pfam-A families, generated: 11:35:35 07-May-2008 --&gt;
+&lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://pfam.sanger.ac.uk/"
+      xsi:schemaLocation="http://pfam.sanger.ac.uk/
+                          http://pfam.sanger.ac.uk/static/documents/schemas/pfam_families.xsd"
+      release="22.0" 
+      release_date="2007-07-10"&gt;
+  &lt;entry entry_type="Pfam-A" accession="PF00001" id="7tm_1"&gt;
+    &lt;description&gt;
+&lt;![CDATA[
+7 transmembrane receptor (rhodopsin family)
+]]&gt;
+    &lt;/description&gt;
+  &lt;/entry&gt;
+  ...</pre>
+      </div>
+    </fieldset>
+
+    <p>
+      You can see the XML schema for this XML document 
+      <a href="[% c.uri_for('/static/documents/schemas/pfam_families.xsd' ) %]">
+        here</a>.
+    </p>
+    <p><a href="#restTop">back to top</a></p>
+
     <h3><a name="protein">Protein sequence data</a></h3>
 
     <p>
@@ -431,7 +489,18 @@ Calpain-1 catalytic subunit (EC 3.4.22.52) (Calpain-1 large subunit)(Calcium-act
 ]]&gt;
     &lt;/description&gt;
     &lt;taxonomy tax_id="9031" species_name="Gallus gallus (Chicken)."&gt;Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;Archosauria; Aves; Neognathae; Galliformes; Phasianidae; Phasianinae;Gallus.&lt;/taxonomy&gt;
-    &lt;sequence length="705" md5="934014b14ecb71623fa5898c7f81862a" crc64="ABCDDC56298E48AA" version="2"&gt;MMPFGGIAARLQRDRLRAEGVGEHNNAVKYLNQDYEALKQECIESGTLFRDPQFPAGPTALGFKELGPYSSKTRGVEWKRPSELVDDPQFIVGGATRTDICQGALGDCWLLAAIGSLTLNEELLHRVVPHGQSFQEDYAGIFHFQIWQFGEWVDVVVDDLLPTKDGELLFVHSAECTEFWSALLEKAYAKLNGCYESLSGGSTTEGFEDFTGGVAEMYDLKRAPRNMGHIIRKALERGSLLGCSIDITSAFDMEAVTFKKLVKGHAYSVTAFKDVNYRGQQEQLIRIRNPWGQVEWTGAWSDGSSEWDNIDPSDREELQLKMEDGEFWMSFRDFMREFSRLEICNLTPDALTKDELSRWHTQVFEGTWRRGSTAGGCRNNPATFWINPQFKIKLLEEDDDPGDDEVACSFLVALMQKHRRRERRVGGDMHTIGFAVYEVPEEAQGSQNVHLKKDFFLRNQSRARSETFINLREVSNQIRLPPGEYIVVPSTFEPHKEADFILRVFTEKQSDTAELDEEISADLADEEEITEDDIEDGFKNMFQQLAGEDMEISVFELKTILNRVIARHKDLKTDGFSLDSCRNMVNLMDKDGSARLGLVEFQILWNKIRSWLTIFRQYDLDKSGTMSSYEMRMALESAGFKLNNKLHQVVVARYADAETGVDFDNFVCCLVKLETMFRFFHSMDRDGTGTAVMNLAEWLLLTMCG&lt;/sequence&gt;
+    &lt;sequence length="705" md5="934014b14ecb71623fa5898c7f81862a" crc64="ABCDDC56298E48AA" version="2"&gt;
+      MMPFGGIAARLQRDRLRAEGVGEHNNAVKYLNQDYEALKQECIESGTLFRDPQFPAGPTALGFKELGPYSSKTR
+      GVEWKRPSELVDDPQFIVGGATRTDICQGALGDCWLLAAIGSLTLNEELLHRVVPHGQSFQEDYAGIFHFQIWQ
+      FGEWVDVVVDDLLPTKDGELLFVHSAECTEFWSALLEKAYAKLNGCYESLSGGSTTEGFEDFTGGVAEMYDLKR
+      APRNMGHIIRKALERGSLLGCSIDITSAFDMEAVTFKKLVKGHAYSVTAFKDVNYRGQQEQLIRIRNPWGQVEW
+      TGAWSDGSSEWDNIDPSDREELQLKMEDGEFWMSFRDFMREFSRLEICNLTPDALTKDELSRWHTQVFEGTWRR
+      GSTAGGCRNNPATFWINPQFKIKLLEEDDDPGDDEVACSFLVALMQKHRRRERRVGGDMHTIGFAVYEVPEEAQ
+      GSQNVHLKKDFFLRNQSRARSETFINLREVSNQIRLPPGEYIVVPSTFEPHKEADFILRVFTEKQSDTAELDEE
+      ISADLADEEEITEDDIEDGFKNMFQQLAGEDMEISVFELKTILNRVIARHKDLKTDGFSLDSCRNMVNLMDKDG
+      SARLGLVEFQILWNKIRSWLTIFRQYDLDKSGTMSSYEMRMALESAGFKLNNKLHQVVVARYADAETGVDFDNF
+      VCCLVKLETMFRFFHSMDRDGTGTAVMNLAEWLLLTMCG
+    &lt;/sequence&gt;
     &lt;matches&gt;
       &lt;match accession="PF01067" id="Calpain_III" type="Pfam-A" class="Domain"&gt;
         &lt;location start="358" end="513" /&gt;
@@ -556,6 +625,81 @@ shell%</pre>
       &quot;test.seq&quot;. The second parameter can also be added directly to 
       the URL, as a regular CGI-style parameter, if you prefer.
     </p>
+    <p>
+      The search service accepts the following parameters (you can see a more
+      complete description of these settings 
+      <a href="[% c.uri_for('/search' ) %]">here</a>):
+    </p>
+
+    <table class="details" summary="Accepted sequence search parameters">
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Description</th>
+          <th>Accepted values</th>
+          <th>Default</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="even">
+          <td>evalue</td>
+          <td class="left">use this E-value cut-off</td> 
+          <td>valid float</td> 
+          <td>1.0</td> 
+          <td rowspan="2" class="left notes">
+            to use the gathering threshold for the family, set &quot;ga=1&quot; 
+            and don&apos;t specify an E-value. If an E-value is given, it will
+            be used, regardless of the value of &quot;ga&quot;
+          </td>
+        </tr>
+        <tr class="odd">
+          <td>ga</td>
+          <td class="left">use gathering threshhold</td> 
+          <td>0 | 1</td> 
+          <td>0</td> 
+        </tr>
+        <tr class="even">
+          <td>searchBs</td>
+          <td class="left">do search for Pfam-B hits</td>
+          <td>0 | 1</td>
+          <td>0</td>
+          <td rowspan="2" class="left notes">
+            setting &quot;skipAs=0&quot; implies &quot;searchBs=1&quot;; you 
+            must search for at least one type of family
+          </td>
+        </tr>
+        <tr class="odd">
+          <td>skipAs</td>
+          <td class="left">don&apos;t search for Pfam-A hits</td>
+          <td>0 | 1</td>
+          <td>0</td>
+        </tr>
+        <tr class="even">
+          <td>seq</td>
+          <td class="left">protein sequence</td> 
+          <td>valid sequence characters</td> 
+          <td>none</td> 
+          <td class="left notes">
+            <strong>required</strong>
+          </td>
+        </tr>
+        <tr class="odd">
+          <td>seqOpts</td>
+          <td class="left">search options</td> 
+          <td>both, bothNoMerge, ls or fs</td> 
+          <td>both</td> 
+          <td class="notes"></td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <p>
+      Note that if you set &quot;searchBs=1&quot;, the resulting XML document 
+      will contain two <code>&lt;job&gt;</code> tags, one for the Pfam-A search
+      job and a second for the Pfam-B job. You will need to retrieve results for
+      both of the jobs, using the two supplied URLs. 
+    </p>
     
     <h4>Wait for the search to complete</h4>
 
@@ -574,10 +718,10 @@ shell%</pre>
 
     <h4>Retrieve results</h4>
     <p>
-      The XML that was returned from the first query includes a URL from which 
-      you can now retrieve results, given in the 
-      <code>&lt;result_url&gt;</code>. You can now poll this URL to retrieve an 
-      XML document with the search hits:
+      The XML that was returned from the first query includes one or more URLs 
+      from which you can now retrieve results, given in the 
+      <code>&lt;result_url&gt;</code>. You can now poll these URLs to retrieve 
+      XML documents with the search hits.
     </p>
 
     <fieldset class="query">
@@ -661,8 +805,7 @@ shell%</pre>
     </p>
     
     <pre class="url">
-[% c.uri_for( "/search/sequence/results", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]
-    </pre>
+[% c.uri_for( "/search/sequence/results", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]</pre>
     
     <p>
       Note that old search results are generally cleared out after some time, so
