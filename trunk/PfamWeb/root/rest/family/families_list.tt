@@ -1,0 +1,35 @@
+[% 
+# families_list.tt
+# jt6 20080327 WTSI
+#
+# template for formatting the list of all Pfam-A families as an HTML table
+#
+# $Id: families_list.tt,v 1.1 2008-05-07 10:42:30 jt6 Exp $
+
+META title = 'All Pfam families';
+
+-%]
+<p>
+  This is a list of all Pfam-A families in Pfam release 
+  <strong>[% relData.pfam_release %]</strong> (release date  
+  [% relData.pfam_release_date %]).
+</p>
+
+<table summary="Pfam-A families">
+  <thead>
+    <tr>
+      <th>Accession</th>
+      <th>Id</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+[% FOREACH pfam IN entries -%]
+    <tr>
+      <td>[% pfam.pfamA_acc %]</td>
+      <td>[% pfam.pfamA_id %]</td>
+      <td>[% pfam.description | html %]</td>
+    </tr>
+[% END -%]
+  </tbody>
+</table>
