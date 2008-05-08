@@ -10,7 +10,7 @@ use RfamQC;
 use Rfam::RfamAlign;
 use Getopt::Long;
 #use Data::Dumper; #Great for printing diverse data-structures.
-use Tie::IxHash;  #Use to return hash keys in the order they were added
+#use Tie::IxHash;  #Use to return hash keys in the order they were added
 use bigint;
 use Math::BigFloat;
 use Cwd;
@@ -33,16 +33,18 @@ my $family_dir;
 
 if( $#ARGV == 0 ) {
     $family_dir = shift; # family dir to use
-    #print "$#ARGV family_dir: $family_dir\n";
-    
+    #print "$#ARGV family_dir: $family_dir\n";    
 }
 else {
     $family_dir = getcwd;
 }
 
+if (!defined($file)){
+    $file = "SEED";
+}
 #print "ARGV $#ARGV family_dir: $family_dir\n";
 
-if ( !(-e "$family_dir/SEED")){
+if ( !(-e "$family_dir/$file")){
     print "FATAL: missing essential input file: [$family_dir/SEED]\n";
     help();
     exit(1);    
@@ -54,10 +56,23 @@ my $shortname_family_dir = pop(@family_dir); # family name for printing
 print "family_dir: $shortname_family_dir\n";
 #print "shortname family dir: $shortname_family_dir\n";
 
-my (%persequence, %perbasepair, %persequence_lens, %composition, %perbasepaircovariation, %perbasepaircovcounts);
+my (%persequence, %perbasepair, @persequencekeys, @perbasepairkeys, %persequence_lens, %composition, %perbasepaircovariation, %perbasepaircovcounts, %persequenceweights);
 my $perfamily=0;
-tie %persequence, "Tie::IxHash"; #keys returns elements in the same order they were added.
-tie %perbasepair, "Tie::IxHash";
+#tie %persequence, "Tie::IxHash"; #keys returns elements in the same order they were added.
+#tie %perbasepair, "Tie::IxHash";
+
+if (-e "$family_dir/ss-stats-perfamily"){
+    system("cp $family_dir/ss-stats-perfamily $family_dir/ss-stats-perfamily.old");
+}
+
+if (-e "$family_dir/ss-stats-persequence"){
+    system("cp $family_dir/ss-stats-persequence $family_dir/ss-stats-persequence.old");
+}
+
+if (-e "$family_dir/ss-stats-perbasepair"){
+    system("cp $family_dir/ss-stats-perbasepair $family_dir/ss-stats-perbasepair.old");
+}
+
 
 #Open log files:
 if( ! defined $nolog ) {
@@ -77,6 +92,7 @@ if (defined($file)){
     open( SEED, "$file" ) or die ("FATAL: Couldn't open $file!\n $!\n");
 }
 else {
+    $file = "$family_dir/SEED";
     open( SEED, "$family_dir/SEED" ) or die ("FATAL: Couldn't open SEED!\n $!\n");
 }
 
@@ -97,8 +113,9 @@ for( my $i = 1; $i<$len+1; $i++ ){
 	if ($i<$j){
 	    my $bpstr = "$i:$j";
 	    $perbasepair{$bpstr} = 0;
-	    $perbasepaircovariation{$bpstr} = 0;
-	    $perbasepaircovcounts{$bpstr} = 0;
+	    $perbasepaircovariation{$bpstr} = Math::BigFloat->new(0.00);
+	    $perbasepaircovcounts{$bpstr} = Math::BigFloat->new(0.00);
+	    push(@perbasepairkeys, $bpstr);
 	    $nopairs++;
 	}
     }
@@ -106,6 +123,19 @@ for( my $i = 1; $i<$len+1; $i++ ){
 	$loop++;
     }
 }
+
+#Compute sequence weights:
+open(WEIGHTS, "weight --quiet $file | ");
+while(my $w = <WEIGHTS>){
+    if ($w =~ /\#=GS\s+(.+)\s+WT\s+(\S+)/){
+	my ($n,$wt)=($1,$2);
+	$n =~ s/\s+//;
+	$persequenceweights{$n} = $wt; 
+    }
+}
+close(WEIGHTS);
+
+###
 
 if ($nopairs==0 && scalar(@list)<2){
     die("FATAL: $shortname_family_dir has less than two sequences and no structure! NEEDS FIXED!\n");
@@ -120,13 +150,17 @@ if (scalar(@list)<2){
 }
 
 my @list2 = @list;
-my ($min_pid, $max_pid, $nocomps, $nocovs, $covariation, $mean_length, $min_length, $max_length, $nonucleotides) = (1.0, 0.0, 0, 0, 0.0, 0.0, inf, 0, 0);
+my ($min_pid, $max_pid, $nocomps, $nocovs, $mean_length, $min_length, $max_length, $nonucleotides) = (1.0, 0.0, 0, 0, 0.0, inf, 0, 0);
+my $wwarned = 0;
 my $mean_pid = Math::BigFloat->new(0.00);
+my $tau = Math::BigFloat->new(0.00);
+my $covariation = Math::BigFloat->new(0.00);
 
 #Calculate persequence info:
 foreach my $seqobj ( @list ) {
     my $seq = uc($seqobj->seq);
     my $seqname = $seqobj->id . "/" . $seqobj->start . "-" . $seqobj->end;
+    my $seqnameshort = $seqobj->id;
     my @seq = split(//,$seq);
     my %seq_composition = ();
     
@@ -162,7 +196,7 @@ foreach my $seqobj ( @list ) {
     $persequence{$seqname} = 0;
     #Count the canonical base-pairs in each sequence:
     if($nopairs>0){
-	foreach my $bpposns ( keys %perbasepair ) {
+	foreach my $bpposns ( @perbasepairkeys ) {
 	    my @bpposns = split(/:/,$bpposns);
 	    my $ispair = is_complementary($seq[$bpposns[0]-1],$seq[$bpposns[1]-1]);
 	    $perbasepair{$bpposns} += $ispair;
@@ -191,7 +225,7 @@ foreach my $seqobj ( @list ) {
     foreach my $seqobj2 ( @list2 ) {
 	my $seq2 = uc($seqobj2->seq);
 	my $seqname2 = $seqobj2->id . "/" . $seqobj2->start . "-" . $seqobj2->end;
-	
+	my $seqnameshort2 = $seqobj2->id;	
 	my @seq2 = split(//,$seq2);
 	my $pid  = 0;
 	my $len1 = 0;
@@ -238,13 +272,27 @@ foreach my $seqobj ( @list ) {
 	if($nopairs>0){
 	    my $PI = 0;
 	    my $OM = 0;
-	    foreach my $bpposns ( keys %perbasepair ) {
+	    my $weight=1.0;
+	    if (defined($persequenceweights{$seqname}) && defined($persequenceweights{$seqname2})){
+		$weight = $persequenceweights{$seqname} + $persequenceweights{$seqname2};
+		
+	    }
+	    elsif (defined($persequenceweights{$seqnameshort}) && defined($persequenceweights{$seqnameshort2})){
+		$weight = $persequenceweights{$seqnameshort} + $persequenceweights{$seqnameshort2};
+		
+	    }
+	    elsif (!$wwarned) {
+		warn "WARNING: weights for $seqname and/or $seqname2 are not defined\n";
+		$wwarned++;
+	    }
+	    
+	    foreach my $bpposns ( @perbasepairkeys ) {
 		my @bpposns = split(/:/,$bpposns);
 		my $nuccount = is_nucleotide(  $seq[$bpposns[0]-1]) + is_nucleotide( $seq[$bpposns[1]-1]);
 		my $nuccount2 = is_nucleotide($seq2[$bpposns[0]-1]) + is_nucleotide($seq2[$bpposns[1]-1]);
 		
 		if ($nuccount>0 && $nuccount2>0){#Only compute covariation if there is at least 1 nucleotide 
-                                                 #in each pair. Agnostic metric wrt gap-gap comparisons:
+                                                 #in each pair. Eg. Agnostic metric wrt gap-gap comparisons:
 		    my $ispair  = is_complementary( $seq[$bpposns[0]-1], $seq[$bpposns[1]-1]);
 		    my $ispair2 = is_complementary($seq2[$bpposns[0]-1],$seq2[$bpposns[1]-1]);
 		    if ($ispair && $ispair2){
@@ -260,9 +308,15 @@ foreach my $seqobj ( @list ) {
 		    my $d2 = dist($seq[$bpposns[1]-1], $seq2[$bpposns[1]-1]);
 		    my $d = $d1 + $d2;
 		    $nocovs++;
-		    $covariation += ($PI*$d - $OM*$d);
-		    $perbasepaircovariation{$bpposns} += ($PI*$d - $OM*$d);
-		    $perbasepaircovcounts{$bpposns}++;
+		    my $a  = new Math::BigFloat $weight;
+		    my $b  = new Math::BigFloat ($PI*$d - $OM*$d);
+#		    $covariation += $weight*($PI*$d - $OM*$d);
+		    my $cov = $a*$b;
+		    $tau += $a;
+		    $covariation += $cov;
+		    $perbasepaircovariation{$bpposns} += $cov;
+		    #printf "$seqname vs $seqname2\t%0.3f\t%0.3f\t%0.3f\t%0.3f\n",$a,$b,$covariation,$tau;
+		    $perbasepaircovcounts{$bpposns}+=$a;
 		}
 	    }
 	}
@@ -278,8 +332,8 @@ if ($nocomps>0){
 #if($nopairs>0 && $nocomps>0){
 if($nocovs>0){
     my $a  = new Math::BigFloat $covariation;
-    my $b  = new Math::BigFloat $nocovs;
-    $covariation = new Math::BigFloat $a/$b; #($nopairs*$nocomps); #$nocovs
+    #my $b  = new Math::BigFloat $nocovs;
+    $covariation = new Math::BigFloat $a/$tau; #($nopairs*$nocomps); #$nocovs
 }
 
 if ($noseqs>0){
@@ -303,16 +357,17 @@ my $threshold = new Math::BigFloat (new Math::BigFloat 6)/(new Math::BigFloat 16
 
 #Print data to file and warnings for dodgy pairs:
 if ($noseqs>0 && $nopairs>0){
-    foreach my $bpposns ( keys %perbasepair ) {
+    foreach my $bpposns ( @perbasepairkeys ) {
 
 	my $a  = new Math::BigFloat $perbasepair{$bpposns};
 	my $b  = new Math::BigFloat $noseqs;
 	$perbasepair{$bpposns} = new Math::BigFloat $a/$b;
-
-	my $c  = new Math::BigFloat $perbasepaircovariation{$bpposns};
-	my $d  = new Math::BigFloat $perbasepaircovcounts{$bpposns};
-	$perbasepaircovariation{$bpposns}  = new Math::BigFloat $c/$d;
 	
+#	my $c  = new Math::BigFloat $perbasepaircovariation{$bpposns};
+#	my $d  = new Math::BigFloat $perbasepaircovcounts{$bpposns};
+#	$perbasepaircovariation{$bpposns}  = new Math::BigFloat $c/$d;
+	$perbasepaircovariation{$bpposns}  = $perbasepaircovariation{$bpposns}/$perbasepaircovcounts{$bpposns};
+
 	if( ! defined $nolog ) {
 	    printf LOGpb "$shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
