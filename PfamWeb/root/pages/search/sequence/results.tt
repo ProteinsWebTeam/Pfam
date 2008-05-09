@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.10 2008-03-19 14:48:51 jt6 Exp $
+# $Id: results.tt,v 1.11 2008-05-09 15:23:04 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -83,6 +83,16 @@ BLOCK buildTableBody;
       <td>[% pfamA.bits %]</td>
       <td>[% pfamA.evalue %]</td>
       <td>[% pfamA.mode %]</td>
+      <td>
+        [% IF pfamA.sites.size;
+          FOREACH site IN pfamA.sites;
+            seq.substr( site - 1, 1 ); site;
+            ", " IF NOT loop.last; 
+          END;
+        ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
       <td class="showSwitch">
         <img src="[% showButton %]" 
              onclick="toggleAlignment( '[% rowId %]', this )"
@@ -91,7 +101,7 @@ BLOCK buildTableBody;
     </tr>
     <tr class="alignment [% rowClass %]" id="[% rowId %]">
       <td class="rowNum">[% loop.index %]</td>
-      <td colspan="11">
+      <td colspan="12">
         <pre>[% pfamA.aliHmm %]
 [% pfamA.aliMatch %]
 [% pfamA.aliSeq %]</pre>
@@ -208,6 +218,17 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
         are <span class="warning">highlighted</span>.
       </p>
       <p>
+        A small proportion of sequences within the enzymatic Pfam families have 
+        had their active sites experimentally determined. Using a strict set
+        of rules, chosen to reduce the rate of false positives, we transfer 
+        experimentally determined active site residue data from a sequence 
+        within the same Pfam family to your query sequence. These are shown
+        as &quot;Predicted active sites&quot; Full details of Pfam active 
+        site prediction process can be found in 
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
+          the accompanying paper</a>.
+      </p>      
+      <p>
         For Pfam-A hits we show the alignments between your search sequence 
         and the matching HMM.
         [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
@@ -250,6 +271,7 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
         <th rowspan="2">Bits score</th>
         <th rowspan="2">E-value</th>
         <th rowspan="2">Alignment mode</th>
+        <th rowspan="2">Predicted active sites</th>
         <th rowspan="2">Show/hide alignment</th>
       </tr>
       <tr class="titleRow">
@@ -289,6 +311,7 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
         <th rowspan="2">Bits score</th>
         <th rowspan="2">E-value</th>
         <th rowspan="2">Alignment mode</th>
+        <th rowspan="2">Predicted active sites</th>
         <th rowspan="2">Show/hide alignment</th>
       </tr>
       <tr class="titleRow">
