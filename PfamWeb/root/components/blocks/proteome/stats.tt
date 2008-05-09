@@ -5,7 +5,7 @@
 # 
 # build the domain composition block for the proteome pages
 #
-# $Id: stats.tt,v 1.5 2007-11-05 13:38:19 jt6 Exp $
+# $Id: stats.tt,v 1.6 2008-05-09 15:58:39 jt6 Exp $
 
 oe = 0;
 %]
@@ -47,7 +47,7 @@ oe = 0;
         </dd>
       </dl>
       <p>
-        Finally, the &apos;View graphics&apos; and &apos;View alignment&apos;
+        Finally, the &#39;View graphics&#39; and &#39;View alignment&#39;
         columns allow you to view the sequences for a given domain either
         as a set of Pfam graphics, one per sequence, or as a sequence alignment. 
         The domain graphics and sequence alignment are shown in a separate 

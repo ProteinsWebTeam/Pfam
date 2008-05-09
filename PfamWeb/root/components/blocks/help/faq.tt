@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.11 2008-04-25 13:28:24 jt6 Exp $
+# $Id: faq.tt,v 1.12 2008-05-09 15:58:39 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -101,7 +101,7 @@
 	<h3><a name="clan">What is a clan ?</a></h3>
 
 	<p>
-	  Some of the Pfam families are grouped into &apos;clans&apos;. Pfam defines
+	  Some of the Pfam families are grouped into &#39;clans&#39;. Pfam defines
 	  a clan as a collection of families that have arisen from a
 	  single evolutionary origin. Evidence of their evolutionary
 	  relationship can be in the form of similarity in tertiary
@@ -112,8 +112,8 @@
 	  clan page includes a clan alignment, a description of the clan
 	  and database links where appropriate. The clan pages can be
 	  accessed by following a link from the family page, or
-	  alternatively they can be accessed by clicking on &apos;clans&apos; under
-	  the &apos;browse&apos; by menu on tab on any Pfam page.
+	  alternatively they can be accessed by clicking on &#39;clans&#39; under
+	  the &#39;browse&#39; by menu on tab on any Pfam page.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
@@ -170,7 +170,7 @@
 	<h3><a name="localSearch">How can I search Pfam locally ?</a></h3>
 
 	<p>
-	  If you have a large number of sequences or you don&apos;t want to 
+	  If you have a large number of sequences or you don&#39;t want to 
 	  post your sequence across the web, you can search
 	  your sequence locally. Please see the help page on 
 	  <span class="link" onclick="switchTab('helpGetStartedBlock')">
@@ -254,12 +254,12 @@
 	your full alignments ?</a></h3>
 
 	<p>
-	  The &apos;-&apos; and &apos;.&apos; characters both represent gap 
+	  The &#39;-&#39; and &#39;.&#39; characters both represent gap 
     characters. However they do tell you some extra information about how the 
-    HMM has generated the alignment. The &apos;-&apos; symbols are where the 
+    HMM has generated the alignment. The &#39;-&#39; symbols are where the 
     alignment of the sequence has used a delete state in the HMM to jump past a 
     match state. This means that the sequence is missing a column that the HMM 
-    was expecting to be there. The &apos;.&apos; character is used to pad gaps 
+    was expecting to be there. The &#39;.&#39; character is used to pad gaps 
     where one sequence in the alignment has sequence from the HMMs insert state. 
     See the alignment below where both characters are used. The HMM states 
     emitting each column are shown. Note that residues emitted from the 
