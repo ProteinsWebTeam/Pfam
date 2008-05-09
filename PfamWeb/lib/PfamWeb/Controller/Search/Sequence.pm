@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.17 2008-05-07 15:43:49 jt6 Exp $
+# $Id: Sequence.pm,v 1.18 2008-05-09 15:22:13 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.17 2008-05-07 15:43:49 jt6 Exp $
+$Id: Sequence.pm,v 1.18 2008-05-09 15:22:13 jt6 Exp $
 
 =cut
 
@@ -610,10 +610,11 @@ sub generateGraphic : Private {
                              '-organism' => 'Unknown',
                              '-desc'     => 'QuerySeq' )
   );
-
-  # For each pfamA region, make the PfamRegion object
+  
+  # for each Pfam-A region, make the PfamRegion object
   foreach my $pfamA ( @{ $c->{stash}->{genPfamARes} } ) {
     next unless $pfamA->{significant};
+
     $annseq->addAnnotatedRegion(
       Bio::Pfam::PfamRegion->new( '-PFAM_ACCESSION' => $pfamA->{pfama_acc},
                                   '-PFAM_ID'        => $pfamA->{pfama_id},
@@ -629,9 +630,34 @@ sub generateGraphic : Private {
                                   '-REGION'         => $pfamA->{type},
                                   '-TYPE'           => 'pfama' )
     );
-  }
+
+    # if we have active sites, we want to mark them in the final Pfam graphic
+    if ( scalar @{ $pfamA->{sites} } ) {
+      
+      foreach my $as ( @{ $pfamA->{sites} } ) {
+        
+        # get the residue type
+        my $as_res = substr $c->stash->{seq}, $as - 1, 1;
+        $c->log->debug( "adding active site at: |$as_res|$as|" ) if $c->debug;
+        
+        # add a feature and let the graphics code take care of drawing it as
+        # a lollipop later
+        $annseq->addFeature(
+          Bio::SeqFeature::Generic->new(
+            -start        => $as,
+            -primary      => 'Pfam predicted active site',
+            -source_tag   => 'pfam_predicted_active_site',
+            -display_name => "Pfam predicted active site, $as_res$as"
+          )
+        );
+        
+      } # end of "foreach active site"
+
+    } # end of "if any active sites"
+
+  } # end of "foreach Pfam-A region"
                                                      
-  #Now do the same for any PfamB hits  
+  # now do the same for any Pfam-B hits  
   foreach my $pfamB ( @{ $c->{stash}->{genPfamBRes} } ) {
     $annseq->addAnnotatedRegion(
       Bio::Pfam::PfamRegion->new( '-PFAM_ACCESSION' => $pfamB->{pfamb_acc},
@@ -643,13 +669,13 @@ sub generateGraphic : Private {
     );  
   }
   
-  #Now generate the image object that can be used for generating the graphic.
-  #The actual image is printed within the tt.
+  # ow generate the image object that can be used for generating the graphic.
+  # The actual image is printed within the template
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layout->layout_sequences( @seqs);
 
   my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageset->create_images( $layout->layout_to_XMLDOM );  
+  $imageset->create_images( $layout->layout_to_XMLDOM );
   $c->stash->{images} = $imageset;
 }
 
@@ -689,37 +715,56 @@ Does exactly what it says on the tin. Rob's handiwork...
 sub handlePfamAResults : Private {
   my ( $this, $c, $jobId ) = @_;
   
-  #We have performed a hmmer search, must be a pfamA
-  my ( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{options} =~ /-e (\S+)/;
+  # we performed a hmmer search, must be a pfamA
+  my ( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{options} =~ m/-e (\S+)/;
   
-  #Are we using GA cut-offs of Evalues?
+  # are we using GA cut-offs of Evalues?
   $c->stash->{evalue} = $userEvalue ? $userEvalue : 0;
   
-  #Read in the pfam_scan data. This assumes that pfam_Scan is spitting out 
-  #alignments so each domain is represented by 4 lines. 
-  my @results = split(/\n/, $c->{stash}->{results}->{$jobId}->{rawData});
+  # read in the pfam_scan data. This assumes that pfam_Scan is spitting out 
+  # alignments so each domain is represented by 4 lines. 
+  my @results = split /\n/, $c->{stash}->{results}->{$jobId}->{rawData};
   
   my @rawPfamAResults;
   while ( @results ) {
     my @set = splice( @results, 0, 4 );
     
     my ( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
-         $evalue, $pfamA_id, $aliHmm, $aliMatch, $aliSeq, $s, $pfamData );
+         $evalue, $pfamA_id, $as, 
+         @as_residues, $aliHmm, $aliMatch, $aliSeq, $s, $pfamData );
     foreach ( @set ) {
       
       #Line 1 is the domain positional information, lines 2-4 contain the 
       #actual alignment
       # UserSeq     33   142 PF00169.20      1    92 ls    42.8   1.2e-09  PH
-      if ( /^\S+\s+(\d+)\s+(\d+)\s+(PF\d{5})\.\d+\s+(\d+)\s+(\d+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)/ ) {
-        
+      # SEQUENCE     12   290 PF00246.15      1   323 ls   474.8  1.1e-139     Peptidase_M14           predicted_active_site[241,264]
+      
+      if ( m/
+             ^\S+\s+            #     sequence identifier
+             (\d+)\s+           #  1: start residue   (sequence)  
+             (\d+)\s+           #  2: HMM end residue (sequence)
+             (PF\d{5})\.\d+\s+  #  3: Pfam-A accession . version
+             (\d+)\s+           #  4: HMM start residue
+             (\d+)\s+           #  5: HMM end residue
+             (\S+)\s+           #  6: mode (fs|ls)
+             (\S+)\s+           #  7: bits score
+             (\S+)\s+           #  8: E-value
+             (\S+)\s+           #  9: Pfam-A ID
+             (\(nested\))?\s*   #     ignore the "(nested)" tag, if found
+             (\S+)?             # 11: active sites
+           /x ) {
+
         ( $start, $end, $pfamA_acc, $hmmStart, $hmmEnd, $mode, $bits, 
-          $evalue, $pfamA_id ) = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
+          $evalue, $pfamA_id, $as ) = ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $11 );
           
-        unless ( $3 =~ /^PF\d{5}$/ ) {
-          $c->log->warn( "Search::Sequence::handlePfamAResults: couldn't find a Pfam accession: |$3|" );
-          next;
-        } 
-        
+        if ( defined $as and
+             $as =~ m/\[(\d+(,\d+)+)\]/ ) {
+          $c->log->debug( "Search::Sequence::handlePfamAResults: active site residues: |$1|" )
+            if $c->debug;
+
+          @as_residues = split /\s*,\s*/, $1;
+        }
+          
         $pfamData = $c->model( 'PfamDB::Pfam' )
                       ->find( { pfamA_acc => $pfamA_acc } );
                       
@@ -730,18 +775,19 @@ sub handlePfamAResults : Private {
           $s = $pfamData->fs_domain_GA < $bits ? 1 : 0; 
         }
       }
-      elsif ( /\#HMM/ ) {
+      elsif ( m/\#HMM/ ) {
         $aliHmm = $_;
         $aliHmm .= "-*" if $aliHmm =~ m/\<$/; 
         $aliHmm .= "*"  if $aliHmm =~ m/\<\-$/; 
       }
-      elsif ( /\#MATCH/ ) {
+      elsif ( m/\#MATCH/ ) {
         $aliMatch = $_; 
       }
-      elsif ( /\#SEQ/ ) {
+      elsif ( m/\#SEQ/ ) {
         $aliSeq = $_; 
       }
-    }
+      
+    } # end of "if <massive regex>"
     
     #Now shove all of the data elements into an anonymous hash
     my $results = { pfama_id     => $pfamA_id,
@@ -759,7 +805,8 @@ sub handlePfamAResults : Private {
                     desc         => $pfamData->description,
                     aliMatch     => $aliMatch,
                     aliHmm       => $aliHmm,
-                    aliSeq       => $aliSeq };
+                    aliSeq       => $aliSeq,
+                    sites        => \@as_residues };
 
     # add data that's dependent on model type
     if ( $mode eq 'ls' ) {
