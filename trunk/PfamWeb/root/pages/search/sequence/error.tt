@@ -4,7 +4,7 @@
 # 
 # sequence search error page
 #
-# $Id: error.tt,v 1.4 2007-11-29 10:19:01 jt6 Exp $
+# $Id: error.tt,v 1.5 2008-05-09 15:58:39 jt6 Exp $
 
 META title = "No search results";
 META fullPage = 1
@@ -29,7 +29,7 @@ META fullPage = 1
     </dt>
     <dd>
       although we check that the sequence contains only valid characters,
-      we can&apos;t check that it&apos;s a <em>sensible</em> sequence. If you
+      we can&#39;t check that it&#39;s a <em>sensible</em> sequence. If you
       are cutting and pasting the sequence, make sure you copy the correct
       piece of text into the form
     </dd>
@@ -41,7 +41,7 @@ META fullPage = 1
       job-ID parameter for the results that you need to save
     </dd>
     <dt>
-      check that the job-ID hasn&apos;t expired
+      check that the job-ID hasn&#39;t expired
     </dt>
     <dd>
       we store job results for one week, so you can only use the bookmark for 

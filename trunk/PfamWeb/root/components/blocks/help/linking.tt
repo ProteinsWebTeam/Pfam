@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.6 2007-09-19 13:40:56 jt6 Exp $
+# $Id: linking.tt,v 1.7 2008-05-09 15:58:39 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -93,7 +93,7 @@
     <p>
       You can refer to Pfam families either by accession or ID. You can also 
       refer to a family by &quot;entry&quot;, although this is a convenience 
-      that should be used only if you&apos;re not sure if what you have is an 
+      that should be used only if you&#39;re not sure if what you have is an 
       accession or an ID.
     </p>
     <p>

@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.15 2008-01-07 14:13:15 jt6 Exp $
+# $Id: changes.tt,v 1.16 2008-05-09 15:58:39 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -435,63 +435,51 @@
 
     <h2>Latest changes to website</h2>
 
-    <h3>Release 1.4 (7th January 2008)</h3>
+    <h3>Release 1.6 (10th May 2008)</h3>
 
     <ul>
-      <li><strong>Improved sequence validation:</strong>
-        the sequence search tool now accepts the commonly seen FASTA header
-        styles
+      <li>
+        <strong>Improved &quot;jump to&quot; search</strong>: 
+        now returns an error message if the search can&#39;t guess the entry 
+        that the user wants, rather than failing silently as previously
       </li>
-      <li><strong>New help section on privacy:</strong>
-        we now have a brief overview of the privacy issues surrounding use
-        of the Pfam website.          
+      <li>
+        <strong>Better validation of FASTA sequences</strong>:
+        further improvements to the parsing and validation of sequences in the
+        batch search upload form
       </li>
-      <li><strong>New features notification:</strong>
-        the index page includes a section listing those features that have
-        been added to the site since your last visit.          
+      <li>
+        <strong>Grouping of sequence search hits</strong>:
+        results of a single sequence search are now grouped into 
+        &quot;significant&quot; and &quot;insignificant&quot; hits
       </li>
-      <li><strong>Tooltips on domain graphics:</strong>
-        as you move your mouse over domain graphics you should now see small
-        tooltips which give details of the domain under the cursor, as in the
-        old Pfam website.          
+      <li>
+        <strong>Added a RESTful interface</strong>:
+        you can now access family and protein sequence information 
+        programmatically via a &quot;RESTful&quot; interface. Single sequence 
+        searches can also be submitted using the interface, and results 
+        retrieved as an XML document. This will replace the SOAP-based interface 
+        shortly. See the 
+        <span class="link" onclick="switchTab('helpRestBlock');">
+          help pages</span> for more information 
       </li>
-      <li><strong>Links underlined:</strong>
-        all links should now be underlined, either permananently, or when you 
-        move your mouse over them.          
+      <li>
+        <strong>Added HMM logos</strong>:
+        <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/logomat-m/help.shtml">
+          HMM logos</a> are now shown for all Pfam-A families 
       </li>
-      <li><strong>Change status:</strong>
-        the page for a Pfam-A family now shows whether the family has changed
-        since the previous Pfam release.
+      <li>
+        <strong>Added Pfam predicted active sites</strong>:
+        single-sequence search results now show any active sites that were
+        predicted for the search sequence
       </li>
-      <li><strong>Sequence search defaults changed:</strong>
-        the defaults for the Pfam sequence search in the homepage have been
-        changed, so that the search now produces results from both
-        &quot;ls&quot; and &quot;fs&quot; models, merged according to the rules
-        for each family.
-      </li>
-      <li><strong>Molecular surfaces in AstexViewer:</strong>
-        when you view a protein structure using AstexViewer, you will now see
-        the Pfam-A regions outlined with a semi-transparent molecular surface.          
-      </li>
-      <li><strong>New species tree tools:</strong>
-        you can now download sequences (in FASTA format) or sequence accessions 
-        for selected nodes in a species tree.
-      </li>
-      <li><strong>Fixed sequence display:</strong>
-        the page for a protein sequence now shows the correct sequence for the
-        entry. Previously duplicated the first residue in the sequence.
-      </li>
-      <li><strong>Fixed URL for XML schema in help pages:</strong>
-        uploaded XML files describing domain graphics are validated against an
-        XML schema. In the example XML snippets in the domain graphics help 
-        page, the URL for that document was wrong. 
-      </li>
-      <li><strong>Fixed a bug in sequence search output:</strong>
-        there was a bug in the output of batch sequence searches, causing 
-        occasional missing residues in the output. This has been corrected.  
+      <li>
+        <strong>Fixed species tree alignments</strong>:
+        the generation of sequence alignments from checked nodes in the species
+        tree should now work correctly
       </li>
     </ul>
-  
+
     <p>
       <span onclick="reveal( this, 'siteChanges', false, true )"
             class="moreLink">
@@ -504,6 +492,69 @@
 
       <h2>Past changes</h2>
 
+      <h3>Release 1.5 (14th November 2008)</h3>
+  
+      <p>
+        This is an internal release, for testing purposes only.
+      </p>
+    
+      <h3>Release 1.4 (7th January 2008)</h3>
+  
+      <ul>
+        <li><strong>Improved sequence validation:</strong>
+          the sequence search tool now accepts the commonly seen FASTA header
+          styles
+        </li>
+        <li><strong>New help section on privacy:</strong>
+          we now have a brief overview of the privacy issues surrounding use
+          of the Pfam website.          
+        </li>
+        <li><strong>New features notification:</strong>
+          the index page includes a section listing those features that have
+          been added to the site since your last visit.          
+        </li>
+        <li><strong>Tooltips on domain graphics:</strong>
+          as you move your mouse over domain graphics you should now see small
+          tooltips which give details of the domain under the cursor, as in the
+          old Pfam website.          
+        </li>
+        <li><strong>Links underlined:</strong>
+          all links should now be underlined, either permananently, or when you 
+          move your mouse over them.          
+        </li>
+        <li><strong>Change status:</strong>
+          the page for a Pfam-A family now shows whether the family has changed
+          since the previous Pfam release.
+        </li>
+        <li><strong>Sequence search defaults changed:</strong>
+          the defaults for the Pfam sequence search in the homepage have been
+          changed, so that the search now produces results from both
+          &quot;ls&quot; and &quot;fs&quot; models, merged according to the rules
+          for each family.
+        </li>
+        <li><strong>Molecular surfaces in AstexViewer:</strong>
+          when you view a protein structure using AstexViewer, you will now see
+          the Pfam-A regions outlined with a semi-transparent molecular surface.          
+        </li>
+        <li><strong>New species tree tools:</strong>
+          you can now download sequences (in FASTA format) or sequence accessions 
+          for selected nodes in a species tree.
+        </li>
+        <li><strong>Fixed sequence display:</strong>
+          the page for a protein sequence now shows the correct sequence for the
+          entry. Previously duplicated the first residue in the sequence.
+        </li>
+        <li><strong>Fixed URL for XML schema in help pages:</strong>
+          uploaded XML files describing domain graphics are validated against an
+          XML schema. In the example XML snippets in the domain graphics help 
+          page, the URL for that document was wrong. 
+        </li>
+        <li><strong>Fixed a bug in sequence search output:</strong>
+          there was a bug in the output of batch sequence searches, causing 
+          occasional missing residues in the output. This has been corrected.  
+        </li>
+      </ul>
+    
       <h3>Release 1.3 (5th November 2007)</h3>
   
       <p>

@@ -4,7 +4,7 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.8 2008-01-14 17:02:17 jt6 Exp $
+# $Id: getStarted.tt,v 1.9 2008-05-09 15:58:39 jt6 Exp $
 %]
 
 <!-- start getStarted block -->
@@ -218,7 +218,7 @@ O03046     12       137     PF02788.5       1      132      295.2     1.1e-85   
     <hr />
     
   	<h2>Finding proteins with a specific set of domain 
-      combinations (&apos;architectures&apos;)</h2>
+      combinations (&#39;architectures&#39;)</h2>
   
   	<p>
   	  Pfam allows you to retrive all the proteins with a particular

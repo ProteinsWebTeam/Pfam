@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.4 2008-04-25 13:29:29 jt6 Exp $
+# $Id: database.tt,v 1.5 2008-05-09 15:58:39 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -74,7 +74,7 @@ pfamB_additional_residue_coverage: 6.5
       <span class="table">pfamA_reg_full</span> table contains both the 
       significant and insignificant data, and the 
       <span class="column">in_full</span> column in this table is set to 
-      &apos;1&apos; if the score for the domain is significant. The 
+      &#39;1&#39; if the score for the domain is significant. The 
       <span class="table">pfamA_reg_full_significant</span> and 
       <span class="table">pfamA_reg_full_insignificant</span> tables contain, 
       as the names suggest, significant and insignificant data respectively.
@@ -93,7 +93,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the domains for UniProtKB protein sequence 
-      &apos;VAV_HUMAN&apos;
+      &#39;VAV_HUMAN&#39;
     </fieldset>
 
     <fieldset class="sql">
@@ -105,7 +105,7 @@ pfamB_additional_residue_coverage: 6.5
        FROM   pfamseq, \
               pfamA, \
               pfamA_reg_full_significant \
-       WHERE  pfamseq_id = &apos;VAV_HUMAN&apos; \
+       WHERE  pfamseq_id = &#39;VAV_HUMAN&#39; \
        AND    pfamseq.auto_pfamseq = pfamA_reg_full_significant.auto_pfamseq \
        AND    pfamA_reg_full_significant.auto_pfamA = pfamA.auto_pfamA;
 +-----------+----------+-----------+---------+
@@ -131,7 +131,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me the secondary accession(s) for the UniProtKB sequence
-      &apos;P15455&apos;
+      &#39;P15455&#39;
     </fieldset>
 
     <fieldset class="sql">
@@ -141,7 +141,7 @@ pfamB_additional_residue_coverage: 6.5
        FROM   pfamseq, \
               secondary_pfamseq_acc \
        WHERE  pfamseq.auto_pfamseq = secondary_pfamseq_acc.auto_pfamseq \
-       AND    pfamseq_acc= &apos;P15455&apos;;
+       AND    pfamseq_acc= &#39;P15455&#39;;
 +-------------+---------------+
 | pfamseq_acc | secondary_acc |
 +-------------+---------------+
@@ -153,7 +153,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all the UniProtKB domains in the full alignment for the family 
-      &apos;B12D&apos;
+      &#39;B12D&#39;
     </fieldset>
     
     <fieldset class="sql">
@@ -166,7 +166,7 @@ pfamB_additional_residue_coverage: 6.5
        FROM   pfamA, \
               pfamseq, \
               pfamA_reg_full_significant \
-       WHERE  pfamA_id = &apos;B12D&apos; \
+       WHERE  pfamA_id = &#39;B12D&#39; \
        AND    pfamA.auto_pfamA = pfamA_reg_full_significant.auto_pfamA \
        AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq;
 +--------------+-------------+-----------+---------+----------+
@@ -187,7 +187,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all the UniProtKB domains in the seed alignment for the family 
-      &apos;B12D&apos;
+      &#39;B12D&#39;
     </fieldset>
     
     <fieldset class="sql">
@@ -199,7 +199,7 @@ pfamB_additional_residue_coverage: 6.5
        FROM   pfamA, \
               pfamseq, \
               pfamA_reg_seed \
-       WHERE  pfamA_id = &apos;B12D&apos; \
+       WHERE  pfamA_id = &#39;B12D&#39; \
        AND    pfamA.auto_pfamA = pfamA_reg_seed.auto_pfamA \
        AND    pfamA_reg_seed.auto_pfamseq = pfamseq.auto_pfamseq;
 +--------------+-----------+---------+----------+
@@ -245,7 +245,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the pfamB regions for the UniProtKB sequence 
-      &apos;VAV_HUMAN&apos;
+      &#39;VAV_HUMAN&#39;
     </fieldset>
 
     <fieldset class="sql">
@@ -256,7 +256,7 @@ pfamB_additional_residue_coverage: 6.5
        FROM   pfamB_reg, \
               pfamB, \
               pfamseq \
-       WHERE  pfamseq_id = &apos;VAV_HUMAN&apos; \
+       WHERE  pfamseq_id = &#39;VAV_HUMAN&#39; \
        AND    pfamB_reg.auto_pfamseq = pfamseq.auto_pfamseq \
        AND    pfamB_reg.auto_pfamB = pfamB.auto_pfamB;
 +-----------+--------------+-----------+---------+
@@ -270,7 +270,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the transmembrane, signal-peptide, coiled-coils and 
-      low-complexity information for the UniProtKB sequnce &apos;VAV_HUMAN&apos;
+      low-complexity information for the UniProtKB sequnce &#39;VAV_HUMAN&#39;
     </fieldset>
 
     <fieldset class="sql">
@@ -282,7 +282,7 @@ pfamB_additional_residue_coverage: 6.5
               score \
        FROM   other_reg, \
               pfamseq \
-       WHERE  pfamseq.pfamseq_id = &apos;VAV_HUMAN&apos; \
+       WHERE  pfamseq.pfamseq_id = &#39;VAV_HUMAN&#39; \
        AND    other_reg.auto_pfamseq = pfamseq.auto_pfamseq;
 +----------------+-----------+-----------+---------+--------+
 | type_id        | source_id | seq_start | seq_end | score  |
@@ -295,7 +295,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the context regions for the UniProtKB sequence 
-      &apos;Q8I6U6_PLAF7&apos;
+      &#39;Q8I6U6_PLAF7&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -309,7 +309,7 @@ pfamB_additional_residue_coverage: 6.5
        FROM   context_pfam_regions, \
               pfamseq, \
               pfamA \
-       WHERE  pfamseq.pfamseq_id = &apos;Q8I6U6_PLAF7&apos; \
+       WHERE  pfamseq.pfamseq_id = &#39;Q8I6U6_PLAF7&#39; \
        AND    context_pfam_regions.auto_pfamseq = pfamseq.auto_pfamseq \
        AND    pfamA.auto_pfamA = context_pfam_regions.auto_pfamA;
 +-----------+---------+--------------+-----------+----------+--------------------------------------+
@@ -323,7 +323,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the active site information for UniProtKB sequence 
-      &apos;Q22CX9&apos;
+      &#39;Q22CX9&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -337,7 +337,7 @@ pfamB_additional_residue_coverage: 6.5
               markup_key \
        WHERE  pfamseq.auto_pfamseq = pfamseq_markup.auto_pfamseq \
        AND    pfamseq_markup.auto_markup = markup_key.auto_markup \
-       AND    pfamseq_acc = &apos;Q22CX9&apos;;
+       AND    pfamseq_acc = &#39;Q22CX9&#39;;
 +-------------+--------------+---------+----------------------------+
 | pfamseq_acc | pfamseq_id   | residue | label                      |
 +-------------+--------------+---------+----------------------------+
@@ -350,7 +350,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all the residues involved in disulphide bonds in the UniProtKB 
-      sequence &apos;P98092&apos;
+      sequence &#39;P98092&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -362,7 +362,7 @@ pfamB_additional_residue_coverage: 6.5
        FROM   pfamseq, \
               pfamseq_disulphide \
        WHERE  pfamseq_disulphide.auto_pfamseq = pfamseq.auto_pfamseq \
-       AND    pfamseq_acc = &apos;Q43495&apos;;
+       AND    pfamseq_acc = &#39;Q43495&#39;;
 +-------------+------------+------------+----------+ 
 | pfamseq_acc | pfamseq_id | bond_start | bond_end | 
 +-------------+------------+------------+----------+ 
@@ -389,7 +389,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the architectures and UniProtKB protein sequences for the
-      family &apos;Dehyd-heme_bind&apos;
+      family &#39;Dehyd-heme_bind&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -399,7 +399,7 @@ pfamB_additional_residue_coverage: 6.5
               pfamseq_acc \
        FROM   architecture, \
               pfamseq \
-       WHERE  architecture like &apos;%Dehyd-heme_bind%&apos; \
+       WHERE  architecture like &#39;%Dehyd-heme_bind%&#39; \
        AND    pfamseq.auto_architecture = architecture.auto_architecture;
 +---------------------------------+--------------+-------------+
 | architecture                    | pfamseq_id   | pfamseq_acc |
@@ -437,7 +437,7 @@ pfamB_additional_residue_coverage: 6.5
     <fieldset class="query">
       <legend>Example query</legend>
       Give me the Pfam annotation and family information for the family 
-      &apos;CBS&apos;
+      &#39;CBS&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -483,7 +483,7 @@ alignment_method: Manual
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the interpro annotation for the family &apos;CBS&apos;
+      Give me the interpro annotation for the family &#39;CBS&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -493,7 +493,7 @@ alignment_method: Manual
        FROM   interpro, \
               pfamA \
        WHERE  pfamA.auto_pfamA = interpro.auto_pfamA \
-       AND    pfamA_id = &apos;CBS&apos;\G
+       AND    pfamA_id = &#39;CBS&#39;\G
 interpro_id: IPR000644
    abstract: CBS (cystathionine-beta-synthase) domains are small ...
          </pre>
@@ -502,7 +502,7 @@ interpro_id: IPR000644
     <fieldset class="query">
       <legend>Example query</legend>
       Give me the gene ontology (GO) annotation and family information for 
-      the family &apos;CBS&apos;
+      the family &#39;CBS&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -513,7 +513,7 @@ interpro_id: IPR000644
        FROM   gene_ontology AS go, \
               pfamA AS p \
        WHERE  go.auto_pfamA = p.auto_pfamA \
-       AND    pfamA_id = &apos;p450&apos;;
+       AND    pfamA_id = &#39;p450&#39;;
 +------------+------------------------+----------+
 | go_id      | term                   | category |
 +------------+------------------------+----------+
@@ -527,7 +527,7 @@ interpro_id: IPR000644
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the literature references for the family &apos;CBS&apos;
+      Give me all of the literature references for the family &#39;CBS&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -541,7 +541,7 @@ interpro_id: IPR000644
        FROM   pfamA, \
               pfamA_literature_references, \
               literature_references \
-       WHERE  pfamA_id = &apos;CBS&apos; \
+       WHERE  pfamA_id = &#39;CBS&#39; \
        AND    pfamA.auto_pfamA = pfamA_literature_references.auto_pfamA \
        AND    pfamA_literature_references.auto_lit = literature_references.auto_lit \G
 *************************** 1. row ***************************
@@ -591,7 +591,7 @@ order_added: 6
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the database references for the family &apos;A2M&apos;
+      Give me all of the database references for the family &#39;A2M&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -602,7 +602,7 @@ order_added: 6
               other_params \
        FROM   pfamA, \
               pfamA_database_links \
-       WHERE  pfamA_id = &apos;A2M&apos; \
+       WHERE  pfamA_id = &#39;A2M&#39; \
        AND    pfamA.auto_pfamA = pfamA_database_links.auto_pfamA;
 +----------+---------+-----------+--------------+
 | db_id    | comment | db_link   | other_params |
@@ -616,8 +616,8 @@ order_added: 6
 
     <p>
       <strong>Note:</strong> The <span class="column">other_params</span> 
-      column contains &apos;fa;&apos; where the Pfam family corresponds to a 
-      SCOP family, and &apos;sf;&apos; where the Pfam family corresponds to 
+      column contains &#39;fa;&#39; where the Pfam family corresponds to a 
+      SCOP family, and &#39;sf;&#39; where the Pfam family corresponds to 
       a SCOP superfamily.
     </p>
 
@@ -639,7 +639,7 @@ order_added: 6
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the ID of the clan to which Pfam family &apos;EGF&apos; belongs
+      Give me the ID of the clan to which Pfam family &#39;EGF&#39; belongs
     </fieldset>
       
     <fieldset class="sql">
@@ -651,7 +651,7 @@ order_added: 6
               pfamA \
        WHERE  clans.auto_clan = clan_membership.auto_clan \
        AND    clan_membership.auto_pfamA = pfamA.auto_pfamA \
-       AND    pfamA.pfamA_id = &apos;EGF&apos;;
+       AND    pfamA.pfamA_id = &#39;EGF&#39;;
 +---------+----------+
 | clan_id | clan_acc |
 +---------+----------+
@@ -661,7 +661,7 @@ order_added: 6
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the Pfam-A families that belong to clan &apos;CL0001&apos;
+      Give me all of the Pfam-A families that belong to clan &#39;CL0001&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -673,7 +673,7 @@ order_added: 6
               pfamA \
        WHERE  clans.auto_clan = clan_membership.auto_clan \
        AND    clan_membership.auto_pfamA = pfamA.auto_pfamA \
-       AND    clan_acc = &apos;CL0001&apos;;
+       AND    clan_acc = &#39;CL0001&#39;;
 +-----------+-----------------+
 | pfamA_acc | pfamA_id        |
 +-----------+-----------------+
@@ -690,7 +690,7 @@ order_added: 6
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the clan description and comment for clan &apos;CL0001&apos;
+      Give me the clan description and comment for clan &#39;CL0001&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -700,7 +700,7 @@ order_added: 6
               clan_description, \
               clan_comment \
        FROM   clans \
-       WHERE  clan_acc = &apos;CL0001&apos; \G
+       WHERE  clan_acc = &#39;CL0001&#39; \G
         clan_acc: CL0001
          clan_id: EGF
 clan_description: EGF superfamily
@@ -710,7 +710,7 @@ clan_description: EGF superfamily
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the literature references for clan &apos;CL0001&apos;
+      Give me the literature references for clan &#39;CL0001&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -726,7 +726,7 @@ clan_description: EGF superfamily
               clan_lit_refs \
        WHERE  clans.auto_clan = clan_lit_refs.auto_clan \
        AND    clan_lit_refs.auto_lit = literature_references.auto_lit \
-       AND    clan_acc = &apos;CL0001&apos; \G
+       AND    clan_acc = &#39;CL0001&#39; \G
 *************************** 1. row ***************************
     comment: NULL
 order_added: 2
@@ -745,7 +745,7 @@ order_added: 1
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the first 5 architectures for the clan &apos;CL0001&apos;
+      Give me the first 5 architectures for the clan &#39;CL0001&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -758,7 +758,7 @@ order_added: 1
               clans \
        WHERE  architecture.auto_architecture = clan_architecture.auto_architecture \
        AND    clan_architecture.auto_clan = clans.auto_clan \
-       AND    clan_acc = &apos;CL0001&apos;
+       AND    clan_acc = &#39;CL0001&#39;
        LIMIT  5 \G
 *************************** 1. row ***************************
 architecture: Ldl_recept_a~EGF_CA~Ldl_recept_b~Ldl_recept_a~EGF~Ldl_recept_b~EGF~Ldl_recept_b
@@ -784,7 +784,7 @@ type_example: 57059
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the database links for clan &apos;CL0001&apos;
+      Give me the database links for clan &#39;CL0001&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -796,7 +796,7 @@ type_example: 57059
        FROM   clan_database_links, \
               clans \
        WHERE  clan_database_links.auto_clan = clans.auto_clan \
-       AND    clan_acc = &apos;CL0001&apos;;
+       AND    clan_acc = &#39;CL0001&#39;;
 +-------+---------+------------+--------------+
 | db_id | comment | db_link    | other_params |
 +-------+---------+------------+--------------+
@@ -825,13 +825,13 @@ type_example: 57059
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the information about &apos;dead&apos; Pfam-A family 
-      &apos;PF06700&apos;
+      Give me all of the information about &#39;dead&#39; Pfam-A family 
+      &#39;PF06700&#39;
     </fieldset>
       
     <fieldset class="sql">
       <legend>SQL</legend>
-      <pre>mysql> SELECT * FROM dead_families WHERE pfamA_acc = &apos;PF06700&apos;;
+      <pre>mysql> SELECT * FROM dead_families WHERE pfamA_acc = &#39;PF06700&#39;;
 +-----------+-----------------+---------------------------------+------------+
 | pfamA_acc | pfamA_id        | comment                         | forward_to |
 +-----------+-----------------+---------------------------------+------------+
@@ -923,7 +923,7 @@ type_example: 57059
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the PDB information for structure &apos;2abl&apos;
+      Give me the PDB information for structure &#39;2abl&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -932,7 +932,7 @@ type_example: 57059
               header, \
               title \
        FROM   pdb \
-       WHERE  pdb_id = &apos;2abl&apos;;
+       WHERE  pdb_id = &#39;2abl&#39;;
 +--------+-------------+-------------------------------------------------------------+
 | pdb_id | header      | title                                                       |
 +--------+-------------+-------------------------------------------------------------+
@@ -942,7 +942,7 @@ type_example: 57059
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the first 10 residue mappings for the structure &apos;2abl&apos;
+      Give me the first 10 residue mappings for the structure &#39;2abl&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -950,7 +950,7 @@ type_example: 57059
       <pre>mysql> SELECT pdb_id, \
               pdb_res, \
               pdb_seq_number, \
-              pfamseq_acc, pfamseq_res, pfamseq_seq_number from msd_data, pdb, pfamseq where pdb.auto_pdb=msd_data.auto_pdb and pfamseq.auto_pfamseq=msd_data.auto_pfamseq and pdb_id=&apos;2abl&apos; limit 10;
+              pfamseq_acc, pfamseq_res, pfamseq_seq_number from msd_data, pdb, pfamseq where pdb.auto_pdb=msd_data.auto_pdb and pfamseq.auto_pfamseq=msd_data.auto_pfamseq and pdb_id=&#39;2abl&#39; limit 10;
 +--------+---------+----------------+-------------+-------------+--------------------+
 | pdb_id | pdb_res | pdb_seq_number | pfamseq_acc | pfamseq_res | pfamseq_seq_number |
 +--------+---------+----------------+-------------+-------------+--------------------+
@@ -969,7 +969,7 @@ type_example: 57059
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me the structural data for the family &apos;CBS&apos;
+      Give me the structural data for the family &#39;CBS&#39;
     </fieldset>
     
     <fieldset class="sql">
@@ -981,9 +981,9 @@ type_example: 57059
               pdb_end_res from pdb, \
               pdbmap, \
               pfamA \
-       WHERE  pfamA_id = &apos;CBS&apos; \
+       WHERE  pfamA_id = &#39;CBS&#39; \
        AND    pfamA.auto_pfamA = pdbmap.auto_pfam \
-       AND    pfam_region = &apos;1&apos; \
+       AND    pfam_region = &#39;1&#39; \
        AND    pdbmap.auto_pdb = pdb.auto_pdb;
 +--------+-------+---------------+-------------+
 | pdb_id | chain | pdb_start_res | pdb_end_res |
@@ -1016,7 +1016,7 @@ type_example: 57059
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Return all the species and basic Pfam information for &apos;bacteria&apos;
+      Return all the species and basic Pfam information for &#39;bacteria&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1031,7 +1031,7 @@ mysql> SELECT   ncbi_code, \
                 residue_coverage, \
                 total_genome_proteins \
        FROM     genome_species \
-       WHERE    grouping LIKE &apos;%Bacteria%&apos; \
+       WHERE    grouping LIKE &#39;%Bacteria%&#39; \
        ORDER BY species \G
 *************************** 1. row ***************************
             ncbi_code: 62977
@@ -1056,7 +1056,7 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all the Pfam-A domains for the species 
-      &apos;Arabidopsis thaliana&apos;
+      &#39;Arabidopsis thaliana&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1068,7 +1068,7 @@ total_genome_proteins: 5397</pre>
                 sum(count) \
        FROM     genome_seqs, \
                 pfamA \
-       WHERE    genome_seqs.ncbi_code = &apos;3702&apos; \
+       WHERE    genome_seqs.ncbi_code = &#39;3702&#39; \
        AND      genome_seqs.auto_pfamA = pfamA.auto_pfamA \
        GROUP BY genome_seqs.auto_pfamA;
 +------------+-----------+--------------+-----------------------------------------------------------------+------------+
@@ -1089,14 +1089,14 @@ total_genome_proteins: 5397</pre>
     
     <p>
       <strong>Note:</strong> The <span class="column">ncbi_code</span> for the 
-      species &apos;Arabidopsis thaliana&apos; is 3702. This information can be 
+      species &#39;Arabidopsis thaliana&#39; is 3702. This information can be 
       found in the <span class="table">ncbi_taxonomy</span> table.
     </p>
 
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the UniProtKB protein sequences for the species 
-      &apos;Arabidopsis thaliana&apos; 
+      &#39;Arabidopsis thaliana&#39; 
     </fieldset>
       
     <fieldset class="sql">
@@ -1104,7 +1104,7 @@ total_genome_proteins: 5397</pre>
       <pre>mysql> SELECT pfamseq.pfamseq_id \
        FROM   pfamseq, \
               genome_seqs \
-       WHERE  pfamseq.ncbi_code = &apos;3702&apos; \
+       WHERE  pfamseq.ncbi_code = &#39;3702&#39; \
        AND    genome_seqs.auto_pfamseq = pfamseq.auto_pfamseq;
 +-------------+
 | pfamseq_id  |
@@ -1124,8 +1124,8 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the UniProtKB protein sequences from the species 
-      &apos;Arabidopsis thaliana&apos; that belong to Pfam-A domain 
-      &apos;PF00106&apos;
+      &#39;Arabidopsis thaliana&#39; that belong to Pfam-A domain 
+      &#39;PF00106&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1134,10 +1134,10 @@ total_genome_proteins: 5397</pre>
        FROM   pfamseq, \
               genome_seqs, \
               pfamA \
-       WHERE  genome_seqs.ncbi_code = &apos;3702&apos; \
+       WHERE  genome_seqs.ncbi_code = &#39;3702&#39; \
        AND    genome_seqs.auto_pfamseq = pfamseq.auto_pfamseq \
        AND    genome_seqs.auto_pfamA = pfamA.auto_pfamA \
-       AND    pfamA_acc = &apos;PF00106&apos;;
+       AND    pfamA_acc = &#39;PF00106&#39;;
 +--------------+
 | pfamseq_id   |
 +--------------+
@@ -1174,7 +1174,7 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the Pfam-A families that have a PRC E-value score of less 
-      than 0.001 for the pfamA family &apos;ABC1&apos;
+      than 0.001 for the pfamA family &#39;ABC1&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1194,7 +1194,7 @@ total_genome_proteins: 5397</pre>
        WHERE  A.auto_pfamA = pfamA2pfamA_PRC_results.auto_pfamA1 \
        AND    B.auto_pfamA = pfamA2pfamA_PRC_results.auto_pfamA2 \
        AND    evalue &lt; 1e-03 \
-       AND    A.pfamA_id = &apos;ABC1&apos;;
+       AND    A.pfamA_id = &#39;ABC1&#39;;
 +----------+-------------+--------------+------------+---------+--------------+------------+---------+--------------+
 | pfamA_id | pfamA_id    | model_start1 | model_end1 | length1 | model_start2 | model_end2 | length2 | evalue       |
 +----------+-------------+--------------+------------+---------+--------------+------------+---------+--------------+
@@ -1213,7 +1213,7 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the Pfam-A families that have a PRC E-value score of less 
-      than 0.001 when compared to the Pfam-B family &apos;PB007609&apos;
+      than 0.001 when compared to the Pfam-B family &#39;PB007609&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1234,7 +1234,7 @@ total_genome_proteins: 5397</pre>
        WHERE  b.auto_pfamB = ab.auto_pfamB \
        AND    ab.auto_pfamA = a.auto_pfamA \
        AND    evalue &lt; 1e-03 \
-       AND    pfamB_acc = &apos;PB007609&apos;;
+       AND    pfamB_acc = &#39;PB007609&#39;;
 +-----------+----------------+--------------+------------+---------+--------------+------------+---------+--------------+
 | pfamB_acc | pfamA_id       | model_start1 | model_end1 | length1 | model_start2 | model_end2 | length2 | evalue       |
 +-----------+----------------+--------------+------------+---------+--------------+------------+---------+--------------+
@@ -1245,7 +1245,7 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the Pfam-B families that have a PRC E-value score of less 
-      than 0.001 when compared to the Pfam-B family &apos;PB007609&apos;
+      than 0.001 when compared to the Pfam-B family &#39;PB007609&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1266,7 +1266,7 @@ total_genome_proteins: 5397</pre>
        WHERE  a.auto_pfamB = ab.auto_pfamB1 \
        AND    b.auto_pfamB = ab.auto_pfamB2 \
        AND    evalue &lt; 1e-03 \
-       AND    a.pfamB_acc = &apos;PB006860&apos;;
+       AND    a.pfamB_acc = &#39;PB006860&#39;;
 +-----------+-----------+--------------+------------+---------+--------------+------------+---------+--------------+
 | pfamB_acc | pfamB_acc | model_start1 | model_end1 | length1 | model_start2 | model_end2 | length2 | evalue       |
 +-----------+-----------+--------------+------------+---------+--------------+------------+---------+--------------+
@@ -1277,7 +1277,7 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all pf the Pfam-A families that have a SCOOP score greater than 50 
-      when compared to the family &apos;ABC1&apos;
+      when compared to the family &#39;ABC1&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1290,7 +1290,7 @@ total_genome_proteins: 5397</pre>
               pfamA2pfamA_scoop_results AS ab \
        WHERE  a.auto_pfamA = ab.auto_pfamA1 \
        AND    b.auto_pfamA = ab.auto_pfamA2 \
-       AND    a.pfamA_id = &apos;ABC1&apos; \
+       AND    a.pfamA_id = &#39;ABC1&#39; \
        AND    score &gt; 50;
 +----------+----------+---------+
 | pfamA_id | pfamA_id | score   |
@@ -1321,7 +1321,7 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the Pfam-A domains for NCBI protein 
-      &apos;GI:1000125&apos;
+      &#39;GI:1000125&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1332,7 +1332,7 @@ total_genome_proteins: 5397</pre>
               seq_end \
        FROM   ncbi_pfamA_reg, \
               pfamA \
-       WHERE  ncbi_pfamA_reg.gi = &apos;1000125&apos; \
+       WHERE  ncbi_pfamA_reg.gi = &#39;1000125&#39; \
        AND    ncbi_pfamA_reg.auto_pfamA = pfamA.auto_pfamA \
        AND    in_full = 1;
 +-----------+-----------+-----------+---------+
@@ -1347,14 +1347,14 @@ total_genome_proteins: 5397</pre>
     </fieldset>
 
     <p>
-      <strong>Note:</strong> The query must include &apos;in_full=1&apos; in
+      <strong>Note:</strong> The query must include &#39;in_full=1&#39; in
       order to retrieve only significant hits.
     </p>
  
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the NCBI protein domains for the 
-      Pfam-A family &apos;AalphaY_MDB&apos;
+      Pfam-A family &#39;AalphaY_MDB&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1365,7 +1365,7 @@ total_genome_proteins: 5397</pre>
               pfamA_id \
        FROM   pfamA, \
               ncbi_pfamA_reg \
-       WHERE  pfamA_id = &apos;AalphaY_MDB&apos; \
+       WHERE  pfamA_id = &#39;AalphaY_MDB&#39; \
        AND    pfamA.auto_pfamA = ncbi_pfamA_reg.auto_pfamA \
        AND    in_full = 1;
 +---------+-----------+---------+-------------+
@@ -1380,7 +1380,7 @@ total_genome_proteins: 5397</pre>
     </fieldset>
 
     <p>
-      <strong>Note:</strong> The query must include &apos;in_full=1&apos; in
+      <strong>Note:</strong> The query must include &#39;in_full=1&#39; in
       order to retrieve only significant hits.
     </p>
     
@@ -1405,7 +1405,7 @@ total_genome_proteins: 5397</pre>
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the Pfam-A domains for metagenomics protein 
-      &apos;JCVI_ORF_1096665732460&apos; 
+      &#39;JCVI_ORF_1096665732460&#39; 
     </fieldset>
       
     <fieldset class="sql">
@@ -1418,7 +1418,7 @@ mysql> SELECT pfamA_acc, \
        FROM   metaseq, \
               pfamA, \
               meta_pfamA_reg \
-       WHERE  metaseq_id = &apos;JCVI_ORF_1096665732460&apos; \
+       WHERE  metaseq_id = &#39;JCVI_ORF_1096665732460&#39; \
        AND    metaseq.auto_metaseq = meta_pfamA_reg.auto_metaseq \
        AND    meta_pfamA_reg.auto_pfamA = pfamA.auto_pfamA;
 +-----------+-----------+-----------+---------+
@@ -1432,7 +1432,7 @@ mysql> SELECT pfamA_acc, \
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all of the metagenomics domains for the family &apos;3-alpha&apos;
+      Give me all of the metagenomics domains for the family &#39;3-alpha&#39;
     </fieldset>
       
     <fieldset class="sql">
@@ -1445,7 +1445,7 @@ mysql> SELECT metaseq_id, \
        FROM   pfamA, \
               metaseq, \
               meta_pfamA_reg \
-       WHERE  pfamA_id = &apos;3-alpha&apos; \
+       WHERE  pfamA_id = &#39;3-alpha&#39; \
        AND    pfamA.auto_pfamA = meta_pfamA_reg.auto_pfamA \
        AND    meta_pfamA_reg.auto_metaseq = metaseq.auto_metaseq;
 +------------------------+-----------+---------+----------+
