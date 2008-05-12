@@ -118,6 +118,9 @@ sub desc_is_OK {
             };
             /^ID/ && do { 
                 $fields{$&}++;
+		if ( /^ID   (\S+);$/ ) {
+		    warn "$family: Bad formatting. Illegal semi colon at end of ID line [$_]";
+		}
                 last;
             };
             /^DE/ && do { 
@@ -129,6 +132,8 @@ sub desc_is_OK {
                     warn "$family: DE lines should not be plural!, please check and remove if plural\n";
                 } elsif (/^DE.*\.$/){
 		    warn "$family: DE lines should not end with a fullstop\n";
+                } elsif (/^DE.*\;$/){
+		    warn "$family: DE lines should not end with a semicolon\n";
                 }
                 last; };
             /^AU/ && do { $fields{$&}++; last; };
@@ -226,9 +231,9 @@ sub desc_is_OK {
 		   $error = 1;
                     warn "$family: DESC files should not contain blank PI lines, please check and remove\n"; 
 		   last;
-	       }elsif (! /^PI\s{3}(\S+;\s?){1,10}$/) {
+	       }elsif ((! /^PI\s{3}(\S+;\s){1,10}/ ) || (! /;$/))   {
 		   $error = 1;
-                    warn "$family: DESC file PI lines wrongly formatted, please check format\n"; 
+                    warn "$family: DESC file PI lines wrongly formatted, please check format\n (missing space after internal semi-colon, or missing terminal semicolon?)\n"; 
 		   last;
 	       }
 		last;
