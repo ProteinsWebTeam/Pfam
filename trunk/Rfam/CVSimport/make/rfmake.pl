@@ -57,11 +57,7 @@ if (!defined($output)){
     $output = "out.list";
 }
 
-if (!defined($thr)){
-    $thr = 5;
-}
 my $thrcurr = 5;
-
 my ($local, @family_terms, %family_terms);
 if( not $overlaps && -e "DESC" ) {
     open( DESC, "DESC" ) or warn "Can't open DESC to determine global/local requirement\n";
@@ -83,6 +79,10 @@ if( not $overlaps && -e "DESC" ) {
 	};
     }
     close DESC;
+}
+
+if (!defined($thr)){#If the DESC file is incomplete then we need to set a sensible default:
+    $thr = 5;
 }
 
 my %forbidden_family_terms = (
