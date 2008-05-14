@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.38 2008-04-25 13:10:27 jt6 Exp $
+# $Id: Family.pm,v 1.39 2008-05-14 10:47:50 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.38 2008-04-25 13:10:27 jt6 Exp $
+$Id: Family.pm,v 1.39 2008-05-14 10:47:50 jt6 Exp $
 
 =cut
 
@@ -82,7 +82,7 @@ sub begin : Private {
   
   my $entry;
   if ( $tainted_entry ) {
-    ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
+    ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)$/;
     $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
       unless defined $entry;
   }
@@ -344,8 +344,16 @@ sub get_db_xrefs : Private {
          ->search( { auto_pfamA1 => $c->stash->{pfam}->auto_pfamA,
                      score       => { '>', 50.0 } },
                    { join        => [ qw( pfamA1 pfamA2 ) ],
-                     select      => [ qw( pfamA1.pfamA_id pfamA2.pfamA_id score ) ],
-                     as          => [ qw( l_pfamA_id r_pfamA_id score ) ]
+                     select      => [ qw( pfamA1.pfamA_id 
+                                          pfamA2.pfamA_id
+                                          pfamA1.pfamA_acc
+                                          pfamA2.pfamA_acc
+                                          score ) ],
+                     as          => [ qw( l_pfamA_id
+                                          r_pfamA_id 
+                                          l_pfamA_acc 
+                                          r_pfamA_acc
+                                          score ) ]
                    } );
 
   # PfamA to PfamB links based on PRODOM
