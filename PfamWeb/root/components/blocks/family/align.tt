@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.25 2008-04-25 13:27:02 jt6 Exp $
+# $Id: align.tt,v 1.26 2008-05-16 15:30:31 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -313,3 +313,21 @@ alignmentUri = c.uri_for( "/family/alignment" );
 </div>
 
 <!-- end of align block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

@@ -4,7 +4,7 @@
 #
 # block for the interactions data for the clan section
 #
-# $Id: interactions.tt,v 1.8 2007-12-12 17:00:56 jt6 Exp $
+# $Id: interactions.tt,v 1.9 2008-05-16 15:30:31 jt6 Exp $
 
 RETURN UNLESS summaryData.numInt;
 
@@ -84,3 +84,21 @@ END;
 </div>
 
 <!-- end interactions block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
