@@ -3,8 +3,8 @@ package Bio::Pfam::WebServices::PfamQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2007-09-11 11:34:47 $
-# Id:            $Id: PfamQueue.pm,v 1.7 2007-09-11 11:34:47 rdf Exp $
+# Last Modified: $Date: 2008-05-16 15:13:18 $
+# Id:            $Id: PfamQueue.pm,v 1.8 2008-05-16 15:13:18 jt6 Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -657,7 +657,7 @@ Bio::Pfam::WebServices::PfamQueue - A transactional-database-backed queuing syst
 
 =head1 VERSION
 
-$Revision: 1.7 $
+$Revision: 1.8 $
 
 =head1 SYNOPSIS
 
@@ -827,5 +827,22 @@ equivalent to job submission management via LSF.
 Roger Pettett
 
 =head1 LICENSE AND COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Roger Pettett (rmp@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
