@@ -71,16 +71,16 @@ $max_pid_thresh = 0.95;
 	     "pname=s"             => \$pname,
              "altdb=s"             => \$altdb,
 	     "m|mini|minidb|minidbpname=s" => \$minidbpname,
-             "obm|onlybuildminis" => \$onlybuildminis,
-	     "nf|nofilters"  => \$nofilters,
-	     "nolcmask"      => \$nolcmask,
-	     "long|hmmonly"  => \$hmmonly,
-	     "gapthresh=s"     => \$gap_thresh,
-	     "nucfreqthresh=s" => \$nuc_freq_thresh,
-	     "maxpidthresh=s"  => \$max_pid_thresh,
-	     "window"          => \$window,
-             "maxseqs4cmsearchlimits"          => \$maxseqs4cmsearchlimits,
-             "minseqs4cmsearchlimits"          => \$minseqs4cmsearchlimits,
+             "obm|onlybuildminis"  => \$onlybuildminis,
+	     "nf|nofilters"        => \$nofilters,
+	     "nolcmask"            => \$nolcmask,
+	     "long|hmmonly"        => \$hmmonly,
+	     "gapthresh=s"         => \$gap_thresh,
+	     "nucfreqthresh=s"     => \$nuc_freq_thresh,
+	     "maxpidthresh=s"      => \$max_pid_thresh,
+	     "window=s"            => \$window,
+             "maxseqs4cmsearchlimits=s"          => \$maxseqs4cmsearchlimits,
+             "minseqs4cmsearchlimits=s"          => \$minseqs4cmsearchlimits,
              "dirty"           => \$dirty,
              "nomerge"         => \$nomerge,
 	     "h"               => \$help 
@@ -517,6 +517,9 @@ if ($nofilters){
 }
 else {
     my $i=0;
+
+#  BLAST: { 
+
  #   &printlog( "Submitting: @minidbnames to the farm.");
     foreach my $minidb ( @minidbnames ) { 
 #	&printlog( "Running: $command $options $lustre/$$.CM $lustre/$minidb > $lustre/$$.OUTPUT.$i");
@@ -527,9 +530,16 @@ else {
 	$i++;
     }
 
-#    $fhcm -> open( "| bsub -q $queuecm -o $pwd/$$/$$.err.\%I -J$pname\"[1-$numminidbs]\"" ) or die "$!";
-#    $fhcm -> print( "$command $options $lustre/$$.CM $lustre/$minidbpname\.minidb.\$\{LSB_JOBINDEX\} > $lustre/$$.OUTPUT.\$\{LSB_JOBINDEX\}\n" );
-#    $fhcm -> close;
+
+
+#     foreach my $ii ( @index ) {
+#	  
+#	  if (-e "$blastpname\.blastout.$ii.error"){
+# 	      &printlog( "Blast job didn't finish [$blastpname\.blastout.$ii] -- rerunning blast search." );
+# 	      push( @rerun, $ii );
+# 	  }
+#       }
+
 }
 
 my $cmopts=$options . "";
