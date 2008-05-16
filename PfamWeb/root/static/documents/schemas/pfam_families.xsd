@@ -47,10 +47,14 @@ this program. If not, see <http://www.gnu.org/licenses/>.
       <xs:documentation>Information about a Pfam database entity</xs:documentation>
     </xs:annotation>
     <xs:complexType>
+      <xs:all>
+        <xs:element name="description" type="xs:string" minOccurs="0" />
+      </xs:all>
       <xs:attribute name="entry_type">
         <xs:simpleType>
           <xs:restriction base="xs:string">
             <xs:enumeration value="Pfam-A" />
+            <xs:enumeration value="Pfam-B" />
           </xs:restriction>
         </xs:simpleType>
       </xs:attribute>
@@ -58,6 +62,5 @@ this program. If not, see <http://www.gnu.org/licenses/>.
       <xs:attribute name="id" type="pfamId" use="required" />
     </xs:complexType>
   </xs:element>
-  
-  
+    
 </xs:schema>
