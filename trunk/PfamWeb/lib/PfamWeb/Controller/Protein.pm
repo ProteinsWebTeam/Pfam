@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.35 2008-01-08 15:43:55 jt6 Exp $
+# $Id: Protein.pm,v 1.36 2008-05-16 15:29:28 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.35 2008-01-08 15:43:55 jt6 Exp $
+$Id: Protein.pm,v 1.36 2008-05-16 15:29:28 jt6 Exp $
 
 =cut
 
@@ -88,6 +88,9 @@ sub begin : Private {
   
   # strip off sequence versions, if present
   $entry =~ s/^(.{6})\.\d+$/$1/;
+
+  $c->log->debug( "Protein::begin: looking up sequence '$entry'" )
+    if $c->debug;
 
   # retrieve the data for this sequence entry  
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
@@ -289,7 +292,8 @@ sub generate_pfam_graphic : Private {
     $annseq = thaw( $c->stash->{pfamseq}->annseq->annseq_storable );
   };
   if ($@) {
-    $c->log->error("Protein::begin: ERROR: failed to thaw annseq: $@");
+    $c->log->error("Protein::generate_pfam_graphic: ERROR: failed to thaw annseq: $@");
+    return;
   }
 
   $layoutPfam->layout_sequences_with_regions_and_features( [$annseq],
@@ -447,20 +451,18 @@ Copyright (c) 2007: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 

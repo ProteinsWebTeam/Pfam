@@ -2,7 +2,7 @@
 # PfamGraphicsTools.pm
 # jt 20070402 WTSI
 #
-# $Id: PfamGraphicsTools.pm,v 1.4 2008-01-09 14:47:31 jt6 Exp $
+# $Id: PfamGraphicsTools.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ A couple of utility methods for generating Pfam graphics from a user-supplied
 XML file and for displaying the XML that builds the graphic for a specified 
 UniProt entry.
 
-$Id: PfamGraphicsTools.pm,v 1.4 2008-01-09 14:47:31 jt6 Exp $
+$Id: PfamGraphicsTools.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
 
 =cut
 
@@ -260,6 +260,8 @@ sub returnGraphic : Private {
     my $imageFile = $c->config->{'View::TT'}->{CONSTANTS}->{tmp}
                     . '/' . $image->file_location;
     my $imageURI = $c->uri_for( "/$imageFile" );
+    $c->log->debug("PfamGraphicsTools::returnGraphic: returning image URI: |$imageURI|" )
+      if $c->debug;
     $c->res->redirect( $imageURI, 301 );
     return 1;
   } else {
@@ -332,20 +334,18 @@ Copyright (c) 2007: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 

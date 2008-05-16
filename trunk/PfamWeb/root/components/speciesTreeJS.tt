@@ -6,7 +6,7 @@
 # build the javascript boiler plate that controls loading of the species
 # tree
 #
-# $Id: speciesTreeJS.tt,v 1.7 2008-02-04 17:14:53 jt6 Exp $
+# $Id: speciesTreeJS.tt,v 1.8 2008-05-16 15:30:32 jt6 Exp $
 
 stUri = c.uri_for( "/speciestree" );
 %]
@@ -50,3 +50,21 @@ stUri = c.uri_for( "/speciestree" );
 
   // ]]>
 </script>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
