@@ -2,7 +2,7 @@
 # PfamDB.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamDB.pm,v 1.14 2007-10-15 09:46:40 jt6 Exp $
+# $Id: PfamDB.pm,v 1.15 2008-05-16 15:23:16 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -19,7 +19,7 @@ package PfamDB;
 The base class for the whole Pfam database model. Config comes from the catalyst 
 application class.
 
-$Id: PfamDB.pm,v 1.14 2007-10-15 09:46:40 jt6 Exp $
+$Id: PfamDB.pm,v 1.15 2008-05-16 15:23:16 jt6 Exp $
 
 =cut
 
@@ -66,6 +66,7 @@ __PACKAGE__->load_classes( qw(
   Pfam
   PfamA2pfamA_PRC_results
   PfamA2pfamA_scoop_results
+  PfamA_HMM_logo
   PfamA_HMM_fs
   PfamA_HMM_ls
   PfamA_architecture
@@ -109,20 +110,18 @@ Copyright (c) 2007: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
