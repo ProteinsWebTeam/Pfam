@@ -22,6 +22,31 @@ __PACKAGE__->set_primary_key("nadi");
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Jyw4vx7Z2hVHuglT5Ly+Cg
 
 
-# You can replace this text with custom content, and it will be preserved on regeneration
 __PACKAGE__->add_unique_constraint("nadiConst", ["nucleic_acid_acc", "region_id"]);
+
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Rob Finn, C<rdf@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+
+=cut
+
 1;
