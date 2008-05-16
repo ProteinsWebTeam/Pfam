@@ -6,7 +6,7 @@ use Getopt::Long;
 use SeqFetch;
 my ($blastfile, $outfile, $limits, $window, $blastdatabase, $help);
 
-$limits=1000;
+$limits=2000;
 $window = 200;
 
 &GetOptions( 
@@ -14,7 +14,7 @@ $window = 200;
     "o|file=s"          => \$outfile,
     "l|limits=s"        => \$limits,
     "w|window=s"        => \$window,
-    "d|db|database=s"     => \$blastdatabase,
+    "d|db|database=s"   => \$blastdatabase,
     "h|help"            => \$help 
     );
 
@@ -162,6 +162,7 @@ foreach my $n ( keys %seq_list ){
 	    $filecount++;
 	    close(OUT);
 	}
+
 	$iindx++;
 	$seqcounter++;
     }
