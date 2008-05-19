@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.19 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Sequence.pm,v 1.20 2008-05-19 12:27:33 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.19 2008-05-16 15:29:28 jt6 Exp $
+$Id: Sequence.pm,v 1.20 2008-05-19 12:27:33 jt6 Exp $
 
 =cut
 
@@ -202,10 +202,42 @@ sub results : Local {
 
   # try to retrieve the results for the specified jobs
   my @jobIds = $c->req->param( 'jobId' );
+  
+  my $completed = 0;
   foreach my $job_id ( @jobIds ) {
+    
+    # detaint the ID
     next unless $job_id =~ m/^([A-F0-9\-]{36})$/;
+
+    # try to retrieve results for it
     $c->forward( 'JobManager', 'retrieveResults', [ $job_id  ] );
-    $c->forward( 'handleResults', [ $job_id  ] ) if $c->stash->{results};
+
+    # we should get *something*, even if there are no results, but let's just
+    # check quickly
+    next unless $c->stash->{results}->{$job_id};
+
+    $c->log->debug( "Search::results: looking up results for job |$job_id|" )
+      if $c->debug;
+
+    # keep track of how many jobs are actually completed
+    if ( $c->stash->{results}->{$job_id}->{status} eq 'DONE' ) {
+      $completed++;
+      $c->log->debug( "Search::results: job |$job_id| completed" )
+        if $c->debug;
+    }
+    
+    # parse the results
+    $c->forward( 'handleResults', [ $job_id  ] );
+  }
+
+  # if none of the jobs have actually finished, return HTTP status 204 and
+  # we're done here. Don't try to render a template at all 
+  unless ( $completed ) {
+    $c->log->debug( 'Search::results: no results; returning 204' )
+      if $c->debug;
+    $c->res->status( '204' ); # 'No content'
+    $c->res->body( 'Search(es) not yet complete' );
+    return;
   }
 
   # should we output XML ?
