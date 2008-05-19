@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+# $Id: JobManager.pm,v 1.3 2008-05-19 12:27:57 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+$Id: JobManager.pm,v 1.3 2008-05-19 12:27:57 jt6 Exp $
 
 =cut
 
@@ -154,9 +154,9 @@ parameters to find the jobId.
 =cut
 
 sub retrieveResults : Private {
-  my( $this, $c, $job_id ) = @_;
+  my ( $this, $c, $job_id ) = @_;
 
-  unless( $job_id =~ m/^([A-F0-9\-]{36})$/ ) {
+  unless ( $job_id =~ m/^([A-F0-9\-]{36})$/ ) {
     $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" )
       if $c->debug;
     return;
@@ -178,6 +178,7 @@ sub retrieveResults : Private {
     if $c->debug;
   
   # retrieve the results of the job and stash them
+  $c->stash->{results}->{$job_id}->{status}  = $job->status;
   $c->stash->{results}->{$job_id}->{rawData} = $job->stdout;
   $c->stash->{results}->{$job_id}->{length}  = length( $job->stdin );
   $c->stash->{results}->{$job_id}->{method}  = $job->job_type;
