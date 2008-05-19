@@ -4,7 +4,7 @@
 #
 # template for returning the URL for the results of a sequence search
 #
-# $Id: poll_xml.tt,v 1.4 2008-05-16 15:31:28 jt6 Exp $
+# $Id: poll_xml.tt,v 1.5 2008-05-19 10:47:27 jt6 Exp $
 
 USE dumper;
 
@@ -12,11 +12,11 @@ META naked = 1;
 
 baseUri = "http://pfam.sanger.ac.uk/";
 -%]
-<pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<?xml version="1.0" encoding="UTF-8"?>
+<jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
-                          [% baseUri %]static/documents/schemas/submission.xsd"
-<jobs>
+                          [% baseUri %]static/documents/schemas/submission.xsd">
 [% FOREACH job IN jobStatus -%]
   <job job_id="[% job.jobId %]" type="[% job.jobClass %]">
     <opened>[% job.opened %]</opened>
