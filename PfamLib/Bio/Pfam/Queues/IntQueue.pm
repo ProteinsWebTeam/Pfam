@@ -3,8 +3,8 @@ package Bio::Pfam::Queues::IntQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2008-05-16 15:13:18 $
-# Id:            $Id: IntQueue.pm,v 1.3 2008-05-16 15:13:18 jt6 Exp $
+# Last Modified: $Date: 2008-05-19 12:04:31 $
+# Id:            $Id: IntQueue.pm,v 1.4 2008-05-19 12:04:31 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -41,7 +41,9 @@ sub new {
   
   #All of this should really go into some sort of config
   #Lost of current jobs that can be dealt with	
-  $self->knownJobs( { view => 'makepfamview.pl' } );
+  $self->knownJobs( { view    => 'makepfamview.pl',
+                      genPept => '',
+                      genPeptView => 'makencbiview.pl' } );
   #Get a database connection
   $self->getSchema({password => 'mafp1' });
   #Start setting up the local information for setting up the jobs
@@ -49,7 +51,7 @@ sub new {
   $self->currentDir("/lustre/pfam/pfam/Production/Pfam/CURRENT");
   $self->farmNode("farm-login");
   $self->hugeMemNode("turing");
-  self->hugeMemTmpDir("/tmp");
+  $self->hugeMemTmpDir("/tmp");
   #Return the blessed object
   return ($self);
 }
