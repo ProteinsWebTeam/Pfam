@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.40 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Family.pm,v 1.41 2008-05-20 15:35:36 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.40 2008-05-16 15:29:28 jt6 Exp $
+$Id: Family.pm,v 1.41 2008-05-20 15:35:36 jt6 Exp $
 
 =cut
 
@@ -89,6 +89,17 @@ sub begin : Private {
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
   }
+  
+  #  find out what type of alignment we need, seed, full, ncbi, etc
+  $c->stash->{alnType} = 'seed';
+  if( defined $c->req->param('alnType') ) {
+    $c->stash->{alnType} = ( $c->req->param( 'alnType' ) eq 'full' ) ? 'full'
+                         : ( $c->req->param( 'alnType' ) eq 'ncbi' ) ? 'ncbi' 
+                         :                                             'seed';
+  }
+  
+  $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
+    if $c->debug;
   
   # retrieve data for the family
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
@@ -220,14 +231,6 @@ sub get_data : Private {
         $c->forward( 'get_summary_data' );
         $c->forward( 'get_db_xrefs' );
         $c->forward( 'get_interactions' );
-      }
-
-      #  find out what type of tree to draw, seed or full
-      if( defined $c->req->param('alnType') ) {
-        $c->stash->{alnType} = ( $c->req->param( 'alnType' ) eq 'seed' ) ? 'seed' : 'full';
-      }
-      else {
-        $c->stash->{alnType} = 'seed';
       }
 
     } # end of "unless XML..."
