@@ -14,6 +14,7 @@ __PACKAGE__->load_classes;
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 
+
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
