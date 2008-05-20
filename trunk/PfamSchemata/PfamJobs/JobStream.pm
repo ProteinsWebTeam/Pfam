@@ -4,9 +4,9 @@
 #
 # Model for the job_stream table.
 #
-# $Id: JobStream.pm,v 1.3 2008-05-16 15:23:16 jt6 Exp $
+# $Id: JobStream.pm,v 1.4 2008-05-20 15:46:19 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamJobs::JobStream;
 
@@ -25,7 +25,7 @@ __PACKAGE__->add_columns( qw( id stdin stdout stderr ) );
 
 # set up the primary keys/contraints
 __PACKAGE__->set_primary_key( 'id' );
-
+  
 # relationships
 
 __PACKAGE__->has_one( job_history => 'PfamJobs::JobHistory',
