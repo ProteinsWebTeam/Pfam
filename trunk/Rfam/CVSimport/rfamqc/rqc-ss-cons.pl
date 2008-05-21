@@ -31,30 +31,39 @@ if (defined($help) ) {
 
 my $family_dir;
 
-if( $#ARGV == 0 ) {
+if( !defined($file) && scalar(@ARGV) > 0 ) {
     $family_dir = shift; # family dir to use
-    #print "$#ARGV family_dir: $family_dir\n";    
+    $file = "SEED";
+}
+elsif (defined($file)) {
+    my @fp = split(/\//, $file);
+    $file = pop(@fp);
+    if (scalar(@fp)>0){
+	$family_dir = join('/',@fp);
+    }
+    else {
+	$family_dir = './';
+    }
 }
 else {
     $family_dir = getcwd;
-}
-
-if (!defined($file)){
     $file = "SEED";
 }
-#print "ARGV $#ARGV family_dir: $family_dir\n";
+
+print "family_dir: $family_dir\n";
 
 if ( !(-e "$family_dir/$file")){
-    print "FATAL: missing essential input file: [$family_dir/SEED]\n";
+    print "FATAL: missing essential input file: [$family_dir/$file]\n";
     help();
     exit(1);    
 }
 
+$file = "$family_dir/$file";
+open( SEED, "$file" ) or die ("FATAL: Couldn't open $file!\n $!\n");
+
 my @family_dir = split(/\//, $family_dir);
 my $shortname_family_dir = pop(@family_dir); # family name for printing
 
-print "family_dir: $shortname_family_dir\n";
-#print "shortname family dir: $shortname_family_dir\n";
 
 my (%persequence, %perbasepair, @persequencekeys, @perbasepairkeys, %persequence_lens, %composition, %perbasepaircovariation, %perbasepaircovcounts, %persequenceweights);
 my $perfamily=0;
@@ -88,13 +97,6 @@ else {
     printf "You're stupidly not writing to log-file!\n";
 }
 
-if (defined($file)){
-    open( SEED, "$file" ) or die ("FATAL: Couldn't open $file!\n $!\n");
-}
-else {
-    $file = "$family_dir/SEED";
-    open( SEED, "$family_dir/SEED" ) or die ("FATAL: Couldn't open SEED!\n $!\n");
-}
 
 my $seed = new Rfam::RfamAlign;
 $seed -> read_stockholm( \*SEED );
