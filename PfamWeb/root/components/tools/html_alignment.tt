@@ -4,7 +4,7 @@
 # 
 # build a page for the HTML alignment fragment
 #
-# $Id: html_alignment.tt,v 1.2 2008-05-16 15:30:31 jt6 Exp $
+# $Id: html_alignment.tt,v 1.3 2008-05-22 09:56:12 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -50,6 +50,14 @@ title = type _ " sequence alignment for " _ acc;
     <dd>Charged amino-acids (D,E,R,K)</dd>
     <dt class="c">&nbsp;</dt>
     <dd>Histidine and tyrosine (H,Y)</dd>
+  </dl>
+  
+  <p>
+    For UniProt-based alignments, we also add some additional mark-up to the 
+    alignments where appropriate. Active site information is shown as follows:
+  </p>
+  
+  <dl> 
     <dt class="as">&nbsp;</dt>
     <dd>Active site (residue annotated in SwissProt as an active site)</dd>
     <dt class="pas">&nbsp;</dt>
@@ -61,10 +69,10 @@ title = type _ " sequence alignment for " _ acc;
   </dl>
 
   <p>
-    Some sequences can be mapped to protein structures, in which case we also
-    show the secondary structure definition. These lines are shown below the 
-    sequence to which they apply and are marked <code>(SS)</code>. The meaning of 
-    each of the symbols is as follows:
+    Some UniProt sequences can be mapped to protein structures, in which case 
+    we also show the secondary structure definition. These lines are shown below 
+    the sequence to which they apply and are marked <code>(SS)</code>. The 
+    meaning of each of the symbols is as follows:
   </p>
 
   <dl>

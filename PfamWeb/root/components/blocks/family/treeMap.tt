@@ -4,22 +4,27 @@
 #
 # format the image map for the species tree
 #
-# $Id: treeMap.tt,v 1.5 2008-05-16 15:30:31 jt6 Exp $
+# $Id: treeMap.tt,v 1.6 2008-05-22 09:56:12 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
 
 -%]
 
-<img src="[% c.uri_for( "/family/tree/image", { acc = acc, alnType = alnType } ) | html %]" 
+<img src="[% c.uri_for( "/family/tree/image", { acc => acc, alnType => alnType } ) | html %]" 
      usemap="#nhxmap" />
 
 <map name="nhxmap">
 [% FOREACH node IN tree.node_array;
   matches = node.N.match( '^(.*?)\/\d+-\d+$' );
-  IF node.area AND matches.0 -%]
+  IF node.area AND matches.0;
+    IF alnType == "ncbi";
+      url = c.uri_for( "/ncbiseq", { entry = matches.0 } );
+    ELSE;
+      url = c.uri_for( "/protein", { entry = matches.0 } );
+    END -%]
   <area coords="[% node.area.join( "," ) %]" 
-        href="[% c.uri_for( "/protein", { id = matches.0 } ) %]" />
+        href="[% url %]" />
   [% END;
 END -%]
 </map>
