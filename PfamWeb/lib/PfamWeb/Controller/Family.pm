@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.41 2008-05-20 15:35:36 jt6 Exp $
+# $Id: Family.pm,v 1.42 2008-05-22 09:52:05 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.41 2008-05-20 15:35:36 jt6 Exp $
+$Id: Family.pm,v 1.42 2008-05-22 09:52:05 jt6 Exp $
 
 =cut
 
@@ -68,10 +68,7 @@ sub begin : Private {
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  if ( defined $c->req->param('output') and
-       $c->req->param('output') eq 'xml' ) {
-    $c->stash->{output_xml} = 1;
-  }
+  $c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
   
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||

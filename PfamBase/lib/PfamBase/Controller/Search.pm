@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20080314 WTSI
 #
-# $Id: Search.pm,v 1.4 2008-05-16 14:58:22 jt6 Exp $
+# $Id: Search.pm,v 1.5 2008-05-22 09:51:09 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search;
 
 This controller is responsible for running searches.
 
-$Id: Search.pm,v 1.4 2008-05-16 14:58:22 jt6 Exp $
+$Id: Search.pm,v 1.5 2008-05-22 09:51:09 jt6 Exp $
 
 =cut
 
@@ -71,8 +71,7 @@ sub begin : Private {
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  $c->stash->{output_xml} = ( defined $c->req->param('output') and
-                              $c->req->param('output') eq 'xml' );
+  $c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
 
 }
 
