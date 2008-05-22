@@ -1,0 +1,97 @@
+/* Basic styling, used when JavaScript is unsupported */
+.cbb {
+	margin:1em 0;
+	padding:0 10px;
+	border:1px solid #666;
+	background:#fff;
+}
+.cbb h1 {
+	margin:0 -10px;
+	padding:0.3em 10px;
+	background:#efece6;
+	font:bold 1.2em/1 Arial, Helvetica, sans-serif;
+}
+/* Normal styling */
+.cb {margin:0.5em 0;}
+	/* Top corners and border */
+.bt {
+	height:14px;
+	margin:0 0 0 18px;
+	background: url(/static/images/box.gif) no-repeat 100% 0;
+}
+.bt div {
+	position:relative;
+	left:-18px;
+	width:18px;
+	height:14px;
+	background: url(/static/images/box.gif) no-repeat 0 0;
+	font-size:0;
+	line-height:0;
+}
+
+	/* Bottom corners and border */
+.bb {
+	height:15px;
+	margin:0 0 0 18px;
+	background: url(/static/images/box.gif) no-repeat 100% 100%;
+}
+.bb div {
+	position:relative;
+	left:-18px;
+	width:18px;
+	height:15px;
+	background: url(/static/images/box.gif) no-repeat 0 100%;
+	font-size:0;
+	line-height:0;
+}
+
+	/* Left border */
+.i1 {
+  margin-left: 3px;
+	padding: 0;
+	background: url(/static/images/borders.gif) repeat-y 0 0;
+}
+	/* Right border */
+.i2 {
+	padding:0 9px 0 0.4em;
+	background: url(/static/images/borders.gif) repeat-y 100% 0;
+}
+	/* Wrapper for the content. Use it to set the background colour and insert some padding between the borders and the content. */
+.i3 {
+	display:block;
+	margin:0;
+	padding:1px 0.4em;
+	background:#e7edf3; /* Prime 1 */
+}
+#contentContainer {
+  background-color: #FFF ! important;
+}
+	/* Make the content wrapper auto clearing so it will contain floats (see http://positioniseverything.net/easyclearing.html). */
+.i3:after {
+	content:"."; 
+	display:block; 
+	height:0; 
+	clear:both; 
+	visibility:hidden;
+}
+.i3 {display:inline-block;}
+.i3 {display:block;}
+
+* html .i1,
+* html .i3 {height:1px;}
+
+/* change the background for the icons */
+.icons .bt,
+.icons .bt div,
+.icons .bb,
+.icons .bb div {
+   background-image:url(/static/images/box_darker.gif); 
+}
+.icons .i1,
+.icons .i2 {
+  background-image:url(/static/images/borders_darker.gif); 
+}
+.icons .i3 {
+  padding: 0 0 0 0.4em;
+  background-color:#c2d2e1;
+}
