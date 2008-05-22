@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.4 2008-05-16 14:58:22 jt6 Exp $
+# $Id: layout.tt,v 1.5 2008-05-22 12:12:28 jt6 Exp $
 
 USE String;
 USE date;
@@ -24,7 +24,7 @@ requirements.cssIe.push( "tab_layout_ie.css" );
 # from the application-specific area, so that we can have differently coloured
 # backgrounds
 sharedRequirements.js.push( "cb.js" );
-sharedRequirements.css.push( "cb.css" );
+requirements.css.push( "cb.css" );
 
 #--------------------------------------
 # a BLOCK that will generate a sidebar tab
