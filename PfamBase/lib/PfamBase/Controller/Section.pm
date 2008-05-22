@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.3 2008-05-16 14:58:22 jt6 Exp $
+# $Id: Section.pm,v 1.4 2008-05-22 09:51:24 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.3 2008-05-16 14:58:22 jt6 Exp $
+$Id: Section.pm,v 1.4 2008-05-22 09:51:24 jt6 Exp $
 
 =cut
 
@@ -33,47 +33,26 @@ use base 'Catalyst::Controller';
 
 =head1 METHODS
 
-=head2 auto : Private
-
-An attempt to detect the requested output format, HTML or XML. This is pretty
-much redundant, since it runs after the begin method in any controller, which
-is where we actually need to know what format we're writing...
-
-=cut
-
-sub auto : Private {
-  my ( $this, $c ) = @_;
-
-  # decide what format to emit. The default is HTML, in which case
-  # we don't set a template here, but just let the "end" method on
-  # the Section controller take care of us
-  if ( defined $c->req->param('output') and
-       $c->req->param('output') eq 'xml' ) {
-    $c->stash->{output_xml} = 1;
-  }
-  
-  return 1;
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 default : Private
 
-An empty action to capture URLs.
+A stub method to capture requests using the controller name. Tries to extract
+a single argument from the url, so that we can use either of these two styles
+of URL to get here:
+
+=over
+
+=item http://pfam.sanger.ac.uk/family?entry=piwi 
+
+=item http://pfam.sanger.ac.uk/family/piwi
+
+=back 
 
 =cut
-
-#sub default : Private {
-#  my ( $this, $c ) = @_;
-#
-#  # set the page to be cached for one week
-#  #$c->cache_page( 604800 );
-#
-#}
 
 sub default : Path : Args(1) {
   my ( $this, $c, $arg ) = @_;
-  $c->log->debug( "Section::default: arg: |$arg|" ) if $c->debug;
+  $c->log->debug( "Section::default: found an argument on the URL: |$arg|" )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
