@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.19 2008-05-22 09:56:12 jt6 Exp $
+# $Id: phylo.tt,v 1.20 2008-05-22 10:24:28 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -75,7 +75,6 @@ treeUri = c.uri_for( "/family/tree" );
               return $(buttonId).checked;
             }
           );
-        console.log( "checked ID: |" + checkedId + "|" );
         var type = $(checkedId).value;
         var u = new Ajax.Updater( 'alignmentTree', 
                           '[% treeUri %]', 
