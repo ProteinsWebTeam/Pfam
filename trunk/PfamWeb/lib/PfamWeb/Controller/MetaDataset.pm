@@ -1,7 +1,7 @@
 # MetaDataset.pm
 # jt6 20080508 WTSI
 #
-# $Id: MetaDataset.pm,v 1.1 2008-05-16 15:29:28 jt6 Exp $
+# $Id: MetaDataset.pm,v 1.2 2008-05-22 09:52:42 jt6 Exp $
 
 =head1 NAME
 
@@ -15,7 +15,7 @@ package PfamWeb::Controller::MetaDataset;
 
 Controller overview.
 
-$Id: MetaDataset.pm,v 1.1 2008-05-16 15:29:28 jt6 Exp $
+$Id: MetaDataset.pm,v 1.2 2008-05-22 09:52:42 jt6 Exp $
 
 =cut
 
@@ -43,11 +43,8 @@ sub begin : Private {
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  if ( defined $c->req->param('output') and
-       $c->req->param('output') eq 'xml' ) {
-    $c->stash->{output_xml} = 1;
-  }
-  
+$c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
+
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('entry') ||
                       $entry_arg              ||
@@ -56,13 +53,17 @@ sub begin : Private {
   my $entry;
   if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w-]+)$/;
-    $c->stash->{errorMsg} = 'Invalid metaseq dataset name' 
-      unless defined $entry;
   }
   else {
     $c->stash->{errorMsg} = 'No metaseq dataset name specified';
   }
+
+  unless ( defined $entry ) {
+    $c->stash->{errorMsg} = 'Invalid metaseq dataset name';
+    return;
+  }
   
+  # now try to retrieve all the relevant data for that entry
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
 }
 
