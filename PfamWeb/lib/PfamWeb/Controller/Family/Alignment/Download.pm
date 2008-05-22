@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Download.pm,v 1.6 2008-05-22 09:53:36 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+$Id: Download.pm,v 1.6 2008-05-22 09:53:36 jt6 Exp $
 
 =cut
 
@@ -216,11 +216,11 @@ sub format : Local {
       $output = $pfamaln->write_fasta;
     } elsif( $c->req->param( 'format' ) eq 'msf' ) {
       $output = $pfamaln->write_MSF;
-    } else {
-      # stockholm and "anything else"
-      $output = $pfamaln->write_stockholm;
     }
   }
+
+  # default to writing stockholm
+  $output ||= $pfamaln->write_stockholm;
 
   # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( 'download' ) ) {
@@ -239,11 +239,7 @@ sub format : Local {
 
   $c->res->content_type( 'text/plain' );
   $c->res->body( join '', @$output );
-#  foreach ( @$output ) {
-#    $c->res->write( $_ );
-#  }
 }
-
 
 #-------------------------------------------------------------------------------
 
