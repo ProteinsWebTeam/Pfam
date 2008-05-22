@@ -5,7 +5,7 @@
 # 
 # build the summary block for metagenomics sequences
 #
-# $Id: summary.tt,v 1.1 2008-05-16 15:30:31 jt6 Exp $
+# $Id: summary.tt,v 1.2 2008-05-22 09:55:54 jt6 Exp $
 
 # a row counter
 oe = 0;
@@ -19,10 +19,11 @@ oe = 0;
   </div>
   <div class="blockContent">
     
-    <h1>[% metaseq.metaseq_acc %]</h1>
+    <h1>[% entry.metaseq_acc %]</h1>
 
     <p>
-      This is the summary of metaseq dataset <em>[% entry.long_source %]</em>
+      This is the summary of <acronym title="Metagenomics sequence database">
+        metaseq</acronym> dataset <em>[% entry.long_source %]</em>
       [% IF entry.source; "("; entry.source; ")"; END %].
     </p>
 
@@ -31,7 +32,7 @@ oe = 0;
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Source:</td>
           <td class="data">
-            [% metaseq.long_source %]
+            [% entry.long_source %]
             (<a href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% entry.pmid %]"
              class="ext">PMID:[% entry.pmid %]</a>)
           </td>
