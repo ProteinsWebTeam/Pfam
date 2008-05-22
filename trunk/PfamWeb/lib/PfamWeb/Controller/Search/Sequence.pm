@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.20 2008-05-19 12:27:33 jt6 Exp $
+# $Id: Sequence.pm,v 1.21 2008-05-22 09:54:58 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.20 2008-05-19 12:27:33 jt6 Exp $
+$Id: Sequence.pm,v 1.21 2008-05-22 09:54:58 jt6 Exp $
 
 =cut
 
@@ -747,11 +747,14 @@ Does exactly what it says on the tin. Rob's handiwork...
 sub handlePfamAResults : Private {
   my ( $this, $c, $jobId ) = @_;
   
-  # we performed a hmmer search, must be a pfamA
-  my ( $userEvalue ) = $c->{stash}->{results}->{$jobId}->{options} =~ m/-e (\S+)/;
-  
-  # are we using GA cut-offs of Evalues?
-  $c->stash->{evalue} = $userEvalue ? $userEvalue : 0;
+  # are we using GA cut-offs or E-values?
+  if ( $c->{stash}->{results}->{$jobId}->{options} and
+       $c->{stash}->{results}->{$jobId}->{options} =~ m/-e (\S+)/ ) {
+    $c->stash->{evalue} = $1;
+  }
+  else {
+    $c->stash->{evalue} = 0;
+  }
   
   # read in the pfam_scan data. This assumes that pfam_Scan is spitting out 
   # alignments so each domain is represented by 4 lines. 
