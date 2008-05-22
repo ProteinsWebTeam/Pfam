@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.18 2008-05-16 15:30:31 jt6 Exp $
+# $Id: phylo.tt,v 1.19 2008-05-22 09:56:12 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -43,6 +43,13 @@ treeUri = c.uri_for( "/family/tree" );
                  value="full" />
           <label for="fullRb">Full ([% pfam.num_full %])</label>
         </span>
+        <span>
+          <input id="ncbiRb" 
+                 name="type"
+                 type="radio" 
+                 value="ncbi" />
+          <label for="ncbiRb">NCBI</label>
+        </span>
         <input type="button"
                onclick="treeSubmitter();"
                value="Change tree" />
@@ -63,7 +70,13 @@ treeUri = c.uri_for( "/family/tree" );
 
       // a function that submits subsequent requests 
       treeSubmitter = function() {
-        var type = $("seedRb").checked ? "seed" : "full";
+        var checkedId =  ['seedRb','fullRb','ncbiRb'].find(
+            function( buttonId ) {
+              return $(buttonId).checked;
+            }
+          );
+        console.log( "checked ID: |" + checkedId + "|" );
+        var type = $(checkedId).value;
         var u = new Ajax.Updater( 'alignmentTree', 
                           '[% treeUri %]', 
                           { method:     'get',
@@ -77,8 +90,9 @@ treeUri = c.uri_for( "/family/tree" );
 
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc = acc } ) | html %]">seed</a> or the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc = acc } ) | html %]">full</a>
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc = acc } ) | html %]">seed</a>,
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc = acc } ) | html %]">full</a> or
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "ncbi", acc = acc } ) | html %]">ncbi</a>
       trees.
     </p>
 

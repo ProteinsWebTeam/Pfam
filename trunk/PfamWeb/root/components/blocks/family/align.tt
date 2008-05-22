@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.26 2008-05-16 15:30:31 jt6 Exp $
+# $Id: align.tt,v 1.27 2008-05-22 09:56:12 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -85,7 +85,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <form id="viewerForm"
           action="[% alignmentUri %]/download/html"
-          onsubmit="launch();"
+          onsubmit="launchPfam();"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -127,23 +127,23 @@ alignmentUri = c.uri_for( "/family/alignment" );
           </tbody>
         </table>
   
-        <input type="button" value="View" onclick="launch();" />
+        <input type="button" value="View" onclick="launchPfam();" />
   
       </div>
     </form>
 
-  	<script type="text/javascript">
+    <script type="text/javascript">
       // <![CDATA[
       // although the form action looks like it will download the alignment,
       // in fact we catch the submission here and decide, based on the form
       // values, which URL to go to next.
-      function launch() {
+      function launchPfam() {
         if( $F("viewer") == "jalview" ) {
-        	url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
+          var url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
           popUp( url, 'console', 800, 800, 'jalviewWin');
       
         } else if( $F("viewer") == "viewer" ) {
-        	url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
+          var url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
@@ -163,7 +163,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       }
       // ]]>
     </script>
-
+    
     <h2>Formatting options</h2>
 
     <form action="[% alignmentUri %]/download/format" method="get">
@@ -267,7 +267,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
     <h2>Download options</h2>
 
     <p>
-      <em>Very</em> large alignments can often cause problems for the formatting
+      Very large alignments can often cause problems for the formatting
       tool above. If you find that downloading or viewing a large alignment is
       problematic, you can also download a 
       <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
@@ -281,7 +281,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
     <form action="[% alignmentUri %]/download/gzipped"
           method="get">
       <div>
-        <input type="hidden" name="acc" value="[% acc %]" />
+        <input type="hidden" name="acc"     value="[% acc %]" />
   
         [% oe = 0 %]
         <table class="details alignOpts" summary="Download options">
@@ -306,8 +306,85 @@ alignmentUri = c.uri_for( "/family/alignment" );
   
       </div>
     </form>
+
+    <hr />
+
+    <h2>Additional datasets</h2>
+
+    <p>
+      The alignments available above are generated using sequences from the 
+      UniProt sequence database. However, we also generate alignments using
+      sequences from the NCBI sequence database. You can download an alignment
+      of NCBI sequences, as a 
+      <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
+      Stockholm-format file,
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=ncbi">
+        here</a>. 
+    </p>
+
+    <form id="additionalDatasetsForm"
+          action="[% alignmentUri %]/download/html"
+          onsubmit="launchAdditional();"
+          method="get">
+      <div>
+        <input type="hidden" name="acc" value="[% acc %]" />
+        <input type="hidden" name="alnType" value="ncbi" />
+  
+        [% oe = 0 -%]
+        <table class="details alignOpts" summary="Alignment display options">
+          <tbody>
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Viewer:</td>
+              <td>
+                <span class="button">
+                  <select name="viewer" id="viewerAD">
+                    <option value="jalview" selected="selected">jalview</option>
+                    <option value="html">HTML</option>
+                  </select>
+                </span>
+                [%# this is a bit naughty... just pad this row to double the width %]
+                <span>&nbsp;</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <input type="button" value="View" onclick="launchAdditional();" />
+  
+      </div>
+    </form>
+
     [% END %]
 
+    <script type="text/javascript">
+      // <![CDATA[
+      // although the form action looks like it will download the alignment,
+      // in fact we catch the submission here and decide, based on the form
+      // values, which URL to go to next.
+      function launchAdditional() {        
+        if( $F("viewerAD") == "jalview" ) {
+          url = "[% alignmentUri %]/jalview?" + Form.serialize("additionalDatasetsForm");
+          popUp( url, 'console', 800, 800, 'jalviewWin');
+      
+        } else {
+          var cont = true;
+          /* [%# need to add this back in when we have pfam.num_ncbi %]
+           * if ( [% pfam.num_seed %] > 1000 ) {
+           *   cont = confirm("This alignment contains a large number of sequences, " +
+           *                  "which can cause problems for browsers. \nAre you " +
+           *                  "sure that you want to try to view it as HTML ?" );
+           * }
+           */
+          if ( cont ) {
+            url = "[% alignmentUri %]/download/html?" + Form.serialize("additionalDatasetsForm");
+            popUp( url, 'console', 800, 800, 'viewerWin');
+          }
+        }      
+        return false;
+      }
+      // ]]>
+    </script>
+    
   </div>
 
 </div>
