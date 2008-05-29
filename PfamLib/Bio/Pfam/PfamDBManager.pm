@@ -4,6 +4,7 @@
 #
 # $Author
 
+
 package Bio::Pfam::PfamDBManager;
 use strict;
 use warnings;
