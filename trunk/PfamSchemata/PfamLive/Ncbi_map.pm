@@ -1,7 +1,7 @@
 
-# $Id: Ncbi_map.pm,v 1.2 2008-05-16 15:23:16 jt6 Exp $
+# $Id: Ncbi_map.pm,v 1.3 2008-05-29 13:57:25 cara Exp $
 #
-# $Author: jt6 $
+# $Author: cara $
 
 package PfamLive::Ncbi_map;
 
@@ -34,6 +34,7 @@ __PACKAGE__->has_one( ncbi_seq => 'PfamLive::Ncbi_seq',
 Copyright (c) 2007: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
