@@ -203,6 +203,23 @@ sub getPfamData{
  carp("Did not find family information for $family") if $self->{'debug'};
 }
 
+sub getAllPfamFamilyData{
+  my($self) = @_;
+  my @familyData;
+  carp("Looking up information for all families.") if $self->{'debug'};
+  @familyData = $self->getSchema
+                         ->resultset("Pfam")
+                           ->search();
+
+ if(@familyData){
+   carp("Found family data") if $self->{'debug'};
+        return (\@familyData);
+ }else{
+        carp("Failed to get family data") if $self->{'debug'};
+
+    }
+}
+
 sub getPfamInterPro{
   my($self, $family) = @_;
   my $familyData;
@@ -290,6 +307,37 @@ sub getNSEInFull {
   carp("Did not find family information for $family") if $self->{'debug'};
 }
 
+
+sub getNSEseed {
+  my($self, $family) = @_;
+  my @familyNSE;
+  if($family =~ /PF\d{5}/){
+    carp("Looking up information for $family. I think this is an accession") if $self->{'debug'};
+    @familyNSE = $self->getSchema
+                         ->resultset("PfamA_reg_seed")
+                           ->search({"pfamA.pfamA_acc" => $family},
+                                    {join        => [ qw( pfamA pfamseq ) ] ,
+                                     prefetch    => [ qw( pfamA pfamseq ) ]});
+                     
+  }elsif($family =~ /\S{1,16}/){
+    carp("Looking up information for $family. I think this is an id") if $self->{'debug'};
+    @familyNSE = $self->getSchema
+                         ->resultset("PfamA_reg_seed")
+                           ->search({"pfamA.pfamA_id" => $family},
+                                    {join        => [ qw( pfamA pfamseq ) ],
+                                     prefetch    => [ qw( pfamA pfamseq ) ]});
+
+   }else{
+    cluck("$family does not look like a family accession or id")
+  }
+  if(scalar(@familyNSE)){
+    carp("Found family information for $family") if $self->{'debug'};
+    return (\@familyNSE);
+  } 
+  carp("Did not find family information for $family") if $self->{'debug'};
+}
+
+
 sub getPfamRegionsForSeq{
   my($self, $seq) = @_;
   my @pfamRegions;
@@ -327,6 +375,88 @@ sub getPfamRegionsForSeq{
     return (\@pfamRegions);
   } 
   carp("Did not find family information for $seq") if $self->{'debug'};
+}
+
+sub getAllPfamseqAccsIds {
+  my($self) = @_;
+  my @pfamseqData;
+
+  carp("Looking up information for all sequences.") if $self->{'debug'};
+  @pfamseqData = $self->getSchema
+                         ->resultset("Pfamseq")
+			 ->search({},
+				  {select => [ qw(auto_pfamseq pfamseq_acc pfamseq_id)]});
+
+  if(@pfamseqData){
+   carp("Found sequence data") if $self->{'debug'};
+  	return (\@pfamseqData);
+  }else{ 
+ 	carp("Failed to get sequence data") if $self->{'debug'};
+    }
+}
+
+sub getAllGiMap {
+  my($self) = @_;
+  my @GiData;
+  carp("Looking up information for all ncbi seq.") if $self->{'debug'};
+  @GiData = $self->getSchema
+                         ->resultset("Ncbi_map")
+                           ->search();
+                     
+  if(@GiData){
+   carp("Found gi data") if $self->{'debug'};
+  	return (\@GiData);
+  }else{ 
+ 	carp("Failed to get Gi data") if $self->{'debug'};
+  }
+}
+
+sub getAllGiData {
+  my($self) = @_;
+  my @GiData;
+  carp("Looking up information for all ncbi seq.") if $self->{'debug'};
+  @GiData = $self->getSchema
+                         ->resultset("Ncbi_seq")
+                           ->search();
+                     
+  if(@GiData){
+   carp("Found gi data") if $self->{'debug'};
+  	return (\@GiData);
+  }else{ 
+ 	carp("Failed to get Gi data") if $self->{'debug'};
+  }
+}
+
+sub getAllSecondaryAccs {
+  my($self) = @_;
+  my @SecAccData;
+  carp("Looking up secondary acc information for all pfamseq.") if $self->{'debug'};
+  @SecAccData = $self->getSchema
+                         ->resultset("Secondary_pfamseq_acc")
+                           ->search();
+                     
+  if(@SecAccData){
+   carp("Found family data") if $self->{'debug'};
+  	return (\@SecAccData);
+  }else{ 
+ 	carp("Failed to get secondary accs data") if $self->{'debug'};
+  }
+}
+
+sub getAllPdbData{
+  my($self) = @_;
+  my @pdbData;
+  carp("Looking up information for all structures.") if $self->{'debug'};
+  @pdbData = $self->getSchema
+                         ->resultset("Pdb")
+                           ->search();
+                     
+  if(@pdbData){
+   carp("Found pdb data") if $self->{'debug'};
+  	return (\@pdbData);
+ }else{ 
+ 	carp("Failed to get pdb data") if $self->{'debug'};
+    }
 }
 
 #Specific insert/update methods should go here
