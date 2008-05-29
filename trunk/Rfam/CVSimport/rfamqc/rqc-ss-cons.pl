@@ -277,11 +277,9 @@ foreach my $seqobj ( @list ) {
 	    my $weight=1.0;
 	    if (defined($persequenceweights{$seqname}) && defined($persequenceweights{$seqname2})){
 		$weight = $persequenceweights{$seqname} + $persequenceweights{$seqname2};
-		
 	    }
 	    elsif (defined($persequenceweights{$seqnameshort}) && defined($persequenceweights{$seqnameshort2})){
 		$weight = $persequenceweights{$seqnameshort} + $persequenceweights{$seqnameshort2};
-		
 	    }
 	    elsif (!$wwarned) {
 		warn "WARNING: weights for $seqname and/or $seqname2 are not defined\n";
@@ -368,8 +366,14 @@ if ($noseqs>0 && $nopairs>0){
 #	my $c  = new Math::BigFloat $perbasepaircovariation{$bpposns};
 #	my $d  = new Math::BigFloat $perbasepaircovcounts{$bpposns};
 #	$perbasepaircovariation{$bpposns}  = new Math::BigFloat $c/$d;
-	$perbasepaircovariation{$bpposns}  = $perbasepaircovariation{$bpposns}/$perbasepaircovcounts{$bpposns};
-
+	
+	if (defined($perbasepaircovariation{$bpposns}) && $perbasepaircovcounts{$bpposns} > 0 ){
+	    $perbasepaircovariation{$bpposns}  = $perbasepaircovariation{$bpposns}/$perbasepaircovcounts{$bpposns};
+	}
+	else {
+	    $perbasepaircovariation{$bpposns}  = 0.0;
+	}
+	
 	if( ! defined $nolog ) {
 	    printf LOGpb "$shortname_family_dir\t$bpposns\t%0.4f\t%0.4f\n", $perbasepair{$bpposns}, $perbasepaircovariation{$bpposns};
 	}
