@@ -1,5 +1,5 @@
 
-# $Id: Metaseq_ncbi_map.pm,v 1.1 2008-05-28 10:21:29 rdf Exp $
+# $Id: Metaseq_ncbi_map.pm,v 1.2 2008-06-02 10:48:17 rdf Exp $
 #
 # $Author: rdf $
 
@@ -23,11 +23,25 @@ __PACKAGE__->add_columns( qw( auto_metaseq
 __PACKAGE__->set_primary_key( qw( auto_metaseq gi ) );
 
 # set up the relationships
-__PACKAGE__->has_one( meta_pfama_reg => 'PfamLive::Metaseq',
+__PACKAGE__->has_one( ncbi_seq => 'PfamLive::Ncbi_seq',
                        { 'foreign.auto_metaseq' => 'self.auto_metaseq' } );
 
-__PACKAGE__->has_one( meta_ref => 'PfamLive::Ncbi_seq',
-                      { 'foreign.gi' => 'self.gi' } );
+__PACKAGE__->has_one( metaseq => 'PfamLive::Metaseq',
+                       { 'foreign.auto_metaseq' => 'self.auto_metaseq' },
+                       { 'proxy' => [ qw(metaseq_id metaseq_acc description)]} );
+
+__PACKAGE__->might_have( ncbi_pfamA => 'PfamLive::Ncbi_pfama_reg',
+                        { 'foreign.gi' => 'self.gi' },
+                        { 'proxy' => [qw(seq_start 
+                              seq_end 
+                              model_start 
+                              model_end
+                              domain_bits_score 
+                              domain_evalue_score 
+                              sequence_bits_score 
+                              sequence_evalue_score
+                              mode )]} );
+
 
 =head1 COPYRIGHT
 
