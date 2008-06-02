@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.12 2008-05-16 15:32:57 jt6 Exp $
+// $Id: protein.js,v 1.13 2008-06-02 14:43:09 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -42,7 +42,8 @@ function proteinPostLoad() {
             					  onFailure:  simapFailure
             					} );
   }
-  $("checkboxes").hide("plainSequence");
+  $("checkboxes").hide();
+  $("plainSequence").hide();
 }
 
 //------------------------------------------------------------
@@ -70,12 +71,12 @@ function pgFailure() {
 
 // called in response to a successful call
 function simapSuccess( oResponse ) {
-  Element.update( $("simapGraphicsHolder"), oResponse.responseText );
+  $("simapGraphicsHolder").update( oResponse.responseText );
 }
 
 // called in response to a failed call
 function simapFailure() {
-  Element.update( $("simapph"), "Contacting SIMAP W/S - failed." );
+  $("simapph").update( "Contacting SIMAP W/S - failed." );
 }
 
 //------------------------------------------------------------
