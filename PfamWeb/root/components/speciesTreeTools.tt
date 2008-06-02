@@ -4,18 +4,18 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.15 2008-05-16 15:30:32 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.16 2008-06-02 14:37:53 jt6 Exp $
 %]
 
 <div id="treeTools">
 
-  <div id="treeToolsHeader" onclick="toggleTools();">
+  <div id="toolsHeader" onclick="toggleTools();">
     <h3>Tree controls</h3>
     <span id="toolsToggle">Hide</span>
 		<div class="cleaner"><!-- empty --></div>
   </div>
 
-  <div id="treeToolsContent" style="display: none">
+  <div id="toolsContent" style="display: none">
 
     <ul class="bare">
       <li>
