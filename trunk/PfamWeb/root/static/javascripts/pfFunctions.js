@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.57 2008-05-16 15:32:57 jt6 Exp $
+// $Id: pfFunctions.js,v 1.58 2008-06-02 14:43:09 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -395,18 +395,20 @@ var seedsHighlighted = true;
 
 function toggleHighlightSeed() {
   if( seedsHighlighted ) {
-    var links = $A( document.getElementsByClassName("highlightSeed", "treeDiv") );
-    links.each( function( a ) {
-                  a.removeClassName( "highlightSeed" );
-                } );
+    $("treeDiv").select(".highlightSeed").each(
+      function( a ) {
+        a.removeClassName( "highlightSeed" );
+      }
+    );
     $("seedToggle").update( "Show" );
   } else {
-    var divs = $A( document.getElementsByClassName("seedNode", "treeDiv") );
-    divs.each( function( d ) {
-                 if( nodeMapping[d.id] ) {
-                   Element.addClassName( $(nodeMapping[d.id].labelElId), "highlightSeed" );
-                 }
-               } );
+    $("treeDiv").select(".seedNode").each(
+      function( d ) {
+        if( nodeMapping[d.id] ) {
+          $(nodeMapping[d.id].labelElId).addClassName( "highlightSeed" );
+        }
+      }
+    );
     $("seedToggle").update( "Hide" );
   }
   seedsHighlighted = !seedsHighlighted;
@@ -497,19 +499,6 @@ function expandTo( finalDepth, node ) {
 }
 
 //------------------------------------------------------------
-// show/hide the tree tools palette
-
-function toggleTools() {
-  if( $("treeToolsContent").visible() ) {
-    $("treeToolsContent").hide();
-    $("toolsToggle").update( "Show" );
-  } else {
-    $("treeToolsContent").show();
-    $("toolsToggle").update( "Hide" );
-  }
-}
-
-//------------------------------------------------------------
 // collect the sequences that are specified by the checked leaf nodes
 // in the species trees. Submits the form in the page which will act on those
 // accessions. The argument should be either "G" or "A", for graphical or
@@ -518,7 +507,7 @@ function toggleTools() {
 function collectSequences( sStyle, sAcc ) {
 
   // get all leaf nodes
-  var leaves = document.getElementsByClassName( "leafNode", "treeDiv" );
+  var leaves = $("treeDiv").select(".leafNode");
 
   // and collect IDs from the checked ones
   var bail = true;
