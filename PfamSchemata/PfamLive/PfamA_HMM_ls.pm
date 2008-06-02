@@ -1,7 +1,7 @@
 
-# $Id: PfamA_HMM_ls.pm,v 1.2 2008-05-16 15:23:16 jt6 Exp $
+# $Id: PfamA_HMM_ls.pm,v 1.3 2008-06-02 10:50:27 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamLive::PfamA_HMM_ls;
 
@@ -21,7 +21,12 @@ __PACKAGE__->add_columns( qw/auto_pfamA hmm_ls / );
 __PACKAGE__->set_primary_key( 'auto_pfamA' );
 
 __PACKAGE__->has_one( pfam => 'PfamLive::Pfam',
-                      { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
+                      { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+		      {proxy => [qw/ pfamA_id pfamA_acc num_seed num_full model_length /]} );
+
+__PACKAGE__->has_one( pfam_acc => 'PfamLive::Pfam',
+                      { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+		      {proxy => [qw/ pfamA_acc/]} );
 
 =head1 COPYRIGHT
 
