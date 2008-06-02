@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.5 2008-05-22 12:12:28 jt6 Exp $
+# $Id: layout.tt,v 1.6 2008-06-02 14:31:15 jt6 Exp $
 
 USE String;
 USE date;
@@ -14,8 +14,6 @@ USE date;
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
-
-sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 requirements.css.push( "tab_layout.css" );
 requirements.cssIe.push( "tab_layout_ie.css" );
@@ -178,7 +176,7 @@ PROCESS components/icons.tt;
              }
            );
   } else {
-    $A( document.getElementsByClassName( "block" ) )
+    $$("div.block")
       .first()
       .setStyle( { display: "block" } );
     // no need to turn on the selector, because the first item in the list is
