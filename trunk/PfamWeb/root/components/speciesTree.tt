@@ -1,11 +1,11 @@
 [%
-# renderTree.tt
+# speciesTree.tt
 # jt6 20061012 WTSI
 #
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.7 2008-05-16 15:30:32 jt6 Exp $
+# $Id: speciesTree.tt,v 1.8 2008-06-02 14:37:53 jt6 Exp $
 
 META naked = 1;
 
@@ -126,7 +126,7 @@ ELSIF rawTree;
   $("ddph").update( dd.join("") );
   
   [%-# make the tree controls visible once the tree is loaded %]
-  $("treeToolsContent").show();
+  $("toolsContent").show();
 
 [%- #----------------------------------------
 
