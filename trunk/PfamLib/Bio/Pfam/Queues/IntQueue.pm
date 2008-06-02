@@ -3,8 +3,8 @@ package Bio::Pfam::Queues::IntQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2008-05-19 12:04:31 $
-# Id:            $Id: IntQueue.pm,v 1.4 2008-05-19 12:04:31 rdf Exp $
+# Last Modified: $Date: 2008-06-02 21:26:39 $
+# Id:            $Id: IntQueue.pm,v 1.5 2008-06-02 21:26:39 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -30,7 +30,6 @@ sub new {
   my $self = {};
   
   my $class = ref($caller) || $caller;
-  print STDERR "$class\n";
   #Bless $self
  if($class){
     bless($self, $class);
@@ -43,6 +42,7 @@ sub new {
   #Lost of current jobs that can be dealt with	
   $self->knownJobs( { view    => 'makepfamview.pl',
                       genPept => '',
+                      metagenomics => '',
                       genPeptView => 'makencbiview.pl' } );
   #Get a database connection
   $self->getSchema({password => 'mafp1' });
@@ -149,7 +149,7 @@ sub getSchema {
 }
 
 sub statuses {
-  return sort qw(DONE FAIL SUB PEND RUN);
+  return sort qw(DONE FAIL SUB PEND RUN REDO HOLD);
 }
 
 sub submit {
@@ -392,7 +392,7 @@ sub update_job_stream {
 
 sub daemonise {
   my $self = shift;
-  chdir '/var/lock'                 or die "Can't chdir to /: $!";
+  chdir '/var/lock'                 or die "Can't chdir to /var/lock: $!";
   umask 0;
   open STDIN, '/dev/null'   or die "Can't read /dev/null: $!";
   open STDOUT, '>/dev/null' or die "Can't write to /dev/null: $!";
