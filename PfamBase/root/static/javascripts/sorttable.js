@@ -20,7 +20,7 @@ function sortables_init() {
  * jt6 20070524 WTSI.
  */
 function sortables_init() {
-  $A( document.getElementsByClassName( "sortable" ) ).each(
+  $$(".sorttable").each(
     function ( tbl ) {
       ts_makeSortable( tbl );      
     }
@@ -104,7 +104,8 @@ function _ts_resortTable( table, column, img ) {
 	// jt6 20060821 WTSI
 	if( img ) {
 	  var sortOrder = Element.hasClassName( img, "down" );
-	  $A( document.getElementsByClassName( "sortarrow" ) ).each( function( el ) {
+    $$(".sortarrow").each( 
+      function(el) {
 	      Element.removeClassName( el, "up" );
 	      Element.removeClassName( el, "down" );
 	      Element.removeClassName( el, "updown" );
