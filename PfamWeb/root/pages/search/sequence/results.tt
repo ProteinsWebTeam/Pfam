@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.12 2008-05-16 15:30:32 jt6 Exp $
+# $Id: results.tt,v 1.13 2008-06-02 14:35:47 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -16,9 +16,6 @@ PROCESS "components/require.tt";
 
 sharedRequirements.css.push( "job.css" );
 sharedRequirements.css.push( "job_ie.css" );
-
-sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
-sharedRequirements.js.push( "sorttable.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -264,7 +261,7 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
       <tr class="titleRow">
         <th rowspan="2" class="rowNum">Original order</th>
         <th rowspan="2">Pfam-A</th>
-        <th rowspan="2" class="nosort">Description</th>
+        <th rowspan="2">Description</th>
         <th rowspan="2">Entry type</th>
         <th colspan="2">Sequence</th>
         <th colspan="2">HMM</th>
@@ -304,7 +301,7 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
       <tr class="titleRow">
         <th rowspan="2" class="rowNum">Original order</th>
         <th rowspan="2">Pfam-A</th>
-        <th rowspan="2" class="nosort">Description</th>
+        <th rowspan="2">Description</th>
         <th rowspan="2">Entry type</th>
         <th colspan="2">Sequence</th>
         <th colspan="2">HMM</th>
@@ -395,7 +392,7 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
   // <![CDATA[
   // hide all of the alignment rows once the table is built
   Event.observe( window, "load", function() {
-      $A( document.getElementsByClassName("alignment") ).invoke( "hide" );
+      $$(".alignment").invoke( "hide" );
     }
   );
   // a function to show or hide the alignment rows
