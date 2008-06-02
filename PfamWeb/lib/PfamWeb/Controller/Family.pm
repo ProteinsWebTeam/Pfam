@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.42 2008-05-22 09:52:05 jt6 Exp $
+# $Id: Family.pm,v 1.43 2008-06-02 14:43:41 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.42 2008-05-22 09:52:05 jt6 Exp $
+$Id: Family.pm,v 1.43 2008-06-02 14:43:41 jt6 Exp $
 
 =cut
 
@@ -68,7 +68,11 @@ sub begin : Private {
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  $c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
+    $c->stash->{output_xml} = 1;
+    $c->res->content_type('text/xml');    
+  }
   
   # get a handle on the entry and detaint it
   my $tainted_entry = $c->req->param('acc')   ||
@@ -134,7 +138,6 @@ sub begin : Private {
     $c->log->debug( 'Family::begin: there was an error: |' .
                     $c->stash->{errorMsg} . '|' ) if $c->debug;
     $c->stash->{template} = 'rest/family/error_xml.tt';
-    $c->res->content_type('text/xml');
     return;
   }
   
@@ -142,22 +145,18 @@ sub begin : Private {
   if ( $c->stash->{entryType} eq 'A' ) {
     $c->log->debug( 'Family::begin: got data for a Pfam-A' ) if $c->debug;
     $c->stash->{template} = 'rest/family/pfama_xml.tt';
-    $c->res->content_type('text/xml');
   }
   elsif( $c->stash->{entryType} eq 'B' ) {
     $c->log->debug( 'Family::begin: got data for a Pfam-B' ) if $c->debug;
     $c->stash->{template} = 'rest/family/pfamb_xml.tt';
-    $c->res->content_type('text/xml');
   }
   elsif( $c->stash->{entryType} eq 'D' ) {
     $c->log->debug( 'Family::begin: got data for a dead family' ) if $c->debug;
     $c->stash->{template} = 'rest/family/dead_xml.tt';
-    $c->res->content_type('text/xml');
   }
   else {
     $c->log->debug( 'Family::begin: got an error' ) if $c->debug;
     $c->stash->{template} = 'rest/family/error_xml.tt';
-    $c->res->content_type('text/xml');
   }
 
 }
