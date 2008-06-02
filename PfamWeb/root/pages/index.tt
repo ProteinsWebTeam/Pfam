@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.49 2008-05-16 15:30:31 jt6 Exp $
+# $Id: index.tt,v 1.50 2008-06-02 14:41:35 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -17,8 +17,6 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "index.css" );
 requirements.cssIeAll.push( "index_all_ie.css" );
-
-sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 
@@ -376,7 +374,7 @@ sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
         onSuccess: function( oResponse ) {
           $("newFeatures").update( oResponse.responseText );
           $("newFeatures").show();
-          $("newFeatures").getElementsByClassName("new").each(
+          $$("#newFeatures .new").each(
             function(f) {
               new Effect.Highlight( f, { startcolor: '#cbdced' } );
             }
