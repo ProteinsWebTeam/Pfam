@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.31 2008-05-16 15:32:57 jt6 Exp $
+// $Id: family.js,v 1.32 2008-06-02 14:42:55 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -52,15 +52,6 @@ function familyPostLoad() {
                         onSuccess:  atSuccess,
                         onFailure:  atFailure
                       } );
-  }
-  // clan structure tab
-  if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
-     new Ajax.Request( loadOptions.fstruc.uri,
-                       { method:     'get', 
-                         parameters: loadOptions.fstruc.params,
-                         onSuccess:  fstrucSuccess,
-                         onFailure:  fstrucFailure
-                       } );
   }
   // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
