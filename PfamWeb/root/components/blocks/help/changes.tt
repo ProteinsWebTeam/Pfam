@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.17 2008-05-16 15:30:31 jt6 Exp $
+# $Id: changes.tt,v 1.18 2008-06-02 14:39:41 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -472,6 +472,13 @@
         <strong>Added Pfam predicted active sites</strong>:
         single-sequence search results now show any active sites that were
         predicted for the search sequence
+      </li>
+      <li>
+        <strong>Now using javascript files from third-party servers</strong>:
+        we are now loading javascript libraries from high-availability servers
+        run by google and Yahoo!. Please check the 
+        <span class="link" onclick="switchTab('helpPrivacyBlock');">privacy</span>
+        information for details of the implications of this change for users
       </li>
       <li>
         <strong>Fixed species tree alignments</strong>:
