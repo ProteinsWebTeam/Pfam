@@ -5,7 +5,7 @@
 #
 # builds form for uploading XML describing a Pfam graphic
 #
-# $Id: uploadXml.tt,v 1.9 2008-05-16 15:30:31 jt6 Exp $
+# $Id: uploadXml.tt,v 1.10 2008-06-02 14:42:08 jt6 Exp $
 
 META title = "Generate domain images";
 META fullPage = 1;
@@ -16,8 +16,6 @@ META fullPage = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "graphicTools.css" );
-
-sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #-------------------------------------------------------------------------------
 
