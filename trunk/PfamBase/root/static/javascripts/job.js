@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+// $Id: job.js,v 1.3 2008-06-02 14:32:34 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -24,25 +24,10 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+// class variables are now declared at the end
+
 // class definition
-var Job = Class.create();
-
-// class variables
-
-// a tally of submitted jobs and a list of those that are actually running
-if( Job.LIST    === undefined ) { Job.LIST    = new Hash(); }
-if( Job.RUNNING === undefined ) { Job.RUNNING = new Hash(); }
-
-// constants
-
-// tick interval
-Job.TICK_INTERVAL = 1000;
-
-// the timeout period
-Job.TIMEOUT = 300000;
-
-// add some methods...
-Job.prototype = {
+var Job = Class.create({
 
   //----------------------------------------------------------------------------
   //- constructor --------------------------------------------------------------
@@ -204,18 +189,15 @@ Job.prototype = {
       </div>';
 
   	// add the new div to the bottom of the "jobs" div
-  	new Insertion.Bottom( $("jobs"), jobDivString );
-  
-  	// get a handle on this "job" div
-  	var jobDiv = $A( document.getElementsByClassName( "job", $("jobs") ) ).last();
-  
+    $("jobs").insert( jobDivString );
+
+    // get a handle on this "job" div
+    var jobDiv = $("jobs").select(".job").last();
+    
     // store pointers to specific elements within this div
-    this.statusMsg    = $A( document.getElementsByClassName( "status",      jobDiv ) )
-                          .first();
-    this.startedValue = $A( document.getElementsByClassName( "started",     jobDiv ) )
-                          .first();
-    this.bar          = $A( document.getElementsByClassName( "progressBar", jobDiv ) )
-                          .first();
+    this.statusMsg    = jobDiv.select( ".status"      ).first();
+    this.startedValue = jobDiv.select( ".started"     ).first();
+    this.bar          = jobDiv.select( ".progressBar" ).first();
 
     // edit in the required unique values.
 
@@ -226,19 +208,13 @@ Job.prototype = {
   	jobDiv.addClassName( this.jobClass );
 
   	// the label for the job
-    $A( document.getElementsByClassName( "jobTitle", jobDiv ) )
-      .first()
-      .innerHTML = this.jobName; 
+    jobDiv.select( ".jobTitle" ).first().update( this.jobName );
 
   	// when was it started
-    $A( document.getElementsByClassName( "submitted", jobDiv ) )
-      .first()
-      .innerHTML = this.opened;
+    jobDiv.select( ".submitted" ).first().update( this.opened );
 
   	// the estimated job length
-    $A( document.getElementsByClassName( "runtime", jobDiv ) )
-      .first()
-      .innerHTML = this.estimatedTime + 's'; 
+    jobDiv.select( ".runtime" ).first().update( this.estimatedTime + 's' ); 
 
   },
   
@@ -393,6 +369,7 @@ Job.prototype = {
 
     // update the status bar
     this.updateProgressBar();
+
   },
 
   //----------------------------------------------------------------------------
@@ -484,7 +461,7 @@ Job.prototype = {
 
   updateProgressBar: function() {
     var barWidth = this.bar.getWidth();
-    var maxWidth = this.bar.parentNode.getWidth();
+    var maxWidth = this.bar.ancestors().first().getWidth();
   
     if( barWidth < maxWidth ) {
       var newWidth = Math.floor( maxWidth * this.tick / this.estimatedTime );
@@ -554,4 +531,18 @@ Job.prototype = {
   //----------------------------------------------------------------------------  
   }
 
-};
+} );
+
+// class variables
+
+// a tally of submitted jobs and a list of those that are actually running
+if( Job.LIST    === undefined ) { Job.LIST    = new Hash(); }
+if( Job.RUNNING === undefined ) { Job.RUNNING = new Hash(); }
+
+// constants
+
+// tick interval
+Job.TICK_INTERVAL = 1000;
+
+// the timeout period
+Job.TIMEOUT = 300000;

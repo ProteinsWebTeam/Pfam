@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.4 2008-05-16 14:58:22 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.5 2008-06-02 14:32:34 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -275,7 +275,7 @@ function chooseTab() {
       // console.debug( "chooseTab: no cookie switching to default"  );
 
       // no; get the first block in the page and show that instead
-      var block = document.getElementsByClassName( "block" )[0];
+      var block = $$("div.block").first();
       if( block && block.id ) {
         show( block.id );
       }
@@ -304,6 +304,19 @@ function switchTab( sId ) {
                               item.removeClassName( "selected" );
                             }
                           } );
+}
+
+//------------------------------------------------------------
+// show/hide a tools palette
+
+function toggleTools() {
+  if( $("toolsContent").visible() ) {
+    $("toolsContent").hide();
+    $("toolsToggle").update( "Show" );
+  } else {
+    $("toolsContent").show();
+    $("toolsToggle").update( "Hide" );
+  }
 }
 
 //------------------------------------------------------------
@@ -458,7 +471,7 @@ function eraseCookie( name ) {
 
 // add listeners to all of the links in the page
 function addHoverListeners() {
-  $A( document.getElementsByClassName('link') ).each(
+  $$(".link").each(
     function( l ) {
       Event.observe( l, 'mouseover', hoverHandler.bindAsEventListener(l), false );
       Event.observe( l, 'mouseout',  hoverHandler.bindAsEventListener(l), false );
