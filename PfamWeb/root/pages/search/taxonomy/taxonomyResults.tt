@@ -4,7 +4,7 @@
 # 
 # taxonomy search results page
 #
-# $Id: taxonomyResults.tt,v 1.4 2008-05-16 15:30:33 jt6 Exp $
+# $Id: taxonomyResults.tt,v 1.5 2008-06-02 14:42:08 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -13,12 +13,7 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "search.css" );
 
-# the effects are used in the results rather than this page, but we need 
-# to load them here so that they will be available later
-sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
-
-# similarly, load the JS for table sorting here, for use in the post-loaded
-# results 
+# load the JS for table sorting here, for use in the post-loaded results 
 sharedRequirements.js.push( "sorttable.js" );
 
 #-------------------------------------------------------------------------------

@@ -4,14 +4,7 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.6 2008-05-16 15:30:31 jt6 Exp $
-
-#-------------------------------------------------------------------------------
-# specify required stylesheets and javascript files 
-
-PROCESS "components/require.tt";
-
-sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
+# $Id: domain.tt,v 1.7 2008-06-02 14:40:58 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 
