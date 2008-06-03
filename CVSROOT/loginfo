@@ -29,4 +29,4 @@
 #DEFAULT (echo ""; id; echo %s; date; cat) >> $CVSROOT/CVSROOT/commitlog
 # or
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
-^PfamLib $CVSROOT/CVSROOT/cvslog.pl -a jt6@sanger.ac.uk -a rdf@sanger.ac.uk -s 'PfamLib commit' %s
+#^PfamLib $CVSROOT/CVSROOT/cvslog.pl -a jt6@sanger.ac.uk -a rdf@sanger.ac.uk -s 'PfamLib commit' %s
