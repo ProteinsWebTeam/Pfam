@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.18 2008-06-02 14:39:41 jt6 Exp $
+# $Id: changes.tt,v 1.19 2008-06-03 15:00:22 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -477,8 +477,8 @@
         <strong>Now using javascript files from third-party servers</strong>:
         we are now loading javascript libraries from high-availability servers
         run by google and Yahoo!. Please check the 
-        <span class="link" onclick="switchTab('helpPrivacyBlock');">privacy</span>
-        information for details of the implications of this change for users
+        <span class="link" onclick="switchTab('helpPrivacyBlock');">help pages</span>
+        for the privacy implications of this change
       </li>
       <li>
         <strong>Fixed species tree alignments</strong>:
