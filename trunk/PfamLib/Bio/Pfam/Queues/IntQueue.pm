@@ -3,8 +3,8 @@ package Bio::Pfam::Queues::IntQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2008-06-02 21:26:39 $
-# Id:            $Id: IntQueue.pm,v 1.5 2008-06-02 21:26:39 rdf Exp $
+# Last Modified: $Date: 2008-06-03 14:02:00 $
+# Id:            $Id: IntQueue.pm,v 1.6 2008-06-03 14:02:00 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -385,7 +385,11 @@ sub update_job_stream {
   my $results = $self->getSchema
                       ->resultset('JobStream')
                         ->find({ id => $id } );
-  $results->update({ $streamid => $content||q()});
+  if($results){
+    $results->update({ $streamid => $content||q()});
+  }else{
+    print STDERR  "No stream, got:". $content||q() . "\n";
+  }
   return;
 }
 
