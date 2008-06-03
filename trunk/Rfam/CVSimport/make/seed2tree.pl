@@ -29,14 +29,14 @@ my $query = qq(
 #select r.rfamseq_acc, r.taxon  from rfamseq as r ,taxonomy as t where r.taxon=t.auto_taxid and t.ncbi_id=272562;
 
 my $infile = "SEED";
-my ($quick, $slow, $outlist, $help);
-$quick=1;
+my ($quick, $slow, $slowonly, $outlist, $help);
 $outlist=1;
 &GetOptions(
             "f|infile=s"       => \$infile,
             "o|outlist"        => \$outlist,
             "q|quickonly"      => \$quick,
-            "s|slowalso"       => \$slow,
+            "slowalso"         => \$slow,
+            "s|slowonly"       => \$slowonly,
 	    "h|help"           => \$help
     );
 
@@ -45,17 +45,20 @@ if( $help ) {
     exit(1);
 }
 
+if (!defined($slow)){
+    $quick=1;
+}
+
 # Create a connection to the database.
 my $dbh = DBI->connect(
     "dbi:mysql:$database:$host:$port", $user, $pw, {
 	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
 	RaiseError => 1
-}    );
+    });
 
 # Prepare the query for execution.
 my $sth = $dbh->prepare($query);
 ###########
-
 
 #Read stockholm file in
 open( SD, "$infile" ) or die ("FATAL: Couldn't open $infile [$!]\n $!\n");
@@ -179,11 +182,45 @@ if (-e "outtree"){
     system("rm outtree");
 }
 
+system("cp infile infile.phy");
+
+if (!defined($slowonly)){
 #Compute a quick and dirty tree
-system("echo \42Y\42 | dnadist");
-system("mv infile infile.phy");
-system("mv outfile infile");
-system("echo \42Y\42 | neighbor");
+    system("echo \42Y\42 | dnadist");
+    system("mv outfile infile");
+    system("echo \42Y\42 | neighbor");
+    
+    open( TR, "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
+    my @tree = <TR>;
+    close(TR);
+    my $tree = join("", @tree);
+    
+    foreach my $k (keys %speciesnames){
+	$tree =~ s/$k\:/$speciesnames{$k}\:/g;
+    }
+    
+    open( TR, ">$infile\.njtree\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+    print TR "$tree\n";
+    close(TR);
+}
+
+if (-e "outtree"){
+    system("rm outtree");
+}
+
+if (-e "outfile"){
+    system("rm outfile");
+}
+
+if (defined($quick) && !defined($slowonly)){
+#    print "View your tree in $infile\.njtree\.dnd\n";
+    cleanup();
+    exit();
+}
+
+#Running dnaml-erate
+system("mv infile.phy infile");
+system("echo \42Y\42 | dnaml-erate");
 
 open( TR, "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
 my @tree = <TR>;
@@ -194,58 +231,30 @@ foreach my $k (keys %speciesnames){
     $tree =~ s/$k\:/$speciesnames{$k}\:/g;
 }
 
-open( TR, ">$infile\.njtree\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
-print TR "$tree\n";
-close(TR);
-
-if (-e "outtree"){
-    system("rm outtree");
-}
-
-if (-e "outfile"){
-    system("rm outfile");
-}
-
-if (defined($quick) && !defined($slow)){
-    print "View your tree in $infile\.njtree\.dnd\n";
-    exit();
-}
-
-#Running dnaml-erate
-system("mv infile.phy infile");
-system("echo \42Y\42 | dnaml-erate");
-
-open( TR, "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
-@tree = <TR>;
-close(TR);
-$tree = join("", @tree);
-
-foreach my $k (keys %speciesnames){
-    $tree =~ s/$k\:/$speciesnames{$k}\:/g;
-}
-
 open( TR, ">$infile\.dnaml-erate\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
 print TR "$tree\n";
 close(TR);
 
-print "View trees in $infile\.dnaml-erate\.dnd and $infile\.njtree\.dnd\n";
-
-#Clean up
-if (-e "$tmpseed"){
-    system("rm $tmpseed");
-}
-
-if (-e "outfile"){
-    system("rm outfile");
-}
-
-if (-e "outtree"){
-    system("rm outtree");
-}
+#print "View trees in $infile\.dnaml-erate\.dnd and $infile\.njtree\.dnd\n";
+cleanup();
 
 exit();
 
 ######################################################################
+
+sub cleanup {
+    
+    #Clean up
+    my @cleanup = qw(infile infile.phy outfile outtree);
+    push(@cleanup, $tmpseed);
+    
+    foreach my $f (@cleanup){
+	if (-e $f){
+	    print "rm $f\n";
+	    system("rm $f");
+	}
+    }
+}
 
 sub genid {
     my $place = shift;
