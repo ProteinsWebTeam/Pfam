@@ -35,7 +35,7 @@ $outlist=1;
             "f|infile=s"       => \$infile,
             "o|outlist"        => \$outlist,
             "q|quickonly"      => \$quick,
-            "slowalso"         => \$slow,
+            "so|slowalso"         => \$slow,
             "s|slowonly"       => \$slowonly,
 	    "h|help"           => \$help
     );
@@ -77,6 +77,10 @@ if (scalar(@list) > 26**4){
 my (%outliststart, %outlistend, %outlistscore);
 if (defined($outlist)){
     if (-e "out.list"){
+	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
+    }
+    elsif (-e "OUTPUT"){
+	system("rfmake.pl -l") and die "Could not find out.list and could not run rfmake.pl\n[$!]";
 	open(OUTLIST, "out.list") or die "Could not open out.list\n[$!]";
     }
     else {
@@ -340,7 +344,9 @@ OPTIONS:
   -f|-infile <str>           Use \'str\' as input (must be stockholm), default is to use SEED 
                              from the current dir.
   -q|-quickonly              Only generate the quick and dirty NJ-tree.
-  -o|-outlist                Read scores in from the out.list file and prepend these to the N/S-E_species strings.
+  -o|-outlist                Read scores in from the out.list file and prepend these to the N/S-E_species strings. (default)
+  -so|-slowalso              
+  -s|-slowonly               
 
 EXAMPLES: 
 
