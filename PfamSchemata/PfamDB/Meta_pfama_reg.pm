@@ -1,5 +1,5 @@
 
-# $Id: Meta_pfama_reg.pm,v 1.3 2008-05-16 15:23:16 jt6 Exp $
+# $Id: Meta_pfama_reg.pm,v 1.4 2008-06-03 13:56:48 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -16,14 +16,20 @@ __PACKAGE__->load_components( qw( Core ) );
 __PACKAGE__->table( 'meta_pfamA_reg' );
 
 # get the columns that we want to keep
-__PACKAGE__->add_columns( qw( auto_pfamA
-                              auto_metaseq 
+__PACKAGE__->add_columns( qw( auto_meta_pfamA_reg
+                              auto_pfamA
+                              auto_metaseq
                               seq_start
                               seq_end
-                              bits_score
-                              evalue_score
-                              nested
+                              model_start
+                              model_end
+                              domain_bits_score 
+                              domain_evalue_score 
+                              sequence_bits_score 
+                              sequence_evalue_score
+                              mode
                               cigar
+                              in_full
                               tree_order ) );
 
 # set the the keys
