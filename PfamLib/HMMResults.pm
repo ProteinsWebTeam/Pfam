@@ -6,7 +6,6 @@
 #
 #Copyright Genome Research Limited (1997). Please see information on licensing in LICENSE
 
-
 package HMMResults;
 
 use vars qw($AUTOLOAD @ISA @EXPORT_OK);
