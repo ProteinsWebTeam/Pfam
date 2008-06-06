@@ -97,6 +97,7 @@ my %forbidden_family_terms = (
     CD => 1,
     CHROMOSOME => 1,
     DNA => 1,
+    DOMAIN => 1,
     DS => 1,
     ELEMENT => 1,
     EUK => 1,
@@ -595,9 +596,9 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
 	mkdir "domain_gfx" or die "Can't create directory: domain_gfx\n[$!]";
     }
     
-    system("convert -density 600 -geometry 50% out.list.pdf                domain_gfx/out.list.png");
-    system("convert -density 600 -geometry 50% out.list.trunc.pdf          domain_gfx/out.list.trunc.png");
-    system("convert -density 600 -geometry 50% out.list.accuracy_stats.pdf domain_gfx/out.list.accuracy_stats.png");
+    system("convert -density 600 -geometry 400 out.list.pdf                domain_gfx/out.list.png");
+    system("convert -density 600 -geometry 400 out.list.trunc.pdf          domain_gfx/out.list.trunc.png");
+    system("convert -density 600 -geometry 400 out.list.accuracy_stats.pdf domain_gfx/out.list.accuracy_stats.png");
 
     #Cleanup R files:
     foreach my $ty (keys %filehandles){
@@ -636,7 +637,7 @@ elsif( $overlaps ) {
 }
 
 my $atleastonehit;
-open( FA, ">$$.fa" ) or die;
+open( FA, ">$$.fa" ) or die; 
 open( SC, ">scores" ) or die;
 foreach my $cmseq ( $res->eachHMMSequence() ) {
     foreach my $cmunit ( $cmseq->eachHMMUnit ) {
@@ -651,7 +652,7 @@ foreach my $cmseq ( $res->eachHMMSequence() ) {
 	my $seqstr = $seq->seq();
 	$seqstr =~ tr/Tt/Uu/;                 # It's RNA dammit! (SRE)
 	$seqstr =~ s/(.{1,60})/$1\n/g;
-	print FA ">", $seq->id(), "\n$seqstr";
+	print FA ">", $seq->id(), "\n$seqstr"; #Parallelise?
 	print SC $cmunit->bits, " $id/$start-$end\n";
 	$atleastonehit = 1;
     }
@@ -664,6 +665,7 @@ if( !$atleastonehit ) {
     exit(0);
 }
 
+#cmalign options:
 my $options = "-o ALIGN";
 if( $local ) {
     $options = "-l ".$options." --qdb";
