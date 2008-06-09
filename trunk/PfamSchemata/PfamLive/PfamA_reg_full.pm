@@ -1,7 +1,7 @@
 
-# $Id: PfamA_reg_full.pm,v 1.5 2008-05-16 15:23:16 jt6 Exp $
+# $Id: PfamA_reg_full.pm,v 1.6 2008-06-09 13:01:21 jm14 Exp $
 #
-# $Author: jt6 $
+# $Author: jm14 $
 package PfamLive::PfamA_reg_full;
 
 use strict;
@@ -15,10 +15,10 @@ __PACKAGE__->load_components( qw/Core/ );
 __PACKAGE__->table( "pfamA_reg_full" );
 
 #Get the columns that we want to keep
-__PACKAGE__->add_columns( qw/auto_pfamseq auto_pfamA seq_start seq_end model_start model_end domain_bits_score domain_evalue_score sequence_bits_score sequence_evalue_score mode significant in_full tree_order/);
+__PACKAGE__->add_columns( qw/auto_pfamA_reg_full auto_pfamseq auto_pfamA seq_start seq_end model_start model_end domain_bits_score domain_evalue_score sequence_bits_score sequence_evalue_score mode significant in_full tree_order/);
 
 #Now set up the primary keys/contraints
-__PACKAGE__->set_primary_key("auto_pfamA", "auto_pfamseq");
+__PACKAGE__->set_primary_key("auto_pfamA_reg_full", "auto_pfamA", "auto_pfamseq");
 
 #Now setup the relationship
 __PACKAGE__->has_one( "pfamA" =>  "PfamLive::Pfam",
