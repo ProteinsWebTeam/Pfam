@@ -460,6 +460,20 @@ sub getAllPdbData{
     }
 }
 
+sub getPfamARegFullByAuto {
+ my ($self, $auto_pfamA_reg_full) = @_;
+ my $result = $self->getSchema
+                    ->resultset("PfamA_reg_full")
+                     ->find({"auto_pfamA_reg_full" => $auto_pfamA_reg_full});
+ if($result){
+     return($result);
+ }
+
+ carp("Did not find region in pfamA_reg_full with auto_pfamA_reg_full '$auto_pfamA_reg_full'\n") if $self->{'debug'};
+ 
+} 
+
+
 #Specific insert/update methods should go here
 
 
