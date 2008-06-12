@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.3 2008-06-02 14:32:34 jt6 Exp $
+// $Id: job.js,v 1.4 2008-06-12 12:04:25 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -249,7 +249,6 @@ var Job = Class.create({
     if( 0 != this.tick++ % this.interval ) {
       var r = new Ajax.Request( this.checkURI, 
                                 {
-                                  method:     'get',
                                   onSuccess:  this.checkStatus.bind( this ),
                                   onFailure:  this.pollingFailed.bind( this ),
                                   parameters: { jobId: this.jobId }
