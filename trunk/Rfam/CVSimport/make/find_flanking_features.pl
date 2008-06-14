@@ -17,7 +17,7 @@ use Digest::MD5 qw(md5_hex);
 # MySQL connection details.
 #my $database = $Rfam::embl;
 #my $database = "embl_test";
-my $database = "embl_93";
+my $database = $Rfam::embl;
 my $host     = "cbi3";
 my $user     = "genero";
 my $dist     = 5000;
@@ -232,7 +232,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
        layout=\"continuous\" 
        scale_x=\"$xscale\" 
        scale_y=\"1.0\">
-  <sequence length=\"$totallength\" display_data=\"test all drawing features\" name=\"TestSeq\">
+  <sequence length=\"$totallength\" display_data=\"$rfamde\" name=\"$name\">
     <region start=\"$xmlrfamstart\" end=\"$xmlrfamend\" label=\"$rfamid\">
       <colour1>
         <colour><hex hexcode=\"c00f0f\"/></colour>
@@ -293,6 +293,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     my ($cdscolour1, $cdscolour2) = ("hex hexcode=\"339999\"","RGB R=\"51\" G=\"204\" B=\"204\"");
 #    my ($rnacolour1, $rnacolour2) = ("hex hexcode=\"666666\"","hex hexcode=\"9966cc\"");
     my ($rnacolour1, $rnacolour2) = ("hex hexcode=\"9900ff\"","hex hexcode=\"9900ff\"");
+    my ($slcolour1, $slcolour2) = ("hex hexcode=\"ff6633\"","hex hexcode=\"ff6633\"");
 
     my $featurecount = 0;
     my @features0 = split(/\n/, $features0);
@@ -326,8 +327,8 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
 
         my ($colour1, $colour2) = ("hex hexcode=\"9999ff\"","hex hexcode=\"99ccff\"");
         my ($featurename,$featuredesc) = ("","");
-        if ($features0[$i] =~ m/CDS/ || $features0[$i] =~ m/RNA/ || $features0[$i] =~ m/RFAM/i){
-                    
+        if ($features0[$i] =~ m/CDS/ || $features0[$i] =~ m/RNA/ || $features0[$i] =~ m/RFAM/i || $features0[$i] =~ m/stem.loop/){
+                    #stem_loop 
                     my @splitfeatures = split(/\t/,$features0[$i]);
                     $featurename = $splitfeatures[1];
                     $featurename =~ s/EMBL\-//g;
@@ -345,6 +346,9 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
                     }
                     elsif ($features0[$i] =~ m/RNA/i || $features0[$i] =~ m/RFAM/){
                             ($colour1, $colour2) = ($rnacolour1, $rnacolour2);
+                    }
+                    elsif ($features0[$i] =~ m/stem.loop/){
+                            ($colour1, $colour2) = ($slcolour1, $slcolour2);
                     }
                 }
 
@@ -370,7 +374,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
                               ($leftStyle,$rightStyle) = ("arrow","straight");
                }
 
-                $xmlfeature .= "    <region start=\"$xmlfeaturestart\" end=\"$xmlfeatureend\" label=\"$featurename $featuredesc\">
+                $xmlfeature .= "<region start=\"$xmlfeaturestart\" end=\"$xmlfeatureend\" label=\"$featurename $featuredesc\">
       <colour1>
         <colour><$colour1/></colour>
       </colour1>
@@ -435,7 +439,7 @@ for (my $ii=0; $ii<scalar(@name); $ii++){
     $name =~ m/^(\S+)\.\d+/;
     my $shortname = $1;
 #    $pngfilename =~ s/domain_gfx\///;
-    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></img></a><br />\n";
+    $htmlbody .= "$markupstart<small><b>$score &#x0009; $type &#x0009; $name\/$start\-$end strand=$strand</b> $desc</small>$markupend<br />\n<a href=\"http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-noSession+-e+[EMBLRELEASE-ACC:$shortname]\"><img style=\"border:0\" src=\"$pngfilename\"\n     usemap=\"#$name\/$start\-$end\"\n     alt=\"\" /></img></a><br />\n";
 
     
 #    $htmlbody .=  "<img src=" . $pngfilename . " usemap=\#" . $imageset->Bio::Pfam::Drawing::Image::Image::image_name . " border=0>";
