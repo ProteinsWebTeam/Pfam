@@ -1101,7 +1101,7 @@ sub user_has_locked_family {
 	print("RCS: The family [$family] has no lock on it -- user $user cannot unlock!\n");
     }
 
-    if( $locked =~ /^\s*$user\s*/ ) {
+    if( defined($user) && $locked =~ /^\s*$user\s*/ ) {
 	return (1,$locked);
     }
     else {
