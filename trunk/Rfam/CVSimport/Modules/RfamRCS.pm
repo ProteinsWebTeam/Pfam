@@ -248,7 +248,8 @@ sub check_family_isnot_locked {
     my ($locked, $locker);
     my $islocked = 0;
 
-    if ( open(_LOCK, "<$Rfam::rcs_master_dir/$family/locked")) {
+    if (-s  "$Rfam::rcs_master_dir/$family/locked") {
+	open(_LOCK, "<$Rfam::rcs_master_dir/$family/locked");
 	while(<_LOCK>) {
 	    /^Lock file to indicate lock by user (\S+)/ && do {
 		$locker = $1;
@@ -256,7 +257,7 @@ sub check_family_isnot_locked {
 	}
     }
 
-    if ($locker) {
+    if (defined($locker) && ) {
 	$islocked = 1;
 	$locked = "$locker";
     }
