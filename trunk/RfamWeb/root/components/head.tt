@@ -6,7 +6,8 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.2 2008-06-17 09:19:08 jt6 Exp $
+# $Id: head.tt,v 1.3 2008-06-17 09:32:39 jt6 Exp $
+-%]
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 [% # if the stash contains a value for "refreshUri", we'll add a
