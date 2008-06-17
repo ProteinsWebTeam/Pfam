@@ -5,7 +5,21 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+# $Id: phylo.tt,v 1.2 2008-06-17 09:05:08 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# tooltips script and stylesheet
+sharedRequirements.js.push( "prototip.js" );
+sharedRequirements.css.push( "prototip.css" );
+
+# the tabs script
+sharedRequirements.js.push( "control.tabs.2.1.1.js" );
+
+#-------------------------------------------------------------------------------
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -18,71 +32,89 @@ treeUri = c.uri_for( "/family/tree" );
   </div>
   <div class="blockContent">
     <p>
-      This page displays the 
-      <acronym title="Unweighted Pair Group Method with Arithmetic mean">UPGMA</acronym>-based 
-      phylogenetic tree, generated using 
-      <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/quicktree/">
-        quicktree</a> for the given alignment.
-    </p> 
-    [% # the form that controls the tree display %]
-    <form id="phyloForm"
-          action="[% treeUri %]">
-      <div>
-        <span>
-          <input id="seedRb" 
-                 name="type"
-                 type="radio" 
-                 checked="checked" 
-                 value="seed" />
-          <label for="seedRb">Seed ([% pfam.num_seed %])</label>
-        </span>
-        <span>
-          <input id="fullRb" 
-                 name="type"
-                 type="radio" 
-                 value="full" />
-          <label for="fullRb">Full ([% pfam.num_full %])</label>
-        </span>
-        <input type="button"
-               onclick="treeSubmitter();"
-               value="Change tree" />
-      </div>
-    </form>
+      This page displays the [% treemethod %] predicted phylogenetic tree,
+      generated using phylip3.66-erate for the given alignment.
+    </p>
 
-    <div id="alignmentTree">
-      <p id="atph" class="loading">
-          Loading alignment tree...
-        </p>  
+    <ul id="alignmentTabs" class="controlTabList">
+      <li><a href="#species_tree">Species</a></li>
+      <li><a href="#acc_tree">Accessions</a></li>  
+      <li><a href="#treeHelp">About</a></li>  
+    </ul>
+    
+    <div id="species_tree"
+         class="controlTabContent treemap">
     </div>
 
+    <div id="acc_tree"
+         class="controlTabContent treemap"
+         style="display: none">
+    </div>
+    
+    <div id="treeHelp"
+         class="controlTabContent"
+         style="display: none">
+      <p>
+        This is a paragraph that explains what's going on with these trees.
+      </p>
+    </div>
+    
     <script type="text/javascript">
       // <![CDATA[
-      // set the options for the ajax call that populates the tree the first time
-      loadOptions.at.uri    = "[% treeUri %]";
-      loadOptions.at.params = { acc: "[% acc %]" };
 
-      // a function that submits subsequent requests 
-      treeSubmitter = function() {
-        var type = $("seedRb").checked ? "seed" : "full";
-        var u = new Ajax.Updater( 'alignmentTree', 
-                          '[% treeUri %]', 
-                          { method:     'get',
-                            parameters: { acc:     '[% acc %]',
-                                          alnType: type } 
-                          } );
-        return false;
-      };
+      // submit AJAX requests for each of the label types
+      //['species','acc'].each( function(label) {
+      ['species'].each( function(label) {
+
+        var r = new Ajax.Request(
+          '[% treeUri %]', 
+          { parameters: { acc:   '[% acc %]',
+                          label: label },
+            onSuccess: function( oResponse ) {
+              // $$(".treemap").invoke( "hide" );
+              $(label+"_tree").update( oResponse.responseText );
+            }
+          }
+        );
+        
+      } );
+      
+      // add the tab controller
+      var alignmentTabsController = new Control.Tabs( "alignmentTabs", 
+                                                       { defaultTab: "species_tree" } );
+
       // ]]>
     </script>
 
+<!--
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc = acc } ) | html %]">seed</a> or the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc = acc } ) | html %]">full</a>
+      <a href="[% c.uri_for( "/family/tree/download", { alnType => "seed", acc => acc } ) | html %]">seed</a> or the
+      <a href="[% c.uri_for( "/family/tree/download", { alnType => "full", acc => acc } ) | html %]">full</a>
       trees.
     </p>
+-->
 
   </div>
 </div>
 
 <!-- end of phyloBlock -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
