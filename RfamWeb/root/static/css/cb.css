@@ -8,7 +8,7 @@
 .cbb h1 {
 	margin:0 -10px;
 	padding:0.3em 10px;
-	background:#e89535;
+	background:#f0e8e6;
 	font:bold 1.2em/1 Arial, Helvetica, sans-serif;
 }
 /* Normal styling */
@@ -61,7 +61,7 @@
 	display:block;
 	margin:0;
 	padding:1px 0.4em;
-	background:#e89535;
+	background:#f0e8e6;
 }
 #contentContainer {
   background-color: #FFF ! important;
@@ -93,5 +93,5 @@
 }
 .icons .i3 {
   padding: 0 0 0 0.4em;
-  background-color:#ba500c;
+  background-color:#b18b80;
 }

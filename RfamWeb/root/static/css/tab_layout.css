@@ -5,27 +5,26 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.1.1.1 2008-03-17 16:37:44 jt6 Exp $
+   $Id: tab_layout.css,v 1.2 2008-06-17 09:35:46 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
    Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
             Jennifer Daub (jd7@sanger.ac.uk)
   
-   This is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
-    
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-    
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+   
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+   
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+
     
 */   
 
@@ -34,15 +33,16 @@
 
 /* styles for the markup that forms the page tab */
 #pageType {
-  border-color: #ba500c;
+  border-color: #621700;
 }
 
 #pageType h2 {
-  color: #ba500c;
+  color: #621700;
 }
 
 #tabTitle {
-  color: #FFF;
+/*  color: #FFF; */
+  color: #621700;
 }
 
 #tabTitle h1 {
@@ -59,7 +59,7 @@
   padding-bottom: 0;
   margin-top: 0;
   margin-bottom: 0;
-  color: #ba500c;
+  color: #621700;
   font-size: smaller;
   font-weight: bold;
 }
@@ -67,7 +67,7 @@
 #wrap {
   background: url(/static/images/bg.gif) repeat-y 15% 0;
   position: relative; /* needed to fix the IE peekaboo bug... */
-  border-right: 1px solid #ba500c;
+  border-right: 1px solid #621700;
 }
 
 /* the overview bar */
@@ -152,7 +152,7 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
 
 /* this is specifically for the "jump box" title */
 #sidebar h1 {
-	color: #FFF;
+	color: #621700;
 }
 
 /* the top border for the main content block in the tab layout */
@@ -160,7 +160,7 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   height: 1px;
   float: right;
   width: 85%;
-  background: #ba500c;
+  background: #621700;
 }
 
 /* ---------------------------------------- */
@@ -179,7 +179,7 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
 }
 
 #sidebar li span.link {
-  color: #FFF;
+  color: #621700;
   outline: none;
   margin: 0;
   padding: 0.2em 0.2em 0.2em 0.8em;
@@ -203,12 +203,12 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   position: relative;
   left: 1px;
   outline: none;
-  border: 1px solid #ba500c;
+  border: 1px solid #621700;
   border-right: none;
   padding: 0.2em 0 0.2em 0.4em;
   background-image: url(/static/images/selected_bg.gif);
   text-decoration: none ! important;
-  color: #FFF ! important;
+  color: #621700 ! important;
 }
 
 #sidebar li.selected span.link {
@@ -247,7 +247,7 @@ div.block {
 }
 
 div.handle {
-  background-color: #ba500c;
+  background-color: #621700;
   color: #fefefe;
   padding: 0.2em;
 }
