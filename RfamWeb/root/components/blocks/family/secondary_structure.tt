@@ -1,0 +1,101 @@
+
+[%
+# secondary_structure.tt
+# jt6 20080523 WTSI
+# 
+# build the secondary structure block for families
+#
+# $Id: secondary_structure.tt,v 1.1 2008-06-17 09:22:05 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+sharedRequirements.js.push( "sharedFunctions.js" );
+
+#-------------------------------------------------------------------------------
+
+types = [ #'normal',
+           'cons',
+           'cov',
+           'ent',
+           'fcbp',
+           'maxcm' ];
+
+labels = [ #'Normal',
+           'Sequence conservation',
+           'Covariation',
+           'Relative entropy',
+           'Fraction canonical basepairs',
+           'Maximum CM parse' ];
+
+%]
+
+<!-- start secondary structure block -->
+
+<div class="block" id="familySSBlock">
+  <div class="handle">
+    <h1>Secondary structure</h1>
+  </div>
+  <div class="blockContent">
+
+    <ul id="ssImageTabs" class="controlTabList">
+[% FOREACH type IN types -%]
+      <li><a href="#[% type %]Image"
+             title="[% labels.${loop.index} %]">[% type %]</a></li>
+[% END -%]
+      <li><a href="#ssImageHelp" 
+             title="About the secondary structure images">About</a></li>
+    </ul>
+
+[% FOREACH type IN types -%]
+    <div id="[% type %]Image" [% IF NOT loop.first %] style="display: none"[% END %]
+         class="controlTabContent ssImage">
+      <img alt=""
+           src="[% c.uri_for( '/family/image', acc => acc, type => type ) | html -%]" />
+    </div>
+[% END -%]
+
+    <div id="ssImageHelp" 
+         class="controlTabContent" 
+         style="display: none">
+      <p>
+        This is a paragraph of text that explains what's going on with these
+        secondary structure images.
+      </p>
+    </div>
+
+    <script type="text/javascript">
+      // <![CDATA[
+      var ssImageTabsController = new Control.Tabs( "ssImageTabs",
+                                                    { defaultTab: "[% types.first %]Image" } );
+      
+      // "defaultTab" doesn't seem to set this correctly, hence the next call:
+      ssImageTabsController.setActiveTab("[% types.first %]Image");
+      // ]]>
+    </script>
+
+  </div>
+</div>
+
+<!-- end secondary structure block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

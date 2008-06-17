@@ -4,7 +4,16 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+# $Id: curation.tt,v 1.2 2008-06-17 09:22:05 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+sharedRequirements.js.push( "control.tabs.2.1.1.js" );
+
+#-------------------------------------------------------------------------------
 
 %]
 
@@ -89,7 +98,87 @@
       </tbody>
     </table>
 
+    <h2>Distributions of bits scores</h2>
+
+    <ul id="chartTabs" class="controlTabList">
+      <li><a href="#dist">Full</a></li>  
+      <li><a href="#trunc">Truncated</a></li>
+      <li><a href="#chartHelp">About</a></li>
+    </ul>
+    
+    <div id="dist" class="controlTabContent chart">
+      <h3>Full distribution</h3>
+      <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='dist' } ) | html %]" />
+      <div class="key">
+        <ul>
+          <li><span class="alignColour">&nbsp;</span>align</li>
+          <li><span class="seedColour">&nbsp;</span>seed</li>
+          <li><span class="thresholdColour">&nbsp;</span>threshold</li>
+          <li><span class="familyColour">&nbsp;</span>family</li>
+          <li><span class="forbiddenColour">&nbsp;</span>forbidden</li>
+        </ul>
+      </div>
+      <div class="cleaner"><!-- empty --></div>
+      <p>
+        This chart shows something very interesting and very difficult to 
+        explain clearly. We'll do our best though, just for you.
+      </p>
+    </div>
+    
+    <div id="trunc" class="controlTabContent chart" style="display: none">
+      <h3>Truncated distribution</h3>
+      <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='disttrunc' } ) | html %]" />
+      <div class="key">
+        <ul>
+          <li><span class="alignColour">&nbsp;</span>align</li>
+          <li><span class="seedColour">&nbsp;</span>seed</li>
+          <li><span class="thresholdColour">&nbsp;</span>threshold</li>
+          <li><span class="familyColour">&nbsp;</span>family</li>
+          <li><span class="forbiddenColour">&nbsp;</span>forbidden</li>
+        </ul>
+      </div>
+      <div class="cleaner"><!-- empty --></div>
+      <p>
+        This chart also shows something very interesting and equally difficult 
+        to explain, but if you've understood the first chart, you should have 
+        no trouble with this one.
+      </p>
+    </div>    
+    
+    <div id="chartHelp" class="controlTabContent chart" style="display: none">
+      <p>
+        This is a long and very interesting explanation of what's going on with
+        the charts in the other tabs.
+      </p>
+    </div>    
+    
+    <script type="text/javascript">
+      // <![CDATA[
+      var chartTabsController = new Control.Tabs( "chartTabs",
+                                                   { defaultTab: "dist" });
+      // ]]>
+    </script>
+
   </div>
 </div>
 
 <!-- end curation block --> 
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
