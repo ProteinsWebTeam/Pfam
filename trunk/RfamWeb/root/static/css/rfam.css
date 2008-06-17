@@ -4,27 +4,26 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.1.1.1 2008-03-17 16:37:44 jt6 Exp $
+   $Id: rfam.css,v 1.2 2008-06-17 09:35:30 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
    Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
             Jennifer Daub (jd7@sanger.ac.uk)
    
-   This is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
-    
-   This program is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-    
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-   or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+   
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+   
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+
     
 */   
 
@@ -59,7 +58,7 @@ a:link,
 a:visited,
 a:focus,
 a:active {
-  color: #ba500c;
+  color: #621700;
 }
 
 .hover,
@@ -171,8 +170,8 @@ div.rfamLogoHolder #searchBox {
 
 /* tweak the site-wide search box so that it fits nicely under the Pfam logo */
 #siteSearchField {
-  width: 92px;
-  margin-left: 35px;
+  width: 98px;
+  margin-left: 29px;
 }
 
 /* navbar styles */
@@ -198,7 +197,7 @@ div.rfamLogoHolder #searchBox {
 
 #navbar a { 
   text-decoration: none;
-  color: #ba500c;
+  color: #621700;
 }
 
 #navbar a.here { 
@@ -222,17 +221,16 @@ img.addAnnotation {
   height: 24px;
 	vertical-align: middle;
   padding-bottom: 3px;
-	border-style: none;
 }
 
 /* widgets in the jump box */
 
 .entryField {
-  border: 1px inset #ba500c;
-  background: #fff6f6 url(/shared/images/search_gradient.png) repeat-x top left;
+  border: 1px inset #621700;
+  background: #f0e8e6 url(/shared/images/search_gradient.png) repeat-x top left;
   margin: 1px 0;
   padding: 2px;
-  color: #ba500c;
+  color: #621700;
   font-weight: bold;
   font-size: x-small;
   float: left;
@@ -374,7 +372,7 @@ div.jumpSpinner {
   width: 85%;
   float: right;
   border: none;
-  border-top: 1px solid #ba500c;
+  border-top: 1px solid #621700;
   height: 4px;
 }
 
@@ -539,7 +537,7 @@ a.sortheader {
 }
 
 #key h2 {
-  color: #ba500c;
+  color: #621700;
   text-align: left;
   margin: 0.2em auto;
   padding: 0;
@@ -601,7 +599,7 @@ a.sortheader {
 }
 
 .resultTable thead tr {
-   background: #ba500c;
+   background: #621700;
    color: #FFF;
    font-weight: bold;
 }
@@ -661,7 +659,7 @@ div.pdbImageFragment {
   width: 200px;
   font-size: 0.8em;
   overflow: hidden;
-  border: 1px solid #ba500c;
+  border: 1px solid #621700;
   background: #e7edf3;
 }
 
@@ -677,7 +675,7 @@ img.pdbImage {
 
 .pdbTitle  {
   display: inline;
-  color: #ba500c;
+  color: #621700;
   font-weight: bold;
 }
 
@@ -768,14 +766,14 @@ h2.padded {
 .link {
   cursor: pointer;
   text-decoration: underline;
-  color: #ba500c;
+  color: #621700;
 }
 
 /* a slightly heavier link class... */
 .moreLink {
   cursor: pointer;
   text-decoration: none;
-  color: #ba500c;
+  color: #621700;
   font-weight: bold ! important;
   text-decoration: underline ! important;
 }
@@ -784,21 +782,21 @@ h2.padded {
 /* tooltip styles */
 
 .tooltip {
-  background: #cbdced;
-  border: 1px solid #ba500c;
+  background: #f0e8e6;
+  border: 1px solid #621700;
   font-size: 0.8em;
   /* opacity: 0.8; */
 }
 
 .tooltip .title {
-  background: #ba500c;
-  color: #cbdced;
+  background: #621700;
+  color: #f0e8e6;
   font-weight: bold;
   padding: 0.1em;
 }
 
 .tooltip .content {
-  color: #ba500c;
+  color: #621700;
   padding: 0.1em;
 }
 
@@ -878,7 +876,7 @@ ul.mirrors li {
 #dbd {
   margin: 120px auto 0 auto;
   width: 485px;
-  color: #ba500c;
+  color: #621700;
   text-align: justify;
   font-size: 12px;
 }
@@ -903,3 +901,123 @@ ul.mirrors li {
   right: 0;
   position: relative;  
 }
+
+/* ======================================== */
+/* family page */
+
+/* alignments and trees tab */
+#alignmentTree {
+  margin: 0.4em 0;
+}
+
+#alignmentTree img {
+  border: 1px solid #CCC;
+}
+
+.treemap {
+  position: relative;
+}
+
+.targetArea {
+  position: absolute;
+  overflow: hidden;
+}
+
+/* tweak the tooltips on the phylogenetic tree */
+.treetip {
+  background-color: #f0e8e6;
+  width: 32em;
+}
+
+.treetip dl {
+  margin: 0;
+}
+
+.treetip dt {
+  font-weight: bold;
+  text-align: right;
+  margin-right: 0.2em;
+  float: left;
+  width: 8em;
+}
+
+.treetip dd {
+  margin-left: 8.2em;
+}
+
+/* curation tab */
+
+div.key {
+  background-color: #f3f3f3;
+  border: 1px solid #CCC;
+  padding: 0.4em;
+  width: 10em;
+}
+
+div.key ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+div.key li span {
+  float: left;
+  font-size: 1px;
+  width: 10px;
+  height: 10px;
+  margin: 2px 2px 0 0;
+}
+
+span.alignColour     { background-color: #F00; }
+span.seedColour      { background-color: #00F; }
+span.thresholdColour { background-color: #000; }
+span.familyColour    { background-color: #acd7e5; }
+span.forbiddenColour { background-color: #ffc3ce; }
+
+/* control tabs */
+
+ul.controlTabList {
+  list-style: none;
+  margin: 0;
+  padding: 0.6em;
+  clear: both;
+  height: 1.6em;
+  clear: both;
+}
+
+ul.controlTabList li {
+  float: left;
+  margin-right: 0.6em;
+  text-align: center;
+}
+
+ul.controlTabList li a {
+  text-decoration: none;
+  font-weight: bold;
+  display: block;
+  height: 1.6em;
+  padding: 0.6em 0 0;
+  color: #404040;
+  width: 8em;
+  background-color: #f3f3f3;
+/*  background-color: #e7e7e7; */
+}
+
+ul.controlTabList li a:hover {
+  color: #666;
+}
+
+ul.controlTabList li a.active {
+  background-color: #CCC;
+}
+
+div.controlTabContent {
+  border: 1px solid #CCC;
+ 
+
+div.chart div.key,
+div.chart img {
+  float: left;
+}
+
+
