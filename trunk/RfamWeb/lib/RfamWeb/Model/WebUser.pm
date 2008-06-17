@@ -2,7 +2,7 @@
 # WebUser.pm
 # jt6 20080306 WTSI
 #
-# $Id: WebUser.pm,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+# $Id: WebUser.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package RfamWeb::Model::WebUser;
 This is a Model wrapper around the web_user schema. Connection
 parameters are specified in the configuration.
 
-$Id: WebUser.pm,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+$Id: WebUser.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
 
 =cut
 
@@ -43,20 +43,18 @@ Copyright (c) 2007: Genome Research Ltd.
 Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk),
          Jennifer Daub (jd7@sanger.ac.uk)
 
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 

@@ -5,17 +5,17 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+# $Id: summary.tt,v 1.2 2008-06-17 09:22:05 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
+requirements.css.push( "wp.css" );
+
 #requirements.css.push( "family.css" );
 #requirements.cssIe.push( "family_ie.css" );
-
-sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
 
 #requirements.js.push( "family.js" );
 
@@ -47,40 +47,47 @@ sharedRequirements.js.push( "scriptaculous/scriptaculous.js?load=effects" );
              alt="Add an annotation" 
              src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
     </h1>
+    <p>
+      The Rfam group coordinates the annotation of Rfam families in  
+      <a class="ext" href="http://www.wikipedia.org/">Wikipedia</a>.
+      <span onclick="reveal( this, 'wikiNotes', false, true );"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="wikiNotes" style="display: none">
+      <p>
+        This annotation is taken directly from Wikipedia and you can improve
+        the quality of the annotation via the Wikipedia article.
+      </p>
+      <hr />
+    </div>
 
-    [% IF rfam.comment.length %]
-    <p>[% # if we want to mark up links in the comment, we need something like:
-          #   PROCESS addLinks, input = rfam.comment 
-          # otherwise:
-          rfam.comment
-          %]</p>
-    [% ELSE %]
-    <p class="inactive">No Rfam abstract.</p>
-    [% END %]
-  
-    [% IF rfam.rfam_literature_references.size %]
-      <h2>Literature references</h2>
-  
-      <ol>
-      [% refNum = 1;
-      FOREACH ref IN rfam.rfam_literature_references %]
-        <li>
-          <p>
-            [% ref.author %], [% ref.journal %]: [% ref.title %]
-            <a name="ref[% refNum %]"
-               class="ext" 
-               href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">
-              PUBMED:[% ref.pmid %]</a>
-          </p>
-        </li>
-        [%- refNum = refNum + 1; 
-      END %]
-      </ol>
-  
-      <hr class="short"/>
-    [% END %]
-
+    <div id="wpData">
+    [% FOREACH wiki IN rfam.wikis;
+      wiki.text;
+    END -%]
+    </div>
+    
   </div>
 </div>
 
 <!-- end summary block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
