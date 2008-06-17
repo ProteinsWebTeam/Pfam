@@ -6,17 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
-
-# these first meta tags are google webmasters verification tags. They are here
-# so that google can verify that we control the websites and we can control,
-# to some extent, how the googlebot indexes them.
-
-# pfam.sanger.ac.uk -%]
-<meta name="verify-v1" content="GjV+z5lf7mSCShhAOJZh1UW8J+iiCgWmbxIFg2GkG0Q=" />
-
-[%- # pfam.sbc.su.se -%]
-<meta name="verify-v1" content="FA9AR+bh3BmS05vcSp0mbiAB80DgELEAkFvu4q9ViC8=" />
+# $Id: head.tt,v 1.2 2008-06-17 09:19:08 jt6 Exp $
 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 [% # if the stash contains a value for "refreshUri", we'll add a
@@ -28,122 +18,53 @@ IF refreshUri != "";
 [% END -%]
 
 <!-- ====================================================================== -->
-<!-- make the site RSS feed discoverable --> 
+<!-- third-party javascript libraries
 
-<link href="[% c.uri_for( "/rss/pfam.rdf" ) %]" 
-      rel="alternate"
-      type="application/rss+xml"
-      title="Pfam News" />
+     we are now loading third-party libraries from remote sites. We get
+     prototype and scriptaculous from googleapis and the YUI components 
+     for tree viewing directly from yahoo
+--> 
+
+<!-- prototype / scriptaculous -->
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">google.load("prototype", "1.6.0.2");</script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,controls"></script>
+
+<!-- YUI -->
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/treeview/treeview-min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/treeview/assets/skins/sam/treeview.css" /> 
 
 <!-- ====================================================================== -->
-<!-- load the common files first -->
+<!-- local javascript files -->
 
-[%- # use uri_for to get the root for the static directory
-   staticUri = c.uri_for( "/static" );
-   sharedUri = c.uri_for( "/shared" ); -%]
-
-<!-- prototype -->
-<script type="text/javascript" src="[% sharedUri %]/javascripts/prototype.js"></script>
+[%-  # use uri_for to get the root for the static directory
+     staticUri = c.uri_for( "/static" );
+     sharedUri = c.uri_for( "/shared" ); -%]
 
 <!-- local javascript -->
 <script type="text/javascript" src="[% sharedUri %]/javascripts/sharedFunctions.js"></script>
 <script type="text/javascript" src="[% staticUri %]/javascripts/rfFunctions.js"></script>
 
+<!-- ====================================================================== -->
+<!-- local stylesheets -->
+
 <!-- global stylesheet -->
 <link rel="stylesheet" href="[% staticUri %]/css/rfam.css" type="text/css" />
 
-<!-- ====================================================================== -->
-<!-- load dynamically required stylesheets and javascript files-->
-[%
-# somewhere to aggregate the lists of requirements from all templates
-cssIncludes = [];
-cssIeIncludes = [];
-cssIeAllIncludes = [];
-jsIncludes  = [];
-
-# merge the requirements
-USE String;
-includeHead = String.new(  );
-includeTail = String.new( "' type='text/css' />" );
-
-FOREACH key IN requirements.keys;
-  SWITCH key;
-    CASE "css";
-      FOREACH stylesheet IN requirements.css;
-        cssIncludes.push( "<link rel='stylesheet' href='$staticUri/css/$stylesheet' type='text/css' />" );
-      END;
-    CASE "cssIe";
-      FOREACH stylesheet IN requirements.cssIe;
-        cssIeIncludes.push( "<link rel='stylesheet' href='$staticUri/css/$stylesheet' type='text/css' />" );
-      END;
-    CASE "cssIeAll";
-      FOREACH stylesheet IN requirements.cssIeAll;
-        cssIeAllIncludes.push( "<link rel='stylesheet' href='$staticUri/css/$stylesheet' type='text/css' />" );
-      END;
-    CASE "js";
-      FOREACH js IN requirements.js;
-        jsIncludes.push( "<script type='text/javascript' src='$staticUri/javascripts/$js'></script>" );
-      END;
-  END; # of SWITCH
-END;
-
-FOREACH key IN sharedRequirements.keys;
-  SWITCH key;
-    CASE "css";
-      FOREACH stylesheet IN sharedRequirements.css;
-        cssIncludes.push( "<link rel='stylesheet' href='$sharedUri/css/$stylesheet' type='text/css' />" );
-      END;
-    CASE "cssIe";
-      FOREACH stylesheet IN sharedRequirements.cssIe;
-        cssIeIncludes.push( "<link rel='stylesheet' href='$sharedUri/css/$stylesheet' type='text/css' />" );
-      END;
-    CASE "cssIeAll";
-      FOREACH stylesheet IN sharedRequirements.cssIeAll;
-        cssIeAllIncludes.push( "<link rel='stylesheet' href='$sharedUri/css/$stylesheet' type='text/css' />" );
-      END;
-    CASE "js";
-      FOREACH js IN sharedRequirements.js;
-        jsIncludes.push( "<script type='text/javascript' src='$sharedUri/javascripts/$js'></script>" );
-      END;
-  END; # of SWITCH
-END -%]
-
-<!-- required javascripts -->
-[%-
-# dump out the uniquified requirements for all browsers
-
-# first javascripts
-FOREACH script IN jsIncludes.unique %]
-[% script;
-END %]
-
-<!-- styles applicable to all browsers -->
-[%- FOREACH stylesheet IN cssIncludes.unique %]
-[% stylesheet;
-END %]
-
-<!-- styles applicable to IE6 and below -->
-<!--[if lt IE 7 ]>
-  <link rel="stylesheet" href="[% staticUri %]/css/pfam_ie.css" type="text/css" />
-[% IF cssIeIncludes.size;
-  FOREACH stylesheet IN cssIeIncludes.unique %]
-    [% stylesheet;
-  END;
-END -%]
-<![endif]-->
-
-<!-- styles applicable to all versions of IE -->
-<!--[if IE ]>
-  <link rel="stylesheet" href="[% staticUri %]/css/pfam_all_ie.css" type="text/css" / >
-[% IF cssIeAllIncludes.size;
-  FOREACH stylesheet IN cssIeAllIncludes.unique %]
-    [% stylesheet;
-  END;
-END -%]
-<![endif]-->
-
 <!-- site-specific stylesheet -->
 <link rel="stylesheet" href="[% staticUri %]/css/[% c.config.site %].css" type="text/css" />
+
+<!-- ====================================================================== -->
+<!-- load dynamically required stylesheets and javascript files-->
+
+[% 
+allRequirements = { local  => { uri  => staticUri,
+                                reqs => requirements },
+                    shared => { uri  => sharedUri,
+                                reqs => sharedRequirements } };
+
+PROCESS "components/load_requirements.tt" %]
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
@@ -153,3 +74,22 @@ END -%]
       href="[% staticUri %]/images/favicon.png" />
       
 <!-- ====================================================================== -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
