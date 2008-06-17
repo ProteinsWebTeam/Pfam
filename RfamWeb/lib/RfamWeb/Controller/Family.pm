@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20080306 WTSI
 #
-# $Id: Family.pm,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+# $Id: Family.pm,v 1.2 2008-06-17 09:17:01 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ load a Rfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.1.1.1 2008-03-17 16:37:43 jt6 Exp $
+$Id: Family.pm,v 1.2 2008-06-17 09:17:01 jt6 Exp $
 
 =cut
 
@@ -65,13 +65,13 @@ either an ID or accession
 =cut
 
 sub begin : Private {
-  my( $this, $c, $entry_arg ) = @_;
+  my ( $this, $c, $entry_arg ) = @_;
   
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  if( defined $c->req->param('output') and
-      $c->req->param('output') eq 'xml' ) {
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
     $c->stash->{output_xml} = 1;
     $c->res->content_type('text/xml');
   }
@@ -84,13 +84,24 @@ sub begin : Private {
                       '';
   
   my $entry;
-  if( $tainted_entry ) {
+  if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
     $c->stash->{errorMsg} = 'Invalid Rfam family accession or ID' 
       unless defined $entry;
-  } else {
+  }
+  else {
     $c->stash->{errorMsg} = 'No Rfam family accession or ID specified';
   }
+  
+  #  find out what type of alignment we need, seed, full, ncbi, etc
+  $c->stash->{alnType} = 'seed';
+  if( defined $c->req->param('alnType') ) {
+    $c->stash->{alnType} = $c->req->param( 'alnType' ) eq 'full' ? 'full'
+                         :                                         'seed';
+  }
+  
+  $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
+    if $c->debug;
   
   # retrieve data for the family
   $c->forward( 'get_data', [ $entry ] ) if defined $entry;
@@ -117,7 +128,7 @@ sub begin : Private {
   #----------------------------------------
 
   # if we're outputting HTML, we're done here
-  unless( $c->stash->{output_xml} ) {
+  unless ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Family::begin: emitting HTML' ) if $c->debug;
     return;
   }
@@ -128,7 +139,7 @@ sub begin : Private {
   $c->log->debug( 'Family::begin: emitting XML' ) if $c->debug;
 
   # if there was an error...
-  if( $c->stash->{errorMsg} ) {
+  if ( $c->stash->{errorMsg} ) {
     $c->log->debug( 'Family::begin: there was an error: |' .
                     $c->stash->{errorMsg} . '|' ) if $c->debug;
     $c->stash->{template} = 'rest/family/error_xml.tt';
@@ -136,20 +147,75 @@ sub begin : Private {
   }
   
   # decide on the output template, based on the type of family that we have
-  if( $c->stash->{entryType} eq 'A' ) {
+  if ( $c->stash->{entryType} eq 'A' ) {
     $c->log->debug( 'Family::begin: got data for a Pfam-A' ) if $c->debug;
     $c->stash->{template} = 'rest/family/pfama_xml.tt';
-  } elsif( $c->stash->{entryType} eq 'B' ) {
+  }
+  elsif( $c->stash->{entryType} eq 'B' ) {
     $c->log->debug( 'Family::begin: got data for a Pfam-B' ) if $c->debug;
     $c->stash->{template} = 'rest/family/pfamb_xml.tt';
-  } elsif( $c->stash->{entryType} eq 'D' ) {
+  }
+  elsif( $c->stash->{entryType} eq 'D' ) {
     $c->log->debug( 'Family::begin: got data for a dead family' ) if $c->debug;
     $c->stash->{template} = 'rest/family/dead_xml.tt';
-  } else {
+  }
+  else {
     $c->log->debug( 'Family::begin: got an error' ) if $c->debug;
     $c->stash->{template} = 'rest/family/error_xml.tt';
   }
 
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 image : Local
+
+Retrieves and returns an image from the database. Cache the image, unless
+C<$ENV{NO_CACHE}> is true. 
+
+=cut
+
+sub image : Local {
+  my ( $this, $c ) = @_;
+
+  my ( $image_type ) = $c->req->param('type') || '' =~ m/^(\w+)$/;
+
+  unless ( defined $image_type ) {
+    $c->log->debug( 'Family::image: no valid type specified; defaulting to normal' )
+      if $c->debug;
+    $image_type = 'normal';
+  }
+
+  my $cache_key = 'family_image' . $c->stash->{acc} . $image_type;
+  my $image     = $c->cache->get( $cache_key );
+  
+  if ( defined $image ) {
+    $c->log->debug( 'Family::image: retrieved image from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::image: failed to retrieve image from cache; going to DB' )
+      if $c->debug;
+
+    my $rs = $c->model('SecondaryStructureImages')
+               ->find( { auto_rfam => $c->stash->{rfam}->auto_rfam,
+                         type      => $image_type } );
+
+    unless ( defined $rs and
+             defined $rs->image ) {
+      $c->stash->{errorMsg} = 'We could not find an image for ' 
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $image = $rs->image;
+
+    $c->cache->set( $cache_key, $image ) unless $ENV{NO_CACHE}
+  }
+  
+  $c->res->content_type( 'image/png' );
+  $c->res->body( $image );
+    
 }
 
 #-------------------------------------------------------------------------------
@@ -297,7 +363,7 @@ we have to do one more query.
 =cut
 
 sub get_summary_data : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   my $summaryData = {};
 
@@ -333,122 +399,123 @@ Retrieve the database cross-references for the family.
 
 =cut
 
-sub get_db_xrefs : Private {
-  my( $this, $c ) = @_;
-
-  my $xRefs = {};
-
-  # stuff in the accession and ID for this entry
-  $xRefs->{entryAcc} = $c->stash->{pfam}->pfamA_acc;
-  $xRefs->{entryId}  = $c->stash->{pfam}->pfamA_id;
-
-  # Interpro
-  push @{ $xRefs->{interpro} }, $c->stash->{pfam}->interpro_id
-    if $c->stash->{pfam}->interpro_id;
-
-  # PDB
-  $xRefs->{pdb} = keys %{ $c->stash->{pdbUnique} }
-    if $c->stash->{summaryData}{numStructures};
-
-
-  # PfamA relationship based on SCOOP
-  push @{ $xRefs->{scoop} },
-       $c->model('PfamDB::PfamA2pfamA_scoop_results')
-         ->search( { auto_pfamA1 => $c->stash->{pfam}->auto_pfamA,
-                     score       => { '>', 50.0 } },
-                   { join        => [ qw( pfamA1 pfamA2 ) ],
-                     select      => [ qw( pfamA1.pfamA_id pfamA2.pfamA_id score ) ],
-                     as          => [ qw( l_pfamA_id r_pfamA_id score ) ]
-                   } );
-
-  # PfamA to PfamB links based on PRODOM
-  my %atobPRODOM;
-  foreach my $xref ( $c->stash->{pfam}->pfamA_database_links ) {
-    if( $xref->db_id eq 'PFAMB' ) {
-      $atobPRODOM{$xref->db_link} = $xref;
-    } else {
-      push @{ $xRefs->{$xref->db_id} }, $xref;
-    }
-  }
-
-  # PfamA to PfamA links based on PRC
-  my @atoaPRC = $c->model('PfamDB::PfamA2pfamA_PRC_results')
-                  ->search( { 'pfamA1.pfamA_acc' => $c->stash->{pfam}->pfamA_acc },
-                            { join               => [ qw( pfamA1 pfamA2 ) ],
-                              select             => [ qw( pfamA1.pfamA_id 
-                                                          pfamA1.pfamA_acc
-                                                          pfamA2.pfamA_id 
-                                                          pfamA2.pfamA_acc 
-                                                          evalue ) ],
-                              as                 => [ qw( l_pfamA_id 
-                                                          l_pfamA_acc 
-                                                          r_pfamA_id 
-                                                          r_pfamA_acc 
-                                                          evalue ) ],
-                              order_by           => 'pfamA2.auto_pfamA ASC'
-                            } );
-
-  $xRefs->{atoaPRC} = [];
-  foreach ( @atoaPRC ) {
-    if( $_->get_column( 'evalue' ) <= 0.001 and
-        $_->get_column( 'l_pfamA_id' ) ne $_->get_column( 'r_pfamA_id' ) ) {
-      push @{ $xRefs->{atoaPRC} }, $_;
-    } 
-  }
-
-  # PfamB to PfamA links based on PRC
-  my @atobPRC = $c->model('PfamDB::PfamB2pfamA_PRC_results')
-                  ->search( { 'pfamA.pfamA_acc' => $c->stash->{pfam}->pfamA_acc, },
-                            { join      => [ qw( pfamA pfamB ) ],
-                              prefetch  => [ qw( pfamA pfamB ) ]
-                            } );
-
-  # find the union between PRC and PRODOM PfamB links
-  my %atobPRC;
-  foreach ( @atobPRC ) {
-    $atobPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.001;
-  }
-  # we should be able to filter the results of the query according to
-  # evalue using a call on the DBIx::Class object, but for some reason
-  # it's broken, hence that last loop rather than this neat map...
-  # my %atobPRC = map { $_->pfamB_acc => $_ } @atobPRC;
-
-  my %atobBOTH;
-  foreach ( keys %atobPRC, keys %atobPRODOM ) {
-    $atobBOTH{$_} = $atobPRC{$_}
-      if( exists( $atobPRC{$_} ) and exists( $atobPRODOM{$_} ) );
-  }
-
-  # and then prune out those accessions that are in both lists
-  foreach ( keys %atobPRC ) {
-    delete $atobPRC{$_} if exists $atobBOTH{$_};
-  }
-
-  foreach ( keys %atobPRODOM ) {
-    delete $atobPRODOM{$_} if exists $atobBOTH{$_};
-  }
-
-  # now populate the hash of xRefs;
-  my @atobPRC_pruned;
-  foreach ( sort keys %atobPRC ) {
-    push @atobPRC_pruned, $atobPRC{$_};
-  }
-  $xRefs->{atobPRC} = \@atobPRC_pruned if scalar @atobPRC_pruned;
-
-  my @atobPRODOM;
-  foreach ( sort keys %atobPRODOM ) {
-    push @atobPRODOM, $atobPRODOM{$_};
-  }
-  $xRefs->{atobPRODOM} = \@atobPRODOM if scalar @atobPRODOM;
-
-  my @atobBOTH;
-  foreach ( sort keys %atobBOTH ) {
-    push @atobBOTH, $atobBOTH{$_};
-  }
-  $xRefs->{atobBOTH} = \@atobBOTH if scalar @atobBOTH;
-
-  $c->stash->{xrefs} = $xRefs;
-}
+#sub get_db_xrefs : Private {
+#  my ( $this, $c ) = @_;
+#
+#  my $xRefs = {};
+#
+#  # stuff in the accession and ID for this entry
+#  $xRefs->{entryAcc} = $c->stash->{pfam}->pfamA_acc;
+#  $xRefs->{entryId}  = $c->stash->{pfam}->pfamA_id;
+#
+#  # Interpro
+#  push @{ $xRefs->{interpro} }, $c->stash->{pfam}->interpro_id
+#    if $c->stash->{pfam}->interpro_id;
+#
+#  # PDB
+#  $xRefs->{pdb} = keys %{ $c->stash->{pdbUnique} }
+#    if $c->stash->{summaryData}{numStructures};
+#
+#
+#  # PfamA relationship based on SCOOP
+#  push @{ $xRefs->{scoop} },
+#       $c->model('PfamDB::PfamA2pfamA_scoop_results')
+#         ->search( { auto_pfamA1 => $c->stash->{pfam}->auto_pfamA,
+#                     score       => { '>', 50.0 } },
+#                   { join        => [ qw( pfamA1 pfamA2 ) ],
+#                     select      => [ qw( pfamA1.pfamA_id pfamA2.pfamA_id score ) ],
+#                     as          => [ qw( l_pfamA_id r_pfamA_id score ) ]
+#                   } );
+#
+#  # PfamA to PfamB links based on PRODOM
+#  my %atobPRODOM;
+#  foreach my $xref ( $c->stash->{pfam}->pfamA_database_links ) {
+#    if ( $xref->db_id eq 'PFAMB' ) {
+#      $atobPRODOM{$xref->db_link} = $xref;
+#    }
+#    else {
+#      push @{ $xRefs->{$xref->db_id} }, $xref;
+#    }
+#  }
+#
+#  # PfamA to PfamA links based on PRC
+#  my @atoaPRC = $c->model('PfamDB::PfamA2pfamA_PRC_results')
+#                  ->search( { 'pfamA1.pfamA_acc' => $c->stash->{pfam}->pfamA_acc },
+#                            { join               => [ qw( pfamA1 pfamA2 ) ],
+#                              select             => [ qw( pfamA1.pfamA_id 
+#                                                          pfamA1.pfamA_acc
+#                                                          pfamA2.pfamA_id 
+#                                                          pfamA2.pfamA_acc 
+#                                                          evalue ) ],
+#                              as                 => [ qw( l_pfamA_id 
+#                                                          l_pfamA_acc 
+#                                                          r_pfamA_id 
+#                                                          r_pfamA_acc 
+#                                                          evalue ) ],
+#                              order_by           => 'pfamA2.auto_pfamA ASC'
+#                            } );
+#
+#  $xRefs->{atoaPRC} = [];
+#  foreach ( @atoaPRC ) {
+#    if( $_->get_column( 'evalue' ) <= 0.001 and
+#        $_->get_column( 'l_pfamA_id' ) ne $_->get_column( 'r_pfamA_id' ) ) {
+#      push @{ $xRefs->{atoaPRC} }, $_;
+#    } 
+#  }
+#
+#  # PfamB to PfamA links based on PRC
+#  my @atobPRC = $c->model('PfamDB::PfamB2pfamA_PRC_results')
+#                  ->search( { 'pfamA.pfamA_acc' => $c->stash->{pfam}->pfamA_acc, },
+#                            { join      => [ qw( pfamA pfamB ) ],
+#                              prefetch  => [ qw( pfamA pfamB ) ]
+#                            } );
+#
+#  # find the union between PRC and PRODOM PfamB links
+#  my %atobPRC;
+#  foreach ( @atobPRC ) {
+#    $atobPRC{$_->pfamB_acc} = $_ if $_->evalue <= 0.001;
+#  }
+#  # we should be able to filter the results of the query according to
+#  # evalue using a call on the DBIx::Class object, but for some reason
+#  # it's broken, hence that last loop rather than this neat map...
+#  # my %atobPRC = map { $_->pfamB_acc => $_ } @atobPRC;
+#
+#  my %atobBOTH;
+#  foreach ( keys %atobPRC, keys %atobPRODOM ) {
+#    $atobBOTH{$_} = $atobPRC{$_}
+#      if( exists( $atobPRC{$_} ) and exists( $atobPRODOM{$_} ) );
+#  }
+#
+#  # and then prune out those accessions that are in both lists
+#  foreach ( keys %atobPRC ) {
+#    delete $atobPRC{$_} if exists $atobBOTH{$_};
+#  }
+#
+#  foreach ( keys %atobPRODOM ) {
+#    delete $atobPRODOM{$_} if exists $atobBOTH{$_};
+#  }
+#
+#  # now populate the hash of xRefs;
+#  my @atobPRC_pruned;
+#  foreach ( sort keys %atobPRC ) {
+#    push @atobPRC_pruned, $atobPRC{$_};
+#  }
+#  $xRefs->{atobPRC} = \@atobPRC_pruned if scalar @atobPRC_pruned;
+#
+#  my @atobPRODOM;
+#  foreach ( sort keys %atobPRODOM ) {
+#    push @atobPRODOM, $atobPRODOM{$_};
+#  }
+#  $xRefs->{atobPRODOM} = \@atobPRODOM if scalar @atobPRODOM;
+#
+#  my @atobBOTH;
+#  foreach ( sort keys %atobBOTH ) {
+#    push @atobBOTH, $atobBOTH{$_};
+#  }
+#  $xRefs->{atobBOTH} = \@atobBOTH if scalar @atobBOTH;
+#
+#  $c->stash->{xrefs} = $xRefs;
+#}
 
 #-------------------------------------------------------------------------------
 
@@ -458,14 +525,14 @@ Retrieves the gene ontology (GO) data for the family.
 
 =cut
 
-sub get_go_data : Private {
-  my( $this, $c ) = @_;
-
-  my @goTerms = $c->model('PfamDB::GO')
-                  ->search( { 'me.auto_pfamA' => $c->stash->{pfam}->auto_pfamA } );
-
-  $c->stash->{goTerms} = \@goTerms;
-}
+#sub get_go_data : Private {
+#  my( $this, $c ) = @_;
+#
+#  my @goTerms = $c->model('PfamDB::GO')
+#                  ->search( { 'me.auto_pfamA' => $c->stash->{pfam}->auto_pfamA } );
+#
+#  $c->stash->{goTerms} = \@goTerms;
+#}
 
 #-------------------------------------------------------------------------------
 
@@ -475,16 +542,16 @@ Retrieves details of the interactions between this family and others.
 
 =cut
 
-sub get_interactions : Private {
-  my( $this, $c ) = @_;
-  
-  my @interactions = $c->model('PfamDB::PfamA_interactions')
-                       ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
-                                 { join     => [ qw( pfamA_B ) ],
-                                   prefetch => [ qw( pfamA_B ) ] } );
-
-  $c->stash->{interactions} = \@interactions;
-}
+#sub get_interactions : Private {
+#  my( $this, $c ) = @_;
+#  
+#  my @interactions = $c->model('PfamDB::PfamA_interactions')
+#                       ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
+#                                 { join     => [ qw( pfamA_B ) ],
+#                                   prefetch => [ qw( pfamA_B ) ] } );
+#
+#  $c->stash->{interactions} = \@interactions;
+#}
 
 #-------------------------------------------------------------------------------
 
@@ -503,20 +570,18 @@ Copyright (c) 2007: Genome Research Ltd.
 Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
          Jennifer Daub (jd7@sanger.ac.uk)
 
-This is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
