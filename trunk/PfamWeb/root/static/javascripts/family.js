@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.32 2008-06-02 14:42:55 jt6 Exp $
+// $Id: family.js,v 1.33 2008-06-18 22:29:02 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -26,80 +26,24 @@
 // this will make the ajax calls for the family page components
 
 function familyPostLoad() {
-  // domain graphics
-  if( typeof( loadOptions.dg.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.dg.uri,
-                      { method:     'get', 
-                        parameters: loadOptions.dg.params,
-                        onSuccess:  dgSuccess,
-                        onFailure:  dgFailure
-                      } );
-  }
   // species tree
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
     new Ajax.Request( loadOptions.st.uri,
-                    { method:     'get', 
+                    { 
                       parameters: loadOptions.st.params,
                       onSuccess:  stSuccess,
                       onFailure:  stFailure
                     } );
   }
-  // alignment tree
-  if( typeof( loadOptions.at.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.at.uri,
-                      { method:     'get', 
-                        parameters: loadOptions.at.params,
-                        onSuccess:  atSuccess,
-                        onFailure:  atFailure
-                      } );
-  }
   // coloured alignment
   if( typeof( loadOptions.ca.uri ) != "undefined" ) {
     new Ajax.Request( loadOptions.ca.uri,
-                      { method:     'get', 
+                      { 
                         parameters: loadOptions.ca.params,
                         onSuccess:  caSuccess,
                         onFailure:  caFailure
                       } );
   }
-}
-
-//------------------------------------------------------------
-// callbacks for the domain graphics generation call
-
-function dgSuccess( oResponse ) {
-  $("dgph").update( oResponse.responseText );
-}
-function dgFailure() {
-  $("dgph").update( "Domain graphics loading failed." );
-}
-
-//------------------------------------------------------------
-//- alignment tree methods -----------------------------------
-//------------------------------------------------------------
-
-// callbacks for the alignment tree generation call
-
-function atSuccess( oResponse ) {
-  $("alignmentTree").update( oResponse.responseText );
-}
-
-function atFailure() {
-  var p = $("atph");
-
-  // if a previous update succeeded, the "atph" should have
-  // disappeared. We need to re-create it before trying to update it
-  // with an error message...
-  if( ! p ) {
-    p = document.createElement( "p" );
-    p.id = "atph";
-    var parent = $("alignmentTree");
-    parent.insertBefore( p, parent.firstChild );
-  }
-  $("alignmentTree").update( "Alignment tree loading failed." );
-
-  // disable the form now, otherwise we'll end up chasing our tail...
-  $('phyloForm').disable();
 }
 
 //------------------------------------------------------------
