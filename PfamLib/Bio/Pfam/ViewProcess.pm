@@ -33,7 +33,7 @@ sub initiateViewProcess {
   
   my $size = '';
   
-  unless($en->num_full){
+  if($en->num_full){
      $size = $en->num_full;
   }
   #Add the job to the pfam_jobs database.
