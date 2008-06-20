@@ -1,4 +1,4 @@
-
+ 
 #
 # Perl Module for HMMResults
 #
