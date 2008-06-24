@@ -4,6 +4,9 @@
 	<comment></comment>
 	<projects>
 		<project>PfamBase</project>
+		<project>PfamConfig</project>
+		<project>PfamConfigWTSI</project>
+		<project>PfamLib</project>
 		<project>PfamSchemata</project>
 	</projects>
 	<buildSpec>

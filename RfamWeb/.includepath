@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<includepath>
+  <includepathentry path="${workspace_loc:PfamSchemata}" />
+  <includepathentry path="${workspace_loc:PfamBase/lib}" />
+  <includepathentry path="${workspace_loc:PfamLib}" />
+</includepath>
+
