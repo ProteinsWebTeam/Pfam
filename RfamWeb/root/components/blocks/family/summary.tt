@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.2 2008-06-17 09:22:05 jt6 Exp $
+# $Id: summary.tt,v 1.3 2008-06-24 08:49:13 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -54,20 +54,14 @@ requirements.css.push( "wp.css" );
             class="moreLink">
         More...</span>
     </p>
-    <div id="wikiNotes" style="display: none">
-      <p>
-        This annotation is taken directly from Wikipedia and you can improve
-        the quality of the annotation via the Wikipedia article.
-      </p>
-      <hr />
-    </div>
 
-    <div id="wpData">
+    <div id="wpData" 
+         class="controlTabContent">
     [% FOREACH wiki IN rfam.wikis;
       wiki.text;
     END -%]
     </div>
-    
+
   </div>
 </div>
 
