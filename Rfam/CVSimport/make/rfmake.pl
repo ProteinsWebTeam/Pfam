@@ -53,6 +53,16 @@ if (!defined($file)){
     $file = "OUTPUT";
 }
 
+if (!(-s $file)){
+    die "FATAL: $file either doesn't exist or is empty!\n";
+}
+
+my $fsize = stat($file)->size if -e $file;
+
+if ($fsize > (500 * 1000000)){#
+    die "FATAL: $file is too big ($fsize bytes)! Running rfmake could crash this machine and the other users will hate on you. Hence we're cowardly retreating and dieing. Get Paul some time to write a new and slim rfmake that doesn't crash!\n";
+}
+
 if (!defined($output)){
     $output = "out.list";
 }
@@ -85,6 +95,7 @@ if (!defined($thr)){#If the DESC file is incomplete then we need to set a sensib
     $thr = 5;
 }
 
+#Add to Rfam.pm:
 my %forbidden_family_terms = (
     AND => 1,
     ARCH => 1,
@@ -126,7 +137,7 @@ my %forbidden_family_terms = (
 );
 
 foreach my $t (@family_terms) {
-    if ($t =~ /\S+/ && (length($t)>1) && $t =~ /[A-Z]/ && !$forbidden_family_terms{$t} && !$family_terms{$t}){
+    if ($t =~ /\S+/ && (length($t)>1) && $t =~ /[A-Z]/ && !$forbidden_family_terms{$t} && !$family_terms{$t}){#Family terms should be longer than 1 char, not match any forbidden family terms,  
 	$family_terms{$t}=1;
     }
 }
@@ -148,7 +159,7 @@ repeat
 repetitive
 transpos
 );
-
+ 
 if (@extra_forbidden_terms){
     push(@forbidden_terms, @extra_forbidden_terms);
 }
@@ -601,9 +612,9 @@ THRESH\tMCC\tACC\tSEN\tSPC\tFDR\tFPR\n";
     system("convert -density 600 -geometry 400 out.list.accuracy_stats.pdf domain_gfx/out.list.accuracy_stats.png");
 
     #Cleanup R files:
-    foreach my $ty (keys %filehandles){
-	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
-    }
+#    foreach my $ty (keys %filehandles){
+#	system( "rm out.list_$ty\.dat" ) and die "File cleanup failed [rm out.list_$ty\.dat]\n"; 
+#    }
 #    system( "rm out.list_accuracy\.dat" ) and die "File cleanup failed [rm out.list_accuracy\.dat]\n"; 
     
     exit(0);
@@ -811,6 +822,23 @@ To add:
 -Clean up DBI code - make a function call - also in rfmake.
 -add a warning if a seed sequence matches a forbidden term
 -Markup up highest scoring representative for each species
+
+-REWRITE:
+--don\47t read OUTPUT into memory
+--use MPI version of cmalign
+
+DO:
+init();
+    if(\$list){
+	make_outlist();
+	make_bells() if \$makebells; #R plots etc.
+	exit();
+    }
+    else {
+	make_fa_file(); #Use Rob\47s FetchSeqs function. Switch to Sean's sfetch? Fetch on the farm?
+	run_mpi_cmalign();
+	exit();
+    }
 
 EOF
 }
