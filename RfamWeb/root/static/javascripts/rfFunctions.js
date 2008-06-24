@@ -4,7 +4,10 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: rfFunctions.js,v 1.2 2008-06-17 09:49:16 jt6 Exp $
+// $Id: rfFunctions.js,v 1.3 2008-06-24 08:50:22 jt6 Exp $
+
+var loadOptions = {};
+loadOptions.st = {}; // species tree
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
