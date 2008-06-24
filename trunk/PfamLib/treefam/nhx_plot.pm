@@ -43,6 +43,10 @@ if you want to know more.
 
 =cut
 
+# modified by jt6 to add the ability to fix the width of labels.
+# jt6 20080616 WTSI.
+
+
 use strict;
 use warnings;
 
@@ -62,7 +66,8 @@ sub new
 	my $self = treefam::nhx->new(-width=>640, -height=>480, -is_bs=>1, -show_spec=>0, -skip=>14, -x_margin=>20, -y_margin=>20,
 		-is_real=>1, -c_dup=>16711680, -c_line=>5320, -c_ext=>0, -c_int=>16711680,-c_bs=>32768, -c_seed=>16737280,
 		-c_dup_n=>16737280, -c_spec_n=>32768,
-		-half_box=>2, -font_size=>8, -font_width=>6, @_);
+		-half_box=>2, -font_size=>8, -font_width=>6, 
+		-fix_width=>0, @_);
 	$self->{_preserved_tags}{area} = 1;
 	$self->{_preserved_tags}{node_area} = 1;
 	bless($self, $class);
@@ -118,6 +123,47 @@ sub cal_xy
 	}
 }
 
+=head3 max_label_width
+
+  Arg []      : [int $max=<max label width>]
+  ReturnType  : [int <max label width>]
+  Example     : my $max = $nhx->max_label_width();
+                $nhx->max_label_width($max);
+  Description : Sets/gets the maximum length of node names in this tree. Returns
+                0 if the maximum name length is not set
+
+=cut
+
+sub max_label_width {
+  my $self = shift;
+  my $max = shift;
+
+  $self->{-fix_width} = $max
+    if ( defined $max and $max =~ m/^\d+$/ );
+
+  return $self->{-fix_width} || 0;
+}
+
+=head3 calculate_max_label_width
+
+  Arg [0]     : NONE
+  ReturnType  : [int <max label width>]
+  Example     : my $max = $nhx->max_label_width();
+  Description : Returns the calculated maximum length of node names in this 
+                tree.
+
+=cut
+
+sub calculate_max_label_width {
+  my $self = shift;
+  my $max = 0;
+  my $array = \@{$self->{_node}};
+  foreach my $p (@$array) {
+    $max = length($p->{N}) if (!$p->{C} && length($p->{N}) > $max);
+  }
+  return $max;
+}
+
 =head3 plot_core
 
   Arg [0|1]   : [int $is_plot=1]
@@ -137,8 +183,14 @@ sub plot_core
 	my $max = 0;
 	my $max_p;
 	my $array = \@{$self->{_node}};
-	foreach my $p (@$array) {
-		$max = length($p->{N}) if (!$p->{C} && length($p->{N}) > $max);
+	
+	if ( $self->{-fix_width} ) {
+	  $max = $self->{-fix_width};
+	}
+	else {
+  	foreach my $p (@$array) {
+  		$max = length($p->{N}) if (!$p->{C} && length($p->{N}) > $max);
+  	}
 	}
 	$self->{-height} = 2 * $self->{-y_margin} + $self->{-skip} * $self->{_n_leaf} if ($self->{-skip});
 	my ($real_x, $real_y, $shift_x, $shift_y);
@@ -266,30 +318,7 @@ sub nhx2png
 	return $png;
 }
 
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
-
-=cut
-
-
 1;
-
 
 =head1 SEE ALSO
 
