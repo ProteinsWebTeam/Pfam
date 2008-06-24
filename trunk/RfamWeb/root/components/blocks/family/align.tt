@@ -5,10 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.2 2008-06-17 09:22:05 jt6 Exp $
-
-# shortcut to the alignment tools
-alignmentUri = c.uri_for( "/family/alignment" );
+# $Id: align.tt,v 1.3 2008-06-24 08:47:50 jt6 Exp $
 %]
 
 <!-- start align block -->
