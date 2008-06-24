@@ -57,7 +57,11 @@ if (!(-s $file)){
     die "FATAL: $file either doesn't exist or is empty!\n";
 }
 
-my $fsize = stat($file)->size if -e $file;
+#Fuck - this should work:
+#my $fsize = stat($file)->size if -e $file;
+my $fsize = `ls -s $file`;
+$fsize =~ /(\d+)\s+\S+/;
+$fsize = $1;
 
 if ($fsize > (500 * 1000000)){#
     die "FATAL: $file is too big ($fsize bytes)! Running rfmake could crash this machine and the other users will hate on you. Hence we're cowardly retreating and dieing. Get Paul some time to write a new and slim rfmake that doesn't crash!\n";
