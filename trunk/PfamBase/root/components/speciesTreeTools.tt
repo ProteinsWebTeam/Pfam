@@ -1,0 +1,134 @@
+[%
+# speciesTreeControls.tt
+# jt6 20070626 WTSI
+#
+# build the "control panel" for the species tree
+#
+# $Id: speciesTreeTools.tt,v 1.1 2008-06-24 08:52:08 jt6 Exp $
+%]
+
+<div id="treeTools">
+
+  <div id="toolsHeader" onclick="toggleTools();">
+    <h3>Tree controls</h3>
+    <span id="toolsToggle">Hide</span>
+		<div class="cleaner"><!-- empty --></div>
+  </div>
+
+  <div id="toolsContent" style="display: none">
+
+    <ul class="bare">
+      <li>
+        Fully <a href="#" onclick="tree.expandAll();return false;">expand</a> tree
+      </li>
+      <li>
+        Fully <a href="#" onclick="tree.collapseAll();return false;">collapse</a> tree
+      </li>
+      <li>
+        <div id="ddph">Expand tree...</div>
+      </li>
+    </ul>
+
+    <h3>Annotation</h3>
+    <ul class="bare"> 
+      [%- IF entryType == "A" OR entryType == "R" %]
+      <li>
+        <a id="seedToggle" 
+           href="#"
+           onclick="toggleHighlightSeed();return false;">Hide</a> highlighting 
+        of species in seed
+      </li>
+      [%- END %]
+      <li>
+        <a id="sumToggle"
+           href="#"
+           onclick="toggleShowSummaries();return false;">Hide</a> summaries
+      </li>
+      <li>
+        Key: <span class="specSum">species</span>, 
+             <span class="seqSum">sequences</span>,
+             <span class="domSum">domains</span>
+      </li>
+    </ul>
+
+    <h3>Download tree</h3>
+    <ul class="bare">
+      <li>
+        <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">Save</a> 
+        a text representation
+      </li>
+    </ul>
+
+    <h3>Selected sequences</h3>
+    <ul class="bare">
+      <li class="small">
+        (<a onclick="tree.getRoot().children[0].uncheck();$('stError').hide();return false;"
+           href="#">Uncheck</a> all)
+      </li>
+      [%- IF entryType == "A" %]
+        <li>
+          <em>View</em>
+          <ul>
+            <li>
+              <span onclick="collectSequences( 'G', '[% acc %]' );"
+                    class="link">graphically</span>
+            </li>
+              <li>
+                as an
+                <span onclick="collectSequences( 'A', '[% acc %]' );"
+                      class="link">alignment</span>
+              </li>
+          </ul>
+        </li>
+        <li>
+          <em>Download</em>
+          <ul>
+            <li>
+              <span onclick="collectSequences( 'L', '[% acc %]' );"
+                    class="link">sequence accessions</span>
+            </li>
+            <li>
+              <span onclick="collectSequences( 'F', '[% acc %]' );"
+                    class="link">sequences</span> in FASTA format
+            </li>
+          </ul>
+        </li>
+      [%- ELSE %]
+        <li>
+          <em>View</em>
+          <span onclick="collectSequences( 'G', '[% acc %]' );"
+                    class="link">graphically</span>
+        </li>
+        <li>
+          <em>Download</em>
+          <span onclick="collectSequences( 'L', '[% acc %]' );"
+                class="link">sequence accessions</span>
+        </li>
+      [%- END %]
+      
+      <li id="stError"
+         class="error"
+         style="display: none" ></li>
+    </ul>
+
+  </div>
+
+</div>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
