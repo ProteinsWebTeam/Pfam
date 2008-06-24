@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.6 2008-06-02 14:31:15 jt6 Exp $
+# $Id: layout.tt,v 1.7 2008-06-24 08:52:46 jt6 Exp $
 
 USE String;
 USE date;
@@ -198,6 +198,33 @@ PROCESS components/icons.tt;
       }
     }
   } );
+
+  
+//  Event.observe(window, 'load', function() {
+//    Event.observe(document, 'keypress', function(e){
+//      var code;
+//      if ( ! e ) {
+//        var e = window.event;
+//      }
+//      if ( e.keyCode ) {
+//        code = e.keyCode;
+//      }
+//      else if ( e.which ) {
+//        code = e.which;
+//      }
+//
+//      switch (code) {
+//        case Event.KEY_UP:
+//          console.debug( "moved up" );
+//          break;
+//        case Event.KEY_DOWN:
+//          console.debug( "moved down" );
+//          break;
+//      }
+//
+//    } );
+//  } );
+  
   // ]]>
 </script> 
 
