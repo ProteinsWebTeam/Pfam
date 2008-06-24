@@ -42,6 +42,19 @@ __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" 
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ID5dtmPlV9ii4WMEsxzqyQ
 
+__PACKAGE__->belongs_to(
+  "auto_rfamseq",
+  "RfamDB::Rfamseq",
+  { auto_rfamseq => "auto_rfamseq" },
+  { proxy => [ qw( rfamseq_acc rfamseq_id md5 species taxonomy ) ] },
+);
+
+__PACKAGE__->belongs_to(
+  "auto_rfam",
+  "RfamDB::Rfam",
+  { auto_rfam => "auto_rfam" },
+  { proxy => [ qw( rfam_acc rfam_id description model_length type ) ] },
+);
 
 #-------------------------------------------------------------------------------
 
