@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.2 2008-06-17 09:05:08 jt6 Exp $
+# $Id: phylo.tt,v 1.3 2008-06-24 08:48:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -43,20 +43,52 @@ treeUri = c.uri_for( "/family/tree" );
     </ul>
     
     <div id="species_tree"
-         class="controlTabContent treemap">
+         class="controlTab treemap">
     </div>
 
     <div id="acc_tree"
-         class="controlTabContent treemap"
+         class="controlTab treemap"
          style="display: none">
     </div>
     
     <div id="treeHelp"
-         class="controlTabContent"
+         class="controlTab"
          style="display: none">
-      <p>
-        This is a paragraph that explains what's going on with these trees.
-      </p>
+      <div class="controlTabContent">
+        <p>
+          These trees were generated using either a maximum likelihood approach
+          or neighbour-joining. If the number of sequences in the alignment was
+          less than or equal to 64 then the maximum likelihood approach of Rivas
+          and Eddy was used [<a href="#phylo_ref_1">1</a>]. For families with 
+          more than 64 sequences in the
+          alignment the neighbour-joining approach with F84 distances as
+          implemented in phylip was used [<a href="#phylo_ref_2">2</a>].
+        </p>
+        <div class="citation">
+          <span class="title">
+            <a name="phylo_ref_1">[1]</a> <a class="ext" href="http://selab.janelia.org/publications.html">
+              Probabilistic phylogenetic inference with insertions and deletions</a>:
+          </span>
+          <span class="authors">
+            E. Rivas, S.R. Eddy
+          </span>
+          <span class="ref">
+            <span class="jrnl">In press</span>&nbsp;(2008)
+          </span>
+        </div>
+        <div class="citation">
+          <span class="title">
+            <a name="phylo_ref_2">[2]</a> PHYLIP (Phylogeny Inference Package) version 3.6:
+          </span>
+          <span class="authors">
+            J. Felsenstein
+          </span>
+          <span class="ref">
+            <span class="jrnl">Distributed by the author</span>
+            Department of Genome Sciences, University of Washington, Seattle.
+          </span>
+        </div>
+      </div>
     </div>
     
     <script type="text/javascript">
