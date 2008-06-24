@@ -21,13 +21,6 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 100,
   },
-  "model_length",
-  {
-    data_type => "MEDIUMINT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 8,
-  },
   "author",
   {
     data_type => "TINYTEXT",
