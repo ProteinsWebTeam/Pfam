@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+# $Id: Root.pm,v 1.3 2008-06-24 08:51:42 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+$Id: Root.pm,v 1.3 2008-06-24 08:51:42 jt6 Exp $
 
 =cut
 
@@ -76,6 +76,57 @@ sub index : Private {
   $c->stash->{nav} = 'home';
 
   $c->log->debug('PfamBase::index: generating site index') if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Description...
+
+=cut
+
+sub announcements : Local {
+  my ( $this, $c ) = @_;
+  
+  # see whether we're returning announcements or features
+  my $type = $c->req->param('type');
+
+  unless ( $type eq 'announcements' or 
+           $type eq 'features' ) {
+    $c->res->status(204);
+    return;
+  }
+    
+  # the available changelog entries
+  my $entries = $c->config->{changelog}->{$type};
+  
+  # we're only interested in the most recent entry
+  my $last_entry_timestamp = (sort keys %$entries)[-1];
+
+  # see if there's a "hide" cookie
+  my $cookie = $c->req->cookie("hide_$type");
+  
+  if ( defined $cookie ) {
+    # yes; see when the user decided to hide announcements/features and decide 
+    # whether that'ss more or less recent than the newest announcement/feature
+    # in the config
+    
+    my $hide_timestamp = $cookie->value;
+        
+    if ( $hide_timestamp > $last_entry_timestamp ) {
+      $c->log->debug( 'Root::Announcements: '
+                      . 'hide_timestamp (' . $hide_timestamp 
+                      . ') is newer than last_entry_timestamp (' 
+                      . $last_entry_timestamp 
+                      . '); not showing entry' ) if $c->debug;
+
+      $c->res->status(204);
+      return;
+    }
+  }
+    
+  $c->res->body( $entries->{$last_entry_timestamp} );
 }
 
 #-------------------------------------------------------------------------------
