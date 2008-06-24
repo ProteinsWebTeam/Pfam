@@ -4,7 +4,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.2 2008-06-17 09:22:05 jt6 Exp $
+# $Id: curation.tt,v 1.3 2008-06-24 08:48:02 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -106,50 +106,65 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       <li><a href="#chartHelp">About</a></li>
     </ul>
     
-    <div id="dist" class="controlTabContent chart">
-      <h3>Full distribution</h3>
-      <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='dist' } ) | html %]" />
-      <div class="key">
-        <ul>
-          <li><span class="alignColour">&nbsp;</span>align</li>
-          <li><span class="seedColour">&nbsp;</span>seed</li>
-          <li><span class="thresholdColour">&nbsp;</span>threshold</li>
-          <li><span class="familyColour">&nbsp;</span>family</li>
-          <li><span class="forbiddenColour">&nbsp;</span>forbidden</li>
-        </ul>
+    <div id="dist" class="controlTab chart">
+      <div class="controlTabContent">
+        <h3>Full distribution</h3>
+        <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='dist' } ) | html %]" />
+        <div class="key">
+          <ul>
+            <li><span class="alignColour">&nbsp;</span>align</li>
+            <li><span class="seedColour">&nbsp;</span>seed</li>
+            <li><span class="thresholdColour">&nbsp;</span>threshold</li>
+            <li><span class="familyColour">&nbsp;</span>family</li>
+            <li><span class="forbiddenColour">&nbsp;</span>forbidden</li>
+          </ul>
+        </div>
+        <div class="cleaner"><!-- empty --></div>
       </div>
-      <div class="cleaner"><!-- empty --></div>
-      <p>
-        This chart shows something very interesting and very difficult to 
-        explain clearly. We'll do our best though, just for you.
-      </p>
     </div>
     
-    <div id="trunc" class="controlTabContent chart" style="display: none">
-      <h3>Truncated distribution</h3>
-      <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='disttrunc' } ) | html %]" />
-      <div class="key">
-        <ul>
-          <li><span class="alignColour">&nbsp;</span>align</li>
-          <li><span class="seedColour">&nbsp;</span>seed</li>
-          <li><span class="thresholdColour">&nbsp;</span>threshold</li>
-          <li><span class="familyColour">&nbsp;</span>family</li>
-          <li><span class="forbiddenColour">&nbsp;</span>forbidden</li>
-        </ul>
-      </div>
-      <div class="cleaner"><!-- empty --></div>
-      <p>
-        This chart also shows something very interesting and equally difficult 
-        to explain, but if you've understood the first chart, you should have 
-        no trouble with this one.
-      </p>
+    <div id="trunc" class="controlTab chart" style="display: none">
+      <div class="controlTabContent">
+        <h3>Truncated distribution</h3>
+        <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='disttrunc' } ) | html %]" />
+        <div class="key">
+          <ul>
+            <li><span class="alignColour">&nbsp;</span>align</li>
+            <li><span class="seedColour">&nbsp;</span>seed</li>
+            <li><span class="thresholdColour">&nbsp;</span>threshold</li>
+            <li><span class="familyColour">&nbsp;</span>family</li>
+            <li><span class="forbiddenColour">&nbsp;</span>forbidden</li>
+          </ul>
+        </div>
+        <div class="cleaner"><!-- empty --></div>
+      </div>    
     </div>    
     
-    <div id="chartHelp" class="controlTabContent chart" style="display: none">
-      <p>
-        This is a long and very interesting explanation of what's going on with
-        the charts in the other tabs.
-      </p>
+    <div id="chartHelp" class="controlTab chart" style="display: none">
+      <div class="controlTabContent">
+        <p>
+          These tabs show the CM bit-score distributions for 
+          [% rfam.rfam_id %] ([% rfam.rfam_acc %]).
+          The upper panel shows the score distribution for all of the hits to
+          the covariance model. The hits are coloured blue if the hit overlaps a
+          seed sequence, otherwise they are in red.
+        </p>
+        <p>
+          The lower panel shows score distributions for those sequences where
+          the associated descriptions match family terms, such as &quot;
+          [% rfam.rfam_id %]&quot;, or forbidden terms, such as 
+          &quot;repeat&quot;, &quot;repetitive&quot;, 
+          &quot;pseudogene&quot; and &quot;transpos&quot;, shown in light blue 
+          and pink respectively. <strong>Note</strong> that sequences that
+          match both are counted twice here.
+        </p>
+        <p>
+          The truncated distributions are useful when the number of low scoring
+          hits is several orders of magnitude more than the high scoring
+          hits. The x-axis is truncated at the left side of the distribution,
+          thereby removing the bulk of the low scoring hits.
+        </p>
+      </div>    
     </div>    
     
     <script type="text/javascript">
