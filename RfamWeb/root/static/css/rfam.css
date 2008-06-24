@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.2 2008-06-17 09:35:30 jt6 Exp $
+   $Id: rfam.css,v 1.3 2008-06-24 08:49:56 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -227,7 +227,7 @@ img.addAnnotation {
 
 .entryField {
   border: 1px inset #621700;
-  background: #f0e8e6 url(/shared/images/search_gradient.png) repeat-x top left;
+  background: #f0d9d3 url(/shared/images/search_gradient.png) repeat-x top left;
   margin: 1px 0;
   padding: 2px;
   color: #621700;
@@ -1011,13 +1011,109 @@ ul.controlTabList li a.active {
   background-color: #CCC;
 }
 
-div.controlTabContent {
+div.controlTab {
   border: 1px solid #CCC;
- 
+}
+
+div.controlTabContent {
+  padding: 0.6em;
+}
 
 div.chart div.key,
 div.chart img {
   float: left;
+}
+
+/* ======================================== */
+/* species tree styles */
+
+.highlightSeed {
+  background: #c2d2e1; /* #CBD */
+}
+
+td.nodeSummaryCell {
+  width: 16em;
+}
+
+div.nodeSummary {
+  margin-left: 0.2em;
+}
+
+div.nodeSummary div {
+  float: left;
+  border-width: 1px;
+  border-style: solid;
+  width: 3em;
+  height: 1.2em;
+  padding: 0.1em;
+  margin: 0.1em;
+  text-align: center;
+}
+
+.specSum {
+  background: #FDD;
+  border-color: #B99;
+}
+.seqSum {
+  background: #DFD;
+  border-color: #9B9;
+}
+.domSum {
+  background: #DDF;
+  border-color: #99B;
+}
+
+#treeDiv {
+  min-height: 31em;
+}
+
+#treeTools {
+  right: 2em;
+  width: 18em;
+  padding: 0.4em;
+  border: 1px solid #AAA;
+  background: #e8e8e8;
+  opacity: 0.75;
+}
+
+#speciesTreeDesc {
+  margin-right: 19em;
+}
+
+div.blockContent > #treeTools {
+  position: fixed;
+}
+
+#treeTools ul {
+  padding-left: 2em;
+}
+
+#treeTools ul.bare {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#treeTools li {
+  padding: 0.2em 0;
+}
+
+#treeTools h3 {
+  font-size: 1em;
+  padding: 0.4em 0 0.2em 0;
+  margin: 0;
+}
+
+#toolsHeader h3 {
+  margin: 0;
+  padding: 0.2em 0;
+  float: left;
+}
+
+#toolsToggle {
+  cursor: pointer;
+  float: right;
+  padding: 0.2em 0;
 }
 
 
