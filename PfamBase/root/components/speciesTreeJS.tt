@@ -1,0 +1,121 @@
+
+[%
+# speciesTreeJS.tt
+# jt6 20070626 WTSI
+#
+# build the javascript boiler plate that controls loading of the species
+# tree
+#
+# $Id: speciesTreeJS.tt,v 1.1 2008-06-24 08:52:08 jt6 Exp $
+
+stUri = c.uri_for( "/speciestree" );
+%]
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // set parameters that are used by the tree controls
+  
+  // the URL for storing the list of selected IDs
+  var selectStoreURI     = "[% stUri %]/store_ids";
+
+  // the URL to visit when the user selects nodes and wants to view the 
+  // selected sequences as domain graphics
+  var selectGraphicsURI  = "[% stUri %]/graphics";
+
+  // the URL to visit when the user selects nodes and wants to view the 
+  // selected sequences as an alignment
+  var selectAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
+
+  // the URL to visit when the user selects nodes and wants to download the 
+  // selected sequence accessions
+  var selectAccessionsURI = "[% stUri %]/accessions";
+
+  // the URL to visit when the user selects nodes and wants to download the 
+  // selected sequences in FASTA format
+  var selectFastaURI = "[% stUri %]/sequences";
+
+  // a hash that maps between the ID of the summary node and the TaskNode object
+  nodeMapping = {};
+
+  // a hash that maps between the ID of the summary node and string of sequence 
+  // accessions
+  nodeSequences = {};
+
+  // the function that loads the tree and renders it
+  var tree;
+  var stSuccess = function( oResponse ) {
+
+    // build the tree widget and get a handle on the root, which we'll need
+    // when eval'ing the javascript from the server
+    tree = new YAHOO.widget.TreeView("treeDiv");
+    var root = tree.getRoot();
+
+    // eval the JS that the server generates. This is the set of calls that
+    // build the TreeView widget object tree
+    try {
+      eval( oResponse.responseText );
+    } catch( e ) {
+      // don't care
+    }
+
+    // by this point the tree was successfully built, but the response might
+    // have contained a message rather than tree components. If there was a
+    // a tree, we must have more than just the root node
+    if( YAHOO.widget.TreeView.nodeCount > 1 ) {
+      // we got a tree; render it
+      tree.draw();
+
+      // bring back the control panel
+      $("treeTools").show();
+    
+    } else {
+
+      // we got a message from the server; display it
+      $("treeDiv").update( oResponse.responseText );
+
+      // hide the control panel too
+      $("treeTools").hide();
+    }
+  };
+
+  // the parameters for the initial ajax call to build the tree
+  var stUri;
+  if( Prototype.Browser.IE ) {
+    stUri = "[% stUri %]/text";
+  } else {
+    stUri = "[% stUri %]/interactive";
+  }
+
+  // fire off the request to load the tree
+  var r = new Ajax.Request( stUri,
+                            { 
+                              parameters: { acc: "[% acc %]",
+                                            ie:  Prototype.Browser.IE },
+                              onSuccess:  stSuccess,
+                              onFailure:  function() {
+                                $("treeDiv").update( "Tree loading failed." )
+                              }
+                            } );
+
+
+  // ]]>
+</script>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

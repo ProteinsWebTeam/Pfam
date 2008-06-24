@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.5 2008-06-02 14:32:34 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.6 2008-06-24 08:54:14 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -558,3 +558,210 @@ function jump(form) {
   // a raw URL, not page contents
   return false;
 }
+//------------------------------------------------------------
+//- species tree methods -------------------------------------
+//------------------------------------------------------------
+
+// toggle the highlighting of those sequences which are found in the 
+// seed alignment
+
+var seedsHighlighted = true;
+
+function toggleHighlightSeed() {
+  if( seedsHighlighted ) {
+    $("treeDiv").select(".highlightSeed").each(
+      function( a ) {
+        a.removeClassName( "highlightSeed" );
+      }
+    );
+    $("seedToggle").update( "Show" );
+  } else {
+    $("treeDiv").select(".seedNode").each(
+      function( d ) {
+        if( nodeMapping[d.id] ) {
+          $(nodeMapping[d.id].labelElId).addClassName( "highlightSeed" );
+        }
+      }
+    );
+    $("seedToggle").update( "Hide" );
+  }
+  seedsHighlighted = !seedsHighlighted;
+}
+
+// the $$() function in prototype is variously described as wonderful
+// or immensely slow, so we'll ditch it in favour of walking the DOM
+// ourselves. This function is just here for historical reasons...
+// jt6 20061016 WTSI
+//
+// function toggleHighlightSeedSlowly() {
+//   if( seedsHighlighted ) {
+//   $$(".highlightSeed").each( function( summary ) {
+//     Element.removeClassName( summary, "highlightSeed" );
+//     } );
+//   } else {
+//   $$(".seedNode").each( function( summary ) {
+//     if( nodeMapping[summary.id] ) {
+//       Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
+//     }
+//     } );
+//   }
+//   seedsHighlighted = !seedsHighlighted;
+// }
+
+//------------------------------------------------------------
+// toggle showing/hiding of the node summaries
+
+var summariesVisible = true;
+
+function toggleShowSummaries() {
+  if( summariesVisible ) {
+    $$("div.nodeSummary").invoke( "hide" )
+    $("sumToggle").update( "Show" );
+  } else {
+    $$("div.nodeSummary").invoke( "show" );
+    $("sumToggle").update( "Hide" );
+  }
+  summariesVisible = !summariesVisible;
+}
+
+// turns out that the $$() function is quicker than walking the tree
+// in this case... who knew ?
+// jt6 20061016 WTSI
+//
+// function toggleShowSummariesSlowly() {
+//   var divs = $A( document.getElementsByClassName("nodeSummary","treeDiv") );
+//   if( summariesVisible ) {
+//   divs.each( function( d ) {
+//         Element.hide( d );
+//         } );
+//   } else {
+//   divs.each( function( d ) {
+//         Element.show( d );
+//         } );
+//   }
+//   summariesVisible = !summariesVisible;
+// }
+
+//------------------------------------------------------------
+// expand the tree to the depth specified in the little form in the
+// tools palette
+
+function expandToDepth() {
+  tree.collapseAll();
+  expandTo( $F("depthSelector"), tree.root );
+}
+
+// the method that actually expands to a given depth. Should really
+// only be called by expandToDepth()
+var currentDepth = 0;
+
+function expandTo( finalDepth, node ) {
+
+  if( currentDepth < finalDepth - 1 ) {
+
+    for( var i=0; i< node.children.length; ++i ) {
+    
+      var c = node.children[i];
+      c.expand();
+
+      currentDepth++;
+      expandTo( finalDepth, c );
+      currentDepth--;
+    }
+  }
+
+}
+
+//------------------------------------------------------------
+// collect the sequences that are specified by the checked leaf nodes
+// in the species trees. Submits the form in the page which will act on those
+// accessions. The argument should be either "G" or "A", for graphical or
+// sequence alignment view of the collected sequences.
+
+function collectSequences( sStyle, sAcc ) {
+
+  // get all leaf nodes
+  var leaves = $("treeDiv").select(".leafNode");
+
+  // and collect IDs from the checked ones
+  var bail = true;
+  var seqAccs = leaves.inject( "", function( accumulator, n ) {
+      var taskNode = nodeMapping[n.id];
+      if( taskNode.checked ) {
+        bail = false;
+        return accumulator + nodeSequences[n.id] + " ";
+      } else {
+        return accumulator;
+      }
+    }
+  );
+
+  // make sure we have at least one checked node
+  if( bail ) {
+    $("stError")
+      .update( "Please select some nodes" )
+      .show();
+    return;
+  }
+
+  // TODO we could optimise this a bit, by storing the list of selected 
+  // accessions at this point and then checking the new list against the old
+  // list before making another AJAX request to store a second, identical list
+  // in the DB. 
+
+  // store the IDs and get back a "job id"
+  var jobId;
+  var r = new Ajax.Request( selectStoreURI, {
+    method: 'post',
+    parameters: { ids: escape( seqAccs ) },
+    onSuccess: function( oResponse ) {
+
+      // the response should contain only the "job ID", which points to the list
+      // of accessions
+      jobId = oResponse.responseText;
+
+      // build the URI for the next request, the one that actually does the 
+      // work here
+      var url;
+      var popup = true;
+
+      // view the selected sequences as...
+      switch( sStyle ) {
+        case 'G':
+          url = selectGraphicsURI;   // domain graphics
+          break;
+        case 'L':
+          url = selectAccessionsURI; // sequence accessions
+          popup = false;
+          break;
+        case 'F':
+          url = selectFastaURI;      // FASTA format
+          popup = false;
+          break;
+        default:
+          url = selectAlignmentURI;  // an alignment
+      }
+
+      // tack on the parameters that we need
+      url +=   "?acc="   + sAcc
+             + "&jobId=" + jobId;
+        
+      // load that URL, either in a popup or in the main window
+      if( popup ) {
+        popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
+      } else {
+        window.location = url;
+      }
+      
+    },
+    onFailure: function( oResponse ) {
+      $("stError")
+        .update( "There was a problem collecting sequence accessions" )
+        .show();
+      return;
+    }
+  });
+
+}
+
+
