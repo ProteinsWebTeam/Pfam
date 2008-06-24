@@ -105,9 +105,7 @@ if (@extra_forbidden_terms){
 # Get a logger
 ######
 my $logger = get_logger();
-
 $logger->level($DEBUG) if $info;
-
 ######
 # Explicitly set the logging style and output; this seems damned ridiculous, aren't the defaults sensible?
 ######
@@ -147,6 +145,21 @@ $align -> read_stockholm( \*ALIGN );
 close(ALIGN);
 my @alignlist = $align->each_seq();
 my $ss_cons = $align->ss_cons->getInfernalString(); #This is damned confusing!
+
+#READ WARNINGS:
+my %warnings;
+if (-e "warnings"){
+    open( WARN, "warnings" ) or die ("FATAL: Couldn't open warnings [$!]\n $!\n");
+    while(my $l = <WARN>){
+	if (/^WARNING: SEED sequence (.+)\s+/){
+	    my $n = $1;
+	    $warnings{$n}=1;
+	}
+	
+    }
+    
+}
+
 
 #Make a pair table from the secondary structure & initialise basepair hash:
 my @table = make_pair_table($ss_cons);
@@ -263,6 +276,10 @@ my %timer_hash = (
     8 => 1,
     9 => 1
     );
+
+if (-s 'ALIGN2SEED'){
+    system("cp ALIGN2SEED ALIGN2SEED.1");
+}
 
 open( OUT, ">ALIGN2SEED" ) or die ("FATAL: Couldn't open ALIGN2SEED [$!]\n $!\n");
 my (%minpid, %maxpid, %ALIGN2SEEDcandidates, @names_array, %seen_taxa);
@@ -853,6 +870,8 @@ Options:
 
 To Add:
   -A blacklist of sequences.
-  
+  -Add options to map foreign SEEDs:
+	-scan warnings file from rfmake, if there are any identical matches to these seqs
+	 in the ALIGN then swap them...
 EOF
 }
