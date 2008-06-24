@@ -4,7 +4,7 @@
 #
 # format the image map for the species tree
 #
-# $Id: treeMap.tt,v 1.2 2008-06-17 09:05:08 jt6 Exp $
+# $Id: treeMap.tt,v 1.3 2008-06-24 08:49:25 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -24,7 +24,7 @@ META naked = 1;
   
   IF node.area AND matches.0 %]
   <div id="tipContents_[% label; loop.index %]"
-       class="tipContents"
+       class="tipContents treetip"
        title="[% matches.1 %]"
        style="display: none">
     <dl>
