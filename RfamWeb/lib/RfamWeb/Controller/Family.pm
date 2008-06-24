@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20080306 WTSI
 #
-# $Id: Family.pm,v 1.2 2008-06-17 09:17:01 jt6 Exp $
+# $Id: Family.pm,v 1.3 2008-06-24 08:46:39 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ load a Rfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.2 2008-06-17 09:17:01 jt6 Exp $
+$Id: Family.pm,v 1.3 2008-06-24 08:46:39 jt6 Exp $
 
 =cut
 
@@ -306,7 +306,8 @@ sub get_data : Private {
     $c->log->debug( 'Family::get_data: got a family' ) if $c->debug;
     $c->stash->{rfam}       = $rfam;
     $c->stash->{acc}        = $rfam->rfam_acc;
-    $c->stash->{wiki_title} = $rfam->wikis->first()->title;
+    $c->stash->{entryType}  = 'R';
+    $c->stash->{wiki_title} = $rfam->wikis->first()->title;    
     # (easier to get extra values from a ResultSet here, rather than in TT...)
     
     unless( $c->stash->{output_xml} ) {
