@@ -33,7 +33,7 @@ if (!(-x $blatexe)){
     die "$blatexe does not exist and/or is not executable\n";
 }
 
-my (@databasefiles,$minidb,$verbose,$help);
+my (@databasefiles,$minidb,$auto,$verbose,$help);
 my ($mincoverage,$minpid,$maxpid)=(95, 95, 101);
 
 &GetOptions(
@@ -41,6 +41,7 @@ my ($mincoverage,$minpid,$maxpid)=(95, 95, 101);
     "mincoverage=s" => \$mincoverage,
     "minpid=s"      => \$minpid,        
     "maxpid=s"      => \$maxpid,        
+    "a|auto"        => \$auto,
     "v|verbose"     => \$verbose,
     "h|help"        => \$help
     );
@@ -160,8 +161,11 @@ foreach my $mn (@missingnames) {
 	else {
 	    print "Select: [$repcount or \47n\47]\n";	    
 	}
-
-	chomp( $choice = <STDIN> );
+	
+	if (!defined($auto)){
+	    chomp( $choice = <STDIN> );
+	}
+	
 	if ($choice =~ /n/i) {
 	    print "No replacement for $mn\n";
 	}
@@ -187,10 +191,12 @@ foreach my $rep (keys %replace){
     
     if (defined($verbose)){
 	print "Replacing $rep with $replace{$rep}\n";
+	print "";
     }
-    system("sfetch -d SEED.fasta $rep                  > warnings.fa")  and warn "FAILED: sfetch -d SEED.fasta $rep                   > warnings.fa\n[$!]";    
-    system("sfetch -d $replace_db{$rep} $replace{$rep} >> warnings.fa") and warn "FAILED: sfetch -d $replace_db{$rep} $replace{$rep} >> warnings.fa\n[$!]";    
-    system("clustalw warnings.fa >& /dev/null; sreformat -r -u --pfam stockholm warnings.fa > warnings.stk");
+    system("sfetch -d SEED.fasta $rep                  > warnings.fa")    and warn "FAILED: sfetch -d SEED.fasta $rep                   > warnings.fa\n[$!]";    
+    system("sfetch -d $replace_db{$rep} $replace{$rep} >> warnings.fa")   and warn "FAILED: sfetch -d $replace_db{$rep} $replace{$rep} >> warnings.fa\n[$!]";    
+    system("clustalw warnings.fa >& /dev/null")                           and warn "FAILED: clustalw warnings.fa >& /dev/null\n[$!]";    
+    system("sreformat -r -u --pfam stockholm warnings.aln > warnings.stk") and warn "FAILED: sreformat -r -u --pfam stockholm warnings.aln > warnings.stk\n[$!]";    
     
     #Read in warnings.stk:
     open( WARN, "warnings.stk" ) or die("FATAL: Couldn't open warnings.stk\n [$!]");
@@ -217,6 +223,9 @@ foreach my $rep (keys %replace){
 	    $alngoodseq=$seq;
 	}
     }
+    
+    next if !defined($alngoodseq);
+    next if !defined($alnbadseq);
     
     #Code nicked from SGJ's fix_aln:
     
@@ -277,12 +286,13 @@ $badseq->seq  . "\n" .
 "#With:
 >" . $alngoodseq->id . "\/" . $alngoodseq->start . "\-" . $alngoodseq->end  . "\n" .
 $ts . "\n\n";
-}    
+    }    
     push( @remove, $badseq );
     
     
 }
 
+printf "removing %d sequences from SEED\n", scalar(@remove);
 foreach my $seq ( @remove ) {
     $seed->remove_seq( $seq );
 }
@@ -354,7 +364,7 @@ Usage:   rfmake_resolve_warnings.pl <options>
 
 Options:       
 
-
+  -a|-auto                 Just choose the top match without prompting for a number.
   -m|-minidb <num>         Use minidb\47s with id <num> -- warning: this is slow and buggy, 
                            best to use ALIGN instead.
   -mincoverage <num>       Minimal percentage sequence coverage for a sequence to be considered 
