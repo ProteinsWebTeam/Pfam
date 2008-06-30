@@ -1,7 +1,7 @@
 
-# $Id: Pfam.pm,v 1.5 2008-05-16 15:23:16 jt6 Exp $
+# $Id: Pfam.pm,v 1.6 2008-06-30 08:59:21 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamLive::Pfam;
 
@@ -60,6 +60,9 @@ __PACKAGE__->add_columns( qw( auto_pfamA
                               change_status
                               seed_consensus
                               full_consensus
+                              iterated
+                              iterated_by
+                              iteration_gain
                             ) );
 
 
@@ -100,7 +103,10 @@ __PACKAGE__->has_one    ( 'pfamA_alignments'     => 'PfamLive::AlignmentsAndTree
                           {  proxy => [ qw( full full_tree full_jtml
                                             seed seed_tree seed_jtml ) ] } );
 
-
+__PACKAGE__->has_one    ( 'pfamA_internal'     => 'PfamLive::PfamAInternal',
+                          { 'foreign.auto_pfamA' => 'self.auto_pfamA' },
+                          {  proxy => [ qw( created_by) ] } );
+                          
 #TODO -PRC tables - todo
 
 
