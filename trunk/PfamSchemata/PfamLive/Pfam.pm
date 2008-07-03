@@ -1,7 +1,7 @@
 
-# $Id: Pfam.pm,v 1.6 2008-06-30 08:59:21 rdf Exp $
+# $Id: Pfam.pm,v 1.7 2008-07-03 15:15:04 jt6 Exp $
 #
-# $Author: rdf $
+# $Author: jt6 $
 
 package PfamLive::Pfam;
 
@@ -127,7 +127,6 @@ __PACKAGE__->has_many ( 'context' => 'PfamLive::Context_pfam_regions',
 
 __PACKAGE__->has_many ( 'meta_pfama_reg' => 'PfamLive::Meta_pfama_reg',
                         { 'foreign.auto_pfamA' => 'self.auto_pfamA' } );
-
 
 =head1 COPYRIGHT
 
