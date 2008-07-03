@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.72 2008-06-02 14:42:21 jt6 Exp $
+   $Id: pfam.css,v 1.73 2008-07-03 15:35:38 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -48,7 +48,7 @@ ul, dl, ol {
 }
 
 .ext {
-  background: url(/shared/images/external.gif) no-repeat center right;
+  background: url(/static/images/external.gif) no-repeat center right;
   padding-right: 12px;
 }
 
@@ -489,8 +489,8 @@ body.tool {
   color: #15538e;
 }
 
-a.closer {
-  background: url(/shared/images/close.gif) no-repeat left;
+.closer {
+  background: url(/shared/images/close_grey.gif) no-repeat left;
   padding-left: 11px;
   margin: 0.2em;
 }
