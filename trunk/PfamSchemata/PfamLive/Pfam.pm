@@ -1,7 +1,7 @@
 
-# $Id: Pfam.pm,v 1.7 2008-07-03 15:15:04 jt6 Exp $
+# $Id: Pfam.pm,v 1.8 2008-07-04 09:23:07 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 
 package PfamLive::Pfam;
 
@@ -60,9 +60,6 @@ __PACKAGE__->add_columns( qw( auto_pfamA
                               change_status
                               seed_consensus
                               full_consensus
-                              iterated
-                              iterated_by
-                              iteration_gain
                             ) );
 
 
