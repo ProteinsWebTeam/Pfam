@@ -17,6 +17,7 @@ my( $thr,
     $trim,
     $overlaps,
     $file,
+    $farm,
     @extrafamily,
     @extra_forbidden_terms,
     @taxonomy,
@@ -38,6 +39,7 @@ my( $thr,
 	     "ft|forbiddentaxonomy=s@"  => \@forbiddentaxonomy,
 	     "ftn|forbiddentaxonomynot=s@"  => \@forbiddentaxonomynot,
 	     "o|output=s"     => \$output,
+	     "farm"           => \$farm,
 	     "h|help"         => \$help );
 
 
@@ -47,7 +49,15 @@ if( $help ) {
 }
 
 not $inxfile and $inxfile = $Rfam::rfamseq;
+
+if (defined($farm)){
+    $inxfile = '/data/blastdb/Rfam/rfamseq/rfamseq.fa';
+}
+
+print "inxfile = |$inxfile|\nfile = |$file|\n";
+#my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
+#$seqinx -> Bio::SeqFetcher::xdget->db($inxfile);
 
 if (!defined($file)){
     $file = "OUTPUT";
@@ -119,6 +129,7 @@ my %forbidden_family_terms = (
     EUKARYOTIC => 1,
     EXON => 1,
     FAMILY  => 1,
+    FAMILIES => 1,
     FOR => 1,
     GENE => 1,
     GENOME => 1,
