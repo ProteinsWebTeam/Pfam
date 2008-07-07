@@ -44,7 +44,7 @@ Each "block" is a hash containing two arrays:
 
 jt6 20080622 WTSI.
 
-$Id: HtmlAlignment.pm,v 1.1 2008-07-04 13:08:34 pg5 Exp $
+$Id: HtmlAlignment.pm,v 1.2 2008-07-07 10:13:37 pg5 Exp $
 
 =cut
 
