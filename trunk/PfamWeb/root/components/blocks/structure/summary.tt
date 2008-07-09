@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.23 2008-05-16 15:30:33 jt6 Exp $
+# $Id: summary.tt,v 1.24 2008-07-09 10:08:57 jt6 Exp $
 
 USE String;
 USE date;
@@ -161,6 +161,13 @@ oe    = 0;
           <td class="label"><acronym title="Structural Classifcation of Proteins">SCOP</acronym></td>
           <td>
             <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?pdb=[% pdbId %]"
+               class="ext">[% pdbId %]</a>
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Proteopedia</td>
+          <td>
+            <a href="http://proteopedia.org/wiki/index.php/[% pdbId %]"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
