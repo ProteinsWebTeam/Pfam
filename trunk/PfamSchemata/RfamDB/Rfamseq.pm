@@ -11,16 +11,16 @@ __PACKAGE__->add_columns(
   "auto_rfamseq",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "rfamseq_id",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 13 },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 12 },
   "rfamseq_acc",
   {
     data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 1,
-    size => 13,
+    size => 12,
   },
   "description",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 250 },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 255 },
   "species",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 100 },
   "taxonomy",
@@ -45,14 +45,24 @@ __PACKAGE__->add_columns(
     size => 16777215,
   },
   "taxon",
-  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
 );
 __PACKAGE__->set_primary_key("auto_rfamseq");
 __PACKAGE__->add_unique_constraint("rfamseq_id", ["rfamseq_id"]);
+__PACKAGE__->has_many(
+  "chromosome_builds",
+  "RfamDB::ChromosomeBuild",
+  { "foreign.auto_rfamseq" => "self.auto_rfamseq" },
+);
+__PACKAGE__->has_many(
+  "rfam_reg_seeds",
+  "RfamDB::RfamRegSeed",
+  { "foreign.auto_rfamseq" => "self.auto_rfamseq" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c6bd3J/zb1GpsJGub/RXDA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BDAYT5QVlPQ0bmNjWSE/hw
 
 #-------------------------------------------------------------------------------
 

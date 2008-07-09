@@ -26,8 +26,8 @@ __PACKAGE__->set_primary_key("auto_taxid");
 __PACKAGE__->add_unique_constraint("ncbi_id", ["ncbi_id"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wMkIKtPen9+JOFXhpOCEKA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:GOFernKQamu7uqo5N0P/XQ
 
 #-------------------------------------------------------------------------------
 

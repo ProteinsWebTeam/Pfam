@@ -22,10 +22,15 @@ __PACKAGE__->add_columns(
   "order_added",
   { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 4 },
 );
+__PACKAGE__->belongs_to(
+  "auto_lit",
+  "RfamDB::LiteratureReferences",
+  { auto_lit => "auto_lit" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g3wlSly9x/0EOVUeeFj2Rw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5FY5HboQKM5JxCBo5kfi+Q
 
 #-------------------------------------------------------------------------------
 

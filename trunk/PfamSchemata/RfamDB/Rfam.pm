@@ -108,29 +108,18 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 8,
   },
-  "number_of_species",
-  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
-  "taxonomic_domain",
-  {
-    data_type => "MEDIUMTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 16777215,
-  },
-  "taxonomic_root",
-  {
-    data_type => "MEDIUMTEXT",
-    default_value => undef,
-    is_nullable => 1,
-    size => 16777215,
-  },
 );
 __PACKAGE__->set_primary_key("auto_rfam");
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
+__PACKAGE__->has_many(
+  "rfam_reg_seeds",
+  "RfamDB::RfamRegSeed",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sWewy2mfvEJjT1fmEpiB8Q
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BMEuqeTk+58QLJfrpO1eRA
 
 #-------------------------------------------------------------------------------
 

@@ -33,6 +33,13 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 255,
   },
+  "html",
+  {
+    data_type => "LONGBLOB",
+    default_value => undef,
+    is_nullable => 1,
+    size => 4294967295,
+  },
   "average_length",
   { data_type => "DOUBLE", default_value => undef, is_nullable => 1, size => 64 },
   "percent_id",
@@ -45,8 +52,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("auto_rfam", "type");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:CqoA8eaiPaap7ZP608OJPw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:mLzgrfwBoK3iqTjF0gU6vw
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration
