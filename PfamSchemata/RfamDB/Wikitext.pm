@@ -19,10 +19,15 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("auto_wiki");
+__PACKAGE__->has_many(
+  "wikis",
+  "RfamDB::Wiki",
+  { "foreign.auto_wiki" => "self.auto_wiki" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JaLpm4DQbSMHXs5gLMoHkg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sOgWGCTYo4YHLXrTOO35mA
 
 #-------------------------------------------------------------------------------
 

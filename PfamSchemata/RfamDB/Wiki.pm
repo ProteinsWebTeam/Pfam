@@ -18,10 +18,11 @@ __PACKAGE__->add_columns(
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 150 },
 );
 __PACKAGE__->set_primary_key("auto_rfam");
+__PACKAGE__->belongs_to("auto_wiki", "RfamDB::Wikitext", { auto_wiki => "auto_wiki" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:03
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:twopAisgHX5lTp9XoDfiVg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QUL9ieM9La1uKqhLFpco4A
 
 #-------------------------------------------------------------------------------
 

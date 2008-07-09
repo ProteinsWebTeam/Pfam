@@ -8,8 +8,8 @@ use base 'DBIx::Class::Schema';
 __PACKAGE__->load_classes;
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2Qvh7dkXnPSvhapxIbjo4Q
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JrTfM/MYeEik8zr0XZ+VmQ
 
 #-------------------------------------------------------------------------------
 

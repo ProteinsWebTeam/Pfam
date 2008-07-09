@@ -35,10 +35,15 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("auto_lit");
+__PACKAGE__->has_many(
+  "rfam_literature_references",
+  "RfamDB::RfamLiteratureReferences",
+  { "foreign.auto_lit" => "self.auto_lit" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qDsGEIMYfW7QNnUh4RWPVg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gN62Tdo4jySsdjik8k2H5Q
 
 #-------------------------------------------------------------------------------
 

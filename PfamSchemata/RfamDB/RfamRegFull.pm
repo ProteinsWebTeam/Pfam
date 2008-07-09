@@ -13,9 +13,14 @@ __PACKAGE__->add_columns(
   "auto_rfamseq",
   { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
   "seq_start",
-  { data_type => "BIGINT", default_value => 0, is_nullable => 0, size => 19 },
+  { data_type => "MEDIUMINT", default_value => 0, is_nullable => 0, size => 8 },
   "seq_end",
-  { data_type => "BIGINT", default_value => 0, is_nullable => 0, size => 19 },
+  {
+    data_type => "MEDIUMINT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 8,
+  },
   "bits_score",
   {
     data_type => "DOUBLE",
@@ -25,14 +30,11 @@ __PACKAGE__->add_columns(
   },
   "auto_genome",
   { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
-  "auto_rfam_reg_full",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
 );
-__PACKAGE__->set_primary_key("auto_rfam_reg_full");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ltvtuMpOAz+relHg9+14lQ
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:sYeEBjf574tVc5v64ZpyHg
 
 __PACKAGE__->belongs_to(
   "auto_rfamseq",

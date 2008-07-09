@@ -23,8 +23,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Q0ADyO3Us1pSpnHgHKGZ4Q
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:vUigsxs2uG7N3SeAeUIJLw
 
 #-------------------------------------------------------------------------------
 

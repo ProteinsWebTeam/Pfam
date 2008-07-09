@@ -23,8 +23,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("auto_rfam", "type");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XlFa/xFzkRj0qYVOr2zzrg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:kpZTsVIAq+cf57hYN+K2Qg
 
 #-------------------------------------------------------------------------------
 

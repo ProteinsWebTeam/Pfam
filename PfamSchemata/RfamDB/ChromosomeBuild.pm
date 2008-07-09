@@ -13,20 +13,25 @@ __PACKAGE__->add_columns(
   "auto_rfamseq",
   { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
   "xsome_start",
-  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 19 },
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "xsome_end",
-  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 19 },
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "clone_start",
-  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 19 },
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "clone_end",
-  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 19 },
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "strand",
   { data_type => "CHAR", default_value => undef, is_nullable => 1, size => 2 },
 );
+__PACKAGE__->belongs_to(
+  "auto_rfamseq",
+  "RfamDB::Rfamseq",
+  { auto_rfamseq => "auto_rfamseq" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3NEJlHG8/kYjx90Bb6F+YA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MC8obbZXY0BoMHBQQg1WAw
 
 #-------------------------------------------------------------------------------
 
