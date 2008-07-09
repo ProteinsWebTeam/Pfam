@@ -17,35 +17,28 @@ __PACKAGE__->add_columns(
   "title",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 150 },
 );
-__PACKAGE__->belongs_to("auto_wiki", "RfamDB::Wikitext", { auto_wiki => "auto_wiki" });
-__PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
+__PACKAGE__->set_primary_key("auto_rfam");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LZa+tNhIZ26Dojg44qdEDQ
-
-__PACKAGE__->belongs_to(
-  "wikitext",
-  "RfamDB::Wikitext",
-  { auto_wiki => "auto_wiki" },
-  { proxy    => [ qw( text ) ] },
-);
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:03
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:twopAisgHX5lTp9XoDfiVg
 
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
-Rob Finn, C<rdf@sanger.ac.uk>
+
 Paul Gardner, C<pg5@sanger.ac.uk>
+
 Jennifer Daub, C<jd7@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk),
-         Paul Gardner, C<pg5@sanger.ac.uk>, Jennifer Daub, C<jd7@sanger.ac.uk>
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

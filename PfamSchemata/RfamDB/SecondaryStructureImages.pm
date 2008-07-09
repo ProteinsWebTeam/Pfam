@@ -9,45 +9,39 @@ __PACKAGE__->load_components("Core");
 __PACKAGE__->table("secondary_structure_images");
 __PACKAGE__->add_columns(
   "auto_rfam",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "image",
   {
     data_type => "LONGBLOB",
     default_value => undef,
     is_nullable => 1,
+    size => 4294967295,
   },
   "type",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 50,
-  },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 10 },
 );
-__PACKAGE__->set_primary_key( qw( auto_rfam type ) );
-__PACKAGE__->belongs_to("rfam" => "RfamDB::Rfam", 
-                        { "foreign.auto_rfam" => "self.auto_rfam" });
+__PACKAGE__->set_primary_key("auto_rfam", "type");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Uq1rSZczl0MXLWcZOKLb/w
-
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:XlFa/xFzkRj0qYVOr2zzrg
 
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
-Rob Finn, C<rdf@sanger.ac.uk>
+
 Paul Gardner, C<pg5@sanger.ac.uk>
+
 Jennifer Daub, C<jd7@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk),
-         Paul Gardner, C<pg5@sanger.ac.uk>, Jennifer Daub, C<jd7@sanger.ac.uk>
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
