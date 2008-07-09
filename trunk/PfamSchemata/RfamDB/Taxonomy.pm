@@ -24,32 +24,27 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key("auto_taxid");
 __PACKAGE__->add_unique_constraint("ncbi_id", ["ncbi_id"]);
-__PACKAGE__->has_many(
-  "rfamseqs",
-  "RfamDB::Rfamseq",
-  { "foreign.taxon" => "self.auto_taxid" },
-);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gAYgjOOyu456AuzYVJBaLg
-
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:wMkIKtPen9+JOFXhpOCEKA
 
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
-Rob Finn, C<rdf@sanger.ac.uk>
+
 Paul Gardner, C<pg5@sanger.ac.uk>
+
 Jennifer Daub, C<jd7@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk),
-         Paul Gardner, C<pg5@sanger.ac.uk>, Jennifer Daub, C<jd7@sanger.ac.uk>
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

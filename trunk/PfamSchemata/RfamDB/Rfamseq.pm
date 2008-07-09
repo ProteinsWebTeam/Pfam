@@ -11,16 +11,16 @@ __PACKAGE__->add_columns(
   "auto_rfamseq",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "rfamseq_id",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 12 },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 13 },
   "rfamseq_acc",
   {
     data_type => "VARCHAR",
     default_value => undef,
     is_nullable => 1,
-    size => 12,
+    size => 13,
   },
   "description",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 255 },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 250 },
   "species",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 100 },
   "taxonomy",
@@ -45,47 +45,31 @@ __PACKAGE__->add_columns(
     size => 16777215,
   },
   "taxon",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "INT", default_value => 0, is_nullable => 0, size => 10 },
 );
 __PACKAGE__->set_primary_key("auto_rfamseq");
 __PACKAGE__->add_unique_constraint("rfamseq_id", ["rfamseq_id"]);
-__PACKAGE__->has_many(
-  "chromosome_builds",
-  "RfamDB::ChromosomeBuild",
-  { "foreign.auto_rfamseq" => "self.auto_rfamseq" },
-);
-__PACKAGE__->has_many(
-  "rfam_reg_fulls",
-  "RfamDB::RfamRegFull",
-  { "foreign.auto_rfamseq" => "self.auto_rfamseq" },
-);
-__PACKAGE__->has_many(
-  "rfam_reg_seeds",
-  "RfamDB::RfamRegSeed",
-  { "foreign.auto_rfamseq" => "self.auto_rfamseq" },
-);
-__PACKAGE__->belongs_to("taxon", "RfamDB::Taxonomy", { auto_taxid => "taxon" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Uq1rSZczl0MXLWcZOKLb/w
-
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:c6bd3J/zb1GpsJGub/RXDA
 
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
-Rob Finn, C<rdf@sanger.ac.uk>
+
 Paul Gardner, C<pg5@sanger.ac.uk>
+
 Jennifer Daub, C<jd7@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk),
-         Paul Gardner, C<pg5@sanger.ac.uk>, Jennifer Daub, C<jd7@sanger.ac.uk>
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

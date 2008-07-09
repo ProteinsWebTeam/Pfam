@@ -8,25 +8,25 @@ use base 'DBIx::Class::Schema';
 __PACKAGE__->load_classes;
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-02-29 10:23:32
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g5DIfhdNBWdtdcdjHiHn1w
-
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-08 22:27:02
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:2Qvh7dkXnPSvhapxIbjo4Q
 
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
 John Tate, C<jt6@sanger.ac.uk>
-Rob Finn, C<rdf@sanger.ac.uk>
+
 Paul Gardner, C<pg5@sanger.ac.uk>
+
 Jennifer Daub, C<jd7@sanger.ac.uk>
 
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk),
-         Paul Gardner, C<pg5@sanger.ac.uk>, Jennifer Daub, C<jd7@sanger.ac.uk>
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
