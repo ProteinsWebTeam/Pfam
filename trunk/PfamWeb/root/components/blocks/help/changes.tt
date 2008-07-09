@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.19 2008-06-03 15:00:22 jt6 Exp $
+# $Id: changes.tt,v 1.20 2008-07-09 10:09:11 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -484,6 +484,12 @@
         <strong>Fixed species tree alignments</strong>:
         the generation of sequence alignments from checked nodes in the species
         tree should now work correctly
+      </li>
+      <li>
+        <strong>Added link to Proteopedia</strong>:
+         <a class="ext" href="http://proteopedia.org/wiki/index.php/Main_Page">
+           Proteopedia</a>is a collaborative encyclopedia of three-dimensional 
+        structures
       </li>
     </ul>
 
