@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.6 2008-05-22 09:53:36 jt6 Exp $
+# $Id: Download.pm,v 1.7 2008-07-10 15:07:18 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.6 2008-05-22 09:53:36 jt6 Exp $
+$Id: Download.pm,v 1.7 2008-07-10 15:07:18 jt6 Exp $
 
 =cut
 
@@ -49,10 +49,12 @@ sub html : Local {
   
   my $jtml = $c->cache->get( $cacheKey );
   if ( defined $jtml ) {
-    $c->log->debug( 'Family::Alignment::Download::html: extracted HTML from cache' );
+    $c->log->debug( 'Family::Alignment::Download::html: extracted HTML from cache' )
+      if $c->debug;
   }
   else {
-    $c->log->debug( 'Family::Alignment::Download::html: failed to extract HTML from cache; going to DB' );  
+    $c->log->debug( 'Family::Alignment::Download::html: failed to extract HTML from cache; going to DB' )
+      if $c->debug;  
 
     # see what type of family we have, A or B
     my $row;
@@ -92,8 +94,9 @@ sub html : Local {
       return;
     }
 
-    $c->log->debug( 'Family::Alignment::Download::html: retrieved HTML from DB' );
-    $c->cache->set( $cacheKey, $jtml );
+    $c->log->debug( 'Family::Alignment::Download::html: retrieved HTML from DB' )
+      if $c->debug;
+    $c->cache->set( $cacheKey, $jtml ) unless $ENV{NO_CACHE};
   }
 
   # stash the HTML
@@ -174,12 +177,22 @@ sub format : Local {
   # retrieve the alignment
   $c->forward( 'getAlignment' );
 
+  if ( defined $c->stash->{alignment} ) {
+    $c->log->debug( 'Family::Alignment::Download::format: successfully retrieved an alignment' )
+      if $c->debug;
+  } else {
+    $c->log->debug( 'Family::Alignment::Download::format: failed to retrieve an alignment' )
+      if $c->debug;
+  }
+
   # drop it into an AlignPfam object
   my $pfamaln = new Bio::Pfam::AlignPfam->new;
   eval {
     $pfamaln->read_stockholm( $c->stash->{alignment} );
   };
   if( $@ ) {
+    $c->log->debug( "Family::Alignment::Download::format: problem reading stockholm data: $@" )
+      if $c->debug;
     $c->stash->{errorMsg} = 'There was a problem with the alignment data for '
                             . $c->stash->{acc};
     return;
@@ -187,6 +200,9 @@ sub format : Local {
 
   # gaps param can be default, dashes, dot or none
   if( $c->req->param('gaps') ) {
+    $c->log->debug( 'Family::Alignment::Download::format: handling gaps parameter' )
+      if $c->debug;
+      
     if( $c->req->param('gaps') eq 'none' ) {
       $pfamaln->map_chars('-', '');
       $pfamaln->map_chars('\.', '');
@@ -199,11 +215,15 @@ sub format : Local {
 
   # case param can be u or l
   if( $c->req->param('case') and $c->req->param('case') eq 'u' ) {
+    $c->log->debug( 'Family::Alignment::Download::format: uppercasing alignment' )
+      if $c->debug;
     $pfamaln->uppercase;
   }
 
   # order param can be tree or alphabetical
   if( $c->req->param('order') and $c->req->param('order') eq 'alpha' ) {
+    $c->log->debug( 'Family::Alignment::Download::format: sorting alphabetically' )
+      if $c->debug;
     $pfamaln->sort_alphabetically;
   }
 
@@ -211,10 +231,16 @@ sub format : Local {
   my $output;
   if( $c->req->param( 'format' ) ) {
     if( $c->req->param( 'format' ) eq 'pfam' ) {
+      $c->log->debug( 'Family::Alignment::Download::format: writing Pfam format' )
+        if $c->debug;
       $output = $pfamaln->write_Pfam;
     } elsif( $c->req->param( 'format' ) eq 'fasta' ) {
+      $c->log->debug( 'Family::Alignment::Download::format: writing FASTA format' )
+        if $c->debug;
       $output = $pfamaln->write_fasta;
     } elsif( $c->req->param( 'format' ) eq 'msf' ) {
+      $c->log->debug( 'Family::Alignment::Download::format: writing MSF format' )
+        if $c->debug;
       $output = $pfamaln->write_MSF;
     }
   }
@@ -224,6 +250,8 @@ sub format : Local {
 
   # are we downloading this or just dumping it to the browser ?
   if( $c->req->param( 'download' ) ) {
+    $c->log->debug( 'Family::Alignment::Download::format: sending alignment as download' )
+      if $c->debug;
 
     # figure out the filename
     my $filename;
@@ -271,9 +299,12 @@ sub getAlignment : Private {
   my $alignment = $c->cache->get( $cacheKey );
 
   if( defined $alignment ) {
-    $c->log->debug( 'Family::Alignment::Download::getAlignment: extracted alignment from cache' );
-  } else {
-    $c->log->debug( 'Family::Alignment::Download::getAlignment: failed to extract alignment from cache; going to DB' );
+    $c->log->debug( 'Family::Alignment::Download::getAlignment: extracted alignment from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::Alignment::Download::getAlignment: failed to extract alignment from cache; going to DB' )
+      if $c->debug;
 
     # see what type of family we have, A or B
     if ( $c->stash->{entryType} eq 'A' ) {
@@ -298,7 +329,8 @@ sub getAlignment : Private {
         return;
       }
   
-    } elsif ( $c->stash->{entryType} eq 'B' ) {
+    }
+    elsif ( $c->stash->{entryType} eq 'B' ) {
 
       # make sure the Pfam-B alignment is already available
       unless( defined $c->stash->{pfam}->pfamB_stockholm->stockholm_data ) {
@@ -307,15 +339,18 @@ sub getAlignment : Private {
         return;
       }
 
-      # need to tack on a header and a footer line before it's really
-      # Stockholm-format... go figure
-      $alignment = "# STOCKHOLM 1.0\n" .
-                   $c->stash->{pfam}->pfamB_stockholm->stockholm_data .
-                   "//\n";
+      # uncompress it
+      $alignment = Compress::Zlib::memGunzip( $c->stash->{pfam}->pfamB_stockholm->stockholm_data );
+      unless( defined $alignment ) {
+        $c->stash->{errorMsg} = 'We could not extract the alignment for '
+                                . $c->stash->{acc};
+        return;
+      }
+
     }
 
     # cache the raw alignment
-    $c->cache->set( $cacheKey, $alignment );
+    $c->cache->set( $cacheKey, $alignment ) unless $ENV{NO_CACHE};
   }
 
   # we need the alignment as an array ref, so...
