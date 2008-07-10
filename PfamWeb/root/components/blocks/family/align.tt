@@ -5,7 +5,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.27 2008-05-22 09:56:12 jt6 Exp $
+# $Id: align.tt,v 1.28 2008-07-10 15:13:58 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -148,12 +148,24 @@ alignmentUri = c.uri_for( "/family/alignment" );
       
         } else {
           var cont = true;
-          if ( ( $F("viewerTypeS") && [% pfam.num_seed %] > 1000 ) || 
-               ( $F("viewerTypeF") && [% pfam.num_full %] > 1000 ) ) {
-            cont = confirm("This alignment contains a large number of sequences, " +
-                           "which can cause problems for browsers. \nAre you " +
-                           "sure that you want to try to view it as HTML ?" );
-          }
+
+          [% # change the test here depending on whether we are dealing with 
+             # a Pfam-A or a Pfam-B
+          IF entryType != "B" %]         
+            if ( ( $F("viewerTypeS") && [% pfam.num_seed %] > 1000 ) || 
+                 ( $F("viewerTypeF") && [% pfam.num_full %] > 1000 ) ) {
+              cont = confirm("This alignment contains a large number of sequences, " +
+                             "which can cause problems for browsers. \nAre you " +
+                             "sure that you want to try to view it as HTML ?" );
+            }
+          [% ELSE %]
+            if ( [% pfam.number_regions %] > 1000 ) {
+              cont = confirm("This alignment contains a large number of sequences, " +
+                             "which can cause problems for browsers. \nAre you " +
+                             "sure that you want to try to view it as HTML ?" );
+            }
+          [% END %]
+
           if ( cont ) {
             url = "[% alignmentUri %]/download/html?" + Form.serialize("viewerForm");
             popUp( url, 'console', 800, 800, 'viewerWin');
@@ -278,7 +290,8 @@ alignmentUri = c.uri_for( "/family/alignment" );
         seed</a> alignment for this family. 
     </p>
 
-    <form action="[% alignmentUri %]/download/gzipped"
+    <form id="downloadGzippedForm"
+          action="[% alignmentUri %]/download/gzipped"
           method="get">
       <div>
         <input type="hidden" name="acc"     value="[% acc %]" />
@@ -312,14 +325,19 @@ alignmentUri = c.uri_for( "/family/alignment" );
     <h2>Additional datasets</h2>
 
     <p>
-      The alignments available above are generated using sequences from the 
-      UniProt sequence database. However, we also generate alignments using
-      sequences from the NCBI sequence database. You can download an alignment
-      of NCBI sequences, as a 
-      <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
-      Stockholm-format file,
+      The alignments above are generated using sequences from the UniProt 
+      sequence database. However, we also generate alignments using sequences 
+      from the NCBI sequence database and the &quot;metaseq&quot; metagenomics 
+      dataset.
+    </p> 
+    <p>
+      You can view alignments from these two additional datasets using the form
+      below, or you can download alignments of 
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=ncbi">
-        here</a>. 
+        NCBI</a> or  
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=meta">
+        metagenomics</a> sequences, as  
+      <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed files.       
     </p>
 
     <form id="additionalDatasetsForm"
@@ -328,11 +346,23 @@ alignmentUri = c.uri_for( "/family/alignment" );
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
-        <input type="hidden" name="alnType" value="ncbi" />
   
         [% oe = 0 -%]
         <table class="details alignOpts" summary="Alignment display options">
           <tbody>
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Alignment:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="alnType" id="adTypeN" value="ncbi" checked="checked" />
+                  <label for="adTypeN">NCBI</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="alnType" id="adTypeM" value="meta" />
+                  <label for="adTypeM">Metagenomics</label>
+                </span>
+              </td>
+            </tr>
             <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
               <td class="label">Viewer:</td>
               <td>
