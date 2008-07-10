@@ -29,14 +29,15 @@ my $query = qq(
 #select r.rfamseq_acc, r.taxon  from rfamseq as r ,taxonomy as t where r.taxon=t.auto_taxid and t.ncbi_id=272562;
 
 my $infile = "SEED";
-my ($quick, $slow, $slowonly, $outlist, $help);
+my ($quick, $quicktree, $slow, $slowonly, $outlist, $help);
 $outlist=1;
 &GetOptions(
             "f|infile=s"       => \$infile,
             "o|outlist"        => \$outlist,
             "q|quickonly"      => \$quick,
-            "so|slowalso"         => \$slow,
+            "sa|slowalso"      => \$slow,
             "s|slowonly"       => \$slowonly,
+            "qt|quicktree"     => \$quicktree,
 	    "h|help"           => \$help
     );
 
@@ -188,24 +189,17 @@ if (-e "outtree"){
 
 system("cp infile infile.phy");
 
-if (!defined($slowonly)){
+if (!defined($slowonly) && !defined($quicktree)){
 #Compute a quick and dirty tree
     system("echo \42Y\42 | dnadist");
     system("mv outfile infile");
     system("echo \42Y\42 | neighbor");
-    
-    open( TR, "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
-    my @tree = <TR>;
+
+    open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
+    open( TRO, ">$infile\.dnaml-erate\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+    fix_node_names(\*TR, \*TRO, \%speciesnames);
     close(TR);
-    my $tree = join("", @tree);
-    
-    foreach my $k (keys %speciesnames){
-	$tree =~ s/$k\:/$speciesnames{$k}\:/g;
-    }
-    
-    open( TR, ">$infile\.njtree\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
-    print TR "$tree\n";
-    close(TR);
+    close(TRO);
 }
 
 if (-e "outtree"){
@@ -216,35 +210,60 @@ if (-e "outfile"){
     system("rm outfile");
 }
 
-if (defined($quick) && !defined($slowonly)){
+if (defined($quick) && !defined($slowonly) && !defined($quicktree)){
 #    print "View your tree in $infile\.njtree\.dnd\n";
     cleanup();
     exit();
+}
+
+if (defined($quicktree)){
+
+    system("quicktree -in a -out t $tmpseed | tr -d '\n' > outtree") and die "FATAL: cannot run quicktree -in a -out t $tmpseed > outtree\n[$!]";
+    
+    open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
+    open( TRO, ">$infile\.quicktree\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+    fix_node_names(\*TR, \*TRO, \%speciesnames);
+    close(TR);
+    close(TRO);
+    
+    cleanup();
+    exit();
+    
 }
 
 #Running dnaml-erate
 system("mv infile.phy infile");
 system("echo \42Y\42 | dnaml-erate");
 
-open( TR, "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
-my @tree = <TR>;
+open( TR,  "<outtree" ) or die "outtree exists but can't be opened\n[$!]";
+open( TRO, ">$infile\.dnaml-erate\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
+fix_node_names(\*TR, \*TRO, \%speciesnames);
 close(TR);
-my $tree = join("", @tree);
+close(TRO);
 
-foreach my $k (keys %speciesnames){
-    $tree =~ s/$k\:/$speciesnames{$k}\:/g;
-}
-
-open( TR, ">$infile\.dnaml-erate\.dnd" ) or die "FATAL: problem opening $infile\.dnd\n[$!]";
-print TR "$tree\n";
-close(TR);
-
-#print "View trees in $infile\.dnaml-erate\.dnd and $infile\.njtree\.dnd\n";
 cleanup();
 
 exit();
 
 ######################################################################
+
+sub fix_node_names {
+    my $inFh = shift;
+    my $outFh = shift;
+    my $hash_ref = shift;
+    
+    my %rename = %$hash_ref;
+    
+    my @tree = <$inFh>;
+    my $tree = join("", @tree);
+    
+    foreach my $k (keys %speciesnames){
+	$tree =~ s/$k\:/$speciesnames{$k}\:/g;
+    }
+    
+    print $outFh "$tree\n";
+    return 0;
+}
 
 sub cleanup {
     
@@ -254,7 +273,6 @@ sub cleanup {
     
     foreach my $f (@cleanup){
 	if (-e $f){
-	    print "rm $f\n";
 	    system("rm $f");
 	}
     }
@@ -345,7 +363,7 @@ OPTIONS:
                              from the current dir.
   -q|-quickonly              Only generate the quick and dirty NJ-tree.
   -o|-outlist                Read scores in from the out.list file and prepend these to the N/S-E_species strings. (default)
-  -so|-slowalso              
+  -sa|-slowalso              
   -s|-slowonly               
 
 EXAMPLES: 
