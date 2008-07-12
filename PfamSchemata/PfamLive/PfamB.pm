@@ -1,7 +1,7 @@
 
-# $Id: PfamB.pm,v 1.2 2008-05-16 15:23:16 jt6 Exp $
+# $Id: PfamB.pm,v 1.3 2008-07-12 20:14:11 rdf Exp $
 #
-# $Author: jt6 $
+# $Author: rdf $
 package PfamLive::PfamB;
 
 use strict;
@@ -19,7 +19,9 @@ __PACKAGE__->add_columns( qw( auto_pfamB
                               pfamB_acc
                               pfamB_id
                               number_archs
-                              number_regions ) );
+                              number_regions
+                              number_species
+                              number_structures ) );
 
 # primary keys
 __PACKAGE__->set_primary_key( qw( auto_pfamB pfamB_acc ) );
