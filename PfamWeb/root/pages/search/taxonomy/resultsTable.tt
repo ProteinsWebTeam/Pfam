@@ -5,12 +5,12 @@
 # a page fragment that builds the results table for taxonomy or unique
 # domains searches
 #
-# $Id: resultsTable.tt,v 1.4 2008-05-16 15:30:33 jt6 Exp $
+# $Id: resultsTable.tt,v 1.5 2008-07-14 15:01:43 jt6 Exp $
 
 META naked = 1;
 %]
 
-<table class="sortable resultTable"
+<table class="resultTable"
        id="resultTable"
        summary="Taxonomy search results">
   <thead>
@@ -53,6 +53,20 @@ family; " "; families.${family}.pfamA_id %]
 [% END -%]
   </pre>
 </div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var sorter = new TableKit( "resultTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+  // ]]>
+</script>
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 

@@ -4,7 +4,7 @@
 # 
 # taxonomy search results page
 #
-# $Id: uniqueResults.tt,v 1.5 2008-06-02 14:42:08 jt6 Exp $
+# $Id: uniqueResults.tt,v 1.6 2008-07-14 15:01:43 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,7 +14,7 @@ PROCESS "components/require.tt";
 requirements.css.push( "search.css" );
 
 # load the JS for table sorting here, for use in the post-loaded results 
-sharedRequirements.js.push( "sorttable.js" );
+sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ META fullPage = 1;
   new Ajax.Updater( "results",
                     "[% c.uri_for( "/search/unique/results" ) %]",
                     {
+                      evalScripts: true,
                       parameters: { q: encodeURI('[% q %]') },
                       onFailure: function() {
                         $("results").update("There was a problem completing your query" );
@@ -74,7 +75,6 @@ META fullPage = 1;
                       onComplete: function( response ) {
                         $("loadingDiv").hide();
                         $("returnDiv").show();
-                        sortables_init();
                       }
                     }
                   );
