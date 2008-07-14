@@ -6,7 +6,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.22 2008-05-16 15:30:34 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.23 2008-07-14 11:25:09 jt6 Exp $
 
 META naked = 1;
 
@@ -20,7 +20,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
   <div id="overlay" style="display: none"></div>
   <div id="cursor"></div>
   
-  <form onsubmit="updateSubmitter();return false" 
+  <form onsubmit="return updateSubmitter();" 
         method="post" 
         action="[% graphicsUri %]">    
     <div>
@@ -100,17 +100,16 @@ graphicsUri = c.uri_for( "/protein/graphics" );
   // <![CDATA[
   // a function to submit the form and update the graphics
   updateSubmitter = function() {
-    new Ajax.Updater( 'graphicsHolder', 
-                      '[% graphicsUri %]',
-                      { parameters:   this.serialize(true),
-                        asynchronous: 1,
-                        evalScripts:  true
-                      }
-                    );
+    var r = new Ajax.Updater( 'graphicsHolder', 
+                               '[% graphicsUri %]',
+                               { parameters:   this.serialize(true),
+                                 evalScripts:  true
+                               } );
+    return false;
   }
 
   // move the cursor when the mouse moves and re-initialise it on window resizes 
-  Event.observe( "featuresMap", "mousemove", moveCursor );
+  $("featuresMap").observe( "mousemove", moveCursor );
   Event.observe( window, "resize", initialiseCursor );
   
   // set the cursor as "uninitialised" when this page loads, so that it gets
@@ -118,16 +117,16 @@ graphicsUri = c.uri_for( "/protein/graphics" );
   cursorInitialised = false;
 
   // add mouseover listeners to all features
-  var areas = $("featuresMap").getElementsByTagName( "area" );
-  $A( areas ).each( function( area ) {
-	  Event.observe( area, "mouseover", showOverlay );
-    }
-  );
+//  var areas = $("featuresMap").getElementsByTagName( "area" );
+//  $A( areas ).each( function( area ) {
+  $$("#featuresMap area").each( function( area ) {
+	  area.observe( "mouseover", showOverlay );
+  } );
   
   // move the overlay div according to mouseovers on features
-  Event.observe( "overlay", "mousemove", moveCursor );
-  Event.observe( "overlay", "mouseout",  removeOverlay ); 
-  Event.observe( "overlay", "click",     openOverlayURL );
+  $("overlay").observe( "mousemove", moveCursor );
+  $("overlay").observe( "mouseout",  removeOverlay ); 
+  $("overlay").observe( "click",     openOverlayURL );
   // ]]>
 </script>
 
