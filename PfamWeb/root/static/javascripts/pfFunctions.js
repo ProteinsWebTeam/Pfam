@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.58 2008-06-02 14:43:09 jt6 Exp $
+// $Id: pfFunctions.js,v 1.59 2008-07-14 11:25:26 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -59,21 +59,18 @@ window.name = "pfamParentWin";
 var overlayURL = "";
 
 function showOverlay( e ) {
+  //console.debug( "----------------------------------------------------------------------------" )
   //console.debug( "entering showOverlay" )
 
-  var target;
-  if( e.target ) {
-    target = e.target;
-  } else { 
-    target = e.srcElement;
-  }
-  // work around the Safari bug that causes a text node to be the target
-  if( target.nodeType == 3 ) {
-    target = target.parentNode;
-  }
+  // this is the <area> that fired the event
+  var target = e.element();
 
-  // this is the <map> that contains this <area>
-  var mapName = target.parentNode.name;
+  // this is the parent element of this area
+  var parent = target.parentNode;
+
+  // these are details of the <map> that contains this <area>
+  var mapName = parent.name;
+  var mapNum  = parent.id.substring( 11 );
 
   //console.debug( "target:   |" + target.id + "|" );
   //console.debug( "mapName:  |" + mapName + "|" );
@@ -82,52 +79,30 @@ function showOverlay( e ) {
   var num = mapName.substring( 11 );
   var image = $("featuresImage" + num);
 
-  // where to place the overlay...
+  // calculate where to place the overlay...
   var coords = target.coords.split(",");
   var width  = coords[2] - coords[0];
   var height = coords[3] - coords[1];
-
-  var left = findPosX( image ) 
+  var left = image.cumulativeOffset()[0] 
            + Number( coords[0] )
-           - findPosX( $("featuresMap") ) 
+           - $("featuresMap").cumulativeOffset()[0] 
            + $("featuresMap").offsetLeft;
 
-  var top  = findPosY( image )
+  var top  = image.cumulativeOffset()[1]
            + Number( coords[1] )
-           - findPosY( $("featuresMap") )
+           - $("featuresMap").cumulativeOffset()[1]
            + $("featuresMap").offsetTop;
 
   //console.debug( "WxH+X,Y:  " + width + "x" + height + "+" + left + "," + top );
 
-  // position the div
+  // position the div; add a little offset to the div, just to make it line up
   $("overlay").setStyle( { width:  width + "px",
                            height: height + "px",
                            left:   left + "px",
-                           top:    top + "px" } );
-
-  // find the contents of the label for the row containing this feature
-  var mapNum = target.parentNode.id.substring( 11 );
-  var label = $("featuresLabel" + mapNum).innerHTML;
-  //console.debug( "features label: |" + label + "|" );
-
-  // set the tooltip contents. For IE we're going to make do with the tooltips
-  // that IE adds anyway. For other browsers we'll make a prettier version
-  if( ! Prototype.Browser.IE ) {
-    
-    // retrieve a URL from the feature, if present, and set various
-    // other bits and pieces...
-    var title = label + " feature" + ( target.href ? " (click for details)" : "" );
-
-    // set the options on the tooltip
-    var options = { title: title,
-                    offset: { x: 10, y: 10 } };
-
-    // and create the tooltip 
-    new Tip( "overlay", target.title, options );
-  }
+                           top:    top - ( Prototype.Browser.IE ? 0 : 1 ) + "px" } );
 
   // if there's a target for the overlaid area, set that as the URL for the 
-  // overlay div
+  // overlay div, so that we can use it in the tip
   if( target.href ) {
     overlayURL = target.href;
     $("overlay").addClassName( "linked" );
@@ -136,8 +111,31 @@ function showOverlay( e ) {
     $("overlay").removeClassName( "linked" );
   }
 
-  // and finally, display the overlay
-  $("overlay").show();
+  // find the contents of the label for the row containing this feature
+  var label = $("featuresLabel" + mapNum).innerHTML;
+  //console.debug( "label: |" + label + "|" );
+
+  // set the tooltip contents. For IE we're going to make do with the tooltips
+  // that IE adds anyway. For other browsers we'll make a prettier version
+  if( ! Prototype.Browser.IE ) {
+    
+    // set the tooltip title
+    var title = label + " feature" + ( target.href ? " (click for details)" : "" );
+
+    // and create the tooltip 
+    new Tip( $("overlay"), 
+             target.title,
+             { border: 0,
+               radius: 0,
+               title: title
+             } );
+    $("overlay").show();
+    $("overlay").prototip.show();
+  
+    //console.debug( "added tip for area: |" + target.id + "|" );
+  } else {
+    $("overlay").show();
+  }
 
   //console.debug( "leaving showOverlay" )
 }
@@ -154,8 +152,12 @@ function openOverlayURL( e ) {
 
 // hide the div on mouseout
 function removeOverlay( e ) {
-  //console.debug( "removing overlay" );
+  //console.debug( "hiding overlay" );
   $("overlay").hide();
+  //console.debug( "removing tip from overlay" );
+  if ( $("overlay").prototip !== undefined ) {
+    ("overlay").prototip.remove();
+  }
 }
 
 //----------------------------------------
@@ -262,9 +264,7 @@ function loadDomains( iIndex, uri, iNum ) {
      'showHideArchs' + iIndex ].each( Element.toggle );
 
     // and actually fire off a request to load the new graphics
-    new Ajax.Updater( 'domainArch' + iIndex, 
-                      uri,
-                      { method: 'get' } );
+    new Ajax.Updater( 'domainArch' + iIndex, uri );
   }
 }
 
@@ -280,7 +280,6 @@ function chooseIds( sLetter ) {
   new Ajax.Updater( "idSelectionWrapper",
                     queryURI,
                     {
-                      method: 'get',
                       parameters: "list=1&browse=" + sLetter,
                       onComplete: function () {
                                     Element.hide("nlUpdateSpinner");
@@ -382,279 +381,3 @@ function resetDomainQueryForms() {
 }
 
 //------------------------------------------------------------
-//- external functions ---------------------------------------
-//------------------------------------------------------------
-//------------------------------------------------------------
-//- species tree methods -------------------------------------
-//------------------------------------------------------------
-
-// toggle the highlighting of those sequences which are found in the 
-// seed alignment
-
-var seedsHighlighted = true;
-
-function toggleHighlightSeed() {
-  if( seedsHighlighted ) {
-    $("treeDiv").select(".highlightSeed").each(
-      function( a ) {
-        a.removeClassName( "highlightSeed" );
-      }
-    );
-    $("seedToggle").update( "Show" );
-  } else {
-    $("treeDiv").select(".seedNode").each(
-      function( d ) {
-        if( nodeMapping[d.id] ) {
-          $(nodeMapping[d.id].labelElId).addClassName( "highlightSeed" );
-        }
-      }
-    );
-    $("seedToggle").update( "Hide" );
-  }
-  seedsHighlighted = !seedsHighlighted;
-}
-
-// the $$() function in prototype is variously described as wonderful
-// or immensely slow, so we'll ditch it in favour of walking the DOM
-// ourselves. This function is just here for historical reasons...
-// jt6 20061016 WTSI
-//
-// function toggleHighlightSeedSlowly() {
-//   if( seedsHighlighted ) {
-//   $$(".highlightSeed").each( function( summary ) {
-//     Element.removeClassName( summary, "highlightSeed" );
-//     } );
-//   } else {
-//   $$(".seedNode").each( function( summary ) {
-//     if( nodeMapping[summary.id] ) {
-//       Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
-//     }
-//     } );
-//   }
-//   seedsHighlighted = !seedsHighlighted;
-// }
-
-//------------------------------------------------------------
-// toggle showing/hiding of the node summaries
-
-var summariesVisible = true;
-
-function toggleShowSummaries() {
-  if( summariesVisible ) {
-    $$("div.nodeSummary").invoke( "hide" )
-    $("sumToggle").update( "Show" );
-  } else {
-    $$("div.nodeSummary").invoke( "show" );
-    $("sumToggle").update( "Hide" );
-  }
-  summariesVisible = !summariesVisible;
-}
-
-// turns out that the $$() function is quicker than walking the tree
-// in this case... who knew ?
-// jt6 20061016 WTSI
-//
-// function toggleShowSummariesSlowly() {
-//   var divs = $A( document.getElementsByClassName("nodeSummary","treeDiv") );
-//   if( summariesVisible ) {
-//   divs.each( function( d ) {
-//         Element.hide( d );
-//         } );
-//   } else {
-//   divs.each( function( d ) {
-//         Element.show( d );
-//         } );
-//   }
-//   summariesVisible = !summariesVisible;
-// }
-
-//------------------------------------------------------------
-// expand the tree to the depth specified in the little form in the
-// tools palette
-
-function expandToDepth() {
-  tree.collapseAll();
-  expandTo( $F("depthSelector"), tree.root );
-}
-
-// the method that actually expands to a given depth. Should really
-// only be called by expandToDepth()
-var currentDepth = 0;
-
-function expandTo( finalDepth, node ) {
-
-  if( currentDepth < finalDepth - 1 ) {
-
-    for( var i=0; i< node.children.length; ++i ) {
-    
-      var c = node.children[i];
-      c.expand();
-
-      currentDepth++;
-      expandTo( finalDepth, c );
-      currentDepth--;
-    }
-  }
-
-}
-
-//------------------------------------------------------------
-// collect the sequences that are specified by the checked leaf nodes
-// in the species trees. Submits the form in the page which will act on those
-// accessions. The argument should be either "G" or "A", for graphical or
-// sequence alignment view of the collected sequences.
-
-function collectSequences( sStyle, sAcc ) {
-
-  // get all leaf nodes
-  var leaves = $("treeDiv").select(".leafNode");
-
-  // and collect IDs from the checked ones
-  var bail = true;
-  var seqAccs = leaves.inject( "", function( accumulator, n ) {
-      var taskNode = nodeMapping[n.id];
-      if( taskNode.checked ) {
-        bail = false;
-        return accumulator + nodeSequences[n.id] + " ";
-      } else {
-        return accumulator;
-      }
-    }
-  );
-
-  // make sure we have at least one checked node
-  if( bail ) {
-    $("stError")
-      .update( "Please select some nodes" )
-      .show();
-    return;
-  }
-
-  // TODO we could optimise this a bit, by storing the list of selected 
-  // accessions at this point and then checking the new list against the old
-  // list before making another AJAX request to store a second, identical list
-  // in the DB. 
-
-  // store the IDs and get back a "job id"
-  var jobId;
-  var r = new Ajax.Request( selectStoreURI, {
-    method: 'post',
-    parameters: { ids: escape( seqAccs ) },
-    onSuccess: function( oResponse ) {
-
-      // the response should contain only the "job ID", which points to the list
-      // of accessions
-      jobId = oResponse.responseText;
-
-      // build the URI for the next request, the one that actually does the 
-      // work here
-      var url;
-      var popup = true;
-
-      // view the selected sequences as...
-      switch( sStyle ) {
-        case 'G':
-          url = selectGraphicsURI;   // domain graphics
-          break;
-        case 'L':
-          url = selectAccessionsURI; // sequence accessions
-          popup = false;
-          break;
-        case 'F':
-          url = selectFastaURI;      // FASTA format
-          popup = false;
-          break;
-        default:
-          url = selectAlignmentURI;  // an alignment
-      }
-
-      // tack on the parameters that we need
-      url +=   "?acc="   + sAcc
-             + "&jobId=" + jobId;
-        
-      // load that URL, either in a popup or in the main window
-      if( popup ) {
-        popUp( url, 'console', 800, 800, 'selectedSeqsWin' );
-      } else {
-        window.location = url;
-      }
-      
-    },
-    onFailure: function( oResponse ) {
-      $("stError")
-        .update( "There was a problem collecting sequence accessions" )
-        .show();
-      return;
-    }
-  });
-
-}
-
-//------------------------------------------------------------
-//- callbacks for the species tree generation calls ----------
-//------------------------------------------------------------
-// this stuff is used in Pfam-A, Pfam-B and clan pages
-
-var tree;
-function stSuccess( oResponse ) {
-  
-  // build the tree widget and get a handle on the root, which we'll need
-  // when eval'ing the javascript from the server
-  tree = new YAHOO.widget.TreeView("treeDiv");
-  var root = tree.getRoot();
-
-  // eval the JS that the server generates. This is the set of calls that
-  // build the TreeView widget object tree
-  try {
-    eval( oResponse.responseText );
-  } catch( e ) {
-    // don't care
-  }
-
-  // by this point the tree was successfully built, but the response might
-  // have contained a message rather than tree components. If there was a
-  // a tree, we must have more than just the root node
-  if( YAHOO.widget.TreeView.nodeCount > 1 ) {
-    // we got a tree; render it
-    tree.draw();
-    
-    // bring back the control panel
-    $("treeTools").show();
-  } else {
-
-    // we got a message from the server; display it
-    $("treeDiv").update( oResponse.responseText );
-
-    // hide the control panel too
-    $("treeTools").hide();
-  }
-}
-
-function stFailure() {
-  $("treeDiv").update( "Tree loading failed." );
-}
-
-// this is an extra method to submit a new ajax request, this time with
-// the "loadTree" flag set, which tells the controller to load the tree
-// even it's large
-function forceLoad() {
-  
-  // show the new spinner and disable the button
-  $("secondaryLoadingSpinner").show();
-  $("generateButton").disable();
-  
-  // override the limits on tree size
-  loadOptions.st.params['loadTree'] = 1;
-
-  // and override the browser check that will return a text tree when it 
-  // sees IE coming 
-  loadOptions.st.params['ie'] = false;
-  
-  new Ajax.Request( loadOptions.st.uri, // same URI was for original call
-                    { method:     'get', 
-                      parameters: loadOptions.st.params,
-                      onSuccess:  stSuccess,
-                      onFailure:  stFailure
-                    } );
-}
-
