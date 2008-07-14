@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.73 2008-07-03 15:35:38 jt6 Exp $
+   $Id: pfam.css,v 1.74 2008-07-14 15:11:16 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -164,6 +164,10 @@ div.pfamLogoHolder #searchBox {
   background: #FFF url(/static/images/pfam_logo.gif) no-repeat;
   width: 140px;
   height: 50px;
+}
+
+img.prePfamLogo {
+  background-image: url(/static/images/pre_pfam_logo.gif) ! important;
 }
 
 /* tweak the site-wide search box so that it fits nicely under the Pfam logo */
@@ -503,25 +507,21 @@ body.tool h1 {
 /* ======================================== */
 /* search results */
 
-.sortarrow {
-  width: 11px;
-  height:  15px;
-  background-position: center center;
+.sortcol {
+  cursor: pointer;
+  padding-left: 16px ! important;
+  padding-right: 16px ! important;
   background-repeat: no-repeat;
-  margin: 0 2px;
-  border-style: none;
+  background-position: right center;
 }
-
-.sortarrow.updown {
-  background-image: url(/shared/images/updown.gif);
+.sortasc {
+  background-image: url(/shared/images/up.gif);
 }
-
-.sortarrow.down {
-  background-image: url(/shared/images/downsimple.gif);
+.sortdesc {
+  background-image: url(/shared/images/down.gif);
 }
-
-.sortarrow.up {
-  background-image: url(/shared/images/upsimple.gif);
+.nosort {
+  cursor: default;
 }
 
 /* this is the auto-generated link for sorting the column */
