@@ -5,7 +5,7 @@
 # 
 # funshift search results page
 #
-# $Id: results.tt,v 1.5 2008-05-16 15:30:34 jt6 Exp $
+# $Id: results.tt,v 1.6 2008-07-14 15:01:43 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
@@ -15,7 +15,7 @@ META fullPage = 1;
 
 PROCESS "components/require.tt";
 
-sharedRequirements.js.push( "sorttable.js" );
+sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -75,20 +75,20 @@ sharedRequirements.js.push( "sorttable.js" );
     <p>
       The results may be sorted by clicking on the column 
       titles, or restored to the original order 
-      <a onclick="_ts_resortTable($('resultTable'),'0');return
-      false;" href="#">here</a>. You can return to the 
+      <span onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');"
+            class="link">here</span>. You can return to the 
       <a href="[% c.uri_for( "/search", { tab = "searchFunshiftBlock" } ) %]">search page</a> to 
       to search for another family.
     </p>
 
   </div> <!-- end of div "key" -->
 
-  <table class="sortable resultTable"
+  <table class="resultTable"
          id="resultTable" 
          summary="Search results">
     <thead>
       <tr class="titleRow">
-        <th class="rowNum">Original order</th>
+        <th id="indexCol" class="rowNum">Original order</th>
         <th>Pfam A ID</th>
         <th>Pfam A acc.</th>
         <th>Clan ID</th>
@@ -116,6 +116,19 @@ sharedRequirements.js.push( "sorttable.js" );
       [% END %]
     </tbody>
   </table>
+
+  <script type="text/javascript">
+    // <![CDATA[
+    var sorter = new TableKit( "resultTable",
+                                {
+                                  editable: false,
+                                  resizable: false,
+                                  rowEvenClass: "even",
+                                  rowOddClass: "odd",
+                                  stripe: true
+                                } );    
+    // ]]>
+  </script>
 
 </div> <!-- end of div "results" -->
 [%#
