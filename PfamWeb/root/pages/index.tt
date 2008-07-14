@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.50 2008-06-02 14:41:35 jt6 Exp $
+# $Id: index.tt,v 1.51 2008-07-14 15:08:25 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -165,7 +165,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 
   <div id="family" class="panel" style="display: none">
     <h3>View Pfam family annotation and alignments</h3>
-    <p>Enter a family identifier or accession to see all data for that family.</p>
+    <p>Enter a family identifier (e.g.&nbsp;<em>Piwi</em>) or accession 
+    (e.g.&nbsp;<em>PF02171</em>) to see all data for that family.</p>
     <form action="[% jumpUri %]"
           method="get" 
           id="familyForm"
@@ -197,7 +198,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div id="clan" class="panel" style="display: none">
     <h3>See groups of related families</h3>
-    <p>Enter a clan identifier or accession to see information about that clan.</p>
+    <p>Enter a clan identifier (e.g.&nbsp;<em>Kazal</em>) or accession 
+    (e.g.&nbsp;<em>CL0005</em>) to see information about that clan.</p>
     <form action="[% jumpUri %]"
           method="get" 
           id="clanForm"
@@ -229,7 +231,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div id="sequence" class="panel" style="display: none">
     <h3>View domain organisation of a protein sequence</h3>
-    <p>Enter a sequence identifier or accession.</p>
+    <p>Enter a sequence identifier (e.g.&nbsp;<em>VAV_HUMAN</em>) or accession
+    (e.g.&nbsp;<em>P15498</em>).</p>
     <form action="[% jumpUri%]"
           method="get" 
           id="proteinForm"
@@ -265,7 +268,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   
   <div id="structure" class="panel" style="display: none">
     <h3>Find the domains on a PDB structure</h3>
-    <p>Enter the PDB identifier for the structure in the Protein DataBank.</p>
+    <p>Enter the PDB identifier (e.g.&nbsp;<em>2abl</em>) for the structure in the 
+    Protein DataBank.</p>
     <form action="[% jumpUri %]"
           method="get" 
           id="structureForm"
@@ -318,11 +322,22 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div class="cleaner"><!-- empty --></div>
 
-  <hr />
+  <div id="announcements" class="announcements" style="display: none">
+    <hr />
+    <span onclick="hideThis('announcements');" 
+          class="closer"
+          style="float: right; cursor: pointer">Hide this</span>
+  </div>
  
-  <div id="newFeatures" style="display: none">
+  <div id="features" class="announcements" style="display: none">
+    <hr />
+    <span onclick="hideThis('features');" 
+          class="closer"
+          style="float: right; cursor: pointer">Hide this</span>
   </div>
   
+  <hr />
+
   <div id="citation">
     <h2>Citing Pfam</h2>
     <p>
@@ -365,25 +380,32 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 <script type="text/javascript">
   // <![CDATA[
   
+  var hideThis = function( id ) {
+    $(id).hide();
+    var d = new Date();
+    var t = Math.round( d.getTime() / 1000 );
+    createCookie( 'hide_' + id, t ); 
+  };
+  
   // load the list of new features
   Event.observe( window, 'load', function() {
-    new Ajax.Request( '[% c.uri_for( "/new_features" ) %]', 
-      { 
-        method:    "get",
-        on204:     function( oResponse ) {},
-        onSuccess: function( oResponse ) {
-          $("newFeatures").update( oResponse.responseText );
-          $("newFeatures").show();
-          $$("#newFeatures .new").each(
-            function(f) {
-              new Effect.Highlight( f, { startcolor: '#cbdced' } );
-            }
-          );         
-         }
-      } );
-    }
-  );
-  
+    
+    ['announcements','features'].each( function( type ) {
+      var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
+        { 
+          parameters: { type: type },
+          on204:      function( oResponse ) {},
+          onSuccess:  function( oResponse ) {
+            $(type).insert( oResponse.responseText );
+            $(type).show();
+          }
+        }
+      );
+
+    } );
+    
+  } );
+
   // example values for the various forms
   var exPfamId = "Piwi";
   var exClanId = "Kazal";
