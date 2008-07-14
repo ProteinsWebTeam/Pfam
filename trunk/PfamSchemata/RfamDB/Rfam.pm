@@ -77,9 +77,9 @@ __PACKAGE__->add_columns(
     size => 255,
   },
   "num_seed",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "num_full",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "type",
   {
     data_type => "VARCHAR",
@@ -108,49 +108,75 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 8,
   },
+  "number_of_species",
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
+  "taxonomic_domain",
+  {
+    data_type => "MEDIUMTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 16777215,
+  },
+  "taxonomic_root",
+  {
+    data_type => "MEDIUMTEXT",
+    default_value => undef,
+    is_nullable => 1,
+    size => 16777215,
+  },
 );
 __PACKAGE__->set_primary_key("auto_rfam");
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
+__PACKAGE__->has_many(
+  "alignments_and_trees",
+  "RfamDB::AlignmentsAndTrees",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
+__PACKAGE__->has_many(
+  "html_alignments",
+  "RfamDB::HtmlAlignments",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
+__PACKAGE__->has_many(
+  "rfam_cms",
+  "RfamDB::RfamCm",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
+__PACKAGE__->has_many(
+  "rfam_database_links",
+  "RfamDB::RfamDatabaseLinks",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
+__PACKAGE__->has_many(
+  "rfam_literature_references",
+  "RfamDB::RfamLiteratureReferences",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
+__PACKAGE__->has_many(
+  "rfam_reg_fulls",
+  "RfamDB::RfamRegFull",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
 __PACKAGE__->has_many(
   "rfam_reg_seeds",
   "RfamDB::RfamRegSeed",
   { "foreign.auto_rfam" => "self.auto_rfam" },
 );
+__PACKAGE__->has_many(
+  "secondary_structure_images",
+  "RfamDB::SecondaryStructureImages",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
+__PACKAGE__->has_many(
+  "wikis",
+  "RfamDB::Wiki",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-09 20:46:10
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:BMEuqeTk+58QLJfrpO1eRA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-14 20:19:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:02dlF/JEau6RmLwYF9l7gA
 
-#-------------------------------------------------------------------------------
 
-=head1 AUTHOR
-
-John Tate, C<jt6@sanger.ac.uk>
-
-Paul Gardner, C<pg5@sanger.ac.uk>
-
-Jennifer Daub, C<jd7@sanger.ac.uk>
-
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
-         Jennifer Daub (jd7@sanger.ac.uk)
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
-
-=cut
-
+# You can replace this text with custom content, and it will be preserved on regeneration
 1;
