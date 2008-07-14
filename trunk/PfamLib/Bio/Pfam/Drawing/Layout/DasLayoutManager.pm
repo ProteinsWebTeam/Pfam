@@ -25,7 +25,7 @@ sub layout_DAS_sequences_and_features {
   foreach my $source (keys %$features){
 	#first get the sequence object.
 	my $sourceId;
-	print STDERR "\n\n\n***** $source, ";
+	#print STDERR "\n\n\n***** $source, ";
 
 	if($source =~ /(phobius|smart|superfamily|cath_sptr|dssp|\/uniprot\/|hydrophobicity|alig)/i){
 
@@ -35,7 +35,7 @@ sub layout_DAS_sequences_and_features {
 	}else{
 	  $sourceId = "genericDasSource";
 	}
-	print STDERR "$sourceId *****\n\n\n\n";
+	#print STDERR "$sourceId *****\n\n\n\n";
 	#What we do with das is slightly different.  We display all features (of a type that are accepted)
 	eval{
 	if(ref($features->{$source}) eq "ARRAY"){ 
