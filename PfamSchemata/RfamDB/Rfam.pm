@@ -124,6 +124,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 16777215,
   },
+  "auto_wiki",
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
 );
 __PACKAGE__->set_primary_key("auto_rfam");
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
@@ -137,6 +139,7 @@ __PACKAGE__->has_many(
   "RfamDB::HtmlAlignments",
   { "foreign.auto_rfam" => "self.auto_rfam" },
 );
+__PACKAGE__->belongs_to("auto_wiki", "RfamDB::Wikitext", { auto_wiki => "auto_wiki" });
 __PACKAGE__->has_many(
   "rfam_cms",
   "RfamDB::RfamCm",
@@ -167,15 +170,10 @@ __PACKAGE__->has_many(
   "RfamDB::SecondaryStructureImages",
   { "foreign.auto_rfam" => "self.auto_rfam" },
 );
-__PACKAGE__->has_many(
-  "wikis",
-  "RfamDB::Wiki",
-  { "foreign.auto_rfam" => "self.auto_rfam" },
-);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-14 20:19:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:02dlF/JEau6RmLwYF9l7gA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-15 13:36:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:fOJ2sL5oJUedB6bpfuxscw
 
 #-------------------------------------------------------------------------------
 
