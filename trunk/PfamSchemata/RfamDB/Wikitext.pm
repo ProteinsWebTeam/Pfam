@@ -9,7 +9,7 @@ __PACKAGE__->load_components("Core");
 __PACKAGE__->table("wikitext");
 __PACKAGE__->add_columns(
   "auto_wiki",
-  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "text",
   {
     data_type => "LONGTEXT",
@@ -17,17 +17,24 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 4294967295,
   },
+  "title",
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 150,
+  },
 );
 __PACKAGE__->set_primary_key("auto_wiki");
 __PACKAGE__->has_many(
-  "wikis",
-  "RfamDB::Wiki",
+  "rfams",
+  "RfamDB::Rfam",
   { "foreign.auto_wiki" => "self.auto_wiki" },
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-14 20:19:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Lj4WKLRVnzMIFXflow4raw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-15 13:36:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:gLI/0OPsyZQ0FQwwPmpPsg
 
 #-------------------------------------------------------------------------------
 

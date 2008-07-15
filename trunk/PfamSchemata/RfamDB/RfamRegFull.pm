@@ -34,8 +34,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-14 20:19:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H3paAvZvLAVsRKUl/fkJ6Q
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-15 13:36:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:hu2QDlEgTFTrdQit5Gkiaw
 
 #-------------------------------------------------------------------------------
 

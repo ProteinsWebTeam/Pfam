@@ -23,8 +23,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("rfam_acc");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-14 20:19:36
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:99N+4ne+lerWYeSNyHE2+Q
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-15 13:36:20
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9ZNtn0atSlzeZduklIwUmg
 
 #-------------------------------------------------------------------------------
 
