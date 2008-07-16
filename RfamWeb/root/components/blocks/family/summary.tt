@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.3 2008-06-24 08:49:13 jt6 Exp $
+# $Id: summary.tt,v 1.4 2008-07-16 13:19:44 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -42,7 +42,7 @@ requirements.css.push( "wp.css" );
 
     <h1>
       [% rfam.description %]
-      <a href="[% c.uri_for( "/annotate", { acc => rfam.rfam_acc } ) %]">
+      <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% rfam.auto_wiki.title %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
              src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
@@ -55,11 +55,125 @@ requirements.css.push( "wp.css" );
         More...</span>
     </p>
 
+    <div id="wikiNotes" style="display: none">
+      <p>
+        The wikipedia text that you see displayed on our web site is a download 
+        from <a class="ext" href="http://en.wikipedia.org/wiki/Main_Page">
+          Wikipedia</a>. This means that the information we display is a copy of 
+        the information from the Wikipedia database. The button above 
+        (&quot;Edit wikipedia entry&quot;) directs you to the edit page for the 
+        article directly within wikipedia. You should be aware you are not 
+        editing our local copy of this information. Any changes that you make 
+        to the Wikipedia article will not be displayed by our site until we next 
+        download the article from Wikipedia. We are currently only downloading 
+        articles once per week.
+      </p>
+      
+      <h2>Before you edit for the first time</h2>
+
+      <p>
+        Wikipedia is a free, online encyclopedia. Although anyone can edit or 
+        contribute to an article, Wikipedia has some strong editing guidelines 
+        and policies, which promote the Wikipedia standard of style and 
+        etiquette. Your edits and contributions are more likely to be accepted 
+        (and remain) if they are in accordance with this policy.
+      </p>
+      <p>
+        You should take a few minutes to view the following pages:
+      </p>
+      <ul>
+        <li><a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:Five_pillars">
+              Five pillars</a></li>
+        <li><a class="ext" href="http://en.wikipedia.org/wiki/Help:Contents/Policies_and_guidelines">
+              Policies and quidelines</a></li>
+        <li><a class="ext" href="http://en.wikipedia.org/wiki/Help:Contents">
+              Wikipedia help contents</a></li>
+        <li><a class="ext" href="http://en.wikipedia.org/wiki/Wikipedia:Tips">
+              Wikipedia Tips</a></li>
+        <li><a class="ext" href="http://en.wikipedia.org/wiki/Help:Contents/Editing_Wikipedia">
+              Editing help</a></li>
+      </ul>
+
+      <h2>Things you should know</h2>
+      
+      <h3>How your contribution will be recorded</h3>
+
+      <p>
+        Anyone can edit a Wikipedia entry. You can do this either as a new user 
+        or you can register with wikipedia and log on. When you click on the 
+        &quot;Edit Wikipedia entry&quot; button, your browser will direct you to 
+        the edit page for this entry in Wikipedia. If you are a registered user 
+        of Wikipedia and currently logged in, your changes will be recorded 
+        under your Wikipedia user name. However, if you are not a registered 
+        user or are not logged on, your changes will be logged under your 
+        computer's IP address. This has two main implications. Firstly, as a 
+        registered Wikipedia user your edits are more likely seen as valuable 
+        contribution (although all edits are open to community scrutiny 
+        regardless). Secondly, if you edit under an IP address you may share 
+        this IP address with other users. If this IP address has previously been 
+        blocked (due to being flagged as a source of 'vandalism') your edits 
+        will also be blocked. You can find more information on this and creating 
+        a user account at <a href="http://en.wikipedia.org/wiki/Wikipedia:Why_create_an_account"
+          class="ext" >Wikipedia</a>.
+      </p>      
+      <p>
+        If you have problems editing a particular page, contact us at 
+        <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>
+        and we will try to help.
+      </p>
+      
+      <h3>Information we would like to see added</h3>
+      
+      <p>
+        We would value contributions that are referenced directly to the primary 
+        literature. Information on structure and function will be especially 
+        valuable.
+      </p>
+      <p>      
+        Adding references is made much easier by 
+        <a class="ext" href="http://diberri.dyndns.org/wikipedia/templates/?type=pmid&amp;id=15608160&amp;extended=1&amp;add_param_space=1&amp;add_ref_tag=1">
+          this</a> tool.
+      </p>
+      <p>
+        For a good example of what is possible in wikipedia, look at the 
+        <a class="ext" href="http://en.wikipedia.org/wiki/Hammerhead_ribozyme">
+          Hammerhead Ribozyme</a> entry.
+      </p>
+      
+      <h3>Does Rfam agree with the content of the Wikipedia entry ?</h3>
+
+      <p>
+        Rfam has chosen to create Wikipedia entries for all of our RNA families 
+        and to open them up to community annotation. While the original 
+        Wikipedia article that we import was (in most cases) generated from Rfam 
+        annotations, the Wikipedia article you see now may bear little 
+        resemblance to that original text. The Wikipedia community does monitor 
+        edits to try to ensure that (a) the quality of article annotation 
+        increases, and (b) vandalism is very quickly dealt with. However, we 
+        would like to emphasise that Rfam does not curate the Wikipedia entries 
+        and we cannot guarantee the accuracy of the information on the 
+        Wikipedia page.
+      </p>
+      
+      <h2>Contact us</h2>
+      
+      <p>
+        The community annotation is a new facility of the Rfam web site. If you 
+        have problems editing or experience problems with these pages please 
+        <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">
+          contact us</a>.
+      </p>
+      <p>
+        If you are interested in contributing to a wide range of articles relating 
+        to RNA, see the <a href="http://en.wikipedia.org/wiki/Wikipedia:WikiProject_RNA"
+          class="ext">Wikiproject RNA</a> page.
+      </p>
+      <hr />
+    </div>
+
     <div id="wpData" 
          class="controlTabContent">
-    [% FOREACH wiki IN rfam.wikis;
-      wiki.text;
-    END -%]
+    [%- rfam.auto_wiki.text %]
     </div>
 
   </div>
