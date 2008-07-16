@@ -207,7 +207,8 @@ foreach my $rep (keys %replace){
     my $badseq;
     foreach my $seq ( $seed->each_seq() ) {
 	my $id = $seq->id;
-	if ( $id =~ /^$rep/ || $rep =~ /^$id/){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+#	if ( $id =~ /^$rep/ || $rep =~ /^$id/){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+	if ( $id eq $rep ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $badseq=$seq;
 	    last;
 	}
@@ -216,7 +217,8 @@ foreach my $rep (keys %replace){
     my ($alnbadseq, $alngoodseq);
     foreach my $seq ( $warn->each_seq() ) {
 	my $id = $seq->id;
-	if ( $id =~ /^$rep/ || $rep =~ /^$id/){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+	#if ( $id =~ /^$rep/ || $rep =~ /^$id/){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+	if ( $id eq $rep ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $alnbadseq=$seq;
 	}
 	else {
@@ -287,8 +289,10 @@ $badseq->seq  . "\n" .
 >" . $alngoodseq->id . "\/" . $alngoodseq->start . "\-" . $alngoodseq->end  . "\n" .
 $ts . "\n\n";
     }    
-    push( @remove, $badseq );
     
+    if (defined($badseq)){
+	push( @remove, $badseq );
+    }
     
 }
 
