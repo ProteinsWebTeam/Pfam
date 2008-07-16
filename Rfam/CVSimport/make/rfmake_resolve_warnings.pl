@@ -106,7 +106,7 @@ foreach my $mn (@missingnames) {
 	
 	next if !(-e $db);
 	
-	system("$blatexe -out=blast8 -t=dna -q=dna -fastMap  -minIdentity=95 $db warnings.fa warnings.blat >& /dev/null") and warn "WARNING:\nblat for $mn failed\n$blatexe -out=blast8 -t=dna -q=dna -fastMap  -minIdentity=95 $db warnings.fa warnings.blat\n";
+	system("$blatexe -out=blast8 -t=dna -q=dna -minIdentity=95 $db warnings.fa warnings.blat >& /dev/null") and warn "WARNING:\nblat for $mn failed\n$blatexe -out=blast8 -t=dna -q=dna -minIdentity=95 $db warnings.fa warnings.blat\n";
 # Fields [1-12]: 
 #Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 	
@@ -377,6 +377,8 @@ Options:
   -h or -help              show this help
 
 To Add:
+-FIX FUCKING CLUSTALW NAME TRUNCATION PROBLEMS
+-ADD WARNINGS WHEN NO REPLACEMENTS FOUND
 
 EOF
 }
