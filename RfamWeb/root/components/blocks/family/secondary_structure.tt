@@ -1,11 +1,10 @@
-
 [%
 # secondary_structure.tt
 # jt6 20080523 WTSI
 # 
 # build the secondary structure block for families
 #
-# $Id: secondary_structure.tt,v 1.2 2008-06-24 08:48:34 jt6 Exp $
+# $Id: secondary_structure.tt,v 1.3 2008-07-16 13:20:30 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -16,20 +15,20 @@ sharedRequirements.js.push( "sharedFunctions.js" );
 
 #-------------------------------------------------------------------------------
 
-types = [ #'normal',
-           'cons',
-           'cov',
-           'ent',
-           'fcbp',
-           'maxcm' ];
+types = [ 'cons',
+          'cov',
+          'ent',
+          'fcbp',
+          'maxcm',
+          'norm' ];
 
-labels = [ #'Normal',
+labels = [ 
            'Sequence conservation',
            'Covariation',
            'Relative entropy',
            'Fraction canonical basepairs',
-           'Maximum CM parse' ];
-
+           'Maximum CM parse',
+           'Normal' ];
 %]
 
 <!-- start secondary structure block -->
@@ -40,13 +39,81 @@ labels = [ #'Normal',
   </div>
   <div class="blockContent">
 
+    <p>
+      This section shows a variety of different secondary structure 
+      representations for this family. 
+      <span onclick="reveal( this, 'ssNotes', false, true );"
+            class="moreLink">
+        More...</span>
+    </p>
+
+    <div id="ssNotes" style="display: none">
+      <p>
+        <strong>Conservation (cons)</strong>: this plot colours each character 
+        by how well conserved it is. A site with 100% sequence conservation 
+        is coloured red, 0% is violet.
+      </p>
+      <p>
+        <strong>Covariation (cov)</strong>: this plot colours each base-pair 
+        according to how much the corresponding nucleotides are co-varying. 
+        A base-pair position at which every pair of nucleotides is co-variant 
+        with respect to every other pair in the alignment gets a score of 2 
+        and is coloured red. 
+        Conversely, a base-pair position at every pair is anti-co-variant with 
+        respect to every other pair (e.g. lots of mutations to 
+        non-canonical pairs) gets a score of -2 and is coloured violet.
+        Further information on this metric can be found in this 
+        <a href="colourings_desc.pdf">document</a>.
+      </p>
+      <p>
+        <strong>Sequence entropy (ent)</strong>: this plot colours each 
+        character by how under-
+        or over-represented the residues at the site are. Sites where one or
+        more nucleotides are over-represented while the other nucleotides are
+        either non-existent or near the background frequencies, receive
+        positive scores; sites where all the nucleotides are under-represented
+        receive negative scores. Further information on this metric can be
+        found in this <a href="colourings_desc.pdf">document</a>.
+      </p>
+      <p>
+        <strong>Fraction of canonical basepairs (fcbp</strong>): this plot 
+        colours each base-pair by the percentage of canonical basepairs 
+        (A:U, C:G, G:U) which are found in the corresponding position in the 
+        alignment. A pair of sites with 100% canonical pairs is coloured red, 
+        a site with 0% is violet.
+      </p>
+      <p>
+        <strong>Maximum parse of the covariance model (maxcm)</strong>: this
+        plot takes the covariance model for the family and generates the 
+        sequence with the maximum possible score for that model. Each 
+        character is coloured by how many bits it contributes to the total 
+        score.
+      </p>
+      <p>
+        <strong>Sequence</strong>: for most of the above cases, the 
+        representative sequence used for the backbone is the most 
+        informative sequence (MIS). Any residue that has a higher frequency 
+        than than the background frequency is projected into the 
+        <a class="ext" href="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html">
+          IUPAC redundancy codes</a>.
+      </p>
+      <p>
+        <strong>Normal</strong>: normal, usual, run-of-the-mill.
+      </p>
+      <h3>Acknowledgements</h3>
+      <p>
+        The bulk of the code for generating these graphics was kindly supplied
+        by Andreas Gruber and Ivo Hofacker. The statistics were implemented by
+        Rfam.
+      </p>
+      <hr />
+    </div>
+
     <ul id="ssImageTabs" class="controlTabList">
 [% FOREACH type IN types -%]
       <li><a href="#[% type %]Image"
              title="[% labels.${loop.index} %]">[% type %]</a></li>
 [% END -%]
-      <li><a href="#ssImageHelp" 
-             title="About the secondary structure images">About</a></li>
     </ul>
 
 [% FOREACH type IN types -%]
@@ -56,68 +123,6 @@ labels = [ #'Normal',
            src="[% c.uri_for( '/family/image', acc => acc, type => type ) | html -%]" />
     </div>
 [% END -%]
-
-    <div id="ssImageHelp" 
-         class="controlTab" 
-         style="display: none">
-      <div class="controlTabContent">
-        <p>
-          <strong>Conservation (cons)</strong>: this plot colours each character 
-          by how well conserved it is. A site with 100% sequence conservation 
-          is coloured red, 0% is violet.
-        </p>
-        <p>
-          <strong>Covariation (cov)</strong>: this plot colours each base-pair 
-          according to how much the corresponding nucleotides are co-varying. 
-          A base-pair position at which every pair of nucleotides is co-variant 
-          with respect to every other pair in the alignment gets a score of 2 
-          and is coloured red. 
-          Conversely, a base-pair position at every pair is anti-co-variant with 
-          respect to every other pair (e.g. lots of mutations to 
-          non-canonical pairs) gets a score of -2 and is coloured violet.
-          Further information on this metric can be found in this 
-          <a href="colourings_desc.pdf">document</a>.
-        </p>
-        <p>
-          <strong>Sequence entropy (ent)</strong>: this plot colours each 
-          character by how under-
-          or over-represented the residues at the site are. Sites where one or
-          more nucleotides are over-represented while the other nucleotides are
-          either non-existent or near the background frequencies, receive
-          positive scores; sites where all the nucleotides are under-represented
-          receive negative scores. Further information on this metric can be
-          found in this <a href="colourings_desc.pdf">document</a>.
-        </p>
-        <p>
-          <strong>Fraction of canonical basepairs (fcbp</strong>): this plot 
-          colours each base-pair by the percentage of canonical basepairs 
-          (A:U, C:G, G:U) which are found in the corresponding position in the 
-          alignment. A pair of sites with 100% canonical pairs is coloured red, 
-          a site with 0% is violet.
-        </p>
-        <p>
-          <strong>Maximum parse of the covariance model (maxcm)</strong>: this
-          plot takes the covariance model for the family and generates the 
-          sequence with the maximum possible score for that model. Each 
-          character is coloured by how many bits it contributes to the total 
-          score.
-        </p>
-        <p>
-          <strong>Sequence</strong>: for most of the above cases, the 
-          representative sequence used for the backbone is the most 
-          informative sequence (MIS). Any residue that has a higher frequency 
-          than than the background frequency is projected into the 
-          <a class="ext" href="http://www.chem.qmul.ac.uk/iubmb/misc/naseq.html">
-            IUPAC redundancy codes</a>.
-        </p>
-        <h3>Acknowledgements</h3>
-        <p>
-          The bulk of the code for generating these graphics was kindly supplied
-          by Andreas Gruber and Ivo Hofacker. The statistics were implemented by
-          Rfam.
-        </p>
-      </div>
-    </div>
 
     <script type="text/javascript">
       // <![CDATA[
