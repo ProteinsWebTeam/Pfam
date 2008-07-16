@@ -2,139 +2,193 @@
 # treeMap.tt
 # jt6 20060511 WTSI
 #
-# format the image map for the species tree
+# format the image map for the species tree.
 #
-# $Id: treeMap.tt,v 1.3 2008-06-24 08:49:25 jt6 Exp $
+# TODO this needs to be re-factored to walk through the list of nodes only once.
+# We should be looping just once and capturing output from the two components
+# as we go.
+#
+# TODO refactor to reduce the number of DOM elements and JS objects that we 
+# create
+#
+# $Id: treeMap.tt,v 1.4 2008-07-16 13:21:05 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
 
--%]
-<img src="[% c.uri_for( "/family/tree/image", { acc => acc, label => label } ) | html %]"
-     id="[% label %]_img" />
-
-[% FOREACH node IN tree.node_array;
+# first generate a div for each node, which will be used to build the tooltip 
+# body
+FOREACH node IN tree.node_array;
   
-  # parse the node name into the components, which we'll use to build the 
+  # parse the node name into the components that we can use to build the 
   # tooltip contents
-  matches = node.L.match( '^(\d+\.\d+)_(\w+\.?\d*)\/(\d+)\-(\d+)\_(.*)$' );
-  
+  #
+  # 104.02_AC135465.23/41412-41522_Medicago_truncatula_barrel_medic
+  # score_accession.version/start-end_species
+  #   0       1        2      3    4    5
+
+  matches = node.L.match( '^(\d+\.\d+)_(\w+)\.(\d+)\/(\d+)\-(\d+)\_(.*)$' );
+    
   # tidy up the species name
-  species = matches.4.replace( "\_", " " );
+  species = matches.5.replace( "\_", " " );
   
-  IF node.area AND matches.0 %]
-  <div id="tipContents_[% label; loop.index %]"
+  IF node.area AND matches.1 %]
+  <div id="tipContents_[% label; "_"; alnType; loop.index %]"
        class="tipContents treetip"
-       title="[% matches.1 %]"
+       title="[% matches.1; "."; matches.2 %]"
        style="display: none">
     <dl>
       <dt>Range:</dt>
-      <dd>[% matches.2 %] - [% matches.3 %]</dd>
+      <dd>[% matches.3 %] - [% matches.4 %]</dd>
       <dt>Score:</dt>
       <dd>[% matches.0 %]</dd>
       <dt>Species:</dt>
-      <dd><a class="ext" href="[% c.uri_for( "/protein", { id => matches.1 } ) %]">
-        [% species %]</a></dd>
+      <dd>
+        <a class="ext" 
+           href="http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-e+[embl-AccNumber:'[% matches.1 %]']">
+          [% species %]</a></dd>
     </dl>
   </div>
 
-  [% END; # of IF
-END -%]
+  [%- END; # of IF
+END;
 
+# we need to add two tooltips for each tree node, one floating, one fixed. Since
+# we can only have one tip per DOM element, we need to add two extra DOM
+# elements, that we'll use to hang the tips off. So that these extra divs
+# don't obscure the areas, we'll add them to a separate wrapper div %]
+
+<div id="tip_holder_[% label; "_"; alnType %]"></div>
+
+[%- # and then the image itself and the map %]
+
+<img src="[% c.uri_for( "/family/tree/image", { acc => acc, alnType => alnType, label => label } ) | html %]"
+     id="[% label; "_"; alnType %]_img"
+     usemap="#[% label; "_"; alnType %]_map" />
+
+<map id="[% label; "_"; alnType %]_map"
+     name="[% label; "_"; alnType %]_map" />
+
+[%- # finally, the javascript that will generate tooltip objects for each node %]
 <script type="text/javascript">
   // <![CDATA[
 
-  // we'll use these for each tip in turn
-  var matches;
+  [%- # we use these for each tip in turn... %]
   var width;
   var height;
   var left;
   var top;
   var fixed;
   var floating;
+  var area;
   var contents;
 
-[% FOREACH node IN tree.node_array;
+[%- FOREACH node IN tree.node_array;
 
   # make sure this is a node that will have a tip
-  matches = node.L.match( '^(\d+\.\d+)_(\w+\.?\d*)\/(\d+)\-(\d+)\_(.*)$' );
+  matches = node.L.match( '^(\d+\.\d+)_(\w+)\.(\d+)\/(\d+)\-(\d+)\_(.*)$' );
 
-  NEXT UNLESS node.area AND matches.0 -%]
+  NEXT UNLESS node.area AND matches.1;
   
-  // we're going to build two tips for each area. One tip will be the floating one,
-  // the other will be the fixed one. Because we can only have one tip per HTML
-  // element, we need two "areas"
+  # we are going to build two tips for each area. One tip will be the floating 
+  # one, the other will be the fixed one. Because we can only have one tip 
+  # per HTML element, we need two "areas"
 
-  // get the coordinates of the area straight from the node
+  # build the two divs and the area. Give them sensible IDs, so we can add event 
+  # observers later %]
+  
+  fixed    = new Element( "div", 
+                          { "class": "targetArea",
+                            id:      "fixed_[% label; "_"; alnType; loop.index %]" } );
+  floating = new Element( "div", 
+                          { "class": "targetArea",
+                            id:      "floating_[% label; "_"; alnType; loop.index %]" } ); 
+  area     = new Element( "area", 
+                          { coords:  "[% node.area.join(',') %]",
+                            id:      "area_[% label; "_"; alnType; loop.index %]" } ); 
+
+  $("tip_holder_[% label; "_"; alnType %]").insert( fixed );
+  $("tip_holder_[% label; "_"; alnType %]").insert( floating );
+  $("[% label; "_"; alnType %]_map").insert( area );
+
+  [%- 
+  # and use CSS styles to position them
+   
+  # get the coordinates of the area straight from the node. Note the 
+  # adjustments though; make the area a little taller %]
+
   width  = [% node.area.2 - node.area.0 %];
   height = [% node.area.3 - node.area.1 %] + 2;
   left   = [% node.area.0 %];
   top    = [% node.area.1 %];
-  
-  // build the two elements. Give them sensible IDs, so we can add observers later
-  fixed    = new Element( "div", { id: "fixed_[% label; loop.index %]",    class: "floating targetArea" } );
-  floating = new Element( "div", { id: "floating_[% label; loop.index %]", class: "fixed targetArea" } );
 
-  // and insert each of them into the DOM. Order is important here. We need to be
-  // able to attach an observer to the floating area, so we add it after the fixed one
-  $("[% label %]_tree").insert( fixed );
-  $("[% label %]_tree").insert( floating );
+  [%-
+  # because they have to be different... this is a fairly arbitrary fix
+  # for the offset that happens only in IE. It fails to line up when the font
+  # size is anything other than "medium" on my box, but it is marginally better
+  # than nothing %]
+  if ( Prototype.Browser.IE ) {
+    left -= 16;
+  }
 
-  // and use CSS styles to position them
   fixed.setStyle( {
     left:   left + "px",
     top:    top + "px",
     width:  width + "px",
-    height: height + "px"
+    height: height + "px",
+    backgroundColor: "#F00"
   } );
 
   floating.setStyle( {
-    left:   left + "px",
-    top:    top + "px",
+    left:   left - 1 + "px",
+    top:    top - 1 + "px",
     width:  width + "px",
-    height: height + "px"
+    height: height + "px",
+    backgroundColor: "#0F0"
   } );
 
-  // this will be the contents of the tip
-  contents = $("tipContents_[% label; loop.index %]");
+  [%- 
+  # and now generate the tips
 
-  // and now generate the tips
+  # the fixed one is activated by the observer but hidden by a click on its
+  # close button
 
-  // the fixed one is activated by the observer but hidden by a click on its
-  // close button
-  var fixed_tip_[% label; loop.index %] =
+  # this will be the contents of the tip %]
+
+  contents = $("tipContents_[% label; "_"; alnType; loop.index %]");
+
+  var fixed_tip_[% label; "_"; alnType; loop.index %] =
     new Tip( fixed,
              contents.cloneNode(true),
              {
                hideOn: { element: "closeButton", event: "click" },
-               hook: { target: "topLeft", tip: "bottomLeft" },
-               offset: { x: -8, y: 0 },
                showOn: "click",
-               stem: "bottomLeft",
+               style:  "rfam",
                target: fixed,
-               title: contents.title,
+               title:  contents.title
              } );
 
-  // the floating tip is shown on mouseover and hidden on mouseout
-  var floating_tip_[% label; loop.index %] =
-    new Tip( floating,
+  var floating_tip_[% label; "_"; alnType; loop.index %] =
+    new Tip( area,
              contents.cloneNode(true),
              {
-               hook: { target: "topLeft", tip: "bottomLeft" },
-               offset: { x: -8, y: 0 },
-               stem: "bottomLeft",
+               style:  "rfam",
                target: floating,
-               title: contents.title,
+               title:  contents.title
              } );
 
-  // finally, add an observer to hide the floating tip and show the fixed one when
-  // the user clicks on the area
-  $("floating_[% label; loop.index %]").observe("click", function() {
-    $("floating_[% label; loop.index %]").prototip.hide();
-    $("fixed_[% label; loop.index %]").prototip.show();
-  });
+  [%- 
+  # finally, add an observer to hide the floating tip and show the fixed 
+  # one when the user clicks on the area %]
 
-[% END; -%]
+  $("area_[% label; "_"; alnType; loop.index %]").observe( "click", function() {
+    $("area_[% label; "_"; alnType; loop.index %]").prototip.hide();
+    $("fixed_[% label; "_"; alnType; loop.index %]").prototip.show();
+  } );
+
+  /* ------------------------------------------------------------------------ */
+  
+[% END; # of "foreach node" %]
 
   // ]]>
 </script>

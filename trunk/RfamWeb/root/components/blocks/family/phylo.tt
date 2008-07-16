@@ -5,16 +5,12 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.4 2008-06-24 12:52:22 jt6 Exp $
+# $Id: phylo.tt,v 1.5 2008-07-16 13:21:05 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
-
-# tooltips script and stylesheet
-sharedRequirements.js.push( "prototip.js" );
-sharedRequirements.css.push( "prototip.css" );
 
 # the tabs script
 sharedRequirements.js.push( "control.tabs.2.1.1.js" );
@@ -32,99 +28,158 @@ treeUri = c.uri_for( "/family/tree" );
   </div>
   <div class="blockContent">
     <p>
-      This page displays the [% treemethod %] predicted phylogenetic tree,
-      generated using phylip3.66-erate for the given alignment.
+      This page displays the predicted phylogenetic 
+      tree, generated using <em>phylip3.66-erate</em> for the given alignment.
+      <span onclick="reveal( this, 'phyloNotes', false, true );"
+            class="moreLink">
+        More...</span>
     </p>
+    
+    <div id="phyloNotes" style="display: none">
+      <p>
+        These trees were generated using either a maximum likelihood approach
+        or neighbour-joining. If the number of sequences in the alignment was
+        less than or equal to 64 then the maximum likelihood approach of Rivas
+        and Eddy was used [<a href="#phylo_ref_1">1</a>]. For families with 
+        more than 64 sequences in the
+        alignment the neighbour-joining approach with F84 distances as
+        implemented in phylip was used [<a href="#phylo_ref_2">2</a>].
+      </p>
+      <div class="citation">
+        <span class="title">
+          <a name="phylo_ref_1">[1]</a> <a class="ext" href="http://selab.janelia.org/publications.html">
+            Probabilistic phylogenetic inference with insertions and deletions</a>:
+        </span>
+        <span class="authors">
+          E. Rivas, S.R. Eddy
+        </span>
+        <span class="ref">
+          <span class="jrnl">In press</span>&nbsp;(2008)
+        </span>
+      </div>
+      <div class="citation">
+        <span class="title">
+          <a name="phylo_ref_2">[2]</a> PHYLIP (Phylogeny Inference Package) version 3.6:
+        </span>
+        <span class="authors">
+          J. Felsenstein
+        </span>
+        <span class="ref">
+          <span class="jrnl">Distributed by the author</span>
+          Department of Genome Sciences, University of Washington, Seattle.
+        </span>
+      </div>
+      <hr />
+    </div>
 
     <ul id="alignmentTabs" class="controlTabList">
-      <li><a href="#species_tree">Species</a></li>
-      <li><a href="#acc_tree">Accessions</a></li>  
-      <li><a href="#treeHelp">About</a></li>  
+      <li><a href="#seed_trees">Seed</a></li>
+      <li><a href="#full_trees">Full</a></li>  
     </ul>
     
-    <div id="species_tree"
-         class="controlTab treemap">
+    <div id="seed_trees"
+         class="controlTab">
+
+      <form action="#"
+            class="switcher">
+        <div>
+          <label for="seed_species">
+            <input type="radio" 
+                   name="seed_tree" 
+                   id="seed_species"
+                   checked="checked" />
+            species
+          </label>
+          <label for="seed_acc">
+            <input type="radio" 
+                   name="seed_tree" 
+                   id="seed_acc" />
+            accessions
+          </label>
+        </div>
+      </form>
+    
+      <div class="tree_holder" id="seed_species_tree"></div>
+      <div class="tree_holder" id="seed_acc_tree" style="display: none"></div>
+
     </div>
 
-    <div id="acc_tree"
-         class="controlTab treemap"
-         style="display: none">
-    </div>
-    
-    <div id="treeHelp"
+    <div id="full_trees"
          class="controlTab"
          style="display: none">
-      <div class="controlTabContent">
-        <p>
-          These trees were generated using either a maximum likelihood approach
-          or neighbour-joining. If the number of sequences in the alignment was
-          less than or equal to 64 then the maximum likelihood approach of Rivas
-          and Eddy was used [<a href="#phylo_ref_1">1</a>]. For families with 
-          more than 64 sequences in the
-          alignment the neighbour-joining approach with F84 distances as
-          implemented in phylip was used [<a href="#phylo_ref_2">2</a>].
-        </p>
-        <div class="citation">
-          <span class="title">
-            <a name="phylo_ref_1">[1]</a> <a class="ext" href="http://selab.janelia.org/publications.html">
-              Probabilistic phylogenetic inference with insertions and deletions</a>:
-          </span>
-          <span class="authors">
-            E. Rivas, S.R. Eddy
-          </span>
-          <span class="ref">
-            <span class="jrnl">In press</span>&nbsp;(2008)
-          </span>
+
+      <form action="#"
+            class="switcher">
+        <div>
+          <label for="full_species">
+            <input type="radio" 
+                   name="full_tree" 
+                   id="full_species"
+                   checked="checked" />
+            species
+          </label>
+          <label for="full_acc">
+            <input type="radio" 
+                   name="full_tree" 
+                   id="full_acc" />
+            accessions
+          </label>
         </div>
-        <div class="citation">
-          <span class="title">
-            <a name="phylo_ref_2">[2]</a> PHYLIP (Phylogeny Inference Package) version 3.6:
-          </span>
-          <span class="authors">
-            J. Felsenstein
-          </span>
-          <span class="ref">
-            <span class="jrnl">Distributed by the author</span>
-            Department of Genome Sciences, University of Washington, Seattle.
-          </span>
-        </div>
-      </div>
+      </form>
+    
+      <div class="tree_holder" id="full_species_tree"></div>
+      <div class="tree_holder" id="full_acc_tree" style="display: none"></div>
+      
     </div>
     
     <script type="text/javascript">
       // <![CDATA[
 
-      // submit AJAX requests for each of the label types
-      ['species','acc'].each( function(label) {
-
-        var r = new Ajax.Request(
-          '[% treeUri %]', 
-          { parameters: { acc:   '[% acc %]',
-                          label: label },
-            onSuccess: function( oResponse ) {
-              // $$(".treemap").invoke( "hide" );
-              $(label+"_tree").update( oResponse.responseText );
+      // submit AJAX requests for each of the alignment types (seed/full)
+      ["seed","full"].each( function( alnType ) {
+  
+        // submit AJAX requests for each of the label types
+        ["species","acc"].each( function(label) {
+  
+          var r = new Ajax.Request(
+            "[% treeUri %]", 
+            { parameters: { acc:     "[% acc %]",
+                            label:   label,
+                            alnType: alnType },
+              onSuccess: function( oResponse ) {
+                $(alnType+"_"+label+"_tree").update( oResponse.responseText );
+              }
             }
-          }
-        );
+          );
+          
+        } ); // end of "each label"
         
-      } );
+      } ); // end of "each alignment type"
       
       // add the tab controller
       var alignmentTabsController = new Control.Tabs( "alignmentTabs", 
-                                                       { defaultTab: "species_tree" } );
+                                                       { defaultTab: "seed_trees" } );
+
+      // a function to switch the visible tree. We walk up the DOM from the 
+      // clicked form element, then select the tree divs below that node
+      var switcher = function( e ) {
+        e.element().up("div",1).select("div.tree_holder").invoke("toggle");
+      };
+
+      // add listeners to the tree-switcher forms
+      $$("form.switcher").each( function(f) {
+        f.observe( "change", switcher );
+      } );
 
       // ]]>
     </script>
 
-<!--
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType => "seed", acc => acc } ) | html %]">seed</a> or the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType => "full", acc => acc } ) | html %]">full</a>
+      <a href="[% c.uri_for( '/family/tree/download', { alnType => 'seed', acc => acc } ) | html %]">seed</a> or the
+      <a href="[% c.uri_for( '/family/tree/download', { alnType => 'full', acc => acc } ) | html %]">full</a>
       trees.
     </p>
--->
 
   </div>
 </div>
