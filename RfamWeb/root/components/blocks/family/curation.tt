@@ -4,7 +4,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.3 2008-06-24 08:48:02 jt6 Exp $
+# $Id: curation.tt,v 1.4 2008-07-16 13:18:57 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -100,10 +100,40 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
 
     <h2>Distributions of bits scores</h2>
 
+    <p>
+      These graphcs show the CM bit-score distributions for 
+      [% rfam.rfam_id %] ([% rfam.rfam_acc %]).
+      <span onclick="reveal( this, 'chartsNotes', false, true );"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="chartsNotes" style="display: none">
+      <p>
+        The upper panel shows the score distribution for all of the hits to
+        the covariance model. The hits are coloured blue if the hit overlaps a
+        seed sequence, otherwise they are in red.
+      </p>
+      <p>
+        The lower panel shows score distributions for those sequences where
+        the associated descriptions match family terms, such as &quot;
+        [% rfam.rfam_id %]&quot;, or forbidden terms, such as 
+        &quot;repeat&quot;, &quot;repetitive&quot;, 
+        &quot;pseudogene&quot; and &quot;transpos&quot;, shown in light blue 
+        and pink respectively. <strong>Note</strong> that sequences that
+        match both are counted twice here.
+      </p>
+      <p>
+        The truncated distributions are useful when the number of low scoring
+        hits is several orders of magnitude more than the high scoring
+        hits. The x-axis is truncated at the left side of the distribution,
+        thereby removing the bulk of the low scoring hits.
+      </p>
+      <hr />
+    </div>    
+    
     <ul id="chartTabs" class="controlTabList">
       <li><a href="#dist">Full</a></li>  
       <li><a href="#trunc">Truncated</a></li>
-      <li><a href="#chartHelp">About</a></li>
     </ul>
     
     <div id="dist" class="controlTab chart">
@@ -138,34 +168,7 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
         </div>
         <div class="cleaner"><!-- empty --></div>
       </div>    
-    </div>    
-    
-    <div id="chartHelp" class="controlTab chart" style="display: none">
-      <div class="controlTabContent">
-        <p>
-          These tabs show the CM bit-score distributions for 
-          [% rfam.rfam_id %] ([% rfam.rfam_acc %]).
-          The upper panel shows the score distribution for all of the hits to
-          the covariance model. The hits are coloured blue if the hit overlaps a
-          seed sequence, otherwise they are in red.
-        </p>
-        <p>
-          The lower panel shows score distributions for those sequences where
-          the associated descriptions match family terms, such as &quot;
-          [% rfam.rfam_id %]&quot;, or forbidden terms, such as 
-          &quot;repeat&quot;, &quot;repetitive&quot;, 
-          &quot;pseudogene&quot; and &quot;transpos&quot;, shown in light blue 
-          and pink respectively. <strong>Note</strong> that sequences that
-          match both are counted twice here.
-        </p>
-        <p>
-          The truncated distributions are useful when the number of low scoring
-          hits is several orders of magnitude more than the high scoring
-          hits. The x-axis is truncated at the left side of the distribution,
-          thereby removing the bulk of the low scoring hits.
-        </p>
-      </div>    
-    </div>    
+    </div>
     
     <script type="text/javascript">
       // <![CDATA[
