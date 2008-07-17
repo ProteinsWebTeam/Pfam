@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.38 2008-06-02 14:39:21 jt6 Exp $
+# $Id: summary.tt,v 1.39 2008-07-17 12:37:51 jt6 Exp $
 
 USE Dump;
 
@@ -183,8 +183,7 @@ PROCESS components/links.tt;
   Event.observe( window, "load", 
     function() {
       var r = new Ajax.Request( "[% c.uri_for( '/family/structures' ) %]",
-                        { method:     'get',
-                          parameters: { acc: "[% pfam.pfamA_acc %]" },
+                        { parameters: { acc: "[% pfam.pfamA_acc %]" },
                           onSuccess:  function( oResponse ) {
                             $("siph").update( oResponse.responseText );
                           }
