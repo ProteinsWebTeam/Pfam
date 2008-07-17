@@ -7,7 +7,7 @@
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
 #
-# $Id: statsTable.tt,v 1.7 2008-05-16 15:30:35 jt6 Exp $
+# $Id: statsTable.tt,v 1.8 2008-07-17 13:13:19 jt6 Exp $
 
 # no wrapper thank you
 META naked = 1;
@@ -99,8 +99,7 @@ IF c.req.param('full');
     
     // and finally make the AJAX call
     new Ajax.Request( "[% c.uri_for( "/proteome/stats" ) %]",
-                      { method: 'get',
-                        parameters: { taxId: "[% taxId %]",
+                      { parameters: { taxId: "[% taxId %]",
                                       full:  1 },
                         onSuccess:  function( oResponse ) {
                                       $("statsTableDiv").update( oResponse.responseText );
