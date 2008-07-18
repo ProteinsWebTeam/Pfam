@@ -704,12 +704,15 @@ sub read_selex {
     $count = 0;
     foreach $no ( sort { $a <=> $b } keys %c2name ) {
         $name = $c2name{$no};
-
-        if( $name =~ /(\S+)\.?(\d+)?\/(\d+)-(\d+)/ ) {
-            $seqname = $1;
-            $version = $2;
-	    $start = $3;
-            $end = $4;
+        if($name =~ /(\S+)\.(\d+)\/(\d+)-(\d+)/){
+			$seqname = $1;
+			$version = $2;
+			$start = $3;
+			$end = $4;
+		}elsif ( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
+			$seqname = $1;
+	    	$start = $2;
+            $end = $3;
      
         } else {
             $seqname=$name;
@@ -1009,9 +1012,9 @@ sub read_stockholm {
 	} elsif( $name =~ /(\S+)\/(\d+)-(\d+)/ ) {
 	    #Here, accession.version is the id
 	    $seqname = $1; 
-	    $version = $2;
-	    $start = $3;
-	    $end = $4;        
+	    #$version = $2;
+	    $start = $2;
+	    $end = $3;        
 	} else {
 	    $seqname=$name;
 	    $start = 1;
@@ -1081,7 +1084,7 @@ sub read_stockholm {
 				 );
 	};
 	$pfampred_active_site{ $name } and do {
-	    $seq->active_site(Bio::Pfam::OtherRegion->new('-seq_id' => $seqname,
+	    $seq->pfam_pred_active_site(Bio::Pfam::OtherRegion->new('-seq_id' => $seqname,
 							  '-from' => $start,
 							  '-to' => $end,
 							  '-type' => "pfam_pred_active_site",
@@ -1090,7 +1093,7 @@ sub read_stockholm {
 				 );
 	};
 	$sprotpred_active_site{ $name } and do {
-	    $seq->active_site(Bio::Pfam::OtherRegion->new('-seq_id' => $seqname,
+	    $seq->sprot_pred_active_site(Bio::Pfam::OtherRegion->new('-seq_id' => $seqname,
 							  '-from' => $start,
 							  '-to' => $end,
 							  '-type' => "sprot_pred_active_site",
@@ -1342,7 +1345,7 @@ sub write_stockholm {
 
     foreach my $seq ($self->each_seq()) {
       $namestr = $seq->get_nse();
-	  $seq->acc and push @output, sprintf("#=GS %-${maxn}s  AC %s\.\%s\n", $namestr, $seq->acc, $seq->version);
+	  $seq->acc and push @output, sprintf("#=GS %-${maxn}s  AC %s\.\%s\n", $namestr, $seq->acc, $seq->seq_version);
 	  if ($annot = $seq->annotation) {
 	    $annot->get_Annotations('description') and 
 		  push @output, sprintf("#=GS %-${maxn}s  DE %s\n", $namestr, $annot->get_Annotations('description'));
@@ -1380,20 +1383,21 @@ sub write_stockholm {
 	  $seq->ligand_binding and do {
 	    my $head = sprintf("#=GR %-${maxn}s  LI", $namestr);
 	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->ligand_binding->display );
-	};
-	$seq->active_site and do {
-            my $head;
-            if($seq->active_site->type eq "active_site") {
- 	      $head = sprintf("#=GR %-${maxn}s  AS", $namestr);
-	    }
-            elsif($seq->active_site->type eq "pfam_pred_active_site") {
- 	      $head = sprintf("#=GR %-${maxn}s  pAS", $namestr);
-	    }
-            elsif($seq->active_site->type eq "sprot_pred_active_site") {
- 	      $head = sprintf("#=GR %-${maxn}s  sAS", $namestr);
-	    }
-	    push @output, sprintf("%-${maxh}s %s\n", $head, $seq->active_site->display );
-	};
+ 	  };
+	  $seq->active_site and do {
+ 	      my $head = sprintf("#=GR %-${maxn}s  AS", $namestr);
+              push @output, sprintf("%-${maxh}s %s\n", $head, $seq->active_site->display );
+	  };
+	  $seq->pfam_pred_active_site and do {
+ 	      my $head = sprintf("#=GR %-${maxn}s  pAS", $namestr);
+              push @output, sprintf("%-${maxh}s %s\n", $head, $seq->pfam_pred_active_site->display );
+	  };
+	  $seq->sprot_pred_active_site and do {
+ 	      my $head = sprintf("#=GR %-${maxn}s  sAS", $namestr);
+              push @output, sprintf("%-${maxh}s %s\n", $head, $seq->sprot_pred_active_site->display );
+	  };
+
+
     }
     
     ####### finally, the concesnsus information
@@ -1580,7 +1584,7 @@ sub write_MSF {
         # there is another block to go!
     
         foreach $name  ( @arr ) {
-            push @output , sprintf("%23s  ",$name);
+            push @output , sprintf("%${maxname}s  ",$name);
             
             $tempcount = $count;
             $index = 0;
