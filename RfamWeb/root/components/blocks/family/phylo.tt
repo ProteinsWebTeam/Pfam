@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.5 2008-07-16 13:21:05 jt6 Exp $
+# $Id: phylo.tt,v 1.6 2008-07-18 09:02:56 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -99,8 +99,8 @@ treeUri = c.uri_for( "/family/tree" );
         </div>
       </form>
     
-      <div class="tree_holder" id="seed_species_tree"></div>
-      <div class="tree_holder" id="seed_acc_tree" style="display: none"></div>
+      <div class="treeHolder" id="seed_species_tree"></div>
+      <div class="treeHolder" id="seed_acc_tree" style="display: none"></div>
 
     </div>
 
@@ -127,10 +127,12 @@ treeUri = c.uri_for( "/family/tree" );
         </div>
       </form>
     
-      <div class="tree_holder" id="full_species_tree"></div>
-      <div class="tree_holder" id="full_acc_tree" style="display: none"></div>
+      <div class="treeHolder" id="full_species_tree"></div>
+      <div class="treeHolder" id="full_acc_tree" style="display: none"></div>
       
     </div>
+
+    <div id="tip_holder"></div>
     
     <script type="text/javascript">
       // <![CDATA[
@@ -156,19 +158,205 @@ treeUri = c.uri_for( "/family/tree" );
         
       } ); // end of "each alignment type"
       
+      
       // add the tab controller
       var alignmentTabsController = new Control.Tabs( "alignmentTabs", 
                                                        { defaultTab: "seed_trees" } );
 
+
       // a function to switch the visible tree. We walk up the DOM from the 
       // clicked form element, then select the tree divs below that node
       var switcher = function( e ) {
-        e.element().up("div",1).select("div.tree_holder").invoke("toggle");
+        // console.debug( "switching form " + e.element().id );
+        e.element().up("div",1).select("div.treeHolder").invoke("toggle");
       };
 
       // add listeners to the tree-switcher forms
       $$("form.switcher").each( function(f) {
         f.observe( "change", switcher );
+      } );
+
+
+      // somewhere to store the node information for the map areas
+      var areas = new Hash();
+      
+      // parse the node name into the components that we can use to build the 
+      // tooltip contents
+      //
+      // 104.02_AC135465.23/41412-41522_Medicago_truncatula_barrel_medic
+      // score_accession.version/start-end_species
+      //   0       1        2      3    4    5
+      var regexp = new RegExp();
+      regexp.compile( "^(\\d+\\.\\d+)_(\\w+)\\.(\\d+)\\/(\\d+)\\-(\\d+)\\_(.*)$" );
+
+      // this is a template for the HTML that we'll use to build the tip
+      var tipTemplate = new Template( '<div id="tipContents" \
+     class="tipContents treetip" \
+     title="#{acc}.#{version}" \
+     style="display: none"> \
+  <dl> \
+    <dt>Range:</dt> \
+    <dd>#{start} - #{end}</dd> \
+    <dt>Score:</dt> \
+    <dd>#{score}</dd> \
+    <dt>Species:</dt> \
+    <dd> \
+      <a class="ext" \
+         href="http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-e+[embl-AccNumber:\'#{acc}\']"> \
+        #{species}</a></dd> \
+  </dl> \
+</div> ' );
+
+
+      // optimisation: cache the tipContents, floating and fixed divs. Store them in 
+      // a hash, keyed on some smaller component of the area id, which is the same
+      // for both species- and accession-labelled trees
+
+
+      // a function to build and show a tip for an area
+      var tipVisible = false;
+      var showTreeTip = function( area ) {
+
+        // things will get confused if we try to show more tips on multiple
+        // nodes, so we maintain a flag to tell us if a tip is visible and
+        // bail if so
+        if ( tipVisible ) {
+          // console.debug( "a tip is already visible; aborting" );
+          return;
+        }
+
+//        var area = e.element();
+        // console.debug( "area '" + area.id + "' coordinates: |" + area.coords + "|" );
+
+        // get the node information for this area
+        var nodeInfo = areas.get( area.id );
+
+        // run our compiled regex on it, to get a list of values that we'll 
+        // stuff into a div and use later to build a tooltip
+        var matches = regexp.exec( nodeInfo );
+        var values  = { score:   matches[1],
+                        acc:     matches[2],
+                        version: matches[3],
+                        start:   matches[4],
+                        end:     matches[5],
+                        species: matches[6].gsub("_"," ") };
+        var tipContents = tipTemplate.evaluate( values );
+
+        // two new divs that will be placed over the top of the target area and
+        // used as attachment points for Tip objects
+        var fixed    = new Element( "div", { "class": "targetArea", id: "fixed" } );
+        var floating = new Element( "div", { "class": "targetArea", id: "floating" } );
+
+        // position them using the coordinates of the area
+        var coords = [];
+        area.coords.scan( /\d+/, function( match ) { coords.push( Number( match[0] ) ) } );
+        // console.debug( "coords: |" + coords.inspect() + "|" );
+
+        var width  = coords[2] - coords[0] + 1;
+        var height = coords[3] - coords[1] + 1;
+        var left   = coords[0];
+        var top    = coords[1];
+
+        // console.debug( "XxY+W+H: " + left + "x" + top + "+" + width + "+" + height );
+
+        fixed.setStyle( {
+          left:   left+ "px",
+          top:    top + "px",
+          width:  width + "px",
+          height: height + "px"
+        } );
+
+        floating.setStyle( {
+          left:   left + "px",
+          top:    top + "px",
+          width:  width + "px",
+          height: height + "px"
+        } );
+
+        // stuff the new divs into the "treeHolder" div that encloses the 
+        // current area. But first, belt-and-braces fashion, get rid of any
+        // target areas or tip content divs that might be hanging around, just
+        // in case we get confused about which to use
+        var holder = area.up("div.treeHolder");
+        holder.select( "div.targetArea" ).invoke( "remove" );
+        holder.select( "div.tipContents" ).invoke( "remove" );
+        holder.insert( { bottom: tipContents } );
+        holder.insert( { bottom: fixed } );
+        holder.insert( { bottom: floating } );
+
+        // the actual Tip objects
+        var fixedTip =
+          new Tip( fixed,
+                   $("tipContents").cloneNode(true),
+                   {
+                     hideOn: { element: "closeButton", event: "click" },
+                     showOn: "click",
+                     style:  "rfam",
+                     target: fixed,
+                     title:  $("tipContents").title
+                   } );
+        var floatingTip =
+          new Tip( floating,
+                   $("tipContents").cloneNode(true),
+                   {
+                     style:  "rfam",
+                     target: floating,
+                     title:  $("tipContents").title
+                   } );
+
+        // add a bunch of listeners to take care of showing and hiding tips
+
+        // set the "we're showing a tip" flag when one is shown
+        floating.observe( "prototip:shown", function() {
+          // console.debug( "showing floating tip" );
+          tipVisible = true;
+        } );
+
+        // watch for the mouse moving out of the floating area; remove
+        // both floating and fixed areas, as well as the tip contents node,
+        // when we lose focus
+        floating.observe( "mouseout", function(e) {
+          // console.debug( "mouseout on " + e.element().id );
+          $("floating").prototip.remove();
+          $("floating").remove();
+          $("fixed").remove();
+          $("tipContents").remove();
+          tipVisible = false;
+        } );
+
+        // watch for clicks on the floating div, which really means that the 
+        // user clicked on the area; completely remove the floating tip and 
+        // show the fixed one
+        floating.observe( "click", function(e) {
+          // console.debug( "click on " + e.element().id );
+
+          $("floating").prototip.remove();
+          $("floating").remove();
+          $("fixed").prototip.show();
+        } );
+
+        // watch for the fixed tip being closed and then tidy up
+        fixed.observe( "prototip:hidden", function() {
+          // console.debug( "closed fixed tip" );
+
+          // tear down everything that we just built
+          $("fixed").prototip.remove();
+          $("fixed").remove();
+          $("tipContents").remove();
+          tipVisible = false;
+        } );
+
+      };
+      
+      // finally, hook up the showTreeTip function for each area that we've 
+      // built
+      Event.observe( window, "load", function() {
+        areas.keys().each( function( area_id ) {
+          $(area_id).observe( "mouseover", function(e) { 
+            // console.debug( "mouseover on " + e.element().id );
+            showTreeTip( e.element() );
+          } );
+        } );
       } );
 
       // ]]>

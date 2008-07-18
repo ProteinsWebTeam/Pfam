@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.3 2008-06-24 08:49:56 jt6 Exp $
+   $Id: rfam.css,v 1.4 2008-07-18 09:02:56 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -50,7 +50,7 @@ ul, dl, ol {
 }
 
 .ext {
-  background: url(/shared/images/external.gif) no-repeat center right;
+  background: url(/static/images/external.gif) no-repeat center right;
   padding-right: 12px;
 }
 
@@ -217,8 +217,8 @@ div.rfamLogoHolder #searchBox {
 
 /* the "add annotation" button image */
 img.addAnnotation {
-	width: 100px;
-  height: 24px;
+	width: 128px;
+  height: 20px;
 	vertical-align: middle;
   padding-bottom: 3px;
 }
@@ -281,15 +281,23 @@ div.jumpSpinner {
   background-image: url(/static/images/go.png);
 }
 .disabledGoButton {
+  cursor: default;
   width: 33px;
   height: 20px;
-  background-image: url(/static/images/disabledGo.png);
+  background-image: url(/static/images/go_inactive.png);
 }
 
 .exampleButton {
-  width: 66px;
+  width: 65px;
   height: 20px;
   background-image: url(/static/images/exampleButton.png);  
+}
+
+.disabledExampleButton {
+  cursor: default;
+  width: 65px;
+  height: 20px;
+  background-image: url(/static/images/exampleButton_inactive.png);  
 }
 
 /* ajax loading image */
@@ -921,28 +929,40 @@ ul.mirrors li {
 .targetArea {
   position: absolute;
   overflow: hidden;
+  /* z-index: -1; */
 }
 
 /* tweak the tooltips on the phylogenetic tree */
-.treetip {
+/* .treetip {
   background-color: #f0e8e6;
   width: 32em;
+} */
+
+.tooltip .title {
+  height: 18px;
+  font-size: medium;
 }
 
 .treetip dl {
   margin: 0;
+  font-size: small;
 }
 
 .treetip dt {
-  font-weight: bold;
   text-align: right;
+  font-weight: bold;
   margin-right: 0.2em;
   float: left;
   width: 8em;
+  clear: left;
 }
 
 .treetip dd {
   margin-left: 8.2em;
+}
+
+.treeHolder {
+  position: relative;
 }
 
 /* curation tab */
