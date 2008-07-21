@@ -80,7 +80,7 @@ if (defined($trim)){
     }
     
     if (defined($rh) ){
-	$ss_cons = substr($ss_cons,  0, length($ss_cons)-$lh);
+	$ss_cons = substr($ss_cons,  0, length($ss_cons)-$rh);
     }
     
     print "$ss_cons";
@@ -130,7 +130,7 @@ sub trim_seqs {
 	else {
 	    $start = $start + $rh;
 	}
-	$str_ali = substr($str_ali,  0, length($str_ali)-$lh);
+	$str_ali = substr($str_ali,  0, length($str_ali)-$rh);
     }
     
     my $nse = "$id/$start-$end";
