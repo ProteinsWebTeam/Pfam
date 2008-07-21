@@ -4,12 +4,13 @@ use strict;
 use Getopt::Long;
 use Bio::SeqFetcher::xdget;
 use Rfam;
-my ($help, $lh, $rh, $keepalign);
+my ($help, $lh, $rh, $keepalign, $trim);
 &GetOptions (
         'h' => \$help,
 	'help' => \$help,
         'lh=i' => \$lh,
 	'rh=i' => \$rh,
+        'trim' => \$trim
         );
 if ($help)
 {
@@ -20,9 +21,11 @@ Options:
 	-h or --help  	This help screen
 	-lh [number] 	Number of bases to extend in left hand (5') direction
 	-rh [number]	Number of bases to extend in right hand (3') direction
-	
+	-trim           Trim rather than extend the alignment, note still requires an -lh/-rh option
 extend_rna.pl -lh [num] -rh [num] [multiple alignment]
 
+WARNINGS: -max NSE length is 60 - we need a better solution for this!
+          -trim will toast your structure if you trim half of a basepair off
 EOF
 exit;
 }
@@ -54,26 +57,89 @@ foreach my $seq ($aln -> each_seq()){
     my $acc = $seq->id;
     my $start = $seq->start;
     my $end = $seq->end;
-    $newstart = $start-$lh;
-    $newend = $end+$rh;
-    my $extra = &get_aligned_seqs($acc, $start, $end, $lh, $rh, $str_ali); 
+    if (defined($trim)){
+	&trim_seqs($acc, $start, $end, $lh, $rh, $str_ali);
+    }
+    else {
+	$newstart = $start-$lh;
+	$newend = $end+$rh;
+	my $extra = &get_aligned_seqs($acc, $start, $end, $lh, $rh, $str_ali); 
+    }
 }
 
+#Now print secondary structure
 chomp $ss_cons;
-print "#=GC SS_cons                            ";
-my $i =0;
-while ($i < $lh){
-    print ".";
-    $i++;
+my $sshead = "#=GC SS_cons";
+my $ssspace = 60 - length($sshead);
+print "#=GC SS_cons" . " " x  $ssspace;
+
+if (defined($trim)){
+    
+    if (defined($lh) ){
+	$ss_cons = substr($ss_cons, $lh);
+    }
+    
+    if (defined($rh) ){
+	$ss_cons = substr($ss_cons,  0, length($ss_cons)-$lh);
+    }
+    
+    print "$ss_cons";
+    
 }
-print "$ss_cons";
-my $j =0;
-while ($j < $rh){
-    print ".";
-    $j++;
+else {
+    my $i =0;
+    while ($i < $lh){
+	print ".";
+	$i++;
+    }
+    print "$ss_cons";
+    my $j =0;
+    while ($j < $rh){
+	print ".";
+	$j++;
+    }
 }
 print "\n\/\/\n";
+
 unlink "tmp.$$";
+
+exit(0);
+
+sub trim_seqs {
+    my $id    = shift;
+    my $start = shift;
+    my $end   = shift;
+    my $lh = shift;
+    my $rh =shift;
+    my $str_ali = shift;
+
+    if (defined($lh) ){
+	if ($start < $end){
+	    $start = $start + $lh;
+	}
+	else {
+	    $start = $start - $lh;
+	}
+	$str_ali = substr($str_ali, $lh);
+    }
+    
+    if (defined($rh) ){
+	if ($start < $end){
+	    $end = $end - $rh;
+	}
+	else {
+	    $start = $start + $rh;
+	}
+	$str_ali = substr($str_ali,  0, length($str_ali)-$lh);
+    }
+    
+    my $nse = "$id/$start-$end";
+    my $idlength =(length($nse));
+    my $space = 60 - $idlength;
+    print $nse . " " x $space . $str_ali . "\n";
+    
+    
+}
 
 sub get_aligned_seqs {
     my $id    = shift;
@@ -99,24 +165,24 @@ sub get_aligned_seqs {
         return 0;       # failure
     }
     if ($reverse){
-    $oldstart = $start+$lh;
-    $oldend = $end-$rh;
+	$oldstart = $start+$lh;
+	$oldend = $end-$rh;
         if ($oldend < 1){
-	$oldend =1;
+	    $oldend =1;
 	}
     } 
     else{
-    $end = $end+$rh;
-    $start = $start-$lh;
+	$end = $end+$rh;
+	$start = $start-$lh;
     }
     if ($end > $seq->length){
-    $end = $seq->length;
+	$end = $seq->length;
     }
     if ($start < 1){
-    $start =1;
+	$start =1;
     }
     ( $alistart, $aliend ) = ( $start, $end );
-                                                                      
+    
     $starttrunc = $seq -> trunc( $alistart, $oldstart );
     $startseq = $starttrunc->seq();
     $endtrunc = $seq -> trunc( $oldend, $aliend);
@@ -152,7 +218,7 @@ sub get_aligned_seqs {
     my $nse = "$id/$alistart-$aliend";
     my $idlength =(length($nse));
     my $all="$startseq$str_ali$endseq";
-    my $space = 40 - $idlength;
+    my $space = 60 - $idlength;
     print $nse;
     my $k =0;
 	while ($k < $space){
