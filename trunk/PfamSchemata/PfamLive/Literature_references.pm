@@ -1,7 +1,7 @@
 
-# $Id: Literature_references.pm,v 1.4 2008-05-16 15:23:16 jt6 Exp $
+# $Id: Literature_references.pm,v 1.5 2008-07-22 15:29:09 jm14 Exp $
 #
-# $Author: jt6 $
+# $Author: jm14 $
 package PfamLive::Literature_references;
 
 use strict;
@@ -12,7 +12,7 @@ use base "DBIx::Class";
 
 __PACKAGE__->load_components( qw/Core/); #Do we want to add DB
 __PACKAGE__->table("literature_references"); # This is how we define the table
-__PACKAGE__->add_columns( qw/auto_lit medline title author journal/); # The columns that we want to have access to
+__PACKAGE__->add_columns( qw/auto_lit medline title author journal pmid/); # The columns that we want to have access to
 __PACKAGE__->set_primary_key( "auto_lit" );
 
 #Set up relationships
