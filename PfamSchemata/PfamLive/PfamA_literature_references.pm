@@ -1,7 +1,7 @@
 
-# $Id: PfamA_literature_references.pm,v 1.4 2008-05-16 15:23:16 jt6 Exp $
+# $Id: PfamA_literature_references.pm,v 1.5 2008-07-22 15:28:37 jm14 Exp $
 #
-# $Author: jt6 $
+# $Author: jm14 $
 package PfamLive::PfamA_literature_references;
 
 use strict;
@@ -27,7 +27,7 @@ __PACKAGE__->has_one( "pfamA" => "PfamLive::Pfam",
 
 __PACKAGE__->has_one( "literature" => "PfamLive::Literature_references",
 		       {"foreign.auto_lit"  => "self.auto_lit"},
-		       {proxy => [qw/medline title author journal/]});
+		       {proxy => [qw/medline title author journal pmid/]});
 
 =head1 COPYRIGHT
 
