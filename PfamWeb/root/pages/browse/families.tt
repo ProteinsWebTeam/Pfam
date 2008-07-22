@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Pfam families
 #
-# $Id: families.tt,v 1.9 2008-05-16 15:30:34 jt6 Exp $
+# $Id: families.tt,v 1.10 2008-07-22 08:24:54 jt6 Exp $
 
 META title = "Browse Pfam families";
 META fullPage = 1;
@@ -92,7 +92,7 @@ pageList = PROCESS "components/pageList.tt",
       <td>[% pfam.percentage_id %]</td>
       <td>[% pfam.average_coverage %]</td>
   	  <td>
-  	    <img alt="" src="[% ( pfam.number_structures > 0 ) ? tickURI : blankTickURI %]" />
+  	    <img alt="" src="[% ( pfam.number_structures.defined && pfam.number_structures > 0 ) ? tickURI : blankTickURI %]" />
       </td>
       <td>[% status | lower | ucfirst %]</td>
       <td class="left">[% pfam.description | html %]</td>
