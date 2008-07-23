@@ -4,7 +4,7 @@
 # 
 # build the domains block for PfamBs
 #
-# $Id: domains.tt,v 1.8 2008-05-16 15:30:31 jt6 Exp $
+# $Id: domains.tt,v 1.9 2008-07-23 13:43:11 jt6 Exp $
 %]
 
 <!-- start domains block -->
@@ -41,7 +41,7 @@
           sequence that the graphic describes
         </li>
         <li>
-          the <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>
+          the <a class="ext" href="http://www.uniprot.org/">UniProt</a>
           description of the protein sequence
         </li>
         <li>
@@ -81,8 +81,14 @@
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.dg.uri    = "[% c.uri_for( "/domaingraphics" ) %]";
-  loadOptions.dg.params = { acc: "[% pfam.pfamB_acc %]" };
+  var r = new Ajax.Updater( "dgph",
+                             "[% c.uri_for( '/domaingraphics' ) %]",
+                             {
+                               parameters: { acc: "[% acc %]" },
+                               onFailure:  function() {
+                                 $("dgph").update( "Domain graphics loading failed." );
+                               }
+                             } );
   // ]]>
 </script>
 
