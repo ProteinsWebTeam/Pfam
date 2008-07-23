@@ -5,7 +5,7 @@
 # 
 # build a "browse" index page
 #
-# $Id: index.tt,v 1.6 2008-05-16 15:30:34 jt6 Exp $
+# $Id: index.tt,v 1.7 2008-07-23 09:15:34 jt6 Exp $
 
 META title = "Browse Pfam";
 META fullPage = 1;
@@ -90,18 +90,21 @@ metaseqURI  = "${baseUri}/metaseq/browse";
           END %]
         </td>
       </tr>
+[%# removed until we can speed up the queries that build those pages...
+  # jt6 20080722 WTSI
       <tr>
         <td class="type">METASEQ</td>
         <td class="links">
-          [% FOREACH letter IN alphabet;
-            IF loop.first %]
-              <a href="[% metaseqURI %]">[% letter | ucfirst %]</a>
-            [% ELSE %]
-              <a href="[% metaseqURI; "#"; letter | uri %]">[% letter | ucfirst %]</a>
-            [% END;
-          END %]
+          {% FOREACH letter IN alphabet;
+            IF loop.first %}
+              <a href="{% metaseqURI %}">{% letter | ucfirst %}</a>
+            {% ELSE %}
+              <a href="{% metaseqURI; "#"; letter | uri %}">{% letter | ucfirst %}</a>
+            {% END;
+          END %}
         </td>
       </tr>
+%]
     </tbody>
   </table>  
   
