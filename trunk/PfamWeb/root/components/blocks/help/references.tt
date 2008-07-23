@@ -4,7 +4,7 @@
 # 
 # build the references block for the help pages
 #
-# $Id: references.tt,v 1.5 2008-05-16 15:30:31 jt6 Exp $
+# $Id: references.tt,v 1.6 2008-07-23 13:42:01 jt6 Exp $
 %]
 
 <!-- start references block -->
@@ -16,6 +16,22 @@
   <div class="blockContent">
 
     <h3>Pfam References</h3>
+  
+    <div class="citation">
+      <span class="title">
+        <a class="ext" 
+           href="http://nar.oxfordjournals.org/cgi/content/full/36/suppl_1/D281">
+          The Pfam protein families database</a>: 
+      </span>
+      <span class="authors">
+        R.D. Finn, J. Tate, J. Mistry, P.C. Coggill, J.S. Sammut, H.R. Hotz, 
+        G. Ceric, K. Forslund, S.R. Eddy, E.L. Sonnhammer and A. Bateman
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2008)
+        &nbsp;Database Issue 36:D281-D288
+      </span>
+    </div>
   
     <div class="citation">
       <span class="title">
