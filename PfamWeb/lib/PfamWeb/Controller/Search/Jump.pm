@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.13 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Jump.pm,v 1.14 2008-07-23 15:30:48 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.13 2008-05-16 15:29:28 jt6 Exp $
+$Id: Jump.pm,v 1.14 2008-07-23 15:30:48 jt6 Exp $
 
 =cut
 
@@ -60,10 +60,10 @@ sub guess : Private {
                       proteome  => 'guess_proteome' );
 
   my @available_actions = qw( guess_family
-                              guess_sequence
                               guess_clan
                               guess_structure
-                              guess_proteome );
+                              guess_proteome
+                              guess_sequence );
 
   my $guess_actions;
   if( $entry_type and $action_types{$entry_type} ) {
@@ -174,16 +174,19 @@ sub guess_sequence : Private {
                           ->find( { gi => $2 } );
   }
   
-  # an NCBI secondary accession ?
-  my @rs = $c->model('PfamDB::Ncbi_seq')
-             ->search( { secondary_acc => { 'like', "$entry%" } } );
-  return 'ncbiseq' if scalar @rs;
-
   # a metaseq ID or accession ?
-  @rs = $c->model('PfamDB::Metaseq')
-          ->search( [ { metaseq_acc => $entry }, 
-                      { metaseq_id  => $entry } ] );
+  my @rs = $c->model('PfamDB::Metaseq')
+             ->search( [ { metaseq_acc => $entry }, 
+                         { metaseq_id  => $entry } ] );
   return 'metaseq' if scalar @rs;
+
+  # an NCBI secondary accession ? Note: this was a really slow query when we
+  # were being helpful and using "like", so it's the very last thing that
+  # will be attempted and we're doing only an exact lookup
+  @rs = $c->model('PfamDB::Ncbi_seq')
+             ->search( { secondary_acc => $entry } );
+#             ->search( { secondary_acc => { 'like', "$entry%" } } );
+  return 'ncbiseq' if scalar @rs;
 
 }
 
