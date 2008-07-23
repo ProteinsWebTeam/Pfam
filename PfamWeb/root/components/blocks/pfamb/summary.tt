@@ -5,7 +5,7 @@
 # 
 # build the summary block for PfamB's
 #
-# $Id: summary.tt,v 1.13 2008-06-02 14:40:58 jt6 Exp $
+# $Id: summary.tt,v 1.14 2008-07-23 13:43:52 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -17,17 +17,16 @@ requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
-requirements.js.push( "pfamb.js" );
 
 #-------------------------------------------------------------------------------
 
-%]
+# ADDA seems not to understand its own accessions... tweak the ADDA ID to remove
+# "ADDA" from the front. Go figure
+adda_id  = adda.db_link;
+matches  = adda_id.match( '^ADDA_(\d+)$' );
+adda_fid = matches.0;
 
-<script type="text/javascript">
-  // <![CDATA[
-  Event.observe( window, "load", pfambPostLoad, false );
-  // ]]>
-</script>
+%]
 
 <!-- start summary block -->
 
@@ -45,8 +44,12 @@ requirements.js.push( "pfamb.js" );
   	</h1>
 
     <p>
-      This family was generated <em>automatically</em> from an alignment taken from
-  	  Prodom 2005.1 (<a class="ext" href="http://www.toulouse.inra.fr/prodom/cgi-bin/ReqProdomII.pl?id_dom1=[% prodom.db_link %]">[% prodom.db_link %]</a>)
+      This family was generated <em>automatically</em> from an alignment taken 
+      from 
+      <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
+         class="ext">ADDA</a> 
+      (<a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/report_family?fid=[% adda_fid %]"
+          class="ext">[% adda_id %]</a>),
       subtracting sequence segments already covered by Pfam-A.
     </p>
 
