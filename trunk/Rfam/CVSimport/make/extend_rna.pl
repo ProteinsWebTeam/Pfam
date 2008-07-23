@@ -19,8 +19,8 @@ print STDERR <<EOF;
 Program to extend RNA stockholm format multiple alignments
 Options:
 	-h or --help  	This help screen
-	-lh [number] 	Number of bases to extend in left hand (5') direction
-	-rh [number]	Number of bases to extend in right hand (3') direction
+	-lh [number] 	Number of bases to extend in left hand (5\') direction
+	-rh [number]	Number of bases to extend in right hand (3\') direction
 	-trim           Trim rather than extend the alignment, note still requires an -lh/-rh option
 extend_rna.pl -lh [num] -rh [num] [multiple alignment]
 
@@ -37,8 +37,8 @@ my $ss_cons;
 open (INPUTFILE, "$input") or die "Can't find your input file!";
 open (OUT, ">SEED.$$");
 while (<INPUTFILE>){
-    if ($_=~m/^#=GC SS_cons\s+(.+)/){
-	$ss_cons = $1;
+    if ($_=~m/^\#=GC\s+SS_cons\s+(.+)/){
+	$ss_cons .= $1;
 	chomp $ss_cons;
     }
 }
