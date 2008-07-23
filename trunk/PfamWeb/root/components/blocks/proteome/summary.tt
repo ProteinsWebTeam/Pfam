@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.10 2008-05-16 15:30:35 jt6 Exp $
+# $Id: summary.tt,v 1.11 2008-07-23 13:45:22 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -15,11 +15,7 @@ PROCESS "components/require.tt";
 requirements.css.push( "proteome.css" );
 
 # YUI stuff - this is for the tree viewer
-requirements.css.push( "tree.css" );
-requirements.js.push( "yui/yahoo.js" );
-requirements.js.push( "yui/dom.js" );
-requirements.js.push( "yui/event.js" );
-requirements.js.push( "yui/treeview.js" );
+sharedRequirements.css.push( "tree.css" );
 
 #-------------------------------------------------------------------------------
 
@@ -97,8 +93,7 @@ oe = 0;
     "load",
     function() {
       new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
-                        { method:     'get',
-                          parameters: { taxId: "[% taxId %]" },
+                        { parameters: { taxId: "[% taxId %]" },
                           onSuccess:  function( oResponse ) {
                                         $("pdgph").update( oResponse.responseText );
                                       },
