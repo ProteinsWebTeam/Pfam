@@ -5,7 +5,7 @@
 #
 # the domain organisation block for the clans sections
 #
-# $Id: domains.tt,v 1.10 2008-05-16 15:30:31 jt6 Exp $
+# $Id: domains.tt,v 1.11 2008-07-23 13:39:06 jt6 Exp $
 %]
 
 <!-- start domain organisation block -->
@@ -43,7 +43,7 @@
           sequence that the graphic describes
         </li>
         <li>
-          the <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>
+          the <a class="ext" href="http://www.uniprot.org/">UniProt</a>
           description of the protein sequence
         </li>
         <li>

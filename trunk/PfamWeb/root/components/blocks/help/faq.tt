@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.13 2008-05-16 15:30:31 jt6 Exp $
+# $Id: faq.tt,v 1.14 2008-07-23 13:41:47 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -70,7 +70,7 @@
 	  a threshold value for each HMM, and this determines the minimum
 	  score a sequence must attain to belong to the family.  We search
 	  all of our HMMs against the <a class="ext"
-	  href="http://www.ebi.uniprot.org/index.shtml">UniProt</a>
+	  href="http://www.uniprot.org/">UniProt</a>
 	  database, and include all sequences that score above the cut-off
 	  value for a particular family in the family's full alignment.
 	  For each family we build two HMMs, one to represent fragment

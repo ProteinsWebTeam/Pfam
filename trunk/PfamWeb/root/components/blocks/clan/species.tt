@@ -5,7 +5,7 @@
 #
 # block showing the species tree for clans
 #
-# $Id: species.tt,v 1.6 2008-05-16 15:30:31 jt6 Exp $
+# $Id: species.tt,v 1.7 2008-07-23 13:39:06 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -58,7 +58,7 @@ sharedRequirements.js.push( "treeTweak.js" );
         <p>
           Finally, we group sequences from the same organism according to the 
           NCBI code that is assigned by
-          <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>, 
+          <a class="ext" href="http://www.uniprot.org/">UniProt</a>, 
           allowing us to count the number of distinct sequences on which the 
           domain is found. This value is shown in the <span class="specSum">
             pink</span> boxes.
