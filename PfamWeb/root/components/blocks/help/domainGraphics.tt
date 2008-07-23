@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.13 2008-06-02 14:39:53 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.14 2008-07-23 13:41:47 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -961,7 +961,7 @@ family = c.uri_for( "/family" );
       stability of some proteins. They are formed by covalent bonding between
       the thiol groups from two cysteine residues. The disulphide bridge 
       annotations used in Pfam come from 
-      <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a> and are 
+      <a class="ext" href="http://www.uniprot.org/">UniProt</a> and are 
       represented by a solid bridge-shaped line. When mutliple disulphide bonds 
       occur, the heights of the bridges are adjusted to avoid overlaps between 
       them. Inter-protein disulphides are represented by single vertical lines.

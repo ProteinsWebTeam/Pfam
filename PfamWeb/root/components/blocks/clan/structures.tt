@@ -2,7 +2,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.14 2008-05-16 15:30:31 jt6 Exp $
+# $Id: structures.tt,v 1.15 2008-07-23 13:39:06 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 
@@ -25,7 +25,7 @@ PROCESS "components/require.tt";
       For those sequences which have a structure in the
       <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
       use the mapping between <a class="ext" 
-        href="http://www.ebi.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
+        href="http://www.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
       systems from the <a class="ext" 
         href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
       Pfam domains onto UniProt three-dimensional structures. The table below
