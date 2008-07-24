@@ -114,21 +114,38 @@ sub trim_seqs {
     my $str_ali = shift;
 
     if (defined($lh) ){
+	
+	my $trim_seq = substr($str_ali, 0, $lh);
+	my @trim_seq = split(//, $trim_seq);
+	my $trim_num = 0;
+	foreach my $char (@trim_seq){
+	    $trim_num += is_nucleotide($char);
+	}
+	
 	if ($start < $end){
-	    $start = $start + $lh;
+	    $start = $start + $trim_num;
 	}
 	else {
-	    $start = $start - $lh;
+	    $start = $start - $trim_num;
 	}
 	$str_ali = substr($str_ali, $lh);
     }
     
     if (defined($rh) ){
+	
+	my $trim_seq = substr($str_ali, -$rh);
+	my @trim_seq = split(//, $trim_seq);
+	my $trim_num = 0;
+	foreach my $char (@trim_seq){
+	    $trim_num += is_nucleotide($char);
+	}
+
+
 	if ($start < $end){
-	    $end = $end - $rh;
+	    $end = $end - $trim_num;
 	}
 	else {
-	    $start = $start + $rh;
+	    $end = $end + $trim_num;
 	}
 	$str_ali = substr($str_ali,  0, length($str_ali)-$rh);
     }
@@ -139,6 +156,13 @@ sub trim_seqs {
     print $nse . " " x $space . $str_ali . "\n";
     
     
+}
+
+######################################################################
+#returns true if input character is a nucleotide (IUPAC codes):
+sub is_nucleotide {
+    my $a = shift;
+    return ($a =~ m/[ACGUTRYWSMKBDHVN]/i) ? 1 : 0; #Tried using "$_", didn't work...
 }
 
 sub get_aligned_seqs {
