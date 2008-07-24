@@ -44,7 +44,7 @@ Each "block" is a hash containing two arrays:
 
 jt6 20080622 WTSI.
 
-$Id: HtmlAlignment.pm,v 1.2 2008-07-07 10:13:37 pg5 Exp $
+$Id: HtmlAlignment.pm,v 1.3 2008-07-24 13:22:44 pg5 Exp $
 
 =cut
 
@@ -112,7 +112,7 @@ sub new {
   $this->read_stockholm( shift ) if scalar @_;
 
   # set class defaults
-  $this->block_size( 10 );
+  $this->block_size( 30 );
 
   return $this;
 }
@@ -274,11 +274,11 @@ sub read_stockholm {
 
   # store match states
   if ( $match_states ) {
-    $this->match_states( $match_states );
+      $this->match_states( $match_states );
   }
-  else {
-    $log->logwarn( 'warning: no match states read' );
-  }
+#  else {
+#      $log->logwarn( 'warning: no match states read' );
+#  }
 
   return $count;
 }
