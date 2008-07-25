@@ -5,9 +5,9 @@
 # 
 # build a "browse" index page
 #
-# $Id: index.tt,v 1.2 2008-06-17 09:23:33 jt6 Exp $
+# $Id: index.tt,v 1.3 2008-07-25 13:32:46 jt6 Exp $
 
-META title = "Browse Pfam";
+META title = "Browse Rfam";
 META fullPage = 1;
 
 #-------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ pages = { 'A' => 'F',
 <!-- start of browse index page -->
 <div id="browseIndex">
   
-  <h2>Browse Pfam</h2>
+  <h2>Browse Rfam</h2>
   
   <table summary="Browse the Rfam database">
     <tbody>
