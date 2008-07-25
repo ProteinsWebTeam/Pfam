@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Rfam families
 #
-# $Id: families.tt,v 1.2 2008-06-17 09:23:33 jt6 Exp $
+# $Id: families.tt,v 1.3 2008-07-25 15:54:50 jt6 Exp $
 
 META title = "Browse Rfam families";
 META fullPage = 1;
@@ -19,12 +19,34 @@ requirements.css.push( "browse.css" );
 
 #-------------------------------------------------------------------------------
 
+pages = { 'A' => 'F',
+          'G' => 'L',
+          'M' => 'S',
+          'T' => 'Z' };
 %]
 
 <!-- start browse page -->
 
-<h1 class="pageHeader">Browse Rfam families</h1>
+<h1 class="pageHeader">
+  [%- IF ( from AND to ) OR numbers; 
+    "Browse Rfam families "; from; " - "; to;
+  ELSIF top20;
+    "Browse Top 20 Largest Rfam families";
+  END %]
+</h1>
 
+<div class="pageLinks">
+  <a href="[% c.uri_for( '/browse', top20 => 1 ) | html %]">
+    Top twenty</a>
+  <a href="[% c.uri_for( '/browse', numbers => 1 ) | html %]">
+    0 - 9</a>
+  [% FOREACH from IN pages.keys.sort;
+    to = pages.$from; %]
+  <a href="[% c.uri_for( '/browse', from => from, to => to ) | html %]">
+    [% from | ucfirst %] - [% to | ucfirst %]</a>
+  [% END %]
+</div>
+          
 <table class="details browse" summary="Details of Rfam families">
   <thead>
     <tr>
@@ -57,7 +79,17 @@ requirements.css.push( "browse.css" );
   </tbody>
 </table>
 
-[% pageList %]
+<div class="pageLinks">
+  <a href="[% c.uri_for( '/browse', top20 => 1 ) | html %]">
+    Top twenty</a>
+  <a href="[% c.uri_for( '/browse', numbers => 1 ) | html %]">
+    0 - 9</a>
+  [% FOREACH from IN pages.keys.sort;
+    to = pages.$from; %]
+  <a href="[% c.uri_for( '/browse', from => from, to => to ) | html %]">
+    [% from | ucfirst %] - [% to | ucfirst %]</a>
+  [% END %]
+</div>
 
 <!-- end browse page -->
 [%#
