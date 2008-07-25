@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.4 2008-07-16 13:19:44 jt6 Exp $
+# $Id: summary.tt,v 1.5 2008-07-25 13:30:59 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,8 +14,8 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "wp.css" );
 
-#requirements.css.push( "family.css" );
-#requirements.cssIe.push( "family_ie.css" );
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
 
 #requirements.js.push( "family.js" );
 
@@ -50,6 +50,10 @@ requirements.css.push( "wp.css" );
     <p>
       The Rfam group coordinates the annotation of Rfam families in  
       <a class="ext" href="http://www.wikipedia.org/">Wikipedia</a>.
+      You can see the Wikipedia page for this family 
+      <a href="http://en.wikipedia.org/w/index.php?title=[% rfam.auto_wiki.title %]"
+         class="ext">here</a>.
+      
       <span onclick="reveal( this, 'wikiNotes', false, true );"
             class="moreLink">
         More...</span>
