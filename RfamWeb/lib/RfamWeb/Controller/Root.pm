@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080306 WTSI
 #
-# $Id: Root.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
+# $Id: Root.pm,v 1.3 2008-07-25 13:25:40 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Rfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
+$Id: Root.pm,v 1.3 2008-07-25 13:25:40 jt6 Exp $
 
 =cut
 
@@ -45,7 +45,7 @@ sub auto : Private {
   # see if we can get a DB ResultSet from the VERSION table, which is 
   # effectively a test of whether we can connect to the DB. If we can't, 
   # set the template to point to a page that will apologise and let the "end"
-  # actin do its stuff
+  # action do its stuff
   my $releaseData;
   eval {
     # stash some details of the Pfam release
@@ -53,6 +53,7 @@ sub auto : Private {
                      ->find( {} );
   };
   if ( $@ ) {
+    $c->log->error( "DBIC error on database check: $@" ) if $c->debug;
     $c->stash->{template} = 'pages/db_down.tt';
 
     # break out of the processing chain now and go straight to the "end" action
