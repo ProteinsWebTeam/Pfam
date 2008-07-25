@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.6 2008-06-24 08:54:14 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.7 2008-07-25 14:05:14 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -520,7 +520,6 @@ function jump(form) {
 
   // submit the request
   var r = new Ajax.Request( oForm.action, {
-    method: 'get',
     parameters: oForm.serialize( true ),
 
     // if the request was successful, we get back a URL. Redirect there
