@@ -1,5 +1,5 @@
 
-# $Id: Pfam.pm,v 1.11 2008-05-16 15:23:16 jt6 Exp $
+# $Id: Pfam.pm,v 1.12 2008-07-25 13:20:29 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -49,6 +49,8 @@ __PACKAGE__->add_columns( qw( auto_pfamA
                               hmmcalibrate_fs 
                               num_full 
                               num_seed 
+                              number_ncbi 
+                              number_meta 
                               version 
                               number_archs 
                               number_structures 
