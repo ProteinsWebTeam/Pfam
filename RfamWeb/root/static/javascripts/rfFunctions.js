@@ -4,10 +4,19 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: rfFunctions.js,v 1.3 2008-06-24 08:50:22 jt6 Exp $
+// $Id: rfFunctions.js,v 1.4 2008-07-25 13:34:46 jt6 Exp $
 
-var loadOptions = {};
-loadOptions.st = {}; // species tree
+// define an Rfam style for prototip tooltips
+
+Prototip.Styles.rfam = {
+  borderColor: "#621700",
+  className: "rfam",
+  border:    2,
+  radius:    2,
+  hook:      { target: "topLeft", tip: "bottomLeft" },
+  offset:    { x: -8, y: 1 },
+  stem:      { position: "bottomLeft", width: 9, height: 14 }
+};
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
