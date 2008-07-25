@@ -1,11 +1,13 @@
-
 [%
 # align.tt
 # jt6 20060411 WTSI
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.3 2008-06-24 08:47:50 jt6 Exp $
+# $Id: align.tt,v 1.4 2008-07-25 13:29:25 jt6 Exp $
+
+# shortcut to the alignment tools
+alignmentUri = c.uri_for( "/family/alignment" );
 %]
 
 <!-- start align block -->
@@ -81,7 +83,7 @@
     <h2>View options</h2>
 
     <form id="viewerForm"
-          action="[% alignmentUri %]/download/html"
+          action="[% alignmentUri %]/html"
           method="get">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
@@ -95,11 +97,11 @@
               <td>
                 <span class="button">
                   <input type="radio" name="alnType" id="viewerTypeS" value="seed" checked="checked" />
-                  <label for="viewerTypeS">Seed ([% pfam.num_seed %])</label>
+                  <label for="viewerTypeS">Seed ([% rfam.num_seed %])</label>
                 </span>
                 <span class="button">
                   <input type="radio" name="alnType" id="viewerTypeF" value="full" />
-                  <label for="viewerTypeF">Full ([% pfam.num_full %])</label>
+                  <label for="viewerTypeF">Full ([% rfam.num_full %])</label>
                 </span>
       	      </td>
             </tr>
@@ -111,9 +113,6 @@
                   <select name="viewer" id="viewer">
                     <option value="jalview" selected="selected">jalview</option>
                     <option value="html">HTML</option>
-                    [% IF entryType != 'B' %]
-                    <option value="viewer">Pfam viewer</option>
-                    [% END %]
                   </select>
                 </span>
                 [%# this is a bit naughty... just pad this row to double the width %]
@@ -138,12 +137,9 @@
         	url = "[% alignmentUri %]/jalview?" + Form.serialize("viewerForm");
           popUp( url, 'console', 800, 800, 'jalviewWin');
       
-        } else if( $F("viewer") == "viewer" ) {
-        	url = "[% alignmentUri %]/viewer?" + Form.serialize("viewerForm");
+        } else if( $F("viewer") == "html" ) {
+        	url = "[% alignmentUri %]/html?" + Form.serialize("viewerForm");
           popUp( url, 'console', 800, 800, 'viewerWin');
-      
-        } else {
-        	$("viewerForm").submit();
         }      
         return false;
       }
@@ -165,11 +161,11 @@
               <td>
                 <span class="button">
                   <input type="radio" name="alnType" id="typeS" value="seed" checked="checked" />
-                  <label for="typeS">Seed ([% pfam.num_seed %])</label>
+                  <label for="typeS">Seed ([% rfam.num_seed %])</label>
                 </span>
                 <span class="button">
                   <input type="radio" name="alnType" id="typeF" value="full" />
-                  <label for="typeF">Full ([% pfam.num_full %])</label>
+                  <label for="typeF">Full ([% rfam.num_full %])</label>
                 </span>
       	      </td>
             </tr>
@@ -258,10 +254,10 @@
       problematic, you can also download a 
       <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
       Stockholm-format file containing the 
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
-        full</a> or 
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed">
-        seed</a> alignment for this family. 
+        seed</a> or 
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
+        full</a> alignment for this family. 
     </p>
 
     <form action="[% alignmentUri %]/download/gzipped"
@@ -277,11 +273,11 @@
               <td>
                 <span class="button">
                   <input type="radio" name="alnType" id="dlTypeS" value="seed" checked="checked" />
-                  <label for="dlTypeS">Seed ([% pfam.num_seed %])</label>
+                  <label for="dlTypeS">Seed ([% rfam.num_seed %])</label>
                 </span>
                 <span class="button">
                   <input type="radio" name="alnType" id="dlTypeF" value="full" />
-                  <label for="dlTypeF">Full ([% pfam.num_full %])</label>
+                  <label for="dlTypeF">Full ([% rfam.num_full %])</label>
                 </span>
               </td>
             </tr>
