@@ -1,0 +1,54 @@
+[%
+# jalview.tt
+# jt6 20061005 WTSI
+# 
+# build a page for the jalview applet
+#
+# $Id: jalview.tt,v 1.1 2008-07-25 13:31:21 jt6 Exp $
+
+# tell the wrapper not to add any header or footer. We will generate a complete 
+# page here ourselves
+META naked = 1;
+
+pageContent = BLOCK;
+
+title = "jalview"
+-%]
+
+<h1>jalview: alignment<em> for [% acc %]</em></h1>
+
+ <applet code="jalview.bin.JalviewLite" 
+         width="140" 
+         height="35" 
+         archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
+  <param name="file"          value="[% c.uri_for( '/family/alignment/download/format', { acc = acc, format = 'fasta', alnType = alnType } ) | html %]" />
+  <param name="defaultColour" value="Taylor" />
+  <param name="RGB"           value="#FFFFCC" />
+  <param name="database"      value="pfamseq" />
+</applet>
+
+<br />
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END; # of "pageContent = BLOCK"
+
+PROCESS components/tools/toolWindow.tt %]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
