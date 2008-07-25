@@ -4,7 +4,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.4 2008-07-16 13:18:57 jt6 Exp $
+# $Id: curation.tt,v 1.5 2008-07-25 13:29:46 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -36,29 +36,29 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
     <table class="layout" summary="Curation information for this family">
   	  <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Seed source:</td>
+          <td class="label">Seed source</td>
           <td class="data">
               [% rfam.seed_source %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Type:</td>
+          <td class="label">Type</td>
           <td class="data">
               [% rfam.type %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Author:</td>
+          <td class="label">Author</td>
           <td class="data">[% rfam.author %]</td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-  	      <td class="label">Number in seed:</td>
+  	      <td class="label">Number in seed</td>
   	      <td class="data">
             [% rfam.num_seed %]
   	      </td>
   	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Number in full:</td>
+          <td class="label">Number in full</td>
     		  <td class="data">
             [% rfam.num_full %]
   	      </td>
@@ -71,28 +71,39 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
     <table class="layout" summary="Model information for this family">
       <tbody>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-	      <td class="label">Build commands:</td>
+	      <td class="label">Build commands</td>
           <td class="data">
             <div>[% rfam.cmbuild %]</div>
             <div>[% rfam.cmcalibrate %]</div>
           </td>
   	    </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Gathering cutoff:</td>
+          <td class="label">Gathering cutoff</td>
           <td class="data">
             [% rfam.gathering_cutoff | format( "%5.1f" ) %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Trusted cutoff:</td>
+          <td class="label">Trusted cutoff</td>
           <td class="data">
             [% rfam.trusted_cutoff | format( "%5.1f" ) %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label">Noise cutoff:</td>
+          <td class="label">Noise cutoff</td>
           <td class="data">
             [% rfam.noise_cutoff | format( "%5.1f" ) %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Covariance model</td>
+          <td class="data">
+            [% FOREACH cm IN rfam.rfam_cms %]
+            <a href="[% c.uri_for( '/family/cm', acc => acc, version => cm.version ) | html %]">
+              Download</a> the CM built using Infernal version 
+            [% cm.version %]
+            <br />
+            [% END %]
           </td>
         </tr>
       </tbody>
