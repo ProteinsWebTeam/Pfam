@@ -2,9 +2,9 @@
 # header.tt
 # jt6 200670326 WTSI
 #
-# the slimmed down, re-vamped, googlized page header...
+# the page header for all main Rfam pages.
 #
-# $Id: header.tt,v 1.2 2008-06-17 09:22:05 jt6 Exp $
+# $Id: header.tt,v 1.3 2008-07-25 13:28:26 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -17,10 +17,11 @@ navNames = {
 # the URIs for the links
 navLinks = {
   home   = c.uri_for( "/" ),
-  search = c.uri_for( "/search" ),
+  #search = c.uri_for( "/search" ),
   browse = c.uri_for( "/browse" ),
   ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/Rfam",
-  help   = c.uri_for( "/help" ) };
+  #help   = c.uri_for( "/help" )
+};
 
 # the order of the items in the navbar - these are the keys for the two
 # hashes above
@@ -42,7 +43,11 @@ sharedUri = c.uri_for( "/shared" );
         [% IF c.stash.nav == navItem -%]
           <a class="here" href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
         [% ELSE -%]
-          <a href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
+          [% IF navLinks.${navItem}.defined -%]
+            <a href="[% navLinks.$navItem %]">[% navNames.$navItem %]</a>
+          [% ELSE -%]
+            <span class="inactive">[% navNames.$navItem %]</span>
+          [% END -%]
         [% END;
         IF ! loop.last %]&nbsp;|&nbsp;[% END -%]
        </li>
@@ -66,13 +71,17 @@ sharedUri = c.uri_for( "/shared" );
           method="get" 
           id="siteSearchForm">
       <div id="searchBox">
-        <input class="entryField"
-             type="text" 
-             onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
-             name="query" 
-             id="siteSearchField" />
+        <input class="entryField disabledEntryField"
+               disabled="disabled"
+               type="text" 
+               onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
+               name="query" 
+               id="siteSearchField" />
+        [%# disable clicks...
         <div onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}"
-             class="glassButton goButton">&nbsp;</div>
+        %]
+        <div
+             class="glassButton disabledGoButton">&nbsp;</div>
       </div>
     </form>
   </div>
