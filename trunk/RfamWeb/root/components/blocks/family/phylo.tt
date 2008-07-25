@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.6 2008-07-18 09:02:56 jt6 Exp $
+# $Id: phylo.tt,v 1.7 2008-07-25 13:30:45 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -28,8 +28,8 @@ treeUri = c.uri_for( "/family/tree" );
   </div>
   <div class="blockContent">
     <p>
-      This page displays the predicted phylogenetic 
-      tree, generated using <em>phylip3.66-erate</em> for the given alignment.
+      This page displays the predicted phylogenetic tree for the given 
+      alignment.
       <span onclick="reveal( this, 'phyloNotes', false, true );"
             class="moreLink">
         More...</span>
@@ -83,18 +83,25 @@ treeUri = c.uri_for( "/family/tree" );
       <form action="#"
             class="switcher">
         <div>
+          <p>
+            This tree was built using the 
+            <em>[% rfam.search_related('alignments_and_trees',{type=>'seed'}).treemethod %]</em>
+            method.
+          </p>
+          <span>Label the trees using </span>
           <label for="seed_species">
             <input type="radio" 
                    name="seed_tree" 
                    id="seed_species"
                    checked="checked" />
-            species
+            species names
           </label>
+          or
           <label for="seed_acc">
             <input type="radio" 
                    name="seed_tree" 
                    id="seed_acc" />
-            accessions
+            accessions.
           </label>
         </div>
       </form>
@@ -111,18 +118,25 @@ treeUri = c.uri_for( "/family/tree" );
       <form action="#"
             class="switcher">
         <div>
+          <p>
+            This tree was built using the 
+            <em>[% rfam.search_related('alignments_and_trees',{type=>'full'}).treemethod %]</em>
+            method.
+          </p>
+          <span>Label the trees using </span>
           <label for="full_species">
             <input type="radio" 
                    name="full_tree" 
                    id="full_species"
                    checked="checked" />
-            species
+            species names
           </label>
+          or
           <label for="full_acc">
             <input type="radio" 
                    name="full_tree" 
                    id="full_acc" />
-            accessions
+            accessions.
           </label>
         </div>
       </form>
@@ -136,32 +150,37 @@ treeUri = c.uri_for( "/family/tree" );
     
     <script type="text/javascript">
       // <![CDATA[
-
-      // submit AJAX requests for each of the alignment types (seed/full)
-      ["seed","full"].each( function( alnType ) {
-  
-        // submit AJAX requests for each of the label types
-        ["species","acc"].each( function(label) {
-  
-          var r = new Ajax.Request(
-            "[% treeUri %]", 
-            { parameters: { acc:     "[% acc %]",
-                            label:   label,
-                            alnType: alnType },
-              onSuccess: function( oResponse ) {
-                $(alnType+"_"+label+"_tree").update( oResponse.responseText );
-              }
-            }
-          );
-          
-        } ); // end of "each label"
-        
-      } ); // end of "each alignment type"
       
+      // add a listener to load the trees using AJAX once the page has loaded
+      var loaded_trees = 4;
+      Event.observe( window, "load", function() {
+
+        // submit AJAX requests for each of the alignment types (seed/full)
+        ["seed","full"].each( function( alnType ) {
+    
+          // submit AJAX requests for each of the label types
+          ["species","acc"].each( function(label) {
+    
+            var r = new Ajax.Request(
+              "[% treeUri %]", 
+              { parameters: { acc:     "[% acc %]",
+                              label:   label,
+                              alnType: alnType },
+                onSuccess: function( oResponse ) {
+                  $(alnType+"_"+label+"_tree").update( oResponse.responseText );
+                }
+              }
+            );
+            
+          } ); // end of "each label"
+          
+        } ); // end of "each alignment type"
+      
+      } ); // end of onload function
       
       // add the tab controller
       var alignmentTabsController = new Control.Tabs( "alignmentTabs", 
-                                                       { defaultTab: "seed_trees" } );
+                                                      { defaultTab: "seed_trees" } );
 
 
       // a function to switch the visible tree. We walk up the DOM from the 
@@ -191,7 +210,7 @@ treeUri = c.uri_for( "/family/tree" );
 
       // this is a template for the HTML that we'll use to build the tip
       var tipTemplate = new Template( '<div id="tipContents" \
-     class="tipContents treetip" \
+     class="tipContents" \
      title="#{acc}.#{version}" \
      style="display: none"> \
   <dl> \
@@ -225,7 +244,7 @@ treeUri = c.uri_for( "/family/tree" );
           return;
         }
 
-//        var area = e.element();
+        // var area = e.element();
         // console.debug( "area '" + area.id + "' coordinates: |" + area.coords + "|" );
 
         // get the node information for this area
@@ -347,17 +366,6 @@ treeUri = c.uri_for( "/family/tree" );
         } );
 
       };
-      
-      // finally, hook up the showTreeTip function for each area that we've 
-      // built
-      Event.observe( window, "load", function() {
-        areas.keys().each( function( area_id ) {
-          $(area_id).observe( "mouseover", function(e) { 
-            // console.debug( "mouseover on " + e.element().id );
-            showTreeTip( e.element() );
-          } );
-        } );
-      } );
 
       // ]]>
     </script>
