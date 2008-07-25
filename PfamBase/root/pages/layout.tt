@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.7 2008-06-24 08:52:46 jt6 Exp $
+# $Id: layout.tt,v 1.8 2008-07-25 13:14:35 jt6 Exp $
 
 USE String;
 USE date;
@@ -77,6 +77,7 @@ FOREACH block IN layouts.${pageType}.blocks;
   # expose all sorts of stuff when we hit an error.
   # jt6 20071212 WTSI. 
   IF c.debug;
+    CALL c.log.debug( "layout.tt: processing '$blockFile'" );
     pageOutput = PROCESS $blockFile;
     CALL pageContent.append( pageOutput );
   ELSE;
