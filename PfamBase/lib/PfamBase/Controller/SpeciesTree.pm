@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.1 2008-06-24 08:51:54 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.2 2008-07-25 13:11:54 jt6 Exp $
 
 =head1 NAME
 
@@ -50,7 +50,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.1 2008-06-24 08:51:54 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.2 2008-07-25 13:11:54 jt6 Exp $
 
 =cut
 
@@ -321,68 +321,6 @@ sub accessions : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 buildTree : Private
-
-Tries to retrieve the pre-built tree from cache or, if it can't be retrieved
-from cache, walks recursively down the data to construct the tree. The "raw"
-tree is dropped into the stash.
-
-=cut
-
-sub buildTree : Private {
-  my( $this, $c ) = @_;
-  
-  # get the species data for whatever entry we're dealing with
-  $c->forward('getData');
-
-  # check that we got data. The getData method will bomb out if the entry hits
-  # the limits that are set in the config, provided the "loadTree" flag isn't 
-  # set in the stash
-  return unless $c->stash->{regions};
-
-  # we've got data; let's build the tree  
-  my $tree     = {};
-  my $maxDepth = 0;
-  my $acc_col = $c->stash->{entryType} eq 'R' ? 'rfamseq_acc' : 'pfamseq_acc';
-  foreach my $region ( @{ $c->stash->{regions} } ) {
-
-    # first, get the species information
-    my $species = $region->species;
-    chop($species);          # remove trailing full stop
-    $species =~ s/^(\s+)//g; # trim leading whitespace
-
-    # next, the taxonomy above the species
-    my $tax = $region->taxonomy;
-    $tax =~ s/\s+//g;
-    my @tax = split m/\;/, $tax;
-
-    # add the species onto the end of the taxonomy, so we have it all in
-    # one place
-    $tax[$#tax] = $species;
-
-    # find the maximum depth for the tree
-    $maxDepth = scalar @tax if scalar @tax > $maxDepth;
-
-    # build a hash to describe this branch
-    my $speciesData = { acc     => $region->$acc_col,
-                        species => $species,
-                        tax     => \@tax };
-
-    # flag the node if it's in the seed alignment
-    $speciesData->{inSeed}++ if $c->stash->{inSeed}->{ $speciesData->{acc} };
-    
-    # add this branch to the tree
-    $this->addBranch( $tree, $speciesData );
-  }
-  
-  # store the final depth of the tree
-  $tree->{maxTreeDepth} = $maxDepth;
-
-  $c->stash->{rawTree} = $tree;
-}
-
-#-------------------------------------------------------------------------------
-
 =head2 getData : Private
 
 Retrieves a count of the number of species and, based on that number, decides
@@ -404,42 +342,39 @@ sub getData : Private {
     denyInteractiveLimit  => $this->{denyInteractiveLimit},  # 2000
     denyAllLimit          => $this->{denyAllLimit}           # 3000
   };
+  $c->stash->{limits} = $limits;
 
-  # this is a hard limit
   if( $c->stash->{numSpecies} > $this->{denyAllLimit} ) {
+    # this is a hard limit
     $c->log->debug( 'SpeciesTree::getData: too many families ('
                     . $c->stash->{numSpecies} . '); hit "denyAll" limit' )
       if $c->debug;
-    $c->stash->{limits} = $limits;
-    return;
   }
+  elsif( $c->stash->{numSpecies} > $this->{denyInteractiveLimit} and
 
-  # this is a soft limit, overridden by the "loadTree" flag
-  if( $c->stash->{numSpecies} > $this->{denyInteractiveLimit} and
+    # this is a soft limit, overridden by the "loadTree" flag
       not $c->stash->{loadTree} ) {
     $c->log->debug( 'SpeciesTree::getData: too many families ('
                     . $c->stash->{numSpecies} . ', loadTree = '
                     . ($c->stash->{loadTree} || 0) . '); hit "denyInteractive" limit' )
       if $c->debug;
-    $c->stash->{limits} = $limits;
-    return;
   }
+  elsif( $c->stash->{numSpecies} > $this->{allowInteractiveLimit} and
 
-  # this is another soft limit, overridden by the "loadTree" flag
-  if( $c->stash->{numSpecies} > $this->{allowInteractiveLimit} and
+    # this is another soft limit, overridden by the "loadTree" flag
       not $c->stash->{loadTree} ) {
     $c->log->debug( 'SpeciesTree::getData: too many families ('
                     . $c->stash->{numSpecies} . ', loadTree = '
                     . ($c->stash->{loadTree} || 0) . '); hit "allowInteractive" limit' )
       if $c->debug;
-    $c->stash->{limits} = $limits;
-    return;
   }
-
-  # having made sure there aren't too many families, we'll go ahead and 
-  # retrieve the data
-  $c->forward( 'getDataByType' );
+  else {
   
+    # having made sure there aren't too many families, we'll go ahead and 
+    # retrieve the data
+    $c->forward( 'getDataByType' );
+  }  
+
 }
 
 #-------------------------------------------------------------------------------
