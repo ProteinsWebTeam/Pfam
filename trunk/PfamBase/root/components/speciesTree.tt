@@ -1,11 +1,11 @@
-[%
+[%-
 # speciesTree.tt
 # jt6 20061012 WTSI
 #
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.1 2008-06-24 08:52:08 jt6 Exp $
+# $Id: speciesTree.tt,v 1.2 2008-07-25 13:12:35 jt6 Exp $
 
 META naked = 1;
 
@@ -13,41 +13,39 @@ META naked = 1;
 # build a block that will recurse through the tree
 
 BLOCK walkTree;
-    
+  
 	IF tree.branches;
 
 		FOREACH node_name IN tree.branches.keys;
 
 			node = tree.branches.$node_name;
-			node_id = node_name.replace( '\W', '_' );
+			node_id = "node" _ node_name.replace( '\W', '' );
 
 			IF NOT node.branches OR node.branches.keys.size > 1 OR parent == "root"
--%]
-				var summaryId = YAHOO.util.Dom.generateId();
-				var html = '\
-				  <div class="nodeSummary[% NOT node.branches ? " leafNode" : "" %][% node.inSeed ? " seedNode" : "" %]"\
-				       id="' + summaryId +'">\
-				    <div class="specSum">[% node.species.size %]</div>\
-				    <div class="seqSum">[% node.sequences.size %]</div>\
-				    <div class="domSum">[% node.frequency %]</div>\
-				  </div>';
-
-				var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true, false, [% node.inSeed ? "true" : "false" %] );
-
-				nodeMapping[summaryId] = [% node_id %];
-[%
+%]
+summaryId = YAHOO.util.Dom.generateId();
+var html = '\
+  <div class="nodeSummary[% NOT node.branches ? " leafNode" : "" %][% node.inSeed ? " seedNode" : "" %]"\
+       id="' + summaryId +'">\
+    <div class="specSum">[% node.species.size %]</div>\
+    <div class="seqSum">[% node.sequences.size %]</div>\
+    <div class="domSum">[% node.frequency %]</div>\
+  </div>';
+var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true, false, [% node.inSeed ? "true" : "false" %] );
+nodeMapping[summaryId] = [% node_id %];
+[%-
 			ELSE;
--%]
-				var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
-[%
+%]
+var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
+[%-
 			END;
 
 			IF node.branches;
 	 			INCLUDE walkTree tree=node parent=node_id;
 			ELSE
--%]
-				nodeSequences[summaryId] = "[% node.sequences.keys.join(" ") %]";
-[%
+%]
+nodeSequences[summaryId] = "[% node.sequences.keys.join(" ") %]";
+[%-
 			END; # of if node.branches
 
 		END; # of FOREACH node_name
@@ -59,7 +57,8 @@ END; # BLOCK walkTree
 #-------------------------------------------------------------------------------
 
 IF textTree;
-  CALL c.log.debug( "speciesTree.tt: got a TEXT tree in the stash" );
+  CALL c.log.debug( "speciesTree.tt: got a TEXT tree in the stash" )
+    IF c.debug;
 
   # the controller returned a text tree but we are still rendering this 
   # template, which means that we need to drop the text representation of
@@ -87,13 +86,6 @@ IF textTree;
         style="display: none">Loading...</span>
 </div>
 
-<script type="text/javascript">
-  // <![CDATA[
-  // set the URI to point specifically to the interactive tree
-  loadOptions.st.uri = "[% c.uri_for( '/speciestree/interactive' ) %]";
-  // ]]>
-</script>
-
 <pre>
 [% textTree %]
 </pre>
@@ -103,35 +95,39 @@ IF textTree;
    # species. Check if we did get the data...
 
 ELSIF rawTree;
-  CALL c.log.debug( "speciesTree.tt: got a RAW tree in the stash" );
+  CALL c.log.debug( "speciesTree.tt: got a RAW tree in the stash" )
+    IF c.debug; -%]
 
-  INCLUDE walkTree tree=rawTree parent="root" -%]
+var summaryId;
   
-  var dd = [];
-  
-  dd[dd.length] = '<form>';
-  dd[dd.length] = '<span>Expand to depth </span>';
-  dd[dd.length] = '<select id="depthSelector">';
-  for( var i = 1; i <= [% rawTree.maxTreeDepth %]; i++ ) {
-  	dd[dd.length] = '<option value="' + i + '"';
-      if( i == [% rawTree.maxTreeDepth %] ) {
-        dd[dd.length] = ' selected="1"';
-      }
-  	dd[dd.length] = '>' + i + '</option>';
+[%- INCLUDE walkTree tree=rawTree parent="root"; %]
+
+var dd = [];
+ 
+dd[dd.length] = '<form>';
+dd[dd.length] = '<span>Expand to depth </span>';
+dd[dd.length] = '<select id="depthSelector">';
+for( var i = 1; i <= [% rawTree.maxTreeDepth %]; i++ ) {
+  dd[dd.length] = '<option value="' + i + '"';
+  if ( i == [% rawTree.maxTreeDepth %] ) {
+    dd[dd.length] = ' selected="1"';
   }
-  dd[dd.length] = '</select>';
-  dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
-  dd[dd.length] = '</form>';
+  dd[dd.length] = '>' + i + '</option>';
+}
+dd[dd.length] = '</select>';
+dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
+dd[dd.length] = '</form>';
+
+$("ddph").update( dd.join("") );
   
-  $("ddph").update( dd.join("") );
-  
-  [%-# make the tree controls visible once the tree is loaded %]
-  $("toolsContent").show();
+[%-# make the tree controls visible once the tree is loaded %]
+$("toolsContent").show();
 
 [%- #----------------------------------------
 
 ELSE;
-  CALL c.log.debug( "speciesTree.tt: got NO tree in the stash" );
+  CALL c.log.debug( "speciesTree.tt: got NO tree in the stash" )
+    IF c.debug;
 
   # there was no tree in the stash so see which limit we hit when trying to
   # generate it
@@ -143,6 +139,7 @@ ELSE;
         CASE "A"; "family";
         CASE "B"; "Pfam-B";
         CASE "C"; "clan";
+        CASE "R"; "family";
       END %] has [% numSpecies %] species, which means that displaying the 
       tree is not feasible. If you really need to see a representation of
       the tree for this entry, please contact us and we will be happy to 
@@ -160,6 +157,7 @@ ELSE;
         CASE "A"; "family";
         CASE "B"; "Pfam-B";
         CASE "C"; "clan";
+        CASE "R"; "family";
       END %] has [% numSpecies %] species, which means that displaying the 
       interactive tree is not feasible, but you can still 
       <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">download</a>
@@ -178,6 +176,7 @@ ELSE;
         CASE "A"; "family";
         CASE "B"; "Pfam-B";
         CASE "C"; "clan";
+        CASE "R"; "family";
       END %] has [% numSpecies %] species, which means that generating and
       displaying the interactive tree could take up to a minute or more, 
       depending on your browser and the speed of your computer. You can 
@@ -196,17 +195,6 @@ ELSE;
             class="loading"
             style="display: none">Loading...</span>
     </div>    
-    
-    <script type="text/javascript">
-      // <![CDATA[
-      // add an extra parameter to force loading of the tree, even though it
-      // is potentially too large %]
-      loadOptions.st.params['loadTree'] = 1;
-      
-      // set the URI to point specifically to the interactive tree %]
-      loadOptions.st.uri = "[% c.uri_for( '/speciestree/interactive' ) %]";
-      // ]]>
-    </script>
     
   [%- #----------------------------------------
   
