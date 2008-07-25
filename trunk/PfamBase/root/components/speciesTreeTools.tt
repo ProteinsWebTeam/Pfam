@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.1 2008-06-24 08:52:08 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.2 2008-07-25 13:13:34 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -47,7 +47,7 @@
       <li>
         Key: <span class="specSum">species</span>, 
              <span class="seqSum">sequences</span>,
-             <span class="domSum">domains</span>
+             <span class="domSum">regions</span>
       </li>
     </ul>
 
