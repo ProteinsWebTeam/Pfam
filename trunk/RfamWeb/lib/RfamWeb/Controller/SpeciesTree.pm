@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.2 2008-06-24 08:47:08 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.3 2008-07-25 13:26:37 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ interactive or a text representation of the species tree for an Rfam family.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.2 2008-06-24 08:47:08 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.3 2008-07-25 13:26:37 jt6 Exp $
 
 =cut
 
@@ -122,6 +122,70 @@ sub auto : Private {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+=head2 buildTree : Private
+
+Builds an in-memory representation of the species tree, by walking recursively
+down the branches found for each region in turn. The "raw" tree is dropped into 
+the stash.
+
+=cut
+
+sub buildTree : Private {
+  my( $this, $c ) = @_;
+  
+  # get the species data for whatever entry we're dealing with
+  $c->forward('getData');
+
+  # check that we got data. The getData method will bomb out if the entry hits
+  # the limits that are set in the config, provided the "loadTree" flag isn't 
+  # set in the stash
+  return unless $c->stash->{regions};
+  
+  $c->log->debug( 'SpeciesTree::buildTree: got '
+                  . scalar @{$c->stash->{regions}} .' Rfam regions from sub-class' )
+    if $c->debug;
+
+  # we've got data; let's build the tree  
+  my $tree     = {};
+  my $maxDepth = 0;
+  foreach my $region ( @{ $c->stash->{regions} } ) {
+
+    # first, get the species information
+    my $species = $region->auto_rfamseq->species;
+    $species =~ s/^(\s+)//g; # trim leading whitespace
+
+    # next, the taxonomy above the species
+    my $tax = $region->auto_rfamseq->taxonomy;
+    $tax =~ s/\s+//g;
+    my @tax = split m/\;/, $tax;
+
+    # add the species onto the end of the taxonomy, so we have it all in
+    # one place
+    $tax[$#tax] = $species;
+
+    # find the maximum depth for the tree
+    $maxDepth = scalar @tax if scalar @tax > $maxDepth;
+
+    # build a hash to describe this branch
+    my $speciesData = { acc     => $region->auto_rfamseq->rfamseq_acc,
+                        species => $species,
+                        tax     => \@tax };
+
+    # flag the node if it's in the seed alignment
+    $speciesData->{inSeed}++ if $c->stash->{inSeed}->{ $speciesData->{acc} };
+    
+    # add this branch to the tree
+    $this->addBranch( $tree, $speciesData );
+  }
+  
+  # store the final depth of the tree
+  $tree->{maxTreeDepth} = $maxDepth;
+
+  $c->stash->{rawTree} = $tree;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 getDataByType : Private
 
 Retrieves species data for the specified family. 
@@ -133,9 +197,9 @@ sub getDataByType : Private {
   
   # get the species information for the full alignment
   my @regions = $c->model('RfamDB::RfamRegFull')
-                  ->search( { 'auto_rfam.rfam_acc' => $c->stash->{acc} },
-                            { join              => [ qw( auto_rfamseq auto_rfam ) ],
-                              prefetch          => [ qw( auto_rfamseq ) ] } );
+                  ->search( { 'me.auto_rfam' => $c->stash->{rfam}->auto_rfam },
+                            { join     => [ qw( auto_rfamseq auto_rfam ) ],
+                              prefetch => [ qw( auto_rfamseq ) ] } );
 
   $c->stash->{regions} = \@regions;
 
@@ -144,9 +208,7 @@ sub getDataByType : Private {
 
   # get the species information for the seed alignment
   my @resultsSeed = $c->model('RfamDB::RfamRegSeed')
-                      ->search( { 'auto_rfam.rfam_acc' => $c->stash->{acc} },
-                                { join              => [ qw( auto_rfamseq auto_rfam ) ],
-                                  prefetch          => [ qw( auto_rfamseq ) ] } );
+                      ->search( { 'me.auto_rfam' => $c->stash->{rfam}->auto_rfam } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
                   . scalar @resultsSeed . '| seed regions' ) if $c->debug;
                 
@@ -154,7 +216,7 @@ sub getDataByType : Private {
   # found in the seed alignment
   my %inSeed;
   foreach my $region ( @resultsSeed ) {
-    $inSeed{ $region->rfamseq_acc}++;
+    $inSeed{ $region->auto_rfamseq->rfamseq_acc}++;
   }
 
   $c->stash->{inSeed}  = \%inSeed;  
@@ -164,43 +226,14 @@ sub getDataByType : Private {
 
 =head2 countSpecies : Private
 
-Retrieves or calculates the number of species in the entry. For Pfam-As and 
-clans we can look this up directly in the DB but for Pfam-B we actually have
-to count it up.
-
-Again, for Pfam-Bs, since we need to get all regions here, we'll stash them
-and they can be used if we go ahead and build the tree, rather than repeating
-the query in the C<getData> methods.
+Stashes the number of species in the entry.
 
 =cut
 
 sub countSpecies : Private {
   my( $this, $c ) = @_;
 
-  # for Pfam-As or clans we can just look up the number of species in the 
-  # main table, via the "entry" that was put in the stash by C<begin>, but
-  # for Pfam-Bs we'll actually have to count the number of species
-
-#  if( $c->stash->{entryType} eq 'B' ) {
-#    
-#    my @regions = $c->model('PfamDB::PfamB_reg')
-#                    ->search( { auto_pfamB => $c->stash->{entry}->auto_pfamB },
-#                              { join       => [ qw( pfamseq ) ],
-#                                prefetch   => [ qw( pfamseq ) ] } );
-#
-#    # as we're retrieving them here anyway, stash the regions, so we don't need
-#    # to get them again later
-#    $c->stash->{regions} = \@regions;
-#
-#    my %species_unique = map {$_->species => 1} @regions;
-#    $c->stash->{numSpecies} = scalar( keys %species_unique );
-#
-#  } else {
-#    $c->stash->{numSpecies} = $c->stash->{entry}->number_species;
-#  }
-
-  # TODO fix this; currently hard coding numSpecies to 0...
-  $c->stash->{numSpecies} = 0;
+  $c->stash->{numSpecies} = $c->stash->{rfam}->number_of_species;
 
   $c->log->debug( 'SpeciesTree::countSpecies: numSpecies: |'
                   . $c->stash->{numSpecies} . '|' )
