@@ -6,7 +6,7 @@
 # build the javascript boiler plate that controls loading of the species
 # tree
 #
-# $Id: speciesTreeJS.tt,v 1.1 2008-06-24 08:52:08 jt6 Exp $
+# $Id: speciesTreeJS.tt,v 1.2 2008-07-25 13:13:09 jt6 Exp $
 
 stUri = c.uri_for( "/speciestree" );
 %]
@@ -63,6 +63,7 @@ stUri = c.uri_for( "/speciestree" );
     // have contained a message rather than tree components. If there was a
     // a tree, we must have more than just the root node
     if( YAHOO.widget.TreeView.nodeCount > 1 ) {
+
       // we got a tree; render it
       tree.draw();
 
@@ -79,6 +80,29 @@ stUri = c.uri_for( "/speciestree" );
     }
   };
 
+  var stFailure = function() {
+    $("treeDiv").update( "Tree loading failed." );
+  }
+
+  // this is an extra method to submit a new ajax request, this time with
+  // the "loadTree" flag set, which tells the controller to load the tree
+  // even it's large
+  var forceLoad = function() {
+  
+    // show the new spinner and disable the button
+    $("secondaryLoadingSpinner").show();
+    $("generateButton").disable();
+
+    // override the test for IE and the "loadTree" check, to force tree loading
+    var r = new Ajax.Request( "[% stUri %]/interactive",
+                               { parameters: { acc:      "[% acc %]",
+                                               ie:       false,
+                                               loadTree: 1 },
+                                 onSuccess:  stSuccess,
+                                 onFailure:  stFailure
+                               } );
+  };
+
   // the parameters for the initial ajax call to build the tree
   var stUri;
   if( Prototype.Browser.IE ) {
@@ -88,17 +112,15 @@ stUri = c.uri_for( "/speciestree" );
   }
 
   // fire off the request to load the tree
-  var r = new Ajax.Request( stUri,
-                            { 
-                              parameters: { acc: "[% acc %]",
-                                            ie:  Prototype.Browser.IE },
-                              onSuccess:  stSuccess,
-                              onFailure:  function() {
-                                $("treeDiv").update( "Tree loading failed." )
-                              }
-                            } );
-
-
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Request( stUri,
+                              { 
+                                parameters: { acc: "[% acc %]",
+                                              ie:  Prototype.Browser.IE },
+                                onSuccess:  stSuccess,
+                                onFailure:  stFailure
+                              } );
+  } );
   // ]]>
 </script>
 [%#
