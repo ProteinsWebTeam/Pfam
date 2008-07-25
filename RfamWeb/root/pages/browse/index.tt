@@ -5,7 +5,7 @@
 # 
 # build a "browse" index page
 #
-# $Id: index.tt,v 1.3 2008-07-25 13:32:46 jt6 Exp $
+# $Id: index.tt,v 1.4 2008-07-25 15:41:19 jt6 Exp $
 
 META title = "Browse Rfam";
 META fullPage = 1;
@@ -35,6 +35,10 @@ pages = { 'A' => 'F',
       <tr>
         <td class="type">FAMILIES</td>
         <td class="links">
+          <a href="[% c.uri_for( '/browse', numbers => 1 ) | html %]">
+            0 - 9</a>
+          <a href="[% c.uri_for( '/browse', top20 => 1 ) | html %]">
+            Top twenty</a>
           [% FOREACH from IN pages.keys.sort;
             to = pages.$from; %]
           <a href="[% c.uri_for( '/browse', from => from, to => to ) | html %]">
