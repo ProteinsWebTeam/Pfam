@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.4 2008-07-18 09:02:56 jt6 Exp $
+   $Id: rfam.css,v 1.5 2008-07-25 14:02:24 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -23,8 +23,6 @@
    
    You should have received a copy of the GNU General Public License along with
    this program. If not, see <http://www.gnu.org/licenses/>.
-
-    
 */   
 
 /* global or widely used classes */
@@ -943,12 +941,12 @@ ul.mirrors li {
   font-size: medium;
 }
 
-.treetip dl {
+.tipContents dl {
   margin: 0;
   font-size: small;
 }
 
-.treetip dt {
+.tipContents dt {
   text-align: right;
   font-weight: bold;
   margin-right: 0.2em;
@@ -957,7 +955,7 @@ ul.mirrors li {
   clear: left;
 }
 
-.treetip dd {
+.tipContents dd {
   margin-left: 8.2em;
 }
 
