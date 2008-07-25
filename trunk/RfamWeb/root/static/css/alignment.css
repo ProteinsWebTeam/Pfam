@@ -1,0 +1,121 @@
+
+/* alignment.css
+   jt6 20060601 WTSI.
+
+   Style the markup of multiple sequence alignments
+   
+   $Id: alignment.css,v 1.1 2008-07-25 13:33:00 jt6 Exp $
+   
+   Copyright (c) 2007: Genome Research Ltd.
+   
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+   
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+    
+*/
+
+/* rules for the static HTML rendering */
+
+#html_alignment {
+  font-family: monospace;
+  color: #000;
+}
+
+.a { background-color: #F99 }
+
+.alignment_label {
+  float: left;
+  width: 25em;
+/*  background-color: green; */
+}
+
+.alignment_score {
+  display: none;
+}
+
+.alignment_seq {
+  float: left;
+/*  background-color: blue; */
+}
+
+#alignment_key {
+  float: left;
+  margin-left: 7px;
+  width: 275px;
+  overflow: auto;
+  white-space: nowrap;
+/*  background-color: yellow; */
+}
+
+#alignment_rows {
+  float: left;
+  width: 475px;
+  overflow: auto;
+  white-space: nowrap;
+/*  background-color: #F80; */
+}
+
+#alignment_key span.odd {
+  background-color: #CBC;
+}
+
+#alignment_key span.even {
+  background-color: #BAB;
+}
+
+ul.pageList {
+  list-style: none;
+  margin: 0.4em;
+  font-weight: bold;
+  padding: 0;
+}
+
+ul.pageList li a {
+  float: left;
+  width: 2em;
+  margin: 2px;
+  padding: 0.4em;
+  background-color: #CCC;
+  text-align: center;
+  text-decoration: none;
+}
+
+ul.pageList li.inactive {
+  float: left;
+  width: 2em;
+  margin: 2px;
+  padding: 0.4em;
+  background-color: #CCC;
+  text-align: center;
+  color: #999;
+}
+
+a.focus {
+  background-color: #BAB ! important;
+}
+
+/* column classes. May not be used by Rfam... */
+.o  { background-color: #ff7f11 } /* orange */
+.y, .Y { background-color: #ffff11 } /* yellow */
+.b  { background-color: #9999FF } /* lilac */
+.g  { background-color: #99FF99 } /* light green */
+.r  { background-color: #FF9999 } /* pink */
+.c  { background-color: #99FFFF } /* cyan */
+.w  { background-color: #FFFFFF } /* white */
+.as { background-color: #000;             color: #FFF }
+.pas{ background-color: #666;             color: #FFF }
+.sas{ background-color: #999;             color: #FFF }
+.H  { background-color: #F00  !important; color: #FFF }
+.E  { background-color: #FF0  !important; color: #000 }
+
