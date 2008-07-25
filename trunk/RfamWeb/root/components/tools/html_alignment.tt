@@ -1,0 +1,195 @@
+[%
+# html_alignment.tt
+# jt6 20080422 WTSI
+# 
+# build a page for the HTML alignment fragment
+#
+# $Id: html_alignment.tt,v 1.1 2008-07-25 13:31:11 jt6 Exp $
+
+# tell the wrapper not to add any header or footer. We will generate a complete 
+# page here ourselves
+META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "alignment.css" );
+
+#-------------------------------------------------------------------------------
+
+pageContent = BLOCK;
+
+type = alnType | ucfirst;
+title = type _ " sequence alignment for " _ acc;
+
+BLOCK pageList -%]
+<ul class="pageList">
+  [% IF current_block > 0 %]
+    <li><a title="First page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => 0 ) | html %]">&laquo;</a></li>
+    <li><a title="Previous page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => current_block - 1 ) | html %]">&lsaquo;</a></li>
+  [% ELSE %]
+    <li class="inactive">&laquo;</li>
+    <li class="inactive">&lsaquo;</li>
+  [% END %]
+  [% FOREACH block IN [ 0 .. last_block ] %]
+    [% IF block == current_block %]
+      <li class="inactive">[% block + 1 %]</li>
+    [% ELSE %]
+      <li><a title="Page [% block + 1 %]" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => block ) | html %]">[% block + 1 %]</a></li>
+    [% END %]
+  [% END %]
+  [% IF current_block < last_block %]
+    <li><a title="Next page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => current_block + 1 ) | html %]">&rsaquo;</a></li>
+    <li><a title="Last page" href="[% c.uri_for( '/family/alignment/html', acc => acc, alnType => alnType, block => last_block ) | html %]">&raquo;</a></li>
+  [% ELSE %]
+    <li class="inactive">&rsaquo;</li>
+    <li class="inactive">&raquo;</li>
+  [% END %]
+</ul>
+
+<div class="cleaner"><!-- empty --></div>
+
+[% END; # of BLOCK %]
+
+<h1>[% title %]</h1>
+
+[% PROCESS pageList %]
+
+<div id="html_alignment">
+  [% alignment_block %]
+</div>
+
+<div class="cleaner"><!-- empty --></div>
+
+[% PROCESS pageList %]
+
+<p>
+  <span class="link" 
+        onclick="$$('span.alignment_nse').invoke('toggle');$$('span.alignment_spe').invoke('toggle');">
+    Toggle</span> labels between species names and sequence accessions
+</p>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+<script type="text/javascript">
+  // <![CDATA[  
+
+  // hide the name/start-end labels, leaving only the species names
+  $$("span.alignment_nse").invoke("hide");
+
+  // add zebra striping to the rows. We need to do this for each of the three 
+  // entities in the alignment block, namely the species labels, the NSE labels
+  // and the sequence rows themselves
+  var rowClass = "odd";
+  $$("span.alignment_seq").each( function(row) {
+    row.addClassName( rowClass );
+    rowClass = ( rowClass == "odd" ) ? "even" : "odd";
+  } );
+
+  rowClass = "odd";
+  $$("span.alignment_spe").each( function(row) {
+    row.addClassName( rowClass );
+    rowClass = ( rowClass == "odd" ) ? "even" : "odd";
+  } );
+
+  rowClass = "odd";
+  $$("span.alignment_nse").each( function(row) {
+    row.addClassName( rowClass );
+    rowClass = ( rowClass == "odd" ) ? "even" : "odd";
+  } );
+
+  // add mouseover listeners to the page list links
+  $$("ul.pageList a").each( 
+    function(a) {
+      a.observe("mouseover",function(e) {
+        e.element().addClassName("focus")
+      } ).observe("mouseout",function(e) {
+        e.element().removeClassName("focus")
+      } );
+    }
+  );
+
+  // this is a template for the HTML that we'll use to build the tip
+  var tipTemplate = new Template( '<div id="#{id}" \
+  class="tipContents" \
+  title="#{label}" \
+  style="display: none"> \
+<dl> \
+  <dt>Range:</dt> \
+  <dd>#{start} - #{end}</dd> \
+  <dt>Score:</dt> \
+  <dd>#{score}</dd> \
+  <dt>Species:</dt> \
+  <dd>#{species}</dd> \
+</dl> \
+</div> ' );
+
+  // compile the regex that we'll use to get the accession.version from
+  // the label
+  var regexp = new RegExp();
+  regexp.compile( "^(\\w+\\.\\d+)" );
+
+  // a function to build the tooltips. Arguments are the alignment label
+  // element, the type ("spe" or "nse") and the row number
+  var buildTip = function( alignmentLabel, type, i ) {
+    var rd = rowData[i];
+
+    var matches = regexp.exec( rd.label );
+
+    // fill in the template using value gathered from various places
+    var values = { id:      "tipContents_" + type + "_" + i,
+                   score:   rd.score,
+                   label:   matches[1],
+                   start:   rd.start,
+                   end:     rd.end,
+                   species: rd.species };
+    var tipContents = tipTemplate.evaluate( values );
+    $("alignment_key").insert( tipContents );
+
+    // add the tip itself
+    var tip = new Tip( alignmentLabel,
+                       $("tipContents_" + type + "_" + i).cloneNode(true),
+                       {
+                         hook:  { mouse: true, tip: "bottomLeft" },
+                         style: "rfam",
+                         title: $("tipContents_" + type + "_" + i).title
+                       } );
+  };
+
+  // add tips for the two sets of labels
+  var i = 0;
+  $$("span.alignment_spe").each( function( alignmentLabel ) {
+    buildTip( alignmentLabel, "spe", i++ );
+  } );
+
+  i = 0;
+  $$("span.alignment_nse").each( function( alignmentLabel ) {
+    buildTip( alignmentLabel, "nse", i++ );
+  } );
+
+  // ]]>
+</script>
+
+[% END; # of "pageContent = BLOCK"
+
+PROCESS components/tools/toolWindow.tt %]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
