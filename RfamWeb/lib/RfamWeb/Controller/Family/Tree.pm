@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.1 2008-06-17 09:15:38 jt6 Exp $
+# $Id: Tree.pm,v 1.2 2008-07-25 13:27:07 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package RfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.1 2008-06-17 09:15:38 jt6 Exp $
+$Id: Tree.pm,v 1.2 2008-07-25 13:27:07 jt6 Exp $
 
 =cut
 
@@ -160,6 +160,7 @@ sub get_tree : Private {
 
   # retrieve the tree from the DB
   $c->forward( 'get_tree_data' );
+
   unless ( defined $c->stash->{treeData} ) {
     $c->stash->{errorMsg} = 'We could not extract the ' . $c->stash->{alnType}
                             . 'tree for ' . $c->stash->{acc};
@@ -168,10 +169,14 @@ sub get_tree : Private {
   
   # get the tree with accessions as labels and ask if for the maximum length of
   # the labels
+  $c->log->debug( 'Family::Tree::get_tree: building tree labelled with accessions' )
+    if $c->debug;
   my $acc_labelled_tree = $c->forward( 'build_labelled_tree', [ 0 ] );
   my $acc_max_width = $acc_labelled_tree->calculate_max_label_width();
 
-  # get the tree again, this time with species as labels
+    # get the tree again, this time with species as labels
+  $c->log->debug( 'Family::Tree::get_tree: building tree labelled with species names' )
+    if $c->debug;
   my $species_labelled_tree = $c->forward( 'build_labelled_tree', [ 1 ] );
   my $species_max_width = $species_labelled_tree->calculate_max_label_width();
     
@@ -292,7 +297,9 @@ sub get_tree_data : Private {
   my ( $this, $c) = @_;
 
   # see if we can extract the pre-built tree object from cache
-  my $cacheKey = 'treeData' . $c->stash->{acc} . $c->stash->{alnType};
+  my $cacheKey = 'treeData' 
+                 . $c->stash->{acc}
+                 . $c->stash->{alnType};
   my $treeData = $c->cache->get( $cacheKey );
   
   if ( defined $treeData ) {
