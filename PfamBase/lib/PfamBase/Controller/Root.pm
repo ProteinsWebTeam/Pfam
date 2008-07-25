@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.3 2008-06-24 08:51:42 jt6 Exp $
+# $Id: Root.pm,v 1.4 2008-07-25 13:10:28 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.3 2008-06-24 08:51:42 jt6 Exp $
+$Id: Root.pm,v 1.4 2008-07-25 13:10:28 jt6 Exp $
 
 =cut
 
@@ -93,7 +93,7 @@ sub announcements : Local {
   my $type = $c->req->param('type');
 
   unless ( $type eq 'announcements' or 
-           $type eq 'features' ) {
+           $type eq 'website_changes' ) {
     $c->res->status(204);
     return;
   }
