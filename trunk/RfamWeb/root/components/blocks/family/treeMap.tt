@@ -11,7 +11,7 @@
 # TODO refactor to reduce the number of DOM elements and JS objects that we 
 # create
 #
-# $Id: treeMap.tt,v 1.5 2008-07-18 09:02:56 jt6 Exp $
+# $Id: treeMap.tt,v 1.6 2008-07-25 14:03:06 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -46,7 +46,15 @@ META naked = 1;
   areas.set( "area_[% label; "_"; alnType; loop.index %]",
              "[% node.L %]" );
 
-[% END; # of "foreach node" %]
+[% END; # of "foreach node"
+
+  # add listeners to each area, which will display a tip on mouseover
+%]
+  areas.keys().each( function( area_id ) {
+    $(area_id).observe( "mouseover", function(e) {
+      showTreeTip( e.element() );
+    } );
+  } );
 
   // ]]>
 </script>
