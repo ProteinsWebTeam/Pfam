@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20080306 WTSI
 #
-# $Id: Family.pm,v 1.3 2008-06-24 08:46:39 jt6 Exp $
+# $Id: Family.pm,v 1.4 2008-07-25 13:24:50 jt6 Exp $
 
 =head1 NAME
 
@@ -21,15 +21,14 @@ load a Rfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.3 2008-06-24 08:46:39 jt6 Exp $
+$Id: Family.pm,v 1.4 2008-07-25 13:24:50 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use LWP::UserAgent;
-use HTTP::Request;
+use Compress::Zlib;
 
 use base 'RfamWeb::Controller::Section';
 
@@ -220,66 +219,49 @@ sub image : Local {
 
 #-------------------------------------------------------------------------------
 
-#=head2 action : Attribute
-#
-#Description...
-#
-#=cut
-#
-#sub wiki : Local {
-#  my ( $this, $c ) = @_;
-#  
-#  # get a handle on the entry and detaint it
-#  my $tainted_title = $c->req->param('title') || '';
-#  
-#  my $title;
-#  if ( $tainted_title ) {
-#    ( $title ) = $tainted_title =~ m/^([\w_-]+)$/;
-#    $c->stash->{errorMsg} = 'Invalid Wikipedia title' 
-#      unless defined $title;
-#  } else {
-#    $c->stash->{errorMsg} = 'No Wikipedia title specified';
-#  }
-#  
-#  # there's no security here, since we're taking the title from an (untrusted) 
-#  # javascript client. We need to make sure that we check the title against
-#  # the wiki table, to make sure it's a real title, before actually trying to
-#  # retrieve that page
-#  # TODO check title against DB 
-#  
-#  $c->log->debug( "Family::wiki: found wiki title '$title'" ) if $c->debug;
-#  
-#  my $ua = LWP::UserAgent->new;
-#  $ua->proxy( 'http', 'http://wwwcache.sanger.ac.uk:3128' );
-#
-#  my $req = HTTP::Request->new( GET => "http://www.wikipedia.org/wiki/$title" );
-#  my $res = $ua->request( $req );
-#  
-#  if ( $res->is_success ) {
-#    $c->log->debug( 'Family::wiki: successfully retrieved wiki page' )
-#      if $c->debug;
-#    
-#    my $content = $res->content;
-#    
-#    # ugly hack: add a <base> tag at the top of the <head>, to specify the
-#    # base of the relative URLs inside of the iframe. If we don't have this, 
-#    # the browser tries to load images, stylesheets, etc. for the wiki page 
-#    # from our server, rather than from wikipedia
-#    $content =~ s{<head>}{<head><base href="http:\/\/www.wikipedia.org" \/>}; 
-#    
-#    # more ugly hacks: hide or modify page components on the fly...
-#    $content =~ s{id="*column-one"*}{id="column-one" style="display: none"}; 
-#    $content =~ s{id="*footer"*}{id="footer" style="display: none"}; 
-#    $content =~ s{id="*content"*}{id="content" style="margin: 0"}; 
-#    $c->res->body( $content );
-#  }
-#  else {
-#    $c->log->debug( 'Family::wiki: problem getting wiki page: |'
-#                    . $res->status_line . '|' ) if $c->debug;
-#    $c->res->body( 'Error retrieving wikipedia page.' );
-#  }
-#    
-#}
+=head2 cm : Local
+
+Serves the CM file for this family.
+
+=cut
+
+sub cm : Local {
+  my ( $this, $c ) = @_;
+  
+  my ( $version ) = $c->req->param('version') =~ m/^(\d+\.\d+)$/;
+  
+  my $rs;
+  if ( defined $version ) {
+    $c->log->debug( "Family::cm: looking for CM built with infernal v. |$version| ")
+      if $c->debug;
+    $rs = $c->stash->{rfam}->search_related( 'rfam_cms',
+                                             { version => $version } );
+  }
+  else {
+    $c->log->debug( 'Family::cm: looking for latest CM' ) if $c->debug;  
+    $rs = $c->stash->{rfam}->search_related( 'rfam_cms',
+                                             {},
+                                             { order_by => 'version DESC' } );
+  }
+
+  my $gzipped_cm;
+  unless ( defined $rs and 
+           $gzipped_cm = $rs->first->cm ) {
+    $c->stash->{errorMsg} = 'We could not find a covariance model that was built with that version of infernal.';
+    return;
+  }
+  
+  my $cm = Compress::Zlib::memGunzip( $gzipped_cm );
+  unless ( defined $cm ) {
+    $c->stash->{errorMsg} = 'We could not uncompress the covariance model file.';
+    return;
+  }
+
+  my $filename = $c->stash->{acc} . '.cm';
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  $c->res->body( $cm );
+}
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
@@ -300,6 +282,7 @@ sub get_data : Private {
   my $rs = $c->model('RfamDB::Rfam')
              ->search( [ { rfam_acc => $entry },
                          { rfam_id  => $entry } ] );
+                         
   my $rfam = $rs->first if defined $rs;
   
   if ( $rfam ) {
@@ -307,8 +290,6 @@ sub get_data : Private {
     $c->stash->{rfam}       = $rfam;
     $c->stash->{acc}        = $rfam->rfam_acc;
     $c->stash->{entryType}  = 'R';
-    $c->stash->{wiki_title} = $rfam->wikis->first()->title;    
-    # (easier to get extra values from a ResultSet here, rather than in TT...)
     
     unless( $c->stash->{output_xml} ) {
       $c->log->debug( 'Family::get_data: NOT returning XML; adding extra info' ) 
@@ -320,7 +301,7 @@ sub get_data : Private {
       if ( ref $this eq 'RfamWeb::Controller::Family' ) {
         $c->log->debug( 'Family::get_data: adding extra family info' ) if $c->debug;
         
-        #$c->forward( 'get_summary_data' );
+        $c->forward( 'get_summary_data' );
         #$c->forward( 'get_db_xrefs' );
         #$c->forward( 'get_go_data' );
         #$c->forward( 'get_interactions' );
@@ -368,26 +349,17 @@ sub get_summary_data : Private {
 
   my $summaryData = {};
 
-  # number of architectures....
-  $summaryData->{numArchitectures} = $c->stash->{pfam}->number_archs;
-
   # number of sequences in full alignment
-  $summaryData->{numSequences} = $c->stash->{pfam}->num_full;
+  $summaryData->{numSequences} = $c->stash->{rfam}->num_full;
 
   # number of structures known for the domain
-  $summaryData->{numStructures} = $c->stash->{pfam}->number_structures;
+  $summaryData->{numStructures} = 1;
 
   # Number of species
-  $summaryData->{numSpecies} = $c->stash->{pfam}->number_species;
+  $summaryData->{numSpecies} = $c->stash->{rfam}->number_of_species;
 
   # number of interactions
-  my $auto_pfamA = $c->stash->{pfam}->auto_pfamA;
-  my $rs = $c->model('PfamDB::PfamA_interactions')
-             ->find( { auto_pfamA_A => $auto_pfamA },
-                     { select => [ { count => 'auto_pfamA_A' } ],
-                       as     => [ qw( numInts ) ]
-                     } );
-  $summaryData->{numInt} = $rs->get_column( 'numInts' );
+  $summaryData->{numInt} = 0;
 
   $c->stash->{summaryData} = $summaryData;
 }
