@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.7 2008-07-10 15:07:18 jt6 Exp $
+# $Id: Download.pm,v 1.8 2008-07-28 13:59:31 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.7 2008-07-10 15:07:18 jt6 Exp $
+$Id: Download.pm,v 1.8 2008-07-28 13:59:31 jt6 Exp $
 
 =cut
 
@@ -126,12 +126,15 @@ sub gzipped : Local {
 
   my $alignment = $rs->first->alignment;
   
+#  $c->forward( 'getAlignment' );
+
   # build a filename for it
   my $filename = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.gz';
   $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
   
   # ... and dump it straight to the response
   $c->res->content_type( 'application/x-gzip' );
+#  $c->res->body( $c->stash->{alignment} );
   $c->res->body( $alignment );
 }
 
@@ -221,7 +224,7 @@ sub format : Local {
   }
 
   # order param can be tree or alphabetical
-  if( $c->req->param('order') and $c->req->param('order') eq 'alpha' ) {
+  if( $c->req->param('order') and $c->req->param('order') eq 'a' ) {
     $c->log->debug( 'Family::Alignment::Download::format: sorting alphabetically' )
       if $c->debug;
     $pfamaln->sort_alphabetically;
