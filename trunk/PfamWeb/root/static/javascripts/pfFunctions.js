@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.59 2008-07-14 11:25:26 jt6 Exp $
+// $Id: pfFunctions.js,v 1.60 2008-07-28 14:16:16 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -156,7 +156,7 @@ function removeOverlay( e ) {
   $("overlay").hide();
   //console.debug( "removing tip from overlay" );
   if ( $("overlay").prototip !== undefined ) {
-    ("overlay").prototip.remove();
+    $("overlay").prototip.remove();
   }
 }
 
