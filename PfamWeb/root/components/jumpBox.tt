@@ -4,7 +4,7 @@
 #
 # build a "jump box", consisting of a search field and submit button.
 #
-# $Id: jumpBox.tt,v 1.16 2008-05-16 15:30:32 jt6 Exp $
+# $Id: jumpBox.tt,v 1.17 2008-07-28 14:04:58 jt6 Exp $
 
 META naked = 1;
 %]
@@ -34,7 +34,7 @@ META naked = 1;
              id="entry" />
     </div>
 
-  	<div onclick="if($F('entry')){if(jbCleared){jump('jumpForm');}};"
+  	<div onclick="if($F('entry')){if(jbCleared){jump('jumpForm');}}"
   		   class="glassButton goButton">&nbsp;</div>
 
     <div style="display: none"
