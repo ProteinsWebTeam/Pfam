@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.24 2008-07-09 10:08:57 jt6 Exp $
+# $Id: summary.tt,v 1.25 2008-07-28 14:10:27 jt6 Exp $
 
 USE String;
 USE date;
@@ -196,24 +196,18 @@ IF mapping.size;
   // <![CDATA[
 
   // set up the post-load AJAX call
-  Event.observe(
-    window,
-    "load",
-    function() {
-      new Ajax.Request( "[% c.uri_for( '/structure/graphics' ) %]",
-                        { method:     'get',
-                          parameters: { seqIds: '[% unpIdList %]',
-                                        id:     '[% pdbId %]' },
-                          onSuccess:  function( oResponse ) {
-                                        $("structureGraphicsHolder").update( oResponse.responseText );
-                                      },
-                          onFailure:  function( oResponse ) {
-                                        $("structureGraphicsHolder").update( "Graphics loading failed." );
-                                      }
-                        } );
-    },
-    false );
-
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Request( "[% c.uri_for( '/structure/graphics' ) %]",
+                               { parameters: { seqIds: '[% unpIdList %]',
+                                               id:     '[% pdbId %]' },
+                                 onSuccess:  function( oResponse ) {
+                                               $("structureGraphicsHolder").update( oResponse.responseText );
+                                             },
+                                 onFailure:  function( oResponse ) {
+                                               $("structureGraphicsHolder").update( "Graphics loading failed." );
+                                             }
+                               } );
+    } );
   // ]]>
 </script>
 [% END; # of "if mapping.size" %]

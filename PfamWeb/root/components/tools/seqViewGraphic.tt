@@ -7,7 +7,7 @@
 # template uses an ajax call to hand off to a controller that generates domain
 # graphics for each of the selected sequences.
 #
-# $Id: seqViewGraphic.tt,v 1.8 2008-05-16 15:30:31 jt6 Exp $
+# $Id: seqViewGraphic.tt,v 1.9 2008-07-28 14:10:45 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -66,17 +66,18 @@ title = "View selected sequences"
 
 <script type="text/javascript">
   // <![CDATA[
-  var r = new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
-                            { method:     "get",
-                              parameters: { jobId:   "[% jobId %]",
-                                            subTree: 1 },
-                              onSuccess:  function( oResponse ) {
-                                            $("stdgph").update( oResponse.responseText );
-                                          },
-                              onFailure:  function( oResponse ) {
-                                            $("stdgph").update( "Domain graphics loading failed." );
-                                          }
-                            } );
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
+                              { parameters: { jobId:   "[% jobId %]",
+                                              subTree: 1 },
+                                onSuccess:  function( oResponse ) {
+                                              $("stdgph").update( oResponse.responseText );
+                                            },
+                                onFailure:  function( oResponse ) {
+                                              $("stdgph").update( "Domain graphics loading failed." );
+                                            }
+                              } );
+  } );
   // ]]>
 </script>
 

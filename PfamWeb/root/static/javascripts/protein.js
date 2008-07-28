@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.13 2008-06-02 14:43:09 jt6 Exp $
+// $Id: protein.js,v 1.14 2008-07-28 14:15:57 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -27,21 +27,20 @@
 
 function proteinPostLoad() {
   if( typeof( loadOptions.pg.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.pg.uri,
-             					{ method:     "get",
-             					  parameters: loadOptions.pg.params,
-             					  onSuccess:  pgSuccess,
-             					  onFailure:  pgFailure
-             					} );
+    var r = new Ajax.Request( loadOptions.pg.uri,
+                                { parameters: loadOptions.pg.params,
+                                  onSuccess:  pgSuccess,
+                                  onFailure:  pgFailure
+                                } );
   }
   if( typeof( loadOptions.simap.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.simap.uri,
-            					{ method:     "get",
-            					  parameters: loadOptions.simap.params,
-            					  onSuccess:  simapSuccess,
-            					  onFailure:  simapFailure
-            					} );
+    var r = new Ajax.Request( loadOptions.simap.uri,
+                               { parameters: loadOptions.simap.params,
+                                 onSuccess:  simapSuccess,
+                                 onFailure:  simapFailure
+                               } );
   }
+
   $("checkboxes").hide();
   $("plainSequence").hide();
 }

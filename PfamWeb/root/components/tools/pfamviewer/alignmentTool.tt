@@ -5,7 +5,7 @@
 # 
 # build a page for the alignment viewer tool
 #
-# $Id: alignmentTool.tt,v 1.7 2008-06-02 14:41:23 jt6 Exp $
+# $Id: alignmentTool.tt,v 1.8 2008-07-28 14:11:23 jt6 Exp $
 
 META naked = 1;
 
@@ -30,23 +30,17 @@ pageContent = BLOCK
 
 <script type="text/javascript">
   // <![CDATA[
-  
-  var paramString = [% paramString %];
-
-  postLoad = function() {
-    new Ajax.Request( "[% c.uri_for( '/pfamviewer/view' ) %]",
-                      { method:     'get', 
-                        parameters: paramString,
-                        onSuccess:  function( oResponse ) {
-                                      $("caph").update( oResponse.responseText );
-                                    },
-                        onFailure:  function( oResponse ) {
-                                      $("caph").update( "Alignment loading failed." );
-                                    }
-                      } );
-  };
-  
-  Event.observe( window, "load", postLoad );
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Request( "[% c.uri_for( '/pfamviewer/view' ) %]",
+                               { parameters: [% paramString %],
+                                 onSuccess:  function( oResponse ) {
+                                               $("caph").update( oResponse.responseText );
+                                             },
+                                 onFailure:  function( oResponse ) {
+                                               $("caph").update( "Alignment loading failed." );
+                                             }
+                               } );
+  } );
   // ]]>
 </script>
 

@@ -5,7 +5,7 @@
 #
 # dump out a sequence alignment as a page fragment.
 #
-# $Id: alignmentFragment.tt,v 1.6 2008-05-16 15:30:35 jt6 Exp $
+# $Id: alignmentFragment.tt,v 1.7 2008-07-28 14:10:55 jt6 Exp $
 
 META naked = 1;
 %]
@@ -180,13 +180,12 @@ alignments.alignments.0 %]
     params['numRows']     = $F("numRows");
 
     // submit the form
-    new Ajax.Updater( "caph",
-                      "[% c.uri_for( "/pfamviewer/view" ) %]", 
-                      { method:      'get', 
-                        parameters:  params,
-                        evalScripts: true
-                      }
-                    );
+    var r = new Ajax.Updater( "caph",
+                               "[% c.uri_for( "/pfamviewer/view" ) %]", 
+                               { parameters:  params,
+                                 evalScripts: true
+                               }
+                             );
   };
   // ]]>
 </script>
