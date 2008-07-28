@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.43 2008-06-02 14:43:41 jt6 Exp $
+# $Id: Family.pm,v 1.44 2008-07-28 13:55:32 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.43 2008-06-02 14:43:41 jt6 Exp $
+$Id: Family.pm,v 1.44 2008-07-28 13:55:32 jt6 Exp $
 
 =cut
 
@@ -81,6 +81,10 @@ sub begin : Private {
                       $entry_arg              ||
                       '';
   
+  # although these next checks might fail and end up putting an error message
+  # into the stash, we don't "return", because we might want to process the 
+  # error message using a template that retuns XML rather than simply HTML
+  
   my $entry;
   if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)$/;
@@ -94,9 +98,10 @@ sub begin : Private {
   #  find out what type of alignment we need, seed, full, ncbi, etc
   $c->stash->{alnType} = 'seed';
   if( defined $c->req->param('alnType') ) {
-    $c->stash->{alnType} = ( $c->req->param( 'alnType' ) eq 'full' ) ? 'full'
-                         : ( $c->req->param( 'alnType' ) eq 'ncbi' ) ? 'ncbi' 
-                         :                                             'seed';
+    $c->stash->{alnType} = $c->req->param( 'alnType' ) eq 'full' ? 'full'
+                         : $c->req->param( 'alnType' ) eq 'ncbi' ? 'ncbi' 
+                         : $c->req->param( 'alnType' ) eq 'meta' ? 'meta' 
+                         :                                         'seed';
   }
   
   $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
