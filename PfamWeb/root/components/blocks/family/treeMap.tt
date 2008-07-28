@@ -4,30 +4,39 @@
 #
 # format the image map for the species tree
 #
-# $Id: treeMap.tt,v 1.6 2008-05-22 09:56:12 jt6 Exp $
+# $Id: treeMap.tt,v 1.7 2008-07-28 14:10:05 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
 
 -%]
+<div id="[% alnType %]_tree"
+     class="treemap">
 
-<img src="[% c.uri_for( "/family/tree/image", { acc => acc, alnType => alnType } ) | html %]" 
-     usemap="#nhxmap" />
+  <img src="[% c.uri_for( "/family/tree/image", { acc => acc, alnType => alnType } ) | html %]" 
+       usemap="#nhxmap_[% alnType %]" />
+  
+  <map name="nhxmap_[% alnType %]">
+  [% FOREACH node IN tree.node_array;
+    matches = node.N.match( '^(.*?)\/\d+-\d+$' );
+    IF node.area AND matches.0;
+  
+      SWITCH alnType;
+        CASE "ncbi";
+          url = c.uri_for( "/ncbiseq", { entry = matches.0 } );
+        CASE "meta";
+          url = c.uri_for( "/metaseq", { entry = matches.0 } );
+        CASE;
+          url = c.uri_for( "/protein", { entry = matches.0 } );
+      END;
+  -%]
+    <area coords="[% node.area.join( "," ) %]" 
+          href="[% url %]" />
+    [% END; # of "IF node.area"
+  END; # of "FOREACH" -%]
+  </map>
 
-<map name="nhxmap">
-[% FOREACH node IN tree.node_array;
-  matches = node.N.match( '^(.*?)\/\d+-\d+$' );
-  IF node.area AND matches.0;
-    IF alnType == "ncbi";
-      url = c.uri_for( "/ncbiseq", { entry = matches.0 } );
-    ELSE;
-      url = c.uri_for( "/protein", { entry = matches.0 } );
-    END -%]
-  <area coords="[% node.area.join( "," ) %]" 
-        href="[% url %]" />
-  [% END;
-END -%]
-</map>
+</div>
 
 [%#
 Copyright (c) 2007: Genome Research Ltd.
