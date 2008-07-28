@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.20 2008-05-22 10:24:28 jt6 Exp $
+# $Id: phylo.tt,v 1.21 2008-07-28 14:09:04 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -18,11 +18,16 @@ treeUri = c.uri_for( "/family/tree" );
   </div>
   <div class="blockContent">
     <p>
-      This page displays the 
-      <acronym title="Unweighted Pair Group Method with Arithmetic mean">UPGMA</acronym>-based 
-      phylogenetic tree, generated using 
+      This page displays the phylogenetic tree for this family.
+      We calculate the trees using one of two methods, depending on the number
+      of sequences in the alignment. For alignments with fewer than 
+      <strong>20,000</strong> sequences, we use 
+      <strong>neighbour-joining</strong> trees; for alignments with 
+      <strong>20,000</strong> sequences or more, we use
+      <acronym title="Unweighted Pair Group Method with Arithmetic mean">
+        UPGMA</acronym>-based trees. All trees are generated using 
       <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/quicktree/">
-        quicktree</a> for the given alignment.
+        quicktree</a>.
     </p> 
     [% # the form that controls the tree display %]
     <form id="phyloForm"
@@ -30,68 +35,139 @@ treeUri = c.uri_for( "/family/tree" );
       <div>
         <span>
           <input id="seedRb" 
-                 name="type"
                  type="radio" 
-                 checked="checked" 
+                 name="type"
                  value="seed" />
           <label for="seedRb">Seed ([% pfam.num_seed %])</label>
         </span>
         <span>
           <input id="fullRb" 
-                 name="type"
                  type="radio" 
+                 name="type"
                  value="full" />
           <label for="fullRb">Full ([% pfam.num_full %])</label>
         </span>
         <span>
           <input id="ncbiRb" 
-                 name="type"
                  type="radio" 
+                 name="type"
                  value="ncbi" />
-          <label for="ncbiRb">NCBI</label>
+          <label for="ncbiRb">NCBI ([% pfam.number_ncbi %])</label>
+        </span>
+        <span>
+          <input id="metaRb" 
+                 type="radio" 
+                 name="type"
+                 value="meta" />
+          <label for="metaRb">Metagenomics ([% pfam.number_meta %])</label>
         </span>
         <input type="button"
+               id="phyloFormSubmitter"
                onclick="treeSubmitter();"
                value="Change tree" />
+        <span id="treeSpinner"
+              style="display: none"
+              class="loading">Loading...</span>
       </div>
     </form>
 
-    <div id="alignmentTree">
-      <p id="atph" class="loading">
-          Loading alignment tree...
-        </p>  
-    </div>
+    <div id="alignmentTree"></div>
 
     <script type="text/javascript">
       // <![CDATA[
-      // set the options for the ajax call that populates the tree the first time
-      loadOptions.at.uri    = "[% treeUri %]";
-      loadOptions.at.params = { acc: "[% acc %]" };
 
-      // a function that submits subsequent requests 
-      treeSubmitter = function() {
-        var checkedId =  ['seedRb','fullRb','ncbiRb'].find(
-            function( buttonId ) {
-              return $(buttonId).checked;
+      // the number of sequences in each alignment
+      var counts = { seedRb: [% pfam.num_seed %],
+                     fullRb: [% pfam.num_full %],
+                     ncbiRb: [% pfam.number_ncbi %],
+                     metaRb: [% pfam.number_meta %] };
+
+      // a function to re-enable the selector buttons. We need to do this 
+      // carefully, rather than blindly re-enabling the form, just in case 
+      // there are alignments with too few sequences to allow tree generation.
+      // By default the function will check the control for the first available
+      // tree; if it should leave the checked control untouched, set the 
+      // argument to true
+      var enableTree = function( checked ) {
+        $("phyloForm").getInputs("radio").each( function(i) {
+          if ( counts[i.id] > 1 ) {
+            i.enable();
+            if ( ! checked ) {
+              i.checked = true;
+              checked = true;
+            }
+          }
+        } );
+        // re-enable the submit button, even though it's a bit redundant
+        $("phyloFormSubmitter").enable();
+      };
+
+      // start off by enabling the whole form. Check the control for the first
+      // available tree
+      enableTree();
+      
+      // a function that loads (or displays) tree maps when selected
+      var treeSubmitter = function() {
+
+        // walk the inputs for the tree selection form and find out which 
+        // radio-button is checked
+        var checkedId = $("phyloForm").getInputs().find(
+          function( buttonId ) {
+            return $(buttonId).checked;
+          }
+        );
+        var type = checkedId.value || "seed"; // seed | full | ncbi | meta
+        
+        // see if we've already loaded the image map for this tree and, if we 
+        // have, don't load it, just show it
+        if ( $(type + "_tree") ) {
+          $$(".treemap").invoke("hide");
+          $(type+"_tree").show();
+        } else {
+          // the image map for this tree isn't loaded yet; set up the AJAX
+          // request to load it now
+
+          // show the spinner and disable the form while the request is active
+          $("treeSpinner").show();
+          $("phyloForm").disable();
+  
+          // submit the AJAX request that will load the image map and the 
+          // associated <img>
+          var r = new Ajax.Request(
+            '[% treeUri %]', 
+            { parameters: { acc:     '[% acc %]',
+                            alnType: type },
+              onComplete: function() {
+                $("treeSpinner").hide();
+                // re-enable the form, leaving the checked item untouched
+                enableTree(true); 
+              },
+              onSuccess: function( oResponse ) {
+                $$(".treemap").invoke( "hide" );
+                $("alignmentTree").insert( oResponse.responseText );
+              }
             }
           );
-        var type = $(checkedId).value;
-        var u = new Ajax.Updater( 'alignmentTree', 
-                          '[% treeUri %]', 
-                          { method:     'get',
-                            parameters: { acc:     '[% acc %]',
-                                          alnType: type } 
-                          } );
+        } // end of "if treemap loaded"
+
         return false;
       };
+
+      // add a change listener to the form
+      $("phyloForm").observe( "change", treeSubmitter );
+
+      // fire the function on page load
+      Event.observe( window, 'load', treeSubmitter );
+
       // ]]>
     </script>
 
     <p>
       <strong>Note:</strong> You can also download the data files for the
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc = acc } ) | html %]">seed</a>,
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc = acc } ) | html %]">full</a> or
-      <a href="[% c.uri_for( "/family/tree/download", { alnType = "ncbi", acc = acc } ) | html %]">ncbi</a>
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "seed", acc => acc } ) | html %]">seed</a>,
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "full", acc => acc } ) | html %]">full</a>,
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "ncbi", acc => acc } ) | html %]">NCBI</a> or
+      <a href="[% c.uri_for( "/family/tree/download", { alnType = "meta", acc => acc } ) | html %]">metagenomics</a>
       trees.
     </p>
 
