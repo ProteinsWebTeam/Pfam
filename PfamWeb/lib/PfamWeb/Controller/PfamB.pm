@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.18 2008-05-16 15:29:28 jt6 Exp $
+# $Id: PfamB.pm,v 1.19 2008-07-28 13:57:38 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
 on the Family controller, which is responsible for deciding whether the input
 parameters on the URL are pointing to a Pfam-B accession or ID.
 
-$Id: PfamB.pm,v 1.18 2008-05-16 15:29:28 jt6 Exp $
+$Id: PfamB.pm,v 1.19 2008-07-28 13:57:38 jt6 Exp $
 
 =cut
 
@@ -185,12 +185,10 @@ Retrieves database cross-references.
 sub getDbXrefs : Private {
   my( $this, $c ) = @_;
 
-  # get just the row from the prodom table, used to get hold of the PRODOM link
-  $c->stash->{prodom} = $c->model('PfamDB::PfamB_database_links')
-                          ->find( { auto_pfamB => $c->stash->{pfam}->auto_pfamB,
-                                    db_id      => 'PRODOM' } );
-  $c->log->debug( 'PfamB::getDbXrefs: prodom:  |' . $c->stash->{prodom} . '|' );
-  $c->log->debug( 'PfamB::getDbXrefs: db_link: |' . $c->stash->{prodom}->db_link . '|' );
+  # get just the row from the prodom table, used to get hold of the ADDA link
+  $c->stash->{adda} = $c->model('PfamDB::PfamB_database_links')
+                        ->find( { auto_pfamB => $c->stash->{pfam}->auto_pfamB,
+                                  db_id      => 'ADDA' } );
 
   # cross references
   my %xRefs;
@@ -198,6 +196,8 @@ sub getDbXrefs : Private {
   # stuff in the accession and ID for this entry
   $xRefs{entryAcc} = $c->stash->{pfam}->pfamB_acc;
   $xRefs{entryId}  = $c->stash->{pfam}->pfamB_id;
+
+  # TODO get rid of references to PRODOM and add ADDA links
 
   # PfamB to PfamA links based on PRODOM
   my %btoaPRODOM;
