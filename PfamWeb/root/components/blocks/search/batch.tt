@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.10 2008-05-16 15:30:31 jt6 Exp $
+# $Id: batch.tt,v 1.11 2008-07-28 13:20:42 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -30,54 +30,103 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   <div class="blockContent">
 
     <p>
-      Search multiple FASTA-format sequences for matching Pfam families. 
-      <span class="moreLink" onclick="reveal(this,'batchNotes',false, true)">More...</span>
+      Upload a FASTA-format file containing multiple protein sequences to be 
+      searched for matching Pfam families. Results of the search will be 
+      returned to you at the email address that you specify. Please check the 
+      <span onclick="reveal($('batchNotesSwitch'),'batchNotes',false, true)" 
+            class="link">notes</span>
+      below for the restrictions on uploaded sequence files.
+      <span id="batchNotesSwitch"
+            class="moreLink" 
+            onclick="reveal(this,'batchNotes',false, true);">More...</span>
     </p>
 
     <div id="batchNotes" style="display: none">
+
+      <h2>File contents</h2>
+      
       <p>
-        This tool allows you to upload a file containing a set of sequences that
-        will be searched for matching Pfam families. Results of the search will
-        be returned to you at the email address that you specify.
-      </p>
-      <p>
-        The sequence file that you upload should conform to the 
+        We accept only <strong>protein sequences</strong> and your uploaded file
+        must conform to a fairly strict interpretation of the 
         <a class="ext" href="http://www.ncbi.nlm.nih.gov/blast/fasta.shtml">
-          FASTA-format</a> specification. The format of your file will be 
-        checked before your search is submitted and files that do not conform 
-        to the specification will be rejected. 
+          FASTA file format</a>. 
+        We apply the following checks to the format of uploaded sequence files. 
+        Files which do not conform to the following rules will be rejected.
       </p>
+
+      <h3>File contents</h3>
+      
       <p>
         Files must contain header lines and sequence lines only. Header lines, 
         which begin with &quot;&gt;&quot;, can be used to describe the sequence 
-        that follows. There is no fixed format for header lines but, for 
-        security reasons, we restrict the characters that are allowed. If your 
-        header lines contain any of the following characters, your file will be 
-        rejected:
+        that follows. There is no fixed format for header lines but we restrict 
+        the characters that are allowed. If your header lines contain any of the 
+        following characters, your file will be rejected:
       </p>
-      <code>; \ ! *</code>
+      <strong><code>; \ ! *</code></strong>
       <p>
         Note that we explicitly include the semi-colon (;) in the list of 
         forbidden characters, although this may be used to denote comments in 
         some versions of the FASTA-format. Please do not use comments in the 
         FASTA files that you upload here.
       </p>
+
+      <h3>Header rows</h3>
+
       <p>
         The FASTA-format specification recommends that header lines are kept 
-        shorter than 80 characters. Note that although we do not restrict the
-        length of header lines, the output that you will receive only shows
-        the first <strong>20</strong> characters of each header line. You 
-        should therefore ensure that the sequence is identifiable using only
-        the first twenty characters of its header.
+        shorter than <strong>80</strong> characters. Note that, although we do 
+        not restrict the length of header lines, the output that you will 
+        receive only shows the first <strong>20</strong> characters of each 
+        header line. You should therefore ensure that the sequence is 
+        identifiable using only the first twenty characters of its header.
       </p>
+
+      <h3>Sequence symbols</h3>
+
       <p>
-        Finally, the sequence lines of your file should contain only amino-acid 
-        symbols, i.e. capital letters excluding &quot;J&quot;, and 
-        &quot;O&quot;, plus &quot;-&quot; or &quot;*&quot; to denote gaps and 
-        translation stops respectively. Note that in the context of a Pfam
+        Your sequence should be a <strong>valid protein sequence</strong>. As 
+        such, the sequence line should contain only amino-acid symbols, i.e. 
+        capital letters excluding &quot;J&quot;. In the context of a Pfam 
         search, gaps and translation stops have little meaning and should not 
-        normally be used.
+        normally be used, but we accept &quot;-&quot; or &quot;*&quot; to 
+        denote gaps and translation stops respectively.  
       </p>
+
+      <h2><a name="restrictions">Service limits</a></h2>
+      
+      <p>
+        Searches run on a &quot;compute farm&quot; with a limited number of 
+        &quot;slots&quot;. Each search takes one slot and once all slots are
+        in use, new jobs wait in a queue for the next slot to become free. In 
+        order to prevent large jobs occupying slots for very long periods, 
+        which can impact the availability of the system for other users, we 
+        place a number of restrictions on the size of job that we will accept. 
+      </p>
+
+      <h3>File size</h3>
+        
+      <p>
+        Files must have fewer than<strong> 10,000</strong> lines and fewer than 
+        <strong>1000</strong> sequences.  
+      </p>
+
+      <h3>Sequence length</h3>
+      
+      <p>
+        Each sequence must be no longer than <strong>2000</strong> amino-acids. 
+      </p>
+      
+      <h3>Sequence variation</h3>
+      
+      <p>
+        We use heuristics to check that a sequence has a reasonable level of 
+        variation, in order to prevent large strings of identical sequence or
+        a large number of duplicate residues being searched. If you find that 
+        you cannot submit a valid sequence because of this restriction, please 
+        let us know.
+      </p>
+
       <hr />
     </div>
 
