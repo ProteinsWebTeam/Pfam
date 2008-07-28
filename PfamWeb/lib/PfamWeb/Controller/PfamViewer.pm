@@ -2,7 +2,7 @@
 # PfamViewer.pm
 # jt6 20060601 WTSI
 #
-# $Id: PfamViewer.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+# $Id: PfamViewer.pm,v 1.5 2008-07-28 13:57:57 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::PfamViewer;
 
 An HTML-based sequence alignment viewer.
  
-$Id: PfamViewer.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+$Id: PfamViewer.pm,v 1.5 2008-07-28 13:57:57 jt6 Exp $
 
 =cut
 
@@ -98,7 +98,7 @@ sub view : Local {
     my $escapedValue   = $c->req->param($param);
     my $unescapedValue = uri_unescape( $escapedValue );
 
-    next unless $unescapedValue =~ m/([A-Za-z0-9\-\s]+)$/;    
+    next unless $unescapedValue =~ m/^([A-Za-z0-9\-\s]+)$/;    
     
     $c->log->debug( "PfamViewer::view: stashing parameter: |$param|$unescapedValue|" )
       if $c->debug;
