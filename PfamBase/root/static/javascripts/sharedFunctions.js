@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.7 2008-07-25 14:05:14 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.8 2008-07-28 10:51:23 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -242,6 +242,8 @@ function reveal( oSwitch, sId, bStartState, bQuick ) {
     newIH = oSwitch.innerHTML.sub( "More", "Less" );
   } else if( oSwitch.innerHTML.include( "Less" ) ) {
     newIH = oSwitch.innerHTML.sub( "Less", "More" );
+  } else {
+    newIH = oSwitch.innerHTML;
   }
   oSwitch.innerHTML = newIH;
 }
