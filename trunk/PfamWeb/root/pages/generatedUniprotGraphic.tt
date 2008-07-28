@@ -6,7 +6,7 @@
 # builds the form for specifying a UniProt entry for which to show the graphics
 # XML.
 #
-# $Id: generatedUniprotGraphic.tt,v 1.6 2008-06-02 14:41:23 jt6 Exp $
+# $Id: generatedUniprotGraphic.tt,v 1.7 2008-07-28 14:11:50 jt6 Exp $
 
 META title = "Pfam graphic for UniProt entry";
 META fullPage = 1;
@@ -26,7 +26,7 @@ requirements.css.push( "graphicTools.css" );
 
 <p>
   This is the Pfam-style domain graphic for 
-  <a href="http://www.ebi.uniprot.org/">UniProt</a> sequence entry 
+  <a href="http://www.uniprot.org/">UniProt</a> sequence entry 
   [% pfamseq.pfamseq_acc %]. Beneath the graphic is the XML that was used to 
   generate the image itself.    
 </p>
