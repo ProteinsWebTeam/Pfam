@@ -2,7 +2,7 @@
 # Taxonomy.pm
 # jt6 20070918 WTSI
 #
-# $Id: Taxonomy.pm,v 1.9 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Taxonomy.pm,v 1.10 2008-07-28 13:54:41 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Taxonomy;
 
 A search controller for performing taxonomy searches
 
-$Id: Taxonomy.pm,v 1.9 2008-05-16 15:29:28 jt6 Exp $
+$Id: Taxonomy.pm,v 1.10 2008-07-28 13:54:41 jt6 Exp $
 
 =cut
 
@@ -185,7 +185,7 @@ sub taxonomyQuery : Path( '/search/taxonomy/results' ) {
     $families = $c->forward('descend', [ $pq, '' ] );
   
     # cache the result
-    $c->cache->set( $cacheKey, $families );
+    $c->cache->set( $cacheKey, $families ) unless $ENV{NO_CACHE};
   }
   
   $c->stash->{families} = $families;
@@ -306,7 +306,7 @@ sub uniqueQuery : Path( '/search/unique/results' ) {
     }
 
     # cache the result
-    $c->cache->set( $cacheKey, $unique );
+    $c->cache->set( $cacheKey, $unique ) unless $ENV{NO_CACHE};
   }
   
   # stash the results and we're done. Let the template render the results
@@ -683,7 +683,7 @@ sub getFamilyCount : Private {
       if $c->debug;
 
     # cache the result
-    $c->cache->set( $cacheKey, $termCount );
+    $c->cache->set( $cacheKey, $termCount ) unless $ENV{NO_CACHE};
   }
   
   return $termCount;
@@ -730,7 +730,7 @@ sub getAllFamilyCount : Private {
     }
     
     # and cache them
-    $c->cache->set( $cacheKey, $res );
+    $c->cache->set( $cacheKey, $res ) unless $ENV{NO_CACHE};
   }
 
   return $res;
@@ -798,7 +798,7 @@ sub getFamiliesForTerm : Private {
     $res = \%res;
       
     # cache the result
-    $c->cache->set( $cacheKey, $res );
+    $c->cache->set( $cacheKey, $res ) unless $ENV{NO_CACHE};
   }
   
   return $res;
@@ -842,7 +842,7 @@ sub getFamilyInfo : Private {
                     . scalar( keys %familyInfo ). '| families' );
 
     $familyInfo = \%familyInfo;
-    $c->cache->set( $cacheKey, $familyInfo );
+    $c->cache->set( $cacheKey, $familyInfo ) unless $ENV{NO_CACHE};
   }
 
   return $familyInfo;
