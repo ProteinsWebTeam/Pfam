@@ -1,13 +1,10 @@
-
 [%
 # summary.tt
 # jt6 20060406 WTSI
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.39 2008-07-17 12:37:51 jt6 Exp $
-
-USE Dump;
+# $Id: summary.tt,v 1.40 2008-07-28 14:09:33 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -24,19 +21,7 @@ requirements.js.push( "family.js" );
 # process the template that defines the blocks that do various things with
 # database links. We use it later to convert IDs in the Pfam comment and to
 # build tables of database links 
-PROCESS components/links.tt;
-
-# on the assumption that the family page will always contain at least this
-# block, we need to add the snippet of javascript here that will trigger
-# the post-loading of the various other block contents.
-%]
-
-<script type="text/javascript">
-  // <![CDATA[
-  // [% IF c.debug; pfam.auto_pfamA; END %]
-  Event.observe( window, "load", familyPostLoad, false );
-  // ]]>
-</script>
+PROCESS components/links.tt; %]
 
 <!-- start summary block -->
 
