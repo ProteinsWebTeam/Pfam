@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.51 2008-07-14 15:08:25 jt6 Exp $
+# $Id: index.tt,v 1.52 2008-07-28 14:12:51 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -78,7 +78,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
         Pfam-A entries cover a large proportion of the sequences in the
         underlying sequence database, in order to give a more comprehensive 
         coverage of known proteins we also generate a supplement using the 
-        <a class="ext" title="Prodom" href="http://prodom.prabi.fr/prodom.html">PRODOM</a>
+        <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
+          class="ext">ADDA</a>
         database. These automatically generated entries are called 
         <em>Pfam-B</em>. Although of lower quality, Pfam-B families can be
         useful for identifying functionally conserved regions when no Pfam-A 
@@ -256,7 +257,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <div style="display: none"
            class="jumpError"></div>
       <p class="small nlh">
-        You can use <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>
+        You can use <a class="ext" href="http://www.uniprot.org/">UniProt</a>
         and <a href="[% c.uri_for( '/help', { tab = 'helpGlossaryBlock' } ) %]">
           metaseq</a> accessions or identifiers, as well as<br />
         NCBI <a class="ext" href="http://www.ncbi.nlm.nih.gov/Sitemap/sequenceIDs.html">
@@ -327,13 +328,15 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <span onclick="hideThis('announcements');" 
           class="closer"
           style="float: right; cursor: pointer">Hide this</span>
+    <h2>Announcements</h2>
   </div>
  
-  <div id="features" class="announcements" style="display: none">
+  <div id="website_changes" class="announcements" style="display: none">
     <hr />
-    <span onclick="hideThis('features');" 
+    <span onclick="hideThis('website_changes');" 
           class="closer"
           style="float: right; cursor: pointer">Hide this</span>
+    <h2>Latest website changes</h2>
   </div>
   
   <hr />
@@ -390,7 +393,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   // load the list of new features
   Event.observe( window, 'load', function() {
     
-    ['announcements','features'].each( function( type ) {
+    ['announcements','website_changes'].each( function( type ) {
       var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
         { 
           parameters: { type: type },
