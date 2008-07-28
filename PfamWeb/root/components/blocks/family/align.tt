@@ -1,11 +1,10 @@
-
 [%
 # align.tt
 # jt6 20060411 WTSI
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.28 2008-07-10 15:13:58 jt6 Exp $
+# $Id: align.tt,v 1.29 2008-07-28 14:06:04 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -98,11 +97,18 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
-                  <input type="radio" name="alnType" id="viewerTypeS" value="seed" checked="checked" />
+                  <input type="radio" 
+                         name="alnType" 
+                         id="viewerTypeS" 
+                         value="seed"
+                         checked="checked" />
                   <label for="viewerTypeS">Seed ([% pfam.num_seed %])</label>
                 </span>
                 <span class="button">
-                  <input type="radio" name="alnType" id="viewerTypeF" value="full" />
+                  <input type="radio" 
+                         name="alnType" 
+                         id="viewerTypeF" 
+                         value="full" />
                   <label for="viewerTypeF">Full ([% pfam.num_full %])</label>
                 </span>
       	      </td>
@@ -134,6 +140,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <script type="text/javascript">
       // <![CDATA[
+
       // although the form action looks like it will download the alignment,
       // in fact we catch the submission here and decide, based on the form
       // values, which URL to go to next.
@@ -190,11 +197,18 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
-                  <input type="radio" name="alnType" id="typeS" value="seed" checked="checked" />
+                  <input type="radio" 
+                         name="alnType"
+                         id="typeS"
+                         value="seed"
+                         checked="checked" />
                   <label for="typeS">Seed ([% pfam.num_seed %])</label>
                 </span>
                 <span class="button">
-                  <input type="radio" name="alnType" id="typeF" value="full" />
+                  <input type="radio" 
+                         name="alnType"
+                         id="typeF"
+                         value="full" />
                   <label for="typeF">Full ([% pfam.num_full %])</label>
                 </span>
       	      </td>
@@ -284,10 +298,10 @@ alignmentUri = c.uri_for( "/family/alignment" );
       problematic, you can also download a 
       <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed, 
       Stockholm-format file containing the 
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
-        full</a> or 
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=seed">
-        seed</a> alignment for this family. 
+        seed</a> or
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
+        full</a> alignment for this family. 
     </p>
 
     <form id="downloadGzippedForm"
@@ -300,7 +314,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
         <table class="details alignOpts" summary="Download options">
           <tbody>
             <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td class="label">Alignment:</td>
+              <td class="label">Pfam alignments:</td>
               <td>
                 <span class="button">
                   <input type="radio" name="alnType" id="dlTypeS" value="seed" checked="checked" />
@@ -332,7 +346,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
     </p> 
     <p>
       You can view alignments from these two additional datasets using the form
-      below, or you can download alignments of 
+      below, or you can <strong>download</strong> alignments of 
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=ncbi">
         NCBI</a> or  
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=meta">
@@ -355,11 +369,11 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td>
                 <span class="button">
                   <input type="radio" name="alnType" id="adTypeN" value="ncbi" checked="checked" />
-                  <label for="adTypeN">NCBI</label>
+                  <label for="adTypeN">NCBI ([% pfam.number_ncbi %])</label>
                 </span>
                 <span class="button">
                   <input type="radio" name="alnType" id="adTypeM" value="meta" />
-                  <label for="adTypeM">Metagenomics</label>
+                  <label for="adTypeM">Metagenomics ([% pfam.number_meta %])</label>
                 </span>
               </td>
             </tr>
