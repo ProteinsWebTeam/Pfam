@@ -2,7 +2,7 @@
 # Metaseq.pm
 # jt6 20071008 WTSI
 #
-# $Id: Metaseq.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Metaseq.pm,v 1.3 2008-07-28 13:56:10 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Metaseq;
 
 Generates a page set for a metagenomics sequence.
 
-$Id: Metaseq.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+$Id: Metaseq.pm,v 1.3 2008-07-28 13:56:10 jt6 Exp $
 
 =cut
 
@@ -50,92 +50,130 @@ Get the data from the database for the metaseq entry.
 =cut
 
 sub begin : Private {
+  my ( $this, $c, $entry_arg ) = @_;
+
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
+    $c->stash->{output_xml} = 1;
+    $c->res->content_type('text/xml');    
+  }
+  
+  # get a handle on the entry and detaint it
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('id')    ||
+                      $c->req->param('entry') ||
+                      $entry_arg              ||
+                      '';
+
+  # although these next checks might fail and end up putting an error message
+  # into the stash, we don't "return", because we might want to process the 
+  # error message using a template that retuns XML rather than simply HTML
+  # (XML output not yet implemented for metaseq data
+  # jt6 20080603 WTSI.)
+  
+  my $entry;
+  if ( $tainted_entry ) {
+    ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)$/;
+    $c->stash->{errorMsg} = 'Invalid metaseq accession or ID' 
+      unless defined $entry;
+  }
+  else {
+    $c->stash->{errorMsg} = 'No metaseq accession or ID specified';
+  }
+
+  # retrieve data for this entry
+  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
+  
+}
+
+#-------------------------------------------------------------------------------
+#- exposed actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Description...
+
+=cut
+
+sub stats : Local{
   my ( $this, $c ) = @_;
 
-  #----------------------------------------
-  # get the accession or ID code
-
-  my $m;
-  if ( defined $c->req->param('acc') ) {
-
-    $c->req->param('acc') =~ m/^((\w+_?)+)$/i;
-    $c->log->debug( "Metaseq::begin: found a metaseq accession |$1|" );
-  
-    $m = $c->model('PfamDB::Metaseq')
-           ->find( { metaseq_acc => $1 } );
-
-  } elsif ( defined $c->req->param('id') ) {
-
-    $c->req->param('id') =~ m/^((\w+_?)+)$/i;
-    $c->log->debug( "Metaseq::begin: found a metaseq ID |$1|" );
-  
-    $m = $c->model('PfamDB::Metaseq')
-           ->find( { metaseq_id => $1 } );
-
-  } elsif ( defined $c->req->param('entry') ) {
-
-    $c->req->param('entry') =~ m/^((\w+_?)+)$/i;
-    $c->log->debug( "Metaseq::begin: found a metaseq entry |$1|" );
-    
-    my $rs = $c->model('PfamDB::Metaseq')
-               ->search( [ { metaseq_acc => $1 }, 
-                           { metaseq_id  => $1 } ] );
-
-    $m = $rs->first if $rs->count == 1;
+  # detaint the source name
+  if ( defined $c->req->param('source') and 
+       $c->req->param('source') =~ m/^([A-Za-z\d_])+$/ ) {
+    $c->log->debug( "Metaseq::stats: got a valid source name: |$1|" )
+      if $c->debug;
+  }  
+  else {
+    $c->log->debug( 'Metaseq::stats: no valid source name' ) if $c->debug;
   }
 
-  # we're done here unless there's an entry specified
-  unless ( defined $m ) {
+  my $source = $1;
 
-    # de-taint the accession or ID
-    my $input = $c->req->param('acc')
-      || $c->req->param('id')
-      || $c->req->param('entry')
-      || '';
-    $input =~ s/^(\w+)/$1/;
-  
-    # see if this was an internal link and, if so, report it
-    my $b = $c->req->base;
-    if ( $c->req->referer =~ /^$b/ ) {
-  
-      # this means that the link that got us here was somewhere within
-      # the Pfam site and that the accession or ID which it specified
-      # doesn't actually exist in the DB
-  
-      # report the error as a broken internal link
-      $c->error(
-          'Found a broken internal link; no valid metaseq accession or ID ("'
-          . $input . '") in "' . $c->req->referer . '"' );
-      $c->forward('/reportError');
-  
-      # now reset the errors array so that we can add the message for
-      # public consumption
-      $c->clear_errors;
-  
-    }
-  
-    # the message that we'll show to the user
-    $c->stash->{errorMsg} = 'No valid Metaseq accession or ID';
-  
-    # log a warning and we're done; drop out to the end method which
-    # will put up the standard error page
-    $c->log->warn('Metaseq::begin: no valid metaseq ID or accession');
-  
-    return;
-  }
+  # a long, long query...
+  my $rs = $c->model( 'PfamDB::Meta_pfama_reg' )
+             ->search( { 'metaseq.source' => $source },
+                       { join     => [ 'pfamA', 'metaseq' ],
+                         select   => [ qw( pfamA_id pfamA_acc ), { count => 'auto_pfamA' } ],
+                         as       => [ qw( pfamA_id pfamA_id num_domains ) ],
+                         group_by => 'auto_pfamA' } );
 
-  $c->log->debug('Metaseq::begin: successfully retrieved a metaseq object');
-  $c->stash->{metaseq} = $m;
-    
-  #----------------------------------------
-  # add extra data to the stash
-
-  $c->forward('generatePfamGraphic');
-  $c->forward('getSummaryData');
+  # SELECT   count(*), 
+  #          auto_pfamA 
+  # FROM     meta_pfamA_reg r,
+  #          metaseq m
+  # WHERE    source = 'acid_mine'
+  # AND      m.auto_metaseq = r.auto_metaseq
+  # GROUP BY auto_pfamA;
+  
 }
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Description...
+
+=cut
+
+sub get_data : Private {
+  my ( $this, $c, $entry ) = @_;
+  
+  my $rs = $c->model('PfamDB::Metaseq')
+             ->search( [ { metaseq_acc => $entry }, 
+                         { metaseq_id  => $entry } ] );
+
+  my $metaseq;
+  $metaseq = $rs->first if defined $rs;
+  
+  unless ( defined $metaseq ) {
+    $c->stash->{errorMsg} = 'No valid metaseq accession or ID';
+    return;
+  }
+  
+  $c->log->debug( 'Metaseq::get_data: got a metaseq entry' ) if $c->debug;
+  $c->stash->{metaseq}   = $metaseq;
+  $c->stash->{acc}       = $metaseq->metaseq_acc;
+  
+  # only add extra data to the stash if we're actually going to use it later
+  if ( not $c->stash->{output_xml} and 
+       ref $this eq 'PfamWeb::Controller::Metaseq' ) {
+    
+    $c->log->debug( 'Metaseq::get_data: adding extra metaseq info' )
+      if $c->debug;
+    
+    $c->forward('generatePfamGraphic');
+    $c->forward('getSummaryData');
+  }
+  
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 generatePfamGraphic : Private
@@ -175,11 +213,11 @@ sub generatePfamGraphic : Private {
       '-SEQ_ID'         => $annseq->id,
       '-FROM'           => $row->seq_start,
       '-TO'             => $row->seq_end,
-      '-MODEL_FROM'     => 1,
-      '-MODEL_TO'       => $row->model_length,
+      '-MODEL_FROM'     => $row->model_start,
+      '-MODEL_TO'       => $row->model_end,
       '-MODEL_LENGTH'   => $row->model_length,
-      '-BITS'           => $row->bits_score,
-      '-EVALUE'         => $row->evalue_score,
+      '-BITS'           => $row->domain_bits_score,
+      '-EVALUE'         => $row->domain_evalue_score,
       '-TYPE'           => 'PfamA',
       '-REGION'         => $row->type
     );
