@@ -4,7 +4,7 @@
 //
 // javascript glue for the family section
 //
-// $Id: family.js,v 1.33 2008-06-18 22:29:02 jt6 Exp $
+// $Id: family.js,v 1.34 2008-07-28 14:15:41 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -22,29 +22,6 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
-
-// this will make the ajax calls for the family page components
-
-function familyPostLoad() {
-  // species tree
-  if( typeof( loadOptions.st.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.st.uri,
-                    { 
-                      parameters: loadOptions.st.params,
-                      onSuccess:  stSuccess,
-                      onFailure:  stFailure
-                    } );
-  }
-  // coloured alignment
-  if( typeof( loadOptions.ca.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.ca.uri,
-                      { 
-                        parameters: loadOptions.ca.params,
-                        onSuccess:  caSuccess,
-                        onFailure:  caFailure
-                      } );
-  }
-}
 
 //------------------------------------------------------------
 //- DAS sequence alignment viewer methods --------------------

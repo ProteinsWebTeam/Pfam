@@ -4,7 +4,7 @@
 //
 // javascript glue for the PfamB section
 //
-// $Id: pfamb.js,v 1.7 2008-05-16 15:32:57 jt6 Exp $
+// $Id: pfamb.js,v 1.8 2008-07-28 14:15:49 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -23,34 +23,6 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-// this will make the ajax calls for the family page components
-
-function pfambPostLoad() {
-  if( typeof( loadOptions.st.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.st.uri,
-                      { method:     "get", 
-                        parameters: loadOptions.st.params,
-                        onComplete: stSuccess,
-                        onFailure:  stFailure
-                      } );
-  }
-  if( typeof( loadOptions.dg.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.dg.uri,
-                      { method:     'get', 
-                        parameters: loadOptions.dg.params,
-                        onComplete: dgSuccess,
-                        onFailure:  dgFailure
-                      } );
-  }
-  // pfamb structure tab
-  if( typeof( loadOptions.fstruc.uri ) != "undefined" ) {
-    new Ajax.Request( loadOptions.fstruc.uri,
-                      { method:     'get', 
-                        parameters: loadOptions.fstruc.params,
-                        onComplete: fstrucSuccess,
-                        onFailure:  fstrucFailure
-                      } );
-  }
-}
+// not required currently...
 
 //------------------------------------------------------------
