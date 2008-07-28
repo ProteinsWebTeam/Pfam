@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.25 2008-06-09 10:44:42 jt6 Exp $
+# $Id: links.tt,v 1.26 2008-07-28 14:05:11 jt6 Exp $
 
 USE String;
 
@@ -180,7 +180,7 @@ BLOCK buildLink;
 <a class="ext" href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?sunid=[% id %]">[% id %]</a>
       [%- END -%]
     [%- CASE "Swiss" -%]
-<a class="ext" href="http://www.ebi.uniprot.org/entry/[% id %]">[% id %]</a>
+<a class="ext" href="http://www.uniprot.org/entry/[% id %]">[% id %]</a>
     [%- CASE "SMART" -%]
 <a class="ext" href="http://smart.embl-heidelberg.de/smart/do_annotation.pl?BLAST=dummy&amp;DOMAIN=[% id %]">[% id %]</a>
     [%- CASE "SYSTERS" -%]
