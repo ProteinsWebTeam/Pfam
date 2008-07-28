@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Lists.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Lists.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ text formats for the output.
 
 Generates a B<tabbed page>.
 
-$Id: Lists.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+$Id: Lists.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
 
 =cut
 
@@ -161,7 +161,7 @@ sub get_families_list : Private {
     }
     
     # cache the (hopefully) compressed output
-    $c->cache->set( $cache_key, $compressed_output );
+    $c->cache->set( $cache_key, $compressed_output ) unless $ENV{NO_CACHE};
   }
   
   return $output;

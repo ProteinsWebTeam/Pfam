@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.21 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Clan.pm,v 1.22 2008-07-28 13:54:18 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.21 2008-05-16 15:29:28 jt6 Exp $
+$Id: Clan.pm,v 1.22 2008-07-28 13:54:18 jt6 Exp $
 
 =cut
 
@@ -195,7 +195,7 @@ sub alignment : Local {
       return;
     }
 
-    $c->cache->set( $cacheKey, $alignment );    
+    $c->cache->set( $cacheKey, $alignment ) unless $ENV{NO_CACHE};    
   }
   
   $c->res->body( $alignment )
@@ -389,8 +389,8 @@ sub getDiagram : Private {
       return;
     }
 
-    $c->cache->set( $cacheKeyRoot . 'image', $image );
-    $c->cache->set( $cacheKeyRoot . 'map',   $map );
+    $c->cache->set( $cacheKeyRoot . 'image', $image ) unless $ENV{NO_CACHE};
+    $c->cache->set( $cacheKeyRoot . 'map',   $map )   unless $ENV{NO_CACHE};
 
   }
 

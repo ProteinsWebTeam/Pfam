@@ -2,7 +2,7 @@
 # FamilyActions.pm
 # jt6 20070418 WTSI
 #
-# $Id: FamilyActions.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+# $Id: FamilyActions.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package PfamWeb::Controller::Family::FamilyActions;
 This controller holds a collection of actions that are related to Pfam-A
 families.
 
-$Id: FamilyActions.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+$Id: FamilyActions.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
 
 =cut
 
@@ -94,7 +94,7 @@ sub hmm : Path( '/family/hmm' ) {
     }
 
     # cache the raw HMM
-    $c->cache->set( $cacheKey, $hmm );
+    $c->cache->set( $cacheKey, $hmm ) unless $ENV{NO_CACHE};
   }
 
   # build a name for the file that will be downloaded
@@ -150,7 +150,7 @@ sub logo : Path( '/family/logo' ) {
     }
   
     # cache the LOGO
-    $c->cache->set( $cache_key, $logo );
+    $c->cache->set( $cache_key, $logo ) unless $ENV{NO_CACHE};
   }
 
   $c->res->content_type( 'image/png' );

@@ -2,7 +2,7 @@
 # GetPdbFile.pm
 # jt6 20060731 WTSI
 #
-# $Id: GetPdbFile.pm,v 1.8 2008-05-16 15:29:28 jt6 Exp $
+# $Id: GetPdbFile.pm,v 1.9 2008-07-28 13:54:52 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ extract the PDB ID from the URL.
 
 Generates a B<flat file>, MIME type C<chemical/x-pdb>.
 
-$Id: GetPdbFile.pm,v 1.8 2008-05-16 15:29:28 jt6 Exp $
+$Id: GetPdbFile.pm,v 1.9 2008-07-28 13:54:52 jt6 Exp $
 
 =cut
 
@@ -64,7 +64,7 @@ sub getPdbFile : Path {
     $c->forward( 'getPdbFileFromUrl' );
   
     # cache it
-    $c->cache->set( $cacheKey, $c->stash->{pdbFile} );
+    $c->cache->set( $cacheKey, $c->stash->{pdbFile} ) unless $ENV{NO_CACHE};
 
   }
   

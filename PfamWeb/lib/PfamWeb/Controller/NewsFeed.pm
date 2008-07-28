@@ -2,7 +2,7 @@
 # News.pm
 # jt 20061207 WTSI
 #
-# $Id: NewsFeed.pm,v 1.9 2008-05-16 15:29:28 jt6 Exp $
+# $Id: NewsFeed.pm,v 1.10 2008-07-28 13:54:18 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::NewsFeed;
 
 Generates the Pfam news feed RSS.
 
-$Id: NewsFeed.pm,v 1.9 2008-05-16 15:29:28 jt6 Exp $
+$Id: NewsFeed.pm,v 1.10 2008-07-28 13:54:18 jt6 Exp $
 
 =cut
 
@@ -102,7 +102,7 @@ sub rss : Global {
 
     # convert the feed to XML and cache it for a day 
     $feedXML = $feed->as_xml;
-    $c->cache->set( $cacheKey, $feedXML, 86400 );
+    $c->cache->set( $cacheKey, $feedXML, 86400 ) unless $ENV{NO_CACHE};
     $c->log->debug( 'NewsFeed::rss: cached feed XML for one day' );
   }
 
