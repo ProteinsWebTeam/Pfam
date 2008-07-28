@@ -5,7 +5,7 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.10 2008-05-16 15:30:31 jt6 Exp $
+# $Id: annotation.tt,v 1.11 2008-07-28 14:11:31 jt6 Exp $
 
 META fullPage = 1;
 META title = "Annotation submission";
@@ -157,7 +157,6 @@ IF buildForm OR submissionError;
     
     var url = "[% c.uri_for( "/annotate/getTs" ) %]";
     new Ajax.Request( url, {
-      method: 'get',
       onSuccess: function( response ) {
         $('annotationForm_ts').value = response.responseText;
       }

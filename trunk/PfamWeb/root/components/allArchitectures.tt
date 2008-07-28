@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.11 2008-05-16 15:30:32 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.12 2008-07-28 14:01:57 jt6 Exp $
 
 META naked = 1;
 
@@ -145,10 +145,9 @@ FOREACH image IN images.each_image;
   getMore = function() {
     $("loadingSpinner").show();
     $("loadingButton").disable();
-    new Ajax.Request( 
+    var r = new Ajax.Request( 
       "[% c.uri_for( "/domaingraphics" ) %]",
       {
-        method:     "get",
         parameters: { acc:   "[% acc %]",
                       taxId: "[% taxId %]",
                       start: "[% last + 1 %]" },

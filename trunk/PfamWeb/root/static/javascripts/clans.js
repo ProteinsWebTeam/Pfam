@@ -4,7 +4,7 @@
 //
 // javascript glue for the clans section
 //
-// $Id: clans.js,v 1.7 2008-05-16 15:32:57 jt6 Exp $
+// $Id: clans.js,v 1.8 2008-07-28 14:15:25 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -29,49 +29,47 @@ function clanPostLoad() {
 
   // domain graphics
   if( typeof( loadOptions.cg.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.cg.uri,
-					  { method: "get",
-						parameters: loadOptions.cg.params,
-						onComplete: cgSuccess,
-						onFailure:  cgFailure
-					  } );
+    var r = new Ajax.Request( loadOptions.cg.uri,
+                               {
+                                 parameters: loadOptions.cg.params,
+                                 onComplete: cgSuccess,
+                                 onFailure:  cgFailure
+                               } );
   }
 
   // add an example structure image to the summary tab
   if( typeof( loadOptions.si.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.si.uri,
-					  { method:     "get", 
- 					    parameters: loadOptions.si.params,
- 					    onComplete: siSuccess
-					    // not even bothering with a failure callback...
- 					  } );
+    var r = new Ajax.Request( loadOptions.si.uri,
+                               {
+                                 parameters: loadOptions.si.params,
+                                 onComplete: siSuccess
+                                  // not even bothering with a failure callback...
+                               } );
   }
 
   // species tree
   if( typeof( loadOptions.st.uri ) != "undefined" ) {
-	new Ajax.Request( loadOptions.st.uri,
-					  { method:     'get', 
-						parameters: loadOptions.st.params,
-						onComplete: stSuccess,
-						onFailure:  stFailure
-					  } );
+    var r = new Ajax.Request( loadOptions.st.uri,
+                               {
+                                 parameters: loadOptions.st.params,
+                                 onComplete: stSuccess,
+                                 onFailure:  stFailure
+                               } );
   }
   // clan structure tab
   if( typeof( loadOptions.cstruc.uri ) != "undefined" ) {
-	 new Ajax.Request( loadOptions.cstruc.uri,
-		 			 	 { method:     'get', 
-			 			parameters: loadOptions.cstruc.params,
-						onComplete: cstrucSuccess,
-						onFailure:  cstrucFailure
-					  } );
+    var r = new Ajax.Request( loadOptions.cstruc.uri,
+                               { parameters: loadOptions.cstruc.params,
+                                 onComplete: cstrucSuccess,
+                                 onFailure:  cstrucFailure
+                               } );
   }
 }
 //new Ajax.Request( loadOptions.st.uri,
-//	                { method:     "get", 
-// 			  parameters: loadOptions.st.params,
+//                  { parameters: loadOptions.st.params,
 //                          onComplete: stSuccess,
 //                          onFailure:  stFailure
-// 					} );
+//           } );
 
 //------------------------------------------------------------
 // callbacks for the domain graphics generation call
@@ -83,8 +81,6 @@ function cgSuccess( oResponse ) {
 function cgFailure() {
   Element.update( $("cgph"), "Graphics loading failed." );
 }
-
-
 
 //------------------------------------------------------------
 // callback for the structure image call
@@ -100,7 +96,7 @@ var numColsTable;
 
 function cstrucSuccess( oResponse ) {
   Element.update( "clanStructureTabHolder", oResponse.responseText );
-	      // how many columns are there in the table ?
+        // how many columns are there in the table ?
       var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
       numColsTable  = firstRow.getElementsByTagName("td").length;
 
@@ -110,7 +106,7 @@ function cstrucSuccess( oResponse ) {
           cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
           cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
         }
-	 );
+   );
 
 
 }
