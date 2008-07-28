@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.21 2008-07-23 13:46:38 jt6 Exp $
+# $Id: pdb.tt,v 1.22 2008-07-28 14:08:15 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -38,10 +38,12 @@ RETURN UNLESS summaryData.numStructures;
 
 <script type="text/javascript">
   // <![CDATA[
-  var r = new Ajax.Request( "[% c.uri_for( '/family/structures/mapping' ) %]",
-                             { parameters: { acc:"[% acc %]" },
-                               onSuccess:  fstrucSuccess,
-                               onFailure:  fstrucFailure } );
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Request( "[% c.uri_for( '/family/structures/mapping' ) %]",
+                               { parameters: { acc:"[% acc %]" },
+                                 onSuccess:  fstrucSuccess,
+                                 onFailure:  fstrucFailure } );
+  } );
   // ]]>
 </script>
 
