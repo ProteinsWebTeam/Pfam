@@ -831,7 +831,12 @@ sub parse_hmmpfam {
 						for (my $i = 0; $i <=3; $i++ ){
 							$aliPart[$i] = <$file>;
 							redo ALIGN if($aliPart[$i] =~ /^                RF/);
+
+              # if there's a CS line in the alignment block, the script goes into an 
+              # endless loop. Hack it to skip CS lines...
+              # jt6 20080805 WTSI
 							redo ALIGN if($aliPart[$i] =~ /^\s*CS /);
+
 							chomp($aliPart[$i]);
 							#print STDERR "SET alipart to $aliPart[$i]\n";
 						}
