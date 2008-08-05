@@ -60,7 +60,9 @@ should at least give you a start.
 1. Get the Pfam database from
    ftp://ftp.sanger.ac.uk/pub/databases/Pfam/.  In particular you need
    the files Pfam-A.fasta, Pfam_ls, Pfam_fs, and Pfam-A.seed, and
-   optionally Pfam-C.
+   optionally Pfam-C.  To use the active site option you will also
+   need to download the active site alignments which are available as
+   a tarball (AS.tgz).
 
 2. Unzip them if necessary
     $ gunzip Pfam*.gz
@@ -145,6 +147,8 @@ useful.  You may not.
 
 Version     Main changes
 -------     ------------
+0.8         Added option to predict active sites
+
 
 0.7         Append ' (nested)' to hmm name in the output if the domain is a 
             nested domain
@@ -171,24 +175,8 @@ Version     Main changes
 
 =head1 CONTACT
 
-Please contact pfam-help@sanger.ac.uk for help.
-
-=head1 COPYRIGHT
-
-Copyright (c) 2007: Genome Research Ltd.
-
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-details.
-
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
+Copyright (c) Genome Research Ltd 2002-2006.  Please contact
+pfam@sanger.ac.uk for help.
 
 =cut
 
@@ -207,7 +195,7 @@ use subs qw(PfamScan::parse_blast);
 
 
 PfamScan::main();
-#exit(0);
+exit(0);
 
 
 ###############
@@ -249,14 +237,31 @@ Usage: $0 <options> fasta_file
 	-be <n>         : specify blast evalue cutoff (default 1)
         -n              : do not print ' (nested)' after hmm name in output when the domain
                           corresponds to a nested domain
+        -as             : predict active site residues*
+        -as_dir <dir>   : directory location of active site alignments and residues (these are downloadable from the Pfam ftp site)
 
 	-pvm            : flag to indicate that a pvm version of hmmer is in use
 	-cpu            : nuber of cpus to use
 	
+    
     Output format is:
-        <seq id> <seq start> <seq end> <hmm acc> <hmm start> <hmm end> <bit score> <evalue> <hmm name>
+        <seq id> <seq start> <seq end> <hmm acc> <hmm start> <hmm end> <bit score> <evalue> <hmm name> <nested> <predicted_active_site_residues>
 
-    If the domain is nested, ' (nested)' will be appended to the hmm name (unless the -n option is used)
+    If the domain is nested, ' (nested)' will be appended after the hmm name (unless the -n option is used)
+    The predicted active site residues are given in the format 'predicted_active_site[287,316,347]'
+    
+    Example output (with -as option):
+    P40510.1     61   381 PF00389.21      1   150 fs   134.9   2.6e-38        2-Hacid_dh
+    P40510.1    164   349 PF02826.10      1   184 ls   251.7   1.6e-72      2-Hacid_dh_C (nested)  predicted_active_site[287,316,347]
+    P40510.1    398   461 PF01842.16      1    64 ls    19.5     0.012               ACT
+    Q16933.1     53   307 PF00069.16      1   287 ls   307.7   2.1e-89           Pkinase           predicted_active_site[176,194]
+    Q16933.1    327   357 PF00433.15      1    47 ls    16.0      0.02         Pkinase_C
+
+
+    *Active site residues are predicted using the method described in the publication: Mistry J, Bateman A, Finn RD.  
+    Predicting active site residue annotations in the Pfam database.   BMC Bioinformatics. 2007;8:298. PMID:17688688.
+    
+
 
 EOF
 }
@@ -279,7 +284,9 @@ my( $help,
     $pvm,
     $no_nested,
     $align,
-    $no_merge
+    $no_merge,
+    $act_site,
+    $as_dir
     );
 
 # defaults
@@ -294,11 +301,7 @@ else {
 }
 
 
-
-
-
-
-  
+ 
 &GetOptions( "mode=s"     => \$mode,
 	           "fast"       => \$fast,
 	           "o=s"        => \$outfile,
@@ -314,6 +317,8 @@ else {
 	           "cpu=s"      => \$cpu,
 	           "pvm"        => \$pvm,
                "n"          => \$no_nested,
+               "as"         => \$act_site,
+               "as_dir=s"   => \$as_dir,
                "align"      => \$align,
                "no_merge"   => \$no_merge
 	     );
@@ -376,6 +381,13 @@ if( $cpu ) {
 if( $pvm ){
   $options .= "--pvm ";
 }
+if($act_site) {
+    unless(-d $as_dir) {
+      print STDERR "FATAL: To use the active site option you need to specify the directory location for the Pfam active site alignments and residues\n";
+      exit(1);
+  }
+}
+
 
 my $maxidlength = 1;
 open( FA, $fafile ) or die "FATAL: can't open fasta file [$fafile]\n";
@@ -588,6 +600,19 @@ $allresults = $allresults->remove_overlaps_by_clan( \%clanmap ) if( !$overlap );
 add_nested($allresults) unless($no_nested);
 
 
+if($act_site) {
+    
+    #First store all sequences in a hash
+    my %seqs;
+    my $sequence_object = Bio::SeqIO -> new( '-file'   => $fafile,
+				             '-format' => 'Fasta' );
+    while( my $seq = $sequence_object->next_seq() ) {
+	$seqs{$seq->id} = $seq->seq;
+    }
+
+    pred_act_sites($allresults, $as_dir, "$pfamdir/Pfam_ls.bin", \%seqs);
+}
+
 if( $outfile ) {
     open( O, ">$outfile" ) or die "FATAL: can't write to your output file [$outfile]\n";
     $allresults -> write_ascii_out( \*O );
@@ -637,7 +662,31 @@ sub add_nested {
 }
 
 
+sub pred_act_sites {
+   my ($allresults, $as_dir, $hmm_file, $seq_hash) = @_;
 
+   foreach my $seq ($allresults->eachHMMSequence()) {
+     foreach my $unit ($seq->eachHMMUnit()) {
+
+	 my $family = $unit->hmmname;
+         my $seq_name = $unit->seqname;
+
+         next unless(-d "$as_dir/$family");  #Family is not an active site family
+       
+         my $s = $$seq_hash{$seq_name};
+         $s = substr($s, $unit->start_seq-1, $unit->end_seq-$unit->start_seq+1);
+         open(SEQ, ">seq.$$") or die "Can't open $seq.$$ for writning $!";
+         print SEQ ">".$unit->seqname."\/".$unit->start_seq()."\-".$unit->end_seq()."\n$s";
+         close SEQ;
+
+         my $array_ref = as_search::find_as($family, "seq.$$", $hmm_file, $as_dir);
+         if($array_ref) {
+           $unit->{'act_site'} =  $array_ref;
+         }
+         unlink "seq.$$";
+     }
+   }
+}
 
 
 
@@ -782,6 +831,7 @@ sub parse_hmmpfam {
 						for (my $i = 0; $i <=3; $i++ ){
 							$aliPart[$i] = <$file>;
 							redo ALIGN if($aliPart[$i] =~ /^                RF/);
+							redo ALIGN if($aliPart[$i] =~ /^\s*CS /);
 							chomp($aliPart[$i]);
 							#print STDERR "SET alipart to $aliPart[$i]\n";
 						}
@@ -976,7 +1026,8 @@ sub write_ascii_out {
 
     foreach my $unit ( @units ) {
         $unit->{'nested'} = "" unless($unit->{'nested'});
- 	      print $fh sprintf( "%-".$self->{maxidlength}."s  %5d %5d %-11s %5d %5d %2s %7s  %8s  %s %s\n",
+
+ 	print $fh sprintf( "%-".$self->{maxidlength}."s  %5d %5d %-11s %5d %5d %2s %7s  %8s  %16s %8s",
 			   $unit->seqname(),
 			   $unit->start_seq(),
 			   $unit->end_seq(),
@@ -988,6 +1039,17 @@ sub write_ascii_out {
 			   $unit->evalue,
 			   $unit->hmmname,		   
          	   $unit->{'nested'}  );
+
+
+	if($unit->{'act_site'}) {
+            $" = ",";
+	    print "  predicted_active_site[@{$unit->{'act_site'}}]\n";
+            $" = " ";
+	}
+	else {
+	   print "\n";
+	}
+
          if($unit->align_seq){
 	         print $fh sprintf( "%-10s %s\n", "#HMM",   $unit->align_hmm );
 	         print $fh sprintf( "%-10s %s\n", "#MATCH", $unit->align_match );
@@ -1292,4 +1354,417 @@ sub end {
     $self->{'end'} = $value if( defined $value );
     return $self->{'end'};
 }
+
+############################
+package as_search;
+
+use strict;
+use Bio::Pfam::AlignPfam;
+use Bio::SeqFeature::Generic;
+
+
+
+=head2 find_as
+
+ Title   : find_as
+ Usage   : find_as("2-Hacid_dh_C", "seq_file", "Pfam_ls", $dir)
+ Function: finds active sites in a query sequence which 
+           has a match to a Pfam active site family
+
+ Returns : An array reference of active site postions
+ Args    : Pfam-A family, fasta file containing query sequence, file containing all HMM_ls models, directory
+           of all the active site alignments and resdues
+
+=cut
+
+sub find_as {
+  my ($family, $seq, $hmm_file, $dir) = @_;
+
+  
+  unless(-d "$dir/$family") {  #Family is not an active site family
+      return;
+  }
+   
+
+  unless($family and -s $hmm_file and -s $seq) {
+    die "Need HMM_ls, family and fasta file of sequence\n";
+  }
+  
+  
+  
+  system("hmmfetch $hmm_file $family > hmm.$$");
+  #align seq to family alignment
+  system ("hmmalign -q --withali $dir/$family/alignment hmm.$$ $seq > ALIGN.$$");
+
+
+  #reformat ALIGN.$$ to Pfam format
+  my %reformat;
+  my $maxlength = 0;
+  open(A, "ALIGN.$$") or die "$!";
+  open(ALIGN, ">ALIGN") or die "$!";
+
+  while(<A>){
+    if(/^(\S+)\s+(\S+)$/){
+      $maxlength = length($1) if ($maxlength < length($1));
+      $reformat{$1} .= $2;
+    }
+    elsif(/^\#/){
+      next;
+    } 
+    elsif(/\/\//){
+      next;
+    }
+    elsif(/^$/){
+      next; 
+    }else{ 
+      warn "Did not parse $_\n";
+    }
+  }
+  close A;
+
+  $maxlength += 2;
+  foreach my $nse (keys %reformat){
+     print ALIGN sprintf("%-".$maxlength."s", $nse);
+     print ALIGN $reformat{$nse}." \n";
+  }
+  close(ALIGN);
+
+
+  unlink "hmm.$$";
+  unlink "aln.out.$$";
+  unlink "aln.$$";
+  unlink "ALIGN.$$";
+
+  open(INFILE, "ALIGN") or die "$!";
+  my $aln = new Bio::Pfam::AlignPfam;
+  $aln->read_Pfam(*INFILE);
+  close INFILE;
+  unlink "ALIGN";
+
+  
+   #Locate exp as in fam
+   _exp_as($aln, $family, $dir);
+   #Store as patterns
+   my $pattern_aln = new Bio::Pfam::AlignPfam;
+   _pattern_info($aln, $pattern_aln);
+   #find pred as
+   my $array_ref = _add_pred_as($aln, $pattern_aln);
+  return $array_ref;
+}
+
+=head2 _exp_as
+
+ Title    : _exp_as
+ Usage    : _exp_as($aln, $db_name)
+ Function : Adds active site data to alignment object
+ Returns  : Nothing, populates the alignment object with active site residue info
+ Args     : alignment object
+
+=cut
+
+sub _exp_as {
+ 
+    my ($aln, $fam, $dir) = @_;
+
+   
+  #Store exp active sites
+  my %residue;
+  open(RESIDUE, "$dir/$fam/as_residues.dat") or die "$!";
+  while(<RESIDUE>) {
+      if(/^(\S+)\s+(\S+)/) {
+        push( @{$residue{$1}}, $2);
+      }
+  }
+  close RESIDUE;
+
+   
+  foreach my $seq ($aln->each_seq) {
+
+      foreach my $pos (@{$residue{$seq->id}}) {
+	
+        if($pos >= $seq->start and $pos <= $seq->end) { #Feature is in the alignment
+                  
+             #store column position for seq
+             my $col = $aln->column_from_residue_number($seq->id, $pos);
+               
+
+             #add feature to seq
+             my $aa .= uc substr($seq->seq(), $col-1, 1); 
+
+             my $feat = new Bio::SeqFeature::Generic  (  -display_name => 'experimental',
+                                                         -primary => $aa,
+							 -start => $col);
+
+
+
+	     $seq->add_SeqFeature($feat);
+	 }
+
+    }
+  }
+}
+
+
+
+=head2 _pattern_info
+
+ Title    : _pattern_info
+ Usage    : _pattern_info($aln_object, $aln_object)
+ Function : Takes an alignment and extracts active site patterns into a second alignment
+ Returns  : Nothing, populates a second alignment object with active site seqences
+ Args     : alignment object, empty alignment object
+
+=cut
+
+
+sub _pattern_info {
+    my ($aln, $pattern_aln) = @_;
+    my (%pat_col_seq);
+  
+    foreach my $seq ( $aln->each_seq() ) {  
+
+	next unless($seq->all_SeqFeatures());
+           my ($pat, $col);
+           foreach my $feat ( sort {$a->start <=> $b->start }  $seq->all_SeqFeatures() ) {            
+              $pat .= $feat->primary_tag();   #HEK
+              $col .= $feat->start() . " ";    #33 44 55
+	   }
+
+           unless(exists($pat_col_seq{"$pat:$col"})) {
+	       $pattern_aln->add_seq($seq);
+               $pat_col_seq{"$pat:$col"}=1;
+	   }
+
+    }
+}
+
+
+
+=head2 _add_pred_as
+
+ Title    : _add_pred_as
+ Usage    : _add_pred_as($aln_object, $aln_object)
+ Function : Predicts active sites based on known active site data
+ Returns  : array of active site pos
+ Args     : alignment, alignment of known active sites
+
+=cut
+
+
+
+
+sub _add_pred_as {
+    my ($aln, $pattern_aln) = @_;
+    my $num_seq=0;
+    my ($query_seq, @as_res);
+
+    #locate query seq
+    foreach my $seq ( $aln->each_seq() ) {  
+	unless($seq->feature_count()) {
+	    $query_seq = $seq;
+            last ;
+	}
+    }
+    die "No query seq" unless $query_seq;
+
+
+    my   $aligns_with = new Bio::Pfam::AlignPfam;
+    foreach my $seq1 ( $pattern_aln->each_seq() ) {
+
+   
+           #See if all active site residues from seq1 exist in query seq
+           my $mismatch;
+           foreach my $feat ( sort {$a->start <=> $b->start }  $seq1->all_SeqFeatures() ) {
+
+              my $aa1 = $feat->primary_tag();
+              my $col = $feat->start();
+
+              my $aa2 = uc substr($query_seq->seq, $col-1, 1);
+              unless($aa1 eq $aa2) {
+                  $mismatch = 1;
+                  last;
+
+              }
+
+           }
+
+           #Store seq1 if all active site residues are present in seq1
+           unless($mismatch) {
+              $aligns_with->add_seq($seq1);
+           }
+       }
+
+
+
+       $num_seq = $aligns_with->no_sequences();
+       return unless($num_seq);
+       my (%seq_to_remove, %seq_to_rem);  #two hashes used to collect seq that need removing
+
+
+        #if query seq matches more than one pattern remove subpatterns and any patterns that overlap
+
+        #first remove sub pat
+        if($num_seq>1) {
+           foreach my $sequence1 ($aligns_with->each_seq() ) {
+              foreach my $sequence2 ($aligns_with->each_seq() ) {
+
+                   next if($sequence1 eq $sequence2);
+
+                   my (%hash1, %hash2, $num_1, $num_2, %smaller, %larger);
+                   #collect column positions
+                   foreach my $feat1 ($sequence1->all_SeqFeatures() ) {
+                       $hash1{$feat1->start} =1;
+                       $num_1++;
+                   }
+                   foreach my $feat2 ($sequence2->all_SeqFeatures() ) {
+                       $hash2{$feat2->start} =1;
+                       $num_2++;
+                   }
+
+
+                   #see if one is a subpattern of the other
+                   my $diff=0;
+                   unless($num_1 eq $num_2) {
+
+                       my $remove_seq;
+
+                       if($num_1 > $num_2) {
+                           %smaller = %hash2;
+                           %larger = %hash1;
+                           $remove_seq = $sequence2;
+
+                       }
+                       else {
+                           %smaller = %hash1;
+                           %larger = %hash2;
+                           $remove_seq = $sequence1;
+                       }
+
+
+                       foreach my $key (keys %smaller) {
+                           $diff = 1 unless(exists($larger{$key}));  #diff is true if it is not a subpattern
+                       }
+
+
+                       $seq_to_rem{$remove_seq}= $remove_seq unless($diff) ;
+                       next unless($diff);
+                   }
+             }
+
+           }
+         }
+
+         #Now remove any patterns which need removing
+         foreach my $remove (keys %seq_to_rem) {
+           $aligns_with->remove_seq($seq_to_rem{$remove});
+         }
+
+
+         unless($num_seq >=1) {
+            die "All sequences that align with seq have been removed - this shouldn;t happen\n";
+         }
+
+
+
+        $num_seq = $aligns_with->no_sequences();
+        #and then any patterns that overlap
+        if($num_seq>1) {
+
+           foreach my $sequence1 ($aligns_with->each_seq() ) {
+
+              foreach my $sequence2 ($aligns_with->each_seq() ) {
+                   next if($sequence1 eq $sequence2);
+
+                   my ($seq1_st, $seq1_en, $seq2_st, $seq2_en);
+
+                   my (%hash1, %hash2, $num_1, $num_2, %smaller, %larger);
+
+                   #see if patterns overlap - find pattern start ends and collect column positions
+                   foreach my $feat1 ($sequence1->all_SeqFeatures() ) {
+
+                       $seq1_st = $feat1->start() if(!$seq1_st or $feat1->start() < $seq1_st);
+                       $seq1_en = $feat1->start() if(!$seq1_en or $feat1->start() > $seq1_en);
+                   }
+
+                   foreach my $feat2 ($sequence2->all_SeqFeatures() ) {
+
+                       $seq2_st = $feat2->start() if(!$seq2_st or $feat2->start() < $seq2_st);
+                       $seq2_en = $feat2->start() if(!$seq2_en or $feat2->start() > $seq2_en);
+                   }
+
+                   #then see if patterns overlap - remove sequence with pattern of least identity
+                   if(($seq1_st >= $seq2_st and $seq1_st <= $seq2_en) or ($seq2_st >= $seq1_st and $seq2_st <= $seq1_en)) {
+                       my $remove = _identity($query_seq, $sequence1, $sequence2);
+                       $seq_to_remove{$remove}= $remove;
+                   }
+             }
+
+           }
+         }
+
+         #Now remove any patterns which need removing
+         foreach my $remove (keys %seq_to_remove) {
+           $aligns_with->remove_seq($seq_to_remove{$remove});
+           $num_seq = $aligns_with->no_sequences();
+           last if($num_seq eq "1"); #just in case the % identities are identical
+         }
+
+
+         $num_seq = $aligns_with->no_sequences();
+         unless($num_seq >=1) {
+            die "All sequences that align with seq have been removed - this shouldn;t happen\n";
+         }
+
+
+
+           #Add features to seq
+           foreach my $sequence ($aligns_with->each_seq() ) {
+                foreach my $feat ($sequence->all_SeqFeatures() ) {
+
+                   my $actual_pos = $query_seq->location_from_column($feat->start);
+                   $actual_pos = $actual_pos->start();
+
+
+                   push(@as_res, $actual_pos);
+
+ 
+
+               }
+           }
+           return \@as_res
+
+}
+
+
+=head2 _identity
+
+ Title    : _identity
+ Usage    : _identity($sequence1 , $sequence2, $sequence3)
+ Function : Identifies seq with lowest % identity to sequence1
+ Returns  : The sequence which has the lowest % id to sequence 1
+ Args     : sequence1, sequence2, sequence3.
+
+=cut
+
+
+sub _identity {
+    my $seq1 = shift;
+    my @aligns_with = @_;
+          my $lower_identity=100;
+          my $lower_identity_seq;
+          foreach my $s (@aligns_with) {
+             my $tmp_aln = new Bio::Pfam::AlignPfam;
+             $tmp_aln->add_seq($s);
+             $tmp_aln->add_seq($seq1);
+
+             my $identity = $tmp_aln->percentage_identity();
+             if($identity < $lower_identity) {
+                 $lower_identity = $identity;
+                 $lower_identity_seq = $s;
+             }
+
+          }
+          return $lower_identity_seq;
+}
+
 1;
