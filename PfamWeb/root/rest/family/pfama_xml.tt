@@ -4,7 +4,7 @@
 #
 # template for serialising Pfam-A data to XML format
 #
-# $Id: pfama_xml.tt,v 1.4 2008-05-16 15:31:06 jt6 Exp $
+# $Id: pfama_xml.tt,v 1.5 2008-08-05 09:36:23 jt6 Exp $
 
 USE date;
 
@@ -71,6 +71,7 @@ IF goTerms.size;
         <full>[% pfam.num_full %]</full>
       </num_seqs>
       <num_species>[% pfam.number_species %]</num_species>
+      <num_structures>[% pfam.number_structures %]</num_structures>
       <percentage_identity>[% pfam.percentage_id %]</percentage_identity>
       <av_length>[% pfam.average_length %]</av_length>
       <av_coverage>[% pfam.average_coverage %]</av_coverage>
