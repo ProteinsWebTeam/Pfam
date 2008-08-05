@@ -135,6 +135,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
         <xs:element ref="num_seqs" minOccurs="0" />
         <xs:element name="num_regions" type="xs:positiveInteger" minOccurs="0" />
         <xs:element name="num_species" type="xs:positiveInteger" minOccurs="0" />
+        <xs:element name="num_structures" type="xs:positiveInteger" minOccurs="0" />
         <xs:element name="percentage_identity" type="xs:float" minOccurs="0" />
         <xs:element name="av_length" type="xs:float" minOccurs="0" />
         <xs:element name="av_coverage" type="xs:float" minOccurs="0" />
