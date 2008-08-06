@@ -127,7 +127,7 @@ help with this.
 --------------
 
 Output format is:
-<seq id> <seq start> <seq end> <pfam acc> <hmm start> <hmm end> <bit score> <evalue> <pfam id>
+<seq id> <seq start> <seq end> <pfam acc> <hmm start> <hmm end> <alignment mode> <bit score> <evalue> <pfam id>
 
 Results:
 
