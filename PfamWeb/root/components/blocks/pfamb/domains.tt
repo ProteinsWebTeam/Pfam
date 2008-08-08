@@ -4,7 +4,7 @@
 # 
 # build the domains block for PfamBs
 #
-# $Id: domains.tt,v 1.9 2008-07-23 13:43:11 jt6 Exp $
+# $Id: domains.tt,v 1.10 2008-08-08 16:18:22 jt6 Exp $
 %]
 
 <!-- start domains block -->
@@ -62,12 +62,6 @@
         architectures, we load only the first fifty architectures by default.
         If you want to see more architectures, click the button at the bottom
         of the page to load the next set.
-      </p>
-      <p>
-        <strong>Note</strong>: Pfam-A domains are given a higher priority than
-        Pfam-B domains when drawing the graphic, so you may find that a Pfam-B
-        domain is partially or completely obscured by a Pfam-A domain which
-        fails at the same point on a sequence.
       </p>
     </div>
 
