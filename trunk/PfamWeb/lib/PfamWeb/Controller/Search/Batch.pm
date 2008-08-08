@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.12 2008-08-08 10:48:19 jt6 Exp $
+# $Id: Batch.pm,v 1.13 2008-08-08 15:55:17 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.12 2008-08-08 10:48:19 jt6 Exp $
+$Id: Batch.pm,v 1.13 2008-08-08 15:55:17 jt6 Exp $
 
 =cut
 
@@ -60,6 +60,13 @@ sub search : Path {
   
   $c->stash->{options} = $opts;
 
+  # finally, before we actually run the search, check we didn't do it within 
+  # the last 24 hours
+  if ( $c->forward( 'check_duplicate' ) ) {
+    $c->stash->{batchSearchError } = $c->stash->{searchError};
+    return;
+  }
+
   # set the queue
   $c->stash->{job_type} = 'batch';
 
@@ -94,19 +101,9 @@ Validate the form input. Error messages are returned in the stash as
 
 sub validateInput : Private {
   my( $this, $c ) = @_;
+
+  # do the quick checks first...
   
-  # the sequence itself
-  unless( $c->forward( 'parseUpload' ) ) {
-
-    $c->stash->{searchError} = 
-         $c->stash->{errorMsg}
-      || 'No valid sequence file found. Please enter a valid FASTA-format file and try again.';
-
-    $c->log->debug( 'Search::Batch::search: bad FASTA file; returning to form' )
-      if $c->debug;
-    return;
-  }
-
   # sequence search options
   if( defined $c->req->param( 'batchOpts' ) ) {
     $c->stash->{batchOpts} = $c->req->param( 'batchOpts' );
@@ -156,6 +153,18 @@ sub validateInput : Private {
     
     return;
   }  
+
+  # the sequence itself
+  unless( $c->forward( 'parseUpload' ) ) {
+
+    $c->stash->{searchError} = 
+         $c->stash->{errorMsg}
+      || 'No valid sequence file found. Please enter a valid FASTA-format file and try again.';
+
+    $c->log->debug( 'Search::Batch::search: bad FASTA file; returning to form' )
+      if $c->debug;
+    return;
+  }
 
   # passed !
   $c->log->debug( 'Search::Batch::search: input parameters all validated' )
@@ -333,6 +342,39 @@ sub parseUpload : Private {
 
   # the upload validated; return true
   return 1;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 check_duplicate : Private
+
+Queries the web_user database to check if the current sequence has been 
+submitted by this user, with the same search options, within the last 24 hours.
+If it is a duplicate search, we return 1, otherwise 0;
+
+=cut
+
+sub check_duplicate : Private {
+  my ( $this, $c ) = @_;
+
+  my $rs = $c->model( 'WebUser::JobHistory' )
+           ->search( { options => $c->stash->{options},
+                       email   => $c->stash->{email},
+                       stdin   => $c->stash->{input},
+                       opened  => \'> DATE_SUB( NOW(), INTERVAL 24 HOUR )' },
+                     { join => [ 'job_stream' ] } );
+
+  my $rv = 0;
+  if ( $rs->count() > 0 ) {
+    $c->log->debug( 'Batch::check_duplicate: found ' . $rs->count() . ' rows' )
+      if $c->debug;
+
+    $c->stash->{searchError} = 
+      'You have submitted exactly this search within the last 24 hours. Please try not to submit duplicate searches.';
+    $rv = 1;
+  }
+  
+  return $rv;
 }
 
 #-------------------------------------------------------------------------------
