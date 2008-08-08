@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.21 2008-05-22 09:54:58 jt6 Exp $
+# $Id: Sequence.pm,v 1.22 2008-08-08 10:48:19 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.21 2008-05-22 09:54:58 jt6 Exp $
+$Id: Sequence.pm,v 1.22 2008-08-08 10:48:19 jt6 Exp $
 
 =cut
 
@@ -108,8 +108,9 @@ sub sequence_search : Path {
       $c->log->debug( 'Search::Sequence::sequence_search: got an evalue' )
         if $c->debug;
       
-      if ( looks_like_number( $c->req->param('evalue') ) ) {
-        $c->log->debug( 'Search::Sequence::sequence_search: evalue looks like a number' )
+      if ( looks_like_number( $c->req->param('evalue') ) and
+           $c->req->param('evalue') > 0 ) {
+        $c->log->debug( 'Search::Sequence::sequence_search: evalue looks like a positive number' )
           if $c->debug;
         $c->stash->{evalue} = $c->req->param('evalue');
       }

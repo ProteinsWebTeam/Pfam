@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.11 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Batch.pm,v 1.12 2008-08-08 10:48:19 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.11 2008-05-16 15:29:28 jt6 Exp $
+$Id: Batch.pm,v 1.12 2008-08-08 10:48:19 jt6 Exp $
 
 =cut
 
@@ -133,7 +133,8 @@ sub validateInput : Private {
     $c->stash->{ga} = 1;
   } else {
     if( defined $c->req->param( 'evalue' ) and 
-        looks_like_number( $c->req->param( 'evalue' ) ) ) {
+        looks_like_number( $c->req->param( 'evalue' ) ) and
+        $c->req->param('evalue') > 0 ) {
       $c->stash->{evalue} = $c->req->param( 'evalue' );
     } else {
       $c->stash->{searchError} = 'You did not enter a valid E-value.';

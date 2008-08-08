@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.8 2008-05-16 15:30:31 jt6 Exp $
+# $Id: sequence.tt,v 1.9 2008-08-08 10:48:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -91,12 +91,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       </p>
       <p>
         The default threshold for the HMM search is an <em>E-value</em> of 1.0,
-        but you can also use the <em>gathering threshold</em> for each HMM.
+        but you can also use the <em>gathering threshold</em> for each HMM, or
+        you can specify your own E-value setting. Note that the E-value that 
+        you give must be positive.
       </p>
       <p>
-        By default the search will only look for Pfam A families on your 
+        By default the search will only look for Pfam-A families on your 
         sequence but, by checking the box below, you can also search for 
-        Pfam Bs.
+        Pfam-B hits.
       </p>
       
       <hr />

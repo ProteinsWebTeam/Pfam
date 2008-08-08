@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.11 2008-07-28 13:20:42 jt6 Exp $
+# $Id: batch.tt,v 1.12 2008-08-08 10:48:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -51,13 +51,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <a class="ext" href="http://www.ncbi.nlm.nih.gov/blast/fasta.shtml">
           FASTA file format</a>. 
         We apply the following checks to the format of uploaded sequence files. 
-        Files which do not conform to the following rules will be rejected.
+        Files that do not conform to the following rules will be rejected by
+        the server
       </p>
 
       <h3>File contents</h3>
       
       <p>
-        Files must contain header lines and sequence lines only. Header lines, 
+        Files must contain only header lines and sequence lines. Header lines, 
         which begin with &quot;&gt;&quot;, can be used to describe the sequence 
         that follows. There is no fixed format for header lines but we restrict 
         the characters that are allowed. If your header lines contain any of the 
@@ -93,7 +94,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         denote gaps and translation stops respectively.  
       </p>
 
-      <h2><a name="restrictions">Service limits</a></h2>
+      <h2>Service limits</h2>
       
       <p>
         Searches run on a &quot;compute farm&quot; with a limited number of 
@@ -126,6 +127,13 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         you cannot submit a valid sequence because of this restriction, please 
         let us know.
       </p>
+
+      <h2>E-value limit</h2>
+      
+      <p>
+        If you specify an E-value cut-off for your search, that E-value must
+        be a positive number.
+      </p>  
 
       <hr />
     </div>
