@@ -4,7 +4,7 @@
 # 
 # build a page for the HTML alignment fragment
 #
-# $Id: html_alignment.tt,v 1.3 2008-05-22 09:56:12 jt6 Exp $
+# $Id: html_alignment.tt,v 1.4 2008-08-08 10:42:55 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -43,13 +43,13 @@ title = type _ " sequence alignment for " _ acc;
     <dt class="y">&nbsp;</dt>
     <dd>Proline (P)</dd>
     <dt class="b">&nbsp;</dt>
-    <dd>Small and hydrophobic (A,V,L,I,M,F,W)</dd>
+    <dd>Small or hydrophobic (A,V,L,I,M,F,W)</dd>
     <dt class="g">&nbsp;</dt>
-    <dd>Hydroxyl and amine amino acids (S,T,N,Q)</dd>
+    <dd>Hydroxyl or amine amino acids (S,T,N,Q)</dd>
     <dt class="r">&nbsp;</dt>
     <dd>Charged amino-acids (D,E,R,K)</dd>
     <dt class="c">&nbsp;</dt>
-    <dd>Histidine and tyrosine (H,Y)</dd>
+    <dd>Histidine or tyrosine (H,Y)</dd>
   </dl>
   
   <p>
