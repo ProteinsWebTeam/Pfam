@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.6 2008-05-16 15:30:31 jt6 Exp $
+# $Id: database.tt,v 1.7 2008-08-13 13:03:51 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -502,7 +502,7 @@ interpro_id: IPR000644
     <fieldset class="query">
       <legend>Example query</legend>
       Give me the gene ontology (GO) annotation and family information for 
-      the family &#39;CBS&#39;
+      the family &#39;p450&#39;
     </fieldset>
       
     <fieldset class="sql">
