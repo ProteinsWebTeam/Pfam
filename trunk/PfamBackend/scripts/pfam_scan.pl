@@ -286,8 +286,11 @@ my( $help,
     $align,
     $no_merge,
     $act_site,
-    $as_dir
+    $as_dir,
+    $no_warnings
     );
+
+
 
 # defaults
 my $blastecut = 1;
@@ -320,7 +323,8 @@ else {
                "as"         => \$act_site,
                "as_dir=s"   => \$as_dir,
                "align"      => \$align,
-               "no_merge"   => \$no_merge
+               "no_merge"   => \$no_merge,
+               "nw"         => \$no_warnings
 	     );
 
 my $fafile = shift @ARGV;
@@ -387,7 +391,9 @@ if($act_site) {
       exit(1);
   }
 }
-
+if($no_warnings) {
+    $ENV{NO_WARNINGS}=1;
+}
 
 my $maxidlength = 1;
 open( FA, $fafile ) or die "FATAL: can't open fasta file [$fafile]\n";
@@ -724,7 +730,7 @@ sub addHMMUnit {
     my $name = $unit->seqname();
 
     if( !exists $self->{'seq'}->{$name} ) {
-	warn "Adding a domain of $name but with no HMMSequence. Will be kept in domain array but not added to a HMMSequence";
+	warn "Adding a domain of $name but with no HMMSequence. Will be kept in domain array but not added to a HMMSequence" unless($ENV{NO_WARNINGS});
     } else {
 	$self->{'seq'}->{$name}->addHMMUnit($unit);
     }
@@ -741,7 +747,7 @@ sub addHMMSequence {
     my $seq  = shift;
     my $name = $seq->name();
     if( exists $self->{'seq'}->{$name} ) {
-	warn "You already have $name in HMMResults. Replacing by a new entry!";
+	warn "You already have $name in HMMResults. Replacing by a new entry!" unless($ENV{NO_WARNINGS});
     }
     $self->{'seq'}->{$name} = $seq;
 }
