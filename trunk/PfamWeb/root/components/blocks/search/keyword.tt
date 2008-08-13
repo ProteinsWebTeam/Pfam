@@ -5,7 +5,7 @@
 # 
 # build the keyword search block
 #
-# $Id: keyword.tt,v 1.4 2008-05-16 15:30:31 jt6 Exp $
+# $Id: keyword.tt,v 1.5 2008-08-13 15:21:22 jt6 Exp $
 %]
 
 <!-- start keyword search block -->
@@ -41,8 +41,7 @@
 
     <div class="formWrapper">
 
-      <form method="get" 
-            id="keywordSearchForm"
+      <form id="keywordSearchForm"
             action="[% c.uri_for( "/search/keyword" ) %]">
         <div>
     	    <input type="hidden" name="queryType" value="unp" />
