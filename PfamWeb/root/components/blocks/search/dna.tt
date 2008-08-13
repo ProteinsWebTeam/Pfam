@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.7 2008-05-16 15:30:31 jt6 Exp $
+# $Id: dna.tt,v 1.8 2008-08-13 10:10:11 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -39,9 +39,9 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       <p>
         This tool allows you to search DNA sequences of upto 80kb against Pfam
         HMMs, using the 
-        <a href="http://www.ebi.ac.uk/wise2/">Wise2</a> package. You can see
-        more information about Wise2 at the 
-        <a href="http://www.ebi.ac.uk/Wise2/doc_wise2.html">homepage</a>.
+        <a class="ext" href="http://www.ebi.ac.uk/wise2/">Wise2</a> package. You 
+        can see more information about Wise2 at the 
+        <a class="ext" href="http://www.ebi.ac.uk/Wise2/doc_wise2.html">homepage</a>.
       </p>
       <p>
         Because these searches can be time consuming, we run the searches 
