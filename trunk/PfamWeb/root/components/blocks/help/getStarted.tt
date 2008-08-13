@@ -4,7 +4,7 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.10 2008-05-16 15:30:31 jt6 Exp $
+# $Id: getStarted.tt,v 1.11 2008-08-13 10:08:49 jt6 Exp $
 %]
 
 <!-- start getStarted block -->
@@ -176,7 +176,8 @@
     		  <code>pfam_scan.pl</code> will search the FASTA sequences
     		  against the profile HMMs and report all matches to families
     		  that score higher than the manually set thresholds for each
-    		  of the Pfam families. The output is in the following format:
+    		  of the Pfam families. The output format will look something
+          like this:
     		</p>
     		<code>
     		  &lt;seq_id&gt; &lt;seq_start&gt; &lt;seq_end&gt; &lt;hmm_acc&gt; &lt;hmm_start&gt; &lt;hmm_end&gt; &lt;bit_score&gt; &lt;evalue&gt; &lt;hmm_name&gt;
