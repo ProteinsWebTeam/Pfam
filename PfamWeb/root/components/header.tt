@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.31 2008-07-28 14:04:16 jt6 Exp $
+# $Id: header.tt,v 1.32 2008-08-13 15:21:22 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -66,7 +66,6 @@ sharedUri = c.uri_for( "/shared" );
            id="pfamLogo" 
            src="[% sharedUri %]/images/blank.gif" /></a>
     <form action="[% c.uri_for( "/search/keyword" ) %]" 
-          method="get" 
           id="siteSearchForm">
       <div id="searchBox">
         <input class="entryField"
