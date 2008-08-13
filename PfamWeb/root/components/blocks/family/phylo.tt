@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.21 2008-07-28 14:09:04 jt6 Exp $
+# $Id: phylo.tt,v 1.22 2008-08-13 13:32:33 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -116,7 +116,10 @@ treeUri = c.uri_for( "/family/tree" );
             return $(buttonId).checked;
           }
         );
-        var type = checkedId.value || "seed"; // seed | full | ncbi | meta
+        var type = "seed"; // could be "seed | full | ncbi | meta"
+        if ( checkedId !== undefined ) {
+          type = checkedId.value;
+        }
         
         // see if we've already loaded the image map for this tree and, if we 
         // have, don't load it, just show it
