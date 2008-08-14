@@ -62,7 +62,7 @@ should at least give you a start.
    the files Pfam-A.fasta, Pfam_ls, Pfam_fs, and Pfam-A.seed, and
    optionally Pfam-C.  To use the active site option you will also
    need to download the active site alignments which are available as
-   a tarball (AS.tgz).
+   a tarball (active_site.tgz).
 
 2. Unzip them if necessary
     $ gunzip Pfam*.gz
@@ -238,7 +238,6 @@ Usage: $0 <options> fasta_file
         -n              : do not print ' (nested)' after hmm name in output when the domain
                           corresponds to a nested domain
         -as             : predict active site residues*
-        -as_dir <dir>   : directory location of active site alignments and residues (these are downloadable from the Pfam ftp site)
 
 	-pvm            : flag to indicate that a pvm version of hmmer is in use
 	-cpu            : nuber of cpus to use
@@ -286,7 +285,6 @@ my( $help,
     $align,
     $no_merge,
     $act_site,
-    $as_dir,
     $no_warnings
     );
 
@@ -321,7 +319,6 @@ else {
 	           "pvm"        => \$pvm,
                "n"          => \$no_nested,
                "as"         => \$act_site,
-               "as_dir=s"   => \$as_dir,
                "align"      => \$align,
                "no_merge"   => \$no_merge,
                "nw"         => \$no_warnings
@@ -386,8 +383,8 @@ if( $pvm ){
   $options .= "--pvm ";
 }
 if($act_site) {
-    unless(-d $as_dir) {
-      print STDERR "FATAL: To use the active site option you need to specify the directory location for the Pfam active site alignments and residues\n";
+    unless(-d "$pfamdir/active_site") {
+      print STDERR "FATAL: To use the active site option you need download the active site alignments (available on the Pfam ftp site) into $pfamdir\n";
       exit(1);
   }
 }
@@ -616,7 +613,7 @@ if($act_site) {
 	$seqs{$seq->id} = $seq->seq;
     }
 
-    pred_act_sites($allresults, $as_dir, "$pfamdir/Pfam_ls.bin", \%seqs);
+    pred_act_sites($allresults, "$pfamdir/active_site", "$pfamdir/Pfam_ls.bin", \%seqs);
 }
 
 if( $outfile ) {
@@ -678,7 +675,7 @@ sub pred_act_sites {
          my $seq_name = $unit->seqname;
 
          next unless(-d "$as_dir/$family");  #Family is not an active site family
-       
+
          my $s = $$seq_hash{$seq_name};
          $s = substr($s, $unit->start_seq-1, $unit->end_seq-$unit->start_seq+1);
          open(SEQ, ">seq.$$") or die "Can't open $seq.$$ for writning $!";
