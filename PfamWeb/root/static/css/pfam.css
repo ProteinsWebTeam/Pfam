@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.74 2008-07-14 15:11:16 jt6 Exp $
+   $Id: pfam.css,v 1.75 2008-08-14 15:28:13 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -452,6 +452,10 @@ table.details tr.summaryRow {
   background: #AAA;
 }
 
+form > div > input {
+  margin: 0 1px;
+}
+
 /* these two rules are for the details table when it is split into
    two separate columns */
 div.floatLeft {
@@ -532,15 +536,15 @@ a.sortheader {
 
 /* affects the key */
 
-#key {
+.key {
   padding: 4px;
-  margin: 8px 8px;
+  margin: 6px;
   border: 1px solid #CCC;
   background-color: #EEE;
   text-align: center;
 }
 
-#key h2 {
+.key h2 {
   color: #074987;
   text-align: left;
   margin: 0.2em auto;
@@ -549,21 +553,34 @@ a.sortheader {
   font-weight: bold;
 }
 
-#key p {
+.key p {
   margin: 0.4em 0;
   text-align: left;
 }
 
+/* other things in the key div: lists */
+
+.key ul {
+  text-align: left;
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
+.key li {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
 /* the top and bottom of the colour gradient in the functional similarity
    search results */
-#key .gradTop {
+.key .gradTop {
   font-weight: bold;
   color: #FFF;
   background: #008000;
   padding: 0 0.2em;
 }
 
-#key .gradBot {
+.key .gradBot {
   font-weight: bold;
   color: #FFF;
   background: #C00000;  
@@ -592,6 +609,12 @@ a.sortheader {
 
 #keyTable tr.even {
   background-color: #CCC;
+}
+
+/* affects the results div */
+
+#results {
+  margin: 4px;
 }
 
 /* affects the results table */
@@ -693,6 +716,28 @@ hr {
 
 hr.short {
   display: none;
+}
+
+.plainSequence {
+  font-family: monospace;
+  font-size: 0.8em;
+  margin: 0.2em;
+  padding: 0.2em;
+  border: 1px solid #CCC;
+  background: #DDD;
+  float: left;
+  clear: both;
+}
+
+.centreWrapper {
+  float: left;
+  position: relative;
+  left: 50%;
+}
+
+.centredBlock {
+  position: relative;
+  left: -50%;
 }
 
 /* ---------------------------------------- */
