@@ -42,7 +42,6 @@ my $status = $ref->{'status'};
 my ($error, $results);
 
 if($status eq "RUN"){
-	
 	#Check that there is a result, even if it is empty
 	if(!-e "$tmpDir/".$ref->{job_id}.".res" ){ 
 		$error .= "No output produced\n";	
@@ -68,19 +67,19 @@ if($status eq "RUN"){
 		}
 		#Update the job status to done!
 		$qsout->update_job_status($ref->{id}, 'DONE');
-		emailResults($ref->{email}, $results, $qsout->email);
+		emailResults($ref->{email}, $results, $qsout->email, $ref);
 		$qsout->update_job_stream($ref->{id}, 'stdout', $results);
 		if($error){
 			$qsout->update_job_stream($ref->{id}, 'stderr', $error);
 		}
 	}else{
 	   $qsout->update_job_status($ref->{id}, 'FAIL');
-   	   $qsout->update_job_stream($ref->{id}, 'stderr', $error);
+   	 $qsout->update_job_stream($ref->{id}, 'stderr', $error);
 	}
 }elsif($status eq "PEND"){
-	$error .= "Failed to submit the jobs\n";
+	$error .= "Failed to submit the job to backend farm\n";
 	$qsout->update_job_status($ref->{id}, 'FAIL');
-   	$qsout->update_job_stream($ref->{id}, 'stderr', $error);
+  $qsout->update_job_stream($ref->{id}, 'stderr', $error);
 }
 
 $ref = $qsout->get_job($id);
@@ -89,7 +88,7 @@ $status = $ref->{'status'};
 if($status eq "FAIL"){
 	my $errorString = $ref->{'stderr'}."\n" if($ref->{'stderr'});
 	$errorString .= $error if ($error);
-	emailFail($ref->{email}, $errorString);
+	emailFail($ref->{email}, $errorString, $qsout->email, $ref);
 }
 
 
@@ -98,43 +97,121 @@ if($status eq "FAIL"){
 
 
 sub emailResults {
-	my ($email, $results, $emailHeader) = @_;
-	print Dumper($emailHeader);
+	my ($email, $results, $emailHeader, $ref) = @_;
 	my %header = ( 	To => $email,
 					From => 'pfam-help@sanger.ac.uk',
-					Subject => "Your pfam search results" );
+					Subject => 'Your pfam search results for job '.$ref->{job_id} );
 	if(ref $emailHeader eq "HASH"){
 		while (my ($key, $value) = each %$emailHeader){
 			$header{$key} = $value;
 		}
 	}
-	print Dumper( %header);
 	my $mailer = Mail::Mailer->new;
 
 	$mailer->open(\%header);
-my $message = <<'__MESSAGE__';
+	
+my $message = "Your job id was: ".$ref->{job_id}."\n";
+
+if($ref->{'job_type'} eq 'batch'){ 
+$message .= <<'__MESSAGE__';
 
 Please find your Pfam search results below.
 
-This is an experimental service, so if the results are not as expected, 
-or if you have any comments about the use of this service, then please 
+If you have any comments about the use of this service, please 
 contact Pfam at: pfam-help@sanger.ac.uk.
 
-For REALLY large jobs, you should probably download Pfam and run locally.
-Please see the FAQ at http://pfam.sanger.ac.uk/help if you need 
-help with this.
+For REALLY large jobs, you should download Pfam and run your jobs 
+locally. Please see the FAQ at:
+
+http://pfam.sanger.ac.uk/help?tab=helpFAQBlock#localSearch 
+
+if you need help with this.
 
 --------------
 
+The following command was executed (default parameters not shown) :
+
+__MESSAGE__
+}elsif($ref->{'job_type'} eq 'dna'){
+
+$message .= <<'__MESSAGE__';
+
+Please find your Pfam DNA search results below.
+
+If you have any comments about the use of this service, please 
+contact Pfam at: pfam-help@sanger.ac.uk.
+
+The DNA search tool uses a WU-BLAST prefilter and the Wise2 package to 
+compare potential hits to the HMMs. You can see more information about 
+Wise2 at the homepage, http://www.ebi.ac.uk/Tools/Wise2/index.html. If 
+you have a large number of DNA searches, you can download the script 
+used to run these searches from the Pfam CVS repository:
+
+http://cvs.sanger.ac.uk/cgi-bin/viewcvs.cgi/PfamBackend/scripts/pfamDNASearch.pl?root=PfamWeb&view=log
+ 
+--------------
+
+The following command was executed (default parameters not shown) :
+
+__MESSAGE__
+}
+
+$message .= $ref->{'command'}.' ';
+if($ref->{'options'}){
+  $message .= $ref->{'options'};
+}
+
+$message .= " your_input.fa\n";
+
+$message .= <<'__MESSAGE__';
+
+----------------
+
+The top of your input file looked like this:
+
+__MESSAGE__
+
+$message .= substr($ref->{stdin}, 0, 250);
+$message .= '...' if length( $ref->{stdin} ) >250;
+$message .= "\n";
+
+if($ref->{'job_type'} eq 'batch'){ 
+$message .= <<'__MESSAGE__';
+
+----------------
+
 Output format is:
-<seq id> <seq start> <seq end> <pfam acc> <hmm start> <hmm end> <alignment mode> <bit score> <evalue> <pfam id>
+<seq id> <seq start> <seq end> <pfam acc> <hmm start> <hmm end> <alignment mode> <bit score> <evalue> <pfam id> <nested> <predicted_active_site_residues>
+__MESSAGE__
+
+}
+
+$message .= <<'__MESSAGE__';
 
 Results:
 
 __MESSAGE__
 
 $message .= $results."\n";
+
 print $mailer $message;
 $mailer->close;
+}
+
+sub emailFail{
+  my ($email, $errorString, $emailHeader, $ref) = @_;
+	
+	my %header = ( To      => $email,
+					       From    => 'pfam-help@sanger.ac.uk',
+					       Subject => 'There was an ERROR running the job '.$ref->{job_id} );
+	if(ref $emailHeader eq "HASH"){
+		while (my ($key, $value) = each %$emailHeader){
+			$header{$key} = $value;
+		}
+	}
+	my $mailer = Mail::Mailer->new;
+	$mailer->open(\%header);
+	print $mailer $errorString;
+  $mailer->close;
 }
 exit(0);
