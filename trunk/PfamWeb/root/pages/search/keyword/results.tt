@@ -4,7 +4,7 @@
 # 
 # keyword search results page
 #
-# $Id: results.tt,v 1.5 2008-07-14 15:01:43 jt6 Exp $
+# $Id: results.tt,v 1.6 2008-08-14 15:26:14 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;
@@ -23,68 +23,67 @@ sharedRequirements.js.push( "tablekit.js" );
 
 -%]
 
-<div id="results">
+<div class="key">
 
-  <div id="key">
+  <h2>Keyword search results</h2>
 
-    <h2>Keyword search results</h2>
+  [% rowNums = {};
+  hitsSummary = BLOCK;
+    hitPlugins = 0 %]
+    <table id="keyTable" summary="summary of search results">
+      <thead>
+        <tr>
+          <td>Section</td>
+          <td class="desc">Description</td>
+          <td>Number of hits</td>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH pluginName IN pluginsArray;
+        rowNums.$pluginName = 0 %]
+        <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+          <td>[% pluginName %]</td>
+          <td class="desc">[% pluginsHash.$pluginName %]</td>
+          <td>[% pluginHits.$pluginName || 0 %]</td>
+        </tr>
+        [% # keep track of the number of plugins that returned results
+        IF pluginHits.$pluginName;
+          hitPlugins = hitPlugins + 1; 
+        END;
+      END; # of FOREACH %]
+      </tbody>
+    </table>
+  [% END %]
 
-    [% rowNums = {};
-    hitsSummary = BLOCK;
-      hitPlugins = 0 %]
-      <table id="keyTable" summary="summary of search results">
-        <thead>
-          <tr>
-            <td>Section</td>
-            <td class="desc">Description</td>
-            <td>Number of hits</td>
-          </tr>
-        </thead>
-        <tbody>
-        [% FOREACH pluginName IN pluginsArray;
-          rowNums.$pluginName = 0 %]
-          <tr class="[% loop.index % 2 ? "odd" : "even" %]">
-            <td>[% pluginName %]</td>
-            <td class="desc">[% pluginsHash.$pluginName %]</td>
-            <td>[% pluginHits.$pluginName || 0 %]</td>
-          </tr>
-          [% # keep track of the number of plugins that returned results
-          IF pluginHits.$pluginName;
-            hitPlugins = hitPlugins + 1; 
-          END;
-        END; # of FOREACH %]
-        </tbody>
-      </table>
+  <p>
+    We found <strong>[% results.size %]</strong> unique results for your query 
+    (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
+    sections of the database.
+    [% IF lookupHit %]
+      Your query also appears to be a match for Pfam entry
+      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
+        [% lookupHit.pfamA_id %]</a></em>
+      (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">[% lookupHit.pfamA_acc %]</a>)
+      and this row is <span class="highlight">highlighted</span> in the
+      results table.
     [% END %]
+  </p>
 
-    <p>
-      We found <strong>[% results.size %]</strong> unique results for your query 
-      (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
-      sections of the database.
-      [% IF lookupHit %]
-        Your query also appears to be a match for Pfam entry
-        <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
-          [% lookupHit.pfamA_id %]</a></em>
-        (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">[% lookupHit.pfamA_acc %]</a>)
-        and this row is <span class="highlight">highlighted</span> in the
-        results table.
-      [% END %]
-    </p>
+  [% hitsSummary %]
 
-    [% hitsSummary %]
+  <p>
+    This key shows a brief description of each of the database
+    sections, in the order that they were searched, along with the
+    number of hits found in each one. The table of results may be
+    sorted by clicking on the column titles, or restored to the
+    original order <span class="link"
+    onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');">here</span>. 
+    Note that the final list of hits shows only unique Pfam accessions.
+  </p>
 
-    <p>
-      This key shows a brief description of each of the database
-      sections, in the order that they were searched, along with the
-      number of hits found in each one. The table of results may be
-      sorted by clicking on the column titles, or restored to the
-      original order <span class="link"
-      onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');">here</span>. 
-      Note that the final list of hits shows only unique Pfam accessions.
-    </p>
+</div> <!-- end of div "key" -->
 
-  </div> <!-- end of div "key" -->
-
+<div id="results">
   <table class="resultTable" id="resultTable" summary="Search results">
     <thead>
       <tr>

@@ -5,7 +5,7 @@
 #
 # a page that polls the server for results of a sequence search 
 #
-# $Id: polling.tt,v 1.6 2008-05-16 15:30:32 jt6 Exp $
+# $Id: polling.tt,v 1.7 2008-08-14 15:26:14 jt6 Exp $
 
 META title    = "Checking for results of a sequence search";
 META fullPage = 1;
@@ -22,7 +22,7 @@ sharedRequirements.js.push( "job.js" );
 
 %]
 
-<div id="key">
+<div class="key">
   
   <h2>Sequence search</h2>
   
