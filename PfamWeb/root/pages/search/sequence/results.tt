@@ -4,10 +4,12 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.13 2008-06-02 14:35:47 jt6 Exp $
+# $Id: results.tt,v 1.14 2008-08-14 15:27:22 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
+
+USE wrap;
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -123,80 +125,19 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
 
 %]
 
-<div id="results">
-   
-  <div id="key">
-    
-    <h2>Sequence search results</h2>
-
-    <p>
-      [%- # all of this is a very convoluted way to write a nice, correct
-          # English sentence to summarise the results. It's possibly overkill...
-      
-      IF numAs -%]
-        We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %] 
-        to your search sequence
-        [% IF numSignificantMatches AND numInsignificantMatches -%]
-          (<strong>[% numSignificantMatches %]</strong> significant and 
-          <strong>[% numInsignificantMatches %]</strong> insignificant)
-        [% ELSIF numInsignificantMatches;
-          "(there were <strong>no</strong> significant matches)";
-        END;
-      ELSE;
-        "We did not find any Pfam-A matches to your search sequence";
-      END;
-      IF numBs;
-        IF numAs;
-          " and "; 
-        ELSIF NOT numAs;
-          " but we did find "; 
-        END %]
-        <strong>[% numBs %]</strong> Pfam-B match[% "es" IF numBs > 1 %].
-      [% ELSIF searchedPfamB AND NOT numBs;
-        IF numAs;
-          " but we did not find any Pfam-B matches."; 
-        ELSIF NOT numAs;
-          " nor any Pfam-B matches."; 
-        END;       
-      ELSE;
-        ". You did not choose to search for Pfam-B matches.";
-      END -%]
-      The graphic below shows the arrangement of matches on your sequence: 
-    </p>
-
-    <div>
-    [%- FOREACH image IN images.each_image;
-      CALL image.print_image;
-      id = image.image_name -%]
-
-      <img class="graphicImage"
-           src="[% constants.tmp %]/[% image.file_location %]"
-           usemap="#domainGraphicsMap[% loop.index %]"
-           alt="" />
-      <div class="cleaner"><!-- empty --></div>
-
-      [% IF image.image_map -%]
-        <map name="domainGraphicsMap[% loop.index %]"
-             id="domainGraphicsMap[% loop.index %]">
-          [% image.image_map %]
-        </map>
-      [% END;
-    END -%]
-    </div>
+<div class="key">
   
-    <p>
-      <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
-      to the search form to look for Pfam domains on a new sequence.
-    </p> 
+  <h2>Sequence search results</h2>
 
-    <p>
-      <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
-      the detailed description of this results page.
-    </p>
+  <p>
+    <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
+    the detailed description of this results page.
+  </p>
 
-    <div id="resultsNotes" style="display: none">
-      <p>
-        The Pfam graphic above shows only the <strong>significant</strong> 
+  <div id="resultsNotes" style="display: none">
+    <ul>
+      <li>
+        The Pfam graphic below shows only the <strong>significant</strong> 
         matches to your sequence. A significant match is one where the bits score 
         is greater than or equal to the gathering threshhold for the Pfam domain. 
         Clicking on any of the domains in the image will take you to a page of 
@@ -204,44 +145,175 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
         [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
         overlapping Pfam-A domains, which are given higher priority when 
         building the graphic.[% END %]
-      </p>
-      <p>
+      </li>
+      <li>
         Below are the details of the matches that were found. 
         [% IF significantMatches AND insignificantMatches -%]
-        We separate Pfam-A matches in two tables, containing the significant and
-        insignificant matches.
+        We separate Pfam-A matches into two tables, containing the significant 
+        and insignificant matches.
         [% END -%] 
         Hits which do not start and end at the end points of the matching HMM 
         are <span class="warning">highlighted</span>.
-      </p>
-      <p>
+      </li>
+      <li>
         A small proportion of sequences within the enzymatic Pfam families have 
         had their active sites experimentally determined. Using a strict set
         of rules, chosen to reduce the rate of false positives, we transfer 
         experimentally determined active site residue data from a sequence 
         within the same Pfam family to your query sequence. These are shown
-        as &quot;Predicted active sites&quot; Full details of Pfam active 
+        as &quot;Predicted active sites&quot;. Full details of Pfam active 
         site prediction process can be found in 
         <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
           the accompanying paper</a>.
-      </p>      
-      <p>
+      </li>      
+      <li>
         For Pfam-A hits we show the alignments between your search sequence 
         and the matching HMM.
         [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
         sequence and the matching sequence from our library of Pfam-B 
         sequences.[% END %] You can show individual alignments by clicking on 
         the &quot;Show&quot; button in each row of the result table, or you can
-        show all alignments using the links above the table.
-      </p>
-      <p>
+        show all alignments using the links above each table.
+      </li>
+      <li>
         You can bookmark this page and return to it later, but please note that 
         old results may be removed after <strong>one week</strong>.
-      </p>
-    </div><!-- end of "resultsNotes" -->
+      </li>
+    </ul>
+  </div><!-- end of "resultsNotes" -->
 
-  </div><!-- end of "key" -->
+  <p>
+    [%- # all of this is a very convoluted way to write a nice, correct
+        # English sentence to summarise the results. It's possibly overkill...
+    
+    IF numAs -%]
+      We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %] 
+      to your search sequence
+      [% IF numSignificantMatches AND numInsignificantMatches -%]
+        (<strong>[% numSignificantMatches %]</strong> significant and 
+        <strong>[% numInsignificantMatches %]</strong> insignificant)
+      [% ELSIF numInsignificantMatches;
+        "(there were <strong>no</strong> significant matches)";
+      END;
+    ELSE;
+      "We did not find any Pfam-A matches to your search sequence";
+    END;
+    IF numBs;
+      IF numAs;
+        " and "; 
+      ELSIF NOT numAs;
+        " but we did find "; 
+      END %]
+      <strong>[% numBs %]</strong> Pfam-B match[% "es" IF numBs > 1 %].
+    [% ELSIF searchedPfamB AND NOT numBs;
+      IF numAs;
+        " but we did not find any Pfam-B matches."; 
+      ELSIF NOT numAs;
+        " nor any Pfam-B matches."; 
+      END;       
+    ELSE;
+      ". You did not choose to search for Pfam-B matches.";
+    END -%]
+    The graphic below shows the arrangement of matches on your sequence: 
+  </p>
 
+  <div>
+  [%- FOREACH image IN images.each_image;
+    CALL image.print_image;
+    id = image.image_name -%]
+
+    <img class="graphicImage"
+         src="[% constants.tmp %]/[% image.file_location %]"
+         usemap="#domainGraphicsMap[% loop.index %]"
+         alt="" />
+    <div class="cleaner"><!-- empty --></div>
+
+    [% IF image.image_map -%]
+      <map name="domainGraphicsMap[% loop.index %]"
+           id="domainGraphicsMap[% loop.index %]">
+        [% image.image_map %]
+      </map>
+    [% END;
+  END -%]
+  </div>
+
+  <p>
+    <span class="moreLink" onclick="reveal(this,'optionsList',false, true)">Show</span>
+    the search options and sequence that you submitted.
+  </p>
+
+  <div id="optionsList" style="display: none">
+    [% IF job_options.job_ids.size > 1 %]
+    <p>
+      You ran <strong>[% job_options.job_ids.size %]</strong> jobs, with the 
+      following IDs:
+    </p>
+    <ul>
+      [%- FOREACH job_id IN job_options.job_ids %]
+      <li>[% job_id %]</li>
+      [%- END %]
+    </ul>
+    [%- ELSE %]
+    <p>
+      You ran <strong>one</strong> job, with ID 
+      [%- job_options.job_ids.first %].
+    </p>
+    [% END %]
+    <p>
+      This is the <strong>sequence</strong> that you submitted:
+    </p>
+    <div class="centreWrapper">
+      <p class="plainSequence centredBlock">[% FILTER wrap(80, '      ', '<br />'); seq; END %]</p>
+    </div>
+    <div class="cleaner"><!-- empty --></div>
+    <p>
+      These are the options that you chose:
+    </p>
+    <ul>
+    [%- IF job_options.pfamb %]
+      <li>
+        You searched for <strong>Pfam-Bs</strong> 
+        (job ID [% job_options.pfamb %])
+      </li>
+    [%- END;
+    IF job_options.both;
+      IF job_options.separate %]
+        <li>
+          You searched for both fs and ls hits <strong>separately</strong>
+        </li>
+      [%- ELSE %]
+        <li>
+          You searched for both fs and ls hits with results <strong>merged</strong>
+        </li>
+      [%- END;
+    ELSE %]
+      <li>
+        You searched for hits with the 
+        <strong>[% job_options.mode %]</strong> model only
+      </li>
+    [%- END;
+    IF job_options.ga %]
+      <li>
+        You set the cut-off equal to the <strong>gathering threshold</strong>
+      </li>
+    [%- ELSE %]
+      <li>
+        You used an E-value cut-off of 
+        <strong>[% job_options.evalue %]</strong>
+      </li>
+    [%- END %]
+    </ul>
+  </div>
+
+  <p>
+    <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
+    to the search form to look for Pfam domains on a new sequence.
+  </p> 
+
+</div><!-- end of "key" -->
+
+<div id="results">
+   
   [% IF numAs;
   
   #-----------------------------------------------------------------------------

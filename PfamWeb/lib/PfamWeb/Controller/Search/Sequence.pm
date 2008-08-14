@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.22 2008-08-08 10:48:19 jt6 Exp $
+# $Id: Sequence.pm,v 1.23 2008-08-14 15:27:22 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.22 2008-08-08 10:48:19 jt6 Exp $
+$Id: Sequence.pm,v 1.23 2008-08-14 15:27:22 jt6 Exp $
 
 =cut
 
@@ -33,6 +33,8 @@ use constant SUBMISSION_ERROR   => -1;
 use constant SUBMISSION_SUCCESS => 0;
 
 use base 'PfamWeb::Controller::Search';
+
+use Devel::StackTrace;
 
 #-------------------------------------------------------------------------------
 
@@ -208,7 +210,7 @@ sub results : Local {
   foreach my $job_id ( @jobIds ) {
     
     # detaint the ID
-    next unless $job_id =~ m/^([A-F0-9\-]{36})$/;
+    next unless $job_id =~ m/^[A-F0-9\-]{36}$/;
 
     # try to retrieve results for it
     $c->forward( 'JobManager', 'retrieveResults', [ $job_id  ] );
@@ -217,9 +219,11 @@ sub results : Local {
     # check quickly
     next unless $c->stash->{results}->{$job_id};
 
-    $c->log->debug( "Search::results: looking up results for job |$job_id|" )
+    $c->log->debug( "Search::Sequence::results: looking up results for job |$job_id|" )
       if $c->debug;
 
+    my $results = $c->stash->{results}->{$job_id};
+    
     # keep track of how many jobs are actually completed
     if ( $c->stash->{results}->{$job_id}->{status} eq 'DONE' ) {
       $completed++;
@@ -229,6 +233,65 @@ sub results : Local {
     
     # parse the results
     $c->forward( 'handleResults', [ $job_id  ] );
+
+    #----------------------------------------
+
+    # this is dumb. We don't have a record in the DB of the actual options that
+    # the user selected in the submission form, and we can't have that record 
+    # because of the way that the submission process works. Instead, so that
+    # we can show them the options that they chose alongside their results, we
+    # have to effectively parse the options string that we DO have in the DB,
+    # turning it back into a list of flags. Dumb. Really dumb.
+
+    $c->log->debug( "Search::Sequence::results: parsing options:" )
+      if $c->debug;
+  
+    # keep track of the job IDs. Redundant, but convenient...
+    push @{ $c->stash->{job_options}->{job_ids} }, $job_id;
+  
+    if ( $results->{method} eq 'pfamb' ) {
+
+      $c->log->debug( "Search::Sequence::results:   searched Pfam-Bs" )
+        if $c->debug;
+      $c->stash->{job_options}->{pfamb} = $job_id;
+
+    }
+    else {
+      
+      # find the E-value
+      if ( $results->{options} =~ m/-e (\S+)\s*/ ) {
+        $c->log->debug( "Search::Sequence::results:   found an E-value: |$1|" )
+          if $c->debug;
+        $c->stash->{job_options}->{evalue} = $1;
+      }
+      else {
+        $c->log->debug( 'Search::Sequence::results:   using gathering threshold' )
+          if $c->debug;
+        $c->stash->{job_options}->{ga} = 1;
+      }
+  
+      # get the mode    
+      if ( $results->{options} =~ m/--no_merge/ ) {
+        $c->log->debug( "Search::Sequence::results:   searching global and local separately" )
+          if $c->debug;
+        $c->stash->{job_options}->{both}     = 1;
+        $c->stash->{job_options}->{separate} = 1;
+      }
+      elsif ( $results->{options} =~ m/--mode (\S+)/ ) {
+        $c->log->debug( "Search::Sequence::results:   searching |$1| model" )
+          if $c->debug;
+        $c->stash->{job_options}->{mode} = $1;
+      }
+      else {
+        $c->log->debug( "Search::Sequence::results:   searching global and local merged" )
+          if $c->debug;
+        $c->stash->{job_options}->{both} = 1;
+      }
+  
+    } # end of "if pfamb"
+
+    #----------------------------------------
+
   }
 
   # if none of the jobs have actually finished, return HTTP status 204 and
