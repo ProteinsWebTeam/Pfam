@@ -23,6 +23,7 @@ use Data::Dumper;
 use IO::File;
 use Mail::Mailer;
 use Getopt::Long;
+use Text::Wrap;
 
 use Bio::Pfam::WebServices::PfamQueue;
 
@@ -171,9 +172,12 @@ The top of your input file looked like this:
 
 __MESSAGE__
 
-$message .= substr($ref->{stdin}, 0, 250);
-$message .= '...' if length( $ref->{stdin} ) >250;
-$message .= "\n";
+my $seq = substr($ref->{stdin}, 0, 250);
+$seq .= '...' if length( $ref->{stdin} ) >250;
+$seq .= "\n";
+
+$Text::Wrap::columns = 60;
+$message .= wrap( '', '', $seq );
 
 if($ref->{'job_type'} eq 'batch'){ 
 $message .= <<'__MESSAGE__';
