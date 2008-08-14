@@ -4,7 +4,7 @@
 # 
 # taxonomy search results page
 #
-# $Id: uniqueResults.tt,v 1.6 2008-07-14 15:01:43 jt6 Exp $
+# $Id: uniqueResults.tt,v 1.7 2008-08-14 15:26:14 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -24,7 +24,7 @@ META fullPage = 1;
 
 <div id="taxonomyResults">
   
-  <div id="key">
+  <div class="key">
 
     <h2>Unique families in your chosen species</h2>
 
