@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam protein pages.
 
-   $Id: protein.css,v 1.28 2008-05-16 15:32:12 jt6 Exp $
+   $Id: protein.css,v 1.29 2008-08-14 15:28:13 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -177,16 +177,6 @@ div.rightAlignmentLabel {
   text-align: right;
   float: left;
   width: 3em;
-}
-
-#plainSequence {
-  font-family: monospace;
-  font-size: 0.8em;
-  margin: 0.2em;
-  padding: 0.2em;
-  border: 1px solid #CCC;
-  background: #DDD;
-  float: left;
 }
 
 div.summaryGraphic {
