@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.36 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Protein.pm,v 1.37 2008-08-15 13:46:32 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.36 2008-05-16 15:29:28 jt6 Exp $
+$Id: Protein.pm,v 1.37 2008-08-15 13:46:32 jt6 Exp $
 
 =cut
 
@@ -245,7 +245,8 @@ sub get_das_sources : Private {
   }
   $c->stash->{dasSourcesRs} = \@keptSourcesArr;
 
-  $c->log->debug('Protein::get_das_sources: added DAS sources to the stash');
+  $c->log->debug('Protein::get_das_sources: added DAS sources to the stash')
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -266,7 +267,8 @@ sub get_mapping : Private {
 
   $c->stash->{pfamMaps} = \@mapping;
 
-  $c->log->debug('Protein::begin: added the structure mapping to the stash');
+  $c->log->debug('Protein::begin: added the structure mapping to the stash')
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -283,7 +285,8 @@ sub generate_pfam_graphic : Private {
   # get a layout manager and set the X scale
   my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layoutPfam->scale_x(1);
-  $c->log->debug('Protein::generate_pfam_graphic: instantiated a layout manager');
+  $c->log->debug('Protein::generate_pfam_graphic: instantiated a layout manager')
+    if $c->debug;
 
   # retrieve the Storable containing the annotated sequence, thaw it
   # and hand it off to the layout manager
@@ -312,11 +315,13 @@ sub generate_pfam_graphic : Private {
   # and build an imageset
   my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
   $pfamImageset->create_images( $layoutPfam->layout_to_XMLDOM );
-  $c->log->debug('Protein::generate_pfam_graphic: created images');
+  $c->log->debug('Protein::generate_pfam_graphic: created images')
+    if $c->debug;
 
   $c->stash->{pfamImageset} = $pfamImageset;
 
-  $c->log->debug('Protein::generate_pfam_graphic: successfully generated an imageset object');
+  $c->log->debug('Protein::generate_pfam_graphic: successfully generated an imageset object')
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -408,7 +413,8 @@ sub get_summary_data : Private {
   $summaryData{numInt} = 0;
   $c->stash->{summaryData} = \%summaryData;
 
-  $c->log->debug('Protein::get_summary_data: added the summary data to the stash');
+  $c->log->debug('Protein::get_summary_data: added the summary data to the stash')
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------

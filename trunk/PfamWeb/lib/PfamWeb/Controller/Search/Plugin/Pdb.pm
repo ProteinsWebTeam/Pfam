@@ -2,7 +2,7 @@
 # Pdb.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pdb.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Pdb.pm,v 1.6 2008-08-15 13:42:56 jt6 Exp $
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ we can retrieve pfam accession, ID and description from there, and
 another join against the pdb table for the actual text-query against
 the PDB ID.
 
-$Id: Pdb.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+$Id: Pdb.pm,v 1.6 2008-08-15 13:42:56 jt6 Exp $
 
 =cut
 
@@ -52,18 +52,16 @@ use base 'PfamWeb::Controller::Search';
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Search::Plugin::Pdb::process: text querying table pdb" );
+  $c->log->debug( 'Search::Plugin::Pdb::process: text querying table pdb' )
+    if $c->debug;
 
-  my $results = $c->model("PfamDB::Pdb_pfamA_reg")
-    ->search({},
-             {
-              join        => [ qw/pfamA pdb/ ],
-              prefetch    => [ qw/pfamA/ ]
-             }
-            )
-      ->search_literal( "MATCH( pdb_id, header, title ) " .
-                        "AGAINST( ? IN BOOLEAN MODE )",
-                        $c->stash->{terms} );
+  my $results = $c->model('PfamDB::Pdb_pfamA_reg')
+                  ->search( {},
+                            { join        => [ qw/pfamA pdb/ ],
+                              prefetch    => [ qw/pfamA/ ] } )
+                  ->search_literal( 'MATCH( pdb_id, header, title ) ' .
+                                    'AGAINST( ? IN BOOLEAN MODE )',
+                                    $c->stash->{terms} );
 
   return $results;
 }

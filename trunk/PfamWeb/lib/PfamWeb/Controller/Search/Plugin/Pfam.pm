@@ -2,7 +2,7 @@
 # Pfam.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pfam.pm,v 1.8 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Pfam.pm,v 1.9 2008-08-15 13:42:56 jt6 Exp $
 
 =head1 NAME
 
@@ -36,7 +36,7 @@ against the following columns:
 Also does a simple look up in the pfam table, checking to see if the
 raw search terms match a Pfam family accession or ID.
 
-$Id: Pfam.pm,v 1.8 2008-05-16 15:29:28 jt6 Exp $
+$Id: Pfam.pm,v 1.9 2008-08-15 13:42:56 jt6 Exp $
 
 =cut
 
@@ -68,7 +68,7 @@ columns.
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Search::Plugin::Pfam::process: text querying table pfamA using: |" .
+  $c->log->debug( 'Search::Plugin::Pfam::process: text querying table pfamA using: |' .
                   $c->stash->{terms} . '|' ) if $c->debug;
 
   my $m = $c->model('PfamDB::Pfam');

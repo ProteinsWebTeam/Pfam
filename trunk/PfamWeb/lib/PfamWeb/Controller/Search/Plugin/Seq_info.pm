@@ -2,7 +2,7 @@
 # Seq_info.pm
 # jt6 20060810 WTSI
 #
-# $Id: Seq_info.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Seq_info.pm,v 1.6 2008-08-15 13:42:56 jt6 Exp $
 
 =head1 NAME
 
@@ -26,7 +26,7 @@ following columns:
 
 =back
 
-$Id: Seq_info.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+$Id: Seq_info.pm,v 1.6 2008-08-15 13:42:56 jt6 Exp $
 
 =cut
 
@@ -53,14 +53,15 @@ use base 'PfamWeb::Controller::Search';
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Search::Plugin::Seq_info::process: text querying table seq_info" );
+  $c->log->debug( 'Search::Plugin::Seq_info::process: text querying table seq_info' )
+    if $c->debug;
 
-  my $results = $c->model("PfamDB::Seq_info")
-	->search( {},
-			  {} )
-	  ->search_literal( "MATCH( seq_description, species, pfamseq_id, pfamseq_acc ) " .
-						"AGAINST( ? IN BOOLEAN MODE )",
-						$c->stash->{terms} );
+  my $results = $c->model('PfamDB::Seq_info')
+                  ->search( {},
+                            {} )
+                  ->search_literal( 'MATCH( seq_description, species, pfamseq_id, pfamseq_acc ) ' .
+                                    'AGAINST( ? IN BOOLEAN MODE )',
+                                    $c->stash->{terms} );
 
   return $results;
 }
