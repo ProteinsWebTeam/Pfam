@@ -4,7 +4,7 @@
 # 
 # taxonomy search results page
 #
-# $Id: taxonomyResults.tt,v 1.7 2008-08-14 15:26:14 jt6 Exp $
+# $Id: taxonomyResults.tt,v 1.8 2008-08-15 10:49:11 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -70,20 +70,19 @@ META fullPage = 1;
 <script type="text/javascript">
   // <![CDATA[
 
-  new Ajax.Updater( "results",
-                    "[% c.uri_for( "/search/taxonomy/results" ) %]",
-                    {
-                      evalScripts: true,
-                      parameters: { q: encodeURI('[% q %]') },
-                      onFailure: function() {
-                        $("results").update("There was a problem completing your query" );
-                      },
-                      onComplete: function( response ) {
-                        $("loadingDiv").hide();
-                        $("returnDiv").show();
-                      }
-                    } 
-                  );
+  var r = new Ajax.Updater( "results",
+                             "[% c.uri_for( '/search/taxonomy/results' ) %]",
+                             {
+                               evalScripts: true,
+                               parameters: { q: encodeURI('[% q %]') },
+                               onFailure: function() {
+                                 $("results").update("There was a problem completing your query" );
+                               },
+                               onComplete: function( response ) {
+                                 $("loadingDiv").hide();
+                                 $("returnDiv").show();
+                               }
+                             } );
 
   // ]]>
 </script>
