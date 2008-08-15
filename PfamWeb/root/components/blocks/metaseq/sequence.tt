@@ -6,7 +6,7 @@
 # block for the sequence, raw and formatted, for the metaseq page. An almost
 # exact copy of the sequence block from the protein section...
 #
-# $Id: sequence.tt,v 1.5 2008-06-02 14:40:24 jt6 Exp $
+# $Id: sequence.tt,v 1.6 2008-08-15 13:21:59 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 
@@ -88,7 +88,9 @@ oe = 0;
               <span class="link" onclick="reveal(this,'plainSequence',false)">Show</span> the unformatted sequence.
             </p>
 
-            <div id="plainSequence" style="display: none">[% sl %]</div>
+            <div id="plainSequence"
+                 class="plainSequence" 
+                 style="display: none">[% sl %]</div>
             
           </td>
         </tr>
