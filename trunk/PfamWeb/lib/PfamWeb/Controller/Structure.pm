@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.17 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Structure.pm,v 1.18 2008-08-15 13:36:44 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.17 2008-05-16 15:29:28 jt6 Exp $
+$Id: Structure.pm,v 1.18 2008-08-15 13:36:44 jt6 Exp $
 
 =cut
 
@@ -73,13 +73,15 @@ sub begin : Private {
   # get the accession or ID code
   my $pdbId;
   if( defined $c->req->param('id') ) {
-    $c->log->debug( 'Structure::begin: found param "id"; checking...' );
+    $c->log->debug( 'Structure::begin: found param "id"; checking...' )
+      if $c->debug;
 
     $c->req->param('id') =~ m/^([0-9][A-Z0-9]{3})$/i;
     $pdbId = $1 if defined $1;
   
   } elsif( defined $c->req->param('entry') ) {
-    $c->log->debug( 'Structure::begin: found param "entry"; checking...' );
+    $c->log->debug( 'Structure::begin: found param "entry"; checking...' )
+      if $c->debug;
 
     $c->req->param('entry') =~ m/^([0-9][A-Z0-9]{3})$/i;
     $pdbId = $1 if defined $1;
@@ -90,7 +92,8 @@ sub begin : Private {
     # argument to the URL without this...
     my $pdbIdArg = $pdbIdArgs[-1];
 
-    $c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." );
+    $c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." )
+      if $c->debug;
     $pdbIdArg =~ /(\d\w{3})/;
     $pdbId = $1 if defined $1;
 
@@ -123,7 +126,8 @@ sub begin : Private {
     return;
   }
 
-  $c->log->debug( "Structure::begin: successfully retrieved pdb object for |$pdbId|" );
+  $c->log->debug( "Structure::begin: successfully retrieved pdb object for |$pdbId|" )
+    if $c->debug;
 
   # stash the PDB object and ID
   $c->stash->{pdb}   = $pdb;
@@ -244,7 +248,7 @@ sub addMapping : Private {
   my( $this, $c ) = @_;
 
   $c->log->debug( 'Structure::addMapping: adding mappings for PDB entry '
-          . $c->stash->{pdb}->pdb_id );
+          . $c->stash->{pdb}->pdb_id ) if $c->debug;
 
   # add the structure-to-UniProt mapping to the stash
   my @unpMap = $c->model('PfamDB::Pdb_pfamA_reg')
@@ -253,7 +257,8 @@ sub addMapping : Private {
                              prefetch    => [ qw( pfamA pfamseq ) ],
                              order_by    => 'chain ASC' } );
 
-  $c->log->debug( 'Structure::addMapping: found ' . scalar @unpMap . ' mappings' );
+  $c->log->debug( 'Structure::addMapping: found ' . scalar @unpMap . ' mappings' )
+    if $c->debug;
   $c->stash->{mapping} = \@unpMap;
 
   # build a little data structure to map PDB chains to uniprot IDs and
