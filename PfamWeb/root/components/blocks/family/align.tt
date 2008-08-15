@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.29 2008-07-28 14:06:04 jt6 Exp $
+# $Id: align.tt,v 1.30 2008-08-15 12:56:00 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -84,8 +84,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <form id="viewerForm"
           action="[% alignmentUri %]/download/html"
-          onsubmit="launchPfam();"
-          method="get">
+          onsubmit="launchPfam();">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
   
@@ -185,7 +184,8 @@ alignmentUri = c.uri_for( "/family/alignment" );
     
     <h2>Formatting options</h2>
 
-    <form action="[% alignmentUri %]/download/format" method="get">
+    <form action="[% alignmentUri %]/download/format" 
+          id="formatForm">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
 
@@ -305,10 +305,9 @@ alignmentUri = c.uri_for( "/family/alignment" );
     </p>
 
     <form id="downloadGzippedForm"
-          action="[% alignmentUri %]/download/gzipped"
-          method="get">
+          action="[% alignmentUri %]/download/gzipped">
       <div>
-        <input type="hidden" name="acc"     value="[% acc %]" />
+        <input type="hidden" name="acc" value="[% acc %]" />
   
         [% oe = 0 %]
         <table class="details alignOpts" summary="Download options">
@@ -330,6 +329,53 @@ alignmentUri = c.uri_for( "/family/alignment" );
         </table>
   
         <input type="submit" value="Download" />
+  
+      </div>
+    </form>
+
+    <h2>External links</h2>
+
+    <p>
+      <a class="ext" href="http://myhits.vital-it.ch/">MyHits</a> provides a 
+      collection of tools to handle multiple sequence alignment. For example, 
+      one can refine a seed alignment (sequence addition or removal, 
+      re-alignment or manual edition) and then search databases for remote 
+      homologs using HMMER2. 
+    </p>
+
+    <form id="myHitsForm"
+          action="http://myhits.vital-it.ch/cgi-bin/msa_hub"
+          method="post">
+      <div>
+        <input type="hidden" name="text" id="myHitsText" />
+        <input type="hidden" name="action" value="to MSA hub" />
+  
+        [% oe = 0 %]
+        <table class="details alignOpts" summary="Download options">
+          <tbody>
+            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+              <td class="label">Pfam alignments:</td>
+              <td>
+                <span class="button">
+                  <input type="radio" name="alnType" id="mhTypeS" value="seed" checked="checked" />
+                  <label for="mhTypeS">Seed ([% pfam.num_seed %])</label>
+                </span>
+                <span class="button">
+                  <input type="radio" name="alnType" id="mhTypeF" value="full" />
+                  <label for="mhTypeF">Full ([% pfam.num_full %])</label>
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <input type="button" 
+               value="Submit to MyHits" 
+               id="myHitsSubmit" />
+               
+        <span id="myHitsLoading" 
+              style="display: none"
+              class="loading">Loading...</span>
   
       </div>
     </form>
@@ -356,8 +402,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <form id="additionalDatasetsForm"
           action="[% alignmentUri %]/download/html"
-          onsubmit="launchAdditional();"
-          method="get">
+          onsubmit="launchAdditional();">
       <div>
         <input type="hidden" name="acc" value="[% acc %]" />
   
@@ -402,6 +447,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <script type="text/javascript">
       // <![CDATA[
+      
       // although the form action looks like it will download the alignment,
       // in fact we catch the submission here and decide, based on the form
       // values, which URL to go to next.
@@ -426,6 +472,35 @@ alignmentUri = c.uri_for( "/family/alignment" );
         }      
         return false;
       }
+      
+      $("myHitsSubmit").observe( "click", function( e ) {
+
+        // disable the form and show the spinner
+        $("myHitsLoading").show();
+
+        // set up an Updater that will retrieve the alignment
+        var r = new Ajax.Updater( "myHitsText",
+                                   "[% alignmentUri %]/download/format",
+                                   {
+                                     parameters: { acc:     "[% acc %]",
+                                                   alnType: $F("mhTypeS") ? "seed" : "full", 
+                                                   format:  "fasta",
+                                                   gaps:    "dashes" },
+                                                   
+                                     onSuccess: function( oResponse ) { 
+                                       $("myHitsText").value = oResponse.responseText;
+                                       $("myHitsForm").submit();
+                                     },
+                                     
+                                     onFailure: function() {
+                                       $("myHitsLoading")
+                                         .removeClassName("loading")
+                                         .update( "There was a problem retrieving the alignment" );                                  
+                                     }
+                                   } );
+
+      } );
+      
       // ]]>
     </script>
     
