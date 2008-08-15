@@ -2,7 +2,7 @@
 # Interpro.pm
 # jt6 20060816 WTSI
 #
-# $Id: Interpro.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Interpro.pm,v 1.5 2008-08-15 13:42:56 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ following columns:
 There's an explicit join against the pfamA table, so that we can
 retrieve pfamA accession, ID and description.
 
-$Id: Interpro.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+$Id: Interpro.pm,v 1.5 2008-08-15 13:42:56 jt6 Exp $
 
 =cut
 
@@ -50,15 +50,16 @@ Executes the query.
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( "Search::Plugin::Interpro::process: text querying table interpro" );
+  $c->log->debug( 'Search::Plugin::Interpro::process: text querying table interpro' )
+    if $c->debug;
 
-  my $results = $c->model("PfamDB::Interpro")
-	->search( {},
-			  { join     => [ qw/pfamA/ ],
-				prefetch => [ qw/pfamA/ ] } )
-	  ->search_literal( "MATCH( interpro_id, abstract ) " .
-						"AGAINST( ? IN BOOLEAN MODE )",
-						$c->stash->{terms} );
+  my $results = $c->model('PfamDB::Interpro')
+                  ->search( {},
+                            { join     => [ qw/pfamA/ ],
+                            prefetch => [ qw/pfamA/ ] } )
+                  ->search_literal( 'MATCH( interpro_id, abstract ) ' .
+                                    'AGAINST( ? IN BOOLEAN MODE )',
+                                    $c->stash->{terms} );
 
   return $results;
 }
