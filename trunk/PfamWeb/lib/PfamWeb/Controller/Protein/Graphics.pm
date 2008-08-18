@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.25 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Graphics.pm,v 1.26 2008-08-18 08:58:03 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.25 2008-05-16 15:29:28 jt6 Exp $
+$Id: Graphics.pm,v 1.26 2008-08-18 08:58:03 jt6 Exp $
 
 =cut
 
@@ -63,7 +63,8 @@ sub updateSources : Path {
     $c->log->warn("Protein::Graphics::updateSources: Unable to get sequence for '$seqAcc'");
     return; # Hopeless
   }
-  $c->log->debug("Protein::Graphics::updateSources: retrieved a sequence for |$seqAcc|" );
+  $c->log->debug("Protein::Graphics::updateSources: retrieved a sequence for |$seqAcc|" )
+    if $c->debug;
   
   # This is our reference co-ordinate system everything needs to be converted back to.
   my $baseSystem = 'UniProt';
@@ -86,7 +87,7 @@ sub updateSources : Path {
                                           } );
   $c->log->debug( 'Protein::Graphics::updateSources: found |'
                   . scalar( @availableAlignServers ) 
-                  . '| AVAILABLE alignment servers' );
+                  . '| AVAILABLE alignment servers' ) if $c->debug;
 
   my( %availableAlignServersForSystem, 
       %availableAlignServersForUrl );
@@ -99,10 +100,10 @@ sub updateSources : Path {
     
   $c->log->debug( 'Protein::Graphics::updateSources: found |'
                   . scalar( keys %availableAlignServersForSystem )
-                  . '| AVAILABLE alignment servers for system' );
+                  . '| AVAILABLE alignment servers for system' ) if $c->debug;
   $c->log->debug( 'Protein::Graphics::updateSources: found |'
                   . scalar( keys %availableAlignServersForUrl ) 
-                  . '| AVAILABLE alignment servers for URL' );
+                  . '| AVAILABLE alignment servers for URL' ) if $c->debug;
 
   #----------------------------------------
 
@@ -114,7 +115,7 @@ sub updateSources : Path {
   
   $c->log->debug( 'Protein::Graphics::updateSources: found |'
                   . scalar( keys %availableFeatureServersForUrl ) 
-                  . '| AVAILABLE feature servers for URL' );
+                  . '| AVAILABLE feature servers for URL' ) if $c->debug;
 
   #----------------------------------------
 
@@ -123,7 +124,7 @@ sub updateSources : Path {
 
   $c->log->debug( 'Protein::Graphics::updateSources: found |'
                   . scalar( keys %$selectedFeatureServers ) 
-                  . '| SELECTED feature servers for URL' );
+                  . '| SELECTED feature servers for URL' ) if $c->debug;
 
   #----------------------------------------
 
@@ -141,9 +142,10 @@ sub updateSources : Path {
 
   $c->log->debug( 'Protein::Graphics::updateSources: found |'
                   . scalar( keys %selectedFeatureServersForSystem )
-                  . '| SELECTED feature servers for system' );
+                  . '| SELECTED feature servers for system' ) if $c->debug;
 
   #----------------------------------------
+  
   $c->log->debug( 'Protein::Graphics::updateSources: done retrieving server details; looping' )
     if $c->debug;
   
@@ -155,7 +157,8 @@ sub updateSources : Path {
                     . scalar( keys %$selectedObjects )
                     . '| SELECTED DAS objects' );
   } else {
-    $c->log->debug( 'Protein::Graphics::updateSources: no SELECTED DAS objects' );
+    $c->log->debug( 'Protein::Graphics::updateSources: no SELECTED DAS objects' )
+      if $c->debug;
   }
   
   my $types = sortByProperty( [ keys %selectedFeatureServersForSystem ],
@@ -385,7 +388,8 @@ sub updateSources : Path {
   # stash the image data maps and we're done.
   $c->stash->{sections} = \@sections;
   
-  $c->log->debug( "Protein::Graphics::updateSources: generated $imageNum images" );
+  $c->log->debug( "Protein::Graphics::updateSources: generated $imageNum images" )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -408,7 +412,8 @@ sub getSelectedDASObjects : Private {
   
   my $selectedObjs;
   if( $c->req->param('reloadObjects') ) {
-    $c->log->debug( "Protein::Graphics::getSelectedObjects: getting DAS objects for $acc from request" );
+    $c->log->debug( "Protein::Graphics::getSelectedObjects: getting DAS objects for $acc from request" )
+      if $c->debug;
 
     $selectedObjs = {};
     foreach ( keys %{$c->req->parameters} ) {
@@ -416,7 +421,8 @@ sub getSelectedDASObjects : Private {
       next unless ( $type and $sys and $id ) and 
                   $c->req->param( $_ ) eq "on";
 
-      $c->log->debug("Protein::Graphics::getSelectedObjects:   extracted '$type / $sys / $id'");
+      $c->log->debug("Protein::Graphics::getSelectedObjects:   extracted '$type / $sys / $id'")
+        if $c->debug;
       $selectedObjs->{$type}{$sys}{$id} = 1;
     }
 
@@ -425,12 +431,14 @@ sub getSelectedDASObjects : Private {
       if scalar keys %$selectedObjs;
 
   } elsif( defined $c->session->{selectedDASObjects}{$acc} ) {
-    $c->log->debug( 'Protein::Graphics::getSelectedObjects: getting DAS objects for $acc from session' );
+    $c->log->debug( 'Protein::Graphics::getSelectedObjects: getting DAS objects for $acc from session' )
+      if $c->debug;
 
     $selectedObjs = $c->session->{selectedDASObjects}{$acc};
     
   } else {
-    $c->log->debug( "Protein::Graphics::getSelectedObjects: no DAS objects found for $acc in request or session" );
+    $c->log->debug( "Protein::Graphics::getSelectedObjects: no DAS objects found for $acc in request or session" )
+      if $c->debug;
   }
   
   return $selectedObjs;
@@ -455,7 +463,8 @@ sub getServerList : Private {
   if( $c->req->param('reloadSources') ) {
     # first, see if there's a list in the request parameters
 
-    $c->log->debug( 'Protein::Graphics::getServerList: getting DAS server IDs from request' );
+    $c->log->debug( 'Protein::Graphics::getServerList: getting DAS server IDs from request' )
+      if $c->debug;
     foreach ( sort keys %{$c->req->parameters} ) {
 
       # we want only the server IDs
@@ -463,21 +472,24 @@ sub getServerList : Private {
   
       if( defined $3 ) {
         $servers->{$1}{$2}{$3} = 1;
-        $c->log->debug( "Protein::Graphics::getServerList:   extracted '$1 / $2 / $3'" );
+        $c->log->debug( "Protein::Graphics::getServerList:   extracted '$1 / $2 / $3'" )
+          if $c->debug;
       }
     }
 
   } elsif( $c->session->{selectedDASFeatureServers} ) {
     # next, see if there's a list of servers set in the session
 
-    $c->log->debug( 'Protein::Graphics::getServerList: getting server IDs from session' );
+    $c->log->debug( 'Protein::Graphics::getServerList: getting server IDs from session' )
+      if $c->debug;
     $servers = $c->session->{selectedDASFeatureServers};
 
   } else {
     # finally, if we don't have a list of servers from either the
     # session or the request, get the default list from the DB
     
-    $c->log->debug( 'Protein::Graphics::getServerList: getting server IDs from database' );
+    $c->log->debug( 'Protein::Graphics::getServerList: getting server IDs from database' )
+      if $c->debug;
     
     my @defaultServers = $c->model('WebUser::Feature_das_sources')
                            ->search( { default_server => 1 } );
@@ -485,7 +497,7 @@ sub getServerList : Private {
       $servers->{$_->sequence_type}{$_->system}{$_->server_id} = 1;
       $c->log->debug( "Protein::Graphics::getServerList:   extracted '"
                       . $_->sequence_type . " / " . $_->system . " / " . $_->server_id
-                      . "'" );
+                      . "'" ) if $c->debug;
     }
 
   }
