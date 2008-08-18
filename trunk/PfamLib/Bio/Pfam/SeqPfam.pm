@@ -21,7 +21,8 @@ Bio::Pfam::SeqPfam - A protein sequence with mark-up as per Stockholm format
     $pfamAreg = new Bio::Pfam::SeqPfam( '-seq' => $sequence,
 					'-id' => $id,
 					'-acc' => $acc,
-					'-desc' => $description,
+					'-version' => $version,
+                    '-desc' => $description,
 					'-org' => $organism,
 					'-tax' => $taxononmy,
 					'-start' => $start,
@@ -75,7 +76,7 @@ use Bio::Seq::RichSeq;
 
 sub new {
   my($class, %params ) = @_;
-  my( $id, $start, $end, $seq, $acc, $desc, $org, $tax, $annot, $seq_version, $current, $ss, $sa, $tm, $pp, $lb, $db, $index) = 
+  my( $id, $start, $end, $seq, $acc, $desc, $org, $tax, $annot, $seq_version, $current, $ss, $sa, $tm, $pp, $lb, $db, $index, $version, $as, $pas, $sas) = 
       (
        ($params{'-ID'}          || $params{'-id'}),
        ($params{'-START'}       || $params{'-start'}),
@@ -94,7 +95,11 @@ sub new {
        ($params{'-PP'}          || $params{'-pp'}),
        ($params{'-LI'}          || $params{'-li'}),
        ($params{'-DB'}          || $params{'-db'}),
-       ($params{'-RDB_INDEX'}          || $params{'-rdb_index'}),
+       ($params{'-RDB_INDEX'}   || $params{'-rdb_index'}),
+       ($params{'-VERSION'}     || $params{'-version'}),
+       ($params{'-AS'}          || $params{'-as'}),
+       ($params{'-PAS'}          || $params{'-pas'}),
+       ($params{'-SAS'}          || $params{'-sas'}),
        );
        
   my $self = $class->SUPER::new( %params );  # this is Bio::Pfam::Root
@@ -121,7 +126,10 @@ sub new {
   $self->posterior_prob( $pp );
   $self->ligand_binding( $lb );
   $self->domain_binding( $db );
-
+  $self->version($version);
+  $self->active_site($as);
+  $self->pfam_pred_active_site($pas);
+  $self->sprot_pred_active_site($sas);
   return $self; # success - we hope!
 }
 
@@ -163,6 +171,16 @@ sub rdb_index {
        $self->{'seqpfam_index'} = $value;
    }
    return $self->{'seqpfam_index'};
+}
+
+
+sub version {
+   my ($self, $value) = @_;
+
+   if (defined $value) {
+       $self->{'seq_version'} = $value;
+   }
+   return $self->{'seq_version'};
 }
 
 =head2 desc
@@ -275,6 +293,54 @@ sub active_site {
    
 }
 
+
+=head2 pfam_pred_active_site
+
+ Title   : pfam_pred_active_site
+ Usage   : 
+    $seq->pfam_pred_active_site( $reg ); # or ...
+ Function: For setting and getting an OtherRegion object to 
+    store the pfam predicted active site for the sequence
+ Notes:
+    The start-ends of the given region are assumed to be 
+    absolute sequence co-ordinates. This is important when 
+    writing the sequence 
+    
+=cut
+    
+sub pfam_pred_active_site {
+   my ($self, $newreg) = @_;
+
+   if (defined $newreg) {
+       $self->{'seqpfam_pfam_pred_active_site'} = $newreg;
+   }
+   return $self->{'seqpfam_pfam_pred_active_site'};
+   
+}
+
+=head2 sprot_pred_active_site
+
+ Title   : sprot_pred_active_site
+ Usage   : 
+    $seq->sprot_pred_active_site( $reg ); # or ...
+ Function: For setting and getting an OtherRegion object to 
+    store the swiss-prot predicted active site for the sequence
+ Notes:
+    The start-ends of the given region are assumed to be 
+    absolute sequence co-ordinates. This is important when 
+    writing the sequence 
+    
+=cut
+    
+sub sprot_pred_active_site {
+   my ($self, $newreg) = @_;
+
+   if (defined $newreg) {
+       $self->{'seqpfam_sprot_pred_active_site'} = $newreg;
+   }
+   return $self->{'seqpfam_sprot_pred_active_site'};
+   
+}
 
 =head2 crc64
 
@@ -517,6 +583,50 @@ sub seq_version {
    return $self->{'seq_version'};
 }
 
+
+=head2 set_active_site
+
+ Title     : set_active_site
+ Usage     : $seq->set_active_site($line) whre $line is of form '......*......'
+ Function  : sets an active site residue
+
+=cut
+
+sub set_active_site {
+  
+    my $self = shift;
+    my $line = shift;
+
+    $self->active_site(Bio::Pfam::OtherRegion->new('-type' => "active_site",
+						  '-display' => $line,
+					           '-source' => 'Pfam'));
+
+    return $self;
+}
+
+
+sub set_pfam_pred_active_site {
+  
+    my $self = shift;
+    my $line = shift;
+
+    $self->active_site(Bio::Pfam::OtherRegion->new('-type' => "pfam_pred_active_site",
+						  '-display' => $line,
+					           '-source' => 'Pfam'));
+    return $self;
+
+}
+
+sub set_sprot_pred_active_site {
+  
+    my $self = shift;
+    my $line = shift;
+
+    $self->active_site(Bio::Pfam::OtherRegion->new('-type' => "sprot_pred_active_site",
+						  '-display' => $line,
+					           '-source' => 'Pfam'));
+    return $self;
+}
 
 =head1 COPYRIGHT
 
