@@ -65,7 +65,7 @@ while(1) {
 		$cmd .= " -cpu ".$qsout->cpus;
 	}
 	$cmd .= " -align -d ".$qsout->dataFileDir;
-  $cmd .= " -as -as_dir /home/pfamweb/AS";
+  $cmd .= " -as";
 	$cmd .= " ".$ref->{'options'};
 	$cmd .= " ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
 
