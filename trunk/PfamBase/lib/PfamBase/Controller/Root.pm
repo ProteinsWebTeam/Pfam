@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.5 2008-08-18 09:09:48 jt6 Exp $
+# $Id: Root.pm,v 1.6 2008-08-18 09:29:41 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.5 2008-08-18 09:09:48 jt6 Exp $
+$Id: Root.pm,v 1.6 2008-08-18 09:29:41 jt6 Exp $
 
 =cut
 
@@ -80,9 +80,11 @@ sub index : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 announcements : Local
 
-Description...
+Returns a snippet of HTML showing the most recent set of website changelog
+entries, or an announcement, depending on the "type" parameter. Intended to be
+called only via an AJAX request from the homepage.
 
 =cut
 
@@ -115,7 +117,7 @@ sub announcements : Local {
     my $hide_timestamp = $cookie->value;
         
     if ( $hide_timestamp > $last_entry_timestamp ) {
-      $c->log->debug( 'Root::Announcements: '
+      $c->log->debug( 'Root::announcements: '
                       . 'hide_timestamp (' . $hide_timestamp 
                       . ') is newer than last_entry_timestamp (' 
                       . $last_entry_timestamp 
