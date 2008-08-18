@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.52 2008-07-28 14:12:51 jt6 Exp $
+# $Id: index.tt,v 1.53 2008-08-18 10:01:22 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -413,7 +413,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   var exPfamId = "Piwi";
   var exClanId = "Kazal";
   var exUnpId  = "VAV_HUMAN";
-  var exPdbId  = "2abl";
+  var exPdbId  = "1w9h";
   var exKw     = "apoptosis";
   var exSeq    = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
 TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
