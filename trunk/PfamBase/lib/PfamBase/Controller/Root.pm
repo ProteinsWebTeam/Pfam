@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.4 2008-07-25 13:10:28 jt6 Exp $
+# $Id: Root.pm,v 1.5 2008-08-18 09:09:48 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.4 2008-07-25 13:10:28 jt6 Exp $
+$Id: Root.pm,v 1.5 2008-08-18 09:09:48 jt6 Exp $
 
 =cut
 
@@ -127,90 +127,6 @@ sub announcements : Local {
   }
     
   $c->res->body( $entries->{$last_entry_timestamp} );
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 new_features : Local
-
-Intended to be called from the index page using an AJAX request, this action 
-returns an HTML snippet showing the latest features in the site. The maximum
-number of recent features is controlled by the configuration, whilst the 
-number of features that actually appear depends on when the user last visited
-the site. A cookie stores that date, so that we can remove older items.
-
-=cut
-
-sub new_features : Local {
-  my( $this, $c ) = @_;
-
-  # get the cookie that stores the state and retrieve the data as a hash with
-  # key/value pairs storing feature timestamps and last-seen dates 
-  my $cookie = $c->req->cookie( 'features' ); 
-  my %last_seen = ();
-  %last_seen = split m/;/, $cookie->value if defined $cookie;
-  
-  # the available changelog entries
-  my $changelog = $c->config->{changelog}->{entries};
-  my @entries = sort keys %$changelog;
-  
-  # work out the range of entries that we should consider
-  my $first = scalar @entries - $c->config->{changelog}->{show_last};
-  $first = 0 if $first < 0;
-  my $last  = scalar @entries - 1;
-
-  my( @times, @features );
-  foreach my $feature_time ( reverse @entries[$first..$last] ) {
-
-    # find out if and when the user last saw this message
-    my $saw_feature_at = $last_seen{$feature_time} || 0;
-
-    # format the timestamp
-    my $ft = DateTime->from_epoch( epoch => $feature_time );
-    my $ts = sprintf( '%02d', $ft->day ) . ' ' . $ft->month_abbr . ' ' . $ft->year();
-
-    # if it's less than, say, two weeks since we saw this entry, show it now
-    if( time - $saw_feature_at < $c->config->{changelog}->{show_for} ) {
-
-      push @features, { id    => $feature_time,
-                        time  => $ts,
-                        entry => $changelog->{$feature_time},
-                        old   => 1 };
-    }
-    # if the feature is previously unseen, show it now
-    elsif( $feature_time > $saw_feature_at ) {
-
-      push @features, { id    => $feature_time,
-                        time  => $ts,
-                        entry => $changelog->{$feature_time} };
-    }
-      
-    # these will be used to set a cookie saying "we saw feature X at time Y"
-    push @times, $feature_time, 
-                 $saw_feature_at > 0 ? $saw_feature_at : time;
-
-  }
-
-  $c->stash->{features} = \@features; 
-
-  # turn the times "hash" into a cookie value
-  my $value = join ';', @times;
-  $c->res->cookies->{features} = { value   => $value,
-                                   expires => 'Fri, 01-Jan-2038 00:00:00 GMT' };
-
-  # if we didn't find any features, set the response status to 204, "No 
-  # content" and let "end" worry about it
-  $c->res->status( 204 ) unless scalar @features;
-
-  # make sure the new features fragment isn't cached
-  $c->res->header( 'Pragma'        => 'no-cache' );
-  $c->res->header( 'Expires'       => 'Thu, 01 Jan 1970 00:00:00 GMT' );
-  $c->res->header( 'Cache-Control' => 'no-store, no-cache, must-revalidate,'.
-                                      'post-check=0, pre-check=0, max-age=0' );
-    
-  # if we did find some features to shout about, "end" should render this 
-  # template
-  $c->stash->{template} = 'components/features.tt';
 }
 
 #-------------------------------------------------------------------------------
