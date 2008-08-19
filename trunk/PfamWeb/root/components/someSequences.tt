@@ -6,9 +6,11 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.7 2008-07-28 14:05:26 jt6 Exp $
+# $Id: someSequences.tt,v 1.8 2008-08-19 15:20:53 jt6 Exp $
 
 META naked = 1;
+
+USE String;
 
 # an ugly catch-all...
 IF numRows < 1 %]
@@ -25,7 +27,9 @@ FOREACH image IN images.each_image;
     <span class="graphicLabel">
       <a href="[% c.uri_for( "/protein", { id = image.image_name } ) %]">
         [% image.image_name %]</a>
-      [% image.image_info %]
+      [% # capitalise the species name
+      info = String.new( image.image_info );
+      "["; info.replace( '\[\s*', '' ).capital %]
       ([% image.length / image.scale_x %] residues)
     </span>
 
