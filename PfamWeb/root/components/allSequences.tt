@@ -6,7 +6,7 @@
 # a given architecture. It should be called by the DomainGraphics controller,
 # via ajax.
 #
-# $Id: allSequences.tt,v 1.3 2008-05-16 15:30:32 jt6 Exp $
+# $Id: allSequences.tt,v 1.4 2008-08-19 15:22:03 jt6 Exp $
 
 META naked = 1;
 
@@ -67,7 +67,9 @@ USE String;
     <span class="graphicLabel">
       <a href="[% c.uri_for( "/protein", { id = image.image_name } ) %]">
         [% image.image_name %]</a>
-      [% image.image_info %]
+      [% # capitalise the species name
+      info = String.new( image.image_info );
+      "["; info.replace( '\[\s*', '' ).capital %]
       ([% image.length / image.scale_x %] residues)
     </span>
 
