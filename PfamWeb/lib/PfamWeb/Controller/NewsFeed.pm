@@ -2,7 +2,7 @@
 # News.pm
 # jt 20061207 WTSI
 #
-# $Id: NewsFeed.pm,v 1.10 2008-07-28 13:54:18 jt6 Exp $
+# $Id: NewsFeed.pm,v 1.11 2008-08-19 09:38:48 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::NewsFeed;
 
 Generates the Pfam news feed RSS.
 
-$Id: NewsFeed.pm,v 1.10 2008-07-28 13:54:18 jt6 Exp $
+$Id: NewsFeed.pm,v 1.11 2008-08-19 09:38:48 jt6 Exp $
 
 =cut
 
@@ -75,7 +75,7 @@ sub rss : Global {
   my $feedXML = $c->cache->get( $cacheKey );
   
   if( $feedXML ) {
-    $c->log->debug( 'NewsFeed::rss: retrieved feed from cache' );
+    $c->log->debug( 'NewsFeed::rss: retrieved feed from cache' ) if $c->debug;
   } else { 
 
     # start a feed
@@ -88,13 +88,16 @@ sub rss : Global {
     $feed->language("en-GB");
   
     # query the DB for news items, in reverse chronological order
-    my @entries = $c->model("WebUser::News")->search( {}, { order_by => "pubDate DESC" } );
+    my @entries = $c->model("WebUser::News")
+                    ->search( {}, 
+                              { order_by => "pubDate DESC" } );
   
     # add each item to the feed
     foreach my $entry (@entries) {
       my $feedEntry = XML::Feed::Entry->new('RSS');
       $feedEntry->title( $entry->title );
-      $feedEntry->link( $c->uri_for( "/newsfeed#" . $entry->auto_news ) );
+      $feedEntry->link( 'http://pfam.sanger.ac.uk/newsfeed#' . $entry->auto_news );
+      $feedEntry->summary( $entry->summary );
       $feedEntry->issued(
                      DateTime::Format::MySQL->parse_datetime( $entry->pubDate ) );
       $feed->add_entry($feedEntry);
@@ -103,7 +106,7 @@ sub rss : Global {
     # convert the feed to XML and cache it for a day 
     $feedXML = $feed->as_xml;
     $c->cache->set( $cacheKey, $feedXML, 86400 ) unless $ENV{NO_CACHE};
-    $c->log->debug( 'NewsFeed::rss: cached feed XML for one day' );
+    $c->log->debug( 'NewsFeed::rss: cached feed XML for one day' ) if $c->debug;
   }
 
   # set the headers and dump the raw XML to the body
