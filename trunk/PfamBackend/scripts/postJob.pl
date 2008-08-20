@@ -205,11 +205,12 @@ The top of your input file looked like this:
 __MESSAGE__
 
   my $seq = substr( $ref->{stdin}, 0, 250 );
-  $seq .= '...' if length( $ref->{stdin} ) >250;
-  $seq .= "\n";
 
   $Text::Wrap::columns = 60;
   $message .= wrap( '', '', $seq );
+
+  $message .= '...' if length( $ref->{stdin} ) > 250;
+  $message .= "\n";
 
   #----------------------------------------
   
