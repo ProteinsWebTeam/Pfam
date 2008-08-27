@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.11 2008-06-02 14:40:58 jt6 Exp $
+# $Id: tax.tt,v 1.12 2008-08-27 12:12:32 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -34,9 +34,10 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
       This form supports two types of query: you can enter a complex boolean
       expression that precisely defines the species distribution of families
       that you want, such as &quot;Caenorhabditis elegans AND NOT Homo 
-      sapiens&quot;, or you can enter a single species term, e.g. 
-      &quot;Caenorhabditis elegans&quot; and find all Pfam-A families that are 
-      unique to that particular taxonomic level.
+      sapiens&quot;, or you can check the &quot;Find domains unique to 
+      query term&quot; box and enter a single taxonomic descriptor, e.g. 
+      &quot;apicomplexa&quot; to find all Pfam-A families that are 
+      unique to that particular level.
       <span class="moreLink" onclick="reveal(this,'taxNotes',false, true)">More...</span>
     </p>
     <div id="taxNotes" style="display: none">
@@ -109,13 +110,13 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         or <em>C. briggsae</em> but not in human.
       </p>
       
-      <h2>Families unique to a single species</h2>
+      <h3>Families unique to a single species</h3>
       <p>
-        By checking the box marked &quot;Find domains unique to species&quot;
+        By checking the box marked &quot;Find domains unique to query term&quot;
         you can limit the query to finding those domains which are found only
         in a single species or taxonomic level. For example, checking the box
         and entering &quot;Caenorhabditis elegans&quot; will return a list of
-        Pfam-A domains that are present only in C. elegans, and 
+        Pfam-A domains that are present only in C. elegans, whilst 
         &quot;metazoa&quot; will find families that exist in metazoans.
       </p>
       <p>
@@ -150,7 +151,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <div id="taxSuggestions" class="autocomplete"></div>
           
         <div class="row">
-          <label for="unique">Find domains unique to species</label>
+          <label for="unique">Find domains unique to query term</label>
           <input class="radio"
                  type="checkbox" 
                  name="unique" 
@@ -185,7 +186,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 <script type="text/javascript">
   // <![CDATA[
   var exTax    = 'Caenorhabditis elegans AND NOT Homo sapiens';
-  var exUnique = 'Caenorhabditis elegans';
+  var exUnique = 'Apicomplexa';
 
   new Ajax.Autocompleter(
     'q',
