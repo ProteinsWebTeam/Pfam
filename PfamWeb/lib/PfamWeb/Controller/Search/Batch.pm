@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.13 2008-08-08 15:55:17 jt6 Exp $
+# $Id: Batch.pm,v 1.14 2008-08-27 12:12:53 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.13 2008-08-08 15:55:17 jt6 Exp $
+$Id: Batch.pm,v 1.14 2008-08-27 12:12:53 jt6 Exp $
 
 =cut
 
@@ -261,6 +261,9 @@ sub parseUpload : Private {
         return;
       }
 
+      # strip both new line and carriage return
+      s/[\r\n]//g;
+
     } else {
 
       # regular sequence line (no "J" or "O" allowed)
@@ -274,14 +277,17 @@ sub parseUpload : Private {
       }
 
       # it's a valid sequence line; store the cleaned-up contents of the line
-      chomp;  # chop off newlines
-      s|\s||g; # remove spaces and tabs
+      #chomp;  # chop off newlines
+      #s|\s||g; # remove spaces and tabs
       $sequences{$header} .= $_;
       
+      # strip new line, carriage return and space characters
+      s/[\r\n\s]//g;
+
     }
 
-    # this line was valid; add it to the input
-    $c->stash->{input} .= $_;
+    # this line was valid; add it to the input, along with a newline
+    $c->stash->{input} .= $_ . "\n";
 
   } # end of "while"
 
