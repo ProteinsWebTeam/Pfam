@@ -120,6 +120,7 @@ if(keys %pfamHits){
 	my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpDir );
   	foreach my $pfamA (keys %pfamHits){
 		#Get the HMM from the flatfile
+		#my ($tmpPfamA) = $pfamA =~ /(PF\d+)\.\d+/;
 		open(HMM,"hmmfetch $dataFileDir/Pfam_ls.bin $pfamA |") ||
 			die "Failed to get open hmmfetch pipe, hmmfetch $dataFileDir/Pfam_ls.bin $pfamA:[$!] \n";
   		while(<HMM>) {
@@ -148,7 +149,7 @@ if(keys %pfamHits){
 		unlink("$tmpDir/$faFile");
 	}
 }else {
-	print "No Pfam matches found\n";
+	print "No Pfam matches found to your DNA sequence\n";
 }
 
 
