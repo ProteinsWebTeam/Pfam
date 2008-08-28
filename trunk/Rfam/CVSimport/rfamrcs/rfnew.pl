@@ -11,6 +11,7 @@ use RfamQC;
 use RfamRCS;
 use Getopt::Long;
 use Rfam::UpdateRDB;
+use DBI;
 
 if( $#ARGV == -1 ) {
     &RfamRCS::show_rcs_help(\*STDOUT);
@@ -48,16 +49,32 @@ if( ! open(DESC,"./$id/DESC") ) {
     die "rfnew: cannot open the desc file [./$id/DESC]. [$!]";
 }
 
+my $wikipedia;
 while(<DESC>) {
     chomp;
     if( /^AC/ ) {
 	die "rfnew: Your DESC file has a AC line [$_].\n";
     }
     if( /^ID/ ) {
+	#THIS IS DUMB!
 	die "rfnew: Your DESC file has a ID line [$_].\n";
+    }
+    
+    if (/^WK\s+(.+)/){
+	$wikipedia = $1;
+	#Should add some verification that this is a bona-fide wikipedia link:
+	#Strip off irrelevant info:
+	$wikipedia =~ s/en.wikipedia.org\/wiki\///;
+	$wikipedia =~ s/http:\/\///;
+	$wikipedia =~ s/\;//;
     }
 }
 close(DESC);
+
+if (!defined($wikipedia)){
+    $wikipedia = 'Rfam';
+    print "WARNING: a wikipedia entry was not given. Using default ($wikipedia).\n"
+}
 
 my $comment = "New family";
 
@@ -144,6 +161,7 @@ eval {
   my $en = $db->get_Entry_by_acc( $acc);
   my $id = $en->author();
   $rdb->check_in_Entry( $en );
+  make_wiki_entry($acc,$wikipedia);
 };
 
 $@ and do {
@@ -155,6 +173,48 @@ print STDERR "RDB update succesful\n";
 
 print STDERR "\n\nChecked in family [$acc]\n";
 
+exit(0);
 
+######################################################################
+#Nasty add on to fill the wiki table for the entry:
+sub make_wiki_entry {
+    my $wacc = shift;
+    my $wiki = shift;
+
+    my $rfquery = qq(
+select auto_rfam from rfam where rfam_acc = '$wacc'
+);
+
+# MySQL rfamlive connection details.
+    my $rfdatabase = "rfamlive";
+    my $rfhost     = "pfamdb2a";
+    my $rfuser     = "pfamadmin";
+    my $rfpw       = "mafpAdmin";
+    my $rfport     = 3303;
+
+    my ($rfdbh, $rfsth);
+# Create a connection to the database.
+    $rfdbh = DBI->connect(
+	"dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
+	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+	    RaiseError => 1
+	}    );
+     
+# Prepare the query for execution.
+    $rfsth = $rfdbh->prepare($rfquery);
+    $rfsth->execute();
+          
+    my($temp_auto) = $rfsth->fetchrow;
+    $rfsth->finish();
+    my $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
+     
+    $rfquery = "
+insert into wiki (auto_rfam, rfam_acc, title) VALUES ($rdb_auto_num,'$wacc','$wiki')
+";
+    print "Prepare:\n$rfquery\n";
+    $rfsth = $rfdbh->prepare($rfquery);
+    $rfsth->execute();
+    $rfdbh->disconnect;
+}
 
 
