@@ -4,7 +4,7 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.11 2008-08-13 10:08:49 jt6 Exp $
+# $Id: getStarted.tt,v 1.12 2008-08-28 13:10:16 jt6 Exp $
 %]
 
 <!-- start getStarted block -->
@@ -134,13 +134,15 @@
   
   	<ol>
   	  <li>
-    		<a href="http://hmmer.janelia.org/">Download</a> the HMMER2 software.
+    		<a class="ext" href="http://hmmer.janelia.org/">Download</a> the HMMER2 
+        software.
   	  </li>
   	  <li>
     		<p>
-    			Download the Pfam files Pfam_ls, Pfam_fs, Pfam-A.seed and
-    			Pfam-C from the <a href="[% c.uri_for( "/help", tab="helpFtpBlock" ) %]">
-    			  ftp	site</a>.
+          Download the Pfam files Pfam_ls, Pfam_fs, Pfam_ls.bin, Pfam_fs.bin, 
+          Pfam_ls.bin.ssi, Pfam_fs.bin.ssi, Pfam-A.seed and Pfam-C from the ftp 
+          site <span class="link" onclick="switchTab('helpFtpBlock')">
+            ftp site</span>.
     		</p>
     		<p>
     		  These files contain the HMMs and additional information that is
@@ -150,8 +152,8 @@
   	  <li>
     		<p>
     		  Download a copy of pfam_scan.pl from the
-          <a href="[% c.uri_for( "/help", tab="helpFtpBlock" ) %]">
-    			  ftp	site</a>. 
+          <span class="link" onclick="switchTab('helpFtpBlock')">
+            ftp site</span>. 
     		</p>
     		<p>
     		  This is a wrapper script around hmmpfam, the HMMER program
