@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.14 2008-07-23 13:41:47 jt6 Exp $
+# $Id: faq.tt,v 1.15 2008-08-29 09:49:25 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -81,9 +81,9 @@
 	<p>
 	  To complement the Pfam-A families, we automatically generate
 	  Pfam-B families using the <a class="ext"
-	  href="http://prodom.prabi.fr/prodom/current/html/home.php">PRODOM</a>
-	  database. Pfam-B families are formed by taking alignments of
-	  sequence segments from PRODOM, and removing any Pfam-A residues
+    href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html">
+      ADDA</a> database. Pfam-B families are formed by taking alignments of
+	  sequence segments from ADDA, and removing any Pfam-A residues
 	  from them. Some Pfam-B families are composed of low complexity
 	  regions and may not reflect true relationships, therefore we
 	  recommend you verify that sequences in a Pfam-B family are
@@ -94,7 +94,7 @@
 	  belongs to more that one family/domain. At each Pfam release we
 	  search all of our models against an updated version of UniProt,
 	  and regenerate our Pfam-B families using the most recent version
-	  of PRODOM.
+	  of ADDA.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
@@ -356,9 +356,10 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
 	  <dt><a class="ext" href="http://smart.embl-heidelberg.de/">SMART</a></dt>
 	  <dd>This is a database concentrating on extracellular modules
 	  and signaling domains.</dd>
-	  <dt><a class="ext" href="http://www.toulouse.inra.fr/prodom.html">PRODOM</a></dt>
-	  <dd>This is an automatically generated domain database based on PSI-BLAST
-	   searching.</dd>
+	  <dt><a class="ext" href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html">
+      ADDA</a></dt>
+	  <dd>This is an automatic algorithm for domain decomposition and clustering of 
+      protein domain families.</dd>
 	  <dt><a class="ext" href="http://www.ebi.ac.uk/interpro">InterPro</a></dt>
 	  <dd>Combines information from Pfam, Prints, SMART, Prosite and PRODOM.</dd>
 	  <dt><a class="ext" href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">

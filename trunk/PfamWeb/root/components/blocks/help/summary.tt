@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.14 2008-05-16 15:30:31 jt6 Exp $
+# $Id: summary.tt,v 1.15 2008-08-29 09:49:26 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -68,9 +68,10 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
     <p>
       <em>Pfam-B</em> families are un-annotated and of lower quality as they 
       are generated automatically from the non-redundant clusters of the latest 
-      ProDom release. Although of lower quality, Pfam-B families can be useful 
-      for identifying functionally conserved regions when no Pfam-A entries 
-      are found.
+      <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
+        class="ext">ADDA</a> release. Although of lower quality, Pfam-B 
+      families can be useful for identifying functionally conserved regions when 
+      no Pfam-A entries are found.
     </p>
     <p>
       Pfam entries are classified in one of four ways:
