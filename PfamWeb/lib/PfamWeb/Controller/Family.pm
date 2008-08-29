@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.44 2008-07-28 13:55:32 jt6 Exp $
+# $Id: Family.pm,v 1.45 2008-08-29 13:33:34 jt6 Exp $
 
 =head1 NAME
 
@@ -22,12 +22,14 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.44 2008-07-28 13:55:32 jt6 Exp $
+$Id: Family.pm,v 1.45 2008-08-29 13:33:34 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Section';
 
@@ -78,12 +80,13 @@ sub begin : Private {
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
+                      $c->req->query_keywords || # accept getacc-style params
                       $entry_arg              ||
                       '';
   
   # although these next checks might fail and end up putting an error message
   # into the stash, we don't "return", because we might want to process the 
-  # error message using a template that retuns XML rather than simply HTML
+  # error message using a template that returns XML rather than simply HTML
   
   my $entry;
   if ( $tainted_entry ) {
