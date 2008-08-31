@@ -33,7 +33,7 @@ if (!(-x $blatexe)){
     die "$blatexe does not exist and/or is not executable\n";
 }
 
-my (@databasefiles,$minidb,$auto,$verbose,$help);
+my (@databasefiles,$minidb,$auto,$verbose,$help,@warnings);
 my ($mincoverage,$minpid,$maxpid)=(95, 95, 101);
 
 &GetOptions(
@@ -106,7 +106,8 @@ foreach my $mn (@missingnames) {
 	
 	next if !(-e $db);
 	
-	system("$blatexe -out=blast8 -t=dna -q=dna -minIdentity=95 $db warnings.fa warnings.blat >& /dev/null") and warn "WARNING:\nblat for $mn failed\n$blatexe -out=blast8 -t=dna -q=dna -minIdentity=95 $db warnings.fa warnings.blat\n";
+	system("$blatexe -out=blast8 -t=dna -q=dna -minIdentity=95 $db warnings.fa warnings.blat >& /dev/null") 
+	    and warn "WARNING:\nblat for $mn failed\n$blatexe -out=blast8 -t=dna -q=dna -minIdentity=95 $db warnings.fa warnings.blat\n";
 # Fields [1-12]: 
 #Query id, Subject id, % identity, alignment length, mismatches, gap openings, q. start, q. end, s. start, s. end, e-value, bit score
 	
@@ -168,6 +169,7 @@ foreach my $mn (@missingnames) {
 	
 	if ($choice =~ /n/i) {
 	    print "No replacement for $mn\n";
+	    push(@warnings,"No replacement for $mn\n");
 	}
 	elsif (is_integer($choice) && defined($candidates[$choice])){
 	    $replace{$mn} = $candidates[$choice];
@@ -193,10 +195,59 @@ foreach my $rep (keys %replace){
 	print "Replacing $rep with $replace{$rep}\n";
 	print "";
     }
+
+    
     system("sfetch -d SEED.fasta $rep                  > warnings.fa")    and warn "FAILED: sfetch -d SEED.fasta $rep                   > warnings.fa\n[$!]";    
     system("sfetch -d $replace_db{$rep} $replace{$rep} >> warnings.fa")   and warn "FAILED: sfetch -d $replace_db{$rep} $replace{$rep} >> warnings.fa\n[$!]";    
-    system("clustalw warnings.fa >& /dev/null")                           and warn "FAILED: clustalw warnings.fa >& /dev/null\n[$!]";    
-    system("sreformat -r -u --pfam stockholm warnings.aln > warnings.stk") and warn "FAILED: sreformat -r -u --pfam stockholm warnings.aln > warnings.stk\n[$!]";    
+    
+    open(FA, "< warnings.fa") or die("FATAL: could not open warnings.fa for reading\n[$!]");
+    open(FA2, "> warnings.fa2") or die("FATAL: could not open warnings.fa2 for writing\n[$!]");
+    my %seqid2short; my $cnt = 0;
+    while(my $fa = <FA>){
+	#Replace IDs with short unique integers so CLUSTALW doesn't fuck our IDs - also uniqueify given IDs:
+	if ($fa =~ /^\>(\S+)/){
+	    my $id = $1;
+	    my ($id_new, $id_cnt) = ($id, 0);
+	    while (!$seqid2short{$id_new} && $id_cnt < 10){ #Jumping thru hoops to uniqify given IDs:
+		$id_new = $id . "_" . $id_cnt;
+		$id_cnt++;
+	    }
+	    $id = $id_new;
+	    $seqid2short{$cnt} = $id;
+	    print FA2 ">" . $cnt . "\n";
+	    $cnt++;
+	}
+	else {
+	    print FA2 $fa;
+	}
+    }
+    close(FA);
+    close(FA2);
+    
+    system("clustalw warnings.fa2 >& /dev/null")                           and warn "FAILED: clustalw warnings.fa2 >& /dev/null\n[$!]";
+    system("sreformat -r -u a2m warnings.aln > warnings.fa3") and warn "FAILED: sreformat -r -u a2m warnings.aln > warnings.fa3\n[$!]";    
+    
+    #Add names back:
+    open(FA, "< warnings.fa3") or die("FATAL: could not open warnings.fa3 for reading\n[$!]");
+    open(FA4, "> warnings.fa4") or die("FATAL: could not open warnings.fa4 for writing\n[$!]");
+    while(my $fa = <FA>){
+	if ($fa =~ /^\>(\S+)/){
+	    my $id = $1;
+	    if ($seqid2short{$id}){
+		print FA4 ">" . $seqid2short{$id} . "\n";
+	    }
+	    else {
+		print FA4 ">" . $id . "\n";
+	    }
+	}
+	else {
+	    print FA4 $fa;
+	}
+    }
+    close(FA);
+    close(FA4);
+    
+    system("sreformat -r -u --pfam stockholm warnings.fa4 > warnings.stk") and warn "FAILED: sreformat -r -u --pfam stockholm warnings.fa4 > warnings.stk\n[$!]";    
     
     #Read in warnings.stk:
     open( WARN, "warnings.stk" ) or die("FATAL: Couldn't open warnings.stk\n [$!]");
@@ -204,12 +255,13 @@ foreach my $rep (keys %replace){
     $warn -> read_stockholm( \*WARN );
     close(WARN);
     
+    my @rep = split(/\//,$rep);
     my $badseq;
     foreach my $seq ( $seed->each_seq() ) {
 	my $id = $seq->id;
-#	if ( $id =~ /^$rep/ || $rep =~ /^$id/){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
-	if ( $id eq $rep ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+	if ( $id eq $rep || $id eq $rep[0] ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $badseq=$seq;
+	    #print "$id eq $rep  || $id eq $rep[0]?\n";
 	    last;
 	}
     }
@@ -217,8 +269,7 @@ foreach my $rep (keys %replace){
     my ($alnbadseq, $alngoodseq);
     foreach my $seq ( $warn->each_seq() ) {
 	my $id = $seq->id;
-	#if ( $id =~ /^$rep/ || $rep =~ /^$id/){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
-	if ( $id eq $rep ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+	if ( $id eq $rep || $id eq $rep[0] ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $alnbadseq=$seq;
 	}
 	else {
@@ -305,6 +356,13 @@ open(SEEDNEW, ">SEED.new") or die "FATAL: can't open SEED.new\n[$!]";
 $seed->write_stockholm( \*SEEDNEW );
 close(SEEDNEW);
 
+if(@warnings>0){
+    print "There were warnings:\n";
+    foreach my $w (@warnings){
+	print $w;
+    }
+}
+
 
 exit(0);
 
@@ -383,6 +441,8 @@ Options:
 To Add:
 -FIX FUCKING CLUSTALW NAME TRUNCATION PROBLEMS
 -ADD WARNINGS WHEN NO REPLACEMENTS FOUND
+-FIX UNFORTUNATE GAP COLUMN ADDING BUG - SEE ~pg5/debug/SNOR10004
+-FIX UNFORTUNATE NOT REPLACE ANYTHING BUG - SEE ~pg5/debug/EXTND
 
 EOF
 }
