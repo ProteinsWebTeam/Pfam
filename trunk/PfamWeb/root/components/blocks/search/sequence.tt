@@ -5,7 +5,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.9 2008-08-08 10:48:19 jt6 Exp $
+# $Id: sequence.tt,v 1.10 2008-09-01 10:39:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -120,9 +120,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label for="seq">Sequence</label>
-          <textarea cols="60" rows="10" name="seq" id="seq">
-            [%- preseq -%] 
-          </textarea>
+          <textarea cols="60" rows="10" name="seq" id="seq">[% preseq %]</textarea>
         </div>
 
         [% IF preseq -%]
