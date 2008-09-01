@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.8 2008-08-13 10:10:11 jt6 Exp $
+# $Id: dna.tt,v 1.9 2008-09-01 10:52:17 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -114,7 +114,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   // a little check on the sequence length...
   var lengthWarning = false;
   checkLength = function() {
-return true;
 
     if( $F('dnaSeq').length > 80000 ) {
       if( ! lengthWarning ) {
