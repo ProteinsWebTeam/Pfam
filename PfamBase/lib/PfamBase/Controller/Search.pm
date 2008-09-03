@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20080314 WTSI
 #
-# $Id: Search.pm,v 1.5 2008-05-22 09:51:09 jt6 Exp $
+# $Id: Search.pm,v 1.6 2008-09-03 15:40:43 jt6 Exp $
 
 =head1 NAME
 
@@ -16,14 +16,12 @@ package PfamBase::Controller::Search;
 
 This controller is responsible for running searches.
 
-$Id: Search.pm,v 1.5 2008-05-22 09:51:09 jt6 Exp $
+$Id: Search.pm,v 1.6 2008-09-03 15:40:43 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-
-use Module::Pluggable;
 
 use base 'PfamBase::Controller::Section';
 
@@ -32,70 +30,106 @@ __PACKAGE__->config( SECTION => 'search' );
 
 #-------------------------------------------------------------------------------
 
-=head1 METHODS
+=head2 METHODS
 
-=head2 begin : Private
+=head2 queue_search_transaction : Private
 
-Tries to extract the query terms from the URL and de-taint them.
+Queues a search job. This requires new rows to be added to both the job_history
+and the job_stream tables. We add these in a transaction block, rolling back if
+either of the two fails. Adds the DBIC ResultSet from the job_history table to
+the stash and returns 1 if the submission is successful, returns 0 otherwise.
 
 =cut
 
-sub begin : Private {
-  my( $this, $c ) = @_;
+sub queue_search_transaction : Private {
+  my ( $this, $c ) = @_;
+  
+  # set up an anonymous code block to define a transaction. We want to make sure
+  # that we can add a row to both tables before we know that this job has been 
+  # successfully queued
 
-  # tell the navbar where we are
-  $c->stash->{nav} = 'search';
-  
-  # tell the layout template to disable the summary icons
-  $c->stash->{iconsDisabled} = 1;
-  
-  #----------------------------------------
-  
-  # see if we should pre-fill the sequence field, based on the sequence that
-  # was handed to us by the referring site
-  
-  # detaint it, naturally, and accept only sequences that are shorter than some
-  # limit, which is set in the config
-  if ( defined $c->req->param('preseq') and 
-       $c->req->param('preseq') =~ m/^([A-Z]+)$/ and
-       length( $1 ) < $this->{maxPrefillLength} ) {
-    $c->log->debug( 'Search::begin: found a sequence with which to pre-fill the search form' )
+  # somewhere to stuff the rows from the job_history and job_stream tables, 
+  # if we get them
+  my ( $job_history, $job_stream );
+
+  my $transaction = sub {
+    $c->log->debug( 'Search::queue_search_transaction: starting transaction...' )
       if $c->debug;
 
-    # stash it and let the template stuff the value into the form    
-    $c->stash->{preseq} = $1;
-  }
+    # add this job to the tracking table
+    $job_history = $c->model('WebUser::JobHistory')
+                     ->create( { options        => $c->stash->{options},
+                                 job_type       => $c->stash->{job_type},
+                                 job_id         => $c->stash->{jobId},
+                                 estimated_time => $c->stash->{estimated_time},
+                                 opened         => \'NOW()',
+                                 status         => 'PEND',
+                                 email          => $c->stash->{email} } );  
+    
+    die 'error: failed to add job_history row' unless defined $job_history;
+    
+    $c->log->debug( 'Search::queue_search_transaction: added row to job_history' )
+      if $c->debug;
+    
+    # and to the input/output table
+    $job_stream = $c->model( 'WebUser::JobStream' )
+                    ->create( { id    => $job_history->id,
+                                stdin => $c->stash->{input} || q() } );
+    
+    die 'error: failed to add job_stream row' unless defined $job_stream;
+    
+    $c->log->debug( 'Search::queue_search_transaction: added row to job_stream' )
+      if $c->debug;
+    
+    # check the submission time with a separate query. We need to do this so
+    # that we get the "opened" time that is inserted by the database engine. The
+    # job_history object that we have doesn't contain that at this point
+    my $history_row = $c->model( 'WebUser::JobHistory' )
+                        ->find( { id => $job_history->id } );
+    
+    die "error: couldn't retrieve job history row" unless defined $history_row;
+    
+    $c->log->debug( 'Search::queue_search_transaction: job opened: |'
+                    . $history_row->opened . '|' ) if $c->debug;
+    
+    return $history_row; # return from anonymous transaction sub 
+  };
   
-  #----------------------------------------
+  # execute the transaction
+  my $history_row;
+  eval {
+    $history_row = $c->model('WebUser')->schema->txn_do( $transaction );
+  };
 
-  # decide what format to emit. The default is HTML, in which case
-  # we don't set a template here, but just let the "end" method on
-  # the Section controller take care of us
-  $c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
+  # there was a problem...
+  if ( $@ ) {
+    $c->log->error( "Search::queue_search_transaction: error in transaction: |$@|" )
+      if $c->debug;
 
-}
+    # if the first query worked, we should have a row from the job_history 
+    # table, which we can modify to set the job status to "FAIL"
+    if ( defined $job_history ) {
+      
+      # set the status on the object...
+      $job_history->status('FAIL');
+      
+      # .. and see if we can actually update that row in the DB
+      if ( $job_history->update ) {
+        $c->log->debug( 'Search::queue_search_transaction: successfully rolled back job_history' )
+          if $c->debug;
+      }
+      else {
+        $c->log->warn( 'Search::queue_search_transaction: failed to roll back job_history' )
+          if $c->debug;
+      }
+    }
 
-#-------------------------------------------------------------------------------
+    return 0;
+  }
+ 
+  $c->stash->{history_row} = $history_row;
 
-=head2 formatTerms : Private
-
-Inherited by the search plugins, this action formats the query terms to add 
-wildcard and fulltext operators to each word in the list. This base 
-implementation just prepends a "+" (require that the word is present in every 
-returned row; necessary for "IN BOOLEAN MODE" queries) and appends a "*" 
-(wildcard) to each term.
-
-This method should be over-ridden by plugin search classes if they
-need some other processing to be performed on the search terms.
-
-=cut
-
-sub formatTerms : Private {
-  my( $this, $c ) = @_;
-
-  $c->stash->{terms} =
-    join " ", map { $_ = "+$_*" } split /\s+|\W|\_/, $c->stash->{rawQueryTerms};
-
+  return 1;
 }
 
 #-------------------------------------------------------------------------------

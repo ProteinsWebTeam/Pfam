@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: BatchSearch.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+# $Id: BatchSearch.pm,v 1.5 2008-09-03 15:39:58 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::BatchSearch;
 
 This is the parent class for batch search operations.
 
-$Id: BatchSearch.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+$Id: BatchSearch.pm,v 1.5 2008-09-03 15:39:58 jt6 Exp $
 
 =cut
 
@@ -106,6 +106,39 @@ sub queueSearch : Private {
 
   # stash the job submission time
   $c->stash->{opened} = $historyRow->opened;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 check_duplicate : Private
+
+Queries the web_user database to check if the current sequence has been 
+submitted by this user, with the same search options, within the last 24 hours.
+If it is a duplicate search, we return 1, otherwise 0;
+
+=cut
+
+sub check_duplicate : Private {
+  my ( $this, $c ) = @_;
+
+  my $rs = $c->model( 'WebUser::JobHistory' )
+           ->search( { options => $c->stash->{options},
+                       email   => $c->stash->{email},
+                       stdin   => $c->stash->{input},
+                       opened  => \'> DATE_SUB( NOW(), INTERVAL 24 HOUR )' },
+                     { join => [ 'job_stream' ] } );
+
+  my $rv = 0;
+  if ( $rs->count() > 0 ) {
+    $c->log->debug( 'Batch::check_duplicate: found ' . $rs->count() . ' rows' )
+      if $c->debug;
+
+    $c->stash->{searchError} = 
+      'You have submitted exactly this search within the last 24 hours. Please try not to submit duplicate searches.';
+    $rv = 1;
+  }
+  
+  return $rv;
 }
 
 #-------------------------------------------------------------------------------

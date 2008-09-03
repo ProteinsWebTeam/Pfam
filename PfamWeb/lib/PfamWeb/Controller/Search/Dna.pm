@@ -2,7 +2,7 @@
 # Dna.pm
 # jt6 20070731 WTSI
 #
-# $Id: Dna.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Dna.pm,v 1.6 2008-09-03 15:39:58 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Dna;
 
 This controller is responsible for running batch DNA sequence searches.
 
-$Id: Dna.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+$Id: Dna.pm,v 1.6 2008-09-03 15:39:58 jt6 Exp $
 
 =cut
 
@@ -25,7 +25,8 @@ use warnings;
 
 use Email::Valid;
 
-use base 'PfamWeb::Controller::Search::Batch';
+use base qw( PfamBase::Controller::Search::BatchSearch
+             PfamWeb::Controller::Search ); 
 
 #-------------------------------------------------------------------------------
 
@@ -41,22 +42,36 @@ sub search : Path {
   my( $this, $c ) = @_;
 
   # validate the input
-  $c->forward( 'validateInput' );
-  if( $c->stash->{searchError} ) {
+  unless ( $c->forward( 'validate_input' ) ) {
     $c->stash->{dnaSearchError } = $c->stash->{searchError};
     return;
   }
+  
+  #----------------------------------------
+  
+  # no options for a DNA search
+  $c->stash->{options} = '';
+  
+  # before we actually run the search, check we didn't do it recently
+  unless ( $c->forward( 'check_unique' ) ) {
+    $c->stash->{dnaSearchError } = $c->stash->{searchError};
+    return;
+  }
+
+  # generate a job ID
+  $c->stash->{jobId} = Data::UUID->new()->create_str();
 
   # set the queue
   $c->stash->{job_type} = 'dna';
 
   # and submit the job...
-  $c->forward( 'queueSearch' );
-  if( $c->stash->{searchError} ) {
+  unless ( $c->forward( 'queue_search_transaction' ) ) {
     $c->stash->{dnaSearchError } = $c->stash->{searchError};
     return;
   }
-
+  
+  #----------------------------------------
+  
   # set a refresh URI that will be picked up by head.tt and used in a 
   # meta refresh element
   $c->stash->{refreshUri}   = $c->uri_for( '/search' );
@@ -70,67 +85,81 @@ sub search : Path {
 #- private actions--------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 validateInput : Private
+=head2 validate_input : Private
 
 Validate the form input. Error messages are returned in the stash as
 "searchError".
 
 =cut
 
-sub validateInput : Private {
+sub validate_input : Private {
   my( $this, $c ) = @_;
   
   # the sequence itself
 
   # make sure we got a parameter first
-  unless( defined $c->req->param('seq') ) {
+  unless ( defined $c->req->param('seq') ) {
     $c->stash->{searchError} =
       'You did not supply a valid DNA sequence. Please try again.';
 
-    $c->log->debug( 'Search::Dna::validateInput: no DNA sequence; returning to form' );
-    return;
+    $c->log->debug( 'Search::Dna::validate_input: no DNA sequence; returning to form' )
+      if $c->debug;
+
+    return 0;
   }
 
   # check it's not too long
-  if( length $c->req->param('seq') > 80_000 ) {
+  if ( length $c->req->param('seq') > 80_000 ) {
     $c->stash->{searchError} =
       'Your sequence was too long. We can only accept DNA sequences upto 80kb.';
 
-    $c->log->debug( 'Search::Dna::validateInput: sequence too long; returning to form' );
-    return;
+    $c->log->debug( 'Search::Dna::validate_input: sequence too long; returning to form' )
+      if $c->debug;
+      
+    return 0;
   }
+
+  # email address
+  if ( Email::Valid->address( -address => $c->req->param('email') ) ) {
+    $c->stash->{email} = $c->req->param('email');
+  }
+  else {
+    $c->stash->{searchError} = 'You did not enter a valid email address.';
+
+    $c->log->debug( 'Search::Dna::validate_input: bad email address; returning to form' )
+      if $c->debug;
+      
+    return 0;
+  }  
 
   # tidy up the sequence and make sure it's only got the valid DNA characters
   my @seqs = split /\n/, $c->req->param('seq');
   my $seq = uc( join '', @seqs );
-  $seq =~ s/[\s\r]+//g;
+  $seq =~ s/[\s\r\n]+//g;
   
-  unless( $seq =~ m/^[ACGT]+$/ ) {
+  unless ( $seq =~ m/^[ACGT]+$/ ) {
     $c->stash->{searchError} =
       'No valid sequence found. Please enter a valid DNA sequence and try again.';
 
-    $c->log->debug( 'Search::Dna::validateInput: invalid DNA sequence; returning to form' );
-    return;
+    $c->log->debug( 'Search::Dna::validate_input: invalid DNA sequence; returning to form' )
+      if $c->debug;
+      
+    return 0;
   }
 
-  # email address
-  if( Email::Valid->address( -address => $c->req->param('email') ) ) {
-    $c->stash->{email} = $c->req->param('email');
-  } else {
-    $c->stash->{searchError} = 'You did not enter a valid email address.';
-
-    $c->log->debug( 'Search::Dna::validateInput: bad email address; returning to form' );
-    return;
-  }  
-
-  # passed !
-
-  # store the valid sequence - no point having it in the stash if it's never
-  # going to be used, but now we actually need it
-  $c->log->debug( "Search::Dna::validateInput: sequence looks ok: |$seq|" );
+  # store the valid sequence. Up until this point there was no need to have it 
+  # in the stash, since it might have been invalid. Now that it's validated, 
+  # however, we actually need it
+  $c->log->debug( "Search::Dna::validate_input: sequence looks ok: |$seq|" )
+    if $c->debug;
+    
   $c->stash->{input} = $seq;
+ 
+  # passed ! 
+  $c->log->debug( 'Search::Dna::validate_input: input parameters all validated' )
+    if $c->debug;
   
-  $c->log->debug( 'Search::Dna::validateInput: input parameters all validated' );
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
