@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.75 2008-08-14 15:28:13 jt6 Exp $
+   $Id: pfam.css,v 1.76 2008-09-03 15:26:27 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -376,7 +376,7 @@ div.jumpSpinner {
   float: right;
   border: none;
   border-top: 1px solid #074897;
-  height: 4px;
+  height: 1px;
 }
 
 /* ======================================== */
