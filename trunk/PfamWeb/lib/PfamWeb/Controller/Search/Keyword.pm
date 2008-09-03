@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Keyword.pm,v 1.6 2008-09-03 15:39:58 jt6 Exp $
 
 =head1 NAME
 
@@ -18,14 +18,12 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+$Id: Keyword.pm,v 1.6 2008-09-03 15:39:58 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
-
-use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Search';
 
@@ -44,14 +42,27 @@ sub textSearch : Path {
 
   # if there's no query parameter, we're done here; drop straight to the 
   # template that will render the search forms
-  return unless $c->req->param('query');
+  unless ( $c->req->param('query') ) {
+    $c->stash->{kwSearchError} = 'You did not supply a query term.';
+
+    $c->log->debug( 'Search::Keyword::textSearch: no query terms supplied' )
+      if $c->debug;
+
+    return;
+  }
 
   # get the query
-  my( $terms ) = $c->req->param('query') =~ m/^([\w:.\-\s]+)/;
+  my( $terms ) = $c->req->param('query') =~ m/^([\w:.\-\s]+$)/;
 
   # we're done here unless there's a query specified
-  $c->log->warn( 'Search::Keyword::textSearch: no query terms supplied' ) and return
-    unless defined $terms;
+  unless ( defined $terms ) {
+    $c->stash->{kwSearchError} = 'You did not supply any valid query terms.';
+
+    $c->log->debug( 'Search::Keyword::textSearch: no *valid* query terms supplied' )
+      if $c->debug;
+
+    return;
+  }
 
   $c->log->debug( 'Search::Keyword::textSearch: running query with: |' 
                   . $terms . '|' ) if $c->debug;
@@ -110,10 +121,6 @@ sub runSearches : Private {
 
   $c->log->debug( 'Search::Keyword::runSearches: running a search' )
     if $c->debug;
-
-  # TODO this is a bit sloppy...
-  $c->error( 'You did not supply any valid search terms' )
-    unless $c->stash->{rawQueryTerms};
 
   my( @plugins, @pluginsReversed, $pluginName, $pluginDesc );
 

@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.22 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Search.pm,v 1.23 2008-09-03 15:39:58 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running searches. This is actually just an
 empty wrapper around a shared base class. See
 L<PfamBase::Controller::Search> for more details.
 
-$Id: Search.pm,v 1.22 2008-05-16 15:29:28 jt6 Exp $
+$Id: Search.pm,v 1.23 2008-09-03 15:39:58 jt6 Exp $
 
 =cut
 
@@ -31,7 +31,28 @@ use Module::Pluggable;
 
 use base 'PfamBase::Controller::Search';
 
-__PACKAGE__->config( SECTION => 'search' );
+#-------------------------------------------------------------------------------
+
+=head2 formatTerms : Private
+
+Inherited by the search plugins, this action formats the query terms to add
+wildcard and fulltext operators to each word in the list. This base
+implementation just prepends a "+" (require that the word is present in every
+returned row; necessary for "IN BOOLEAN MODE" queries) and appends a "*"
+(wildcard) to each term.
+
+This method should be over-ridden by plugin search classes if they
+need some other processing to be performed on the search terms.
+
+=cut
+
+sub formatTerms : Private {
+  my( $this, $c ) = @_;
+
+  $c->stash->{terms} =
+    join " ", map { $_ = "+$_*" } split /\s+|\W|\_/, $c->stash->{rawQueryTerms};
+
+}
 
 #-------------------------------------------------------------------------------
 
