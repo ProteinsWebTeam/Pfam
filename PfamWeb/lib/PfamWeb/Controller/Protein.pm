@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.37 2008-08-15 13:46:32 jt6 Exp $
+# $Id: Protein.pm,v 1.38 2008-09-04 10:07:25 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.37 2008-08-15 13:46:32 jt6 Exp $
+$Id: Protein.pm,v 1.38 2008-09-04 10:07:25 jt6 Exp $
 
 =cut
 
@@ -74,6 +74,7 @@ sub begin : Private {
   my $tainted_entry = $c->req->param('acc')   ||
                       $c->req->param('id')    ||
                       $c->req->param('entry') ||
+                      $c->req->param('name')  || # cope with redirects "swisspfamget.pl"
                       $entry_arg              ||
                       '';
   
