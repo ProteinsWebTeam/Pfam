@@ -208,10 +208,10 @@ foreach my $rep (keys %replace){
 	if ($fa =~ /^\>(\S+)/){
 	    my $id = $1;
 	    my ($id_new, $id_cnt) = ($id, 0);
-	    while (!$seqid2short{$id_new} && $id_cnt < 10){ #Jumping thru hoops to uniqify given IDs:
-		$id_new = $id . "_" . $id_cnt;
-		$id_cnt++;
-	    }
+	    #while (!$seqid2short{$id_new} && $id_cnt < 10){ #Jumping thru hoops to uniqify given IDs:
+	#	$id_new = $id . "_" . $id_cnt;
+	#	$id_cnt++;
+	#    }
 	    $id = $id_new;
 	    $seqid2short{$cnt} = $id;
 	    print FA2 ">" . $cnt . "\n";
@@ -255,30 +255,43 @@ foreach my $rep (keys %replace){
     $warn -> read_stockholm( \*WARN );
     close(WARN);
     
-    my @rep = split(/\//,$rep);
+    my $rep2 = "";
+    if ($rep =~ /(\S+)\/\d+\-\d+/){
+	$rep2 = $1;
+    }
+    
     my $badseq;
     foreach my $seq ( $seed->each_seq() ) {
 	my $id = $seq->id;
-	if ( $id eq $rep || $id eq $rep[0] ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+	if ( $id eq $rep || $id eq $rep2 ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $badseq=$seq;
 	    #print "$id eq $rep  || $id eq $rep[0]?\n";
 	    last;
 	}
     }
     
+    
     my ($alnbadseq, $alngoodseq);
     foreach my $seq ( $warn->each_seq() ) {
 	my $id = $seq->id;
-	if ( $id eq $rep || $id eq $rep[0] ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
+	if ( $id eq $rep || $id eq $rep2 ){#This is evil I know - but read_stockholm munges seq ids in evil ways. 
 	    $alnbadseq=$seq;
 	}
 	else {
 	    $alngoodseq=$seq;
 	}
+#	print "$id eq $rep  || $id eq $rep2?\n";
     }
     
-    next if !defined($alngoodseq);
-    next if !defined($alnbadseq);
+    if (!defined($alngoodseq)){
+	print "Could not map $rep to a replacement sequence (alngoodseq)\n";
+	next;
+    };
+
+    if (!defined($alnbadseq)){
+	print "Could not map $rep to a replacement sequence (alnbadseq)\n";
+	next;
+    };
     
     #Code nicked from SGJ's fix_aln:
     
@@ -439,7 +452,7 @@ Options:
   -h or -help              show this help
 
 To Add:
--FIX FUCKING CLUSTALW NAME TRUNCATION PROBLEMS
+-GENERATE UNIQUE SHORT NAMES FOR SEED FIRST...
 -ADD WARNINGS WHEN NO REPLACEMENTS FOUND
 -FIX UNFORTUNATE GAP COLUMN ADDING BUG - SEE ~pg5/debug/SNOR10004
 -FIX UNFORTUNATE NOT REPLACE ANYTHING BUG - SEE ~pg5/debug/EXTND
