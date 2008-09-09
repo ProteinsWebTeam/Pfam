@@ -54,7 +54,6 @@ if (defined($farm)){
     $inxfile = '/data/blastdb/Rfam/rfamseq/rfamseq.fa';
 }
 
-print "inxfile = |$inxfile|\nfile = |$file|\n";
 #my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 my $seqinx = Bio::SeqFetcher::xdget->new( '-db' => [$inxfile] );
 #$seqinx -> Bio::SeqFetcher::xdget->db($inxfile);
@@ -87,7 +86,7 @@ if( not $overlaps && -e "DESC" ) {
     while( <DESC> ) {
 	/^GA\s+(\S+)/ and do {
 	    $thrcurr = $1;
-	    $thr = $1 if not defined $thr;
+	    #$thr = $1 if not defined $thr;
 	};
 	
 	/^ID/ || /^DE/ || /^PI/ || /^TP/ and do {
@@ -839,7 +838,7 @@ To add:
 
 -REWRITE:
 --don\47t read OUTPUT into memory
---use MPI version of cmalign
+--check seqs fetched from DB match the hits...
 
 DO:
 init();
