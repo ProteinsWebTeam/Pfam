@@ -32,8 +32,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-15 13:36:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:66MESD3EIbAxzj5GFP/KDw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-11 09:48:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:QjZCWbLOWMxllKGGlxPfIg
 
 #-------------------------------------------------------------------------------
 

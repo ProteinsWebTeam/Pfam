@@ -42,8 +42,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-07-15 13:36:20
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Z8V6fQGMvrLUrA4+Wk5Xag
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-11 09:48:06
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:5uaexJFQuvJAUh4fopoR5A
 
 #-------------------------------------------------------------------------------
 
