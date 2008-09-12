@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.3 2008-08-18 09:00:38 jt6 Exp $
+   $Id: job.css,v 1.4 2008-09-12 09:40:07 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -89,15 +89,6 @@ div.progressBar {
   margin: 0;
   padding: 0;
   z-index: 1;
-}
-
-/* colour the progress bars according to job class */
-div.pfamASearch .progressBar {
-	background-color: #CBD;
-}
-
-div.pfamBSearch .progressBar {
-	background-color: #CDB;
 }
 
 /* a spinner image */
