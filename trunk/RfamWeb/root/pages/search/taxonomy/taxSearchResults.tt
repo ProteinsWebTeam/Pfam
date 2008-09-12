@@ -1,0 +1,64 @@
+[%
+# taxSearchResults.tt
+# jt6 20071004 WTSI
+# 
+# a page fragment showing taxonomy search results
+#
+# $Id: taxSearchResults.tt,v 1.1 2008-09-12 09:27:44 jt6 Exp $
+
+META naked = 1;
+
+searchUri = c.uri_for( "/search", { tab = "searchTaxBlock" } );
+
+# first, check for error messages
+IF taxSearchError %]
+
+  <div class="error">
+    <h2>Error</h2>
+    [% taxSearchError %]
+  </div>
+  
+  <p>
+    Please return to the 
+    <a href="[% searchUri %]">
+      taxonomy search</a> page to try another query.
+  </p>
+
+[% ELSE;
+
+  IF families.keys.size > 0 -%]
+
+    <p>
+      We found <strong>[% families.keys.size %]</strong> families matching your
+      criteria:
+    </p>
+    
+    [% PROCESS pages/search/taxonomy/resultsTable.tt;
+
+  ELSE; # there are no families with this query... %]
+    <p>
+      We did not find any families using this query. Please return to the 
+      <a href="[% searchUri %]">search form</a> to try
+      another.
+    </p>
+  [% END; # of "IF families.keys.size"
+
+END; # of "IF taxSearchError" %]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

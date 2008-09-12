@@ -1,0 +1,101 @@
+[%
+# uniqueResults.tt
+# jt6 20070918 WTSI
+# 
+# taxonomy search results page
+#
+# $Id: uniqueResults.tt,v 1.1 2008-09-12 09:27:44 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "search.css" );
+
+# load the JS for table sorting here, for use in the post-loaded results 
+sharedRequirements.js.push( "tablekit.js" );
+
+#-------------------------------------------------------------------------------
+
+META title = "Unique taxonomy search results";
+META fullPage = 1;
+-%]
+
+<div id="taxonomyResults">
+  
+  <div class="key">
+
+    <h2>Unique families in your chosen species</h2>
+
+    <p>
+      We have submitted your query. We will search for all families that are 
+      unique to:
+    </p>
+    <p id="taxonomyQuery">
+      [% q %]
+    </p>
+    
+    <div id="loadingDiv">
+      <p>
+        Your results will appear in this page when the search is complete; please 
+        don&#39;t close this window or browse to a different page until the 
+        results are loaded.
+      </p>
+      <img class="loadingBar"
+           alt="Searching..."
+           src="[% c.uri_for( "/shared/images/blank.gif" ) %]" />
+    </div>
+
+    <div id="returnDiv" style="display: none">
+      <p>
+        You can return to the 
+        <a href="[% c.uri_for( "/search", { tab = "searchTaxBlock" } ) %]">
+          taxonomy search</a> page to try a different query.
+      </p>
+    </div>
+
+  </div>
+
+  <div id="results"></div>
+
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  new Ajax.Updater( "results",
+                    "[% c.uri_for( "/search/unique/results" ) %]",
+                    {
+                      evalScripts: true,
+                      parameters: { q: encodeURI('[% q %]') },
+                      onFailure: function() {
+                        $("results").update("There was a problem completing your query" );
+                      },
+                      onComplete: function( response ) {
+                        $("loadingDiv").hide();
+                        $("returnDiv").show();
+                      }
+                    }
+                  );
+
+  // ]]>
+</script>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
