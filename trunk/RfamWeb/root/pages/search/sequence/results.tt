@@ -1,0 +1,204 @@
+[%
+# searchResults.tt
+# jt6 20070414 WTSI
+#
+# show the results of a sequence search
+#
+# $Id: results.tt,v 1.1 2008-09-12 09:27:32 jt6 Exp $
+
+META title    = "Sequence search results";
+META fullPage = 1;
+
+USE dumper;
+USE wrap;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+sharedRequirements.css.push( "job.css" );
+sharedRequirements.css.push( "job_ie.css" );
+
+#-------------------------------------------------------------------------------
+
+# shortcuts to the show/hide glass buttons
+imageUri   = c.uri_for( "/static/images" );
+showButton = "${imageUri}/showButton.png";
+hideButton = "${imageUri}/hideButton.png";
+
+# hit counter
+totalHits = 0;
+
+BLOCK buildTableBody;
+
+  tableRow = 0;
+  rowId = '';
+  FOREACH family IN hits.keys.sort;
+    FOREACH sequence IN hits.$family.sequences;
+      FOREACH hit IN sequence.hits;
+        alignmentRowId = "rfamAlignment${tableRow}";
+        rowClass       = tableRow % 2 ? "odd" : "even";
+        tableRow       = tableRow  + 1;
+        totalHits      = totalHits + 1 -%]
+        <tr class="[% rowClass %]">
+          <td class="rowNum">[% loop.index %]</td>
+          <td>
+            <a href="[% c.uri_for( '/family', acc => hits.$family.acc ) | html %]">
+              [% hits.$family.id %]</a>
+          </td>
+          <td>[% hit.offset_start %]</td>
+          <td>[% hit.offset_end %]</td>
+          <td>[% hit.bits %]</td>
+          <td>[% hit.dir %]</td>
+          <td class="showSwitch">
+            <img src="[% showButton %]" 
+                 onclick="toggleAlignment( '[% alignmentRowId %]', this )"
+                 alt="Show alignment" />
+          </td>
+        </tr>
+        <tr class="alignment [% rowClass %]"
+            id="[% alignmentRowId %]">
+          <td colspan="6">
+            <pre>
+[% hit.alignment.ss      | html %]
+[% hit.alignment.hit_seq | html %]
+[% hit.alignment.match   | html %]
+[% hit.alignment.user_seq | html %]
+            </pre>
+          </td>
+        </tr>
+      [%- END;
+    END;
+  END;
+  
+
+END; # of "buildTableBody"
+
+tableBody = PROCESS buildTableBody;
+-%]
+
+<!-- start of "results" -->
+
+<div class="key">
+  
+  <h2>Sequence search results</h2>
+
+  <p>
+    <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
+    the detailed description of this results page.
+  </p>
+
+  <div id="resultsNotes" style="display: none">
+    <p>A long and interesting explanation of the features of this page.</p>
+  </div><!-- end of "resultsNotes" -->
+
+  <p>
+    We found a total of <strong>[% totalHits %]</strong> hits.
+  </p>
+
+  <p>
+    <span class="moreLink" onclick="reveal(this,'optionsList',false, true)">Show</span>
+    the sequence that you submitted.
+  </p>
+
+  <div id="optionsList" style="display: none">
+    <div class="centreWrapper">
+      <p class="plainSequence centredBlock">
+        [% # wrap the sequence into a nice block. Before showing it we chop off
+           # the first line, which is the FASTA header line
+        FILTER wrap(80, '      ', '<br />'); 
+        seq.split("\n").slice(1).join("\n");
+        END 
+        %]
+      </p>
+    </div>
+    <div class="cleaner"><!-- empty --></div>
+    </ul>
+  </div>
+
+  <p>
+    <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
+    to the search form to look for Rfam families on a new sequence.
+  </p> 
+
+</div><!-- end of "key" -->
+
+<div id="results">
+  
+  <table summary="Search results"
+         class="resultTable">
+    <caption>
+      <span class="tableTitle">Rfam matches</span>
+      <span class="link" onclick="showAllAlignments('pfamASummary',true)">Show</span> or
+      <span class="link" onclick="showAllAlignments('pfamASummary',false)">hide</span> 
+      all alignments.
+    </caption>
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Bits score</th>
+        <th>Strand</th>
+        <th>Show/hide alignment</th>
+      </tr>
+    </thead>
+    <tbody>
+[% tableBody %]
+    </tbody>
+  </table>
+
+</div>
+
+[%# show raw data with: 
+FOREACH jobId IN results.keys;
+  results.$jobId.rawData | html
+END %]
+
+<script type="text/javascript">
+  // <![CDATA[
+  // hide all of the alignment rows once the table is built
+  Event.observe( window, "load", function() {
+      $$(".alignment").invoke( "hide" );
+    }
+  );
+  // a function to show or hide the alignment rows
+  function toggleAlignment( sId, oSwitch ) {
+    $(sId).toggle();
+    oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
+  }
+  // a function to show or hide all of the alignments in one fell swoop...
+  function showAllAlignments( sId, bState ) {
+    var sState = bState ? "show" : "hide";
+    var sSrc   = bState ? "[% hideButton %]" : "[% showButton %]";
+    $A( document.getElementsByClassName("alignment",sId)).invoke(sState);
+    $A( $$("td.showSwitch img") ).each(
+      function (s ) {
+        s.src = sSrc; 
+      }
+    );
+  }
+  // ]]>
+</script>
+
+<!-- end of "results" -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
