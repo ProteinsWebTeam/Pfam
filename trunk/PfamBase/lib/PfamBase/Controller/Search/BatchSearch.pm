@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: BatchSearch.pm,v 1.1 2008-09-03 15:40:43 jt6 Exp $
+# $Id: BatchSearch.pm,v 1.2 2008-09-12 09:37:56 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search::BatchSearch;
 
 This is the parent class for batch search operations.
 
-$Id: BatchSearch.pm,v 1.1 2008-09-03 15:40:43 jt6 Exp $
+$Id: BatchSearch.pm,v 1.2 2008-09-12 09:37:56 jt6 Exp $
 
 =cut
 
@@ -70,7 +70,7 @@ sub check_unique : Private {
 
 Parses the uploaded file and, if it's valid, copies it to the stash. Returns 1
 if the upload passed validation, 0 otherwise. Error messages explaining the
-failure will be returned in the stash, with the key "errorMsg".
+failure will be returned in the stash, with the key "searchError".
 
 =cut
 
@@ -80,7 +80,7 @@ sub parse_upload : Private {
   # check that we can get an Catalyst::Request::Upload object from the request 
   my $u;
   unless ( $u = $c->req->upload('batchSeq') ) {
-    $c->stash->{errorMsg} = 
+    $c->stash->{searchError} = 
       'You did not supply a valid FASTA format file. Please try again.';
 
     $c->log->warn( 'Search::BatchSearch::parse_upload: no "batchSeq" parameter found or content empty' )
@@ -92,7 +92,7 @@ sub parse_upload : Private {
   # check that the Upload object returns us a filehandle
   my $fh;
   unless ( $fh = $u->fh ) {
-    $c->stash->{errorMsg} =
+    $c->stash->{searchError} =
         'There was a problem with your file upload. Please try again. If you '
       . 'continue to have problems uploading, please report this to the helpdesk.';
 
@@ -113,6 +113,11 @@ sub parse_upload : Private {
   
   while ( <$fh> ) {
     
+    # don't bother storing blank lines in the DB
+    next if m/^\s*$/;
+    
+    #----------------------------------------
+
     # keep track of the number of lines in the file. Increment before ignoring
     # blank lines though, so that we get the right line count for error
     # messages
@@ -120,7 +125,7 @@ sub parse_upload : Private {
 
     # check we're not exceeding the maximum total number of lines
     if ( $line_num > $this->{maxNumLines} ) {
-      $c->stash->{errorMsg} = 
+      $c->stash->{searchError} = 
           'Your sequence file is too long. The server currently allows a maximum of '
         . $this->{maxNumLines} . ' in a single upload. Please split your sequences '
         . 'across several shorter files and submit them individually.'; 
@@ -143,7 +148,7 @@ sub parse_upload : Private {
 
       # check header lines. We're banning the following characters: ; \ ! and *
       if ( m/\;\\\!\*/ ) {
-        $c->stash->{errorMsg} = 
+        $c->stash->{searchError} = 
             "We found an illegal character in the header on line $line_num " 
           . 'of your input file. Please check the file format and try again.';
 
@@ -155,11 +160,11 @@ sub parse_upload : Private {
 
       # total number of sequences
       if ( $seq_count++ > $this->{maxNumSeqs} ) {
-        $c->stash->{errorMsg} = 
+        $c->stash->{searchError} = 
             'There are too many sequences in your file. The server currently '
-          . 'allows a maximum of ' . $this->{maxNumSeqs} . ' in a single file. '
-          . 'Please split your sequences into multiple files and submit each one '
-          . 'individually';
+          . 'allows a maximum of ' . $this->{maxNumSeqs} . ' sequences in a '
+          . 'single file. Please split your sequences into multiple files and '
+          . 'submit each one individually';
 
         $c->log->debug( "Search::BatchSearch::parse_upload: too many sequences ($seq_count > "
                         . $this->{maxNumSeqs} . ')' ) if $c->debug;
@@ -167,16 +172,25 @@ sub parse_upload : Private {
         return 0;
       }
 
-      # strip both new line and carriage return
+      # strip both new line and carriage return, leaving spaces alone. We do 
+      # this last, rather than first as with sequence lines
       s/[\r\n]//g;
     }
     
     # look at sequence lines
     else {
 
-      # regular sequence line (no "J" or "O" allowed)
-      unless ( m/^[ABCDEFGHIKLMNPQRSTUVWXYZ\-\*\s]+\r?$/i ) {
-        $c->stash->{errorMsg} = 
+      # strip new line, carriage return and *space characters*
+      s/[\r\n\s]//g;
+
+      # regular sequence line
+      my $regex_string = $this->{sequenceValidationRegex};
+      $c->log->debug( "Search::BatchSearch::parse_upload: regex for sequence line validation: |$regex_string|" )
+        if $c->debug;
+      
+      my $regex = qr/$regex_string/i;
+      unless ( m/$regex/ ) {
+        $c->stash->{searchError} = 
             "We found an illegal character in the sequence on line $line_num "
           . 'of your input file. Please check the file format and try again.';
 
@@ -186,17 +200,23 @@ sub parse_upload : Private {
         return 0;
       }
 
-      # it's a valid sequence line; store the cleaned-up contents of the line,
-      # so that we can perform more checks later
-      $sequences{$header} .= $_;
-      
-      # strip new line, carriage return and *space characters*
-      s/[\r\n\s]//g;
+      # make sure that $header is set. If it's not set, the sequence wasn't in
+      # FASTA format and we need to admonish the user...
+      unless ( defined $header and $header ne '' ) {
+        $c->stash->{searchError} = 
+            'Your uploaded file does not appear to be in FASTA format. Please '
+          . 'check the file format and try again.';
 
+        $c->log->debug( 'Search::BatchSearch::parse_upload: no FASTA header line found; bailing' )
+          if $c->debug;
+
+        return 0;
+      }
+
+      # OK. Now we're looking at a valid sequence line; store the cleaned-up 
+      # contents of the line, so that we can perform more checks later
+      $sequences{$header} .= $_;
     }
-    
-    # don't bother storing blank lines in the DB
-    next if m/^\s*$/;
     
     # this line was valid; add it to the input, along with a newline. This is
     # actual input that will be put into the database
@@ -219,7 +239,7 @@ sub parse_upload : Private {
                     . '| residues in sequence' ) if $c->debug;
 
     if ( length $seq > $this->{maxNumResidues} ) {
-      $c->stash->{errorMsg} =
+      $c->stash->{searchError} =
           "The sequence starting on line $header_lines{$header} is too long. "
         . 'The server currently allows a maximum of ' . $this->{maxNumResidues} 
         . ' residues per sequence. Please make sure that your sequences are shorter '
@@ -247,8 +267,8 @@ sub parse_upload : Private {
                     . 'different residue types' ) if $c->debug;
                     
     if ( $num_residue_types < $this->{minNumResidueTypes} ) {
-      $c->stash->{errorMsg} =
-          qq(The sequence starting at line '$header_lines{$header}' does not look )
+      $c->stash->{searchError} =
+          qq(The sequence starting at line $header_lines{$header} does not look )
         .  q(like a protein sequence. Please check your sequence and try again. If )
         .  q(you feel that there is a problem with the server, please contact the )
         .  q(Pfam helpdesk at the address below and we will be happy to take a look.);
