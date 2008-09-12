@@ -3,8 +3,8 @@ package Bio::Pfam::WebServices::PfamQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2008-05-16 15:13:18 $
-# Id:            $Id: PfamQueue.pm,v 1.8 2008-05-16 15:13:18 jt6 Exp $
+# Last Modified: $Date: 2008-09-12 10:31:10 $
+# Id:            $Id: PfamQueue.pm,v 1.9 2008-09-12 10:31:10 rdf Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -37,6 +37,7 @@ sub new {
                            status
                            id
                            email
+			   rfamEmail
                            command)],
 	     };
   bless $self, $class;
@@ -56,9 +57,11 @@ sub new {
   
   $self->tmpDir($config{queue}->{$queueType}->{tmpDir});
   $self->dataFileDir($config{queue}->{$queueType}->{dataFileDir});
+  $self->rfamDataFileDir($config{queue}->{$queueType}->{rfamDataFileDir});
   $self->cpus($config{queue}->{$queueType}->{cpus}) if($config{queue}->{$queueType}->{cpus});
   $self->pvm($config{queue}->{$queueType}->{pvm}) if($config{queue}->{$queueType}->{pvm});
   $self->email($config{queue}->{$queueType}->{email}) if ($config{queue}->{$queueType}->{email});
+  $self->rfamEmail($config{queue}->{$queueType}->{rfamEmail}) if ($config{queue}->{$queueType}->{rfamEmail});
   $self->thirdPartyQueue($config{queue}->{$queueType}->{thirdPartyQueue}) if ($config{queue}->{$queueType}->{thirdPartyQueue});
   for my $f ($self->fields()) {
     if(exists $ref->{$f}) {
@@ -116,6 +119,13 @@ sub dataFileDir {
 	return $self->{'dataFileDir'};
 }
 
+sub rfamDataFileDir {
+  my ($self, $rfamDataFileDir) = @_;
+  if($rfamDataFileDir){
+      $self->{'rfamDataFileDir'} = $rfamDataFileDir;
+  }
+  return $self->{'rfamDataFileDir'};
+}
 sub pvm {
 	my ($self, $pvm) = @_;
 	if($pvm){
@@ -126,11 +136,18 @@ sub pvm {
 
 sub email {
 	my ($self, $email) = @_;
-	print STDERR Dumper($email);
 	if($email){
 		$self->{'email'} = $email;
 	}
 	return $self->{'email'};
+}
+
+sub rfamEmail {
+	my($self, $rfamEmail) = @_;
+	if($rfamEmail){
+		$self->{'rfamEmail'} = $rfamEmail;
+	}
+	return $self->{'rfamEmail'};
 }
 
 sub thirdPartyQueue {
@@ -199,7 +216,6 @@ sub submit {
                                     'opened'  => \'NOW()' });
                                     
     my $trackerid = $resultHistory->id;
-    print STDERR "tracker id = $trackerid\n";
     my $resultStream = $self->getSchema
                               ->resultset('JobStream')
                                 ->create({'id' => $resultHistory->id,
@@ -657,7 +673,7 @@ Bio::Pfam::WebServices::PfamQueue - A transactional-database-backed queuing syst
 
 =head1 VERSION
 
-$Revision: 1.8 $
+$Revision: 1.9 $
 
 =head1 SYNOPSIS
 
