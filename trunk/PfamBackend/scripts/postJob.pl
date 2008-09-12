@@ -17,6 +17,18 @@
 # You should have received a copy of the GNU General Public License along with
 # this program. If not, see <http://www.gnu.org/licenses/>.
 
+#------------------------------------------------------------------------------
+#
+# The purpose of this script is to mail asynchronous results to users.  As there
+# are a growing number of jobs, this script is becoming a little untidy as more 
+# jobs are added.  
+#
+# The pfam_backend.conf controls who the mails are sent from as well as any
+# additional Bcc's so that you can monitor who is spamming the servers.
+#
+# 
+
+
 use strict;
 use warnings;
 use Data::Dumper;
@@ -38,6 +50,15 @@ die 'No job ID supplied' unless $id;
 
 my $ref = $qsout->get_job($id);
 
+my $emailAds; 
+print STDERR $ref->{job_type}."\n";
+if($ref->{job_type} eq 'rfam_batch'){
+  $emailAds = $qsout->rfamEmail;	
+}else{
+  $emailAds = $qsout->email;
+}
+
+print Dumper($emailAds);
 my $status = $ref->{status};
 my ( $error, $results );
 
@@ -62,7 +83,7 @@ if ( $status eq 'RUN' ){
   if ( !$error ) {
     my $FH;
     open ( $FH, "$tmpDir/" . $ref->{job_id} . '.res') 
-      or $error .= "Could not open pfam_scan results file\n"; 
+      or $error .= "Could not open results file\n"; 
     if ( $FH ) {
       while ( <$FH> ) {
         $results .= $_;
@@ -72,7 +93,7 @@ if ( $status eq 'RUN' ){
     $qsout->update_job_status( $ref->{id}, 'DONE' );
     emailResults( $ref->{email}, 
                   $results, 
-                  $qsout->email, 
+                  $emailAds, 
                   $ref );
     $qsout->update_job_stream( $ref->{id}, 'stdout', $results );
     $qsout->update_job_stream( $ref->{id}, 'stderr', $error ) if $error;
@@ -96,7 +117,7 @@ if ( $status eq 'FAIL' ) {
   $errorString .= $error if $error;
   emailFail ($ref->{email}, 
              $errorString, 
-             $qsout->email, 
+             $emailAds, 
              $ref );
 }
 
@@ -113,10 +134,17 @@ exit;
 sub emailResults {
   my ( $email, $results, $emailHeader, $ref ) = @_;
 
+  my $source;
+  if($ref->{job_type} eq 'rfam_batch'){
+    $source = 'Rfam';	
+  }else{
+    $source = 'Pfam';	
+  }
+
+
   # build email headers
   my %header = ( To      => $email,
-                 From    => 'pfam-help@sanger.ac.uk',
-                 Subject => 'Your pfam search results for job ' . $ref->{job_id} );
+                 Subject => 'Your '.$source.' search results for job ' . $ref->{job_id} );
 
   if ( ref $emailHeader eq 'HASH' ) {
     while (my ( $key, $value ) = each %$emailHeader ) {
@@ -175,6 +203,14 @@ used to run these searches from the Pfam CVS repository:
 http://cvs.sanger.ac.uk/cgi-bin/viewcvs.cgi/PfamBackend/scripts/pfamDNASearch.pl?root=PfamWeb 
 __MESSAGE__
 
+  }elsif ($ref->{job_type} eq 'rfam_batch' ){
+ 	$message .= <<'__MESSAGE__';
+
+Please find your rfamScanLite results below.
+
+If you have any comments or questions about the use of this service, 
+please contact Rfam at: rfam-help@sanger.ac.uk
+__MESSAGE__
   }
 
   #----------------------------------------
@@ -242,6 +278,15 @@ The output format is:
 <seq id> <seq start> <seq end> <pfam acc> <hmm start> <hmm end> <alignment mode> <bit score> <evalue> <pfam id> <nested> <predicted_active_site_residues>
 __MESSAGE__
 
+    }elsif($ref->{job_type} eq 'rfam_batch'){
+      $message .= <<'__MESSAGE__';
+
+----------------
+
+The output format is:
+<rfam acc> <rfam id> <seq id> <seq start> <seq end> <strand> <score>
+__MESSAGE__
+      
     }
 
     $message .= <<'__MESSAGE__';
