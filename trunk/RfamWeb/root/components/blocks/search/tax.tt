@@ -1,0 +1,218 @@
+[%
+# tax.tt
+# jt6 20061108 WTSI
+# 
+# build the taxonomy search block
+#
+# $Id: tax.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "search.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start taxonomy search block -->
+
+<div class="block" id="searchTaxBlock">
+  <div class="handle">
+    <h1>Taxonomy search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This form supports two types of query: you can enter a complex boolean
+      expression that precisely defines the species distribution of families
+      that you want, such as &quot;Caenorhabditis elegans AND NOT Homo 
+      sapiens&quot;, or you can check the &quot;Find families unique to 
+      query term&quot; box and enter a single taxonomic descriptor, e.g. 
+      &quot;apicomplexa&quot; to find all Rfam families that are 
+      unique to that particular level.
+      <span class="moreLink" onclick="reveal(this,'taxNotes',false, true)">More...</span>
+    </p>
+    <div id="taxNotes" style="display: none">
+
+      <h3>Species names</h3>
+      <p>
+        In order to find species names in our database, you must give the full,
+        unabbreviated name in your query. For example, if you want to find
+        families in <em>Caenorhabditis elegans</em>, you must spell out 
+        &quot;Caenorhabditis&quot;; &quot;C. elegans&quot; does not exist in 
+        the species database and will not return any results. The capitalisation
+        of your query does not affect the results: 
+        &quot;<strong>C</strong>aenorhabditis&quot; is the same as
+        &quot;<strong>c</strong>aenorhabditis&quot;.
+      </p>
+      
+      <h3>Term suggestions</h3>
+      <p>
+        Because species names can be long, complex and easily misspelt, the
+        form will offer suggestions for possible completions of terms that you
+        enter. For example, as you start typing c-a-e-n, a drop-down panel will
+        appear, showing the possible completions:
+      </p>
+      <img src="[% c.uri_for( "/static/images/completion_1.png" ) %]"
+           class="suggestion"
+           alt="Completion of 'caen'" />
+      <p>
+        As you enter more letters, the suggestions will be refined accordingly:
+      </p>
+      <img src="[% c.uri_for( "/static/images/completion_2.png" ) %]"
+           class="suggestion"
+           alt="Completion of 'caenorhab'" />
+      <p>
+        Note that only the last term in the field is used to offer completions,
+        so if you have already entered &quot;caenorhabditis elegans&quot;, going
+        back and shortening the first word to give &quot;caen elegans&quot;
+        will not give any suggestions.
+      </p>
+
+      <h3>Boolean queries</h3>
+      <p>
+        Boolean queries can contain logical operators, such as AND, NOT and OR,
+        combined with braces (&quot;(&quot; and &quot;)&quot;) to form a 
+        description of a set of families with a particular species distribution.
+      </p>
+      <p>
+        For example, the following query:
+      </p>
+      <p class="exampleQuery">
+        Caenorhabditis elegans AND NOT Homo sapiens
+      </p>
+      <p>
+        will retrieve all families which are found in <em>C. elegans</em> but not
+        in human, whilst
+      </p>
+      <p class="exampleQuery">
+        Caenorhabditis elegans AND Caenorhabditis briggsae AND NOT Homo 
+        sapiens
+      </p>
+      <p>
+        will retrieve all families which are found in both <em>C. elegans</em> 
+        and <em>C. briggsae</em> but not in human, and
+      </p>
+      <p class="exampleQuery">
+        ( Caenorhabditis elegans OR Caenorhabditis briggsae ) AND NOT Homo 
+        sapiens
+      </p>
+      <p>
+        will retrieve families that are found in either <em>C. elegans</em> 
+        or <em>C. briggsae</em> but not in human.
+      </p>
+      
+      <h3>Families unique to a single species</h3>
+      <p>
+        By checking the box marked &quot;Find families unique to query term&quot;
+        you can limit the query to finding those families which are found only
+        in a single species or taxonomic level. For example, checking the box
+        and entering &quot;Caenorhabditis elegans&quot; will return a list of
+        Rfam families that are present only in C. elegans, whilst 
+        &quot;metazoa&quot; will find families that exist in metazoans.
+      </p>
+      <p>
+        Note that you can only enter a single species term when looking for
+        unique sequences. You will see an error message if the search field
+        contains more than one species.
+      </p>
+      <hr />
+    </div>
+
+    <div class="formWrapper">
+
+      [% IF taxSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% taxSearchError %]
+      </div>
+      [% END %]
+  
+      <form method="post" 
+            id="proteinTaxSearchForm"
+            action="[% c.uri_for( "/search/taxonomy" ) %]">
+
+        <div class="row">
+          <label for="q">Query</label>
+          <input class="entryField disabledEntryField"
+                 type="text" 
+                 size="60" 
+                 name="q" 
+                 id="q" />
+        </div>
+
+        <div id="taxSuggestions" class="autocomplete"></div>
+          
+        <div class="row">
+          <label for="unique">Find families unique to query term</label>
+          <input class="radio"
+                 type="checkbox" 
+                 name="unique" 
+                 id="unique" 
+                 value="1" />
+        </div>
+
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit"
+                 type="submit"
+                 name="submit"
+                 value="Submit"
+                 onclick="if( ! $('q').present() ){return false}"/>
+          <input class="reset"
+                 type="reset"
+                 name="reset"
+                 value="Reset" />
+          <input class="example" 
+                 type="button" 
+                 value="Example"
+                 onclick="$('q').value=($F('unique')?exUnique:exTax)" />
+        </div>
+
+      </form>
+  
+    </div>
+  
+  </div>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var exTax    = 'Caenorhabditis elegans AND NOT Homo sapiens';
+  var exUnique = 'Apicomplexa';
+
+  new Ajax.Autocompleter(
+    'q',
+    'taxSuggestions',
+    '[% c.uri_for( "/search/taxonomy/suggest" ) %]',
+    { minChars:  3,
+      frequency: 0.6 }
+  );
+
+  $("proteinTaxSearchForm").disable();
+  // ]]>
+</script>
+
+<!-- end taxonomy search block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
