@@ -24,8 +24,8 @@ __PACKAGE__->set_primary_key("auto_rfam", "type");
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 15:39:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v0rZlRcHtV5hn0nOVmwfyA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 16:22:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:JIK/xFr2npNqf5airBQ+kA
 
 #-------------------------------------------------------------------------------
 
