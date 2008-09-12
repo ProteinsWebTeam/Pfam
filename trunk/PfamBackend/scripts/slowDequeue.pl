@@ -91,7 +91,17 @@ while(1) {
 		$cmd .= " -cpu ".$qsout->cpus;
 		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
 		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
+	}elsif($ref->{'job_type'} eq "rfam_batch"){
+		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
+		$cmd .= " ".$ref->{'command'};
+		$cmd .= " -data ".$qsout->rfamDataFileDir;
+		$cmd .= " -tmp ".$qsout->tmpDir;
+		$cmd .= " -in ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
+		
+		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
+		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
 	}
+	  
 	$DEBUG && print STDERR "Submitting id=$ref->{'id'}, command=$cmd\n";
 	
 	#Now for the lsf bit

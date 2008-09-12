@@ -87,7 +87,20 @@ while(1) {
 		  $cmd = $ref->{'command'}." -in ".$ref->{job_id}.".fa -tmp ".$qsout->tmpDir." -data ".$qsout->dataFileDir." ".$ref->{'options'};
 		  
 		  
-  	 }	 
+  	 }elsif($ref->{'job_type'} eq "rfam" ){
+        open(FA, ">".$qsout->tmpDir."/".$ref->{job_id}.".fa") ||  ($error .= "Could not open file for writing:[$!].");
+	  	  print FA ">UserSeq\n" if ($ref->{'stdin'} !~ /^>/);
+	   	  print FA $ref->{'stdin'}."\n";
+		    close(FA)  || ($error .= "Could close fasta file:[$!].");
+		   
+		    if($error){
+		      $qsout->update_job_status($ref->{id}, 'FAIL');
+		      $qsout->update_job_stream($ref->{id}, 'stderr', $error);
+		      next;
+		    }
+		    #/home/pfamweb/scripts/rfamseq_blast_new.pl -in /tmp/rfam_test_seq.fa -cpus 2 -data /data/blastdb/Rfam
+		    $cmd = $ref->{'command'}." -in ".$qsout->tmpDir."/".$ref->{job_id}.".fa -tmp ".$qsout->tmpDir."-cpus ".$qsout->cpus." -data ".$qsout->rfamDataFileDir;
+  	 } 
 	$DEBUG && print STDERR "Executing id=$ref->{'id'}, command=$cmd\n";
 	
 	#Run the executable via IPC::Cmd
