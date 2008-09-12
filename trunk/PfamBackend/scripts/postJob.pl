@@ -51,7 +51,7 @@ die 'No job ID supplied' unless $id;
 my $ref = $qsout->get_job($id);
 
 my $emailAds; 
-print STDERR $ref->{job_type}."\n";
+
 if($ref->{job_type} eq 'rfam_batch'){
   $emailAds = $qsout->rfamEmail;	
 }else{
