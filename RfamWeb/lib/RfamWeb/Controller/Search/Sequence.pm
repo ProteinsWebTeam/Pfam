@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.1 2008-09-12 09:13:32 jt6 Exp $
+# $Id: Sequence.pm,v 1.2 2008-09-12 12:38:27 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for submitting single sequence searches for Rfam.
 
-$Id: Sequence.pm,v 1.1 2008-09-12 09:13:32 jt6 Exp $
+$Id: Sequence.pm,v 1.2 2008-09-12 12:38:27 jt6 Exp $
 
 =cut
 
@@ -232,7 +232,8 @@ sub queue_seq_search : Private {
   
   # first, check there's room on the queue
   my $rs = $c->model( 'WebUser::JobHistory' )
-             ->find( { status => 'PEND' },
+             ->find( { status   => 'PEND',
+                       job_type => 'rfam' },
                      { select => [ { count => 'status' } ],
                        as     => [ 'numberPending' ] } );
   
@@ -241,11 +242,11 @@ sub queue_seq_search : Private {
                   $c->stash->{numberPending} . '| jobs pending' ) if $c->debug;
   
   if ( $c->stash->{numberPending} >= $this->{pendingLimit} ) {
-    $c->stash->{seqSearchError} = 
-      'There are currently too many jobs in the sequence search queue. ' . 
+    $c->stash->{searchError} = 
+      'There are currently too many Rfam jobs in the sequence search queue. ' . 
       'Please try again in a little while';
 
-    $c->log->debug( 'Search::Sequence::queue_seq_search: too many jobs in queue ('
+    $c->log->debug( 'Search::Sequence::queue_seq_search: too many Rfam jobs in queue ('
                     . $c->stash->{numberPending} . ')' ) if $c->debug;
 
     return 0;
@@ -258,7 +259,7 @@ sub queue_seq_search : Private {
   my @jobs;
   
   unless ( $c->forward('queue_rfam') ) {
-    $c->stash->{seqSearchError} ||= 'There was a problem queuing your Rfam search';
+    $c->stash->{searchError} ||= 'There was a problem queuing your Rfam search';
 
     $c->log->debug( 'Search::Sequence::queue_seq_search: problem submitting Rfam search' )
       if $c->debug;
