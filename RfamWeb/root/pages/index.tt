@@ -5,7 +5,7 @@
 # 
 # build the main Rfam home page.
 #
-# $Id: index.tt,v 1.4 2008-07-25 13:32:33 jt6 Exp $
+# $Id: index.tt,v 1.5 2008-09-12 09:26:53 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -152,20 +152,15 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                   rows="6"></textarea>
       </div>
     </form>
-    [%# disable clicks...
     <div onclick="if( $('seq').present() ){$('seqForm').submit()};"
-    %]
-    <div
-         class="glassButton disabledGoButton">&nbsp;</div>
-    [%# disable clicks...
+         class="glassButton goButton">&nbsp;</div>
     <div onclick="$('seq').value=exSeq"
-    %]
-    <div
-         class="glassButton disabledExampleButton">&nbsp;</div>
+         class="glassButton exampleButton">&nbsp;</div>
     <p class="small nlh">
       This search will use blast to scan Rfam for any related sequences, 
       any hits are then aligned to the corresponding covariance model. 
-      You can set your own search parameters using <a href="[% searchBase %]?tab=searchSequenceBlock">this</a> form.      
+      You can set your own search parameters using 
+      <a href="[% searchBase %]?tab=searchSequenceBlock">this</a> form.      
     </p>
   </div>
 
@@ -405,7 +400,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 GAAGGGCGUCGUCAGUACUAUAGUGGGUGACCAUAUGGGAAUACGACGUGCUGUAGCUU";
 
   // disable forms
-  $("seqForm","RNAForm","structureForm","keywordForm","taxonomyForm")
+  $("RNAForm","structureForm","keywordForm","taxonomyForm")
     .each( function( form ) {
       form.disable()
       form.getElements("text").each( function( input ) {
