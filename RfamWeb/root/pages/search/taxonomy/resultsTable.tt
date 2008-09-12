@@ -1,0 +1,87 @@
+[%
+# resultsTable.tt
+# jt6 20071011 WTSI
+# 
+# a page fragment that builds the results table for taxonomy or unique
+# domains searches
+#
+# $Id: resultsTable.tt,v 1.1 2008-09-12 09:27:44 jt6 Exp $
+
+META naked = 1;
+%]
+
+<table class="resultTable"
+       id="resultTable"
+       summary="Taxonomy search results">
+  <thead>
+    <tr>
+      <th>Accession</th>
+      <th>ID</th>
+      <th class="nosort">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% FOREACH family IN families.keys.sort;
+  familyUri = c.uri_for( "/family", { acc = family } ) -%]
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td>
+        <a href="[% familyUri %]">[% family %]</a>
+      </td>
+      <td>
+        <a href="[% familyUri %]">
+          [% families.$family.pfamA_id %]</a>
+      </td>
+      <td>
+        [% families.$family.description %]
+      </td>
+    </tr>
+  [% END -%]
+  </tbody>
+</table>
+
+<p>
+  You can also see the accessions and IDs for the results families as a simple 
+  list that can be cut-and-pasted into an editor.
+  <span class="link" onclick="reveal(this,'textList',false)">Show</span> 
+  the unformatted list.
+</p>
+
+<div id="textList" style="display: none">
+  <pre>
+    [%- FOREACH family IN families.keys.sort;
+family; " "; families.${family}.pfamA_id %]
+[% END -%]
+  </pre>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var sorter = new TableKit( "resultTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+  // ]]>
+</script>
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
