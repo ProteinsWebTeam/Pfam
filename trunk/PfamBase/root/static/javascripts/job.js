@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.5 2008-09-12 09:40:51 jt6 Exp $
+// $Id: job.js,v 1.6 2008-09-12 16:17:38 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -266,8 +266,9 @@ var Job = Class.create({
   onTimeout: function() {
     // console.debug( "Job.onTimeout: job timed out ! Stopping updates..." );
 
-    // tidy up here
+    this.log( this.jobName + ": timed out", "please try your search again later" );
 
+    // tidy up here
     this.stop();
   },
 
@@ -553,4 +554,4 @@ if( Job.RUNNING === undefined ) { Job.RUNNING = new Hash(); }
 Job.TICK_INTERVAL = 1000;
 
 // the timeout period
-Job.TIMEOUT = 300000;
+Job.TIMEOUT = 3600000;
