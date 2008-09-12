@@ -1,0 +1,156 @@
+[%
+# searchResults.tt
+# jt6 20060807 WTSI
+# 
+# keyword search results page
+#
+# $Id: results.tt,v 1.1 2008-09-12 09:27:14 jt6 Exp $
+
+META title = "Keyword search results";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "family.css" );
+requirements.cssIe.push( "family_ie.css" );
+
+sharedRequirements.js.push( "tablekit.js" );
+
+#-------------------------------------------------------------------------------
+
+-%]
+
+<div class="key">
+
+  <h2>Keyword search results</h2>
+
+  [% rowNums = {};
+  hitsSummary = BLOCK;
+    hitPlugins = 0 %]
+    <table id="keyTable" summary="summary of search results">
+      <thead>
+        <tr>
+          <td>Section</td>
+          <td class="desc">Description</td>
+          <td>Number of hits</td>
+        </tr>
+      </thead>
+      <tbody>
+      [% FOREACH pluginName IN pluginsArray;
+        rowNums.$pluginName = 0 %]
+        <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+          <td>[% pluginName %]</td>
+          <td class="desc">[% pluginsHash.$pluginName %]</td>
+          <td>[% pluginHits.$pluginName || 0 %]</td>
+        </tr>
+        [% # keep track of the number of plugins that returned results
+        IF pluginHits.$pluginName;
+          hitPlugins = hitPlugins + 1; 
+        END;
+      END; # of FOREACH %]
+      </tbody>
+    </table>
+  [% END %]
+
+  <p>
+    We found <strong>[% results.size %]</strong> unique results for your query 
+    (&quot;<em>[% rawQueryTerms %]</em>&quot;), in <strong>[% hitPlugins %]</strong>
+    sections of the database.
+    [% IF lookupHit %]
+      Your query also appears to be a match for Rfam entry
+      <em><a href="[% c.uri_for( "/family", acc=lookupHit.rfam_acc ) %]">
+        [% lookupHit.rfam_id %]</a></em>
+      (<a href="[% c.uri_for( "/family", acc=lookupHit.rfam_acc ) %]">[% lookupHit.rfam_acc %]</a>)
+      and this row is <span class="highlight">highlighted</span> in the
+      results table.
+    [% END %]
+  </p>
+
+  [% hitsSummary %]
+
+  <p>
+    This key shows a brief description of each of the database
+    sections, in the order that they were searched, along with the
+    number of hits found in each one. The table of results may be
+    sorted by clicking on the column titles, or restored to the
+    original order <span class="link"
+    onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');">here</span>. 
+    Note that the final list of hits shows only unique Rfam accessions.
+  </p>
+
+</div> <!-- end of div "key" -->
+
+<div id="results">
+  <table class="resultTable" id="resultTable" summary="Search results">
+    <thead>
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>Accession</th>
+        <th>ID</th>
+        <th class="nosort">Description</th>
+        [% FOREACH pluginName IN pluginsArray;
+          IF pluginHits.$pluginName %]
+          <th>[% pluginName %]</th>
+          [% END;
+        END %]
+      </tr>
+    </thead>
+    <tbody>
+      [% FOREACH row IN results;
+         acc = row.dbObj.rfam_acc;
+         id  = row.dbObj.rfam_id %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %][% lookupHit.rfam_id == id ? " highlight" : "" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% acc %]</a></td>
+        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% id %]</a></td>
+        <td class="desc">[% row.dbObj.description %]</td>
+        [% FOREACH pluginName IN pluginsArray;
+          IF pluginHits.$pluginName;
+            IF row.query.$pluginName %]
+              <td class="ticked fixedWidth"><p>[% rowNums.$pluginName %]</p></td>
+              [%- rowNums.$pluginName = rowNums.$pluginName + 1;
+            ELSE %]
+              <td class="fixedWidth"><p>10000000</p></td>
+            [% END;
+          END;
+        END %]
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+
+  <script type="text/javascript">
+    // <![CDATA[
+    var sorter = new TableKit( "resultTable",
+                                {
+                                  editable: false,
+                                  resizable: false,
+                                  rowEvenClass: "even",
+                                  rowOddClass: "odd",
+                                  stripe: true
+                                } );    
+    // ]]>
+  </script>
+
+</div> <!-- end of div "results" -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
