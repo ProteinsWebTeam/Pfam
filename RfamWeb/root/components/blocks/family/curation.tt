@@ -4,7 +4,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.5 2008-07-25 13:29:46 jt6 Exp $
+# $Id: curation.tt,v 1.6 2008-09-12 09:26:02 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -151,7 +151,7 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       <div class="controlTabContent">
         <h3>Full distribution</h3>
         <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='dist' } ) | html %]" />
-        <div class="key">
+        <div class="chartKey">
           <ul>
             <li><span class="alignColour">&nbsp;</span>align</li>
             <li><span class="seedColour">&nbsp;</span>seed</li>
@@ -168,7 +168,7 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
       <div class="controlTabContent">
         <h3>Truncated distribution</h3>
         <img alt="" src="[% c.uri_for( '/family/image', { acc => acc, type ='disttrunc' } ) | html %]" />
-        <div class="key">
+        <div class="chartKey">
           <ul>
             <li><span class="alignColour">&nbsp;</span>align</li>
             <li><span class="seedColour">&nbsp;</span>seed</li>
