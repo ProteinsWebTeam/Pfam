@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: InteractiveSearch.pm,v 1.1 2008-09-03 15:40:43 jt6 Exp $
+# $Id: InteractiveSearch.pm,v 1.2 2008-09-12 09:38:25 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Search::InteractiveSearch;
 
 This is the parent class for interactive search operations.
 
-$Id: InteractiveSearch.pm,v 1.1 2008-09-03 15:40:43 jt6 Exp $
+$Id: InteractiveSearch.pm,v 1.2 2008-09-12 09:38:25 jt6 Exp $
 
 =cut
 
@@ -68,6 +68,78 @@ sub begin : Private {
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
   $c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
+
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 search : Path
+
+Queues a sequence search job and returns a page that polls the server for
+results.
+
+=cut
+
+sub search : Path {
+  my ( $this, $c ) = @_;
+  
+  # validate the input
+  unless ( $c->forward('validate_input') ) {
+    
+    # copy the error message into the slot in the stash where the templates
+    # expect to find it
+    $c->stash->{seqSearchError} = 
+      $c->stash->{searchError} ||
+      'There was an unknown problem when validating your sequence.';
+
+    # if we're returning XML, we need to set a template to render the error
+    # message. If we're emitting HTML, the end action (ultimately on Section) 
+    # will take of us and return us to the HTML page containing search form 
+    # and show the error message
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/error_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+  
+    return;
+  }
+
+  # no errors with the input; try to submit the search
+
+  # success !
+  if ( $c->forward( 'queue_seq_search' ) ) {
+
+    $c->log->debug( 'Search::Sequence::search: sequence search submitted; polling' )
+      if $c->debug; 
+
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/poll_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+    else {
+      $c->stash->{template} = 'pages/search/sequence/polling.tt';
+    }
+
+  }
+
+  # failure...
+  else {
+
+    $c->stash->{seqSearchError} = 
+      $c->stash->{searchError} || 
+      'There was an unknown problem when submitting your search.';
+
+    $c->log->debug( 'Search::Sequence::search: problem with submission; re-rendering form' )
+      if $c->debug;       
+
+    # point to the XML error template if emitting XML, otherwise, we're just 
+    # done here 
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/error_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+  
+  }
 
 }
 
