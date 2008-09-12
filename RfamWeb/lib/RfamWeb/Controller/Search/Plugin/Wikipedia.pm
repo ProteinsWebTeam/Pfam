@@ -1,32 +1,23 @@
 
-# Seq_info.pm
+# Wikipedia.pm
 # jt6 20060810 WTSI
 #
-# $Id: Wikipedia.pm,v 1.1 2008-09-12 09:14:14 jt6 Exp $
+# $Id: Wikipedia.pm,v 1.2 2008-09-12 09:48:23 jt6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Searches::Seq_info - search plugin for the
-seq_info table
+RfamWeb::Controller::Searches::wikipedia - search plugin for the
+wikipedia table
 
 =cut
 
-package PfamWeb::Controller::Search::Plugin::Seq_info;
+package RfamWeb::Controller::Search::Plugin::Wikipedia;
 
 =head1 DESCRIPTION
 
-Performs a MySQL "fulltext" query of the seq_info table, on the
-following columns:
+Performs a MySQL "fulltext" query of the wikipedia table.
 
-=over
-
-=item o seq_description
-
-=item o species
-
-=back
-
-$Id: Wikipedia.pm,v 1.1 2008-09-12 09:14:14 jt6 Exp $
+$Id: Wikipedia.pm,v 1.2 2008-09-12 09:48:23 jt6 Exp $
 
 =cut
 
