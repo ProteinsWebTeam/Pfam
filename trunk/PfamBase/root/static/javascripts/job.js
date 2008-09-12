@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.4 2008-06-12 12:04:25 jt6 Exp $
+// $Id: job.js,v 1.5 2008-09-12 09:40:51 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -80,6 +80,9 @@ var Job = Class.create({
     this.opened        = jobConfig.opened;        // submission time
     this.checkURI      = jobConfig.checkURI;      // URI to poll for status
     this.doneURI       = jobConfig.doneURI;       // URI for retrieving results
+
+    this._noredirect   = jobConfig._noredirect;   // debug flag; don't redirect to
+                                                   // results page if true
 
     //----------------------------------------
 
@@ -492,8 +495,14 @@ var Job = Class.create({
     // chop off the last ampersand
     var uri = buildURI.substr( 0, buildURI.length - 1 )
 
-    // console.debug( "Job.finish: redirecting to: |" + uri + "|" )
-    document.location = uri;
+    // unless the configuration tells us not to, redirect the browser to the
+    // results page
+    if ( this._noredirect !== undefined && this._noredirect ) {
+      alert( "All jobs complete" );
+    } else {
+      // console.debug( "Job.finish: redirecting to: |" + uri + "|" )
+      document.location = uri;
+    }
   },
   
   //----------------------------------------------------------------------------  
