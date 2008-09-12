@@ -8,6 +8,8 @@ use base 'DBIx::Class';
 __PACKAGE__->load_components("Core");
 __PACKAGE__->table("rfam_keywords");
 __PACKAGE__->add_columns(
+  "auto_rfam_keywords",
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "rfam_acc",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 7 },
   "rfam_id",
@@ -41,10 +43,11 @@ __PACKAGE__->add_columns(
     size => 4294967295,
   },
 );
+__PACKAGE__->set_primary_key("auto_rfam_keywords");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 15:39:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eF8eArbKAN8tIIwX0g3UVQ
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 16:22:33
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P3jEdDEqHZwVwFkCidx1pw
 
 
 #-------------------------------------------------------------------------------
