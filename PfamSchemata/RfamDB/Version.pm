@@ -20,8 +20,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("rfam_release");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-11 09:48:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qCgHQHlX2/4hwTzH60M2Jg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 15:39:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Ytxm3WHTElVXGMJePNCzAw
 
 #-------------------------------------------------------------------------------
 

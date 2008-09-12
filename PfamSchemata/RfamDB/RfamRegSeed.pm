@@ -25,8 +25,8 @@ __PACKAGE__->belongs_to(
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-11 09:48:06
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3+Jk2uH0RCxdtjrlOXd6lg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 15:39:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1uvAv1i4w3QaG3/+Ic+hmg
 
 #-------------------------------------------------------------------------------
 
