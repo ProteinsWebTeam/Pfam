@@ -1,0 +1,179 @@
+[%
+# batch.tt
+# jt6 20070419 WTSI
+# 
+# build the batch search block
+#
+# $Id: batch.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "search.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start batch search block -->
+
+<div class="block" id="searchBatchBlock">
+  <div class="handle">
+    <h1>Batch sequence search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Upload a FASTA-format file containing multiple nucleotide sequences to 
+      be searched for matching Rfam families. Results of the search will be 
+      returned to you at the email address that you specify. Please check the 
+      notes below for the restrictions on uploaded sequence files.
+      <span id="batchNotesSwitch"
+            class="moreLink" 
+            onclick="reveal(this,'batchNotes',false, true);">More...</span>
+    </p>
+
+    <div id="batchNotes" style="display: none">
+
+      <h2>File contents</h2>
+  
+      <p>
+        We accept only nucleotide sequences and your uploaded file must conform 
+        to a fairly strict interpretation of the FASTA file format. We apply the 
+        following checks to the format of uploaded sequence files. Files that do
+        not conform to the following rules will be rejected by the server.
+      </p>
+  
+      <h3>File contents</h3>
+  
+      <p>
+        Files must contain only header lines and sequence lines. Header lines, 
+        which begin with &quot;>&quot;, can be used to describe the sequence that 
+        follows. There is no fixed format for header lines but we restrict the 
+        characters that are allowed. If your header lines contain any of the following characters, your file will be rejected:
+      </p>
+      <strong><code>; \ ! *</code></strong>
+      <p>
+        Note that we explicitly include the semi-colon (;) in the list of 
+        forbidden characters, although this may be used to denote comments in 
+        some versions of the FASTA-format. Please do not use comments in the 
+        FASTA files that you upload here.
+      </p>
+  
+      <h3>Header rows</h3>
+  
+      <p>
+        The FASTA-format specification recommends that header lines are kept 
+        shorter than 80 characters. Note that, although we do not restrict the 
+        length of header lines, the output that you will receive only shows the 
+        first 20 characters of each header line. You should therefore ensure that 
+        the sequence is identifiable using only the first twenty characters of 
+        its header.
+      </p>
+  
+      <h3>Sequence symbols</h3>
+      <p>
+        Your sequence should be a valid nucleotide sequence. As such, the 
+        sequence line should contain only valid IUPAC nucleotide symbols, 
+        i.e. the characters A,C,G,U,T,R,Y,S,W,M,K,B,D,H,V and N, in either 
+        upper and/or lower case. In the context of a Rfam search, gaps and 
+        translation stops have little meaning and should not normally be used, 
+        but we accept &quot;-&quot; or &quot;*&quot; to denote gaps and 
+        translation stops respectively.
+      </p>
+  
+      <h2>Service limits</h2>
+
+      <p>
+        Searches run on a &quot;compute farm&quot; with a limited number of 
+        &quot;slots&quot;. Each search takes one slot and once all slots are in 
+        use, new jobs wait in a queue for the next slot to become free. In 
+        order to prevent large jobs occupying slots for very long periods, 
+        which can impact the availability of the system for other users, we 
+        place a number of restrictions on the size of job that we will accept.
+      </p>
+      <p>
+        If you are planning to submit a lot of sequence searches, we recommend 
+        installing 
+        <a href="http://www.sanger.ac.uk/Software/Rfam/help/software.shtml">rfam_scan.pl</a>
+        locally.
+      </p>
+
+      <h3>File size</h3>
+      
+      <p>
+        Files must have fewer than 100,000 lines and fewer than 1000 sequences.
+      </p>
+
+      <h3>Sequence length</h3>
+
+      <p>
+        Each sequence must be no longer than 200,000 nucleotides.
+      </p>
+
+      <hr />
+      
+    </div>
+
+    <div class="formWrapper">
+
+      [% IF batchSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% batchSearchError %]
+      </div>
+      [% END %]
+
+      <form method="post" 
+            id="batchSearchForm"
+            action="[% c.uri_for( "/search/batch" ) %]"
+            enctype="multipart/form-data">
+    
+        <div class="row">
+          <label for="batchSeq">Sequences file</label>
+          <input type="file" 
+                 accept="text/plain"
+                 size="20"
+                 name="batchSeq"
+                 id="batchSeq" />
+        </div>
+  
+        <div class="row">
+          <label for="pEmail">Email address</label>
+          <input type="text" size="20" maxlength="100" name="email" id="pEmail" />
+        </div>
+  
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit"  type="submit" name="submit" value="Submit" />
+          <input class="reset"   type="reset"  name="reset"  value="Reset" />
+        </div>
+
+      </form>
+      
+    </div>
+  </div>
+</div>
+
+<!-- end batch search block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

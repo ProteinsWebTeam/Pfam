@@ -1,0 +1,167 @@
+[%
+# sequence.tt
+# jt6 20070419 WTSI
+# 
+# build the sequence search block
+#
+# $Id: sequence.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "search.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start sequence search block -->
+
+<div class="block" id="searchSequenceBlock">
+  <div class="handle">
+    <h1>Sequence search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Find Rfam families within your sequence of interest. Paste your
+      nucleotide sequence into the box below, to have it searched for 
+      matching Rfam families. 
+      <span class="moreLink" onclick="reveal(this,'seqNotes',false, true)">More...</span>
+    </p>
+
+    <div id="seqNotes" style="display: none">
+      <h3>Sequence validation</h3>
+      <p>
+        We check all sequences before running a search. In order to avoid 
+        problems with the validation of your sequence, you should use only 
+        plain, unformatted text. Here are some of the validation checks that we
+        apply to sequences:
+      </p>
+      <ul>
+        <li>sequence length must be less than 10,000 nucleotides</li>
+        <li>the sequence must be a nucleotide sequence; protein sequences will 
+          not be accepted</li>
+        <li>only nucleotide symbols allowed in the sequence. The accepted
+          symbols are as A,C,G,U,T,R,Y,S,W,M,K,B,D,H, and N. 
+          Sequences containing other characters, such as &quot;#&quot; or 
+          &quot;*&quot;, will not be accepted</li>
+        <li>FASTA-header lines are accepted but will be removed</li>
+      </ul>
+      <p>
+        If you have problems getting your sequence to upload, please check that 
+        it passes these tests. Note that although we do allow FASTA-style 
+        header lines on a sequence, some characters in header lines can still 
+        cause the sequence to be rejected. If in doubt, please remove header 
+        lines before pasting in your sequence.
+      </p>
+      <p>
+        You can see an example of a sequence that will successfully pass all of 
+        the validation tests by clicking the Example button below the search 
+        form.
+      </p>
+
+      <h3>Search methodology</h3>
+      <p>
+        The query sequence is scanned against a library of Rfam sequences using 
+        WU-BLAST, with an E-value threshold of 1.0. Any matches to this are then 
+        scanned against the corresponding covariance model using the 
+        hand-curated threshold for that family.
+      </p>      
+
+      <hr />
+    </div>
+
+    <div class="formWrapper">
+
+      [% IF seqSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% seqSearchError %]
+      </div>
+      [% END %]
+  
+      <form method="post" 
+            id="proteinSeqSearchForm"
+            action="[% c.uri_for( "/search/sequence" ) %]"
+            enctype="multipart/form-data">
+
+        <div class="row">
+          <label for="seq">Sequence</label>
+          <textarea cols="60" 
+                    rows="10"
+                    name="seq"
+                    id="seq"></textarea>
+        </div>
+  
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit" 
+                 type="submit" 
+                 name="submit" 
+                 value="Submit"
+                 onclick="if( ! $('seq').present() ){return false}"/>
+          <input class="reset"
+                 type="reset"
+                 name="reset"
+                 value="Reset" />
+          <input class="example" 
+                 type="button"
+                 value="Example" 
+                 onclick="$('seq').value=exSeq" />
+        </div>
+  
+      </form>
+  
+    </div>
+    
+  </div>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  
+  // a little check on the sequence length...
+  var lengthWarning = false;
+  checkLength = function() {
+
+    if( $F('seq').length > 2000 ) {
+      if( ! lengthWarning ) {
+        new Insertion.After( "seq",
+                             "<div class='error'>Your sequence must be &lt; 2kb<\/div>" );
+        lengthWarning = true;
+      }
+      return false;
+    } else {
+      return true;
+    }
+  };
+
+  var exSeq = "AGTTACGGCCATACCTCAGAGAATATACCGTATCCCGTTCGATCTGCGAA\n\
+GTTAAGCTCTGAAGGGCGTCGTCAGTACTATAGTGGGTGACCATATGGGA\n\
+ATACGACGTGCTGTAGCTT";
+  // ]]>
+</script>
+
+<!-- end sequence search block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
