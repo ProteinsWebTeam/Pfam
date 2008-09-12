@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.5 2008-07-25 14:02:24 jt6 Exp $
+   $Id: rfam.css,v 1.6 2008-09-12 09:28:11 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -234,8 +234,8 @@ img.addAnnotation {
   float: left;
 }
 .disabledEntryField {
-  background-color: #e7e7e7;
-  color: #666;
+  background-color: #e7e7e7 ! important;
+  color: #666               ! important;
 }
 
 /* jump box styles */
@@ -534,15 +534,15 @@ a.sortheader {
 
 /* affects the key */
 
-#key {
+.key {
   padding: 4px;
-  margin: 8px 8px;
+  margin: 6px;
   border: 1px solid #CCC;
   background-color: #EEE;
   text-align: center;
 }
 
-#key h2 {
+.key h2 {
   color: #621700;
   text-align: left;
   margin: 0.2em auto;
@@ -551,21 +551,21 @@ a.sortheader {
   font-weight: bold;
 }
 
-#key p {
+.key p {
   margin: 0.4em 0;
   text-align: left;
 }
 
 /* the top and bottom of the colour gradient in the functional similarity
    search results */
-#key .gradTop {
+.key .gradTop {
   font-weight: bold;
   color: #FFF;
   background: #008000;
   padding: 0 0.2em;
 }
 
-#key .gradBot {
+.key .gradBot {
   font-weight: bold;
   color: #FFF;
   background: #C00000;  
@@ -594,6 +594,12 @@ a.sortheader {
 
 #keyTable tr.even {
   background-color: #CCC;
+}
+
+/* affects the results div */
+
+#results {
+  margin: 4px;
 }
 
 /* affects the results table */
@@ -651,6 +657,11 @@ a.sortheader {
   background: #c2d2e1 ! important; /* #CBD */
 }
 
+/* colour the progress bars according to job class */
+div.rfamSearch .progressBar {
+  background-color: #FA0;
+}
+
 /* ======================================== */
 /* rules that are common to several blocks */
 
@@ -695,6 +706,28 @@ hr {
 
 hr.short {
   display: none;
+}
+
+.plainSequence {
+  font-family: monospace;
+  font-size: 0.8em;
+  margin: 0.2em;
+  padding: 0.2em;
+  border: 1px solid #CCC;
+  background: #DDD;
+  float: left;
+  clear: both;
+}
+
+.centreWrapper {
+  float: left;
+  position: relative;
+  left: 50%;
+}
+
+.centredBlock {
+  position: relative;
+  left: -50%;
 }
 
 /* ---------------------------------------- */
@@ -965,20 +998,20 @@ ul.mirrors li {
 
 /* curation tab */
 
-div.key {
+div.chartKey {
   background-color: #f3f3f3;
   border: 1px solid #CCC;
   padding: 0.4em;
   width: 10em;
 }
 
-div.key ul {
+div.chartKey ul {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-div.key li span {
+div.chartKey li span {
   float: left;
   font-size: 1px;
   width: 10px;
@@ -1037,7 +1070,7 @@ div.controlTabContent {
   padding: 0.6em;
 }
 
-div.chart div.key,
+div.chart div.chartKey,
 div.chart img {
   float: left;
 }
