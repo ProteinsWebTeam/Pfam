@@ -50,7 +50,8 @@ use Rfam::DB::DB_RCS;
 use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
 
-$embl = "embl_94";
+#mfetch -d version
+$embl = "embl_95";
 
 $root_dir       = "/lustre/pfam/rfam/Production/Rfam";
 $current_dir    = "$root_dir/CURRENT";
@@ -237,7 +238,7 @@ sub live_rdb_update{
 				    '-db_password' => $rdb_pass,
 				   '-db_port' => $rdb_port );
     }    
-
+    
 }
 
 sub temp_rdb_update{
