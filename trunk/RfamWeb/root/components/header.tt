@@ -4,7 +4,7 @@
 #
 # the page header for all main Rfam pages.
 #
-# $Id: header.tt,v 1.4 2008-09-12 09:25:48 jt6 Exp $
+# $Id: header.tt,v 1.5 2008-09-15 11:48:52 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -71,17 +71,13 @@ sharedUri = c.uri_for( "/shared" );
           method="get" 
           id="siteSearchForm">
       <div id="searchBox">
-        <input class="entryField disabledEntryField"
-               disabled="disabled"
+        <input class="entryField entryField"
                type="text" 
                onfocus="if(!ssCleared){this.value='';ssCleared=true;}" 
                name="query" 
                id="siteSearchField" />
-        [%# disable clicks...
         <div onclick="if($F('siteSearchField')){if(ssCleared){$('siteSearchForm').submit();}}"
-        %]
-        <div
-             class="glassButton disabledGoButton">&nbsp;</div>
+             class="glassButton goButton">&nbsp;</div>
       </div>
     </form>
   </div>

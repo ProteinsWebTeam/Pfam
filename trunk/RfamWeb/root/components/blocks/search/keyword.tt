@@ -4,7 +4,7 @@
 # 
 # build the keyword search block
 #
-# $Id: keyword.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
+# $Id: keyword.tt,v 1.2 2008-09-15 11:49:03 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -56,7 +56,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
   	    <div class="row">
           <label for="query">Keyword(s)</label>
-  	      <input class="entryField disabledEntryField"
+  	      <input class="entryField entryField"
                  type="text"
                  size="30"
                  maxlength="100"
@@ -79,9 +79,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 <script type="text/javascript">
   // <![CDATA[
-  var exKw = "apoptosis";
-  $("query").focus();
-  $("keywordSearchForm").disable();
+  var exKw = "tRNA";
   // ]]>
 </script>
 
