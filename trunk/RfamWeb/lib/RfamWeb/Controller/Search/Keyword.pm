@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.1 2008-09-12 09:13:32 jt6 Exp $
+# $Id: Keyword.pm,v 1.2 2008-09-15 11:47:53 jt6 Exp $
 
 =head1 NAME
 
@@ -18,14 +18,14 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.1 2008-09-12 09:13:32 jt6 Exp $
+$Id: Keyword.pm,v 1.2 2008-09-15 11:47:53 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use base 'PfamWeb::Controller::Search';
+use base 'RfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 
@@ -118,7 +118,11 @@ sub runSearches : Private {
   # get the list of text search plugins from the configuration
   foreach my $pluginName ( @{ $this->{searchSets}->{$searchSet} } ) {
 
-    next unless( $pluginDesc = $this->{plugins}->{$pluginName} );
+    unless ( $pluginDesc = $this->{plugins}->{$pluginName} ) {
+      $c->log->debug( "Search::Keyword::runSearches: no description for \"$pluginName\"" )
+        if $c->debug;
+      next;
+    }
 
     $c->log->debug( 'Search::Keyword::runSearches: adding plugin ' .
                     "|$searchSet|$pluginName|" ) if $c->debug;
@@ -143,16 +147,24 @@ sub runSearches : Private {
 
   # walk the plugins and run each query in turn. The list of plugins comes
   # from Module::Pluggable, via our parent class, Search. The plugin object
-  # stringifies to the fully qualified class name, e.g. Search::Plugin::Pfam
+  # stringifies to the fully qualified class name, e.g. Search::Plugin::Rfam
   foreach my $plugin ( $this->plugins ) {
     my $pluginName = ( split m/\:\:/, $plugin )[-1];
 
     # check that the plugin is switched on in the config
-    next unless $c->stash->{pluginsHash}->{$pluginName};
+    unless ( $c->stash->{pluginsHash}->{$pluginName} ) {
+      $c->log->debug( "Search::Keyword::runSearches: plugin \"$pluginName\" is not enabled" )
+        if $c->debug;
+      next;
+    }
 
     # check that the plugin is properly formed
-    next unless( $plugin->can( 'process' ) and
-                 $plugin->can( 'formatTerms' ) );
+    unless ( $plugin->can( 'process' ) and
+             $plugin->can( 'formatTerms' ) ) {
+      $c->log->debug( "Search::Keyword::runSearches: plugin \"$pluginName\" is not a valid search plugin" )
+        if $c->debug;
+      next;
+    }
 
     # firkle with the user input if necessary and build a string that
     # we can pass straight to the DB
@@ -192,7 +204,7 @@ sub runSearches : Private {
 
   #----------------------------------------
 
-  # sort the results according to the score and pfam accession
+  # sort the results according to the score and rfam accession
   my @results;
   my $results = $c->stash->{results};
   foreach my $acc ( sort { $results->{$b}->{score} <=> $results->{$a}->{score} ||
@@ -205,14 +217,14 @@ sub runSearches : Private {
 
   #----------------------------------------
 
-  # do a quick look-up to see if the search term matches a Pfam ID
+  # do a quick look-up to see if the search term matches a Rfam ID
   # or accession
 
   # first, check if there are multiple "words" in the query term,
   # because if there are, this can't be a unique ID or accession
   unless( $c->stash->{rawQueryTerms} =~ /![A-Za-z0-9_-]/ ) {
 
-    my $rs = $c->model('PfamDB::Rfam')
+    my $rs = $c->model('RfamDB::Rfam')
                ->search( [ { rfam_acc => $c->stash->{rawQueryTerms} },
                            { rfam_id  => $c->stash->{rawQueryTerms} } ] );
   
@@ -233,7 +245,7 @@ sub runSearches : Private {
 =head2 mergeResults : Private
 
 Merges the results of an individual query into the set of results for
-the whole search. The PfamA accession is used as the hash key, so it
+the whole search. The Rfam accession is used as the hash key, so it
 needs to be present in the results of the plugin queries. Also keeps
 track of the number of hits for each plugin query.
 
@@ -268,7 +280,7 @@ sub _mergeResults : Private {
   # walk the query results and merge them into the overall results
   my( $acc, $row );
   while( my $dbObj = $rs->next ) {
-    $acc = $dbObj->pfamA_acc;
+    $acc = $dbObj->rfam_acc;
 
     $row = $c->stash->{results}->{$acc} ||= {};
 
@@ -292,7 +304,7 @@ Calculates a simple score for each hit, based on which plugin
 generated the hit.
 
 The score is calculated according to the order of the plugins from
-the config, treating the first one in the list - probably the PfamA
+the config, treating the first one in the list - probably the Rfam
 table search - as the most significant, e.g.
 
  if the order of the plugins is Pfam -> Pdb -> Seq_info -> GO,
