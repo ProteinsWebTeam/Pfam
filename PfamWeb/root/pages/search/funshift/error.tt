@@ -4,7 +4,7 @@
 # 
 # functional similarity search error page
 #
-# $Id: error.tt,v 1.3 2008-05-16 15:30:34 jt6 Exp $
+# $Id: error.tt,v 1.4 2008-09-15 10:56:09 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
