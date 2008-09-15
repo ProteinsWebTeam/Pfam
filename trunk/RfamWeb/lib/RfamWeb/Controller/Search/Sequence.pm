@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.2 2008-09-12 12:38:27 jt6 Exp $
+# $Id: Sequence.pm,v 1.3 2008-09-15 11:48:29 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for submitting single sequence searches for Rfam.
 
-$Id: Sequence.pm,v 1.2 2008-09-12 12:38:27 jt6 Exp $
+$Id: Sequence.pm,v 1.3 2008-09-15 11:48:29 jt6 Exp $
 
 =cut
 
@@ -300,7 +300,15 @@ sub queue_rfam : Private {
   $c->stash->{job_type} = 'rfam';
 
   # make a guess at the runtime for the job
-  $c->stash->{estimated_time} = int( $this->{search_multiplier} * length( $c->stash->{input} ) / 100 );
+  $c->stash->{estimated_time} = int( $this->{search_multiplier} * length( $c->stash->{input} ) / 100 ); 
+
+  # make sure we're not going to claim to have this search done without
+  # at least one polling interval going by
+  if ( $c->stash->{estimated_time} < $this->{pollingInterval} ) {
+    $c->log->debug( 'Search::Sequence::queue_rfam: resetting estimated search time to polling interval' )
+      if $c->debug;
+    $c->stash->{estimated_time} = $this->{pollingInterval};
+  }
 
   $c->log->debug( 'Search::Sequence::queue_rfam: estimated search time: |'
                   . $c->stash->{estimated_time} . '| seconds' ) if $c->debug;
