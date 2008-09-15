@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.1 2008-09-12 09:27:32 jt6 Exp $
+# $Id: results.tt,v 1.2 2008-09-15 11:49:16 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -19,6 +19,8 @@ PROCESS "components/require.tt";
 
 sharedRequirements.css.push( "job.css" );
 sharedRequirements.css.push( "job_ie.css" );
+
+sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -94,7 +96,11 @@ tableBody = PROCESS buildTableBody;
   </div><!-- end of "resultsNotes" -->
 
   <p>
+    [%- IF totalHits == 1 %]
+    We found <strong>1</strong> hit to your sequence. 
+    [%- ELSE %]
     We found a total of <strong>[% totalHits %]</strong> hits.
+    [%- END %]
   </p>
 
   <p>
@@ -124,6 +130,7 @@ tableBody = PROCESS buildTableBody;
 
 </div><!-- end of "key" -->
 
+[%- IF totalHits > 0 %]
 <div id="results">
   
   <table summary="Search results"
@@ -150,6 +157,7 @@ tableBody = PROCESS buildTableBody;
   </table>
 
 </div>
+[%- END; # of "IF totalHits" %]
 
 [%# show raw data with: 
 FOREACH jobId IN results.keys;
