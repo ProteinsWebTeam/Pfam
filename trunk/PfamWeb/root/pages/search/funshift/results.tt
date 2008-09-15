@@ -5,7 +5,7 @@
 # 
 # funshift search results page
 #
-# $Id: results.tt,v 1.7 2008-08-14 15:26:14 jt6 Exp $
+# $Id: results.tt,v 1.8 2008-09-15 10:56:09 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
