@@ -1,17 +1,17 @@
 
-# Rfam.pm
+# Literature.pm
 # jt6 20060810 WTSI
 #
-# $Id: Rfam.pm,v 1.2 2008-09-15 11:48:40 jt6 Exp $
+# $Id: Literature.pm,v 1.1 2008-09-15 11:48:40 jt6 Exp $
 
 =head1 NAME
 
-RfamWeb::Controller::Searches::Plugin::Rfam - search plugin for Rfam-specific
-information
+RfamWeb::Controller::Searches::Plugin::Literature - search plugin for 
+literature information
 
 =cut
 
-package RfamWeb::Controller::Search::Plugin::Rfam;
+package RfamWeb::Controller::Search::Plugin::Literature;
 
 =head1 DESCRIPTION
 
@@ -20,15 +20,11 @@ against the following columns:
 
 =over
 
-=item o rfam_acc
-
-=item o rfam_id
-
-=item o description
+=item o literature
 
 =back
 
-$Id: Rfam.pm,v 1.2 2008-09-15 11:48:40 jt6 Exp $
+$Id: Literature.pm,v 1.1 2008-09-15 11:48:40 jt6 Exp $
 
 =cut
 
@@ -57,8 +53,8 @@ columns.
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Search::Plugin::Rfam::process: text querying Rfam-specific data using: |' .
-                  $c->stash->{terms} . '|' ) if $c->debug;
+  $c->log->debug( 'Search::Plugin::Literature::process: text querying Rfam literature' )
+    if $c->debug;
 
   my $m = $c->model('RfamDB::RfamKeywords');
 
@@ -66,7 +62,7 @@ sub process : Private {
   my $results =
     $m->search( {},
                 {} )
-      ->search_literal( 'MATCH( rfam_acc, rfam_id, description, rfam_general ) ' .
+      ->search_literal( 'MATCH( literature ) ' .
                         'AGAINST( ? IN BOOLEAN MODE )',
                         $c->stash->{terms} );
 

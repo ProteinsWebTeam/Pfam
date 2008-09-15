@@ -2,12 +2,12 @@
 # Wikipedia.pm
 # jt6 20060810 WTSI
 #
-# $Id: Wikipedia.pm,v 1.2 2008-09-12 09:48:23 jt6 Exp $
+# $Id: Wikipedia.pm,v 1.3 2008-09-15 11:48:40 jt6 Exp $
 
 =head1 NAME
 
-RfamWeb::Controller::Searches::wikipedia - search plugin for the
-wikipedia table
+RfamWeb::Controller::Searches::wikipedia - search plugin for
+wikipedia annotation text
 
 =cut
 
@@ -15,23 +15,26 @@ package RfamWeb::Controller::Search::Plugin::Wikipedia;
 
 =head1 DESCRIPTION
 
-Performs a MySQL "fulltext" query of the wikipedia table.
+Performs a MySQL "fulltext" query of the rfam_keywords table, searching
+against the following columns:
 
-$Id: Wikipedia.pm,v 1.2 2008-09-12 09:48:23 jt6 Exp $
+=over
+
+=item o wiki
+
+$Id: Wikipedia.pm,v 1.3 2008-09-15 11:48:40 jt6 Exp $
 
 =cut
 
 # based loosely on this original query:
-# SELECT DISTINCT( pfamA_acc ) AS acc,
-#        pfamA_id AS id,
-#        description AS descr
-# FROM   seq_info
-# WHERE  MATCH( seq_description, species ) AGAINST( ? IN BOOLEAN MODE );
+# SELECT * 
+# FROM   rfam_keywords
+# WHERE  MATCH( wiki ) AGAINST( ? IN BOOLEAN MODE )
 
 use strict;
 use warnings;
 
-use base 'PfamWeb::Controller::Search';
+use base 'RfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 
@@ -44,13 +47,13 @@ use base 'PfamWeb::Controller::Search';
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Search::Plugin::Seq_info::process: text querying table seq_info' )
+  $c->log->debug( 'Search::Plugin::Wikipediao::process: text querying Rfam wikipedia annotations' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::Seq_info')
+  my $results = $c->model('RfamDB::RfamKeywords')
                   ->search( {},
                             {} )
-                  ->search_literal( 'MATCH( seq_description, species, pfamseq_id, pfamseq_acc ) ' .
+                  ->search_literal( 'MATCH( wiki ) ' .
                                     'AGAINST( ? IN BOOLEAN MODE )',
                                     $c->stash->{terms} );
 
