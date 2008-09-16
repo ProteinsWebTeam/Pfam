@@ -1383,21 +1383,22 @@ sub _new_image {
 
 sub print_image {
   my $self = shift;
+  
   my $file = $self->image_name.".png";
-
+  ( $file ) = $file =~ m/^([\w\.\-]+)$/;
 
   my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
+  ( $dirName ) = $dirName =~ m/^(\d+)$/;
 
   my $root;
   if($ENV{PFAM_DOMAIN_IMAGES}) {
     $root   = "$ENV{'PFAM_DOMAIN_IMAGES'}";
-    ($root) = $root =~ m|([a-z0-9_\./]+)|i;
   } elsif( $ENV{DOCUMENT_ROOT} ) {
     $root   = "$ENV{'DOCUMENT_ROOT'}/tmp/pfam";
-    ($root) = $root =~ m|([a-z0-9_\./]+)|i;
   } else {
     die "Do not know where to print images to: Please set the environment variable PFAM_DOMAIN_IMAGES\n";
   }
+  ($root) = $root =~ m|([\w\./]+)|i;
 
   my $file_location = "domain_gfx/$dirName";
   if(!-d "$root/$file_location"){
@@ -1412,6 +1413,7 @@ sub print_image {
 	  mkdir( "$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
       }
   }
+  ( $file_location ) = $file_location =~ m|^([\w\./]+)$|;
 
   my $filename = "$root/$file_location/$file";
   open(OUTFILE, ">$filename") or warn "Cannot print $filename: [$!]\n";
