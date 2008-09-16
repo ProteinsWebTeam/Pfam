@@ -2,7 +2,7 @@
 # PfamGraphicsTools.pm
 # jt 20070402 WTSI
 #
-# $Id: PfamGraphicsTools.pm,v 1.6 2008-09-16 11:10:48 jt6 Exp $
+# $Id: PfamGraphicsTools.pm,v 1.7 2008-09-16 12:57:39 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ A couple of utility methods for generating Pfam graphics from a user-supplied
 XML file and for displaying the XML that builds the graphic for a specified 
 UniProt entry.
 
-$Id: PfamGraphicsTools.pm,v 1.6 2008-09-16 11:10:48 jt6 Exp $
+$Id: PfamGraphicsTools.pm,v 1.7 2008-09-16 12:57:39 jt6 Exp $
 
 =cut
 
@@ -96,10 +96,10 @@ sub renderXML : Global {
 
   # copy the file to our temp area. Generate a temporary filehandle and
   # and filename, rather than using the user specified one
-  ( my $dir ) = $this->{uploadDir} =~ m/^(.*)/;
+  ( my $dir ) = $this->{uploadDir} =~ m|^([\w\.\-/]+)$|;
   my($fh, $filename) = tempfile( 'uploadedPfamGraphicXXXXXXXXXXXX',
                                  SUFFIX => '.xml',
-                                 DIR    => $this->{uploadDir} );
+                                 DIR    => $dir  );
 
   $c->log->debug( "PfamGraphicsTools::renderXML: copying uploaded file to |$filename|" );
 
