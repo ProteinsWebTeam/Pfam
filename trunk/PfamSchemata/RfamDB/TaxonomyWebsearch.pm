@@ -48,6 +48,14 @@ __PACKAGE__->add_columns(
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 16:22:33
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:zBQll0W9xh55bxUx5gyPLQ
 
+__PACKAGE__->set_primary_key( qw/ncbi_code/ );
+
+__PACKAGE__->has_many(
+  "rfam_ncbi",
+  "RfamDB::RfamNcbi",
+  { "foreign.ncbi_code" => "self.ncbi_code" },
+);
+
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
