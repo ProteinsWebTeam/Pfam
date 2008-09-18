@@ -6,7 +6,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.23 2008-07-14 11:25:09 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.24 2008-09-18 11:54:19 jt6 Exp $
 
 META naked = 1;
 
@@ -124,8 +124,8 @@ graphicsUri = c.uri_for( "/protein/graphics" );
   } );
   
   // move the overlay div according to mouseovers on features
-  $("overlay").observe( "mousemove", moveCursor );
-  $("overlay").observe( "mouseout",  removeOverlay ); 
+//  $("overlay").observe( "mousemove", moveCursor );
+//  $("overlay").observe( "mouseout",  removeOverlay ); 
   $("overlay").observe( "click",     openOverlayURL );
   // ]]>
 </script>
