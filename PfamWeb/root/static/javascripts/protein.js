@@ -4,7 +4,7 @@
 //
 // javascript glue for the protein section
 //
-// $Id: protein.js,v 1.14 2008-07-28 14:15:57 jt6 Exp $
+// $Id: protein.js,v 1.15 2008-09-18 11:56:32 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -33,16 +33,6 @@ function proteinPostLoad() {
                                   onFailure:  pgFailure
                                 } );
   }
-  if( typeof( loadOptions.simap.uri ) != "undefined" ) {
-    var r = new Ajax.Request( loadOptions.simap.uri,
-                               { parameters: loadOptions.simap.params,
-                                 onSuccess:  simapSuccess,
-                                 onFailure:  simapFailure
-                               } );
-  }
-
-  $("checkboxes").hide();
-  $("plainSequence").hide();
 }
 
 //------------------------------------------------------------
@@ -64,18 +54,6 @@ function pgFailure() {
   $("pgSubmitButton").disable();
   $("pgUpdateSpinner").hide();
   $("graphicsHolder").update( "Alignment loading failed." );
-}
-
-//------------------------------------------------------------
-
-// called in response to a successful call
-function simapSuccess( oResponse ) {
-  $("simapGraphicsHolder").update( oResponse.responseText );
-}
-
-// called in response to a failed call
-function simapFailure() {
-  $("simapph").update( "Contacting SIMAP W/S - failed." );
 }
 
 //------------------------------------------------------------
