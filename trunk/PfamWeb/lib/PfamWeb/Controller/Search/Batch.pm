@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.15 2008-09-03 15:39:58 jt6 Exp $
+# $Id: Batch.pm,v 1.16 2008-09-18 11:51:36 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running batch searches for protein sequences.
 It uses the base class L<Batch|PfamWeb::Controller::Search::Batch> to take
 care of queuing the search, but the validation of input etc. is here.
 
-$Id: Batch.pm,v 1.15 2008-09-03 15:39:58 jt6 Exp $
+$Id: Batch.pm,v 1.16 2008-09-18 11:51:36 jt6 Exp $
 
 =cut
 
@@ -176,7 +176,7 @@ sub validate_input : Private {
   unless ( $c->forward( 'parse_upload' ) ) {
 
     $c->stash->{searchError} = 
-         $c->stash->{errorMsg}
+         $c->stash->{searchError}
       || 'No valid sequence file found. Please enter a valid FASTA-format file and try again.';
 
     $c->log->debug( 'Search::Batch::validate_input: bad FASTA file; returning to form' )
