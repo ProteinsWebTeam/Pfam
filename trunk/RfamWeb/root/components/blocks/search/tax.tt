@@ -4,7 +4,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
+# $Id: tax.tt,v 1.2 2008-09-18 11:58:52 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -138,7 +138,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
         <div class="row">
           <label for="q">Query</label>
-          <input class="entryField disabledEntryField"
+          <input class="entryField entryField"
                  type="text" 
                  size="60" 
                  name="q" 
@@ -192,8 +192,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     { minChars:  3,
       frequency: 0.6 }
   );
-
-  $("proteinTaxSearchForm").disable();
   // ]]>
 </script>
 
