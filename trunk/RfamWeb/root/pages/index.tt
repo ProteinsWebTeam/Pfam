@@ -5,7 +5,7 @@
 # 
 # build the main Rfam home page.
 #
-# $Id: index.tt,v 1.5 2008-09-12 09:26:53 jt6 Exp $
+# $Id: index.tt,v 1.6 2008-09-18 11:59:12 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -286,16 +286,10 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                size="30" />
       </div>
     </form>
-    [%# disable clicks...
     <div onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};"
-    %]
-    <div
-         class="glassButton disabledGoButton">&nbsp;</div>
-    [%# disable clicks...
+         class="glassButton goButton">&nbsp;</div>
     <div onclick="$('keywordField').value=exKw"
-    %]
-    <div
-         class="glassButton disabledExampleButton">&nbsp;</div>
+         class="glassButton exampleButton">&nbsp;</div>
     <p class="small nlh">
       You can also use the
       <a onclick="$('siteSearchField').focus();return false;" href="#">
@@ -312,25 +306,14 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <div>
         <input class="entryField" 
                type="text" 
-               name="query"
+               name="q"
                id="taxonomyField"
                size="30" />
       </div>
-    [%# disable clicks...
       <div onclick="if( $('taxonomyField').present() ){;$('taxonomyForm').submit()};"
-    %]
-    <div
-           class="glassButton disabledGoButton">&nbsp;</div>
-    [%# disable clicks...
+           class="glassButton goButton">&nbsp;</div>
       <div onclick="$('taxonomyField').value=exTx"
-    %]
-    <div
-           class="glassButton disabledExampleButton">&nbsp;</div>
-      <p class="small nlh">
-        You can fetch either families 
-        <input type="radio" name="search" value="families" checked="checked" /> or sequences 
-        <input type="radio" name="search" value="seqs" />.
-      </p>
+           class="glassButton exampleButton">&nbsp;</div>
     </form>
   </div>
     
@@ -399,15 +382,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   var exSeq    = "AGUUACGGCCAUACCUCAGAGAAUAUACCGUAUCCCGUUCGAUCUGCGAAGUUAAGCUCU\n\
 GAAGGGCGUCGUCAGUACUAUAGUGGGUGACCAUAUGGGAAUACGACGUGCUGUAGCUU";
 
-  // disable forms
-  $("RNAForm","structureForm","keywordForm","taxonomyForm")
-    .each( function( form ) {
-      form.disable()
-      form.getElements("text").each( function( input ) {
-        input.addClassName("disabledEntryField");
-      } );
-    } );
-    
   // ]]>
 </script>
 
