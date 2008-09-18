@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.2 2008-09-15 11:49:16 jt6 Exp $
+# $Id: results.tt,v 1.3 2008-09-18 12:29:44 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -86,6 +86,7 @@ tableBody = PROCESS buildTableBody;
   
   <h2>Sequence search results</h2>
 
+[%# hide the un-expanded blurb...
   <p>
     <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
     the detailed description of this results page.
@@ -94,7 +95,7 @@ tableBody = PROCESS buildTableBody;
   <div id="resultsNotes" style="display: none">
     <p>A long and interesting explanation of the features of this page.</p>
   </div><!-- end of "resultsNotes" -->
-
+%]
   <p>
     [%- IF totalHits == 1 %]
     We found <strong>1</strong> hit to your sequence. 
