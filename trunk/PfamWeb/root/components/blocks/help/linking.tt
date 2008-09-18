@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.8 2008-05-16 15:30:31 jt6 Exp $
+# $Id: linking.tt,v 1.9 2008-09-18 11:52:56 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -167,6 +167,46 @@
       &quot;<tt>pfam.sanger.ac.uk</tt>&quot; to &quot;<tt>pfam.sbc.su.se</tt>&quot;
       or &quot;<tt>pfam.janelia.org</tt>&quot;.
     </p>
+
+    <h3>Linking to the &quot;jump to&quot; search</h3>
+      
+    <p>
+      The Pfam website features a      
+      <span class="link" onclick="switchTab('helpGetStartedBlock')">
+        search tool</span> that tries to guess the type of
+      any accession or ID that it is given. For example, if given 
+      &quot;VAV_HUMAN&quot;, the search returns the URL for the protein 
+      sequence page for the VAV_HUMAN entry. If given &quot;1w9h&quot;, the 
+      search returns the URL for the PDB entry (structure) 1w9h.
+    </p>
+    <p>
+      You can use the &quot;jump to&quot; search if you need to link to Pfam but
+      can't be sure what type of accession or ID you will be using in your link.
+      By default, the search returns the URL that it has found, as a simple, 
+      plain text HTTP response. Adding the parameter <code>redirect=1</code> 
+      will make the &quot;jump to&quot; tool redirect to the URL that it finds
+      or, if it couldn't find an appropriate URL, to the Pfam homepage.
+    </p>
+    <dl class="sitesList">
+      <dt>Return URL:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search/jump?entry=P15498">
+          http://pfam.sanger.ac.uk/search/jump?entry=P15498</a>
+      </dd>
+      <dt>Redirect:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search/jump?entry=P15498&amp;redirect=1">
+          http://pfam.sanger.ac.uk/search/jump?entry=P15498&amp;redirect=1</a>
+      </dd>
+    </dl>
+    <p>
+      Note that, although it may be convenient to link to Pfam using this 
+      search tool, there is no error reporting for your users if the search
+      fails to find an appropriate URL in the Pfam site. It is much safer to 
+      link directly to the correct section of the site. Please contact us if
+      you need help with building specific links. 
+    </p>
+
 
   </div>
 </div>
