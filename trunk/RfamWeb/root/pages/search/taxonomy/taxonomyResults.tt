@@ -4,7 +4,7 @@
 # 
 # taxonomy search results page
 #
-# $Id: taxonomyResults.tt,v 1.1 2008-09-12 09:27:44 jt6 Exp $
+# $Id: taxonomyResults.tt,v 1.2 2008-09-18 13:42:02 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -37,15 +37,15 @@ META fullPage = 1;
     <p>
       <strong>Please note</strong> that more complex taxonomy queries can be 
       quite slow, perhaps as long as a few minutes for the largest searches.
-      Furthermore, we don&#39;t limit the number of families that the search
-      may return, so the resulting table could potentially include every Pfam-A
+      Furthermore, we don't limit the number of families that the search
+      may return, so the resulting table could potentially include every Rfam
       family.
     </p>
     
     <div id="loadingDiv">
       <p>
         Your results will appear in this page when the search is complete; please 
-        don&#39;t close this window or browse to a different page until the 
+        don't close this window or browse to a different page until the 
         results are loaded.
       </p>
       <img class="loadingBar"
