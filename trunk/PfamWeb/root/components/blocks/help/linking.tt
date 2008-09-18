@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.9 2008-09-18 11:52:56 jt6 Exp $
+# $Id: linking.tt,v 1.10 2008-09-18 16:01:36 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -168,7 +168,7 @@
       or &quot;<tt>pfam.janelia.org</tt>&quot;.
     </p>
 
-    <h3>Linking to the &quot;jump to&quot; search</h3>
+    <h3><a name="jump">Linking to the &quot;jump to&quot; search</a></h3>
       
     <p>
       The Pfam website features a      
