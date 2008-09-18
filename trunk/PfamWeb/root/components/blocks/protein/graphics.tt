@@ -14,7 +14,7 @@
 # that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
 # onComplete callbacks, which turn on and off the "loading" spinner, etc.
 #
-# $Id: graphics.tt,v 1.25 2008-08-19 15:29:50 jt6 Exp $
+# $Id: graphics.tt,v 1.26 2008-09-18 11:53:43 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -120,7 +120,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
 
     <div id="updatePanel">
   
-      <div id="checkboxes">
+      <div id="checkboxes" style="display: none">
   
         <p>
           Use the check-boxes below to select the sources that you wish to query, then
@@ -141,7 +141,9 @@ graphicsUri = c.uri_for( "/protein/graphics" );
                 <p class="sectionLabel">[% section.system %] [% section.type %]</p>
                 [% FOREACH source IN section.servers.sort("name") -%]
                         <div class="source">
-                          <input name="[% source.sequence_type %]//[% source.system %]//[% source.server_id %]" type="checkbox" [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="checked"[% END %] />
+                          <input name="[% source.sequence_type %]//[% source.system %]//[% source.server_id %]"
+                                 type="checkbox"
+                                 [% IF source.default_server OR c.session.selectedDASServers.${source.server_id} %]checked="checked"[% END %] />
                             <span class="checkboxLabel ext">
                             [% IF source.helper_url %]
                                 <a href="[% source.helper_url %]">[% source.name %]</a>
@@ -175,8 +177,8 @@ graphicsUri = c.uri_for( "/protein/graphics" );
             $("pgUpdateSpinner").show();
             var r = new Ajax.Request( '[% graphicsUri %]',
                                        {
-                                         onSuccess:   pgSuccess,
-                                         onFailure:   pgFailure,
+                                         onSuccess: pgSuccess,
+                                         onFailure: pgFailure,
                                          parameters:  $("updateGraphicsForm").serialize(true),
                                          evalScripts: true
                                        } );
