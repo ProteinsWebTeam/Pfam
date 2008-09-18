@@ -4,7 +4,7 @@
 # 
 # build the ftp block for the help pages
 #
-# $Id: ftp.tt,v 1.5 2008-05-16 15:30:31 jt6 Exp $
+# $Id: ftp.tt,v 1.6 2008-09-18 11:52:45 jt6 Exp $
 %]
 
 <!-- start ftp block -->
@@ -90,23 +90,11 @@
 			The domain structure of SWISSPROT and TrEMBL proteins according to Pfam
     </dd>
 	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/prior.tar">
-        prior.tar</a>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/prior.tar.gz">
+        prior.tar.gz</a>
 	  </dt>
 	  <dd>
 			A set of prior files for specific Pfam families
-	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/diff">diff</a>
-	  </dt>
-	  <dd>
-			Summary of changes since the last release
-	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/Icarus">Icarus</a>
-	  </dt>
-	  <dd>
-			Icarus files for SRS indexing of the files in the Pfam distribution
 	  </dd>
 	  <dt>
 			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/COPYRIGHT">COPYRIGHT</a>
