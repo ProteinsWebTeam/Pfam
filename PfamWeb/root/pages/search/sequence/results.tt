@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.14 2008-08-14 15:27:22 jt6 Exp $
+# $Id: results.tt,v 1.15 2008-09-18 11:54:54 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -192,8 +192,11 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
       [% IF numSignificantMatches AND numInsignificantMatches -%]
         (<strong>[% numSignificantMatches %]</strong> significant and 
         <strong>[% numInsignificantMatches %]</strong> insignificant)
-      [% ELSIF numInsignificantMatches;
+      [% 
+      ELSIF numInsignificantMatches;
         "(there were <strong>no</strong> significant matches)";
+      ELSE;
+        "(<strong>all</strong> significant)";
       END;
     ELSE;
       "We did not find any Pfam-A matches to your search sequence";
@@ -243,20 +246,20 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
   </p>
 
   <div id="optionsList" style="display: none">
-    [% IF job_options.job_ids.size > 1 %]
+    [% IF job_options.jobIds.size > 1 %]
     <p>
-      You ran <strong>[% job_options.job_ids.size %]</strong> jobs, with the 
+      You ran <strong>[% job_options.jobIds.size %]</strong> jobs, with the 
       following IDs:
     </p>
     <ul>
-      [%- FOREACH job_id IN job_options.job_ids %]
-      <li>[% job_id %]</li>
+      [%- FOREACH jobId IN job_options.jobIds %]
+      <li>[% jobId %]</li>
       [%- END %]
     </ul>
     [%- ELSE %]
     <p>
       You ran <strong>one</strong> job, with ID 
-      [%- job_options.job_ids.first %].
+      [%- job_options.jobIds.first %].
     </p>
     [% END %]
     <p>
