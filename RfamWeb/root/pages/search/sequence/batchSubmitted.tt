@@ -5,7 +5,7 @@
 # 
 # build the page saying that a batch search has been submitted
 #
-# $Id: batchSubmitted.tt,v 1.1 2008-09-12 09:27:32 jt6 Exp $
+# $Id: batchSubmitted.tt,v 1.2 2008-09-18 12:57:20 jt6 Exp $
 
 META title    = "Batch sequence search";
 META fullPage = 1;
@@ -24,7 +24,7 @@ META fullPage = 1;
 <h1>Searching</h1>
 
 <p>
-  Thanks for using the Pfam batch search tool. Your search has been submitted 
+  Thanks for using the Rfam batch search tool. Your search has been submitted 
   to the server and your results will be emailed to you at <em>[% email %]</em>
   when they are ready.  
 </p>
@@ -45,7 +45,7 @@ META fullPage = 1;
 [% END %]
 <p>
   In [% refreshDelay || 30 %] seconds you will be redirected to the 
-  <a href="[% refreshUri %]">Pfam search page</a>, or you can click 
+  <a href="[% refreshUri %]">Rfam search page</a>, or you can click 
   <a href="[% refreshUri %]">here</a> to go there immediately.
 </p>
 
