@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.25 2008-09-12 12:38:11 jt6 Exp $
+# $Id: Sequence.pm,v 1.26 2008-09-18 11:52:22 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.25 2008-09-12 12:38:11 jt6 Exp $
+$Id: Sequence.pm,v 1.26 2008-09-18 11:52:22 jt6 Exp $
 
 =cut
 
@@ -490,6 +490,14 @@ sub queue_pfam_a : Private {
   $c->stash->{estimated_time} = int( $this->{pfamA_search_multiplier} * length( $c->stash->{input} ) / 100 );
   ( $c->stash->{estimated_time} *= 2 ) if ( $c->stash->{seqOpts} eq 'both' or
                                             $c->stash->{seqOpts} eq 'bothNoMerge' );
+                                            
+  # make sure we're not going to claim to have this search done without at 
+  # least one polling interval going by
+  if ( $c->stash->{estimated_time} < $this->{pollingInterval} ) {
+    $c->log->debug( 'Search::Sequence::queue_pfam_a: resetting estimated search time to polling interval' )
+      if $c->debug;
+    $c->stash->{estimated_time} = $this->{pollingInterval};
+  }
 
   # queue it up and retrieve the row in the job_history table for this job
   unless ( $c->forward( 'queue_search_transaction' ) ) {
