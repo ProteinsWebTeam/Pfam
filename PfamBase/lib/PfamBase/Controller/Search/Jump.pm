@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.4 2008-09-18 12:16:22 jt6 Exp $
+# $Id: Jump.pm,v 1.5 2008-09-18 12:26:25 jt6 Exp $
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ should:
 If the L<jump> method finds that the L<forward> returns undef, it returns
 an error message saying that the guess failed. 
 
-$Id: Jump.pm,v 1.4 2008-09-18 12:16:22 jt6 Exp $
+$Id: Jump.pm,v 1.5 2008-09-18 12:26:25 jt6 Exp $
 
 =cut
 
@@ -134,7 +134,8 @@ sub end : Private {
   }
   else {
     
-    if ( $c->req->param('redirect') == 1 ) {
+    if ( defined $c->req->param('redirect') and
+         $c->req->param('redirect') == 1 ) {
       $c->log->debug( 'Search::Jump::end: redirect parameter set; redirecting to guessed URL' )
         if $c->debug;
       $c->res->redirect( $c->stash->{url}, 301 );
