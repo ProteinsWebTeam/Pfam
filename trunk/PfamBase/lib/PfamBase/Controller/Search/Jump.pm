@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+# $Id: Jump.pm,v 1.3 2008-09-18 11:58:12 jt6 Exp $
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ should:
 If the L<jump> method finds that the L<forward> returns undef, it returns
 an error message saying that the guess failed. 
 
-$Id: Jump.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+$Id: Jump.pm,v 1.3 2008-09-18 11:58:12 jt6 Exp $
 
 =cut
 
@@ -101,23 +101,46 @@ sub jump : Path {
 
 =head2 end : Private
 
-Return either a text/plain response with the guessed URL in the body, or an
-error response (status 400) with the error message in the body.
+Returns either a text/plain response with the guessed URL in the body, or an
+error response (status 400) with the error message in the body. 
+
+If the C<redirect> parameter is set to 1, rather than simply returning the URL 
+or an error message, we set the redirect header and the user is redirected 
+straight to the guessed URL or, if we couldn't guess a URL, to the index page.
 
 =cut
 
 sub end : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   $c->res->content_type( 'text/plain' );
   
   if( $c->stash->{error} ) {
-    $c->res->body( $c->stash->{error} );
-    $c->res->status( 400 );
-  } else {
-    $c->res->body( $c->stash->{url} );
+
+    if ( $c->req->param('redirect') == 1 ) {
+      $c->log->debug( 'Search::Jump::end: jump error; redirecting to home page' )
+        if $c->debug;
+      $c->res->redirect( $c->uri_for( '/' ), 301 );
+    }
+    else {
+      $c->res->body( $c->stash->{error} );
+      $c->res->status( 400 );
+    }
+
   }
+  else {
     
+    if ( $c->req->param('redirect') == 1 ) {
+      $c->log->debug( 'Search::Jump::end: redirect parameter set; redirecting to guessed URL' )
+        if $c->debug;
+      $c->res->redirect( $c->stash->{url}, 301 );
+    }
+    else {
+      $c->res->body( $c->stash->{url} );
+    }
+
+  }
+  
 }
 
 #-------------------------------------------------------------------------------
