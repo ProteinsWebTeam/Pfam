@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.60 2008-07-28 14:16:16 jt6 Exp $
+// $Id: pfFunctions.js,v 1.61 2008-09-18 11:56:14 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -123,14 +123,17 @@ function showOverlay( e ) {
     var title = label + " feature" + ( target.href ? " (click for details)" : "" );
 
     // and create the tooltip 
-    new Tip( $("overlay"), 
-             target.title,
-             { border: 0,
-               radius: 0,
-               title: title
-             } );
+    var t = new Tip( $("overlay"), 
+                      target.title,
+                      { border: 0,
+                        radius: 0,
+                        title: title
+                      } );
     $("overlay").show();
-    $("overlay").prototip.show();
+    $("overlay").observe( "mouseout",  removeOverlay ); 
+//    $("overlay").observe( "click",     openOverlayURL );
+
+//    $("overlay").prototip.show();
   
     //console.debug( "added tip for area: |" + target.id + "|" );
   } else {
@@ -144,6 +147,8 @@ function showOverlay( e ) {
 // open a new window with the URL from a given feature
 
 function openOverlayURL( e ) {
+//  console.debug( "got a click on the overlay" );
+//  alert("opening overlay URL");
   if( overlayURL != "" ) {
     window.open( overlayURL );
   }
@@ -152,12 +157,13 @@ function openOverlayURL( e ) {
 
 // hide the div on mouseout
 function removeOverlay( e ) {
-  //console.debug( "hiding overlay" );
+//  console.debug( "hiding overlay" );
   $("overlay").hide();
-  //console.debug( "removing tip from overlay" );
-  if ( $("overlay").prototip !== undefined ) {
-    $("overlay").prototip.remove();
-  }
+//  console.debug( "hiding tip on overlay" );
+//  Tips.hideAll();
+//  if ( $("overlay").prototip !== undefined ) {
+//    $("overlay").prototip.hide();
+//  }
 }
 
 //----------------------------------------
