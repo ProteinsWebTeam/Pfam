@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.3 2008-09-18 11:58:12 jt6 Exp $
+# $Id: Jump.pm,v 1.4 2008-09-18 12:16:22 jt6 Exp $
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ should:
 If the L<jump> method finds that the L<forward> returns undef, it returns
 an error message saying that the guess failed. 
 
-$Id: Jump.pm,v 1.3 2008-09-18 11:58:12 jt6 Exp $
+$Id: Jump.pm,v 1.4 2008-09-18 12:16:22 jt6 Exp $
 
 =cut
 
@@ -59,11 +59,13 @@ sub jump : Path {
   # de-taint the entry ID or accession
   my $entry = '';
   ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()\.]+)$/;
-  $c->log->debug( "Search::Jump::jump: called with entry |$entry|" );
+  $c->log->debug( "Search::Jump::jump: called with entry |$entry|" )
+    if $c->debug;
 
   # strip off leading and trailing whitespace
   $entry =~ s/^\s*(.*?)\s*$/$1/;
-  $c->log->debug( "Search::Jump::jump: trimmed entry to |$entry|" );
+  $c->log->debug( "Search::Jump::jump: trimmed entry to |$entry|" )
+    if $c->debug;
 
   # bail immediately if there's no valid entry given
   unless( $entry ) {
@@ -78,17 +80,19 @@ sub jump : Path {
   if( $c->req->param('type') ) {
     $entry_type = $this->{jumpTargets}->{ $c->req->param('type') };
     $c->log->debug( 'Search::Jump::jump: looking for entry type: |'
-                    . ( $entry_type || '' ) . '|' )
+                    . ( $entry_type || '' ) . '|' ) if $c->debug
   }
   
   # let's guess !
   my $action = $c->forward( 'guess', [ $entry, $entry_type ] );
 
   if( $action ) {
-    $c->log->debug( "Search::Jump::jump: we've made a guess; redirecting to |$action|" );
+    $c->log->debug( "Search::Jump::jump: we've made a guess; redirecting to |$action|" )
+      if $c->debug;
     $c->stash->{url} = $c->uri_for( "/$action", { entry => $entry } );
   } else {
-    $c->log->debug( "Search::Jump::jump: couldn't guess entry type..." );
+    $c->log->debug( "Search::Jump::jump: couldn't guess entry type..." )
+      if $c->debug;
 
     # set the error message differently according to whether we were trying to
     # "look up" and entry or guess the type
