@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.76 2008-09-03 15:26:27 jt6 Exp $
+   $Id: pfam.css,v 1.77 2008-09-18 11:55:30 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -569,6 +569,15 @@ a.sortheader {
 .key li {
   margin-top: 0.2em;
   margin-bottom: 0.2em;
+}
+
+/* colour the progress bars according to job class */
+div.pfamASearch .progressBar {
+  background-color: #CBD;
+}
+
+div.pfamBSearch .progressBar {
+  background-color: #CDB;
 }
 
 /* the top and bottom of the colour gradient in the functional similarity
