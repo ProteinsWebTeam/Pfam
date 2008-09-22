@@ -4,7 +4,7 @@
 # 
 # build the theTeam block for the help pages
 #
-# $Id: theTeam.tt,v 1.7 2008-05-16 15:30:31 jt6 Exp $
+# $Id: theTeam.tt,v 1.8 2008-09-22 12:51:28 jt6 Exp $
 %]
 
 <!-- start theTeam block -->
@@ -28,7 +28,7 @@
       <li>Penny Coggill - Pfam database annotator</li>
       <li>Rob Finn - Project leader</li>
       <li>Jaina Mistry - Pfam research and development</li>
-      <li>Benjamin Schuster-B&ouml;ckler - PhD student</li> 
+      <li>Prasad Gunasekaran - Pfam development</li>
       <li>John Tate - Web development</li>
     </ul>
     
@@ -64,6 +64,7 @@
       <li>Nina Mian</li>
       <li>William Mifsud</li>
       <li>Simon Moxon</li>
+      <li>Joanne Pollington</li>
       <li>Stephen John Sammut</li>
       <li>David Studholme</li>
       <li>Corin Yeats</li>
