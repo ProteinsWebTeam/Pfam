@@ -1,7 +1,7 @@
 
-# $Id: Clan_versions.pm,v 1.4 2008-05-16 15:23:16 jt6 Exp $
+# $Id: Clan_versions.pm,v 1.5 2008-09-22 12:53:38 jm14 Exp $
 #
-# $Author: jt6 $
+# $Author: jm14 $
 
 package PfamLive::Clan_versions;
 
@@ -15,23 +15,32 @@ __PACKAGE__->load_components( qw/Core/); #Do we want to add DB
 __PACKAGE__->table("clan_versions"); # This is how we define the table
 
 __PACKAGE__->add_columns( qw/ auto_clan
-							  current
 							  version
 							  rcs_trace
 							  message
 							  user
 							  updated /);
 
-__PACKAGE__->set_primary_key( "auto_clan" );
+
+__PACKAGE__->add_unique_constraint(
+        auto_clan_and_version => [ qw/auto_clan version/]
+);
+
+
+__PACKAGE__->set_primary_key( "auto_clan", "version" );
 
 #Set up relationships
 
 #1 to 1 relationship
 
-__PACKAGE__->has_one(   "clans"              => "Pfamlive::Clans",
+__PACKAGE__->has_one(   "clans"              => "PfamLive::Clans",
                       { "foreign.auto_clan"  => "self.auto_clan" },
                       { proxy                => [ qw/clan_id clan_acc/ ],
                        cascade_delete => 0 } );
+
+
+
+
 
 =head1 COPYRIGHT
 
