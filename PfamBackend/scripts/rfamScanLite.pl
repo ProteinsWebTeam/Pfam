@@ -19,8 +19,8 @@
 #
 
 # Who, When, What
-# $Author: rdf $
-# $Id: rfamScanLite.pl,v 1.1 2008-09-10 10:12:03 rdf Exp $
+# $Author: jt6 $
+# $Id: rfamScanLite.pl,v 1.2 2008-09-23 12:29:45 jt6 Exp $
 
 =head1 DESCRIPTION
 
@@ -155,7 +155,7 @@ open(IN, "$input") || die "Could not open $input:[$!]";
 my ($seqData, $seqId);
 while(<IN>){
   chomp;
-  if(/^\>\s{0,20}(\w+)/){ $seqId = $1; next};
+  if(/^\>\s{0,20}(\S+)/){ $seqId = $1; next};
   #die if we do not have a $seqId
   unless($seqId){
     die "FATAL:Trying to add a sequence to the hash without knowing the sequence name\n";
