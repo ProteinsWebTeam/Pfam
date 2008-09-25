@@ -139,6 +139,11 @@ __PACKAGE__->has_many(
   "RfamDB::HtmlAlignments",
   { "foreign.auto_rfam" => "self.auto_rfam" },
 );
+__PACKAGE__->has_many(
+  "pdb_rfam_regs",
+  "RfamDB::PdbRfamReg",
+  { "foreign.auto_rfam" => "self.auto_rfam" },
+);
 __PACKAGE__->belongs_to("auto_wiki", "RfamDB::Wikitext", { auto_wiki => "auto_wiki" });
 __PACKAGE__->has_many(
   "rfam_cms",
@@ -172,8 +177,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 16:22:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:g+0Ium3usqkLEVc5Yj/rWQ
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NIuB1NZuYMqoZVzqXfbwXQ
 
 #-------------------------------------------------------------------------------
 
