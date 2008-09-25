@@ -46,8 +46,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("auto_rfam_keywords");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 16:22:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P3jEdDEqHZwVwFkCidx1pw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:16iIXdWqd1LLY+oqscY1kw
 
 
 #-------------------------------------------------------------------------------

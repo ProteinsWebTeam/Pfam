@@ -30,8 +30,8 @@ __PACKAGE__->belongs_to(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-12 16:22:33
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:IdntMPOrePn7M9+9L+aarQ
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0M9Ya/L2RmEe+M3F5rMHyg
 
 #-------------------------------------------------------------------------------
 
