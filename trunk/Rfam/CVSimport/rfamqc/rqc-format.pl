@@ -12,6 +12,7 @@ my %TP_hash = (
 		    'miRNA' =>	1,
 		    'ribozyme' => 1,
 		    'antisense' => 1,
+		    'CRISPR'  => 1,
 		    'sRNA' => 1,
 		    'snRNA' => {
 			'splicing' => 1,
