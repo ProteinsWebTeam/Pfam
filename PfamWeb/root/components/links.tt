@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.26 2008-07-28 14:05:11 jt6 Exp $
+# $Id: links.tt,v 1.27 2008-09-26 08:22:31 jt6 Exp $
 
 USE String;
 
@@ -150,7 +150,7 @@ BLOCK buildLink;
     [%- CASE "FUNSHIFT" -%]
 <a class="ext" href="http://funshift.cgb.ki.se/cgi-bin/stksub.cgi?domain=[% id %]">[% id %]</a>
     [%- CASE "HOMSTRAD" -%]
-<a class="ext" href="http://www-cryst.bioc.cam.ac.uk/cgi-bin/homstrad.cgi?family=[% id %]">[% id %]</a>
+<a class="ext" href="http://tardis.nibio.go.jp/cgi-bin/homstrad/homstrad.cgi?family=[% id %]">[% id %]</a>
     [%- CASE "interpro" -%]
 <a class="ext" href="http://www.ebi.ac.uk/interpro/IEntry?ac=[% id %]">[% id %]</a>
     [%- CASE "LOAD" -%]
