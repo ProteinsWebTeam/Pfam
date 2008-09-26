@@ -337,6 +337,14 @@ sub desc_is_OK {
                     last SWITCH;
                 };
             };
+            /^WK/ && do {
+                $fields{$&}++; 
+                if (! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+;$/){
+                    warn "$family: WK lines should look like:\nWK   http:\/\/en.wikipedia.org\/wiki\/CRISPR;\nNot $_\n";
+                    $error = 1;
+                }
+		last;
+            };
             warn "$family: Unrecognised DESC file line [$_]\n";
             $error = 1;
         }
