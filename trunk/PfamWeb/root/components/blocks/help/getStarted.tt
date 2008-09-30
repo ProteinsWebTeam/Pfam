@@ -4,7 +4,7 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.12 2008-08-28 13:10:16 jt6 Exp $
+# $Id: getStarted.tt,v 1.13 2008-09-30 08:26:57 jt6 Exp $
 %]
 
 <!-- start getStarted block -->
@@ -227,8 +227,8 @@ O03046     12       137     PF02788.5       1      132      295.2     1.1e-85   
   	  Pfam allows you to retrive all the proteins with a particular
   	  domain combination (e.g. proteins containing both a CBS domain
   	  and an IMPDH domain) by using the domain query tool. For a more
-  	  detailed study of domain architectures you should use <a
-  	  href="http://pfam.cgb.ki.se/pfamalyzer/index.html">PfamAlyzer</a>,
+  	  detailed study of domain architectures you should use <a class="ext"
+  	  href="http://pfamalyzer.sbc.su.se/pfamalyzer/">PfamAlyzer</a>,
   	  a tool that is hosted from the Swedish Pfam site. PfamAlyzer
   	  allows the user to find proteins which contain a specific
   	  combination of domains, and it allows the user to specify
