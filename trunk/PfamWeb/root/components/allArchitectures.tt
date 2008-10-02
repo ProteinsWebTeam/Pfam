@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.13 2008-08-19 15:20:52 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.14 2008-10-02 14:00:31 jt6 Exp $
 
 META naked = 1;
 
@@ -139,34 +139,7 @@ FOREACH image IN images.each_image;
 
 [% END; # of FOREACH image 
 
-# N.B. this snippet of javascript will not appear in the page source or DOM 
-# tree after loading, because prototype will execute it but not store it
-%]
-<script type="text/javascript">
-  // <![CDATA[
-  getMore = function() {
-    $("loadingSpinner").show();
-    $("loadingButton").disable();
-    var r = new Ajax.Request( 
-      "[% c.uri_for( "/domaingraphics" ) %]",
-      {
-        parameters: { acc:   "[% acc %]",
-                      taxId: "[% taxId %]",
-                      start: "[% last + 1 %]" },
-        onSuccess:  function( oResponse ) {
-                      $("next[% first %]").update( oResponse.responseText );
-                    },
-        onFailure:  function() {
-                      $("next[% first %]").innerHTML = 
-                        "There was a problem retrieving the next set of domain graphics";
-                    }
-      }
-    );
-  }
-  // ]]>
-</script>
-
-[% IF first.defined AND last.defined;
+IF first.defined AND last.defined;
   IF ( last + 1 ) < numRows %]
     <div id="next[% first %]">
       <p>
@@ -175,8 +148,7 @@ FOREACH image IN images.each_image;
       </p>
       <input id="loadingButton"
              type="button"
-             value="Show next [% count %]"
-             onclick="getMore()" />
+             value="Show next [% count %]" />
       <span id="loadingSpinner"
             class="loading"
             style="display: none">Loading next set...</span>
@@ -190,7 +162,40 @@ FOREACH image IN images.each_image;
       [% END %]
     </p>
   [% END;
-END %]
+END;
+
+# N.B. this snippet of javascript will not appear in the page source or DOM 
+# tree after loading, because prototype will execute it but not store it
+%]
+<script type="text/javascript">
+  // <![CDATA[
+
+  $("loadingButton").observe("click", function() {
+
+    $("loadingSpinner").show();
+    $("loadingButton").disable();
+
+    var r = new Ajax.Request( 
+      "[% c.uri_for( '/domaingraphics' ) %]",
+      {
+        parameters: { acc:   "[% acc %]",
+                      taxId: "[% taxId %]",
+                      start: "[% last + 1 %]" },
+        onSuccess:  function( oResponse ) {
+                      $("next[% first %]").update( oResponse.responseText );
+                    },
+        onFailure:  function() {
+                      $("next[% first %]").innerHTML = 
+                        "There was a problem retrieving the next set of domain graphics";
+                    }
+      }
+    );
+
+  } );
+
+  // ]]>
+</script>
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
