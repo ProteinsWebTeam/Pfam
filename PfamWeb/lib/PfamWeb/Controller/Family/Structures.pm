@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.14 2008-08-15 13:44:39 jt6 Exp $
+# $Id: Structures.pm,v 1.15 2008-10-02 13:12:58 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.14 2008-08-15 13:44:39 jt6 Exp $
+$Id: Structures.pm,v 1.15 2008-10-02 13:12:58 jt6 Exp $
 
 =cut
 
@@ -110,18 +110,20 @@ sub mapping : Local  {
     if $c->debug;
 
   my @mapping = $c->model('PfamDB::Pdb_PfamA_reg')
-                  ->search( { auto_pfamA   => $c->stash->{pfam}->auto_pfamA },
-                            { join        => [ qw( pdb pfamseq ) ],
-                              prefetch    => [ qw( pdb pfamseq) ]
+                  ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA },
+                            { join       => [ qw( pdb pfamseq ) ],
+                              prefetch   => [ qw( pdb pfamseq ) ]
                             } );
   $c->stash->{pfamMaps} = \@mapping;
+  $c->log->debug( 'Family::Structures::mapping: found |' . scalar @mapping . '| rows' )
+    if $c->debug;
 
   if ( $c->stash->{output_xml} ) {
-    $c->log->debug( 'Family::Structure::mapping: emitting XML' ) if $c->debug;
+    $c->log->debug( 'Family::Structures::mapping: emitting XML' ) if $c->debug;
     $c->stash->{template} = 'rest/family/structures_xml.tt';
   }
   else {
-    $c->log->debug( 'Family::Structure::mapping: emitting XML' ) if $c->debug;
+    $c->log->debug( 'Family::Structures::mapping: emitting XML' ) if $c->debug;
     $c->stash->{template} = 'components/blocks/family/structureTab.tt';
   }
 
