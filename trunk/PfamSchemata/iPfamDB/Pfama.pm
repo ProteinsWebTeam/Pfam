@@ -16,6 +16,12 @@ __PACKAGE__->add_columns(
   { data_type => "INT", default_value => "", is_nullable => 0, size => 11 },
   "description",
   { data_type => "TEXT", default_value => "", is_nullable => 0, size => 65535 },
+  "domCount",
+  { data_type => "INT", default_value => "", is_nullable => 1, size => 10 },
+  "ligCount",
+  { data_type => "INT", default_value => "", is_nullable => 1, size => 10 },
+  "naCount",
+  { data_type => "INT", default_value => "", is_nullable => 1, size => 10 },
 );
 __PACKAGE__->set_primary_key("pfama_acc");
 
@@ -51,3 +57,20 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
+
+#SELECT me.pfama_acc, me.pfama_id, me.numberinalign, me.description, me.domCount, me.ligCount, me.naCount 
+#FROM   pfama me 
+#WHERE  ( 
+#    (
+#      ( pfama_id LIKE ? )
+#      AND
+#      ( 
+#        (
+#          ( domCount > ? ) OR 
+#          ( ligCount > ? ) OR 
+#          ( naCount > ? ) 
+#        )
+#      )
+#    )
+#  )
+#ORDER BY pfama_id"
