@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.7 2008-08-13 13:03:51 jt6 Exp $
+# $Id: database.tt,v 1.8 2008-10-15 08:18:38 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -152,7 +152,7 @@ pfamB_additional_residue_coverage: 6.5
 
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all the UniProtKB domains in the full alignment for the family 
+      Give me all the UniProtKB sequences in the full alignment for the family 
       &#39;B12D&#39;
     </fieldset>
     
@@ -186,7 +186,7 @@ pfamB_additional_residue_coverage: 6.5
     
     <fieldset class="query">
       <legend>Example query</legend>
-      Give me all the UniProtKB domains in the seed alignment for the family 
+      Give me all the UniProtKB sequences in the seed alignment for the family 
       &#39;B12D&#39;
     </fieldset>
     
