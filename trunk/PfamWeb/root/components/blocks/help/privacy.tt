@@ -5,7 +5,7 @@
 # 
 # privacy information for the site
 #
-# $Id: privacy.tt,v 1.4 2008-06-03 14:51:38 jt6 Exp $
+# $Id: privacy.tt,v 1.5 2008-10-16 13:39:45 jt6 Exp $
 %]
 
 <!-- start privacy block -->
@@ -113,11 +113,12 @@
     </p>
     <p>
       As these services are provided by commercial sites, it's likely that their
-      usage will be carefully monitored. Although the Pfam site does not pass
-      any information about you to these third-party sites, the sites themselves 
-      may use cookies to track your usage of the files that they serve. If you 
-      are concerned about the privacy implications of this monitoring, you may 
-      want to block cookies from the third-party hosting sites.   
+      usage will be carefully monitored by the companies that provide them. 
+      Although the Pfam site does not pass any information about you to these 
+      third-party sites, the sites themselves may use cookies to track your 
+      usage of the files that they serve. If you are concerned about the 
+      privacy implications of this monitoring, you may want to block cookies 
+      from the third-party hosting sites.   
     </p>
     
   </div>
