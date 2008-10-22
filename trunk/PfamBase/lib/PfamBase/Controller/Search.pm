@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20080314 WTSI
 #
-# $Id: Search.pm,v 1.7 2008-09-18 11:57:26 jt6 Exp $
+# $Id: Search.pm,v 1.8 2008-10-22 10:50:20 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search;
 
 This controller is responsible for running searches.
 
-$Id: Search.pm,v 1.7 2008-09-18 11:57:26 jt6 Exp $
+$Id: Search.pm,v 1.8 2008-10-22 10:50:20 jt6 Exp $
 
 =cut
 
@@ -31,6 +31,30 @@ __PACKAGE__->config( SECTION => 'search' );
 #-------------------------------------------------------------------------------
 
 =head2 METHODS
+
+=head2 begin : Private
+
+Sets up the stash for all types of search.
+
+=cut
+
+sub begin : Private {
+  my( $this, $c ) = @_;
+
+  # tell the navbar where we are
+  $c->stash->{nav} = 'search';
+  
+  # tell the layout template to disable the summary icons
+  $c->stash->{iconsDisabled} = 1;
+  
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  $c->stash->{output_xml} = ( $c->req->param('output') || '' eq 'xml' );
+
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 queue_search_transaction : Private
 

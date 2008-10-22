@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.24 2008-09-18 11:51:12 jt6 Exp $
+# $Id: Search.pm,v 1.25 2008-10-22 10:50:20 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running searches. This is actually just an
 empty wrapper around a shared base class. See
 L<PfamBase::Controller::Search> for more details.
 
-$Id: Search.pm,v 1.24 2008-09-18 11:51:12 jt6 Exp $
+$Id: Search.pm,v 1.25 2008-10-22 10:50:20 jt6 Exp $
 
 =cut
 
@@ -30,6 +30,37 @@ use warnings;
 use Module::Pluggable;
 
 use base 'PfamBase::Controller::Search';
+
+#-------------------------------------------------------------------------------
+
+=head2 METHODS
+
+=head2 auto : Private
+
+Checks for a sequence that should be used to pre-fill the search form.
+
+=cut
+
+sub auto : Private {
+  my ( $this, $c ) = @_;
+
+  # see if we should pre-fill the sequence field, based on the sequence that
+  # was handed to us by the referring site
+  
+  # detaint it, naturally, and accept only sequences that are shorter than some
+  # limit, which is set in the config
+  if ( defined $c->req->param('preseq') and 
+       $c->req->param('preseq') =~ m/^([A-Z]+)$/ and
+       length( $1 ) < $this->{maxPrefillLength} ) {
+    
+    $c->log->debug( 'Search::auto: found a sequence with which to pre-fill the search form' )
+      if $c->debug;
+
+    # stash it and let the template stuff the value into the form    
+    $c->stash->{preseq} = $1;
+  }
+  
+}
 
 #-------------------------------------------------------------------------------
 
