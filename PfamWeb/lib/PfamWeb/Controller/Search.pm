@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20061108 WTSI
 #
-# $Id: Search.pm,v 1.25 2008-10-22 10:50:20 jt6 Exp $
+# $Id: Search.pm,v 1.26 2008-10-22 15:41:20 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller is responsible for running searches. This is actually just an
 empty wrapper around a shared base class. See
 L<PfamBase::Controller::Search> for more details.
 
-$Id: Search.pm,v 1.25 2008-10-22 10:50:20 jt6 Exp $
+$Id: Search.pm,v 1.26 2008-10-22 15:41:20 jt6 Exp $
 
 =cut
 
@@ -60,6 +60,7 @@ sub auto : Private {
     $c->stash->{preseq} = $1;
   }
   
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
