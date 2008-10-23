@@ -4,14 +4,14 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.13 2008-05-16 15:30:31 jt6 Exp $
+# $Id: jmol.tt,v 1.14 2008-10-23 09:28:10 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
-requirements.js.push( "Jmol.js" );
+sharedRequirements.js.push( "Jmol.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -92,7 +92,7 @@ CALL script.append( unassigned );
   //   # it takes the name of the parent, so targetted links back to the parent
   //   # will fail (stupid commenting to keep eclipse happy...) %]
   window.name = "jmolWin";
-  jmolInitialize(" [% c.uri_for( "/static/jmol" ) %]"); // REQUIRED
+  jmolInitialize(" [% c.uri_for( '/shared/jmol' ) %]"); // REQUIRED
   jmolSetAppletColor( "white" );
   jmolApplet(500, '[% script %]');
   // ]]>
