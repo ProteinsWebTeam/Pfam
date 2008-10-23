@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.52 2008-05-16 15:29:28 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.53 2008-10-23 09:27:14 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb;
 
 This is the main class for the Pfam website catalyst application.
 
-$Id: PfamWeb.pm,v 1.52 2008-05-16 15:29:28 jt6 Exp $
+$Id: PfamWeb.pm,v 1.53 2008-10-23 09:27:14 jt6 Exp $
 
 =cut
 
@@ -51,7 +51,7 @@ __PACKAGE__->config->{server_pid}  = $$;
 my( $conf ) = $ENV{PFAMWEB_CONFIG} =~ m/([\d\w\/-]+)/;
 
 # set up the ConfigLoader plugin. Point to the configuration file
-__PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf,
+__PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
 
 # read the configuration, configure the application and load these
 # catalyst plugins
