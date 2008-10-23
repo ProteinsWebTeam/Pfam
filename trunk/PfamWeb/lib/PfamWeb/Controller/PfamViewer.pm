@@ -2,7 +2,7 @@
 # PfamViewer.pm
 # jt6 20060601 WTSI
 #
-# $Id: PfamViewer.pm,v 1.5 2008-07-28 13:57:57 jt6 Exp $
+# $Id: PfamViewer.pm,v 1.6 2008-10-23 10:50:06 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::PfamViewer;
 
 An HTML-based sequence alignment viewer.
  
-$Id: PfamViewer.pm,v 1.5 2008-07-28 13:57:57 jt6 Exp $
+$Id: PfamViewer.pm,v 1.6 2008-10-23 10:50:06 jt6 Exp $
 
 =cut
 
@@ -63,7 +63,7 @@ sub showPfamViewer : Private {
     $c->stash->{escapedParams}->{$_} = uri_escape( $c->stash->{params}->{$_} );
   }
   
-  $c->stash->{paramString} = objToJson( $c->stash->{escapedParams} );
+  $c->stash->{paramString} = to_json( $c->stash->{escapedParams} );
   $c->log->debug( 'PfamViewer::showPfamViewer: paramString: |'
                   . $c->stash->{paramString} . '|' ) if $c->debug;
 
@@ -110,7 +110,7 @@ sub view : Local {
   # has unescaped values
 
   # this is now the record of the input parameters that we'll pass on
-  $c->stash->{paramString} = objToJson( \%params );
+  $c->stash->{paramString} = to_json( \%params );
   $c->log->debug( 'PfamViewer::view: build a paramString: |'
                   . $c->stash->{paramString} . '|' ) if $c->debug;
 
