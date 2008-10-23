@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.7 2008-09-15 11:49:31 jt6 Exp $
+   $Id: rfam.css,v 1.8 2008-10-23 12:28:44 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -115,7 +115,7 @@ h4, h5, h6 {
 
 #header {
   padding: 0 250px 0 250px;
-  min-width: 400px;
+  min-width: 300px;
 }
 
 #header .column {

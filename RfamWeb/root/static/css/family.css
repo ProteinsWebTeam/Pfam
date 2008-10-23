@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.1 2008-07-25 13:38:05 jt6 Exp $
+   $Id: family.css,v 1.2 2008-10-23 12:28:44 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -75,9 +75,11 @@ div.blockContent ol {
 #unpId {
   width: 6em;
 }
+/*
 #unpRes {
   width: 6em;
 }
+*/
 #pdbId {
   width: 4em;
 }
