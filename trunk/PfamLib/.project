@@ -3,10 +3,6 @@
 	<name>PfamLib</name>
 	<comment></comment>
 	<projects>
-		<project>PfamConfig</project>
-		<project>PfamConfigWTSI</project>
-		<project>PfamSchemata</project>
-		<project>PfamWeb</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
