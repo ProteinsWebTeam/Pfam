@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.40 2008-07-28 14:09:33 jt6 Exp $
+# $Id: summary.tt,v 1.41 2008-10-23 09:27:51 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -167,13 +167,9 @@ PROCESS components/links.tt; %]
   // set up the post-load AJAX call to load the structure image
   Event.observe( window, "load", 
     function() {
-      var r = new Ajax.Request( "[% c.uri_for( '/family/structures' ) %]",
-                        { parameters: { acc: "[% pfam.pfamA_acc %]" },
-                          onSuccess:  function( oResponse ) {
-                            $("siph").update( oResponse.responseText );
-                          }
-                          // not even bothering with a failure callback...
-                        } );
+      var r = new Ajax.Updater( "siph", 
+                                 "[% c.uri_for( '/family/structures' ) %]",
+                                 { parameters: { acc: "[% pfam.pfamA_acc %]" } } );
     }
   );
   // ]]>
