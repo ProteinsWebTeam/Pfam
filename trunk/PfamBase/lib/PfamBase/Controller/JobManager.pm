@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.4 2008-10-23 12:30:10 jt6 Exp $
+# $Id: JobManager.pm,v 1.5 2008-10-23 15:29:29 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.4 2008-10-23 12:30:10 jt6 Exp $
+$Id: JobManager.pm,v 1.5 2008-10-23 15:29:29 jt6 Exp $
 
 =cut
 
@@ -47,7 +47,7 @@ sub checkStatus : Local {
   $c->stash->{status} = {};
 
   my $jobId = $c->req->param( 'jobId' );
-  if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
     $c->log->debug( 'JobManager::checkStatus: bad job id' ) if $c->debug;
     $c->stash->{status}->{error} = 'Invalid job ID';
     $c->detach( 'returnStatus' );
@@ -154,35 +154,35 @@ parameters to find the jobId.
 =cut
 
 sub retrieveResults : Private {
-  my ( $this, $c, $job_id ) = @_;
+  my ( $this, $c, $jobId ) = @_;
 
-  unless ( $job_id =~ m/^([A-F0-9\-]{36})$/ ) {
-    $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" )
+  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
+    $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$jobId|" )
       if $c->debug;
     return;
   }
 
-  $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$job_id|" )
+  $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$jobId|" )
     if $c->debug;
   
   # job ID *looks* valid; try looking for that job
   my $job = $c->model( 'WebUser::JobHistory' )
-              ->find( { job_id => $job_id },
+              ->find( { job_id => $jobId },
                       { join     => [ qw( job_stream ) ],
                         prefetch => [ qw( job_stream ) ] } );
   
   # bail unless it exists
   return unless defined $job;
   
-  $c->log->debug( "JobManager::retrieveResults: stashing results for |$job_id|..." )
+  $c->log->debug( "JobManager::retrieveResults: stashing results for |$jobId|..." )
     if $c->debug;
   
   # retrieve the results of the job and stash them
-  $c->stash->{results}->{$job_id}->{status}  = $job->status;
-  $c->stash->{results}->{$job_id}->{rawData} = $job->stdout;
-  $c->stash->{results}->{$job_id}->{length}  = length( $job->stdin );
-  $c->stash->{results}->{$job_id}->{method}  = $job->job_type;
-  $c->stash->{results}->{$job_id}->{options} = $job->options;
+  $c->stash->{results}->{$jobId}->{status}  = $job->status;
+  $c->stash->{results}->{$jobId}->{rawData} = $job->stdout;
+  $c->stash->{results}->{$jobId}->{length}  = length( $job->stdin );
+  $c->stash->{results}->{$jobId}->{method}  = $job->job_type;
+  $c->stash->{results}->{$jobId}->{options} = $job->options;
   $c->{stash}->{seq} = $job->stdin;
 }
 

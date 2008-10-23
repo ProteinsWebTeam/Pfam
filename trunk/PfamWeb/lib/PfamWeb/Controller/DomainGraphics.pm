@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.23 2008-05-16 15:29:28 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.24 2008-10-23 15:30:27 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.23 2008-05-16 15:29:28 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.24 2008-10-23 15:30:27 jt6 Exp $
 
 =cut
 
@@ -133,7 +133,7 @@ sub begin : Private {
     
     # validate the UUID
     my $jobId = $c->req->param('jobId');
-    if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+    unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
       $c->log->debug( 'DomainGraphics::begin: bad job id' ) if $c->debug;
       $c->stash->{errorMsg} = 'Invalid job ID';
       return;

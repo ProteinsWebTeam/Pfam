@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.4 2008-10-23 10:56:12 jt6 Exp $
+# $Id: Sequence.pm,v 1.5 2008-10-23 15:34:19 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for submitting single sequence searches for Rfam.
 
-$Id: Sequence.pm,v 1.4 2008-10-23 10:56:12 jt6 Exp $
+$Id: Sequence.pm,v 1.5 2008-10-23 15:34:19 jt6 Exp $
 
 =cut
 
@@ -54,7 +54,7 @@ sub results : Local {
   foreach my $job_id ( @jobIds ) {
     
     # detaint the ID
-    next unless $job_id =~ m/^[A-F0-9\-]{36}$/;
+    next unless $job_id =~ m/^([A-F0-9\-]{36})$/i;
 
     # try to retrieve results for it
     $c->forward( 'JobManager', 'retrieveResults', [ $job_id  ] );

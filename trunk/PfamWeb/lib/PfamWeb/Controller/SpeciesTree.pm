@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.19 2008-07-30 15:17:51 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.20 2008-10-23 15:30:57 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ or a clan.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.19 2008-07-30 15:17:51 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.20 2008-10-23 15:30:57 jt6 Exp $
 
 =cut
 
@@ -243,7 +243,7 @@ sub graphics : Local {
 
   # validate the UUID
   my $jobId = $c->req->param('jobId');
-  if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
     $c->log->debug( 'SpeciesTree::graphics: bad job id' ) if $c->debug;
     $c->stash->{errorMsg} = 'Invalid job ID';
     return;
@@ -278,7 +278,7 @@ sub sequences : Local {
   
   # validate the UUID
   my $jobId = $c->req->param('jobId');
-  if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
     $c->log->debug( 'SpeciesTree::sequences: bad job id' ) if $c->debug;
     $c->stash->{errorMsg} = 'Invalid job ID';
     return;
@@ -290,7 +290,8 @@ sub sequences : Local {
   
   # make sure we got something...
   unless( length $fasta ) {
-    $c->log->debug( 'SpeciesTree::sequences: failed to get a FASTA sequence' );
+    $c->log->debug( 'SpeciesTree::sequences: failed to get a FASTA sequence' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
