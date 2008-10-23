@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.2 2008-06-17 09:22:05 jt6 Exp $
+# $Id: structureTab.tt,v 1.3 2008-10-23 10:56:56 jt6 Exp $
 
 USE dumper;
 USE String;
@@ -13,8 +13,8 @@ META naked = 1;
 
 oe = 0;
 mapping = {};
-FOREACH pdbMap IN pfamMaps;
-  seqKey = pdbMap.pfamseq_id;
+FOREACH pdbMap IN rfamMaps;
+  seqKey = pdbMap.rfamseq_acc;
   IF ! mapping.$seqKey;
     mapping.$seqKey = {};
   END;
@@ -86,7 +86,7 @@ END -%]
               <tr>
   		        [% IF seqKey != prevSeqKey -%]
   		          <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
-                  <a href="[% proteinUri %]?id=[% seqKey %]">[% seqKey %]</a>
+                  <a href="[% proteinUri %]?entry=[% seqKey %]">[% seqKey %]</a>
                 </td>
               [% END;
 
@@ -98,7 +98,7 @@ END -%]
 
   		        IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
 	              <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                  <a href="[% structureUri %]?id=[% pdbKey %]">[% pdbKey %]</a>
+                  [% pdbKey %]
                 </td>
               [% END;
       				prevSeqKey = seqKey;
@@ -119,10 +119,7 @@ END -%]
                    Jmol</a>
                 <a href="[% structureViewerUri %]?viewer=av&amp;id=[% pdbKey %]"
                    onclick="popUp(this.href,'console',800,800,'avWin');return false;">
-                   AstexViewer</a>	
-                <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
-                   onclick="popUp(this.href,'console',800,800,'avWin');return false;"
-                   class="ext">SPICE</a>	
+                   AstexViewer</a>
 	            </td>
 	          </tr>
 	          [%- END; # of pdbResKey
@@ -144,8 +141,8 @@ END -%]
   // walk over all of the cells in the table and add listeners for mouseover and 
   // mouseout events
   $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
-        Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
-        Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
+        cell.observe(  "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
+        cell.observe( "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
       }
     );
   // ]]>
