@@ -2,7 +2,7 @@
 # Builder.pm
 # jt6 20070823 WTSI
 #
-# $Id: Builder.pm,v 1.6 2008-10-23 10:50:06 jt6 Exp $
+# $Id: Builder.pm,v 1.7 2008-10-23 15:32:49 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.6 2008-10-23 10:50:06 jt6 Exp $
+$Id: Builder.pm,v 1.7 2008-10-23 15:32:49 jt6 Exp $
 
 =cut
 
@@ -49,14 +49,16 @@ Builds a sequence alignment from the specified sequences.
 sub build : Path {
   my( $this, $c ) = @_;
   
-  $c->log->debug( 'Proteome::Alignment::Builder::build: checking for sequences' );
+  $c->log->debug( 'Proteome::Alignment::Builder::build: checking for sequences' )
+    if $c->debug;
 
   # retrieve the sequences
   $c->forward( 'getSequences' );
   
   # make sure we got something...
   unless( length $c->stash->{fasta} ) {
-    $c->log->debug( 'Proteome::Alignment::Builder::build: failed to get a FASTA sequence' );
+    $c->log->debug( 'Proteome::Alignment::Builder::build: failed to get a FASTA sequence' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
@@ -67,11 +69,13 @@ sub build : Path {
 
   # and see if we managed it...
   if( $submissionStatus < 0 ) {
-    $c->log->debug( 'Proteome::Alignment::Builder::build: problem with submission; returning error page' ); 
+    $c->log->debug( 'Proteome::Alignment::Builder::build: problem with submission; returning error page' )
+      if $c->debug; 
     $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
   } else {
-    $c->log->debug( 'Proteome::Alignment::Builder::build: alignment job submitted; polling' ); 
+    $c->log->debug( 'Proteome::Alignment::Builder::build: alignment job submitted; polling' )
+      if $c->debug; 
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
   }
 }
@@ -88,11 +92,12 @@ sub view : Local {
   my( $this, $c ) = @_;
 
   # retrieve the job results
-  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/;
+  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   
   unless( scalar keys %{ $c->stash->{results} } ) {
-    $c->log->debug( 'Proteome::Alignment::Builder::view: no results found' );
+    $c->log->debug( 'Proteome::Alignment::Builder::view: no results found' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
@@ -102,7 +107,8 @@ sub view : Local {
   # the consensus string as the last line
   my @rows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
   my $numRowsInAlignment = scalar @rows - 1;
-  $c->log->debug( "Proteome::Alignment::Builder::view: alignment has |$numRowsInAlignment| rows" );
+  $c->log->debug( "Proteome::Alignment::Builder::view: alignment has |$numRowsInAlignment| rows" )
+    if $c->debug;
 
   # configure the viewer...
   
@@ -145,7 +151,8 @@ sub getSequences : Private {
                            prefetch   => [ qw( pfamseq ) ] } );
 
   $c->log->debug( 'Proteome::Alignment::Builder: found |' 
-                  . scalar @seqs . '| sequences for this taxId / family' );
+                  . scalar @seqs . '| sequences for this taxId / family' )
+    if $c->debug;
 
   foreach my $seq ( @seqs ){
     push @{ $c->stash->{selectedSeqAccs} }, $seq->pfamseq_acc;
@@ -156,7 +163,7 @@ sub getSequences : Private {
                                   $seq->seq_end - $seq->seq_start + 1 ) . "\n";
   }
   $c->log->debug( 'Family::Alignment::Builder::generateAlignment: built a FASTA file: |'
-                  . $c->stash->{fasta} . '|' );
+                  . $c->stash->{fasta} . '|' ) if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -219,9 +226,9 @@ sub queueAlignment : Private {
   $c->stash->{jobStatusJSON} = to_json( $jobStatus );
 
   $c->log->debug( 'Proteome::Alignment::Builder::queueAlignment: built a job status string: ',
-                  dump( $jobStatus ) );
+                  dump( $jobStatus ) ) if $c->debug;
   $c->log->debug( 'Proteome::Alignment::Builder::queueAlignment: submitted job '
-                  . "|$jobId| at |" . $historyRow->opened . '|' );
+                  . "|$jobId| at |" . $historyRow->opened . '|' ) if $c->debug;
 
   return 0;
 } 

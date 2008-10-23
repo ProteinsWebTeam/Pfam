@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.13 2008-10-23 10:50:06 jt6 Exp $
+# $Id: Builder.pm,v 1.14 2008-10-23 15:31:48 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.13 2008-10-23 10:50:06 jt6 Exp $
+$Id: Builder.pm,v 1.14 2008-10-23 15:31:48 jt6 Exp $
 
 =cut
 
@@ -51,10 +51,12 @@ the species_collection table, rather than the job that we run to align them.
 sub build : Path {
   my( $this, $c ) = @_;
   
-  $c->log->debug( 'Family::Alignment::Builder::build: checking for sequences' );
+  $c->log->debug( 'Family::Alignment::Builder::build: checking for sequences' )
+    if $c->debug;
 
   unless( $c->req->param('jobId') ) {
-    $c->log->debug( 'Family::Alignment::Builder::build: no job ID supplied' );
+    $c->log->debug( 'Family::Alignment::Builder::build: no job ID supplied' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'There was no job ID for this alignment..';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
@@ -62,8 +64,9 @@ sub build : Path {
 
   # validate the UUID
   my $collection_id = $c->req->param('jobId');
-  if( length( $collection_id ) != 36 or $collection_id !~ /^[A-F0-9\-]+$/ ) {
-    $c->log->debug( 'Family::Alignment::Builder: bad job id' ) if $c->debug;
+  unless ($collection_id =~ m/^([A-F0-9\-]{36})$/i ) {
+    $c->log->debug( 'Family::Alignment::Builder: bad job id' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'Invalid job ID';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
@@ -75,7 +78,8 @@ sub build : Path {
   
   # make sure we got something...
   unless( length $c->stash->{fasta} ) {
-    $c->log->debug( 'Family::Alignment::Builder::build: failed to get a FASTA sequence' );
+    $c->log->debug( 'Family::Alignment::Builder::build: failed to get a FASTA sequence' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'We failed to get a FASTA format sequence file for your selected sequences.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
@@ -86,11 +90,13 @@ sub build : Path {
 
   # and see if we managed it...
   if( $submissionStatus < 0 ) {
-    $c->log->debug( 'Family::Alignment::Builder::build: problem with submission; returning error page' ); 
+    $c->log->debug( 'Family::Alignment::Builder::build: problem with submission; returning error page' )
+      if $c->debug; 
     $c->stash->{errorMsg} = 'There was an error when submitting your sequences to be aligned.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
   } else {
-    $c->log->debug( 'Family::Alignment::Builder::build: alignment job submitted; polling' ); 
+    $c->log->debug( 'Family::Alignment::Builder::build: alignment job submitted; polling' )
+      if $c->debug; 
     $c->stash->{template} = 'components/tools/seqViewAlignmentPolling.tt';
   }
 }
@@ -107,11 +113,12 @@ sub view : Local {
   my( $this, $c ) = @_;
 
   # retrieve the job results
-  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/;
+  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   
   unless( scalar keys %{ $c->stash->{results} } ) {
-    $c->log->debug( 'Family::Alignment::Builder::view: no results found' );
+    $c->log->debug( 'Family::Alignment::Builder::view: no results found' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     $c->stash->{template} = 'components/tools/seqViewAlignmentError.tt';
     return;
@@ -121,7 +128,8 @@ sub view : Local {
   # the consensus string as the last line
   my @rows = split /\n/, $c->stash->{results}->{$jobId}->{rawData};
   my $numRowsInAlignment = scalar @rows - 1;
-  $c->log->debug( "Family::Alignment::Builder::view: alignment has |$numRowsInAlignment| rows" );
+  $c->log->debug( "Family::Alignment::Builder::view: alignment has |$numRowsInAlignment| rows" )
+    if $c->debug;
 
   # configure the viewer...
   $c->stash->{params} = { source             => 'species',
@@ -146,14 +154,16 @@ Builds an alignment of the selected sequences.
 sub getAlignment : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Family::Alignment::Builder::getAlignment: retrieving alignment...' );
+  $c->log->debug( 'Family::Alignment::Builder::getAlignment: retrieving alignment...' )
+    if $c->debug;
 
   # first get a job ID. The call to retrieve results will get the job ID for
   # itself, but we'll need it here anyway
-  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/;
+  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
 
   unless( defined $jobId ) {
-    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no job ID found' );
+    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no job ID found' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'No job ID found for the sequence alignment job.';
     return;
   }   
@@ -161,7 +171,8 @@ sub getAlignment : Private {
   # retrieve the job results
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   unless( scalar keys %{ $c->stash->{results} } ) {
-    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no results found' );
+    $c->log->debug( 'Family::Alignment::Builder::getAlignment: no results found' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     return;
   }   
@@ -259,9 +270,9 @@ sub queueAlignment : Private {
   $c->stash->{jobStatusJSON} = to_json( $jobStatus );
 
   $c->log->debug( 'Family::Alignment::Builder::queueAlignment: job status: ',
-                  dump( $jobStatus ) );
+                  dump( $jobStatus ) ) if $c->debug;
   $c->log->debug( 'Family::Alignment::Builder::queueAlignment: submitted job '
-                  . "|$jobId| at |" . $historyRow->opened . '|' );
+                  . "|$jobId| at |" . $historyRow->opened . '|' ) if $c->debug;
                   
   return 0;
 } 
