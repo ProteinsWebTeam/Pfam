@@ -2,7 +2,7 @@
 # Builder.pm
 # jt6 20070823 WTSI
 #
-# $Id: Builder.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Builder.pm,v 1.6 2008-10-23 10:50:06 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.5 2008-05-16 15:29:28 jt6 Exp $
+$Id: Builder.pm,v 1.6 2008-10-23 10:50:06 jt6 Exp $
 
 =cut
 
@@ -216,7 +216,7 @@ sub queueAlignment : Private {
                       opened        => $historyRow->opened,
                     }
                   ];
-  $c->stash->{jobStatusJSON} = objToJson( $jobStatus );
+  $c->stash->{jobStatusJSON} = to_json( $jobStatus );
 
   $c->log->debug( 'Proteome::Alignment::Builder::queueAlignment: built a job status string: ',
                   dump( $jobStatus ) );

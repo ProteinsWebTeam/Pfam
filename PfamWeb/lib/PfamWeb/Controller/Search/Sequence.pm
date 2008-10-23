@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.26 2008-09-18 11:52:22 jt6 Exp $
+# $Id: Sequence.pm,v 1.27 2008-10-23 10:50:06 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.26 2008-09-18 11:52:22 jt6 Exp $
+$Id: Sequence.pm,v 1.27 2008-10-23 10:50:06 jt6 Exp $
 
 =cut
 
@@ -453,7 +453,7 @@ sub queue_seq_search : Private {
   
   # if we get to here, the job submissions worked. Now convert the job status
   # structure to JSON and stash it for the javascript on the client side to use
-  $c->stash->{jobStatusJSON} = objToJson( $c->stash->{jobStatus} );
+  $c->stash->{jobStatusJSON} = to_json( $c->stash->{jobStatus} );
   
   $c->log->debug( 'Search::Sequence::queue_seq_search: json string: |'
                   . $c->stash->{jobStatusJSON} . '|' ) if $c->debug;
