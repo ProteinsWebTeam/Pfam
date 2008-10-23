@@ -5,7 +5,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.5 2008-07-25 13:30:59 jt6 Exp $
+# $Id: summary.tt,v 1.6 2008-10-23 12:28:06 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -17,7 +17,7 @@ requirements.css.push( "wp.css" );
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
-#requirements.js.push( "family.js" );
+requirements.js.push( "family.js" );
 
 #-------------------------------------------------------------------------------
 
