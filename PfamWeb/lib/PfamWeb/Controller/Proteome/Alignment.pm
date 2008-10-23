@@ -2,7 +2,7 @@
 # Alignment.pm
 # jt6 20070823 WTSI
 #
-# $Id: Alignment.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Alignment.pm,v 1.5 2008-10-23 15:32:17 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Alignment;
 This is the controller than handles the generation of alignments of
 sequences from a given proteome.
 
-$Id: Alignment.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+$Id: Alignment.pm,v 1.5 2008-10-23 15:32:17 jt6 Exp $
 
 =cut
 
@@ -40,14 +40,16 @@ alignment ready to be marked up and displayed.
 sub getAlignment : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Proteome::Alignment::getAlignment: retrieving alignment...' );
+  $c->log->debug( 'Proteome::Alignment::getAlignment: retrieving alignment...' )
+    if $c->debug;
 
   # first get a job ID. The call to retrieve results will get the job ID for
   # itself, but we'll need it here anyway
-  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/;
+  my( $jobId ) = $c->req->param('jobId') || '' =~ m/^([A-F0-9\-]{36})$/i;
 
   unless( defined $jobId ) {
-    $c->log->debug( 'Proteome::Alignment::getAlignment: no job ID found' );
+    $c->log->debug( 'Proteome::Alignment::getAlignment: no job ID found' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'No job ID found for the sequence alignment job.';
     return;
   }   
@@ -55,7 +57,8 @@ sub getAlignment : Private {
   # retrieve the job results
   $c->forward( 'JobManager', 'retrieveResults', [ $jobId ] );
   unless( scalar keys %{ $c->stash->{results} } ) {
-    $c->log->debug( 'Proteome::Alignment:::getAlignment: no results found' );
+    $c->log->debug( 'Proteome::Alignment:::getAlignment: no results found' )
+      if $c->debug;
     $c->stash->{errorMsg} = 'No sequence alignment found.';
     return;
   }   
@@ -74,7 +77,7 @@ sub getAlignment : Private {
   my $from = $c->stash->{rows}->[0] - 1;
   my $to   = $c->stash->{rows}->[1] - 1;
   $c->log->debug( 'Proteome::Alignment::getAlignment: showing rows |'
-                  . "$from| to |$to|" );
+                  . "$from| to |$to|" ) if $c->debug;
   
   my %alignment;
   my $length;
