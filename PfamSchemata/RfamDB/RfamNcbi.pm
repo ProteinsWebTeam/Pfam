@@ -28,16 +28,7 @@ __PACKAGE__->set_primary_key("ncbi_code", "auto_rfam");
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/xatonAt4or9o/aTGuOnGA
 
-
-<<<<<<< RfamNcbi.pm
 __PACKAGE__->many_to_many( ncbi_code => "RfamDB::TaxonomyWebsearch", 'ncbi_code' );
-=======
-__PACKAGE__->has_one(
-  "tax",
-  "RfamDB::TaxonomyWebsearch",
-  { "foreign.ncbi_code" => "self.ncbi_code" },
-);
->>>>>>> 1.4
 
 #-------------------------------------------------------------------------------
 
