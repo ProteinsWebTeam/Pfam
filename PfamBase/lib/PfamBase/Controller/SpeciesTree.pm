@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.2 2008-07-25 13:11:54 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.3 2008-10-23 15:29:47 jt6 Exp $
 
 =head1 NAME
 
@@ -50,7 +50,7 @@ refuse to generate either interactive or text trees
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.2 2008-07-25 13:11:54 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.3 2008-10-23 15:29:47 jt6 Exp $
 
 =cut
 
@@ -276,7 +276,7 @@ sub accessions : Local {
   
   # validate the UUID
   my $jobId = $c->req->param('jobId');
-  if( length( $jobId ) != 36 or $jobId !~ /^[A-F0-9\-]+$/ ) {
+  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
     $c->log->debug( 'SpeciesTree::accessions: bad job id' ) if $c->debug;
     $c->stash->{errorMsg} = 'Invalid job ID';
     return;

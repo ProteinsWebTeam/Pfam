@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.27 2008-10-23 10:50:06 jt6 Exp $
+# $Id: Sequence.pm,v 1.28 2008-10-23 15:33:16 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.27 2008-10-23 10:50:06 jt6 Exp $
+$Id: Sequence.pm,v 1.28 2008-10-23 15:33:16 jt6 Exp $
 
 =cut
 
@@ -52,7 +52,7 @@ sub results : Local {
   foreach my $jobId ( @jobIds ) {
     
     # detaint the ID
-    next unless $jobId =~ m/^[A-F0-9\-]{36}$/;
+    next unless $jobId =~ m/^([A-F0-9\-]{36})$/i;
 
     # try to retrieve results for it
     $c->forward( 'JobManager', 'retrieveResults', [ $jobId  ] );
