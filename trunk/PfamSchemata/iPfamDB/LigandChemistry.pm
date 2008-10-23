@@ -42,15 +42,43 @@ __PACKAGE__->add_columns(
   "molecular_weight",
   { data_type => "FLOAT", default_value => undef, is_nullable => 1, size => 32 },
 );
-__PACKAGE__->add_unique_constraint("ligand_chemistry_ligand_id_Idx", ["ligand_id"]);
-__PACKAGE__->add_unique_constraint("ligand_chemistry_code_Idx", ["lig_code"]);
+ __PACKAGE__->add_unique_constraint("ligand_chemistry_ligand_id_idx", ["ligand_id"]);
+__PACKAGE__->add_unique_constraint("ligand_chemistry_code_idx", ["lig_code"]);
 
 
 # Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:30W8zCkNvzz3IgHdy4L3AA
 
 
-__PACKAGE__->add_unique_constraint("ligand_chemistry_three_letter_code", ["three_letter_code"]);
+__PACKAGE__->set_primary_key("lig_code");
+
+__PACKAGE__->might_have( 
+  'summary' => 'iPfamDB::LigandSummary',
+  { 'foreign.lig_code' => 'self.lig_code' }
+);
+
+__PACKAGE__->add_unique_constraint( "ligand_chemistry_three_letter_code", ["three_letter_code"]);
+
+=head2 TABLE DEFINITION
+
++-------------------+------------------+------+-----+---------+-------+
+| Field             | Type             | Null | Key | Default | Extra |
++-------------------+------------------+------+-----+---------+-------+
+| ligand_id         | int(11)          | NO   | UNI |         |       |
+| lig_code          | varchar(10)      | NO   | PRI |         |       |
+| three_letter_code | char(3)          | NO   | MUL |         |       |
+| one_letter_code   | varchar(5)       | YES  |     | NULL    |       |
+| name              | text             | NO   |     |         |       |
+| systematic_name   | text             | NO   |     |         |       |
+| num_all_atoms     | int(10) unsigned | YES  |     | NULL    |       |
+| num_atoms_no_H    | int(10) unsigned | YES  |     | NULL    |       |
+| stereo_smiles     | text             | NO   |     |         |       |
+| non_stereo_smiles | text             | YES  |     | NULL    |       |
+| charge            | int(11)          | YES  |     | NULL    |       |
+| category          | text             | NO   |     |         |       |
+| formula           | text             | NO   |     |         |       |
+| molecular_weight  | float            | YES  |     | NULL    |       |
++-------------------+------------------+------+-----+---------+-------+
 
 =head1 AUTHOR
 
