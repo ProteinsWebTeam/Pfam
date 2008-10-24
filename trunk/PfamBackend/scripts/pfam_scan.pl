@@ -59,10 +59,11 @@ should at least give you a start.
 
 1. Get the Pfam database from
    ftp://ftp.sanger.ac.uk/pub/databases/Pfam/.  In particular you need
-   the files Pfam-A.fasta, Pfam_ls, Pfam_fs, and Pfam-A.seed, and
-   optionally Pfam-C.  To use the active site option you will also
-   need to download the active site alignments which are available as
-   a tarball (active_site.tgz).
+   the files Pfam-A.fasta, Pfam_ls, Pfam_fs, Pfam_ls.bin, Pfam_fs.bin,
+   Pfam_ls.ssi Pfam_fs.bin.ssi, and Pfam-A.seed, and optionally
+   Pfam-C.  To use the active site option you will also need to
+   download the active site alignments which are available as a
+   tarball (active_site.tgz).
 
 2. Unzip them if necessary
     $ gunzip Pfam*.gz
@@ -417,7 +418,7 @@ else {
 
 # map Pfam accessions to ids
 # expensive, but we have to read Pfam-A.seed or Pfam-A.fasta
-my( %accmap, %ordermap );
+my( %accmap, %ordermap, %nested, $a );  #%nested is used when removing overlapping clan hits
 if( -s "$pfamdir/Pfam-A.scan.dat" ) {
     my $id;
     open( SEED, "$pfamdir/Pfam-A.scan.dat" ) or die "FATAL: can't open Pfam-A.seed file\n";
@@ -425,8 +426,9 @@ if( -s "$pfamdir/Pfam-A.scan.dat" ) {
   	if( /^\#=GF ID\s+(\S+)/ ) {
 	    $id = $1;
 	 }
-	if( /^\#=GF AC\s+(PF\d+\.?\d*)/ ) {
+	if( /^\#=GF AC\s+((PF\d+)\.?\d*)/ ) {
 	    $accmap{$id} = $1;
+            $a = $2;
 	}
 	if( my ($or) = /^\#=GF AM\s+(\S+)/ ) {
 	    if( $or eq 'globalfirst' ) {
@@ -438,6 +440,10 @@ if( -s "$pfamdir/Pfam-A.scan.dat" ) {
 	    if( $or eq 'byscore' ) {
 		$ordermap{$id} = 'score';
 	    }
+	}
+        if( /^\#=GF NE\s+(PF\d+\.?\d*);/ ) {
+	    $nested{$a}{$1}=1;
+            $nested{$1}{$a}=1;
 	}
     }
     close(SEED);
@@ -448,8 +454,9 @@ if( -s "$pfamdir/Pfam-A.scan.dat" ) {
 	if( /^\#=GF ID\s+(\S+)/ ) {
 	    $id = $1;
 	}
-	if( /^\#=GF AC\s+(PF\d+\.?\d*)/ ) {
+        if( /^\#=GF AC\s+((PF\d+)\.?\d*)/ ) {
 	    $accmap{$id} = $1;
+            $a = $2;
 	}
 	if( my ($or) = /^\#=GF AM\s+(\S+)/ ) {
 	    if( $or eq 'globalfirst' ) {
@@ -461,6 +468,10 @@ if( -s "$pfamdir/Pfam-A.scan.dat" ) {
 	    if( $or eq 'byscore' ) {
 		$ordermap{$id} = 'score';
 	    }
+	}
+        if( /^\#=GF NE\s+(PF\d+\.?\d*);/ ) {
+	    $nested{$a}{$1}=1;
+            $nested{$1}{$a}=1;
 	}
     }
     close(SEED);
@@ -566,7 +577,7 @@ while( my $hmmacc = shift @hmmlist ) {
 	}
 	if( $fast ) {
 	    $hmmfile = "/tmp/$$.hmm_$m";
-	    system "hmmfetch $pfamdir/Pfam_$m $hmmacc > $hmmfile" and die "FATAL: failed to fetch [$hmmacc] from $pfamdir/Pfam_$m\n";
+	    system "hmmfetch $pfamdir/Pfam_$m.bin $hmmacc > $hmmfile" and die "FATAL: failed to fetch [$hmmacc] from $pfamdir/Pfam_$m\n";
 	}
 	else {
 	    $hmmfile = "$pfamdir/Pfam_$m.bin";
@@ -596,7 +607,7 @@ unless ($no_merge){
 }
 
 # ... then based on clans
-$allresults = $allresults->remove_overlaps_by_clan( \%clanmap ) if( !$overlap );
+$allresults = $allresults->remove_overlaps_by_clan( \%clanmap, \%nested ) if( !$overlap );
 
 
 
@@ -656,7 +667,7 @@ sub add_nested {
       foreach my $unit1 ($seq->eachHMMUnit()) {
         foreach my $unit2 ($seq->eachHMMUnit()) {
 	    next if($unit1 eq $unit2);
-            if( ($unit1->start_seq > $unit2->start_seq()) and ($unit1->end_seq < $unit2->end_seq) ) {
+            if( ($unit1->start_seq >= $unit2->start_seq()) and ($unit1->end_seq <= $unit2->end_seq) ) {
                $unit1->{'nested'} = "(nested)";
             }
 	}
@@ -897,9 +908,9 @@ sub remove_overlaps_by_clan {
     # so need to grab the returned results object
     my $self = shift;
     my $clanmap = shift;
+    my $nested_hash = shift;
 
-    die "FATAL: remove_overlaps_by_clan() called without clan map\n"
-	if( not $clanmap or not ref($clanmap) );
+    die "FATAL: remove_overlaps_by_clan() called without clan map\n" if( not $clanmap or not ref($clanmap) );
 
     my $new = HMMResults->new('accmap' => $self->{accmap}, 'maxidlength' => $self->{maxidlength});
 
@@ -920,9 +931,10 @@ sub remove_overlaps_by_clan {
 		
 		if( exists $clanmap->{ $acc1 } and 
 		    exists $clanmap->{ $acc2 } and 
-		    $clanmap->{ $acc1 } eq $clanmap->{ $acc2 } and 
-		    $acc1 ne $acc2 ) {
-		    next UNIT if( $unit->overlap( $u ) );
+		    $clanmap->{ $acc1 } eq $clanmap->{ $acc2 } and $acc1 ne $acc2 ) {
+ 		        if( $unit->overlap( $u ) ) {
+			    next UNIT unless(exists($$nested_hash{$acc1}{$acc2}));
+		        }
 		}
 	    }
 	}
@@ -1051,11 +1063,11 @@ sub write_ascii_out {
 
 	if($unit->{'act_site'}) {
             $" = ",";
-	    print "  predicted_active_site[@{$unit->{'act_site'}}]\n";
+	          print $fh "  predicted_active_site[@{$unit->{'act_site'}}]\n";
             $" = " ";
 	}
 	else {
-	   print "\n";
+	   print $fh "\n";
 	}
 
          if($unit->align_seq){
@@ -1363,11 +1375,124 @@ sub end {
     return $self->{'end'};
 }
 
+
+############################
+
+package SeqPfam;
+
+use Bio::LocatableSeq;
+use Bio::Seq::RichSeq;
+
+use base qw(Bio::LocatableSeq Bio::Seq::RichSeq);
+
+sub new {
+  my($class, %params ) = @_;
+  my( $id, $start, $end, $seq) = 
+      (
+       ($params{'-ID'}          || $params{'-id'}),
+       ($params{'-START'}       || $params{'-start'}),
+       ($params{'-END'}         || $params{'-end'}),
+       ($params{'-SEQ'}         || $params{'-seq'}),
+       );
+       
+  my $self = $class->SUPER::new( %params );  # this is Bio::Pfam::Root
+                      # so we have to set Bio::LocatableSeq fields ourself
+
+
+  
+  
+  $self->id( $id );
+  $self->start( $start );
+  $self->end( $end );
+  $self->seq( $seq );
+  
+
+  return $self; # success - we hope!
+}
+
+##################################
+package AlignPfam;
+
+use base 'Bio::SimpleAlign';
+
+sub new {
+  my( $class, %params ) = @_;
+     
+  my $self = $class->SUPER::new( %params );
+  return $self;
+}
+
+
+
+
+=head2 read_Pfam
+
+ Title   : read_Pfam
+ Usage   : $ali->read_Pfam( $fh )
+ Function: Reads in a Pfam (mul) format alignment
+ Returns : 
+    Args    : A filehandle glob or ref. to a filehandle object
+ Notes   : 
+    This function over-rides the one defined in Bio::Pfam::SimpleAlign.
+    The main difference is that id distinguishes between accession numbers
+    and identifiers, and adds a list of Bio::Pfam::SeqPfam rather than 
+  Bio::Seq.
+
+=cut
+
+sub read_Pfam {
+    my $self = shift;
+    my $in = shift;
+    my ($name, $start, $end, $seq, %names);
+    my $count = 0;
+    while( <$in> ) {
+	chop;
+	/^\/\// && last;
+      
+
+	if( /^(\S+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
+	    $name = $1;
+	    $start = $2;
+	    $end = $3;
+	    $seq = $4;
+	    
+	    $self->add_seq(SeqPfam->new('-seq'=>$seq,
+						  '-id'=>$name,
+						  '-start'=>$start,
+						  '-end'=>$end, 
+						  '-type'=>'aligned'));
+	    $count++;
+	}
+	elsif( /^(\S+)\s+(\S+)\s*/ ) {
+	    $name = $1;
+	    $start = 1;
+	    $end = length( $2 );
+	    $seq = $2;
+	    
+	    $self->add_seq(SeqPfam->new('-seq'=>$seq,
+						  '-id'=>$name,
+						  '-start'=>$start,
+						  '-end'=>$end, 
+						  '-type'=>'aligned'));
+	    $count++;
+	}
+	elsif(/^(\s+)?$/) { #Ignore blank lines
+            next;
+	}
+	else { 
+	    $self->throw("Found a bad line [$_] in the pfam format alignment");
+	    next;
+	}
+    }
+
+    return $count;
+}
+
+
 ############################
 package as_search;
 
 use strict;
-use Bio::Pfam::AlignPfam;
 use Bio::SeqFeature::Generic;
 
 
@@ -1444,7 +1569,7 @@ sub find_as {
   unlink "ALIGN.$$";
 
   open(INFILE, "ALIGN") or die "$!";
-  my $aln = new Bio::Pfam::AlignPfam;
+  my $aln = new AlignPfam;
   $aln->read_Pfam(*INFILE);
   close INFILE;
   unlink "ALIGN";
@@ -1453,7 +1578,7 @@ sub find_as {
    #Locate exp as in fam
    _exp_as($aln, $family, $dir);
    #Store as patterns
-   my $pattern_aln = new Bio::Pfam::AlignPfam;
+   my $pattern_aln = new AlignPfam;
    _pattern_info($aln, $pattern_aln);
    #find pred as
    my $array_ref = _add_pred_as($aln, $pattern_aln);
@@ -1576,7 +1701,7 @@ sub _add_pred_as {
     die "No query seq" unless $query_seq;
 
 
-    my   $aligns_with = new Bio::Pfam::AlignPfam;
+    my   $aligns_with = new AlignPfam;
     foreach my $seq1 ( $pattern_aln->each_seq() ) {
 
    
@@ -1761,7 +1886,7 @@ sub _identity {
           my $lower_identity=100;
           my $lower_identity_seq;
           foreach my $s (@aligns_with) {
-             my $tmp_aln = new Bio::Pfam::AlignPfam;
+             my $tmp_aln = new AlignPfam;
              $tmp_aln->add_seq($s);
              $tmp_aln->add_seq($seq1);
 
