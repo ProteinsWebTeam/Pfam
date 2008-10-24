@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.34 2008-10-24 13:17:36 jt6 Exp $
+# $Id: head.tt,v 1.35 2008-10-24 13:33:28 jt6 Exp $
 
 # these first meta tags are google webmasters verification tags. They are here
 # so that google can verify that we control the websites and we can control,
@@ -21,7 +21,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
 [%- # add a meaningful description, for the benefit of search engines -%]
-<meta name="Description" content="The Pfam database is a large collection of protein families, each represented by multiple sequence alignments and hidden Markov models (HMMs)" />
+<meta name="Description" content="Pfam is a large collection of protein families, represented by multiple sequence alignments and hidden Markov models (HMMs)" />
 
 [% # if the stash contains a value for "refreshUri", we'll add a
    # refresh header to redirect after the default delay of 5 seconds
