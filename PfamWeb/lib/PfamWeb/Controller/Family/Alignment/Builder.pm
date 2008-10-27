@@ -2,7 +2,7 @@
 # Builder.pm
 # rdf 20070815 WTSI
 #
-# $Id: Builder.pm,v 1.14 2008-10-23 15:31:48 jt6 Exp $
+# $Id: Builder.pm,v 1.15 2008-10-27 14:35:53 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.14 2008-10-23 15:31:48 jt6 Exp $
+$Id: Builder.pm,v 1.15 2008-10-27 14:35:53 jt6 Exp $
 
 =cut
 
@@ -267,7 +267,7 @@ sub queueAlignment : Private {
                       opened        => $historyRow->opened,
                     }
                   ];
-  $c->stash->{jobStatusJSON} = to_json( $jobStatus );
+  $c->stash->{jobStatusJSON} = objToJson( $jobStatus );
 
   $c->log->debug( 'Family::Alignment::Builder::queueAlignment: job status: ',
                   dump( $jobStatus ) ) if $c->debug;

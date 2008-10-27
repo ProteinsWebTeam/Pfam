@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.5 2008-10-23 15:34:19 jt6 Exp $
+# $Id: Sequence.pm,v 1.6 2008-10-27 14:37:24 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for submitting single sequence searches for Rfam.
 
-$Id: Sequence.pm,v 1.5 2008-10-23 15:34:19 jt6 Exp $
+$Id: Sequence.pm,v 1.6 2008-10-27 14:37:24 jt6 Exp $
 
 =cut
 
@@ -272,7 +272,7 @@ sub queue_seq_search : Private {
   # if we get to here, the job submissions worked. Now build a job status data 
   # structure that we'll convert to JSON and hand back to the javascript on the 
   # client side
-  $c->stash->{jobStatusJSON} = to_json( $c->stash->{jobStatus} );
+  $c->stash->{jobStatusJSON} = objToJson( $c->stash->{jobStatus} );
   
   $c->log->debug( 'Search::Sequence::queue_seq_search: json string: |' 
                   . $c->stash->{jobStatusJSON} . '|' ) if $c->debug;
