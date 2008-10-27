@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.5 2008-10-23 15:29:29 jt6 Exp $
+# $Id: JobManager.pm,v 1.6 2008-10-27 14:47:51 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.5 2008-10-23 15:29:29 jt6 Exp $
+$Id: JobManager.pm,v 1.6 2008-10-27 14:47:51 jt6 Exp $
 
 =cut
 
@@ -128,7 +128,7 @@ sub returnStatus : Private {
   my( $this, $c ) = @_;
 
   # convert the status hash to a JSON object and return it
-  my $status = to_json( $c->stash->{status} );
+  my $status = objToJson( $c->stash->{status} );
 
   $c->log->debug( 'JobManager::returnStatus: returning: ' ) if $c->debug;
   $c->log->debug( dump( $c->stash->{status} ) ) if $c->debug;
