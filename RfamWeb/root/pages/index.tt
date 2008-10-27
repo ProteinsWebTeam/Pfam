@@ -5,7 +5,7 @@
 # 
 # build the main Rfam home page.
 #
-# $Id: index.tt,v 1.6 2008-09-18 11:59:12 jt6 Exp $
+# $Id: index.tt,v 1.7 2008-10-27 16:02:56 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -334,15 +334,16 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <div class="citation">
       <span class="title">
         <a class="ext" 
-           href="http://nar.oupjournals.org/cgi/content/full/33/suppl_1/D121">
-     Rfam: annotating non-coding RNAs in complete genomes.</a>
+           href="http://nar.oxfordjournals.org/cgi/content/full/gkn766?ijkey=qKsfJKpTARDanrQ&keytype=ref">
+          Rfam: updates to the RNA families database</a>
       </span>
       <span class="authors">
-           S. Griffiths-Jones, S. Moxon, M. Marshall, A. Khanna, S.R. Eddy and A. Bateman.
+        PP Gardner, J Daub, JG Tate, EP Nawrocki, DL Kolbe, S Lindgreen,
+        AC Wilkinson, RD Finn, S Griffiths-Jones, SR Eddy and A Bateman.
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2005)
-        &nbsp;Database Issue 33:D121-D124
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2008)
+        &nbsp;doi: 10.1093/nar/gkn766
       </span>
     </div>
   </div>
