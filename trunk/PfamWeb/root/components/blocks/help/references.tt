@@ -4,7 +4,7 @@
 # 
 # build the references block for the help pages
 #
-# $Id: references.tt,v 1.6 2008-07-23 13:42:01 jt6 Exp $
+# $Id: references.tt,v 1.7 2008-11-03 13:16:37 jt6 Exp $
 %]
 
 <!-- start references block -->
@@ -78,7 +78,7 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/30/1/276?ijkey=wfgjAWVRY.wto&amp;keytype=ref&amp;siteid=nar">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/short/30/1/276">
           The Pfam Protein Families Database</a>: 
       </span>
       <span class="authors">
@@ -92,7 +92,7 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/NAR_2000_paper.pdf">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/28/1/263">
           The Pfam Protein Families Database</a>: 
       </span>
       <span class="authors">
@@ -102,15 +102,11 @@
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research </span>&nbsp;(2000)&nbsp;28:263-266
       </span>
-      <span class="small">
-        (Reproduced with permission from <a href="http://www.oup.co.uk/nar">
-          NAR Online</a>)
-      </span>
     </div>
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/NAR_1999_paper.pdf">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/27/1/260">
           Pfam 3.1: 1313 multiple alignments match the majority of proteins</a>: 
       </span>
       <span class="authors">
@@ -123,7 +119,7 @@
 
     <div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/26/1/320">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/26/1/320">
           Pfam: multiple sequence alignments and HMM-profiles of protein domains</a>: 
       </span>
       <span class="authors">
