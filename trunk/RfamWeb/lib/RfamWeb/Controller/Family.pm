@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20080306 WTSI
 #
-# $Id: Family.pm,v 1.4 2008-07-25 13:24:50 jt6 Exp $
+# $Id: Family.pm,v 1.5 2008-11-04 15:07:56 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ load a Rfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.4 2008-07-25 13:24:50 jt6 Exp $
+$Id: Family.pm,v 1.5 2008-11-04 15:07:56 jt6 Exp $
 
 =cut
 
@@ -331,7 +331,7 @@ sub get_data : Private {
   # there's a problem... by this point we really should have retrieved a
   # row and returned
   
-  $c->stash->{errorMsg} = 'No valid Pfam family accession or ID';
+  $c->stash->{errorMsg} = 'No valid Rfam family accession or ID';
 }
 
 #-------------------------------------------------------------------------------
