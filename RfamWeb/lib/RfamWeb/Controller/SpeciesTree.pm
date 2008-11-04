@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.3 2008-07-25 13:26:37 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.4 2008-11-04 15:07:56 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ interactive or a text representation of the species tree for an Rfam family.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.3 2008-07-25 13:26:37 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.4 2008-11-04 15:07:56 jt6 Exp $
 
 =cut
 
@@ -79,7 +79,7 @@ sub begin : Private {
   my $rfam = $rs->first if defined $rs;
   
   unless ( defined $rfam ) {
-    $c->stash->{errorMsg} = 'No valid Pfam family accession or ID found';
+    $c->stash->{errorMsg} = 'No valid Rfam family accession or ID found';
     return;
   }
 
