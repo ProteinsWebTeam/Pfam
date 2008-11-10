@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.26 2008-08-21 10:44:27 jt6 Exp $
+# $Id: summary.tt,v 1.27 2008-11-10 13:28:05 jt6 Exp $
 
 USE String;
 USE date;
@@ -132,7 +132,7 @@ oe    = 0;
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label"><acronym title="Protein DataBank">PDB</acronym></td>
           <td>
-            <a href="http://www.rcsb.org/pdb/cgi/explore.cgi?pdbId=[% pdbId %]"
+            <a href="http://www.rcsb.org/pdb/explore/explore.do?structureId=[% pdbId %]"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
