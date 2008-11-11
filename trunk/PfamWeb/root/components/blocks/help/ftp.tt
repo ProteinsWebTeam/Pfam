@@ -4,7 +4,7 @@
 # 
 # build the ftp block for the help pages
 #
-# $Id: ftp.tt,v 1.6 2008-09-18 11:52:45 jt6 Exp $
+# $Id: ftp.tt,v 1.7 2008-11-11 17:02:28 jt6 Exp $
 %]
 
 <!-- start ftp block -->
@@ -17,11 +17,11 @@
 	
 	<p>
 	  The following list describes a few of the important files in the Pfam 
-	  <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>. Some of
-		these files may be <em>very</em> large (of the order of several hundred
-		megabytes). Please check the sizes on the 
-		<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> before
-		trying to download them over a slow connection.
+	  <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>. 
+    Some of these files may be <em>very</em> large (of the order of several 
+    hundred	megabytes). Please check the sizes on the 
+		<a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> 
+    before trying to download them over a slow connection.
 	</p>
 
 	<dl>
