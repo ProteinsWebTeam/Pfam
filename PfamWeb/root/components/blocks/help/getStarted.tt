@@ -4,7 +4,7 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.13 2008-09-30 08:26:57 jt6 Exp $
+# $Id: getStarted.tt,v 1.14 2008-11-11 09:46:09 jt6 Exp $
 %]
 
 <!-- start getStarted block -->
@@ -140,9 +140,9 @@
   	  <li>
     		<p>
           Download the Pfam files Pfam_ls, Pfam_fs, Pfam_ls.bin, Pfam_fs.bin, 
-          Pfam_ls.bin.ssi, Pfam_fs.bin.ssi, Pfam-A.seed and Pfam-C from the ftp 
-          site <span class="link" onclick="switchTab('helpFtpBlock')">
-            ftp site</span>.
+          Pfam_ls.bin.ssi, Pfam_fs.bin.ssi, Pfam-A.seed and Pfam-C from the 
+          <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">
+            ftp site</a>.
     		</p>
     		<p>
     		  These files contain the HMMs and additional information that is
@@ -152,8 +152,8 @@
   	  <li>
     		<p>
     		  Download a copy of pfam_scan.pl from the
-          <span class="link" onclick="switchTab('helpFtpBlock')">
-            ftp site</span>. 
+          <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">
+            ftp site</a>. 
     		</p>
     		<p>
     		  This is a wrapper script around hmmpfam, the HMMER program
@@ -199,7 +199,7 @@ O03046     12       137     PF02788.5       1      132      295.2     1.1e-85   
   
   	<p>
   	  Pfam pre-calculates the domain architecture for the proteomes
-  	  present in <a
+  	  present in <a class="ext"
   	  href="http://www.ebi.ac.uk/integr8/EBI-Integr8-HomePage.do">Integr8</a>. To
   	  see the list of proteomes, visit the genomes page within the
   	  Pfam website. From here you will be able to access a table
