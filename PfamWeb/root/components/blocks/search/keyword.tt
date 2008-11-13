@@ -5,7 +5,7 @@
 # 
 # build the keyword search block
 #
-# $Id: keyword.tt,v 1.7 2008-10-22 15:37:58 jt6 Exp $
+# $Id: keyword.tt,v 1.8 2008-11-13 17:01:08 jt6 Exp $
 %]
 
 <!-- start keyword search block -->
@@ -55,7 +55,7 @@
         </div>
 
   	    <div class="row">
-          <label for="query">Keyword(s)</label>
+          <label for="kwQuery">Keyword(s)</label>
   	      <input type="text" size="30" maxlength="100" name="kwQuery" id="kwQuery" />
         </div>
   
