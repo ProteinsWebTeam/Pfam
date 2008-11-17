@@ -237,7 +237,7 @@ Usage: $0 <options> fasta_file
 	-t <n>          : specify hmmpfam bits cutoff (default Pfam definition)
 	-be <n>         : specify blast evalue cutoff (default 1)
         -n              : do not print ' (nested)' after hmm name in output when the domain
-                          corresponds to a nested domain
+                          corresponds to a nested domain (not applicable when using -e or -t option)
         -as             : predict active site residues*
 
 	-pvm            : flag to indicate that a pvm version of hmmer is in use
@@ -247,7 +247,7 @@ Usage: $0 <options> fasta_file
     Output format is:
         <seq id> <seq start> <seq end> <hmm acc> <hmm start> <hmm end> <bit score> <evalue> <hmm name> <nested> <predicted_active_site_residues>
 
-    If the domain is nested, ' (nested)' will be appended after the hmm name (unless the -n option is used)
+    If the domain is nested, and the default pfam cutoffs are used (ie if not using the -e or -t option) ' nested' will be appended after the hmm name (unless the -n option is used)
     The predicted active site residues are given in the format 'predicted_active_site[287,316,347]'
     
     Example output (with -as option):
@@ -400,20 +400,47 @@ while(<FA>) {
 	$maxidlength = length( $1 ) if( $maxidlength < length( $1 ) );
     }
 }
+
 close FA;
+
 
 if( !$align){
 	$options .= "-A 0 ";
 }
 if( $ecut ) {
     $options .= "-E $ecut ";
+    $no_nested=1;
 }
 elsif( $bcut ) {
     $options .= "-T $bcut ";
+    $no_nested=1;
 }
 else {
     $options .= "--cut_ga ";
 }
+
+
+#Read fasta file and check for duplicate ids
+open(FASTA, "$fafile") or die "Couldn't open file '$fafile'\n"; 
+my ($s_id, %seq);
+while(<FASTA>) {
+    if(/^>(\S+)/) {
+	$s_id = $1;
+
+        #hmmpfam only outputs the first 63 characters of a sequence identifier
+        if(length($s_id) > 63) {
+            $s_id = substr($s_id, 0, 63);
+	}
+	if(exists($seq{$s_id})) {
+	    die "FATAL: Sequence identifiers must be unique and can only be 60 characters in length.  Your fasta file contains two sequences with the same id [$s_id]\n";
+	}
+    }
+    else {
+	chomp;              
+	$seq{$s_id} .= $_;
+    }
+}
+
 
 
 # map Pfam accessions to ids
@@ -514,20 +541,11 @@ if( !$overlap ) {
 # thought of reusing code nicely for both the full hmmpfam search
 # and the mini database searches created from blast results
 
-my( $hmm_seq_map, @hmmlist, %seq );
+my( $hmm_seq_map, @hmmlist );
 
 if( $fast ) {
-    # read sequences in
-    my $seqin = Bio::SeqIO -> new( '-file'   => $fafile,
-				   '-format' => 'Fasta' );
-    while( my $seq = $seqin->next_seq() ) {
-	if( exists $seq{ $seq->id } ) {
-	    die "FATAL: We're going to struggle here - you have two sequences\nwith the same name in your fasta file\n";
-	}
-	$seq{ $seq->id } = $seq;
-    }
 
-    # then run blast searches
+    # run blast searches
     my $blastdb  = "$pfamdir/Pfam-A.fasta";
     my $blastcmd = "blastall -p blastp -i $fafile -d $blastdb -e $blastecut -F F -b 100000 -v 100000";
     print STDERR "running [$blastcmd > /tmp/$$.blast] ....\n" if( $verbose );
@@ -552,15 +570,13 @@ while( my $hmmacc = shift @hmmlist ) {
 	$seqfile = "/tmp/$$.fa";
 
 	open( SOUT, ">$seqfile" ) or die "FATAL: failed to create temporary files - can you write to /tmp?\n";
-	my $seqout = Bio::SeqIO -> new( '-fh'     => \*SOUT,
-					'-format' => 'Fasta' );
-    
+   
 	foreach my $id ( keys %{ $hmm_seq_map->{$hmmacc} } ) {
 	    if( not exists $seq{ $id } ) {
 		warn "can't find [$id] in your sequence file\n";
 	    }
 	    else {
-		$seqout -> write_seq( $seq{ $id } );
+                print SOUT ">$id\n$seq{$id}\n";
 		print STDERR "searching [$id] against [$hmmacc]\n" if( $verbose );
 	    }
 	}
@@ -615,16 +631,7 @@ add_nested($allresults) unless($no_nested);
 
 
 if($act_site) {
-    
-    #First store all sequences in a hash
-    my %seqs;
-    my $sequence_object = Bio::SeqIO -> new( '-file'   => $fafile,
-				             '-format' => 'Fasta' );
-    while( my $seq = $sequence_object->next_seq() ) {
-	$seqs{$seq->id} = $seq->seq;
-    }
-
-    pred_act_sites($allresults, "$pfamdir/active_site", "$pfamdir/Pfam_ls.bin", \%seqs);
+    pred_act_sites($allresults, "$pfamdir/active_site", "$pfamdir/Pfam_ls.bin", \%seq);
 }
 
 if( $outfile ) {
@@ -689,7 +696,7 @@ sub pred_act_sites {
 
          my $s = $$seq_hash{$seq_name};
          $s = substr($s, $unit->start_seq-1, $unit->end_seq-$unit->start_seq+1);
-         open(SEQ, ">seq.$$") or die "Can't open $seq.$$ for writning $!";
+         open(SEQ, ">seq.$$") or die "Can't open $seq.$$ for writing $!";
          print SEQ ">".$unit->seqname."\/".$unit->start_seq()."\-".$unit->end_seq()."\n$s";
          close SEQ;
 
