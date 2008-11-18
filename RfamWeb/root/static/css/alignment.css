@@ -4,7 +4,7 @@
 
    Style the markup of multiple sequence alignments
    
-   $Id: alignment.css,v 1.1 2008-07-25 13:33:00 jt6 Exp $
+   $Id: alignment.css,v 1.2 2008-11-18 16:55:09 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -30,14 +30,14 @@
 #html_alignment {
   font-family: monospace;
   color: #000;
+  margin: 1px 2px 0 2px;
 }
 
 .a { background-color: #F99 }
 
 .alignment_label {
   float: left;
-  width: 25em;
-/*  background-color: green; */
+  width: 100%;
 }
 
 .alignment_score {
@@ -46,24 +46,21 @@
 
 .alignment_seq {
   float: left;
-/*  background-color: blue; */
 }
 
 #alignment_key {
   float: left;
-  margin-left: 7px;
-  width: 275px;
+  margin-left: 0;
+  width: 30%;
   overflow: auto;
   white-space: nowrap;
-/*  background-color: yellow; */
 }
 
 #alignment_rows {
   float: left;
-  width: 475px;
+  width: 70%;
   overflow: auto;
   white-space: nowrap;
-/*  background-color: #F80; */
 }
 
 #alignment_key span.odd {
@@ -76,7 +73,7 @@
 
 ul.pageList {
   list-style: none;
-  margin: 0.4em;
+  margin: 0;
   font-weight: bold;
   padding: 0;
 }
