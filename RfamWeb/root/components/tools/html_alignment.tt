@@ -4,7 +4,7 @@
 # 
 # build a page for the HTML alignment fragment
 #
-# $Id: html_alignment.tt,v 1.1 2008-07-25 13:31:11 jt6 Exp $
+# $Id: html_alignment.tt,v 1.2 2008-11-18 16:55:28 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -59,9 +59,9 @@ BLOCK pageList -%]
 
 <div id="html_alignment">
   [% alignment_block %]
+  <div class="cleaner"><!-- empty --></div>
 </div>
 
-<div class="cleaner"><!-- empty --></div>
 
 [% PROCESS pageList %]
 
