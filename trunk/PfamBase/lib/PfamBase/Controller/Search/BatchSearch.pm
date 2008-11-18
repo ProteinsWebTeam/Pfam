@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: BatchSearch.pm,v 1.2 2008-09-12 09:37:56 jt6 Exp $
+# $Id: BatchSearch.pm,v 1.3 2008-11-18 10:56:00 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search::BatchSearch;
 
 This is the parent class for batch search operations.
 
-$Id: BatchSearch.pm,v 1.2 2008-09-12 09:37:56 jt6 Exp $
+$Id: BatchSearch.pm,v 1.3 2008-11-18 10:56:00 jt6 Exp $
 
 =cut
 
@@ -102,26 +102,25 @@ sub parse_upload : Private {
     return 0;
   }
 
-  # read through the file and bail if we find any illegal characters in it  
-  my $seq;                # sequence of each FASTA "block"
   my $line_num = 0;       # number of lines in the file
   my $seq_count = 0;      # number of sequences in the file
   my $seq_line_count = 0; # number of lines in a FASTA "block"
   my $header = '';        # the current header line
   my %header_lines;       # line numbers for sequence headers
+  my %short_header_lines; # header lines shortened to 60 characters
   my %sequences;          # the sequence strings
   
   while ( <$fh> ) {
     
-    # don't bother storing blank lines in the DB
-    next if m/^\s*$/;
-    
-    #----------------------------------------
-
     # keep track of the number of lines in the file. Increment before ignoring
     # blank lines though, so that we get the right line count for error
     # messages
     $line_num++;
+
+    # don't bother storing blank lines in the DB
+    next if m/^\s*$/;
+    
+    #----------------------------------------
 
     # check we're not exceeding the maximum total number of lines
     if ( $line_num > $this->{maxNumLines} ) {
@@ -143,10 +142,21 @@ sub parse_upload : Private {
     # look at header lines
     if ( m/^>(.*)/ ) {
 
-      $header                = $1;
-      $header_lines{$header} = $line_num;
+      # store the header line here unchecked; we'll validate it in a moment.
+      #
+      # we work with a shortened header line because hmmpfam only considers the 
+      # first 63 characters and we need to hash on the string that hmmpfam
+      # provides when we come to look at the output in the active site code in 
+      # pfam_scan.pl
 
-      # check header lines. We're banning the following characters: ; \ ! and *
+      if ( length $1 > 60 ) {
+        $header = substr $1, 0, 60;
+      }
+      else {
+        $header = $1;
+      } 
+
+      # check for the following illegal characters: ; \ ! and *
       if ( m/\;\\\!\*/ ) {
         $c->stash->{searchError} = 
             "We found an illegal character in the header on line $line_num " 
@@ -158,7 +168,25 @@ sub parse_upload : Private {
         return 0;
       }
 
-      # total number of sequences
+      # check that we haven't already seen this (possibly truncated) header line
+      if ( defined $header_lines{$header} ) {
+        $c->stash->{searchError} = 
+            'Your file appears to contain duplicate sequences. The header on '
+          . "line $line_num was also found on line $header_lines{$header}. "
+          . 'Please make sure that your file contains only unique header lines '
+          . 'that are unique within their first 60 characters. See the notes '
+          . 'for more information about this restriction.';
+
+        $c->log->debug( "Search::BatchSearch::parse_upload: duplicate header on line $line_num" )
+          if $c->debug;
+
+        return 0;
+      }
+
+      # not a duplicate header, so store it
+      $header_lines{$header} = $line_num;
+
+      # check that the total number of sequences doesn't exceed some limit
       if ( $seq_count++ > $this->{maxNumSeqs} ) {
         $c->stash->{searchError} = 
             'There are too many sequences in your file. The server currently '
@@ -177,7 +205,7 @@ sub parse_upload : Private {
       s/[\r\n]//g;
     }
     
-    # look at sequence lines
+    # done checking header lines; look at sequence lines
     else {
 
       # strip new line, carriage return and *space characters*
@@ -231,7 +259,7 @@ sub parse_upload : Private {
 
   # check each of the sequences in more detail
 
-  foreach my $header ( sort keys %sequences ) {
+  foreach $header ( sort keys %sequences ) {
     my $seq = $sequences{$header};
 
     # make sure that this sequence isn't too long
