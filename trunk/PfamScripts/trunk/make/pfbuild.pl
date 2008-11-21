@@ -6,7 +6,7 @@ use Getopt::Long;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
-
+use Bio::Pfam::HMM::HMMResultsIO;
 main( @ARGV ) unless caller(  );
 
 sub main {
@@ -88,8 +88,9 @@ sub main {
 
   # Now build and search
   my $searchOptions = "-E 1000  -Z ".$config->dbsize;
-  
+    
   my $cmd;
+  my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;  
   if($nosplit){
     $cmd =$config->hmmer3bin."/hmmsearch $searchOptions HMM ".$config->pfamseqLoc."/pfamseq > PFAMOUT";
   }
@@ -98,6 +99,11 @@ sub main {
     if($nosplit){
       system($cmd) 
         and die ;
+      #Parse the Results
+      $HMMResultsIO->convertHMMSearch( "OUTPUT" );
+    }else{
+      #TODO
+      #Work on a split version 
     }
   }else{
     #We are going to use some sort of farm! 
@@ -113,10 +119,18 @@ sub main {
         print STDERR "TODO: nothing run:\n"
       } 
     }elsif($farmConfig->{lsf}){
-      
+      if($nosplit){
+        #system("qsub -N pfamHmmSearch -j y -o /dev/null -b y -cwd -V \'$cmd\'") and die "Failed to submit job to SGE,qsub -N pfamHmmSearch -j -o /dev/null -b y -cwd -V \'$cmd\' \n";  
+      }else{
+        #TODO split
+        print STDERR "TODO: nothing run:\n"
+      } 
     }else{
       die "Unknown farm set-up\n"; 
     }
   }
+  
+  
+  
   print STDERR "Finished\n";
 }

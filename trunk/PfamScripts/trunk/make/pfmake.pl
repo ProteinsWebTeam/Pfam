@@ -94,7 +94,7 @@ sub main {
   }
   #Apply the threshold when writing the scores file
   open(SCORES, ">scores") or die "Could not open file scores:[$!]\n";
-  $HMMResults->write_scores_file(\*SCORES);
+  $HMMResultsIO->writeScoresFile($HMMResults);
   close(SCORES);
   
   
@@ -156,7 +156,7 @@ sub main {
 sub help {
 print<<EOF;
 
-    $0 - builts a Pfam alignment from HMMER3 HMM/search files. If no thresholds are set, they are obtained
+    $0 - builds a Pfam alignment from HMMER3 HMM/search files. If no thresholds are set, they are obtained
     from the DESC file.  If none are set, a default 25.0 bits will be used.
 
     Usage: $0 <options>
