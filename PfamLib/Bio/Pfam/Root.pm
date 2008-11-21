@@ -1,3 +1,4 @@
+
 =head1 NAME
 
 Bio::Pfam::Root
@@ -48,13 +49,25 @@ use vars qw($VERBOSITY);
 
 $VERBOSITY = 0;
 
-sub new{
-  my($caller,@args) = @_;
-  
-  my $class = ref($caller) || $caller;
-  return bless({}, $class);
-}
+#-------------------------------------------------------------------------------
 
+=head2 new 
+
+  Title    : new
+  Usage    : Bio::Pfam::Root->new; 
+  Function : generates an empty Bio::Pfam::Root object
+  Args     : None
+  Returns  : A Bio::Pfam::Root object
+  
+=cut
+
+sub new {
+  my ($caller) = @_;
+
+  my $class = ref($caller) || $caller;
+
+  return bless( {}, $class );
+}
 
 =head2 throw
 
@@ -68,16 +81,109 @@ sub new{
 
 =cut
 
-sub throw{
-   my ($self,$string) = @_;
+sub throw {
+  my ( $self, $string ) = @_;
 
-   my $std = $self->stack_trace_dump();
+  my $std = $self->stack_trace_dump();
 
-   my $out = "-------------------- EXCEPTION --------------------\n".
-     "MSG: ".$string."\n".$std."-------------------------------------------\n";
-   die $out;
+  my $out =
+      "-------------------- EXCEPTION --------------------\n" 
+    . "MSG: " 
+    . $string . "\n"
+    . $std
+    . "-------------------------------------------\n";
+  die $out;
 
 }
+
+=head2 verbose
+
+ Title   : verbose
+ Usage   : $self->verbose(1)
+ Function: Sets verbose level for how ->warn behaves
+           -1 = no warning
+            0 = standard, small warning
+            1 = warning with stack trace
+            2 = warning becomes throw
+ Returns : nothing
+ Args    : -1,0,1 or 2
+
+
+=cut
+
+sub verbose {
+  my ( $self, $value ) = @_;
+
+  if ( ref($self) && ( defined $value || !defined $self->{'verbose'} ) ) {
+    $value = 0 unless defined $value;
+    $self->{'verbose'} = $value;
+  }
+  return ( ref($self) ? $self->{'verbose'} : $VERBOSITY );
+}
+
+=head2 stack_trace_dump
+
+ Title   : stack_trace_dump
+ Usage   :
+ Function:
+ Example :
+ Returns : 
+ Args    :
+
+
+=cut
+
+sub stack_trace_dump {
+  my ($self) = @_;
+
+  my @stack = $self->stack_trace();
+
+  shift @stack;
+  shift @stack;
+  shift @stack;
+
+  my $out;
+  my ( $module, $function, $file, $position );
+
+  foreach my $stack (@stack) {
+    ( $module, $file, $position, $function ) = @{$stack};
+    $out .= "STACK $function $file:$position\n";
+  }
+
+  return $out;
+}
+
+=head2 stack_trace
+
+ Title   : stack_trace
+ Usage   : @stack_array_ref= $self->stack_trace
+ Function: gives an array to a reference of arrays with stack trace info
+           each coming from the caller(stack_number) call
+ Returns : array containing a reference of arrays
+ Args    : none
+
+
+=cut
+
+sub stack_trace {
+  my ($self) = @_;
+
+  my $i = 0;
+  my @out;
+  my $prev;
+  while ( my @call = caller( $i++ ) ) {
+
+    # major annoyance that caller puts caller context as
+    # function name. Hence some monkeying around...
+    $prev->[3] = $call[3];
+    push( @out, $prev );
+    $prev = \@call;
+  }
+  $prev->[3] = 'toplevel';
+  push( @out, $prev );
+  return @out;
+}
+
 
 =head2 warn
 
@@ -95,121 +201,32 @@ sub throw{
 
 =cut
 
-sub warn{
-    my ($self,$string) = @_;
+sub warn {
+  my ( $self, $string ) = @_;
 
-    my $verbose = $self->verbose;
-    $verbose = 0 unless defined $verbose;
+  my $verbose = $self->verbose;
+  $verbose = 0 unless defined $verbose;
 
+  if ( $verbose == 2 ) {
+    $self->throw($string);
+  }elsif( $verbose == -1 ){
+    ;
+  }elsif( $verbose == 1 ){
+    my $out = "-------------------- WARNING ---------------------\n" 
+      . "MSG: " 
+     . $string . "\n";
+    $out .= $self->stack_trace_dump;
 
-    if( $verbose == 2 ) {
-	$self->throw($string);
-    } elsif( $verbose == -1 ) {
-	return;
-    } elsif( $verbose == 1 ) {
-	my $out = "-------------------- WARNING ---------------------\n".
-		"MSG: ".$string."\n";
-	$out .= $self->stack_trace_dump;
-	
-	print STDERR $out;
-	return;
-    }    
+    warn $out;
+  }else{
 
-    my $out = "-------------------- WARNING ---------------------\n".
-       "MSG: ".$string."\n".
-	   "---------------------------------------------------\n";
-    print STDERR $out;
-}
-
-
-		     
-=head2 verbose
-
- Title   : verbose
- Usage   : $self->verbose(1)
- Function: Sets verbose level for how ->warn behaves
-           -1 = no warning
-            0 = standard, small warning
-            1 = warning with stack trace
-            2 = warning becomes throw
- Returns : nothing
- Args    : -1,0,1 or 2
-
-
-=cut
-
-sub verbose{
-   my ($self,$value) = @_;
-
-   if(ref($self) && (defined $value || ! defined $self->{'verbose'}) ) {
-       $value = 0 unless defined $value;
-       $self->{'verbose'} = $value;
-   }
-   return (ref($self) ? $self->{'_rootI_verbose'} : $VERBOSITY);
-}
-
-=head2 stack_trace_dump
-
- Title   : stack_trace_dump
- Usage   :
- Function:
- Example :
- Returns : 
- Args    :
-
-
-=cut
-
-sub stack_trace_dump{
-   my ($self) = @_;
-
-   my @stack = $self->stack_trace();
-
-   shift @stack;
-   shift @stack;
-   shift @stack;
-
-   my $out;
-   my ($module,$function,$file,$position);
-   
-
-   foreach my $stack ( @stack) {
-       ($module,$file,$position,$function) = @{$stack};
-       $out .= "STACK $function $file:$position\n";
-   }
-
-   return $out;
-}
-
-
-=head2 stack_trace
-
- Title   : stack_trace
- Usage   : @stack_array_ref= $self->stack_trace
- Function: gives an array to a reference of arrays with stack trace info
-           each coming from the caller(stack_number) call
- Returns : array containing a reference of arrays
- Args    : none
-
-
-=cut
-
-sub stack_trace{
-   my ($self) = @_;
-
-   my $i = 0;
-   my @out;
-   my $prev;
-   while( my @call = caller($i++)) {
-       # major annoyance that caller puts caller context as
-       # function name. Hence some monkeying around...
-       $prev->[3] = $call[3];
-       push(@out,$prev);
-       $prev = \@call;
-   }
-   $prev->[3] = 'toplevel';
-   push(@out,$prev);
-   return @out;
+    my $out =
+        "-------------------- WARNING ---------------------\n" . "MSG: " 
+      . $string . "\n"
+      . "---------------------------------------------------\n";
+    warn $out;
+  }
+  return;
 }
 
 
@@ -272,47 +289,47 @@ See Also   : L<_initialize>()
 
 #----------------'
 sub _rearrange {
-#----------------
-    my($self,$order,@param) = @_;
 
-    return unless @param;
+  #----------------
+  my ( $self, $order, @param ) = @_;
 
-    # If we've got parameters, we need to check to see whether
-    # they are named or simply listed. If they are listed, we
-    # can just return them. 
+  return unless @param;
 
-    return @param unless (defined($param[0]) && $param[0]=~/^-/); 
+  # If we've got parameters, we need to check to see whether
+  # they are named or simply listed. If they are listed, we
+  # can just return them.
 
-    # Now we've got to do some work on the named parameters.
-    # The next few lines strip out the '-' characters which
-    # preceed the keys, and capitalizes them.
-    my $i;
-    for ($i=0;$i<@param;$i+=2) {
-			$param[$i]=~s/^\-//;
-			$param[$i]=~tr/a-z/A-Z/;
-    }
+  return @param unless ( defined( $param[0] ) && $param[0] =~ /^-/ );
 
-    # Now we'll convert the @params variable into an associative array.
-    local($^W) = 0;  # prevent "odd number of elements" warning with -w.
-    my(%param) = @param;
+  # Now we've got to do some work on the named parameters.
+  # The next few lines strip out the '-' characters which
+  # preceed the keys, and capitalizes them.
+  my $i;
+  for ( $i = 0 ; $i < @param ; $i += 2 ) {
+    $param[$i] =~ s/^\-//;
+    $param[$i] =~ tr/a-z/A-Z/;
+  }
 
-    my(@return_array);
+  # Now we'll convert the @params variable into an associative array.
+  local ($^W) = 0;    # prevent "odd number of elements" warning with -w.
+  my (%param) = @param;
 
-    # What we intend to do is loop through the @{$order} variable,
-    # and for each value, we use that as a key into our associative
-    # array, pushing the value at that key onto our return array.
-    my($key);
+  my (@return_array);
 
-    foreach $key (@{$order}) {
-			$key = uc($key);
-			my($value) = $param{$key};
-			delete $param{$key};
-			push(@return_array,$value);
-    }
+  # What we intend to do is loop through the @{$order} variable,
+  # and for each value, we use that as a key into our associative
+  # array, pushing the value at that key onto our return array.
+  my ($key);
 
-    return (@return_array);
+  foreach $key ( @{$order} ) {
+    $key = uc($key);
+    my ($value) = $param{$key};
+    delete $param{$key};
+    push( @return_array, $value );
+  }
+
+  return (@return_array);
 }
-
 
 =head1 COPYRIGHT
 
@@ -334,7 +351,6 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
-
 
 1;
 
