@@ -92,7 +92,7 @@ sub main {
   my $cmd;
   my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;  
   if($nosplit){
-    $cmd =$config->hmmer3bin."/hmmsearch $searchOptions HMM ".$config->pfamseqLoc."/pfamseq > PFAMOUT";
+    $cmd =$config->hmmer3bin."/hmmsearch $searchOptions HMM ".$config->pfamseqLoc."/pfamseq > OUTPUT";
   }
   
   if($local){
