@@ -16,6 +16,9 @@ sub main {
   my( $seqThrs, $domThrs, $evalue, $seqDB, $help);
 #-----------------------------------------------------------------------------------------
 #Read options
+
+  Getopt::Long::Configure('no_ignore_case');
+  
   GetOptions (
     "e=s" => \$evalue,
     "T=s" => \$seqThrs,
@@ -31,13 +34,13 @@ sub main {
   if($evalue and ($seqThrs or $domThrs)){
     die "You have specified an evalue ($evalue) and bits score\n"; 
   }
-  
+
   #Check that the bits thresholds make sense
   if(!$evalue){
     if($domThrs and !$seqThrs){
       #Use the domain threshold for the sequence threshold
       $seqThrs = $domThrs; 
-    }elsif($seqThrs and !$domThrs){
+    }elsif(defined $seqThrs and ! defined $domThrs){
       die "You cannot define a sequence threshold without defining the domain threshold!";
     }  
   }
@@ -78,7 +81,7 @@ sub main {
   my %edits;
   my($oldSeqThrs, $oldDomThrs) = &readDESC(\%edits);
   
-  $HMMResults->applyEdits( \%edits ) if(keys %edits);  
+  #$HMMResults->applyEdits( \%edits ) if(keys %edits);  
   
   #Set the thresholds on the results set.  
   if($domThrs and $seqThrs){
@@ -216,8 +219,8 @@ sub makeALIGN {
   }
   
   system($config->hmmer2bin."/hmmbuild -F HMM2 SEED > /dev/null") and die "Could not run H2 hmmbuild:[$!]";
-  system($config->hmmer2bin."/hmmalign -q HMM2 fa > ALIGN.sto") and die "Could not run H2 hmmalign:[$!]";
-  unless(-s "ALIGN"){
+  system($config->hmmer2bin."/hmmalign -q HMM2 FA > ALIGN.sto") and die "Could not run H2 hmmalign:[$!]";
+  unless(-s "ALIGN.sto"){
     die "Tried to make alignment, but it does not seem to be there:[$!]\n";
   }
   
