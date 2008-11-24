@@ -30,6 +30,12 @@ __PACKAGE__->set_primary_key("ncbi_code", "auto_rfam");
 
 __PACKAGE__->many_to_many( ncbi_code => "RfamDB::TaxonomyWebsearch", 'ncbi_code' );
 
+__PACKAGE__->has_one(
+  "tax",
+  "RfamDB::TaxonomyWebsearch",
+  { "foreign.ncbi_code" => "self.ncbi_code" },
+);
+
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
