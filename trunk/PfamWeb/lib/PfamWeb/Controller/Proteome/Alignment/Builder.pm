@@ -2,7 +2,7 @@
 # Builder.pm
 # jt6 20070823 WTSI
 #
-# $Id: Builder.pm,v 1.8 2008-10-27 14:35:53 jt6 Exp $
+# $Id: Builder.pm,v 1.9 2008-11-25 14:54:27 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Alignment::Builder;
 This controller is responsible for building sequence alignments based on a list
 of sequence entry accessions.
 
-$Id: Builder.pm,v 1.8 2008-10-27 14:35:53 jt6 Exp $
+$Id: Builder.pm,v 1.9 2008-11-25 14:54:27 jt6 Exp $
 
 =cut
 
@@ -153,6 +153,8 @@ sub getSequences : Private {
   $c->log->debug( 'Proteome::Alignment::Builder: found |' 
                   . scalar @seqs . '| sequences for this taxId / family' )
     if $c->debug;
+
+  $c->stash->{numRows} = scalar @seqs; # used when estimating job runtime...
 
   foreach my $seq ( @seqs ){
     push @{ $c->stash->{selectedSeqAccs} }, $seq->pfamseq_acc;
