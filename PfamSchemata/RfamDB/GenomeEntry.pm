@@ -28,6 +28,10 @@ __PACKAGE__->add_columns(
   },
   "circular",
   { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 3 },
+  "ncbi_id",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
+  "length",
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
 );
 __PACKAGE__->set_primary_key("auto_genome");
 __PACKAGE__->has_many(
@@ -35,10 +39,15 @@ __PACKAGE__->has_many(
   "RfamDB::ChromosomeBuild",
   { "foreign.auto_genome" => "self.auto_genome" },
 );
+__PACKAGE__->has_many(
+  "genome_gffs",
+  "RfamDB::GenomeGff",
+  { "foreign.auto_genome" => "self.auto_genome" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qHtoFsQVyqCpDlmc3JtGAg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-11-28 14:26:57
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B/JExFXM+hBIqvDign//nA
 
 #-------------------------------------------------------------------------------
 
