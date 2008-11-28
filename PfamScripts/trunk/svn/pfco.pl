@@ -24,7 +24,8 @@ my $client = Bio::Pfam::SVN::Client->new;
 my $pwd = getcwd();
 my $dest = $pwd."/".$family; 
 if (-d $dest ){
-  print "The destination directory $dest already exist\n"; 
+  print "The destination directory $dest already exist, remove before checking out a family\n";
+  exit(1); 
 }
 
 
