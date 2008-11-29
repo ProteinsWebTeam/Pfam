@@ -72,7 +72,7 @@ sub main {
 
   #If an evalue has been specified, lets try and estimate a bits score
   if($evalue){
-    $domThrs = $HMMResults->domain_bits_cutoff_from_evalue($evalue);
+    $domThrs = $HMMResults->domainBitsCutoffFromEvalue($evalue);
     $seqThrs = $domThrs if($domThrs); 
   }
   

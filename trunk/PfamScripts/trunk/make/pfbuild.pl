@@ -87,7 +87,7 @@ sub main {
   # Grab all of the file ownership
 
   # Now build and search
-  my $searchOptions = "-E 1000  -Z ".$config->dbsize;
+  my $searchOptions = "--seqE 1000 --seqZ ".$config->dbsize;
     
   my $cmd;
   my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;  
@@ -98,7 +98,7 @@ sub main {
   if($local){
     if($nosplit){
       system($cmd) 
-        and die ;
+        and die "Failed to run hmmbuild [ $cmd ] due to [$!]";
       #Parse the Results
       $HMMResultsIO->convertHMMSearch( "OUTPUT" );
     }else{
@@ -129,8 +129,6 @@ sub main {
       die "Unknown farm set-up\n"; 
     }
   }
-  
-  
-  
+
   print STDERR "Finished\n";
 }
