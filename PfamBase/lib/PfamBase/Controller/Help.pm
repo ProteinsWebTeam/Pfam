@@ -2,7 +2,7 @@
 # Help.pm
 # jt6 20060925 WTSI
 #
-# $Id: Help.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+# $Id: Help.pm,v 1.3 2008-12-01 10:16:39 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Displays the help pages for the PfamWeb site.
 
 Generates a B<tabbed page>.
 
-$Id: Help.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+$Id: Help.pm,v 1.3 2008-12-01 10:16:39 jt6 Exp $
 
 =cut
 
@@ -26,6 +26,9 @@ use strict;
 use warnings;
 
 use base 'PfamBase::Controller::Section';
+
+# set the name of the section
+__PACKAGE__->config( { SECTION => 'help' } );
 
 #-------------------------------------------------------------------------------
 
