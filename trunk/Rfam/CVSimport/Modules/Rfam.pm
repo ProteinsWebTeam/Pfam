@@ -98,6 +98,13 @@ our $rdb_user = "pfam";
 our $rdb_pass = "mafp1";
 our $rdb_port= "3303";
 
+#for Release (rfamdev)
+our $rdbHostDev = "pfamdb2a";
+our $rdbUserDev = "pfam";
+our $rdbPassDev = "mafp1";
+our $rdbPortDev= "3301";
+our $rdbNameDev= "rfam_9_1";
+
 my $external_rdb_name = "rfam";
 my $switchover_rdb_name = "rfam2";
 our $live_rdb_name = "rfamlive";
