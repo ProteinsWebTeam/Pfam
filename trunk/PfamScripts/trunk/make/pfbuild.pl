@@ -132,3 +132,42 @@ sub main {
 
   print STDERR "Finished\n";
 }
+
+sub help {
+
+
+print<<EOF;
+
+Options for controlling pfbuild.pl:
+
+Options that influence hmmbuild
+  -nobuild :
+  -hand    :
+
+Options that influence hmmsearch
+
+  -local   
+  -nosplit
+Options controlling significance thresholds for reporting:
+  --seqE <x> : E-value cutoff for reporting sequences  [10.0]  (x>0)
+  --domE <x> : E-value cutoff for reporting individual domains  [1000.0]  (x>0)
+  --seqZ <x> : set # of comparisons done, for E-value calculation  (x>0)
+  --domZ <x> : set # of significant seqs, for domain E-value calculation  (x>0)
+   
+  
+Options controlling acceleration heuristics:
+  --max        : Turn all heuristic filters off (increase sensitivity)
+  --biasfilter : turn on composition bias filter
+
+Options for gurus:
+  --nonull2  : turn off biased sequence composition corrections to scores    
+  --F1 <x>     : Stage 1 (MSV) threshold: promote hits w/ P <= F1  [0.02]
+  --F2 <x>     : Stage 2 (Vit) threshold: promote hits w/ P <= F2  [1e-3]
+  --F3 <x>     : Stage 3 (Fwd) threshold: promote hits w/ P <= F3  [1e-5]
+  
+EOF
+}
+
+
+
+
