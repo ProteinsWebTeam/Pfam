@@ -10,6 +10,9 @@ use Bio::Pfam::HMM::HMMResultsIO;
 main( @ARGV ) unless caller(  );
 
 sub main {
+
+#-------------------------------------------------------------------------------
+# Get the Pfam Config and check all is well.
   my $config = Bio::Pfam::Config->new;
   
   unless($config){
@@ -18,15 +21,43 @@ sub main {
   unless ($config->location eq 'WTSI' or $config->location eq 'JFRC'){
     warn "Unkown location.....things will probably break\n"; 
   }
+  unless( -d $config->hmmer3bin){
+    die "Could not find the HMMER3 bin directory,". $config->hmmer3bin ."\n";
+  }
+    
   
-  my ($fname, $hand, $local, $nobuild, $nosplit);
+#-------------------------------------------------------------------------------
+#Deal with the command line options
+  
+  my ($fname, $hand, $local, $nobuild, $nosplit, $help, $evalCut, $dbsize,
+      $max, $bFilt, $null2, $f1, $f2, $f3 );
 
+  &GetOptions( "help"       => \$help,
+               "hand"       => \$hand,
+               "local"      => \$local,
+               "nobuild"    => \$nobuild,
+               "nosplit"    => \$nosplit,
+               "E=s"        => \$evalCut,
+               "Z=s"        => \$dbsize,
+               "max"        => \$max,
+               "biasfilter" => \$bFilt,
+               'nonull2'    => \$null2,
+               'F1=s'         => \$f1,
+               'F2=s'         => \$f2,
+               'F3=s'         => \$f3,);
+  
+  help() if($help);
+  if($hand and $nobuild){
+     warn "\n***** Can not specfiy -hand and -build together *****\n\n";
+  }
+  
+  if($local){
+    $nosplit = 1; 
+  }
 
-  &GetOptions( "hand"    => \$hand,
-               "local"   => \$local,
-               "nobuild" => \$nobuild,
-               "nosplit" => \$nosplit );
-               
+#-------------------------------------------------------------------------------
+# If we are to run HMM build check the SEED and build options.
+              
   # Do we have a SEED file and can we build an HMM for it.
   unless($nobuild){
     my @buildOpts;
@@ -43,7 +74,7 @@ sub main {
   
     #Problem reading the alignment
     if($@){
-      warn "SEED alignment not in stockholm format, trying seleex/Pfam format.\n";
+      warn "SEED alignment not in stockholm format, trying selex/Pfam format.\n";
     }
     #Seed if it looks like a SEED in Pfam/Mul format
     eval{
@@ -58,8 +89,16 @@ sub main {
     my $newaln = $aln->allgaps_columns_removed();
     $newaln->map_chars( '-', '.' );
     $newaln->write_stockholm( \*SNEW );
+    
     if($newaln->match_states_string){
       push(@buildOpts, "--hand");
+      unless($hand){
+        warn "Found #=RF line, switching on --hand options\n";  
+      }
+    }else{
+     if($hand){
+       die "You switched on -hand but found no #=RF line in the SEED.\n"
+     } 
     }
     close SEED;
     close SNEW;
@@ -68,11 +107,9 @@ sub main {
     rename( "SEED.$$", "SEED" ) or die "FATAL: can't rename SEED.$$\n";
 
     my $buildline = join( ' ', @buildOpts );
-    unless( -d $config->hmmer3bin){
-      die "Could not find the HMMER3 bin directory,". $config->hmmer3bin ."\n";
-    }
     
-    system($config->hmmer3bin."/hmmbuild -o hmmbuild.log ".$buildline." HMM SEED") and die "Error building hmm!\n";
+    #Now run hmmbuild
+    system($config->hmmer3bin."/hmmbuild -o /dev/null ".$buildline." HMM SEED") and die "Error building hmm!\n";
     unless(-s "HMM"){
       die "Failed to run HMM build. Although it seems to have run successfully, the HMM has no size or is absent\n"; 
     }
@@ -83,12 +120,74 @@ sub main {
     } 
   }
 
-
-  # Grab all of the file ownership
+#-------------------------------------------------------------------------------
+# Now build up the hmmsearch options 
 
   # Now build and search
-  my $searchOptions = "--seqE 1000 --seqZ ".$config->dbsize;
-    
+  my @searchOptions;
+  
+  # E-value cut off
+  unless($evalCut){
+    $evalCut = 1000;
+  }
+  unless($evalCut > 0) {
+    die "You can not specifiy a E-value cutoff less than 0\n"; 
+  }
+  push(@searchOptions, "--seqE $evalCut");
+  
+  
+  # database size
+  if($dbsize){
+    if($dbsize != $config->dbsize){
+      warn "\n***** Using effective database size [$dbsize] that is different to pfamseq [".
+            $config->dbsize." *****\n\n";
+    } 
+  }else{
+    $dbsize =  $config->dbsize;
+  }
+  unless($dbsize > 0) {
+    die "You can not specifiy a database size smaller than 1\n"; 
+  }
+  unless(int($dbsize) == $dbsize){
+    die "dbsise($dbsize) must be an integer\n"; 
+  }
+  push(@searchOptions, "--seqZ ".$config->dbsize);
+  
+  # Turn off heuristic filtering
+  if($max){
+    if($local){
+      warn "\n***** This will take a while to run *****\n\n"; 
+    }
+    push(@searchOptions, "--max"); 
+  }
+  
+  if($bFilt){
+    push(@searchOptions, "--biasfilter"); 
+  }
+  
+  if($null2){
+    warn "\n***** Switching off biased sequence correction scores *****\n\n";
+    push(@searchOptions, "--nonull2");  
+  }
+  
+  if($f1){
+    warn "\n***** Setting the multi sequence viterbi threshold to $f1 *****\n";
+    push(@searchOptions, "--F1 $f1");  
+  }
+  if($f2){
+    warn "\n***** Setting viterbi threshold to $f2 *****\n";
+    push(@searchOptions, "--F2 $f2");  
+  }
+  if($f3){
+    warn "\n***** Setting the Forward score filter to $f3 *****\n";
+    push(@searchOptions, "--F3 $f3");  
+  }
+  
+  my $searchOptions = join(' ', @searchOptions);
+  
+#-------------------------------------------------------------------------------    
+#  
+  
   my $cmd;
   my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;  
   if($nosplit){
@@ -96,16 +195,14 @@ sub main {
   }
   
   if($local){
-    if($nosplit){
-      system($cmd) 
-        and die "Failed to run hmmbuild [ $cmd ] due to [$!]";
-      #Parse the Results
-      $HMMResultsIO->convertHMMSearch( "OUTPUT" );
-    }else{
-      #TODO
-      #Work on a split version 
-    }
+    system($cmd) 
+      and die "Failed to run hmmbuild [ $cmd ] due to [$!]";
+    #Parse the Results
+    $HMMResultsIO->convertHMMSearch( "OUTPUT" );
   }else{
+    
+    
+    
     #We are going to use some sort of farm! 
     my $farmConfig = $config->farm;
     unless($farmConfig){
@@ -138,34 +235,68 @@ sub help {
 
 print<<EOF;
 
-Options for controlling pfbuild.pl:
+Command line options for controlling $0 
+-------------------------------------------------------------------------------
 
-Options that influence hmmbuild
-  -nobuild :
-  -hand    :
+  -help       : prints this help messeage
 
-Options that influence hmmsearch
+If you do not understand any of the options below, just run without any options.
 
-  -local   
-  -nosplit
-Options controlling significance thresholds for reporting:
-  --seqE <x> : E-value cutoff for reporting sequences  [10.0]  (x>0)
-  --domE <x> : E-value cutoff for reporting individual domains  [1000.0]  (x>0)
-  --seqZ <x> : set # of comparisons done, for E-value calculation  (x>0)
-  --domZ <x> : set # of significant seqs, for domain E-value calculation  (x>0)
-   
+Options that influence hmmbuild:
+
+  -nobuild    : If you have already built the HMM and do not want to build 
+              : it again.
+  -hand       : When there is an #=RF line in the SEED alignment, this option 
+              : should be switched on.  The #=RF line dictates which residues are 
+              : matche states. In Pfam, this is often used to mask out nested 
+              : domanins.
+              
+  Both of these options can not be supplied together;
+
+  *** There are more specialised options to come ***
+
+Options that influence hmmsearch:
+
+  General wrapping options:
+  -local      : Run the hmmsearch on the local machine rather than submitting 
+              : to a compute farm. Note, the farm configuration is used by the 
+              : Pfam configuration file.
+  -nosplit    : Run the search a one system call against the whole of pfamseq.  
+              : Without this option, hmmsearch is run against the split version 
+              : of pfamseq.
+              
+  Note, if -local is specified then nosplit is switched on.
   
-Options controlling acceleration heuristics:
-  --max        : Turn all heuristic filters off (increase sensitivity)
-  --biasfilter : turn on composition bias filter
+  Options controlling significance thresholds for reporting:
+  -E <x>      : E-value cutoff for reporting sequences  [default 1000].
+  -Z <x>      : Effective size of the sequence database for E-value calculation
+              : This should be an unsigned integer.  [default is size of pfamseq
+              : grabbed from the Pfam config].
+              
+  Note both -E and -Z only effect the sequence parameters and not the --domE and 
+  --domZ parameters in HMMER3.  
+   
+  Options controlling acceleration heuristics:
+  -max        : Turn all heuristic filters off (increase sensitivity). This is 
+              : not recommended for genral Pfam building as it will run very slowly, 
+              : but useful for ensuring that no sequences are rejected by the 
+              : filtering.
+  -biasfilter : Turn on composition bias filter.  This can increase speed in some 
+              : cases where there the query domain has bias composition 
+              : e.g. transmembrane domains. 
 
 Options for gurus:
-  --nonull2  : turn off biased sequence composition corrections to scores    
-  --F1 <x>     : Stage 1 (MSV) threshold: promote hits w/ P <= F1  [0.02]
-  --F2 <x>     : Stage 2 (Vit) threshold: promote hits w/ P <= F2  [1e-3]
-  --F3 <x>     : Stage 3 (Fwd) threshold: promote hits w/ P <= F3  [1e-5]
+  -nonull2    : turn off biased sequence composition corrections to scores    
+  -F1 <x>     : Stage 1 (MSV) threshold: promote hits w/ P <= F1  [0.02]
+  -F2 <x>     : Stage 2 (Vit) threshold: promote hits w/ P <= F2  [1e-3]
+  -F3 <x>     : Stage 3 (Fwd) threshold: promote hits w/ P <= F3  [1e-5]
+  
+  Note, option -max is incompatible with option(s) -F1,-F2,-F3
   
 EOF
+
+exit(1);
+
 }
 
 
