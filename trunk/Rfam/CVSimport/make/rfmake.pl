@@ -71,7 +71,7 @@ if (!(-s $file)){
 my $fsize = `ls -sk $file`;
 $fsize =~ /(\d+)\s+\S+/;
 $fsize = $1;
-if ($fsize > 500000){#
+if ($fsize > 500000 && !defined($farm) ){#
     die "FATAL: $file is too big ($fsize bytes)! Running rfmake could crash this machine and the other users will hate on you. Hence we're cowardly retreating and dieing. Get Paul some time to write a new and slim rfmake that doesn't crash!\n";
 }
 
