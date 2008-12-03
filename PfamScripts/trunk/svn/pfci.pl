@@ -6,102 +6,201 @@
 
 use strict;
 use warnings;
+use Cwd;
+use Data::Dumper;
+use Getopt::Long;
 
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::FamilyIO;
+use Bio::Pfam::PfamQC;
 
-use Cwd;
+#-------------------------------------------------------------------------------
+# Deal with all of the options 
+
+my ($message, $ignore, $onlydesc, $iterated, $addToClan, $removeFromClan, $help);
+
+
+&GetOptions( "m=s"              => \$message,
+             "i"                => \$ignore,
+             "onlydesc"         => \$onlydesc,
+             "iterated"         => \$iterated,
+             "add_to_clan"      => \$addToClan,
+             "remove_from_clan" => \$removeFromClan,
+             "help"             => \$help );
 
 my $family = shift;
-chomp($fammily);
+chomp($family);
 
-if( !(-d $family) ) {
-    die "$0: [$family] is not a current directory.\nMust be in the parent directory of the family to check in\n";
+unless($family){
+  warn "\n***** No family passed  *****\n\n"; 
+  help();
 }
 
-if( !-w $family ) {
-    die "$0: I can't write to directory [$family].  Check the permissions.\n";
+if(@ARGV){
+  warn "\n***** $0 no longer supports multiple family check-ins *****\n\n";
+  help();
 }
 
-if(!(-d "$family/.svn") ){
-  die "$0: [$family] does not look like that it is from the Pfam subversion repository";
+if($iterated){
+  warn "\n***** -iterated not current supported *****\n\n";
+  help();  
 }
+
+if($removeFromClan and $addToClan) {
+  warn "\n***** You cannot use the -add_family and -remove_family options together *****\n\n";
+}
+
+help() if($help);
+
+#-------------------------------------------------------------------------------
+my $pwd = getcwd;
+
+if( !(-d "$pwd/$family") ) {
+    die "$0: [$pwd/$family] is not a current directory.\nMust be in the parent directory of the family to check in\n";
+}
+
+if( !-w "$pwd/$family" ) {
+    die "$0: I can't write to directory [$pwd/$family].  Check the permissions.\n";
+}
+
+if(!(-d "$pwd/$family/.svn") ){
+  die "$0: [$pwd/$family] does not look like that it is from the Pfam subversion repository";
+}
+
+#-------------------------------------------------------------------------------
+# If a message is supplied, then write it to file such that the code reference
+# that deals with the SVN log message can grab it.
+
+if(-s ".defaultpfci"){
+  unlink(".defaultpfci") or die "Could not remove old default check-in message\n"; 
+}
+
+
+if($message){
+  open(M, ">.defaultpfci") or die "Could not open message file\n";  
+  print M $message;
+  close(M);
+}
+
+
+#-------------------------------------------------------------------------------
+#Initial SVN stuff
 
 #Check that family exists in svn
 my $client = Bio::Pfam::SVN::Client->new;
-my $familyIO = Bio::Pfam::FamilyIO->new;
 $client->checkFamilyExists($family);
-my $oldFamily = $familyIO->loadPfamAFromSVN($family, $client);
+
+#Need to check that the family is up-to-date 
 
 
-#Load family up into objects
-my $family = $familyIO->loadPfamAFromLocalfile($family, $pwd);
+#-------------------------------------------------------------------------------
+# Load the family from disk and svn through the middleware 
 
-#Check that the accession xrefs with svn
-if($family->desc->accession ne $oldfamily->desc->accession){
-  die; 
+my $familyIO = Bio::Pfam::FamilyIO->new;
+
+if($onlydesc){
+  $client->addPFANNLog();
+  #AC
+  
+  #my $upFamObj = $familyIO->loadPfamADESCFromLocalFile($family, $pwd);
+  print STDERR "Successfully loaded $family thorugh middleware\n";
+  
+  #Check the desc accessions are the same
+  #if($upFamObj->DESC->AC ne $oldFamObj->DESC->AC){
+  #  die "Accession error, your local copy does not match the repository\n";  
+  #}  
+  
+}else{
+  $client->addPFCILog();
+  if( !Bio::Pfam::PfamQC::checkFamilyFiles( $family) ){
+    print "pfci: $family contains errors.  You should rebuild this family.\n";
+    exit(1);
+  }
+  my $upFamObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
+  print STDERR "Successfully loaded $family thorugh middleware\n";
+  
+  my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
+  print STDERR "Successfully loaded remote $family thorugh middleware\n";
+
+  #AC present
+  if($upFamObj->DESC->AC ne $oldFamObj->DESC->AC){
+    die "Accession error, your local copy does not match the repository\n";  
+  }
+
+
+  #These are more sanity checks
+  unless($ignore){
+    unless(Bio::Pfam::PfamQC::sequenceChecker($upFamObj)){
+      print "pfci: $family contains errors.  You should rebuild this family.\n";
+      exit(1);
+    }
+  
+    unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
+      exit(1);   
+    }
+
+    #pqc-check $family
+  
+    unless(Bio::Pfam::PfamQC::noFragsInSeed($upFamObj)){
+      exit(1);   
+    }
+  
+  
+    unless(Bio::Pfam::PfamQC::nonRaggedSeed($upFamObj)){
+      exit; 
+    }
+  }
+  #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
+  
+  
+  unless(Bio::Pfam::PfamQC::passesAllFormatChecks($upFamObj, $family)){
+    exit(1); 
+  }
+  exit;
+  #If we are at sanger, perform this prior to commit 
+  
+
 }
-if($family->desc->id ne $oldfamily->desc->id){
-  die; 
-}
 
-
-if(! $opt_i && &Bio::Pfam::PfamQC::sequence_checker($family)){
-	print "pfci: $family contains errors.  You should rebuild this family.\n";
-    exit(1);	
-}
-
-## missing in full
-if(!$opt_i){
-	system ("pqc-check $family");
-}
-
-if(! $opt_i and -s "$family/missing" and !$ignore_missing_test) {
-    die "pfci: Your family appears to be missing sequences, see $family/missing for details\n";
-}
-
-## Find potential fragments in the seed
-if(! $opt_i and ! -e "$family/seedokay" ) {
-    die "pfci: Your family seed has not passed the quality checks, please fix!!\n";
-}
-
-if(! $opt_i && &Bio::Pfam::PfamQC::doggy_sequence_in_seed($family) ) {
-    die "pfci: $family SEED appears to contain a partial match or fragment in the seed.\n";
-}
-
-## ragged seed check
-if(! $opt_i and ! -e "$family/seedNotRagged" ) {
-    die "pfci: Your family seed has not passed the quality checks, please fix!!\n";
-}
-
-if(!$opt_i && &Bio::Pfam::PfamQC::ragged_seed($family) ) {
-    die "pfci: $family appears to have a ragged SEED.  This is good, please fix\n";
-}
-
-#Skip overlap
-
+#-------------------------------------------------------------------------------
 #If we get here, then great! We can now check the family in!
-
 my $caught_cntrl_c; 
 $SIG{INT} = sub {$caught_cntrl_c = 1;};   # don't allow control C for a bit!
 
-my $comment;
-if( !defined $message ) {
-    print "Please give a comment for family [$family]\n";
-    print "Finish comment by a . on the line by itself\n"; 
-
-    while( <STDIN> ) {
-	chop;
-	/^\s*\.\s*$/ && last;
-	$comment .= "$_\n";
-    }
-} else {
-    $comment = $message;
+$client->commitFamily($family); 
+ 
+#Remove any file containing the check-in message
+if(-s ".defaultpfci"){
+  unlink(".defaultpfci") or die "Could not remove old default check-in message\n";
 }
 
-
+#
 if( $caught_cntrl_c ) {
-    print STDERR "\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
+  print STDERR "\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
 }
 
+exit(0);
 
+#-------------------------------------------------------------------------------
+# SUBROUTINES ------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 subname 
+
+  Title    :
+  Usage    :  
+  Function :
+  Args     :
+  Returns  :
+  
+=cut
+
+sub checkClanOpts {
+   if($addToClan){
+      
+  }
+
+  if($removeFromClan){
+  
+  } 
+}
