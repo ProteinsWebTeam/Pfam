@@ -12,20 +12,20 @@ use warnings;
 use SVN::Look;
 use Getopt::Long;
 use Bio::Pfam::Config;
+use Bio::Pfam::SVN::Commit;
+
 #use Bio::Pfam::QualityControl;
 
 my( $txn, $repos, $debug, $help );
 
 GetOptions( "txn=s"   => \$txn,
-            "repos=s" => \$repos,
-            "debug"   => \$debug,
-            "help"    => \$help   );
+            "repos=s" => \$repos );
             
 unless($txn and $repos){
   die "Need to define both txn and repos: try $0 -help";  
 }
 
-my $txnlook = SVN::Look->new( $repos, -t => $txn );
+my $txnlook = Bio::Pfam::SVN::Commit->new( $repos, $txn );
 
 unless($txnlook and $txnlook->isa('SVN::Look')){
   die "Failed to get a SVN::Look object for txn:$txn and repos:$repos\n";
