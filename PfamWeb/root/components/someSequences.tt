@@ -6,7 +6,7 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.8 2008-08-19 15:20:53 jt6 Exp $
+# $Id: someSequences.tt,v 1.9 2008-12-04 13:58:39 jt6 Exp $
 
 META naked = 1;
 
@@ -54,7 +54,9 @@ FOREACH image IN images.each_image;
   // <![CDATA[
   getMore = function() {
     $('loadingSpinner').show();
-    $('loadingButton').disable();
+    if ( $('loadingButton') ) {
+      $('loadingButton').disable();
+    }
     var r = new Ajax.Request( 
       '[% c.uri_for( "/domaingraphics" ) %]',
       {
