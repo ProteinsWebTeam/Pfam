@@ -220,7 +220,7 @@ sub makeALIGN {
   
   #system($config->hmmer2bin."/hmmbuild -F HMM2 SEED > /dev/null") and die "Could not run H2 hmmbuild:[$!]";
   #system($config->hmmer2bin."/hmmalign -q HMM2 FA > ALIGN.sto") and die "Could not run H2 hmmalign:[$!]";
-  system($config->hmmer3bin."/hmmalign HMM FA > ALIGN.sto") and die "Could not run H2 hmmalign:[$!]";
+  system($config->hmmer3bin."/hmmalign HMM FA > ALIGN.sto") and die "Could not run H3 hmmalign:[$!]";
   unless(-s "ALIGN.sto"){
     die "Tried to make alignment, but it does not seem to be there:[$!]\n";
   }
