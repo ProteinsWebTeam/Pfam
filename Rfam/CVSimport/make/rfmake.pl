@@ -6,6 +6,7 @@ use Bio::SeqFetcher::xdget; #BIOPERL IS EVIL! REPLACE WITH SeqFetch ASAP!
 use CMResults;
 use Rfam;
 use DBI;
+use File::Copy;
 
 
 my( $thr, 
@@ -72,7 +73,17 @@ my $fsize = `ls -sk $file`;
 $fsize =~ /(\d+)\s+\S+/;
 $fsize = $1;
 if ($fsize > 500000 && !defined($farm) ){#
-    die "FATAL: $file is too big ($fsize bytes)! Running rfmake could crash this machine and the other users will hate on you. Hence we're cowardly retreating and dieing. Get Paul some time to write a new and slim rfmake that doesn't crash!\n";
+    reduce_output($file, $thrcurr);
+    #"$file\.$$"
+
+    $fsize = `ls -sk $file`;
+    $fsize =~ /(\d+)\s+\S+/;
+    $fsize = $1;
+    
+    if ($fsize > 500000 ){#
+	die "FATAL: $file is too big ($fsize bytes)! Running rfmake could crash this machine and the other users will hate on you. Hence we're cowardly retreating and dieing. Get Paul some time to write a new and slim rfmake that doesn't crash!\n";	
+    }
+    print "Reduced $file to $fsize, remove backup file $file\.$$\n";
 }
 
 if (!defined($output)){
@@ -233,7 +244,7 @@ if( $trim ) {
 
 if( !$already or $trim ) {
     # write a rearranged and slimmed output file
-    open( F, ">$file" ) or die;
+    open( F, ">$file" ) or die("Failed to open $file.\n[$!]");
     $allres -> write_output( \*F );
     close F;
 }
@@ -788,6 +799,41 @@ sub overlap {
         return 0;
     }
 }
+
+######################################################################
+sub reduce_output {
+    my ($file, $thr) = @_;    
+    
+    rename($file, "$file\.$$");    
+    open( OUT, "<" . "$file\.$$" ) or die "FATAL: Can't open $file\.$$\n[$!]";
+    open( NOUT, ">$file" ) or die "FATAL: Can't open $file\n[$!]";
+    
+    my $printMe = 0;
+    while( <OUT> ) {
+	
+	if (/^sequence:\s+(\S+)/){
+	    $printMe=1;
+	}
+	elsif (/^hit\s+\d+\s+:\s+(\d+)\s+(\d+)\s+(\S+)\s+bits/){
+	    if ($thr>$3){
+		$printMe = 0;
+	    }
+	    else {
+		$printMe = 1;
+	    }
+	}
+	
+	print if $printMe;
+	
+    }
+
+    close(OUT);
+    close(NOUT);
+    return 0;
+}
+
+
+######################################################################
 
 sub help {
     print STDERR <<EOF;
