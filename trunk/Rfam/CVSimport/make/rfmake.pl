@@ -67,24 +67,6 @@ if (!(-s $file)){
     die "FATAL: $file either doesn't exist or is empty!\n";
 }
 
-#Fuck - this should work:
-#my $fsize = stat($file)->size if -e $file;
-my $fsize = `ls -sk $file`;
-$fsize =~ /(\d+)\s+\S+/;
-$fsize = $1;
-if ($fsize > 500000 && !defined($farm) ){#
-    reduce_output($file, $thrcurr);
-    #"$file\.$$"
-
-    $fsize = `ls -sk $file`;
-    $fsize =~ /(\d+)\s+\S+/;
-    $fsize = $1;
-    
-    if ($fsize > 500000 ){#
-	die "FATAL: $file is too big ($fsize bytes)! Running rfmake could crash this machine and the other users will hate on you. Hence we're cowardly retreating and dieing. Get Paul some time to write a new and slim rfmake that doesn't crash!\n";	
-    }
-    print "Reduced $file to $fsize, remove backup file $file\.$$\n";
-}
 
 if (!defined($output)){
     $output = "out.list";
@@ -117,6 +99,26 @@ if( not $overlaps && -e "DESC" ) {
 if (!defined($thr)){#If the DESC file is incomplete then we need to set a sensible default:
     $thr = 5;
 }
+
+#Fuck - this should work:
+#my $fsize = stat($file)->size if -e $file;
+my $fsize = `ls -sk $file`;
+$fsize =~ /(\d+)\s+\S+/;
+$fsize = $1;
+if ($fsize > 500000 && !defined($farm) ){#
+    reduce_output($file, $thrcurr);
+    #"$file\.$$"
+
+    $fsize = `ls -sk $file`;
+    $fsize =~ /(\d+)\s+\S+/;
+    $fsize = $1;
+    
+    if ($fsize > 500000 ){#
+	die "FATAL: $file is too big ($fsize bytes)! Running rfmake could crash this machine and the other users will hate on you. Hence we're cowardly retreating and dieing. Get Paul some time to write a new and slim rfmake that doesn't crash!\n";	
+    }
+    print "Reduced $file to $fsize, remove backup file $file\.$$\n";
+}
+
 
 #Add to Rfam.pm:
 my %forbidden_family_terms = (
@@ -815,7 +817,7 @@ sub reduce_output {
 	    $printMe=1;
 	}
 	elsif (/^hit\s+\d+\s+:\s+(\d+)\s+(\d+)\s+(\S+)\s+bits/){
-	    if ($thr>$3){
+	    if (defined($thr) && defined($3) && $thr>$3){
 		$printMe = 0;
 	    }
 	    else {
@@ -823,7 +825,7 @@ sub reduce_output {
 	    }
 	}
 	
-	print if $printMe;
+	print NOUT $_ if $printMe;
 	
     }
 
