@@ -1,14 +1,15 @@
-
 [%
-# browseIndex.tt
+# index.tt
 # jt6 20070426 WTSI
 # 
 # build a "browse" index page
 #
-# $Id: index.tt,v 1.5 2008-07-25 15:42:01 jt6 Exp $
+# $Id: index.tt,v 1.6 2008-12-08 13:01:06 jt6 Exp $
 
 META title = "Browse Rfam";
 META fullPage = 1;
+
+USE dumper;
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -19,11 +20,17 @@ requirements.css.push( "browse.css" );
 
 #-------------------------------------------------------------------------------
 
+alphabet = [ "A" .. "Z" ];
+
 pages = { 'A' => 'F',
           'G' => 'L',
-          'M' => 'S',
-          'T' => 'Z' };
-%]
+          'M' => 'R',
+          'S' => 'T',
+          'U' => 'Z' };
+
+genomeUri = c.uri_for( '/genome/browse' );
+
+USE table alphabet, rows = 20 -%]
 
 <!-- start of browse index page -->
 <div id="browseIndex">
@@ -35,17 +42,63 @@ pages = { 'A' => 'F',
       <tr>
         <td class="type">FAMILIES</td>
         <td class="links">
-          <a href="[% c.uri_for( '/browse', top20 => 1 ) | html %]">
+          <a href="[% c.uri_for( '/family/browse/top20' ) | html %]">
             Top twenty</a>
-          <a href="[% c.uri_for( '/browse', numbers => 1 ) | html %]">
+          <a href="[% c.uri_for( '/family/browse', 0, 9 ) | html %]">
             0 - 9</a>
           [% FOREACH from IN pages.keys.sort;
             to = pages.$from; %]
-          <a href="[% c.uri_for( '/browse', from => from, to => to ) | html %]">
+          <a href="[% c.uri_for( '/family/browse', from, to ) | html %]">
             [% from | ucfirst %] - [% to | ucfirst %]</a>
           [% END %]
         </td>
       </tr>
+      
+      <tr>
+        <td class="type">GENOMES</td>
+        <td class="links">
+          You can browse <a href="[% genomeUri %]">all genomes</a> 
+          by species name, or you can browse genomes from specific kingdoms:
+          
+          <dl class="alphabetList">
+            <dt>
+              <a href="[% genomeUri %]">All</a>
+            </dt>
+            <dd>
+            [% FOREACH col IN table.col;
+              FOREACH letter IN col;
+                IF active_letters.all.$letter %]
+                  <a href="[% genomeUri %]#[% letter %]">[% letter %]</a>
+                [%- ELSE %]
+                  <span class="inactive">[% letter %]</span>
+                [%- END;
+              END -%]
+              <br />
+            [% END -%]
+          </dl>
+
+          [%- FOREACH kingdom IN kingdoms %]
+            <dl class="alphabetList">
+              <dt>
+                <a href="[% genomeUri; '/'; kingdom %]">[% kingdom %]</a>
+              </dt>
+              <dd>
+                [% FOREACH col IN table.col;
+                  FOREACH letter IN col;
+                    IF active_letters.$kingdom.$letter %]
+                      <a href="[% genomeUri; '/'; kingdom; '#'; letter %]">[% letter %]</a>
+                    [%- ELSE %]
+                      <span class="inactive">[% letter %]</span>
+                    [%- END;
+                  END -%]
+                  <br />
+                [% END -%]
+              </dd>
+            </dl>
+          [% END %]
+        </td>
+      </tr>
+      
     </tbody>
   </table>  
   
