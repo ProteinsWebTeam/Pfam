@@ -1,11 +1,10 @@
-
 [%
 # browseFamilies.tt
 # jt6 20060717 WTSI
 # 
 # build a "browse" page for Rfam families
 #
-# $Id: families.tt,v 1.3 2008-07-25 15:54:50 jt6 Exp $
+# $Id: families.tt,v 1.4 2008-12-08 13:01:30 jt6 Exp $
 
 META title = "Browse Rfam families";
 META fullPage = 1;
@@ -19,33 +18,50 @@ requirements.css.push( "browse.css" );
 
 #-------------------------------------------------------------------------------
 
-pages = { 'A' => 'F',
+pages = { '0' => '9',
+          'A' => 'F',
           'G' => 'L',
-          'M' => 'S',
-          'T' => 'Z' };
-%]
+          'M' => 'R',
+          'S' => 'T',
+          'U' => 'Z' };
+
+# build the page list just once...
+pageList = BLOCK %]
+<div class="pageLinks">
+
+  [%- IF ( from_page == from AND to_page == to ) %]
+    <span class="inactive">Top twenty</span>
+  [% ELSE %]
+    <a href="[% c.uri_for( '/family/browse/top20' ) %]">Top twenty</a>
+  [% END;
+
+  FOREACH from_page IN pages.keys.sort;
+    to_page = pages.$from_page; 
+    IF ( from_page == from AND to_page == to ) %]
+      <span class="inactive">
+        [% from_page | ucfirst %] - [% to_page | ucfirst %]</span>
+    [% ELSE %]
+      <a href="[% c.uri_for( '/family/browse', from_page, to_page ) %]">
+        [% from_page | ucfirst %] - [% to_page | ucfirst %]</a>
+    [% END;
+  END %]
+
+</div>
+[% END; # of pageList BLOCK -%]
 
 <!-- start browse page -->
 
 <h1 class="pageHeader">
-  [%- IF ( from AND to ) OR numbers; 
+  [% IF ( from.defined AND to.defined ); 
     "Browse Rfam families "; from; " - "; to;
   ELSIF top20;
-    "Browse Top 20 Largest Rfam families";
+    "Browse top 20 largest Rfam families";
+  ELSE;
+    "Browse Rfam families";
   END %]
 </h1>
 
-<div class="pageLinks">
-  <a href="[% c.uri_for( '/browse', top20 => 1 ) | html %]">
-    Top twenty</a>
-  <a href="[% c.uri_for( '/browse', numbers => 1 ) | html %]">
-    0 - 9</a>
-  [% FOREACH from IN pages.keys.sort;
-    to = pages.$from; %]
-  <a href="[% c.uri_for( '/browse', from => from, to => to ) | html %]">
-    [% from | ucfirst %] - [% to | ucfirst %]</a>
-  [% END %]
-</div>
+[% pageList %]
           
 <table class="details browse" summary="Details of Rfam families">
   <thead>
@@ -65,10 +81,10 @@ pages = { 'A' => 'F',
   [% FOREACH rfam IN families -%]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
-        <a href="[% c.uri_for( '/family', acc = rfam.rfam_acc ) %]">[% rfam.rfam_id %]</a>
+        <a href="[% c.uri_for( '/family', rfam.rfam_acc ) %]">[% rfam.rfam_id %]</a>
       </td>
       <td>
-        <a href="[% c.uri_for( '/family', acc = rfam.rfam_acc ) %]">[% rfam.rfam_acc %]</a>
+        <a href="[% c.uri_for( '/family', rfam.rfam_acc ) %]">[% rfam.rfam_acc %]</a>
       </td>
       <td>[% rfam.type %]</td>
       <td>[% rfam.num_seed %]</td>
@@ -79,17 +95,7 @@ pages = { 'A' => 'F',
   </tbody>
 </table>
 
-<div class="pageLinks">
-  <a href="[% c.uri_for( '/browse', top20 => 1 ) | html %]">
-    Top twenty</a>
-  <a href="[% c.uri_for( '/browse', numbers => 1 ) | html %]">
-    0 - 9</a>
-  [% FOREACH from IN pages.keys.sort;
-    to = pages.$from; %]
-  <a href="[% c.uri_for( '/browse', from => from, to => to ) | html %]">
-    [% from | ucfirst %] - [% to | ucfirst %]</a>
-  [% END %]
-</div>
+[% pageList %]
 
 <!-- end browse page -->
 [%#
