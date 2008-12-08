@@ -1,0 +1,149 @@
+[%
+# lookup.tt
+# jt6 20081205 WTSI
+#
+# show the Rfam hits on a specific EMBL sequence
+#
+# $Id: lookup.tt,v 1.1 2008-12-08 13:00:06 jt6 Exp $
+
+META title    = "Sequence search results";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "search.css" );
+
+# required for the post-loaded table
+sharedRequirements.js.push( "tablekit.js" );
+
+#-------------------------------------------------------------------------------
+
+USE String;
+
+# store the first row of the results, since we use itin various places as the 
+# source of information about this particular rfamseq row 
+firstRow = results.first;
+
+oe = 0;
+%]
+<!-- start of "results" -->
+
+<div class="key"
+     id="sequenceHitsKey">
+
+  <h2>Rfam hits on sequence [% rfamseq_acc %]</h2>
+
+  <p>
+    These are the Rfam hits on the EMBL sequence 
+    <strong>[% entry %]</strong>.
+  </p>
+
+  <table class="details"
+         summary="Sequence information">
+    <tbody>
+      <tr class="[% oe % 2 ? 'odd' : 'even'; oe = oe + 1; %]">
+        <td class="label">Description</td>
+        <td class="data" id="seqDesc">[% firstRow.get_column('rfamseq_desc') %]</td>
+      </tr>
+      <tr class="[% oe % 2 ? 'odd' : 'even'; oe = oe + 1; %]">
+        <td class="label">Number of hits</td>
+        <td class="data" id="numHits">[% results.size %]</td>
+      </tr>
+      <tr class="[% oe % 2 ? 'odd' : 'even'; oe = oe + 1; %]">
+        <td class="label">Species tree</td>
+        <td class="data" id="tree"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    The table of results may be sorted by clicking on the column titles, or 
+    restored to the original order <span class="link" id="sortLink">here</span>. 
+  </p>
+
+</div> <!-- end of div "key" -->
+
+<div id="results">  
+  [% PROCESS pages/search/sequence/lookup_table.tt %]
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  [% # make the table sortable %]
+  var sorter = new TableKit( "resultTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+
+  [% # add a listener to the "return to original sort order" link,
+     # now that the table sort object is actually defined %]
+  $("sortLink").observe( "click", function() {
+    sorter.sort(0);
+  } );
+
+  [% # build the little taxonomy tree %]
+  try {
+    var tree = new YAHOO.widget.TreeView("tree"); 
+    var parent = tree.getRoot();
+    
+    [% tax = String.new( firstRow.get_column("rfamseq_taxonomy") )
+               .trim
+               .pop('\.')
+               .append( firstRow.get_column('rfamseq_species') )
+               .trim;
+ 
+    FOREACH node IN tax.split('; ');
+      nodeName = String.new( node ).trim.pop('\.');
+      nodeId = String.new( nodeName );
+      CALL nodeId.replace( "[\\.\\s]", "_" ); %]
+
+      var [% nodeId %]Node = new YAHOO.widget.TextNode(
+        {
+          label: "[% nodeName %]",
+          href:  "http://www.uniprot.org/taxonomy?query=[% nodeName %]"
+        },
+        parent,
+        true
+      );
+      parent = [% nodeId %]Node;
+
+    [%- END -%]
+
+    tree.draw();
+  } catch( e ) {
+    // fall-back to the lineage string itself
+    $("tree").update("[% tax %]");
+  }
+
+  // ]]>
+</script>
+
+<!-- end of "results" -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
