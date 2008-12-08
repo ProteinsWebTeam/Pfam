@@ -4,7 +4,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
+# $Id: sequence.tt,v 1.2 2008-12-08 13:00:24 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -83,7 +83,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         [% seqSearchError %]
       </div>
       [% END %]
-  
+      
       <form method="post" 
             id="proteinSeqSearchForm"
             action="[% c.uri_for( "/search/sequence" ) %]"
@@ -103,7 +103,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  type="submit" 
                  name="submit" 
                  value="Submit"
-                 onclick="if( ! $('seq').present() ){return false}"/>
+                 onclick="if(!$('seq').present()){return false};"/>
           <input class="reset"
                  type="reset"
                  name="reset"
@@ -111,9 +111,51 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
           <input class="example" 
                  type="button"
                  value="Example" 
-                 onclick="$('seq').value=exSeq" />
+                 onclick="$('seq').value=exSeq;" />
         </div>
-  
+
+      </form>
+      
+      <div class="cleaner"><!-- empty --></div>
+      
+      <hr />
+
+      <p>
+        You can also see the Rfam hits for a given sequence. Enter an EMBL 
+        sequence accession.
+      </p>
+
+      <form method="post" 
+            id="proteinSeqLookupForm"
+            action="[% c.uri_for( "/sequence" ) %]"
+            enctype="multipart/form-data">
+
+        <div class="row">
+          <label for="entry">Look up sequence</label>
+          <input name="entry"
+                 id="entry"
+                 type="text"
+                 maxlength="100"
+                 size="20" />
+        </div>
+
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit" 
+                 type="submit" 
+                 name="submit" 
+                 value="Submit"
+                 onclick="if(!$('entry').present()){return false};"/>
+          <input class="reset"
+                 type="reset"
+                 name="reset"
+                 value="Reset" />
+          <input class="example" 
+                 type="button"
+                 value="Example" 
+                 onclick="$('entry').value=exEntry;" />
+        </div>
+
       </form>
   
     </div>
@@ -143,14 +185,17 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
   var exSeq = "AGTTACGGCCATACCTCAGAGAATATACCGTATCCCGTTCGATCTGCGAA\n\
 GTTAAGCTCTGAAGGGCGTCGTCAGTACTATAGTGGGTGACCATATGGGA\n\
 ATACGACGTGCTGTAGCTT";
+  var exEntry = "AJ390104";
   // ]]>
 </script>
 
 <!-- end sequence search block -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
