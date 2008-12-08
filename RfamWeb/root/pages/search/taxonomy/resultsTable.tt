@@ -5,9 +5,11 @@
 # a page fragment that builds the results table for taxonomy or unique
 # domains searches
 #
-# $Id: resultsTable.tt,v 1.2 2008-09-18 11:59:27 jt6 Exp $
+# $Id: resultsTable.tt,v 1.3 2008-12-08 13:02:45 jt6 Exp $
 
 META naked = 1;
+
+USE String;
 %]
 
 <table class="resultTable"
@@ -21,18 +23,23 @@ META naked = 1;
     </tr>
   </thead>
   <tbody>
-  [% FOREACH family IN families.keys.sort;
-  familyUri = c.uri_for( "/family", { acc = family } ) -%]
+  [%
+  unformatted = String.new; 
+  FOREACH family IN families.keys.sort;
+    acc  = family;
+    id   = families.$family.rfam_id;
+    desc = families.$family.description;
+    CALL unformatted.append( acc _ "\t" _ id _ "\n" );
+    familyUri = c.uri_for( "/family", { acc => acc } ) -%]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
-        <a href="[% familyUri %]">[% family %]</a>
+        <a href="[% familyUri %]">[% acc %]</a>
       </td>
       <td>
-        <a href="[% familyUri %]">
-          [% families.$family.rfam_id %]</a>
+        <a href="[% familyUri %]">[% id %]</a>
       </td>
       <td>
-        [% families.$family.description %]
+        [% desc %]
       </td>
     </tr>
   [% END -%]
@@ -47,11 +54,7 @@ META naked = 1;
 </p>
 
 <div id="textList" style="display: none">
-  <pre>
-    [%- FOREACH family IN families.keys.sort;
-family; " "; families.${family}.rfam_id %]
-[% END -%]
-  </pre>
+  <pre>[% unformatted %]</pre>
 </div>
 
 <script type="text/javascript">
