@@ -1,0 +1,126 @@
+[%
+# results.tt
+# jt6 20081121 WTSI
+# 
+# family type search results page
+#
+# $Id: results.tt,v 1.1 2008-12-08 13:02:01 jt6 Exp $
+
+META title = "Family type search results";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "search.css" );
+
+sharedRequirements.js.push( "tablekit.js" );
+
+#-------------------------------------------------------------------------------
+
+USE String;
+-%]
+
+<div class="key">
+
+  <h2>Family type search results</h2>
+
+  <p>
+    We found <strong>[% results.size %]</strong> unique results for your query.
+    <span class="link" onclick="reveal(this,'pathsList',false)">Show</span> the
+    list of the family types that you chose.
+    You searched for families with the following types:
+  </p>
+  <ul id="pathsList" style="display: none">
+    [%- FOREACH path IN paths %]
+    <li>[% String.new( path ).pop( ";" ) %]</li>
+    [%- END %]
+  </ul>
+  <p>
+    The table of results may be sorted by clicking on the column titles, or 
+    restored to the original order <span class="link"
+    onclick="sorter.sort(0);$('indexCol').removeClassName('sortasc');">here</span>. 
+  </p>
+  <p>
+    You can <a href="[% c.uri_for('/search', tab='searchTypeBlock' ) %]">return</a>
+    to the search form to look for families with different types.
+  </p>
+
+</div> <!-- end of div "key" -->
+
+<div id="results">
+  <table class="resultTable" id="resultTable" summary="Search results">
+    <thead>
+      <tr>
+        <th id="indexCol" class="rowNum">Original order</th>
+        <th>Accession</th>
+        <th>ID</th>
+        <th>Type</th>
+        <th class="nosort">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      [%- # build the "unformatted" list in the loop the we use to build the 
+          # nicely formatted table
+      unformatted = String.new;
+      FOREACH row IN results;
+         acc  = row.rfam_acc;
+         id   = row.rfam_id;
+         type = String.new( row.type ).pop( ";" ); # trim off trailing semi-colons
+         CALL unformatted.append( acc _ "\t" _ id _ "\t" _ type _ "\n" ) %]
+      <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td><a href="[% c.uri_for( "/family", acc => acc ) %]">[% acc %]</a></td>
+        <td><a href="[% c.uri_for( "/family", acc => acc ) %]">[% id %]</a></td>
+        <td class="desc">[% type %]</td>
+        <td class="desc">[% row.description %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+</div> <!-- end of div "results" -->
+
+<p>
+  You can also see the accessions and IDs for the results families as a simple 
+  list that can be cut-and-pasted into an editor.
+  <span class="link" onclick="reveal(this,'textList',false)">Show</span> 
+  the unformatted list.
+</p>
+
+<div id="textList" style="display: none">
+  <pre>[% unformatted %]</pre>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  var sorter = new TableKit( "resultTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+  // ]]>
+</script>
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
