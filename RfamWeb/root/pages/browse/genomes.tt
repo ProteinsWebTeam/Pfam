@@ -1,0 +1,123 @@
+
+[%
+# genomes.tt
+# rdf 20061109 WTSI
+# 
+# build a "browse" page for genomes
+#
+# $Id: genomes.tt,v 1.1 2008-12-08 13:00:53 jt6 Exp $
+
+META title = "Browse Rfam genomes";
+META fullPage = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "browse.css" );
+
+#-------------------------------------------------------------------------------
+
+pages = [ "A" .. "Z" ];
+
+# shortcuts for URIs
+genomeURI = c.uri_for( "/genome" );
+
+# generate the table
+activeLetters = {};
+tableBody = BLOCK;
+
+  first = "";
+  FOREACH genome IN genomes;
+    initialLetter = genome.species.split("").first | upper;
+    activeLetters.${initialLetter} = 1 %]
+    <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td>
+        <a class="species" 
+           href="[% genomeURI; '/'; genome.ncbi_id %]"
+           [%- IF initialLetter != first -%]
+             name="[% initialLetter %]"
+             [%- first = initialLetter | upper;
+           END %]>[% genome.species %]</a>
+       </td>
+      <td>[% genome.kingdom %]</td>
+      <td>[% genome.families %]</td>
+      <td>[% genome.regions %]</td>
+      <td>[% genome.genome_size %]</td>
+    </tr>
+  [% END;
+END; # of BLOCK tableBody
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt", 
+                   lcChar=lcChar,
+                   activeLetters=activeLetters,
+                   pageURI = "#";
+%]
+
+<!-- start browse page -->
+
+[% IF kingdom.defined %]
+<h1 class="pageHeader">Browse Rfam genomes from [% kingdom %]</h1>
+<p class="browseSummary">
+  Rfam covers <strong>[% genomes.size %]</strong> genomes from <strong>[% kingdom %]</strong>.
+  Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
+</p>
+[% ELSE %]
+<h1 class="pageHeader">Browse all Rfam genomes</h1>
+<p class="browseSummary">
+  Rfam covers a total of <strong>[% genomes.size %]</strong> genomes. 
+  Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
+</p>
+[% END %]
+
+[% pageList %]
+
+<table class="details browse" summary="Browse genomes">
+  <thead>
+    <tr>
+      <th rowspan="2">Species name</th>
+      <th rowspan="2">Kingdom</th>
+      <th colspan="2">Number of</th>
+      <th rowspan="2">Genome size</th>
+    </tr>
+    <tr>
+      <th>Families</th>
+      <th>Regions</th>
+    </tr>
+  </thead>
+  <tbody>
+  [% tableBody %]
+  </tbody>
+</table>
+
+[% pageList %]
+
+<!-- a floating page list...
+<div id="footerShim"></div>
+<div id="footerPageList">
+[% pageList %]
+</div>
+-->
+
+<!-- end browse page -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
