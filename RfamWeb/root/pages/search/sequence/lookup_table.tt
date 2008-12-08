@@ -1,0 +1,73 @@
+[%
+# lookup.tt
+# jt6 20081205 WTSI
+#
+# show the Rfam hits on a specific EMBL sequence
+#
+# $Id: lookup_table.tt,v 1.1 2008-12-08 13:00:06 jt6 Exp $
+
+META naked = 1;
+
+USE String;
+
+# store the first row of the results, since we use itin various places as the 
+# source of information about this particular rfamseq row 
+firstRow = results.first;
+
+oe = 0;
+%]
+<!-- start of "results" table -->
+
+<table summary="Rfam hits"
+       id="resultTable"
+       class="resultTable">
+  <thead>
+    <tr>
+      <th id="indexCol" class="rowNum">Original order</th>
+      <th>Rfam family</th>
+      <th>Description</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>Bits score</th>
+    </tr>
+  </thead>
+  <tbody>
+    [% familyUri = c.uri_for( '/family', row.get_column('rfam_id') );
+    FOREACH row IN results %]
+      <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
+        <td class="rowNum">[% loop.index %]</td>
+        <td>
+          <a title="[% row.get_column('rfam_acc') %]" 
+             href="[% familyUri; '/'; row.get_column('rfam_id') %]">
+            [% row.get_column('rfam_id') %]</a>
+        </td>
+        <td>[% row.get_column('rfam_desc') %]</td>
+        <td>[% row.seq_start %]</td>
+        <td>[% row.seq_end %]</td>
+        <td>[% row.bits_score %]</td>
+      </tr>
+    [% END %]
+  </tbody>
+</table>
+
+<!-- end of "results" table -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
