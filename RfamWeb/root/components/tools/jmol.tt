@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.1 2008-10-23 12:28:21 jt6 Exp $
+# $Id: jmol.tt,v 1.2 2008-12-09 13:40:58 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -99,11 +99,11 @@ CALL script.append( unassigned );
 </script>
 
 <table class="details wide" 
-       summary="Mappings from PDB to UniProt to Rfam">
+       summary="Mappings from PDB to EMBL to Rfam">
   <thead>
     <tr class="caption">
       <th colspan="3">PDB</th>
-      <th colspan="3">UniProt</th>
+      <th colspan="3">EMBL</th>
       <th rowspan="2">Rfam family</th>
       <th rowspan="2">Colour</th>
     </tr>
