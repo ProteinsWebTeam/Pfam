@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.4 2008-07-25 13:29:25 jt6 Exp $
+# $Id: align.tt,v 1.5 2008-12-09 13:20:26 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -175,9 +175,9 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td>
                 <span class="button">
                   <select name="format" id="format">
-                    <option value="pfam" selected="selected">Selex</option>
+                    <option value="fasta" selected="selected">FASTA</option>
                     <option value="stockholm">Stockholm</option>
-                    <option value="fasta">FASTA</option>
+                    <option value="pfam">Selex</option>
                     <option value="msf">MSF</option>
                   </select>
                 </span>
