@@ -5,7 +5,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.1 2008-10-23 12:28:21 jt6 Exp $
+# $Id: av.tt,v 1.2 2008-12-09 13:41:13 jt6 Exp $
 
 META naked = 1;
 
@@ -149,21 +149,21 @@ title = "AstexViewer"
 <h1>PDB entry [% pdb.pdb_id %]</h1>
 <p>
   The applet to the left shows the structure of PDB entry 
-  <strong>[% pdb.pdb_id %]</strong>, along with the Pfam domains that map 
+  <strong>[% pdb.pdb_id %]</strong>, along with the Rfam families that map 
   onto that structure. 
 </p>
 <p>
-  The <em>protein backbone</em> is drawn as secondary structure elements, 
-  and is coloured according to the Pfam domains found on the structure.
-  Regions of the protein that represent Pfam domains are also surrounded
+  The <em>RNA backbone</em> is drawn as secondary structure elements, 
+  and is coloured according to the Rfam famillies found on the structure.
+  Regions of the RNA that represent Rfam families are also surrounded
   by a semi-transparent <em>molecular surface</em>, representing the van 
   der Waal&#39;s surface for the atoms that fall within the domain. Regions 
-  of protein that are not assigned to a Pfam-A region are shown in grey.
+  of RNA that are not assigned to an Rfam region are shown in grey.
 </p>
 <p>
   Molecular surfaces can be turned on and off using the buttons in the table 
-  below. Details of the mapping between the PDB structure, UniProt sequence and 
-  Pfam domain are also given in the table.
+  below. Details of the mapping between the PDB structure, EMBL sequence and 
+  Rfam families are also given in the table.
 </p>
 <p>
   All surfaces are initially drawn as semi-transparent membranes, but you 
@@ -212,12 +212,12 @@ hideButton = "${imageUri}/hideButton.png";
 %]
 
 <table class="details wide"
-       summary="Mappings from PDB to UniProt to Pfam">
+       summary="Mappings from PDB to EMBL to Rfam">
   <thead>
     <tr class="caption">
       <th colspan="3">PDB</th>
-      <th colspan="3">UniProt</th>
-      <th rowspan="2">Pfam family</th>
+      <th colspan="3">EMBL</th>
+      <th rowspan="2">Rfam family</th>
       <th rowspan="2">Colour</th>
       <th rowspan="2">Show/hide surface</th>
     </tr>
@@ -238,9 +238,8 @@ hideButton = "${imageUri}/hideButton.png";
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/protein", entry=m.rfamseq_id ) %]" 
-           onclick="opener.location=this.href;return false;">
-          [% m.rfamseq_id %]</a>
+        <a href="[% c.uri_for( "/sequence", m.rfamseq_acc ) %]" 
+           onclick="opener.location=this.href;return false;">[% m.rfamseq_acc %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
@@ -261,7 +260,7 @@ hideButton = "${imageUri}/hideButton.png";
     </tr>
     [% END %]
     <tr class="[% IF oe % 2 %]odd[% ELSE %]even[% END %][% oe = oe + 1 %]">
-      <td colspan="7">Not assigned to a Pfam-A region</td>
+      <td colspan="7">Not assigned to an Rfam region</td>
       <td style="background: #e7e7e7">&nbsp;</td>
       <td>
         <img src="[% hideButton %]" 
