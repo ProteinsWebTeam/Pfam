@@ -4,7 +4,7 @@
 # 
 # build the secondary structure block for families
 #
-# $Id: secondary_structure.tt,v 1.3 2008-07-16 13:20:30 jt6 Exp $
+# $Id: secondary_structure.tt,v 1.4 2008-12-09 13:17:13 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -15,20 +15,26 @@ sharedRequirements.js.push( "sharedFunctions.js" );
 
 #-------------------------------------------------------------------------------
 
-types = [ 'cons',
-          'cov',
-          'ent',
-          'fcbp',
-          'maxcm',
-          'norm' ];
-
 labels = [ 
-           'Sequence conservation',
-           'Covariation',
-           'Relative entropy',
-           'Fraction canonical basepairs',
-           'Maximum CM parse',
-           'Normal' ];
+           { type  => 'cons',
+             short => 'seqcons',
+             long  => 'Sequence conservation' },
+           { type  => 'fcbp',
+             short => 'bpcons',
+             long  => 'Basepair conservation' },
+           { type  => 'cov',
+             short => 'cov',
+             long  => 'Covariation' },
+           { type  => 'ent',
+             short => 'ent',
+             long  => 'Relative entropy' },
+           { type  => 'maxcm',
+             short => 'maxcm'
+             long  => 'Maximum CM parse' },
+           { type  => 'norm',
+             short => 'norm',
+             long  => 'Normal' }
+         ];
 %]
 
 <!-- start secondary structure block -->
@@ -110,24 +116,24 @@ labels = [
     </div>
 
     <ul id="ssImageTabs" class="controlTabList">
-[% FOREACH type IN types -%]
-      <li><a href="#[% type %]Image"
-             title="[% labels.${loop.index} %]">[% type %]</a></li>
+[% FOREACH hash IN labels -%]
+      <li><a href="#[% hash.type %]Image"
+             title="[% hash.long %]">[% hash.short %]</a></li>
 [% END -%]
     </ul>
 
-[% FOREACH type IN types -%]
-    <div id="[% type %]Image" [% IF NOT loop.first %] style="display: none"[% END %]
+[% FOREACH hash IN labels -%]
+    <div id="[% hash.type %]Image" [% IF NOT loop.first %] style="display: none"[% END %]
          class="controlTab ssImage">
       <img alt=""
-           src="[% c.uri_for( '/family/image', acc => acc, type => type ) | html -%]" />
+           src="[% c.uri_for( '/family/image', acc => acc, type => hash.type ) | html -%]" />
     </div>
 [% END -%]
 
     <script type="text/javascript">
       // <![CDATA[
       var ssImageTabsController = new Control.Tabs( "ssImageTabs",
-                                                    { defaultTab: "[% types.first %]Image" } );
+                                                    { defaultTab: "[% labels.first.type %]Image" } );
       
       // "defaultTab" doesn't seem to set this correctly, hence the next call:
       ssImageTabsController.setActiveTab("[% types.first %]Image");
