@@ -3,10 +3,14 @@
 use strict;
 use warnings;
 use Getopt::Long;
+use File::Copy;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::HMM::HMMResultsIO;
+use Bio::Pfam::FamilyIO;
+use Data::Dumper;
+  
 main( @ARGV ) unless caller(  );
 
 sub main {
@@ -30,10 +34,12 @@ sub main {
 #Deal with the command line options
   
   my ($fname, $hand, $local, $nobuild, $nosplit, $help, $evalCut, $dbsize,
-      $max, $bFilt, $null2, $f1, $f2, $f3 );
+      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism );
 
   &GetOptions( "help"       => \$help,
                "hand"       => \$hand,
+               "ignoreBM"   => \$ibm,
+               "ignoreSM"   => \$ism,
                "local"      => \$local,
                "nobuild"    => \$nobuild,
                "nosplit"    => \$nosplit,
@@ -56,26 +62,37 @@ sub main {
   }
 
 #-------------------------------------------------------------------------------
+#Read in the DESC file.  This is now required!
+
+  unless(-s 'DESC'){
+     die "We now require a DESC file before runing $0\n";
+  }
+
+  my $io = Bio::Pfam::FamilyIO->new; 
+  my $descObj = $io->parseDESC("DESC");
+  
+
+#-------------------------------------------------------------------------------
 # If we are to run HMM build check the SEED and build options.
               
   # Do we have a SEED file and can we build an HMM for it.
   unless($nobuild){
-    my @buildOpts;
+    my %buildOpts;
     unless(-s 'SEED'){
       die "Could not locate the SEED file:[$!]\n";
     }
     open( SEED, "SEED" ) or die "FATAL: can't open SEED\n";
     open( SNEW, ">SEED.$$" ) or die "FATAL: can't write to SEED.$$\n";
-  
+    open( SNEWS, ">SEED.$$.selex" ) or die "FATAL: can't write to SEED.$$.selex\n";
     my $aln = Bio::Pfam::AlignPfam->new;
-    eval{
-      $aln->read_stockholm( \*SEED );
-    };
+    #eval{
+    #  $aln->read_stockholm( \*SEED );
+    #};
   
     #Problem reading the alignment
-    if($@){
-      warn "SEED alignment not in stockholm format, trying selex/Pfam format.\n";
-    }
+    #if($@){
+    #  warn "SEED alignment not in stockholm format, trying selex/Pfam format.\n";
+    #}
     #Seed if it looks like a SEED in Pfam/Mul format
     eval{
       $aln->read_Pfam( \*SEED );
@@ -89,9 +106,11 @@ sub main {
     my $newaln = $aln->allgaps_columns_removed();
     $newaln->map_chars( '-', '.' );
     $newaln->write_stockholm( \*SNEW );
+    $newaln->write_Pfam(\*SNEWS);
+    
     
     if($newaln->match_states_string){
-      push(@buildOpts, "--hand");
+      $buildOpts{"--hand"} = 0;
       unless($hand){
         warn "Found #=RF line, switching on --hand options\n";  
       }
@@ -102,17 +121,62 @@ sub main {
     }
     close SEED;
     close SNEW;
-
+    close SNEWS;
+    
     rename( "SEED", "SEED.old.$$" ) or die "FATAL: can't rename SEED\n";
     rename( "SEED.$$", "SEED" ) or die "FATAL: can't rename SEED.$$\n";
 
-    my $buildline = join( ' ', @buildOpts );
+    $buildOpts{"-o"} = '/dev/null';    
+    
+    
+   unless($ibm){
+    my $line = $descObj->BM;
+    if($line =~ /hmmbuild (.*) HMM/){
+      while($line =~ /(-{1,2}\w+)\s+([A-Z0-9\.]){0,1}/g){
+        my $optFlag = $1;
+        my $optParam = $2 if($2);
+        
+        unless(defined($buildOpts{$optFlag})){
+           if($optParam){
+              $buildOpts{$optFlag} = $optParam; 
+           }else{
+              $buildOpts{$optFlag} = 0; 
+           }
+        }
+        
+      }
+    }elsif($line =~ /hmmbuild\s+HMM/){
+      ;
+    }else{
+      die "Did not recognise BM line ".$descObj->BM."\n";
+    }
+  }
+  
+    my $buildline = "hmmbuild ";
+    foreach my $opt (keys %buildOpts){
+      if($buildOpts{$opt}){
+        $buildline .= " $opt ".$buildOpts{$opt}; 
+      }else{
+        $buildline .= " $opt";
+      }
+    }    
+   
+   
+   
+   
+   
+    $buildline .= " HMM SEED";
+    
+    $descObj->BM($buildline);
     
     #Now run hmmbuild
-    system($config->hmmer3bin."/hmmbuild -o /dev/null ".$buildline." HMM SEED") and die "Error building hmm!\n";
+    system($config->hmmer3bin."/".$buildline) and die "Error building hmm!\n";
     unless(-s "HMM"){
       die "Failed to run HMM build. Although it seems to have run successfully, the HMM has no size or is absent\n"; 
     }
+    
+    rename( "SEED.$$.selex", "SEED" ) or die "FATAL: can't rename SEED.$$\n";
+    
   }else{
     # Skip hmmbuild if no build
     unless( -s "HMM" ){
@@ -124,7 +188,7 @@ sub main {
 # Now build up the hmmsearch options 
 
   # Now build and search
-  my @searchOptions;
+  my %searchOptions;
   
   # E-value cut off
   unless($evalCut){
@@ -133,14 +197,14 @@ sub main {
   unless($evalCut > 0) {
     die "You can not specifiy a E-value cutoff less than 0\n"; 
   }
-  push(@searchOptions, "--seqE $evalCut");
+  $searchOptions{"--seqE"} =  $evalCut;
   
   
   # database size
   if($dbsize){
     if($dbsize != $config->dbsize){
       warn "\n***** Using effective database size [$dbsize] that is different to pfamseq [".
-            $config->dbsize." *****\n\n";
+            $config->dbsize."] *****\n\n";
     } 
   }else{
     $dbsize =  $config->dbsize;
@@ -151,39 +215,70 @@ sub main {
   unless(int($dbsize) == $dbsize){
     die "dbsise($dbsize) must be an integer\n"; 
   }
-  push(@searchOptions, "--seqZ ".$config->dbsize);
+  $searchOptions{'--seqZ'} = $config->dbsize;
   
   # Turn off heuristic filtering
   if($max){
     if($local){
       warn "\n***** This will take a while to run *****\n\n"; 
     }
-    push(@searchOptions, "--max"); 
+    $searchOptions{"--max"} = 0; 
   }
   
   if($bFilt){
-    push(@searchOptions, "--biasfilter"); 
+    $searchOptions{"--biasfilter"} = 0; 
   }
   
   if($null2){
     warn "\n***** Switching off biased sequence correction scores *****\n\n";
-    push(@searchOptions, "--nonull2");  
+    $searchOptions{"--nonull2"} = 0;  
   }
   
   if($f1){
     warn "\n***** Setting the multi sequence viterbi threshold to $f1 *****\n";
-    push(@searchOptions, "--F1 $f1");  
+    $searchOptions{"--F1"} = $f1;  
   }
   if($f2){
     warn "\n***** Setting viterbi threshold to $f2 *****\n";
-    push(@searchOptions, "--F2 $f2");  
+    $searchOptions{"--F2"} = $f2;  
   }
   if($f3){
     warn "\n***** Setting the Forward score filter to $f3 *****\n";
-    push(@searchOptions, "--F3 $f3");  
+    $searchOptions{"--F3"} =  $f3;  
   }
   
-  my $searchOptions = join(' ', @searchOptions);
+  unless($ism){
+    my $line = $descObj->SM;
+    if($line =~ /hmmsearch (.*) HMM/){
+      while($line =~ /(-{1,2}\w+)\s+([A-Z0-9\.]){0,1}/g){
+        my $optFlag = $1;
+        my $optParam = $2 if($2);
+        
+        unless(defined($searchOptions{$optFlag})){
+           if($optParam){
+              $searchOptions{$optFlag} = $optParam; 
+           }else{
+              $searchOptions{$optFlag} = 0; 
+           }
+        }
+        
+      }
+    }elsif($line =~ /hmmsearch\s+HMM/){
+      ;
+    }else{
+      die "Did not reecognise SM line ".$descObj->SM."\n";
+    }
+  }
+  
+  my $searchOptions = 'hmmsearch';
+  foreach my $opt (keys %searchOptions){
+    if($searchOptions{$opt}){
+      $searchOptions .= " $opt ".$searchOptions{$opt}; 
+    }else{
+      $searchOptions .= " $opt"; 
+    } 
+  }
+  $searchOptions .= " HMM";
   
 #-------------------------------------------------------------------------------    
 #  
@@ -191,8 +286,16 @@ sub main {
   my $cmd;
   my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;  
   if($nosplit){
-    $cmd =$config->hmmer3bin."/hmmsearch $searchOptions HMM ".$config->pfamseqLoc."/pfamseq > OUTPUT";
+    $cmd =$config->hmmer3bin."/".$searchOptions." ".$config->pfamseqLoc."/pfamseq > OUTPUT";
+    $descObj->SM($searchOptions." pfamseq");
   }
+  
+  #Okay if we get here, this is a great chance of success!
+  rename("DESC", "DESC.b4.pfbuild") or die "Could not move DESC to DESC.b4.pfbuild";
+  $io->writeDESC( $descObj );
+  
+  unlink('PFAMOUT');
+  unlink('OUTPUT');
   
   if($local){
     system($cmd) 
@@ -217,6 +320,9 @@ sub main {
       } 
     }elsif($farmConfig->{lsf}){
       if($nosplit){
+        
+        
+        
         #system("qsub -N pfamHmmSearch -j y -o /dev/null -b y -cwd -V \'$cmd\'") and die "Failed to submit job to SGE,qsub -N pfamHmmSearch -j -o /dev/null -b y -cwd -V \'$cmd\' \n";  
       }else{
         #TODO split
@@ -250,6 +356,8 @@ Options that influence hmmbuild:
               : should be switched on.  The #=RF line dictates which residues are 
               : matche states. In Pfam, this is often used to mask out nested 
               : domanins.
+  -ignoreBM   : Ignore the BM line present in the DESC file. Otherwise the BM
+              : line will be supplimented to your BM options.  
               
   Both of these options can not be supplied together;
 
@@ -264,6 +372,8 @@ Options that influence hmmsearch:
   -nosplit    : Run the search a one system call against the whole of pfamseq.  
               : Without this option, hmmsearch is run against the split version 
               : of pfamseq.
+  -ignoreSM   : Ignore the SM line present in the DESC file. Otherwise the SM
+              : line will be supplimented to your SM options.            
               
   Note, if -local is specified then nosplit is switched on.
   
