@@ -56,6 +56,18 @@ __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" 
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6iZQ9x3Asiwpg1u+TlgD8w
 
+# in order to be able to use this table in a keyword search plugin, we need to
+# have access to three columns from the rfam table, so we add this extra
+# relationship, with those columns proxied through
+ 
+__PACKAGE__->belongs_to("auto_rfam", 
+                        "RfamDB::Rfam",
+                        { auto_rfam => "auto_rfam"},
+                        { proxy => [ qw( rfam_acc 
+                                         rfam_id
+                                         description
+                                       ) ] } );
+
 
 # You can replace this text with custom content, and it will be preserved on regeneration
 1;
