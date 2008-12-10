@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for genomes
 #
-# $Id: genomes.tt,v 1.1 2008-12-08 13:00:53 jt6 Exp $
+# $Id: genomes.tt,v 1.2 2008-12-10 13:52:26 jt6 Exp $
 
 META title = "Browse Rfam genomes";
 META fullPage = 1;
@@ -16,6 +16,7 @@ META fullPage = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "browse.css" );
+sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -33,6 +34,7 @@ tableBody = BLOCK;
     initialLetter = genome.species.split("").first | upper;
     activeLetters.${initialLetter} = 1 %]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td class="rowNum">[% loop.index %]</td>
       <td>
         <a class="species" 
            href="[% genomeURI; '/'; genome.ncbi_id %]"
@@ -62,29 +64,30 @@ pageList = PROCESS "components/pageList.tt",
 <h1 class="pageHeader">Browse Rfam genomes from [% kingdom %]</h1>
 <p class="browseSummary">
   Rfam covers <strong>[% genomes.size %]</strong> genomes from <strong>[% kingdom %]</strong>.
-  Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
-</p>
 [% ELSE %]
 <h1 class="pageHeader">Browse all Rfam genomes</h1>
 <p class="browseSummary">
   Rfam covers a total of <strong>[% genomes.size %]</strong> genomes. 
+[% END %]
+  The table may be sorted by clicking on the column titles, or restored to the 
+  original order <span class="link" id="sortLink">here</span>. 
+  <strong>Please note</strong> that sorting large tables can be slow. 
   Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
 </p>
-[% END %]
 
 [% pageList %]
 
-<table class="details browse" summary="Browse genomes">
+<table class="details browse"
+       id="browseTable" 
+       summary="Browse genomes">
   <thead>
     <tr>
-      <th rowspan="2">Species name</th>
-      <th rowspan="2">Kingdom</th>
-      <th colspan="2">Number of</th>
-      <th rowspan="2">Genome size</th>
-    </tr>
-    <tr>
+      <th id="indexCol" class="rowNum">Original order</th>
+      <th>Species name</th>
+      <th>Kingdom</th>
       <th>Families</th>
       <th>Regions</th>
+      <th>Genome size</th>
     </tr>
   </thead>
   <tbody>
@@ -101,7 +104,26 @@ pageList = PROCESS "components/pageList.tt",
 </div>
 -->
 
+<script type="text/javascript">
+  // <![CDATA[
+  var sorter = new TableKit( "browseTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+
+  [% # add a listener to the "return to original sort order" link,
+     # now that the table sort object is actually defined %]
+  $("sortLink").observe( "click", function() {
+    sorter.sort(0);
+  } );  // ]]>
+</script>
+
 <!-- end browse page -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 

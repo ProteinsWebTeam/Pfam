@@ -4,7 +4,7 @@
 # 
 # build a "browse" page for Rfam families
 #
-# $Id: families.tt,v 1.4 2008-12-08 13:01:30 jt6 Exp $
+# $Id: families.tt,v 1.5 2008-12-10 13:52:17 jt6 Exp $
 
 META title = "Browse Rfam families";
 META fullPage = 1;
@@ -15,6 +15,7 @@ META fullPage = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "browse.css" );
+sharedRequirements.js.push( "tablekit.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -61,25 +62,33 @@ pageList = BLOCK %]
   END %]
 </h1>
 
+<p class="browseSummary">
+  The table may be sorted by clicking on the column titles, or restored to the 
+  original order <span class="link" id="sortLink">here</span>. 
+  <strong>Please note</strong> that sorting large tables can be slow. 
+  Go <a href="[% c.uri_for( '/browse' ) %]">back</a> to the browse index. 
+</p>
+
 [% pageList %]
           
-<table class="details browse" summary="Details of Rfam families">
+<table class="details browse" 
+       id="browseTable"
+       summary="Details of Rfam families">
   <thead>
     <tr>
-      <th rowspan="2">ID</th>
-      <th rowspan="2">Accession</th>
-      <th rowspan="2">Type</th>
-      <th colspan="2">Number of sequences</th>
-      <th rowspan="2">Description</th>
-    </tr>
-    <tr>
+      <th id="indexCol" class="rowNum">Original order</th>
+      <th>ID</th>
+      <th>Accession</th>
+      <th>Type</th>
       <th>Seed</th>
       <th>Full</th>
+      <th>Description</th>
     </tr>
   </thead>
   <tbody>
   [% FOREACH rfam IN families -%]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
+      <td class="rowNum">[% loop.index %]</td>
       <td>
         <a href="[% c.uri_for( '/family', rfam.rfam_acc ) %]">[% rfam.rfam_id %]</a>
       </td>
@@ -96,6 +105,24 @@ pageList = BLOCK %]
 </table>
 
 [% pageList %]
+
+<script type="text/javascript">
+  // <![CDATA[
+  var sorter = new TableKit( "browseTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+
+  [% # add a listener to the "return to original sort order" link,
+     # now that the table sort object is actually defined %]
+  $("sortLink").observe( "click", function() {
+    sorter.sort(0);
+  } );  // ]]>
+</script>
 
 <!-- end browse page -->
 [%#
