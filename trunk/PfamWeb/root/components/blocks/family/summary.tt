@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.41 2008-10-23 09:27:51 jt6 Exp $
+# $Id: summary.tt,v 1.42 2009-01-05 16:24:24 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -55,7 +55,7 @@ PROCESS components/links.tt; %]
   
       <ol>
       [% refNum = 1;
-      FOREACH ref IN pfam.pfamA_lit_refs %]
+      FOREACH ref IN pfam.pfamA_lit_refs.sort('order_added') %]
         <li>
           <p>
             [% ref.author %], [% ref.journal %]: [% ref.title %]
@@ -165,13 +165,12 @@ PROCESS components/links.tt; %]
   // <![CDATA[
 
   // set up the post-load AJAX call to load the structure image
-  Event.observe( window, "load", 
-    function() {
-      var r = new Ajax.Updater( "siph", 
-                                 "[% c.uri_for( '/family/structures' ) %]",
-                                 { parameters: { acc: "[% pfam.pfamA_acc %]" } } );
-    }
-  );
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Updater( "siph", 
+                              "[% c.uri_for( '/family/structures' ) %]",
+                              { parameters:  { acc: "[% pfam.pfamA_acc %]" },
+                                evalScripts: true } );
+  } );
   // ]]>
 </script>
 
