@@ -1,11 +1,10 @@
-
 [%
 # sequence.tt
 # jt6 20070419 WTSI
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.10 2008-09-01 10:39:16 jt6 Exp $
+# $Id: sequence.tt,v 1.11 2009-01-05 10:42:06 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -112,6 +111,21 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         [% seqSearchError %]
       </div>
       [% END %]
+
+      <div class="error">
+        <h3>Monday 5<sup>th</sup> January 2009</h3>
+        <p>
+          <strong>Please note:</strong> we are currently experiencing problems with the
+          Pfam sequence search system. The search form below is currently disabled, but
+          we are working to fix the problem as quickly as possible.
+        </p>
+        <p>
+          If you need to perform sequence searches urgently, please consider using the
+          search system in the Pfam site at <a class="ext" href="http://pfam.janelia.org/search/">
+            Janelia Farm</a>. Searches at Janelia will generate identical results to 
+          those from this system.
+        </p>
+      </div>
   
       <form method="post" 
             id="proteinSeqSearchForm"
@@ -212,6 +226,11 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 <script type="text/javascript">
   // <![CDATA[
+
+  // disable the form temporarily...
+  // jt6 20090102 WTSI
+  $("proteinSeqSearchForm").disable();
+  
   var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
 TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
 SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
