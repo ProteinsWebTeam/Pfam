@@ -5,7 +5,7 @@
 # 
 # build the main Rfam home page.
 #
-# $Id: index.tt,v 1.7 2008-10-27 16:02:56 jt6 Exp $
+# $Id: index.tt,v 1.8 2009-01-06 11:55:13 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -334,7 +334,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <div class="citation">
       <span class="title">
         <a class="ext" 
-           href="http://nar.oxfordjournals.org/cgi/content/full/gkn766?ijkey=qKsfJKpTARDanrQ&keytype=ref">
+           href="http://nar.oxfordjournals.org/cgi/content/full/gkn766?ijkey=qKsfJKpTARDanrQ&amp;keytype=ref">
           Rfam: updates to the RNA families database</a>
       </span>
       <span class="authors">
