@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20080314 WTSI
 #
-# $Id: Browse.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
+# $Id: Browse.pm,v 1.3 2009-01-06 11:51:13 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,14 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
+$Id: Browse.pm,v 1.3 2009-01-06 11:51:13 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Data::Dump qw( dump );
 
 use base 'Catalyst::Controller';
 
@@ -62,172 +64,247 @@ Show an index page for the various "browse" pages.
 sub browse : Global {
   my ( $this, $c ) = @_;
 
-  if ( defined $c->stash->{from} and
-       defined $c->stash->{to} ) {
-    $c->log->debug( 'Browse::browse_families: browsing by first letter' )
+  # copy the kingdoms list into the stash so that we can use them to build the
+  $c->stash->{kingdoms} = [ sort keys %{ $this->{kingdoms} } ]; 
+
+  my $cache_key = 'active_letters_hash';
+  my $active_letters = $c->cache->get( $cache_key );
+  if ( defined $active_letters ) {
+    $c->log->debug( 'Browse::browse: retrieved active letters list from cache' )
       if $c->debug;
-    $c->forward( 'browse_range' );
   }
-  
-  elsif( defined $c->stash->{numbers} ) {
-    $c->log->debug( 'Browse::browse_families: browsing by number' )
+  else {
+    $c->log->debug( 'Browse::browse: failed to retrieve active letters list from cache; going to DB' )
       if $c->debug;
 
-    $c->stash->{from} = 0;
-    $c->stash->{to}   = 9;
-    $c->forward( 'browse_range' );
+    # get a list of all genomes, then hash them on kingdom and species name first
+    # letter
+    my @res = $c->model('RfamDB::GenomeSummary')
+                ->search( {},
+                          { order_by => 'species ASC' } );
+
+    $active_letters = { all => {} };
+    foreach my $kingdom ( keys %{ $this->{kingdoms} } ) {
+      $active_letters->{$kingdom} = {};
+    }
+
+    foreach my $genome_row ( @res ) {
+      my $first_letter = uc( substr( $genome_row->species, 0, 1 ) );
+      $active_letters->{$genome_row->kingdom}->{$first_letter} = 1;
+      $active_letters->{all}->{$first_letter} = 1;
+    }
+
+    $c->cache->set( $cache_key, $active_letters );
   }
-  
-  elsif( defined $c->stash->{top20} ) {
-    $c->log->debug( 'Browse::browse_families: browsing top twenty families' )
-      if $c->debug;
-    $c->forward( 'browse_top20' );
-  }
+
+  $c->stash->{active_letters} = $active_letters;
+
+  #$c->log->debug( "Browse::browse: active_letters: " . dump( $active_letters ) )
+  #  if $c->debug;
 
   $c->stash->{template} ||= 'pages/browse/index.tt';
 }
 
 #-------------------------------------------------------------------------------
-#- private actions -------------------------------------------------------------
+#- genomes ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 browse_genomes : Path
 
-Description...
+Retrieves the list of genomes from the DB and stashes them for the template.
 
 =cut
 
-sub browse_range : Private {
+sub browse_genomes : Chained( '/' )
+                     PathPart( 'genome' )
+                     CaptureArgs( 0 ) {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( 'Genome::browse_genomes: building a list of genomes' )
+    if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 browse_genomes : Path
+
+Retrieves the full list of genomes from the DB and stashes them for the 
+template.
+
+=cut
+
+sub browse_list : Chained( 'browse_genomes' )
+                  PathPart( 'browse' )
+                  Args( 0 ) {
+  my( $this, $c ) = @_;
+
+  $c->log->debug( 'Genome::browse_list: building full list of genomes' )
+    if $c->debug;
+
+  my @res = $c->model('RfamDB::GenomeSummary')
+              ->search( {},
+                        { order_by => 'species ASC' } );
+
+  $c->log->debug( 'Genome::browse_list: found ' . scalar @res
+                  . ' genomes' ) if $c->debug;
+
+  # stash the results for the template
+  $c->stash->{genomes} = \@res if scalar @res;
+
+  # render the page
+  $c->stash->{template} = 'pages/browse/genomes.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 browse_by_kingdom : Path
+
+Retrieves the list of genomes from a particular kingdom and stashes them for 
+the template.
+
+=cut
+
+sub browse_by_kingdom : Chained( 'browse_genomes' )
+                        PathPart( 'browse' )
+                        Args( 1 ) {
+  my ( $this, $c, $tainted_kingdom ) = @_;
+
+  my ( $kingdom ) = $tainted_kingdom =~ m/^([\w\-\.\"\']+)/;
+  unless ( defined $kingdom ) {
+    $c->log->debug( 'Genome::browse_by_kingdom: no kingdom name found' )
+      if $c->debug;  
+
+    $c->stash->{errorMsg} = 'You must give a valid kingdom name';
+    
+    return;
+  }
+
+  $c->log->debug( "Genome::browse_by_kingdom: looking for kingdom |$kingdom|" )
+    if $c->debug;  
+
+  unless ( defined $this->{kingdoms}->{$kingdom} ) {
+    $c->log->debug( 'Genome::browse_by_kingdom: unknown kingdom name found' )
+      if $c->debug;  
+
+    $c->stash->{errorMsg} = 'Unknown kingdom';
+    
+    return;
+  }
+
+  $c->log->debug( "Genome::browse_by_kingdom: building list of genomes for '$kingdom'" )
+    if $c->debug;
+
+  $c->stash->{kingdom} = $kingdom;
+
+  my @res = $c->model('RfamDB::GenomeSummary')
+              ->search( { kingdom => $kingdom },
+                        { order_by => 'species ASC' } );
+
+  $c->log->debug( 'Genome::browse_by_kingdom: found ' . scalar @res
+                  . " genomes for '$kingdom'" ) if $c->debug;
+
+  # stash the results for the template
+  $c->stash->{genomes} = \@res if scalar @res;
+
+  # render the page
+  $c->stash->{template} = 'pages/browse/genomes.tt';
+}
+
+#-------------------------------------------------------------------------------
+#- families --------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 browse_families : Chained PathPart CaptureArgs
+
+Start of a chain for building the "browse families" pages.
+
+=cut
+
+sub browse_families : Chained( '/' )
+                      PathPart( 'family' )
+                      CaptureArgs( 0 ) {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Browse::browse_range: |' . $c->stash->{from}
-                  . '|' . $c->stash->{to} . '|' ) if $c->debug;
+  $c->log->debug( 'Browse::browse_families: building a list of families' )
+    if $c->debug;
 
-  # sort the "letters" so that we know what we're getting from the loop
-  my ( $from, $to ) = sort ( $c->stash->{from}, $c->stash->{to} );
+                        
+  $c->stash->{template} = 'pages/browse/families.tt';
+}
 
-  my @families;
-  foreach my $char ( $from .. $to ) {
-    my @rs = $c->model('RfamDB::Rfam')
-                 ->search( { rfam_id => { 'LIKE', qq($char%) } },
-                           { order_by => 'rfam_id' } );
-    
-    $c->log->debug( 'Browse::browse_range: found |' . scalar @rs
-                    . '| families beginning with |' . $char . '|' )
+#-------------------------------------------------------------------------------
+
+=head2 browse_letter : Chained PathPart Args
+
+Build a page showing the list of families starting with a particular 
+letter/number. End of a dispatch chain.
+
+=cut
+
+sub browse_letter : Chained( 'browse_families' )
+                    PathPart( 'browse' )
+                    Args( 1 ) {
+  my ( $this, $c, $tainted_letter ) = @_;
+  
+  if ( $tainted_letter eq 'top20' ) {
+    $c->log->debug( 'Browse::browse_letter: showing top 20 largest families' )
       if $c->debug;
-    
-    push @families, @rs;
-  } 
+
+    my @rs = $c->model('RfamDB::Rfam')
+               ->search( { },
+                         { rows     => 20,
+                           page     => 1,
+                           order_by => 'num_full DESC' }
+                         )->all;
+  
+    $c->log->debug( 'Browse::browse_letter: got |' . scalar @rs
+                    . '| top20 families' ) if $c->debug;
+  
+    $c->stash->{top20}    = 1;
+    $c->stash->{families} = \@rs;
+  }
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 browse_range : Chained PathPart Args
+
+Build a page showing the list of families starting with a particular 
+letter/number. End of a dispatch chain.
+
+=cut
+
+sub browse_range : Chained( 'browse_families' ) 
+                   PathPart( 'browse' )
+                   Args( 2 ) {
+  my ( $this, $c, $tainted_a, $tainted_b ) = @_;
+
+  my ( $a ) = $tainted_a =~ m/^(\w)$/;
+  my ( $b ) = $tainted_b =~ m/^(\w)$/;
+  
+  my ( $from, $to ) = sort ( $a, $b );
+  
+  $c->log->debug( "Browse::browse_range: from / to: |$from|$to|" ) if $c->debug;
+
+  # according to the DBIC docs, it's bad to use an SQL function on the left-
+  # hand side of a comparison like this (here we're doing a SUBSTRING), because
+  # it means that the DB engine has to scan the whole table. Because the Rfam 
+  # table is likely to contain only on the order of thousands of rows (unless 
+  # something drastic happens), we should be okay. 
+
+  my @families = $c->model('RfamDB::Rfam')
+                   ->search( { 'SUBSTRING(rfam_id,1,1)'  => { 'IN', [ $from .. $to ] } },
+                             { order_by => 'rfam_id' } );                   
+
   $c->log->debug( 'Browse::browse_range: found |' . scalar @families
                   . '| families in total' ) if $c->debug;
 
+  $c->stash->{from}     = $from;
+  $c->stash->{to}       = $to;
   $c->stash->{families} = \@families;
   $c->stash->{template} = 'pages/browse/families.tt';
-
 }
 
-#-------------------------------------------------------------------------------
-
-=head2 action : Attribute
-
-Description...
-
-=cut
-
-sub browse_top20 : Private {
-  my ( $this, $c ) = @_;
-  
-  my @rs = $c->model('RfamDB::Rfam')
-             ->search( { },
-                       { rows     => 20,
-                         page     => 1,
-                         order_by => 'num_full DESC' }
-                       )->all;
-
-  $c->log->debug( 'Browse::browse_top20: found |' . scalar @rs
-                  . '| families in total' ) if $c->debug;
-
-  $c->stash->{families} = \@rs;
-  $c->stash->{template} = 'pages/browse/families.tt';
-  
-}
-
-#-------------------------------------------------------------------------------
-#- cargo area ------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-#  my @res;
-#
-#  if( lc $c->req->param('browse') eq 'numbers' ) {
-#    $c->log->debug( 'Browse::browseFamilies: browsing "numbers"...' );
-#    $c->stash->{char} = 'numbers';
-#
-#    # run the query to get back all families starting with a number
-#    @res = $c->model('PfamDB::Pfam')
-#             ->search( { pfamA_id => { 'REGEXP', '^[0-9]' } },
-#                       { order_by => 'pfamA_id ASC' } );
-#
-#  } elsif( lc $c->req->param('browse') eq 'top twenty' ) {
-#    $c->log->debug( 'Browse::browseFamilies: browsing "top twenty"...' );
-#    $c->stash->{char} = 'top twenty';
-#
-#    # retrieve the top twenty largest families, ordered by number of
-#    # sequences in the family
-#    @res = $c->model('PfamDB::Pfam')
-#            ->search( { },
-#                      { rows     => 20,
-#                        page     => 1,
-#                        order_by => 'num_full DESC' }
-#                      )->all;
-#
-#  } else {
-#
-#    $c->log->debug( 'Browse::browseFamilies: not a number, not "top twenty"...' );
-#
-#    # see if we should load the page for families starting with a given letter
-#    my $char;
-#    ( $char ) = $c->req->param('browse') =~ /^(\w{1})$/;
-#
-#    if( defined $char ) {
-#      $c->log->debug( "Browse::browseFamilies: browsing for a character: |$char|" );
-#      $c->stash->{char} = uc $char;
-#  
-#      # run the query to get back all families starting with the
-#      # specified letter, ordered by ID
-#      @res = $c->model('PfamDB::Pfam')
-#               ->search( { pfamA_id => { 'LIKE', qq($char%) } },
-#                         { order_by => 'pfamA_id' } );
-#
-#    } else {
-#
-#      # either "new" specified, or no starting letter specified, so default 
-#      # to new families anyway
-#      $c->log->debug( 'Browse::browseFamilies: browsing new entries' );
-#      $c->stash->{char} = 'new';
-#  
-#      @res = $c->model('PfamDB::Pfam')
-#               ->search( { change_status => 'NEW' },
-#                         {order_by => 'pfamA_id ASC' } );
-#
-#    }
-#
-#  }
-#
-#  # stash the results for the template
-#  $c->stash->{browse} = \@res if scalar @res;
-#
-#  # set the template and let the default end action from Section
-#  # render it for us
-#  if( $c->req->param('list') ) {
-#    # we want to return just the list of Pfam IDs, as a snippet of HTML.
-#    # This is used in the domain query search form
-#    $c->stash->{template} = 'pages/browse/ids.tt';
-#  } else {
-#    # just render as a regular 'browse' page
-#    $c->stash->{template} = 'pages/browse/families.tt';
-#  }
-#}
-#
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
