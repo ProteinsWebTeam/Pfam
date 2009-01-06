@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20080306 WTSI
 #
-# $Id: Family.pm,v 1.5 2008-11-04 15:07:56 jt6 Exp $
+# $Id: Family.pm,v 1.6 2009-01-06 11:52:06 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ load a Rfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.5 2008-11-04 15:07:56 jt6 Exp $
+$Id: Family.pm,v 1.6 2009-01-06 11:52:06 jt6 Exp $
 
 =cut
 
@@ -82,48 +82,32 @@ sub begin : Private {
                       $entry_arg              ||
                       '';
   
-  my $entry;
-  if ( $tainted_entry ) {
-    ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
-    $c->stash->{errorMsg} = 'Invalid Rfam family accession or ID' 
-      unless defined $entry;
-  }
-  else {
-    $c->stash->{errorMsg} = 'No Rfam family accession or ID specified';
+  my ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
+
+  unless ( defined $entry ) {
+    $c->log->debug( 'Family::begin: no valid Rfam family accession or ID' )
+      if $c->debug;
+
+    $c->stash->{errorMsg} = 'Invalid Rfam family accession or ID';
+
+    return;
   }
   
   #  find out what type of alignment we need, seed, full, ncbi, etc
   $c->stash->{alnType} = 'seed';
   if( defined $c->req->param('alnType') ) {
     $c->stash->{alnType} = $c->req->param( 'alnType' ) eq 'full' ? 'full'
-                         :                                         'seed';
+                                                                 : 'seed';
   }
   
   $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
     if $c->debug;
-  
-  # retrieve data for the family
-  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
-  
-  #----------------------------------------
-  
-  # dead families are a special case...
-#  if( $c->stash->{entryType} eq 'D' ) {
-#    
-#    $c->log->debug( 'Family::begin: got a dead family; setting a refresh URI' ) 
-#      if $c->debug;
-#
-#    if( $c->stash->{pfam}->forward_to ) {
-#      $c->stash->{refreshUri} =
-#        $c->uri_for( '/family', { acc => $c->stash->{pfam}->forward_to } );
-#    } else {
-#      $c->stash->{refreshUri} = $c->uri_for( '/' );
-#    }
-#    
-#    # set the template. This will be overridden below if we're emitting XML
-#    $c->stash->{template} = 'pages/dead.tt';
-#  }
 
+  #----------------------------------------
+
+  # retrieve data for the family
+  $c->forward( 'get_data', [ $entry ] );
+  
   #----------------------------------------
 
   # if we're outputting HTML, we're done here
@@ -132,9 +116,7 @@ sub begin : Private {
     return;
   }
 
-  #----------------------------------------
   # from here on we're handling XML output
-
   $c->log->debug( 'Family::begin: emitting XML' ) if $c->debug;
 
   # if there was an error...
@@ -144,25 +126,6 @@ sub begin : Private {
     $c->stash->{template} = 'rest/family/error_xml.tt';
     return;
   }
-  
-  # decide on the output template, based on the type of family that we have
-  if ( $c->stash->{entryType} eq 'A' ) {
-    $c->log->debug( 'Family::begin: got data for a Pfam-A' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/pfama_xml.tt';
-  }
-  elsif( $c->stash->{entryType} eq 'B' ) {
-    $c->log->debug( 'Family::begin: got data for a Pfam-B' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/pfamb_xml.tt';
-  }
-  elsif( $c->stash->{entryType} eq 'D' ) {
-    $c->log->debug( 'Family::begin: got data for a dead family' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/dead_xml.tt';
-  }
-  else {
-    $c->log->debug( 'Family::begin: got an error' ) if $c->debug;
-    $c->stash->{template} = 'rest/family/error_xml.tt';
-  }
-
 }
 
 #-------------------------------------------------------------------------------
@@ -264,6 +227,64 @@ sub cm : Local {
 }
 
 #-------------------------------------------------------------------------------
+
+=head2 regions : Local
+
+Builds a tab-delimited file containing all regions for this family
+
+=cut
+
+sub regions : Local {
+  my ( $this, $c ) = @_;
+  
+  $c->log->debug( 'Family::regions: building tab-delimited list of regions' )
+    if $c->debug;
+
+  if ( $c->stash->{showText} ) {
+    $c->log->debug( 'Family::regions: showText flag set earlier; retrieving regions' )
+      if $c->debug;
+    $c->forward( 'get_regions_data' );
+  }
+
+  unless ( defined $c->stash->{regions} ) {
+    $c->log->debug( 'Family::regions: num_full > showText limit; not showing regions' )
+      if $c->debug;
+
+    $c->res->status( 403 );
+    $c->res->body( 'The family has too many regions to list.' );
+
+    return;
+  }
+  
+  # build a sensible filename
+  my $filename = $c->stash->{acc} . '_regions.txt';
+  $c->res->content_type( 'text/plain' );
+  $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+
+  # add a meaningful header
+  my $regions = '# Rfam regions for family ' . $c->stash->{rfam}->rfam_id 
+                . ' (' . $c->stash->{rfam}->rfam_acc . ")\n"
+                . '# file built ' . localtime(). ' using Rfam version ' 
+                . $c->stash->{relData}->rfam_release
+                . ' (released ' . $c->stash->{relData}->rfam_release_date . ")\n";
+
+  # add the rows
+  foreach my $region ( @{ $c->stash->{regions} } ) {
+    $regions .= $region->get_column('rfamseq_id' ) . "\t";
+    $regions .= $region->bits_score . "\t";
+#    $regions .= $region->type . "\t";
+    $regions .= $region->seq_start . "\t";
+    $regions .= $region->seq_end . "\t";
+    $regions .= $region->get_column('description' ) . "\t";
+    $regions .= $region->get_column('species' ) . "\n";
+  }
+
+  # stuff the content into the response and we're done. The View won't try to 
+  # render a template, since the body already contains content
+  $c->res->body( $regions );
+}
+
+#-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
@@ -271,7 +292,7 @@ sub cm : Local {
 
 Retrieves family data for the given entry. Accepts the entry ID or accession
 as the first argument. Does not return any value but drops the L<ResultSet>
-for the relevant row into the stash.
+  for the relevant row into the stash.
 
 =cut
 
@@ -285,53 +306,55 @@ sub get_data : Private {
                          
   my $rfam = $rs->first if defined $rs;
   
-  if ( $rfam ) {
-    $c->log->debug( 'Family::get_data: got a family' ) if $c->debug;
-    $c->stash->{rfam}       = $rfam;
-    $c->stash->{acc}        = $rfam->rfam_acc;
-    $c->stash->{entryType}  = 'R';
-    
-    unless( $c->stash->{output_xml} ) {
-      $c->log->debug( 'Family::get_data: NOT returning XML; adding extra info' ) 
-          if $c->debug;
-      
-      # if this request originates at the top level of the object hierarchy,
-      # i.e. if it's a call on the "default" method of the Family object,
-      # then we'll need to do a few extra things
-      if ( ref $this eq 'RfamWeb::Controller::Family' ) {
-        $c->log->debug( 'Family::get_data: adding extra family info' ) if $c->debug;
-        
-        $c->forward( 'get_summary_data' );
-        #$c->forward( 'get_db_xrefs' );
-        #$c->forward( 'get_go_data' );
-        #$c->forward( 'get_interactions' );
-      }
+  unless ( defined $rfam ) {
+    $c->log->debug( 'Family::get_data: no row for that accession/ID' )
+      if $c->debug;
+  
+    $c->stash->{errorMsg} = 'No valid Rfam family accession or ID';
 
-    } # end of "unless XML..."
-    
     return;
+  }  
 
-  } # end of "if pfam..."
+  $c->log->debug( 'Family::get_data: got a family' )
+    if $c->debug;
 
-  #----------------------------------------
-  # check for a dead Pfam-A
-  
-#  $pfam = $c->model('PfamDB::Dead_families')
-#            ->find( { pfamA_acc => $entry } );
-#  
-#  if( $pfam ) {
-#    $c->log->debug( 'Family::get_data: got a dead family' ) if $c->debug;
-#    $c->stash->{pfam}      = $pfam;
-#    $c->stash->{acc}       = $pfam->pfamA_acc;
-#    $c->stash->{entryType} = 'D';
-#    return;
-#  }
+  $c->stash->{rfam} = $rfam;
+  $c->stash->{acc}  = $rfam->rfam_acc;
+  $c->stash->{entryType}  = 'R';
 
-  #----------------------------------------
-  # there's a problem... by this point we really should have retrieved a
-  # row and returned
-  
-  $c->stash->{errorMsg} = 'No valid Rfam family accession or ID';
+  # if we're returning XML, we don't need the extra summary data etc.  
+  if ( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Family::get_data: returning XML; NOT adding extra info' ) 
+        if $c->debug;    
+    return;
+  }
+    
+  # unless this request originates at the top level of the object hierarchy,
+  # we don't need the extra summary data
+  unless ( ref $this eq 'RfamWeb::Controller::Family' ) {
+    $c->log->debug( 'Family::get_data: not the root Family controller; NOT adding extra family info' )
+      if $c->debug;
+    return;
+  }
+
+  # finally, having decided that we need it...
+  $c->forward( 'get_summary_data' );
+
+  # load the data for all regions, provided the number of regions is less than
+  # the limit set in the config
+  if ( $rfam->num_full <= $this->{regionsLimits}->{showAll} ) {
+    $c->log->debug( 'Family::get_data: num_full <= showAll limit; retrieving regions' )
+      if $c->debug;
+    $c->stash->{showAll} = 1;
+    $c->forward( 'get_regions_data' );
+  }
+  elsif ( $rfam->num_full <= $this->{regionsLimits}->{showText} ) {
+    $c->log->debug( 'Family::get_data: num_full <= showText limit; retrieving regions later' )
+      if $c->debug;
+    $c->stash->{showText} = 1;
+  }
+
+  #$c->forward( 'get_db_xrefs' );
 }
 
 #-------------------------------------------------------------------------------
@@ -353,7 +376,11 @@ sub get_summary_data : Private {
   $summaryData->{numSequences} = $c->stash->{rfam}->num_full;
 
   # number of structures known for the domain
-  $summaryData->{numStructures} = 1;
+  my $rs = $c->model('RfamDB::PdbRfamReg')
+             ->search( { auto_rfam => $c->stash->{rfam}->auto_rfam },
+                       {} );
+
+  $summaryData->{numStructures} = $rs->count;
 
   # Number of species
   $summaryData->{numSpecies} = $c->stash->{rfam}->number_of_species;
@@ -362,6 +389,43 @@ sub get_summary_data : Private {
   $summaryData->{numInt} = 0;
 
   $c->stash->{summaryData} = $summaryData;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 get_regions_data : Private
+
+Retrieves sequence data for the family.
+
+=cut
+
+sub get_regions_data : Private {
+  my ( $this, $c ) = @_;
+  
+  # save some typing...
+  my $rfam = $c->stash->{rfam};
+
+  $c->log->debug( 'Family::get_regions_data: family has |'
+                  . $rfam->num_full . '| regions' ) if $c->debug;
+
+  my @regions = $c->model('RfamDB::RfamRegFull')
+                  ->search( { auto_rfam => $rfam->auto_rfam },
+                            { join      => [ 'auto_rfamseq' ],
+                              '+select' => [ qw( auto_rfamseq.rfamseq_id
+                                                 auto_rfamseq.rfamseq_acc
+                                                 auto_rfamseq.description
+                                                 auto_rfamseq.species ) ],
+                              '+as'     => [ qw( rfamseq_id
+                                                 rfamseq_acc
+                                                 description
+                                                 species ) ],
+                              order_by  => [ 'bits_score DESC' ] } );
+                                            
+  $c->stash->{regions} = \@regions;
+  $c->stash->{showAll} = 1;
+
+  $c->log->debug( 'Family::get_regions_data: added |' . scalar @regions
+                  . '| regions to stash' ) if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
@@ -488,42 +552,6 @@ Retrieve the database cross-references for the family.
 #  $xRefs->{atobBOTH} = \@atobBOTH if scalar @atobBOTH;
 #
 #  $c->stash->{xrefs} = $xRefs;
-#}
-
-#-------------------------------------------------------------------------------
-
-=head2 get_go_data : Private
-
-Retrieves the gene ontology (GO) data for the family.
-
-=cut
-
-#sub get_go_data : Private {
-#  my( $this, $c ) = @_;
-#
-#  my @goTerms = $c->model('PfamDB::GO')
-#                  ->search( { 'me.auto_pfamA' => $c->stash->{pfam}->auto_pfamA } );
-#
-#  $c->stash->{goTerms} = \@goTerms;
-#}
-
-#-------------------------------------------------------------------------------
-
-=head2 get_interactions : Private
-
-Retrieves details of the interactions between this family and others.
-
-=cut
-
-#sub get_interactions : Private {
-#  my( $this, $c ) = @_;
-#  
-#  my @interactions = $c->model('PfamDB::PfamA_interactions')
-#                       ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA },
-#                                 { join     => [ qw( pfamA_B ) ],
-#                                   prefetch => [ qw( pfamA_B ) ] } );
-#
-#  $c->stash->{interactions} = \@interactions;
 #}
 
 #-------------------------------------------------------------------------------
