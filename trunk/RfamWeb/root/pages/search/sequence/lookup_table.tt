@@ -4,20 +4,12 @@
 #
 # show the Rfam hits on a specific EMBL sequence
 #
-# $Id: lookup_table.tt,v 1.2 2008-12-08 13:05:00 jt6 Exp $
+# $Id: lookup_table.tt,v 1.3 2009-01-06 11:59:41 jt6 Exp $
 
 META naked = 1;
 
-USE String;
-
-# store the first row of the results, since we use itin various places as the 
-# source of information about this particular rfamseq row 
-firstRow = results.first;
-
 # loop counter
 oe = 0;
-
-familyUri = c.uri_for( "/family" );
 %]
 <!-- start of "results" table -->
 
