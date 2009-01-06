@@ -4,7 +4,7 @@
 
    Stylesheet for the search pages, both the forms and the result pages.
 
-   $Id: search.css,v 1.1 2008-09-12 09:28:22 jt6 Exp $
+   $Id: search.css,v 1.2 2009-01-06 12:26:38 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -121,7 +121,7 @@ div.autocomplete span.informal {
   padding: 0.2em;
   border: 1px solid #CCC;
   background: #DDD;
-  width: 15em;
+  width: 35em;
 }
 
 #taxonomyQuery {
@@ -135,4 +135,38 @@ div.autocomplete span.informal {
 
 #batchNotes code {
   margin-left: 2em;
+}
+
+/* ---------------------------------------- */
+/* entry type search form */
+
+#treeDiv {
+  margin-left: 15em;
+}
+
+td.nodeSummaryCell {
+  display: none;
+}
+
+/* entry type search results */
+
+/* the list of "paths" */
+#pathsList {
+  list-style: none;
+  text-align: left;
+}
+
+/* ---------------------------------------- */
+/* sequence hits key */
+
+#sequenceHitsKey table.details {
+  margin: 0 auto;
+}
+
+#sequenceHitsKey table.details td.data {
+  text-align: left;
+}
+
+.ygtvlabel {
+  background-color: inherit ! important;
 }
