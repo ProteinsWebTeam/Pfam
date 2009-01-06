@@ -1,0 +1,51 @@
+[%
+# error.tt
+# jt6 20081127 WTSI
+#
+# show an error report for the genome page.
+#
+# $Id: error.tt,v 1.1 2009-01-06 12:14:42 jt6 Exp $
+
+# tell the wrapper to add the full page footer
+META fullPage = 1;
+
+message = BLOCK;
+
+  IF c.error.size AND constants.debug %]
+
+    <p>There was a <em>system error</em> when loading the requested genome page:</p>
+    <p class="message">[% c.error.first %]</p>
+
+  [%- ELSE %]
+
+    <p>There was a problem loading the requested genome page.</p>
+
+    [% IF errorMsg %]
+      <p class="message">[% errorMsg %]</p>
+    [% END;
+
+  END; # of IF DEBUG...
+
+END; # of block
+
+PROCESS pages/sectionError.tt %]
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
