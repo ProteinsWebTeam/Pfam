@@ -1,0 +1,184 @@
+[%
+# type.tt
+# jt6 20081121 WTSI
+# 
+# build the entry type search block
+#
+# $Id: type.tt,v 1.1 2009-01-06 12:13:09 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "search.css" );
+requirements.css.push( "forms.css" );
+requirements.cssIeAll.push( "forms_all_ie.css" );
+
+sharedRequirements.css.push( "tree.css" );
+sharedRequirements.js.push( "yui/TaskNode.js" );
+sharedRequirements.js.push( "treeTweak.js" );
+
+#-------------------------------------------------------------------------------
+%]
+
+<!-- start type search block -->
+
+<div class="block" id="searchTypeBlock">
+  <div class="handle">
+    <h1>Entry type search</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      Search for Rfam families by type.
+      <span class="moreLink" onclick="reveal(this,'typeNotes',false, true)">More...</span>
+    </p>
+    <div id="typeNotes" style="display: none">
+      <p>
+        Instructions on using the form.
+      </p>
+      <hr />
+    </div>
+
+    <div class="formWrapper">
+
+      [% IF typeSearchError %]
+      <div class="error">
+        <h2>Error</h2>
+        [% typeSearchError %]
+      </div>
+      [% END %]
+  
+      <form method="post" 
+            id="proteinTypeSearchForm"
+            onsubmit="return submitForm();"
+            action="[% c.uri_for( "/search/type" ) %]">
+    
+        <div class="row">
+          <label for="q">Entry types</label>
+          <div id="treeDiv"></div>
+        </div>
+
+        <div class="row">
+          <label class="blankLabel">Submit</label>
+          <input class="submit"
+                 type="submit"
+                 name="submit"
+                 value="Submit" />
+          <input class="reset"
+                 type="reset"
+                 name="reset"
+                 value="Reset" 
+                 onclick="tree.getRoot().children.invoke('uncheck');" />
+          <input class="example" 
+                 type="button" 
+                 value="Example"
+                 onclick="fillTypeExample();" />
+
+          <input type="hidden"
+                 id="typePaths"
+                 name="paths" />
+        </div>
+
+      </form>
+  
+    </div>
+  
+  </div>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  var treeData = [
+    { label: "Gene", path: "Gene;",
+      children: [ { label: "anti-sense", path: "Gene;antisense;" },
+                  { label: "microRNA", path: "Gene;miRNA;" },
+                  { label: "rRNA", path: "Gene;rRNA;" },
+                  { label: "ribozyme", path: "Gene;ribozyme;" },
+                  { label: "sRNA", path: "Gene;sRNA;" },
+                  { label: "snRNA", path: "Gene;snRNA;",
+                    children: [ { label: "snoRNA", path: "Gene;snRNA;snoRNA;",
+                                  children: [ { label: "CD-box", path: "Gene;snRNA;snoRNA;CD-box;" },
+                                              { label: "HACA-box", path: "Gene;snRNA;snoRNA;HACA-box;" },
+                                              { label: "scaRNA", path: "Gene;snRNA;snoRNA;scaRNA;" } ] },
+                                { label: "splicing", path: "Gene;snRNA;splicing;" } ] },
+                  { label: "tRNA", path: "Gene;tRNA;" } ] },
+    { label: "Intron", path: "Intron;" },
+    { label: "Cis-regulatory element", path: "Cis-reg;",
+      children: [ { label: "IRES", path: "Cis-reg;IRES;" },
+                  { label: "Frameshift element", path: "Cis-reg;frameshift_element;" },
+                  { label: "leader", path: "Cis-reg;leader;" },
+                  { label: "riboswitch", path: "Cis-reg;riboswitch;" },
+                  { label: "thermoregulator", path: "Cis-reg;thermoregulator;" } ] }
+  ];
+  
+  var exampleData = { "sRNA": 1,
+                       "riboswitch" : 1 };
+
+  var tree;
+  var nodes = new Array();
+  function treeInit() {
+    var build = function ( parent, oConfig ) {
+      var i, item, node;
+      for ( var i = 0; i < oConfig.length; i++ ) {
+        item = oConfig[i];
+        node = new YAHOO.widget.TaskNode( item.label, parent, item.path, true, false, false );
+        nodes.push( node );
+        if ( item.children ) {
+          build( node, item.children );
+        }
+      }
+    };
+    tree = new YAHOO.widget.TreeView( "treeDiv" );
+    build( tree.getRoot(), treeData );
+    tree.draw();
+  }
+  YAHOO.util.Event.onDOMReady( treeInit );
+
+  function submitForm() {
+    var checked = $$("td.ygtvcheck2").collect(
+      function(cell) {
+        return cell.next('td',1).innerHTML;
+      }
+    );
+    if ( checked.length < 1 ) {
+      return false;
+    }
+
+    $("typePaths").setValue( checked.join(",") );        
+    return true;
+  }
+
+  function fillTypeExample() {
+    nodes.each( function( node ) {
+      node.uncheck();
+      if ( exampleData[node.data] ) {
+        node.check();
+      }
+    } );
+  }
+
+  // ]]>
+</script>
+
+<!-- end type search block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
