@@ -2,7 +2,7 @@
 # Batch.pm
 # jt6 20061108 WTSI
 #
-# $Id: Batch.pm,v 1.1 2008-09-12 09:13:32 jt6 Exp $
+# $Id: Batch.pm,v 1.2 2009-01-06 11:53:11 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package RfamWeb::Controller::Search::Batch;
 This controller is responsible for running batch searches for nucleic acid 
 sequences.
 
-$Id: Batch.pm,v 1.1 2008-09-12 09:13:32 jt6 Exp $
+$Id: Batch.pm,v 1.2 2009-01-06 11:53:11 jt6 Exp $
 
 =cut
 
@@ -28,7 +28,7 @@ use Scalar::Util qw( looks_like_number );
 use Email::Valid;
 
 use base qw( PfamBase::Controller::Search::BatchSearch
-             PfamWeb::Controller::Search );
+             RfamWeb::Controller::Search );
 
 #-------------------------------------------------------------------------------
 
