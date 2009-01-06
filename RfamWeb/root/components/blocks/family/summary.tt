@@ -1,11 +1,10 @@
-
 [%
 # summary.tt
 # jt6 20060406 WTSI
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.6 2008-10-23 12:28:06 jt6 Exp $
+# $Id: summary.tt,v 1.7 2009-01-06 12:07:46 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -20,11 +19,7 @@ requirements.cssIe.push( "family_ie.css" );
 requirements.js.push( "family.js" );
 
 #-------------------------------------------------------------------------------
-
-# on the assumption that the family page will always contain at least this
-# block, we need to add the snippet of javascript here that will trigger
-# the post-loading of the various other block contents.
-%]
+-%]
 
 <script type="text/javascript">
   // <![CDATA[
