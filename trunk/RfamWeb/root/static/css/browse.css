@@ -4,7 +4,7 @@
 
    Style the various "browse" pages
    
-   $Id: browse.css,v 1.3 2008-07-25 15:54:32 jt6 Exp $
+   $Id: browse.css,v 1.4 2009-01-06 12:26:04 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -54,6 +54,11 @@ td.links a {
   padding: 0 0.2em 0 0;
 }
 
+td.links span.inactive {
+  padding: 0 0.2em 0 0;
+  color: #AAA;
+}
+
 table.browse { 
   /* make sure that the other classes attached to the browse table, probably 
      "details", cant override the centring */
@@ -62,6 +67,10 @@ table.browse {
 
 .species {
   font-style: italic;
+}
+
+.inactive {
+  color: #AAA;
 }
 
 /* the "page letter" lists */
@@ -73,6 +82,7 @@ table.pageList {
 table.pageList td {
   width: 1.4em;
   text-align: center;
+  color: #AAA;
 }
 
 table.pageList a {
@@ -106,3 +116,41 @@ div.pageLinks a {
 h1.pageHeader {
   text-align: center;
 }
+
+dl.alphabetList {
+  clear: both;
+}
+
+dl.alphabetList dt {
+  width: 6em;
+  float: left;
+}
+
+dl.alphabetList dt a {
+  font-weight: bold;
+}
+
+dl.alphabetList dd {
+  float: left;
+  margin: 0 0 1em 0.4em;
+}
+
+p.browseSummary {
+//  text-align: center;
+  width: 60%;
+  margin: 0 auto;
+}
+
+#footerPageList {
+  background-color: #EEE;
+  float: left;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  opacity: 0.8;
+}
+
+#footerShim {
+  height: 3.4em;
+}
+
