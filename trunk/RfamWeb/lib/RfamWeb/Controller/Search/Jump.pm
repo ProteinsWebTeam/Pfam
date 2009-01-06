@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20080314 WTSI
 #
-# $Id: Jump.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
+# $Id: Jump.pm,v 1.3 2009-01-06 11:53:54 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package RfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.2 2008-06-17 09:17:15 jt6 Exp $
+$Id: Jump.pm,v 1.3 2009-01-06 11:53:54 jt6 Exp $
 
 =cut
 
@@ -51,9 +51,17 @@ sub guess : Private {
   $c->log->debug( "Search::Jump::guess: guessing target for |$entry|" )
     if $c->debug;
     
-  my %action_types= ( family    => 'guess_family', );
+  my %action_types= ( 
+                      family   => 'guess_family',
+                      genome   => 'guess_genome',
+                      sequence => 'guess_sequence',
+                    );
 
-  my @available_actions = qw( guess_family );
+  my @available_actions = qw( 
+                              guess_family
+                              guess_genome
+                              guess_sequence
+                            );
 
   my $guess_actions;
   if ( $entry_type and $action_types{$entry_type} ) {
@@ -78,7 +86,7 @@ sub guess : Private {
 
 =head2 guess_family : Private
 
-Look for a Pfam family (A or B) with the specified accession or ID.
+Look for an Rfam family with the specified accession or ID.
 
 =cut
 
@@ -102,127 +110,48 @@ sub guess_family : Private {
 }
 
 #-------------------------------------------------------------------------------
-#- cargo area ------------------------------------------------------------------
+
+=head2 guess_sequence : Private
+
+Look for a sequence entry.
+
+=cut
+
+sub guess_sequence : Private {
+  my ( $this, $c, $entry ) = @_;
+
+  $c->log->debug( 'Search::Jump::guess_sequence: looking for a sequence...' )
+    if $c->debug;
+  
+  my @rs = $c->model('RfamDB::Rfamseq')
+             ->search( [ { rfamseq_acc => $entry },
+                         { rfamseq_id  => $entry } ] );
+
+  return 'sequence' if scalar @rs;
+}
+
 #-------------------------------------------------------------------------------
 
-#=head2 guess_sequence : Private
-#
-#Look for a sequence with the specified accession or ID. We check for UniProt
-#and metaseq accessions/IDs, as well as NCBI GIs.
-#
-#=cut
-#
-#sub guess_sequence : Private {
-#  my( $this, $c, $entry ) = @_;
-#  
-#  $c->log->debug( 'Search::Jump::guess_sequence: looking for a sequence...' )
-#    if $c->debug;
-#    
-#  # how about a sequence entry ?
-#  my $found;
-#  if( $entry =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
-#  
-#    return 'protein' if $c->model('PfamDB::Pfamseq')
-#                          ->find( { pfamseq_acc => $1 } );
-#  }
-#
-#  # see if it's a protein sequence ID (e.g. CANX_CHICK)
-#  if( $entry =~ m/^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
-#  
-#    return 'protein' if $c->model('PfamDB::Pfamseq')
-#                          ->find( { pfamseq_id => $1 } );
-#  }
-#  
-#  # see if it's a secondary accession; a bit gnarly...
-#  return 'protein' if $c->model('PfamDB::Secondary_pfamseq_acc')
-#                        ->find( { secondary_acc => $1 },
-#                                { join =>     [ qw( pfamseq ) ],
-#                                  prefetch => [ qw( pfamseq ) ] } );
-#  
-#  # an NCBI GI number ?
-#  if( $entry =~ m/^(gi)?(\d+)$/ ) {
-#  
-#    return 'ncbiseq' if $c->model('PfamDB::Ncbi_seq')
-#                          ->find( { gi => $2 } );
-#  }
-#  
-#  # an NCBI secondary accession ?
-#  my @rs = $c->model('PfamDB::Ncbi_seq')
-#             ->search( { secondary_acc => { 'like', "$entry%" } } );
-#  return 'ncbiseq' if scalar @rs;
-#
-#  # a metaseq ID or accession ?
-#  @rs = $c->model('PfamDB::Metaseq')
-#          ->search( [ { metaseq_acc => $entry }, 
-#                      { metaseq_id  => $entry } ] );
-#  return 'metaseq' if scalar @rs;
-#
-#}
-#
-##-------------------------------------------------------------------------------
-#
-#=head2 guess_clan : Private
-#
-#Look for a Pfam clan with the specified accession or ID.
-#
-#=cut
-#
-#sub guess_clan : Private {
-#  my( $this, $c, $entry ) = @_;
-#  
-#  $c->log->debug( 'Search::Jump::guess_clan: looking for a clan...' )
-#    if $c->debug;
-#    
-#  # no point worrying about whether we can match to a regex for clan accession,
-#  # since we'd end up doing essentially this query whether $entry looks like
-#  # an accession or not
-#  my @rs = $c->model('PfamDB::Clans')
-#             ->search( [ { clan_acc => $entry },
-#                         { clan_id  => $entry } ] );
-#  return 'clan' if scalar @rs;
-#
-#}  
-#
-##-------------------------------------------------------------------------------
-#
-#=head2 guess_structure : Private
-#
-#Look for a PDB structure with the specified ID.
-#
-#=cut
-#
-#sub guess_structure : Private {
-#  my( $this, $c, $entry ) = @_;
-#  
-#  $c->log->debug( 'Search::Jump::guess_structure: looking for a structure...' )
-#    if $c->debug;
-#    
-#  # maybe a structure ?
-#  if( $entry =~ m/^([0-9][A-Za-z0-9]{3})$/ ) {
-#    return 'structure' if $c->model('PfamDB::Pdb')
-#                            ->find( { pdb_id => $1 } );
-#  }
-#}
-#
-##-------------------------------------------------------------------------------
-#
-#=head2 guess_structure : Private
-#
-#Look for a proteome with the specified species name.
-#
-#=cut
-#
-#sub guess_proteome : Private {
-#  my( $this, $c, $entry ) = @_;
-#  
-#  $c->log->debug( 'Search::Jump::guess_proteome: looking for a proteome...' )
-#    if $c->debug;
-#    
-#  # a proteome ID ?
-#  return 'proteome' if $c->model('PfamDB::Proteome_species')
-#                         ->find( { species => $entry } );
-#}
-#
+=head2 guess_genome : Private
+
+Look for a genome entry.
+
+=cut
+
+sub guess_genome : Private {
+  my ( $this, $c, $entry ) = @_;
+
+  $c->log->debug( 'Search::Jump::guess_genome: looking for a genome...' )
+    if $c->debug;
+  
+  my @rs = $c->model('RfamDB::GenomeEntry')
+             ->search( [ { genome_acc => $entry },
+                         { ensembl_id => $entry },
+                         { ncbi_id    => $entry } ] );
+
+  return 'genome' if scalar @rs;
+}
+
 #-------------------------------------------------------------------------------
 
 =head1 AUTHOR
