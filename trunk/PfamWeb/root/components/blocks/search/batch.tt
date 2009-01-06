@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.12 2008-08-08 10:48:19 jt6 Exp $
+# $Id: batch.tt,v 1.13 2009-01-06 12:48:52 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -76,11 +76,17 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
       <p>
         The FASTA-format specification recommends that header lines are kept 
-        shorter than <strong>80</strong> characters. Note that, although we do 
-        not restrict the length of header lines, the output that you will 
-        receive only shows the first <strong>20</strong> characters of each 
-        header line. You should therefore ensure that the sequence is 
-        identifiable using only the first twenty characters of its header.
+        shorter than <strong>80</strong> characters. Batch searches are run
+        using our <code>pfam_scan.pl</code> script, which uses programs from
+        the HMMER suite. Because of the way that HMMER handles header lines in
+        FASTA files, only the first 60 characters are actually used. Please 
+        make sure that your header lines are 60 characters or less in length.
+      </p>
+      <p>
+        In order to avoid generating strange or ambiguous search results, we 
+        require that header lines in your file are unique, at least within the
+        first 60 characters. Uploaded files which contain duplicate header lines
+        will be rejected.
       </p>
 
       <h3>Sequence symbols</h3>
