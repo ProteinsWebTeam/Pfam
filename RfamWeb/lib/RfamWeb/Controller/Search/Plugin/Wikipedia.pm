@@ -2,7 +2,7 @@
 # Wikipedia.pm
 # jt6 20060810 WTSI
 #
-# $Id: Wikipedia.pm,v 1.3 2008-09-15 11:48:40 jt6 Exp $
+# $Id: Wikipedia.pm,v 1.4 2009-01-06 11:54:19 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,9 @@ against the following columns:
 
 =item o wiki
 
-$Id: Wikipedia.pm,v 1.3 2008-09-15 11:48:40 jt6 Exp $
+=back
+
+$Id: Wikipedia.pm,v 1.4 2009-01-06 11:54:19 jt6 Exp $
 
 =cut
 
@@ -47,7 +49,7 @@ use base 'RfamWeb::Controller::Search';
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Search::Plugin::Wikipediao::process: text querying Rfam wikipedia annotations' )
+  $c->log->debug( 'Search::Plugin::Wikipedia::process: text querying Rfam wikipedia annotations' )
     if $c->debug;
 
   my $results = $c->model('RfamDB::RfamKeywords')
