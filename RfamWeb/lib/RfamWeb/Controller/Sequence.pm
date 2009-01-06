@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20081205 WTSI
 #
-# $Id: Sequence.pm,v 1.1 2008-12-08 12:59:41 jt6 Exp $
+# $Id: Sequence.pm,v 1.2 2009-01-06 11:52:29 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package RfamWeb::Controller::Sequence;
 This is intended to be the base class for everything related to Rfam
 sequences.
 
-$Id: Sequence.pm,v 1.1 2008-12-08 12:59:41 jt6 Exp $
+$Id: Sequence.pm,v 1.2 2009-01-06 11:52:29 jt6 Exp $
 
 =cut
 
@@ -48,7 +48,7 @@ sub sequence_search : Chained( '/' )
   $c->log->debug( 'Sequence::sequence_search: searching for Rfam hits to a sequence' )
     if $c->debug;
 
-  unless ( defined $c->req->param('lookup') ) { 
+  unless ( defined $c->req->param('entry') ) { 
     $c->log->debug( 'Sequence::sequence_search: no sequence accession found' )
       if $c->debug;  
 
