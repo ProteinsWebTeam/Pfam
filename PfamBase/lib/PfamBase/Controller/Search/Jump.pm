@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.5 2008-09-18 12:26:25 jt6 Exp $
+# $Id: Jump.pm,v 1.6 2009-01-06 12:30:27 jt6 Exp $
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ should:
 If the L<jump> method finds that the L<forward> returns undef, it returns
 an error message saying that the guess failed. 
 
-$Id: Jump.pm,v 1.5 2008-09-18 12:26:25 jt6 Exp $
+$Id: Jump.pm,v 1.6 2009-01-06 12:30:27 jt6 Exp $
 
 =cut
 
@@ -89,7 +89,8 @@ sub jump : Path {
   if( $action ) {
     $c->log->debug( "Search::Jump::jump: we've made a guess; redirecting to |$action|" )
       if $c->debug;
-    $c->stash->{url} = $c->uri_for( "/$action", { entry => $entry } );
+#    $c->stash->{url} = $c->uri_for( "/$action", { entry => $entry } );
+    $c->stash->{url} = $c->uri_for( '/', $action, $entry );
   } else {
     $c->log->debug( "Search::Jump::jump: couldn't guess entry type..." )
       if $c->debug;
