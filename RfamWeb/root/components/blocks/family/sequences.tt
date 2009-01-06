@@ -1,0 +1,129 @@
+[%
+# sequences.tt
+# jt6 20081208 WTSI
+#
+# the sequences tab for the family section
+#
+# $Id: sequences.tt,v 1.1 2009-01-06 12:13:45 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+sharedRequirements.js.push( "tablekit.js" );
+
+#-------------------------------------------------------------------------------
+
+USE String;
+%]
+
+<!-- start sequences block -->
+
+<div class="block" id="sequencesBlock">
+  <div class="handle">
+    <h1>Sequences</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      There are <strong>[% rfam.num_full %]</strong> regions for this family.
+    [% IF showAll %]
+      You can 
+      <a href="[% c.uri_for('/family/regions', entry => acc ) %]">download</a>
+      the details of all regions as a tab-delimited file. The table of results 
+      below may be sorted by clicking on the column titles, or restored to the 
+      original order <span class="link" id="sortLink">here</span>. 
+    [% ELSIF showText %]
+      There are too many regions to show in this page, but you can still 
+      <a href="[% c.uri_for('/family/regions', entry => acc ) %]">download</a>
+      the details of the regions as a tab-delimited file.
+    [% ELSE %]
+      There are too many regions to show. If you really need a list of all 
+      regions for this family, please contact us at the address below and we 
+      will do our best to help. 
+    [% END %]
+    </p>
+
+    [% IF regions.defined %]
+      <table summary="Rfam regions"
+             id="regionsTable"
+             class="details">
+        <thead>
+          <tr>
+            <th id="indexCol" class="rowNum">Original order</th>
+            <th>Sequence accession</th>
+            <th>Bits score</th>
+            <th>Type</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Description</th>
+            <th>Species</th>
+          </tr>
+        </thead>
+        <tbody>
+          [% seqUri = c.uri_for( '/sequence/' );
+          FOREACH region IN regions %]
+            <tr class="[% loop.index % 2 ? 'odd' : 'even' %]">
+              <td class="rowNum">[% loop.index %]</td>
+              <td>
+                <a title="[% row.get_column('rfam_acc') %]" 
+                   href="[% seqUri; region.get_column('rfamseq_id') %]">
+                  [% region.get_column('rfamseq_id') %]</a>
+              </td>
+              <td>[% region.bits_score %]</td>
+              <td>[% region.type %]</td>
+              <td>[% region.seq_start %]</td>
+              <td>[% region.seq_end %]</td>
+              <td class="left">[% region.get_column('description') %]</td>
+              <td>[% region.get_column('species') %]</td>
+            </tr>
+          [% END %]
+        </tbody>
+      </table>
+    [% END; # of "IF regions.defined" %]
+
+  </div>
+</div>
+
+[% IF showAll %]
+<script type="text/javascript">
+  // <![CDATA[
+
+  var sorter = new TableKit( "regionsTable",
+                              {
+                                editable: false,
+                                resizable: false,
+                                rowEvenClass: "even",
+                                rowOddClass: "odd",
+                                stripe: true
+                              } );    
+
+  $("sortLink").observe( "click", function() {
+    sorter.sort(0);
+  } );
+
+  // ]]>
+</script>
+[% END %]
+
+<!-- end sequences block --> 
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
