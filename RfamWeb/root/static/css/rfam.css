@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.9 2008-10-27 16:02:41 jt6 Exp $
+   $Id: rfam.css,v 1.10 2009-01-06 12:26:25 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -443,6 +443,7 @@ td.stripeHover {
   background: #c2d2e1;
 }
 
+/*
 table.details tr.odd {
   background: #CCC;
 }
@@ -450,9 +451,19 @@ table.details tr.odd {
 table.details tr.even {
   background: #DDD;
 }
+*/
 
 table.details tr.summaryRow {
   background: #AAA;
+}
+
+/* up and down sort arrows */
+table.details .sortasc {
+  background-image: url(/shared/images/dark_up.gif);
+}
+
+table.details .sortdesc {
+  background-image: url(/shared/images/dark_down.gif);
 }
 
 /* these two rules are for the details table when it is split into
@@ -478,7 +489,7 @@ table.details td.fixed {
 
 /* different flavours of details table... stop me when it's getting ridiculous */
 table.links td {
-  width: 30em;
+  /* width: 30em; */
   text-align: left;
 }
 
@@ -616,6 +627,7 @@ a.sortheader {
    font-weight: bold;
 }
 
+.details .rowNum,
 .resultTable .rowNum {
   display: none;
 }
