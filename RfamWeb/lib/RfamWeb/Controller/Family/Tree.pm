@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.2 2008-07-25 13:27:07 jt6 Exp $
+# $Id: Tree.pm,v 1.3 2009-01-06 11:52:51 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package RfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.2 2008-07-25 13:27:07 jt6 Exp $
+$Id: Tree.pm,v 1.3 2009-01-06 11:52:51 jt6 Exp $
 
 =cut
 
@@ -53,7 +53,8 @@ sub tree : Path {
   $c->forward( 'get_tree' );
 
   # populate the tree nodes with the areas for the image map
-  $c->stash->{tree}->plot_core;
+  $c->stash->{tree}->plot_core 
+    if defined $c->stash->{tree};
 
   # set up the TT view
   $c->stash->{template} = 'components/blocks/family/treeMap.tt';
@@ -314,7 +315,8 @@ sub get_tree_data : Private {
                            type      => $c->stash->{alnType} } );
     my $row = $rs->first;
 
-    if ( defined $row->tree ) {
+    if ( defined $row and 
+         defined $row->tree ) {
       $c->log->debug( 'Family::Tree::get_tree_data: retrieved tree data from DB' )
         if $c->debug;
     }
