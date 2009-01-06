@@ -4,7 +4,7 @@
 #
 # show the Rfam hits on a specific EMBL sequence
 #
-# $Id: lookup.tt,v 1.1 2008-12-08 13:00:06 jt6 Exp $
+# $Id: lookup.tt,v 1.2 2009-01-06 11:56:03 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -37,8 +37,10 @@ oe = 0;
   <h2>Rfam hits on sequence [% rfamseq_acc %]</h2>
 
   <p>
-    These are the Rfam hits on the EMBL sequence 
-    <strong>[% entry %]</strong>.
+    There are the <strong>[% results.size %] </strong>Rfam hits on the EMBL 
+    sequence 
+    <strong><a href="http://srs.ebi.ac.uk/srsbin/cgi-bin/wgetz?-e+[embl-AccNumber:'[% entry %]']"
+      class="ext">[% entry %]</a></strong>.
   </p>
 
   <table class="details"
@@ -47,10 +49,6 @@ oe = 0;
       <tr class="[% oe % 2 ? 'odd' : 'even'; oe = oe + 1; %]">
         <td class="label">Description</td>
         <td class="data" id="seqDesc">[% firstRow.get_column('rfamseq_desc') %]</td>
-      </tr>
-      <tr class="[% oe % 2 ? 'odd' : 'even'; oe = oe + 1; %]">
-        <td class="label">Number of hits</td>
-        <td class="data" id="numHits">[% results.size %]</td>
       </tr>
       <tr class="[% oe % 2 ? 'odd' : 'even'; oe = oe + 1; %]">
         <td class="label">Species tree</td>
@@ -103,7 +101,7 @@ oe = 0;
     FOREACH node IN tax.split('; ');
       nodeName = String.new( node ).trim.pop('\.');
       nodeId = String.new( nodeName );
-      CALL nodeId.replace( "[\\.\\s]", "_" ); %]
+      CALL nodeId.replace( "[\\.\\s\\(\\)\\-]", "_" ); %]
 
       var [% nodeId %]Node = new YAHOO.widget.TextNode(
         {
