@@ -10,9 +10,12 @@
 %]
 
 [% IF titleType == "tab" %]
-<h1>Proteome: <em>[% proteomeSpecies.species %]</em></h1>
+<h1>
+  Proteome: <em>[% proteomeSpecies.species %]</em>
+  (NCBI tax. ID [% proteomeSpecies.ncbi_code %])
+</h1>
 [% ELSIF titleType == "page" %]
-Proteome: [% proteomeSpecies.species %]
+Proteome: [% proteomeSpecies.species %] (NCBI tax. ID [% proteomeSpecies.ncbi_code %])
 [% END %]
 [%#
 Copyright (c) 2007: Genome Research Ltd.
