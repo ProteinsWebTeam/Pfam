@@ -25,6 +25,10 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 64,
   },
+  "genome_start",
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
+  "genome_end",
+  { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
 );
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 __PACKAGE__->belongs_to(
