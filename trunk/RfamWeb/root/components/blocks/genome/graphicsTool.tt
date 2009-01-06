@@ -1,0 +1,73 @@
+
+[%
+# graphicsTool.tt
+# jt6 20070821 WTSI
+# 
+# build a page to show the domain graphics for a Pfam domain on a proteome.
+#
+# $Id: graphicsTool.tt,v 1.1 2009-01-06 12:14:42 jt6 Exp $
+
+META naked = 1;
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+#PROCESS "components/require.tt";
+
+#-------------------------------------------------------------------------------
+
+pageContent = BLOCK
+-%]
+
+<h1>Domain graphics</h1> 
+
+<p>
+  This window shows the domain graphics for sequences from 
+  <strong><em>[% proteomeSpecies.species %]</em></strong> that contain the 
+  Pfam domain <strong>[% pfam.pfamA_id %]</strong>.
+</p>
+
+<div id="dgph">
+  <p class="loading">Loading domain graphics...</p>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+  new Ajax.Updater( "dgph",
+                    "[% c.uri_for( "/domaingraphics" ) %]",
+                    { parameters: { pfamAcc: "[% pfamAcc %]",
+                                    taxId:   "[% taxId %]" },
+                      onSuccess:  function( oResponse ) {
+                                    $("dgph").update( oResponse.responseText );
+                                  },
+                      onFailure:  function( oResponse ) {
+                                    $("dgph").update( "There was a problem loading the domain graphics." );
+                                  },
+                    }
+                  );
+  // ]]>
+</script>
+
+<a href="#" onclick="window.close()" class="closer">Close window</a>
+
+[% END # of "pageContent = BLOCK" %]
+
+[% PROCESS components/tools/toolWindow.tt %]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

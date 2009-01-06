@@ -1,0 +1,95 @@
+[%
+# domains.tt
+# jt6 20060410 WTSI
+#
+# block showing the domain summary graphics. This is a wrapper around another
+# template, which is called using an XMLHttpRequest to DomainGraphics.pm.
+#
+# $Id: domains.tt,v 1.1 2009-01-06 12:14:42 jt6 Exp $
+%]
+
+<!-- start domain architectures block -->
+
+<div class="block" id="proteomeDomainsBlock"> 
+  <div class="handle"> 
+    <h1>Domain organisation</h1> 
+  </div>
+  <div class="blockContent">
+    <p>
+  	  Below is a listing of the unique domain organisations or architectures particular to this proteome.
+      <span onclick="reveal( this, 'domainsNotes', false, true )"
+            class="moreLink">
+        More...</span>
+    </p>
+    <div id="domainsNotes" style="display: none">
+      <p>
+        The graphic that is shown by default represents a sequence containing that particular domain organisation or architecture. 
+        The images are order by the frequency that the architecture is observed. Each row contains the following information:
+      </p>
+      <ul>
+        <li>
+          the number of sequences which exhibit this architecture
+        </li>
+        <li>
+          a textual description of the architecture, e.g. Gla, EGF x 2, Trypsin. 
+          This example describes an architecture with one <code>Gla</code>
+          domain, followed by two consecutive <code>EGF</code> domains, and
+          finally a single <code>Trypsin</code> domain
+        </li>
+        <li>
+          a link to the page in the Pfam site showing information about the 
+          sequence that the graphic describes
+        </li>
+        <li>
+          the <a class="ext" href="http://www.uniprot.org/">UniProt</a>
+          description of the protein sequence
+        </li>
+        <li>
+          the number of residues in the sequence
+        </li>
+        <li>
+          the Pfam graphic itself.
+        </li>
+      </ul>
+      <p>
+        Note that you can see the family page for a particular domain by 
+        clicking on the graphic. You can also choose to see all sequences which
+        have a given architecture by clicking on the <em>Show</em> link
+        in each row.
+      </p>
+      <p>
+        Finally, because some families can be found in a very large number of
+        architectures, we load only the first fifty architectures by default.
+        If you want to see more architectures, click the button at the bottom
+        of the page to load the next set.
+      </p>
+      <hr />
+    </div>
+
+    <div id="pdgph">
+      <p class="loading">
+        Loading domain graphics...
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- end domain architectures block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

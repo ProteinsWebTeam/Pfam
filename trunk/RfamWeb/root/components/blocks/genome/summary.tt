@@ -1,0 +1,138 @@
+[%
+# summary.tt
+# jt6 20081127 WTSI
+# 
+# build the summary block for the genome pages
+#
+# $Id: summary.tt,v 1.1 2009-01-06 12:14:42 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "genome.css" );
+
+#-------------------------------------------------------------------------------
+
+USE String;
+%]
+
+<script type="text/javascript">
+  // <![CDATA[
+  //Event.observe( window, "load", genomePostLoad, false );
+  // ]]>
+</script>
+  
+<!-- start genome summary block -->
+
+<div class="block" id="genomeSummaryBlock">
+  <div class="handle">
+    <h1>Summary</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This section gives details of 
+      <a href="http://www.ebi.ac.uk/integr8/QuickSearch.do?action=doOrgSearch&amp;organismName=[% summary.ncbi_id %]"
+         class="ext">
+      <em>[% summary.species %]</em></a>
+      (<acronym title="National Center for Biotechnology Information">NCBI</acronym> 
+      taxonomy ID
+      <a href="http://www.ebi.ac.uk/newt/display?search=[% summary.ncbi_id %]"
+         class="ext">[% summary.ncbi_id %]</a>).
+    </p>
+
+    [%- oe = 0 %]
+    <table class="layout" summary="Summary of information for the proteome">
+      <tbody>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Taxonomic lineage</td>    
+          <td class="data" id="lineage">
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Kingdom</td>    
+          <td class="data">[% summary.kingdom %]</td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Number of families</td>
+          <td class="data">[% summary.families %]</td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Number of regions</td>
+          <td class="data">[% summary.regions %]</td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Genome length</td>
+          <td class="data">[% summary.genome_size %]</td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+          <td class="label">Number of genomic elements</td>
+          <td class="data">[% hit_chromosomes.keys.size %]</td>
+        </tr>
+      </tbody>
+    </table>
+    
+  </div>
+</div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // build the little taxonomy tree
+  try {
+    var tree = new YAHOO.widget.TreeView("lineage"); 
+    var parent = tree.getRoot();
+    
+    [%- # get the taxonomy strings out of the hit list. Rather convoluted...
+    taxonomyString = hits.values.first.rows.first.taxonomy;
+
+    FOREACH node IN taxonomyString.split('; ');
+
+      nodeName = String.new( node ).trim.pop('\.');
+      nodeId = String.new( nodeName );
+      CALL nodeId.replace( "\\s\.", "_" ); %]
+
+      var [% nodeId %]Node = new YAHOO.widget.TextNode(
+        {
+          label: "[% nodeName %]",
+          href:  "http://www.uniprot.org/taxonomy?query=[% nodeName %]"
+        },
+        parent,
+        true
+      );
+      parent = [% nodeId %]Node;
+
+    [%- END -%]
+
+    tree.draw();
+  } catch( e ) {
+    // fall-back to the lineage string itself
+    $("lineage").update("[% genome.taxonomy %]");
+  }
+
+  // ]]>
+</script>
+
+<!-- end genome summary block -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
