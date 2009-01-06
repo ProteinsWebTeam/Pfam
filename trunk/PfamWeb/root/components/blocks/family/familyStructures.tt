@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.15 2008-07-28 14:08:01 jt6 Exp $
+# $Id: familyStructures.tt,v 1.16 2009-01-06 12:48:16 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -74,28 +74,38 @@ IF pdbUnique.keys.size;
   [% # if there are multiple PDB entries, allow the user to choose a specific one
   IF pdbUnique.keys.size > 1 %]
 
-    <form action="[% c.uri_for( "/family/structures" ) %]">
+    <form id="structuresForm"
+          action="[% c.uri_for( "/family/structures" ) %]">
       <div>
+        <strong>View a different structure:</strong>
     	  <select id="pdbIdField">
     	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
-      	    <option value="[% id %]"[% IF pdbObj.pdb_id == id %] disabled="1" selected="1"[% END %] />[% id %]</option>
+          <option value="[% id %]"[% IF pdbObj.pdb_id == id %] disabled="disabled" selected="selected"[% END %] />[% id %]</option>
           [% END %]
-        </select>
-        <input type="button" 
-               onclick="pdbImageSubmitter()",
-               value="View" />
+        </select
       </div>
     </form>
 
     <script type="text/javascript">
       // <![CDATA[
-      pdbImageSubmitter = function() {
-        var r = new Ajax.Updater( 'siph', 
-                                   '[% c.uri_for( "/family/structures" ) %]', 
-                                    { parameters: { acc:  '[% pfam.pfamA_acc %]',
-                                                    pdbId: $F("pdbIdField") } }
-                                  );
+      var pdbImageSubmitter = function() {
+        var r = new Ajax.Updater( "siph", 
+                                  "[% c.uri_for( '/family/structures' ) %]",
+                                   { parameters:  { acc:  "[% pfam.pfamA_acc %]",
+                                                    pdbId: $F("pdbIdField") },
+                                     evalScripts: true }
+                                );
       };
+
+      $("structuresForm").observe("submit", function( e ) {
+        e.stop();
+        pdbImageSubmitter();
+      } );
+
+      $("pdbIdField").observe("change", function( e ) {
+        pdbImageSubmitter();
+      } );
+
       // ]]>
     </script>
 
@@ -104,7 +114,8 @@ IF pdbUnique.keys.size;
 
 [% END # of "if pdbUnique.keys.size" %]
 
-<!-- end of pdb image block -->[%#
+<!-- end of pdb image block -->
+[%#
 Copyright (c) 2007: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
