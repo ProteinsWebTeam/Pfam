@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.8 2008-07-25 13:14:35 jt6 Exp $
+# $Id: layout.tt,v 1.9 2009-01-06 12:29:07 jt6 Exp $
 
 USE String;
 USE date;
@@ -200,7 +200,7 @@ PROCESS components/icons.tt;
     }
   } );
 
-  
+[%# no need to include this cruft yet...
 //  Event.observe(window, 'load', function() {
 //    Event.observe(document, 'keypress', function(e){
 //      var code;
@@ -225,6 +225,7 @@ PROCESS components/icons.tt;
 //
 //    } );
 //  } );
+-%]
   
   // ]]>
 </script> 
