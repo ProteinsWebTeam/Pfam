@@ -12,6 +12,8 @@ __PACKAGE__->add_columns(
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "genome_acc",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 20 },
+  "ensembl_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 100 },
   "description",
   {
     data_type => "MEDIUMTEXT",
@@ -48,6 +50,18 @@ __PACKAGE__->has_many(
 
 # Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-11-28 14:26:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B/JExFXM+hBIqvDign//nA
+
+__PACKAGE__->has_one(
+  "gff",
+  "RfamDB::GenomeGff",
+  { "foreign.auto_genome" => "self.auto_genome" },
+);
+
+__PACKAGE__->has_many(
+  "regions",
+  "RfamDB::RfamRegFull",
+  { "foreign.auto_genome" => "self.auto_genome" }, 
+);
 
 #-------------------------------------------------------------------------------
 
