@@ -1400,6 +1400,8 @@ sub print_image {
   }
   ($root) = $root =~ m|([\w\./]+)|i;
 
+  my $tmp = $ENV{PFAM_DOMAIN_IMAGES_TMP} || '/tmp';
+
   my $file_location = "domain_gfx/$dirName";
   if(!-d "$root/$file_location"){
       mkdir("$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
@@ -1426,7 +1428,7 @@ sub print_image {
   warn "try to convert from png to different format, this is not implemented!\n"
 	if( $self->format && $self->format ne "png" );
 
-  $self->file_location("$file_location/$file");
+  $self->file_location("$tmp/$file_location/$file");
 
 }
 
