@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.14 2008-07-23 15:30:48 jt6 Exp $
+# $Id: Jump.pm,v 1.15 2009-01-09 12:58:30 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.14 2008-07-23 15:30:48 jt6 Exp $
+$Id: Jump.pm,v 1.15 2009-01-09 12:58:30 jt6 Exp $
 
 =cut
 
@@ -248,10 +248,13 @@ sub guess_proteome : Private {
   
   $c->log->debug( 'Search::Jump::guess_proteome: looking for a proteome...' )
     if $c->debug;
-    
+
+  my @rs = $c->model( 'PfamDB::Proteome_species' )
+             ->search( [ { species   => $entry },
+                         { ncbi_code => $entry } ] );
+  
   # a proteome ID ?
-  return 'proteome' if $c->model('PfamDB::Proteome_species')
-                         ->find( { species => $entry } );
+  return 'proteome' if scalar @rs;
 }
 
 #-------------------------------------------------------------------------------
