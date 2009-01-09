@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.29 2008-10-27 14:35:53 jt6 Exp $
+# $Id: Sequence.pm,v 1.30 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.29 2008-10-27 14:35:53 jt6 Exp $
+$Id: Sequence.pm,v 1.30 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -146,6 +146,8 @@ sub results : Local {
     return;
   }
 
+  $c->forward( 'generateGraphic' );
+
   # should we output XML ?
   if ( $c->stash->{output_xml} ) {
     $c->stash->{template} = 'rest/search/results_xml.tt';
@@ -156,7 +158,6 @@ sub results : Local {
   else {
     if ( scalar keys %{ $c->stash->{results} } ) {
       $c->stash->{template} = 'pages/search/sequence/results.tt';
-      $c->forward( 'generateGraphic' );
     }
     else {
       $c->log->debug( 'Search::Sequence::results: no results found' )
@@ -679,7 +680,21 @@ sub generateGraphic : Private {
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
   $layout->layout_sequences( @seqs);
 
-  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  # should we use a document store rather than temp space for the images ?
+  my $imageset;  
+  if ( $c->config->{use_image_store} ) {
+    $c->log->debug( 'Search::Sequence::generateGraphic: using document store for image' )
+      if $c->debug;
+    require PfamWeb::ImageSet;
+    $imageset = PfamWeb::ImageSet->new;
+  }
+  else {
+    $c->log->debug( 'Search::Sequence::generateGraphic: using temporary directory for store image' )
+      if $c->debug;
+    require Bio::Pfam::Drawing::Image::ImageSet;
+    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  }
+
   $imageset->create_images( $layout->layout_to_XMLDOM );
   $c->stash->{images} = $imageset;
 }

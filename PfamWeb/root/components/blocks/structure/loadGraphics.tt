@@ -2,7 +2,7 @@
 # loadGraphics.tt
 # jt6 20060713 WTSI
 #
-# $Id: loadGraphics.tt,v 1.10 2008-05-16 15:30:33 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.11 2009-01-09 12:59:24 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -26,8 +26,14 @@ oe = 0;
       Chain[% IF chainLabel.search("\,") %]s[% END %] [% chainIds %] 
       (UniProt entry <a href="[% c.uri_for( "/protein", { id = unp } ) %]">[% unp %]</a>):
     </span>
+
+    [% IF c.config.use_image_store;
+      image_uri = c.uri_for( image.file_location );
+    ELSE;
+      image_uri = image.file_location;
+    END; %]
     <img class="graphicImage"
-         src="[% constants.tmp %]/[% image.file_location %]"
+         src="[% image_uri %]"
          usemap="#structureGraphicsMap[% oe %]"
          alt=""/>
     <div class="cleaner">&nbsp;</div>

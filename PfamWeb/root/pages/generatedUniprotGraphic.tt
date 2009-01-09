@@ -6,7 +6,7 @@
 # builds the form for specifying a UniProt entry for which to show the graphics
 # XML.
 #
-# $Id: generatedUniprotGraphic.tt,v 1.7 2008-07-28 14:11:50 jt6 Exp $
+# $Id: generatedUniprotGraphic.tt,v 1.8 2009-01-09 12:59:24 jt6 Exp $
 
 META title = "Pfam graphic for UniProt entry";
 META fullPage = 1;
@@ -67,9 +67,18 @@ requirements.css.push( "graphicTools.css" );
 
   [% IF pfamseq.description %]
   <p>[% pfamseq.description %]</p>
-  [% END %]
+  [% END;
 
-  <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/>
+  IF c.config.use_image_store;
+    image_uri = c.uri_for( image.file_location );
+  ELSE;
+    image_uri = image.file_location;
+  END; %]
+
+  <img class="graphicImage" 
+       src="[% image_uri %]" 
+       alt="" 
+       usemap="#singleImageMap" />
   <div class="cleaner"><!-- empty --></div>        
 
   <map id="singleImageMap">

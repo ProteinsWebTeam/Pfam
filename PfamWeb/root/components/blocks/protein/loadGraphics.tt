@@ -6,7 +6,7 @@
 # contents of the protein graphics block. Called using an ajax request
 # via Protein::Graphics and stuffed into a div in the existing page
 #
-# $Id: loadGraphics.tt,v 1.24 2008-09-18 11:54:19 jt6 Exp $
+# $Id: loadGraphics.tt,v 1.25 2009-01-09 12:59:24 jt6 Exp $
 
 META naked = 1;
 
@@ -68,7 +68,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
               </td>
             </tr>
       			[% FOREACH row IN subsection.rows %]
-    			  <tr>
+    			  <tr[% ' class="highlight"' IF row.server == highlightSource %]>
     			    <td class="graphicsLabel">
     			      <p class="featuresLabel" id="featuresLabel[% i %]">[% row.server %]</p>
               </td>
@@ -76,7 +76,16 @@ graphicsUri = c.uri_for( "/protein/graphics" );
                 <map name="featuresMap[% i %]" id="featuresMap[% i %]">
                   [% row.map %]
                 </map>
-      				  <img class="featuresImage" id="featuresImage[% i %]" src="[% constants.tmp %]/[% row.image %]" usemap="#featuresMap[% i %]" alt="" />
+                [% IF c.config.use_image_store;
+                  image_uri = c.uri_for( row.image );
+                ELSE;
+                  image_uri = row.image;
+                END; %]
+      				  <img class="featuresImage" 
+                     id="featuresImage[% i %]" 
+                     src="[% image_uri %]" 
+                     usemap="#featuresMap[% i %]" 
+                     alt="" />
               </td>
     			  </tr>
     			  [% i = i + 1;
@@ -98,8 +107,8 @@ graphicsUri = c.uri_for( "/protein/graphics" );
 
 <script type="text/javascript">
   // <![CDATA[
-  // a function to submit the form and update the graphics
-  updateSubmitter = function() {
+  [%# a function to submit the form and update the graphics %]
+  var updateSubmitter = function() {
     var r = new Ajax.Updater( 'graphicsHolder', 
                                '[% graphicsUri %]',
                                { parameters:   this.serialize(true),
@@ -108,25 +117,32 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     return false;
   }
 
-  // move the cursor when the mouse moves and re-initialise it on window resizes 
+  [%# move the cursor when the mouse moves and re-initialise it on window resizes %] 
   $("featuresMap").observe( "mousemove", moveCursor );
   Event.observe( window, "resize", initialiseCursor );
   
-  // set the cursor as "uninitialised" when this page loads, so that it gets
-  // initialised after an update
+  [%# set the cursor as "uninitialised" when this page loads, so that it gets
+    # initialised after an update %]
   cursorInitialised = false;
 
-  // add mouseover listeners to all features
-//  var areas = $("featuresMap").getElementsByTagName( "area" );
-//  $A( areas ).each( function( area ) {
+  [%# add mouseover listeners to all features %]
   $$("#featuresMap area").each( function( area ) {
 	  area.observe( "mouseover", showOverlay );
   } );
   
-  // move the overlay div according to mouseovers on features
-//  $("overlay").observe( "mousemove", moveCursor );
-//  $("overlay").observe( "mouseout",  removeOverlay ); 
-  $("overlay").observe( "click",     openOverlayURL );
+  [%# move the overlay div according to mouseovers on features %]
+  $("overlay").observe( "click", openOverlayURL );
+
+  [%# options for the script.aculo.us highlight effect %]
+  var highlightOptions = { duration: 2,
+                           transition: Effect.Transitions.pulse,
+                           restorecolor: '#f9eeee' };
+
+  [%#  highlight (pulsate) all tracks for the specified DAS source %]
+  $$("tr.highlight").each( function( row ) {
+    new Effect.Highlight( row, highlightOptions );
+  } );
+
   // ]]>
 </script>
 

@@ -4,7 +4,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.25 2008-07-23 13:44:12 jt6 Exp $
+# $Id: summary.tt,v 1.26 2009-01-09 12:59:24 jt6 Exp $
 
 USE String;
 
@@ -110,9 +110,15 @@ oe = 0;
 
     <div class="summaryGraphic">
       [% image = pfamImageset.each_image;
-      CALL image.print_image %]
+      CALL image.print_image;
+
+      IF c.config.use_image_store;
+        image_uri = c.uri_for( image.file_location );
+      ELSE;
+        image_uri = image.file_location;
+      END; %]
       <img class="graphicImage" 
-           src="[% constants.tmp %]/[% image.file_location %]" 
+           src="[% image_uri %]"
            alt="" 
            usemap="#singleImageMap" />      
       [% IF image.image_map %]

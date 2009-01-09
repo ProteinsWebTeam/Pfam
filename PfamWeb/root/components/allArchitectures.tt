@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.15 2008-12-04 13:58:46 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.16 2009-01-09 12:59:24 jt6 Exp $
 
 META naked = 1;
 
@@ -83,8 +83,13 @@ FOREACH image IN images.each_image;
       ([% image.length / image.scale_x %] residues)
     </span>
 
+    [% IF c.config.use_image_store;
+      image_uri = c.uri_for( image.file_location );
+    ELSE;
+      image_uri = image.file_location;
+    END; %]
     <img class="graphicImage"
-         src="[% constants.tmp %]/[% image.file_location %]"
+         src="[% image_uri %]"
          usemap="#domainGraphicsMap[% loop.index %]"
          alt="" />
     <div class="cleaner">&nbsp;</div>

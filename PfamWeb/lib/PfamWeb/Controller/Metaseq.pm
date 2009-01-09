@@ -2,7 +2,7 @@
 # Metaseq.pm
 # jt6 20071008 WTSI
 #
-# $Id: Metaseq.pm,v 1.3 2008-07-28 13:56:10 jt6 Exp $
+# $Id: Metaseq.pm,v 1.4 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Metaseq;
 
 Generates a page set for a metagenomics sequence.
 
-$Id: Metaseq.pm,v 1.3 2008-07-28 13:56:10 jt6 Exp $
+$Id: Metaseq.pm,v 1.4 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -70,7 +70,7 @@ sub begin : Private {
 
   # although these next checks might fail and end up putting an error message
   # into the stash, we don't "return", because we might want to process the 
-  # error message using a template that retuns XML rather than simply HTML
+  # error message using a template that returns XML rather than simply HTML
   # (XML output not yet implemented for metaseq data
   # jt6 20080603 WTSI.)
   
@@ -237,10 +237,25 @@ sub generatePfamGraphic : Private {
     if ref $this eq 'PfamWeb::Controller::Metaseq';
   
   # and use it to create an ImageSet
-  my $imageSet = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageSet->create_images( $layout->layout_to_XMLDOM );
+
+  # should we use a document store rather than temp space for the images ?
+  my $imageset;  
+  if ( $c->config->{use_image_store} ) {
+    $c->log->debug( 'NCBISeq::generatePfamGraphic: using document store for image' )
+      if $c->debug;
+    require PfamWeb::ImageSet;
+    $imageset = PfamWeb::ImageSet->new;
+  }
+  else {
+    $c->log->debug( 'NCBISeq::generatePfamGraphic: using temporary directory for store image' )
+      if $c->debug;
+    require Bio::Pfam::Drawing::Image::ImageSet;
+    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  }
+
+  $imageset->create_images( $layout->layout_to_XMLDOM );
  
-  $c->stash->{imageSet} = $imageSet;
+  $c->stash->{imageset} = $imageset;
 }
 
 #-------------------------------------------------------------------------------
@@ -312,7 +327,8 @@ sub getSummaryData : Private {
 
   $c->stash->{summaryData} = \%summaryData;
 
-  $c->log->debug('Metaseq::getSummaryData: added the summary data to the stash');
+  $c->log->debug( 'Metaseq::getSummaryData: added the summary data to the stash' )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------

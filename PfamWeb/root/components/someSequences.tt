@@ -6,7 +6,7 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.9 2008-12-04 13:58:39 jt6 Exp $
+# $Id: someSequences.tt,v 1.10 2009-01-09 12:59:24 jt6 Exp $
 
 META naked = 1;
 
@@ -33,8 +33,13 @@ FOREACH image IN images.each_image;
       ([% image.length / image.scale_x %] residues)
     </span>
 
+    [% IF c.config.use_image_store;
+      image_uri = c.uri_for( image.file_location );
+    ELSE;
+      image_uri = image.file_location;
+    END; %]
     <img class="graphicImage"
-         src="[% constants.tmp %]/[% image.file_location %]"
+         src="[% image_uri %]"
          usemap="#domainGraphicsMap[% loop.index %]"
          alt="" />
     <div class="cleaner">&nbsp;</div>

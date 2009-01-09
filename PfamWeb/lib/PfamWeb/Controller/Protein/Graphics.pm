@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060503 WTSI
 #
-# $Id: Graphics.pm,v 1.26 2008-08-18 08:58:03 jt6 Exp $
+# $Id: Graphics.pm,v 1.27 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This controller generates the graphics for the features that can be
 overlaid on a given UniProt sequence. The features are obtained from
 DAS sources, specified by the user.
 
-$Id: Graphics.pm,v 1.26 2008-08-18 08:58:03 jt6 Exp $
+$Id: Graphics.pm,v 1.27 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -215,7 +215,20 @@ sub updateSources : Path {
             if $c->debug;
 
           if( $numSetsAdded ) {
-            my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+            # should we use a document store rather than temp space for the images ?
+            my $imageset;  
+            if ( $c->config->{use_image_store} ) {
+              $c->log->debug( 'DomainGraphics::domainGraphics: using document store for image' )
+                if $c->debug;
+              require PfamWeb::ImageSet;
+              $imageset = PfamWeb::ImageSet->new;
+            }
+            else {
+              $c->log->debug( 'DomainGraphics::domainGraphics: using temporary directory for image' )
+                if $c->debug;
+              require Bio::Pfam::Drawing::Image::ImageSet;
+              $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+            }
             $imageset->create_images( $layout->layout_to_XMLDOM );
             push @{ $imageSets->{$seqAcc} }, $imageset;
           }
@@ -317,7 +330,20 @@ sub updateSources : Path {
               if $c->debug;
 
             if( $numSetsAdded ) {
-              my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+              # should we use a document store rather than temp space for the images ?
+              my $imageset;  
+              if ( $c->config->{use_image_store} ) {
+                $c->log->debug( 'DomainGraphics::domainGraphics: using document store for image' )
+                  if $c->debug;
+                require PfamWeb::ImageSet;
+                $imageset = PfamWeb::ImageSet->new;
+              }
+              else {
+                $c->log->debug( 'DomainGraphics::domainGraphics: using temporary directory for image' )
+                  if $c->debug;
+                require Bio::Pfam::Drawing::Image::ImageSet;
+                $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+              }
               $imageset->create_images( $layout->layout_to_XMLDOM );
               push @{ $imageSets->{$obId} }, $imageset;
               $c->log->debug( 'Protein::Graphics::updateSources:         pushed imageset' )

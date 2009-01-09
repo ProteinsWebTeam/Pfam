@@ -6,7 +6,7 @@
 # a given architecture. It should be called by the DomainGraphics controller,
 # via ajax.
 #
-# $Id: allSequences.tt,v 1.4 2008-08-19 15:22:03 jt6 Exp $
+# $Id: allSequences.tt,v 1.5 2009-01-09 12:59:24 jt6 Exp $
 
 META naked = 1;
 
@@ -73,8 +73,13 @@ USE String;
       ([% image.length / image.scale_x %] residues)
     </span>
 
+    [% IF c.config.use_image_store;
+      image_uri = c.uri_for( image.file_location );
+    ELSE;
+      image_uri = image.file_location;
+    END; %]
     <img class="graphicImage"
-         src="[% constants.tmp %]/[% image.file_location %]"
+         src="[% image_uri %]"
          usemap="#domainGraphicsMap[% auto_arch %][% loop.index %]"
          alt="" />
     <div class="cleaner">&nbsp;</div>

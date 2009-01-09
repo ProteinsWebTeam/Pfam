@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.38 2008-09-04 10:07:25 jt6 Exp $
+# $Id: Protein.pm,v 1.39 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.38 2008-09-04 10:07:25 jt6 Exp $
+$Id: Protein.pm,v 1.39 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -28,19 +28,19 @@ use warnings;
 
 use Storable qw( thaw );
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
-use Bio::Pfam::AnnotatedSequence;
-use Bio::Pfam::AnnotatedRegion;
-use Bio::Pfam::PfamAnnSeqFactory;
-use Bio::Pfam::PfamRegion;
-use Bio::Pfam::OtherRegion;
-use Bio::Pfam::SmartRegion;
-use Bio::Pfam::ContextPfamRegion;
-use Bio::Pfam::CATHRegion;
-use Bio::Pfam::SCOPRegion;
-use Bio::Pfam::SeqPfam;
-use Bio::Pfam::HMMOtherRegion;
-use Bio::Pfam::Drawing::Image::ImageSet;
-use Bio::SeqFeature::Generic;
+#use Bio::Pfam::AnnotatedSequence;
+#use Bio::Pfam::AnnotatedRegion;
+#use Bio::Pfam::PfamAnnSeqFactory;
+#use Bio::Pfam::PfamRegion;
+#use Bio::Pfam::OtherRegion;
+#use Bio::Pfam::SmartRegion;
+#use Bio::Pfam::ContextPfamRegion;
+#use Bio::Pfam::CATHRegion;
+#use Bio::Pfam::SCOPRegion;
+#use Bio::Pfam::SeqPfam;
+#use Bio::Pfam::HMMOtherRegion;
+#use Bio::Pfam::Drawing::Image::ImageSet;
+#use Bio::SeqFeature::Generic;
 
 use base 'PfamWeb::Controller::Section';
 
@@ -66,6 +66,19 @@ sub begin : Private {
       $c->req->param('output') eq 'xml' ) {
     $c->stash->{output_xml} = 1;
     $c->res->content_type('text/xml');
+  }
+
+  #----------------------------------------
+
+  # see if we should highlight a particular DAS track (or tracks) in the 
+  # features tab
+  if ( defined $c->req->param('highlight') ) {
+    my ( $highlight ) = $c->req->param('highlight') =~ m/^([\w\s]+)$/;
+    if ( defined $highlight ) {
+      $c->log->debug( "Protein::begin: highlighting tracks for '$highlight'" )
+        if $c->debug;
+      $c->stash->{highlightSource} = $highlight;
+    }
   }
 
   #----------------------------------------
@@ -314,12 +327,27 @@ sub generate_pfam_graphic : Private {
     if ref $this eq 'PfamWeb::Controller::Protein';
 
   # and build an imageset
-  my $pfamImageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $pfamImageset->create_images( $layoutPfam->layout_to_XMLDOM );
+
+  # should we use a document store rather than temp space for the images ?
+  my $imageset;  
+  if ( $c->config->{use_image_store} ) {
+    $c->log->debug( 'Protein::generate_pfam_graphic: using document store for image' )
+      if $c->debug;
+    require PfamWeb::ImageSet;
+    $imageset = PfamWeb::ImageSet->new;
+  }
+  else {
+    $c->log->debug( 'Protein::generate_pfam_graphic: using temporary directory for image' )
+      if $c->debug;
+    require Bio::Pfam::Drawing::Image::ImageSet;
+    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  }
+
+  $imageset->create_images( $layoutPfam->layout_to_XMLDOM );
   $c->log->debug('Protein::generate_pfam_graphic: created images')
     if $c->debug;
 
-  $c->stash->{pfamImageset} = $pfamImageset;
+  $c->stash->{pfamImageset} = $imageset;
 
   $c->log->debug('Protein::generate_pfam_graphic: successfully generated an imageset object')
     if $c->debug;

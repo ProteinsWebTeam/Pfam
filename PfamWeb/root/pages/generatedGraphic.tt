@@ -1,11 +1,10 @@
-
 [%
 # generatedGraphic.tt
 # jt6 20070402 WTSI
 #
 # show the generated graphic for an uploaded XML file
 #
-# $Id: generatedGraphic.tt,v 1.8 2008-06-02 14:41:23 jt6 Exp $
+# $Id: generatedGraphic.tt,v 1.9 2009-01-09 12:59:24 jt6 Exp $
 
 META title = "Generated Pfam graphic";
 META fullPage = 1;
@@ -71,9 +70,18 @@ requirements.css.push( "graphicTools.css" );
 
   [% IF pfamseq.description %]
   <p>[% pfamseq.description %]</p>
-  [% END %]
+  [% END;
   
-  <img class="graphicImage" src="[% constants.tmp %]/[% image.file_location %]" alt="" usemap="#singleImageMap"/>
+  IF c.config.use_image_store;
+    image_uri = c.uri_for( image.file_location );
+  ELSE;
+    image_uri = image.file_location;
+  END; %]
+  
+  <img class="graphicImage" 
+       src="[% image_uri %]" 
+       alt="" 
+       usemap="#singleImageMap" />
   <div class="cleaner"><!-- empty --></div>        
 
   <map id="singleImageMap">

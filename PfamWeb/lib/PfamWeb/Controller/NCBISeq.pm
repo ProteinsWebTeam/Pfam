@@ -2,7 +2,7 @@
 # NCBISeq.pm
 # jt6 20071010 WTSI
 #
-# $Id: NCBISeq.pm,v 1.3 2008-05-16 15:29:28 jt6 Exp $
+# $Id: NCBISeq.pm,v 1.4 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::NCBISeq;
 
 Generates a B<tabbed page>.
 
-$Id: NCBISeq.pm,v 1.3 2008-05-16 15:29:28 jt6 Exp $
+$Id: NCBISeq.pm,v 1.4 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -30,8 +30,8 @@ use Bio::SeqFeature::Generic;
 use Bio::Pfam::OtherRegion;
 use Bio::Pfam::SeqPfam;
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
-use Bio::Pfam::Drawing::Image::ImageSet;
-use Bio::Pfam::Drawing::Image::Image;
+#use Bio::Pfam::Drawing::Image::ImageSet;
+#use Bio::Pfam::Drawing::Image::Image;
 
 use Data::Dump qw( dump );
 
@@ -50,104 +50,85 @@ Get the data from the database for the entry.
 =cut
 
 sub begin : Private {
-  my ( $this, $c ) = @_;
+  my ( $this, $c, $entry_arg ) = @_;
 
-  #----------------------------------------
-  # get the accession or ID code
-
-  my $n;
-  if ( defined $c->req->param('gi') ) {
-
-    $c->req->param('gi') =~ m/^(GI:?)?(\d+)$/i;
-    $c->log->debug( "NCBISeq::begin: found a GI number: |$2|" );
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
+    $c->stash->{output_xml} = 1;
+    $c->res->content_type('text/xml');    
+  }
   
-    $n = $c->model('PfamDB::Ncbi_seq')
-           ->find( { gi => $2 } );
+  # get a handle on the entry and detaint it
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('gi')    ||
+                      $c->req->param('entry') ||
+                      $entry_arg              ||
+                      '';
 
-  } elsif ( defined $c->req->param('acc') ) {
-
-    # TODO this is a bit dangerous; try to find a tighter pattern for these
-    $c->req->param('acc') =~ m/^(\w+\d+)(\.\d+)?$/i;
-    $c->log->debug( "NCBISeq::begin: found an NCBI secondary accession: |$1|" );
+  # although these next checks might fail and end up putting an error message
+  # into the stash, we don't "return", because we might want to process the 
+  # error message using a template that returns XML rather than simply HTML
+  # (XML output not yet implemented for metaseq data
+  # jt6 20080603 WTSI.)
   
-    my @rs = $c->model('PfamDB::Ncbi_seq')
-               ->search( { secondary_acc => { 'like', "$1%" } } );
-    $n = shift @rs;
-
-  } elsif ( defined $c->req->param('entry') ) {
-
-    # we don't know if this is a GI or an accession; try both
-
-    if( $c->req->param('entry') =~ m/^(GI:?)?(\d+)$/i ) {
-  
-      # looks like a GI; redirect to this action, appending the GI number
-      $c->log->debug( "NCBISeq::begin: looks like a GI ($2); detaching");
-      $c->req->param( gi => $2 );
-      $c->detach( 'begin' );
-      return 1;
-  
-    } elsif( $c->req->param('entry') =~ m/^(\w+\d+)(\.\d+)?$/i ) {
-  
-      # looks like an accession; redirect to this action, appending the accession
-      $c->log->debug( "NCBISeq::begin: looks like a secondary accession ($1); detaching");
-      $c->req->param( acc => $1 );
-      $c->detach( 'begin' );
-      return 1;
-    }
+  my $entry;
+  if ( $tainted_entry ) {
+    ( $entry ) = $tainted_entry =~ m/^([\w\.-]+)$/;
+    $c->stash->{errorMsg} = 'Invalid ncbiseq accession or ID' 
+      unless defined $entry;
+  }
+  else {
+    $c->stash->{errorMsg} = 'No ncbiseq accession or ID specified';
   }
 
-  # we're done here unless there's an entry specified
-  unless ( defined $n ) {
-
-    # de-taint the accession or ID
-    my $input = $c->req->param('acc')
-      || $c->req->param('gi')
-      || $c->req->param('entry')
-      || '';
-    $input =~ s/^(\w+)/$1/;
-  
-    # see if this was an internal link and, if so, report it
-    my $b = $c->req->base;
-    if ( $c->req->referer =~ /^$b/ ) {
-  
-      # this means that the link that got us here was somewhere within
-      # the Pfam site and that the accession or ID which it specified
-      # doesn't actually exist in the DB
-  
-      # report the error as a broken internal link
-      $c->error(
-          'Found a broken internal link; no valid GI or accession ("'
-          . $input . '") in "' . $c->req->referer . '"' );
-      $c->forward('/reportError');
-  
-      # now reset the errors array so that we can add the message for
-      # public consumption
-      $c->clear_errors;
-  
-    }
-  
-    # the message that we'll show to the user
-    $c->stash->{errorMsg} = 'No valid GI or secondary accession';
-  
-    # log a warning and we're done; drop out to the end method which
-    # will put up the standard error page
-    $c->log->warn('NCBISeq::begin: no valid GI or secondary accession');
-  
-    return;
-  }
-
-  $c->log->debug('NCBISeq::begin: successfully retrieved an NCBI_seq object');
-  $c->stash->{ncbiseq} = $n;
-    
-  #----------------------------------------
-  # add extra data to the stash
-
-  $c->forward('generatePfamGraphic');
-  $c->forward('getSummaryData');
+  # retrieve data for this entry
+  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
 }
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 action : Attribute
+
+Description...
+
+=cut
+
+sub get_data : Private {
+  my ( $this, $c, $entry ) = @_;
+  
+  my $rs = $c->model('PfamDB::Ncbi_seq')
+             ->search( [ { gi            => $entry }, 
+                         { secondary_acc => $entry } ] );
+
+  my $ncbiseq = $rs->first if defined $rs;
+  
+  unless ( defined $ncbiseq ) {
+    $c->stash->{errorMsg} = 'No valid ncbiseq accession or ID';
+    return;
+  }
+  
+  $c->log->debug( 'Ncbiseq::get_data: got a ncbiseq entry' ) if $c->debug;
+  $c->stash->{ncbiseq} = $ncbiseq;
+  $c->stash->{acc}     = $ncbiseq->gi;
+  
+  # only add extra data to the stash if we're actually going to use it later
+  if ( not $c->stash->{output_xml} and 
+       ref $this eq 'PfamWeb::Controller::Ncbiseq' ) {
+    
+    $c->log->debug( 'Ncbiseq::get_data: adding extra ncbiseq info' )
+      if $c->debug;
+    
+    $c->forward('generatePfamGraphic');
+    $c->forward('getSummaryData');
+  }
+  
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 generatePfamGraphic : Private
@@ -212,10 +193,25 @@ sub generatePfamGraphic : Private {
     if ref $this eq 'PfamWeb::Controller::NCBISeq';
   
   # and use it to create an ImageSet
-  my $imageSet = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageSet->create_images( $layout->layout_to_XMLDOM );
+
+  # should we use a document store rather than temp space for the images ?
+  my $imageset;  
+  if ( $c->config->{use_image_store} ) {
+    $c->log->debug( 'NCBISeq::generatePfamGraphic: using document store for image' )
+      if $c->debug;
+    require PfamWeb::ImageSet;
+    $imageset = PfamWeb::ImageSet->new;
+  }
+  else {
+    $c->log->debug( 'NCBISeq::generatePfamGraphic: using temporary directory for store image' )
+      if $c->debug;
+    require Bio::Pfam::Drawing::Image::ImageSet;
+    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  }
+
+  $imageset->create_images( $layout->layout_to_XMLDOM );
  
-  $c->stash->{imageSet} = $imageSet;
+  $c->stash->{imageset} = $imageset;
 }
 
 #-------------------------------------------------------------------------------
@@ -287,7 +283,8 @@ sub getSummaryData : Private {
 
   $c->stash->{summaryData} = \%summaryData;
 
-  $c->log->debug('NCBISeq::getSummaryData: added the summary data to the stash');
+  $c->log->debug('NCBISeq::getSummaryData: added the summary data to the stash')
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
