@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.6 2009-01-06 12:30:27 jt6 Exp $
+# $Id: Jump.pm,v 1.7 2009-01-09 13:18:21 jt6 Exp $
 
 =head1 NAME
 
@@ -29,7 +29,7 @@ should:
 If the L<jump> method finds that the L<forward> returns undef, it returns
 an error message saying that the guess failed. 
 
-$Id: Jump.pm,v 1.6 2009-01-06 12:30:27 jt6 Exp $
+$Id: Jump.pm,v 1.7 2009-01-09 13:18:21 jt6 Exp $
 
 =cut
 
@@ -57,8 +57,8 @@ sub jump : Path {
   my( $this, $c ) = @_;
   
   # de-taint the entry ID or accession
-  my $entry = '';
-  ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()\.]+)$/;
+  my ( $entry ) = $c->req->param('entry') =~ /^([\w\-_\s()\.]+)$/;
+  $entry ||= '';
   $c->log->debug( "Search::Jump::jump: called with entry |$entry|" )
     if $c->debug;
 
@@ -122,7 +122,7 @@ sub end : Private {
   
   if( $c->stash->{error} ) {
 
-    if ( $c->req->param('redirect') == 1 ) {
+    if ( $c->req->param('redirect') ) {
       $c->log->debug( 'Search::Jump::end: jump error; redirecting to home page' )
         if $c->debug;
       $c->res->redirect( $c->uri_for( '/' ), 301 );
