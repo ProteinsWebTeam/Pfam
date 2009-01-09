@@ -2,7 +2,7 @@
 # PfamGraphicsTools.pm
 # jt 20070402 WTSI
 #
-# $Id: PfamGraphicsTools.pm,v 1.7 2008-09-16 12:57:39 jt6 Exp $
+# $Id: PfamGraphicsTools.pm,v 1.8 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ A couple of utility methods for generating Pfam graphics from a user-supplied
 XML file and for displaying the XML that builds the graphic for a specified 
 UniProt entry.
 
-$Id: PfamGraphicsTools.pm,v 1.7 2008-09-16 12:57:39 jt6 Exp $
+$Id: PfamGraphicsTools.pm,v 1.8 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -32,7 +32,8 @@ use XML::LibXML;
 
 use Storable qw(thaw);
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
-use Bio::Pfam::Drawing::Image::ImageSet;
+#use Bio::Pfam::Drawing::Image::ImageSet;
+#use PfamWeb::ImageSet;
 
 use base 'Catalyst::Controller';
 
@@ -128,12 +129,26 @@ sub renderXML : Global {
   #----------------------------------------
 
   # at this point we should have a valid XML file
+
+  # should we use a document store rather than temp space for the images ?
+  my $imageset;  
+  if ( $c->config->{use_image_store} ) {
+    $c->log->debug( 'PfamGraphicsTools::renderXML: using document store for image' )
+      if $c->debug;
+    require PfamWeb::ImageSet;
+    $imageset = PfamWeb::ImageSet->new;
+  }
+  else {
+    $c->log->debug( 'PfamGraphicsTools::renderXML: using temporary directory for store image' )
+      if $c->debug;
+    require Bio::Pfam::Drawing::Image::ImageSet;
+    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  }
   
   # render the graphic
-  my $imageSet = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageSet->create_images( $c->stash->{xmlDocument}, 1 );
+  $imageset->create_images( $c->stash->{xmlDocument}, 1 );
 
-  if( not defined $imageSet ) {
+  if( not defined $imageset ) {
     $c->log->error( 'PfamGraphicsTools::renderXML: image generation failed' );
     $c->stash->{error} = 'There was a problem generating the Pfam graphic from your XML.';
     $c->stash->{template} = 'pages/uploadXml.tt';
@@ -142,7 +157,7 @@ sub renderXML : Global {
   $c->log->debug( 'PfamGraphicsTools::renderXML: 4) we *might* have generated an image...' );
 
   $c->stash->{xml}      = $c->stash->{xmlDocument}->toString( 1 );
-  $c->stash->{imageSet} = $imageSet;
+  $c->stash->{imageSet} = $imageset;
 
   # hand off to another action, which will decide whether to return the raw image
   # or to render the specified template
@@ -218,10 +233,25 @@ sub renderUniprotGraphic : Global {
                                                              noFeatures => 0 } );
 
   # and build an imageset
-  my $imageSet = Bio::Pfam::Drawing::Image::ImageSet->new;
-  $imageSet->create_images( $layoutPfam->layout_to_XMLDOM );
+
+  # should we use a document store rather than temp space for the images ?
+  my $imageset;  
+  if ( $c->config->{use_image_store} ) {
+    $c->log->debug( 'PfamGraphicsTools::renderUniprotGraphic: using document store for image' )
+      if $c->debug;
+    require PfamWeb::ImageSet;
+    $imageset = PfamWeb::ImageSet->new;
+  }
+  else {
+    $c->log->debug( 'PfamGraphicsTools::renderUniprotGraphic: using temporary directory for store image' )
+      if $c->debug;
+    require Bio::Pfam::Drawing::Image::ImageSet;
+    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  }
+
+  $imageset->create_images( $layoutPfam->layout_to_XMLDOM );
   $c->stash->{xml} = $layoutPfam->layout_to_XMLDOM->toString( 1 );
-  $c->stash->{imageSet} = $imageSet;
+  $c->stash->{imageSet} = $imageset;
 
   $c->stash->{template} = 'pages/generatedUniprotGraphic.tt';
   $c->forward( 'returnGraphic' );

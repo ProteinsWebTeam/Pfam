@@ -2,7 +2,7 @@
 # Proteome.pm
 # rdf 20060821 WTSI
 #
-# $Id: Proteome.pm,v 1.12 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Proteome.pm,v 1.13 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Proteome;
 
 Controller to build the main Pfam Proteome page.
 
-$Id: Proteome.pm,v 1.12 2008-05-16 15:29:28 jt6 Exp $
+$Id: Proteome.pm,v 1.13 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -40,7 +40,39 @@ details of the proteome with that tax ID.
 =cut
 
 sub begin : Private {
-  my( $this, $c ) = @_;
+  my( $this, $c, $entry_arg ) = @_;
+
+  # decide what format to emit. The default is HTML, in which case
+  # we don't set a template here, but just let the "end" method on
+  # the Section controller take care of us
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
+    $c->stash->{output_xml} = 1;
+    $c->res->content_type('text/xml');    
+  }
+  
+  # get a handle on the entry and detaint it
+  my $tainted_entry = $c->req->param('id') ||
+                      $c->req->param('taxId') ||
+                      $c->req->param('ncbi_code')     ||
+                      $c->req->param('entry')     ||
+                      $entry_arg                  ||
+                      '';
+
+  # we're only accepting an NCBI tax ID  
+  my $entry;
+  if ( $tainted_entry ) {
+    ( $entry ) = $tainted_entry =~ m/^(\d+)$/;
+    $c->stash->{errorMsg} = 'Invalid NCBI taxonomy ID' 
+      unless defined $entry;
+  }
+  else {
+    $c->stash->{errorMsg} = 'No NCBI taxonomy ID specified';
+  }
+
+  # retrieve data for this entry
+  $c->forward( 'get_data', [ $entry ] ) if defined $entry;
+
 
   if( defined $c->req->param('taxId') and 
       $c->req->param('taxId') =~ m/^(\d+)$/i ) {
@@ -66,8 +98,8 @@ sub begin : Private {
   # that's represented in the parameter "taxId", hence the use of "pfamAcc"
   # instead...
   
-  if( defined $c->req->param('pfamAcc') and
-      $c->req->param('pfamAcc') =~ m/^(PF\d{5})$/ ) {
+  if ( defined $c->req->param('pfamAcc') and
+       $c->req->param('pfamAcc') =~ m/^(PF\d{5})$/ ) {
     $c->log->debug( "Proteome::begin: found a Pfam-A accession: |$1|" );
 
     $c->stash->{pfamAcc} = $1;
@@ -75,42 +107,9 @@ sub begin : Private {
                           ->find( { pfamA_acc => $1 } );
   }
 
-  # throw an error unless there's something in the stash
-  unless( defined $c->stash->{proteomeSpecies} and 
-          $c->stash->{proteomeSpecies}->ncbi_code  ) {
+  # Note: I'm no longer sure what this last DB lookup is for...
+  # jt6 20081219 WTSI
 
-    # de-taint the ncbi code
-    my $input = $c->req->param('taxId') || '';
-    $input =~ s/^(\w+)/$1/;
-    
-    # see if this was an internal link and, if so, report it
-    my $b = $c->req->base;
-    if( defined $c->req->referer and $c->req->referer =~ /^$b/ ) {
-  
-      # this means that the link that got us here was somewhere within
-      # the Pfam site and that the ncbi code which it specified
-      # doesn't actually exist in the DB
-  
-      # report the error as a broken internal link
-      $c->error( "Found a broken internal link; no valid Pfam family accession or ID "
-                 . "(\"$input\") in \"" . $c->req->referer . "\"" );
-      $c->forward( '/reportError' );
-  
-      # now reset the errors array so that we can add the message for
-      # public consumption
-      $c->clear_errors;
-  
-    }
-
-    # the message that we'll show to the user
-    $c->stash->{errorMsg} = 'NCBI taxonomy ID was either invalid or the proteome was not found';
-    
-    # log a warning and we're done; drop out to the end method which
-    # will put up the standard error page
-    $c->log->warn( 'Proteome::begin: tax ID invalid or not found' );
-     
-    return; 
-  }
 }
 
 #-------------------------------------------------------------------------------
@@ -149,6 +148,44 @@ sub graphics : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+=head2 get_data : Private
+
+Retrieve data for this proteome.
+
+=cut
+
+sub get_data : Private {
+  my ( $this, $c, $entry ) = @_;
+  
+  my $rs = $c->model('PfamDB::Proteome_species')
+             ->find( { ncbi_code => $entry },
+                     { join      => [ 'ncbi_tax' ],
+                       prefetch  => [ 'ncbi_tax' ] } );
+  
+  unless ( defined $rs ) {
+    $c->stash->{errorMsg} = 'No valid NCBI taxonomy ID found';
+    return;
+  }
+  
+  $c->stash->{taxId} = $entry;
+  
+  $c->log->debug( 'Proteome::get_data: got a proteome entry' ) if $c->debug;
+  $c->stash->{proteomeSpecies} = $rs;
+  
+  # only add extra data to the stash if we're actually going to use it later
+  if ( not $c->stash->{output_xml} and 
+       ref $this eq 'PfamWeb::Controller::Proteome' ) {
+    
+    $c->log->debug( 'Proteome::get_data: adding extra info' )
+      if $c->debug;
+    
+    $c->forward('getSummaryData');
+    $c->forward('getStats');
+  }
+  
+}
+
+#-------------------------------------------------------------------------------
 =head2 getSummaryData : Private
 
 Just gets the data items for the overview bar.

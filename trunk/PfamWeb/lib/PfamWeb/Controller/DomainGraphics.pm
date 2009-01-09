@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.24 2008-10-23 15:30:27 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.25 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.24 2008-10-23 15:30:27 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.25 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -201,10 +201,24 @@ sub domainGraphics : Path {
     $layout->layout_sequences_with_regions_and_features( $c->stash->{seqs},
                                                          $c->stash->{regionsAndFeatures} );
   
-    my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+    # should we use a document store rather than temp space for the images ?
+    my $imageset;  
+    if ( $c->config->{use_image_store} ) {
+      $c->log->debug( 'DomainGraphics::domainGraphics: using document store for image' )
+        if $c->debug;
+      require PfamWeb::ImageSet;
+      $imageset = PfamWeb::ImageSet->new;
+    }
+    else {
+      $c->log->debug( 'DomainGraphics::domainGraphics: using temporary directory for image' )
+        if $c->debug;
+      require Bio::Pfam::Drawing::Image::ImageSet;
+      $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+    }
+
     $imageset->create_images( $layout->layout_to_XMLDOM );
   
-    $c->stash->{images}  = $imageset;
+    $c->stash->{images} = $imageset;
   }
 
   # set up the view and rely on "end" from the parent class to render it. Use

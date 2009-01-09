@@ -2,7 +2,7 @@
 # Domain.pm
 # jt6 20061108 WTSI
 #
-# $Id: Domain.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Domain.pm,v 1.5 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Domain;
 
 Searches for sequence architectures with the specified set of Pfam domains.
 
-$Id: Domain.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+$Id: Domain.pm,v 1.5 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -40,28 +40,32 @@ Executes a domain query.
 sub domainSearch : Path {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Search::Domain::domainSearch: executing a domain search' );
+  $c->log->debug( 'Search::Domain::domainSearch: executing a domain search' )
+    if $c->debug;
 
   # point at the template right away
   $c->stash->{template} = 'components/allArchitectures.tt';
 
   my $list = '';
   if( defined $c->req->param( 'have' ) ) {
-    $c->log->debug( 'Search::Domain::domainSearch: must have:     |' . $c->req->param('have') . '|' );
+    $c->log->debug( 'Search::Domain::domainSearch: must have:     |' . $c->req->param('have') . '|' )
+      if $c->debug;
     foreach ( split /\s+/, $c->req->param('have') ) {
       next unless /(PF\d{5})/;
       $list .= "+$1 ";
     }
   }
   if( defined $c->req->param( 'not' ) ) {
-    $c->log->debug( 'Search::Domain::domainSearch: must not have: |' . $c->req->param('not') . '|' );
+    $c->log->debug( 'Search::Domain::domainSearch: must not have: |' . $c->req->param('not') . '|' )
+      if $c->debug;
     foreach ( split /\s+/, $c->req->param('not') ) {
       next unless /(PF\d{5})/;
       $list .= "-$1 ";
     }
   }
 
-  $c->log->debug( "Search::Domain::domainSearch: list: |$list|" );
+  $c->log->debug( "Search::Domain::domainSearch: list: |$list|" )
+    if $c->debug;
 
   return unless $list;
 
@@ -79,9 +83,8 @@ sub domainSearch : Path {
     $sum += $arch->no_seqs;
   }
 
-  $c->log->debug( 'Search::Domain::domainSearch: found '
-                  . scalar @architectures
-                  . ' rows, with a total of $sum sequences' );
+  $c->log->debug( 'Search::Domain::domainSearch: found ' . scalar @architectures
+                  . ' rows, with a total of $sum sequences' ) if $c->debug;
 
   $c->stash->{numRows} = scalar @architectures;
   $c->stash->{numSeqs} = $sum;
@@ -109,7 +112,8 @@ sub domainSearch : Path {
     # have an auto_architecture, so this won't work
     $seqInfo{$arch->pfamseq_id}{num} = $arch->no_seqs unless $c->stash->{auto_arch};
   }
-  $c->log->debug( 'found ' . scalar @seqs . ' storables' );
+  $c->log->debug( 'Search::Domain::domainSearch: found ' . scalar @seqs . ' storables' )
+    if $c->debug;
 
   if( scalar @seqs ) {
     my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
@@ -118,7 +122,21 @@ sub domainSearch : Path {
                                                                    PfamB      => 1,
                                                                    noFeatures => 1 } );
     
-    my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+    # should we use a document store rather than temp space for the images ?
+    my $imageset;  
+    if ( $c->config->{use_image_store} ) {
+      $c->log->debug( 'Search::Domain::domainSearch: using document store for image' )
+        if $c->debug;
+      require PfamWeb::ImageSet;
+      $imageset = PfamWeb::ImageSet->new;
+    }
+    else {
+      $c->log->debug( 'Search::Domain::domainSearch: using temporary directory for store image' )
+        if $c->debug;
+      require Bio::Pfam::Drawing::Image::ImageSet;
+      $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+    }
+
     $imageset->create_images( $layout->layout_to_XMLDOM );
   
     $c->stash->{images} = $imageset;

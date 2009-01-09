@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060710 WTSI
 #
-# $Id: Graphics.pm,v 1.8 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Graphics.pm,v 1.9 2009-01-09 12:59:24 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ sequence - used in the structure section, confusingly.
 
 Generates a B<page component>.
 
-$Id: Graphics.pm,v 1.8 2008-05-16 15:29:28 jt6 Exp $
+$Id: Graphics.pm,v 1.9 2009-01-09 12:59:24 jt6 Exp $
 
 =cut
 
@@ -77,7 +77,8 @@ sub generateGraphics : Path {
 
   unless( defined $c->req->param('seqIds') and
           $c->req->param('seqIds') =~ m/^((\w+\_\w+\,*)+)$/ ) {
-    $c->log->warn( 'Structure::Graphics::begin: no IDs found' );
+    $c->log->warn( 'Structure::Graphics::begin: no IDs found' )
+      if $c->debug;
     return;
   }
 
@@ -88,7 +89,8 @@ sub generateGraphics : Path {
 
   my @seqs;
   foreach my $id ( @{ $c->stash->{idList} } ) {
-    $c->log->debug( "Structure::Graphics::generateGraphics: looking for |$id|" );
+    $c->log->debug( "Structure::Graphics::generateGraphics: looking for |$id|" )
+      if $c->debug;
   
   	# retrieve the Storable with the data for this sequence
   	my $pfamseq = $c->model('PfamDB::Pfamseq')
@@ -98,7 +100,7 @@ sub generateGraphics : Path {
   	push @seqs, thaw( $pfamseq->annseq_storable ) if defined $pfamseq;
   }
   $c->log->debug( 'Structure::Graphics::generateGraphics: found '
-                  . scalar @seqs . ' storables' );
+                  . scalar @seqs . ' storables' ) if $c->debug;
 
   # render the sequences
   my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
@@ -110,7 +112,21 @@ sub generateGraphics : Path {
   $layout->layout_sequences_with_regions_and_features( \@seqs,
 													   \%regionsAndFeatures );
 
-  my $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  # should we use a document store rather than temp space for the images ?
+  my $imageset;  
+  if ( $c->config->{use_image_store} ) {
+    $c->log->debug( 'Structure::Graphics::generateGraphic: using document store for image' )
+      if $c->debug;
+    require PfamWeb::ImageSet;
+    $imageset = PfamWeb::ImageSet->new;
+  }
+  else {
+    $c->log->debug( 'Structure::Graphics::generateGraphic: using temporary directory for store image' )
+      if $c->debug;
+    require Bio::Pfam::Drawing::Image::ImageSet;
+    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
+  }
+
   $imageset->create_images( $layout->layout_to_XMLDOM );
 
   $c->stash->{images} = $imageset;

@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.15 2008-09-18 11:54:54 jt6 Exp $
+# $Id: results.tt,v 1.16 2009-01-09 12:59:24 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -223,10 +223,15 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
   <div>
   [%- FOREACH image IN images.each_image;
     CALL image.print_image;
-    id = image.image_name -%]
+    id = image.image_name;
 
+    IF c.config.use_image_store;
+      image_uri = c.uri_for( image.file_location );
+    ELSE;
+      image_uri = image.file_location;
+    END; %]
     <img class="graphicImage"
-         src="[% constants.tmp %]/[% image.file_location %]"
+         src="[% image_uri %]"
          usemap="#domainGraphicsMap[% loop.index %]"
          alt="" />
     <div class="cleaner"><!-- empty --></div>

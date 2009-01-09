@@ -14,7 +14,7 @@
 # that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
 # onComplete callbacks, which turn on and off the "loading" spinner, etc.
 #
-# $Id: graphics.tt,v 1.26 2008-09-18 11:53:43 jt6 Exp $
+# $Id: graphics.tt,v 1.27 2009-01-09 12:59:24 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -111,7 +111,8 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     <script type="text/javascript">
       // <![CDATA[
       loadOptions.pg.uri    = "[% graphicsUri %]";
-      loadOptions.pg.params = { acc: "[% pfamseq.pfamseq_acc %]" };
+      loadOptions.pg.params = { acc: "[% pfamseq.pfamseq_acc %]",
+                                highlight: "[% highlightSource %]" };
       // ]]>
     </script>
 
