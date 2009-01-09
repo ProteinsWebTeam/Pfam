@@ -15,6 +15,10 @@ use Bio::Pfam::Drawing::Image::Graph;
 
 use Time::HiRes qw( gettimeofday );
 
+# provide the name of the Image class via a method on the class, so that we can 
+# override and replace it
+sub image_class { 'Bio::Pfam::Drawing::Image::Image' }
+
 sub new{
   my $class = shift;
   my $self = bless {}, ref($class) || $class;
@@ -62,7 +66,7 @@ sub create_images {
 	
 #print STDERR "creating image for |$seqNode|", $seqNode->nodeName, "|\n";
 
-    my $image = Bio::Pfam::Drawing::Image::Image->new( { timeStamp => $self->{timeStamp} } );
+    my $image = $self->image_class->new( { timeStamp => $self->{timeStamp} } );
 
 #print STDERR "imageset: length: |", $seqNode->getAttribute( "length" ), "|\n";
 
