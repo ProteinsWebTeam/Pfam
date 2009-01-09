@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.53 2008-08-18 10:01:22 jt6 Exp $
+# $Id: index.tt,v 1.54 2009-01-09 12:59:47 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -110,6 +110,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <li class="link" onclick="switchPanel(this,'sequence')">VIEW A SEQUENCE</li>
       <li class="link" onclick="switchPanel(this,'structure')">VIEW A STRUCTURE</li>
       <li class="link" onclick="switchPanel(this,'keyword')">KEYWORD SEARCH</li>
+      <li class="link" onclick="switchPanel(this,'help')">JUMP TO</li>
       <li>&nbsp;</li>
     </ul>
   </div><!-- end of "controlPanel" -->
@@ -123,6 +124,33 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <li>Look at the domain organisation of a protein sequence</li>
       <li>Find the domains on a PDB structure</li>
       <li>Query Pfam by keywords</li>
+      <li>
+        <div>
+        <form action="[% jumpUri %]"
+              id="jumpForm"
+              onsubmit="return jump(this);">
+          <div>
+            <input class="entryField"
+                   type="text" 
+                   name="entry" 
+                   id="jumpField" 
+                   size="30" />
+          </div>
+          <div id="jumpButton"
+               class="glassButton goButton">&nbsp;</div>
+          <div onclick="fillJumpField();"
+               class="glassButton exampleButton">&nbsp;</div>
+          <div style="display: none"
+               class="jumpSpinner">Searching...</div>
+          <div style="display: none"
+               class="jumpError"></div>
+          <p class="small nlh">
+            Enter any type of accession or ID to jump to the page
+            for a Pfam family or clan, UniProt sequence, PDB structure, etc.
+          </p>
+        </form>
+        </div>
+      </li>
       <li>Or view the <a href="[% helpBase %]">help</a> pages for 
         more information</li>
     </ul>
@@ -134,7 +162,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       Paste your protein sequence here to find matching Pfam families.
     </p>
     <form action="[% searchBase %]/sequence"
-          method="post"
           id="seqForm">
       <div>
         <input type="hidden"
@@ -169,7 +196,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <p>Enter a family identifier (e.g.&nbsp;<em>Piwi</em>) or accession 
     (e.g.&nbsp;<em>PF02171</em>) to see all data for that family.</p>
     <form action="[% jumpUri %]"
-          method="get" 
           id="familyForm"
           onsubmit="return jump(this);">
       <div>
@@ -202,7 +228,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <p>Enter a clan identifier (e.g.&nbsp;<em>Kazal</em>) or accession 
     (e.g.&nbsp;<em>CL0005</em>) to see information about that clan.</p>
     <form action="[% jumpUri %]"
-          method="get" 
           id="clanForm"
           onsubmit="return jump(this);">
       <div>
@@ -235,7 +260,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <p>Enter a sequence identifier (e.g.&nbsp;<em>VAV_HUMAN</em>) or accession
     (e.g.&nbsp;<em>P15498</em>).</p>
     <form action="[% jumpUri%]"
-          method="get" 
           id="proteinForm"
           onsubmit="return jump(this);">
       <div>
@@ -272,7 +296,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <p>Enter the PDB identifier (e.g.&nbsp;<em>2abl</em>) for the structure in the 
     Protein DataBank.</p>
     <form action="[% jumpUri %]"
-          method="get" 
           id="structureForm"
           onsubmit="return jump(this);">
       <div>
@@ -300,7 +323,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <h3>Query Pfam by keyword</h3>
     <p>Search for keywords in text data in the Pfam database.</p> 
     <form action="[% searchBase %]/keyword"
-          method="get" 
           id="keywordForm">
       <div>
         <input class="entryField" 
@@ -383,6 +405,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 <script type="text/javascript">
   // <![CDATA[
   
+  // hide the announcements or new features list when the user clicks the "hide this" button
   var hideThis = function( id ) {
     $(id).hide();
     var d = new Date();
@@ -392,7 +415,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   
   // load the list of new features
   Event.observe( window, 'load', function() {
-    
     ['announcements','website_changes'].each( function( type ) {
       var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
         { 
@@ -404,12 +426,59 @@ requirements.cssIeAll.push( "index_all_ie.css" );
           }
         }
       );
-
-    } );
-    
+    } );    
   } );
 
-  // example values for the various forms
+  // set up the "jump to" field
+
+  // first, make it behave nicely
+  $("jumpField").focus();
+  $("jumpField").value = "enter any accession or ID";
+  $("jumpField").selectionStart = 0;
+  $("jumpField").selectionEnd   = 0;
+
+  // add observers to clear out the field when the user first enters something
+  // in it. We need several so to catch all eventualities...
+  var jumpCleared = false;
+  $("jumpField").observe( "input", function() {
+    var start = $("jumpField").selectionStart;
+    var contents = $F("jumpField").substr( 0, start );
+    $("jumpField").value = contents;
+    jumpCleared = true;
+    $("jumpField").stopObserving();
+  } );
+
+  $("jumpField").observe( "click", function() {
+    $("jumpField").value = '';
+    jumpCleared = true;
+    $("jumpField").stopObserving();
+  } );
+
+  $("jumpField").observe( "focus", function() {
+    $("jumpField").selectionStart = 0;
+    $("jumpField").selectionEnd   = 0;
+  } );
+
+  // rotate through example IDs
+  var jumpExamples = new Array( "Piwi", "Kazal", "VAV_HUMAN", "1w9h", "349163" );  
+  var lastJumpExample = 0;
+  var fillJumpField = function() {
+    $("jumpField").value = jumpExamples[lastJumpExample++];
+    jumpCleared = true;
+    if ( lastJumpExample >= jumpExamples.size() ) {
+      lastJumpExample = 0;
+    }
+  }
+
+  // add an observer to submit the form when the user hits "go"
+  $("jumpButton").observe( "click", function() {
+    if ( $("jumpField").present() &&
+         jumpCleared ) {
+      jump('jumpForm');
+    }
+  } );
+
+  // example values for the various other forms in the page
   var exPfamId = "Piwi";
   var exClanId = "Kazal";
   var exUnpId  = "VAV_HUMAN";
