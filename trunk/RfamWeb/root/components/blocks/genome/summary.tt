@@ -4,7 +4,7 @@
 # 
 # build the summary block for the genome pages
 #
-# $Id: summary.tt,v 1.1 2009-01-06 12:14:42 jt6 Exp $
+# $Id: summary.tt,v 1.2 2009-01-15 15:06:43 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -65,7 +65,7 @@ USE String;
         </tr>
         <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
           <td class="label">Genome length</td>
-          <td class="data">[% summary.genome_size %]</td>
+          <td class="data">[% summary.genome_size %] bp</td>
         </tr>
         <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
           <td class="label">Number of genomic elements</td>
