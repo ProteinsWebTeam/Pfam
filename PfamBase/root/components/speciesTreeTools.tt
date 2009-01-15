@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.4 2009-01-06 12:28:43 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.5 2009-01-15 15:41:32 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -59,6 +59,10 @@
       </li>
     </ul>
 
+    [% # only show the last options if this is NOT an Rfam family (currently
+       # broken for Rfam... 
+    IF entryType != "R" %]
+    
     <h3>Selected sequences</h3>
     <ul class="bare">
       <li class="small">
@@ -110,6 +114,7 @@
          class="error"
          style="display: none" ></li>
     </ul>
+    [%- END %]
 
   </div>
 
