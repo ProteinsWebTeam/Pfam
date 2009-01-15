@@ -13,7 +13,12 @@ __PACKAGE__->add_columns(
   "genome_acc",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 20 },
   "ensembl_id",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 100 },
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 100,
+  },
   "description",
   {
     data_type => "MEDIUMTEXT",
@@ -21,6 +26,8 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 16777215,
   },
+  "ncbi_id",
+  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "taxonomy",
   {
     data_type => "MEDIUMTEXT",
@@ -30,8 +37,6 @@ __PACKAGE__->add_columns(
   },
   "circular",
   { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 3 },
-  "ncbi_id",
-  { data_type => "INT", default_value => undef, is_nullable => 1, size => 10 },
   "length",
   { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
 );
@@ -48,8 +53,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-11-28 14:26:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:B/JExFXM+hBIqvDign//nA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:H0ED2JH5UbVPDDFXwBdRsg
 
 __PACKAGE__->has_one(
   "gff",

@@ -45,8 +45,8 @@ __PACKAGE__->add_columns(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:/tVhfK9XLk7iVcQMGKsdZA
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:v3KzF9oHgmv35aYw3eeCvA
 
 
 __PACKAGE__->many_to_many( ncbi_code => "RfamDB::RfamNcbi", 'ncbi_code' );

@@ -17,16 +17,16 @@ __PACKAGE__->add_columns(
   "seq_end",
   { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 19 },
 );
+__PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 __PACKAGE__->belongs_to(
   "auto_rfamseq",
   "RfamDB::Rfamseq",
   { auto_rfamseq => "auto_rfamseq" },
 );
-__PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:MLCeV8D4N7Mi+JRECHrpaw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:if0A15D9iv5VsTOeDncjVA
 
 #-------------------------------------------------------------------------------
 
