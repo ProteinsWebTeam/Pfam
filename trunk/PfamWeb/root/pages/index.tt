@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.54 2009-01-09 12:59:47 jt6 Exp $
+# $Id: index.tt,v 1.55 2009-01-15 11:47:47 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -125,7 +125,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <li>Find the domains on a PDB structure</li>
       <li>Query Pfam by keywords</li>
       <li>
-        <div>
         <form action="[% jumpUri %]"
               id="jumpForm"
               onsubmit="return jump(this);">
@@ -135,21 +134,20 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                    name="entry" 
                    id="jumpField" 
                    size="30" />
+            <div id="jumpButton"
+                 class="glassButton goButton">&nbsp;</div>
+            <div onclick="fillJumpField();"
+                 class="glassButton exampleButton">&nbsp;</div>
+            <div style="display: none"
+                 class="jumpSpinner">Searching...</div>
+            <div style="display: none"
+                 class="jumpError"></div>
+            <p class="small nlh">
+              Enter any type of accession or ID to jump to the page
+              for a Pfam family or clan, UniProt sequence, PDB structure, etc.
+            </p>
           </div>
-          <div id="jumpButton"
-               class="glassButton goButton">&nbsp;</div>
-          <div onclick="fillJumpField();"
-               class="glassButton exampleButton">&nbsp;</div>
-          <div style="display: none"
-               class="jumpSpinner">Searching...</div>
-          <div style="display: none"
-               class="jumpError"></div>
-          <p class="small nlh">
-            Enter any type of accession or ID to jump to the page
-            for a Pfam family or clan, UniProt sequence, PDB structure, etc.
-          </p>
         </form>
-        </div>
       </li>
       <li>Or view the <a href="[% helpBase %]">help</a> pages for 
         more information</li>
@@ -331,16 +329,16 @@ requirements.cssIeAll.push( "index_all_ie.css" );
                id="keywordField"
                size="30" />
       </div>
+      <div onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};"
+           class="glassButton goButton">&nbsp;</div>
+      <div onclick="$('keywordField').value=exKw"
+           class="glassButton exampleButton">&nbsp;</div>
+      <p class="small nlh">
+        You can also use the
+        <a onclick="$('siteSearchField').focus();return false;" href="#">
+          keyword search box</a> at the top of every page.
+      </p>
     </form>
-    <div onclick="if( $('keywordField').present() ){;$('keywordForm').submit()};"
-         class="glassButton goButton">&nbsp;</div>
-    <div onclick="$('keywordField').value=exKw"
-         class="glassButton exampleButton">&nbsp;</div>
-    <p class="small nlh">
-      You can also use the
-      <a onclick="$('siteSearchField').focus();return false;" href="#">
-        keyword search box</a> at the top of every page.
-    </p>
   </div>
     
   <div class="cleaner"><!-- empty --></div>
@@ -405,7 +403,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 <script type="text/javascript">
   // <![CDATA[
   
-  // hide the announcements or new features list when the user clicks the "hide this" button
+  // hide the announcements or new features list when the user clicks the 
+  // "hide this" button
   var hideThis = function( id ) {
     $(id).hide();
     var d = new Date();
@@ -432,18 +431,18 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   // set up the "jump to" field
 
   // first, make it behave nicely
-  $("jumpField").focus();
   $("jumpField").value = "enter any accession or ID";
   $("jumpField").selectionStart = 0;
   $("jumpField").selectionEnd   = 0;
+  $("jumpField").focus();
 
   // add observers to clear out the field when the user first enters something
-  // in it. We need several so to catch all eventualities...
+  // in it. We need several to catch all eventualities...
+
   var jumpCleared = false;
-  $("jumpField").observe( "input", function() {
+  $("jumpField").observe( "keypress", function() {
     var start = $("jumpField").selectionStart;
-    var contents = $F("jumpField").substr( 0, start );
-    $("jumpField").value = contents;
+    $("jumpField").value = $F("jumpField").substr( 0, start );;
     jumpCleared = true;
     $("jumpField").stopObserving();
   } );
