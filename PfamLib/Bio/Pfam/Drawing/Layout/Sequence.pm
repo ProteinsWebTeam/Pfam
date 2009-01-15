@@ -194,7 +194,7 @@ sub convert_seq {
 
   if($regionsAndFeatures){
       foreach my $region ($seq->eachAnnotatedRegion){
-	  if($$regionsAndFeatures{$region->type}){
+	  if($region->can("type") and $$regionsAndFeatures{$region->type}){
 	      my $l_reg = Bio::Pfam::Drawing::Layout::Region->new();
 	      $self->addRegion($l_reg);
 	      $l_reg->convert_reg($region);
