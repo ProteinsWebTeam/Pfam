@@ -4,7 +4,7 @@
 #
 # A chromosome-by-chromosome breakdown of Rfam hits to this genome
 #
-# $Id: chromosomes.tt,v 1.1 2009-01-06 12:14:42 jt6 Exp $
+# $Id: chromosomes.tt,v 1.2 2009-01-15 11:57:32 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -84,7 +84,8 @@ END; # of BLOCK
       [%- IF embl_seq -%]
       This genome has <a class="ext" href="http://www.ebi.ac.uk/embl/">EMBL accessions</a>.
       [%- ELSE -%]
-      This genome has <a class="ext" href="http://www.ensembl.org/">Ensembl</a> accessions.
+      You can see more annotations for this genome at 
+      <a class="ext" href="http://www.ensembl.org/">Ensembl</a>.
       [%- END -%]
     </p>
 
