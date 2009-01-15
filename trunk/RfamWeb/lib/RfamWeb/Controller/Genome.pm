@@ -2,7 +2,7 @@
 # Genome.pm
 # jt6 20081127 WTSI
 #
-# $Id: Genome.pm,v 1.1 2009-01-06 11:31:59 jt6 Exp $
+# $Id: Genome.pm,v 1.2 2009-01-15 15:06:23 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Genome;
 
 Controller to build the main Rfam genome page.
 
-$Id: Genome.pm,v 1.1 2009-01-06 11:31:59 jt6 Exp $
+$Id: Genome.pm,v 1.2 2009-01-15 15:06:23 jt6 Exp $
 
 =cut
 
@@ -316,7 +316,7 @@ sub get_summary_data : Private {
   my $summaryData = {};
 
   # number of sequences in full alignment
-  $summaryData->{numSequences} = 0;
+  $summaryData->{numSequences} = scalar( keys %{$c->stash->{hit_chromosomes}} );
 
   # number of interactions
   $summaryData->{numInt} = 0;
