@@ -22,16 +22,16 @@ __PACKAGE__->add_columns(
   "order_added",
   { data_type => "TINYINT", default_value => undef, is_nullable => 1, size => 3 },
 );
-__PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 __PACKAGE__->belongs_to(
   "auto_lit",
   "RfamDB::LiteratureReferences",
   { auto_lit => "auto_lit" },
 );
+__PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:0M9Ya/L2RmEe+M3F5rMHyg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:f0LP7GsRZA95pRTfDSrGKQ
 
 #-------------------------------------------------------------------------------
 

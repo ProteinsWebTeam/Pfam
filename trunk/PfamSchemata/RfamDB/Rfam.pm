@@ -10,6 +10,8 @@ __PACKAGE__->table("rfam");
 __PACKAGE__->add_columns(
   "auto_rfam",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
+  "auto_wiki",
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "rfam_acc",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 7 },
   "rfam_id",
@@ -124,8 +126,6 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 16777215,
   },
-  "auto_wiki",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
 );
 __PACKAGE__->set_primary_key("auto_rfam");
 __PACKAGE__->add_unique_constraint("rfam_acc", ["rfam_acc"]);
@@ -177,8 +177,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:NIuB1NZuYMqoZVzqXfbwXQ
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:DLOrYACoR1TMtkTsiwFKew
 
 #-------------------------------------------------------------------------------
 

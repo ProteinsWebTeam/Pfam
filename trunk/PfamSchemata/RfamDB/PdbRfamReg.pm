@@ -36,7 +36,12 @@ __PACKAGE__->add_columns(
     size => 8,
   },
   "rfamseq_acc",
-  { data_type => "CHAR", default_value => undef, is_nullable => 1, size => 10 },
+  {
+    data_type => "VARCHAR",
+    default_value => undef,
+    is_nullable => 1,
+    size => 50,
+  },
   "seq_start",
   { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 19 },
   "seq_end",
@@ -53,8 +58,8 @@ __PACKAGE__->set_primary_key("auto_pdb_reg");
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:6iZQ9x3Asiwpg1u+TlgD8w
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:RaNnsctsfITnNJgsOaajtQ
 
 # in order to be able to use this table in a keyword search plugin, we need to
 # have access to three columns from the rfam table, so we add this extra
@@ -68,6 +73,36 @@ __PACKAGE__->belongs_to("auto_rfam",
                                          description
                                        ) ] } );
 
+#-------------------------------------------------------------------------------
 
-# You can replace this text with custom content, and it will be preserved on regeneration
+=head1 AUTHOR
+
+John Tate, C<jt6@sanger.ac.uk>
+
+Paul Gardner, C<pg5@sanger.ac.uk>
+
+Jennifer Daub, C<jd7@sanger.ac.uk>
+
+=head1 COPYRIGHT
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+
+=cut
+
 1;

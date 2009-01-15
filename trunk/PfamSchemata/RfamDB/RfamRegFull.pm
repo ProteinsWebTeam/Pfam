@@ -25,21 +25,25 @@ __PACKAGE__->add_columns(
     is_nullable => 0,
     size => 64,
   },
+  "type",
+  { data_type => "ENUM", default_value => "full", is_nullable => 1, size => 4 },
   "genome_start",
   { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
   "genome_end",
   { data_type => "BIGINT", default_value => undef, is_nullable => 1, size => 20 },
 );
-__PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 __PACKAGE__->belongs_to(
   "auto_rfamseq",
   "RfamDB::Rfamseq",
   { auto_rfamseq => "auto_rfamseq" },
 );
+__PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:9naMYcwRgid5CJflOgJbIg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:xjSG4CF5GMpyqpVjjCGmtw
+
+__PACKAGE__->belongs_to("auto_genome", "RfamDB::GenomeEntry", { auto_genome => "auto_genome" });
 
 #-------------------------------------------------------------------------------
 

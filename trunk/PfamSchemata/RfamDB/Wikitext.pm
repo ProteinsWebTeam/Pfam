@@ -9,21 +9,16 @@ __PACKAGE__->load_components("Core");
 __PACKAGE__->table("wikitext");
 __PACKAGE__->add_columns(
   "auto_wiki",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "text",
   {
     data_type => "LONGTEXT",
-    default_value => undef,
-    is_nullable => 1,
+    default_value => "",
+    is_nullable => 0,
     size => 4294967295,
   },
   "title",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 150,
-  },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 150 },
 );
 __PACKAGE__->set_primary_key("auto_wiki");
 __PACKAGE__->has_many(
@@ -33,8 +28,8 @@ __PACKAGE__->has_many(
 );
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bPQ1NbSlitSax9I46Qa+xw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:ufGGRKVHlKesmu1XjzOo5A
 
 #-------------------------------------------------------------------------------
 

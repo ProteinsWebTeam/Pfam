@@ -11,13 +11,18 @@ __PACKAGE__->add_columns(
   "auto_rfam_keywords",
   { data_type => "INT", default_value => undef, is_nullable => 0, size => 10 },
   "rfam_acc",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 7 },
+  { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 7 },
   "rfam_id",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 40 },
-  "description",
   {
     data_type => "VARCHAR",
     default_value => undef,
+    is_nullable => 1,
+    size => 40,
+  },
+  "description",
+  {
+    data_type => "VARCHAR",
+    default_value => "NULL",
     is_nullable => 1,
     size => 100,
   },
@@ -42,12 +47,14 @@ __PACKAGE__->add_columns(
     is_nullable => 1,
     size => 4294967295,
   },
+  "auto_rfam",
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
 );
 __PACKAGE__->set_primary_key("auto_rfam_keywords");
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:16iIXdWqd1LLY+oqscY1kw
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8TV0qvvrdQG+rWGhQjYSEw
 
 
 #-------------------------------------------------------------------------------

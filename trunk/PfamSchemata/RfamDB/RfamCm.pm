@@ -18,19 +18,14 @@ __PACKAGE__->add_columns(
     size => 4294967295,
   },
   "version",
-  {
-    data_type => "VARCHAR",
-    default_value => undef,
-    is_nullable => 1,
-    size => 10,
-  },
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 10 },
 );
-__PACKAGE__->set_primary_key("auto_rfam");
+__PACKAGE__->set_primary_key("auto_rfam", "version");
 __PACKAGE__->belongs_to("auto_rfam", "RfamDB::Rfam", { auto_rfam => "auto_rfam" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04004 @ 2008-09-25 21:50:00
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:1CzsN8qNo8V8hchgvhizeg
+# Created by DBIx::Class::Schema::Loader v0.04004 @ 2009-01-14 13:54:48
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Dd03VczUyJOnXKkk8VReug
 
 #-------------------------------------------------------------------------------
 

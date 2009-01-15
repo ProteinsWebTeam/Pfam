@@ -56,7 +56,7 @@ __PACKAGE__->add_unique_constraint("pdb_accession_Idx", ["pdb_id", "biological_u
 # Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Fadvli9zZizARcjeQnxobQ
 
-
+#-------------------------------------------------------------------------------
 
 =head1 AUTHOR
 
