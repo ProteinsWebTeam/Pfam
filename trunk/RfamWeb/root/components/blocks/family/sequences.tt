@@ -4,7 +4,7 @@
 #
 # the sequences tab for the family section
 #
-# $Id: sequences.tt,v 1.1 2009-01-06 12:13:45 jt6 Exp $
+# $Id: sequences.tt,v 1.2 2009-01-15 15:12:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -26,17 +26,16 @@ USE String;
   <div class="blockContent">
 
     <p>
-      There are <strong>[% rfam.num_full %]</strong> regions for this family.
+      There are <strong>[% rfam.num_full %]</strong> sequence regions for this family.
     [% IF showAll %]
-      You can 
-      <a href="[% c.uri_for('/family/regions', entry => acc ) %]">download</a>
+      You can <a href="[% c.uri_for('/family/regions', entry => acc ) %]">download</a>
       the details of all regions as a tab-delimited file. The table of results 
       below may be sorted by clicking on the column titles, or restored to the 
       original order <span class="link" id="sortLink">here</span>. 
     [% ELSIF showText %]
       There are too many regions to show in this page, but you can still 
       <a href="[% c.uri_for('/family/regions', entry => acc ) %]">download</a>
-      the details of the regions as a tab-delimited file.
+      the details of all of them as a tab-delimited file.
     [% ELSE %]
       There are too many regions to show. If you really need a list of all 
       regions for this family, please contact us at the address below and we 
