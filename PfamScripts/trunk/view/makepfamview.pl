@@ -1,4 +1,4 @@
-#!/software/bin/perl
+#!/usr/local/bin/perl
 
 =head1 NAME
 
@@ -33,10 +33,13 @@ use Text::Wrap;
 $Text::Wrap::columns = 75;
 
 #Pfam Modules
+use Bio::Pfam::Config;
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::AlignPfam;
 use HMM::Profile;
+
+
 
 #######################################
 # Globals that we may want to change! #
@@ -85,13 +88,16 @@ unless($famId){
   $logger->warn("No Pfam family name supplied, will try and get based on the job ID");        
 }
 
+#Lets get a new Pfam config object
+my $config = Bio::Pfam::Config->new;
+
 ######################################################
 # This section deals with getting to job information #
 ######################################################
 
 #Can we get a PfamJobs Database
 #TODO - Use Config::General
-my $jobDB = Bio::Pfam::PfamJobsDBManager->new('host', 'pfamdb2a', 'user', 'pfam', 'port', '3303', 'password', 'mafp1');
+my $jobDB = Bio::Pfam::PfamJobsDBManager->new( %{ $config->pfamjobs } );
 unless($jobDB){
   mailPfam("Failed to run view process", "Could not get connection to the pfam_jobs database");  
 }
@@ -117,9 +123,8 @@ if($famId){
 #####################################################
 # Test to see if we can get a connection to the RDB #
 #####################################################
-#TODO - get rid of hardcoded db connection!
-#Can we get a PfamLive Database?
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new('password', 'mafp1', 'host', 'pfamdb2a', 'port', 3303, 'user', 'pfam' );
+
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 unless($pfamDB){
   mailUserAndFail($job, "View process failed as we could not connect to pfamlive");  
 }
@@ -136,18 +141,18 @@ $logger->debug("Updated the status on the job object");
 
 # Get the information about the family
 my $pfam = $pfamDB->getSchema
-                    ->resultset('Pfam')
-                      ->find({pfamA_acc => $job->family_acc });
+                    ->resultset('Pfama')
+                      ->find({pfama_acc => $job->family_acc });
 
 
-unless ($pfam and $pfam->pfamA_acc){
+unless ($pfam and $pfam->pfama_acc){
   mailUserAndFail($job, "Failed to get the pfam entry for family"); 
 }
 $logger->debug("Got pfam family databse object");
 
 #Check that all of the files are present in the directory, this script assumes that all of the files 
 #are in the cwd.
-foreach my $f (qw(ALIGN SEED HMM_ls HMM_fs DESC)){
+foreach my $f (qw(ALIGN SEED HMM DESC)){
    unless(-e $f and -s $f){
       mailUserAndFail($job, "View process failed as $f was not present\n");  
    }
@@ -159,34 +164,30 @@ $logger->debug("All family files are present");
 
 #Get database Xrefs for entries
 my @xRefs = $pfamDB->getSchema
-                    ->resultset('PfamA_database_links')
-                      ->search({auto_pfamA => $pfam->auto_pfamA});
+                    ->resultset('PfamaDatabaseLinks')
+                      ->search({auto_pfama => $pfam->auto_pfama});
 $logger->debug("Got ". scalar(@xRefs) ." database cross-references");
 
 #Get database literature references
 my @litRefs = $pfamDB->getSchema
-                    ->resultset('PfamA_literature_references')
-                      ->search({auto_pfamA => $pfam->auto_pfamA},
+                    ->resultset('PfamaLiteratureReferences')
+                      ->search({auto_pfama => $pfam->auto_pfama},
                                {join     => [qw(literature)],
                                 order_by => 'order_added ASC',
-                                prefecth => [qw(literacture)] });
+                                prefecth => [qw(literature)] });
 $logger->debug("Got ". scalar(@litRefs) ." literature references");
 
 #Calculate p value
-my $P_ls = exp(-1 * $pfam->ls_kappa * ($pfam->ls_domain_GA - $pfam->ls_mu));
-if($P_ls > $threshold) {
-   mailUserAndFail($job, $pfam->pfamA_id." ls model has failed p value qc check (p value is $P_ls - too big!)");
-}
-my $P_fs = exp(-1 * $pfam->fs_kappa * ($pfam->fs_domain_GA - $pfam->fs_mu));
-if($P_fs > $threshold) {
-   mailUserAndFail($job, $pfam->pfamA_id." fs model has failed p value qc check (p value is $P_fs - too big!)");
+my $pvalue = exp(-1 * $pfam->lambda * ($pfam->domain_ga - $pfam->mu));
+if($pvalue > $threshold) {
+   mailUserAndFail($job, $pfam->pfama_id." ls model has failed p value qc check (p value is $pvalue - too big!)");
 }
 
 
 #Run a md5 checksum on the "raw" files and compared to the release versions......!
 versionFiles($pfamDB, $pfam, $job);
 
-my $nested_locations = getNestedLocations($pfam->auto_pfamA, $pfamDB);
+my $nested_locations = getNestedLocations($pfam->auto_pfama, $pfamDB);
 #These variables are used by the active site prediction code. They are
 #declared here as the ALIGN data is used to markup the SEED.
 my(%all_as_real, %all_as_sp_pred, %real_annot, %pred_annot, %aln_pfam_pred, %aln_sp_pred, %aln_real);
@@ -237,8 +238,8 @@ foreach my $filename (qw(ALIGN SEED)){
     #Get all of the region information from the database. This will allows to performs some
     #rudimentary QC and more importantly, exchange accessions for ids in the alignment
     my @regs = $pfamDB->getSchema
-                    ->resultset('PfamA_reg_full_significant')
-                    ->search( { auto_pfamA => $pfam->auto_pfamA,
+                    ->resultset('PfamaRegFullSignificant')
+                    ->search( { auto_pfama => $pfam->auto_pfama,
                                 in_full    => 1 },
                                 { join       => [ qw (pfamseq) ],
                                   prefetch   => [ qw (pfamseq) ] });                              
@@ -257,7 +258,7 @@ foreach my $filename (qw(ALIGN SEED)){
      my %species;
      
      foreach my $nse (keys %regs){
-        $species{ $regs{$nse}->ncbi_code } = 1;
+        $species{ $regs{$nse}->ncbi_taxid } = 1;
         $no_aa_in_sequences += $regs{$nse}->length;
         $no_aa_in_domain += ($regs{$nse}->seq_end - $regs{$nse}->seq_start + 1);
      }
@@ -294,11 +295,11 @@ foreach my $filename (qw(ALIGN SEED)){
   }elsif($filename eq "SEED"){
     $logger->debug("Getting sequences identifiers for SEED");
     my @regs = $pfamDB->getSchema
-                    ->resultset('PfamA_reg_seed')
-                      ->search( { auto_pfamA => $pfam->auto_pfamA },
+                    ->resultset('PfamaRegSeed')
+                      ->search( { auto_pfama => $pfam->auto_pfama },
                                 { join       => [ qw (pfamseq) ],
                                   prefetch   => [ qw (pfamseq) ], 
-								  key        => 'region'});                              
+								        key        => 'pfamA_reg_seed_reg_idx'});                              
     %regs = map {$_->pfamseq_acc.".".$_->seq_version."/".$_->seq_start."-".$_->seq_end => $_} @regs;
      
     #QC check
@@ -325,7 +326,7 @@ foreach my $filename (qw(ALIGN SEED)){
   #Now run quicktree on the original alignment file
   $logger->debug("Going to run quickree on $filename");
   
-  if($tree eq 'upgma'){
+  unless($tree and $tree eq 'upgma'){
     open(TREE, "quicktree -upgma $filename|") 
     or &mailUserAndFail($job, "Could not open pipe on command quicktree -upgma\n");
   }else{
@@ -380,9 +381,9 @@ foreach my $filename (qw(ALIGN SEED)){
    }
    
    #Add the active site information to the bioperl object.
-  if($filename eq "ALIGN"){
+  if($filename eq "ALIGNa"){
     #Retrieve exp active sites and swiss-prot predicted active sites for family from rdb
-	  retrieve_as(\%all_as_real, \%all_as_sp_pred, \%real_annot, \%pred_annot, $pfam->auto_pfamA, $pfamDB);
+	  retrieve_as(\%all_as_real, \%all_as_sp_pred, \%real_annot, \%pred_annot, $pfam->auto_pfama, $pfamDB);
     
     #Filter out nested locations
     #Add exp active sites to aln object
@@ -402,12 +403,12 @@ foreach my $filename (qw(ALIGN SEED)){
  
        #Add swiss-prot predicted active sites
      add_swiss_pred_as($aliIds, \%all_as_sp_pred, \%pred_annot, $nested_locations, \%aln_sp_pred);
-     addActiveSites(\%aln_pfam_pred, $pfam->auto_pfamA, $pfamDB, $job);
-  }elsif($filename eq "SEED"){
+     addActiveSites(\%aln_pfam_pred, $pfam->auto_pfama, $pfamDB, $job);
+  }elsif($filename eq "SEEDa"){
     #Have we found active site residues for this family?
     if($as_family){ 
       $logger->debug("Going to add active site data to SEED");
-       mark_seed($aliIds, \%aln_real, \%aln_pfam_pred, \%aln_sp_pred, $pfam->auto_pfamA, $pfamDB);	
+       mark_seed($aliIds, \%aln_real, \%aln_pfam_pred, \%aln_sp_pred, $pfam->auto_pfama, $pfamDB);	
        add_display($aliIds);
     }else{
       $logger->debug("This family does not contain active site");
@@ -417,7 +418,7 @@ foreach my $filename (qw(ALIGN SEED)){
    #Add the secondary strbucture
    $logger->debug("Adding secondary structure data to $filename");
    #First, get the secondary structure data from the database
-   my ($dsspDataRef) = _getDsspData($pfam->auto_pfamA, $filename, $pfamDB, $job);
+   my ($dsspDataRef) = _getDsspData($pfam->auto_pfama, $filename, $pfamDB, $job);
    if($dsspDataRef and scalar( keys(%$dsspDataRef) ) ){
     $logger->debug("Found some SS data");
     #Now add this to the alignment
@@ -428,13 +429,13 @@ foreach my $filename (qw(ALIGN SEED)){
        }
        #Delete all auto_pfamAs
        $pfamDB->getSchema
-                  ->resultset('Pdb_pfamA_reg')
+                  ->resultset('PdbPfamaReg')
                     ->search({ auto_pfamA => $pfam->auto_pfamA})->delete;
        #Add the pdbmap data to pdb_pfamA_reg
        my %autoPdbs;
        foreach my $nse (keys %$map){
         foreach my $pdbReg ( @{$map->{$nse}}){
-          $logger->debug("Inserting row into Pdb_pfamA_reg ".$regs{$nse}->auto_pfamA);
+          $logger->debug("Inserting row into PdbPfamaReg ".$regs{$nse}->auto_pfamA);
           unless( $autoPdbs{ $pdbReg->{pdb_id}}){
              $autoPdbs{$pdbReg->{pdb_id}} = $pfamDB->getSchema
                                                  ->resultset('Pdb')
@@ -443,10 +444,10 @@ foreach my $filename (qw(ALIGN SEED)){
           }
           #Now reinsert
           $pfamDB->getSchema
-                  ->resultset('Pdb_pfamA_reg')
-                    ->create({ auto_pfamA_reg_full => $regs{$nse}->auto_pfamA_reg_full,
+                  ->resultset('PdbPfamaReg')
+                    ->create({ auto_pfama_reg_full => $regs{$nse}->auto_pfama_reg_full,
                                auto_pdb            => $autoPdbs{ $pdbReg->{pdb_id }},
-                               auto_pfamA          => $regs{$nse}->auto_pfamA,
+                               auto_pfama          => $regs{$nse}->auto_pfama,
                                auto_pfamseq        => $regs{$nse}->auto_pfamseq,
                                chain               => $pdbReg->{chain},
                                pdb_res_start       => $pdbReg->{pdb_start},
@@ -467,30 +468,27 @@ foreach my $filename (qw(ALIGN SEED)){
    print ANNFILE "# STOCKHOLM 1.0\n";
    #Mimic this with what is loaded in the database
    #$en->write_stockholm_ann(\*ANNFILE);
-   print ANNFILE "#=GF ID   ", $pfam->pfamA_id , "\n";
-   print ANNFILE "#=GF AC   ", $pfam->pfamA_acc,".", $pfam->version, "\n";
+   print ANNFILE "#=GF ID   ", $pfam->pfama_id , "\n";
+   print ANNFILE "#=GF AC   ", $pfam->pfama_acc,".", $pfam->version, "\n";
    print ANNFILE "#=GF DE   ", $pfam->description, "\n";
    if($pfam->previous_id and $pfam->previous_id =~ /\S+/){
        print ANNFILE "#=GF PI   ", $pfam->previous_id, "\n";
    }
    print ANNFILE "#=GF AU   ", $pfam->author, "\n";
    print ANNFILE "#=GF SE   ", $pfam->seed_source, "\n";
-   print ANNFILE "#=GF GA   ". sprintf "%.2f %.2f; %.2f %.2f;\n", $pfam->ls_sequence_GA, $pfam->ls_domain_GA, $pfam->fs_sequence_GA, $pfam->fs_domain_GA;
-   print ANNFILE "#=GF TC   ". sprintf "%.2f %.2f; %.2f %.2f;\n", $pfam->ls_sequence_TC, $pfam->ls_domain_TC, $pfam->fs_sequence_TC, $pfam->fs_domain_TC;
-   print ANNFILE "#=GF NC   ". sprintf "%.2f %.2f; %.2f %.2f;\n", $pfam->ls_sequence_NC, $pfam->ls_domain_NC, $pfam->fs_sequence_NC, $pfam->fs_domain_NC;
+   print ANNFILE "#=GF GA   ". sprintf "%.2f %.2f;\n", $pfam->sequence_ga, $pfam->domain_ga;
+   print ANNFILE "#=GF TC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_tc, $pfam->domain_tc;
+   print ANNFILE "#=GF NC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_nc, $pfam->domain_nc;
    
    #clean up buildlines to remove --cpu 1 etc.
    print ANNFILE "#=GF TP   ", $pfam->type , "\n";
-   print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->hmmbuild_ls) , "HMM_ls.ann SEED.ann\n";
-   print ANNFILE "#=GF BM   hmmcalibrate --seed 0 HMM_ls\n";#, $pfam->hmmcalibrate_ls , "\n";
-   print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->hmmbuild_fs) , "HMM_fs.ann SEED.ann\n";
-   print ANNFILE "#=GF BM   hmmcalibrate --seed 0 HMM_fs\n";# ", $pfam->hmmcalibrate_fs , "\n";
-   print ANNFILE "#=GF AM   ", $pfam->full_alignment_method ,"\n";
+   print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
+   print ANNFILE "#=GF SM   ", $pfam->searchmethod ,"\n";
    
    #Add Nested domains if they are present
    if($nested_locations and scalar(@$nested_locations)){
     foreach my $n (  @$nested_locations){
-      print ANNFILE "#=GF NE   ", $n->nested_pfamA_acc ,";\n";
+      print ANNFILE "#=GF NE   ", $n->nested_pfama_acc ,";\n";
       print ANNFILE "#=GF NL   ", $n->pfamseq_acc;
       if($n->seq_version and $n->seq_version =~ /\d+/){
         print ANNFILE ".".$n->seq_version;
@@ -500,13 +498,13 @@ foreach my $filename (qw(ALIGN SEED)){
    }
    #Add the reference
    foreach my $ref (@litRefs){
-      if($ref->medline){
+      if($ref->pmid){
         if (($ref->comment)&& ($ref->comment ne "NULL")){ 
            print ANNFILE wrap("#=GF RC   ","#=GF RC   ",$ref->comment);
            print ANNFILE "\n";
         }
        print ANNFILE "#=GF RN   [".$ref->order_added."]\n";
-       print ANNFILE "#=GF RM   ".$ref->medline."\n";
+       print ANNFILE "#=GF RM   ".$ref->pmid."\n";
        print ANNFILE wrap("#=GF RT   ","#=GF RT   ", $ref->title);
        print ANNFILE "\n";
        print ANNFILE wrap("#=GF RA   ","#=GF RA   ", $ref->author);
@@ -517,7 +515,9 @@ foreach my $filename (qw(ALIGN SEED)){
    
    #DB Xrefs
    #Add this special case of database cross reference
-   print ANNFILE "#=GF DR   INTERPRO; ",$pfam->interpro_id, ";\n" if($pfam->interpro_id and $pfam->interpro_id =~ /\S+/);
+   my @interpro = $pfamDB->getSchema->resultset('Interpro')->search( {auto_pfama => $pfam->auto_pfama} );
+   
+   print ANNFILE "#=GF DR   INTERPRO; ",$interpro[0]->interpro_id, ";\n" if($interpro[0] and $interpro[0]->interpro_id =~ /\S+/);
    
    foreach my $xref ( @xRefs){
      #Construct the DR lines.  Most do not have additional paramters. In the database
@@ -539,7 +539,7 @@ foreach my $filename (qw(ALIGN SEED)){
    #TODO - Fix the fact that all comments are stored with a single leading whitespace
    #Currently, the text wrap is handling this!
    if($pfam->comment and $pfam->comment =~ /\S+/){
-     print ANNFILE wrap("#=GF CC  ","#=GF CC   ", $pfam->comment);
+     print ANNFILE wrap("#=GF CC   ","#=GF CC   ", $pfam->comment);
      print ANNFILE "\n";
    }
    
@@ -586,13 +586,13 @@ foreach my $f (qw(ALIGN.ann SEED.ann)){
 }
 $logger->debug("SEED.ann and ALIGN.ann files passed checks");
   
-$logger->debug("Going to check the HMM_ls.ann and HMM_fs.ann files for errors");
+$logger->debug("Going to check the HMM.ann files for errors");
 #Now run QC on the HMMs 
 my $dbVersion = $pfamDB->getSchema
                           ->resultset('Version')
                             ->find({});
                             
-foreach my $f (qw(HMM_ls.ann HMM_fs.ann)){
+foreach my $f (qw(HMM.ann)){
     open(QC, "checkhmmflat.pl -v -hmmer ".$dbVersion->hmmer_version." -f $f |") or mailUserAndFail($job, "Failed to run checkhmmflat.pl on $f:[$!]");
     my $qc = join("", <QC>);
     if($qc =~ /\S+/){
@@ -600,14 +600,15 @@ foreach my $f (qw(HMM_ls.ann HMM_fs.ann)){
     }
     close(QC);
   }
-  $logger->debug("HMM_ls.ann and HMM_fs.ann pass checks");
+  $logger->debug("HMM.ann pass checks");
   
 #Start the ncbi searches
-submitJob($jobDB, $pfam, 'genPept');  
+#submitJob($jobDB, $pfam, 'genPept');  
 #Start the metagenomics searches
 #submitJob($jobDB, $pfam, 'metagenomics');
 #Change the job status to done
 finishedJob($job);
+$logger->debug("Finished");
 exit;
 
 
@@ -619,91 +620,58 @@ exit;
 sub processHMMs {
   my ($pfam, $db, $job) = @_;
   
-  unlink ("HMM_ls.ann") or mailUserAndFail($job, "Failed to remove HMM_ls.ann") if(-e "HMM_ls.ann");
-  unlink ("HMM_fs.ann") or mailUserAndFail($job, "Failed to remove HMM_fs.ann") if(-e "HMM_fs.ann");
-  
+  unlink ("HMM.ann") or mailUserAndFail($job, "Failed to remove HMM.ann") if(-e "HMM.ann");
+ 
   
   #The next two blocks rebuilds and recalibrates the HMM and adds the curated thresholds to the HMM
   
   #process the HMM_ls file first
-  my $buildline_ls = cleanBuildLine($pfam->hmmbuild_ls);
+  my $buildline = cleanBuildLine($pfam->buildmethod);
   
-  $logger->debug("Going to run hmmbuild with the following line: $buildline_ls HMM_ls.ann SEED.ann");
-  system("$buildline_ls HMM_ls.ann SEED.ann 2>&1 > /dev/null")
-    and mailUserAndFail($job, "Failed to build HMM_ls.ann, using $buildline_ls HMM_ls.ann SEED.ann");
-  system("hmmcalibrate --seed 0 HMM_ls.ann 2>&1 > /dev/null")
-    and mailUserAndFail($job, "Failed to run hmmcalibrate on HMM_ls");
+  $logger->debug("Going to run hmmbuild with the following line: $buildline HMM.ann SEED.ann");
+  system($config->hmmer3bin."/$buildline -o  /dev/null HMM.ann SEED.ann")
+    and mailUserAndFail($job, "Failed to build HMM.ann, using $buildline HMM.ann SEED.ann");
     
   #Take HMM_ls and add the thresholds into the file 
-  open( HMM_OUT, ">HMM_ls.ann.tmp" ) or mailUserAndFail($job, "Could not open HMM_ls.ann.tmp for writing");
-  open( HMM, "HMM_ls.ann" ) or mailUserAndFail($job, "Could not open HMM_ls.ann for writing");
+  open( HMM_OUT, ">HMM.ann.tmp" ) or mailUserAndFail($job, "Could not open HMM.ann.tmp for writing");
+  open( HMM, "HMM.ann" ) or mailUserAndFail($job, "Could not open HMM.ann for writing");
   while(<HMM>) {
   	if( /^GA\s+/ ) {
-	    print HMM_OUT "GA    ".$pfam->ls_sequence_GA." ".$pfam->ls_domain_GA.";\n";
-	    print HMM_OUT "TC    ".$pfam->ls_sequence_TC." ".$pfam->ls_domain_TC.";\n";
-	    print HMM_OUT "NC    ".$pfam->ls_sequence_NC." ".$pfam->ls_domain_NC.";\n";
+	    print HMM_OUT "GA    ".$pfam->sequence_ga." ".$pfam->domain_ga.";\n";
+	    print HMM_OUT "TC    ".$pfam->sequence_tc." ".$pfam->domain_tc.";\n";
+	    print HMM_OUT "NC    ".$pfam->sequence_nc." ".$pfam->domain_nc.";\n";
 	    next;
 	 }
-	 next if( /^NC\s+/ or /^TC\s+/ );
+	 next if( $_ =~ /^NC\s+/ or $_ =~ /^TC\s+/ );
 	 print HMM_OUT $_;
   }
   close HMM;
   close HMM_OUT;
-  rename( "HMM_ls.ann.tmp", "HMM_ls.ann" ) or &mailUserAndFail($job, "can't rename HMM_ls.ann.tmp to HMM_ls.ann\n"); 
-  
-  
-  
- 
-  #process the HMM_fs second
-  my $buildline_fs = cleanBuildLine($pfam->hmmbuild_fs);
-  
-  $logger->debug("Going to run hmmbuild with the following line: $buildline_fs HMM_fs.ann SEED.ann");
-  system("$buildline_fs HMM_fs.ann SEED.ann 2>&1 > /dev/null ")
-    and mailUserAndFail($job, "Failed to build HMM_fs.ann, using$buildline_fs HMM_fs.ann SEED.ann");
-  system("hmmcalibrate --seed 0 HMM_fs.ann 2>&1 > /dev/null ")
-    and mailUserAndFail($job, "Failed to calibrate HMM_fs.ann");
-  
-  #Take HMM_fs and add the thresholds into the file 
-  open( HMM_OUT, ">HMM_fs.ann.tmp" ) or mailUserAndFail($job, "Could not open HMM_fs.ann.tmp for writing");
-  open( HMM, "HMM_fs.ann" ) or mailUserAndFail($job, "Could not open HMM_fs.ann for writing");
-  while(<HMM>) {
-  	if( /^GA\s+/ ) {
-	    print HMM_OUT "GA    ".$pfam->fs_sequence_GA." ".$pfam->fs_domain_GA.";\n";
-	    print HMM_OUT "TC    ".$pfam->fs_sequence_TC." ".$pfam->fs_domain_TC.";\n";
-	    print HMM_OUT "NC    ".$pfam->fs_sequence_NC." ".$pfam->fs_domain_NC.";\n";
-	    next;
-	 }
-	 next if( /^NC\s+/ or /^TC\s+/ );
-	 print HMM_OUT $_;
-  }
-  close HMM;
-  close HMM_OUT;
-  rename( "HMM_fs.ann.tmp", "HMM_fs.ann" ) or &mailUserAndFail($job, "can't rename HMM_fs.ann.tmp to HMM_fs.ann\n"); 
+  rename( "HMM.ann.tmp", "HMM.ann" ) or &mailUserAndFail($job, "can't rename HMM.ann.tmp to HMM.ann\n"); 
   
   #Now upload the HMMs into the database
-  open(HMM_ls, "HMM_ls.ann") or die;
-  my $HMM_ls = join("", <HMM_ls>);
-	close(HMM_ls);
+  open(HMM, "HMM.ann") or die;
+  my $hmm = join("", <HMM>);
+	close(HMM);
 	$pfamDB->getSchema
-	 ->resultset('PfamA_HMM_ls')
-	   ->update_or_create({ auto_pfamA => $pfam->auto_pfamA,
-	                        hmm_ls     => $HMM_ls});
-  open(HMM_fs, "HMM_fs.ann") or die;
-  my $HMM_fs = join("", <HMM_fs>);
-	close(HMM_fs);
-	$pfamDB->getSchema
-	 ->resultset('PfamA_HMM_fs')
-	   ->update_or_create({ auto_pfamA => $pfam->auto_pfamA,
-	                        hmm_fs     => $HMM_fs});
+	 ->resultset('PfamaHmm')
+	   ->update_or_create({ auto_pfama => $pfam->auto_pfama,
+	                        hmm        => $hmm});
   #Now make and generate the HMM logo
-  _makeHMMLogo($pfam, "HMM_ls.ann", $pfamDB, $job);
+  _makeHMMLogo($pfam, "HMM.ann", $pfamDB, $job);
   
 }
 
 sub _makeHMMLogo{
   my($pfam, $file, $pfamDB, $job) = @_; 
   
+  $logger->debug("Making logo with HMMER2 HMM");
+  system($config->hmmer2bin."/hmmbuild -F HMM.ann.2 SEED.ann")
+    and mailUserAndFail($job, "Failed to build HMM.ann, using hmbuils HMM.ann.2 SEED.ann");
+  
+  
   #Read in the HMM_ls file
+  $file .= ".2";
   my $logo = HMM::Profile->new(-hmmerfile=>$file) or
     mailUserAndFail($job, "Failed in making HMM logo, couldn't open $file!\n");
   my $outfile = "hmmLogo.png";    
@@ -735,8 +703,8 @@ sub _makeHMMLogo{
   
   #Now upload this logo into the RDB.    
   $pfamDB->getSchema
-	   ->resultset('PfamA_HMM_logo')
-	   ->update_or_create({ auto_pfamA => $pfam->auto_pfamA,
+	   ->resultset('PfamaHmm')
+	   ->update_or_create({ auto_pfama => $pfam->auto_pfama,
 	                        logo     => $hmmLogo});
 }
 
@@ -794,18 +762,18 @@ sub _getDsspData {
   my (%famDSSP, @dssp);
   if($filename eq 'ALIGN'){
       @dssp = $pfamDB->getSchema
-                          ->resultset("Pdb_residue")
-                            ->search({auto_pfamA => $autoPfamA,
+                          ->resultset("PdbResidueData")
+                            ->search({auto_pfama => $autoPfamA,
                                       in_full    => 1 },
-                                     {join => [qw(pfamseq pdb pfamA_reg_full_significant)],
+                                     {join => [qw(auto_pfamseq auto_pdb pfamA_reg_full_significant)],
                                       select => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)],
                                       as     => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)]});
 
   }elsif($filename eq 'SEED'){
           @dssp = $pfamDB->getSchema
-                          ->resultset("Pdb_residue")
-                            ->search({auto_pfamA => $autoPfamA},
-                                      {join => [qw(pfamseq pdb pfamA_reg_seed)],
+                          ->resultset("PdbResidueData")
+                            ->search({auto_pfama => $autoPfamA},
+                                      {join => [qw(auto_pfamseq auto_pdb pfamA_reg_seed)],
                                        select => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)],
                                        as     => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)]});
   }else{
@@ -1137,25 +1105,25 @@ sub retrieve_as {
   my ($all_as_real, $all_as_sp_pred, $real_annot, $pred_annot, $auto_pfamA, $pfamDB) =@_;
   
   my @expASs = $pfamDB->getSchema
-                      ->resultset('Pfamseq_markup')
-                        ->search( { auto_pfamA => $pfam->auto_pfamA,
+                      ->resultset('PfamseqMarkup')
+                        ->search( { auto_pfama => $pfam->auto_pfama,
                                     auto_markup                             => 1,
                                     in_full                                 => 1 },
                                   { select     => [ qw (pfamseq_id residue annotation) ],
                                     as         => [qw(pfamseq_id residue annotation)],
-                                    join       => [ qw (pfamseq pfamA_reg_full_significant)] });                                 
+                                    join       => [ qw ( pfamaRegFullSig)] });                                 
     foreach my $expAS (@expASs){
       push(@{$$all_as_real{ $expAS->get_column('pfamseq_id') }}, $expAS->get_column('residue'));
       $$real_annot{$expAS->get_column('pfamseq_id').":".$expAS->get_column('residue')} = $expAS->get_column('annotation');
     }
   
   my @predASs = $pfamDB->getSchema
-                      ->resultset('Pfamseq_markup')
-                        ->search( { auto_pfamA => $pfam->auto_pfamA,
+                      ->resultset('PfamseqMarkup')
+                        ->search( { auto_pfama => $pfam->auto_pfama,
                                     auto_markup     => 3},
-                                  { select     => [ qw (pfamseq_id residue annotation) ],
-                                    as         => [qw(pfamseq_id residue annotation)],
-                                    join       => [ qw (pfamseq pfamA_reg_full_significant)] } );
+                                  { select     => [ qw(pfamseq_id residue annotation) ],
+                                    as         => [ qw(pfamseq_id residue annotation) ],
+                                    join       => [ qw(pfamseq pfamA_reg_full_significant) ] } );
                                
   if(@predASs and scalar(@predASs)){                                  
     foreach my $predAS (@predASs){
@@ -1246,7 +1214,7 @@ sub makeNonRedundantFasta{
     while(<BEL>) {
       if(/\>(\S+\/\d+\-\d+)/ ){
         chomp;
-        print FAMFA "$_ ". $pfam->pfamA_acc.".". $pfam->version .";". $pfam->pfamA_id .";\n";
+        print FAMFA "$_ ". $pfam->pfama_acc.".". $pfam->version .";". $pfam->pfama_id .";\n";
       }else{
         chomp;
         s/[\.-]//g;
@@ -1260,10 +1228,11 @@ sub makeNonRedundantFasta{
     open(GZFA, "gzip -c family.fa |") or mailUserAndFail($job, "Failed to gzip family.fa:[$!]");
     my $familyFA = join("", <GZFA>);
     $pfamDB->getSchema
-            ->resultset('PfamA_fasta')
-              ->update_or_create({ auto_pfamA => $pfam->auto_pfamA,
+            ->resultset('PfamaFasta')
+              ->update_or_create({ auto_pfama => $pfam->auto_pfama,
                                    fasta      => $familyFA,
-                                   nr_threshold  => $identity});
+                                   nr_threshold  => $identity},
+                                   { key => 'UQ_pfamA_fasta_1' });
 }
 
 sub makeHTMLAlign{
@@ -1288,10 +1257,10 @@ sub makeHTMLAlign{
   
     $pfamDB->getSchema
                      ->resultset('AlignmentsAndTrees')
-                      ->update_or_create( {auto_pfamA => $pfam->auto_pfamA,
+                      ->update_or_create( {auto_pfama => $pfam->auto_pfama,
                                            type       => $type,
                                            jtml       => $align},
-                                          { key => 'auto_pfamA_and_type' });
+                                          { key => 'UQ_alignments_and_trees_1' });
   
   $logger->debug("Finished making HTML alignment");
 }
@@ -1310,9 +1279,9 @@ sub uploadTreesAndAlign {
   #Do this is steps.  Two reasons, better error tracking and more memory efficient
   my $row = $pfamDB->getSchema
                      ->resultset('AlignmentsAndTrees')
-                      ->update_or_create( {auto_pfamA => $pfam->auto_pfamA,
+                      ->update_or_create( {auto_pfama => $pfam->auto_pfama,
                                            type       => $type},
-                                          { key => 'auto_pfamA_and_type' });
+                                          { key => 'UQ_alignments_and_trees_1' });
   
   my $file; 
   open(ANN, "gzip -c $filename.ann|") or mailUserAndDie($job, "Failed to run gzip -c $filename.ann:[$!]"); 
@@ -1348,7 +1317,8 @@ sub cleanBuildLine{
   $buildline =~ s/-fF/-F -f/g;
 	$buildline =~ s/-Ff/-F -f/g;
 	$buildline =~ s/--cpu 1//;
-  
+  $buildline =~ s/-o \/dev\/null//;
+
   return($buildline);
 }
 
@@ -1362,40 +1332,38 @@ sub versionFiles{
   }
   
   #Add the thresholds into the HMMs!  This is what really determines the version of the family
-  foreach my $f (qw(HMM_ls HMM_fs)){
+  foreach my $f (qw(HMM)){
       open(F, $f) or mailUserAndFail($job, "Could not version $f:[$!]");
       my $hmm;
       while(<F>){
          $hmm .= $_;
          unless( /^CKSUM\s+/ ) {
-	         $hmm .= "GA    ".$pfam->ls_sequence_GA." ".$pfam->ls_domain_GA.";\n";
-	         $hmm .= "TC    ".$pfam->ls_sequence_TC." ".$pfam->ls_domain_TC.";\n";
-	         $hmm .= "NC    ".$pfam->ls_sequence_NC." ".$pfam->ls_domain_NC.";\n";
+	         $hmm .= "GA    ".$pfam->sequence_ga." ".$pfam->domain_ga.";\n";
+	         $hmm .= "TC    ".$pfam->sequence_tc." ".$pfam->domain_tc.";\n";
+	         $hmm .= "NC    ".$pfam->sequence_nc." ".$pfam->domain_nc.";\n";
 	       }
       }
       $fileCheckSums{$f} = md5_hex($hmm);
   }
   #Update the current versions table with these versions
   my $currentVersions = $pfamDB->getSchema
-                             ->resultset('Current_pfam_version')
-                              ->update_or_create({ auto_pfamA     => $pfam->auto_pfamA,
-                               current_seed   => $fileCheckSums{SEED},
-                               current_align  => $fileCheckSums{ALIGN},
-                               current_desc   => $fileCheckSums{DESC},
-                               current_hmm_ls => $fileCheckSums{HMM_ls},
-                               current_hmm_fs => $fileCheckSums{HMM_fs}
+                             ->resultset('CurrentPfamVersion')
+                              ->update_or_create({ auto_pfama     => $pfam->auto_pfama,
+                               seed      => $fileCheckSums{SEED},
+                               align     => $fileCheckSums{ALIGN},
+                               desc_file => $fileCheckSums{DESC},
+                               hmm       => $fileCheckSums{HMM},
                                });
   #Get the release versions
   my $releasedVersions = $pfamDB->getSchema
-                             ->resultset('Released_pfam_version')
-                              ->find({ auto_pfamA     => $pfam->auto_pfamA});
+                             ->resultset('ReleasedPfamVersion')
+                              ->find({ auto_pfama     => $pfam->auto_pfama});
   
   my ($thisVersion, $changeStatus);
-  if($releasedVersions and $releasedVersions->auto_pfamA){
+  if($releasedVersions and $releasedVersions->auto_pfama){
         $changeStatus = 'NOCHANGE';
         #If the release version are different, then we need to add them to the 
-        if(($releasedVersions->hmm_ls ne $currentVersions->current_hmm_ls) or
-           ($releasedVersions->hmm_fs ne $currentVersions->current_hmm_fs)){
+        if($releasedVersions->hmm ne $currentVersions->current_hmm){
             $thisVersion = $releasedVersions->version + 1 ;
             $changeStatus = 'CHANGED';
         }else{
@@ -2068,10 +2036,8 @@ sub getNestedLocations {
   my ($auto_pfamA, $pfamDB) = @_;
   
   my @rows = $pfamDB->getSchema
-                     ->resultset('Nested_locations')
-                      ->search({auto_pfamA => $auto_pfamA},
-                              {join       => [ qw(pfamseq) ],
-                               prefetch   => [ qw(pfamseq) ] });
+                     ->resultset('NestedLocations')
+                      ->search({auto_pfamA => $auto_pfamA});
   return (\@rows);
 }
 
