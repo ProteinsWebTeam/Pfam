@@ -39,7 +39,7 @@ sub main {
 #-------------------------------------------------------------------------------
 #Deal with the command line options
   
-  my ($fname, $hand, $local, $nobuild, $nosplit, $help, $evalCut, $dbsize,
+  my ($fname, $hand, $local, $nobuild, $split, $help, $evalCut, $dbsize,
       $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake );
 
   &GetOptions( "help"       => \$help,
@@ -48,7 +48,7 @@ sub main {
                "ignoreSM"   => \$ism,
                "local"      => \$local,
                "nobuild"    => \$nobuild,
-               "nosplit"    => \$nosplit,
+               "split"      => \$split,
                "E=s"        => \$evalCut,
                "Z=s"        => \$dbsize,
                "max"        => \$max,
@@ -65,7 +65,7 @@ sub main {
   }
   
   if($local){
-    $nosplit = 1; 
+    $split = 0; 
   }
 
 #-------------------------------------------------------------------------------
@@ -292,7 +292,7 @@ sub main {
   
   my $cmd;
   my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;  
-  if($nosplit){
+  unless($split){
     $cmd =$config->hmmer3bin."/".$searchOptions." ".$config->pfamseqLoc."/pfamseq > OUTPUT";
     $descObj->SM($searchOptions." pfamseq");
   }
@@ -321,7 +321,7 @@ sub main {
     }
     
     if($farmConfig->{sge}){
-      if($nosplit){
+      unless($split){
         system("qsub -N pfamHmmSearch -j y -o /dev/null -b y -cwd -V \'$cmd\'") and die "Failed to submit job to SGE,qsub -N pfamHmmSearch -j -o /dev/null -b y -cwd -V \'$cmd\' \n";  
       }else{
         #TODO split
@@ -340,7 +340,7 @@ sub main {
       $rsyncObj->exec( { src  => $config->pfamseqLoc(),
                          dest => $config->pfamseqFarmLoc() });
       
-      if($nosplit){
+      unless($split){
         my $fh = IO::File->new();
         $fh->open("| bsub -q ".$farmConfig->{queue}."-o /tmp/$$.log -Jhmmsearch$$");
         $fh->print("mkdir ".$farmConfig->{scratch}."/$$\n") or die "Couldn't make directory [".$farmConfig->{scratch}."./$$] \n";
@@ -368,6 +368,7 @@ sub main {
         $fh->print( "/usr/bin/scp -p PFAMOUT $phost:$pwd/OUTPUT\n" );
         
         if($withpfmake){
+          $fh->print( "/usr/bin/scp -p DESC $phost:$pwd/DESC\n" );
           $fh->print( "/usr/bin/scp -p ALIGN $phost:$pwd/ALIGN\n" );
         }     
       }else{
@@ -413,13 +414,11 @@ Options that influence hmmsearch:
   -local      : Run the hmmsearch on the local machine rather than submitting 
               : to a compute farm. Note, the farm configuration is used by the 
               : Pfam configuration file.
-  -nosplit    : Run the search a one system call against the whole of pfamseq.  
-              : Without this option, hmmsearch is run against the split version 
-              : of pfamseq.
+  -split      : Run the hmmsearch against the split version of pfamseq (Not yet implemented).
   -ignoreSM   : Ignore the SM line present in the DESC file. Otherwise the SM
               : line will be supplimented to your SM options.            
               
-  Note, if -local is specified then nosplit is switched on.
+  Note, if -local is specified then split is switched off.
   
   Options controlling significance thresholds for reporting:
   -E <x>      : E-value cutoff for reporting sequences  [default 1000].
