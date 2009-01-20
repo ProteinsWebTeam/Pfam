@@ -4,6 +4,12 @@ use strict;
 use warnings;
 use Getopt::Long;
 use File::Copy;
+use IO::File;
+use Sys::Hostname;
+use Cwd;
+use File::Copy;
+use File::Rsync;
+
 
 use Bio::Pfam::Config;
 use Bio::Pfam::AlignPfam;
@@ -34,7 +40,7 @@ sub main {
 #Deal with the command line options
   
   my ($fname, $hand, $local, $nobuild, $nosplit, $help, $evalCut, $dbsize,
-      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism );
+      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake );
 
   &GetOptions( "help"       => \$help,
                "hand"       => \$hand,
@@ -48,9 +54,10 @@ sub main {
                "max"        => \$max,
                "biasfilter" => \$bFilt,
                'nonull2'    => \$null2,
-               'F1=s'         => \$f1,
-               'F2=s'         => \$f2,
-               'F3=s'         => \$f3,);
+               'F1=s'       => \$f1,
+               'F2=s'       => \$f2,
+               'F3=s'       => \$f3,
+               'withpfmake' => \$withpfmake);
   
   help() if($help);
   if($hand and $nobuild){
@@ -303,14 +310,16 @@ sub main {
     #Parse the Results
     $HMMResultsIO->convertHMMSearch( "OUTPUT" );
   }else{
-    
-    
+    #Get the current working directory and hostname
+    my $phost = hostname;
+    my $pwd  = getcwd;
     
     #We are going to use some sort of farm! 
     my $farmConfig = $config->farm;
     unless($farmConfig){
       die "Failed to get a farm configuration file\n"; 
     }
+    
     if($farmConfig->{sge}){
       if($nosplit){
         system("qsub -N pfamHmmSearch -j y -o /dev/null -b y -cwd -V \'$cmd\'") and die "Failed to submit job to SGE,qsub -N pfamHmmSearch -j -o /dev/null -b y -cwd -V \'$cmd\' \n";  
@@ -319,11 +328,48 @@ sub main {
         print STDERR "TODO: nothing run:\n"
       } 
     }elsif($farmConfig->{lsf}){
+      
+      #First check that pfamseq is most up to date and if not, copy files to farm
+      my $rsyncObj = File::Rsync->new( { compress     => 1,
+                                         recursive    => 1,
+                                         rsh          => '/usr/bin/ssh',
+	 		                                   'rsync-path' => '/usr/bin/rsync', 
+                                         checksum     => 1} );
+                                         
+      #Check the pfamseq is up-to-date                                   
+      $rsyncObj->exec( { src  => $config->pfamseqLoc(),
+                         dest => $config->pfamseqFarmLoc() });
+      
       if($nosplit){
+        my $fh = IO::File->new();
+        $fh->open("| bsub -q ".$farmConfig->{queue}."-o /tmp/$$.log -Jhmmsearch$$");
+        $fh->print("mkdir ".$farmConfig->{scratch}."/$$\n") or die "Couldn't make directory [".$farmConfig->{scratch}."./$$] \n";
+        $fh->print("/usr/bin/scp -p $phost:$pwd/SEED ".$farmConfig->{scratch}."/$$/SEED \n");
+      	$fh->print("/usr/bin/scp -p $phost:$pwd/HMM ".$farmConfig->{scratch}."/$$/HMM \n");
+      	$fh->print("/usr/bin/scp -p $phost:$pwd/DESC ".$farmConfig->{scratch}."/$$/DESC \n") if ($withpfmake and -e "$pwd/DESC");
+	      $fh->print("cd ".$farmConfig->{scratch}."/$$ \n");
+        $fh->print("$cmd\n");
         
+        # now need to do the equivalent of convertHMMsearch method in$HMMResultsIO;
+        $fh->print("pfbuild_farm_post_search.pl\n");
         
+        #And finally, run pfmake if we need to
+        if($withpfmake){
+          if(-e "$pwd/DESC"){
+            $fh->print("pfmake.pl\n");
+          }else{
+            $fh->print("pfmake.pl -e 0.01\n");  
+          }
+        }
         
-        #system("qsub -N pfamHmmSearch -j y -o /dev/null -b y -cwd -V \'$cmd\'") and die "Failed to submit job to SGE,qsub -N pfamHmmSearch -j -o /dev/null -b y -cwd -V \'$cmd\' \n";  
+        #Now bring back all of the files
+        $fh->print( "/usr/bin/scp -p HMM $phost:$pwd/HMM\n" );
+    		$fh->print( "/usr/bin/scp -p PFAMOUT $phost:$pwd/PFAMOUT\n" );
+        $fh->print( "/usr/bin/scp -p PFAMOUT $phost:$pwd/OUTPUT\n" );
+        
+        if($withpfmake){
+          $fh->print( "/usr/bin/scp -p ALIGN $phost:$pwd/ALIGN\n" );
+        }     
       }else{
         #TODO split
         print STDERR "TODO: nothing run:\n"
@@ -332,8 +378,6 @@ sub main {
       die "Unknown farm set-up\n"; 
     }
   }
-
-  print STDERR "Finished\n";
 }
 
 sub help {
@@ -402,6 +446,12 @@ Options for gurus:
   -F3 <x>     : Stage 3 (Fwd) threshold: promote hits w/ P <= F3  [1e-5]
   
   Note, option -max is incompatible with option(s) -F1,-F2,-F3
+ 
+And Finally:
+
+  -withpfmake : run pfmake after the search.  If there is a DESC file present, 
+              : then it will use the threshold present in the file. Otherwise,
+              : it will use a default threshold of 10e-3.  
   
 EOF
 
