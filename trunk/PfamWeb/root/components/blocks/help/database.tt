@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.8 2008-10-15 08:18:38 jt6 Exp $
+# $Id: database.tt,v 1.9 2009-01-21 10:51:58 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -62,6 +62,10 @@ pfamB_additional_residue_coverage: 6.5
 
     <h2>Domain information</h2>
     
+    <img class="tables"
+         alt="Domain information"
+         src="[% c.uri_for( "/static/images/db_schema/Pfamseq_pfamA.png" ) %]" />
+
     <p>
       Two of the central tables in the database are 
       <span class="table">pfamseq</span>, which contains the UniProtkKB sequence 
