@@ -1,0 +1,257 @@
+[%
+# getStarted.tt
+# rdf 20060927 WTSI
+# 
+# build the getStarted block for the help pages
+#
+# $Id: getStarted.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start getStarted block -->
+
+<div class="block" id="helpGetStartedBlock">
+  <div class="handle">
+    <h1>Getting Started using Pfam</h1>
+  </div>
+  <div class="blockContent">
+    
+    <img class="jumpTo" 
+         src="[% c.uri_for( "/static/images/jumpTo.gif" ) %]" 
+         alt="jump to..." />
+
+    <h2>Using the &quot;Jump to&quot; search</h2>
+
+    <p>
+      Many pages in the site include a small search box, entitled &quot;Jump 
+      to...&quot;. The &quot;Jump to...&quot; box allows you to go immediately
+      to the page for any entry in the Pfam site entry, including Pfam families, 
+      clans and UniProt sequence entries.
+    </p>
+    <p>
+      The &quot;Jump to...&quot; search understands accessions and IDs for
+      most types of entry. For example, you can enter either a Pfam family 
+      accession, e.g. <code>PF02171</code>, or, if you find it easier to 
+      remember, a family ID, such as <code>piwi</code>. Note that the search 
+      is case insensitive.
+    </p>
+    <p>
+      Because some identifiers can be ambiguous, the &quot;Jump to...&quot; 
+      search may need to test several types of identifier to find 
+      the entry that you're looking for. For example, Pfam A family IDs (e.g. 
+      Kazal_1) and Pfam clan IDs (e.g. Kazal) aren't easily distinguished, so 
+      if you enter <code>kazal</code>, the search will first look for a 
+      family called <em>kazal</em> and, if it doesn't find one, will then 
+      look for a clan called <em>kazal</em>. If all of the guesses fail, you'll 
+      see an error message saying &quot;Entry not found&quot;.
+    </p>
+    <p>
+      The order in which the search tries the various types of ID and accession
+      is given below:  
+    </p>
+    <ul>
+      <li>Pfam A accession, e.g. PF02171</li>
+      <li>Pfam A identifier, e.g. piwi</li>
+      <li>Pfam B accession, e.g. PB000001</li>
+      <li>Pfam B identifier, e.g. Pfam-B_1</li>
+      <li>UniProt sequence accession, e.g. P00789</li>
+      <li>UniProt sequence ID, e.g. CANX_CHICK</li>
+      <li>NCBI &quot;GI&quot; number, e.g. 113594566</li>
+      <li>NCBI secondary accession, e.g. BAF18440.1</li>
+      <li>Pfam clan accession, e.g. CL0005</li>
+      <li>metaseq ID, e.g. JCVI_ORF_1096665732460</li>
+      <li>metaseq accession, e.g. JCVI_PEP_1096665732461</li>
+      <li>Pfam clan accession, e.g. CL0005</li>
+      <li>Pfam clan ID, e.g. Kazal</li>
+      <li>PDB entry, e.g. 2abl</li>
+      <li>Proteome species name, e.g. Homo sapiens</li>
+    </ul>
+
+    <hr />
+    
+    <img class="jumpTo" 
+         src="[% c.uri_for( "/static/images/kwSearch.gif" ) %]" 
+         alt="keyword search" />
+
+    <h2>Keyword search</h2>
+    
+    <p>
+      Every page in the Pfam site includes a search box in the page header.
+      You can use this to find Pfam A families which match a particular keyword.
+      The search includes several different areas of the Pfam database:
+    </p>
+    <ul>
+      <li>text fields in Pfam entries, e.g. family descriptions</li>
+      <li>UniProt sequence entry description and species fields</li>
+      <li><code>HEADER</code> and <code>TITLE</code> fields from PDB entries</li>
+      <li>Gene Ontology IDs and terms</li>
+      <li>InterPro entry abstracts</li>
+    </ul>
+    <p>
+      Each Pfam A entry is listed only once in the results table, although it
+      might have been found in more than one area of the database.
+    </p>      
+
+    <hr />
+    
+  	<h2>Searching a protein sequence against Pfam</h2>
+  
+  	<p>
+  	  Searching a protein sequence against the Pfam library of HMM
+  	  will allow you to find out the domain architecture of the
+  	  protein.
+  	</p>
+  
+  	<h3>Single protein search</h3>
+  
+  	<p>
+  	  If your protein is present in the version of UniProt we used to
+  	  make the current release of Pfam, we have already calculated its
+  	  domain architecture which you can access by entering the Uniprot
+  	  accession or id on the Pfam homepage. If your protein is new,
+  	  you will need to paste the protein sequence into the search page
+  	  and we will search your sequence against our HMMs and display
+  	  the matches for you.
+  	</p>
+  
+  	<h3>Medium scale protein searches (fewer than 5,000 sequences)</h3>
+  
+  	<p>
+  	  If you have a few thousand protein searches to do, you can use
+  	  our batch upload facility to upload a file of your sequences in
+  	  FASTA format. We will run them against our HMMs and email the
+  	  results back to you, usually within 48 hours. We request that
+  	  you to put a maximum of 1000 sequences in each file.
+  	</p>
+  
+  	<h3>Large scale protein searches (more than 5,000 sequences)</h3>
+  
+  	<p>
+  	  If you have a large number of protein searches, it may be more
+  	  convenient to run Pfam locally. To do this you will need the
+  	  HMMER2 software, the Pfam HMM libraries and a couple of
+  	  additional files from the Pfam website.
+  	</p>
+  
+  	<ol>
+  	  <li>
+    		<a class="ext" href="http://hmmer.janelia.org/">Download</a> the HMMER2 
+        software.
+  	  </li>
+  	  <li>
+    		<p>
+          Download the Pfam files Pfam_ls, Pfam_fs, Pfam_ls.bin, Pfam_fs.bin, 
+          Pfam_ls.bin.ssi, Pfam_fs.bin.ssi, Pfam-A.seed and Pfam-C from the 
+          <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">
+            ftp site</a>.
+    		</p>
+    		<p>
+    		  These files contain the HMMs and additional information that is
+    		  required to carry out the searches.
+    		</p>
+  	  </li>
+  	  <li>
+    		<p>
+    		  Download a copy of pfam_scan.pl from the
+          <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">
+            ftp site</a>. 
+    		</p>
+    		<p>
+    		  This is a wrapper script around hmmpfam, the HMMER program
+    		  that searches query sequences against a library of profile
+    		  HMMs.  If perldoc is installed, more detailed instructions
+    		  on how to use pfam_scan.pl can be found by typing on the
+    		  command line 'perldoc pfam_scan.pl'.
+    		</p>
+  	  </li>
+  	  <li>
+    		<p>
+    		  On the command line enter:
+    		</p>
+    		<code>pfam_scan.pl  &#45;d  &#60;directory_location_of_Pfam&#62; &#60;files fasta_file_of_proteome&#62;</code>
+    		<p>
+    		  For example if the files were downloaded into a folder
+    		  called pfam_files, and the FASTA sequences were in a file
+    		  called sequences.fasta, type:
+    		</p>
+    		<code>pfam_scan.pl -d pfam_files sequences.fasta</code>
+    		<p>
+    		  <code>pfam_scan.pl</code> will search the FASTA sequences
+    		  against the profile HMMs and report all matches to families
+    		  that score higher than the manually set thresholds for each
+    		  of the Pfam families. The output format will look something
+          like this:
+    		</p>
+    		<code>
+    		  &lt;seq_id&gt; &lt;seq_start&gt; &lt;seq_end&gt; &lt;hmm_acc&gt; &lt;hmm_start&gt; &lt;hmm_end&gt; &lt;bit_score&gt; &lt;evalue&gt; &lt;hmm_name&gt;
+    		</code>
+    		<p>
+    			e.g.
+    		</p>
+    		<pre>
+O00519     95       562     PF01425.9       1      513      526.5     2.6e-155  Amidase
+O01636     22       139     PF02408.8       1      137      157.3     3.6e-44   DUF141
+O03046     12       137     PF02788.5       1      132      295.2     1.1e-85   RuBisCO_large_N
+    		</pre>
+      </li>
+  	</ol>
+  
+  	<h3>Proteome analysis</h3>
+  
+  	<p>
+  	  Pfam pre-calculates the domain architecture for the proteomes
+  	  present in <a class="ext"
+  	  href="http://www.ebi.ac.uk/integr8/EBI-Integr8-HomePage.do">Integr8</a>. To
+  	  see the list of proteomes, visit the genomes page within the
+  	  Pfam website. From here you will be able to access a table
+  	  showing the Pfam families that are found in a particular
+  	  proteome, a short description of each of those famillies and the
+  	  number of proteins that match each family. Links from these
+  	  pages will allow you to investigate particular proteins
+  	  further. You can also compare two proteomes and out which
+  	  protein families are shared between the proteomes, and which are
+  	  unique to a particular proteome.
+  	</p>
+  	<p>
+  	 The taxonomy query allows allows quick identification of
+  	 families/domains which are present in one species but are absent
+  	 from another. It can also be used to find families/domains that
+  	 are unique to a particular species (note this can be very slow).
+  	</p>
+  
+    <hr />
+    
+  	<h2>Finding proteins with a specific set of domain 
+      combinations (&#39;architectures&#39;)</h2>
+  
+  	<p>
+  	  Pfam allows you to retrive all the proteins with a particular
+  	  domain combination (e.g. proteins containing both a CBS domain
+  	  and an IMPDH domain) by using the domain query tool. For a more
+  	  detailed study of domain architectures you should use <a class="ext"
+  	  href="http://pfamalyzer.sbc.su.se/pfamalyzer/">PfamAlyzer</a>,
+  	  a tool that is hosted from the Swedish Pfam site. PfamAlyzer
+  	  allows the user to find proteins which contain a specific
+  	  combination of domains, and it allows the user to specify
+  	  particular species and the distances allowed between domains.
+  	</p>
+  
+  </div>
+</div>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

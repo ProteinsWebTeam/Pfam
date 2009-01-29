@@ -1,0 +1,191 @@
+
+[%
+# install.tt
+# jt6 20070913 WTSI
+# 
+# installation instructions for the website
+#
+# $Id: install.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start install block -->
+
+<div class="block" id="helpInstallBlock">
+  <div class="handle">
+    <h1>Installing the Pfam website</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      The source code for this website and the ancillary systems that it uses
+      are all freely available for download. The website is designed to be 
+      portable, so that it can be installed and run at your local site if
+      required. This section gives an overview of the requirements for 
+      running the site, a brief description of the steps involved in installing
+      it, and links to detailed installation instructions.       
+    </p>
+
+    <h2>Requirements</h2>
+    
+    <h3>Software</h3>
+    
+    <p>
+      The site is written in entirely in perl, using the 
+      <a class="ext" href="http://www.catalystframework.org/">Catalyst</a> web
+      framework. It runs under <a class="ext" href="http://perl.apache.org/">mod_perl</a> 
+      in the <a class="ext" href="http://httpd.apache.org/">Apache</a> 
+      web-server. All data are retrieved from 
+      <a class="ext" href="http://www.mysql.com/">MySQL</a> databases, running
+      locally. Sequence searches are performed by a separate job queuing system, 
+      which uses various third-party software to perform searches, generate 
+      alignments, etc., including 
+      <a class="ext" href="http://hmmer.janelia.org/">HMMER</a>, 
+      <a class="ext" href="http://www.ebi.ac.uk/Wise2/">genewise</a> and 
+      <a class="ext" href="http://blast.wustl.edu/">wublast</a>.
+    </p>
+
+    <h3>Hardware resources</h3>
+  
+    <p>
+      The hardware requirements for the whole system are significant. Although
+      it is possible to install all components on a single machine, we would
+      not recommend it. Ideally you should have one or more web-server 
+      machines, a separate database server, and one or more machines to serve
+      the back-end job queuing system. That said, although we give an idea of 
+      the hardware that we use at WTSI below, a local installation could be run 
+      on a significantly lower specification system.
+    </p>      
+
+    <h4>Web server</h4>
+    
+    <p>
+      The Pfam website includes mainly dynamically generated pages, with a large
+      number of statically served items. The best performance can be gained by
+      separating the two kinds of data onto two (or more) separate machines,
+      so that dynamic data are served by one server, static data by another.
+      If this is not possible, a single large machine should still give 
+      resonable performance. We serve a development site from a 3GHz Intel Xeon
+      with 4Gb of physical memory.
+    </p>
+
+    <h4>Database server</h4>
+    
+    <p>
+      You will first need a reasonable amount of disk space for the database 
+      files. The database is distributed as a set of gzip-compressed table
+      dumps, which total about 12Gb. Once uncompressed these table files take up
+      around 35Gb and once the tables are installed into MySQL, the database 
+      will require around 150Gb of disk space.
+    </p>
+    <p>      
+      The MySQL database daemon will run happily on most machines, but in order
+      to get the performance required to serve the website, you will need a 
+      machine with a fast processor (preferably multiple processors) and a large
+      amount of memory. We run our database on a four processor AMD Opteron
+      280 server with 8Gb of physical memory.
+    </p>
+
+    <h4>Queuing system</h4>
+
+    <p>
+      Our job queuing system can be run on the same machine as the website or
+      database server, but we would recommend running it on a separate machine 
+      or, ideally, on a farm of machines. This will ensure that the site can 
+      handle multiple requests for sequence alignments, sequence searches, etc.
+      We run our queuing system on a farm of 14 dual-core 2.8GHz Xeons, each
+      with 4Gb of physical memory.
+    </p>
+
+    <h3>Installation</h3>
+    
+    <p>
+      You will need to install three sub-systems:
+    </p>
+    <ul>
+      <li>the MySQL databases</li>
+      <li>the back-end job queuing system</li>
+      <li>the website itself</li>
+    </ul>
+
+    <h4>Database</h4>
+      
+    <ol>
+      <li>If you don't have it already, install MySQL</li>
+      <li>Download the database files from the WTSI FTP site</li>
+      <li>Install the database tables in your MySQL server</li>
+    </ol>
+    
+    <h4>Back-end</h4>
+    
+    <ol>
+      <li>Install the required third-party software such as HMMER</li>
+      <li>Install the perl prerequisites</li>
+      <li>Download the data files for running the offline searches</li>
+      <li>Retrieve the queuing system code from CVS</li>
+      <li>Configure and start the queues</li>
+    </ol>      
+      
+    <h4>Website</h4>
+    
+    <ol>
+      <li>Configure <tt>cpan</tt></li>
+      <li>Install catalyst</li>
+      <li>Install perl prerequisites for the website</li>
+      <li>Retrieve the website code from CVS</li>
+      <li>Configure the website</li>
+      <li>Configure apache</li>
+      <li>Restart apache</li>
+    </ol>
+
+    <h3>Detailed installation instructions</h3>
+    
+    <p>
+      The process of installing the three sub-systems is described in detail
+      in three 
+      <a class="ext" href="http://www.adobe.com/products/acrobat/adobepdf.html">
+        Portable Document Format</a> (PDF) files. You will need a 
+      <a class="ext" href="http://www.adobe.com/products/acrobat/readstep2.html">
+        PDF-reader</a> in order to view these instructions.
+    </p>
+
+    [% docsUri = c.uri_for( "/static/documents" ); -%]
+    <dl>
+      <dt>
+        <a class="ext" href="[% docsUri %]/database_installation_notes.pdf">
+          Database installation notes</a>
+        </dt>
+      <dd>installing the Pfam databases</dd>
+      <dt>
+        <a class="ext" href="[% docsUri %]/backend_installation_notes.pdf">
+          Offline script installation notes</a>
+        </dt>
+      <dd>installing the &quot;backend&quot; scripts that run the job queuing system</dd> 
+      <dt>
+        <a class="ext" href="[% docsUri %]/website_installation_notes.pdf">
+          PfamWeb installation notes</a>
+        </dt>
+      <dd>installing the website itself</dd>
+    </dl>
+
+  </div>
+</div>
+
+<!-- end install block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

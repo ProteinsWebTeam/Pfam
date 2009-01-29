@@ -1,0 +1,98 @@
+[%
+# scores.tt
+# rdf 20060926 WTSI
+# 
+# build the scores block for the help pages
+#
+# $Id: scores.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start scores block -->
+
+<div class="block" id="helpScoresBlock">
+  <div class="handle">
+    <h1>Help With Pfam HMM scores</h1>
+  </div>
+  <div class="blockContent">
+		
+	<h3>What Pfam HMM scores mean</h3>
+
+	<p>
+	  Pfam-A is based around hidden Markov model (HMM) searches, as
+	  provided by the <a href="http://hmmer.janelia.org/">HMMER2</a>
+	  package.  In HMMER2, like BLAST, E-values (expectation values)
+	  are calculated.  The E-value is the number of hits that would be
+	  expected to have a score equal or better than this by chance
+	  alone. A good E-value is much less than 1. Around 1 is what we
+	  expect just by chance. In principle, all you need to decide on
+	  the significance of a match is the E-value.
+	</p>
+	<p>
+	  However, there are a few complications. 
+	</p>
+	<p>
+	  The most serious complication is that there are no analytical
+	  results available for accurately determining E-values for gapped
+	  alignments, especially profile HMM alignments. HMMER uses
+	  empirical methods to estimate E-values. These methods are
+	  generally rather accurate. However, when in doubt, HMMER tends
+	  to err on the conservative side.
+	</p>
+	<p>
+	  We use a second, and even more empirical, system in maintaining
+	  Pfam models. This system is implemented in the Pfam database
+	  rather than in the HMMER software. For each Pfam family, we
+	  record a &quot;trusted cutoff&quot; and a &quot;noise 
+	  cutoff&quot;, TC1 and NC1. TC1
+	  is the lowest score for sequences we included in the family
+	  (e.g. in the Full alignment).  NC1 is the highest score for
+	  sequences we did not include in the Full alignment. (Since Full
+	  alignments are produced automatically, the trusted sequence
+	  cutoff is always greater than the noise sequence cutoff.)
+	</p>
+	<p>
+	  Therefore, we can consider a hit very significant if it scores
+	  better than the trusted cutoff, better than the noise cutoff,
+	  and has a significant E-value. Sometimes sequences score better
+	  than the cutoffs though they don't have significant E-values;
+	  these are marginal hits that we've chosen to include in the
+	  family.
+	</p>
+
+	<h3>Sequence versus domain scores</h3>
+
+	<p>
+	  There's one additional wrinkle in the scoring scheme. HMMER2
+	  calculates two kinds of scores. The &quot;sequence
+	  classification score&quot; is the <i>total</i> score of a
+	  sequence aligned to a model; if there are more than one domain,
+	  the sequence score is the sum of all (finding multiple domains
+	  increases our confidence that the sequence belongs to that
+	  protein family, even if each domain individually is a weak
+	  match.) The &quot;domain score&quot; is a score for a single
+	  domain (these two scores are identical for single domain
+	  proteins).
+	</p>
+
+  </div>
+</div>
+
+<!-- end scores block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

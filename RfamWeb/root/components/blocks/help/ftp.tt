@@ -1,0 +1,135 @@
+[%
+# ftp.tt
+# jt6 20061205 WTSI
+# 
+# build the ftp block for the help pages
+#
+# $Id: ftp.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start ftp block -->
+
+<div class="block" id="helpFtpBlock">
+  <div class="handle">
+    <h1>Pfam FTP site</h1>
+  </div>
+  <div class="blockContent">
+	
+	<p>
+	  The following list describes a few of the important files in the Pfam 
+	  <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>. 
+    Some of these files may be <em>very</em> large (of the order of several 
+    hundred	megabytes). Please check the sizes on the 
+		<a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> 
+    before trying to download them over a slow connection.
+	</p>
+
+	<dl>
+	  <dt>
+	    <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/relnotes.txt">
+	      relnotes.txt</a>
+	  </dt>
+	  <dd>
+		Release notes
+	  </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
+			  pfamseq.gz</a>
+	  </dt>
+	  <dd>
+			A fasta version of Pfam's underlying sequence database 
+	  </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_ls.gz">
+			  Pfam_ls.gz</a>
+	  </dt>
+	  <dd>
+			The Pfam HMM library
+	  </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_fs.gz">
+			  Pfam_fs.gz</a>
+	  </dt>
+	  <dd>
+			The Pfam fragment HMM library
+    </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
+	 		  Pfam-A.full.gz</a>
+	  </dt>
+	  <dd>
+			The full alignments of the curated families
+   </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
+			  Pfam-A.seed.gz</a>
+	  </dt>
+	  <dd>
+			 The seed alignments of the curated families
+    </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
+			  Pfam-B.gz</a>
+	  </dt>
+	  <dd>
+			Automatically generated alignments of sequence clusters in SWISSPROT and TrEMBL 
+			that are not modelled in the curated part of Pfam
+	  </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
+			  Pfam-C.gz</a>
+	  </dt>
+	  <dd>
+			The contains the information about clans and the Pfam-A membership
+	  </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
+			  swisspfam.gz</a>
+	  </dt>
+	  <dd>
+			The domain structure of SWISSPROT and TrEMBL proteins according to Pfam
+    </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/prior.tar.gz">
+        prior.tar.gz</a>
+	  </dt>
+	  <dd>
+			A set of prior files for specific Pfam families
+	  </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/COPYRIGHT">COPYRIGHT</a>
+	  </dt>
+	  <dd>
+			Copyright notice for Pfam
+	  </dd>
+	  <dt>
+			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/GNULICENSE">GNULICENSE</a>
+	  </dt>
+	  <dd>
+			The full text of the GNU Library General Public License under which Pfam is
+			licensed
+	  </dd>
+	</dl>
+
+  </div>
+</div>
+
+<!-- end ftp block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

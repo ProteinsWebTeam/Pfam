@@ -1,0 +1,206 @@
+[%
+# glossary.tt
+# rdf 20060927 WTSI
+# 
+# build the mirrors block for the help pages
+#
+# $Id: glossary.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start glossary.tt block -->
+
+<div class="block" id="helpGlossaryBlock">
+  <div class="handle">
+    <h1>Glossary of terms used in Pfam</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      These are some of the commonly used terms in the Pfam website.			
+    </p>
+
+    <h3>Architecture</h3>
+    
+    <p>The collection of domains that are present on a protein.</p>
+
+    <h3>Build method</h3>
+    
+    <p>
+      The order that the ls (global) and fs (fragment) matches are aligned to 
+      the model to give the full alignment. The build method can be global first, 
+      where ls matches are aligned first followed by fs matches that do not 
+      overlap, byscore, where matches are aligned in order of evalue score, or 
+      localfirst, where fs matches are aligned first followed by ls matches that 
+      do not overlap.
+    </p>
+
+    <h3>Clan</h3>
+
+    <p>
+      A collection of related Pfam entries. The relationship may be defined 
+      by similarity of sequence, structure or profile-HMM.
+    </p>
+
+    <h3>Domain</h3>
+    
+    <p>
+      A structural unit which can be found in multiple protein contexts.
+    </p>
+
+    <h3>Domain score</h3>
+    
+    <p>
+      The score of a single domain aligned to a HMM. If there is more than one 
+      domain, the sequence score is the sum of all the domain scores for that 
+      Pfam entry. If there is only a single domain, the sequence and the 
+      domains score for the protein will be identical.
+    </p>
+
+    <h3>DUF</h3>
+    
+    <p>
+      Domain of unknown function.
+    </p>
+
+    <h3>Family</h3>
+    
+    <p>
+      A collection of related proteins.
+    </p>
+
+    <h3>Full alignment</h3>
+    
+    <p>
+      An alignment of the set of related sequences which score higher than 
+      the manually set threshold values for the HMMs of a particular Pfam 
+      entry.
+    </p>
+
+    <h3>Gathering threshold (GA)</h3>
+    
+    <p>
+      Also called the gathering cut-off, this value is the search threshold 
+      used to build the full alignment. The GA is the minimum score a sequence 
+      must attain in order to belong the the full alignment of a Pfam entry. 
+      For each Pfam HMM we have two GA cutoff values, a sequence cutoff and 
+      a domain cutoff.
+    </p>
+
+    <h3>Hidden Markov model (HMM)</h3>
+    
+    <p>
+      A HMM is a probablistic model. In Pfam we use HMMs to transform the 
+      information contained within a multiple sequence alignment into a 
+      position-specific scoring system. We search our HMMs against the 
+      <a class="ext "href="http://www.uniprot.org/index.shtml">(UniProt)</a>
+      protein database to find homologous sequences.
+    </p>
+
+    <h3>HMMER2</h3>
+    
+    <p>
+      The suite of programs that Pfam uses to build and search HMMs. See 
+      the <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site.
+    </p>
+
+    <h3>iPfam</h3>
+    
+    <p>
+      A resource that describes domain-domain interactions that are observed 
+      in PDB entries. Where two or more Pfam domains occur in a single 
+      structure, it analyses them to see if the are close enough to form an 
+      interaction. If they are close enough it calculates the bonds forming 
+      the interaction.
+    </p> 
+
+    <h3>Metaseq</h3>
+    
+    <p>
+      A collection of sequences derived from various metagenomics datasets.
+    </p>
+
+    <h3>Motif</h3>
+    
+    <p>
+      A short unit found outside globular domains.
+    </p>
+
+    <h3>Noise cutoff (NC)</h3>
+    
+    <p>
+      The bit scores of the highest scoring match not in the full alignment.
+    </p>
+
+    <h3>Pfam-A</h3>
+    
+    <p>
+      A HMM based hand curated Pfam entry which is built using a small number 
+      of representative sequences. We manually set a threshold value for each
+      HMM and search our models against the 
+      <a class="ext" href="http://www.uniprot.org/">UniProt</a> database. All of the 
+      sequnces which score above the threshold for a Pfam entry are included in 
+      the entry's full alignment.
+    </p>
+
+    <h3>Pfam-B</h3>
+    
+    <p>
+      An automatically generated alignment which is formed by an alignment 
+      from the <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
+          class="ext">ADDA</a>
+      database and removing Pfam-A residues from them. Since Pfam-B families 
+      are automatically generated we recommend that you verify that the 
+      sequences in a Pfam-B are related, using other methods such as BLAST.
+    </p>
+
+    <h3>Repeat</h3>
+    
+    <p>
+      A short unit which is unstable in isolation but forms a stable structure 
+      when multiple copies are present.
+    </p>
+
+    <h3>Seed alignment</h3>
+    
+    <p>
+      An alignment of a set of representative sequences for a Pfam entry. We 
+      use this alignment to construct the HMMs for the Pfam entry.
+    </p> 
+
+    <h3>Sequence score</h3>
+    
+    <p>
+      The total score of a sequence aligned to a HMM. If there is more than 
+      one domain, the sequence score is the sum of all the domain scores for 
+      that Pfam entry. If there is only a single domain, the sequence and the 
+      domains score for the protein will be identical. We use the sequence 
+      score to determine whether a sequence belongs to the full alignment of 
+      a particular Pfam entry.
+    </p>
+
+    <h3>Trusted cutoff (TC)</h3>
+    
+    <p>
+      The bit scores of the lowest scoring match in the full alignment.
+    </p>
+
+  </div>
+</div>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

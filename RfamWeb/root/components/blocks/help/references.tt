@@ -1,0 +1,205 @@
+[%
+# scores.tt
+# rdf 20060926 WTSI
+# 
+# build the references block for the help pages
+#
+# $Id: references.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start references block -->
+
+<div class="block" id="helpReferencesBlock">
+  <div class="handle">
+    <h1>References &amp; Bibliography</h1>
+  </div>
+  <div class="blockContent">
+
+    <h3>Pfam References</h3>
+  
+    <div class="citation">
+      <span class="title">
+        <a class="ext" 
+           href="http://nar.oxfordjournals.org/cgi/content/full/36/suppl_1/D281">
+          The Pfam protein families database</a>: 
+      </span>
+      <span class="authors">
+        R.D. Finn, J. Tate, J. Mistry, P.C. Coggill, J.S. Sammut, H.R. Hotz, 
+        G. Ceric, K. Forslund, S.R. Eddy, E.L. Sonnhammer and A. Bateman
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2008)
+        &nbsp;Database Issue 36:D281-D288
+      </span>
+    </div>
+  
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">
+          Pfam: clans, web tools and services</a>: 
+      </span>
+      <span class="authors">
+        R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones, 
+        V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
+        S.R. Eddy, E.L.L. Sonnhammer and A. Bateman
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2006)
+        &nbsp;Database Issue 34:D247-D51
+      </span>
+    </div>
+  
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
+          Enhanced protein domain discovery by using language modeling techniques from 
+          speech recognition</a>: 
+      </span>
+      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
+      <span class="ref">
+        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/32/suppl_1/D138">
+          The Pfam Protein Families Database</a>: 
+      </span>
+      <span class="authors">
+        A. Bateman, L. Coin, R. Durbin, R.D. Finn, V. Hollich, 
+        S. Griffiths-Jones, A. Khanna, M. Marshall, S. Moxon, E.L.L. Sonnhammer, 
+        D.J. Studholme, C. Yeats and S.R. Eddy
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2004)&nbsp;32:D138-D141
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/short/30/1/276">
+          The Pfam Protein Families Database</a>: 
+      </span>
+      <span class="authors">
+        A. Bateman, E. Birney, L. Cerruti, R. Durbin, L. Etwiller, S.R. Eddy, 
+        S. Griffiths-Jones, K.L. Howe, M. Marshall and E.L. Sonnhammer
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2002)&nbsp;30(1):276-280
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/28/1/263">
+          The Pfam Protein Families Database</a>: 
+      </span>
+      <span class="authors">
+        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, K.L. Howe and 
+        E.L. Sonnhammer
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research </span>&nbsp;(2000)&nbsp;28:263-266
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/27/1/260">
+          Pfam 3.1: 1313 multiple alignments match the majority of proteins</a>: 
+      </span>
+      <span class="authors">
+        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, R.D. Finn and E.L.L. Sonnhammer
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(1999)&nbsp;27:260-262
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/26/1/320">
+          Pfam: multiple sequence alignments and HMM-profiles of protein domains</a>: 
+      </span>
+      <span class="authors">
+        E.L.L. Sonnhammer, S.R. Eddy, E. Birney, A. Bateman and R. Durbin 
+      </span>
+      <span class="ref">
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(1998)&nbsp;26:320-322
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;list_uids=9223186">
+          Pfam: a comprehensive database of protein families based on seed alignments</a>: 
+      </span>
+      <span class="authors">
+        E.L.L. Sonnhammer, S.R. Eddy and R. Durbin 
+      </span>
+      <span class="ref">
+        <span class="jrnl">Proteins</span>&nbsp;(1997)&nbsp;28:405-420
+      </span>
+    </div>
+
+    <h3>Book Chapters on Pfam</h3>
+
+    <div class="citation">
+      <span class="title">
+        Pfam: the protein families database 
+      </span>
+      <span class="authors">
+        R.D. Finn (eds M.J. Dunn, L.B. Jorde, P.F.R. Little, S. Subramaniam)
+      </span>
+      <span class="ref">
+        <span class="jrnl">Genetics, Genomics, Proteomics and Bioinformatics, Section 6: Protein Families</span>
+        &nbsp;(2005)&nbsp;ISBN&nbsp;978-0-470-84974-3
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        Identifying protein domains with the Pfam database 
+      </span>
+      <span class="authors">
+        R.D. Finn, A. Bateman and S. Griffiths-Jones
+      </span>
+      <span class="ref">
+        <span class="jrnl">Current protocols in bioinformatics</span>
+        &nbsp;ISBN&nbsp;978-0-471-25093-7
+      </span>
+    </div>
+
+    <div class="citation">
+      <span class="title">
+        Pfam: a domain-centric method for analysing proteins and proteomes
+      </span>
+      <span class="authors">
+        J. Mistry and R.D. Finn
+      </span>
+      <span class="ref">
+        <span class="jrnl">Methods in Molecular Biology - Comparative Genomics</span>
+      </span>
+    </div>
+
+  </div>
+</div>
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
