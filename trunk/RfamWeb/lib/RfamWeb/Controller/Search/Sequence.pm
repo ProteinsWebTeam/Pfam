@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.6 2008-10-27 14:37:24 jt6 Exp $
+# $Id: Sequence.pm,v 1.7 2009-01-29 15:13:28 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for submitting single sequence searches for Rfam.
 
-$Id: Sequence.pm,v 1.6 2008-10-27 14:37:24 jt6 Exp $
+$Id: Sequence.pm,v 1.7 2009-01-29 15:13:28 jt6 Exp $
 
 =cut
 
@@ -71,7 +71,7 @@ sub results : Local {
     # keep track of how many jobs are actually completed
     if ( $c->stash->{results}->{$job_id}->{status} eq 'DONE' ) {
       $completed++;
-      $c->log->debug( "Search::results: job |$job_id| completed" )
+      $c->log->debug( "Search::Sequence::results: job |$job_id| completed" )
         if $c->debug;
     }
     
@@ -83,7 +83,7 @@ sub results : Local {
   # if none of the jobs have actually finished, return HTTP status 204 and
   # we're done here. Don't try to render a template at all 
   unless ( $completed ) {
-    $c->log->debug( 'Search::results: no results; returning 204' )
+    $c->log->debug( 'Search::Sequence::results: no results; returning 204' )
       if $c->debug;
     $c->res->status( '204' ); # 'No content'
     $c->res->body( 'Search(es) not yet complete' );
