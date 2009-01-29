@@ -1,0 +1,232 @@
+[%
+# linking.tt
+# rdf 20060927 WTSI
+# 
+# build the linking block for the help pages
+#
+# $Id: linking.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start linking block -->
+
+<div class="block" id="helpLinkingBlock">
+  <div class="handle">
+    <h1>How to link to Pfam?</h1>
+  </div>
+  <div class="blockContent">
+    <p>
+      Pfam is maintained by a consortium of researchers based at the 
+      <a class="ext" href="http://www.sanger.ac.uk/">Wellcome Trust 
+        Sanger Institute</a>, Cambridge, UK (WTSI), 
+      <a class="ext" href="http://www.sbc.su.se/">Stockholm Bioinformatics Center</a>, 
+      Stockholm, Sweden (SBC), and 
+      <a class="ext" href="http://pfam.janelia.org/">Janelia Farm</a>, Maryland, USA. 
+      All three sites run the same Pfam website and linking to different sites
+      only requires that you change the site name, not the parameters in the URL.
+    </p>
+    <p>
+      Although we have no plans to change the locations of resources within 
+      this site dramatically, webmasters are advised to link only to the 
+      following types of page within the site.
+    </p>
+    
+    <h3>Home pages</h3>
+    <dl class="sitesList">
+      <dt>WTSI:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/">http://pfam.sanger.ac.uk/</a>
+      </dd>
+      <dt>SBC:</dt>
+      <dd>
+        <a class="ext" href="http://pfam.sbc.su.se/">http://pfam.sbc.su.se/</a>
+      </dd>
+      <dt>Janelia:</dt>
+      <dd>
+        <a class="ext" href="http://pfam.janelia.org/">http://pfam.janelia.org/</a>
+      </dd>
+    </dl>
+    
+    <h3>Searching a protein sequence against Pfam</h3>
+    <dl class="sitesList">
+      <dt>WTSI:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock">
+          http://pfam.sanger.ac.uk/search?tab=sequenceSearchBlock</a>
+      </dd>
+      <dt>SBC:</dt>
+      <dd>
+        <a class="ext" 
+           href="http://pfam.sbc.su.se/search?tab=sequenceSearchBlock">
+          http://pfam.sbc.su.se/search?tab=sequenceSearchBlock</a>
+      </dd>
+      <dt>Janelia:</dt>
+      <dd>
+        <a class="ext" 
+           href="http://pfam.janelia.org/search?tab=sequenceSearchBlock">
+          http://pfam.janelia.org/search?tab=sequenceSearchBlock</a>
+      </dd>
+    </dl>
+
+    <h3>Searching a DNA sequence against Pfam</h3>
+    <dl class="sitesList">
+      <dt>WTSI:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock">
+          http://pfam.sanger.ac.uk/search?tab=sequenceDnaBlock</a>
+      </dd>
+      <dt>SBC:</dt>
+      <dd>
+        <a class="ext" 
+           href="http://pfam.sbc.su.se/search?tab=sequenceDnaBlock">
+          http://pfam.sbc.su.se/search?tab=sequenceDnaBlock</a>
+      </dd>
+      <dt>Janelia:</dt>
+      <dd>
+         <a class="ext" 
+            href="http://pfam.janelia.org/search?tab=sequenceDnaBlock">
+           http://pfam.janelia.org/search?tab=sequenceDnaBlock</a>
+      </dd>
+    </dl>
+
+    <h3>Linking to Pfam family pages</h3>
+    
+    <p>
+      You can refer to Pfam families either by accession or ID. You can also 
+      refer to a family by &quot;entry&quot;, although this is a convenience 
+      that should be used only if you&#39;re not sure if what you have is an 
+      accession or an ID.
+    </p>
+    <p>
+      Pfam accession numbers are more stable between releases than IDs and
+      we <strong>strongly</strong> recommend that you link by accession number.
+    </p>
+    <p>
+      Here are some examples of linking to Pfam at WTSI: 
+    </p>
+    <dl class="sitesList">
+      <dt>By accession:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/family?acc=PF00002">
+          http://pfam.sanger.ac.uk/family?acc=PF00002</a>
+      </dd>
+      <dt>By ID:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/family?id=7tm_2">
+          http://pfam.sanger.ac.uk/family?id=7tm_2</a>
+      </dd>
+      <dt>Using &quot;entry&quot;:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/family?entry=PF00002">
+          http://pfam.sanger.ac.uk/family?entry=PF00002</a>
+        or<br />
+        <a href="http://pfam.sanger.ac.uk/family?entry=7tm_2">
+          http://pfam.sanger.ac.uk/family?entry=7tm_2</a>
+      </dd>
+    </dl>
+
+    <p>
+      You can link to Pfam family data at the other sites by changing
+      &quot;<tt>pfam.sanger.ac.uk</tt>&quot; to &quot;<tt>pfam.sbc.su.se</tt>&quot;
+      or &quot;<tt>pfam.janelia.org</tt>&quot;.
+    </p>
+
+    <h3>Linking to protein sequence pages</h3>
+    
+    <p>
+      As for Pfam family pages, you can refer to protein sequence pages by
+      accession, ID or entry. Protein IDs are unstable and do change between
+      releases, so, again, we <strong>strongly</strong> recommend that you use
+      protein accessions where possible.
+    </p>
+    <p>
+      Here are some examples of linking to protein sequence pages at WTSI: 
+    </p>
+    <dl class="sitesList">
+      <dt>By accession:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/protein?acc=P15498">
+          http://pfam.sanger.ac.uk/protein?acc=P15498</a>
+      </dd>
+      <dt>By ID:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/protein?id=VAV_HUMAN">
+          http://pfam.sanger.ac.uk/protein?id=VAV_HUMAN</a>
+      </dd>
+      <dt>Using &quot;entry&quot;:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/protein?entry=P15498">
+          http://pfam.sanger.ac.uk/protein?entry=P15498</a>
+        or<br />
+        <a href="http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN">
+          http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN</a>
+      </dd>
+    </dl>
+
+    <p>
+      Again, to generate links to the other Pfam sites, change
+      &quot;<tt>pfam.sanger.ac.uk</tt>&quot; to &quot;<tt>pfam.sbc.su.se</tt>&quot;
+      or &quot;<tt>pfam.janelia.org</tt>&quot;.
+    </p>
+
+    <h3><a name="jump">Linking to the &quot;jump to&quot; search</a></h3>
+      
+    <p>
+      The Pfam website features a      
+      <span class="link" onclick="switchTab('helpGetStartedBlock')">
+        search tool</span> that tries to guess the type of
+      any accession or ID that it is given. For example, if given 
+      &quot;VAV_HUMAN&quot;, the search returns the URL for the protein 
+      sequence page for the VAV_HUMAN entry. If given &quot;1w9h&quot;, the 
+      search returns the URL for the PDB entry (structure) 1w9h.
+    </p>
+    <p>
+      You can use the &quot;jump to&quot; search if you need to link to Pfam but
+      can't be sure what type of accession or ID you will be using in your link.
+      By default, the search returns the URL that it has found, as a simple, 
+      plain text HTTP response. Adding the parameter <code>redirect=1</code> 
+      will make the &quot;jump to&quot; tool redirect to the URL that it finds
+      or, if it couldn't find an appropriate URL, to the Pfam homepage.
+    </p>
+    <dl class="sitesList">
+      <dt>Return URL:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search/jump?entry=P15498">
+          http://pfam.sanger.ac.uk/search/jump?entry=P15498</a>
+      </dd>
+      <dt>Redirect:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/search/jump?entry=P15498&amp;redirect=1">
+          http://pfam.sanger.ac.uk/search/jump?entry=P15498&amp;redirect=1</a>
+      </dd>
+    </dl>
+    <p>
+      Note that, although it may be convenient to link to Pfam using this 
+      search tool, there is no error reporting for your users if the search
+      fails to find an appropriate URL in the Pfam site. It is much safer to 
+      link directly to the correct section of the site. Please contact us if
+      you need help with building specific links. 
+    </p>
+
+
+  </div>
+</div>
+
+<!-- end linking block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

@@ -1,0 +1,117 @@
+
+[%
+# summary.tt
+# jt6 20060925 WTSI
+# 
+# build the summary block for the help pages
+#
+# $Id: summary.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "help.css" );
+
+#-------------------------------------------------------------------------------
+
+# format the date nicely
+USE date( format = "%b %Y" );
+r = String.new( relData.pfam_release_date );
+
+d = relData.pfam_release_date.match( '(\d+)\-(\d+)\-(\d+)' );
+
+release_date = String.new( "00:00:00 " );
+CALL release_date.append( d.2, ":", d.1, ":", d.0 );
+
+%]
+
+<!-- start summary block -->
+
+<div class="block" id="helpSummaryBlock">
+  <div class="handle">
+    <h1>Help Summary</h1>
+  </div>
+  <div class="blockContent">
+
+  	<h2>About Pfam</h2>
+
+  	<h3>
+  	  Pfam [% relData.pfam_release ? relData.pfam_release : "21.0" %]
+      ([% relData.pfam_release_date ? date.format( release_date ) : "Nov 2006" %]
+      [% IF relData.number_families %], [% relData.number_families %] families[% END %])
+    </h3>
+    <p>
+      Proteins are generally comprised of one or more functional regions, 
+      commonly termed domains. The presence of different domains in varying 
+      combinations in different proteins gives rise to the diverse repertoire 
+      of proteins found in nature. Identifying the domains present in a protein
+      can provide insights into the function of that protein.
+    </p>
+    <p>
+      The Pfam database is a large collection of protein domain families.
+      Each family is represented by multiple sequence alignments and hidden 
+      Markov models (HMMs).
+    </p>
+    <p>
+      There are two levels of quality to Pfam families: Pfam-A and Pfam-B. 
+      <em>Pfam-A</em> entries are derived from the underlying sequence database, 
+      known as <em>Pfamseq</em>, which is built from the most recent release of 
+      UniProtKB at a given time-point. Each Pfam-A family consists of a curated 
+      seed alignment containing a small set of representative members of the 
+      family, profile hidden Markov models (profile HMMs) built from the seed 
+      alignment, and an automatically generated full alignment, which contains 
+      all detectable protein sequences belonging to the family, as defined by 
+      profile HMM searches of primary sequence databases.
+    </p>
+    <p>
+      <em>Pfam-B</em> families are un-annotated and of lower quality as they 
+      are generated automatically from the non-redundant clusters of the latest 
+      <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
+        class="ext">ADDA</a> release. Although of lower quality, Pfam-B 
+      families can be useful for identifying functionally conserved regions when 
+      no Pfam-A entries are found.
+    </p>
+    <p>
+      Pfam entries are classified in one of four ways:
+    </p>
+    <dl>
+      <dt>Family:</dt>
+      <dd>A collection of related proteins</dd>
+      <dt>Domain:</dt>
+      <dd>A structural unit which can be found in multiple protein contexts</dd>
+      <dt>Repeat:</dt>
+      <dd>A short unit which is unstable in isolation but forms a stable 
+        structure when multiple copies are present</dd>
+      <dt>Motifs:</dt>
+      <dd>A short unit found outside globular domains</dd>
+    </dl>
+    <p>
+      Related Pfam entries are grouped together into <em>clans</em>; the 
+      relationship may be defined by similarity of sequence, structure or 
+      profile-HMM.
+    </p>
+
+  </div>
+</div>
+
+<!-- end summary block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

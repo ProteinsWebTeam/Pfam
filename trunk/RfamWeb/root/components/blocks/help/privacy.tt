@@ -1,0 +1,146 @@
+
+[%
+# privacy.tt
+# jt6 20071112 WTSI
+# 
+# privacy information for the site
+#
+# $Id: privacy.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+%]
+
+<!-- start privacy block -->
+
+<div class="block" id="helpPrivacyBlock">
+  <div class="handle">
+    <h1>Privacy issues</h1>
+  </div>
+  <div class="blockContent">
+
+    <p>
+      This section outlines the ways in which the Pfam website handles 
+      information about users. This should not be read as a legal document, but 
+      as a description of how we handle information that could be considered 
+      sensitive. It should be read in conjunction with the privacy policy 
+      documents of the individual Pfam consortium member sites. If you have any 
+      concerns about the way that information is used in the website, please 
+      contact us at the address given at the bottom of the page and we will be 
+      more than happy to discuss your concerns.
+    </p>
+    <p>
+      Although we make every possible effort to keep this site and the data
+      that it manipulates safe and secure, we make <strong>no claim</strong> to 
+      be able to protect sensitive or privileged information. If you are at all 
+      concerned about sensitive information being released, please do not use 
+      the site and consider installing the Pfam database and/or this website 
+      locally.
+    </p>
+    
+    <h2>Browsing</h2>
+    
+    <p>
+      All web servers maintain fairly detailed logs of their activity. This
+      includes keeping a record of every request that they serve, usually along
+      with the <a class="ext" href="http://en.wikipedia.org/wiki/IP_address">
+        IP address</a> of the client that made the request. This is true of the
+      web servers that host the Pfam websites.
+    </p>
+    <p>
+      Although our servers do collect information about your IP address during 
+      the normal process of serving the Pfam website, we do not use this 
+      information explicitly. The Pfam group uses server logs
+      <strong>only</strong> to help with development and debugging of the site.
+    </p>
+    
+    <h2>Searches</h2>
+
+    <p>
+      The sequence search feature of the site allows you to upload a protein
+      or DNA sequence to be searched against our library of HMMs. The 
+      sequence that you upload is stored in a database and is retrieved by a
+      set of scripts that actually perform the search. Although we do not 
+      have any information that could be used to link that sequence to you 
+      personally, you should be aware that the sequence itself <strong>is 
+        accessible</strong> to systems administrators and other users who 
+      maintain the Pfam site.
+    </p>
+    <p>
+      The batch search function allows you to submit larger searches, the 
+      results of which are emailed to you. Obviously, this requires you to 
+      provide identifiable information, namely an email address. However, 
+      beyond the routine backups of our databases, we do
+      <strong>not</strong> store any information about email addresses and 
+      sequences in the longer term and we make no attempt to keep track of 
+      the searches that a particular user may be performing.
+    </p>
+    <p>
+      Information from other types of search, such as a keyword search, is
+      held only in the web server logs but, as described above, no attempt is 
+      made to interpret these logs except as part of development or debugging 
+      of the site.
+    </p>
+    
+    <h2>Cookies</h2>
+
+    <p>
+      We use <a class="ext" href="http://en.wikipedia.org/wiki/HTTP_cookie">
+        cookies</a> to maintain some information about you between your visits 
+      to the site. The information that is stored cannot be used to identify you 
+      personally and cannot be used to track your usage of the site.
+    </p>
+    <p>      
+      If you are at all concerned about the use of cookies in the Pfam site, 
+      you are free to block all cookies from this site and you should not 
+      experience any problems. You may see some unintended behaviour, such as 
+      being notified of all new features every time you visit the index page, 
+      but the core functionality of the site should be unaffected.
+    </p>
+
+    <h2>Third-party javascript libraries</h2>
+    
+    <p>
+      This site makes heavy use of javascript and relies on javascript libraries
+      that are developed by various groups and companies. In order to improve
+      the performance of the Pfam website, we no longer serve these files 
+      ourselves, but rely on files that are hosted on third-party web-servers. 
+      In particular, we use various files that are provided by the  
+      <a class="ext" href="http://code.google.com/apis/ajaxlibs/">AJAX libraries APIs</a>,
+      hosted by      
+      <a class="ext" href="http://code.google.com/">google code</a>, and 
+      components of the
+      <a class="ext" href="http://developer.yahoo.com/yui/"> 
+        Yahoo! User Interface Library (YUI)</a>, hosted by
+      <a class="ext" href="http://developer.yahoo.com/yui/articles/hosting/">Yahoo!</a>.
+    </p>
+    <p>
+      As these services are provided by commercial sites, it's likely that their
+      usage will be carefully monitored by the companies that provide them. 
+      Although the Pfam site does not pass any information about you to these 
+      third-party sites, the sites themselves may use cookies to track your 
+      usage of the files that they serve. If you are concerned about the 
+      privacy implications of this monitoring, you may want to block cookies 
+      from the third-party hosting sites.   
+    </p>
+    
+  </div>
+    
+</div>
+
+<!-- end privacy block -->
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
