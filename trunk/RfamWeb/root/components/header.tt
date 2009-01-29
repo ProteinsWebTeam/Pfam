@@ -4,7 +4,7 @@
 #
 # the page header for all main Rfam pages.
 #
-# $Id: header.tt,v 1.6 2009-01-06 12:10:59 jt6 Exp $
+# $Id: header.tt,v 1.7 2009-01-29 15:14:12 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -20,7 +20,7 @@ navLinks = {
   search = c.uri_for( "/search" ),
   browse = c.uri_for( "/browse" ),
   ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/Rfam",
-  # help   = c.uri_for( "/help" )
+  help   = c.uri_for( "/help" )
 };
 
 # the order of the items in the navbar - these are the keys for the two
