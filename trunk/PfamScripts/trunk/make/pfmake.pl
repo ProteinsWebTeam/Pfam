@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use Time::Elapse;
+#use Time::Elapse;
 
 
 use Bio::Pfam::Config;
@@ -90,7 +90,11 @@ sub main {
   }
   my $oldSeqThrs = $descObj->CUTGA->{seq};
   my $oldDomThrs = $descObj->CUTGA->{dom};
-  #$HMMResults->applyEdits( \%edits ) if(keys %edits);  
+  
+  
+  
+  
+  $HMMResults->applyEdits( $descObj->EDITS ) if( $descObj->EDITS );  
   
   #Set the thresholds on the results set.  
   if($domThrs and $seqThrs){
@@ -104,6 +108,7 @@ sub main {
     $HMMResults->seqThr( 25.0 );
     $HMMResults->domThr( 25.0 );
   }
+  
   #Apply the threshold when writing the scores file
   open(SCORES, ">scores") or die "Could not open file scores:[$!]\n";
   $HMMResultsIO->writeScoresFile($HMMResults);
