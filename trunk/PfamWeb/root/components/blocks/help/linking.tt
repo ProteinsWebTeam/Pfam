@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.10 2008-09-18 16:01:36 jt6 Exp $
+# $Id: linking.tt,v 1.11 2009-02-04 11:15:21 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -122,6 +122,14 @@
         <a href="http://pfam.sanger.ac.uk/family?entry=7tm_2">
           http://pfam.sanger.ac.uk/family?entry=7tm_2</a>
       </dd>
+      <dt>Directly:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/family/PF00002">
+          http://pfam.sanger.ac.uk/family/PF00002</a>
+        or<br />
+        <a href="http://pfam.sanger.ac.uk/family/7tm_2">
+          http://pfam.sanger.ac.uk/family/7tm_2</a>
+      </dd>
     </dl>
 
     <p>
@@ -159,6 +167,14 @@
         or<br />
         <a href="http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN">
           http://pfam.sanger.ac.uk/protein?entry=VAV_HUMAN</a>
+      </dd>
+      <dt>Directly:</dt>
+      <dd>
+        <a href="http://pfam.sanger.ac.uk/protein/P15498">
+          http://pfam.sanger.ac.uk/protein/P15498</a>
+        or<br />
+        <a href="http://pfam.sanger.ac.uk/protein/VAV_HUMAN">
+          http://pfam.sanger.ac.uk/protein/VAV_HUMAN</a>
       </dd>
     </dl>
 
