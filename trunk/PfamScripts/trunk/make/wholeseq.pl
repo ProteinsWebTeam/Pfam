@@ -94,8 +94,6 @@ foreach my $element (sort keys %name){
       $retrieved_seqno++;
     }
 }
-close LIST;
-
 
 
 # Get sequences in fasta format
