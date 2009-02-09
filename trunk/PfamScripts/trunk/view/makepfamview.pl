@@ -691,8 +691,8 @@ sub _makeHMMLogo{
   my($pfam, $file, $pfamDB, $job) = @_; 
   
   $logger->debug("Making logo with HMMER2 HMM");
-  system($config->hmmer2bin."/hmmbuild -F HMM.ann.2 SEED.ann")
-    and mailUserAndFail($job, "Failed to build HMM.ann, using hmbuils HMM.ann.2 SEED.ann");
+  system($config->hmmer3bin."/hmmconvert -2 HMM.ann > HMM.ann.2")
+    and mailUserAndFail($job, "Failed to convert HMM.ann, using hmmconvert");
   
   
   #Read in the HMM_ls file
