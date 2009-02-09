@@ -2071,10 +2071,9 @@ sub getClanData {
   my ($auto_pfamA, $pfamDB) = @_;
   
   my $row = $pfamDB->getSchema
-                     ->resultset('ClanMembership')
-                      ->find({auto_pfamA => $auto_pfamA},
-                             { join      => [qw( auto_clan )],
-                               prefetch  => [qw(auto_clan )] });
+                     ->resultset('Clans')
+                      ->find({ 'clan_memberships.auto_pfamA' => $auto_pfamA},
+                             { join      => [qw( clan_memberships )] });
                                
   if($row and $row->clan_acc){
     return($row->clan_acc);
