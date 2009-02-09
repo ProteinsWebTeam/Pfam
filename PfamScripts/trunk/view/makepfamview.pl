@@ -171,7 +171,7 @@ my $hmm = $pfamDB->getSchema
         ->resultset('PfamaHmm')
           ->find({ auto_pfama => $pfam->auto_pfama});
 
-print H $hmm;
+print H $hmm->hmm;
 close(H);  
 
 #Check that all of the files are present in the directory, this script assumes that all of the files 
@@ -1351,7 +1351,7 @@ sub versionFiles{
   my($pfamDB, $pfam, $job) = @_;
   
   my %fileCheckSums;
-  foreach my $f (qw(SEED ALIGN DESC)){
+  foreach my $f (qw(SEED ALIGN)){
     open(F, $f) or mailUserAndFail($job, "Could not version $f:[$!]");
     $fileCheckSums{$f} = md5_hex(join("", <F>));
   }
@@ -1376,7 +1376,7 @@ sub versionFiles{
                               ->update_or_create({ auto_pfama     => $pfam->auto_pfama,
                                seed      => $fileCheckSums{SEED},
                                align     => $fileCheckSums{ALIGN},
-                               desc_file => $fileCheckSums{DESC},
+                               #desc_file => $fileCheckSums{DESC},
                                hmm       => $fileCheckSums{HMM},
                                });
   #Get the release versions
