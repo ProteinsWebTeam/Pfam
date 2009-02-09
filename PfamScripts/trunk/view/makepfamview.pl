@@ -150,6 +150,30 @@ unless ($pfam and $pfam->pfama_acc){
 }
 $logger->debug("Got pfam family databse object");
 
+#Now get the alignments and HMMs out of the database
+foreach my ($t) (qw(full seed)){
+  if($t eq "full"){
+    open(A, ">ALIGN") or mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
+  }elsif($t eq "seed"){  
+    open(A, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
+  }
+  my $align = $pfamDB->getSchema
+                      ->resultse('AlignmentsAndTrees')
+                        ->find({ auto_pfama => $pfam->auto_pfama,
+                                 type       => $t });
+  
+  print A Compress::Zlib::memGunzip($align->alignment);
+  close(A);
+}
+
+open(H, ">HMM") or mailUserAndFail($job, "Could not open HMM:[$!]\n");
+my $hmm = $pfamDB->getSchema
+        ->resultset('PfamaHmm')
+          ->find({ auto_pfama => $pfam->auto_pfama});
+
+print H $hmm;
+close(H);  
+
 #Check that all of the files are present in the directory, this script assumes that all of the files 
 #are in the cwd.
 foreach my $f (qw(ALIGN SEED HMM DESC)){
@@ -158,9 +182,6 @@ foreach my $f (qw(ALIGN SEED HMM DESC)){
    }
 }
 $logger->debug("All family files are present");
-
-   
-
 
 #Get database Xrefs for entries
 my @xRefs = $pfamDB->getSchema
@@ -188,6 +209,7 @@ if($pvalue > $threshold) {
 versionFiles($pfamDB, $pfam, $job);
 
 my $nested_locations = getNestedLocations($pfam->auto_pfama, $pfamDB);
+my $clan = getClanData( $pfam->auto_pfama, $pfamDB);
 #These variables are used by the active site prediction code. They are
 #declared here as the ALIGN data is used to markup the SEED.
 my(%all_as_real, %all_as_sp_pred, %real_annot, %pred_annot, %aln_pfam_pred, %aln_sp_pred, %aln_real);
@@ -482,6 +504,9 @@ foreach my $filename (qw(ALIGN SEED)){
    
    #clean up buildlines to remove --cpu 1 etc.
    print ANNFILE "#=GF TP   ", $pfam->type , "\n";
+   
+   
+   
    print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
    print ANNFILE "#=GF SM   ", $pfam->searchmethod ,"\n";
    
@@ -2040,6 +2065,22 @@ sub getNestedLocations {
                       ->search({auto_pfamA => $auto_pfamA});
   return (\@rows);
 }
+
+
+sub getClanData {
+  my ($auto_pfamA, $pfamDB) = @_;
+  
+  my $row = $pfamDB->getSchema
+                     ->resultset('ClanMembership')
+                      ->find({auto_pfamA => $auto_pfamA},
+                             { join      => [qw( auto_clan )],
+                               prefetch  => [qw(auto_clan )] });
+                               
+  if($row and $row->clan_acc){
+    return($row->clan_acc);
+  }
+}
+
 
 sub help {
   
