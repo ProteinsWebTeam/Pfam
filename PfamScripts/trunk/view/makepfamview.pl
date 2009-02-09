@@ -502,13 +502,16 @@ foreach my $filename (qw(ALIGN SEED)){
    print ANNFILE "#=GF TC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_tc, $pfam->domain_tc;
    print ANNFILE "#=GF NC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_nc, $pfam->domain_nc;
    
+   #Put in the build and search method lines.
+   print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
+   print ANNFILE "#=GF SM   ", $pfam->searchmethod ,"\n";
+   
    #clean up buildlines to remove --cpu 1 etc.
    print ANNFILE "#=GF TP   ", $pfam->type , "\n";
    
    
    
-   print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
-   print ANNFILE "#=GF SM   ", $pfam->searchmethod ,"\n";
+   
    
    #Add Nested domains if they are present
    if($nested_locations and scalar(@$nested_locations)){
@@ -665,6 +668,8 @@ sub processHMMs {
 	    print HMM_OUT "GA    ".$pfam->sequence_ga." ".$pfam->domain_ga.";\n";
 	    print HMM_OUT "TC    ".$pfam->sequence_tc." ".$pfam->domain_tc.";\n";
 	    print HMM_OUT "NC    ".$pfam->sequence_nc." ".$pfam->domain_nc.";\n";
+	    print HMM_OUT "BM    ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
+      print HMM_OUT "SM   ", $pfam->searchmethod ,"\n";
 	    next;
 	 }
 	 next if( $_ =~ /^NC\s+/ or $_ =~ /^TC\s+/ );
@@ -1276,6 +1281,21 @@ sub makeHTMLAlign{
     $type = 'seed';
   }elsif($filename eq 'ALIGN'){
     $type = 'full'; 
+   
+    #Make the posterior probablility alignment.
+    system("heatMap.pl -a $filename.ann -b $block > $filename.pp") 
+        and mailUserAndFail( $job, "Failed to run heatMap.pl:[$!}" );
+    
+    open(GZPP, "gzip -c $filename.pp |") or mailUserAndFail($job, "Failed to gzip $filename.pp:[$!]");
+    my $pp = join("", <GZPP>);
+    
+    $pfamDB->getSchema
+                     ->resultset('AlignmentsAndTrees')
+                      ->update_or_create( {auto_pfama => $pfam->auto_pfama,
+                                           type       => $type,
+                                           post       => $pp},
+                                          { key => 'UQ_alignments_and_trees_1' });
+  
   }else{
     mailUserAndFail($job,"Correct filename ($filename) passed to uploadTreesAndAlign. Expected ALIGN or SEED");   
   }
