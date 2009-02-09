@@ -9,9 +9,9 @@
 # Author        : rdf
 # Maintainer    : $Author: rdf $
 # Created       : 2008-05-05
-# Last Modified : $Date: 2009-02-09 18:02:13 $
-# Version       : $Revision: 1.2 $;
-# Id            : $Id: pfamJobDequeue.pl,v 1.2 2009-02-09 18:02:13 rdf Exp $
+# Last Modified : $Date: 2009-02-09 19:20:34 $
+# Version       : $Revision: 1.3 $;
+# Id            : $Id: pfamJobDequeue.pl,v 1.3 2009-02-09 19:20:34 rdf Exp $
 
 use strict;
 use warnings;
@@ -153,7 +153,7 @@ while(1) {
           my $fh = IO::File->new();
           $DEBUG && print " bsub -q $queue  $resource \n";
           $fh->open( "| bsub -q $queue  $resource -J".$ref->{'job_id'}."search\"[1-$noJobs]\" -o ".$tmpDir."/".$ref->{'job_id'}.".log");
-          $fh->print("mkdir ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
+          $fh->print("mkdir -p ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
           $fh->print("cd ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
           $fh->print( "$cmd\n");
           $fh->close;
@@ -348,7 +348,7 @@ while(1) {
         my $fh = IO::File->new();
         $DEBUG && print " bsub -q $queue  $resource \n";
         $fh->open( "| bsub -q $queue  $resource -o ".$tmpDir."/".$ref->{'job_id'}.".log");
-        fh2->print("mkdir ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
+        fh2->print("mkdir -p ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
         $fh->print("cd ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
         $fh->print( "$cmd\n");
         $fh->close;
