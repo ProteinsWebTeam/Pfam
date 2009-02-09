@@ -84,7 +84,6 @@ while(<ALI>){
 my ($original_seqno, $retrieved_seqno, %seqs);
 
 foreach my $element (sort keys %name){ 
-    print STDERR $element;
     $original_seqno++;
     unless($element =~ /\d/) {
       #$element = &Bio::Pfam::AlignMethods::id2acc($element)   # If id number is present change to accession number
