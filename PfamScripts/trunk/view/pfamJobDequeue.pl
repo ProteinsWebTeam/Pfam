@@ -9,9 +9,9 @@
 # Author        : rdf
 # Maintainer    : $Author: rdf $
 # Created       : 2008-05-05
-# Last Modified : $Date: 2008-12-13 01:16:13 $
-# Version       : $Revision: 1.1 $;
-# Id            : $Id: pfamJobDequeue.pl,v 1.1 2008-12-13 01:16:13 rdf Exp $
+# Last Modified : $Date: 2009-02-09 18:02:13 $
+# Version       : $Revision: 1.2 $;
+# Id            : $Id: pfamJobDequeue.pl,v 1.2 2009-02-09 18:02:13 rdf Exp $
 
 use strict;
 use warnings;
@@ -26,10 +26,10 @@ use Bio::Pfam::Queues::IntQueue;
 our $DEBUG = 1; 
 
 #Set up an object that can perform rsync copying
-my $rsyncObj = File::Rsync->new( { compress     => 1,
-                                   recursive    => 1, 
-                                   rsh          => '/usr/bin/ssh', 
-                                   'rsync-path' => '/usr/bin/rsync' } );
+#my $rsyncObj = File::Rsync->new( { compress     => 1,
+#                                   recursive    => 1, 
+#                                   rsh          => '/usr/bin/ssh', 
+#                                   'rsync-path' => '/usr/bin/rsync' } );
 
 # Get a new queue stub
 my $qsout = Bio::Pfam::Queues::IntQueue->new();
@@ -94,14 +94,14 @@ while(1) {
       }
         
       #Perform the Rsync
-      $rsyncObj->exec( { src => $qsout->currentDir."/".$ref->{'family_id'}, dest => $host.":".$tmpDir."/".$ref->{'job_id'} } );
-      if($rsyncObj->err){
-        $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
-                  "] because [".join("", @{$rsyncObj->err})."]\n";
-                  print STDERR "$error\n";
-                  print STDERR $qsout->currentDir."/".$ref->{'family_id'}."\n";
-                  print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
-      }
+      #$rsyncObj->exec( { src => $qsout->currentDir."/".$ref->{'family_id'}, dest => $host.":".$tmpDir."/".$ref->{'job_id'} } );
+#      if($rsyncObj->err){
+#        $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
+#                  "] because [".join("", @{$rsyncObj->err})."]\n";
+#                  print STDERR "$error\n";
+#                  print STDERR $qsout->currentDir."/".$ref->{'family_id'}."\n";
+#                  print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
+#      }
       #Step 3 - Build up the command that we want to run
       unless($error){
         my $cmd = $ref->{'command'};
@@ -121,15 +121,15 @@ while(1) {
       $tmpDir = $qsout->tmpDir;
       
       #Copy the HMMs, DESC, SEED, ALIGN across to the farm using Rsync
-      if(-d  $qsout->currentDir."/".$ref->{'family_id'}){
-      $rsyncObj->exec( { src => $qsout->currentDir."/".$ref->{'family_id'}, dest => $host.":".$tmpDir."/".$ref->{'job_id'} } );
-      if($rsyncObj->err){
-        $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
-                      "] because [".join("", @{$rsyncObj->err})."]\n";
-                      print STDERR "$error\n";
-                      print STDERR $qsout->currentDir."/".$ref->{'family_id'}."\n";
-                      print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
-      }
+#      if(-d  $qsout->currentDir."/".$ref->{'family_id'}){
+#      $rsyncObj->exec( { src => $qsout->currentDir."/".$ref->{'family_id'}, dest => $host.":".$tmpDir."/".$ref->{'job_id'} } );
+#      if($rsyncObj->err){
+#        $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
+#                      "] because [".join("", @{$rsyncObj->err})."]\n";
+#                      print STDERR "$error\n";
+#                      print STDERR $qsout->currentDir."/".$ref->{'family_id'}."\n";
+#                      print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
+#      }
   	}else{
 		$error .=  "Directory ".$qsout->currentDir."/".$ref->{'family_id'}." does not exist";
 	 }
@@ -153,6 +153,7 @@ while(1) {
           my $fh = IO::File->new();
           $DEBUG && print " bsub -q $queue  $resource \n";
           $fh->open( "| bsub -q $queue  $resource -J".$ref->{'job_id'}."search\"[1-$noJobs]\" -o ".$tmpDir."/".$ref->{'job_id'}.".log");
+          $fh->print("mkdir ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
           $fh->print("cd ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
           $fh->print( "$cmd\n");
           $fh->close;
@@ -206,14 +207,14 @@ while(1) {
 		  my $src = "farm-login:/lustre/scratch1/sanger/pfam/".$ref->{'job_id'};
 	      my $dest = $host.":".$tmpDir;
 		print STDERR "|$host, $src, $dest|\n";
-		$rsyncObj->exec( { src => $src, dest => "/tmp" } );
-		 $rsyncObj->exec( { src => "/tmp/".$ref->{'job_id'}, dest => $dest } );
-		  if($rsyncObj->err){
-		      $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
-		                   "] because [".join("", @{$rsyncObj->err})."]\n";
-		                   print STDERR "$error\n";
-		              print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
-			}
+#		$rsyncObj->exec( { src => $src, dest => "/tmp" } );
+#		 $rsyncObj->exec( { src => "/tmp/".$ref->{'job_id'}, dest => $dest } );
+#		  if($rsyncObj->err){
+#		      $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
+#		                   "] because [".join("", @{$rsyncObj->err})."]\n";
+#		                   print STDERR "$error\n";
+#		              print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
+#			}
         }elsif($ref->{'family_size'} < 3000){ #Use small
           $resource = "-R\'select[mypfamlive<300 && type==X86_64] rusage[mypfamlive=10]\'";
           $host =  $qsout->farmNode;
@@ -262,14 +263,14 @@ while(1) {
       
       #Copy the HMMs, DESC, SEED, ALIGN across to the farm using Rsync
       if(-d  $qsout->currentDir."/".$ref->{'family_id'}){
-        $rsyncObj->exec( { src => $qsout->currentDir."/".$ref->{'family_id'}, dest => $host.":".$tmpDir."/".$ref->{'job_id'} } );
-        if($rsyncObj->err){
-          $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
-                      "] because [".join("", @{$rsyncObj->err})."]\n";
-                      print STDERR "$error\n";
-                      print STDERR $qsout->currentDir."/".$ref->{'family_id'}."\n";
-                      print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
-        }
+#        $rsyncObj->exec( { src => $qsout->currentDir."/".$ref->{'family_id'}, dest => $host.":".$tmpDir."/".$ref->{'job_id'} } );
+#        if($rsyncObj->err){
+#          $error =  "View process failed: Error copying family files for [".$ref->{'family_id'}.
+#                      "] because [".join("", @{$rsyncObj->err})."]\n";
+#                      print STDERR "$error\n";
+#                      print STDERR $qsout->currentDir."/".$ref->{'family_id'}."\n";
+#                      print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
+#        }
         
       }else{
 		      $error .=  "Directory ".$qsout->currentDir."/".$ref->{'family_id'}." does not exist";
@@ -296,6 +297,7 @@ while(1) {
           my $fh = IO::File->new();
           $DEBUG && print " bsub -q $queue  $resource \n";
           $fh->open( "| bsub -q $queue  $resource -J".$ref->{'job_id'}."search\"[1]\" -o ".$tmpDir."/".$ref->{'job_id'}.".log");
+          
           $fh->print("cd ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
           $fh->print( "$cmd\n");
           $fh->close;
@@ -346,6 +348,7 @@ while(1) {
         my $fh = IO::File->new();
         $DEBUG && print " bsub -q $queue  $resource \n";
         $fh->open( "| bsub -q $queue  $resource -o ".$tmpDir."/".$ref->{'job_id'}.".log");
+        fh2->print("mkdir ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
         $fh->print("cd ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
         $fh->print( "$cmd\n");
         $fh->close;
