@@ -51,7 +51,7 @@ use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
 
 #mfetch -d version
-$embl = "embl_96";
+$embl = "embl_97";
 
 $root_dir       = "/lustre/pfam/rfam/Production/Rfam";
 $current_dir    = "$root_dir/CURRENT";
