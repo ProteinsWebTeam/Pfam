@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.2 2008-09-15 11:47:53 jt6 Exp $
+# $Id: Keyword.pm,v 1.3 2009-02-11 10:51:50 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.2 2008-09-15 11:47:53 jt6 Exp $
+$Id: Keyword.pm,v 1.3 2009-02-11 10:51:50 jt6 Exp $
 
 =cut
 
@@ -45,7 +45,7 @@ sub textSearch : Path {
   return unless $c->req->param('query');
 
   # get the query
-  my( $terms ) = $c->req->param('query') =~ m/^([\w:.\-\s]+)/;
+  my( $terms ) = $c->req->param('query') =~ m/^([\w:\.\-\s]+)/;
 
   # we're done here unless there's a query specified
   $c->log->warn( 'Search::Keyword::textSearch: no query terms supplied' ) and return
