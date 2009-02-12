@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: BatchSearch.pm,v 1.3 2008-11-18 10:56:00 jt6 Exp $
+# $Id: BatchSearch.pm,v 1.4 2009-02-12 11:39:38 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search::BatchSearch;
 
 This is the parent class for batch search operations.
 
-$Id: BatchSearch.pm,v 1.3 2008-11-18 10:56:00 jt6 Exp $
+$Id: BatchSearch.pm,v 1.4 2009-02-12 11:39:38 jt6 Exp $
 
 =cut
 
@@ -156,8 +156,8 @@ sub parse_upload : Private {
         $header = $1;
       } 
 
-      # check for the following illegal characters: ; \ ! and *
-      if ( m/\;\\\!\*/ ) {
+      # check for the following illegal characters: \ ! and *
+      if ( m/[\\\!\*]/ ) {
         $c->stash->{searchError} = 
             "We found an illegal character in the header on line $line_num " 
           . 'of your input file. Please check the file format and try again.';
@@ -212,10 +212,7 @@ sub parse_upload : Private {
       s/[\r\n\s]//g;
 
       # regular sequence line
-      my $regex_string = $this->{sequenceValidationRegex};
-      $c->log->debug( "Search::BatchSearch::parse_upload: regex for sequence line validation: |$regex_string|" )
-        if $c->debug;
-      
+      my $regex_string = $this->{sequenceValidationRegex};      
       my $regex = qr/$regex_string/i;
       unless ( m/$regex/ ) {
         $c->stash->{searchError} = 
@@ -262,19 +259,34 @@ sub parse_upload : Private {
   foreach $header ( sort keys %sequences ) {
     my $seq = $sequences{$header};
 
-    # make sure that this sequence isn't too long
     $c->log->debug( 'Search::BatchSearch::parse_upload: found |' . length( $seq )
                     . '| residues in sequence' ) if $c->debug;
 
+    # make sure that this sequence isn't too long
     if ( length $seq > $this->{maxNumResidues} ) {
       $c->stash->{searchError} =
           "The sequence starting on line $header_lines{$header} is too long. "
         . 'The server currently allows a maximum of ' . $this->{maxNumResidues} 
-        . ' residues per sequence. Please make sure that your sequences are shorter '
-        . 'than ' . $this->{maxNumResidues} . ' residues and try again.';
+        . ' characters per sequence. Please make sure that your sequences are shorter '
+        . 'than ' . $this->{maxNumResidues} . ' and try again.';
 
-      $c->log->debug( 'Search::BatchSearch::parse_upload: too many residues in sequence (>' 
+      $c->log->debug( 'Search::BatchSearch::parse_upload: too many characters in sequence (>' 
                       . $this->{maxNumResidues} . '); bailing' ) if $c->debug;
+
+      return 0;
+    }
+
+    # nor too short...
+    if ( defined $this->{minNumResidues} and length $seq < $this->{minNumResidues} ) {
+      $c->stash->{searchError} =
+          "The sequence starting on line $header_lines{$header} is too short. "
+        . 'The server currently requires sequences to be a minimum of '
+        . $this->{minNumResidues} 
+        . ' characters in length. Please make sure that your sequences are longer '
+        . 'than ' . $this->{minNumResidues} . ' and try again.';
+
+      $c->log->debug( 'Search::BatchSearch::parse_upload: not enough characters in sequence (<' 
+                      . $this->{minNumResidues} . '); bailing' ) if $c->debug;
 
       return 0;
     }
@@ -297,9 +309,9 @@ sub parse_upload : Private {
     if ( $num_residue_types < $this->{minNumResidueTypes} ) {
       $c->stash->{searchError} =
           qq(The sequence starting at line $header_lines{$header} does not look )
-        .  q(like a protein sequence. Please check your sequence and try again. If )
+        .  q(like a real sequence. Please check your sequence and try again. If )
         .  q(you feel that there is a problem with the server, please contact the )
-        .  q(Pfam helpdesk at the address below and we will be happy to take a look.);
+        .  q(helpdesk at the address below and we will be happy to take a look.);
 
       $c->log->debug( 'Search::BatchSearch::parse_upload: not enough sequence variation; found '
         . "$num_residue_types different residue types (<" 
