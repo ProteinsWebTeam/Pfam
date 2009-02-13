@@ -1,0 +1,43 @@
+[%
+# announcements.tt
+# jt6 20090122 WTSI
+#
+# a page snippet showing the RSS feeds from the blog
+#
+# $Id: announcements.tt,v 1.1 2009-02-13 16:05:44 jt6 Exp $
+
+META naked = 1;
+
+FOREACH issued IN entries.keys.sort.reverse;
+  entry = entries.${issued};
+  
+  IF type == "posts";
+    NEXT IF entry.content.body == "" -%]
+    <h3>
+      <a class="ext" href="[% entry.link %]">[% entry.title %]</a>
+    </h3>
+    <p>[% entry.content.body %]</p>
+  [% ELSE -%]
+    [% entry %]
+  [% END -%]
+
+[% END -%]
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
