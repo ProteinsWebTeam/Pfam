@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.55 2009-01-15 11:47:47 jt6 Exp $
+# $Id: index.tt,v 1.56 2009-02-13 16:01:52 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -359,6 +359,25 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <h2>Latest website changes</h2>
   </div>
   
+  <div id="posts" class="announcements" style="display: none">
+    <hr />
+    <span onclick="hideThis('posts');" 
+          class="closer"
+          style="float: right; cursor: pointer">Hide this</span>
+    <h2>Recent <a class="ext" href="http://xfam.wordpress.com/tag/pfam/">
+      Pfam blog</a> posts</h2>
+  </div>
+ 
+
+  <div id="restore" class="announcements" style="display: none">
+    <hr />
+    <p>
+      You have hidden one or more of the news sections in this page. You can 
+      <span class="link" id="restoreLink">restore all news sections</span> 
+      here. 
+    </p>
+  </div>
+
   <hr />
 
   <div id="citation">
@@ -410,15 +429,33 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     var d = new Date();
     var t = Math.round( d.getTime() / 1000 );
     createCookie( 'hide_' + id, t ); 
+    $("restore").show();
   };
+  
+  $("restoreLink").observe( "click", function() {
+    ['announcements','website_changes','posts'].each( function( type ) {
+      var cookieValue = readCookie( "hide_" + type );
+      if ( cookieValue != null ) {
+        createCookie( "hide_" + type, "" );
+        window.location = "[% c.uri_for('/') %]";
+      }
+    } );
+  } );
   
   // load the list of new features
   Event.observe( window, 'load', function() {
-    ['announcements','website_changes'].each( function( type ) {
+    ['announcements','website_changes','posts'].each( function( type ) {
       var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
         { 
           parameters: { type: type },
-          on204:      function( oResponse ) {},
+          on204:      function( oResponse ) {
+            $("restore").show();
+          },
+          // for the benefit of IE, we need to check for an out-and-out
+          // failure, as well 204 status
+          onFailure:  function( oResponse ) {
+            $("restore").show();
+          },
           onSuccess:  function( oResponse ) {
             $(type).insert( oResponse.responseText );
             $(type).show();
