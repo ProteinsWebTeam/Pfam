@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.6 2008-08-18 09:29:41 jt6 Exp $
+# $Id: Root.pm,v 1.7 2009-02-13 16:02:24 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.6 2008-08-18 09:29:41 jt6 Exp $
+$Id: Root.pm,v 1.7 2009-02-13 16:02:24 jt6 Exp $
 
 =cut
 
@@ -95,40 +95,207 @@ sub announcements : Local {
   my $type = $c->req->param('type');
 
   unless ( $type eq 'announcements' or 
-           $type eq 'website_changes' ) {
+           $type eq 'website_changes' or
+           $type eq 'posts' ) {
+    $c->log->debug( 'Root::announcements: not a valid announcement type' )
+      if $c->debug;
     $c->res->status(204);
     return;
   }
-    
-  # the available changelog entries
-  my $entries = $c->config->{changelog}->{$type};
   
-  # we're only interested in the most recent entry
-  my $last_entry_timestamp = (sort keys %$entries)[-1];
-
+  $c->stash->{type} = $type;
+  
   # see if there's a "hide" cookie
   my $cookie = $c->req->cookie("hide_$type");
   
-  if ( defined $cookie ) {
-    # yes; see when the user decided to hide announcements/features and decide 
-    # whether that'ss more or less recent than the newest announcement/feature
-    # in the config
-    
-    my $hide_timestamp = $cookie->value;
-        
-    if ( $hide_timestamp > $last_entry_timestamp ) {
-      $c->log->debug( 'Root::announcements: '
-                      . 'hide_timestamp (' . $hide_timestamp 
-                      . ') is newer than last_entry_timestamp (' 
-                      . $last_entry_timestamp 
-                      . '); not showing entry' ) if $c->debug;
+  my $entries;  
+  if ( $type eq 'posts' ) {
 
-      $c->res->status(204);
+    
+    my $feed = XML::Feed->parse( URI->new( $this->{blog_uri} ) );
+    unless ( defined $feed ) {
+      $c->log->warning( "Root::announcements: could't find blog content at |"
+                      . $this->{blog_uri} . "|" ) if $c->debug;
+      $c->res->status( 204 );  
       return;
     }
+  
+    foreach my $entry ( $feed->entries ) {
+      my $issued = $entry->issued->epoch;
+
+      if ( defined $cookie ) {
+        $c->log->debug( "Root::announcements: $type cookie shows timestamp "
+                        . $cookie->value . '; entry issued at '
+                        . $issued ) if $c->debug;
+        
+        if ( $issued > $cookie->value ) {
+          $c->log->debug( "Root::announcements: $type post is newer than cookie; showing" )
+            if $c->debug;
+          $entries->{$issued} = $entry;
+        }
+        else {
+          $c->log->debug( "Root::announcements: $type cookie is newer than post; NOT showing" )
+            if $c->debug;
+        }
+        
+      }
+      else { 
+        $c->log->debug( "Root::announcements: no $type cookie found; adding post "
+                        . $entry->id )
+          if $c->debug;
+        $entries->{$issued} = $entry;
+      }
+
+    }
+     
+    $c->log->debug( 'Root::announcements: added ' . scalar( keys %$entries )
+                    . " $type posts" ) if $c->debug;
+  }
+  
+  else {
+
+    # the available changelog entries, either announcements or website changes
+    my $changelog_entries = $c->config->{changelog}->{$type};
+    
+    foreach my $issued ( keys %$changelog_entries ) {
+      my $entry = $changelog_entries->{$issued};
+
+      if ( defined $cookie ) {
+        $c->log->debug( "Root::announcements: $type cookie shows timestamp "
+                        . $cookie->value . '; entry issued at '
+                        . $issued ) if $c->debug;
+        
+        if ( $issued > $cookie->value ) {
+          $c->log->debug( "Root::announcements: $type post is newer than cookie; showing" )
+            if $c->debug;
+          $entries->{$issued} = $entry;
+        }
+        else {
+          $c->log->debug( "Root::announcements: $type cookie is newer than post; NOT showing" )
+            if $c->debug;
+        }
+        
+      }
+      else { 
+        $c->log->debug( "Root::announcements: no $type cookie found; adding post "
+                        . $issued )
+          if $c->debug;
+        $entries->{$issued} = $entry;
+      }
+            
+    }
+  }
+
+  my %limits = ( announcements   => 1,
+                 website_changes => 1,
+                 posts           => 3 );
+  
+  my $i = 0;
+  foreach my $issued ( reverse sort keys %$entries ) {
+    my $entry = $entries->{$issued};
+    
+    $c->log->debug( "Root::announcements: adding $type post $i" )
+      if $c->debug;
+    
+    if ( $i >= $limits{$type} ) {
+      $c->log->debug( "Root::announcements: reached limit for $type posts" )
+        if $c->debug;
+      last;
+    }
+
+    $c->stash->{entries}->{$issued} = $entry; 
+    $i++;
+  }
+  
+  if ( scalar keys %$entries ) {
+    $c->log->debug( "Root::announcements: found some $type posts; handing off to template" )
+      if $c->debug;
+    $c->stash->{template} = 'pages/announcements.tt';
+  }
+  else {
+    $c->log->debug( "Root::announcements: found NO $type posts; returning 204" )
+      if $c->debug;
+    $c->res->status( 204 );
   }
     
-  $c->res->body( $entries->{$last_entry_timestamp} );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 announcements : Local
+
+Returns a snippet of HTML showing the most recent set of website changelog
+entries, or an announcement, depending on the "type" parameter. Intended to be
+called only via an AJAX request from the homepage.
+
+=cut
+
+sub old_announcements : Local {
+  my ( $this, $c ) = @_;
+  
+  # see whether we're returning announcements or features
+  my $type = $c->req->param('type');
+
+  unless ( $type eq 'announcements' or 
+           $type eq 'website_changes' or
+           $type eq 'posts' ) {
+    $c->log->debug( 'NewsFeed::feed: not a valid announcement type' )
+      if $c->debug;
+    $c->res->status(204);
+    return;
+  }
+
+  if ( $type eq 'posts' ) {
+    
+    $c->stash->{template} = 'pages/feeds.tt';    
+
+    my $feed = XML::Feed->parse( URI->new( $this->{blog_uri} ) );
+    unless ( defined $feed ) {
+      $c->log->debug( "NewsFeed::feed: could't find blog content at |"
+                      . $this->{blog_uri} . "|" ) if $c->debug;
+      $c->res->status( 204 );  
+      return;
+    }
+  
+    my @entries = $feed->entries;
+    $c->log->debug( 'Root::announcements: found |' . scalar @entries . '| entries' )
+      if $c->debug;
+
+    $c->stash->{entries} = [ @entries[ 0 .. 2 ] ];
+  }
+  
+  else {
+
+    # the available changelog entries, either announcements or website changes
+    my $entries = $c->config->{changelog}->{$type};
+
+    # we're only interested in the most recent entry
+    my $last_entry_timestamp = (sort keys %$entries)[-1];
+  
+    # see if there's a "hide" cookie
+    my $cookie = $c->req->cookie("hide_$type");
+    
+    if ( defined $cookie ) {
+      # yes; see when the user decided to hide announcements/features and decide 
+      # whether that's more or less recent than the newest announcement/feature
+      # in the config
+      
+      my $hide_timestamp = $cookie->value;
+          
+      if ( $hide_timestamp > $last_entry_timestamp ) {
+        $c->log->debug( 'Root::announcements: '
+                        . 'hide_timestamp (' . $hide_timestamp 
+                        . ') is newer than last_entry_timestamp (' 
+                        . $last_entry_timestamp 
+                        . '); not showing entry' ) if $c->debug;
+  
+        $c->res->status(204);
+        return;
+      }
+    }
+    
+    $c->res->body( $entries->{$last_entry_timestamp} );
+  }
 }
 
 #-------------------------------------------------------------------------------
