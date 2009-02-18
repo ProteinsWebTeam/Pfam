@@ -212,7 +212,8 @@ sub valid_sequences {
 #	    print "$str_ali\n$str_rfamseq\n\n";
    
 	    if( $str_ali ne $str_rfamseq ) {
-		print "$family/$alnfile: The sequence of ".$seq->id." does not match the rfamseq database\n";
+		print "$family/$alnfile: The sequence of ".$seq->id."/" . $seq->start . "-" . $seq->end . " does not match the rfamseq database\n";
+		print "Sequence is:\n$str_ali\nBut should be:\n$str_rfamseq\n";
 		$error = 1;
 		next;
 	    }
