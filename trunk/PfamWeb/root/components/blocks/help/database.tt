@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.9 2009-01-21 10:51:58 jt6 Exp $
+# $Id: database.tt,v 1.10 2009-02-26 09:39:00 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -70,7 +70,7 @@ pfamB_additional_residue_coverage: 6.5
       Two of the central tables in the database are 
       <span class="table">pfamseq</span>, which contains the UniProtkKB sequence 
       database, and <span class="table">pfamA</span>, which contains 
-      information about the pfamA families. The table 
+      information about the Pfam-A families. The table 
       <span class="table">pfamA_reg_seed</span> contains the Pfam domains that 
       are present in a seed alignment, and the 
       <span class="table">pfamA_reg_full</span> contains all the sequence 
@@ -110,19 +110,21 @@ pfamB_additional_residue_coverage: 6.5
               pfamA, \
               pfamA_reg_full_significant \
        WHERE  pfamseq_id = &#39;VAV_HUMAN&#39; \
+       AND    in_full = 1 \
        AND    pfamseq.auto_pfamseq = pfamA_reg_full_significant.auto_pfamseq \
        AND    pfamA_reg_full_significant.auto_pfamA = pfamA.auto_pfamA;
 +-----------+----------+-----------+---------+
 | pfamA_acc | pfamA_id | seq_start | seq_end |
 +-----------+----------+-----------+---------+
 | PF00307   | CH       |         2 |     120 |
-| PF00169   | PH       |       403 |     504 |
 | PF00621   | RhoGEF   |       198 |     372 |
 | PF00017   | SH2      |       671 |     745 |
+| PF00169   | PH       |       403 |     504 |
+| PF00130   | C1_1     |       516 |     568 |
 | PF00018   | SH3_1    |       785 |     840 |
 | PF00018   | SH3_1    |       617 |     658 |
-| PF00130   | C1_1     |       516 |     568 |
-+-----------+----------+-----------+---------+</pre>
++-----------+----------+-----------+---------+
+</pre>
     </fieldset>
 
 
@@ -171,6 +173,7 @@ pfamB_additional_residue_coverage: 6.5
               pfamseq, \
               pfamA_reg_full_significant \
        WHERE  pfamA_id = &#39;B12D&#39; \
+       AND    in_full = 1 \
        AND    pfamA.auto_pfamA = pfamA_reg_full_significant.auto_pfamA \
        AND    pfamA_reg_full_significant.auto_pfamseq = pfamseq.auto_pfamseq;
 +--------------+-------------+-----------+---------+----------+
