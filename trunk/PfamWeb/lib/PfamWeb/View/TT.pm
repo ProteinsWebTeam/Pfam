@@ -2,7 +2,7 @@
 # TT.pm
 # jt 20060316 WTSI
 #
-# $Id: TT.pm,v 1.7 2008-05-16 15:29:28 jt6 Exp $
+# $Id: TT.pm,v 1.8 2009-03-02 16:58:34 jt6 Exp $
 
 =head1 NAME
 
@@ -23,6 +23,10 @@ use strict;
 use warnings;
 
 use base 'Catalyst::View::TT';
+
+use Template;
+
+$Template::Directive::WHILE_MAX = 10000;
 
 #-------------------------------------------------------------------------------
 
