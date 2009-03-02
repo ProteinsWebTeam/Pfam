@@ -1,0 +1,21 @@
+[%
+# slice.tt
+# jt6 20090205 WTSI
+# 
+# convert rows into a JSON object
+#
+# $Id: prototype_slice.tt,v 1.1 2009-03-02 13:35:03 jt6 Exp $
+
+META naked = 1;
+-%]
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<ajax-response totalrows="[% data.totalrows %]" rowcount="[% data.rowcount %]">
+[% FOREACH row IN data.rows -%]
+  <div rownum="[% loop.index %]"
+       index="[% row.index %]" 
+       class="[% loop.index % 2 ? "odd" : "even" %]">
+    <div id="acc_[% row.index %]" class="seq_acc">[% row.index; ": "; row.acc %]</div>
+    <div id="seq_[% row.index %]" class="seq_seq">[% row.seq %]</div>
+  </div>
+[% END -%]
+</ajax-response>
