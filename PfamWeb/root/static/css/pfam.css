@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.77 2008-09-18 11:55:30 jt6 Exp $
+   $Id: pfam.css,v 1.78 2009-03-05 11:51:02 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -50,6 +50,11 @@ ul, dl, ol {
 .ext {
   background: url(/static/images/external.gif) no-repeat center right;
   padding-right: 12px;
+}
+
+.feed {
+  background: url(/shared/images/feed-icon-14x14.png) no-repeat center right;
+  padding-right: 16px;
 }
 
 a:link,
