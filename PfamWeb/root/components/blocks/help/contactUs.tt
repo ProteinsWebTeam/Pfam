@@ -4,7 +4,7 @@
 # 
 # build the contactUS block for the help pages
 #
-# $Id: contactUs.tt,v 1.4 2008-05-16 15:30:31 jt6 Exp $
+# $Id: contactUs.tt,v 1.5 2009-03-05 11:51:11 jt6 Exp $
 %]
 
 <!-- start ContactUs block -->
@@ -40,11 +40,23 @@
       <a href="mailto:pfamlist-unsubscribe@sanger.ac.uk">pfamlist-unsubscribe@sanger.ac.uk</a>.
     </p>
 
+    <h3>Xfam blog</h3>
+    
+    <p>
+      The Pfam group contributes to the 
+      <a href="http://xfam.wordpress.com/" class="ext">Xfam blog</a>. The blog 
+      is used to announce releases, new features and important changes to Pfam,
+      as well as for posts discussing general issues surrounding the Pfam
+      resource. You can see blog posts that are specific to Pfam
+      <a href="http://xfam.wordpress.com/tag/pfam/" class="ext">here</a>.
+    </p>
+
     <h3>RSS feeds</h3>
 
     <p>
-      Alternatively you can keep in touch with the latest goings on using the 
-      Pfam <a href="[% c.uri_for( "/rss" ) %]">RSS feed</a>.
+      You can keep in touch with the latest goings by subscribing to the 
+      <a href="http://xfam.wordpress.com/tag/pfam/feed/" class="feed">RSS feed</a> 
+      from the Xfam blog.
     </p>
             
   </div>
