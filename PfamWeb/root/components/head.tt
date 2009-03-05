@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.35 2008-10-24 13:33:28 jt6 Exp $
+# $Id: head.tt,v 1.36 2009-03-05 11:57:17 jt6 Exp $
 
 # these first meta tags are google webmasters verification tags. They are here
 # so that google can verify that we control the websites and we can control,
@@ -34,7 +34,7 @@ IF refreshUri != "";
 <!-- ====================================================================== -->
 <!-- make the site RSS feed discoverable --> 
 
-<link href="http://pfam.sanger.ac.uk/rss/pfam.rdf" 
+<link href="http://xfam.wordpress.com/tag/pfam/feed/" 
       rel="alternate"
       type="application/rss+xml"
       title="Pfam News" />
