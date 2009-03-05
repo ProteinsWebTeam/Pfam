@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.10 2009-02-26 09:39:00 jt6 Exp $
+# $Id: database.tt,v 1.11 2009-03-05 10:52:41 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -73,25 +73,33 @@ pfamB_additional_residue_coverage: 6.5
       information about the Pfam-A families. The table 
       <span class="table">pfamA_reg_seed</span> contains the Pfam domains that 
       are present in a seed alignment, and the 
-      <span class="table">pfamA_reg_full</span> contains all the sequence 
+      <span class="table">pfamA_reg_full</span> contains all of the sequence 
       regions that match the HMM for each family. Note that the 
       <span class="table">pfamA_reg_full</span> table contains both the 
-      significant and insignificant data, and the 
-      <span class="column">in_full</span> column in this table is set to 
-      &#39;1&#39; if the score for the domain is significant. The 
-      <span class="table">pfamA_reg_full_significant</span> and 
-      <span class="table">pfamA_reg_full_insignificant</span> tables contain, 
-      as the names suggest, significant and insignificant data respectively.
-      Significant hits are those with a bits score above the curated threshold 
-      for the family, whilst insignificant matches are those that score below 
-      the curated threshold.
+      significant and insignificant data.
     </p>
+    <p>
+      The <span class="table">pfamA_reg_full_significant</span> and 
+      <span class="table">pfamA_reg_full_insignificant</span> tables 
+      contain, as the names suggest, the significant and insignificant data 
+      respectively. Significant hits are those with a bits score above the 
+      curated threshold for the family, whilst insignificant matches are those 
+      that score below the curated threshold. With respect to the tables 
+      that contain significant data 
+      (<span class="table">pfamA_reg_full_significant</span> and 
+      <span class="table">pfamA_reg_full</span>), there is an extra column 
+      called 'in_full'. The matches that are present in the full alignment for 
+      a Pfam family have this column set to <strong>1</strong>, while those 
+      that are not present in the full alignment have the 'in_full' column set 
+      to <strong>0</strong>. Where there is an overlapping fragment match and a 
+      full length match to the same Pfam-A family, only one of the matches will 
+      be present in the full alignment for that Pfam-A family.
     <p>
       The Pfam database has historically been built on the UniProtKB database, 
       however as of release 22.0 we also provide Pfam domain data for the NCBI 
-      sequence database (genpept) and a set of metagenomics sequences. Further
+      sequence database (genpept) and a set of metagenomics sequences. Further 
       information about querying the NCBI and metagenomics data sets can be 
-      found below.
+      found below. 
     </p>
 
     <fieldset class="query">
@@ -981,29 +989,29 @@ type_example: 57059
     
     <fieldset class="sql">
       <legend>SQL</legend>
-      <span style="color: #F00; font-weight: bold">BROKEN QUERY</span>
       <pre>mysql> SELECT pdb_id, \
-              chain, \
-              pdb_start_res, \
-              pdb_end_res from pdb, \
-              pdbmap, \
-              pfamA \
-       WHERE  pfamA_id = &#39;CBS&#39; \
-       AND    pfamA.auto_pfamA = pdbmap.auto_pfam \
-       AND    pfam_region = &#39;1&#39; \
-       AND    pdbmap.auto_pdb = pdb.auto_pdb;
+             chain, \
+             pdb_res_start, \
+             pdb_res_end \
+      FROM   pdb, \
+             pdb_pfamA_reg, \
+             pfamA \
+      WHERE  pfamA_id = &#39;CBS&#39; \
+      AND    pfamA.auto_pfamA = pdb_pfamA_reg.auto_pfamA 
+      AND    pdb_pfamA_reg.auto_pdb = pdb.auto_pdb;
 +--------+-------+---------------+-------------+
-| pdb_id | chain | pdb_start_res | pdb_end_res |
+| pdb_id | chain | pdb_res_start | pdb_res_end |
 +--------+-------+---------------+-------------+
-| 1o50   | A     | 8             | 140         |
-| 1nfb   | B     | 112           | 232         |
-| 1nfb   | A     | 112           | 232         |
-| 1b3o   | B     | 112           | 232         |
-| 1jr1   | A     | 112           | 232         |
-| 1jcn   | A     | 112           | 232         |
-| 1jcn   | B     | 112           | 232         |
-| 1lrt   | C     | 25            | 88          |
-| 1lrt   | A     | 25            | 88          |
+| 1vrd   | A     |            87 |         202 |
+| 1vrd   | B     |            87 |         202 |
+| 1nfb   | B     |           112 |         232 |
+| 1nfb   | A     |           112 |         232 |
+| 1b3o   | B     |           112 |         232 |
+| 1jr1   | A     |           112 |         232 |
+| 1pvm   | B     |             7 |         126 |
+| 1pvm   | A     |             7 |         126 |
+| 1yav   | A     |            20 |         141 |
+| 1yav   | B     |            20 |         141 |
 ...</pre>
     </fieldset>
 
@@ -1249,6 +1257,13 @@ total_genome_proteins: 5397</pre>
 +-----------+----------------+--------------+------------+---------+--------------+------------+---------+--------------+</pre>
     </fieldset>
 
+    <p>
+      <strong>Note:</strong> This query currently returns no results. PRC 
+      comparisons for Pfam-B families were not added to Pfam release 23.0, due
+      to computational constraints. We hope to re-instate this data in a later
+      release.
+    </p>
+
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all of the Pfam-B families that have a PRC E-value score of less 
@@ -1281,6 +1296,13 @@ total_genome_proteins: 5397</pre>
 +-----------+-----------+--------------+------------+---------+--------------+------------+---------+--------------+</pre>
     </fieldset>
 
+    <p>
+      <strong>Note:</strong> This query currently returns no results. PRC 
+      comparisons for Pfam-B families were not added to Pfam release 23.0, due
+      to computational constraints. We hope to re-instate this data in a later
+      release.
+    </p>
+
     <fieldset class="query">
       <legend>Example query</legend>
       Give me all pf the Pfam-A families that have a SCOOP score greater than 50 
@@ -1302,8 +1324,7 @@ total_genome_proteins: 5397</pre>
 +----------+----------+---------+
 | pfamA_id | pfamA_id | score   |
 +----------+----------+---------+
-| ABC1     | Pkinase  | 50.1553 |
-| ABC1     | RIO1     | 71.0121 |
+| ABC1     | APH      | 83.0761 |
 +----------+----------+---------+</pre>
     </fieldset>
 
