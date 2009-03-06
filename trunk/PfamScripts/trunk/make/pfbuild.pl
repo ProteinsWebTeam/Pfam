@@ -9,6 +9,7 @@ use Sys::Hostname;
 use Cwd;
 use File::Copy;
 use File::Rsync;
+use Data::UUID;
 
 
 use Bio::Pfam::Config;
@@ -186,6 +187,7 @@ sub main {
     
   }else{
     # Skip hmmbuild if no build
+    print STDERR "No build\n";
     unless( -s "HMM" ){
       die "Could not find the HMM file:[$!]\n";
     } 
@@ -337,17 +339,20 @@ sub main {
                                          checksum     => 1} );
                                          
       #Check the pfamseq is up-to-date                                   
-      $rsyncObj->exec( { src  => $config->pfamseqLoc(),
-                         dest => $config->pfamseqFarmLoc() });
-      
+      #TODO - put this back after we have arleady done this.
+      #$rsyncObj->exec( { src  => $config->pfamseqLoc()."/pfamseq",
+      #                   dest => $config->pfamseqFarmLoc()."/pfamseq" });
+      my $ug = new Data::UUID; 
+      my $uuid = $ug->to_string( $ug->create() );
+      print "$uuid\n";
       unless($split){
         my $fh = IO::File->new();
-        $fh->open("| bsub -q ".$farmConfig->{queue}."-o /tmp/$$.log -Jhmmsearch$$");
-        $fh->print("mkdir ".$farmConfig->{scratch}."/$$\n") or die "Couldn't make directory [".$farmConfig->{scratch}."./$$] \n";
-        $fh->print("/usr/bin/scp -p $phost:$pwd/SEED ".$farmConfig->{scratch}."/$$/SEED \n");
-      	$fh->print("/usr/bin/scp -p $phost:$pwd/HMM ".$farmConfig->{scratch}."/$$/HMM \n");
-      	$fh->print("/usr/bin/scp -p $phost:$pwd/DESC ".$farmConfig->{scratch}."/$$/DESC \n") if ($withpfmake and -e "$pwd/DESC");
-	      $fh->print("cd ".$farmConfig->{scratch}."/$$ \n");
+        $fh->open("| bsub -q ".$farmConfig->{lsf}->{queue}." -o /tmp/$$.log -Jhmmsearch$$");
+        $fh->print("mkdir ".$farmConfig->{lsf}->{scratch}."/$uuid\n") or die "Couldn't make directory [".$farmConfig->{lsf}->{scratch}."./$uuid] \n";
+        $fh->print("/usr/bin/scp -p $phost:$pwd/SEED ".$farmConfig->{lsf}->{scratch}."/$uuid/SEED \n");
+      	$fh->print("/usr/bin/scp -p $phost:$pwd/HMM ".$farmConfig->{lsf}->{scratch}."/$uuid/HMM \n");
+      	$fh->print("/usr/bin/scp -p $phost:$pwd/DESC ".$farmConfig->{lsf}->{scratch}."/$uuid/DESC \n") if ($withpfmake and -e "$pwd/DESC");
+	      $fh->print("cd ".$farmConfig->{lsf}->{scratch}."/$uuid \n");
         $fh->print("$cmd\n");
         
         # now need to do the equivalent of convertHMMsearch method in$HMMResultsIO;
@@ -356,7 +361,7 @@ sub main {
         #And finally, run pfmake if we need to
         if($withpfmake){
           if(-e "$pwd/DESC"){
-            $fh->print("pfmake.pl\n");
+            $fh->print("pfmake.pl -e 0.1\n");
           }else{
             $fh->print("pfmake.pl -e 0.01\n");  
           }
@@ -365,12 +370,17 @@ sub main {
         #Now bring back all of the files
         $fh->print( "/usr/bin/scp -p HMM $phost:$pwd/HMM\n" );
     		$fh->print( "/usr/bin/scp -p PFAMOUT $phost:$pwd/PFAMOUT\n" );
-        $fh->print( "/usr/bin/scp -p PFAMOUT $phost:$pwd/OUTPUT\n" );
+        $fh->print( "/usr/bin/scp -p OUTPUT $phost:$pwd/OUTPUT\n" );
         
         if($withpfmake){
+          #Copy all of the files back associated with the alignment.
           $fh->print( "/usr/bin/scp -p DESC $phost:$pwd/DESC\n" );
+          $fh->print( "/usr/bin/scp -p scores $phost:$pwd/scores\n");
           $fh->print( "/usr/bin/scp -p ALIGN $phost:$pwd/ALIGN\n" );
         }     
+        #Now clean up after ourselves on the farm
+        $fh->print( "rm -fr ".$farmConfig->{lsf}->{scratch}."/$uuid \n" );
+        $fh->close();
       }else{
         #TODO split
         print STDERR "TODO: nothing run:\n"
