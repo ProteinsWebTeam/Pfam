@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Grid.pm,v 1.1 2009-03-02 13:35:26 jt6 Exp $
+# $Id: Grid.pm,v 1.2 2009-03-06 16:32:48 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Grid.pm,v 1.1 2009-03-02 13:35:26 jt6 Exp $
+$Id: Grid.pm,v 1.2 2009-03-06 16:32:48 jt6 Exp $
 
 =cut
 
@@ -47,7 +47,7 @@ Description...
 sub grid : Global {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Root::grid: rendering grid page' )
+  $c->log->debug( 'Grid::grid: rendering grid page' )
     if $c->debug;
   
   my $template = 'pages/prototype_grid.tt';
@@ -58,7 +58,7 @@ sub grid : Global {
       if $c->debug;
   }
   else {
-    $c->log->debug( 'Grid::grid: not a known grid; using default' )
+    $c->log->warn( 'Grid::grid: not a known grid; using default' )
       if $c->debug;
   }
   
@@ -81,7 +81,7 @@ Description...
 sub ext_grid_data : Global {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Root::ext_grid_data: returning sequence information' )
+  $c->log->debug( 'Grid::ext_grid_data: returning sequence information' )
     if $c->debug;
   
   my $start   = $c->req->param('start') || 0;
@@ -96,7 +96,7 @@ sub ext_grid_data : Global {
                        { order_by => "$sortcol $order" } 
                      );
              
-  $c->log->debug( 'Root::ext_grid_data: found ' . $rs->count() . ' rows' )
+  $c->log->debug( 'Grid::ext_grid_data: found ' . $rs->count() . ' rows' )
     if $c->debug;
 
   my $data = { 
@@ -110,7 +110,7 @@ sub ext_grid_data : Global {
   };  
   
   my $slice = $rs->slice( $start, $start + $limit );
-  $c->log->debug( 'Root::ext_grid_data: slice contains ' . $slice->count . ' rows' )
+  $c->log->debug( 'Grid::ext_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
   
   my $i = 0;
@@ -140,7 +140,7 @@ sub ext_grid_data : Global {
 sub rico_grid_data : Global {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Root::rico_grid_data: returning sequence information' )
+  $c->log->debug( 'Grid::rico_grid_data: returning sequence information' )
     if $c->debug;
   
   my $offset    = $c->req->param('offset')    || 0;
@@ -149,11 +149,11 @@ sub rico_grid_data : Global {
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {}, {} );
              
-  $c->log->debug( 'Root::rico_grid_data: found ' . $rs->count . ' rows' )
+  $c->log->debug( 'Grid::rico_grid_data: found ' . $rs->count . ' rows' )
     if $c->debug;
 
   my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
-  $c->log->debug( 'Root::rico_grid_data: slice contains ' . $slice->count . ' rows' )
+  $c->log->debug( 'Grid::rico_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
   
   my $i = 0;
@@ -180,7 +180,7 @@ sub rico_grid_data : Global {
 sub prototype_grid_data : Global {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Root::prototype_grid_data: returning sequence information' )
+  $c->log->debug( 'Grid::prototype_grid_data: returning sequence information' )
     if $c->debug;
   
   my $offset    = $c->req->param('offset')    || 0;
@@ -189,11 +189,11 @@ sub prototype_grid_data : Global {
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {}, {} );
              
-  $c->log->debug( 'Root::prototype_grid_data: found ' . $rs->count . ' rows' )
+  $c->log->debug( 'Grid::prototype_grid_data: found ' . $rs->count . ' rows' )
     if $c->debug;
 
   my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
-  $c->log->debug( 'Root::prototype_grid_data: slice contains ' . $slice->count . ' rows' )
+  $c->log->debug( 'Grid::prototype_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
   
   my $i = $offset;
@@ -224,7 +224,7 @@ sub prototype_grid_data : Global {
 sub prototype_json_data : Global {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Root::prototype_json_data: returning sequence information' )
+  $c->log->debug( 'Grid::prototype_json_data: returning sequence information' )
     if $c->debug;
   
   my $offset    = $c->req->param('offset')    || 0;
@@ -233,11 +233,11 @@ sub prototype_json_data : Global {
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {}, {} );
              
-  $c->log->debug( 'Root::prototype_json_data: found ' . $rs->count . ' rows' )
+  $c->log->debug( 'Grid::prototype_json_data: found ' . $rs->count . ' rows' )
     if $c->debug;
 
   my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
-  $c->log->debug( 'Root::prototype_json_data: slice contains ' . $slice->count . ' rows' )
+  $c->log->debug( 'Grid::prototype_json_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
   
   my $i = $offset;
@@ -265,10 +265,15 @@ sub prototype_json_data : Global {
 sub end : Private {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Grid::end: forwarding to the JSON view' )
-    if $c->debug;
+  if ( defined $c->stash->{json} ) {
+    $c->log->debug( 'Grid::end: forwarding to the JSON view' )
+      if $c->debug;
 
-  $c->forward('PfamWeb::View::JSON');
+    $c->forward('PfamWeb::View::JSON');
+  }
+  else {
+    $c->forward('PfamWeb::View::TT');
+  }
 }
 
 #-------------------------------------------------------------------------------
@@ -276,7 +281,7 @@ sub end : Private {
 sub yui_grid_data : Global {
   my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Root::yui_grid_data: returning sequence information' )
+  $c->log->debug( 'Grid::yui_grid_data: returning sequence information' )
     if $c->debug;
   
   my $offset    = $c->req->param('offset')    || 0;
@@ -285,11 +290,11 @@ sub yui_grid_data : Global {
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( {}, {} );
              
-  $c->log->debug( 'Root::yui_grid_data: found ' . $rs->count . ' rows' )
+  $c->log->debug( 'Grid::yui_grid_data: found ' . $rs->count . ' rows' )
     if $c->debug;
 
   my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
-  $c->log->debug( 'Root::yui_grid_data: slice contains ' . $slice->count . ' rows' )
+  $c->log->debug( 'Grid::yui_grid_data: slice contains ' . $slice->count . ' rows' )
     if $c->debug;
   
   my $i = $offset;
