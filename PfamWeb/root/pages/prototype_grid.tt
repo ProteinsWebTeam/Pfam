@@ -4,7 +4,7 @@
 # 
 # page wrapper for the grid tests
 #
-# $Id: prototype_grid.tt,v 1.1 2009-03-02 13:34:45 jt6 Exp $
+# $Id: prototype_grid.tt,v 1.2 2009-03-06 16:33:17 jt6 Exp $
 
 META naked = 1;
 
@@ -31,10 +31,18 @@ META naked = 1;
         border-right: none;
         font-family: monospace;
       }
+/*
       #grid .seq_acc {
         float: left;
         width: 10em;
         position: fixed;
+      }
+*/
+      #grid .seq_acc {
+        width: 10em;
+      }
+      #accessions {
+        float: left;
       }
       #grid .seq_seq {
         margin-left: 10em;
@@ -51,11 +59,16 @@ META naked = 1;
       #grid .even .seq_acc {
         background-color: #e0d0e0;
       }
+      #spinner {
+        color: #FFF;
+        background-color: #F00;
+        padding: 1em;
+      }
     </style>
 
   </head>
 
-  <body onLoad="onBodyLoad()">
+  <body>
 
     <h1>Prototype Live Grid Example</h1>
 
@@ -64,7 +77,7 @@ META naked = 1;
     <div id="grid"></div>
 
     <p>
-      <span class="loading" id="spinner">Loading alignment...</span>
+      <span class="loading" id="spinner" style="display: none">Loading alignment...</span>
     </p>
 
     <script type="text/javascript">
@@ -72,18 +85,18 @@ META naked = 1;
 
       var myGridUpdater;
       
-      function onBodyLoad() {
+      Event.observe( window, "load", function() {
 
         var opts = {
           prefetchBuffer: true,
           onscroll: updateTopicsGridHeader,
           onComplete: function() {
             console.log( "onComplete: hiding spinner" );
-            $('spinner').hide();
+            $("spinner").hide();
           },
           onLoading: function() {
             console.log( "onLoading: showing spinner" );
-            $('spinner').show();
+            $("spinner").show();
           },
           onFirstContent: function() {
             console.log( "onFirstContent: updating row count" );
@@ -94,10 +107,10 @@ META naked = 1;
         myGridUpdater = new LiveGrid( 'grid', 
                                        20, 
                                        2000,
-                                       "[% c.uri_for('/prototype_row_data') %]",
+                                       "[% c.uri_for('/prototype_json_data') %]",
                                        opts );
 
-      }
+      } );
     
       // called on the onscroll event
       function updateTopicsGridHeader( offset ) {
@@ -105,7 +118,7 @@ META naked = 1;
         if ( myGridUpdater && myGridUpdater.metaData ) {
           var metaData = myGridUpdater.metaData;
           $('gridResultRange').innerHTML =
-            'Rows %1 from %2'.replace( '%1', ( offset + 1 ) + ' - ' + ( offset + metaData.pageSize ) )
+            'Rows %1 from %2'.replace( '%1', offset + ' - ' + ( offset + metaData.pageSize - 1 ) )
                              .replace( '%2', metaData.getTotalRows() );
         }
       }
