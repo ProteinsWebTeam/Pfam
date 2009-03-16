@@ -4,7 +4,7 @@
 # 
 # build the theTeam block for the help pages
 #
-# $Id: theTeam.tt,v 1.8 2008-09-22 12:51:28 jt6 Exp $
+# $Id: theTeam.tt,v 1.9 2009-03-16 13:02:18 jt6 Exp $
 %]
 
 <!-- start theTeam block -->
@@ -18,7 +18,7 @@
       Pfam is maintained by an international consortium of researchers that has 
       been borne out of its original development by Erik Sonnhammer, Sean Eddy 
       and Richard Durbin. The current list of consortium members, their institutes 
-      and primary role is listed below.
+      and primary roles are listed below.
     </p>  
   
     <h3>Wellcome Trust Sanger Institute (UK)</h3>
@@ -72,9 +72,9 @@
   
     <p>
       Pfam is a collaborative venture and we hope to be able to interact
-      with as many people as possible to provide a quality database. Please
-      get into contact with any one of us for information. You can E-mail Pfam
-      using the address found at the bottom of the page.
+      with as many people as possible, in order to provide a quality database. 
+      Please get in touch with any one of us for more information about Pfam. 
+      You can email Pfam using the address found at the bottom of the page.
     </p>
     
   </div>
