@@ -4,7 +4,7 @@
 # 
 # build the database documentation block for the help pages
 #
-# $Id: database.tt,v 1.12 2009-03-05 11:38:02 jt6 Exp $
+# $Id: database.tt,v 1.13 2009-03-16 12:57:12 jt6 Exp $
 %]
 
 <!-- start database block -->
@@ -17,8 +17,9 @@
 
     <p>
       This section describes the tables in the Pfam MySQL database and shows 
-      example queries. Installation packages and documentation on MySQL can be 
-      obtained from www.mysql.com.
+      example queries. Installation packages and documentation on the MySQL
+      database itself can be found on the MySQL 
+      <a class="ext" href="http://www.mysql.com/">website</a>.
     </p>
  
     <hr />
