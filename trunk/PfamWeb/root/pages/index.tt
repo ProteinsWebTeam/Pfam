@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.56 2009-02-13 16:01:52 jt6 Exp $
+# $Id: index.tt,v 1.57 2009-03-17 15:34:49 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -364,20 +364,10 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <span onclick="hideThis('posts');" 
           class="closer"
           style="float: right; cursor: pointer">Hide this</span>
-    <h2>Recent <a class="ext" href="http://xfam.wordpress.com/tag/pfam/">
-      Pfam blog</a> posts</h2>
+    <h2>Recent Pfam <a class="ext" href="http://xfam.wordpress.com/tag/pfam/">
+      blog</a> posts</h2>
   </div>
- 
-
-  <div id="restore" class="announcements" style="display: none">
-    <hr />
-    <p>
-      You have hidden one or more of the news sections in this page. You can 
-      <span class="link" id="restoreLink">restore all news sections</span> 
-      here. 
-    </p>
-  </div>
-
+  
   <hr />
 
   <div id="citation">
@@ -415,6 +405,15 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 
   <div class="cleaner"><!-- empty --></div>
 
+  <div id="restore" class="announcements" style="display: none">
+    <hr />
+    <p>
+      You have hidden the blog posts section. You can restore it  
+      <span class="link" id="restoreLink">here</span>. 
+    </p>
+  
+  </div>
+
   <hr />
   
 </div>
@@ -428,7 +427,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     $(id).hide();
     var d = new Date();
     var t = Math.round( d.getTime() / 1000 );
-    createCookie( 'hide_' + id, t ); 
+    createCookie( 'hide_' + id, t, '365' ); 
     $("restore").show();
   };
   
@@ -436,33 +435,31 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     ['announcements','website_changes','posts'].each( function( type ) {
       var cookieValue = readCookie( "hide_" + type );
       if ( cookieValue != null ) {
-        createCookie( "hide_" + type, "" );
+        eraseCookie( "hide_" + type );
         window.location = "[% c.uri_for('/') %]";
       }
     } );
   } );
   
-  // load the list of new features
+  // load the latest blog posts
   Event.observe( window, 'load', function() {
-    ['announcements','website_changes','posts'].each( function( type ) {
-      var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
-        { 
-          parameters: { type: type },
-          on204:      function( oResponse ) {
-            $("restore").show();
-          },
-          // for the benefit of IE, we need to check for an out-and-out
-          // failure, as well 204 status
-          onFailure:  function( oResponse ) {
-            $("restore").show();
-          },
-          onSuccess:  function( oResponse ) {
-            $(type).insert( oResponse.responseText );
-            $(type).show();
-          }
+    var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
+      { 
+        parameters: { type: "posts" },
+        on204:      function( oResponse ) {
+          $("restore").show();
+        },
+        // for the benefit of IE, we need to check for an out-and-out
+        // failure, as well 204 status
+        onFailure:  function( oResponse ) {
+          $("restore").show();
+        },
+        onSuccess:  function( oResponse ) {
+          $(type).insert( oResponse.responseText );
+          $(type).show();
         }
-      );
-    } );    
+      }
+    );
   } );
 
   // set up the "jump to" field
