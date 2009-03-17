@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.8 2008-07-28 10:51:23 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.9 2009-03-17 15:34:26 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -380,92 +380,128 @@ function popUp( sURL, sType, sHeight, sWidth, sName ) {
 //------------------------------------------------------------
 // cookie handling functions
 
+// unmodified versions of the cookie handling functions from quirksmode.
+// (The modified versions weren't behaving well...)
+
+function createCookie(name,value,days) {
+  if (days) {
+    var date = new Date();
+    date.setTime(date.getTime()+(days*24*60*60*1000));
+    var expires = "; expires="+date.toGMTString();
+  }
+  else var expires = "";
+  document.cookie = name+"="+value+expires+"; path=/";
+}
+
+function readCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(';');
+  for(var i=0;i < ca.length;i++) {
+    var c = ca[i];
+    while (c.charAt(0)==' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+  }
+  return null;
+}
+
+function eraseCookie(name) {
+  createCookie(name,"",-1);
+}
+
 // this is a modified version of the "createCookies" method from
 // quirksmode. Added the ability to specify the timeout value as
 // days, hours or minutes, e.g. "10m". If the interval isn't
 // specified, it defaults to minutes, so "10" is equivalent to "10m"
 
-function createCookie( name, value, time, path ) {
-
-  //console.debug( "pfFunctions.js:createCookie: creating a cookie: |%s|%s|%s|%s|", name, value, time, path );
-
-  // was there a time specified ?
-  var expires = "";
-  if( time ) {
-
-    try {
-      var interval = time.charAt( time.length - 1 );
-
-      // if the interval isn't specified, we default to "minutes" and
-      // treat the whole of the period string as the period value
-      var period;
-      if( interval != "d" && interval != "h" && interval != "m" ) {
-        period = time.substring( 0, time.length );
-      } else {
-        period = time.substring( 0, time.length - 1 );
-      }
-
-      // choose the multiplier - defaults to "minutes"
-      var multiplier;
-      switch( interval ) {
-        case 'd': multiplier = period * 1000 * 60 * 60 * 24; break
-        case 'h': multiplier = period * 1000 * 60 * 60;      break
-        case 'm': multiplier = period * 1000 * 60;           break
-        default:  multiplier = period * 1000 * 60;           break
-      }
-
-      // set the expiry date
-      var date = new Date();
-      date.setTime( date.getTime() + multiplier );
-      var dateString = date.toUTCString();
-      
-      // make sure it's valid, just in case
-      if( dateString != "Invalid Date" ) {
-          expires = "; expires=" + dateString;
-      }
-
-    } catch( e ) {
-      // default to a session cookie if something went wrong
-      expires = "";
-    }
-  }
-
-  // was there a path specified ?
-  path = (path) ? path : "/";
-
-  // add the cookie
-  var cookieBody = name + "=" + value + expires + "; path=" + path;
-  // console.debug( "pfFunctions.js:createCookie: cookie body: |" + cookieBody + "|" );
-  try {
-      document.cookie = cookieBody;
-  } catch(e) {
-    // console.error( "pfFunctions.js:createCookie: couldn't create cookie: " + e );
-  }
-}
+/* 
+ * function createCookie( name, value, time, path ) {
+ * 
+ *   //console.debug( "pfFunctions.js:createCookie: creating a cookie: |%s|%s|%s|%s|", name, value, time, path );
+ * 
+ *   // was there a time specified ?
+ *   var expires = "";
+ *   if( time ) {
+ *     console.debug( "'time' was set to: |" + time + "|" );
+ * 
+ *     try {
+ *       var interval = time.charAt( time.length - 1 );
+ * 
+ *       // if the interval isn't specified, we default to "minutes" and
+ *       // treat the whole of the period string as the period value
+ *       var period;
+ *       if( interval != "d" && interval != "h" && interval != "m" ) {
+ *         period = time.substring( 0, time.length );
+ *       } else {
+ *         period = time.substring( 0, time.length - 1 );
+ *       }
+ * 
+ *       // choose the multiplier - defaults to "minutes"
+ *       var multiplier;
+ *       switch( interval ) {
+ *         case 'd': multiplier = period * 1000 * 60 * 60 * 24; break
+ *         case 'h': multiplier = period * 1000 * 60 * 60;      break
+ *         case 'm': multiplier = period * 1000 * 60;           break
+ *         default: multiplier = period * 1000 * 60;           break
+ *       }
+ * 
+ *       // set the expiry date
+ *       var date = new Date();
+ *       date.setTime( date.getTime() + multiplier );
+ *       var dateString = date.toUTCString();
+ *       
+ *       // make sure it's valid, just in case
+ *       if( dateString != "Invalid Date" ) {
+ *           expires = "; expires=" + dateString;
+ *       }
+ * 
+ *     } catch( e ) {
+ *       // default to a session cookie if something went wrong
+ *       expires = "; expires=" + time;
+ *     }
+ *   
+ *   }
+ * 
+ *   // was there a path specified ?
+ *   path = (path) ? path : "/";
+ * 
+ *   // add the cookie
+ *   var cookieBody = name + "=" + value + expires + "; path=" + path;
+ *   //console.debug( "pfFunctions.js:createCookie: cookie body: |" + cookieBody + "|" );
+ *   try {
+ *     document.cookie = cookieBody;
+ *   } catch(e) {
+ *     //console.error( "pfFunctions.js:createCookie: couldn't create cookie: " + e );
+ *   }
+ * }
+ */
 
 //----------------------------------------
 
-function readCookie( name ) {
-  var nameEQ = name + "=";
-  var ca = document.cookie.split( ';' );
-  for( var i=0; i < ca.length; i++ ) {
-    var c = ca[i];
-    while( c.charAt( 0 ) == ' ' ) {
-      c = c.substring( 1, c.length );
-    }
-    if( c.indexOf( nameEQ ) == 0 ) {
-      return c.substring( nameEQ.length, c.length );
-    }
-  }
-  return null;
-}
+/*
+ * function readCookie( name ) {
+ *   var nameEQ = name + "=";
+ *   var ca = document.cookie.split( ';' );
+ *   for( var i=0; i < ca.length; i++ ) {
+ *     var c = ca[i];
+ *     while( c.charAt( 0 ) == ' ' ) {
+ *       c = c.substring( 1, c.length );
+ *     }
+ *     if( c.indexOf( nameEQ ) == 0 ) {
+ *       return c.substring( nameEQ.length, c.length );
+ *     }
+ *   }
+ *   return null;
+ * }
+ */
 
 //----------------------------------------
 // this is UNTESTED !
 
-function eraseCookie( name ) {
-  createCookie( name, "", -1 );
-}
+/*  
+ * function eraseCookie( name ) {
+ *   createCookie( name, "", -1 );
+ * }
+ */
 
 //------------------------------------------------------------
 //- event handlers to add underlining to hovered links -------
