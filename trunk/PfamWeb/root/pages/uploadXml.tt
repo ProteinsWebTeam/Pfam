@@ -5,7 +5,7 @@
 #
 # builds form for uploading XML describing a Pfam graphic
 #
-# $Id: uploadXml.tt,v 1.10 2008-06-02 14:42:08 jt6 Exp $
+# $Id: uploadXml.tt,v 1.11 2009-03-18 15:32:57 jt6 Exp $
 
 META title = "Generate domain images";
 META fullPage = 1;
@@ -32,13 +32,13 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
   Please note that only one image (the first one in the XML description) will 
   be generated, even if the XML contains multiple &lt;sequence&gt; tags.
 </p>
-[%# disabling until we have time to look at it more closely
-  # jt6 20070917 WTSI.
 <p>
-  Check the &quot;Image only&quot; box to return just the generated domain 
-  image, with no surrounding HTML.
+  Be default, this tool returns another page, with the image displayed along
+  with a form for generating more images. If you would prefer to have just the
+  image returned, check the &quot;Image only&quot; box. When you submit the form,
+  your browser should ask you whether you want to save or view the resulting 
+  image.
 </p>
-%]
 
 [% IF error %]
 <div class="error">
@@ -59,15 +59,12 @@ schemaUri = c.uri_for( "/static/documents/pfamDomainGraphics.xsd" );
            tabindex="1"  
            size="30" 
            id="uploadField" />
-[%# disabling until we have time to look at it more closely
-  # jt6 20070917 WTSI.
     <label>
       <input type="checkbox" 
              name="image_only" 
              value="1" 
              tabindex="2" />Image only
     </label>
-%]
     <input type="submit" 
            tabindex="3" 
            name="upload" 
