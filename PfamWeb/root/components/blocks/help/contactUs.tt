@@ -4,7 +4,7 @@
 # 
 # build the contactUS block for the help pages
 #
-# $Id: contactUs.tt,v 1.5 2009-03-05 11:51:11 jt6 Exp $
+# $Id: contactUs.tt,v 1.6 2009-03-18 09:09:50 jt6 Exp $
 %]
 
 <!-- start ContactUs block -->
@@ -17,12 +17,19 @@
 
     <h3>Contact Pfam</h3>
     <p>
-      You can find the email address for the 
-      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">Pfam helpdesk</a>
-      at the bottom of every page. We use a request tracking system to monitor 
-      emails to Pfam, so you should receive an automated response to your
-      email, letting you know that the system has logged your mail and notified
-      us of its arrival. 
+      You can contact us in various ways. Each of the Pfam consortium sites 
+      provides a contact email address, which you can find at the bottom
+      of every page. You can use this address to contact the specific Pfam 
+      group.
+    </p>      
+    <p>
+      We also run a central 
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">helpdesk</a>,
+      which handles annotation comments, data enquiries and general problems 
+      with the Pfam websites. We use a request tracking system to monitor emails 
+      to the helpdesk, so you should receive an automated response to your 
+      email, letting you know that the system has logged your mail and notified 
+      us of its arrival.
     </p>
 
     <h3>Mailing list</h3>
