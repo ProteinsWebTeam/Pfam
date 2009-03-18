@@ -4,7 +4,7 @@
 #
 # show the generated graphic for an uploaded XML file
 #
-# $Id: generatedGraphic.tt,v 1.9 2009-01-09 12:59:24 jt6 Exp $
+# $Id: generatedGraphic.tt,v 1.10 2009-03-18 15:33:06 jt6 Exp $
 
 META title = "Generated Pfam graphic";
 META fullPage = 1;
@@ -38,15 +38,12 @@ requirements.css.push( "graphicTools.css" );
            tabindex="1"  
            size="30" 
            id="uploadField" />
-[%# disabling until we have time to look at it more closely
-  # jt6 20070917 WTSI.
     <label>
       <input type="checkbox" 
              name="image_only" 
              value="1" 
              tabindex="2" />Image only
     </label>
-%]
   	<input type="submit" 
            tabindex="3" 
            name="upload" 
