@@ -2,7 +2,7 @@
 # Store.pm
 # jt6 20081217 WTSI
 #
-# $Id: Store.pm,v 1.3 2009-01-15 14:18:10 jt6 Exp $
+# $Id: Store.pm,v 1.4 2009-03-20 15:56:41 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Store;
 
 This controller provides actions for accessing documents in a CouchDB store.
 
-$Id: Store.pm,v 1.3 2009-01-15 14:18:10 jt6 Exp $
+$Id: Store.pm,v 1.4 2009-03-20 15:56:41 jt6 Exp $
 
 =cut
 
@@ -122,7 +122,7 @@ sub get : Private {
   my $cdb = Net::CouchDb->new( uri => $ENV{PFAM_DOMAIN_IMAGES_STORE} );
   
   # show debug from CouchDB only if we're debugging in catalyst...
-  $cdb->debug( 1 ) if $c->debug;
+  #$cdb->debug( 1 ) if $c->debug;
   
   # get a handle on the CouchDB database
   my $db = $cdb->db( 'pfam_images' );
