@@ -2,7 +2,7 @@
 # PfamGraphicsTools.pm
 # jt 20070402 WTSI
 #
-# $Id: PfamGraphicsTools.pm,v 1.8 2009-01-09 12:59:24 jt6 Exp $
+# $Id: PfamGraphicsTools.pm,v 1.9 2009-03-20 15:56:08 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ A couple of utility methods for generating Pfam graphics from a user-supplied
 XML file and for displaying the XML that builds the graphic for a specified 
 UniProt entry.
 
-$Id: PfamGraphicsTools.pm,v 1.8 2009-01-09 12:59:24 jt6 Exp $
+$Id: PfamGraphicsTools.pm,v 1.9 2009-03-20 15:56:08 jt6 Exp $
 
 =cut
 
@@ -32,8 +32,7 @@ use XML::LibXML;
 
 use Storable qw(thaw);
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
-#use Bio::Pfam::Drawing::Image::ImageSet;
-#use PfamWeb::ImageSet;
+use File::Basename;
 
 use base 'Catalyst::Controller';
 
@@ -91,6 +90,14 @@ sub renderXML : Global {
     $c->stash->{template} = 'pages/uploadXml.tt';
     return 0;
   }
+  
+  # parse the filename and detaint it
+  my ( $n, $p, $s ) = fileparse( $c->req->upload('XMLupload')->filename, qr/\.xml/i );
+  $n =~ s/\;\\//g;
+  $c->stash->{image_filename} = $n ? "$n.png" : 'image.png';
+  $c->log->debug( 'PfamGraphicsTools:renderXML: image filename: |'
+                  . $c->stash->{image_filename} . '|' ) if $c->debug;
+  
   $c->log->debug( 'PfamGraphicsTools::renderXML: 1) we retrieved the upload from the request' );
    
   #----------------------------------------
@@ -283,19 +290,21 @@ sub returnGraphic : Private {
   my( $this, $c ) = @_;
 
   # print the image. That is, write it to disk
-  my( $image )= $c->stash->{imageSet}->each_image;
+  my ( $image )= $c->stash->{imageSet}->each_image;
   $image->print_image;
 
-  # should we return just the image ?
-  if( $c->req->param( 'image_only' ) ) {
-    my $imageFile = $c->config->{'View::TT'}->{CONSTANTS}->{tmp}
-                    . '/' . $image->file_location;
-    my $imageURI = $c->uri_for( "/$imageFile" );
-    $c->log->debug("PfamGraphicsTools::returnGraphic: returning image URI: |$imageURI|" )
+  if ( $c->req->param( 'image_only' ) ) {
+    $c->log->debug( 'PfamGraphicsTools::returnGraphic: returning the raw image only' )
       if $c->debug;
-    $c->res->redirect( $imageURI, 301 );
-    return 1;
-  } else {
+
+    $c->res->header( 'Content-disposition' => 'attachment; filename=' . $c->stash->{image_filename} );
+    $c->res->content_type( 'image/png' );
+    $c->res->body( $image->image->png );
+    
+  }
+  else {
+    $c->log->debug( 'PfamGraphicsTools::returnGraphic: returning the image in the page' )
+      if $c->debug;
     $c->stash->{image} = $image;
   }
 
