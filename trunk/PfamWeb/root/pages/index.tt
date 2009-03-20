@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.57 2009-03-17 15:34:49 jt6 Exp $
+# $Id: index.tt,v 1.58 2009-03-20 15:53:25 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -455,8 +455,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
           $("restore").show();
         },
         onSuccess:  function( oResponse ) {
-          $(type).insert( oResponse.responseText );
-          $(type).show();
+          $("posts").insert( oResponse.responseText );
+          $("posts").show();
         }
       }
     );
