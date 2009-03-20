@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.78 2009-03-05 11:51:02 jt6 Exp $
+   $Id: pfam.css,v 1.79 2009-03-20 16:01:12 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -88,6 +88,10 @@ img.info {
 
 .small {
   font-size: smaller;
+}
+
+.nonbold {
+  font-weight: normal;
 }
 
 .wide {
