@@ -2,7 +2,7 @@
 # FamilyActions.pm
 # jt6 20070418 WTSI
 #
-# $Id: FamilyActions.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
+# $Id: FamilyActions.pm,v 1.4 2009-03-20 15:58:35 jt6 Exp $
 
 =head1 NAME
 
@@ -18,12 +18,14 @@ package PfamWeb::Controller::Family::FamilyActions;
 This controller holds a collection of actions that are related to Pfam-A
 families.
 
-$Id: FamilyActions.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
+$Id: FamilyActions.pm,v 1.4 2009-03-20 15:58:35 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Image::Size;
 
 use base 'PfamWeb::Controller::Family';
 
@@ -116,46 +118,68 @@ sub hmm : Path( '/family/hmm' ) {
 
 =head2 logo : Local
 
-Returns the HMM logo image for this family.
+Returns the HMM logo image for this family. This is subject to a check on the 
+size of the image and the type of browser that is requesting it. Since there
+are known problems with firefox and large PNGs, we don't return the image 
+immediately in that case. The template takes care of showing a bit of text
+and providing a link to load the image anyway.
 
 =cut
 
 sub logo : Path( '/family/logo' ) {
   my ( $this, $c ) = @_;
   
-  return unless defined $c->stash->{pfam};
-
-  my $cache_key = 'logo' . $c->stash->{acc};
-  my $logo = $c->cache->get( $cache_key );
+  my $logo = $c->forward( 'get_logo' );    
+  return if $c->stash->{errorMsg};
   
-  if ( defined $logo ) {
-    $c->log->debug( 'Family::getlogo: extracted logo from cache' )
+  my ( $logo_x, $logo_y ) = imgsize( \$logo );
+
+  if ( ( $logo_x > $this->{image_size_limit} or
+         $logo_y > $this->{image_size_limit} ) and
+           $c->req->user_agent =~ m/Gecko/ and
+       not $c->req->user_agent =~ m/WebKit/ ) {
+    $c->log->debug( 'Family::FamilyActions::logo: browser is Gecko-based and image is large'
+                    . " ($logo_x x $logo_y)" )
       if $c->debug;
-  }
-  else {
-    $c->log->debug( 'Family::getlogo: failed to extract logo from cache; going to DB' )
-      if $c->debug;
+
+    $c->stash->{logo_x} = $logo_x;
+    $c->stash->{logo_y} = $logo_y;
     
-    my $rs = $c->model('PfamDB::PfamA_HMM_logo')
-               ->find( $c->stash->{pfam}->auto_pfamA );
-
-    $logo = $rs->logo;
-
-    unless ( $logo ) {
-      $c->log->debug( 'Family::getlogo: failed to retrieve logo from DB' )
-        if $c->debug;
-      $c->stash->{errorMsg} = 'We could not find the HMM logo for ' 
-                              . $c->stash->{acc};
-      return;
-    }
-  
-    # cache the LOGO
-    $c->cache->set( $cache_key, $logo ) unless $ENV{NO_CACHE};
+    $c->stash->{large_logo} = 1;
   }
 
+  $c->stash->{template} = 'components/logo.tt';
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 logo_image : Local
+
+Returns the HMM logo image for this family.
+
+=cut
+
+sub logo_image : Path( '/family/logo_image' ) {
+  my ( $this, $c ) = @_;
+
+  $c->log->debug( 'Family::FamilyActions::logo_image: returning raw image' )
+    if $c->debug;
+  
+  my $logo = $c->forward( 'get_logo' );
+    
+  return if $c->stash->{errorMsg};
+  
+  if ( $c->req->param('dl') ) {
+    my $filename = $c->stash->{acc} . '_logo.png';
+
+    $c->log->debug( 'Family::FamilyActions::logo_image: forcing download of logo as '
+                    . $filename ) if $c->debug;
+    
+    $c->res->header( 'Content-disposition' => "attachment; filename=$filename" );
+  }
+  
   $c->res->content_type( 'image/png' );
   $c->res->body( $logo );
-  
 }
 
 #-------------------------------------------------------------------------------
@@ -210,6 +234,51 @@ sub acc : Path( '/family/acc' ) {
     $c->res->status( 404 );
     $c->res->body( 'No such family' );
   }
+}
+
+#-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 get_logo : Private
+
+Retrieves the HMM logo for this family, either from cache or the DB. Returns
+the logo, if found.
+
+=cut
+
+sub get_logo : Private {
+  my ( $this, $c ) = @_;
+  
+  my $cache_key = 'logo' . $c->stash->{acc};
+  my $logo = $c->cache->get( $cache_key );
+  
+  if ( defined $logo ) {
+    $c->log->debug( 'Family::FamilyActions::logo: extracted logo from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::FamilyActions::logo: failed to extract logo from cache; going to DB' )
+      if $c->debug;
+    
+    my $rs = $c->model('PfamDB::PfamA_HMM_logo')
+               ->find( $c->stash->{pfam}->auto_pfamA );
+
+    $logo = $rs->logo;
+
+    unless ( $logo ) {
+      $c->log->debug( 'Family::FamilyActions::logo: failed to retrieve logo from DB' )
+        if $c->debug;
+      $c->stash->{errorMsg} = 'We could not find the HMM logo for ' 
+                              . $c->stash->{acc};
+      return;
+    }
+  
+    # cache the LOGO
+    $c->cache->set( $cache_key, $logo ) unless $ENV{NO_CACHE};
+  }
+
+  return $logo;  
 }
 
 #-------------------------------------------------------------------------------
