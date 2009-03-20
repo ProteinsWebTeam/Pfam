@@ -4,7 +4,7 @@
 #
 # a page snippet showing the RSS feeds from the blog
 #
-# $Id: announcements.tt,v 1.1 2009-02-13 16:05:44 jt6 Exp $
+# $Id: announcements.tt,v 1.2 2009-03-20 16:45:46 jt6 Exp $
 
 META naked = 1;
 
@@ -15,6 +15,11 @@ FOREACH issued IN entries.keys.sort.reverse;
     NEXT IF entry.content.body == "" -%]
     <h3>
       <a class="ext" href="[% entry.link %]">[% entry.title %]</a>
+      [% IF entry.issued %]
+      <span class="small nonbold">
+        (posted [% entry.issued.day _ " " _ entry.issued.month_name _ " " _ entry.issued.year %])
+      </span>
+      [% END %]
     </h3>
     <p>[% entry.content.body %]</p>
   [% ELSE -%]
