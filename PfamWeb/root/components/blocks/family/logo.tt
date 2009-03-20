@@ -5,7 +5,7 @@
 #
 # block showing the HMM logo for this family.
 #
-# $Id: logo.tt,v 1.2 2008-05-16 15:30:31 jt6 Exp $
+# $Id: logo.tt,v 1.3 2009-03-20 15:59:31 jt6 Exp $
 %]
 
 <!-- start logo block -->
@@ -16,7 +16,7 @@
   </div>
   <div class="blockContent">
     <p>
-      HMM logos are one way of visualising profile HMMs. They provide a
+      HMM logos is one way of visualising profile HMMs. Logos provide a
       quick overview of the properties of an HMM in a graphical form. You can 
       see a more detailed description of HMM logos and find out how you can 
       interpret them
@@ -45,15 +45,22 @@
           &nbsp;5:7
         </span>
       </div>
-      <hr />
     </div>
 
-    <div id="logo" style="width: 100%; overflow: auto">
-      <img alt="HMM logo"
-           src="[% c.uri_for( '/family/logo', entry => acc ) %]" />
-    </div>
+    <div id="logo" style="width: 100%; overflow: auto"></div>
 
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+    var r = new Ajax.Updater( "logo",
+                               "[% c.uri_for( '/family/logo' ) %]",
+                               {
+                                 parameters: { acc: "[% acc %]" },
+                                 evalScripts: true
+                               } );
+    // ]]> 
+  </script>
 
 </div>
 
