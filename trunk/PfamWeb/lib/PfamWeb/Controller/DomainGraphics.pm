@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.25 2009-01-09 12:59:24 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.26 2009-03-20 15:57:18 jt6 Exp $
 
 =head1 NAME
 
@@ -28,13 +28,14 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated. 
 
-$Id: DomainGraphics.pm,v 1.25 2009-01-09 12:59:24 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.26 2009-03-20 15:57:18 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
+use Bio::Pfam::ContextPfamRegion;
 use URI::Escape;
 use Storable qw(thaw);
 
