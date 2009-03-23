@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.7 2009-02-13 16:02:24 jt6 Exp $
+# $Id: Root.pm,v 1.8 2009-03-23 15:55:00 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.7 2009-02-13 16:02:24 jt6 Exp $
+$Id: Root.pm,v 1.8 2009-03-23 15:55:00 jt6 Exp $
 
 =cut
 
@@ -27,6 +27,7 @@ use warnings;
 use DateTime;
 
 use base 'Catalyst::Controller';
+use LWP::Simple;
 
 # set the actions in this controller to be registered with no prefix
 # so they function identically to actions created in MyApp.pm
@@ -108,18 +109,30 @@ sub announcements : Local {
   # see if there's a "hide" cookie
   my $cookie = $c->req->cookie("hide_$type");
   
+  #----------------------------------------
+  
   my $entries;  
   if ( $type eq 'posts' ) {
 
-    
-    my $feed = XML::Feed->parse( URI->new( $this->{blog_uri} ) );
-    unless ( defined $feed ) {
-      $c->log->warning( "Root::announcements: could't find blog content at |"
+    # retrieve the blog content
+    my $blog_content = get( $this->{blog_uri} );
+    unless ( defined $blog_content ) {
+      $c->log->warn( "Root::announcements: could't retrieve blog content from |"
                       . $this->{blog_uri} . "|" ) if $c->debug;
       $c->res->status( 204 );  
       return;
     }
-  
+
+    # parse the XML and turn it into an XML::Feed object
+    my $feed = XML::Feed->parse( \$blog_content );
+    unless ( defined $feed ) {
+      $c->log->warn( "Root::announcements: could't parse blog content" )
+        if $c->debug;
+      $c->res->status( 204 );  
+      return;
+    }
+
+    # check the timestamp on each entry and decide if we should show it or not  
     foreach my $entry ( $feed->entries ) {
       my $issued = $entry->issued->epoch;
 
@@ -151,6 +164,8 @@ sub announcements : Local {
     $c->log->debug( 'Root::announcements: added ' . scalar( keys %$entries )
                     . " $type posts" ) if $c->debug;
   }
+  
+  #----------------------------------------
   
   else {
 
@@ -185,6 +200,8 @@ sub announcements : Local {
             
     }
   }
+
+  #----------------------------------------
 
   my %limits = ( announcements   => 1,
                  website_changes => 1,
