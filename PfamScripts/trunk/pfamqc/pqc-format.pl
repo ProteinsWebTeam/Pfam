@@ -8,6 +8,7 @@ use warnings;
 use Cwd;
 
 use Bio::Pfam::PfamQC;
+use Bio::Pfam::FamilyIO;
 
 my $family = shift;
 chomp($family);
