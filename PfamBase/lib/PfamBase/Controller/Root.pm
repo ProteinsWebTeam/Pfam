@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.8 2009-03-23 15:55:00 jt6 Exp $
+# $Id: Root.pm,v 1.9 2009-03-24 13:57:41 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.8 2009-03-23 15:55:00 jt6 Exp $
+$Id: Root.pm,v 1.9 2009-03-24 13:57:41 jt6 Exp $
 
 =cut
 
@@ -114,23 +114,60 @@ sub announcements : Local {
   my $entries;  
   if ( $type eq 'posts' ) {
 
+    print STDERR "loading posts...\n";
+
     # retrieve the blog content
-    my $blog_content = get( $this->{blog_uri} );
-    unless ( defined $blog_content ) {
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+    $ua->env_proxy;
+
+    my $response = $ua->get( $this->{blog_uri} );
+    unless ( $response->is_success ) {
       $c->log->warn( "Root::announcements: could't retrieve blog content from |"
                       . $this->{blog_uri} . "|" ) if $c->debug;
-      $c->res->status( 204 );  
+      $c->res->status( 204 );
       return;
     }
+    my $blog_content = $response->content;
+    print STDERR "got blog content: |$blog_content|\n";
 
     # parse the XML and turn it into an XML::Feed object
     my $feed = XML::Feed->parse( \$blog_content );
     unless ( defined $feed ) {
+      print STDERR "feed object not defined\n";
       $c->log->warn( "Root::announcements: could't parse blog content" )
         if $c->debug;
-      $c->res->status( 204 );  
+      $c->res->status( 204 );
       return;
     }
+
+
+#    # retrieve the blog content
+#    my $blog_content = get( $this->{blog_uri} );
+#    unless ( defined $blog_content ) {
+#      $c->log->warn( "Root::announcements: couldn't retrieve blog content from |"
+#                      . $this->{blog_uri} . "|" ) if $c->debug;
+#      $c->res->status( 204 );  
+#      return;
+#    }
+#
+#    # parse the XML and turn it into an XML::Feed object
+#    my $feed = XML::Feed->parse( \$blog_content );
+#    unless ( defined $feed ) {
+#      $c->log->warn( "Root::announcements: couldn't parse blog content" )
+#        if $c->debug;
+#      $c->res->status( 204 );  
+#      return;
+#    }
+
+#    # parse the XML and turn it into an XML::Feed object
+#    my $feed = XML::Feed->parse( URI->new( $this->{blog_uri} ) );
+#    unless ( defined $feed ) {
+#      $c->log->warn( "Root::announcements: couldn't parse blog content" )
+#        if $c->debug;
+#      $c->res->status( 204 );  
+#      return;
+#    }
 
     # check the timestamp on each entry and decide if we should show it or not  
     foreach my $entry ( $feed->entries ) {
