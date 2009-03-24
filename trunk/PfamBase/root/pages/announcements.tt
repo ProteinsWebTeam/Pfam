@@ -4,7 +4,7 @@
 #
 # a page snippet showing the RSS feeds from the blog
 #
-# $Id: announcements.tt,v 1.2 2009-03-20 16:45:46 jt6 Exp $
+# $Id: announcements.tt,v 1.3 2009-03-24 13:57:53 jt6 Exp $
 
 META naked = 1;
 
@@ -21,7 +21,7 @@ FOREACH issued IN entries.keys.sort.reverse;
       </span>
       [% END %]
     </h3>
-    <p>[% entry.content.body %]</p>
+    <p>[% entry.summary.body %]</p>
   [% ELSE -%]
     [% entry %]
   [% END -%]
