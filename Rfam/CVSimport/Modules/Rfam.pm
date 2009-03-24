@@ -51,7 +51,7 @@ use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
 
 #mfetch -d version
-$embl = "embl_98";
+$embl = "embl_99";
 
 $root_dir       = "/lustre/pfam/rfam/Production/Rfam";
 $current_dir    = "$root_dir/CURRENT";
@@ -66,9 +66,9 @@ $lock_file      = "$accession_dir/lock";
 
 $rfamseq_root_dir    = "/lustre/pfam/rfam/Production/rfamseq";
 $rfamseq_current_dir = "$rfamseq_root_dir/CURRENT";
-$rfamseq_new_dir     = "$rfamseq_root_dir/NEW";
-$rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi";
-$rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";
+$rfamseq_new_dir     = "$rfamseq_root_dir/NEW";               #NOT FUCKING USED!
+$rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi"; #NOT FUCKING USED!
+$rfamseq_new_inx     = "$rfamseq_new_dir/rfamseq.fa.bpi";     #NOT FUCKING USED!
 $rfamseq             = "$rfamseq_current_dir/rfamseq.fa";
 $rfamseq_run_dir     = "/data/blastdb/Rfam/rfamseq"; 
 
