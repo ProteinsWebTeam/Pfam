@@ -3,12 +3,12 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use File::Copy;
 use IO::File;
 use Sys::Hostname;
 use Cwd;
 use File::Copy;
 use File::Rsync;
+use File::stat;
 use Data::UUID;
 
 
@@ -41,7 +41,7 @@ sub main {
 #Deal with the command line options
   
   my ($fname, $hand, $local, $nobuild, $split, $help, $evalCut, $dbsize,
-      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake );
+      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue );
 
   &GetOptions( "help"       => \$help,
                "hand"       => \$hand,
@@ -58,7 +58,8 @@ sub main {
                'F1=s'       => \$f1,
                'F2=s'       => \$f2,
                'F3=s'       => \$f3,
-               'withpfmake' => \$withpfmake);
+               'withpfmake' => \$withpfmake,
+               'makeEval=s' => \$makeEvalue);
   
   help() if($help);
   if($hand and $nobuild){
@@ -78,7 +79,25 @@ sub main {
 
   my $io = Bio::Pfam::FamilyIO->new; 
   my $descObj = $io->parseDESC("DESC");
-  
+ 
+#-------------------------------------------------------------------------------
+  unless($local){
+    foreach my $f (@{$config->mandatoryFamilyFiles}) {
+      if(-e $f){
+        my $info = stat($f);
+        #See if we, the user, own the file
+        if($< != $info->uid){
+          #move it sideways then copy back!
+           rename($f, "$f.old");
+           if($f eq "SEED" or $f eq "DESC"){
+            copy("$f.old", $f);
+           }elsif(($f eq "scores" or $f eq "ALIGN") and !$withpfmake ){
+            copy("$f.old", $f);
+           }
+        }
+      }
+    }
+  }
 
 #-------------------------------------------------------------------------------
 # If we are to run HMM build check the SEED and build options.
@@ -206,7 +225,7 @@ sub main {
   unless($evalCut > 0) {
     die "You can not specifiy a E-value cutoff less than 0\n"; 
   }
-  $searchOptions{"--seqE"} =  $evalCut;
+  $searchOptions{"-E"} =  $evalCut;
   
   
   # database size
@@ -224,7 +243,7 @@ sub main {
   unless(int($dbsize) == $dbsize){
     die "dbsise($dbsize) must be an integer\n"; 
   }
-  $searchOptions{'--seqZ'} = $config->dbsize;
+  $searchOptions{'-Z'} = $config->dbsize;
   
   # Turn off heuristic filtering
   if($max){
@@ -360,10 +379,14 @@ sub main {
         
         #And finally, run pfmake if we need to
         if($withpfmake){
-          if(-e "$pwd/DESC"){
-            $fh->print("pfmake.pl -e 0.1\n");
+          if($makeEvalue){
+            $fh->print("pfmake.pl -e $makeEvalue\n");    
           }else{
-            $fh->print("pfmake.pl -e 0.01\n");  
+            if(-e "$pwd/DESC"){
+              $fh->print("pfmake.pl -e 0.1\n");
+            }else{
+              $fh->print("pfmake.pl -e 0.01\n");  
+            }
           }
         }
         
@@ -460,7 +483,8 @@ And Finally:
 
   -withpfmake : run pfmake after the search.  If there is a DESC file present, 
               : then it will use the threshold present in the file. Otherwise,
-              : it will use a default threshold of 10e-3.  
+              : it will use a default threshold of 10e-2.
+  -makeEval   : Will run pfmake with the specified evalue cut-off   
   
 EOF
 
