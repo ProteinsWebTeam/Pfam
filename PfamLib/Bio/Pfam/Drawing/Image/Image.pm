@@ -1387,9 +1387,6 @@ sub print_image {
   my $file = $self->image_name.".png";
   ( $file ) = $file =~ m/^([\w\.\-]+)$/;
 
-  my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
-  ( $dirName ) = $dirName =~ m/^(\d+)$/;
-
   my $root;
   if($ENV{PFAM_DOMAIN_IMAGES}) {
     $root   = "$ENV{'PFAM_DOMAIN_IMAGES'}";
@@ -1402,17 +1399,17 @@ sub print_image {
 
   my $tmp = $ENV{PFAM_DOMAIN_IMAGES_TMP} || '/tmp';
 
-  my $file_location = "domain_gfx/$dirName";
-  if(!-d "$root/$file_location"){
-      mkdir("$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
-  }
+  # append the epoch time as another directory
+  my $dirName = ( $self->{timeStamp} ) ? $self->{timeStamp} : $$;
+  ( $dirName ) = $dirName =~ m/^(\d+)$/;
 
   #make temp lib of all with unknown location
+  my $file_location = 'domain_gfx';
   my @md5 = md5_hex($file) =~ /\G(..)/g;
-  foreach ($md5[0], $md5[1], $md5[2]){
+  foreach ( $md5[0], $md5[1], $md5[2], $dirName ){
       $file_location .= "/$_";
       if(!-d "$root/$file_location" ){
-	  mkdir( "$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
+        mkdir( "$root/$file_location") || die "Could not mkdir $root/$file_location:[$!]";
       }
   }
   ( $file_location ) = $file_location =~ m|^([\w\./]+)$|;
