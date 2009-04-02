@@ -1,7 +1,7 @@
 #!/nfs/team71/pfam/jt6/server/perl/bin/perl
 #
-# update_features_sources.pl
-# jt6 & pg6 20060428 WTSI
+# update_das_sources.pl
+# jt6 20060428 WTSI
 #
 # Update the list of DAS sources in the database. This is intended to
 # be run as a cron job, as often as required to keep the database
@@ -19,11 +19,11 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_das_sources.pl,v 1.15 2009-03-31 15:54:13 jt6 Exp $
+# $Id: update_das_sources.pl,v 1.16 2009-04-02 10:04:40 jt6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
-# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), Prasad Gunasekaran (pg6@sanger.ac.uk),
+# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -47,27 +47,30 @@ use DBI;
 use Time::Local;
 use Config::General;
 use Getopt::Std;
-use Data::Dump qw(dump);
-use Mail::Mailer;
+
 my %options;
 getopt( 'f', \%options ) or usage();
 
 unless( defined $options{f} and -f $options{f} ) {
-  print STDERR  "error: must specify a configuration file\n";
+  print STDERR "error: must specify a configuration file\n";
   exit 1;
 }
 
-#read the apache style configuration file and parse it.
-my ( $conf, %config, $mail );
-eval{
+# get the configuration from the Apache-style site config file
+my $conf;
+eval {
   $conf = new Config::General( $options{f} );
-  %config = $conf->getall;
-  $mail->{from} = $config{das}->{mailFrom};
-  $mail->{to} = $config{das}->{mailTo};  
 };
-if($@){
-  my $error_message = "error: there was a problem parsing the configuration file\n$@";
-  send_mail($error_message,$mail);
+if( $@ ) {
+  die "error: there was a problem parsing the configuration file\n$@";
+}
+
+my %config;
+eval {
+  %config = $conf->getall;
+};
+if( $@ ) {
+  die "error: there was a problem retrieving the configuration\n$@";
 }
 
 # Bio::Das::Lite setup
@@ -106,18 +109,13 @@ my $dbh = DBI->connect( $DB_DSN,
                           PrintError => 0,
                           AutoCommit => 0 } );
 
-#get the total number of features sources from the database;
-my $feature_sources = $dbh->selectrow_arrayref("select count(*) from feature_das_sources");
-my $total_features = $feature_sources->[0];
-#print STDERR "The total number of features sources available in database is $total_features\n";
-
-
 # prepare the queries
 my $insertSth = $dbh->prepare( "INSERT INTO feature_das_sources ( server_id, name, url, system, sequence_type, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ?, ? )" );
 
-# get the list of sources with features capability.
-my $sourcesList = $das->registry_sources({capability  =>  'features'});
-#print STDERR "(ii) retrieved " . scalar @$sourcesList . " sources from the registry\n"; 
+# get the full list of sources
+#my $sourcesList = $das->registry_sources( { category => [ "Protein Sequence", "Protein Structure" ] } );
+my $sourcesList = $das->registry_sources();
+print STDERR "(ii) retrieved " . scalar @$sourcesList . " sources from the registry\n"; 
 
 # decide which sources we want to use
 my $chosenList = [ ];
@@ -135,14 +133,14 @@ foreach my $source ( @$sourcesList ) {
   my $dd = $cd - $ld;
 
   # don't add the source if the lease is older than two days
-  if( $dd > $config{das}->{ActiveTime}) {
-    #print STDERR  "(ww) skipping \"$source->{nickname}\" ($source->{id}); down for ".int($dd/86400)." days\n";
+  if( $dd > 172800 ) {
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); down for ".int($dd/86400)." days\n";
     next;
   }
 
   # don't add the source if it's in the "ignore" list
   if( $ignoreServers{ $source->{id} } ) {
-    #print STDERR  "(ww) ignoring \"$source->{nickname}\" ($source->{id})\n";
+    print STDERR "(ww) ignoring \"$source->{nickname}\" ($source->{id})\n";
     next;
   }
 
@@ -161,24 +159,24 @@ foreach my $source ( @$sourcesList ) {
 
   # validate the URLs
   unless( is_uri( $entry->{url} ) ) {
-    #print STDERR  "(ww) skipping \"$source->{nickname}\" ($source->{id}); invalid URL ($source->{url})\n";
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); invalid URL ($source->{url})\n";
     next;
   }
 
   if( $entry->{helperurl} and not is_uri( $entry->{helperurl} ) ) {
-    #print STDERR  "(ww) skipping \"$source->{nickname}\" ($source->{id}); invalid help URL ($entry->{helperurl})\n";
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); invalid help URL ($entry->{helperurl})\n";
     next;
   }
 
-#  # we're only interested in features; its not necessary as we already filter the sources 
-#  unless( grep /features/, @{ $source->{capabilities} } ) {
-#    print STDERR  "(ww) skipping \"$source->{nickname}\" ($source->{id}); no features\n";
-#    next;
-#  }
+  # we're only interested in features
+  unless( grep /features/, @{ $source->{capabilities} } ) {
+    print STDERR "(ww) skipping \"$source->{nickname}\" ($source->{id}); no features\n";
+    next;
+  }
 
   foreach my $coords ( @{ $source->{coordinateSystem} } ) {
     if( defined $entry->{coords}{$coords->{uniqueId}} ) {
-      #print STDERR  "(ww) ignoring duplicate co-ordinate system for $source->{id}\n";
+      print STDERR "(ww) ignoring duplicate co-ordinate system for $source->{id}\n";
       next;
     }
     $entry->{coords}{ $coords->{uniqueId} } = { system => $coords->{name}, 
@@ -188,96 +186,59 @@ foreach my $source ( @$sourcesList ) {
   if( defined $entry->{coords} ) {
     push @$chosenList, $entry;
   } else {
-    #print STDERR  "(ww) no coordinates found for $source->{id}\n";
+    print STDERR "(ww) no coordinates found for $source->{id}\n";
   }
 }
 
-
-#make sure we get certain number of sources, if not exit with sending mail 
-
-my $percentage = ( $total_features - scalar( @$chosenList ) ) / $total_features;
-if( $percentage > $config{das}->{threshold} ){
-  my $message = "
-                 The total number of features sources present in Database is $total_features\n
-                 The total number of features sources retrieved from das is ".scalar(@$chosenList)."\n
-                 More than 10% of das sources are lost......\n
-                 Das registry may be down......\nHence skipping the update\n";
-  send_mail($message,$mail);                   
+# make sure we have some sources before going any further
+unless( scalar @$chosenList ) {
+  print STDERR "(EE) ERROR: no sources retrieved; leaving the table untouched\n";
+  exit 1;
 }
 
-
 # update the database
-#print STDERR  "(ii) opening transaction...\n";
+print STDERR "(ii) opening transaction...\n";
 
 # start a transaction...
 eval {
-  
-  print STDERR "\n\nDeleting the contents of the feature_das_source table \n" if($dbh->do( "DELETE FROM feature_das_sources" ));
+
+  # truncate the table
+  print STDERR "(ii) emptying table... ";
+  $dbh->do( "DELETE FROM feature_das_sources" );
+  print "done\n";
+
+  # insert them
   foreach my $entry( sort { $a->{id} cmp $b->{id} } @$chosenList ) {
 
     foreach my $coord (values %{ $entry->{coords} } ) {
-      #print "the coord is ",dump($coord),"\n";
-      # print STDERR "(ii) inserting $entry->{name} [$coord->{system},$coord->{type}]... \n";
-       $insertSth->execute( $entry->{id},
+      print STDERR "(ii) inserting $entry->{name} [$coord->{system},$coord->{type}]... ";
+      $insertSth->execute( $entry->{id},
                            $entry->{name},
                            $entry->{url},
                            $coord->{system},
                            $coord->{type},
                            $entry->{helperurl},
                            exists $defaultServers{ $entry->{id} } ? 1 : 0
-                         );  
+                         );
+      print STDERR "done\n";
     }
-    
   }
-  #print STDERR  "(ii) committed changes in table\n";
-  
+
   $dbh->commit;
+  print STDERR "(ii) committed changes\n";
+
 }; # end of "eval"
 
 # check for errors in the transaction and roll back if we found any
-
 if( $@ ) {
-  #print STDERR "\n(EE) ERROR: transaction error: $@; rolling back\n";
-  
+  print STDERR "\n(EE) ERROR: transaction error: $@; rolling back\n";
   eval { $dbh->rollback; };
-  if($@){
-    my $error_message = "ERROR in transaction, rolling back\nHowever roll back failed : $@\n";
-    send_mail($error_message,$mail);
-  }  
-  
 } else {
-   #print STDERR "(ii) transaction successful\n";
-   my $new_feature_sources = $dbh->selectrow_arrayref("select count(*) from feature_das_sources");
-   my $new_total_features = $new_feature_sources->[0];
-   my $success_message = "The total number of features sources present in Database before update is : $total_features
-                         \n\nThe total number of features sources after update is :$new_total_features\n
-                         \nHenceforth Update successful.\n";
-   send_mail($success_message,$mail);                         
+  print STDERR "(ii) transaction successful\n";
 }
 
-#script wont come here but to exit explicitly
+# done
 exit;
-#-----------------------------------------------------------------------------------------------------
-
-#subroutine send_mail - sending mail to the maintainer
-
-sub send_mail {  
-  my ( $message, $mail ) = @_;
-  my $mailer = Mail::Mailer->new();
-  my $header = {
-      To      => $mail->{to},
-      from    => $mail->{from},
-      Subject => "Cron job- For updating features table"
-     };
-    $mailer->open($header);
-    print $mailer $message,"\n";
-    $mailer->close;
-    exit;        
-}
-
-#-----------------------------------------------------------------------------------------------------
-
-#subroutine usage - Explains the usage of the script
 
 sub usage {
   print <<EOF_help;
