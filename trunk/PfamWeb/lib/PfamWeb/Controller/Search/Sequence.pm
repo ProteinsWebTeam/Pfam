@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.30 2009-01-09 12:59:24 jt6 Exp $
+# $Id: Sequence.pm,v 1.31 2009-04-06 10:25:03 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.30 2009-01-09 12:59:24 jt6 Exp $
+$Id: Sequence.pm,v 1.31 2009-04-06 10:25:03 jt6 Exp $
 
 =cut
 
@@ -254,21 +254,44 @@ sub validate_input : Private {
   if ( defined $c->req->param('evalue') ) {
     $c->log->debug( 'Search::Sequence::sequence_search: got an evalue' )
       if $c->debug;
-    
-    if ( looks_like_number( $c->req->param('evalue') ) and
-         $c->req->param('evalue') > 0 ) {
-      $c->log->debug( 'Search::Sequence::validate_input: evalue looks like a positive number' )
-        if $c->debug;
-      $c->stash->{evalue} = $c->req->param('evalue');
-    }
-    else {
-      $c->stash->{searchError} = 'You did not give a valid E-value.';
 
-      $c->log->debug( 'Search::Sequence::validate_input: bad evalue; returning to form' )
+    # firstly, it has to be a number
+    unless ( looks_like_number( $c->req->param('evalue') ) ) {
+      $c->stash->{searchError} = 'The E-value must be a valid positive number <= 10.0.';
+
+      $c->log->debug( 'Search::Sequence::validate_input: bad evalue (NaN); returning to form' )
         if $c->debug;
 
       return 0;
     }
+    
+    # secondly, it has to be positive...
+    unless ( $c->req->param('evalue') > 0 ) {
+      $c->stash->{searchError} = 'The E-value must be a positive number. '
+                                 . 'Negative E-values values are meaningless.';
+
+      $c->log->debug( 'Search::Sequence::validate_input: bad evalue (-ve); returning to form' )
+        if $c->debug;
+
+      return 0;
+    }
+
+    # thirdly and finally, it has to be less than 10.0
+    unless ( $c->req->param('evalue') <= 10.0 ) {
+      $c->stash->{searchError} = 'The E-value must be <= 10.0. Large E-values '
+                                 . 'result in large numbers of meaningless Pfam '
+                                 . 'hits and cause severe problems for our '
+                                 . 'search system.';
+
+      $c->log->debug( 'Search::Sequence::validate_input: bad evalue ( > 10.0 ); returning to form' )
+        if $c->debug;
+
+      return 0;
+    }
+
+    $c->log->debug( 'Search::Sequence::validate_input: evalue looks like a positive number <= 10.0; stashing' )
+      if $c->debug;
+    $c->stash->{evalue} = $c->req->param('evalue');
 
   }
   elsif ( defined $c->req->param('ga') and 
