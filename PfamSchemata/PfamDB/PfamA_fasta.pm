@@ -1,9 +1,9 @@
 
-# $Id: PfamA_fasta.pm,v 1.1 2009-04-06 09:18:29 jt6 Exp $
+# $Id: PfamA_fasta.pm,v 1.2 2009-04-06 09:20:43 jt6 Exp $
 #
 # $Author: jt6 $
 
-package PfamLive::PfamA_fasta;
+package PfamDB::PfamA_fasta;
 
 use strict;
 use warnings;
