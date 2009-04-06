@@ -2,7 +2,7 @@
 # PfamDB.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamDB.pm,v 1.15 2008-05-16 15:23:16 jt6 Exp $
+# $Id: PfamDB.pm,v 1.16 2009-04-06 09:31:21 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -19,7 +19,7 @@ package PfamDB;
 The base class for the whole Pfam database model. Config comes from the catalyst 
 application class.
 
-$Id: PfamDB.pm,v 1.15 2008-05-16 15:23:16 jt6 Exp $
+$Id: PfamDB.pm,v 1.16 2009-04-06 09:31:21 jt6 Exp $
 
 =cut
 
@@ -71,6 +71,7 @@ __PACKAGE__->load_classes( qw(
   PfamA_HMM_ls
   PfamA_architecture
   PfamA_database_links
+  PfamA_fasta
   PfamA_interactions
   PfamA_literature_references
   PfamA_ncbi
