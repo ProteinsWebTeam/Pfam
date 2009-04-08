@@ -982,17 +982,45 @@ sub _draw_regions{
 	
     }else{
 	if( $reg_dom->getAttribute("label") =~ /pfam-b/i){
-	    my ($stripes, %stripe1) = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift, 1 );
-	    foreach my $colour (@{$stripes}){
-		$key .= "~".$$colour{R}."~".$$colour{G}."~".$$colour{B};
-	    }
-	    if(!$$stored_regions_ref{$key}){
-		unshift(@{$stripes}, \%stripe1);
-		$straight = $self->$region($reg_dom, $sizes{$region},$stripes);
-	    	$$stored_regions_ref{$key} = $straight;
-	    }
-	    $right = $left = 0;
-	    $straight = $$stored_regions_ref{$key};
+
+    my ($stripes, %stripe1) = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift, 1 );
+
+    if ( ref $stripes eq 'ARRAY' ) {
+
+      foreach my $colour (@{$stripes}){
+          $key .= "~".$$colour{R}."~".$$colour{G}."~".$$colour{B};
+      }
+      if(!$$stored_regions_ref{$key}){
+          unshift(@{$stripes}, \%stripe1);
+          $straight = $self->$region($reg_dom, $sizes{$region},$stripes);
+              $$stored_regions_ref{$key} = $straight;
+      }
+      $right = $left = 0;
+      $straight = $$stored_regions_ref{$key};
+
+    } else { 
+
+      #does the hash of stored images contain the smaller images?
+      if(!$$stored_regions_ref{$key}){
+          $straight = $self->$region($reg_dom, $sizes{$region}, \%colour1);
+          $$stored_regions_ref{$key} = $straight;
+      }
+      $right = $left = 0;
+      $straight = $$stored_regions_ref{$key};
+
+    }            
+
+    #	    my ($stripes, %stripe1) = $self->_get_colour_as_RGB( $xc->findnodes("pf:colour1/pf:colour")->shift, 1 );
+    #	    foreach my $colour (@{$stripes}){
+    #		$key .= "~".$$colour{R}."~".$$colour{G}."~".$$colour{B};
+    #	    }
+    #	    if(!$$stored_regions_ref{$key}){
+    #		unshift(@{$stripes}, \%stripe1);
+    #		$straight = $self->$region($reg_dom, $sizes{$region},$stripes);
+    #	    	$$stored_regions_ref{$key} = $straight;
+    #	    }
+    #	    $right = $left = 0;
+    #	    $straight = $$stored_regions_ref{$key};
 	    
 	    
 	}else{
