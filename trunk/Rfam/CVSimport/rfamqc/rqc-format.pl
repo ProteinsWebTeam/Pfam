@@ -327,6 +327,15 @@ sub desc_is_OK {
                         }
                         last SWITCH;
                     };
+		    /^DR   SO;\s+/ && do {
+                        if( !/^DR   SO;\s\S+\;$/ ) {
+                            warn "$family: Bad SO reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+			    #http://www.sequenceontology.org/miso/current_cvs/term/SO:0000655
+                        }
+                        last SWITCH;
+                    };
 		    
 		    /^DR   URL;\s+(\S+);$/ && do {
                        # warn "$family: Please check the URL $1\n";
@@ -339,7 +348,7 @@ sub desc_is_OK {
             };
             /^WK/ && do {
                 $fields{$&}++; 
-                if (! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+;$/){
+                if (! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+;$/ || ! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+$/){
                     warn "$family: WK lines should look like:\nWK   http:\/\/en.wikipedia.org\/wiki\/CRISPR;\nNot $_\n";
                     $error = 1;
                 }
