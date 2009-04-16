@@ -135,13 +135,14 @@ if($onlydesc){
       exit(1);
     }
   
+  
     unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
       exit(1);   
     }
 
     #pqc-check $family
   
-    unless(Bio::Pfam::PfamQC::noFragsInSeed($upFamObj)){
+    unless(Bio::Pfam::PfamQC::noFragsInSeed($upFamObj, $family)){
       exit(1);   
     }
   
