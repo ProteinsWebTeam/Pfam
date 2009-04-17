@@ -1,7 +1,7 @@
 #
 # BioPerl module for Bio::Pfam::PfamJobsDBManager
 #
-# $Author: jt6 $
+# $Author: rdf $
 #
 
 package Bio::Pfam::PfamJobsDBManager;
@@ -299,6 +299,16 @@ sub setStatus{
 #  } 
 #  carp("Did not find family information for $family") if $self->{'debug'};
 #}
+#
+
+#
+#sub getPfamSeedRegions {
+#  my($self, $seqRefs);
+#  my 
+#  
+#  
+#}
+#
 #
 #sub getPfamRegionsForSeq{
 #  my($self, $seq) = @_;
