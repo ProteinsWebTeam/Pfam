@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.15 2009-01-09 12:58:30 jt6 Exp $
+# $Id: Jump.pm,v 1.16 2009-04-20 13:10:21 rdf Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.15 2009-01-09 12:58:30 jt6 Exp $
+$Id: Jump.pm,v 1.16 2009-04-20 13:10:21 rdf Exp $
 
 =cut
 
@@ -101,32 +101,32 @@ sub guess_family : Private {
   my $found;
   if( $entry =~ m/^(PF\d{5})(\.\d+)?$/ ) {
     
-    return 'family' if $c->model('PfamDB::Pfam')
-                         ->find( { pfamA_acc => $1 } );
+    return 'family' if $c->model('PfamDB::Pfama')
+                         ->find( { pfama_acc => $1 } );
   } else {
     # a Pfam family ID ?
-    return 'family' if $c->model('PfamDB::Pfam')
-                         ->find( { pfamA_id => $entry } );
+    return 'family' if $c->model('PfamDB::Pfama')
+                         ->find( { pfama_id => $entry } );
   }
 
   # see if this could be a dead family
-  my @rs = $c->model('PfamDB::Dead_families')
-             ->search( [ { pfamA_acc => $entry },
-                         { pfamA_id  => $entry } ] );
+  my @rs = $c->model('PfamDB::DeadFamilies')
+             ->search( [ { pfama_acc => $entry },
+                         { pfama_id  => $entry } ] );
   return 'family' if scalar @rs;
   
   # or a Pfam-B accession ?
   if( $entry =~ m/^(PB\d{6})$/ ) {
 
-    return 'pfamb' if $c->model('PfamDB::PfamB')
-                        ->find( { pfamB_acc => $1 } );      
+    return 'pfamb' if $c->model('PfamDB::Pfamb')
+                        ->find( { pfamb_acc => $1 } );      
   }
     
   # maybe a Pfam-B ID ?
   if( $entry =~ m/^(PFAM-B_\d+)$/ ) {
 
-    return 'pfamb' if $c->model('PfamDB::PfamB')
-                        ->find( { pfamB_id => $1 } );
+    return 'pfamb' if $c->model('PfamDB::Pfamb')
+                        ->find( { pfamb_id => $1 } );
   }
   
 }
@@ -162,7 +162,7 @@ sub guess_sequence : Private {
   }
   
   # see if it's a secondary accession; a bit gnarly...
-  return 'protein' if $c->model('PfamDB::Secondary_pfamseq_acc')
+  return 'protein' if $c->model('PfamDB::SecondaryPfamseqAcc')
                         ->find( { secondary_acc => $1 },
                                 { join =>     [ qw( pfamseq ) ],
                                   prefetch => [ qw( pfamseq ) ] } );
@@ -170,7 +170,7 @@ sub guess_sequence : Private {
   # an NCBI GI number ?
   if( $entry =~ m/^(gi)?(\d+)$/ ) {
   
-    return 'ncbiseq' if $c->model('PfamDB::Ncbi_seq')
+    return 'ncbiseq' if $c->model('PfamDB::NcbiSeq')
                           ->find( { gi => $2 } );
   }
   
@@ -183,7 +183,7 @@ sub guess_sequence : Private {
   # an NCBI secondary accession ? Note: this was a really slow query when we
   # were being helpful and using "like", so it's the very last thing that
   # will be attempted and we're doing only an exact lookup
-  @rs = $c->model('PfamDB::Ncbi_seq')
+  @rs = $c->model('PfamDB::NcbiSeq')
              ->search( { secondary_acc => $entry } );
 #             ->search( { secondary_acc => { 'like', "$entry%" } } );
   return 'ncbiseq' if scalar @rs;
@@ -249,7 +249,7 @@ sub guess_proteome : Private {
   $c->log->debug( 'Search::Jump::guess_proteome: looking for a proteome...' )
     if $c->debug;
 
-  my @rs = $c->model( 'PfamDB::Proteome_species' )
+  my @rs = $c->model( 'PfamDB::GenomeSpecies' )
              ->search( [ { species   => $entry },
                          { ncbi_code => $entry } ] );
   
