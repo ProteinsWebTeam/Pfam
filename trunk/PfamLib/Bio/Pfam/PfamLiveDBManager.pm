@@ -346,6 +346,12 @@ sub updatePfamARegFull{
 #-------------------------------------------------------------------------------  
 #Now delete all regions in the two tables 
 
+ #The pdb region has a FK to pfamA_reg_full_significant so this need be deleted first.
+ $self->getSchema
+       ->resultset('PdbPfamaReg')
+        ->search( {auto_pfama => $auto} )
+          ->delete;
+
   $self->getSchema
         ->resultset('PfamaRegFullSignificant')
           ->search( { auto_pfama => $auto } )
@@ -552,7 +558,7 @@ sub updatePfamALitRefs{
 =cut
 
 
-sub updatePfamDBXrefs{
+sub updatePfamDbXrefs{
   my ( $self, $famObj ) = @_;
 
 #-------------------------------------------------------------------------------
