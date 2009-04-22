@@ -103,7 +103,7 @@ if($onlydesc){
   #AC
   
   #my $upFamObj = $familyIO->loadPfamADESCFromLocalFile($family, $pwd);
-  print STDERR "Successfully loaded $family thorugh middleware\n";
+  print STDERR "Successfully loaded $family through middleware\n";
   
   #Check the desc accessions are the same
   #if($upFamObj->DESC->AC ne $oldFamObj->DESC->AC){
@@ -117,10 +117,10 @@ if($onlydesc){
     exit(1);
   }
   my $upFamObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
-  print STDERR "Successfully loaded $family thorugh middleware\n";
+  print STDERR "Successfully loaded $family through middleware\n";
   
   my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
-  print STDERR "Successfully loaded remote $family thorugh middleware\n";
+  print STDERR "Successfully loaded remote $family through middleware\n";
 
   #AC present
   if($upFamObj->DESC->AC ne $oldFamObj->DESC->AC){
