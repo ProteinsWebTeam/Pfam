@@ -119,35 +119,36 @@ if($onlydesc){
   my $upFamObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
   print STDERR "Successfully loaded $family through middleware\n";
   
-  my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
+  #my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
+  my $oldFamObj;
   print STDERR "Successfully loaded remote $family through middleware\n";
 
   #AC present
-  if($upFamObj->DESC->AC ne $oldFamObj->DESC->AC){
-    die "Accession error, your local copy does not match the repository\n";  
-  }
+  #if($upFamObj->DESC->AC ne $oldFamObj->DESC->AC){
+  #  die "Accession error, your local copy does not match the repository\n";  
+  #}
 
 
   #These are more sanity checks
   unless($ignore){
-    unless(Bio::Pfam::PfamQC::sequenceChecker($upFamObj)){
+    unless(Bio::Pfam::PfamQC::sequenceChecker($family, $upFamObj)){
       print "pfci: $family contains errors.  You should rebuild this family.\n";
       exit(1);
     }
   
   
-    unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
-      exit(1);   
-    }
+    #unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
+    #  exit(1);   
+    #}
 
     #pqc-check $family
   
-    unless(Bio::Pfam::PfamQC::noFragsInSeed($upFamObj, $family)){
+    unless(Bio::Pfam::PfamQC::noFragsInSeed($family, $upFamObj)){
       exit(1);   
     }
   
   
-    unless(Bio::Pfam::PfamQC::nonRaggedSeed($upFamObj)){
+    unless(Bio::Pfam::PfamQC::nonRaggedSeed($family, $upFamObj)){
       exit; 
     }
   }
@@ -157,7 +158,7 @@ if($onlydesc){
   unless(Bio::Pfam::PfamQC::passesAllFormatChecks($upFamObj, $family)){
     exit(1); 
   }
-  exit;
+  
   #If we are at sanger, perform this prior to commit 
   
 
