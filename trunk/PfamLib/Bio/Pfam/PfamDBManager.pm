@@ -400,7 +400,7 @@ sub getOverlapingFullPfamRegions {
 
   my $dbh = $self->getSchema->storage->dbh;
   my $sth  = $dbh->prepare( "select seq_start, seq_end, pfamA_acc from pfamA a, pfamA_reg_full_significant r, pfamseq s where pfamseq_acc= ? and
-  ((? <= r.seq_start and ? >= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
+  ((? <= r.ali_start and ? >= r.ali_end) or ( ? >= r.ali_start and ? <= r.ali_end) or (? < r.ali_start and ? >r.ali_end))
   and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and pfamA_acc != ? and in_full=1") or confess $dbh->errstr;
   
 
@@ -662,6 +662,37 @@ sub getPfamARegFullByAuto {
 "Did not find region in pfamA_reg_full with auto_pfamA_reg_full '$auto_pfamA_reg_full'\n"
   ) if $self->{'debug'};
 
+}
+
+sub getNestedDomain {
+  my($self, $acc) = @_;
+  
+  #Look to see if the family exists
+  my $pfam = $self->getSchema->resultset("Pfama")->find( { pfama_acc => $acc } );
+   
+  my @nestedFams;
+  if ($pfam and $pfam->auto_pfamA){
+    #Now search Nested domains in either auto_pfamA or nests_auto_pfama
+    my @results = $self->getSchema
+                        ->resultset("NestedDomain")
+                          ->search( {[ { nests_auto_pfama => $pfam->auto_pfama },
+                                       { auto_pfama       => $pfam->auto_pfama } ] }); 
+    #Now store the other pfamA_acc
+    foreach my $r (@results){
+        if($r->auto_pfama ne $pfam->auto_pfama){
+          my $npfam = $self->getSchema
+                            ->resultset("Pfama")
+                              ->find( { auto_pfama => $r->auto_pfama} );
+          push(@nestedFams, $npfam->pfama_acc);
+        }else{
+          my $npfam = $self->getSchema
+                            ->resultset("Pfama")
+                              ->find( { auto_pfama => $r->nests_auto_pfama} );
+          push(@nestedFams, $npfam->pfama_acc);
+        }
+    }
+  }
+  return \@nestedFams;
 }
 
 #Specific insert/update methods should go here
