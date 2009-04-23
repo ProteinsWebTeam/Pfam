@@ -40,7 +40,7 @@ if( !Bio::Pfam::PfamQC::checkFamilyFiles( $family) ){
 }
   
 my $famObj = $familyIO->loadPfamAFromLocalFile($family, $pwd);
-print STDERR "Successfully loaded $family thorugh middleware\n";
+print STDERR "Successfully loaded $family through middleware\n";
 
 unless(Bio::Pfam::PfamQC::passesAllFormatChecks($famObj, $family)){
     exit(1); 
