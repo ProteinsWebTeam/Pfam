@@ -671,12 +671,12 @@ sub getNestedDomain {
   my $pfam = $self->getSchema->resultset("Pfama")->find( { pfama_acc => $acc } );
    
   my @nestedFams;
-  if ($pfam and $pfam->auto_pfamA){
+  if ($pfam and $pfam->auto_pfama){
     #Now search Nested domains in either auto_pfamA or nests_auto_pfama
     my @results = $self->getSchema
-                        ->resultset("NestedDomain")
-                          ->search( {[ { nests_auto_pfama => $pfam->auto_pfama },
-                                       { auto_pfama       => $pfam->auto_pfama } ] }); 
+                        ->resultset("NestedDomains")
+                          ->search( [ { nests_auto_pfama => $pfam->auto_pfama },
+                                      { auto_pfama       => $pfam->auto_pfama } ] ); 
     #Now store the other pfamA_acc
     foreach my $r (@results){
         if($r->auto_pfama ne $pfam->auto_pfama){
