@@ -558,7 +558,7 @@ sub updatePfamALitRefs{
 =cut
 
 
-sub updatePfamDbXrefs{
+sub updatePfamADbXrefs{
   my ( $self, $famObj ) = @_;
 
 #-------------------------------------------------------------------------------
@@ -676,7 +676,7 @@ sub updatePfamANested{
                         ->find({ pfamseq_acc => $seqAcc,
                                  seq_version => $version });    
         
-      unless($seq and $seq->auto_pfama){
+      unless($seq and $seq->auto_pfamseq){
         confess('Could not find sequence '. $n->{seq}.' in the pfamseq table');  
       }
       
@@ -688,7 +688,7 @@ sub updatePfamANested{
       $self->getSchema
         ->resultset('NestedLocations')
           ->create({ auto_pfama => $auto,
-                     nests_auto_pfama => $otherAuto,
+                     nested_auto_pfama => $otherAuto,
                      nested_pfama_acc => $otherPfamA->pfama_acc,
                      pfamseq_acc      => $seq->pfamseq_acc,
                      seq_version      => $seq->seq_version,
@@ -747,7 +747,7 @@ sub updateEdits {
       unless($seq and $seq->auto_pfamseq) {
         confess('Could not find sequence '.$n->{seq}.' in the pfamseq table');  
       }
-    
+
       $self->getSchema
             ->resultset('Edits')
               ->create( { auto_pfama     => $auto,
