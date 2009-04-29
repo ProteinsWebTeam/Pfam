@@ -155,11 +155,11 @@ sub getClanMembership {
   if ( $clan =~ /CL\d{4}/ ) {
     carp("Looking up information for $clan. I think this is an accession")
       if $self->{'debug'};
-    @clanData = $self->getSchema->resultset("Clan_membership")->search(
-      { "clans.clan_acc" => $clan },
+    @clanData = $self->getSchema->resultset("ClanMembership")->search(
+      { "auto_clan.clan_acc" => $clan },
       {
-        join     => [qw/clans pfam/],
-        prefetch => [qw/clans pfam/]
+        join     => [qw/auto_clan auto_pfama/],
+        prefetch => [qw/auto_clan auto_pfama/]
       }
     );
 
@@ -168,10 +168,10 @@ sub getClanMembership {
     carp("Looking up information for $clan. I think this is an id")
       if $self->{'debug'};
     @clanData = $self->getSchema->resultset("Clan_membership")->search(
-      { "clans.clan_id" => $clan },
+      { "auto_clan.clan_id" => $clan },
       {
-        join     => qw( clans pfam ),
-        prefetch => qw( clans pfam )
+        join     => qw( auto_clan auto_pfama ),
+        prefetch => qw( auto_clan auto_pfama )
       }
     );
   }
@@ -680,10 +680,12 @@ sub getNestedDomain {
     #Now store the other pfamA_acc
     foreach my $r (@results){
         if($r->auto_pfama ne $pfam->auto_pfama){
-          my $npfam = $self->getSchema
+           my $npfam = $self->getSchema
                             ->resultset("Pfama")
                               ->find( { auto_pfama => $r->auto_pfama} );
-          push(@nestedFams, $npfam->pfama_acc);
+           if($npfam){
+              push(@nestedFams, $npfam->pfama_acc);
+           }
         }else{
           my $npfam = $self->getSchema
                             ->resultset("Pfama")
