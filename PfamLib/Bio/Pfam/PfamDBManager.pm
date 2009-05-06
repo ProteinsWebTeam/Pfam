@@ -224,7 +224,7 @@ sub getAllPfamFamilyData {
   my ($self) = @_;
   my @familyData;
   carp("Looking up information for all families.") if $self->{'debug'};
-  @familyData = $self->getSchema->resultset("Pfam")->search();
+  @familyData = $self->getSchema->resultset("Pfama")->search();
 
   if (@familyData) {
     carp("Found family data") if $self->{'debug'};
@@ -232,6 +232,22 @@ sub getAllPfamFamilyData {
   }
   else {
     carp("Failed to get family data") if $self->{'debug'};
+
+  }
+}
+
+sub getAllDeadFamilyData {
+  my ($self) = @_;
+  my @familyData;
+  carp("Looking up information for all dead families.") if $self->{'debug'};
+  @familyData = $self->getSchema->resultset("DeadFamilies")->search();
+
+  if (@familyData) {
+    carp("Found dead family data") if $self->{'debug'};
+    return ( \@familyData );
+  }
+  else {
+    carp("Failed to get dead family data") if $self->{'debug'};
 
   }
 }
