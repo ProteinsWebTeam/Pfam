@@ -4,25 +4,25 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: changes.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start changes block -->
 
 <div class="block" id="helpChangesBlock">
   <div class="handle">
-    <h1>Pfam Changes</h1>
+    <h1>Rfam Changes</h1>
   </div>
   <div class="blockContent">
   
     <p>
-      This section details the changes that we plan to make or have made to Pfam.
+      This section details the changes that we plan to make or have made to Rfam.
       This includes changes to the flatfiles, MySQL database and the public 
       website.
     </p>
     <hr />
     
-    <h2>Latest changes to Pfam data</h2>
+    <h2>Latest changes to Rfam data</h2>
 
     [%- # all changelog entries are stored in the "changelog.conf" config
         # file. Each entry is a hash value, keyed on the epoch time of the

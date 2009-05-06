@@ -5,7 +5,7 @@
 # 
 # privacy information for the site
 #
-# $Id: privacy.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: privacy.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start privacy block -->
@@ -17,11 +17,11 @@
   <div class="blockContent">
 
     <p>
-      This section outlines the ways in which the Pfam website handles 
+      This section outlines the ways in which the Rfam website handles 
       information about users. This should not be read as a legal document, but 
       as a description of how we handle information that could be considered 
       sensitive. It should be read in conjunction with the privacy policy 
-      documents of the individual Pfam consortium member sites. If you have any 
+      documents of the individual Rfam consortium member sites. If you have any 
       concerns about the way that information is used in the website, please 
       contact us at the address given at the bottom of the page and we will be 
       more than happy to discuss your concerns.
@@ -31,7 +31,7 @@
       that it manipulates safe and secure, we make <strong>no claim</strong> to 
       be able to protect sensitive or privileged information. If you are at all 
       concerned about sensitive information being released, please do not use 
-      the site and consider installing the Pfam database and/or this website 
+      the site and consider installing the Rfam database and/or this website 
       locally.
     </p>
     
@@ -42,26 +42,26 @@
       includes keeping a record of every request that they serve, usually along
       with the <a class="ext" href="http://en.wikipedia.org/wiki/IP_address">
         IP address</a> of the client that made the request. This is true of the
-      web servers that host the Pfam websites.
+      web servers that host the Rfam websites.
     </p>
     <p>
       Although our servers do collect information about your IP address during 
-      the normal process of serving the Pfam website, we do not use this 
-      information explicitly. The Pfam group uses server logs
+      the normal process of serving the Rfam website, we do not use this 
+      information explicitly. The Rfam group uses server logs
       <strong>only</strong> to help with development and debugging of the site.
     </p>
     
     <h2>Searches</h2>
 
     <p>
-      The sequence search feature of the site allows you to upload a protein
-      or DNA sequence to be searched against our library of HMMs. The 
+      The sequence search feature of the site allows you to upload a DNA or
+      or RNA sequence to be searched against our library of CMs. The 
       sequence that you upload is stored in a database and is retrieved by a
       set of scripts that actually perform the search. Although we do not 
       have any information that could be used to link that sequence to you 
       personally, you should be aware that the sequence itself <strong>is 
         accessible</strong> to systems administrators and other users who 
-      maintain the Pfam site.
+      maintain the Rfam site.
     </p>
     <p>
       The batch search function allows you to submit larger searches, the 
@@ -88,7 +88,7 @@
       personally and cannot be used to track your usage of the site.
     </p>
     <p>      
-      If you are at all concerned about the use of cookies in the Pfam site, 
+      If you are at all concerned about the use of cookies in the Rfam site, 
       you are free to block all cookies from this site and you should not 
       experience any problems. You may see some unintended behaviour, such as 
       being notified of all new features every time you visit the index page, 
@@ -100,7 +100,7 @@
     <p>
       This site makes heavy use of javascript and relies on javascript libraries
       that are developed by various groups and companies. In order to improve
-      the performance of the Pfam website, we no longer serve these files 
+      the performance of the Rfam website, we no longer serve these files 
       ourselves, but rely on files that are hosted on third-party web-servers. 
       In particular, we use various files that are provided by the  
       <a class="ext" href="http://code.google.com/apis/ajaxlibs/">AJAX libraries APIs</a>,
@@ -114,7 +114,7 @@
     <p>
       As these services are provided by commercial sites, it's likely that their
       usage will be carefully monitored by the companies that provide them. 
-      Although the Pfam site does not pass any information about you to these 
+      Although the Rfam site does not pass any information about you to these 
       third-party sites, the sites themselves may use cookies to track your 
       usage of the files that they serve. If you are concerned about the 
       privacy implications of this monitoring, you may want to block cookies 

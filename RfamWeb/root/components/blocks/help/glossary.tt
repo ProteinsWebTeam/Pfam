@@ -4,185 +4,124 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: glossary.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start glossary.tt block -->
 
 <div class="block" id="helpGlossaryBlock">
   <div class="handle">
-    <h1>Glossary of terms used in Pfam</h1>
+    <h1>Glossary of terms used in Rfam</h1>
   </div>
   <div class="blockContent">
 
     <p>
-      These are some of the commonly used terms in the Pfam website.			
+      These are some of the commonly used terms in the Rfam website.			
     </p>
 
-    <h3>Architecture</h3>
-    
-    <p>The collection of domains that are present on a protein.</p>
+<h3>ClustalW</h3>
 
-    <h3>Build method</h3>
-    
-    <p>
-      The order that the ls (global) and fs (fragment) matches are aligned to 
-      the model to give the full alignment. The build method can be global first, 
-      where ls matches are aligned first followed by fs matches that do not 
-      overlap, byscore, where matches are aligned in order of evalue score, or 
-      localfirst, where fs matches are aligned first followed by ls matches that 
-      do not overlap.
-    </p>
+A general purpose multiple sequence alignment program for DNA(RNA)
+which we use while building our SEED alignments. See the <a
+href="http://www.clustal.org/">Clustal web server</a>.
 
-    <h3>Clan</h3>
+<h3>Covariance model (CM)</h3>
 
-    <p>
-      A collection of related Pfam entries. The relationship may be defined 
-      by similarity of sequence, structure or profile-HMM.
-    </p>
+A secondary structure profile for a RNA structural alignment (also
+called profile stochastic context-free grammars).
 
-    <h3>Domain</h3>
-    
-    <p>
-      A structural unit which can be found in multiple protein contexts.
-    </p>
+<h3>Family</h3>
 
-    <h3>Domain score</h3>
-    
-    <p>
-      The score of a single domain aligned to a HMM. If there is more than one 
-      domain, the sequence score is the sum of all the domain scores for that 
-      Pfam entry. If there is only a single domain, the sequence and the 
-      domains score for the protein will be identical.
-    </p>
+A group of RNA sequences which we believe are related by evolution in
+sequence or secondary structure.
 
-    <h3>DUF</h3>
-    
-    <p>
-      Domain of unknown function.
-    </p>
 
-    <h3>Family</h3>
-    
-    <p>
-      A collection of related proteins.
-    </p>
+<h3>FULL alignment</h3>
 
-    <h3>Full alignment</h3>
-    
-    <p>
-      An alignment of the set of related sequences which score higher than 
-      the manually set threshold values for the HMMs of a particular Pfam 
-      entry.
-    </p>
+An alignment of the set of related sequences which score higher than
+the manually set threshold values for the CMs of a particular Rfam
+family.
 
-    <h3>Gathering threshold (GA)</h3>
-    
-    <p>
-      Also called the gathering cut-off, this value is the search threshold 
-      used to build the full alignment. The GA is the minimum score a sequence 
-      must attain in order to belong the the full alignment of a Pfam entry. 
-      For each Pfam HMM we have two GA cutoff values, a sequence cutoff and 
-      a domain cutoff.
-    </p>
+<h3>Gathering cut off (GA)</h3>
 
-    <h3>Hidden Markov model (HMM)</h3>
-    
-    <p>
-      A HMM is a probablistic model. In Pfam we use HMMs to transform the 
-      information contained within a multiple sequence alignment into a 
-      position-specific scoring system. We search our HMMs against the 
-      <a class="ext "href="http://www.uniprot.org/index.shtml">(UniProt)</a>
-      protein database to find homologous sequences.
-    </p>
+The bit score gathering threshold set by our curators when building
+the family. All sequences that score at or above this threshold will
+be included in the full alignment.
 
-    <h3>HMMER2</h3>
-    
-    <p>
-      The suite of programs that Pfam uses to build and search HMMs. See 
-      the <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site.
-    </p>
 
-    <h3>iPfam</h3>
-    
-    <p>
-      A resource that describes domain-domain interactions that are observed 
-      in PDB entries. Where two or more Pfam domains occur in a single 
-      structure, it analyses them to see if the are close enough to form an 
-      interaction. If they are close enough it calculates the bonds forming 
-      the interaction.
-    </p> 
+<h3>Infernal</h3>
 
-    <h3>Metaseq</h3>
-    
-    <p>
-      A collection of sequences derived from various metagenomics datasets.
-    </p>
+Infernal is the core software which enables us to make consensus RNA
+secondary structure profiles (covariance models (CMs)) for our
+families and the searching of sequence databases for homologous
+RNAs. See the<a href="http://infernal.janelia.org/"> Infernal
+</a>site.</dd> 
 
-    <h3>Motif</h3>
-    
-    <p>
-      A short unit found outside globular domains.
-    </p>
+<h3>Mfold</h3>
 
-    <h3>Noise cutoff (NC)</h3>
-    
-    <p>
-      The bit scores of the highest scoring match not in the full alignment.
-    </p>
+RNA structure prediction algorithm which utilises minimum free energy
+information. See the <a
+href="http://frontend.bioinfo.rpi.edu/applications/hybrid/quikfold.php>Mfold
+webserver</a>.
 
-    <h3>Pfam-A</h3>
-    
-    <p>
-      A HMM based hand curated Pfam entry which is built using a small number 
-      of representative sequences. We manually set a threshold value for each
-      HMM and search our models against the 
-      <a class="ext" href="http://www.uniprot.org/">UniProt</a> database. All of the 
-      sequnces which score above the threshold for a Pfam entry are included in 
-      the entry's full alignment.
-    </p>
+<h3>Pfold</h3>
 
-    <h3>Pfam-B</h3>
-    
-    <p>
-      An automatically generated alignment which is formed by an alignment 
-      from the <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
-          class="ext">ADDA</a>
-      database and removing Pfam-A residues from them. Since Pfam-B families 
-      are automatically generated we recommend that you verify that the 
-      sequences in a Pfam-B are related, using other methods such as BLAST.
-    </p>
+RNA folding software which folds alignments using a SCFG (Stochastic
+Context-Free Grammars) trained on rRNA alignments. It takes an
+alignment of RNA sequences as input and predicts a common structure
+for all sequences. See the <a
+href="http://www.daimi.au.dk/~compbio/rnafold/">Pfold webserver</a>.
 
-    <h3>Repeat</h3>
-    
-    <p>
-      A short unit which is unstable in isolation but forms a stable structure 
-      when multiple copies are present.
-    </p>
+<h3>Rfamseq</h3>
 
-    <h3>Seed alignment</h3>
-    
-    <p>
-      An alignment of a set of representative sequences for a Pfam entry. We 
-      use this alignment to construct the HMMs for the Pfam entry.
-    </p> 
+The underlying nucleotide sequence database on which Rfam is based. It
+is derived from the <a href="http://www.ebi.ac.uk/embl/"> EMBL
+nucleotide database</a>.
 
-    <h3>Sequence score</h3>
-    
-    <p>
-      The total score of a sequence aligned to a HMM. If there is more than 
-      one domain, the sequence score is the sum of all the domain scores for 
-      that Pfam entry. If there is only a single domain, the sequence and the 
-      domains score for the protein will be identical. We use the sequence 
-      score to determine whether a sequence belongs to the full alignment of 
-      a particular Pfam entry.
-    </p>
+<h3>RNAalifold</h3>
 
-    <h3>Trusted cutoff (TC)</h3>
-    
-    <p>
-      The bit scores of the lowest scoring match in the full alignment.
-    </p>
+Folds precomputed alignments using a combination of free-energy and a
+covariation measures. This is obtained with the <a
+href="http://www.tbi.univie.ac.at/~ivo/RNA/">Vienna package</a>.
+  
+<h3>SEED alignment</h3>
+
+A manually curated sample of representative sequences for an
+family. These sequences are aligned and annotated with a consensus
+secondary structure. This alignment is used to build the covariance
+model for the family.
+
+<h3>Sequence region</h3>
+
+A single segment of nucleotide sequence in our alignments. Multiple
+sequence regions from a single EMBL sequence may be in the same
+family.
+
+<h3>Type</h3>
+
+A simple functional classification we use for our families. This is
+our own ontology and does not current directly relate to the
+ontologies used by other databases. For a full list of our current
+ontologies see the help section on <span class="link"
+onclick="switchTab('helpgetStartedBlock');"> searching by family
+type</span>.
+
+<h3>Stockholm format</h3>
+
+A multiple sequence alignment format used by Rfam (and Pfam) to
+disseminate protein and RNA sequence alignments. For more information
+see the<a
+href="http://en.wikipedia.org/wiki/Stockholm_format"> wikpeida
+article</a>.
+
+<h3>WAR</h3>
+
+A software tool which enables us to simultaneously run several
+different methods for performing multiple alignment and secondary
+structure prediction for noncoding RNA sequences. See the <a
+href="http://genome.ku.dk/resources/war"> War</a> site.
+
+  
 
   </div>
 </div>

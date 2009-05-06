@@ -4,241 +4,326 @@
 # 
 # build the getStarted block for the help pages
 #
-# $Id: getStarted.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: getStarted.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start getStarted block -->
 
-<div class="block" id="helpGetStartedBlock">
+<div class="block" id="helpgetStartedBlock">
   <div class="handle">
-    <h1>Getting Started using Pfam</h1>
+    <h1>How to search Rfam</h1>
   </div>
   <div class="blockContent">
     
-    <img class="jumpTo" 
-         src="[% c.uri_for( "/static/images/jumpTo.gif" ) %]" 
-         alt="jump to..." />
+<p> 
 
-    <h2>Using the &quot;Jump to&quot; search</h2>
+In addition to the quick links on the home page every page in the Rfam
+site includes a "search" link in the page header which you can use to
+access all of the search methods we offer:
 
-    <p>
-      Many pages in the site include a small search box, entitled &quot;Jump 
-      to...&quot;. The &quot;Jump to...&quot; box allows you to go immediately
-      to the page for any entry in the Pfam site entry, including Pfam families, 
-      clans and UniProt sequence entries.
-    </p>
-    <p>
-      The &quot;Jump to...&quot; search understands accessions and IDs for
-      most types of entry. For example, you can enter either a Pfam family 
-      accession, e.g. <code>PF02171</code>, or, if you find it easier to 
-      remember, a family ID, such as <code>piwi</code>. Note that the search 
-      is case insensitive.
-    </p>
-    <p>
-      Because some identifiers can be ambiguous, the &quot;Jump to...&quot; 
-      search may need to test several types of identifier to find 
-      the entry that you're looking for. For example, Pfam A family IDs (e.g. 
-      Kazal_1) and Pfam clan IDs (e.g. Kazal) aren't easily distinguished, so 
-      if you enter <code>kazal</code>, the search will first look for a 
-      family called <em>kazal</em> and, if it doesn't find one, will then 
-      look for a clan called <em>kazal</em>. If all of the guesses fail, you'll 
-      see an error message saying &quot;Entry not found&quot;.
-    </p>
-    <p>
-      The order in which the search tries the various types of ID and accession
-      is given below:  
-    </p>
+</p>
+<ul>
+<li><a href="#seqsearch">single sequence search</a></li>
+<li><a href="#seqsearch">batch sequence search</a></li>
+<li><a href="#keyword">keyword search</a></li>
+<li><a href="#taxonomy">taxonomy search</a></li>
+<li><a href="#type">search by family type</a></li>
+<li><a href="#jumpto">jump to search</a></li>
+</ul>
+
+Alternatively, every page in the Rfam site includes a "browse" link in
+the page header which you can use to browse the Rfam families by name
+or our genome annotations by species.
+
+</p>
+<ul>
+<li><a href="#browsefamilies">Browse by family name</a></li>
+<li><a href="#browsegenomes">Browse genome annotations</a></li>
+</ul>
+
+<hr />
+
+#    <img class="jumpTo" 
+#         src="[% c.uri_for( "/static/images/jumpTo.gif" ) %]" 
+#         alt="jump to..." />
+
+<h2><a name="jumpto">Using the &quot;Jump to&quot; search</a></h2>
+
+<p>
+Many pages in the site include a small search box, entitled
+"Jump to...". The "Jump to..." box allows you to go immediately to the
+page for any entry in the Rfam site. This is primarily useful when you
+know the family or the sequence accession you are interested in.
+</p>
+<p>
+The "Jump to..." search understands Genbank/EMBL accessions
+and Rfam family accessions and identifiers for most types of entry.
+For example to find a particular family, you can enter either an Rfam
+family accession, e.g., 'RF00198' or, if you find it easier to remember,
+a family ID, such as 'SL1'. This will take you to the main entry for
+this family.  Note that the search is case insensitive.  Searches for
+family identifiers such as 'RNase' or 'mrp' will be too ambiguous and
+you will get an error "Couldn't guess entry". In this case you need to
+specify the the full family name, e.g., RNase_mrp'. If you want to
+search with an ambiguous family identifier use the keyword search
+instead.
+</p>
+<p> 
+Alternatively, if you are interested in the annotations to a
+particular sequence or genome you can use the Genbank/EMBL accession,
+e.g., 'AE017225' and you will be taken to a list of the relevant Rfam
+family annotations to this sequence. This also works for EMBL CON files, 
+e.g. 'CM000428';
+</p> 
+<p> 
+The order in which the search tries to match your query term
+against the various types of ID and accession in the database is given
+below:
+</p> 
+      <ul>
+      <li>Rfam accession, e.g., RF00198</li>
+      <li>Rfam identifier, e.g., SL1</li>
+      <li>Genome Genbank/EMBL accession, e.g., AE017225</li>
+      <li>Sequence Genbank/EMBL accession e.g., AF325543</li>
+      </ul> 
+<p> 
+If all of the guesses fail, you'll see an error
+message saying "Entry not found".  
+</p>
+
+<hr />
+    
+#    <img class="jumpTo" 
+#         src="[% c.uri_for( "/static/images/kwSearch.gif" ) %]" 
+#         alt="keyword search" />
+
+<h2><a name="keyword">Keyword search</a></h2>
+    
+<p>Each page in the Rfam site contains a keyword search box in the
+header.  This is the broadest text search we offer and you can use
+this to find all Rfam families which match a particular keyword. The
+search will try to match your query term against several different
+sections of the Rfam database: </p>
     <ul>
-      <li>Pfam A accession, e.g. PF02171</li>
-      <li>Pfam A identifier, e.g. piwi</li>
-      <li>Pfam B accession, e.g. PB000001</li>
-      <li>Pfam B identifier, e.g. Pfam-B_1</li>
-      <li>UniProt sequence accession, e.g. P00789</li>
-      <li>UniProt sequence ID, e.g. CANX_CHICK</li>
-      <li>NCBI &quot;GI&quot; number, e.g. 113594566</li>
-      <li>NCBI secondary accession, e.g. BAF18440.1</li>
-      <li>Pfam clan accession, e.g. CL0005</li>
-      <li>metaseq ID, e.g. JCVI_ORF_1096665732460</li>
-      <li>metaseq accession, e.g. JCVI_PEP_1096665732461</li>
-      <li>Pfam clan accession, e.g. CL0005</li>
-      <li>Pfam clan ID, e.g. Kazal</li>
-      <li>PDB entry, e.g. 2abl</li>
-      <li>Proteome species name, e.g. Homo sapiens</li>
+     <li>text fields for Rfam families, e.g., family descriptions and identifiers</li>
+     <li>Rfam associated Wikipedia entries</li>
+     <li>Literature reference titles and authors</li>
+     <li>PDB structures</li>
     </ul>
+    
+<p> Your keyword should be a simple text string (letters and numbers)
+however underscores, hyphens, periods and spaces are also
+accepted. Wildcard terms are not necessary as the search system will
+add wildcards to the end of your search terms.  If in doubt use the
+shortest text string you can and you will receive the widest set of
+possible matches. You can then sort the results and refine your search
+if needed.  Do remember that keyword search tries to match against all
+of the sections of the database including the Wikipedia article so if
+your term is mentioned in the family description text you will also
+get a match. If you search with two terms at once your will only
+receive a result if a match is found for both terms.
+</p>
+<p>
+If a match is found the search returns a single page with a summary of
+all the matches found to your query term in all sections of the
+database.
 
-    <hr />
-    
-    <img class="jumpTo" 
-         src="[% c.uri_for( "/static/images/kwSearch.gif" ) %]" 
-         alt="keyword search" />
+</p>
 
-    <h2>Keyword search</h2>
-    
-    <p>
-      Every page in the Pfam site includes a search box in the page header.
-      You can use this to find Pfam A families which match a particular keyword.
-      The search includes several different areas of the Pfam database:
-    </p>
-    <ul>
-      <li>text fields in Pfam entries, e.g. family descriptions</li>
-      <li>UniProt sequence entry description and species fields</li>
-      <li><code>HEADER</code> and <code>TITLE</code> fields from PDB entries</li>
-      <li>Gene Ontology IDs and terms</li>
-      <li>InterPro entry abstracts</li>
-    </ul>
-    <p>
-      Each Pfam A entry is listed only once in the results table, although it
-      might have been found in more than one area of the database.
-    </p>      
+<h3>A brief explanation of the results page:</h3>
 
-    <hr />
-    
-  	<h2>Searching a protein sequence against Pfam</h2>
-  
-  	<p>
-  	  Searching a protein sequence against the Pfam library of HMM
-  	  will allow you to find out the domain architecture of the
-  	  protein.
-  	</p>
-  
-  	<h3>Single protein search</h3>
-  
-  	<p>
-  	  If your protein is present in the version of UniProt we used to
-  	  make the current release of Pfam, we have already calculated its
-  	  domain architecture which you can access by entering the Uniprot
-  	  accession or id on the Pfam homepage. If your protein is new,
-  	  you will need to paste the protein sequence into the search page
-  	  and we will search your sequence against our HMMs and display
-  	  the matches for you.
-  	</p>
-  
-  	<h3>Medium scale protein searches (fewer than 5,000 sequences)</h3>
-  
-  	<p>
-  	  If you have a few thousand protein searches to do, you can use
-  	  our batch upload facility to upload a file of your sequences in
-  	  FASTA format. We will run them against our HMMs and email the
-  	  results back to you, usually within 48 hours. We request that
-  	  you to put a maximum of 1000 sequences in each file.
-  	</p>
-  
-  	<h3>Large scale protein searches (more than 5,000 sequences)</h3>
-  
-  	<p>
-  	  If you have a large number of protein searches, it may be more
-  	  convenient to run Pfam locally. To do this you will need the
-  	  HMMER2 software, the Pfam HMM libraries and a couple of
-  	  additional files from the Pfam website.
-  	</p>
-  
-  	<ol>
-  	  <li>
-    		<a class="ext" href="http://hmmer.janelia.org/">Download</a> the HMMER2 
-        software.
-  	  </li>
-  	  <li>
-    		<p>
-          Download the Pfam files Pfam_ls, Pfam_fs, Pfam_ls.bin, Pfam_fs.bin, 
-          Pfam_ls.bin.ssi, Pfam_fs.bin.ssi, Pfam-A.seed and Pfam-C from the 
-          <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">
-            ftp site</a>.
-    		</p>
-    		<p>
-    		  These files contain the HMMs and additional information that is
-    		  required to carry out the searches.
-    		</p>
-  	  </li>
-  	  <li>
-    		<p>
-    		  Download a copy of pfam_scan.pl from the
-          <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/">
-            ftp site</a>. 
-    		</p>
-    		<p>
-    		  This is a wrapper script around hmmpfam, the HMMER program
-    		  that searches query sequences against a library of profile
-    		  HMMs.  If perldoc is installed, more detailed instructions
-    		  on how to use pfam_scan.pl can be found by typing on the
-    		  command line 'perldoc pfam_scan.pl'.
-    		</p>
-  	  </li>
-  	  <li>
-    		<p>
-    		  On the command line enter:
-    		</p>
-    		<code>pfam_scan.pl  &#45;d  &#60;directory_location_of_Pfam&#62; &#60;files fasta_file_of_proteome&#62;</code>
-    		<p>
-    		  For example if the files were downloaded into a folder
-    		  called pfam_files, and the FASTA sequences were in a file
-    		  called sequences.fasta, type:
-    		</p>
-    		<code>pfam_scan.pl -d pfam_files sequences.fasta</code>
-    		<p>
-    		  <code>pfam_scan.pl</code> will search the FASTA sequences
-    		  against the profile HMMs and report all matches to families
-    		  that score higher than the manually set thresholds for each
-    		  of the Pfam families. The output format will look something
-          like this:
-    		</p>
-    		<code>
-    		  &lt;seq_id&gt; &lt;seq_start&gt; &lt;seq_end&gt; &lt;hmm_acc&gt; &lt;hmm_start&gt; &lt;hmm_end&gt; &lt;bit_score&gt; &lt;evalue&gt; &lt;hmm_name&gt;
-    		</code>
-    		<p>
-    			e.g.
-    		</p>
-    		<pre>
-O00519     95       562     PF01425.9       1      513      526.5     2.6e-155  Amidase
-O01636     22       139     PF02408.8       1      137      157.3     3.6e-44   DUF141
-O03046     12       137     PF02788.5       1      132      295.2     1.1e-85   RuBisCO_large_N
-    		</pre>
-      </li>
-  	</ol>
-  
-  	<h3>Proteome analysis</h3>
-  
-  	<p>
-  	  Pfam pre-calculates the domain architecture for the proteomes
-  	  present in <a class="ext"
-  	  href="http://www.ebi.ac.uk/integr8/EBI-Integr8-HomePage.do">Integr8</a>. To
-  	  see the list of proteomes, visit the genomes page within the
-  	  Pfam website. From here you will be able to access a table
-  	  showing the Pfam families that are found in a particular
-  	  proteome, a short description of each of those famillies and the
-  	  number of proteins that match each family. Links from these
-  	  pages will allow you to investigate particular proteins
-  	  further. You can also compare two proteomes and out which
-  	  protein families are shared between the proteomes, and which are
-  	  unique to a particular proteome.
-  	</p>
-  	<p>
-  	 The taxonomy query allows allows quick identification of
-  	 families/domains which are present in one species but are absent
-  	 from another. It can also be used to find families/domains that
-  	 are unique to a particular species (note this can be very slow).
-  	</p>
-  
-    <hr />
-    
-  	<h2>Finding proteins with a specific set of domain 
-      combinations (&#39;architectures&#39;)</h2>
-  
-  	<p>
-  	  Pfam allows you to retrive all the proteins with a particular
-  	  domain combination (e.g. proteins containing both a CBS domain
-  	  and an IMPDH domain) by using the domain query tool. For a more
-  	  detailed study of domain architectures you should use <a class="ext"
-  	  href="http://pfamalyzer.sbc.su.se/pfamalyzer/">PfamAlyzer</a>,
-  	  a tool that is hosted from the Swedish Pfam site. PfamAlyzer
-  	  allows the user to find proteins which contain a specific
-  	  combination of domains, and it allows the user to specify
-  	  particular species and the distances allowed between domains.
-  	</p>
-  
-  </div>
+<p> 
+The query term you used is reported and if the term you used exactly
+matched a family ID or accession, this is also reported. This text is
+followed by a small table which provides a summary of where the matches
+to the query term were found in each section of the database.
+</p>
+<p>
+The larger table that follows provides links to each of the
+families that have a match to your query in at least one section of
+the database. Each family with a match is listed only once in the
+results table although it may have matches in more than one section of
+the database. For each family with a match we report :
+</p>
+  <ul>
+  <li>family accession - you can follow this link to take you to the family page</li>
+  <li>family identifier - you can follow this link to take you to the family page</li> 
+  <li>family description line</li>
+  <li>1-4 columns specifying which of the sections of the database the match to this family was found in </li>
+  </ul>
+<p>
+If your query term does not match any data in the database
+you will be taken to a 'no results' page which will offer you tips on
+how to refine your search.
+</p>
+
+    <hr/>
+
+<h2><a name="seqsearch">Sequence search</a></h2>
+<p>
+Searching a nucleotide sequence (DNA or RNA) against the Rfam library
+of covariance models will identify any regions in your sequence we
+would classify as belonging to one our RNA families. The search will
+accept DNA or RNA sequence.
+</p>
+
+<h3>Single sequence search</h3>
+
+<p>
+If your sequence is in the EMBL release that Rfamseq is based on then your
+sequence will already be searched and annotated.  You can use the
+Genbank/EMBL accession in a 'look up sequence box' on the sequence
+search page or a "jump to" box. Simply paste the accession number into
+the box.  The accession version number is not required. 
+</p>
+<p>
+You can find out which version of EMBL we are currently using in the
+release README file on our <a
+href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">ftp site</a>.
+</p>
+ 
+<h3>Medium scale batch searches (less than 1,000 sequences)</h3>
+<p>
+
+If you have multiple nucleotide sequences to search you can use our
+batch upload facility to upload a file of your sequences in FASTA
+format. Information on the format for this file can be found under the
+more link <a href="http://rfam.sanger.ac.uk/search">here</a>. We will
+search your sequences against our library of CMs and email the results
+back to you, usually within 48 hours. We request that you search a
+maximum of 1000 sequences in each file. Each sequence may be up to 200
+kb in length.
+
+</p>
+ 
+<h3>Large scale batch searches (more than 1,000 sequences)</h3>
+<p>
+If you have a large number of nucleotide searches, it may be more
+convenient to run Rfam locally. You should read the help pages on <span class="link" onclick="switchTab('helpGenomeAnnotBlock');">running Rfam locally</span>.
+</p>
+
+<hr/>
+
+<h2><a name="type">Search by entry type</a></h2> 
+
+<p>
+
+Each family in Rfam is assigned into a type category. This is based on
+its function. These categories are hierarchical such that something
+classified as a ncRNA 'gene' can be further classified into a
+'gene;snoRNA' which can then be further classified as
+'gene;snoRNA;CD-box'. A full list of the existing 'type' categories we have is
+provided below:
+
+</p>
+<ul>
+<li>Cis-reg;</li>
+<li>Cis-reg; IRES;</li>
+<li>Cis-reg; frameshift_element;</li>
+<li>Cis-reg; leader;</li>
+<li>Cis-reg; riboswitch;</li>
+<li>Cis-reg; thermoregulator;</li>
+<li>Gene;</li>
+<li>Gene; CRISPR;</li>
+<li>Gene; antisense;</li>
+<li>Gene; miRNA;</li>
+<li>Gene; rRNA;</li>
+<li>Gene; ribozyme;</li>
+<li>Gene; sRNA;</li>
+<li>Gene; snRNA;</li>
+<li>Gene; snRNA; snoRNA; CD-box;</li>
+<li>Gene; snRNA; snoRNA; HACA-box;</li>
+<li>Gene; snRNA; snoRNA; scaRNA;</li>
+<li>Gene; snRNA; splicing;</li>
+<li>Gene; tRNA;</li>
+<li>Intron;</li>
+</ul>
+<p>
+This search by type page allows you to browse the families by these
+categories. The tick boxes at each level in the tree diagram allow you
+to get access to the families assigned at each type level.
+</p>
+
+<hr />
+
+<h2><a name="taxonomy">Taxonomy search</a></h2>
+
+This is one of the more interesting and powerful ways to search Rfam
+provided you know how to use it. Within Rfam we store the taxonomy
+information associated with all of the sequences we provide Rfam
+annotations to. By using this form you can identify families that are
+specific to a given taxonomic level or those found in a given set of
+taxonomic levels. You can also limit your queries to find those
+families which are found only in a single species or taxonomic
+level. Please read the information under the 'More...' link on the
+taxonomy search page for details on how to use this search.
+
+</p>
+<hr />
+
+<h2><a name="browsefamilies">Browse families by name</a></h2>
+<p>
+The browse link at the top of each page will take you to an browsing
+index page. From the index page you can browse all Rfam families by
+their family names (otherwise known as the Rfam Ids). These are the
+familiar names for the RNA which you will know such as tRNA or
+Hammerhead_1.  The families are organised alphabetically and you can
+use the ranges (A-F, G-L etc) to take you to the appropriate place in
+the list.  Families where the name begins with a number (e.g 6S, 7SK)
+can be found under the 0-9 index.
+</p>
+<p>
+
+We also provide a 'Top_twenty' list. Here you can browse the top
+twenty largest RNA families in Rfam. These families contain the
+greatest number of sequences (sequence depth) in the full alignments
+in all families in Rfam.
+ 
+</p>
+
+<hr />
+
+<h2><a name="browsegenomes">Browse genome annotations</a></h2> 
+<p>
+
+This genome browsing index enables you to obtain a list of all the
+Rfam families which we have annotated on a particular genome
+sequence. To find out which genomes we annotate you should read our
+Genome Annotation section. Essentially, if a species has a completed
+genome sequence or a WGS genome assembly in the EMBL nucleotide
+database we will have collated all the Rfam annotations to this genome
+sequence and you can access them here.
+</p>
+<p>
+You can use the indexes provided to browse the alphabetical list of
+all genomes by species names. However, if you are only interested in
+the genomes of a particular kingdom you can use the alphabetical list
+associated with each kingdom to only view the species for the kingdom
+of interest. The letter indexes will take you to the appropriate place
+in the species lists but you should note you can then still move up
+and down the alphabetical list by simple scrolling of the page or you
+can use the quick links at the top of the table to jump to another
+letter in the alphabet.
+<p>
+</p>
+Importantly, you should note that the species lists you obtain can
+subsequently be sorted on the column data (simply click on the column
+headers). This can allow you to sort the data by criteria, such as
+number of Rfam annotations or genome size.
+<p>
+</p>
+You should also note that if your species of interest is not in the
+genomes list this does not necessarily mean we do not have any Rfam
+annotations to this species. It simply means we do not have a complete
+genome sequence for this species to map (collate) our Rfam families
+to. You should use the taxonomy search explained above to identify if
+we have any annotations to your species of interest.
+</p>
+
+</div> 
 </div>
-[%#
-Copyright (c) 2007: Genome Research Ltd.
+
+[%# Copyright (c) 2007: Genome Research Ltd.
 
 Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 

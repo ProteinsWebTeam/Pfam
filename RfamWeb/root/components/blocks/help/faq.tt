@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: faq.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start faq block -->
@@ -15,375 +15,385 @@
   </div>
   <div class="blockContent">
 	<ul>
-	  <li><a href="#whatispfam">What is Pfam ?</a></li>
-	  <li><a href="#diffs">What is the difference between Pfam-A and Pfam-B families?</a></li>
-	  <li><a href="#clan">What is a clan ?</a></li>
-	  <li><a href="#twoHmms">Why are there two HMMs foreach Pfam entry?</a></li>
-	  <li><a href="#dnaSearch">Can I search DNA against Pfam ?</a></li>
-	  <li><a href="#submit">How can I submit a new domain ?</a></li>
-	  <li><a href="#ipfam">What is iPfam ?</a></li>
-	  <li><a href="#localSearch">How can I search Pfam locally ?</a></li>
-	  <li><a href="#noSeq">Why doesn't Pfam doesn't include my sequence ?</a></li>
-	  <li><a href="#family">What's on the family page ?</a></li>
-	  <li><a href="#howMany">How many accurate alignments do you have ?</a></li>
-	  <li><a href="#mySearch">Can I search my protein against Pfam ?</a></li>
-	  <li><a href="#transSearch">Can I search my dna sequence in translation against Pfam ?</a></li>
-	  <li><a href="#gaps">What is the difference between the - and . characters in your full alignments ?</a></li>
-	  <li><a href="#sssa">What do the SS lines in the alignment mean ?</a></li>
-	  <li><a href="#missing">You don't have domain YYYY in Pfam !</a></li>
-	  <li><a href="#other">Are there other databases which do this ?</a></li>
-	  <li><a href="#best">So which database is better ?</a></li>
+    <h3>Documentation</h3>
+	  <li><a href="#seedandfull">What are "seed" and "full" alignments?</a></li>
+	  <li><a href="#scores">What do the scores for hits to Rfam models mean?</a></li>
+    <li><a href="#secondarystructure">Where does your secondary structure annotation come from?</a></li>
+	  <li><a href="#familydefine">How do you define an RNA family</a></li>
+    <li><a href="#validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></li>
+    	  <li><a href="#myseqmissing">Why is my favourite sequence not in the family?</a></li>
+    <li><a href="#cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></li>
+    
+    <h3>Searching</h3>
+	  <li><a href="#familyinfo">How can I find information about a particular RNA family?</a></li>
+	  <li><a href="#searchdnaseq">How can I search my DNA sequence for non-coding RNA genes?</a></li>
+	  <li><a href="#genomeannotation">How can I annotate a genome with Rfam?</a></li>
+
+    <h3>Downloading</h3>
+	  <li><a href="#downloadalign">How can I download your alignments?</a></li>
+    <li><a href="#downloadfasta">How can I download a subset of sequences from a family?</a></li>
+    <li><a href="#downloadfastaspecies">How can I download all sequences from my favourite species?</a></li>
+ 
+    <h3>Other</h3>    
+    <li><a href="#submitfamily">I would like to submit a new family to Rfam</a></li>
+	  <li><a href="#editseed">How can I edit a SEED alignment?</a></li>
+
+<!--not done yet :-) 
+     
+  why do the annotations from the genomes and the taxonomy search not match up?  
+
+	  <li><a href="#seednotinfull">Why is my favourite SEED sequence is missing from the FULL alignment</a></li>
+	  <li><a href="#"></a></li>
+	  <li><a href="#consline"></a>What do the funny symbols in the SS_cons line mean?</li>
+	  <li><a href="#localRfam"></a>Can I download Rfam and search my sequence database locally?</li>
+
+rfamscan and infernal versions
+
+<li><a href="#fullnotinseed">Why is my favourite sequence in the FULL alignment but not in the SEED?</a></li>
+
+RNA sequences for a defined phylogenetic group as a multiple fasta file
+
+ive taken a sequence from a seed/full and searched it against Rfam and it doesnt get any hits
+e.g. mature micro rna seqs
+
+mirbase families & rfam not the same
+
+which genomes have you annotated?
+
+want to get all the annotations to a particular species
+
+family missing from the new release
+
+fasta format-families they belong to
+
+what are the rfam 'types'//controlled vocabulary
+
+why is the model truncated from published blah
+
+-->
+
+ 
 	</ul> 
 
-	<h3><a name="whatispfam">What is Pfam ?</a></h3>
+<!--documentation -->
 
-	<p>
-	  Pfam is a collection of multiple sequence alignments and profile
-	  hidden Markov models (HMMs). Each Pfam HMM represents a protein
-	  family or domain. By searching a protein sequence against our
-	  the Pfam library of HMMs you can find out its domain
-	  architecture. You can also use Pfam to analyse proteomes and
-	  domain architectures.
-	</p>
-	<p>
-	  For each Pfam entry we have a family page which can be accessed
-	  in several ways; by following links for a particular
-	  family/domain on the website, clicking on a graphical image of a
-	  domain and by searching for a particular family using the search
-	  box on the Pfam website. From the family page you can view the
-	  alignments and annotation (including annotation from the
-	  InterPro database where available), view the species
-	  distribution of a domain, access cross-links to other databases
-	  and use other tools for protein analysis. We display structural
-	  information for each family where available.
+	<h3><a name="seedandfull">What are "seed" and "full" alignments?</a></h3>
+
+	<p> 
+Each family in Rfam has two multiple sequence alignments. The
+"seed" alignment is a hand-curated alignment of known members of the
+family. This alignment may not contain all known members of a family,
+rather a representative set. We use the 
+<a href="http://infernal.janelia.org/">INFERNAL</a> software to build a
+covariance model from this alignment. We then use the covariance model
+to search the Rfamseq sequence database for other family members, and
+automatically align all detected homologues to the model to generate
+the "full" alignment.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3><a name="diffs">What is the difference between Pfam-A and Pfam-B 
-	families ?</a></h3>
+<h3><a name="scores">What do the scores for hits to Rfam models mean?</a></h3>
 
-	<p>
-	  Pfam contains two types of families, Pfam-A and Pfam-B. Pfam-A
-	  families are manually curated HMM based families which we build
-	  using an alignment of a small number of representative sequences
-	  (we call this alignment the 'seed' alignment). We manually set
-	  a threshold value for each HMM, and this determines the minimum
-	  score a sequence must attain to belong to the family.  We search
-	  all of our HMMs against the <a class="ext"
-	  href="http://www.uniprot.org/">UniProt</a>
-	  database, and include all sequences that score above the cut-off
-	  value for a particular family in the family's full alignment.
-	  For each family we build two HMMs, one to represent fragment
-	  matches and one to represent full length matches. We use the
-	  HMMER2 software to build and search our profile HMMs. Pfam-A
-	  matches are very unlikely to be false matches.
-	</p>
-	<p>
-	  To complement the Pfam-A families, we automatically generate
-	  Pfam-B families using the <a class="ext"
-    href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html">
-      ADDA</a> database. Pfam-B families are formed by taking alignments of
-	  sequence segments from ADDA, and removing any Pfam-A residues
-	  from them. Some Pfam-B families are composed of low complexity
-	  regions and may not reflect true relationships, therefore we
-	  recommend you verify that sequences in a Pfam-B family are
-	  related by using other methods such as BLAST.
-	</p>
-	<p>
-	  All families in Pfam are non-overlapping such that no amino acid
-	  belongs to more that one family/domain. At each Pfam release we
-	  search all of our models against an updated version of UniProt,
-	  and regenerate our Pfam-B families using the most recent version
-	  of ADDA.
+	<p> When you search a sequence against Rfam and obtain a hit to one
+of our families we report the start and end coordinates of the matching
+region, the orientation of the match and the bit score.  The bits score
+(also known as the log-odds score ) is generated by the Infernal
+software when it tries to match your sequence to the model. In very
+simple terms it is a measure of how well your sequence matches the
+model, the higher the bit score the better your sequences fits the
+model. 
+
+More specifically the bit score is the (log(2)) of the
+probability of the query sequence given the model over the probability
+of random sequence given the model. In theory this means that positive
+bits scores are significant, but in practice more conservative cutoffs
+are used as the size of the database means we can observe hits with low
+positive bits scores by chance.  <see page on bit scores>
+
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3><a name="clan">What is a clan ?</a></h3>
+<h3><a name="secondarystructure">Where does your secondary structure annotation come from?</a></h3>
 
 	<p>
-	  Some of the Pfam families are grouped into &#39;clans&#39;. Pfam defines
-	  a clan as a collection of families that have arisen from a
-	  single evolutionary origin. Evidence of their evolutionary
-	  relationship can be in the form of similarity in tertiary
-	  structures, or when structures are not available, by common
-	  sequence motifs. The seed alignments for all families within a
-	  clan are aligned and the resulting alignment (called the clan
-	  alignment) can be accessed from a link on the clan page. Each
-	  clan page includes a clan alignment, a description of the clan
-	  and database links where appropriate. The clan pages can be
-	  accessed by following a link from the family page, or
-	  alternatively they can be accessed by clicking on &#39;clans&#39; under
-	  the &#39;browse&#39; by menu on tab on any Pfam page.
+Ideally when we build a SEED the initial secondary structure
+annotation is obtained from the literature. In these cases the
+secondary structure is usually only available for a few of the member
+sequences in the SEED.  Our aim is to generate models that represent
+conserved secondary structure, so when we begin to expand the
+membership of the seed to be as representative as possible, we will
+only retain the secondary structure annotation that is conserved
+between the majority of sequences. You should also note that the
+annotations obtained from the literature may be experimentally
+validated or they may be RNA folding predictions (commonly
+<a href="http://mfold.bioinfo.rpi.edu/">MFOLD</a>). Unfortunately, 
+we do not discriminate between the two and you
+will need to refer to the original publications to clarify. 
+ </p> 
+<p>
+In the cases where no secondary structure prediction is available in
+the literature but we have good set of seed sequences we frequently use a
+local installation of the <a
+href="http://genome.ku.dk/resources/war">WAR software</a> which allows
+us to cherry pick the best alignment and secondary structure
+prediction from multiple tools. Historically the folding prediction 
+tools used has varied and the method used will be indicated.
+</p> 
+
+<p>
+You can find the alignment and structure source for each family in the
+curation tab for each family or the SE and SS lines from the Stockholm
+file. Where the source is obtained from the literature we will provide
+the PubMed identifier (PMID). You should also note that the seed
+alignments often get updated between releases and may be manually
+adjusted by the curator. As a result if you try to obtain the same
+structure using the same prediction method may not return exactly the
+same structure as shown on the Rfam SEED alignment. We do usually
+comment where the a structure has been manually edited.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3><a name="twoHmms">Why are there two HMMs foreach Pfam entry ?</a></h3>
+<h3><a name="familydefine">What is your definition of an RNA family?</a></h3>
 
 	<p>
-	  For each Pfam entry we build two HMMs, one to represent full
-	  length matches (ls model), and one to represent fragment matches
-	  (fs model). When you search a protein on our site we search
-	  them against both the ls and fs models.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="dnaSearch">Can I search DNA against Pfam ?</a></h3>
-
-	<p>
-	  The Wise2 software package allows the comparison of protein HMMs
-	  to genomic DNA. We use this package to allow users to search
-	  single DNA sequences against the library of Pfam HMMs. To do
-	  this, you will need to go to the Pfam website hosted at the
-	  Sanger Institute and paste your DNA sequence in the DNA search
-	  box on the search page. The results take approximately 2 minutes
-	  for a 1kb sequence, and approximately 1 hours for a 80kb
-	  sequence.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="submit">How can I submit a new domain ?</a></h3>
-
-	<p>
-	  If you know of a domain that is not present in Pfam, you can
-	  submit it to us by email 
-    (<a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>) and we will endeavour to build a Pfam entry
-	  for it. We ask that you supply us with a multiple sequence
-	  alignment of the domain (please send the alignment file as a
-	  text file (e.g. <code>.txt</code>) and <strong>not</strong> in the format of
-    a specific application such as Microsoft Word (e.g. a <code>.doc</code>) 
-    file), and associated literature evidence if available.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="ipfam">What is iPfam ?</a></h3>
-
-	<p>
-	  iPfam is a resource that describes domain-domain interactions
-	  that are observed in PDB entries. Where two or more Pfam
-	  domains occur in a single structure, it analyses them to see if
-	  the are close enough to form an interaction. If they are close
-	  enough it calculates the bonds forming the interaction. Further
-	  information can be found on the iPfam help pages.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="localSearch">How can I search Pfam locally ?</a></h3>
-
-	<p>
-	  If you have a large number of sequences or you don&#39;t want to 
-	  post your sequence across the web, you can search
-	  your sequence locally. Please see the help page on 
-	  <span class="link" onclick="switchTab('helpGetStartedBlock')">
-	    getting started with Pfam</span>.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="noSeq">Why doesn't Pfam doesn't include my sequence ?</a></h3>
-
-	<p>
-	  Pfam is built from a fixed release of UniProt. At each Pfam
-	  release we incorporate sequences from the latest release of
-	  UniProt. This means that at any time the sequences used by Pfam
-	  could be several months behind those in the most up-to-date
-	  versions of the sequence databases. If your sequence isn't in
-	  Pfam you can still find out what domains it contains by pasting
-	  it into the search box in Pfam.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="family">What's on the family page ?</a></h3>
-
-	<p>
-	  Each family has the following data:
-	</p>
-	<ul>
-	  <li>
-		A <em>seed alignment</em> which is a hand edited multiple
-		alignment representing the family.
-	  </li>
-	  <li>
-	    <em>Hidden Markov Models (HMM)</em> derived from the seed
-	    alignment, which can be used to find new members of the domain
-	    and also take a set of sequences to realign them to the
-	    model. One HMM is in ls mode (global) the other is an fs mode
-	    (local) model.
-	  </li>
-	  <li>
-		 A <em>full alignment</em> which is an automatic alignment of
-		 all the examples of the domain using the two HMMs to find and
-		 then align the sequences.
-	  </li>
-	  <li>
-		<em>Annotation</em> that contains a brief description of the
-		domain, links to other databases and some Pfam specific
-		data. To record how the family was constructed.
-	  </li>
-	</ul>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="howMany">How many accurate alignments do you have ?</a></h3>
-
-	<p>
-	  Release [% relData.pfam_release %] has [% relData.number_families %]
-    families. Over [% relData.pfamA_coverage %] of the proteins in
-	  SWISSPROT [% relData.swiss_prot_version %] and TrEMBL 
-    [% relData.trembl_version %] have at least one match to a Pfam-A
-	  family.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="mySearch">Can I search my protein against Pfam ?</a></h3>
-
-	<p>
-	  Of course! Please use  
-    <a href="[% c.uri_for( "/search", { tab = "searchProteinBlock" } ) %]">this</a> 
-    search form. 
-  </p>
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="transSearch">Can I search my dna sequence in translation against
-	Pfam ?</a></h3>
-
-	<p>
-	  Yes you can, on the <a href="[% c.uri_for( "/search", { tab = "searchDnaBlock" } ) %]">
-	    DNA search page</a>.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
+We will group sequences into a 'family' where we can identify sequence
+or secondary structure conservation using our covariation models. This
+is decided when we build our seed alignment and search the CM against
+Rfamseq and from the resulting searches, we decide where the cutoff
+threshold should be. When we set this cut off threshold we are
+deciding that any sequences which scores above the threshold are true
+homologous members of the family and those below are 'chance' hits. This
+discrimination between true and false is usually very clear if we have
+a representative seed alignment. Occasionally, for various biological
+reasons, it is extremely difficult to get good resolution between true
+and false predictions. In such case we make an informed decision on
+where the cutoff should be.  As a result some families may contain false
+positives (often pseudogenes) amongst true positives or may also lose
+some true positives below the threshold. In such cases we will have
+made the best choice we can to limit the false positive and loss of
+true positives. However, if you have queries about the membership of
+any of our families please do contact us and we will try to clarify or
+resolve the problem.
+ 
+<see blah for detailed description of bit scores and cut off thresholds.>
 	
-	<h3><a name="gaps">What is the difference between the - and . characters in 
-	your full alignments ?</a></h3>
-
-	<p>
-	  The &#39;-&#39; and &#39;.&#39; characters both represent gap 
-    characters. However they do tell you some extra information about how the 
-    HMM has generated the alignment. The &#39;-&#39; symbols are where the 
-    alignment of the sequence has used a delete state in the HMM to jump past a 
-    match state. This means that the sequence is missing a column that the HMM 
-    was expecting to be there. The &#39;.&#39; character is used to pad gaps 
-    where one sequence in the alignment has sequence from the HMMs insert state. 
-    See the alignment below where both characters are used. The HMM states 
-    emitting each column are shown. Note that residues emitted from the 
-    <em>Insert</em> (I) state are in lower case.
-	</p>
-
-	<pre>
-FLPA_METMA/1-193     ---MPEIRQLSEGIFEVTKD.KKQLSTLNLDPGKVVYGEKLISVEGDE
-FBRL_XENLA/86-317    RKVIVEPHR-HEGIFICRGK.EDALVTKNLVPGESVYGEKRISVEDGE
-FBRL_MOUSE/90-321    KNVMVEPHR-HEGVFICRGK.EDALFTKNLVPGESVYGEKRVSISEGD
-O75259/81-312        KNVMVEPHR-HEGVFICRGK.EDALVTKNLVPGESVYGEKRVSISEGD
-FBRL_SCHPO/71-303    AKVIIEPHR-HAGVFIARGK.EDLLVTRNLVPGESVYNEKRISVDSPD
-O15647/71-301        GKVIVVPHR-FPGVYLLKGK.SDILVTKNLVPGESVYGEKRYEVMTED
-FBRL_TETTH/64-294    KTIIVK-HR-LEGVFICKGQ.LEALVTKNFFPGESVYNEKRMSVEENG
-FBRL_LEIMA/57-291    AKVIVEPHMLHPGVFISKAK.TDSLCTLNMVPGISVYGEKRIELGATQ
-Q9ZSE3/38-276        SAVVVEPHKVHAGIFVSRGKsEDSLATLNLVPGVSVYGEKRVQTETTD
-HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
-	</pre>
+</p>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3><a name="sssa">What do the SS lines in the alignment mean ?</a></h3>
 
-	<p>
-	  These lines are structural information. The SS stands for
-	  secondary structure, and this is taken from DSSP. The following list
-	  gives the definitions for each code letter:
-	</p>
+<h3><a name="validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></h3>
 
-	<dl>
-	  <dt>C</dt>
-	  <dd>Random Coil</dd>
-	  <dt>H</dt>
-	  <dd>Alpha-helix</dd>
-	  <dt>G</dt>
-	  <dd>3(10) helix</dd>
-	  <dt>I</dt>
-	  <dd>Pi-helix</dd>
-	  <dt>E</dt>
-	  <dd>Hydrogen bonded beta-strand (extended strand)</dd>
-	  <dt>B</dt>
-	  <dd>Residue in isolated beta-bridge</dd>
-	  <dt>T</dt>
-	  <dd>H-bonded turn (3-turn, 4-turn, or 5-turn)</dd>
-	  <dt>S</dt>
-	  <dd>Bend (five-residue bend centered at residue i)</dd>
-	</dl>
+	<p> Unfortunately, it is not currently possible to do this as
+we do not add a source tag to each individual sequence in either our
+SEED or FULL alignments. All of our families (SEED alignments) are
+based upon one or more experimentally validated exemplars of the
+family but the majority of the other member sequences are added by
+homology search and manual curation. We have high confidence in these
+members of the SEED alignment which we then use to build the
+covariance model and computationally predict other possible members in
+the nucleotide database. You can study the descriptions of sequences
+extracted from the EMBL nucleotide database, occasionally this contains
+useful information about function.
 
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="missing">You don't have domain YYYY in Pfam !</a></h3>
-
-	<p>
-	  We are very keen to be alerted to new domains. If you can
-	  provide us with a multiple alignment then we will try hard to
-	  incorporate it into the database. If you know of a domain, but
-	  don't have a multiple alignment, we still want to know, for
-	  simple families just one sequence is enough. Again E-mail 
-    <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;</a>.
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3>Can we have this running sensibly locally. Do you have
-	software to support Pfam locally?</h3>
+<h3><a name="myseqmissing">Why is my favourite sequence not in the family?</a></h3>
 
 	<p>
-	  In terms on HMMs and formats, Pfam is based around the <a class="ext"
-	  href="http://hmmer.janelia.org/">HMMER2</a> package. This will
-	  need to be installed on your local machine, and you will need to
-	  also download the Pfam HMM libraries from the FTP site. These
-	  files are called Pfam_ls (global models) and Pfam_fs (fragment
-	  models).
+
+The most likely reason your sequence in not in our family is that it
+is not in the EMBL release that Rfamseq is based on. The underlying
+nucleotide database that we base Rfam on is updated with each major
+release (eg. 8.0, 9.0). You can check which version we are currently
+using <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/README">here.</a> 
+If however your sequence is in the relevant
+EMBL release but absent from a relevant family, it is possible that our model may need to be
+improved. Please do contact us with the relevant information and we
+will assess if we agree and we will try to improve our model. 
+
 	</p>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3><a name="other">Are there other databases which do this ?</a></h3>
 
-	<p>
-	  To a certain extent yes, they are a number of &quot;second
-	  generation&quot; databases which are trying to organise the
-	  protein database into evolutionary conserved regions. Examples
-	  include:
+<h3><a name="cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></h3>
+
+	<p>The <a href="http://infernal.janelia.org/">INFERNAL</a> software package 
+(which is an essential companion to the Rfam database) now has extensive documentation, along with some
+description of how covariance models work for RNA sequence
+analysis. Background and theory can also be found in the excellent
+book <a href="http://en.wikipedia.org/wiki/Special:BookSources/0521629713">Biological Sequence Analysis</a> 
+by Richard Durbin, Sean Eddy, Anders Krogh, and Graeme Mitchison (Cambridge University Press, 1998). 
+For more references see the <span onclick="switchTab('helpReferencesBlock');" class="link">
+Citing Rfam</span> tab.
+
 	</p>
-	<dl>
-	  <dt><a class="ext" href="http://www.isrec.isb-sib.ch/software/PFSCAN_form.html">
-	    PROSITE</a></dt>
-	  <dd>This originally was based around regular expression patterns
-	  but now also includes profiles.</dd>
-	  <dt><a class="ext" href="http://www.bioinf.man.ac.uk/dbbrowser/PRINTS/">
-	      PRINTS</a></dt>
-	  <dd>This is based around protein &quot;finger-prints&quot; of a series of
-	  small conserved motifs making up a domain.</dd>
-	  <dt><a class="ext" href="http://www.blocks.fhcrc.org/">BLOCKS</a></dt>
-	  <dd>This is based around automatic ungapped alignments.</dd>
-	  <dt><a class="ext" href="http://smart.embl-heidelberg.de/">SMART</a></dt>
-	  <dd>This is a database concentrating on extracellular modules
-	  and signaling domains.</dd>
-	  <dt><a class="ext" href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html">
-      ADDA</a></dt>
-	  <dd>This is an automatic algorithm for domain decomposition and clustering of 
-      protein domain families.</dd>
-	  <dt><a class="ext" href="http://www.ebi.ac.uk/interpro">InterPro</a></dt>
-	  <dd>Combines information from Pfam, Prints, SMART, Prosite and PRODOM.</dd>
-	  <dt><a class="ext" href="http://www.ncbi.nlm.nih.gov/Structure/cdd/cdd.shtml">
-	      CDD</a></dt>
-	  <dd>The Conserved Domain Database is derived from Pfam and SMART databases.</dd>
-	</dl>
 	<p><a href="#faqTop">back to top</a></p>
 
-	<h3><a name="best">So which database is better ?</a></h3>
+<!--searching-->
+
+	<h3><a name="familyinfo">How can I find information about a particular RNA family?</a></h3>
 
 	<p>
-	  As with everything, it depends on your problem: I would
-	  certainly suggest using more than one method. Pfam is likely to
-	  provide more interpretable results with crisp definitions of
-	  domains in a protein.
-	</p>	
+You can do this in several ways. If you already know the Rfam
+accession or name of the family you can use the "jump to" boxes on
+home page or most pages of the website. Alternatively if your not sure
+of the family accession or correct name and want to guess you should
+use the "keyword" search box in the header of each page. This search
+allows the use of ambiguous terms and will search multiple sections of
+the database for a match to your query term. The results page 
+will give you a list of all the families with matches and you can
+follow the links to the summary page for each family.
+</p>
+<p>
+Alternatively if your not sure of your query term and simply want to
+browse our families click on the browse link provided in the header of
+every page. This takes you to an index where you can browse the
+families. This index sorts the families on their IDs such as
+'Rnase_mrp' or '7SK'. You can browse the indexed lists and use either
+the ID or accession links to go directly to the family summary page.  
+  </p>
+	
 	<p><a href="#faqTop">back to top</a></p>
 
-  </div>
+	<h3><a name="searchdnaseq">How can I search my DNA sequence for non-coding RNA genes?</a></h3>
+
+	<p> 
+Both our single and batch <a
+href="http://rfam.sanger.ac.uk/search">sequence searches</a> allow you
+to search a nucleotide sequence against the Rfam model library. Any
+hits to Rfam families will be returned with start and end coordinates,
+orientation and a score for each hit. We suggest you fragment sequences 
+into smaller overlapping segments if your sequence is longer than 2 Kbp
+and use the 
+<a href="http://rfam.sanger.ac.uk/search">batch search</a>
+ facility. You might find
+this tool for <a href="http://emboss.bioinformatics.nl/cgi-bin/emboss/splitter">splitting
+large sequences</a> into fragments useful. Alternatively you can
+download and run Rfam locally.
+
+	</p>
+	<p><a href="#faqTop">back to top</a></p>
+
+
+	<h3><a name="genomeannotation">How can I annotate a genome with Rfam?</a></h3>
+
+	<p> 
+Awkwardly! 
+You can use the 
+
+Precomputed genomes:
+Us!
+Genome Reviews.
+Ensembl.
+
+http://www.sanger.ac.uk/Software/Rfam/help/genome_annotation.shtml
+
+	</p>
+	<p><a href="#faqTop">back to top</a></p>
+
+
+<!--downloading-->
+
+
+<h3><a name="downloadalign">How can I view or download a family alignment?</a></h3>
+
+	<p>
+From the family summary page, go to the 'Alignments' tab on the left
+side panel. The alignment page will give you multiple drop down
+options on how to either view or download the sequences for this
+family in an aligned or fasta format. The formatting options allow you
+to select which type of format you would prefer for the alignment or
+the fasta output.
+<p>
+
+If the alignment is <i>very</i> large the formatting tool may not be
+suitable and we provide the preformatted alignment in Stockholm
+format.  A number of Stockholm alignment re-formatters and viewers
+exist; Including the sreformat program from the <a
+href="http://hmmer.janelia.org">HMMer package</a> and the 
+<a href="http://personalpages.manchester.ac.uk/staff/sam.griffiths-jones/software/ralee/">RALEE</a> 
+major mode for Emacs.
+You can read more about Stockholm format on <a
+href="http://en.wikipedia.org/wiki/Stockholm_format">Wikipedia</a></p>
+</p>
+
+<p>
+If you are interested downloading alignments for
+multiple families you can download all our seed and full alignments in
+Stockholm format flatfiles from our <a
+href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
+</p>
+
+	<p><a href="#faqTop">back to top</a></p>
+
+<h3><a name="#downloadfasta">How can I download a subset of sequences from a family?</a></h3>
+
+	<p>
+Unfortunately, this has not been implemented yet. There are plans in place to adjust the 
+underlying Rfam database to allow this. 
+	</p>
+	<p><a href="#faqTop">back to top</a></p>
+
+<h3><a name="#downloadfastaspecies">How can I download all Rfam sequences for my favourite species?</a></h3>
+
+	<p>
+Unfortunately, this has not been implemented yet. These sorts of queries can potentially 
+return huge amounts of data, enough to scare our database people about bringing down
+servers. There are plans in place to implement a Biomart interface that will allow these
+queries. Meanwhile, if you <a href="mailto:rfam-help@sanger.ac.uk">ask us</a> very nicely 
+and we have have time then one of our engineers may be able to help. 
+
+The Taxonomy tab on the search page will allow you to
+perform taxonomic queries. In fact this function also allows you to
+search with queries from internal nodes of the NCBI taxonomic
+tree. However, the results are only returned on the family level, not
+the sequence level.
+	</p>
+	<p><a href="#faqTop">back to top</a></p>
+
+<!--other-->
+
+<h3><a name="submitfamily">I would like to submit a family</a></h3>
+
+	<p>
+Great! We are very keen for the community to help keep us updated on
+new families. Ideally a new family for Rfam should contain elements
+(RNA sequences) that have some known functional classification, are
+evolutionarily conserved and have evidence for a secondary structure.
+The families should not solely be based on prediction only (eg. RNAz,
+EvoFold, QRNA predictions) nor solely on transcriptomic data
+(eg. tiling array, deep sequencing). For more detailed information on
+how to submit a family read this documentation however if you have any
+queries please do contact us at <a href="mailto:rfam-help@sanger.ac.uk">Rfam-help@sanger.ac.uk</a>.
+
+If your family is sufficiently interesting or you have several of them then 
+you may be interested in publishing your family in the RNA families track
+now available through 
+<a href="http://www.landesbioscience.com/journals/rnabiology/">RNA Biology.</a>
+
+	</p>
+	<p><a href="#faqTop">back to top</a></p>
+
+
+<h3><a name="editseed">How can I edit a SEED alignment?</a></h3>
+
+	<p>
+We do not currently provide public access to edit our alignments. 
+This is advantageous in that it maintains our standard of alignments 
+and structures. However, if you feel our seed alignment/structure 
+annotations can and should be improved please do either contact us,
+preferably supplying us with a new alignment in Stockholm format and 
+we will do our best to incorporate the improvements.
+	</p>
+	<p><a href="#faqTop">back to top</a></p>
+
+ </div>
 </div>
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), Jennifer Daub (jd7@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

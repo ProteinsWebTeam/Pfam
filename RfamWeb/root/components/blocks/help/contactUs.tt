@@ -4,47 +4,48 @@
 # 
 # build the contactUS block for the help pages
 #
-# $Id: contactUs.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: contactUs.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start ContactUs block -->
 
 <div class="block" id="helpContactUsBlock">
   <div class="handle">
-    <h1>How to contact Pfam</h1>
+    <h1>How to contact Rfam</h1>
   </div>
   <div class="blockContent">
 
-    <h3>Contact Pfam</h3>
+    <h3>Contact Rfam</h3>
     <p>
       You can find the email address for the 
-      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">Pfam helpdesk</a>
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">Rfam helpdesk</a>
       at the bottom of every page. We use a request tracking system to monitor 
-      emails to Pfam, so you should receive an automated response to your
+      emails to Rfam, so you should receive an automated response to your
       email, letting you know that the system has logged your mail and notified
       us of its arrival. 
     </p>
-
     <h3>Mailing list</h3>
-  
+
     <p>
-      The Pfam mailing list is a low traffic list that has important 
+      The Rfam mailing list is a low traffic list that has important
       announcements, such as releases or major changes.
     </p>
     <p>
       To join the mailing list send a mail to
-      <a href="mailto:pfamlist-subscribe@sanger.ac.uk">pfamlist-subscribe@sanger.ac.uk</a>.
+      <a href="mailto:rfamlist-subscribe@sanger.ac.uk">rfamlist-subscribe@sanger.ac.uk</a>.
     </p>
     <p>
       If you should want to unsubscribe from the list send a mail to
-      <a href="mailto:pfamlist-unsubscribe@sanger.ac.uk">pfamlist-unsubscribe@sanger.ac.uk</a>.
+      <a href="mailto:rfamlist-unsubscribe@sanger.ac.uk">rfamlist-unsubscribe@sanger.ac.uk</a>.
     </p>
 
-    <h3>RSS feeds</h3>
+ 
+    <h3>Rfam blog</h3>
 
     <p>
-      Alternatively you can keep in touch with the latest goings on using the 
-      Pfam <a href="[% c.uri_for( "/rss" ) %]">RSS feed</a>.
+      	Alternatively you can find out about the latest goings in Rfam
+	via the Rfam <a href="http://xfam.wordpress.com/tag/rfam">blog</a>. You can
+	also subscribe to this blog in order to receive an RSS feed.
     </p>
             
   </div>

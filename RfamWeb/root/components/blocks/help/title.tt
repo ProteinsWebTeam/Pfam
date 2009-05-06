@@ -4,11 +4,11 @@
 #
 # build the titles for the help pages
 #
-# $Id: title.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: title.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 [% IF titleType == "tab" %]
-<h1>Pfam Help</h1>
+<h1>Rfam Help</h1>
 [% ELSIF titleType == "page" %]
 Help
 [% END %]

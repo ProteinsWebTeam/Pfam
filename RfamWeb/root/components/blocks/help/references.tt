@@ -4,7 +4,7 @@
 # 
 # build the references block for the help pages
 #
-# $Id: references.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: references.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start references block -->
@@ -15,172 +15,183 @@
   </div>
   <div class="blockContent">
 
-    <h3>Pfam References</h3>
-  
-    <div class="citation">
+
+    <h2>Public health announcement</h2>
+
+Rfam makes use of a large amount of available data, especially
+published multiple sequence alignments and secondary structures, and
+repackages these data in a single searchable and sustainable
+resource. We have made every effort to credit individual sources on
+family pages. If you find any of the data presented here useful,
+please also be sure to credit the primary source also.
+
+    <h2>Rfam References</h2>
+
+ <div class="citation">
       <span class="title">
         <a class="ext" 
-           href="http://nar.oxfordjournals.org/cgi/content/full/36/suppl_1/D281">
-          The Pfam protein families database</a>: 
+           href="http://nar.oxfordjournals.org/cgi/content/full/gkn766?ijkey=qKsfJKpTARDanrQ&keytype=ref">
+          Rfam: updates to the RNA families database</a>: 
       </span>
       <span class="authors">
-        R.D. Finn, J. Tate, J. Mistry, P.C. Coggill, J.S. Sammut, H.R. Hotz, 
-        G. Ceric, K. Forslund, S.R. Eddy, E.L. Sonnhammer and A. Bateman
+           PP Gardner, J Daub, JG Tate, EP Nawrocki, DL Kolbe, S
+	Lindgreen, AC Wilkinson, RD Finn, S Griffiths-Jones, SR Eddy and A
+	Bateman.
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2008)
-        &nbsp;Database Issue 36:D281-D288
-      </span>
-    </div>
-  
-    <div class="citation">
-      <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/34/suppl_1/D247">
-          Pfam: clans, web tools and services</a>: 
-      </span>
-      <span class="authors">
-        R.D. Finn, J. Mistry, B. Schuster-B&#246;ckler, S. Griffiths-Jones, 
-        V. Hollich, T. Lassmann, S. Moxon, M. Marshall, A. Khanna, R. Durbin, 
-        S.R. Eddy, E.L.L. Sonnhammer and A. Bateman
-      </span>
-      <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2006)
-        &nbsp;Database Issue 34:D247-D51
-      </span>
-    </div>
-  
-    <div class="citation">
-      <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=12668763&amp;query_hl=1&amp;itool=pubmed_DocSum">
-          Enhanced protein domain discovery by using language modeling techniques from 
-          speech recognition</a>: 
-      </span>
-      <span class="authors">L. Coin, A. Bateman and R. Durbin</span>
-      <span class="ref">
-        <span class="jrnl">Proc. Natl. Acad. Sci. USA.</span>&nbsp;(2003)&nbsp;100(8):4516-20
+        &nbsp;Database Issue 37:D136-D140
       </span>
     </div>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oupjournals.org/cgi/content/full/32/suppl_1/D138">
-          The Pfam Protein Families Database</a>: 
+        <a class="ext"
+	      href="http://rnajournal.cshlp.org/content/14/12/2462">
+           The RNA WikiProject: community annotation of RNA families</a>: 
       </span>
       <span class="authors">
-        A. Bateman, L. Coin, R. Durbin, R.D. Finn, V. Hollich, 
-        S. Griffiths-Jones, A. Khanna, M. Marshall, S. Moxon, E.L.L. Sonnhammer, 
-        D.J. Studholme, C. Yeats and S.R. Eddy
+        Daub J, Gardner PP, Tate J, Ramsköld D, Manske M, Scott WG, Weinberg Z, Griffiths-Jones S, Bateman A
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2004)&nbsp;32:D138-D141
+        <span class="jrnl">RNA</span>&nbsp;(2008)12:2462-2464
       </span>
     </div>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/short/30/1/276">
-          The Pfam Protein Families Database</a>: 
+        <a class="ext" 
+           href="http://nar.oxfordjournals.org/cgi/content/full/33/suppl_1/D121">
+           Rfam: annotating non-coding RNAs in complete genomes.</a> 
       </span>
       <span class="authors">
-        A. Bateman, E. Birney, L. Cerruti, R. Durbin, L. Etwiller, S.R. Eddy, 
-        S. Griffiths-Jones, K.L. Howe, M. Marshall and E.L. Sonnhammer
+   	Griffiths-Jones S, Moxon S, Marshall M, Khanna A, Eddy SR, Bateman A
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2002)&nbsp;30(1):276-280
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2005)
+	&nbsp;Database Issue 33:D121-D124
       </span>
     </div>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/28/1/263">
-          The Pfam Protein Families Database</a>: 
+        <a class="ext" 
+          href="http://nar.oxfordjournals.org/cgi/content/full/31/1/439">
+          Rfam: an RNA family database.</a> 
       </span>
       <span class="authors">
-        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, K.L. Howe and 
-        E.L. Sonnhammer
+  	 Griffiths-Jones S, Bateman A, Marshall M, Khanna A, Eddy SR
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research </span>&nbsp;(2000)&nbsp;28:263-266
+        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2003)
+	&nbsp;31(1):p439-441.
       </span>
     </div>
 
-    <div class="citation">
+<hr/>
+
+<h2>Covariance models and stochastic context-free grammars</h2>
+
+
+
+<div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/27/1/260">
-          Pfam 3.1: 1313 multiple alignments match the majority of proteins</a>: 
+        <a class="ext" 
+          href="http://selab.janelia.org/publications.html">
+          Infernal 1.0: Inference of RNA Alignments.</a> 
       </span>
       <span class="authors">
-        A. Bateman, E. Birney, R. Durbin, S.R. Eddy, R.D. Finn and E.L.L. Sonnhammer
-      </span>
+     Eric P. Nawrocki, Diana L. Kolbe, Sean R. Eddy
+  	  </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(1999)&nbsp;27:260-262
-      </span>
+        <span class="jrnl" >Bioinformatics</span>&nbsp;(2009)
+        &nbsp;Mar 23. [Epub ahead of print]
+       </span>
     </div>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        <a class="ext" href="http://nar.oxfordjournals.org/cgi/content/full/26/1/320">
-          Pfam: multiple sequence alignments and HMM-profiles of protein domains</a>: 
+        <a class="ext" 
+          href="http://selab.janelia.org/publications.html">
+          Local RNA Structure Alignment With Incomplete Sequence.</a> 
       </span>
       <span class="authors">
-        E.L.L. Sonnhammer, S.R. Eddy, E. Birney, A. Bateman and R. Durbin 
-      </span>
+     Diana L. Kolbe, Sean R. Eddy
+  	  </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(1998)&nbsp;26:320-322
-      </span>
+        <span class="jrnl" >Bioinformatics.</span>&nbsp;(2009)
+       &nbsp;Mar 20. [Epub ahead of print]</span>
     </div>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;list_uids=9223186">
-          Pfam: a comprehensive database of protein families based on seed alignments</a>: 
+        <a class="ext" 
+          href="http://www.ploscompbiol.org/article/info:doi/10.1371/journal.pcbi.0030056">
+          Query-dependent banding (QDB) for faster RNA similarity searches.</a> 
       </span>
       <span class="authors">
-        E.L.L. Sonnhammer, S.R. Eddy and R. Durbin 
-      </span>
+     Eric P. Nawrocki, Sean R. Eddy
+  	  </span>
       <span class="ref">
-        <span class="jrnl">Proteins</span>&nbsp;(1997)&nbsp;28:405-420
-      </span>
+        <span class="jrnl" >PLoS Comput Biol</span>&nbsp;(2007)
+       &nbsp;3(3):e56</span>
     </div>
 
-    <h3>Book Chapters on Pfam</h3>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        Pfam: the protein families database 
+        <a class="ext" 
+          href="http://www.biomedcentral.com/1471-2105/3/18">
+          A memory-efficient dynamic programming algorithm for optimal alignment of a sequence to an RNA secondary structure.</a> 
       </span>
       <span class="authors">
-        R.D. Finn (eds M.J. Dunn, L.B. Jorde, P.F.R. Little, S. Subramaniam)
-      </span>
+     Eddy SR.
+  	  </span>
       <span class="ref">
-        <span class="jrnl">Genetics, Genomics, Proteomics and Bioinformatics, Section 6: Protein Families</span>
-        &nbsp;(2005)&nbsp;ISBN&nbsp;978-0-470-84974-3
-      </span>
+        <span class="jrnl"> BMC Bioinformatics</span>&nbsp;(2002)
+       &nbsp;2(3):18</span>
     </div>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        Identifying protein domains with the Pfam database 
+        <a class="ext" 
+          href="http://en.wikipedia.org/wiki/Special:BookSources/0521629713">
+          Biological Sequence Analysis: Probabilistic Models of Proteins and Nucleic Acids.</a> 
       </span>
       <span class="authors">
-        R.D. Finn, A. Bateman and S. Griffiths-Jones
-      </span>
+     Richard Durbin, Sean R. Eddy, Anders Krogh, Graeme Mitchison.
+  	  </span>
       <span class="ref">
-        <span class="jrnl">Current protocols in bioinformatics</span>
-        &nbsp;ISBN&nbsp;978-0-471-25093-7
-      </span>
+        <span class="jrnl">Cambridge University Press.Nucleic Acids Res</span>&nbsp;(1999)
+       &nbsp;ISBN 0-5216-2971-3.</span>
     </div>
 
-    <div class="citation">
+<div class="citation">
       <span class="title">
-        Pfam: a domain-centric method for analysing proteins and proteomes
+        <a class="ext" 
+          href="http://nar.oxfordjournals.org/cgi/content/full/25/5/955">
+          tRNAscan-SE: a program for improved detection of transfer RNA genes in genomic sequence.</a> 
       </span>
       <span class="authors">
-        J. Mistry and R.D. Finn
-      </span>
+     Lowe TM, Eddy SR.
+  	  </span>
       <span class="ref">
-        <span class="jrnl">Methods in Molecular Biology - Comparative Genomics</span>
+        <span class="jrnl">Nucleic Acids Res</span>&nbsp;(1997)
+       &nbsp;25(5):955-964</span>
+    </div>
+
+<div class="citation">
+      <span class="title">
+        <a class="ext" 
+          href="http://nar.oxfordjournals.org/cgi/reprint/22/11/2079">
+          RNA sequence analysis using covariance models.</a> 
       </span>
+      <span class="authors">
+      Eddy SR, Durbin R.
+  	  </span>
+      <span class="ref">
+        <span class="jrnl"> Nucleic Acids Res</span>&nbsp;(1994)
+	      &nbsp;22(11):2079-88</span>
     </div>
 
   </div>
