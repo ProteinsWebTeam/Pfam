@@ -4,7 +4,7 @@
 # 
 # build the entry type search block
 #
-# $Id: type.tt,v 1.1 2009-01-06 12:13:09 jt6 Exp $
+# $Id: type.tt,v 1.2 2009-05-06 11:49:24 jd7 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -35,9 +35,88 @@ sharedRequirements.js.push( "treeTweak.js" );
       <span class="moreLink" onclick="reveal(this,'typeNotes',false, true)">More...</span>
     </p>
     <div id="typeNotes" style="display: none">
-      <p>
-        Instructions on using the form.
-      </p>
+      <p> 
+Each family in Rfam is assigned into a type category. This is based on
+its function. These categories are hierarchical such that something
+classified as a ncRNA 'gene' can be further sub-classified into a
+'gene;snoRNA' which can then be further sub-classified as
+'gene;snoRNA;CD-box'. A full list of the existing 'type' categories we
+have is provided below:
+</p>
+<ul>
+<li>Cis-reg;</li>
+<li>Cis-reg; IRES;</li>
+<li>Cis-reg; frameshift_element;</li>
+<li>Cis-reg; leader;</li>
+<li>Cis-reg; riboswitch;</li>
+<li>Cis-reg; thermoregulator;</li>
+<li>Gene;</li>
+<li>Gene; CRISPR;</li>
+<li>Gene; antisense;</li>
+<li>Gene; miRNA;</li>
+<li>Gene; rRNA;</li>
+<li>Gene; ribozyme;</li>
+<li>Gene; sRNA;</li>
+<li>Gene; snRNA;</li>
+<li>Gene; snRNA; snoRNA; CD-box;</li>
+<li>Gene; snRNA; snoRNA; HACA-box;</li>
+<li>Gene; snRNA; snoRNA; scaRNA;</li>
+<li>Gene; snRNA; splicing;</li>
+<li>Gene; tRNA;</li>
+<li>Intron;</li>
+</ul>
+<p>
+This search by type page allows you to browse the families by these
+categories. The tick boxes at each level in the tree diagram allow you
+to get access to the families assigned at each type level.
+</p>
+<p>
+For example: To obtain all the families of ncRNA
+genes - excluding the snoRNAs- you should tick the box 'gene'. All of the
+boxes for the sub levels of gene will become highlighted.  This would return you all
+families assigned to the following categories.
+</p>
+<ul>
+  <li>gene</li>
+  <li>gene;antisense</li>
+  <li>gene;microRNA</li>
+  <li>gene;ribozyme</li>
+  <li>gene;sRNA</li>
+  <li>gene;snRNA</li>
+  <li>gene;snoRNA;CD-box</li>
+  <li>gene;snoRNA;HACA-box</li>
+  <li>gene;snoRNA;scaRNA</li>
+  <li>gene;tRNA</li>
+</ul>
+<p>
+To exclude all the snoRNA you can uncheck the 'snoRNA' box. This will
+provide you with a list of all families which are 'gene' type but not
+include the snoRNAs.
+</p>
+<p>
+<b>You should note</b> that there are some families assigned to the
+'gene' category that are not further sub classified into 'antisense',
+'microRNA', 'snRNA' etc. To obtain only these families you should check
+the gene box and then uncheck all the sub category boxes.
+</p>
+<p>
+Alternatively, if perhaps you are actually only interested in the
+snoRNAs - you can uncheck the 'gene' box and only check the 'snoRNA'
+box. This will return all the snoRNAs in each of the the three snoRNA
+sub categories (CD-box,HACA-box,scaRNA).
+</p>
+<p>
+You can use the flexibility of this tree like structure to select
+for or exclude specific functional groups. The categories you are
+interested in do not need to be within the same branch of the
+tree. You can select categories from various branches such as just
+'riboswitches' and 'scaRNA' to get a list of all the families that are
+scaRNAs or riboswitches.  </p>
+<p>
+The results table you obtain will list all the families in your
+selected categories by Rfam_accession, ID, type and description. You
+can then sort the results on the column data by clicking on the column headers.
+</p>
       <hr />
     </div>
 

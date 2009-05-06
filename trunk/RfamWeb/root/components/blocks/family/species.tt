@@ -6,7 +6,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.3 2008-06-24 08:48:54 jt6 Exp $
+# $Id: species.tt,v 1.4 2009-05-06 11:50:18 jd7 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -33,7 +33,7 @@ sharedRequirements.js.push( "treeTweak.js" );
     
     <div id="speciesTreeDesc">
       <p>
-        The tree shows the occurrence of this domain across different species.
+        The tree shows the occurrence of this RNA across different species.
         <span onclick="reveal( this, 'speciesNotes', false, true );"
               class="moreLink">
           More...</span>
@@ -41,11 +41,10 @@ sharedRequirements.js.push( "treeTweak.js" );
   
       <div id="speciesNotes" style="display: none">
         <h2>Species trees</h2>
-        <p>
-          We show the species tree in one of two ways. For smaller trees we try
-          to show an interactive representation, which allows you to select
-          specific nodes in the tree and view them as an alignment or as a set 
-          of Pfam domain graphics.
+        <p> 
+          For the majority of our families we provide an interactive tree
+          representation, which allows you to select specific nodes in the tree
+          and view the selected sequences as an alignment.
         </p>
         <p>
           Unfortunately we have found that there are problems viewing the 
@@ -65,35 +64,37 @@ sharedRequirements.js.push( "treeTweak.js" );
         
         <h3>Interactive tree</h3>
         <p>
-          For all of the domain matches in a full alignment, we count the 
-          number that are found on all sequences in the alignment. 
-          This total is shown in the <span class="domSum">purple</span> box.
+          For all of the sequence regions (RNA annotations) in a full
+          alignment, we count the total number that are found in the
+          alignment. This total is shown in the <span
+          class="domSum">purple</span> box.
         </p>
         <p>
-          We also count the number of unique sequences on which each domain is 
+          We also count the number of unique sequences on which each RNA is 
           found, which is shown in <span class="seqSum">green</span>.
-          <strong>Note</strong> that a domain may appear multiple times on the
-          same sequence, leading to the difference between these two numbers.
+          <strong>Note</strong> that an RNA annotation may appear
+          multiple times on the same sequence, leading to the difference between
+          these two numbers (think of repeats like tRNA where the same RNA is
+          found in tandem along a single sequence).
         </p>
         <p>
-          Finally, we group sequences from the same organism according to the 
-          <a class="ext" href="http://www.ncbi.nlm.nih.gov/"><acronym 
+          Finally, we group sequences from the same organism according
+          to the <a class="ext" href="http://www.ncbi.nlm.nih.gov/"><acronym 
           title="National Center for Biotechnology Information">NCBI</acronym></a> 
           code that is assigned by
           <a class="ext" href="http://www.ebi.uniprot.org/">UniProt</a>, 
           allowing us to count the number of distinct sequences on which the 
-          domain is found. This value is shown in the <span class="specSum">
-            pink</span> boxes.
+          RNA is found. This value is shown in the <span class="specSum">
+          pink</span> boxes.
         </p>
         <p>
-          We use the NCBI species tree to group organisms according to their 
-          taxonomy and this forms the structure of the displayed tree.
+          We use the NCBI species tree to group organisms according to
+          their taxonomy and this forms the structure of the displayed tree.
           <strong>Note</strong> that in some cases the trees are too large (have
-          too many nodes) to allow us to build an interactive tree, but in most
-          cases you can still view the tree in a plain text, non-interactive
-          representation. Those species which are represented in the seed
-          alignment for this domain are <span class="highlightSeed">
-            highlighted</span>.
+          too many nodes) to allow us to build an interactive tree. In
+          these few cases if you do really need to see a representation of the
+          tree for this entry, please contact us and we will be happy to discuss
+          ways to generate it for you.
         </p>
         <p>
           You can use the tree controls to manipulate how the interactive tree

@@ -4,110 +4,147 @@
 # 
 # build the ftp block for the help pages
 #
-# $Id: ftp.tt,v 1.1 2009-01-29 15:14:31 jt6 Exp $
+# $Id: ftp.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
 %]
 
 <!-- start ftp block -->
 
 <div class="block" id="helpFtpBlock">
   <div class="handle">
-    <h1>Pfam FTP site</h1>
+    <h1>Rfam FTP site</h1>
   </div>
   <div class="blockContent">
 	
 	<p>
-	  The following list describes a few of the important files in the Pfam 
-	  <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a>. 
+	  The following list describes a few of the important files in the Rfam 
+	  <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">FTP site</a>. 
     Some of these files may be <em>very</em> large (of the order of several 
     hundred	megabytes). Please check the sizes on the 
-		<a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam">FTP site</a> 
+		<a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">FTP site</a> 
     before trying to download them over a slow connection.
 	</p>
 
 	<dl>
-	  <dt>
-	    <a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/relnotes.txt">
-	      relnotes.txt</a>
+<h3>Documentation</h3>
+	<dt>
+	    <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/README">
+	      README</a>
 	  </dt>
 	  <dd>
 		Release notes
 	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/pfamseq.gz">
-			  pfamseq.gz</a>
+	<dt>
+	    <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/COPYING">
+	      COPYING</a>
 	  </dt>
 	  <dd>
-			A fasta version of Pfam's underlying sequence database 
+		Public Domain Information for Rfam
 	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_ls.gz">
-			  Pfam_ls.gz</a>
+
+	<dt><a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/USERMAN">
+	      USERMAN</a>
 	  </dt>
 	  <dd>
-			The Pfam HMM library
+          A description of the Rfam flatfile formats
 	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam_fs.gz">
-			  Pfam_fs.gz</a>
+
+<h3>Sequences, Alignments, Models and Trees</h3
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.tar.gz">
+	      Rfam.tar.gz</a>
 	  </dt>
 	  <dd>
-			The Pfam fragment HMM library
-    </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.full.gz">
-	 		  Pfam-A.full.gz</a>
-	  </dt>
-	  <dd>
-			The full alignments of the curated families
-   </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-A.seed.gz">
-			  Pfam-A.seed.gz</a>
-	  </dt>
-	  <dd>
-			 The seed alignments of the curated families
-    </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-B.gz">
-			  Pfam-B.gz</a>
-	  </dt>
-	  <dd>
-			Automatically generated alignments of sequence clusters in SWISSPROT and TrEMBL 
-			that are not modelled in the curated part of Pfam
+	Rfam covariance models in ascii INFERNAL format [tarbomb]
 	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/Pfam-C.gz">
-			  Pfam-C.gz</a>
+
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed.gz">
+	      Rfam.seed.gz</a>
 	  </dt>
 	  <dd>
-			The contains the information about clans and the Pfam-A membership
+	Annotated seed alignments in STOCKHOLM format
 	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/swisspfam.gz">
-			  swisspfam.gz</a>
+	<dt><a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.full.gz">
+	      Rfam.full.gz</a>
 	  </dt>
 	  <dd>
-			The domain structure of SWISSPROT and TrEMBL proteins according to Pfam
-    </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/current_release/prior.tar.gz">
-        prior.tar.gz</a>
-	  </dt>
-	  <dd>
-			A set of prior files for specific Pfam families
+	Annotated full alignments in STOCKHOLM format
 	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/COPYRIGHT">COPYRIGHT</a>
+	<dt>
+	   <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.fasta.gz">
+	      Rfam.fasta.gz</a>
 	  </dt>
 	  <dd>
-			Copyright notice for Pfam
+	Fasta sequences of Rfam members filtered to <90% identity
 	  </dd>
-	  <dt>
-			<a href="ftp://ftp.sanger.ac.uk/pub/databases/Pfam/GNULICENSE">GNULICENSE</a>
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.qc">
+	     Rfam.qc</a>
 	  </dt>
 	  <dd>
-			The full text of the GNU Library General Public License under which Pfam is
-			licensed
+	Sequence and structure measures for each family
+	  </dd>
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.seed_tree.tar.gz">
+	      Rfam.seed_tree.tar.gz</a>
+	  </dt>
+	  <dd>
+	Annotated tree files for each seed alignment [tarbomb]
+	  </dd>
+	<dt>
+	 <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/current_release/Rfam.full_tree.tar.gz">
+	      Rfam.full_tree.tar.gz</a>
+	  </dt>
+	  <dd>
+	Annotated tree files for each full alignment [tarbomb]
+	  </dd>
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/Rfam.thr.gz">
+	      Rfam.thr.gz</a>
+	  </dt>
+	  <dd>Family gathering threshold information
+	  </dd>
+	<dt>
+
+<h3>Genome annotations</h3>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/genome.gff3.tar.gz">
+	      genome.gff3.tar.gz</a>
+	  </dt>
+	  <dd>
+	Rfam annotations to completed genomes and chromosomes in GFF3 format
+	</dd>
+
+<h3>Other </h3>
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc4-cm.tar.gz">
+	      infernal-1.0rc4-cm.tar.gz</a>
+	  </dt>
+	  <dd>
+	Calibrated CMs for Infernal 1.0rc4. NOTE: these were not used to run the searches for Rfam 9.1 [tarbomb]
+	  </dd>
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/infernal-1.0rc5-cm.tar.gz">
+	      infernal-1.0rc5-cm.tar.gz</a>
+	  </dt>
+	  <dd>
+	Calibrated CMs for Infernal 1.0rc5. NOTE: these were not used to run the searches for Rfam 9.1 [tarbomb]
+	  </dd>
+
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/rfam2embl_crossrefs.txt.gz">
+	     rfam2embl_crossrefs.txt.gz</a>
+	  </dt>
+	  <dd>
+	Cross reference of Rfam family accessions and IDs with EMBL sequence accessions
+	  </dd>
+
+<h3> Rfam database dumps</h3>
+	<dt>
+	<a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/database_files">
+	      database_files</a>
+	  </dt>
+	  <dd>
+	Directory containing MYSQL dump of the the Rfam database data, tables and mysql database schema
 	  </dd>
 	</dl>
 
@@ -133,3 +170,5 @@ details.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <http://www.gnu.org/licenses/>.
 -%]
+
+
