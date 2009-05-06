@@ -23,7 +23,7 @@ sub new {
     user     => "pfamro",
     host     => "pfamdb2a",
     port     => "3303",
-    database => "pfamlive",
+    database => "pfamH3live",
     driver   => "mysql",
     @_,
   };
@@ -89,7 +89,7 @@ sub updateClanMembership {
     "Updating clan membership with auto_clan: $autoClan, auto_pfamA: $autoPfamA"
   ) if ( $self->{'debug'} );
   if ( $autoClan && $autoPfamA ) {
-    $result = $self->getSchema->resultset('Clan_membership')->create(
+    $result = $self->getSchema->resultset('Clan_membership')->find_or_create(
       {
         auto_clan  => $autoClan,
         auto_pfamA => $autoPfamA
@@ -191,6 +191,48 @@ sub updatePfamA {
   $famObj->rdb( { auto => $pfamA->auto_pfama } );
   $pfamA->update;
 }
+
+sub createPfamA {
+  my ( $self, $famObj ) = @_;
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+  my $pfamA =
+    $self->getSchema->resultset('Pfama')
+    ->create( { pfama_acc    => $famObj->DESC->AC,
+                pfama_id     => $famObj->DESC->ID,
+                description  => $famObj->DESC->DE,
+                author       => $famObj->DESC->AU, 
+                seed_source  => $famObj->DESC->SE,
+                type         => $famObj->DESC->TP,
+                sequence_tc  => $famObj->DESC->CUTTC->{seq},
+                domain_tc    => $famObj->DESC->CUTTC->{dom},
+                sequence_ga  => $famObj->DESC->CUTGA->{seq}, 
+                domain_ga    => $famObj->DESC->CUTGA->{dom}, 
+                sequence_nc  => $famObj->DESC->CUTNC->{seq},
+                domain_nc    => $famObj->DESC->CUTNC->{dom},
+                buildmethod  => $famObj->DESC->BM,
+                searchmethod => $famObj->DESC->SM,
+                comment      => $famObj->DESC->CC,
+                previous_id  => $famObj->DESC->PI ? $famObj->DESC->PI : '',
+                mu           => $famObj->HMM->mu,
+                tau          => $famObj->HMM->tau,
+                lambda       => $famObj->HMM->lambda,
+                model_length => $famObj->HMM->length,
+                num_seed     => $famObj->SEED->no_sequence,
+                num_full     => $famObj->ALIGN->no_sequences });
+
+
+  unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
+    confess( 'Failed to get row for ' . $famObj->DESC->ID . "$pfamA....." );
+  }
+  
+  #Add the auto number to the famObj.
+  $famObj->rdb( { auto => $pfamA->auto_pfama } );
+}
+
 
 sub movePfamA {
   my($self, $fromFamily, $toFamily) = @_;
