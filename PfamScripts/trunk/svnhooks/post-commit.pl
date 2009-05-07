@@ -44,7 +44,7 @@ my $logMessage = $revlook->log_msg;
 #    This will remove the family from the clan membership
  
  
-if($logMessage =~ /PFNEW:(\S+)/){
+if($logMessage =~ /^PFNEW:(\S+)/){
   my $family = $1;
   my $client = Bio::Pfam::SVN::Client->new;
   
