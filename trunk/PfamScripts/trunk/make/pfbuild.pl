@@ -383,7 +383,7 @@ sub main {
             $fh->print("pfmake.pl -e $makeEvalue\n");    
           }else{
             if(-e "$pwd/DESC"){
-              $fh->print("pfmake.pl -e 0.1\n");
+              $fh->print("pfmake.pl\n");
             }else{
               $fh->print("pfmake.pl -e 0.01\n");  
             }
