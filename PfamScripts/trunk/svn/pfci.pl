@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/software/bin/perl
 #
 # This script allows one to check in a family to the SVN repository containing Pfam families.
 # The family that you wish to checkout should be passed in as a parameter
@@ -136,7 +136,6 @@ if($onlydesc){
       exit(1);
     }
   
-  
     #unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
     #  exit(1);   
     #}
@@ -160,8 +159,6 @@ if($onlydesc){
   }
   
   #If we are at sanger, perform this prior to commit 
-  
-
 }
 
 #-------------------------------------------------------------------------------
