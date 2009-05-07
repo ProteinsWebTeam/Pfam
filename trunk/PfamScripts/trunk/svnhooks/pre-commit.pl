@@ -1,33 +1,18 @@
-#!/usr/local/bin/perl
+#!/software/bin/perl
 #
 #We have to set this in thes scripts as they do not assume anyones environment variables.
 #
-#use lib "/Users/finnr/Work/perl/lib/perl5/site_perl/"
-use lib "/Users/finnr/tmp";
-
-use lib "/Users/finnr/Work/PfamCodeBase/PfamLib";
-use lib "/Users/finnr/Work/perl/bioperl-1.4";
-use lib "/Users/finnr/Work/perl/lib/perl5/site_perl";
-use lib "/Users/finnr/Work/perl/lib/perl5/site_perl/5.8.8/darwin-thread-multi-2level";
-use lib "/Users/finnr/Work/perl/System/Library/Perl/5.8.8";
-use lib "/Users/finnr/Work/PfamCodeBase/PfamH3Lib"; 
-
-$ENV{PFAM_CONFIG} = "/Users/finnr/Work/PfamCodeBase/PfamConfigJFRC/PfamCode/pfam_code.conf";
-
 # pre-commit.pl -txn 1388 -repos /Users/finnr/Work/Repository
 
-
-$ENV{DYLD_LIBRARY_PATH} = "/Users/finnr/Work/Server/modules:/Users/finnr/Work/Software/lib";
-
-use lib "/Users/finnr/tmp";
 
 use strict;
 use warnings;
 
-#use SVN::Look;
+use SVN::Look;
 use Getopt::Long;
 use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Commit;
+use Data::Dumper;
 
 my( $rev, $txn, $repos, $debug, $help );
 
@@ -39,10 +24,6 @@ if( $rev and $txn ){
   die "Can not define both and revision and a transaction\n";  
 }
             
-unless(($txn and $repos) or ($rev and $repos)){
-  die "Need to define both txn and repos: try $0 -help";  
-}
-
 my %params;
 if($rev){
   $params{rev} = $rev; 
@@ -65,7 +46,7 @@ unless( $msg ){
 
 my $config = Bio::Pfam::Config->new;
 my $connect = $config->pfamlive;
-
+print STDERR Dumper($connect);
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
   %{ $connect }
 );
@@ -94,15 +75,17 @@ foreach my $f (@deleted_files){
 if($msg =~ /^PFCI:/){
   $txnlook->commitFamily( $pfamDB );
 }elsif( $msg =~ /^PFNEW:/ ){
-  
+  $txnlook->commitNewFamily( $pfamDB ); 
+}elsif( $msg =~ /^PFNEWMOV:/ ){
+  ;
 }elsif( $msg =~ /^PFANN:/ ) {
     
 }elsif( $msg =~ /^PFMOV:/ ) {
-  $txnlook->moveFamily( $pfamDB );  
+  #$txnlook->moveFamily( $pfamDB );  
 }elsif( $msg =~ /^PFKIL:/ ) {
     
 }else{
-  die "Do not know here this commit has come from!\n"; 
+  die "Do not know here this commit has come from, [$msg]!\n"; 
 }
 
 exit(0);
