@@ -34,13 +34,13 @@ sub main {
     &help; 
   }
   
-  if($evalue and ($seqThrs or $domThrs)){
+  if($evalue and (defined($seqThrs) or defined($domThrs))){
     die "You have specified an evalue ($evalue) and bits score\n"; 
   }
 
   #Check that the bits thresholds make sense
   if(!$evalue){
-    if($domThrs and !$seqThrs){
+    if(defined($domThrs) and ! defined($seqThrs)){
       #Use the domain threshold for the sequence threshold
       $seqThrs = $domThrs; 
     }elsif(defined $seqThrs and ! defined $domThrs){
