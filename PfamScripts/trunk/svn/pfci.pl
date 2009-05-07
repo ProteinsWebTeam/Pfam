@@ -42,11 +42,6 @@ if (@ARGV) {
   help();
 }
 
-if ($iterated) {
-  warn "\n***** -iterated not current supported *****\n\n";
-  help();
-}
-
 if ( $removeFromClan and $addToClan ) {
   warn
 "\n***** You cannot use the -add_family and -remove_family options together *****\n\n";
@@ -91,6 +86,8 @@ if ($message) {
 #Initial SVN stuff
 
 #Check that family exists in svn
+
+my $config = Bio::Pfam::Config->new;
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkFamilyExists($family);
 
@@ -123,6 +120,8 @@ else {
     print "pfci: $family contains errors.  You should rebuild this family.\n";
     exit(1);
   }
+  
+  my $oldFamObj;
   my $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
   print STDERR "Successfully loaded $family through middleware\n";
 
@@ -145,13 +144,13 @@ else {
     
     #Need to propergate the fact we want to add this family to a clan via the log message.
     open(C, ">.atc") or die "Could not open .atc:[$!]\n";
-    print C $newFamObj->DESC->CL.":".$newFamObj->DESC->AC;
+    print C $upFamObj->DESC->CL.":".$upFamObj->DESC->AC;
     close(C);
     
     $client->addPFCIATCLog();
   }
   elsif ($removeFromClan) {
-
+    
     #Check that the clan accession is in the correct format.
     unless( $oldFamObj->DESC->CL =~ /CL\d{4}/ ) {
       die "$removeFromClan does not look like a clan accession\n";
@@ -163,7 +162,7 @@ else {
     #}
 
     #Does the clan in question exist?
-    $client->checkClanExists($removeToClan);
+    #$client->checkClanExists();
 
     #Seems like it does, lets load it!
     my $clanIO  = Bio::Pfam::ClanIO->new;
@@ -185,10 +184,9 @@ else {
     $client->addPFCILog();  
   }
 
-}
 
-#my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
-my $oldFamObj;
+
+#my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);$oldFamObj;
 print STDERR "Successfully loaded remote $family through middleware\n";
 
 #AC present
@@ -201,10 +199,16 @@ unless ($ignore) {
 
   #If we are at sanger, perform an overlap check against the database.
   if ( $config->location eq "WTSI" ) {
+    my $connect = $config->pfamlive;
     my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{$connect} );
 
     #Find out if family is in rdb
     my $rdb_family = $pfamDB->getPfamData($family);
+    
+    my %ignore;
+    #Need to populate the ignore hash with clan and nesting data......
+    
+    
     my $overlaps =
       &Bio::Pfam::PfamQC::family_overlaps_with_db( $family, \%ignore, undef,
       $pfamDB, $upFamObj );
@@ -258,7 +262,7 @@ if ($caught_cntrl_c) {
   print STDERR
 "\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
 }
-
+}
 exit(0);
 
 #-------------------------------------------------------------------------------
