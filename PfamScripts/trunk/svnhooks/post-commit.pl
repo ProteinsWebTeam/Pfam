@@ -80,10 +80,10 @@ if($logMessage =~ /^PFNEW:(\S+)/){
     addToClan($descObj->CL, $descObj->AC);  
   }
 
-}elsif( $logMessage =~ /PFCIATC:(CL\d{4})-(PF\d{5})/ ){
+}elsif( $logMessage =~ /PFCIATC:(CL\d{4}):(PF\d{5})/ ){
   #Looks like we are trying to add a family to a clan.
-  my $clan = "CL0001";
-  my $fam  = "PF10641";
+  my $clan = $1;
+  my $fam  = $2;
   addToClan($clan, $fam);  
 }elsif($logMessage =~/CLNEW:/){
   die;
