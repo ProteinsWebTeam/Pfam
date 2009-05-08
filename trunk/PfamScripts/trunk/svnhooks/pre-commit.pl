@@ -51,6 +51,7 @@ my $pfamDB = Bio::Pfam::PfamLiveDBManager->new(
   %{ $connect }
 );
 
+print STDERR "*** $msg ***\n";
 
 #$msg = "$msg";
 
@@ -74,7 +75,7 @@ foreach my $f (@deleted_files){
 
 if($msg =~ /^PFCI:/){
   $txnlook->commitFamily( $pfamDB );
-}elsif($msg =~ /^PFCIATC:(CL\d{4})\:(PF\d{5})/){
+}elsif($msg =~ /PFCIATC:(CL\d{4})\:(PF\d{5})/){
   my($clan, $fam);
   $clan = $1;
   $fam  = $2;
@@ -86,6 +87,8 @@ if($msg =~ /^PFCI:/){
   $txnlook->commitNewFamily( $pfamDB ); 
 }elsif( $msg =~ /^PFNEWMOV:/ ){
   ;
+}elsif( $msg =~ /^AUTOMB/){
+  ;  
 }elsif( $msg =~ /^PFANN:/ ) {
   $txnlook->commitDesc;  
 }elsif( $msg =~ /^PFMOV:/ ) {
