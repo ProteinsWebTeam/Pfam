@@ -85,8 +85,42 @@ if($logMessage =~ /^PFNEW:(\S+)/){
   my $clan = $1;
   my $fam  = $2;
   addToClan($clan, $fam);  
-}elsif($logMessage =~/CLNEW:/){
-  die;
+}elsif($logMessage =~/CLNEW:(\S+)/){
+  my $clan = $1;
+  my $client = Bio::Pfam::SVN::Client->new;
+  
+  
+  my $connect = $config->pfamlive;
+  my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
+    %{ $connect }
+  );
+  
+  my $clanData = $pfamDB->getClanData($clan);
+  
+  open(M, ">.defaultclnewmove") or die "";
+  print M "Moving from pending to main repository\n";
+  close(M);
+  $client->addCLNEWMOVELog;
+  $client->moveNewClan($clanData->clan_id, $clanData->clan_acc);
+  
+  open(M, ">.defaultclnewmove") or die "";
+  print M "Automatically adding accession\n";
+  close(M);
+  $client->addCLNEWACCLog;
+  
+  #Now checkout and add the accession to the DESC file!
+  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
+  my $dest = $tmpDir->dirname;
+  $client->checkoutClan($clan->clan_acc, $dest);
+  #parse the DESC file
+  my $familyIO = Bio::Pfam::ClanIO->new;
+  
+  my $descObj = $clanIO->parseDESC("$dest/CLANDESC");
+  $descObj->AC($clanData->clan_acc);
+  $clanIO->writeDESC($descObj, $dest);
+  #Commit back in
+  $client->commitClan($dest);
+  
   
 }elsif($logMessage =~ /PFCIRMC:(CL\d{4})-(PF\d{5})/){
   die;

@@ -85,9 +85,12 @@ if($msg =~ /^PFCI:/){
   $txnlook->commitFamily( $pfamDB );
 }elsif( $msg =~ /^PFNEW:/ ){
   $txnlook->commitNewFamily( $pfamDB ); 
-}elsif( $msg =~ /^PFNEWMOV:/ ){
+}elsif( $msg =~ /^CLNEW:/ ){
+  $txnlook->commitNewClan( $pfamDB ); 
+}elsif( $msg =~ /^(PF|CL)NEWMOV:/ ){
   ;
-}elsif( $msg =~ /^AUTOMB/){
+}elsif( $msg =~ /^CLNEWACC:/ ){
+  ;}elsif( $msg =~ /^AUTOMB/){
   ;  
 }elsif( $msg =~ /^PFANN:/ ) {
   $txnlook->commitDesc;  
