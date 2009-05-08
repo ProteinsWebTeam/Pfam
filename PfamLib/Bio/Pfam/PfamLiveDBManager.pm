@@ -79,6 +79,17 @@ sub getClanLockData {
   return $lockData if ( ref($lockData) );
 }
 
+
+
+
+
+
+
+
+
+
+
+
 #
 # Specific insert/update methods should go here
 #
@@ -221,7 +232,7 @@ sub createPfamA {
                 tau          => $famObj->HMM->tau,
                 lambda       => $famObj->HMM->lambda,
                 model_length => $famObj->HMM->length,
-                num_seed     => $famObj->SEED->no_sequence,
+                num_seed     => $famObj->SEED->no_sequences,
                 num_full     => $famObj->ALIGN->no_sequences });
 
 
@@ -890,6 +901,134 @@ sub uploadAlignmentAndTrees {
                                type       => $type });
   
 }
+
+sub createClan {
+  my($self, $clanObj) = @_;
+  
+  unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
+    confess("Did not get a Bio::Pfam::Clan::Clan object");
+  }
+
+  my $clan = 
+    $self->getSchema->resultset('Clans')
+    ->create( { clan_acc => $clanObj->DESC->AC,
+                clan_id  => $clanObj->DESC->ID,
+                clan_description => $clanObj->DESC->DE,
+                clan_author => $clanObj->DESC->AU,
+                clan_comment => $clanObj->DESC->CC,
+                competed => 0 } );
+
+  unless ( $clan and $clan->isa('PfamLive::Clans') ) {
+    confess( 'Failed to get row for ' . $clanObj->DESC->ID . " $clan....." );
+  }
+  
+  #Add the auto number to the clanObj.
+  $clanObj->rdb( { auto => $clan->auto_clan} );
+  
+}
+
+sub updateClanDbXrefs{
+  my ( $self, $clanObj ) = @_;
+
+#-------------------------------------------------------------------------------
+#Check we have the correct object
+
+  unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
+    confess("Did not get a Bio::Pfam::Clan::Clan object");
+  }
+
+#-------------------------------------------------------------------------------
+#Get the index for the clan
+
+  my $auto;
+  if ( $clanObj->rdb->{auto} ) {
+    $auto = $clanObj->rdb->{auto};
+  } else {
+    my $clan =
+      $self->getSchema->resultset('Clans')
+      ->find( { clan_acc => $clanObj->DESC->AC } );
+
+    if ( $clan->clan_id ) {
+      $auto = $clan->auto_pfama;
+      $clanObj->rdb({ auto => $clan->auto_clan});
+    } else {
+      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
+    }
+  }
+
+#-------------------------------------------------------------------------------
+  $self->getSchema
+        ->resultset('ClanDatabaseLinks')
+          ->search( { auto_clan  => $auto })->delete;
+    
+  foreach my $dbLink (@{ $clanObj->DESC->DBREFS }){
+    $self->getSchema
+            ->resultset('ClanDatabaseLinks')
+              ->create( { auto_pfama   => $auto,
+                          db_id        => $dbLink->{db_id},
+                          comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
+                          db_link      => $dbLink->{db_link},
+                          other_params => $dbLink->{other_params} ? $dbLink->{other_params} : ''}); 
+  }
+}
+
+sub updateClanLitRefs{
+  my ( $self, $clanObj ) = @_;
+
+#-------------------------------------------------------------------------------
+#Check we have the correct object
+
+  unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
+    confess("Did not get a Bio::Pfam::Clan::Clan object");
+  }
+
+#-------------------------------------------------------------------------------
+#Get the index for the clan
+
+  my $auto;
+  if ( $clanObj->rdb->{auto} ) {
+    $auto = $clanObj->rdb->{auto};
+  } else {
+    my $clan =
+      $self->getSchema->resultset('Clans')
+      ->find( { clan_acc => $clanObj->DESC->AC } );
+
+    if ( $clan->clan_id ) {
+      $auto = $clan->auto_pfama;
+      $clanObj->rdb({ auto => $clan->auto_clan});
+    } else {
+      confess( "Did not find an mysql entry for " . $clanObj->DESC->ID . "\n" );
+    }
+  }
+
+#-------------------------------------------------------------------------------
+#Add the references to the literature reference table if it is not there.
+#Then added the information pfamA_literature_reference table.
+  $self->getSchema
+        ->resultset('ClanLiteratureReferences')
+          ->search( { auto_clan  => $auto })->delete;
+  
+  
+  foreach my $ref (@{ $clanObj->DESC->REFS }){
+      my  $dbRef = $self->getSchema
+                          ->resultset('LiteratureReferences')
+                            ->find_or_create( { pmid    => $ref->{RM},
+                                                title    => $ref->{RT} ? $ref->{RT} : '',
+                                                author  => $ref->{RA} ? $ref->{RA} : '',
+                                                journal => $ref->{RL} ? $ref->{RL} : '' });
+      unless($dbRef->auto_lit){
+        confess("Failed to find references for pmid ".$ref->{RM}."\n");  
+      }
+      $self->getSchema
+            ->resultset('PfamaLiteratureReferences')
+              ->create( { auto_clan  => $auto,
+                          auto_lit    => $dbRef,
+                          comment     => $ref->{RC} ? $ref->{RC} : '',
+                          order_added => $ref->{RN}  }); 
+  }
+}
+
+
 
 =head1 COPYRIGHT
 
