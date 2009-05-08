@@ -109,17 +109,17 @@ if($logMessage =~ /^PFNEW:(\S+)/){
   $client->addCLNEWACCLog;
   
   #Now checkout and add the accession to the DESC file!
-  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
+  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 1 );
   my $dest = $tmpDir->dirname;
-  $client->checkoutClan($clan->clan_acc, $dest);
+  $client->checkoutClan($clanData->clan_acc, $dest);
   #parse the DESC file
-  my $familyIO = Bio::Pfam::ClanIO->new;
+  my $clanIO = Bio::Pfam::ClanIO->new;
   
-  my $descObj = $clanIO->parseDESC("$dest/CLANDESC");
+  my $descObj = $clanIO->parseCLANDESC("$dest/".$clanData->clan_acc."/CLANDESC");
   $descObj->AC($clanData->clan_acc);
-  $clanIO->writeDESC($descObj, $dest);
+  $clanIO->writeCLANDESC($descObj, $dest."/".$clanData->clan_acc);
   #Commit back in
-  $client->commitClan($dest);
+  $client->commitClan($dest."/".$clanData->clan_acc);
   
   
 }elsif($logMessage =~ /PFCIRMC:(CL\d{4})-(PF\d{5})/){
