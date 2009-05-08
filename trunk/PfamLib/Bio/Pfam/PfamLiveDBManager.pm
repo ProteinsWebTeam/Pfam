@@ -964,7 +964,7 @@ sub updateClanDbXrefs{
   foreach my $dbLink (@{ $clanObj->DESC->DBREFS }){
     $self->getSchema
             ->resultset('ClanDatabaseLinks')
-              ->create( { auto_pfama   => $auto,
+              ->create( { auto_clan   => $auto,
                           db_id        => $dbLink->{db_id},
                           comment      => $dbLink->{db_comment} ? $dbLink->{db_comment} : '',
                           db_link      => $dbLink->{db_link},
@@ -1005,7 +1005,7 @@ sub updateClanLitRefs{
 #Add the references to the literature reference table if it is not there.
 #Then added the information pfamA_literature_reference table.
   $self->getSchema
-        ->resultset('ClanLiteratureReferences')
+        ->resultset('ClanLitRefs')
           ->search( { auto_clan  => $auto })->delete;
   
   
@@ -1020,7 +1020,7 @@ sub updateClanLitRefs{
         confess("Failed to find references for pmid ".$ref->{RM}."\n");  
       }
       $self->getSchema
-            ->resultset('PfamaLiteratureReferences')
+            ->resultset('ClanLitRefs')
               ->create( { auto_clan  => $auto,
                           auto_lit    => $dbRef,
                           comment     => $ref->{RC} ? $ref->{RC} : '',
