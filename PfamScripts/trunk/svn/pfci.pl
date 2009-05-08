@@ -135,7 +135,7 @@ else {
     }
     $client->checkClanExists($upFamObj->DESC->CL);
     my $clanIO     = Bio::Pfam::ClanIO->new;
-    my $clanObj    = $clanIO->loadClanFromSVN($upFamObj->DESC->CL);
+    my $clanObj    = $clanIO->loadClanFromSVN($upFamObj->DESC->CL, $client);
     my %membership = map { $_ => 1 } @{ $clanObj->DESC->MEMB };
     if ( $membership{ $upFamObj->DESC->AC } ) {
       die
