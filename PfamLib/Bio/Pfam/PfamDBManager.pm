@@ -194,6 +194,12 @@ sub getAllClanData {
   return \@clanData;
 }
 
+sub getAllDeadClanData {
+  my ($self) = shift;
+  my @deadClanData = $self->getSchema->resultset("DeadClans")->search();
+  return \@deadClanData;
+}
+
 sub getPfamData {
   my ( $self, $family ) = @_;
   my $familyData;
