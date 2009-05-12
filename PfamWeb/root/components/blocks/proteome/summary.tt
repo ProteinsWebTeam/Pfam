@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.11 2008-07-23 13:45:22 jt6 Exp $
+# $Id: summary.tt,v 1.12 2009-05-12 09:35:01 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -108,13 +108,14 @@ oe = 0;
   try {
     var tree = new YAHOO.widget.TreeView("lineage"); 
     var parent = tree.getRoot();
-    [% FOREACH node IN proteomeSpecies.taxonomy.split(';') %]
-      var [% node %]Node = new YAHOO.widget.TextNode( 
-        { label: "[% node %]",
-          href:  "http://www.ebi.ac.uk/newt/display?match=complete%20word&search=[% node %]" },
+    [% FOREACH node_name IN proteomeSpecies.taxonomy.split(';');
+      node_id = "node" _ node_name.replace( '\W', '' ); %]
+      var [% node_id %]Node = new YAHOO.widget.TextNode( 
+        { label: "[% node_name %]",
+          href:  "http://www.ebi.ac.uk/newt/display?match=complete%20word&search=[% node_name %]" },
         parent,
         true );
-      parent = [% node %]Node;
+      parent = [% node_id %]Node;
     [%- END %]
     tree.draw();
   } catch( e ) {
