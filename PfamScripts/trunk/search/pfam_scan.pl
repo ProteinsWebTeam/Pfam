@@ -61,7 +61,7 @@ read_pfam_data($dir, \%accmap, \%nested, \%clanmap);
 
 
 
-my $new = PfamScan->new(  -outfile => $outfile,			  
+my $new =  Bio::Pfam::Scan::PfamScan->new(  -outfile => $outfile,			  
              -cut_off => $hmmscan_cut_off,
              -dir => $dir,
              -clan_overlap => $clan_overlap,
