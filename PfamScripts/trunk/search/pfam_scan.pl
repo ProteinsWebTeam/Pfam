@@ -147,7 +147,7 @@ sub read_pfam_data {
 	if( /^\#=GF ID\s+(\S+)/ ) {
 	    $id = $1;
 	}
-	elsif( /^\#=GF AC\s+(PF\d+\.\d+)/ ) {
+	elsif( /^\#=GF AC\s+(\S+)/ ) {
 	    $$accmap{$id} = $1;
 	}
 	elsif( /^\#=GF NE\s+(\S+)/) {
