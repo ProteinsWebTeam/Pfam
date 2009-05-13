@@ -61,18 +61,20 @@ read_pfam_data($dir, \%accmap, \%nested, \%clanmap);
 
 
 
-my $new =  Bio::Pfam::Scan::PfamScan->new(  -outfile => $outfile,			  
-             -cut_off => $hmmscan_cut_off,
-             -dir => $dir,
-             -clan_overlap => $clan_overlap,
-             -fasta => $fasta,
-             -align => $align,
-             -max_seqname =>$max_seqname,
-             -as => $as );
+my $ps = Bio::Pfam::Scan::PfamScan->new(
+           -outfile => $outfile,			  
+           -cut_off => $hmmscan_cut_off,
+           -dir => $dir,
+           -clan_overlap => $clan_overlap,
+           -fasta => $fasta,
+           -align => $align,
+           -max_seqname =>$max_seqname,
+           -as => $as
+         );
 
 
-
-$new->run_hmmscan(\%seq, \%accmap, \%clanmap, \%nested);
+$ps->run_hmmscan(\%seq, \%accmap, \%clanmap, \%nested);
+$ps->print_results;
 
 exit(0);
 
