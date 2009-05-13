@@ -77,7 +77,15 @@ $new->run_hmmscan(\%seq, \%accmap, \%clanmap, \%nested);
 exit(0);
 
 
+=head2 help
 
+  Title    : help
+  Usage    : help()
+  Function : Write usage of the script to STDERR
+  Args     : None
+  Returns  : Nothing, exits script
+  
+=cut
 
 sub help {
 print STDERR <<EOF;
@@ -118,12 +126,22 @@ exit(1);
 }
 
 
+=head2 read_pfam_data
+
+  Title    : read_pfam_data
+  Usage    : read_pfam_data($dir, \%accmap, \%nested, \%clanmap); 
+  Function : Populates the accmap, nested and clanmap hashes
+  Args     : Directory location of Pfam-A.scan.data, hash references to accmap, nested and clanmap
+  Returns  : Nothing, but populates the three hashes passes in
+  
+=cut
+
 sub read_pfam_data {
     #Read in Pfam id and acc, clan info, and store any nesting info
 
     my ($dir, $accmap, $nested, $clanmap) = @_;
 
-    my ($id, $acc);
+    my $id;
     open(SCANDAT, "$dir/Pfam-A.scan.dat" ) or die "FATAL: Couldn't open $dir/Pfam-A.scan.dat file: $!\n";
     while(<SCANDAT>) {
 	if( /^\#=GF ID\s+(\S+)/ ) {
@@ -131,11 +149,10 @@ sub read_pfam_data {
 	}
 	elsif( /^\#=GF AC\s+(PF\d+\.\d+)/ ) {
 	    $$accmap{$id} = $1;
-	    $acc = $1;
 	}
-	elsif( /^\#=GF NE\s+(PF\d+\.\d+)\;/) {
-	    $$nested{$acc}{$1}=1;
-	    $$nested{$1}{$acc}=1;
+	elsif( /^\#=GF NE\s+(\S+)/) {
+	    $$nested{$id}{$1}=1;
+	    $$nested{$1}{$id}=1;
 	}
 	elsif(/^\#=GF CL\s+(\S+)/) {
 	    $$clanmap{$id} = $1;
@@ -144,6 +161,16 @@ sub read_pfam_data {
     close SCANDAT;
 }
 
+=head2 read_fasta
+
+  Title    : read_fasta
+  Usage    : read_fasta($fasta_file, \%seq, \$max_seq_name); 
+  Function : Reads fasta file, populates sequence hash and 
+             stores the length of the longest sequence id
+  Args     : Fasta file, reference to a sequence hash, reference to scalar variable
+  Returns  : Nothing, but populates sequence hash and max_seq_name variable
+  
+=cut
 
 sub read_fasta { 
     my ($fasta_file, $seq_hash, $max_seqname) = @_;
