@@ -10,7 +10,7 @@ use Storable qw( freeze );
 use Data::Dump qw( dump );
 
 my $DEBUG = $ENV{DEBUG} || 1;
-$ENV{PFAMOFFLINE_CONFIG} = $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
+$ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
 
 my $pq = Bio::Pfam::WebServices::PfamQueue->new( 'h3' );
 $pq->daemonise unless $DEBUG;
