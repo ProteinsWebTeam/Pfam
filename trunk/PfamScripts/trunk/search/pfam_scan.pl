@@ -8,7 +8,8 @@ use Getopt::Long;
 
 #Get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, $clan_overlap, $fasta, $align, $help, $as );
-GetOptions( "e_seq=f"   => \$e_seq,
+GetOptions( "outfile=s" => \$outfile,
+            "e_seq=f"   => \$e_seq,
             "e_dom=f"   => \$e_dom,
             "b_seq=f"   => \$b_seq,
             "b_dom=f"   => \$b_dom,
@@ -26,20 +27,22 @@ die "FATAL: Can't find Pfam-A.scan.dat in $dir\n" unless(-s "$dir/Pfam-A.scan.da
 die "FATAL: Can't find Pfam_HMM and/or Pfam_HMM binaries in $dir\n" unless(-s "$dir/Pfam_HMM" and -s "$dir/Pfam_HMM.h3f" and -s "$dir/Pfam_HMM.h3i" and -s "$dir/Pfam_HMM.h3m" and -s "$dir/Pfam_HMM.h3p");
 die "FATAL: Can't use e value and bit score threshold together" if( ($e_seq and ($b_seq||$b_dom)) or ($b_seq and ($e_seq||$e_dom)) or ($b_dom and $e_dom) );
     
-my $ps = Bio::Pfam::Scan::PfamScan->new(
-           -e_seq => $e_seq,
-           -e_dom => $e_dom,
-           -b_seq => $b_seq,
-           -b_dom => $b_dom,
-           -dir => $dir,
-           -clan_overlap => $clan_overlap,
-           -fasta => $fasta,
-           -align => $align,
-           -as => $as
-         );
+my $ps = Bio::Pfam::Scan::PfamScan->new();
 
-$ps->search;
-$ps->write_results;
+my $input = {
+  -e_seq => $e_seq,
+  -e_dom => $e_dom,
+  -b_seq => $b_seq,
+  -b_dom => $b_dom,
+  -dir => $dir,
+  -clan_overlap => $clan_overlap,
+  -fasta => $fasta,
+  -align => $align,
+  -as => $as
+};
+
+$ps->search( $input );
+$ps->write_results( $outfile );
 
 exit(0);
 
@@ -65,6 +68,7 @@ Usage: $0 -fasta <fasta_file> -dir <directory location of Pfam files>
 Addional options:
 
         -h              : show this help
+        -o <file>       : output file, otherwise send to STDOUT
         -clan_overlap   : show overlapping hits within clan member families
         -align          : show the HMM-sequence alignment for each match
         -e_seq <n>      : specify hmmscan evalue sequence cutoff (default Pfam definition)
