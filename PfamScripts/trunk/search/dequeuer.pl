@@ -15,35 +15,37 @@ $ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
 my $pq = Bio::Pfam::WebServices::PfamQueue->new( 'h3' );
 $pq->daemonise unless $DEBUG;
 
+my $ps = Bio::Pfam::Scan::PfamScan->new();
+
 JOB: while ( 1 ) {
 
   my $job = $pq->satisfy_pending_job;
 
   unless ( $job->{id} ) {
-    $DEBUG && print STDERR "no job; sleeping\n";
+    $DEBUG && print STDERR "dequeuer: no job; sleeping\n";
     sleep 2; # TODO make the sleep delay a configuration variable
     next JOB;
   }
-  $DEBUG && print STDERR 'job specification: ' . dump( $job ) . "\n";
+  $DEBUG && print STDERR 'dequeuer: job specification: ' . dump( $job ) . "\n";
 
   my $sequence = ">UserSeq\n" . $job->{stdin};
 
-  my %input = (
-    -dir      => $pq->dataFileDir, # TODO make "dir" configurable
+  my $input = {
+    -dir      => $pq->dataFileDir,
     -sequence => $sequence,
-  );
+  };
 
-  $DEBUG && print STDERR 'job params: ' . dump( \%input ) . "\n";
+  $DEBUG && print STDERR 'dequeuer: PfamScan params: ' . dump( $input ) . "\n";
 
-  my $ps = Bio::Pfam::Scan::PfamScan->new( %input );
-  $DEBUG && print STDERR "created a PfamScan object\n";
-  # TODO make the PfamScan object stick around; add a "set_input" method
+  $DEBUG && print STDERR "dequeuer: created a PfamScan object\n";
+
+  # TODO update the job_history.opened column appropriately
 
   my $results;
   eval {
-    $DEBUG && print STDERR "running a search...\n";
-    $ps->search;
-    $DEBUG && print STDERR "done\n";
+    $DEBUG && print STDERR "dequeuer: running a search...\n";
+    $ps->search( $input );
+    $DEBUG && print STDERR "dequeuer: done\n";
     $results = freeze( $ps->results );
   };
   if ( $@ ) {
@@ -53,22 +55,22 @@ JOB: while ( 1 ) {
     next JOB;
   }
 
-  $DEBUG && print STDERR "updating job status\n";
+  $DEBUG && print STDERR "dequeuer: updating job status\n";
   $pq->update_job_status( $job->{id}, 'DONE' );
-  $DEBUG && print STDERR "done\n";
+  $DEBUG && print STDERR "dequeuer: done\n";
 
   if ( $results ) {
-    $DEBUG && print STDERR "updating job stream with results\n";
+    $DEBUG && print STDERR "dequeuer: updating job stream with results\n";
     $pq->update_job_stream( $job->{id}, 'stdout', $results );
-    $DEBUG && print STDERR "done\n";
+    $DEBUG && print STDERR "dequeuer: done\n";
   }
   else {
-    $DEBUG && print STDERR "updating job stream with empty result set\n";
+    $DEBUG && print STDERR "dequeuer: updating job stream with empty result set\n";
     $pq->update_job_stream( $job->{id}, 'stdout', 'no matches found' );
-    $DEBUG && print STDERR "done\n";
+    $DEBUG && print STDERR "dequeuer: done\n";
   }
 
-  $DEBUG && print STDERR "restarting event loop\n";
+  $DEBUG && print STDERR "dequeuer: restarting event loop\n";
 }
 
 exit;
