@@ -22,6 +22,9 @@ GetOptions( 'outfile=s'    => \$outfile,
             'as'           => \$as );
 
 # check the input parameters
+die qq(FATAL: must specify both "-dir" and "-fasta")
+  unless ( defined $dir and defined $fasta );
+
 die qq(FATAL: can't find directory "$dir")
   unless -d $dir;
 
