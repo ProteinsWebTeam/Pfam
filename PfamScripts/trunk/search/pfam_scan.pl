@@ -9,7 +9,8 @@ use Getopt::Long;
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
      $clan_overlap, $fasta, $align, $help, $as );
-GetOptions( 'outfile=s'    => \$outfile,
+GetOptions( 'help'         => \$help,
+            'outfile=s'    => \$outfile,
             'e_seq=f'      => \$e_seq,
             'e_dom=f'      => \$e_dom,
             'b_seq=f'      => \$b_seq,
@@ -20,6 +21,10 @@ GetOptions( 'outfile=s'    => \$outfile,
             'align'        => \$align,
             'h'            => \$help,
             'as'           => \$as );
+
+
+
+help() if($help);
 
 # check the input parameters
 die qq(FATAL: must specify both "-dir" and "-fasta")
@@ -172,14 +177,15 @@ C<PATH> environment variable. You can download the HMMER3 package at:
 =head1 OUTPUT
 
 The output format is:
-<seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm start> <hmm end> <bit score> <E-value> <hmm name> <clan> <predicted_active_site_residues>
+<seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>
 
 Example output (with -as option):
 
-  Q16933.1     55    307     53    307  PF00069.1     3   260    231.8   5.3e-73  Pkinase          CL0016.9
-  Q1JEP1.1     12    398     12    398  PF01640.5     1   394    746.6  3.9e-229  Peptidase_C10    CL0125.5   predicted_active_site[192,340]
-  Q55U49.1    895   1146    895   1146  PF00621.1     1   180    118.4   4.2e-38  RhoGEF           No_clan
-  Q55U49.1   1232   1309   1227   1310  PF00169.1    20   100      8.0   0.00046  PH               CL0266.5
+  Q1JEP1.1     12    398     12    398 PF01640   Peptidase_C10     Domain     1   394   394    746.6  4.3e-225 1 CL0125    predicted_active_site[192,340]
+  Q69SA9.1    146    243    143    259 PF00085   Thioredoxin       Domain     5    95   104     59.3   1.9e-16 1 CL0172
+  Q69SA9.1    292    466    277    466 PF07970   COPIIcoated_ERV   Family    52   219   219     90.6   5.8e-26 1 No_clan
+
+
 
 =head1 REFERENCES
 
