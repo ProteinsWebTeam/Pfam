@@ -25,6 +25,7 @@ GetOptions( 'help'         => \$help,
 
 
 help() if($help);
+help() unless($dir and $fasta);
 
 # check the input parameters
 die qq(FATAL: must specify both "-dir" and "-fasta")
