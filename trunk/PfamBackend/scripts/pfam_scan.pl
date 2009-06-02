@@ -690,17 +690,19 @@ sub pred_act_sites {
      foreach my $unit ($seq->eachHMMUnit()) {
 
 	 my $family = $unit->hmmname;
-         my $seq_name = $unit->seqname;
+         my $seq_name = "Query_" . $unit->seqname;
 
          next unless(-d "$as_dir/$family");  #Family is not an active site family
 
-         my $s = $$seq_hash{$seq_name};
+         my $s = $$seq_hash{$unit->seqname};
          $s = substr($s, $unit->start_seq-1, $unit->end_seq-$unit->start_seq+1);
+
+
          open(SEQ, ">seq.$$") or die "Can't open $seq.$$ for writing $!";
-         print SEQ ">".$unit->seqname."\/".$unit->start_seq()."\-".$unit->end_seq()."\n$s";
+         print SEQ ">$seq_name\/".$unit->start_seq()."\-".$unit->end_seq()."\n$s";
          close SEQ;
 
-         my $array_ref = as_search::find_as($family, "seq.$$", $hmm_file, $as_dir);
+         my $array_ref = as_search::find_as($seq_name, $family, "seq.$$", $hmm_file, $as_dir);
          if($array_ref) {
            $unit->{'act_site'} =  $array_ref;
          }
@@ -1518,7 +1520,7 @@ use Bio::SeqFeature::Generic;
 =cut
 
 sub find_as {
-  my ($family, $seq, $hmm_file, $dir) = @_;
+  my ($seq_id, $family, $seq, $hmm_file, $dir) = @_;
 
   
   unless(-d "$dir/$family") {  #Family is not an active site family
@@ -1588,7 +1590,7 @@ sub find_as {
    my $pattern_aln = new AlignPfam;
    _pattern_info($aln, $pattern_aln);
    #find pred as
-   my $array_ref = _add_pred_as($aln, $pattern_aln);
+   my $array_ref = _add_pred_as($aln, $pattern_aln, $seq_id);
   return $array_ref;
 }
 
@@ -1694,19 +1696,18 @@ sub _pattern_info {
 
 
 sub _add_pred_as {
-    my ($aln, $pattern_aln) = @_;
+    my ($aln, $pattern_aln, $query_seq_id) = @_;
     my $num_seq=0;
     my ($query_seq, @as_res);
 
     #locate query seq
     foreach my $seq ( $aln->each_seq() ) {  
-	unless($seq->feature_count()) {
+	if($seq->id eq $query_seq_id) {
 	    $query_seq = $seq;
-            last ;
+	    last ;
 	}
     }
-    die "No query seq" unless $query_seq;
-
+    die "FATAL: Can't locate query sequence [$query_seq_id] in active site alignement\n" unless($query_seq);
 
     my   $aligns_with = new AlignPfam;
     foreach my $seq1 ( $pattern_aln->each_seq() ) {
