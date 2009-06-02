@@ -27,6 +27,7 @@ GetOptions( 'help'         => \$help,
 help() if($help);
 help() unless($dir and $fasta);
 
+
 # check the input parameters
 die qq(FATAL: must specify both "-dir" and "-fasta")
   unless ( defined $dir and defined $fasta );
@@ -47,10 +48,18 @@ die qq(FATAL: can't find "Pfam_HMM" and/or Pfam_HMM binaries in "$dir")
            -s "$dir/Pfam_HMM.h3m" and
            -s "$dir/Pfam_HMM.h3p" );
 
-die qq(FATAL: can't use E-value and bit score threshold together)
+die qq(FATAL: can\'t use E-value and bit score threshold together)
   if ( ( $e_seq and ( $b_seq or $b_dom ) ) or 
        ( $b_seq and ( $e_seq or $e_dom ) ) or 
        ( $b_dom and $e_dom ) );
+
+
+
+if($as) {
+    die qq(FATAL: can\'t find "active_site.dat" in "$dir")
+        unless( -s "$dir/active_site.dat");
+}
+
 
 # build the object
 my $ps = Bio::Pfam::Scan::PfamScan->new(
