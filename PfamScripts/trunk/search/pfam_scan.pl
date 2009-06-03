@@ -55,6 +55,10 @@ die qq(FATAL: can\'t use E-value and bit score threshold together)
 
 
 
+die qq(FATAL: outfile "$outfile" already exists)
+    if($outfile and -s $outfile);
+
+
 if($as) {
     die qq(FATAL: can\'t find "active_site.dat" in "$dir")
         unless( -s "$dir/active_site.dat");
@@ -78,7 +82,7 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
 $ps->search;
 
 # print the results
-$ps->write_results( $outfile );
+$ps->write_results( $outfile, $e_seq, $e_dom, $b_seq, $b_dom );
 
 exit;
 
@@ -97,11 +101,11 @@ Addional options:
   -o <file>       : output file, otherwise send to STDOUT
   -clan_overlap   : show overlapping hits within clan member families
   -align          : show the HMM-sequence alignment for each match
-  -e_seq <n>      : specify hmmscan evalue sequence cutoff (default Pfam definition)
-  -e_dom <n>      : specify hmmscan evalue domain cutoff (default Pfam definition)
-  -b_seq <n>      : specify hmmscan bit score sequence cutoff (default Pfam definition)
-  -b_dom <n>      : specify hmmscan bit score domain cutoff (default Pfam definition)
-  -as             : predict active site residues*
+  -e_seq <n>      : specify hmmscan evalue sequence cutoff (default Pfam defined)
+  -e_dom <n>      : specify hmmscan evalue domain cutoff (default Pfam defined)
+  -b_seq <n>      : specify hmmscan bit score sequence cutoff (default Pfam defined)
+  -b_dom <n>      : specify hmmscan bit score domain cutoff (default Pfam defined)
+  -as             : predict active site residues
 
 EOF
   exit;
