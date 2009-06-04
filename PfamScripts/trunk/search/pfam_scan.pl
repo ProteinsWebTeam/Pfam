@@ -1,10 +1,18 @@
 #!/software/bin/perl
 
+# This is pfam_scan.pl version 0.1a
+
+# $Id: pfam_scan.pl,v 1.14 2009-06-04 08:20:49 jm14 Exp $
+
+
 use strict;
 use warnings;
 
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
+
+
+
 
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
