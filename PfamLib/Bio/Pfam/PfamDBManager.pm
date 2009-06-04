@@ -701,10 +701,10 @@ sub getNestedDomain {
                                       { auto_pfama       => $pfam->auto_pfama } ] ); 
     #Now store the other pfamA_acc
     foreach my $r (@results){
-        if($r->auto_pfama ne $pfam->auto_pfama){
+        if($r->auto_pfama->auto_pfama ne $pfam->auto_pfama){
            my $npfam = $self->getSchema
                             ->resultset("Pfama")
-                              ->find( { auto_pfama => $r->auto_pfama} );
+                              ->find( { auto_pfama => $r->auto_pfama->auto_pfama} );
            if($npfam){
               push(@nestedFams, $npfam->pfama_acc);
            }
