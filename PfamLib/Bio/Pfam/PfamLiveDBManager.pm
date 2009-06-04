@@ -39,7 +39,7 @@ sub new {
       $self->{user}, $self->{password}, \%dbiParams );
   };
   if ($@) {
-    croak("Failed to get schema for databse:"
+    croak("Failed to get schema for database:"
         . $self->{'database'}
         . ". Error:[$@]\n" );
   }
@@ -165,10 +165,10 @@ sub updatePfamA {
 
   my $pfamA =
     $self->getSchema->resultset('Pfama')
-    ->find( { pfamA_id => $famObj->DESC->ID } );
+    ->find( { pfama_acc => $famObj->DESC->AC } );
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
-    confess( 'Failed to get row for ' . $famObj->DESC->ID . "$pfamA....." );
+    confess( 'Failed to get row for ' . $famObj->DESC->AC . "$pfamA....." );
   }
 
   #In the results set object, update all of the fields from the DESC object
@@ -256,7 +256,23 @@ sub movePfamA {
   
 }
 
+sub deletePfamA {
+  my ( $self, $famObj ) = @_;
 
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+  my $pfamA =
+    $self->getSchema->resultset('Pfama')
+    ->find( { pfama_acc => $famObj->DESC->AC } );
+
+  unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
+    confess( 'Failed to get row for ' . $famObj->DESC->AC . "$pfamA....." );
+  }
+ 
+  $pfamA->delete_all;  
+}
 
 sub updatePfamARegSeed {
   my ( $self, $famObj ) = @_;
