@@ -96,7 +96,7 @@ if($msg =~ /^PFCI:/){
   $txnlook->commitDesc;  
 }elsif( $msg =~ /^PFMOV:/ ) {
   $txnlook->moveFamily( $pfamDB );  
-}elsif( $msg =~ /^PFKIL:/ ) {
+}elsif( $msg =~ /^PFKILL:/ ) {
   $txnlook->deleteFamily( $pfamDB );
 }else{
   die "Do not know here this commit has come from, [$msg]!\n"; 
