@@ -414,14 +414,13 @@ sub getNSEseed {
 
 sub getOverlapingFullPfamRegions {
   my ( $self, $regionsHash, $overlaps ) = @_;
-
   #select pfamseq_id, seq_start, seq_end, pfamA_id from pfamA a, pfamA_reg_full r, pfamseq s
   #where pfamseq_acc="Q4C4F7" and
   #((130 <= r.seq_start and 130 >= r.seq_end) or ( 204 >= r.seq_start and 204 <= r.seq_end) or (130 < r.seq_start and 204 >r.seq_end))
   #and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and in_full=1;
 
   my $dbh = $self->getSchema->storage->dbh;
-  my $sth  = $dbh->prepare( "select seq_start, seq_end, pfamA_acc from pfamA a, pfamA_reg_full_significant r, pfamseq s where pfamseq_acc= ? and
+  my $sth  = $dbh->prepare( "select distinct seq_start, seq_end, pfamA_acc from pfamA a, pfamA_reg_full_significant r, pfamseq s where pfamseq_acc= ? and
   ((? <= r.ali_start and ? >= r.ali_end) or ( ? >= r.ali_start and ? <= r.ali_end) or (? < r.ali_start and ? >r.ali_end))
   and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and pfamA_acc != ? and in_full=1") or confess $dbh->errstr;
   
@@ -430,46 +429,11 @@ sub getOverlapingFullPfamRegions {
     foreach my $region ( @{$regionsHash->{$seqAcc}}){
       $sth->execute( $seqAcc, $region->{from}, $region->{from}, $region->{to}, $region->{to}, $region->{from}, $region->{to}, $region->{family} ); 
       foreach my $row (@{ $sth->fetchall_arrayref }){
-        push(@{$region->{overlap}}, { from => $row->[0], to => $row->[1], family => $row->[2], ali => 'SEED'})
+        push(@{$region->{overlap}}, { from => $row->[0], to => $row->[1], family => $row->[2], ali => 'FULL'})
       }
-      push(@{ $overlaps->{$seqAcc} }, $region);
+      push(@{ $overlaps->{$seqAcc} }, $region) if($region->{overlap});
     }
   }
-
-
-#  my $rs = $self->getSchema->resultset('PfamA_reg_full_significant');
-#  foreach my $seqAcc ( keys %{$regionsHash} ) {
-#    foreach my $region ( @{$regionsHash->{$seqAcc}}){
-#     my @results = $rs->search(
-#    {
-#      -and => [
-#         -or => [
-#            -and => [ seq_start => { '>=', $region->{from}  },
-#                      seq_start => { '<=', $region->{to}  } ],
-#            -and => [ seq_end =>   { '>=', $region->{from}    },
-#                      seq_end   => { '<=', $region->{to}    } ],
-#            -and => [ seq_start => { '<',  $region->{from}  },
-#                      seq_end   => { '>',  $region->{to}    } ],
-#         ],
-#        "pfamseq.pfamseq_acc" => $seqAcc,
-#        "in_full"             => 1,
-#        "pfamA.pfamA_id"     => { '!=', $region->{ family } }        
-#        
-#      ]
-#    },
-#    {
-#        select   => [qw(seq_start seq_end pfamA_id)],
-#        as       => [qw(seq_start seq_end pfamA_id)],
-#        join     => [qw( pfamA pfamseq )],
-#        prefetch => [qw( pfamA pfamseq )]
-#      });
-#      
-#    foreach my $o (@results) {
-#      push(@{$region->{overlap}}, { from => $o->get_column('seq_start'), to => $o->get_column('seq_end'), family => $o->get_column('pfamA_id'), ali => 'ALIGN'});      
-#    }
-#    push(@{ $overlaps->{$seqAcc} }, $region);
-#   }
-#  }
 }
 
 sub getOverlapingSeedPfamRegions {
@@ -481,7 +445,7 @@ sub getOverlapingSeedPfamRegions {
   #and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and in_full=1;
 
   my $dbh = $self->getSchema->storage->dbh;
-  my $sth  = $dbh->prepare( "select seq_start, seq_end, pfamA_acc from pfamA a, pfamA_reg_seed r, pfamseq s where pfamseq_acc= ? and
+  my $sth  = $dbh->prepare( "select distinct seq_start, seq_end, pfamA_acc from pfamA a, pfamA_reg_seed r, pfamseq s where pfamseq_acc= ? and
   ((? <= r.seq_start and ? >= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
   and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and pfamA_acc != ?") or confess $dbh->errstr;
   
@@ -489,12 +453,15 @@ sub getOverlapingSeedPfamRegions {
   foreach my $seqAcc ( keys %{$regionsHash} ) {
     foreach my $region ( @{$regionsHash->{$seqAcc}}){
       $sth->execute( $seqAcc, $region->{from}, $region->{from}, $region->{to}, $region->{to}, $region->{from}, $region->{to}, $region->{family} );
+      my $foundOverlap = 0;
       foreach my $row (@{ $sth->fetchall_arrayref }){
-        push(@{$region->{overlap}}, { from => $row->[0], to => $row->[1], family => $row->[2], ali => 'SEED'})
+        push(@{$region->{overlap}}, { from => $row->[0], to => $row->[1], family => $row->[2], ali => 'SEED'});
+        $foundOverlap++;
       }
-      push(@{ $overlaps->{$seqAcc} }, $region);
+      push(@{ $overlaps->{$seqAcc} }, $region) if($foundOverlap);
     }
   }
+  
 #  my $rs = $self->getSchema->resultset('PfamA_reg_seed');
 #  foreach my $seqAcc ( keys %{$regionsHash} ) {
 #    foreach my $region ( @{$regionsHash->{$seqAcc}}){
