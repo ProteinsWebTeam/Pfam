@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.4 2008-07-25 13:27:57 jt6 Exp $
+# $Id: head.tt,v 1.5 2009-06-05 14:35:24 jt6 Exp $
 
 # use uri_for to get the root for the static directory
 staticUri = c.uri_for( "/static" );
@@ -23,6 +23,14 @@ IF refreshUri != "";
 [% END -%]
 
 <!-- ====================================================================== -->
+<!-- make the site RSS feed discoverable --> 
+
+<link href="http://xfam.wordpress.com/tag/rfam/feed/" 
+      rel="alternate"
+      type="application/rss+xml"
+      title="Rfam News" />
+
+<!-- ====================================================================== -->
 <!-- third-party javascript libraries
 
      we are now loading third-party libraries from remote sites. We get
@@ -32,7 +40,7 @@ IF refreshUri != "";
 
 <!-- prototype / scriptaculous -->
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">google.load("prototype", "1.6.0.2");</script>
+<script type="text/javascript">google.load("prototype", "1.6.0.3");</script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,controls"></script>
 
 <!-- prototip -->
@@ -43,6 +51,9 @@ IF refreshUri != "";
 <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
 <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/treeview/treeview-min.js"></script>
 <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/treeview/assets/skins/sam/treeview.css" /> 
+
+<!-- google analytics -->
+<script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
 
 <!-- ====================================================================== -->
 <!-- local javascript files -->
