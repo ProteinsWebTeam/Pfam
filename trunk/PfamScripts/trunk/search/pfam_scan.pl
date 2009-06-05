@@ -1,8 +1,8 @@
 #!/software/bin/perl
 
-# This is pfam_scan.pl version 0.2a
+# This is pfam_scan.pl version 0.3a
 
-# $Id: pfam_scan.pl,v 1.15 2009-06-05 08:16:50 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.16 2009-06-05 10:33:16 jm14 Exp $
 
 
 use strict;
