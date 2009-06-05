@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.1 2008-10-23 10:55:29 jt6 Exp $
+# $Id: Structure.pm,v 1.2 2009-06-05 14:32:59 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.1 2008-10-23 10:55:29 jt6 Exp $
+$Id: Structure.pm,v 1.2 2009-06-05 14:32:59 jt6 Exp $
 
 =cut
 
@@ -68,42 +68,47 @@ for that entry. Accepts various formats of URL:
 =cut
 
 sub begin : Private {
-  my( $this, $c, @pdbIdArgs ) = @_;
+  my ( $this, $c, @pdb_id_args ) = @_;
 
   # get the accession or ID code
-  my $pdbId;
+  my $pdb_id;
   if( defined $c->req->param('id') ) {
     $c->log->debug( 'Structure::begin: found param "id"; checking...' )
       if $c->debug;
 
     $c->req->param('id') =~ m/^([0-9][A-Z0-9]{3})$/i;
-    $pdbId = $1 if defined $1;
+    $pdb_id = $1 if defined $1;
   
   } elsif( defined $c->req->param('entry') ) {
     $c->log->debug( 'Structure::begin: found param "entry"; checking...' )
       if $c->debug;
 
     $c->req->param('entry') =~ m/^([0-9][A-Z0-9]{3})$/i;
-    $pdbId = $1 if defined $1;
+    $pdb_id = $1 if defined $1;
 
-  } elsif( scalar @pdbIdArgs ) {
+  } elsif( scalar @pdb_id_args ) {
 
     # this is a real hack... need to figure out how to get hold of the last
     # argument to the URL without this...
-    my $pdbIdArg = $pdbIdArgs[-1];
+    my $pdb_id_arg = $pdb_id_args[-1];
 
-    $c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." )
+    $c->log->debug( "Structure::begin: found an argument ($pdb_id_arg); checking..." )
       if $c->debug;
-    $pdbIdArg =~ /(\d\w{3})/;
-    $pdbId = $1 if defined $1;
-
+    $pdb_id_arg =~ /(\d\w{3})/;
+    $pdb_id = $1 if defined $1;
   }
 
-  my $pdb = $c->model('RfamDB::Pdb')
-              ->find( { pdb_id => $pdbId } );
+  my @rs;
+  if ( defined $pdb_id ) {
+    @rs = $c->model('RfamDB::PdbRfamReg')
+            ->search( { pdb_id => $pdb_id },
+                      { join     => [ qw( auto_rfam ) ],
+                        prefetch => [ qw( auto_rfam ) ],
+                        order_by => 'chain ASC' } );
+  } 
 
   # we're done here unless there's an entry specified
-  unless( defined $pdb ) {
+  unless( scalar @rs ) {
 
     # see if this was an internal link and, if so, report it
     my $b = $c->req->base;
@@ -111,7 +116,7 @@ sub begin : Private {
   
       # report the error as a broken internal link
       $c->error( q|Found a broken internal link; no valid PDB ID |
-                 . qq|("$pdbId") in "| . $c->req->referer . q|"| );
+                 . qq|("$pdb_id") in "| . $c->req->referer . q|"| );
       $c->forward( '/reportError' );
   
       $c->clear_errors;
@@ -121,30 +126,35 @@ sub begin : Private {
   
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
-    $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdbId|" );
+    $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdb_id|" );
   
     return;
   }
 
-  $c->log->debug( "Structure::begin: successfully retrieved pdb object for |$pdbId|" )
-    if $c->debug;
+  # stash the PDB data and ID
+  $c->stash->{pdbId}   = $pdb_id;
+  $c->stash->{mapping} = \@rs; 
 
-  # stash the PDB object and ID
-  $c->stash->{pdb}   = $pdb;
-  $c->stash->{pdbId} = $pdbId;
-
+  # build a little data structure to map PDB chains to uniprot IDs and
+  # then cache that for the post-loaded graphics component
+  my ( %chains, $chain );
+  foreach my $row ( @rs ) {
+    $chain = ( defined $row->chain ) ? $row->chain : ' ';
+    # N.B. Need to think more about the consequences of setting null
+    # chain ID to " "...
+  
+    $chains{$row->rfamseq_acc}->{$chain} = '';
+  }
+  $c->stash->{chainsMapping} = \%chains;
+  
   # get the icon summary data, but only if we're in this top-level class, 
   # i.e. the one that generates the structure page rather than the sub-classes
   # that build page components
-  if( ref $this eq 'PfamWeb::Controller::Structure' ) {
-    $c->forward( 'getSummaryData' );
-    $c->forward( 'getAuthors' );
-  }
+#  if( ref $this eq 'PfamWeb::Controller::Structure' ) {
+#    $c->forward( 'getSummaryData' );
+#    $c->forward( 'getAuthors' );
+#  }
   
-  # add the mapping between structure, sequence and family. We need this for 
-  # more or less all of the sub-classes, so always do this
-  $c->forward( 'addMapping' );
-
 }
 
 #-------------------------------------------------------------------------------
