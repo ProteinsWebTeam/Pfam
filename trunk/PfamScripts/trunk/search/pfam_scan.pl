@@ -1,8 +1,8 @@
 #!/software/bin/perl
 
-# This is pfam_scan.pl version 0.3a
+# This is pfam_scan.pl version 0.4a
 
-# $Id: pfam_scan.pl,v 1.16 2009-06-05 10:33:16 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.17 2009-06-05 15:36:27 jm14 Exp $
 
 
 use strict;
@@ -11,7 +11,7 @@ use warnings;
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
 
-
+$|=1;
 
 
 # get the user options
