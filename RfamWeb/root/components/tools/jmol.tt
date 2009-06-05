@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.2 2008-12-09 13:40:58 jt6 Exp $
+# $Id: jmol.tt,v 1.3 2009-06-05 14:31:57 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -29,7 +29,7 @@ activeSites = String.new( 'select none; ' );
 unassigned  = String.new( 'select not (' );
 
 script      = String.new( 'background white; load "' );
-CALL script.append( c.uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) );
+CALL script.append( c.uri_for( "/structure/getpdbfile", id=pdbId ) );
 CALL script.append( '"; select protein; color cartoons structure; select all; cartoons on; cpk off; wireframe off; ' );
 
 FOREACH m IN mapping;
@@ -84,7 +84,7 @@ CALL script.append( "select none; select ligand; cpk on; color cpk; " );
 CALL script.append( unassigned );
 -%]
 
-<h1>PDB entry [% pdb.pdb_id %]</h1>
+<h1>PDB entry [% pdbId %]</h1>
 
 <script type="text/javascript">
   // <![CDATA[
