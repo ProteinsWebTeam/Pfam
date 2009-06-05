@@ -5,7 +5,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.2 2008-12-09 13:41:13 jt6 Exp $
+# $Id: av.tt,v 1.3 2009-06-05 14:31:28 jt6 Exp $
 
 META naked = 1;
 
@@ -83,6 +83,9 @@ secstruc molecule mol;
 [%- # actually draw the secondary structure cartoon. The cartoon will adopt the 
     # colours that we just assigned above -%]
 schematic -name cartoonObj molecule mol;
+
+[%- # draw DNA as cylinders, because AV can't draw schematics for nucleic acids -%]
+display cylinders on dna;
 
 [%- # if there are markups for individual residues, we add them to the view.
     # First, color all atoms according to their type and set the radius for
