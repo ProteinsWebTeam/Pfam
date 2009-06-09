@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.10 2009-01-06 12:26:25 jt6 Exp $
+   $Id: rfam.css,v 1.11 2009-06-09 12:27:23 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -50,6 +50,11 @@ ul, dl, ol {
 .ext {
   background: url(/static/images/external.gif) no-repeat center right;
   padding-right: 12px;
+}
+
+.feed {
+  background: url(/shared/images/feed-icon-14x14.png) no-repeat center right;
+  padding-right: 16px;
 }
 
 a:link,
@@ -850,12 +855,11 @@ h2.padded {
 /* ---------------------------------------- */
 /* format the mirrors list and citation */
 
-/* the citation on the index page
+/* the citation on the index page */
 #citation {
   width: 60%;
   float: left;
 }
-*/
 
 /* all other citations */
 
