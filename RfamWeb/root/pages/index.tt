@@ -5,7 +5,7 @@
 # 
 # build the main Rfam home page.
 #
-# $Id: index.tt,v 1.9 2009-06-09 09:20:26 jt6 Exp $
+# $Id: index.tt,v 1.10 2009-06-09 12:13:25 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -111,6 +111,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <li class="link" onclick="switchPanel(this,'family')">VIEW AN RFAM FAMILY</li>
       <li class="link" onclick="switchPanel(this,'keyword')">KEYWORD SEARCH</li>
       <li class="link" onclick="switchPanel(this,'taxonomy')">TAXONOMY SEARCH</li>
+      <li class="link" onclick="switchPanel(this,'help')">JUMP TO</li>
       <li>&nbsp;</li>
     </ul>
   </div><!-- end of "controlPanel" -->
@@ -122,6 +123,31 @@ requirements.cssIeAll.push( "index_all_ie.css" );
       <li>View Rfam family annotation and alignments</li>
       <li>Query Rfam by keywords</li>
       <li>Fetch families or sequences by NCBI taxonomy</li>
+      <li>
+        <form action="[% jumpUri %]"
+              id="jumpForm"
+              onsubmit="return jump(this);">
+          <div>
+            <input class="entryField"
+                   type="text" 
+                   name="entry" 
+                   id="jumpField" 
+                   size="30" />
+            <div id="jumpButton"
+                 class="glassButton goButton">&nbsp;</div>
+            <div onclick="fillJumpField();"
+                 class="glassButton exampleButton">&nbsp;</div>
+            <div style="display: none"
+                 class="jumpSpinner">Searching...</div>
+            <div style="display: none"
+                 class="jumpError"></div>
+            <p class="small nlh">
+              Enter any type of accession or ID to jump to the page
+              for a Rfam family, sequence or genome
+            </p>
+          </div>
+        </form>
+      </li>
       <li>Or view the <a href="[% helpBase %]">help</a> pages for 
         more information</li>
     </ul>
@@ -348,6 +374,15 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     </div>
   </div>
 
+  <div id="mirrors">
+    <h2>Mirrors</h2>
+    <p>The following are official Rfam 
+      <a href="[% helpBase %]?tab=helpTheTeamBlock">mirror</a> sites:
+    </p>
+    [% PROCESS "components/mirrors.tt" %]
+
+  </div>
+
   <div class="cleaner"><!-- empty --></div>
 
   <hr />
@@ -357,7 +392,56 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 <script type="text/javascript">
   // <![CDATA[
   
+  // set up the "jump to" field
+
+  // first, make it behave nicely
+  $("jumpField").value = "enter any accession or ID";
+  $("jumpField").selectionStart = 0;
+  $("jumpField").selectionEnd   = 0;
+  $("jumpField").focus();
+
+  // add observers to clear out the field when the user first enters something
+  // in it. We need several to catch all eventualities...
+
+  var jumpCleared = false;
+  $("jumpField").observe( "keypress", function() {
+    var start = $("jumpField").selectionStart;
+    $("jumpField").value = $F("jumpField").substr( 0, start );;
+    jumpCleared = true;
+    $("jumpField").stopObserving();
+  } );
+
+  $("jumpField").observe( "click", function() {
+    $("jumpField").value = '';
+    jumpCleared = true;
+    $("jumpField").stopObserving();
+  } );
+
+  $("jumpField").observe( "focus", function() {
+    $("jumpField").selectionStart = 0;
+    $("jumpField").selectionEnd   = 0;
+  } );
+
+  // rotate through example IDs
+  var jumpExamples = new Array( "snoZ107_R87" );  
+  var lastJumpExample = 0;
+  var fillJumpField = function() {
+    $("jumpField").value = jumpExamples[lastJumpExample++];
+    jumpCleared = true;
+    if ( lastJumpExample >= jumpExamples.size() ) {
+      lastJumpExample = 0;
+    }
+  }
+
+  // add an observer to submit the form when the user hits "go"
+  $("jumpButton").observe( "click", function() {
+    if ( $("jumpField").present() &&
+         jumpCleared ) {
+      jump('jumpForm');
+    }
+  } );
   // example values for the various forms
+
   var exRfamId = "snoZ107_R87";
   var exKw     = "spliceosomal";
   var exTx     = "plasmodium";
