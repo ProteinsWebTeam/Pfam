@@ -1,10 +1,10 @@
 [%
 # mirrors.tt
-# jt6 20070910 WTSI
+# jt6 20090604 WTSI
 # 
-# build the list of Pfam mirrors
+# build the list of Rfam mirrors
 #
-# $Id: mirrors.tt,v 1.3 2009-05-06 11:52:08 jd7 Exp $
+# $Id: mirrors.tt,v 1.4 2009-06-09 09:33:30 jt6 Exp $
 
 META naked = 1;
 %]
