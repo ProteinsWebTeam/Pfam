@@ -5,7 +5,7 @@
 # 
 # build the main Rfam home page.
 #
-# $Id: index.tt,v 1.8 2009-01-06 11:55:13 jt6 Exp $
+# $Id: index.tt,v 1.9 2009-06-09 09:20:26 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -67,7 +67,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     <div id="rfamNotes" style="display: none">
       <p>
         The families in Rfam break down into three broad functional
-        classes: Non-coding RNA genes, structured cis-regulatory
+        classes: non-coding RNA genes, structured cis-regulatory
         elements and self-splicing RNAs. Typically these functional
         RNAs often have a conserved secondary structure which may be
         better preserved than the RNA sequence. The CMs used to
@@ -338,8 +338,8 @@ requirements.cssIeAll.push( "index_all_ie.css" );
           Rfam: updates to the RNA families database</a>
       </span>
       <span class="authors">
-        PP Gardner, J Daub, JG Tate, EP Nawrocki, DL Kolbe, S Lindgreen,
-        AC Wilkinson, RD Finn, S Griffiths-Jones, SR Eddy and A Bateman.
+        P.P. Gardner, J. Daub, J.G. Tate, E.P. Nawrocki, D.L. Kolbe, S. Lindgreen,
+        A.C. Wilkinson, R.D. Finn, S. Griffiths-Jones, S.R. Eddy and A. Bateman.
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2008)
@@ -356,25 +356,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
 
 <script type="text/javascript">
   // <![CDATA[
-  
-  // load the list of new features
-  //Event.observe( window, 'load', function() {
-  //  new Ajax.Request( '[% c.uri_for( "/new_features" ) %]', 
-  //    { 
-  //      method:    "get",
-  //      on204:     function( oResponse ) {},
-  //      onSuccess: function( oResponse ) {
-  //        $("newFeatures").update( oResponse.responseText );
-  //        $("newFeatures").show();
-  //        $("newFeatures").getElementsByClassName("new").each(
-  //          function(f) {
-  //            new Effect.Highlight( f, { startcolor: '#cbdced' } );
-  //          }
-  //        );         
-  //       }
-  //    } );
-  //  }
-  //);
   
   // example values for the various forms
   var exRfamId = "snoZ107_R87";
