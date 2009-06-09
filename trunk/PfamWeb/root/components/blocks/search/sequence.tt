@@ -4,7 +4,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.12 2009-01-05 15:01:23 jt6 Exp $
+# $Id: sequence.tt,v 1.13 2009-06-09 15:18:39 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -184,6 +184,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  id="evalue" />
         </div>
   
+<!-- [% # TODO re-instate this when the search system can handle it %]
         <div class="row">
           <label for="searchBs">Search for PfamBs</label>
           <input class="radio"
@@ -192,6 +193,7 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  id="searchBs" 
                  value="1" />
         </div>
+-->
 
         <div class="row">
           <label class="blankLabel">Submit</label>
