@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.7 2009-01-29 15:13:28 jt6 Exp $
+# $Id: Sequence.pm,v 1.8 2009-06-09 14:00:11 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for submitting single sequence searches for Rfam.
 
-$Id: Sequence.pm,v 1.7 2009-01-29 15:13:28 jt6 Exp $
+$Id: Sequence.pm,v 1.8 2009-06-09 14:00:11 jt6 Exp $
 
 =cut
 
@@ -37,6 +37,78 @@ use base qw( PfamBase::Controller::Search::InteractiveSearch
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=head2 search : Path
+
+Queues a sequence search job and returns a page that polls the server for
+results.
+
+=cut
+
+sub search : Path {
+  my ( $this, $c ) = @_;
+
+  # validate the input
+  unless ( $c->forward('validate_input') ) {
+
+    # copy the error message into the slot in the stash where the templates
+    # expect to find it
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+      || 'There was an unknown problem when validating your sequence.';
+
+    # if we're returning XML, we need to set a template to render the error
+    # message. If we're emitting HTML, the end action (ultimately on Section)
+    # will take of us and return us to the HTML page containing search form
+    # and show the error message
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/error_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+
+    return;
+  }
+
+  # no errors with the input; try to submit the search
+
+  # success !
+  if ( $c->forward('queue_seq_search') ) {
+
+    $c->log->debug(
+      'Search::Sequence::search: sequence search submitted; polling')
+      if $c->debug;
+
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/poll_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+    else {
+      $c->stash->{template} = 'pages/search/sequence/polling.tt';
+    }
+
+  }
+
+  # failure...
+  else {
+
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+      || 'There was an unknown problem when submitting your search.';
+
+    $c->log->debug(
+      'Search::Sequence::search: problem with submission; re-rendering form')
+      if $c->debug;
+
+    # point to the XML error template if emitting XML, otherwise, we're just
+    # done here
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/error_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+
+  }
+
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 results : Local
 
@@ -462,8 +534,8 @@ sub handleResults : Private {
 
   # parse the log into a sensible data structure  
   $c->forward( 'parse_log', [ $jobId ] );
-  $c->log->debug( 'Search::Sequence::handleResults: results data structure: ' .
-                  dump( $c->stash->{hits} ) ) if $c->debug;  
+#  $c->log->debug( 'Search::Sequence::handleResults: results data structure: ' .
+#                  dump( $c->stash->{hits} ) ) if $c->debug;  
 
   my $hits = $c->stash->{hits}; # shortcut...
     
@@ -508,15 +580,15 @@ sub handleResults : Private {
         $hit->{alignment}->{match}    .= '           ';
         $hit->{alignment}->{user_seq} .= sprintf ' %-10d', $hit->{blocks}->[-1]->{user}->{end};
         
-        if ( $c->debug ) {
-          $c->log->debug( 'Search::Sequence::handleResults: ss:           |' . $hit->{alignment}->{ss} .'|' );
-          $c->log->debug( 'Search::Sequence::handleResults: hit:          |' . $hit->{alignment}->{hit_seq} . '|' );
-          $c->log->debug( 'Search::Sequence::handleResults: match:        |' . $hit->{alignment}->{match} . '|' );
-          $c->log->debug( 'Search::Sequence::handleResults: user:         |' . $hit->{alignment}->{user_seq} . '|' );
-          $c->log->debug( 'Search::Sequence::handleResults: offset start: |' . $hit->{offset_start} . '|' );
-          $c->log->debug( 'Search::Sequence::handleResults: offset end:   |' . $hit->{offset_end} . '|' );
-          $c->log->debug( 'Search::Sequence::handleResults: direction:    |' . $hit->{dir} . '|' );
-        }
+#        if ( $c->debug ) {
+#          $c->log->debug( 'Search::Sequence::handleResults: ss:           |' . $hit->{alignment}->{ss} .'|' );
+#          $c->log->debug( 'Search::Sequence::handleResults: hit:          |' . $hit->{alignment}->{hit_seq} . '|' );
+#          $c->log->debug( 'Search::Sequence::handleResults: match:        |' . $hit->{alignment}->{match} . '|' );
+#          $c->log->debug( 'Search::Sequence::handleResults: user:         |' . $hit->{alignment}->{user_seq} . '|' );
+#          $c->log->debug( 'Search::Sequence::handleResults: offset start: |' . $hit->{offset_start} . '|' );
+#          $c->log->debug( 'Search::Sequence::handleResults: offset end:   |' . $hit->{offset_end} . '|' );
+#          $c->log->debug( 'Search::Sequence::handleResults: direction:    |' . $hit->{dir} . '|' );
+#        }
         
       }
       
@@ -524,8 +596,8 @@ sub handleResults : Private {
     
   }
   
-  $c->log->debug( 'Search::Sequence::handleResults: modified results data structure: ' .
-                  dump( $c->stash->{hits} ) ) if $c->debug;  
+#  $c->log->debug( 'Search::Sequence::handleResults: modified results data structure: ' .
+#                  dump( $c->stash->{hits} ) ) if $c->debug;  
 
 }
 

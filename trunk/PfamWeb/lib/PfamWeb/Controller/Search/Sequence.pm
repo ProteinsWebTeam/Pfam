@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.31 2009-04-06 10:25:03 jt6 Exp $
+# $Id: Sequence.pm,v 1.32 2009-06-09 13:59:52 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.31 2009-04-06 10:25:03 jt6 Exp $
+$Id: Sequence.pm,v 1.32 2009-06-09 13:59:52 jt6 Exp $
 
 =cut
 
@@ -28,6 +28,8 @@ use File::Temp qw( tempfile );
 use JSON;
 use Scalar::Util qw( looks_like_number );
 use Data::UUID;
+use Data::Dump qw( dump );
+use Storable qw( thaw );
 
 use base qw( PfamBase::Controller::Search::InteractiveSearch
              PfamWeb::Controller::Search );
@@ -35,6 +37,81 @@ use base qw( PfamBase::Controller::Search::InteractiveSearch
 #-------------------------------------------------------------------------------
 
 =head1 METHODS
+
+=head2 search : Path
+
+Queues a sequence search job and returns a page that polls the server for
+results.
+
+=cut
+
+sub search : Path {
+  my ( $this, $c ) = @_;
+
+  # validate the input
+  unless ( $c->forward('validate_input') ) {
+
+    # copy the error message into the slot in the stash where the templates
+    # expect to find it
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+      || 'There was an unknown problem when validating your sequence.';
+
+    # if we're returning XML, we need to set a template to render the error
+    # message. If we're emitting HTML, the end action (ultimately on Section)
+    # will take of us and return us to the HTML page containing search form
+    # and show the error message
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/error_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+
+    return;
+  }
+
+  # no errors with the input; try to submit the search
+
+  # success !
+  if ( $c->forward('queue_seq_search') ) {
+
+    $c->log->debug(
+      'Search::Sequence::search: sequence search submitted; polling')
+      if $c->debug;
+
+      $c->stash->{template} = 'pages/search/sequence/results.tt';
+      
+      # TODO re-instate the XML output when we get time...
+#    if ( $c->stash->{output_xml} ) {
+#      $c->stash->{template} = 'rest/search/poll_xml.tt';
+#      $c->res->content_type('text/xml');
+#    }
+#    else {
+#      $c->stash->{template} = 'pages/search/sequence/results.tt';
+#    }
+
+  }
+
+  # failure...
+  else {
+
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+      || 'There was an unknown problem when submitting your search.';
+
+    $c->log->debug(
+      'Search::Sequence::search: problem with submission; re-rendering form')
+      if $c->debug;
+
+    # point to the XML error template if emitting XML, otherwise, we're just
+    # done here
+    if ( $c->stash->{output_xml} ) {
+      $c->stash->{template} = 'rest/search/error_xml.tt';
+      $c->res->content_type('text/xml');
+    }
+
+  }
+
+}
+
+#-------------------------------------------------------------------------------
 
 =head2 results : Local
 
@@ -48,14 +125,27 @@ sub results : Local {
   # try to retrieve the results for the specified jobs
   my @jobIds = $c->req->param('jobId');
   
+  unless ( scalar @jobIds ) {
+    $c->log->debug( 'Search::Sequence::results: no job IDs' )
+      if $c->debug;
+  }
+  
   my $completed = 0;
   foreach my $jobId ( @jobIds ) {
     
+    $c->log->debug( "Search::Sequence::results: checking job ID |$jobId|" )
+      if $c->debug;
+
     # detaint the ID
     next unless $jobId =~ m/^([A-F0-9\-]{36})$/i;
 
     # try to retrieve results for it
     $c->forward( 'JobManager', 'retrieveResults', [ $jobId  ] );
+
+    unless ( $c->stash->{results}->{$jobId} ) {
+      $c->log->debug( "Search::Sequence::results: no results for |$jobId|" )
+        if $c->debug;
+    }
 
     # we should get *something*, even if there are no results, but let's just
     # check quickly
@@ -67,11 +157,11 @@ sub results : Local {
     my $results = $c->stash->{results}->{$jobId};
     
     # keep track of how many jobs are actually completed
-    if ( $c->stash->{results}->{$jobId}->{status} eq 'DONE' ) {
-      $completed++;
-      $c->log->debug( "Search::results: job |$jobId| completed" )
-        if $c->debug;
-    }
+    next unless $c->stash->{results}->{$jobId}->{status} eq 'DONE';
+
+    $completed++;
+    $c->log->debug( "Search::results: job |$jobId| completed" )
+      if $c->debug;
     
     # parse the results
     $c->forward( 'handleResults', [ $jobId  ] );
@@ -146,25 +236,35 @@ sub results : Local {
     return;
   }
 
-  $c->forward( 'generateGraphic' );
-
-  # should we output XML ?
-  if ( $c->stash->{output_xml} ) {
-    $c->stash->{template} = 'rest/search/results_xml.tt';
-    $c->res->content_type('text/xml');    
+  # TODO re-instate the XML output when we get time
+  if ( scalar keys %{ $c->stash->{results} } ) {
+    $c->stash->{template} = 'pages/search/sequence/results_table.tt';
   }
-  
-  # no; render the HTML template
   else {
-    if ( scalar keys %{ $c->stash->{results} } ) {
-      $c->stash->{template} = 'pages/search/sequence/results.tt';
-    }
-    else {
-      $c->log->debug( 'Search::Sequence::results: no results found' )
-        if $c->debug;
-      $c->stash->{template} = 'pages/search/sequence/error.tt';
-    }
+    $c->log->debug( 'Search::Sequence::results: no results found' )
+      if $c->debug;
+    $c->stash->{template} = 'pages/search/sequence/error.tt';
   }
+
+#  $c->forward( 'generateGraphic' );
+
+#  # should we output XML ?
+#  if ( $c->stash->{output_xml} ) {
+#    $c->stash->{template} = 'rest/search/results_xml.tt';
+#    $c->res->content_type('text/xml');    
+#  }
+#  
+#  # no; render the HTML template
+#  else {
+#    if ( scalar keys %{ $c->stash->{results} } ) {
+#      $c->stash->{template} = 'pages/search/sequence/results.tt';
+#    }
+#    else {
+#      $c->log->debug( 'Search::Sequence::results: no results found' )
+#        if $c->debug;
+#      $c->stash->{template} = 'pages/search/sequence/error.tt';
+#    }
+#  }
 
 }
 
@@ -409,7 +509,7 @@ sub queue_seq_search : Private {
   # first, check there's room on the queue
   my $rs = $c->model( 'WebUser::JobHistory' )
              ->find( { status   => 'PEND',
-                       job_type => 'hmmer' },
+                       job_type => 'h3' },
                      { select => [ { count => 'status' } ],
                        as     => [ 'numberPending' ] } );
   
@@ -508,7 +608,7 @@ sub queue_pfam_a : Private {
   $c->stash->{jobId} = Data::UUID->new()->create_str();
   
   # set the queue
-  $c->stash->{job_type} = 'hmmer';
+  $c->stash->{job_type} = 'h3';
 
   # make a guess at the runtime for the job
   $c->stash->{estimated_time} = int( $this->{pfamA_search_multiplier} * length( $c->stash->{input} ) / 100 );
@@ -738,7 +838,7 @@ sub handleResults : Private {
   $c->log->debug( "Search::Sequence::handleResults: handling results for |$jobId|" )
     if $c->debug;
   
-  if ( $c->stash->{results}->{$jobId}->{method} eq 'hmmer' ) {
+  if ( $c->stash->{results}->{$jobId}->{method} eq 'h3' ) {
     $c->log->debug( "Search::Sequence::handleResults: job |$jobId| is a hmmer job" )
       if $c->debug;
     $c->forward( 'handlePfamAResults', [ $jobId ] );
@@ -762,6 +862,34 @@ Does exactly what it says on the tin. Rob's handiwork...
 =cut
 
 sub handlePfamAResults : Private {
+  my ( $this, $c, $jobId ) = @_;
+  
+  # are we using GA cut-offs or E-values?
+  if ( $c->{stash}->{results}->{$jobId}->{options} and
+       $c->{stash}->{results}->{$jobId}->{options} =~ m/-e (\S+)/ ) {
+    $c->stash->{evalue} = $1;
+  }
+  else {
+    $c->stash->{evalue} = 0;
+  }
+  
+  my $results;
+  eval {
+    $results = thaw( $c->{stash}->{results}->{$jobId}->{rawData} );
+  };
+  if ( $@ ) {
+    die "error retrieving results: $@";
+  }
+  
+  $c->log->debug( 'Search::Sequence::handlePfamAResults: got '
+                  . scalar @$results . ' PfamA results' ) if $c->debug;
+  
+  $c->stash->{genPfamARes} = $results;
+}
+
+#-------------------------------------------------------------------------------
+
+sub old_handlePfamAResults : Private {
   my ( $this, $c, $jobId ) = @_;
   
   # are we using GA cut-offs or E-values?
@@ -1008,3 +1136,59 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
+
+__DATA__
+[
+  {
+    acc      => "PF02600",
+    act_site => undef,
+    align    => [
+                  "#HMM       vlglePCpLCi",
+                  "#MATCH     ++glePC++Ci",
+                  "#PP        689*******8",
+                  "#SEQ       LRGLEPCAICI",
+                ],
+    bits     => "0.6",
+    clan     => "No_clan",
+    env      => { from => 1079, to => 1093 },
+    evalue   => "3e+02",
+    hmm      => { from => 28, to => 38 },
+    name     => "DsbB",
+    seq      => { from => 1082, name => "UserSeq", to => 1092 },
+  },
+  {
+    acc      => "PF00168",
+    act_site => undef,
+    align    => [
+                  "#HMM       evtvieAknLpkkdkngksdpyvkvklggekk..qkkkTkvvkkt.lnPvWn.etfefevseeelqeleieVydkdrlgkddflGev",
+                  "#MATCH     +++v++A++Lpk +++g+++p+v+++++g++++++k+kT++v++++lnPvW++++f+f++s++e+++l+++Vy++d++++++fl+++",
+                  "#PP        589********9.7799************9999889****999999******999***************************99987",
+                  "#SEQ       CIEVLGARHLPK-NGRGIVCPFVEIEVAGAEYdsIKQKTEFVVDNgLNPVWPaKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQA",
+                ],
+    bits     => "49.3",
+    clan     => "CL0154",
+    env      => { from => 1090, to => 1177 },
+    evalue   => "2.3e-13",
+    hmm      => { from => 2, to => 84 },
+    name     => "C2",
+    seq      => { from => 1091, name => "UserSeq", to => 1176 },
+  },
+  {
+    acc      => "PF06054",
+    act_site => undef,
+    align    => [
+                  "#HMM       iEiQcsklsikelkerTegykreglkvlW",
+                  "#MATCH     +Ei++++++++++k++Te+++++gl+++W",
+                  "#PP        89***************************",
+                  "#SEQ       VEIEVAGAEYDSIKQKTEFVVDNGLNPVW",
+                ],
+    bits     => "0.9",
+    clan     => "CL0236",
+    env      => { from => 1105, to => 1153 },
+    evalue   => "1.5e+02",
+    hmm      => { from => 106, to => 134 },
+    name     => "CoiA",
+    seq      => { from => 1112, name => "UserSeq", to => 1140 },
+  },
+]
+
