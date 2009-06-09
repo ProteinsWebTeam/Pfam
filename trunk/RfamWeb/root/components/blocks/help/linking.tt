@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
+# $Id: linking.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -18,9 +18,9 @@
       Rfam is maintained by a consortium of researchers and hosted at two sites: the 
       <a class="ext" href="http://www.sanger.ac.uk/">Wellcome Trust 
         Sanger Institute</a>, Cambridge, UK (WTSI),  and 
-      <a class="ext" href="http://rfam.janelia.org/">Janelia Farm</a>, Maryland, USA. 
-      Currently these sites do not run the same Rfam website - however
-      we do hope that the Janelia site will soon be updated to the new Rfam
+      <a class="ext" href="http://rfam.janelia.org/">Janelia Farm</a>, Ashburn, 
+      VA, USA. Currently these sites do not run the same Rfam website, but
+      we hope that the Janelia site will be updated to the new Rfam
       website with the next release of Rfam.
     </p>
     <p>
@@ -54,8 +54,8 @@
     
     <p>
       You can refer to Rfam families either by accession or ID. You can also 
-      refer to a family by &quot;entry&quot;, although this is a convenience 
-      that should be used only if you&#39;re not sure if what you have is an 
+      refer to a family by "entry", although this is a convenience 
+      that should be used only if you're not sure if what you have is an 
       accession or an ID.
     </p>
     <p>
@@ -91,10 +91,12 @@
 </div>
 
 <!-- end linking block -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

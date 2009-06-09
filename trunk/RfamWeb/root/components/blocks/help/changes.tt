@@ -4,7 +4,7 @@
 # 
 # build the changes block for the help pages
 #
-# $Id: changes.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
+# $Id: changes.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
 %]
 
 <!-- start changes block -->
@@ -21,7 +21,7 @@
       website.
     </p>
     <hr />
-    
+<!--
     <h2>Latest changes to Rfam data</h2>
 
     [%- # all changelog entries are stored in the "changelog.conf" config
@@ -52,10 +52,13 @@
       END %]
 
     </div>
+-->
 
     <!-- end of "dataChanges" -->
 
+<!--
     <hr />
+-->
 
     <h2>Latest changes to website</h2>
 
@@ -89,7 +92,8 @@
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: John Tate (jt6@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk), 
+         Jennifer Daub (jd7@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
