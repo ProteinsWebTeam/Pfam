@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.16 2009-01-09 12:59:24 jt6 Exp $
+# $Id: results.tt,v 1.17 2009-06-09 15:19:18 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -16,114 +16,19 @@ USE wrap;
 
 PROCESS "components/require.tt";
 
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "element_storage.js" );
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+
+requirements.jsIe.push( "excanvas.js" );
+
+requirements.css.push( "domain_graphics.css" );
+
 sharedRequirements.css.push( "job.css" );
 sharedRequirements.css.push( "job_ie.css" );
 
 #-------------------------------------------------------------------------------
-
-# the numbers of PfamA and PfamB matches that the search found
-numAs = genPfamARes.size;
-numBs = genPfamBRes.size;
-
-# shortcuts to the show/hide glass buttons
-imageUri   = c.uri_for( "/static/images" );
-showButton = "${imageUri}/showButton.png";
-hideButton = "${imageUri}/hideButton.png";
-
-#-------------------------------------------------------------------------------
-
-# store the number of significant and insignificant matches
-numSignificantMatches = 0;
-numInsignificantMatches = 0;
-
-# a block walk the list of matches and show only significant ones
-BLOCK buildTableBody;
-  
-  # we use loop.index to build an ID for each row, since that really will
-  # be unique, but for the purposes of deciding if a row is odd or even, we
-  # need a separate counter, tableRow
-  tableRow = 0;
-  FOREACH pfamA IN genPfamARes;
-
-    # decided whether we should skip this row. If the parameter 
-    # "showSignificant" is true, we skip rows with insignificant matches, and 
-    # vice versa. We also set the row CSS class and the row ID here
-    IF showSignificant;
-      NEXT IF NOT pfamA.significant;
-
-      # this is a significant row
-      rowClass = tableRow % 2 ? "oddlySignificant" : "evenlySignificant";
-      rowId    = "pfamAAlignment${loop.index}";
-    ELSE;
-      NEXT IF     pfamA.significant;
-
-      # this is an INsignificant row
-      rowClass = tableRow % 2 ? "odd" : "even";
-      rowId    = "pfamAAlignmentI${loop.index}";
-    END;
-    
-    tableRow = tableRow + 1 -%]
-    <tr class="[% rowClass %]">
-      <td class="rowNum">[% loop.index %]</td>
-      <td>
-        <a href="[% c.uri_for( "/family", { acc = pfamA.pfama_acc } ) %]">
-          [% pfamA.pfama_id %]</a>
-      </td>
-      <td class="desc">[% pfamA.desc %]</td>
-      <td>[% pfamA.type %]</td>
-      <td>[% pfamA.start %]</td>
-      <td>[% pfamA.end %]</td>
-      <td[% IF pfamA.hmm_start != 1 %] class="warning"[% END %]>
-        [% pfamA.hmm_start %]
-      </td>
-      <td[% IF pfamA.hmm_end != pfamA.hmm_length %] class="warning"[% END %]>
-        [% pfamA.hmm_end %]
-      </td>
-      <td>[% pfamA.bits %]</td>
-      <td>[% pfamA.evalue %]</td>
-      <td>[% pfamA.mode %]</td>
-      <td>
-        [% IF pfamA.sites.size;
-          FOREACH site IN pfamA.sites;
-            seq.substr( site - 1, 1 ); site;
-            ", " IF NOT loop.last; 
-          END;
-        ELSE -%]
-          <span class="inactive">n/a</span>
-        [% END -%]
-      </td>
-      <td class="showSwitch">
-        <img src="[% showButton %]" 
-             onclick="toggleAlignment( '[% rowId %]', this )"
-             alt="Show alignment" />
-      </td>
-    </tr>
-    <tr class="alignment [% rowClass %]" id="[% rowId %]">
-      <td class="rowNum">[% loop.index %]</td>
-      <td colspan="12">
-        <pre>[% pfamA.aliHmm %]
-[% pfamA.aliMatch %]
-[% pfamA.aliSeq %]</pre>
-      </td>
-    </tr>
-  [% END; # of "FOREACH pfamA"
-  IF showSignificant;
-    numSignificantMatches = tableRow;
-  ELSE;
-    numInsignificantMatches = tableRow;
-  END;
-END; # of BLOCK
-
-#-------------------------------------------------------------------------------
-
-# now we actually run the "buildTableRows" block for the significant and 
-# insignificant matches, so that we can see if we actually HAVE significant or
-# insignificant matches before we try to build the page
-
-  significantMatches = PROCESS buildTableBody showSignificant = 1;
-insignificantMatches = PROCESS buildTableBody showSignificant = 0;
-
-%]
+-%]
 
 <div class="key">
   
@@ -185,14 +90,14 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
   <p>
     [%- # all of this is a very convoluted way to write a nice, correct
         # English sentence to summarise the results. It's possibly overkill...
-    
+
     IF numAs -%]
-      We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %] 
+      We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %]
       to your search sequence
       [% IF numSignificantMatches AND numInsignificantMatches -%]
-        (<strong>[% numSignificantMatches %]</strong> significant and 
+        (<strong>[% numSignificantMatches %]</strong> significant and
         <strong>[% numInsignificantMatches %]</strong> insignificant)
-      [% 
+      [%
       ELSIF numInsignificantMatches;
         "(there were <strong>no</strong> significant matches)";
       ELSE;
@@ -203,278 +108,118 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
     END;
     IF numBs;
       IF numAs;
-        " and "; 
+        " and ";
       ELSIF NOT numAs;
-        " but we did find "; 
+        " but we did find ";
       END %]
       <strong>[% numBs %]</strong> Pfam-B match[% "es" IF numBs > 1 %].
     [% ELSIF searchedPfamB AND NOT numBs;
       IF numAs;
-        " but we did not find any Pfam-B matches."; 
+        " but we did not find any Pfam-B matches.";
       ELSIF NOT numAs;
-        " nor any Pfam-B matches."; 
-      END;       
+        " nor any Pfam-B matches.";
+      END;
     ELSE;
       ". You did not choose to search for Pfam-B matches.";
     END -%]
-    The graphic below shows the arrangement of matches on your sequence: 
+    The graphic below shows the arrangement of matches on your sequence:
   </p>
-
-  <div>
-  [%- FOREACH image IN images.each_image;
-    CALL image.print_image;
-    id = image.image_name;
-
-    IF c.config.use_image_store;
-      image_uri = c.uri_for( image.file_location );
-    ELSE;
-      image_uri = image.file_location;
-    END; %]
-    <img class="graphicImage"
-         src="[% image_uri %]"
-         usemap="#domainGraphicsMap[% loop.index %]"
-         alt="" />
-    <div class="cleaner"><!-- empty --></div>
-
-    [% IF image.image_map -%]
-      <map name="domainGraphicsMap[% loop.index %]"
-           id="domainGraphicsMap[% loop.index %]">
-        [% image.image_map %]
-      </map>
-    [% END;
-  END -%]
-  </div>
-
-  <p>
-    <span class="moreLink" onclick="reveal(this,'optionsList',false, true)">Show</span>
-    the search options and sequence that you submitted.
-  </p>
-
-  <div id="optionsList" style="display: none">
-    [% IF job_options.jobIds.size > 1 %]
-    <p>
-      You ran <strong>[% job_options.jobIds.size %]</strong> jobs, with the 
-      following IDs:
-    </p>
-    <ul>
-      [%- FOREACH jobId IN job_options.jobIds %]
-      <li>[% jobId %]</li>
-      [%- END %]
-    </ul>
-    [%- ELSE %]
-    <p>
-      You ran <strong>one</strong> job, with ID 
-      [%- job_options.jobIds.first %].
-    </p>
-    [% END %]
-    <p>
-      This is the <strong>sequence</strong> that you submitted:
-    </p>
-    <div class="centreWrapper">
-      <p class="plainSequence centredBlock">[% FILTER wrap(80, '      ', '<br />'); seq; END %]</p>
-    </div>
-    <div class="cleaner"><!-- empty --></div>
-    <p>
-      These are the options that you chose:
-    </p>
-    <ul>
-    [%- IF job_options.pfamb %]
-      <li>
-        You searched for <strong>Pfam-Bs</strong> 
-        (job ID [% job_options.pfamb %])
-      </li>
-    [%- END;
-    IF job_options.both;
-      IF job_options.separate %]
-        <li>
-          You searched for both fs and ls hits <strong>separately</strong>
-        </li>
-      [%- ELSE %]
-        <li>
-          You searched for both fs and ls hits with results <strong>merged</strong>
-        </li>
-      [%- END;
-    ELSE %]
-      <li>
-        You searched for hits with the 
-        <strong>[% job_options.mode %]</strong> model only
-      </li>
-    [%- END;
-    IF job_options.ga %]
-      <li>
-        You set the cut-off equal to the <strong>gathering threshold</strong>
-      </li>
-    [%- ELSE %]
-      <li>
-        You used an E-value cut-off of 
-        <strong>[% job_options.evalue %]</strong>
-      </li>
-    [%- END %]
-    </ul>
-  </div>
-
-  <p>
-    <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a> 
-    to the search form to look for Pfam domains on a new sequence.
-  </p> 
 
 </div><!-- end of "key" -->
 
-<div id="results">
-   
-  [% IF numAs;
-  
-  #-----------------------------------------------------------------------------
-  # show significant matches
-    
-  IF numSignificantMatches -%]
-  <table id="pfamASummary"
-         class="resultTable" 
-         summary="Pfam-A search results">
-    <caption>
-      <span class="tableTitle">Significant Pfam-A Matches</span>
-      <span class="link" onclick="showAllAlignments('pfamASummary',true)">Show</span> or
-      <span class="link" onclick="showAllAlignments('pfamASummary',false)">hide</span> 
-      all alignments.
-    </caption>
-    <thead>
-      <tr class="titleRow">
-        <th rowspan="2" class="rowNum">Original order</th>
-        <th rowspan="2">Pfam-A</th>
-        <th rowspan="2">Description</th>
-        <th rowspan="2">Entry type</th>
-        <th colspan="2">Sequence</th>
-        <th colspan="2">HMM</th>
-        <th rowspan="2">Bits score</th>
-        <th rowspan="2">E-value</th>
-        <th rowspan="2">Alignment mode</th>
-        <th rowspan="2">Predicted active sites</th>
-        <th rowspan="2">Show/hide alignment</th>
-      </tr>
-      <tr class="titleRow">
-        <th>Start</th>
-        <th>End</th>
-        <th>From</th>
-        <th>To</th>
-      </tr>
-    </thead>
-    <tbody>
-      [% significantMatches -%]
-    </tbody>
-  </table>
-  [% END;
-  
-  #-----------------------------------------------------------------------------
-  # show INsignificant matches
-  
-  IF numInsignificantMatches -%]
-  <table id="pfamASummaryI"
-         class="resultTable" 
-         summary="Insignificant Pfam-A matches">
-    <caption>
-      <span class="tableTitle">Insignificant Pfam-A Matches</span>
-      <span class="link" onclick="showAllAlignments('pfamASummaryI',true)">Show</span> or
-      <span class="link" onclick="showAllAlignments('pfamASummaryI',false)">hide</span> 
-      all alignments.
-    </caption>
-    <thead>
-      <tr class="titleRow">
-        <th rowspan="2" class="rowNum">Original order</th>
-        <th rowspan="2">Pfam-A</th>
-        <th rowspan="2">Description</th>
-        <th rowspan="2">Entry type</th>
-        <th colspan="2">Sequence</th>
-        <th colspan="2">HMM</th>
-        <th rowspan="2">Bits score</th>
-        <th rowspan="2">E-value</th>
-        <th rowspan="2">Alignment mode</th>
-        <th rowspan="2">Predicted active sites</th>
-        <th rowspan="2">Show/hide alignment</th>
-      </tr>
-      <tr class="titleRow">
-        <th>Start</th>
-        <th>End</th>
-        <th>From</th>
-        <th>To</th>
-      </tr>
-    </thead>
-    <tbody>
-      [% insignificantMatches -%]
-    </tbody>
-  </table>
+<p>
+  <span id="loading" class="loading">Loading results</span>
+</p>
 
-  [% END; # of "if numInsignificantMatches"
-  
-  END; # of "if numAs"
-
-  #-----------------------------------------------------------------------------
-  # Pfam-B matches
-
-  IF numBs %]
-
-  <table id="pfamBSummary"
-         class="resultTable" 
-         summary="Pfam-B search results">
-    <caption>
-      <span class="tableTitle">Pfam-B Matches</span>
-      <span class="link" onclick="showAllAlignments('pfamBSummary',true)">Show</span> or
-      <span class="link" onclick="showAllAlignments('pfamBSummary',false)">hide</span> 
-      all alignments.
-    </caption>
-    <thead>
-      <tr>
-        <th class="rowNum">Original order</th>
-        <th>Pfam-B</th>
-        <th>Sequence Start</th>
-        <th>Sequence End</th>
-        <th>Score</th>
-        <th>E-value</th>
-        <th>Show/hide alignment</th>
-      </tr>
-    </thead>
-    <tbody>
-      [% FOREACH pfamB IN genPfamBRes;
-        rowClass = loop.index % 2 ? "odd" : "even" %]
-      <tr class="[% rowClass %]">
-        <td class="rowNum">[% loop.index %]</td>
-        <td>
-          <a href="[% c.uri_for( "/pfamb", { acc = pfamB.pfamb_acc } ) %]">
-            [% pfamB.pfamb_id %]</a>
-        </td>
-        <td>[% pfamB.start %]</td>
-        <td>[% pfamB.end %]</td>
-        <td>[% pfamB.score %]</td>
-        <td>[% pfamB.pvalue %]</td>
-        <td class="showSwitch">
-          <img src="[% showButton %]" 
-               onclick="toggleAlignment( 'pfamBAlignment[% loop.index %]', this )"
-               alt="Show alignment" />
-        </td>
-      </tr>
-      <tr class="alignment [% rowClass %]" 
-          id="pfamBAlignment[% loop.index %]">
-        <td class="rowNum">[% loop.index %]</td>
-        <td colspan="6">
-          <pre>[% pfamB.queryString %]
-[% pfamB.homoString %]
-[% pfamB.hitString -%]</pre>
-        </td>
-      </tr>
-      [% END %]
-    </tbody>
-  </table>
-
-  [% END # of "if numBs" %]
-
-</div>
+<div id="results"></div>
 
 <script type="text/javascript">
   // <![CDATA[
-  // hide all of the alignment rows once the table is built
-  Event.observe( window, "load", function() {
+
+ var Timer = Class.create( {
+
+    initialize: function( url, container ) {
+      this._url = url;
+      this._container = $(container);
+      this._interval = setInterval( this.poll.bind(this), 500 );
+    },
+
+    poll: function() {
+      console.log( "Timer.poll: polling url |%s| with job ID |%s|", 
+        this._url, "[% jobId %]" );
+      var r = new Ajax.Request( this._url, {
+        parameters: { jobId: "[% jobId %]" },
+        on204: function() {},
+        onSuccess: this.onSuccess.bind( this )
+      } );
+    },
+
+    onSuccess: function( oResponse ) {
+      console.log( "Timer.onSuccess: got results from the server; stopping polling" );
+      clearInterval( this._interval );
+      this._results = oResponse.responseText;
+      this.results();
+    },
+
+    results: function() {
+      console.log( "Timer.results: updating page with results" );
+      this._container.update( this._results );
+    
+      // hide all of the alignment rows once the table is built
       $$(".alignment").invoke( "hide" );
     }
-  );
+
+  } );
+
+  Event.observe( window, "load", function() {
+    // var timer = new Timer( "[% c.uri_for( '/search/sequence/results' )%]", "results" );
+
+    var success = function( response ) {
+      console.log( "response: ", response );
+      if (response.status == 200) {
+        console.log( "job done; stopping polling" );
+        r.stop();
+        $("results").update( response.responseText );
+      } else {
+        console.log( "status %d; continuing polling", response.status );
+      }
+
+    };
+    
+    var r = new Ajax.PeriodicalUpdater( 
+      "results",
+      "[% c.uri_for( '/search/sequence/results' )%]",
+      { parameters: { jobId: "[% jobId %]" },
+        frequency: 1,
+        decay: 1.2,
+        on204: function() {
+          console.log( "status 204; no results; polling further" );
+        },
+        onSuccess: success }
+    );
+  
+  } );
+
+  [% # shortcuts to the show/hide glass buttons
+  imageUri   = c.uri_for( "/static/images" );
+  showButton = "${imageUri}/showButton.png";
+  hideButton = "${imageUri}/hideButton.png"; %]
+
+  // set up the sequence. This will be populated by the AJAX-loaded script
+  var domains = [];
+  var markups = [];
+  var motifs  = [];
+
+  var sequence = { length:   [% input.length %],
+                   features: domains,
+                   motifs:   motifs,
+                   markups:  markups,
+                   options: {
+                     imageMap: true,
+                     labels:   true
+                   }
+                 };
+
   // a function to show or hide the alignment rows
   function toggleAlignment( sId, oSwitch ) {
     $(sId).toggle();
@@ -487,10 +232,11 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
     $A( document.getElementsByClassName("alignment",sId)).invoke(sState);
     $A( $$("td.showSwitch img") ).each(
       function (s ) {
-        s.src = sSrc; 
+        s.src = sSrc;
       }
     );
   }
+
   // ]]>
 </script>
 
