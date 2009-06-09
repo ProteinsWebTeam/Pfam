@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.36 2009-03-05 11:57:17 jt6 Exp $
+# $Id: head.tt,v 1.37 2009-06-09 15:16:49 jt6 Exp $
 
 # these first meta tags are google webmasters verification tags. They are here
 # so that google can verify that we control the websites and we can control,
@@ -49,13 +49,16 @@ IF refreshUri != "";
 
 <!-- prototype / scriptaculous -->
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">google.load("prototype", "1.6.0.2");</script>
+<script type="text/javascript">google.load("prototype", "1.6.0.3");</script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,controls,slider"></script>
 
 <!-- YUI -->
 <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
 <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/treeview/treeview-min.js"></script>
 <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/treeview/assets/skins/sam/treeview.css" />
+
+<!-- google analytics -->
+<script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
 
 <!-- ====================================================================== -->
 <!-- local javascript files -->
@@ -80,13 +83,13 @@ IF refreshUri != "";
 <!-- ====================================================================== -->
 <!-- load dynamically required stylesheets and javascript files-->
 
-[% 
+[%-
 allRequirements = { local  => { uri  => staticUri,
                                 reqs => requirements },
                     shared => { uri  => sharedUri,
                                 reqs => sharedRequirements } };
 
-PROCESS "components/load_requirements.tt" %]
+PROCESS "components/load_requirements.tt" -%]
 
 <!-- ====================================================================== -->
 <!-- set the favicon -->
