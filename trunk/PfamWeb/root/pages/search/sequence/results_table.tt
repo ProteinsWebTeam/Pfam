@@ -1,0 +1,328 @@
+[%
+# result_table.tt
+# jt6 20090521 WTSI
+#
+# format the results of a H3 sequence search as a table.
+#
+# $Id: results_table.tt,v 1.1 2009-06-09 15:19:18 jt6 Exp $
+
+META naked = 1;
+
+USE Dumper;
+CALL c.log.debug( Dumper.dump( genPfamARes ) );
+
+#-------------------------------------------------------------------------------
+
+# the numbers of PfamA and PfamB matches that the search found
+numAs = genPfamARes.size;
+numBs = genPfamBRes.size;
+
+# shortcuts to the show/hide glass buttons
+imageUri   = c.uri_for( "/static/images" );
+showButton = "${imageUri}/showButton.png";
+hideButton = "${imageUri}/hideButton.png";
+
+#-------------------------------------------------------------------------------
+
+# store the number of significant and insignificant matches
+numSignificantMatches = 0;
+numInsignificantMatches = 0;
+
+# a block that builds a table of results
+BLOCK buildTableBody;
+  
+  # we use loop.index to build an ID for each row, since that really will
+  # be unique, but for the purposes of deciding if a row is odd or even, we
+  # need a separate counter, tableRow
+  tableRow = 0;
+  FOREACH pfamA IN genPfamARes;
+
+    # decided whether we should skip this row. If the parameter 
+    # "showSignificant" is true, we skip rows with insignificant matches, and 
+    # vice versa. We also set the row CSS class and the row ID here
+    IF showSignificant;
+      NEXT IF NOT pfamA.sig;
+
+      # this is a significant row
+      rowClass = tableRow % 2 ? "oddlySignificant" : "evenlySignificant";
+      rowId    = "pfamAAlignment${loop.index}";
+    ELSE;
+      NEXT IF     pfamA.sig;
+
+      # this is an INsignificant row
+      rowClass = tableRow % 2 ? "odd" : "even";
+      rowId    = "pfamAAlignmentI${loop.index}";
+    END;
+    
+    tableRow = tableRow + 1 -%]
+    <tr class="[% rowClass %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td>
+        <a href="[% c.uri_for( "/family", { acc = pfamA.acc } ) %]">
+          [% pfamA.name %]</a>
+      </td>
+      <td class="desc">
+        [% IF pfamA.desc;
+          pfamA.desc;
+        ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td>
+        [% IF pfamA.type;
+          pfamA.type;
+        ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td>[% pfamA.env.from %]</td>
+      <td>[% pfamA.env.to %]</td>
+      <td>[% pfamA.seq.from %]</td>
+      <td>[% pfamA.seq.to %]</td>
+      <td[% IF pfamA.hmm.from != 1 %] class="warning"[% END %]>
+        [% pfamA.hmm.from %]
+      </td>
+      <td[% IF pfamA.hmm.to != pfamA.hmm.length %] class="warning"[% END %]>
+        [% pfamA.hmm.to %]
+      </td>
+      <td>[% pfamA.bits %]</td>
+      <td>[% pfamA.evalue %]</td>
+      <td>
+        [% IF pfamA.act_site.size;
+          pfamA.act_site.join(",");
+        ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td class="showSwitch">
+        <img src="[% showButton %]" 
+             onclick="toggleAlignment( '[% rowId %]', this )"
+             alt="Show alignment" />
+      </td>
+    </tr>
+    <tr class="alignment [% rowClass %]" id="[% rowId %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td colspan="14">
+        <pre>[% FOREACH row IN pfamA.align %]
+[% row;
+END %]</pre>
+      </td>
+    </tr>
+  [% END; # of "FOREACH pfamA"
+  IF showSignificant;
+    numSignificantMatches = tableRow;
+  ELSE;
+    numInsignificantMatches = tableRow;
+  END;
+END; # of BLOCK
+
+#-------------------------------------------------------------------------------
+
+# a block to render the results table head
+
+BLOCK tableHead -%]
+  <thead>
+    <tr class="titleRow">
+      <th rowspan="2" class="rowNum">Original order</th>
+      <th rowspan="2">Pfam-A</th>
+      <th rowspan="2">Description</th>
+      <th rowspan="2">Entry type</th>
+      <th colspan="2">Envelope</th>
+      <th colspan="2">Alignment</th>
+      <th colspan="2">HMM</th>
+      <th rowspan="2">Bits score</th>
+      <th rowspan="2">E-value</th>
+      <th rowspan="2">Predicted active sites</th>
+      <th rowspan="2">Show/hide alignment</th>
+    </tr>
+    <tr class="titleRow">
+      <th>Start</th>
+      <th>End</th>
+      <th>Start</th>
+      <th>End</th>
+      <th>From</th>
+      <th>To</th>
+    </tr>
+  </thead>
+[%- END; # of block "tableHead"
+  
+#-------------------------------------------------------------------------------
+
+# now we actually run the "buildTableRows" block for the significant and 
+# insignificant matches, so that we can see if we actually HAVE significant or
+# insignificant matches before we try to build the page
+
+  significantMatches = PROCESS buildTableBody showSignificant = 1;
+insignificantMatches = PROCESS buildTableBody showSignificant = 0;
+
+#-------------------------------------------------------------------------------
+
+# build the JSON object that defines the domain graphics %]
+
+<div id="dg"></div>
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // hide the spinner
+  $("loading").hide();
+
+  // hide all of the alignment rows once the table is built
+  $$(".alignment").invoke( "hide" );
+
+  [%- 
+  colours = [ "red", "green", "blue", "pink", "#0080F0" ];
+  i = 0;
+  FOREACH pfamA IN genPfamARes;
+    NEXT UNLESS pfamA.sig;
+    colour = colours.$i;
+    i = i + 1;
+    IF i >= colours.size;
+      i = 0;
+    END;
+  %]
+    domains.push( { startStyle: "curved",
+                    endStyle:   "curved",
+                    start:      [% pfamA.env.from %], 
+                    end:        [% pfamA.env.to %], 
+                    aliStart:   [% pfamA.seq.from %], 
+                    aliEnd:     [% pfamA.seq.to %], 
+                    text:       "[% pfamA.name %]",
+                    colour:     "[% colour %]" } );
+  [%- END %]
+
+  var pg = new PfamGraphic();
+  pg.setImageParams( { featureUrl: "[% c.uri_for( '/family/' ) %]" } );
+  pg.setParent( "dg" );
+  pg.setSequence( sequence );
+  pg.render();
+
+  // ]]>
+</script>
+
+<!-- start of results table -->
+
+[% IF numAs;
+
+#-----------------------------------------------------------------------------
+# show significant matches
+
+IF numSignificantMatches -%]
+<table id="pfamASummary"
+       class="resultTable" 
+       summary="Pfam-A search results">
+  <caption>
+    <span class="tableTitle">Significant Pfam-A Matches</span>
+    <span class="link" onclick="showAllAlignments('pfamASummary',true)">Show</span> or
+    <span class="link" onclick="showAllAlignments('pfamASummary',false)">hide</span> 
+    all alignments.
+  </caption>
+  [% PROCESS tableHead -%]
+  <tbody>
+    [% significantMatches -%]
+  </tbody>
+</table>
+[% END;
+
+#-----------------------------------------------------------------------------
+# show INsignificant matches
+
+IF numInsignificantMatches -%]
+<table id="pfamASummaryI"
+       class="resultTable" 
+       summary="Insignificant Pfam-A matches">
+  <caption>
+    <span class="tableTitle">Insignificant Pfam-A Matches</span>
+    <span class="link" onclick="showAllAlignments('pfamASummaryI',true)">Show</span> or
+    <span class="link" onclick="showAllAlignments('pfamASummaryI',false)">hide</span> 
+    all alignments.
+  </caption>
+  [% PROCESS tableHead -%]
+  <tbody>
+    [% insignificantMatches -%]
+  </tbody>
+</table>
+
+[% END; # of "if numInsignificantMatches"
+
+END; # of "if numAs"
+
+#-----------------------------------------------------------------------------
+# Pfam-B matches
+
+IF numBs %]
+
+<table id="pfamBSummary"
+       class="resultTable" 
+       summary="Pfam-B search results">
+  <caption>
+    <span class="tableTitle">Pfam-B Matches</span>
+    <span class="link" onclick="showAllAlignments('pfamBSummary',true)">Show</span> or
+    <span class="link" onclick="showAllAlignments('pfamBSummary',false)">hide</span> 
+    all alignments.
+  </caption>
+  <thead>
+    <tr>
+      <th class="rowNum">Original order</th>
+      <th>Pfam-B</th>
+      <th>Sequence Start</th>
+      <th>Sequence End</th>
+      <th>Score</th>
+      <th>E-value</th>
+      <th>Show/hide alignment</th>
+    </tr>
+  </thead>
+  <tbody>
+    [% FOREACH pfamB IN genPfamBRes;
+      rowClass = loop.index % 2 ? "odd" : "even" %]
+    <tr class="[% rowClass %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td>
+        <a href="[% c.uri_for( "/pfamb", { acc = pfamB.pfamb_acc } ) %]">
+          [% pfamB.pfamb_id %]</a>
+      </td>
+      <td>[% pfamB.start %]</td>
+      <td>[% pfamB.end %]</td>
+      <td>[% pfamB.score %]</td>
+      <td>[% pfamB.pvalue %]</td>
+      <td class="showSwitch">
+        <img src="[% showButton %]" 
+             onclick="toggleAlignment( 'pfamBAlignment[% loop.index %]', this )"
+             alt="Show alignment" />
+      </td>
+    </tr>
+    <tr class="alignment [% rowClass %]" 
+        id="pfamBAlignment[% loop.index %]">
+      <td class="rowNum">[% loop.index %]</td>
+      <td colspan="6">
+        <pre>[% pfamB.queryString %]
+[% pfamB.homoString %]
+[% pfamB.hitString -%]</pre>
+      </td>
+    </tr>
+    [% END %]
+  </tbody>
+</table>
+
+[% END # of "if numBs" %]
+
+<!-- end of results table -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
