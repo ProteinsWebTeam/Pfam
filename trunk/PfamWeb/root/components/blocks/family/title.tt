@@ -12,13 +12,13 @@
 # browser window or browser tab. This one shouldn't contain any HTML, and it will
 # be prefixed with "Pfam: " in the page wrapper template.
 #
-# $Id: title.tt,v 1.5 2008-05-16 15:30:31 jt6 Exp $
+# $Id: title.tt,v 1.6 2009-06-09 15:18:11 jt6 Exp $
 %]
 
 [% IF titleType == "tab" %]
-<h1>Family: <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %])</h1>
+<h1>Family: <em>[% pfam.pfama_id %]</em> ([% pfam.pfama_acc %])</h1>
 [% ELSIF titleType == "page" %]
-Family: [% pfam.pfamA_id %] ([% pfam.pfamA_acc %])
+Family: [% pfam.pfama_id %] ([% pfam.pfama_acc %])
 [% END %]
 [%#
 Copyright (c) 2007: Genome Research Ltd.

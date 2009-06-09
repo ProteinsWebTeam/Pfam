@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.15 2008-10-02 13:12:58 jt6 Exp $
+# $Id: Structures.pm,v 1.16 2009-06-09 15:20:00 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.15 2008-10-02 13:12:58 jt6 Exp $
+$Id: Structures.pm,v 1.16 2009-06-09 15:20:00 jt6 Exp $
 
 =cut
 
@@ -63,11 +63,11 @@ the method also retrieves the row of the "pdb" table for that entry.
 =cut
 
 sub structures : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # see if we were handed a PDB ID and, if so, put the data for that entry into
   # the stash
-  if( defined $c->req->param('pdbId') and
+  if ( defined $c->req->param('pdbId') and
       $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
 
     $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
@@ -76,14 +76,22 @@ sub structures : Path {
 
   # retrieve the PDB entries for this family
   my @rs;
-  if( defined $c->stash->{pfam}->auto_pfamA ) {
-    @rs = $c->model('PfamDB::Pdb_pfamA_reg')
-            ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA},
-                      { join       => [ qw( pdb ) ],
-                        prefetch   => [ qw( pdb ) ] } );
+  if ( defined $c->stash->{pfam}->auto_pfama ) {
+    @rs = $c->model('PfamDB::PdbPfamaReg')
+            ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
+                      { join       => [ qw( auto_pdb ) ],
+                        prefetch   => [ qw( auto_pdb ) ] } );
   }
 
-  my %pdbUnique = map{ $_->pdb_id => $_ } @rs;
+  # don't render the template unless we need to
+  unless ( scalar @rs ) {
+    $c->log->debug( 'Family::Structures::structures: no structure image; not rendering template' )
+      if $c->debug;
+    $c->res->status( 204 );
+    return;
+  }
+
+  my %pdbUnique = map{ $_->auto_pdb->pdb_id => $_ } @rs;
   $c->stash->{pdbUnique} = \%pdbUnique;
 
   # set up the view and rely on "end" from the parent class to render it
@@ -103,27 +111,36 @@ PDB residues.
 =cut
 
 sub mapping : Local  {
-  my($this, $c) = @_;
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Family::Structures::mapping: acc: |'
                   . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|' )
     if $c->debug;
 
-  my @mapping = $c->model('PfamDB::Pdb_PfamA_reg')
-                  ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA },
-                            { join       => [ qw( pdb pfamseq ) ],
-                              prefetch   => [ qw( pdb pfamseq ) ]
-                            } );
+  my @mapping = $c->model('PfamDB::PdbPfamaReg')
+                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
+                            { join       => [ qw( auto_pdb auto_pfamseq ) ],
+                              prefetch   => [ qw( auto_pdb auto_pfamseq ) ] } );
+
   $c->stash->{pfamMaps} = \@mapping;
   $c->log->debug( 'Family::Structures::mapping: found |' . scalar @mapping . '| rows' )
     if $c->debug;
 
+  unless ( scalar @mapping ) {
+    $c->log->debug( 'Family::Structures::mapping: no rows; returning 204' )
+      if $c->debug;
+      
+    $c->res->status( 204 );
+    
+    return;
+  }
+  
   if ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Family::Structures::mapping: emitting XML' ) if $c->debug;
     $c->stash->{template} = 'rest/family/structures_xml.tt';
   }
   else {
-    $c->log->debug( 'Family::Structures::mapping: emitting XML' ) if $c->debug;
+    $c->log->debug( 'Family::Structures::mapping: emitting HTML' ) if $c->debug;
     $c->stash->{template} = 'components/blocks/family/structureTab.tt';
   }
 

@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.8 2008-07-28 13:59:31 jt6 Exp $
+# $Id: Download.pm,v 1.9 2009-06-09 15:20:00 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.8 2008-07-28 13:59:31 jt6 Exp $
+$Id: Download.pm,v 1.9 2009-06-09 15:20:00 jt6 Exp $
 
 =cut
 
@@ -45,6 +45,9 @@ to the response, which causes problems for the cache plugin.
 sub html : Local {
   my ( $this, $c ) = @_;
 
+  # point to the "tool" window
+  $c->stash->{template} = 'components/tools/html_alignment.tt';
+  
   my $cacheKey = 'jtml' . $c->stash->{acc} . $c->stash->{alnType};
   
   my $jtml = $c->cache->get( $cacheKey );
@@ -61,13 +64,16 @@ sub html : Local {
     if ( $c->stash->{entryType} eq 'A' ) {
   
       # retrieve the HTML from the DB
-      my $rs = $c->model('PfamDB::AlignmentsAndTrees')
-                 ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
-                             type       => $c->stash->{alnType} } );
-      $row = $rs->first;
+      $row = $c->model('PfamDB::AlignmentsAndTrees')
+               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+                           type       => $c->stash->{alnType} } )
+               ->single;
     
       # final check...
       unless ( defined $row->jtml ) {
+        $c->log->debug( 'Family::Alignment::Download::html: failed to retrieve JTML' )
+          if $c->debug;  
+
         $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                                 . $c->stash->{acc};
         return;
@@ -77,7 +83,7 @@ sub html : Local {
     elsif ( $c->stash->{entryType} eq 'B' ) {
 
       # make sure the Pfam-B HTML is already available
-      unless ( defined $c->stash->{pfam}->pfamB_stockholm->jtml ) {
+      unless ( defined $c->stash->{pfam}->pfamb_stockholms->jtml ) {
         $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                                 . $c->stash->{acc};
         return;
@@ -102,9 +108,72 @@ sub html : Local {
   # stash the HTML
   $c->stash->{html_alignment} = $jtml;
   
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 html : Path
+
+Retrieves the JTML alignment and dumps it to the response. We first try to 
+extract the JTML from the cache or, if that fails, we retrieve it from the DB.
+
+Note that we can't use C<$c->cache_page> here because we're printing directly
+to the response, which causes problems for the cache plugin. 
+
+=cut
+
+sub heatmap : Local {
+  my ( $this, $c ) = @_;
+
   # point to the "tool" window
   $c->stash->{template} = 'components/tools/html_alignment.tt';
+  $c->stash->{alnType}  = 'heatmap';
   
+  my $cacheKey = 'heatmap' . $c->stash->{acc};
+  
+  my $hm = $c->cache->get( $cacheKey );
+  if ( defined $hm ) {
+    $c->log->debug( 'Family::Alignment::Download::heatmap: extracted HTML from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Family::Alignment::Download::heatmap: failed to extract HTML from cache; going to DB' )
+      if $c->debug;  
+
+    # see what type of family we have, A or B
+    my $row;
+    if ( $c->stash->{entryType} eq 'A' ) {
+  
+      # retrieve the HTML from the DB
+      $row = $c->model('PfamDB::AlignmentsAndTrees')
+               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+                           type       => 'full' } )
+               ->single;
+    
+      # final check...
+      unless ( defined $row->post ) {
+        $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
+                                . $c->stash->{acc};
+        return;
+      }
+  
+    }
+
+    # uncompress the row to get the raw HTML
+    $hm = Compress::Zlib::memGunzip( $row->post );
+    unless ( defined $hm ) {
+      $c->stash->{errorMsg} = 'We could not extract the heatmap alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $c->log->debug( 'Family::Alignment::Download::heatmap: retrieved HTML from DB' )
+      if $c->debug;
+    $c->cache->set( $cacheKey, $hm ) unless $ENV{NO_CACHE};
+  }
+
+  # stash the HTML
+  $c->stash->{html_alignment} = $hm;  
 }
 
 #-------------------------------------------------------------------------------
@@ -120,13 +189,19 @@ sub gzipped : Local {
   my( $this, $c ) = @_;
   
   # retrieve the alignment
-  my $rs = $c->model('PfamDB::AlignmentsAndTrees')
-             ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
-                         type       => $c->stash->{alnType} } );
+  my $alignment = $c->model('PfamDB::AlignmentsAndTrees')
+                    ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+                                type       => $c->stash->{alnType} } )
+                    ->single();
 
-  my $alignment = $rs->first->alignment;
-  
-#  $c->forward( 'getAlignment' );
+  unless ( defined $alignment ) {
+    $c->log->warn( 'Family::Alignment::Download::gzipped: failed to retrieve alignment for '
+                    . $c->stash->{acc} ) if $c->debug;
+      
+    $c->res->status( 204 ); # "no content"
+    
+    return;
+  } 
 
   # build a filename for it
   my $filename = $c->stash->{acc} . '.' . $c->stash->{alnType} . '.gz';
@@ -134,7 +209,6 @@ sub gzipped : Local {
   
   # ... and dump it straight to the response
   $c->res->content_type( 'application/x-gzip' );
-#  $c->res->body( $c->stash->{alignment} );
   $c->res->body( $alignment );
 }
 
@@ -313,12 +387,17 @@ sub getAlignment : Private {
     if ( $c->stash->{entryType} eq 'A' ) {
   
       # retrieve the alignment from the DB
-      my $rs = $c->model('PfamDB::AlignmentsAndTrees')
-                 ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
-                             type       => $c->stash->{alnType} } );
-      my $row = $rs->first;
+      my $row = $c->model('PfamDB::AlignmentsAndTrees')
+                  ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
+                              type       => $c->stash->{alnType} } )
+                  ->single;
   
-      unless( defined $row->alignment ) {
+      unless ( defined $row and defined $row->alignment ) {
+
+        $c->log->warn( 'Family::Alignment::Download::getAlignment: failed to retrieve '
+          . $c->stash->{alnType} . ' alignment for ' . $c->stash->{acc} )
+          if $c->debug;
+
         $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                                 . $c->stash->{acc};
         return;
@@ -326,7 +405,12 @@ sub getAlignment : Private {
   
       # uncompress it
       $alignment = Compress::Zlib::memGunzip( $row->alignment );
-      unless( defined $alignment ) {
+      unless ( defined $alignment ) {
+
+        $c->log->warn( 'Family::Alignment::Download::getAlignment: failed to uncompress '
+          . $c->stash->{alnType} . ' alignment for ' . $c->stash->{acc} )
+          if $c->debug;
+
         $c->stash->{errorMsg} = 'We could not extract the alignment for '
                                 . $c->stash->{acc};
         return;
@@ -336,15 +420,26 @@ sub getAlignment : Private {
     elsif ( $c->stash->{entryType} eq 'B' ) {
 
       # make sure the Pfam-B alignment is already available
-      unless( defined $c->stash->{pfam}->pfamB_stockholm->stockholm_data ) {
+      unless ( defined $c->stash->{pfam}->pfamb_stockholms->stockholm_data ) {
+
+        $c->log->warn( 'Family::Alignment::Download::getAlignment: failed to retrieve '
+          . ' alignment for Pfam-B ' . $c->stash->{acc} )
+          if $c->debug;
+
         $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
                                 . $c->stash->{acc};
         return;
       }
 
       # uncompress it
-      $alignment = Compress::Zlib::memGunzip( $c->stash->{pfam}->pfamB_stockholm->stockholm_data );
-      unless( defined $alignment ) {
+      $alignment = Compress::Zlib::memGunzip( $c->stash->{pfam}->pfamb_stockholms->stockholm_data );
+
+      unless ( defined $alignment ) {
+
+        $c->log->warn( 'Family::Alignment::Download::getAlignment: failed to uncompress '
+          . ' alignment for Pfam-B ' . $c->stash->{acc} )
+          if $c->debug;
+
         $c->stash->{errorMsg} = 'We could not extract the alignment for '
                                 . $c->stash->{acc};
         return;

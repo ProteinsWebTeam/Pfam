@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.27 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Root.pm,v 1.28 2009-06-09 15:21:12 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.27 2008-05-16 15:29:28 jt6 Exp $
+$Id: Root.pm,v 1.28 2009-06-09 15:21:12 jt6 Exp $
 
 =cut
 
@@ -50,7 +50,8 @@ sub auto : Private {
   eval {
     # stash some details of the Pfam release
     $releaseData = $c->model( 'PfamDB::Version' )
-                     ->find( {} );
+                     ->search( {} )
+                     ->first;
   };
   if ( $@ ) {
     $c->stash->{template} = 'pages/db_down.tt';

@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.20 2008-10-23 15:30:57 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.21 2009-06-09 15:21:12 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ or a clan.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.20 2008-10-23 15:30:57 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.21 2009-06-09 15:21:12 jt6 Exp $
 
 =cut
 
@@ -58,8 +58,8 @@ sub begin : Private {
       if $c->debug;
 
     # make sure we can retrieve data for that entry
-    $c->stash->{entry} = $c->model('PfamDB::Pfam')
-                           ->find( { pfamA_acc => $c->stash->{acc} } );
+    $c->stash->{entry} = $c->model('PfamDB::Pfama')
+                           ->find( { pfama_acc => $c->stash->{acc} } );
 
   } elsif( $c->req->param('acc') =~ m/^(PB\d{6})$/i ) {
 
@@ -70,8 +70,8 @@ sub begin : Private {
                     . $c->stash->{acc} . '|' )
       if $c->debug;      
 
-    $c->stash->{entry} = $c->model('PfamDB::PfamB')
-                           ->find( { pfamB_acc => $c->stash->{acc} } );
+    $c->stash->{entry} = $c->model('PfamDB::Pfamb')
+                           ->find( { pfamb_acc => $c->stash->{acc} } );
 
   } elsif( $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
 
@@ -158,11 +158,11 @@ sub buildTree : Private {
   foreach my $region ( @{ $c->stash->{regions} } ) {
 
     # first, get the species information
-    my $species = $region->species;
+    my $species = $region->auto_pfamseq->species;
     $species =~ s/^(\s+)//g; # trim leading whitespace
 
     # next, the taxonomy above the species
-    my $tax = $region->taxonomy;
+    my $tax = $region->auto_pfamseq->taxonomy;
     $tax =~ s/\s+//g;
     my @tax = split m/\;/, $tax;
 
@@ -174,7 +174,7 @@ sub buildTree : Private {
     $maxDepth = scalar @tax if scalar @tax > $maxDepth;
 
     # build a hash to describe this branch
-    my $speciesData = { acc     => $region->pfamseq_acc,
+    my $speciesData = { acc     => $region->auto_pfamseq->pfamseq_acc,
                         species => $species,
                         tax     => \@tax };
 
@@ -364,10 +364,10 @@ sub countSpecies : Private {
 
   if( $c->stash->{entryType} eq 'B' ) {
     
-    my @regions = $c->model('PfamDB::PfamB_reg')
-                    ->search( { auto_pfamB => $c->stash->{entry}->auto_pfamB },
-                              { join       => [ qw( pfamseq ) ],
-                                prefetch   => [ qw( pfamseq ) ] } );
+    my @regions = $c->model('PfamDB::PfambReg')
+                    ->search( { auto_pfamB => $c->stash->{entry}->auto_pfamb },
+                              { join       => [ qw( auto_pfamseq ) ],
+                                prefetch   => [ qw( auto_pfamseq ) ] } );
 
     # as we're retrieving them here anyway, stash the regions, so we don't need
     # to get them again later
@@ -399,11 +399,11 @@ sub getFamilyData : Private {
   my( $this, $c ) = @_;
   
   # get the species information for the full alignment
-  my @regions = $c->model('PfamDB::PfamA_reg_full')
-                  ->search( { 'pfamA.pfamA_acc' => $c->stash->{acc},
+  my @regions = $c->model('PfamDB::PfamaRegFullSignificant')
+                  ->search( { 'auto_pfama.pfama_acc' => $c->stash->{acc},
                               'in_full'         => 1 },
-                            { join              => [ qw( pfamseq pfamA ) ],
-                              prefetch          => [ qw( pfamseq ) ] } );
+                            { join              => [ qw( auto_pfamseq auto_pfama ) ],
+                              prefetch          => [ qw( auto_pfamseq ) ] } );
 
   $c->stash->{regions} = \@regions;
 
@@ -411,10 +411,10 @@ sub getFamilyData : Private {
                   . scalar @regions . '| full regions' ) if $c->debug;
 
   # get the species information for the seed alignment
-  my @resultsSeed = $c->model('PfamDB::PfamA_reg_seed')
-                      ->search( { 'pfamA.pfamA_acc' => $c->stash->{acc} },
-                                { join              => [ qw( pfamseq pfamA ) ],
-                                  prefetch          => [ qw( pfamseq ) ] } );
+  my @resultsSeed = $c->model('PfamDB::PfamaRegSeed')
+                      ->search( { 'auto_pfama.pfama_acc' => $c->stash->{acc} },
+                                { join              => [ qw( auto_pfamseq auto_pfama ) ],
+                                  prefetch          => [ qw( auto_pfamseq ) ] } );
   $c->log->debug( 'SpeciesTree::getFamilyData:: found |'
                   . scalar @resultsSeed . '| seed regions' ) if $c->debug;
                 
@@ -422,7 +422,7 @@ sub getFamilyData : Private {
   # found in the seed alignment
   my %inSeed;
   foreach my $region ( @resultsSeed ) {
-    $inSeed{ $region->pfamseq_acc}++;
+    $inSeed{ $region->auto_pfamseq->pfamseq_acc}++;
   }
 
   $c->stash->{inSeed}  = \%inSeed;  
@@ -444,18 +444,18 @@ sub getClanData : Private {
   # get the species information for the full alignment for each clan member. 
   # This probably could be done in one query, but this is going to be quicker
   # (I think...)
-  my @auto_pfamAs = $c->model('PfamDB::Clan_membership')
-                      ->search( { 'clans.clan_acc' => $c->stash->{acc} },
-                                { join             => [ qw( clans ) ] } );
+  my @auto_pfamas = $c->model('PfamDB::ClanMembership')
+                      ->search( { 'auto_clan.clan_acc' => $c->stash->{acc} },
+                                { join                 => [ qw( auto_clan ) ] } );
 
   my(@allRegions, @regions );
-  foreach my $auto_pfamA ( @auto_pfamAs ) {
+  foreach my $auto_pfama ( @auto_pfamas ) {
     
-    @regions = $c->model('PfamDB::PfamA_reg_full')
-                 ->search( { 'auto_pfamA' => $auto_pfamA->auto_pfamA,
+    @regions = $c->model('PfamDB::PfamaRegFullSignificant')
+                 ->search( { 'auto_pfama' => $auto_pfama->auto_pfama,
                              'in_full'     => 1 },
-                             { join              => [ qw( pfamseq ) ],
-                               prefetch          => [ qw( pfamseq ) ] } );
+                           { join              => [ qw( auto_pfamseq ) ],
+                             prefetch          => [ qw( auto_pfamseq ) ] } );
 
     push @allRegions, @regions;
   }

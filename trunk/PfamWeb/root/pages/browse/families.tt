@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Pfam families
 #
-# $Id: families.tt,v 1.10 2008-07-22 08:24:54 jt6 Exp $
+# $Id: families.tt,v 1.11 2009-06-09 15:19:32 jt6 Exp $
 
 META title = "Browse Pfam families";
 META fullPage = 1;
@@ -80,10 +80,10 @@ pageList = PROCESS "components/pageList.tt",
 	END %]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
-        <a href="[% familyURI %]?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_id %]</a>
+        <a href="[% familyURI %]?acc=[% pfam.pfama_acc %]">[% pfam.pfama_id %]</a>
       </td>
       <td>
-        <a href="[% familyURI %]?acc=[% pfam.pfamA_acc %]">[% pfam.pfamA_acc %]</a>
+        <a href="[% familyURI %]?acc=[% pfam.pfama_acc %]">[% pfam.pfama_acc %]</a>
       </td>
       <td>[% pfam.type %]</td>
       <td>[% pfam.num_seed %]</td>

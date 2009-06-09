@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Grid.pm,v 1.2 2009-03-06 16:32:48 jt6 Exp $
+# $Id: Grid.pm,v 1.3 2009-06-09 15:21:12 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Grid.pm,v 1.2 2009-03-06 16:32:48 jt6 Exp $
+$Id: Grid.pm,v 1.3 2009-06-09 15:21:12 jt6 Exp $
 
 =cut
 
@@ -231,30 +231,28 @@ sub prototype_json_data : Global {
   my $page_size = $c->req->param('page_size') || 100;
   
   my $rs = $c->model('PfamDB::Pfamseq')
-             ->search( {}, {} );
+             ->search( {},
+                       { page => int( $offset / $page_size ),
+                         rows => $page_size } );
              
-  $c->log->debug( 'Grid::prototype_json_data: found ' . $rs->count . ' rows' )
-    if $c->debug;
-
-  my $slice = $rs->slice( $offset, $offset + $page_size - 1 );
-  $c->log->debug( 'Grid::prototype_json_data: slice contains ' . $slice->count . ' rows' )
-    if $c->debug;
-  
   my $i = $offset;
   my $rows = [];
-  foreach my $row ( $slice->all ) {
+  my $max_length = 0;
+  foreach my $row ( $rs->all ) {
+    my $seq = $row->sequence;
     push @{$rows}, { 
       index => $i++,
       acc   => $row->pfamseq_acc, 
-      seq   => $row->sequence
+      seq   => $seq
     };
+    $max_length = length( $seq ) if length( $seq ) > $max_length;
   }
 
   my $data = {
     offset    => $offset,
-    totalrows => 2000,
-    rowcount  => $page_size,
-    rows      => $rows
+    rows      => $rows,
+    maxLength => $max_length,
+    rowCount  => $page_size,
   };
   
   $c->stash->{json} = $data;

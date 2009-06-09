@@ -2,7 +2,7 @@
 # FamilyActions.pm
 # jt6 20070418 WTSI
 #
-# $Id: FamilyActions.pm,v 1.4 2009-03-20 15:58:35 jt6 Exp $
+# $Id: FamilyActions.pm,v 1.5 2009-06-09 15:20:00 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package PfamWeb::Controller::Family::FamilyActions;
 This controller holds a collection of actions that are related to Pfam-A
 families.
 
-$Id: FamilyActions.pm,v 1.4 2009-03-20 15:58:35 jt6 Exp $
+$Id: FamilyActions.pm,v 1.5 2009-06-09 15:20:00 jt6 Exp $
 
 =cut
 
@@ -45,53 +45,40 @@ sub hmm : Path( '/family/hmm' ) {
 
   return unless defined $c->stash->{pfam};
 
-  # find out which HMM we want...
-  my( $mode ) = $c->req->param( 'mode' ) =~ /^(fs|ls)$/;
-  if( not defined $mode ) {
-    $c->stash->{errorMsg} = 'There was no HMM type specified. &quot;mode&quot; '
-                            . 'should be either &quot;ls&quot; or &quot;fs&quot;';
-    return;
-  }
-
-  my $cacheKey = 'hmm' . $c->stash->{acc} . $mode;
+  my $cacheKey = 'hmm' . $c->stash->{acc};
   my $hmm      = $c->cache->get( $cacheKey );
 
-  if( defined $hmm ) {
+  if ( defined $hmm ) {
     $c->log->debug( 'Family::gethmm: extracted HMM from cache' )
       if $c->debug;
-  } else {
+  }
+  else {
     $c->log->debug( 'Family::gethmm: failed to extract HMM from cache; going to DB' )
       if $c->debug;
      
-    # retrieve the HMM from the appropriate table
-    if( $mode eq 'ls' ) {
-      my $rs = $c->model('PfamDB::PfamA_HMM_ls')
-                 ->find( $c->stash->{pfam}->auto_pfamA );
-  
-      unless( $rs ) {
-        $c->stash->{errorMsg} = "We could not find the &quot;ls&quot; HMM file for " 
-                                . $c->stash->{acc};
-        return;
-      }
-  
-      $hmm = $rs->hmm_ls;
-  
-    } elsif( $mode eq 'fs' ) {
-      my $rs = $c->model('PfamDB::PfamA_HMM_fs')
-                 ->find( $c->stash->{pfam}->auto_pfamA );
-  
-      unless( $rs ) {
-        $c->stash->{errorMsg} = "We could not find the &quot;fs&quot; HMM file for " 
-                                . $c->stash->{acc};
-        return;
-      }    
-  
-      $hmm = $rs->hmm_fs;
-    }  
+    my $rs = $c->model('PfamDB::PfamaHmm')
+               ->find( $c->stash->{pfam}->auto_pfama );
 
-    unless( $hmm ) {
-      $c->stash->{errorMsg} = "We could not find the $mode HMM file for " 
+    unless ( $rs ) {
+      $c->log->warn( 'Family::FamilyActions::hmm: failed to find row' )
+        if $c->debug;
+
+      $c->stash->{errorMsg} = 'We could not find the HMM for ' 
                               . $c->stash->{acc};
+      $c->res->status( 500 );
+      return;
+    }
+
+    $hmm = $rs->hmm;
+    
+    unless ( $hmm ) {
+      $c->log->warn( 'Family::FamilyActions::hmm: failed to retrieve HMM from row' )
+        if $c->debug;
+        
+      $c->stash->{errorMsg} = 'We could not retrieve the HMM for ' 
+                              . $c->stash->{acc};
+                              
+      $c->res->status( 500 );
       return;
     }
 
@@ -100,7 +87,7 @@ sub hmm : Path( '/family/hmm' ) {
   }
 
   # build a name for the file that will be downloaded
-  my $filename = $c->stash->{pfam}->pfamA_id."_$mode.hmm";
+  my $filename = $c->stash->{pfam}->pfama_id . '.hmm';
 
   # set the response headers
   $c->res->content_type( 'text/plain' );
@@ -134,10 +121,12 @@ sub logo : Path( '/family/logo' ) {
   
   my ( $logo_x, $logo_y ) = imgsize( \$logo );
 
-  if ( ( $logo_x > $this->{image_size_limit} or
+  if ( defined $logo_x and defined $logo_y and  
+       ( $logo_x > $this->{image_size_limit} or
          $logo_y > $this->{image_size_limit} ) and
            $c->req->user_agent =~ m/Gecko/ and
        not $c->req->user_agent =~ m/WebKit/ ) {
+  
     $c->log->debug( 'Family::FamilyActions::logo: browser is Gecko-based and image is large'
                     . " ($logo_x x $logo_y)" )
       if $c->debug;
@@ -261,16 +250,19 @@ sub get_logo : Private {
     $c->log->debug( 'Family::FamilyActions::logo: failed to extract logo from cache; going to DB' )
       if $c->debug;
     
-    my $rs = $c->model('PfamDB::PfamA_HMM_logo')
-               ->find( $c->stash->{pfam}->auto_pfamA );
+#    my $rs = $c->model('PfamDB::PfamaHmm')
+#               ->find( $c->stash->{pfam}->auto_pfama );
+#    $logo = $rs->logo;
+    if ( defined $c->stash->{pfam}->pfama_hmms ) {
+      $logo = $c->stash->{pfam}->pfama_hmms->logo;
+    }
 
-    $logo = $rs->logo;
-
-    unless ( $logo ) {
+    unless ( defined $logo ) {
       $c->log->debug( 'Family::FamilyActions::logo: failed to retrieve logo from DB' )
         if $c->debug;
-      $c->stash->{errorMsg} = 'We could not find the HMM logo for ' 
-                              . $c->stash->{acc};
+
+      $c->res->status( 204 );
+
       return;
     }
   
