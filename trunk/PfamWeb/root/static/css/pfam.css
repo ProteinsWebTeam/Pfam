@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.79 2009-03-20 16:01:12 jt6 Exp $
+   $Id: pfam.css,v 1.80 2009-06-09 15:15:55 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -177,6 +177,10 @@ div.pfamLogoHolder #searchBox {
 
 img.prePfamLogo {
   background-image: url(/static/images/pre_pfam_logo.gif) ! important;
+}
+
+img.h3PfamLogo {
+  background-image: url(/static/images/h3_pfam_logo.gif) ! important;
 }
 
 /* tweak the site-wide search box so that it fits nicely under the Pfam logo */
