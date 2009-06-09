@@ -1,0 +1,59 @@
+/* heatmap.css
+   rdf 20090526 WTSI
+
+   Stylesheet for the posterior probability heatmap alignments.
+
+   $Id: heatmap.css,v 1.1 2009-06-09 15:15:46 jt6 Exp $
+
+   Copyright (c) 2007: Genome Research Ltd.
+
+   Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+   This is free software; you can redistribute it and/or modify it under
+   the terms of the GNU General Public License as published by the Free Software
+   Foundation; either version 2 of the License, or (at your option) any later
+   version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT
+   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+   details.
+
+   You should have received a copy of the GNU General Public License along with
+   this program. If not, see <http://www.gnu.org/licenses/>.
+
+*/
+
+.t0  { background-color: #FF0000 } /* RED */
+.t1  { background-color: #EA1900 } 
+.t2  { background-color: #D63200 } 
+.t3  { background-color: #C14C00 } 
+.t4  { background-color: #AD6600 } 
+.t5  { background-color: #997F00 } 
+.t6  { background-color: #849900 } 
+.t7  { background-color: #70B200 }
+.t8  { background-color: #5BCC00 }
+.t9  { background-color: #47E500 }
+.tm  { background-color: #33FF00 } /* GREEN */
+.w  { background-color: #FFFFFF } /* white */
+
+/* scale */
+div.scale {
+  text-align: center;
+}
+/* outer wrapper */
+div.align {}
+
+/* alignment block */
+div.aliblock {
+  margin: 1em 0;
+}
+
+/* alignment row */
+div.alirow {}
+
+/* row header */
+span.nse {
+  width: 16em;
+  float: left;
+}
