@@ -15,13 +15,14 @@
 # where "requirements" and "sharedRequirements" are the hashes that are built
 # up in the various templates that construct a page.
 # 
-# $Id: load_requirements.tt,v 1.1 2008-06-02 14:30:28 jt6 Exp $
+# $Id: load_requirements.tt,v 1.2 2009-06-09 12:35:11 jt6 Exp $
 
 # somewhere to aggregate the lists of requirements from all templates
 cssIncludes = [];
 cssIeIncludes = [];
 cssIeAllIncludes = [];
 jsIncludes  = [];
+jsIeIncludes = [];
 
 # merge the requirements
 USE String;
@@ -48,6 +49,10 @@ FOREACH location IN allRequirements.keys;
         FOREACH js IN reqs.js;
           jsIncludes.push( "<script type='text/javascript' src='$uri/javascripts/$js'></script>" );
         END;
+      CASE "jsIe";
+        FOREACH js IN reqs.jsIe;
+          jsIeIncludes.push( "<script type='text/javascript' src='$uri/javascripts/$js'></script>" );
+        END;
     END; # of SWITCH
   END; # of "FOREACH filetype"
 END; # of "FOREACH location"
@@ -61,6 +66,13 @@ END; # of "FOREACH location"
 FOREACH script IN jsIncludes.unique %]
 [% script;
 END %]
+
+<!-- javascripts applicable to IE -->
+<!--[if IE]>
+[%- FOREACH script IN jsIeIncludes %]
+[% script;
+END %]
+<![endif]-->
 
 <!-- styles applicable to all browsers -->
 [%- FOREACH stylesheet IN cssIncludes.unique %]
