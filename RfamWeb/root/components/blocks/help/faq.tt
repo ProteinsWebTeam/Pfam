@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
+# $Id: faq.tt,v 1.4 2009-06-09 15:10:30 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -414,7 +414,7 @@ why is the model truncated from published blah
       We do not currently provide public access to edit our alignments. 
       This is advantageous in that it maintains our standard of alignments 
       and structures, but, if you feel our seed alignment/structure 
-      annotations can and should be improved, please either 
+      annotations can and should be improved, please  
       <span class="link" onclick="switchTab('helpContactUsBlock');">
         contact us</span>, preferably supplying us with a new alignment, in 
       Stockholm format, and we will do our best to incorporate the improvements.
