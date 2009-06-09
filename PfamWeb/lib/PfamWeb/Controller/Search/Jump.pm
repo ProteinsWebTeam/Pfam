@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.16 2009-04-20 13:10:21 rdf Exp $
+# $Id: Jump.pm,v 1.17 2009-06-09 15:20:48 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.16 2009-04-20 13:10:21 rdf Exp $
+$Id: Jump.pm,v 1.17 2009-06-09 15:20:48 jt6 Exp $
 
 =cut
 
@@ -56,14 +56,14 @@ sub guess : Private {
   my %action_types= ( family    => 'guess_family',
                       protein   => 'guess_sequence',
                       clan      => 'guess_clan',
-                      structure => 'guess_structure',
-                      proteome  => 'guess_proteome' );
+                      structure => 'guess_structure', );
+#                      proteome  => 'guess_proteome' );
 
   my @available_actions = qw( guess_family
                               guess_clan
                               guess_structure
-                              guess_proteome
                               guess_sequence );
+#                              guess_proteome
 
   my $guess_actions;
   if( $entry_type and $action_types{$entry_type} ) {
@@ -163,9 +163,10 @@ sub guess_sequence : Private {
   
   # see if it's a secondary accession; a bit gnarly...
   return 'protein' if $c->model('PfamDB::SecondaryPfamseqAcc')
-                        ->find( { secondary_acc => $1 },
-                                { join =>     [ qw( pfamseq ) ],
-                                  prefetch => [ qw( pfamseq ) ] } );
+                        ->search( { secondary_acc => $1 },
+                                  { join =>     [ qw( auto_pfamseq ) ],
+                                    prefetch => [ qw( auto_pfamseq ) ] } )
+                        ->first;
   
   # an NCBI GI number ?
   if( $entry =~ m/^(gi)?(\d+)$/ ) {
@@ -184,8 +185,8 @@ sub guess_sequence : Private {
   # were being helpful and using "like", so it's the very last thing that
   # will be attempted and we're doing only an exact lookup
   @rs = $c->model('PfamDB::NcbiSeq')
-             ->search( { secondary_acc => $entry } );
-#             ->search( { secondary_acc => { 'like', "$entry%" } } );
+          ->search( { secondary_acc => $entry } );
+#         ->search( { secondary_acc => { 'like', "$entry%" } } );
   return 'ncbiseq' if scalar @rs;
 
 }
@@ -249,7 +250,7 @@ sub guess_proteome : Private {
   $c->log->debug( 'Search::Jump::guess_proteome: looking for a proteome...' )
     if $c->debug;
 
-  my @rs = $c->model( 'PfamDB::GenomeSpecies' )
+  my @rs = $c->model( 'PfamDB::ProteomeSpecies' )
              ->search( [ { species   => $entry },
                          { ncbi_code => $entry } ] );
   
