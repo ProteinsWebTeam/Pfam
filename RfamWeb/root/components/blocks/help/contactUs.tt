@@ -4,7 +4,7 @@
 # 
 # build the contactUS block for the help pages
 #
-# $Id: contactUs.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
+# $Id: contactUs.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
 %]
 
 <!-- start ContactUs block -->
@@ -15,16 +15,36 @@
   </div>
   <div class="blockContent">
 
-    <h3>Contact Rfam</h3>
+    <h2>Contact Rfam</h2>
     <p>
       You can find the email address for the 
-      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#112;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">Rfam helpdesk</a>
+      <a href="&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#114;&#102;&#97;&#109;&#45;&#104;&#101;&#108;&#112;&#64;&#115;&#97;&#110;&#103;&#101;&#114;&#46;&#97;&#99;&#46;&#117;&#107;">Rfam helpdesk</a>
       at the bottom of every page. We use a request tracking system to monitor 
       emails to Rfam, so you should receive an automated response to your
       email, letting you know that the system has logged your mail and notified
       us of its arrival. 
     </p>
-    <h3>Mailing list</h3>
+    
+    <h2>Xfam blog</h2>
+
+    <p>
+      The Rfam group contributes to the <a class="ext" 
+        href="http://xfam.wordpress.com/">Xfam blog</a>. The blog is 
+      used to announce releases, new features and important changes to 
+      Rfam, as well as for posts discussing general issues surrounding the 
+      Rfam resource. You can see blog posts that are specific to Rfam 
+      <a class="ext" href="http://xfam.wordpress.com/tag/rfam/">here</a>.
+    </p>
+
+    <h2>RSS feeds</h2>
+
+    <p>
+      You can keep in touch with the latest goings by subscribing to the 
+      <a class="feed" href="http://xfam.wordpress.com/tag/rfam/feed/">
+        RSS feed</a> from the Xfam blog.
+    </p> 
+ 
+    <h2>Mailing list</h2>
 
     <p>
       The Rfam mailing list is a low traffic list that has important
@@ -39,15 +59,6 @@
       <a href="mailto:rfamlist-unsubscribe@sanger.ac.uk">rfamlist-unsubscribe@sanger.ac.uk</a>.
     </p>
 
- 
-    <h3>Rfam blog</h3>
-
-    <p>
-      	Alternatively you can find out about the latest goings in Rfam
-	via the Rfam <a href="http://xfam.wordpress.com/tag/rfam">blog</a>. You can
-	also subscribe to this blog in order to receive an RSS feed.
-    </p>
-            
   </div>
 </div>
 [%#

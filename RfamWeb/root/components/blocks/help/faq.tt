@@ -4,48 +4,67 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
+# $Id: faq.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
 %]
 
 <!-- start faq block -->
 
 <div class="block" id="helpFAQBlock">
   <div class="handle">
-    <h1><a name="faqTop">Frequently Asked Questions</a></h1>
+    <h1>Frequently Asked Questions and Glossary</h1>
   </div>
-  <div class="blockContent">
-	<ul>
-    <h3>Documentation</h3>
-	  <li><a href="#seedandfull">What are "seed" and "full" alignments?</a></li>
-	  <li><a href="#scores">What do the scores for hits to Rfam models mean?</a></li>
-    <li><a href="#secondarystructure">Where does your secondary structure annotation come from?</a></li>
-	  <li><a href="#familydefine">How do you define an RNA family</a></li>
-    <li><a href="#validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></li>
-    	  <li><a href="#myseqmissing">Why is my favourite sequence not in the family?</a></li>
-    <li><a href="#cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></li>
-    
-    <h3>Searching</h3>
-	  <li><a href="#familyinfo">How can I find information about a particular RNA family?</a></li>
-	  <li><a href="#searchdnaseq">How can I search my DNA sequence for non-coding RNA genes?</a></li>
-	  <li><a href="#genomeannotation">How can I annotate a genome with Rfam?</a></li>
 
-    <h3>Downloading</h3>
-	  <li><a href="#downloadalign">How can I download your alignments?</a></li>
-    <li><a href="#downloadfasta">How can I download a subset of sequences from a family?</a></li>
-    <li><a href="#downloadfastaspecies">How can I download all sequences from my favourite species?</a></li>
- 
-    <h3>Other</h3>    
-    <li><a href="#submitfamily">I would like to submit a new family to Rfam</a></li>
-	  <li><a href="#editseed">How can I edit a SEED alignment?</a></li>
+  <div class="blockContent">
+    
+    <p>
+      This is a compilation of a few of the most 
+      <a href="#faqTop">frequently asked questions</a> from
+      our users, along with a <a href="#glossaryTop">glossary</a> of some of 
+      the most important terms related to Rfam.
+    </p>
+    
+    <hr />
+
+    <h2><a name="faqTop">Frequently asked questions</a></h2>
+
+    <h3 class="listTitle">Documentation</h3>
+    <ul>
+      <li><a href="#seedandfull">What are "seed" and "full" alignments?</a></li>
+      <li><a href="#scores">What do the scores for hits to Rfam models mean?</a></li>
+      <li><a href="#secondarystructure">Where does your secondary structure annotation come from?</a></li>
+      <li><a href="#familydefine">How do you define an RNA family</a></li>
+      <li><a href="#validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></li>
+      <li><a href="#myseqmissing">Why is my favourite sequence not in the family?</a></li>
+      <li><a href="#cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></li>
+    </ul>
+    
+    <h3 class="listTitle">Searching</h3>
+    <ul>
+      <li><a href="#familyinfo">How can I find information about a particular RNA family?</a></li>
+      <li><a href="#searchdnaseq">How can I search my DNA sequence for non-coding RNA genes?</a></li>
+    </ul>
+    
+    <h3 class="listTitle">Downloading</h3>
+    <ul>
+      <li><a href="#downloadalign">How can I download your alignments?</a></li>
+      <li><a href="#downloadfasta">How can I download a subset of sequences from a family?</a></li>
+      <li><a href="#downloadfastaspecies">How can I download all sequences from my favourite species?</a></li>
+    </ul>
+     
+    <h3 class="listTitle">Other</h3>
+    <ul>    
+      <li><a href="#submitfamily">I would like to submit a new family to Rfam</a></li>
+      <li><a href="#editseed">How can I edit a seed alignment?</a></li>
+    </ul>
 
 <!--not done yet :-) 
      
   why do the annotations from the genomes and the taxonomy search not match up?  
 
-	  <li><a href="#seednotinfull">Why is my favourite SEED sequence is missing from the FULL alignment</a></li>
-	  <li><a href="#"></a></li>
-	  <li><a href="#consline"></a>What do the funny symbols in the SS_cons line mean?</li>
-	  <li><a href="#localRfam"></a>Can I download Rfam and search my sequence database locally?</li>
+    <li><a href="#seednotinfull">Why is my favourite SEED sequence is missing from the FULL alignment</a></li>
+    <li><a href="#"></a></li>
+    <li><a href="#consline"></a>What do the funny symbols in the SS_cons line mean?</li>
+    <li><a href="#localRfam"></a>Can I download Rfam and search my sequence database locally?</li>
 
 rfamscan and infernal versions
 
@@ -71,329 +90,489 @@ what are the rfam 'types'//controlled vocabulary
 why is the model truncated from published blah
 
 -->
-
  
-	</ul> 
+    <h3><a name="seedandfull">What are "seed" and "full" alignments?</a></h3>
 
-<!--documentation -->
+    <p> 
+      Each family in Rfam has two multiple sequence alignments. The
+      "seed" alignment is a hand-curated alignment of known members of the
+      family. This alignment may not contain all known members of a family,
+      but rather a representative set. We use the <a class="ext"
+        href="http://infernal.janelia.org/">Infernal</a> software to build a
+      covariance model from this alignment. We then use the covariance model
+      to search the rfamseq sequence database for other family members and to
+      automatically align all detected homologues to the model, to generate
+      the "full" alignment.
+    </p>
 
-	<h3><a name="seedandfull">What are "seed" and "full" alignments?</a></h3>
+    <p><a href="#faqTop">back to top</a></p>
 
-	<p> 
-Each family in Rfam has two multiple sequence alignments. The
-"seed" alignment is a hand-curated alignment of known members of the
-family. This alignment may not contain all known members of a family,
-rather a representative set. We use the 
-<a href="http://infernal.janelia.org/">INFERNAL</a> software to build a
-covariance model from this alignment. We then use the covariance model
-to search the Rfamseq sequence database for other family members, and
-automatically align all detected homologues to the model to generate
-the "full" alignment.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
+    <h3><a name="scores">What do the scores for hits to Rfam models mean?</a></h3>
+    
+    <p>
+      When you search a sequence against Rfam and obtain a hit to one
+      of our families, we report the start and end coordinates of the matching
+      region, the orientation of the match, and the bit score. The bit score
+      (also known as the log-odds score ) is generated by the Infernal
+      software when it tries to match your sequence to the model. In very
+      simple terms, it is a measure of how well your sequence matches the
+      model; the higher the bit score, the better your sequences fits the
+      model. 
+    </p>
+    <p class="imageTop">
+      More specifically the bit score is the log<sub>2</sub> of the
+      probability of the query sequence given the model, over the probability
+      of the sequence given the null model:
+    </p>
+    <img class="formula"
+         src="[% c.uri_for( '/static/images/bit_score.png' ) %]"
+         alt="bit score = log2 ( Pcm / Pnull )" />
+    <p class="imageBottom">
+      In theory this means that positive
+      bits scores are significant but, in practice, more conservative cutoffs
+      are used as the size of the database means we can observe hits with low
+      positive bits scores by chance. (See the <a class="ext"
+      href="http://infernal.janelia.org/">Infernal user guide</a> for 
+      more information.)
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
 
-<h3><a name="scores">What do the scores for hits to Rfam models mean?</a></h3>
+    <h3><a name="secondarystructure">Where does your secondary structure 
+      annotation come from?</a></h3>
 
-	<p> When you search a sequence against Rfam and obtain a hit to one
-of our families we report the start and end coordinates of the matching
-region, the orientation of the match and the bit score.  The bits score
-(also known as the log-odds score ) is generated by the Infernal
-software when it tries to match your sequence to the model. In very
-simple terms it is a measure of how well your sequence matches the
-model, the higher the bit score the better your sequences fits the
-model. 
+    <p>
+      Ideally, when we build a seed the initial secondary structure
+      annotation is obtained from the literature. In these cases the
+      secondary structure is usually available only for a few of the member
+      sequences in the seed. Our aim is to generate models that represent
+      conserved secondary structure, so when we begin to expand the
+      membership of the seed to be as representative as possible, we will
+      only retain the secondary structure annotation that is conserved
+      between the majority of sequences. You should also note that the
+      annotations obtained from the literature may be experimentally
+      validated or they may be RNA folding predictions (commonly <a class="ext"
+        href="http://mfold.bioinfo.rpi.edu/">MFOLD</a>). We do not 
+      discriminate between the two and you will need to refer to the 
+      original publications to clarify. 
+    </p> 
+    <p>
+      In those cases where no secondary structure prediction is available in
+      the literature, but where we have good set of seed sequences, we 
+      frequently use a local installation of the <a class="ext"
+      href="http://genome.ku.dk/resources/war">WAR software</a> which allows
+      us to cherry pick the best alignment and secondary structure
+      prediction from multiple tools. Historically, the folding prediction 
+      tools used has varied and the method used will be indicated.
+    </p>   
+    <p>
+      You can find the alignment and structure source for each family in the
+      curation tab, or in the SE and SS lines in the Stockholm
+      file. Where the source is obtained from the literature, we will provide
+      the PubMed identifier (PMID). You should also note that the seed
+      alignments often get updated between releases and may be manually
+      adjusted by the curator. As a result, attempts to obtain the same
+      structure using the same prediction method, may not return exactly the
+      same structure as shown on the Rfam SEED alignment. We usually
+      indicate where the a structure has been manually edited.
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
 
-More specifically the bit score is the (log(2)) of the
-probability of the query sequence given the model over the probability
-of random sequence given the model. In theory this means that positive
-bits scores are significant, but in practice more conservative cutoffs
-are used as the size of the database means we can observe hits with low
-positive bits scores by chance.  <see page on bit scores>
+    <h3><a name="familydefine">What is your definition of an RNA family?</a></h3>
 
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
+    <p>
+      We will group sequences into a "family" where we can identify sequence
+      or secondary structure conservation using our covariation models. This
+      is decided when we build our seed alignment and search the CM against
+      rfamseq. From the resulting searches we decide where the cutoff
+      threshold should be. 
+    </p>
+    <p>
+      When we set this cut off threshold, we are essentially deciding that 
+      any sequences that score above the threshold are true, homologous members 
+      of the family, whilst those below are "chance hits". This discrimination 
+      between true and false is usually very clear if we have a representative 
+      seed alignment. 
+    </p>
+    <p>
+      Occasionally, for various biological reasons, it can be extremely 
+      difficult to get good resolution between true and false predictions. 
+      In such case we make an informed decision on where the cutoff should be.
+      As a result, some families may contain false positives (often 
+      pseudogenes) or may also lose some true positives below the threshold. 
+      In such cases we will have made the best choice we can in order to limit 
+      the false positive and loss of true positives. If you have queries about 
+      the membership of any of our families, please do 
+      <span class="link" onclick="switchTab('helpContactUsBlock');">
+        contact us</span> and we will try to clarify or resolve the problem.
+    </p> 
+    <p><a href="#faqTop">back to top</a></p>
 
-<h3><a name="secondarystructure">Where does your secondary structure annotation come from?</a></h3>
+    <h3><a name="validatedseqs">How can I tell which are predicted and which 
+      are experimentally confirmed sequences?</a></h3>
 
-	<p>
-Ideally when we build a SEED the initial secondary structure
-annotation is obtained from the literature. In these cases the
-secondary structure is usually only available for a few of the member
-sequences in the SEED.  Our aim is to generate models that represent
-conserved secondary structure, so when we begin to expand the
-membership of the seed to be as representative as possible, we will
-only retain the secondary structure annotation that is conserved
-between the majority of sequences. You should also note that the
-annotations obtained from the literature may be experimentally
-validated or they may be RNA folding predictions (commonly
-<a href="http://mfold.bioinfo.rpi.edu/">MFOLD</a>). Unfortunately, 
-we do not discriminate between the two and you
-will need to refer to the original publications to clarify. 
- </p> 
-<p>
-In the cases where no secondary structure prediction is available in
-the literature but we have good set of seed sequences we frequently use a
-local installation of the <a
-href="http://genome.ku.dk/resources/war">WAR software</a> which allows
-us to cherry pick the best alignment and secondary structure
-prediction from multiple tools. Historically the folding prediction 
-tools used has varied and the method used will be indicated.
-</p> 
+    <p>
+      Unfortunately, it is not currently possible to do this, since
+      we do not add a source tag to each individual sequence in either our
+      seed or full alignments. All of our families (seed alignments) are
+      based on one or more experimentally validated exemplars of the
+      family, but the majority of the other member sequences are added by
+      homology search and manual curation. We have high confidence in these
+      members of the seed alignment that we use to build the covariance model 
+      and computationally predict other possible members in the nucleotide 
+      database. 
+    </p>
+    <p>
+      You can study the descriptions of sequences extracted from the EMBL 
+      nucleotide database, occasionally this contains useful information 
+      about function.
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
 
-<p>
-You can find the alignment and structure source for each family in the
-curation tab for each family or the SE and SS lines from the Stockholm
-file. Where the source is obtained from the literature we will provide
-the PubMed identifier (PMID). You should also note that the seed
-alignments often get updated between releases and may be manually
-adjusted by the curator. As a result if you try to obtain the same
-structure using the same prediction method may not return exactly the
-same structure as shown on the Rfam SEED alignment. We do usually
-comment where the a structure has been manually edited.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
+    <h3><a name="myseqmissing">Why is my favourite sequence not in the 
+      family?</a></h3>
 
-<h3><a name="familydefine">What is your definition of an RNA family?</a></h3>
+    <p>
+      The most likely reason is that it is not in the EMBL release that rfamseq 
+      is based on. With each major release, e.g. 8.0, 9.0, we update the
+      underlying nucleotide database. You can check which version we are 
+      currently using <a class="ext" 
+        href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/README">
+          here</a>. If, however, your sequence <em>is</em> in the relevant EMBL 
+      release but is still absent from a relevant family, it is possible that 
+      our model may need to be improved. Please <span class="link" 
+      onclick="switchTab('helpContactUsBlock');">contact us</span> with the 
+      relevant information and we will decide whether the sequence should 
+      indeed be included and, if so, we will try to improve our model. 
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
 
-	<p>
-We will group sequences into a 'family' where we can identify sequence
-or secondary structure conservation using our covariation models. This
-is decided when we build our seed alignment and search the CM against
-Rfamseq and from the resulting searches, we decide where the cutoff
-threshold should be. When we set this cut off threshold we are
-deciding that any sequences which scores above the threshold are true
-homologous members of the family and those below are 'chance' hits. This
-discrimination between true and false is usually very clear if we have
-a representative seed alignment. Occasionally, for various biological
-reasons, it is extremely difficult to get good resolution between true
-and false predictions. In such case we make an informed decision on
-where the cutoff should be.  As a result some families may contain false
-positives (often pseudogenes) amongst true positives or may also lose
-some true positives below the threshold. In such cases we will have
-made the best choice we can to limit the false positive and loss of
-true positives. However, if you have queries about the membership of
-any of our families please do contact us and we will try to clarify or
-resolve the problem.
+    <h3><a name="cminfo">Where can I find out more about RNA sequence 
+      analysis/covariance models/SCFGs?</a></h3>
+    
+    <p>
+      The <a class="ext" href="http://infernal.janelia.org/">Infernal</a> 
+      software package, which is an essential companion to the Rfam database,
+      now has extensive documentation, along with some description of how 
+      covariance models work for RNA sequence analysis. Background and theory 
+      can also be found in the excellent book <a class="ext" 
+        href="http://en.wikipedia.org/wiki/Special:BookSources/0521629713">
+        Biological Sequence Analysis</a> by Richard Durbin, Sean Eddy, 
+      Anders Krogh, and Graeme Mitchison (Cambridge University Press, 1998). 
+      For more references see the 
+      <span onclick="switchTab('helpReferencesBlock');" class="link">
+        Citing Rfam</span> tab.
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
+
+    <!--searching-->
+
+    <h3><a name="familyinfo">How can I find information about a particular 
+      RNA family?</a></h3>
+
+    <p>
+      You can do this in several ways. If you already know the Rfam
+      accession or name of the family, you can use the "jump to" boxes on
+      the home page or any tabbed page in the website. Alternatively, if 
+      you're not sure of the family accession or correct name and want to 
+      try a broad-ranging search, you should use the "keyword" search box 
+      in the header of each page. This search allows the use of ambiguous 
+      terms and will search multiple sections of the database for a match to 
+      your query term. The results page will give you a list of all the 
+      families with matches and you can follow the links to the summary page 
+      for each family.
+    </p>
+    <p>
+      If you're not even sure of your query term and simply want to
+      browse our families, click on the "browse" link in the header of
+      every page. This takes you to an index that lists all Rfam families 
+      according to accession and ID and links directly to the summary page
+      for each family.
+    </p>
+    
+    <p><a href="#faqTop">back to top</a></p>
+
+    <h3><a name="searchdnaseq">How can I search my DNA sequence for non-coding 
+      RNA genes?</a></h3>
+
+    <p> 
+      Both our <a href="http://rfam.sanger.ac.uk/search">single sequence</a> 
+      and <a href="http://rfam.sanger.ac.uk/search?tab=searchBatchBlock">
+        batch</a> searches allow you to search a nucleotide sequences against 
+      the Rfam model library. Any hits to Rfam families will be returned with 
+      start and end coordinates, orientation and a score for each hit.
+    </p>
+    <p> 
+      For short single sequences, our <a href="http://rfam.sanger.ac.uk/search">
+        single sequence</a> search tool will return Rfam matches to your sequence
+      interactively. However,  if your sequence is longer than 2Kbp, we suggest 
+      that you fragment it into smaller, overlapping segments and use the 
+      <a href="http://rfam.sanger.ac.uk/search">batch search</a>
+      facility. You might find <a class="ext"
+        href="http://emboss.bioinformatics.nl/cgi-bin/emboss/splitter">
+        this tool</a> useful for splitting large sequences into fragments.
+    </p>
+    <p>
+      Finally, if you have a very large number of sequences to search, you may
+      find it most convenient to download and
+      <span class="link" onclick="switchTab('helpGenomeAnnotBlock');">
+        run Rfam locally</span>.  
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
+
+    <!--downloading-->
+
+    <h3><a name="downloadalign">How can I view or download a family 
+      alignment?</a></h3>
+    
+    <p>
+      From the family summary page, go to the "Alignments" tab on the left
+      side panel. The alignments tab will give you multiple drop down
+      options on how to either view or download the sequences for this
+      family, in an aligned or fasta format. The formatting options allow you
+      to select which type of format you would prefer.
+    </p>
+    <p>
+      If the alignment is very large the formatting tool may not be
+      suitable and you may prefer to use the preformatted alignment in 
+      Stockholm format. A number of Stockholm alignment re-formatters and 
+      viewers exist, such as the sreformat program from the <a class="ext"
+        href="http://hmmer.janelia.org">HMMer package</a> and the <a class="ext"
+        href="http://personalpages.manchester.ac.uk/staff/sam.griffiths-jones/software/ralee/">
+        RALEE</a> major mode for Emacs. You can read more about Stockholm 
+      format on <a class="ext"
+      href="http://en.wikipedia.org/wiki/Stockholm_format">Wikipedia</a>.
+    </p>    
+    <p>
+      If you are interested retrieving alignments for multiple families, you 
+      can download all our seed and full alignments in Stockholm format 
+      flat-files from our <a class="ext"
+      href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
+
+    <h3><a name="downloadfasta">How can I download a subset of sequences from 
+      a family?</a></h3>
+    
+    <p>
+      Unfortunately, this has not been implemented yet. There are plans in 
+      place to modify the underlying Rfam database to allow this. 
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
+
+    <h3><a name="downloadfastaspecies">How can I download all Rfam sequences 
+      for my favourite species?</a></h3>
+    
+    <p>
+      Unfortunately, this has not been implemented yet. This type of query 
+      can potentially return huge amounts of data, enough to scare our 
+      our database administrators. There are plans in place to implement a 
+      <a class="ext" href="http://www.biomart.org/">Biomart</a> interface 
+      that will allow these queries. Meanwhile, if you 
+      <span class="link" onclick="switchTab('helpContactUsBlock');">
+        contact us</span> and 
+      <a href="mailto:rfam-help@sanger.ac.uk">ask us</a> very nicely, 
+      and we have have time, then one of our engineers may be able to help.     
+    </p>
+    <p>
+      The "Taxonomy" tab on the search page will allow you to
+      perform taxonomic queries. In fact, this function also allows you to
+      search with queries from internal nodes of the NCBI taxonomic
+      tree. However, the results are only returned on the family level, not
+      the sequence level.
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
+
+    <!--other-->
+
+    <h3><a name="submitfamily">I would like to submit a family</a></h3>
+    
+    <p>
+      Great! We are very keen for the community to help keep us updated on
+      new families. Ideally, a new family for Rfam should contain elements
+      (RNA sequences) that have some known functional classification, are
+      evolutionarily conserved and have evidence for a secondary structure.
+      The families should not solely be based on prediction only, e.g. RNAz,
+      EvoFold, or QRNA predictions, nor solely on transcriptomic data, e.g.
+      tiling array or deep sequencing. For more detailed information on
+      how to submit a family, please read the rest of the Rfam documentation
+      but, if you have any queries, please do 
+      <span class="link" onclick="switchTab('helpContactUsBlock');">
+        contact us</span>.
+    </p>
+    <p>
+      If your family is sufficiently interesting, or if you have several of 
+      them, you may be interested in publishing your family in the RNA families 
+      track that is now available through <a class="ext"
+        href="http://www.landesbioscience.com/journals/rnabiology/">
+        RNA Biology</a>.    
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
+
+    <h3><a name="editseed">How can I edit a SEED alignment?</a></h3>
+    
+    <p>
+      We do not currently provide public access to edit our alignments. 
+      This is advantageous in that it maintains our standard of alignments 
+      and structures, but, if you feel our seed alignment/structure 
+      annotations can and should be improved, please either 
+      <span class="link" onclick="switchTab('helpContactUsBlock');">
+        contact us</span>, preferably supplying us with a new alignment, in 
+      Stockholm format, and we will do our best to incorporate the improvements.
+    </p>
+    <p><a href="#faqTop">back to top</a></p>
+
+    <hr />
+
+    <h2><a name="glossaryTop">Glossary</a></h2>
+
+    <p>
+      These are some of the commonly used terms in the Rfam website.      
+    </p>
+
+    <h3>ClustalW</h3>
+    
+    <p>
+      A general purpose multiple sequence alignment program for DNA(RNA)
+      which we use while building our SEED alignments. See the <a
+        class="ext" href="http://www.clustal.org/">Clustal web server</a>.
+    </p>
+    
+    <h3>Covariance model (CM)</h3>
+    
+    <p>
+      A secondary structure profile for a RNA structural alignment (also
+      called profile stochastic context-free grammars).
+    </p>
+    
+    <h3>Family</h3>
+    
+    <p>
+      A group of RNA sequences which we believe are evolutionarily related in
+      sequence or secondary structure.
+    </p>
+    
+    <h3>Full alignment</h3>
+    
+    <p>
+      An alignment of the set of related sequences which score higher than
+      the manually set threshold values for the CMs of a particular Rfam
+      family.
+    </p>
+    
+    <h3>Gathering cut off (GA)</h3>
+    
+    <p>
+      The bit score gathering threshold, set by our curators when building
+      the family. All sequences that score at or above this threshold will
+      be included in the full alignment.
+    </p>
+    
+    <h3>Infernal</h3>
+    
+    <p>
+      <a class="ext" href="http://infernal.janelia.org/">Infernal</a> is the 
+      core software that enables us to make consensus RNA secondary structure 
+      profiles (covariance models (CMs)) for our families. We also use Infernal
+      for searching sequence databases for homologous RNAs. See the
+      <a class="ext" href="http://infernal.janelia.org/">Infernal</a> website.
+    </p> 
+    
+    <h3>MFOLD</h3>
+    
+    <p>
+      RNA structure prediction algorithm which utilises minimum free energy
+      information. See the <a class="ext"
+        href="http://frontend.bioinfo.rpi.edu/applications/hybrid/quikfold.php">
+        MFOLD</a> website.
+    </p>
+    
+    <h3>Pfold</h3>
+
+    <p>    
+      RNA folding software which folds alignments using a Stochastic
+      Context-Free Grammars (SCFG) trained on rRNA alignments. It takes an
+      alignment of RNA sequences as input and predicts a common structure
+      for all sequences. See the <a class="ext"
+      href="http://www.daimi.au.dk/~compbio/rnafold/">Pfold</a> website.
+    </p>
+    
+    <h3>rfamseq</h3>
+    
+    <p>
+      The underlying nucleotide sequence database on which Rfam is based. It
+      is derived from the <a class="ext" href="http://www.ebi.ac.uk/embl/">
+        EMBL nucleotide database</a>.
+    </p>
+    
+    <h3>RNAalifold</h3>
+    
+    <p>
+      Folds pre-computed alignments using a combination of free-energy and
+      covariation measures. Part of the <a class="ext"
+        href="http://www.tbi.univie.ac.at/~ivo/RNA/">Vienna package</a>.
+    </p>
+    
+    <h3>Seed alignment</h3>
+    
+    <p>
+      A manually curated sample of representative sequences for a
+      family. These sequences are aligned and annotated with a consensus
+      secondary structure. This alignment is used to build the covariance
+      model for the family.
+    </p>
+    
+    <h3>Sequence region</h3>
  
-<see blah for detailed description of bit scores and cut off thresholds.>
-	
-</p>
-	<p><a href="#faqTop">back to top</a></p>
+    <p>
+      A single segment of nucleotide sequence in our alignments. Multiple
+      sequence regions from a single EMBL sequence may be in the same
+      family.
+    </p>
+    
+    <h3>Type</h3>
+    
+    <p>
+      A simple functional classification we use for our families. This is
+      our own ontology and does not current directly relate to the
+      ontologies used by other databases. For a full list of our current
+      ontologies see the help section on <span class="link"
+      onclick="switchTab('helpgetStartedBlock');">searching by family
+      type</span>.
+    </p>
+    
+    <h3>Stockholm format</h3>
 
+    <p>
+      A multiple sequence alignment format used by Rfam (and Pfam) for the
+      dissemination of protein and RNA sequence alignments. For more information
+      see the <a class="ext"
+        href="http://en.wikipedia.org/wiki/Stockholm_format">
+        Wikipedia article</a> on Stockholm format.
+    </p>
+        
+    <h3>WAR</h3>
+    
+    <p>
+      A software tool that enables us to simultaneously run several
+      different methods for performing multiple alignment and secondary
+      structure prediction for non-coding RNA sequences. See the <a class="ext"
+        href="http://genome.ku.dk/resources/war">WAR</a> website.
+    </p>
+  
+    <p><a href="#glossaryTop">back to top of glossary</a></p>
 
-<h3><a name="validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></h3>
+    <p><a href="#faqTop">back to top of page</a></p>
 
-	<p> Unfortunately, it is not currently possible to do this as
-we do not add a source tag to each individual sequence in either our
-SEED or FULL alignments. All of our families (SEED alignments) are
-based upon one or more experimentally validated exemplars of the
-family but the majority of the other member sequences are added by
-homology search and manual curation. We have high confidence in these
-members of the SEED alignment which we then use to build the
-covariance model and computationally predict other possible members in
-the nucleotide database. You can study the descriptions of sequences
-extracted from the EMBL nucleotide database, occasionally this contains
-useful information about function.
-
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-<h3><a name="myseqmissing">Why is my favourite sequence not in the family?</a></h3>
-
-	<p>
-
-The most likely reason your sequence in not in our family is that it
-is not in the EMBL release that Rfamseq is based on. The underlying
-nucleotide database that we base Rfam on is updated with each major
-release (eg. 8.0, 9.0). You can check which version we are currently
-using <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT/README">here.</a> 
-If however your sequence is in the relevant
-EMBL release but absent from a relevant family, it is possible that our model may need to be
-improved. Please do contact us with the relevant information and we
-will assess if we agree and we will try to improve our model. 
-
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-
-<h3><a name="cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></h3>
-
-	<p>The <a href="http://infernal.janelia.org/">INFERNAL</a> software package 
-(which is an essential companion to the Rfam database) now has extensive documentation, along with some
-description of how covariance models work for RNA sequence
-analysis. Background and theory can also be found in the excellent
-book <a href="http://en.wikipedia.org/wiki/Special:BookSources/0521629713">Biological Sequence Analysis</a> 
-by Richard Durbin, Sean Eddy, Anders Krogh, and Graeme Mitchison (Cambridge University Press, 1998). 
-For more references see the <span onclick="switchTab('helpReferencesBlock');" class="link">
-Citing Rfam</span> tab.
-
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-<!--searching-->
-
-	<h3><a name="familyinfo">How can I find information about a particular RNA family?</a></h3>
-
-	<p>
-You can do this in several ways. If you already know the Rfam
-accession or name of the family you can use the "jump to" boxes on
-home page or most pages of the website. Alternatively if your not sure
-of the family accession or correct name and want to guess you should
-use the "keyword" search box in the header of each page. This search
-allows the use of ambiguous terms and will search multiple sections of
-the database for a match to your query term. The results page 
-will give you a list of all the families with matches and you can
-follow the links to the summary page for each family.
-</p>
-<p>
-Alternatively if your not sure of your query term and simply want to
-browse our families click on the browse link provided in the header of
-every page. This takes you to an index where you can browse the
-families. This index sorts the families on their IDs such as
-'Rnase_mrp' or '7SK'. You can browse the indexed lists and use either
-the ID or accession links to go directly to the family summary page.  
-  </p>
-	
-	<p><a href="#faqTop">back to top</a></p>
-
-	<h3><a name="searchdnaseq">How can I search my DNA sequence for non-coding RNA genes?</a></h3>
-
-	<p> 
-Both our single and batch <a
-href="http://rfam.sanger.ac.uk/search">sequence searches</a> allow you
-to search a nucleotide sequence against the Rfam model library. Any
-hits to Rfam families will be returned with start and end coordinates,
-orientation and a score for each hit. We suggest you fragment sequences 
-into smaller overlapping segments if your sequence is longer than 2 Kbp
-and use the 
-<a href="http://rfam.sanger.ac.uk/search">batch search</a>
- facility. You might find
-this tool for <a href="http://emboss.bioinformatics.nl/cgi-bin/emboss/splitter">splitting
-large sequences</a> into fragments useful. Alternatively you can
-download and run Rfam locally.
-
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-
-	<h3><a name="genomeannotation">How can I annotate a genome with Rfam?</a></h3>
-
-	<p> 
-Awkwardly! 
-You can use the 
-
-Precomputed genomes:
-Us!
-Genome Reviews.
-Ensembl.
-
-http://www.sanger.ac.uk/Software/Rfam/help/genome_annotation.shtml
-
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-
-<!--downloading-->
-
-
-<h3><a name="downloadalign">How can I view or download a family alignment?</a></h3>
-
-	<p>
-From the family summary page, go to the 'Alignments' tab on the left
-side panel. The alignment page will give you multiple drop down
-options on how to either view or download the sequences for this
-family in an aligned or fasta format. The formatting options allow you
-to select which type of format you would prefer for the alignment or
-the fasta output.
-<p>
-
-If the alignment is <i>very</i> large the formatting tool may not be
-suitable and we provide the preformatted alignment in Stockholm
-format.  A number of Stockholm alignment re-formatters and viewers
-exist; Including the sreformat program from the <a
-href="http://hmmer.janelia.org">HMMer package</a> and the 
-<a href="http://personalpages.manchester.ac.uk/staff/sam.griffiths-jones/software/ralee/">RALEE</a> 
-major mode for Emacs.
-You can read more about Stockholm format on <a
-href="http://en.wikipedia.org/wiki/Stockholm_format">Wikipedia</a></p>
-</p>
-
-<p>
-If you are interested downloading alignments for
-multiple families you can download all our seed and full alignments in
-Stockholm format flatfiles from our <a
-href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
-</p>
-
-	<p><a href="#faqTop">back to top</a></p>
-
-<h3><a name="#downloadfasta">How can I download a subset of sequences from a family?</a></h3>
-
-	<p>
-Unfortunately, this has not been implemented yet. There are plans in place to adjust the 
-underlying Rfam database to allow this. 
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-<h3><a name="#downloadfastaspecies">How can I download all Rfam sequences for my favourite species?</a></h3>
-
-	<p>
-Unfortunately, this has not been implemented yet. These sorts of queries can potentially 
-return huge amounts of data, enough to scare our database people about bringing down
-servers. There are plans in place to implement a Biomart interface that will allow these
-queries. Meanwhile, if you <a href="mailto:rfam-help@sanger.ac.uk">ask us</a> very nicely 
-and we have have time then one of our engineers may be able to help. 
-
-The Taxonomy tab on the search page will allow you to
-perform taxonomic queries. In fact this function also allows you to
-search with queries from internal nodes of the NCBI taxonomic
-tree. However, the results are only returned on the family level, not
-the sequence level.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-<!--other-->
-
-<h3><a name="submitfamily">I would like to submit a family</a></h3>
-
-	<p>
-Great! We are very keen for the community to help keep us updated on
-new families. Ideally a new family for Rfam should contain elements
-(RNA sequences) that have some known functional classification, are
-evolutionarily conserved and have evidence for a secondary structure.
-The families should not solely be based on prediction only (eg. RNAz,
-EvoFold, QRNA predictions) nor solely on transcriptomic data
-(eg. tiling array, deep sequencing). For more detailed information on
-how to submit a family read this documentation however if you have any
-queries please do contact us at <a href="mailto:rfam-help@sanger.ac.uk">Rfam-help@sanger.ac.uk</a>.
-
-If your family is sufficiently interesting or you have several of them then 
-you may be interested in publishing your family in the RNA families track
-now available through 
-<a href="http://www.landesbioscience.com/journals/rnabiology/">RNA Biology.</a>
-
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
-
-<h3><a name="editseed">How can I edit a SEED alignment?</a></h3>
-
-	<p>
-We do not currently provide public access to edit our alignments. 
-This is advantageous in that it maintains our standard of alignments 
-and structures. However, if you feel our seed alignment/structure 
-annotations can and should be improved please do either contact us,
-preferably supplying us with a new alignment in Stockholm format and 
-we will do our best to incorporate the improvements.
-	</p>
-	<p><a href="#faqTop">back to top</a></p>
-
- </div>
+  </div>
 </div>
+
+<!-- end faq block -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), Jennifer Daub (jd7@sanger.ac.uk), Paul Gardner (pg5@sanger.ac.uk)
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

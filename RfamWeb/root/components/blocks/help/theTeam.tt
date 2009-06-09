@@ -4,7 +4,7 @@
 # 
 # build the theTeam block for the help pages
 #
-# $Id: theTeam.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
+# $Id: theTeam.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
 %]
 
 <!-- start theTeam block -->
@@ -15,34 +15,38 @@
   </div>
   <div class="blockContent">
     <p>
-     	The Rfam database is curated and maintained at the Wellcome Trust
-	Sanger Institute, Cambridge, UK. The resource is a collaboration with
-	researchers at Janelia Farm, Ashburn, VA, and the University of
-	Manchester, UK.  The current list of consortium members, their institutes 
-      and primary role is listed below.
+     	The Rfam database is curated and maintained at the <a class="ext" 
+        href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a>. 
+      The resource is a collaboration with researchers at <a class="ext" 
+        href="http://rfam.janelia.org/">Janelia Farm</a>, Maryland, VA, USA,
+      and the <a class="ext" href="http://www.ls.manchester.ac.uk/">
+        University of Manchester</a>, UK. The current list of consortium 
+      members, their institutes and primary role is listed below.
     </p>  
   
     <h3>Wellcome Trust Sanger Institute (UK)</h3>
   
     <ul>
-      <li>Alex Bateman - Co-ordinator of the Pfam, Merops and Rfam databases </li>
+      <li>Alex Bateman - coordinator of the Pfam, Merops and Rfam databases</li>
       <li>Jennifer Daub - Rfam research and development</li>
       <li>Paul Gardner - Rfam Project leader</li>
-      <li>John Tate - Web development</li>
-    </ul>
-    
-    <h3>Manchester University (UK)</h3>
-  
-    <ul>
-      <li>Sam Griffiths-Jones - Founding Rfam developer and continued collaborator</li>
+      <li>John Tate - web development</li>
     </ul>
     
     <h3>Janelia Farm Research Center (USA)</h3>
   
     <ul>
-      <li>Sean Eddy - Co-ordinator of Rfam-USA, founding developer and author of Infernal software</li>
-      <li>Eric Nawrocki - Developer of Infernal software</li>	
-      <li>Diane Kolbe - Developer of Infernal software</li>
+      <li>Sean Eddy - coordinator of Rfam-USA, founding developer and 
+        author of Infernal software</li>
+      <li>Eric Nawrocki - developer of Infernal software</li>  
+      <li>Diana Kolbe - developer of Infernal software</li>
+    </ul>
+    
+    <h3>Manchester University (UK)</h3>
+  
+    <ul>
+      <li>Sam Griffiths-Jones - founding Rfam developer and continued 
+        collaborator</li>
     </ul>
     
     <h3>Mirror Sites</h3>
@@ -53,7 +57,7 @@
   
     <ul>
        <li>Mhairi Marshall</li>
-       <li>Simon Moxon</li>	
+       <li>Simon Moxon</li>  
        <li>Adam Wilkinson</li>
        <li>William Mifsud</li>
        <li>Enrico Marantidis</li>
@@ -62,16 +66,22 @@
     <p>
       Rfam is a collaborative venture and we hope to be able to interact
       with as many people as possible to provide a quality database. Please
-      get into contact with any one of us for information. You can E-mail Rfam
-      using the address found at the bottom of the page.
+      get in touch with us for information. You can 
+      <span class="link" onclick="switchTab('helpContactUsBlock');">
+        contact us</span> in various ways, including the help desk email 
+      address that can be found at the bottom of every page.
     </p>
     
   </div>
 </div>
+
+<!-- end theTeam block -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

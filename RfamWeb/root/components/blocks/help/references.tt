@@ -4,7 +4,7 @@
 # 
 # build the references block for the help pages
 #
-# $Id: references.tt,v 1.2 2009-05-06 11:48:34 jd7 Exp $
+# $Id: references.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
 %]
 
 <!-- start references block -->
@@ -15,28 +15,27 @@
   </div>
   <div class="blockContent">
 
-
-    <h2>Public health announcement</h2>
-
-Rfam makes use of a large amount of available data, especially
-published multiple sequence alignments and secondary structures, and
-repackages these data in a single searchable and sustainable
-resource. We have made every effort to credit individual sources on
-family pages. If you find any of the data presented here useful,
-please also be sure to credit the primary source also.
+    <p>
+      Rfam makes use of a large amount of publicly available data, especially
+      published multiple sequence alignments and secondary structures, and
+      repackages these data in a single searchable and sustainable
+      resource. We have made every effort to credit individual sources on
+      family pages. If you find any of the data presented here useful,
+      please also be sure to credit the primary source also.
+    </p>
 
     <h2>Rfam References</h2>
 
- <div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
-           href="http://nar.oxfordjournals.org/cgi/content/full/gkn766?ijkey=qKsfJKpTARDanrQ&keytype=ref">
+          href="http://nar.oxfordjournals.org/cgi/content/full/gkn766?ijkey=qKsfJKpTARDanrQ&amp;keytype=ref">
           Rfam: updates to the RNA families database</a>: 
       </span>
       <span class="authors">
-           PP Gardner, J Daub, JG Tate, EP Nawrocki, DL Kolbe, S
-	Lindgreen, AC Wilkinson, RD Finn, S Griffiths-Jones, SR Eddy and A
-	Bateman.
+        P.P. Gardner, J. Daub, J.G. Tate, E.P. Nawrocki, D.L. Kolbe, S.
+        Lindgreen, A.C. Wilkinson, R.D. Finn, S. Griffiths-Jones, S.R. Eddy and 
+        A.  Bateman
       </span>
       <span class="ref">
         <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2008)
@@ -44,162 +43,175 @@ please also be sure to credit the primary source also.
       </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext"
-	      href="http://rnajournal.cshlp.org/content/14/12/2462">
-           The RNA WikiProject: community annotation of RNA families</a>: 
+          href="http://rnajournal.cshlp.org/content/14/12/2462">
+          The RNA WikiProject: community annotation of RNA families</a>:
       </span>
       <span class="authors">
-        Daub J, Gardner PP, Tate J, Ramsköld D, Manske M, Scott WG, Weinberg Z, Griffiths-Jones S, Bateman A
+        J. Daub, P.P. Gardner, J. Tate, D. Ramsk&ouml;ld, M. Manske, W.G. 
+        Scott, Z. Weinberg, S. Griffiths-Jones, A. Bateman
       </span>
       <span class="ref">
-        <span class="jrnl">RNA</span>&nbsp;(2008)12:2462-2464
+        <span class="jrnl">RNA</span>&nbsp;(2008)&nbsp;12:2462-2464
       </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
            href="http://nar.oxfordjournals.org/cgi/content/full/33/suppl_1/D121">
            Rfam: annotating non-coding RNAs in complete genomes.</a> 
       </span>
       <span class="authors">
-   	Griffiths-Jones S, Moxon S, Marshall M, Khanna A, Eddy SR, Bateman A
+        S. Griffiths-Jones, S. Moxon, M. Marshall, A. Khanna, S.R. Eddy, 
+        A. Bateman
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2005)
-	&nbsp;Database Issue 33:D121-D124
+        <span class="jrnl">Nucleic Acids Research</span>
+        &nbsp;(2005)&nbsp;Database Issue 33:D121-D124
       </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://nar.oxfordjournals.org/cgi/content/full/31/1/439">
           Rfam: an RNA family database.</a> 
       </span>
       <span class="authors">
-  	 Griffiths-Jones S, Bateman A, Marshall M, Khanna A, Eddy SR
+        S. Griffiths-Jones, A. Bateman, M. Marshall, A. Khanna, S.R. Eddy
       </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Research</span>&nbsp;(2003)
-	&nbsp;31(1):p439-441.
+        <span class="jrnl">Nucleic Acids Research</span>
+        &nbsp;(2003)&nbsp;31(1):p439-441.
       </span>
     </div>
 
-<hr/>
+    <hr/>
 
-<h2>Covariance models and stochastic context-free grammars</h2>
+    <h2>Covariance models and stochastic context-free grammars</h2>
 
-
-
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://selab.janelia.org/publications.html">
           Infernal 1.0: Inference of RNA Alignments.</a> 
       </span>
       <span class="authors">
-     Eric P. Nawrocki, Diana L. Kolbe, Sean R. Eddy
-  	  </span>
+        E.P. Nawrocki, D.L. Kolbe, S.R. Eddy
+      </span>
       <span class="ref">
-        <span class="jrnl" >Bioinformatics</span>&nbsp;(2009)
-        &nbsp;Mar 23. [Epub ahead of print]
+        <span class="jrnl" >Bioinformatics</span>
+        &nbsp;(2009)&nbsp;Mar 23. [Epub ahead of print]
        </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://selab.janelia.org/publications.html">
           Local RNA Structure Alignment With Incomplete Sequence.</a> 
       </span>
       <span class="authors">
-     Diana L. Kolbe, Sean R. Eddy
-  	  </span>
+        D.L. Kolbe, S.R. Eddy
+      </span>
       <span class="ref">
-        <span class="jrnl" >Bioinformatics.</span>&nbsp;(2009)
-       &nbsp;Mar 20. [Epub ahead of print]</span>
+        <span class="jrnl" >Bioinformatics.</span>
+        &nbsp;(2009)&nbsp;Mar 20. [Epub ahead of print]
+      </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://www.ploscompbiol.org/article/info:doi/10.1371/journal.pcbi.0030056">
           Query-dependent banding (QDB) for faster RNA similarity searches.</a> 
       </span>
       <span class="authors">
-     Eric P. Nawrocki, Sean R. Eddy
-  	  </span>
+        E.P. Nawrocki, S.R. Eddy
+      </span>
       <span class="ref">
-        <span class="jrnl" >PLoS Comput Biol</span>&nbsp;(2007)
-       &nbsp;3(3):e56</span>
+        <span class="jrnl" >PLoS Comput Biol</span>
+        &nbsp;(2007)&nbsp;3(3):e56
+      </span>
     </div>
 
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://www.biomedcentral.com/1471-2105/3/18">
-          A memory-efficient dynamic programming algorithm for optimal alignment of a sequence to an RNA secondary structure.</a> 
+          A memory-efficient dynamic programming algorithm for optimal 
+          alignment of a sequence to an RNA secondary structure.</a> 
       </span>
       <span class="authors">
-     Eddy SR.
-  	  </span>
+        S.R. Eddy
+      </span>
       <span class="ref">
-        <span class="jrnl"> BMC Bioinformatics</span>&nbsp;(2002)
-       &nbsp;2(3):18</span>
+        <span class="jrnl"> BMC Bioinformatics</span>
+        &nbsp;(2002)&nbsp;2(3):18
+      </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://en.wikipedia.org/wiki/Special:BookSources/0521629713">
-          Biological Sequence Analysis: Probabilistic Models of Proteins and Nucleic Acids.</a> 
+          Biological Sequence Analysis: Probabilistic Models of Proteins and 
+          Nucleic Acids.</a> 
       </span>
       <span class="authors">
-     Richard Durbin, Sean R. Eddy, Anders Krogh, Graeme Mitchison.
-  	  </span>
+        R. Durbin, S.R. Eddy, A. Krogh, G. Mitchison
+      </span>
       <span class="ref">
-        <span class="jrnl">Cambridge University Press.Nucleic Acids Res</span>&nbsp;(1999)
-       &nbsp;ISBN 0-5216-2971-3.</span>
+        <span class="jrnl">Cambridge University Press.Nucleic Acids Res</span>
+        &nbsp;(1999)&nbsp;ISBN 0-5216-2971-3.
+      </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://nar.oxfordjournals.org/cgi/content/full/25/5/955">
-          tRNAscan-SE: a program for improved detection of transfer RNA genes in genomic sequence.</a> 
+          tRNAscan-SE: a program for improved detection of transfer RNA genes 
+          in genomic sequence.</a> 
       </span>
       <span class="authors">
-     Lowe TM, Eddy SR.
-  	  </span>
+        T.M. Lowe, S.R. Eddy
+      </span>
       <span class="ref">
-        <span class="jrnl">Nucleic Acids Res</span>&nbsp;(1997)
-       &nbsp;25(5):955-964</span>
+        <span class="jrnl">Nucleic Acids Res</span>
+        &nbsp;(1997)&nbsp;25(5):955-964
+      </span>
     </div>
 
-<div class="citation">
+    <div class="citation">
       <span class="title">
         <a class="ext" 
           href="http://nar.oxfordjournals.org/cgi/reprint/22/11/2079">
           RNA sequence analysis using covariance models.</a> 
       </span>
       <span class="authors">
-      Eddy SR, Durbin R.
-  	  </span>
+        S.R. Eddy, R. Durbin
+      </span>
       <span class="ref">
-        <span class="jrnl"> Nucleic Acids Res</span>&nbsp;(1994)
-	      &nbsp;22(11):2079-88</span>
+        <span class="jrnl"> Nucleic Acids Res</span>
+        &nbsp;(1994)&nbsp;22(11):2079-88
+      </span>
     </div>
 
   </div>
 </div>
+
+<!-- start references block -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

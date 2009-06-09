@@ -1,11 +1,10 @@
-
 [%
 # summary.tt
 # jt6 20060925 WTSI
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.2 2009-05-06 11:46:39 jd7 Exp $
+# $Id: summary.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -35,234 +34,265 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   </div>
   <div class="blockContent">
 
-  	<h2>About Rfam</h2>
+    <h2>About Rfam</h2>
 
-  	<h3>
-  	Rfam [% relData.rfam_release ? relData.rfam_release : "9.1" %]
+    <h3>
+      Rfam [% relData.rfam_release ? relData.rfam_release : "9.1" %]
       ([% relData.rfam_release_date ? date.format( release_date ) : "Jan 2009" %]
       [% IF relData.number_families %], [% relData.number_families %] families[% END %])
+      [% IF relData.embl_release %], based on EMBL release [% relData.embl_release; END %]
     </h3>
-<p>
-The Rfam database is a collection of RNA sequence families of
-structural RNAs including non-coding RNA genes as well as
-cis-regulatory elements. Each family is represented by multiple
-sequence alignments and covariance models (CMs).  You can use the Rfam
-website to obtain information about an individual family, or browse
-our families and genome annotations. Alternatively you can download
-all of the Rfam data from our ftp site.  
-</p> 
-<hr/>
-<p>
-For each Rfam family we provide:
-</p>
-<dl>
-<dt><b>Summary page:</b></dt> 
-<dd>Textual background information on the RNA family which we obtain from the online encyclopedia Wikipedia.</dd>
+    <p>
+      The Rfam database is a collection of RNA sequence families of
+      structural RNAs including non-coding RNA genes as well as
+      cis-regulatory elements. Each family is represented by multiple
+      sequence alignments and covariance models (CMs).  You can use the Rfam
+      website to obtain information about an individual family, or browse
+      our families and genome annotations. Alternatively you can download
+      all of the Rfam data from our <a class="ext"
+      href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.  
+    </p> 
 
-<dt><b>SEED alignment:</b></dt> 
-<dd>A curated alignment containing a small set of representative members of the family with a consensus secondary structure annotation.</dd>
+    <hr/>
 
-<dt><b>FULL alignment:</b></dt>
-<dd>An automatically generated alignment of all members of the family we can identify in our underlying database using <a
-href="http://infernal.janelia.org/">Infernal</a>.</dd>
-
-<dt><b>Sequences:</b></dt> 
-<dd>The facility to browse and sort each sequence in a family on a few key pieces of information. This information includes bit score, SEED or FULL, coordinates, the sequence description from the EMBL nucleotide database and the species name. </dd>
-
-<dt><b>Secondary structure images:</b></dt> 
-<dd>Secondary structure images annotated with various measures of sequence and structure conservation. These measures are detailed further <span class="moreLink" onclick="reveal(this,'treeInfo',false, true)">here</span>
-    </p>
-    <div id="treeInfo" style="display: none">
-      <p>
+    <p>For each Rfam family we provide:</p>
+    <dl>
+      <dt>Summary page</dt> 
+      <dd>Textual background information on the RNA family, which we obtain from 
+        the online encyclopedia Wikipedia</dd>
+      
+      <dt>Seed alignment</dt> 
+      <dd>A curated alignment containing a small set of representative sequences 
+        and a consensus secondary structure annotation</dd>
+      
+      <dt>Full alignment</dt>
+      <dd>An alignment of all homologous sequences in rfamseq, our underlying 
+        sequence database, that are identified as being members of the family. 
+        Full alignments are generated using <a class="ext"
+          href="http://infernal.janelia.org/">Infernal</a></dd>
         
-It order to save computational resources we compute accurate maximum
-likelihood trees only for alignments containing less than 64
-sequences, for this we use <a
-href="http://selab.janelia.org/software.html">ERATE</a>.
-</p>
-<p>
-For alignments containing more than 64 sequences we use the
-neighbour-joining method implemented in <a
-href="http://evolution.genetics.washington.edu/phylip.html">PHYLIP</a>
-with default parameters. 
-</p>
-<p>
-Alignments containing more than 1024 sequences are filtered based upon
-sequence identity. i.e. one member of a pair of highly similar
-sequences is removed from the alignment, this operation is performed
-iteratively for the entire alignment for a gradually decreasing
-identity threshold until the total number of sequences in the
-remaining alignment is less than 1024.
-     </p>
-    </div>
-</dd>
+      <dt>Sequences</dt>
+      <dd>Information about sequences in the family, including bit score, seed
+        and full alignments, region coordinates, sequence description from 
+        the EMBL nucleotide database, and the species name</dd>
+      
+      <dt>Secondary structure</dt> 
+      <dd>Secondary structure images, annotated with various measures of sequence
+        and structure conservation</dd>
+        
+      <dt>Species</dt> 
+      <dd>Interactive tree graphic displaying species distribution for the full 
+        alignment.</dd>
+      
+      <dt>Trees</dt> 
+      <dd>Phylogenetic trees are available for the seed and the full alignment</dd>
+      
+      <dt>Structures</dt>
+      <dd>Mappings between PDB structures and Rfam annotations</dd> 
+      
+      <dt>Database references</dt> 
+      <dd>Links to external databases and references to other data sources</dd>
+      
+      <dt>Curation</dt>
+      <dd>Download the covariance model and view information summarising 
+        the family, including the author of alignment, references for 
+        sources of sequence and/or structure, the number of sequences in each 
+        alignment, score thresholds and score distributions</dd>
+    </dl>
 
-<dt><b>Species:</b></dt> 
-<dd>Interactive tree graphic displaying species distribution for the FULL alignment.</dd>
+    <p>
+      For more detailed information on how we build our families, read the 
+      <a href="#nuts">nuts and bolts</a> section below.
+    </p>
 
-<dt><b>Phylogenetic trees:</b></dt> 
-<dd>These are available for the SEED and the FULL alignment.</dd>
+    <hr/>
 
-<dt><b>PDB structures:</b></dt>
-<dd>Mappings between PDB structures and Rfam annotations.</dd> 
+    <h2><a name="nuts">Nuts &amp; Bolts - how we build our families</a></h2>
 
-<dt><b>Database references:</b></dt> 
-<dd>Links to relevant external databases and references to other relevant sources.</dd>
+    <h3>Rfamseq database</h3>
+    
+    <p> 
+      The underlying nucleotide sequence database from which we build our
+      families (known as rfamseq) is derived from the <a
+      href="http://www.ebi.ac.uk/embl/">EMBL nucleotide database</a>.  We
+      include EMBL Standard (STD) and Whole Genome Shotgun (WGS) data
+      classes. This includes all the environmental sample sequences (ENV)
+      but we currently exclude the patented (PAT) and synthetic (SYN)
+      divisions.  You should note that rfamseq does NOT include Expressed
+      Sequence Tag (EST) or Genome Survey Sequence (GSS) data classes.
+    </p>
+    <p>    
+      Rfamseq is usually updated with each major Rfam release, e.g., 8.0, 9.0. 
+      You can find out the the EMBL version currently in use in the
+      release README file on our <a class="ext"
+      href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.     
+    </p>
+  
+    <h3>Seed alignments and secondary structure annotation</h3> 
 
-<dt><b>Curation information:</b></dt>
-<dd>Download the covariance model and view useful information summarising the family. This includes the author of alignment, references for sources of sequence and/or structure, the number of sequences in each alignment, score thresholds and score distributions.</dd>
-</dl>
-For more detailed information on how we build our families -read the nuts and bolts section below.
+    <p>
+      Our seed alignments are small, curated sets of representative sequences
+      for each family, as opposed to an alignment of all known members. The
+      seed alignment also has as a secondary structure annotation, which
+      represents the conserved secondary structure for these sequences.
+    </p>
+    <p>
+      The ideal basis for a new family is an RNA element that has some
+      known functional classification, is evolutionarily conserved, and has
+      evidence for a secondary structure. In order to build a new family, we
+      must first obtain at least one experimentally validated example from
+      the published literature. If any other homologues are identified in the
+      literature, we will add these to the seed. Alternatively, if these are
+      not available, we will try to identify others members either by
+      similarity searching (using BLAST) or manual curation.
+    </p>
+    <p>      
+      Where possible we will use a multiple sequence alignment and
+      secondary structure annotation provided in the literature. If this is
+      the case, we will cite the source of both the alignment and the
+      secondary structure. You should note that the structure annotations
+      obtained from the literature may be experimentally validated or they
+      may be RNA folding predictions (commonly <a class="ext"
+      href="http://mfold.bioinfo.rpi.edu/cgi-bin/rna-form1-2.3.cgi">MFOLD</a>). 
+      Unfortunately, we do not discriminate between these two cases when we 
+      site the PubMed Identifier (PMID) and you will need to refer to the 
+      original publications to clarify.      
+    </p>
+    <p>
+      Alternatively, where this information is not available from the
+      literature, we will generate an alignment and secondary structure
+      prediction using various software, such as <a class="ext"
+      href="http://genome.ku.dk/resources/war">WAR</a>. This
+      software allows us to cherry pick the best alignment and secondary
+      structure prediction. Historically, the methods used to
+      make these alignments and folding predictions have varied. You can
+      find the method we have used for the seed alignment or the secondary
+      structure annotation in the <strong>SE</strong> and <strong>SS</strong> 
+      lines of the Stockholm format or in the curation information pages.
+    </p>
+    
+    <h3>Covariance Models</h3>
 
-<hr/>
+    <p>
+      From the seed alignment, we use the <a class="ext"
+      href="http://infernal.janelia.org/">Infernal software</a> to build a
+      probabilistic model (covariance model or CM) for this family. Useful
+      references on stochastic free grammars and covariance models can be
+      found in the <span class="link"
+      onclick="switchTab('helpReferencesBlock');">citing Rfam</span>
+      section. This model is then used to search the rfamseq
+      database for other possible homologs.
+    </p>
+    <p>
+      Searching a nucleotide database as larger as rfamseq with a covariance
+      model is hugely computationally expensive. In order to do this in
+      reasonable time, we use sequence based filters to prune the search
+      space prior to applying the CMs. Please refer to the recent Rfam 
+      publication for more details on how we implement this.
+    </p>
 
+    <h3>Expanding the seed (iteration)</h3>
 
-<h2>NUTS & BOLTS - How we build our families</h2>
+    <p>
+      If the CM search of rfamseq identifies any homologs that we believe
+      would improve the seed, we use the Infernal software (cmalign) to
+      add these sequences to the seed alignment. From the new seed, the CM
+      is re-built and re-searched against rfamseq. We refer to this process
+      of expanding the seed using Infernal searching as "iteration". We
+      continue to iterate the seed until we have good resolution
+      between real and false hits and cannot improve the seed membership
+      further.
+    </p>
 
-<h3>Rfamseq database</h3>
-<p> 
+    <h3>Important points to remember about our seed alignments</h3>
 
-The underlying nucleotide sequence database from which we build our
-families (known as Rfamseq) is derived from the <a
-href="http://www.ebi.ac.uk/embl/">EMBL nucleotide database</a>.  We
-include EMBL Standard (STD) and Whole Genome Shotgun (WGS) data
-classes. This includes all the environmental sample sequences (ENV)
-but we currently exclude the patented (PAT) and synthetic (SYN)
-divisions.  You should note that Rfamseq does NOT include Expressed
-Sequence Tag (EST) or Genome Survey Sequence (GSS) data classes.
+    <ul>
+      <li>We can only build families using the sequences in rfamseq</li> 
+      <li>We can only build a family where we can identify more than one 
+        sequence in rfamseq</li>
+      <li>Sequences in the seed cannot be manually altered in any way, 
+        e.g. no manual excision of introns, no editing of sequencing errors, 
+        no marking up modified nucleotides etc</li>
+      <li>At least one sequence in the seed will have some experimental 
+        evidence of transcription, e.g. northern blot or RT-PCR, and, 
+        preferably, some evidence of function</li>
+      <li>The secondary structure should ideally have some experimental 
+        support (such as structure probing, NMR or crystallography)
+        and/or evidence of evolutionary conservation. We do, however, use and 
+        generate predicted structures</li>
+      <li>Each seed sequence will be a significant match to the corresponding
+        covariance model. A significant score is generally greater than 20 
+        bits</li>
+    </ul>
 
-</p>
-<p>
+    <h3>Rfam full alignments</h3>
 
-Rfamseq is usually updated with each major release (e.g., 8.0, 9.0
-). You can find out the the EMBL version currently in use in the
-release README file on our <a
-href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
+    <p>
+      The Rfam full alignments contain all of the sequences in rfamseq that 
+      we can identify as members of the family. The alignment is generated by 
+      searching the covariance model for the family against the rfamseq 
+      database. Matches that score above a curated threshold are aligned to 
+      the CM to produce the full alignment. All sequences in the seed will 
+      also be present in the full  alignment. You should read the 
+      <span class="link" onclick="switchTab('helpCurationBlock');">curation 
+      information</span> pages for details of bit scores and gathering 
+      thresholds.    
+    </p>
 
-</p>
+    <h3>Family annotation</h3>
 
-<h3>SEED alignments and secondary structure annotation</h3> 
-<p>
+    <p>
+      In order to provide some background and functional information about
+      a family, we link to a <a class="ext" href="http://www.wikipedia.org/">
+        Wikipedia</a> page that provides relevant background information on 
+      the family. We have either linked to an existing page or we have created 
+      the page ourselves in Wikipedia. As this annotation is hosted by 
+      Wikipedia, you are free to edit, correct and otherwise improve
+      this annotation and we would encourage you to do so.
+    </p>
 
-Our SEED alignments are a small curated set of representative members
-of the family, as apposed to an alignment of all known members. The
-SEED alignment also has as a secondary structure annotation which
-represents the conserved secondary structure for these sequences.
+    <h3>Phylogenetic trees</h3>
 
-</p>
-<p>
+    <h4>Fewer than 64 sequences</h4>
 
-Our ideal remit for a new family is an RNA element which has some
-known functional classification, is evolutionarily conserved and has
-evidence for a secondary structure. In order to build a new family we
-must first obtain at least one experimentally validated example from
-the published literature. If any other homologs are identified in the
-literature we will add these to the SEED. Alternatively is these are
-not available we will try to identify others members either by
-similarity searching (using BLAST) or manual curation.
+    <p>
+      It order to save computational resources, we compute accurate maximum
+      likelihood trees only for alignments containing fewer than 64
+      sequences. For this we use <a class="ext"
+        href="http://selab.janelia.org/software.html">ERATE</a>.
+    </p>
+    
+    <h4>More than 64 sequences</h4>
+    
+    <p>
+      For alignments containing more than 64 sequences, we use the
+      neighbour-joining method implemented in <a class="ext"
+        href="http://evolution.genetics.washington.edu/phylip.html">
+          PHYLIP</a> with default parameters. 
+    </p>
+    
+    <h4>More than 1024 sequences</h4>
+    
+    <p>
+      Alignments containing more than 1024 sequences are filtered based 
+      upon sequence identity, i.e. one member of a pair of highly similar
+      sequences is removed from the alignment, this operation is performed
+      iteratively for the entire alignment for a gradually decreasing
+      identity threshold until the total number of sequences in the
+      remaining alignment is less than 1024. The tree is then generated from
+      this remaining alignment using PHYLIP.
+    </p>
 
-</p>
-
-Where possible we will use an multiple sequence alignment and
-secondary structure annotation provided in the literature. If this is
-the case we will cite the source of both the alignment and the
-secondary structure. You should note that the structure annotations
-obtained from the literature may be experimentally validated or they
-may be RNA folding predictions (commonly <a
-href="http://mfold.bioinfo.rpi.edu/cgi-bin/rna-form1-2.3.cgi">MFOLD</a>). Unfortunately,
-we do not discriminate between these two cases when we site the PubMed
-Identifier (PMID) and you will need to refer to the original
-publications to clarify.
-
-</p>
-<p>
-
-Alternatively where this information is not available from the
-literature we will generate an alignment and secondary structure
-prediction using a local installation of the <a
-href="http://genome.ku.dk/resources/war"> WAR software</a> . This
-software allows us to cherry pick the best alignment and secondary
-structure prediction we can.  Historically the methods we have used to
-make these alignments and folding predictions has varied.  You can
-find the method we have used for the SEED alignment or the secondary
-structure annotation in the SE and SS lines of the Stockholm format or
-in the curation information pages.
-
-</p>
-<h3>Covariance Models</h3>
-
-From this SEED alignment we use the <a
-href="http://infernal.janelia.org/">Infernal software</a> to build a
-probabilistic model (covariance model) for this family.  Useful
-references on stochastic free grammars and covariance models can be
-found in the <span class="link"
-onclick="switchTab('helpReferencesBlock');"> citing Rfam </span>
-section of the help. This model is then used to search the Rfamseq
-database for other possible homologs.
-
-
-Searching a nucleotide database the size of Rfamseq with a covariance
-model is hugely computationally expensive. In order to do this in
-reasonable time we use sequence based filters to prune the search
-space prior to applying the CMs.  See the recent Rfam publication for
-more details on how we implement this.
-
-<h3>Expanding the SEED (iteration)</h3>
-
-If the CM search of Rfamseq identifies any homologs which we believe
-would improve the SEED, then we use the Infernal software (cmalign) to
-add these sequences to the SEED alignment. From the new SEED, the CM
-is re-built and re-searched against Rfamseq. We refer to this process
-of expanding the SEED using Infernal searching as 'iteration'. We
-continue to iterate the SEED until we feel we have good resolution
-between real and false hits and cannot improve the SEED membership
-further.
-
-<h3>Core pointers to remember about our SEED alignments:</h3>
-
-<dt>-We can only build families using the sequences in Rfamseq.</dt> 
-<dt>-We can only build a family where we can identify more than one sequence in Rfamseq.</dt>
-<dt>-Sequences in the SEED cannot be manually altered in any way - e.g., no manual excision of introns, no editing of sequencing errors, no marking up modified nucleotides etc.</dt>
-<dt>-At least one sequence in the SEED will have some experimental evidence of transcription, e.g., northern blot, RT-PCR and preferably some evidence of function.</dt>
-<dt>-The secondary structure should ideally have some experimental support, e.g., structure probing, NMR, crystallography and/or evidence of evolutionary conservation. Although we do use and generate predicted structures.</dt>
-<dt>-Each SEED sequence will be a significant match to the corresponding covariance model. A significant score is generally greater than 20 bits.</dt> 
-
-<h3>Rfam FULL alignments</h3>
-
-<p>
-
-The Rfam FULL alignments we provide contain all the members of this
-family we can identify in Rfamseq. This is derived by searching the
-covariance model against the Rfamseq database. Matches that score
-above a curated threshold are aligned to the CM to produce the full
-alignment. All sequences in the SEED will also be present in the FULL
-alignment. You should read the <span class="link"
-onclick="switchTab('helpCurationBlock');"> curation information</span>
-pages on bit scores and gathering thresholds.
-
-</p>
-
-<h3>Family annotation</h3>
-<p>
-
-In order to provide some background and functional information about
-this family we link to a Wikipedia page providing relevant background
-information to the family. We have either linked to an existing page
-or we have created the page ourselves in Wikipedia. As this annotation
-is in Wikipedia you are free to edit, correct and otherwise improve
-this annotation.
-
-</p>
-
-
- </div>
+  </div>
 </div>
 
 <!-- end summary block -->
+
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

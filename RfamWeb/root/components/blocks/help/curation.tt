@@ -1,0 +1,190 @@
+[%
+# curation.tt
+# rdf 20060926 WTSI
+# 
+# build the curation block for the help pages
+#
+# $Id: curation.tt,v 1.1 2009-06-09 12:23:40 jt6 Exp $
+%]
+
+<!-- start curation block -->
+
+<div class="block" id="helpCurationBlock">
+  <div class="handle">
+    <h1>Family curation information</h1>
+  </div>
+  <div class="blockContent">
+  
+    <p>  
+      For each family we provide a curation information page. This is where 
+      you can download the covariance model for this family and also browse 
+      the details of the family building process. The majority of this 
+      information is also available in the Stockholm format flat files 
+      (<strong>Rfam.seed</strong> and <strong>Rfam.full</strong>) that are 
+      available from our <a class="ext" 
+        href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">ftp site</a>.
+    </p>
+
+<!--
+    <p>
+      An example set of data (RF01030):
+    </p>
+    <p>
+      Image instead of this boring boring list???
+    </p>
+-->
+    
+    <h2>Curation</h2>
+
+    <dl>
+      <dt><strong>Seed source:</strong> miRBase; Wilkinson A</dt>
+      <dd>
+        Equivalent to the <strong>SE</strong> line in the Stockholm files. 
+        This will credit the original source of the sequences that were used 
+        to build the family. This will usually be a a published article, a 
+        database or the manual curator. See the <span class="link" 
+        onclick="switchTab('helpSummaryBlock');">help summary page</span> for 
+        for an explanation on how we build our SEED alignments.
+      </dd>
+      <dt><strong>Type:</strong> Gene;miRNA;</dt>
+      <dd>
+        Equivalent to the <strong>TP</strong> line in the Stockholm files. 
+        A simple functional classification of our families. This is our own 
+        ontology and does not current directly relate to the ontologies used 
+        by other databases. For a full list of our current ontologies see the
+        help section on
+        <span class="link" onclick="switchTab('helpgetStartedBlock');">
+          searching by type</span>.
+      </dd>
+      <dt><strong>Author:</strong> Wilkinson A</dt>
+      <dd>
+        Equivalent to the <strong>AU</strong> line in the Stockholm files. This 
+        will credit the curators who have had input in building or modifying 
+        this family. The order of the names in this line are chronological 
+        (new authors are added to the end of the list).
+      </dd>
+      <dt><strong>Number in seed:</strong> 3</dt>
+      <dd>
+        The number of sequence regions in the seed alignment
+      </dd>
+      <dt><strong>Number in full:</strong> 11</dt>
+      <dd>
+        The number of sequence regions in the FULL alignment
+      </dd>
+    </dl>
+    
+    <h2>Build commands</h2>
+    
+    <dl>
+      <dt><strong>Build command:</strong> cmbuild CM SEED</dt>
+      <dd>
+        Equivalent to the <strong>BM</strong> line in the Stockholm files. This 
+        explains the options used to to build the covariance model. This usually 
+        just indicates that the model (CM) was built using the seed alignment.
+      </dd>
+      <dt><strong>Search command:</strong> cmsearch --toponly CM SEQDB</dt>
+      <dd>
+        Equivalent to the <strong>BM</strong> line in the Stockholm files. This 
+        details the options that were used for searching the CM against the
+        rfamseq database. By default we use the "glocal" option (global 
+        alignment with respect to the model, local with respect to the 
+        sequence). This requires that the entire model matches a sub-sequence 
+        of the target sequence. This mode tends to exclude fragment matches. 
+        However, you will note that some models are searched with the local 
+        alignment option (allowing matches to fragments of the model). You 
+        should consult the <a class="ext" href="http://infernal.janelia.org/">
+          Infernal</a> user guide for a fuller explanation of these different 
+        search modes.
+      </dd>
+      <dt><strong>Gathering cutoff:</strong> 25.0</dt>
+      <dd>
+        Equivalent to the <strong>GA</strong> line in the Stockholm files. This 
+        indicates the bit score gathering threshold set by our curators when 
+        building the family. All database hits that score at or above this 
+        threshold will be included in the full alignment. This is the bit score 
+        threshold that we recommend you use when gathering large 
+        scale, automated data annotations. However, you should consult the 
+        <a class="ext" href="http://infernal.janelia.org/">
+          Infernal</a> user guide for more detailed information on 
+        covariance models and the significance of bit scores.
+      </dd>
+      <dt><strong>Trusted cutoff:</strong> 26.1</dt>
+      <dd>
+        Equivalent to the <strong>TC</strong> line in the Stockholm files. This 
+        indicates the scores of the lowest-scoring hit that were included as 
+        true members of the Rfam family. Hits that score above this are all 
+        expected to be members of the family.
+      </dd>
+      <dt><strong>Noise cutoff:</strong> 23.1</dt>
+      <dd>
+        Equivalent to the <strong>NC</strong> line in the Stockholm files. The 
+        score of the highest scoring hit that were not included as true members 
+        of the Rfam family because they are considered to be at the top of the 
+        noise (false hits). A good model will give good discrimination between 
+        the TC values and the NC values. You should consult the 
+        <a class="ext" href="http://infernal.janelia.org/">
+          Infernal</a> user guide for more information on covariance models 
+        and bit scores.
+      </dd>
+      <dt><strong>Covariance model</strong></dt>
+      <dd>
+        A link to download the covariance model for this family. If you want 
+        to download multiple CMs, you can obtain a tar file containing all 
+        of the CMs for an Rfam release the <a class="ext" 
+        href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam">ftp site</a> 
+        (Rfam.tar.gz).
+      </dd>
+    </dl>
+
+    <h2>Distributions of bit scores</h2>
+
+    <p>
+      These images are not available in the flatfile release and are provided 
+      in the website to allow the users a quick visual guide to the range of 
+      scores we obtained when searching the model against rfamseq. Our curators 
+      use this distribution when curating the gathering cutoff value for the 
+      family. 
+    </p>
+    <p>
+      The upper panel shows the score distribution for all of the hits to the 
+      covariance model. The hits are coloured blue if the hit overlaps a seed 
+      sequence, otherwise they are in red.
+    </p>
+    <p>
+      The lower panel shows score distributions for those sequences where the 
+      associated descriptions match family terms, such as "mir-422", or 
+      forbidden terms, such as "repeat", "repetitive", "pseudogene" and 
+      "transpos", shown in light blue and pink respectively. Note that 
+      sequences that match both are counted twice here.
+    </p>
+    <p>
+      The truncated distributions are useful when the number of low scoring 
+      hits is several orders of magnitude more than the high scoring hits. 
+      The x-axis is truncated at the left side of the distribution, thereby 
+      removing the bulk of the low scoring hits. 
+    </p>
+
+  </div>
+</div>
+
+<!-- end curation block -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]

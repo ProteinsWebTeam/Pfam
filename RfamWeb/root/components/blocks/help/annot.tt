@@ -1,0 +1,157 @@
+[%
+# annot.tt
+# rdf 20060926 WTSI
+# 
+# build the scores block for the help pages
+#
+# $Id: annot.tt,v 1.1 2009-06-09 12:23:40 jt6 Exp $
+
+USE dumper;
+
+# figure out the location of the schema document
+controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
+
+%]
+
+<!-- start annotating block -->
+
+<div class="block" id="helpGenomeAnnotBlock">
+  <div class="handle">
+    <h1>Using Rfam locally</h1>
+  </div>
+  <div class="blockContent">
+
+    <h2>Annotating non-coding RNAs in complete genomes</h2>
+
+    <p>
+      Before trying to annotate your own genome sequences on your local
+      hardware or submitting lots of sequences to Rfam via the website, please 
+      check that the following resources do not provide the annotation for you:
+    </p>
+    <ol>
+      <li><a href="http://rfam.sanger.ac.uk/genome/browse">Rfam genomes</a></li>
+      <li><a class="ext" href="http://www.ebi.ac.uk/GenomeReviews/">Genome Reviews</a></li>
+      <li><a class="ext" href="http://www.ensembl.org/index.html">ENSEMBL Genomes</a></li>
+      <li><a class="ext" href="http://www.genome.ucsc.edu/">UCSC Genome Browser</a></li>
+      <li><a class="ext" href="http://www.ncrna.org">www.ncrna.org</a></li>
+      <li><a class="ext" href="http://srnamap.mbc.nctu.edu.tw/">sRNAMap</a></li>
+    </ol>
+    <p>
+      The Rfam library of covariance models can be used to search sequences
+      (including whole genomes) for homologues to known non-coding RNAs, in
+      conjunction with the <a class="ext" 
+        href="http://infernal.janelia.org/">Infernal</a> software. We 
+      pre-calculate Rfam hits to a large number of complete genomes. These 
+      results are presented <a href="http://rfam.sanger.ac.uk/genome/browse">
+        here</a>. This approach seems to work well for prokaryotic genomes but 
+      there are some important drawbacks to the approach for larger genomes,
+      particularly vertebrates.
+    </p>
+
+    <h3>1. Compute</h3>
+
+    <p>
+      Covariance model searches are extremely computionally intensive. A small
+      model (like "tRNA") can search a sequence database at a rate of around
+      300 bases/sec. The compute time scales roughly to the 4th power of the
+      length of the RNA, so searching larger models quickly become infeasible 
+      without significant compute resources. 
+    </p>
+    <p>
+      A currently unsupported Perl script, 
+      <a href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/tools/rfam_scan.pl">
+        rfam_scan.pl</a>, which uses BLAST to increase search speed,
+         can be downloaded from
+      <a class="ext" href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/tools/">
+        here</a>. This script is currently being updated to support Infernal 
+      version 1.0.
+    </p>
+
+    <h3>2. Specificity</h3>
+
+    <p>
+      The Rfam/Infernal approach aims to be sufficiently generic to cope with 
+      all types of RNAs. A sequence can be searched using every model in 
+      exactly the same way.
+    </p>
+    <p>
+      In contrast, several tools are available that search for specific types of
+      RNA, such as <a class="ext"
+      href="http://lowelab.ucsc.edu/tRNAscan-SE/">tRNAscan-SE</a> for tRNAs,
+      <a class="ext" href="http://www.cbs.dtu.dk/services/RNAmmer/">RNAMMER</a> 
+      for rRNA, <a class="ext" href="http://lowelab.ucsc.edu/snoscan/">
+        snoscan</a> for snoRNAs, and <a class="ext" 
+        href="http://bio.lundberg.gu.se/srpscan/">SRPscan</a> for
+      SRP RNA.
+    </p>
+    <p>
+      The generic Rfam approach has obvious advantages for the user. However, 
+      the specialised programs are likely to incorporate heuristics and 
+      family-specific information, which ensure that they out-perform the 
+      general method, often requiring only a fraction of the compute time.
+    </p>
+
+    <h3>3. Pseudogenes</h3>
+
+    <p>
+      ncRNA derived pseudogenes pose the biggest problem for eukaryotic
+      genome annotation using Rfam/Infernal. Many genomes contain repeat
+      elements that are derived from a non-coding RNA gene, sometimes in
+      huge copy number. For example, Alu repeats in human are evolutionarily
+      related to SRP RNA, and the active B2 SINE in mouse is recently
+      derived from a tRNA. In addition, specific RNA genes appear to have
+      undergone massive pseudogene expansions in certain genomes. For
+      example, searching the human genome using the Rfam U6 family yields
+      over 1000 hits, all with very high score. These are not "false
+      positives" in the sequence analysis sense, because they are closely 
+      related by sequence to the real U6 genes, but they completely
+      overwhelm the small number (only 10s) of expected real U6 genes. 
+    </p>
+    <p>
+      At present we don't have computational methods to distinguish the real
+      genes from the pseudogenes (of course the standard protein coding gene
+      tricks - in frame stop codons and the like - are useless). The sensible 
+      and precedented method for ncRNA annotation in large vertebrate genomes 
+      is to annotate the easy-to-identify RNAs, such as tRNAs
+      and rRNAs, and then trust only hits with very high sequence identity
+      (&gt; 95% over &gt; 95% of the sequence length) to an experimentally
+      verified real gene. <a class="ext"
+        href="http://lowelab.ucsc.edu/tRNAscan-SE/">tRNAscan-SE</a> has a 
+        very nice method for detecting tRNA pseudogenes.
+    </p>
+    <p>
+      We recommend that you use Rfam/Infernal for vertebrate genome 
+      annotation with <strong>extreme caution</strong>!
+    </p>
+    <p>
+      Having said all this, Rfam/Infernal does tell us about important
+      sequence similarities that are effectively undetectable by other means.
+      However, in complex eukaryotic genomes, it is important to treat hits as
+      sequence similarity information (much as you might treat BLAST hits),
+      rather than as evidence of bona fide ncRNA genes.
+    </p>
+    
+  </div>
+</div>
+
+<!-- end annotating block -->
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
+Jennifer Daub (jd7@sanger.ac.uk) and Paul Gardner (pg5@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
