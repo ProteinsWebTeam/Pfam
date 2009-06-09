@@ -4,7 +4,7 @@
 # 
 # build a page for the HTML alignment fragment
 #
-# $Id: html_alignment.tt,v 1.4 2008-08-08 10:42:55 jt6 Exp $
+# $Id: html_alignment.tt,v 1.5 2009-06-09 15:17:56 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -16,6 +16,7 @@ META naked = 1;
 PROCESS "components/require.tt";
 
 requirements.css.push( "alignment.css" );
+requirements.css.push( "heatmap.css" );
 
 #-------------------------------------------------------------------------------
 
@@ -95,6 +96,19 @@ title = type _ " sequence alignment for " _ acc;
   </dl>
 
 </div>
+
+[% IF errorMsg -%]
+<p>
+  [% errorMsg %]
+</p>
+
+<script type="text/javascript">
+  // <![CDATA[
+  $("key").hide();
+  // ]]>
+</script>
+
+[% END -%]
 
 <a href="#" onclick="window.close()" class="closer">Close window</a>
 
