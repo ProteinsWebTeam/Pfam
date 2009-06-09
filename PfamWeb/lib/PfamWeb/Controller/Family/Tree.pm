@@ -2,7 +2,7 @@
 # Tree.pm
 # jt6 20060511 WTSI
 #
-# $Id: Tree.pm,v 1.17 2008-07-28 13:59:43 jt6 Exp $
+# $Id: Tree.pm,v 1.18 2009-06-09 15:20:00 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ package PfamWeb::Controller::Family::Tree;
 Uses treefam drawing code to generate images of the tree for
 a given family.
 
-$Id: Tree.pm,v 1.17 2008-07-28 13:59:43 jt6 Exp $
+$Id: Tree.pm,v 1.18 2009-06-09 15:20:00 jt6 Exp $
 
 =cut
 
@@ -50,6 +50,12 @@ sub showTree : Path {
 
   # stash the tree object
   $c->forward( 'getTree' );
+  
+  # bail unless we actually got a tree
+  unless ( defined $c->stash->{tree} ) {
+    $c->res->status( 204 );
+    return;
+  }
 
   # populate the tree nodes with the areas for the image map
   $c->stash->{tree}->plot_core;
@@ -76,10 +82,11 @@ sub image : Local {
   # stash the tree object
   $c->forward( 'getTree' );
 
-  if( defined $c->stash->{tree} ) {
+  if ( defined $c->stash->{tree} ) {
     $c->res->content_type( 'image/gif' );
     $c->res->body( $c->stash->{tree}->plot_core( 1 )->gif );
-  } else {
+  }
+    else {
     # TODO this is bad. We should avoid hard-coding a path to an image here
     $c->res->redirect( $c->uri_for( '/shared/images/blank.gif' ) ) if $c->debug;
   }
@@ -136,10 +143,11 @@ sub getTree : Private {
   my $cacheKey = 'tree' . $c->stash->{acc} . $c->stash->{alnType};
   my $tree     = $c->cache->get( $cacheKey );
   
-  if( defined $tree ) {
+  if ( defined $tree ) {
     $c->log->debug( 'Family::Tree::getTree: extracted tree from cache' )
       if $c->debug;  
-  } else {
+  }
+  else {
     $c->log->debug( 'Family::Tree::getTree: failed to extract tree from cache; going to DB' )
       if $c->debug;  
 
@@ -149,20 +157,16 @@ sub getTree : Private {
 
     # retrieve the tree from the DB
     $c->forward( 'getTreeData' );
-    unless( defined $c->stash->{treeData} ) {
-      $c->stash->{errorMsg} = 'We could not extract the ' . $c->stash->{alnType}
-                              . 'tree for ' . $c->stash->{acc};
-      return;
-    }
+    return unless defined $c->stash->{treeData};
   
     # parse the data
     eval {
       $tree->parse( $c->stash->{treeData} );
     };
     if( $@ ) {
-      $c->log->error( "Family::Tree::getTree: ERROR: failed to parse tree: $@" );
-      $c->stash->{errorMsg} = 'There was a problem with the tree data for '
-                              . $c->stash->{acc};
+      $c->log->error( 'Family::Tree::getTree: ERROR: failed to parse ' 
+                      . $c->stash->{alnType} . ' tree for ' 
+                      . $c->stash->{acc} . ": $@" );
       return;
     }
 
@@ -198,21 +202,23 @@ sub getTreeData : Private {
 
     # retrieve the tree from the DB
     my $rs = $c->model('PfamDB::AlignmentsAndTrees')
-               ->search( { auto_pfamA => $c->stash->{pfam}->auto_pfamA,
+               ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama,
                            type       => $c->stash->{alnType} } );
-    my $row = $rs->first;
 
-    unless( defined $row->tree ) {
-      $c->stash->{errorMsg} = 'We could not retrieve the tree data for '
-                              . $c->stash->{acc};
-      return;
-    }
+    return unless defined $rs;
+    
+    my $row = $rs->first;
+    return unless defined $row;
+    
+    my $tree = $row->tree;
+    return unless defined $tree;
 
     # make sure we can uncompress it
-    $treeData = Compress::Zlib::memGunzip( $row->tree );
-    unless( defined $treeData ) {
-      $c->stash->{errorMsg} = 'We could not extract the tree data for '
-                              . $c->stash->{acc};
+    $treeData = Compress::Zlib::memGunzip( $tree );
+    unless ( defined $treeData ) {
+      $c->log->error( 'Family::Tree::getTree: ERROR: failed to uncompress ' 
+                      . $c->stash->{alnType} . ' tree data for ' 
+                      . $c->stash->{acc} );
       return;
     }
 

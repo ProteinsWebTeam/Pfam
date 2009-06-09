@@ -4,7 +4,7 @@
 #
 # Format the mapping between uniprot and PDB for the given Pfam family.
 #
-# $Id: pdb.tt,v 1.23 2008-07-29 08:39:57 jt6 Exp $
+# $Id: pdb.tt,v 1.24 2009-06-09 15:18:11 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -40,10 +40,31 @@ RETURN UNLESS summaryData.numStructures;
 <script type="text/javascript">
   // <![CDATA[
   Event.observe( window, "load", function() {
-    var r = new Ajax.Request( "[% c.uri_for( '/family/structures/mapping' ) %]",
-                               { parameters: { acc:"[% acc %]" },
-                                 onSuccess:  fstrucSuccess,
-                                 onFailure:  fstrucFailure } );
+    var r = new Ajax.Request( 
+      "[% c.uri_for( '/family/structures/mapping' ) %]",
+      { parameters: { acc:"[% acc %]" },
+        onSuccess: function ( oResponse ) {
+          $("familyStructureTabHolder").update( oResponse.responseText );
+  
+          // how many columns are there in the table ?
+          var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+          var numColsTable = firstRow.getElementsByTagName("td").length;
+  
+          // walk over all of the cells in the table and add listeners for mouseover and 
+          // mouseout events
+          $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+              cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+              cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+          } );
+        },
+        onFailure: function () {
+          $("familyStructureTabHolder").update( "Graphics loading failed." );
+        },
+        on204: function () {
+          $("familyStructureTabHolder").update( "No structure mappings found." );
+        }
+      }
+    );
   } );
   // ]]>
 </script>

@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.46 2009-04-20 13:04:23 rdf Exp $
+# $Id: Family.pm,v 1.47 2009-06-09 15:21:12 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.46 2009-04-20 13:04:23 rdf Exp $
+$Id: Family.pm,v 1.47 2009-06-09 15:21:12 jt6 Exp $
 
 =cut
 
@@ -205,7 +205,9 @@ sub get_data : Private {
   # check for a Pfam-A
   my $rs = $c->model('PfamDB::Pfama')
              ->search( [ { pfama_acc => $entry },
-                         { pfama_id  => $entry } ] );
+                         { pfama_id  => $entry } ],
+                       { join     => [ qw( interpros ) ],
+                         prefetch => [ qw( interpros ) ] } );
   my $pfam = $rs->first if defined $rs;
   
   if ( $pfam ) {
@@ -227,11 +229,10 @@ sub get_data : Private {
 
         # add the clan details, if any
         my $clans = $c->model('PfamDB::Clans')
-                        ->search( { 'clan_memberships.auto_pfama' => $pfam->auto_pfama },
-                                { join => [ qw(clan_memberships) ],
-                                  prefetch => [ qw(clan_memberships) ] } )->first; 
-        
-        
+                      ->search( { 'clan_memberships.auto_pfama' => $pfam->auto_pfama },
+                                { join     => [ qw(clan_memberships) ],
+                                  prefetch => [ qw(clan_memberships) ] } )
+                      ->first;
         
         if ( $clans and  defined $clans->clan_acc ) {
           $c->log->debug( 'Family::get_data: adding clan info' ) if $c->debug;
@@ -316,10 +317,10 @@ sub get_summary_data : Private {
   # number of interactions
   my $auto_pfamA = $c->stash->{pfam}->auto_pfama;
   my $rs = $c->model('PfamDB::PfamaInteractions')
-             ->find( { auto_pfama_a => $auto_pfamA },
-                     { select => [ { count => 'auto_pfama_a' } ],
-                       as     => [ qw( numInts ) ]
-                     } );
+             ->search( { auto_pfama_a => $auto_pfamA },
+                       { select => [ { count => 'auto_pfama_a' } ],
+                         as     => [ qw( numInts ) ] } )
+             ->first;
   $summaryData->{numInt} = $rs->get_column( 'numInts' );
 
   $c->stash->{summaryData} = $summaryData;
@@ -343,8 +344,11 @@ sub get_db_xrefs : Private {
   $xRefs->{entryId}  = $c->stash->{pfam}->pfama_id;
 
   # Interpro
-  push @{ $xRefs->{interpro} }, $c->stash->{pfam}->interpro_id
-    if $c->stash->{pfam}->interpro_id;
+  my $i = $c->model('PfamDB::Interpro')
+            ->find( $c->stash->{pfam}->auto_pfama, 
+                    { key => 'UQ_interpro_1' } );
+
+  push @{ $xRefs->{interpro} }, $i if defined $i;
 
   # PDB
   $xRefs->{pdb} = keys %{ $c->stash->{pdbUnique} }
@@ -354,13 +358,13 @@ sub get_db_xrefs : Private {
   # PfamA relationship based on SCOOP
   push @{ $xRefs->{scoop} },
        $c->model('PfamDB::Pfama2pfamaScoopResults')
-         ->search( { auto_pfamA1 => $c->stash->{pfam}->auto_pfama,
+         ->search( { auto_pfama1 => $c->stash->{pfam}->auto_pfama,
                      score       => { '>', 50.0 } },
                    { join        => [ qw( pfamA1 pfamA2 ) ],
-                     select      => [ qw( pfamA1.pfamA_id 
-                                          pfamA2.pfamA_id
-                                          pfamA1.pfamA_acc
-                                          pfamA2.pfamA_acc
+                     select      => [ qw( pfamA1.pfama_id 
+                                          pfamA2.pfama_id
+                                          pfamA1.pfama_acc
+                                          pfamA2.pfama_acc
                                           score ) ],
                      as          => [ qw( l_pfamA_id
                                           r_pfamA_id 
@@ -384,17 +388,17 @@ sub get_db_xrefs : Private {
   my @atoaPRC = $c->model('PfamDB::Pfama2pfamaPrcResults')
                   ->search( { 'pfamA1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
                             { join               => [ qw( pfamA1 pfamA2 ) ],
-                              select             => [ qw( pfamA1.pfamA_id 
-                                                          pfamA1.pfamA_acc
-                                                          pfamA2.pfamA_id 
-                                                          pfamA2.pfamA_acc 
+                              select             => [ qw( pfamA1.pfama_id 
+                                                          pfamA1.pfama_acc
+                                                          pfamA2.pfama_id 
+                                                          pfamA2.pfama_acc 
                                                           evalue ) ],
                               as                 => [ qw( l_pfamA_id 
                                                           l_pfamA_acc 
                                                           r_pfamA_id 
                                                           r_pfamA_acc 
                                                           evalue ) ],
-                              order_by           => 'pfamA2.auto_pfamA ASC'
+                              order_by           => 'pfamA2.auto_pfama ASC'
                             } );
 
   $xRefs->{atoaPRC} = [];
@@ -407,9 +411,9 @@ sub get_db_xrefs : Private {
 
   # PfamB to PfamA links based on PRC
   my @atobPRC = $c->model('PfamDB::Pfamb2pfamaPrcResults')
-                  ->search( { 'pfamA.pfamA_acc' => $c->stash->{pfam}->pfamA_acc, },
-                            { join      => [ qw( pfamA pfamB ) ],
-                              prefetch  => [ qw( pfamA pfamB ) ]
+                  ->search( { 'auto_pfama.pfama_acc' => $c->stash->{pfam}->pfama_acc, },
+                            { join      => [ qw( auto_pfama auto_pfamb ) ],
+                              prefetch  => [ qw( auto_pfama auto_pfamb ) ]
                             } );
 
   # find the union between PRC and PRODOM PfamB links
@@ -488,9 +492,9 @@ sub get_interactions : Private {
   my ( $this, $c ) = @_;
   
   my @interactions = $c->model('PfamDB::PfamaInteractions')
-                       ->search( { auto_pfama_a => $c->stash->{pfam}->auto_pfamA },
-                                 { join     => [ qw( pfama_b ) ],
-                                   prefetch => [ qw( pfama_b ) ] } );
+                       ->search( { auto_pfama_a => $c->stash->{pfam}->auto_pfama },
+                                 { join     => [ qw( auto_pfama_b ) ],
+                                   prefetch => [ qw( auto_pfama_b ) ] } );
 
   $c->stash->{interactions} = \@interactions;
 }

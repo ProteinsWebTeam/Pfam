@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.9 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Browse.pm,v 1.10 2009-06-09 15:21:12 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.9 2008-05-16 15:29:28 jt6 Exp $
+$Id: Browse.pm,v 1.10 2009-06-09 15:21:12 jt6 Exp $
 
 =cut
 
@@ -101,9 +101,9 @@ sub browseFamilies : Path( '/family/browse' ) {
     $c->stash->{char} = 'numbers';
 
     # run the query to get back all families starting with a number
-    @res = $c->model('PfamDB::Pfam')
-             ->search( { pfamA_id => { 'REGEXP', '^[0-9]' } },
-                       { order_by => 'pfamA_id ASC' } );
+    @res = $c->model('PfamDB::Pfama')
+             ->search( { pfama_id => { 'REGEXP', '^[0-9]' } },
+                       { order_by => 'pfama_id ASC' } );
 
   } elsif( lc $c->req->param('browse') eq 'top twenty' ) {
     $c->log->debug( 'Browse::browseFamilies: browsing "top twenty"...' );
@@ -111,7 +111,7 @@ sub browseFamilies : Path( '/family/browse' ) {
 
     # retrieve the top twenty largest families, ordered by number of
     # sequences in the family
-    @res = $c->model('PfamDB::Pfam')
+    @res = $c->model('PfamDB::Pfama')
             ->search( { },
                       { rows     => 20,
                         page     => 1,
@@ -132,9 +132,9 @@ sub browseFamilies : Path( '/family/browse' ) {
   
       # run the query to get back all families starting with the
       # specified letter, ordered by ID
-      @res = $c->model('PfamDB::Pfam')
-               ->search( { pfamA_id => { 'LIKE', qq($char%) } },
-                         { order_by => 'pfamA_id' } );
+      @res = $c->model('PfamDB::Pfama')
+               ->search( { pfama_id => { 'LIKE', qq($char%) } },
+                         { order_by => 'pfama_id' } );
 
     } else {
 
@@ -143,9 +143,9 @@ sub browseFamilies : Path( '/family/browse' ) {
       $c->log->debug( 'Browse::browseFamilies: browsing new entries' );
       $c->stash->{char} = 'new';
   
-      @res = $c->model('PfamDB::Pfam')
+      @res = $c->model('PfamDB::Pfama')
                ->search( { change_status => 'NEW' },
-                         {order_by => 'pfamA_id ASC' } );
+                         {order_by => 'pfama_id ASC' } );
 
     }
 
@@ -199,7 +199,7 @@ Retrieves the list of proteomes from the DB and stashes them for the template.
 sub browseProteomes : Path( '/proteome/browse' ) {
   my( $this, $c ) = @_;
 
-  my @res = $c->model('PfamDB::Proteome_species')
+  my @res = $c->model('PfamDB::ProteomeSpecies')
               ->search( {},
                         { order_by => 'species ASC' } );
 
@@ -222,7 +222,7 @@ template.
 sub browseMetaseq : Path( '/metaseq/browse' ) {
   my( $this, $c ) = @_;
 
-  my @res = $c->model('PfamDB::Metagenomics_refs')
+  my @res = $c->model('PfamDB::MetagenomicsRefs')
               ->search( {},
                         { select => [ { distinct => [ 'source' ] }, 'long_source' ],
                           as     => [ qw( src long_src ) ],

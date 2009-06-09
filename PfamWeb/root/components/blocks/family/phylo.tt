@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.22 2008-08-13 13:32:33 jt6 Exp $
+# $Id: phylo.tt,v 1.23 2009-06-09 15:18:11 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -52,14 +52,14 @@ treeUri = c.uri_for( "/family/tree" );
                  type="radio" 
                  name="type"
                  value="ncbi" />
-          <label for="ncbiRb">NCBI ([% pfam.number_ncbi %])</label>
+          <label for="ncbiRb">NCBI [% IF pfam.number_ncbi; "("; pfam.number_ncbi; ")"; END %]</label>
         </span>
         <span>
           <input id="metaRb" 
                  type="radio" 
                  name="type"
                  value="meta" />
-          <label for="metaRb">Metagenomics ([% pfam.number_meta %])</label>
+          <label for="metaRb">Metagenomics [% IF pfam.number_meta; "("; pfam.number_meta; ")"; END %]</label>
         </span>
         <input type="button"
                id="phyloFormSubmitter"
@@ -79,8 +79,8 @@ treeUri = c.uri_for( "/family/tree" );
       // the number of sequences in each alignment
       var counts = { seedRb: [% pfam.num_seed %],
                      fullRb: [% pfam.num_full %],
-                     ncbiRb: [% pfam.number_ncbi %],
-                     metaRb: [% pfam.number_meta %] };
+                     ncbiRb: [% pfam.number_ncbi || 0 %],
+                     metaRb: [% pfam.number_meta || 0 %] };
 
       // a function to re-enable the selector buttons. We need to do this 
       // carefully, rather than blindly re-enabling the form, just in case 
@@ -148,6 +148,14 @@ treeUri = c.uri_for( "/family/tree" );
               onSuccess: function( oResponse ) {
                 $$(".treemap").invoke( "hide" );
                 $("alignmentTree").insert( oResponse.responseText );
+              },
+              on204: function(){
+                // show a simple error message if we don't get back a tree
+                $("alignmentTree").update(
+                   new Element( "div", { id: type + "_tree",
+                                          "class": "treemap" } )
+                     .update( "We could not load the " + type + " tree" )
+                );
               }
             }
           );

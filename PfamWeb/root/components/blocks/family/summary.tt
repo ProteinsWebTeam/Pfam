@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.43 2009-01-06 14:25:09 jt6 Exp $
+# $Id: summary.tt,v 1.44 2009-06-09 15:18:11 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -50,25 +50,25 @@ PROCESS components/links.tt; %]
   
     <hr class="short"/>
 
-    [% IF pfam.pfamA_lit_refs.size %]
+    [% IF pfam.pfama_literature_references.size %]
       <h2>Literature references</h2>
   
       <ol>
       [% # hash the literature references on "order_added"... I'm sure we should be able to do
          # this with a simple "sort", but it's screwing up somewhere...
       litRefs = {};
-      FOREACH ref IN pfam.pfamA_lit_refs; 
+      FOREACH ref IN pfam.pfama_literature_references; 
         litRefs.${ref.order_added} = ref;
       END;
       FOREACH refNum IN litRefs.keys.nsort;
         ref = litRefs.$refNum; %]
         <li>
           <p>
-            [% ref.author %], [% ref.journal %]: [% ref.title %]
+            [% ref.auto_lit.author %], [% ref.auto_lit.journal %]: [% ref.auto_lit.title %]
             <a name="ref[% refNum %]"
                class="ext" 
-               href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">
-              PUBMED:[% ref.pmid %]</a>
+               href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.auto_lit.pmid %]">
+              PUBMED:[% ref.auto_lit.pmid %]</a>
           </p>
         </li>
       [%- END %]
@@ -77,16 +77,16 @@ PROCESS components/links.tt; %]
       <hr class="short"/>
     [% END %]
 
-    [% IF pfam.interpro.interpro_id %]
-    <h2 id="interproTitle">
-      Interpro entry 
-      <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
-    </h2>
-    [% END %]
+    [% IF pfam.interpro %]
+      <h2 id="interproTitle">
+        Interpro entry 
+        <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
+      </h2>
+      [% # THIS IS A HACK ! the database entry for the interpro abstract appears
+         # to contain <p> tags...
+      pfam.interpro.abstract;
 
-    [% # THIS IS A HACK ! the database entry for the interpro abstract appears
-       # to contain <p> tags...
-    pfam.interpro.abstract;
+    END;
 
     IF pfam.clan_acc -%]
       <h2>Clan</h2>
@@ -173,7 +173,7 @@ PROCESS components/links.tt; %]
   Event.observe( window, "load", function() {
     var r = new Ajax.Updater( "siph", 
                               "[% c.uri_for( '/family/structures' ) %]",
-                              { parameters:  { acc: "[% pfam.pfamA_acc %]" },
+                              { parameters:  { acc: "[% pfam.pfama_acc %]" },
                                 evalScripts: true } );
   } );
   // ]]>

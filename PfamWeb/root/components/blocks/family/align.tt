@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.30 2008-08-15 12:56:00 jt6 Exp $
+# $Id: align.tt,v 1.31 2009-06-09 15:18:11 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -121,6 +121,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
                     <option value="jalview" selected="selected">jalview</option>
                     <option value="html">HTML</option>
                     [% IF entryType != 'B' %]
+                    <option value="heatmap">Heatmap</option>
                     <option value="viewer">Pfam viewer</option>
                     [% END %]
                   </select>
@@ -153,8 +154,8 @@ alignmentUri = c.uri_for( "/family/alignment" );
           popUp( url, 'console', 800, 800, 'viewerWin');
       
         } else {
+          var action = $F("viewer");
           var cont = true;
-
           [% # change the test here depending on whether we are dealing with 
              # a Pfam-A or a Pfam-B
           IF entryType != "B" %]         
@@ -173,12 +174,24 @@ alignmentUri = c.uri_for( "/family/alignment" );
           [% END %]
 
           if ( cont ) {
-            url = "[% alignmentUri %]/download/html?" + Form.serialize("viewerForm");
+            url = "[% alignmentUri %]/download/" + action + "?" + Form.serialize("viewerForm");
             popUp( url, 'console', 800, 800, 'viewerWin');
           }
         }      
         return false;
       }
+      
+      // when the user chooses "heatmap" as the viewer for the alignment,
+      // we disable the full/seed toggle, since there's only a heatmap
+      $("viewer").observe( "change", function() {
+        if ( $F("viewer") == "heatmap" ) {
+          $("viewerTypeS").disable();
+          $("viewerTypeF").disable();
+        } else {
+          $("viewerTypeS").enable();
+          $("viewerTypeF").enable();
+        }
+      } );
       // ]]>
     </script>
     
@@ -414,11 +427,11 @@ alignmentUri = c.uri_for( "/family/alignment" );
               <td>
                 <span class="button">
                   <input type="radio" name="alnType" id="adTypeN" value="ncbi" checked="checked" />
-                  <label for="adTypeN">NCBI ([% pfam.number_ncbi %])</label>
+                  <label for="adTypeN">NCBI [% IF pfam.number_ncbi; "("; pfam.number_ncbi; ")"; END %]</label>
                 </span>
                 <span class="button">
                   <input type="radio" name="alnType" id="adTypeM" value="meta" />
-                  <label for="adTypeM">Metagenomics ([% pfam.number_meta %])</label>
+                  <label for="adTypeM">Metagenomics [% IF pfam.number_meta; "("; pfam.number_meta; ")"; END %]</label>
                 </span>
               </td>
             </tr>
@@ -451,7 +464,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       // although the form action looks like it will download the alignment,
       // in fact we catch the submission here and decide, based on the form
       // values, which URL to go to next.
-      function launchAdditional() {        
+      function launchAdditional() {
         if( $F("viewerAD") == "jalview" ) {
           url = "[% alignmentUri %]/jalview?" + Form.serialize("additionalDatasetsForm");
           popUp( url, 'console', 800, 800, 'jalviewWin');
