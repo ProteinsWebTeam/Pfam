@@ -4,7 +4,7 @@
 #
 # the page header for all main Rfam pages.
 #
-# $Id: header.tt,v 1.7 2009-01-29 15:14:12 jt6 Exp $
+# $Id: header.tt,v 1.8 2009-06-09 12:22:33 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -12,6 +12,7 @@ navNames = {
   search = "SEARCH",
   browse = "BROWSE",
   ftp    = "FTP",
+  blog   = "BLOG",
   help   = "HELP" };
 
 # the URIs for the links
@@ -20,12 +21,13 @@ navLinks = {
   search = c.uri_for( "/search" ),
   browse = c.uri_for( "/browse" ),
   ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/Rfam",
+  blog   = "http://xfam.wordpress.com/tag/rfam/",
   help   = c.uri_for( "/help" )
 };
 
 # the order of the items in the navbar - these are the keys for the two
 # hashes above
-navItems = [ "home", "search", "browse", "ftp", "help" ];
+navItems = [ "home", "search", "browse", "ftp", "blog", "help" ];
 
 # the base URL for static content
 staticUri = c.uri_for( "/static" );
