@@ -4,7 +4,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.3 2009-06-09 12:23:40 jt6 Exp $
+# $Id: summary.tt,v 1.4 2009-06-10 10:46:27 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -165,7 +165,11 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       href="http://genome.ku.dk/resources/war">WAR</a>. This
       software allows us to cherry pick the best alignment and secondary
       structure prediction. Historically, the methods used to
-      make these alignments and folding predictions have varied. You can
+      make these alignments and folding predictions have varied. 
+      Author names added to the list indicate that the published or predicted 
+      secondary structure has been manually curated in some way. The last 
+      author on the list will be the most recent editor of the secondary 
+      structure. You can
       find the method we have used for the seed alignment or the secondary
       structure annotation in the <strong>SE</strong> and <strong>SS</strong> 
       lines of the Stockholm format or in the curation information pages.
