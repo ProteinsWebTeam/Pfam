@@ -2,7 +2,7 @@
 # Genome.pm
 # jt6 20081127 WTSI
 #
-# $Id: Genome.pm,v 1.2 2009-01-15 15:06:23 jt6 Exp $
+# $Id: Genome.pm,v 1.3 2009-06-10 15:05:46 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package RfamWeb::Controller::Genome;
 
 Controller to build the main Rfam genome page.
 
-$Id: Genome.pm,v 1.2 2009-01-15 15:06:23 jt6 Exp $
+$Id: Genome.pm,v 1.3 2009-06-10 15:05:46 jt6 Exp $
 
 =cut
 
@@ -232,10 +232,15 @@ sub get_data : Private {
   
   # get the genome breakdown
   my @genomes = $c->model('RfamDB::GenomeEntry')
-                  ->search( [ { ncbi_id    => $entry },
-                              { genome_acc => $entry },
-                              { ensembl_id => $entry } ],
-                            { join      => { 'regions' => 'auto_rfam' },
+                  ->search( {
+                              -or =>  [ { ncbi_id    => $entry },
+                                        { genome_acc => $entry },
+                                        { ensembl_id => $entry } ],
+                              -and => { 'regions.genome_start' => { '!=', undef }, 
+                                        'regions.genome_end'   => { '!=', undef } }
+                            },
+                            {
+                              join      => { 'regions' => 'auto_rfam' },
                               order_by  => [ qw( auto_genome
                                                  regions.genome_start ) ],
                               '+select' => [ qw( regions.auto_rfam
@@ -249,7 +254,8 @@ sub get_data : Private {
                                                  genome_end
                                                  bits_score
                                                  rfam_id
-                                                 rfam_acc ) ] } );
+                                                 rfam_acc ) ] 
+                            } );
 
   unless ( @genomes ) {
     $c->log->debug( "Genome::get_data: failed to find a genome for '$entry'" )
