@@ -4,7 +4,7 @@
 #
 # template for serialising Pfam-A data to XML format
 #
-# $Id: pfama_xml.tt,v 1.5 2008-08-05 09:36:23 jt6 Exp $
+# $Id: pfama_xml.tt,v 1.6 2009-06-10 13:22:54 jt6 Exp $
 
 USE date;
 
@@ -61,7 +61,7 @@ IF goTerms.size;
 [% END; # of "if goTerms" -%]
     <curation_details>
       <status>[% pfam.change_status %]</status>
-      <seed_source>[% pfam.seed_source %]</seed_source>
+      <seed_source>[% pfam.seed_source | html %]</seed_source>
 [% IF pfam.previous_id -%]
       <previous_id>[% pfam.previous_id %]</previous_id>
 [% END -%]
