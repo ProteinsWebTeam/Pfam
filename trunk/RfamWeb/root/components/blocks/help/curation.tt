@@ -1,10 +1,10 @@
 [%
 # curation.tt
-# rdf 20060926 WTSI
+# jd7 20090609 WTSI
 # 
 # build the curation block for the help pages
 #
-# $Id: curation.tt,v 1.1 2009-06-09 12:23:40 jt6 Exp $
+# $Id: curation.tt,v 1.2 2009-06-10 10:44:24 jt6 Exp $
 %]
 
 <!-- start curation block -->
@@ -35,18 +35,36 @@
 -->
     
     <h2>Curation</h2>
+    
+    <img src="[% c.uri_for('/static/images/curation_info.gif') %]"
+         alt="Curation"
+         class="example" />
 
     <dl>
-      <dt><strong>Seed source:</strong> miRBase; Wilkinson A</dt>
+      <dt>Seed source</dt>
       <dd>
         Equivalent to the <strong>SE</strong> line in the Stockholm files. 
         This will credit the original source of the sequences that were used 
         to build the family. This will usually be a a published article, a 
         database or the manual curator. See the <span class="link" 
         onclick="switchTab('helpSummaryBlock');">help summary page</span> for 
-        for an explanation on how we build our SEED alignments.
+        for an explanation on how we build our seed alignments.
       </dd>
-      <dt><strong>Type:</strong> Gene;miRNA;</dt>
+      <dt>Structure source</dt>
+      <dd>
+        Equivalent to the <strong>SS</strong> line in the Stockholm files. 
+        This will credit the original source of the secondary structure 
+        annotation that we added to the seed alignment. The start of the SS 
+        line should always read 'Published' or 'Predicted', indicating if we 
+        have obtained the secondary structure from the literature (in which 
+        case the PubMed Identifier is provided) or generated using folding 
+        software prediction tools (in which case the software used will 
+        be indicated). Author names added to the list indicate some manual 
+        curation. See the <span class="link" 
+          onclick="switchTab('helpSummaryBlock');">help summary page</span>
+        for for an explanation on how we build our seed alignments.
+      </dd>
+      <dt>Type</dt>
       <dd>
         Equivalent to the <strong>TP</strong> line in the Stockholm files. 
         A simple functional classification of our families. This is our own 
@@ -56,33 +74,37 @@
         <span class="link" onclick="switchTab('helpgetStartedBlock');">
           searching by type</span>.
       </dd>
-      <dt><strong>Author:</strong> Wilkinson A</dt>
+      <dt>Author</dt>
       <dd>
         Equivalent to the <strong>AU</strong> line in the Stockholm files. This 
         will credit the curators who have had input in building or modifying 
         this family. The order of the names in this line are chronological 
         (new authors are added to the end of the list).
       </dd>
-      <dt><strong>Number in seed:</strong> 3</dt>
+      <dt>Number in seed</dt>
       <dd>
         The number of sequence regions in the seed alignment
       </dd>
-      <dt><strong>Number in full:</strong> 11</dt>
+      <dt>Number in full</dt>
       <dd>
-        The number of sequence regions in the FULL alignment
+        The number of sequence regions in the full alignment
       </dd>
     </dl>
     
     <h2>Build commands</h2>
     
+    <img src="[% c.uri_for('/static/images/model_info.gif') %]"
+         alt="Build"
+         class="example" />
+
     <dl>
-      <dt><strong>Build command:</strong> cmbuild CM SEED</dt>
+      <dt>Build command</dt>
       <dd>
         Equivalent to the <strong>BM</strong> line in the Stockholm files. This 
         explains the options used to to build the covariance model. This usually 
         just indicates that the model (CM) was built using the seed alignment.
       </dd>
-      <dt><strong>Search command:</strong> cmsearch --toponly CM SEQDB</dt>
+      <dt>Search command</dt>
       <dd>
         Equivalent to the <strong>BM</strong> line in the Stockholm files. This 
         details the options that were used for searching the CM against the
@@ -96,7 +118,7 @@
           Infernal</a> user guide for a fuller explanation of these different 
         search modes.
       </dd>
-      <dt><strong>Gathering cutoff:</strong> 25.0</dt>
+      <dt>Gathering cutoff</dt>
       <dd>
         Equivalent to the <strong>GA</strong> line in the Stockholm files. This 
         indicates the bit score gathering threshold set by our curators when 
@@ -108,14 +130,14 @@
           Infernal</a> user guide for more detailed information on 
         covariance models and the significance of bit scores.
       </dd>
-      <dt><strong>Trusted cutoff:</strong> 26.1</dt>
+      <dt>Trusted cutoff</dt>
       <dd>
         Equivalent to the <strong>TC</strong> line in the Stockholm files. This 
         indicates the scores of the lowest-scoring hit that were included as 
         true members of the Rfam family. Hits that score above this are all 
         expected to be members of the family.
       </dd>
-      <dt><strong>Noise cutoff:</strong> 23.1</dt>
+      <dt>Noise cutoff</dt>
       <dd>
         Equivalent to the <strong>NC</strong> line in the Stockholm files. The 
         score of the highest scoring hit that were not included as true members 
@@ -126,7 +148,7 @@
           Infernal</a> user guide for more information on covariance models 
         and bit scores.
       </dd>
-      <dt><strong>Covariance model</strong></dt>
+      <dt>Covariance model</dt>
       <dd>
         A link to download the covariance model for this family. If you want 
         to download multiple CMs, you can obtain a tar file containing all 
