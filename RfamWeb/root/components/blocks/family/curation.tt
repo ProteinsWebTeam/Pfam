@@ -4,7 +4,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.6 2008-09-12 09:26:02 jt6 Exp $
+# $Id: curation.tt,v 1.7 2009-06-10 10:46:17 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -39,6 +39,12 @@ sharedRequirements.js.push( "control.tabs.2.1.1.js" );
           <td class="label">Seed source</td>
           <td class="data">
               [% rfam.seed_source %]
+          </td>
+        </tr>
+        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+          <td class="label">Structure source</td>
+          <td class="data">
+              [% rfam.structure_source %]
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
