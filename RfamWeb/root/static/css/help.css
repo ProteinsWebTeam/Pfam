@@ -4,7 +4,7 @@
 
    Style the Rfam help pages.
    
-   $Id: help.css,v 1.1 2009-06-09 12:23:54 jt6 Exp $
+   $Id: help.css,v 1.2 2009-06-10 10:46:36 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
     
@@ -64,3 +64,13 @@ h3.listTitle {
 /* ---------------------------------------- */
 /* curation block */
 
+#helpCurationBlock dt {
+  font-weight: bold;
+  margin-top: 0.4em;
+  margin-bottom: 0.2em;
+}
+
+img.example {
+  display: block;
+  margin: 0 auto;
+}
