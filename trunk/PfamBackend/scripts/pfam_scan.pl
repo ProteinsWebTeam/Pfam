@@ -690,7 +690,7 @@ sub pred_act_sites {
      foreach my $unit ($seq->eachHMMUnit()) {
 
 	 my $family = $unit->hmmname;
-         my $seq_name = "Query_" . $unit->seqname;
+         my $seq_name = "q_" . $unit->seqname;
 
          next unless(-d "$as_dir/$family");  #Family is not an active site family
 
