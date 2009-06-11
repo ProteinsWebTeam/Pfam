@@ -427,9 +427,9 @@ while(<FASTA>) {
     if(/^>(\S+)/) {
 	$s_id = $1;
 
-        #hmmpfam only outputs the first 63 characters of a sequence identifier
-        if(length($s_id) > 63) {
-            $s_id = substr($s_id, 0, 63);
+        #hmmpfam only outputs the first 60 characters of a sequence identifier
+        if(length($s_id) > 60) {
+            $s_id = substr($s_id, 0, 60);
 	}
 	if(exists($seq{$s_id})) {
 	    die "FATAL: Sequence identifiers must be unique and can only be 60 characters in length.  Your fasta file contains two sequences with the same id [$s_id]\n";
