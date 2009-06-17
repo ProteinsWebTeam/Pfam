@@ -67,7 +67,13 @@ mkdir($dest) or die "Could not make directory $dest:[$!]\n";
 $client->checkoutFamily($family, $dest);
 
 #Fix timestamps.....
-
+foreach my $file (qw(SEED HMM OUTPUT PFAMOUT scores ALIGN DESC)){
+  #Fudge the access time and modification times
+  my($atime, $mtime);
+  $atime = $mtime = time;
+  utime $atime, $mtime, "$dest/$file";
+  sleep(1);
+}
 
 if( $caught_cntrl_c ) {
   print STDERR "\n** You hit cntrl-c while the operation was in progress.\n**". 
