@@ -165,7 +165,7 @@ sub updatePfamA {
 
   my $pfamA =
     $self->getSchema->resultset('Pfama')
-    ->find( { pfama_acc => $famObj->DESC->AC } );
+      ->find( { pfamA_acc => $famObj->DESC->AC } );
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->AC . "$pfamA....." );
@@ -257,21 +257,23 @@ sub movePfamA {
 }
 
 sub deletePfamA {
-  my ( $self, $famObj ) = @_;
+  my ( $self, $family ) = @_;
 
-  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
-    confess("Did not get a Bio::Pfam::Family::PfamA object");
-  }
 
   my $pfamA =
     $self->getSchema->resultset('Pfama')
-    ->find( { pfama_acc => $famObj->DESC->AC } );
+    ->find( { pfama_acc => $family } );
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
-    confess( 'Failed to get row for ' . $famObj->DESC->AC . "$pfamA....." );
+    confess( 'Failed to get row for ' . $family . "$pfamA....." );
   }
- 
-  $pfamA->delete_all;  
+  #Now make the dead_families entry
+  $self->getSchema->resultset('DeadFamilies')->create( { pfama_id  => $pfamA->pfama_id,
+                                                         pfama_acc => $pfamA->pfama_acc,
+                                                         comment   => 'comment',
+                                                         forward_to=> 'PF99999' });
+  
+  $self->getSchema->resultset('Pfama')->find( { pfama_acc => $family } )->delete;  
 }
 
 sub updatePfamARegSeed {
