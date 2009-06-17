@@ -45,14 +45,17 @@ my ( $help, $family, $newName );
   "help" => \$help,
 );
 
+help() if($help);
+
+
 $family = shift;
 $newName = shift;
 
-unless($family){
+unless($family and $family =~ /\S+/){
   die "Please specifiy the accesion of the family that you want to change the name\n";  
 }
 
-unless($newName){
+unless($newName and $newName =~ /\S+/){
   die "Please specifiy the new name of the the family\n";  
 }
 
@@ -128,7 +131,7 @@ $familyIO->writeDESC($descObj, $dest);
 
 #Now commit this file back to the svn repository
 open(M, ">.defaultpfmove") or die "Could not open .defaultpfmove:[$!]\n";
-print M "PFMOV:Moved family ID from $oldName to $newName\n";
+print M "Moved family ID from $oldName to $newName\n";
 close(M);
 
 $client->addPFMOVELog();
@@ -154,6 +157,7 @@ if ($caught_cntrl_c) {
 exit(0);
 
 sub help {
+  
   print<<EOF;
 
 usage: $0 <PFAM ACCESSION> <NEW NAME>
@@ -164,7 +168,7 @@ usage: $0 <PFAM ACCESSION> <NEW NAME>
   new family name specified on the command line. The old (current) id is added to the DESC file
   as a PI line (or appended on).
 
-  Family names must conform to the following pattern [\w_-]{1,15}. i.e. between 1 and 15 
+  Family names must conform to the following pattern [\\w_-]{1,15}. i.e. between 1 and 15 
   alpha-numeric characters and/or the following symbols: '_' '-'
   
   Note: If you are at WTSI, you can use family ids instead of accessions.
