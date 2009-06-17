@@ -151,7 +151,11 @@ sub addToClan {
   my $clanIO = Bio::Pfam::ClanIO->new;
   my $clanObj = $clanIO->loadClanFromLocalFile($clan, $dest, "file");
   unlink("$clanDir/CLANDESC"); 
-  push(@{ $clanObj->DESC->MEMB }, $fam );
+  if($clanObj->DESC->MEMB){
+    push(@{ $clanObj->DESC->MEMB }, $fam );
+  }else{
+    $clanObj->DESC->MEMB([$fam]);
+  }
   $clanIO->writeCLANDESC($clanObj->DESC, $clanDir);
   
   #Now check the clan back in, adding a automatic comment.
