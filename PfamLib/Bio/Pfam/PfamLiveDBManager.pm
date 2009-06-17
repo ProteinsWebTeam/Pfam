@@ -257,7 +257,7 @@ sub movePfamA {
 }
 
 sub deletePfamA {
-  my ( $self, $family ) = @_;
+  my ( $self, $family, $comment, $forward) = @_;
 
 
   my $pfamA =
@@ -270,8 +270,8 @@ sub deletePfamA {
   #Now make the dead_families entry
   $self->getSchema->resultset('DeadFamilies')->create( { pfama_id  => $pfamA->pfama_id,
                                                          pfama_acc => $pfamA->pfama_acc,
-                                                         comment   => 'comment',
-                                                         forward_to=> 'PF99999' });
+                                                         comment   => $comment,
+                                                         forward_to=> $forward });
   
   $self->getSchema->resultset('Pfama')->find( { pfama_acc => $family } )->delete;  
 }
