@@ -14,6 +14,7 @@ use Bio::Pfam::SVN::Client;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::ClanIO;
 use Bio::Pfam::PfamQC;
+use Bio::Pfam::PfamLiveDBManager;
 
 #-------------------------------------------------------------------------------
 # Deal with all of the options
@@ -136,7 +137,10 @@ else {
     $client->checkClanExists($upFamObj->DESC->CL);
     my $clanIO     = Bio::Pfam::ClanIO->new;
     my $clanObj    = $clanIO->loadClanFromSVN($upFamObj->DESC->CL, $client);
-    my %membership = map { $_ => 1 } @{ $clanObj->DESC->MEMB };
+    my %membership;
+    if($clanObj->DESC->MEMB){
+      %membership = map { $_ => 1 } @{ $clanObj->DESC->MEMB };
+    }
     if ( $membership{ $upFamObj->DESC->AC } ) {
       die
 "Trying to add $family to $addToClan, yet it appears that $family is already part of the clan\n";
