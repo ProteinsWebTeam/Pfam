@@ -191,6 +191,9 @@ if ( -s ".defaultpfnew" ) {
     or die "Could not remove old default check-in message\n";
 }
 
+#Now update the DESC file!
+$client->update($family);
+
 #
 if ($caught_cntrl_c) {
   print STDERR
