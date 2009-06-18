@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.4 2008-05-16 15:30:31 jt6 Exp $
+# $Id: rest.tt,v 1.5 2009-06-18 14:16:53 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -142,10 +142,19 @@ sharedRequirements.css.push( "prettify.css" );
 use strict;
 use warnings;
 
-use LWP::Simple;
+use LWP::UserAgent;
 
-my $xml = get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
-print $xml; </pre>
+my $ua = LWP::UserAgent->new;
+$ua->env_proxy;
+
+my $res = $ua->get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+
+if ( $res->is_success ) {
+  print $res->content;
+}
+else {
+  print STDERR $res->status_line, "\n";
+}</pre>
       </div>
     </fieldset>
     <p><a href="#restTop">back to top</a></p>
@@ -168,10 +177,18 @@ print $xml; </pre>
 use strict;
 use warnings;
 
-use LWP::Simple;
+use LWP::UserAgent;
 use XML::LibXML;
 
-my $xml = get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+my $ua = LWP::UserAgent->new;
+$ua->env_proxy;
+
+my $res = $ua->get( '[% c.uri_for( "/family/Piwi", output => "xml" ) | html %]' );
+
+die "error: failed to retrieve XML: " . $res->status_line . "\n"
+  unless $res->is_success;
+
+my $xml = $res->content;
 
 my $xml_parser = XML::LibXML->new();
 my $dom = $xml_parser->parse_string( $xml );
@@ -381,7 +398,7 @@ Piwi domain
       <legend>Example</legend>
       <div class="code">
         <pre>shell% curl -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
-        <pre class="prettyprint">&lt;/pre&gt;&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 14:01:27 21-Apr-2008 --&gt;
 &lt;dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns="http://pfam.sanger.ac.uk/"
