@@ -97,7 +97,18 @@ if($msg =~ /^PFCI:/){
 }elsif( $msg =~ /^PFMOV:/ ) {
   $txnlook->moveFamily( $pfamDB );  
 }elsif( $msg =~ /^PFKILL:/ ) {
-  $txnlook->deleteFamily( $pfamDB );
+  my($comment, $forward);
+    if($msg =~ /PFKILL:Comment;(.*)PFKILL:Forward;(.*)/){
+      $comment = $1;
+      $forward = $2;
+    }elsif($msg =~ /PFKILL:Comment;(.*)/){
+      $comment = $1;
+      $forward = '';
+    }else{
+      die "In PFKILL message, did not parse $msg\n"; 
+    }
+    
+  $txnlook->deleteFamily( $pfamDB, $comment, $forward );
 }else{
   die "Do not know here this commit has come from, [$msg]!\n"; 
 }
