@@ -26,7 +26,7 @@ if( $#ARGV == -1 ) {
 
 my $familyIO = Bio::Pfam::FamilyIO->new;
 
-my ($debug)=1;    # Set to true to get meagre debugging output
+my ($debug)=0;    # Set to true to get meagre debugging output
 
 my ($family);
 foreach $family (@ARGV) {
