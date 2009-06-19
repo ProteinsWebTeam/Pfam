@@ -63,9 +63,9 @@ sub getSchema {
 sub id2acc {
   my ( $self, $id ) = @_;
   my $result =
-    $self->getSchema->resultset("Pfama")->find( { "pfamA_id" => $id } );
-  if ( $result && $result->pfamA_acc ) {
-    return ( $result->pfamA_acc );
+  $self->getSchema->resultset("Pfama")->find( { "pfamA_id" => $id } );
+  if ( $result && $result->pfama_acc ) {
+    return ( $result->pfama_acc );
   }
 }
 
