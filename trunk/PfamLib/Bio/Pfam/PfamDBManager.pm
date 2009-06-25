@@ -270,6 +270,19 @@ sub getAllDeadFamilyData {
   }
 }
 
+sub getAllPfamFamilyDataLike {
+  my ($self, $term) = @_;
+  my @familyData;
+  carp("Looking up information for all families with and id like .") if $self->{'debug'};
+  @familyData = $self->getSchema->resultset("Pfama")->search( { pfama_id => { 'like' => $term } });
+
+  if (@familyData) {
+    carp("Found family data") if $self->{'debug'};
+    return ( \@familyData );
+  }
+}
+
+
 sub getPfamInterPro {
   my ( $self, $family ) = @_;
   my $familyData;
@@ -473,7 +486,7 @@ sub getOverlapingSeedPfamRegions {
 
   my $dbh = $self->getSchema->storage->dbh;
   my $sth = $dbh->prepare(
-"select distinct seq_start, seq_end, pfamA_acc, pfamA_acc from pfamA a, pfamA_reg_seed r, pfamseq s where pfamseq_acc= ? and
+"select distinct seq_start, seq_end, pfamA_acc, pfamA_id from pfamA a, pfamA_reg_seed r, pfamseq s where pfamseq_acc= ? and
   ((? <= r.seq_start and ? >= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
   and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and pfamA_acc != ?"
   ) or confess $dbh->errstr;
