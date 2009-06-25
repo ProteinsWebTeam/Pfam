@@ -118,16 +118,16 @@ if($diff != 0) {
 my $fasta = "FA.whole";
 
 # Read fasta file and put ref into scalars
-my @foo = &AlignMethods::read_fasta($fasta);
+my @foo = &Bio::Pfam::AlignMethods::read_fasta($fasta);
 my @sequence    = @{shift @foo};
 my @description = @{shift @foo};
 
 
 # Create alignment 
-my %hash=&AlignMethods::create_alignment(\@sequence,\@description,$method,$fasta, $pdb, $chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment(\@sequence,\@description,$method,$fasta, $pdb, $chain);
 
 
 #Print alignment
-&AlignMethods::print_alignment(\%hash, $method);
+&Bio::Pfam::AlignMethods::print_alignment(\%hash, $method);
 
 

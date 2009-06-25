@@ -41,7 +41,7 @@ if($mask) {
   $method = "mask";
   $mcount++;
   if(!$pdb) {
-      &AlignMethods::help($prog);
+      &Bio::Pfam::AlignMethods::help($prog);
   }
 }
 if($muscle) {
@@ -53,7 +53,7 @@ if($musclep) {
   $mcount++;
 }
 if($mcount == 0) {
-  &AlignMethods::help($prog);
+  &Bio::Pfam::AlignMethods::help($prog);
 }
 
 
@@ -64,7 +64,7 @@ if($mcount !=1) {
 
 
 if (!$fasta_file) {
-  &AlignMethods::help($prog);
+  &Bio::Pfam::AlignMethods::help($prog);
 }
 if(! -s $fasta_file) {
   die "Your fasta file either does not exist or is of zero size\n";
@@ -81,17 +81,17 @@ else {
 } 
 
 # Read fasta file and put ref into scalars
-my @foo = &AlignMethods::read_fasta($fasta_file);
+my @foo = &Bio::Pfam::AlignMethods::read_fasta($fasta_file);
 my @sequence    = @{shift @foo};
 my @description = @{shift @foo};
 
 
 # Create alignment 
-my %hash=&AlignMethods::create_alignment(\@sequence,\@description,$method,$fasta_file,$pdb,$chain);
+my %hash=&Bio::Pfam::AlignMethods::create_alignment(\@sequence,\@description,$method,$fasta_file,$pdb,$chain);
 
 
 #Print alignment
-&AlignMethods::print_alignment(\%hash, $method);
+&Bio::Pfam::AlignMethods::print_alignment(\%hash, $method);
 
 
 

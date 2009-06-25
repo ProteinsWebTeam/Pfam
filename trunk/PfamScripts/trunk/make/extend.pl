@@ -61,7 +61,7 @@ if($musclep) {
 } 
 
 if($mcount == 0) {
-  &AlignMethods::help($prog);
+  &Bio::Pfam::AlignMethods::help($prog);
 }
 
 
@@ -73,12 +73,12 @@ if($mcount !=1) {
 
 if(! $opt_align){
     warn "Don't know what to extend!\n";
-    &AlignMethods::help($prog);
+    &Bio::Pfam::AlignMethods::help($prog);
 }
 
 if (! $opt_n && ! $opt_c){
     warn "Don't know how far to extend!\n";
-    &AlignMethods::help(@_);
+    &Bio::Pfam::AlignMethods::help(@_);
 }
 
 
