@@ -72,12 +72,13 @@ sub main {
 
 #-------------------------------------------------------------------------------
 #Read in the DESC file.  This is now required!
+  my $io = Bio::Pfam::FamilyIO->new; 
 
   unless(-s 'DESC'){
-     die "We now require a DESC file before runing $0\n";
+    warn "We now require a DESC file before runing $0.\n Writing dummy DESC file\n";
+    $io->writeEmptyDESC;
   }
 
-  my $io = Bio::Pfam::FamilyIO->new; 
   my $descObj = $io->parseDESC("DESC");
  
 #-------------------------------------------------------------------------------
