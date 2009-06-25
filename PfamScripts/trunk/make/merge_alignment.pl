@@ -2,10 +2,10 @@
 #
 #
 # Author:        jm14
-# Maintainer:    $Id: merge_alignment.pl,v 1.1 2009-06-22 19:36:46 rdf Exp $
-# Version:       $Revision: 1.1 $
+# Maintainer:    $Id: merge_alignment.pl,v 1.2 2009-06-25 14:41:08 rdf Exp $
+# Version:       $Revision: 1.2 $
 # Created:       Jun 22, 2009
-# Last Modified: $Date: 2009-06-22 19:36:46 $
+# Last Modified: $Date: 2009-06-25 14:41:08 $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ merge_alignment.pl - merges two alignments
 Script that takes two input alignments, reformat them and makes a single alignment
 using the specified alignment method.Template - a short description of the class
 
-$Id: merge_alignment.pl,v 1.1 2009-06-22 19:36:46 rdf Exp $
+$Id: merge_alignment.pl,v 1.2 2009-06-25 14:41:08 rdf Exp $
 
 =head1 COPYRIGHT
 
@@ -120,7 +120,7 @@ if ( $mcount != 1 ) {
 }
 
 if ( !$fasta1 || !$fasta2 ) {
-  &AlignMethods::help($prog);
+  &Bio::Pfam::AlignMethods::help($prog);
 }
 if ( !-s $fasta1 || !-s $fasta2 ) {
   die "Your fasta file either does not exist or is of zero size\n";
