@@ -85,6 +85,14 @@ if($msg =~ /^PFCI:/){
   $txnlook->commitFamily( $pfamDB );
 }elsif( $msg =~ /^PFNEW:/ ){
   $txnlook->commitNewFamily( $pfamDB ); 
+}elsif( $msq =~ /^PFNEWATC:(CL\d{4})\:(PF\d{5})/{
+  my($clan, $fam);
+  $clan = $1;
+  $fam  = $2;
+  #Add the clan data to the database
+  $txnlook->updateClanMembership($pfamDB, $clan, $fam);
+  #Then commit the family
+  $txnlook->commitNewFamily( $pfamDB );
 }elsif( $msg =~ /^CLNEW:/ ){
   $txnlook->commitNewClan( $pfamDB ); 
 }elsif( $msg =~ /^(PF|CL)NEWMOV:/ ){
