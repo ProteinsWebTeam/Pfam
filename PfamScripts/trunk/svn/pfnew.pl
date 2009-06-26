@@ -195,7 +195,7 @@ if ( -s ".defaultpfnew" ) {
 }
 
 #Now update the DESC file!
-$client->update($family);
+#$client->update($family); - this does not work as it has already moved in the repos!
 
 #
 if ($caught_cntrl_c) {
