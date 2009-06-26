@@ -176,8 +176,11 @@ unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $newFamObj, $family ) ) {
 open(M, ">.defaultpfnew") or die "Could not open .defaultpfnew:[$!]\n";
 print M $newFamObj->DESC->ID." deposited\n";
 close M;
-$client->addPFNEWLog();
-   
+if($newFamObj->DESC->CL){
+  $client->addPFNEWATCLog(); 
+}else{
+  $client->addPFNEWLog();
+}   
 #-------------------------------------------------------------------------------
 #If we get here, then great! We can now add the family!
 my $caught_cntrl_c;
