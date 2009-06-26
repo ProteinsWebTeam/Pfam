@@ -112,8 +112,6 @@ if($addToClan){
   unless($newFamObj->DESC->CL){
     die "You need to add the clan accession to the DESC file to add it to the clan\n";  
   }
-#TODO - Remove this die line when add to clan is working!
-  die "Not supported at the moment......\n";
 }else{
   if($newFamObj->DESC->CL){
     die "Found a clan cross-reference in the DESC file, but you have not asked ".
