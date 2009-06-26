@@ -77,6 +77,7 @@ if($logMessage =~ /^PFNEWATC:(\S+)/){
   
   #Now, if this family has a CL line add the accession to the CLANDESC
   if($descObj->CL){
+    $revlook->updateClanMembership($pfamDB, $descObj->CL, $descObj->AC);
     addToClan($descObj->CL, $descObj->AC);  
   }
 
