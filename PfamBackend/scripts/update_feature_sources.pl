@@ -1,6 +1,6 @@
-#!software/bin/perl
+#!/software/bin/perl
 #
-# update_feature_sources.pl
+# update_features_sources.pl
 # jt6 & pg6 20060428 WTSI
 #
 # Update the list of DAS sources in the database. This is intended to
@@ -19,12 +19,11 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_feature_sources.pl,v 1.1 2009-04-02 10:07:02 jt6 Exp $
+# $Id: update_feature_sources.pl,v 1.2 2009-07-01 12:32:11 pg6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
-# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), 
-#          Prasad Gunasekaran (pg6@sanger.ac.uk)
+# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk), Prasad Gunasekaran (pg6@sanger.ac.uk),
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -46,23 +45,41 @@ use Bio::Das::Lite;
 use Data::Validate::URI qw( is_uri );
 use DBI;
 use Time::Local;
-use Config::General;
-use Getopt::Std;
+use Config::General qw(ParseConfig);
+#use Getopt::Std;
+use Getopt::Long;
+use Data::Dump qw(dump);
 use Mail::Mailer;
-
 my %options;
-getopt( 'f', \%options ) or usage();
+my $file;
+my $force = '';
+GetOptions(
+  "force!"   =>  \$force,
+  "config=s"  =>  \$file
+) or usage();
 
-unless( defined $options{f} and -f $options{f} ) {
+#getopt( 'f', \%options ) or usage();
+
+#unless( defined $options{f} and -f $options{f} ) {
+#  print STDERR  "error: must specify a configuration file\n";
+#  exit 1;
+#}
+
+unless( defined $file ) {
   print STDERR  "error: must specify a configuration file\n";
   exit 1;
 }
 
+
 #read the apache style configuration file and parse it.
-my ( $conf, %config, $mail );
+#my ( $conf, %config,$mail);
+my ( %config,$mail);
+
 eval{
-  $conf = new Config::General( $options{f} );
-  %config = $conf->getall;
+#  $conf = new Config::General( $options{f} );
+#  $conf = new Config::General( $file );
+#  %config = $conf->getall;
+  %config = ParseConfig( $file );
   $mail->{from} = $config{das}->{mailFrom};
   $mail->{to} = $config{das}->{mailTo};  
 };
@@ -107,6 +124,15 @@ my $dbh = DBI->connect( $DB_DSN,
                           PrintError => 0,
                           AutoCommit => 0 } );
 
+# create a temporary table and populate the results there;
+eval{
+  $dbh->do( "create temporary table temp like feature_das_sources" );
+};
+if( $@ ){
+  my $error_message = "error: Temporary table creation failed:$@";
+  send_mail($error_message,$mail);
+}
+
 #get the total number of features sources from the database;
 my $feature_sources = $dbh->selectrow_arrayref("select count(*) from feature_das_sources");
 my $total_features = $feature_sources->[0];
@@ -114,7 +140,7 @@ my $total_features = $feature_sources->[0];
 
 
 # prepare the queries
-my $insertSth = $dbh->prepare( "INSERT INTO feature_das_sources ( server_id, name, url, system, sequence_type, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ?, ? )" );
+my $insertSth = $dbh->prepare( "INSERT INTO temp ( server_id, name, url, system, sequence_type, helper_url, default_server ) VALUES( ?, ?, ?, ?, ?, ?, ? )" );
 
 # get the list of sources with features capability.
 my $sourcesList = $das->registry_sources({capability  =>  'features'});
@@ -125,14 +151,17 @@ my $chosenList = [ ];
 foreach my $source ( @$sourcesList ) {
   
   # check the lease date
-  $source->{leaseDate} =~ m/^(\d{4})\-(\d{2})\-(\d{2})T(\d{2}):(\d{2}):(\d{2}).(\d{3})Z$/i;
+  #$source->{leaseDate} =~ m/^(\d{4})\-(\d{2})\-(\d{2})T(\d{2}):(\d{2}):(\d{2}).(\d{3})Z$/i;
+  $source->{leaseDate} =~ m/^(\d{4})\-(\d{2})\-(\d{2})$/i; 
 
   # convert the lease date into seconds since the epoch. Note that we need 
   # to subtract 1 from the month, since we need it zero-based but the 
   # registry date comes with it as and month-of-the-year, i.e. 1-based
-  my $ld = timelocal( $6, $5, $4, $3, $2 - 1, $1 );
-
-  # delta, in seconds
+  #my $ld = timelocal( $6, $5, $4, $3, $2 - 1, $1 );
+ 
+  my $ld = timelocal( 0,0,0,$3, $2 - 1, $1 );
+ 
+ # delta, in seconds
   my $dd = $cd - $ld;
 
   # don't add the source if the lease is older than two days
@@ -196,14 +225,29 @@ foreach my $source ( @$sourcesList ) {
 
 #make sure we get certain number of sources, if not exit with sending mail 
 
-my $percentage = ( $total_features - scalar( @$chosenList ) ) / $total_features;
-if( $percentage > $config{das}->{threshold} ){
-  my $message = "
-                 The total number of features sources present in Database is $total_features\n
-                 The total number of features sources retrieved from das is ".scalar(@$chosenList)."\n
-                 More than 10% of das sources are lost......\n
-                 Das registry may be down......\nHence skipping the update\n";
-  send_mail($message,$mail);                   
+unless( $force ){  
+  my $message;
+  if( $total_features ){
+    #print " enters into the total_features blcok with value| $total_features|\n";
+    my $percentage = ( $total_features - scalar( @$chosenList ) ) / $total_features;
+    if( $percentage > $config{das}->{threshold} ){
+      $message = "   
+                     The total number of features sources present in Database is $total_features\n
+                     The total number of features sources retrieved from das is ".scalar(@$chosenList)."\n
+                     More than 10% of das sources are lost......\n
+                     Das registry may be down......\nHence skipping the update\n";
+                         
+      send_mail($message,$mail);
+    }  
+  }else{
+    #print " enters into the else total_features blcok with value| $total_features|\n";
+    $message = "
+                There is no feature sources present in database.\n
+                Henceforth gain or loss percentage could not be calcualted.\n
+                Hence skipping the process;\nIts advisory to use the script with option -force.\n  
+                ";
+    send_mail($message,$mail);
+  }
 }
 
 
@@ -213,10 +257,11 @@ if( $percentage > $config{das}->{threshold} ){
 # start a transaction...
 eval {
   
-  print STDERR "\n\nDeleting the contents of the feature_das_source table \n" if($dbh->do( "DELETE FROM feature_das_sources" ));
+  #print STDERR "\n\nDeleting the contents of the feature_das_source table \n" if($dbh->do( "DELETE FROM temp1" ));
   foreach my $entry( sort { $a->{id} cmp $b->{id} } @$chosenList ) {
 
     foreach my $coord (values %{ $entry->{coords} } ) {
+      #print "the coord is ",dump($coord),"\n";
       # print STDERR "(ii) inserting $entry->{name} [$coord->{system},$coord->{type}]... \n";
        $insertSth->execute( $entry->{id},
                            $entry->{name},
@@ -234,29 +279,85 @@ eval {
   $dbh->commit;
 }; # end of "eval"
 
-# check for errors in the transaction and roll back if we found any
 
-if( $@ ) {
-  #print STDERR "\n(EE) ERROR: transaction error: $@; rolling back\n";
-  
-  eval { $dbh->rollback; };
-  if($@){
-    my $error_message = "ERROR in transaction, rolling back\nHowever roll back failed : $@\n";
-    send_mail($error_message,$mail);
-  }  
-  
-} else {
-   #print STDERR "(ii) transaction successful\n";
-   my $new_feature_sources = $dbh->selectrow_arrayref("select count(*) from feature_das_sources");
-   my $new_total_features = $new_feature_sources->[0];
-   my $success_message = "The total number of features sources present in Database before update is : $total_features
-                         \n\nThe total number of features sources after update is :$new_total_features\n
-                         \nHenceforth Update successful.\n";
-   send_mail($success_message,$mail);                         
+# before copying the contents of temporary table; look at the diff of both;
+
+# source in temp table but not in database table;
+my $src_in_temp_notin_das = "Select server_id, name from temp where server_ID not in ( select server_id from feature_das_sources )";
+my $diff1 = $dbh->prepare( $src_in_temp_notin_das );
+
+# source in das table but lost in temp table;
+my $src_in_das_notin_temp = "Select server_id, name from feature_das_sources where server_ID not in ( select server_id from temp )";
+my $diff2 = $dbh->prepare( $src_in_das_notin_temp );
+
+eval{
+  $diff1->execute();
+  $diff2->execute();    
+};
+
+
+my ($gain, $loss );
+
+while( my ( $id, $name ) = $diff1->fetchrow_array ){
+  $gain .= "$id\t$name\n";
+}
+while( my ( $id, $name ) = $diff2->fetchrow_array ){
+  $loss .= "$id\t$name\n";
 }
 
-#script wont come here but to exit explicitly
+# now delete the contents of the table and copy over;
+#print STDERR "\n\nDeleting the contents of the feature_das_source table \n" if($dbh->do( "DELETE FROM temp1" ));
+my $success_message;
+
+eval{
+  $dbh->do( "delete from feature_das_sources ");
+  $dbh->do( "insert into feature_das_sources ( select * from temp )");
+  $dbh->commit;
+};
+if( $@ ){
+  my $error_message = "ERROR in Deleting the contents of table and populating it : $@\n";
+  send_mail($error_message,$mail);
+}else{
+  #print "eval success\n";
+  my $new_feature_sources = $dbh->selectrow_arrayref("select count(*) from feature_das_sources");
+  my $new_total_features = $new_feature_sources->[0];
+  $success_message = "The total number of features sources present in Database before update is : $total_features
+                         \n\nThe total number of features sources after update is :$new_total_features\n
+                         \nHenceforth Update successful.\n";
+  if( defined $gain ){
+    $success_message .= "Gained sources:\n$gain\n";
+  }elsif( defined $loss ){
+    $success_message .= "Lost sources:\n$loss\n";
+  }
+  send_mail($success_message,$mail); 
+}
+
 exit;
+
+#
+## check for errors in the transaction and roll back if we found any
+#
+#if( $@ ) {
+#  #print STDERR "\n(EE) ERROR: transaction error: $@; rolling back\n";
+#  
+#  eval { $dbh->rollback; };
+#  if($@){
+#    my $error_message = "ERROR in transaction, rolling back\nHowever roll back failed : $@\n";
+#    send_mail($error_message,$mail);
+#  }  
+#  
+#} else {
+#   #print STDERR "(ii) transaction successful\n";
+#   my $new_feature_sources = $dbh->selectrow_arrayref("select count(*) from temp1");
+#   my $new_total_features = $new_feature_sources->[0];
+#   my $success_message = "The total number of features sources present in Database before update is : $total_features
+#                         \n\nThe total number of features sources after update is :$new_total_features\n
+#                         \nHenceforth Update successful.\n";
+#   send_mail($success_message,$mail);                         
+#}
+#
+##script wont come here but to exit explicitly
+#exit;
 #-----------------------------------------------------------------------------------------------------
 
 #subroutine send_mail - sending mail to the maintainer
@@ -281,9 +382,10 @@ sub send_mail {
 
 sub usage {
   print <<EOF_help;
-usage: $0 [-h] -f config_file
+usage: $0 [-h] [-force] -config config_file 
 
- -f config_file : the Apache-style configuration file
+ -config config_file : the Apache-style configuration file
+ -force : Dont check the contents of database
  -h             : prints this message
  
 EOF_help
