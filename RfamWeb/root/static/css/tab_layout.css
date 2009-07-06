@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.4 2009-01-06 12:26:59 jt6 Exp $
+   $Id: tab_layout.css,v 1.5 2009-07-06 14:13:23 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -48,8 +48,21 @@
 #tabTitle h1 {
   font-size: x-large;
 	margin: 0;
-	padding: 0.2em 0 0 0.2em;
+	/* padding: 0.2em 0 0 0.2em; */
   float: left;
+}
+
+#titleFamily {
+  float: left;
+}
+
+#titleDesc {
+  float: left;
+  clear: left;
+}
+
+#titleDesc h2 {
+  margin: 0;
 }
 
 #loadingComponents {
