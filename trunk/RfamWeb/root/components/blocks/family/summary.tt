@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.9 2009-07-06 10:29:23 jt6 Exp $
+# $Id: summary.tt,v 1.10 2009-07-06 14:11:42 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -36,7 +36,7 @@ requirements.js.push( "family.js" );
   <div class="blockContent">
 
     <h1>
-      [% rfam.description %]
+      [% rfam.auto_wiki.title.replace( "_", " " ) %]
       <a href="http://en.wikipedia.org/w/index.php?action=edit&amp;title=[% rfam.auto_wiki.title %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
@@ -172,7 +172,7 @@ requirements.js.push( "family.js" );
 
     <div id="wpData" 
          class="controlTabContent">
-    [%- rfam.auto_wiki.text %]
+      [%- rfam.auto_wiki.text %]
     </div>
 
     <p id="wpLicense">
