@@ -6,30 +6,29 @@
 //
 //   http://www.chrisvandesteeg.nl/2005/07/25/livegrid/
 // 
-// $Id: livegrid.js,v 1.2 2009-03-06 16:33:04 jt6 Exp $
+// $Id: livegrid.js,v 1.3 2009-07-06 10:44:08 jt6 Exp $
 
 
 //------------------------------------------------------------------------------
 //- LiveGridMetaData -----------------------------------------------------------
 //------------------------------------------------------------------------------
 
-
 var LiveGridMetaData = Class.create( {
 
   initialize: function( pageSize, totalRows, options ) {
-    console.log( "LiveGridMetaData.initialize: start" );
+//    console.log( "LiveGridMetaData.initialize: start" );
 
     this.pageSize  = pageSize;
     this.totalRows = totalRows;
 
     this.options = {
       largeBufferSize: 10.0, // 7 pages
-      smallBufferSize: 2.0, // 1 page
-      nearLimitFactor: 0.2  // 20% of buffer
+      smallBufferSize: 2.0,  // 1 page
+      nearLimitFactor: 0.2   // 20% of buffer
     }
     Object.extend( this.options, options || {} );
 
-    console.log( "LiveGridMetaData.initialize: end" );
+//    console.log( "LiveGridMetaData.initialize: end" );
   },
 
   //----------------------------------------------------------------------------
@@ -86,7 +85,7 @@ var LiveGridMetaData = Class.create( {
 var LiveGridScroller = Class.create( {
 
   initialize: function( liveGrid ) {
-    console.log( "LiveGridScroller.initialize: start" );
+//    console.log( "LiveGridScroller.initialize: start" );
 
     this.liveGrid = liveGrid;
     this.metaData = liveGrid.metaData;
@@ -96,7 +95,7 @@ var LiveGridScroller = Class.create( {
     this.scrollTimeout = null;
     this.lastScrollPos = 0;
 
-    console.log( "LiveGridScroller.initialize: end" );
+//    console.log( "LiveGridScroller.initialize: end" );
   },
 
   //----------------------------------------------------------------------------
@@ -105,39 +104,39 @@ var LiveGridScroller = Class.create( {
     return this.scrollerDiv.onscroll == null;
   },
 
-  //----------------------------------------------------------------------------
+//  //----------------------------------------------------------------------------
 
-  plugin: function() {
-    this.scrollerDiv.onscroll = this.handleScroll.bindAsEventListener( this );
-  },
+//  plugin: function() {
+//    this.scrollerDiv.onscroll = this.handleScroll.bindAsEventListener( this );
+//  },
 
-  //----------------------------------------------------------------------------
+//  //----------------------------------------------------------------------------
 
-  unplug: function() {
-    this.scrollerDiv.onscroll = null;
-  },
+//  unplug: function() {
+//    this.scrollerDiv.onscroll = null;
+//  },
 
   //----------------------------------------------------------------------------
 
   _createScrollBar: function() {
-    console.log( "LiveGridScroller._createScrollBar: start" );
+//    console.log( "LiveGridScroller._createScrollBar: start" );
 
     var grid          = this.liveGrid.grid;
     var visibleHeight = grid.offsetHeight;
     this.lineHeight   = visibleHeight / this.metaData.getPageSize();
       
     // create the outer div...
-    this.scrollerDiv = document.createElement( "div" );
+    this.scrollerDiv = new Element( "div", { id: "scrollerDiv" } );
     
     this.scrollerDiv.setStyle( {
-      borderRight: "1px solid #ababab",
       position:    "relative",
       /* left:        Prototype.Browser.IE ? "-6px" : "-3px", */
       width:       "16px",
-      height:      visibleHeight + "px",
+      height:      visibleHeight - 17 + "px",
       overflow:    "auto"
     } );
 
+    // add listeners to handle mouse wheel scrolling
     if ( Prototype.Browser.IE ) {
 
       grid.onmousewheel = function( evt ) {
@@ -163,22 +162,40 @@ var LiveGridScroller = Class.create( {
 
     }
 
+    // add a listener to resize the grid when the window is resized
+    Event.observe( window, "resize", this.resizeGrid.bind(this) );
+
+    // fire the resize once explicitly, to set the size of the grid initially
+    this.resizeGrid();
+
     // create the inner div...
-    this.heightDiv = document.createElement( "div" );
+    this.heightDiv = new Element( "div" );
     this.updateSize();
 
     this.scrollerDiv.appendChild( this.heightDiv );
     this.scrollerDiv.onscroll = this.handleScroll.bindAsEventListener( this );
 
-    Element.insert( grid.nextSibling, { before: this.scrollerDiv } );
+    grid.appendChild( this.scrollerDiv );
 
-    console.log( "LiveGridScroller._createScrollBar: end" );
+//    console.log( "LiveGridScroller._createScrollBar: end" );
   },
    
   //----------------------------------------------------------------------------
 
+  // TODO this isn't the right place to be messing with resizing the whole 
+  // grid...
+
+  // size the grid to fit the browser window
+  resizeGrid: function() {
+//    console.log( "LiveGridScroller.resizeGrid: resizing grid..." ); 
+    var w = $("grid").getWidth() - 17 + "px";
+    $("output").setStyle( { width: w } );
+  },
+
+  //----------------------------------------------------------------------------
+
   updateSize: function() {
-    console.log( "LiveGridScroller.updateSize: start" );
+//    console.log( "LiveGridScroller.updateSize: start" );
 
     var visibleHeight = this.liveGrid.grid.offsetHeight;
     var divHeight = parseInt( visibleHeight * this.metaData.getTotalRows() / this.metaData.getPageSize() );
@@ -187,47 +204,47 @@ var LiveGridScroller = Class.create( {
       width:  "1px"
     } );
 
-    console.log( "LiveGridScroller.updateSize: end" );
+//    console.log( "LiveGridScroller.updateSize: end" );
   },
 
   //----------------------------------------------------------------------------
 
-  adjustScrollTop: function() {
-    console.log( "LiveGridScroller.adjustScrollTop: start" );
-
-    this.unplug();
-    var rem = this.scrollerDiv.scrollTop % this.lineHeight;
-    if ( rem != 0 ) {
-      if ( this.lastScrollPos < this.scrollerDiv.scrollTop ) {
-        this.scrollerDiv.scrollTop = this.scrollerDiv.scrollTop + this.lineHeight -rem;
-      } else {
-        this.scrollerDiv.scrollTop = this.scrollerDiv.scrollTop - rem;
-      }
-    }
-    this.lastScrollPos = this.scrollerDiv.scrollTop;
-    this.plugin();
-
-    console.log( "LiveGridScroller.adjustScrollTop: end" );
-  },
+//  adjustScrollTop: function() {
+////    console.log( "LiveGridScroller.adjustScrollTop: start" );
+//
+//    this.unplug();
+//    var rem = this.scrollerDiv.scrollTop % this.lineHeight;
+//    if ( rem != 0 ) {
+//      if ( this.lastScrollPos < this.scrollerDiv.scrollTop ) {
+//        this.scrollerDiv.scrollTop = this.scrollerDiv.scrollTop + this.lineHeight -rem;
+//      } else {
+//        this.scrollerDiv.scrollTop = this.scrollerDiv.scrollTop - rem;
+//      }
+//    }
+//    this.lastScrollPos = this.scrollerDiv.scrollTop;
+//    this.plugin();
+//
+////    console.log( "LiveGridScroller.adjustScrollTop: end" );
+//  },
 
   //----------------------------------------------------------------------------
 
   moveScroll: function(rowOffset) {
-    console.log( "LiveGridScroller.moveScroll: start" );
+//    console.log( "LiveGridScroller.moveScroll: start" );
 
     var pixelOffset = (rowOffset / this.metaData.getTotalRows()) * this.heightDiv.offsetHeight;
     this.scrollerDiv.scrollTop = pixelOffset;
 
-    console.log( "LiveGridScroller.moveScroll: end" );
+//    console.log( "LiveGridScroller.moveScroll: end" );
   },
 
   //----------------------------------------------------------------------------
 
   handleScroll: function( skiptimeout ) {
-    console.log( "LiveGridScroller.handleScroll: start" );
+//    console.log( "LiveGridScroller.handleScroll: start" );
 
     if ( this.scrollTimeout ) {
-      console.log( "LiveGridScroller.handleScroll: hit timeout" );
+//      console.log( "LiveGridScroller.handleScroll: hit timeout" );
       clearTimeout( this.scrollTimeout );
     }
     
@@ -242,13 +259,13 @@ var LiveGridScroller = Class.create( {
       this.scrollTimeout = setTimeout( this.scrollIdle.bind(this), 100 );
     }
     
-    console.log( "LiveGridScroller.handleScroll: end" );
+//    console.log( "LiveGridScroller.handleScroll: end" );
   },
 
   //----------------------------------------------------------------------------
 
   scrollIdle: function() {
-    console.log( "LiveGridScroller.scrollIdle: start" );
+//    console.log( "LiveGridScroller.scrollIdle: start" );
 
     if ( this.scrollTimeout ) {
       clearTimeout( this.scrollTimeout );
@@ -262,7 +279,7 @@ var LiveGridScroller = Class.create( {
       this.metaData.options.onscrollidle();
     }
 
-    console.log( "LiveGridScroller.scrollIdle: end" );
+//    console.log( "LiveGridScroller.scrollIdle: end" );
   }
 
 } );
@@ -276,7 +293,7 @@ var LiveGridScroller = Class.create( {
 var LiveGridBuffer = Class.create( {
 
   initialize: function( metaData ) {
-    console.log( "LiveGridBuffer.initialize: start" );
+//    console.log( "LiveGridBuffer.initialize: start" );
 
     this.startPos = 0;
     this.size     = 0;
@@ -284,15 +301,15 @@ var LiveGridBuffer = Class.create( {
     this.rows     = new Array();
     this.updateInProgress = false;
 
-    console.log( "LiveGridBuffer.initialize: end" );
+//    console.log( "LiveGridBuffer.initialize: end" );
   },
 
   //----------------------------------------------------------------------------
 
   update: function( ajaxResponse, start ) {
-    console.log( "LiveGridBuffer.update: start" );
+//    console.log( "LiveGridBuffer.update: start" );
 
-    console.log( ajaxResponse );
+//    console.log( ajaxResponse );
 
     this.startPos = parseInt(start);
     this.rows     = ajaxResponse.responseJSON.json.rows;
@@ -319,7 +336,7 @@ var LiveGridBuffer = Class.create( {
     }
  */
 
-    console.log( "LiveGridBuffer.update: end" );
+//    console.log( "LiveGridBuffer.update: end" );
   },
 
   //----------------------------------------------------------------------------
@@ -345,15 +362,15 @@ var LiveGridBuffer = Class.create( {
   //----------------------------------------------------------------------------
 
   isFullyInRange: function( position ) {
-    console.log( "LiveGridBuffer.isFullyInRange: position:       ", position );
-    console.log( "LiveGridBuffer.isFullyInRange: start position: ", this.startPos );
+//    console.log( "LiveGridBuffer.isFullyInRange: position:       ", position );
+//    console.log( "LiveGridBuffer.isFullyInRange: start position: ", this.startPos );
 
     var retVal = ( position >= this.startPos ) && 
                  ( position + this.metaData.getPageSize() ) <= ( this.startPos + this.size );
-    console.log( 
-      "LiveGridBuffer.isFullyInRange: return val: ( %s >= %s ) && ( %s + %s ) <= ( %s + %s ) = %s",
-      position, this.startPos, position, this.metaData.getPageSize(), this.startPos, this.size, retVal
-    );
+//    console.log( 
+//      "LiveGridBuffer.isFullyInRange: return val: ( %s >= %s ) && ( %s + %s ) <= ( %s + %s ) = %s",
+//      position, this.startPos, position, this.metaData.getPageSize(), this.startPos, this.size, retVal
+//    );
 
     return retVal;
   },
@@ -361,15 +378,15 @@ var LiveGridBuffer = Class.create( {
   //----------------------------------------------------------------------------
 
   isNearingTopLimit: function( position ) {
-    console.log( "LiveGridBuffer.isNearingTopLimit: position:       ", position );
-    console.log( "LiveGridBuffer.isNearingTopLimit: start position: ", this.startPos );
+//    console.log( "LiveGridBuffer.isNearingTopLimit: position:       ", position );
+//    console.log( "LiveGridBuffer.isNearingTopLimit: start position: ", this.startPos );
 
     var retVal = ( position - this.startPos ) < this.metaData.getLimitTolerance();
 
-    console.log(
-      "LiveGridBuffer.isNearingTopLimit: return val: ( %s - %s ) < %s = %s",
-      position, this.startPos, this.metaData.getLimitTolerance(), retVal
-    );
+//    console.log(
+//      "LiveGridBuffer.isNearingTopLimit: return val: ( %s - %s ) < %s = %s",
+//      position, this.startPos, this.metaData.getLimitTolerance(), retVal
+//    );
 
     return retVal;
   },
@@ -377,19 +394,19 @@ var LiveGridBuffer = Class.create( {
   //----------------------------------------------------------------------------
 
   isNearingBottomLimit: function( position ) {
-    console.log( "LiveGridBuffer.isNearingBottomLimit: position:   " + position );
+//    console.log( "LiveGridBuffer.isNearingBottomLimit: position:   " + position );
 
     var pageEnd   = position + this.metaData.getPageSize();
     var bufferEnd = this.startPos + this.size - 1;
 
-    console.log( "LiveGridBuffer.isNearingBottomLimit: page end:   " + pageEnd );
-    console.log( "LiveGridBuffer.isNearingBottomLimit: buffer end: " + bufferEnd );
+//    console.log( "LiveGridBuffer.isNearingBottomLimit: page end:   " + pageEnd );
+//    console.log( "LiveGridBuffer.isNearingBottomLimit: buffer end: " + bufferEnd );
 
     var retVal = ( bufferEnd - pageEnd ) < this.metaData.getLimitTolerance();
-    console.log( 
-      "LiveGridBuffer.isNearingBottomLimit: return val: ( %s  - %s ) < %s = %s", 
-      bufferEnd, pageEnd, this.metaData.getLimitTolerance(), retVal
-    );
+//    console.log( 
+//      "LiveGridBuffer.isNearingBottomLimit: return val: ( %s  - %s ) < %s = %s", 
+//      bufferEnd, pageEnd, this.metaData.getLimitTolerance(), retVal
+//    );
 
     return retVal;
   },
@@ -416,15 +433,15 @@ var LiveGridBuffer = Class.create( {
   //----------------------------------------------------------------------------
 
   getRows: function( start, count ) {
-    console.log( "LiveGridBuffer.getRows: start" );
+//    console.log( "LiveGridBuffer.getRows: start" );
 
     var begPos = parseInt(start) - this.startPos;
     var endPos = begPos + parseInt(count);
-    console.log( "LiveGridBuffer.getRows: start - end: %d - %d", begPos, endPos );
+//    console.log( "LiveGridBuffer.getRows: start - end: %d - %d", begPos, endPos );
 
     return this.rows.slice( begPos, endPos );
 
-    console.log( "LiveGridBuffer.getRows: end" );
+//    console.log( "LiveGridBuffer.getRows: end" );
   }
 
 } );
@@ -438,11 +455,11 @@ var LiveGridBuffer = Class.create( {
 var LiveGridRequest = Class.create( {
 
   initialize: function( requestOffset, options ) {
-    console.log( "LiveGridRequest.initialize: start" );
+//    console.log( "LiveGridRequest.initialize: start" );
 
     this.requestOffset = requestOffset;
 
-    console.log( "LiveGridRequest.initialize: end" );
+//    console.log( "LiveGridRequest.initialize: end" );
   }
 
 } );
@@ -456,7 +473,7 @@ var LiveGridRequest = Class.create( {
 var LiveGrid = Class.create( {
 
   initialize: function( grid, visibleRows, totalRows, url, options ) {
-    console.log( "LiveGrid.initialize: start" );
+//    console.log( "LiveGrid.initialize: start" );
 
     if ( options == null ) {
       options = {};
@@ -466,6 +483,7 @@ var LiveGrid = Class.create( {
          
     this.grid        = $(grid);
     this.gridId      = this.grid.identify();
+    this.outputDiv   = $("output");
     this.metaData    = new LiveGridMetaData( visibleRows, totalRows, options );
     this.buffer      = new LiveGridBuffer( this.metaData );
 
@@ -490,7 +508,7 @@ var LiveGrid = Class.create( {
       this.scroller = new LiveGridScroller( this );
     }
 
-    console.log( "LiveGrid.initialize: end" );
+//    console.log( "LiveGrid.initialize: end" );
   },
 
   //----------------------------------------------------------------------------
@@ -507,8 +525,8 @@ var LiveGrid = Class.create( {
     var val = offset - ( ( 0.5 * this.metaData.getLargeBufferSize() ) - 
                          ( 0.5 * this.metaData.getPageSize() ) );
 
-    console.log( "LiveGrid.largeBufferWindowStart: return val: %d - ( ( 0.5 * %d ) - ( 0.5 * %d ) ) = %d",
-                 offset, this.metaData.getLargeBufferSize(), this.metaData.getPageSize(), val );
+//    console.log( "LiveGrid.largeBufferWindowStart: return val: %d - ( ( 0.5 * %d ) - ( 0.5 * %d ) ) = %d",
+//                 offset, this.metaData.getLargeBufferSize(), this.metaData.getPageSize(), val );
 
     return Math.max( 0, parseInt(val) );
   },
@@ -516,23 +534,23 @@ var LiveGrid = Class.create( {
   //----------------------------------------------------------------------------
 
   handleTimedOut: function() {
-    console.log( "LiveGrid.handleTimedOut: start" );
+//    console.log( "LiveGrid.handleTimedOut: start" );
 
     //server did not respond in n seconds... assume that there could have been
     //an error or something, and allow requests to be processed again...
     this.processingRequest = null;
     this.processQueuedRequest();
 
-    console.log( "LiveGrid.handleTimedOut: start" );
+//    console.log( "LiveGrid.handleTimedOut: start" );
   },
 
   //----------------------------------------------------------------------------
 
   fetchBuffer: function( offset, fullBufferp ) {
-    console.log( "LiveGrid.fetchBuffer: start" );
+//    console.log( "LiveGrid.fetchBuffer: start" );
 
     if ( this.processingRequest ) {
-      console.log( "LiveGrid.fetchBuffer: processing request..." );
+//      console.log( "LiveGrid.fetchBuffer: processing request..." );
       this.unprocessedRequest = new LiveGridRequest( offset );
       return;
     }
@@ -540,7 +558,7 @@ var LiveGrid = Class.create( {
     var fetchSize = this.metaData.getBufferSize( fullBufferp );
     var bufferStartPos = Math.max( 0, fullBufferp ? this.largeBufferWindowStart(offset) : offset );
 
-    console.log( "LiveGrid.fetchBuffer: bufferStartPos: |%d|", bufferStartPos );
+//    console.log( "LiveGrid.fetchBuffer: bufferStartPos: |%d|", bufferStartPos );
 
     this.processingRequest = new LiveGridRequest(offset);
     this.processingRequest.bufferOffset = bufferStartPos;
@@ -549,8 +567,7 @@ var LiveGrid = Class.create( {
                        page_size: fetchSize,
                        offset:    bufferStartPos };
     Object.extend( callParams, this.additionalParams );
-    console.log( "LiveGrid.fetchBuffer: call parameters: " );
-    console.log( callParams );
+//    console.log( "LiveGrid.fetchBuffer: call parameters: ", callParams );
 
     // setup the AjaxRequest options
 
@@ -570,40 +587,42 @@ var LiveGrid = Class.create( {
 
     this.timeoutHandler = setTimeout( this.handleTimedOut.bind(this), 10000 );
 
-    console.log( "LiveGrid.fetchBuffer: end" );
+//    console.log( "LiveGrid.fetchBuffer: end" );
   },
 
   //----------------------------------------------------------------------------
 
   requestContentRefresh: function( contentOffset ) {
-    console.log( "LiveGrid.requestContentRefresh: start" );
+//    console.log( "LiveGrid.requestContentRefresh: start" );
 
-    console.log( "LiveGrid.requestContentRefresh: contentOffset: " + contentOffset );
+//    console.log( "LiveGrid.requestContentRefresh: contentOffset: " + contentOffset );
 
     if ( this.buffer && this.buffer.isFullyInRange(contentOffset) ) {
-      console.log( "LiveGrid.requestContentRefresh: buffer is fully in range; updating content" );
+//      console.log( "LiveGrid.requestContentRefresh: buffer is fully in range; updating content" );
       this.updateContent(contentOffset);
       if ( this.buffer.isNearingLimit(contentOffset) ) {
-        console.log( "LiveGrid.requestContentRefresh: buffer is nearing limit; fetching buffer (true)" );
+//        console.log( "LiveGrid.requestContentRefresh: buffer is nearing limit; fetching buffer (true)" );
         this.fetchBuffer(contentOffset, true);
       }
 
     } else if ( this.buffer && this.buffer.isClose(contentOffset) ) {
-      console.log( "LiveGrid.requestContentRefresh: buffer is close; fetching buffer (true)" );
+//      console.log( "LiveGrid.requestContentRefresh: buffer is close; fetching buffer (true)" );
       this.fetchBuffer(contentOffset, true);
 
     } else {
-      console.log( "LiveGrid.requestContentRefresh: request range is outside of existing buffer; fetching buffer (false)" );
+//      console.log( "LiveGrid.requestContentRefresh: request range is outside of existing buffer; fetching buffer (false)" );
       this.fetchBuffer(contentOffset, false);
     }
 
-    console.log( "LiveGrid.requestContentRefresh: end" );
+//    console.log( "LiveGrid.requestContentRefresh: end" );
   },
 
   //----------------------------------------------------------------------------
 
   ajaxUpdate: function( ajaxResponse ) {
-    console.log( "LiveGrid.ajaxUpdate: start" );
+//    console.log( "LiveGrid.ajaxUpdate: start" );
+
+//    console.log( ajaxResponse );
 
     clearTimeout( this.timeoutHandler );
 
@@ -626,59 +645,60 @@ var LiveGrid = Class.create( {
     }
     this.processQueuedRequest();
 
-    console.log( "LiveGrid.ajaxUpdate: end" );
+//    console.log( "LiveGrid.ajaxUpdate: end" );
   },
 
   //----------------------------------------------------------------------------
 
   processQueuedRequest: function() {
-    console.log( "LiveGrid.processQueuedRequest: start" );
+//    console.log( "LiveGrid.processQueuedRequest: start" );
 
     if ( this.unprocessedRequest != null) {
-      console.log( "LiveGrid.processQueuedRequest: found an unprocessed request..." );
+//      console.log( "LiveGrid.processQueuedRequest: found an unprocessed request..." );
       this.requestContentRefresh(this.unprocessedRequest.requestOffset);
       this.unprocessedRequest = null;
     }
 
-    console.log( "LiveGrid.processQueuedRequest: end" );
+//    console.log( "LiveGrid.processQueuedRequest: end" );
   },
 
   //----------------------------------------------------------------------------
 
   updateContent: function( startPos ) {
-    console.log( "LiveGrid.updateContent: start" );
+//    console.log( "LiveGrid.updateContent: start" );
+
+    var scrollLeft = 0;
+    if ( $("sequences") !== undefined ) {
+      scrollLeft = $("sequences").scrollLeft;
+//      console.log( "scrollLeft = %d", scrollLeft );
+    }
 
     if ( startPos == this.lastDisplayedStartPos ) { 
       return;
     }
     this.lastDisplayedStartPos = startPos;
     
-    var outputDiv = new Element( "div", { id: "output" } );
+    var accessionsDiv = $("accessions").update();
+    var sequencesDiv  = $("sequences").update();
 
-    var accessionsDiv = new Element( "div", { id: "accessions" } );
-    var sequencesDiv  = new Element( "div", { id: "sequences" } );
-
-    outputDiv.appendChild( accessionsDiv );
-    outputDiv.appendChild( sequencesDiv );
-    
     var rows = this.buffer.getRows( startPos, this.metaData.getPageSize() );
 
     for (var i = 0, len = rows.length; i < len; ++i ) {
       var row = rows[i];
-      var className = i % 2 ? "odd" : "even";
+      var oe = i % 2 ? "odd" : "even";
   
-      var accDiv = new Element( "div", { id: "acc_"+i, "class": "seq_acc " + className } )
+      var accDiv = new Element( "div", { id: "acc_"+i, "class": "seq_acc " + oe } )
                    .update( i+startPos + ": " + row.acc );
-      var seqDiv = new Element( "div", { id: "seq_"+i, "class": "seq_seq " + className } )
+      var seqDiv = new Element( "div", { id: "seq_"+i, "class": "seq_seq " + oe } )
                    .update( row.seq );
 
       accessionsDiv.appendChild( accDiv );
       sequencesDiv.appendChild( seqDiv );
     }
-    
-    this.grid.update( outputDiv );
-    
-    console.log( "LiveGrid.updateContent: end" );
+
+    $("sequences").scrollLeft = scrollLeft;
+
+//    console.log( "LiveGrid.updateContent: end" );
   }
 
   //----------------------------------------------------------------------------
