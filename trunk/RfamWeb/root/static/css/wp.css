@@ -4,7 +4,7 @@
 
    Style the wikipedia scrapes
    
-   $Id: wp.css,v 1.2 2008-06-17 09:35:46 jt6 Exp $
+   $Id: wp.css,v 1.3 2009-07-13 10:12:09 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -354,5 +354,181 @@ blockquote {
 }
 #wpData span.texhtml {
 	font-family: serif;
+}
+
+/* this section of CSS is ripped directly from:
+ * 
+ *   http://en.wikipedia.org/w/index.php?title=MediaWiki:Common.css&usemsgcache=yes&ctype=text%2Fcss&smaxage=2678400&action=raw&maxage=2678400
+ * 
+ * essentially we're just sucking in more stuff to style the navbox table.
+ * 
+ * jt6 20090713 WTSI.  
+ */
+
+/* Default skin for navigation boxes */
+#wpData table.navbox {            /* Navbox container style */
+  border: 1px solid #aaa;
+  width: 100%; 
+  margin: auto;
+  clear: both;
+  font-size: 88%;
+  text-align: center;
+  padding: 1px;
+}
+table.navbox + table.navbox {  /* Single pixel border between adjacent navboxes */
+  margin-top: -1px;            /* (doesn't work for IE6, but that's okay)       */
+}
+#wpData .navbox-title,
+#wpData .navbox-abovebelow,
+#wpData table.navbox th {
+  text-align: center;      /* Title and above/below styles */
+  padding-left: 1em;
+  padding-right: 1em;
+}
+#wpData .navbox-group {            /* Group style */
+  white-space: nowrap;
+  text-align: right;
+  font-weight: bold;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+#wpData .navbox, #wpData .navbox-subgroup {
+  background: #fdfdfd;     /* Background color */
+}
+#wpData .navbox-list {
+  border-color: #fdfdfd;   /* Must match background color */
+}
+#wpData .navbox-title,
+table.navbox th {
+  background: #ccccff;     /* Level 1 color */
+}
+#wpData .navbox-abovebelow,
+#wpData .navbox-group,
+#wpData .navbox-subgroup .navbox-title {
+  background: #ddddff;     /* Level 2 color */
+}
+#wpData .navbox-subgroup .navbox-group, #wpData .navbox-subgroup .navbox-abovebelow {
+  background: #e6e6ff;     /* Level 3 color */
+}
+#wpData .navbox-even {
+  background: #f7f7f7;     /* Even row striping */
+}
+#wpData .navbox-odd {
+  background: transparent; /* Odd row striping */
+}
+ 
+#wpData .collapseButton {          /* 'show'/'hide' buttons created dynamically */
+    float: right;          /* by the CollapsibleTables javascript in    */
+    font-weight: normal;   /* [[MediaWiki:Common.js]]are styled here    */
+    text-align: right;     /* so they can be customised.                */
+    width: auto;
+}
+#wpData .navbox .collapseButton {  /* In navboxes, the show/hide button balances */
+    width: 6em;            /* the vde links from [[Template:Tnavbar]],   */
+}                          /* so they need to be the same width.         */
+ 
+/* this section of CSS is ripped directly from:
+ * 
+ *   http://en.wikipedia.org/w/index.php?title=MediaWiki:Common.css&usemsgcache=yes&ctype=text%2Fcss&smaxage=2678400&action=raw&maxage=2678400
+ *    
+ * styling the infobox...
+ * 
+ * jt6 20090713 WTSI.  
+ */
+
+/* Infobox template style */
+.infobox {
+    border: 1px solid #aaa;
+    background-color: #f9f9f9;
+    color: black;
+    margin: 0.5em 0 0.5em 1em;
+    padding: 0.2em;
+    float: right;
+    clear: right;
+}
+.infobox td,
+.infobox th {
+    vertical-align: top;
+}
+.infobox caption {
+    font-size: larger;
+}
+.infobox.bordered {
+    border-collapse: collapse;
+}
+.infobox.bordered td,
+.infobox.bordered th {
+    border: 1px solid #aaa;
+}
+.infobox.bordered .borderless td,
+.infobox.bordered .borderless th {
+    border: 0;
+}
+
+.infobox.sisterproject {
+    width: 20em;
+    font-size: 90%;
+}
+
+.infobox.standard-talk {
+    border: 1px solid #c0c090;
+    background-color: #f8eaba;
+}
+.infobox.standard-talk.bordered td,
+.infobox.standard-talk.bordered th {
+    border: 1px solid #c0c090;
+}
+
+/* styles for bordered infobox with merged rows */
+.infobox.bordered .mergedtoprow td,
+.infobox.bordered .mergedtoprow th {
+    border: 0;
+    border-top: 1px solid #aaa;
+    border-right: 1px solid #aaa;
+}
+
+.infobox.bordered .mergedrow td,
+.infobox.bordered .mergedrow th {
+    border: 0;
+    border-right: 1px solid #aaa;
+}
+
+/* Styles for geography infoboxes, eg countries,
+   country subdivisions, cities, etc.            */
+.infobox.geography {
+    text-align: left;
+    border-collapse: collapse;
+    line-height: 1.2em; 
+    font-size: 90%;
+}
+
+.infobox.geography  td,
+.infobox.geography  th {
+    border-top: solid 1px #aaa;
+    padding: 0.4em 0.6em 0.4em 0.6em;
+}
+.infobox.geography .mergedtoprow td,
+.infobox.geography .mergedtoprow th {
+    border-top: solid 1px #aaa;
+    padding: 0.4em 0.6em 0.2em 0.6em;
+}
+
+.infobox.geography .mergedrow td,
+.infobox.geography .mergedrow th {
+    border: 0;
+    padding: 0 0.6em 0.2em 0.6em;
+}
+
+.infobox.geography .mergedbottomrow td,
+.infobox.geography .mergedbottomrow th {
+    border-top: 0;
+    border-bottom: solid 1px #aaa;
+    padding: 0 0.6em 0.4em 0.6em;
+}
+
+.infobox.geography .maptable td,
+.infobox.geography .maptable th {
+    border: 0;
+    padding: 0;
 }
 
