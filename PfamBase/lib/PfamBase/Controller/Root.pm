@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.10 2009-03-24 13:59:57 jt6 Exp $
+# $Id: Root.pm,v 1.11 2009-07-17 09:45:42 jt6 Exp $
 
 =head1 NAME
 
@@ -17,13 +17,14 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.10 2009-03-24 13:59:57 jt6 Exp $
+$Id: Root.pm,v 1.11 2009-07-17 09:45:42 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
+use XML::Feed;
 use DateTime;
 
 use base 'Catalyst::Controller';
