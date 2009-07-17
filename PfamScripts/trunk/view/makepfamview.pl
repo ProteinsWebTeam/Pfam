@@ -155,28 +155,28 @@ unless ($pfam and $pfam->pfama_acc){
 $logger->debug("Got pfam family databse object");
 
 #Now get the alignments and HMMs out of the database
-#foreach my $t (qw(full seed)){
-#  if($t eq "full"){
-#    open(A, ">ALIGN") or mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
-#  }elsif($t eq "seed"){  
-#    open(A, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
-#  }
-#  my $align = $pfamDB->getSchema
-#                      ->resultset('AlignmentsAndTrees')
-#                        ->find({ auto_pfama => $pfam->auto_pfama,
-#                                 type       => $t });
+foreach my $t (qw(full seed)){
+  if($t eq "full"){
+    open(A, ">ALIGN") or mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
+  }elsif($t eq "seed"){  
+   open(A, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
+  }
+  my $align = $pfamDB->getSchema
+                      ->resultset('AlignmentsAndTrees')
+                        ->find({ auto_pfama => $pfam->auto_pfama,
+                                 type       => $t });
   
-#  print A Compress::Zlib::memGunzip($align->alignment);
-#  close(A);
-#}
+  print A Compress::Zlib::memGunzip($align->alignment);
+  close(A);
+}
 
-#open(H, ">HMM") or mailUserAndFail($job, "Could not open HMM:[$!]\n");
-#my $hmm = $pfamDB->getSchema
-#        ->resultset('PfamaHmm')
-#          ->find({ auto_pfama => $pfam->auto_pfama});
-#
-#print H $hmm->hmm;
-#close(H);  
+open(H, ">HMM") or mailUserAndFail($job, "Could not open HMM:[$!]\n");
+my $hmm = $pfamDB->getSchema
+        ->resultset('PfamaHmm')
+          ->find({ auto_pfama => $pfam->auto_pfama});
+
+print H $hmm->hmm;
+close(H);  
 
 #Check that all of the files are present in the directory, this script assumes that all of the files 
 #are in the cwd.
