@@ -9,9 +9,9 @@
 # Author        : rdf
 # Maintainer    : $Author: rdf $
 # Created       : 2008-05-05
-# Last Modified : $Date: 2009-02-09 19:20:34 $
-# Version       : $Revision: 1.3 $;
-# Id            : $Id: pfamJobDequeue.pl,v 1.3 2009-02-09 19:20:34 rdf Exp $
+# Last Modified : $Date: 2009-07-20 08:50:16 $
+# Version       : $Revision: 1.4 $;
+# Id            : $Id: pfamJobDequeue.pl,v 1.4 2009-07-20 08:50:16 rdf Exp $
 
 use strict;
 use warnings;
@@ -130,9 +130,9 @@ while(1) {
 #                      print STDERR $qsout->currentDir."/".$ref->{'family_id'}."\n";
 #                      print STDERR $host.":".$tmpDir."/".$ref->{'job_id'};
 #      }
-  	}else{
-		$error .=  "Directory ".$qsout->currentDir."/".$ref->{'family_id'}." does not exist";
-	 }
+#  	}else{
+#		$error .=  "Directory ".$qsout->currentDir."/".$ref->{'family_id'}." does not exist";
+#	 }
       unless($error){
         #TODO - Fix this hard coding
         #These should all go into a config!  This can be updated at release time. 
@@ -348,7 +348,7 @@ while(1) {
         my $fh = IO::File->new();
         $DEBUG && print " bsub -q $queue  $resource \n";
         $fh->open( "| bsub -q $queue  $resource -o ".$tmpDir."/".$ref->{'job_id'}.".log");
-        fh2->print("mkdir -p ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
+        $fh->print("mkdir -p ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
         $fh->print("cd ".$tmpDir."/".$ref->{'job_id'}."/".$ref->{'family_id'}."\n");
         $fh->print( "$cmd\n");
         $fh->close;
