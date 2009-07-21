@@ -41,7 +41,7 @@ sub main {
 #Deal with the command line options
   
   my ($fname, $hand, $local, $nobuild, $split, $help, $evalCut, $dbsize,
-      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue );
+      $max, $bFilt, $null2, $f1, $f2, $f3, $ibm, $ism, $withpfmake, $makeEvalue, $db );
 
   &GetOptions( "help"       => \$help,
                "hand"       => \$hand,
@@ -59,7 +59,8 @@ sub main {
                'F2=s'       => \$f2,
                'F3=s'       => \$f3,
                'withpfmake' => \$withpfmake,
-               'makeEval=s' => \$makeEvalue);
+               'makeEval=s' => \$makeEvalue,
+  	       'db=s'       => \$db);
   
   help() if($help);
   if($hand and $nobuild){
@@ -69,6 +70,45 @@ sub main {
   if($local){
     $split = 0; 
   }
+
+  #Check db and dbsize
+  $db = "pfamseq" unless($db);
+  my $db_location;
+  if($db eq "pfamseq") {
+      if($dbsize and $dbsize ne $config->dbsize){
+	  warn "\n***** Using effective database size [$dbsize] that is different to pfamseq [".$config->dbsize."] *****\n\n";
+      } 
+      else {
+	  $dbsize =  $config->dbsize;
+      }
+      $db_location = $config->pfamseqLoc."/$db";
+  }
+  elsif($db eq "ncbi") {
+      if($dbsize and $dbsize ne $config->ncbi_dbsize){
+	  warn "\n***** Using effective database size [$dbsize] that is different to ncbi sequence db [".$config->ncbi_dbsize."] *****\n\n";
+      }
+      else {
+	  $dbsize =  $config->ncbi_dbsize;
+      } 
+      $db_location = $config->ncbiLoc."/$db";
+  }
+  elsif($db eq "metaseq") {
+      if($dbsize and $dbsize ne $config->meta_dbsize){
+	  warn "\n***** Using effective database size [$dbsize] that is different to metaseq [".$config->meta_dbsize."] *****\n\n";
+      }
+      else {
+	  $dbsize =  $config->meta_dbsize;
+      } 
+      $db_location = $config->metaseqLoc."/$db";
+  }
+  else {
+      die "db must be either 'pfamseq', 'ncbi' or 'metaseq', you specified [$db]\n";
+  }
+  unless(int($dbsize) == $dbsize and $dbsize > 0){
+    die "dbsize ($dbsize) must be an integer greater than 1\n"; 
+  }
+
+
 
 #-------------------------------------------------------------------------------
 #Read in the DESC file.  This is now required!
@@ -228,24 +268,10 @@ sub main {
   }
   $searchOptions{"-E"} =  $evalCut;
   
-  
-  # database size
-  if($dbsize){
-    if($dbsize != $config->dbsize){
-      warn "\n***** Using effective database size [$dbsize] that is different to pfamseq [".
-            $config->dbsize."] *****\n\n";
-    } 
-  }else{
-    $dbsize =  $config->dbsize;
-  }
-  unless($dbsize > 0) {
-    die "You can not specifiy a database size smaller than 1\n"; 
-  }
-  unless(int($dbsize) == $dbsize){
-    die "dbsise($dbsize) must be an integer\n"; 
-  }
-  $searchOptions{'-Z'} = $config->dbsize;
-  
+  # Db size
+  $searchOptions{'-Z'} = $dbsize;
+
+    
   # Turn off heuristic filtering
   if($max){
     if($local){
@@ -315,10 +341,10 @@ sub main {
   my $cmd;
   my $HMMResultsIO = Bio::Pfam::HMM::HMMResultsIO->new;  
   unless($split){
-    $cmd =$config->hmmer3bin."/".$searchOptions." ".$config->pfamseqLoc."/pfamseq > OUTPUT";
-    $descObj->SM($searchOptions." pfamseq");
+    $cmd =$config->hmmer3bin."/".$searchOptions." $db_location > OUTPUT";
+    $descObj->SM($searchOptions." $db");
   }
-  
+
   #Okay if we get here, this is a great chance of success!
   rename("DESC", "DESC.b4.pfbuild") or die "Could not move DESC to DESC.b4.pfbuild";
   $io->writeDESC( $descObj );
@@ -381,12 +407,12 @@ sub main {
         #And finally, run pfmake if we need to
         if($withpfmake){
           if($makeEvalue){
-            $fh->print("pfmake.pl -e $makeEvalue\n");    
+            $fh->print("pfmake.pl -e $makeEvalue -d $db_location\n");    
           }else{
             if(-e "$pwd/DESC"){
-              $fh->print("pfmake.pl\n");
+              $fh->print("pfmake.pl -d $db_location\n");
             }else{
-              $fh->print("pfmake.pl -e 0.01\n");  
+              $fh->print("pfmake.pl -e 0.01 -d $db_location\n");  
             }
           }
         }
@@ -443,6 +469,8 @@ Options that influence hmmbuild:
   *** There are more specialised options to come ***
 
 Options that influence hmmsearch:
+
+  -db <x>     : Specify which database to search against (choose pfamseq||metaseq||ncbi, default is pfamseq)
 
   General wrapping options:
   -local      : Run the hmmsearch on the local machine rather than submitting 
