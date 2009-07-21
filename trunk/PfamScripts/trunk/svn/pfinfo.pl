@@ -2,13 +2,23 @@
 
 use strict;
 use warnings;
+use Getopt::Long;
 
 use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::FamilyIO;
 use Bio::Pfam::PfamLiveDBManager;
-
+use Getopt::Long;
 my $config = Bio::Pfam::Config->new;
+
+my ($help, $revision);
+GetOptions(
+  "help" => \$help,
+  "rev"  => \$revision
+  
+ );
+
+help() if($help);
 
 unless ( $ARGV[0] ) {
   help();
@@ -38,7 +48,7 @@ if ( $family !~ /^(PF\d{5})$/ ) {
 #Check that family exists in svn
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkFamilyExists($family);
-$client->log($family);
+$client->log($family) if($revision);
 $client->catFile( $family, "DESC" );
 
 sub help {
@@ -47,7 +57,11 @@ sub help {
 
 usage: $0 <PFAM ACCESSION>
 
-Prints the SVN revision history for the family. If you are WTSI, you can use family ids.
+Now just prints the DESC file.
+
+-rev :Prints the SVN revision history for the family. 
+
+If you are WTSI, you can use family ids.
 
 EOF
  
