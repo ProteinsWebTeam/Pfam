@@ -161,13 +161,13 @@ foreach my $t (qw(full seed)){
   }elsif($t eq "seed"){  
    open(A, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
   }
-  my $align = $pfamDB->getSchema
+ my $align = $pfamDB->getSchema
                       ->resultset('AlignmentsAndTrees')
                         ->find({ auto_pfama => $pfam->auto_pfama,
                                  type       => $t });
   
   print A Compress::Zlib::memGunzip($align->alignment);
-  close(A);
+ close(A);
 }
 
 open(H, ">HMM") or mailUserAndFail($job, "Could not open HMM:[$!]\n");
@@ -336,16 +336,16 @@ foreach my $filename (qw(ALIGN SEED)){
     if(($ali->no_sequences != $pfam->num_seed) or ($ali->no_sequences != scalar(@regs))){
         mailUserAndFail($job, "Missmatch between number of regions in PfamA table (num_seed),".
           " number of regions from PfamA_reg_seed and/or alignment on disk");
-     }
+    }
     $pfam->update({ seed_consensus   => $consensus});
+
+    #Add predicted active site residues
+    $logger->debug("Going to add active site data to SEED");
+    $ali = $asp->seed($ali);
   }
   
   $logger->debug("Finished getting sequence accessions");
 
-
-  #Add predicted active site residues
-  $logger->debug("Going to add active site data to SEED");
-  $ali = $asp->seed($ali);
 
   #Now exchange the accessions for ids
   foreach my $s ($ali->each_seq) {
@@ -359,47 +359,52 @@ foreach my $filename (qw(ALIGN SEED)){
   $logger->debug("Exchanged identifers for accessions");
   
   my %seq_order;
-  #Now run quicktree on the original alignment file
-  $logger->debug("Going to run quickree on $filename");
+  #Now run FastTree on the original alignment file
+  $logger->debug("Going to run FastTree on $filename");
   
-  unless($tree and $tree eq 'upgma'){
-    open(TREE, "quicktree -upgma $filename|") 
-    or &mailUserAndFail($job, "Could not open pipe on command quicktree -upgma\n");
-  }else{
-    open(TREE, "quicktree $filename |") 
-      or &mailUserAndFail($job, "Could not open pipe on command quicktree\n");
-  }
+
+  open(TREE, "sreformat a2m $filename | FastTree -nj -boot 100 |") or &mailUserAndFail($job, "Could not open pipe on sreformat and FastTree -nj -boot 100 $filename\n");
+
   
   open(TREEFILE, ">$filename.tree") or mailUserAndFail($job, "Failed to open $filename.tree:[$!]");
-  
-  my $order = 1;
-  #Read the treefile in, exchange the accessions for ids and set the tree order on the database object.
-  while(<TREE>) {
-	 if(/^(\S+)\/(\d+)\-(\d+)(:.*)/) {
-	    my ($nm, $st, $en, $dist) = ($1, $2, $3, $4);
-	    print TREEFILE $regs{"$nm/$st-$en"}->pfamseq_id."/".$st."-".$en.$dist;
-	    if($regs{"$nm/$st-$en"}){    
-        $regs{"$nm/$st-$en"}->tree_order($order++);
-	    }else{
-	      $logger->warn("key [$nm/$st-$en] is not in the hash"); 
-	    }
-	   }else{
-	    print TREEFILE $_;
-	   }
-    }	 
-	 close(TREEFILE);
-   close(TREE);
-   #Now change the alignment from accessions to ids.
-     #Make a new alignment object
-     my $aliIds = Bio::Pfam::AlignPfam->new();
-   
-   #See of there is a match state string, if so add it to the object.
-   if (defined $ali->match_states_string()) {
-	     $aliIds->match_states_string($ali->match_states_string());
-   }
 
-   $aliIds->cons_sequence( Bio::Pfam::OtherRegion->new('-seq_id' => 'none',
-							                                         '-from' => 1,
+  my $line = <TREE>;
+  close TREE;
+  my @tree = split(/,/, $line);
+
+  #Exchange the treefile accessions for ids, and set the tree order on the database object
+  my $order = 1;
+  foreach my $acc (@tree) {
+    if($acc =~ /(.+)?(\w{6}\.\d+)\/(\d+)-(\d+)(.+)/) {
+        my ($before, $nm, $st, $en, $after) = ($1, $2, $3, $4, $5);
+
+	$before = "" unless($before);
+        $after = "" unless($after);
+
+        print TREEFILE $before.$regs{"$nm/$st-$en"}->pfamseq_id."/".$st."-".$en.$after.",";
+
+        if($regs{"$nm/$st-$en"}) {     
+	    $regs{"$nm/$st-$en"}->tree_order($order++);
+        } 
+        else{
+	    $logger->warn("key [$nm/$st-$en] is not in the hash"); 
+        }
+    }
+  }
+       
+  close TREEFILE;	      
+
+  #Now change the alignment from accessions to ids.
+  #Make a new alignment object
+  my $aliIds = Bio::Pfam::AlignPfam->new();
+  
+  #See of there is a match state string, if so add it to the object.
+  if (defined $ali->match_states_string()) {
+      $aliIds->match_states_string($ali->match_states_string());
+  }
+  
+  $aliIds->cons_sequence( Bio::Pfam::OtherRegion->new('-seq_id' => 'none',
+						       '-from' => 1,
                                     							     '-to' => length($consensus),
 							                                         '-type' => "60\%_consenus_sequence",
 							                                         '-display' => $consensus,
@@ -1032,7 +1037,7 @@ sub mailUserAndFail {
   my($job, $message) = @_;
 
   if($job->user_id){
-  
+
     my %header = (  To => $job->user_id.'@sanger.ac.uk',
 					          From => 'rdf@sanger.ac.uk',
 					          Subject => 'Error in view process for '.$job->family_id );
