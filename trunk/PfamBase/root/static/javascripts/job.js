@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.6 2008-09-12 16:17:38 jt6 Exp $
+// $Id: job.js,v 1.7 2009-07-22 13:12:11 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -171,17 +171,17 @@ var Job = Class.create({
 
     // start with a template and edit in the specific values, like IDs
     var jobDivString = '\
-      <div class="job">\
-        <div class="jobTitle">-</div>\
+      <div class="job ' + this.jobClass + '" id="job' + this.jobId + '">\
+        <div class="jobTitle">' + this.jobName + '</div>\
         <dl>\
           <dt>Status:</dt>\
           <dd class="status">unknown</dd>\
           <dt>Submitted:</dt>\
-          <dd class="submitted">-</dd>\
+          <dd class="submitted">' + this.opened + '</dd>\
           <dt>Started:</dt>\
           <dd class="started">-</dd>\
           <dt>Estimated run time:</dt>\
-          <dd class="runtime">12 seconds</dd>\
+          <dd class="runtime">' + this.estimatedTime + 's</dd>\
           <dt>Progress:</dt>\
           <dd>\
             <div class="progressWrapper">\
@@ -191,33 +191,13 @@ var Job = Class.create({
         </dl>\
       </div>';
 
-  	// add the new div to the bottom of the "jobs" div
-    $("jobs").insert( jobDivString );
+    // add the new div to the bottom of the "jobs" div
+    var jobDiv = $("jobs").insert( jobDivString );
 
-    // get a handle on this "job" div
-    var jobDiv = $("jobs").select(".job").last();
-    
     // store pointers to specific elements within this div
     this.statusMsg    = jobDiv.select( ".status"      ).first();
     this.startedValue = jobDiv.select( ".started"     ).first();
     this.bar          = jobDiv.select( ".progressBar" ).first();
-
-    // edit in the required unique values.
-
-  	// an ID for the container element
-  	jobDiv.setAttribute( "id", this.jobId );
-
-  	// set the CSS class for this job
-  	jobDiv.addClassName( this.jobClass );
-
-  	// the label for the job
-    jobDiv.select( ".jobTitle" ).first().update( this.jobName );
-
-  	// when was it started
-    jobDiv.select( ".submitted" ).first().update( this.opened );
-
-  	// the estimated job length
-    jobDiv.select( ".runtime" ).first().update( this.estimatedTime + 's' ); 
 
   },
   
@@ -327,7 +307,7 @@ var Job = Class.create({
     // console.debug( "Job.jobPending: still waiting for the job to run..." );
 
     // set the status message
-    this.statusMsg.innerHTML = "<span class='spinner'>pending</span>";
+    this.statusMsg.update( '<span class="spinner">pending</span>' );
     
     // log the number of pending jobs
     var n = statusObj.numPending;
@@ -360,14 +340,14 @@ var Job = Class.create({
       this.tick = 0;
        
       // set the status message
-      this.statusMsg.innerHTML = "running";
+      this.statusMsg.update( "running" );
 
       // log it
       this.log( this.jobName + ": submitted",
                 "your job is now running (started " + statusObj.started + ")" );
 
       // add the start time to the status line
-      this.startedValue.innerHTML = statusObj.started;
+      this.startedValue.update( statusObj.started );
     }
 
     // update the status bar
@@ -381,15 +361,15 @@ var Job = Class.create({
   jobDone: function( statusObj ) {
     // console.debug( "Job.jobDone: the job completed successfully" );
 
-  	// set the status message
-  	this.statusMsg.innerHTML = "done";
+    // set the status message
+    this.statusMsg.update( "done" );
   
-  	// log it
-  	this.log( this.jobName + ": completed", "finished at " + statusObj.closed );
+    // log it
+    this.log( this.jobName + ": completed", "finished at " + statusObj.closed );
   
-  	// max out the progress bar
-  	this.bar.setStyle( { width: '100%' } );
-  	
+    // max out the progress bar
+    this.bar.setStyle( { width: '100%' } );
+    
     this.jobEnded( statusObj );
 
     // tidy up here
@@ -402,15 +382,15 @@ var Job = Class.create({
   jobFailed: function( statusObj ) {
     // console.debug( "Job.jobFailed: the job failed" );
 
-  	// set the status message
-  	this.statusMsg.innerHTML = "failed";
+    // set the status message
+    this.statusMsg.update( "failed" );
   
-  	// log it
-  	this.log( this.jobName + ": failed", "finished at " + statusObj.closed );
+    // log it
+    this.log( this.jobName + ": failed", "finished at " + statusObj.closed );
   
-  	// max out the progress bar
-  	this.bar.setStyle( { width: '100%' } );
-	
+    // max out the progress bar
+    this.bar.setStyle( { width: '100%' } );
+  
     this.jobEnded( statusObj );
 
     // tidy up here
@@ -522,12 +502,12 @@ var Job = Class.create({
     // the title
     var titleEl = document.createElement( "span" );
     titleEl.setAttribute( "class", "title" )
-    titleEl.innerHTML = title + ":&nbsp;";
+    titleEl.update( title + ":&nbsp;" );
     
     // the message itself
     var msgEl = document.createElement( "span" );
     msgEl.setAttribute( "class", "msg" );
-    msgEl.innerHTML = msg;
+    msgEl.update( msg );
 
     // the entry
     entryEl.appendChild( titleEl );
