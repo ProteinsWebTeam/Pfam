@@ -353,11 +353,23 @@ sub main {
   unlink('OUTPUT');
   
   if($local){
-    system($cmd) 
-      and die "Failed to run hmmbuild [ $cmd ] due to [$!]";
-    #Parse the Results
-    $HMMResultsIO->convertHMMSearch( "OUTPUT" );
-  }else{
+      system($cmd) and die "Failed to run hmmbuild [ $cmd ] due to [$!]";
+      #Parse the Results
+      $HMMResultsIO->convertHMMSearch( "OUTPUT" );
+      
+      #run pfmake if we need to
+      if($withpfmake){
+	  if($makeEvalue){
+	      system("pfmake.pl -e $makeEvalue -d $db_location\n") and die "Failed to run pfmake\n";
+	  }else{
+	      if(-e "DESC"){
+		  system("pfmake.pl -d $db_location\n") and die "Failed to run pfmake\n";
+	      }else{
+		  system("pfmake.pl -e 0.01 -d $db_location\n") and die "Failed to run pfmake\n";
+	      }
+	  }    
+      }
+  } else{
     #Get the current working directory and hostname
     my $phost = hostname;
     my $pwd  = getcwd;
