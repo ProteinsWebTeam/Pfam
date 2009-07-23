@@ -34,54 +34,42 @@ while(<HMM>) {
     chomp;
 	# Change when we update hmmer version	
     #if (/^HMMER2.0\s+\[${$hmmer_version[0]}[0]\]/) {
-	if (/^HMMER2.0\s+\[(\S+)\]/){
-	$thisHmmerVersion = $1;
-	print "Hmmer version missmatch! $1 was used, expected $hmmer_version \n" if ($hmmer_version != $thisHmmerVersion);
-	# start of an entry
-	$namenum = $acc = $desc = $build = $calibrate = 0;
-	next;
-    } elsif (/^NAME  ([0-9a-zA-Z\-_]{1,15})$/){
-	$name = $1;
-	$namenum++;
-	next;
-    }  elsif (/^NAME/){
-	die "Incorrectly formatted NAME field [$_]\n";
-    } elsif ((/^ACC   (PF\d{5})$/) && !$version) {
+	if (/^HMMER3\/a\s+\[(\S+)\s+\|(.*)\]/){
+	  $thisHmmerVersion = $1;
+  	print "Hmmer version missmatch! $1 was used, expected $hmmer_version \n" if ($hmmer_version != $thisHmmerVersion);
+	  # start of an entry
+	  $namenum = $acc = $desc = $build = $calibrate = 0;
+	  next;
+  } elsif (/^NAME  ([0-9a-zA-Z\-_]{1,15})$/){
+	  $name = $1;
+	  $namenum++;
+	  next;
+  }  elsif (/^NAME/){
+	  die "Incorrectly formatted NAME field [$_]\n";
+  } elsif ((/^ACC   (PF\d{5})$/) && !$version) {
+	  $acc++;
+	  next;
+  } elsif ((/^ACC   (PF\d{5}\.\d{1,3})$/) && $version) {
+  	$acc++;
+	  next;
+  } elsif (/^ACC/) {
+	  die "Incorrectly formatted ACC field [$_]\n";
+  } elsif (/^DESC  \S/){
+	  $desc++;
+	  next;
+  } elsif (/^DESC/) {
+	  die "Incorrectly formatted DESC line [$_]\n";
+  } elsif (/^\/\//) {
 	
-	$acc++;
-	next;
-    } elsif ((/^ACC   (PF\d{5}\.\d{1,3})$/) && $version) {
-	$acc++;
-	next;
-    } elsif (/^ACC/) {
-	die "Incorrectly formatted ACC field [$_]\n";
-    } elsif (/^DESC  \S/){
-	$desc++;
-	next;
-    } elsif (/^DESC/) {
-	die "Incorrectly formatted DESC line [$_]\n";
-    } elsif (/^COM\s+hmmbuild/){
-	$build++;
-	next;
-    } elsif (/^COM\s+hmmcalibrate/){
-	$calibrate++;
-	next;
-    } elsif (/^\/\//) {
-	if ($namenum != 1){
+    if ($namenum != 1){
 	    die "$name NAME lines for $name\n";
-	}
-	if ($desc != 1){
+	  }
+	  if ($desc != 1){
 	    die "$desc DESC lines for $name\n";
-	}
-	if ($build != 1){
-	    die "$build COM hmmbuild lines for $name\n";
-	}
-	if ($calibrate != 1){
-	    die "$calibrate COM hmmcalibrate lines for $name\n";
-	}
-    } elsif (/^LENG\s+\d+/){
+    }
+   } elsif (/^LENG\s+\d+/){
 	next;
-    } elsif (/^ALPH  Amino/){
+    } elsif (/^ALPH  amino/){
 	next;
     } elsif (/^RF    no/){
 	next;
@@ -100,17 +88,17 @@ while(<HMM>) {
     } elsif (/^TC\s+[0-9.-]+\s+[0-9.-]+/){
 	next;
     } elsif (/^NC\s+[0-9.-]+\s+[0-9.-]+/){
+  next;
+    }elsif (/^SM\s+(.*)/){
+      next;
+    }elsif (/^BM\s+(.*)/){
+      next;
+    }elsif(/EFFN\s+(\S+)/){
 	next;
     } elsif (/^CKSUM\s+\d+/){
 	next;
-    } elsif (/^EVD\s+\S+\s+\S+/){
-	next;
-    } elsif (/^NULE\s+\S+\s+\S+/){
-	next;
-    } elsif (/^NULT\s+\S+\s+\S+/){
-	next;
-    } elsif (/^XT/){
-	next;
+    } elsif(/STATS LOCAL\s+(VLAMBDA|VMU|FTAU)\s+(\S+)/){
+  next;
     } elsif (/^DATE/){
 	next;
     } elsif (/^HMM /){
