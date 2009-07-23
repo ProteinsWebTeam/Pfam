@@ -119,7 +119,7 @@ if ($forward) {
 }
 
 unless ( $nforward or $forward ) {
-  print "Please give the pfam id for the family to forward to\n";
+  print "Please give the pfam accession for the family to forward to\n";
   print "Finish with a . on the line by itself\n";
 
   while ( ( $_ = <STDIN> ) !~ /^\.$/ ) {
