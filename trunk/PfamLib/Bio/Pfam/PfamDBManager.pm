@@ -448,12 +448,16 @@ sub getOverlapingFullPfamRegions {
   my $dbh = $self->getSchema->storage->dbh;
   my $sth = $dbh->prepare(
 "select distinct seq_start, seq_end, pfamA_acc, pfamA_id from pfamA a, pfamA_reg_full_significant r, pfamseq s where pfamseq_acc= ? and
-  ((? <= r.ali_start and ? >= r.ali_end) or ( ? >= r.ali_start and ? <= r.ali_end) or (? < r.ali_start and ? >r.ali_end))
+  ((? >= r.ali_start and ? <= r.ali_end) or ( ? >= r.ali_start and ? <= r.ali_end) or (? < r.ali_start and ? >r.ali_end))
   and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and pfamA_acc != ? and in_full=1"
   ) or confess $dbh->errstr;
 
   foreach my $seqAcc ( keys %{$regionsHash} ) {
+    my %seen;
     foreach my $region ( @{ $regionsHash->{$seqAcc} } ) {
+      next if($seen{$region->{from}.":".$region->{to}.":".$region->{ali}});
+      $seen{$region->{from}.":".$region->{to}.":".$region->{ali}}++;
+                  
       $sth->execute(
         $seqAcc,       $region->{from}, $region->{from},
         $region->{to}, $region->{to},   $region->{from},
@@ -487,12 +491,16 @@ sub getOverlapingSeedPfamRegions {
   my $dbh = $self->getSchema->storage->dbh;
   my $sth = $dbh->prepare(
 "select distinct seq_start, seq_end, pfamA_acc, pfamA_id from pfamA a, pfamA_reg_seed r, pfamseq s where pfamseq_acc= ? and
-  ((? <= r.seq_start and ? >= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
+  ((? >= r.seq_start and ? <= r.seq_end) or ( ? >= r.seq_start and ? <= r.seq_end) or (? < r.seq_start and ? >r.seq_end))
   and s.auto_pfamseq=r.auto_pfamseq and r.auto_pfamA=a.auto_pfamA and pfamA_acc != ?"
   ) or confess $dbh->errstr;
 
   foreach my $seqAcc ( keys %{$regionsHash} ) {
+    my %seen;
     foreach my $region ( @{ $regionsHash->{$seqAcc} } ) {
+      next if($seen{$region->{from}.":".$region->{to}.":".$region->{ali}});
+      $seen{$region->{from}.":".$region->{to}.":".$region->{ali} }++;
+                  
       $sth->execute(
         $seqAcc,       $region->{from}, $region->{from},
         $region->{to}, $region->{to},   $region->{from},
