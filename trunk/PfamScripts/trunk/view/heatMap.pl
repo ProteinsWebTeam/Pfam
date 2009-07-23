@@ -90,7 +90,7 @@ if ( $option{n} ) {
 #
 
 system("sreformat fasta ALIGN.ann > fa.ann") and die "Failed to run sreformat:[$!]\n";
-system($config->hmmer3bin."/hmmalign HMM.ann fa.ann > ALIGN.pp.wsto") and die "Failed to run hmmalign:[$!]\n";
+system($config->hmmer3bin."/hmmalign HMM fa.ann > ALIGN.pp.wsto") and die "Failed to run hmmalign:[$!]\n";
 
 my ($aliHash, $aliOrder) = read_alignment(); 
 my ($aliHM);
