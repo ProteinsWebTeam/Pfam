@@ -159,7 +159,7 @@ foreach my $t (qw(full seed)){
   if($t eq "full"){
     open(A, ">ALIGN") or mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
   }elsif($t eq "seed"){  
-   open(A, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
+    open(A, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
   }
  my $align = $pfamDB->getSchema
                       ->resultset('AlignmentsAndTrees')
@@ -178,9 +178,10 @@ my $hmm = $pfamDB->getSchema
 print H $hmm->hmm;
 close(H);  
 
+
 #Check that all of the files are present in the directory, this script assumes that all of the files 
 #are in the cwd.
-foreach my $f (qw(ALIGN SEED HMM DESC)){
+foreach my $f (qw(ALIGN SEED HMM)){
    unless(-e $f and -s $f){
       mailUserAndFail($job, "View process failed as $f was not present\n");  
    }
@@ -437,7 +438,10 @@ foreach my $filename (qw(ALIGN SEED)){
        #Delete all auto_pfamAs
        $pfamDB->getSchema
                   ->resultset('PdbPfamaReg')
-                    ->search({ auto_pfamA => $pfam->auto_pfama})->delete;
+                    ->search({ auto_pfama => $pfam->auto_pfama})->delete;
+
+
+
        #Add the pdbmap data to pdb_pfamA_reg
        my %autoPdbs;
        foreach my $nse (keys %$map){
@@ -538,7 +542,7 @@ foreach my $filename (qw(ALIGN SEED)){
      #one could simply use join! 
 
      if($xref->other_params and $xref->other_params =~ /\S+/){
-      print ANNFILE "#=GF DR   ".$xref->db_id."; ". $xref->db_link ."; " .$xref->other_params."\n";
+      print ANNFILE "#=GF DR   ".$xref->db_id."; ". $xref->db_link ."; " .$xref->other_params.";\n";
      }else{
       print ANNFILE "#=GF DR   ".$xref->db_id."; ".$xref->db_link.";\n";
      }
