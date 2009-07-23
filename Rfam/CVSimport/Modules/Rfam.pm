@@ -64,7 +64,8 @@ $acclog_file    = "$accession_dir/acclog";
 $rcs_index_file = "$accession_dir/accmap.dat";
 $lock_file      = "$accession_dir/lock";
 
-$rfamseq_root_dir    = "/lustre/pfam/rfam/Production/rfamseq";
+#$rfamseq_root_dir    = "/lustre/pfam/rfam/Production/rfamseq";
+$rfamseq_root_dir    = "/nfs/pfam_nfs/rfam/rfamseq";
 $rfamseq_current_dir = "$rfamseq_root_dir/CURRENT";
 $rfamseq_new_dir     = "$rfamseq_root_dir/NEW";               #NOT FUCKING USED!
 $rfamseq_current_inx = "$rfamseq_current_dir/rfamseq.fa.bpi"; #NOT FUCKING USED!
