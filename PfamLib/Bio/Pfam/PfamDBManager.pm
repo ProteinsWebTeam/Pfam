@@ -78,6 +78,24 @@ sub acc2id {
   }
 }
 
+sub clanId2Acc {
+  my ( $self, $id ) = @_;
+  my $result =
+  $self->getSchema->resultset("Clans")->find( { "clan_id" => $id } );
+  if ( $result && $result->clan_acc ) {
+    return ( $result->clan_acc );
+  }
+}
+
+sub clanAcc2Id {
+  my ( $self, $acc ) = @_;
+  my $result =
+    $self->getSchema->resultset("Pfama")->find( { "clan_acc" => $acc } );
+  if ( $result && $result->clan_id ) {
+    return ( $result->clan_id );
+  }
+}
+
 sub getVersion {
   my ($self) = @_;
   my $version = $self->getSchema->resultset("Version")->search()->first;
@@ -289,11 +307,11 @@ sub getPfamInterPro {
   if ( $family =~ /PF\d{5}/ ) {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
-    $familyData = $self->getSchema->resultset("Pfam")->find(
+    $familyData = $self->getSchema->resultset("Pfama")->find(
       { "pfamA_acc" => $family },
       {
-        join     => qw( interpro ),
-        prefetch => qw( interpro )
+        join     => qw( interpros ),
+        prefetch => qw( interpros )
       }
     );
 
@@ -301,11 +319,11 @@ sub getPfamInterPro {
   elsif ( $family =~ /\S{1,16}/ ) {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
-    $familyData = $self->getSchema->resultset("Pfam")->find(
+    $familyData = $self->getSchema->resultset("Pfama")->find(
       { "pfamA_id" => $family },
       {
-        join     => qw( interpro ),
-        prefetch => qw( interpro )
+        join     => qw( interpros ),
+        prefetch => qw( interpros )
       }
     );
   }
@@ -325,11 +343,11 @@ sub getPfamGO {
   if ( $family =~ /PF\d{5}/ ) {
     carp("Looking up information for $family. I think this is an accession")
       if $self->{'debug'};
-    @familyGO = $self->getSchema->resultset("Pfam")->search(
+    @familyGO = $self->getSchema->resultset("Pfama")->search(
       { "pfamA_acc" => $family },
       {
-        join     => qw( go ),
-        prefetch => qw( go )
+        join     => qw( gene_ontologies ),
+        prefetch => qw( gene_ontologies )
       }
     );
 
@@ -337,11 +355,11 @@ sub getPfamGO {
   elsif ( $family =~ /\S{1,16}/ ) {
     carp("Looking up information for $family. I think this is an id")
       if $self->{'debug'};
-    @familyGO = $self->getSchema->resultset("Pfam")->search(
+    @familyGO = $self->getSchema->resultset("Pfama")->search(
       { "pfamA_id" => $family },
       {
-        join     => qw( go ),
-        prefetch => qw( go )
+        join     => qw( gene_ontologies ),
+        prefetch => qw( gene_ontologies )
       }
     );
   }
@@ -457,7 +475,6 @@ sub getOverlapingFullPfamRegions {
     foreach my $region ( @{ $regionsHash->{$seqAcc} } ) {
       next if($seen{$region->{from}.":".$region->{to}.":".$region->{ali}});
       $seen{$region->{from}.":".$region->{to}.":".$region->{ali}}++;
-                  
       $sth->execute(
         $seqAcc,       $region->{from}, $region->{from},
         $region->{to}, $region->{to},   $region->{from},
@@ -500,7 +517,6 @@ sub getOverlapingSeedPfamRegions {
     foreach my $region ( @{ $regionsHash->{$seqAcc} } ) {
       next if($seen{$region->{from}.":".$region->{to}.":".$region->{ali}});
       $seen{$region->{from}.":".$region->{to}.":".$region->{ali} }++;
-                  
       $sth->execute(
         $seqAcc,       $region->{from}, $region->{from},
         $region->{to}, $region->{to},   $region->{from},
