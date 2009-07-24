@@ -48,7 +48,7 @@ The rest of the documentation details each of the object methods. Internal metho
 
 =cut
 
-# $Author: jt6 $
+# $Author: rdf $
 
 # Let the code begin...
 
@@ -1466,6 +1466,7 @@ sub write_Pfam {
 
     my @output;
     $maxn = $self->maxdisplayname_length();
+    $maxn += 2; #Add dot version....
     if ($self->match_states_string)
 	{
 	$namestr = "#=RF";
@@ -1475,7 +1476,7 @@ sub write_Pfam {
 	}
  
     foreach $seq ( $self->each_seq() ) {
-      $namestr = $seq->get_nse();
+      $namestr = $seq->get_nse_version();
 	$add = $maxn - length($namestr) + 2;
 	$namestr .= " " x $add;
 	push @output, sprintf("%s  %s\n",$namestr,$seq->seq());
