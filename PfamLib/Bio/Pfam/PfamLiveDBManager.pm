@@ -1164,6 +1164,19 @@ sub uploadPfamAInternal {
   );
 }
 
+sub resetInFull {
+  my ( $self, $auto ) = @_;  
+  
+  my @regions =
+    $self->getSchema->resultset('PfamaRegFullSignificant')->search(
+    { auto_pfama => $auto } );
+  
+  foreach my $r (@regions){
+    $r->update( {in_full => 1 });
+  }
+    
+}
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
