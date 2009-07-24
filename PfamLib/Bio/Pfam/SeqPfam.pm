@@ -60,7 +60,7 @@ The rest of the documentation details each of the object methods. Internal metho
 
 # Let the code begin...
 
-# $Author: jt6 $
+# $Author: rdf $
 
 package Bio::Pfam::SeqPfam;
 use vars qw($AUTOLOAD @ISA);
@@ -626,6 +626,21 @@ sub set_sprot_pred_active_site {
 						  '-display' => $line,
 					           '-source' => 'Pfam'));
     return $self;
+}
+
+
+sub get_nse_version{
+   my ($self,$char1,$char2) = @_;
+
+   $char1 ||= "/";
+   $char2 ||= "-";
+
+   $self->throw("Attribute id not set") unless defined($self->id());
+   $self->throw("Attribute start not set") unless defined($self->start());
+   $self->throw("Attribute end not set") unless defined($self->end());
+   
+   return $self->id() .".".$self->seq_version. $char1 . $self->start . $char2 . $self->end ;
+
 }
 
 =head1 COPYRIGHT
