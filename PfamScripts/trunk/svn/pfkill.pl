@@ -68,6 +68,27 @@ unless ($family) {
   help();
 }
 
+my $config = Bio::Pfam::Config->new;
+#Check that the family looks like a pfam accession
+unless($family =~ /PF\d{5}/){
+  if($config->location eq 'WTSI'){
+    my $connect = $config->pfamlive;
+    my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
+      %{ $connect }
+    );
+    my $pfamAcc = $pfamDB->id2acc($family);
+    unless($pfamAcc =~ /PF\d{5}/){
+      warn "You passed in something that did not look like an accession.\n"; 
+      warn "Because you are at WTSI, tried to map it to an accession, but failed.\n";
+      help();
+    }
+    $family = $pfamAcc;
+  }else{
+    print STDERR "\n ***** $family does not look like a family accession *****\n\n";
+    help();
+  }  
+}
+
 unless ( $family =~ /^PF\d{5}$/ ) {
   warn "\n***** $family does not look like an acccession *****\n\n";
   help();
@@ -75,7 +96,7 @@ unless ( $family =~ /^PF\d{5}$/ ) {
 
 if ( $forward and $forward !~ /^PF\d{5}/ ) {
   warn
-"\n***** The family to forward to [ $family ] does not look like an acccession *****\n\n";
+"\n***** The family to forward to [ $forward ] does not look like an acccession *****\n\n";
   help();
 }
 
@@ -88,14 +109,13 @@ $client->checkFamilyExists($family);
 my $familyIO = Bio::Pfam::FamilyIO->new;
 my $famObj = $familyIO->loadPfamAFromSVN( $family, $client );
 
-
 #-------------------------------------------------------------------------------
 # This bit is based on the old pfkill. Get a comment as to why the family has been
 # killed unless the comment was supplied as a commandline argument.
 #
 unless ($comment) {
   print "Please give a comment for killing family [$family]\n";
-  print "Finish comment by a . on the line by itself\n"; 
+  print "Finish comment by a . on the line by itself\n";
   my @comment;
   while (<STDIN>) {
     chomp;
@@ -114,6 +134,7 @@ unless ( $comment =~ /\S+/ ) {
 
 # Prompt for forwarding accession.
 if ($forward) {
+
   #Now check that the family we want to kill is part of the SVN repository
   $client->checkFamilyExists($forward);
 }
@@ -130,8 +151,9 @@ unless ( $nforward or $forward ) {
       if ($@) {
         warn "Acc $acc does not exist in the database";
         next;
-      }else{
-        $forward=$acc;
+      }
+      else {
+        $forward = $acc;
       }
     }
     else {
@@ -143,42 +165,43 @@ unless ( $nforward or $forward ) {
 #-------------------------------------------------------------------------------
 # So we should have enough information to kill off the family.  Write it to file
 # such that the code reference that deals with the SVN log message can grab it.
-if ( $famObj->DESC->CL ) {
 
-#This family is part of a clan and therefore needs to be removed from the membership!
-#TODO
+if ( -s ".defaultpfkill" ) {
+  unlink(".defaultpfkill")
+    or die "Could not remove old default check-in message\n";
 }
-else {
-  if ( -s ".defaultpfkill" ) {
-    unlink(".defaultpfkill")
-      or die "Could not remove old default check-in message\n";
-  }
 
-  open( M, ">.defaultpfkill" ) or die "Could not open message file\n";
-  print M "Comment;" . $comment."\n";
-  print M "PFKILL:Forward;" . $forward if ($forward);
-  close(M);
-  $client->addPFKILLLog();
+open( M, ">.defaultpfkill" ) or die "Could not open message file\n";
+print M "Comment;" . $comment . "\n";
+print M "PFKILL:Forward;" . $forward . "\n" if ($forward);
+if ( $famObj->DESC->CL ) {
+  print M "PFKILLRMC:"
+    . $famObj->DESC->CL . ":"
+    . $famObj->DESC->AC
+    . "\n";
+}
+close(M);
+$client->addPFKILLLog();
 
 #-------------------------------------------------------------------------------
 #If we get here, then great! We can now kill the family!
-  my $caught_cntrl_c;
-  $SIG{INT} = sub { $caught_cntrl_c = 1; };   # don't allow control C for a bit!
+my $caught_cntrl_c;
+$SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 
-  $client->killFamily($family);
+$client->killFamily($family);
 
-  #Remove any file containing the check-in message
-  if ( -s ".defaultpfkill" ) {
-    unlink(".defaultpfkill")
-      or die "Could not remove old default check-in message\n";
-  }
-
-  #
-  if ($caught_cntrl_c) {
-    print STDERR
-"\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
-  }
+#Remove any file containing the check-in message
+if ( -s ".defaultpfkill" ) {
+  unlink(".defaultpfkill")
+    or die "Could not remove old default check-in message\n";
 }
+
+#
+if ($caught_cntrl_c) {
+  print STDERR
+"\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
+}
+
 exit(0);
 
 #-------------------------------------------------------------------------------
@@ -200,6 +223,6 @@ If you want to provide these reasons on the commandline use the following flags
 
 EOF
 
-exit(1);
+  exit(1);
 
 }
