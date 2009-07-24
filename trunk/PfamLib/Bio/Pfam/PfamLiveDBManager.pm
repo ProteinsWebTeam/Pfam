@@ -144,6 +144,57 @@ sub removeClan {
   return ($result);
 }
 
+#TODO
+sub updateClan {
+  my( $self, $clanObj) = @_;
+  
+  unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
+    confess("Did not get a Bio::Pfam::Clan::Clan object");
+  }
+  
+  my $clan = $self->getSchema
+                  ->resultset('Clans')->find( { clan_acc => $clanObj->DESC->AC } );
+  $clan->update({
+      clan_acc        => $clanObj->DESC->AC,
+      clan_id         => $clanObj->DESC->ID,
+      previous_id     => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
+      clan_desription => $clanObj->DESC->DE,
+      clan_author     => $clanObj->DESC->AU,
+      clan_comment    => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
+    });
+  
+  #Add the auto number to the clan Obj.
+  $clanObj->rdb( { auto => $clan->auto_clan } );
+}
+
+sub createClan {
+  my( $self, $clanObj, $depositor) = @_;
+  
+  unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
+    confess("Did not get a Bio::Pfam::Clan::Clan object");
+  }
+  
+  my $clan = $self->getSchema->resultset('Clans')->create(
+    {
+      clan_acc        => $clanObj->DESC->AC,
+      clan_id         => $clanObj->DESC->ID,
+      previous_id     => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
+      clan_desription => $clanObj->DESC->DE,
+      clan_author     => $clanObj->DESC->AU,
+      deposited_by    => $depositor,
+      clan_comment    => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
+      created         => \'NOW()',
+      competed        => 0
+    });
+  
+  unless ( $clan and $clan->isa('PfamLive::Clans') ) {
+    confess( 'Failed to get row for ' . $clanObj->DESC->ID . "....." );
+  }
+
+  #Add the auto number to the clan Obj.
+  $clanObj->rdb( { auto => $clan->auto_clan } );
+}
+
 sub updatePfamA {
   my ( $self, $famObj ) = @_;
 
@@ -193,7 +244,7 @@ sub updatePfamA {
 }
 
 sub createPfamA {
-  my ( $self, $famObj ) = @_;
+  my ( $self, $famObj, $depositor ) = @_;
 
   unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
     confess("Did not get a Bio::Pfam::Family::PfamA object");
@@ -205,6 +256,7 @@ sub createPfamA {
       pfama_id     => $famObj->DESC->ID,
       description  => $famObj->DESC->DE,
       author       => $famObj->DESC->AU,
+      deposited_by => $depositor,
       seed_source  => $famObj->DESC->SE,
       type         => $famObj->DESC->TP,
       sequence_tc  => $famObj->DESC->CUTTC->{seq},
@@ -251,7 +303,7 @@ sub movePfamA {
 }
 
 sub deletePfamA {
-  my ( $self, $family, $comment, $forward ) = @_;
+  my ( $self, $family, $comment, $forward, $user ) = @_;
   my $pfamA =
     $self->getSchema->resultset('Pfama')->find( { pfama_acc => $family } );
 
@@ -267,21 +319,29 @@ sub deletePfamA {
       pfama_id   => $pfamA->pfama_id,
       pfama_acc  => $pfamA->pfama_acc,
       comment    => $comment,
-      forward_to => $forward
+      forward_to => $forward,
+      user       => $user,
+      killed     => \'NOW()'
     }
   );
 
 }
 
 sub deleteClan {
-  my ( $self, $clanAcc, $comment, $forward ) = @_;
+  my ( $self, $clanAcc, $comment, $forward, $user ) = @_;
   my $clan =
     $self->getSchema->resultset('Clans')->find( { clan_acc => $clanAcc } );
 
   unless ( $clan and $clan->isa('PfamLive::Clans') ) {
     confess( 'Failed to get row for ' . $clanAcc . "....." );
   }
-
+  my $clanMembership = $self->getClanMembership($clanAcc);
+  
+  my $memberString;
+  foreach my $mem (@$clanMembership){
+    $memberString .= $mem->auto_pfama->pfama_acc." ";    
+  }
+  
   $clan->delete;
 
   #Now make the dead_clans entry
@@ -290,8 +350,11 @@ sub deleteClan {
       clan_id          => $clan->clan_id,
       clan_acc         => $clan->clan_acc,
       clan_description => $clan->clan_description,
+      clan_membership  => $memberString,
       comment          => $comment,
-      forward_to       => $forward
+      forward_to       => $forward,
+      user             => $user,
+      killed           => \'NOW()'
     }
   );
 
@@ -949,32 +1012,7 @@ sub uploadAlignmentAndTrees {
 
 }
 
-sub createClan {
-  my ( $self, $clanObj ) = @_;
 
-  unless ( $clanObj and $clanObj->isa('Bio::Pfam::Clan::Clan') ) {
-    confess("Did not get a Bio::Pfam::Clan::Clan object");
-  }
-
-  my $clan = $self->getSchema->resultset('Clans')->create(
-    {
-      clan_acc         => $clanObj->DESC->AC,
-      clan_id          => $clanObj->DESC->ID,
-      clan_description => $clanObj->DESC->DE,
-      clan_author      => $clanObj->DESC->AU,
-      clan_comment     => $clanObj->DESC->CC,
-      competed         => 0
-    }
-  );
-
-  unless ( $clan and $clan->isa('PfamLive::Clans') ) {
-    confess( 'Failed to get row for ' . $clanObj->DESC->ID . " $clan....." );
-  }
-
-  #Add the auto number to the clanObj.
-  $clanObj->rdb( { auto => $clan->auto_clan } );
-
-}
 
 sub updateClanDbXrefs {
   my ( $self, $clanObj ) = @_;
@@ -1083,6 +1121,47 @@ sub updateClanLitRefs {
       }
     );
   }
+}
+
+
+sub uploadPfamAInternal {
+  my ( $self, $famObj, $seedString, $fullString ) = @_;
+  
+  #-------------------------------------------------------------------------------
+#Check we have the correct object
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+#-------------------------------------------------------------------------------
+#Get the index for the pfamA family
+
+  my $auto;
+  if ( $famObj->rdb->{auto} ) {
+    $auto = $famObj->rdb->{auto};
+  }
+  else {
+    my $pfamA =
+      $self->getSchema->resultset('Pfama')
+      ->find( { pfamA_id => $famObj->DESC->ID } );
+
+    if ( $pfamA->pfama_id ) {
+      $auto = $pfamA->auto_pfama;
+      $famObj->rdb->{auto} = $auto;
+    }
+    else {
+      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+    }
+  }
+
+  $self->getSchema->resultset('PfamaInternal')->update_or_create(
+    {
+      auto_pfama => $auto,
+      seed       => defined( $seedString ) ? Compress::Zlib::memGzip($seedString) : '',
+      full       => defined( $fullString ) ? Compress::Zlib::memGzip($fullString) : '',
+    }
+  );
 }
 
 =head1 COPYRIGHT
