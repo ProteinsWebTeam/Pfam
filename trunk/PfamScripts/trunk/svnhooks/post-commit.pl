@@ -123,8 +123,68 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   $client->commitClan($dest."/".$clanData->clan_acc);
   
   
-}elsif($logMessage =~ /PFCIRMC:(CL\d{4})-(PF\d{5})/){
-  die;
+}elsif($logMessage =~ /[PFCIRMC|PFKILLRMC]:(CL\d{4}):(PF\d{5})/){
+  my $clan = $1;
+  my $fam  = $2;
+  
+  #Need to remvoe the family accession from the clam membership list; 
+  removeFromClan($clan, $fam);  
+  #Now recompete and start off the clan view process for all 
+  #of the remaining families
+  my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
+    %{ $config->pfamlive; }
+  );
+  Bio::Pfam::Clan::Compete::competeClan($clan, $pfamDB);
+  Bio::Pfam::ViewProcess::initiateViewProcess($clan);
+  
+}elsif($logMessage =~ /CLKILL/){
+  my @deleted = $revlook->deleted;
+  
+  my $clanAcc;
+  foreach my $f (@deleted){
+    if( $f =~ m|(.*/Clans/(\S+)/CLANDESC)$|){
+      $clanAcc = $1;
+      last;     
+    }
+  }
+  
+  unless($clan){
+    die "Failied to get a clan accesion from the revision object\n";  
+  } 
+  
+  #Work out which clan was deleted from the list of deleted files
+  
+  my $connect = $config->pfamlive;
+  my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
+    %{ $connect }
+  );
+  
+  my $clan = $pfamDB->getSchema->resultset('DeadClans')->find({ clan_acc => $clanAcc}); 
+  
+  my @clanMembership = split(/\s+/, $clan->clan_membership);
+  
+  #Now uncompete the clan
+  Bio::Pfam::Clan::Compete::uncompeteClan($clan, \@clanMembership, $pfamDB);
+  
+  my $client = Bio::Pfam::SVN::Client->new;
+  my $familyIO = Bio::Pfam::FamilyIO->new;
+  
+  $client->addAUTORMCLLog();
+      
+  #Now get the list of families involved and remake there view file
+  foreach my $famAcc (@clanMembership){
+    #Now checkout and add the accession to the DESC file!
+    my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
+    my $dest = $tmpDir->dirname;
+    $client->checkoutFamily($famAcc, $dest);
+    #parse the DESC file
+    my $familyIO = Bio::Pfam::FamilyIO->new;
+    my $descObj = $familyIO->parseDESC("$dest/DESC");
+    $descObj->CL('');#Not sure if moose with bafth at this!
+    $familyIO->writeDESC($descObj, $dest);
+    #Commit back in
+    $client->commitFamily($dest);
+  }
 }else{
   #No other commits require post-commit processing
   ; 
@@ -164,4 +224,40 @@ sub addToClan {
   $client->commitClan($clanDir);
 }  
 
+sub removeFromClan {
+  my ( $clan, $fam ) = @_;  
+  my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
+  my $dest = $tmpDir->dirname;
+  
+  #Check out the clan!
+  my $client = Bio::Pfam::SVN::Client->new;
+  
+  #Check that the family and clan reside in the repository;
+  $client->checkFamilyExists($fam);
+  $client->checkClanExists($clan);
+  
+  $client->checkoutClan($clan, $dest);
+  
+  # Now open up the CLANDESC.  Move sideways and add the accession  
+  # to the clan membership list in the CLANDESC object and write
+  my $clanDir = "$dest/$clan";
+  my $clanIO = Bio::Pfam::ClanIO->new;
+  my $clanObj = $clanIO->loadClanFromLocalFile($clan, $dest, "file");
+  unlink("$clanDir/CLANDESC"); 
+  my $newMembership;
+  if($clanObj->DESC->MEMB){
+    foreach my $mem (@{ $clanObj->DESC->MEMB }){
+      push(@{ $newMembership }, $mem ); unless($mem eq $fam);
+    }
+  }else{
+    die;
+  }
+  #Now replace
+  $clanObj->DESC->MEMB($newMembership);
+  $clanIO->writeCLANDESC($clanObj->DESC, $clanDir);
+  
+  #Now check the clan back in, adding a automatic comment.
+  $client->addAUTORMMBLog($fam);
+  $client->commitClan($clanDir);
+} 
 
