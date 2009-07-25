@@ -155,12 +155,12 @@ sub updateClan {
   my $clan = $self->getSchema
                   ->resultset('Clans')->find( { clan_acc => $clanObj->DESC->AC } );
   $clan->update({
-      clan_acc        => $clanObj->DESC->AC,
-      clan_id         => $clanObj->DESC->ID,
-      previous_id     => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
-      clan_desription => $clanObj->DESC->DE,
-      clan_author     => $clanObj->DESC->AU,
-      clan_comment    => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
+      clan_acc         => $clanObj->DESC->AC,
+      clan_id          => $clanObj->DESC->ID,
+      previous_id      => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
+      clan_description => $clanObj->DESC->DE,
+      clan_author      => $clanObj->DESC->AU,
+      clan_comment     => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
     });
   
   #Add the auto number to the clan Obj.
@@ -333,7 +333,7 @@ sub deleteClan {
     $self->getSchema->resultset('Clans')->find( { clan_acc => $clanAcc } );
 
   unless ( $clan and $clan->isa('PfamLive::Clans') ) {
-    confess( 'Failed to get row for ' . $clanAcc . "....." );
+    confess( 'Failed to get row for ' . $clanAcc . "( Got $clan )....." );
   }
   my $clanMembership = $self->getClanMembership($clanAcc);
   
