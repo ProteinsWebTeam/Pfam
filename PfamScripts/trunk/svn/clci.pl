@@ -95,7 +95,7 @@ my $clanObj = $clanIO->loadClanFromLocalFile( $clan, $pwd, 'file' );
 my $clanSVNObj = $clanIO->loadClanFromSVN( $clan, $client );
 
 #Now make sure that the clan membership is unaltered.
-&Bio::Pfam::PfamQC::checkClanMembership( $clanObj, $clanSVNObj );
+#&Bio::Pfam::PfamQC::checkClanMembership( $clanObj, $clanSVNObj );
 
 
 
@@ -118,7 +118,6 @@ if ( -s ".defaultclci" ) {
 if ($caught_cntrl_c) {
   print STDERR
 "\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
-}
 }
 exit(0);
 

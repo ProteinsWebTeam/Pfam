@@ -1,4 +1,4 @@
-#!/uar/local/bin/perl
+#!/usr/local/bin/perl
 
 =head1 COPYRIGHT
 
@@ -106,7 +106,7 @@ if ( $forward and $forward !~ /^CL\d{4}/ ) {
 my $client = Bio::Pfam::SVN::Client->new;
 $client->checkClanExists($clan);
 my $clanIO = Bio::Pfam::ClanIO->new;
-my $clanObj = $clanIO->loadPfamAFromSVN( $clan, $client );
+my $clanObj = $clanIO->loadClanFromSVN( $clan, $client );
 
 #-------------------------------------------------------------------------------
 # Get a comment as to why the clan has been
