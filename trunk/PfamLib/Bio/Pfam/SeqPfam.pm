@@ -634,13 +634,14 @@ sub get_nse_version{
 
    $char1 ||= "/";
    $char2 ||= "-";
-
    $self->throw("Attribute id not set") unless defined($self->id());
    $self->throw("Attribute start not set") unless defined($self->start());
    $self->throw("Attribute end not set") unless defined($self->end());
-   
-   return $self->id() .".".$self->seq_version. $char1 . $self->start . $char2 . $self->end ;
-
+   if($self->seq_version){
+    return $self->id() .".".$self->seq_version. $char1 . $self->start . $char2 . $self->end ;
+   }else{
+     return $self->id() . $char1 . $self->start . $char2 . $self->end ;
+   }
 }
 
 =head1 COPYRIGHT
