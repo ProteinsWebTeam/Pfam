@@ -31,13 +31,14 @@ use Cwd;
 use Data::Dumper;
 use Getopt::Long;
 
+use Bio::Pfam::PfamQC;
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::ClanIO;
 use Bio::Pfam::PfamLiveDBManager;
 
 my $config = Bio::Pfam::Config->new;
 
-my ( $help, $family, $newName ); 
+my ( $help, $clan, $newClanName ); 
 
 &GetOptions(
   "help" => \$help,
@@ -84,9 +85,9 @@ unless( Bio::Pfam::PfamQC::nameFormatIsOK($newClanName)) {
 
 # Now we want to check out the DESC file
 my $pwd = getcwd();
-my $dest = $pwd."/".$clan; 
-if (-d $dest ){
-  print "The destination directory $dest already exist, remove before running pfmove out a family\n";
+my $dest = $pwd; 
+if (-d $dest.'/'.$clan ){
+  print "The destination directory $dest already exist, remove before running clmove the clan\n";
   exit(1); 
 }
 
@@ -98,7 +99,7 @@ $client->checkClanExists($clan);
 my $caught_cntrl_c;
 $SIG{INT} = sub {$caught_cntrl_c = 1;};   # don't allow control C for a bit!
 
-mkdir($dest) or die "Could not make directory $dest:[$!]\n";
+mkdir($dest.'/'.$clan) or die "Could not make directory $dest/$clan:[$!]\n";
 $client->checkoutClan($clan, $dest);
 
 if( $caught_cntrl_c ) {
@@ -109,7 +110,7 @@ if( $caught_cntrl_c ) {
 
 #Read in the DESC and change the name, adding the old name to the PI!
 my $clanIO = Bio::Pfam::ClanIO->new;
-my $descObj = $clanIO->parseCLANDESC( $dest."/CLANDESC");
+my $descObj = $clanIO->parseCLANDESC( $dest.'/'.$clan.'/CLANDESC');
 my $oldClanName = $descObj->ID;
 
 if($oldClanName eq $newClanName){
@@ -117,25 +118,25 @@ if($oldClanName eq $newClanName){
 }
 
 if($descObj->PI){
-  $descObj->PI( $descObj->PI." $oldName;");
+  $descObj->PI( $descObj->PI." $oldClanName;");
 }else{
-  $descObj->PI("$oldName;");
+  $descObj->PI("$oldClanName;");
 }
-$descObj->ID($newName);
+$descObj->ID($newClanName);
 
 #Write the DESC file back out.
-$familyIO->writeCLANDESC($descObj, $dest);
+$clanIO->writeCLANDESC($descObj, $dest.'/'.$clan);
 
 #Now commit this file back to the svn repository
 open(M, ">.defaultclmove") or die "Could not open .defaultpfmove:[$!]\n";
-print M "Moved family ID from $oldName to $newName\n";
+print M "Moved clan ID from $oldClanName to $newClanName\n";
 close(M);
 
 $client->addCLMOVELog();
 
 $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 
-$client->commitClan($family);
+$client->commitClan($clan);
 
 #Remove any file containing the check-in message
 if ( -s ".defaultclmove" ) {

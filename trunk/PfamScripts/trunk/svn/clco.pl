@@ -43,8 +43,8 @@ my $client = Bio::Pfam::SVN::Client->new;
 
 #make sure that directory does not already exist.
 my $pwd = getcwd();
-my $dest = $pwd."/".$clan; 
-if (-d $dest ){
+my $dest = $pwd; 
+if (-d $dest."/".$clan ){
   print "The destination directory $dest already exist, remove before checking out a clan\n";
   exit(1); 
 }
@@ -57,7 +57,7 @@ $client->checkAllClanFiles($clan);
 my $caught_cntrl_c;
 $SIG{INT} = sub {$caught_cntrl_c = 1;};   # don't allow control C for a bit!
 
-mkdir($dest) or die "Could not make directory $dest:[$!]\n";
+mkdir($dest."/".$clan) or die "Could not make directory $dest:[$!]\n";
 $client->checkoutClan($clan, $dest);
 
 if( $caught_cntrl_c ) {

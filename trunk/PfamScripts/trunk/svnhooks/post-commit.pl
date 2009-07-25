@@ -142,13 +142,14 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   
   my $clanAcc;
   foreach my $f (@deleted){
-    if( $f =~ m|(.*/Clans/(\S+)/CLANDESC)$|){
+    print "Deleted $f\n";
+    if( $f =~ m|.*/Clans/(CL\d{4})/$|){
       $clanAcc = $1;
       last;     
     }
   }
   
-  unless($clan){
+  unless($clanAcc){
     die "Failied to get a clan accesion from the revision object\n";  
   } 
   
@@ -176,6 +177,7 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
     #Now checkout and add the accession to the DESC file!
     my $tmpDir = File::Temp->newdir( 'CLEANUP' => 0 );
     my $dest = $tmpDir->dirname;
+#TODO - tested up to here!!!
     $client->checkoutFamily($famAcc, $dest);
     #parse the DESC file
     my $familyIO = Bio::Pfam::FamilyIO->new;
@@ -247,7 +249,7 @@ sub removeFromClan {
   my $newMembership;
   if($clanObj->DESC->MEMB){
     foreach my $mem (@{ $clanObj->DESC->MEMB }){
-      push(@{ $newMembership }, $mem ); unless($mem eq $fam);
+      push(@{ $newMembership }, $mem ) unless($mem eq $fam);
     }
   }else{
     die;

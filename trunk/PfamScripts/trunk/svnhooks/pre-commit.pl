@@ -106,7 +106,7 @@ elsif ( $msg =~ /^PFCIRMC:(CL\d{4})\:(PF\d{5})/ ) {
 elsif ( $msg =~ /^PFNEW:/ ) {
   $txnlook->commitNewFamily($pfamDB);
 }
-elsif ( $msq =~ /^PFNEWATC:(CL\d{4})\:(PF\d{5})/ ) {
+elsif ( $msg =~ /^PFNEWATC:(CL\d{4})\:(PF\d{5})/ ) {
   my ( $clan, $fam );
   $clan = $1;
   $fam  = $2;
