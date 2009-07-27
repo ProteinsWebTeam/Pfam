@@ -225,6 +225,8 @@ else {
         exit(1);
       }
     }
+    
+    Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
     unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $upFamObj ) ) {
       print "pfci: $family contains errors.  You should rebuild this family.\n";

@@ -149,6 +149,8 @@ unless ($ignore) {
       exit(1);
     }
   }
+  
+  Bio::Pfam::PfamQC::checkDESCSpell( $family, $familyIO );
 
   unless ( Bio::Pfam::PfamQC::sequenceChecker( $family, $newFamObj ) ) {
     print "pfnew: $family contains errors.  You should rebuild this family.\n";
