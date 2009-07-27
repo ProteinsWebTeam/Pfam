@@ -97,7 +97,16 @@ my $clanSVNObj = $clanIO->loadClanFromSVN( $clan, $client );
 #Now make sure that the clan membership is unaltered.
 #&Bio::Pfam::PfamQC::checkClanMembership( $clanObj, $clanSVNObj );
 
+#Make sure that the clan accession and id are the same between the two versions.
+unless($clanObj->DESC->AC eq $clanSVNObj->DESC->AC){
+  die "The clan acession has been changed between the SVN copy and your local copy!:".
+    "From:".$clanSVNObj->DESC->AC." to ".$clanObj->DESC->AC."\n";
+}
 
+unless($clanObj->DESC->ID eq $clanSVNObj->DESC->ID){
+  die "The clan acession has been changed between the SVN copy and your local copy!:".
+    "From:".$clanSVNObj->DESC->ID." to ".$clanObj->DESC->ID.".  Use clmove.pl to change the name\n";
+}
 
  $client->addCLCILog();  
 
