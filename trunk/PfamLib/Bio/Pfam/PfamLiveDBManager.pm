@@ -1,7 +1,7 @@
 #
 # BioPerl module for Bio::Pfam::PfamLiveDBManager
 #
-# $Author: rdf $
+# $Author: jm14 $
 
 package Bio::Pfam::PfamLiveDBManager;
 
@@ -633,6 +633,209 @@ sub updatePfamARegFull {
         );
       }
     }
+  }
+}
+
+sub updateNcbiPfamA {
+
+  my ( $self, $famObj ) = @_;
+
+#-------------------------------------------------------------------------------
+#Check we have the correct object
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+#-------------------------------------------------------------------------------
+#Get the index for the pfamA family
+
+  my $auto;
+
+    my $pfamA =
+      $self->getSchema->resultset('Pfama')
+      ->find( { pfamA_id => $famObj->DESC->ID } );
+
+    if ( $pfamA->pfama_id ) {
+      $auto = $pfamA->auto_pfama;
+    }
+    else {
+      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+    }
+
+
+  $self->getSchema->resultset('NcbiPfamaReg')
+    ->search( { auto_pfama => $auto } )->delete;
+
+
+  my $dbh = $self->getSchema->storage->dbh;
+
+  my $upSth = $dbh->prepare(
+    'INSERT INTO ncbi_pfamA_reg
+    (auto_pfamA,        
+     gi,                   
+     seq_start,            
+     seq_end,
+     ali_start,
+     ali_end,              
+     model_start,          
+     model_end,            
+     domain_bits_score,    
+     domain_evalue_score,  
+     sequence_bits_score,  
+     sequence_evalue_score)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+
+  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
+
+      if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
+
+
+	  foreach my $u ( @{ $seq->hmmUnits } ) {
+	      
+	      #Is it significant dom?
+	      if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
+		  $upSth->execute(
+				  $auto,
+				  $seq->name,
+				  $u->envFrom,
+				  $u->envTo,
+				  $u->seqFrom,
+				  $u->seqTo,
+				  $u->hmmFrom,
+				  $u->hmmTo,
+				  $u->bits,
+				  $u->evalue,
+				  $seq->bits,
+				  $seq->evalue,				  				  				  
+				  );
+		  
+	      }	      	      	      
+	  }
+      }      
+  }
+}
+
+
+sub updateMetaPfamA {
+
+  my ( $self, $famObj ) = @_;
+
+#-------------------------------------------------------------------------------
+#Check we have the correct object
+
+  unless ( $famObj and $famObj->isa('Bio::Pfam::Family::PfamA') ) {
+    confess("Did not get a Bio::Pfam::Family::PfamA object");
+  }
+
+#-------------------------------------------------------------------------------
+#Get the index for the pfamA family
+
+  my $auto;
+
+    my $pfamA =
+      $self->getSchema->resultset('Pfama')
+      ->find( { pfamA_id => $famObj->DESC->ID } );
+
+    if ( $pfamA->pfama_id ) {
+      $auto = $pfamA->auto_pfama;
+    }
+    else {
+      confess( "Did not find an mysql entry for " . $famObj->DESC->ID . "\n" );
+    }
+
+
+
+  my @oldRegions =
+    $self->getSchema->resultset('MetaPfamaReg')->search ({ auto_pfama => $auto },
+    { select => [qw(me.auto_metaseq metaseq_acc)],
+      as     => [qw( auto_metaseq metaseq_acc)],
+      join   => [qw(auto_metaseq)]
+    }
+    );
+
+  #Get mapping of auto_metaseq to metaseq_acc
+  my %seqacc2auto;
+  foreach my $r (@oldRegions) {
+      $seqacc2auto{ $r->get_column('metaseq_acc') } = $r->get_column('auto_metaseq');
+  }
+ 
+
+  my $metaseq = $self->getSchema->resultset('Metaseq')
+      ->find( { metaseq_acc => $famObj->DESC->ID } );
+
+
+  $self->getSchema->resultset('MetaPfamaReg')
+    ->search( { auto_pfama => $auto } )->delete;
+
+
+  my $dbh = $self->getSchema->storage->dbh;
+
+  my $seq_sth = $dbh->prepare('select auto_metaseq from metaseq where metaseq_acc = ? ');
+
+  my $upSth = $dbh->prepare(
+    'INSERT INTO meta_pfamA_reg
+    (auto_pfamA,        
+     auto_metaseq,                   
+     seq_start,            
+     seq_end,
+     ali_start,
+     ali_end,              
+     model_start,          
+     model_end,            
+     domain_bits_score,    
+     domain_evalue_score,  
+     sequence_bits_score,  
+     sequence_evalue_score)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+
+
+  foreach my $seq ( @{ $famObj->PFAMOUT->eachHMMSeq } ) {
+
+    #Get the auto number for this sequence
+    my $sauto;
+    if ( $seqacc2auto{ $seq->name } ) {
+      $sauto = $seqacc2auto{ $seq->name };
+    }
+    else {
+      $seq_sth->execute( $seq->name );
+      my $row = $seq_sth->fetchrow_arrayref;
+      unless ($row) {
+        confess( "Failed to find entry in metaseq for "
+            . $seq->name . "\n" );
+      }
+      $sauto = $row->[0];
+    }
+
+
+
+
+      if ( $seq->bits >= $famObj->DESC->CUTGA->{seq} ) {
+
+
+	  foreach my $u ( @{ $seq->hmmUnits } ) {
+	      
+	      #Is it significant dom?
+	      if ( $u->bits >= $famObj->DESC->CUTGA->{dom} ) {
+		  $upSth->execute(
+				  $auto,
+				  $sauto,
+				  $u->envFrom,
+				  $u->envTo,
+				  $u->seqFrom,
+				  $u->seqTo,
+				  $u->hmmFrom,
+				  $u->hmmTo,
+				  $u->bits,
+				  $u->evalue,
+				  $seq->bits,
+				  $seq->evalue,				  				  				  
+				  );
+		  
+	      }	      	      	      
+	  }
+      }      
   }
 }
 
