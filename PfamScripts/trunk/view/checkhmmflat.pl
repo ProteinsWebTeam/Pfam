@@ -34,7 +34,7 @@ while(<HMM>) {
     chomp;
 	# Change when we update hmmer version	
     #if (/^HMMER2.0\s+\[${$hmmer_version[0]}[0]\]/) {
-	if (/^HMMER3\/a\s+\[(\S+)\s+\|(.*)\]/){
+	if (/^HMMER3\/b\s+\[(\S+)\s+\|(.*)\]/){
 	  $thisHmmerVersion = $1;
   	print "Hmmer version missmatch! $1 was used, expected $hmmer_version \n" if ($hmmer_version != $thisHmmerVersion);
 	  # start of an entry
@@ -97,8 +97,8 @@ while(<HMM>) {
 	next;
     } elsif (/^CKSUM\s+\d+/){
 	next;
-    } elsif(/STATS LOCAL\s+(VLAMBDA|VMU|FTAU)\s+(\S+)/){
-  next;
+    } elsif(/STATS LOCAL\s+(MSV|VITERBI|FORWARD)\s+(\S+)\s+\S+/){
+	next;
     } elsif (/^DATE/){
 	next;
     } elsif (/^HMM /){
