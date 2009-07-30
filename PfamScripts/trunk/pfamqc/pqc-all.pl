@@ -158,6 +158,14 @@ unless ( Bio::Pfam::PfamQC::nonRaggedSeed( $family, $famObj ) ) {
   exit;
 }
 
+unless($isNew){
+  unless(Bio::Pfam::PfamQC::noMissing($famObj, $svnFamObj, $family )){
+    print STDERR "$0: It appears you are missing sequences compared to the SVN copy\n";  
+  }
+}
+  
+
+
 $verbose and print STDERR "$0: SEED does not apeear to be ragged\n";
 
 #NEED TO CHECK THAT ASSURTIONS COVER ALL FORMAT CHECKS.....
