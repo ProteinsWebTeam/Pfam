@@ -117,10 +117,9 @@ else {
     exit(1);
   }
 
-  my $oldFamObj;
   my $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
   print STDERR "Successfully loaded $family through middleware\n";
-  
+  my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
 #-------------------------------------------------------------------------------
 
   if ($addToClan) {
@@ -185,7 +184,6 @@ else {
     $client->addPFCILog();
   }
 
-  my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
   print STDERR "Successfully loaded remote $family through middleware\n";
 
   
@@ -200,9 +198,9 @@ else {
   }
   
   if($oldFamObj->DESC->CL){
-    unless( $newFamObj->DESC->CL eq $oldFamObj->DESC->CL){
+    unless( $upFamObj->DESC->CL eq $oldFamObj->DESC->CL){
       die "The clan acession in the CL has been changed between the SVN copy and your local copy!:".
-    "From:".$oldFamObj->DESC->CL." to ".$newFamObj->DESC->CL.".  You can not do this!\n".
+    "From:".$oldFamObj->DESC->CL." to ".$upFamObj->DESC->CL.".  You can not do this!\n".
     "(Use pfci with the remove_from_clan option followed by add_to_clan)\n";
     }
   }
