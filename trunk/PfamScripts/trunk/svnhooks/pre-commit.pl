@@ -158,16 +158,16 @@ elsif ( $msg =~ /^PFKILL:/ ) {
   else {
     die "In PFKILL message, did not parse $msg\n";
   }
-  if (/PFKILLRMC:(CL\d{4})\:(PF\d{5})/) {
+  if ($msg =~ /PFKILLRMC:(CL\d{4})\:(PF\d{5})/) {
     my ( $clan, $fam );
     $clan = $1;
     $fam  = $2;
 
     #Remove the family from the clan membership in the database
     $txnlook->removeFamilyFromClanMembership( $pfamDB, $clan, $fam );
-    my $author = $txnlook->author();
-    $txnlook->deleteFamily( $pfamDB, $comment, $forward, $author );
   }
+  my $author = $txnlook->author();
+  $txnlook->deleteFamily( $pfamDB, $comment, $forward, $author );
 }
 elsif ( $msg =~ /^CLKILL:/ ) {
   my ( $comment, $forward );
