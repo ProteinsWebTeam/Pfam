@@ -95,7 +95,10 @@ my $clanObj = $clanIO->loadClanFromLocalFile( $clan, $pwd, 'file' );
 my $clanSVNObj = $clanIO->loadClanFromSVN( $clan, $client );
 
 #Now make sure that the clan membership is unaltered.
-#&Bio::Pfam::PfamQC::checkClanMembership( $clanObj, $clanSVNObj );
+unless( &Bio::Pfam::PfamQC::checkClanMembership( $clanObj->DESC->MEMB, $clanSVNObj->DESC->MEMB )){
+  print STDERR "Miss-match between the clan membership! You can not modify the MB lines\n";
+  exit(1);  
+}
 
 #Make sure that the clan accession and id are the same between the two versions.
 unless($clanObj->DESC->AC eq $clanSVNObj->DESC->AC){
