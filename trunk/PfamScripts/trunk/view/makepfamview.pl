@@ -29,6 +29,7 @@ use Log::Log4perl qw(:easy);
 use Data::Dumper;
 use Data::UUID;
 use Digest::MD5 qw(md5_hex);
+use Cwd;
 use Text::Wrap;
 $Text::Wrap::columns = 75;
 
@@ -38,6 +39,7 @@ use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::Active_site::as_align;
+use Bio::Pfam::FamilyIO;
 use HMM::Profile;
 
 
@@ -117,8 +119,8 @@ unless($job){
 $logger->debug("Got job databse object");
 
 if($famId){
-  if($famId ne $job->family_id){
-    mailPfam("Failed to run view process for $famId", "Miss-match between family id (". $job->family_id 
+  if($famId ne $job->entity_id){
+    mailPfam("Failed to run view process for $famId", "Miss-match between family id (". $job->entity_id 
                 ." and the information contained in the database for $uid");
   }
 }
@@ -146,7 +148,7 @@ $logger->debug("Updated the status on the job object");
 # Get the information about the family
 my $pfam = $pfamDB->getSchema
                     ->resultset('Pfama')
-                      ->find({pfama_acc => $job->family_acc });
+                      ->find({pfama_acc => $job->entity_acc });
 
 
 unless ($pfam and $pfam->pfama_acc){
@@ -154,21 +156,22 @@ unless ($pfam and $pfam->pfama_acc){
 }
 $logger->debug("Got pfam family databse object");
 
-#Now get the alignments and HMMs out of the database
-foreach my $t (qw(full seed)){
-  if($t eq "full"){
-    open(A, ">ALIGN") or mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
-  }elsif($t eq "seed"){  
-    open(A, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
-  }
- my $align = $pfamDB->getSchema
-                      ->resultset('AlignmentsAndTrees')
-                        ->find({ auto_pfama => $pfam->auto_pfama,
-                                 type       => $t });
+
+##Now get the alignments and HMMs out of the database
+
+my $align = $pfamDB->getSchema
+                      ->resultset('PfamaInternal')
+                        ->find({ auto_pfama => $pfam->auto_pfama });
+
+                                 
+open(S, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
+open(A, ">ALIGN") or mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
   
-  print A Compress::Zlib::memGunzip($align->alignment);
- close(A);
-}
+print S Compress::Zlib::memGunzip($align->seed);
+print A Compress::Zlib::memGunzip($align->full);
+close A;
+close S;
+
 
 open(H, ">HMM") or mailUserAndFail($job, "Could not open HMM:[$!]\n");
 my $hmm = $pfamDB->getSchema
@@ -178,10 +181,9 @@ my $hmm = $pfamDB->getSchema
 print H $hmm->hmm;
 close(H);  
 
-
 #Check that all of the files are present in the directory, this script assumes that all of the files 
 #are in the cwd.
-foreach my $f (qw(ALIGN SEED HMM)){
+foreach my $f (qw(ALIGN SEED HMM DESC)){
    unless(-e $f and -s $f){
       mailUserAndFail($job, "View process failed as $f was not present\n");  
    }
@@ -228,55 +230,65 @@ my $asp;
 # 4) Estimation of the phylogenetic tree
 # 5) Reordering of the alignments according to the tree
 # 6) Making a non-redundant fasta file
+# 7) Active site prediction
+
 
 #Order of the files is important!
 foreach my $filename (qw(ALIGN SEED)){
   
-  #Calculate the consensus line at 60% threshold 
-  #We may want to make this user defined/overridable?
-  $logger->debug("Running consensus.pl on $filename");   
-  my $consensus;
-  open (CON, "consensus.pl -file $filename -method pfam -thr 60|") or &mailUserAndFail($job, "Failed to run consensus.pl on $filename");
-  while (<CON>) {
-    if(	/^(consensus\/60%)(\s+)(\S+)/ ){
-	    $consensus = $3;
-	    last;
-	  }
-  }
-  close(CON);
-  $logger->debug("Finished running consensus.pl on $filename");
-  
+ 
   #Read the alignment into an object
   open(ALIGN, "$filename") or mailUserAndFail( "Could not open $filename file for reading:[$!]\n");
-  my $ali = Bio::Pfam::AlignPfam->new();
-  $ali->read_stockholm(\*ALIGN, 1 );
+  my $a = Bio::Pfam::AlignPfam->new();
+  $a->read_stockholm(\*ALIGN, 1 );
 
-  #Check that the consensus line is the correct length.  
-  if($ali->length != length($consensus)){
-    mailUserAndFail($job, "Error with consensus line. Got ".(length($consensus))."but expected".$ali->length); 
-  }
-  
+
   #Now query the database to get all of the ids/acc for this family.
-  my %regs;
+  my (%regs, $ali);
   if($filename eq "ALIGN"){
     $logger->debug("Getting sequence identifiers for ALIGN");
     
     #Get all of the region information from the database. This will allows to performs some
     #rudimentary QC and more importantly, exchange accessions for ids in the alignment
     my @regs = $pfamDB->getSchema
-                    ->resultset('PfamaRegFullSignificant')
-                    ->search( { auto_pfama => $pfam->auto_pfama,
-                                in_full    => 1 },
-                                { join       => [ qw (pfamseq) ],
-                                  prefetch   => [ qw (pfamseq) ] });                              
-     %regs = map {$_->pfamseq_acc.".".$_->seq_version."/".$_->seq_start."-".$_->seq_end => $_} @regs;
-     
-     #QC check
-     if(($ali->no_sequences != $pfam->num_full) or ($ali->no_sequences != scalar(@regs))){
-        mailUserAndFail($job, "Missmatch between number of regions in PfamA table (num_full)[".$pfam->num_full."],".
-          " number of regions from PfamA_reg_full_significant [".scalar(@regs)."] and/or alignment on disk[".$ali->no_sequences."]" );
-     }
-     
+	->resultset('PfamaRegFullSignificant')
+	->search( { auto_pfama => $pfam->auto_pfama,
+		    in_full    => 1 },
+		  { join       => [ qw (pfamseq) ],
+		    prefetch   => [ qw (pfamseq) ] });                              
+    %regs = map {$_->pfamseq_acc.".".$_->seq_version."/".$_->seq_start."-".$_->seq_end => $_} @regs;
+    
+    
+    #Need to remove sequences in alignment which are outcompeted if family is in a clan
+    if($a->no_sequences eq @regs) { 
+	if($ali->no_sequences != $pfam->num_full) {
+	    mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
+	}
+	$ali = $a;
+    }
+    else {
+	$ali = Bio::Pfam::AlignPfam->new();
+	
+	foreach my $seq ($a->each_seq) {
+	    if(exists($regs{$seq->id.".".$seq->seq_version."/".$seq->start."-".$seq->end})) {
+		$ali->add_seq($seq);
+	    }
+	}
+        unless($ali->no_sequences eq @regs) {
+	   mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
+        }
+    } 
+  }  
+
+  #Calculate the consensus line at 60% threshold 
+  #We may want to make this user defined/overridable?
+  $logger->debug("Running consensus.pl on $filename");   
+  my $consensus = consensus_line($filename, $ali->length);
+  $logger->debug("Finished running consensus.pl on $filename");
+
+
+  if($filename eq "ALIGN"){
+        
      #This hash contains all of the information we require to calculate the domain coverage state.
      #This statistic tries to estimate the average coverage of the seqeunce that the domain in question covers.
      
@@ -360,40 +372,12 @@ foreach my $filename (qw(ALIGN SEED)){
   $logger->debug("Exchanged identifers for accessions");
   
   my %seq_order;
+
+
   #Now run FastTree on the original alignment file
-  $logger->debug("Going to run FastTree on $filename");
-  
+  $logger->debug("Going to run FastTree on $filename"); 
+  make_tree($filename, \%regs, "pfamseq");
 
-  open(TREE, "sreformat a2m $filename | FastTree -nj -boot 100 |") or &mailUserAndFail($job, "Could not open pipe on sreformat and FastTree -nj -boot 100 $filename\n");
-
-  
-  open(TREEFILE, ">$filename.tree") or mailUserAndFail($job, "Failed to open $filename.tree:[$!]");
-
-  my $line = <TREE>;
-  close TREE;
-  my @tree = split(/,/, $line);
-
-  #Exchange the treefile accessions for ids, and set the tree order on the database object
-  my $order = 1;
-  foreach my $acc (@tree) {
-    if($acc =~ /(.+)?(\w{6}\.\d+)\/(\d+)-(\d+)(.+)/) {
-        my ($before, $nm, $st, $en, $after) = ($1, $2, $3, $4, $5);
-
-	$before = "" unless($before);
-        $after = "" unless($after);
-
-        print TREEFILE $before.$regs{"$nm/$st-$en"}->pfamseq_id."/".$st."-".$en.$after.",";
-
-        if($regs{"$nm/$st-$en"}) {     
-	    $regs{"$nm/$st-$en"}->tree_order($order++);
-        } 
-        else{
-	    $logger->warn("key [$nm/$st-$en] is not in the hash"); 
-        }
-    }
-  }
-       
-  close TREEFILE;	      
 
   #Now change the alignment from accessions to ids.
   #Make a new alignment object
@@ -405,16 +389,16 @@ foreach my $filename (qw(ALIGN SEED)){
   }
   
   $aliIds->cons_sequence( Bio::Pfam::OtherRegion->new('-seq_id' => 'none',
-						       '-from' => 1,
-                                    							     '-to' => length($consensus),
-							                                         '-type' => "60\%_consenus_sequence",
-							                                         '-display' => $consensus,
-							                                         '-source' => 'Pfam') ); 
+						        '-from' => 1,
+                                			  '-to' => length($consensus),
+						        '-type' => "60\%_consenus_sequence",
+						     '-display' => $consensus,
+					              '-source' => 'Pfam') ); 
 
 
    #Now add the sequences back to the object.
    foreach my $seq ($ali->each_seq){
-      #Calculate the cigar string for the object
+      #Calculate the cigarstring for the object
       my $cString = _generateCigarString($seq->seq, $job);
       $regs{ $seq->acc.".".$seq->version."/".$seq->start."-".$seq->end }->cigar($cString);
 	  $logger->debug( $seq->acc.".".$seq->version."/".$seq->start."-".$seq->end );
@@ -438,10 +422,7 @@ foreach my $filename (qw(ALIGN SEED)){
        #Delete all auto_pfamAs
        $pfamDB->getSchema
                   ->resultset('PdbPfamaReg')
-                    ->search({ auto_pfama => $pfam->auto_pfama})->delete;
-
-
-
+                    ->search({ auto_pfamA => $pfam->auto_pfama})->delete;
        #Add the pdbmap data to pdb_pfamA_reg
        my %autoPdbs;
        foreach my $nse (keys %$map){
@@ -473,102 +454,8 @@ foreach my $filename (qw(ALIGN SEED)){
     $logger->debug("Did not find any secondary structure information"); 
    }
    
-   
-   #Now write this to file
-   open(ANNFILE,">$filename.ann") or &exit_with_mail("Could not open $filename.ann for writing [$!]");
-   print ANNFILE "# STOCKHOLM 1.0\n";
-   #Mimic this with what is loaded in the database
-   #$en->write_stockholm_ann(\*ANNFILE);
-   print ANNFILE "#=GF ID   ", $pfam->pfama_id , "\n";
-   print ANNFILE "#=GF AC   ", $pfam->pfama_acc,".", $pfam->version, "\n";
-   print ANNFILE "#=GF DE   ", $pfam->description, "\n";
-   if($pfam->previous_id and $pfam->previous_id =~ /\S+/){
-       print ANNFILE "#=GF PI   ", $pfam->previous_id, "\n";
-   }
-   print ANNFILE "#=GF AU   ", $pfam->author, "\n";
-   print ANNFILE "#=GF SE   ", $pfam->seed_source, "\n";
-   print ANNFILE "#=GF GA   ". sprintf "%.2f %.2f;\n", $pfam->sequence_ga, $pfam->domain_ga;
-   print ANNFILE "#=GF TC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_tc, $pfam->domain_tc;
-   print ANNFILE "#=GF NC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_nc, $pfam->domain_nc;
-   
-   #Put in the build and search method lines.
-   print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
-   print ANNFILE "#=GF SM   ", $pfam->searchmethod ,"\n";
-   
-   #clean up buildlines to remove --cpu 1 etc.
-   print ANNFILE "#=GF TP   ", $pfam->type , "\n";
-   
-   
-   
-   
-   
-   #Add Nested domains if they are present
-   if($nested_locations and scalar(@$nested_locations)){
-    foreach my $n (  @$nested_locations){
-      print ANNFILE "#=GF NE   ", $n->nested_pfama_acc ,";\n";
-      print ANNFILE "#=GF NL   ", $n->pfamseq_acc;
-      if($n->seq_version and $n->seq_version =~ /\d+/){
-        print ANNFILE ".".$n->seq_version;
-      }
-      print ANNFILE "/".$n->seq_start."-".$n->seq_end."\n";
-      }
-   }
-   #Add the reference
-   foreach my $ref (@litRefs){
-      if($ref->pmid){
-        if (($ref->comment)&& ($ref->comment ne "NULL")){ 
-           print ANNFILE wrap("#=GF RC   ","#=GF RC   ",$ref->comment);
-           print ANNFILE "\n";
-        }
-       print ANNFILE "#=GF RN   [".$ref->order_added."]\n";
-       print ANNFILE "#=GF RM   ".$ref->pmid."\n";
-       print ANNFILE wrap("#=GF RT   ","#=GF RT   ", $ref->title);
-       print ANNFILE "\n";
-       print ANNFILE wrap("#=GF RA   ","#=GF RA   ", $ref->author);
-       print ANNFILE "\n";
-       print ANNFILE "#=GF RL   ".$ref->journal."\n";
-      } 
-   } 
-   
-   #DB Xrefs
-   #Add this special case of database cross reference
-   my @interpro = $pfamDB->getSchema->resultset('Interpro')->search( {auto_pfama => $pfam->auto_pfama} );
-   
-   print ANNFILE "#=GF DR   INTERPRO; ",$interpro[0]->interpro_id, ";\n" if($interpro[0] and $interpro[0]->interpro_id =~ /\S+/);
-   
-   foreach my $xref ( @xRefs){
-     #Construct the DR lines.  Most do not have additional paramters. In the database
-     #the other_params has a trailing ";" that should ideally not be there.  Otherwise
-     #one could simply use join! 
+  write_stockholm_file($filename, $aliIds, $pfam, "pfamseq");   
 
-     if($xref->other_params and $xref->other_params =~ /\S+/){
-      print ANNFILE "#=GF DR   ".$xref->db_id."; ". $xref->db_link ."; " .$xref->other_params.";\n";
-     }else{
-      print ANNFILE "#=GF DR   ".$xref->db_id."; ".$xref->db_link.";\n";
-     }
-     #Print out any comment
-     if($xref->comment and $xref->comment =~ /\S+/){
-         print ANNFILE "#=GF DC   ".$xref->comment."\n";
-     }
-   }
-   
-   #Annotation comments
-   #TODO - Fix the fact that all comments are stored with a single leading whitespace
-   #Currently, the text wrap is handling this!
-   if($pfam->comment and $pfam->comment =~ /\S+/){
-     print ANNFILE wrap("#=GF CC   ","#=GF CC   ", $pfam->comment);
-     print ANNFILE "\n";
-   }
-   
-	 print ANNFILE "#=GF SQ   ", scalar($aliIds->no_sequences()), "\n";
-	 my $stock = $aliIds->write_stockholm;
-	 if($$stock[0] =~ /^# STOCKHOLM/){
-  	 shift(@$stock); #This removes the STOCKHOLM 1.0 tag, but nasty, but hey!
-	 }
-	 foreach my $line (@{$stock}){
-	     print ANNFILE $line;
-	 }
-   close(ANNFILE);
    
    
   
@@ -578,11 +465,17 @@ foreach my $filename (qw(ALIGN SEED)){
   }
     
   #Make html versions of the alignment
-  makeHTMLAlign($filename, $job, 80);
+  my $type;
+  if($filename eq 'SEED'){
+    $type = 'seed';
+  }elsif($filename eq 'ALIGN'){
+    $type = 'full'; 
+  }
+  makeHTMLAlign($filename, $job, 80, $type);
   
   
   #Upload the alignments (stockholm and html) and tree into the database 
-  uploadTreesAndAlign($filename, $pfamDB, $pfam, $job);
+  uploadTreesAndAlign($filename, $pfamDB, $pfam, $job, $type);
 }
 
 #Now work on the HMMs
@@ -616,13 +509,141 @@ foreach my $f (qw(HMM.ann)){
       mailUserAndFail($job, "$f did not pass quality control! Got [$qc]");
     }
     close(QC);
-  }
-  $logger->debug("HMM.ann pass checks");
-  
+}
+$logger->debug("HMM.ann pass checks");
+
+#Get cwd
+my $cwd = getcwd;
+
+
+#Remove files, but keep SEED and HMM
+unlink glob("SEED.*");
+unlink glob("ALIGN*");
+unlink glob("HMM.*");
+
+
 #Start the ncbi searches
-#submitJob($jobDB, $pfam, 'genPept');  
-#Start the metagenomics searches
-#submitJob($jobDB, $pfam, 'metagenomics');
+$logger->debug("Starting ncbi pfbuild");
+system("pfbuild.pl -nobuild -local -withpfmake -db ncbi") and mailUserAndFail($job, "Failed to run pfbuild against ncbi database:[$!]");
+my $ncbiFamilyIO = Bio::Pfam::FamilyIO->new;
+my $ncbiFamObj = $ncbiFamilyIO->loadPfamAFromLocalFile( "", $cwd );
+
+$logger->debug("Updating ncbi_pfamA_reg");
+$pfamDB->updateNcbiPfamA($ncbiFamObj);
+
+my @ncbiRegs = $pfamDB->getSchema->resultset('NcbiPfamaReg')->search( { auto_pfama => $pfam->auto_pfama});
+my %ncbiRegs = map {$_->gi->gi."/".$_->seq_start."-".$_->seq_end => $_} @ncbiRegs;
+
+$logger->debug("Running FastTree on ncbi alignment");
+#Run FastTree
+make_tree("ALIGN", \%ncbiRegs);
+
+my $ncbiAln = Bio::Pfam::AlignPfam->new();
+
+#Add consensus
+my $ncbiConsensus = consensus_line("ALIGN", $ncbiFamObj->ALIGN->length);
+
+$ncbiAln->cons_sequence( Bio::Pfam::OtherRegion->new('-seq_id' => 'none',
+						        '-from' => 1,
+                                			  '-to' => length($ncbiConsensus),
+						        '-type' => "60\%_consenus_sequence",
+						     '-display' => $ncbiConsensus,
+					              '-source' => 'Pfam') ); 
+
+
+$logger->debug("Generating cigar string for ncbi alignment");
+#generate and upload cigar string, and upload tree order
+foreach my $seq ( $ncbiFamObj->ALIGN->each_seq ) {
+    my $cString = _generateCigarString($seq->seq, $job);
+    $ncbiRegs{$seq->id."/".$seq->start."-".$seq->end }->cigar($cString);
+    $logger->debug( $seq->id."/".$seq->start."-".$seq->end );
+    $ncbiRegs{ $seq->id."/".$seq->start."-".$seq->end }->update();
+    $ncbiAln->add_seq($seq, $ncbiRegs{ $seq->id."/".$seq->start."-".$seq->end }->tree_order); 
+}
+
+
+
+write_stockholm_file("ALIGN", $ncbiAln, $pfam, "ncbi", $ncbiFamObj);
+
+#Make html versions of the alignment
+makeHTMLAlign("ALIGN", $job, 80, "ncbi",  $ncbiFamObj);
+
+#Upload the alignments (stockholm and html) and tree into the database 
+uploadTreesAndAlign("ALIGN", $pfamDB, $pfam, $job, "ncbi");
+
+#Remove files, but keep SEED and HMM
+unlink glob("SEED.*");
+unlink glob("ALIGN*");
+unlink glob("HMM.*");
+
+
+#Start the metaseq searches
+$logger->debug("Starting metaseq pfbuild");
+system("pfbuild.pl -nobuild -local -withpfmake -db metaseq") and  mailUserAndFail($job, "Failed to run pfbuild against metaseq:[$!]");
+my $metaFamilyIO = Bio::Pfam::FamilyIO->new;
+my $metaFamObj = $metaFamilyIO->loadPfamAFromLocalFile( "", $cwd);
+
+
+#The version numbers (if present) will be removed from the ids, so add them back
+foreach my $seq ( $metaFamObj->ALIGN->each_seq ) {
+    if($seq->version) {
+	$seq->id($seq->id. "." . $seq->version);
+    }
+}
+
+
+$logger->debug("Updating meta_pfamA_reg");
+$pfamDB->updateMetaPfamA($metaFamObj);
+
+my @metaRegs = $pfamDB->getSchema->resultset('MetaPfamaReg')
+                                  ->search( { auto_pfama => $pfam->auto_pfama},
+                                    { join       => [ qw (auto_metaseq) ],
+                                      prefetch   => [ qw (auto_metaseq) ] });                              
+
+
+my %metaRegs = map {$_->auto_metaseq->metaseq_acc."/".$_->seq_start."-".$_->seq_end => $_} @metaRegs;
+
+
+
+$logger->debug("Running FastTree on metagenomics alignment");
+#Run FastTree
+make_tree("ALIGN", \%metaRegs);
+
+my $metaAln = Bio::Pfam::AlignPfam->new();
+my $metaConsensus = consensus_line("ALIGN", $metaFamObj->ALIGN->length);
+
+$metaAln->cons_sequence( Bio::Pfam::OtherRegion->new('-seq_id' => 'none',
+						        '-from' => 1,
+                                			  '-to' => length($metaConsensus),
+						        '-type' => "60\%_consenus_sequence",
+						     '-display' => $metaConsensus,
+					              '-source' => 'Pfam') ); 
+
+
+
+
+$logger->debug("Generating cigar string for metagenomics alignment");
+#generate and upload cigar string
+foreach my $seq ( $metaFamObj->ALIGN->each_seq ) {
+    my $cString = _generateCigarString($seq->seq, $job);
+    $metaRegs{$seq->id."/".$seq->start."-".$seq->end }->cigar($cString);
+    $logger->debug( $seq->id."/".$seq->start."-".$seq->end );
+    $metaRegs{ $seq->id."/".$seq->start."-".$seq->end }->update();
+    $metaAln->add_seq($seq, $metaRegs{ $seq->id."/".$seq->start."-".$seq->end }->tree_order); 
+}
+
+
+
+
+write_stockholm_file("ALIGN", $metaAln, $pfam, "meta", $metaFamObj ); 
+
+#Make html versions of the alignment
+makeHTMLAlign("ALIGN", $job, 80, "meta");
+
+#Upload the alignments (stockholm and html) and tree into the database 
+uploadTreesAndAlign("ALIGN", $pfamDB, $pfam, $job, "meta");
+
+
 #Change the job status to done
 finishedJob($job);
 $logger->debug("Finished");
@@ -1041,16 +1062,15 @@ sub mailUserAndFail {
   my($job, $message) = @_;
 
   if($job->user_id){
-
     my %header = (  To => $job->user_id.'@sanger.ac.uk',
 					          From => 'rdf@sanger.ac.uk',
-					          Subject => 'Error in view process for '.$job->family_id );
+					          Subject => 'Error in view process for '.$job->entity_id );
 	 my $mailer = Mail::Mailer->new;
 	 $mailer->open(\%header);
-	 print $mailer $job->family_id."\n".$message;
+	 print $mailer $job->entity_id."\n".$message;
    $mailer->close;
   }else{
-    mailPfam("View process for ".$job->family_acc." failed", "No user found for the job"); 
+    mailPfam("View process for ".$job->entity_acc." failed", "No user found for the job"); 
   }
   
   $job->update({status  => 'FAIL',
@@ -1123,25 +1143,25 @@ sub makeNonRedundantFasta{
 }
 
 sub makeHTMLAlign{
-  my ($filename, $job, $block) = @_;
-  $logger->debug("Making HTML aligment for $filename");
+  my ($filename, $job, $block, $type) = @_;
+  $logger->debug("Making HTML aligment for $type $filename");
   system("consensus.pl -method clustal -file $filename > $filename.con") 
     and mailUserAndFail( $job, "Failed to run consensus.pl:[$!]");
   system("clustalX.pl -a $filename.ann -c $filename.con -b $block > $filename.html") 
-    and mailUserAndFail( $job, "Failed to run clustalX.pl:[$!}" );
+    and mailUserAndFail( $job, "Failed to run clustalX.pl:[$!]" );
 
   open(ALI, "gzip -c $filename.html |") or mailUserAndFail($job, "Failed to gzip file $filename.html" );
   my $align = join("", <ALI>);
   
-  my $type;
-  if($filename eq 'SEED'){
-    $type = 'seed';
-  }elsif($filename eq 'ALIGN'){
-    $type = 'full'; 
-   
+
+  if($type eq 'seed') {
+
+  }
+  elsif( ($type eq 'full') or ($type eq 'ncbi') or ($type eq 'meta') ){
+     
     #Make the posterior probablility alignment.
     system("heatMap.pl -a $filename.ann -b $block > $filename.pp") 
-        and mailUserAndFail( $job, "Failed to run heatMap.pl:[$!}" );
+        and mailUserAndFail( $job, "Failed to run heatMap.pl ($type):[$!}" );
     
     open(GZPP, "gzip -c $filename.pp |") or mailUserAndFail($job, "Failed to gzip $filename.pp:[$!]");
     my $pp = join("", <GZPP>);
@@ -1154,7 +1174,7 @@ sub makeHTMLAlign{
                                           { key => 'UQ_alignments_and_trees_1' });
   
   }else{
-    mailUserAndFail($job,"Correct filename ($filename) passed to uploadTreesAndAlign. Expected ALIGN or SEED");   
+    mailUserAndFail($job,"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'align', 'seed', 'meta' or 'ncbi'");   
   }
   
     $pfamDB->getSchema
@@ -1164,20 +1184,18 @@ sub makeHTMLAlign{
                                            jtml       => $align},
                                           { key => 'UQ_alignments_and_trees_1' });
   
-  $logger->debug("Finished making HTML alignment");
+  $logger->debug("Finished making $type HTML alignment");
 }
 
 sub uploadTreesAndAlign {
-  my($filename, $pfamDB, $pfam, $job) = @_;
-  my $type;
-  if($filename eq 'SEED'){
-    $type = 'seed';
-  }elsif($filename eq 'ALIGN'){
-    $type = 'full'; 
-  }else{
-    mailUserAndDie($job,"Correct filename ($filename) passed to uploadTreesAndAlign. Expected ALIGN or SEED");   
+  my($filename, $pfamDB, $pfam, $job, $type) = @_;
+ 
+  unless( ($type eq 'seed') or ($type eq 'full') or ($type eq 'ncbi') or ($type eq 'meta') ){
+    mailUserAndDie($job,"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed', 'meta' or 'ncbi'");  
   }
  
+  $logger->debug("Uploading $type trees and alignments");
+
   #Do this is steps.  Two reasons, better error tracking and more memory efficient
   my $row = $pfamDB->getSchema
                      ->resultset('AlignmentsAndTrees')
@@ -1309,6 +1327,192 @@ sub getClanData {
   if($row and $row->clan_acc){
     return($row->clan_acc);
   }
+}
+
+
+sub write_stockholm_file {
+
+   my ($filename, $aln, $pfam, $type, $famObj) = @_;
+
+   open(ANNFILE,">$filename.ann") or &exit_with_mail("Could not open $filename.ann for writing [$!]");
+   print ANNFILE "# STOCKHOLM 1.0\n";
+   #Mimic this with what is loaded in the database
+   #$en->write_stockholm_ann(\*ANNFILE);
+   print ANNFILE "#=GF ID   ", $pfam->pfama_id , "\n";
+   print ANNFILE "#=GF AC   ", $pfam->pfama_acc,".", $pfam->version, "\n";
+   print ANNFILE "#=GF DE   ", $pfam->description, "\n";
+   if($pfam->previous_id and $pfam->previous_id =~ /\S+/){
+       print ANNFILE "#=GF PI   ", $pfam->previous_id, "\n";
+   }
+   print ANNFILE "#=GF AU   ", $pfam->author, "\n";
+   print ANNFILE "#=GF SE   ", $pfam->seed_source, "\n";
+
+
+   #Put in the ga, nc, tc and also add the build and search method lines.
+   if($type eq "pfamseq") {
+       print ANNFILE "#=GF GA   ". sprintf "%.2f %.2f;\n", $pfam->sequence_ga, $pfam->domain_ga;
+       print ANNFILE "#=GF TC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_tc, $pfam->domain_tc;
+       print ANNFILE "#=GF NC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_nc, $pfam->domain_nc;
+       print ANNFILE "#=GF BM   ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
+       print ANNFILE "#=GF SM   ", $pfam->searchmethod ,"\n";    
+   }
+   else {
+       print ANNFILE "#=GF GA   ". sprintf "%.2f %.2f;\n", $famObj->DESC->CUTGA->{seq}, $famObj->DESC->CUTGA->{dom};
+       print ANNFILE "#=GF TC   ". sprintf "%.2f %.2f;\n", $famObj->DESC->CUTTC->{seq}, $famObj->DESC->CUTTC->{dom};
+       print ANNFILE "#=GF NC   ". sprintf "%.2f %.2f;\n", $famObj->DESC->CUTNC->{seq}, $famObj->DESC->CUTNC->{dom};
+       print ANNFILE "#=GF BM   ". $famObj->DESC->BM ."\n";;
+       print ANNFILE "#=GF SM   ", $famObj->DESC->SM ."\n";  
+   }
+      
+   print ANNFILE "#=GF TP   ", $pfam->type , "\n";
+              
+   #Add Nested domains if they are present
+   if($type eq 'pfamseq' and $nested_locations and scalar(@$nested_locations)){
+    foreach my $n (  @$nested_locations){
+      print ANNFILE "#=GF NE   ", $n->nested_pfama_acc ,";\n";
+      print ANNFILE "#=GF NL   ", $n->pfamseq_acc;
+      if($n->seq_version and $n->seq_version =~ /\d+/){
+        print ANNFILE ".".$n->seq_version;
+      }
+      print ANNFILE "/".$n->seq_start."-".$n->seq_end."\n";
+      }
+   }
+   #Add the reference
+   foreach my $ref (@litRefs){
+      if($ref->pmid){
+        if (($ref->comment)&& ($ref->comment ne "NULL")){ 
+           print ANNFILE wrap("#=GF RC   ","#=GF RC   ",$ref->comment);
+           print ANNFILE "\n";
+        }
+       print ANNFILE "#=GF RN   [".$ref->order_added."]\n";
+       print ANNFILE "#=GF RM   ".$ref->pmid."\n";
+       print ANNFILE wrap("#=GF RT   ","#=GF RT   ", $ref->title);
+       print ANNFILE "\n";
+       print ANNFILE wrap("#=GF RA   ","#=GF RA   ", $ref->author);
+       print ANNFILE "\n";
+       print ANNFILE "#=GF RL   ".$ref->journal."\n";
+      } 
+   } 
+   
+   #DB Xrefs
+   #Add this special case of database cross reference
+   my @interpro = $pfamDB->getSchema->resultset('Interpro')->search( {auto_pfama => $pfam->auto_pfama} );
+   
+   print ANNFILE "#=GF DR   INTERPRO; ",$interpro[0]->interpro_id, ";\n" if($interpro[0] and $interpro[0]->interpro_id =~ /\S+/);
+   
+   foreach my $xref ( @xRefs){
+     #Construct the DR lines.  Most do not have additional paramters. In the database
+     #the other_params has a trailing ";" that should ideally not be there.  Otherwise
+     #one could simply use join! 
+
+     if($xref->other_params and $xref->other_params =~ /\S+/){
+      print ANNFILE "#=GF DR   ".$xref->db_id."; ". $xref->db_link ."; " .$xref->other_params."\n";
+     }else{
+      print ANNFILE "#=GF DR   ".$xref->db_id."; ".$xref->db_link.";\n";
+     }
+     #Print out any comment
+     if($xref->comment and $xref->comment =~ /\S+/){
+         print ANNFILE "#=GF DC   ".$xref->comment."\n";
+     }
+   }
+   
+   #Annotation comments
+   #TODO - Fix the fact that all comments are stored with a single leading whitespace
+   #Currently, the text wrap is handling this!
+   if($pfam->comment and $pfam->comment =~ /\S+/){
+     print ANNFILE wrap("#=GF CC   ","#=GF CC   ", $pfam->comment);
+     print ANNFILE "\n";
+   }
+   
+   print ANNFILE "#=GF SQ   ", scalar($aln->no_sequences()), "\n";
+   my $stock = $aln->write_stockholm;
+   if($$stock[0] =~ /^\# STOCKHOLM/){
+      shift(@$stock); #This removes the STOCKHOLM 1.0 tag, but nasty, but hey!
+  }
+   foreach my $line (@{$stock}){
+       print ANNFILE $line;
+   }
+   close(ANNFILE);
+}
+
+sub consensus_line {
+    my ($filename, $ali_length) = @_;
+
+    my $consensus;
+    open (CON, "consensus.pl -file $filename -method pfam -thr 60|") or &mailUserAndFail($job, "Failed to run consensus.pl on $filename");
+    while (<CON>) {
+	if(/^(consensus\/60%)(\s+)(\S+)/){
+	    $consensus = $3;
+	    last;
+	}
+    }
+    close(CON);
+
+    #Check that the consensus line is the correct length.  
+    if($ali_length != length($consensus)){
+	mailUserAndFail($job, "Error with consensus line. Got ".(length($consensus))."but expected".$ali_length); 
+    }
+    
+    return $consensus;
+}
+
+
+sub make_tree { 
+
+    my ($filename, $regs, $pfamseq) = @_;
+
+  open(TREE, "sreformat a2m $filename | FastTree -nj -boot 100 |") or &mailUserAndFail($job, "Could not open pipe on sreformat and FastTree -nj -boot 100 $filename\n");
+
+  
+  open(TREEFILE, ">$filename.tree") or mailUserAndFail($job, "Failed to open $filename.tree:[$!]");
+
+  my $line = <TREE>;
+  close TREE;
+  my @tree = split(/,/, $line);
+
+
+  #Exchange the treefile accessions for ids (not for ncbi or metaseq), and set the tree order on the database object
+  my $order = 1;
+  foreach my $acc (@tree) {
+      my ($before1, $before2, $nm, $st, $en, $after);
+      if($acc =~ m/(.+)?([\,\(])(\S+)\/(\d+)-(\d+)(.+)/g) {
+	  ($before1, $before2, $nm, $st, $en, $after) = ($1, $2, $3, $4, $5, $6);
+      }
+      elsif($acc =~ m/([\,\(])?(\S+)\/(\d+)-(\d+)(.+)/g) {
+	  ($before1, $nm, $st, $en, $after) = ($1, $2, $3, $4, $5);
+      }
+
+      $before1 = "" unless($before1);
+      $before2 = "" unless($before2);
+      $after = "" unless($after);
+      
+      if($pfamseq) {
+          if($acc =~ /\;/) {
+	      print TREEFILE $before1.$before2.$regs->{"$nm/$st-$en"}->pfamseq_id."/".$st."-".$en.$after;
+	  }
+	  else {
+	      print TREEFILE $before1.$before2.$regs->{"$nm/$st-$en"}->pfamseq_id."/".$st."-".$en.$after.",";
+	  }
+
+      }
+      else {
+	  if($acc =~  /\;/) {
+	      print TREEFILE "$acc";
+	  }
+	  else {
+	      print TREEFILE "$acc".",";
+	  }
+      }
+      
+      
+      if($regs->{"$nm/$st-$en"}) {     
+	  $regs->{"$nm/$st-$en"}->tree_order($order++);
+      } 
+      else{
+	  $logger->warn("key [$nm/$st-$en] is not in the hash"); 
+      }
+  }      
+  close TREEFILE;	      
 }
 
 
