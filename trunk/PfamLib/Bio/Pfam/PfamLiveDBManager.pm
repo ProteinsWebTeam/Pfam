@@ -1,7 +1,7 @@
 #
 # BioPerl module for Bio::Pfam::PfamLiveDBManager
 #
-# $Author: jm14 $
+# $Author: rdf $
 
 package Bio::Pfam::PfamLiveDBManager;
 
@@ -88,10 +88,13 @@ sub updateClanMembership {
     "Updating clan membership with auto_clan: $autoClan, auto_pfamA: $autoPfamA"
   ) if ( $self->{'debug'} );
   if ( $autoClan && $autoPfamA ) {
-    $result = $self->getSchema->resultset('Clan_membership')->find_or_create(
+    $result = $self->getSchema->resultset('ClanMembership')->find_or_create(
       {
         auto_clan  => $autoClan,
-        auto_pfamA => $autoPfamA
+        auto_pfama => $autoPfamA
+      },
+      { 
+        key => 'clanMembConst'
       }
     );
   }
