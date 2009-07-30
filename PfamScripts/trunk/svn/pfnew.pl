@@ -187,7 +187,7 @@ my $caught_cntrl_c;
 $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
  
 $client->addFamily($family, $newFamObj->DESC->ID);
-#$client->commitFamily($family, $newFamilyObj->DESC->ID);
+
 #Remove any file containing the check-in message
 if ( -s ".defaultpfnew" ) {
   unlink(".defaultpfnew")
