@@ -100,15 +100,6 @@ $client->checkFamilyExists($family);
 
 my $familyIO = Bio::Pfam::FamilyIO->new;
 
-#Check the desc accessions are the same
-if ( $upFamObj->DESC->AC ne $oldFamObj->DESC->AC ) {
-  die "Accession error, your local copy does not match the repository\n";
-}
-
-#Check the desc accessions are the same
-if ( $upFamObj->DESC->ID ne $oldFamObj->DESC->OD ) {
-  die "Identifier error, your local copy does not match the repository\n";
-}
 
 if ($onlydesc) {
   $client->addPFANNLog();
@@ -117,7 +108,7 @@ if ($onlydesc) {
 
   #my $upFamObj = $familyIO->loadPfamADESCFromLocalFile($family, $pwd);
   print STDERR "Successfully loaded $family through middleware\n";
-
+  die "Not implemented\n";
 }
 else {
 
@@ -129,7 +120,7 @@ else {
   my $oldFamObj;
   my $upFamObj = $familyIO->loadPfamAFromLocalFile( $family, $pwd );
   print STDERR "Successfully loaded $family through middleware\n";
-
+  
 #-------------------------------------------------------------------------------
 
   if ($addToClan) {
@@ -171,7 +162,7 @@ else {
     }
 
     #Does the clan in question exist?
-    #$client->checkClanExists();
+    $client->checkClanExists($upFamObj->DESC->CL);
 
     #Seems like it does, lets load it!
     my $clanIO  = Bio::Pfam::ClanIO->new;
@@ -194,14 +185,29 @@ else {
     $client->addPFCILog();
   }
 
-  #my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);$oldFamObj;
+  my $oldFamObj = $familyIO->loadPfamAFromSVN($family, $client);
   print STDERR "Successfully loaded remote $family through middleware\n";
 
-  #AC present
-  #if($upFamObj->DESC->AC ne $oldFamObj->DESC->AC){
-  #  die "Accession error, your local copy does not match the repository\n";
-  #}
+  
+  #Check the desc accessions are the same
+  if ( $upFamObj->DESC->AC ne $oldFamObj->DESC->AC ) {
+    die "Accession error, your local copy does not match the repository\n";
+  }
 
+  #Check the desc accessions are the same
+  if ( $upFamObj->DESC->ID ne $oldFamObj->DESC->ID ) {
+    die "Identifier error, your local copy does not match the repository\n";
+  }
+  
+  if($oldFamObj->DESC->CL){
+    unless( $newFamObj->DESC->CL eq $oldFamObj->DESC->CL){
+      die "The clan acession in the CL has been changed between the SVN copy and your local copy!:".
+    "From:".$oldFamObj->DESC->CL." to ".$newFamObj->DESC->CL.".  You can not do this!\n".
+    "(Use pfci with the remove_from_clan option followed by add_to_clan)\n";
+    }
+  }
+  
+  
   #These are more sanity checks
   unless ($ignore) {
 
@@ -233,9 +239,15 @@ else {
       exit(1);
     }
 
-    #unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
-    #  exit(1);
-    #}
+    unless(Bio::Pfam::PfamQC::noMissing($upFamObj, $oldFamObj, $family )){
+       print("$0: your family seems to be missing members compared to the DBN copy\n(see $family/missing). Please inspect loss of members.\n");
+       print("Do you want to continue regardless? [y/n]  ");
+       my $reply = <STDIN>;
+       chomp $reply;
+       if ($reply ne "y") {
+        exit(1);
+       }
+    }
 
     #pqc-check $family
 
