@@ -1,7 +1,7 @@
 #
 # BioPerl module for Bio::Pfam::PfamLiveDBManager
 #
-# $Author: rdf $
+# $Author: jm14 $
 
 package Bio::Pfam::PfamLiveDBManager;
 
@@ -232,9 +232,12 @@ sub updatePfamA {
   $pfamA->previous_id( $famObj->DESC->PI ? $famObj->DESC->PI : '' );
 
   #Now update the HMM stuff;
-  $pfamA->mu( $famObj->HMM->mu );
-  $pfamA->tau( $famObj->HMM->tau );
-  $pfamA->lambda( $famObj->HMM->lambda );
+  $pfamA->msv_mu( $famObj->HMM->msvStats->{mu}->mu );
+  $pfamA->msv_lambda( $famObj->HMM->msvStats->{lambda}->lambda );
+  $pfamA->viterbi_mu( $famObj->HMM->viterbiStats->{mu}->mu );
+  $pfamA->viterbi_lambda( $famObj->HMM->viterbiStats->{lambda}->lambda );
+  $pfamA->forward_tau( $famObj->HMM->forwardStats->{tau}->tau );
+  $pfamA->forward_lambda( $famObj->HMM->forwardStats->{lambda}->lambda );
   $pfamA->model_length( $famObj->HMM->length );
 
   #Now update the numbers in the SEED and FULL
@@ -255,32 +258,36 @@ sub createPfamA {
 
   my $pfamA = $self->getSchema->resultset('Pfama')->create(
     {
-      pfama_acc    => $famObj->DESC->AC,
-      pfama_id     => $famObj->DESC->ID,
-      description  => $famObj->DESC->DE,
-      author       => $famObj->DESC->AU,
-      deposited_by => $depositor,
-      seed_source  => $famObj->DESC->SE,
-      type         => $famObj->DESC->TP,
-      sequence_tc  => $famObj->DESC->CUTTC->{seq},
-      domain_tc    => $famObj->DESC->CUTTC->{dom},
-      sequence_ga  => $famObj->DESC->CUTGA->{seq},
-      domain_ga    => $famObj->DESC->CUTGA->{dom},
-      sequence_nc  => $famObj->DESC->CUTNC->{seq},
-      domain_nc    => $famObj->DESC->CUTNC->{dom},
-      buildmethod  => $famObj->DESC->BM,
-      searchmethod => $famObj->DESC->SM,
-      comment      => $famObj->DESC->CC,
-      previous_id  => $famObj->DESC->PI ? $famObj->DESC->PI : '',
-      mu           => $famObj->HMM->mu,
-      tau          => $famObj->HMM->tau,
-      lambda       => $famObj->HMM->lambda,
-      model_length => $famObj->HMM->length,
-      num_seed     => $famObj->SEED->no_sequences,
-      num_full     => $famObj->ALIGN->no_sequences,
-      created      => \'NOW()',
+      pfama_acc      => $famObj->DESC->AC,
+      pfama_id       => $famObj->DESC->ID,
+      description    => $famObj->DESC->DE,
+      author         => $famObj->DESC->AU,
+      deposited_by   => $depositor,
+      seed_source    => $famObj->DESC->SE,
+      type           => $famObj->DESC->TP,
+      sequence_tc    => $famObj->DESC->CUTTC->{seq},
+      domain_tc      => $famObj->DESC->CUTTC->{dom},
+      sequence_ga    => $famObj->DESC->CUTGA->{seq},
+      domain_ga      => $famObj->DESC->CUTGA->{dom},
+      sequence_nc    => $famObj->DESC->CUTNC->{seq},
+      domain_nc      => $famObj->DESC->CUTNC->{dom},
+      buildmethod    => $famObj->DESC->BM,
+      searchmethod   => $famObj->DESC->SM,
+      comment        => $famObj->DESC->CC,
+      previous_id    => $famObj->DESC->PI ? $famObj->DESC->PI : '',
+      msv_mu         => $famObj->HMM->msvStats->{mu}->mu,
+      msv_lambda     =>$famObj->HMM->msvStats->{lambda}->lambda,
+      viterbi_mu     => $famObj->HMM->viterbiStats->{mu}->mu,
+      viterbi_lambda => $famObj->HMM->viterbiStats->{lambda}->lambda,
+      forward_tau    => $famObj->HMM->forwardStats->{tau}->tau,
+      forward_lambda => $famObj->HMM->forwardStats->{lambda}->lambda,
+      model_length   => $famObj->HMM->length,
+      num_seed       => $famObj->SEED->no_sequences,
+      num_full       => $famObj->ALIGN->no_sequences,
+      created        => \'NOW()',
     }
   );
+
 
   unless ( $pfamA and $pfamA->isa('PfamLive::Pfama') ) {
     confess( 'Failed to get row for ' . $famObj->DESC->ID . "$pfamA....." );
