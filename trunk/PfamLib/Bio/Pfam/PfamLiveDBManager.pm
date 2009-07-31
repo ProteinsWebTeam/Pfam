@@ -1,7 +1,7 @@
 #
 # BioPerl module for Bio::Pfam::PfamLiveDBManager
 #
-# $Author: jm14 $
+# $Author: rdf $
 
 package Bio::Pfam::PfamLiveDBManager;
 
@@ -232,12 +232,12 @@ sub updatePfamA {
   $pfamA->previous_id( $famObj->DESC->PI ? $famObj->DESC->PI : '' );
 
   #Now update the HMM stuff;
-  $pfamA->msv_mu( $famObj->HMM->msvStats->{mu}->mu );
-  $pfamA->msv_lambda( $famObj->HMM->msvStats->{lambda}->lambda );
-  $pfamA->viterbi_mu( $famObj->HMM->viterbiStats->{mu}->mu );
-  $pfamA->viterbi_lambda( $famObj->HMM->viterbiStats->{lambda}->lambda );
-  $pfamA->forward_tau( $famObj->HMM->forwardStats->{tau}->tau );
-  $pfamA->forward_lambda( $famObj->HMM->forwardStats->{lambda}->lambda );
+  $pfamA->msv_mu( $famObj->HMM->msvStats->{mu} );
+  $pfamA->msv_lambda( $famObj->HMM->msvStats->{lambda} );
+  $pfamA->viterbi_mu( $famObj->HMM->viterbiStats->{mu} );
+  $pfamA->viterbi_lambda( $famObj->HMM->viterbiStats->{lambda} );
+  $pfamA->forward_tau( $famObj->HMM->forwardStats->{tau} );
+  $pfamA->forward_lambda( $famObj->HMM->forwardStats->{lambda} );
   $pfamA->model_length( $famObj->HMM->length );
 
   #Now update the numbers in the SEED and FULL
@@ -275,12 +275,12 @@ sub createPfamA {
       searchmethod   => $famObj->DESC->SM,
       comment        => $famObj->DESC->CC,
       previous_id    => $famObj->DESC->PI ? $famObj->DESC->PI : '',
-      msv_mu         => $famObj->HMM->msvStats->{mu}->mu,
-      msv_lambda     =>$famObj->HMM->msvStats->{lambda}->lambda,
-      viterbi_mu     => $famObj->HMM->viterbiStats->{mu}->mu,
-      viterbi_lambda => $famObj->HMM->viterbiStats->{lambda}->lambda,
-      forward_tau    => $famObj->HMM->forwardStats->{tau}->tau,
-      forward_lambda => $famObj->HMM->forwardStats->{lambda}->lambda,
+      msv_mu         => $famObj->HMM->msvStats->{mu},
+      msv_lambda     => $famObj->HMM->msvStats->{lambda},
+      viterbi_mu     => $famObj->HMM->viterbiStats->{mu},
+      viterbi_lambda => $famObj->HMM->viterbiStats->{lambda},
+      forward_tau    => $famObj->HMM->forwardStats->{tau},
+      forward_lambda => $famObj->HMM->forwardStats->{lambda},
       model_length   => $famObj->HMM->length,
       num_seed       => $famObj->SEED->no_sequences,
       num_full       => $famObj->ALIGN->no_sequences,
