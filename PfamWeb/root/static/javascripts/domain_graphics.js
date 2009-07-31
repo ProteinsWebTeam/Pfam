@@ -44,20 +44,20 @@ var PfamGraphic = Class.create( {
       templates: {
         lollipop:  new Template( "#{label}, residue #{pos}" ),
         bridge:    new Template( "#{label}, from #{start} to #{end}" ),
-        feature:   new Template( "#{label}, from #{start} to #{end}" ),
+        region:    new Template( "#{label}, from #{start} to #{end}" ),
         motif:     new Template( "#{label}, from #{start} to #{end}" ),
         alignment: new Template( "#{label}, alignment region from #{start} to #{end}" ),
         envelope:  new Template( "#{label}, envelope region from #{start} to #{end}" )
       },
 
-      // URL to link from a feature
-      featureUrl: "http://pfam.sanger.ac.uk/family/",
+      // URL to link from a region
+      regionUrl: "http://pfam.sanger.ac.uk/family/",
 
       // general image parameters
-      featureHeight: 20,   // the height of a feature
+      regionHeight: 20,   // the height of a region
       motifHeight:   14,   // the height of a motif
       motifOpacity:  0.6,  // the height of a motif
-      labelPadding:  3,    // padding for the text label on a feature
+      labelPadding:  3,    // padding for the text label on a region
       xscale:        0.5,  // xscale pixels per residue
       yscale:        1,    // not currently used
       envOpacity:    0.6   // opacity of the envelope regions
@@ -66,7 +66,8 @@ var PfamGraphic = Class.create( {
     // general options, specified as part of the "sequence"
     this._options = {
       imageMap: true,  // add the image map ?
-      labels:   true   // add the text labels to features ?
+      labels:   true,  // add the text labels to regions ?
+      tips:     true   // add tooltips ? Requires prototip2
     };
 
     // specification of various allowed values in the input
@@ -74,12 +75,13 @@ var PfamGraphic = Class.create( {
       valignValues:       $w( "top bottom" ),
       linesStyleValues:   $w( "mixed bold dashed" ),
       lollipopHeadValues: $w( "diamond circle square arrow line" ),
-      featureEndValues:   $w( "curved straight jagged arrow" )
+      regionEndValues:   $w( "curved straight jagged arrow" )
     };
 
     // somewhere to put <area> definitions for the domains and markups
-    this._heights = [];
-    this._areas   = [];
+    this._heights   = [];
+    this._areasList = [];
+    this._areasHash = {};
 
     // check for a sequence object and a parent node
     if ( parent !== undefined ) {
@@ -190,14 +192,15 @@ var PfamGraphic = Class.create( {
       throw( "PfamGraphic: ERROR: sequence length must be a positive integer" );
     }
 
-    // check the "feature", "markups" and "motifs" sections of the sequence
-    if ( sequence.features !== undefined ) {
-      if ( typeof sequence.features !== "object" ) {
-        throw( "PfamGraphic: ERROR: 'features' must be a valid object" );
+    // check the "regions", "markups" and "motifs" sections of the sequence
+    if ( sequence.regions !== undefined ) {
+      if ( typeof sequence.regions !== "object" ) {
+        throw( "PfamGraphic: ERROR: 'regions' must be a valid object" );
       }
     } else {
-      // add an empty "features" object, to keep later code happy
-      sequence.features = [];
+
+      // add an empty "regions" object, to keep later code happy
+      sequence.regions = [];
     }
 
     if ( sequence.markups !== undefined ) {
@@ -234,18 +237,18 @@ var PfamGraphic = Class.create( {
     
     // scale the length of the sequence and the weight of the domain image
     this._imageWidth = this._sequence.length * this._imageParams.xscale;
-    this._featureHeight = this._imageParams.featureHeight;
+    this._regionHeight = this._imageParams.regionHeight;
     // TODO start taking notice of yscale
 
     // console.log( "PfamGraphic.setSequence: image width, domain height: %d, %d", 
-    //   this._imageWidth, this._featureHeight );
+    //   this._imageWidth, this._regionHeight );
 
     // set the height of the sequence line and the length of one "step" across
     // that line. The line is draw as a light band, a darker band and another
     // lighter one, to give the effect of a reflection
 
     // set the sequence line to one sixth the height of the domains
-    this._seqHeight = Math.round( this._featureHeight / 6 );
+    this._seqHeight = Math.round( this._regionHeight / 6 );
 
     // we want 5 steps across the sequence line
     this._seqStep   = Math.round( this._seqHeight / 5 );    
@@ -253,17 +256,27 @@ var PfamGraphic = Class.create( {
     // console.log( "PfamGraphic.setSequence: seqHeight / seqStep: %d / %d", 
     //   this._seqHeight, this._seqStep );
   },
+  
+  // returns the sequence object
 
   getSequence: function() {
     return this._sequence;
   },
 
   //----------------------------------------------------------------------------
+
+  // returns a data structure that stores what is effectively <area> data for
+  // each of the regions on the sequence
+  
+  getAreas: function() {
+    return [ this._areasList, this._areasHash ];
+  },
+
+  //----------------------------------------------------------------------------
   //- public methods -----------------------------------------------------------
   //----------------------------------------------------------------------------
 
-  // coordinates the construction and drawing of the whole graphic. This is
-  // pretty much the only public method on the class...
+  // coordinates the construction and drawing of the whole graphic
 
   render: function( sequence, parent ) {
 
@@ -296,10 +309,10 @@ var PfamGraphic = Class.create( {
     //   o half the domain height
     var canvasHeight = [ this._heights.lollipops.upMax,
                          this._heights.bridges.upMax,
-                         ( this._featureHeight / 2 + 1 ) ].max() +
+                         ( this._regionHeight / 2 + 1 ) ].max() +
                        [ this._heights.lollipops.downMax,
                          this._heights.bridges.downMax,
-                         ( this._featureHeight / 2 + 1 ) ].max() + 1;
+                         ( this._regionHeight / 2 + 1 ) ].max() + 1;
                        // that single pixel is just a fudge factor...
 
     // canvas width is just calculated from the length of the sequence
@@ -310,7 +323,7 @@ var PfamGraphic = Class.create( {
     // actually be drawn
     this._baseline = [ this._heights.lollipops.upMax,
                        this._heights.bridges.upMax,
-                       this._imageParams.featureHeight / 2 ].max()  + 1;
+                       this._imageParams.regionHeight / 2 ].max()  + 1;
                        // that single pixel is just a fudge factor...
 
     // if we don't yet have a <canvas>, build the one with the calculated
@@ -324,9 +337,12 @@ var PfamGraphic = Class.create( {
     // draw everything
     this._draw();
 
+    // add mouse event listeners
+    this._addListeners();
+
     // clean up...
     this._heights = {};
-    this._areas   = [];
+    //this._areasList   = [];
 
   }, // end of "render"
 
@@ -364,6 +380,135 @@ var PfamGraphic = Class.create( {
     this.setCanvas( canvas );
 
   },
+
+  //----------------------------------------------------------------------------
+
+  // add the mouse event listeners that will take are of things like changing
+  // the cursor over linked domains. If the tooltip library is loaded, this
+  // method also adds tips
+
+  _addListeners: function() {
+
+//    console.log( "PfamGraphic._addListeners: got %d areas", this._areasList.size() );
+//    this._areasList.each( function( a ) {
+//      console.log( "PfamGraphic._addListeners: |%s|: %d - %d", a.label, a.start, a.end ); 
+//    } );
+
+    // the offset coordinates of the canvas itself
+    var offset = this._canvas.cumulativeOffset();
+    var cx = offset[0];
+    var cy = offset[1]; 
+
+    // should we add tips ?
+    var addTips = ( window.Prototip && this._options.tips );
+
+    // are we inside or outside of an area ?
+    var inside = null;
+
+    var areas  = this._areasList;
+    var canvas = this._canvas;
+
+    //----------------------------------
+
+    // add a listener for mouse movements over the canvas
+
+    this._canvas.observe( "mousemove", function( e ) {
+
+      var x = e.pointerX() - cx; 
+      var y = e.pointerY() - cy;
+      var activeArea = null;
+
+      // see if we're in an area
+      areas.each( function( area ) {
+        if ( x > area.coords[0] && x < area.coords[2] &&
+             y > area.coords[1] && y < area.coords[3] ) {
+          activeArea = area;
+          throw $break;
+        }  
+      } );
+
+      if ( activeArea ) {
+
+        // we were already inside an area
+        if ( inside && inside !== activeArea.label ) {
+
+          // we're in a new area
+          inside = activeArea.label;
+          if ( addTips ) {
+            new Tip( "dg", inside );
+          }
+
+        } else { 
+
+          // we weren't previously in an area
+          inside = activeArea.label;
+
+          // change the pointer if there's a link on this area
+          if ( activeArea.href ) {
+            canvas.setStyle( { cursor: "pointer" } );
+          }
+
+          // add a tooltip if we can and if we should
+          if ( addTips ) {
+            new Tip( "dg", inside );
+          }
+        }        
+
+      } else {
+
+        // we aren't inside an area        
+        if ( inside ) {
+          // we were previously inside an area
+          inside = null;
+          canvas.setStyle( { cursor: "default" } );
+          if ( addTips ) {
+            $("dg").prototip.remove();
+          }
+        }
+        
+      }
+
+    } );
+
+    //----------------------------------
+
+    // add a listener for when the mouse is moved off the canvas. Clean up
+    // the tips and reset the cursor
+
+    this._canvas.observe( "mouseout", function( e ) {
+      inside = null;
+      canvas.setStyle( { cursor: "default" } );
+      if ( window.Prototip && $("dg").prototip ) {
+        $("dg").prototip.remove();
+      }
+    } );
+
+    //----------------------------------
+
+    // watch for clicks on areas with URLs
+
+    this._canvas.observe( "click", function( e ) {
+      // console.log( "PfamGraphic._addListeners: click event", e );
+
+      var x = e.pointerX() - cx; 
+      var y = e.pointerY() - cy;
+      var activeArea = null;
+
+      areas.reverse().each( function( area ) {
+        if ( x > area.coords[0] && x < area.coords[2] &&
+             y > area.coords[1] && y < area.coords[3] ) {
+          activeArea = area;
+          throw $break;
+        }  
+      } );
+      
+      if ( activeArea && activeArea.href ) {
+        window.location = activeArea.href;
+      }
+
+    } );
+
+  }, // end of "_addListeners"
 
   //----------------------------------------------------------------------------
 
@@ -621,7 +766,7 @@ var PfamGraphic = Class.create( {
   _draw: function() {
 
     // draw the sequence
-    this._drawSequence();
+    var seqArea = this._drawSequence();
 
     // draw the briges
     var db = this._drawBridge.bind( this );
@@ -636,10 +781,10 @@ var PfamGraphic = Class.create( {
       dl( lollipop );
     } );
 
-    // draw the features
-    var _drawFeature = this._drawFeature.bind( this );
-    this._sequence.features.each( function( feature ) {
-      _drawFeature( feature );
+    // draw the regions
+    var _drawRegion = this._drawRegion.bind( this );
+    this._sequence.regions.each( function( region ) {
+      _drawRegion( region );
     } );
 
     // draw the motifs
@@ -649,9 +794,12 @@ var PfamGraphic = Class.create( {
     } );
 
     // add the image map (unless we're told not to)
-    if ( this._options.imageMap ) {
-      this._drawImageMap();
-    }
+//    if ( this._options.imageMap ) {
+//      this._drawImageMap();
+//    }
+
+    // add the <area> details for the sequence last
+    this._areasList.push( seqArea ); 
 
   },
 
@@ -670,10 +818,15 @@ var PfamGraphic = Class.create( {
     var imgEl = new Element( "img", { id: imgId,
                                       "class": "canvasImageMap",
                                       src: "/shared/images/blank.gif",
+                                      style: { position: "relative" },
                                       useMap: "#" + mapId } );
                                       // NB. need "useMap" (capital "M") for 
                                       // the benefit of IE...
-    this._parent.appendChild( imgEl );
+    
+    // don't add multiple images
+    if ( ! $(imgId) ) {
+      this._parent.appendChild( imgEl );
+    }
 
     // set the image dimensions
     var w = this._canvas.width + "px";
@@ -697,11 +850,17 @@ var PfamGraphic = Class.create( {
     // make a <map> tag and add it to the DOM
     var mapEl = new Element( "map", { name: mapId, 
                                       id: mapId } );
+
+    // remove any old map before adding a new one
+    if ( $(mapId) ) {
+      $(mapId).remove();
+    }
+
     this._parent.appendChild( mapEl );
     
     // add the areas to the map
     var buildArea = this._buildArea.bind( this );
-    this._areas.each( function( area ) {
+    this._areasList.each( function( area ) {
       var areaEl = buildArea( area );
       mapEl.appendChild( areaEl );
 
@@ -751,7 +910,9 @@ var PfamGraphic = Class.create( {
 
   //----------------------------------------------------------------------------
 
-  // draws the basic ribbon, representing the sequence
+  // draws the basic ribbon, representing the sequence. Returns data for an
+  // <area> tag, so that we can add it to the list of areas at the appropriate 
+  // end of that list
 
   _drawSequence: function() {
 
@@ -787,10 +948,10 @@ var PfamGraphic = Class.create( {
                             this._imageWidth, this._seqStep * 3 );
 
     // add an area
-    // this._areas.push( { label:  "sequence", // TODO make this more informative...
-    //                     text:   "sequence",
-    //                     coords: [ 0, offset, 
-    //                               this._imageWidth, offset + this._seqStep * 5 ] } );
+    return { label:  "sequence", // TODO make this more informative...
+              text:   "sequence",
+              coords: [ 0, this._topOffset, 
+              this._imageWidth, this._topOffset + this._seqStep * 5 ] };
   },
 
   //----------------------------------------------------------------------------
@@ -835,10 +996,10 @@ var PfamGraphic = Class.create( {
     var label = this._imageParams.templates.lollipop.evaluate( { label: markup.label,
                                                                  pos:   markup.start } );
 
-    this._areas.push( { label:  label,
-                        text:   markup.text,
-                        start:  start,
-                        coords: [ x1-1, y1-1, x1+1, y2+1 ] } );
+    this._areasList.push( { label:  label,
+                             text:   markup.text,
+                             start:  start,
+                             coords: [ x1-1, y1-1, x1+1, y2+1 ] } );
 
     // add the head
     if ( markup.headStyle ) {
@@ -866,11 +1027,11 @@ var PfamGraphic = Class.create( {
         this._context.arc( x, y, r, 0, (Math.PI * 2), "true" );
         this._context.fillStyle = colour || "red";
         this._context.fill();
-        this._areas.push( { label:  label,
-                            text:   text,
-                            shape:  "circle",
-                            start:  start,
-                            coords: [ x, y, r ] } );
+        this._areasList.push( { label:  label,
+                                 text:   text,
+                                 shape:  "circle",
+                                 start:  start,
+                                 coords: [ x, y, r ] } );
         break;
 
       case "square":
@@ -886,10 +1047,10 @@ var PfamGraphic = Class.create( {
         this._context.closePath();
         this._context.fillStyle = colour || "rgb(100, 200, 9)";
         this._context.fill();
-        this._areas.push( { label:  label,
-                            text:   text,
-                            start:  start,
-                            coords: [ x - d, y - d, x + d, y + d ] } );
+        this._areasList.push( { label:  label,
+                                 text:   text,
+                                 start:  start,
+                                 coords: [ x - d, y - d, x + d, y + d ] } );
         break;
 
       case "diamond":
@@ -905,15 +1066,15 @@ var PfamGraphic = Class.create( {
         this._context.closePath();
         this._context.fillStyle = colour || "rgb(100, 200, 9)";
         this._context.fill();
-        this._areas.push( { label:  label,
-                            text:   text,
-                            shape:  "poly",
-                            start:  start,
-                            coords: [ x - d, y,
-                                      x,     y + d,
-                                      x + d, y,
-                                      x,     y - d,
-                                      x - d, y ] } );
+        this._areasList.push( { label:  label,
+                                 text:   text,
+                                 shape:  "poly",
+                                 start:  start,
+                                 coords: [ x - d, y,
+                                           x,     y + d,
+                                           x + d, y,
+                                           x,     y - d,
+                                           x - d, y ] } );
         break;
 
       case "line":
@@ -926,11 +1087,11 @@ var PfamGraphic = Class.create( {
         this._context.closePath();
         this._context.strokeStyle = colour || "rgb(50, 40, 255)";
         this._context.stroke();
-        this._areas.push( { label:  label,
-                            text:   text,
-                            start:  start,
-                            coords: [ x - 1, y - d - 1,
-                                      x + 1, y + d + 1 ] } );
+        this._areasList.push( { label:  label,
+                                 text:   text,
+                                 start:  start,
+                                 coords: [ x - 1, y - d - 1,
+                                           x + 1, y + d + 1 ] } );
         break;
 
       case "arrow":
@@ -965,11 +1126,11 @@ var PfamGraphic = Class.create( {
                      x - 3, this._botOffset + 1 + d ];
         }
 
-        this._areas.push( { label:  label,
-                            text:   text,
-                            start:  start,
-                            shape:  "poly",
-                            coords: coords } );
+        this._areasList.push( { label:  label,
+                                 text:   text,
+                                 start:  start,
+                                 shape:  "poly",
+                                 coords: coords } );
   
         this._context.strokeStyle = colour || "rgb(50, 40, 255)";
         this._context.stroke();
@@ -1029,75 +1190,75 @@ var PfamGraphic = Class.create( {
                                                                end:   end } );
 
     // add <area> tags for each of the legs and the horizontal
-    this._areas.push( { label:  label, 
-                        text:   bridge.markup.label,
-                        start:  start,
-                        end:    end,
-                        coords: [ x1-1, y1-1, x1+1, y2+1 ] } );
-    this._areas.push( { label:  label, 
-                        text:   bridge.markup.label,
-                        start:  start,
-                        end:    end,
-                        coords: [ x1-1, y2-1, x2+1, y2+1 ] } );
-    this._areas.push( { label:  label, 
-                        text:   bridge.markup.label,
-                        start:  start,
-                        end:    end,
-                        coords: [ x2-1, y2-1, x2+1, y1+1 ] } );
+    this._areasList.push( { label:  label, 
+                             text:   bridge.markup.label,
+                             start:  start,
+                             end:    end,
+                             coords: [ x1-1, y1-1, x1+1, y2+1 ] } );
+    this._areasList.push( { label:  label, 
+                             text:   bridge.markup.label,
+                             start:  start,
+                             end:    end,
+                             coords: [ x1-1, y2-1, x2+1, y2+1 ] } );
+    this._areasList.push( { label:  label, 
+                             text:   bridge.markup.label,
+                             start:  start,
+                             end:    end,
+                             coords: [ x2-1, y2-1, x2+1, y1+1 ] } );
 
     // console.log( "PfamGraphic._drawBridge: end" );
   },
  
   //----------------------------------------------------------------------------
 
-  // draws a feature (most commonly a domain)
+  // draws a region (most commonly a domain)
 
-  _drawFeature: function( feature ) {
-    // console.log( "PfamGraphic._drawFeature: drawing feature..." );
+  _drawRegion: function( region ) {
+    // console.log( "PfamGraphic._drawRegion: drawing region..." );
 
-    if ( ! this._markupSpec.featureEndValues.include( feature.startStyle ) ) {
-      throw( "PfamGraphic: ERROR: feature start style is not valid: '" + feature.startStyle + "'" );
+    if ( ! this._markupSpec.regionEndValues.include( region.startStyle ) ) {
+      throw( "PfamGraphic: ERROR: region start style is not valid: '" + region.startStyle + "'" );
     }
 
-    if ( ! this._markupSpec.featureEndValues.include( feature.endStyle ) ) {
-      throw( "PfamGraphic: ERROR: feature end style is not valid: '" + feature.endStyle + "'" );
+    if ( ! this._markupSpec.regionEndValues.include( region.endStyle ) ) {
+      throw( "PfamGraphic: ERROR: region end style is not valid: '" + region.endStyle + "'" );
     }
 
     // calculate dimensions for the inner shape
-    var height = Math.floor( this._featureHeight ) - 2;
+    var height = Math.floor( this._regionHeight ) - 2;
     var radius = Math.round( height / 2 );
     var arrow  = radius;
-    var width = ( feature.end - feature.start + 1 ) * this._imageParams.xscale - 2;
+    var width = ( region.end - region.start + 1 ) * this._imageParams.xscale - 2;
 
-    var x = Math.floor( feature.start * this._imageParams.xscale ) + 1.5;
+    var x = Math.floor( region.start * this._imageParams.xscale ) + 1.5;
     var y = Math.floor( this._baseline - radius ) + 0.5;
 
-    var featureParams = {
+    var regionParams = {
       x: x, 
       y: y, 
       w: width, 
       h: height,
       r: radius,
       a: arrow,
-      s: feature.startStyle,
-      e: feature.endStyle
+      s: region.startStyle,
+      e: region.endStyle
     };
 
-    // console.log( "PfamGraphic._drawFeature: inner: (x, y), h, w: (%d, %d), %d, %d",
+    // console.log( "PfamGraphic._drawRegion: inner: (x, y), h, w: (%d, %d), %d, %d",
     //   x, y, height, width );
 
     //----------------------------------
 
     // the inner-most is filled, with a colour gradient running from white to 
     // dark to light colour as y increases. First draw the shell, then fill it
-    this._buildFeaturePath( featureParams );
+    this._buildRegionPath( regionParams );
 
     // fill the path with a gradient
     var gradient = this._context.createLinearGradient( x, y, x, y + height );
 
     gradient.addColorStop( 0, "#ffffff" );
-    gradient.addColorStop( 0.5, feature.colour );
-    gradient.addColorStop( 0.7, feature.colour );
+    gradient.addColorStop( 0.5, region.colour );
+    gradient.addColorStop( 0.7, region.colour );
     gradient.addColorStop( 1, "#ffffff" ); // TODO make this a bit darker
 
     this._context.fillStyle = gradient;
@@ -1115,68 +1276,98 @@ var PfamGraphic = Class.create( {
     x      -= 1;
     y       = Math.floor( this._baseline - radius ) + 0.5;
 
-    // console.log( "PfamGraphic._drawFeature: outer: (x, y), h, w: (%d, %d), %d, %d",
+    // console.log( "PfamGraphic._drawRegion: outer: (x, y), h, w: (%d, %d), %d, %d",
     //   x, y, height, width );
 
-    this._buildFeaturePath( { x: x, 
+    this._buildRegionPath( { x: x, 
                               y: y, 
                               w: width, 
                               h: height,
                               r: radius,
                               a: arrow,
-                              s: feature.startStyle,
-                              e: feature.endStyle } );
+                              s: region.startStyle,
+                              e: region.endStyle } );
 
-    this._context.strokeStyle = feature.colour;
+    this._context.strokeStyle = region.colour;
     this._context.stroke();
 
     //----------------------------------
 
     // build a label for the <area>
     // add the transparent overlay to show the limits of the alignment region
-    var label;
-    if ( feature.aliStart !== undefined &&
-         feature.aliEnd   !== undefined ) {
-      this._drawEnvelope( feature, radius, height );
+    var label, startArea, endArea;
+    if ( region.aliStart !== undefined &&
+         region.aliEnd   !== undefined ) {
+      var areas = this._drawEnvelope( region, radius, height );
+      startArea = areas[0];
+      endArea   = areas[1];
 
       // use a template that includes the envelope details
-      label = this._imageParams.templates.feature.evaluate( { label: feature.text,
-                                                              start: feature.start,
-                                                              end:   feature.end } );
+      label = this._imageParams.templates.region.evaluate( { label: region.text,
+                                                              start: region.start,
+                                                              end:   region.end } );
     } else {
       // there's no envelope given, so use a template that describes the whole
-      // feature
-      label = this._imageParams.templates.alignment.evaluate( { label:    feature.text,
-                                                                start:    feature.start,
-                                                                end:      feature.end,
-                                                                aliStart: feature.aliStart,
-                                                                aliEnd:   feature.aliEnd } );
+      // region
+      label = this._imageParams.templates.alignment.evaluate( { label:    region.text,
+                                                                start:    region.start,
+                                                                end:      region.end,
+                                                                aliStart: region.aliStart,
+                                                                aliEnd:   region.aliEnd } );
     }
-
 
     //----------------------------------
 
     // add the text label
     if ( this._options.labels ) {
-      this._drawText( x, this._baseline, width, feature.text );
+      this._drawText( x, this._baseline, width, region.text );
     }
 
     //----------------------------------
 
     // build a URL
-    var url = this._imageParams.featureUrl + feature.text;
+    var url;
+    console.log( "PfamGraphic._drawRegion: region: ", region );
+    if ( region.acc !== undefined ) {
+      console.log( "PfamGraphic._drawRegion: using acc for URL" );
+      url = this._imageParams.regionUrl + region.acc;
+    } else if ( region.id !== undefined ) {
+      console.log( "PfamGraphic._drawRegion: using ID for URL" );
+      url = this._imageParams.regionUrl + region.id;
+    } else if ( region.text !== undefined ) {
+      console.log( "PfamGraphic._drawRegion: using text for URL" );
+      url = this._imageParams.regionUrl + region.text;
+    }
 
-    // add the area
-    this._areas.push( { label:    label,
-                        start:    feature.start,
-                        end:      feature.end,
-                        aliStart: feature.aliStart,
-                        aliEnd:   feature.aliEnd,
-                        href:     url,
-                        coords:   [ x, y, x+width, y+height ] } );
+    // add the area(s)
 
-    // console.log( "PfamGraphic._drawFeature: done" );
-  }, // end of "_drawFeature"
+    // first the starting envelope region
+    if ( startArea ) {
+      this._areasList.push( startArea );
+    }
+
+    // then the main region area
+    var area = { label:    label,
+                 text:     region.text,
+                 start:    region.start,
+                 end:      region.end,
+                 aliStart: region.aliStart,
+                 aliEnd:   region.aliEnd,
+                 href:     url || '',
+                 coords:   [ x, y, x+width, y+height ] };
+                        
+    this._areasList.push( area );
+
+    // also store this hashed on the domain name
+    this._areasHash[ area.text + "_" + region.aliStart + "_" + region.aliEnd ] = area; 
+
+    // and finally the end envelope region
+    if ( endArea ) {
+      this._areasList.push( endArea );
+    }
+
+    // console.log( "PfamGraphic._drawRegion: done" );
+  }, // end of "_drawRegion"
 
   //----------------------------------------------------------------------------
 
@@ -1184,13 +1375,98 @@ var PfamGraphic = Class.create( {
 
   _drawMotif: function( motif ) {
 
+    // work out the dimensions
+
+    var height = this._imageParams.motifHeight;
+    var width  = ( motif.end - motif.start + 1 ) * this._imageParams.xscale;
+
+    var x = Math.floor( motif.start * this._imageParams.xscale );
+    var y = Math.floor( this._baseline - Math.round( height / 2 ) );
+
+    // console.log( "PfamGraphic._drawMotif: (x, y), h, w: (%d, %d), %d, %d",
+    //   x, y, height, width );
+
+    // decide what we're drawing, based on the number of colours we're given
     if ( motif.colour instanceof Array ) {
-      this._drawPfamBMotif( motif );
+
+       // Pfam-B
+
+      // first, make sure we have a sensible number of colours to play with...
+      if ( motif.colour.length !== 3 ) {
+        throw( "PfamGraphic: ERROR: motifs must have either one or three colours" );
+      }
+
+      // convert the colours from hex strings into "rgba()" values
+      var colours = [];
+  
+      var getRGBColour = this._getRGBColour.bind( this );
+      var ip           = this._imageParams;
+  
+      motif.colour.each( function( colour ) {
+        var rgbColour = getRGBColour( colour );
+        colours.push( { rgb:  "rgb("  + rgbColour.join(",") + ")",
+                        rgba: "rgba(" + rgbColour.join(",") + "," + ip.motifOpacity + ")" } );
+      } );
+  
+      // draw the three stripes
+      var step   = Math.round( height / 3 );
+      for ( var i = 0; i < 3; i++ ) {
+  
+        this._context.fillStyle = colours[i].rgba;
+        this._context.fillRect( x, y + ( step * i ), width, step );
+  
+      }
+
     } else {
-      this._drawSingleColourMotif( motif );
+
+      // regular "motif"
+
+      // convert the colour from a hex string into an "rgba()" value
+      var colour = this._getRGBColour( motif.colour );
+      var rgb  = "rgb(" + colour.join(",") + ")";
+      var rgba = "rgba(" + colour.join(",") + "," + this._imageParams.motifOpacity + ")";
+  
+      // draw the rectangle
+      this._context.fillStyle = rgba;
+      this._context.fillRect( x, y, width, height + 1 );
+  
     }
 
-  },
+    // build a label for the <area>
+    var label = this._imageParams.templates.motif.evaluate( { label: motif.text,
+                                                              start: motif.start,
+                                                              end:   motif.end } );
+
+    // build a URL
+    // build a URL
+    var url;
+    console.log( "PfamGraphic._drawRegion: motif: ", motif );
+    if ( motif.acc !== undefined ) {
+      console.log( "PfamGraphic._drawRegion: using acc for URL" );
+      url = this._imageParams.regionUrl + motif.acc;
+    } else if ( motif.id !== undefined ) {
+      console.log( "PfamGraphic._drawRegion: using ID for URL" );
+      url = this._imageParams.regionUrl + motif.id;
+    } else if ( motif.text !== undefined ) {
+      console.log( "PfamGraphic._drawRegion: using text for URL" );
+      url = this._imageParams.regionUrl + motif.text;
+    }
+
+    var url = this._imageParams.regionUrl + motif.acc;
+
+    // add the area
+    var area = { label:  label,
+                 text:   motif.text,
+                 start:  motif.start,
+                 end:    motif.end,
+//                 href:   url || '',
+                 coords: [ x, y, x + width, y + height ] };
+    this._areasList.push( area );
+
+    this._areasHash[ motif.text + "_" + motif.start + "_" + motif.end ] = area;
+
+    // console.log( "PfamGraphic._drawPfamBMotif: done" );
+  }, // end of "_drawPfamBMotif"
 
   //----------------------------------------------------------------------------
 
@@ -1237,19 +1513,22 @@ var PfamGraphic = Class.create( {
     }
 
     // build a label for the <area>
-    var label = this._imageParams.templates.motif.evaluate( { label: motif.label,
+    var label = this._imageParams.templates.motif.evaluate( { label: motif.text,
                                                               start: motif.start,
                                                               end:   motif.end } );
 
     // build a URL
-    // var url = this._imageParams.featureUrl + feature.text;
+    // var url = this._imageParams.regionUrl + region.text;
 
     // add the area
-    this._areas.push( { label:  label,
-                        text:   motif.text,
-                        start:  motif.start,
-                        end:    motif.end,
-                        coords: [ x, y, x + width, y + height ] } );
+    var area = { label:  label,
+                 text:   motif.text,
+                 start:  motif.start,
+                 end:    motif.end,
+                 coords: [ x, y, x + width, y + height ] };
+    this._areasList.push( area );
+
+    this._areasHash[ motif.text + "_" + motif.start + "_" + motif.end ] = area;
 
     // console.log( "PfamGraphic._drawPfamBMotif: done" );
   }, // end of "_drawPfamBMotif"
@@ -1283,33 +1562,36 @@ var PfamGraphic = Class.create( {
     this._context.fillRect( x, y, width, height + 1 );
 
     // build a label for the <area>
-    var label = this._imageParams.templates.motif.evaluate( { label: motif.label,
+    var label = this._imageParams.templates.motif.evaluate( { label: motif.text,
                                                               start: motif.start,
                                                               end:   motif.end } );
 
     // // build a URL
-    // var url = this._imageParams.featureUrl + feature.text;
+    // var url = this._imageParams.regionUrl + region.text;
 
     // // add the area
-    this._areas.push( { label:  label,
-                        text:   motif.text,
-                        start:  motif.start,
-                        end:    motif.end,
-                        coords: [ x, y, x + width, y + height ] } );
+    var area = { label:  label,
+                 text:   motif.text,
+                 start:  motif.start,
+                 end:    motif.end,
+                 coords: [ x, y, x + width, y + height ] };
+    this._areasList.push( area );
+
+    this._areasHash[ motif.text + "_" + motif.start + "_" + motif.end ] = area;
 
     // console.log( "PfamGraphic._drawMotif: done" );
   }, // end of "_drawSingleColourMotif"
 
   //----------------------------------------------------------------------------
 
-  // builds the path for constructing features. The path can be used either as
+  // builds the path for constructing regions. The path can be used either as
   // an outline for filling or stroking.
 
-  _buildFeaturePath: function( params ) {
+  _buildRegionPath: function( params ) {
 
     this._context.beginPath();
 
-    // console.log( "PfamGraphic._buildFeaturePath: drawing left end" );
+    // console.log( "PfamGraphic._buildRegionPath: drawing left end" );
     switch ( params.s ) {
       case "curved":
         this._context.moveTo( params.x + params.r, params.y );
@@ -1330,7 +1612,7 @@ var PfamGraphic = Class.create( {
     }
 
     // bottom line and right hand edge 
-    // console.log( "PfamGraphic._buildFeaturePath: drawing bottom line and right end" );
+    // console.log( "PfamGraphic._buildRegionPath: drawing bottom line and right end" );
     switch ( params.e ) {
       case "curved":
         this._context.lineTo( params.x + params.w - params.r, params.y + params.h );
@@ -1351,7 +1633,7 @@ var PfamGraphic = Class.create( {
     }
 
     // top horizontal line
-    // console.log( "PfamGraphic._buildFeaturePath: drawing top line" );
+    // console.log( "PfamGraphic._buildRegionPath: drawing top line" );
     if ( params.s === "curved" || 
          params.s === "arrow" ) {
       this._context.lineTo( params.x + params.r, params.y );
@@ -1360,25 +1642,25 @@ var PfamGraphic = Class.create( {
     }
     
     this._context.closePath();
-  }, // end of "_buildFeaturePath"
+  }, // end of "_buildRegionPath"
 
   //----------------------------------------------------------------------------
 
   // draws semi-transparent overlays to represent the envelope regions around
   // the core alignment
   
-  _drawEnvelope: function( feature, radius, height ) {
+  _drawEnvelope: function( region, radius, height ) {
     // console.log( "PfamGraphic._drawEnvelope: adding envelope overlay" );
 
     // TODO handle the case where there's an aliStart but no aliEnd given
 
     // make sure the endpoints are sensible
-    if ( feature.start > feature.aliStart ) {
-      throw( "PfamGraphic: ERROR: features must have start <= aliStart (" + feature.start + " is > " + feature.aliStart + ")" );
+    if ( region.start > region.aliStart ) {
+      throw( "PfamGraphic: ERROR: regions must have start <= aliStart (" + region.start + " is > " + region.aliStart + ")" );
     }
 
-    if ( feature.end < feature.aliEnd ) {
-      throw( "PfamGraphic: ERROR: features must have end >= aliEnd (" + feature.end + " is < " + feature.aliEnd + ")" );
+    if ( region.end < region.aliEnd ) {
+      throw( "PfamGraphic: ERROR: regions must have end >= aliEnd (" + region.end + " is < " + region.aliEnd + ")" );
     }
 
     //----------------------------------
@@ -1386,16 +1668,16 @@ var PfamGraphic = Class.create( {
     var y  = this._baseline - radius;
     var xs = this._imageParams.xscale;
     var l = {
-      x: Math.floor( feature.start * xs ),
+      x: Math.floor( region.start * xs ),
       y: Math.floor( y - 1 ) + 1,
-      w: ( feature.aliStart * xs ) - ( feature.start * xs ) + 1,
+      w: ( region.aliStart * xs ) - ( region.start * xs ) + 1,
       h: height + 1
     };
 
     var r = {
-      x: Math.floor( feature.aliEnd * xs ),
+      x: Math.floor( region.aliEnd * xs ),
       y: Math.floor( y - 1 ) + 1,
-      w: ( feature.end * xs ) - ( feature.aliEnd * xs ) + 2,
+      w: ( region.end * xs ) - ( region.aliEnd * xs ) + 2,
       h: height + 1
     };
 
@@ -1403,7 +1685,7 @@ var PfamGraphic = Class.create( {
     /* var fillStyle = "rgba(255,255,255," + this._imageParams.envOpacity + ")"; */
 
     // an overlay that's the same colour as the domain
-    // var rgb = this._getRGBColour( feature.colour );
+    // var rgb = this._getRGBColour( region.colour );
     // var fillStyle = "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," +
     //   this._imageParams.envOpacity + ")";
 
@@ -1431,41 +1713,43 @@ var PfamGraphic = Class.create( {
     // add two <area> tags for the envelope; one at the start, one at the end
 
     // build a label for the start <area>
-    var label = this._imageParams.templates.envelope.evaluate( { label: feature.text,
-                                                                 start: feature.start,
-                                                                 end:   feature.aliStart } );
+    var label = this._imageParams.templates.envelope.evaluate( { label: region.text,
+                                                                 start: region.start,
+                                                                 end:   region.aliStart } );
 
     // build a URL
-    var url = this._imageParams.featureUrl + feature.text;
+    var url = this._imageParams.regionUrl + region.text;
 
     // add the area
-    this._areas.push( { label:  label,
-                        text:   feature.text,
-                        href:   url,
-                        start:  feature.start,
-                        end:    feature.aliStart,
-                        coords: [ l.x, l.y, l.x + l.w, l.y + l.h ] } );
+    var startArea = { label:  label,
+                      text:   region.text,
+                      href:   url,
+                      start:  region.start,
+                      end:    region.aliStart,
+                      coords: [ l.x, l.y, l.x + l.w, l.y + l.h ] };
 
     // build the end <area>
-    label = this._imageParams.templates.envelope.evaluate( { label: feature.text,
-                                                             start: feature.aliEnd,
-                                                             end:   feature.end } );
+    label = this._imageParams.templates.envelope.evaluate( { label: region.text,
+                                                             start: region.aliEnd,
+                                                             end:   region.end } );
 
-    url = this._imageParams.featureUrl + feature.text;
+    url = this._imageParams.regionUrl + region.text;
 
-    this._areas.push( { label:  label,
-                        text:   feature.text,
-                        href:   url,
-                        start:  feature.aliEnd,
-                        end:    feature.end,
-                        coords: [ r.x, r.y, r.x + r.w, r.y + r.h ] } );
+    var endArea = { label:  label,
+                     text:   region.text,
+                     href:   url,
+                     start:  region.aliEnd,
+                     end:    region.end,
+                     coords: [ r.x, r.y, r.x + r.w, r.y + r.h ] };
+
+    return [ startArea, endArea ];
   }, // end of "_drawEnvelope"
   
   //----------------------------------------------------------------------------
 
   // adds the text label to the domain, if it will fit nicely inside the shape
 
-  _drawText: function( x, midpoint, featureWidth, text ) {
+  _drawText: function( x, midpoint, regionWidth, text ) {
 
     this._context.save();
 
@@ -1479,22 +1763,22 @@ var PfamGraphic = Class.create( {
 
     // console.log( "PfamGraphic._drawText: textBaseline: %d", this._context.textBaseline );
 
-    // pad the text a little and then compare that to the width of the feature,
-    // so that we can assess whether it's going to fit inside the feature when
+    // pad the text a little and then compare that to the width of the region,
+    // so that we can assess whether it's going to fit inside the region when
     // rendered
     /* var paddedTextWidth = metrics.width + 2 * this._imageParams.labelPadding; */
-    var paddedTextWidth = metrics.width + Math.round( this._featureHeight / 3 );
+    var paddedTextWidth = metrics.width + Math.round( this._regionHeight / 3 );
 
-    // console.log( "PfamGraphic._drawText: padded text width: %d, feature width: %d",
-    //   paddedTextWidth, featureWidth );
+    // console.log( "PfamGraphic._drawText: padded text width: %d, region width: %d",
+    //   paddedTextWidth, regionWidth );
 
-    if ( paddedTextWidth > featureWidth ) {
-      // console.log( "PfamGraphic._drawText: text is wider than feature; not adding" );
+    if ( paddedTextWidth > regionWidth ) {
+      // console.log( "PfamGraphic._drawText: text is wider than region; not adding" );
       return;
     }
 
-    var textX = x + ( featureWidth / 2 );
-    // console.log( "PfamGraphic._drawText: feature X, midpoint: (%d, %d); textX: %d", 
+    var textX = x + ( regionWidth / 2 );
+    // console.log( "PfamGraphic._drawText: region X, midpoint: (%d, %d); textX: %d", 
     //   x, midpoint, textX );
 
     // stroke the outline in white...
@@ -1512,7 +1796,7 @@ var PfamGraphic = Class.create( {
 
   //----------------------------------------------------------------------------
 
-  // draws the left-hand end of feature with a curved end
+  // draws the left-hand end of region with a curved end
 
   _drawLeftRounded: function( x, y, radius, height ) {
     this._context.quadraticCurveTo( x, y, x, y + radius );
@@ -1521,7 +1805,7 @@ var PfamGraphic = Class.create( {
 
   //----------------------------------------------------------------------------
 
-  // draws the right-hand end of feature with a curved end
+  // draws the right-hand end of region with a curved end
 
   _drawRightRounded: function( x, y, radius, height, width ) {
     this._context.quadraticCurveTo( x + width, y + height, x + width, y + radius );
@@ -1609,7 +1893,7 @@ var PfamGraphic = Class.create( {
 
   //----------------------------------------------------------------------------
 
-  // draws the left-hand end of a feature as an arrow head
+  // draws the left-hand end of a region as an arrow head
 
   _drawLeftArrow: function( x, y, arrow, height ) {
     this._context.lineTo( x, y + arrow );
@@ -1618,7 +1902,7 @@ var PfamGraphic = Class.create( {
 
   //----------------------------------------------------------------------------
 
-  // draws the right-hand end of a feature as an arrow head
+  // draws the right-hand end of a region as an arrow head
 
   _drawRightArrow: function( x, y, arrow, height ) {
     this._context.lineTo( x + arrow, y - height + arrow );
