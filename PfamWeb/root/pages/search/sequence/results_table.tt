@@ -4,92 +4,244 @@
 #
 # format the results of a H3 sequence search as a table.
 #
-# $Id: results_table.tt,v 1.1 2009-06-09 15:19:18 jt6 Exp $
+# $Id: results_table.tt,v 1.2 2009-07-31 14:54:19 jt6 Exp $
 
 META naked = 1;
 
-USE Dumper;
-CALL c.log.debug( Dumper.dump( genPfamARes ) );
+# USE Dumper;
+# CALL c.log.debug( "results_table.tt: results: " _ Dumper.dump( results ) );
 
 #-------------------------------------------------------------------------------
 
-# the numbers of PfamA and PfamB matches that the search found
-numAs = genPfamARes.size;
-numBs = genPfamBRes.size;
+# the number of matches that the search found
+numHits = results.size;
 
 # shortcuts to the show/hide glass buttons
 imageUri   = c.uri_for( "/static/images" );
 showButton = "${imageUri}/showButton.png";
 hideButton = "${imageUri}/hideButton.png";
 
-#-------------------------------------------------------------------------------
-
 # store the number of significant and insignificant matches
 numSignificantMatches = 0;
 numInsignificantMatches = 0;
 
+#-------------------------------------------------------------------------------
+
+USE String;
+
+BLOCK markupAlignment;
+
+  hmmLine   = alignment.0.substr(11);
+  matchLine = alignment.1.substr(11);
+  ppLine    = alignment.2.substr(11);
+  seqLine   = alignment.3.substr(11);
+  -%]
+  <div class="hmmAlignment">
+    <div class="hmmWindow">
+    #HMM&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[% PROCESS markupHMM -%]
+    <br />
+    #MATCH&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='match'>[% matchLine.replace( '\s', '&nbsp;' ) %]</span>
+    <br />
+    #PP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class='match'>[% ppLine.replace( '\s', '&nbsp;' ) %]</span>
+    <br />
+    #SEQ&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[% PROCESS markupSeq -%]
+    </div>
+  </div>[%
+
+END;
+
+#----------------------------------------
+
+BLOCK markupSeq;
+
+  # CALL c.log.debug( "pp:  $ppLine" );
+  # CALL c.log.debug( "seq: $seqLine" );
+
+  max            = '';    # the class of the longest chunk
+  maxChunkLength = 0;     # the length of that chunk
+
+  pos      = 0;           # the position of the start of each chunk
+  prevChar = '';          # the type of the previous chunk
+
+  freq = {};              # essentially the lengths of the chunks
+
+  chunks = [];
+ 
+  # the regex produces a list of chunks, each one containing a string of 
+  # consecutive characters with the same type. Because the list of matches
+  # that is returned by "match" contains all matches, we can't pick out just
+  # $1, as we'd ideally like to. To get around this, we reject any chunks
+  # that are the same type as the previous one, since they are effectively $2.
+  
+  FOREACH chunk IN ppLine.match( '((.)\2*)', 1 );
+    char = chunk.substr( 0, 1 );
+    NEXT IF char == prevChar;
+    
+    chunks.push( chunk );
+    prevChar = char;
+    
+    #CALL c.log.debug( "chunk: $chunk" );
+    freq.$char = chunk.length;
+    IF chunk.length > maxChunkLength;
+      max = char;
+      maxChunkLength = chunk.length;
+    END;
+  END;
+  
+  # CALL c.log.debug( "longest chunk: $max" );
+  IF max == '*';
+    max = 'star';
+  ELSIF max == '.';
+    max = 'gap';
+  END;
+  # CALL c.log.debug( "longest chunk style: $max" );
+  
+  # start the markup string with a span that has the same class as the 
+  # longest chunk
+  mapped = String.new( "<span class='heat$max'>" );
+  
+  FOREACH chunk IN chunks;
+    first = chunk.substr( 0, 1 );
+    IF first == '*';
+      first = 'star';
+    ELSIF first == '.';
+      first = 'gap';
+    END;
+    seqChunk = seqLine.substr( pos, chunk.length );
+    CALL mapped.append(
+      ( first == max ) 
+        ? seqChunk
+        : "<span title='$first' class='heat$first'>" _ seqChunk _ "</span>"    
+    );
+    pos = pos + chunk.length;
+  END;
+
+  # tack on the closing tag and let the result leak out, to form the return
+  # value of the BLOCK 
+  mapped.append( "</span>" ); 
+  
+END; # of "BLOCK markupSeq"
+
+#----------------------------------------
+
+BLOCK markupHMM;
+
+  # CALL c.log.debug( "hmm:   $hmmLine" );
+  CALL c.log.debug( "match: $matchLine" );
+
+  pos      = 0;           # the position of the start of each chunk
+  prevChar = '';          # the type of the previous chunk
+
+  mapped = String.new( "<span class='hmmmatch'>" );
+
+  FOREACH chunk IN matchLine.match( '((.)\2*)', 1 );
+    char = chunk.substr( 0, 1 );
+    NEXT IF char == prevChar;
+    
+    prevChar = char;
+    
+    # CALL c.log.debug( "chunk: |$chunk|" );
+    
+    first    = chunk.substr( 0, 1 );
+    hmmChunk = hmmLine.substr( pos, chunk.length );
+    IF first == ' ';
+      CALL mapped.append( "<span class='hmmminus'>" _ hmmChunk _ "</span>" );
+    ELSIF first == '+';
+      CALL mapped.append( "<span class='hmmplus'>" _ hmmChunk _ "</span>" );
+    ELSE;
+      CALL mapped.append( hmmChunk );
+    END;
+    
+    pos = pos + chunk.length;
+  END; 
+  
+  mapped.append( "</span>" ); 
+
+  CALL c.log.debug( "match: $matchLine" );
+
+END; # of "BLOCK markupHMM"
+
+
+#-------------------------------------------------------------------------------
+
 # a block that builds a table of results
 BLOCK buildTableBody;
+  CALL c.log.debug( "results_table.tt: building table body" );
   
   # we use loop.index to build an ID for each row, since that really will
   # be unique, but for the purposes of deciding if a row is odd or even, we
   # need a separate counter, tableRow
   tableRow = 0;
-  FOREACH pfamA IN genPfamARes;
+  FOREACH hit IN results;
 
-    # decided whether we should skip this row. If the parameter 
+    # entirely skip any hits that have an E-value greater than the global 
+    # E-value cut-off
+    IF evalue_cutoff AND hit.evalue > evalue_cutoff;
+      CALL c.log.debug( "results_table.tt: hit evalue > cut-off evalue: " _ hit.evalue _ " > " _ evalue_cutoff );
+      NEXT;
+    ELSE;
+      CALL c.log.debug( "results_table.tt: hit evalue < cut-off evalue: " _ hit.evalue _ " < " _ evalue_cutoff );
+    END;
+
+    # decide whether we should skip this row. If the parameter 
     # "showSignificant" is true, we skip rows with insignificant matches, and 
     # vice versa. We also set the row CSS class and the row ID here
     IF showSignificant;
-      NEXT IF NOT pfamA.sig;
 
-      # this is a significant row
-      rowClass = tableRow % 2 ? "oddlySignificant" : "evenlySignificant";
-      rowId    = "pfamAAlignment${loop.index}";
+      # show only significant hits
+      NEXT IF NOT hit.sig;
+
+      rowClass = tableRow % 2 ? "odd" : "even"; # previously oddlySignificant & evenlySignificant
+      rowId    = job_type _ loop.index;
+      numSignificantMatches = numSignificantMatches + 1;
+
     ELSE;
-      NEXT IF     pfamA.sig;
 
-      # this is an INsignificant row
+      # show only INsignificant hits
+      NEXT IF hit.sig;
+
       rowClass = tableRow % 2 ? "odd" : "even";
-      rowId    = "pfamAAlignmentI${loop.index}";
+      rowId    = job_type _ "I" _ loop.index;
+      numInsignificantMatches = numInsignificantMatches + 1;
+
     END;
     
     tableRow = tableRow + 1 -%]
     <tr class="[% rowClass %]">
       <td class="rowNum">[% loop.index %]</td>
       <td>
-        <a href="[% c.uri_for( "/family", { acc = pfamA.acc } ) %]">
-          [% pfamA.name %]</a>
+        <a id="[% hit.name _ '_' _ hit.seq.from _ '_' _ hit.seq.to %]" 
+           href="[% c.uri_for( "/family", { acc = hit.acc } ) %]">[% hit.name %]</a>
       </td>
       <td class="desc">
-        [% IF pfamA.desc;
-          pfamA.desc;
+        [% IF hit.desc;
+          hit.desc;
         ELSE -%]
           <span class="inactive">n/a</span>
         [% END -%]
       </td>
       <td>
-        [% IF pfamA.type;
-          pfamA.type;
+        [% IF hit.type;
+          hit.type;
         ELSE -%]
           <span class="inactive">n/a</span>
         [% END -%]
       </td>
-      <td>[% pfamA.env.from %]</td>
-      <td>[% pfamA.env.to %]</td>
-      <td>[% pfamA.seq.from %]</td>
-      <td>[% pfamA.seq.to %]</td>
-      <td[% IF pfamA.hmm.from != 1 %] class="warning"[% END %]>
-        [% pfamA.hmm.from %]
+      <td>[% hit.env.from %]</td>
+      <td>[% hit.env.to %]</td>
+      <td>[% hit.seq.from %]</td>
+      <td>[% hit.seq.to %]</td>
+      <td[% IF hit.hmm.from != 1 %] class="warning"[% END %]>
+        [% hit.hmm.from %]
       </td>
-      <td[% IF pfamA.hmm.to != pfamA.hmm.length %] class="warning"[% END %]>
-        [% pfamA.hmm.to %]
+      <td[% IF hit.hmm.to != hit.hmm.length %] class="warning"[% END %]>
+        [% hit.hmm.to %]
       </td>
-      <td>[% pfamA.bits %]</td>
-      <td>[% pfamA.evalue %]</td>
+      <td>[% hit.bits %]</td>
+      <td>[% hit.evalue %]</td>
       <td>
-        [% IF pfamA.act_site.size;
-          pfamA.act_site.join(",");
+        [% IF hit.act_site.size;
+          hit.act_site.join(",");
         ELSE -%]
           <span class="inactive">n/a</span>
         [% END -%]
@@ -103,37 +255,31 @@ BLOCK buildTableBody;
     <tr class="alignment [% rowClass %]" id="[% rowId %]">
       <td class="rowNum">[% loop.index %]</td>
       <td colspan="14">
-        <pre>[% FOREACH row IN pfamA.align %]
-[% row;
-END %]</pre>
+      [% PROCESS markupAlignment alignment = hit.align %]
       </td>
     </tr>
-  [% END; # of "FOREACH pfamA"
-  IF showSignificant;
-    numSignificantMatches = tableRow;
-  ELSE;
-    numInsignificantMatches = tableRow;
-  END;
-END; # of BLOCK
+  [% END; # of "FOREACH "
+END; # of "BLOCK buildTableBody"
 
 #-------------------------------------------------------------------------------
 
 # a block to render the results table head
 
-BLOCK tableHead -%]
+BLOCK tableHead;
+  CALL c.log.debug( "results_table.tt: building table head" ); -%]
   <thead>
     <tr class="titleRow">
       <th rowspan="2" class="rowNum">Original order</th>
-      <th rowspan="2">Pfam-A</th>
+      <th rowspan="2">Family</th>
       <th rowspan="2">Description</th>
-      <th rowspan="2">Entry type</th>
+      <th rowspan="2">Entry<br />type</th>
       <th colspan="2">Envelope</th>
       <th colspan="2">Alignment</th>
       <th colspan="2">HMM</th>
-      <th rowspan="2">Bits score</th>
+      <th rowspan="2">Bits<br />score</th>
       <th rowspan="2">E-value</th>
-      <th rowspan="2">Predicted active sites</th>
-      <th rowspan="2">Show/hide alignment</th>
+      <th rowspan="2">Predicted<br />active sites</th>
+      <th rowspan="2">Show/hide<br />alignment</th>
     </tr>
     <tr class="titleRow">
       <th>Start</th>
@@ -144,7 +290,7 @@ BLOCK tableHead -%]
       <th>To</th>
     </tr>
   </thead>
-[%- END; # of block "tableHead"
+[%- END; # of "BLOCK tableHead"
   
 #-------------------------------------------------------------------------------
 
@@ -155,66 +301,26 @@ BLOCK tableHead -%]
   significantMatches = PROCESS buildTableBody showSignificant = 1;
 insignificantMatches = PROCESS buildTableBody showSignificant = 0;
 
-#-------------------------------------------------------------------------------
-
-# build the JSON object that defines the domain graphics %]
-
-<div id="dg"></div>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // hide the spinner
-  $("loading").hide();
-
-  // hide all of the alignment rows once the table is built
-  $$(".alignment").invoke( "hide" );
-
-  [%- 
-  colours = [ "red", "green", "blue", "pink", "#0080F0" ];
-  i = 0;
-  FOREACH pfamA IN genPfamARes;
-    NEXT UNLESS pfamA.sig;
-    colour = colours.$i;
-    i = i + 1;
-    IF i >= colours.size;
-      i = 0;
-    END;
-  %]
-    domains.push( { startStyle: "curved",
-                    endStyle:   "curved",
-                    start:      [% pfamA.env.from %], 
-                    end:        [% pfamA.env.to %], 
-                    aliStart:   [% pfamA.seq.from %], 
-                    aliEnd:     [% pfamA.seq.to %], 
-                    text:       "[% pfamA.name %]",
-                    colour:     "[% colour %]" } );
-  [%- END %]
-
-  var pg = new PfamGraphic();
-  pg.setImageParams( { featureUrl: "[% c.uri_for( '/family/' ) %]" } );
-  pg.setParent( "dg" );
-  pg.setSequence( sequence );
-  pg.render();
-
-  // ]]>
-</script>
+# and we build the table -%]
 
 <!-- start of results table -->
 
-[% IF numAs;
+[% IF numHits;
 
-#-----------------------------------------------------------------------------
 # show significant matches
 
-IF numSignificantMatches -%]
-<table id="pfamASummary"
+IF numSignificantMatches;
+  CALL c.log.debug( "results_table.tt: showing significant matches" ); -%]
+<table id="pfam[% job_type %]Summary"
        class="resultTable" 
-       summary="Pfam-A search results">
+       summary="Pfam-[% job_type %] search results">
   <caption>
-    <span class="tableTitle">Significant Pfam-A Matches</span>
-    <span class="link" onclick="showAllAlignments('pfamASummary',true)">Show</span> or
-    <span class="link" onclick="showAllAlignments('pfamASummary',false)">hide</span> 
+    <span class="tableTitle">
+      [% IF job_type == "A" %]<span class="titlePrefix">Significant </span>[% END -%]
+      Pfam-[% job_type %] Matches
+    </span>
+    <span class="link" onclick="showAllAlignments('pfam[% job_type %]Summary',true)">Show</span> or
+    <span class="link" onclick="showAllAlignments('pfam[% job_type %]Summary',false)">hide</span> 
     all alignments.
   </caption>
   [% PROCESS tableHead -%]
@@ -224,17 +330,20 @@ IF numSignificantMatches -%]
 </table>
 [% END;
 
-#-----------------------------------------------------------------------------
 # show INsignificant matches
 
-IF numInsignificantMatches -%]
-<table id="pfamASummaryI"
+IF numInsignificantMatches;
+  CALL c.log.debug( "results_table.tt: showing INsignificant matches" ); -%]
+<table id="pfam[% job_type %]SummaryI"
        class="resultTable" 
-       summary="Insignificant Pfam-A matches">
+       summary="Insignificant Pfam-[% job_type %] matches">
   <caption>
-    <span class="tableTitle">Insignificant Pfam-A Matches</span>
-    <span class="link" onclick="showAllAlignments('pfamASummaryI',true)">Show</span> or
-    <span class="link" onclick="showAllAlignments('pfamASummaryI',false)">hide</span> 
+    <span class="tableTitle">
+      [% IF job_type == "A" %]<span class="titlePrefix">Insignificant </span>[% END -%]
+      Pfam-[% job_type %] Matches
+    </span>
+    <span class="link" onclick="showAllAlignments('pfam[% job_type %]SummaryI',true)">Show</span> or
+    <span class="link" onclick="showAllAlignments('pfam[% job_type %]SummaryI',false)">hide</span> 
     all alignments.
   </caption>
   [% PROCESS tableHead -%]
@@ -245,68 +354,104 @@ IF numInsignificantMatches -%]
 
 [% END; # of "if numInsignificantMatches"
 
-END; # of "if numAs"
-
-#-----------------------------------------------------------------------------
-# Pfam-B matches
-
-IF numBs %]
-
-<table id="pfamBSummary"
-       class="resultTable" 
-       summary="Pfam-B search results">
-  <caption>
-    <span class="tableTitle">Pfam-B Matches</span>
-    <span class="link" onclick="showAllAlignments('pfamBSummary',true)">Show</span> or
-    <span class="link" onclick="showAllAlignments('pfamBSummary',false)">hide</span> 
-    all alignments.
-  </caption>
-  <thead>
-    <tr>
-      <th class="rowNum">Original order</th>
-      <th>Pfam-B</th>
-      <th>Sequence Start</th>
-      <th>Sequence End</th>
-      <th>Score</th>
-      <th>E-value</th>
-      <th>Show/hide alignment</th>
-    </tr>
-  </thead>
-  <tbody>
-    [% FOREACH pfamB IN genPfamBRes;
-      rowClass = loop.index % 2 ? "odd" : "even" %]
-    <tr class="[% rowClass %]">
-      <td class="rowNum">[% loop.index %]</td>
-      <td>
-        <a href="[% c.uri_for( "/pfamb", { acc = pfamB.pfamb_acc } ) %]">
-          [% pfamB.pfamb_id %]</a>
-      </td>
-      <td>[% pfamB.start %]</td>
-      <td>[% pfamB.end %]</td>
-      <td>[% pfamB.score %]</td>
-      <td>[% pfamB.pvalue %]</td>
-      <td class="showSwitch">
-        <img src="[% showButton %]" 
-             onclick="toggleAlignment( 'pfamBAlignment[% loop.index %]', this )"
-             alt="Show alignment" />
-      </td>
-    </tr>
-    <tr class="alignment [% rowClass %]" 
-        id="pfamBAlignment[% loop.index %]">
-      <td class="rowNum">[% loop.index %]</td>
-      <td colspan="6">
-        <pre>[% pfamB.queryString %]
-[% pfamB.homoString %]
-[% pfamB.hitString -%]</pre>
-      </td>
-    </tr>
-    [% END %]
-  </tbody>
-</table>
-
-[% END # of "if numBs" %]
+END; # of "if numHits" %]
 
 <!-- end of results table -->
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  // sequence details
+  sequence.length = jobs.values().first().seq.length;
+
+  [% # build the JSON object that defines the domain graphics
+    colours = [ "red", "green", "blue", "pink", "#0080F0" ];
+  i = 0;
+  FOREACH hit IN results;
+    NEXT UNLESS hit.sig;
+    colour = colours.$i;
+    i = i + 1;
+    IF i >= colours.size;
+      i = 0;
+    END;
+    IF job_type == "A" -%]
+      sequence.regions.push( { startStyle: "curved",
+                               endStyle:   "curved",
+                               start:      [% hit.env.from %],
+                               end:        [% hit.env.to %],
+                               aliStart:   [% hit.seq.from %],
+                               aliEnd:     [% hit.seq.to %],
+                               text:       "[% hit.name %]",
+                               colour:     "[% colour %]",
+                               acc:        "[% hit.acc %]" } );
+    [% ELSIF job_type == "B" -%]
+      sequence.motifs.push( {  start:      [% hit.env.from %],
+                               end:        [% hit.env.to %],
+                               aliStart:   [% hit.seq.from %],
+                               aliEnd:     [% hit.seq.to %],
+                               text:       "[% hit.name %]",
+                               colour:     [ 'FF0000', '00FF00', '0000FF' ],
+                               acc:        "[% hit.acc %]" } );
+    [% END;
+  END -%]
+
+  //----------------------------------------
+
+  // store the details of this set of results 
+  [% IF job_type == "A" -%]
+    resultDetails.numAs = [% numSignificantMatches + numInsignificantMatches %];
+  [% ELSIF job_type == "B" -%]
+    resultDetails.numBs = [% numSignificantMatches + numInsignificantMatches %];
+    resultDetails.searchedBs = true;
+  [% END -%]
+
+  resultDetails.[% job_type %] = {
+    id:            "[% jobId %]",
+    significant:   [% numSignificantMatches %],
+    insignificant: [% numInsignificantMatches %]
+  };
+
+  //----------------------------------------
+
+  // remove this job from the list of running jobs
+  updaters.unset( "[% jobId %]" );
+  
+  // update the status message that keeps track of the number of pending jobs
+  var numJobs = updaters.keys().size();
+  $("numJobs").update( numJobs );
+  $("jobLabel").update( numJobs > 1 ? "jobs" : "job" );
+
+  // draw the graphic if there are no more jobs outstanding
+  console.log( "results_table.tt: still %d updaters running", numJobs );
+  
+  if ( numJobs < 1 ) {
+    console.log( "results.tt: loadResults: no other running jobs; finishing page" );
+    
+    // hide the spinner
+    $("loading").hide();
+
+    // build the summary text and show it
+    writeSummary();
+    $("summary").show();
+
+    // set the widths for the alignment blocks, so that the scroll bars are
+    // correctly added
+    $$("#results table.resultTable div.hmmWindow").each( function(a) {
+      console.log( "setting width to %d for ", alignmentWidth, a );
+      a.setStyle( { width: alignmentWidth+"px" } );
+    } );
+
+    // draw the domain graphics. Hand in the base URL for the links on the image
+    pg = new PfamGraphic( "dg", sequence );
+    pg.setImageParams( { regionUrl: "[% c.uri_for( '/family/' ) %]" } );
+    pg.render();
+  
+    // set up the underlining
+    underliner = new Underliner( pg ); 
+  }
+  
+  // ]]>
+</script>
 
 [%#
 Copyright (c) 2007: Genome Research Ltd.

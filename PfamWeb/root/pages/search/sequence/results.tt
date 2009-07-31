@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.17 2009-06-09 15:19:18 jt6 Exp $
+# $Id: results.tt,v 1.18 2009-07-31 14:54:29 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -16,6 +16,9 @@ USE wrap;
 
 PROCESS "components/require.tt";
 
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "element_storage.js" );
 requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
@@ -23,220 +26,529 @@ requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
 requirements.jsIe.push( "excanvas.js" );
 
 requirements.css.push( "domain_graphics.css" );
+requirements.css.push( "search.css" );
 
 sharedRequirements.css.push( "job.css" );
-sharedRequirements.css.push( "job_ie.css" );
+sharedRequirements.cssIe.push( "job_ie.css" );
 
 #-------------------------------------------------------------------------------
+
+# shortcuts to the show/hide glass buttons
+imageUri   = c.uri_for( "/static/images" );
+showButton = "${imageUri}/showButton.png";
+hideButton = "${imageUri}/hideButton.png";
+
+# munch the results data structure into yet another different structure
+jobs         = {};
+user_options = {};
+options      = "{}"; # this will be a JSON string
+FOREACH jobId IN results.keys;
+  job = results.$jobId;
+  jobs.${job.method} = jobId;
+  IF job.method == "A";
+    user_options = job.user_options;
+    options      = job.options;
+  END;
+END;
+
+numJobs  = jobs.size;
+jobLabel = numJobs > 1 ? "jobs" : "job";
 -%]
 
 <div class="key">
   
   <h2>Sequence search results</h2>
 
-  <p>
-    <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
-    the detailed description of this results page.
-  </p>
+  <div id="loading">
+    <p>
+      Your results will appear in this page when the search is complete; please
+      don't close this window or browse to a different page until the
+      results are loaded. 
+    </p>
+    <div id="loadingMessage">
+      <img class="loadingBar"
+           alt="Searching..."
+           src="[% c.uri_for( "/shared/images/blank.gif" ) %]" />
+           <br />
+      Waiting for the results of 
+            <span id="numJobs">[% numJobs %]</span>
+            <span id="jobLabel">[% jobLabel %]</span>.
+    </div>
+  </div>
 
-  <div id="resultsNotes" style="display: none">
-    <ul>
-      <li>
-        The Pfam graphic below shows only the <strong>significant</strong> 
-        matches to your sequence. A significant match is one where the bits score 
-        is greater than or equal to the gathering threshhold for the Pfam domain. 
-        Clicking on any of the domains in the image will take you to a page of 
-        information about that domain.
-        [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
-        overlapping Pfam-A domains, which are given higher priority when 
-        building the graphic.[% END %]
-      </li>
-      <li>
-        Below are the details of the matches that were found. 
-        [% IF significantMatches AND insignificantMatches -%]
-        We separate Pfam-A matches into two tables, containing the significant 
-        and insignificant matches.
-        [% END -%] 
-        Hits which do not start and end at the end points of the matching HMM 
-        are <span class="warning">highlighted</span>.
-      </li>
-      <li>
-        A small proportion of sequences within the enzymatic Pfam families have 
-        had their active sites experimentally determined. Using a strict set
-        of rules, chosen to reduce the rate of false positives, we transfer 
-        experimentally determined active site residue data from a sequence 
-        within the same Pfam family to your query sequence. These are shown
-        as &quot;Predicted active sites&quot;. Full details of Pfam active 
-        site prediction process can be found in 
-        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
-          the accompanying paper</a>.
-      </li>      
-      <li>
-        For Pfam-A hits we show the alignments between your search sequence 
-        and the matching HMM.
-        [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
-        sequence and the matching sequence from our library of Pfam-B 
-        sequences.[% END %] You can show individual alignments by clicking on 
-        the &quot;Show&quot; button in each row of the result table, or you can
-        show all alignments using the links above each table.
-      </li>
-      <li>
-        You can bookmark this page and return to it later, but please note that 
-        old results may be removed after <strong>one week</strong>.
-      </li>
-    </ul>
-  </div><!-- end of "resultsNotes" -->
+  <div id="summary" style="display: none">
+  
+    <p>
+      <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
+      the detailed description of this results page.
+    </p>
 
-  <p>
-    [%- # all of this is a very convoluted way to write a nice, correct
-        # English sentence to summarise the results. It's possibly overkill...
+  
+    <div id="resultsNotes" style="display: none">
+      <ul>
+        <li>
+          The Pfam graphic below shows only the <strong>significant</strong> 
+          matches to your sequence. A significant match is one where the bits score 
+          is greater than or equal to the gathering threshhold for the Pfam domain. 
+          Clicking on any of the domains in the image will take you to a page of 
+          information about that domain.
+          [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
+          overlapping Pfam-A domains, which are given higher priority when 
+          building the graphic.[% END %]
+        </li>
+        <li>
+          Below are the details of the matches that were found. 
+          [% IF significantMatches AND insignificantMatches -%]
+          We separate Pfam-A matches into two tables, containing the significant 
+          and insignificant matches.
+          [% END -%] 
+          Hits which do not start and end at the end points of the matching HMM 
+          are <span class="warning">highlighted</span>.
+        </li>
+        <li>
+          A small proportion of sequences within the enzymatic Pfam families have 
+          had their active sites experimentally determined. Using a strict set
+          of rules, chosen to reduce the rate of false positives, we transfer 
+          experimentally determined active site residue data from a sequence 
+          within the same Pfam family to your query sequence. These are shown
+          as &quot;Predicted active sites&quot;. Full details of Pfam active 
+          site prediction process can be found in 
+          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
+            the accompanying paper</a>.
+        </li>      
+        <li>
+          For Pfam-A hits we show the alignments between your search sequence 
+          and the matching HMM.
+          [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
+          sequence and the matching sequence from our library of Pfam-B 
+          sequences.[% END %] You can show individual alignments by clicking on 
+          the &quot;Show&quot; button in each row of the result table, or you can
+          show all alignments using the links above each table.
+        </li>
+        <li>
+          You can bookmark this page and return to it later, but please note that 
+          old results may be removed after <strong>one week</strong>.
+        </li>
+      </ul>
+    </div><!-- end of "resultsNotes" -->
 
-    IF numAs -%]
-      We found <strong>[% numAs %]</strong> Pfam-A match[% "es" IF numAs > 1 %]
-      to your search sequence
-      [% IF numSignificantMatches AND numInsignificantMatches -%]
-        (<strong>[% numSignificantMatches %]</strong> significant and
-        <strong>[% numInsignificantMatches %]</strong> insignificant)
-      [%
-      ELSIF numInsignificantMatches;
-        "(there were <strong>no</strong> significant matches)";
-      ELSE;
-        "(<strong>all</strong> significant)";
-      END;
-    ELSE;
-      "We did not find any Pfam-A matches to your search sequence";
-    END;
-    IF numBs;
-      IF numAs;
-        " and ";
-      ELSIF NOT numAs;
-        " but we did find ";
-      END %]
-      <strong>[% numBs %]</strong> Pfam-B match[% "es" IF numBs > 1 %].
-    [% ELSIF searchedPfamB AND NOT numBs;
-      IF numAs;
-        " but we did not find any Pfam-B matches.";
-      ELSIF NOT numAs;
-        " nor any Pfam-B matches.";
-      END;
-    ELSE;
-      ". You did not choose to search for Pfam-B matches.";
-    END -%]
-    The graphic below shows the arrangement of matches on your sequence:
-  </p>
 
+    <p id="summaryText"></p>
+
+  
+    <div id="dg"></div>
+
+    <p>
+      <span class="moreLink" onclick="reveal(this,'optionsList',false, true)">Show</span>
+      the search options and sequence that you submitted.
+    </p>
+
+    <div id="optionsList" style="display: none">
+      [% IF numJobs > 1 %]
+      <p>
+        You ran <strong>[% numJobs %]</strong> searches, with the
+        following IDs:
+      </p>
+      <ul>
+        [%- FOREACH type IN jobs.sort %]
+        <li><strong>Pfam-[% type %]</strong>: [% jobs.$type %]</li>
+        [%- END %]
+      </ul>
+      [%- ELSE %]
+      <p>
+        You ran <strong>one</strong> job, a 
+        <strong>Pfam-[% jobs.keys.first %]</strong> search with 
+        <strong>ID</strong> [%- jobs.values.first %].
+      </p>
+      [% END %]
+      <p>
+        These are the options that you chose:
+      </p>
+      
+      <ul>
+      [%- IF user_options.searchBs %]
+        <li>You searched for <strong>Pfam-Bs</strong></li>
+      [%- END;
+      IF user_options.ga %]
+        <li>
+          You set the cut-off equal to the <strong>gathering threshold</strong>.
+        </li>
+      [%- ELSE %]
+        <li>
+          You used an E-value cut-off of 
+          <strong>[% user_options.evalue %]</strong>.
+        </li>
+      [%- END %]
+      </ul>
+      <p>
+        This is the <strong>sequence</strong> that you submitted:
+      </p>
+      <div class="centreWrapper">
+        <p class="plainSequence centredBlock">[% FILTER wrap(80, '      ', '<br />'); seq; END %]</p>
+      </div>
+      <div class="cleaner"><!-- empty --></div>
+    </div>
+
+
+    <p>
+      <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a>
+      to the search form to look for Pfam domains on a new sequence.
+    </p>
+
+  </div><!-- end of "summary" --> 
+  
 </div><!-- end of "key" -->
-
-<p>
-  <span id="loading" class="loading">Loading results</span>
-</p>
 
 <div id="results"></div>
 
 <script type="text/javascript">
   // <![CDATA[
 
- var Timer = Class.create( {
+  //----------------------------------------
 
-    initialize: function( url, container ) {
-      this._url = url;
-      this._container = $(container);
-      this._interval = setInterval( this.poll.bind(this), 500 );
-    },
+  // get the submission options into the JS
+  var jobOptions = [% options %];
 
-    poll: function() {
-      console.log( "Timer.poll: polling url |%s| with job ID |%s|", 
-        this._url, "[% jobId %]" );
-      var r = new Ajax.Request( this._url, {
-        parameters: { jobId: "[% jobId %]" },
-        on204: function() {},
-        onSuccess: this.onSuccess.bind( this )
-      } );
-    },
+  //# add the polling URL to the options
+  jobOptions.pollUrl = "[% c.uri_for( '/search/sequence/resultstable' ) %]";
 
-    onSuccess: function( oResponse ) {
-      console.log( "Timer.onSuccess: got results from the server; stopping polling" );
-      clearInterval( this._interval );
-      this._results = oResponse.responseText;
-      this.results();
-    },
 
-    results: function() {
-      console.log( "Timer.results: updating page with results" );
-      this._container.update( this._results );
-    
-      // hide all of the alignment rows once the table is built
-      $$(".alignment").invoke( "hide" );
-    }
-
-  } );
-
-  Event.observe( window, "load", function() {
-    // var timer = new Timer( "[% c.uri_for( '/search/sequence/results' )%]", "results" );
-
-    var success = function( response ) {
-      console.log( "response: ", response );
-      if (response.status == 200) {
-        console.log( "job done; stopping polling" );
-        r.stop();
-        $("results").update( response.responseText );
-      } else {
-        console.log( "status %d; continuing polling", response.status );
-      }
-
-    };
-    
-    var r = new Ajax.PeriodicalUpdater( 
-      "results",
-      "[% c.uri_for( '/search/sequence/results' )%]",
-      { parameters: { jobId: "[% jobId %]" },
-        frequency: 1,
-        decay: 1.2,
-        on204: function() {
-          console.log( "status 204; no results; polling further" );
-        },
-        onSuccess: success }
-    );
+  //----------------------------------------
   
+  //  build the javascript hash that stores the details of this job
+  var jobs = new Hash();
+  [% FOREACH jobId IN results.keys -%]
+  jobs.set( '[% jobId %]', {
+    seq:      '[% results.$jobId.job.stdin    %]',
+    job_type: '[% results.$jobId.job.job_type %]'
   } );
+  [% END -%]
 
-  [% # shortcuts to the show/hide glass buttons
-  imageUri   = c.uri_for( "/static/images" );
-  showButton = "${imageUri}/showButton.png";
-  hideButton = "${imageUri}/hideButton.png"; %]
-
-  // set up the sequence. This will be populated by the AJAX-loaded script
-  var domains = [];
-  var markups = [];
-  var motifs  = [];
-
-  var sequence = { length:   [% input.length %],
-                   features: domains,
-                   motifs:   motifs,
-                   markups:  markups,
-                   options: {
-                     imageMap: true,
-                     labels:   true
-                   }
-                 };
+  //----------------------------------------
 
   // a function to show or hide the alignment rows
-  function toggleAlignment( sId, oSwitch ) {
+  var toggleAlignment = function( sId, oSwitch ) {
     $(sId).toggle();
     oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
-  }
+  };
+  
+  //----------------------------------------
+
   // a function to show or hide all of the alignments in one fell swoop...
-  function showAllAlignments( sId, bState ) {
+  var showAllAlignments = function( sId, bState ) {
     var sState = bState ? "show" : "hide";
     var sSrc   = bState ? "[% hideButton %]" : "[% showButton %]";
-    $A( document.getElementsByClassName("alignment",sId)).invoke(sState);
-    $A( $$("td.showSwitch img") ).each(
-      function (s ) {
-        s.src = sSrc;
-      }
-    );
-  }
+    $(sId).select( "tr.alignment" ).invoke(sState);
+    $(sId).select( "td.showSwitch img" ).each( function( s ) {
+      s.src = sSrc;
+    } );
+  };
 
+  //----------------------------------------------------------------------------
+  //- static JS ----------------------------------------------------------------
+  //----------------------------------------------------------------------------
+  
+  // set up the data structure for storing the description of the domain 
+  // graphics. This will be populated by the AJAX-loaded script 
+  var sequence = { 
+    length:   0,
+    regions:  [],
+    motifs:   [],
+    markups:  [],
+    options: {
+      imageMap: true,
+      labels:   true
+    }
+  };
+
+  // somewhere to store the details of the individual results
+  var resultDetails = {
+    numAs: 0,
+    numBs: 0,
+    searchedBs: false,
+    numbers: new Hash()
+  };
+
+  // the PfamGraphic object
+  var pg;
+  
+  // the underliner
+  var underliner;
+  
+  //----------------------------------------
+
+  // write the verbose description of the results at the top of the page
+  var writeSummary = function() {
+    
+    var r = resultDetails;
+    var s = "";
+    
+    if ( jobOptions.ga ) {
+    
+      s += "We found <strong>" + r["A"].significant 
+           + "</strong> Pfam-A match" + ( r["A"].significant > 1 ? "es" : "" )
+           + " to your search sequence"; 
+
+    } else {
+    
+      if ( r.numAs ) {
+  
+        s += "We found <strong>" + r.numAs 
+             + "</strong> Pfam-A match" + ( r.numAs > 1 ? "es" : "" )
+             + " to your search sequence";
+  
+        if ( r["A"].significant && r["A"].insignificant ) {
+          s += " (<strong>" + r["A"].significant + "</strong> significant and "
+               + "<strong>" + r["A"].insignificant + "</strong> insignificant)";
+        } else if ( r["A"].insignificant ) {
+          s += " (there were <strong>no</strong> significant matches)";
+        } else {
+          s += " (<strong>all</strong> significant)";
+        }
+        
+      } else {
+        s += "We did not find any Pfam-A matches to your search sequence";
+      }
+      
+    }
+    
+    if ( r.numBs ) {
+
+      if ( r.numAs ) {
+        s += " and ";
+      } else {
+        s += " but we did find ";
+      }      
+      s += "<strong>" + r.numBs + "</strong> Pfam-B match"
+           + ( r.numBs > 1 ? "es" : "" ) + ".";
+      
+    } else if ( r.searchedBs && ! r.numBs ) {
+      
+      if ( r.numAs ) {
+        s += " but we did not find any Pfam-B matches.";
+      } else if ( ! r.numAs ) {
+        s += " nor any Pfam-B matches.";
+      }
+      
+    } else {
+      s += ". You did not choose to search for Pfam-B matches.";
+    }
+    
+    if ( jobOptions.ga ) {
+      s += " Because you chose to show only hits that score above the "
+           + "gathering threshold, there are no <em>in</em>significant "
+           + "Pfam-A hits.";
+    }
+
+    $("summaryText").update( s );
+  };
+
+  //----------------------------------------
+
+  var alignmentWidth = 0;
+
+  var getAlignmentWidth = function() {
+
+    // grab the width of the alignment cell in the table before we...
+    $$("#results table.resultTable div.hmmAlignment").invoke( "hide" );
+    alignmentWidth = $$("#results table.resultTable div.hmmAlignment")
+                       .first().up("td").getWidth() - 6;
+    $$("#results table.resultTable div.hmmAlignment").invoke( "show" );
+    
+    console.info( "set alignmentWidth to %d", alignmentWidth );
+
+  };
+
+  //----------------------------------------
+
+  // somewhere to store the Ajax.PeriodicalUpdater objects that we'll be using
+  var updaters = new Hash();  
+
+  // a function to insert the job results into the page
+  var loadResults = function( jobId, response ) {
+    console.log( "results.tt: loadResults: job %s: start of loadResults", jobId );
+
+    updaters.get( jobId ).stop();
+
+    // decide whether the results should go at the top or bottom of the page
+    if ( jobs.get( jobId ).job_type === "A" ) {
+      $("results").insert( { "top": response.responseText } );
+    } else {
+      $("results").insert( { "bottom": response.responseText } );
+    }      
+
+    // hide all of the alignment rows once the table is built
+    $("results").select(".alignment").invoke( "hide" );
+    
+    // if we're using the gathering threshold, hide the insignificant hits and
+    // the front of the table title too
+    if ( jobOptions.ga ) {
+      $("pfamASummaryI").hide();
+      $$(".titlePrefix").invoke( "hide");
+    }
+
+    console.log( "results.tt: loadResults: job %s: done", jobId );
+  };
+  
+  //----------------------------------------
+
+  // a hacked version of the Ajax.PeriodicalUpdater. This one uses an
+  // Ajax.Request, rather than an Ajax.Updater, so that we get control of
+  // what gets updated in the page, and when. 
+
+  var Updater = Class.create( {
+    initialize: function( url, options ) {
+
+      this.options = {
+        method:       'post',
+        asynchronous: true,
+        contentType:  'application/x-www-form-urlencoded',
+        encoding:     'UTF-8',
+        parameters:   { },
+        evalJSON:     true,
+        evalJS:       true
+      };
+      Object.extend( this.options, options || { } );
+
+      this.onComplete = this.options.onComplete;
+  
+      this.frequency  = ( this.options.frequency || 2 );
+      this.decay      = ( this.options.decay || 1 );
+      this.updater    = { };
+      this.url        = url;
+  
+      this.start();
+    },
+  
+    start: function() {
+      this.options.onComplete = this.updateComplete.bind(this);
+      this.onTimerEvent();
+    },
+  
+    stop: function() {
+      this.updater.options.onComplete = undefined;
+      clearTimeout(this.timer);
+      ( this.onComplete || Prototype.emptyFunction ).apply( this, arguments );
+    },
+  
+    updateComplete: function( response ) {
+      console.log( "Updater.updateComplete: checking response..." );
+      if ( this.options.decay ) {
+        this.decay = (response.responseText == this.lastText ?
+          this.decay * this.options.decay : 1);
+  
+        this.lastText = response.responseText;
+      }
+      this.timer = this.onTimerEvent.bind(this).delay( this.decay * this.frequency );
+    },
+  
+    onTimerEvent: function() {
+      this.updater = new Ajax.Request( this.url, this.options );
+    }
+  });
+
+  //----------------------------------------
+
+  // set up the updaters
+  document.observe( "dom:loaded", function() {
+
+    // generate a new PeriodicalUpdater for each job ID
+    jobs.keys().each( function( jobId ) {
+      console.log( "results.tt: setting up polling for job %s", jobId );
+
+      var insertionPosition = jobs.get( jobId ).job_type === "A" ? "top" : "bottom";
+
+      var r = new Updater( 
+        jobOptions.pollUrl,
+        { 
+          parameters: { jobId: jobId },
+          frequency: 1,
+          decay: 1.2,
+          on204: function( response ) {
+            console.log( "results.tt: job %s, status 204; no results; polling further", jobId );
+          },
+          on200: function( response ) {
+            console.log( "results.tt: job %s, status 200; job done", jobId );
+            loadResults( jobId, response );
+          },
+          on400: function( response ) {
+            console.log( "results.tt: bad request for job %s; stopping polling", jobId );
+            r.stop();
+            $("results").insert( { 'top': response.responseText } );
+          }
+        }
+      );
+      
+      // keep hold of all of the updaters that we create, so that we can keep 
+      // track of how many job remain outstanding
+      updaters.set( jobId, r );
+      
+    } ); // end of "foreach job"
+
+  } ); // end of "document.observe"
+
+  //----------------------------------------
+
+  // a class to underline domains in the graphic
+
+  var Underliner = Class.create( {
+
+    initialize: function( /* PfamGraphic object */ pg ) {
+
+      // add the div that we'll use as the underline
+      if ( $("underline") ) {
+        // don't keep creating new ones though
+        this._underlineDiv = $("underline");
+      } else {
+        this._underlineDiv = new Element( "div", { id: "underline",
+                                                    style: "display: none" } );
+        pg.getParent().insert( { bottom: this._underlineDiv } );
+      }
+
+      // get the x-offset for the canvas element, so that we can calculate the
+      // correct position for the underline
+      this._canvasOffset = pg.getCanvas().cumulativeOffset().left;
+
+      // get the data structure that stores the area information
+      var areaStructures = pg.getAreas();
+      this._areasHash = areaStructures[1];
+    
+      // add the listeners for the mouse events
+      for ( var linkId in this._areasHash ) {
+        if ( ! $(linkId ) ) {
+          continue;
+        }
+        $(linkId).observe( "mouseover", this._showLine.bind( this ) );
+        $(linkId).observe( "mouseout",  this._hideLine.bind( this ) );
+      }
+    },
+
+    _hideLine: function( e ) {
+      this._underlineDiv.hide();
+    },  
+
+    _showLine: function( e ) {
+
+      var linkId = e.element().identify()
+      
+      if ( ! linkId ) {
+        this._underlineDiv.hide();
+        return;
+      }
+  
+      var start = parseInt( this._areasHash[linkId].coords[0] );
+      var end   = parseInt( this._areasHash[linkId].coords[2] );
+
+      var l = this._canvasOffset + start;
+      var w = end - start;
+  
+      this._underlineDiv.setStyle( { left:  l + "px",
+                                      width: w + "px" } )
+                         .show();
+    }
+  
+  } );
+  
   // ]]>
 </script>
 
