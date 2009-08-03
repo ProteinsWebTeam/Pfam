@@ -205,12 +205,6 @@ my @litRefs = $pfamDB->getSchema
                                 prefecth => [qw(literature)] });
 $logger->debug("Got ". scalar(@litRefs) ." literature references");
 
-#Calculate p value
-my $pvalue = exp(-1 * $pfam->lambda * ($pfam->domain_ga - $pfam->mu));
-if($pvalue > $threshold) {
-   mailUserAndFail($job, $pfam->pfama_id." ls model has failed p value qc check (p value is $pvalue - too big!)");
-}
-
 
 #Run a md5 checksum on the "raw" files and compared to the release versions......!
 versionFiles($pfamDB, $pfam, $job);
@@ -242,7 +236,6 @@ foreach my $filename (qw(ALIGN SEED)){
   my $a = Bio::Pfam::AlignPfam->new();
   $a->read_stockholm(\*ALIGN, 1 );
 
-
   #Now query the database to get all of the ids/acc for this family.
   my (%regs, $ali);
   if($filename eq "ALIGN"){
@@ -261,10 +254,10 @@ foreach my $filename (qw(ALIGN SEED)){
     
     #Need to remove sequences in alignment which are outcompeted if family is in a clan
     if($a->no_sequences eq @regs) { 
+	$ali = $a;
 	if($ali->no_sequences != $pfam->num_full) {
 	    mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
 	}
-	$ali = $a;
     }
     else {
 	$ali = Bio::Pfam::AlignPfam->new();
@@ -278,7 +271,10 @@ foreach my $filename (qw(ALIGN SEED)){
 	   mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
         }
     } 
-  }  
+  } 
+  elsif($filename eq "SEED") {
+    $ali = $a;
+  } 
 
   #Calculate the consensus line at 60% threshold 
   #We may want to make this user defined/overridable?
