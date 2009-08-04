@@ -64,8 +64,8 @@ if ( !-w "$pwd/$family" ) {
 # If a message is supplied, then write it to file such that the code reference
 # that deals with the SVN log message can grab it.
 
-if ( -s ".defaultpfnew" ) {
-  unlink(".defaultpfnew")
+if ( -s ".default".$$."pfnew" ) {
+  unlink(".default".$$."pfnew")
     or die "Could not remove old default check-in message\n";
 }
 
@@ -173,14 +173,11 @@ unless ( Bio::Pfam::PfamQC::passesAllFormatChecks( $newFamObj, $family ) ) {
 }
 
 #Automatically write the 'new' message and add it the binding.
-open(M, ">.defaultpfnew") or die "Could not open .defaultpfnew:[$!]\n";
+open(M, ">.default".$$."pfnew") or die "Could not open .default".$$."pfnew:[$!]\n";
 print M $newFamObj->DESC->ID." deposited\n";
 close M;
-if($newFamObj->DESC->CL){
-  $client->addPFNEWATCLog(); 
-}else{
-  $client->addPFNEWLog();
-}   
+$client->addPFNEWLog();
+  
 #-------------------------------------------------------------------------------
 #If we get here, then great! We can now add the family!
 my $caught_cntrl_c;
@@ -189,8 +186,8 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 $client->addFamily($family, $newFamObj->DESC->ID);
 
 #Remove any file containing the check-in message
-if ( -s ".defaultpfnew" ) {
-  unlink(".defaultpfnew")
+if ( -s ".default".$$."pfnew" ) {
+  unlink(".default".$$."pfnew")
     or die "Could not remove old default check-in message\n";
 }
 

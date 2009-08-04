@@ -60,13 +60,13 @@ if ( !( -d "$pwd/$clan/.svn" ) ) {
 # If a message is supplied, then write it to file such that the code reference
 # that deals with the SVN log message can grab it.
 
-if ( -s ".defaultclci" ) {
-  unlink(".defaultclci")
+if ( -s ".default".$$."clci" ) {
+  unlink(".default".$$."clci")
     or die "Could not remove old default check-in message\n";
 }
 
 if ($message) {
-  open( M, ">.defaultclci" ) or die "Could not open message file\n";
+  open( M, ">.default".$$."clci" ) or die "Could not open message file\n";
   print M $message;
   close(M);
 }
@@ -121,8 +121,8 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 $client->commitClan($clan);
 
 #Remove any file containing the check-in message
-if ( -s ".defaultclci" ) {
-  unlink(".defaultclci")
+if ( -s ".default".$$."clci" ) {
+  unlink(".default".$$."clci")
     or die "Could not remove old default check-in message\n";
 }
 

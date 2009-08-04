@@ -166,12 +166,12 @@ unless ( $nforward or $forward ) {
 # So we should have enough information to kill off the family.  Write it to file
 # such that the code reference that deals with the SVN log message can grab it.
 
-if ( -s ".defaultpfkill" ) {
-  unlink(".defaultpfkill")
+if ( -s ".default".$$."pfkill" ) {
+  unlink(".default".$$."pfkill")
     or die "Could not remove old default check-in message\n";
 }
 
-open( M, ">.defaultpfkill" ) or die "Could not open message file\n";
+open( M, ">.default".$$."pfkill" ) or die "Could not open message file\n";
 print M "Comment;" . $comment . "\n";
 print M "PFKILL:Forward;" . $forward . "\n" if ($forward);
 if ( $famObj->DESC->CL ) {
@@ -191,8 +191,8 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 $client->killFamily($family);
 
 #Remove any file containing the check-in message
-if ( -s ".defaultpfkill" ) {
-  unlink(".defaultpfkill")
+if ( -s ".default".$$."pfkill" ) {
+  unlink(".default".$$."pfkill")
     or die "Could not remove old default check-in message\n";
 }
 

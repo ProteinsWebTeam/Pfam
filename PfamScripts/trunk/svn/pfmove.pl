@@ -130,7 +130,7 @@ $descObj->ID($newName);
 $familyIO->writeDESC($descObj, $dest);
 
 #Now commit this file back to the svn repository
-open(M, ">.defaultpfmove") or die "Could not open .defaultpfmove:[$!]\n";
+open(M, ">.default".$$."pfmove") or die "Could not open .default".$$."pfmove:[$!]\n";
 print M "Moved family ID from $oldName to $newName\n";
 close(M);
 
@@ -141,8 +141,8 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 $client->commitFamily($family);
 
 #Remove any file containing the check-in message
-if ( -s ".defaultpfmove" ) {
-  unlink(".defaultpfmove")
+if ( -s ".default".$$."pfmove" ) {
+  unlink(".default".$$."pfmove")
     or die "Could not remove old default check-in message\n";
 }
 

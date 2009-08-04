@@ -27,7 +27,7 @@ print STDERR "Successfully loaded $clan through middleware\n";
 $client->checkNewClanDoesNotExists($clanObj->DESC->ID);
 
 #Automatically write the 'new' message and add it the binding.
-open(M, ">.defaultclnew") or die "Could not open .defaultclnew:[$!]\n";
+open(M, ">.default".$$."clnew") or die "Could not open .default".$$."clnew:[$!]\n";
 print M $clanObj->DESC->ID." deposited\n";
 close M;
 $client->addCLNEWLog();
@@ -42,6 +42,10 @@ $client->addClan($clan, $clanObj->DESC->ID);
 if ($caught_cntrl_c) {
   print STDERR
 "\n** You hit cntrl-c while the operation was in progress.\n** The script has tried to ignore this and recover\n** but this could be very bad.  You really must tell someone about this!\n";
+}
+
+if(-e ".default".$$."clnew"){
+  unlink(".default".$$."clnew");
 }
 
 exit(0);
