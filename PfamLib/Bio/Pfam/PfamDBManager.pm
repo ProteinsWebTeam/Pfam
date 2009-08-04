@@ -209,7 +209,7 @@ sub getClanMembership {
     cluck("$clan does not look like a clan accession or id");
   }
 
-  if ($#clanData) {
+  if (scalar(@clanData)) {
     carp("Found clan information for $clan") if $self->{'debug'};
     return ( \@clanData );
   }
