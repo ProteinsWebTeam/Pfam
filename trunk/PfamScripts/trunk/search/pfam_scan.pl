@@ -2,7 +2,7 @@
 
 # This is pfam_scan.pl version 0.4a
 
-# $Id: pfam_scan.pl,v 1.17 2009-06-05 15:36:27 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.18 2009-08-04 10:26:31 jm14 Exp $
 
 
 use strict;
@@ -11,12 +11,10 @@ use warnings;
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
 
-$|=1;
-
 
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
-     $clan_overlap, $fasta, $align, $help, $as );
+     $clan_overlap, $fasta, $align, $help, $as, $pfamB, $only_pfamB );
 GetOptions( 'help'         => \$help,
             'outfile=s'    => \$outfile,
             'e_seq=f'      => \$e_seq,
@@ -28,12 +26,33 @@ GetOptions( 'help'         => \$help,
             'fasta=s'      => \$fasta,
             'align'        => \$align,
             'h'            => \$help,
-            'as'           => \$as );
-
+            'as'           => \$as,
+            'pfamB'        => \$pfamB,
+            'only_pfamB'   => \$only_pfamB);
 
 
 help() if($help);
 help() unless($dir and $fasta);
+
+my $pfamA;
+my @hmmlib;
+if($only_pfamB) {
+    die qq(FATAL: can't use pfamB and only_pfamB option together")
+      if($pfamB);
+    $pfamB=1;
+}
+else {
+    $pfamA=1;
+}
+
+
+
+if($pfamA) {
+    push(@hmmlib, "Pfam-A.hmm");
+}
+if($pfamB) {
+    push(@hmmlib, "Pfam-B.hmm");
+}
 
 
 # check the input parameters
@@ -46,15 +65,20 @@ die qq(FATAL: can't find directory "$dir")
 die qq(FATAL: can't find file "$fasta")
   unless -s $fasta;
 
-die qq(FATAL: can't find "Pfam-A.scan.dat" in "$dir")
-  unless -s "$dir/Pfam-A.scan.dat";
 
-die qq(FATAL: can't find "Pfam_HMM" and/or Pfam_HMM binaries in "$dir")
-  unless ( -s "$dir/Pfam_HMM" and 
-           -s "$dir/Pfam_HMM.h3f" and
-           -s "$dir/Pfam_HMM.h3i" and
-           -s "$dir/Pfam_HMM.h3m" and
-           -s "$dir/Pfam_HMM.h3p" );
+foreach my $hmmlib (@hmmlib) {
+  die qq(FATAL: can\'t find $hmmlib and/or $hmmlib binaries and/or $hmmlib.dat filein "$dir")
+    unless ( -s "$dir/$hmmlib" and 
+             -s "$dir/$hmmlib.h3f" and
+             -s "$dir/$hmmlib.h3i" and
+             -s "$dir/$hmmlib.h3m" and
+	     -s "$dir/$hmmlib.h3p" and
+             -s "$dir/$hmmlib.dat" );
+}
+
+die qq(FATAL: can\'t use E-value or bit score threshold with Pfam-B searches, Pfam-B searches use a default cut_off of 0.001)
+  if ( ( $e_seq or $e_dom or $b_seq or $b_dom ) and !$pfamA ); 
+
 
 die qq(FATAL: can\'t use E-value and bit score threshold together)
   if ( ( $e_seq and ( $b_seq or $b_dom ) ) or 
@@ -62,12 +86,14 @@ die qq(FATAL: can\'t use E-value and bit score threshold together)
        ( $b_dom and $e_dom ) );
 
 
-
 die qq(FATAL: outfile "$outfile" already exists)
     if($outfile and -s $outfile);
 
 
 if($as) {
+    die qq("FATAL: -as option only works on Pfam-A families")
+      unless($pfamA);
+
     die qq(FATAL: can\'t find "active_site.dat" in "$dir")
         unless( -s "$dir/active_site.dat");
 }
@@ -84,6 +110,7 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
   -fasta        => $fasta,
   -align        => $align,
   -as           => $as,
+  -hmmlib       => \@hmmlib
 );
 
 # run the search
@@ -107,13 +134,15 @@ Addional options:
 
   -h              : show this help
   -o <file>       : output file, otherwise send to STDOUT
-  -clan_overlap   : show overlapping hits within clan member families
+  -clan_overlap   : show overlapping hits within clan member families (applies to Pfam-A families only)
   -align          : show the HMM-sequence alignment for each match
-  -e_seq <n>      : specify hmmscan evalue sequence cutoff (default Pfam defined)
-  -e_dom <n>      : specify hmmscan evalue domain cutoff (default Pfam defined)
-  -b_seq <n>      : specify hmmscan bit score sequence cutoff (default Pfam defined)
-  -b_dom <n>      : specify hmmscan bit score domain cutoff (default Pfam defined)
-  -as             : predict active site residues
+  -e_seq <n>      : specify hmmscan evalue sequence cutoff for Pfam-A searches (default Pfam defined)
+  -e_dom <n>      : specify hmmscan evalue domain cutoff for Pfam-A searches (default Pfam defined)
+  -b_seq <n>      : specify hmmscan bit score sequence cutoff for Pfam-A searches (default Pfam defined)
+  -b_dom <n>      : specify hmmscan bit score domain cutoff for Pfam-A searches (default Pfam defined)
+  -pfamB          : Search against Pfam-B HMMs (uses E-value cutoff 0.001) in addition to Pfam-A HMMs
+  -only_pfamB     : Search against Pfam-B HMMs only (uses E-value cutoff 0.001)
+  -as             : predict active site residues for Pfam-A matches
 
 EOF
   exit;
@@ -148,19 +177,27 @@ Write output to C<output_file> [default: STDOUT]
 
 =item B<-e_seq>
 
-Sequence E-value cut-off [default: HMMER3 default]
+Sequence E-value cut-off [default: use Pfam GA cutoff]
 
 =item B<-e_dom> 
 
-Domain E-value cut-off [default: HMMER3 default]
+Domain E-value cut-off [default: use Pfam GA cutoff]
 
 =item B<-b_seq>
 
-Sequence bits score cut-off [default: HMMER3 default]
+Sequence bits score cut-off [default: use Pfam GA cutoff]
 
 =item B<-b_dom>
 
-Domain bits score cut-off [default: HMMER3 default]
+Domain bits score cut-off [default: use Pfam GA cutoff]
+
+=item B<-pfamB>
+
+Search against Pfam-B HMMs [default: false]
+
+=item B<-only_pfamB>
+
+Search against Pfam-B HMMs only [default: false]
 
 =item B<-clan_overlap>
 
@@ -172,7 +209,7 @@ Show alignment snippets in results [default: false]
 
 =item B<-as>
 
-Search for active sites [default: false]
+Searc for active sites on Pfam-A matches [default: false]
 
 =item B<-h>
 
@@ -201,12 +238,11 @@ C<PATH> environment variable. You can download the HMMER3 package at:
 The output format is:
 <seq id> <alignment start> <alignment end> <envelope start> <envelope end> <hmm acc> <hmm name> <type> <hmm start> <hmm end> <hmm length> <bit score> <E-value> <significance> <clan> <predicted_active_site_residues>
 
-Example output (with -as option):
+Example output (with -pfamB, -as options):
 
-  Q1JEP1.1     12    398     12    398 PF01640   Peptidase_C10     Domain     1   394   394    746.6  4.3e-225 1 CL0125    predicted_active_site[192,340]
-  Q69SA9.1    146    243    143    259 PF00085   Thioredoxin       Domain     5    95   104     59.3   1.9e-16 1 CL0172
-  Q69SA9.1    292    466    277    466 PF07970   COPIIcoated_ERV   Family    52   219   219     90.6   5.8e-26 1 No_clan
-
+  Q5NEL3.1      2    224      2    227 PB013481  Pfam-B_13481      Pfam-B     1   184   226    358.5  1.4e-107  NA NA
+  O65039.1     38     93     38     93 PF08246   Inhibitor_I29     Domain     1    58    58     45.9   2.8e-12   1 No_clan
+  O65039.1    126    342    126    342 PF00112   Peptidase_C1      Domain     1   216   216    296.0   1.1e-88   1 CL0125   predicted_active_site[150,285,307]
 
 
 =head1 REFERENCES
