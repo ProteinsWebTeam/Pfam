@@ -179,15 +179,15 @@ sub createClan {
   
   my $clan = $self->getSchema->resultset('Clans')->create(
     {
-      clan_acc        => $clanObj->DESC->AC,
-      clan_id         => $clanObj->DESC->ID,
-      previous_id     => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
-      clan_desription => $clanObj->DESC->DE,
-      clan_author     => $clanObj->DESC->AU,
-      deposited_by    => $depositor,
-      clan_comment    => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
-      created         => \'NOW()',
-      competed        => 0
+      clan_acc         => $clanObj->DESC->AC,
+      clan_id          => $clanObj->DESC->ID,
+      previous_id      => defined($clanObj->DESC->PI) ? $clanObj->DESC->PI : '',
+      clan_description => $clanObj->DESC->DE,
+      clan_author      => $clanObj->DESC->AU,
+      deposited_by     => $depositor,
+      clan_comment     => defined($clanObj->DESC->CC) ? $clanObj->DESC->CC : '',
+      created          => \'NOW()',
+      competed         => 0
     });
   
   unless ( $clan and $clan->isa('PfamLive::Clans') ) {
