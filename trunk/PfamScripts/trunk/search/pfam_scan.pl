@@ -2,7 +2,7 @@
 
 # This is pfam_scan.pl version 0.4a
 
-# $Id: pfam_scan.pl,v 1.18 2009-08-04 10:26:31 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.19 2009-08-04 10:49:45 jm14 Exp $
 
 
 use strict;
@@ -140,9 +140,14 @@ Addional options:
   -e_dom <n>      : specify hmmscan evalue domain cutoff for Pfam-A searches (default Pfam defined)
   -b_seq <n>      : specify hmmscan bit score sequence cutoff for Pfam-A searches (default Pfam defined)
   -b_dom <n>      : specify hmmscan bit score domain cutoff for Pfam-A searches (default Pfam defined)
-  -pfamB          : Search against Pfam-B HMMs (uses E-value cutoff 0.001) in addition to Pfam-A HMMs
-  -only_pfamB     : Search against Pfam-B HMMs only (uses E-value cutoff 0.001)
+  -pfamB          : Search against Pfam-B* HMMs (uses E-value sequence and domain cutoff 0.001),  
+                    in addition to searching Pfam-A HMMs
+  -only_pfamB     : Search against Pfam-B* HMMs only (uses E-value sequence and domain cutoff 0.001)
   -as             : predict active site residues for Pfam-A matches
+
+  *Please note that the Pfam-B HMMs are of much lower quality than
+   Pfam-A HMMs, and matches to Pfam-B families should always be treated
+   cautiously.
 
 EOF
   exit;
