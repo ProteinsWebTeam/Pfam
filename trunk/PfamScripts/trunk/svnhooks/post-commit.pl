@@ -56,7 +56,7 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   
   my $pfamA = $pfamDB->getPfamData($family);
   
-  open(M, ">.defaultpfnewmove") or die "";
+  open(M, ">.default".$$."pfnewmove") or die "";
   print M "Moving from pending to main repository and fixing accession\n";
   close(M);
   $client->addPFNEWMOVELog;
@@ -98,13 +98,13 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   
   my $clanData = $pfamDB->getClanData($clan);
   
-  open(M, ">.defaultclnewmove") or die "";
+  open(M, ">.default".$$."clnewmove") or die "";
   print M "Moving from pending to main repository\n";
   close(M);
   $client->addCLNEWMOVELog;
   $client->moveNewClan($clanData->clan_id, $clanData->clan_acc);
   
-  open(M, ">.defaultclnewmove") or die "";
+  open(M, ">.default".$$."clnewmove") or die "";
   print M "Automatically adding accession\n";
   close(M);
   $client->addCLNEWACCLog;
@@ -134,8 +134,8 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
   my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( 
     %{ $config->pfamlive; }
   );
-  Bio::Pfam::Clan::Compete::competeClan($clan, $pfamDB);
-  Bio::Pfam::ViewProcess::initiateViewProcess($clan);
+  
+  Bio::Pfam::ViewProcess::initiateViewProcess($clan, $revlook->author, $revlook->{config} );
   
 }elsif($logMessage =~ /CLKILL/){
   my @deleted = $revlook->deleted;
