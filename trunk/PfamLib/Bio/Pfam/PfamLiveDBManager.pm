@@ -196,6 +196,8 @@ sub createClan {
 
   #Add the auto number to the clan Obj.
   $clanObj->rdb( { auto => $clan->auto_clan } );
+  
+
 }
 
 sub updatePfamA {
@@ -246,6 +248,10 @@ sub updatePfamA {
 
   $famObj->rdb( { auto => $pfamA->auto_pfama } );
   $pfamA->update;
+  
+  if($famObj->DESC->CL){
+     $self->resetClanCompeteFlag($famObj->DESC->CL); 
+  }
 
 }
 
@@ -295,6 +301,11 @@ sub createPfamA {
 
   #Add the auto number to the famObj.
   $famObj->rdb( { auto => $pfamA->auto_pfama } );
+  
+  #If the family is part of a 
+  if($famObj->DESC->CL){
+     $self->resetClanCompeteFlag($famObj->DESC->CL); 
+  }
 }
 
 sub movePfamA {
@@ -1388,6 +1399,25 @@ sub resetInFull {
     $r->update( {in_full => 1 });
   }
     
+}
+
+sub resetClanCompeteFlag {
+  my ($self, $clan) = @_;
+  
+  my $clanData;
+  if($clan =~ /^(\d+)$/){
+    #Looks like an auto incremeneted key
+    my $clanData = $self->getSchema->resultset("Clans")->find( { "auto_clan" => $clan } );
+  }else{
+    $clanData = $self->getClanData($clan);
+  } 
+  
+  unless($clanData->isa('PfamLive::Clans')){
+    croak("Failed to get a clan row obkect for $clan");
+  }
+  
+  $clanData->update({competed => 0});
+  
 }
 
 =head1 COPYRIGHT
