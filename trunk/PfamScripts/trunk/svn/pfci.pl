@@ -72,13 +72,13 @@ if ( !( -d "$pwd/$family/.svn" ) ) {
 # If a message is supplied, then write it to file such that the code reference
 # that deals with the SVN log message can grab it.
 
-if ( -s ".defaultpfci" ) {
-  unlink(".defaultpfci")
+if ( -s ".default".$$."pfci" ) {
+  unlink(".default".$$."pfci")
     or die "Could not remove old default check-in message\n";
 }
 
 if ($message) {
-  open( M, ">.defaultpfci" ) or die "Could not open message file\n";
+  open( M, ">.default".$$."pfci" ) or die "Could not open message file\n";
   print M $message;
   close(M);
 }
@@ -271,8 +271,8 @@ else {
   $client->commitFamily($family);
 
   #Remove any file containing the check-in message
-  if ( -s ".defaultpfci" ) {
-    unlink(".defaultpfci")
+  if ( -s ".default".$$."pfci" ) {
+    unlink(".default".$$."pfci")
       or die "Could not remove old default check-in message\n";
   }
 
