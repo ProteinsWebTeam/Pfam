@@ -128,7 +128,7 @@ $descObj->ID($newClanName);
 $clanIO->writeCLANDESC($descObj, $dest.'/'.$clan);
 
 #Now commit this file back to the svn repository
-open(M, ">.defaultclmove") or die "Could not open .defaultpfmove:[$!]\n";
+open(M, ">.default".$$."clmove") or die "Could not open .defaultpfmove:[$!]\n";
 print M "Moved clan ID from $oldClanName to $newClanName\n";
 close(M);
 
@@ -139,8 +139,8 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 $client->commitClan($clan);
 
 #Remove any file containing the check-in message
-if ( -s ".defaultclmove" ) {
-  unlink(".defaultclmove")
+if ( -s ".default".$$."clmove" ) {
+  unlink(".default".$$."clmove")
     or die "Could not remove old default check-in message\n";
 }
 

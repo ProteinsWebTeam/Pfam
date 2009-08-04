@@ -165,12 +165,12 @@ unless ( $nforward or $forward ) {
 # So we should have enough information to kill off the clan.  Write it to file
 # such that the code reference that deals with the SVN log message can grab it.
 
-if ( -s ".defaultclkill" ) {
-  unlink(".defaultclkill")
+if ( -s ".defaul".$$."clkill" ) {
+  unlink(".default".$$."clkill")
     or die "Could not remove old default check-in message\n";
 }
 
-open( M, ">.defaultclkill" ) or die "Could not open message file\n";
+open( M, ">.default".$$."clkill" ) or die "Could not open message file\n";
 print M "Comment;" . $comment . "\n";
 print M "CLKILL:Forward;" . $forward . "\n" if ($forward);
 close(M);
@@ -184,8 +184,8 @@ $SIG{INT} = sub { $caught_cntrl_c = 1; };    # don't allow control C for a bit!
 $client->killClan($clan);
 
 #Remove any file containing the check-in message
-if ( -s ".defaultclkill" ) {
-  unlink(".defaultclkill")
+if ( -s ".default".$$."clkill" ) {
+  unlink(".default".$$."clkill")
     or die "Could not remove old default check-in message\n";
 }
 
