@@ -19,21 +19,18 @@ unless($lock or $unlock) {
     help();
 }
 
-my $config = Bio::Pfam::Config->new;
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
-
 if($unlock and ($commit or @commit_list or $force or $lock)) {
     die "You have specified options which cannot be used together\n";
 }
-unless($lock or $unlock) {
-    help();
-}
+
 
 open(FH, "whoami |") or die "Couldn't open filehandle $!\n";
 my $user;
 while(<FH>) {
     $user = $1 if(/(\S+)/) ;
 }
+
+
 
 if(@commit_list) {
     @commit_list = split(/,/,join(',',@commit_list));  #Allow comma-separated lists of values and multiple occurrences of the options
@@ -45,6 +42,10 @@ $commit = 0 unless($commit);
 
 
 
+
+
+my $config = Bio::Pfam::Config->new;
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
 my @lock_data = $pfamDB->getSchema
     ->resultset('Lock')->search({ 'locked' => 1});
