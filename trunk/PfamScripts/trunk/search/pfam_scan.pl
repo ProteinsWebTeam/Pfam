@@ -1,8 +1,6 @@
 #!/software/bin/perl
 
-# This is pfam_scan.pl version 0.4a
-
-# $Id: pfam_scan.pl,v 1.19 2009-08-04 10:49:45 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.20 2009-08-05 12:46:56 jm14 Exp $
 
 
 use strict;
@@ -10,6 +8,8 @@ use warnings;
 
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
+
+my $VERSION = "0.5a"; 
 
 
 # get the user options
@@ -113,8 +113,17 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
   -hmmlib       => \@hmmlib
 );
 
+# set the version
+$ps->set_version($VERSION);
+
+
 # run the search
 $ps->search;
+
+
+# set the header
+$ps->set_header;
+
 
 # print the results
 $ps->write_results( $outfile, $e_seq, $e_dom, $b_seq, $b_dom );
