@@ -78,6 +78,36 @@ unless ( $ENV{DEBUG} ) {
   }
 }
 
+
+#Make sure the database isn't locked
+my $lock = $txnlook->allowCommit($pfamDB);
+my $allow_commit;
+if($lock) {
+    #If it is locked, check to see if user is allowed to make commits
+    if( ($lock->locker eq $txnlook->author) and $lock->allowcommits){
+	$allow_commit = 1;
+    }
+    elsif($lock->alsoallow) {
+	my @allow = split(/\s+/, $lock->alsoallow);
+
+	foreach my $user (@allow) {
+	    if($user eq $txnlook->author) {
+		$allow_commit=1;
+		last;
+	    }
+	}
+    }
+}
+else {
+    $allow_commit = 1;
+}
+unless($allow_commit) {
+    die "The database is currently locked by " . $lock->locker . "\n";
+}
+
+
+
+
 if ( $msg =~ /^PFCI:/ ) {
   $txnlook->commitFamily($pfamDB);
 }
