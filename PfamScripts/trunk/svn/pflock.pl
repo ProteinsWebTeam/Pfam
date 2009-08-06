@@ -15,9 +15,20 @@ my ($help, $lock, $unlock, @user_list, $commit, @commit_list, $commit_list, $for
            "allow_me" => \$commit,
        "allow_user=s" => \@commit_list);
         
+
+
+my $config = Bio::Pfam::Config->new;
+my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+
+$config->dieIfNotWTSI;
+
+help() if($help);
+
 unless($lock or $unlock) {
     help();
 }
+
+
 
 if($unlock and ($commit or @commit_list or $force or $lock)) {
     die "You have specified options which cannot be used together\n";
@@ -42,10 +53,6 @@ $commit = 0 unless($commit);
 
 
 
-
-
-my $config = Bio::Pfam::Config->new;
-my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
 my @lock_data = $pfamDB->getSchema
     ->resultset('Lock')->search({ 'locked' => 1});
@@ -89,17 +96,19 @@ This script can be used to 'lock' and 'unlock' the database.  When the
 database is in the 'locked' state, users will be unable to use pfam
 scripts to commit data, unless the allow_me or allow_user flags are used.
 
-
-EXAMPLE:
+USAGE:
 
   $0 -l (locks the database)
   $0 -u (unlocks the database)
 
-OPTIONS:
+OPTIONS FOR LOCKING:
+
    -allow_me              : Allows the user running the script to perform commits
    -allow_user  <user_id> : Allow user_id to perform commits (can specify multiple users)
 
-    e.g $0 -l -allow_me -allow_user "rdf,pcc"
+EXAMPLE:
+
+    $0 -l -allow_me -allow_user "rdf,pcc"
 
 EOF
 
