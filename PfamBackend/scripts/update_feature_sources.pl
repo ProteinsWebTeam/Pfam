@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_feature_sources.pl,v 1.2 2009-07-01 12:32:11 pg6 Exp $
+# $Id: update_feature_sources.pl,v 1.3 2009-08-07 12:56:03 pg6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -58,13 +58,6 @@ GetOptions(
   "config=s"  =>  \$file
 ) or usage();
 
-#getopt( 'f', \%options ) or usage();
-
-#unless( defined $options{f} and -f $options{f} ) {
-#  print STDERR  "error: must specify a configuration file\n";
-#  exit 1;
-#}
-
 unless( defined $file ) {
   print STDERR  "error: must specify a configuration file\n";
   exit 1;
@@ -72,13 +65,9 @@ unless( defined $file ) {
 
 
 #read the apache style configuration file and parse it.
-#my ( $conf, %config,$mail);
 my ( %config,$mail);
 
 eval{
-#  $conf = new Config::General( $options{f} );
-#  $conf = new Config::General( $file );
-#  %config = $conf->getall;
   %config = ParseConfig( $file );
   $mail->{from} = $config{das}->{mailFrom};
   $mail->{to} = $config{das}->{mailTo};  
@@ -147,7 +136,7 @@ my $sourcesList = $das->registry_sources({capability  =>  'features'});
 #print STDERR "(ii) retrieved " . scalar @$sourcesList . " sources from the registry\n"; 
 
 # decide which sources we want to use
-my $chosenList = [ ];
+my $chosenList = [ ]; my $sources_to_populate = 0;
 foreach my $source ( @$sourcesList ) {
   
   # check the lease date
@@ -213,6 +202,7 @@ foreach my $source ( @$sourcesList ) {
     }
     $entry->{coords}{ $coords->{uniqueId} } = { system => $coords->{name}, 
                                                 type   => $coords->{category} };
+    $sources_to_populate++;                                                
   }
   
   if( defined $entry->{coords} ) {
@@ -229,13 +219,14 @@ unless( $force ){
   my $message;
   if( $total_features ){
     #print " enters into the total_features blcok with value| $total_features|\n";
-    my $percentage = ( $total_features - scalar( @$chosenList ) ) / $total_features;
+    my $percentage = ( $total_features - $sources_to_populate ) / $total_features;
+    print " the total loss of percentage is $percentage\n";
     if( $percentage > $config{das}->{threshold} ){
       $message = "   
-                     The total number of features sources present in Database is $total_features\n
-                     The total number of features sources retrieved from das is ".scalar(@$chosenList)."\n
-                     More than 10% of das sources are lost......\n
-                     Das registry may be down......\nHence skipping the update\n";
+                  The total number of features sources present in Database is $total_features\n
+                  The total number of features sources retrieved from das is ".scalar(@$chosenList)."\n
+                  More than 10% of das sources are lost......\n
+                  Das registry may be down......\nHence skipping the update\n";
                          
       send_mail($message,$mail);
     }  
@@ -257,9 +248,8 @@ unless( $force ){
 # start a transaction...
 eval {
   
-  #print STDERR "\n\nDeleting the contents of the feature_das_source table \n" if($dbh->do( "DELETE FROM temp1" ));
   foreach my $entry( sort { $a->{id} cmp $b->{id} } @$chosenList ) {
-
+    
     foreach my $coord (values %{ $entry->{coords} } ) {
       #print "the coord is ",dump($coord),"\n";
       # print STDERR "(ii) inserting $entry->{name} [$coord->{system},$coord->{type}]... \n";
@@ -272,7 +262,7 @@ eval {
                            exists $defaultServers{ $entry->{id} } ? 1 : 0
                          );  
     }
-    
+  
   }
   #print STDERR  "(ii) committed changes in table\n";
   
@@ -283,11 +273,11 @@ eval {
 # before copying the contents of temporary table; look at the diff of both;
 
 # source in temp table but not in database table;
-my $src_in_temp_notin_das = "Select server_id, name from temp where server_ID not in ( select server_id from feature_das_sources )";
+my $src_in_temp_notin_das = "Select server_id, system,name from temp where server_ID not in ( select server_id from feature_das_sources )";
 my $diff1 = $dbh->prepare( $src_in_temp_notin_das );
 
 # source in das table but lost in temp table;
-my $src_in_das_notin_temp = "Select server_id, name from feature_das_sources where server_ID not in ( select server_id from temp )";
+my $src_in_das_notin_temp = "Select server_id, system, name from feature_das_sources where server_ID not in ( select server_id from temp )";
 my $diff2 = $dbh->prepare( $src_in_das_notin_temp );
 
 eval{
@@ -298,15 +288,13 @@ eval{
 
 my ($gain, $loss );
 
-while( my ( $id, $name ) = $diff1->fetchrow_array ){
-  $gain .= "$id\t$name\n";
+while( my ( $id, $system,$name ) = $diff1->fetchrow_array ){
+  $gain .= "$id\t$system\t$name\n";
 }
-while( my ( $id, $name ) = $diff2->fetchrow_array ){
-  $loss .= "$id\t$name\n";
+while( my ( $id, $system,$name ) = $diff2->fetchrow_array ){
+  $loss .= "$id\t$system\t$name\n";
 }
 
-# now delete the contents of the table and copy over;
-#print STDERR "\n\nDeleting the contents of the feature_das_source table \n" if($dbh->do( "DELETE FROM temp1" ));
 my $success_message;
 
 eval{
@@ -334,30 +322,6 @@ if( $@ ){
 
 exit;
 
-#
-## check for errors in the transaction and roll back if we found any
-#
-#if( $@ ) {
-#  #print STDERR "\n(EE) ERROR: transaction error: $@; rolling back\n";
-#  
-#  eval { $dbh->rollback; };
-#  if($@){
-#    my $error_message = "ERROR in transaction, rolling back\nHowever roll back failed : $@\n";
-#    send_mail($error_message,$mail);
-#  }  
-#  
-#} else {
-#   #print STDERR "(ii) transaction successful\n";
-#   my $new_feature_sources = $dbh->selectrow_arrayref("select count(*) from temp1");
-#   my $new_total_features = $new_feature_sources->[0];
-#   my $success_message = "The total number of features sources present in Database before update is : $total_features
-#                         \n\nThe total number of features sources after update is :$new_total_features\n
-#                         \nHenceforth Update successful.\n";
-#   send_mail($success_message,$mail);                         
-#}
-#
-##script wont come here but to exit explicitly
-#exit;
 #-----------------------------------------------------------------------------------------------------
 
 #subroutine send_mail - sending mail to the maintainer
