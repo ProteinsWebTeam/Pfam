@@ -50,7 +50,7 @@ my $rfport     = 3303;
 my $rfquery = qq(
            select t.species, t.tax_string, t.ncbi_id 
            from taxonomy as t, rfamseq as r 
-           where t.auto_taxid=r.taxon and rfamseq_acc=?;
+           where t.ncbi_id=r.ncbi_id and rfamseq_acc=?;
    );
 
 
