@@ -295,7 +295,7 @@ if( $list ) {
     # Query to search for the accession and description of uniprot entries with the gene name offered.
     my $query = qq(
            select rfamseq_acc, version, description
-                   from rfamseq where rfamseq_acc=?         
+                   from rfamseq where rfamseq_acc=? and version=?;         
    );
     
     # Query to search for the accession and description of embl entries with the embl id
@@ -313,9 +313,10 @@ if( $list ) {
     
     foreach my $seqid (@allnames) {
         
-        $seqid =~ s/(\.\d+)//; #remove version
+        $seqid =~ s/\.(\d+)//; #trim and store version
+        my $version=$1;
         # Run the query 
-        $sth->execute($seqid);
+        $sth->execute($seqid, $version);
     
         my $res = $sth->fetchall_arrayref;
         foreach my $row (@$res){
