@@ -27,17 +27,16 @@ transpos
 );
 
 # MySQL connection details.
-my $database = $Rfam::embl;
-my $host     = "cbi3";
-my $user     = "genero";
+#my $database = $Rfam::embl;
+#my $host     = "cbi3";
+#my $user     = "genero";
 
 # Query to search for the accession and description of embl entries with the embl id
 my $query = qq(
-           select entry.accession_version, description.description
-           from entry, description
-           where entry.accession_version=?
-           and entry.entry_id=description.entry_id;
-   );
+           select rfamseq_acc, version, description
+           from rfamseq
+               where rfamseq_acc=? and version=?;
+               );
 
 # MySQL rfamlive connection details.
 my $rfdatabase = "rfamlive";
@@ -242,14 +241,14 @@ if (defined($ont) || defined($scorethreshold)){
 my @ALIGNscoreskeys = sort { $ALIGNscores{$b} <=> $ALIGNscores{$a} } keys %ALIGNscores;
 
 # Create a connection to the database.
-my $dbh = DBI->connect(
-    "dbi:mysql:$database;$host", $user, "", {
-	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
-	RaiseError => 1
-}    );
+#my $dbh = DBI->connect(
+##    "dbi:mysql:$database;$host", $user, "", {
+#	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+#	RaiseError => 1
+#}    );
 
 # Prepare the query for execution.
-my $sth = $dbh->prepare($query);
+#my $sth = $dbh->prepare($query);
 ###########
 
 my ($rfdbh, $rfsth);
@@ -261,6 +260,9 @@ $rfdbh = DBI->connect(
     }    );
 
 # Prepare the query for execution.
+# Prepare the query for execution.
+my $sth = $rfdbh->prepare($query);
+
 $rfsth = $rfdbh->prepare($rfquery);
 ###########
 
@@ -467,10 +469,13 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	
 	#Grab seq description, check it passes required & forbidden terms tests: 
 	my $desc; 
-	$sth->execute($ALIGNnames{$longseqname});
+  my $seq_acc_v=$ALIGNnames{$longseqname};
+  my $seq_acc=~ s/\.(\d+)$//g; #need to trim and store version
+  my $v=$1;
+	$sth->execute($seq_acc, $v);
 	my $res = $sth->fetchall_arrayref;
 	foreach my $row (@$res){
-	    $desc .= $row->[1];
+	    $desc .= $row->[2];
 	}
 	
 	if( !defined($desc) ) {
@@ -578,11 +583,14 @@ BIGLOOP: foreach my $longseqname (@names_array){
     else {#Print DE lines for the SEED sequences:
 	
 	#Grab seq description:
-	my $desc; 
-	$sth->execute($ALIGNnames{$longseqname});
+	my $desc;
+  my $seq_acc_v=$ALIGNnames{$longseqname};
+  my $seq_acc=~ s/\.(\d+)$//g; #need to trim and store version
+  my $v=$1;
+	$sth->execute($seq_acc, $v);
 	my $res = $sth->fetchall_arrayref;
 	foreach my $row (@$res){
-	    $desc .= $row->[1];
+	    $desc .= $row->[2];
 	}
 
 	if( !defined($desc) ) {
@@ -594,7 +602,6 @@ BIGLOOP: foreach my $longseqname (@names_array){
     }
 }
 close(OUT);
-$dbh->disconnect;
 
 if (scalar(@taxonomy)>0){
     $rfdbh->disconnect;
