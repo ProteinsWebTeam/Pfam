@@ -268,9 +268,9 @@ if( $list ) {
     my @allnames = map{ $_->seqname } @goodhits;
     
     # MySQL connection details.
-    my $database = $Rfam::embl;
-    my $host     = "cbi3";
-    my $user     = "genero";
+    #my $database = $Rfam::embl;
+    #my $host     = "cbi3";
+    #my $user     = "genero";
     
     # MySQL rfamlive connection details.
     my $rfdatabase = "rfamlive";
@@ -280,12 +280,12 @@ if( $list ) {
     my $rfport     = 3303;
     
     # Create a connection to the database.
-    my $dbh = DBI->connect(
-	"dbi:mysql:$database;$host", $user, "",
-	);
+   # my $dbh = DBI->connect(
+	#"dbi:mysql:$database;$host", $user, "",
+	#);
     
     my ($rfdbh, $rfsth);
-# Create a connection to the database.
+# Create a connection to the rfamlive database.
     $rfdbh = DBI->connect(
 	"dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
 	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
@@ -294,10 +294,8 @@ if( $list ) {
     
     # Query to search for the accession and description of uniprot entries with the gene name offered.
     my $query = qq(
-           select entry.accession_version, description.description
-           from entry, description
-           where entry.accession_version=?
-           and entry.entry_id=description.entry_id;
+           select rfamseq_acc, version, description
+                   from rfamseq where rfamseq_acc=?         
    );
     
     # Query to search for the accession and description of embl entries with the embl id
@@ -308,194 +306,195 @@ if( $list ) {
    );
     
     
-# Prepare the query for execution.
-    my $sth = $dbh->prepare($query);
-# Prepare the query for execution.
+# Prepare the query to get description from rfamlive.
+    my $sth = $rfdbh->prepare($query);
+# Prepare the query to get taxonomy from rfamlive.
     $rfsth = $rfdbh->prepare($rfquery);
     
     foreach my $seqid (@allnames) {
-	
-	# Run the query 
-	$sth->execute($seqid);
-	
-	my $res = $sth->fetchall_arrayref;
-	foreach my $row (@$res){
-	    $desc{$row->[0]} .= $row->[1];
-	}
-	
-	$seqid =~ s/(\.\d+)//;
-	$rfsth->execute($seqid);
-	if (!defined($spec{$seqid})){
-	    my $rfres = $rfsth->fetchall_arrayref;
-	    my ($species, $taxonomy, $ncbi) = ("", "", "");
-	    foreach my $row (@$rfres){
-		$species .= $row->[0];
-		$taxonomy .= $row->[1];
-		$ncbi .= $row->[2];
-	    }
-	    
-	    $spec{$seqid} = $ncbi . "\t" . $species . "\t" . $taxonomy;
-	}
-	
+        
+        $seqid =~ s/(\.\d+)//; #remove version
+        # Run the query 
+        $sth->execute($seqid);
+    
+        my $res = $sth->fetchall_arrayref;
+        foreach my $row (@$res){
+            my ($acc, $version, $desc)=@$row;
+            $desc{$acc.".".$version} .= $desc;
+        }
+		
+    $rfsth->execute($seqid);
+    if (!defined($spec{$seqid})){
+        my $rfres = $rfsth->fetchall_arrayref;
+        my ($species, $taxonomy, $ncbi) = ("", "", "");
+        foreach my $row (@$rfres){
+            $species .= $row->[0];
+            $taxonomy .= $row->[1];
+            $ncbi .= $row->[2];
+        }
+        
+        $spec{$seqid} = $ncbi . "\t" . $species . "\t" . $taxonomy;
     }
-    $dbh->disconnect;
-#    $rfdbh->disconnect;
+    
+}
+#    $dbh->disconnect;
+    $rfdbh->disconnect;
 
     #OPEN files for R:
     my %filehandles = (
-	seed   => \*OUTSEED,
-	align  => \*OUTALIGN,
-	family => \*OUTFAM,
-	forbid => \*OUTFORBID,
-	thresh => \*OUTTHRESH
-    );
+                       seed   => \*OUTSEED,
+                       align  => \*OUTALIGN,
+                       family => \*OUTFAM,
+                       forbid => \*OUTFORBID,
+                       thresh => \*OUTTHRESH
+                       );
 
     my (%counts, @family_scores, @forbidden_scores);
     my $max_score=0;
     
     foreach my $ty (keys %filehandles){
-	open( $filehandles{$ty}, ">out.list_$ty\.dat" ) or die("Problem opening out.list_$ty\.dat\n[$!]");
-	$counts{$ty}=0;
+        open( $filehandles{$ty}, ">out.list_$ty\.dat" ) or die("Problem opening out.list_$ty\.dat\n[$!]");
+        $counts{$ty}=0;
     }
     
     if ($thrcurr){
-	printf OUTTHRESH "$thrcurr\n";
-	$counts{'thresh'}++;
+        printf OUTTHRESH "$thrcurr\n";
+        $counts{'thresh'}++;
     }
     
     if (-e "species"){
-	system("cp species species.old");
+        system("cp species species.old");
     }
     
     if (-e $output){
-	system("cp $output $output\.old");
+        system("cp $output $output\.old");
     }
     
     open(OUTFILE, ">$output") or die "Could not open $output\n[$!]\n";   
     open(SPECFILE, ">species") or die "Could not open species\n[$!]\n";   
     my $prev_bits = 999999;
     foreach my $unit ( sort { $b->bits <=> $a->bits } $res->eachHMMUnit() ) {
+        
+        my $term_label;
+        if( not exists $desc{$unit->seqname} ) {
+            $desc{$unit->seqname} = "no description available";
+        }
+        
+        if ( ($unit->bits)<$thrcurr && $thrcurr<=$prev_bits ){
+            printf OUTFILE "***********CURRENT THRESHOLD: $thrcurr bits***********\n";
+        }
+        
+        if ($max_score<$unit->bits){
+            $max_score=$unit->bits;
+        }
+        
+        my $seqlabel = "ALIGN";
+        if ( defined($seedseqs_start{$unit->seqname}) ){
+            my $id=$unit->seqname;
+            for (my $i=0; $i<scalar(@{$seedseqs_start{$id}}); $i++){
+                my $a = $seedseqs_start{$id}[$i];
+                my $b = $seedseqs_end{$id}[$i];
+                #print "overlap($a,$b,$unit->start_seq, $unit->end_seq)\n";
+                if (overlap($a,$b,$unit->start_seq, $unit->end_seq)){
+                    $seqlabel = "SEED";
+                    printf OUTSEED "%0.2f\n", $unit->bits;
+                    $counts{'seed'}++;
+                    push(@family_scores,$unit->bits);
+                    my $n = $id . "/" . $a . "-" . $b;
+                    if ( !defined($seedseqs_found{$n}) ){
+                        $n = $id . "/" . $b . "-" . $a;
+                    }
+                    
+                    $seedseqs_found{$n}++;
+                    last;
+                }
+            }
+        }
+        
+        if ($seqlabel =~ /ALIGN/){
+            printf OUTALIGN "%0.2f\n", $unit->bits;
+            $counts{'align'}++;
+        }
+        
+        my $fammatch=0;
+        foreach my $ft (@family_terms) {
+            if ($desc{$unit->seqname} =~ m/$ft/i){
+                $fammatch=1;
+            }
+        }
+        
+        my $shortid = $unit->seqname;
+        $shortid =~ s/(\.\d+)//;
+        foreach my $ft (@taxonomy) {
+            if (defined($spec{$shortid}) && $spec{$shortid} =~ m/$ft/i){
+                $fammatch=1;
+            }
+        }
+        
+        if ($fammatch){
+            printf OUTFAM "%0.2f\n", $unit->bits;
+            $counts{'family'}++;
+            push(@family_scores,$unit->bits);
+            $term_label .= "T";
+        }
+        
+        my $forbidmatch=0;
+        foreach my $ft (@forbidden_terms) {
+            if ($desc{$unit->seqname} =~ m/$ft/i){
+                $forbidmatch=1;
+            }
+        }
+        
+        foreach my $ft (@forbiddentaxonomy) {
+            if (defined($spec{$shortid}) && $spec{$shortid} =~ m/$ft/i){
+                $forbidmatch=1;
+            }
+        }
+        
+        foreach my $ft (@forbiddentaxonomynot) {
+            if (defined($spec{$shortid}) && $spec{$shortid} !~ m/$ft/i){
+                $forbidmatch=1;
+            }
+        }
 	
-	my $term_label;
-	if( not exists $desc{$unit->seqname} ) {
-	    $desc{$unit->seqname} = "no description available";
-	}
+        
+        if ($forbidmatch){
+            printf OUTFORBID "%0.2f\n", $unit->bits;
+            $counts{'forbid'}++;
+            push(@forbidden_scores,$unit->bits);
+            $term_label .= "F";
+        }
+        
+        
+        if (!defined($term_label)){
+            $term_label = ".";
+        }
+        
+        
 	
-	if ( ($unit->bits)<$thrcurr && $thrcurr<=$prev_bits ){
-	    printf OUTFILE "***********CURRENT THRESHOLD: $thrcurr bits***********\n";
-	}
-	
-	if ($max_score<$unit->bits){
-	    $max_score=$unit->bits;
-	}
-	
-	my $seqlabel = "ALIGN";
-	if ( defined($seedseqs_start{$unit->seqname}) ){
-	    my $id=$unit->seqname;
-	    for (my $i=0; $i<scalar(@{$seedseqs_start{$id}}); $i++){
-		my $a = $seedseqs_start{$id}[$i];
-		my $b = $seedseqs_end{$id}[$i];
-		#print "overlap($a,$b,$unit->start_seq, $unit->end_seq)\n";
-		if (overlap($a,$b,$unit->start_seq, $unit->end_seq)){
-		    $seqlabel = "SEED";
-		    printf OUTSEED "%0.2f\n", $unit->bits;
-		    $counts{'seed'}++;
-		    push(@family_scores,$unit->bits);
-		    my $n = $id . "/" . $a . "-" . $b;
-		    if ( !defined($seedseqs_found{$n}) ){
-			$n = $id . "/" . $b . "-" . $a;
-		    }
-		    
-		    $seedseqs_found{$n}++;
-		    last;
-		}
-	    }
-	}
-	
-	if ($seqlabel =~ /ALIGN/){
-	    printf OUTALIGN "%0.2f\n", $unit->bits;
-	    $counts{'align'}++;
-	}
-	
-	my $fammatch=0;
-	foreach my $ft (@family_terms) {
-	    if ($desc{$unit->seqname} =~ m/$ft/i){
-		$fammatch=1;
-	    }
-	}
-	
-	my $shortid = $unit->seqname;
-	$shortid =~ s/(\.\d+)//;
-	foreach my $ft (@taxonomy) {
-	    if (defined($spec{$shortid}) && $spec{$shortid} =~ m/$ft/i){
-		$fammatch=1;
-	    }
-	}
-	
-	if ($fammatch){
-	    printf OUTFAM "%0.2f\n", $unit->bits;
-	    $counts{'family'}++;
-	    push(@family_scores,$unit->bits);
-	    $term_label .= "T";
-	}
-	
-	my $forbidmatch=0;
-	foreach my $ft (@forbidden_terms) {
-	    if ($desc{$unit->seqname} =~ m/$ft/i){
-		$forbidmatch=1;
-	    }
-	}
-	
-	foreach my $ft (@forbiddentaxonomy) {
-	    if (defined($spec{$shortid}) && $spec{$shortid} =~ m/$ft/i){
-		$forbidmatch=1;
-	    }
-	}
-
-	foreach my $ft (@forbiddentaxonomynot) {
-	    if (defined($spec{$shortid}) && $spec{$shortid} !~ m/$ft/i){
-		$forbidmatch=1;
-	    }
-	}
-	
-
-	if ($forbidmatch){
-	    printf OUTFORBID "%0.2f\n", $unit->bits;
-	    $counts{'forbid'}++;
-	    push(@forbidden_scores,$unit->bits);
-	    $term_label .= "F";
-	}
-	
-	
-	if (!defined($term_label)){
-	    $term_label = ".";
-	}
-	
-	
-	
-	printf OUTFILE "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t$term_label\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
-
-	my $seqid = $unit->seqname;
-	$seqid =~ s/(\.\d+)//;
-	if (defined($spec{$seqid})){
-	    printf SPECFILE "%0.2f\t$seqlabel\t%s\t%s\n", $unit->bits, $unit->seqname, $spec{$seqid};
-	}
-	else {
-	    printf SPECFILE "%0.2f\t%s\tNo Taxonomy information available\tNA\tNA\n", $unit->bits, $unit->seqname, $spec{$seqid};	    
-	}
-	
-	$prev_bits = $unit->bits;
+        printf OUTFILE "%0.2f\t$seqlabel\t%s\t%d\t%d\t%d\t%d\t$term_label\t%s\n", $unit->bits, $unit->seqname, $unit->start_seq, $unit->end_seq, $unit->start_hmm, $unit->end_hmm, substr($desc{$unit->seqname},0,70);
+        
+        my $seqid = $unit->seqname;
+        $seqid =~ s/(\.\d+)//;
+        if (defined($spec{$seqid})){
+            printf SPECFILE "%0.2f\t$seqlabel\t%s\t%s\n", $unit->bits, $unit->seqname, $spec{$seqid};
+        }
+        else {
+            printf SPECFILE "%0.2f\t%s\tNo Taxonomy information available\tNA\tNA\n", $unit->bits, $unit->seqname, $spec{$seqid};	    
+        }
+        
+        $prev_bits = $unit->bits;
     }
     
     
     
     #R fails on empty files:
     foreach my $ty (keys %filehandles){
-	if ($counts{$ty}==0){
-	    my $fh = $filehandles{$ty};
-	    printf $fh "0\n";
-	    #printf "$filehandles{$ty} $ty counts=$counts{$ty}\n";
-	}
+        if ($counts{$ty}==0){
+            my $fh = $filehandles{$ty};
+            printf $fh "0\n";
+            #printf "$filehandles{$ty} $ty counts=$counts{$ty}\n";
+        }
     }
     close( OUTSEED);
     close( OUTALIGN);
@@ -511,10 +510,10 @@ if( $list ) {
     #@family_scores, @forbidden_scores
     #MCC = ($TP*$TN - $FP*$FN)/sqrt(($TP+$FP)*($TP+$FN)*($TN+$FP)*($TN+$FN))
     #ACC = (TP + TN) / (P + N)
-
+    
     #SEN = TP / (TP + FN)
     #SPC = TN / (FP + TN) = 1 − FPR
-
+    
     #FDR = FP / (FP + TP)
     #FPR = FP / N = FP / (FP + TN)
     
