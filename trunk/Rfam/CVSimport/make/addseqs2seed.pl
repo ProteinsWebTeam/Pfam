@@ -58,6 +58,7 @@ if (defined($idfile)){
     SeqFetch::fetchSeqs(\%forward, $Rfam::rfamseq, 0, \*FA);
     SeqFetch::fetchSeqs(\%reverse, $Rfam::rfamseq, 1, \*FA);
     close(FA) || die "Could not close fasta file:[$!]\n";
+    
 }
 
 if (-e "SEED\.new"){
@@ -66,7 +67,7 @@ if (-e "SEED\.new"){
 }
 
 
-system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and die("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
+system("/software/rfam/share/infernal-1.0/bin/cmbuild -F CM.10 SEED") and die("FATAL: Error in: [/software/rfam/share/infernal-1.0/bin/cmbuild -F CM.10 SEED].\n");
 
 if (defined($iter)){
     $seqfile = "seed.fa";
@@ -98,14 +99,32 @@ if (defined($iter)){
     open(SDOUT, ">$tmpseed" ) or die ("FATAL: Couldn't open $tmpseed\n[$!]");
     Rfam::RfamAlign::write_stockholm($self, \*SDOUT, $len);
     close(SDOUT);
-    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.81 $seqfile > SEED.new.scores") and die( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.81 $seqfile > SEED.new.scores].\n[$!]");
+    system("/software/rfam/share/infernal-1.0/bin/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.10 $seqfile > SEED.new.scores") and die( "FATAL: Error in [/software/rfam/share/infernal-1.0/bin/cmalign --withpknots --withali $tmpseed -o /tmp/$$.SEED.new CM.10 $seqfile > SEED.new.scores].\n[$!]");
     system("sreformat --pfam stockholm /tmp/$$.SEED.new | grep -v ^DELME$$\. > /tmp/$$.SEED.new2" ) and die( "FATAL: Error in [sreformat --pfam stockholm /tmp/$$.SEED.new | grep -v ^DELME$$\. > /tmp/$$.SEED.new2]\n[$!]");
     system("sreformat --pfam stockholm /tmp/$$.SEED.new2 > SEED.new") and die( "FATAL: Error in [sreformat --pfam stockholm /tmp/$$.SEED.new2 > SEED.new]\n[$!]");
     printf "Updated alignment and scores: SEED.new & SEED.new.scores\n";
 #    system("/software/rfam/extras/infernal-0.81/src/cmalign -o SEED.new CM.81 $seqfile") and die( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign -o SEED.new CM.81 $seqfile].\n");
 }
 elsif (defined($seqfile)) {
-    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 $seqfile") and die( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 $seqfile].\n[$!]");
+    system("/software/rfam/share/infernal-1.0/bin/cmalign --withpknots --withali SEED -o /tmp/$$.SEED.new.tmp CM.10 $seqfile") and die( "FATAL: Error in [/software/rfam/share/infernal-1.0/bin/cmalign --withpknots --withali SEED -o /tmp/$$.SEED.new.tmp CM.10 $seqfile].\n[$!]");
+    open(SR, "sreformat --pfam stockholm /tmp/$$.SEED.new.tmp |") or die "FATAL: failed to open pipe [sreformat --pfam stockholm /tmp/$$.SEED.tmp]\n[$!]";
+    open(SD, "> SEED.new") or die "FATAL: failed to open SEED.new\n[$!]";
+    while (<SR>){
+	chomp;
+	if(/(\S+):1(\s+\S+)/){
+	    print SD "$1  $2\n";
+	}
+	elsif(/(\S+\/)(\d+)-(\d+):-1(\s+\S+)/){
+	    print SD "$1$3-$2   $4\n";
+	}
+	else {
+	    print SD "$_\n";
+	}
+	
+    }
+    close(SD);
+    close(SR);
+    
 }
 else {
     help();
