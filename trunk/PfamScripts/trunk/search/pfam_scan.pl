@@ -1,7 +1,6 @@
 #!/software/bin/perl
 
-# $Id: pfam_scan.pl,v 1.20 2009-08-05 12:46:56 jm14 Exp $
-
+# $Id: pfam_scan.pl,v 1.21 2009-08-19 09:53:32 jt6 Exp $
 
 use strict;
 use warnings;
@@ -11,10 +10,12 @@ use Getopt::Long;
 
 my $VERSION = "0.5a"; 
 
+#-------------------------------------------------------------------------------
 
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
-     $clan_overlap, $fasta, $align, $help, $as, $pfamB, $only_pfamB );
+     $clan_overlap, $fasta, $align, $help, $as, $pfamB, 
+     $json, $only_pfamB );
 GetOptions( 'help'         => \$help,
             'outfile=s'    => \$outfile,
             'e_seq=f'      => \$e_seq,
@@ -28,34 +29,30 @@ GetOptions( 'help'         => \$help,
             'h'            => \$help,
             'as'           => \$as,
             'pfamB'        => \$pfamB,
-            'only_pfamB'   => \$only_pfamB);
+            'only_pfamB'   => \$only_pfamB,
+            'json:s'       => \$json,
+);
 
-
-help() if($help);
-help() unless($dir and $fasta);
+help() if $help;
+help() unless ( $dir and $fasta ); # required options
 
 my $pfamA;
-my @hmmlib;
-if($only_pfamB) {
-    die qq(FATAL: can't use pfamB and only_pfamB option together")
-      if($pfamB);
-    $pfamB=1;
+if ( $only_pfamB ) {
+  die qq(FATAL: can't use pfamB and only_pfamB option together) if $pfamB;
+  $pfamB=1;
 }
 else {
-    $pfamA=1;
+  $pfamA=1;
 }
 
+my @hmmlib;
+push @hmmlib, 'Pfam-A.hmm' if $pfamA;
+push @hmmlib, 'Pfam-B.hmm' if $pfamB;
 
-
-if($pfamA) {
-    push(@hmmlib, "Pfam-A.hmm");
-}
-if($pfamB) {
-    push(@hmmlib, "Pfam-B.hmm");
-}
-
+#-------------------------------------------------------------------------------
 
 # check the input parameters
+
 die qq(FATAL: must specify both "-dir" and "-fasta")
   unless ( defined $dir and defined $fasta );
 
@@ -65,39 +62,36 @@ die qq(FATAL: can't find directory "$dir")
 die qq(FATAL: can't find file "$fasta")
   unless -s $fasta;
 
-
-foreach my $hmmlib (@hmmlib) {
-  die qq(FATAL: can\'t find $hmmlib and/or $hmmlib binaries and/or $hmmlib.dat filein "$dir")
-    unless ( -s "$dir/$hmmlib" and 
+foreach my $hmmlib ( @hmmlib ) {
+  die qq(FATAL: can't find "$hmmlib" and/or "$hmmlib" binaries and/or "$hmmlib.dat" file in "$dir")
+    unless ( -s "$dir/$hmmlib"     and 
              -s "$dir/$hmmlib.h3f" and
              -s "$dir/$hmmlib.h3i" and
              -s "$dir/$hmmlib.h3m" and
-	     -s "$dir/$hmmlib.h3p" and
+             -s "$dir/$hmmlib.h3p" and
              -s "$dir/$hmmlib.dat" );
 }
 
-die qq(FATAL: can\'t use E-value or bit score threshold with Pfam-B searches, Pfam-B searches use a default cut_off of 0.001)
-  if ( ( $e_seq or $e_dom or $b_seq or $b_dom ) and !$pfamA ); 
+die qq(FATAL: can't use E-value or bit score threshold with Pfam-B searches; Pfam-B searches use a default cut_off of 0.001)
+  if ( ( $e_seq or $e_dom or $b_seq or $b_dom ) and not $pfamA ); 
 
-
-die qq(FATAL: can\'t use E-value and bit score threshold together)
+die qq(FATAL: can't use E-value and bit score threshold together)
   if ( ( $e_seq and ( $b_seq or $b_dom ) ) or 
        ( $b_seq and ( $e_seq or $e_dom ) ) or 
        ( $b_dom and $e_dom ) );
 
+die qq(FATAL: output file "$outfile" already exists)
+  if ( $outfile and -s $outfile );
 
-die qq(FATAL: outfile "$outfile" already exists)
-    if($outfile and -s $outfile);
+if ( $as ) {
+  die qq("FATAL: "-as" option only works on Pfam-A families")
+    unless $pfamA;
 
-
-if($as) {
-    die qq("FATAL: -as option only works on Pfam-A families")
-      unless($pfamA);
-
-    die qq(FATAL: can\'t find "active_site.dat" in "$dir")
-        unless( -s "$dir/active_site.dat");
+  die qq(FATAL: can't find "active_site.dat" in "$dir")
+    unless -s "$dir/active_site.dat";
 }
 
+#-------------------------------------------------------------------------------
 
 # build the object
 my $ps = Bio::Pfam::Scan::PfamScan->new(
@@ -110,23 +104,34 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
   -fasta        => $fasta,
   -align        => $align,
   -as           => $as,
-  -hmmlib       => \@hmmlib
+  -hmmlib       => \@hmmlib,
+  -version      => $VERSION
 );
-
-# set the version
-$ps->set_version($VERSION);
-
 
 # run the search
 $ps->search;
 
-
-# set the header
-$ps->set_header;
-
-
 # print the results
-$ps->write_results( $outfile, $e_seq, $e_dom, $b_seq, $b_dom );
+if ( defined $json ) {
+
+  my $json_object;
+  eval {
+    require JSON;
+    $json_object = new JSON;
+  };
+  if ( $@ ) {
+    die qq(FATAL: can't load JSON module; can't write JSON-format output);
+  }
+
+  if ( $json eq 'pretty' ) {
+    $json_object->pretty( 1 ) ;
+  }
+  print $json_object->encode( $ps->results );
+
+}
+else {
+  $ps->write_results( $outfile, $e_seq, $e_dom, $b_seq, $b_dom );
+}
 
 exit;
 
@@ -139,7 +144,7 @@ pfam_scan.pl: search a FASTA file against a library of Pfam HMMs
 
 Usage: pfam_scan.pl -fasta <fasta_file> -dir <directory location of Pfam files>
 
-Addional options:
+Additonal options:
 
   -h              : show this help
   -o <file>       : output file, otherwise send to STDOUT
@@ -149,14 +154,21 @@ Addional options:
   -e_dom <n>      : specify hmmscan evalue domain cutoff for Pfam-A searches (default Pfam defined)
   -b_seq <n>      : specify hmmscan bit score sequence cutoff for Pfam-A searches (default Pfam defined)
   -b_dom <n>      : specify hmmscan bit score domain cutoff for Pfam-A searches (default Pfam defined)
-  -pfamB          : Search against Pfam-B* HMMs (uses E-value sequence and domain cutoff 0.001),  
+  -pfamB          : search against Pfam-B* HMMs (uses E-value sequence and domain cutoff 0.001),  
                     in addition to searching Pfam-A HMMs
-  -only_pfamB     : Search against Pfam-B* HMMs only (uses E-value sequence and domain cutoff 0.001)
+  -only_pfamB     : search against Pfam-B* HMMs only (uses E-value sequence and domain cutoff 0.001)
   -as             : predict active site residues for Pfam-A matches
+  -json [pretty]  : write results in JSON format. If the optional value "pretty" is given,
+                    the JSON output will be formatted using the "pretty" option in the JSON
+                    module
 
-  *Please note that the Pfam-B HMMs are of much lower quality than
-   Pfam-A HMMs, and matches to Pfam-B families should always be treated
-   cautiously.
+  * Please note that the Pfam-B HMMs are of much lower quality than
+    Pfam-A HMMs, and matches to Pfam-B families should always be treated
+    cautiously.
+
+  * For more help, check the perldoc:
+
+      shell\% perldoc pfam_scan.pl
 
 EOF
   exit;
@@ -223,7 +235,11 @@ Show alignment snippets in results [default: false]
 
 =item B<-as>
 
-Searc for active sites on Pfam-A matches [default: false]
+Search for active sites on Pfam-A matches [default: false]
+
+=item B<-json> [I<pretty>]
+
+Write the results in JSON format [default: false]
 
 =item B<-h>
 
