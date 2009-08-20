@@ -548,14 +548,15 @@ sub getPfamRegionsForSeq {
     carp("Looking up information for $seq. I think this is an accession")
       if $self->{'debug'};
     @pfamRegions =
-      $self->getSchema->resultset("PfamA_reg_full_significant")->search(
+      $self->getSchema->resultset("PfamaRegFullSignificant")->search(
       {
         "pfamseq.pfamseq_acc" => $seq,
         "in_full"             => 1
       },
       {
-        join     => [qw( pfamA pfamseq )],
-        prefetch => [qw( pfamA pfamseq )]
+        join     => [qw( pfama pfamseq )],
+        prefetch => [qw( pfama pfamseq )],
+        order_by => 'seq_start'
       }
       );
 
@@ -564,14 +565,14 @@ sub getPfamRegionsForSeq {
     carp("Looking up Pfam information for $seq. I think this is a seq id")
       if $self->{'debug'};
     @pfamRegions =
-      $self->getSchema->resultset("PfamA_reg_full_significant")->search(
+      $self->getSchema->resultset("PfamaRegFullSignificant")->search(
       {
         "pfamseq.pfamseq_id" => $seq,
         "in_full"            => 1
       },
       {
-        join     => [qw( pfamA pfamseq )],
-        prefetch => [qw( pfamA pfamseq )]
+        join     => [qw( pfama pfamseq )],
+        prefetch => [qw( pfama pfamseq )]
       }
       );
 
@@ -581,14 +582,14 @@ sub getPfamRegionsForSeq {
       "Looking up Pfam information for $seq. I think this is a seq MD5 checksum"
     ) if $self->{'debug'};
     @pfamRegions =
-      $self->getSchema->resultset("PfamA_reg_full_significant")->search(
+      $self->getSchema->resultset("PfamaRegFullSignificant")->search(
       {
         "pfamseq.pfamseq_md5" => $seq,
         "in_full"             => 1
       },
       {
-        join     => [qw( pfamA pfamseq )],
-        prefetch => [qw( pfamA pfamseq )]
+        join     => [qw( pfama pfamseq )],
+        prefetch => [qw( pfama pfamseq )]
       }
       );
   }
@@ -734,6 +735,113 @@ sub getNestedDomain {
   }
   return \@nestedFams;
 }
+
+sub getAllNestedDomains {
+  my ( $self ) = @_;  
+  my @results = $self->getSchema->resultset("NestedDomains")->search({});
+  
+  return(\@results);
+}
+
+
+
+sub getRegs {
+  my( $self, $pfamseq) = @_;
+  
+  my @results = $self->getSchema->resultset("OtherReg")->search({ auto_pfamseq => $pfamseq});  
+  return \@results;
+  
+}
+
+sub getOtherRegs {
+  my( $self, $pfamseq) = @_;
+  
+  my @results = $self->getSchema->resultset("OtherReg")->search({ auto_pfamseq => $pfamseq});  
+  return \@results;
+  
+}
+
+sub getContextRegionsForSeq {
+  my ( $self, $seq ) = @_;
+  my @pfamContextRegions;
+  if ( $seq =~ /\S{6}/ ) {
+    carp("Looking up information for $seq. I think this is an accession")
+      if $self->{'debug'};
+    @pfamContextRegions =
+      $self->getSchema->resultset("ContextPfamRegions")->search(
+      {
+        "auto_pfamseq.pfamseq_acc" => $seq,
+      },
+      {
+        join     => [qw( pfama auto_pfamseq )],
+        prefetch => [qw( pfama )]
+      }
+      );
+  }
+  return(\@pfamContextRegions);
+}
+
+
+sub getMarkupForSeq {
+  my ( $self, $seq ) = @_;
+  my @markups;
+  if ( $seq =~ /\S{6}/ ) {
+    carp("Looking up information for $seq. I think this is an accession")
+      if $self->{'debug'};
+    @markups =
+      $self->getSchema->resultset("PfamseqMarkup")->search(
+      {
+        "pfamseq.pfamseq_acc" => $seq,
+      },
+      {
+        join     => [qw( markup pfamseq )],
+        prefetch => [qw( markup pfamseq )]
+      }
+      );
+  }
+  return(\@markups);
+}
+
+sub getDisulphidesForSeq {
+  my ( $self, $seq ) = @_;
+  my @markups;
+  if ( $seq =~ /\S{6}/ ) {
+    carp("Looking up information for $seq. I think this is an accession")
+      if $self->{'debug'};
+    @markups =
+      $self->getSchema->resultset("PfamseqDisulphide")->search(
+      {
+        "auto_pfamseq.pfamseq_acc" => $seq,
+      },
+      {
+        join     => [qw( auto_pfamseq )]
+      }
+      );
+  }
+  return(\@markups);
+}
+
+sub getPfambRegForSeq {
+  my ( $self, $seq ) = @_;
+  my @pfamBRegions;
+  if ( $seq =~ /\S{6}/ ) {
+    carp("Looking up information for $seq. I think this is an accession")
+      if $self->{'debug'};
+    @pfamBRegions =
+      $self->getSchema->resultset("PfambReg")->search(
+      {
+        "auto_pfamseq.pfamseq_acc" => $seq,
+      },
+      {
+        join     => [qw( pfamb auto_pfamseq )],
+        prefetch => [qw( pfamb )]
+      }
+      );
+  }
+  return(\@pfamBRegions);
+}
+
+
 
 #Specific insert/update methods should go here
 
