@@ -1,0 +1,146 @@
+[%
+# biolit.tt
+# jt6 20090619 WTSI
+#
+# $Id: biolit.tt,v 1.1 2009-08-21 10:48:28 jt6 Exp $
+
+# tell the wrapper not to add any header or footer
+META naked = 1;
+
+oe = 0;
+
+IF articles.size;
+-%]
+
+<p>
+  We found <strong>[% articles.size %]</strong> 
+  <a class="ext" href="http://www.pubmedcentral.nih.gov/about/copyright.html">
+    Pubmed Central</a> article[% ( articles.size > 1 ) ? "s" : "" %] that 
+    refer[% ( articles.size > 1 ) ? "" : "s" %] to <strong>[% pdbId %]</strong>:
+</p>
+
+[%- 
+articleNumber = 0;
+FOREACH article IN articles -%]
+  
+  <div class="refRow [% oe % 2 ? "odd" : "even"; oe=oe+1; " last" IF loop.last %]">
+
+    <div class="switcher biolitFigures">
+
+      <img rel="prev"
+           src="[% c.uri_for('/shared/images/blank.gif') %]"
+           class="switcherControl prev disabled" />
+
+      <span class="switcherNumbers biolitFigureNumber">
+        Figure <span class="switcherCurr">1</span> of 
+        <span class="switcherTotal">5</span>
+      </span>
+
+      <img rel="next"
+           src="[% c.uri_for('/shared/images/blank.gif') %]"
+           class="switcherControl next" />
+
+      <div>
+      [% FOREACH figure IN article.figures -%]
+        <div [% IF ! loop.first %]style="display: none"[% END -%]
+             class="switcherPanel biolitFigure">
+          <a href="[% figure.image %]" 
+             rel="lightbox[article[% articleNumber %]]" 
+             title="[% figure.legend | html %]">
+            <img src="[% figure.thumbnail %]"
+                 alt="Figure [% loop.index + 1 %]" /></a>
+        </div>
+      [% END -%]
+      </div>
+
+    </div>
+
+    <div class="biolitCitations">
+      <div class="citation">
+        <span class="title">
+          [% article.title %]
+        </span>
+        <span class="authors">
+          [% article.authors %]
+        </span>
+        <span class="ref">
+          <span class="jrnl">[% article.journal %]</span>
+          &nbsp;([% article.year %])
+          &nbsp;[% article.volume; IF article.issue; "("; article.issue; ")"; END %]
+          :[% article.fpage %]
+        </span>
+      </div>
+    
+      <span>
+        PubMed Central:
+        <a class="ext" 
+           href="http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=[% article.pmcid %]">
+          [% article.pmcid %]</a>
+      </span>
+      
+      <span>
+        PubMed:
+        <a class="ext" 
+           href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% article.pmid %]">
+          [% article.pmid %]</a>
+      </span>
+      
+      <span>
+        DOI:
+        <a class="ext" 
+           href="http://dx.doi.org/[% article.pmid %]">[% article.doi %]</a>
+      </span>
+      
+      <h4>Abstract</h4>
+      
+      <p class="abstract">
+        [% article.abstract %]
+      </p>
+    
+    </div>
+
+    <div class="cleaner"><!-- empty --></div>
+  
+  </div>
+
+[%- 
+articleNumber = articleNumber + 1;
+END # of "next article" -%]
+
+<p class="small">
+  This information was provided by the 
+  <a class="ext" href="http://biolit.ucsd.edu/">BioLit</a> project.
+</p>
+<p class="small">
+  All abstracts, figures, and figure captions on this page are obtained from 
+  PubMedCentral (PMC). The content here is made available under the same 
+  copyright restrictions that apply to the material that is available through the 
+  <a class="ext" href="http://www.pubmedcentral.nih.gov/about/copyright.html">
+    PMC site</a>.
+</p>
+
+[% ELSE # no articles -%]
+
+<p>
+  There were no articles in PubMed Central for this entry.
+</p>
+
+[% END -%]
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
