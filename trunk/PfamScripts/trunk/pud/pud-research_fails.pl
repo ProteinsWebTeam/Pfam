@@ -51,14 +51,14 @@ foreach (readdir(DIR))  {
     unless($check{"HMM"} and $check{"PFAMOUT"}) {
 	$logger->info("$_ is missing the HMM and/or PFAMOUT file, running pfbuild -withpfmake on family");
         chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
-        system("pfbuild -withpfmake") and $logger->logdie("pbuild -withpfmake on $_ failed:[$!]");
+        system("pfbuild -withpfmake") and $logger->logdie("pfbuild -withpfmake on $_ failed:[$!]");
 	chdir("../");
 	$fail++;
 	next;
     }
 
     if(-M "$_/SEED" < -M "$_/HMM") {
-	$logger->info("$_ has a HMM that is older than SEED, running pfbuild -withpfmake on family");
+	$logger->info("$_ has a HMM that is younger than SEED, running pfbuild -withpfmake on family");
         chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
         system("pfbuild -withpfmake") and $logger->logdie("pfbuild -withpfmake on $_ failed:[$!]");
 	chdir("../");
@@ -67,9 +67,9 @@ foreach (readdir(DIR))  {
     }
     
     if(-M "$_/HMM" < -M "$_/PFAMOUT") {
-	$logger->info("$_ has a HMM that is older than PFAMOUT, running pfbuild -withpfmake on family"); 
+	$logger->info("$_ has a PFAMOUT that is younger than HMM, running pfbuild -withpfmake on family"); 
         chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
-        system("pfbuild -withpfmake") and $logger->logdie("pbuild -withpfmake on $_ failed:[$!]");
+        system("pfbuild -withpfmake") and $logger->logdie("pfbuild -withpfmake on $_ failed:[$!]");
 	chdir("../");
 	$fail++;
 	next;
@@ -86,7 +86,7 @@ foreach (readdir(DIR))  {
     }
 
     if(-M "$_/PFAMOUT" < -M "$_/ALIGN") {
-	$logger->info("$_ has a PFAMOUT file that is older than ALIGN, running pfmake on family"); 
+	$logger->info("$_ has an ALIGN file that is younger than PFAMOUT, running pfmake on family"); 
         chdir($_) or $logger->logdie("Couldn't change directory into $_ $!");
         system("pfmake") and $logger->logdie("pfmake on $_ failed:[$!]");
 	chdir("../");
