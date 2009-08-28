@@ -8,21 +8,16 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.16 2009-01-09 12:59:24 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.17 2009-08-28 13:21:22 jt6 Exp $
 
 META naked = 1;
 
 USE String;
+USE Dumper;
 
-# an ugly catch-all...
-IF numRows < 1 %]
-  <span>No architectures found.</span>
-  [% RETURN;
-END;
+# CALL c.log.debug( "allArchitectures.tt: seqInfo: " _ Dumper.dump(seqInfo) );
 
-FOREACH image IN images.each_image;
-  CALL image.print_image;
-  id = image.image_name;
+BLOCK graphicRow;
 
   archString = String.new;
   prev = "";
@@ -57,9 +52,12 @@ FOREACH image IN images.each_image;
 
   END; # of "FOREACH arch"
 
-  CALL archString.trim.chop; %]
+  CALL archString.trim.chop; -%]
 
-  <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
+  <!-- start of graphics row [% loop.index %] -->
+  
+  <div id="row[% id %]"
+       class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
     [% # describe the architecture, if there is one
     IF seqInfo.$id.num %]
@@ -75,28 +73,14 @@ FOREACH image IN images.each_image;
     [% END %]
 
     <span class="graphicLabel">
-      <a href="[% c.uri_for( "/protein", { id = image.image_name } ) %]">
-        [% image.image_name %]</a>
+      <a href="[% c.uri_for( "/protein", id ) %]">[% id %]</a>
       [% # capitalise the species name
-      info = String.new( image.image_info );
-      "["; info.replace( '\[\s*', '' ).capital %]
-      ([% image.length / image.scale_x %] residues)
+      info = String.new( seqInfo.$id.species );
+      "["; info.replace( '\[\s*', '' ).capital; "]" -%]
+      ([% seqInfo.$id.length %] residues)
     </span>
 
-    [% IF c.config.use_image_store;
-      image_uri = c.uri_for( image.file_location );
-    ELSE;
-      image_uri = image.file_location;
-    END; %]
-    <img class="graphicImage"
-         src="[% image_uri %]"
-         usemap="#domainGraphicsMap[% loop.index %]"
-         alt="" />
-    <div class="cleaner">&nbsp;</div>
-
-    <map name="domainGraphicsMap[% loop.index %]">
-      [% image.image_map %]
-    </map>
+    <div class="pgholder"></div>
 
     [% # don't show the "show all sequences" link for this row unless there 
        # is more than just one sequence 
@@ -140,68 +124,30 @@ FOREACH image IN images.each_image;
       </div>
     </div>
 
-  </div> <!-- end of graphics row -->
+  </div> 
+  
+  <!-- end of graphics row [% loop.index %] -->
 
-[% END; # of FOREACH image 
+[% END; # of "BLOCK graphicRow"
 
-IF first.defined AND last.defined;
-  IF ( last + 1 ) < numRows %]
-    <div id="next[% first %]">
-      <p>
-        Currently showing architectures 1 to [% last + 1 %], out of a
-        total of [% numRows %].
-      </p>
-      <input id="loadingButton"
-             type="button"
-             value="Show next [% count %]" />
-      <span id="loadingSpinner"
-            class="loading"
-            style="display: none">Loading next set...</span>
-    </div>
-  [% ELSE %]
-    <p>
-      [% IF numRows > 1 %]
-        Showing all [% numRows %] architectures.
-      [% ELSE %]
-        Showing the only architecture.
-      [% END %]
-    </p>
-  [% END;
-END;
+FOREACH id IN ids;  
+  PROCESS graphicRow id = id;
+END; # of "FOREACH id"
+-%]
 
-# N.B. this snippet of javascript will not appear in the page source or DOM 
-# tree after loading, because prototype will execute it but not store it
-%]
 <script type="text/javascript">
   // <![CDATA[
-  
-  if ( $('loadingButton') ) {
 
-    $("loadingButton").observe("click", function() {
-  
-      $("loadingSpinner").show();
-      $("loadingButton").disable();
-  
-      var r = new Ajax.Request( 
-        "[% c.uri_for( '/domaingraphics' ) %]",
-        {
-          parameters: { acc:   "[% acc %]",
-                        taxId: "[% taxId %]",
-                        start: "[% last + 1 %]" },
-          onSuccess:  function( oResponse ) {
-                        $("next[% first %]").update( oResponse.responseText );
-                      },
-          onFailure:  function() {
-                        $("next[% first %]").innerHTML = 
-                          "There was a problem retrieving the next set of domain graphics";
-                      }
-        }
-      );
-  
-    } );
+  [% layout %].each( function( sequence ) {
+    
+    var pg = new PfamGraphic();
+    
+    pg.setSequence( sequence );
+    pg.setParent( $("row" + sequence.metadata.identifier).down(".pgholder") );
+    pg.render();
+    
+  } );
 
-  }
-  
   // ]]>
 </script>
 
