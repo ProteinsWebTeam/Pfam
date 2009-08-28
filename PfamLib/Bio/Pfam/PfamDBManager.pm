@@ -625,7 +625,7 @@ sub getAllGiMap {
   my ($self) = @_;
   my @GiData;
   carp("Looking up information for all ncbi seq.") if $self->{'debug'};
-  @GiData = $self->getSchema->resultset("Ncbi_map")->search();
+  @GiData = $self->getSchema->resultset("NcbiMap")->search();
 
   if (@GiData) {
     carp("Found gi data") if $self->{'debug'};
@@ -640,7 +640,7 @@ sub getAllGiData {
   my ($self) = @_;
   my @GiData;
   carp("Looking up information for all ncbi seq.") if $self->{'debug'};
-  @GiData = $self->getSchema->resultset("Ncbi_seq")->search();
+  @GiData = $self->getSchema->resultset("NcbiSeq")->search();
 
   if (@GiData) {
     carp("Found gi data") if $self->{'debug'};
@@ -685,8 +685,8 @@ sub getAllPdbData {
 sub getPfamARegFullByAuto {
   my ( $self, $auto_pfamA_reg_full ) = @_;
   my $result =
-    $self->getSchema->resultset("PfamA_reg_full")
-    ->find( { "auto_pfamA_reg_full" => $auto_pfamA_reg_full } );
+    $self->getSchema->resultset("PfamaRegFullSignificant")
+    ->find( { "auto_pfamA_reg_full" => $auto_pfamA_reg_full, in_full => 1 } );
   if ($result) {
     return ($result);
   }
