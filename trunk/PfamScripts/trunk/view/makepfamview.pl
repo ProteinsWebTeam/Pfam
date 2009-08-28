@@ -39,6 +39,7 @@ use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::PfamJobsDBManager;
 use Bio::Pfam::AlignPfam;
 use Bio::Pfam::Active_site::as_align;
+use Bio::Pfam::ViewProcess;
 use Bio::Pfam::FamilyIO;
 use HMM::Profile;
 
@@ -78,9 +79,9 @@ if($help){
 
 if(!$uid){
   if($famId){
-    mailPfam("Failed to run view process for $famId", "No job id passed to $0"), 
+    Bio::Pfam::ViewProcess::mailPfam("Failed to run view process for $famId", "No job id passed to $0"), 
   }else{
-    mailPfam("Failed to run view process for a family", "No job id or family id passed to $0"), 
+    Bio::Pfam::ViewProcess::mailPfam("Failed to run view process for a family", "No job id or family id passed to $0"), 
   }
   help();
   $logger->logdie("FATAL:No job id passed to script....."); 
@@ -104,7 +105,7 @@ my $jobDB = Bio::Pfam::PfamJobsDBManager->new( %{ $config->pfamjobs } );
 
 
 unless($jobDB){
-  mailPfam("Failed to run view process", "Could not get connection to the pfam_jobs database");  
+  Bio::Pfam::ViewProcess::mailPfam("Failed to run view process", "Could not get connection to the pfam_jobs database");  
 }
 $logger->debug("Got pfam_job db connection");
 
@@ -114,13 +115,13 @@ my $job = $jobDB->getSchema
               ->find({'job_id' => $uid});
 
 unless($job){
-  mailPfam("Failed to run view process for $famId", "Could not get job information for $uid"); 
+  Bio::Pfam::ViewProcess::mailPfam("Failed to run view process for $famId", "Could not get job information for $uid"); 
 }
 $logger->debug("Got job databse object");
 
 if($famId){
   if($famId ne $job->entity_id){
-    mailPfam("Failed to run view process for $famId", "Miss-match between family id (". $job->entity_id 
+    Bio::Pfam::ViewProcess::mailPfam("Failed to run view process for $famId", "Miss-match between family id (". $job->entity_id 
                 ." and the information contained in the database for $uid");
   }
 }
@@ -132,7 +133,7 @@ if($famId){
 my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
 
 unless($pfamDB){
-  mailUserAndFail($job, "View process failed as we could not connect to pfamlive");  
+  Bio::Pfam::ViewProcess::mailUserAndFail($job, "View process failed as we could not connect to pfamlive");  
 }
 $logger->debug("Got pfamlive database connection");
 
@@ -152,7 +153,7 @@ my $pfam = $pfamDB->getSchema
 
 
 unless ($pfam and $pfam->pfama_acc){
-  mailUserAndFail($job, "Failed to get the pfam entry for family"); 
+  Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to get the pfam entry for family"); 
 }
 $logger->debug("Got pfam family databse object");
 
@@ -164,8 +165,8 @@ my $align = $pfamDB->getSchema
                         ->find({ auto_pfama => $pfam->auto_pfama });
 
                                  
-open(S, ">SEED") or mailUserAndFail($job, "Could not open SEED:[$!]\n");
-open(A, ">ALIGN") or mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
+open(S, ">SEED") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open SEED:[$!]\n");
+open(A, ">ALIGN") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open ALIGN:[$!]\n");
   
 print S Compress::Zlib::memGunzip($align->seed);
 print A Compress::Zlib::memGunzip($align->full);
@@ -173,7 +174,7 @@ close A;
 close S;
 
 
-open(H, ">HMM") or mailUserAndFail($job, "Could not open HMM:[$!]\n");
+open(H, ">HMM") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open HMM:[$!]\n");
 my $hmm = $pfamDB->getSchema
         ->resultset('PfamaHmm')
           ->find({ auto_pfama => $pfam->auto_pfama});
@@ -185,7 +186,7 @@ close(H);
 #are in the cwd.
 foreach my $f (qw(ALIGN SEED HMM DESC)){
    unless(-e $f and -s $f){
-      mailUserAndFail($job, "View process failed as $f was not present\n");  
+      Bio::Pfam::ViewProcess::mailUserAndFail($job, "View process failed as $f was not present\n");  
    }
 }
 $logger->debug("All family files are present");
@@ -225,6 +226,7 @@ my $asp;
 # 5) Reordering of the alignments according to the tree
 # 6) Making a non-redundant fasta file
 # 7) Active site prediction
+# 8) Update the proteome information
 
 
 #Order of the files is important!
@@ -232,7 +234,7 @@ foreach my $filename (qw(ALIGN SEED)){
   
  
   #Read the alignment into an object
-  open(ALIGN, "$filename") or mailUserAndFail( "Could not open $filename file for reading:[$!]\n");
+  open(ALIGN, "$filename") or Bio::Pfam::ViewProcess::mailUserAndFail( "Could not open $filename file for reading:[$!]\n");
   my $a = Bio::Pfam::AlignPfam->new();
   $a->read_stockholm(\*ALIGN, 1 );
 
@@ -256,7 +258,7 @@ foreach my $filename (qw(ALIGN SEED)){
     if($a->no_sequences eq @regs) { 
 	$ali = $a;
 	if($ali->no_sequences != $pfam->num_full) {
-	    mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
+	    Bio::Pfam::ViewProcess::mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
 	}
     }
     else {
@@ -268,7 +270,7 @@ foreach my $filename (qw(ALIGN SEED)){
 	    }
 	}
         unless($ali->no_sequences eq @regs) {
-	   mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
+	   Bio::Pfam::ViewProcess::mailUserAndFail($job, "Missmatch between number of regions in competed PfamA table ($#regs) and competed ALIGN file (".$ali->no_sequences.")");
         }
     } 
   } 
@@ -299,7 +301,7 @@ foreach my $filename (qw(ALIGN SEED)){
      
      #This part runs alistat on the alignment to get the average length and % ID
      my($averageLength, $percentageId);
-     open(ALI,"alistat -f ALIGN |") or mailUserAndFail($job, "Could not open alistat pipe:[$!]");
+     open(ALI,"alistat -f ALIGN |") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open alistat pipe:[$!]");
      #Grab the fields out of alistat
      while(<ALI>) {
       if(/^Average length:\s+(\S+)/){
@@ -343,7 +345,7 @@ foreach my $filename (qw(ALIGN SEED)){
      
     #QC check
     if(($ali->no_sequences != $pfam->num_seed) or ($ali->no_sequences != scalar(@regs))){
-        mailUserAndFail($job, "Missmatch between number of regions in PfamA table (num_seed),".
+        Bio::Pfam::ViewProcess::mailUserAndFail($job, "Missmatch between number of regions in PfamA table (num_seed),".
           " number of regions from PfamA_reg_seed and/or alignment on disk");
     }
     $pfam->update({ seed_consensus   => $consensus});
@@ -362,7 +364,7 @@ foreach my $filename (qw(ALIGN SEED)){
 	 if ($regs{ $s->acc.".".$s->version."/".$s->start."-".$s->end }) {
 	  $s->id( $regs{ $s->acc.".".$s->version."/".$s->start."-".$s->end }->pfamseq_id );
 	 }else{
-	    &mailUserAndFail($job, "Could not find id for ".$s->acc.".".$s->version."/".$s->start."-".$s->end);
+	    Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not find id for ".$s->acc.".".$s->version."/".$s->start."-".$s->end);
 	 }
   }
   $logger->debug("Exchanged identifers for accessions");
@@ -424,17 +426,12 @@ foreach my $filename (qw(ALIGN SEED)){
        foreach my $nse (keys %$map){
         foreach my $pdbReg ( @{$map->{$nse}}){
           $logger->debug("Inserting row into PdbPfamaReg ".$regs{$nse}->auto_pfama);
-          unless( $autoPdbs{ $pdbReg->{pdb_id}}){
-             $autoPdbs{$pdbReg->{pdb_id}} = $pfamDB->getSchema
-                                                 ->resultset('Pdb')
-                                                  ->find({ pdb_id => $pdbReg->{pdb_id} })
-                                                   ->auto_pdb;
-          }
+
           #Now reinsert
           $pfamDB->getSchema
                   ->resultset('PdbPfamaReg')
                     ->create({ auto_pfama_reg_full => $regs{$nse}->auto_pfama_reg_full,
-                               auto_pdb            => $autoPdbs{ $pdbReg->{pdb_id }},
+                               pdb_id              => $pdbReg->{pdb_id},
                                auto_pfama          => $regs{$nse}->auto_pfama,
                                auto_pfamseq        => $regs{$nse}->auto_pfamseq,
                                chain               => $pdbReg->{chain},
@@ -483,10 +480,10 @@ $logger->debug("Going to check the SEED.ann and ALIGN.ann files for errors");
 #Okay - Everything should be in the Stockholm file!   
 #Now run some QC on the files
 foreach my $f (qw(ALIGN.ann SEED.ann)){
-  open(QC, "checkflat.pl -v $f|") or mailUserAndFail($job, "Failed to run checkflat.pl on $f:[$!]");
+  open(QC, "checkflat.pl -v $f|") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run checkflat.pl on $f:[$!]");
   my $qc = join("", <QC>);
   if($qc =~ /\S+/){
-    mailUserAndFail($job, "$f did not pass quality control! Got $qc");
+    Bio::Pfam::ViewProcess::mailUserAndFail($job, "$f did not pass quality control! Got $qc");
   }
   close(QC);
 }
@@ -499,10 +496,10 @@ my $dbVersion = $pfamDB->getSchema
                             ->find({});
                             
 foreach my $f (qw(HMM.ann)){
-    open(QC, "checkhmmflat.pl -v -hmmer ".$dbVersion->hmmer_version." -f $f |") or mailUserAndFail($job, "Failed to run checkhmmflat.pl on $f:[$!]");
+    open(QC, "checkhmmflat.pl -v -hmmer ".$dbVersion->hmmer_version." -f $f |") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run checkhmmflat.pl on $f:[$!]");
     my $qc = join("", <QC>);
     if($qc =~ /\S+/){
-      mailUserAndFail($job, "$f did not pass quality control! Got [$qc]");
+      Bio::Pfam::ViewProcess::mailUserAndFail($job, "$f did not pass quality control! Got [$qc]");
     }
     close(QC);
 }
@@ -517,10 +514,31 @@ unlink glob("SEED.*");
 unlink glob("ALIGN*");
 unlink glob("HMM.*");
 
+#-------------------------------------------------------------------------------
+#update the proteome information
+$logger->debug("Deleting proteome information");
+$pfamDB->getSchema
+  ->resultset('ProteomeRegions')
+    ->search({ auto_pfama => $pfam->auto_pfama} )->delete;
+    
+$logger->debug("Updating the proteome information");
+
+my $dbh = $pfamDB->getSchema->storage->dbh;
+$dbh->do("INSERT INTO proteome_regions (auto_proteome, auto_pfamseq, auto_pfamA, count) ". 
+          "SELECT auto_proteome, p.auto_pfamseq, r.auto_pfamA, count(*) FROM ".
+          "pfamA_reg_full_significant r,  proteome_pfamseq p ".
+          "WHERE r.auto_pfamseq=p.auto_pfamseq AND in_full=1 AND auto_pfamA=".$pfam->auto_pfama.
+          " GROUP BY r.auto_pfamseq") or 
+          Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to update the proteome data for ".
+            $pfam->pfama_acc." because: ".$dbh->errstr);
+
+#-------------------------------------------------------------------------------
+
+
 
 #Start the ncbi searches
 $logger->debug("Starting ncbi pfbuild");
-system("pfbuild.pl -nobuild -local -withpfmake -db ncbi") and mailUserAndFail($job, "Failed to run pfbuild against ncbi database:[$!]");
+system("pfbuild.pl -nobuild -local -withpfmake -db ncbi") and Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against ncbi database:[$!]");
 my $ncbiFamilyIO = Bio::Pfam::FamilyIO->new;
 my $ncbiFamObj = $ncbiFamilyIO->loadPfamAFromLocalFile( "", $cwd );
 
@@ -575,7 +593,7 @@ unlink glob("HMM.*");
 
 #Start the metaseq searches
 $logger->debug("Starting metaseq pfbuild");
-system("pfbuild.pl -nobuild -local -withpfmake -db metaseq") and  mailUserAndFail($job, "Failed to run pfbuild against metaseq:[$!]");
+system("pfbuild.pl -nobuild -local -withpfmake -db metaseq") and  Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against metaseq:[$!]");
 my $metaFamilyIO = Bio::Pfam::FamilyIO->new;
 my $metaFamObj = $metaFamilyIO->loadPfamAFromLocalFile( "", $cwd);
 
@@ -642,6 +660,10 @@ uploadTreesAndAlign("ALIGN", $pfamDB, $pfam, $job, "meta");
 
 #Change the job status to done
 finishedJob($job);
+
+#Now Initiate an Ancillary job.
+Bio::Pfam::ViewProcess::initiateAncillaryViewProcess($job->user_id, $config);
+
 $logger->debug("Finished");
 exit;
 
@@ -654,7 +676,7 @@ exit;
 sub processHMMs {
   my ($pfam, $db, $job) = @_;
   
-  unlink ("HMM.ann") or mailUserAndFail($job, "Failed to remove HMM.ann") if(-e "HMM.ann");
+  unlink ("HMM.ann") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to remove HMM.ann") if(-e "HMM.ann");
  
   
   #The next two blocks rebuilds and recalibrates the HMM and adds the curated thresholds to the HMM
@@ -666,11 +688,11 @@ sub processHMMs {
 
   $logger->debug("Going to run hmmbuild with the following line: $buildline HMM.ann SEED.ann");
   system($config->hmmer3bin."/$buildline -o  /dev/null HMM.ann SEED.ann")
-    and mailUserAndFail($job, "Failed to build HMM.ann, using $buildline HMM.ann SEED.ann");
+    and Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to build HMM.ann, using $buildline HMM.ann SEED.ann");
     
   #Take HMM_ls and add the thresholds into the file 
-  open( HMM_OUT, ">HMM.ann.tmp" ) or mailUserAndFail($job, "Could not open HMM.ann.tmp for writing");
-  open( HMM, "HMM.ann" ) or mailUserAndFail($job, "Could not open HMM.ann for writing");
+  open( HMM_OUT, ">HMM.ann.tmp" ) or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open HMM.ann.tmp for writing");
+  open( HMM, "HMM.ann" ) or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open HMM.ann for writing");
   while(<HMM>) {
   	if( /^GA\s+/ ) {
 	    print HMM_OUT "GA    ".$pfam->sequence_ga." ".$pfam->domain_ga.";\n";
@@ -685,7 +707,7 @@ sub processHMMs {
   }
   close HMM;
   close HMM_OUT;
-  rename( "HMM.ann.tmp", "HMM.ann" ) or &mailUserAndFail($job, "can't rename HMM.ann.tmp to HMM.ann\n"); 
+  rename( "HMM.ann.tmp", "HMM.ann" ) or Bio::Pfam::ViewProcess::mailUserAndFail($job, "can't rename HMM.ann.tmp to HMM.ann\n"); 
   
   #Now upload the HMMs into the database
   open(HMM, "HMM.ann") or die;
@@ -705,13 +727,13 @@ sub _makeHMMLogo{
   
   $logger->debug("Making logo with HMMER2 HMM");
   system($config->hmmer3bin."/hmmconvert -2 HMM.ann > HMM.ann.2")
-    and mailUserAndFail($job, "Failed to convert HMM.ann, using hmmconvert");
+    and Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to convert HMM.ann, using hmmconvert");
   
   
   #Read in the HMM_ls file
   $file .= ".2";
   my $logo = HMM::Profile->new(-hmmerfile=>$file) or
-    mailUserAndFail($job, "Failed in making HMM logo, couldn't open $file!\n");
+    Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed in making HMM logo, couldn't open $file!\n");
   my $outfile = "hmmLogo.png";    
   my $graph_title = $logo->name();
   my $ysize = 500;
@@ -732,10 +754,10 @@ sub _makeHMMLogo{
     
   $logger->debug("Finished drawing Logo...");
   unless(-s "hmmLogo.png"){
-    mailUserAndFail($job, "Failed in making HMM logo, no hmmLogo.png file");
+    Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed in making HMM logo, no hmmLogo.png file");
   }
   
-  open(LOGO, "hmmLogo.png") or  mailUserAndFail($job, "Failed to open hmmLogo.png file:[$!]");;
+  open(LOGO, "hmmLogo.png") or  Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to open hmmLogo.png file:[$!]");;
   my $hmmLogo = join("", <LOGO>);
   close(LOGO);
   
@@ -750,7 +772,7 @@ sub _makeHMMLogo{
 sub _generateCigarString  {
     my ($str, $job) = @_;
     chomp($str);
-    my @chars = split //, $str;
+    my @chars = split( //, $str);
 
     my $count_for_cigar_string = 0;
     my $state_for_cigar_string = 'M';
@@ -765,7 +787,7 @@ sub _generateCigarString  {
         }elsif($char eq '-'){
             $new_state = 'D';
         }else{
-            mailUserAndFail($job, "Error generating cigar string......unknown string char, $char");
+            Bio::Pfam::ViewProcess::mailUserAndFail($job, "Error generating cigar string......unknown string char, $char");
         }
 
         if($new_state ne $state_for_cigar_string){
@@ -803,7 +825,7 @@ sub _getDsspData {
                           ->resultset("PdbResidueData")
                             ->search({auto_pfama => $autoPfamA,
                                       in_full    => 1 },
-                                     {join => [qw(auto_pfamseq auto_pdb pfamA_reg_full_significant)],
+                                     {join => [qw( pfamA_reg_full_significant )],
                                       select => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)],
                                       as     => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)]});
 
@@ -811,11 +833,11 @@ sub _getDsspData {
           @dssp = $pfamDB->getSchema
                           ->resultset("PdbResidueData")
                             ->search({auto_pfama => $autoPfamA},
-                                      {join => [qw(auto_pfamseq auto_pdb pfamA_reg_seed)],
+                                      {join => [qw( pfamA_reg_seed pfamseq)],
                                        select => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)],
                                        as     => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)]});
   }else{
-    mailUserAndFail($job, "Unknown file name passed in ($filename) to _getDsspData, expected ALIGN or SEED"); 
+    Bio::Pfam::ViewProcess::mailUserAndFail($job, "Unknown file name passed in ($filename) to _getDsspData, expected ALIGN or SEED"); 
   }
 
   #Now stuff it into a data structure for working on
@@ -1041,38 +1063,6 @@ sub secStrucConsensus {
 
 
 
-sub mailPfam {
-  my($title, $message) = @_;
-	my %header = ( 	To => 'rdf@sanger.ac.uk',
-					From => 'rdf@sanger.ac.uk',
-					Subject => $title );
-					
-	my $mailer = Mail::Mailer->new;
-	$mailer->open(\%header);
-  print $mailer $message;
-  $mailer->close;
-  exit(1);
-}
-
-sub mailUserAndFail {
-  my($job, $message) = @_;
-
-  if($job->user_id){
-    my %header = (  To => $job->user_id.'@sanger.ac.uk',
-					          From => 'rdf@sanger.ac.uk',
-					          Subject => 'Error in view process for '.$job->entity_id );
-	 my $mailer = Mail::Mailer->new;
-	 $mailer->open(\%header);
-	 print $mailer $job->entity_id."\n".$message;
-   $mailer->close;
-  }else{
-    mailPfam("View process for ".$job->entity_acc." failed", "No user found for the job"); 
-  }
-  
-  $job->update({status  => 'FAIL',
-                closed => \'NOW()'}); 
-  exit(1);  
-}
 
 
 sub submitJob{
@@ -1105,12 +1095,12 @@ sub makeNonRedundantFasta{
   my($pfam, $identity, $pfamDB, $job) = @_;
    #Use belvu to make the full alignment 90% non-redundant.
    $identity = $identity/100;
-   system("weight -f $identity -o ALIGN.90 ALIGN.ann 2> /dev/null") and mailUserAndFail($job, "Could not run command \"weight -n $identity -o ALIGN.90 ALIGN.ann\":[$!]\n");
+   system("weight -f $identity -o ALIGN.90 ALIGN.ann 2> /dev/null") and Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not run command \"weight -n $identity -o ALIGN.90 ALIGN.ann\":[$!]\n");
 
     open (BEL, "sreformat fasta ALIGN.90 2> /dev/null |")
-     or mailUserAndFail($job, "Could not open command \"belvu -n $identity -o fasta ALIGN.ann\":[$!]\n");
+     or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open command \"belvu -n $identity -o fasta ALIGN.ann\":[$!]\n");
     
-    open(FAMFA, ">family.fa") or mailUserAndFail($job, "Failed to open family.fa:[$!]");
+    open(FAMFA, ">family.fa") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to open family.fa:[$!]");
 
     #Parse the output, remove gap charcaters and put the family accessions and name as part of the 
     #header line for each sequence.
@@ -1128,7 +1118,7 @@ sub makeNonRedundantFasta{
     close(FAMFA); 
     
     #gzip the file and add it to the database!
-    open(GZFA, "gzip -c family.fa |") or mailUserAndFail($job, "Failed to gzip family.fa:[$!]");
+    open(GZFA, "gzip -c family.fa |") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to gzip family.fa:[$!]");
     my $familyFA = join("", <GZFA>);
     $pfamDB->getSchema
             ->resultset('PfamaFasta')
@@ -1142,11 +1132,11 @@ sub makeHTMLAlign{
   my ($filename, $job, $block, $type) = @_;
   $logger->debug("Making HTML aligment for $type $filename");
   system("consensus.pl -method clustal -file $filename > $filename.con") 
-    and mailUserAndFail( $job, "Failed to run consensus.pl:[$!]");
+    and Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to run consensus.pl:[$!]");
   system("clustalX.pl -a $filename.ann -c $filename.con -b $block > $filename.html") 
-    and mailUserAndFail( $job, "Failed to run clustalX.pl:[$!]" );
+    and Bio::Pfam::ViewProcess::mailUserAndFail( $job, "Failed to run clustalX.pl:[$!]" );
 
-  open(ALI, "gzip -c $filename.html |") or mailUserAndFail($job, "Failed to gzip file $filename.html" );
+  open(ALI, "gzip -c $filename.html |") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to gzip file $filename.html" );
   my $align = join("", <ALI>);
   
 
@@ -1159,7 +1149,7 @@ sub makeHTMLAlign{
     system("heatMap.pl -a $filename.ann -b $block > $filename.pp") 
         and mailUserAndFail( $job, "Failed to run heatMap.pl ($type):[$!}" );
     
-    open(GZPP, "gzip -c $filename.pp |") or mailUserAndFail($job, "Failed to gzip $filename.pp:[$!]");
+    open(GZPP, "gzip -c $filename.pp |") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to gzip $filename.pp:[$!]");
     my $pp = join("", <GZPP>);
     
     $pfamDB->getSchema
@@ -1170,7 +1160,7 @@ sub makeHTMLAlign{
                                           { key => 'UQ_alignments_and_trees_1' });
   
   }else{
-    mailUserAndFail($job,"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'align', 'seed', 'meta' or 'ncbi'");   
+    Bio::Pfam::ViewProcess::mailUserAndFail($job,"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'align', 'seed', 'meta' or 'ncbi'");   
   }
   
     $pfamDB->getSchema
@@ -1187,7 +1177,7 @@ sub uploadTreesAndAlign {
   my($filename, $pfamDB, $pfam, $job, $type) = @_;
  
   unless( ($type eq 'seed') or ($type eq 'full') or ($type eq 'ncbi') or ($type eq 'meta') ){
-    mailUserAndDie($job,"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed', 'meta' or 'ncbi'");  
+    Bio::Pfam::ViewProcess::mailUserAndFail($job,"Incorrect type ($type) passed to uploadTreesAndAlign. Expected 'full', 'seed', 'meta' or 'ncbi'");  
   }
  
   $logger->debug("Uploading $type trees and alignments");
@@ -1200,7 +1190,7 @@ sub uploadTreesAndAlign {
                                           { key => 'UQ_alignments_and_trees_1' });
   
   my $file; 
-  open(ANN, "gzip -c $filename.ann|") or mailUserAndDie($job, "Failed to run gzip -c $filename.ann:[$!]"); 
+  open(ANN, "gzip -c $filename.ann|") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run gzip -c $filename.ann:[$!]"); 
   while(<ANN>){
     $file .= $_;
   } 
@@ -1208,7 +1198,7 @@ sub uploadTreesAndAlign {
   $row->update({ alignment => $file});
   
   $file = '';
-  open(TREE, "gzip -c $filename.tree|") or mailUserAndDie($job, "Failed to run gzip -c $filename.tree:[$!]"); 
+  open(TREE, "gzip -c $filename.tree|") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run gzip -c $filename.tree:[$!]"); 
   while(<TREE>){
     $file .= $_;
   }
@@ -1216,7 +1206,7 @@ sub uploadTreesAndAlign {
   $row->update({ tree => $file});
  
   $file = '';
-  open(HTML, "gzip -c $filename.html|") or mailUserAndDie($job, "Failed to run gzip -c $filename.tree:[$!]"); 
+  open(HTML, "gzip -c $filename.html|") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run gzip -c $filename.tree:[$!]"); 
   while(<HTML>){
     $file .= $_;
   }
@@ -1243,13 +1233,13 @@ sub versionFiles{
   
   my %fileCheckSums;
   foreach my $f (qw(SEED ALIGN)){
-    open(F, $f) or mailUserAndFail($job, "Could not version $f:[$!]");
+    open(F, $f) or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not version $f:[$!]");
     $fileCheckSums{$f} = md5_hex(join("", <F>));
   }
   
   #Add the thresholds into the HMMs!  This is what really determines the version of the family
   foreach my $f (qw(HMM)){
-      open(F, $f) or mailUserAndFail($job, "Could not version $f:[$!]");
+      open(F, $f) or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not version $f:[$!]");
       my $hmm;
       while(<F>){
          $hmm .= $_;
@@ -1435,7 +1425,7 @@ sub consensus_line {
     my ($filename, $ali_length) = @_;
 
     my $consensus;
-    open (CON, "consensus.pl -file $filename -method pfam -thr 60|") or &mailUserAndFail($job, "Failed to run consensus.pl on $filename");
+    open (CON, "consensus.pl -file $filename -method pfam -thr 60|") or &Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run consensus.pl on $filename");
     while (<CON>) {
 	if(/^(consensus\/60%)(\s+)(\S+)/){
 	    $consensus = $3;
@@ -1457,10 +1447,10 @@ sub make_tree {
 
     my ($filename, $regs, $pfamseq) = @_;
 
-  open(TREE, "sreformat a2m $filename | FastTree -nj -boot 100 |") or &mailUserAndFail($job, "Could not open pipe on sreformat and FastTree -nj -boot 100 $filename\n");
+  open(TREE, "sreformat a2m $filename | FastTree -nj -boot 100 |") or &Bio::Pfam::ViewProcess::mailUserAndFail($job, "Could not open pipe on sreformat and FastTree -nj -boot 100 $filename\n");
 
   
-  open(TREEFILE, ">$filename.tree") or mailUserAndFail($job, "Failed to open $filename.tree:[$!]");
+  open(TREEFILE, ">$filename.tree") or Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to open $filename.tree:[$!]");
 
   my $line = <TREE>;
   close TREE;
