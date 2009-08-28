@@ -8,11 +8,14 @@ use Bio::Pfam::Config;
 use Bio::Pfam::SVN::Commit;
 use Bio::Pfam::SVN::Client;
 use Bio::Pfam::ClanIO;
+use Mail::Mailer;
 
 my($rev, $repos);
 GetOptions( "rev=s"   => \$rev,
             "repos=s" => \$repos );
-
+            
+my $revlook;            
+eval{
 unless($rev and $repos){
   die "Need to define both rev and repos: try $0 -help";  
 }
@@ -21,7 +24,7 @@ my %params;
 $params{rev} = $rev; 
 $params{repos} = $repos;
 
-my $revlook = Bio::Pfam::SVN::Commit->new( \%params );
+$revlook = Bio::Pfam::SVN::Commit->new( \%params );
 unless($revlook and $revlook->isa('SVN::Look')){
   die "Failed to get a SVN::Look object for rev:$rev and repos:$repos\n";
 }
@@ -190,6 +193,27 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
 }else{
   #No other commits require post-commit processing
   ; 
+}
+};
+if($@){
+  
+  my %header = (  To => 'rdf@sanger.ac.uk',
+					        From => 'rdf@sanger.ac.uk',
+					        Subject => 'Error in post-commit ' );
+	 $header{Cc} = $revlook->author.'@sanger.ac.uk' if($revlook);
+	 
+	 my $message = "Error with the post commit\n";
+	 $message .= "Revision: $rev " if($rev);
+	 $message .= "Repository: $repos" if($repos);
+	 $message .= "\n$@\n";
+	 
+	 
+	 my $mailer = Mail::Mailer->new;
+	 $mailer->open(\%header);
+	 print $mailer $message; 
+   $mailer->close;
+   
+  exit(1);
 }
 
 
