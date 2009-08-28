@@ -9,9 +9,9 @@
 # Author        : rdf
 # Maintainer    : $Author: rdf $
 # Created       : 2008-05-05
-# Last Modified : $Date: 2009-07-24 14:35:53 $
-# Version       : $Revision: 1.5 $;
-# Id            : $Id: pfamJobDequeue.pl,v 1.5 2009-07-24 14:35:53 rdf Exp $
+# Last Modified : $Date: 2009-08-28 14:23:32 $
+# Version       : $Revision: 1.6 $;
+# Id            : $Id: pfamJobDequeue.pl,v 1.6 2009-08-28 14:23:32 rdf Exp $
 
 use strict;
 use warnings;
@@ -87,20 +87,9 @@ while (1) {
         my $cmd = $ref->{'command'};
         $cmd .= " -id " . $ref->{'job_id'};
         $cmd .= " -family " . $ref->{'entity_id'};
-        $cmd .= " && rm -fr " . $tmpDir . "/" . $ref->{'job_id'};
+        $cmd .= " && rm -fr " . $tmpDir . "/".$ENV{USER}."/" . $ref->{'job_id'};
         push( @cmds, $cmd );
  
-    }elsif( $ref->{'job_type'} eq 'clan' ){
-      #Repeat steps 2 and 3 if we have a clan view process to run.  
-      #Step 2.2 - build up the LSF resource requirements
-      $memory = '7000000'; #We want 7GB of memory
-      $resource = 'select[type==X86_64 && mem>7000 && mypfamlive<300] rusage[mypfamlive=10:mem=7000]';
-      #$host   = $qsout->farmNode;
-      $tmpDir = $qsout->tmpDir;
-      $queue  = 'long';
-      #No sort out the command
-      my $cmd = $ref->{'command'};
-      push( @cmds, $cmd );
     }
     
     #Now submit the generic jobs using this method!
@@ -114,8 +103,8 @@ while (1) {
         #Now set up the lsf requirements
         
         
-        my $mkAndCdToTmp = 'mkdir -p '. $tmpDir .'/'. $ref->{'job_id'} .'/'. $ref->{'entity_id'}. 
-        ' && cd '.$tmpDir .'/'. $ref->{'job_id'} .'/'. $ref->{'entity_id'};
+        my $mkAndCdToTmp = 'mkdir -p '. $tmpDir .'/'.$ENV{USER}.'/' $ref->{'job_id'} .'/'. $ref->{'entity_id'}. 
+        ' && cd '.$tmpDir .'/'. $ENV{USER}.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'};
         
         $DEBUG && print STDERR "$mkAndCdToTmp && $cmd";
 
