@@ -97,6 +97,10 @@ unless ($job) {
 }
 $logger->debug("Got job databse object");
 
+#Change the status of the job from pending to running.
+$job->update({status  => 'RUN',
+              started => \'NOW()'});
+
 #-------------------------------------------------------------------------------
 #Make sure that the clan is in the databases.
 $logger->debug("Checking clan is in the database");
@@ -181,8 +185,8 @@ foreach my $fam (@$clanMemAcc) {
 
 #-------------------------------------------------------------------------------
 # Would be good to add summary data to the clan table.
-#jt6????
 
+$logger->debug("Calculating the number of architectures");
 #No archs
 my $noArchRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(pfamseq clan_membership)],
@@ -190,6 +194,7 @@ my $noArchRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search(
     distinct => 1 } );
 my $noArch = $noArchRS->count;
 
+$logger->debug("Calculating the number of sequences");
 #No Seqs
 my $noSeqsRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(clan_membership)],
@@ -198,12 +203,14 @@ my $noSeqsRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search(
 my $noSeqs = $noSeqsRS->count;
 
 #No Interactions
+$logger->debug("Calculating the number of interactions");
 my $noIntRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(clan_membership interactions)],
     columns => [ qw( interactions.auto_pfamA_A interactions.auto_pfamA_B ) ] } );
 my $noInt = $noIntRS->count;
 
 #Get list of unique species
+$logger->debug("Calculating the number of species");
 my $noSpeciesRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(pfamseq clan_membership)],
     columns => [ qw(pfamseq.ncbi_taxid) ],
@@ -211,12 +218,14 @@ my $noSpeciesRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->sear
 my $noSpecies = $noSpeciesRS->count;
 
 #Get Number of Structures;
+$logger->debug("Calculating the number of sturctures");
 my $noStructRS = $pfamDB->getSchema->resultset('PfamaRegFullSignificant')->search( {'clan_membership.auto_clan' => $clanData->auto_clan, in_full => 1},
   { join => [qw(pdb_pfama_regs clan_membership)],
     columns => [ qw( pdb_pfama_regs.auto_pdb_reg ) ],
     distinct => 1 } );
 my $noStruct = $noStructRS->count;
 
+$logger->debug("Uploading the summary information");
 $clanData->update({ number_structures => $noStruct,
                     number_archs      => $noArch, 
                     number_species    => $noSpecies,
@@ -224,6 +233,9 @@ $clanData->update({ number_structures => $noStruct,
 
 
 #-------------------------------------------------------------------------------
+
+$logger->debug("Writing the clandesc file so that clan can be versioned");
+
 $clanIO->writeCLANDESC($clanSVNObj->DESC, ".");
 open(C, "CLANDESC") or die;
 my @clandesc = <C>;
@@ -232,20 +244,22 @@ close(C);
 
 my $clanDescCksum = md5_hex(join("", @clandesc));
 
-#my $relClanVersion = $pfamDB->getSchema->resultset('ReleasedClanVersion')->find({auto_clan => $clanData->auto_clan});
-#
-#my $version;
-#if($relClanVersion){
-#  $version = ($clanDescCksum eq $relClanVersion->desc_file ? $relClanVersion->version : $relClanVersion->version + 1 );   
-#}else{
-#  $version = 1;
-#}
-my $version =1;
+my $relClanVersion = $pfamDB->getSchema->resultset('ReleasedClanVersion')->find({auto_clan => $clanData->auto_clan});
+
+my $version;
+if($relClanVersion){
+  $version = ($clanDescCksum eq $relClanVersion->desc_file ? $relClanVersion->version : $relClanVersion->version + 1 );   
+}else{
+  $version = 1;
+}
 
 $clanData->update({version => $version});
 
+#-------------------------------------------------------------------------------
 #Make Stockholm version of CLANDESC
-$clanSVNObj->DESC->AC($clanSVNObj->DESC->AC."$version");
+$logger->debug("Writing Stockholm version of CLANDESC");
+
+$clanSVNObj->DESC->AC($clanSVNObj->DESC->AC.".$version");
 $clanIO->writeCLANDESC($clanSVNObj->DESC, ".");
 #Write out again with the version
 open(C, "CLANDESC") or die;
@@ -268,12 +282,21 @@ $pfamDB->getSchema
         ->resultset('ClanAlignmentsAndRelationships')
           ->update_or_create({ auto_clan => $clanData->auto_clan,
                                stockholm => $clanDescZip});
+
 #-------------------------------------------------------------------------------
 # Make clan alignment and relationship images
+
+$logger->debug("Going to run hhsearch for clan members");
 my $hhScores = runHHsearch( $clanAcc, $clanMemAcc, $config, $job );
 
+$logger->debug("Making clan alignment");
 makeAlign( $hhScores, $clanMemRef, $clanAcc, $pfamDB, $clanData->auto_clan );
+$logger->debug("Making clan relationship diagram");
 makeGraph( $hhScores, $clanMemRef, $clanAcc, $pfamDB, $clanData->auto_clan );
+
+
+#-------------------------------------------------------------------------------
+$logger->debug("Initiating view process for family members");
 
 # Set of family view processes 
 my $familyIO = Bio::Pfam::FamilyIO->new;
@@ -287,8 +310,16 @@ foreach my $fam (@$clanMemAcc){
     Bio::Pfam::ViewProcess::mailUserAndFail( $job,
       "Failed to $fam:[$!]" );  
   }
-  Bio::Pfam::ViewProcess::initiateViewProcess($fam, $job->user_id, $config);
+  $logger->debug("initiateFamily ViewProcess for $fam");
+  
+  Bio::Pfam::ViewProcess::initiateFamilyViewProcess($famObj, $job->user_id, $config);
 }
+
+#-------------------------------------------------------------------------------
+#Set job status to be done!
+ #Set the job status to be done!
+  $job->update({status => 'DONE',
+                closed => \'NOW()'}); 
 
 #-------------------------------------------------------------------------------
 #Subroutines
