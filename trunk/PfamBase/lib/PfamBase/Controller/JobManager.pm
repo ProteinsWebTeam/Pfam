@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.6 2008-10-27 14:47:51 jt6 Exp $
+# $Id: JobManager.pm,v 1.7 2009-09-04 13:54:59 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.6 2008-10-27 14:47:51 jt6 Exp $
+$Id: JobManager.pm,v 1.7 2009-09-04 13:54:59 jt6 Exp $
 
 =cut
 
@@ -178,12 +178,14 @@ sub retrieveResults : Private {
     if $c->debug;
   
   # retrieve the results of the job and stash them
-  $c->stash->{results}->{$jobId}->{status}  = $job->status;
-  $c->stash->{results}->{$jobId}->{rawData} = $job->stdout;
-  $c->stash->{results}->{$jobId}->{length}  = length( $job->stdin );
-  $c->stash->{results}->{$jobId}->{method}  = $job->job_type;
-  $c->stash->{results}->{$jobId}->{options} = $job->options;
-  $c->{stash}->{seq} = $job->stdin;
+  $c->stash->{results}->{$jobId}->{job}          = $job;
+  $c->stash->{results}->{$jobId}->{status}       = $job->status;
+  $c->stash->{results}->{$jobId}->{rawData}      = $job->stdout;
+  $c->stash->{results}->{$jobId}->{length}       = length( $job->stdin );
+  $c->stash->{results}->{$jobId}->{method}       = $job->job_type;
+  $c->stash->{results}->{$jobId}->{options}      = $job->options;
+  $c->stash->{results}->{$jobId}->{user_options} = from_json( $job->options );
+  $c->stash->{seq} = $job->stdin;
 }
 
 #-------------------------------------------------------------------------------
