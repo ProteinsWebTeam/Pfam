@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.28 2009-08-28 13:21:05 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.29 2009-09-04 09:52:48 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated.
 
-$Id: DomainGraphics.pm,v 1.28 2009-08-28 13:21:05 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.29 2009-09-04 09:52:48 jt6 Exp $
 
 =cut
 
@@ -36,9 +36,11 @@ use strict;
 use warnings;
 
 use Bio::Pfam::ContextPfamRegion;
+
 use URI::Escape;
 use Storable qw(thaw);
 use JSON qw( -convert_blessed_universally );
+use URI::Escape qw( uri_unescape );
 use Data::Dump qw( dump );
 
 use base 'Catalyst::Controller';
@@ -67,7 +69,7 @@ sub begin : Private {
   # note in the stash to show that this is a post-load, so that we can
   # adjust what gets generated in the TT and stuffed into the existing
   # page
-  if( defined $c->req->param('arch') and
+  if ( defined $c->req->param('arch') and
       $c->req->param('arch') =~ m/^(\d+|nopfama)$/ ) {
     $c->stash->{auto_arch} = $1;
     $c->log->debug( 'DomainGraphics::begin: arch: |' . $c->stash->{auto_arch} . '|')
@@ -137,7 +139,7 @@ sub begin : Private {
 
   # TODO not tested !
 
-  elsif( $c->req->param('subTree') and
+  elsif ( $c->req->param('subTree') and
          $c->req->param('jobId') ) {
 
     $c->log->debug( 'DomainGraphics::begin: checking for selected sequences' )
@@ -170,7 +172,8 @@ sub begin : Private {
 
   # TODO not tested !
 
-  } elsif( $c->req->param('taxId') and
+  }
+  elsif( $c->req->param('taxId') and
            $c->req->param('taxId') =~ m/^(\d+)$/i ){
 
     $c->log->debug( 'DomainGraphics::begin: getting proteome sequences' )
@@ -208,19 +211,52 @@ sequences for an architecture, we hand off to one of two separate templates.
 
 sub domain_graphics : Path {
   my ( $this, $c ) = @_;
-
+  
   # set up the layout manager and hand it the sequences
   my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
-  $lm->layoutSequences( $c->stash->{seqs} );
+  my $pfama = $lm->_getRegionConfigurator('Pfama');
   
+  # see if we've been handed a hash containing colours that were originally
+  # assigned by the layout manager
+  if ( $c->req->param('ac') ) {
+
+    # detaint the param by trying to decode it as JSON
+    my $data;
+    eval {
+      $data = from_json( uri_unescape( $c->req->param('ac') ) );
+    };
+    if ( $@ or not defined $data ) {
+      # decoding failed; don't try to use the data
+      $c->log->warn( 'DomainGraphics::domain_graphics: failed to detaint colours param' )
+        if $c->debug;
+    }
+    else {
+      # decoding worked; set these assigned colours on the layout manager
+      # before generating the new layout
+      my $colours = uri_unescape( $c->req->param('ac') );
+      $pfama->assignedColours( $colours );
+      $pfama->colourIndex( scalar( keys %{ $pfama->assignedColours } ) + 1 );
+    }
+  }
+  
+  # let the layout manager build the domain graphics definition from the
+  # sequence objects
+  $lm->layoutSequences( $c->stash->{seqs} );
+
   # configure the JSON object to correctly stringify the layout manager output
   my $json = new JSON;
-  $json->pretty(1);
+  # $json->pretty(1);
   $json->allow_blessed;
   $json->convert_blessed;
 
   # encode and stash the sequences as a JSON string
   $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
+
+  # stash the assigned colours from the layout manager
+  if ( defined $pfama and
+       defined $pfama->assignedColours ) {
+    $c->stash->{assignedColours} = $json->encode( $pfama->assignedColours );
+  }
 
 #  $c->log->debug( 'DomainGraphics::domain_graphics: raw sequence objects: ' . dump( $c->stash->{seqs} ) )
 #    if $c->debug;
@@ -313,11 +349,6 @@ Pfam-A.
 sub get_family_data : Private {
   my ( $this, $c ) = @_;
 
-  # select the graphical features that we want to display
-  $c->stash->{regionsAndFeatures} = { PfamA      => 1,
-                                      PfamB      => 1,
-                                      noFeatures => 1 };
-
   # decide if we're showing the individual architectures or all sequences
   # for a particular architecture
   my @rows;
@@ -363,47 +394,67 @@ sub get_family_data : Private {
   # sequences, depending how we were called) and build a data structure that
   # the drawing code will use to generate the graphics
   my ( @seqs, %seqInfo, @ids );
-  foreach my $arch ( @rows[ $first .. $last ] ) {
+  foreach my $row ( @rows[ $first .. $last ] ) {
 
     # thaw out the sequence object for this architecture
-    push @seqs, thaw( $arch->auto_architecture->storable->annseq_storable );
+    if ( $c->stash->{auto_arch} ) {
+      push @seqs, thaw( $row->annseqs->annseq_storable );
+    }
+    else {
+      push @seqs, thaw( $row->auto_architecture->storable->annseq_storable );
+    }
+
+    # where are we getting sequence data ?
+    my $seq;
+    if ( $c->stash->{auto_arch} ) {
+      # we're looking at a particular architecture, so we want all sequences
+      $seq = $row;
+
+      # if this is a call to retrieve all of the architectures, we don't
+      # have an auto_architecture, so this won't work
+    }
+    else {
+      # we're looking at all sequences, so we want just the type example
+      $seq = $row->auto_architecture->type_example;
+    }
 
     # stash the sequence IDs for the type example in an array, so that we can 
     # access them in the right order in the TT, i.e. ordered by number of 
     # sequences with the given architecture)
-    if ( $c->stash->{auto_arch} ) {
-      # we're looking at a particular architecture, so we want all sequences
-      $pfamseq_id = $arch->pfamseq_id;
-    }
-    else {
-      # we're looking at all sequences, so we want just the type example
-      $pfamseq_id = $arch->auto_architecture->type_example->pfamseq_id;
-    }
-
-    my $pfamseq_id;
+    my $pfamseq_id = $seq->pfamseq_id;
     push @ids, $pfamseq_id;
 
     # work out which domains are present on this sequence
-    my @domains = split m/\~/, $arch->auto_architecture->architecture;
+    my @domains = split m/\~/, $row->auto_architecture->architecture;
     $seqInfo{$pfamseq_id}{arch} = \@domains;
 
+    # how many sequences ?
+    $seqInfo{$pfamseq_id}{num} = $row->auto_architecture->no_seqs;
+
     # store a mapping between the sequence and the auto_architecture
-    $seqInfo{$pfamseq_id}{auto_arch} = $arch->auto_architecture->auto_architecture;
+    $seqInfo{$pfamseq_id}{auto_arch} = $row->auto_architecture->auto_architecture;
 
-    # store the sequence description, species name and length of sequence
-    $seqInfo{$pfamseq_id}{desc}    = $arch->auto_architecture->type_example->description;
-    $seqInfo{$pfamseq_id}{species} = $arch->auto_architecture->type_example->species;
-    $seqInfo{$pfamseq_id}{length}  = $arch->auto_architecture->type_example->length;
-
-    # if this is a call to retrieve all of the architectures, we don't
-    # have an auto_architecture, so this won't work
-    $seqInfo{$pfamseq_id}{num} = $arch->auto_architecture->no_seqs
-      unless $c->stash->{auto_arch};
+    # store the sequence description, species name and length of each 
+    # individual sequence
+    $seqInfo{$pfamseq_id}{desc}    = $seq->description;
+    $seqInfo{$pfamseq_id}{species} = $seq->species;
+    $seqInfo{$pfamseq_id}{length}  = $seq->length;
   }
 
   $c->log->debug( 'DomainGraphics::get_family_data: retrieved '
                   . scalar @seqs . ' storables' ) if $c->debug;
 
+  # if ( scalar @seqs > 20 ) {
+  #   my @slice = @seqs[ 0 .. 19 ];
+  #   $c->stash->{seqs}    = \@slice;
+  # }
+  # else {
+  #   $c->stash->{seqs}    = \@seqs;
+  # }
+
+  # $c->log->debug( 'DomainGraphics::get_family_data: stashed '
+  #                 . scalar @{ $c->stash->{seqs} } . ' storables' ) if $c->debug;
+  
   $c->stash->{seqs}    = \@seqs;
   $c->stash->{ids}     = \@ids;
   $c->stash->{seqInfo} = \%seqInfo;
