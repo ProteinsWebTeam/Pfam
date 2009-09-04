@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.39 2009-01-09 12:59:24 jt6 Exp $
+# $Id: Protein.pm,v 1.40 2009-09-04 09:50:52 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.39 2009-01-09 12:59:24 jt6 Exp $
+$Id: Protein.pm,v 1.40 2009-09-04 09:50:52 jt6 Exp $
 
 =cut
 
@@ -28,19 +28,6 @@ use warnings;
 
 use Storable qw( thaw );
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
-#use Bio::Pfam::AnnotatedSequence;
-#use Bio::Pfam::AnnotatedRegion;
-#use Bio::Pfam::PfamAnnSeqFactory;
-#use Bio::Pfam::PfamRegion;
-#use Bio::Pfam::OtherRegion;
-#use Bio::Pfam::SmartRegion;
-#use Bio::Pfam::ContextPfamRegion;
-#use Bio::Pfam::CATHRegion;
-#use Bio::Pfam::SCOPRegion;
-#use Bio::Pfam::SeqPfam;
-#use Bio::Pfam::HMMOtherRegion;
-#use Bio::Pfam::Drawing::Image::ImageSet;
-#use Bio::SeqFeature::Generic;
 
 use base 'PfamWeb::Controller::Section';
 
@@ -148,19 +135,21 @@ this method.
 =cut
 
 sub get_data : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
   
   # look for the entry itself
   my $rs = $c->model('PfamDB::Pfamseq')
              ->search( [ { pfamseq_acc => $entry },
-                         { pfamseq_id  => $entry } ] );
+                         { pfamseq_id  => $entry } ], 
+                       { join => [ qw( annseqs ) ] } );
                            
   my $p;
-  if( defined $rs ) {
+  if ( defined $rs ) {
     # we got a resultset using that accession/id
     $p = $rs->first;
   
-  } else {
+  }
+  else {
     # ... otherwise, see if this is really a secondary accession
     $p = $c->model('PfamDB::Secondary_pfamseq_acc')
           ->find( { secondary_acc => $1 },
@@ -179,18 +168,19 @@ sub get_data : Private {
 
   # add Pfam-A regions  
   $c->log->debug( 'Protein::get_data: adding region info' ) if $c->debug;
-  my @a_regions = $c->model('PfamDB::PfamA_reg_full_significant')
-                    ->search( { 'me.auto_pfamseq' => $p->auto_pfamseq,
+  
+  my @a_regions = $c->model('PfamDB::PfamaRegFullSignificant')
+                    ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
                                 in_full           => 1 },
-                              { join     => [ qw( pfamA ) ],
-                                prefetch => [ qw( pfamA ) ] } );
+                              { join     => [ qw( auto_pfama ) ],
+                                prefetch => [ qw( auto_pfama ) ] } );
   $c->stash->{pfama_regions} = \@a_regions;
   
   # add Pfam-B regions
-  my @b_regions = $c->model('PfamDB::PfamB_reg')
-                    ->search( { 'me.auto_pfamseq' => $p->auto_pfamseq },
-                              { join     => [ qw( pfamB ) ],
-                                prefetch => [ qw( pfamB ) ] } );
+  my @b_regions = $c->model('PfamDB::PfambReg')
+                    ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
+                              { join     => [ qw( auto_pfamb ) ],
+                                prefetch => [ qw( auto_pfamb ) ] } );
   $c->stash->{pfamb_regions} = \@b_regions;
   
   # add extra data to the stash  
@@ -274,10 +264,14 @@ Gets the structure-to-sequence-to-family mapping.
 sub get_mapping : Private {
   my ( $this, $c ) = @_;
 
-  my @mapping = $c->model('PfamDB::Pdb_pfamA_reg')
-                  ->search( { 'pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
-                            {  join                  => [ qw( pfamA pfamseq pdb ) ],
-                               prefetch              => [ qw( pfamA pfamseq pdb ) ] } );
+  my @mapping = $c->model('PfamDB::PdbPfamaReg')
+                  ->search( { 'auto_pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
+                            {  join                  => [ qw( auto_pfama 
+                                                              auto_pfamseq
+                                                              auto_pdb ) ],
+                               prefetch              => [ qw( auto_pfama
+                                                              auto_pfamseq
+                                                              auto_pdb ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
 
@@ -306,7 +300,18 @@ sub generate_pfam_graphic : Private {
   # and hand it off to the layout manager
   my $annseq;
   eval {
-    $annseq = thaw( $c->stash->{pfamseq}->annseq->annseq_storable );
+    $c->log->debug( 'Protein::generate_pfam_graphic: pfamseq:  ' . ref $c->stash->{pfamseq} )
+      if $c->debug;
+
+    my $annseq_row = $c->stash->{pfamseq}->annseqs;
+    $c->log->debug( 'Protein::generate_pfam_graphic: annseq:   ' . ref $annseq_row )
+      if $c->debug;
+
+    my $storable   = $annseq_row->annseq_storable;
+    $c->log->debug( 'Protein::generate_pfam_graphic: storable: ' . ref $storable )
+      if $c->debug;
+
+    $annseq = thaw( $storable );
   };
   if ($@) {
     $c->log->error("Protein::generate_pfam_graphic: ERROR: failed to thaw annseq: $@");
@@ -416,14 +421,15 @@ sub get_summary_data : Private {
   $summaryData{numSpecies} = 1;
 
   # number of structures
-  my $rs = $c->model('PfamDB::Pdb_residue')
-             ->find( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
+  my $rs = $c->model('PfamDB::PdbResidueData')
+             ->search( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
                      { select       => [
                                          {
                                            count => [ { distinct => [ qw( auto_pdb )] } ]
                                          }
                                        ],
-                       as           => [ qw( numberPdbs ) ] } );
+                       as           => [ qw( numberPdbs ) ] } )
+             ->single;
 
   $summaryData{numStructures} = $rs->get_column( 'numberPdbs' );
 

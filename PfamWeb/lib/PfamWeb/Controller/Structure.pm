@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.18 2008-08-15 13:36:44 jt6 Exp $
+# $Id: Structure.pm,v 1.19 2009-09-04 09:51:29 jt6 Exp $
 
 =head1 NAME
 
@@ -31,14 +31,14 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.18 2008-08-15 13:36:44 jt6 Exp $
+$Id: Structure.pm,v 1.19 2009-09-04 09:51:29 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Data::Dumper;
+use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Section';
 
@@ -68,39 +68,28 @@ for that entry. Accepts various formats of URL:
 =cut
 
 sub begin : Private {
-  my( $this, $c, @pdbIdArgs ) = @_;
+  my ( $this, $c, $entry_arg ) = @_;
 
-  # get the accession or ID code
-  my $pdbId;
-  if( defined $c->req->param('id') ) {
-    $c->log->debug( 'Structure::begin: found param "id"; checking...' )
-      if $c->debug;
-
-    $c->req->param('id') =~ m/^([0-9][A-Z0-9]{3})$/i;
-    $pdbId = $1 if defined $1;
+  # get a handle on the entry and detaint it
+  my $tainted_entry = $c->req->param('acc')   ||  
+                      $c->req->param('id')    ||  
+                      $c->req->param('entry') ||
+                      $entry_arg              ||  
+                      '';
   
-  } elsif( defined $c->req->param('entry') ) {
-    $c->log->debug( 'Structure::begin: found param "entry"; checking...' )
-      if $c->debug;
-
-    $c->req->param('entry') =~ m/^([0-9][A-Z0-9]{3})$/i;
-    $pdbId = $1 if defined $1;
-
-  } elsif( scalar @pdbIdArgs ) {
-
-    # this is a real hack... need to figure out how to get hold of the last
-    # argument to the URL without this...
-    my $pdbIdArg = $pdbIdArgs[-1];
-
-    $c->log->debug( "Structure::begin: found an argument ($pdbIdArg); checking..." )
-      if $c->debug;
-    $pdbIdArg =~ /(\d\w{3})/;
-    $pdbId = $1 if defined $1;
-
+  my $entry;
+  if ( $tainted_entry ) { 
+    ( $entry ) = $tainted_entry =~ m/^([0-9][A-Z0-9]{3})$/i;
+    $c->stash->{errorMsg} = 'Invalid Pfam family accession or ID' 
+      unless defined $entry;
   }
-
+  else {
+    $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
+  }
+ 
   my $pdb = $c->model('PfamDB::Pdb')
-              ->find( { pdb_id => $pdbId } );
+              ->search( { pdb_id => $entry } )
+              ->single;
 
   # we're done here unless there's an entry specified
   unless( defined $pdb ) {
@@ -111,7 +100,7 @@ sub begin : Private {
   
       # report the error as a broken internal link
       $c->error( q|Found a broken internal link; no valid PDB ID |
-                 . qq|("$pdbId") in "| . $c->req->referer . q|"| );
+                 . qq|("$entry") in "| . $c->req->referer . q|"| );
       $c->forward( '/reportError' );
   
       $c->clear_errors;
@@ -121,29 +110,29 @@ sub begin : Private {
   
     # log a warning and we're done; drop out to the end method which
     # will put up the standard error page
-    $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$pdbId|" );
+    $c->log->warn( "Structure::begin: couldn't retrieve data for PDB ID |$entry|" );
   
     return;
   }
 
-  $c->log->debug( "Structure::begin: successfully retrieved pdb object for |$pdbId|" )
+  $c->log->debug( "Structure::begin: successfully retrieved pdb object for |$entry|" )
     if $c->debug;
 
   # stash the PDB object and ID
   $c->stash->{pdb}   = $pdb;
-  $c->stash->{pdbId} = $pdbId;
+  $c->stash->{pdbId} = $entry;
 
   # get the icon summary data, but only if we're in this top-level class, 
   # i.e. the one that generates the structure page rather than the sub-classes
   # that build page components
   if( ref $this eq 'PfamWeb::Controller::Structure' ) {
-    $c->forward( 'getSummaryData' );
-    $c->forward( 'getAuthors' );
+    $c->forward( 'get_summary_data' );
+    $c->forward( 'get_authors' );
   }
   
   # add the mapping between structure, sequence and family. We need this for 
   # more or less all of the sub-classes, so always do this
-  $c->forward( 'addMapping' );
+  $c->forward( 'add_mapping' );
 
 }
 
@@ -151,70 +140,89 @@ sub begin : Private {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 getSummaryData : Private
+=head2 get_summary_data : Private
 
 Gets the data items for the overview bar
 
 =cut
 
-sub getSummaryData : Private {
-  my( $this, $c ) = @_;
+sub get_summary_data : Private {
+  my ( $this, $c ) = @_;
 
-  my %summaryData;
+  my $id = $c->stash->{pdb}->pdb_id;
 
-  my $autoPdb = $c->stash->{pdb}->auto_pdb;
+  my $cache_key = "${id}_summary";
+  my $summary = $c->cache->get( $cache_key );
+  if ( defined $summary ) { 
+    $c->log->debug( 'Structure::get_summary_data: retrieved summary from cache' )
+      if $c->debug;
+  }
+  else {
+    $c->log->debug( 'Structure::get_summary_data: failed to retrieve summary from cache; going to DB' )
+      if $c->debug;
 
-  # number of sequences in the structure - count the number of chains.
-  my $rs = $c->model('PfamDB::Pdb_residue')
-             ->find( { auto_pdb => $autoPdb },
-                     { select   => [
-                                     {
-                                       count => [ { distinct => [ 'chain' ] } ]
-                                     }
-                                   ],
-                       as       => [ qw( numChains ) ] } );
-  $summaryData{numSequences} = $rs->get_column( 'numChains' );
+    $summary = {};
 
-  # number of species should be one, but get the species for the sequences
-  $rs = $c->model('PfamDB::Pdb_residue')
-          ->find( { auto_pdb => $autoPdb },
-                  { join     => [ qw/pfamseq/],
-                    select   => [
-                                  {
-                                    count => [ { distinct => [ 'pfamseq.species' ] } ]
-                                  }
-                                ],
-                    as       => [ qw( numSpecies ) ] } );
-  $summaryData{numSpecies} = $rs->get_column( 'numSpecies' );
+    # number of sequences in the structure - count the number of chains.
+    my $rs = $c->model('PfamDB::PdbResidueData')
+               ->search( { pdb_id=> $id},
+                         { select   => [
+                                         {
+                                           count => [ { distinct => [ 'chain' ] } ]
+                                         }
+                                       ],
+                           as       => [ 'numChains' ] } )
+               ->single;
+    $summary->{numSequences} = $rs->get_column( 'numChains' );
+  
+    # number of species should be one, but get the species for the sequences
+    $rs = $c->model('PfamDB::PdbResidueData')
+            ->search( { pdb_id => $id },
+                      { join     => [ 'pfamseqs' ],
+                        select   => [
+                                      {
+                                        count => [ { distinct => [ 'pfamseqs.species' ] } ]
+                                      }
+                                    ],
+                        as       => [ 'numSpecies' ] } )
+            ->single;
+    $summary->{numSpecies} = $rs->get_column( 'numSpecies' );
+  
+    # number architectures
+    $rs = $c->model('PfamDB::PdbResidueData')
+            ->search( { pdb_id => $id },
+                      { join     => [ 'pfamseqs' ],
+                        select   => [
+                                      {
+                                       count => [ { distinct => [ 'pfamseqs.auto_architecture' ] } ]
+                                      }
+                                    ],
+                        as       => [ 'numArch' ] } )
+            ->single;
+    $summary->{numArchitectures} = $rs->get_column( 'numArch' );
 
-  # number architectures
-  $rs = $c->model('PfamDB::Pdb_residue')
-          ->find( { auto_pdb => $autoPdb },
-                  { join     => [ qw/pfamseq/],
-                    select   => [
-                                  {
-                                   count => [ { distinct => [ 'pfamseq.auto_architecture' ] } ]
-                                  }
-                                ],
-                    as       => [ qw( numArch ) ] } );
-  $summaryData{numArchitectures} = $rs->get_column( 'numArch' );
+    # number of interactions.
+    #$rs = $c->model('PfamDB::Interactions')
+    #        ->find( { auto_pdb => $autoPdb },
+    #                { select   => [
+    #                                {
+    #                                  count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
+    #                                }
+    #                              ],
+    #                  as       => [ qw( numInts ) ] } );
+    #$summaryData{numInt} = $rs->get_column( 'numInts' );
+    $summary->{numInt} = 0;
+  
+    # number of structures is one
+    $summary->{numStructures} = 1;
 
-  # number of interactions.
-  #$rs = $c->model('PfamDB::Interactions')
-  #        ->find( { auto_pdb => $autoPdb },
-  #                { select   => [
-  #                                {
-  #                                  count => [ { distinct => [ 'auto_int_pfamAs' ] } ]
-  #                                }
-  #                              ],
-  #                  as       => [ qw( numInts ) ] } );
-  #$summaryData{numInt} = $rs->get_column( 'numInts' );
-  $summaryData{numInt} = 0;
-  # number of structures is one
-  $summaryData{numStructures} = 1;
+    $c->cache->set( $cache_key, $summary ) unless $ENV{NO_CACHE};
 
-  $c->stash->{summaryData} = \%summaryData;
+    $c->log->debug( "Structure::get_summary_data: caching summary data for $id" )
+      if $c->debug;
+  }
 
+  $c->stash->{summaryData} = $summary;
 }
 
 #-------------------------------------------------------------------------------
@@ -225,12 +233,12 @@ Add the list of authors to the stash.
 
 =cut
 
-sub getAuthors : Private {
+sub get_authors : Private {
   my( $this, $c ) = @_;
 
   # get the authors list
   my @authors = $c->model('PfamDB::PdbAuthor')
-                  ->search( { auto_pdb => $c->stash->{pdb}->auto_pdb },
+                  ->search( { pdb_id => $c->stash->{pdb}->pdb_id },
                             { order_by => 'author_order ASC' } );
 
   $c->stash->{authors} = \@authors;
@@ -238,26 +246,25 @@ sub getAuthors : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 addMapping : Private
+=head2 add_mapping : Private
 
 Adds the structure-to-UniProt mapping to the stash.
 
 =cut
 
-sub addMapping : Private {
+sub add_mapping : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Structure::addMapping: adding mappings for PDB entry '
+  $c->log->debug( 'Structure::add_mapping: adding mappings for PDB entry '
           . $c->stash->{pdb}->pdb_id ) if $c->debug;
 
   # add the structure-to-UniProt mapping to the stash
-  my @unpMap = $c->model('PfamDB::Pdb_pfamA_reg')
-                 ->search( { auto_pdb    => $c->stash->{pdb}->auto_pdb},
-                           { join        => [ qw( pfamA pfamseq ) ],
-                             prefetch    => [ qw( pfamA pfamseq ) ],
-                             order_by    => 'chain ASC' } );
+  my @unpMap = $c->model('PfamDB::PdbPfamaReg')
+                 ->search( { pdb_id    => $c->stash->{pdb}->pdb_id },
+                           { prefetch => [ qw( auto_pfama auto_pfamseq ) ],
+                             order_by => 'chain ASC' } );
 
-  $c->log->debug( 'Structure::addMapping: found ' . scalar @unpMap . ' mappings' )
+  $c->log->debug( 'Structure::add_mapping: found ' . scalar @unpMap . ' mappings' )
     if $c->debug;
   $c->stash->{mapping} = \@unpMap;
 
@@ -269,7 +276,7 @@ sub addMapping : Private {
     # N.B. Need to think more about the consequences of setting null
     # chain ID to " "...
   
-    $chains{$row->pfamseq_id}->{$chain} = '';
+    $chains{$row->auto_pfamseq->pfamseq_id}->{$chain} = '';
   }
   $c->stash->{chainsMapping} = \%chains;
 

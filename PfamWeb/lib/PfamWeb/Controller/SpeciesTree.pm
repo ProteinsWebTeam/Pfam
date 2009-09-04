@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.21 2009-06-09 15:21:12 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.22 2009-09-04 09:51:29 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ or a clan.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.21 2009-06-09 15:21:12 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.22 2009-09-04 09:51:29 jt6 Exp $
 
 =cut
 
@@ -356,18 +356,17 @@ the query in the C<getData> methods.
 =cut
 
 sub countSpecies : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # for Pfam-As or clans we can just look up the number of species in the 
   # main table, via the "entry" that was put in the stash by C<begin>, but
   # for Pfam-Bs we'll actually have to count the number of species
 
-  if( $c->stash->{entryType} eq 'B' ) {
+  if ( $c->stash->{entryType} eq 'B' ) {
     
     my @regions = $c->model('PfamDB::PfambReg')
                     ->search( { auto_pfamB => $c->stash->{entry}->auto_pfamb },
-                              { join       => [ qw( auto_pfamseq ) ],
-                                prefetch   => [ qw( auto_pfamseq ) ] } );
+                              { prefetch   => [ qw( auto_pfamseq ) ] } );
 
     # as we're retrieving them here anyway, stash the regions, so we don't need
     # to get them again later
@@ -376,7 +375,8 @@ sub countSpecies : Private {
     my %species_unique = map {$_->species => 1} @regions;
     $c->stash->{numSpecies} = scalar( keys %species_unique );
 
-  } else {
+  }
+  else {
     $c->stash->{numSpecies} = $c->stash->{entry}->number_species;
   }
 
@@ -422,7 +422,7 @@ sub getFamilyData : Private {
   # found in the seed alignment
   my %inSeed;
   foreach my $region ( @resultsSeed ) {
-    $inSeed{ $region->auto_pfamseq->pfamseq_acc}++;
+    $inSeed{ $region->pfamseq_acc }++;
   }
 
   $c->stash->{inSeed}  = \%inSeed;  
@@ -439,26 +439,31 @@ of those families, to get all species in that family.
 =cut
 
 sub getClanData : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
   
   # get the species information for the full alignment for each clan member. 
   # This probably could be done in one query, but this is going to be quicker
   # (I think...)
-  my @auto_pfamas = $c->model('PfamDB::ClanMembership')
-                      ->search( { 'auto_clan.clan_acc' => $c->stash->{acc} },
-                                { join                 => [ qw( auto_clan ) ] } );
+  my @clan_members = $c->model('PfamDB::ClanMembership')
+                        ->search( { 'auto_clan.clan_acc' => $c->stash->{acc} },
+                                  { join                 => [ qw( auto_clan ) ] } );
 
-  my(@allRegions, @regions );
-  foreach my $auto_pfama ( @auto_pfamas ) {
-    
+  $c->log->debug( 'SpeciesTree::getClanData: found ' . scalar( @clan_members )
+                  . ' clan members' ) if $c->debug;
+
+  my ( @allRegions, @regions );
+  foreach my $clan_member ( @clan_members ) {
     @regions = $c->model('PfamDB::PfamaRegFullSignificant')
-                 ->search( { 'auto_pfama' => $auto_pfama->auto_pfama,
-                             'in_full'     => 1 },
+                 ->search( { 'auto_pfama' => $clan_member->auto_pfama->auto_pfama,
+                             'in_full'    => 1 },
                            { join              => [ qw( auto_pfamseq ) ],
                              prefetch          => [ qw( auto_pfamseq ) ] } );
 
     push @allRegions, @regions;
   }
+
+  $c->log->debug( 'SpeciesTree::getClanData: found ' . scalar( @regions )
+                  . ' regions' ) if $c->debug;
   
   $c->stash->{regions} = \@allRegions;
 }
