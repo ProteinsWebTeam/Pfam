@@ -14,7 +14,7 @@
 # that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
 # onComplete callbacks, which turn on and off the "loading" spinner, etc.
 #
-# $Id: graphics.tt,v 1.28 2009-03-30 12:41:13 jt6 Exp $
+# $Id: graphics.tt,v 1.29 2009-09-04 10:49:11 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -174,7 +174,7 @@ graphicsUri = c.uri_for( "/protein/graphics" );
 
         <script type="text/javascript">
           // <![CDATA[
-          graphicsSubmitter = function() {
+          var graphicsSubmitter = function() {
             $("pgSubmitButton").disable();
             $("pgUpdateSpinner").show();
             var r = new Ajax.Request( '[% graphicsUri %]',
