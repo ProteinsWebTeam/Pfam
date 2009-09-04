@@ -3,16 +3,16 @@
 # alignments.tt
 # jt6 20060424 WTSI
 #
-# $Id: alignments.tt,v 1.13 2008-05-16 15:30:31 jt6 Exp $
+# $Id: alignments.tt,v 1.14 2009-09-04 10:47:42 jt6 Exp $
 
 # calculate the percentages for the table 
 totalFam = 0;
 totalSeq = 0;
 pfams = [];
-FOREACH pfam IN clanMembers.nsort("num_full").reverse;
+FOREACH pfam IN clanMembers;
 	totalFam = totalFam + 1;
-	totalSeq = totalSeq + pfam.num_full;
-	pfams.push( pfam );
+	totalSeq = totalSeq + pfam.auto_pfama.num_full;
+	pfams.push( pfam.auto_pfama );
 END;
 
 # a block to start the table. There may be two tables, placed side by side, if 
@@ -74,7 +74,7 @@ tableFooter = BLOCK -%]
        # each column can get and wrap each in a div that will float it left
   
     maxLength = "";
-    IF clan.clan_membership.size > constants.tableLength;
+    IF clan.clan_memberships.size > constants.tableLength;
       maxLength = clanMembers.size / 2 -%]
       <div class="floatLeft">
     [%- END;
@@ -85,7 +85,7 @@ tableFooter = BLOCK -%]
     # and build the body
     oe = 0;
     split = 0;
-    FOREACH pfam IN pfams;
+    FOREACH pfam IN pfams.nsort("num_full").reverse;
     
       IF NOT split AND maxLength AND loop.index > maxLength -%]
         <tr class="continuation">
@@ -105,12 +105,12 @@ tableFooter = BLOCK -%]
 
       <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
         <td>
-          <a href="[% c.uri_for( "/family", { id = pfam.pfamA_id } ) %]">[% pfam.pfamA_id %]</a>
-         (<a href="[% c.uri_for( "/family", { acc = pfam.pfamA_acc } ) %]">[% pfam.pfamA_acc %]</a>)
+          <a href="[% c.uri_for( "/family", { id = pfam.pfama_id } ) %]">[% pfam.pfama_id %]</a>
+         (<a href="[% c.uri_for( "/family", { acc = pfam.pfama_acc } ) %]">[% pfam.pfama_acc %]</a>)
         </td>
         <td>[% pfam.num_full %] ([% percentS %]%)</td>
         <td>
-          <a href="[% c.uri_for( "/family", { id = pfam.pfamA_id, tab = "alignBlock" } ) | html %]">View</a>
+          <a href="[% c.uri_for( "/family", { id = pfam.pfama_id, tab = "alignBlock" } ) | html %]">View</a>
         </td>
       </tr>
     

@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.20 2008-05-16 15:30:31 jt6 Exp $
+# $Id: summary.tt,v 1.21 2009-09-04 10:47:42 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,8 +14,6 @@ PROCESS "components/require.tt";
 
 requirements.css.push( "clans.css" );
 requirements.cssIe.push( "clans_ie.css" );
-
-requirements.js.push( "clans.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -27,21 +25,22 @@ PROCESS components/links.tt;
 membershipList = BLOCK;
   total = 0;
   size = 0;
-  FOREACH pfam IN clan.clan_membership.sort("pfamA_id") -%]
-  <span class="listItem">
-    <a href="[% c.uri_for( "/family", acc=pfam.pfamA_acc ) %]">
-      [% pfam.pfamA_id %]</a></span>
+  members = [];
+  
+  # can't sort the contents of "clan.clan_memberships" directly. Convert the 
+  # list into rows from the pfamA table first
+  FOREACH member IN clan.clan_memberships;
+    members.push( member.auto_pfama );
+  END;
+  FOREACH pfam IN members.sort( "pfama_id" ); -%]
+    <span class="listItem">
+      <a href="[% c.uri_for( '/family', pfam.pfama_acc ) %]">
+        [% pfam.pfama_id %]</a>
+    </span>
     [% total = total + pfam.num_full;
     size = size + 1;
   END;
-END;
-
-# add an observer to trigger post-loading of the graphics %]
-<script type="text/javascript">
-  // <![CDATA[
-  Event.observe( window, "load", clanPostLoad, false );
-  // ]]>
-</script>
+END; -%]
 
 <!-- start clan summary block -->
 
@@ -69,7 +68,8 @@ END;
       <h2>Literature references</h2>
   
       <ol>
-        [% FOREACH ref IN clan.clan_lit_refs %]
+        [% FOREACH ref_row IN clan.clan_lit_refs;
+          ref = ref_row.auto_lit %]
           <li>
             [% ref.author %], [% ref.journal %]: [% ref.title %]
             <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% ref.pmid %]">[% ref.pmid %]</a>
@@ -95,8 +95,15 @@ END;
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.si.uri    = "[% c.uri_for( '/family/structures' ) %]";
-  loadOptions.si.params = { acc: "[% pfam.pfamA_acc %]" };
+
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Request( "[% c.uri_for( '/family/structures' ) %]",
+                             { parameters: { acc: "[% members.first.pfama_acc %]" },
+                               onComplete: stSuccess,
+                               onFailure:  stFailure
+                             } );
+  } );
+
   // ]]>
 </script>
 

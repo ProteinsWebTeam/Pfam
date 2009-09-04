@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.17 2009-06-09 15:18:11 jt6 Exp $
+# $Id: familyStructures.tt,v 1.18 2009-09-04 10:48:52 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -51,19 +51,19 @@ IF pdbUnique.keys.size;
 
 <div class="pdbImageFragment">
 
-  [%- IF pdbObj.pdb_image -%]
+  [%- IF pdbObj.pdb_image.pdb_image -%]
 
-    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id } ) %]">
+    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id.pdb_id } ) %]">
       <img class="pdbImage" 
- 	       src="[% c.uri_for( "/structure/getimage", { id = pdbObj.pdb_id, size = "s" } ) | html %]"
-           alt="[% pdbObj.pdb_id %]" /></a>
+ 	       src="[% c.uri_for( "/structure/getimage", { id = pdbObj.pdb_id.pdb_id, size = "s" } ) | html %]"
+           alt="[% pdbObj.pdb_id.pdb_id %]" /></a>
 
     [%- IF randomId -%]
       <h1>Example structure</h1>
     [%- END -%]
 
-    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id } ) %]" class="pdbTitle">
-      PDB entry [% pdbObj.pdb_id %]</a>: [% pdbObj.title %]
+    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id.pdb_id } ) %]" class="pdbTitle">
+      PDB entry [% pdbObj.pdb_id.pdb_id %]</a>: [% pdbObj.pdb_id.title %]
 
   [%- ELSE -%]
 
@@ -80,7 +80,7 @@ IF pdbUnique.keys.size;
         <strong>View a different structure:</strong>
     	  <select id="pdbIdField">
     	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
-          <option value="[% id %]"[% IF pdbObj.pdb_id == id %] disabled="disabled" selected="selected"[% END %] />[% id %]</option>
+          <option value="[% id %]"[% IF pdbObj.pdb_id.pdb_id == id %] disabled="disabled" selected="selected"[% END %] />[% id %]</option>
           [% END %]
         </select
       </div>

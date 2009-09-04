@@ -5,7 +5,7 @@
 #
 # build a table showing the mapping between UniProt accession and PDB regions
 #
-# $Id: structureTab.tt,v 1.12 2009-03-20 16:00:42 jt6 Exp $
+# $Id: structureTab.tt,v 1.13 2009-09-04 10:48:52 jt6 Exp $
 
 USE dumper;
 USE String;
@@ -17,16 +17,16 @@ rowHash = {};
 
 FOREACH pdbMap IN pfamMaps;
 
-  rowKey = pdbMap.pfamseq_id                              # seqKey
-           _ pdbMap.seq_start _ pdbMap.seq_end            # resKey
-           _ pdbMap.pdb_id                                # pdbKey
-           _ pdbMap.chain                                 # chainKey
-           _ pdbMap.pdb_res_start _ pdbMap.pdb_res_end;   # pdbResKey
+  rowKey = pdbMap.auto_pfamseq.pfamseq_id                       # seqKey
+           _ "_" _ pdbMap.seq_start _ pdbMap.seq_end            # resKey
+           _ "_" _ pdbMap.pdb_id.pdb_id                         # pdbKey
+           _ "_" _ pdbMap.chain                                 # chainKey
+           _ "_" _ pdbMap.pdb_res_start _ pdbMap.pdb_res_end;   # pdbResKey
 
   NEXT IF rowHash.${rowKey};
   rowHash.${rowKey} = 1;
 
-  seqKey = pdbMap.pfamseq_id;
+  seqKey = pdbMap.auto_pfamseq.pfamseq_id;
   IF ! mapping.$seqKey;
     mapping.$seqKey = {};
   END;
@@ -36,7 +36,7 @@ FOREACH pdbMap IN pfamMaps;
     mapping.$seqKey.$resKey = {};
   END;
 
-  pdbKey = pdbMap.pdb_id;
+  pdbKey = pdbMap.pdb_id.pdb_id;
   IF ! mapping.$seqKey.$resKey.$pdbKey;
     mapping.$seqKey.$resKey.$pdbKey = {};
   END;
@@ -97,19 +97,19 @@ END -%]
             FOREACH pdbResKey IN mapping.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
               <tr>
   		        [% IF seqKey != prevSeqKey -%]
-  		          <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
+  		          <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$seqKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.COUNT %]"[% END %]>
                   <a href="[% proteinUri %]?id=[% seqKey %]">[% seqKey %]</a>
                 </td>
               [% END;
 
 	            IF seqKey != prevSeqKey OR resKey != prevResKey -%]
-	              <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>
+	              <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.COUNT %]"[% END %]>
                   [% resKey %]
                 </td>
               [% END;
 
   		        IF seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
-	              <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+	              <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
                   <a href="[% structureUri %]?id=[% pdbKey %]">[% pdbKey %]</a>
                 </td>
               [% END;
@@ -124,8 +124,8 @@ END -%]
                 <span class="inactive">n/a</span>
               [% END %]
               </td>
-    			    <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
-    			    <td class="[% oe % 2 ? "odd" : "even" %]">
+    			    <td class="[% oe % 2 ? 'odd' : 'even' %]">[% pdbResKey %]</td>
+    			    <td class="[% oe % 2 ? 'odd' : 'even' %]">
                 <a href="[% structureViewerUri %]?viewer=jmol&amp;id=[% pdbKey %]"
                    onclick="popUp(this.href,'console',800,800,'jmolWin');return false;">
                    Jmol</a>
@@ -145,23 +145,6 @@ END -%]
     END # of seqKey -%]
   </tbody>
 </table>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // how many columns are there in the table ?
-  var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
-  var numColsTable  = firstRow.getElementsByTagName("td").length;
-
-  // walk over all of the cells in the table and add listeners for mouseover and 
-  // mouseout events
-  $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
-        Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
-        Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
-      }
-    );
-  // ]]>
-</script>
 
 [%#
 Copyright (c) 2007: Genome Research Ltd.
