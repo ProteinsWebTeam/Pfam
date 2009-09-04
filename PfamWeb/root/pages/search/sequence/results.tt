@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.18 2009-07-31 14:54:29 jt6 Exp $
+# $Id: results.tt,v 1.19 2009-09-04 12:53:35 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -19,9 +19,13 @@ PROCESS "components/require.tt";
 requirements.js.push( "prototip.js" );
 requirements.css.push( "prototip.css" );
 
+requirements.js.push( "underline.js" );
+requirements.js.push( "updater.js" );
+requirements.js.push( "results.js" );
 requirements.js.push( "domain_graphics.js" );
 requirements.js.push( "element_storage.js" );
 requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
+requirements.js.push( "faces/optimer-bold-normal.js" ); # pre-load the font
 
 requirements.jsIe.push( "excanvas.js" );
 
@@ -38,7 +42,7 @@ imageUri   = c.uri_for( "/static/images" );
 showButton = "${imageUri}/showButton.png";
 hideButton = "${imageUri}/hideButton.png";
 
-# munch the results data structure into yet another different structure
+# munge the results data structure into yet another different structure
 jobs         = {};
 user_options = {};
 options      = "{}"; # this will be a JSON string
@@ -53,18 +57,37 @@ END;
 
 numJobs  = jobs.size;
 jobLabel = numJobs > 1 ? "jobs" : "job";
--%]
+
+IF seqSearchError -%]
+
+<div class="key">
+  
+  <h2>Sequence search results</h2>
+
+  <div id="errors">
+    <h1>Job failures</h1>
+    <p>One or more of the searches that you submitted had errors during execution:</p>
+    <ul>
+      <li>[% seqSearchError %]</li>
+    </ul>
+  </div>
+
+</div>
+
+[% ELSE -%]
 
 <div class="key">
   
   <h2>Sequence search results</h2>
 
   <div id="loading">
+
     <p>
       Your results will appear in this page when the search is complete; please
       don't close this window or browse to a different page until the
       results are loaded. 
     </p>
+
     <div id="loadingMessage">
       <img class="loadingBar"
            alt="Searching..."
@@ -74,6 +97,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job";
             <span id="numJobs">[% numJobs %]</span>
             <span id="jobLabel">[% jobLabel %]</span>.
     </div>
+
   </div>
 
   <div id="summary" style="display: none">
@@ -82,7 +106,6 @@ jobLabel = numJobs > 1 ? "jobs" : "job";
       <span class="moreLink" onclick="reveal(this,'resultsNotes',false, true)">Show</span>
       the detailed description of this results page.
     </p>
-
   
     <div id="resultsNotes" style="display: none">
       <ul>
@@ -132,9 +155,7 @@ jobLabel = numJobs > 1 ? "jobs" : "job";
       </ul>
     </div><!-- end of "resultsNotes" -->
 
-
     <p id="summaryText"></p>
-
   
     <div id="dg"></div>
 
@@ -173,10 +194,12 @@ jobLabel = numJobs > 1 ? "jobs" : "job";
         <li>
           You set the cut-off equal to the <strong>gathering threshold</strong>.
         </li>
-      [%- ELSE %]
+      [%- ELSE; %]
         <li>
-          You used an E-value cut-off of 
-          <strong>[% user_options.evalue %]</strong>.
+          You used an E-value cut-off 
+          [% IF user_options.evalue -%]
+          of <strong>[% user_options.evalue %]</strong>.
+          [% END -%]
         </li>
       [%- END %]
       </ul>
@@ -187,8 +210,22 @@ jobLabel = numJobs > 1 ? "jobs" : "job";
         <p class="plainSequence centredBlock">[% FILTER wrap(80, '      ', '<br />'); seq; END %]</p>
       </div>
       <div class="cleaner"><!-- empty --></div>
+
+      [%- redirectUri = c.uri_for( '/search/sequence/results', jobId = results.keys ); -%]
+      <p>
+        You can bookmark
+        <a href="[% redirectUri | html %]">
+          this URL</a> to retrieve your results later:
+      </p>
+      <div class="centreWrapper">
+        <p class="plainSequence centredBlock">[% redirectUri | html %]</p>
+      </div>
+      <div class="cleaner"><!-- empty --></div>
+
+
     </div>
 
+    <div id="errors" style="display: none"></div>
 
     <p>
       <a href="[% c.uri_for( "/search", { tab = "searchSequenceBlock" } ) %]">Return</a>
@@ -204,353 +241,48 @@ jobLabel = numJobs > 1 ? "jobs" : "job";
 <script type="text/javascript">
   // <![CDATA[
 
-  //----------------------------------------
+  console.log( "setting up resultsConfig" );
 
-  // get the submission options into the JS
-  var jobOptions = [% options %];
-
-  //# add the polling URL to the options
-  jobOptions.pollUrl = "[% c.uri_for( '/search/sequence/resultstable' ) %]";
-
-
-  //----------------------------------------
-  
-  //  build the javascript hash that stores the details of this job
-  var jobs = new Hash();
-  [% FOREACH jobId IN results.keys -%]
-  jobs.set( '[% jobId %]', {
-    seq:      '[% results.$jobId.job.stdin    %]',
-    job_type: '[% results.$jobId.job.job_type %]'
-  } );
-  [% END -%]
-
-  //----------------------------------------
-
-  // a function to show or hide the alignment rows
-  var toggleAlignment = function( sId, oSwitch ) {
-    $(sId).toggle();
-    oSwitch.src = $(sId).visible() ? '[% hideButton %]' : '[% showButton %]';
-  };
-  
-  //----------------------------------------
-
-  // a function to show or hide all of the alignments in one fell swoop...
-  var showAllAlignments = function( sId, bState ) {
-    var sState = bState ? "show" : "hide";
-    var sSrc   = bState ? "[% hideButton %]" : "[% showButton %]";
-    $(sId).select( "tr.alignment" ).invoke(sState);
-    $(sId).select( "td.showSwitch img" ).each( function( s ) {
-      s.src = sSrc;
-    } );
-  };
-
-  //----------------------------------------------------------------------------
-  //- static JS ----------------------------------------------------------------
-  //----------------------------------------------------------------------------
-  
-  // set up the data structure for storing the description of the domain 
-  // graphics. This will be populated by the AJAX-loaded script 
-  var sequence = { 
-    length:   0,
-    regions:  [],
-    motifs:   [],
-    markups:  [],
-    options: {
-      imageMap: true,
-      labels:   true
+  var resultsConfig = {
+    options:    [% options %],
+    jobs:       new Hash( {
+                  [% FOREACH jobId IN results.keys -%]
+                  "[% jobId %]": {
+                    seq:      "[% results.$jobId.job.stdin    %]",
+                    job_type: "[% results.$jobId.job.job_type %]"
+                  }[% "," UNLESS loop.last %]
+                  [% END -%]
+                } ),
+    sequence:   {
+                  length:   [% seq.length || 0 %],
+                  options: {
+                    imageMap: true,
+                    labels:   true
+                  }
+                },
+    showButton: "[% c.uri_for( '/static/images/showButton.png' ) %]",
+    hideButton: "[% c.uri_for( '/static/images/hideButton.png' ) %]",
+    pollUrl:    "[% c.uri_for( '/search/sequence/resultset' ) %]",
+    familyUrl:  "[% c.uri_for( '/family' ) %]",
+    elements: {
+      errors:      $("errors"),
+      update:      $("results"),
+      loading:     $("loading"),
+      summary:     $("summary"),
+      summaryText: $("summaryText"),
+      numJobs:     $("numJobs"),
+      jobLabel:    $("jobLabel")
     }
   };
 
-  // somewhere to store the details of the individual results
-  var resultDetails = {
-    numAs: 0,
-    numBs: 0,
-    searchedBs: false,
-    numbers: new Hash()
-  };
-
-  // the PfamGraphic object
-  var pg;
+  console.log( "done setting up resultsConfig:", resultsConfig );
   
-  // the underliner
-  var underliner;
-  
-  //----------------------------------------
-
-  // write the verbose description of the results at the top of the page
-  var writeSummary = function() {
-    
-    var r = resultDetails;
-    var s = "";
-    
-    if ( jobOptions.ga ) {
-    
-      s += "We found <strong>" + r["A"].significant 
-           + "</strong> Pfam-A match" + ( r["A"].significant > 1 ? "es" : "" )
-           + " to your search sequence"; 
-
-    } else {
-    
-      if ( r.numAs ) {
-  
-        s += "We found <strong>" + r.numAs 
-             + "</strong> Pfam-A match" + ( r.numAs > 1 ? "es" : "" )
-             + " to your search sequence";
-  
-        if ( r["A"].significant && r["A"].insignificant ) {
-          s += " (<strong>" + r["A"].significant + "</strong> significant and "
-               + "<strong>" + r["A"].insignificant + "</strong> insignificant)";
-        } else if ( r["A"].insignificant ) {
-          s += " (there were <strong>no</strong> significant matches)";
-        } else {
-          s += " (<strong>all</strong> significant)";
-        }
-        
-      } else {
-        s += "We did not find any Pfam-A matches to your search sequence";
-      }
-      
-    }
-    
-    if ( r.numBs ) {
-
-      if ( r.numAs ) {
-        s += " and ";
-      } else {
-        s += " but we did find ";
-      }      
-      s += "<strong>" + r.numBs + "</strong> Pfam-B match"
-           + ( r.numBs > 1 ? "es" : "" ) + ".";
-      
-    } else if ( r.searchedBs && ! r.numBs ) {
-      
-      if ( r.numAs ) {
-        s += " but we did not find any Pfam-B matches.";
-      } else if ( ! r.numAs ) {
-        s += " nor any Pfam-B matches.";
-      }
-      
-    } else {
-      s += ". You did not choose to search for Pfam-B matches.";
-    }
-    
-    if ( jobOptions.ga ) {
-      s += " Because you chose to show only hits that score above the "
-           + "gathering threshold, there are no <em>in</em>significant "
-           + "Pfam-A hits.";
-    }
-
-    $("summaryText").update( s );
-  };
-
-  //----------------------------------------
-
-  var alignmentWidth = 0;
-
-  var getAlignmentWidth = function() {
-
-    // grab the width of the alignment cell in the table before we...
-    $$("#results table.resultTable div.hmmAlignment").invoke( "hide" );
-    alignmentWidth = $$("#results table.resultTable div.hmmAlignment")
-                       .first().up("td").getWidth() - 6;
-    $$("#results table.resultTable div.hmmAlignment").invoke( "show" );
-    
-    console.info( "set alignmentWidth to %d", alignmentWidth );
-
-  };
-
-  //----------------------------------------
-
-  // somewhere to store the Ajax.PeriodicalUpdater objects that we'll be using
-  var updaters = new Hash();  
-
-  // a function to insert the job results into the page
-  var loadResults = function( jobId, response ) {
-    console.log( "results.tt: loadResults: job %s: start of loadResults", jobId );
-
-    updaters.get( jobId ).stop();
-
-    // decide whether the results should go at the top or bottom of the page
-    if ( jobs.get( jobId ).job_type === "A" ) {
-      $("results").insert( { "top": response.responseText } );
-    } else {
-      $("results").insert( { "bottom": response.responseText } );
-    }      
-
-    // hide all of the alignment rows once the table is built
-    $("results").select(".alignment").invoke( "hide" );
-    
-    // if we're using the gathering threshold, hide the insignificant hits and
-    // the front of the table title too
-    if ( jobOptions.ga ) {
-      $("pfamASummaryI").hide();
-      $$(".titlePrefix").invoke( "hide");
-    }
-
-    console.log( "results.tt: loadResults: job %s: done", jobId );
-  };
-  
-  //----------------------------------------
-
-  // a hacked version of the Ajax.PeriodicalUpdater. This one uses an
-  // Ajax.Request, rather than an Ajax.Updater, so that we get control of
-  // what gets updated in the page, and when. 
-
-  var Updater = Class.create( {
-    initialize: function( url, options ) {
-
-      this.options = {
-        method:       'post',
-        asynchronous: true,
-        contentType:  'application/x-www-form-urlencoded',
-        encoding:     'UTF-8',
-        parameters:   { },
-        evalJSON:     true,
-        evalJS:       true
-      };
-      Object.extend( this.options, options || { } );
-
-      this.onComplete = this.options.onComplete;
-  
-      this.frequency  = ( this.options.frequency || 2 );
-      this.decay      = ( this.options.decay || 1 );
-      this.updater    = { };
-      this.url        = url;
-  
-      this.start();
-    },
-  
-    start: function() {
-      this.options.onComplete = this.updateComplete.bind(this);
-      this.onTimerEvent();
-    },
-  
-    stop: function() {
-      this.updater.options.onComplete = undefined;
-      clearTimeout(this.timer);
-      ( this.onComplete || Prototype.emptyFunction ).apply( this, arguments );
-    },
-  
-    updateComplete: function( response ) {
-      console.log( "Updater.updateComplete: checking response..." );
-      if ( this.options.decay ) {
-        this.decay = (response.responseText == this.lastText ?
-          this.decay * this.options.decay : 1);
-  
-        this.lastText = response.responseText;
-      }
-      this.timer = this.onTimerEvent.bind(this).delay( this.decay * this.frequency );
-    },
-  
-    onTimerEvent: function() {
-      this.updater = new Ajax.Request( this.url, this.options );
-    }
-  });
-
-  //----------------------------------------
-
-  // set up the updaters
-  document.observe( "dom:loaded", function() {
-
-    // generate a new PeriodicalUpdater for each job ID
-    jobs.keys().each( function( jobId ) {
-      console.log( "results.tt: setting up polling for job %s", jobId );
-
-      var insertionPosition = jobs.get( jobId ).job_type === "A" ? "top" : "bottom";
-
-      var r = new Updater( 
-        jobOptions.pollUrl,
-        { 
-          parameters: { jobId: jobId },
-          frequency: 1,
-          decay: 1.2,
-          on204: function( response ) {
-            console.log( "results.tt: job %s, status 204; no results; polling further", jobId );
-          },
-          on200: function( response ) {
-            console.log( "results.tt: job %s, status 200; job done", jobId );
-            loadResults( jobId, response );
-          },
-          on400: function( response ) {
-            console.log( "results.tt: bad request for job %s; stopping polling", jobId );
-            r.stop();
-            $("results").insert( { 'top': response.responseText } );
-          }
-        }
-      );
-      
-      // keep hold of all of the updaters that we create, so that we can keep 
-      // track of how many job remain outstanding
-      updaters.set( jobId, r );
-      
-    } ); // end of "foreach job"
-
-  } ); // end of "document.observe"
-
-  //----------------------------------------
-
-  // a class to underline domains in the graphic
-
-  var Underliner = Class.create( {
-
-    initialize: function( /* PfamGraphic object */ pg ) {
-
-      // add the div that we'll use as the underline
-      if ( $("underline") ) {
-        // don't keep creating new ones though
-        this._underlineDiv = $("underline");
-      } else {
-        this._underlineDiv = new Element( "div", { id: "underline",
-                                                    style: "display: none" } );
-        pg.getParent().insert( { bottom: this._underlineDiv } );
-      }
-
-      // get the x-offset for the canvas element, so that we can calculate the
-      // correct position for the underline
-      this._canvasOffset = pg.getCanvas().cumulativeOffset().left;
-
-      // get the data structure that stores the area information
-      var areaStructures = pg.getAreas();
-      this._areasHash = areaStructures[1];
-    
-      // add the listeners for the mouse events
-      for ( var linkId in this._areasHash ) {
-        if ( ! $(linkId ) ) {
-          continue;
-        }
-        $(linkId).observe( "mouseover", this._showLine.bind( this ) );
-        $(linkId).observe( "mouseout",  this._hideLine.bind( this ) );
-      }
-    },
-
-    _hideLine: function( e ) {
-      this._underlineDiv.hide();
-    },  
-
-    _showLine: function( e ) {
-
-      var linkId = e.element().identify()
-      
-      if ( ! linkId ) {
-        this._underlineDiv.hide();
-        return;
-      }
-  
-      var start = parseInt( this._areasHash[linkId].coords[0] );
-      var end   = parseInt( this._areasHash[linkId].coords[2] );
-
-      var l = this._canvasOffset + start;
-      var w = end - start;
-  
-      this._underlineDiv.setStyle( { left:  l + "px",
-                                      width: w + "px" } )
-                         .show();
-    }
-  
-  } );
+  var results = new Results( resultsConfig );
   
   // ]]>
 </script>
+
+[% END; # of "IF seqSearchError" -%]
 
 <!-- end of "results" -->
 [%#
