@@ -15,7 +15,7 @@
 # where "requirements" and "sharedRequirements" are the hashes that are built
 # up in the various templates that construct a page.
 # 
-# $Id: load_requirements.tt,v 1.2 2009-06-09 12:35:11 jt6 Exp $
+# $Id: load_requirements.tt,v 1.3 2009-09-04 13:56:33 jt6 Exp $
 
 # somewhere to aggregate the lists of requirements from all templates
 cssIncludes = [];
