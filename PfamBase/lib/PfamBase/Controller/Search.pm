@@ -2,7 +2,7 @@
 # Search.pm
 # jt6 20080314 WTSI
 #
-# $Id: Search.pm,v 1.8 2008-10-22 10:50:20 jt6 Exp $
+# $Id: Search.pm,v 1.9 2009-09-04 13:55:20 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search;
 
 This controller is responsible for running searches.
 
-$Id: Search.pm,v 1.8 2008-10-22 10:50:20 jt6 Exp $
+$Id: Search.pm,v 1.9 2009-09-04 13:55:20 jt6 Exp $
 
 =cut
 
