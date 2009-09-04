@@ -4,7 +4,7 @@
 #
 # format the results of a H3 sequence search as a table.
 #
-# $Id: results_table.tt,v 1.2 2009-07-31 14:54:19 jt6 Exp $
+# $Id: results_table.tt,v 1.3 2009-09-04 12:53:23 jt6 Exp $
 
 META naked = 1;
 
@@ -80,7 +80,7 @@ BLOCK markupSeq;
     chunks.push( chunk );
     prevChar = char;
     
-    #CALL c.log.debug( "chunk: $chunk" );
+    # CALL c.log.debug( "chunk: $chunk" );
     freq.$char = chunk.length;
     IF chunk.length > maxChunkLength;
       max = char;
@@ -127,7 +127,7 @@ END; # of "BLOCK markupSeq"
 BLOCK markupHMM;
 
   # CALL c.log.debug( "hmm:   $hmmLine" );
-  CALL c.log.debug( "match: $matchLine" );
+  # CALL c.log.debug( "match: $matchLine" );
 
   pos      = 0;           # the position of the start of each chunk
   prevChar = '';          # the type of the previous chunk
@@ -157,7 +157,7 @@ BLOCK markupHMM;
   
   mapped.append( "</span>" ); 
 
-  CALL c.log.debug( "match: $matchLine" );
+  # CALL c.log.debug( "match: $matchLine" );
 
 END; # of "BLOCK markupHMM"
 
@@ -166,7 +166,7 @@ END; # of "BLOCK markupHMM"
 
 # a block that builds a table of results
 BLOCK buildTableBody;
-  CALL c.log.debug( "results_table.tt: building table body" );
+  # CALL c.log.debug( "results_table.tt: building table body" );
   
   # we use loop.index to build an ID for each row, since that really will
   # be unique, but for the purposes of deciding if a row is odd or even, we
@@ -177,10 +177,10 @@ BLOCK buildTableBody;
     # entirely skip any hits that have an E-value greater than the global 
     # E-value cut-off
     IF evalue_cutoff AND hit.evalue > evalue_cutoff;
-      CALL c.log.debug( "results_table.tt: hit evalue > cut-off evalue: " _ hit.evalue _ " > " _ evalue_cutoff );
+      # CALL c.log.debug( "results_table.tt: hit evalue > cut-off evalue: " _ hit.evalue _ " > " _ evalue_cutoff );
       NEXT;
     ELSE;
-      CALL c.log.debug( "results_table.tt: hit evalue < cut-off evalue: " _ hit.evalue _ " < " _ evalue_cutoff );
+      # CALL c.log.debug( "results_table.tt: hit evalue < cut-off evalue: " _ hit.evalue _ " < " _ evalue_cutoff );
     END;
 
     # decide whether we should skip this row. If the parameter 
@@ -210,8 +210,12 @@ BLOCK buildTableBody;
     <tr class="[% rowClass %]">
       <td class="rowNum">[% loop.index %]</td>
       <td>
+        [% IF hit.acc -%]
         <a id="[% hit.name _ '_' _ hit.seq.from _ '_' _ hit.seq.to %]" 
-           href="[% c.uri_for( "/family", { acc = hit.acc } ) %]">[% hit.name %]</a>
+           href="[% c.uri_for( "/family", hit.acc ) %]">[% hit.name %]</a>
+        [% ELSE;
+          hit.name;
+        END -%]
       </td>
       <td class="desc">
         [% IF hit.desc;
@@ -224,6 +228,13 @@ BLOCK buildTableBody;
         [% IF hit.type;
           hit.type;
         ELSE -%]
+          <span class="inactive">n/a</span>
+        [% END -%]
+      </td>
+      <td>
+        [% IF hit.clan AND hit.clan != 'No_clan' -%]
+          <a href="[% c.uri_for( '/clan', hit.clan ) %]">[% hit.clan %]</a>
+        [% ELSE -%]
           <span class="inactive">n/a</span>
         [% END -%]
       </td>
@@ -248,8 +259,7 @@ BLOCK buildTableBody;
       </td>
       <td class="showSwitch">
         <img src="[% showButton %]" 
-             onclick="toggleAlignment( '[% rowId %]', this )"
-             alt="Show alignment" />
+             alt="Show/hide alignment" />
       </td>
     </tr>
     <tr class="alignment [% rowClass %]" id="[% rowId %]">
@@ -266,13 +276,14 @@ END; # of "BLOCK buildTableBody"
 # a block to render the results table head
 
 BLOCK tableHead;
-  CALL c.log.debug( "results_table.tt: building table head" ); -%]
+  # CALL c.log.debug( "results_table.tt: building table head" ); -%]
   <thead>
     <tr class="titleRow">
       <th rowspan="2" class="rowNum">Original order</th>
       <th rowspan="2">Family</th>
       <th rowspan="2">Description</th>
       <th rowspan="2">Entry<br />type</th>
+      <th rowspan="2">Clan</th>
       <th colspan="2">Envelope</th>
       <th colspan="2">Alignment</th>
       <th colspan="2">HMM</th>
@@ -310,7 +321,7 @@ insignificantMatches = PROCESS buildTableBody showSignificant = 0;
 # show significant matches
 
 IF numSignificantMatches;
-  CALL c.log.debug( "results_table.tt: showing significant matches" ); -%]
+  # CALL c.log.debug( "results_table.tt: showing significant matches" ); -%]
 <table id="pfam[% job_type %]Summary"
        class="resultTable" 
        summary="Pfam-[% job_type %] search results">
@@ -319,8 +330,8 @@ IF numSignificantMatches;
       [% IF job_type == "A" %]<span class="titlePrefix">Significant </span>[% END -%]
       Pfam-[% job_type %] Matches
     </span>
-    <span class="link" onclick="showAllAlignments('pfam[% job_type %]Summary',true)">Show</span> or
-    <span class="link" onclick="showAllAlignments('pfam[% job_type %]Summary',false)">hide</span> 
+    <span class="showHideLink link">Show</span> or
+    <span class="showHideLink link">hide</span> 
     all alignments.
   </caption>
   [% PROCESS tableHead -%]
@@ -333,7 +344,7 @@ IF numSignificantMatches;
 # show INsignificant matches
 
 IF numInsignificantMatches;
-  CALL c.log.debug( "results_table.tt: showing INsignificant matches" ); -%]
+  # CALL c.log.debug( "results_table.tt: showing INsignificant matches" ); -%]
 <table id="pfam[% job_type %]SummaryI"
        class="resultTable" 
        summary="Insignificant Pfam-[% job_type %] matches">
@@ -342,8 +353,8 @@ IF numInsignificantMatches;
       [% IF job_type == "A" %]<span class="titlePrefix">Insignificant </span>[% END -%]
       Pfam-[% job_type %] Matches
     </span>
-    <span class="link" onclick="showAllAlignments('pfam[% job_type %]SummaryI',true)">Show</span> or
-    <span class="link" onclick="showAllAlignments('pfam[% job_type %]SummaryI',false)">hide</span> 
+    <span class="showHideLink link">Show</span> or
+    <span class="showHideLink link">hide</span> 
     all alignments.
   </caption>
   [% PROCESS tableHead -%]
@@ -361,8 +372,8 @@ END; # of "if numHits" %]
 <script type="text/javascript">
   // <![CDATA[
 
-  // sequence details
-  sequence.length = jobs.values().first().seq.length;
+  var regions = [];
+  var motifs  = [];
 
   [% # build the JSON object that defines the domain graphics
     colours = [ "red", "green", "blue", "pink", "#0080F0" ];
@@ -375,80 +386,37 @@ END; # of "if numHits" %]
       i = 0;
     END;
     IF job_type == "A" -%]
-      sequence.regions.push( { startStyle: "curved",
-                               endStyle:   "curved",
-                               start:      [% hit.env.from %],
-                               end:        [% hit.env.to %],
-                               aliStart:   [% hit.seq.from %],
-                               aliEnd:     [% hit.seq.to %],
-                               text:       "[% hit.name %]",
-                               colour:     "[% colour %]",
-                               acc:        "[% hit.acc %]" } );
+      regions.push( { startStyle: "curved",
+                      endStyle:   "curved",
+                      start:      [% hit.env.from %],
+                      end:        [% hit.env.to %],
+                      aliStart:   [% hit.seq.from %],
+                      aliEnd:     [% hit.seq.to %],
+                      text:       "[% hit.name %]",
+                      colour:     "[% colour %]",
+                      acc:        "[% hit.acc %]" } );
     [% ELSIF job_type == "B" -%]
-      sequence.motifs.push( {  start:      [% hit.env.from %],
-                               end:        [% hit.env.to %],
-                               aliStart:   [% hit.seq.from %],
-                               aliEnd:     [% hit.seq.to %],
-                               text:       "[% hit.name %]",
-                               colour:     [ 'FF0000', '00FF00', '0000FF' ],
-                               acc:        "[% hit.acc %]" } );
+      motifs.push( {  start:      [% hit.env.from %],
+                      end:        [% hit.env.to %],
+                      aliStart:   [% hit.seq.from %],
+                      aliEnd:     [% hit.seq.to %],
+                      text:       "[% hit.name %]",
+                      colour:     [ 'FF0000', '00FF00', '0000FF' ],
+                      acc:        "[% hit.acc %]" } );
     [% END;
   END -%]
 
   //----------------------------------------
 
-  // store the details of this set of results 
-  [% IF job_type == "A" -%]
-    resultDetails.numAs = [% numSignificantMatches + numInsignificantMatches %];
-  [% ELSIF job_type == "B" -%]
-    resultDetails.numBs = [% numSignificantMatches + numInsignificantMatches %];
-    resultDetails.searchedBs = true;
-  [% END -%]
-
-  resultDetails.[% job_type %] = {
-    id:            "[% jobId %]",
-    significant:   [% numSignificantMatches %],
-    insignificant: [% numInsignificantMatches %]
-  };
-
-  //----------------------------------------
-
-  // remove this job from the list of running jobs
-  updaters.unset( "[% jobId %]" );
-  
-  // update the status message that keeps track of the number of pending jobs
-  var numJobs = updaters.keys().size();
-  $("numJobs").update( numJobs );
-  $("jobLabel").update( numJobs > 1 ? "jobs" : "job" );
-
-  // draw the graphic if there are no more jobs outstanding
-  console.log( "results_table.tt: still %d updaters running", numJobs );
-  
-  if ( numJobs < 1 ) {
-    console.log( "results.tt: loadResults: no other running jobs; finishing page" );
-    
-    // hide the spinner
-    $("loading").hide();
-
-    // build the summary text and show it
-    writeSummary();
-    $("summary").show();
-
-    // set the widths for the alignment blocks, so that the scroll bars are
-    // correctly added
-    $$("#results table.resultTable div.hmmWindow").each( function(a) {
-      console.log( "setting width to %d for ", alignmentWidth, a );
-      a.setStyle( { width: alignmentWidth+"px" } );
-    } );
-
-    // draw the domain graphics. Hand in the base URL for the links on the image
-    pg = new PfamGraphic( "dg", sequence );
-    pg.setImageParams( { regionUrl: "[% c.uri_for( '/family/' ) %]" } );
-    pg.render();
-  
-    // set up the underlining
-    underliner = new Underliner( pg ); 
-  }
+  // record the details of this set of results
+  results.jobDone( "[% jobId %]",  
+                   { jobType:       "[% job_type %]",
+                     total:         [% numSignificantMatches + numInsignificantMatches %],
+                     significant:   [% numSignificantMatches %],
+                     insignificant: [% numInsignificantMatches %],
+                     regions:       regions,
+                     motifs:        motifs
+                   } );
   
   // ]]>
 </script>
