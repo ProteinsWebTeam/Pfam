@@ -402,15 +402,19 @@ sub main {
       #                   dest => $config->pfamseqFarmLoc()."/pfamseq" });
       my $ug = new Data::UUID; 
       my $uuid = $ug->to_string( $ug->create() );
-      print "$uuid\n";
+      my $user = $ENV{USER};
+      mkdir($farmConfig->{lsf}->{scratch}."/$user/$uuid") or 
+        die "Failed to make a directory on the farm users space, ".
+            $farmConfig->{lsf}->{scratch}."/$user/$uuid: [$!]";
+      copy( "SEED", $farmConfig->{lsf}->{scratch}."/$user/$uuid/SEED") or die "Failed to copy SEED to scratch space:[$!]";
+      copy( "HMM", $farmConfig->{lsf}->{scratch}."/$user/$uuid/HMM")   or die "Failed to copy HMM to scratch space:[$!]";
+      copy( "DESC", $farmConfig->{lsf}->{scratch}."/$user/$uuid/DESC") or die "Failed to copy DESC to scratch space:[$!]";
+
+
       unless($split){
         my $fh = IO::File->new();
         $fh->open("| bsub -q ".$farmConfig->{lsf}->{queue}." -o /tmp/$$.log -Jhmmsearch$$");
-        $fh->print("mkdir ".$farmConfig->{lsf}->{scratch}."/$uuid\n") or die "Couldn't make directory [".$farmConfig->{lsf}->{scratch}."./$uuid] \n";
-        $fh->print("/usr/bin/scp -p $phost:$pwd/SEED ".$farmConfig->{lsf}->{scratch}."/$uuid/SEED \n");
-      	$fh->print("/usr/bin/scp -p $phost:$pwd/HMM ".$farmConfig->{lsf}->{scratch}."/$uuid/HMM \n");
-      	$fh->print("/usr/bin/scp -p $phost:$pwd/DESC ".$farmConfig->{lsf}->{scratch}."/$uuid/DESC \n") if ($withpfmake and -e "$pwd/DESC");
-	      $fh->print("cd ".$farmConfig->{lsf}->{scratch}."/$uuid \n");
+        $fh->print("cd ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n");
         $fh->print("$cmd\n");
         
         # now need to do the equivalent of convertHMMsearch method in$HMMResultsIO;
@@ -441,7 +445,7 @@ sub main {
           $fh->print( "/usr/bin/scp -p ALIGN $phost:$pwd/ALIGN\n" );
         }     
         #Now clean up after ourselves on the farm
-        $fh->print( "rm -fr ".$farmConfig->{lsf}->{scratch}."/$uuid \n" );
+        $fh->print( "rm -fr ".$farmConfig->{lsf}->{scratch}."/$user/$uuid \n" );
         $fh->close();
       }else{
         #TODO split
