@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.33 2009-08-06 13:15:20 jt6 Exp $
+# $Id: Sequence.pm,v 1.34 2009-09-04 09:53:39 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.33 2009-08-06 13:15:20 jt6 Exp $
+$Id: Sequence.pm,v 1.34 2009-09-04 09:53:39 jt6 Exp $
 
 =cut
 
@@ -32,7 +32,8 @@ use Data::UUID;
 use Data::Dump qw( dump );
 use Storable qw( thaw );
 
-use base qw( PfamBase::Controller::Search::InteractiveSearch
+use base qw( Catalyst::Controller::REST
+             PfamBase::Controller::Search::InteractiveSearch
              PfamWeb::Controller::Search );
 
 #-------------------------------------------------------------------------------
@@ -44,97 +45,70 @@ use base qw( PfamBase::Controller::Search::InteractiveSearch
 Queues a sequence search job and redirects to a page that polls the server for
 results. 
 
-We redirect to a page so that we can convert the POST that gets us here into 
-a GET that can be bookmarked.
-
 =cut
 
-sub search : Path {
+sub search : Path : ActionClass( 'REST' ) { }
+
+#----------------------------------------
+
+sub search_POST {
   my ( $this, $c ) = @_;
 
+  # retrieve the job parameters from either the request or, if the request has
+  # been deserialised for us, from the stash 
+  $c->stash->{data} = {};
+  foreach my $slot ( qw( seq ga evalue ) ) {
+    $c->stash->{data}->{$slot} = $c->req->param($slot)
+                                 || ( defined $c->req->data ? $c->req->data->{$slot} : '' );
+  }
+  
   # validate the input
   unless ( $c->forward('validate_input') ) {
 
-    # copy the error message into the slot in the stash where the templates
-    # expect to find it
-    $c->stash->{seqSearchError} = $c->stash->{searchError}
-      || 'There was an unknown problem when validating your sequence.';
-
-    # if we're returning XML, we need to set a template to render the error
-    # message. If we're emitting HTML, the end action (ultimately on Section)
-    # will take of us and return us to the HTML page containing search form
-    # and show the error message
-    if ( $c->stash->{output_xml} ) {
-      $c->stash->{template} = 'rest/search/error_xml.tt';
-      $c->res->content_type('text/xml');
-    }
+    $this->status_bad_request(
+      $c,
+      message => $c->stash->{searchError}
+                 || 'There was an unknown problem when validating your sequence.'
+    );
 
     return;
   }
 
   # no errors with the input; try to submit the search
 
-  # success !
   if ( $c->forward('queue_seq_search') ) {
 
-    $c->log->debug( 'Search::Sequence::search: redirecting to results page' )
-      if $c->debug;
+    # success !
 
-    if ( $c->req->param('output') eq 'xml' ) {
-      $c->stash->{template} = 'rest/search/poll_xml.tt';
-      $c->res->status(202); # 'Accepted'
-      $c->res->content_type('text/xml');
+    my $data = [];
+    foreach my $job_id ( @{ $c->stash->{queued_jobs} } ) {
+      push @$data, { jobId => $job_id,
+                     uri   => $c->uri_for( '/search/sequence/resultset', $job_id )->as_string };
     }
-    elsif ( $c->req->param('output') eq 'yaml' or
-            $c->req->param('output') eq 'json' ) {
-              
-      my $data_type = $c->req->param('output');
+    $c->stash->{rest} = $data;
 
-      $c->res->status(202); # 'Accepted'
+    $this->status_accepted(
+      $c,
+      entity => $data
+    );
 
-      my $data = {};
-      foreach my $job_id ( @{ $c->stash->{queued_jobs} } ) {
-        $data->{$job_id} = $c->uri_for( '/search/sequence/resultset', $job_id,
-                                        { output => $data_type } )->as_string; 
-      }
-
-      if ( $data_type eq 'yaml' ) {
-        require YAML;
-        $c->res->content_type('text/yaml');
-        $c->res->body( Dump( $data ) );
-      }
-      elsif (  $data_type eq 'json' ) {
-        # require JSON;
-        $c->res->content_type('text/json');
-        $c->res->body( to_json( $data ) );
-      }
-    }
-    else {
-      $c->res->redirect( $c->uri_for( 'results', 
-                                      { jobId => $c->stash->{queued_jobs} } ) );
-    }
+    $c->forward( 'results', $c->stash->{queued_jobs} );
 
   }
-
-  # failure...
   else {
 
-    $c->stash->{seqSearchError} = $c->stash->{searchError}
-      || 'There was an unknown problem when submitting your search.';
+    # failure
 
-    $c->log->debug(
-      'Search::Sequence::search: problem with submission; re-rendering form')
-      if $c->debug;
-
-    # point to the XML error template if emitting XML, otherwise, we're just
-    # done here
-#    if ( $c->stash->{output_xml} ) {
-#      $c->stash->{template} = 'rest/search/error_xml.tt';
-#      $c->res->content_type('text/xml');
-#    }
-
+    $this->status_bad_request(
+      $c,
+      message => $c->stash->{searchError}
+                 || 'There was an unknown problem when submitting your search.'
+    );
+    
   }
 
+  $c->log->debug( 'Search::Sequence::search_POST: template set to ' . $c->stash->{template} )
+    if $c->debug;
 }
 
 #   http://onlamp.com/pub/a/onlamp/2008/02/19/developing-restful-web-services-in-perl.html?page=2
@@ -150,6 +124,8 @@ Builds a page that will hold the results of the search(es).
 sub results : Local {
   my ( $this, $c, @args ) = @_;
 
+  $c->stash->{template} = 'pages/search/sequence/results.tt';  
+  
   $c->log->debug( 'Search::Sequence::results: loading results page' )
     if $c->debug;
 
@@ -176,13 +152,10 @@ sub results : Local {
     return 0;
   }  
 
+  # retrieve the results
   foreach my $job_id ( @ids ) {
     
-    # we shouldn't really need to check the IDs here, but since this is a
-    # separate request, it could be hit directly. We're not going to bother
-    # with a full error message though, since an error here is the result of
-    # someone farting around... 
-       
+    # check the job IDs first...
     unless ( $job_id =~ m/^[A-F0-9\-]{36}$/i ) {
       $c->stash->{seqSearchError} = 'Invalid job IDs';
 
@@ -203,8 +176,6 @@ sub results : Local {
     # we need the job objects so that the template that build the results 
     # page can keep track of the type of each job, amongst other things
   }
-  
-  $c->stash->{template} = 'pages/search/sequence/results.tt';  
 }
 
 #-------------------------------------------------------------------------------
@@ -215,16 +186,35 @@ Returns the HTML table containing the results of the specified job(s).
 
 =cut
 
-sub resultset : Local {
+sub resultset : Local : ActionClass('REST') { }
+
+#----------------------------------------
+
+sub resultset_GET {
   my ( $this, $c, $arg ) = @_;
 
+  # start by setting the template, which we'll use to render error messages if 
+  # the request asks for HTML. We'll reset the template name once we've made
+  # sure that the job was successful
+  $c->stash->{template} = 'pages/search/sequence/error.tt';
+  
+  # TODO fix up this template to make it return a simple error message
+
+  # get hold of the job ID
+  my $job_id = $c->req->param('jobId') 
+               || $arg
+               || ( defined $c->req->data ? $c->req->data->{jobId} : '' );
+
   # make sure we have a job ID
-  my $job_id;
-  unless ( $job_id = $c->req->param('jobId') || $arg ) {
+  unless ( $job_id ) {
     $c->log->debug( 'Search::Sequence::resultset: no job IDs' )
       if $c->debug;
-    $c->res->status( '400' ); # 'Bad Request'
-    $c->res->body( 'You did not supply any job IDs' );
+
+    $this->status_bad_request(
+      $c,
+      message => 'You did not supply any job IDs'
+    );
+
     return;
   }
   
@@ -232,8 +222,12 @@ sub resultset : Local {
   unless ( $job_id =~ s/^([A-F0-9\-]{36})$/$1/i ) {
     $c->log->debug( 'Search::Sequence::resultset: bad job ID' )
       if $c->debug;
-    $c->res->status( '400' ); # 'Bad Request'
-    $c->res->body( 'You did not supply a valid job ID' );
+
+    $this->status_bad_request(
+      $c,
+      message => 'You did not supply a valid job ID'
+    );
+
     return;
   }
   
@@ -248,14 +242,20 @@ sub resultset : Local {
   # get the raw database row and check the status
   my $job = $c->stash->{results}->{$job_id}->{job};
 
-  # first, make sure the job actually exists
+  # make sure the job actually exists; throw an error otherwise
   unless ( defined $job  ) {
     $c->log->debug( 'Search::Sequence::resultset: job not found' )
       if $c->debug;
-    $c->res->status( '404' ); # 'No content'
-    $c->res->body( "Job $job_id not found" );
+
+    $this->status_not_found(
+      $c,
+      message => "Job $job_id not found"
+    );
+
     return;
   }
+
+  #----------------------------------------
 
   # next check the status
   my $status = $job->status;
@@ -266,17 +266,28 @@ sub resultset : Local {
   if ( $status eq 'PEND' or $status eq 'RUN' ) {
     $c->log->debug( 'Search::Sequence::resultset: job not yet complete' )
       if $c->debug;
-    $c->res->status( '202' ); # 'Accepted'
-    $c->res->body( "Job $job_id not yet complete" );
+
+    $this->status_accepted(
+      $c,
+      entity => {
+        status => $status
+      }
+    );
+
     return;
   }
+
+  # we need to return these error status messages and codes manually, since
+  # there are no helpers for them in C::C::REST
 
   # check for a failure
   if ( $status eq 'FAIL' ) {
     $c->log->debug( 'Search::Sequence::resultset: job failed in the search system' )
       if $c->debug;
+
     $c->res->status( '502' ); # 'Bad gateway'
-    $c->res->body( "Job $job_id failed to complete successfully" ); 
+    $c->stash->{rest} = { error => "Job $job_id failed to complete successfully" };
+
     return;
   }
   
@@ -284,8 +295,10 @@ sub resultset : Local {
   if ( $status eq 'HOLD' ) {
     $c->log->debug( 'Search::Sequence::resultset: job is on hold' )
       if $c->debug;
+
     $c->res->status( '503' ); # 'Service unavailable'
-    $c->res->body( "Job $job_id is on hold" ); 
+    $c->stash->{rest} = { error => "Job $job_id is on hold" }; 
+
     return;
   }
   
@@ -293,8 +306,10 @@ sub resultset : Local {
   if ( $status eq 'DEL' ) {
     $c->log->debug( 'Search::Sequence::resultset: job has been deleted' )
       if $c->debug;
+
     $c->res->status( '410' ); # 'Gone'
-    $c->res->body( "Job $job_id has been deleted from the search system" ); 
+    $c->stash->{rest} = { error => "Job $job_id has been deleted from the search system" }; 
+
     return;
   }
   
@@ -303,30 +318,25 @@ sub resultset : Local {
   if ( $status eq 'DEL' ) {
     $c->log->debug( 'Search::Sequence::resultset: job failed in a strange and unusual fashion' )
       if $c->debug;
+    
     $c->res->status( '500' ); # 'Internal server error'
-    $c->res->body( "Job $job_id failed with an unknown error" );
+    $c->stash->{rest} = { error => "Job $job_id failed with an unknown error" };
+    
     return;
   }
  
-#    $c->stash->{template} = 'components/blocks/search/error.tt';
-
   #----------------------------------------
   
   # job completed successfully !
 
+  $c->stash->{template} = 'pages/search/sequence/results_table.tt';
+
   # parse the results
   $c->forward( 'handle_results', [ $job ] );
 
-  # should we output XML ?
-  if ( $c->stash->{output_xml} ) {
-    $c->stash->{template} = 'rest/search/results_xml.tt';
-    $c->res->content_type('text/xml');    
-  }
-  
-  # no; render the HTML template
-  else {
-    $c->stash->{template} = 'pages/search/sequence/results_table.tt';
-  }
+  # put a reference to the results data structure in the "rest" slot in the 
+  # stash, which is where the serialisers will be looking for it
+  $c->stash->{rest} = $c->stash->{results};
 
 }
 
@@ -455,8 +465,7 @@ sub parse_sequence : Private {
   my ( $this, $c ) = @_;
 
   # make sure we actually have a sequence...
-  unless ( defined $c->req->param('seq') and
-           $c->req->param('seq') ne '' ) {
+  unless ( $c->stash->{data}->{seq} and $c->stash->{data}->{seq} ne '' ) {
     $c->stash->{searchError} = 'You did not supply an amino-acid sequence.';
 
     $c->log->debug( 'Search::Sequence::parse_sequence: no sequence supplied; failed' )
@@ -467,7 +476,8 @@ sub parse_sequence : Private {
   
   # break the string into individual lines and get rid of any FASTA header lines
   # before recombining
-  my @seqs = split /\n/, $c->req->param('seq');
+  # my @seqs = split /\n/, $c->req->param('seq');
+  my @seqs = split /\n/, $c->stash->{data}->{seq};
   shift @seqs if $seqs[0] =~ /^\>/;
   my $seq = uc( join '', @seqs );
 
@@ -757,196 +767,3 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 =cut
 
 1;
-
-__DATA__
-[
-  {
-    acc      => "PF02600",
-    act_site => undef,
-    align    => [
-                  "#HMM       vlglePCpLCi",
-                  "#MATCH     ++glePC++Ci",
-                  "#PP        689*******8",
-                  "#SEQ       LRGLEPCAICI",
-                ],
-    bits     => "0.6",
-    clan     => "No_clan",
-    env      => { from => 1079, to => 1093 },
-    evalue   => "3e+02",
-    hmm      => { from => 28, to => 38 },
-    name     => "DsbB",
-    seq      => { from => 1082, name => "UserSeq", to => 1092 },
-  },
-  {
-    acc      => "PF00168",
-    act_site => undef,
-    align    => [
-                  "#HMM       evtvieAknLpkkdkngksdpyvkvklggekk..qkkkTkvvkkt.lnPvWn.etfefevseeelqeleieVydkdrlgkddflGev",
-                  "#MATCH     +++v++A++Lpk +++g+++p+v+++++g++++++k+kT++v++++lnPvW++++f+f++s++e+++l+++Vy++d++++++fl+++",
-                  "#PP        589********9.7799************9999889****999999******999***************************99987",
-                  "#SEQ       CIEVLGARHLPK-NGRGIVCPFVEIEVAGAEYdsIKQKTEFVVDNgLNPVWPaKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQA",
-                ],
-    bits     => "49.3",
-    clan     => "CL0154",
-    env      => { from => 1090, to => 1177 },
-    evalue   => "2.3e-13",
-    hmm      => { from => 2, to => 84 },
-    name     => "C2",
-    seq      => { from => 1091, name => "UserSeq", to => 1176 },
-  },
-  {
-    acc      => "PF06054",
-    act_site => undef,
-    align    => [
-                  "#HMM       iEiQcsklsikelkerTegykreglkvlW",
-                  "#MATCH     +Ei++++++++++k++Te+++++gl+++W",
-                  "#PP        89***************************",
-                  "#SEQ       VEIEVAGAEYDSIKQKTEFVVDNGLNPVW",
-                ],
-    bits     => "0.9",
-    clan     => "CL0236",
-    env      => { from => 1105, to => 1153 },
-    evalue   => "1.5e+02",
-    hmm      => { from => 106, to => 134 },
-    name     => "CoiA",
-    seq      => { from => 1112, name => "UserSeq", to => 1140 },
-  },
-]
-
-sub old_validate_input : Private {
-  my ( $this, $c ) = @_;
-  
-  # parse and validate the sequence itself
-  unless ( $c->forward('parse_sequence') ) {
-
-    # the parse_sequence method will put the sequence into the stash if it
-    # passes validation, but if the sequence looks like DNA or if it's
-    # too long, we also get an error message in the stash. So, we only set 
-    # a general error message here if we don't already have one
-    $c->stash->{searchError} ||= 'Invalid sequence. Please try again with a valid amino-acid sequence.';
-
-    $c->log->debug( 'Search::Sequence::validate_input: sequence parsing failed' )
-      if $c->debug;
-
-    return 0;
-  }
-  
-  # search for Pfam-Bs ?
-  $c->stash->{searchBs} = ( defined $c->req->param('searchBs') and
-                            $c->req->param('searchBs') );
-
-  # should we search for Pfam-As or just skip them and search only Pfam-Bs ?
-  if ( defined $c->req->param('skipAs') and
-       $c->req->param('skipAs') ) {
-    
-    $c->log->debug( 'Search::Sequence::sequence_search: skipping Pfam-A search' )
-      if $c->debug;
-    
-    # flag up the fact that we want to skip Pfam-A searches
-    $c->stash->{skipAs} = 1;
-    
-    # and force a search for Pfam-Bs
-    $c->stash->{searchBs} = 1;
-    
-    # no need to check the remaining parameters, since they apply only to
-    # Pfam-A searches and we're not actually doing a Pfam-A search...
-    return 1;
-    
-  }
-    
-  # available sequence search options
-  my %available_options = ( both        => 1,
-                            bothNoMerge => 1,
-                            ls          => 1,
-                            fs          => 1 );
-
-  # somewhere to stash the search options
-  $c->stash->{options} = {};
-
-  # the user supplied an option; check it's valid
-  if ( defined $c->req->param('seqOpts') ) {
-    
-    unless ( defined $available_options{ $c->req->param('seqOpts') } ) {
-      $c->stash->{searchError} = 'You must use a valid search option.';
-
-      $c->log->debug( 'Search::Sequence::validate_inputh: bad search option; returning to form' )
-        if $c->debug;
-
-      return 0;
-    }
-    
-    $c->stash->{options}->{seqOpts} = $c->req->param('seqOpts');
-  }
-
-  # default to "both"
-  else {
-    $c->stash->{options}->{seqOpts} = 'both';
-
-    $c->log->debug( 'Search::Sequence::validate_input: setting search option to default of "both"' )
-      if $c->debug;
-  }
-
-  # if we're supplied with an E-value, we'll use that, unless we've been asked 
-  # to use the gathering threshold. Default to using an evalue of 1.0
-  if ( defined $c->req->param('evalue') ) {
-    $c->log->debug( 'Search::Sequence::sequence_search: got an evalue' )
-      if $c->debug;
-
-    # firstly, it has to be a number
-    unless ( looks_like_number( $c->req->param('evalue') ) ) {
-      $c->stash->{searchError} = 'The E-value must be a valid positive number <= 10.0.';
-
-      $c->log->debug( 'Search::Sequence::validate_input: bad evalue (NaN); returning to form' )
-        if $c->debug;
-
-      return 0;
-    }
-    
-    # secondly, it has to be positive...
-    unless ( $c->req->param('evalue') > 0 ) {
-      $c->stash->{searchError} = 'The E-value must be a positive number. '
-                                 . 'Negative E-values values are meaningless.';
-
-      $c->log->debug( 'Search::Sequence::validate_input: bad evalue (-ve); returning to form' )
-        if $c->debug;
-
-      return 0;
-    }
-
-    # thirdly and finally, it has to be less than 10.0
-    unless ( $c->req->param('evalue') <= 10.0 ) {
-      $c->stash->{searchError} = 'The E-value must be <= 10.0. Large E-values '
-                                 . 'result in large numbers of meaningless Pfam '
-                                 . 'hits and cause severe problems for our '
-                                 . 'search system.';
-
-      $c->log->debug( 'Search::Sequence::validate_input: bad evalue ( > 10.0 ); returning to form' )
-        if $c->debug;
-
-      return 0;
-    }
-
-    $c->log->debug( 'Search::Sequence::validate_input: evalue looks like a positive number <= 10.0; stashing' )
-      if $c->debug;
-    $c->stash->{options}->{evalue} = $c->req->param('evalue');
-
-  }
-  elsif ( defined $c->req->param('ga') and 
-          $c->req->param('ga') ) {
-    $c->log->debug( 'Search::Sequence::validate_input: using ga' )
-      if $c->debug;
-    $c->stash->{options}->{ga} = 1;
-    
-  }
-  else {
-    $c->log->debug( 'Search::Sequence::validate_inputh: using default evalue' )
-      if $c->debug;
-    $c->stash->{options}->{evalue} = 1.0;
-  }
-
-  # convert the options hash into JSON
-  $c->stash->{options} = to_json( $c->stash->{options} );
-
-  return 1;  
-}
-
