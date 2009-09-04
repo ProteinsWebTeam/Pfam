@@ -2,7 +2,7 @@
 # Section.pm
 # jt6 20060922 WTSI
 #
-# $Id: Section.pm,v 1.4 2008-05-22 09:51:24 jt6 Exp $
+# $Id: Section.pm,v 1.5 2009-09-04 13:55:40 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ captures the URL, and an C<end> that catches errors from earlier in
 the process and reports them. If there are no errors it renders the
 view that's for the section, e.g. "family.tt", etc.
 
-$Id: Section.pm,v 1.4 2008-05-22 09:51:24 jt6 Exp $
+$Id: Section.pm,v 1.5 2009-09-04 13:55:40 jt6 Exp $
 
 =cut
 
