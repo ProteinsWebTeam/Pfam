@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.34 2009-06-09 15:17:33 jt6 Exp $
+# $Id: header.tt,v 1.35 2009-09-04 10:44:57 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
