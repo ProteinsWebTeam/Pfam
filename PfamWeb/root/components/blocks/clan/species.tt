@@ -5,7 +5,7 @@
 #
 # block showing the species tree for clans
 #
-# $Id: species.tt,v 1.7 2008-07-23 13:39:06 jt6 Exp $
+# $Id: species.tt,v 1.8 2009-09-04 10:46:45 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,10 +14,6 @@ PROCESS "components/require.tt";
 
 # YUI stuff - this is for the tree viewer
 sharedRequirements.css.push( "tree.css" );
-sharedRequirements.js.push( "yui/yahoo.js" );
-sharedRequirements.js.push( "yui/dom.js" );
-sharedRequirements.js.push( "yui/event.js" );
-sharedRequirements.js.push( "yui/treeview.js" );
 sharedRequirements.js.push( "yui/TaskNode.js" );
 sharedRequirements.js.push( "treeTweak.js" );
 
