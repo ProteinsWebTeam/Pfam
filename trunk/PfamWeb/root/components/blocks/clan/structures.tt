@@ -2,7 +2,7 @@
 # structures.tt
 # jt6 20060424 WTSI
 #
-# $Id: structures.tt,v 1.15 2008-07-23 13:39:06 jt6 Exp $
+# $Id: structures.tt,v 1.16 2009-09-04 10:47:00 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 
@@ -45,8 +45,43 @@ PROCESS "components/require.tt";
 
 <script type="text/javascript">
   // <![CDATA[
-  loadOptions.cstruc.uri    = "[% c.uri_for( "/clan/structures" ) %]";
-  loadOptions.cstruc.params = { acc: "[% clan.clan_acc %]" };
+
+  var numColsTable;
+
+  Event.observe( window, "load", function() {
+    var r = new Ajax.Request( 
+      "[% c.uri_for( '/clan/structures' ) %]",
+      { parameters: { acc: "[% clan.clan_acc %]" },
+        onComplete: function( oResponse ) {
+
+          $("clanStructureTabHolder").update( oResponse.responseText );
+           
+          // how many columns are there in the table ?
+          var rows = $("structuresTable").select("tr");
+          
+          if ( rows.size() <= 1 ) {
+            $("clanStructureTabHolder").update( "There is no structure mapping for this clan." );
+            return;
+          }
+           
+          numColsTable = rows.first().select("td").size();
+ 
+          // walk over all of the cells in the table and add listeners for mouseover and 
+          // mouseout events
+          $("structuresTable")
+            .select( "td" )
+            .each( function( cell ) {
+              cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
+              cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
+            } );
+
+        },
+        onFailure:  function() {
+          $("cstrucph").update( "Graphics loading failed." );
+        }
+      } );
+  } );
+
   // ]]>
 </script>
 
