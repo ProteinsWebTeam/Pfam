@@ -8,14 +8,12 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.17 2009-08-28 13:21:22 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.18 2009-09-04 10:45:52 jt6 Exp $
 
 META naked = 1;
 
 USE String;
 USE Dumper;
-
-# CALL c.log.debug( "allArchitectures.tt: seqInfo: " _ Dumper.dump(seqInfo) );
 
 BLOCK graphicRow;
 
@@ -87,17 +85,16 @@ BLOCK graphicRow;
     IF seqInfo.$id.num.defined; 
       IF seqInfo.$id.num != 1;
         # switch to show/hide the domains %]
-        <span id="showHideArchs[% loop.index %]" style="display: none">
-          <span class="link" onclick="reveal(this,'domainArch[% loop.index %]',true)">Hide</span>
-          all sequences with this architecture.
+        <span style="display: none">
+          <span class="link revealLink">Hide</span> all sequences with this architecture.
         </span>
   
         [% # switch to actually generate the domains and load them into a div
            # taking care not to add empty parameters
         loadParams = {};
-        IF acc != "";
-          loadParams.acc = acc;
-        END; 
+#        IF acc != "";
+#          loadParams.acc = acc;
+#        END; 
         IF seqInfo.$id.auto_arch.defined;
           loadParams.arch = seqInfo.$id.auto_arch;
         END;
@@ -106,19 +103,16 @@ BLOCK graphicRow;
         END;
         loadUri = c.uri_for( "/domaingraphics", loadParams );
          -%]
-        <span id="loadSwitch[% loop.index %]">
-          <span class="link" 
-                onclick="loadDomains( '[% loop.index %]', '[% loadUri | html %]', '[% seqInfo.$id.num %]' )">
-            Show</span> all sequences with this architecture.
+        <span>
+          <span class="link loadLink">Show</span> all sequences with this architecture.
         </span>
 
-    [% END; # of "UNLESS seqInfo..."
+      [% END; # of "num != 1"
     END; # of "UNLESS seqInfo..."
 
     # somewhere to stuff the post-post-loaded graphics... %]
-    <div id="domainArch[% loop.index %]">
-      <div id="adSpinner[% loop.index %]" 
-           style="display: none" 
+    <div class="domainArch">
+      <div style="display: none" 
            class="loading">
         Loading all sequences...
       </div>
@@ -130,23 +124,29 @@ BLOCK graphicRow;
 
 [% END; # of "BLOCK graphicRow"
 
+# and actually build the rows now...
 FOREACH id IN ids;  
   PROCESS graphicRow id = id;
-END; # of "FOREACH id"
--%]
+END; # of "FOREACH id" -%]
 
 <script type="text/javascript">
   // <![CDATA[
 
-  [% layout %].each( function( sequence ) {
-    
-    var pg = new PfamGraphic();
-    
-    pg.setSequence( sequence );
-    pg.setParent( $("row" + sequence.metadata.identifier).down(".pgholder") );
-    pg.render();
-    
-  } );
+  [% # we need to stash a couple of bits of information for each of the architecture:
+     #   count: the number of sequences for this architecture
+     #   arch:  the auto_architecture number for this architecture
+     # we store them on the HTML nodes directly, so that they're easily accessible to
+     # the javascript object that controls this page
+  FOREACH id IN ids -%]
+  $("row[% id %]").store( "count", [% seqInfo.$id.num %] )
+                  .store( "arch",  [% seqInfo.$id.auto_arch %] );
+  [% END -%]
+
+  var uri = "[% c.uri_for( '/domaingraphics' ) %]";
+  var layout = [% layout %];
+  var assignedColours = [% assignedColours %];
+
+  var dgl = new DomainGraphicsLoader( uri, layout, assignedColours );
 
   // ]]>
 </script>
