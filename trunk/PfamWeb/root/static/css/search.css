@@ -4,7 +4,7 @@
 
    Stylesheet for the search pages, both the forms and the result pages.
 
-   $Id: search.css,v 1.7 2008-09-03 15:28:42 jt6 Exp $
+   $Id: search.css,v 1.8 2009-09-04 12:55:51 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -135,4 +135,66 @@ div.autocomplete span.informal {
 
 #batchNotes code {
   margin-left: 2em;
+}
+
+/* ---------------------------------------- */
+/* sequence search results */
+
+td.showSwitch {
+  cursor: pointer;
+}
+
+#numJobs {
+  font-weight: bold;
+}
+
+#underline {
+  position: absolute;
+  width: 100px;
+  height: 3px;
+  background-color: #777;
+}
+
+div.hmmAlignment {
+  font-family: monospace;
+  padding: 0.4em;
+/*  width: 800px; */
+}
+
+div.hmmWindow {
+  overflow: auto;
+}
+
+/* PP heatmap */
+.heat0    { background-color: #aa0000; color: #ccc; }
+.heat1    { background-color: #9e0000; color: #ccc; }
+.heat2    { background-color: #900d00; color: #ccc; }
+.heat3    { background-color: #7e2703; color: #ccc; }
+.heat4    { background-color: #694506; color: #ccc; }
+.heat5    { background-color: #536609; color: #ccc; }
+.heat6    { background-color: #3c850d; color: #ccc; }
+.heat7    { background-color: #26a511; color: #000; }
+.heat8    { background-color: #12c414; color: #000; }
+.heat9    { background-color: #00e017; color: #000; }
+.heatstar { background-color: #00f719; color: #000; }
+.heatgap  { background-color: #eee;    color: #000; }
+
+/* HMM match heatmap */
+.hmmmatch { background-color: #00ffff; color: #000; }
+.hmmplus  { background-color: #66bbff; color: #000; }
+.hmmminus { background-color: #dddddd; color: #000; }
+
+/* search errors */
+#errors {
+  border: 1px solid #520000;
+  background: white;
+  padding: 0.4em;
+  margin: 0.4em;
+  color: #520000;
+}
+
+#errors h1 {
+  font-size: medium;
+  text-align: left;
+  margin: 0;
 }

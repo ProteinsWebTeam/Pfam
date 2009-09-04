@@ -4,7 +4,7 @@
 
    Stylesheet for the structure pages.
 
-   $Id: structure.css,v 1.11 2008-05-16 15:32:12 jt6 Exp $
+   $Id: structure.css,v 1.12 2009-09-04 12:55:51 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -55,4 +55,99 @@ table.narrow {
 
 table.narrow td.data {
   width: 30em;
+}
+
+/* topsan elements */
+#topsanImg {
+  float: left;
+  border-style: solid none solid solid;
+  border-width: 1px;
+  border-color: #AAA;
+  height: 240px;
+  background: #f3f3f3;
+  padding: 0.4em;
+}
+
+#topsanData {
+  height: 240px;
+  border: 1px solid #AAA;
+  overflow: auto;
+  padding: 0.4em;
+}
+
+/* ---------------------------------------- */
+/* biolit */
+
+div.refRow {
+  padding: 0.8em;
+  border-bottom: 2px solid #AAA;
+}
+
+div.refRow.last {
+  border-bottom-style: none;
+}
+
+.biolitFigures {
+  float: right;
+  border: 1px solid #AAA;
+  padding: 0.4em;
+  background: #FFF;
+  margin-left: 0.8em;
+  margin-bottom: 0.8em;
+  width: 160px;
+}
+
+.biolitFigures img.switcherControl {
+  vertical-align: middle;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}
+
+.biolitFigures img.prev {
+  float: left;
+  background-image: url(/static/images/prev.gif);
+}
+
+.biolitFigures img.disabled.prev {
+  background-image: url(/static/images/prev_disabled.gif);
+  cursor: default;
+}
+
+.biolitFigures img.next {
+  float: right;
+  background-image: url(/static/images/next.gif); 
+}
+
+.biolitFigures img.disabled.next { 
+  background-image: url(/static/images/next_disabled.gif); 
+  cursor: default;
+}
+
+.biolitFigureNumber {
+  float: left;
+  margin: 0 auto;
+  line-height: 25px;
+  text-align: center;
+  width: 100px;
+}
+
+.biolitCitations .citation .title {
+  font-size: larger;
+  font-weight: bold;
+  font-style: normal;
+  display: block;
+}
+
+.biolitCitations .citation .jrnl {
+  font-weight: normal;
+  font-style: italic;
+}
+
+.biolitCitations .abstract {
+  margin: 0
+}
+
+.biolitCitations h4 {
+  margin-top: 1em;
 }
