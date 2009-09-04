@@ -4,7 +4,7 @@
 
    Stylesheet for progress bars
 
-   $Id: job.css,v 1.4 2008-09-12 09:40:07 jt6 Exp $
+   $Id: job.css,v 1.5 2009-09-04 13:56:13 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -132,6 +132,7 @@ img.graphicImage {
 
 .resultTable {
   width: 100%;
+  border-spacing: 1px;
 }
 
 /* shade the odd and even rows green for significant matches */
