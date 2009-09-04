@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.16 2009-06-09 15:20:00 jt6 Exp $
+# $Id: Structures.pm,v 1.17 2009-09-04 09:53:02 jt6 Exp $
 
 =head1 NAME
 
@@ -42,12 +42,14 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.16 2009-06-09 15:20:00 jt6 Exp $
+$Id: Structures.pm,v 1.17 2009-09-04 09:53:02 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Family';
 
@@ -70,17 +72,30 @@ sub structures : Path {
   if ( defined $c->req->param('pdbId') and
       $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
 
+    $c->log->debug( "Family::Structures::structures: got PDB ID: |$1|" )
+      if $c->debug;
+
+    # $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
+    #                         ->find( { pdb_id => $1 } );
     $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
-                            ->find( { pdb_id => $1 } );
+                            ->search( { pdb_id => $1 },
+                                      { prefetch => 'pdb_image' } )
+                            ->first;
+
+    $c->log->debug( 'Family::Structure::structures: pdbObj: ', dump( $c->stash->{pdbObj} ) )
+      if $c->debug;
   }
 
   # retrieve the PDB entries for this family
   my @rs;
   if ( defined $c->stash->{pfam}->auto_pfama ) {
+    $c->log->debug( 'Family::Structure::structures: got an auto_pfama: ' . $c->stash->{pfam}->auto_pfama )
+      if $c->debug;
     @rs = $c->model('PfamDB::PdbPfamaReg')
             ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
-                      { join       => [ qw( auto_pdb ) ],
-                        prefetch   => [ qw( auto_pdb ) ] } );
+                      { prefetch   => [ qw( pdb_id pdb_image ) ] } );
+    $c->log->debug( 'Family::Structure::structures: got ' . scalar @rs . ' regions' )
+      if $c->debug;
   }
 
   # don't render the template unless we need to
@@ -91,7 +106,7 @@ sub structures : Path {
     return;
   }
 
-  my %pdbUnique = map{ $_->auto_pdb->pdb_id => $_ } @rs;
+  my %pdbUnique = map{ $_->pdb_id->pdb_id => $_ } @rs;
   $c->stash->{pdbUnique} = \%pdbUnique;
 
   # set up the view and rely on "end" from the parent class to render it
@@ -119,8 +134,7 @@ sub mapping : Local  {
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { auto_pfama => $c->stash->{pfam}->auto_pfama },
-                            { join       => [ qw( auto_pdb auto_pfamseq ) ],
-                              prefetch   => [ qw( auto_pdb auto_pfamseq ) ] } );
+                            { prefetch   => [ qw( pdb_id auto_pfamseq ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
   $c->log->debug( 'Family::Structures::mapping: found |' . scalar @mapping . '| rows' )

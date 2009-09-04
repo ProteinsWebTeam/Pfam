@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.23 2009-01-09 12:59:24 jt6 Exp $
+# $Id: Clan.pm,v 1.24 2009-09-04 09:50:28 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.23 2009-01-09 12:59:24 jt6 Exp $
+$Id: Clan.pm,v 1.24 2009-09-04 09:50:28 jt6 Exp $
 
 =cut
 
@@ -140,7 +140,7 @@ sub structures : Local {
 
   # all we need to do extra for this action is retrieve the mapping between
   # structure, sequence and family
-  $c->forward( 'getMapping' );
+  $c->forward( 'get_mapping' );
 
   $c->stash->{template} = 'components/blocks/clan/structureTab.tt';
 }
@@ -176,34 +176,32 @@ sub get_data : Private {
   $c->stash->{acc}       = $clan->clan_acc;
   
   # set up the pointers to the clan data in the stash
-  my @rs = $c->model('PfamDB::Clan_membership')
+  my @rs = $c->model('PfamDB::ClanMembership')
              ->search( { auto_clan => $clan->auto_clan },
-                       { join      => [ 'pfam' ],
-                         prefetch  => [ 'pfam' ] } );
+                       { join      => [ 'auto_pfama' ],
+                         prefetch  => [ 'auto_pfama' ] } );
   $c->stash->{clanMembers} = \@rs;
   
   # only add extra data to the stash if we're actually going to use it later
   if ( not $c->stash->{output_xml} and 
        ref $this eq 'PfamWeb::Controller::Clan' ) {
     
-    $c->log->debug( 'Ncbiseq::get_data: adding extra ncbiseq info' )
-      if $c->debug;
-    
-    $c->forward( 'getSummaryData' );
-    $c->forward( 'getXrefs' );
+    $c->forward( 'get_summary_data' );
+    $c->forward( 'get_xrefs' );
   }
    
-  $c->forward( 'getDiagram' );
+  $c->forward( 'get_diagram' );
 }
 
 #-------------------------------------------------------------------------------
-=head2 getSummaryData : Private
+
+=head2 get_summary_data : Private
 
 Populates the stash with data for the summary icons.
 
 =cut
 
-sub getSummaryData : Private {
+sub get_summary_data : Private {
   my( $this, $c ) = @_;
 
   my %summaryData;
@@ -218,32 +216,38 @@ sub getSummaryData : Private {
   $summaryData{numArchitectures} = $c->stash->{clan}->number_archs;
 
   # number of interactions
-  my @interactions = $c->model('PfamDB::PfamA_interactions')
+  my @interactions = $c->model('PfamDB::PfamaInteractions')
                        ->search( { 'clan_membership.auto_clan' => $c->stash->{clan}->auto_clan },
-                                 { join     => [ qw( pfamA_A pfamA_B clan_membership ) ],
-                                   select   => [ qw( pfamA_A.pfamA_id pfamA_A.pfamA_acc
-                                                     pfamA_B.pfamA_id pfamA_B.pfamA_acc ) ],
-                                   as       => [ qw( pfamA_A_id pfamA_A_acc
-                                                     pfamA_B_id pfamA_B_acc ) ] } );
+                                 { join     => [ qw( auto_pfama_a 
+                                                     auto_pfama_b 
+                                                     clan_membership ) ],
+                                   select   => [ qw( auto_pfama_a.pfama_id 
+                                                     auto_pfama_a.pfama_acc
+                                                     auto_pfama_b.pfama_id 
+                                                     auto_pfama_b.pfama_acc ) ],
+                                   as       => [ qw( pfamA_A_id 
+                                                     pfamA_A_acc
+                                                     pfamA_B_id 
+                                                     pfamA_B_acc ) ] } );
   # stash this for later...
   $c->stash->{interactions} = \@interactions;
-  $c->log->debug( 'Clan::getSummaryData: got ' . scalar(@interactions) . ' interactions' );
-  
-  $summaryData{numInt} = scalar @interactions;
 
+  $summaryData{numInt} = scalar @interactions;
+  $c->log->debug( 'Clan::get_summary_data: got ' . $summaryData{numInt} . ' interactions' );
+  
   # number of structures known for the domain
   $summaryData{numStructures} = $c->stash->{clan}->number_structures;
 
-  my @mapping = $c->model('PfamDB::Pdb_pfamA_reg')
-                  ->search( { 'clanMembers.auto_clan' =>  $c->stash->{clan}->auto_clan },
-                            { join      => [ qw( pdb clanMembers ) ],
-                              prefetch  => [ qw( pdb ) ] } );
+  my @mapping = $c->model('PfamDB::PdbPfamaReg')
+                  ->search( { 'clan_members.auto_clan' => $c->stash->{clan}->auto_clan },
+                            { join      => [ qw( auto_pdb clan_members ) ],
+                              prefetch  => [ qw( auto_pdb ) ] } );
 
   my %pdb_unique = map {$_->pdb_id => 1} @mapping;
-  $c->log->debug( 'Clan::getSummaryData: got ' . scalar(@mapping) . ' pdb mappings' );
+  $c->log->debug( 'Clan::get_summary_data: got ' . scalar(@mapping) . ' pdb mappings' );
   $c->stash->{pdbUnique} = \%pdb_unique;
 
-  #Number of species
+  # number of species
   $summaryData{numSpecies} = $c->stash->{clan}->number_species;
 
   $c->stash->{summaryData} = \%summaryData;
@@ -252,16 +256,16 @@ sub getSummaryData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getXrefs : Private
+=head2 get_xrefs : Private
 
 Retrieves database cross-references. 
 
 =cut
 
-sub getXrefs : Private {
+sub get_xrefs : Private {
   my( $this, $c ) = @_;
 
-  my @refs = $c->model('PfamDB::Clan_database_links')
+  my @refs = $c->model('PfamDB::ClanDatabaseLinks')
               ->search( { auto_clan => $c->stash->{clan}->auto_clan } );
 
   my %xRefs;
@@ -274,26 +278,26 @@ sub getXrefs : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getMapping : Private
+=head2 get_mapping : Private
 
 Retrieves the structure mappings for this clan. 
 
 =cut
 
-sub getMapping : Private {
+sub get_mapping : Private {
   my( $this, $c ) = @_;
 
-   my @mapping = $c->model('PfamDB::Clan_membership')
+   my @mapping = $c->model('PfamDB::ClanMembership')
                    ->search( { auto_clan => $c->stash->{clan}->auto_clan },
-                             { select => [ qw( pfamseq.pfamseq_id
-                                               pfamA.pfamA_id
-                                               pfamA.pfamA_acc
-                                               pdb_pfamA_reg.seq_start
-                                               pdb_pfamA_reg.seq_end
-                                               pdb.pdb_id
-                                               pdb_pfamA_reg.chain
-                                               pdb_pfamA_reg.pdb_res_start
-                                               pdb_pfamA_reg.pdb_res_end ) ],
+                             { select => [ qw( auto_pfamseq.pfamseq_id
+                                               auto_pfama.pfama_id
+                                               auto_pfama.pfama_acc
+                                               pdb_pfama_reg.seq_start
+                                               pdb_pfama_reg.seq_end
+                                               auto_pdb.pdb_id
+                                               pdb_pfama_reg.chain
+                                               pdb_pfama_reg.pdb_res_start
+                                               pdb_pfama_reg.pdb_res_end ) ],
                                as     => [ qw( pfamseq_id
                                                pfamA_id
                                                pfamA_acc
@@ -303,9 +307,9 @@ sub getMapping : Private {
                                                chain
                                                pdb_start_res
                                                pdb_end_res ) ],
-                               join   => { pdb_pfamA_reg => [ qw( pfamA
-                                                                 pfamseq
-                                                                 pdb ) ] }
+                               join   => { pdb_pfama_reg => [ qw( auto_pfama
+                                                                  auto_pfamseq
+                                                                  auto_pdb ) ] }
                              }
                            );
 
@@ -314,7 +318,7 @@ sub getMapping : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getDiagram : Private
+=head2 get_diagram : Private
 
 Retrieves the two components of the clan relationship diagram from the DB, 
 namely the image showing the relationship and the HTML snippet with the 
@@ -322,7 +326,7 @@ image map.
 
 =cut
 
-sub getDiagram : Private {
+sub get_diagram : Private {
   my( $this, $c ) = @_;
 
   my $cacheKeyRoot = 'clanRelationship' . $c->stash->{acc};
@@ -330,39 +334,43 @@ sub getDiagram : Private {
   my $image = $c->cache->get( $cacheKeyRoot . 'image' );
   my $map   = $c->cache->get( $cacheKeyRoot . 'map' );
 
-  if( defined $image and defined $map ) { 
-    $c->log->debug( 'Clan::Relationship::getDiagram: extracted image and map from cache' );
-  } else {
-    $c->log->debug( 'Clan::Relationship::getDiagram: failed to extract both image '
+  if ( defined $image and defined $map ) { 
+    $c->log->debug( 'Clan::Relationship::get_diagram: extracted image and map from cache' );
+  }
+  else {
+    $c->log->debug( 'Clan::Relationship::get_diagram: failed to extract both image '
                     . 'and map from cache; going to DB' );
 
-    my $row = $c->model('PfamDB::ClanRelationship')
-                ->find( $c->stash->{clan}->auto_clan );
+    my $row = $c->model('PfamDB::ClanAlignmentsAndRelationships')
+                ->search( { auto_clan => $c->stash->{clan}->auto_clan }, {} )
+                ->single;
   
     # check we actually retrieved a row
-    unless( defined $row->relationship ) {
-      $c->log->warn( 'Clan::getDiagram: could not retrieve the relationship data for '
+    unless ( defined $row and defined $row->relationship ) {
+      $c->log->warn( 'Clan::get_diagram: could not retrieve the relationship data for '
                      . $c->stash->{acc} );
       return;
     }
   
     # we'll need both the image and the image map HTML uncompressed
     $image = Compress::Zlib::memGunzip( $row->relationship );
-    unless( defined $image ) {  
-      $c->log->warn( 'Clan::getDiagram: could not extract the relationship image for '
+    unless ( defined $image ) {  
+      $c->log->warn( 'Clan::get_diagram: could not extract the relationship image for '
                      . $c->stash->{acc} );
       return;
     }
   
     $map = Compress::Zlib::memGunzip( $row->image_map );
-    unless( defined $map ) {
-      $c->log->warn( 'Clan::getDiagram: could not extract the relationship image map for '
+    unless ( defined $map ) {
+      $c->log->warn( 'Clan::get-diagram: could not extract the relationship image map for '
                      . $c->stash->{acc} );
       return;
     }
 
-    $c->cache->set( $cacheKeyRoot . 'image', $image ) unless $ENV{NO_CACHE};
-    $c->cache->set( $cacheKeyRoot . 'map',   $map )   unless $ENV{NO_CACHE};
+    unless ( $ENV{NO_CACHE} ) {
+      $c->cache->set( $cacheKeyRoot . 'image', $image );
+      $c->cache->set( $cacheKeyRoot . 'map',   $map );
+    }
 
   }
 

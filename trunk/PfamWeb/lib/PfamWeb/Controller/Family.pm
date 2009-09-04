@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.47 2009-06-09 15:21:12 jt6 Exp $
+# $Id: Family.pm,v 1.48 2009-09-04 09:52:13 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.47 2009-06-09 15:21:12 jt6 Exp $
+$Id: Family.pm,v 1.48 2009-09-04 09:52:13 jt6 Exp $
 
 =cut
 
@@ -97,6 +97,9 @@ sub begin : Private {
   else {
     $c->stash->{errorMsg} = 'No Pfam family accession or ID specified';
   }
+  
+  # strip off family version numbers, if present
+  $entry =~ s/\.\d+$//;
   
   #  find out what type of alignment we need, seed, full, ncbi, etc
   $c->stash->{alnType} = 'seed';
@@ -270,7 +273,9 @@ sub get_data : Private {
   # check for a dead Pfam-A
   
   $pfam = $c->model('PfamDB::DeadFamilies')
-            ->find( { pfama_acc => $entry } );
+            ->search( [ { pfama_acc => $entry },
+                        { pfama_id  => $entry } ] )
+            ->single;
   
   if ( $pfam ) {
     $c->log->debug( 'Family::get_data: got a dead family' ) if $c->debug;
