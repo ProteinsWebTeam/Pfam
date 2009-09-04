@@ -2,7 +2,7 @@
 # structuresTab.tt
 # jt6 20060424 WTSI
 #
-# $Id: structureTab.tt,v 1.6 2008-05-16 15:30:31 jt6 Exp $
+# $Id: structureTab.tt,v 1.7 2009-09-04 10:47:29 jt6 Exp $
 
 USE String;
 
@@ -94,40 +94,40 @@ END -%]
               FOREACH pdbResKey IN mapping.$famKey.$seqKey.$resKey.$pdbKey.$chainKey.keys.sort -%]
                 <tr>
                 [% IF famKey != prevFamKey -%]
-                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]>
-                    <a href="[% c.uri_for( "/family", { id = famKey } ) %]">[% famKey %]</a>
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.COUNT > 1 %] rowspan="[% mapping.$famKey.COUNT %]"[% END %]>
+                    <a href="[% c.uri_for( '/family', { id = famKey } ) %]">[% famKey %]</a>
                   </td>
                 [% END;
                 IF seqKey != prevSeqKey -%]
-                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]>
-                    <a href="[% c.uri_for( "/protein", { id = seqKey } ) %]">[% seqKey %]</a>
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.COUNT %]"[% END %]>
+                    <a href="[% c.uri_for( '/protein', { id = seqKey } ) %]">[% seqKey %]</a>
                   </td>
                 [% END;
                 IF seqKey != prevSeqKey OR resKey != prevResKey -%]
-                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.$resKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.COUNT %]"[% END %]>[% resKey %]</td>
                 [% END;
                 IF famKey != prevFamKey OR seqKey != prevSeqKey OR resKey != prevResKey OR pdbKey != prevPdbKey -%]
-                  <td class="[% oe % 2 ? "odd" : "even" %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
-                    <a href="[% c.uri_for( "/structure", { id = pdbKey } ) %]">[% pdbKey %]</a>
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]"[% IF mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT > 1 %] rowspan="[% mapping.$famKey.$seqKey.$resKey.$pdbKey.COUNT %]"[% END %]>
+                    <a href="[% c.uri_for( '/structure', { id = pdbKey } ) %]">[% pdbKey %]</a>
                   </td>
                 [% END;
                 prevFamKey = famKey;
                 prevSeqKey = seqKey;
                 prevResKey = resKey;
                 prevPdbKey = pdbKey -%]  
-                  <td class="[% oe % 2 ? "odd" : "even" %]">
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]">
                     [% IF chainKey;
                       chainKey;
                     ELSE %]
                       <span class="inactive">n/a</span>
                     [% END %]
                   </td>
-                  <td class="[% oe % 2 ? "odd" : "even" %]">[% pdbResKey %]</td>
-                  <td class="[% oe % 2 ? "odd" : "even" %]">
-                    <a href="[% c.uri_for( "/structure/viewer", { id = pdbKey } ) %]&amp;viewer=jmol"
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]">[% pdbResKey %]</td>
+                  <td class="[% oe % 2 ? 'odd' : 'even' %]">
+                    <a href="[% c.uri_for( '/structure/viewer', { id = pdbKey } ) %]&amp;viewer=jmol"
                        onclick="popUp(this.href,'fixed',800,800,'jmolWin');return false;">
                        Jmol</a>  
-                    <a href="[% c.uri_for( "/structure/viewer", { id = pdbKey } ) %]&amp;viewer=av"
+                    <a href="[% c.uri_for( '/structure/viewer', { id = pdbKey } ) %]&amp;viewer=av"
                        onclick="popUp(this.href,'fixed',800,800,'avWin');return false;">
                        AstexViewer</a>  
                     <a href="http://das.sanger.ac.uk/registry/showspice.jsp?display=DS_241&amp;pdb=[% pdbKey %]"
@@ -144,20 +144,6 @@ END -%]
   </tbody>
 </table>
 
-<script type="text/javascript">
-
-  // how many columns are there in the table ?
-  var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
-  var numColsTable  = firstRow.getElementsByTagName("td").length;
-
-  // walk over all of the cells in the table and add listeners for mouseover and 
-  // mouseout events
-  $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
-      cell.onmouseover = highlight.mouseoverHandler.bindAsEventListener( highlight );
-      cell.onmouseout  = highlight.mouseoutHandler.bindAsEventListener( highlight );
-    }
-  );
-</script>
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
