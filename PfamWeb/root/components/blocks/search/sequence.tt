@@ -4,7 +4,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.13 2009-06-09 15:18:39 jt6 Exp $
+# $Id: sequence.tt,v 1.14 2009-09-04 10:50:23 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -138,16 +138,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         [% END -%]
 
         <div class="row">
-          <label for="seqSearchSeqOpts">Search strategy</label>
-          <select name="seqOpts" id="seqSearchSeqOpts">
-            <option value="both" selected="selected">Global &amp; local (merged)</option>
-            <option value="bothNoMerge">Global &amp; local (separately)</option>
-            <option value="ls">Global</option>
-            <option value="fs">Local</option>
-          </select>
-        </div>
-
-        <div class="row">
           <span class="label">Cut-off</span>
           <label for="gaButton" class="subLabel">
             <input class="radio"
@@ -184,7 +174,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  id="evalue" />
         </div>
   
-<!-- [% # TODO re-instate this when the search system can handle it %]
         <div class="row">
           <label for="searchBs">Search for PfamBs</label>
           <input class="radio"
@@ -193,7 +182,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  id="searchBs" 
                  value="1" />
         </div>
--->
 
         <div class="row">
           <label class="blankLabel">Submit</label>
@@ -213,7 +201,17 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
 
 <script type="text/javascript">
   // <![CDATA[
-  
+
+//  var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
+//TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
+//SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
+//LSQVNYRVPNMRFLRERLTDLEQRTSDITYGQFAQLYRSLMYSAQKTMDLPFLEASALRA\n\
+//GERPELCRVSLPEFQQFLLEYQGELWAVDRLQVQEFMLSFLRDPLREIEEPYFFLDEFVT\n\
+//FLFSKENSIWNSQLDEVCPDTMNNPLSHYWISSSHNTYLTGDQFSSESSLEAYARCLRMG\n\
+//CRCIELDCWDGPDGMPVIYHGHTLTTKIKFSDVLHTIKEHAFVASEYPVILSIEDHCSIA\n\
+//QQRNMAQYFKKVLGDTLLTKPVDIAADGLPSPNQLKRKILIKHKKLAEGSAYEEVPTSVM\n\
+//FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+
   var exSeq = "MAGAASPCANGCGPSAPSDAEVVHLCRSLEVGTVMTLFYSKKSQRPERKTFQVKLETRQI\n\
 TWSRGADKIEGAIDIREIKEIRPGKTSRDFDRYQEDPAFRPDQSHCFVILYGMEFRLKTL\n\
 SLQATSEDEVNMWIRGLTWLMEDTLQAATPLQIERWLRKQFYSVDRNREDRISAKDLKNM\n\
@@ -236,6 +234,7 @@ SLRGLEPCAICIEVLGARHLPKNGRGIVCPFVEIEVAGAEYDSIKQKTEFVVDNGLNPVW\n\
 PAKPFHFQISNPEFAFLRFVVYEEDMFSDQNFLAQATFPVKGLKTGYRAVPLKNNYSEGL\n\
 ELASLLVKIDVFPAKQENGDLSPFGGASLRERSCDASGPLFHGRAREGSFEARYQQPFED\n\
 FRISQEHLADHFDGRDRRTPRRTRVNGDNRL";
+
   // ]]>
 </script>
 
