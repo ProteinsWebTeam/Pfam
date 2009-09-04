@@ -3,7 +3,7 @@
 # relationships.tt
 # jt6 20060424 WTSI
 #
-# $Id: relationships.tt,v 1.14 2008-05-16 15:30:31 jt6 Exp $
+# $Id: relationships.tt,v 1.15 2009-09-04 10:47:42 jt6 Exp $
 -%]
 
 <!-- start relationships block -->
@@ -42,17 +42,19 @@
       <hr />
     </div>
 
-    <img id="clanImage"
-         src="[% c.uri_for( "/clan/relationship/image", { acc = acc } ) %]"
-         alt=""
-         usemap="#clanMap" />
-    [% TRY %]
-	  <map name="clanMap" id="clanMap">
-      [% relationshipImageMap %]
-    </map>
-    [% CATCH;
-      CALL c.log.error( "couldn't load the relationship image map for clan ${clan.clan_acc}, $map" );
-    END %]
+    [% IF relationshipImage.defined AND relationshipImageMap.defined %]
+      <img id="clanImage"
+           src="[% c.uri_for( '/clan/relationship/image', { acc = acc } ) %]"
+           alt=""
+           usemap="#clanMap" />
+  	  <map name="clanMap" id="clanMap">
+        [% relationshipImageMap %]
+      </map>
+    [% ELSE -%]
+      <p>
+        We could not retrieve a family relationship diagram for this clan.
+      </p>    
+    [% END -%]    
 
   </div>
 

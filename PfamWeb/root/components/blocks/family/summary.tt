@@ -4,17 +4,36 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.44 2009-06-09 15:18:11 jt6 Exp $
+# $Id: summary.tt,v 1.45 2009-09-04 10:48:52 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
+requirements.css.push( "prototip.css" );
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -88,18 +107,25 @@ PROCESS components/links.tt; %]
 
     END;
 
-    IF pfam.clan_acc -%]
+    IF clan -%]
       <h2>Clan</h2>
   
       [% membershipList = BLOCK;
         total = 0;
-        FOREACH member IN clan.clan_membership.sort("pfamA_id") %]
+        members = [];
+
+        # can't sort the contents of "clan.clan_memberships" directly. Convert the 
+        # list into rows from the pfamA table first
+        FOREACH member IN clan.clan_memberships;
+          members.push( member.auto_pfama );
+        END;
+        FOREACH member IN members.sort("pfama_id") %]
           <span class="listItem">
-          [% IF member.pfamA_acc == pfam.pfamA_acc;
-            member.pfamA_id;
+          [% IF member.pfama_acc == pfam.pfama_acc;
+            member.pfama_id;
           ELSE %]
-            <a href="[% c.uri_for( "/family", { acc = member.pfamA_acc } ) %]">
-              [% member.pfamA_id %]</a>
+            <a href="[% c.uri_for( '/family', member.pfama_acc ) %]">
+              [% member.pfama_id %]</a>
           [% END %]
           </span>
           [% total = total + 1;
@@ -108,9 +134,9 @@ PROCESS components/links.tt; %]
 
       <p>
         This family is a member of clan <strong>
-        <a href="[% c.uri_for( "/clan", { id = pfam.clan_id } ) %]">[% pfam.clan_id %]</a></strong>
-        (<a href="[% c.uri_for( "/clan", { acc = pfam.clan_acc } ) %]">[% pfam.clan_acc %]</a>),
-        which contains the following [% total %] member[% total > 1 ? "s" : "" %]:
+        <a href="[% c.uri_for( '/clan', clan.clan_id ) %]">[% clan.clan_id %]</a></strong>
+        (<a href="[% c.uri_for( '/clan', clan.clan_acc ) %]">[% clan.clan_acc %]</a>),
+        which contains the following [% total > 1 ? total _ " members" : "member" %]:
       </p>
     
       [% membershipList %]
@@ -170,11 +196,14 @@ PROCESS components/links.tt; %]
   // <![CDATA[
 
   // set up the post-load AJAX call to load the structure image
-  Event.observe( window, "load", function() {
-    var r = new Ajax.Updater( "siph", 
-                              "[% c.uri_for( '/family/structures' ) %]",
-                              { parameters:  { acc: "[% pfam.pfama_acc %]" },
-                                evalScripts: true } );
+  document.observe( "dom:loaded", function() {
+
+    var r = new Ajax.Updater( 
+      "siph", 
+      "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
+      { evalScripts: true }
+    );
+
   } );
   // ]]>
 </script>
