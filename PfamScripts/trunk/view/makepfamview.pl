@@ -540,7 +540,10 @@ system("pfinfo.pl  ".$pfam->pfama_acc." > DESC");
 
 #Start the ncbi searches
 $logger->debug("Starting ncbi pfbuild");
+
 system("pfbuild.pl -nobuild -local -E 10 -withpfmake -db ncbi") and Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against ncbi database:[$!]");
+
+if(-s 'ALIGN'){
 my $ncbiFamilyIO = Bio::Pfam::FamilyIO->new;
 my $ncbiFamObj = $ncbiFamilyIO->loadPfamAFromLocalFile( "", $cwd );
 
@@ -566,6 +569,7 @@ $ncbiAln->cons_sequence( Bio::Pfam::OtherRegion->new('-seq_id' => 'none',
 						     '-display' => $ncbiConsensus,
 					              '-source' => 'Pfam') ); 
 
+$pfam->update({number_ncbi => $ncbiFamObj->ALIGN->no_sequences });
 
 $logger->debug("Generating cigar string for ncbi alignment");
 #generate and upload cigar string, and upload tree order
@@ -586,6 +590,7 @@ makeHTMLAlign("ALIGN", $job, 80, "ncbi",  $ncbiFamObj);
 
 #Upload the alignments (stockholm and html) and tree into the database 
 uploadTreesAndAlign("ALIGN", $pfamDB, $pfam, $job, "ncbi");
+}
 
 #Remove files, but keep SEED and HMM
 unlink glob("SEED.*");
@@ -595,8 +600,12 @@ unlink glob("HMM.*");
 
 #Start the metaseq searches
 $logger->debug("Starting metaseq pfbuild");
+
 system("pfbuild.pl -nobuild -local -E 10 -withpfmake -db metaseq") and  Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against metaseq:[$!]");
+
 my $metaFamilyIO = Bio::Pfam::FamilyIO->new;
+if(-s "ALIGN"){
+
 my $metaFamObj = $metaFamilyIO->loadPfamAFromLocalFile( "", $cwd);
 
 
@@ -636,6 +645,7 @@ $metaAln->cons_sequence( Bio::Pfam::OtherRegion->new('-seq_id' => 'none',
 					              '-source' => 'Pfam') ); 
 
 
+$pfam->update({number_meta => $metaFamObj->ALIGN->no_sequences });
 
 
 $logger->debug("Generating cigar string for metagenomics alignment");
@@ -658,7 +668,7 @@ makeHTMLAlign("ALIGN", $job, 80, "meta");
 
 #Upload the alignments (stockholm and html) and tree into the database 
 uploadTreesAndAlign("ALIGN", $pfamDB, $pfam, $job, "meta");
-
+}
 
 #Change the job status to done
 finishedJob($job);
