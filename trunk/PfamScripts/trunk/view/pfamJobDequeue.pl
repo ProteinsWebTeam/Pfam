@@ -9,9 +9,9 @@
 # Author        : rdf
 # Maintainer    : $Author: rdf $
 # Created       : 2008-05-05
-# Last Modified : $Date: 2009-08-28 14:23:32 $
-# Version       : $Revision: 1.6 $;
-# Id            : $Id: pfamJobDequeue.pl,v 1.6 2009-08-28 14:23:32 rdf Exp $
+# Last Modified : $Date: 2009-09-07 09:51:47 $
+# Version       : $Revision: 1.7 $;
+# Id            : $Id: pfamJobDequeue.pl,v 1.7 2009-09-07 09:51:47 rdf Exp $
 
 use strict;
 use warnings;
@@ -53,13 +53,14 @@ while (1) {
     if ( $ref->{'job_type'} eq "family" ) {
     #Build up the command here to run the view process!
     #Depending on the size of the family, dictates where the job should be scheduled to!
-      if ( $ref->{'family_size'} ) {
-        if ( $ref->{'family_size'} < 3000 ) {
+      if ( $ref->{'entity_size'} ) {
+        if ( $ref->{'entity_size'} < 3000 ) {
           #Use small
-          $resource = "select[mypfamlive<300 && type==X86_64] rusage[mypfamlive=10]";
+          $memory = '1200000';
+          $resource = "select[mypfamlive<300 && type==X86_64 && mem>1200] rusage[mypfamlive=10:mem=1200]";
           $tmpDir = $qsout->tmpDir;
           $queue  = 'small';
-        }elsif( $ref->{'family_size'} >= 3000 and $ref->{'family_size'} < 20000 ){
+        }elsif( $ref->{'entity_size'} >= 3000 and $ref->{'entity_size'} < 20000 ){
           #Use normal
           $resource = 'select[mem>1500 && mypfamlive<300 && type==X86_64] rusage[mypfamlive=10:mem=1500]';
           $memory = '1500000'; #Request 1.5 GB of memory
@@ -90,7 +91,6 @@ while (1) {
         $cmd .= " && rm -fr " . $tmpDir . "/".$ENV{USER}."/" . $ref->{'job_id'};
         push( @cmds, $cmd );
  
-    }
     
     #Now submit the generic jobs using this method!
     foreach my $cmd (@cmds) {
@@ -103,7 +103,7 @@ while (1) {
         #Now set up the lsf requirements
         
         
-        my $mkAndCdToTmp = 'mkdir -p '. $tmpDir .'/'.$ENV{USER}.'/' $ref->{'job_id'} .'/'. $ref->{'entity_id'}. 
+        my $mkAndCdToTmp = 'mkdir -p '. $tmpDir .'/'.$ENV{USER}.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'}. 
         ' && cd '.$tmpDir .'/'. $ENV{USER}.'/'.$ref->{'job_id'} .'/'. $ref->{'entity_id'};
         
         $DEBUG && print STDERR "$mkAndCdToTmp && $cmd";
@@ -134,6 +134,7 @@ while (1) {
       $qsout->update_job_stream( $ref->{id}, 'stderr', $error );
       next;
     }
+  }
   }
 }
 
