@@ -184,7 +184,7 @@ close(H);
 
 #Check that all of the files are present in the directory, this script assumes that all of the files 
 #are in the cwd.
-foreach my $f (qw(ALIGN SEED HMM DESC)){
+foreach my $f (qw(ALIGN SEED HMM)){
    unless(-e $f and -s $f){
       Bio::Pfam::ViewProcess::mailUserAndFail($job, "View process failed as $f was not present\n");  
    }
@@ -525,20 +525,22 @@ $logger->debug("Updating the proteome information");
 
 my $dbh = $pfamDB->getSchema->storage->dbh;
 $dbh->do("INSERT INTO proteome_regions (auto_proteome, auto_pfamseq, auto_pfamA, count) ". 
-          "SELECT auto_proteome, p.auto_pfamseq, r.auto_pfamA, count(*) FROM ".
-          "pfamA_reg_full_significant r,  proteome_pfamseq p ".
-          "WHERE r.auto_pfamseq=p.auto_pfamseq AND in_full=1 AND auto_pfamA=".$pfam->auto_pfama.
+          "SELECT c.auto_proteome, p.auto_pfamseq, r.auto_pfamA, count(*) FROM ".
+          "pfamA_reg_full_significant r,  proteome_pfamseq p, complete_proteomes c ".
+          "WHERE r.auto_pfamseq=p.auto_pfamseq AND in_full=1 AND c.auto_proteome=p.auto_proteome AND auto_pfamA=".$pfam->auto_pfama.
           " GROUP BY r.auto_pfamseq") or 
           Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to update the proteome data for ".
             $pfam->pfama_acc." because: ".$dbh->errstr);
 
 #-------------------------------------------------------------------------------
 
-
+#This is a dirty hack!!!!
+#
+system("pfinfo.pl  ".$pfam->pfama_acc." > DESC");
 
 #Start the ncbi searches
 $logger->debug("Starting ncbi pfbuild");
-system("pfbuild.pl -nobuild -local -withpfmake -db ncbi") and Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against ncbi database:[$!]");
+system("pfbuild.pl -nobuild -local -E 10 -withpfmake -db ncbi") and Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against ncbi database:[$!]");
 my $ncbiFamilyIO = Bio::Pfam::FamilyIO->new;
 my $ncbiFamObj = $ncbiFamilyIO->loadPfamAFromLocalFile( "", $cwd );
 
@@ -593,7 +595,7 @@ unlink glob("HMM.*");
 
 #Start the metaseq searches
 $logger->debug("Starting metaseq pfbuild");
-system("pfbuild.pl -nobuild -local -withpfmake -db metaseq") and  Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against metaseq:[$!]");
+system("pfbuild.pl -nobuild -local -E 10 -withpfmake -db metaseq") and  Bio::Pfam::ViewProcess::mailUserAndFail($job, "Failed to run pfbuild against metaseq:[$!]");
 my $metaFamilyIO = Bio::Pfam::FamilyIO->new;
 my $metaFamObj = $metaFamilyIO->loadPfamAFromLocalFile( "", $cwd);
 
@@ -833,7 +835,7 @@ sub _getDsspData {
           @dssp = $pfamDB->getSchema
                           ->resultset("PdbResidueData")
                             ->search({auto_pfama => $autoPfamA},
-                                      {join => [qw( pfamA_reg_seed pfamseq)],
+                                      {join => [qw( pfamA_reg_seed )],
                                        select => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)],
                                        as     => [qw(pfamseq_acc pfamseq_seq_number chain pdb_id pdb_seq_number dssp_code)]});
   }else{
