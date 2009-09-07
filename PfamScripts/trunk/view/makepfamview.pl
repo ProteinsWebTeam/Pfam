@@ -535,8 +535,7 @@ $dbh->do("INSERT INTO proteome_regions (auto_proteome, auto_pfamseq, auto_pfamA,
 #-------------------------------------------------------------------------------
 
 #This is a dirty hack!!!!
-#
-system("pfinfo.pl  ".$pfam->pfama_acc." > DESC");
+write_DESC_file($pfam, $pfamDB);
 
 #Start the ncbi searches
 $logger->debug("Starting ncbi pfbuild");
@@ -1327,11 +1326,76 @@ sub getClanData {
   }
 }
 
+sub write_DESC_file {
+  my ($pfam, $famObj) = @_;
+  open(ANNFILE,">DESC") or &exit_with_mail("Could not open DESC for writing [$!]");
+  print ANNFILE "ID   ", $pfam->pfama_id , "\n";
+  print ANNFILE "AC   ", $pfam->pfama_acc, "\n";
+   print ANNFILE "DE   ", $pfam->description, "\n";
+   if($pfam->previous_id and $pfam->previous_id =~ /\S+/){
+       print ANNFILE "PI   ", $pfam->previous_id, "\n";
+   }
+   print ANNFILE "AU   ", $pfam->author, "\n";
+   print ANNFILE "SE   ", $pfam->seed_source, "\n";
+   print ANNFILE "GA   ". sprintf "%.2f %.2f;\n", $pfam->sequence_ga, $pfam->domain_ga;
+   print ANNFILE "TC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_tc, $pfam->domain_tc;
+   print ANNFILE "NC   ". sprintf "%.2f %.2f;\n", $pfam->sequence_nc, $pfam->domain_nc;
+   print ANNFILE "BM   ", cleanBuildLine($pfam->buildmethod) , "HMM.ann SEED.ann\n";
+   print ANNFILE "SM   ", $pfam->searchmethod ,"\n";    
+      
+   print ANNFILE "TP   ", $pfam->type , "\n";
+   #Do not NE/NL lines in.....
+              
+   #Add the reference
+   foreach my $ref (@litRefs){
+      if($ref->pmid){
+        if (($ref->comment)&& ($ref->comment ne "NULL")){ 
+           print ANNFILE wrap("RC   ","RC   ",$ref->comment);
+           print ANNFILE "\n";
+        }
+       print ANNFILE "RN   [".$ref->order_added."]\n";
+       print ANNFILE "RM   ".$ref->pmid."\n";
+       print ANNFILE wrap("RT   ","RT   ", $ref->title);
+       print ANNFILE "\n";
+       print ANNFILE wrap("RA   ","RA   ", $ref->author);
+       print ANNFILE "\n";
+       print ANNFILE "RL   ".$ref->journal."\n";
+      } 
+   } 
+   
+   #DB Xrefs
+   
+   foreach my $xref ( @xRefs){
+     #Construct the DR lines.  Most do not have additional paramters. In the database
+     #the other_params has a trailing ";" that should ideally not be there.  Otherwise
+     #one could simply use join! 
+
+     if($xref->other_params and $xref->other_params =~ /\S+/){
+      print ANNFILE "DR   ".$xref->db_id."; ". $xref->db_link ."; " .$xref->other_params.";\n";
+     }else{
+      print ANNFILE "DR   ".$xref->db_id."; ".$xref->db_link.";\n";
+     }
+     #Print out any comment
+     if($xref->comment and $xref->comment =~ /\S+/){
+         print ANNFILE "DC   ".$xref->comment."\n";
+     }
+   }
+   
+   #Annotation comments
+   #TODO - Fix the fact that all comments are stored with a single leading whitespace
+   #Currently, the text wrap is handling this!
+   if($pfam->comment and $pfam->comment =~ /\S+/){
+     print ANNFILE wrap("CC   ","CC   ", $pfam->comment);
+     print ANNFILE "\n";
+   }
+   close(ANNFILE);
+}
+
 
 sub write_stockholm_file {
 
    my ($filename, $aln, $pfam, $type, $famObj) = @_;
-
+  
    open(ANNFILE,">$filename.ann") or &exit_with_mail("Could not open $filename.ann for writing [$!]");
    print ANNFILE "# STOCKHOLM 1.0\n";
    #Mimic this with what is loaded in the database
