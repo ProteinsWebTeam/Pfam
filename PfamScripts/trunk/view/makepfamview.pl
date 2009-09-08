@@ -1468,7 +1468,7 @@ sub write_stockholm_file {
      #one could simply use join! 
 
      if($xref->other_params and $xref->other_params =~ /\S+/){
-      print ANNFILE "#=GF DR   ".$xref->db_id."; ". $xref->db_link ."; " .$xref->other_params."\n";
+      print ANNFILE "#=GF DR   ".$xref->db_id."; ". $xref->db_link ."; " .$xref->other_params.";\n";
      }else{
       print ANNFILE "#=GF DR   ".$xref->db_id."; ".$xref->db_link.";\n";
      }
