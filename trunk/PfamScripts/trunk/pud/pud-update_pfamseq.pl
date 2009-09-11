@@ -340,7 +340,7 @@ else {
 			print ACT_METAL "$record{'AC'}\t3\t$residue\t$record{'AS'}{$residue}\n";
 		    }
 		    else {
-			print ACT_METAL "$record{'AC'}\t2\t$residue\t$record{'AS'}{$residue}\n";
+			print ACT_METAL "$record{'AC'}\t1\t$residue\t$record{'AS'}{$residue}\n";
 			
 		    } 
 		}
