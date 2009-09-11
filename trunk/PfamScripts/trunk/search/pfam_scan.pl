@@ -1,6 +1,6 @@
 #!/software/bin/perl
 
-# $Id: pfam_scan.pl,v 1.21 2009-08-19 09:53:32 jt6 Exp $
+# $Id: pfam_scan.pl,v 1.22 2009-09-11 10:10:07 jm14 Exp $
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use warnings;
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
 
-my $VERSION = "0.5a"; 
+my $VERSION = "0.1b"; 
 
 #-------------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ Additonal options:
     Pfam-A HMMs, and matches to Pfam-B families should always be treated
     cautiously.
 
-  * For more help, check the perldoc:
+  For more help, check the perldoc:
 
       shell\% perldoc pfam_scan.pl
 
