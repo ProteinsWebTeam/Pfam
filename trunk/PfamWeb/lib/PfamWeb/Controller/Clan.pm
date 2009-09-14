@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.24 2009-09-04 09:50:28 jt6 Exp $
+# $Id: Clan.pm,v 1.25 2009-09-14 09:47:50 rdf Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.24 2009-09-04 09:50:28 jt6 Exp $
+$Id: Clan.pm,v 1.25 2009-09-14 09:47:50 rdf Exp $
 
 =cut
 
@@ -240,10 +240,9 @@ sub get_summary_data : Private {
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { 'clan_members.auto_clan' => $c->stash->{clan}->auto_clan },
-                            { join      => [ qw( auto_pdb clan_members ) ],
-                              prefetch  => [ qw( auto_pdb ) ] } );
+                            { join      => [ qw( clan_members ) ]} );
 
-  my %pdb_unique = map {$_->pdb_id => 1} @mapping;
+  my %pdb_unique = map {$_->pdb_id->pdb_id => 1} @mapping;
   $c->log->debug( 'Clan::get_summary_data: got ' . scalar(@mapping) . ' pdb mappings' );
   $c->stash->{pdbUnique} = \%pdb_unique;
 
@@ -294,7 +293,7 @@ sub get_mapping : Private {
                                                auto_pfama.pfama_acc
                                                pdb_pfama_reg.seq_start
                                                pdb_pfama_reg.seq_end
-                                               auto_pdb.pdb_id
+                                               pdb_pfama_reg.pdb_id
                                                pdb_pfama_reg.chain
                                                pdb_pfama_reg.pdb_res_start
                                                pdb_pfama_reg.pdb_res_end ) ],
@@ -308,8 +307,7 @@ sub get_mapping : Private {
                                                pdb_start_res
                                                pdb_end_res ) ],
                                join   => { pdb_pfama_reg => [ qw( auto_pfama
-                                                                  auto_pfamseq
-                                                                  auto_pdb ) ] }
+                                                                  auto_pfamseq ) ] }
                              }
                            );
 
