@@ -1,5 +1,4 @@
 #!/software/bin/perl -w
-###!/usr/bin/perl -w
 ###
 use strict;
 use Getopt::Long;
@@ -27,10 +26,10 @@ if (!defined($blastfile)){
     $blastfile = shift @ARGV;
 }
 
-if (!(-e $blastfile) || !(-e $blastdatabase)){
-    print STDERR "FATAL: problem with blastfile = [$blastfile] or blastdatabase = [$blastdatabase], needs fixed\n";
-    &help();
-    exit(1);
+if (!(-e $blastfile) || !(-e glob( "$blastdatabase*"))){
+    die "FATAL: problem with blastfile = [$blastfile] or blastdatabase = [$blastdatabase], needs fixed\n";
+    #&help();
+    #exit(1);
 }
 
 if (!defined($outfile)){
@@ -45,16 +44,23 @@ open(BLAST,"$blastfile") || die "cannot open $blastfile\n[$!]";
 my $head = `head -n 1 $blastfile`;
 #my $tail = `tail -n 1 $blastfile`;
 #if ($head !~ /\# BLASTN/ || $tail !~ /\# EXIT/){
-if ($head !~ /\# BLASTN/){
+if ($head !~ /\# BLASTN/){#Checking the tails doesn't seem to work consistently - needs checking...
     open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
     print BLASTERR "head = [$head]\n";
     close(BLASTERR);
-    exit(1);
+    die "FATAL: poorly formatted BLAST output!\nhead=[$head]";
 }
 
 while (my $line = <BLAST>){
     
-    next if( !defined($line) || $line =~ /^\#/ );
+    next if !defined($line);
+    if ($line =~ /^\#\s+FATAL/){
+	open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
+	print BLASTERR "fatal line = [$line]\n";
+	close(BLASTERR);
+	die "FATAL: your BLAST job returned a fatal error!\n[$line]";
+    }
+    next if $line =~ /^\#/;
     
     chomp($line);
     my @bline = split(/\t/,$line);
@@ -67,8 +73,17 @@ while (my $line = <BLAST>){
 	if ($bline[21] =~ /\d+/){$end   = $bline[21];} else {printf STDERR "send error    =\'$bline[21]\' in $blastfile \n"};
 	my $already = 0;
 	
+	#print "$name\t$start\t$end\t$strand\n";
+
+#                     BLAST HIT
+#-------------------XXXXXXXXXXXXXX----------------------------
+#        |<----------------------|
+#                   window
+#                   |---------------------->|
+#                            window
+	
 	my $tmp = $end;
-	$end   =  max($start + $window,$end);  #This looks strange but is correct.
+	$end   =  max($start + $window,$end);  #This looks strange but is correct. See diagram above.
 	$start =  min($tmp   - $window,$start);  #Ditto.
 	$start = 1 if( $start < 1 );
 	
@@ -112,7 +127,7 @@ foreach my $n ( keys %seq_list ){
 	my $end = $se->{'end'};
 	my $strand = $se->{'strand'};
 	my @temp = @{ $seq_list{$n} };
-	for (my $j = $iindx+1; $iindx < scalar( @{ $seq_list{$n} } ); $j++ ){
+	for (my $j = $iindx+1; $j < scalar( @{ $seq_list{$n} } ); $j++ ){
 	    last if !defined(${ $seq_list{$n} }[$j]);
 	    my $se2 = ${ $seq_list{$n} }[$j];
 	    my $start2  = $se2->{'start'};
@@ -145,7 +160,9 @@ foreach my $n ( keys %seq_list ){
 				       'strand' => $strand} );
 	}
 	
-	if ($seqcounter>$limits){
+	#print "$n\t$start\t$end\t$strand ####MERGE####\n";
+
+	if ($seqcounter>$limits-1){
 	    
 	    if (defined($outfile)){
 		open(OUT,">$outfile\.$filecount\.$seqcounter") || die "cannot open $outfile\.$filecount\.$seqcounter\n[$!]";
