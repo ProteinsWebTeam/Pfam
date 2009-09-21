@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_feature_sources.pl,v 1.3 2009-08-07 12:56:03 pg6 Exp $
+# $Id: update_feature_sources.pl,v 1.4 2009-09-21 09:01:30 pg6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -224,9 +224,10 @@ unless( $force ){
     if( $percentage > $config{das}->{threshold} ){
       $message = "   
                   The total number of features sources present in Database is $total_features\n
-                  The total number of features sources retrieved from das is ".scalar(@$chosenList)."\n
-                  More than 10% of das sources are lost......\n
-                  Das registry may be down......\nHence skipping the update\n";
+                  The total number of features sources retrieved from das is ".scalar(@$sourcesList)."\n
+                  the total sources which succeeds validation is ".scalar( @$chosenList )."\n
+                  More than 10% of active das sources are lost......\n
+                  Hence skipping the update\n";
                          
       send_mail($message,$mail);
     }  
