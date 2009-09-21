@@ -27,7 +27,7 @@ if (!defined($blastfile)){
 }
 
 if (!(-e $blastfile) || !(-e glob( "$blastdatabase*"))){
-    open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
+    open(BLASTERR,">$blastfile\.error") || die "FATAL: cannot open $blastfile\.error\n[$!]";
     print BLASTERR "FATAL: blastfile=[$blastfile] or blastdatabase=[$blastdatabase\*] is missing!\n";
     close(BLASTERR);
     die "FATAL: problem with blastfile = [$blastfile] or blastdatabase = [$blastdatabase], needs fixed\n";
@@ -40,25 +40,26 @@ if (!defined($outfile)){
 }
 
 my (%forward, %reverse, %seq_list);
-open(BLAST,"$blastfile") || die "cannot open $blastfile\n[$!]";
+open(BLAST,"$blastfile") || die "FATAL: cannot open $blastfile\n[$!]";
 
 #Check top line for "# BLASTN".
-#Naughty! HEHEHEHE.
-my $head = `head -n 1 $blastfile`;
-#my $tail = `tail -n 1 $blastfile`;
-#if ($head !~ /\# BLASTN/ || $tail !~ /\# EXIT/){
-if ($head !~ /\# BLASTN/){#Checking the tails doesn't seem to work consistently - needs checking...
-    open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
+my $head = <BLAST>;
+if ($head !~ /\# BLASTN/){
+    open(BLASTERR,">$blastfile\.error") || die "FATAL: cannot open $blastfile\.error\n[$!]";
     print BLASTERR "head = [$head]\n";
     close(BLASTERR);
     die "FATAL: poorly formatted BLAST output [$blastfile]!\nhead=[$head]";
 }
+#Checking the tails doesn't seem to work consistently - needs checking...
+#Figure out how to check the tails:
+#Explicitly: eg. echo 'SUCCESS' >> $blastOut or make a DB of lots of blast tails...?
+#my $tail = `tail -n 1 $blastfile`;
 
 while (my $line = <BLAST>){
     
     next if !defined($line);
     if ($line =~ /^\#\s+FATAL/){
-	open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
+	open(BLASTERR,">$blastfile\.error") || die "FATAL: cannot open $blastfile\.error\n[$!]";
 	print BLASTERR "fatal line = [$line]\n";
 	close(BLASTERR);
 	die "FATAL: your BLAST job returned a fatal error blastOutput=[$blastfile] on DB=[$blastdatabase]!\n[$line]";
@@ -168,7 +169,7 @@ foreach my $n ( keys %seq_list ){
 	if ($seqcounter>$limits-1){
 	    
 	    if (defined($outfile)){
-		open(OUT,">$outfile\.$filecount\.$seqcounter") || die "cannot open $outfile\.$filecount\.$seqcounter\n[$!]";
+		open(OUT,">$outfile\.$filecount\.$seqcounter") || die "FATAL: cannot open $outfile\.$filecount\.$seqcounter\n[$!]";
 	    }
 	    else {
 		*OUT = *STDOUT;
@@ -190,7 +191,7 @@ foreach my $n ( keys %seq_list ){
 
 if ($seqcounter>0){ 
     if (defined($outfile)){
-	open(OUT,">$outfile\.$filecount\.$seqcounter") || die "cannot open $outfile\.$filecount\.$seqcounter\n[$!]";
+	open(OUT,">$outfile\.$filecount\.$seqcounter") || die "FATAL: cannot open $outfile\.$filecount\.$seqcounter\n[$!]";
     }
     else {
 	*OUT = *STDOUT;
