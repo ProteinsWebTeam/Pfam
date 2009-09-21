@@ -27,6 +27,9 @@ if (!defined($blastfile)){
 }
 
 if (!(-e $blastfile) || !(-e glob( "$blastdatabase*"))){
+    open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
+    print BLASTERR "FATAL: blastfile=[$blastfile] or blastdatabase=[$blastdatabase\*] is missing!\n";
+    close(BLASTERR);
     die "FATAL: problem with blastfile = [$blastfile] or blastdatabase = [$blastdatabase], needs fixed\n";
     #&help();
     #exit(1);
@@ -48,7 +51,7 @@ if ($head !~ /\# BLASTN/){#Checking the tails doesn't seem to work consistently 
     open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
     print BLASTERR "head = [$head]\n";
     close(BLASTERR);
-    die "FATAL: poorly formatted BLAST output!\nhead=[$head]";
+    die "FATAL: poorly formatted BLAST output [$blastfile]!\nhead=[$head]";
 }
 
 while (my $line = <BLAST>){
@@ -58,7 +61,7 @@ while (my $line = <BLAST>){
 	open(BLASTERR,">$blastfile\.error") || die "cannot open $blastfile\.error\n[$!]";
 	print BLASTERR "fatal line = [$line]\n";
 	close(BLASTERR);
-	die "FATAL: your BLAST job returned a fatal error!\n[$line]";
+	die "FATAL: your BLAST job returned a fatal error blastOutput=[$blastfile] on DB=[$blastdatabase]!\n[$line]";
     }
     next if $line =~ /^\#/;
     
