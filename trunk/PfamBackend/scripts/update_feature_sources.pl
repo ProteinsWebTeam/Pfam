@@ -19,7 +19,7 @@
 #     PRIMARY KEY(server_id, system, sequence_type)
 #   );
 #
-# $Id: update_feature_sources.pl,v 1.4 2009-09-21 09:01:30 pg6 Exp $
+# $Id: update_feature_sources.pl,v 1.5 2009-09-25 08:48:04 pg6 Exp $
 #
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -219,13 +219,15 @@ unless( $force ){
   my $message;
   if( $total_features ){
     #print " enters into the total_features blcok with value| $total_features|\n";
+    print "the total number of sources to populate is ".$sources_to_populate."\n";
     my $percentage = ( $total_features - $sources_to_populate ) / $total_features;
     print " the total loss of percentage is $percentage\n";
     if( $percentage > $config{das}->{threshold} ){
       $message = "   
                   The total number of features sources present in Database is $total_features\n
                   The total number of features sources retrieved from das is ".scalar(@$sourcesList)."\n
-                  the total sources which succeeds validation is ".scalar( @$chosenList )."\n
+                  the total sources which succeeds validation is ".scalar( @$chosenList ).",\n
+                  Due to multiple coordinate system for single source, the source to be popualted is $sources_to_populate\n                                    
                   More than 10% of active das sources are lost......\n
                   Hence skipping the update\n";
                          
