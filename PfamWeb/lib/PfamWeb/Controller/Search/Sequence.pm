@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.34 2009-09-04 09:53:39 jt6 Exp $
+# $Id: Sequence.pm,v 1.35 2009-09-30 14:55:49 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Sequence;
 
 This controller is responsible for running sequence searches.
 
-$Id: Sequence.pm,v 1.34 2009-09-04 09:53:39 jt6 Exp $
+$Id: Sequence.pm,v 1.35 2009-09-30 14:55:49 jt6 Exp $
 
 =cut
 
@@ -54,6 +54,12 @@ sub search : Path : ActionClass( 'REST' ) { }
 sub search_POST {
   my ( $this, $c ) = @_;
 
+  $c->stash->{pageType} = 'search';
+  $c->stash->{template} = 'pages/layout.tt';
+  
+  $c->log->debug( 'Search::Sequence::search_POST: set template to layout' )
+    if $c->debug;
+
   # retrieve the job parameters from either the request or, if the request has
   # been deserialised for us, from the stash 
   $c->stash->{data} = {};
@@ -65,10 +71,14 @@ sub search_POST {
   # validate the input
   unless ( $c->forward('validate_input') ) {
 
+    # stash the error message where the template (if we're rendering one)
+    # will find it
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+                                  || 'There was an unknown problem when validating your sequence.';
+
     $this->status_bad_request(
       $c,
-      message => $c->stash->{searchError}
-                 || 'There was an unknown problem when validating your sequence.'
+      message => $c->stash->{seqSearchError}
     );
 
     return;
@@ -99,12 +109,13 @@ sub search_POST {
 
     # failure
 
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+                                  || 'There was an unknown problem when submitting your search.';
+
     $this->status_bad_request(
       $c,
-      message => $c->stash->{searchError}
-                 || 'There was an unknown problem when submitting your search.'
+      message => $c->stash->{seqSearchError}
     );
-    
   }
 
   $c->log->debug( 'Search::Sequence::search_POST: template set to ' . $c->stash->{template} )
