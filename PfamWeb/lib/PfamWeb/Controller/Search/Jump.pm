@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.17 2009-06-09 15:20:48 jt6 Exp $
+# $Id: Jump.pm,v 1.18 2009-09-30 14:56:14 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.17 2009-06-09 15:20:48 jt6 Exp $
+$Id: Jump.pm,v 1.18 2009-09-30 14:56:14 jt6 Exp $
 
 =cut
 
@@ -148,7 +148,7 @@ sub guess_sequence : Private {
     
   # how about a sequence entry ?
   my $found;
-  if( $entry =~ m/^([AOPQ]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
+  if( $entry =~ m/^([A-Z]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
   
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_acc => $1 } );
