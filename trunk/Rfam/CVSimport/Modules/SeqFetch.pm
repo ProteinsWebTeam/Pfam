@@ -43,15 +43,18 @@ sub addSeq {
 }
 
 sub fetchSeqs{
-  my($seqListRef, $index, $reverseStrand, $FH) = @_;
+  my($seqListRef, $index, $reverseStrand, $FH, $printStrand, $isRNA) = @_;
   
   $FH = *STDOUT if not defined $FH; 
   $reverseStrand = 0 if not defined $reverseStrand;
-  
+  $printStrand = 1 if not defined $printStrand; #Backwards compatability:
+  $isRNA = 1 if not defined $isRNA; #Rfam compatability:
   my $strand = 1;
   if ($reverseStrand){
       $strand = -1;
   }
+  my $strandString = "";
+  $strandString = ":$strand" if ($printStrand);
   
   my $noSeqsFound = 0;
   
@@ -62,12 +65,22 @@ sub fetchSeqs{
     open( XD, "xdget -n $index $seqListAll |") || die "Could not open xdget pipe:[$!]\n";
     my ($seqId, $seq);
     while(<XD>){
+      next if not defined($_);
       if(/^>(\S+)/){
         my $tmpSeqId = $1;
         if($seqId){
-           foreach my $se (@{$$seqListRef{$seqId}}){
+	    foreach my $se (@{$$seqListRef{$seqId}}){
                if($se->{whole}){
-                   print $FH ">$seqId/1-" . length($seq) . ":$strand\n";
+		   
+		   
+		   if (!$printStrand && $reverseStrand) {
+		       print $FH ">$seqId/" . length($seq) . "-1" . "$strandString\n";
+		   }
+		   else {
+		       print $FH ">$seqId/1-" . length($seq) . "$strandString\n";
+		   }
+		   
+		   $seq =~ tr/Tt/Uu/ if $isRNA;
                    print $FH "$seq\n";
                    $noSeqsFound++;
                }else{
@@ -78,6 +91,12 @@ sub fetchSeqs{
 		       $se->{end} = $tmpSeq_len; #Sometimes the hit_end+window is longer than the sequence.
 		   }
 		   
+		   if($se->{start}>$se->{end}){
+		       my $tmp=$se->{start};
+		       $se->{start}=$se->{end};
+		       $se->{end}=$tmp;
+		   }
+		   
 		   if($reverseStrand){
 		       $domSeq = substr($tmpSeq, $se->{start} - 1, $se->{end} - $se->{start} + 1);
 		       $domSeq =~ tr/[ACGTUacgtuRYSWMKBDHVNryswmkbdhvn]/[UGCAAugcaaYRSWKMVHDBNyrswkmvhdbn]/;
@@ -86,9 +105,17 @@ sub fetchSeqs{
 		       $domSeq = substr($tmpSeq, $se->{start} - 1, $se->{end} - $se->{start} + 1);
 		   }
 		   
-		   if(($se->{end} - $se->{start} + 1) eq length($domSeq)){#Is this needed? 
+		   if(($se->{end} - $se->{start} + 1) eq length($domSeq)){#Is this needed? Apparently because it fails.
 		       $noSeqsFound++;
-		       print $FH ">$seqId/".$se->{start}."-".$se->{end}.":$strand\n";
+		       
+		       if (!$printStrand && $reverseStrand) {
+			   print $FH ">$seqId/".$se->{end}."-".$se->{start}."$strandString\n";
+		       }
+		       else {
+			   print $FH ">$seqId/".$se->{start}."-".$se->{end}."$strandString\n";
+		       }
+
+		       $domSeq =~ tr/Tt/Uu/ if $isRNA;
 		       print $FH "$domSeq\n";
 		   }else{
 		       printf "$seqId s=%d e=%d diff=%d len-domSeq=%d len-tmpSeq=%d\n$domSeq\n", $se->{start}, $se->{end}, $se->{end} - $se->{start} + 1, length($domSeq), $tmpSeq_len;
@@ -108,10 +135,16 @@ sub fetchSeqs{
     
   if($seqId){
     foreach my $se (@{$$seqListRef{$seqId}}){
-            if($se->{whole}){
-              print $FH ">$seqId/1-".length($seq).":$strand\n";
-              print $FH "$seq\n";
-              $noSeqsFound++;
+	if($se->{whole}){
+	    if (!$printStrand && $reverseStrand) {
+		print $FH ">$seqId/".length($seq)."-1$strandString\n";
+	    }
+	    else {
+		print $FH ">$seqId/1-".length($seq)."$strandString\n";
+	    }
+	    $seq =~ tr/Tt/Uu/ if $isRNA;
+	    print $FH "$seq\n";
+	    $noSeqsFound++;
             }else{
               my $tmpSeq = $seq;
 	      my $tmpSeq_len = length($tmpSeq);
@@ -129,11 +162,18 @@ sub fetchSeqs{
 		  }
 
 		   $noSeqsFound++;
-		   print $FH ">$seqId/".$se->{start}."-".$se->{end}.":$strand\n";
-		   print $FH "$domSeq\n";
+		  if (!$printStrand && $reverseStrand) {
+		      print $FH ">$seqId/".$se->{end}."-".$se->{start}."$strandString\n";
+		  }
+		  else {
+		      print $FH ">$seqId/".$se->{start}."-".$se->{end}."$strandString\n";
+		  }
+		  $domSeq =~ tr/Tt/Uu/ if $isRNA;
+		  print $FH "$domSeq\n";
 
               }else{
-		  printf "$seqId s=%d e=%d diff=%d len-domSeq=%d len-tmpSeq=%d\n$domSeq\n", $se->{start}, $se->{end}, $se->{end} - $se->{start} + 1, length($domSeq), $tmpSeq_len;
+		  printf "$seqId s=%d e=%d diff=%d len-domSeq=%d len-tmpSeq=%d\n$domSeq\n", 
+		  $se->{start}, $se->{end}, $se->{end} - $se->{start} + 1, length($domSeq), $tmpSeq_len;
 		  die "2: Length mismatch for $seqId/".$se->{start}."-".$se->{end}."\n"; 
               }
             }
