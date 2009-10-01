@@ -5,6 +5,7 @@
 use strict;
 use Rfam;
 use Rfam::RfamAlign;
+use RfamUtils;
 use Getopt::Long;
 use Log::Log4perl qw(get_logger :levels); #Damn Ben! 
 use DBI;
@@ -17,40 +18,7 @@ my $bpconsistency=0.75;
 my $forbidden=1;
 my $info=1;
 
-my @forbidden_terms = qw(
-contaminat
-pseudogene
-pseudo-gene
-repeat
-repetitive
-transpos
-);
-
-# MySQL connection details.
-#my $database = $Rfam::embl;
-#my $host     = "cbi3";
-#my $user     = "genero";
-
-# Query to search for the accession and description of embl entries with the embl id
-my $query = qq(
-           select rfamseq_acc, version, description
-           from rfamseq
-               where rfamseq_acc=? and version=?;
-               );
-
-# MySQL rfamlive connection details.
-my $rfdatabase = "rfamlive";
-my $rfhost     = "pfamdb2a";
-my $rfuser     = "pfamadmin";
-my $rfpw       = "mafpAdmin";
-my $rfport     = 3303;
-
-# Query to search for the accession and description of embl entries with the embl id
-my $rfquery = qq(
-           select t.species, t.tax_string, t.ncbi_id 
-           from taxonomy as t, rfamseq as r 
-           where t.ncbi_id=r.ncbi_id and rfamseq_acc=?;
-   );
+my @forbidden_terms = @Rfam::forbidden_terms;
 
 
 #Global variable for the "is_complementary" function - saves reinitialising each time:
@@ -225,7 +193,7 @@ if (defined($ont) && $ont == 0){
 my %ALIGNscores;
 #tie %ALIGNscores, "Tie::IxHash";
 if (defined($ont) || defined($scorethreshold)){
-    open(SC, "<scores")  or $logger->logdie("FATAL: Couldn't open SEED\n [$!]"); 
+    open(SC, "<scores")  or $logger->logdie("FATAL: Couldn't open scores\n [$!]"); 
     while (my $sc = <SC>){
 	if ($sc =~ /(\S+)\s+(\S+)/){
 	    if (defined($ALIGNnames{$2})){
@@ -240,31 +208,28 @@ if (defined($ont) || defined($scorethreshold)){
 
 my @ALIGNscoreskeys = sort { $ALIGNscores{$b} <=> $ALIGNscores{$a} } keys %ALIGNscores;
 
-# Create a connection to the database.
-#my $dbh = DBI->connect(
-##    "dbi:mysql:$database;$host", $user, "", {
-#	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
-#	RaiseError => 1
-#}    );
+# # Create a connection to the database.
+# my $dbh = DBI->connect(
+#     "dbi:mysql:$database;$host", $user, "", {
+# 	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+# 	RaiseError => 1
+# }    );
 
-# Prepare the query for execution.
-#my $sth = $dbh->prepare($query);
-###########
+# # Prepare the query for execution.
+# my $sth = $dbh->prepare($query);
+# ###########
 
-my ($rfdbh, $rfsth);
-# Create a connection to the database.
-$rfdbh = DBI->connect(
-    "dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
-	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
-	RaiseError => 1
-    }    );
+# my ($rfdbh, $rfsth);
+# # Create a connection to the database.
+# $rfdbh = DBI->connect(
+#     "dbi:mysql:$rfdatabase:$rfhost:$rfport", $rfuser, $rfpw, {
+# 	PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+# 	RaiseError => 1
+#     }    );
 
-# Prepare the query for execution.
-# Prepare the query for execution.
-my $sth = $rfdbh->prepare($query);
-
-$rfsth = $rfdbh->prepare($rfquery);
-###########
+# # Prepare the query for execution.
+# $rfsth = $rfdbh->prepare($rfquery);
+# ###########
 
 my %timer_hash = (
     0 => 1,
@@ -287,6 +252,42 @@ open( OUT, ">ALIGN2SEED" ) or die ("FATAL: Couldn't open ALIGN2SEED [$!]\n $!\n"
 my (%minpid, %maxpid, %ALIGN2SEEDcandidates, @names_array, %seen_taxa);
 my ($scorerejected, $align2seedcount, $truncrejected, $structrejected, $pidrejected, $descforbidrejected, $descrequirerejected, $taxonomyrejected, $counter) = (0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+######################################################################
+# Create a connection to the database.
+    my $rfdbh = DBI->connect(
+	"dbi:mysql:$Rfam::live_rdb_name:$Rfam::rdb_host:$Rfam::rdb_port", $Rfam::rdb_user, $Rfam::rdb_pass, {
+	    PrintError => 1, #Explicitly turn on DBI warn() and die() error reporting. 
+	    RaiseError => 1
+	}    );
+
+# Query to search for the accession and description of embl entries with the embl id
+#my $query = qq(
+#           select entry.accession_version, description.description
+#           from entry, description
+#           where entry.accession_version=?
+#           and entry.entry_id=description.entry_id;
+#   );
+
+    
+# Query to fetch the species name, full taxonomy string and ncbi id for a given embl id:
+my $queryTax = qq(
+           select t.species, t.tax_string, t.ncbi_id 
+           from taxonomy as t, rfamseq as r 
+           where t.ncbi_id=r.ncbi_id and r.rfamseq_acc=?;
+   );
+
+# Query to search for the description of embl entries with the embl id
+my $queryDesc = qq(
+           select description
+                   from rfamseq where rfamseq_acc=?;
+   );
+
+# Prepare the queries for execution.
+my $sthDesc = $rfdbh->prepare($queryDesc);
+my $sthTax = $rfdbh->prepare($queryTax);
+    
+######################################################################
+
 #Index taxonomy strings:
 if (defined($ont)){
     @names_array = @ALIGNscoreskeys;
@@ -295,8 +296,8 @@ if (defined($ont)){
 	$n =~ m/(\S+)\.\d+\/\d+\-\d+/;
 	my $id = $1;
 	my $ncbi_id = "";
-	$rfsth->execute($id);
-	my $rfres = $rfsth->fetchall_arrayref;
+	$sthTax->execute($id);
+	my $rfres = $sthTax->fetchall_arrayref;
 	foreach my $row (@$rfres){
 	    $ncbi_id  .= $row->[2];
 	}
@@ -369,7 +370,7 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	
 	if (!$oks || !$oke){
 	    my $a= substr($ALIGNhash{$longseqname},0,$nucends);
-	    my $b= substr($ALIGNhash{$longseqname},$alignlength-$nucends,$nucends);
+	    my $b= substr($ALIGNhash{$longseqname},-1*$nucends);
 	    $logger->info("REJECTED: $longseqname TRUNCATED!\t(start=$a, end=$b)\n");
 	    $truncrejected++;
 	    next BIGLOOP;
@@ -407,8 +408,8 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	$longseqname =~ m/(\S+)\.\d+\/\d+\-\d+/;
 	my $id = $1;
 	
-	$rfsth->execute($id);
-	my $rfres = $rfsth->fetchall_arrayref;
+	$sthTax->execute($id);
+	my $rfres = $sthTax->fetchall_arrayref;
 	foreach my $row (@$rfres){
 	    $species .= $row->[0];
 	    $tax_string .= $row->[1];
@@ -469,13 +470,10 @@ BIGLOOP: foreach my $longseqname (@names_array){
 	
 	#Grab seq description, check it passes required & forbidden terms tests: 
 	my $desc; 
-  my $seq_acc_v=$ALIGNnames{$longseqname};
-  my $seq_acc=~ s/\.(\d+)$//g; #need to trim and store version
-  my $v=$1;
-	$sth->execute($seq_acc, $v);
-	my $res = $sth->fetchall_arrayref;
+	$sthDesc->execute($ALIGNnames{$longseqname});
+	my $res = $sthDesc->fetchall_arrayref;
 	foreach my $row (@$res){
-	    $desc .= $row->[2];
+	    $desc .= $row->[1];
 	}
 	
 	if( !defined($desc) ) {
@@ -583,14 +581,11 @@ BIGLOOP: foreach my $longseqname (@names_array){
     else {#Print DE lines for the SEED sequences:
 	
 	#Grab seq description:
-	my $desc;
-  my $seq_acc_v=$ALIGNnames{$longseqname};
-  my $seq_acc=~ s/\.(\d+)$//g; #need to trim and store version
-  my $v=$1;
-	$sth->execute($seq_acc, $v);
-	my $res = $sth->fetchall_arrayref;
+	my $desc; 
+	$sthDesc->execute($ALIGNnames{$longseqname});
+	my $res = $sthDesc->fetchall_arrayref;
 	foreach my $row (@$res){
-	    $desc .= $row->[2];
+	    $desc .= $row->[1];
 	}
 
 	if( !defined($desc) ) {
@@ -602,20 +597,24 @@ BIGLOOP: foreach my $longseqname (@names_array){
     }
 }
 close(OUT);
-
-if (scalar(@taxonomy)>0){
-    $rfdbh->disconnect;
-}
+$rfdbh->disconnect;
 
 my $tot = $truncrejected+$structrejected+$pidrejected+$descforbidrejected+$descrequirerejected+$taxonomyrejected+$scorerejected;
 $logger->info("rejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected, DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected");
 
 
 if ($align2seedcount>0){
-    $logger->info( "Building new SEED (adding $align2seedcount squences):");
+    $logger->info( "Building SEED.new (adding $align2seedcount squences):");
     
-    system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and $logger->logdie("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
-    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and $logger->logdie( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
+    #system("/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED") and $logger->logdie("FATAL: Error in: [/software/rfam/extras/infernal-0.81/src/cmbuild -F CM.81 SEED].\n");
+#    system("/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED") and $logger->logdie( "FATAL: Error in [/software/rfam/extras/infernal-0.81/src/cmalign --withpknots --withali SEED -o SEED.new CM.81 ALIGN2SEED].\n");
+    if (RfamUtils::youngerThan('CM', 'SEED')){
+	$logger->info( "Seed younger than CM, rebuilding...");
+	Rfam::RfamSearch::cmBuild('CM','SEED','1.0');
+	#No need to calibrate...
+    }
+
+    system("$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out") and $logger->logdie( "FATAL: Error in [$Rfam::infernal_path/cmalign --withpknots --withali SEED -o SEED.new CM ALIGN2SEED > cmalign.out].\n");
     
     $logger->info("Added $align2seedcount sequences\n");
     $logger->info("\trejected $tot sequences, TRUNCATED:$truncrejected, STRUCTURE:$structrejected DESC.forbid:$descforbidrejected, DESC.require:$descrequirerejected, PID:$pidrejected, TAXA.require:$taxonomyrejected, SCORE:$scorerejected\n");
@@ -876,9 +875,11 @@ Options:
   -h or -help              show this help
 
 To Add:
+  -USE A SIMILAR RANKING SCHEME TO RESOLVE_WARNINGS!
   -A blacklist of sequences.
   -Add options to map foreign SEEDs:
 	-scan warnings file from rfmake, if there are any identical matches to these seqs
 	 in the ALIGN then swap them...
+  -Make a log file of why each sequence is rejected
 EOF
 }
