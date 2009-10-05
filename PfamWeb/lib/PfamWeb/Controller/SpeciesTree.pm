@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.22 2009-09-04 09:51:29 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.23 2009-10-05 09:51:58 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ or a clan.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.22 2009-09-04 09:51:29 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.23 2009-10-05 09:51:58 jt6 Exp $
 
 =cut
 
@@ -42,13 +42,13 @@ table for that entry.
 =cut
 
 sub begin : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # do we have an accession ?
   return unless $c->req->param('acc');
   
   # yes; what type of accession is it ?
-  if( $c->req->param('acc') =~ m/^(PF\d{5})(\.\d+)?$/i ) {
+  if ( $c->req->param('acc') =~ m/^(PF\d{5})(\.\d+)?$/i ) {
 
     # pfam A
     $c->stash->{acc}  = $1;
@@ -61,7 +61,8 @@ sub begin : Private {
     $c->stash->{entry} = $c->model('PfamDB::Pfama')
                            ->find( { pfama_acc => $c->stash->{acc} } );
 
-  } elsif( $c->req->param('acc') =~ m/^(PB\d{6})$/i ) {
+  }
+  elsif ( $c->req->param('acc') =~ m/^(PB\d{6})$/i ) {
 
     # pfam B
     $c->stash->{acc}  = $1;
@@ -73,7 +74,8 @@ sub begin : Private {
     $c->stash->{entry} = $c->model('PfamDB::Pfamb')
                            ->find( { pfamb_acc => $c->stash->{acc} } );
 
-  } elsif( $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
+  }
+  elsif ( $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
 
     # looks like a clan
     $c->stash->{acc}  = $1;
@@ -87,7 +89,7 @@ sub begin : Private {
   }
 
   # make sure we actually got a VALID accession  
-  unless( $c->stash->{acc} and $c->stash->{entry} ) {
+  unless ( $c->stash->{acc} and $c->stash->{entry} ) {
     $c->stash->{errorMsg} = 'No valid accession specified';
     return;    
   }
@@ -127,70 +129,6 @@ sub auto : Private {
 
 #-------------------------------------------------------------------------------
 #- public actions --------------------------------------------------------------
-#-------------------------------------------------------------------------------
-
-=head2 buildTree : Private
-
-Builds an in-memory representation of the species tree, by walking recursively
-down the branches found for each region in turn. The "raw" tree is dropped into 
-the stash.
-
-=cut
-
-sub buildTree : Private {
-  my( $this, $c ) = @_;
-  
-  # get the species data for whatever entry we're dealing with
-  $c->forward('getData');
-
-  # check that we got data. The getData method will bomb out if the entry hits
-  # the limits that are set in the config, provided the "loadTree" flag isn't 
-  # set in the stash
-  return unless $c->stash->{regions};
-  
-  $c->log->debug( 'SpeciesTree::buildTree: got '
-                  . scalar @{$c->stash->{regions}} .' regions from sub-class' )
-    if $c->debug;
-
-  # we've got data; let's build the tree  
-  my $tree     = {};
-  my $maxDepth = 0;
-  foreach my $region ( @{ $c->stash->{regions} } ) {
-
-    # first, get the species information
-    my $species = $region->auto_pfamseq->species;
-    $species =~ s/^(\s+)//g; # trim leading whitespace
-
-    # next, the taxonomy above the species
-    my $tax = $region->auto_pfamseq->taxonomy;
-    $tax =~ s/\s+//g;
-    my @tax = split m/\;/, $tax;
-
-    # add the species onto the end of the taxonomy, so we have it all in
-    # one place
-    $tax[$#tax] = $species;
-
-    # find the maximum depth for the tree
-    $maxDepth = scalar @tax if scalar @tax > $maxDepth;
-
-    # build a hash to describe this branch
-    my $speciesData = { acc     => $region->auto_pfamseq->pfamseq_acc,
-                        species => $species,
-                        tax     => \@tax };
-
-    # flag the node if it's in the seed alignment
-    $speciesData->{inSeed}++ if $c->stash->{inSeed}->{ $speciesData->{acc} };
-    
-    # add this branch to the tree
-    $this->addBranch( $tree, $speciesData );
-  }
-  
-  # store the final depth of the tree
-  $tree->{maxTreeDepth} = $maxDepth;
-
-  $c->stash->{rawTree} = $tree;
-}
-
 #-------------------------------------------------------------------------------
 
 =head2 graphics : Local
@@ -317,6 +255,70 @@ sub sequences : Local {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
+=head2 buildTree : Private
+
+Builds an in-memory representation of the species tree, by walking recursively
+down the branches found for each region in turn. The "raw" tree is dropped into 
+the stash.
+
+=cut
+
+sub buildTree : Private {
+  my ( $this, $c ) = @_;
+  
+  # get the species data for whatever entry we're dealing with
+  $c->forward('getData');
+
+  # check that we got data. The getData method will bomb out if the entry hits
+  # the limits that are set in the config, provided the "loadTree" flag isn't 
+  # set in the stash
+  return unless $c->stash->{regions};
+  
+  $c->log->debug( 'SpeciesTree::buildTree: got '
+                  . scalar @{$c->stash->{regions}} .' regions from sub-class' )
+    if $c->debug;
+
+  # we've got data; let's build the tree  
+  my $tree     = {};
+  my $maxDepth = 0;
+  foreach my $region ( @{ $c->stash->{regions} } ) {
+
+    # first, get the species information
+    my $species = $region->auto_pfamseq->species;
+    $species =~ s/^(\s+)//g; # trim leading whitespace
+
+    # next, the taxonomy above the species
+    my $tax = $region->auto_pfamseq->taxonomy;
+    $tax =~ s/\s+//g;
+    my @tax = split m/\;/, $tax;
+
+    # add the species onto the end of the taxonomy, so we have it all in
+    # one place
+    $tax[$#tax] = $species;
+
+    # find the maximum depth for the tree
+    $maxDepth = scalar @tax if scalar @tax > $maxDepth;
+
+    # build a hash to describe this branch
+    my $speciesData = { acc     => $region->auto_pfamseq->pfamseq_acc,
+                        species => $species,
+                        tax     => \@tax };
+
+    # flag the node if it's in the seed alignment
+    $speciesData->{inSeed}++ if $c->stash->{inSeed}->{ $speciesData->{acc} };
+    
+    # add this branch to the tree
+    $this->addBranch( $tree, $speciesData );
+  }
+  
+  # store the final depth of the tree
+  $tree->{maxTreeDepth} = $maxDepth;
+
+  $c->stash->{rawTree} = $tree;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 getData : Private
 
 Forwards straight to the appropriate method for the type of entry that we're
@@ -372,7 +374,7 @@ sub countSpecies : Private {
     # to get them again later
     $c->stash->{regions} = \@regions;
 
-    my %species_unique = map {$_->species => 1} @regions;
+    my %species_unique = map {$_->auto_pfamseq->species => 1} @regions;
     $c->stash->{numSpecies} = scalar( keys %species_unique );
 
   }
