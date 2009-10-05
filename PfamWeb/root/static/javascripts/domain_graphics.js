@@ -4,10 +4,10 @@
 //------------------------------------------------------------------------------
 
 // for the benefit of jslint, declare global variables from outside this script
-/*global $, $R, $w, $break, Class, console, Element, Hash, document, window, 
-  G_vmlCanvasManager, Template, Tip */
+/*global $, $R, $w, $break, Class, console, Element, Hash, Event, document,
+  window, G_vmlCanvasManager, Template, Tip */
 
-// spoof a console, if necessary, so that we can run in IE without having
+// spoof a console, if necessary, so that we can run in IE (<8) without having
 // to entirely disable debug messages
 if ( ! window.console ) {
   window.console     = {};
@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.4 2009-08-28 15:03:23 jt6 Exp $
+// $Id: domain_graphics.js,v 1.5 2009-10-05 11:00:20 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -57,6 +57,14 @@ var PfamGraphic = Class.create( {
    * @private
    */
   _canvases: new Hash(),
+
+  /**
+   * A boolean for keeping track of whether the "middle click listener" has
+   * been added to the window.
+   * 
+   * @private
+   */
+  _middleClickListenerAdded: false,
 
   //----------------------------------------------------------------------------
   //- constructor --------------------------------------------------------------
@@ -180,13 +188,15 @@ var PfamGraphic = Class.create( {
       regionUrl: "http://pfam.sanger.ac.uk/family/",
 
       // general image parameters
-      regionHeight: 20,   // the height of a region
-      motifHeight:   14,   // the height of a motif
-      motifOpacity:  0.6,  // the opacity of a motif
-      labelPadding:  3,    // padding for the text label on a region
-      xscale:        0.5,  // xscale pixels per residue
-      yscale:        1,    // not currently used
-      envOpacity:    0.6   // opacity of the envelope regions
+      regionHeight:  20,  // the height of a region
+      motifHeight:   14,  // the height of a motif
+      motifOpacity:  0.6, // the opacity of a motif
+      labelPadding:  3,   // padding for the text label on a region
+      xscale:        0.5, // xscale pixels per residue
+      yscale:        1,   // not currently used
+      envOpacity:    0.6, // opacity of the envelope regions
+      highlightWeight: 1,         // line width of region highlight
+      highlightColour: "#000000"  // colour of region highlight line
     };
 
     // general options, specified as part of the "sequence"
@@ -206,9 +216,11 @@ var PfamGraphic = Class.create( {
       regionEndValues:    $w( "curved straight jagged arrow" )
     };
 
-    // somewhere to put <area> definitions for the domains and markups
+    // store the heights of the various drawing elements (only used in the 
+    // context of a single rendering)
     this._heights   = [];
-    this._areasList = [];
+
+    // somewhere to put <area> definitions for the domains and markups
     this._areasHash = new Hash();
     
     // somewhere to cache the calculated steps for jagged edges 
@@ -291,6 +303,9 @@ var PfamGraphic = Class.create( {
       throw( "PfamGraphic: ERROR: couldn't create a 2d context from canvas" );
     }
 
+    // we need to tie the areas to the canvases, so if we change canvas, we
+    // also need to reset the areas list
+    this._areasList = [];
   },
 
   //----------------------------------
@@ -371,7 +386,7 @@ var PfamGraphic = Class.create( {
       throw( "PfamGraphic: ERROR: sequence length must be a valid number" );
     }
 
-    if ( sequence.length <= 0 ) {
+    if ( parseInt( sequence.length, 10 ) <= 0 ) {
       throw( "PfamGraphic: ERROR: sequence length must be a positive integer" );
     }
 
@@ -486,11 +501,9 @@ var PfamGraphic = Class.create( {
    *
    * @param {String|Element} [parent] parent element for domain canvas
    * @param {Object} [sequence] sequence object
+   * @throws {PfamGraphic: ERROR} if sequence or parent is not set either here
+   *   or previously
    */
-  // TODO we need to re-visit the issue of using the same PfamGraphic object
-  // to render multiple times. Right now we're not clearing the canvas, so 
-  // new graphics are just layered on top of old ones 
-
   render: function( parent, sequence ) {
 
     if ( sequence !== undefined ) {
@@ -507,8 +520,11 @@ var PfamGraphic = Class.create( {
       throw( "PfamGraphic: ERROR: sequence was not supplied" );
     }
 
-    if ( this._parent === undefined ) {
-      throw( "PfamGraphic: ERROR: parent node was not supplied" );
+    if ( this._options.newCanvas ) {
+      // we're going to try to build a canvas, so we need to have a parent node
+      if ( this._parent === undefined ) {
+        throw( "PfamGraphic: ERROR: parent node was not supplied" );
+      }
     }
 
     // build the markups (lollipops, etc.). This will calculate the heights
@@ -520,17 +536,25 @@ var PfamGraphic = Class.create( {
     //   o maximum top extend for lollipops
     //   o maximum top extend for bridges
     //   o half the domain height
-    var canvasHeight = [ this._heights.lollipops.upMax,
-                         this._heights.bridges.upMax,
-                         ( this._regionHeight / 2 + 1 ) ].max() +
-                       [ this._heights.lollipops.downMax,
-                         this._heights.bridges.downMax,
-                         ( this._regionHeight / 2 + 1 ) ].max() + 1;
-                       // that single pixel is just a fudge factor...
+    this._canvasHeight = [ this._heights.lollipops.upMax,
+                           this._heights.bridges.upMax,
+                           ( this._regionHeight / 2 + 1 ) ].max() +
+                         [ this._heights.lollipops.downMax,
+                           this._heights.bridges.downMax,
+                           ( this._regionHeight / 2 + 1 ) ].max() + 1;
+                         // that single pixel is just a fudge factor...
+
+    // if a highlight region is given, adjust the canvas height so that we
+    // have room to add the highlight at the bottom
+    if ( this._sequence.highlight !== undefined ) {
+      this._canvasHeight += ( 5 + Math.ceil( this._imageParams.highlightWeight / 2 ) );
+      // console.log( "PfamGraphic.render: got a highlight; canvasHeight now %d",
+      //   this._canvasHeight );
+    }
 
     // canvas width is just calculated from the length of the sequence
     // (which is set in the "setSequence" method)
-    var canvasWidth = this._imageWidth;
+    this._canvasWidth = this._imageWidth;
 
     // set the baseline, relative to which the various elements will
     // actually be drawn
@@ -543,8 +567,8 @@ var PfamGraphic = Class.create( {
     // dimensions
     if ( ( ! this._canvas ) || this._options.newCanvas ) {
       // console.log( "PfamGraphic.render: building canvas with width x height, baseline: %d x %d, %d",
-      //   canvasWidth, canvasHeight, this._baseline );
-      this._buildCanvas( canvasWidth, canvasHeight );
+      //   this._canvasWidth, this._canvasHeight, this._baseline );
+      this._buildCanvas( this._canvasWidth, this._canvasHeight );
     }
 
     // draw everything
@@ -634,13 +658,26 @@ var PfamGraphic = Class.create( {
     canvas.height = height;
 
     // add the new <canvas> to the parent and generate an identifier for it
-    // console.log( "PfamGraphic._buildCanvas: appending new canvas to ", this._parent.identify() );
     this._parent.appendChild( canvas );
     canvas.identify();
 
     // make sure it gets initialised in bloody IE...
     if ( typeof G_vmlCanvasManager !== "undefined" ) {
       canvas = G_vmlCanvasManager.initElement( canvas );
+    }
+
+    // since bloody IE (up to and including IE7) seems incapable of correctly
+    // putting a scrollbar *below* the canvas content, we have to flag divs 
+    // that have horizontal scrollbars, so that we can fix the problem by 
+    // adding a padding value to the bottom of the div. Shouldn't this all be 
+    // behind us by now ?
+    //
+    // walk up from the canvas parent until we get to a div and see how wide it
+    // is. If it's narrower than the canvas, we need to add this extra class
+    // to the parent, s from the search systemo that scrolling works everywhere
+    var wrapperDiv = this._parent.up("div");
+    if ( wrapperDiv && width > wrapperDiv.scrollWidth ) {
+      this._parent.addClassName( "canvasScroller" );
     }
 
     // and stash it on the object
@@ -658,10 +695,10 @@ var PfamGraphic = Class.create( {
    */
   _addListeners: function() {
 
-//    console.log( "PfamGraphic._addListeners: got %d areas", this._areasList.size() );
-//    this._areasList.each( function( a ) {
-//      console.log( "PfamGraphic._addListeners: |%s|: %d - %d", a.label, a.start, a.end ); 
-//    } );
+    console.log( "PfamGraphic._addListeners: got %d areas", this._areasList.size() );
+    this._areasList.each( function( a ) {
+      console.log( "PfamGraphic._addListeners: %d - %d", a.start, a.end ); 
+    } );
 
     // should we add tips ?
     var addTips = ( window.Prototip && this._options.tips );
@@ -670,29 +707,27 @@ var PfamGraphic = Class.create( {
     this._inside = null;
 
     // add a listener for mouse movements over the canvas
-    // console.log( "PfamGraphic._addListeners: adding listener to |%s|", this._canvas.identify() );
+    console.log( "PfamGraphic._addListeners: adding listener to |%s|",
+      this._canvas.identify() );
     this._canvas.observe( "mousemove", function( e ) {
 
       // find out where the event originated
-      var activeCanvas = e.element();
-
-      // for the benefit of IE... the event originates on an element WITHIN the
-      // canvas, so we need to walk back up to find the actual canvas
-      if ( activeCanvas.nodeName !== "CANVAS" ) {
-        activeCanvas = e.element().up("canvas");
-      }
+      var activeCanvas = e.findElement("canvas");
 
       // retrieve the parent element and areas list for this particular canvas
-      var canvasId     = activeCanvas.identify();
+      var canvasId  = activeCanvas.identify();
       var parentEl  = this._canvases.get( canvasId ).parentEl;
       var areasList = this._canvases.get( canvasId ).areas;
 
       // the offset coordinates of the canvas itself
       var offset = activeCanvas.cumulativeOffset();
       var cx = offset[0];
-      var cy = offset[1]; 
+      var cy = offset[1];
 
-      var x = e.pointerX() - cx, 
+      // take into account a scrolling offset
+      var sx = parentEl.scrollLeft;
+
+      var x = e.pointerX() - cx + sx,
           y = e.pointerY() - cy,
           activeArea = null;
       // console.log( "PfamGraphic._addListeners: event coords: (%d, %d)", x, y );
@@ -704,22 +739,22 @@ var PfamGraphic = Class.create( {
           activeArea = area;
           // console.log( "PfamGraphic._addListeners: mouseover an area: ", area );
           throw $break;
-        }  
+        }
       } );
-      
+
       if ( activeArea ) {
         // console.log( "PfamGraphic._addListeners: in an active area: ", activeArea );
 
         if ( this._inside !== activeArea ) {
           // console.log( "PfamGraphic._addListeners: in a NEW active area" );
-        
+
           // we're in a new area
           this._inside = activeArea;
 
           if ( addTips && activeArea.tip ) {
-            var t1 = new Tip( 
+            var t1 = new Tip(
               parentEl,
-              activeArea.tip.body, 
+              activeArea.tip.body,
               { title: activeArea.tip.title,
                 stem: "topLeft",
                 style: "pfam" }
@@ -737,7 +772,7 @@ var PfamGraphic = Class.create( {
 
         // console.log( "PfamGraphic._addListeners: not in an area" );
 
-        // we aren't inside an area...        
+        // we aren't inside an area...
         if ( this._inside ) {
 
           activeCanvas.setStyle( { cursor: "default" } );
@@ -749,74 +784,87 @@ var PfamGraphic = Class.create( {
             parentEl.prototip.remove();
           }
         }
-        
+
       }
-      
-    }.bind( this ) );
 
-    //----------------------------------
-
-    // add a listener for when the mouse is moved off the canvas. Clean up
-    // the tips and reset the cursor
-
-    this._canvas.observe( "mouseout", function( e ) {
-
-      var activeCanvas = e.element();
-      // workaround for IE...
-      if ( activeCanvas.nodeName !== "CANVAS" ) {
-        activeCanvas = e.element().up("canvas");
-      }
-      var canvasId     = activeCanvas.identify();
-
-      var parentEl  = this._canvases.get( canvasId ).parentEl;
-
-      this._inside = null;
-
-      activeCanvas.setStyle( { cursor: "default" } );
-      window.status = "";
-
-      if ( window.Prototip && parentEl.prototip ) {
-        parentEl.prototip.remove();
-      }
     }.bind( this ) );
 
     //----------------------------------
 
     // watch for clicks on areas with URLs
-
     this._canvas.observe( "click", function( e ) {
-
-      var activeCanvas = e.element();
-      var canvasId     = activeCanvas.identify();
-
-      var areasList = this._canvases.get( canvasId ).areas;
-
-      // the offset coordinates of the canvas itself
-      var offset = activeCanvas.cumulativeOffset();
-      var cx = offset[0];
-      var cy = offset[1]; 
-
-      // get the location of the click and work out if it's inside any of 
-      // the areas
-      var x = e.pointerX() - cx,
-          y = e.pointerY() - cy,
-          activeArea = null;
-
-      areasList.reverse().each( function( area ) {
-        if ( x > area.coords[0] && x < area.coords[2] &&
-             y > area.coords[1] && y < area.coords[3] ) {
-          activeArea = area;
-          throw $break;
-        }  
-      } );
-      
-      if ( activeArea && activeArea.href ) {
-        window.location = activeArea.href;
-      }
-
+      this._handleClick( e );
     }.bind( this ) );
 
+    if ( ! this._middleClickListenerAdded ) {
+      Event.observe( window, "click", function( e ) {
+        // we only want to handle middle clicks from the window
+        if ( e.isMiddleClick() ) {
+          this._handleClick( e );
+        }
+      }.bind( this ) );
+      this._middleClickListenerAdded = true;
+    }
+
   }, // end of "_addListeners"
+
+  //----------------------------------------------------------------------------
+  /**
+   * Handles mouse click events. We first check if the click was made on a
+   * canvas and, if not, we're done. If the click did originate on a canvas, we
+   * walk through the areas that we have on the canvas and test whether the 
+   * click falls within an area, before redirecting (if it was a left click) or
+   * opening a new window (if it was a middle click).
+   *
+   * @private
+   * @param {Object} e click <code>Event</code> object
+   */
+  _handleClick: function( e ) {
+    console.log( "PfamGraphic._handleClick: got a click on the canvas" );
+
+    var clickedElement = e.findElement();
+    var canvasId       = clickedElement.identify();
+    var activeCanvas   = this._canvases.get( canvasId );
+
+    // we're only interested in clicks on the canvas(es)
+    if ( activeCanvas === undefined ) {
+      return;
+    }
+
+    // we want to handle this event; don't let is go anywhere else, otherwise,
+    // for a middle click at least, the browser will take over before we get
+    // to do anything sensible
+    e.stop();
+    var areasList = activeCanvas.areas;
+
+    // the offset coordinates of the canvas itself
+    var offset = clickedElement.cumulativeOffset();
+    var cx = offset[0];
+    var cy = offset[1]; 
+
+    // get the location of the click and work out if it's inside any of 
+    // the areas
+    var x = e.pointerX() - cx,
+        y = e.pointerY() - cy,
+        activeArea = null;
+
+    areasList.reverse().each( function( area ) {
+      if ( x > area.coords[0] && x < area.coords[2] &&
+           y > area.coords[1] && y < area.coords[3] ) {
+        activeArea = area;
+        throw $break;
+      }  
+    } );
+    
+    if ( activeArea && activeArea.href ) {
+      if ( e.isMiddleClick() ) {
+        window.open( activeArea.href );
+      } else {
+        window.location = activeArea.href;
+      }
+    }
+
+  }, // end of "_handleClick"
 
   //----------------------------------------------------------------------------
   /**
@@ -826,6 +874,7 @@ var PfamGraphic = Class.create( {
    * element and, once that's built, we can render the elements into it.
    *
    * @private
+   * @throws {PfamGraphic: ERROR} if there is an error in the markup description
    */
   _buildMarkups: function() {
 
@@ -864,6 +913,10 @@ var PfamGraphic = Class.create( {
     // flatten to get rid of nested arrays and then strip out slots with 
     // "undefined" as a value
     orderedMarkups = orderedMarkups.flatten().compact();
+    
+    // get the X-scale parameter. We need this when assessing whether lollipops
+    // are overlapping
+    var xscale = this._imageParams.xscale;
 
     // walk the markups, in order of start position, and build a map showing where
     // the lollipops are found
@@ -901,11 +954,11 @@ var PfamGraphic = Class.create( {
       var h = up ? heights.lollipops.up : heights.lollipops.down;
 
       // check for an overlap with another lollipop (which was added previously)
-      if ( h[ start - 1 ] !== undefined ||
-           h[ start     ] !== undefined ||
-           h[ start + 1 ] !== undefined ) {
+      if ( h[ start - ( 1 / xscale ) ] !== undefined ||
+           h[ start                  ] !== undefined ||
+           h[ start + ( 1 / xscale ) ] !== undefined ) {
 
-        var firstLollipopHeight = h.slice( start-1, start+1 ).max();
+        var firstLollipopHeight = h.slice( start-(1/xscale), start+(1/xscale) ).max();
 
         h[ start ] = firstLollipopHeight + ip.lollipopToLollipopIncrement;
 
@@ -1117,6 +1170,12 @@ var PfamGraphic = Class.create( {
     // this._areasList.push( seqArea );
     // Not adding this at the moment, though it could be pressed into service
     // if required...
+  
+    if ( this._sequence.highlight !== undefined &&
+         parseInt( this._sequence.highlight.start, 10 ) && 
+         parseInt( this._sequence.highlight.end, 10 ) ) {
+      this._drawHighlight();
+    }
 
   },
 
@@ -1140,6 +1199,9 @@ var PfamGraphic = Class.create( {
     // console.log( "PfamGraphic._drawSequence: calculated top offset as %d", this._topOffset );
     // console.log( "PfamGraphic._drawSequence: calculated bottom offset as %d", this._botOffset );
 
+    // store the canvas state before we start drawing
+    this._context.save();
+
     // console.log( "PfamGraphic._drawSequence: (x1, y1), (w, h): (%d, %d), (%d, %d)",
     //                        1,                 this._topOffset,
     //                        this._imageWidth,  this._seqStep );
@@ -1161,11 +1223,14 @@ var PfamGraphic = Class.create( {
     this._context.fillRect( 1,                this._topOffset + ( this._seqStep * 2 ),
                              this._imageWidth, this._seqStep * 3 );
 
+    // we're done drawing, so restore the canvas state
+    this._context.restore();
+
     // add an area
     return { label:  "sequence", // TODO make this more informative...
-              text:   "sequence",
-              coords: [ 0, this._topOffset, 
-              this._imageWidth, this._topOffset + this._seqStep * 5 ] };
+             text:   "sequence",
+             coords: [ 0, this._topOffset, 
+             this._imageWidth, this._topOffset + this._seqStep * 5 ] };
   },
 
   //----------------------------------------------------------------------------
@@ -1199,6 +1264,9 @@ var PfamGraphic = Class.create( {
     // console.log( "PfamGraphic._drawLollipop: (x1, y1), (x1, y2): (%d, %d), (%d, %d)",
     //              x1, y1, x1, y2 );
 
+    // store the canvas state before we start drawing
+    this._context.save();
+
     this._context.beginPath();
     this._context.moveTo( x1, y1 );
     this._context.lineTo( x1, y2 );
@@ -1207,6 +1275,9 @@ var PfamGraphic = Class.create( {
     this._context.stroke();
     this._context.closePath();
     
+    // we're done drawing, so restore the canvas state
+    this._context.restore();
+
     //----------------------------------
     
     // add an <area> for the stick (the head drawing function will add a separate 
@@ -1221,10 +1292,12 @@ var PfamGraphic = Class.create( {
     //   Math.floor( x1 ),     ys[0] - 1, 
     //   Math.floor( x1 ) + 2, ys[1] + 1 );
 
-    // if there's a URL on the region, add it to the area'
+    // if there's a URL on the region, add it to the area
     if ( markup.href !== undefined ) {
       area.href = markup.href;
     }
+    
+    //----------------------------------
     
     // add tooltip data, if possible
     var tip = {};
@@ -1276,6 +1349,10 @@ var PfamGraphic = Class.create( {
 
     var r,
         d;
+
+    // store the canvas state before we start drawing
+    this._context.save();
+
     switch ( style ) {
 
       case "circle":
@@ -1391,6 +1468,9 @@ var PfamGraphic = Class.create( {
         break;
     }
 
+    // we're done drawing, so restore the canvas state
+    this._context.restore();
+
     // console.log( "PfamGraphic._drawLollipopHead: done" );
   },
 
@@ -1403,6 +1483,9 @@ var PfamGraphic = Class.create( {
    */
   _drawBridge: function( bridge ) {
     // console.log( "PfamGraphic._drawBridge: start" );
+
+    // store the canvas state before we start drawing
+    this._context.save();
   
     var start  = bridge.markup.start,
         end    = bridge.markup.end,
@@ -1442,6 +1525,11 @@ var PfamGraphic = Class.create( {
     this._context.stroke();
     this._context.closePath();
 
+    // we're done drawing, so restore the canvas state
+    this._context.restore();
+
+    //----------------------------------
+
     // add tooltip data, if possible
     var tip = {};
 
@@ -1459,6 +1547,8 @@ var PfamGraphic = Class.create( {
           '  </dl>' +
           '</div>';
     }
+
+    //----------------------------------
 
     // add <area> tags for each of the legs and the horizontal
     var ys = [ y1, y2 ].sort(function( a, b ) { return a - b; } );
@@ -1503,6 +1593,7 @@ var PfamGraphic = Class.create( {
    * 
    * @private
    * @param {Object} region object with description of the region
+   * @throws {PfamGraphic: ERROR} if the start or end styles are not valid
    */
   _drawRegion: function( region ) {
     // console.log( "PfamGraphic._drawRegion: drawing region..." );
@@ -1521,7 +1612,7 @@ var PfamGraphic = Class.create( {
     var height = Math.floor( this._regionHeight ) - 2,
         radius = Math.round( height / 2 ),
         arrow  = radius,
-        width  = ( region.end - region.start + 1 ) * this._imageParams.xscale - 2,
+        width  = ( region.end - region.start + 1 ) * this._imageParams.xscale - 4,
 
         x = Math.max( 1, Math.floor( region.start * this._imageParams.xscale ) + 1.5 ),
         y = Math.floor( this._baseline - radius ) + 0.5,
@@ -1541,6 +1632,9 @@ var PfamGraphic = Class.create( {
     //   x, y, height, width );
 
     //----------------------------------
+
+    // save the canvas state
+    this._context.save();
 
     // the inner-most shell is filled, with a colour gradient running from white 
     // to dark to light colour as y increases. First draw the shell, then fill it
@@ -1599,6 +1693,9 @@ var PfamGraphic = Class.create( {
       this._drawText( x, this._baseline, width, region.text );
     }
 
+    // we're done drawing, so restore the canvas state
+    this._context.restore();
+
     //----------------------------------
 
     // build the area data
@@ -1608,7 +1705,7 @@ var PfamGraphic = Class.create( {
                  end:      region.end,
                  aliStart: region.aliStart,
                  aliEnd:   region.aliEnd,
-                 coords:   [ x, y, x + width, y + height ] };
+                 coords:   [ x, y, x + width + 1, y + height ] };
     this._areasList.push( area );
     this._areasHash.set( "region_" + region.text + "_" + region.start + "_" + region.end, area); 
     
@@ -1686,13 +1783,12 @@ var PfamGraphic = Class.create( {
    * Draws a motif.
    * 
    * @param {Object} motif description of the motif
+   * @throws {PfamGraphic: ERROR} if the colour is not valid
    */
   _drawMotif: function( motif ) {
-
     // console.log( "PfamGraphic._drawMotif: motif: ", motif );
 
     // work out the dimensions
-
     var height = this._imageParams.motifHeight,
         width  = Math.floor( ( motif.end - motif.start + 1 ) * this._imageParams.xscale ),
         x = Math.max( 1, Math.floor( motif.start * this._imageParams.xscale ) ),
@@ -1702,6 +1798,9 @@ var PfamGraphic = Class.create( {
     //   x, y, height, width );
 
     //----------------------------------
+
+    // save the current state of the canvas
+    this._context.save();
 
     // decide what we're drawing, based on the number of colours we're given
     if ( motif.colour instanceof Array ) {
@@ -1748,6 +1847,9 @@ var PfamGraphic = Class.create( {
       this._context.fillRect( x, y, width, parseInt( height, 10 ) + 1 );
   
     }
+
+    // restore the canvas state
+    this._context.restore();
 
     //----------------------------------
 
@@ -1844,6 +1946,7 @@ var PfamGraphic = Class.create( {
    * @param {Object} region description of the region
    * @param {int} radius radius of the region end
    * @param {int} height height of the region
+   * @throws {PfamGraphic: ERROR} if the start/end coordinates are not valid
    */  
   _drawEnvelope: function( region, radius, height ) {
     // console.log( "PfamGraphic._drawEnvelope: adding envelope overlay" );
@@ -1851,11 +1954,11 @@ var PfamGraphic = Class.create( {
     // TODO handle the case where there's an aliStart but no aliEnd given
 
     // make sure the endpoints are sensible
-    if ( region.start > region.aliStart ) {
+    if ( parseInt( region.start, 10 ) > parseInt( region.aliStart, 10 ) ) {
       throw( "PfamGraphic: ERROR: regions must have start <= aliStart (" + region.start + " is > " + region.aliStart + ")" );
     }
 
-    if ( region.end < region.aliEnd ) {
+    if ( parseInt( region.end, 10 ) < parseInt( region.aliEnd, 10 ) ) {
       throw( "PfamGraphic: ERROR: regions must have end >= aliEnd (" + region.end + " is < " + region.aliEnd + ")" );
     }
 
@@ -1870,7 +1973,7 @@ var PfamGraphic = Class.create( {
          region.aliStart > region.start ) {
       l = { x: Math.floor( region.start * xs ),
             y: Math.floor( y - 1 ) + 1,
-            w: ( region.aliStart * xs ) - ( region.start * xs ) + 1,
+            w: Math.floor( region.aliStart * xs ) - Math.floor( region.start * xs ) + 1,
             h: height + 1 };
     }
               
@@ -1878,7 +1981,7 @@ var PfamGraphic = Class.create( {
          region.aliEnd < region.end ) {
       r = { x: Math.floor( region.aliEnd * xs ),
             y: Math.floor( y - 1 ) + 1,
-            w: ( region.end * xs ) - ( region.aliEnd * xs ) + 2,
+            w: Math.floor( region.end * xs ) - Math.floor( region.aliEnd * xs ),
             h: height + 1 };
     }
 
@@ -2091,7 +2194,6 @@ var PfamGraphic = Class.create( {
   },
 
   //----------------------------------------------------------------------------
-
   /**
    * Generates a list of Y-axis coordinates for a jagged end. The list will 
    * be cached for this combination of height and number of steps.
@@ -2128,8 +2230,6 @@ var PfamGraphic = Class.create( {
   },
 
   //----------------------------------------------------------------------------
-
-
   /**
    * Draws the left-hand end of a region as an arrow head.
    *
@@ -2143,7 +2243,6 @@ var PfamGraphic = Class.create( {
   },
 
   //----------------------------------------------------------------------------
-
   /**
    * Draws the right-hand end of a region as an arrow head.
    *
@@ -2159,8 +2258,68 @@ var PfamGraphic = Class.create( {
   },
 
   //----------------------------------------------------------------------------
+  /**
+   * Draws the region highlight
+   *
+   * @private
+   */
+  _drawHighlight: function() {
 
+    var lineThicknessOffset = Math.round( this._imageParams.highlightWeight / 2 ),
+        left   = Math.floor( this._sequence.highlight.start * this._imageParams.xscale ),
+        right  = Math.ceil( this._sequence.highlight.end   * this._imageParams.xscale ),
+        top    = this._canvasHeight - 4 - lineThicknessOffset,
+        bottom = this._canvasHeight - 2;
 
+    if ( this._imageParams.highlightWeight % 2 ) {
+      console.log( "PfamGraphic._drawHighlight: line width is an odd number of pixels (%d); adjusting offsets",
+        this._imageParams.highlightWeight );
+      left   -= 0.5;
+      right  -= 0.5;
+      bottom -= 0.5;
+    }
+
+    console.log( "PfamGraphic._drawHighlight: moveTo( x, y ): ( %d, %d )", left, top );
+    console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", left, bottom );
+    console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", right, bottom );
+    console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", right, top );
+
+    this._context.save();
+
+    this._context.beginPath();
+    this._context.strokeStyle = this._imageParams.highlightColour;
+    this._context.lineWidth   = this._imageParams.highlightWeight;
+    this._context.moveTo( left, top );
+    this._context.lineTo( left, bottom );
+    this._context.lineTo( right, bottom );
+    this._context.lineTo( right, top );
+    this._context.stroke();
+
+    this._context.restore();
+
+    //----------------------------------
+    
+    // add an <area> and associated tooltip
+    var area = { start:  this._sequence.highlight.start,
+                 end:    this._sequence.highlight.end,
+                 coords: [ left,  top,
+                           right, bottom ],
+                 tip:    { title: this._sequence.highlight.text || "Highlighted region",
+                           body:   '<div class="tipContent">' +
+                                   '  <dl>' +
+                                   '    <dt>Start:</dt>' +
+                                   '    <dd>' + this._sequence.highlight.start + '</dd>' +
+                                   '    <dt>End:</dt>' +
+                                   '    <dd>' + this._sequence.highlight.end + '</dd>' +
+                                   '  </dl>' +
+                                   '</div>' } };
+    this._areasList.push( area );
+
+    console.log( "PfamGraphic._drawHighlight: area coords: (%d, %d), (%d, %d)", 
+      left, top, right, bottom );
+  },
+
+  //----------------------------------------------------------------------------
   /**
    * Converts a hex string (eg "#07874f") into an RGB triplet (eg [ 7, 135, 79 ]).
    * RGB values are in the range 0 - 255. Returns an array containing the RGB values,
@@ -2171,6 +2330,7 @@ var PfamGraphic = Class.create( {
    *
    * @private
    * @param {String} hexString HTML colour value
+   * @throws {PfamGraphic: ERROR} if the colour is not valid
    */
   _getRGBColour: function( hexString ) {
 
@@ -2191,8 +2351,7 @@ var PfamGraphic = Class.create( {
     return rgb;
   },
 
-  //----------------------------------
-
+  //----------------------------------------------------------------------------
   /**
    * Converts an RGB triplet (eg 7, 135, 79) into a hex colour (eg #07874f").
    * The RGB values must be in the range 0 - 255, but they can be given as
@@ -2205,6 +2364,7 @@ var PfamGraphic = Class.create( {
    * @param {int} red red value 
    * @param {int} green greenvalue 
    * @param {int} blue blue value 
+   * @throws {PfamGraphic: ERROR} if the colour is not valid
    */
   _getHexColour: function( red, green, blue ) {
 
