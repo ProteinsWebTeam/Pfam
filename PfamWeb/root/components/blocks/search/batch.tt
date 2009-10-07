@@ -5,7 +5,7 @@
 # 
 # build the batch search block
 #
-# $Id: batch.tt,v 1.13 2009-01-06 12:48:52 jt6 Exp $
+# $Id: batch.tt,v 1.14 2009-10-07 13:59:26 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -168,16 +168,6 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         </div>
   
         <div class="row">
-          <label for="batchOpts">Search strategy</label>
-          <select name="batchOpts" id="batchOpts">
-            <option value="both" selected="selected">Global &amp; local (merged)</option>
-            <option value="bothNoMerge">Global &amp; local (separately)</option>
-            <option value="ls">Global</option>
-            <option value="fs">Local</option>
-          </select>
-        </div>
-  
-        <div class="row">
           <span class="label">Cut-off</span>
           <label for="batchGaButton" class="subLabel">
             <input class="radio"
@@ -214,6 +204,15 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
                  id="batchEvalue" />
         </div>
   
+        <div class="row">
+          <label for="searchBs">Search for PfamBs</label>
+          <input class="radio"
+                 type="checkbox" 
+                 name="searchBs" 
+                 id="batchSearchBs" 
+                 value="1" />
+        </div>
+
         <div class="row">
           <label for="pEmail">Email address</label>
           <input type="text" size="20" maxlength="100" name="email" id="pEmail" />
