@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.82 2009-10-07 13:01:50 jt6 Exp $
+   $Id: pfam.css,v 1.83 2009-10-07 22:04:04 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -630,6 +630,7 @@ div.pfamBSearch .progressBar {
   width: 50%;
   margin-left: 25%;
   margin-right: 25%;
+  border-spacing: 1px;
 }
 
 #keyTable thead {
@@ -657,7 +658,8 @@ div.pfamBSearch .progressBar {
 .resultTable {
   clear: both;
 /*   border: 1px solid #000070; */
-    margin: 0 auto;
+  margin: 0 auto;
+  border-spacing: 1px;
 }
 
 .resultTable thead tr {
