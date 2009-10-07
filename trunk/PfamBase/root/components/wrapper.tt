@@ -4,7 +4,7 @@
 #
 # wrapper for all page content. Contains the page header and footer
 #
-# $Id: wrapper.tt,v 1.4 2008-11-27 11:40:56 jt6 Exp $
+# $Id: wrapper.tt,v 1.5 2009-10-07 14:30:04 jt6 Exp $
 
 # see if the page should be left completely bare of any header/footer
 IF template.naked;
@@ -35,6 +35,13 @@ ELSE;
   </head>
 
   <body>
+
+    [%# add an Iframe for use by the history manager. Only required for IE,
+      # hence the conditional comments. The input is required for all browsers -%]
+    <!--[if IE]>
+        <iframe id="yui-history-iframe" src="[% c.uri_for( '/shared/images/blank.gif' ) %]"></iframe>
+    <![endif]-->
+    <div><input id="yui-history-field" type="hidden" /></div>
 
     [% # build the page header, with the swoosh, menus, etc.
     PROCESS components/header.tt;
