@@ -2,7 +2,7 @@
 # JobManager.pm
 # jt6 20070817 WTSI
 #
-# $Id: JobManager.pm,v 1.7 2009-09-04 13:54:59 jt6 Exp $
+# $Id: JobManager.pm,v 1.8 2009-10-07 14:18:35 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::JobManager;
 
 This controller is responsible for running sequence searches.
 
-$Id: JobManager.pm,v 1.7 2009-09-04 13:54:59 jt6 Exp $
+$Id: JobManager.pm,v 1.8 2009-10-07 14:18:35 jt6 Exp $
 
 =cut
 
@@ -128,7 +128,9 @@ sub returnStatus : Private {
   my( $this, $c ) = @_;
 
   # convert the status hash to a JSON object and return it
-  my $status = objToJson( $c->stash->{status} );
+  $c->log->debug( 'JobManager::returnStatus: status: ' . $c->stash->{status} )
+    if $c->debug;
+  my $status = to_json( $c->stash->{status} );
 
   $c->log->debug( 'JobManager::returnStatus: returning: ' ) if $c->debug;
   $c->log->debug( dump( $c->stash->{status} ) ) if $c->debug;
@@ -151,13 +153,15 @@ sub returnStatus : Private {
 Populates the stash with the results of a specified job. Checks the C<Request>
 parameters to find the jobId.
 
+This is a legacy method, required for the Rfam searches.
+
 =cut
 
 sub retrieveResults : Private {
   my ( $this, $c, $jobId ) = @_;
 
   unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
-    $c->log->debug( "JobManager::retrieveResults: looking up details for job ID: |$jobId|" )
+    $c->log->debug( "JobManager::retrieveResults: invalid job ID: |$jobId|" )
       if $c->debug;
     return;
   }
@@ -174,9 +178,6 @@ sub retrieveResults : Private {
   # bail unless it exists
   return unless defined $job;
   
-  $c->log->debug( "JobManager::retrieveResults: stashing results for |$jobId|..." )
-    if $c->debug;
-  
   # retrieve the results of the job and stash them
   $c->stash->{results}->{$jobId}->{job}          = $job;
   $c->stash->{results}->{$jobId}->{status}       = $job->status;
@@ -184,8 +185,76 @@ sub retrieveResults : Private {
   $c->stash->{results}->{$jobId}->{length}       = length( $job->stdin );
   $c->stash->{results}->{$jobId}->{method}       = $job->job_type;
   $c->stash->{results}->{$jobId}->{options}      = $job->options;
-  $c->stash->{results}->{$jobId}->{user_options} = from_json( $job->options );
+
   $c->stash->{seq} = $job->stdin;
+
+  $c->log->debug( "JobManager::retrieveResults: stashed results for |$jobId|" )
+    if $c->debug;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 retrieve_result_rows : Private
+
+Populates the stash with the results of a specified job. Checks the C<Request>
+parameters to find the jobId.
+
+This is a new method, used by the new and improved Pfam searches. The new Pfam
+search mechanism can have multiple jobs with the same job ID.
+
+=cut
+
+sub retrieve_result_rows : Private {
+  my ( $this, $c, $jobId ) = @_;
+
+  unless ( $jobId =~ m/^([A-F0-9\-]{36})$/i ) {
+    $c->log->debug( "JobManager::retrieve_result_rows: invalid job ID: |$jobId|" )
+      if $c->debug;
+    return;
+  }
+
+  $c->log->debug( "JobManager::retrieve_result_rows: looking up details for job ID: |$jobId|" )
+    if $c->debug;
+  
+  # job ID *looks* valid; try looking for that job
+  my @jobs = $c->model( 'WebUser::JobHistory' )
+               ->search( { job_id => $jobId },
+                         { prefetch => [ qw( job_stream ) ] } );
+  
+  # bail unless one or more matching jobs exists
+  return unless scalar @jobs;
+  
+  # retrieve the results of the jobs and stash them
+  $c->stash->{results}->{$jobId}->{rows} = \@jobs;
+
+  # my $job_data = { 
+  #   job     => $job,
+  #   status  => $job->status,
+  #   rawData => $job->stdout,
+  #   length  => length( $job->stdin ),
+  #   method  => $job->job_type,
+  #   options => $job->options,
+  # }
+
+  # the new searches store the user-specified options as a JSON object. Try
+  # converting it back to a perl data structure, but handle the possibility
+  # the the options were set by a job from the old (now Rfam only) search
+  # system. If we get an exception when trying to convert from JSON, we just
+  # ignore it, since the options were set by a search system that isn't 
+  # planning to use the user_options anyway
+  # eval {
+  #   $c->stash->{results}->{$jobId}->{user_options} = from_json( $job->options );
+  # };
+  # if ( $@ ) {
+  #   $c->log->debug( 'JobManager::retrieve_result_rows: could not convert options from JSON; no user options stashed' )
+  #     if $c->debug;
+  # }
+
+  # $c->stash->{seq} = $job->stdin;
+
+  $c->log->debug( 'JobManager::retrieve_result_rows: stashed results for ' . scalar @jobs
+                  . " jobs with ID |$jobId|" )
+    if $c->debug;
 }
 
 #-------------------------------------------------------------------------------
