@@ -4,7 +4,7 @@
 # 
 # build a page for the HTML alignment fragment
 #
-# $Id: html_alignment.tt,v 1.5 2009-06-09 15:17:56 jt6 Exp $
+# $Id: html_alignment.tt,v 1.6 2009-10-07 14:10:44 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -20,18 +20,21 @@ requirements.css.push( "heatmap.css" );
 
 #-------------------------------------------------------------------------------
 
+USE String;
+
 pageContent = BLOCK;
 
 type = alnType | ucfirst;
-title = type _ " sequence alignment for " _ acc;
+title = String.new( type _ " sequence alignment for " _ acc );
 -%]
 
-<h1>[% title %]</h1>
+<h1>[% title.trim.capital() %]</h1>
 
 <div id="html_alignment">
 [% html_alignment %]
 </div>
 
+[% IF alnType != "heatmap" -%]
 <div id="key">
 
   <p>
@@ -96,6 +99,7 @@ title = type _ " sequence alignment for " _ acc;
   </dl>
 
 </div>
+[% END; # of "IF ! heatmap" -%]
 
 [% IF errorMsg -%]
 <p>
