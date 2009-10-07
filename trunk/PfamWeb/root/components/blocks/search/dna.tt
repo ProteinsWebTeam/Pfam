@@ -5,7 +5,7 @@
 # 
 # build the dna search block
 #
-# $Id: dna.tt,v 1.9 2008-09-01 10:52:17 jt6 Exp $
+# $Id: dna.tt,v 1.10 2009-10-07 14:00:12 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -106,28 +106,27 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     </div>
   
   </div>
-</div>
 
-<script type="text/javascript">
-  // <![CDATA[
-  
-  // a little check on the sequence length...
-  var lengthWarning = false;
-  checkLength = function() {
+  <script type="text/javascript">
+    // <![CDATA[
+    
+    // a little check on the sequence length...
+    var lengthWarning = false;
+    checkLength = function() {
 
-    if( $F('dnaSeq').length > 80000 ) {
-      if( ! lengthWarning ) {
-        new Insertion.After( "dnaSeq",
-                             "<div class='error'>Your sequence must be &lt; 80kb<\/div>" );
-        lengthWarning = true;
+      if( $F('dnaSeq').length > 80000 ) {
+        if( ! lengthWarning ) {
+          new Insertion.After( "dnaSeq",
+                               "<div class='error'>Your sequence must be &lt; 80kb<\/div>" );
+          lengthWarning = true;
+        }
+        return false;
+      } else {
+        return true;
       }
-      return false;
-    } else {
-      return true;
-    }
-  };
+    };
 
-  var exDNASeq = "GCTCACAGCTGTGTCCTCCCCACCCCCTGGGACCACAAAGCTCCACCCCT\n\
+    var exDNASeq = "GCTCACAGCTGTGTCCTCCCCACCCCCTGGGACCACAAAGCTCCACCCCT\n\
 GCCACCCCCTGACATCCTCAAGCCAAGGAGCCTGACCCAGGGCTCAGGGT\n\
 GGGGTCACAAACCTGGGGGGGGTCTGATTTGCATGGATGGACTCTCCCCC\n\
 TCTCAGAGTATGAAGAAAGGGAGAGATTTGGGGGAAGCTCAGCTTCAGCT\n\
@@ -141,8 +140,10 @@ CACCTCAGCCTCCCTGGCCATCAGTGGGCTCCAGTCTGAGGATGAGGCTG\n\
 ATTATTACTGTGCAGCATGGGATGACAGCCTGAATGGTCCCACAGTGCTC\n\
 CAGGCCCAGGGGGAACAGAGACAAGAACCCCCTTCCTTTTCTGCCAGGAG\n\
 GTATAATGTTGACTATGGGTTTGAAAGAGTGGGCTTTTCTTACCATAAG";
-  // ]]>
-</script>
+    // ]]>
+  </script>
+
+</div>
 
 <!-- end dna search block -->
 [%#

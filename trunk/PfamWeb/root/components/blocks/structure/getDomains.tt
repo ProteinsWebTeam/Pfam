@@ -5,7 +5,7 @@
 # 
 # block for the structural domains data
 #
-# $Id: getDomains.tt,v 1.11 2009-09-04 10:51:34 jt6 Exp $
+# $Id: getDomains.tt,v 1.12 2009-10-07 14:03:52 jt6 Exp $
 -%]
 
 <!-- start structural domains block -->
@@ -26,27 +26,27 @@
 
   </div>
 
-</div> <!-- end of "block" -->
+  <script type="text/javascript">
+    // <![CDATA[
+    
+    // set up the post-load AJAX call
+    document.observe( "dom:loaded", function() {
+      var r = new Ajax.Request(
+        "[% c.uri_for( "/structure/structuraldomains" ) %]",
+        { parameters: { id:     '[% pdbId %]' },
+          onSuccess:  function( oResponse ) {
+                        ("getDomph").update( oResponse.responseText );
+                      },
+          onFailure:  function( oResponse ) {
+                        ("getDomph").update( "Graphics loading failed." );
+                      }
+        }
+      );
+    } );
+    // ]]>
+  </script> 
 
-<script type="text/javascript">
-  // <![CDATA[
-  
-  // set up the post-load AJAX call
-  document.observe( "dom:loaded", function() {
-    var r = new Ajax.Request(
-      "[% c.uri_for( "/structure/structuraldomains" ) %]",
-      { parameters: { id:     '[% pdbId %]' },
-        onSuccess:  function( oResponse ) {
-                      ("getDomph").update( oResponse.responseText );
-                    },
-        onFailure:  function( oResponse ) {
-                      ("getDomph").update( "Graphics loading failed." );
-                    }
-      }
-    );
-  } );
-  // ]]>
-</script> 
+</div>
 
 <!-- end structural domains block -->
 [%#

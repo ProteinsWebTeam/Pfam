@@ -5,7 +5,7 @@
 # 
 # build the summary block for the proteome pages
 #
-# $Id: summary.tt,v 1.12 2009-05-12 09:35:01 jt6 Exp $
+# $Id: summary.tt,v 1.13 2009-10-07 13:58:01 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -22,12 +22,6 @@ sharedRequirements.css.push( "tree.css" );
 oe = 0;
 %]
 
-<script type="text/javascript">
-  // <![CDATA[
-  //Event.observe( window, "load", proteomePostLoad, false );
-  // ]]>
-</script>
-  
 <!-- start proteome summary block -->
 
 <div class="block" id="proteomeSummaryBlock">
@@ -44,7 +38,7 @@ oe = 0;
       (<acronym title="National Center for Biotechnology Information">NCBI</acronym> 
       taxonomy ID
       <a href="http://www.ebi.ac.uk/newt/display?search=[% proteomeSpecies.ncbi_code %]"
-         class="ext">[% proteomeSpecies.ncbi_code %]</a>).
+         class="ext">[% proteomeSpecies.ncbi_taxid.ncbi_taxid %]</a>).
     </p>
 
     <table class="layout" summary="Summary of information for the proteome">
@@ -82,48 +76,37 @@ oe = 0;
     </table>
     
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    [% IF proteomeSpecies.ncbi_taxid.taxonomy -%]
+    try {
+      var tree = new YAHOO.widget.TreeView("lineage"); 
+      var parent = tree.getRoot();
+      [% FOREACH node_name IN proteomeSpecies.ncbi_taxid.taxonomy.split(';');
+        node_id = "node" _ node_name.replace( '\W', '' ); %]
+        var [% node_id %]Node = new YAHOO.widget.TextNode( 
+          { label: "[% node_name %]",
+            href:  "http://www.ebi.ac.uk/newt/display?match=complete%20word&search=[% node_name %]" },
+          parent,
+          true );
+        parent = [% node_id %]Node;
+      [%- END %]
+      tree.draw();
+    } catch( e ) {
+      $("lineage").update("[% proteomeSpecies.ncbi_taxid.taxonomy %]");
+    }
+    [% ELSE -%]
+      $("lineage").appendChild(
+         new Element( "span", { "class": "inactive" } )
+           .update("Not available, due to this strain being absent from the NCBI taxonomy")
+      );
+    [% END -%]
+    // ]]>
+  </script>
+
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // set up the post-load AJAX call
-  Event.observe(
-    window,
-    "load",
-    function() {
-      new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
-                        { parameters: { taxId: "[% taxId %]" },
-                          onSuccess:  function( oResponse ) {
-                                        $("pdgph").update( oResponse.responseText );
-                                      },
-                          onFailure:  function( oResponse ) {
-                                        $("pdgph").update( "Domain graphics loading failed." );
-                                      }
-                        } );
-    },
-    false );
-
-  // build the little taxonomy tree
-  try {
-    var tree = new YAHOO.widget.TreeView("lineage"); 
-    var parent = tree.getRoot();
-    [% FOREACH node_name IN proteomeSpecies.taxonomy.split(';');
-      node_id = "node" _ node_name.replace( '\W', '' ); %]
-      var [% node_id %]Node = new YAHOO.widget.TextNode( 
-        { label: "[% node_name %]",
-          href:  "http://www.ebi.ac.uk/newt/display?match=complete%20word&search=[% node_name %]" },
-        parent,
-        true );
-      parent = [% node_id %]Node;
-    [%- END %]
-    tree.draw();
-  } catch( e ) {
-    // fall-back to the lineage string itself
-    $("lineage").update("[% proteomeSpecies.taxonomy %]");
-  }
-  // ]]>
-</script>
 
 <!-- end proteome summary block -->
 [%#

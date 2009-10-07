@@ -4,7 +4,7 @@
 # 
 # build the literature block for structures
 #
-# $Id: literature.tt,v 1.1 2009-08-21 10:48:41 jt6 Exp $
+# $Id: literature.tt,v 1.2 2009-10-07 14:04:45 jt6 Exp $
 -%]
 
 <!-- start literature block -->
@@ -24,49 +24,50 @@
     </div>
 
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    // load the biolit data. Set up the js objects that handle switching
+    // between the various figures
+    var switchers = [];
+    document.observe( "dom:loaded", function() {
+      var r = new Ajax.Updater(
+        "biolitRefs",
+        "[% c.uri_for( '/structure/annotations/references' ) %]",
+        { 
+          parameters: { entry: "[% pdbId %]" },
+          evalScripts: true,
+          onComplete: function() {
+   
+            // tell the lightbox object to check again for lightbox images
+            lb.updateImageList();
+
+            // add ImageSwitchers to each of the sets of figures
+            $$(".refRow").each( function( row ) {
+              switchers.push( new ImageSwitcher( row.down(".switcher") ) );
+            } );
+
+            // update and show the summary about the biolit references in the 
+            // summary tab
+            var numBlArticles = $$(".refRow").size();
+
+            if ( numBlArticles > 0 ) {
+              $("numBiolitArticles").update( numBlArticles );
+              $("blArticlePlural").update( numBlArticles > 1 ? "s" : "" );
+              $("blReferPlural").update( numBlArticles > 1 ? "" : "s" );
+              $("blThemIt").update( numBlArticles > 1 ? "them" : "it" );
+              $("biolitSummary").show();
+            }
+          } 
+        }
+      );
+    } );
+
+    // ]]>
+  </script>
+
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // load the biolit data. Set up the js objects that handle switching
-  // between the various figures
-  var switchers = [];
-  document.observe( "dom:loaded", function() {
-    var r = new Ajax.Updater(
-      "biolitRefs",
-      "[% c.uri_for( '/structure/annotations/references' ) %]",
-      { 
-        parameters: { entry: "[% pdbId %]" },
-        evalScripts: true,
-        onComplete: function() {
- 
-          // tell the lightbox object to check again for lightbox images
-          lb.updateImageList();
-
-          // add ImageSwitchers to each of the sets of figures
-          $$(".refRow").each( function( row ) {
-            switchers.push( new ImageSwitcher( row.down(".switcher") ) );
-          } );
-
-          // update and show the summary about the biolit references in the 
-          // summary tab
-          var numBlArticles = $$(".refRow").size();
-
-          if ( numBlArticles > 0 ) {
-            $("numBiolitArticles").update( numBlArticles );
-            $("blArticlePlural").update( numBlArticles > 1 ? "s" : "" );
-            $("blReferPlural").update( numBlArticles > 1 ? "" : "s" );
-            $("blThemIt").update( numBlArticles > 1 ? "them" : "it" );
-            $("biolitSummary").show();
-          }
-        } 
-      }
-    );
-  } );
-
-  // ]]>
-</script>
 
 <!-- end literature block -->
 [%#
