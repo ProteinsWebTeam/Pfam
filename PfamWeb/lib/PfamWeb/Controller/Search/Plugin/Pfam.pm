@@ -2,7 +2,7 @@
 # Pfam.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pfam.pm,v 1.10 2009-10-07 12:00:21 jt6 Exp $
+# $Id: Pfam.pm,v 1.11 2009-10-07 22:07:22 jt6 Exp $
 
 =head1 NAME
 
@@ -36,7 +36,7 @@ against the following columns:
 Also does a simple look up in the pfam table, checking to see if the
 raw search terms match a Pfam family accession or ID.
 
-$Id: Pfam.pm,v 1.10 2009-10-07 12:00:21 jt6 Exp $
+$Id: Pfam.pm,v 1.11 2009-10-07 22:07:22 jt6 Exp $
 
 =cut
 
@@ -71,22 +71,19 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::Pfam::process: text querying table pfamA using: |' .
                   $c->stash->{terms} . '|' ) if $c->debug;
 
-  my $m = $c->model('PfamDB::Pfama');
-
-  # do a full blown query...
-  my $results =
-    $m->search( {},
-                {} )
-      ->search_literal( 'MATCH( pfama_acc, pfama_id, description, comment, previous_id ) ' .
-                        'AGAINST( ? IN BOOLEAN MODE )',
-                        $c->stash->{terms} );
+  my $results = $c->model('PfamDB::Pfama')
+                  ->search( {},
+                            {} )
+                  ->search_literal( 'MATCH( pfama_acc, pfama_id, description, comment, previous_id ) ' .
+                                    'AGAINST( ? IN BOOLEAN MODE )',
+                                    $c->stash->{terms} );
 
   # do a simple lookup for the ID or accession...
 #  $c->log->debug( "Search::Plugin::Pfam::process: doing a lookup for ID or acc using: |" .
 #                  $c->stash->{rawQueryTerms} . '|' ) if $c->debug;
 
-#  my $lookup = $m->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
-#                             { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
+#  my $lookup = $c->model('PfamDB::Pfama')->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
+#                                                   { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
 
 #  return $results, $lookup;
   return $results;
