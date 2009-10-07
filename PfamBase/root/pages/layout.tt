@@ -5,7 +5,7 @@
 # 
 # build a tab-layout page
 #
-# $Id: layout.tt,v 1.9 2009-01-06 12:29:07 jt6 Exp $
+# $Id: layout.tt,v 1.10 2009-10-07 14:31:33 jt6 Exp $
 
 USE String;
 USE date;
@@ -27,17 +27,24 @@ requirements.css.push( "cb.css" );
 #--------------------------------------
 # a BLOCK that will generate a sidebar tab
 
-BLOCK generateTab;
+BLOCK generateTab; -%]
+
+  <li id="[% blockName %]Selector" 
+      class="[% IF index == 1; "selected"; END; IF NOT active; " disabled"; END %]">
+    <a href="#[% blockName %]">[% blockTitle %]</a>
+  </li>
+[%-
 
   # see if the tab should be activated or not
-  suffix = String.new;
-  IF NOT active OR firstTab;
-    CALL suffix.append( "inactive" )  IF NOT active;
-    CALL suffix.append( " selected" ) IF firstTab;
-    CALL suffix.trim();
-  END
+#  suffix = String.new;
+#  IF NOT active OR firstTab;
+#    CALL suffix.append( "inactive" )  IF NOT active;
+#    CALL suffix.append( " selected" ) IF firstTab;
+#    CALL suffix.trim();
+#  END
 -%]
 
+<!--
   <li id="[% blockName %]Selector"[% IF suffix %] class="[% suffix %]"[% END %]>
     [% IF active;
 	    # this div is purely to avoid the IE box model bug... -%]
@@ -50,7 +57,7 @@ BLOCK generateTab;
       <div class="inactive">[% blockTitle %]</div>
     [% END -%]
   </li>
-
+-->
 [% END; # of BLOCK
 
 #--------------------------------------
@@ -79,12 +86,25 @@ FOREACH block IN layouts.${pageType}.blocks;
   IF c.debug;
     CALL c.log.debug( "layout.tt: processing '$blockFile'" );
     pageOutput = PROCESS $blockFile;
-    CALL pageContent.append( pageOutput );
+    IF pageOutput;
+      # we got some output from the block template; add it to the page content
+      CALL pageContent.append( pageOutput );
+    ELSE;
+      # there was no content from the block template, meaning that the block
+      # should be disabled. However, we still need a placeholder div in the 
+      # body of the page, otherwise TabView gets confused
+      CALL pageContent.append( "<div><!-- disabled --></div>" );
+    END;
+
   ELSE;
     # we're not debugging, so catch the errors from the template and carry on
     TRY;
       pageOutput = PROCESS $blockFile;
-      CALL pageContent.append( pageOutput );
+      IF pageOutput;
+        CALL pageContent.append( pageOutput );
+      ELSE;
+        CALL pageContent.append( "<div><!-- disabled --></div>" );
+      END;
     CATCH;
       CALL c.log.error( "layout.tt: Couldn't render template file \"$blockFile\"" );
     END;
@@ -94,7 +114,7 @@ FOREACH block IN layouts.${pageType}.blocks;
   activity.$blockName = blockActive;
 
   # build the tab label
-  tabsOutput = PROCESS generateTab, active = blockActive;
+  tabsOutput = PROCESS generateTab, active = blockActive, index = loop.index+1;
   CALL tabsContent.append( tabsOutput );
 
   firstTab = 0;
@@ -109,14 +129,16 @@ PROCESS components/icons.tt;
 #--------------------------------------
 # and construct the page from the components that we've assembled
 
-%]
+# page components that are needed by the history manager %]
+
 <div id="tabTitle">
   [%
   titleFile = "components/blocks/${pageType}/title.tt";
   TRY;
     PROCESS $titleFile titleType="tab";
   CATCH;
-    CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\" (page type \"$pageType\")" );
+    CALL c.log.error( "layout.tt: Couldn't render title file \"$titleFile\" (page type \"$pageType\")" )
+      IF c.debug;
   END
   %]
 </div>
@@ -129,106 +151,240 @@ PROCESS components/icons.tt;
 
 <div class="cleaner"><!-- empty --></div>
 
+[%-#--------------------------------------
+   # this script block set up the YUI history and tab management components -%]
+
+<script type="text/javascript">
+  // <![CDATA[
+
+  [%-# set up the legacy tab switching mechanism. We need to continue support bookmarks
+     # that used the block names -%]
+
+  var switchTab = function( id ) {
+
+    [%-# get a list of all list items in the sidebar, i.e. the tab selectors -%]
+    var tabs =  $("sidebar")
+                  .descendants()
+                  .findAll( function(el) { 
+                    return el.nodeName == "LI";
+                  } );
+
+    if ( $(id) ) {
+
+      [%-# the argument was an id, so switch to that block -%]
+      var selector = id+"Selector";
+      var tabIndex = tabs.indexOf( $(selector) );
+
+      try {
+        tv.selectTab( tabIndex );
+      } catch ( e ) { }
+
+    } else {
+
+      [%-# the argument doesn't appear to be a block; assume it's "next" or "prev".
+         # This is a bit more complicated, because we need to take into account
+         # any disabled tabs in the list... -%]
+      var selectedLi = $$("#sidebar li.selected").first();
+      var selectedLiIndex = tabs.indexOf( selectedLi );
+
+      [%-# walk up/down the tabs list %]
+      var limit = ( id == "next" ) ? tabs.size() - selectedLiIndex
+                                   : selectedLiIndex;
+      var newTabSelector;
+      for ( var i = 0; i < limit; i++ ) {
+        if ( id == "next" ) {
+          newTabSelector = selectedLi.next("li", i);
+        } else if ( id == "prev" ) {
+          newTabSelector = selectedLi.previous("li", i);
+        }
+        if ( $(newTabSelector) && 
+             ! $(newTabSelector).hasClassName("disabled") ) {
+          break;
+        }
+      }
+
+      if ( newTabSelector == undefined ) {
+        return;
+      }
+
+      var tabIndex = tabs.indexOf( $(newTabSelector) );
+      try {
+        tv.selectTab( tabIndex );
+      } catch ( e ) { }
+
+    }
+      
+  };
+
+  //--------------------------------------
+
+  [%-# a function to set up the final few bits of the page behaviour -%]
+  var pageSetup = function() {
+
+    if ( $(showTab) ) {
+      switchTab( showTab );
+    } else if ( $$(".error").size() > 0 ) {
+      [%-# see if there's an error message in the page. If there is, we walk back
+         # up the DOM tree from that error message node until we find the "block"
+         # that encloses it, grab the ID for that block and use the tab switcher
+         # to select it... -%]
+      switchTab( $$(".error")
+                   .first()
+                   .up("div.block")
+                   .identify() );
+    }
+
+    [%-# keep track of post-loading calls -%]
+    
+    [%-# register listeners for the start and end of each ajax call -%]
+    Ajax.Responders.register( {
+      onCreate: function() {
+        $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
+        $('loadingComponents').show();
+      },
+      onComplete: function() {
+        $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
+        if( Ajax.activeRequestCount < 1 ) {
+          $('loadingComponents').hide();
+        }
+      }
+    } );
+
+    document.observe( "keypress", function(e){
+
+      [%-# don't capture events that originate on an input or textarea -%]
+      var targetNodeType = e.findElement().nodeName;
+      if ( targetNodeType == 'INPUT' ||
+           targetNodeType == 'TEXTAREA' ) {
+        return;
+      }
+
+      var code;
+      if ( e.keyCode ) {
+        code = e.keyCode;
+      }
+      else if ( e.which ) {
+        code = e.which;
+      }
+
+      switch (code) {
+        case  75:            // "K"
+        case 107:            // "k"
+        case  80:            // "P"
+        case 112:            // "p"
+        /* case Event.KEY_UP:   // up arrow */
+          switchTab("prev");
+          break;
+        case  74:            // "J"
+        case 106:            // "j"
+        case  78:            // "N"
+        case 110:            // "n"
+        /* case Event.KEY_DOWN: // down arrow */
+          switchTab("next");
+          break;
+      }
+
+    } );
+
+  };
+  
+  //--------------------------------------
+
+  [%-# this is all lifted directly from the YUI example page:
+     # http://developer.yahoo.com/yui/examples/history/history-tabview.html
+
+     # see if we got here via a bookmark -%]
+  var bookmarkedTabViewState = YAHOO.util.History.getBookmarkedState( "tabview" );
+  var initialTabViewState = bookmarkedTabViewState || "tab0";
+
+  [%-# register the "tabview" module with the history manager -%]
+  YAHOO.util.History.register( "tabview", initialTabViewState, function (state) {
+    tv.set( "activeIndex", state.substr(3) );
+  } );
+
+  [%-# a function to initialise the TabView widget -%]
+  var tv;
+  var initTabView = function() {
+    tv = new YAHOO.widget.TabView( "tabset" );
+    tv.addListener( "activeTabChange", handleTabViewActiveTabChange );
+    pageSetup();
+  };
+
+  [%-# when the history manager is ready, initialise the TabView widget with whatever
+     # state we get from the history manager. The state is stored as "tabN", where
+     # "N" is the index number of the tab -%]
+  YAHOO.util.History.onReady( function () {
+    initTabView();
+    var currentState = YAHOO.util.History.getCurrentState("tabview");
+    tv.set ("activeIndex", currentState.substr(3) );
+  });
+
+  [%-# a handler function that is called whenever the TabView widget changes the tab.
+     # This is used to register the change with the history manager -%]
+  var handleTabViewActiveTabChange = function( e ) {
+    var newState, currentState;
+
+    newState = "tab" + this.getTabIndex( e.newValue );
+
+    try {
+      currentState = YAHOO.util.History.getCurrentState("tabview");
+      [%-# only change tabs if we're not currently showing the requested tab,
+         # otherwise we end up in an infinite loop -%]
+      if ( newState != currentState ) {
+        YAHOO.util.History.navigate( "tabview", newState );
+      }
+    } catch (e) {
+    [%-# if the history manager doesn't work, change the tab anyway -%]
+      tv.set( "activeIndex", newState.substr(3) );
+    }
+  };
+
+  [%-# finally, initialise the history manager, which will, in turn, initialise the 
+     # TabView widget. If initialising the history manager fails, we fall back on the
+     # function that initialises just the TabView, so that at least the page is usable -%]
+  try {
+    YAHOO.util.History.initialize( "yui-history-field", "yui-history-iframe" );
+  } catch (e) {
+    initTabView();
+  }
+
+  //--------------------------------------
+
+  var section    = "[% pageType # the site section, e.g. family, protein, etc. %]";
+  var showTab    = "[% showTab  # the tab, specified by a parameter %]";
+
+  // ]]>
+</script> 
+
+[%-#--------------------------------------
+   #
+   # build the mark up for the page proper. Everything is classed appropriately for the 
+   # YUI components -%]
+
 <div id="wrap">
 
-  [% # this is only here to avoid the IE peekaboo bug... -%]
-  <div id="spacer">&nbsp;</div>
+[%#  <div id="topBorder"><!-- empty --></div> %]
 
-  <div id="topBorder"><!-- empty --></div>
+  <div id="tabset" class="yui-navset">
 
-  <div id="sidebar">
-    <ul>
-      [% tabsContent %]
-    </ul>
+    <div id="sidebar">
+      <ul class="yui-nav">
+        [% tabsContent %]
+      </ul>
 
-  	[% PROCESS components/jumpBox.tt %]
+      [% PROCESS components/jumpBox.tt %]
 
-  </div> <!-- end of "sidebar" -->
+    </div> <!-- end of "sidebar" -->
 
-  <div id="content">
-    [% pageContent %]
-  </div> <!-- end of "content" -->
+    <div id="content" class="yui-content">
+      [% pageContent %]
+    </div> <!-- end of "content" -->
+
+  </div>
 
   <div class="cleaner"></div>
 
 </div> <!-- end of "wrap" -->
-
-<!-- tab selection -->
-
-[% # do we want to highlight a particular tab ? %]
-<script type="text/javascript">
-  // <![CDATA[
-  section    = "[% pageType # the site section, e.g. family, protein, etc. %]";
-  showTab    = "[% showTab  # the tab, specified by a parameter %]";
-  if( ! ( showTab === undefined ) && $(showTab) ) {
-    switchTab( showTab );
-  } else if( $$('div.error').size() ) {
-    /* [%# see if there is an error message in the page. If there is, we walk back
-           up the DOM tree from that error message node until we find the "block"
-           that encloses it, grab the ID for that block and use the tab switcher
-           to select it... %] */
-    $$('.error')
-      .first()
-      .ancestors()
-      .each( function( el ) {
-               if( el.hasClassName( "block" ) ) { 
-                 switchTab( el.id );
-               }
-             }
-           );
-  } else {
-    $$("div.block")
-      .first()
-      .setStyle( { display: "block" } );
-    // no need to turn on the selector, because the first item in the list is
-    // set to visible anyway
-  }
-
-  // keep track of post-loading calls
-  
-  // register listeners for the start and end of each ajax call    
-  Ajax.Responders.register( {
-    onCreate: function() {
-      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
-      $('loadingComponents').show();
-    },
-    onComplete: function() {
-      $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
-      if( Ajax.activeRequestCount < 1 ) {
-        $('loadingComponents').hide();
-      }
-    }
-  } );
-
-[%# no need to include this cruft yet...
-//  Event.observe(window, 'load', function() {
-//    Event.observe(document, 'keypress', function(e){
-//      var code;
-//      if ( ! e ) {
-//        var e = window.event;
-//      }
-//      if ( e.keyCode ) {
-//        code = e.keyCode;
-//      }
-//      else if ( e.which ) {
-//        code = e.which;
-//      }
-//
-//      switch (code) {
-//        case Event.KEY_UP:
-//          console.debug( "moved up" );
-//          break;
-//        case Event.KEY_DOWN:
-//          console.debug( "moved down" );
-//          break;
-//      }
-//
-//    } );
-//  } );
--%]
-  
-  // ]]>
-</script> 
 
 <!-- ====================================================================== -->
 [%#
