@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.42 2009-01-06 12:43:01 jt6 Exp $
+   $Id: tab_layout.css,v 1.43 2009-10-07 13:01:50 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -132,6 +132,7 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   width: 85%;
   float: left;
   position: relative; /* needed to fix the IE peekaboo bug... */
+  border-top: 1px solid #074987;
 }
 
 #sidebar {
@@ -151,14 +152,6 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
 	color: #074987;
 }
 
-/* the top border for the main content block in the tab layout */
-#topBorder {
-  height: 1px;
-  float: right;
-  width: 85%;
-  background: #074987;
-}
-
 /* ---------------------------------------- */
 
 #contentContainer {
@@ -174,28 +167,29 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   list-style: none;
 }
 
-#sidebar li span.link {
+#sidebar li {
+  padding: 0 0 5px 0;
+  display: block;
+  margin: 0 0 0 0.2em;
+}
+
+#sidebar li a {
   color: #074987;
   outline: none;
   margin: 0;
-  padding: 0.2em 0.2em 0.2em 0.8em;
+  padding: 0.2em 0.2em 0.2em 0.6em;
   display: block;
   text-decoration: none;
   font-weight: bold;
   height: 100%; /* only needed to convince IE to make the whole block clickable */
 }
 
-#sidebar li {
-  padding: 0 0 5px 0;
-}
-
 #sidebar li.selected {
   background-repeat: no-repeat;
   background-position: bottom left;
-  margin-left: 0.2em;
 }
 
-#sidebar li.selected span.link {
+#sidebar li.selected a {
   position: relative;
   left: 1px;
   outline: none;
@@ -205,19 +199,14 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   background-image: url(/static/images/selected_bg.gif);
   text-decoration: none ! important;
   color: #074987 ! important;
-}
-
-#sidebar li.selected span.link {
   cursor: default;
-  text-decoration: none;
 }
 
-#sidebar li div.inactive {
-  color: #AAA;
-  margin: 0;
-  padding: 0.2em 0.2em 0.2em 0.8em;
-  text-decoration: none;
-  font-weight: bold;
+#sidebar li.disabled a,
+#sidebar li.disabled a:hover {
+  color: #AAA ! important;
+  cursor: default;
+  text-decoration: none ! important;
 }
 
 #sidebar #jumpBox {
@@ -239,13 +228,14 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
 
 div.block {
   margin: 0.4em;
-  display: none;
+  /* display: none; */
 }
 
 div.handle {
   background-color: #074987;
   color: #fefefe;
   padding: 0.2em;
+  margin-top: 0.4em;
 }
 
 div.handle h1 {

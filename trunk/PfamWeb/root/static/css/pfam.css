@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.81 2009-09-04 12:55:51 jt6 Exp $
+   $Id: pfam.css,v 1.82 2009-10-07 13:01:50 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -113,6 +113,16 @@ h3 {
 h4, h5, h6 {
   font-size: x-small;
   margin: 0.2em 0;
+}
+
+/* hide the iframe that's used by the history manager in IE*/
+#yui-history-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
 }
 
 /* ========================================
@@ -419,7 +429,7 @@ div.errorReport p.message {
 table.details {  
   margin: 0;
   padding: 0;
-  border-spacing: 2px;
+  border-spacing: 1px;
 }
 
 table.details thead tr {
@@ -441,7 +451,7 @@ table.details td.label {
   width: 14em;
   padding: 0.2em;
   background: #CCC;
-  text-align: center;
+  text-align: right;
   font-weight: bold;
 }
 
@@ -454,13 +464,15 @@ td.stripeHover {
   background: #c2d2e1;
 }
 
-table.details tr.odd {
-  background: #CCC;
-}
-
-table.details tr.even {
-  background: #DDD;
-}
+/* these are redundant...
+ * table.details tr.odd {
+ *   background: #CCC;
+ * }
+ * 
+ * table.details tr.even {
+ *   background: #DDD;
+ * }
+ */
 
 table.details tr.summaryRow {
   background: #AAA;
@@ -765,6 +777,11 @@ hr.short {
 
 /* ---------------------------------------- */
 /* pfam graphics */
+
+div.pgholder {
+  overflow: auto;
+  /* position: relative; */
+}
 
 div.graphicRow {
   clear: both;
@@ -1079,6 +1096,10 @@ div.blockContent > #treeTools {
   cursor: pointer;
   float: right;
   padding: 0.2em 0;
+}
+
+#stError {
+  color: #F00000;
 }
 
 /* ======================================== */

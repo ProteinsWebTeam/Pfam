@@ -4,7 +4,7 @@
 
    Style the various "browse" pages
    
-   $Id: browse.css,v 1.6 2008-05-16 15:32:12 jt6 Exp $
+   $Id: browse.css,v 1.7 2009-10-07 13:01:50 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -97,3 +97,8 @@ table.pageList .inactive {
 h1.pageHeader {
   text-align: center;
 }
+
+span.inactive {
+  color: #AAA;
+}
+

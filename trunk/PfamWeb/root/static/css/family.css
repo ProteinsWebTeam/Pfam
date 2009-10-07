@@ -5,7 +5,7 @@
    Stylesheet for the items that are specific to the tab layout for
    the Pfam family pages.
 
-   $Id: family.css,v 1.33 2009-09-04 12:55:51 jt6 Exp $
+   $Id: family.css,v 1.34 2009-10-07 13:01:50 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -181,6 +181,10 @@ table.alignOpts td span {
   width: 14em;
   display: block;
   float: left;
+}
+
+table.alignOpts td span.wide {
+  width: 28em;
 }
 
 /* ---------------------------------------- */
