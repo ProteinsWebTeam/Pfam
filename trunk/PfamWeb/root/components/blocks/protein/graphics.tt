@@ -1,4 +1,3 @@
-
 [%
 # graphics.tt
 # jt6 20060502 WTSI
@@ -14,7 +13,10 @@
 # that submits it remain. Hence the use of Ajax.Updater with the onCreate and 
 # onComplete callbacks, which turn on and off the "loading" spinner, etc.
 #
-# $Id: graphics.tt,v 1.29 2009-09-04 10:49:11 jt6 Exp $
+# $Id: graphics.tt,v 1.30 2009-10-07 13:47:39 jt6 Exp $
+
+# disable this until we get around to moving it to the new graphics system
+RETURN;
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -22,8 +24,8 @@
 PROCESS "components/require.tt";
 
 # the tooltips script
-sharedRequirements.js.push( "prototip.js" );
-sharedRequirements.css.push( "prototip.css" );
+#sharedRequirements.js.push( "prototip.js" );
+#sharedRequirements.css.push( "prototip.css" );
 
 #-------------------------------------------------------------------------------
 
@@ -108,14 +110,6 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     </div>
     <!-- end of graphics div -->
 
-    <script type="text/javascript">
-      // <![CDATA[
-      loadOptions.pg.uri    = "[% graphicsUri %]";
-      loadOptions.pg.params = { acc: "[% pfamseq.pfamseq_acc %]",
-                                highlight: "[% highlightSource %]" };
-      // ]]>
-    </script>
-
     <p><span class="link" onclick="reveal(this,'checkboxes',false)">Show</span>
     sources update panel.</p>
 
@@ -172,22 +166,6 @@ graphicsUri = c.uri_for( "/protein/graphics" );
           </div>
         </form>
 
-        <script type="text/javascript">
-          // <![CDATA[
-          var graphicsSubmitter = function() {
-            $("pgSubmitButton").disable();
-            $("pgUpdateSpinner").show();
-            var r = new Ajax.Request( '[% graphicsUri %]',
-                                       {
-                                         onSuccess: pgSuccess,
-                                         onFailure: pgFailure,
-                                         parameters:  $("updateGraphicsForm").serialize(true),
-                                         evalScripts: true
-                                       } );
-          }
-          // ]]>
-        </script>
-  
         <div class="cleaner">&nbsp;</div>
    
       </div> <!-- end of "checkboxes" -->
@@ -195,6 +173,51 @@ graphicsUri = c.uri_for( "/protein/graphics" );
     </div> <!-- end of "updatePanel" -->
 
   </div> <!-- end of "blockContent" -->
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    var graphicsSubmitter = function() {
+      $("pgSubmitButton").disable();
+      $("pgUpdateSpinner").show();
+      var r = new Ajax.Request( '[% graphicsUri %]',
+                                 {
+                                   parameters:  $("updateGraphicsForm").serialize(true),
+                                   evalScripts: true,
+                                   onSuccess:  function() {
+                                     $("pgSubmitButton").enable();
+                                     $("pgUpdateSpinner").hide();
+                                   },
+                                   onFailure:  function() {
+                                     $("pgSubmitButton").disable();
+                                     $("pgUpdateSpinner").hide();
+                                     $("graphicsHolder").update( "Alignment loading failed." );
+                                   }
+                                 } );
+    };
+
+    document.observe( "dom:loaded", function() {
+      var r = new Ajax.Updater( 
+        "graphicsHolder",
+        "[% graphicsUri %]",
+        {
+          parameters: { acc:       "[% pfamseq.pfamseq_acc %]",
+                        highlight: "[% highlightSource %]" },
+          onSuccess:  function() {
+            $("pgSubmitButton").enable();
+            $("pgUpdateSpinner").hide();
+          },
+          onFailure:  function() {
+            $("pgSubmitButton").disable();
+            $("pgUpdateSpinner").hide();
+            $("graphicsHolder").update( "Alignment loading failed." );
+          }
+        }
+      );
+    } );
+
+    // ]]>
+  </script>
 
 </div> <!-- end of "block" -->
 
