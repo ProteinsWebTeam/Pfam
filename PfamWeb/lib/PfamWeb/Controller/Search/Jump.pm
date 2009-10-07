@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.18 2009-09-30 14:56:14 jt6 Exp $
+# $Id: Jump.pm,v 1.19 2009-10-07 12:04:31 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.18 2009-09-30 14:56:14 jt6 Exp $
+$Id: Jump.pm,v 1.19 2009-10-07 12:04:31 jt6 Exp $
 
 =cut
 
@@ -153,6 +153,7 @@ sub guess_sequence : Private {
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_acc => $1 } );
   }
+  # TODO why wouldn't we just combine these two (^ and v) queries ?
 
   # see if it's a protein sequence ID (e.g. CANX_CHICK)
   if( $entry =~ m/^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
@@ -184,10 +185,10 @@ sub guess_sequence : Private {
   # an NCBI secondary accession ? Note: this was a really slow query when we
   # were being helpful and using "like", so it's the very last thing that
   # will be attempted and we're doing only an exact lookup
-  @rs = $c->model('PfamDB::NcbiSeq')
-          ->search( { secondary_acc => $entry } );
-#         ->search( { secondary_acc => { 'like', "$entry%" } } );
-  return 'ncbiseq' if scalar @rs;
+#   @rs = $c->model('PfamDB::NcbiSeq')
+#           ->search( { secondary_acc => $entry } );
+# #         ->search( { secondary_acc => { 'like', "$entry%" } } );
+#   return 'ncbiseq' if scalar @rs;
 
 }
 
