@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.35 2009-09-30 14:55:49 jt6 Exp $
+# $Id: Sequence.pm,v 1.36 2009-10-07 12:06:07 jt6 Exp $
 
 =head1 NAME
 
@@ -14,9 +14,13 @@ package PfamWeb::Controller::Search::Sequence;
 
 =head1 DESCRIPTION
 
-This controller is responsible for running sequence searches.
+This controller is responsible for running sequence searches. It's built on 
+Catalyst::Controller::REST, which takes care of dispatching requests to the
+various methods, depending on the request method (e.g. "GET", "POST"), and
+rendering the results in the appropriate output format, depending on the 
+requested content-type (e.g. "JSON", "XML").
 
-$Id: Sequence.pm,v 1.35 2009-09-30 14:55:49 jt6 Exp $
+$Id: Sequence.pm,v 1.36 2009-10-07 12:06:07 jt6 Exp $
 
 =cut
 
@@ -25,12 +29,17 @@ use warnings;
 
 use Bio::SearchIO::blast;
 use File::Temp qw( tempfile );
-use JSON;
 use YAML qw( Dump );
 use Scalar::Util qw( looks_like_number );
 use Data::UUID;
 use Data::Dump qw( dump );
 use Storable qw( thaw );
+
+use Bio::Pfam::Sequence;
+use Bio::Pfam::Sequence::Region;
+use Bio::Pfam::Sequence::MetaData;
+use Bio::Pfam::Drawing::Layout::LayoutManager;
+use JSON qw( -convert_blessed_universally );
 
 use base qw( Catalyst::Controller::REST
              PfamBase::Controller::Search::InteractiveSearch
@@ -85,24 +94,23 @@ sub search_POST {
   }
 
   # no errors with the input; try to submit the search
+  $c->log->debug( 'Search::Sequence::search_POST: input is valid; queueing search' )
+    if $c->debug;
 
   if ( $c->forward('queue_seq_search') ) {
 
     # success !
 
-    my $data = [];
-    foreach my $job_id ( @{ $c->stash->{queued_jobs} } ) {
-      push @$data, { jobId => $job_id,
-                     uri   => $c->uri_for( '/search/sequence/resultset', $job_id )->as_string };
-    }
-    $c->stash->{rest} = $data;
+    $c->stash->{rest} = { jobId => $c->stash->{jobId},
+                          uri   => $c->uri_for( '/search/sequence/resultset', $c->stash->{jobId} )
+                                     ->as_string };
 
     $this->status_accepted(
       $c,
-      entity => $data
+      entity => $c->stash->{rest}
     );
 
-    $c->forward( 'results', $c->stash->{queued_jobs} );
+    $c->forward( 'results', [ $c->stash->{jobId} ] );
 
   }
   else {
@@ -133,60 +141,22 @@ Builds a page that will hold the results of the search(es).
 =cut
 
 sub results : Local {
-  my ( $this, $c, @args ) = @_;
+  my ( $this, $c, $arg ) = @_;
 
   $c->stash->{template} = 'pages/search/sequence/results.tt';  
   
   $c->log->debug( 'Search::Sequence::results: loading results page' )
     if $c->debug;
 
-  # accept job IDs either as parameters or arguments
-  my @ids;
-  if ( $c->req->param('jobId') ) {
-    $c->log->debug( 'Search::Sequence::results: getting job IDs from parameters' )
-      if $c->debug;
-    push @ids, $c->req->param('jobId');
-  }
-  elsif ( scalar @args ) {
-    $c->log->debug( 'Search::Sequence::results: getting job IDs from arguments' )
-      if $c->debug;
-    push @ids, @args;
-  }
-
-  # make sure we got some job IDs
-  unless ( scalar @ids ) {
-    $c->stash->{seqSearchError} = 'You did not supply any job IDs.';
-
-    $c->log->debug( 'Search::Sequence::results: no job IDs provided' )
+  # retrieve job details
+  unless ( $c->forward( 'get_job_details', [ $arg ] ) ) {
+    $c->log->debug( 'Search::Sequence::resultset: problems getting job details' )
       if $c->debug;
 
-    return 0;
-  }  
-
-  # retrieve the results
-  foreach my $job_id ( @ids ) {
-    
-    # check the job IDs first...
-    unless ( $job_id =~ m/^[A-F0-9\-]{36}$/i ) {
-      $c->stash->{seqSearchError} = 'Invalid job IDs';
-
-      $c->log->debug( 'Search::Sequence::show_results: bad job id' )
-        if $c->debug;
-
-      return 0;
-    }
-
-    # the job ID is at least sensible
-
-    # get the row of the tracking table for this job
-    $c->forward( 'JobManager', 'retrieveResults', [ $job_id  ] );
-    
-    # we don't need to explicitly stash the job row objects, since the 
-    # JobManager stuffs them into the stash itself, in:
-    #   $c->stash->{results}->{$job_id}->{job}
-    # we need the job objects so that the template that build the results 
-    # page can keep track of the type of each job, amongst other things
+    return;
   }
+
+  # let the view render the stash for us, as determined by the REST controller
 }
 
 #-------------------------------------------------------------------------------
@@ -204,34 +174,171 @@ sub resultset : Local : ActionClass('REST') { }
 sub resultset_GET {
   my ( $this, $c, $arg ) = @_;
 
-  # start by setting the template, which we'll use to render error messages if 
+  # start by setting the template that we'll use to render error messages if 
   # the request asks for HTML. We'll reset the template name once we've made
   # sure that the job was successful
   $c->stash->{template} = 'pages/search/sequence/error.tt';
   
   # TODO fix up this template to make it return a simple error message
 
-  # get hold of the job ID
-  my $job_id = $c->req->param('jobId') 
-               || $arg
-               || ( defined $c->req->data ? $c->req->data->{jobId} : '' );
-
-  # make sure we have a job ID
-  unless ( $job_id ) {
-    $c->log->debug( 'Search::Sequence::resultset: no job IDs' )
+  # retrieve job details
+  unless ( $c->forward( 'get_job_details', [ $arg ] ) ) {
+    $c->log->debug( 'Search::Sequence::resultset: problems getting job details' )
       if $c->debug;
 
-    $this->status_bad_request(
+    return;
+  }
+
+  # save some typing...
+  my $jobId = $c->stash->{jobId};
+  my $jobs  = $c->stash->{results}->{$jobId};
+
+  # make sure the job(s) actually exist(s); throw an error otherwise
+  unless ( scalar @{ $jobs->{rows} } ) {
+    $c->log->debug( 'Search::Sequence::resultset: job(s) not found' )
+      if $c->debug;
+
+    $this->status_not_found(
       $c,
-      message => 'You did not supply any job IDs'
+      message => "Job(s) $jobId not found"
     );
 
     return;
   }
   
+  $c->log->debug( 'Search::Sequence::resultset: got a valid job ID and retrieved results' )
+    if $c->debug;
+
+  #----------------------------------------
+
+  foreach my $job ( @{ $jobs->{rows} } ) {
+    my $status   = $job->status;
+    my $job_type = $job->job_type;
+
+    if ( $status eq 'PEND' or
+         $status eq 'RUN' ) {
+      $c->log->debug( 'Search::Sequence::resultset: one or more jobs is not yet complete' )
+        if $c->debug;
+
+      $this->status_accepted(
+        $c,
+        entity => {
+          status => $status
+        }
+      );
+
+      # we don't care what other jobs are doing right now. We know that we're
+      # still waiting for this one, so just stop processing and return the status
+      # message immediately
+      return;
+    }
+
+    # we need to return these error status messages and codes manually, since
+    # there are no helpers for them in C::C::REST
+
+    # check for a failure
+    if ( $status eq 'FAIL' ) {
+      $c->log->debug( 'Search::Sequence::resultset: job failed in the search system' )
+        if $c->debug;
+
+      $c->res->status( '502' ); # 'Bad gateway'
+      $c->stash->{rest} = { error => "Job $jobId ($job_type) failed to complete successfully" };
+
+      return;
+    }
+    
+    # check for the job being put on HOLD
+    if ( $status eq 'HOLD' ) {
+      $c->log->debug( 'Search::Sequence::resultset: job is on hold' )
+        if $c->debug;
+
+      $c->res->status( '503' ); # 'Service unavailable'
+      $c->stash->{rest} = { error => "Job $jobId ($job_type) is on hold" }; 
+
+      return;
+    }
+    
+    # check for the job being flagged as deleted
+    if ( $status eq 'DEL' ) {
+      $c->log->debug( 'Search::Sequence::resultset: job has been deleted' )
+        if $c->debug;
+
+      $c->res->status( '410' ); # 'Gone'
+      $c->stash->{rest} = { error => "Job $jobId ($job_type) has been deleted" }; 
+
+      return;
+    }
+    
+    # Anything other than DONE probably means that the job failed to 
+    # complete successfully
+    if ( $status ne 'DONE' ) {
+      $c->log->debug( 'Search::Sequence::resultset: job failed in a strange and unusual fashion' )
+        if $c->debug;
+      
+      $c->res->status( '500' ); # 'Internal server error'
+      $c->stash->{rest} = { error => "Job $jobId ($job_type) failed with an unknown error" };
+      
+      return;
+    }
+ 
+  } # end of "foreach my $job"
+
+  #----------------------------------------
+  
+  # all parts of the job completed successfully !
+  $c->log->debug( 'Search::Sequence::resultset: all jobs completed; setting template' )
+    if $c->debug;
+
+  $c->stash->{template} = 'pages/search/sequence/results_table.tt';
+
+  # parse the results
+  $c->forward( 'handle_results' );
+
+  # build the domain graphics description
+  $c->forward( 'layout_dg' );
+
+  # put a reference to the results data structure in the "rest" slot in the 
+  # stash, which is where the serialisers will be looking for it
+  $c->stash->{rest} = $c->stash->{results}->{$jobId}->{hits};
+  # TODO figure out where this should really be...
+}
+
+#-------------------------------------------------------------------------------
+#- private actions--------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 get_job_details : Private
+
+Given a job ID, this action checks it looks sensible and then tries to retrieve
+the details of that job from the job tracking tables. Stashes the job ID and, if
+found, the job details.
+
+=cut
+
+sub get_job_details : Private {
+  my ( $this, $c, $arg ) = @_;
+
+  # get hold of the job ID
+  my $jobId = $c->req->param('jobId') 
+                || $arg
+                || ( defined $c->req->data ? $c->req->data->{jobId} : '' );
+
+  # make sure we have a job ID
+  unless ( $jobId ) {
+    $c->log->debug( 'Search::Sequence::get_job_details: no job ID' )
+      if $c->debug;
+
+    $this->status_bad_request(
+      $c,
+      message => 'You did not supply a job ID'
+    );
+
+    return 0;
+  }
+  
   # make sure it's valid
-  unless ( $job_id =~ s/^([A-F0-9\-]{36})$/$1/i ) {
-    $c->log->debug( 'Search::Sequence::resultset: bad job ID' )
+  unless ( $jobId =~ s/^([A-F0-9\-]{36})$/$1/i ) {
+    $c->log->debug( 'Search::Sequence::get_job_details: bad job ID' )
       if $c->debug;
 
     $this->status_bad_request(
@@ -239,120 +346,20 @@ sub resultset_GET {
       message => 'You did not supply a valid job ID'
     );
 
-    return;
+    return 0;
   }
   
-  #----------------------------------------
+  # we got an ID and it's valid; stash it and try to retrieve results
+  $c->stash->{jobId} = $jobId;
   
-  # we got an ID and it's valid; try to retrieve results
-  $c->log->debug( "Search::Sequence::resultset: checking job ID |$job_id|" )
+  $c->log->debug( "Search::Sequence::get_job_details: checking job ID |$jobId|" )
     if $c->debug;
 
-  $c->forward( 'JobManager', 'retrieveResults', [ $job_id  ] );
+  $c->forward( 'JobManager', 'retrieve_result_rows', [ $jobId  ] );
 
-  # get the raw database row and check the status
-  my $job = $c->stash->{results}->{$job_id}->{job};
-
-  # make sure the job actually exists; throw an error otherwise
-  unless ( defined $job  ) {
-    $c->log->debug( 'Search::Sequence::resultset: job not found' )
-      if $c->debug;
-
-    $this->status_not_found(
-      $c,
-      message => "Job $job_id not found"
-    );
-
-    return;
-  }
-
-  #----------------------------------------
-
-  # next check the status
-  my $status = $job->status;
-  $c->log->debug( "Search::Sequence::resultset: job status: |$status|" )
-    if $c->debug;
-
-  # check explicitly for PEND or RUN
-  if ( $status eq 'PEND' or $status eq 'RUN' ) {
-    $c->log->debug( 'Search::Sequence::resultset: job not yet complete' )
-      if $c->debug;
-
-    $this->status_accepted(
-      $c,
-      entity => {
-        status => $status
-      }
-    );
-
-    return;
-  }
-
-  # we need to return these error status messages and codes manually, since
-  # there are no helpers for them in C::C::REST
-
-  # check for a failure
-  if ( $status eq 'FAIL' ) {
-    $c->log->debug( 'Search::Sequence::resultset: job failed in the search system' )
-      if $c->debug;
-
-    $c->res->status( '502' ); # 'Bad gateway'
-    $c->stash->{rest} = { error => "Job $job_id failed to complete successfully" };
-
-    return;
-  }
-  
-  # check for the job being put on HOLD
-  if ( $status eq 'HOLD' ) {
-    $c->log->debug( 'Search::Sequence::resultset: job is on hold' )
-      if $c->debug;
-
-    $c->res->status( '503' ); # 'Service unavailable'
-    $c->stash->{rest} = { error => "Job $job_id is on hold" }; 
-
-    return;
-  }
-  
-  # check for the job being deleted
-  if ( $status eq 'DEL' ) {
-    $c->log->debug( 'Search::Sequence::resultset: job has been deleted' )
-      if $c->debug;
-
-    $c->res->status( '410' ); # 'Gone'
-    $c->stash->{rest} = { error => "Job $job_id has been deleted from the search system" }; 
-
-    return;
-  }
-  
-  # Anything other than DONE probably means that the job failed to 
-  # complete successfully
-  if ( $status eq 'DEL' ) {
-    $c->log->debug( 'Search::Sequence::resultset: job failed in a strange and unusual fashion' )
-      if $c->debug;
-    
-    $c->res->status( '500' ); # 'Internal server error'
-    $c->stash->{rest} = { error => "Job $job_id failed with an unknown error" };
-    
-    return;
-  }
- 
-  #----------------------------------------
-  
-  # job completed successfully !
-
-  $c->stash->{template} = 'pages/search/sequence/results_table.tt';
-
-  # parse the results
-  $c->forward( 'handle_results', [ $job ] );
-
-  # put a reference to the results data structure in the "rest" slot in the 
-  # stash, which is where the serialisers will be looking for it
-  $c->stash->{rest} = $c->stash->{results};
-
+  return 1;
 }
 
-#-------------------------------------------------------------------------------
-#- private actions--------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
 =head2 validate_input : Private
@@ -444,7 +451,7 @@ sub validate_input : Private {
   if ( defined $c->req->param('skipAs') and
        $c->req->param('skipAs') ) {
     
-    $c->log->debug( 'Search::Sequence::sequence_search: skipping Pfam-A search' )
+    $c->log->debug( 'Search::Sequence::validate_input: skipping Pfam-A search' )
       if $c->debug;
     
     # flag up the fact that we want to skip Pfam-A searches
@@ -452,11 +459,6 @@ sub validate_input : Private {
     
     # and force a search for Pfam-Bs
     $c->stash->{user_options}->{searchBs} = 1;
-    
-    # no need to check the remaining parameters, since they apply only to
-    # Pfam-A searches and we're not actually doing a Pfam-A search...
-    return 1;
-    
   }
 
   return 1;  
@@ -567,46 +569,45 @@ sub queue_seq_search : Private {
                          as     => [ 'numberPending' ] } )
              ->single;
   
-  $c->stash->{numberPending} = $rs->get_column( 'numberPending' );
+  $c->stash->{number_pending} = $rs->get_column( 'numberPending' );
   
   $c->log->debug( 'Search::Sequence::queue_seq_search: |' . 
-                  $c->stash->{numberPending} . '| jobs pending' ) if $c->debug;
+                  $c->stash->{number_pending} . '| jobs pending' ) if $c->debug;
   
-  if ( $c->stash->{numberPending} >= $this->{pendingLimit} ) {
+  if ( $c->stash->{number_pending} >= $this->{pendingLimit} ) {
     $c->stash->{searchError} = 
       'There are currently too many jobs in the sequence search queue. ' . 
       'Please try again in a little while.';
 
+    # TODO send an email to the admins about the full queue
+
     $c->log->debug( 'Search::Sequence::queue_seq_search: too many Pfam jobs in queue ('
-                    . $c->stash->{numberPending} . ')' ) if $c->debug;
+                    . $c->stash->{number_pending} . ')' ) if $c->debug;
 
     return 0;
   }
   
-  # ok. There's room on the queue, so we can submit the jobs
+  # ok. There's room on the queue, so we can submit the jobs. Generate a UUID for the job
+  $c->stash->{jobId} = Data::UUID->new()->create_str();
+  $c->log->debug( 'Search::Sequence::queue_seq_search: generated job ID: |'
+                  . $c->stash->{jobId} . '|' ) if $c->debug;
   
   #----------------------------------------
+
+  # keep track of queued jobs
+  my $queued = 0;
 
   # submit a Pfam-A job, unless we've been asked to skip it  
   if ( not $c->stash->{user_options}->{skipAs} ) {
 
-    # generate a job ID and set the job type
-    $c->stash->{jobId}    = Data::UUID->new()->create_str();
+    # set the job type
     $c->stash->{job_type} = 'A';
 
     # convert the options hash into JSON
     $c->stash->{options} = to_json( $c->stash->{user_options} );
     
     # submit the search and make sure that operation was a success
-    if ( $c->forward( 'queue_search_transaction' ) ) {
-
-      $c->log->debug( 'Search::Sequence::queue_seq_search: successfully queued Pfam-A search' )
-        if $c->debug;
-
-      push @{ $c->stash->{queued_jobs} }, $c->stash->{jobId}; 
-      
-    }
-    else {
+    unless ( $c->forward( 'queue_search_transaction' ) ) {
       $c->stash->{searchError} ||= 'There was a problem queuing your Pfam-A search.';
 
       $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-A search' )
@@ -615,6 +616,10 @@ sub queue_seq_search : Private {
       return 0;
     } 
 
+    $c->log->debug( 'Search::Sequence::queue_seq_search: successfully queued Pfam-A search' )
+      if $c->debug;
+
+    $queued++;
   } 
   
   #----------------------------------------
@@ -622,24 +627,14 @@ sub queue_seq_search : Private {
   # submit a Pfam-B job, if we've been asked to run one
   if ( $c->stash->{user_options}->{searchBs} ) {
     
-    # generate a job ID and set the job type
-    $c->stash->{jobId}    = Data::UUID->new()->create_str();
+    # set the job type
     $c->stash->{job_type} = 'B';
 
-    # convert the options hash into JSON; for Pfam-Bs, there are no options.
-    # Set the "options" value to an empty hash/object
+    # for Pfam-Bs, there are no options.
     $c->stash->{options} = '{}';
     
     # submit the search and make sure that operation was a success
-    if ( $c->forward( 'queue_search_transaction' ) ) {
-
-      $c->log->debug( 'Search::Sequence::queue_seq_search: successfully queued Pfam-B search' )
-        if $c->debug;
-
-      push @{ $c->stash->{queued_jobs} }, $c->stash->{jobId}; 
-      
-    }
-    else {
+    unless ( $c->forward( 'queue_search_transaction' ) ) {
       $c->stash->{searchError} ||= 'There was a problem queuing your Pfam-B search.';
 
       $c->log->warn( 'Search::Sequence::queue_seq_search: problem submitting Pfam-B search' )
@@ -648,12 +643,16 @@ sub queue_seq_search : Private {
       return 0;
     } 
 
+    $c->log->debug( 'Search::Sequence::queue_seq_search: successfully queued Pfam-B search' )
+      if $c->debug;
+
+    $queued++;
   }
   
   #----------------------------------------
 
   # make sure we have at least one job...
-  unless ( scalar @{ $c->stash->{queued_jobs} } ) {
+  unless ( $queued ) {
     $c->stash->{searchError} = 'You must run at least one type of search.';
     
     $c->log->warn( 'Search::Sequence::queue_seq_search: no searches submitted' )
@@ -676,77 +675,319 @@ for generating the results tables and graphics.
 =cut
 
 sub handle_results : Private {
-  my ( $this, $c, $job ) = @_;
+  my ( $this, $c ) = @_;
 
-  # we're handed the row DBIC row object; retrieve the job ID and type
-  my $job_id   = $job->job_id;
-  my $job_type = $job->job_type;
+  my $jobs = $c->stash->{results}->{ $c->stash->{jobId} };
 
-  $c->log->debug( "Search::Sequence::handle_results: handling results for |$job_id|" )
-    if $c->debug;
-  
-  #----------------------------------------
-  
-  if ( $job_type eq 'A' ) {
-    $c->log->debug( "Search::Sequence::handle_results: job |$job_id| is a Pfam-A job" )
-      if $c->debug;
+  foreach my $job ( @{ $jobs->{rows} } ) {
+    my $job_type = $job->job_type;
 
-    my $evalue_cutoff = $c->stash->{results}->{$job_id}->{user_options}->{evalue};
-    my $ga            = $c->stash->{results}->{$job_id}->{user_options}->{ga};
-    
-    if ( defined $evalue_cutoff and not $ga ) {
-      $c->log->debug( "Search::Sequence::handle_results: setting an E-value cutoff of $evalue_cutoff" )
-        if $c->debug;
-      $c->stash->{evalue_cutoff} = $evalue_cutoff;
-    }
+    if ( $job_type eq 'A' ) {
+      # $c->log->debug( 'Search::Sequence::handle_results: job is a Pfam-A job' )
+      #   if $c->debug;
+
+      # convert the options JSON string back into perl
+      my $options = from_json( $job->options );
+
+      my $evalue_cutoff = $options->{evalue};
+      my $ga            = $options->{ga};
       
-    my $results;
-    eval {
-      $results = thaw( $job->stdout );
-    };
-    if ( $@ ) {
-      die "error retrieving Pfam-A results: $@";
+      if ( defined $evalue_cutoff and not $ga ) {
+        $c->log->debug( "Search::Sequence::handle_results: setting an E-value cutoff of $evalue_cutoff" )
+          if $c->debug;
+        $c->stash->{evalue_cutoff} = $evalue_cutoff;
+      }
     }
-    
-    $c->log->debug( 'Search::Sequence::handle_results: got '
-                    . scalar @$results . ' Pfam-A results' ) if $c->debug;
-    
-    $c->stash->{jobId}    = $job_id;
-    $c->stash->{job_type} = $job_type;
-    $c->stash->{results}  = $results;
-  }
-
-  #----------------------------------------
-  
-  elsif ( $job_type eq 'B' ) {
-    $c->log->debug( "Search::Sequence::handle_results: job |$job_id| is a Pfam-B job" )
-      if $c->debug;
 
     my $results;
     eval {
       $results = thaw( $job->stdout );
     };
     if ( $@ ) {
-      die "error retrieving Pfam-B results: $@";
+      die 'error retrieving Pfam-' . $job_type . " results: $@";
     }
     
-    $c->log->debug( 'Search::Sequence::handle_results: got '
-                    . scalar @$results . ' Pfam-B results' ) if $c->debug;
-    
-    $c->stash->{jobId}    = $job_id;
-    $c->stash->{job_type} = $job_type;
-    $c->stash->{results}  = $results;
-  }
-
-  #----------------------------------------
-  
-  else {
-    $c->log->error( "Search::Sequence::handle_results: job |$job_id| is of an unrecognised type: |$job_type|" )
+    $c->log->debug( 'Search::Sequence::handle_results: got ' . scalar @$results 
+                    . ' Pfam-' . $job_type . ' results' )
       if $c->debug;
-    die "error retrieving results for an unknown job_type"; 
-  }
+    
+    $jobs->{hits}->{$job_type} = $results;
 
+  } # end of "foreach my $job"
+
+  $c->log->debug( 'Search::Sequence::handle_results: stashed hits for '
+                  . scalar( keys %{ $jobs->{hits} } ) . ' jobs' )
+    if $c->debug;
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 layout_dg : Private
+
+Generates a JSON description of the domain graphics for the given results.
+
+=cut
+
+sub layout_dg : Private {
+  my ( $this, $c ) = @_;
+
+  my $jobs = $c->stash->{results}->{ $c->stash->{jobId} };
+
+  my ( @regions, @motifs, @markups, $seq );
+  foreach my $job ( @{ $jobs->{rows} } ) {
+    my $job_type = $job->job_type;
+
+    $seq = $job->stdin if not defined $seq;
+
+    HIT: foreach my $hit ( @{ $jobs->{hits}->{$job_type} } ) {
+      # $c->log->debug( 'Search::Sequence::handle_results: hit: '
+      #                 . dump( $hit ) ) if $c->debug;
+
+      # only add significant hits to the domain graphic
+      next unless $hit->{sig};
+
+      if ( $job_type eq 'A' ) {
+        # $c->log->debug( 'Search::Sequence::layout_dg: adding Pfam-A region' )
+        #   if $c->debug;
+
+        push @regions, new Bio::Pfam::Sequence::Region( {
+          start       => $hit->{env}->{from},
+          end         => $hit->{env}->{to},
+          aliStart    => $hit->{seq}->{from},
+          aliEnd      => $hit->{seq}->{to},
+          modelStart  => $hit->{hmm}->{from},
+          modelEnd    => $hit->{hmm}->{to},
+          modelLength => $hit->{model_length},
+          type        => 'pfama',
+          metadata    => new Bio::Pfam::Sequence::MetaData( {
+            accession   => $hit->{acc},
+            identifier  => $hit->{name},
+            type        => $hit->{type},
+            description => $hit->{desc},
+            score       => $hit->{evalue},
+            scoreName   => 'e-value',
+            start       => $hit->{env}->{from},
+            end         => $hit->{env}->{to},
+            aliStart    => $hit->{seq}->{from},
+            aliEnd      => $hit->{seq}->{to},
+            database    => 'pfam'
+          } )
+        } );
+
+      }
+      elsif ( $job_type eq 'B' ) {
+        # $c->log->debug( 'Search::Sequence::layout_dg: adding Pfam-B motif' )
+        #   if $c->debug;
+
+        push @motifs, new Bio::Pfam::Sequence::Motif( {
+          start       => $hit->{env}->{from},
+          end         => $hit->{env}->{to},
+          modelStart  => $hit->{hmm}->{from},
+          modelEnd    => $hit->{hmm}->{to},
+          modelLength => $hit->{model_length},
+          type        => 'pfamb',
+          metadata    => new Bio::Pfam::Sequence::MetaData( {
+            accession   => $hit->{acc},
+            identifier  => $hit->{name},
+            type        => $hit->{type} || 'Pfam-B',
+            description => $hit->{desc} || '',
+            score       => $hit->{evalue},
+            scoreName   => 'e-value',
+            start       => $hit->{env}->{from},
+            end         => $hit->{env}->{to},
+            database    => 'pfam'
+          } )
+        } );
+
+      }
+      else {
+        $c->log->debug( "Search::Sequence::layout_dg: unknown job_type: |$job_type|" )
+          if $c->debug;
+        next HIT;
+      }
+
+      if ( $hit->{act_site} ) {
+        # $c->log->debug( 'Search::Sequence::layout_dg: adding active sites' )
+        #   if $c->debug;
+
+        foreach my $site_residue ( @{ $hit->{act_site} } ) {
+          push @markups, new Bio::Pfam::Sequence::Markup( {
+            start    => $site_residue,
+            residue  => substr( $seq, $site_residue - 1, 1 ),
+            type     => 'Pfam predicted active site',
+            metadata => Bio::Pfam::Sequence::MetaData->new( {
+              start       => $site_residue,
+              type        => 'Pfam predicted active site',
+              description => 'Residue ' . substr( $seq, $site_residue - 1, 1 ) . $site_residue,
+              database    => 'pfam'
+            } )
+          } );
+        }
+
+      }
+
+    } # end of "foreach hit"
+
+  } # end of "foreach job"
+
+  my $sequence = new Bio::Pfam::Sequence( {
+    length  => length( $seq ),
+    regions => \@regions,
+    motifs  => \@motifs,
+    markups => \@markups 
+  } );
+  # $c->log->debug( 'Search::Sequence::layout_dg: sequence object: '
+  #                 . dump( $sequence ) ) if $c->debug;
+
+  my $lm = new Bio::Pfam::Drawing::Layout::LayoutManager;
+  my $sequences = [ $sequence ];
+  $lm->layoutSequences( $sequences );
+
+  my $json = new JSON;
+  # $json->pretty( 1 );
+  $json->allow_blessed;
+  $json->convert_blessed;
+
+  $c->stash->{dg_layout} = $json->encode( $sequences );
+  # $c->log->debug( "Search::Sequence::layout_dg: JSON sequence object: |$json_layout|" ) 
+  #   if $c->debug;
+
+} # end of "sub handle_results"
+
+# my $rs = $schema->resultset( "JobStream" )
+#                 ->search( { id => $id },
+#                           {} )
+#                 ->single;
+# 
+# my $storable = $rs->get_column( 'stdout' );
+# my $data     = thaw( $storable );
+# 
+#     next unless $hit->{sig};
+# 
+#     if ( $c->stash->{job_type} eq 'A' ) {
+#       push @regions, new Bio::Pfam::Sequence::Region( {
+#         start       => $hit->{env}->{from},
+#         end         => $hit->{env}->{to},
+#         aliStart    => $hit->{seq}->{from},
+#         aliEnd      => $hit->{seq}->{to},
+#         modelStart  => $hit->{hmm}->{from},
+#         modelEnd    => $hit->{hmm}->{to},
+#         modelLength => $hit->{hmm}->{to}, # NB should be "length" not "to"
+#         type        => 'pfama',
+#         metadata    => new Bio::Pfam::Sequence::MetaData( {
+#           accession   => $hit->{acc},
+#           identifier  => $hit->{name},
+#           type        => $hit->{type},
+#           description => $hit->{desc},
+#           score       => $hit->{evalue},
+#           scoreName   => 'e-value',
+#           start       => $hit->{env}->{from},
+#           end         => $hit->{env}->{to},
+#           aliStart    => $hit->{seq}->{from},
+#           aliEnd      => $hit->{seq}->{to},
+#           database    => 'pfam'
+#         } )
+#       } );
+#     }
+# 
+#     # if Pfam-B...
+#   }
+# 
+#   my $sequence = new Bio::Pfam::Sequence( {
+# 
+#       # if Pfam-B...
+#     length   => length( $stash->get('seq') ),
+#     regions  => \@regions,
+#     motifs   => [],
+#     markups  => [],
+#   } );
+# 
+#   # print "regions:  |", dump( \@regions ), "|\n";
+#   # print "sequence: |", dump( \$sequence ), "|\n";
+# 
+#   my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
+#   my $seqs = [ $sequence ];
+#   $lm->layoutSequences( $seqs );
+#    
+#   my $json = new JSON;
+#   # $json->pretty(1);
+#   $json->allow_blessed;
+#   $json->convert_blessed;
+# 
+#   print "var layout = ", $json->encode( $seqs ), ";\n";
+
+# sub old_handle_results : Private {
+#   my ( $this, $c, $job ) = @_;
+# 
+#   # we're handed the row DBIC row object; retrieve the job ID and type
+#   my $jobId   = $job->jobId;
+#   my $job_type = $job->job_type;
+# 
+#   $c->log->debug( "Search::Sequence::handle_results: handling results for |$jobId|" )
+#     if $c->debug;
+#   
+#   #----------------------------------------
+#   
+#   if ( $job_type eq 'A' ) {
+#     $c->log->debug( "Search::Sequence::handle_results: job |$jobId| is a Pfam-A job" )
+#       if $c->debug;
+# 
+#     my $evalue_cutoff = $c->stash->{results}->{$jobId}->{user_options}->{evalue};
+#     my $ga            = $c->stash->{results}->{$jobId}->{user_options}->{ga};
+#     
+#     if ( defined $evalue_cutoff and not $ga ) {
+#       $c->log->debug( "Search::Sequence::handle_results: setting an E-value cutoff of $evalue_cutoff" )
+#         if $c->debug;
+#       $c->stash->{evalue_cutoff} = $evalue_cutoff;
+#     }
+#       
+#     my $results;
+#     eval {
+#       $results = thaw( $job->stdout );
+#     };
+#     if ( $@ ) {
+#       die "error retrieving Pfam-A results: $@";
+#     }
+#     
+#     $c->log->debug( 'Search::Sequence::handle_results: got '
+#                     . scalar @$results . ' Pfam-A results' ) if $c->debug;
+#     
+#     $c->stash->{jobId}    = $jobId;
+#     $c->stash->{job_type} = $job_type;
+#     $c->stash->{results}  = $results;
+#   }
+# 
+#   #----------------------------------------
+#   
+#   elsif ( $job_type eq 'B' ) {
+#     $c->log->debug( "Search::Sequence::handle_results: job |$jobId| is a Pfam-B job" )
+#       if $c->debug;
+# 
+#     my $results;
+#     eval {
+#       $results = thaw( $job->stdout );
+#     };
+#     if ( $@ ) {
+#       die "error retrieving Pfam-B results: $@";
+#     }
+#     
+#     $c->log->debug( 'Search::Sequence::handle_results: got '
+#                     . scalar @$results . ' Pfam-B results' ) if $c->debug;
+#     
+#     $c->stash->{jobId}    = $jobId;
+#     $c->stash->{job_type} = $job_type;
+#     $c->stash->{results}  = $results;
+#   }
+# 
+#   #----------------------------------------
+#   
+#   else {
+#     $c->log->error( "Search::Sequence::handle_results: job |$jobId| is of an unrecognised type: |$job_type|" )
+#       if $c->debug;
+#     die "error retrieving results for an unknown job_type"; 
+#   }
+# 
+# }
 
 #-------------------------------------------------------------------------------
 
