@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.19 2009-09-04 09:51:29 jt6 Exp $
+# $Id: Structure.pm,v 1.20 2009-10-07 10:33:57 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.19 2009-09-04 09:51:29 jt6 Exp $
+$Id: Structure.pm,v 1.20 2009-10-07 10:33:57 jt6 Exp $
 
 =cut
 
@@ -76,6 +76,13 @@ sub begin : Private {
                       $c->req->param('entry') ||
                       $entry_arg              ||  
                       '';
+
+  # when called from the AstexViewer tool window, the GetPdbFile method
+  # will be forced to use a filename rather than a raw PDB ID, i.e. we'll
+  # get "1abc.pdb" rather than "1abc", because AstexViewer expects to load
+  # a real file. Here we'll just trim off the ".pdb" suffix before trying
+  # to detaint
+  $tainted_entry =~ s/^(.*?)\.pdb$/$1/;
   
   my $entry;
   if ( $tainted_entry ) { 
@@ -234,7 +241,7 @@ Add the list of authors to the stash.
 =cut
 
 sub get_authors : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # get the authors list
   my @authors = $c->model('PfamDB::PdbAuthor')
@@ -253,7 +260,7 @@ Adds the structure-to-UniProt mapping to the stash.
 =cut
 
 sub add_mapping : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Structure::add_mapping: adding mappings for PDB entry '
           . $c->stash->{pdb}->pdb_id ) if $c->debug;
@@ -270,15 +277,15 @@ sub add_mapping : Private {
 
   # build a little data structure to map PDB chains to uniprot IDs and
   # then cache that for the post-loaded graphics component
-  my( %chains, $chain );
+  my ( $chains, $chain );
   foreach my $row ( @unpMap ) {
     $chain = ( defined $row->chain ) ? $row->chain : ' ';
-    # N.B. Need to think more about the consequences of setting null
+    # TODO Need to think more about the consequences of setting null
     # chain ID to " "...
   
-    $chains{$row->auto_pfamseq->pfamseq_id}->{$chain} = '';
+    $chains->{$row->auto_pfamseq->pfamseq_id}->{$chain} = '';
   }
-  $c->stash->{chainsMapping} = \%chains;
+  $c->stash->{chainsMapping} = $chains;
 
 }
 
