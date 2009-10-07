@@ -2,7 +2,7 @@
 # GO.pm
 # jt6 20060816 WTSI
 #
-# $Id: GO.pm,v 1.5 2008-08-15 13:42:56 jt6 Exp $
+# $Id: GO.pm,v 1.6 2009-10-07 10:41:31 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ following columns:
 There's an explicit join against the pfamA table, so that we can
 retrieve pfamA accession, ID and description.
 
-$Id: GO.pm,v 1.5 2008-08-15 13:42:56 jt6 Exp $
+$Id: GO.pm,v 1.6 2009-10-07 10:41:31 jt6 Exp $
 
 =cut
 
@@ -60,10 +60,10 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::GO::process: text querying table gene_ontology' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::GO')
+  my $results = $c->model('PfamDB::GeneOntology')
                   ->search( {},
-                            { join     => [ qw/pfamA/ ],
-                              prefetch => [ qw/pfamA/ ] } )
+                            { join     => [ qw( auto_pfama ) ],
+                              prefetch => [ qw( auto_pfama ) ] } )
                   ->search_literal( 'MATCH( go_id, term ) ' .
                                     'AGAINST( ? IN BOOLEAN MODE )',
                                     $c->stash->{terms} );
