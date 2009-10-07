@@ -2,7 +2,7 @@
 # Viewer.pm
 # jt6 20060728 WTSI
 #
-# $Id: Viewer.pm,v 1.12 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Viewer.pm,v 1.13 2009-10-07 12:07:59 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ AstexViewer.
 
 Generates a B<full page>.
 
-$Id: Viewer.pm,v 1.12 2008-05-16 15:29:28 jt6 Exp $
+$Id: Viewer.pm,v 1.13 2009-10-07 12:07:59 jt6 Exp $
 
 =cut
 
@@ -40,28 +40,27 @@ Show a structure viewer. Which viewer is specified by the "viewer" parameter.
 =cut
 
 sub viewer : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # get the markup for this entry
   my %seenChainAutoPfamseq;
-  my( @allMarkups, $ap, $chain );
+  my ( @allMarkups, $ap, $chain );
   foreach my $map ( @{$c->stash->{mapping}} ) {
 
     # all this crap is to avoid warnings when we try to build a hash
     # key using a chain ID that is not defined...
-    $ap    = ( defined $map->auto_pfamseq ) ? $map->auto_pfamseq : '';
-    $chain = ( defined $map->chain ) ? $map->chain : '';
+    $ap    = ( defined $map->auto_pfamseq->auto_pfamseq ) ? $map->auto_pfamseq->auto_pfamseq : '';
+    $chain = ( defined $map->chain ) ? $map->chain : ''; # NOTE: could have a chain '0'
   
     $c->log->debug( "Structure::Viewer::viewer: auto_pfamseq, chain: |$ap|$chain|" );
   
     next if $seenChainAutoPfamseq{$ap.$chain};
   
-    my @markups = $c->model('PfamDB::Pdb_residue')
+    my @markups = $c->model('PfamDB::PdbResidueData')
                     ->search( { 'pfamseqMarkup.auto_pfamseq' => $ap,
                                 chain                        => $chain,
-                                auto_pdb                     => $c->stash->{pdb}->auto_pdb },
-                              { join                         => [ qw( pfamseqMarkup ) ],
-                               prefetch                      => [ qw( pfamseqMarkup ) ] } );
+                                pdb_id                       => $c->stash->{pdbId} },
+                              { prefetch                     => [ 'pfamseqMarkup' ] } );
     $c->log->debug( 'Structure::Viewer::viewer: found ' . scalar @markups
                     . ' markups for mapping to ' . $ap );
   
@@ -71,7 +70,7 @@ sub viewer : Path {
 
   $c->stash->{markups} = \@allMarkups;
 
-  if( defined $c->req->param('viewer') ) {
+  if ( defined $c->req->param('viewer') ) {
     $c->req->param('viewer') =~ m/^(av|jmol)$/i;
     $c->stash->{viewer} = $1 if defined $1;
   }
