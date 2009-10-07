@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.5 2009-10-05 11:00:20 jt6 Exp $
+// $Id: domain_graphics.js,v 1.6 2009-10-07 13:22:52 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -184,9 +184,6 @@ var PfamGraphic = Class.create( {
       //font:   "sans",
       fontSize: "0.8em",
 
-      // URL to link from a region
-      regionUrl: "http://pfam.sanger.ac.uk/family/",
-
       // general image parameters
       regionHeight:  20,  // the height of a region
       motifHeight:   14,  // the height of a motif
@@ -201,6 +198,7 @@ var PfamGraphic = Class.create( {
 
     // general options, specified as part of the "sequence"
     this._options = {
+      baseUrl:   "",    // a URL to be prepended to hrefs when domains, motifs, etc are clicked
       imageMap:  true,  // add the image map ?
       labels:    true,  // add the text labels to regions ?
       tips:      true,  // add tooltips ? Requires prototip2
@@ -235,6 +233,7 @@ var PfamGraphic = Class.create( {
       this.setSequence( sequence );
     }
 
+    console.log( "PfamGraphic.initialize: finished initialising" );
   },
 
   //----------------------------------------------------------------------------
@@ -358,6 +357,28 @@ var PfamGraphic = Class.create( {
    */
   getNewCanvas: function() {
     return this._options.newCanvas;
+  },
+
+  //----------------------------------------------------------------------------
+  /**
+   * Sets the base URL for all clicks on this graphic. The base URL is prepended
+   * to what is presumed to be a relative URL on a region, motif, etc, so make
+   * an absolute URL, so it must be a valid URL fragment.
+   *
+   * @param {String} url new value for the base URL
+   */
+  setBaseUrl: function( baseUrl ) {
+    this._options.baseUrl = baseUrl;
+  },
+
+  //----------------------------------
+  /**
+   * Returns the base URL.
+   *
+   * @returns {String} the current value of the base URL
+   */
+  getBaseUrl: function() {
+    return this._options.baseUrl;
   },
 
   //----------------------------------------------------------------------------
@@ -695,10 +716,10 @@ var PfamGraphic = Class.create( {
    */
   _addListeners: function() {
 
-    console.log( "PfamGraphic._addListeners: got %d areas", this._areasList.size() );
-    this._areasList.each( function( a ) {
-      console.log( "PfamGraphic._addListeners: %d - %d", a.start, a.end ); 
-    } );
+    // console.log( "PfamGraphic._addListeners: got %d areas", this._areasList.size() );
+    // this._areasList.each( function( a ) {
+    //   console.log( "PfamGraphic._addListeners: %d - %d", a.start, a.end ); 
+    // } );
 
     // should we add tips ?
     var addTips = ( window.Prototip && this._options.tips );
@@ -707,8 +728,8 @@ var PfamGraphic = Class.create( {
     this._inside = null;
 
     // add a listener for mouse movements over the canvas
-    console.log( "PfamGraphic._addListeners: adding listener to |%s|",
-      this._canvas.identify() );
+    // console.log( "PfamGraphic._addListeners: adding listener to |%s|",
+    //   this._canvas.identify() );
     this._canvas.observe( "mousemove", function( e ) {
 
       // find out where the event originated
@@ -763,8 +784,15 @@ var PfamGraphic = Class.create( {
 
           // change the pointer if there's a link on this area
           if ( activeArea.href ) {
+            var url;
+            if ( this._options.baseUrl && ! this._options.baseUrl.empty() ) {
+              url = this._options.baseUrl + activeArea.href;
+            } else {
+              url = activeArea.href;
+            }
+
             activeCanvas.setStyle( { cursor: "pointer" } );
-            window.status = activeArea.href;
+            window.status = url;
           }
         }
 
@@ -820,9 +848,9 @@ var PfamGraphic = Class.create( {
    * @param {Object} e click <code>Event</code> object
    */
   _handleClick: function( e ) {
-    console.log( "PfamGraphic._handleClick: got a click on the canvas" );
+    // console.log( "PfamGraphic._handleClick: got a click on the canvas" );
 
-    var clickedElement = e.findElement();
+    var clickedElement = e.findElement("canvas");
     var canvasId       = clickedElement.identify();
     var activeCanvas   = this._canvases.get( canvasId );
 
@@ -838,9 +866,9 @@ var PfamGraphic = Class.create( {
     var areasList = activeCanvas.areas;
 
     // the offset coordinates of the canvas itself
-    var offset = clickedElement.cumulativeOffset();
-    var cx = offset[0];
-    var cy = offset[1]; 
+    var offset = clickedElement.cumulativeOffset(),
+        cx = offset[0],
+        cy = offset[1]; 
 
     // get the location of the click and work out if it's inside any of 
     // the areas
@@ -857,10 +885,17 @@ var PfamGraphic = Class.create( {
     } );
     
     if ( activeArea && activeArea.href ) {
-      if ( e.isMiddleClick() ) {
-        window.open( activeArea.href );
+      var url;
+      if ( this._options.baseUrl && ! this._options.baseUrl.empty() ) {
+        url = this._options.baseUrl + activeArea.href;
       } else {
-        window.location = activeArea.href;
+        url = activeArea.href;
+      }
+
+      if ( e.isMiddleClick() ) {
+        window.open( url );
+      } else {
+        window.location = url;
       }
     }
 
