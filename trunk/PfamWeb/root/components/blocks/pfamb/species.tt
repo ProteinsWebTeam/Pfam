@@ -1,11 +1,10 @@
-
 [%
 # species.tt
 # jt6 20060411 WTSI
 #
 # block showing the species tree for Pfam-Bs
 #
-# $Id: species.tt,v 1.5 2008-07-23 13:43:26 jt6 Exp $
+# $Id: species.tt,v 1.6 2009-10-07 13:44:28 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -40,7 +39,6 @@ sharedRequirements.js.push( "treeTweak.js" );
     
   </div>
 </div>
-
 
 <!-- end of species block -->
 [%#
