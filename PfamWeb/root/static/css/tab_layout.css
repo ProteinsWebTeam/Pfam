@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.43 2009-10-07 13:01:50 jt6 Exp $
+   $Id: tab_layout.css,v 1.44 2009-10-07 22:03:45 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -295,6 +295,7 @@ p.small {
 
 table.layout {
   width: 100%;
+  border-spacing: 1px;
 }
 table.layout td {
   margin: 1px;
