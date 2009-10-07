@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.19 2009-09-04 12:53:35 jt6 Exp $
+# $Id: results.tt,v 1.20 2009-10-07 12:29:02 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -19,15 +19,28 @@ PROCESS "components/require.tt";
 requirements.js.push( "prototip.js" );
 requirements.css.push( "prototip.css" );
 
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
+
 requirements.js.push( "underline.js" );
 requirements.js.push( "updater.js" );
 requirements.js.push( "results.js" );
-requirements.js.push( "domain_graphics.js" );
-requirements.js.push( "element_storage.js" );
-requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" );
-requirements.js.push( "faces/optimer-bold-normal.js" ); # pre-load the font
-
-requirements.jsIe.push( "excanvas.js" );
 
 requirements.css.push( "domain_graphics.css" );
 requirements.css.push( "search.css" );
@@ -37,44 +50,28 @@ sharedRequirements.cssIe.push( "job_ie.css" );
 
 #-------------------------------------------------------------------------------
 
-# shortcuts to the show/hide glass buttons
-imageUri   = c.uri_for( "/static/images" );
-showButton = "${imageUri}/showButton.png";
-hideButton = "${imageUri}/hideButton.png";
-
-# munge the results data structure into yet another different structure
-jobs         = {};
-user_options = {};
-options      = "{}"; # this will be a JSON string
-FOREACH jobId IN results.keys;
-  job = results.$jobId;
-  jobs.${job.method} = jobId;
-  IF job.method == "A";
-    user_options = job.user_options;
-    options      = job.options;
-  END;
-END;
-
-numJobs  = jobs.size;
-jobLabel = numJobs > 1 ? "jobs" : "job";
-
 IF seqSearchError -%]
 
-<div class="key">
-  
-  <h2>Sequence search results</h2>
+  <div class="key">
+    
+    <h2>Sequence search results</h2>
 
-  <div id="errors">
-    <h1>Job failures</h1>
-    <p>One or more of the searches that you submitted had errors during execution:</p>
-    <ul>
-      <li>[% seqSearchError %]</li>
-    </ul>
+    <div id="errors">
+      <h1>Job failures</h1>
+      <p>One or more of the searches that you submitted had errors during execution:</p>
+      <ul>
+        <li>[% seqSearchError %]</li>
+      </ul>
+    </div>
+
   </div>
 
-</div>
+  [% RETURN;
 
-[% ELSE -%]
+END; # of "IF seqSearchError"
+
+numJobs  = results.${jobId}.rows.size;
+jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
 
 <div class="key">
   
@@ -94,8 +91,8 @@ IF seqSearchError -%]
            src="[% c.uri_for( "/shared/images/blank.gif" ) %]" />
            <br />
       Waiting for the results of 
-            <span id="numJobs">[% numJobs %]</span>
-            <span id="jobLabel">[% jobLabel %]</span>.
+      <span id="numJobs">[% numJobs %]</span>
+      <span id="jobLabel">[% jobLabel %]</span>.
     </div>
 
   </div>
@@ -110,77 +107,79 @@ IF seqSearchError -%]
     <div id="resultsNotes" style="display: none">
       <ul>
         <li>
-          The Pfam graphic below shows only the <strong>significant</strong> 
-          matches to your sequence. A significant match is one where the bits score 
-          is greater than or equal to the gathering threshhold for the Pfam domain. 
-          Clicking on any of the domains in the image will take you to a page of 
-          information about that domain.
-          [% IF searchedPfamB %]Note that some Pfam-B domains may be obscured by
-          overlapping Pfam-A domains, which are given higher priority when 
-          building the graphic.[% END %]
+          The Pfam graphic below shows only the <strong>significant</strong>
+          matches to your sequence. A significant match is one where the bits
+          score is greater than or equal to the gathering threshhold for the
+          Pfam domain.  Clicking on any of the domains in the image will take
+          you to a page of information about that domain.
+          [% IF numJobs > 1 # so we must have one Pfam-A and one Pfam-B job... -%]
+          Note that some Pfam-B domains may be obscured by overlapping Pfam-A
+          domains, which are given higher priority when building the graphic.
+          [% END -%]
         </li>
         <li>
-          Below are the details of the matches that were found. 
-          [% IF significantMatches AND insignificantMatches -%]
-          We separate Pfam-A matches into two tables, containing the significant 
-          and insignificant matches.
-          [% END -%] 
-          Hits which do not start and end at the end points of the matching HMM 
-          are <span class="warning">highlighted</span>.
+          Below are the details of the matches that were found. We separate
+          Pfam-A matches into two tables, containing the significant and
+          insignificant matches.  Hits which do not start and end at the end
+          points of the matching HMM are <span
+          class="warning">highlighted</span>.
         </li>
         <li>
-          A small proportion of sequences within the enzymatic Pfam families have 
-          had their active sites experimentally determined. Using a strict set
-          of rules, chosen to reduce the rate of false positives, we transfer 
-          experimentally determined active site residue data from a sequence 
-          within the same Pfam family to your query sequence. These are shown
-          as &quot;Predicted active sites&quot;. Full details of Pfam active 
-          site prediction process can be found in 
+          A small proportion of sequences within the enzymatic Pfam families
+          have had their active sites experimentally determined. Using a strict
+          set of rules, chosen to reduce the rate of false positives, we
+          transfer experimentally determined active site residue data from a
+          sequence within the same Pfam family to your query sequence. These
+          are shown as &quot;Predicted active sites&quot;. Full details of Pfam
+          active site prediction process can be found in 
           <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
             the accompanying paper</a>.
         </li>      
         <li>
-          For Pfam-A hits we show the alignments between your search sequence 
+          For Pfam-A hits we show the alignments between your search sequence
           and the matching HMM.
-          [% IF searchedPfamB %]For Pfam-Bs the alignment is between your search
-          sequence and the matching sequence from our library of Pfam-B 
-          sequences.[% END %] You can show individual alignments by clicking on 
-          the &quot;Show&quot; button in each row of the result table, or you can
+          [% IF numJobs > 1 -%]
+          For Pfam-Bs the alignment is between your search sequence and the
+          matching sequence from our library of Pfam-B sequences.
+          [% END -%]
+          You can show individual alignments by clicking on the
+          &quot;Show&quot; button in each row of the result table, or you can
           show all alignments using the links above each table.
         </li>
         <li>
-          You can bookmark this page and return to it later, but please note that 
-          old results may be removed after <strong>one week</strong>.
+          You can bookmark this page and return to it later, but please note
+          that old results may be removed after <strong>one week</strong>.
         </li>
       </ul>
     </div><!-- end of "resultsNotes" -->
 
     <p id="summaryText"></p>
   
-    <div id="dg"></div>
+    <div id="dg"
+         class="pgholder"></div>
 
     <p>
       <span class="moreLink" onclick="reveal(this,'optionsList',false, true)">Show</span>
       the search options and sequence that you submitted.
     </p>
 
+    [% # collect some of the information that we need here
+    firstJobRow = results.$jobId.rows.first;
+    jobType     = firstJobRow.job_type;
+    seq         = firstJobRow.stdin; -%]
+
     <div id="optionsList" style="display: none">
       [% IF numJobs > 1 %]
-      <p>
-        You ran <strong>[% numJobs %]</strong> searches, with the
-        following IDs:
-      </p>
-      <ul>
-        [%- FOREACH type IN jobs.sort %]
-        <li><strong>Pfam-[% type %]</strong>: [% jobs.$type %]</li>
-        [%- END %]
-      </ul>
+        <p>
+          You ran <strong>[% numJobs %]</strong> searches, with 
+          <strong>ID</strong> [% jobId %]
+        </p>
       [%- ELSE %]
-      <p>
-        You ran <strong>one</strong> job, a 
-        <strong>Pfam-[% jobs.keys.first %]</strong> search with 
-        <strong>ID</strong> [%- jobs.values.first %].
-      </p>
+        <p>
+          You ran <strong>one</strong> job, a 
+          <strong>Pfam-[% jobType %]</strong> search with 
+          <strong>ID</strong> [%- jobId %].
+        </p>
       [% END %]
       <p>
         These are the options that you chose:
@@ -211,7 +210,7 @@ IF seqSearchError -%]
       </div>
       <div class="cleaner"><!-- empty --></div>
 
-      [%- redirectUri = c.uri_for( '/search/sequence/results', jobId = results.keys ); -%]
+      [%- redirectUri = c.uri_for( '/search/sequence/results', jobId ); -%]
       <p>
         You can bookmark
         <a href="[% redirectUri | html %]">
@@ -221,7 +220,6 @@ IF seqSearchError -%]
         <p class="plainSequence centredBlock">[% redirectUri | html %]</p>
       </div>
       <div class="cleaner"><!-- empty --></div>
-
 
     </div>
 
@@ -241,28 +239,11 @@ IF seqSearchError -%]
 <script type="text/javascript">
   // <![CDATA[
 
-  console.log( "setting up resultsConfig" );
-
   var resultsConfig = {
-    options:    [% options %],
-    jobs:       new Hash( {
-                  [% FOREACH jobId IN results.keys -%]
-                  "[% jobId %]": {
-                    seq:      "[% results.$jobId.job.stdin    %]",
-                    job_type: "[% results.$jobId.job.job_type %]"
-                  }[% "," UNLESS loop.last %]
-                  [% END -%]
-                } ),
-    sequence:   {
-                  length:   [% seq.length || 0 %],
-                  options: {
-                    imageMap: true,
-                    labels:   true
-                  }
-                },
+    options:    [% options || "{}" %],
     showButton: "[% c.uri_for( '/static/images/showButton.png' ) %]",
     hideButton: "[% c.uri_for( '/static/images/hideButton.png' ) %]",
-    pollUrl:    "[% c.uri_for( '/search/sequence/resultset' ) %]",
+    pollUrl:    "[% c.uri_for( '/search/sequence/resultset', jobId ) %]",
     familyUrl:  "[% c.uri_for( '/family' ) %]",
     elements: {
       errors:      $("errors"),
@@ -275,14 +256,13 @@ IF seqSearchError -%]
     }
   };
 
-  console.log( "done setting up resultsConfig:", resultsConfig );
-  
-  var results = new Results( resultsConfig );
+  var results;
+  document.observe( "dom:loaded", function() {
+    results = new Results( "[% jobId %]", resultsConfig );
+  } );
   
   // ]]>
 </script>
-
-[% END; # of "IF seqSearchError" -%]
 
 <!-- end of "results" -->
 [%#
