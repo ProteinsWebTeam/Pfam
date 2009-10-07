@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.23 2009-06-09 15:18:11 jt6 Exp $
+# $Id: phylo.tt,v 1.24 2009-10-07 13:31:26 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -18,16 +18,12 @@ treeUri = c.uri_for( "/family/tree" );
   </div>
   <div class="blockContent">
     <p>
-      This page displays the phylogenetic tree for this family.
-      We calculate the trees using one of two methods, depending on the number
-      of sequences in the alignment. For alignments with fewer than 
-      <strong>20,000</strong> sequences, we use 
-      <strong>neighbour-joining</strong> trees; for alignments with 
-      <strong>20,000</strong> sequences or more, we use
-      <acronym title="Unweighted Pair Group Method with Arithmetic mean">
-        UPGMA</acronym>-based trees. All trees are generated using 
-      <a class="ext" href="http://www.sanger.ac.uk/Software/analysis/quicktree/">
-        quicktree</a>.
+      This page displays the phylogenetic tree for this family. We use 
+      <a class="ext" href="http://www.microbesonline.org/fasttree/">FastTree</a>
+      to calculate neighbour join trees with a local bootstrap based on 100
+      resamples (show next to the tree nodes). FastTree calculates
+      approximately-maximum-likelihood phylogenetic trees from our seed or full
+      alignments.
     </p> 
     [% # the form that controls the tree display %]
     <form id="phyloForm"
