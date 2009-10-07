@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.31 2009-06-09 15:18:11 jt6 Exp $
+# $Id: align.tt,v 1.32 2009-10-07 13:36:31 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -92,7 +92,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
     	  <table class="details alignOpts" summary="Alignment display options">
           <tbody>
             [% IF entryType != 'B' %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
@@ -110,10 +110,48 @@ alignmentUri = c.uri_for( "/family/alignment" );
                          value="full" />
                   <label for="viewerTypeF">Full ([% pfam.num_full %])</label>
                 </span>
-      	      </td>
+                <br />
+                <span class="button">
+                  <input type="radio"
+                         [% IF ! pfam.number_ncbi %]
+                         class="locked"
+                         disabled="disabled"
+                         [% END -%]
+                         name="alnType"
+                         id="viewerTypeN"
+                         value="ncbi" />
+                  [% IF pfam.number_ncbi -%]
+                  <label for="viewerTypeN">
+                    NCBI ([% pfam.number_ncbi %])
+                  </label>
+                  [% ELSE -%]
+                  <label for="viewerTypeN"
+                         class="inactive">NCBI</label>
+                  [% END -%]
+                </span>
+                <span class="button">
+                  <input type="radio"
+                         [% IF ! pfam.number_meta %]
+                         class="locked"
+                         disabled="disabled"
+                         [% END -%]
+                         name="alnType"
+                         id="viewerTypeM"
+                         value="meta" />
+                  [% IF pfam.number_meta -%]
+                  <label for="viewerTypeM">
+                    Metagenomics ([% pfam.number_meta %])
+                  </label>
+                  [% ELSE -%]
+                  <label for="viewerTypeM"
+                         class="inactive">
+                    Metagenomics</label>
+                  [% END -%]
+                </span>
+              </td>
             </tr>
             [% END %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Viewer:</td>
               <td>
                 <span class="button">
@@ -126,8 +164,9 @@ alignmentUri = c.uri_for( "/family/alignment" );
                     [% END %]
                   </select>
                 </span>
-                [%# this is a bit naughty... just pad this row to double the width %]
-                <span>&nbsp;</span>
+                [%# a warning message about settings in the form -%]
+                <span id="viewerMsg"
+                      class="small">&nbsp;</span>
       	      </td>
             </tr>
           </tbody>
@@ -158,20 +197,22 @@ alignmentUri = c.uri_for( "/family/alignment" );
           var cont = true;
           [% # change the test here depending on whether we are dealing with 
              # a Pfam-A or a Pfam-B
-          IF entryType != "B" %]         
+          IF entryType != "B" -%]
             if ( ( $F("viewerTypeS") && [% pfam.num_seed %] > 1000 ) || 
-                 ( $F("viewerTypeF") && [% pfam.num_full %] > 1000 ) ) {
+                 ( $F("viewerTypeF") && [% pfam.num_full %] > 1000 ) || 
+                 ( $F("viewerTypeN") && [% pfam.number_ncbi || 0 %] > 1000 ) || 
+                 ( $F("viewerTypeM") && [% pfam.number_meta || 0 %] > 1000 ) ) {
               cont = confirm("This alignment contains a large number of sequences, " +
                              "which can cause problems for browsers. \nAre you " +
                              "sure that you want to try to view it as HTML ?" );
             }
-          [% ELSE %]
+          [% ELSE -%]
             if ( [% pfam.number_regions %] > 1000 ) {
               cont = confirm("This alignment contains a large number of sequences, " +
                              "which can cause problems for browsers. \nAre you " +
                              "sure that you want to try to view it as HTML ?" );
             }
-          [% END %]
+          [% END -%]
 
           if ( cont ) {
             url = "[% alignmentUri %]/download/" + action + "?" + Form.serialize("viewerForm");
@@ -183,15 +224,48 @@ alignmentUri = c.uri_for( "/family/alignment" );
       
       // when the user chooses "heatmap" as the viewer for the alignment,
       // we disable the full/seed toggle, since there's only a heatmap
+      // for the full alignment
       $("viewer").observe( "change", function() {
         if ( $F("viewer") == "heatmap" ) {
-          $("viewerTypeS").disable();
-          $("viewerTypeF").disable();
+          $("viewerTypeF").checked = "checked";
+          $$("#viewerForm input[name='alnType']").invoke("disable")
+          $("viewerMsg").update("Heatmap only available for full alignment");
         } else {
-          $("viewerTypeS").enable();
-          $("viewerTypeF").enable();
+          $("viewerMsg").update("&nbsp;");
+          $$("#viewerForm input[name='alnType']").each( function(rb) {
+            if ( ! rb.hasClassName("locked") ) {
+              rb.enable();
+            }
+          } );
         }
       } );
+
+      var f = new Form.Observer( 
+        "viewerForm",
+        0.33,
+        function() {
+          if ( $F("viewerTypeN") || $F("viewerTypeM") ) {
+            $("viewerMsg").update("only jalview and HTML views available for NCBI and metaseq alignments");
+            $$("#viewer option").each( function(opt) {
+              if ( opt.value == "heatmap" || opt.value == "viewer" ) {
+                if ( opt.selected ) {
+                  lastViewerOption = opt.value;
+                  $$("#viewer option[value='jalview']").selected = true;
+                }
+                opt.disabled = true;
+              }
+            } );
+          } else {
+            if ( $F("viewer") !== "heatmap" ) {
+              $("viewerMsg").update("&nbsp;");
+            }
+            $$("#viewer option").each( function(opt) {
+              opt.disabled = false;
+            } );
+          }
+        }
+      );
+
       // ]]>
     </script>
     
@@ -206,7 +280,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
         <table class="details alignOpts" summary="Alignment formatting options">
           <tbody>
             [% IF entryType != 'B' %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Alignment:</td>
               <td>
                 <span class="button">
@@ -227,7 +301,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       	      </td>
             </tr>
             [% END %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Format:</td>
               <td>
                 <span class="button">
@@ -241,7 +315,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       	      </td>
             </tr>
             [% IF entryType != 'B' %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Order:</td>
               <td>
                 <span class="button">
@@ -254,7 +328,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
                 </span>
       	      </td>
             </tr>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Sequence:</td>
               <td>
                 <span class="button">
@@ -268,7 +342,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
       	      </td>
             </tr>
             [% END %]
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Gaps:</td>
               <td>
                 <span class="button">
@@ -281,7 +355,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
                 </span>
       	      </td>
             </tr>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Download/view:</td>
               <td>
                 <span class="button">
@@ -316,7 +390,28 @@ alignmentUri = c.uri_for( "/family/alignment" );
       <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=full">
         full</a> alignment for this family. 
     </p>
+    <p>
+      You can also 
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=long">
+        download</a> a FASTA format file containing the 
+      <strong>full-length sequences</strong> for all sequences in the full alignment.
+    </p>
 
+    <p>
+      The main seed and full alignments are generated using sequences from the 
+      UniProt sequence database. However, we also generate alignments using 
+      sequences from the NCBI sequence database and the &quot;metaseq&quot;
+      metagenomics dataset.
+    </p> 
+    <p>
+      You can view alignments from these two additional datasets using the form
+      above, or you can download alignments of 
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=ncbi">
+        NCBI</a> or  
+      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=meta">
+        metagenomics</a> sequences, as  
+      <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed files.       
+    </p>
     <form id="downloadGzippedForm"
           action="[% alignmentUri %]/download/gzipped">
       <div>
@@ -325,16 +420,71 @@ alignmentUri = c.uri_for( "/family/alignment" );
         [% oe = 0 %]
         <table class="details alignOpts" summary="Download options">
           <tbody>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Pfam alignments:</td>
               <td>
                 <span class="button">
-                  <input type="radio" name="alnType" id="dlTypeS" value="seed" checked="checked" />
+                  <input type="radio"
+                         name="alnType"
+                         id="dlTypeS"
+                         value="seed"
+                         checked="checked" />
                   <label for="dlTypeS">Seed ([% pfam.num_seed %])</label>
                 </span>
                 <span class="button">
-                  <input type="radio" name="alnType" id="dlTypeF" value="full" />
+                  <input type="radio"
+                         name="alnType"
+                         id="dlTypeF"
+                         value="full" />
                   <label for="dlTypeF">Full ([% pfam.num_full %])</label>
+                </span>
+                <br />
+                <span class="button">
+                  <input type="radio"
+                         [% IF ! pfam.number_ncbi %]
+                         disabled="disabled"
+                         [% END -%]
+                         name="alnType"
+                         id="dlTypeN"
+                         value="ncbi" />
+                  [% IF pfam.number_ncbi -%]
+                  <label for="viewerTypeN">
+                    NCBI ([% pfam.number_ncbi %])
+                  </label>
+                  [% ELSE -%]
+                  <label for="viewerTypeN"
+                         class="inactive">NCBI</label>
+                  [% END -%]
+                </span>
+                <span class="button">
+                  <input type="radio"
+                         [% IF ! pfam.number_meta %]
+                         disabled="disabled"
+                         [% END -%]
+                         name="alnType"
+                         id="dlTypeM"
+                         value="meta" />
+                  [% IF pfam.number_meta -%]
+                  <label for="viewerTypeM">
+                    Metagenomics ([% pfam.number_meta %])
+                  </label>
+                  [% ELSE -%]
+                  <label for="viewerTypeM"
+                         class="inactive">
+                    Metagenomics</label>
+                  [% END -%]
+                </span>
+              </td>
+            </tr>
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
+              <td class="label">Full length sequences</td>
+              <td>
+                <span class="button wide">
+                  <input type="radio" 
+                         name="alnType"
+                         id="dlTypeL"
+                         value="long" />
+                  <label for="dlTypeL">Full-sequences ([% pfam.num_full %])</label>
                 </span>
               </td>
             </tr>
@@ -366,7 +516,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
         [% oe = 0 %]
         <table class="details alignOpts" summary="Download options">
           <tbody>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+            <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
               <td class="label">Pfam alignments:</td>
               <td>
                 <span class="button">
@@ -393,132 +543,49 @@ alignmentUri = c.uri_for( "/family/alignment" );
       </div>
     </form>
 
-    <hr />
+    [% END; # of "if entryType != B" -%]
 
-    <h2>Additional datasets</h2>
-
-    <p>
-      The alignments above are generated using sequences from the UniProt 
-      sequence database. However, we also generate alignments using sequences 
-      from the NCBI sequence database and the &quot;metaseq&quot; metagenomics 
-      dataset.
-    </p> 
-    <p>
-      You can view alignments from these two additional datasets using the form
-      below, or you can <strong>download</strong> alignments of 
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=ncbi">
-        NCBI</a> or  
-      <a href="[% alignmentUri %]/download/gzipped?acc=[% acc %]&amp;alnType=meta">
-        metagenomics</a> sequences, as  
-      <a class="ext" href="http://www.gzip.org/">gzip</a>-compressed files.       
-    </p>
-
-    <form id="additionalDatasetsForm"
-          action="[% alignmentUri %]/download/html"
-          onsubmit="launchAdditional();">
-      <div>
-        <input type="hidden" name="acc" value="[% acc %]" />
-  
-        [% oe = 0 -%]
-        <table class="details alignOpts" summary="Alignment display options">
-          <tbody>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td class="label">Alignment:</td>
-              <td>
-                <span class="button">
-                  <input type="radio" name="alnType" id="adTypeN" value="ncbi" checked="checked" />
-                  <label for="adTypeN">NCBI [% IF pfam.number_ncbi; "("; pfam.number_ncbi; ")"; END %]</label>
-                </span>
-                <span class="button">
-                  <input type="radio" name="alnType" id="adTypeM" value="meta" />
-                  <label for="adTypeM">Metagenomics [% IF pfam.number_meta; "("; pfam.number_meta; ")"; END %]</label>
-                </span>
-              </td>
-            </tr>
-            <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-              <td class="label">Viewer:</td>
-              <td>
-                <span class="button">
-                  <select name="viewer" id="viewerAD">
-                    <option value="jalview" selected="selected">jalview</option>
-                    <option value="html">HTML</option>
-                  </select>
-                </span>
-                [%# this is a bit naughty... just pad this row to double the width %]
-                <span>&nbsp;</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-  
-        <input type="button" value="View" onclick="launchAdditional();" />
-  
-      </div>
-    </form>
-
-    [% END %]
-
-    <script type="text/javascript">
-      // <![CDATA[
-      
-      // although the form action looks like it will download the alignment,
-      // in fact we catch the submission here and decide, based on the form
-      // values, which URL to go to next.
-      function launchAdditional() {
-        if( $F("viewerAD") == "jalview" ) {
-          url = "[% alignmentUri %]/jalview?" + Form.serialize("additionalDatasetsForm");
-          popUp( url, 'console', 800, 800, 'jalviewWin');
-      
-        } else {
-          var cont = true;
-          /* [%# need to add this back in when we have pfam.num_ncbi %]
-           * if ( [% pfam.num_seed %] > 1000 ) {
-           *   cont = confirm("This alignment contains a large number of sequences, " +
-           *                  "which can cause problems for browsers. \nAre you " +
-           *                  "sure that you want to try to view it as HTML ?" );
-           * }
-           */
-          if ( cont ) {
-            url = "[% alignmentUri %]/download/html?" + Form.serialize("additionalDatasetsForm");
-            popUp( url, 'console', 800, 800, 'viewerWin');
-          }
-        }      
-        return false;
-      }
-      
-      $("myHitsSubmit").observe( "click", function( e ) {
-
-        // disable the form and show the spinner
-        $("myHitsLoading").show();
-
-        // set up an Updater that will retrieve the alignment
-        var r = new Ajax.Updater( "myHitsText",
-                                   "[% alignmentUri %]/download/format",
-                                   {
-                                     parameters: { acc:     "[% acc %]",
-                                                   alnType: $F("mhTypeS") ? "seed" : "full", 
-                                                   format:  "fasta",
-                                                   gaps:    "dashes" },
-                                                   
-                                     onSuccess: function( oResponse ) { 
-                                       $("myHitsText").value = oResponse.responseText;
-                                       $("myHitsForm").submit();
-                                     },
-                                     
-                                     onFailure: function() {
-                                       $("myHitsLoading")
-                                         .removeClassName("loading")
-                                         .update( "There was a problem retrieving the alignment" );                                  
-                                     }
-                                   } );
-
-      } );
-      
-      // ]]>
-    </script>
-    
   </div>
 
+  [% IF entryType != 'B' %]
+
+  <script type="text/javascript">
+    // <![CDATA[
+    
+    $("myHitsSubmit").observe( "click", function( e ) {
+
+      // disable the form and show the spinner
+      $("myHitsLoading").show();
+
+      // set up an Updater that will retrieve the alignment
+      var r = new Ajax.Updater(
+        "myHitsText",
+        "[% alignmentUri %]/download/format",
+        {
+          parameters: { acc:     "[% acc %]",
+                        alnType: $F("mhTypeS") ? "seed" : "full", 
+                        format:  "fasta",
+                        gaps:    "dashes" },
+                        
+          onSuccess: function( oResponse ) { 
+            $("myHitsText").value = oResponse.responseText;
+            $("myHitsForm").submit();
+          },
+          
+          onFailure: function() {
+            $("myHitsLoading")
+              .removeClassName("loading")
+              .update( "There was a problem retrieving the alignment" );                                  
+          }
+        } );
+
+    } );
+
+    // ]]>
+  </script>
+
+  [% END; # of "if entryType != B" -%]
+  
 </div>
 
 <!-- end of align block -->
