@@ -3,12 +3,12 @@
 # jt6 20060410 WTSI
 #
 # This template builds the post-loaded page fragment which shows the 
-# unique architectures for a given Pfam-A, Pfam-B or clan. Actually, 
+# unique architectures for a given Pfam-A, Pfam-B or clan. Actually 
 # the filename is a bit of a misnomer, because the controller only
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.18 2009-09-04 10:45:52 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.19 2009-10-07 13:23:55 jt6 Exp $
 
 META naked = 1;
 
@@ -21,7 +21,9 @@ BLOCK graphicRow;
   prev = "";
   i = 1;
 
+  # CALL c.log.debug( "allArchitectures.tt: BLOCK graphicRow: id: |$id|" );
   FOREACH arch IN seqInfo.$id.arch;
+    # CALL c.log.debug( "allArchitectures.tt: BLOCK graphicRow: arch: |$arch|" );
     IF arch != prev;
 
       IF i > 1;
@@ -127,26 +129,79 @@ BLOCK graphicRow;
 # and actually build the rows now...
 FOREACH id IN ids;  
   PROCESS graphicRow id = id;
-END; # of "FOREACH id" -%]
+END; # of "FOREACH id"
+
+IF first.defined AND last.defined;
+  IF ( last + 1 ) < numRows -%]
+    <div id="next[% first %]">
+      <p>
+        Currently showing architectures 1 to [% last + 1 %], out of a
+        total of [% numRows %].
+      </p>
+      <input id="loadingButton"
+             type="button"
+             value="Show next [% count %]" />
+      <span id="loadingSpinner"
+            class="loading"
+            style="display: none">Loading next set...</span>
+    </div>
+  [% ELSE -%]
+    <p>
+      [% IF numRows > 1 -%]
+        Showing all [% numRows %] architectures.
+      [% ELSE -%]
+        Showing the only architecture.
+      [% END -%]
+    </p>
+  [% END;
+END -%]
 
 <script type="text/javascript">
   // <![CDATA[
 
+  if ( $("loadingButton") ) {
+
+    $("loadingButton").observe("click", function() {
+  
+      $("loadingSpinner").show();
+      $("loadingButton").disable();
+  
+      var r = new Ajax.Updater( 
+        "next[% first %]",
+        "[% c.uri_for( '/domaingraphics' ) %]",
+        {
+          evalScripts: true,
+          parameters:  { acc:   "[% acc %]",
+                         taxId: "[% taxId %]", // [%# this is so that we can also handle proteomes %]
+                         start: "[% last + 1 %]" },
+          onFailure:   function() {
+            $("next[% first %]")
+              .update("There was a problem retrieving the next set of domain graphics");
+          }
+        }
+      );
+  
+    } );
+
+  }
+  
   [% # we need to stash a couple of bits of information for each of the architecture:
      #   count: the number of sequences for this architecture
      #   arch:  the auto_architecture number for this architecture
      # we store them on the HTML nodes directly, so that they're easily accessible to
      # the javascript object that controls this page
   FOREACH id IN ids -%]
-  $("row[% id %]").store( "count", [% seqInfo.$id.num %] )
-                  .store( "arch",  [% seqInfo.$id.auto_arch %] );
+    $("row[% id %]").store( "count", "[% seqInfo.$id.num %]" )
+                    .store( "arch",  "[% seqInfo.$id.auto_arch %]" );
   [% END -%]
 
-  var uri = "[% c.uri_for( '/domaingraphics' ) %]";
-  var layout = [% layout %];
-  var assignedColours = [% assignedColours %];
+  var layout = [% layout OR "{}" %];
+  var assignedColours = [% assignedColours OR "{}" %];
+  var loadUri = "[% c.uri_for( '/domaingraphics', acc ) %]";
+  var baseUri = "[% c.uri_for( '/' ) %]";
 
-  var dgl = new DomainGraphicsLoader( uri, layout, assignedColours );
+  var dgl = new DomainGraphicsLoader( loadUri, layout, assignedColours, baseUri );
+  console.log( "allArchitectures.tt: dgl: ", dgl );
 
   // ]]>
 </script>

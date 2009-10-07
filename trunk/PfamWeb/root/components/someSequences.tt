@@ -6,77 +6,67 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.10 2009-01-09 12:59:24 jt6 Exp $
+# $Id: someSequences.tt,v 1.11 2009-10-07 13:23:55 jt6 Exp $
 
 META naked = 1;
 
 USE String;
 
-# an ugly catch-all...
-IF numRows < 1 %]
-  <span>No sequences found.</span>
-  [% RETURN;
-END;
+BLOCK graphicRow; -%]
 
-FOREACH image IN images.each_image;
-  CALL image.print_image;
-  id = image.image_name %]
-
-  <div class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
+  <!-- start of graphics row [% loop.index %] -->
+  
+  <div id="row[% id %]"
+       class="graphicRow [% loop.index % 2 ? "odd" : "even" %]">
 
     <span class="graphicLabel">
-      <a href="[% c.uri_for( "/protein", { id = image.image_name } ) %]">
-        [% image.image_name %]</a>
+      <a href="[% c.uri_for( "/protein", id ) %]">[% id %]</a>
       [% # capitalise the species name
-      info = String.new( image.image_info );
-      "["; info.replace( '\[\s*', '' ).capital %]
-      ([% image.length / image.scale_x %] residues)
+      info = String.new( seqInfo.$id.species );
+      "["; info.replace( '\[\s*', '' ).capital; "]" -%]
+      ([% seqInfo.$id.length %] residues)
     </span>
 
-    [% IF c.config.use_image_store;
-      image_uri = c.uri_for( image.file_location );
-    ELSE;
-      image_uri = image.file_location;
-    END; %]
-    <img class="graphicImage"
-         src="[% image_uri %]"
-         usemap="#domainGraphicsMap[% loop.index %]"
-         alt="" />
-    <div class="cleaner">&nbsp;</div>
+    <div class="pgholder"></div>
 
-    <map name="domainGraphicsMap[% loop.index %]">
-      [% image.image_map %]
-    </map>
+    [%-# somewhere to stuff the post-post-loaded graphics... %]
+    <div class="domainArch">
+      <div style="display: none" 
+           class="loading">
+        Loading all sequences...
+      </div>
+    </div>
 
-  </div> <!-- end of graphics row -->
+  </div> 
+  
+  <!-- end of graphics row [% loop.index %] -->
 
-[% END; # of FOREACH image 
+[% END; # of "BLOCK graphicRow"
 
-# N.B. this snippet of javascript will not appear in the page source or DOM 
-# tree after loading, because prototype will execute it but not store it
-%]
+# and actually build the rows now...
+FOREACH id IN ids;  
+  PROCESS graphicRow id = id;
+END; # of "FOREACH id" -%]
+
 <script type="text/javascript">
   // <![CDATA[
-  getMore = function() {
-    $('loadingSpinner').show();
-    if ( $('loadingButton') ) {
-      $('loadingButton').disable();
-    }
-    var r = new Ajax.Request( 
-      '[% c.uri_for( "/domaingraphics" ) %]',
-      {
-        parameters: { jobId:   '[% jobId %]',
-                      start:   '[% last + 1 %]',
-                      subTree: 1 },
-        onSuccess:  function( oResponse ) {
-                      $('next[% first %]').update( oResponse.responseText );
-                    },
-        onFailure:  function() {
-                      $('next[% first %]').update( 'There was a problem retrieving the next set of domain graphics' );
-                    }
-      }
-    );
-  }  
+
+  [% # we need to stash a couple of bits of information for each of the architecture:
+     #   count: the number of sequences for this architecture
+     #   arch:  the auto_architecture number for this architecture
+     # we store them on the HTML nodes directly, so that they're easily accessible to
+     # the javascript object that controls this page
+  FOREACH id IN ids -%]
+  $("row[% id %]").store( "count", [% seqInfo.$id.num %] )
+                  .store( "arch",  [% seqInfo.$id.auto_arch %] );
+  [% END -%]
+
+  var uri = "[% c.uri_for( '/domaingraphics' ) %]";
+  var layout = [% layout OR "{}" %];
+  var assignedColours = [% assignedColours OR "{}" %];
+
+  var dgl = new DomainGraphicsLoader( uri, layout, assignedColours );
+
   // ]]>
 </script>
 
@@ -89,12 +79,37 @@ FOREACH image IN images.each_image;
       </p>
       <input id="loadingButton"
              type="button"
-             value="Show next [% count %]"
-             onclick="getMore()" />
+             value="Show next [% count %]" />
       <span id="loadingSpinner"
             class="loading"
             style="display: none">Loading next set...</span>
     </div>
+
+    <script type="text/javascript">
+      // <![CDATA[
+
+      $("loadingButton").observe( "click", function() {
+        $('loadingSpinner').show();
+        if ( $('loadingButton') ) {
+          $('loadingButton').disable();
+        }
+        var r = new Ajax.Updater( 
+          "next[% first %]",
+          "[% c.uri_for( '/domaingraphics' ) %]",
+          { evalScripts: true,
+            parameters:  { jobId:   "[% jobId %]",
+                           start:   "[% last + 1 %]",
+                           subTree: 1 },
+            onFailure:   function() {
+                           $('next[% first %]').update( 'There was a problem retrieving the next set of domain graphics' );
+                         }
+          }
+        );
+      } );
+
+      // ]]>
+    </script>
+
   [% ELSE %]
     <p>
       [% IF numRows > 1 %]

@@ -6,11 +6,10 @@
 # a given architecture. It should be called by the DomainGraphics controller,
 # via ajax.
 #
-# $Id: allSequences.tt,v 1.7 2009-09-04 10:45:25 jt6 Exp $
+# $Id: allSequences.tt,v 1.8 2009-10-07 13:23:55 jt6 Exp $
 
 META naked = 1;
 
-USE Dumper;
 USE String;
 
 BLOCK graphicRow; -%]
@@ -36,13 +35,13 @@ BLOCK graphicRow; -%]
 
 [% END; # of "BLOCK graphicRow"
 
-IF num_rows < 1;
+IF numRows < 1;
   CALL c.log.error( "allSequences.tt: too few sequences" ); %]
   <span>No sequences found.</span>
   [% RETURN;
 END; -%]
 
-<div class="allSequences" id="arch[% auto_arch %]">
+<div class="allSequences" style="position: relative" id="arch[% auto_arch %]">
   [% FOREACH id IN ids;  
     PROCESS graphicRow id = id;
   END; # of "FOREACH id" -%]
@@ -63,10 +62,6 @@ END; -%]
 
   // ]]>
 </script>
-
-
-
-
 
 [% # try to keep IE6 users happy by trying to limit the height of the 
    # frame into which we just loaded all sequences %]   
