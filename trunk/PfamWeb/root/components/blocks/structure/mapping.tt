@@ -25,10 +25,10 @@ oe = 0;
       <a class="ext" href="http://www.wwpdb.org/">Protein DataBank</a>, we
       use the mapping between <a class="ext" 
         href="http://www.uniprot.org/">UniProt</a>, PDB and Pfam coordinate
-      systems from the <a class="ext" 
-        href="http://www.ebi.ac.uk/msd/">MSD</a> group, to allow us to map
-      Pfam domains onto UniProt three-dimensional structures. The table below
-      shows the sequences and Pfam domains that correspond to this structure.
+      systems from <a class="ext" href="http://www.ebi.ac.uk/pdbe/">PDBe</a>, 
+      to allow us to map Pfam domains onto UniProt three-dimensional structures. 
+      The table below shows the sequences and Pfam domains that correspond to 
+      this structure.
     </p>
 
     <table id="structuresTable"
@@ -69,28 +69,29 @@ oe = 0;
 
     <p class="small">
       <strong>Note:</strong> This mapping was provided by the 
-      <a class="ext" href="http://www.ebi.ac.uk/msd/">MSD</a> group.
+      <a class="ext" href="http://www.ebi.ac.uk/pdbe/">PDBe</a> group.
     </p>
 
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    // how many columns are there in the table ?
+    var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
+    var numColsTable  = firstRow.getElementsByTagName("td").length;
+
+    // walk over all of the cells in the table and add listeners for mouseover and 
+    // mouseout events
+    $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
+          Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
+          Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
+        }
+      );
+    // ]]>
+  </script>
+
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // how many columns are there in the table ?
-  var firstRow = $("structuresTable").getElementsByTagName("tr")[1]
-  var numColsTable  = firstRow.getElementsByTagName("td").length;
-
-  // walk over all of the cells in the table and add listeners for mouseover and 
-  // mouseout events
-  $A( $("structuresTable").getElementsByTagName( "td" ) ).each( function( cell ) {
-        Event.observe( cell, "mouseover", highlight.mouseoverHandler.bindAsEventListener( highlight ) );
-        Event.observe( cell, "mouseout",  highlight.mouseoutHandler.bindAsEventListener( highlight ) );
-      }
-    );
-  // ]]>
-</script>
 
 <!-- end mapping block -->
 [%#
