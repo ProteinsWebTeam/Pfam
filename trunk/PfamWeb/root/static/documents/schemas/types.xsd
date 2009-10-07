@@ -99,7 +99,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
   
   <xs:simpleType name="jobId">
     <xs:restriction base="xs:string">
-      <xs:pattern value="[A-F0-9]{8}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{4}-[A-F0-9]{12}" />
+      <xs:pattern value="[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}" />
     </xs:restriction>
   </xs:simpleType>
   
