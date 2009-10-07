@@ -5,7 +5,7 @@
 #
 # the curation details for the family section
 #
-# $Id: curation.tt,v 1.26 2009-06-09 15:18:11 jt6 Exp $
+# $Id: curation.tt,v 1.27 2009-10-07 13:37:44 jt6 Exp $
 
 # URI shortcuts
 rootUri = c.uri_for( "/" );
@@ -174,7 +174,7 @@ help    = "${rootUri}help";
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
           <td class="label">Download:</td>
           <td class="data">
-             <a href="[% c.uri_for( '/family/hmm', acc = pfam.pfama_acc ) %]">
+             <a href="[% c.uri_for( '/family/hmm', pfam.pfama_acc ) %]">
                download</a> the raw HMM for this family
           </td>
         </tr>
