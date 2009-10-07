@@ -22,6 +22,15 @@
     [% pageContent %]
     <!-- end of content -->
 
+    <!-- google analytics code -->
+    <script type="text/javascript">
+      // <![CDATA[
+      _userv=0;
+      _ugifpath="[% c.uri_for( '/shared/images/__utm.gif' ) %]";
+      urchinTracker();
+      // ]]>
+    </script>
+
   </body>
 
 </html>
