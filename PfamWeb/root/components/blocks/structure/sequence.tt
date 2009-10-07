@@ -4,7 +4,7 @@
 # 
 # build the sequence block for structures
 #
-# $Id: sequence.tt,v 1.8 2008-05-16 15:30:33 jt6 Exp $
+# $Id: sequence.tt,v 1.9 2009-10-07 14:05:49 jt6 Exp $
 
 # there will be no domain graphics if the mapping between structure and 
 # pfam exists
@@ -33,6 +33,48 @@ RETURN UNLESS mapping.size;
     </div>
 
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+  [% # if there are any mappings between structure and family, we need to build a
+     # list of unique IDs, and we need to make an AJAX call to retrieve the
+     # domain graphics
+
+  IF mapping.size;
+
+    # collect the unique uniprot IDs
+    unpIds = {};
+    FOREACH m IN mapping;
+      unp = m.auto_pfamseq.pfamseq_id;
+      unpIds.$unp = m ;
+    END;
+    unpIdList = unpIds.keys.join(",");
+  -%]
+
+    // set up the AJAX call for the structure image
+    document.observe( "dom:loaded", function() {
+
+      // structure graphic
+      var r = new Ajax.Updater(
+        "structureGraphicsHolder",
+        "[% c.uri_for( '/structure/graphics' ) %]",
+        {
+          parameters: { seqIds: '[% unpIdList %]',
+                        id:     '[% pdbId %]' },
+          evalScripts: true,
+          onFailure:  function( oResponse ) {
+                        $("structureGraphicsHolder").update( "Graphics loading failed." );
+                      }
+        }
+      );
+
+    } );
+  [% END; # of "if mapping.size" %]
+
+    // ]]>
+  </script>
+
 </div>
 
 <!-- end sequence block -->

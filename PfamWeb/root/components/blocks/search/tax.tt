@@ -5,7 +5,7 @@
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.12 2008-08-27 12:12:32 jt6 Exp $
+# $Id: tax.tt,v 1.13 2009-10-07 14:02:27 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -181,23 +181,24 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
     </div>
   
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+    var exTax    = 'Caenorhabditis elegans AND NOT Homo sapiens';
+    var exUnique = 'Apicomplexa';
+
+    new Ajax.Autocompleter(
+      'q',
+      'taxSuggestions',
+      '[% c.uri_for( "/search/taxonomy/suggest" ) %]',
+      { minChars:  3,
+        frequency: 0.6 }
+    );
+
+    // ]]>
+  </script>
+
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-  var exTax    = 'Caenorhabditis elegans AND NOT Homo sapiens';
-  var exUnique = 'Apicomplexa';
-
-  new Ajax.Autocompleter(
-    'q',
-    'taxSuggestions',
-    '[% c.uri_for( "/search/taxonomy/suggest" ) %]',
-    { minChars:  3,
-      frequency: 0.6 }
-  );
-
-  // ]]>
-</script>
 
 <!-- end taxonomy search block -->
 [%#

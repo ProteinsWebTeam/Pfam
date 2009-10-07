@@ -5,7 +5,7 @@
 # 
 # build the protein name or sequence search block
 #
-# $Id: protein.tt,v 1.5 2008-08-13 15:21:22 jt6 Exp $
+# $Id: protein.tt,v 1.6 2009-10-07 14:01:50 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -65,13 +65,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         
     </div>
   </div>
-</div>
 
-<script type="text/javascript">
-  // <![CDATA[
-  var exUnp = "VAV_HUMAN";
-  // ]]>
-</script>
+  <script type="text/javascript">
+    // <![CDATA[
+    var exUnp = "VAV_HUMAN";
+    // ]]>
+  </script>
+
+</div>
 
 <!-- end protein search block -->
 [%#

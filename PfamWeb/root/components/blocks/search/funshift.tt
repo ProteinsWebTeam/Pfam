@@ -5,7 +5,7 @@
 # 
 # build the function similarity search tab
 #
-# $Id: funshift.tt,v 1.6 2008-08-13 15:21:22 jt6 Exp $
+# $Id: funshift.tt,v 1.7 2009-10-07 14:00:34 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -76,13 +76,14 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         
     </div>
   </div>
-</div>
 
-<script type="text/javascript">
-  // <![CDATA[
-  var exFs = "glyco_hydro_16";
-  // ]]>
-</script>
+  <script type="text/javascript">
+    // <![CDATA[
+    var exFs = "glyco_hydro_16";
+    // ]]>
+  </script>
+
+</div>
 
 <!-- end funshift search block -->
 [%#
