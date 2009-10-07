@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.11 2009-07-17 09:45:42 jt6 Exp $
+# $Id: Root.pm,v 1.12 2009-10-07 14:19:09 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.11 2009-07-17 09:45:42 jt6 Exp $
+$Id: Root.pm,v 1.12 2009-10-07 14:19:09 jt6 Exp $
 
 =cut
 
@@ -99,8 +99,8 @@ sub announcements : Local {
   unless ( $type eq 'announcements' or 
            $type eq 'website_changes' or
            $type eq 'posts' ) {
-    $c->log->debug( 'Root::announcements: not a valid announcement type' )
-      if $c->debug;
+    # $c->log->debug( 'Root::announcements: not a valid announcement type' )
+    #   if $c->debug;
     $c->res->status(204);
     return;
   }
@@ -122,8 +122,8 @@ sub announcements : Local {
 
     my $response = $ua->get( $this->{blog_uri} );
     unless ( $response->is_success ) {
-      $c->log->warn( "Root::announcements: could't retrieve blog content from |"
-                      . $this->{blog_uri} . "|" ) if $c->debug;
+      # $c->log->warn( "Root::announcements: could't retrieve blog content from |"
+      #                 . $this->{blog_uri} . "|" ) if $c->debug;
       $c->res->status( 204 );
       return;
     }
@@ -171,32 +171,32 @@ sub announcements : Local {
       my $issued = $entry->issued->epoch;
 
       if ( defined $cookie ) {
-        $c->log->debug( "Root::announcements: $type cookie shows timestamp "
-                        . $cookie->value . '; entry issued at '
-                        . $issued ) if $c->debug;
+        # $c->log->debug( "Root::announcements: $type cookie shows timestamp "
+        #                 . $cookie->value . '; entry issued at '
+        #                 . $issued ) if $c->debug;
         
         if ( $issued > $cookie->value ) {
-          $c->log->debug( "Root::announcements: $type post is newer than cookie; showing" )
-            if $c->debug;
+          # $c->log->debug( "Root::announcements: $type post is newer than cookie; showing" )
+          #   if $c->debug;
           $entries->{$issued} = $entry;
         }
-        else {
-          $c->log->debug( "Root::announcements: $type cookie is newer than post; NOT showing" )
-            if $c->debug;
-        }
+        # else {
+        #   $c->log->debug( "Root::announcements: $type cookie is newer than post; NOT showing" )
+        #     if $c->debug;
+        # }
         
       }
       else { 
-        $c->log->debug( "Root::announcements: no $type cookie found; adding post "
-                        . $entry->id )
-          if $c->debug;
+        # $c->log->debug( "Root::announcements: no $type cookie found; adding post "
+        #                 . $entry->id )
+        #   if $c->debug;
         $entries->{$issued} = $entry;
       }
 
     }
      
-    $c->log->debug( 'Root::announcements: added ' . scalar( keys %$entries )
-                    . " $type posts" ) if $c->debug;
+    # $c->log->debug( 'Root::announcements: added ' . scalar( keys %$entries )
+    #                 . " $type posts" ) if $c->debug;
   }
   
   #----------------------------------------
@@ -210,25 +210,25 @@ sub announcements : Local {
       my $entry = $changelog_entries->{$issued};
 
       if ( defined $cookie ) {
-        $c->log->debug( "Root::announcements: $type cookie shows timestamp "
-                        . $cookie->value . '; entry issued at '
-                        . $issued ) if $c->debug;
+        # $c->log->debug( "Root::announcements: $type cookie shows timestamp "
+        #                 . $cookie->value . '; entry issued at '
+        #                 . $issued ) if $c->debug;
         
         if ( $issued > $cookie->value ) {
-          $c->log->debug( "Root::announcements: $type post is newer than cookie; showing" )
-            if $c->debug;
+          # $c->log->debug( "Root::announcements: $type post is newer than cookie; showing" )
+          #   if $c->debug;
           $entries->{$issued} = $entry;
         }
-        else {
-          $c->log->debug( "Root::announcements: $type cookie is newer than post; NOT showing" )
-            if $c->debug;
-        }
+        # else {
+        #   $c->log->debug( "Root::announcements: $type cookie is newer than post; NOT showing" )
+        #     if $c->debug;
+        # }
         
       }
       else { 
-        $c->log->debug( "Root::announcements: no $type cookie found; adding post "
-                        . $issued )
-          if $c->debug;
+        # $c->log->debug( "Root::announcements: no $type cookie found; adding post "
+        #                 . $issued )
+        #   if $c->debug;
         $entries->{$issued} = $entry;
       }
             
