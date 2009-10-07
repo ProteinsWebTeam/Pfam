@@ -2,7 +2,7 @@
 # BatchSearch.pm
 # jt6 20061108 WTSI
 #
-# $Id: BatchSearch.pm,v 1.4 2009-02-12 11:39:38 jt6 Exp $
+# $Id: BatchSearch.pm,v 1.5 2009-10-07 14:20:24 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Search::BatchSearch;
 
 This is the parent class for batch search operations.
 
-$Id: BatchSearch.pm,v 1.4 2009-02-12 11:39:38 jt6 Exp $
+$Id: BatchSearch.pm,v 1.5 2009-10-07 14:20:24 jt6 Exp $
 
 =cut
 
@@ -102,13 +102,13 @@ sub parse_upload : Private {
     return 0;
   }
 
-  my $line_num = 0;       # number of lines in the file
-  my $seq_count = 0;      # number of sequences in the file
-  my $seq_line_count = 0; # number of lines in a FASTA "block"
-  my $header = '';        # the current header line
-  my %header_lines;       # line numbers for sequence headers
-  my %short_header_lines; # header lines shortened to 60 characters
-  my %sequences;          # the sequence strings
+  my $line_num       = 0;  # number of lines in the file
+  my $seq_count      = 0;  # number of sequences in the file
+  my $seq_line_count = 0;  # number of lines in a FASTA "block"
+  my $header         = ''; # the current header line
+  my %header_lines;        # line numbers for sequence headers
+  my %short_header_lines;  # header lines shortened to 60 characters
+  my %sequences;           # the sequence strings
   
   while ( <$fh> ) {
     
