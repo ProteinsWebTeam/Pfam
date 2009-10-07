@@ -4,7 +4,7 @@
 #
 # template for returning the URL for the results of a sequence search
 #
-# $Id: poll_xml.tt,v 1.5 2008-05-19 10:47:27 jt6 Exp $
+# $Id: poll_xml.tt,v 1.6 2009-10-07 12:22:54 jt6 Exp $
 
 USE dumper;
 
@@ -17,16 +17,9 @@ baseUri = "http://pfam.sanger.ac.uk/";
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
                           [% baseUri %]static/documents/schemas/submission.xsd">
-[% FOREACH job IN jobStatus -%]
-  <job job_id="[% job.jobId %]" type="[% job.jobClass %]">
-    <opened>[% job.opened %]</opened>
-    <estimated_time>[% job.estimatedTime %]</estimated_time>
-    <result_url>
-      <![CDATA[
-[% job.doneURI %]?output=xml&jobId=[% job.jobId %]
-      ]]>
-    </result_url>
-  </job>
+[% FOREACH jobId IN queued_jobs -%]
+  <job job_id="[% jobId %]"
+       href="[% c.uri_for( '/search/sequence/resultset', jobId, { output => 'xml' } ) %]" />
 [% END -%]
 </jobs>
 [%#
