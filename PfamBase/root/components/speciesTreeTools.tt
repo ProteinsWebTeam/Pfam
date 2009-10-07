@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.5 2009-01-15 15:41:32 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.6 2009-10-07 14:28:03 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -111,8 +111,7 @@
       [%- END %]
       
       <li id="stError"
-         class="error"
-         style="display: none" ></li>
+          style="display: none" ></li>
     </ul>
     [%- END %]
 
