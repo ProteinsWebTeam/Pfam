@@ -3,7 +3,7 @@
 
    Stylesheet for the posterior probability heatmap alignments.
 
-   $Id: heatmap.css,v 1.1 2009-06-09 15:15:46 jt6 Exp $
+   $Id: heatmap.css,v 1.2 2009-10-07 13:01:50 jt6 Exp $
 
    Copyright (c) 2007: Genome Research Ltd.
 
@@ -35,7 +35,7 @@
 .t8  { background-color: #5BCC00 }
 .t9  { background-color: #47E500 }
 .tm  { background-color: #33FF00 } /* GREEN */
-.w  { background-color: #FFFFFF } /* white */
+/* .w  { background-color: #FFFFFF } */ /* white */
 
 /* scale */
 div.scale {

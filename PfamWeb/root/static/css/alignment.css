@@ -4,7 +4,7 @@
 
    Style the markup of multiple sequence alignments
    
-   $Id: alignment.css,v 1.6 2008-05-16 15:32:12 jt6 Exp $
+   $Id: alignment.css,v 1.7 2009-10-07 13:01:49 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -32,18 +32,36 @@
   color: #000;
 }
 
+div.oddAliLine {
+  background-color: #f3f3f3;
+}
+
+/* div.evenAliLine { */
+/*   background-color: #e7e7e7; */
+/* } */
+
+div.aliTitle {
+  font-weight: bold;
+  font-size: larger;
+}
+
 .o  { background-color: #ff7f11 } /* orange */
 .y, .Y { background-color: #ffff11 } /* yellow */
 .b  { background-color: #9999FF } /* lilac */
 .g  { background-color: #99FF99 } /* light green */
 .r  { background-color: #FF9999 } /* pink */
 .c  { background-color: #99FFFF } /* cyan */
-.w  { background-color: #FFFFFF } /* white */
+/* .w  { background-color: #FFFFFF } */ /* white */
 .as { background-color: #000;             color: #FFF }
 .pas{ background-color: #666;             color: #FFF }
 .sas{ background-color: #999;             color: #FFF }
 .H  { background-color: #F00  !important; color: #FFF }
 .E  { background-color: #FF0  !important; color: #000 }
+
+hr {
+  background-color: #999;
+  width: 2px;
+}
 
 /* outer wrapper */
 div.align {}

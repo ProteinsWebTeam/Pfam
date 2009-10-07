@@ -5,7 +5,7 @@
    stylesheet to apply various fixes for IE wrinkles. This should be those styles
    which are applicable to all versions of IE
    
-   $Id: pfam_all_ie.css,v 1.11 2008-05-16 15:32:12 jt6 Exp $
+   $Id: pfam_all_ie.css,v 1.12 2009-10-07 13:01:50 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -61,3 +61,17 @@ hr {
 p {
   line-height: 1.4em;
 }
+
+/* fix the scrolling on long domain graphics */
+div.pgholder {
+  overflow: visible;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* IE seems to like to drop the scrollbar OVER the canvas... pad the
+ * parent element a little to avoid that */
+div.canvasScroller {
+  padding-bottom: 18px;
+}
+
