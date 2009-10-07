@@ -22,7 +22,7 @@ if ( ! window.console ) {
 // 
 // jt6 20090901 WTSI
 //
-// $Id: domain_graphics_loader.js,v 1.1 2009-09-04 12:59:01 jt6 Exp $
+// $Id: domain_graphics_loader.js,v 1.2 2009-10-07 13:06:20 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -70,18 +70,23 @@ var DomainGraphicsLoader = Class.create( {
    *   pre-assigned colours. This is used when rendering the set of domain
    *   graphics for all sequences with a given architecture. 
    */
-  initialize: function( uri, layoutObject, coloursObject ) {
-    this._uri             = uri;           // uri to hit for the next block of graphics
+  initialize: function( loadUri, layoutObject, coloursObject, baseUrl ) {
+    this._uri             = loadUri;       // uri to hit for the next block of graphics
     this._layout          = layoutObject;  // the description of the graphics
     this._assignedColours = coloursObject; // previously assigned colours, so that 
                                            // the next block of graphics have the same
                                            // set of colours as the original set
+    this._baseUrl         = baseUrl;       // stub to prepend to URLs on the graphic
 
     // if there are more than "_confirmNum" sequences for the architecture, we'll
     // ask the user if they really want to render them all
-    this._confirmNum = 50; // TODO hard-coded for now; make it settable
+    this._confirmNum = 200; // TODO hard-coded for now; make it settable
 
     this._pg = new PfamGraphic();
+
+    if ( this._baseUrl ) {
+      this._pg.setBaseUrl( this._baseUrl );
+    }
 
     this._addDomainGraphics();
     this._addListeners();
