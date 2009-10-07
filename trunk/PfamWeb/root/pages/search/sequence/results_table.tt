@@ -4,30 +4,25 @@
 #
 # format the results of a H3 sequence search as a table.
 #
-# $Id: results_table.tt,v 1.3 2009-09-04 12:53:23 jt6 Exp $
+# $Id: results_table.tt,v 1.4 2009-10-07 12:31:52 jt6 Exp $
 
 META naked = 1;
 
-# USE Dumper;
+USE Dumper;
 # CALL c.log.debug( "results_table.tt: results: " _ Dumper.dump( results ) );
 
-#-------------------------------------------------------------------------------
+USE String;
 
-# the number of matches that the search found
-numHits = results.size;
+#-------------------------------------------------------------------------------
 
 # shortcuts to the show/hide glass buttons
 imageUri   = c.uri_for( "/static/images" );
 showButton = "${imageUri}/showButton.png";
 hideButton = "${imageUri}/hideButton.png";
 
-# store the number of significant and insignificant matches
-numSignificantMatches = 0;
-numInsignificantMatches = 0;
-
 #-------------------------------------------------------------------------------
-
-USE String;
+#- BLOCKs ----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
 BLOCK markupAlignment;
 
@@ -50,12 +45,12 @@ BLOCK markupAlignment;
 
 END;
 
-#----------------------------------------
+#-------------------------------------------------------------------------------
 
 BLOCK markupSeq;
 
-  # CALL c.log.debug( "pp:  $ppLine" );
-  # CALL c.log.debug( "seq: $seqLine" );
+  # CALL c.log.debug( "results_table.tt: markupSeq: pp:  $ppLine" );
+  # CALL c.log.debug( "results_table.tt: markupSeq: seq: $seqLine" );
 
   max            = '';    # the class of the longest chunk
   maxChunkLength = 0;     # the length of that chunk
@@ -80,7 +75,7 @@ BLOCK markupSeq;
     chunks.push( chunk );
     prevChar = char;
     
-    # CALL c.log.debug( "chunk: $chunk" );
+    # CALL c.log.debug( "results_table.tt: markupSeq: chunk: $chunk" );
     freq.$char = chunk.length;
     IF chunk.length > maxChunkLength;
       max = char;
@@ -88,13 +83,13 @@ BLOCK markupSeq;
     END;
   END;
   
-  # CALL c.log.debug( "longest chunk: $max" );
+  # CALL c.log.debug( "results_table.tt: markupSeq: longest chunk: $max" );
   IF max == '*';
     max = 'star';
   ELSIF max == '.';
     max = 'gap';
   END;
-  # CALL c.log.debug( "longest chunk style: $max" );
+  # CALL c.log.debug( "results_table.tt: markupSeq: longest chunk style: $max" );
   
   # start the markup string with a span that has the same class as the 
   # longest chunk
@@ -122,12 +117,12 @@ BLOCK markupSeq;
   
 END; # of "BLOCK markupSeq"
 
-#----------------------------------------
+#-------------------------------------------------------------------------------
 
 BLOCK markupHMM;
 
-  # CALL c.log.debug( "hmm:   $hmmLine" );
-  # CALL c.log.debug( "match: $matchLine" );
+  # CALL c.log.debug( "results_table.tt: markupHMM: hmm:   $hmmLine" );
+  # CALL c.log.debug( "results_table.tt: markupHMM: match: $matchLine" );
 
   pos      = 0;           # the position of the start of each chunk
   prevChar = '';          # the type of the previous chunk
@@ -140,7 +135,7 @@ BLOCK markupHMM;
     
     prevChar = char;
     
-    # CALL c.log.debug( "chunk: |$chunk|" );
+    # CALL c.log.debug( "results_table.tt: markupHMM: chunk: |$chunk|" );
     
     first    = chunk.substr( 0, 1 );
     hmmChunk = hmmLine.substr( pos, chunk.length );
@@ -157,30 +152,28 @@ BLOCK markupHMM;
   
   mapped.append( "</span>" ); 
 
-  # CALL c.log.debug( "match: $matchLine" );
+  # CALL c.log.debug( "results_table.tt: markupHMM: match: $matchLine" );
 
 END; # of "BLOCK markupHMM"
-
 
 #-------------------------------------------------------------------------------
 
 # a block that builds a table of results
 BLOCK buildTableBody;
-  # CALL c.log.debug( "results_table.tt: building table body" );
   
   # we use loop.index to build an ID for each row, since that really will
   # be unique, but for the purposes of deciding if a row is odd or even, we
   # need a separate counter, tableRow
   tableRow = 0;
-  FOREACH hit IN results;
+  FOREACH hit IN resultsSlice;
 
     # entirely skip any hits that have an E-value greater than the global 
     # E-value cut-off
     IF evalue_cutoff AND hit.evalue > evalue_cutoff;
-      # CALL c.log.debug( "results_table.tt: hit evalue > cut-off evalue: " _ hit.evalue _ " > " _ evalue_cutoff );
+      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue gt cut-off evalue: ${hit.evalue} gt ${evalue_cutoff}; skipping" );
       NEXT;
     ELSE;
-      # CALL c.log.debug( "results_table.tt: hit evalue < cut-off evalue: " _ hit.evalue _ " < " _ evalue_cutoff );
+      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue lt cut-off evalue: ${hit.evalue} lt ${evalue_cutoff}" );
     END;
 
     # decide whether we should skip this row. If the parameter 
@@ -191,7 +184,7 @@ BLOCK buildTableBody;
       # show only significant hits
       NEXT IF NOT hit.sig;
 
-      rowClass = tableRow % 2 ? "odd" : "even"; # previously oddlySignificant & evenlySignificant
+      rowClass = tableRow % 2 ? "odd" : "even"; # previously oddlySignificant and evenlySignificant
       rowId    = job_type _ loop.index;
       numSignificantMatches = numSignificantMatches + 1;
 
@@ -211,7 +204,7 @@ BLOCK buildTableBody;
       <td class="rowNum">[% loop.index %]</td>
       <td>
         [% IF hit.acc -%]
-        <a id="[% hit.name _ '_' _ hit.seq.from _ '_' _ hit.seq.to %]" 
+        <a id="region_[% hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
            href="[% c.uri_for( "/family", hit.acc ) %]">[% hit.name %]</a>
         [% ELSE;
           hit.name;
@@ -245,7 +238,7 @@ BLOCK buildTableBody;
       <td[% IF hit.hmm.from != 1 %] class="warning"[% END %]>
         [% hit.hmm.from %]
       </td>
-      <td[% IF hit.hmm.to != hit.hmm.length %] class="warning"[% END %]>
+      <td[% IF hit.hmm.to != hit.model_length %] class="warning"[% END %]>
         [% hit.hmm.to %]
       </td>
       <td>[% hit.bits %]</td>
@@ -276,7 +269,7 @@ END; # of "BLOCK buildTableBody"
 # a block to render the results table head
 
 BLOCK tableHead;
-  # CALL c.log.debug( "results_table.tt: building table head" ); -%]
+  # CALL c.log.debug( "results_table.tt: tableHead:  building table head" ); -%]
   <thead>
     <tr class="titleRow">
       <th rowspan="2" class="rowNum">Original order</th>
@@ -304,138 +297,125 @@ BLOCK tableHead;
 [%- END; # of "BLOCK tableHead"
   
 #-------------------------------------------------------------------------------
+#- "main" ----------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
-# now we actually run the "buildTableRows" block for the significant and 
-# insignificant matches, so that we can see if we actually HAVE significant or
-# insignificant matches before we try to build the page
+details = String.new;
+FOREACH job_type IN rest.keys.sort;
 
-  significantMatches = PROCESS buildTableBody showSignificant = 1;
-insignificantMatches = PROCESS buildTableBody showSignificant = 0;
+  # store the number of significant and insignificant matches
+  numSignificantMatches   = 0;
+  numInsignificantMatches = 0;
 
-# and we build the table -%]
+  # now we actually run the "buildTableRows" block for the significant and 
+  # insignificant matches, so that we can see if we actually HAVE significant or
+  # insignificant matches before we try to build the page
+    significantMatches = PROCESS buildTableBody resultsSlice    = results.$jobId.hits.$job_type, 
+                                                showSignificant = 1;
+  insignificantMatches = PROCESS buildTableBody resultsSlice    = results.$jobId.hits.$job_type,
+                                                showSignificant = 0;
 
-<!-- start of results table -->
+  # and we build the tables -%]
 
-[% IF numHits;
+  <!-- start of Pfam-[% job_type %] results tables -->
 
-# show significant matches
+  [% # show significant matches
 
-IF numSignificantMatches;
-  # CALL c.log.debug( "results_table.tt: showing significant matches" ); -%]
-<table id="pfam[% job_type %]Summary"
-       class="resultTable" 
-       summary="Pfam-[% job_type %] search results">
-  <caption>
-    <span class="tableTitle">
-      [% IF job_type == "A" %]<span class="titlePrefix">Significant </span>[% END -%]
-      Pfam-[% job_type %] Matches
-    </span>
-    <span class="showHideLink link">Show</span> or
-    <span class="showHideLink link">hide</span> 
-    all alignments.
-  </caption>
-  [% PROCESS tableHead -%]
-  <tbody>
-    [% significantMatches -%]
-  </tbody>
-</table>
-[% END;
+  IF numSignificantMatches;
+    CALL c.log.debug( "results_table.tt: there are some significant matches to show" ); -%]
+    <table id="pfam[% job_type %]Summary"
+           class="resultTable" 
+           summary="Pfam-[% job_type %] search results">
+      <caption>
+        <span class="tableTitle">
+          [% IF job_type == "A" %]<span class="titlePrefix">Significant </span>[% END -%]
+          Pfam-[% job_type %] Matches
+        </span>
+        <span class="showHideLink link">Show</span> or
+        <span class="showHideLink link">hide</span> 
+        all alignments.
+      </caption>
+      [% PROCESS tableHead -%]
+      <tbody>
+        [% significantMatches -%]
+      </tbody>
+    </table>
+  [% END;
 
-# show INsignificant matches
+  # show INsignificant matches
 
-IF numInsignificantMatches;
-  # CALL c.log.debug( "results_table.tt: showing INsignificant matches" ); -%]
-<table id="pfam[% job_type %]SummaryI"
-       class="resultTable" 
-       summary="Insignificant Pfam-[% job_type %] matches">
-  <caption>
-    <span class="tableTitle">
-      [% IF job_type == "A" %]<span class="titlePrefix">Insignificant </span>[% END -%]
-      Pfam-[% job_type %] Matches
-    </span>
-    <span class="showHideLink link">Show</span> or
-    <span class="showHideLink link">hide</span> 
-    all alignments.
-  </caption>
-  [% PROCESS tableHead -%]
-  <tbody>
-    [% insignificantMatches -%]
-  </tbody>
-</table>
+  IF numInsignificantMatches;
+    CALL c.log.debug( "results_table.tt: there are some INsignificant matches to show" ); -%]
+    <table id="pfam[% job_type %]SummaryI"
+           class="resultTable" 
+           summary="Insignificant Pfam-[% job_type %] matches">
+      <caption>
+        <span class="tableTitle">
+          [% IF job_type == "A" %]<span class="titlePrefix">Insignificant </span>[% END -%]
+          Pfam-[% job_type %] Matches
+        </span>
+        <span class="showHideLink link">Show</span> or
+        <span class="showHideLink link">hide</span> 
+        all alignments.
+      </caption>
+      [% PROCESS tableHead -%]
+      <tbody>
+        [% insignificantMatches -%]
+      </tbody>
+    </table>
+  [% END; # of "if numInsignificantMatches" -%]
 
-[% END; # of "if numInsignificantMatches"
+  <!-- end of results table -->
 
-END; # of "if numHits" %]
+  [%
+  CALL details.append( "'$job_type': { " );
+  CALL details.append( "'numSignificantMatches': $numSignificantMatches, " );
+  CALL details.append( "'numInsignificantMatches': $numInsignificantMatches," );
+  CALL details.append( "'total': " _ ( numSignificantMatches + numInsignificantMatches ) );
+  CALL details.append( "}" );
+  CALL details.append( "," ) UNLESS loop.last;
 
-<!-- end of results table -->
+END; # of "FOREACH job_type" -%]
 
 <script type="text/javascript">
   // <![CDATA[
 
-  var regions = [];
-  var motifs  = [];
+  results.jobDone( {
+    "layout": [% dg_layout || "{}" %],
+    "details": { [% details %] }
+  } );
 
-  [% # build the JSON object that defines the domain graphics
-    colours = [ "red", "green", "blue", "pink", "#0080F0" ];
-  i = 0;
-  FOREACH hit IN results;
-    NEXT UNLESS hit.sig;
-    colour = colours.$i;
-    i = i + 1;
-    IF i >= colours.size;
-      i = 0;
-    END;
-    IF job_type == "A" -%]
-      regions.push( { startStyle: "curved",
-                      endStyle:   "curved",
-                      start:      [% hit.env.from %],
-                      end:        [% hit.env.to %],
-                      aliStart:   [% hit.seq.from %],
-                      aliEnd:     [% hit.seq.to %],
-                      text:       "[% hit.name %]",
-                      colour:     "[% colour %]",
-                      acc:        "[% hit.acc %]" } );
-    [% ELSIF job_type == "B" -%]
-      motifs.push( {  start:      [% hit.env.from %],
-                      end:        [% hit.env.to %],
-                      aliStart:   [% hit.seq.from %],
-                      aliEnd:     [% hit.seq.to %],
-                      text:       "[% hit.name %]",
-                      colour:     [ 'FF0000', '00FF00', '0000FF' ],
-                      acc:        "[% hit.acc %]" } );
-    [% END;
-  END -%]
-
-  //----------------------------------------
+  /* results.jobDone( [% dg_layout || "{}" %] ); */
+  // TODO turn the argument into a hash (like the one below)
 
   // record the details of this set of results
-  results.jobDone( "[% jobId %]",  
-                   { jobType:       "[% job_type %]",
-                     total:         [% numSignificantMatches + numInsignificantMatches %],
-                     significant:   [% numSignificantMatches %],
-                     insignificant: [% numInsignificantMatches %],
-                     regions:       regions,
-                     motifs:        motifs
-                   } );
+  /* results.jobdone( "[% jobid %]",   */
+  /*                  { jobtype:       "[% job_type %]", */
+  /*                    total:         [% numsignificantmatches + numinsignificantmatches %], */
+  /*                    significant:   [% numsignificantmatches %], */
+  /*                    insignificant: [% numinsignificantmatches %], */
+  /*                    regions:       regions, */
+  /*                    motifs:        motifs */
+  /*                  } ); */
   
   // ]]>
 </script>
 
 [%#
-Copyright (c) 2007: Genome Research Ltd.
+copyright (c) 2007: genome research ltd.
 
-Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+authors: rob finn (rdf@sanger.ac.uk), john tate (jt6@sanger.ac.uk)
 
-This is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
+this is free software; you can redistribute it and/or modify it under
+the terms of the gnu general public license as published by the free software
+foundation; either version 2 of the license, or (at your option) any later
 version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+this program is distributed in the hope that it will be useful, but without
+any warranty; without even the implied warranty of merchantability or fitness
+for a particular purpose. see the gnu general public license for more
 details.
 
-You should have received a copy of the GNU General Public License along with
-this program. If not, see <http://www.gnu.org/licenses/>.
+you should have received a copy of the gnu general public license along with
+this program. if not, see <http://www.gnu.org/licenses/>.
 -%]
