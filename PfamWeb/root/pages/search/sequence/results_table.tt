@@ -4,7 +4,7 @@
 #
 # format the results of a H3 sequence search as a table.
 #
-# $Id: results_table.tt,v 1.4 2009-10-07 12:31:52 jt6 Exp $
+# $Id: results_table.tt,v 1.5 2009-10-07 12:44:11 jt6 Exp $
 
 META naked = 1;
 
@@ -280,7 +280,7 @@ BLOCK tableHead;
       <th colspan="2">Envelope</th>
       <th colspan="2">Alignment</th>
       <th colspan="2">HMM</th>
-      <th rowspan="2">Bits<br />score</th>
+      <th rowspan="2">Bit<br />score</th>
       <th rowspan="2">E-value</th>
       <th rowspan="2">Predicted<br />active sites</th>
       <th rowspan="2">Show/hide<br />alignment</th>
