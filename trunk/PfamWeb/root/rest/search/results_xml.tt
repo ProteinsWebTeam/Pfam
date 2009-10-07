@@ -4,7 +4,7 @@
 #
 # template for returning the results of a sequence search as XML
 #
-# $Id: results_xml.tt,v 1.5 2008-05-16 15:31:28 jt6 Exp $
+# $Id: results_xml.tt,v 1.6 2009-10-07 12:24:33 jt6 Exp $
 
 USE dumper;
 
@@ -37,7 +37,8 @@ END;
 # same search string, this should be fine. Pretty ugly though.
 seqLength = results.${results.keys.shift}.length;
 
-baseUri = "http://pfam.sanger.ac.uk/";
+#baseUri = "http://pfam.sanger.ac.uk/";
+baseUri = "http://deskpro20626.dynamic.sanger.ac.uk:8000/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
 <pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -48,6 +49,10 @@ baseUri = "http://pfam.sanger.ac.uk/";
       release_date="[% relData.pfam_release_date %]">
 [% IF results.$jobId.rawData != '' -%]
   <results job_id="[% jobId %]">
+[% FOREACH image IN images.each_image;
+  CALL image.print_image -%]
+    <image src="[% baseUri _ image.file_location %]" />
+[% END -%]
     <matches>
       <protein length="[% seqLength %]">
         <database id="pfam" pfam_release="[% relData.pfam_release %]" pfam_release_date="[% relData.pfam_release_date %]">
