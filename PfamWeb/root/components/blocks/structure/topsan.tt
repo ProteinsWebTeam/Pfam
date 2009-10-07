@@ -2,7 +2,7 @@
 # topsan.tt
 # jt6 20090801 WTSI
 #
-# $Id: topsan.tt,v 1.1 2009-09-04 12:51:54 jt6 Exp $
+# $Id: topsan.tt,v 1.2 2009-10-07 14:07:09 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -22,17 +22,14 @@ ELSE -%]
              alt="TOPSAN structure image" />
       </a>
     </div>
-    [% IF topsanData.text -%]
-    <div id="topsanData">
-      [% topsanData.text %]
-    </div>
-    [% END;
-  ELSE -%]
-    <div id="topsanData">
-      [% topsanData.text %]
-    </div>
-  [% END;
-END -%]
+  [% END -%]
+
+  <div id="topsanData">
+    [% IF topsanData.text; topsanData.text; ELSE %]
+    <span class="inactive">This TOPSAN annotation has no text content.</span>
+    [% END -%]
+  </div>
+[% END -%]
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 
