@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.9 2009-03-17 15:34:26 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.10 2009-10-07 14:32:42 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -288,25 +288,25 @@ function chooseTab() {
 //------------------------------------------------------------
 // display the specified tab in the page body
 
-function switchTab( sId ) {
-  // show/hide the blocks themselves
-  $$("#content div.block").each( function( block ) {
-                                   if( sId == block.id ) {
-                                     block.setStyle( { display: "block" } );
-                                   } else {
-                                     block.hide();
-                                   }
-                                 } );
-
-  // set the appropriate selector in the sidebar
-  $$("#sidebar li").each( function( item ) {
-                            if( sId+"Selector" == item.id ) {
-                              item.addClassName( "selected" );
-                            } else {
-                              item.removeClassName( "selected" );
-                            }
-                          } );
-}
+// function switchTab( sId ) {
+//   // show/hide the blocks themselves
+//   $$("#content div.block").each( function( block ) {
+//                                    if( sId == block.id ) {
+//                                      block.setStyle( { display: "block" } );
+//                                    } else {
+//                                      block.hide();
+//                                    }
+//                                  } );
+// 
+//   // set the appropriate selector in the sidebar
+//   $$("#sidebar li").each( function( item ) {
+//                             if( sId+"Selector" == item.id ) {
+//                               item.addClassName( "selected" );
+//                             } else {
+//                               item.removeClassName( "selected" );
+//                             }
+//                           } );
+// }
 
 //------------------------------------------------------------
 // show/hide a tools palette
