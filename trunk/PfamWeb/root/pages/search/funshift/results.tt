@@ -5,7 +5,7 @@
 # 
 # funshift search results page
 #
-# $Id: results.tt,v 1.8 2008-09-15 10:56:09 jt6 Exp $
+# $Id: results.tt,v 1.9 2009-10-07 12:27:41 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
@@ -28,7 +28,7 @@ sharedRequirements.js.push( "tablekit.js" );
   <p>
     We found <strong>[% results.size %]</strong> Pfam A families that appear
     to have some level of functionally similarity to your search family, 
-    <em>[% pfam.pfamA_id %]</em> ([% pfam.pfamA_acc %]).
+    <em>[% pfam.pfama_id %]</em> ([% pfam.pfama_acc %]).
   </p>
   <p>
     The key below shows a brief description of each of the columns in the
@@ -99,11 +99,11 @@ sharedRequirements.js.push( "tablekit.js" );
     </thead>
     <tbody>
       [% FOREACH row IN results;
-      familyUri = c.uri_for( "/family", { acc = row.pfamA_acc } ) %]
+      familyUri = c.uri_for( "/family", { acc = row.pfama_acc } ) %]
       <tr class="[% loop.index % 2 ? "odd" : "even" %]">
         <td class="rowNum">[% loop.index %]</td>
-        <td><a href="[% familyUri %]">[% row.pfamA_id %]</a></td>
-        <td><a href="[% familyUri %]">[% row.pfamA_acc %]</a></td>
+        <td><a href="[% familyUri %]">[% row.pfama_id %]</a></td>
+        <td><a href="[% familyUri %]">[% row.pfama_acc %]</a></td>
         <td>
           [% IF row.clan_id %]
           <a href="[% c.uri_for( "/clan", { id = row.clan_id } ) %]">[% row.clan_id %]</a>
