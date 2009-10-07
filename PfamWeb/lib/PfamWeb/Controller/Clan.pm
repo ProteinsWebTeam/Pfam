@@ -4,7 +4,7 @@
 #
 # Controller to build the main Pfam clans page.
 #
-# $Id: Clan.pm,v 1.25 2009-09-14 09:47:50 rdf Exp $
+# $Id: Clan.pm,v 1.26 2009-10-07 10:18:44 jt6 Exp $
 
 =head1 NAME
 
@@ -24,7 +24,7 @@ load a Clan object from the model into the stash.
 
 Generates a B<tabbed page>.
 
-$Id: Clan.pm,v 1.25 2009-09-14 09:47:50 rdf Exp $
+$Id: Clan.pm,v 1.26 2009-10-07 10:18:44 jt6 Exp $
 
 =cut
 
@@ -81,49 +81,59 @@ sub begin : Private {
 
 =head2 alignment : Local
 
-Serves the clan alignment. We first try to retrieve the alignment from cache
-before falling back to the DB.
+Retrieves the HTML alignment and dumps it to the response. We first try to 
+extract the HTML from the cache or, if that fails, we retrieve it from the DB.
 
 =cut
 
 sub alignment : Local {
-  my( $this, $c ) = @_;
-  
-  $c->log->debug( 'Clan::alignment: serving clan alignment' );
-  
-  my $cacheKey = 'clanAlignment' . $c->stash->{acc};
-  my $alignment = $c->cache->get( $cacheKey );
-  
-  if( defined $alignment ) {
-    $c->log->debug( 'Clan::alignment: extracted clan alignment from cache' );
-  } else {
-    $c->log->debug( 'Clan::alignment: failed to extract clan alignment from '
-                    . 'cache; going to DB' );
-    
-    # try to retrieve the appropriate row of the alignment table
-    my $row = $c->model('PfamDB::ClanRelationship')
-                ->find( $c->stash->{clan}->auto_clan );
+  my ( $this, $c ) = @_;
 
-    # see if we succeeded in at least retrieving it
-    unless( defined $row->alignment ) {
-      $c->stash->{errorMsg} = 'We were unable to retrieve the clan alignment for '
-                              . $c->stash->{acc};
-      return;
-    }
-    
-    # and see if we can uncompress the alignment
-    $alignment = Compress::Zlib::memGunzip( $row->alignment );
-    unless( defined $alignment ) {
-      $c->stash->{errorMsg} = 'We were unable to extract the clan alignment for '
-                              . $c->stash->{acc};
-      return;
-    }
-
-    $c->cache->set( $cacheKey, $alignment ) unless $ENV{NO_CACHE};    
+  # point to the "tool" window
+  $c->stash->{template} = 'components/tools/html_alignment.tt';
+  
+  my $cache_key = 'clanjtml' . $c->stash->{acc};
+  
+  my $jtml = $c->cache->get( $cache_key );
+  if ( defined $jtml ) {
+    $c->log->debug( 'Clan::alignment: extracted HTML from cache' )
+      if $c->debug;
   }
-  
-  $c->res->body( $alignment )
+  else {
+    $c->log->debug( 'Clan::alignment: failed to extract HTML from cache; going to DB' )
+      if $c->debug;  
 
+    # retrieve the HTML from the DB
+    my $row = $c->model('PfamDB::ClanAlignmentsAndRelationships')
+                ->search( { auto_clan => $c->stash->{clan}->auto_clan } )
+                ->single;
+  
+    # final check...
+    unless ( defined $row->alignment ) {
+      $c->log->debug( 'Clan::alignment: failed to retrieve JTML' )
+        if $c->debug;  
+
+      $c->stash->{errorMsg} = 'We could not retrieve the alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    # uncompress the row to get the raw HTML
+    $jtml = Compress::Zlib::memGunzip( $row->alignment );
+    unless ( defined $jtml ) {
+      $c->stash->{errorMsg} = 'We could not extract the alignment for '
+                              . $c->stash->{acc};
+      return;
+    }
+
+    $c->log->debug( 'Clan::alignment: retrieved HTML from DB' )
+      if $c->debug;
+    $c->cache->set( $cache_key, $jtml ) unless $ENV{NO_CACHE};
+  }
+
+  # stash the HTML
+  $c->stash->{html_alignment} = $jtml;
+  
 }
 
 #-------------------------------------------------------------------------------
