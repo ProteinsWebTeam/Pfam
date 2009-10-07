@@ -4,9 +4,9 @@
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.15 2008-07-23 13:44:12 jt6 Exp $
+# $Id: structure.tt,v 1.16 2009-10-07 13:46:23 jt6 Exp $
 
-RETURN UNLESS pfamMaps.size;
+RETURN UNLESS numStructures;
 -%]
 
 <!-- start structure block -->
