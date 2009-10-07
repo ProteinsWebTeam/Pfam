@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: pfFunctions.js,v 1.61 2008-09-18 11:56:14 jt6 Exp $
+// $Id: pfFunctions.js,v 1.62 2009-10-07 13:21:34 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -264,35 +264,28 @@ function loadDomains( iIndex, uri, iNum ) {
   // only ask for confirmation if there are 50 or more sequences to load
   var continueLoad = ( iNum >= 50 ) ? confirm( msg ) : true;
 
-  if( continueLoad ) {
-    ['adSpinner' + iIndex,
-     'loadSwitch' + iIndex,
-     'showHideArchs' + iIndex ].each( Element.toggle );
-
-    // and actually fire off a request to load the new graphics
-    new Ajax.Updater( 'domainArch' + iIndex, uri );
+  if ( ! continueLoad ) {
+    return;
   }
+
+  ['adSpinner' + iIndex,
+   'loadSwitch' + iIndex,
+   'showHideArchs' + iIndex ].each( Element.toggle );
+
+  // console.log( "pfFunctions.loadDomains: setting up options; ac", window.assignedColours );
+  var options = { evalScripts: true };
+  if ( window.assignedColours !== undefined ) {
+    options.parameters = {};
+    options.parameters.assignedColours = window.assignedColours;
+    // console.log( "pfFunctions.loadDomains: options now: ", options );
+  }
+
+  // and actually fire off a request to load the new graphics
+  var u = new Ajax.Updater( "domainArch" + iIndex, uri, options );
 }
 
 //------------------------------------------------------------
 // various functions used in the domain query tab
-
-// loads the list of IDs, chosen from the "alphabet" at the top of the form
-function chooseIds( sLetter ) {
-
-  Element.show( "nlUpdateSpinner" );
-  $( "domainSearchForm" ).disable();
-  
-  new Ajax.Updater( "idSelectionWrapper",
-                    queryURI,
-                    {
-                      parameters: "list=1&browse=" + sLetter,
-                      onComplete: function () {
-                                    Element.hide("nlUpdateSpinner");
-                                    $( "domainSearchForm" ).enable();
-                                  }
-                    } );
-}
 
 // adds an ID from the selection list to another list, specified by the
 // argument
@@ -374,16 +367,6 @@ function dsCompleted() {
   $( "domainSearchForm" ).enable();
   Element.show( "resultsHeader" );
   Element.hide( "searchUpdateSpinner" );
-}
-
-// reset the forms
-function resetDomainQueryForms() {
-  [ "idSelection", "have", "not" ].each( function( list ) {
-                                           log.debug( "resetting list \"" + list + "\"" );
-                                           $A( $(list).childNodes ).each( function( n ) {
-                                                                            $(list).removeChild( n );
-                                                                          } )
-                                             } );
 }
 
 //------------------------------------------------------------
