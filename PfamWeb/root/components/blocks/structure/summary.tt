@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.29 2009-09-04 12:51:35 jt6 Exp $
+# $Id: summary.tt,v 1.30 2009-10-07 14:06:26 jt6 Exp $
 
 USE String;
 USE date;
@@ -16,11 +16,29 @@ USE date;
 PROCESS "components/require.tt";
 
 requirements.js.push( "lightbox2.js" );
-requirements.js.push( "scriptaculous.js?load=effects,builder" );
 requirements.js.push( "image_switcher.js" );
 
 requirements.css.push( "lightbox2.css" );
 requirements.css.push( "structure.css" );
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -143,12 +161,6 @@ oe    = 0;
       </tbody>
   	</table>
 
-    <h2>TOPSAN annotations</h2>
-    
-    <div id="topsan">
-      <div class="loading">Loading TOPSAN annotations...</div>
-    </div>
-
     <h2>External database links</h2>
 
     [% oe = 0 %]
@@ -163,9 +175,9 @@ oe    = 0;
           </td>
         </tr>
         <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
-          <td class="label"><acronym title="Macromolecular Structure Database">MSD</acronym></td>
+          <td class="label"><acronym title="Protein DataBank in Europe">PDBe</acronym></td>
           <td>
-            <a href="http://www.ebi.ac.uk/msd-srv/atlas?id=[% pdbId %]"
+            <a href="http://www.ebi.ac.uk/pdbe-srv/view/entry/[% pdbId %]/summary"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
@@ -200,75 +212,40 @@ oe    = 0;
       </tbody>
     </table>
 
+    <h2>TOPSAN annotations</h2>
+    
+    <div id="topsan">
+      <div class="loading">Loading TOPSAN annotations...</div>
+    </div>
+
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    var lb;
+    document.observe( "dom:loaded", function() {
+
+      // set up the lightbox
+      lb = new Lightbox();
+
+      // topsan annotation
+      var r = new Ajax.Updater(
+        "topsan",
+        "[% c.uri_for( '/structure/annotations/topsan', pdbId ) %]",
+        {
+          onFailure:  function( oResponse ) {
+                        $("topsan").update( "TOPSAN annotation loading failed." );
+                      }
+        }
+      );
+
+    } );
+
+    // ]]>
+  </script>
+
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // set up the lightbox
-  var lb;
-  document.observe( "dom:loaded", function() {
-    lb = new Lightbox();
-  } );
-
-[% # if there are any mappings between structure and family, we need to build a
-   # list of unique IDs, and we need to make an AJAX call to retrieve the
-   # domain graphics
-
-IF mapping.size;
-
-  # collect the unique uniprot IDs
-  unpIds = {};
-  FOREACH m IN mapping;
-    unp = m.pfamseq_id;
-    unpIds.$unp = m ;
-  END;
-  
-  unpIdList = unpIds.keys.join(",");
--%]
-
-  // TODO revisit this call when the domain graphics are working...
-
-  // set up the AJAX call for the structure image
-//  document.observe( "dom:loaded", function() {
-//
-//    // structure graphic
-//    var r = new Ajax.Request(
-//      "[% c.uri_for( '/structure/graphics' ) %]",
-//      {
-//        parameters: { seqIds: '[% unpIdList %]',
-//                      id:     '[% pdbId %]' },
-//        onSuccess:  function( oResponse ) {
-//                      $("structureGraphicsHolder").update( oResponse.responseText );
-//                    },
-//        onFailure:  function( oResponse ) {
-//                      $("structureGraphicsHolder").update( "Graphics loading failed." );
-//                    }
-//      }
-//    );
-//
-//  } );
-[% END; # of "if mapping.size" %]
-
-  // set up the AJAX call for the topsan data
-  document.observe( "dom:loaded", function() {
-
-    // topsan annotation
-    var r = new Ajax.Updater(
-      "topsan",
-      "[% c.uri_for( '/structure/annotations/topsan', pdbId ) %]",
-      {
-        onFailure:  function( oResponse ) {
-                      $("topsan").update( "TOPSAN annotation loading failed." );
-                    }
-      }
-    );
-
-  } );
-
-  // ]]>
-</script>
 
 <!-- end summary block -->
 [%#
