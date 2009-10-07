@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.48 2009-09-04 09:52:13 jt6 Exp $
+# $Id: Family.pm,v 1.49 2009-10-07 10:11:34 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.48 2009-09-04 09:52:13 jt6 Exp $
+$Id: Family.pm,v 1.49 2009-10-07 10:11:34 jt6 Exp $
 
 =cut
 
@@ -103,11 +103,14 @@ sub begin : Private {
   
   #  find out what type of alignment we need, seed, full, ncbi, etc
   $c->stash->{alnType} = 'seed';
-  if( defined $c->req->param('alnType') ) {
-    $c->stash->{alnType} = $c->req->param( 'alnType' ) eq 'full' ? 'full'
-                         : $c->req->param( 'alnType' ) eq 'ncbi' ? 'ncbi' 
-                         : $c->req->param( 'alnType' ) eq 'meta' ? 'meta' 
-                         :                                         'seed';
+  my %allowed_alignment_types = ( full => 1,
+                                  seed => 1,
+                                  ncbi => 1,
+                                  meta => 1,
+                                  long => 1 );
+  if ( defined $c->req->param('alnType') and
+       exists $allowed_alignment_types{ $c->req->param('alnType') } ) {
+    $c->stash->{alnType} = $c->req->param( 'alnType' );
   }
   
   $c->log->debug( 'Family::begin: setting alnType to ' . $c->stash->{alnType} )
@@ -253,9 +256,9 @@ sub get_data : Private {
 
   } # end of "if pfam..."
 
-  #----------------------------------------
-  # check for a Pfam-B
-
+    #----------------------------------------
+    # check for a Pfam-B
+    
   $rs = $c->model('PfamDB::Pfamb')
           ->search( [ { pfamb_acc => $entry },
                       { pfamb_id  => $entry } ] );
@@ -361,22 +364,27 @@ sub get_db_xrefs : Private {
 
 
   # PfamA relationship based on SCOOP
-  push @{ $xRefs->{scoop} },
-       $c->model('PfamDB::Pfama2pfamaScoopResults')
-         ->search( { auto_pfama1 => $c->stash->{pfam}->auto_pfama,
-                     score       => { '>', 50.0 } },
-                   { join        => [ qw( pfamA1 pfamA2 ) ],
-                     select      => [ qw( pfamA1.pfama_id 
-                                          pfamA2.pfama_id
-                                          pfamA1.pfama_acc
-                                          pfamA2.pfama_acc
-                                          score ) ],
-                     as          => [ qw( l_pfamA_id
-                                          r_pfamA_id 
-                                          l_pfamA_acc 
-                                          r_pfamA_acc
-                                          score ) ]
-                   } );
+  my @ataSCOOP = $c->model('PfamDB::Pfama2pfamaScoopResults')
+                   ->search( { auto_pfama1 => $c->stash->{pfam}->auto_pfama,
+                               score       => { '>', 50.0 } },
+                             { join        => [ qw( pfamA1 pfamA2 ) ],
+                               select      => [ qw( pfamA1.pfama_id 
+                                                    pfamA2.pfama_id
+                                                    pfamA1.pfama_acc
+                                                    pfamA2.pfama_acc
+                                                    score ) ],
+                               as          => [ qw( l_pfama_id
+                                                    r_pfama_id
+                                                    l_pfama_acc
+                                                    r_pfama_acc
+                                                    score ) ]
+                             } );
+  
+  foreach my $ref ( @ataSCOOP ) {
+    if ( $ref->get_column('l_pfama_acc') != $ref->get_column('r_pfama_acc') ) {
+      push @{ $xRefs->{scoop} }, $ref;
+    }
+  }
 
   # PfamA to PfamB links based on ADDA
   my %atobPRODOM;
@@ -398,10 +406,10 @@ sub get_db_xrefs : Private {
                                                           pfamA2.pfama_id 
                                                           pfamA2.pfama_acc 
                                                           evalue ) ],
-                              as                 => [ qw( l_pfamA_id 
-                                                          l_pfamA_acc 
-                                                          r_pfamA_id 
-                                                          r_pfamA_acc 
+                              as                 => [ qw( l_pfama_id 
+                                                          l_pfama_acc 
+                                                          r_pfama_id 
+                                                          r_pfama_acc 
                                                           evalue ) ],
                               order_by           => 'pfamA2.auto_pfama ASC'
                             } );
@@ -409,7 +417,7 @@ sub get_db_xrefs : Private {
   $xRefs->{atoaPRC} = [];
   foreach ( @atoaPRC ) {
     if ( $_->get_column( 'evalue' ) <= 0.001 and
-         $_->get_column( 'l_pfamA_id' ) ne $_->get_column( 'r_pfamA_id' ) ) {
+         $_->get_column( 'l_pfama_id' ) ne $_->get_column( 'r_pfama_id' ) ) {
       push @{ $xRefs->{atoaPRC} }, $_;
     } 
   }
