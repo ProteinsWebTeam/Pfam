@@ -6,6 +6,13 @@
 // for the benefit of jslint, declare global variables from outside this script
 /*global $, Class, console, Element */
 
+// spoof a console, if necessary, so that we can run in IE without having
+// to entirely disable debug messages
+if ( ! window.console ) {
+  window.console     = {};
+  window.console.log = function() {};
+}  
+
 //------------------------------------------------------------------------------
 //- Class ----------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -14,7 +21,7 @@
 //
 // jt6 20090803 WTSI
 //
-// $Id: underline.js,v 1.1 2009-09-04 13:01:38 jt6 Exp $
+// $Id: underline.js,v 1.2 2009-10-07 13:07:09 jt6 Exp $
 // 
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -34,12 +41,25 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 var Underliner = Class.create( {
+  /**
+   * @lends Underliner#
+   * @author John Tate
+   */
 
   //----------------------------------------------------------------------------
   //- constructor --------------------------------------------------------------
   //----------------------------------------------------------------------------
-
+  /**
+   * @class
+   * A simple object to mark highlighted domains in a Pfam domain graphic.
+   *
+   * @description Builds a new <code>Underliner</code>.
+   * @param {Object} pg the <code>PfamGraphic</code> object to highlight.
+   */
   initialize: function( /* PfamGraphic object */ pg ) {
+
+    this._pg = pg;
+    this._pgParent = pg.getParent();
 
     // add the div that we'll use as the underline
     if ( $("underline") ) {
@@ -49,25 +69,25 @@ var Underliner = Class.create( {
 
       // add a "cleaner" div first, to make sure that the underline appears
       // below the domain graphic
-      pg.getParent().insert( { bottom: new Element( "div", { "class": "cleaner" } ) } );
+      this._pgParent.insert( { bottom: new Element( "div", { "class": "cleaner" } ) } );
 
       // and now build the underline itself
       this._underlineDiv = new Element( "div", { id: "underline",
-                                                  style: "display: none" } );
-      pg.getParent().insert( { bottom: this._underlineDiv } );
+                                                 style: "display: none" } );
+      this._pgParent.insert( { bottom: this._underlineDiv } );
     }
-
+    
     // get the x-offset for the canvas element, so that we can calculate the
     // correct position for the underline
-    this._canvasOffset = pg.getCanvas().cumulativeOffset().left;
-
+     this._canvasOffset = pg.getCanvas().cumulativeOffset().left;
+    
     // get the data structure that stores the area information
     var areaStructures = pg.getAreas();
     this._areasHash = areaStructures[1];
   
     // add the listeners for the mouse events
-//    for ( var linkId in this._areasHash ) {
     this._areasHash.keys().each( function( linkId ) {
+      // console.log( "linkId: %s", linkId );
       if ( ! $(linkId ) ) {
         return;
       }
@@ -92,32 +112,38 @@ var Underliner = Class.create( {
   //----------------------------------------------------------------------------
   //- private methods ----------------------------------------------------------
   //----------------------------------------------------------------------------
-
-  // shows the underline, positioned under the appropriate element in the 
-  // domain graphic
-   
+  /**
+   * Shows the underline, positioned under the appropriate element in the 
+   * domain graphic.
+   *
+   * @param {String} linkId the ID of the &quot;<code>&lt;area&gt;</code>&quot;
+   *                        to be highlighted.
+   * @param {Object} e the <code>Event</code> object.
+   */
   _showLine: function( linkId, e ) {
 
     if ( ! linkId ) {
-      this._underlineDiv.hide();
+      this._hideLine();
       return;
     }
 
+    // get the x-offset for the canvas element, so that we can calculate the
+    // correct position for the underline
     var start = parseInt( this._areasHash.get( linkId ).coords[0], 10 ),
         end   = parseInt( this._areasHash.get( linkId ).coords[2], 10 ),
-        l = this._canvasOffset + start,
+        l = this._canvasOffset + start - this._pgParent.scrollLeft,
         w = end - start;
 
     this._underlineDiv.setStyle( { left:  l + "px",
-                                    width: w + "px" } )
-                       .show();
+                                   width: w + "px" } )
+                      .show();
   },
 
   //----------------------------------------------------------------------------
-
-  // hides the underline
-
-  _hideLine: function( e ) {
+  /**
+   * Hides the underline.
+   */
+  _hideLine: function() {
     this._underlineDiv.hide();
   }
 
