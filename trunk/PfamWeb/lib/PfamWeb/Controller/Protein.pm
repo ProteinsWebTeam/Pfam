@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.40 2009-09-04 09:50:52 jt6 Exp $
+# $Id: Protein.pm,v 1.41 2009-10-07 10:29:18 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.40 2009-09-04 09:50:52 jt6 Exp $
+$Id: Protein.pm,v 1.41 2009-10-07 10:29:18 jt6 Exp $
 
 =cut
 
@@ -44,13 +44,13 @@ Get the data from the database for the UniProt entry.
 =cut
 
 sub begin : Private {
-  my( $this, $c, $entry_arg ) = @_;
+  my ( $this, $c, $entry_arg ) = @_;
 
   # decide what format to emit. The default is HTML, in which case
   # we don't set a template here, but just let the "end" method on
   # the Section controller take care of us
-  if( defined $c->req->param('output') and
-      $c->req->param('output') eq 'xml' ) {
+  if ( defined $c->req->param('output') and
+       $c->req->param('output') eq 'xml' ) {
     $c->stash->{output_xml} = 1;
     $c->res->content_type('text/xml');
   }
@@ -79,11 +79,12 @@ sub begin : Private {
                       '';
   
   my $entry;
-  if( $tainted_entry ) {
+  if ( $tainted_entry ) {
     ( $entry ) = $tainted_entry =~ m/^([\w\._-]+)$/;
     $c->stash->{errorMsg} = 'Invalid UniProt accession or ID' 
       unless defined $entry;
-  } else {
+  }
+  else {
     $c->stash->{errorMsg} = 'No UniProt accession or ID specified';
   }
   
@@ -99,7 +100,7 @@ sub begin : Private {
   #----------------------------------------
 
   # if we're outputting HTML, we're done here
-  unless( $c->stash->{output_xml} ) {
+  unless ( $c->stash->{output_xml} ) {
     $c->log->debug( 'Protein::begin: emitting HTML' ) if $c->debug;
     return;
   }
@@ -110,12 +111,13 @@ sub begin : Private {
   $c->log->debug( 'Protein::begin: emitting XML' ) if $c->debug;
 
   # if there was an error...
-  if( $c->stash->{errorMsg} ) {
+  if ( $c->stash->{errorMsg} ) {
     $c->log->debug( 'Protein::begin: there was an error: |' .
                     $c->stash->{errorMsg} . '|' ) if $c->debug;
     $c->stash->{template} = 'rest/protein/error_xml.tt';
     return;
-  } else {    
+  }
+  else {    
     $c->stash->{template} = 'rest/protein/entry_xml.tt';
   }
   
@@ -138,57 +140,81 @@ sub get_data : Private {
   my ( $this, $c, $entry ) = @_;
   
   # look for the entry itself
-  my $rs = $c->model('PfamDB::Pfamseq')
-             ->search( [ { pfamseq_acc => $entry },
-                         { pfamseq_id  => $entry } ], 
-                       { join => [ qw( annseqs ) ] } );
+  $c->stash->{pfamseq} = $c->model('PfamDB::Pfamseq')
+                           ->search( [ { pfamseq_acc => $entry },
+                                       { pfamseq_id  => $entry } ], 
+                                     { prefetch => [ qw( annseqs ) ] } )
+                           ->single;
                            
-  my $p;
-  if ( defined $rs ) {
-    # we got a resultset using that accession/id
-    $p = $rs->first;
-  
-  }
-  else {
-    # ... otherwise, see if this is really a secondary accession
-    $p = $c->model('PfamDB::Secondary_pfamseq_acc')
-          ->find( { secondary_acc => $1 },
-                  { join          => [ qw( pfamseq ) ],
-                    prefetch      => [ qw( pfamseq ) ] } );
+  unless ( defined $c->stash->{pfamseq} ) {
+    $c->log->debug( "Protein::get_data: no such entry |$entry|; checking as a secondary accession" )
+      if $c->debug;
+
+    # see if this is really a secondary accession
+    $c->stash->{pfamseq} = $c->model('PfamDB::Secondary_pfamseq_acc')
+                             ->search( { secondary_acc => $entry },
+                                       { prefetch      => [ qw( pfamseq ) ] } )
+                             ->single;
   }
   
-  unless( $p ) {
+  unless ( $c->stash->{pfamseq} ) {
     $c->log->debug('Protein::get_data: failed to retrieve a pfamseq object')
       if $c->debug;
+
     $c->stash->{errorMsg} = 'No valid UniProt accession or ID';
+
     return;
   }
     
-  $c->stash->{pfamseq} = $p;
+  #----------------------------------------
 
   # add Pfam-A regions  
   $c->log->debug( 'Protein::get_data: adding region info' ) if $c->debug;
   
-  my @a_regions = $c->model('PfamDB::PfamaRegFullSignificant')
+  $c->stash->{pfama_regions} = $c->model('PfamDB::PfamaRegFullSignificant')
                     ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
                                 in_full           => 1 },
-                              { join     => [ qw( auto_pfama ) ],
-                                prefetch => [ qw( auto_pfama ) ] } );
-  $c->stash->{pfama_regions} = \@a_regions;
+                              { prefetch => [ qw( auto_pfama ) ] } );
   
   # add Pfam-B regions
-  my @b_regions = $c->model('PfamDB::PfambReg')
+  $c->stash->{pfamb_regions} = $c->model('PfamDB::PfambReg')
                     ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
-                              { join     => [ qw( auto_pfamb ) ],
-                                prefetch => [ qw( auto_pfamb ) ] } );
-  $c->stash->{pfamb_regions} = \@b_regions;
+                              { prefetch => [ qw( auto_pfamb ) ] } );
   
+  #----------------------------------------
+
+  my $storable = thaw $c->stash->{pfamseq}->annseqs->annseq_storable;
+  if ( defined $storable ) {
+    $c->stash->{seqs} = [ $storable ];
+
+    my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
+    $lm->layoutSequences( $c->stash->{seqs} );
+
+    # configure the JSON object to correctly stringify the layout manager output
+    my $json = new JSON;
+    # $json->pretty(1);
+    $json->allow_blessed;
+    $json->convert_blessed;
+
+    # encode and stash the sequences as a JSON string
+    $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
+  }
+
+  # if we've arrived here from the top-level controller, rather than from one 
+  # of the sub-classes, we will be displaying a key for the domain graphic.
+  # For now at least, the sub-classes, such as the interactive feature viewer,
+  # don't bother with the key, so they don't need this extra blob of data in 
+  # the stash. 
+  # $c->forward( 'generate_key', [ $layoutPfam ] )
+  #   if ref $this eq 'PfamWeb::Controller::Protein';
+
+  #----------------------------------------
+
   # add extra data to the stash  
-  $c->forward('generate_pfam_graphic');
-  $c->forward('get_das_sources');
+  # $c->forward('generate_pfam_graphic');
+  # $c->forward('get_das_sources');
   $c->forward('get_mapping');
   $c->forward('get_summary_data');
-  
 }
 
 #-------------------------------------------------------------------------------
@@ -266,12 +292,9 @@ sub get_mapping : Private {
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
                   ->search( { 'auto_pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
-                            {  join                  => [ qw( auto_pfama 
-                                                              auto_pfamseq
-                                                              auto_pdb ) ],
-                               prefetch              => [ qw( auto_pfama
-                                                              auto_pfamseq
-                                                              auto_pdb ) ] } );
+                            { prefetch              => [ qw( auto_pfama
+                                                             auto_pfamseq
+                                                             pdb_id ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
 
@@ -425,7 +448,7 @@ sub get_summary_data : Private {
              ->search( { auto_pfamseq => $c->stash->{pfamseq}->auto_pfamseq },
                      { select       => [
                                          {
-                                           count => [ { distinct => [ qw( auto_pdb )] } ]
+                                           count => [ { distinct => [ qw( pdb_id )] } ]
                                          }
                                        ],
                        as           => [ qw( numberPdbs ) ] } )
