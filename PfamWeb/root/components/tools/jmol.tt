@@ -4,7 +4,7 @@
 # 
 # build a page for the Jmol applet
 #
-# $Id: jmol.tt,v 1.14 2008-10-23 09:28:10 jt6 Exp $
+# $Id: jmol.tt,v 1.15 2009-10-07 14:10:27 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -29,7 +29,7 @@ activeSites = String.new( 'select none; ' );
 unassigned  = String.new( 'select not (' );
 
 script      = String.new( 'background [xe7e7e7]; load "' );
-CALL script.append( c.uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) );
+CALL script.append( c.uri_for( "/structure/getpdbfile", pdb.pdb_id ) );
 CALL script.append( '"; select all; cartoons on; cpk off; wireframe off; ' );
 
 FOREACH m IN mapping;
@@ -124,18 +124,18 @@ CALL script.append( unassigned );
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]" 
-           onclick="opener.location=this.href;return false;">[% m.pfamseq_id %]</a>
+        <a href="[% c.uri_for( "/protein", m.auto_pfamseq.pfamseq_id ) %]" 
+           onclick="opener.location=this.href;return false;">[% m.auto_pfamseq.pfamseq_id %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]"
+        <a href="[% c.uri_for( "/family", m.auto_pfama.pfama_id ) %]"
           onclick="opener.location=this.href;return false;">
-          [% m.pfamA_id %]</a>
-        (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]" 
+          [% m.auto_pfama.pfama_id %]</a>
+        (<a href="[% c.uri_for( "/family", m.auto_pfama.pfama_acc ) %]" 
             onclick="opener.location=this.href;return false;">
-          [% m.pfamA_acc %]</a>)
+          [% m.auto_pfama.pfama_acc %]</a>)
       </td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
     </tr>

@@ -5,7 +5,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.13 2008-05-16 15:30:31 jt6 Exp $
+# $Id: av.tt,v 1.14 2009-10-07 14:10:27 jt6 Exp $
 
 META naked = 1;
 
@@ -31,7 +31,7 @@ avScript = BLOCK;
 background '0xEEEEEE';
 
 [%- # load the PDB file from the server -%]
-molecule load mol '[% c.uri_for( "/structure/getpdbfile", pdbId ) %].pdb';
+molecule load mol '[% c.uri_for( "/structure/getpdbfile", id=pdb.pdb_id ) %].pdb';
 
 [%- # hide the default wireframe display of atoms -%]
 display lines off all;
@@ -238,19 +238,19 @@ hideButton = "${imageUri}/hideButton.png";
       <td>[% m.pdb_res_start %]</td>
       <td>[% m.pdb_res_end %]</td>
       <td>
-        <a href="[% c.uri_for( "/protein", id=m.pfamseq_id ) %]" 
+        <a href="[% c.uri_for( "/protein", m.auto_pfamseq.pfamseq_id ) %]" 
            onclick="opener.location=this.href;return false;">
-          [% m.pfamseq_id %]</a>
+          [% m.auto_pfamseq.pfamseq_id %]</a>
       </td>
       <td>[% m.seq_start %]</td>
       <td>[% m.seq_end %]</td>
       <td>
         <a href="[% c.uri_for( "/family", id=m.pfamA_id ) %]"
           onclick="opener.location=this.href;return false;">
-          [% m.pfamA_id %]</a>
-        (<a href="[% c.uri_for( "/family", acc=m.pfamA_acc ) %]" 
+          [% m.auto_pfama.pfama_id %]</a>
+        (<a href="[% c.uri_for( "/family", acc=m.pfama_acc ) %]" 
           onclick="opener.location=this.href;return false;">
-          [% m.pfamA_acc %]</a>)
+          [% m.auto_pfama.pfama_acc %]</a>)
       </td>
       <td style="background: #[% m.hex_colour %]">&nbsp;</td>
       <td>
