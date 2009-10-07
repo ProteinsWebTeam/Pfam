@@ -5,7 +5,7 @@
 # Controller to build an image of one of the PDB structure for the
 # specified family, along with a form for choosing a different one
 #
-# $Id: Structures.pm,v 1.17 2009-09-04 09:53:02 jt6 Exp $
+# $Id: Structures.pm,v 1.18 2009-10-07 10:36:33 jt6 Exp $
 
 =head1 NAME
 
@@ -42,7 +42,7 @@ parent class will complain otherwise.
 
 Generates a B<page fragment>.
 
-$Id: Structures.pm,v 1.17 2009-09-04 09:53:02 jt6 Exp $
+$Id: Structures.pm,v 1.18 2009-10-07 10:36:33 jt6 Exp $
 
 =cut
 
@@ -70,7 +70,7 @@ sub structures : Path {
   # see if we were handed a PDB ID and, if so, put the data for that entry into
   # the stash
   if ( defined $c->req->param('pdbId') and
-      $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
+       $c->req->param('pdbId') =~ /^(\d\w{3})$/ ) {
 
     $c->log->debug( "Family::Structures::structures: got PDB ID: |$1|" )
       if $c->debug;
@@ -78,12 +78,12 @@ sub structures : Path {
     # $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
     #                         ->find( { pdb_id => $1 } );
     $c->stash->{pdbObj} = $c->model('PfamDB::Pdb')
-                            ->search( { pdb_id => $1 },
+                            ->search( { 'me.pdb_id' => $1 },
                                       { prefetch => 'pdb_image' } )
                             ->first;
 
-    $c->log->debug( 'Family::Structure::structures: pdbObj: ', dump( $c->stash->{pdbObj} ) )
-      if $c->debug;
+    # $c->log->debug( 'Family::Structure::structures: pdbObj: ', dump( $c->stash->{pdbObj} ) )
+    #   if $c->debug;
   }
 
   # retrieve the PDB entries for this family

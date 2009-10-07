@@ -2,7 +2,7 @@
 # Structures.pm
 # jt6 20070823 WTSI
 #
-# $Id: Structures.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Structures.pm,v 1.5 2009-10-07 10:40:14 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Proteome::Structures;
 Controller to build the mapping between sequence and structure for the 
 proteome section
 
-$Id: Structures.pm,v 1.4 2008-05-16 15:29:28 jt6 Exp $
+$Id: Structures.pm,v 1.5 2009-10-07 10:40:14 jt6 Exp $
 
 =cut
 
@@ -30,22 +30,22 @@ use base 'PfamWeb::Controller::Proteome';
 
 =head1 METHODS
 
-=head2 getMapping : Path
+=head2 get_mapping : Path
 
 Just gets the data items for the structure mapping table.
 
 =cut
 
-sub getMapping : Path {
-  my ($this, $c) = @_;
+sub get_mapping : Path {
+  my ( $this, $c ) = @_;
   
-  $c->log->debug( 'Proteome::getMapping: getting structure mapping...' );
+  $c->log->debug( 'Proteome::get_mapping: getting structure mapping...' )
+    if $c->debug;
   
-  my @mapping = $c->model('PfamDB::Pdb_PfamA_reg')
-                  ->search( { 'pfamseq.ncbi_code'  => $c->stash->{proteomeSpecies}->ncbi_code,
-                              'pfamseq.genome_seq' => 1 },
-                            { join     => [ qw( pfamseq pdb ) ],
-                              prefetch => [ qw( pfamseq pdb ) ] } );
+  my @mapping = $c->model('PfamDB::PdbPfamaReg')
+                  ->search( { 'auto_pfamseq.ncbi_taxid' => $c->stash->{taxId},
+                              'auto_pfamseq.genome_seq' => 1 },
+                            { prefetch => [ qw( auto_pfamseq pdb_id ) ] } );
     
   $c->stash->{pfamMaps} = \@mapping;
 
