@@ -7,7 +7,33 @@
 # template uses an ajax call to hand off to a controller that generates domain
 # graphics for each of the selected sequences.
 #
-# $Id: seqViewGraphic.tt,v 1.9 2008-07-28 14:10:45 jt6 Exp $
+# $Id: seqViewGraphic.tt,v 1.10 2009-10-07 14:11:03 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
+
+#-------------------------------------------------------------------------------
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -66,17 +92,17 @@ title = "View selected sequences"
 
 <script type="text/javascript">
   // <![CDATA[
-  Event.observe( window, "load", function() {
-    var r = new Ajax.Request( "[% c.uri_for( "/domaingraphics" ) %]",
-                              { parameters: { jobId:   "[% jobId %]",
-                                              subTree: 1 },
-                                onSuccess:  function( oResponse ) {
-                                              $("stdgph").update( oResponse.responseText );
-                                            },
-                                onFailure:  function( oResponse ) {
-                                              $("stdgph").update( "Domain graphics loading failed." );
-                                            }
-                              } );
+  document.observe( "dom:loaded", function() {
+    var r = new Ajax.Updater(
+      "stdgph",
+      "[% c.uri_for( "/domaingraphics" ) %]",
+      { evalScripts: true,
+        parameters: { jobId:   "[% jobId %]",
+                      subTree: 1 },
+        onFailure:  function( oResponse ) {
+                      $("stdgph").update( "Domain graphics loading failed." );
+                    }
+      } );
   } );
   // ]]>
 </script>
