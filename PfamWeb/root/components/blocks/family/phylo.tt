@@ -5,7 +5,7 @@
 #
 # block showing the phylogenetic tree for a family
 #
-# $Id: phylo.tt,v 1.24 2009-10-07 13:31:26 jt6 Exp $
+# $Id: phylo.tt,v 1.25 2009-10-07 22:03:06 jt6 Exp $
 
 treeUri = c.uri_for( "/family/tree" );
 %]
@@ -21,7 +21,7 @@ treeUri = c.uri_for( "/family/tree" );
       This page displays the phylogenetic tree for this family. We use 
       <a class="ext" href="http://www.microbesonline.org/fasttree/">FastTree</a>
       to calculate neighbour join trees with a local bootstrap based on 100
-      resamples (show next to the tree nodes). FastTree calculates
+      resamples (shown next to the tree nodes). FastTree calculates
       approximately-maximum-likelihood phylogenetic trees from our seed or full
       alignments.
     </p> 
