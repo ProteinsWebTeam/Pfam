@@ -2,7 +2,7 @@
 # Interpro.pm
 # jt6 20060816 WTSI
 #
-# $Id: Interpro.pm,v 1.5 2008-08-15 13:42:56 jt6 Exp $
+# $Id: Interpro.pm,v 1.6 2009-10-07 11:58:28 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ following columns:
 There's an explicit join against the pfamA table, so that we can
 retrieve pfamA accession, ID and description.
 
-$Id: Interpro.pm,v 1.5 2008-08-15 13:42:56 jt6 Exp $
+$Id: Interpro.pm,v 1.6 2009-10-07 11:58:28 jt6 Exp $
 
 =cut
 
@@ -55,8 +55,8 @@ sub process : Private {
 
   my $results = $c->model('PfamDB::Interpro')
                   ->search( {},
-                            { join     => [ qw/pfamA/ ],
-                            prefetch => [ qw/pfamA/ ] } )
+                            { join     => [ qw( auto_pfama ) ],
+                              prefetch => [ qw( auto_pfama ) ] } )
                   ->search_literal( 'MATCH( interpro_id, abstract ) ' .
                                     'AGAINST( ? IN BOOLEAN MODE )',
                                     $c->stash->{terms} );
