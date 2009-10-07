@@ -4,24 +4,14 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.8 2008-08-13 15:21:22 jt6 Exp $
+# $Id: domain.tt,v 1.9 2009-10-07 14:03:12 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 
 pages = [ "new", "top twenty", "numbers",
           "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
           "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
-
-pageList = BLOCK %]
-<div class="pageList">
-[% FOREACH page IN pages %]
-  <span class="letter">
-    <a href="#" onclick="chooseIds('[% page %]')">[% page | ucfirst %]</a>
-  </span>
-[% END %]
-  <div class="cleaner"><!-- empty --></div>
-</div>
-[% END # of BLOCK %]
+-%]
 
 <!-- start domain search block -->
 
@@ -55,7 +45,13 @@ pageList = BLOCK %]
       </ol>
     </div>
 
-    [% pageList %]
+    <div id="domainsPageList"
+         class="pageList">
+      [% FOREACH page IN pages %]
+        <span class="link letter">[% page | ucfirst %]</span>
+      [% END %]
+      <div class="cleaner"><!-- empty --></div>
+    </div>
 
     <form id="domainSearchForm" 
           onsubmit="submitter();return false" 
@@ -78,18 +74,20 @@ pageList = BLOCK %]
           </select>
         </div>
   
-        <span id="nlUpdateSpinner" class="loading">Loading IDs...</span>
+        <span id="nlUpdateSpinner" 
+              style="display: none"
+              class="loading">Loading IDs...</span>
   
         <span class="buttons">
           <input id="haveButton" type="button" onclick="addId('have')" value="Includes"/>
-          <input id="notButton"  type="button" onclick="addId('not')" value="Does NOT include" />
+          <input id="notButton"  type="button" onclick="addId('not')"  value="Does NOT include" />
         </span>
   
       </div>
 
       <div id="haveList" class="domainList">
 
-      <h3>Architecture must include...</h3>
+        <h3>Architecture must include...</h3>
   
         <p class="domainQueryInstruction">
           These are the families that must appear in the architecture.
@@ -131,53 +129,86 @@ pageList = BLOCK %]
   
       <div id="domainSearchButtons">
         <input type="submit" value="Submit query" id="domainSearchSubmit" />
-        <input type="button" value="Reset" onclick="resetDomainQueryForms()" />
-        <span id="searchUpdateSpinner" class="loading">Finding matching architectures&hellip;</span>
+        <input type="button" value="Reset" id="resetDomainQuery" />
+        <span id="searchUpdateSpinner"
+              style="display: none"
+              class="loading">Finding matching architectures&hellip;</span>
       </div>
 
     </form>
 
-    <p id="resultsHeader">The following architectures match your query architecture:</p>
+    <p id="resultsHeader"
+       style="display: none">
+      The following architectures match your query architecture:
+    </p>
 
     <div id="textResults" style="float: left"><!-- empty --></div>
         
   </div>
-</div>
 
-<script type="text/javascript">
-  // <![CDATA[
-  function submitter() {
-    dsStarted();
-    new Ajax.Updater( 'textResults',
-                      '[% c.uri_for( "/search/domain" ) %]', 
-                      {
-                        parameters: $("domainSearchForm").serialize(true),
-                        onComplete: function(request) {
-                                      dsCompleted(); 
-                                    }
-                      }
-                    );
-  }
-
-  // hide the two spinners in the page and the results title
-  $( "nlUpdateSpinner", "searchUpdateSpinner", "resultsHeader" ).invoke( "hide" );
-
-  // the select fields have children just to make the HTML validate, but we
-  // really want them empty, so do that now
-  $( "idSelection", "have", "not" ).each(
-    function(s) {
-      $A( s.childNodes ).each(
-        function(c) {
-          s.remove(c);          
+  <script type="text/javascript">
+    // <![CDATA[
+    function submitter() {
+      dsStarted();
+      var r = new Ajax.Updater( 
+        "textResults",
+        "[% c.uri_for( '/search/domain' ) %]", 
+        {
+          parameters: $("domainSearchForm").serialize(true),
+          onComplete: function() {
+            dsCompleted(); 
+          }
         }
-      );      
+      );
     }
-  );
 
-  // set the URI for looking up the IDs beginning with a particular numeral
-  var queryURI = "[% c.uri_for( "/family/browse" ) %]";
-  // ]]>
-</script>
+    // the select fields have children just to make the HTML validate, but we
+    // really want them empty, so do that now
+    $( "idSelection", "have", "not" ).each(
+      function(s) {
+        $A( s.childNodes ).each(
+          function(c) {
+            s.remove(c);          
+          }
+        );      
+      }
+    );
+
+    var letters = $("domainsPageList").select("span.letter");
+    var browseUri = "[% c.uri_for( "/family/browse" ) %]";
+    
+    letters.each( function(letter) {
+      letter.observe( "click", function(e) {
+        
+        var r = new Ajax.Updater(
+          "idSelectionWrapper",
+          browseUri,
+          {
+            parameters: { list: 1,
+                          browse: letter.innerHTML.toLowerCase() },
+            onCreate: function() {
+              $("nlUpdateSpinner").show();
+              $("domainSearchForm").disable();
+            },
+            onComplete: function () {
+              $("nlUpdateSpinner").hide();
+              $( "domainSearchForm" ).enable();
+            }
+          }
+        );
+      } );
+    } );
+
+    $("resetDomainQuery").observe( "click", function() {
+      $w( "idSelection have not" ).each( function(list) {
+        $(list).descendants().invoke("remove");
+      } );
+    } );
+
+    // ]]>
+  </script>
+
+</div>
 
 <!-- end domain search block -->
 [%#
