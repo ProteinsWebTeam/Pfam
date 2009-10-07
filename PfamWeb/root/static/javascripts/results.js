@@ -16,131 +16,214 @@
 //
 // jt6 20090803 WTSI
 //
-// $Id: results.js,v 1.1 2009-09-04 13:01:00 jt6 Exp $
+// $Id: results.js,v 1.2 2009-10-07 13:17:56 jt6 Exp $
+// 
+// Copyright (c) 2009: Genome Research Ltd.
+// 
+// Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+// 
+// This is free software; you can redistribute it and/or modify it under
+// the terms of the GNU General Public License as published by the Free Software
+// Foundation; either version 2 of the License, or (at your option) any later
+// version.
+//
+// This program is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+// FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+// details.
+//
+// You should have received a copy of the GNU General Public License along with
+// this program. If not, see <http://www.gnu.org/licenses/>.
 
 var Results = Class.create( {
+  /**
+   * @lends Results#
+   * @author John Tate
+   */
 
   //----------------------------------------------------------------------------
   //- constructor --------------------------------------------------------------
   //----------------------------------------------------------------------------
+  /**
+   * @class
+   * A wrapper class to coordinate the construction and behaviour of the single
+   * sequence search results page.
+   *
+   * @description Builds the content and behaviour of the search results page
+   * @param {String} job identifier (a UUID)
+   * @param {Object} simple object with the page configuration
+   */
+  initialize: function( jobId, config ) {
+    // console.log( "Results.initialize: setting up" );
 
-  initialize: function( config ) {
-    console.log( "Results.initialize: setting up" );
-
-    // store the whole configuration object
+    // store the job ID and the configuration object
+    this._jobId  = jobId;
     this._config = config;
-
-    // stuff for the domain graphics data
-    this._sequence = config.sequence;
-    this._sequence.regions = [];
-    this._sequence.motifs  = [];
 
     // error message templates
     this._errorTemplate = new Template( "Job #{jobId} failed" );
 
-    // somewhere to store the details of completed jobs, keyed on job ID
-    this._details = new Hash(); 
-
     // retrieve and check the handles to the various page elements
     this._checkElements(); 
 
-    // set up the updaters
-    this._updaters = new Hash();
-    console.log( "Results.initialize: adding updaters" );
-    document.observe( "dom:loaded", this._addUpdaters.bind( this ) );
+    // set up the updater
+    this._updater = new Updater(
+      this._config.pollUrl,
+      {
+        method:     'get',
+        frequency:  1,
+        decay:      1.2,
+        on202:      this.on202.bind( this ),
+        onSuccess:  this.onSuccess.bind( this ),
+        onFailure:  this.onFailure.bind( this )
+      }
+    );
 
-    console.log( "Results.initialize: done setting up" );
+    // console.log( "Results.initialize: done setting up" );
   },  
-
-  //----------------------------------------------------------------------------
-  //- methods ------------------------------------------------------------------
-  //----------------------------------------------------------------------------
 
   //----------------------------------------------------------------------------
   //- public methods -----------------------------------------------------------
   //----------------------------------------------------------------------------
 
-  jobDone: function( jobId, details ) {
-    console.log( "Results.jobDone: got results for %s: ", jobId, details );
+  //----------------------------------------------------------------------------
+  //- methods ------------------------------------------------------------------
+  //----------------------------------------------------------------------------
 
-    // stash the details of this set of results
-    this._details.set( jobId, details );
-    console.log( "Results.jobDone: stashing result details for type %s",
-      details.jobType );
-    this._details.set( details.jobType, details ); // store the data data, but 
-                                                    // keyed on the job type too
+  // these are all callbacks for the AJAX requests...
 
-    // add the newly determined regions/motifs to the sequence object. This
-    // will be passed to the domain graphics library when we draw the domain
-    // graphic
-    this._sequence.regions = this._sequence.regions.concat( details.regions );
-    this._sequence.motifs  = this._sequence.motifs.concat( details.motifs );
+  /**
+   * We need to have a method for this status, even though we don't get any
+   * information from the server in the response, otherwise the Updater sees
+   * status "2XX" and considers it to be "success"
+   */
+  on202: function( response ) {
+    // console.log( "Results.on202: job %s, status 202; no results; polling further", 
+    //   this._jobId );
+  },
 
-    // remove this job from the list of running jobs
-    this._updaters.unset( jobId );
+  //-----------------------------------
+  /**
+   * All parts of the job succeeded; insert the job results into the page
+   *
+   * @param {Object} response AJAX response object
+   */
+  onSuccess: function( response ) {
+    // console.log( "Results.onSuccess: job %s, status 200; job done", this._jobId );
 
-    // how many jobs are still running ?
-    var numJobs = this._updaters.keys().size() || 0;
-    console.log( "Results.jobDone: %d job(s) still running", numJobs );
+    // stop the updater for this job
+    this._updater.stop();
 
-    // update the status display
-    this._updateJobCount( numJobs );
+    // update the page with the results
+    $("results").update( response.responseText );
+  },
 
-    if ( numJobs < 1 ) {
-      console.log( "Results.jobDone: no more running jobs; finishing page" );
+  //-----------------------------------
+  /**
+   * Handles a job failure response.
+   *
+   * @param {Object} response AJAX response object
+   */
+  onFailure: function( jobId, response ) {
+    // console.log( "Results.onFailure: failure response for job %s; stopping polling", jobId );
+
+    // stop the updater for this job and remove it from the list of
+    // running jobs
+    this._updater.stop();
+
+    // hide the "waiting for the results of..." message
+    this._loadingEl.hide();
+
+    // add error messages
+    if ( ! this._errorsList ) {
+      var errorHeader = '<h1>Job failures</h1>' +
+                        '<p>One or more of the searches that you submitted had errors during execution:</p>' +
+                        '<ul></ul>';
       
-      // hide the spinner
-      this._loadingEl.hide();
+      this._errorsEl.insert( { top: errorHeader } );
+      
+      this._errorsList = this._errorsEl.down("ul");
+    } 
+    this._summaryEl.show();
+
+    // var msg = this._errorTemplate.evaluate( { jobId: jobId } );
+    this._errorsList.insert( { bottom: new Element( "li" ).update( response.responseText ) } );
+    this._errorsEl.show();
+  },
   
-      // build the summary text and show it
-      this._writeSummary( jobId );
-      this._summaryEl.show();
+  //----------------------------------------------------------------------------
+  /**
+   * This is a callback method that's called from the javascript snippet that
+   * is loaded under the results tables (from results_table.tt). It's job is
+   * to load the results tables into the page and to set up the behaviours 
+   * surrounding them (e.g. "show/hide" buttons)
+   *
+   * @param {Object} resultDetails object with the details of the results and
+   *   the layout object for the graphic
+   */
+  jobDone: function( resultDetails ) {
+    // console.log( "Results.jobDone: using result details" );
   
-      // add listeners to the show/hide buttons
-      $$("td.showSwitch").each( function( toggleSwitch ) {
-        toggleSwitch.observe( "click", this._toggleAlignment.bindAsEventListener( this ) );
-      }.bind( this ) );
-  
-      // and something similar for the "show all" links
-      $$("caption span.showHideLink").each( function( link ) {
-        link.observe( "click", this._showHideAll.bindAsEventListener( this ) );
-      }.bind( this ) );
-  
-      // set the widths for the alignment blocks, so that the scroll bars are
-      // correctly added
-//      $$("#results table.resultTable div.hmmWindow").each( function(a) {
-//        console.log( "setting width to %d for ", alignmentWidth, a );
-//        a.setStyle( { width: alignmentWidth+"px" } );
-//      } );
-  
-      // draw the domain graphics. Hand in the base URL for the links on the image
-      this._pg = new PfamGraphic( "dg", this._sequence );
-      this._pg.setImageParams( { regionUrl: this._config.familyUrl } );
-      this._pg.render();
+    // hide the spinner
+    this._loadingEl.hide();
+
+    // hide all of the alignment rows once the table is built
+    this._updateEl.select(".alignment").invoke( "hide" );
     
-      // set up the underlining
-      this._underliner = new Underliner( this._pg );
+    // if we're using the gathering threshold, hide the insignificant hits and
+    // the front of the table title too
+    if ( this._config.options.ga ) {
+      $("pfamASummaryI").hide();
+      this._updateEl.select(".titlePrefix").invoke( "hide");
     }
 
+    // build the summary text and show it
+    // TODO write the summary...
+    this._writeSummary( resultDetails.details );
+    this._summaryEl.show();
+
+    // add listeners to the show/hide buttons
+    $$("td.showSwitch").each( function( toggleSwitch ) {
+      toggleSwitch.observe( "click", this._toggleAlignment.bindAsEventListener( this ) );
+    }.bind( this ) );
+
+    // and something similar for the "show all" links
+    $$("caption span.showHideLink").each( function( link ) {
+      link.observe( "click", this._showHideAll.bindAsEventListener( this ) );
+    }.bind( this ) );
+
+    // set the widths for the alignment blocks, so that the scroll bars are
+    // correctly added
+    // $$("#results table.resultTable div.hmmWindow").each( function(a) {
+    //   console.log( "setting width to %d for ", alignmentWidth, a );
+    //   a.setStyle( { width: alignmentWidth+"px" } );
+    // } );
+   
+    // console.log( "Results.jobDone: results loaded and switched wired in" );
+    
+    //-----------------------------------
+ 
+    // draw the domain graphics. Hand in the base URL for the links on the image
+    this._pg = new PfamGraphic( "dg", resultDetails.layout.first() );
+    this._pg.setImageParams( { regionUrl: this._config.familyUrl } );
+    this._pg.render();
+  
+    // set up the underlining
+    this._underliner = new Underliner( this._pg );
+
+    // console.log( "Results.jobDone: finished adding behaviour to page" );
   },
 
   //----------------------------------------------------------------------------
   //- private methods ----------------------------------------------------------
   //----------------------------------------------------------------------------
-
-  // updates the status display showing the number of currently running jobs
-  
-  _updateJobCount: function( numJobs ) {
-    this._numJobsEl.update( numJobs );
-    this._jobsLabelEl.update( numJobs > 1 ? "jobs" : "job" );
-  },
-
-  //----------------------------------------------------------------------------
-
-  // checks the configuration for elements that are used by the class. Tries
-  // to convert every item into an element (using "$()") and throws an error
-  // if any elements are missing
-
+  /**
+   * Checks the configuration for elements that are used by the class. Tries
+   * to convert every item into an element (using "$()") and throws an error
+   * if any elements are missing
+   *
+   * @private
+   */
   _checkElements: function() {
 
     // the results element
@@ -183,173 +266,45 @@ var Results = Class.create( {
       throw( "Error: couldn't find the element for summary text" );
     }
 
+    // console.log( "Results._checkElements: all passed checks" );
   },
 
   //----------------------------------------------------------------------------
-
-  // starts a periodical updater for each job in the input
-
-  _addUpdaters: function() {
-    console.log( "Results._addUpdaters: adding updaters for each job ID" );
-
-    var pollUrl = this._config.pollUrl;
-    console.log( "Results._addUpdaters: pollUrl: |%s|", pollUrl );
-
-    var jobs    = this._config.jobs;
-    console.log( "Results._addUpdaters: jobs: ", jobs );
-
-    // generate a new PeriodicalUpdater for each job ID
-    jobs.keys().each( function( jobId ) {
-      console.log( "Results._addUpdaters: setting up polling for job %s", jobId );
-
-      var insertionPosition = jobs.get( jobId ).job_type === "A" ? "top" : "bottom";
-      console.log( "Results._addUpdaters: inserting results at %s", insertionPosition );
-
-      var r = new Updater(
-        pollUrl,
-        {
-          method:     'get',
-          parameters: { jobId: jobId },
-          frequency:  1,
-          decay:      1.2,
-          on202:      this._on202.bind( this, jobId ),
-          onSuccess:  this._onSuccess.bind( this, jobId ),
-          onFailure:  this._onFailure.bind( this, jobId )
-        }
-      );
-      
-      // keep hold of all of the updaters that we create, so that we can keep 
-      // track of how many job remain outstanding
-      this._updaters.set( jobId, r );
-      
-    }.bind( this ) ); // end of "foreach job"
-
-    console.log( "Results._addUpdaters: done adding updaters" );
-  },
-  
-  //-----------------------------------
-
-  _on202: function( jobId, response ) {
-    console.log( "Results._on202: job %s, status 202; no results; polling further", jobId );
-
-    // we need to have a method for this status, even though we don't get any
-    // information from the server in the response, otherwise the Updater sees
-    // "2XX" and considers it to be "success"
-  },
-
-  //-----------------------------------
-
-  // inserts the job results into the page
-
-  _onSuccess: function( jobId, response ) {
-    console.log( "Results._onSuccess: job %s, status 200; job done", jobId );
-
-    // stop the updater for this job
-    this._updaters.get( jobId ).stop();
-    console.log( "Results._onSuccess: stopped updater for %s", jobId );
-  
-    // decide whether the results should go at the top or bottom of the page
-    if ( this._config.jobs.get( jobId ).job_type === "A" ) {
-      this._updateEl.insert( { "top": response.responseText } );
-    } else {
-      this._updateEl.insert( { "bottom": response.responseText } );
-    }      
-
-    // hide all of the alignment rows once the table is built
-    this._updateEl.select(".alignment").invoke( "hide" );
-    
-    // if we're using the gathering threshold, hide the insignificant hits and
-    // the front of the table title too
-    if ( this._config.options.ga ) {
-      $("pfamASummaryI").hide();
-      this._updateEl.select(".titlePrefix").invoke( "hide");
-    }
-
-    console.log( "Results._onSuccess: job %s; results loaded", jobId );
-  },
-
-  //-----------------------------------
-
-  // handles a job failure response
-
-  _onFailure: function( jobId, response ) {
-    console.log( "Results._onFailure: failure response for job %s; stopping polling", jobId );
-
-    // how many jobs are still running ?
-    var numJobs = this._updaters.keys().size() || 0;
-    console.log( "Results.jobDone: %d job(s) still running", numJobs );
-
-    // stop the updater for this job and remove it from the list of
-    // running jobs
-    this._updaters.unset( jobId ).stop();
-
-    // and update the display to show many are still running
-    var numJobs = this._updaters.keys().size() || 0;
-    console.log( "Results._onFailure: %d job(s) still running", numJobs );
-    this._updateJobCount( numJobs );
-
-    if ( numJobs < 1 ) {
-      console.log( "Results._onFailure: no more jobs running" );
-
-      // hide the "waiting for the results of..." message
-      this._loadingEl.hide();
-
-      this._summaryEl.show();
-    }
-
-    // add error messages
-    if ( ! this._errorsList ) {
-      console.log( "Results._onFailure: building results list" );
-      var errorHeader = '<h1>Job failures</h1>' +
-                        '<p>One or more of the searches that you submitted had errors during execution:</p>' +
-                        '<ul></ul>';
-      
-      this._errorsEl.insert( { top: errorHeader } );
-      
-      this._errorsList = this._errorsEl.down("ul");
-    } 
-
-    // var msg = this._errorTemplate.evaluate( { jobId: jobId } );
-    console.log( "Results._onFailure: adding error to results list" );
-    this._errorsList.insert( { bottom: new Element( "li" ).update( response.responseText ) } );
-    this._errorsEl.show();
-
-    //this._updateEl.insert( { 'top': response.responseText } );
-  },
-  
-  //----------------------------------------------------------------------------
-  
-  // shows or hides the alignment rows
-
+  /**
+   * Shows or hides the alignment rows
+   *
+   * @private
+   * @param {Event} e mouse click even on the domain graphic
+   */
   _toggleAlignment: function( e ) {
 
     // get the clicked table cell. If the click was actually on the img, we 
     // need to walk up a little
-    var cell = e.element();
-    if ( cell.up("td") ) {
-      cell = cell.up("td");
-    }
+    var cell = e.findElement( "td" );
 
     // the image in that cell
     var img = cell.down("img");
 
     // walk up the DOM and onto the next row in the table
-    var row = cell.up("tr").next("tr");
+    var nextRow = cell.up("tr").next("tr");
     
     // toggle the state of the row and reset the image source to point to the
     // new image
-    row.toggle();
-    img.src = row.visible() ? this._config.hideButton : this._config.showButton;
+    nextRow.toggle();
+    img.src = nextRow.visible() ? this._config.hideButton : this._config.showButton;
   },
   
   //----------------------------------------------------------------------------
-
-  // shows or hides all of the alignments in one fell swoop...
-
+  /**
+   * Shows or hides all of the alignments in one fell swoop...
+   *
+   * @private
+   * @param {Event} e mouse click even on the domain graphic
+   */
   _showHideAll: function( e ) {
 
     // the clicked link
-    var link = e.element();
+    var link = e.findElement();
 
     // decide whether it was "Show" or "hide"
     var show = link.innerHTML.match( "Show" );
@@ -368,21 +323,23 @@ var Results = Class.create( {
   },
 
   //----------------------------------------------------------------------------
-  
-  // writes the verbose description of the results at the top of the page
-
-  _writeSummary: function( jobId) {
-    console.log( "Results._writeSummary: writing results for %s", jobId );
+  /**
+   * Writes the verbose description of the results at the top of the page
+   *
+   * @private
+   * @param {Object} details statistics for the job results
+   */
+  _writeSummary: function( details ) {
+    // console.log( "Results._writeSummary: writing results for %s", this._jobId );
     
-    //var r = this._details.get( jobId );
-    var aHits = this._details.get( "A" );
-    var bHits = this._details.get( "B" ) || {};
+    var aHits = details.A;
+    var bHits = details.B || {};
     var s = "";
     
     if ( this._config.options.ga ) {
     
-      s += "We found <strong>" + aHits.significant +
-           "</strong> Pfam-A match" + ( aHits.significant > 1 ? "es" : "" ) +
+      s += "We found <strong>" + aHits.numSignificantMatches +
+           "</strong> Pfam-A match" + ( aHits.numSignificantMatches > 1 ? "es" : "" ) +
            " to your search sequence"; 
 
     } else {
@@ -393,10 +350,10 @@ var Results = Class.create( {
              "</strong> Pfam-A match" + ( aHits.total > 1 ? "es" : "" ) + 
              " to your search sequence";
   
-        if ( aHits.significant > 0 && aHits.insignificant > 0 ) {
-          s += " (<strong>" + aHits.significant + "</strong> significant and " +
-               "<strong>" + aHits.insignificant + "</strong> insignificant)";
-        } else if ( aHits.insignificant > 0 ) {
+        if ( aHits.numSignificantMatches > 0 && aHits.numInsignificantMatches > 0 ) {
+          s += " (<strong>" + aHits.numSignificantMatches + "</strong> significant and " +
+               "<strong>" + aHits.numInsignificantMatches + "</strong> insignificant)";
+        } else if ( aHits.numInsignificantMatches > 0 ) {
           s += " (there were <strong>no</strong> significant matches)";
         } else {
           s += " (<strong>all</strong> significant)";
