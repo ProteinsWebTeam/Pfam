@@ -5,7 +5,7 @@
 # 
 # build the summary block for PfamB's
 #
-# $Id: summary.tt,v 1.14 2008-07-23 13:43:52 jt6 Exp $
+# $Id: summary.tt,v 1.15 2009-10-07 13:45:25 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -17,6 +17,25 @@ requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
 requirements.js.push( "family.js" );
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -36,8 +55,8 @@ adda_fid = matches.0;
   </div>
   <div class="blockContent">
 
-    <h1>PfamB [% pfam.pfamB_acc %]
-      <a href="[% c.uri_for( "/annotate", { acc = pfam.pfamB_acc } ) %]">
+    <h1>PfamB [% pfam.pfamb_acc %]
+      <a href="[% c.uri_for( "/annotate", pfam.pfamb_acc ) %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
              src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
