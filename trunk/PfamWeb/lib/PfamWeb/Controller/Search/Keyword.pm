@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.6 2008-09-03 15:39:58 jt6 Exp $
+# $Id: Keyword.pm,v 1.7 2009-10-07 22:06:10 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.6 2008-09-03 15:39:58 jt6 Exp $
+$Id: Keyword.pm,v 1.7 2009-10-07 22:06:10 jt6 Exp $
 
 =cut
 
@@ -38,7 +38,7 @@ Forwards immediately to the L<runSearches> action to run the text searches.
 =cut
 
 sub textSearch : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # if there's no query parameter, we're done here; drop straight to the 
   # template that will render the search forms
@@ -52,7 +52,7 @@ sub textSearch : Path {
   }
 
   # get the query
-  my( $terms ) = $c->req->param('query') =~ m/^([\w:.\-\s]+$)/;
+  my ( $terms ) = $c->req->param('query') =~ m/^([\w:.\-\s]+$)/;
 
   # we're done here unless there's a query specified
   unless ( defined $terms ) {
@@ -101,7 +101,7 @@ they need to do some other processing.
 Executes the database query and returns the results as a L<DBIC
 ResultSet|DBIx::Class::ResultSet>.
 
-=item o C<Search::mergeResults>
+=item o C<Search::merge_results>
 
 Walks the L<ResultSet|DBIx::Class::ResultSet> and adds the results to
 the results of the whole query.
@@ -117,33 +117,29 @@ those from earlier ones.
 =cut
 
 sub runSearches : Private {
-  my( $this, $c, $searchSet ) = @_;
+  my ( $this, $c, $searchSet ) = @_;
 
   $c->log->debug( 'Search::Keyword::runSearches: running a search' )
     if $c->debug;
 
-  my( @plugins, @pluginsReversed, $pluginName, $pluginDesc );
+  my $pluginDesc;
 
   # get the list of text search plugins from the configuration
   foreach my $pluginName ( @{ $this->{searchSets}->{$searchSet} } ) {
 
-    next unless( $pluginDesc = $this->{plugins}->{$pluginName} );
+    next unless ( $pluginDesc = $this->{plugins}->{$pluginName} );
 
     $c->log->debug( 'Search::Keyword::runSearches: adding plugin ' .
                     "|$searchSet|$pluginName|" ) if $c->debug;
 
     # keep track of the order of the configured plugins. Store the
-    # list forwards and backwards, since we'll use it both ways
-    push    @plugins,         $pluginName;
-    unshift @pluginsReversed, $pluginName;
-
-    # and drop them (and their descriptions) into a hash too, for easy look-up
+    # list forwards and backwards, since we'll use it both ways,
+    # and drop them (and their descriptions) into a hash too, for 
+    # easy look-up
+    push    @{ $c->stash->{pluginsArray} },         $pluginName;
+    unshift @{ $c->stash->{pluginsArrayReversed} }, $pluginName;
     $c->stash->{pluginsHash}->{$pluginName} = $pluginDesc;
   }
-
-  # store the (reversed) list of query names
-  $c->stash->{pluginsArray} =         \@plugins;
-  $c->stash->{pluginsArrayReversed} = \@pluginsReversed;
 
   #----------------------------------------
 
@@ -160,8 +156,8 @@ sub runSearches : Private {
     next unless $c->stash->{pluginsHash}->{$pluginName};
 
     # check that the plugin is properly formed
-    next unless( $plugin->can( 'process' ) and
-                 $plugin->can( 'formatTerms' ) );
+    next unless ( $plugin->can( 'process' ) and
+                  $plugin->can( 'formatTerms' ) );
 
     # firkle with the user input if necessary and build a string that
     # we can pass straight to the DB
@@ -173,17 +169,18 @@ sub runSearches : Private {
     my $results = $c->forward( $plugin );
 
     # merge results from the individual query
-    $c->forward( 'mergeResults', [ $pluginName, $results ] );
+    $c->forward( 'merge_results', [ $pluginName, $results ] );
   }
 
-  $c->log->debug( 'Search::Keyword::runSearches: found a total of ' .
-          scalar( keys %{$c->stash->{results}} ) . ' rows' ) if $c->debug;
+  $c->log->debug( 'Search::Keyword::runSearches: found a total of '
+                  . scalar( keys %{$c->stash->{results}} ) . ' rows' )
+    if $c->debug;
 
   #----------------------------------------
 
   # if there are no results, redirect to the error page
   my $numHits = scalar keys %{$c->stash->{results}};
-  if( $numHits < 1 ) {
+  if ( $numHits < 1 ) {
     $c->stash->{template} = 'pages/search/keyword/error.tt';
     return 0;
   }
@@ -191,8 +188,8 @@ sub runSearches : Private {
   #----------------------------------------
 
   # if there's only one result, redirect straight to it
-  if( $numHits == 1 ) {
-    my( $acc ) = keys %{$c->stash->{results}};
+  if ( $numHits == 1 ) {
+    my ( $acc ) = keys %{$c->stash->{results}};
     $c->log->debug( "Search::Keyword::runSearches: found a single hit: |$acc|; redirecting" )
       if $c->debug;
     $c->res->redirect( $c->uri_for( '/family', { acc => $acc } ) );
@@ -219,11 +216,11 @@ sub runSearches : Private {
 
   # first, check if there are multiple "words" in the query term,
   # because if there are, this can't be a unique ID or accession
-  unless( $c->stash->{rawQueryTerms} =~ /![A-Za-z0-9_-]/ ) {
+  unless ( $c->stash->{rawQueryTerms} =~ /![A-Za-z0-9_-]/ ) {
 
-    my $rs = $c->model('PfamDB::Pfam')
-               ->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
-                           { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
+    my $rs = $c->model('PfamDB::Pfama')
+               ->search( [ { pfama_acc => $c->stash->{rawQueryTerms} },
+                           { pfama_id  => $c->stash->{rawQueryTerms} } ] );
   
     # we're going to assume that there's only one hit here... we're in
     # trouble if there's more than one, certainly
@@ -239,24 +236,28 @@ sub runSearches : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 mergeResults : Private
+=head2 merge_results : Private
 
 Merges the results of an individual query into the set of results for
-the whole search. The PfamA accession is used as the hash key, so it
+the whole search. The Pfam-A accession is used as the hash key, so it
 needs to be present in the results of the plugin queries. Also keeps
 track of the number of hits for each plugin query.
 
+If the plugin returns an array of ResultSets, walks down it and merges in each
+one in turn.
+
 =cut
 
-sub mergeResults : Private {
-  my( $this, $c, $pluginName, $results ) = @_;
+sub merge_results : Private {
+  my ( $this, $c, $pluginName, $results ) = @_;
 
-  if( ref $results eq 'ARRAY' ) {
+  if ( ref $results eq 'ARRAY' ) {
     foreach my $rs ( @$results ) {
-      $c->forward( '_mergeResults', [ $pluginName, $rs ] );
+      $c->forward( '_merge_results', [ $pluginName, $rs ] );
     }
-  } else {
-    $c->forward( '_mergeResults', [ $pluginName, $results ] );
+  }
+  else {
+    $c->forward( '_merge_results', [ $pluginName, $results ] );
   }
 }
 
@@ -264,30 +265,75 @@ sub mergeResults : Private {
 #- methods ---------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 _mergeResults
+=head2 _merge_results
 
-Merges results from plugins. If the plugin returns an array of
-ResultSets, walks down it and merges in each one in turn.
+Merges results from plugins. Merging requires that each row of the C<ResultSet>
+has access to a Pfam-A accession. We'll try to get it using
+
+  $rs->pfama_acc
+
+or 
+
+  $rs->auto_pfama->pfama_acc
+
+but if neither method works, the row is skipped.
 
 =cut
 
-sub _mergeResults : Private {
-  my( $this, $c, $pluginName, $rs ) = @_;
+sub _merge_results : Private {
+  my ( $this, $c, $pluginName, $rs ) = @_;
 
-  # walk the query results and merge them into the overall results
-  my( $acc, $row );
-  while( my $dbObj = $rs->next ) {
-    $acc = $dbObj->pfamA_acc;
+  ROW: while ( my $row = $rs->next ) {
 
-    $row = $c->stash->{results}->{$acc} ||= {};
+    my ( $acc, $hit );
 
-    $row->{dbObj} = $dbObj;
-    $row->{query}->{$pluginName} = 1;
+    TRY: {
 
+      # first try accessing the accession on the table row directly
+      eval {
+        $acc = $row->pfama_acc;
+      };
+      if ( $@ ) {
+        $c->log->debug( 'Search::Keyword::_merge_results: caught an exception when trying '
+                       . " \$row->pfama_acc for plugin |$pluginName|: $@" )
+          if $c->debug;
+      }
+      
+      if ( defined $acc ) {
+        $hit = $c->stash->{results}->{$acc} ||= {};
+        $hit->{dbObj} = $row;
+        last TRY;
+      }
+
+      # we couldn't find the accession on the row itself, so try walking down one
+      # possible relationship, "auto_pfama", and see if that gets us to another
+      # table, which hopefully does store the details of the Pfam-A family
+      #
+      # This is all a bit convoluted, but it means that we shouldn't need to add
+      # proxy columns indiscriminately throughout the model, just so that text
+      # searching can work
+      eval {
+        $acc = $row->auto_pfama->pfama_acc;
+      };
+      if ( $@ ) {
+        $c->log->debug( 'Search::Keyword::_merge_results: caught an exception when trying '
+                       . " \$row->auto_pfama->pfama_acc for plugin |$pluginName|: $@" )
+          if $c->debug;
+      }
+
+      if ( defined $acc ) {
+        $hit = $c->stash->{results}->{$acc} ||= {};
+        $hit->{dbObj} = $row->auto_pfama;
+        # last TRY;
+      }
+
+    }
+    
+    $hit->{query}->{$pluginName} = 1;
     $c->stash->{pluginHits}->{$pluginName} += 1;
 
     # score this hit
-    $this->_computeScore( $c, $row );
+    $this->_computeScore( $c, $hit );
   }
 }
 
@@ -318,7 +364,7 @@ directly instead of using $c->forward.
 =cut
 
 sub _computeScore {
-  my( $this, $c, $row ) = @_;
+  my ( $this, $c, $row ) = @_;
 
   my $score = 0;
   my $factor = 1;
