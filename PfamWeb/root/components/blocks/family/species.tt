@@ -1,4 +1,3 @@
-
 [%
 # species.tt
 # jt6 20060411 WTSI
@@ -6,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.28 2008-07-23 13:46:25 jt6 Exp $
+# $Id: species.tt,v 1.29 2009-10-07 14:08:38 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 

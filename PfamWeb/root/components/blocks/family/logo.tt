@@ -5,7 +5,7 @@
 #
 # block showing the HMM logo for this family.
 #
-# $Id: logo.tt,v 1.4 2009-06-09 15:18:11 jt6 Exp $
+# $Id: logo.tt,v 1.5 2009-10-07 14:08:22 jt6 Exp $
 %]
 
 <!-- start logo block -->
