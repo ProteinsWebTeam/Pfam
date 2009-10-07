@@ -4,7 +4,7 @@
 # 
 # build a page for the jalview applet
 #
-# $Id: jalview.tt,v 1.10 2008-07-28 14:10:38 jt6 Exp $
+# $Id: jalview.tt,v 1.11 2009-10-07 14:10:18 jt6 Exp $
 
 # tell the wrapper not to add any header or footer. We will generate a complete 
 # page here ourselves
@@ -17,10 +17,24 @@ title = "jalview"
 
 <h1>jalview: alignment<em> for [% acc %]</em></h1>
 
- <applet code="jalview.bin.JalviewLite" 
-         width="140" 
-         height="35" 
-         archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
+<p>
+  You can use <a class="ext" href="http://www.jalview.org/">JalView</a> in two ways:
+</p>
+<ul>
+  <li>as a <a class="ext" href="http://en.wikipedia.org/wiki/Java_Applet">Java applet</a></li>
+  <li>via <a class="ext" href="http://en.wikipedia.org/wiki/Java_Web_Start">Java Web Start</a></li>
+</ul>
+<p>
+  Both versions of JalView will enable you to view the sequence alignment interactively,
+  but the Web Start application offers slightly more functionality.
+</p>
+
+<h2>Applet</h2>
+
+<applet code="jalview.bin.JalviewLite" 
+        width="140" 
+        height="35" 
+        archive="[% c.uri_for( "/shared/jalview/jalviewApplet.jar" ) %]">
   <param name="file" value="[% c.uri_for( "/family/alignment/download/format", { acc = acc, format = "fasta", alnType = alnType } ) | html %]" />
   <param name="defaultColour" value="Taylor" />
   <param name="RGB"  value="#FFFFCC" />
@@ -30,6 +44,13 @@ title = "jalview"
   <param name="srsServer" value="www.sanger.ac.uk/srs5bin/cgi-bin/" />
   <param name="database" value="pfamseq" />
 </applet>
+
+<h2>Web Start</h2>
+
+<p>
+  <a href="http://www.jalview.org/services/launchApp?colour=Taylor&amp;open=[% c.uri_for( "/family/alignment/download/format", { acc = acc, format = 'stockholm', alnType = alnType } ) | uri %]">Start Jalview</a>
+  using Web Start
+</p>
 
 <br />
 
