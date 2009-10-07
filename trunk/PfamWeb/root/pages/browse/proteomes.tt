@@ -5,7 +5,7 @@
 # 
 # build a "browse" page for Completed Proteomes
 #
-# $Id: proteomes.tt,v 1.9 2008-05-16 15:30:34 jt6 Exp $
+# $Id: proteomes.tt,v 1.10 2009-10-07 12:26:49 jt6 Exp $
 
 META title = "Browse Pfam proteomes";
 META fullPage = 1;
@@ -57,13 +57,13 @@ pageList = PROCESS "components/pageList.tt",
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
   	  <td>
         <a class="species" 
-           href="[% proteomeURI %]?taxId=[% proteome.ncbi_code %]"
+           href="[% proteomeURI %]?taxId=[% proteome.ncbi_taxid.ncbi_taxid %]"
            [%- IF initialLetter != first -%]
              name="[% initialLetter %]"
              [%- first = initialLetter | lower;
            END %]>[% proteome.species %]</a>
        </td>
-      <td>[% proteome.grouping %]</td>
+      <td>[% IF proteome.grouping; proteome.grouping; ELSE %]<span class="inactive">n/a</span>[% END %]</td>
       <td>[% proteome.total_genome_proteins %]</td>
       <td>[% proteome.sequence_coverage %]</td>
       <td>[% proteome.residue_coverage %]</td>
