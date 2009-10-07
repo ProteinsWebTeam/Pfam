@@ -4,7 +4,7 @@
 # 
 # keyword search results page
 #
-# $Id: results.tt,v 1.7 2008-09-15 10:53:39 jt6 Exp $
+# $Id: results.tt,v 1.8 2009-10-07 12:32:22 jt6 Exp $
 
 META title = "Keyword search results";
 META fullPage = 1;
@@ -61,9 +61,9 @@ sharedRequirements.js.push( "tablekit.js" );
     sections of the database.
     [% IF lookupHit %]
       Your query also appears to be a match for Pfam entry
-      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">
-        [% lookupHit.pfamA_id %]</a></em>
-      (<a href="[% c.uri_for( "/family", acc=lookupHit.pfamA_acc ) %]">[% lookupHit.pfamA_acc %]</a>)
+      <em><a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">
+        [% lookupHit.pfama_id %]</a></em>
+      (<a href="[% c.uri_for( "/family", acc=lookupHit.pfama_acc ) %]">[% lookupHit.pfama_acc %]</a>)
       and this row is <span class="highlight">highlighted</span> in the
       results table.
     [% END %]
@@ -100,12 +100,12 @@ sharedRequirements.js.push( "tablekit.js" );
     </thead>
     <tbody>
       [% FOREACH row IN results;
-         acc = row.dbObj.pfamA_acc;
-         id  = row.dbObj.pfamA_id %]
-      <tr class="[% loop.index % 2 ? "odd" : "even" %][% lookupHit.pfamA_id == id ? " highlight" : "" %]">
+         acc = row.dbObj.pfama_acc;
+         id  = row.dbObj.pfama_id %]
+      <tr class="[% loop.index % 2 ? "odd" : "even"; lookupHit.pfama_id == id ? " highlight" : "" %]">
         <td class="rowNum">[% loop.index %]</td>
-        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% acc %]</a></td>
-        <td><a href="[% c.uri_for( "/family", acc=acc ) %]">[% id %]</a></td>
+        <td><a href="[% c.uri_for( "/family", acc ) %]">[% acc %]</a></td>
+        <td><a href="[% c.uri_for( "/family", acc ) %]">[% id %]</a></td>
         <td class="desc">[% row.dbObj.description %]</td>
         [% FOREACH pluginName IN pluginsArray;
           IF pluginHits.$pluginName;
