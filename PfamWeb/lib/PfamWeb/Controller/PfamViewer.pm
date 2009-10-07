@@ -2,7 +2,7 @@
 # PfamViewer.pm
 # jt6 20060601 WTSI
 #
-# $Id: PfamViewer.pm,v 1.7 2008-10-27 14:35:15 jt6 Exp $
+# $Id: PfamViewer.pm,v 1.8 2009-10-07 10:26:29 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::PfamViewer;
 
 An HTML-based sequence alignment viewer.
  
-$Id: PfamViewer.pm,v 1.7 2008-10-27 14:35:15 jt6 Exp $
+$Id: PfamViewer.pm,v 1.8 2009-10-07 10:26:29 jt6 Exp $
 
 =cut
 
@@ -63,7 +63,7 @@ sub showPfamViewer : Private {
     $c->stash->{escapedParams}->{$_} = uri_escape( $c->stash->{params}->{$_} );
   }
   
-  $c->stash->{paramString} = objToJson( $c->stash->{escapedParams} );
+  $c->stash->{paramString} = to_json( $c->stash->{escapedParams} );
   $c->log->debug( 'PfamViewer::showPfamViewer: paramString: |'
                   . $c->stash->{paramString} . '|' ) if $c->debug;
 
