@@ -6,7 +6,7 @@
 # block showing the domain summary graphics. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to DomainGraphics.pm.
 #
-# $Id: domains.tt,v 1.25 2009-09-04 10:48:08 jt6 Exp $
+# $Id: domains.tt,v 1.26 2009-10-07 13:38:32 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 
@@ -76,29 +76,27 @@
       </p>
     </div>
   </div>
-</div>
 
-<script type="text/javascript">
-  // <![CDATA[
+  <script type="text/javascript">
+    // <![CDATA[
 
-  document.observe( "dom:loaded", function() {
-    var r = new Ajax.Updater(
-      "dgph",
-      "[% c.uri_for( '/domaingraphics', acc ) %]",
-      {
-        evalScripts: true,
-        onSuccess:   function() {
-        },
-        onFailure:   function() {
-          $("dgph").update( "Domain graphics loading failed." );
+    document.observe( "dom:loaded", function() {
+      var r = new Ajax.Updater(
+        "dgph",
+        "[% c.uri_for( '/domaingraphics', acc ) %]",
+        {
+          evalScripts: true,
+          onFailure:   function() {
+            $("dgph").update( "Domain graphics loading failed." );
+          }
         }
-      }
-    );
-  } );
+      );
+    } );
 
-  // ]]>
-</script>
+    // ]]>
+  </script>
 
+</div>
 <!-- end domain architectures block -->
 [%#
 Copyright (c) 2007: Genome Research Ltd.
