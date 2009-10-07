@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.28 2008-11-26 09:52:29 jt6 Exp $
+# $Id: links.tt,v 1.29 2009-10-07 13:25:13 jt6 Exp $
 
 USE String;
 
@@ -239,7 +239,7 @@ BLOCK internalLinks;
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
                   [%- PROCESS buildLink type="PFAMB" 
-                                        id=ref.pfamB_acc -%]
+                                        id=ref.pfamb_acc -%]
                 </span>
               [%- END;
             CASE "atobPRODOM";
@@ -253,21 +253,21 @@ BLOCK internalLinks;
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
                   [%- PROCESS buildLink type="PFAMB" 
-                                        id=ref.pfamB_acc -%]
+                                        id=ref.pfamb_acc -%]
                 </span>
               [%- END;
             CASE "btobPRC";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
                   [%- PROCESS buildLink type="PFAMB" 
-                                        id=ref.get_column("r_pfamB_acc") -%]
+                                        id=ref.get_column("r_pfamb_acc") -%]
                 </span>
               [%- END;
             CASE "btoaPRC";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
                   [%- PROCESS buildLink type="PFAMA" 
-                                        id=ref.pfamA_id -%]
+                                        id=ref.pfamb_id -%]
                 </span>
               [%- END;
             CASE "btoaPRODOM";
@@ -281,15 +281,15 @@ BLOCK internalLinks;
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
                   [%- PROCESS buildLink type="PFAMA" 
-                                        id=ref.pfamA_id -%]
+                                        id=ref.pfamb_id -%]
                 </span>
               [%- END;
             CASE "scoop";
               FOREACH ref IN xrefs.$db;
-                IF ref.get_column("l_pfamA_acc") != ref.get_column("r_pfamA_acc") %]
+                IF ref.get_column("l_pfama_acc") != ref.get_column("r_pfama_acc"); -%]
                   <span class="entry">
                     [%- PROCESS buildLink type="PFAMA"  
-                                          id=ref.get_column("r_pfamA_id") -%]
+                                          id=ref.get_column("r_pfama_id") -%]
                   </span>
                 [%- END;
               END;
