@@ -2,7 +2,7 @@
 # Utils.pm
 # jt6 20080104 WTSI
 #
-# $Id: Utils.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+# $Id: Utils.pm,v 1.3 2009-10-07 14:19:50 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamBase::Controller::Utils;
 
 These are a few actions that can be used in various places around the code. 
 
-$Id: Utils.pm,v 1.2 2008-05-16 14:58:22 jt6 Exp $
+$Id: Utils.pm,v 1.3 2009-10-07 14:19:50 jt6 Exp $
 
 =cut
 
@@ -64,7 +64,7 @@ sub retrieve_ids : Private {
   # get the individual accessions
   my @seqAccs;
   foreach ( split /\s+/, $rs->id_list ) {
-    next unless  m/^([AOPQ]\d[A-Z0-9]{3}\d)$/i;
+    next unless  m/^([A-Z]\d[A-Z0-9]{3}\d)$/i;
     push @seqAccs, $1;
   }
   $c->log->debug( 'Utils::retrieve_ids: found |' . scalar @seqAccs
@@ -102,12 +102,11 @@ sub get_sequences : Private {
   # clans, so "entry" is more appropriate than "pfam", which we usually use.) 
   my $fasta = '';
   foreach my $seqAcc ( @$accession_list ) {
-    my @rows = $c->model('PfamDB::PfamA_reg_full_significant')
+    my @rows = $c->model('PfamDB::PfamaRegFullSignificant')
                  ->search( { 'pfamseq.pfamseq_acc' => $seqAcc,
-                             auto_pfamA            => $pfam->auto_pfamA,
+                             auto_pfama            => $pfam->auto_pfama,
                              in_full               => 1 },
-                           { join                  => [ qw( pfamseq ) ],
-                             prefetch              => [ qw( pfamseq ) ] } );
+                           { prefetch              => [ qw( pfamseq ) ] } );
     $c->stash->{numRows} = scalar @rows;
 
     # need to remember the final character in each row, the "\n"
