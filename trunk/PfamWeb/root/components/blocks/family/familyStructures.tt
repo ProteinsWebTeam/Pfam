@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: familyStructures.tt,v 1.18 2009-09-04 10:48:52 jt6 Exp $
+# $Id: familyStructures.tt,v 1.19 2009-10-07 13:39:16 jt6 Exp $
  
 # see if pdb was populated by the controller, in which case the user chose a
 # specific PDB entry to be displayed; if its not populated, choose a random 
@@ -45,25 +45,37 @@ END;
 
 IF pdbUnique.keys.size;
 
+  # when this template is called initially from the family page, the PDB ID is 
+  # coming from a query on the pdb_pfamA_reg table, so we access the pdb_id via
+  # a join. When the template is called a second time, when the user chooses to 
+  # change the structure image, the query is on the pdb table instead. Now the
+  # pdb_id is directly available, so we don't need to walk the join to get it.
+  # This IF is deciding where to get the PDB ID...
+  IF pdbObj.pdb_id.pdb_id.defined;
+    pdbImageObj = pdbObj.pdb_id;
+  ELSE;
+    pdbImageObj = pdbObj;
+  END;
+
 -%]
 
 <!-- start of pdb image block -->
 
-<div class="pdbImageFragment">
+[%# <div class="pdbImageFragment"> %]
 
   [%- IF pdbObj.pdb_image.pdb_image -%]
 
-    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id.pdb_id } ) %]">
+    <a href="[% c.uri_for( "/structure", pdbImageObj.pdb_id ) %]">
       <img class="pdbImage" 
- 	       src="[% c.uri_for( "/structure/getimage", { id = pdbObj.pdb_id.pdb_id, size = "s" } ) | html %]"
-           alt="[% pdbObj.pdb_id.pdb_id %]" /></a>
+ 	       src="[% c.uri_for( "/structure/getimage", pdbImageObj.pdb_id, { size = "s" } ) | html %]"
+           alt="[% pdbImageObj.pdb_id %]" /></a>
 
     [%- IF randomId -%]
       <h1>Example structure</h1>
     [%- END -%]
 
-    <a href="[% c.uri_for( "/structure", { id = pdbObj.pdb_id.pdb_id } ) %]" class="pdbTitle">
-      PDB entry [% pdbObj.pdb_id.pdb_id %]</a>: [% pdbObj.pdb_id.title %]
+    <a href="[% c.uri_for( "/structure", pdbImageObj.pdb_id ) %]" class="pdbTitle">
+      PDB entry [% pdbImageObj.pdb_id %]</a>: [% pdbImageObj.title %]
 
   [%- ELSE -%]
 
@@ -80,7 +92,9 @@ IF pdbUnique.keys.size;
         <strong>View a different structure:</strong>
     	  <select id="pdbIdField">
     	    [% FOREACH id IN pdbUnique.keys.sort("pdb_id") %]
-          <option value="[% id %]"[% IF pdbObj.pdb_id.pdb_id == id %] disabled="disabled" selected="selected"[% END %] />[% id %]</option>
+          <option value="[% id %]"[% IF pdbImageObj.pdb_id == id %] 
+                  disabled="disabled"
+                  selected="selected"[% END %] />[% id %]</option>
           [% END %]
         </select
       </div>
@@ -89,12 +103,12 @@ IF pdbUnique.keys.size;
     <script type="text/javascript">
       // <![CDATA[
       var pdbImageSubmitter = function() {
-        var r = new Ajax.Updater( "siph", 
-                                  "[% c.uri_for( '/family/structures' ) %]",
-                                   { parameters:  { acc:  "[% pfam.pfama_acc %]",
-                                                    pdbId: $F("pdbIdField") },
-                                     evalScripts: true }
-                                );
+        var r = new Ajax.Updater(
+          "siph", 
+          "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
+           { parameters:  { pdbId: $F("pdbIdField") },
+             evalScripts: true }
+        );
       };
 
       $("structuresForm").observe("submit", function( e ) {
@@ -110,7 +124,7 @@ IF pdbUnique.keys.size;
     </script>
 
   [% END # of "if pdbUnique.keys.size > 1" %]
-</div>
+[%# </div> %]
 
 <!-- end of pdb image block -->
 
