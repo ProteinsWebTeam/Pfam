@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20061003 WTSI
 #
-# $Id: Root.pm,v 1.28 2009-06-09 15:21:12 jt6 Exp $
+# $Id: Root.pm,v 1.29 2009-10-07 12:09:06 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This is the root class for the Pfam website catalyst application. It
 installs global actions for the main site index page and other top-level
 functions.
 
-$Id: Root.pm,v 1.28 2009-06-09 15:21:12 jt6 Exp $
+$Id: Root.pm,v 1.29 2009-10-07 12:09:06 jt6 Exp $
 
 =cut
 
