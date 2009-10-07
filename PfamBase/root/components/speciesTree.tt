@@ -5,7 +5,7 @@
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.2 2008-07-25 13:12:35 jt6 Exp $
+# $Id: speciesTree.tt,v 1.3 2009-10-07 14:21:10 jt6 Exp $
 
 META naked = 1;
 
@@ -97,6 +97,8 @@ IF textTree;
 ELSIF rawTree;
   CALL c.log.debug( "speciesTree.tt: got a RAW tree in the stash" )
     IF c.debug; -%]
+
+treeBuiltSuccessfully = [% rawTree.maxTreeDepth > 0 ? "true" : "false" %];
 
 var summaryId;
   
