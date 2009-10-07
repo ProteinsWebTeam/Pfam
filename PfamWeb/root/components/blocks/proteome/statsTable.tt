@@ -7,7 +7,7 @@
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
 #
-# $Id: statsTable.tt,v 1.8 2008-07-17 13:13:19 jt6 Exp $
+# $Id: statsTable.tt,v 1.9 2009-10-07 13:56:24 jt6 Exp $
 
 # no wrapper thank you
 META naked = 1;
@@ -61,8 +61,8 @@ IF c.req.param('full');
     [% FOREACH row IN data %]
     <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
       <td>
-        <a href="[% c.uri_for( "/family", { acc = row.get_column('pfamA_acc') } ) %]">
-          [% row.get_column('pfamA_id') %]</a>
+        <a href="[% c.uri_for( "/family", { acc = row.get_column('pfama_acc') } ) %]">
+          [% row.get_column('pfama_id') %]</a>
       </td>
       <td>[% row.get_column('description') %]</td>
       <td>
@@ -75,12 +75,12 @@ IF c.req.param('full');
         <img class="link" 
              src="[% c.uri_for( "/static/images/showButton.png" ) %]"
              alt="Show domain graphics"
-             onclick="popUp( '[% c.uri_for( "/proteome/graphics", { pfamAcc = row.get_column('pfamA_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
+             onclick="popUp( '[% c.uri_for( "/proteome/graphics", { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
       <td class="showSwitch">
         <img src="[% c.uri_for( "/static/images/showButton.png" ) %]"
              alt="Show sequence alignment"
-             onclick="popUp( '[% c.uri_for( "/proteome/alignment/builder", { pfamAcc = row.get_column('pfamA_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
+             onclick="popUp( '[% c.uri_for( "/proteome/alignment/builder", { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
     </tr>
     [% END %]
