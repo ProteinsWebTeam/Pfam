@@ -2,7 +2,7 @@
 # Graphics.pm
 # jt6 20060710 WTSI
 #
-# $Id: Graphics.pm,v 1.9 2009-01-09 12:59:24 jt6 Exp $
+# $Id: Graphics.pm,v 1.10 2009-10-07 12:07:19 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ sequence - used in the structure section, confusingly.
 
 Generates a B<page component>.
 
-$Id: Graphics.pm,v 1.9 2009-01-09 12:59:24 jt6 Exp $
+$Id: Graphics.pm,v 1.10 2009-10-07 12:07:19 jt6 Exp $
 
 =cut
 
@@ -28,6 +28,7 @@ use strict;
 use warnings;
 
 use Storable qw(thaw);
+use JSON qw( -convert_blessed_universally );
 
 use base "PfamWeb::Controller::Structure";
 
@@ -65,101 +66,89 @@ should be drawn.
 
 #-------------------------------------------------------------------------------
 
-=head2 generateGraphics : Path
+=head2 graphics : Path
 
 Generate a Pfam graphic for each of the sequences specified by the parameter
 "ids".
 
 =cut
 
-sub generateGraphics : Path {
-  my( $this, $c ) = @_;
+sub graphics : Path {
+  my ( $this, $c ) = @_;
 
-  unless( defined $c->req->param('seqIds') and
-          $c->req->param('seqIds') =~ m/^((\w+\_\w+\,*)+)$/ ) {
+  unless ( defined $c->req->param('seqIds') and
+           $c->req->param('seqIds') =~ m/^((\w+\_\w+\,*)+)$/ ) {
     $c->log->warn( 'Structure::Graphics::begin: no IDs found' )
       if $c->debug;
     return;
   }
 
   # detaint the IDs - maybe redundant
-  foreach ( split /\,/, $1 ) {
+  foreach ( split /\,/, $c->req->param('seqIds') ) {
     push @{ $c->stash->{idList} }, $_ if /^(\w+\_\w+)$/;
   }
 
   my @seqs;
   foreach my $id ( @{ $c->stash->{idList} } ) {
-    $c->log->debug( "Structure::Graphics::generateGraphics: looking for |$id|" )
+    $c->log->debug( "Structure::Graphics::graphics: looking for |$id|" )
       if $c->debug;
   
   	# retrieve the Storable with the data for this sequence
   	my $pfamseq = $c->model('PfamDB::Pfamseq')
-  	                ->find( { pfamseq_id => $id } );
-  
-  	# thaw it out and stash it
-  	push @seqs, thaw( $pfamseq->annseq_storable ) if defined $pfamseq;
-  }
-  $c->log->debug( 'Structure::Graphics::generateGraphics: found '
+  	                ->search( { pfamseq_id => $id },
+                              { prefetch => [ 'annseqs' ] } )
+                    ->first;
+   
+   	# thaw it out and stash it
+   	push @seqs, thaw( $pfamseq->annseqs->annseq_storable ) if defined $pfamseq;
+   }
+  $c->log->debug( 'Structure::Graphics::graphics: found '
                   . scalar @seqs . ' storables' ) if $c->debug;
 
   # render the sequences
-  my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layout->scale_x( $this->{scale_x} ); #0.33
-  $layout->scale_y( $this->{scale_y} ); #0.45
+  my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
+  $lm->layoutSequences( \@seqs );
 
-  my %regionsAndFeatures = ( 'PfamA'      => 1,
-              							 'noFeatures' => 1  );
-  $layout->layout_sequences_with_regions_and_features( \@seqs,
-													   \%regionsAndFeatures );
+  # TODO add highlights for the various structural regions
+  # foreach ( @seqs ) {
+  #   $_->highlight( { start => 10, end => 100, text => 'highlight' } );
+  # }
 
-  # should we use a document store rather than temp space for the images ?
-  my $imageset;  
-  if ( $c->config->{use_image_store} ) {
-    $c->log->debug( 'Structure::Graphics::generateGraphic: using document store for image' )
-      if $c->debug;
-    require PfamWeb::ImageSet;
-    $imageset = PfamWeb::ImageSet->new;
-  }
-  else {
-    $c->log->debug( 'Structure::Graphics::generateGraphic: using temporary directory for store image' )
-      if $c->debug;
-    require Bio::Pfam::Drawing::Image::ImageSet;
-    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  }
+  my $json = new JSON;
+  #$json->pretty(1);
+  $json->allow_blessed;
+  $json->convert_blessed;
 
-  $imageset->create_images( $layout->layout_to_XMLDOM );
+  $c->stash->{layout} = $json->encode( \@seqs );
 
-  $c->stash->{images} = $imageset;
-
-  # get the PDB chain/uniprot mapping from the cache
-  my $chainsMapping = $c->stash->{chainsMapping};
+  #----------------------------------------
 
   # build a chains-to-UniProt ID mapping
-  my %chainsToUnp;
+  my $chains_to_unp = {};
   my $chains;
-  foreach my $unp ( keys %$chainsMapping ) {
+  foreach my $unp ( keys %{ $c->stash->{chainsMapping} } ) {
 
-  	# each key in %chains is a uniprot ID, pointing to an anonymous
+  	# each key in %chains_mapping is a uniprot ID, pointing to an anonymous
   	# hash that has the PDB chain ID as keys and '' as values
-  	my $chains = join ', ', sort keys %{$chainsMapping->{$unp}};
+  	$chains = join ', ', sort keys %{ $c->stash->{chainsMapping}->{$unp} };
   	
-  	$chainsToUnp{$chains} = $unp;
+  	$chains_to_unp->{$chains} = $unp;
   }
 
   # build a UniProt ID-to-image mapping
-  my %unpToImage;
-  my $unp;
-  foreach my $image ( $imageset->each_image ) {
-  	$unp = $image->image_name;
-  	$unpToImage{$unp} = $image;
-  
-  	# while we're iterating over all images, print them...
-  	$image->print_image;
-  }
+  # my %unpToImage;
+  # my $unp;
+  # foreach my $image ( $imageset->each_image ) {
+  # 	$unp = $image->image_name;
+  # 	$unpToImage{$unp} = $image;
+  # 
+  # 	# while we're iterating over all images, print them...
+  # 	$image->print_image;
+  # }
 
   # and put both of those mappings into the stash for the template...
-  $c->stash->{chainsToUnp} = \%chainsToUnp;
-  $c->stash->{unpToImage}  = \%unpToImage;
+  $c->stash->{chainsToUnp} = $chains_to_unp;
+  # $c->stash->{unpToImage}  = \%unpToImage;
 
   # set up the view and rely on 'end' from the parent class to render it
   $c->stash->{template} = 'components/blocks/structure/loadGraphics.tt';
