@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.10 2009-06-09 15:21:12 jt6 Exp $
+# $Id: Browse.pm,v 1.11 2009-10-07 10:16:48 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.10 2009-06-09 15:21:12 jt6 Exp $
+$Id: Browse.pm,v 1.11 2009-10-07 10:16:48 jt6 Exp $
 
 =cut
 
@@ -63,7 +63,7 @@ sub browse : Global {
 
 #-------------------------------------------------------------------------------
 
-=head2 browseFamilies : Path
+=head2 browse_families : Path
 
 Retrieves data for the specified set of families. We check the value of the 
 "browse" parameter for some special values, as well as initial letters:
@@ -91,43 +91,43 @@ show families beginning with the specified letter
 
 =cut
 
-sub browseFamilies : Path( '/family/browse' ) {
-  my( $this, $c ) = @_;
+sub browse_families : Path( '/family/browse' ) {
+  my ( $this, $c ) = @_;
 
   my @res;
 
-  if( lc $c->req->param('browse') eq 'numbers' ) {
-    $c->log->debug( 'Browse::browseFamilies: browsing "numbers"...' );
+  if ( lc $c->req->param('browse') eq 'numbers' ) {
+    $c->log->debug( 'Browse::browse_families: browsing "numbers"...' );
     $c->stash->{char} = 'numbers';
 
     # run the query to get back all families starting with a number
     @res = $c->model('PfamDB::Pfama')
              ->search( { pfama_id => { 'REGEXP', '^[0-9]' } },
                        { order_by => 'pfama_id ASC' } );
-
-  } elsif( lc $c->req->param('browse') eq 'top twenty' ) {
-    $c->log->debug( 'Browse::browseFamilies: browsing "top twenty"...' );
+  }
+  elsif ( lc $c->req->param('browse') eq 'top twenty' ) {
+    $c->log->debug( 'Browse::browse_families: browsing "top twenty"...' );
     $c->stash->{char} = 'top twenty';
 
     # retrieve the top twenty largest families, ordered by number of
     # sequences in the family
     @res = $c->model('PfamDB::Pfama')
-            ->search( { },
-                      { rows     => 20,
-                        page     => 1,
-                        order_by => 'num_full DESC' }
-                      )->all;
+             ->search( { },
+                       { rows     => 20,
+                         page     => 1,
+                         order_by => 'num_full DESC' } )
+             ->all;
+  }
+  else {
 
-  } else {
-
-    $c->log->debug( 'Browse::browseFamilies: not a number, not "top twenty"...' );
+    $c->log->debug( 'Browse::browse_families: not a number, not "top twenty"...' );
 
     # see if we should load the page for families starting with a given letter
     my $char;
     ( $char ) = $c->req->param('browse') =~ /^(\w{1})$/;
 
-    if( defined $char ) {
-      $c->log->debug( "Browse::browseFamilies: browsing for a character: |$char|" );
+    if ( defined $char ) {
+      $c->log->debug( "Browse::browse_families: browsing for a character: |$char|" );
       $c->stash->{char} = uc $char;
   
       # run the query to get back all families starting with the
@@ -135,20 +135,18 @@ sub browseFamilies : Path( '/family/browse' ) {
       @res = $c->model('PfamDB::Pfama')
                ->search( { pfama_id => { 'LIKE', qq($char%) } },
                          { order_by => 'pfama_id' } );
-
-    } else {
+    }
+    else {
 
       # either "new" specified, or no starting letter specified, so default 
       # to new families anyway
-      $c->log->debug( 'Browse::browseFamilies: browsing new entries' );
+      $c->log->debug( 'Browse::browse_families: browsing new entries' );
       $c->stash->{char} = 'new';
   
       @res = $c->model('PfamDB::Pfama')
                ->search( { change_status => 'NEW' },
-                         {order_by => 'pfama_id ASC' } );
-
+                         { order_by => 'pfama_id ASC' } );
     }
-
   }
 
   # stash the results for the template
@@ -156,11 +154,12 @@ sub browseFamilies : Path( '/family/browse' ) {
 
   # set the template and let the default end action from Section
   # render it for us
-  if( $c->req->param('list') ) {
+  if ( $c->req->param('list') ) {
     # we want to return just the list of Pfam IDs, as a snippet of HTML.
     # This is used in the domain query search form
     $c->stash->{template} = 'pages/browse/ids.tt';
-  } else {
+  }
+  else {
     # just render as a regular 'browse' page
     $c->stash->{template} = 'pages/browse/families.tt';
   }
@@ -168,14 +167,14 @@ sub browseFamilies : Path( '/family/browse' ) {
 
 #-------------------------------------------------------------------------------
 
-=head2 browseClans : Path
+=head2 browse_clans : Path
 
 Retrieves data for the clans browse page.
 
 =cut
 
-sub browseClans : Path( '/clan/browse' ) {
-  my( $this, $c ) = @_;
+sub browse_clans : Path( '/clan/browse' ) {
+  my ( $this, $c ) = @_;
 
   my @res = $c->model('PfamDB::Clans')
               ->search( {},
@@ -190,18 +189,19 @@ sub browseClans : Path( '/clan/browse' ) {
 
 #-------------------------------------------------------------------------------
 
-=head2 browseProteomes : Path
+=head2 browse_proteomes : Path
 
 Retrieves the list of proteomes from the DB and stashes them for the template.
 
 =cut
 
-sub browseProteomes : Path( '/proteome/browse' ) {
+sub browse_proteomes : Path( '/proteome/browse' ) {
   my( $this, $c ) = @_;
 
-  my @res = $c->model('PfamDB::ProteomeSpecies')
+  my @res = $c->model('PfamDB::CompleteProteomes')
               ->search( {},
-                        { order_by => 'species ASC' } );
+                        { prefetch => [ qw( ncbi_taxid ) ],
+                          order_by => 'me.species ASC' } );
 
   # stash the results for the template
   $c->stash->{browse} = \@res if scalar @res;
