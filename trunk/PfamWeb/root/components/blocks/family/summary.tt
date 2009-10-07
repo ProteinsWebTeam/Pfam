@@ -4,14 +4,13 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.45 2009-09-04 10:48:52 jt6 Exp $
+# $Id: summary.tt,v 1.46 2009-10-07 13:41:56 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
 
 PROCESS "components/require.tt";
 
-requirements.css.push( "prototip.css" );
 requirements.css.push( "family.css" );
 requirements.cssIe.push( "family_ie.css" );
 
@@ -19,6 +18,7 @@ requirements.js.push( "family.js" );
 
 # tooltip library and Pfam-style tip definition
 requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
 requirements.js.push( "tip_definition.js" );
 
 # this needs to be loaded before we try to load the canvas text library,
@@ -51,7 +51,9 @@ PROCESS components/links.tt; %]
   <div class="blockContent">
 
     [%- # a placeholder for the structure image -%]
-    <div id="siph">&nbsp;</div>
+    <div id="siph"
+         class="pdbImageFragment"
+         style="display: none">&nbsp;</div>
 
     <h1>
       [% pfam.description %]
@@ -190,23 +192,30 @@ PROCESS components/links.tt; %]
     PROCESS buildLinksTable; -%]
 
   </div>
+
+  [% IF summaryData.numStructures -%]
+  <script type="text/javascript">
+    // <![CDATA[
+
+    // set up the AJAX call to load the structure image
+    document.observe( "dom:loaded", function() {
+
+      var r = new Ajax.Updater( 
+        "siph", 
+        "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
+        { evalScripts: true,
+          onSuccess: function( response ) {
+            $("siph").show();
+          }
+        }
+      );
+
+    } );
+    // ]]>
+  </script>
+  [% END -%]
+
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // set up the post-load AJAX call to load the structure image
-  document.observe( "dom:loaded", function() {
-
-    var r = new Ajax.Updater( 
-      "siph", 
-      "[% c.uri_for( '/family/structures', pfam.pfama_acc ) %]",
-      { evalScripts: true }
-    );
-
-  } );
-  // ]]>
-</script>
 
 <!-- end summary block -->
 [%#
