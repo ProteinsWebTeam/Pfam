@@ -4,7 +4,7 @@
 #
 # Get a list of the proteome structures;
 #
-# $Id: structure.tt,v 1.10 2008-07-23 13:44:47 jt6 Exp $
+# $Id: structure.tt,v 1.11 2009-10-07 13:57:29 jt6 Exp $
 
 RETURN UNLESS summaryData.numStructures;
 -%]
@@ -34,23 +34,21 @@ RETURN UNLESS summaryData.numStructures;
     
     <script type="text/javascript">
       // <![CDATA[
-      Event.observe(
-        window,
-        "load",
-        function() {
-          new Ajax.Request( "[% c.uri_for( "/proteome/structures" ) %]",
-                            { evalScripts: true,
-                              parameters: { taxId: "[% taxId %]" },
-                              onSuccess:  function( oResponse ) {
-                                            $("structureTableDiv").update( oResponse.responseText );
-                                          },
-                              onFailure:  function( oResponse ) {
-                                            $("structureTableDiv").update( "There was a problem loading the structure mapping table." );
-                                          }
-                            }
-                          );
-        },
-        false );
+
+      document.observe( "dom:loaded", function() {
+        var r = new Ajax.Updater(
+          "structureTableDiv",
+          "[% c.uri_for( "/proteome/structures" ) %]",
+          {
+            evalScripts: true,
+            parameters:  { taxId: "[% taxId %]" },
+            onFailure:   function( oResponse ) {
+                           $("structureTableDiv").update( "There was a problem loading the structure mapping table." );
+                        }
+          }
+        );
+      } );
+
       // ]]>
     </script>
 
