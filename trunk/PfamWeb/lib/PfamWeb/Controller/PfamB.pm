@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.19 2008-07-28 13:57:38 jt6 Exp $
+# $Id: PfamB.pm,v 1.20 2009-10-07 10:25:28 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
 on the Family controller, which is responsible for deciding whether the input
 parameters on the URL are pointing to a Pfam-B accession or ID.
 
-$Id: PfamB.pm,v 1.19 2008-07-28 13:57:38 jt6 Exp $
+$Id: PfamB.pm,v 1.20 2009-10-07 10:25:28 jt6 Exp $
 
 =cut
 
@@ -46,19 +46,20 @@ for us.
 =cut
 
 sub pfamB : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # we're done here unless there's an entry specified
-  unless( defined $c->stash->{pfam} ) {
+  unless ( defined $c->stash->{pfam} ) {
     $c->log->warn( 'PfamB::default: no ID or accession' );
     $c->stash->{errorMsg} = 'No valid Pfam-B ID or accession';
     return;
   }
 
-  $c->log->debug('PfamB::default: generating a page for a PfamB' );
+  $c->log->debug('PfamB::default: generating a page for a PfamB' )
+    if $c->debug;
 
-  $c->forward( 'getSummaryData' );
-  $c->forward( 'getDbXrefs' );
+  $c->forward( 'get_summary_data' );
+  $c->forward( 'get_db_xrefs' );
 }
 
 #-------------------------------------------------------------------------------
@@ -70,18 +71,18 @@ Populates the stash with the mapping and hands off to the appropriate template.
 =cut
 
 sub structures : Local {
-  my($this, $c) = @_;
+  my ($this, $c) = @_;
 
   $c->log->debug( 'PfamB::structuretab: acc: |'
-		  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|');
+		  . $c->stash->{acc}  . '|' .  $c->stash->{entryType}. '|')
+    if $c->debug;
 
-  my @mapping = $c->model('PfamDB::Pdb_pfamB_reg')
-                  ->search( { auto_pfamB  => $c->stash->{pfam}->auto_pfamB },
-                            { join        => [ qw( pdb ) ],
-                              prefetch    => [ qw( pdb ) ]
-                            } );
+  my @mapping = $c->model('PfamDB::PdbPfambReg')
+                  ->search( { auto_pfamB  => $c->stash->{pfam}->auto_pfamb },
+                            { prefetch    => [ 'pdb' ] } );
   $c->stash->{pfamMaps} = \@mapping;
-  $c->log->debug( 'PfamB::structuretab: found |' . scalar @mapping . '| mappings' );
+  $c->log->debug( 'PfamB::structuretab: found |' . scalar @mapping . '| mappings' )
+    if $c->debug;
   
   $c->stash->{template} = 'components/blocks/family/structureTab.tt';
 }
@@ -90,36 +91,37 @@ sub structures : Local {
 #- private methods -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 getSummaryData : Private
+=head2 get_summary_data : Private
 
 Retrieves the data items for the overview bar.
 
 =cut
 
-sub getSummaryData : Private {
-  my( $this, $c ) = @_;
+sub get_summary_data : Private {
+  my ( $this, $c ) = @_;
   
-  $c->log->debug( 'PfamB::getSummaryData: getting summary information for a PfamB' );
+  $c->log->debug( 'PfamB::get_summary_data: getting summary information for a PfamB' )
+    if $c->debug;
 
   my %summaryData;
 
   # make things easier by getting hold of the auto_pfamA
-  my $auto_pfam = $c->stash->{pfam}->auto_pfamB;
+  my $auto_pfam = $c->stash->{pfam}->auto_pfamb;
 
   #----------------------------------------
 
   # get the PDB details
-  my @maps = $c->model('PfamDB::Pdb_pfamB_reg')
-               ->search( { auto_pfamB   => $auto_pfam },
-                         { join        => [ qw( pdb ) ],
-                           prefetch    => [ qw( pdb ) ] } );
+  my @maps = $c->model('PfamDB::PdbPfambReg')
+               ->search( { auto_pfamb   => $auto_pfam },
+                         { prefetch    => [ 'pdb_id' ] } );
   $c->stash->{pfamMaps} = \@maps;
 
   # number of structures known for the domain
   my %pdb_unique = map {$_->pdb_id => $_} @maps;
   $c->stash->{pdbUnique} = \%pdb_unique;
-  $c->log->debug( 'PfamB::getSummaryData: found |' . scalar @maps . '| mappings, |'
-                  . scalar( keys %pdb_unique ) . '| unique structures' );
+  $c->log->debug( 'PfamB::get_summary_data: found |' . scalar @maps . '| mappings, |'
+                  . scalar( keys %pdb_unique ) . '| unique structures' )
+    if $c->debug;
 
   $summaryData{numStructures} = scalar( keys %pdb_unique );
 
@@ -127,11 +129,11 @@ sub getSummaryData : Private {
 
   # count the number of architectures
   my @archAndSpecies = $c->model('PfamDB::Pfamseq')
-                        ->search( { auto_pfamB => $auto_pfam },
-                                  { join      => [ qw( pfamB_reg ) ],
-                                    prefetch  => [ qw( pfamB_reg ) ] } );
-  $c->log->debug( 'PfamB::getSummaryData: found a total of |' 
-                  . scalar @archAndSpecies . '| architectures' );
+                        ->search( { auto_pfamb => $auto_pfam },
+                                  { prefetch  => [ 'pfamb_regs' ] } );
+  $c->log->debug( 'PfamB::get_summary_data: found a total of |' 
+                  . scalar @archAndSpecies . '| architectures' )
+    if $c->debug;
 
   # count the *unique* architectures
   my $numArchs = 0;
@@ -145,7 +147,8 @@ sub getSummaryData : Private {
       $seenArch{nopfama}++;
     }
   }
-  $c->log->debug( "PfamB::getSummaryData: found |$numArchs| *unique* architectures" );
+  $c->log->debug( "PfamB::get_summary_data: found |$numArchs| *unique* architectures" )
+    if $c->debug;
 
   # number of architectures....
   $summaryData{numArchitectures} = $numArchs;
@@ -176,61 +179,64 @@ sub getSummaryData : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getDbXrefs : Private
+=head2 get_db_xrefs : Private
 
 Retrieves database cross-references.
 
 =cut
 
-sub getDbXrefs : Private {
-  my( $this, $c ) = @_;
+sub get_db_xrefs : Private {
+  my ( $this, $c ) = @_;
 
   # get just the row from the prodom table, used to get hold of the ADDA link
-  $c->stash->{adda} = $c->model('PfamDB::PfamB_database_links')
-                        ->find( { auto_pfamB => $c->stash->{pfam}->auto_pfamB,
+  $c->stash->{adda} = $c->model('PfamDB::PfambDatabaseLinks')
+                        ->find( { auto_pfamb => $c->stash->{pfam}->auto_pfamb,
                                   db_id      => 'ADDA' } );
 
   # cross references
   my %xRefs;
 
   # stuff in the accession and ID for this entry
-  $xRefs{entryAcc} = $c->stash->{pfam}->pfamB_acc;
-  $xRefs{entryId}  = $c->stash->{pfam}->pfamB_id;
+  $xRefs{entryAcc} = $c->stash->{pfam}->pfamb_acc;
+  $xRefs{entryId}  = $c->stash->{pfam}->pfamb_id;
 
   # TODO get rid of references to PRODOM and add ADDA links
 
   # PfamB to PfamA links based on PRODOM
   my %btoaPRODOM;
-  foreach my $xref ( $c->stash->{pfam}->pfamB_database_links ) {
-    if( $xref->db_id eq 'PFAMA_PRODOM' ) {
+  foreach my $xref ( $c->stash->{pfam}->pfamb_database_links ) {
+    if ( $xref->db_id eq 'PFAMA_PRODOM' ) {
       $btoaPRODOM{$xref->db_link} = $xref;
-    } else {
+    }
+    else {
       push @{ $xRefs{$xref->db_id} }, $xref;
     }
   }
 
   # PfamB to PfamB links based on PRC
-  my @btobPRC = $c->model('PfamDB::PfamB2pfamB_PRC_results')
-                  ->search( { "pfamB1.pfamB_acc" => $c->stash->{pfam}->pfamB_acc },
+  my @btobPRC = $c->model('PfamDB::Pfamb2pfambPrcResults')
+                  ->search( { 'pfamB1.pfamb_acc' => $c->stash->{pfam}->pfamb_acc },
                             { join               => [ qw( pfamB1 pfamB2 ) ],
-                              select             => [ qw( pfamB1.pfamB_acc pfamB2.pfamB_acc evalue ) ],
-                              as                 => [ qw( l_pfamB_acc r_pfamB_acc evalue ) ],
-                              order_by           => 'pfamB2.auto_pfamB ASC' } );
+                              select             => [ qw( pfamB1.pfamb_acc 
+                                                          pfamB2.pfamb_acc evalue ) ],
+                              as                 => [ qw( l_pfamb_acc 
+                                                          r_pfamb_acc 
+                                                          evalue ) ],
+                              order_by           => 'pfamB2.auto_pfamb ASC' } );
 
   $xRefs{btobPRC} = [];
   foreach ( @btobPRC ) {
     next if $_->get_column( 'evalue' ) <= 0.001;
-    next if $_->get_column( 'l_pfamB_acc') eq $_->get_column( 'r_pfamB_acc' );
+    next if $_->get_column( 'l_pfamb_acc') eq $_->get_column( 'r_pfamb_acc' );
     push @{$xRefs{btobPRC}}, $_;
   }
 
 #  $xRefs{btobPRC} = \@btobPRC if scalar @btobPRC;
 
   # PfamB to PfamA links based on PRC
-  my @btoaPRC = $c->model('PfamDB::PfamB2pfamA_PRC_results')
-                  ->search( { 'pfamB.pfamB_acc' => $c->stash->{pfam}->pfamB_acc, },
-                            { join      => [ qw( pfamA pfamB ) ],
-                              prefetch  => [ qw( pfamA pfamB ) ] } );
+  my @btoaPRC = $c->model('PfamDB::Pfamb2pfamaPrcResults')
+                  ->search( { 'pfamB.pfamb_acc' => $c->stash->{pfam}->pfamb_acc, },
+                            { prefetch  => [ qw( pfamA pfamB ) ] } );
 
   # find the union between PRC and PRODOM PfamB links
   my %btoaPRC;
@@ -241,7 +247,7 @@ sub getDbXrefs : Private {
   my %btoaBOTH;
   foreach ( keys %btoaPRC, keys %btoaPRODOM ) {
     $btoaBOTH{$_} = $btoaPRC{$_}
-      if( exists( $btoaPRC{$_} ) and exists( $btoaPRODOM{$_} ) );
+      if ( exists( $btoaPRC{$_} ) and exists( $btoaPRODOM{$_} ) );
   }
 
   # and then prune out those accessions that are in both lists
