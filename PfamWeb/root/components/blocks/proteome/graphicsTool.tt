@@ -1,11 +1,10 @@
-
 [%
 # graphicsTool.tt
 # jt6 20070821 WTSI
 # 
 # build a page to show the domain graphics for a Pfam domain on a proteome.
 #
-# $Id: graphicsTool.tt,v 1.4 2008-07-17 13:13:19 jt6 Exp $
+# $Id: graphicsTool.tt,v 1.5 2009-10-07 13:55:36 jt6 Exp $
 
 META naked = 1;
 
@@ -33,18 +32,19 @@ pageContent = BLOCK
 
 <script type="text/javascript">
   // <![CDATA[
-  new Ajax.Updater( "dgph",
-                    "[% c.uri_for( "/domaingraphics" ) %]",
-                    { parameters: { pfamAcc: "[% pfamAcc %]",
-                                    taxId:   "[% taxId %]" },
-                      onSuccess:  function( oResponse ) {
-                                    $("dgph").update( oResponse.responseText );
-                                  },
-                      onFailure:  function( oResponse ) {
-                                    $("dgph").update( "There was a problem loading the domain graphics." );
-                                  },
-                    }
-                  );
+
+  var r = new Ajax.Updater(
+    "dgph",
+    "[% c.uri_for( "/domaingraphics" ) %]",
+    {
+      parameters: { pfamAcc: "[% pfamAcc %]",
+                    taxId:   "[% taxId %]" },
+      onFailure:  function( oResponse ) {
+                    $("dgph").update( "There was a problem loading the domain graphics." );
+                  },
+    }
+  );
+
   // ]]>
 </script>
 

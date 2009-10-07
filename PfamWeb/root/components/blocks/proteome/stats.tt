@@ -1,11 +1,10 @@
-
 [%
 # stats.tt
 # jt6 20060821 WTSI
 # 
 # build the domain composition block for the proteome pages
 #
-# $Id: stats.tt,v 1.8 2008-07-17 13:13:19 jt6 Exp $
+# $Id: stats.tt,v 1.9 2009-10-07 13:55:55 jt6 Exp $
 
 oe = 0;
 %]
@@ -63,23 +62,25 @@ oe = 0;
     
     <script type="text/javascript">
       // <![CDATA[
-      postLoad = function() {
-        new Ajax.Request( "[% c.uri_for( "/proteome/stats" ) %]",
-                          { parameters: { taxId: "[% taxId %]" },
-                            onSuccess:  function( oResponse ) {
-                                          $("statsTableDiv").update( oResponse.responseText );
-                                        },
-                            onFailure:  function( oResponse ) {
-                                          $("statsTableDiv").update( "There was a problem loading the statistics table." );
-                                        }
-                          }
-                        );
-      };
-      Event.observe( window, "load", postLoad );
+
+      document.observe( "dom:loaded", function() {
+        var r = new Ajax.Updater(
+          "statsTableDiv",
+          "[% c.uri_for( "/proteome/stats" ) %]",
+          {
+            parameters: { taxId: "[% taxId %]" },
+            onFailure:  function( oResponse ) {
+                          $("statsTableDiv").update( "There was a problem loading the statistics table." );
+                        }
+          }
+        );
+      } );
+
       // ]]>
     </script>
 
   </div>
+
 </div>
 
 <!-- end domain composition block -->
