@@ -2,7 +2,7 @@
 # Domain.pm
 # jt6 20061108 WTSI
 #
-# $Id: Domain.pm,v 1.5 2009-01-09 12:59:24 jt6 Exp $
+# $Id: Domain.pm,v 1.6 2009-10-07 12:11:36 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Domain;
 
 Searches for sequence architectures with the specified set of Pfam domains.
 
-$Id: Domain.pm,v 1.5 2009-01-09 12:59:24 jt6 Exp $
+$Id: Domain.pm,v 1.6 2009-10-07 12:11:36 jt6 Exp $
 
 =cut
 
@@ -38,7 +38,7 @@ Executes a domain query.
 =cut
 
 sub domainSearch : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Search::Domain::domainSearch: executing a domain search' )
     if $c->debug;
@@ -47,7 +47,7 @@ sub domainSearch : Path {
   $c->stash->{template} = 'components/allArchitectures.tt';
 
   my $list = '';
-  if( defined $c->req->param( 'have' ) ) {
+  if ( defined $c->req->param( 'have' ) ) {
     $c->log->debug( 'Search::Domain::domainSearch: must have:     |' . $c->req->param('have') . '|' )
       if $c->debug;
     foreach ( split /\s+/, $c->req->param('have') ) {
@@ -55,7 +55,7 @@ sub domainSearch : Path {
       $list .= "+$1 ";
     }
   }
-  if( defined $c->req->param( 'not' ) ) {
+  if ( defined $c->req->param( 'not' ) ) {
     $c->log->debug( 'Search::Domain::domainSearch: must not have: |' . $c->req->param('not') . '|' )
       if $c->debug;
     foreach ( split /\s+/, $c->req->param('not') ) {
