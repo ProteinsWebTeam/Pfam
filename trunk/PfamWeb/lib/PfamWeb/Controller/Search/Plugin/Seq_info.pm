@@ -2,7 +2,7 @@
 # Seq_info.pm
 # jt6 20060810 WTSI
 #
-# $Id: Seq_info.pm,v 1.6 2008-08-15 13:42:56 jt6 Exp $
+# $Id: Seq_info.pm,v 1.7 2009-10-07 12:00:53 jt6 Exp $
 
 =head1 NAME
 
@@ -26,7 +26,7 @@ following columns:
 
 =back
 
-$Id: Seq_info.pm,v 1.6 2008-08-15 13:42:56 jt6 Exp $
+$Id: Seq_info.pm,v 1.7 2009-10-07 12:00:53 jt6 Exp $
 
 =cut
 
@@ -56,7 +56,7 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::Seq_info::process: text querying table seq_info' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::Seq_info')
+  my $results = $c->model('PfamDB::SeqInfo')
                   ->search( {},
                             {} )
                   ->search_literal( 'MATCH( seq_description, species, pfamseq_id, pfamseq_acc ) ' .
