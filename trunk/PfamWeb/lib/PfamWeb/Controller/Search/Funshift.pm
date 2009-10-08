@@ -2,7 +2,7 @@
 # Funshift.pm
 # jt6 20061108 WTSI
 #
-# $Id: Funshift.pm,v 1.3 2009-10-08 09:23:51 jt6 Exp $
+# $Id: Funshift.pm,v 1.4 2009-10-08 10:12:27 jt6 Exp $
 
 =head1 NAME
 
@@ -17,12 +17,14 @@ package PfamWeb::Controller::Search::Funshift;
 This controller has only a single action, which searches for families according to their
 functional similarity score.
 
-$Id: Funshift.pm,v 1.3 2009-10-08 09:23:51 jt6 Exp $
+$Id: Funshift.pm,v 1.4 2009-10-08 10:12:27 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Search';
 
@@ -36,21 +38,21 @@ Executes a functional similarity search.
 
 =cut
 
-sub funshiftSearch : Path {
+sub funshift_search : Path {
   my ( $this, $c ) = @_;
 
   return unless $c->req->param( 'entry' ) =~ m/^([\w_-]+)$/;
-  $c->log->debug( "Search::Funshift::funshiftSearch: executing a functional similarity search for |$1|" )
+  $c->log->debug( "Search::Funshift::funshift_search: executing a functional similarity search for |$1|" )
     if $c->debug;
 
   # check for an accession or an ID
   $c->stash->{pfam} = $c->model("PfamDB::Pfama")
-                       ->search( [ { pfama_acc => $1 },
-                                   { pfama_id  => $1 } ] )
-                       ->single;
+                        ->search( [ { pfama_acc => $1 },
+                                    { pfama_id  => $1 } ] )
+                        ->single;
 
   unless ( defined $c->stash->{pfam} ) {
-    $c->log->debug( "Search::Funshift::funshiftSearch: can't find a matching Pfam-A" )
+    $c->log->debug( "Search::Funshift::funshift_search: can't find a matching Pfam-A" )
       if $c->debug;
 
     $c->stash->{fsSearchError} = q(Couldn't find a Pfam family with that ID or accession.);
@@ -59,30 +61,41 @@ sub funshiftSearch : Path {
   }
     
   # got a valid accession. Now do the funshift search
-  my @fs = $c->model('PfamDB::FunctionalSimilarity')
+  my @rs = $c->model('PfamDB::FunctionalSimilarity')
              ->search( { auto_pfama_a => $c->stash->{pfam}->auto_pfama,
                          auto_pfama_b => { '!=' => $c->stash->{pfam}->auto_pfama },
                          rfunSim      => { '>'  => 0.75 } },
-                       { join     => [ 'auto_pfama',
-                                       { auto_clan => 'auto_clan' } ],
-                         prefetch => [ 'auto_pfama',
-                                       { auto_clan => 'auto_clan' } ], 
-                         select   => [ qw( rfunsim mfscore bpscore clan_id ) ],
-                         as       => [ qw( rfunsim mfscore bpscore clan_id ) ],
+                       { join     => [ qw( auto_pfama ) ],
+                         prefetch => [ qw( auto_pfama ) ], 
                          order_by => "rfunSim DESC" } );
 
-  $c->log->debug( 'Search::Funshift::funshiftSearch: found |' . scalar @fs . '| rows' )
+  $c->log->debug( 'Search::Funshift::funshift_search: found |' . scalar @rs . '| rows' )
     if $c->debug;
 
-  if ( scalar @fs ) {
+  if ( scalar @rs ) {
 
     $c->stash->{template} = "pages/search/funshift/results.tt";
-    $c->stash->{results} = \@fs;
-  
+    $c->stash->{results}  = \@rs;
+
     # generate a gradient for this many rows
     my $cm = new Sanger::Graphics::ColourMap;
-    my @grad = $cm->build_linear_gradient( scalar @fs, '008000', 'C00000' );
+    my @grad = $cm->build_linear_gradient( scalar @rs, '008000', 'C00000' );
     $c->stash->{gradient} = \@grad;
+
+    my @clan_map = $c->model('PfamDB::ClanMembership')
+                     ->search( {},
+                               { join     => [ 'auto_clan' ],
+                                 prefetch => [ 'auto_clan' ] } );
+
+    my %clan_map;
+    foreach my $row ( @clan_map ) {  
+      $clan_map{ $row->get_column('auto_pfama') } = $row->auto_clan->clan_id;
+    }
+    $c->stash->{clan_map} = \%clan_map;
+
+    $c->log->debug( 'Search::Funshift::funshift_search: clan_map: '
+                    . dump( $c->stash->{clan_map} ) )
+      if $c->debug;
 
   }
   else {
