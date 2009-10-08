@@ -4,7 +4,7 @@
 # 
 # build the entry type search block
 #
-# $Id: type.tt,v 1.2 2009-05-06 11:49:24 jd7 Exp $
+# $Id: type.tt,v 1.3 2009-10-08 16:01:49 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -36,87 +36,88 @@ sharedRequirements.js.push( "treeTweak.js" );
     </p>
     <div id="typeNotes" style="display: none">
       <p> 
-Each family in Rfam is assigned into a type category. This is based on
-its function. These categories are hierarchical such that something
-classified as a ncRNA 'gene' can be further sub-classified into a
-'gene;snoRNA' which can then be further sub-classified as
-'gene;snoRNA;CD-box'. A full list of the existing 'type' categories we
-have is provided below:
-</p>
-<ul>
-<li>Cis-reg;</li>
-<li>Cis-reg; IRES;</li>
-<li>Cis-reg; frameshift_element;</li>
-<li>Cis-reg; leader;</li>
-<li>Cis-reg; riboswitch;</li>
-<li>Cis-reg; thermoregulator;</li>
-<li>Gene;</li>
-<li>Gene; CRISPR;</li>
-<li>Gene; antisense;</li>
-<li>Gene; miRNA;</li>
-<li>Gene; rRNA;</li>
-<li>Gene; ribozyme;</li>
-<li>Gene; sRNA;</li>
-<li>Gene; snRNA;</li>
-<li>Gene; snRNA; snoRNA; CD-box;</li>
-<li>Gene; snRNA; snoRNA; HACA-box;</li>
-<li>Gene; snRNA; snoRNA; scaRNA;</li>
-<li>Gene; snRNA; splicing;</li>
-<li>Gene; tRNA;</li>
-<li>Intron;</li>
-</ul>
-<p>
-This search by type page allows you to browse the families by these
-categories. The tick boxes at each level in the tree diagram allow you
-to get access to the families assigned at each type level.
-</p>
-<p>
-For example: To obtain all the families of ncRNA
-genes - excluding the snoRNAs- you should tick the box 'gene'. All of the
-boxes for the sub levels of gene will become highlighted.  This would return you all
-families assigned to the following categories.
-</p>
-<ul>
-  <li>gene</li>
-  <li>gene;antisense</li>
-  <li>gene;microRNA</li>
-  <li>gene;ribozyme</li>
-  <li>gene;sRNA</li>
-  <li>gene;snRNA</li>
-  <li>gene;snoRNA;CD-box</li>
-  <li>gene;snoRNA;HACA-box</li>
-  <li>gene;snoRNA;scaRNA</li>
-  <li>gene;tRNA</li>
-</ul>
-<p>
-To exclude all the snoRNA you can uncheck the 'snoRNA' box. This will
-provide you with a list of all families which are 'gene' type but not
-include the snoRNAs.
-</p>
-<p>
-<b>You should note</b> that there are some families assigned to the
-'gene' category that are not further sub classified into 'antisense',
-'microRNA', 'snRNA' etc. To obtain only these families you should check
-the gene box and then uncheck all the sub category boxes.
-</p>
-<p>
-Alternatively, if perhaps you are actually only interested in the
-snoRNAs - you can uncheck the 'gene' box and only check the 'snoRNA'
-box. This will return all the snoRNAs in each of the the three snoRNA
-sub categories (CD-box,HACA-box,scaRNA).
-</p>
-<p>
-You can use the flexibility of this tree like structure to select
-for or exclude specific functional groups. The categories you are
-interested in do not need to be within the same branch of the
-tree. You can select categories from various branches such as just
-'riboswitches' and 'scaRNA' to get a list of all the families that are
-scaRNAs or riboswitches.  </p>
-<p>
-The results table you obtain will list all the families in your
-selected categories by Rfam_accession, ID, type and description. You
-can then sort the results on the column data by clicking on the column headers.
-</p>
+        Each family in Rfam is assigned into a type category. This is based on
+        its function. These categories are hierarchical such that something
+        classified as a ncRNA 'gene' can be further sub-classified into a
+        'gene;snoRNA' which can then be further sub-classified as
+        'gene;snoRNA;CD-box'. A full list of the existing 'type' categories we
+        have is provided below:
+      </p>
+      <ul>
+        <li>Cis-reg;</li>
+        <li>Cis-reg; IRES;</li>
+        <li>Cis-reg; frameshift_element;</li>
+        <li>Cis-reg; leader;</li>
+        <li>Cis-reg; riboswitch;</li>
+        <li>Cis-reg; thermoregulator;</li>
+        <li>Gene;</li>
+        <li>Gene; CRISPR;</li>
+        <li>Gene; antisense;</li>
+        <li>Gene; miRNA;</li>
+        <li>Gene; rRNA;</li>
+        <li>Gene; ribozyme;</li>
+        <li>Gene; sRNA;</li>
+        <li>Gene; snRNA;</li>
+        <li>Gene; snRNA; snoRNA; CD-box;</li>
+        <li>Gene; snRNA; snoRNA; HACA-box;</li>
+        <li>Gene; snRNA; snoRNA; scaRNA;</li>
+        <li>Gene; snRNA; splicing;</li>
+        <li>Gene; tRNA;</li>
+        <li>Intron;</li>
+      </ul>
+      <p>
+        This search by type page allows you to browse the families by these
+        categories. The tick boxes at each level in the tree diagram allow you
+        to get access to the families assigned at each type level.
+      </p>
+      <p>
+        For example: To obtain all the families of ncRNA
+        genes - excluding the snoRNAs- you should tick the box 'gene'. All of the
+        boxes for the sub levels of gene will become highlighted.  This would return you all
+        families assigned to the following categories.
+      </p>
+      <ul>
+        <li>gene</li>
+        <li>gene;antisense</li>
+        <li>gene;microRNA</li>
+        <li>gene;ribozyme</li>
+        <li>gene;sRNA</li>
+        <li>gene;snRNA</li>
+        <li>gene;snoRNA;CD-box</li>
+        <li>gene;snoRNA;HACA-box</li>
+        <li>gene;snoRNA;scaRNA</li>
+        <li>gene;tRNA</li>
+      </ul>
+      <p>
+        To exclude all the snoRNA you can uncheck the 'snoRNA' box. This will
+        provide you with a list of all families which are 'gene' type but not
+        include the snoRNAs.
+      </p>
+      <p>
+        <b>You should note</b> that there are some families assigned to the
+        'gene' category that are not further sub classified into 'antisense',
+        'microRNA', 'snRNA' etc. To obtain only these families you should check
+        the gene box and then uncheck all the sub category boxes.
+      </p>
+      <p>
+        Alternatively, if perhaps you are actually only interested in the
+        snoRNAs - you can uncheck the 'gene' box and only check the 'snoRNA'
+        box. This will return all the snoRNAs in each of the the three snoRNA
+        sub categories (CD-box,HACA-box,scaRNA).
+      </p>
+      <p>
+        You can use the flexibility of this tree like structure to select
+        for or exclude specific functional groups. The categories you are
+        interested in do not need to be within the same branch of the
+        tree. You can select categories from various branches such as just
+        'riboswitches' and 'scaRNA' to get a list of all the families that are
+        scaRNAs or riboswitches.
+      </p>
+      <p>
+        The results table you obtain will list all the families in your
+        selected categories by Rfam_accession, ID, type and description. You
+        can then sort the results on the column data by clicking on the column headers.
+      </p>
       <hr />
     </div>
 
@@ -165,82 +166,83 @@ can then sort the results on the column data by clicking on the column headers.
     </div>
   
   </div>
-</div>
 
-<script type="text/javascript">
-  // <![CDATA[
+  <script type="text/javascript">
+    // <![CDATA[
 
-  var treeData = [
-    { label: "Gene", path: "Gene;",
-      children: [ { label: "anti-sense", path: "Gene;antisense;" },
-                  { label: "microRNA", path: "Gene;miRNA;" },
-                  { label: "rRNA", path: "Gene;rRNA;" },
-                  { label: "ribozyme", path: "Gene;ribozyme;" },
-                  { label: "sRNA", path: "Gene;sRNA;" },
-                  { label: "snRNA", path: "Gene;snRNA;",
-                    children: [ { label: "snoRNA", path: "Gene;snRNA;snoRNA;",
-                                  children: [ { label: "CD-box", path: "Gene;snRNA;snoRNA;CD-box;" },
-                                              { label: "HACA-box", path: "Gene;snRNA;snoRNA;HACA-box;" },
-                                              { label: "scaRNA", path: "Gene;snRNA;snoRNA;scaRNA;" } ] },
-                                { label: "splicing", path: "Gene;snRNA;splicing;" } ] },
-                  { label: "tRNA", path: "Gene;tRNA;" } ] },
-    { label: "Intron", path: "Intron;" },
-    { label: "Cis-regulatory element", path: "Cis-reg;",
-      children: [ { label: "IRES", path: "Cis-reg;IRES;" },
-                  { label: "Frameshift element", path: "Cis-reg;frameshift_element;" },
-                  { label: "leader", path: "Cis-reg;leader;" },
-                  { label: "riboswitch", path: "Cis-reg;riboswitch;" },
-                  { label: "thermoregulator", path: "Cis-reg;thermoregulator;" } ] }
-  ];
-  
-  var exampleData = { "sRNA": 1,
-                       "riboswitch" : 1 };
+    var treeData = [
+      { label: "Gene", path: "Gene;",
+        children: [ { label: "anti-sense", path: "Gene;antisense;" },
+                    { label: "microRNA", path: "Gene;miRNA;" },
+                    { label: "rRNA", path: "Gene;rRNA;" },
+                    { label: "ribozyme", path: "Gene;ribozyme;" },
+                    { label: "sRNA", path: "Gene;sRNA;" },
+                    { label: "snRNA", path: "Gene;snRNA;",
+                      children: [ { label: "snoRNA", path: "Gene;snRNA;snoRNA;",
+                                    children: [ { label: "CD-box", path: "Gene;snRNA;snoRNA;CD-box;" },
+                                                { label: "HACA-box", path: "Gene;snRNA;snoRNA;HACA-box;" },
+                                                { label: "scaRNA", path: "Gene;snRNA;snoRNA;scaRNA;" } ] },
+                                  { label: "splicing", path: "Gene;snRNA;splicing;" } ] },
+                    { label: "tRNA", path: "Gene;tRNA;" } ] },
+      { label: "Intron", path: "Intron;" },
+      { label: "Cis-regulatory element", path: "Cis-reg;",
+        children: [ { label: "IRES", path: "Cis-reg;IRES;" },
+                    { label: "Frameshift element", path: "Cis-reg;frameshift_element;" },
+                    { label: "leader", path: "Cis-reg;leader;" },
+                    { label: "riboswitch", path: "Cis-reg;riboswitch;" },
+                    { label: "thermoregulator", path: "Cis-reg;thermoregulator;" } ] }
+    ];
+    
+    var exampleData = { "sRNA": 1,
+                         "riboswitch" : 1 };
 
-  var tree;
-  var nodes = new Array();
-  function treeInit() {
-    var build = function ( parent, oConfig ) {
-      var i, item, node;
-      for ( var i = 0; i < oConfig.length; i++ ) {
-        item = oConfig[i];
-        node = new YAHOO.widget.TaskNode( item.label, parent, item.path, true, false, false );
-        nodes.push( node );
-        if ( item.children ) {
-          build( node, item.children );
+    var tree;
+    var nodes = new Array();
+    function treeInit() {
+      var build = function ( parent, oConfig ) {
+        var i, item, node;
+        for ( var i = 0; i < oConfig.length; i++ ) {
+          item = oConfig[i];
+          node = new YAHOO.widget.TaskNode( item.label, parent, item.path, true, false, false );
+          nodes.push( node );
+          if ( item.children ) {
+            build( node, item.children );
+          }
         }
-      }
-    };
-    tree = new YAHOO.widget.TreeView( "treeDiv" );
-    build( tree.getRoot(), treeData );
-    tree.draw();
-  }
-  YAHOO.util.Event.onDOMReady( treeInit );
+      };
+      tree = new YAHOO.widget.TreeView( "treeDiv" );
+      build( tree.getRoot(), treeData );
+      tree.draw();
+    }
+    YAHOO.util.Event.onDOMReady( treeInit );
 
-  function submitForm() {
-    var checked = $$("td.ygtvcheck2").collect(
-      function(cell) {
-        return cell.next('td',1).innerHTML;
+    function submitForm() {
+      var checked = $$("td.ygtvcheck2").collect(
+        function(cell) {
+          return cell.next('td',1).innerHTML;
+        }
+      );
+      if ( checked.length < 1 ) {
+        return false;
       }
-    );
-    if ( checked.length < 1 ) {
-      return false;
+
+      $("typePaths").setValue( checked.join(",") );        
+      return true;
     }
 
-    $("typePaths").setValue( checked.join(",") );        
-    return true;
-  }
+    function fillTypeExample() {
+      nodes.each( function( node ) {
+        node.uncheck();
+        if ( exampleData[node.data] ) {
+          node.check();
+        }
+      } );
+    }
 
-  function fillTypeExample() {
-    nodes.each( function( node ) {
-      node.uncheck();
-      if ( exampleData[node.data] ) {
-        node.check();
-      }
-    } );
-  }
+    // ]]>
+  </script>
 
-  // ]]>
-</script>
+</div>
 
 <!-- end type search block -->
 [%#

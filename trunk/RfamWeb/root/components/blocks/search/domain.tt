@@ -4,7 +4,7 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.1 2008-09-12 09:26:23 jt6 Exp $
+# $Id: domain.tt,v 1.2 2009-10-08 16:01:48 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 
@@ -142,42 +142,43 @@ pageList = BLOCK %]
     <div id="textResults" style="float: left"><!-- empty --></div>
         
   </div>
-</div>
 
-<script type="text/javascript">
-  // <![CDATA[
-  function submitter() {
-    dsStarted();
-    new Ajax.Updater( 'textResults',
-                      '[% c.uri_for( "/search/domain" ) %]', 
-                      {
-                        parameters: $("domainSearchForm").serialize(true),
-                        onComplete: function(request) {
-                                      dsCompleted(); 
-                                    }
-                      }
-                    );
-  }
-
-  // hide the two spinners in the page and the results title
-  $( "nlUpdateSpinner", "searchUpdateSpinner", "resultsHeader" ).invoke( "hide" );
-
-  // the select fields have children just to make the HTML validate, but we
-  // really want them empty, so do that now
-  $( "idSelection", "have", "not" ).each(
-    function(s) {
-      $A( s.childNodes ).each(
-        function(c) {
-          s.remove(c);          
-        }
-      );      
+  <script type="text/javascript">
+    // <![CDATA[
+    function submitter() {
+      dsStarted();
+      new Ajax.Updater( 'textResults',
+                        '[% c.uri_for( "/search/domain" ) %]', 
+                        {
+                          parameters: $("domainSearchForm").serialize(true),
+                          onComplete: function(request) {
+                                        dsCompleted(); 
+                                      }
+                        }
+                      );
     }
-  );
 
-  // set the URI for looking up the IDs beginning with a particular numeral
-  var queryURI = "[% c.uri_for( "/family/browse" ) %]";
-  // ]]>
-</script>
+    // hide the two spinners in the page and the results title
+    $( "nlUpdateSpinner", "searchUpdateSpinner", "resultsHeader" ).invoke( "hide" );
+
+    // the select fields have children just to make the HTML validate, but we
+    // really want them empty, so do that now
+    $( "idSelection", "have", "not" ).each(
+      function(s) {
+        $A( s.childNodes ).each(
+          function(c) {
+            s.remove(c);          
+          }
+        );      
+      }
+    );
+
+    // set the URI for looking up the IDs beginning with a particular numeral
+    var queryURI = "[% c.uri_for( "/family/browse" ) %]";
+    // ]]>
+  </script>
+
+</div>
 
 <!-- end domain search block -->
 [%#
