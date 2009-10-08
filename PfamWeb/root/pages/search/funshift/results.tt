@@ -5,7 +5,7 @@
 # 
 # funshift search results page
 #
-# $Id: results.tt,v 1.9 2009-10-07 12:27:41 jt6 Exp $
+# $Id: results.tt,v 1.10 2009-10-08 09:24:02 jt6 Exp $
 
 META title = "Functional similarity search results";
 META fullPage = 1;
@@ -99,19 +99,21 @@ sharedRequirements.js.push( "tablekit.js" );
     </thead>
     <tbody>
       [% FOREACH row IN results;
-      familyUri = c.uri_for( "/family", { acc = row.pfama_acc } ) %]
+      familyUri = c.uri_for( "/family", row.auto_pfama.pfama_acc ) %]
       <tr class="[% loop.index % 2 ? "odd" : "even" %]">
         <td class="rowNum">[% loop.index %]</td>
-        <td><a href="[% familyUri %]">[% row.pfama_id %]</a></td>
-        <td><a href="[% familyUri %]">[% row.pfama_acc %]</a></td>
+        <td><a href="[% familyUri %]">[% row.auto_pfama.pfama_id %]</a></td>
+        <td><a href="[% familyUri %]">[% row.auto_pfama.pfama_acc %]</a></td>
         <td>
-          [% IF row.clan_id %]
-          <a href="[% c.uri_for( "/clan", { id = row.clan_id } ) %]">[% row.clan_id %]</a>
+          [% IF row.get_column("clan_id") %]
+          <a href="[% c.uri_for( '/clan', row.get_column('clan_id') ) %]">
+            [% row.get_column('clan_id') %]</a>
           [% ELSE; "-"; END %]
         </td>
-        <td style="color: #FFF; font-weight: bold; background: #[% gradient.${loop.index} %]">[% row.rfunSim ? row.rfunSim : "-" %]</td>
-        <td>[% row.mfscore ? row.mfscore : "-" %]</td>
-        <td>[% row.bpscore ? row.bpscore : "-" %]</td>
+        <td style="color: #FFF; font-weight: bold; background: #[% gradient.${loop.index} %]">
+          [% row.get_column('rfunsim') ? row.get_column('rfunsim') : "-" %]</td>
+        <td>[% row.get_column('mfscore') ? row.get_column('mfscore') : "-" %]</td>
+        <td>[% row.get_column('bpscore') ? row.get_column('bpscore') : "-" %]</td>
       </tr>
       [% END %]
     </tbody>
