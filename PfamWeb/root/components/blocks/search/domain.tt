@@ -4,7 +4,10 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.9 2009-10-07 14:03:12 jt6 Exp $
+# $Id: domain.tt,v 1.10 2009-10-08 13:40:26 jt6 Exp $
+
+# TODO reinstate when it's fixed...
+RETURN;
 
 #-------------------------------------------------------------------------------
 
