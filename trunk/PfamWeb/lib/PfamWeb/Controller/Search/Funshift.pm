@@ -2,7 +2,7 @@
 # Funshift.pm
 # jt6 20061108 WTSI
 #
-# $Id: Funshift.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Funshift.pm,v 1.3 2009-10-08 09:23:51 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Search::Funshift;
 This controller has only a single action, which searches for families according to their
 functional similarity score.
 
-$Id: Funshift.pm,v 1.2 2008-05-16 15:29:28 jt6 Exp $
+$Id: Funshift.pm,v 1.3 2009-10-08 09:23:51 jt6 Exp $
 
 =cut
 
@@ -37,49 +37,44 @@ Executes a functional similarity search.
 =cut
 
 sub funshiftSearch : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   return unless $c->req->param( 'entry' ) =~ m/^([\w_-]+)$/;
-  $c->log->debug( "Search::Funshift::funshiftSearch: executing a functional similarity search for |$1|" );
+  $c->log->debug( "Search::Funshift::funshiftSearch: executing a functional similarity search for |$1|" )
+    if $c->debug;
 
   # check for an accession or an ID
-  if( $c->req->param( 'entry' ) =~ /^(PF\d{5})$/i ) {
+  $c->stash->{pfam} = $c->model("PfamDB::Pfama")
+                       ->search( [ { pfama_acc => $1 },
+                                   { pfama_id  => $1 } ] )
+                       ->single;
 
-    $c->log->debug( 'Search::Funshift::funshiftSearch: might be a Pfam accession' );
-    $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_acc => $1 } );
+  unless ( defined $c->stash->{pfam} ) {
+    $c->log->debug( "Search::Funshift::funshiftSearch: can't find a matching Pfam-A" )
+      if $c->debug;
 
-  } elsif( $c->req->param( "entry" ) =~ /^([\w_-]+)$/ ) {
-
-    $c->log->debug( 'Search::Funshift::funshiftSearch: might be a Pfam accession' );
-    $c->stash->{pfam} = $c->model("PfamDB::Pfam")->find( { pfamA_id => $1 } );
-
-  } else {
-    
-    $c->log->debug( q(Search::Funshift::funshiftSearch: can't figure out whether it's an ID or acc) );
     $c->stash->{fsSearchError} = q(Couldn't find a Pfam family with that ID or accession.);
+
     return;
+  }
     
-  }
-  
-  # make sure the query actually found an entry
-  if( not defined $c->stash->{pfam} ) {
-    $c->log->debug( "Search::Funshift::funshiftSearch: can't find a Pfam family |$1|" );
-    $c->stash->{fsSearchError} = q(Couldn't find a family with that ID or accession.);
-    return;
-  }
-  
-  # yes; now do the funshift search
-  my @fs = $c->model('PfamDB::Funshift')
-             ->search( { auto_pfamA_A => $c->stash->{pfam}->auto_pfamA,
-                         auto_pfamA_B => { '!=' => $c->stash->{pfam}->auto_pfamA },
+  # got a valid accession. Now do the funshift search
+  my @fs = $c->model('PfamDB::FunctionalSimilarity')
+             ->search( { auto_pfama_a => $c->stash->{pfam}->auto_pfama,
+                         auto_pfama_b => { '!=' => $c->stash->{pfam}->auto_pfama },
                          rfunSim      => { '>'  => 0.75 } },
-                       { join     => [ qw( pfam clan ) ],
-                         prefetch => [ qw( pfam clan ) ], 
+                       { join     => [ 'auto_pfama',
+                                       { auto_clan => 'auto_clan' } ],
+                         prefetch => [ 'auto_pfama',
+                                       { auto_clan => 'auto_clan' } ], 
+                         select   => [ qw( rfunsim mfscore bpscore clan_id ) ],
+                         as       => [ qw( rfunsim mfscore bpscore clan_id ) ],
                          order_by => "rfunSim DESC" } );
 
-  $c->log->debug( 'Search::Funshift::funshiftSearch: found |' . scalar @fs . '| rows' );
+  $c->log->debug( 'Search::Funshift::funshiftSearch: found |' . scalar @fs . '| rows' )
+    if $c->debug;
 
-  if( scalar @fs ) {
+  if ( scalar @fs ) {
 
     $c->stash->{template} = "pages/search/funshift/results.tt";
     $c->stash->{results} = \@fs;
@@ -89,10 +84,11 @@ sub funshiftSearch : Path {
     my @grad = $cm->build_linear_gradient( scalar @fs, '008000', 'C00000' );
     $c->stash->{gradient} = \@grad;
 
-  } else {
+  }
+  else {
     # see if there are any GO terms for this family
-    $c->stash->{goTerms} = $c->model('PfamDB::GO')
-                             ->search( { 'me.auto_pfamA' => $c->stash->{pfam}->auto_pfamA } );
+    $c->stash->{goTerms} = $c->model('PfamDB::GeneOntology')
+                             ->search( { 'me.auto_pfama' => $c->stash->{pfam}->auto_pfama } );
     
     $c->stash->{template} = 'pages/search/funshift/error.tt';
   }
