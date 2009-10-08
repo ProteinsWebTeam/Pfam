@@ -6,7 +6,7 @@
 # importing of stylesheets, javascripts, etc., and decides which tab should be
 # shown, using a snippet of JS.
 #
-# $Id: head.tt,v 1.5 2009-06-05 14:35:24 jt6 Exp $
+# $Id: head.tt,v 1.6 2009-10-08 16:00:54 jt6 Exp $
 
 # use uri_for to get the root for the static directory
 staticUri = c.uri_for( "/static" );
@@ -40,20 +40,27 @@ IF refreshUri != "";
 
 <!-- prototype / scriptaculous -->
 <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-<script type="text/javascript">google.load("prototype", "1.6.0.3");</script>
+<script type="text/javascript">google.load("prototype", "1.6.1");</script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/scriptaculous/1.8.1/scriptaculous.js?load=effects,controls"></script>
+
+<!-- YUI -->
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/element/element-min.js"></script>
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/tabview/tabview-min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/tabview/assets/skins/sam/tabview.css"/>
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/treeview/treeview-min.js"></script>
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.8.0r4/build/treeview/assets/skins/sam/treeview.css" />
+
+<script type="text/javascript" src="http://yui.yahooapis.com/2.8.0r4/build/history/history-min.js"></script>
+
+<!-- google analytics -->
+<script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
 
 <!-- prototip -->
 <script type='text/javascript' src='[% sharedUri %]/javascripts/prototip.js'></script>
 <link rel='stylesheet' href='[% sharedUri %]/css/prototip.css' type='text/css' />
-
-<!-- YUI -->
-<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
-<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/treeview/treeview-min.js"></script>
-<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/treeview/assets/skins/sam/treeview.css" /> 
-
-<!-- google analytics -->
-<script type="text/javascript" src="http://js.sanger.ac.uk/urchin.js" ></script>
 
 <!-- ====================================================================== -->
 <!-- local javascript files -->
