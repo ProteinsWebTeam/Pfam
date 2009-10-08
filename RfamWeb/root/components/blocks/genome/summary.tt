@@ -4,7 +4,7 @@
 # 
 # build the summary block for the genome pages
 #
-# $Id: summary.tt,v 1.2 2009-01-15 15:06:43 jt6 Exp $
+# $Id: summary.tt,v 1.3 2009-10-08 16:01:48 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -18,12 +18,6 @@ requirements.css.push( "genome.css" );
 USE String;
 %]
 
-<script type="text/javascript">
-  // <![CDATA[
-  //Event.observe( window, "load", genomePostLoad, false );
-  // ]]>
-</script>
-  
 <!-- start genome summary block -->
 
 <div class="block" id="genomeSummaryBlock">
@@ -75,45 +69,46 @@ USE String;
     </table>
     
   </div>
+
+  <script type="text/javascript">
+    // <![CDATA[
+
+    // build the little taxonomy tree
+    try {
+      var tree = new YAHOO.widget.TreeView("lineage"); 
+      var parent = tree.getRoot();
+      
+      [%- # get the taxonomy strings out of the hit list. Rather convoluted...
+      taxonomyString = hits.values.first.rows.first.taxonomy;
+
+      FOREACH node IN taxonomyString.split('; ');
+
+        nodeName = String.new( node ).trim.pop('\.');
+        nodeId = String.new( nodeName );
+        CALL nodeId.replace( "\\s\.", "_" ); %]
+
+        var [% nodeId %]Node = new YAHOO.widget.TextNode(
+          {
+            label: "[% nodeName %]",
+            href:  "http://www.uniprot.org/taxonomy?query=[% nodeName %]"
+          },
+          parent,
+          true
+        );
+        parent = [% nodeId %]Node;
+
+      [%- END -%]
+
+      tree.draw();
+    } catch( e ) {
+      // fall-back to the lineage string itself
+      $("lineage").update("[% genome.taxonomy %]");
+    }
+
+    // ]]>
+  </script>
+
 </div>
-
-<script type="text/javascript">
-  // <![CDATA[
-
-  // build the little taxonomy tree
-  try {
-    var tree = new YAHOO.widget.TreeView("lineage"); 
-    var parent = tree.getRoot();
-    
-    [%- # get the taxonomy strings out of the hit list. Rather convoluted...
-    taxonomyString = hits.values.first.rows.first.taxonomy;
-
-    FOREACH node IN taxonomyString.split('; ');
-
-      nodeName = String.new( node ).trim.pop('\.');
-      nodeId = String.new( nodeName );
-      CALL nodeId.replace( "\\s\.", "_" ); %]
-
-      var [% nodeId %]Node = new YAHOO.widget.TextNode(
-        {
-          label: "[% nodeName %]",
-          href:  "http://www.uniprot.org/taxonomy?query=[% nodeName %]"
-        },
-        parent,
-        true
-      );
-      parent = [% nodeId %]Node;
-
-    [%- END -%]
-
-    tree.draw();
-  } catch( e ) {
-    // fall-back to the lineage string itself
-    $("lineage").update("[% genome.taxonomy %]");
-  }
-
-  // ]]>
-</script>
 
 <!-- end genome summary block -->
 
