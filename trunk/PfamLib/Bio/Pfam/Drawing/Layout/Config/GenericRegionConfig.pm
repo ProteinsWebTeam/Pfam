@@ -6,51 +6,50 @@ package Bio::Pfam::Drawing::Layout::Config::GenericRegionConfig;
 
 use strict;
 use warnings;
+use Convert::Color;
 
-use Bio::Pfam::Drawing::Layout::Region;
-use Bio::Pfam::Drawing::Colour::hexColour;
-use Bio::Pfam::Drawing::Colour::rgbColour;
+use Moose;
+use Moose::Util::TypeConstraints;
 
-sub new {
-  my $caller = shift;
-  my $self = bless {}, ref($caller) || $caller;
-  $self->{'colour_no'}=1;
-  return $self;
-}
 
-sub configure_Region {
+has 'colourIndex' => (
+  isa     => 'Int',
+  is      => 'rw',
+  default => '0'
+);
+
+sub configureRegion {
   my ($self, $region) = @_;
   # set up the shape type
-  $region->type("smlShape");
+  
+  $self->_setEdges;
 
-  #A small image does not have ends, so we do not need to set them
-
-  #As we do not knw what sort of region this is we can nt construct a url
+   #As we do not knw what sort of region this is we can nt construct a url
 
   #Now contruct the label
-  $self->_construct_label($region);
+  #$self->constructLabel($region);
   
   #Now Colour the Region
-  $self->_set_colours($region);
+  $self->_setColours($region);
 }
 
-sub _construct_label{
+sub constructLabel{
   my ($self, $region) = @_;
-  if($region->BioAnnotatedRegion->display){
-    $region->label($region->BioAnnotatedRegion->display);
-  }
+  
+  my $label = 'wibble'; 
 }
 
-sub resolve_internal_overlaps {
-  my ($self, $region1, $region2) = @_;
-  #C-terminal coos of N-terminal region wins
-}
-
+ 
 #This sets the generic region to a dark grey colour
-sub _set_colours{
+sub _setColour{
   my ($self, $region) = @_;
-  my $colour = Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "707070");
-  $region->colour1($colour);
+  $region->colour( Convert::Color->new( 'x11:grey') );
+}
+
+sub _setEdges{
+  my ($self, $region) = @_;
+  $region->startStyle('curved');
+  $region->endStyle('curved');  
 }
 
 

@@ -1,73 +1,298 @@
 package Bio::Pfam::ViewProcess;
 
-use Bio::Pfam::PfamJobsDBManager;
-use Bio::Pfam::PfamRCS;
-
-use Data::UUID;
-
 use strict;
 use warnings;
+use Data::UUID;
+use Mail::Mailer;
+use LSF::Job;
+
+use Bio::Pfam::PfamJobsDBManager;
+use Bio::Pfam::PfamLiveDBManager;
 
 sub initiateViewProcess {
-  my($en, $name) = @_;
-  
-  unless( $en->isa("Bio::Pfam::EntryA_RCS") ){
-    die( "Expected a Bio::Pfam::EntryA_RCS object" );
+  my ( $famObj, $name, $config ) = @_;
+
+  unless ( $famObj->isa("Bio::Pfam::Family::PfamA") ) {
+    die("Expected a Bio::Pfam::Family::PfamA object");
   }
-  
-  unless($en->acc and $en->id){
-    die( "Entry accession or ID is not defined, therefore cannot add to the jobs database!");   
+
+  unless ( $famObj->DESC->AC and $famObj->DESC->ID ) {
+    die(
+"Entry accession or ID is not defined, therefore cannot add to the jobs database!"
+    );
   }
-  
-  unless( $name ){
-    die( "User not defined!"); 
+
+  unless ($name) {
+    die "Needed a user id\n";
   }
-  
+
+  if ( $famObj->DESC->CL ) {
+    Bio::Pfam::ViewProcess::initiateClanViewProcess( $famObj->DESC->CL, $name,
+      $config );
+  }
+  else {
+    Bio::Pfam::ViewProcess::initiateFamilyViewProcess( $famObj, $name,
+      $config );
+  }
+}
+
+sub initiateClanViewProcess {
+  my ( $clanAcc, $name, $config ) = @_;
+
   #Make a unique idea for the job!
   my $uid = Data::UUID->new()->create_str();
-  my $db = Bio::Pfam::PfamJobsDBManager->new('host', 'pfamdb2a', 'user', 'pfam', 'port', '3303', 'password', 'mafp1');  
-  
-  unless ( $db ){
-    die ("Could not get a connection to the PfamJob database!");
+  my $db  = Bio::Pfam::PfamJobsDBManager->new( %{ $config->pfamjobs } );
+  unless ($db) {
+    die("Could not get a connection to the PfamJob database!");
   }
-  
-  my $size = '';
-  
-  if($en->num_full){
-     $size = $en->num_full;
+
+  my $pfamDB = Bio::Pfam::PfamLiveDBManager->new( %{ $config->pfamlive } );
+
+#Look for any existing clan jobs!
+#-------------------------------------------------------------------------------
+# Now clear out any existing jobs for that family.
+  my @jobs = $db->getSchema->resultset('JobHistory')->search(
+    {
+      entity_acc => $clanAcc,
+      -and       => [
+        status => { '!=' => 'DONE' },
+        status => { '!=' => 'KILL' }
+      ],
+    }
+  );
+
+  if ( scalar(@jobs) ) {
+    foreach my $job (@jobs) {
+      if ( $job->lsf_id and $job->lsf_id =~ /\d+/ ) {
+        Bio::Pfam::ViewProcess::killJob( $job->lsf_id );
+      }
+      $job->update(
+        {
+          status => 'KILL',
+          closed => \'NOW()'
+        }
+      );
+    }
   }
-  #Add the job to the pfam_jobs database.
-  #Need to steal the transactions part from John.
+
+  my $clan      = $pfamDB->getClanData($clanAcc);
+  my $clanMembs = $pfamDB->getClanMembership($clanAcc);
+
+  foreach my $memb (@$clanMembs) {
+
+    #Now look for any families belonging to that jobs.
+    print "*** $memb ***\n";
+    Bio::Pfam::ViewProcess::killFamilyJob( $memb->auto_pfama->pfama_acc, $db );
+  }
+
+  #Add the clan job to the pfam_jobs database.
   my $transaction = sub {
-    my $r = $db->getSchema
-              ->resultset('JobHistory')
-                ->create({ status     => 'PEND',
-                                          job_id      => $uid,
-                                          family_acc  => $en->acc,
-                                          family_id   => $en->id,
-                                          family_size => $size,
-                                          job_type    => 'view',
-                                          options     => '',
-                                          opened      => \'NOW()',
-                                          user_id     => $name });
-                                          
-    my $s = $db->getSchema
-              ->resultset('JobStream')
-                ->create( { id => $r->id });  
-  };  
-  
-  #Lets tran 
-  eval {
-       $db->getSchema
-           ->txn_do( $transaction );
+    my $r = $db->getSchema->resultset('JobHistory')->create(
+      {
+        status     => 'PEND',
+        job_id     => $uid,
+        entity_acc => $clan->clan_acc,
+        entity_id  => $clan->clan_id,
+        job_type   => 'clan',
+        options    => '',
+        opened     => \'NOW()',
+        user_id    => $name
+      }
+    );
+
+    my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id } );
   };
-  if ( $@ ) {
-    die "Failed during job submission transaction!: [$@]\n"; 
-  }        
-  
+
+  #Lets tran
+  eval { $db->getSchema->txn_do($transaction); };
+  if ($@) {
+    die "Failed during 'clan view' job submission transaction!: [$@]\n";
+  }
+
+  print STDERR "Submitted job to make clan view files - job-id: $uid\n";
+
+}
+
+sub initiateFamilyViewProcess {
+  my ( $famObj, $name, $config ) = @_;
+
+  #Make a unique idea for the job!
+  my $uid = Data::UUID->new()->create_str();
+  my $db  = Bio::Pfam::PfamJobsDBManager->new( %{ $config->pfamjobs } );
+
+  unless ($db) {
+    die("Could not get a connection to the PfamJob database!");
+  }
+
+#-------------------------------------------------------------------------------
+# Now clear out any existing jobs for that family.
+  Bio::Pfam::ViewProcess::killFamilyJob( $famObj->DESC->AC, $db );
+
+  my $size = $famObj->ALIGN->no_sequences;
+
+  #Add the job to the pfam_jobs database.
+  my $transaction = sub {
+    my $r = $db->getSchema->resultset('JobHistory')->create(
+      {
+        status      => 'PEND',
+        job_id      => $uid,
+        entity_acc  => $famObj->DESC->AC,
+        entity_id   => $famObj->DESC->ID,
+        entity_size => $size,
+        job_type    => 'family',
+        options     => '',
+        opened      => \'NOW()',
+        user_id     => $name
+      }
+    );
+
+    my $s = $db->getSchema->resultset('JobStream')->create( { id => $r->id } );
+  };
+
+  #Lets tran
+  eval { $db->getSchema->txn_do($transaction); };
+  if ($@) {
+    die "Failed during job submission transaction!: [$@]\n";
+  }
+
   print STDERR "Submitted job to make view files - job-id: $uid\n";
+
   #Now release the lock on the family!
-  Bio::Pfam::PfamRCS::abort_lock_on_family( $en->id );  
+}
+
+sub initiateAncillaryViewProcess {
+  my ( $name, $config ) = @_;
+
+  #Make a unique idea for the job!
+  my $uid = Data::UUID->new()->create_str();
+  my $db  = Bio::Pfam::PfamJobsDBManager->new( %{ $config->pfamjobs } );
+
+  unless ($db) {
+    die("Could not get a connection to the PfamJob database!");
+  }
+  my $rs = $db->getSchema->resultset('JobHistory')->search(
+    {
+      job_type => 'ancillary',
+      -and     => [
+        status => { '!=' => 'DONE' },
+        status => { '!=' => 'KILL' }
+      ],
+    }
+  );
+  unless ( $rs->count ) {
+    #Add the ancillary job to the pfam_jobs database.
+    my $transaction = sub {
+      my $r = $db->getSchema->resultset('JobHistory')->create(
+        {
+          status     => 'PEND',
+          job_id     => $uid,
+          entity_acc => 'Ancillary',
+          entity_id  => 'Ancillary',
+          job_type   => 'Ancillary',
+          options    => '',
+          opened     => \'NOW()',
+          user_id    => $name
+        }
+      );
+
+      my $s =
+        $db->getSchema->resultset('JobStream')->create( { id => $r->id } );
+    };
+
+    #Lets tran
+    eval { $db->getSchema->txn_do($transaction); };
+    if ($@) {
+      die "Failed during job submission transaction!: [$@]\n";
+    }
+  }
+}
+
+sub killFamilyJob {
+  my ( $acc, $db ) = @_;
+  my @jobs = $db->getSchema->resultset('JobHistory')->search(
+    {
+      entity_acc => $acc,
+      -and       => [
+        status => { '!=' => 'DONE' },
+        status => { '!=' => 'KILL' }
+      ],
+    }
+  );
+
+  if ( scalar(@jobs) ) {
+    foreach my $job (@jobs) {
+      if ( $job->lsf_id and $job->lsf_id =~ /\d+/ ) {
+        Bio::Pfam::ViewProcess::killJob( $job->lsf_id );
+      }
+      $job->update(
+        {
+          status => 'KILL',
+          closed => \'NOW()'
+        }
+      );
+    }
+  }
+
+}
+
+sub killJob {
+  my ($job_id) = @_;
+
+  #Build the job oblect for the job_id
+  my $lsfJob = LSF::Job->new($job_id);
+
+  #Now kill is! Muuuuhahah!
+  eval { $lsfJob->kill if ($lsfJob); };
+  if ($@) {
+    print STDERR
+      "Got the following error trying to kill off an old view process:\n$@\n";
+    print STDERR
+"This may cause downstream problems, so you should tell someone who knows what it going on.\n";
+  }
+}
+
+sub mailPfam {
+  my ( $title, $message, $nodie ) = @_;
+  my %header = (
+    To      => 'rdf@sanger.ac.uk',
+    From    => 'rdf@sanger.ac.uk',
+    Subject => $title
+  );
+
+  my $mailer = Mail::Mailer->new;
+  $mailer->open( \%header );
+  print $mailer $message;
+  $mailer->close;
+  exit(1) unless ($nodie);
+}
+
+sub mailUserAndFail {
+  my ( $job, $message ) = @_;
+
+  if ( $job->user_id ) {
+    my %header = (
+      To      => $job->user_id . '@sanger.ac.uk',
+      Cc      => 'rdf@sanger.ac.uk',
+      From    => 'rdf@sanger.ac.uk',
+      Subject => 'Error in view process for ' . $job->entity_id
+    );
+    my $mailer = Mail::Mailer->new;
+    $mailer->open( \%header );
+    print $mailer $job->entity_id . "\n" . $message;
+    $mailer->close;
+  }
+  else {
+    mailPfam( "View process for " . $job->entity_acc . " failed",
+      "No user found for the job" );
+  }
+
+  $job->update(
+    {
+      status => 'FAIL',
+      closed => \'NOW()'
+    }
+  );
+  exit(1);
 }
 
 =head1 AUTHOR
