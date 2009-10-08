@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.7 2009-10-07 22:06:10 jt6 Exp $
+# $Id: Keyword.pm,v 1.8 2009-10-08 10:12:46 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.7 2009-10-07 22:06:10 jt6 Exp $
+$Id: Keyword.pm,v 1.8 2009-10-08 10:12:46 jt6 Exp $
 
 =cut
 
@@ -294,9 +294,9 @@ sub _merge_results : Private {
         $acc = $row->pfama_acc;
       };
       if ( $@ ) {
-        $c->log->debug( 'Search::Keyword::_merge_results: caught an exception when trying '
-                       . " \$row->pfama_acc for plugin |$pluginName|: $@" )
-          if $c->debug;
+        # $c->log->debug( 'Search::Keyword::_merge_results: caught an exception when trying '
+        #                . " \$row->pfama_acc for plugin |$pluginName|: $@" )
+        #   if $c->debug;
       }
       
       if ( defined $acc ) {
