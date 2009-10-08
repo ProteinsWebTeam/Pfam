@@ -4,7 +4,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.27 2009-10-07 13:54:04 jt6 Exp $
+# $Id: summary.tt,v 1.28 2009-10-08 13:27:15 jt6 Exp $
 
 USE String;
 
@@ -138,6 +138,7 @@ oe = 0;
 
       /* [%# build the domain graphic %] */
       var pg = new PfamGraphic( "pgholder", sequence);
+      pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
       pg.render();
 
       /* [%# show the blurb about the image %] */
