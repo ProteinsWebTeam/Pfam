@@ -2,7 +2,7 @@
 # $Author: jt6 $
 
 
-package Bio::Pfam::Drawing::Layout::Config::ContextConfig;
+package Bio::Pfam::Drawing::Layout::Config::GenericMotifConfig;
 
 use strict;
 use warnings;
@@ -12,15 +12,12 @@ use Moose;
 use Moose::Util::TypeConstraints;
 
 
-
-sub configureRegion {
+sub configureMotif {
   my ($self, $region) = @_;
   # set up the shape type
-  
-  #As we do not knw what sort of region this is we can nt construct a url
-  $self->_setEdges($region);
+
   #Now contruct the label
-  $self->constructLabel($region);
+  #$self->constructLabel($region);
   
   #Now Colour the Region
   $self->_setColour($region);
@@ -28,20 +25,14 @@ sub configureRegion {
 
 sub constructLabel{
   my ($self, $region) = @_;
-  $region->text($region->metadata->identifier);
+  
+  my $label = 'wibble'; 
 }
-
  
 #This sets the generic region to a dark grey colour
 sub _setColour{
   my ($self, $region) = @_;
-  $region->colour( Convert::Color->new( 'rgb8:FFC8F2' ) );
-}
-
-sub _setEdges{
-  my ($self, $region) = @_;
-   $region->startStyle( 'straight' );
-   $region->endStyle( 'straight' ); 
+  $region->colour( Convert::Color->new( 'x11:grey') );
 }
 
 

@@ -1,52 +1,73 @@
+# TransmembraneConfig.pm
+#
+# Author:        rdf
+# Maintainer:    $Id: TransmembraneConfig.pm,v 1.5 2009-10-08 12:27:28 jt6 Exp $
+# Version:       $Revision: 1.5 $
+# Created:       Aug 10, 2009
+# Last Modified: $Date: 2009-10-08 12:27:28 $
+=head1 NAME
 
-# $Author: jt6 $
+Template - a short description of the class
 
+=cut
 
 package Bio::Pfam::Drawing::Layout::Config::TransmembraneConfig;
 
-use vars qw($AUTOLOAD @ISA $VERSION);
+=head1 DESCRIPTION
+
+A more detailed description of what this class does and how it does it.
+
+$Id: TransmembraneConfig.pm,v 1.5 2009-10-08 12:27:28 jt6 Exp $
+
+=head1 COPYRIGHT
+
+File: TransmembraneConfig.pm
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+ This is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+ 
+=cut
+
 use strict;
 use warnings;
+use Convert::Color;
+
+use Moose;
+use Moose::Util::TypeConstraints;
+
+extends 'Bio::Pfam::Drawing::Layout::Config::GenericMotifConfig';
 
 
-use Bio::Pfam::Drawing::Layout::Region;
-use Bio::Pfam::Drawing::Layout::Config::GenericRegionConfig;
+#-------------------------------------------------------------------------------
 
-@ISA = qw(Bio::Pfam::Drawing::Layout::Config::GenericRegionConfig);
+=head1 METHODS
+
+=cut
 
 
-sub configure_Region {
-  my ($self, $region) = @_;
-  # set up the shape type
-  $region->type("smlShape");
-
-  #A small image does not have ends, so we do not need to set them
-
-  #Now construct the URL
-  $self->_construct_URL($region);
-
-  #Now contruct the label
-  $self->_construct_label($region);
-  
-  #Now Colour the Region
-  $self->_set_colours($region);
+#This sets the generic region to a dark grey colour
+sub _setColour{
+  my ($self, $motif) = @_;
+  $motif->colour( Convert::Color->new( 'rgb8:FF4848') );
 }
 
-sub _construct_URL {
-  my ($self, $region) = @_;
-  #$region->url($Bio::Pfam::Web::PfamWWWConfig::region_help);
-}
 
-sub _construct_label{
-  my ($self, $region) = @_;
-  $region->label("Transmembrane");
-}
-
-sub _set_colours{
-  my ($self, $region) = @_;
-  my $colour1 = Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "FF0000");
-  $region->colour1($colour1);
-}
 
 =head1 COPYRIGHT
 
@@ -69,4 +90,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 
 =cut
 
+
 1;
+

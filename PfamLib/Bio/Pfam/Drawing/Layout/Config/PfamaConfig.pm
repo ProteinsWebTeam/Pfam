@@ -3,250 +3,159 @@
 
 
 package Bio::Pfam::Drawing::Layout::Config::PfamaConfig;
+
 use strict;
 use warnings;
+use Convert::Color;
 
-use vars qw($AUTOLOAD @ISA $VERSION);
+use Moose;
+use Moose::Util::TypeConstraints;
+use Data::Dump qw( dump );
 
-use Bio::Pfam::Drawing::Layout::Region;
-use Bio::Pfam::Drawing::Layout::Config::GenericRegionConfig;
+subtype 'fixedColours'
+  => as 'HashRef'
+  => where { ref $_ eq 'HASH' }
+  => message { 'not a valid colours hash' };
 
-@ISA= qw(Bio::Pfam::Drawing::Layout::Config::GenericRegionConfig);
+coerce 'fixedColours'
+  => from 'Str'
+    => via { 
+      my $json = new JSON();
+      my $colours = $json->decode( $_ );
+      foreach my $key ( keys %$colours ) {
+        $colours->{$key} = Convert::Color->new( 'rgb8:' . join( ',', @{$colours->{$key}} ) );
+      }
+      return $colours;
+    }
+  => from 'HashRef'
+    => via {
+      return $_;
+    };
 
-my (@R, @G, @B);
+has 'assignedColours' => (
+  isa    => 'fixedColours',
+  is     => 'rw',
+  coerce => 1
+);
 
-# Color table 
+has 'colourIndex' => (
+  isa     => 'Int',
+  is      => 'rw',
+  default => '0'
+);
 
- $R[0]=0;
- $G[0]=3;
- $B[0]=192;
+has 'preDeterminedColours' => (
+  isa   => 'ArrayRef[Str]',
+  is    => 'rw',
+  
+  default => sub { [ qw(2DCF00 FF5353 5B5BFF EBD61D BA21E0 FF9C42 FF7DFF B9264F BABA21 C48484 1F88A7 CAFEB8 4A9586 CEB86C) ] }
+# default => sub { [ qw(2DCF00 FF5353 5B5BFF EBD61D 9A1CB9 FF9C42 FF7DFF B9264F BABA21 C48484 1F88A7 CAFEB8 4A9586 CEB86C) ] }
+#green red blue yellow purple orange cyan fuchsia	maroon olive brown teal bluegreen brown
+);
 
- $R[1]=31;
- $G[1]=192;
- $B[1]=31;
-
- $R[2]=192; 
- $G[2]=15;
- $B[2]=15;
-
- $R[3]=189;
- $G[3]=192;
- $B[3]=0;
-
- $R[4]=192;
- $G[4]=8;
- $B[4]=174;
-
- $R[5]=0;
- $G[5]=186;
- $B[5]=192;
-
- $R[6]=132;
- $G[6]=132;
- $B[6]=192;
-
- $R[7]=147;
- $G[7]=192;
- $B[7]=144;
-
- $R[8]=192;
- $G[8]=175;
- $B[8]=146;
-
- $R[9]=133;
- $G[9]=133;
- $B[9]=230;
-
- $R[10]=142;
- $G[10]=37;
- $B[10]=17;
-
- $R[11]=242;
- $G[11]=146;
- $B[11]=66;
-
- $R[12]=0;
- $G[12]=135;
- $B[12]=0;
-
- $R[13]=255;
- $G[13]=135;
- $B[13]=250;
-
- $R[14]=235;
- $G[14]=235;
- $B[14]=48;
-
- $R[15]=0;
- $G[15]=100;
- $B[15]=244;
-
- $R[16]=69;
- $G[16]=69;
- $B[16]=69;
-
- $R[17]=255;
- $G[17]=135;
- $B[17]=164;
-
-sub configure_Region {
+sub configureRegion {
   my ($self, $region) = @_;
   # set up the shape type
-  $region->type("bigShape");
 
-  #Now set the image ends
-  $self->_leftStyle($region);
-  $self->_rightStyle($region);
 
-  #Now construct the URL
-  $self->_construct_URL($region);
-
+  
+  #As we do not knw what sort of region this is we can nt construct a url
+  $self->_setEdges($region);
   #Now contruct the label
-  $self->_construct_label($region);
-
-  #Now assign the colours
-  $self->_set_colours($region);
-  
+  $self->_constructLabel($region);
+  $self->_constructHref($region);
+  #Now Colour the Region
+#  print STDERR "***Setting the colour***\n";
+  $self->_setColour($region);
 }
 
-sub _leftStyle {
+sub _constructLabel{
   my ($self, $region) = @_;
-  if($region->BioAnnotatedRegion->region eq "Motif" || $region->BioAnnotatedRegion->region eq "Repeat"){
-    $region->leftstyle("straight");
-  }elsif($region->BioAnnotatedRegion->model_from != 1){
-    #Check that the region has not moved due to overlaps
-    $region->leftstyle("jagged");
-  }else{
-    $region->leftstyle("curved");
+  $region->text($region->metadata->identifier);
+}
+
+sub _constructHref{
+  my ($self, $region) = @_;
+  if($region->metadata->accession){
+    $region->href('/family/'.$region->metadata->accession);  
   }
 }
-
-sub _rightStyle {
+ 
+#This sets the generic region to a dark grey colour
+sub _setColour{
   my ($self, $region) = @_;
-  if($region->BioAnnotatedRegion->region eq "Motif" || $region->BioAnnotatedRegion->region eq "Repeat"){
-    $region->rightstyle("straight");
-  }elsif($region->BioAnnotatedRegion->model_to != $region->BioAnnotatedRegion->model_length ){
-    #Thus is must be a fragment match as it does not exist the model at the last position
-    $region->rightstyle("jagged");
-  }else{
-    $region->rightstyle("curved");
-  }
-}
-
-sub _construct_URL {
-  my ($self, $region) = @_;
-  #This should be defined by some
-  my $url = ( defined $ENV{PFAMWEB_ROOT} ) 
-	? $ENV{PFAMWEB_ROOT}."/family?acc=".$region->BioAnnotatedRegion->accession
-	  : "/family?acc=".$region->BioAnnotatedRegion->accession;
-	$region->url( $url );
-}
-
-
-sub _construct_label{
-  my ($self, $region) = @_;
-  $region->label($region->BioAnnotatedRegion->id);
-}
-
-
-sub resolve_internal_overlaps {
-  my ($self, $region1, $region2) = @_;
-
-}
-
-sub _set_colours {
-  my ($self, $region) = @_;
-  my $dc = $self->_domain_colour($region->BioAnnotatedRegion->accession);
-  my $colour1 = Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $dc->{'colour1'});
-  $region->colour1($colour1);
-  my $colour2 = Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => $dc->{'colour2'});
-  $region->colour2($colour2);
-}
-
-
-sub _domain_colour{
-  my ($self, $acc) = @_;
-  #Have we seen this domain before? If not set the colour
-  if(!$self->_assigned_colours($acc)){
-    #Okay, for this layout, the config has not seen this domain before
-    my ($colour1, $colour2) = $self->_next_colour;
-    $self->_assigned_colours($acc, $colour1, $colour2);
-  }
-  return $self->_assigned_colours($acc);
-}
-
-sub _assigned_colours {
-  my ($self, $acc, $colour1, $colour2) = @_;
-  if($colour1 && $colour2){
-    $self->{'colours'}->{$acc}->{'colour1'} = $colour1;
-    $self->{'colours'}->{$acc}->{'colour2'} = $colour2;
-  }else{
-    if($self->{'colours'}->{$acc}){
-      return $self->{'colours'}->{$acc};
-    }else{
-      return 0;
+#  print STDERR "****This Colour****\n";
+  my $colour;
+  if($self->assignedColours and $self->assignedColours->{$region->metadata->accession}){
+    $colour = $self->assignedColours->{$region->metadata->accession};
+  }elsif($self->preDeterminedColours->[$self->colourIndex]){
+    $colour = Convert::Color->new( 'rgb8:'.$self->preDeterminedColours->[$self->colourIndex]);
+    if ( defined $self->assignedColours ) {
+      my $c = $self->assignedColours;
+      $c->{$region->metadata->accession} = $colour;
     }
-  }
-}
-
-sub _next_colour{
-  my $self = shift;
-  my $n = $self->{'colour_no'};
-  my ($i1, $i2, $dark, $light);
-
-  if ($n<18) {
-    $i1=$n;  #Same color
-    $i2=$n;
-  }
-
-  if ($n>17 && $n<99) {
-    $i1 = $n % 9;     #All combinations of first nine colors on upper stripe
-    $i2 = 7+($n / 9); #and last nine colors on lower stripe.
-  }
-  
-  if ($n>98 && $n<181) {
-    $i1 = ($n / 9)-2; #All combinations of last nine colors on upper stripe
-    $i2 = $n % 9;     #and first nine colors on lower stripe.
-  }
+    else {
+      $self->assignedColours( { $region->metadata->accession => $colour } );
+    }
+#    $self->assignedColours ? $self->assignedColours->{$region->metadata->accession} = $colour : $self->assignedColours( {$region->metadata->accession => $colour}) ;
+    $self->colourIndex($self->colourIndex + 1 );
+  }else{
+    #randomly generate
     
-  if ($n>181) {  ## Lots of images in a page then just mix & match
-    $i1 = $n  % 18;
-    $i2 = $n  % 18;
-  }	
+    my @hex;
+    for (my $x = 0; $x < 3; $x++) {
+      my $rand = rand(255);
+      $hex[$x] = sprintf ("%x", $rand);
+      if ($rand < 9) {
+        $hex[$x] = "0" . $hex[$x];
+      }
+      if ($rand > 9 && $rand < 16) {
+        $hex[$x] = "0" . $hex[$x];
+      }
+    }
+    $colour =  Convert::Color->new( 'rgb8:' . $hex[0] . $hex[1] . $hex[2]);
+    if ( defined $self->assignedColours ) {
+      my $c = $self->assignedColours;
+      $c->{$region->metadata->accession} = $colour;
+    }
+    else {
+      $self->assignedColours( { $region->metadata->accession => $colour } );
+    }
+#    $self->assignedColours ? $self->assignedColours->{$region->metadata->accession} = $colour : $self->assignedColours( {$region->metadata->accession => $colour});
+  }
+  $region->colour( $colour );
+}
+
+sub _setEdges{
+  my ($self, $region) = @_;
   
-  my @tmp_dark = (&control_limits($R[$i2]) , &control_limits($G[$i2]) , &control_limits($B[$i2]) );
-  $dark = sprintf("%02x%02x%02x", @tmp_dark);
-  my @tmp_light =  (&control_limits($R[$i1]+40) , &control_limits($G[$i1]+40) , &control_limits($B[$i1]+40) );
-  $light = sprintf("%02x%02x%02x", @tmp_light);
-  $self->{'colour_no'} += 1;
-  return ($dark, $light);
+  #A small image does not have ends, so we do not need to set them
+  if($region->metadata->type eq 'Family' or $region->metadata->type eq 'Domain'){
+    if($region->end - $region->start > 50){
+      if($region->modelStart == 1){
+        $region->startStyle( 'curved' );
+      }else{
+        $region->startStyle( 'jagged' );  
+      }
+    
+      if($region->modelEnd == $region->modelLength){
+        $region->endStyle( 'curved' );
+      }else{
+        $region->endStyle( 'jagged' );  
+      }  
+    }else{
+      $region->startStyle( 'straight' );
+      $region->endStyle( 'straight' );
+    }   
+  }elsif($region->metadata->type eq 'Repeat' or $region->metadata->type eq 'Motif'){
+    $region->startStyle( 'straight' );
+    $region->endStyle( 'straight' );
+  }else{
+    die "Unkown pfama metadata type\n";  
+  } 
 }
 
-=head2 control_limits
 
- Title   : control_limits
- Usage   : $data=chr(&control_limits($B[$i1]+40)); 
- Function: 
-    Returns the given number, if it is within the control
-    limits required for GIF output, else returns the max 
-    or min allowed, as applicable
- Returns : An integer
- Args    : An integer
-
-=cut
-
-sub control_limits {
-  my $in=shift;
-  my $out;
-  $out=$in;
-  if ($in>255) {
-    $out=255;
-  }
-  if ($in<0) {
-    $out=0;
-  }
-  return $out;
-}
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.

@@ -1,8 +1,8 @@
-# Bio::Pfam::Drawing::Layout::Config::DisulphideConfig
+# CoiledcoilConfig.pm
 #
 # Author:        rdf
-# Maintainer:    $Id: NestedConfig.pm,v 1.6 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.6 $
+# Maintainer:    $Id: CoiledcoilConfig.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+# Version:       $Revision: 1.1 $
 # Created:       Aug 10, 2009
 # Last Modified: $Date: 2009-10-08 12:27:28 $
 =head1 NAME
@@ -11,17 +11,17 @@ Template - a short description of the class
 
 =cut
 
-package Bio::Pfam::Drawing::Layout::Config::NestedConfig;
+package Bio::Pfam::Drawing::Layout::Config::CoiledcoilConfig;
 
 =head1 DESCRIPTION
 
 A more detailed description of what this class does and how it does it.
 
-$Id: NestedConfig.pm,v 1.6 2009-10-08 12:27:28 jt6 Exp $
+$Id: CoiledcoilConfig.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
 
 =head1 COPYRIGHT
 
-File: DisulphideConfig.pm
+File: TransmembraneConfig.pm
 
 Copyright (c) 2007: Genome Research Ltd.
 
@@ -44,8 +44,6 @@ Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
  
 =cut
 
-
-
 use strict;
 use warnings;
 use Convert::Color;
@@ -53,7 +51,8 @@ use Convert::Color;
 use Moose;
 use Moose::Util::TypeConstraints;
 
-extends 'Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig';
+extends 'Bio::Pfam::Drawing::Layout::Config::GenericMotifConfig';
+
 
 #-------------------------------------------------------------------------------
 
@@ -62,63 +61,12 @@ extends 'Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig';
 =cut
 
 
-
-
-
-sub configureMarkup {
-  my ($self, $markup) = @_;
-  
-  #Now contruct the label
-  #$self->constructLabel($region);
-  
-  #Set where to display this feature
-  $self->_setPosition($markup);
-  
-  $self->_setStyle($markup);
-  
-  #Now Colour the Region
-  $self->_setColour($markup);
-}
-
-#-------------------------------------------------------------------------------
-=head2 _setStyle 
-
-  Title    : _setStyle
-  Usage    : $config->_setStyle($markup); 
-  Function : Sets the style for the config for the this markup object
-  Args     : A Bio::Pfam::Sequence::Markup
-  Returns  : Nothing, style set on the markup object.
-  
-=cut
-
-
+#This sets the generic region to a dark grey colour
 sub _setColour{
-  my ($self, $markup) = @_;
-  # - If we have a bridge (i.e. end value set) then this will not be set
-  if($markup->end){
-    $markup->colour( Convert::Color->new( 'rgb8:000000') );
-  }else{
-    #Something has gone wrong;
-    $markup->display(0);
-  }
-
-  
-  
+  my ($self, $motif) = @_;
+  $motif->colour( Convert::Color->new( 'x11:LimeGreen') );
 }
 
-
-
-sub _setPosition {
-  my ($self, $markup) = @_;
-  #Do we want to draw this feature above or below the sequence?
-  $markup->v_align('top');
-}
-
-sub _setStyle {
-  my ($self, $markup) = @_;
-  $markup->headStyle('line') unless($markup->end);  
-  
-}
 
 
 =head1 COPYRIGHT

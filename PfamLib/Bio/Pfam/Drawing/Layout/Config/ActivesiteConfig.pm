@@ -1,50 +1,94 @@
+# Bio::Pfam::Drawing::Layout::Config::ActivesiteConfig
+#
+# Author:        rdf
+# Maintainer:    $Id: ActivesiteConfig.pm,v 1.6 2009-10-08 12:27:28 jt6 Exp $
+# Version:       $Revision: 1.6 $
+# Created:       Aug 10, 2009
+# Last Modified: $Date: 2009-10-08 12:27:28 $
+=head1 NAME
 
-# $Author: jt6 $
+Template - a short description of the class
+
+=cut
 
 package Bio::Pfam::Drawing::Layout::Config::ActivesiteConfig;
 
-use vars qw($AUTOLOAD @ISA $VERSION);
+=head1 DESCRIPTION
+
+A more detailed description of what this class does and how it does it.
+
+$Id: ActivesiteConfig.pm,v 1.6 2009-10-08 12:27:28 jt6 Exp $
+
+=head1 COPYRIGHT
+
+File: DisulphideConfig.pm
+
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+ This is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ or see the on-line version at http://www.gnu.org/copyleft/gpl.txt
+ 
+=cut
+
+#use base "Some::Class";
 use strict;
 use warnings;
+use Convert::Color;
 
-use Bio::Pfam::Drawing::Layout::Markup;
-use Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig;
-use Data::Dumper;
-@ISA= qw(Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig);
+use Moose;
+use Moose::Util::TypeConstraints;
 
-sub configure_Markup {
-  my ($self, $markup) = @_; 
-  #All generic feature are shown on the top
-  $markup->v_align("bottom");
-  #All line colours should be black
-  $self->_lineColour($markup);
-  $self->_lineStyle($markup);
-  #lolly-pop
-  $self->_headStyle($markup);
-  $self->_headColour($markup);
-  $self->_constructLabel($markup);
-}
+extends 'Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig';
 
-sub _lineStyle {
+
+#-------------------------------------------------------------------------------
+
+=head1 METHODS
+
+=cut
+
+
+
+ 
+
+sub _setColour{
   my ($self, $markup) = @_;
-  $markup->line("bold");
+  
+  #This sets to colour of the lollipop
+  # - If we have a bridge (i.e. end value set) then this will not be set
+  if($markup->end){
+    warn "There should not be an end for an active site markup\n";
+  }else{
+    $markup->lineColour( Convert::Color->new( 'rgb8:333333') );
+    $markup->colour( Convert::Color->new( 'rgb8:ff4848') );
+  }
+  #This sets the line colour
+  
+  
 }
 
-sub _headStyle{
+
+
+sub _setStyle {
   my ($self, $markup) = @_;
-  $markup->head("diamond");
+  $markup->headStyle('diamond') unless($markup->end);  
+  
 }
 
-sub _headColour{
-  my ($self, $markup) = @_;
-  my $colour = Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "FF3366");
-  $markup->head_colour($colour);
-}
-
-sub _constructLabel{
-  my ($self, $markup) = @_;
-  $markup->label($markup->BioSeqFeature->display_name) if($markup->BioSeqFeature->display_name);
-}
 
 =head1 COPYRIGHT
 

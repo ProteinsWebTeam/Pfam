@@ -48,13 +48,13 @@ The rest of the documentation details each of the object methods. Internal metho
 
 =cut
 
-# $Author: rdf $
+# $Author: jt6 $
 
 # Let the code begin...
 
 
 package Bio::Pfam::AlignPfam;
-use vars qw($AUTOLOAD @ISA);
+
 use strict;
 use warnings;
 
@@ -63,7 +63,20 @@ use Bio::Pfam::OtherRegion;
 use Bio::Pfam::SeqPfam;
 use Bio::SimpleAlign;
 
-@ISA = qw(Bio::Pfam::Root Bio::SimpleAlign);
+use base 'Bio::Pfam::Root';
+use base 'Bio::SimpleAlign';
+
+#-------------------------------------------------------------------------------
+
+=head2 new 
+
+  Title    : new
+  Usage    : Bio::Pfam::AlignPfam->new
+  Function : Generates a new Bio::Pfam::AlignPfam object
+  Args     : Hash that contain the data that
+  Returns  : Bio::Pfam::AlignPfam object
+  
+=cut
 
 sub new {
   my( $class, %params ) = @_;
@@ -86,8 +99,6 @@ sub new {
 
   return $self;
 }
-
-
 
 =head2 allgaps_columns_removed
 
@@ -126,17 +137,20 @@ sub allgaps_columns_removed {
 
     foreach my $seq ($self->each_seq) {
 	my @newseq = split( //, $seq->seq() );
-
+    
 	foreach my $gappos (@sortedgappositions) {
 	    splice @newseq, $gappos, 1;
 	}
-
-	my $newseq = Bio::Pfam::SeqPfam->new('-id' => $seq->id(),
+	
+  my $newseq = Bio::Pfam::SeqPfam->new('-id' => $seq->id(),
 					     '-acc' => $seq->acc,
 					     '-start' => $seq->start(),
-					     '-end' => $seq->end(),
+					     '-version' => $seq->version ? $seq->version : undef,
+               '-seq_version' => $seq->seq_version ?  $seq->seq_version : undef,
+               '-end' => $seq->end(),
 					     '-seq' => join( '', @newseq ),
 					     '-type' => 'aligned');
+  $newseq->seq_version($seq->seq_version) if($seq->seq_version);
 	$newaln->add_seq( $newseq );  
     }
 
@@ -383,9 +397,9 @@ sub cons_sequence {
    return $self->{'cons_sequence'};
 }
 
-=head2 match_states_sting
+=head2 match_states_string
 
- Title   : match_states_sting
+ Title   : match_states_string
  Usage   : 
     $aln->match_states_sting( $matches );
  Function: For setting and getting an OtherRegion object to 
@@ -434,10 +448,10 @@ sub pad_ends {
 =head2 read_Pfam
 
  Title   : read_Pfam
- Usage   : $ali->read_Pfam( $fh )
+ Usage   : $ali->read_Pfam( $fh || \@array )
  Function: Reads in a Pfam (mul) format alignment
  Returns : 
-    Args    : A filehandle glob or ref. to a filehandle object
+    Args    : A filehandle glob or ref. to a filehandle object, or an array ref
  Notes   : 
     This function over-rides the one defined in Bio::Pfam::SimpleAlign.
     The main difference is that id distinguishes between accession numbers
@@ -449,9 +463,25 @@ sub pad_ends {
 sub read_Pfam {
     my $self = shift;
     my $in = shift;
-    my ($name, $start, $end, $seq, %names);
+
+
+    my $input;
+    if ( ref $in eq 'GLOB' ) {
+	# got a filehandle
+	$input = [ <$in> ];
+    }
+    elsif ( ref $in eq 'ARRAY' ) {
+	# got an array
+	$input = $in;
+    }
+
+
+    my ($name, $start, $end, $seq, $version, %names);
+
     my $count = 0;
-    while( <$in> ) {
+    
+    
+    foreach( @$input ) {
 	chop;
 	/^\/\// && last;
       
@@ -467,7 +497,21 @@ sub read_Pfam {
 								    '-source' => 'Pfam')
 					);		
 	}
-	elsif( /^(\S+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
+	elsif(/^\#/ or /^(\s+)?$/) { #Ignore blank lines and any non match state lines starting with a #
+            next;
+	}elsif( /^(\S+)\.(\d+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
+   $name = $1;
+   $version = $2;
+   $start = $3;
+   $end   = $4;
+   $seq   = $5;
+   $self->add_seq(Bio::Pfam::SeqPfam->new('-seq'         => $seq,
+                                          '-id'          => $name,
+                                          '-seq_version' => $version,
+                                          '-start'       => $start,
+                                          '-end'         => $end));
+   $count++;
+	}elsif( /^(\S+)\/(\d+)-(\d+)\s+(\S+)\s*/ ) {
 	    $name = $1;
 	    $start = $2;
 	    $end = $3;
@@ -485,7 +529,7 @@ sub read_Pfam {
 	    $start = 1;
 	    $end = length( $2 );
 	    $seq = $2;
-	    
+
 	    $self->add_seq(Bio::Pfam::SeqPfam->new('-seq'=>$seq,
 						  '-id'=>$name,
 						  '-start'=>$start,
@@ -502,6 +546,17 @@ sub read_Pfam {
     return $count;
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 read_msf 
+
+  Title    : read_mf
+  Usage    : $alignObj->read_msf(\*MSFALI); 
+  Function : Reads a MSF multiple sequence alignment
+  Args     : filehandle on an MSF alignment
+  Returns  : Nothing
+  
+=cut
 
 sub read_msf {
   my $self = shift;
@@ -655,6 +710,7 @@ sub read_Prodom{
 
 
 # copied from old Bio::SimpleAlign before we trashed it
+
 =head2 read_selex
 
  Title     : read_selex
@@ -831,7 +887,6 @@ sub read_stockholm {
     my ($start,
 	$end,
 	$seqname,
-	$version,
 	$seq,
 	$name, 
 	$count,
@@ -845,6 +900,9 @@ sub read_stockholm {
 	);
 #    while( <$in> ) {
 	foreach ( @$input ) {
+
+	   my $version;
+
 	/^\# STOCKHOLM/ && next;
 
 	/^\/\// && do {
@@ -995,7 +1053,7 @@ sub read_stockholm {
     $count = 0;
     foreach $no ( sort { $a <=> $b } keys %c2name ) {
 	$name = $c2name{$no};
-
+	my $version;
 	
 	if( $name =~ /(\S+)\.(\d+)\/(\d+)-(\d+)/ ) {
 	    #Here, accession.version is the id
@@ -1268,6 +1326,7 @@ sub trimmed_alignment {
 
 
 # copied from old Bio::SimpleAlign before we trashed it
+
 =head2 write_selex
 
  Title     : write_selex
@@ -1510,6 +1569,19 @@ sub maxdisplayname_length {
     return $maxname;
 }
 
+#-------------------------------------------------------------------------------
+
+=head2 write_fasta 
+
+  Title    : write_fasta
+  Usage    : $alignObj->write_fasta() 
+  Function : writes out an aligned fasta file format of the alignment
+  Args     : A filehandle (optional)
+  Returns  : Returns a arrayref containing fasta formated alignment if
+           : no filehandle has been passed in.
+  
+=cut
+
 sub write_fasta {
 
     my $self = shift;
@@ -1532,14 +1604,26 @@ sub write_fasta {
         }
     }
 
-    unless(ref($out) eq "GLOB"){
-      return( \@output);
-    }else{
-      foreach (@output){
+    if ( ref($out) ne "GLOB" ) {
+      return \@output;
+    }
+    else {
+      foreach ( @output ) {
 	print $out $_;
       }
     }
 }
+
+=head2 write_MSF
+
+  Title    : write_MSF
+  Usage    : $alignObj->write_MSF() 
+  Function : writes out an aligned MSF file formated of the alignment
+  Args     : A filehandle (optional)
+  Returns  : Returns a arrayref containing MSF formated alignment if
+           : no filehandle has been passed in.
+  
+=cut
 
 sub write_MSF {
     my $self = shift;
@@ -1626,6 +1710,18 @@ sub write_MSF {
     } 
 }
 
+
+#-------------------------------------------------------------------------------
+
+=head2 average_percentage_identity_per_column
+
+  Title    :
+  Usage    :  
+  Function :
+  Args     :
+  Returns  :
+  
+=cut
 
 sub average_percentage_identity_per_column {
 

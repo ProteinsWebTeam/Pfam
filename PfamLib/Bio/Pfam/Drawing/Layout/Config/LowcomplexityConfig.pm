@@ -2,7 +2,7 @@
 # $Author: jt6 $
 
 
-package Bio::Pfam::Drawing::Layout::Config::ContextConfig;
+package Bio::Pfam::Drawing::Layout::Config::LowcomplexityConfig;
 
 use strict;
 use warnings;
@@ -11,38 +11,14 @@ use Convert::Color;
 use Moose;
 use Moose::Util::TypeConstraints;
 
+extends 'Bio::Pfam::Drawing::Layout::Config::GenericMotifConfig';
 
-
-sub configureRegion {
-  my ($self, $region) = @_;
-  # set up the shape type
-  
-  #As we do not knw what sort of region this is we can nt construct a url
-  $self->_setEdges($region);
-  #Now contruct the label
-  $self->constructLabel($region);
-  
-  #Now Colour the Region
-  $self->_setColour($region);
-}
-
-sub constructLabel{
-  my ($self, $region) = @_;
-  $region->text($region->metadata->identifier);
-}
-
- 
 #This sets the generic region to a dark grey colour
 sub _setColour{
-  my ($self, $region) = @_;
-  $region->colour( Convert::Color->new( 'rgb8:FFC8F2' ) );
+  my ($self, $motif) = @_;
+  $motif->colour( Convert::Color->new( 'rgb8:86BCFF') );
 }
 
-sub _setEdges{
-  my ($self, $region) = @_;
-   $region->startStyle( 'straight' );
-   $region->endStyle( 'straight' ); 
-}
 
 
 =head1 COPYRIGHT

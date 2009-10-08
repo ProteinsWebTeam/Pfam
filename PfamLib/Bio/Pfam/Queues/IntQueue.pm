@@ -3,8 +3,8 @@ package Bio::Pfam::Queues::IntQueue;
 # Author:        rdf
 # Maintainer:    rdf
 # Created:       2007-04-05
-# Last Modified: $Date: 2008-06-03 14:02:00 $
-# Id:            $Id: IntQueue.pm,v 1.6 2008-06-03 14:02:00 rdf Exp $
+# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Id:            $Id: IntQueue.pm,v 1.7 2009-10-08 12:27:28 jt6 Exp $
 #
 # Based on SimpleDB written by Roger Pettett and Jody Clements.
 # Performs Pfam single sequence search database.
@@ -23,6 +23,7 @@ use Data::Dumper;
 use File::Basename;
 #use Config::General;
 use POSIX qw(setsid);
+use Bio::Pfam::Config;
 use Bio::Pfam::PfamJobsDBManager;
 
 sub new {
@@ -40,18 +41,19 @@ sub new {
   
   #All of this should really go into some sort of config
   #Lost of current jobs that can be dealt with	
-  $self->knownJobs( { view    => 'makepfamview.pl',
-                      genPept => '',
-                      metagenomics => '',
-                      genPeptView => 'makencbiview.pl' } );
+  $self->knownJobs( { family   => 'makepfamview.pl',
+                      clan => 'makeclanview.pl' } );
+                      
   #Get a database connection
-  $self->getSchema({password => 'mafp1' });
+  my $config = Bio::Pfam::Config->new;
+  $self->getSchema( $config->pfamjobs );
   #Start setting up the local information for setting up the jobs
-  $self->tmpDir("/lustre/scratch1/sanger/pfam/");
-  $self->currentDir("/lustre/pfam/pfam/Production/Pfam/CURRENT");
-  $self->farmNode("farm-login");
-  $self->hugeMemNode("turing");
-  $self->hugeMemTmpDir("/tmp");
+  my $farmConfig = $config->farm;
+  $self->tmpDir($farmConfig->{lsf}->{scratch});
+  #$self->farmNode("farm-login");
+  #$self->hugeMemNode("turing");
+  #$self->hugeMemTmpDir("/tmp");
+  
   #Return the blessed object
   return ($self);
 }
@@ -211,8 +213,8 @@ sub submit {
 
   #$self->postsubmit();
 
-  $self->debug() and print {*STDERR} qq(submit returning tracker=@{[$self->tracker()]}\n);
-  my ($id) = split /:/mx, $self->tracker();
+  $self->debug() and print {*STDERR} qq( submit returning tracker=@{[$self->tracker()]}\n );
+  my ($id) = split(/\:/mx, $self->tracker());
   return $id;
 }
 
@@ -221,7 +223,7 @@ sub status {
   my ($self, $id) = @_;
   my $status = q();
   if(!$id && $self->tracker()) {
-    ($id) = split /:/mx, $self->tracker();
+    ($id) = split( /:/mx, $self->tracker() );
   }
  
  my $result = $self->getSchema
@@ -278,9 +280,9 @@ sub satisfy_pending_jobs {
       'job_id'     => $result->job_id,
       'status'     => $result->status,
       'job_type'   => $result->job_type,
-      'family_id'  => $result->family_id,
-      'family_acc' => $result->family_acc,
-      'family_size' => $result->family_size,
+      'entity_id'  => $result->entity_id,
+      'entity_acc' => $result->entity_acc,
+      'entity_size' => $result->entity_size,
       'options'    => $result->options,
       'user_id'    => $result->user_id,
       'command'    => $self->getCommand($result->job_type)
@@ -344,6 +346,21 @@ sub update_job_status {
   }
   
   $result->update({status => $status});
+  return;
+}
+
+sub update_job_with_lsf {
+  my ($self, $id, $lsf_id) = @_;
+
+  if(!$id && $self->tracker()) {
+    ($id) = split(/:/mx, $self->tracker());
+  }
+  
+  my $result = $self->getSchema
+                  ->resultset('JobHistory')
+                    ->find({id => $id }); 
+  
+  $result->update({ lsf_id => $lsf_id});
   return;
 }
 

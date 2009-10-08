@@ -1,67 +1,68 @@
 
 # $Author: jt6 $
 
+
 package Bio::Pfam::Drawing::Layout::Config::GenericMarkupConfig;
 
 use strict;
 use warnings;
+use Convert::Color;
 
-use Bio::Pfam::Drawing::Layout::Markup;
-use Bio::Pfam::Drawing::Colour::hexColour;
-use Bio::Pfam::Drawing::Colour::rgbColour;
+use Moose;
+use Moose::Util::TypeConstraints;
 
-sub new {
-  my $caller = shift;
-  my $self = bless {}, ref($caller) || $caller;
-  return $self;
-}
 
-sub configure_Markup {
-  my ($self, $markup) = @_; 
+sub configureMarkup {
+  my ($self, $markup) = @_;
   
-  #All generic feature are shown on the top
-  $markup->v_align("top");
-  #All line colours should be black
-  $self->_lineColour($markup);
-  $self->_lineStyle($markup);
+  #Now contruct the label
+  #$self->constructLabel($region);
+  
+  #Set where to display this feature
+  $self->_setPosition($markup);
+  
+  $self->_setStyle($markup);
+  
+  #Now Colour the Region
+  $self->_setColour($markup);
+}
 
-  if(!$markup->end){
-    #lolly-pop
-    $self->_headStyle($markup);
-    $self->_headColour($markup);
+sub constructLabel{
+  my ($self, $region) = @_;
+  
+  my $label = 'wibble'; 
+}
+ 
+#This sets the generic region to a dark grey colour
+sub _setColour{
+  my ($self, $markup) = @_;
+  
+  # print STDERR "This colour\n";
+  
+  #This sets to colour of the lollipop
+  # - If we have a bridge (i.e. end value set) then this will not be set
+  unless($markup->end){
+    $markup->colour( Convert::Color->new( 'rgb8:CCCCCC') );
+    $markup->lineColour( Convert::Color->new( 'rgb8:CCCCCC') );
   }
-
-
-  $self->_constructLabel($markup);
+  #This sets the line colour
+  #$markup->lineColour( Convert::Color->new( 'rgb8:000000') );
+  $markup->colour( Convert::Color->new( 'rgb8:CCCCCC') );
+  
 }
 
-sub _lineStyle {
+sub _setPosition {
   my ($self, $markup) = @_;
-  $markup->line("bold");
+  #Do we want to draw this feature above or below the sequence?
+  $markup->v_align('top');
 }
 
-sub _lineColour {
+sub _setStyle {
   my ($self, $markup) = @_;
-  #All line colours should be black
-  my $colour = Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "333333");
-  $markup->line_colour($colour);
+  $markup->headStyle('line') unless($markup->end);  
+  
 }
 
-sub _headStyle{
-  my ($self, $markup) = @_;
-  $markup->head("diamond");
-}
-
-sub _headColour{
-  my ($self, $markup) = @_;
-  my $colour = Bio::Pfam::Drawing::Colour::hexColour->new('-colour' => "000000");
-  $markup->head_colour($colour);
-}
-
-sub _constructLabel{
-  my ($self, $markup) = @_;
-  $markup->label($markup->BioSeqFeature->display_name) if($markup->BioSeqFeature->display_name);
-}
 
 =head1 COPYRIGHT
 
