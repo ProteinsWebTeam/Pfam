@@ -5,7 +5,7 @@
 # a page fragment that builds the results table for taxonomy or unique
 # domains searches
 #
-# $Id: resultsTable.tt,v 1.5 2008-07-14 15:01:43 jt6 Exp $
+# $Id: resultsTable.tt,v 1.6 2009-10-08 14:01:17 jt6 Exp $
 
 META naked = 1;
 %]
@@ -22,14 +22,14 @@ META naked = 1;
   </thead>
   <tbody>
   [% FOREACH family IN families.keys.sort;
-  familyUri = c.uri_for( "/family", { acc = family } ) -%]
+  familyUri = c.uri_for( "/family", family ) -%]
     <tr class="[% loop.index % 2 ? "odd" : "even" %]">
       <td>
         <a href="[% familyUri %]">[% family %]</a>
       </td>
       <td>
         <a href="[% familyUri %]">
-          [% families.$family.pfamA_id %]</a>
+          [% families.$family.pfama_id %]</a>
       </td>
       <td>
         [% families.$family.description %]
@@ -49,7 +49,7 @@ META naked = 1;
 <div id="textList" style="display: none">
   <pre>
     [%- FOREACH family IN families.keys.sort;
-family; " "; families.${family}.pfamA_id %]
+family; " "; families.${family}.pfama_id %]
 [% END -%]
   </pre>
 </div>
