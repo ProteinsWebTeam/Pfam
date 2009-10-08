@@ -1,11 +1,13 @@
-
 [%
 # tax.tt
 # jt6 20061108 WTSI
 # 
 # build the taxonomy search block
 #
-# $Id: tax.tt,v 1.13 2009-10-07 14:02:27 jt6 Exp $
+# $Id: tax.tt,v 1.14 2009-10-08 10:15:10 jt6 Exp $
+
+# TODO reinstate when we have the data loaded
+RETURN;
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
