@@ -5,7 +5,7 @@
    Base stylesheet for the tab-layout pages. Only colours should 
    need to be tweaked for the specific pages.
 
-   $Id: tab_layout.css,v 1.6 2009-07-06 14:17:20 jt6 Exp $
+   $Id: tab_layout.css,v 1.7 2009-10-08 16:02:46 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -150,6 +150,7 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   width: 85%;
   float: left;
   position: relative; /* needed to fix the IE peekaboo bug... */
+  border-top: 1px solid #621700;
 }
 
 #sidebar {
@@ -192,28 +193,29 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   list-style: none;
 }
 
-#sidebar li span.link {
+#sidebar li {
+  padding: 0 0 5px 0;
+  display: block;
+  margin: 0 0 0 0.2em;
+}
+
+#sidebar li a{
   color: #621700;
   outline: none;
   margin: 0;
-  padding: 0.2em 0.2em 0.2em 0.8em;
+  padding: 0.2em 0.2em 0.2em 0.6em;
   display: block;
   text-decoration: none;
   font-weight: bold;
   height: 100%; /* only needed to convince IE to make the whole block clickable */
 }
 
-#sidebar li {
-  padding: 0 0 5px 0;
-}
-
 #sidebar li.selected {
   background-repeat: no-repeat;
   background-position: bottom left;
-  margin-left: 0.2em;
 }
 
-#sidebar li.selected span.link {
+#sidebar li.selected a {
   position: relative;
   left: 1px;
   outline: none;
@@ -225,18 +227,25 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
   color: #621700 ! important;
 }
 
-#sidebar li.selected span.link {
+#sidebar li.disabled a,
+#sidebar li.disabled a:hover {
+  color: #AAA ! important;
   cursor: default;
-  text-decoration: none;
+  text-decoration: none ! important;
 }
 
-#sidebar li div.inactive {
-  color: #AAA;
-  margin: 0;
-  padding: 0.2em 0.2em 0.2em 0.8em;
-  text-decoration: none;
-  font-weight: bold;
-}
+/* #sidebar li.selected span.link { */
+/*   cursor: default; */
+/*   text-decoration: none; */
+/* } */
+/*  */
+/* #sidebar li div.inactive { */
+/*   color: #AAA; */
+/*   margin: 0; */
+/*   padding: 0.2em 0.2em 0.2em 0.8em; */
+/*   text-decoration: none; */
+/*   font-weight: bold; */
+/* } */
 
 #sidebar #jumpBox {
 	margin: 1em 0 0 0.4em;
@@ -257,13 +266,14 @@ div.disabled #specIcon   { background-image: url(/static/images/logos/tree_disab
 
 div.block {
   margin: 0.4em;
-  display: none;
+  /* display: none; */
 }
 
 div.handle {
   background-color: #621700;
   color: #fefefe;
   padding: 0.2em;
+  margin-top: 0.4em;
 }
 
 div.handle h1 {
@@ -323,6 +333,7 @@ p.small {
 
 table.layout {
   width: 100%;
+  border-spacing: 1px;
 }
 table.layout td {
   margin: 1px;
