@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: rfam.css,v 1.11 2009-06-09 12:27:23 jt6 Exp $
+   $Id: rfam.css,v 1.12 2009-10-08 16:02:27 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -109,6 +109,16 @@ h3 {
 h4, h5, h6 {
   font-size: x-small;
   margin: 0.2em 0;
+}
+
+/* hide the iframe that's used by the history manager in IE*/
+#yui-history-iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
 }
 
 /* ========================================
