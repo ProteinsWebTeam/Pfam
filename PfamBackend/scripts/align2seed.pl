@@ -29,7 +29,6 @@ my ($faFile, $tmpDir, $dataFileDir, $cpus, $pfAcc, $seed, $help);
 GetOptions( "in=s"   => \$faFile,
 		    "tmp=s"  => \$tmpDir,
 		    "data=s" => \$dataFileDir,
-		    "cpu=s"  => \$cpus,
 		    "acc=s" => \$pfAcc,
 		    "seed"  => \$seed,
 		    "h"      => \$help );
@@ -39,7 +38,6 @@ if(!$faFile or !$tmpDir or !$dataFileDir or !$pfAcc){
  	exit(1);
  }
 
-$cpus = 1 if(!$cpus); #If not specified, assuming that we are running on a single core machine.
 
 if($help){
 	&usage;
@@ -55,7 +53,7 @@ unless (-s "$tmpDir/$faFile"){
 
 #Now get the HMMs
 my( $tmpHMMFh, $tmpHMMFile ) = tempfile( DIR => $tmpDir );
-open(HMM,"hmmfetch $dataFileDir/Pfam_ls.bin $pfAcc |") ||
+open(HMM,"hmmfetch $dataFileDir/Pfam-A.hmm.bin $pfAcc |") ||
   die "Failed to get open hmmfetch pipe, hmmfetch $dataFileDir/Pfam_ls.bin $pfAcc:[$!] \n";
 while(<HMM>) {
   print $tmpHMMFh $_;
@@ -70,6 +68,7 @@ if($seed){
   open(SEED,"$dataFileDir/Pfam-A.seed") ||
    die "Failed to open $dataFileDir/Pfam-A.seed:[$!] \n";
   my $read = 0;
+  print $tmpSeedFh "# STOCKHOLM 1.0\n";
   while(<SEED>) {
     last if($read == 1 and $_ =~ /\/\//);
     if($read && $_ !~ /^#/){
@@ -77,14 +76,15 @@ if($seed){
     }
     $read = 1 if($_ =~ /AC\s+($pfAcc)/);
   }
+  print $tmpSeedFh "//\n";
   close(SEED) || die "Could not close Pfam-A.seed:[$!]\n";;
   close $tmpSeedFh;
 }
 
 my  $tmpAliFile = "/tmp/$$.ali"; 
 #Okay, if we have the HMM, fa (and seed)
-my $cmd = "hmmalign --oneline -q";
-$cmd .= " --withali $tmpSeedFile" if($seed);
+my $cmd = "hmmalign -q --outformat Pfam";
+$cmd .= " --mapali $tmpSeedFile" if($seed);
 $cmd .= " $tmpHMMFile $tmpDir/$faFile";
 
 
@@ -107,7 +107,7 @@ close(OUT);
 close(OUT2);
 
 $DEBUG && print STDERR "Going to run:consensus.pl\n"; 
-open(CONS, "consensus.pl $tmpAliFile 60 |") or die "Failed to get consensus string\n";
+open(CONS, "consensus.pl -method pfam -file $tmpAliFile |") or die "Failed to get consensus string\n";
 my $con;
 while(<CONS>){
   $con = $1 if(/consensus\/60%\s+(\S+)/);

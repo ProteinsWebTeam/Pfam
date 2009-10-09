@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 #
 # Authors: Rob Finn & John Tate 
 #
@@ -50,7 +50,7 @@ use Getopt::Long;
 # Our Module Found in Pfam-Core
 use Bio::Pfam::WebServices::PfamQueue;
 
-our $DEBUG = 0;
+our $DEBUG = 1;
 
 
 
@@ -71,17 +71,16 @@ while(1) {
 	if($ref->{'job_type'} eq "batch"){
 		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
 		$cmd .= " ".$ref->{'command'};
-		if($qsout->pvm){
-			$cmd .= " -pvm"
-		}else{
-			$cmd .= " -cpu ".$qsout->cpus;
-		}
-		$cmd .= " -d ".$qsout->dataFileDir;
+		
+    $cmd .= " -dir ".$qsout->dataFileDir;
 		$cmd .= " -as";
 		$cmd .= " ".$ref->{'options'};
-		$cmd .= " ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
+		$cmd .= " -fasta ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
 		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
 		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
+
+
+
 	}elsif($ref->{'job_type'} eq "dna"){
 		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
 		$cmd .= " ".$ref->{'command'};
@@ -114,10 +113,11 @@ while(1) {
 			  my $p = 50 - $c;
 			  $p =1 if($p < 1);
 			  #Now set up the LSF job
-			  my $fh = IO::File->new;
- 		      $fh->open( "| bsub -q pfam_slow -sp $p -n ".$qsout->cpus." -R \"span[hosts=1]\"");
- 		      $fh->print( "$cmd\n");
-     		  $fh->close;
+			  #my $fh = IO::File->new;
+ 		    #  $fh->open( "| bsub -q pfam_slow -sp $p -n ".$qsout->cpus." -R \"span[hosts=1]\"");
+ 		    #  $fh->print( "$cmd\n");
+     		#  $fh->close;
+        system($cmd);
 		}else{
 			system( $cmd );
 		}

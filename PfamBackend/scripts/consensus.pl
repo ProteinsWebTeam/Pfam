@@ -1,39 +1,58 @@
-#!/usr/bin/perl -w
-
-# Copyright (c) 2007: Genome Research Ltd.
-#
-# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-#
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-# 
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-# details.
-# 
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <http://www.gnu.org/licenses/>.
+#!/usr/local/bin/perl
 
 use strict;
+use warnings;
+use Getopt::Long;
+use Data::Dumper;
+use Log::Log4perl qw(:easy);
 
+#Start up the logger
+Log::Log4perl->easy_init();
+my $logger = get_logger();
+ 
 # The main body of the program starts here 
-
-
-# Get the user defined environment variables
-if (!@ARGV) {
-    print STDERR "usage: $0 alignment_file [threshold%]...\n";
-    print_sets();
-    exit 0;
+my (@THRESHOLD, $file, $method, $help, $print_sets);
+GetOptions( "thr=s"    => \@THRESHOLD,
+            "file=s"   => \$file,
+            "method=s" => \$method,
+            "help"     => \$help,
+            "sets"     => \$print_sets );
+if($print_sets){
+  print_sets();
+  exit 0;
 }
-my $FILE       = shift @ARGV;
-my @THRESHOLD;
-if (@ARGV) {
-    @THRESHOLD = @ARGV;
-} else {
-    @THRESHOLD = (90, 80, 70, 60, 50);
+my %METHODS;
+%METHODS = ( A => \&A, B => \&B, C => \&C, D => \&D, E => \&E, F => \&F, G => \&G, H => \&H, I => \&I,
+             J => \&J, K => \&K, L => \&L, M => \&M, N => \&N, O => \&O, P => \&P, Q => \&Q, R => \&R,
+             S => \&S, T => \&T, U => \&U, V => \&V, W => \&W, X => \&X, Y => \&Y, Z => \&Z);
+if(!$file){
+  $logger->logdie("You need to specifiy an alignment file (e.g. SEED, ALIGN)"); 
+}
+
+if(!$method){
+  $logger->debug("Setting method to clustal");
+  $method = "clustal"; 
+}
+
+#Die if the method is unknown.
+unless($method eq "clustal" or $method eq "pfam" or $method eq "belvu"){
+   $logger->logdie("Unknown method $method");
+}
+
+#Set the default usage thresholds if not set
+if(!scalar(@THRESHOLD)){
+  if($method eq "clustal"){
+    @THRESHOLD = qw(85 80 60 50); 
+  }elsif($method eq "pfam"){
+    @THRESHOLD = qw(60)
+  }elsif($method eq "belvu"){
+    @THRESHOLD = qw(0) 
+  }
+}
+
+my %matrix;
+if($method eq "belvu"){
+  _readBlosum(\%matrix); 
 }
 
 # Set up of global variables
@@ -47,40 +66,39 @@ my %CONCENSUS;
 
 
 
-read_alignment($FILE);
-printf "%-20s %s\n",          $ID[0], join("", @{$ALIGNMENT{$ID[0]}});
-my $threshold; foreach $threshold (reverse sort @THRESHOLD) {
-    compute_consensus($threshold);
-    my $format = sprintf "%d%%", $threshold;
-    printf "%-9s/%-9s  %s\n", 'consensus', $format, $CONCENSUS{$threshold};
+read_alignment($file);
+
+printf "%-20s %s\n",          $ID[0], join("", @{$ALIGNMENT{$ID[0]}}); 
+foreach my $threshold (reverse sort @THRESHOLD) {
+  compute_consensus($threshold, $method);
+  my $format = sprintf "%d%%", $threshold;
+  printf "%-9s/%-9s  %s\n", 'consensus', $format, $CONCENSUS{$threshold};
 }
 
 
+
+
+###############
+# Subroutines #
+###############
+
 sub read_alignment {
-    my ($file) = @_;
-    my ($id, %alignment);
-    open(TMP, "$file") or die "can't open file '$file'\n";
-    while (<TMP>) {
-
-        if ($_ =~ /^(\S+)\s+([-a-zA-Z*.]+) *$/) {
-            if (! $alignment{$1}) {
-                #new sequence identifier
-                push @ID, $1;
-            }
-
-            #strip spaces,tabs,newlines: extend alignment array
-            $_ = $2;
-            $_ =~ tr/ \t\n//d;
-            push @{$ALIGNMENT{$1}}, split("", $_);
-        }
-	else
-		{
-		warn "Could not parse $_ !!!!\n";
-		} 
-
+  my $file = shift;
+  open(TMP, "$file") or die "can't open file '$file'\n";
+  while (<TMP>){
+    next if ($_ =~ /^CLUSTAL/);
+    if ($_ =~ /^(\S+\/\d+-\d+)\s+([-a-zA-Z*.]+) *$/) {
+      my $nse = $1;
+      my $ali = $2;
+      $ali =~ s/\s|\t|\n//g;
+      push @{$ALIGNMENT{$nse}}, split("", $ali);
+    }else{
+      $logger->warn("Failed to parse $_\n");
     }
-    close TMP;
-    $LENGTH = check_lengths();
+  }
+  close TMP;
+  @ID = keys %ALIGNMENT; 
+  $LENGTH = check_lengths();
 }
 
 sub check_lengths {
@@ -93,199 +111,268 @@ sub check_lengths {
     }
     return $len;
 }
-
+  
 
 sub compute_consensus {
-    my ($threshold) = @_;
-    my ($column) = [];
-    my $aa;
-    my $c;
-   	for ($c = 0; $c < $LENGTH; $c++) {
-	# This is where my changes really kick in.......
-        
-		my %column_aa;
-	foreach my $id (@ID) 
-		{
-        	if (${$ALIGNMENT{$id}}[$c] !~ /(\.|-)/)
-			{
-			$aa = ${$ALIGNMENT{$id}}[$c];
-			$column_aa{$aa}++;
-			}
-        	}
+  my ($threshold, $method) = @_;
+  my ($column) = [];
+  my $aa;
+  my $c;
+  for ($c = 0; $c < $LENGTH; $c++) {
+	 # This is where my changes really kick in.......
+	 my %column_aa;
+	 my $aaCount = 0;
+	 foreach my $id (@ID){
+	   next if (${$ALIGNMENT{$id}}[$c] =~ /(\.|-)/);
+     $aa = ${$ALIGNMENT{$id}}[$c];
+	   $column_aa{uc($aa)}++;
+     $aaCount++;
+   }
 	
-        if (%column_aa and  keys(%column_aa)) {
+   if($aaCount) {
 		%SET = ();
 		%SCORE = ();
-		tally_column(\%column_aa);
-            	arbitrate($threshold);
-        } else {
-	    # This appears to be used when given an alignment column of
-	    # only gaps.  Weird huh!
-            $CONCENSUS{$threshold} .= '.';
-        }
+		tally_column_new(\%column_aa, $method);
+    arbitrate($threshold) unless $method eq "belvu";
+   } else {
+     # This appears to be used when given an alignment column of
+	   # only gaps.  Weird huh!
+     $CONCENSUS{$threshold} .= '.';
     }
+  }
 }
  
-sub tally_column {
-    my ($column) = @_;  
-    my ($class, $score);
-	foreach my $aa (keys %{$column})
-		{
-		my $score = $$column{$aa};
-		$aa = ucfirst($aa);
-		if (!defined $SET{$aa})
-			{
-			$SET{$aa} = ["$aa", [ "1" ]];
-			$SCORE{$aa} = $score;
-			}	
-		else 
-			{
-			$SCORE{$aa} = $SCORE{$aa} + $score ;
-			}
-			}
-	
-	my @keys = keys %SCORE ;
-	foreach $class (@keys)
-		{
-		if (!defined $SCORE{"any"})
-			{
-			$SET{"any"} = [".", [ "20" ]];
-			$SCORE{"any"} = $SCORE{$class};
-			}
-		else 
-			{
-			$SCORE{"any"} = $SCORE{"any"} + $SCORE{$class};
-			}
-
-		if($class eq  "S")
-			{
-			&alcohol($SCORE{$class});
-			&polar($SCORE{$class});
-			&tiny($SCORE{$class});
-			}
-		elsif ($class eq "T")
-			{
-			&alcohol($SCORE{$class});
-			&small($SCORE{$class});
-			&turnlike($SCORE{$class});
-			&polar($SCORE{$class});
-			&hydrophobic($SCORE{$class});
-			}
-		elsif ($class eq "I")
-			{
-			&aliphatic($SCORE{$class});
-			}
-		elsif ($class eq "L")
-			{
-			&aliphatic($SCORE{$class});
-			}
-		elsif ($class eq "V")
-			{
-			&aliphatic($SCORE{$class});
-			&small($SCORE{$class});
-			}
-		elsif ($class eq "A")
-			{
-			&hydrophobic($SCORE{$class});
-			&tiny($SCORE{$class});
-			}
-		elsif ($class eq "C")
-			{
-			&hydrophobic($SCORE{$class});
-			&polar($SCORE{$class});
-			&small($SCORE{$class});
-			&turnlike($SCORE{$class});
-			}
-		elsif ($class eq "D")
-			{
-			&negative($SCORE{$class});
-			&small($SCORE{$class});
-			&turnlike($SCORE{$class});
-			}
-		elsif ($class eq "E")
-			{
-			&negative($SCORE{$class});
-			&turnlike($SCORE{$class});
-			}
-		elsif ($class eq "F")
-			{
-			&aromatic($SCORE{$class});
-			}
-		elsif ($class eq "G")
-			{
-			&tiny($SCORE{$class});
-			&hydrophobic($SCORE{$class});
-			}
-		elsif ($class eq "H")
-			{
-			&aromatic($SCORE{$class});
-			&positive($SCORE{$class});
-			&turnlike($SCORE{$class});
-			}
-		elsif ($class eq "K")
-			{
-			&positive($SCORE{$class});
-			&turnlike($SCORE{$class});
-			&hydrophobic($SCORE{$class});
-			}
-		elsif ($class eq "M")
-			{
-			&hydrophobic($SCORE{$class});
-			}
-		elsif ($class eq "N")
-			{
-			&polar($SCORE{$class});
-			&small($SCORE{$class});
-			&turnlike($SCORE{$class});
-			}
-		elsif ($class eq "P")
-			{
-			&small($SCORE{$class});
-			}
-		elsif ($class eq "Q")
-			{
-			&polar($SCORE{$class});
-			&turnlike($SCORE{$class});
-			}
-		elsif ($class eq "R")
-			{
-			&positive($SCORE{$class});
-			&turnlike($SCORE{$class});
-			&hydrophobic($SCORE{$class});
-			}
-		elsif ($class eq "W")
-			{
-			&aromatic($SCORE{$class});
-			}
-		elsif ($class eq "Y")
-			{
-			&aromatic($SCORE{$class});
-			}
-		elsif ($class ne "X")
-			{
-			warn "unrecognised aa $class\n";
-			}
+ 
+sub tally_column_new{
+  my $column = shift;
+  my $m = shift;;
+  my ($class, $score);
+  
+  if($m eq "belvu"){
+    my $n = scalar(@ID);
+    foreach my $matAa (keys %matrix){
+      my $aaScore;
+      foreach my $aa (keys %$column){
+        $aaScore += ($matrix{$matAa}->{$aa} * $column->{$aa})/$n;
+      }
+      $aaScore =  sprintf("%.2f", $aaScore);
+      print "$matAa, $aaScore\n" if($aaScore > 0); 
+    }
+    print "___\n";
+  }else{
+  
+  
+  #This initalises the specific amino acid sets and sums the score for the amino acid type
+  foreach my $aa (keys %$column){
+     $aa= uc($aa);
+     $SET{$aa} = ["$aa", [ "1" ]] unless ($SET{$aa});
+     $SCORE{$aa} += $$column{$aa};
+  } 
+  
+  foreach my $aa (keys %SCORE){
+    $SET{"any"} = [".", [ "20" ]] unless($SET{"any"});
+		$SCORE{"any"} += $SCORE{$aa};
+		if($m eq "clustal"){
+		  #KR#QE#TS#ED
+		  if($aa eq "Q" or $aa eq "E" or $aa eq "B"){
+		    clustalBs($SCORE{$aa});
+		  }
+		  
+		  if($aa eq "T" or $aa eq "S"){
+		    clustalAlcohol($SCORE{$aa});
+		  }
+		  
+		  if($aa eq "E" or $aa eq "D"){
+		    clustalNegative($SCORE{$aa});
+		  }
+		  
+		  if($aa eq "K" or $aa eq "R" or $aa eq "O"){
+		    clustalPositive($SCORE{$aa}); 
+		  }
+		  
+		  foreach my $h (qw(W L V I M A F C Y H P)){
+		    if($aa eq $h){
+		      clustalHydro($SCORE{$aa});
+		      last;
+		     }
+		  } 
+		}else{
+		  my $codeRef = $METHODS{$aa};
+		  &$codeRef($aa);
 		}
+  } 
+  } 
+}
+
+sub S {
+  my $class = shift;
+  &alcohol($SCORE{$class});
+  &polar($SCORE{$class});
+  &tiny($SCORE{$class}); 
+}
+
+sub T {
+   my $class = shift; 
+  	&alcohol($SCORE{$class});
+	  &small($SCORE{$class});
+		&turnlike($SCORE{$class});
+		&polar($SCORE{$class});
+		&hydrophobic($SCORE{$class});
+}
+
+sub I {
+  my $class = shift;
+  &aliphatic($SCORE{$class});
+} 
+
+sub L {
+  my $class = shift;
+  &aliphatic($SCORE{$class});
+}
+
+sub J {
+  my $class = shift;
+  &aliphatic($SCORE{$class});
+} 
+
+sub B {
+  my $class = shift;
+  &aliphatic($SCORE{$class});
+}
+
+sub V {
+  my $class = shift;
+  &aliphatic($SCORE{$class});
+	&small($SCORE{$class});
+}
+
+sub A {
+  my $class = shift;
+  &hydrophobic($SCORE{$class});
+	&tiny($SCORE{$class});
+}
+
+sub C {
+  my $class = shift;
+  &hydrophobic($SCORE{$class});
+	&polar($SCORE{$class});
+	&small($SCORE{$class});
+	&turnlike($SCORE{$class});
+}
+
+sub D {
+  my $class = shift;
+	&negative($SCORE{$class});
+	&small($SCORE{$class});
+  &turnlike($SCORE{$class});
+}
+
+sub E	{
+  my $class = shift;
+	&negative($SCORE{$class});
+	&turnlike($SCORE{$class});
+}
+
+sub F {
+  my $class = shift;
+	&aromatic($SCORE{$class});
+}
+
+sub G {
+  my $class = shift;
+	&tiny($SCORE{$class});
+	&hydrophobic($SCORE{$class});
+}			
+
+sub H {
+  my $class = shift;
+  &aromatic($SCORE{$class});
+	&positive($SCORE{$class});
+	&turnlike($SCORE{$class});
+}
+
+sub K{
+  my $class = shift;
+	&positive($SCORE{$class});
+	&turnlike($SCORE{$class});
+	&hydrophobic($SCORE{$class});
+}
+
+sub M {
+  my $class = shift;
+	&hydrophobic($SCORE{$class});
+}
+
+sub N {
+  my $class = shift;
+  &polar($SCORE{$class});
+	&small($SCORE{$class});
+	&turnlike($SCORE{$class});
+}
+
+sub P {
+  my $class = shift;
+  &small($SCORE{$class});
+}
+
+sub Q {
+  my $class = shift;
+  &polar($SCORE{$class});
+  &turnlike($SCORE{$class});
+}
+
+sub R {
+  my $class = shift;
+	&positive($SCORE{$class});
+	&turnlike($SCORE{$class});
+	&hydrophobic($SCORE{$class});
+}
+
+sub W {
+  my $class = shift;
+	&aromatic($SCORE{$class});
+}
+
+sub Y {
+  my $class = shift;
+	&aromatic($SCORE{$class});
+}
+
+#Selenocysteine
+sub U {
+  my $class = shift;
+  &hydrophobic($SCORE{$class});
+	&polar($SCORE{$class});
+	&small($SCORE{$class});
+	&turnlike($SCORE{$class});
+}
+
+sub Z {
+  my $class = shift;
+  &turnlike($SCORE{$class}); 
+}
+
+sub O {
+  my $class = shift;
+	&positive($SCORE{$class});
+	&turnlike($SCORE{$class});
+	&hydrophobic($SCORE{$class});
+}
+sub X {
+  #No score
 }
 
 
-sub negative
-	{
+sub negative {
 	my $score = shift;
-	if (!defined $SCORE{"negative"})
-		{
-		$SET{"negative"} = ["-", [ "2" ]];
-		$SCORE{"negative"} = $score
-		}
-	else
-		{
-		$SCORE{"negative"} = $SCORE{negative} + $score;
-		}
+	$SET{"negative"} = ["-", [ "2" ]] unless($SET{"negative"});
+	$SCORE{"negative"} += $score;
 	&charged($score);
-	}
+}
 
-sub positive
-	{
+
+
+sub positive {
 	my $score = shift;
 	if (!defined $SCORE{"positive"})
 		{
@@ -314,8 +401,7 @@ sub charged
 	&polar($score);
 	}
 	
-sub hydrophobic
-	{
+sub hydrophobic{
 	my $score = shift;
 	if (!defined $SCORE{"hydrophobic"})
 		{
@@ -373,19 +459,13 @@ sub polar
 		$SCORE{"polar"} = $SCORE{polar} + $score;
 		}
 	}
-sub alcohol
-	{	
-	my $score = shift;
-	if (!defined $SCORE{"alcohol"})
-		{
-		$SET{"alcohol"} = ["o", [ "2" ]];
-		$SCORE{"alcohol"} = $score
-		}
-	else
-		{
-		$SCORE{"alcohol"} = $SCORE{alcohol} + $score;
-		}
-	}
+
+sub alcohol{	
+  my $score = shift;
+	$SCORE{"alcohol"} += $score;
+	$SET{"alcohol"} = ["o", [ "2" ]] unless($SET{"alcohol"});
+}
+
 
 
 sub tiny 
@@ -434,7 +514,41 @@ sub turnlike
 		}
 
 	}
-			
+
+sub clustalHydro {
+  my $score = shift;
+  #WLVIMAFCYHP
+  $SET{"clustalHydro"} = ["h", [ "11" ]] unless $SET{"clustalHydro"};
+  $SCORE{"clustalHydro"} += $score;
+}
+
+#KR
+sub clustalPositive {
+	my $score = shift;
+	$SET{"clustalPositve"} = ["+", [ "2" ]] unless($SET{"clustalPositive"});
+	$SCORE{"clustalPositve"} += $score;
+}
+
+#QE
+sub clustalBs{	
+  my $score = shift;
+	$SCORE{"clustalB"} += $score;
+	$SET{"clustalB"} = ["b", [ "2" ]] unless($SET{"clustalB"});
+}
+
+#TS
+sub clustalAlcohol{	
+  my $score = shift;
+	$SCORE{"clustalAlcohol"} += $score;
+	$SET{"clustalAlcohol"} = ["o", [ "2" ]] unless($SET{"clustalAlcohol"});
+}
+
+#ED
+sub clustalNegative {
+	my $score = shift;
+	$SET{"clustalNegative"} = ["-", [ "2" ]] unless($SET{"clustalNegative"});
+	$SCORE{"clustalNegative"} += $score;
+}
 
 sub arbitrate {
     my ($threshold) = @_;
@@ -442,11 +556,12 @@ sub arbitrate {
     #choose smallest class exceeding threshold and
     #highest percent when same size
     foreach my $class (keys %SCORE) {
-	$SCORE{$class} = ((100.0 * $SCORE{$class}) /@ID);
-				}
+	   $SCORE{$class} = ((100.0 * $SCORE{$class}) /@ID);
+		}
  	
 	foreach my $class (keys %SCORE) 
 		{
+  
         if ($SCORE{$class} >= $threshold) {
 		my $a = 	${$SET{$class}[1]}[0];
 		my $b = ${$SET{$bestclass}[1]}[0];
@@ -504,7 +619,7 @@ $full_set{H}           = ['H', [ "H" ]];
 $full_set{C}           = ['C', [ "C" ]];
 $full_set{P}           = ['P', [ "P" ]];
 $full_set{K}           = ['K', [ "K" ]];
-$full_set{R}           = ['R', [ "R" ]];
+$full_set{R}           = ['R', [ "R" ]];  
 $full_set{D}           = ['D', [ "D" ]];
 $full_set{E}           = ['E', [ "E" ]];
 $full_set{Q}           = ['Q', [ "Q" ]];
@@ -528,11 +643,51 @@ $full_set{"small"}       = ['s', [ qw(G A S V T D N P C) ]];
 $full_set{"turnlike"}    = ['t', [ qw(G A S H K R D E Q N T C)]];
 
 $full_set{"any"}         = ['.', [ qw(G A V I L M F Y W H C P K R D E Q N S T) ]];
-
     printf STDERR "    %-15s %-3s  %s\n", 'class', 'key', 'residues';
     foreach $class (sort keys %full_set) {
         printf STDERR "    %-15s %-3s  ", $class, $full_set{$class}[0];
         print STDERR join(",", sort @{$full_set{$class}[1]}), "\n";
     }
 }
+
+sub _readBlosum{
+  print "In Blosum\n";
+  my $matrixRef = shift;
+  my @aa = qw( A  R  N  D  C  Q  E  G  H  I  L  K  M  F  P  S  T  W  Y  V  B  Z  X * );
+  while(<DATA>){
+    my @row = split(/\s+/, $_);
+    my $aa = shift @row;
+    for(my $i = 0; $i <= $#row; $i++){
+      $matrixRef->{$aa}->{$aa[$i]} = $row[$i]; 
+    }
+  }
+}
+
+
+1;
+__DATA__
+A  4 -1 -2 -2  0 -1 -1  0 -2 -1 -1 -1 -1 -2 -1  1  0 -3 -2  0 -2 -1  0 -4 
+R -1  5  0 -2 -3  1  0 -2  0 -3 -2  2 -1 -3 -2 -1 -1 -3 -2 -3 -1  0 -1 -4 
+N -2  0  6  1 -3  0  0  0  1 -3 -3  0 -2 -3 -2  1  0 -4 -2 -3  3  0 -1 -4 
+D -2 -2  1  6 -3  0  2 -1 -1 -3 -4 -1 -3 -3 -1  0 -1 -4 -3 -3  4  1 -1 -4 
+C  0 -3 -3 -3  9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1 -3 -3 -2 -4 
+Q -1  1  0  0 -3  5  2 -2  0 -3 -2  1  0 -3 -1  0 -1 -2 -1 -2  0  3 -1 -4 
+E -1  0  0  2 -4  2  5 -2  0 -3 -3  1 -2 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4 
+G  0 -2  0 -1 -3 -2 -2  6 -2 -4 -4 -2 -3 -3 -2  0 -2 -2 -3 -3 -1 -2 -1 -4 
+H -2  0  1 -1 -3  0  0 -2  8 -3 -3 -1 -2 -1 -2 -1 -2 -2  2 -3  0  0 -1 -4 
+I -1 -3 -3 -3 -1 -3 -3 -4 -3  4  2 -3  1  0 -3 -2 -1 -3 -1  3 -3 -3 -1 -4 
+L -1 -2 -3 -4 -1 -2 -3 -4 -3  2  4 -2  2  0 -3 -2 -1 -2 -1  1 -4 -3 -1 -4 
+K -1  2  0 -1 -3  1  1 -2 -1 -3 -2  5 -1 -3 -1  0 -1 -3 -2 -2  0  1 -1 -4 
+M -1 -1 -2 -3 -1  0 -2 -3 -2  1  2 -1  5  0 -2 -1 -1 -1 -1  1 -3 -1 -1 -4 
+F -2 -3 -3 -3 -2 -3 -3 -3 -1  0  0 -3  0  6 -4 -2 -2  1  3 -1 -3 -3 -1 -4 
+P -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4  7 -1 -1 -4 -3 -2 -2 -1 -2 -4 
+S  1 -1  1  0 -1  0  0  0 -1 -2 -2  0 -1 -2 -1  4  1 -3 -2 -2  0  0  0 -4 
+T  0 -1  0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1  1  5 -2 -2  0 -1 -1  0 -4 
+W -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1  1 -4 -3 -2 11  2 -3 -4 -3 -2 -4 
+Y -2 -2 -2 -3 -2 -1 -2 -3  2 -1 -1 -2 -1  3 -3 -2 -2  2  7 -1 -3 -2 -1 -4 
+V  0 -3 -3 -3 -1 -2 -2 -3 -3  3  1 -2  1 -1 -2 -2  0 -3 -1  4 -3 -2 -1 -4 
+B -2 -1  3  4 -3  0  1 -1  0 -3 -4  0 -3 -3 -2  0 -1 -4 -3 -3  4  1 -1 -4 
+Z -1  0  0  1 -3  3  4 -2  0 -3 -3  1 -1 -3 -1  0 -1 -3 -2 -2  1  4 -1 -4 
+X  0 -1 -1 -1 -2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -2  0  0 -2 -1 -1 -1 -1 -1 -4 
+* -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4 -4  1 
 

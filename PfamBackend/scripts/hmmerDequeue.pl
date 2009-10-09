@@ -1,99 +1,100 @@
-#!/usr/bin/perl
-#
-# Authors: Rob Finn & John Tate 
-#
-# This script is designed to take jobs entered into the web_user database
-# and run them.  This dequeuer will only run interactive hmmer jobs. 
-# Currently, there is no down weighting of users who submit lots of jobs.  
-# The results of fast jobs are entered in to the database.
-#
-# This only runs pfam_scan.pl which is a wrapper around hmmer and deals with
-# some of the post processing.  We run pfam_scan.pl as this give the users
-# exactly the same results whether they run the batch form of the sequence search.
-
-# Copyright (c) 2007: Genome Research Ltd.
-#
-# Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
-#
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation; either version 2 of the License, or (at your option) any later
-# version.
-# 
-# This program is distributed in the hope that it will be useful, but WITHOUT
-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-# FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-# details.
-# 
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <http://www.gnu.org/licenses/>.
+#!/software/bin/perl
 
 use strict;
 use warnings;
-use Data::Dumper;
-use IPC::Cmd qw(run);
+
+use JSON;
+use File::Temp qw( tempfile);
+use Bio::Pfam::Scan::PfamScan;
 use Bio::Pfam::WebServices::PfamQueue;
+use Storable qw( freeze nfreeze );
 
-our $DEBUG = 0;
+use Data::Dump qw( dump );
 
-#Get a queue stub of type hmmer
-my $qsout = Bio::Pfam::WebServices::PfamQueue->new("hmmer");
-$qsout->daemonise unless($DEBUG);
-#An infinite loop to keep submitting jobs.
-while(1) {
-  #See if there are any jobs in the queue
-  my $ref   = $qsout->satisfy_pending_job();
-  $DEBUG && print Dumper($ref);
-  
-  unless($ref->{'id'}){
-  	sleep 2;
-  }else{
-  	my $error = 0;
-    my $cmd;
-    
-	#Write the users sequence to file
-	open(FA, ">".$qsout->tmpDir."/".$ref->{job_id}.".fa") ||  ($error .= "Could not open file for writing:[$!].");
-	print FA ">UserSeq\n";
-	print FA $ref->{'stdin'}."\n";
-	close(FA)  || ($error .= "Could close fasta file:[$!].");
-	
-	
-	$cmd = $ref->{'command'};
-	if($qsout->pvm){
-		$cmd .= " -pvm"
-	}else{
-		$cmd .= " -cpu ".$qsout->cpus;
-	}
-	$cmd .= " -align -d ".$qsout->dataFileDir;
-  $cmd .= " -as";
-	$cmd .= " ".$ref->{'options'};
-	$cmd .= " ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
+my $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
+$ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
 
-	   
-	if($error){
-	  $qsout->update_job_status($ref->{id}, 'FAIL');
-	  $qsout->update_job_stream($ref->{id}, 'stderr', $error);
-	  next;
-	}
-	$DEBUG && print STDERR "Executing id=$ref->{'id'}, command=$cmd\n";
-		
-    my( $success, $error_code, $full_buf, $stdout_buf, $stderr_buf ) =
-          run( command => $cmd, verbose => 0 );
+my $pq = Bio::Pfam::WebServices::PfamQueue->new( 'h3' );
+$pq->daemonise unless $DEBUG;
 
-	$DEBUG &&  print STDERR Dumper($success, $error_code, $full_buf, $stdout_buf, $stderr_buf);
-	      
-    if(scalar(@$stdout_buf)){
-    	$qsout->update_job_stream($ref->{id}, 'stdout', join "", @$stdout_buf);
-    }     
-    if(scalar(@$stderr_buf)){
-    	$qsout->update_job_stream($ref->{id}, 'stderr', join "", @$stdout_buf);
-    } 
-    
-    if($success){
-       $qsout->update_job_status($ref->{'id'}, 'DONE');
-    }else{
-       $qsout->update_job_status($ref->{'id'}, 'FAIL');
+my $ps = Bio::Pfam::Scan::PfamScan->new();
+
+JOB: while ( 1 ) {
+
+  my $job = $pq->satisfy_pending_job;
+
+  unless ( $job->{id} ) {
+    $DEBUG && print STDERR "dequeuer: no job; sleeping\n";
+    sleep 2; # TODO make the sleep delay a configuration variable
+    next JOB;
+  }
+  $DEBUG && print STDERR 'dequeuer: job specification: ' . dump( $job ) . "\n";
+
+  my $sequence = ">UserSeq\n" . $job->{stdin};
+  my ($fh, $filename) = tempfile();
+  print $fh $sequence;
+  close($fh);
+
+  my $input = {
+    -dir      => $pq->dataFileDir,
+    -as       => 1,
+    #-sequence => $sequence,
+    -fasta    => $filename,
+  };
+
+  if(defined( $job->{options} ) and $job->{options} =~ /\S+/ ){
+    my $opts = from_json($job->{options});
+    $DEBUG && print STDERR 'dequeuer: options from db:'.dump( $opts )."\n";
+    if(defined( $opts->{evalue}) ){
+      $input->{-e_dom} = $opts->{evalue};
     }
-    unlink($qsout->tmpDir."/".$ref->{job_id}.".fa") || warn "Could not remove tmp fasta file:[$!]\n";
-  } 
+  }
+  if(defined( $job->{job_type} )){
+    if($job->{job_type} eq 'A'){
+      push(@{$input->{-hmmlib}},  'Pfam-A.hmm');
+    }elsif( $job->{job_type} eq 'B'){
+      push(@{$input->{-hmmlib}},  'Pfam-B.hmm');
+      $input->{-e_dom} = '0.001';
+    }
+  }
+
+  $DEBUG && print STDERR 'dequeuer: PfamScan params: ' . dump( $input ) . "\n";
+
+  $DEBUG && print STDERR "dequeuer: created a PfamScan object\n";
+
+  # TODO update the job_history.opened column appropriately
+
+  my $results;
+  eval {
+    $DEBUG && print STDERR "dequeuer: running a search...\n";
+    $ps->search( $input );
+    $DEBUG && print STDERR "dequeuer: done\n";
+    $results = nfreeze( $ps->results );
+  };
+  if ( $@ ) {
+    $DEBUG && print STDERR "ERROR: search failed: $@\n";
+    $pq->update_job_stream( $job->{id}, 'stderr', $@ );
+    $pq->update_job_status( $job->{id}, 'FAIL' );
+    next JOB;
+  }
+
+  if ( $results ) {
+    $DEBUG && print STDERR "dequeuer: updating job stream with results\n";
+    $pq->update_job_stream( $job->{id}, 'stdout', $results );
+    $DEBUG && print STDERR "dequeuer: done\n";
+  }
+  else {
+    $DEBUG && print STDERR "dequeuer: updating job stream with empty result set\n";
+    $pq->update_job_stream( $job->{id}, 'stdout', 'no matches found' );
+    $DEBUG && print STDERR "dequeuer: done\n";
+  }
+
+  $DEBUG && print STDERR "dequeuer: updating job status\n";
+  $pq->update_job_status( $job->{id}, 'DONE' );
+  $DEBUG && print STDERR "dequeuer: done\n";
+  
+  $DEBUG && print STDERR "dequeuer: restarting event loop\n";
 }
+
+exit;
+
