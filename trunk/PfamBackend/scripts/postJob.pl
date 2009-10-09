@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/local/bin/perl
 
 # Copyright (c) 2007: Genome Research Ltd.
 #
@@ -191,7 +191,7 @@ Please find your Pfam DNA search results below.
 If you have any comments or questions about the use of this service, 
 please contact Pfam at: pfam-help@sanger.ac.uk
 
-The DNA search tool uses a WU-BLAST prefilter and the Wise2 package to 
+The DNA search tool uses a BLASTx prefilter and the Wise2 package to 
 compare potential hits to the HMMs. You can see more information about 
 Wise2 at:
 

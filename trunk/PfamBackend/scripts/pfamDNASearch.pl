@@ -62,7 +62,7 @@ unless (-s "$tmpDir/$faFile"){
 	die "Could not find fasta file ($faFile) in the tmp dir ($tmpDir):[$!]\n";
 }
 
-foreach my $dataFile (qw/Pfam-A.fasta Pfam-A.fasta.xpd Pfam-A.fasta.xps Pfam-A.fasta.xpt Pfam_ls.bin Pfam_ls.bin.ssi/){
+foreach my $dataFile (qw/Pfam-A.fasta Pfam-A.fasta.phr  Pfam-A.fasta.pin  Pfam-A.fasta.psq Pfam-A.hmm/){
   unless (-s "$dataFileDir/$dataFile"){
 	die "Could not find $dataFile in the data dir ($dataFileDir):[$!]\n";
   }
@@ -76,7 +76,7 @@ unless (-d $ENV{'WISECONFIGDIR'}){
 }
 
 #Build the wublast command to try and find Pfam regions on the DNA sequence
-my $command = "wublastx $dataFileDir/Pfam-A.fasta $tmpDir/$faFile -cpus $cpus -V=10000 -B=10000";
+my $command = "/software/pfam/pfamweb/ncbi/bin/blastx -db $dataFileDir/Pfam-A.fasta -query $tmpDir/$faFile";
 
 $DEBUG && print STDERR "Going to run $command\n";
 
@@ -88,40 +88,49 @@ open (STDIN, "$command  |") or die "Failed to open pipe on the following command
 #want the searches to run.
 
 
-my $blastio; 
-eval {
-  $blastio = Bio::SearchIO::blast->new( -format => 'blast',
-  										-wait => 600,
-  										-fh   => \*STDIN,
-				  						-signif => 0.001);
-};
+#my $blastio; 
+#eval {
+#  $blastio = Bio::SearchIO::blast->new( -format => 'blast',
+#  										-wait => 600,
+#  										-fh   => \*STDIN,
+#				  						-signif => 0.001);
+#};
 
 
 #Check that this is true in the sense that zero hits dies..........!
-if( $@ ) {
-  die "Error in parsing blast, please report this bug to Pfam and include your query sequence\n";
-}
-$DEBUG && print STDERR "Finished wublast and parsed results\n";
+#if( $@ ) {
+#  die "Error in parsing blast, please report this bug to Pfam and include your query sequence\n";
+#}
+#$DEBUG && print STDERR "Finished wublast and parsed results\n";
 
 $DEBUG && print STDERR "Building mini db\n";
 #Now store the list of Pfam matches
 my %pfamHits;
-while( my $result = $blastio->next_result ) {
-    while( my $hit = $result->next_hit ) {
-    	if($hit->description){
-    		my ($acc) = $hit->description =~ /(PF\d{5}\.\d+)/;
-     		$pfamHits{$acc} = 1;		
-     	}
-     }
+#while( my $result = $blastio->next_result ) {
+ #   while( my $hit = $result->next_hit ) {
+ #   	if($hit->description){
+ #   		my ($acc) = $hit->description =~ /(PF\d{5}\.\d+)/;
+ #    		$pfamHits{$acc} = 1;		
+ #    	}
+ #    }
+#}
+
+while(<STDIN>){
+  next unless( $_ =~ /^\s{2}\w+[\/]\d+\-\d+\s+(PF\d+\.\d+)[;][A-Za-z0-9-_]+[;]\s+( ( \d+[.]\d+)|(\d+) )\s+(.*)$/ );
+   if( $5 <= 0.01 ){
+        $pfamHits{ $1 }++;
+   }
 }
+
 
 #Now make a mini database of for the matching family HMMs.....
 if(keys %pfamHits){
 	my( $tmpFh, $tmpFile ) = tempfile( DIR => $tmpDir );
   	foreach my $pfamA (keys %pfamHits){
 		#Get the HMM from the flatfile
+    print STDERR $pfamA;
 		#my ($tmpPfamA) = $pfamA =~ /(PF\d+)\.\d+/;
-		open(HMM,"hmmfetch $dataFileDir/Pfam_ls.bin $pfamA |") ||
+		open(HMM,"hmmfetch $dataFileDir/Pfam-A.hmm $pfamA | hmmconvert -2 - |") ||
 			die "Failed to get open hmmfetch pipe, hmmfetch $dataFileDir/Pfam_ls.bin $pfamA:[$!] \n";
   		while(<HMM>) {
     		print $tmpFh $_;
