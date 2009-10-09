@@ -4,7 +4,7 @@ use JSON;
 use Moose;
 use Moose::Util::TypeConstraints;
 
-subtype 'ColourStr' => as 'Str' => where { $_ =~ /\#[0-9A-F]{6}/i } =>
+subtype 'ColourStr' => as 'Str' => where { $_ =~ /^\#[0-9A-F]{6}$/i } =>
   message { "$_ does not look like a hex number\n" };
 
 subtype 'jsFeatureBoolean'
@@ -127,7 +127,8 @@ has 'href' => (
 
 
 has 'colour' => (
-  isa     => 'ColourStr|ArrayRef[ColourStr]',
+  # isa     => 'ColourStr|ArrayRef[ColourStr]',
+  isa     => 'ColourStr|ArrayRef',
   is      => 'rw',
   coerce  => 1,
   default => 'cyan'
