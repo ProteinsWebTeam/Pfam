@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.6 2009-10-07 13:22:52 jt6 Exp $
+// $Id: domain_graphics.js,v 1.7 2009-10-09 12:36:17 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -233,7 +233,7 @@ var PfamGraphic = Class.create( {
       this.setSequence( sequence );
     }
 
-    console.log( "PfamGraphic.initialize: finished initialising" );
+    // console.log( "PfamGraphic.initialize: finished initialising" );
   },
 
   //----------------------------------------------------------------------------
@@ -2307,17 +2307,17 @@ var PfamGraphic = Class.create( {
         bottom = this._canvasHeight - 2;
 
     if ( this._imageParams.highlightWeight % 2 ) {
-      console.log( "PfamGraphic._drawHighlight: line width is an odd number of pixels (%d); adjusting offsets",
-        this._imageParams.highlightWeight );
+      // console.log( "PfamGraphic._drawHighlight: line width is an odd number of pixels (%d); adjusting offsets",
+      //   this._imageParams.highlightWeight );
       left   -= 0.5;
       right  -= 0.5;
       bottom -= 0.5;
     }
 
-    console.log( "PfamGraphic._drawHighlight: moveTo( x, y ): ( %d, %d )", left, top );
-    console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", left, bottom );
-    console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", right, bottom );
-    console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", right, top );
+    // console.log( "PfamGraphic._drawHighlight: moveTo( x, y ): ( %d, %d )", left, top );
+    // console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", left, bottom );
+    // console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", right, bottom );
+    // console.log( "PfamGraphic._drawHighlight: lineTo( x, y ): ( %d, %d )", right, top );
 
     this._context.save();
 
@@ -2350,8 +2350,8 @@ var PfamGraphic = Class.create( {
                                    '</div>' } };
     this._areasList.push( area );
 
-    console.log( "PfamGraphic._drawHighlight: area coords: (%d, %d), (%d, %d)", 
-      left, top, right, bottom );
+    // console.log( "PfamGraphic._drawHighlight: area coords: (%d, %d), (%d, %d)", 
+    //   left, top, right, bottom );
   },
 
   //----------------------------------------------------------------------------
