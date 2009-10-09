@@ -2,7 +2,7 @@
 # WebUser.pm
 # jt 20060912 WTSI
 #
-# $Id: WebUser.pm,v 1.16 2008-05-16 15:23:16 jt6 Exp $
+# $Id: WebUser.pm,v 1.17 2009-10-09 09:09:51 jt6 Exp $
 #
 # $Author: jt6 $
 
@@ -19,7 +19,7 @@ package WebUser;
 The base class for the whole web_user database model. Config comes from the
 catalyst application class.
 
-$Id: WebUser.pm,v 1.16 2008-05-16 15:23:16 jt6 Exp $
+$Id: WebUser.pm,v 1.17 2009-10-09 09:09:51 jt6 Exp $
 
 =cut
 
@@ -35,7 +35,6 @@ __PACKAGE__->load_classes( qw/Feature_das_sources
                               Das_sources
                               ErrorLog
                               Family_count
-                              News
                               JobHistory
                               JobStream
                               Species_collection
