@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.19 2009-10-07 13:23:55 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.20 2009-10-09 12:31:09 jt6 Exp $
 
 META naked = 1;
 
@@ -201,7 +201,6 @@ END -%]
   var baseUri = "[% c.uri_for( '/' ) %]";
 
   var dgl = new DomainGraphicsLoader( loadUri, layout, assignedColours, baseUri );
-  console.log( "allArchitectures.tt: dgl: ", dgl );
 
   // ]]>
 </script>
