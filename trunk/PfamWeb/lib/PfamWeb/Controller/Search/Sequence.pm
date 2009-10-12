@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.36 2009-10-07 12:06:07 jt6 Exp $
+# $Id: Sequence.pm,v 1.37 2009-10-12 16:03:34 jt6 Exp $
 
 =head1 NAME
 
@@ -20,20 +20,18 @@ various methods, depending on the request method (e.g. "GET", "POST"), and
 rendering the results in the appropriate output format, depending on the 
 requested content-type (e.g. "JSON", "XML").
 
-$Id: Sequence.pm,v 1.36 2009-10-07 12:06:07 jt6 Exp $
+$Id: Sequence.pm,v 1.37 2009-10-12 16:03:34 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Bio::SearchIO::blast;
-use File::Temp qw( tempfile );
-use YAML qw( Dump );
 use Scalar::Util qw( looks_like_number );
 use Data::UUID;
-use Data::Dump qw( dump );
 use Storable qw( thaw );
+
+# use Data::Dump qw( dump );
 
 use Bio::Pfam::Sequence;
 use Bio::Pfam::Sequence::Region;
@@ -41,8 +39,7 @@ use Bio::Pfam::Sequence::MetaData;
 use Bio::Pfam::Drawing::Layout::LayoutManager;
 use JSON qw( -convert_blessed_universally );
 
-use base qw( Catalyst::Controller::REST
-             PfamBase::Controller::Search::InteractiveSearch
+use base qw( PfamBase::Controller::Search::InteractiveSearch
              PfamWeb::Controller::Search );
 
 #-------------------------------------------------------------------------------
@@ -56,39 +53,28 @@ results.
 
 =cut
 
-sub search : Path : ActionClass( 'REST' ) { }
-
-#----------------------------------------
-
-sub search_POST {
+sub search : Path {
   my ( $this, $c ) = @_;
 
   $c->stash->{pageType} = 'search';
   $c->stash->{template} = 'pages/layout.tt';
   
-  $c->log->debug( 'Search::Sequence::search_POST: set template to layout' )
+  $c->log->debug( 'Search::Sequence::search: set template to layout' )
     if $c->debug;
 
-  # retrieve the job parameters from either the request or, if the request has
-  # been deserialised for us, from the stash 
+  # retrieve the job parameters
   $c->stash->{data} = {};
   foreach my $slot ( qw( seq ga evalue ) ) {
-    $c->stash->{data}->{$slot} = $c->req->param($slot)
-                                 || ( defined $c->req->data ? $c->req->data->{$slot} : '' );
+    $c->stash->{data}->{$slot} = $c->req->param($slot) || '';
   }
   
   # validate the input
   unless ( $c->forward('validate_input') ) {
+    $c->log->debug( 'Search::Sequence::search: problem validating input' )
+      if $c->debug;
 
-    # stash the error message where the template (if we're rendering one)
-    # will find it
-    $c->stash->{seqSearchError} = $c->stash->{searchError}
-                                  || 'There was an unknown problem when validating your sequence.';
-
-    $this->status_bad_request(
-      $c,
-      message => $c->stash->{seqSearchError}
-    );
+    $c->stash->{seqSearchError} = $c->stash->{searchError} ||
+                                  'There was an unknown problem when validating your sequence.';
 
     return;
   }
@@ -97,37 +83,21 @@ sub search_POST {
   $c->log->debug( 'Search::Sequence::search_POST: input is valid; queueing search' )
     if $c->debug;
 
-  if ( $c->forward('queue_seq_search') ) {
-
-    # success !
-
-    $c->stash->{rest} = { jobId => $c->stash->{jobId},
-                          uri   => $c->uri_for( '/search/sequence/resultset', $c->stash->{jobId} )
-                                     ->as_string };
-
-    $this->status_accepted(
-      $c,
-      entity => $c->stash->{rest}
-    );
-
-    $c->forward( 'results', [ $c->stash->{jobId} ] );
-
-  }
-  else {
-
-    # failure
+  unless ( $c->forward('queue_seq_search') ) {
+    $c->log->debug( 'Search::Sequence::search: problem submitting search' )
+      if $c->debug;
 
     $c->stash->{seqSearchError} = $c->stash->{searchError}
                                   || 'There was an unknown problem when submitting your search.';
 
-    $this->status_bad_request(
-      $c,
-      message => $c->stash->{seqSearchError}
-    );
+    return;
   }
 
-  $c->log->debug( 'Search::Sequence::search_POST: template set to ' . $c->stash->{template} )
+  # success !
+  $c->log->debug( 'Search::Sequence::search: submission successful' )
     if $c->debug;
+
+  $c->forward( 'results', [ $c->stash->{jobId} ] );
 }
 
 #   http://onlamp.com/pub/a/onlamp/2008/02/19/developing-restful-web-services-in-perl.html?page=2
@@ -153,10 +123,14 @@ sub results : Local {
     $c->log->debug( 'Search::Sequence::resultset: problems getting job details' )
       if $c->debug;
 
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+                                  || 'There was an unknown problem when retrieving your results.';
+
     return;
   }
 
-  # let the view render the stash for us, as determined by the REST controller
+  # let the view render the stash for us. If we've set the body contents already,
+  # it should just return them untouched
 }
 
 #-------------------------------------------------------------------------------
@@ -167,11 +141,7 @@ Returns the HTML table containing the results of the specified job(s).
 
 =cut
 
-sub resultset : Local : ActionClass('REST') { }
-
-#----------------------------------------
-
-sub resultset_GET {
+sub resultset : Local {
   my ( $this, $c, $arg ) = @_;
 
   # start by setting the template that we'll use to render error messages if 
@@ -186,6 +156,9 @@ sub resultset_GET {
     $c->log->debug( 'Search::Sequence::resultset: problems getting job details' )
       if $c->debug;
 
+    $c->stash->{seqSearchError} = $c->stash->{searchError}
+                                  || 'There was an unknown problem when retrieving your result set.';
+
     return;
   }
 
@@ -198,10 +171,7 @@ sub resultset_GET {
     $c->log->debug( 'Search::Sequence::resultset: job(s) not found' )
       if $c->debug;
 
-    $this->status_not_found(
-      $c,
-      message => "Job(s) $jobId not found"
-    );
+    $c->stash->{seqSearchError} = "Job(s) $jobId not found";
 
     return;
   }
@@ -217,15 +187,12 @@ sub resultset_GET {
 
     if ( $status eq 'PEND' or
          $status eq 'RUN' ) {
-      $c->log->debug( 'Search::Sequence::resultset: one or more jobs is not yet complete' )
+      $c->log->debug( 'Search::Sequence::resultset: one or more jobs (' 
+                      . $job->id . ') is not yet complete' )
         if $c->debug;
 
-      $this->status_accepted(
-        $c,
-        entity => {
-          status => $status
-        }
-      );
+      $c->res->status( 202 ); # 'Accepted'
+      $c->res->body( $status );
 
       # we don't care what other jobs are doing right now. We know that we're
       # still waiting for this one, so just stop processing and return the status
@@ -319,19 +286,16 @@ sub get_job_details : Private {
   my ( $this, $c, $arg ) = @_;
 
   # get hold of the job ID
-  my $jobId = $c->req->param('jobId') 
-                || $arg
-                || ( defined $c->req->data ? $c->req->data->{jobId} : '' );
+  my $jobId = $c->req->param('jobId') ||
+              $arg                    ||
+              '';
 
   # make sure we have a job ID
   unless ( $jobId ) {
     $c->log->debug( 'Search::Sequence::get_job_details: no job ID' )
       if $c->debug;
 
-    $this->status_bad_request(
-      $c,
-      message => 'You did not supply a job ID'
-    );
+    $c->stash->{searchError} = 'You did not supply a job ID';
 
     return 0;
   }
@@ -341,10 +305,7 @@ sub get_job_details : Private {
     $c->log->debug( 'Search::Sequence::get_job_details: bad job ID' )
       if $c->debug;
 
-    $this->status_bad_request(
-      $c,
-      message => 'You did not supply a valid job ID'
-    );
+    $c->stash->{searchError} = 'You did not supply a valid job ID';
 
     return 0;
   }
