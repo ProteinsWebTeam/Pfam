@@ -274,8 +274,6 @@ __MESSAGE__
 
 ----------------
 
-The output format is:
-<seq id> <seq start> <seq end> <pfam acc> <hmm start> <hmm end> <alignment mode> <bit score> <evalue> <pfam id> <nested> <predicted_active_site_residues>
 __MESSAGE__
 
     }elsif($ref->{job_type} eq 'rfam_batch'){
