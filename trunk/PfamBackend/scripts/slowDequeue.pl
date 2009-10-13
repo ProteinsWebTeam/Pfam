@@ -113,11 +113,11 @@ while(1) {
 			  my $p = 50 - $c;
 			  $p =1 if($p < 1);
 			  #Now set up the LSF job
-			  #my $fh = IO::File->new;
- 		    #  $fh->open( "| bsub -q pfam_slow -sp $p -n ".$qsout->cpus." -R \"span[hosts=1]\"");
- 		    #  $fh->print( "$cmd\n");
-     		#  $fh->close;
-        system($cmd);
+			  my $fh = IO::File->new;
+ 		    $fh->open( "| bsub -q pfam_g2 -sp $p -n ".$qsout->cpus." -R \"span[hosts=1]\"");
+ 		    $fh->print( "$cmd\n");
+     	  $fh->close;
+        #system($cmd);
 		}else{
 			system( $cmd );
 		}
