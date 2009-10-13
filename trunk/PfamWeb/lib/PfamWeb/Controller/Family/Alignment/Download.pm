@@ -2,7 +2,7 @@
 # DownloadAlignment.pm
 # rdf 20061005 WTSI
 #
-# $Id: Download.pm,v 1.10 2009-10-07 12:10:45 jt6 Exp $
+# $Id: Download.pm,v 1.11 2009-10-13 08:51:49 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Family::Alignment::Download;
 
 Generates a B<full page>.
 
-$Id: Download.pm,v 1.10 2009-10-07 12:10:45 jt6 Exp $
+$Id: Download.pm,v 1.11 2009-10-13 08:51:49 jt6 Exp $
 
 =cut
 
@@ -197,7 +197,7 @@ sub gzipped : Local {
     my $sequences = '';
     foreach my $seq_row ( @rs ) {
       $Text::Wrap::columns = 60;
-      $sequences .= '> ' . $seq_row->pfamseq_id . ' (' . $seq_row->pfamseq_acc . ")\n";
+      $sequences .= '>' . $seq_row->pfamseq_id . ' (' . $seq_row->pfamseq_acc . ")\n";
       $sequences .= wrap( '', '', $seq_row->sequence ) . "\n";
     }
 
