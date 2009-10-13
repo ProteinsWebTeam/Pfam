@@ -131,7 +131,7 @@ has 'colour' => (
   isa     => 'ColourStr|ArrayRef',
   is      => 'rw',
   coerce  => 1,
-  default => 'cyan'
+  default => sub { Convert::Color->new( 'rgb8:00FFFF' ) }
 );
 
 has 'metadata' => (
