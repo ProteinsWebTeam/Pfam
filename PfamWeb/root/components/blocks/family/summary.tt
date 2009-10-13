@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.46 2009-10-07 13:41:56 jt6 Exp $
+# $Id: summary.tt,v 1.47 2009-10-13 08:35:34 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -126,7 +126,8 @@ PROCESS components/links.tt; %]
           [% IF member.pfama_acc == pfam.pfama_acc;
             member.pfama_id;
           ELSE %]
-            <a href="[% c.uri_for( '/family', member.pfama_acc ) %]">
+            <a title="[% member.pfama_acc %]"
+               href="[% c.uri_for( '/family', member.pfama_acc ) %]">
               [% member.pfama_id %]</a>
           [% END %]
           </span>
