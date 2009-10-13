@@ -5,7 +5,7 @@
 # 
 # build the summary block for clans
 #
-# $Id: summary.tt,v 1.22 2009-10-07 13:32:45 jt6 Exp $
+# $Id: summary.tt,v 1.23 2009-10-13 08:35:49 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -53,7 +53,8 @@ membershipList = BLOCK;
   END;
   FOREACH pfam IN members.sort( "pfama_id" ); -%]
     <span class="listItem">
-      <a href="[% c.uri_for( '/family', pfam.pfama_acc ) %]">
+      <a title="[% pfam.pfama_acc %]"
+         href="[% c.uri_for( '/family', pfam.pfama_acc ) %]">
         [% pfam.pfama_id %]</a>
     </span>
     [% total = total + pfam.num_full;
