@@ -43,6 +43,7 @@
 use strict;
 use warnings;
 use Data::Dumper;
+use JSON;
 use IPC::Cmd qw(run);
 use IO::File;
 use Getopt::Long;
@@ -50,7 +51,7 @@ use Getopt::Long;
 # Our Module Found in Pfam-Core
 use Bio::Pfam::WebServices::PfamQueue;
 
-our $DEBUG = 1;
+our $DEBUG = 0;
 
 
 
@@ -58,50 +59,63 @@ our $DEBUG = 1;
 my $qsout = Bio::Pfam::WebServices::PfamQueue->new("slow");
 $qsout->daemonise unless($DEBUG);
 while(1) {
-  my $ref   = $qsout->satisfy_pending_job();
-  $DEBUG && print Dumper($ref, $qsout->{'jobTypes'});
+  my $job   = $qsout->satisfy_pending_job();
+  $DEBUG && print Dumper($job, $qsout->{'jobTypes'});
   
-  unless($ref->{'id'}) {
+  unless($job->{'id'}) {
    	sleep 5; #Poll the database every 5 seconds....3 per LSF Poll
   }else{	
   	my $error = 0;    
 	my $cmd;
 	
 	
-	if($ref->{'job_type'} eq "batch"){
-		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
-		$cmd .= " ".$ref->{'command'};
-		
+	if($job->{'job_type'} eq "batch"){
+	  
+    $cmd = "preJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir." && ";
+    my $opts; 
+		$cmd .= " ".$job->{'command'};
+    if(defined( $job->{options} ) and $job->{options} =~ /\S+/ ){
+      $opts = from_json($job->{options});
+      $DEBUG && print STDERR 'dequeuer: options from db:'.Dumper( $opts )."\n";	
+  
+      if($opts->{evalue}){
+        $cmd .= " -e_seq ". $opts->{evalue}." -e_dom ".$opts->{evalue};
+      }
+    
+      if($opts->{batchOpts}){
+        #Run both a Pfam-A and a Pfam-B search
+        $cmd .= " -pfamB "  
+      }
+	  }	
     $cmd .= " -dir ".$qsout->dataFileDir;
 		$cmd .= " -as";
-		$cmd .= " ".$ref->{'options'};
-		$cmd .= " -fasta ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
-		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
-		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
+		$cmd .= " -fasta ".$qsout->tmpDir."/".$job->{job_id}.".fa";
+		$cmd .= " > ".$qsout->tmpDir."/".$job->{job_id}.".res 2> ".$qsout->tmpDir."/".$job->{job_id}.".err";
+		$cmd .= " && postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
 
 
 
-	}elsif($ref->{'job_type'} eq "dna"){
-		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
-		$cmd .= " ".$ref->{'command'};
-		$cmd .= " -in ".$ref->{job_id}.".fa";
+	}elsif($job->{'job_type'} eq "dna"){
+		$cmd = "preJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir." && ";
+		$cmd .= " ".$job->{'command'};
+		$cmd .= " -in ".$job->{job_id}.".fa";
 		$cmd .= " -tmp ".$qsout->tmpDir;
 		$cmd .= " -data ".$qsout->dataFileDir;
 		$cmd .= " -cpu ".$qsout->cpus;
-		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
-		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
-	}elsif($ref->{'job_type'} eq "rfam_batch"){
-		$cmd = "preJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir." && ";
-		$cmd .= " ".$ref->{'command'};
+		$cmd .= " > ".$qsout->tmpDir."/".$job->{job_id}.".res 2> ".$qsout->tmpDir."/".$job->{job_id}.".err";
+		$cmd .= " && postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
+	}elsif($job->{'job_type'} eq "rfam_batch"){
+		$cmd = "preJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir." && ";
+		$cmd .= " ".$job->{'command'};
 		$cmd .= " -data ".$qsout->rfamDataFileDir;
 		$cmd .= " -tmp ".$qsout->tmpDir;
-		$cmd .= " -in ".$qsout->tmpDir."/".$ref->{job_id}.".fa";
+		$cmd .= " -in ".$qsout->tmpDir."/".$job->{job_id}.".fa";
 		
-		$cmd .= " > ".$qsout->tmpDir."/".$ref->{job_id}.".res 2> ".$qsout->tmpDir."/".$ref->{job_id}.".err";
-		$cmd .= " && postJob.pl -id ".$ref->{id}." -tmp ".$qsout->tmpDir;
+		$cmd .= " > ".$qsout->tmpDir."/".$job->{job_id}.".res 2> ".$qsout->tmpDir."/".$job->{job_id}.".err";
+		$cmd .= " && postJob.pl -id ".$job->{id}." -tmp ".$qsout->tmpDir;
 	}
 	  
-	$DEBUG && print STDERR "Submitting id=$ref->{'id'}, command=$cmd\n";
+	$DEBUG && print STDERR "Submitting id=$job->{'id'}, command=$cmd\n";
 	
 	#Now for the lsf bit
 	if($cmd) {
@@ -109,7 +123,7 @@ while(1) {
 		
 		if($qsout->thirdPartyQueue eq 'WTSI'){
 			  #Work out the Users priority
-			  my $c = $qsout->numberPendingJobs($ref->{'email'});
+			  my $c = $qsout->numberPendingJobs($job->{'email'});
 			  my $p = 50 - $c;
 			  $p =1 if($p < 1);
 			  #Now set up the LSF job
@@ -123,12 +137,12 @@ while(1) {
 		}
 		
  	}else{
-		$error .= "unrecognised command line, commoand=$ref->{'command'}\n";
+		$error .= "unrecognised command line, commoand=$job->{'command'}\n";
 	}
 	
 	if($error){		
-		$qsout->update_job_status($ref->{id}, 'FAIL');
-		$qsout->update_job_stream($ref->{id}, 'stderr', $error);
+		$qsout->update_job_status($job->{id}, 'FAIL');
+		$qsout->update_job_stream($job->{id}, 'stderr', $error);
 		next;
 	}
     
