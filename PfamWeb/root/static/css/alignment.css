@@ -4,7 +4,7 @@
 
    Style the markup of multiple sequence alignments
    
-   $Id: alignment.css,v 1.7 2009-10-07 13:01:49 jt6 Exp $
+   $Id: alignment.css,v 1.8 2009-10-13 08:33:58 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -60,7 +60,7 @@ div.aliTitle {
 
 hr {
   background-color: #999;
-  width: 2px;
+  height: 2px;
 }
 
 /* outer wrapper */
