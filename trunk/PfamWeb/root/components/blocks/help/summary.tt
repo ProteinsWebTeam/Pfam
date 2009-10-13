@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.16 2009-10-08 13:12:55 jt6 Exp $
+# $Id: summary.tt,v 1.17 2009-10-13 13:21:55 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -105,7 +105,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       <h3>[% date.format( release_date ) %]</h3>
       <p>
         The documentation in these pages is currently out of date. Although
-        the generate information is still largely accurate, the details of 
+        the general information is still largely accurate, the details of 
         the site and underlying database may be inaccurate. We hope to update
         the documentation within the coming weeks.
     </div>
