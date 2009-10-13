@@ -127,8 +127,8 @@ has 'href' => (
 
 
 has 'colour' => (
-  # isa     => 'ColourStr|ArrayRef[ColourStr]',
-  isa     => 'ColourStr|ArrayRef',
+  isa     => 'ColourStr|ArrayRef[ColourStr]',
+  #isa     => 'ColourStr|ArrayRef',
   is      => 'rw',
   coerce  => 1,
   default => sub { Convert::Color->new( 'rgb8:00FFFF' ) }
