@@ -53,8 +53,8 @@ unless (-s "$tmpDir/$faFile"){
 
 #Now get the HMMs
 my( $tmpHMMFh, $tmpHMMFile ) = tempfile( DIR => $tmpDir );
-open(HMM,"hmmfetch $dataFileDir/Pfam-A.hmm.bin $pfAcc |") ||
-  die "Failed to get open hmmfetch pipe, hmmfetch $dataFileDir/Pfam_ls.bin $pfAcc:[$!] \n";
+open(HMM,"hmmfetch $dataFileDir/Pfam-A.hmm $pfAcc |") ||
+  die "Failed to get open hmmfetch pipe, hmmfetch $dataFileDir/Pfam-A.hmm $pfAcc:[$!] \n";
 while(<HMM>) {
   print $tmpHMMFh $_;
 }
