@@ -49,7 +49,7 @@ sub find_as {
       '2>pipe', \*ERR
       or die "ipc run returned $?" ;
 #  print IN $fasta;
-#  close IN ;
+  close IN;
 
   while(<ERR>) {
       print $_;
