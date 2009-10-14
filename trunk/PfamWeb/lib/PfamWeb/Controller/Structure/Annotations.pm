@@ -2,7 +2,7 @@
 # Annotations.pm
 # jt6 20090820 WTSI
 #
-# $Id: Annotations.pm,v 1.1 2009-09-04 09:55:58 jt6 Exp $
+# $Id: Annotations.pm,v 1.2 2009-10-14 14:53:41 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package PfamWeb::Controller::Structure::Annotations;
 A collection of actions, mostly intended to be called via AJAX, which return
 annotation data for the structure in question.
 
-$Id: Annotations.pm,v 1.1 2009-09-04 09:55:58 jt6 Exp $
+$Id: Annotations.pm,v 1.2 2009-10-14 14:53:41 jt6 Exp $
 
 =cut
 
@@ -191,7 +191,7 @@ sub topsan : Local {
         $c->log->debug( 'Structure::Annotations::topsan: error parsing XML: ' . $@ )
           if $c->debug;
 
-        $topsan_error = 'We could not interpret the TOPSAN annotations for ' . $c->stash->{pdbId} . '.';
+        $topsan_error = 'We could not interpret the TOPSAN annotations';
 
         last TEST;
       }
@@ -210,7 +210,7 @@ sub topsan : Local {
         $c->log->debug( "Structure::Annotations::topsan: couldn't parse a data structure out of the XML" )
           if $c->debug;
 
-        $topsan_error = 'There are no TOPSAN annotations for <strong>' . $c->stash->{pdbId} . '</strong>.';
+        $topsan_error = 'There are no TOPSAN annotations';
 
         last TEST;
       } 
@@ -220,7 +220,7 @@ sub topsan : Local {
         $c->log->debug( 'Structure::Annotations::topsan: failed to find the text annotation in the XML data structure' )
           if $c->debug;
 
-        $topsan_error = 'We could not parse the response from the TOPSAN servers.';
+        $topsan_error = 'We could not parse the response from the TOPSAN servers';
 
         last TEST;
       }
