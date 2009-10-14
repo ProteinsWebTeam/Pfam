@@ -3,7 +3,6 @@ package Bio::Pfam::Active_site::as_search;
 use strict;
 use Bio::SeqFeature::Generic;
 use Bio::SimpleAlign;
-use IPC::Run qw( start finish );
 use Bio::Pfam::Scan::Seq;
 
 =head2 find_as
@@ -38,22 +37,9 @@ sub find_as {
   open(SEQ, ">seqs.$$") or die "Couldn't open file seqs.$$ $!\n";
   print SEQ $fasta;
   close SEQ;
+ 
 
-  my @HMMALIGN = ("hmmalign", "--outformat", "Pfam", "hmm.$$", "seqs.$$");
-
-
-  my $run = start
-      \@HMMALIGN,
-      '<pipe', \*IN,
-      '>pipe', \*OUT,
-      '2>pipe', \*ERR
-      or die "ipc run returned $?" ;
-#  print IN $fasta;
-  close IN;
-
-  while(<ERR>) {
-      print $_;
-  }
+  open(OUT, "hmmalign --outformat Pfam hmm.$$ seqs.$$ |") or die "Couldn't open fh to hmmalign $!\n";
 
   my $aln = new Bio::SimpleAlign;
   my ($name, $start, $end, $seq);
@@ -68,7 +54,7 @@ sub find_as {
     }
   }
   close OUT;
-  finish $run ;
+  
 
   unlink "seqs.$$";
   unlink "hmm.$$";
