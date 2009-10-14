@@ -21,7 +21,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: underline.js,v 1.2 2009-10-07 13:07:09 jt6 Exp $
+// $Id: underline.js,v 1.3 2009-10-14 15:46:47 jt6 Exp $
 // 
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -77,10 +77,6 @@ var Underliner = Class.create( {
       this._pgParent.insert( { bottom: this._underlineDiv } );
     }
     
-    // get the x-offset for the canvas element, so that we can calculate the
-    // correct position for the underline
-     this._canvasOffset = pg.getCanvas().cumulativeOffset().left;
-    
     // get the data structure that stores the area information
     var areaStructures = pg.getAreas();
     this._areasHash = areaStructures[1];
@@ -129,9 +125,11 @@ var Underliner = Class.create( {
 
     // get the x-offset for the canvas element, so that we can calculate the
     // correct position for the underline
+    var canvasOffset = this._pg.getCanvas().cumulativeOffset().left;
+    
     var start = parseInt( this._areasHash.get( linkId ).coords[0], 10 ),
         end   = parseInt( this._areasHash.get( linkId ).coords[2], 10 ),
-        l = this._canvasOffset + start - this._pgParent.scrollLeft,
+        l = canvasOffset + start - this._pgParent.scrollLeft,
         w = end - start;
 
     this._underlineDiv.setStyle( { left:  l + "px",
