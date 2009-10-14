@@ -93,6 +93,11 @@ JOB: while ( 1 ) {
   $pq->update_job_status( $job->{id}, 'DONE' );
   $DEBUG && print STDERR "dequeuer: done\n";
   
+  $DEBUG && print STDERR "dequeuer: cleaning up temp file\n";
+  unlink $filename
+    or warn "WARNING: couldn't remove temp file '$filename': $!";
+  $DEBUG && print STDERR "dequeuer: done\n";
+  
   $DEBUG && print STDERR "dequeuer: restarting event loop\n";
 }
 
