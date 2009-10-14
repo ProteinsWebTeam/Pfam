@@ -5,7 +5,7 @@
 #
 # build a page that redirects from a dead family to its replacement
 #
-# $Id: dead.tt,v 1.3 2008-05-16 15:30:31 jt6 Exp $
+# $Id: dead.tt,v 1.4 2009-10-14 15:20:38 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -38,7 +38,7 @@ META fullPage = 1;
 [% END;
 IF pfam.forward_to %]
 <p>
-  However, <strong>[% pfam.pfamA_id %]</strong> ([% pfam.pfamA_acc %]) has been
+  However, <strong>[% pfam.pfama_id %]</strong> ([% pfam.pfama_acc %]) has been
   replaced by or merged into 
   <a href="[% refreshUri %]"><strong>[% pfam.forward_to %]</strong></a>.  
 </p>
