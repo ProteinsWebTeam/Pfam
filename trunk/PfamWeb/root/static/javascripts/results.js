@@ -16,7 +16,7 @@
 //
 // jt6 20090803 WTSI
 //
-// $Id: results.js,v 1.2 2009-10-07 13:17:56 jt6 Exp $
+// $Id: results.js,v 1.3 2009-10-14 16:09:50 jt6 Exp $
 // 
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -205,7 +205,7 @@ var Results = Class.create( {
  
     // draw the domain graphics. Hand in the base URL for the links on the image
     this._pg = new PfamGraphic( "dg", resultDetails.layout.first() );
-    this._pg.setImageParams( { regionUrl: this._config.familyUrl } );
+    this._pg.setBaseUrl( this._config.baseUrl );
     this._pg.render();
   
     // set up the underlining
