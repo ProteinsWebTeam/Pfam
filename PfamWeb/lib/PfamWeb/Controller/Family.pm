@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.49 2009-10-07 10:11:34 jt6 Exp $
+# $Id: Family.pm,v 1.50 2009-10-14 15:20:07 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.49 2009-10-07 10:11:34 jt6 Exp $
+$Id: Family.pm,v 1.50 2009-10-14 15:20:07 jt6 Exp $
 
 =cut
 
@@ -129,7 +129,7 @@ sub begin : Private {
 
     if ( $c->stash->{pfam}->forward_to ) {
       $c->stash->{refreshUri} =
-        $c->uri_for( '/family', { acc => $c->stash->{pfam}->forward_to } );
+        $c->uri_for( '/family', $c->stash->{pfam}->forward_to );
     }
     else {
       $c->stash->{refreshUri} = $c->uri_for( '/' );
