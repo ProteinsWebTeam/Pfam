@@ -1,6 +1,6 @@
 #!/software/bin/perl
 
-# $Id: pfam_scan.pl,v 1.23 2009-10-14 09:57:10 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.24 2009-10-15 16:03:18 jm14 Exp $
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use warnings;
 use Bio::Pfam::Scan::PfamScan;
 use Getopt::Long;
 
-my $VERSION = "1.0"; 
+my $VERSION = "1.1"; 
 
 #-------------------------------------------------------------------------------
 
