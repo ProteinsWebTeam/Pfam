@@ -4,7 +4,7 @@
 # 
 # build the sequence search block
 #
-# $Id: sequence.tt,v 1.15 2009-10-07 14:02:10 jt6 Exp $
+# $Id: sequence.tt,v 1.16 2009-10-15 09:47:06 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -12,7 +12,7 @@
 PROCESS "components/require.tt";
 
 # using styles from the help pages, plus the common styles for forms
-requirements.css.push( "help.css" );
+requirements.css.push( "search.css" );
 requirements.css.push( "forms.css" );
 requirements.cssIeAll.push( "forms_all_ie.css" );
 
@@ -47,9 +47,12 @@ requirements.cssIeAll.push( "forms_all_ie.css" );
         <li>sequence length must be less than 10,000 residues</li>
         <li>the sequence must be a protein sequence; nucleotide sequences will 
           not be accepted</li>
-        <li>only residue symbols allowed in the sequence; sequences containing
-          other characters, such as &quot;#&quot; or &quot;*&quot;, will not be
-          accepted</li>
+        <li>only residue symbols allowed in the sequence (letters or &quot;*&quot;); 
+          sequences containing other characters will not be accepted.<br />
+          <strong>Note</strong> that &quot;-&quot; was previously accepted 
+          as a valid sequence character, but is not allowed in the latest
+          version of HMMER.
+        </li>
         <li>FASTA-header lines are accepted but will be removed</li>
       </ul>
       <p>
