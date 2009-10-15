@@ -4,7 +4,7 @@
 #
 # format the results of a H3 sequence search as a table.
 #
-# $Id: results_table.tt,v 1.5 2009-10-07 12:44:11 jt6 Exp $
+# $Id: results_table.tt,v 1.6 2009-10-15 14:33:33 jt6 Exp $
 
 META naked = 1;
 
@@ -385,19 +385,6 @@ END; # of "FOREACH job_type" -%]
     "details": { [% details %] }
   } );
 
-  /* results.jobDone( [% dg_layout || "{}" %] ); */
-  // TODO turn the argument into a hash (like the one below)
-
-  // record the details of this set of results
-  /* results.jobdone( "[% jobid %]",   */
-  /*                  { jobtype:       "[% job_type %]", */
-  /*                    total:         [% numsignificantmatches + numinsignificantmatches %], */
-  /*                    significant:   [% numsignificantmatches %], */
-  /*                    insignificant: [% numinsignificantmatches %], */
-  /*                    regions:       regions, */
-  /*                    motifs:        motifs */
-  /*                  } ); */
-  
   // ]]>
 </script>
 
