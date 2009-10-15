@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.37 2009-10-12 16:03:34 jt6 Exp $
+# $Id: Sequence.pm,v 1.38 2009-10-15 09:46:16 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ various methods, depending on the request method (e.g. "GET", "POST"), and
 rendering the results in the appropriate output format, depending on the 
 requested content-type (e.g. "JSON", "XML").
 
-$Id: Sequence.pm,v 1.37 2009-10-12 16:03:34 jt6 Exp $
+$Id: Sequence.pm,v 1.38 2009-10-15 09:46:16 jt6 Exp $
 
 =cut
 
@@ -474,9 +474,10 @@ sub parse_sequence : Private {
 
   # check that the sequence string contains only letters. Bail if it has 
   # anything else in it
-  unless ( $seq =~ m/^[ABCDEFGHIKLMNPQRSTUVWXYZ\-\*]+\r?$/ ) {
-    $c->stash->{seqSearchError} = 
-      'Invalid sequence. Please try again with a valid amino-acid sequence';
+  if ( $seq =~ m/[^ABCDEFGHIKLMNPQRSTUVWXYZ\*]/g ) {
+    $c->stash->{searchError} = 'Invalid sequence; illegal character at position ' 
+      . pos($seq) . ' (&quot;' . substr( $seq, pos($seq) - 1, 1 ) 
+      . '&quot;). Please try again with a valid amino-acid sequence';
 
     $c->log->debug( 'Search::Sequence::parse_sequence: sequence contains illegal characters; failed' )
       if $c->debug;
@@ -488,7 +489,7 @@ sub parse_sequence : Private {
   # commonly get, a bloody great DNA sequence. Count the number of potential 
   # nucleotides in the sequence and see what proportion of the total sequence
   # that makes
-  my ( $nucleotide_count )= $seq =~ tr/ATCGU/ATCGU/;
+  my ( $nucleotide_count ) = $seq =~ tr/ATCGU/ATCGU/;
   
   # if the sequence is more than 100 residues (or bases) and is more than
   # 95% nucleotides, there's a problem
