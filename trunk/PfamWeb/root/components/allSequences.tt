@@ -6,7 +6,7 @@
 # a given architecture. It should be called by the DomainGraphics controller,
 # via ajax.
 #
-# $Id: allSequences.tt,v 1.9 2009-10-14 16:08:29 jt6 Exp $
+# $Id: allSequences.tt,v 1.10 2009-10-16 14:51:41 jt6 Exp $
 
 META naked = 1;
 
@@ -26,6 +26,7 @@ BLOCK graphicRow; -%]
       [% # capitalise the species name
       info = String.new( seqInfo.$id.species );
       "["; info.replace( '\[\s*', '' ).capital; "]" -%]
+      [% seqInfo.$id.desc -%]
       ([% seqInfo.$id.length %] residues)
     </span>
 
