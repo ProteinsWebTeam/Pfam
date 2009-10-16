@@ -4,7 +4,7 @@
 #
 # format the results of a H3 sequence search as a table.
 #
-# $Id: results_table.tt,v 1.6 2009-10-15 14:33:33 jt6 Exp $
+# $Id: results_table.tt,v 1.7 2009-10-16 10:46:13 jt6 Exp $
 
 META naked = 1;
 
@@ -205,7 +205,7 @@ BLOCK buildTableBody;
       <td>
         [% IF hit.acc -%]
         <a id="region_[% hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
-           href="[% c.uri_for( "/family", hit.acc ) %]">[% hit.name %]</a>
+           href="[% c.uri_for( job_type == "A" ? "/family" : "/pfamb", hit.acc ) %]">[% hit.name %]</a>
         [% ELSE;
           hit.name;
         END -%]
@@ -311,8 +311,10 @@ FOREACH job_type IN rest.keys.sort;
   # insignificant matches, so that we can see if we actually HAVE significant or
   # insignificant matches before we try to build the page
     significantMatches = PROCESS buildTableBody resultsSlice    = results.$jobId.hits.$job_type, 
+                                                jobType         = job_type,
                                                 showSignificant = 1;
   insignificantMatches = PROCESS buildTableBody resultsSlice    = results.$jobId.hits.$job_type,
+                                                jobType         = job_type,
                                                 showSignificant = 0;
 
   # and we build the tables -%]
