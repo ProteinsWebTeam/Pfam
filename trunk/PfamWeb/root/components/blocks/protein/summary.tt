@@ -4,7 +4,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.28 2009-10-08 13:27:15 jt6 Exp $
+# $Id: summary.tt,v 1.29 2009-10-16 10:58:13 jt6 Exp $
 
 USE String;
 
@@ -75,9 +75,11 @@ oe = 0;
             [% IF pfamseq.ncbi_taxid %]
             <a class="ext" href="http://www.uniprot.org/taxonomy/[% pfamseq.ncbi_taxid.ncbi_taxid %]">
               [% pfamseq.species %]</a> 
+            [% IF pfamseq.ncbi_taxid.ncbi_taxid != "0" -%]
             (<acronym title="National Center for Biotechnology Information">NCBI</acronym> taxonomy ID 
             <a class="ext" href="http://www.uniprot.org/taxonomy/[% pfamseq.ncbi_taxid.ncbi_taxid %]">
               [% pfamseq.ncbi_taxid.ncbi_taxid %]</a>)
+            [% END -%]
             <br />
             <a href="[% c.uri_for( "/proteome", { taxId = pfamseq.ncbi_taxid.ncbi_taxid } ) %]">
               View</a> Pfam proteome data.
