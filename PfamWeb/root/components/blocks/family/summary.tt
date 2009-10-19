@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.47 2009-10-13 08:35:34 jt6 Exp $
+# $Id: summary.tt,v 1.48 2009-10-19 15:31:21 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -57,7 +57,7 @@ PROCESS components/links.tt; %]
 
     <h1>
       [% pfam.description %]
-      <a href="[% c.uri_for( "/annotate", { acc = pfam.pfamA_acc } ) %]">
+      <a href="[% c.uri_for( '/annotate', pfam.pfama_acc ) %]">
         <img class="addAnnotation" 
              alt="Add an annotation" 
              src="[% c.uri_for( "/static/images/annotation.png" ) %]" /></a>
