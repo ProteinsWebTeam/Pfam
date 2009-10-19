@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.18 2008-05-16 15:29:28 jt6 Exp $
+# $Id: Annotate.pm,v 1.19 2009-10-19 15:30:41 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.18 2008-05-16 15:29:28 jt6 Exp $
+$Id: Annotate.pm,v 1.19 2009-10-19 15:30:41 jt6 Exp $
 
 =cut
 
@@ -57,27 +57,28 @@ Checks input parameters and populates the stash accordingly.
 =cut
 
 sub begin : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # build the email subject line based on the accession (if given)
 
-  if( $c->req->param('acc') and 
-      $c->req->param('acc') =~ m/^(P([FB])\d{5,6})$/i ) {
+  if ( $c->req->param('acc') and 
+       $c->req->param('acc') =~ m/^(P([FB])\d{5,6})$/i ) {
     $c->log->debug( "Annotate::begin: found a Pfam entry ($1)" );
 
-    if( $2 eq "F" ) {
+    if ( $2 eq "F" ) {
       $c->log->debug( 'Annotate::begin: got a pfam A entry' );
 
-      my $pfam = $c->model('PfamDB::Pfam')->find( { pfamA_acc => $1 } );
+      my $pfam = $c->model('PfamDB::Pfama')->find( { pfama_acc => $1 } );
 
       $c->stash->{type} = 'A';
-      $c->stash->{acc}  = $pfam->pfamA_acc;
-      $c->stash->{id}   = $pfam->pfamA_id;
+      $c->stash->{acc}  = $pfam->pfama_acc;
+      $c->stash->{id}   = $pfam->pfama_id;
     
       $c->stash->{subject} = 'Annotation submission for Pfam A entry "'
-                             . $pfam->pfamA_id . '" (' . $pfam->pfamA_acc . ')';
+                             . $pfam->pfama_id . '" (' . $pfam->pfama_acc . ')';
 
-    } elsif( $2 eq 'B' ) {
+    }
+     elsif ( $2 eq 'B' ) {
       $c->log->debug( 'Annotate::begin: got a pfam B entry' );
     
       $c->stash->{type} = 'B';
@@ -86,8 +87,9 @@ sub begin : Private {
       $c->stash->{subject} = "Annotation submission for Pfam B entry $1";
     }
 
-  } elsif( $c->req->param('acc') and 
-           $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
+  } 
+  elsif ( $c->req->param('acc') and 
+          $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
     $c->log->debug( 'Annotate::begin: found a clan entry' );
 
     my $clan = $c->model('PfamDB::Clans')->find( { clan_acc => $1 } )
@@ -100,7 +102,8 @@ sub begin : Private {
     $c->stash->{subject} = 'Annotation submission for Pfam clan '
                            . $c->stash->{id} . ' (' . $c->stash->{acc} . ')';
     
-  } else {
+  }
+  else {
     $c->log->debug( 'Annotate::begin: did not find a recognised accession' );
     
     $c->stash->{subject} = 'Annotation submission';
@@ -122,7 +125,7 @@ and hands straight off to the template.
 =cut
 
 sub annotate : Path {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # create the widget
   my $w = $c->forward( 'buildForm' );
@@ -154,7 +157,7 @@ See L<checkTimeOut> for a full explanation of the process.
 =cut
 
 sub getTs : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   my $salt = $this->{salt}; 
   my $ts   = time;
@@ -193,7 +196,7 @@ sends an email.
 =cut
 
 sub submit : Local {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # create the widget again
   my $w = $c->forward( 'buildForm' );
@@ -207,7 +210,7 @@ sub submit : Local {
 
   # check for submission faults first, since if there is anything funny going
   # on, we don't care what the input was  
-  if( $submissionFault ) {
+  if ( $submissionFault ) {
 
     $c->log->debug( 'Annotate::submit: fault with form submission' );
 
@@ -217,7 +220,8 @@ sub submit : Local {
     $c->stash->{widget} = $r;
     $c->stash->{submissionError} = $submissionFault;
 
-  } else {
+  }
+  else {
     # the form was submitted in a valid process, so go ahead and validate 
     # the input parameters
 
@@ -228,7 +232,8 @@ sub submit : Local {
       $c->stash->{widget} = $r;
       $c->stash->{submissionError} = SUBMISSION_INVALID;
 
-    } else {
+    }
+    else {
       $c->log->debug( 'Annotate::submit: no errors in the user input' );
 
       # the input parameters validated, so send an email
@@ -238,7 +243,8 @@ sub submit : Local {
       if ( $mailErrors ) {
         $c->stash->{widget} = $r;
         $c->stash->{submissionError} = SUBMISSION_EMAIL_FAILED;
-      } else {
+      }
+      else {
         $c->log->debug( "Annotate::submit: submission was valid" );
       
         # finally, if we got to here, it worked !
@@ -255,8 +261,7 @@ sub submit : Local {
         } else {
           $target = '/';
         }
-        $c->stash->{refreshUri} = $c->uri_for( $target, 
-                                               { acc => $c->stash->{acc} } );
+        $c->stash->{refreshUri} = $c->uri_for( $target, $c->stash->{acc} );
       }
     }
   }
@@ -331,7 +336,7 @@ All of this is based on a PHP/jQuery implementation of the process from:
 =cut
 
 sub checkTimeOut : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # assume it's failed...
   my $timedOut = SUBMISSION_TIMED_OUT;
@@ -371,7 +376,7 @@ specified in the config.
 =cut
 
 sub sendMail : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   $c->log->debug( 'Annotate::sendMail: sending an annotation mail' );
   $c->log->debug( 'Annotate::sendMail:   acc:   |' . $c->stash->{acc} . '|' );
@@ -418,7 +423,7 @@ sub sendMail : Private {
                                Subject => $c->stash->{subject} ],
                parts      => [ $mailTxt, @parts ] );
   };
-  if( $@ ) {
+  if ( $@ ) {
     $c->log->error( "Annotate::sendMail: problem when submitting an annotation: $@" );
   }
 
@@ -434,7 +439,7 @@ Builds an HTML::Widget form for the annotation page.
 =cut
 
 sub buildForm : Private {
-  my( $this, $c ) = @_;
+  my ( $this, $c ) = @_;
 
   # get a widget
   my $w = $c->widget( 'annotationForm' )->method( 'post' );
