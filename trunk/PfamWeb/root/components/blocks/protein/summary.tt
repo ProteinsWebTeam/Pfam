@@ -4,7 +4,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.29 2009-10-16 10:58:13 jt6 Exp $
+# $Id: summary.tt,v 1.30 2009-10-21 15:21:31 jt6 Exp $
 
 USE String;
 
@@ -17,6 +17,7 @@ requirements.css.push( "protein.css" );
 requirements.cssIeAll.push( "protein_all_ie.css" );
 
 requirements.js.push( "protein.js" );
+sharedRequirements.js.push( "tablekit.js" );
 
 # tooltip library and Pfam-style tip definition
 requirements.js.push( "prototip.js" );
@@ -118,7 +119,10 @@ oe = 0;
 
     <div id="pgholder" class="pgholder"></div>
 
-    <table id="imageKey" class="details" summary="Key for the Pfam domain image">
+    <table class="resultTable"
+           id="imageKey" 
+           class="details"
+           summary="Key for the Pfam domain image">
       <thead>
         <tr>
           <th>Source</th>
@@ -135,7 +139,7 @@ oe = 0;
       // <![CDATA[
 
       /* [%# retrieve the domain graphics description %] */
-      var layout = [% layout %];
+      var layout = [% layout || "[]" %];
       var sequence = layout[0];
 
       /* [%# build the domain graphic %] */
@@ -155,7 +159,7 @@ oe = 0;
 
         var tbody = $("imageKey").down("tbody");
         var oe = "odd";
-        sequence.regions.each( function( region ) {
+        [ sequence.regions, sequence.motifs ].flatten().each( function( region ) {
           var tr = new Element( "tr", { "class": oe } );
           tbody.appendChild( tr );
 
@@ -163,9 +167,15 @@ oe = 0;
                        .update( region.metadata.identifier );
 
           var source = new Element( "td" )
-                         .setStyle( { color:      region.colour,
-                                      fontWeight: "bold" } )
-                         .update( "Pfam A" );
+                         .setStyle( { fontWeight: "bold" } );
+          if ( region.type == "pfama" ) {
+            source.update( "Pfam A" )
+		              .setStyle( { color: region.colour } );
+          } else if ( region.type == "pfamb" ) {
+            source.update( "Pfam B" );
+          } else {
+            source.update( "Unknown" );
+          }
           var domain = new Element( "td" )
                          .update( link );
           var start  = new Element( "td" )
@@ -184,6 +194,14 @@ oe = 0;
       } else {
         $("imageKey").hide();
       }
+
+      var sorter = new TableKit( "imageKey",
+                                  { editable:     false,
+                                    resizable:    false,
+                                    rowEvenClass: "even",
+                                    rowOddClass:  "odd",
+                                    stripe:       true } );
+      sorter.sort(3);
 
       // ]]>
     </script>
