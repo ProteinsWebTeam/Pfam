@@ -1,0 +1,56 @@
+
+[%
+# moved.tt
+# jt6 20091021 WTSI
+#
+# build a page that redirects to a family whose name has been changed
+#
+# $Id: moved.tt,v 1.1 2009-10-21 13:48:11 jt6 Exp $
+
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+requirements.css.push( "family.css" );
+
+#-------------------------------------------------------------------------------
+
+META title    = "Renamed family";
+META fullPage = 1;
+
+prevId = pfam.previous_id.replace(";","");
+nextId = pfam.pfama_id;
+%]
+
+<h1>Renamed Pfam-A family</h1>
+
+<p>
+  The Pfam-A family that you are trying to view has been renamed, from
+  <em>[% prevId %]</em> to <em>[% nextId %]</em>.
+</p>
+<p>
+  In 5 seconds you will be redirected to the Pfam family page for 
+  <a href="[% refreshUri %]">[% nextId %]</a>, or you can click 
+  <a href="[% refreshUri %]">here</a> to go there immediately.
+</p>
+
+<hr />
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
