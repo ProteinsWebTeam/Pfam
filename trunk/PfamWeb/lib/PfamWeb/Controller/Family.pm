@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.50 2009-10-14 15:20:07 jt6 Exp $
+# $Id: Family.pm,v 1.51 2009-10-21 13:48:11 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.50 2009-10-14 15:20:07 jt6 Exp $
+$Id: Family.pm,v 1.51 2009-10-21 13:48:11 jt6 Exp $
 
 =cut
 
@@ -140,6 +140,21 @@ sub begin : Private {
   }
 
   #----------------------------------------
+  
+  # use a redirect page if the ID of the family has changed 
+  if ( $c->stash->{entryType} eq 'R' ) {
+    
+    $c->log->debug( 'Family::begin: arrived at a family using a previous ID; setting a refresh URI' ) 
+      if $c->debug;
+
+    $c->stash->{refreshUri} =
+      $c->uri_for( '/family', $c->stash->{acc} );
+    
+    # set the template for the intermediate page
+    $c->stash->{template} = 'pages/moved.tt';
+  }
+
+  #----------------------------------------
 
   # if we're outputting HTML, we're done here
   return unless $c->stash->{output_xml};
@@ -156,7 +171,10 @@ sub begin : Private {
   }
   
   # decide on the output template, based on the type of family that we have
-  if ( $c->stash->{entryType} eq 'A' ) {
+  if ( $c->stash->{entryType} eq 'A' or
+       $c->stash->{entryType} eq 'R' ) {
+    # we'll use the same XML template to handle familes that were arrived at 
+    # using a "previous ID"
     $c->log->debug( 'Family::begin: got data for a Pfam-A' ) if $c->debug;
     $c->stash->{template} = 'rest/family/pfama_xml.tt';
   }
@@ -256,8 +274,8 @@ sub get_data : Private {
 
   } # end of "if pfam..."
 
-    #----------------------------------------
-    # check for a Pfam-B
+  #----------------------------------------
+  # check for a Pfam-B
     
   $rs = $c->model('PfamDB::Pfamb')
           ->search( [ { pfamb_acc => $entry },
@@ -285,6 +303,21 @@ sub get_data : Private {
     $c->stash->{pfam}      = $pfam;
     $c->stash->{acc}       = $pfam->pfama_acc;
     $c->stash->{entryType} = 'D';
+    return;
+  }
+
+  #----------------------------------------
+  # check for a previous ID
+  
+  $pfam = $c->model('PfamDB::Pfama')
+            ->find( { previous_id => { like => "%$entry;%" } } );
+  
+  if ( $pfam ) {
+    $c->log->debug( 'Family::get_data: got a family using a previous ID' )
+      if $c->debug;
+    $c->stash->{pfam}      = $pfam;
+    $c->stash->{acc}       = $pfam->pfama_acc;
+    $c->stash->{entryType} = 'R';
     return;
   }
 

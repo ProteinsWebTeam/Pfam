@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.19 2009-10-07 12:04:31 jt6 Exp $
+# $Id: Jump.pm,v 1.20 2009-10-21 13:48:11 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.19 2009-10-07 12:04:31 jt6 Exp $
+$Id: Jump.pm,v 1.20 2009-10-21 13:48:11 jt6 Exp $
 
 =cut
 
@@ -97,38 +97,30 @@ sub guess_family : Private {
   $c->log->debug( 'Search::Jump::guess_family: looking for a family...' )
     if $c->debug;
   
-  # first, see if it's a Pfam-A family accession
-  my $found;
-  if( $entry =~ m/^(PF\d{5})(\.\d+)?$/ ) {
-    
-    return 'family' if $c->model('PfamDB::Pfama')
-                         ->find( { pfama_acc => $1 } );
-  } else {
-    # a Pfam family ID ?
-    return 'family' if $c->model('PfamDB::Pfama')
-                         ->find( { pfama_id => $entry } );
-  }
+  # first, see if it's a Pfam-A family accession or ID
+  my @rs = $c->model('PfamDB::Pfama')
+             ->search( [ { pfama_acc => $1 },
+                         { pfama_id  => $1 } ] );
+
+  return 'family' if scalar @rs;
+
+  # a previous family ID ?
+  return 'family' if  $c->model('PfamDB::Pfama')
+                        ->find( { previous_id => { like => "%$entry%" } } );
 
   # see if this could be a dead family
-  my @rs = $c->model('PfamDB::DeadFamilies')
-             ->search( [ { pfama_acc => $entry },
-                         { pfama_id  => $entry } ] );
+  @rs = $c->model('PfamDB::DeadFamilies')
+          ->search( [ { pfama_acc => $1 },
+                      { pfama_id  => $1 } ] );
+
   return 'family' if scalar @rs;
   
   # or a Pfam-B accession ?
-  if( $entry =~ m/^(PB\d{6})$/ ) {
+  @rs = $c->model('PfamDB::Pfamb')
+          ->search( [ { pfamb_acc => $1 },
+                      { pfamb_id  => $1 } ] );      
 
-    return 'pfamb' if $c->model('PfamDB::Pfamb')
-                        ->find( { pfamb_acc => $1 } );      
-  }
-    
-  # maybe a Pfam-B ID ?
-  if( $entry =~ m/^(PFAM-B_\d+)$/ ) {
-
-    return 'pfamb' if $c->model('PfamDB::Pfamb')
-                        ->find( { pfamb_id => $1 } );
-  }
-  
+  return 'pfamb' if scalar @rs;
 }
 
 #-------------------------------------------------------------------------------
