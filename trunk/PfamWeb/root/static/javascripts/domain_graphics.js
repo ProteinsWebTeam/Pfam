@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.7 2009-10-09 12:36:17 jt6 Exp $
+// $Id: domain_graphics.js,v 1.8 2009-10-22 14:37:30 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -695,7 +695,7 @@ var PfamGraphic = Class.create( {
     //
     // walk up from the canvas parent until we get to a div and see how wide it
     // is. If it's narrower than the canvas, we need to add this extra class
-    // to the parent, s from the search systemo that scrolling works everywhere
+    // to the parent, so that scrolling works everywhere
     var wrapperDiv = this._parent.up("div");
     if ( wrapperDiv && width > wrapperDiv.scrollWidth ) {
       this._parent.addClassName( "canvasScroller" );
@@ -703,7 +703,6 @@ var PfamGraphic = Class.create( {
 
     // and stash it on the object
     this.setCanvas( canvas );
-
   },
 
   //----------------------------------------------------------------------------
@@ -746,12 +745,17 @@ var PfamGraphic = Class.create( {
       var cy = offset[1];
 
       // take into account a scrolling offset
+      // var sx = activeCanvas.getOffsetParent().scrollLeft;
+      // var sy = activeCanvas.getOffsetParent().scrollTop;
       var sx = parentEl.scrollLeft;
+      var sy = parentEl.scrollTop;
+      // console.log( "PfamGraphic._addListeners: parentEl: %s, scrollTop: %d",
+      //   parentEl.identify(), parentEl.scrollTop );
 
       var x = e.pointerX() - cx + sx,
-          y = e.pointerY() - cy,
+          y = e.pointerY() - cy + sy,
           activeArea = null;
-      // console.log( "PfamGraphic._addListeners: event coords: (%d, %d)", x, y );
+      /* console.log( "PfamGraphic._addListeners: event coords: (%d, %d): %d", x, y ); */
 
       // see if we're in an area
       areasList.each( function( area ) {
@@ -1221,6 +1225,8 @@ var PfamGraphic = Class.create( {
    * at the appropriate end of that list.
    *
    * @private
+   * @returns {Object} data structure describing the <code>&lt;area&gt;</code>
+   *   for the sequence line
    */
   _drawSequence: function() {
 
@@ -1889,12 +1895,12 @@ var PfamGraphic = Class.create( {
     //----------------------------------
 
     // add the area
-    var area = { text:   motif.text,
-                 start:  motif.aliStart,
-                 end:    motif.aliEnd,
-                 coords: [ x, y, x + width, y + height ] };
+    var area = { text:   motif.metadata.identifier,
+                  start:  motif.aliStart,
+                  end:    motif.aliEnd,
+                  coords: [ x, y, x + width, y + height ] };
     this._areasList.push( area );
-    this._areasHash.set( "motif_" + motif.text + "_" + motif.start + "_" + motif.end, area );
+    this._areasHash.set( "motif_" + motif.metadata.identifier + "_" + motif.start + "_" + motif.end, area );
 
     // if there's a URL on the region, add it to the area'
     if ( motif.href !== undefined ) {
@@ -2236,6 +2242,7 @@ var PfamGraphic = Class.create( {
    * @private
    * @param {int} height the height of the domain (canvas coords)
    * @param {int} steps number of steps in the jagged edge
+   * @returns {Array} list of Y-coordinates for vertices on the edge
    */
   _getSteps: function( height, steps ) {
 
@@ -2365,6 +2372,7 @@ var PfamGraphic = Class.create( {
    *
    * @private
    * @param {String} hexString HTML colour value
+   * @returns {Object} RGB colour values
    * @throws {PfamGraphic: ERROR} if the colour is not valid
    */
   _getRGBColour: function( hexString ) {
@@ -2399,6 +2407,7 @@ var PfamGraphic = Class.create( {
    * @param {int} red red value 
    * @param {int} green greenvalue 
    * @param {int} blue blue value 
+   * @returns {String} RGB colour string
    * @throws {PfamGraphic: ERROR} if the colour is not valid
    */
   _getHexColour: function( red, green, blue ) {
