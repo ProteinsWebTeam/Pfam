@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.30 2009-10-07 10:20:49 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.31 2009-10-22 09:48:28 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated.
 
-$Id: DomainGraphics.pm,v 1.30 2009-10-07 10:20:49 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.31 2009-10-22 09:48:28 jt6 Exp $
 
 =cut
 
@@ -209,7 +209,8 @@ sub domain_graphics : Path {
   # set up the layout manager and hand it the sequences
   my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
   my $pfama = $lm->_getRegionConfigurator('Pfama');
-  # TODO see if we can cache these two things on the object, rather than 
+  my $pfamb = $lm->_getRegionConfigurator('Pfamb');
+  # TODO see if we can cache these things on the object, rather than 
   # regenerating them for every request
   
   # see if we've been handed a hash containing colours that were originally
@@ -229,15 +230,50 @@ sub domain_graphics : Path {
     else {
       # decoding worked; set these assigned colours on the layout manager
       # before generating the new layout
-      my $colours = uri_unescape( $c->req->param('ac') );
-      $pfama->assignedColours( $colours );
-      $pfama->colourIndex( scalar( keys %{ $pfama->assignedColours } ) + 1 );
+      my $colours_json = uri_unescape( $c->req->param('ac') );
+      my $colours = from_json( $colours_json );
+      
+      my ( $pfama_colours, $pfamb_colours );
+      # Note that we're not validating the colours here, because they're going
+      # to be passed to the Moose objects, which all have strict type checking
+      # in place. Any broken data will cause an exception when the Moose object
+      # tries to use the data.
+      
+      # split the colours into Pfam-A and Pfam-B colours
+      foreach ( keys %$colours ) {
+        if ( m/^(PF\d{5})$/ ) {
+          $pfama_colours->{$1} = $colours->{$1};
+        }
+        elsif ( m/^(PB\d{6})$/ ) {
+          $pfamb_colours->{$1} = $colours->{$1};
+        }
+      }
+  
+      $c->log->debug( 'DomainGraphics::domain_graphics: pfama_colours: ' 
+                      . dump( $pfama_colours ) ) if $c->debug;
+      $c->log->debug( 'DomainGraphics::domain_graphics: pfamb_colours: ' 
+                      . dump( $pfamb_colours ) ) if $c->debug;
+      
+      # and pre-assign the colours to the respective configurators
+      if ( $pfama_colours ) {
+        $pfama->assignedColours( $pfama_colours );
+        $pfama->colourIndex( scalar( keys %{ $pfama->assignedColours } ) + 1 );
+      }
+
+      if ( $pfamb_colours ) {
+        $pfamb->assignedColours( $pfamb_colours );
+      }
     }
   }
   
   # let the layout manager build the domain graphics definition from the
   # sequence objects
   $lm->layoutSequences( $c->stash->{seqs} );
+
+  $c->log->debug( 'DomainGraphics::domain_graphics: pfama->assignedColours: ' 
+                  . dump( $pfama->assignedColours ) ) if $c->debug;
+  $c->log->debug( 'DomainGraphics::domain_graphics: pfamb->assignedColours: ' 
+                  . dump( $pfamb->assignedColours ) ) if $c->debug;
 
   # configure the JSON object to correctly stringify the layout manager output
   my $json = new JSON;
@@ -248,14 +284,28 @@ sub domain_graphics : Path {
   # encode and stash the sequences as a JSON string
   $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
 
-  # stash the assigned colours from the layout manager
-  if ( defined $pfama and
-       defined $pfama->assignedColours ) {
-    $c->stash->{assignedColours} = $json->encode( $pfama->assignedColours );
-  }
+  # stash the assigned colours from the layout manager. First we need to merge
+  # the sets of colours from the two configurators
+  if ( defined $pfama and defined $pfamb ) {
 
-#  $c->log->debug( 'DomainGraphics::domain_graphics: raw sequence objects: ' . dump( $c->stash->{seqs} ) )
-#    if $c->debug;
+    my $valid_colours;
+    my $pfama_colours = $pfama->assignedColours;
+    foreach ( keys %$pfama_colours ) {
+      next unless $_;
+      $valid_colours->{$_} = $pfama_colours->{$_};
+    }
+    my $pfamb_colours = $pfamb->assignedColours;
+    foreach ( keys %$pfamb_colours ) {
+      next unless $_;
+      $valid_colours->{$_} = $pfamb_colours->{$_};
+    }
+
+    $c->stash->{assignedColours} = $json->encode( $valid_colours );
+    
+    $c->log->debug( 'DomainGraphics::domain_graphics: assigned colours: ' 
+                    . dump( $c->stash->{assignedColours} ) )
+      if $c->debug;
+  }
 
   # use a different template for rendering sequences vs architectures vs
   # selected sequences
@@ -391,24 +441,18 @@ sub get_family_data : Private {
   my ( @seqs, %seqInfo, @ids );
   foreach my $row ( @rows[ $c->stash->{first} .. $c->stash->{last} ] ) {
 
-    # thaw out the sequence object for this architecture
+    # thaw out the sequence object for this architecture and get a handle on
+    # the right DB object
+    my $seq;
     if ( $c->stash->{auto_arch} ) {
       push @seqs, thaw( $row->annseqs->annseq_storable );
+
+      # we're looking at a particular architecture, so we want all sequences
+      $seq = $row;
     }
     else {
       push @seqs, thaw( $row->auto_architecture->storable->annseq_storable );
-    }
 
-    # where are we getting sequence data ?
-    my $seq;
-    if ( $c->stash->{auto_arch} ) {
-      # we're looking at a particular architecture, so we want all sequences
-      $seq = $row;
-
-      # if this is a call to retrieve all of the architectures, we don't
-      # have an auto_architecture, so this won't work
-    }
-    else {
       # we're looking at all sequences, so we want just the type example
       $seq = $row->auto_architecture->type_example;
     }
@@ -682,7 +726,7 @@ sub get_clan_data : Private {
                     . $c->stash->{auto_arch} . '|' ) if $c->debug;
 
     @rows = $c->model('PfamDB::Pfamseq')
-              ->search( { auto_architecture => $c->stash->{auto_arch} },
+              ->search( { 'me.auto_architecture' => $c->stash->{auto_arch} },
                         { prefetch  => [ qw( auto_architecture annseqs ) ] } );
   }
   else {
@@ -700,13 +744,8 @@ sub get_clan_data : Private {
   # how many architectures/sequences ?
   $c->stash->{numRows} = scalar @rows;
 
-  # how many sequences in these architectures ?
-  $c->stash->{numSeqs} = 0;
-  map { $c->stash->{numSeqs} += $_->auto_architecture->no_seqs } @rows;
-
-  $c->log->debug( 'DomainGraphics::get_clan_data: found |'
-                  . $c->stash->{numRows} . '| rows, with a total of |'
-                  . $c->stash->{numSeqs} . '| sequences' ) if $c->debug;
+  $c->log->debug( 'DomainGraphics::get_clan_data: found |' 
+                  . $c->stash->{numRows} . '| rows' ) if $c->debug;
 
   # work out the range for the architectures that we actually want to return
   $c->forward( 'calculateRange' );
@@ -714,27 +753,28 @@ sub get_clan_data : Private {
   my ( @seqs, %seqInfo, @ids );
   foreach my $row ( @rows[ $c->stash->{first} .. $c->stash->{last} ] ) {
 
+    my ( $seq, $pfamseq_id );
     if ( $c->stash->{auto_arch} ) {
       push @seqs, thaw( $row->annseqs->annseq_storable );
+      $seq = $row;
+      $pfamseq_id = $row->pfamseq_id;
     }
     else {
       push @seqs, thaw( $row->auto_architecture->storable->annseq_storable );
+      $seq = $row->auto_architecture->type_example;
+      $pfamseq_id = $row->auto_architecture->pfamseq_id;
     }
 
-    my $pfamseq_id = $row->auto_architecture->pfamseq_id;
     push @ids, $pfamseq_id;
 
-    unless ( $c->stash->{auto_arch} ) {
-      my @domains = split m/\~/, $row->auto_architecture->architecture;
-      $seqInfo{$pfamseq_id}{arch}      = \@domains;
-      $seqInfo{$pfamseq_id}{auto_arch} = $row->auto_architecture->auto_architecture;
-      $seqInfo{$pfamseq_id}{num}       = $row->auto_architecture->no_seqs;
+    my @domains = split m/\~/, $row->auto_architecture->architecture;
+    $seqInfo{$pfamseq_id}{arch}      = \@domains;
+    $seqInfo{$pfamseq_id}{auto_arch} = $row->auto_architecture->auto_architecture;
+    $seqInfo{$pfamseq_id}{num}       = $row->auto_architecture->no_seqs;
 
-      $seqInfo{$pfamseq_id}{desc}    = $row->auto_architecture->type_example->description;
-      $seqInfo{$pfamseq_id}{species} = $row->auto_architecture->type_example->species;
-      $seqInfo{$pfamseq_id}{length}  = $row->auto_architecture->type_example->length;
-    }
-
+    $seqInfo{$pfamseq_id}{desc}    = $seq->description;
+    $seqInfo{$pfamseq_id}{species} = $seq->species;
+    $seqInfo{$pfamseq_id}{length}  = $seq->length;
   }
 
   $c->stash->{seqs}    = \@seqs;
