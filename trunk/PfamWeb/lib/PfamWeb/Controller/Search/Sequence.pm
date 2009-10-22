@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.38 2009-10-15 09:46:16 jt6 Exp $
+# $Id: Sequence.pm,v 1.39 2009-10-22 14:38:35 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ various methods, depending on the request method (e.g. "GET", "POST"), and
 rendering the results in the appropriate output format, depending on the 
 requested content-type (e.g. "JSON", "XML").
 
-$Id: Sequence.pm,v 1.38 2009-10-15 09:46:16 jt6 Exp $
+$Id: Sequence.pm,v 1.39 2009-10-22 14:38:35 jt6 Exp $
 
 =cut
 
@@ -31,7 +31,7 @@ use Scalar::Util qw( looks_like_number );
 use Data::UUID;
 use Storable qw( thaw );
 
-# use Data::Dump qw( dump );
+use Data::Dump qw( dump );
 
 use Bio::Pfam::Sequence;
 use Bio::Pfam::Sequence::Region;
@@ -236,7 +236,7 @@ sub resultset : Local {
       return;
     }
     
-    # Anything other than DONE probably means that the job failed to 
+    # anything other than DONE probably means that the job failed to 
     # complete successfully
     if ( $status ne 'DONE' ) {
       $c->log->debug( 'Search::Sequence::resultset: job failed in a strange and unusual fashion' )
@@ -316,7 +316,11 @@ sub get_job_details : Private {
   $c->log->debug( "Search::Sequence::get_job_details: checking job ID |$jobId|" )
     if $c->debug;
 
+  # get the raw database objects for the results
   $c->forward( 'JobManager', 'retrieve_result_rows', [ $jobId  ] );
+
+  #   
+  $c->forward( 'handle_options' );
 
   return 1;
 }
@@ -644,33 +648,16 @@ sub handle_results : Private {
   foreach my $job ( @{ $jobs->{rows} } ) {
     my $job_type = $job->job_type;
 
-    if ( $job_type eq 'A' ) {
-      # $c->log->debug( 'Search::Sequence::handle_results: job is a Pfam-A job' )
-      #   if $c->debug;
-
-      # convert the options JSON string back into perl
-      my $options = from_json( $job->options );
-
-      my $evalue_cutoff = $options->{evalue};
-      my $ga            = $options->{ga};
-      
-      if ( defined $evalue_cutoff and not $ga ) {
-        $c->log->debug( "Search::Sequence::handle_results: setting an E-value cutoff of $evalue_cutoff" )
-          if $c->debug;
-        $c->stash->{evalue_cutoff} = $evalue_cutoff;
-      }
-    }
-
     my $results;
     eval {
       $results = thaw( $job->stdout );
     };
     if ( $@ ) {
-      die 'error retrieving Pfam-' . $job_type . " results: $@";
+      die "error retrieving Pfam-$job_type results: $@";
     }
     
     $c->log->debug( 'Search::Sequence::handle_results: got ' . scalar @$results 
-                    . ' Pfam-' . $job_type . ' results' )
+                    . " Pfam-$job_type results" )
       if $c->debug;
     
     $jobs->{hits}->{$job_type} = $results;
@@ -680,6 +667,39 @@ sub handle_results : Private {
   $c->log->debug( 'Search::Sequence::handle_results: stashed hits for '
                   . scalar( keys %{ $jobs->{hits} } ) . ' jobs' )
     if $c->debug;
+    
+  # we also need to add the options to the stash, so that we can render
+  # them in the template that builds the results page
+  $c->forward( 'handle_options' );
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 handle_options: Private
+
+Retrieves the job options for the specified job and stashes them. Note that the
+options are extracted only from the Pfam-A search, since the Pfam-B search
+(currently) has no user-specified options.
+
+=cut
+
+sub handle_options : Private {
+  my ( $this, $c ) = @_;
+
+  foreach my $job ( @{ $c->stash->{results}->{ $c->stash->{jobId} }->{rows} } ) {
+
+    # options are only retrieved from Pfam-A jobs
+    next unless $job->job_type eq 'A';
+
+    # stash the options as a JSON string, straight from the database. We also
+    # convert the JSON string back into perl and stash that, just to make life
+    # easier in the template
+    $c->stash->{json_options} = $job->options;
+    $c->stash->{options}      = from_json( $c->stash->{json_options} );
+
+    last;
+  }
+
 }
 
 #-------------------------------------------------------------------------------
