@@ -2,7 +2,7 @@
 # FamilyActions.pm
 # jt6 20070418 WTSI
 #
-# $Id: FamilyActions.pm,v 1.5 2009-06-09 15:20:00 jt6 Exp $
+# $Id: FamilyActions.pm,v 1.6 2009-10-22 10:10:08 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package PfamWeb::Controller::Family::FamilyActions;
 This controller holds a collection of actions that are related to Pfam-A
 families.
 
-$Id: FamilyActions.pm,v 1.5 2009-06-09 15:20:00 jt6 Exp $
+$Id: FamilyActions.pm,v 1.6 2009-10-22 10:10:08 jt6 Exp $
 
 =cut
 
@@ -189,7 +189,7 @@ sub id : Path( '/family/id' ) {
     }
     else {
       $c->res->content_type( 'text/plain' );
-      $c->res->body( $c->stash->{pfam}->pfamA_id );
+      $c->res->body( $c->stash->{pfam}->pfama_id );
     }
   }
   else { 
@@ -216,7 +216,7 @@ sub acc : Path( '/family/acc' ) {
     }
     else {
       $c->res->content_type( 'text/plain' );
-      $c->res->body( $c->stash->{pfam}->pfamA_acc );
+      $c->res->body( $c->stash->{pfam}->pfama_acc );
     }
   }
   else { 
