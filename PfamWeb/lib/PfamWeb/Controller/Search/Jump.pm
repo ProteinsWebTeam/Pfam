@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.20 2009-10-21 13:48:11 jt6 Exp $
+# $Id: Jump.pm,v 1.21 2009-10-27 14:45:48 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.20 2009-10-21 13:48:11 jt6 Exp $
+$Id: Jump.pm,v 1.21 2009-10-27 14:45:48 jt6 Exp $
 
 =cut
 
@@ -105,8 +105,17 @@ sub guess_family : Private {
   return 'family' if scalar @rs;
 
   # a previous family ID ?
-  return 'family' if  $c->model('PfamDB::Pfama')
-                        ->find( { previous_id => { like => "%$entry%" } } );
+  my $prev = $c->model('PfamDB::Pfama')
+               ->find( { previous_id => { like => "%$entry%" } } );
+              
+  # make sure the entry matches a whole ID, rather than just part of one
+  # i.e. make sure that "6" doesn't match "DUF456" 
+  if ( $prev ) {
+    my $previous_id = $prev->previous_id;
+    if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/ ) { # same pattern used in Family.pm
+      return 'family';
+    }
+  }
 
   # see if this could be a dead family
   @rs = $c->model('PfamDB::DeadFamilies')
