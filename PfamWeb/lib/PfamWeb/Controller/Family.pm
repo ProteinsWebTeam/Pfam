@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.51 2009-10-21 13:48:11 jt6 Exp $
+# $Id: Family.pm,v 1.52 2009-10-27 14:46:03 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.51 2009-10-21 13:48:11 jt6 Exp $
+$Id: Family.pm,v 1.52 2009-10-27 14:46:03 jt6 Exp $
 
 =cut
 
@@ -312,13 +312,18 @@ sub get_data : Private {
   $pfam = $c->model('PfamDB::Pfama')
             ->find( { previous_id => { like => "%$entry;%" } } );
   
+  # make sure the entry matches a whole ID, rather than just part of one
+  # i.e. make sure that "6" doesn't match "DUF456" 
   if ( $pfam ) {
-    $c->log->debug( 'Family::get_data: got a family using a previous ID' )
-      if $c->debug;
-    $c->stash->{pfam}      = $pfam;
-    $c->stash->{acc}       = $pfam->pfama_acc;
-    $c->stash->{entryType} = 'R';
-    return;
+    my $previous_id = $pfam->previous_id;
+    if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/ ) { # same pattern used in Jump.pm
+      $c->log->debug( 'Family::get_data: got a family using a previous ID' )
+        if $c->debug;
+      $c->stash->{pfam}      = $pfam;
+      $c->stash->{acc}       = $pfam->pfama_acc;
+      $c->stash->{entryType} = 'R';
+      return;
+    }
   }
 
   #----------------------------------------
