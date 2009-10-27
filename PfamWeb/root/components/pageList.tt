@@ -5,7 +5,7 @@
 # 
 # build the page selector for the browse pages
 #
-# $Id: pageList.tt,v 1.4 2008-05-16 15:30:32 jt6 Exp $
+# $Id: pageList.tt,v 1.5 2009-10-27 13:40:49 jt6 Exp $
 
 META naked = 1;
 
@@ -33,14 +33,18 @@ requirements.css.push( "browse.css" );
       [%- IF page == lcChar %]
         <span class="letter inactive">[%- pageR | ucfirst %]</span>
       [% ELSE;
-        IF encode;
-          encodedURI = BLOCK; pageURI; page | uri; END;
-        ELSE;
-          encodedURI = BLOCK; pageURI; page; END;
-        END %]
-        <span class="letter">
+        IF pageURI;
+          IF encode;
+            encodedURI = BLOCK; pageURI; page | uri; END;
+          ELSE;
+            encodedURI = BLOCK; pageURI; page; END;
+          END -%]
           <a href="[% encodedURI %]">[% pageR | ucfirst %]</a>
-        </span>
+        [% ELSE -%]
+          <span class="letter">
+            [% pageR | ucfirst -%]
+          </span>
+        [% END -%]
       [% END -%]
       </td>
     [% END -%] 
