@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.31 2009-10-22 09:48:28 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.32 2009-10-27 14:18:48 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated.
 
-$Id: DomainGraphics.pm,v 1.31 2009-10-22 09:48:28 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.32 2009-10-27 14:18:48 jt6 Exp $
 
 =cut
 
@@ -74,6 +74,8 @@ sub begin : Private {
     $c->stash->{auto_arch} = $1;
     $c->log->debug( 'DomainGraphics::begin: got a real auto_arch: |' 
       . $c->stash->{auto_arch} . '|') if $c->debug;
+      
+    $c->forward( 'get_family_data' );
   }
 
   #----------------------------------------
@@ -93,7 +95,7 @@ sub begin : Private {
       $c->log->debug( 'DomainGraphics::begin: found Pfam A accession |'
                       . $c->stash->{acc} . '|' ) if $c->debug;
 
-      $c->forward( 'get_family_data' );
+      $c->forward( 'get_family_data' ) unless $c->stash->{data_loaded};
 
     }
     elsif ( $tainted_entry =~ m/^(PB\d{6})$/i ) {
@@ -486,6 +488,9 @@ sub get_family_data : Private {
   $c->stash->{seqs}    = \@seqs;
   $c->stash->{ids}     = \@ids;
   $c->stash->{seqInfo} = \%seqInfo;
+  
+  # set a flag to make sure we don't try to load family data twice
+  $c->stash->{data_loaded} = 1;
 }
    
 #-------------------------------------------------------------------------------
