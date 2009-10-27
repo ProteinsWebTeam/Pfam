@@ -4,16 +4,46 @@
 # 
 # build the domain search block
 #
-# $Id: domain.tt,v 1.10 2009-10-08 13:40:26 jt6 Exp $
+# $Id: domain.tt,v 1.11 2009-10-27 14:16:53 jt6 Exp $
 
-# TODO reinstate when it's fixed...
-RETURN;
+#-------------------------------------------------------------------------------
+# specify required stylesheets and javascript files 
+
+PROCESS "components/require.tt";
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
+requirements.js.push( "domain_graphics_loader.js" );
 
 #-------------------------------------------------------------------------------
 
+# the pages to be offered
 pages = [ "new", "top twenty", "numbers",
-          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", 
+          "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
           "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" ];
+
+# generate the list of browse pages, for inclusion at the top and bottom of
+# the page
+
+# generate the page list
+pageList = PROCESS "components/pageList.tt",
+                   lcChar=lcChar;
+                             
 -%]
 
 <!-- start domain search block -->
@@ -46,14 +76,16 @@ pages = [ "new", "top twenty", "numbers",
         <li>press <em>Submit query</em> to search for architectures matching
           your specification</li>
       </ol>
+      <p>
+        Note that the query itself can take some time to run, depending on how
+        many domains you add to each constraint. If the search returns a lot of
+        results, you may also find that your browser hangs momentarily, while 
+        the domain graphics are rendered in the page.
+      </p>
     </div>
 
-    <div id="domainsPageList"
-         class="pageList">
-      [% FOREACH page IN pages %]
-        <span class="link letter">[% page | ucfirst %]</span>
-      [% END %]
-      <div class="cleaner"><!-- empty --></div>
+    <div id="pageListWrapper">
+      [% pageList -%]
     </div>
 
     <form id="domainSearchForm" 
@@ -66,7 +98,10 @@ pages = [ "new", "top twenty", "numbers",
   
         <p class="domainQueryInstruction">
           Select a Pfam domain from this list and choose &quot;Includes&quot; or
-          &quot;Does NOT include&quot; to add it to the query.
+          &quot;Does NOT include&quot; to add it to the query.<br />
+          <span id="nlUpdateSpinner" 
+                style="display: none"
+                class="loading">Loading IDs...</span>
         </p>
   
         <div class="cleaner"><!-- empty --></div>
@@ -76,10 +111,6 @@ pages = [ "new", "top twenty", "numbers",
             <option id="idBlank"></option>
           </select>
         </div>
-  
-        <span id="nlUpdateSpinner" 
-              style="display: none"
-              class="loading">Loading IDs...</span>
   
         <span class="buttons">
           <input id="haveButton" type="button" onclick="addId('have')" value="Includes"/>
@@ -145,7 +176,7 @@ pages = [ "new", "top twenty", "numbers",
       The following architectures match your query architecture:
     </p>
 
-    <div id="textResults" style="float: left"><!-- empty --></div>
+    <div id="textResults"><!-- empty --></div>
         
   </div>
 
@@ -157,6 +188,7 @@ pages = [ "new", "top twenty", "numbers",
         "textResults",
         "[% c.uri_for( '/search/domain' ) %]", 
         {
+          evalScripts: true,
           parameters: $("domainSearchForm").serialize(true),
           onComplete: function() {
             dsCompleted(); 
@@ -177,7 +209,7 @@ pages = [ "new", "top twenty", "numbers",
       }
     );
 
-    var letters = $("domainsPageList").select("span.letter");
+    var letters = $("pageListWrapper").select("span.letter");
     var browseUri = "[% c.uri_for( "/family/browse" ) %]";
     
     letters.each( function(letter) {
@@ -188,7 +220,7 @@ pages = [ "new", "top twenty", "numbers",
           browseUri,
           {
             parameters: { list: 1,
-                          browse: letter.innerHTML.toLowerCase() },
+                          browse: letter.innerHTML.toLowerCase().strip() },
             onCreate: function() {
               $("nlUpdateSpinner").show();
               $("domainSearchForm").disable();
