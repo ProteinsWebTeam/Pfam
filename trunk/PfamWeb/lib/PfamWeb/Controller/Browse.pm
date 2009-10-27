@@ -2,7 +2,7 @@
 # Browse.pm
 # jt6 20070704 WTSI
 #
-# $Id: Browse.pm,v 1.11 2009-10-07 10:16:48 jt6 Exp $
+# $Id: Browse.pm,v 1.12 2009-10-27 13:40:05 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ Retrieves the data for the various "browse" pages.
 
 Generates a B<full page>.
 
-$Id: Browse.pm,v 1.11 2009-10-07 10:16:48 jt6 Exp $
+$Id: Browse.pm,v 1.12 2009-10-27 13:40:05 jt6 Exp $
 
 =cut
 
@@ -105,7 +105,7 @@ sub browse_families : Path( '/family/browse' ) {
              ->search( { pfama_id => { 'REGEXP', '^[0-9]' } },
                        { order_by => 'pfama_id ASC' } );
   }
-  elsif ( lc $c->req->param('browse') eq 'top twenty' ) {
+  elsif ( lc $c->req->param('browse') =~ m/top.*?twenty/ ) {
     $c->log->debug( 'Browse::browse_families: browsing "top twenty"...' );
     $c->stash->{char} = 'top twenty';
 
