@@ -16,7 +16,7 @@
 //
 // jt6 20090803 WTSI
 //
-// $Id: results.js,v 1.3 2009-10-14 16:09:50 jt6 Exp $
+// $Id: results.js,v 1.4 2009-10-27 14:23:54 jt6 Exp $
 // 
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -211,6 +211,14 @@ var Results = Class.create( {
     // set up the underlining
     this._underliner = new Underliner( this._pg );
 
+    // add tooltips to the alignment rows
+    $$("div.hmmAlignment").each( function(alignmentDiv) {
+      var t = new Tip( alignmentDiv, 
+                        $("alignmentKey").cloneNode(true),
+                        { title: "Alignment key",
+                          style: "pfam" } );
+    } );
+    
     // console.log( "Results.jobDone: finished adding behaviour to page" );
   },
 
