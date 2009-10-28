@@ -4,7 +4,7 @@
 #
 # block showing the family alignment.
 #
-# $Id: align.tt,v 1.32 2009-10-07 13:36:31 jt6 Exp $
+# $Id: align.tt,v 1.33 2009-10-28 11:58:43 jt6 Exp $
 
 # shortcut to the alignment tools
 alignmentUri = c.uri_for( "/family/alignment" );
@@ -500,7 +500,7 @@ alignmentUri = c.uri_for( "/family/alignment" );
 
     <p>
       <a class="ext" href="http://myhits.vital-it.ch/">MyHits</a> provides a 
-      collection of tools to handle multiple sequence alignment. For example, 
+      collection of tools to handle multiple sequence alignments. For example, 
       one can refine a seed alignment (sequence addition or removal, 
       re-alignment or manual edition) and then search databases for remote 
       homologs using HMMER2. 
