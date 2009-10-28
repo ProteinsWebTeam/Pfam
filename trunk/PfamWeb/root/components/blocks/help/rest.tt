@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.6 2009-10-07 13:42:58 jt6 Exp $
+# $Id: rest.tt,v 1.7 2009-10-28 14:03:07 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -63,10 +63,6 @@ sharedRequirements.css.push( "prettify.css" );
       Programming Interface</a> (API) allows users to write scripts or programs to
       access data, rather than having to rely on a browser to view a site.
     </p>
-    <p>
-      We are currently testing a limited programmatic interface to the Pfam site and
-      this section explains how you can use this API in your own work.
-    </p>
 
     <hr />
     
@@ -116,15 +112,15 @@ sharedRequirements.css.push( "prettify.css" );
       <div class="code">
         <pre>shell% curl -F output=xml '[% c.uri_for( "/family/Piwi" ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:58:46 16-Apr-2008 --&gt;
+&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-      release="22.0"
-      release_date="2007-07-10"&gt;
+      release="24.0"
+      release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi"&gt;
-    ...  </pre>
+    ...</pre>
       </div>
     </fieldset>
     
@@ -211,10 +207,8 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
     <h2><a name="services">Available services</a></h2>
 
     <p>
-      As mentioned in the introduction, this interface is currently only
-      a proof of concept and a test of the usefulness of this sort of
-      service. The following is a list of the sections of the website 
-      which are currently available as RESTful services.
+      The following is a list of the sections of the website which are 
+      currently available as RESTful services.
     </p>
     
     <h3><a name="id2acc">Pfam ID/accession conversion</a></h3>
@@ -237,15 +231,15 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
       <div class="code">
         <pre>shell% curl -F output=xml '[% c.uri_for( '/family/acc/Piwi' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:27:58 11-Apr-2008 --&gt;
+&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:37:09 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
+      release="24.0"
+      release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi" /&gt;
-&lt;/pfam&gt;</pre>
+&lt;/pfam&gt;%</pre>
       </div>
     </fieldset>
     
@@ -296,13 +290,13 @@ Piwi</pre>
       <div class="code">
         <pre>shell% curl -F output=xml '[% c.uri_for( '/family/Piwi' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:27:58 11-Apr-2008 --&gt;
+&lt;!-- information on Pfam-A family PF02171 (Piwi), generated: 16:35:52 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
+      release="24.0"
+      release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF02171" id="Piwi"&gt;
     &lt;description&gt;
 &lt;![CDATA[
@@ -311,72 +305,54 @@ Piwi domain
     &lt;/description&gt;
     &lt;comment&gt;
 &lt;![CDATA[
- This domain is found in the protein Piwi and its relatives.  The function of 
- this domain is the dsRNA guided hydrolysis of ssRNA. Determination of the 
- crystal structure of Argonaute reveals that PIWI is an RNase H domain, and 
- identifies Argonaute as Slicer, the enzyme that cleaves mRNA in the RNAi RISC 
- complex [2].  In addition, Mg+2 dependence and production of 3'-OH and 5' 
- phosphate products are shared characteristics of RNaseH and RISC. The PIWI 
- domain core has a tertiary structure belonging to the RNase H family of 
- enzymes.  RNase H fold proteins all have a five-stranded mixed beta-sheet 
- surrounded by helices. By analogy to RNase H enzymes which cleave single-
- stranded RNA guided by the DNA strand in an RNA/DNA hybrid, the PIWI domain 
- can be inferred to cleave single-stranded RNA, for example mRNA, guided by 
- double stranded siRNA.
+This domain is found in the protein Piwi and its relatives.  The function of this 
+domain is the dsRNA guided hydrolysis of ssRNA. Determination of the crystal 
+structure of Argonaute reveals that PIWI is an RNase H domain, and identifies 
+Argonaute as Slicer, the enzyme that cleaves mRNA in the RNAi RISC complex [2].  
+In addition, Mg+2 dependence and production of 3'-OH and 5' phosphate products 
+are shared characteristics of RNaseH and RISC. The PIWI domain core has a tertiary 
+structure belonging to the RNase H family of enzymes.  RNase H fold proteins all 
+have a five-stranded mixed beta-sheet surrounded by helices. By analogy to 
+RNase H enzymes which cleave single-stranded RNA guided by the DNA strand in an 
+RNA/DNA hybrid, the PIWI domain can be inferred to cleave single-stranded RNA, 
+for example mRNA, guided by double stranded siRNA.
 ]]&gt;
     &lt;/comment&gt;
-    &lt;clan_membership clan_acc="CL0219" clan_id="RNase_H" /&gt;
     &lt;curation_details&gt;
-      &lt;status&gt;CHANGE&lt;/status&gt;
+      &lt;status&gt;CHANGED&lt;/status&gt;
       &lt;seed_source&gt;Bateman A&lt;/seed_source&gt;
-      &lt;num_archs&gt;&lt;/num_archs&gt;
+      &lt;num_archs&gt;16&lt;/num_archs&gt;
       &lt;num_seqs&gt;
-        &lt;seed&gt;22&lt;/seed&gt;
-        &lt;full&gt;364&lt;/full&gt;
+        &lt;seed&gt;21&lt;/seed&gt;
+        &lt;full&gt;756&lt;/full&gt;
       &lt;/num_seqs&gt;
-      &lt;num_species&gt;&lt;/num_species&gt;
+      &lt;num_species&gt;140&lt;/num_species&gt;
+      &lt;num_structures&gt;22&lt;/num_structures&gt;
       &lt;percentage_identity&gt;30&lt;/percentage_identity&gt;
-      &lt;av_length&gt;292.2&lt;/av_length&gt;
-      &lt;av_coverage&gt;35.34&lt;/av_coverage&gt;
+      &lt;av_length&gt;277.50&lt;/av_length&gt;
+      &lt;av_coverage&gt;33.67&lt;/av_coverage&gt;
+      &lt;type&gt;Family&lt;/type&gt;
     &lt;/curation_details&gt;
-    &lt;hmm_details hmmer_version="2.3.2" model_version="8" model_length="338"&gt;
-      &lt;ls&gt;
-        &lt;build_commands&gt;hmmbuild -F HMM_ls SEED&lt;/build_commands&gt;
-        &lt;cutoffs&gt;
-          &lt;gathering&gt;
-            &lt;sequence&gt;-90.0&lt;/sequence&gt;
-            &lt;domain&gt;-90.0&lt;/domain&gt;
-          &lt;/gathering&gt;
-          &lt;trusted&gt;
-            &lt;sequence&gt;-88.5&lt;/sequence&gt;
-            &lt;domain&gt;-88.5&lt;/domain&gt;
-          &lt;/trusted&gt;
-          &lt;noise&gt;
-            &lt;sequence&gt;-91.2&lt;/sequence&gt;
-            &lt;domain&gt;-91.2&lt;/domain&gt;
-          &lt;/noise&gt;
-        &lt;/cutoffs&gt;
-      &lt;/ls&gt;
-      &lt;fs&gt;
-        &lt;build_commands&gt;hmmbuild -f -F HMM_fs SEED&lt;/build_commands&gt;
-        &lt;cutoffs&gt;
-          &lt;gathering&gt;
-            &lt;sequence&gt;25.0&lt;/sequence&gt;
-            &lt;domain&gt;25.0&lt;/domain&gt;
-          &lt;/gathering&gt;
-          &lt;trusted&gt;
-            &lt;sequence&gt;26.8&lt;/sequence&gt;
-            &lt;domain&gt;26.8&lt;/domain&gt;
-          &lt;/trusted&gt;
-          &lt;noise&gt;
-            &lt;sequence&gt;20.6&lt;/sequence&gt;
-            &lt;domain&gt;24.6&lt;/domain&gt;
-          &lt;/noise&gt;
-        &lt;/cutoffs&gt;
-      &lt;/fs&gt;
+    &lt;hmm_details hmmer_version="3.0b2" model_version="10" model_length="304"&gt;
+      &lt;build_commands&gt;hmmbuild  -o /dev/null HMM SEED&lt;/build_commands&gt;
+      &lt;search_commands&gt;hmmsearch -Z 9421015 -E 1000 HMM pfamseq&lt;/search_commands&gt;
+      &lt;cutoffs&gt;
+        &lt;gathering&gt;
+          &lt;sequence&gt;19.9&lt;/sequence&gt;
+          &lt;domain&gt;19.9&lt;/domain&gt;
+        &lt;/gathering&gt;
+        &lt;trusted&gt;
+          &lt;sequence&gt;20.0&lt;/sequence&gt;
+          &lt;domain&gt;21.0&lt;/domain&gt;
+        &lt;/trusted&gt;
+        &lt;noise&gt;
+          &lt;sequence&gt;18.6&lt;/sequence&gt;
+          &lt;domain&gt;19.5&lt;/domain&gt;
+        &lt;/noise&gt;
+      &lt;/cutoffs&gt;
     &lt;/hmm_details&gt;
   &lt;/entry&gt;
-&lt;/pfam&gt;</pre>
+&lt;/pfam&gt;%</pre>
       </div>
     </fieldset>
     
@@ -399,19 +375,20 @@ Piwi domain
       <div class="code">
         <pre>shell% curl -F output=xml '[% c.uri_for( '/family/PF06700' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 14:01:27 21-Apr-2008 --&gt;
+&lt;!-- information on dead Pfam-A family PF06700 (2oxo_fer_oxidoB), generated: 16:34:44 26-Oct-2009 --&gt;
 &lt;dead_pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns="http://pfam.sanger.ac.uk/"
            xsi:schemaLocation="http://pfam.sanger.ac.uk/
                                http://pfam.sanger.ac.uk/static/documents/schemas/pfam_family.xsd"
-           release="22.0"
-           release_date="2007-07-10"&gt;
+           release="24.0"
+           release_date="2009-10-07"&gt;
   &lt;entry accession="PF06700"
          id="2oxo_fer_oxidoB"&gt;
     &lt;forward_to&gt;PF02775&lt;/forward_to&gt;
-    &lt;comment&gt; Merged into TPP binding domain&lt;/comment&gt;
+    &lt;comment&gt;Merged into TPP binding domain&lt;/comment&gt;
   &lt;/entry&gt;
-&lt;/dead_pfam&gt;</pre>
+&lt;/dead_pfam&gt;
+</pre>
       </div>
     </fieldset>
 
@@ -444,13 +421,13 @@ Piwi domain
       <div class="code">
         <pre>shell% curl -F output=xml '[% c.uri_for( '/families' ) | html %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- all Pfam-A families, generated: 11:35:35 07-May-2008 --&gt;
+&lt;!-- all Pfam-A families, generated: 16:12:54 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/pfam_families.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
+      release="24.0" 
+      release_date="2009-10-07"&gt;
   &lt;entry entry_type="Pfam-A" accession="PF00001" id="7tm_1"&gt;
     &lt;description&gt;
 &lt;![CDATA[
@@ -492,20 +469,24 @@ Piwi domain
       <div class="code">
         <pre>shell% curl -F output=xml '[% c.uri_for( "/protein/P00789" ) %]'</pre>
         <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;!-- information on UniProt entry P00789 (CANX_CHICK), generated: 15:49:53 11-Apr-2008 --&gt;
+&lt;!-- information on UniProt entry P00789 (CANX_CHICK), generated: 16:28:26 26-Oct-2009 --&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/protein.xsd"
-      release="22.0" 
-      release_date="2007-07-10"&gt;
-  &lt;entry entry_type="sequence" db="uniprot" db_release="51.7" accession="P00789" id="CANX_CHICK"&gt;
+      release="24.0"
+      release_date="2009-10-07"&gt;
+  &lt;entry entry_type="sequence" db="uniprot" db_release="57.6" accession="P00789" id="CANX_CHICK"&gt;
     &lt;description&gt;
 &lt;![CDATA[
-Calpain-1 catalytic subunit (EC 3.4.22.52) (Calpain-1 large subunit)(Calcium-activated neutral proteinase) (CANP) (Mu/M-type).
+Calpain-1 catalytic subunit EC=3.4.22.52
 ]]&gt;
     &lt;/description&gt;
-    &lt;taxonomy tax_id="9031" species_name="Gallus gallus (Chicken)."&gt;Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;Archosauria; Aves; Neognathae; Galliformes; Phasianidae; Phasianinae;Gallus.&lt;/taxonomy&gt;
+    &lt;taxonomy tax_id="9031" species_name="Gallus gallus (Chicken)"&gt;
+      Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi; Archosauria; 
+      Dinosauria; Saurischia; Theropoda; Coelurosauria; Aves; Neognathae; Galliformes; 
+      Phasianidae; Phasianinae; Gallus.
+    &lt;/taxonomy&gt;
     &lt;sequence length="705" md5="934014b14ecb71623fa5898c7f81862a" crc64="ABCDDC56298E48AA" version="2"&gt;
       MMPFGGIAARLQRDRLRAEGVGEHNNAVKYLNQDYEALKQECIESGTLFRDPQFPAGPTALGFKELGPYSSKTR
       GVEWKRPSELVDDPQFIVGGATRTDICQGALGDCWLLAAIGSLTLNEELLHRVVPHGQSFQEDYAGIFHFQIWQ
@@ -519,22 +500,15 @@ Calpain-1 catalytic subunit (EC 3.4.22.52) (Calpain-1 large subunit)(Calcium-act
       VCCLVKLETMFRFFHSMDRDGTGTAVMNLAEWLLLTMCG
     &lt;/sequence&gt;
     &lt;matches&gt;
-      &lt;match accession="PF01067" id="Calpain_III" type="Pfam-A" class="Domain"&gt;
-        &lt;location start="358" end="513" /&gt;
+      &lt;match accession="PF00648" id="Peptidase_C2" type="Pfam-A"&gt;
+        &lt;location start="48" end="347" ali_start="48" ali_end="347" hmm_start="1" hmm_end="298" evalue="2.6e-148" bitscore="502.00" /&gt;
       &lt;/match&gt;
-      &lt;match accession="PF00648" id="Peptidase_C2" type="Pfam-A" class="Family"&gt;
-        &lt;location start="48" end="347" /&gt;
-      &lt;/match&gt;
-      &lt;match accession="PF00036" id="efhand" type="Pfam-A" class="Domain"&gt;
-        &lt;location start="610" end="638" /&gt;
-      &lt;/match&gt;
-      &lt;match accession="PF00036" id="efhand" type="Pfam-A" class="Domain"&gt;
-        &lt;location start="580" end="608" /&gt;
+      &lt;match accession="PF01067" id="Calpain_III" type="Pfam-A"&gt;
+        &lt;location start="358" end="513" ali_start="358" ali_end="512" hmm_start="1" hmm_end="144" evalue="3.5e-57" bitscore="201.20" /&gt;
       &lt;/match&gt;
     &lt;/matches&gt;
   &lt;/entry&gt;
-&lt;/pfam&gt;
-shell%</pre>
+&lt;/pfam&gt;</pre>
       </div>
     </fieldset>
 
@@ -563,12 +537,13 @@ shell%</pre>
     </ol>
     <p>
       The reason for separating the operation into two steps rather than  
-      performing a search in a single operation is that sequence searches can 
-      sometimes take as long as a few minutes. Most web clients, browsers or 
-      scripts, will simply time-out if a response is not received within a short 
-      time period, usually less than a minute. By submitting a search, waiting 
-      and then retrieving results as a separate operation, we avoid the risk of 
-      a client reaching a time-out before the results are returned.
+      performing a search in a single operation is that the time taken to
+      perform a sequence search will vary according to the length of the 
+      sequence searched. Most web clients, browsers or scripts, will simply 
+      time-out if a response is not received within a short time period, 
+      usually less than a minute. By submitting a search, waiting and then 
+      retrieving results as a separate operation, we avoid the risk of a 
+      client reaching a time-out before the results are returned.
     </p>
     <p>
       The following example uses simple command-line tools to submit the search
@@ -600,8 +575,7 @@ PNTGAFGLFGRINARYSELGGPDSWLGFPKTRELSTPDGRGRYVHFENGS
 IYWSAATGPWEIPGDMFTAWGTQGYEAGGLGYPVGPAKDFNGGLAQEFQG
 GYVLRTPQNRAYWVRGAISAKYMEPGVATTLGFPTGNERLIPGGAFQEFT
 NGNIYWSASTGAHYILRGGIFDAWGAKGYEQGEYGWPTTDQTSIAAGGET
-ITFQNGTIRQVNGRIEESR
-shell%</pre>
+ITFQNGTIRQVNGRIEESR</pre>
     </fieldset>
 
     <p>
@@ -615,19 +589,18 @@ shell%</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-        <pre>shell% curl -F seq='&lt;test.seq' -F output=xml '[% c.uri_for( "/search/sequence" ) %]'</pre>
-        <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+        <pre>shell% curl -F seq='&lt;test.seq' -F output=xml 'http://pfam.sanger.ac.uk/search/sequence'</pre>
+        <pre class="prettyprint">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/submission.xsd"&gt;
-  &lt;job job_id="8B39C37A-BF7D-11DC-9E70-862FEF792CB2" type="pfamASearch"&gt;
-    &lt;opened&gt;2008-01-10 13:11:24&lt;/opened&gt;
-    &lt;estimated_time&gt;12&lt;/estimated_time&gt;
-    &lt;result_url&gt;[% c.uri_for( "/search/sequence/results", output => "xml", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]&lt;/result_url&gt;
+  &lt;job job_id="F69126C4-C24E-11DE-825F-800A2878356D"&gt;
+    &lt;opened&gt;2009-10-26 16:45:27&lt;/opened&gt;
+    &lt;result_url&gt;http://pfam.sanger.ac.uk/search/sequence/resultset/F69126C4-C24E-11DE-825F-800A2878356D?output=xml&lt;/result_url&gt;
   &lt;/job&gt;
-&lt;/jobs&gt;
-shell%</pre>
+&lt;/jobs&gt;</pre>
       </div>
     </fieldset>
     
@@ -701,22 +674,8 @@ shell%</pre>
             <strong>required</strong>
           </td>
         </tr>
-        <tr class="odd">
-          <td>seqOpts</td>
-          <td class="left">search options</td> 
-          <td>both, bothNoMerge, ls or fs</td> 
-          <td>both</td> 
-          <td class="notes"></td>
-        </tr>
       </tbody>
     </table>
-    
-    <p>
-      Note that if you set &quot;searchBs=1&quot;, the resulting XML document 
-      will contain two <code>&lt;job&gt;</code> tags, one for the Pfam-A search
-      job and a second for the Pfam-B job. You will need to retrieve results for
-      both of the jobs, using the two supplied URLs. 
-    </p>
     
     <h4>Wait for the search to complete</h4>
 
@@ -744,69 +703,39 @@ shell%</pre>
     <fieldset class="query">
       <legend>Example</legend>
       <div class="code">
-      <pre>shell% curl '[% c.uri_for( "/search/sequence/results", output => "xml", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]'</pre>
+      <pre>shell% curl 'http://pfam.sanger.ac.uk/search/sequence/results?jobId=8B39C37A-BF7D-11DC-9E70-862FEF792CB2&amp;output=xml'</pre>
       <pre class="prettyprint">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://pfam.sanger.ac.uk/"
       xsi:schemaLocation="http://pfam.sanger.ac.uk/
                           http://pfam.sanger.ac.uk/static/documents/schemas/results.xsd"
-      release="22.0"
-      release_date="2007-07-10"&gt;
-  &lt;results job_id="8B39C37A-BF7D-11DC-9E70-862FEF792CB2"&gt;
+      release="24.0"
+      release_date="2009-10-07"&gt;
+  &lt;results job_id="F69126C4-C24E-11DE-825F-800A2878356D"&gt;
     &lt;matches&gt;
       &lt;protein length="669"&gt;
-        &lt;database id="pfam" pfam_release="22.0" pfam_release_date="2007-07-10"&gt;
-          &lt;match accession="PF08310" id="LGFP" type="Pfam-A" class="Repeat"&gt;
-            &lt;location start="422" end="475" hmm_start="1" hmm_end="55" evalue="7.9e-10" bitscore="43.4" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
-            &lt;location start="476" end="529" hmm_start="1" hmm_end="55" evalue="9.2e-30" bitscore="109.6" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
-            &lt;location start="530" end="579" hmm_start="1" hmm_end="55" evalue="0.0049" bitscore="13.3" mode="ls" evidence="hmmer v2.3.2" significant="0" /&gt;
-            &lt;location start="581" end="633" hmm_start="1" hmm_end="55" evalue="6.6e-25" bitscore="93.5" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
-            &lt;location start="635" end="658" hmm_start="1" hmm_end="26" evalue="0.22" bitscore="7.5" mode="ls" evidence="hmmer v2.3.2" significant="0" /&gt;
+        &lt;database id="pfam" release="24.0" release_date="2009-10-07"&gt;
+          &lt;match accession="PF02532.7" id="PsbI" type="Pfam-A" class="Family"&gt;
+            &lt;location start="297" end="308" ali_start="298" ali_end="306" 
+              hmm_start="23" hmm_end="31" evalue="2.4e+02" bitscore="1.1" 
+              evidence="hmmer v3.0b2" significant="0" /&gt;
           &lt;/match&gt;
-          &lt;match accession="PF00756" id="Esterase" type="Pfam-A" class="Family"&gt;
-            &lt;location start="114" end="392" hmm_start="1" hmm_end="307" evalue="1.8e-94" bitscore="324.6" mode="ls" evidence="hmmer v2.3.2" significant="1" /&gt;
+          &lt;match accession="PF10055.2" id="DUF2292" type="Pfam-A" class="Family"&gt;
+            &lt;location start="647" end="664" ali_start="650" ali_end="662" 
+              hmm_start="19" hmm_end="31" evalue="49" bitscore="3.0" 
+              evidence="hmmer v3.0b2" significant="0" /&gt;
           &lt;/match&gt;
-          &lt;match accession="PF04310" id="MukB" type="Pfam-A" class="Family"&gt;
-            &lt;location start="66" end="85" hmm_start="208" hmm_end="227" evalue="0.62" bitscore="3.6" mode="fs" evidence="hmmer v2.3.2" significant="0" /&gt;
+          &lt;match accession="PF09772.2" id="Tmem26" type="Pfam-A" class="Family"&gt;
+            &lt;location start="164" end="187" ali_start="167" ali_end="185" 
+              hmm_start="260" hmm_end="278" evalue="3.3e+02" bitscore="-0.1" 
+              evidence="hmmer v3.0b2" significant="0" /&gt;
           &lt;/match&gt;
-        &lt;/database&gt;
-      &lt;/protein&gt;
-    &lt;/matches&gt;
-    &lt;raw_output&gt;
-      &lt;![CDATA[
-UserSeq     66    85 PF04310.3     208   227 fs     3.6      0.62  MukB
-#HMM       *-&gt;GissAitRsLRDYLLPensG&lt;-*
-#MATCH        G+   itR L DYL P+
-#SEQ          GVLDSITRGLTDYLTPRDEA    85
-UserSeq    114   392 PF00756.11      1   307 ls   324.6   1.8e-94  Esterase
-#HMM       *-&gt;pleylrhnSeal.grerkvqvyLPpdYyappgrkyPvlylLDGLrAqddatgwfqngpakealerlaaegeippviivgiPaGdessfysdwdlgqGarfylnategpgayayeMYtfltqELlPlldanfptapdgdrravaGqSmGGlgALylALkyPdrFgsVssfSPivnPssafgpvaIgaaLsdAGGydansmWGpkafsaylgeddgaWqegdpvllakalsaslralrIyldvGtredflgdqlpvei.........levaarnrelaeqlaargvgghdhvyy.FppsGgHdwaydmWraaLiaalidl&lt;-*
-#MATCH         +++l+++S+a+++r++kvq++LP+d+y++p r +P +++LDGLrA++ ++gw +++++++++   a+++     +iv++P+G+essfy+dw ++          +++++y++e  tflt+EL P+ld+ f+ +++   ra++G+SmGG++A ++A ++P++F +V+sfS++++++s ++p aIgaaL+dAGGy+ n+mWGp        + +++W+e+dp  ++    + lr++ +y+ +G++ d++g + +v+ ++ +  + +le ++r+++++  ++++++g  + v ++F+psG+H w y  W++++++a +++
-#SEQ          HHVVLSIQSAAMpERPIKVQLLLPRDWYSSPDRDFPEIWALDGLRAIEKQSGWTIETNIEQFF---ADKN-----AIVVLPVGGESSFYTDWNEP----------NNGKNYQWE--TFLTEELAPILDKGFRSNGE---RAITGISMGGTAAVNIATHNPEMFNFVGSFSGYLDTTSNGMPAAIGAALADAGGYNVNAMWGP--------AGSERWLENDPKRNV----DQLRGKQVYVSAGSGADDYGQDGSVATgpanaagvgLELISRMTSQT--FVDAANGAGVNVIAnFRPSGVHAWPY--WQFEMTQAWPYM    392
-UserSeq    422   475 PF08310.2       1    55 ls    43.4   7.9e-10  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LG +  +E   ++GvGr q F +G  YWsp+TGA+    G I +++++lG+ +++
-#SEQ          LGSCLNNEYLVANGVGRAQDFTNGRAYWSPNTGAFGL-FGRINARYSELGGPDSW    475
-UserSeq    476   529 PF08310.2       1    55 ls   109.6   9.2e-30  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LGfP+t+E+ tpDG+Gr+++F++G+IYWs++TG++++ pG+++++Wg++G+E+G
-#SEQ          LGFPKTRELSTPDGRGRYVHFENGSIYWSAATGPWEI-PGDMFTAWGTQGYEAGG    529
-UserSeq    530   579 PF08310.2       1    55 ls    13.3    0.0049  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LG+P+++ ++ ++G    qeFqgG +  +pq  A+ V  GaI +k+ + G+++
-#SEQ          LGYPVGPAKDFNGG--LAQEFQGGYVLRTPQNRAYWV-RGAISAKYMEPGVAT--    579
-UserSeq    581   633 PF08310.2       1    55 ls    93.5   6.6e-25  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaIYWspqTGAhaVepGaIrdkWgalGwErGp&lt;-*
-#MATCH        LGfP+++E  +p+G   fqeF +G+IYWs++TGAh +  G I+d+Wga+G+E+G+
-#SEQ          LGFPTGNERLIPGG--AFQEFTNGNIYWSASTGAHYILRGGIFDAWGAKGYEQGE    633
-UserSeq    635   658 PF08310.2       1    26 fs     7.5      0.22  LGFP
-#HMM       *-&gt;LGfPitdEavtpDGvGrfqeFqgGaI&lt;-*
-#MATCH         G P+td++ ++ G G   +Fq+G+I
-#SEQ          -GWPTTDQTSIAAG-GETITFQNGTI    658
-      ]]&gt;
-    &lt;/raw_output&gt;
-  &lt;/results&gt;
-&lt;/pfam&gt;
-shell%</pre>
+          &lt;match accession="PF04335.6" id="VirB8" type="Pfam-A" class="Family"&gt;
+            &lt;location start="9" end="57" ali_start="12" ali_end="49" 
+              hmm_start="4" hmm_end="41" evalue="17" bitscore="4.6" 
+              evidence="hmmer v3.0b2" significant="0" /&gt;
+          &lt;/match&gt;
+          ...</pre>
       </div>
     </fieldset>
 
@@ -826,7 +755,7 @@ shell%</pre>
     
     <p>
       Note that old search results are generally cleared out after some time, so
-      if you wait tool long before trying to view your hits in the website, you
+      if you wait too long before trying to view your hits in the website, you
       may find that they are already gone.
     </p>
     <p><a href="#restTop">back to top</a></p>
