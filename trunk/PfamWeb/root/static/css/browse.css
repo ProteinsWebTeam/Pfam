@@ -4,7 +4,7 @@
 
    Style the various "browse" pages
    
-   $Id: browse.css,v 1.7 2009-10-07 13:01:50 jt6 Exp $
+   $Id: browse.css,v 1.8 2009-10-28 14:10:02 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -76,6 +76,7 @@ table.pageList td {
 }
 
 table.pageList a {
+  cursor: pointer;
   padding: 0.4em;
   display: block;
   background: #DDD;
