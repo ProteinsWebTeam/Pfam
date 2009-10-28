@@ -4,7 +4,7 @@
 #
 # format the results of a H3 sequence search as a table.
 #
-# $Id: results_table.tt,v 1.7 2009-10-16 10:46:13 jt6 Exp $
+# $Id: results_table.tt,v 1.8 2009-10-28 14:08:38 jt6 Exp $
 
 META naked = 1;
 
@@ -166,14 +166,19 @@ BLOCK buildTableBody;
   # need a separate counter, tableRow
   tableRow = 0;
   FOREACH hit IN resultsSlice;
+  
+    CALL c.log.debug( "results_table.tt: hit: |" _ Dumper.dump( hit ) _ "|" )
+      IF c.debug;
 
     # entirely skip any hits that have an E-value greater than the global 
     # E-value cut-off
-    IF evalue_cutoff AND hit.evalue > evalue_cutoff;
-      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue gt cut-off evalue: ${hit.evalue} gt ${evalue_cutoff}; skipping" );
+    IF options.evalue_cutoff AND hit.evalue > options.evalue_cutoff;
+      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue gt cut-off evalue: ${hit.evalue} gt ${options.evalue_cutoff}; skipping" )
+      #   IF c.debug;
       NEXT;
     ELSE;
-      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue lt cut-off evalue: ${hit.evalue} lt ${evalue_cutoff}" );
+      # CALL c.log.debug( "resultsSlice_table.tt: buildTableBody: hit evalue lt cut-off evalue: ${hit.evalue} lt ${options.evalue_cutoff}" )
+      #   IF c.debug;
     END;
 
     # decide whether we should skip this row. If the parameter 
@@ -204,8 +209,8 @@ BLOCK buildTableBody;
       <td class="rowNum">[% loop.index %]</td>
       <td>
         [% IF hit.acc -%]
-        <a id="region_[% hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
-           href="[% c.uri_for( job_type == "A" ? "/family" : "/pfamb", hit.acc ) %]">[% hit.name %]</a>
+        <a id="[% ( job_type == 'A' ? 'region_' : 'motif_' ) _ hit.name _ '_' _ hit.env.from _ '_' _ hit.env.to %]" 
+           href="[% c.uri_for( job_type == 'A' ? '/family' : '/pfamb', hit.acc ) %]">[% hit.name %]</a>
         [% ELSE;
           hit.name;
         END -%]
@@ -269,7 +274,8 @@ END; # of "BLOCK buildTableBody"
 # a block to render the results table head
 
 BLOCK tableHead;
-  # CALL c.log.debug( "results_table.tt: tableHead:  building table head" ); -%]
+  # CALL c.log.debug( "results_table.tt: tableHead:  building table head" )
+  #   IF c.debug; -%]
   <thead>
     <tr class="titleRow">
       <th rowspan="2" class="rowNum">Original order</th>
@@ -324,7 +330,8 @@ FOREACH job_type IN rest.keys.sort;
   [% # show significant matches
 
   IF numSignificantMatches;
-    CALL c.log.debug( "results_table.tt: there are some significant matches to show" ); -%]
+    CALL c.log.debug( "results_table.tt: there are some significant matches to show" )
+      IF c.debug; -%]
     <table id="pfam[% job_type %]Summary"
            class="resultTable" 
            summary="Pfam-[% job_type %] search results">
@@ -347,7 +354,8 @@ FOREACH job_type IN rest.keys.sort;
   # show INsignificant matches
 
   IF numInsignificantMatches;
-    CALL c.log.debug( "results_table.tt: there are some INsignificant matches to show" ); -%]
+    CALL c.log.debug( "results_table.tt: there are some INsignificant matches to show" )
+      IF c.debug; -%]
     <table id="pfam[% job_type %]SummaryI"
            class="resultTable" 
            summary="Insignificant Pfam-[% job_type %] matches">
