@@ -4,7 +4,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.30 2009-10-21 15:21:31 jt6 Exp $
+# $Id: summary.tt,v 1.31 2009-10-28 14:04:34 jt6 Exp $
 
 USE String;
 
@@ -36,7 +36,7 @@ requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #
 requirements.js.push( "faces/optimer-bold-normal.js" );
 
 requirements.js.push( "domain_graphics.js" );
-requirements.js.push( "domain_graphics_loader.js" );
+#requirements.js.push( "domain_graphics_loader.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -159,29 +159,29 @@ oe = 0;
 
         var tbody = $("imageKey").down("tbody");
         var oe = "odd";
-        [ sequence.regions, sequence.motifs ].flatten().each( function( region ) {
+        [ sequence.regions, sequence.motifs ].flatten().each( function( hit ) {
           var tr = new Element( "tr", { "class": oe } );
           tbody.appendChild( tr );
 
-          var link = new Element( "a", { href: familyUri + "/" + region.metadata.identifier } )
-                       .update( region.metadata.identifier );
+          var link = new Element( "a", { href: familyUri + "/" + hit.metadata.identifier } )
+                       .update( hit.metadata.identifier );
 
           var source = new Element( "td" )
                          .setStyle( { fontWeight: "bold" } );
-          if ( region.type == "pfama" ) {
+          if ( hit.type == "pfama" ) {
             source.update( "Pfam A" )
-		              .setStyle( { color: region.colour } );
-          } else if ( region.type == "pfamb" ) {
+		              .setStyle( { color: hit.colour } );
+          } else if ( hit.type == "pfamb" ) {
             source.update( "Pfam B" );
           } else {
-            source.update( "Unknown" );
+            source.update( hit.type );
           }
           var domain = new Element( "td" )
                          .update( link );
           var start  = new Element( "td" )
-                         .update( region.metadata.start );
+                         .update( hit.metadata.start );
           var end    = new Element( "td" )
-                         .update( region.metadata.end );
+                         .update( hit.metadata.end );
 
           tr.appendChild( source );
           tr.appendChild( domain );
