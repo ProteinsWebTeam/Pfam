@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Lists.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
+# $Id: Lists.pm,v 1.4 2009-10-28 11:55:34 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ text formats for the output.
 
 Generates a B<tabbed page>.
 
-$Id: Lists.pm,v 1.3 2008-07-28 13:54:18 jt6 Exp $
+$Id: Lists.pm,v 1.4 2009-10-28 11:55:34 jt6 Exp $
 
 =cut
 
@@ -133,9 +133,9 @@ sub get_families_list : Private {
     $c->log->debug( 'Lists::get_families_list: getting new list from DB' )
       if $c->debug;
 
-    my @rs = $c->model('PfamDB::Pfam')
+    my @rs = $c->model('PfamDB::Pfama')
                ->search( {},
-                         { order_by => [ 'pfamA_acc' ] } );
+                         { order_by => [ 'pfama_acc' ] } );
     
     $c->log->debug( 'Lists::get_families_list: found |' . scalar @rs . '| families in DB' )
       if $c->debug;
