@@ -2,7 +2,7 @@
 # Sequence.pm
 # jt6 20061108 WTSI
 #
-# $Id: Sequence.pm,v 1.39 2009-10-22 14:38:35 jt6 Exp $
+# $Id: Sequence.pm,v 1.40 2009-10-28 11:56:58 jt6 Exp $
 
 =head1 NAME
 
@@ -20,7 +20,7 @@ various methods, depending on the request method (e.g. "GET", "POST"), and
 rendering the results in the appropriate output format, depending on the 
 requested content-type (e.g. "JSON", "XML").
 
-$Id: Sequence.pm,v 1.39 2009-10-22 14:38:35 jt6 Exp $
+$Id: Sequence.pm,v 1.40 2009-10-28 11:56:58 jt6 Exp $
 
 =cut
 
@@ -113,7 +113,18 @@ Builds a page that will hold the results of the search(es).
 sub results : Local {
   my ( $this, $c, $arg ) = @_;
 
-  $c->stash->{template} = 'pages/search/sequence/results.tt';  
+  # decide which template to use. Both of these templates will handle showing 
+  # an error message, in case something goes wrong when submitting the search
+  if ( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Search::Sequence::results: returning polling page as XML' )
+      if $c->debug;
+    $c->stash->{template} = 'rest/search/poll_xml.tt';
+  }
+  else {
+    $c->log->debug( 'Search::Sequence::results: returning polling page as HTML' )
+      if $c->debug;
+    $c->stash->{template} = 'pages/search/sequence/results.tt';
+  }
   
   $c->log->debug( 'Search::Sequence::results: loading results page' )
     if $c->debug;
@@ -125,12 +136,8 @@ sub results : Local {
 
     $c->stash->{seqSearchError} = $c->stash->{searchError}
                                   || 'There was an unknown problem when retrieving your results.';
-
-    return;
   }
 
-  # let the view render the stash for us. If we've set the body contents already,
-  # it should just return them untouched
 }
 
 #-------------------------------------------------------------------------------
@@ -256,7 +263,18 @@ sub resultset : Local {
   $c->log->debug( 'Search::Sequence::resultset: all jobs completed; setting template' )
     if $c->debug;
 
-  $c->stash->{template} = 'pages/search/sequence/results_table.tt';
+  # decide which template to use. Both of these templates will handle showing 
+  # an error message, in case something goes wrong when submitting the search
+  if ( $c->stash->{output_xml} ) {
+    $c->log->debug( 'Search::Sequence::results: returning result set as XML' )
+      if $c->debug;
+    $c->stash->{template} = 'rest/search/results_xml.tt';
+  }
+  else {
+    $c->log->debug( 'Search::Sequence::results: returning result_set as HTML' )
+      if $c->debug;
+    $c->stash->{template} = 'pages/search/sequence/results_table.tt';
+  }
 
   # parse the results
   $c->forward( 'handle_results' );
@@ -835,141 +853,6 @@ sub layout_dg : Private {
   #   if $c->debug;
 
 } # end of "sub handle_results"
-
-# my $rs = $schema->resultset( "JobStream" )
-#                 ->search( { id => $id },
-#                           {} )
-#                 ->single;
-# 
-# my $storable = $rs->get_column( 'stdout' );
-# my $data     = thaw( $storable );
-# 
-#     next unless $hit->{sig};
-# 
-#     if ( $c->stash->{job_type} eq 'A' ) {
-#       push @regions, new Bio::Pfam::Sequence::Region( {
-#         start       => $hit->{env}->{from},
-#         end         => $hit->{env}->{to},
-#         aliStart    => $hit->{seq}->{from},
-#         aliEnd      => $hit->{seq}->{to},
-#         modelStart  => $hit->{hmm}->{from},
-#         modelEnd    => $hit->{hmm}->{to},
-#         modelLength => $hit->{hmm}->{to}, # NB should be "length" not "to"
-#         type        => 'pfama',
-#         metadata    => new Bio::Pfam::Sequence::MetaData( {
-#           accession   => $hit->{acc},
-#           identifier  => $hit->{name},
-#           type        => $hit->{type},
-#           description => $hit->{desc},
-#           score       => $hit->{evalue},
-#           scoreName   => 'e-value',
-#           start       => $hit->{env}->{from},
-#           end         => $hit->{env}->{to},
-#           aliStart    => $hit->{seq}->{from},
-#           aliEnd      => $hit->{seq}->{to},
-#           database    => 'pfam'
-#         } )
-#       } );
-#     }
-# 
-#     # if Pfam-B...
-#   }
-# 
-#   my $sequence = new Bio::Pfam::Sequence( {
-# 
-#       # if Pfam-B...
-#     length   => length( $stash->get('seq') ),
-#     regions  => \@regions,
-#     motifs   => [],
-#     markups  => [],
-#   } );
-# 
-#   # print "regions:  |", dump( \@regions ), "|\n";
-#   # print "sequence: |", dump( \$sequence ), "|\n";
-# 
-#   my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
-#   my $seqs = [ $sequence ];
-#   $lm->layoutSequences( $seqs );
-#    
-#   my $json = new JSON;
-#   # $json->pretty(1);
-#   $json->allow_blessed;
-#   $json->convert_blessed;
-# 
-#   print "var layout = ", $json->encode( $seqs ), ";\n";
-
-# sub old_handle_results : Private {
-#   my ( $this, $c, $job ) = @_;
-# 
-#   # we're handed the row DBIC row object; retrieve the job ID and type
-#   my $jobId   = $job->jobId;
-#   my $job_type = $job->job_type;
-# 
-#   $c->log->debug( "Search::Sequence::handle_results: handling results for |$jobId|" )
-#     if $c->debug;
-#   
-#   #----------------------------------------
-#   
-#   if ( $job_type eq 'A' ) {
-#     $c->log->debug( "Search::Sequence::handle_results: job |$jobId| is a Pfam-A job" )
-#       if $c->debug;
-# 
-#     my $evalue_cutoff = $c->stash->{results}->{$jobId}->{user_options}->{evalue};
-#     my $ga            = $c->stash->{results}->{$jobId}->{user_options}->{ga};
-#     
-#     if ( defined $evalue_cutoff and not $ga ) {
-#       $c->log->debug( "Search::Sequence::handle_results: setting an E-value cutoff of $evalue_cutoff" )
-#         if $c->debug;
-#       $c->stash->{evalue_cutoff} = $evalue_cutoff;
-#     }
-#       
-#     my $results;
-#     eval {
-#       $results = thaw( $job->stdout );
-#     };
-#     if ( $@ ) {
-#       die "error retrieving Pfam-A results: $@";
-#     }
-#     
-#     $c->log->debug( 'Search::Sequence::handle_results: got '
-#                     . scalar @$results . ' Pfam-A results' ) if $c->debug;
-#     
-#     $c->stash->{jobId}    = $jobId;
-#     $c->stash->{job_type} = $job_type;
-#     $c->stash->{results}  = $results;
-#   }
-# 
-#   #----------------------------------------
-#   
-#   elsif ( $job_type eq 'B' ) {
-#     $c->log->debug( "Search::Sequence::handle_results: job |$jobId| is a Pfam-B job" )
-#       if $c->debug;
-# 
-#     my $results;
-#     eval {
-#       $results = thaw( $job->stdout );
-#     };
-#     if ( $@ ) {
-#       die "error retrieving Pfam-B results: $@";
-#     }
-#     
-#     $c->log->debug( 'Search::Sequence::handle_results: got '
-#                     . scalar @$results . ' Pfam-B results' ) if $c->debug;
-#     
-#     $c->stash->{jobId}    = $jobId;
-#     $c->stash->{job_type} = $job_type;
-#     $c->stash->{results}  = $results;
-#   }
-# 
-#   #----------------------------------------
-#   
-#   else {
-#     $c->log->error( "Search::Sequence::handle_results: job |$jobId| is of an unrecognised type: |$job_type|" )
-#       if $c->debug;
-#     die "error retrieving results for an unknown job_type"; 
-#   }
-# 
-# }
 
 #-------------------------------------------------------------------------------
 
