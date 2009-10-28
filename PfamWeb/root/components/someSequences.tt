@@ -6,7 +6,7 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.12 2009-10-16 14:52:45 jt6 Exp $
+# $Id: someSequences.tt,v 1.13 2009-10-28 11:58:31 jt6 Exp $
 
 META naked = 1;
 
@@ -62,11 +62,12 @@ END; # of "FOREACH id" -%]
                   .store( "arch",  [% seqInfo.$id.auto_arch %] );
   [% END -%]
 
-  var uri = "[% c.uri_for( '/domaingraphics' ) %]";
   var layout = [% layout OR "{}" %];
   var assignedColours = [% assignedColours OR "{}" %];
+  var loadUri = "[% c.uri_for( '/domaingraphics', acc ) %]";
+  var baseUri = "[% c.uri_for( '/' ) %]";
 
-  var dgl = new DomainGraphicsLoader( uri, layout, assignedColours );
+  var dgl = new DomainGraphicsLoader( loadUri, layout, assignedColours, baseUri );
 
   // ]]>
 </script>
@@ -89,24 +90,31 @@ END; # of "FOREACH id" -%]
     <script type="text/javascript">
       // <![CDATA[
 
-      $("loadingButton").observe( "click", function() {
-        $('loadingSpinner').show();
-        if ( $('loadingButton') ) {
-          $('loadingButton').disable();
-        }
-        var r = new Ajax.Updater( 
-          "next[% first %]",
-          "[% c.uri_for( '/domaingraphics' ) %]",
-          { evalScripts: true,
-            parameters:  { jobId:   "[% jobId %]",
-                           start:   "[% last + 1 %]",
-                           subTree: 1 },
-            onFailure:   function() {
-                           $('next[% first %]').update( 'There was a problem retrieving the next set of domain graphics' );
-                         }
-          }
-        );
-      } );
+      if ( $("loadingButton") ) {
+
+        var assignedColours = [% assignedColours OR "{}" %];
+
+        $("loadingButton").observe( "click", function() {
+          $("loadingSpinner").show();
+          $("loadingButton").disable();
+
+          var r = new Ajax.Updater( 
+            "next[% first %]",
+            "[% c.uri_for( '/domaingraphics' ) %]",
+            { evalScripts: true,
+              parameters:  { jobId:   "[% jobId %]",
+                             start:   "[% last + 1 %]",
+                             subTree: 1,
+                             ac:      encodeURI( new Hash(assignedColours).toJSON() ) },                             
+              onFailure: function() {
+                $('next[% first %]')
+                  .update( 'There was a problem retrieving the next set of domain graphics' );
+              }
+            }
+          );
+        } );
+
+      }
 
       // ]]>
     </script>

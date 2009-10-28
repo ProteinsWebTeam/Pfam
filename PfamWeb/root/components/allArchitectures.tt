@@ -8,7 +8,7 @@
 # generates the first X domain graphics and this template provides a 
 # control to allow the user to load the next block on demand.
 #
-# $Id: allArchitectures.tt,v 1.21 2009-10-16 14:48:40 jt6 Exp $
+# $Id: allArchitectures.tt,v 1.22 2009-10-28 11:58:00 jt6 Exp $
 
 META naked = 1;
 
@@ -95,9 +95,6 @@ BLOCK graphicRow;
         [% # switch to actually generate the domains and load them into a div
            # taking care not to add empty parameters
         loadParams = {};
-#        IF acc != "";
-#          loadParams.acc = acc;
-#        END; 
         IF seqInfo.$id.auto_arch.defined;
           loadParams.arch = seqInfo.$id.auto_arch;
         END;
@@ -160,32 +157,6 @@ END -%]
 <script type="text/javascript">
   // <![CDATA[
 
-  if ( $("loadingButton") ) {
-
-    $("loadingButton").observe("click", function() {
-  
-      $("loadingSpinner").show();
-      $("loadingButton").disable();
-  
-      var r = new Ajax.Updater( 
-        "next[% first %]",
-        "[% c.uri_for( '/domaingraphics' ) %]",
-        {
-          evalScripts: true,
-          parameters:  { acc:   "[% acc %]",
-                         taxId: "[% taxId %]", // [%# this is so that we can also handle proteomes %]
-                         start: "[% last + 1 %]" },
-          onFailure:   function() {
-            $("next[% first %]")
-              .update("There was a problem retrieving the next set of domain graphics");
-          }
-        }
-      );
-  
-    } );
-
-  }
-  
   [% # we need to stash a couple of bits of information for each of the architecture:
      #   count: the number of sequences for this architecture
      #   arch:  the auto_architecture number for this architecture
@@ -203,6 +174,33 @@ END -%]
 
   var dgl = new DomainGraphicsLoader( loadUri, layout, assignedColours, baseUri );
 
+  if ( $("loadingButton") ) {
+
+    $("loadingButton").observe("click", function() {
+  
+      $("loadingSpinner").show();
+      $("loadingButton").disable();
+  
+      var r = new Ajax.Updater( 
+        "next[% first %]",
+        "[% c.uri_for( '/domaingraphics' ) %]",
+        {
+          evalScripts: true,
+          parameters:  { acc:   "[% acc %]",
+                         taxId: "[% taxId %]", // [%# this is so that we can also handle proteomes %]
+                         start: "[% last + 1 %]",
+                         ac:    encodeURI( new Hash(assignedColours).toJSON() ) },
+          onFailure:   function() {
+            $("next[% first %]")
+              .update("There was a problem retrieving the next set of domain graphics");
+          }
+        }
+      );
+  
+    } );
+
+  }
+  
   // ]]>
 </script>
 
