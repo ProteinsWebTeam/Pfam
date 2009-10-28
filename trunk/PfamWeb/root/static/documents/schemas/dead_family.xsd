@@ -25,7 +25,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
   
   <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
 
-  <xs:element name="dead_family">
+  <xs:element name="dead_pfam">
     <xs:annotation>
       <xs:documentation>Information from the Pfam database about dead families</xs:documentation>
     </xs:annotation>

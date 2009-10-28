@@ -4,7 +4,7 @@
 #
 # template for formatting the list of all Pfam-A families as an HTML table
 #
-# $Id: families_list.tt,v 1.2 2008-05-16 15:31:06 jt6 Exp $
+# $Id: families_list.tt,v 1.3 2009-10-28 14:09:02 jt6 Exp $
 
 META title = 'All Pfam families';
 
@@ -26,8 +26,8 @@ META title = 'All Pfam families';
   <tbody>
 [% FOREACH pfam IN entries -%]
     <tr>
-      <td>[% pfam.pfamA_acc %]</td>
-      <td>[% pfam.pfamA_id %]</td>
+      <td>[% pfam.pfama_acc %]</td>
+      <td>[% pfam.pfama_id %]</td>
       <td>[% pfam.description | html %]</td>
     </tr>
 [% END -%]

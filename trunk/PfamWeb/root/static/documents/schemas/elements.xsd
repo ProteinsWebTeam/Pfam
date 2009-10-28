@@ -23,14 +23,14 @@ this program. If not, see <http://www.gnu.org/licenses/>.
            elementFormDefault="qualified" 
            attributeFormDefault="unqualified">
 
-  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/types.xsd" />
+  <xs:include schemaLocation="http://deskpro20626.dynamic.sanger.ac.uk:8000/catalyst/pfam/static/documents/schemas/types.xsd" />
   
   <!-- widely used types -->
   
   <xs:element name="match">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="location" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ref="location" maxOccurs="unbounded" />
       </xs:sequence>
       <xs:attribute name="accession" type="pfamAccession" use="required" />
       <xs:attribute name="id"        type="xs:string"     use="required" />
@@ -48,20 +48,16 @@ this program. If not, see <http://www.gnu.org/licenses/>.
   
   <xs:element name="location">
     <xs:complexType>
-      <xs:attribute name="start" type="xs:integer" use="required" />
-      <xs:attribute name="end"   type="xs:integer" use="required" />
-      <xs:attribute name="hmm_start" type="xs:integer" use="optional" />
-      <xs:attribute name="hmm_end"   type="xs:integer" use="optional" />
-      <xs:attribute name="bitscore"  type="xs:float" use="optional" />
-      <xs:attribute name="evalue"    type="xs:float" use="optional" />
-      <xs:attribute name="mode" use="optional">
-        <xs:simpleType>
-          <xs:restriction base="xs:string">
-            <xs:enumeration value="ls" />
-            <xs:enumeration value="fs" />
-          </xs:restriction>
-        </xs:simpleType>
-      </xs:attribute>
+      <xs:attribute name="start"       type="xs:integer" use="required" />
+      <xs:attribute name="end"         type="xs:integer" use="required" />
+      <xs:attribute name="ali_start"   type="xs:integer" use="required" />
+      <xs:attribute name="ali_end"     type="xs:integer" use="required" />
+      <xs:attribute name="hmm_start"   type="xs:integer" use="required" />
+      <xs:attribute name="hmm_end"     type="xs:integer" use="required" />
+      <xs:attribute name="bitscore"    type="xs:float"   use="optional" />
+      <xs:attribute name="evalue"      type="xs:float"   use="optional" />
+      <xs:attribute name="evidence"    type="xs:string"  use="optional" />
+      <xs:attribute name="significant" type="xs:boolean" use="optional" />
     </xs:complexType>
   </xs:element>
     

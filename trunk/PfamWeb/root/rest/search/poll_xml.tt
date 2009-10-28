@@ -4,24 +4,30 @@
 #
 # template for returning the URL for the results of a sequence search
 #
-# $Id: poll_xml.tt,v 1.6 2009-10-07 12:22:54 jt6 Exp $
-
-USE dumper;
+# $Id: poll_xml.tt,v 1.7 2009-10-28 14:09:30 jt6 Exp $
 
 META naked = 1;
-
-baseUri = "http://pfam.sanger.ac.uk/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
+[%IF seqSearchError -%]
+<error>
+<![CDATA[
+[% seqSearchError %]
+]]>
+</error>
+[% ELSE -%]
 <jobs xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns="[% baseUri %]"
-      xsi:schemaLocation="[% baseUri %]
-                          [% baseUri %]static/documents/schemas/submission.xsd">
-[% FOREACH jobId IN queued_jobs -%]
-  <job job_id="[% jobId %]"
-       href="[% c.uri_for( '/search/sequence/resultset', jobId, { output => 'xml' } ) %]" />
+      xmlns="http://pfam.sanger.ac.uk/"
+      xsi:schemaLocation="http://pfam.sanger.ac.uk/
+                          http://pfam.sanger.ac.uk/static/documents/schemas/submission.xsd">
+[% FOREACH jobId IN results.keys -%]
+  <job job_id="[% jobId %]">
+    <opened>[% results.$jobId.rows.0.opened %]</opened>
+    <result_url>[% c.uri_for( '/search/sequence/resultset', jobId, { output => 'xml' } ) %]</result_url>
+  </job>
 [% END -%]
 </jobs>
+[% END; # of "IF seqSearchError" -%]
 [%#
 Copyright (c) 2007: Genome Research Ltd.
 

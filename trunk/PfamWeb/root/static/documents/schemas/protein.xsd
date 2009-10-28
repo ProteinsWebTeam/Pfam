@@ -23,7 +23,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
            elementFormDefault="qualified" 
            attributeFormDefault="unqualified">
 
-  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/elements.xsd" />
+  <xs:include schemaLocation="http://deskpro20626.dynamic.sanger.ac.uk:8000/catalyst/pfam/static/documents/schemas/elements.xsd" />
   
   <xs:element name="pfam">
     <xs:annotation>
@@ -31,7 +31,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="entry" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ref="entry" maxOccurs="unbounded" />
       </xs:sequence>
       <xs:attribute name="release" type="xs:float" use="required" />
       <xs:attribute name="release_date" type="pfamDate" use="required" />

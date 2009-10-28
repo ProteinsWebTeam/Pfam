@@ -31,7 +31,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="job" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ref="job" maxOccurs="unbounded" />
       </xs:sequence>
     </xs:complexType>
     <xs:key name="job">
@@ -46,12 +46,10 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element name="opened"         type="pfamDateTime" />
-        <xs:element name="estimated_time" type="xs:positiveInteger" />
-        <xs:element name="result_url"     type="xs:anyURI" />
+        <xs:element name="opened" type="pfamDateTime" />
+        <xs:element name="result_url" type="xs:anyURI" />
       </xs:all>
-      <xs:attribute name="job_id" type="jobId"      use="required" />
-      <xs:attribute name="type"   type="searchType" use="required" />
+      <xs:attribute name="job_id" type="jobId" use="required" />
     </xs:complexType>
   </xs:element>
   
