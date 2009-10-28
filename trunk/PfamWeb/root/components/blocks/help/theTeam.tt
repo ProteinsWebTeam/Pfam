@@ -4,7 +4,7 @@
 # 
 # build the theTeam block for the help pages
 #
-# $Id: theTeam.tt,v 1.9 2009-03-16 13:02:18 jt6 Exp $
+# $Id: theTeam.tt,v 1.10 2009-10-28 10:15:45 jt6 Exp $
 %]
 
 <!-- start theTeam block -->
@@ -51,12 +51,14 @@
     <h3>Previous contributors</h3>
   
     <ul>
+      <li>Shimelis Assefa</li>
       <li>Matthew Bashton</li>
       <li>Ewan Birney</li>
       <li>Lorenzo Cerrutti</li>
       <li>Lachlan Coin</li>
       <li>Richard Durbin</li>
       <li>Matthew Fenech</li>
+      <li>O. Luke Gavin</li>
       <li>Sam Griffiths-Jones</li>
       <li>Kevin Howe</li> 
       <li>Nicola Kerrison</li>
