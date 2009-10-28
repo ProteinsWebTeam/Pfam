@@ -5,7 +5,7 @@
 # 
 # installation instructions for the website
 #
-# $Id: install.tt,v 1.4 2008-05-16 15:30:31 jt6 Exp $
+# $Id: install.tt,v 1.5 2009-10-28 17:07:52 jt6 Exp $
 %]
 
 <!-- start install block -->
@@ -15,6 +15,17 @@
     <h1>Installing the Pfam website</h1>
   </div>
   <div class="blockContent">
+
+    <div style="width:80%; border: 1px solid #CCC; margin: 1em auto; padding: 0 1em; background-color: #EEE">
+      <h2>Documentation update</h2>
+      <h3>October 2009</h3>
+      <p>
+        The documentation in this tab is currently out of date. Although
+        the general information is still largely accurate, the details of 
+        the site and underlying database may be inaccurate. We hope to update
+        the documentation within the coming weeks.
+      </p>
+    </div>
 
     <p>
       The source code for this website and the ancillary systems that it uses

@@ -4,7 +4,7 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.14 2008-07-23 13:41:47 jt6 Exp $
+# $Id: tools.tt,v 1.15 2009-10-28 17:07:52 jt6 Exp $
 
 USE dumper;
 
@@ -19,6 +19,17 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
     <h1>Guide to Pfam tools and services</h1>
   </div>
   <div class="blockContent">
+
+    <div style="width:80%; border: 1px solid #CCC; margin: 1em auto; padding: 0 1em; background-color: #EEE">
+      <h2>Documentation update</h2>
+      <h3>October 2009</h3>
+      <p>
+        The documentation in this tab is currently out of date. Although
+        the general information is still largely accurate, the details of 
+        the site and underlying database may be inaccurate. We hope to update
+        the documentation within the coming weeks.
+      </p>
+    </div>
 
     <h2>Tools</h2>
 
