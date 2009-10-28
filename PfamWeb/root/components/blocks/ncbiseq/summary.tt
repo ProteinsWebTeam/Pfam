@@ -5,7 +5,7 @@
 # 
 # build the summary block for NCBI sequences
 #
-# $Id: summary.tt,v 1.4 2009-01-09 12:59:24 jt6 Exp $
+# $Id: summary.tt,v 1.5 2009-10-28 14:03:44 jt6 Exp $
 
 USE String;
 
@@ -19,6 +19,24 @@ requirements.css.push( "protein.css" );
 requirements.cssIeAll.push( "protein_all_ie.css" );
 
 requirements.js.push( "protein.js" );
+
+# tooltip library and Pfam-style tip definition
+requirements.js.push( "prototip.js" );
+requirements.css.push( "prototip.css" );
+requirements.js.push( "tip_definition.js" );
+
+# this needs to be loaded before we try to load the canvas text library,
+# but if we include it specifically for IE, it gets added below everything
+# else. We can add it here safely, however, because excanvas checks to see
+# if canvas is implemented before trying to inject itself
+requirements.js.push( "excanvas.js" );
+
+# need to load the canvas.text.js file before trying to load the font file, 
+# otherwise it bails with an error about "face.glyphs is undefined"
+requirements.js.push( "canvas.text.js?reimplement=true&amp;dontUseMoz=true" ); #reimplement=true&amp;
+requirements.js.push( "faces/optimer-bold-normal.js" );
+
+requirements.js.push( "domain_graphics.js" );
 
 #-------------------------------------------------------------------------------
 
@@ -65,11 +83,11 @@ oe = 0;
 
     <h2>Pfam domains</h2>
 
-    [% IF imageKey.size %]
+    <div id="imageKey" style="display: none">
       <p>
         This image shows the arrangement of the Pfam domains that we found on 
         this sequence. Clicking on a domain will take you to the page describing 
-        that Pfam entry. The table below gives the domain boundaries for each of 
+        that Pfam entry. [%# The table below gives the domain boundaries for each of 
         the domains. Note that some domains may be obscured by other, overlapping 
         domains. This is noted in the table where applicable.
       </p>
@@ -77,34 +95,12 @@ oe = 0;
         <strong>Please note</strong> that partial domain matches and full length
         domain matches are represented in the same way for metagenomics sequences.
         This is not the case for the rest of Pfam, for which partial matches are 
-        depicted with a jagged edge.
+        depicted with a jagged edge. %]
       </p>
-    [% ELSE %]
-      <p>
-        There were no Pfam domains found on this sequence.
-      </p>
-    [% END %]
-
-    <div class="summaryGraphic">
-      [% image = imageset.each_image;
-      CALL image.print_image;
-
-      IF c.config.use_image_store;
-        image_uri = c.uri_for( image.file_location );
-      ELSE;
-        image_uri = image.file_location;
-      END; %]
-      <img class="graphicImage" 
-           src="[% image_uri %]" 
-           alt="" 
-           usemap="#singleImageMap" />      
-      [% IF image.image_map %]
-        <map id="singleImageMap" name="singleImageMap">
-          [% image.image_map %]
-        </map>
-      [% END %]
     </div>
-
+    
+    <div id="pgholder" class="pgholder"></div>
+    
     [% # only show the key if there was a domain hit
     IF imageKey.size %]
 
@@ -149,6 +145,27 @@ oe = 0;
       
     [% END %]
 
+    <script type="text/javascript">
+      // <![CDATA[
+
+      var layout = [% layout || "[]" %];
+
+      if ( layout.size() ) {
+        $("imageKey").show();
+      } else {
+        $("imageKey").update( "There were no Pfam domains found on this sequence.")
+                     .show();
+      }
+      
+      var sequence = layout[0];
+
+      var pg = new PfamGraphic( "pgholder", sequence );
+      pg.setBaseUrl( "[% c.uri_for( '/' ) %]" );
+      pg.render();
+
+      // ]]>
+    </script>
+      
   </div> <!-- end of "blockContent" -->
 </div>
 
