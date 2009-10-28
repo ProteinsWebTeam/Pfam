@@ -6,7 +6,7 @@
 # a given architecture. It should be called by the DomainGraphics controller,
 # via ajax.
 #
-# $Id: allSequences.tt,v 1.10 2009-10-16 14:51:41 jt6 Exp $
+# $Id: allSequences.tt,v 1.11 2009-10-28 11:58:16 jt6 Exp $
 
 META naked = 1;
 
@@ -44,7 +44,7 @@ IF numRows < 1;
   [% RETURN;
 END; -%]
 
-<div class="allSequences" style="position: relative" id="arch[% auto_arch %]">
+<div class="allSequences" id="arch[% auto_arch %]">
   [% FOREACH id IN ids;  
     PROCESS graphicRow id = id;
   END; # of "FOREACH id" -%]
