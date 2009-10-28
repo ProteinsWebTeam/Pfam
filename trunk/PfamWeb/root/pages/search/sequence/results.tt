@@ -4,7 +4,7 @@
 #
 # show the results of a sequence search
 #
-# $Id: results.tt,v 1.21 2009-10-14 16:10:32 jt6 Exp $
+# $Id: results.tt,v 1.22 2009-10-28 14:06:56 jt6 Exp $
 
 META title    = "Sequence search results";
 META fullPage = 1;
@@ -44,6 +44,7 @@ requirements.js.push( "results.js" );
 
 requirements.css.push( "domain_graphics.css" );
 requirements.css.push( "search.css" );
+requirements.css.push( "heatmap.css" );
 
 sharedRequirements.css.push( "job.css" );
 sharedRequirements.cssIe.push( "job_ie.css" );
@@ -105,52 +106,84 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
     </p>
   
     <div id="resultsNotes" style="display: none">
-      <ul>
-        <li>
-          The Pfam graphic below shows only the <strong>significant</strong>
-          matches to your sequence. A significant match is one where the bits
-          score is greater than or equal to the gathering threshhold for the
-          Pfam domain.  Clicking on any of the domains in the image will take
-          you to a page of information about that domain.
-          [% IF numJobs > 1 # so we must have one Pfam-A and one Pfam-B job... -%]
-          Note that some Pfam-B domains may be obscured by overlapping Pfam-A
-          domains, which are given higher priority when building the graphic.
-          [% END -%]
-        </li>
-        <li>
-          Below are the details of the matches that were found. We separate
-          Pfam-A matches into two tables, containing the significant and
-          insignificant matches.  Hits which do not start and end at the end
-          points of the matching HMM are <span
-          class="warning">highlighted</span>.
-        </li>
-        <li>
-          A small proportion of sequences within the enzymatic Pfam families
-          have had their active sites experimentally determined. Using a strict
-          set of rules, chosen to reduce the rate of false positives, we
-          transfer experimentally determined active site residue data from a
-          sequence within the same Pfam family to your query sequence. These
-          are shown as &quot;Predicted active sites&quot;. Full details of Pfam
-          active site prediction process can be found in 
-          <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
-            the accompanying paper</a>.
-        </li>      
-        <li>
-          For Pfam-A hits we show the alignments between your search sequence
-          and the matching HMM.
-          [% IF numJobs > 1 -%]
-          For Pfam-Bs the alignment is between your search sequence and the
-          matching sequence from our library of Pfam-B sequences.
-          [% END -%]
-          You can show individual alignments by clicking on the
-          &quot;Show&quot; button in each row of the result table, or you can
-          show all alignments using the links above each table.
-        </li>
-        <li>
-          You can bookmark this page and return to it later, but please note
-          that old results may be removed after <strong>one week</strong>.
-        </li>
-      </ul>
+      <p>
+        The Pfam graphic below shows only the <strong>significant</strong>
+        matches to your sequence. A significant match is one where the bits
+        score is greater than or equal to the gathering threshhold for the
+        Pfam domain.  Clicking on any of the domains in the image will take
+        you to a page of information about that domain.
+        [% IF numJobs > 1 # so we must have one Pfam-A and one Pfam-B job... -%]
+        Note that some Pfam-B domains may be obscured by overlapping Pfam-A
+        domains, which are given higher priority when building the graphic.
+        [% END -%]
+      </p>
+      <p>
+        Below are the details of the matches that were found. We separate
+        Pfam-A matches into two tables, containing the significant and
+        insignificant matches.  Hits which do not start and end at the end
+        points of the matching HMM are <span
+        class="warning">highlighted</span>.
+      </p>
+      <p>
+        A small proportion of sequences within the enzymatic Pfam families
+        have had their active sites experimentally determined. Using a strict
+        set of rules, chosen to reduce the rate of false positives, we
+        transfer experimentally determined active site residue data from a
+        sequence within the same Pfam family to your query sequence. These
+        are shown as &quot;Predicted active sites&quot;. Full details of Pfam
+        active site prediction process can be found in 
+        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?db=pubmed&amp;cmd=Retrieve&amp;dopt=AbstractPlus&amp;list_uids=17688688&amp;query_hl=1&amp;itool=pubmed_DocSum">
+          the accompanying paper</a>.
+      </p>
+      <p>
+        For Pfam-A hits we show the alignments between your search sequence
+        and the matching HMM.
+        [% IF numJobs > 1 -%]
+        For Pfam-Bs the alignment is between your search sequence and the
+        matching sequence from our library of Pfam-B sequences.
+        [% END -%]
+        You can show individual alignments by clicking on the
+        &quot;Show&quot; button in each row of the result table, or you can
+        show all alignments using the links above each table.
+      </p>
+      <p>
+        This alignment row for each hit shows the alignment between your 
+        sequence and the matching HMM. The alignment fragment includes the 
+        following rows:
+      </p>
+      <dl>
+        <dt>#HMM:</dt>
+        <dd>
+          consensus of the HMM. Capital letters indicate the most conserved 
+          positions
+        </dd>
+        <dt>#MATCH:</dt>
+        <dd>
+          the match between the query sequence and the HMM. A '+' indicates a 
+          positive score which can be interpreted as a conservative substitution
+        </dd>
+        <dt>#PP:</dt>
+        <dd>
+          posterior probability. The degree of confidence in each individual 
+          aligned residue. 0 means 0-5%, 1 means 5-15% and so on; 9 means 85-95% 
+          and a '*' means 95-100% posterior probability
+        </dd>
+        <dt>#SEQ:</dt>
+        <dd>
+          query sequence. A '-' indicate deletions in the query sequence with 
+          respect to the HMM. Columns are coloured according to the posterior
+          probability
+          <div class="scale">
+            0% <span class="t0">&nbsp;&nbsp;</span><span class="t1">&nbsp;&nbsp;</span><span class="t2">&nbsp;&nbsp;</span><span class="t3">&nbsp;&nbsp;</span><span class="t4">&nbsp;&nbsp;</span><span class="t5">&nbsp;&nbsp;</span><span class="t6">&nbsp;&nbsp;</span><span class="t7">&nbsp;&nbsp;</span><span class="t8">&nbsp;&nbsp;</span><span class="t9">&nbsp;&nbsp;</span><span class="tm">&nbsp;&nbsp;</span> 100%
+          </div>
+        </dd>
+      </dl>
+      <p>
+        You can bookmark this page and return to it later, but please use the 
+        URL that you can find in the &quot;Search options&quot; section below. 
+        Please note that old results may be removed after 
+        <strong>one week</strong>.
+      </p>
     </div><!-- end of "resultsNotes" -->
 
     <p id="summaryText"></p>
@@ -186,21 +219,24 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
       </p>
       
       <ul>
-      [%- IF user_options.searchBs %]
-        <li>You searched for <strong>Pfam-Bs</strong></li>
-      [%- END;
-      IF user_options.ga %]
+      [% IF options.ga %]
         <li>
-          You set the cut-off equal to the <strong>gathering threshold</strong>.
+          You set the <strong>Pfam-A</strong> E-value cut-off equal to the 
+          <strong>gathering threshold</strong>
         </li>
       [%- ELSE; %]
         <li>
-          You used an E-value cut-off 
-          [% IF user_options.evalue -%]
-          of <strong>[% user_options.evalue %]</strong>.
+          You set the <strong>Pfam-A</strong> E-value cut-off 
+          [% IF options.evalue -%]
+          to <strong>[% options.evalue %]</strong>
           [% END -%]
         </li>
-      [%- END %]
+      [%- END;
+      IF options.searchBs %]
+        <li>You searched for <strong>Pfam-Bs</strong>. We use an E-value
+          cut-off of <strong>0.001</strong> for Pfam-B searches 
+        </li>
+      [% END -%]
       </ul>
       <p>
         This is the <strong>sequence</strong> that you submitted:
@@ -236,11 +272,34 @@ jobLabel = numJobs > 1 ? "jobs" : "job"; -%]
 
 <div id="results"></div>
 
+<div id="alignmentKey" style="display: none">
+  <p>
+    This row shows the alignment between your sequence and the matching HMM.
+  </p>
+  <dl>
+    <dt>#HMM:</dt>
+    <dd>consensus of the HMM</dd>
+    <dt>#MATCH:</dt>
+    <dd>the match between the query sequence and the HMM</dd>
+    <dt>#PP:</dt>
+    <dd>posterior probability, or the degree of confidence in each individual 
+        aligned residue</dd>
+    <dt>#SEQ:</dt>
+    <dd>
+      query sequence, coloured according to the posterior probability:
+      <div class="scale">
+        0% <span class="t0">&nbsp;&nbsp;</span><span class="t1">&nbsp;&nbsp;</span><span class="t2">&nbsp;&nbsp;</span><span class="t3">&nbsp;&nbsp;</span><span class="t4">&nbsp;&nbsp;</span><span class="t5">&nbsp;&nbsp;</span><span class="t6">&nbsp;&nbsp;</span><span class="t7">&nbsp;&nbsp;</span><span class="t8">&nbsp;&nbsp;</span><span class="t9">&nbsp;&nbsp;</span><span class="tm">&nbsp;&nbsp;</span> 100%
+      </div>
+    </dd>
+  </dl>
+  
+</div>
+
 <script type="text/javascript">
   // <![CDATA[
 
   var resultsConfig = {
-    options:    [% options || "{}" %],
+    options:    [% json_options || "{}" %],
     showButton: "[% c.uri_for( '/static/images/showButton.png' ) %]",
     hideButton: "[% c.uri_for( '/static/images/hideButton.png' ) %]",
     pollUrl:    "[% c.uri_for( '/search/sequence/resultset', jobId ) %]",
