@@ -4,7 +4,7 @@
 # 
 # build the mirrors block for the help pages
 #
-# $Id: glossary.tt,v 1.12 2008-07-23 13:41:47 jt6 Exp $
+# $Id: glossary.tt,v 1.13 2009-10-28 14:01:59 jt6 Exp $
 %]
 
 <!-- start glossary.tt block -->
@@ -19,20 +19,21 @@
       These are some of the commonly used terms in the Pfam website.			
     </p>
 
+    <h3>Alignment coordinates</h3>
+
+    <p>
+      HMMER3 reports two sets of domain coordinates for each profile HMM match.
+      The <em>envelope coordinates</em> delineate the region on the sequence
+      where the match has been probabilistically determined to lie, whereas the
+      <em>alignment coordinates</em> delineate the region over which HMMER is
+      confident that the alignment of the sequence to the profile HMM is
+      correct. Our full alignments contain the alignment co-ordinates from
+      HMMER3.
+    </p>
+
     <h3>Architecture</h3>
     
     <p>The collection of domains that are present on a protein.</p>
-
-    <h3>Build method</h3>
-    
-    <p>
-      The order that the ls (global) and fs (fragment) matches are aligned to 
-      the model to give the full alignment. The build method can be global first, 
-      where ls matches are aligned first followed by fs matches that do not 
-      overlap, byscore, where matches are aligned in order of evalue score, or 
-      localfirst, where fs matches are aligned first followed by ls matches that 
-      do not overlap.
-    </p>
 
     <h3>Clan</h3>
 
@@ -50,16 +51,22 @@
     <h3>Domain score</h3>
     
     <p>
-      The score of a single domain aligned to a HMM. If there is more than one 
-      domain, the sequence score is the sum of all the domain scores for that 
-      Pfam entry. If there is only a single domain, the sequence and the 
-      domains score for the protein will be identical.
+      The score of a single domain aligned to an HMM. Note that, for HMMER2, if
+      there was more than one domain, the <em>sequence score</em> was the sum
+      of all the domain scores for that Pfam entry. This is not quite true for
+      HMMER3.
     </p>
 
     <h3>DUF</h3>
     
     <p>
       Domain of unknown function.
+    </p>
+
+    <h3>Envelope coordinates</h3>
+
+    <p>
+      See <strong>Alignment coordinates</strong>.
     </p>
 
     <h3>Family</h3>
@@ -86,13 +93,21 @@
       a domain cutoff.
     </p>
 
+    <h3>HMMER</h3>
+    
+    <p>
+      The suite of programs that Pfam uses to build and search HMMs. For Pfam
+      release 24.0 we have used HMMER version 3 to make Pfam. See the 
+      <a class="ext" href="http://hmmer.janelia.org/">HMMER</a> site.
+    </p>
+
     <h3>Hidden Markov model (HMM)</h3>
     
     <p>
       A HMM is a probablistic model. In Pfam we use HMMs to transform the 
       information contained within a multiple sequence alignment into a 
       position-specific scoring system. We search our HMMs against the 
-      <a class="ext "href="http://www.uniprot.org/index.shtml">(UniProt)</a>
+      <a class="ext "href="http://www.uniprot.org/index.shtml">UniProt</a>
       protein database to find homologous sequences.
     </p>
 
@@ -145,12 +160,31 @@
     <h3>Pfam-B</h3>
     
     <p>
-      An automatically generated alignment which is formed by an alignment 
-      from the <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
-          class="ext">ADDA</a>
-      database and removing Pfam-A residues from them. Since Pfam-B families 
-      are automatically generated we recommend that you verify that the 
-      sequences in a Pfam-B are related, using other methods such as BLAST.
+      An automatically generated alignment which is formed by taking a cluster
+      of sequences from the 
+      <a href="http://ekhidna.biocenter.helsinki.fi/sqgraph/pairsdb/index_html"
+          class="ext">ADDA</a> database and removing Pfam-A residues from
+      them. Since Pfam-B families are automatically generated, we recommend that
+      you verify that the sequences in a Pfam-B family are related, using other
+      methods such as BLAST. For Pfam 24.0, we have made HMMs for the first
+      (and therefore largest) 20,000 Pfam-B familes. Users can search their
+      sequences against the Pfam-B HMMs in addition to the Pfam-A HMMs when
+      performing both single-sequence searches and batch searches on the
+      website.
+    </p>
+
+    <h3>Posterior probability</h3>
+    
+    <p>
+      HMMER3 reports a <em>posterior probability</em> for each residue that
+      matches a 'match' or 'insert' state in the profile HMM. A high posterior
+      probability shows that the alignment of the amino acid to the
+      match/insert state is likely to be correct, whereas a low posterior
+      probability indicates that there is alignment uncertainty.  This is
+      indicated on a scale with '*' being 10, the highest certainty, down to 1
+      being complete uncertainty. Within Pfam we display this information as a
+      heat map view, where green residues indicate high posterior probability,
+      and red ones indicate a lower posterior probability.
     </p>
 
     <h3>Repeat</h3>
