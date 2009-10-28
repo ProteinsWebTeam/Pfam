@@ -4,7 +4,7 @@
 #
 # the slimmed down, re-vamped, googlized page header...
 #
-# $Id: header.tt,v 1.35 2009-09-04 10:44:57 jt6 Exp $
+# $Id: header.tt,v 1.36 2009-10-28 14:01:23 jt6 Exp $
 
 # the names for the links in the page
 navNames = { 
@@ -12,7 +12,8 @@ navNames = {
   search = "SEARCH",
   browse = "BROWSE",
   ftp    = "FTP",
-  help   = "HELP" };
+  help   = "HELP",
+  about  = "ABOUT" };
 
 # the URIs for the links
 navLinks = {
@@ -20,11 +21,12 @@ navLinks = {
   search = c.uri_for( "/search" ),
   browse = c.uri_for( "/browse" ),
   ftp    = "ftp://ftp.sanger.ac.uk/pub/databases/Pfam",
-  help   = c.uri_for( "/help" ) };
+  help   = c.uri_for( "/help" ),
+  about  = c.uri_for( "/about" ) };
 
 # the order of the items in the navbar - these are the keys for the two
 # hashes above
-navItems = [ "home", "search", "browse", "ftp", "help" ];
+navItems = [ "home", "search", "browse", "ftp", "help", "about" ];
 
 # the base URL for static content
 staticUri = c.uri_for( "/static" );
