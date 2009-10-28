@@ -4,7 +4,7 @@
 #
 # template for serialising Pfam-A data to XML format
 #
-# $Id: pfama_xml.tt,v 1.6 2009-06-10 13:22:54 jt6 Exp $
+# $Id: pfama_xml.tt,v 1.7 2009-10-28 14:09:01 jt6 Exp $
 
 USE date;
 
@@ -13,25 +13,27 @@ META naked = 1;
 baseUri = "http://pfam.sanger.ac.uk/";
 -%]
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- information on Pfam-A family [% pfam.pfamA_acc %] ([% pfam.pfamA_id %]), generated: [% date.format %] -->
+<!-- information on Pfam-A family [% pfam.pfama_acc %] ([% pfam.pfama_id %]), generated: [% date.format %] -->
 <pfam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="[% baseUri %]"
       xsi:schemaLocation="[% baseUri %]
                           [% baseUri %]static/documents/schemas/pfam_family.xsd"
       release="[% relData.pfam_release %]" 
       release_date="[% relData.pfam_release_date %]">
-  <entry entry_type="Pfam-A" accession="[% pfam.pfamA_acc %]" id="[% pfam.pfamA_id %]">
+  <entry entry_type="Pfam-A" accession="[% pfam.pfama_acc %]" id="[% pfam.pfama_id %]">
     <description>
 <![CDATA[
 [% pfam.description | html %]
 ]]>
     </description>
+[% IF pfam.comment -%]
     <comment>
 <![CDATA[
 [% pfam.comment | html %]
 ]]>
     </comment>
-[% IF pfam.clan_acc -%]
+[% END;
+IF pfam.clan_acc -%]
     <clan_membership clan_acc="[% pfam.clan_acc %]" clan_id="[% pfam.clan_id %]" />
 [% END;
 CALL c.log.debug( "goTerms.size: |" _ goTerms.size _ "|" );
@@ -75,42 +77,25 @@ IF goTerms.size;
       <percentage_identity>[% pfam.percentage_id %]</percentage_identity>
       <av_length>[% pfam.average_length %]</av_length>
       <av_coverage>[% pfam.average_coverage %]</av_coverage>
+      <type>[% pfam.type %]</type>
     </curation_details>
     <hmm_details hmmer_version="[% relData.hmmer_version %]" model_version="[% pfam.version %]" model_length="[% pfam.model_length %]">
-      <ls>
-        <build_commands>[% pfam.hmmbuild_ls %]</build_commands>      
-        <cutoffs>
-          <gathering>
-            <sequence>[% pfam.ls_sequence_GA | format( "%.1f" ) %]</sequence>
-            <domain>[% pfam.ls_domain_GA | format( "%.1f" ) %]</domain>
-          </gathering>
-          <trusted>
-            <sequence>[% pfam.ls_sequence_TC | format( "%.1f" ) %]</sequence>
-            <domain>[% pfam.ls_domain_TC | format( "%.1f" ) %]</domain>
-          </trusted>
-          <noise>
-            <sequence>[% pfam.ls_sequence_NC | format( "%.1f" ) %]</sequence>
-            <domain>[% pfam.ls_domain_NC | format( "%.1f" ) %]</domain>
-          </noise>
-        </cutoffs>
-      </ls>    
-      <fs>
-        <build_commands>[% pfam.hmmbuild_fs %]</build_commands>
-        <cutoffs>
-          <gathering>
-            <sequence>[% pfam.fs_sequence_GA | format( "%.1f" ) %]</sequence>
-            <domain>[% pfam.fs_domain_GA | format( "%.1f" ) %]</domain>
-          </gathering>
-          <trusted>
-            <sequence>[% pfam.fs_sequence_TC | format( "%.1f" ) %]</sequence>
-            <domain>[% pfam.fs_domain_TC | format( "%.1f" ) %]</domain>
-          </trusted>
-          <noise>
-            <sequence>[% pfam.fs_sequence_NC | format( "%.1f" ) %]</sequence>
-            <domain>[% pfam.fs_domain_NC | format( "%.1f" ) %]</domain>
-          </noise>
-        </cutoffs>
-      </fs>
+      <build_commands>[% pfam.buildmethod %]</build_commands>
+      <search_commands>[% pfam.searchmethod %]</search_commands>
+      <cutoffs>
+        <gathering>
+          <sequence>[% pfam.sequence_ga | format( "%.1f" ) %]</sequence>
+          <domain>[% pfam.domain_ga | format( "%.1f" ) %]</domain>
+        </gathering>
+        <trusted>
+          <sequence>[% pfam.sequence_tc | format( "%.1f" ) %]</sequence>
+          <domain>[% pfam.domain_tc | format( "%.1f" ) %]</domain>
+        </trusted>
+        <noise>
+          <sequence>[% pfam.sequence_nc | format( "%.1f" ) %]</sequence>
+          <domain>[% pfam.domain_nc | format( "%.1f" ) %]</domain>
+        </noise>
+      </cutoffs>
     </hmm_details>
   </entry>
 </pfam>

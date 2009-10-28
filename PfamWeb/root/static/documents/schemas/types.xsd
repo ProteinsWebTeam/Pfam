@@ -45,7 +45,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
   
   <xs:simpleType name="pfamAccession">
     <xs:restriction base="xs:string">
-      <xs:pattern value="PF\d{5}|PB\d{6}" />
+      <xs:pattern value="PF\d{5}(\.\d+)?|PB\d{6}" />
     </xs:restriction>
   </xs:simpleType>
   

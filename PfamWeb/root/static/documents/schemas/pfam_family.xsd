@@ -31,7 +31,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="entry" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ref="entry" maxOccurs="unbounded" />
       </xs:sequence>
       <xs:attribute name="release" type="xs:float" use="required" />
       <xs:attribute name="release_date" type="pfamDate" use="required" />
@@ -48,8 +48,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element name="description" type="xs:string" minOccurs="0" />
-        <xs:element name="comment"     type="xs:string" minOccurs="0" />
+        <xs:element name="description" minOccurs="0" type="xs:string" />
+        <xs:element name="comment" minOccurs="0" type="xs:string" />
         <xs:element ref="go_terms" minOccurs="0" />
         <xs:element ref="clan_membership" minOccurs="0" />
         <xs:element ref="curation_details" minOccurs="0" />
@@ -84,7 +84,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="category" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ref="category" maxOccurs="unbounded" />
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -95,7 +95,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="term" minOccurs="1" maxOccurs="unbounded" />
+        <xs:element ref="term" maxOccurs="unbounded" />
       </xs:sequence>
       <xs:attribute name="name">
         <xs:simpleType>
@@ -128,17 +128,17 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element name="status" type="xs:string" minOccurs="0" />
-        <xs:element name="seed_source" type="xs:string" minOccurs="0" />
+        <xs:element name="status" type="xs:string" />
+        <xs:element name="seed_source" type="xs:string" />
         <xs:element name="previous_id" type="xs:string" minOccurs="0" />
         <xs:element name="num_archs" type="xs:positiveInteger" />
-        <xs:element ref="num_seqs" minOccurs="0" />
-        <xs:element name="num_regions" type="xs:positiveInteger" minOccurs="0" />
-        <xs:element name="num_species" type="xs:positiveInteger" minOccurs="0" />
-        <xs:element name="num_structures" type="xs:positiveInteger" minOccurs="0" />
-        <xs:element name="percentage_identity" type="xs:float" minOccurs="0" />
-        <xs:element name="av_length" type="xs:float" minOccurs="0" />
-        <xs:element name="av_coverage" type="xs:float" minOccurs="0" />
+        <xs:element ref="num_seqs" />
+        <xs:element name="num_species" type="xs:positiveInteger" />
+        <xs:element name="num_structures" type="xs:positiveInteger" />
+        <xs:element name="percentage_identity" type="xs:float" />
+        <xs:element name="av_length" type="xs:float" />
+        <xs:element name="av_coverage" type="xs:float" />
+        <xs:element name="type" type="pfamAType" />
       </xs:all>
     </xs:complexType>
   </xs:element>
@@ -149,8 +149,17 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element name="ls" type="cutoffs" />
-        <xs:element name="fs" type="cutoffs" />
+        <xs:element name="build_commands" type="xs:string" />
+        <xs:element name="search_commands" type="xs:string" />
+        <xs:element name="cutoffs">
+          <xs:complexType>
+            <xs:all>
+              <xs:element name="gathering" type="cutoff" />
+              <xs:element name="trusted" type="cutoff" />
+              <xs:element name="noise" type="cutoff" />
+            </xs:all>
+          </xs:complexType>
+        </xs:element>
       </xs:all>
       <xs:attribute name="hmmer_version" type="xs:string" />
       <xs:attribute name="model_version" type="xs:positiveInteger" />
@@ -158,24 +167,6 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:complexType>
   </xs:element>
   
-  <xs:complexType name="cutoffs">
-    <xs:annotation>
-      <xs:documentation>Model cutoff values</xs:documentation>
-    </xs:annotation>
-    <xs:all>
-      <xs:element name="build_commands" type="xs:string" />
-      <xs:element name="cutoffs">
-        <xs:complexType>
-          <xs:all>
-            <xs:element name="gathering" type="cutoff" />
-            <xs:element name="trusted" type="cutoff" />
-            <xs:element name="noise" type="cutoff" />
-          </xs:all>
-        </xs:complexType>
-      </xs:element>
-    </xs:all>
-  </xs:complexType>
-
   <xs:complexType name="cutoff">
     <xs:annotation>
       <xs:documentation>Values for a specific type of cutoff</xs:documentation>
@@ -192,8 +183,8 @@ this program. If not, see <http://www.gnu.org/licenses/>.
     </xs:annotation>
     <xs:complexType>
       <xs:all>
-        <xs:element name="seed" type="xs:integer" minOccurs="1" maxOccurs="1" />
-        <xs:element name="full" type="xs:integer" minOccurs="1" maxOccurs="1" />
+        <xs:element name="seed" type="xs:integer" />
+        <xs:element name="full" type="xs:integer" />
       </xs:all>
     </xs:complexType>
   </xs:element>

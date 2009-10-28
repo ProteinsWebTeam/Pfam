@@ -4,7 +4,7 @@
 #
 # template for serialising the list of all Pfam-A families to XML format
 #
-# $Id: families.tt,v 1.3 2008-05-16 15:31:06 jt6 Exp $
+# $Id: families.tt,v 1.4 2009-10-28 14:09:02 jt6 Exp $
 
 USE date;
 
@@ -21,7 +21,7 @@ baseUri = "http://pfam.sanger.ac.uk/";
       release="[% relData.pfam_release %]" 
       release_date="[% relData.pfam_release_date %]">
 [% FOREACH pfam IN entries -%]
-  <entry entry_type="Pfam-A" accession="[% pfam.pfamA_acc %]" id="[% pfam.pfamA_id %]">
+  <entry entry_type="Pfam-A" accession="[% pfam.pfama_acc %]" id="[% pfam.pfama_id %]">
     <description>
 <![CDATA[
 [% pfam.description | html %]

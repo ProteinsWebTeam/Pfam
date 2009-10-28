@@ -23,7 +23,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
            elementFormDefault="qualified" 
            attributeFormDefault="unqualified">
   
-  <xs:include schemaLocation="http://pfam.sanger.ac.uk/static/documents/schemas/elements.xsd" />
+  <xs:include schemaLocation="http://deskpro20626.dynamic.sanger.ac.uk:8000/catalyst/pfam/static/documents/schemas/elements.xsd" />
   
   <xs:element name="pfam">
     <xs:annotation>

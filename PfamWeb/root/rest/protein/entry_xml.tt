@@ -4,10 +4,11 @@
 #
 # template for serialising uniprot sequence data to XML format
 #
-# $Id: entry_xml.tt,v 1.3 2008-05-16 15:31:28 jt6 Exp $
+# $Id: entry_xml.tt,v 1.4 2009-10-28 14:09:30 jt6 Exp $
 
 META naked = 1;
 
+USE dumper;
 USE String;
 USE date;
 
@@ -27,17 +28,18 @@ baseUri = "http://pfam.sanger.ac.uk/";
 [% pfamseq.description | html %]
 ]]>
     </description>
-    <taxonomy tax_id="[% pfamseq.ncbi_code %]" species_name="[% String.new( pfamseq.species ).trim %]">[% pfamseq.taxonomy %]</taxonomy>
+    <taxonomy tax_id="[% pfamseq.get_column('ncbi_taxid') %]" species_name="[% String.new( pfamseq.species ).trim %]">[% pfamseq.taxonomy %]</taxonomy>
     <sequence length="[% pfamseq.length %]" md5="[% pfamseq.md5 %]" crc64="[% pfamseq.crc64 %]" version="[% pfamseq.seq_version %]">[% pfamseq.sequence %]</sequence>
 [% IF pfama_regions.size OR pfamb_regions.size -%]
     <matches>
-[% FOREACH region IN pfama_regions -%]
-      <match accession="[% region.pfamA_acc %]" id="[% region.pfamA_id %]" type="Pfam-A" class="[% region.type %]">
-        <location start="[% region.seq_start %]" end="[% region.seq_end %]" hmm_start="[% region.model_start %]" hmm_end="[% region.model_end %]" evalue="[% region.domain_evalue_score %]" bitscore="[% region.domain_bits_score %]" mode="[% region.mode %]" />
+[% FOREACH region IN pfama_regions;
+CALL c.log.debug( dumper.dump( region ) ) -%]
+      <match accession="[% region.auto_pfama.pfama_acc %]" id="[% region.auto_pfama.pfama_id %]" type="Pfam-A">
+        <location start="[% region.seq_start %]" end="[% region.seq_end %]" ali_start="[% region.ali_start %]" ali_end="[% region.ali_end %]" hmm_start="[% region.model_start %]" hmm_end="[% region.model_end %]" evalue="[% region.domain_evalue_score %]" bitscore="[% region.domain_bits_score %]" />
       </match>
 [% END;
 FOREACH region IN pfamb_regions -%]
-      <match accession="[% region.pfamB_acc %]" id="[% region.pfamB_id %]" type="Pfam-B">
+      <match accession="[% region.auto_pfamb.pfamb_acc %]" id="[% region.auto_pfamb.pfamb_id %]" type="Pfam-B">
         <location start="[% region.seq_start %]" end="[% region.seq_end %]" />
       </match>
 [% END -%]

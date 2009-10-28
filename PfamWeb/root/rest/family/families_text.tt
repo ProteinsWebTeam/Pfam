@@ -4,7 +4,7 @@
 #
 # template for serialising the list of all Pfam-A families to plain text
 #
-# $Id: families_text.tt,v 1.5 2008-05-16 15:31:06 jt6 Exp $
+# $Id: families_text.tt,v 1.6 2009-10-28 14:09:02 jt6 Exp $
 
 USE date;
 
@@ -14,7 +14,7 @@ META naked = 1;
 # list of all Pfam-A families, generated: [% date.format %]
 # pfam release [% relData.pfam_release %], release date [% relData.pfam_release_date %]
 [% FOREACH pfam IN entries;
-pfam.pfamA_acc; "\t"; pfam.pfamA_id; "\t"; pfam.description %]
+pfam.pfama_acc; "\t"; pfam.pfama_id; "\t"; pfam.description %]
 [% END -%]
 [%#
 Copyright (c) 2007: Genome Research Ltd.
