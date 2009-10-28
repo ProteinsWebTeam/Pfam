@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.17 2009-10-13 13:21:55 jt6 Exp $
+# $Id: summary.tt,v 1.18 2009-10-28 14:02:29 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -35,13 +35,11 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
   </div>
   <div class="blockContent">
 
-  	<h2>About Pfam</h2>
-
-  	<h3>
+  	<h2>
   	  Pfam [% relData.pfam_release ? relData.pfam_release : "21.0" %]
       ([% relData.pfam_release_date ? date.format( release_date ) : "Nov 2006" %]
       [% IF relData.number_families %], [% relData.number_families %] families[% END %])
-    </h3>
+    </h2>
     <p>
       Proteins are generally comprised of one or more functional regions, 
       commonly termed domains. The presence of different domains in varying 
@@ -108,6 +106,7 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
         the general information is still largely accurate, the details of 
         the site and underlying database may be inaccurate. We hope to update
         the documentation within the coming weeks.
+      </p>
     </div>
 
   </div>
