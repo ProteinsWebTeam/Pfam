@@ -4,7 +4,7 @@
 
    Stylesheet for the search pages, both the forms and the result pages.
 
-   $Id: search.css,v 1.8 2009-09-04 12:55:51 jt6 Exp $
+   $Id: search.css,v 1.9 2009-10-28 14:13:19 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -197,4 +197,66 @@ div.hmmWindow {
   font-size: medium;
   text-align: left;
   margin: 0;
+}
+
+
+/* ---------------------------------------- */
+/* domain query rules */
+
+#nlUpdateSpinner {
+  margin: 0.2em;
+}
+
+#idList,
+#haveList,
+#notList {
+  width: 30%;
+  margin: 0.2em;
+  padding: 0.4em;
+}
+
+#idList select,
+#haveList select,
+#notList select {
+  width: 100%;
+}
+
+#idList h3,
+#haveList h3,
+#notList h3 {
+  padding: 0.2em;
+  margin: 0;
+}
+
+#domainSearchButtons {
+  clear: both;
+}
+
+span.buttons {
+  padding: 0.4em 0;
+}
+
+p.domainQueryInstruction {
+  height: 5.2em;
+  float: left;
+  margin: 0;
+  padding: 0.2em;
+}
+
+#textResults {
+  margin: 0.4em 0.2em;
+}
+
+table.pageList {
+  margin: 0 ! important;
+}
+
+table.pageList span.letter {
+  cursor: pointer;
+  padding: 0.4em;
+  display: block;
+  background: #DDD;
+  border: 1px solid #BBB;
+  text-decoration: none;
+  color: #040404;
 }

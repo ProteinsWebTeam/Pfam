@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.83 2009-10-07 22:04:04 jt6 Exp $
+   $Id: pfam.css,v 1.84 2009-10-28 14:13:19 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -524,7 +524,7 @@ body.tool {
 }
 
 .closer {
-  background: url(/shared/images/close_grey.gif) no-repeat left;
+  background: url(/shared/images/close_grey.gif) left no-repeat;
   padding-left: 11px;
   margin: 0.2em;
 }
@@ -582,6 +582,7 @@ a.sortheader {
 .key p {
   margin: 0.4em 0;
   text-align: left;
+  line-height: 1.4em;
 }
 
 /* other things in the key div: lists */
@@ -595,6 +596,11 @@ a.sortheader {
 .key li {
   margin-top: 0.2em;
   margin-bottom: 0.2em;
+}
+
+.key dd {
+  margin: 0 0 0 6em;
+  text-align: left;
 }
 
 /* colour the progress bars according to job class */
@@ -813,6 +819,7 @@ div.allSequences {
   border: 1px solid #AAA;
   margin: 0.6em;
   max-height: 250px;
+  position: relative;
 }
 
 div.allSequences .odd {
@@ -892,13 +899,28 @@ h2.padded {
 /* for the benefit of IE, otherwise it leaves a great wide gap
  * at the left of the <dl> */
 .prototip dl {
-  margin: 0; 
+  margin: 0;
+}
+
+.prototip p {
+  margin: 0;
+  padding: 0.2em;
+}
+
+.prototip div.scale {
+  font-family: monospace;
+  font-size: smaller;
+  text-align: left;
+}
+
+.prototip div.scale span {
+  margin: 0;
+  padding: 0;
 }
 
 .prototip dt {
-  padding: 0 0.2em;
+  padding: 0;
   font-weight: bold;
-  width: 8em;
   float: left;
 }
 
@@ -909,6 +931,15 @@ h2.padded {
 
 .prototip .inactive {
   color: #aaaaaa;
+}
+
+/* we know that the terms are very small in the tooltip on the alignments */
+#alignmentKey dt {
+  width: 6em ! important;
+}
+
+#alignmentKey dd {
+  margin-left: 6em ! important;
 }
 
 /* ---------------------------------------- */
@@ -1102,52 +1133,6 @@ div.blockContent > #treeTools {
 
 #stError {
   color: #F00000;
-}
-
-/* ======================================== */
-/* domain query rules */
-
-#nlUpdateSpinner {
-  margin: 0.2em;
-}
-
-#idList select,
-#haveList select,
-#notList select {
-  margin: 0.2em;
-}
-
-#idList,
-#haveList,
-#notList {
-  width: 30%;
-  margin: 0.2em;
-}
-
-#idList h3,
-#haveList h3,
-#notList h3 {
-  padding: 0.2em;
-  margin: 0;
-}
-
-#domainSearchButtons {
-  clear: both;
-}
-
-span.buttons {
-  padding: 0.2em;
-}
-
-p.domainQueryInstruction {
-  height: 5.2em;
-  float: left;
-  margin: 0;
-  padding: 0.2em;
-}
-
-#textResults {
-  margin: 0.4em 0.2em;
 }
 
 /* ======================================== */
