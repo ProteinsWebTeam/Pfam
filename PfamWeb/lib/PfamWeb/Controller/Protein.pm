@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.41 2009-10-07 10:29:18 jt6 Exp $
+# $Id: Protein.pm,v 1.42 2009-10-28 11:56:33 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.41 2009-10-07 10:29:18 jt6 Exp $
+$Id: Protein.pm,v 1.42 2009-10-28 11:56:33 jt6 Exp $
 
 =cut
 
@@ -27,6 +27,8 @@ use strict;
 use warnings;
 
 use Storable qw( thaw );
+use JSON qw( -convert_blessed_universally );
+
 use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
 
 use base 'PfamWeb::Controller::Section';
@@ -171,15 +173,25 @@ sub get_data : Private {
   # add Pfam-A regions  
   $c->log->debug( 'Protein::get_data: adding region info' ) if $c->debug;
   
-  $c->stash->{pfama_regions} = $c->model('PfamDB::PfamaRegFullSignificant')
-                    ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
-                                in_full           => 1 },
-                              { prefetch => [ qw( auto_pfama ) ] } );
+  my @pfama_regions = $c->model('PfamDB::PfamaRegFullSignificant')
+             ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
+                         in_full           => 1 },
+                       { prefetch => [ qw( auto_pfama ) ] } );
+  $c->stash->{pfama_regions} = \@pfama_regions;
+
+  $c->log->debug( 'Protein::get_data: found ' 
+                  . scalar( @{ $c->stash->{pfama_regions} } ) . ' Pfam-A hits' )
+      if $c->debug;
   
   # add Pfam-B regions
-  $c->stash->{pfamb_regions} = $c->model('PfamDB::PfambReg')
-                    ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
-                              { prefetch => [ qw( auto_pfamb ) ] } );
+  my @pfamb_regions = $c->model('PfamDB::PfambReg')
+          ->search( { 'me.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
+                    { prefetch => [ qw( auto_pfamb ) ] } );
+  $c->stash->{pfamb_regions} = \@pfamb_regions; 
+
+  $c->log->debug( 'Protein::get_data: found ' 
+                  . scalar( @{ $c->stash->{pfamb_regions} } ) . ' Pfam-B hits' )
+      if $c->debug;
   
   #----------------------------------------
 
