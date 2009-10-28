@@ -54,6 +54,10 @@ __PACKAGE__->belongs_to(
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qsqa114ln2YRhFU0SMRhMQ
 
 
+__PACKAGE__->set_primary_key("ncbi_taxid");
+
+
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
