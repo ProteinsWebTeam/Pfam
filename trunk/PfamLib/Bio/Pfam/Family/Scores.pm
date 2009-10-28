@@ -1,10 +1,10 @@
 # Scores.pm
 #
 # Author:        finnr
-# Maintainer:    $Id: Scores.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.1 $
+# Maintainer:    $Id: Scores.pm,v 1.2 2009-10-28 14:27:32 jt6 Exp $
+# Version:       $Revision: 1.2 $
 # Created:       Nov 30, 2008
-# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Last Modified: $Date: 2009-10-28 14:27:32 $
 =head1 NAME
 
 Bio::Pfam::Family::Scores - An object to represent a DESC file
@@ -17,7 +17,7 @@ package Bio::Pfam::Family::Scores;
 
 A more detailed description of what this class does and how it does it.
 
-$Id: Scores.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+$Id: Scores.pm,v 1.2 2009-10-28 14:27:32 jt6 Exp $
 
 =head1 COPYRIGHT
 
@@ -69,4 +69,5 @@ has 'regions' => (
 );
 
 __PACKAGE__->meta->make_immutable;
+
 1;
