@@ -2,7 +2,7 @@
 # Taxonomy.pm
 # jt6 20070918 WTSI
 #
-# $Id: Taxonomy.pm,v 1.11 2009-10-08 10:13:06 jt6 Exp $
+# $Id: Taxonomy.pm,v 1.12 2009-10-28 11:57:19 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Taxonomy;
 
 A search controller for performing taxonomy searches
 
-$Id: Taxonomy.pm,v 1.11 2009-10-08 10:13:06 jt6 Exp $
+$Id: Taxonomy.pm,v 1.12 2009-10-28 11:57:19 jt6 Exp $
 
 =cut
 
@@ -678,16 +678,16 @@ sub getFamilyCount : Private {
     my @rs = $c->model('PfamDB::Taxonomy')
                ->search( { lft => { '>=' => $range->[0] },
                            rgt => { '<=' => $range->[1] } },
-                         { join     => [ 'pfamAncbi' ],
-                           select   => [ 'pfamAncbi.pfamA_acc', 
-                                         { count => 'pfamAncbi.auto_pfamA' } ],
-                           as       => [ 'pfamA_acc', 'count' ],
-                           group_by => [ 'pfamAncbi.auto_pfamA' ],
+                         { join     => [ 'ncbi_taxid' ],
+                           select   => [ 'ncbi_taxid.pfama_acc', 
+                                         { count => 'ncbi_taxid.auto_pfamA' } ],
+                           as       => [ 'pfama_acc', 'count' ],
+                           group_by => [ 'ncbi_taxid.auto_pfama' ],
                          } );
     foreach ( @rs ) {
-      next unless( defined $_->get_column('pfamA_acc') and
+      next unless( defined $_->get_column('pfama_acc') and
                    defined $_->get_column('count') );
-      $termCount->{ $_->get_column('pfamA_acc') } = $_->get_column('count');
+      $termCount->{ $_->get_column('pfama_acc') } = $_->get_column('count');
     }
   
     $c->log->debug( 'Search::Taxonomy::getFamilyCount: got |'
@@ -728,17 +728,17 @@ sub getAllFamilyCount : Private {
 
     my @rs = $c->model('PfamDB::PfamA_ncbi')
                ->search( {},
-                         { select   => [ 'pfamA_acc', 
-                                         { count => 'auto_pfamA' } ],
-                           as       => [ 'pfamA_acc', 'count' ],
-                           group_by => [ 'me.auto_pfamA' ],
+                         { select   => [ 'pfama_acc', 
+                                         { count => 'auto_pfama' } ],
+                           as       => [ 'pfama_acc', 'count' ],
+                           group_by => [ 'me.auto_pfama' ],
                          } );
   
     # hash the results
     foreach ( @rs ) {
-      next unless( defined $_->get_column('pfamA_acc') and
+      next unless( defined $_->get_column('pfama_acc') and
                    defined $_->get_column('count') );
-      $res->{ $_->get_column('pfamA_acc') } = $_->get_column('count');
+      $res->{ $_->get_column('pfama_acc') } = $_->get_column('count');
     }
     
     # and cache them
@@ -795,16 +795,19 @@ sub get_families_for_term : Private {
       if $c->debug;
 
     my @rs = $c->model('PfamDB::PfamaNcbi')
-               ->search( { 'tax.lft'    => { '>=' => $range->[0] },
-                           'tax.rgt'    => { '<=' => $range->[1] } },
-                         { join     => [ 'ncbi_taxid' ],
-                           prefetch => [ 'tax' ] }
+               ->search( { 'taxonomies.lft' => { '>=' => $range->[0] },
+                           'taxonomies.rgt' => { '<=' => $range->[1] } },
+                         { prefetch => { 'ncbi_taxid' => 'taxonomies' } }
                        );
   
-    # map the Pfam-A accession to a hash with other information for the family
-    my %res = map{ $_->pfamA_acc => $familyInfo->{$_->pfamA_acc} } @rs;
+    $c->log->debug( 'Search::Taxonomy::get_families_for_species: found |'
+                    . scalar @rs . '| rows for tax query' )
+      if $c->debug;
 
-    $c->log->debug( 'Search::Taxonomy::getFamiliesForSpecies: found |'
+    # map the Pfam-A accession to a hash with other information for the family
+    my %res = map{ $_->pfama_acc => $familyInfo->{$_->pfama_acc} } @rs;
+
+    $c->log->debug( 'Search::Taxonomy::get_families_for_species: found |'
                     . scalar( keys %res ) . '| families' )
       if $c->debug;
       
