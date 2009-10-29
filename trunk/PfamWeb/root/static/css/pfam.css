@@ -4,7 +4,7 @@
 
    Stylesheet with generally applicable rules for the whole site.
 
-   $Id: pfam.css,v 1.84 2009-10-28 14:13:19 jt6 Exp $
+   $Id: pfam.css,v 1.85 2009-10-29 14:40:18 jt6 Exp $
    
    Copyright (c) 2007: Genome Research Ltd.
    
@@ -1134,5 +1134,18 @@ div.blockContent > #treeTools {
 #stError {
   color: #F00000;
 }
+
+/* ======================================== */
+/* about page */
+
+#about {
+  width: 700px;
+  margin: 0 auto;
+}
+
+#about p {
+  line-height: 1.6em;
+}
+
 
 /* ======================================== */
