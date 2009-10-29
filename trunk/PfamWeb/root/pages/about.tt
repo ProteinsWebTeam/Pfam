@@ -1,0 +1,69 @@
+[%
+# about.tt
+# jt6 20091027 WTSI
+#
+# An about page...
+#
+# $Id: about.tt,v 1.1 2009-10-29 14:36:40 jt6 Exp $
+
+META fullPage = 1;
+-%]
+
+<div id="about">
+
+  <h1>About Pfam</h1>
+  
+  <p>
+    Pfam version [% relData.pfam_release %] was produced at the <a class="ext" 
+    href="http://www.sanger.ac.uk/">Wellcome Trust Sanger Institute</a> 
+    in Cambridge, UK. Pfam is based on a sequence database called <em>Pfamseq</em>, 
+    which is based on <a class="ext" href="http://www.uniprot.org/">UniProt</a>
+    release 15.6 (<a class="ext" href="http://www.expasy.org/sprot/relnotes/relstat.html">Swiss-Prot</a> 
+    release [% relData.swiss_prot_version %] and 
+    <a class="ext" href="http://www.ebi.ac.uk/swissprot/sptr_stats/index.html">
+    SP-TrEMBL</a> release [% relData.trembl_version %]).
+  </p>
+  <p>
+    Pfam is freely available under the
+    <a class="ext" href="http://www.gnu.org/copyleft/lesser.html">GNU LGPL license</a>.
+  </p>
+ 
+  <p> 
+    Pfam is powered by the <a class="ext" href="http://hmmer.janelia.org/">HMMER3</a>
+    package written by <a class="ext" href="http://selab.janelia.org/people/eddys/blog">
+    Sean Eddy</a> at the <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
+    Howard Hughes Janelia Farm Research Campus</a>.
+  </p>
+
+  <p>  
+    Pfam mirror sites are maintained at three main locations:
+  </p>
+  <ul>
+    <li>in the UK, at the <a class="ext" href="http://www.sanger.ac.uk/">
+      Wellcome Trust Sanger Institute</a>, by John Tate and Rob Finn</li>
+    <li>in the US, at <a class="ext" href="http://www.hhmi.org/janelia/labs.html">
+      Howard Hughes Janelia Farm Research Campus</a>, by Goran Ceric</li>
+    <li>in Sweden, at the <a class="ext" href="http://www.sbc.su.se/">Stockholm 
+      Bioinformatics Centre</a>, by Kristoffer Forslund and Erik Sonnhammer</li>
+  </ul>
+
+</div>
+
+[%#
+Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
+
+This is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+-%]
