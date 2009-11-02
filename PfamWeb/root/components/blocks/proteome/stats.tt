@@ -4,7 +4,7 @@
 # 
 # build the domain composition block for the proteome pages
 #
-# $Id: stats.tt,v 1.9 2009-10-07 13:55:55 jt6 Exp $
+# $Id: stats.tt,v 1.10 2009-11-02 13:21:22 jt6 Exp $
 
 oe = 0;
 %]
@@ -68,10 +68,12 @@ oe = 0;
           "statsTableDiv",
           "[% c.uri_for( "/proteome/stats" ) %]",
           {
+            evalScripts: true,
             parameters: { taxId: "[% taxId %]" },
-            onFailure:  function( oResponse ) {
-                          $("statsTableDiv").update( "There was a problem loading the statistics table." );
-                        }
+            onFailure: function( oResponse ) {
+              $("statsTableDiv")
+                .update( "There was a problem loading the statistics table." );
+            }
           }
         );
       } );

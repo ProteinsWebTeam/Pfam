@@ -7,7 +7,7 @@
 # checks for a parameter and limits the number of rows in the table unless
 # the parameter is specified.
 #
-# $Id: statsTable.tt,v 1.9 2009-10-07 13:56:24 jt6 Exp $
+# $Id: statsTable.tt,v 1.10 2009-11-02 13:21:22 jt6 Exp $
 
 # no wrapper thank you
 META naked = 1;
@@ -26,7 +26,7 @@ IF c.req.param('full');
   <div id="loadSwitch">
     <p>
       This table shows the first <strong>500</strong> Pfam domains, but you
-      can <span class="link" onclick="loadFullTable()">
+      can <span class="link" id="loadFullTable">
         see all <strong>[% statsData.size %]</strong> domains</span>. 
     </p>
     <p class="small">
@@ -58,38 +58,35 @@ IF c.req.param('full');
     </tr>
   </thead>
   <tbody>
-    [% FOREACH row IN data %]
-    <tr class="[% oe % 2 ? "odd" :"even"; oe=oe+1 %]">
+    [% FOREACH row IN data -%]
+    <tr class="[% oe % 2 ? 'odd' :'even'; oe=oe+1 %]">
       <td>
-        <a href="[% c.uri_for( "/family", { acc = row.get_column('pfama_acc') } ) %]">
+        <a href="[% c.uri_for( '/family', row.get_column('pfama_acc') ) %]">
           [% row.get_column('pfama_id') %]</a>
       </td>
       <td>[% row.get_column('description') %]</td>
-      <td>
-        [% row.get_column('numberSeqs') %]
-      </td>
-      <td>
-        [% row.get_column('numberRegs') %]
-      </td>
+      <td>[% row.get_column('numberSeqs')  %]</td>
+      <td>[% row.get_column('numberRegs')  %]</td>
       <td class="showSwitch">
         <img class="link" 
-             src="[% c.uri_for( "/static/images/showButton.png" ) %]"
+             src="[% c.uri_for( '/static/images/showButton.png' ) %]"
              alt="Show domain graphics"
-             onclick="popUp( '[% c.uri_for( "/proteome/graphics", { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
+             onclick="popUp( '[% c.uri_for( '/proteome/graphics', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
       <td class="showSwitch">
-        <img src="[% c.uri_for( "/static/images/showButton.png" ) %]"
+        <img src="[% c.uri_for( '/static/images/showButton.png' ) %]"
              alt="Show sequence alignment"
-             onclick="popUp( '[% c.uri_for( "/proteome/alignment/builder", { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
+             onclick="popUp( '[% c.uri_for( '/proteome/alignment/builder', { pfamAcc = row.get_column('pfama_acc'), taxId = taxId } ) | html %]', 'console', 800, 800, 'domainsWin' )" />
       </td>
     </tr>
-    [% END %]
+    [% END -%]
   </tbody>
 </table>
 
 <script type="text/javascript">
   // <![CDATA[
-  loadFullTable = function() {
+  
+  $("loadFullTable").observe( "click", function() {
 
     // first, hide the switch and show the spinner
     $( "loadSwitch").hide();
@@ -98,18 +95,21 @@ IF c.req.param('full');
     $("spinner").show();
     
     // and finally make the AJAX call
-    new Ajax.Request( "[% c.uri_for( "/proteome/stats" ) %]",
-                      { parameters: { taxId: "[% taxId %]",
-                                      full:  1 },
-                        onSuccess:  function( oResponse ) {
-                                      $("statsTableDiv").update( oResponse.responseText );
-                                    },
-                        onFailure:  function( oResponse ) {
-                                      $("statsTableDiv").update( "There was a problem loading the statistics table." );
-                                    },
-                      }
-                    );
-  }
+    var r = new Ajax.Updater( 
+      "statsTableDiv",
+      "[% c.uri_for( '/proteome/stats' ) %]",
+      { 
+        parameters: { taxId: "[% taxId %]",
+                      full:  1 },
+        onFailure:  function( oResponse ) {
+          $("statsTableDiv")
+            .update( "There was a problem loading the statistics table." );
+        }
+      }
+    );
+    
+  } );
+  
   // ]]>
 </script>
 [%#
