@@ -5,7 +5,7 @@
 # 
 # An annotation upload form
 #
-# $Id: annotation.tt,v 1.11 2008-07-28 14:11:31 jt6 Exp $
+# $Id: annotation.tt,v 1.12 2009-11-02 13:07:43 jt6 Exp $
 
 META fullPage = 1;
 META title = "Annotation submission";
@@ -120,9 +120,10 @@ END; # of "if submissionError"
 IF buildForm OR submissionError;
 -%]
 
-  <h1>Submit an annotation[% acc ? " for entry $acc" : "" %]</h1>
-
   <div id="annForm" class="formWrapper">
+  
+    <h1>Submit an annotation[% acc ? " for entry $acc" : "" %]</h1>
+
     [% IF submissionError %]
     <div class="error">
       [% errorMsg %]
@@ -130,22 +131,41 @@ IF buildForm OR submissionError;
     [% END %]
 
     <p>
-      Please complete the form to submit an annotation to the Pfam group. 
-      Please supply information for all of the fields marked with a &quot;*&quot;.
-      When you submit the form, your annotation will be entered into our
-      request tracking system and you should receive an email at the 
-      address that you specify, giving you some information on how you can 
-      keep track of the progress of your submission.
+      This form is intended for the submission of extra textual information
+      about this Pfam entry. 
+      [% IF type == 'A' -%]
+        If you believe that there is a sequence in the existing <em>pfamseq</em>
+        database that should be part of an entry, please provide the sequence 
+        accession and evidence for the inclusion of the sequence, such as a 
+        sequence alignment.
+      [% ELSIF type == 'C' -%]
+        If you believe that there is a family in Pfam that should be part of 
+        this clan, please provide the accession and/or ID of the family and 
+        evidence to support its inclusion.
+      [% END -%]
+      Literature references, where available, are helpful.
     </p>
     <p>
-      After submitting the form, you should see a page confirming that your 
-      comments have been accepted, and you will then be redirected, after a
-      short delay, back to the 
-      [% IF refreshUri AND refreshUri != base %]
-      family, Pfam-B or clan page that you came from.
+      Please do <strong>not</strong> submit raw sequences. We will discard any 
+      sequences that are submitted without explanatory text.
+    </p>
+    <p>
+      You must supply information for all of the fields marked with a 
+      &quot;*&quot;. After submission you will see a page confirming that your 
+      comments have been accepted and you will then be redirected, after a 
+      short delay, back to the
+      [% IF intendedRefreshUri %]
+        <a href="[% intendedRefreshUri %]">entry page</a> that you came from.
       [% ELSE %]
-      Pfam home page.
+        <a href="[% c.uri_for( '/' ) %]">Pfam home page</a>.
       [% END %]
+      Your annotation will be entered into our request tracking system and you 
+      will receive a confirmation email at the address that you specify.
+    </p>
+    <p>
+      Every annotation is reviewed by one of our curators. Please try to include 
+      as much information as possible, so that we can assess your annotation 
+      and quickly incorporate your data into Pfam.
     </p>
 
     [% widget.as_xml %]
@@ -153,14 +173,20 @@ IF buildForm OR submissionError;
 
   <script type="text/javascript">
     // <![CDATA[
-    $("annotationForm_user").focus();
     
-    var url = "[% c.uri_for( "/annotate/getTs" ) %]";
-    new Ajax.Request( url, {
-      onSuccess: function( response ) {
-        $('annotationForm_ts').value = response.responseText;
-      }
+    document.observe( "dom:loaded", function() {
+      
+      $("annotationForm_user").focus();
+      
+      var url = "[% c.uri_for( '/annotate/getTs' ) %]";
+      var r = new Ajax.Request( url, {
+        onSuccess: function( response ) {
+          $('annotationForm_ts').value = response.responseText;
+        }
+      } );
+      
     } );
+    
     // ]]>
   </script>
 
@@ -175,14 +201,15 @@ IF buildForm OR submissionError;
   </p>
   <p>
     [% # work out where to redirect after the refresh delay
-    CALL c.log.debug( "annotate.pm: refreshUri: |$refreshUri|" );
-    IF refreshUri AND refreshUri != base %]
+    CALL c.log.debug( "annotate.pm: refreshUri: |$refreshUri|" )
+      IF c.debug;
+    IF refreshUri %]
       In 5 seconds you will be redirected to the page for the 
       <a href="[% refreshUri %]">previous entry</a>, or you can click 
       <a href="[% refreshUri %]">here</a> to go there immediately.
     [% ELSE %]
-      In 5 seconds you will be redirected to the <a href="[% c.uri_for( "/" ) %]">Pfam 
-        home page</a>, or you can click <a href="[% c.uri_for( "/" ) %]">here</a> to go
+      In 5 seconds you will be redirected to the <a href="[% c.uri_for( '/' ) %]">Pfam 
+        home page</a>, or you can click <a href="[% c.uri_for( '/' ) %]">here</a> to go
       there immediately.
     [% END %]
   </p>
