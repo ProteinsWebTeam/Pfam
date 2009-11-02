@@ -4,7 +4,7 @@
 # 
 # build the domain composition block for the proteome pages
 #
-# $Id: stats.tt,v 1.10 2009-11-02 13:21:22 jt6 Exp $
+# $Id: stats.tt,v 1.11 2009-11-02 15:40:24 jt6 Exp $
 
 oe = 0;
 %]
@@ -19,7 +19,7 @@ oe = 0;
     
     <p>
       This section shows the composition of this proteome, in terms of the Pfam
-      domains which are found on its consitituent sequences.
+      domains which are found on its constituent sequences.
       <span onclick="reveal( this, 'statsNotes', false, true )"
             class="moreLink">
         More...</span>
@@ -66,7 +66,7 @@ oe = 0;
       document.observe( "dom:loaded", function() {
         var r = new Ajax.Updater(
           "statsTableDiv",
-          "[% c.uri_for( "/proteome/stats" ) %]",
+          "[% c.uri_for( '/proteome/stats' ) %]",
           {
             evalScripts: true,
             parameters: { taxId: "[% taxId %]" },
