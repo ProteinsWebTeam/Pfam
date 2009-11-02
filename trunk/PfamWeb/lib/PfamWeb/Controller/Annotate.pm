@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.19 2009-10-19 15:30:41 jt6 Exp $
+# $Id: Annotate.pm,v 1.20 2009-11-02 13:07:21 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.19 2009-10-19 15:30:41 jt6 Exp $
+$Id: Annotate.pm,v 1.20 2009-11-02 13:07:21 jt6 Exp $
 
 =cut
 
@@ -135,7 +135,9 @@ sub annotate : Path {
   $c->stash->{widget}    = $w->result;
   $c->stash->{buildForm} = 1;
   $c->stash->{template}  = 'pages/annotation.tt';
-
+  
+  $c->stash->{intendedRefreshUri} = $c->forward( 'build_refresh_uri' );
+  
   # cache the annotation form for two weeks. We should be able to cache the
   # raw form safely, because the JS in it will still fire to retrieve the
   # time stamp. As long as we don't cache that, we should be fine !
@@ -251,17 +253,7 @@ sub submit : Local {
         $c->stash->{submissionError} = SUBMISSION_VALID;
       
         # decide where we should redirect the user
-        my $target;
-        if( $c->stash->{type} eq 'A' ) {
-          $target = '/family';
-        } elsif( $c->stash->{type} eq 'B' ) {
-          $target = '/pfamb';
-        } elsif( $c->stash->{type} eq 'C' ) {
-          $target = '/clan';
-        } else {
-          $target = '/';
-        }
-        $c->stash->{refreshUri} = $c->uri_for( $target, $c->stash->{acc} );
+        $c->stash->{refreshUri} = $c->forward( 'build_refresh_uri' );
       }
     }
   }
@@ -274,6 +266,33 @@ sub submit : Local {
 
 #-------------------------------------------------------------------------------
 #- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 build_refresh_uri : Private
+
+Figures out the refresh URI for the page. The URI is returned, rather than 
+being stashed, so that it can be used other than as a META refreshUri value.
+
+=cut
+
+sub build_refresh_uri : Private {
+  my ( $this, $c ) = @_;
+  
+  # decide where we should redirect the user
+  my $target;
+  if( $c->stash->{type} eq 'A' ) {
+    $target = '/family';
+  } elsif( $c->stash->{type} eq 'B' ) {
+    $target = '/pfamb';
+  } elsif( $c->stash->{type} eq 'C' ) {
+    $target = '/clan';
+  } else {
+    $target = '/';
+  }
+  
+  return $c->uri_for( $target, $c->stash->{acc} );
+}
+
 #-------------------------------------------------------------------------------
 
 =head2 checkTimeOut : Private
