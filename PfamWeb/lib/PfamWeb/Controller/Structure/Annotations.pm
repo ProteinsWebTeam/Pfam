@@ -2,7 +2,7 @@
 # Annotations.pm
 # jt6 20090820 WTSI
 #
-# $Id: Annotations.pm,v 1.2 2009-10-14 14:53:41 jt6 Exp $
+# $Id: Annotations.pm,v 1.3 2009-11-05 11:09:49 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package PfamWeb::Controller::Structure::Annotations;
 A collection of actions, mostly intended to be called via AJAX, which return
 annotation data for the structure in question.
 
-$Id: Annotations.pm,v 1.2 2009-10-14 14:53:41 jt6 Exp $
+$Id: Annotations.pm,v 1.3 2009-11-05 11:09:49 jt6 Exp $
 
 =cut
 
@@ -80,24 +80,6 @@ Returns any TOPSAN annotations for this entry.
 
 =cut
 
-package ExtScrubber;
-
-use base 'HTML::Scrubber';
-
-sub _validate {
-  my ( $self, $t, $r, $a, $as ) = @_;
-
-  if ( $t eq 'a' ) {
-    $a->{class} = 'ext';
-    push @$as, 'class' unless grep { /class/ } @$as;
-  }
-  $self->SUPER::_validate( $t, $r, $a, $as );
-}
-
-1;
-
-package PfamWeb::Controller::Structure::Annotations;
-
 sub topsan : Local {
   my ( $this, $c ) = @_;
 
@@ -114,7 +96,8 @@ sub topsan : Local {
     $c->log->debug( 'Structure::topsan: failed to retrieve data from cache; going to DB' )
       if $c->debug;
 
-    # my $scrubber = new HTML::Scrubber( 
+    # use our custom ExtScrubber module to clean up the HTML that we retrieve
+    # from TopSan
     my $scrubber = new ExtScrubber( 
       allow   => [ qw( div span a p br hr table tbody tr td strong img em
                        ul ol dl li dt dd ) ],
@@ -163,6 +146,8 @@ sub topsan : Local {
       $c->log->debug( 'Structure::Annotations::topsan: got a response from topsan' )
         if $c->debug;
 
+      #--------------------------------------
+      
       # was the query successful ?
       my $topsan_xml;
       if ( $response->is_success ) {
@@ -174,14 +159,14 @@ sub topsan : Local {
         $c->log->debug( 'Structure::Annotations::topsan: query failed: ' . $response->status_line )
           if $c->debug;
 
-        $topsan_error = 'We could not retrieve TOPSAN annotations for ' . $c->stash->{pdbId} . '.';
-
         last TEST;
       } 
 
       $c->log->debug( 'Structure::Annotations::topsan: topsan XML: ', $topsan_xml )
         if $c->debug;
 
+      #--------------------------------------
+      
       # can we parse the XML into a perl data structure ?
       my $data;
       eval {
@@ -191,15 +176,17 @@ sub topsan : Local {
         $c->log->debug( 'Structure::Annotations::topsan: error parsing XML: ' . $@ )
           if $c->debug;
 
-        $topsan_error = 'We could not interpret the TOPSAN annotations';
+        $c->stash->{topsanError} = 'We could not interpret the TOPSAN annotations';
 
         last TEST;
       }
 
+      #--------------------------------------
+      
       $c->log->debug( 'Structure::Annotations::topsan: data structure from XML: ', dump( $data ) )
         if $c->debug;
-
-      # scrub the HTML portion of that data structure
+        
+      # scrub the HTML portion of the data structure
       my $text;
       if ( ref $data ) {
         $text = $scrubber->scrub( $data->{protein}->{content}->{content} );
@@ -210,23 +197,28 @@ sub topsan : Local {
         $c->log->debug( "Structure::Annotations::topsan: couldn't parse a data structure out of the XML" )
           if $c->debug;
 
-        $topsan_error = 'There are no TOPSAN annotations';
+        # no error message; we just drop off the bottom of the test block
 
         last TEST;
       } 
         
+      #--------------------------------------
+      
       # did scrubbing the HTML yield anything at all ?
       unless ( defined $text ) {
         $c->log->debug( 'Structure::Annotations::topsan: failed to find the text annotation in the XML data structure' )
           if $c->debug;
 
-        $topsan_error = 'We could not parse the response from the TOPSAN servers';
+        $c->stash->{topsanError} =
+          'We could not parse the response from the TOPSAN servers';
 
         last TEST;
       }
 
       # by this point, we really should have some text...
       $topsan_data->{text} = $text;
+      
+      #--------------------------------------
       
       # see if we can get an image URL from the perl data structure too
       my $img = $data->{protein}->{image}->{href};
@@ -241,6 +233,8 @@ sub topsan : Local {
           if $c->debug;
       }
 
+      #--------------------------------------
+      
       # look for the URL for the annotation
       my $href = $data->{protein}->{href};
       if ( defined $href ) {
@@ -258,18 +252,46 @@ sub topsan : Local {
         if $c->debug;
 
       $c->cache->set( $cache_key, $topsan_data ) unless $ENV{NO_CACHE};
-    }
+      
+    } # end of block "TEST"
     
   }
   
-  $c->stash->{topsanError} = $topsan_error;
-  $c->stash->{topsanData}  = $topsan_data;
-  $c->stash->{template}    = 'components/blocks/structure/topsan.tt';
+  $c->stash->{topsanData} = $topsan_data;
+  $c->stash->{template}   = 'components/blocks/structure/topsan.tt';
 }
 
 # TODO check 2h1q for examples of non-UTF8 characters
 # example structures:
 # 3gag, 3gwq, 3f44, 3f9s, 3fcr, 3due
+
+#-------------------------------------------------------------------------------
+#- internal package -----------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 package ExtScrubber
+
+This is a package that wraps up the L<HTML::Scrubber> module and augments the 
+C<_validate> method to make sure that a link has the attribute "class='ext'".
+
+
+=cut
+
+package ExtScrubber;
+
+use base 'HTML::Scrubber';
+
+sub _validate {
+  my ( $self, $t, $r, $a, $as ) = @_;
+
+  if ( $t eq 'a' ) {
+    $a->{class} = 'ext';
+    push @$as, 'class' unless grep { /class/ } @$as;
+  }
+  $self->SUPER::_validate( $t, $r, $a, $as );
+}
+
+1;
 
 #-------------------------------------------------------------------------------
 
