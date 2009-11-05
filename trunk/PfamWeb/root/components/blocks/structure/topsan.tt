@@ -2,7 +2,7 @@
 # topsan.tt
 # jt6 20090801 WTSI
 #
-# $Id: topsan.tt,v 1.3 2009-10-14 14:54:32 jt6 Exp $
+# $Id: topsan.tt,v 1.4 2009-11-05 11:09:50 jt6 Exp $
 
 # tell the wrapper not to add any header or footer
 META naked = 1;
@@ -10,7 +10,9 @@ META naked = 1;
 IF topsanError;
   topsanError -%] for 
   <a class="ext" href="http://www.topsan.org/explore?pdbId=[% pdbId %]">[% pdbId %]</a>
-[%- ELSE -%]
+[%- ELSIF topsanData.defined -%]
+
+  <h2>TOPSAN annotations</h2>
 
   <p>
     This is the <a class="ext" href="[% topsanData.href %]">TOPSAN annotation</a> for this PDB entry.
@@ -30,6 +32,7 @@ IF topsanError;
     <span class="inactive">This TOPSAN annotation has no text content.</span>
     [% END -%]
   </div>
+  
 [% END -%]
 [%#
 Copyright (c) 2007: Genome Research Ltd.
