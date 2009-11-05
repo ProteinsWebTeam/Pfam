@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.4 2009-06-09 15:10:30 jt6 Exp $
+# $Id: faq.tt,v 1.5 2009-11-05 14:12:47 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -29,46 +29,45 @@
 
     <h3 class="listTitle">Documentation</h3>
     <ul>
-      <li><a href="#seedandfull">What are "seed" and "full" alignments?</a></li>
-      <li><a href="#scores">What do the scores for hits to Rfam models mean?</a></li>
-      <li><a href="#secondarystructure">Where does your secondary structure annotation come from?</a></li>
-      <li><a href="#familydefine">How do you define an RNA family</a></li>
-      <li><a href="#validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></li>
-      <li><a href="#myseqmissing">Why is my favourite sequence not in the family?</a></li>
-      <li><a href="#cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></li>
+      <li><a class="link" rel="seedandfull">What are "seed" and "full" alignments?</a></li>
+      <li><a class="link" rel="scores">What do the scores for hits to Rfam models mean?</a></li>
+      <li><a class="link" rel="secondarystructure">Where does your secondary structure annotation come from?</a></li>
+      <li><a class="link" rel="familydefine">How do you define an RNA family</a></li>
+      <li><a class="link" rel="validatedseqs">How can I tell which are predicted and which are experimentally confirmed sequences?</a></li>
+      <li><a class="link" rel="myseqmissing">Why is my favourite sequence not in the family?</a></li>
+      <li><a class="link" rel="cminfo">Where can I find out more about RNA sequence analysis/covariance models/SCFGs?</a></li>
     </ul>
     
     <h3 class="listTitle">Searching</h3>
     <ul>
-      <li><a href="#familyinfo">How can I find information about a particular RNA family?</a></li>
-      <li><a href="#searchdnaseq">How can I search my DNA sequence for non-coding RNA genes?</a></li>
+      <li><a class="link" rel="familyinfo">How can I find information about a particular RNA family?</a></li>
+      <li><a class="link" rel="searchdnaseq">How can I search my DNA sequence for non-coding RNA genes?</a></li>
     </ul>
     
     <h3 class="listTitle">Downloading</h3>
     <ul>
-      <li><a href="#downloadalign">How can I download your alignments?</a></li>
-      <li><a href="#downloadfasta">How can I download a subset of sequences from a family?</a></li>
-      <li><a href="#downloadfastaspecies">How can I download all sequences from my favourite species?</a></li>
+      <li><a class="link" rel="downloadalign">How can I download your alignments?</a></li>
+      <li><a class="link" rel="downloadfasta">How can I download a subset of sequences from a family?</a></li>
+      <li><a class="link" rel="downloadfastaspecies">How can I download all sequences from my favourite species?</a></li>
     </ul>
      
     <h3 class="listTitle">Other</h3>
     <ul>    
-      <li><a href="#submitfamily">I would like to submit a new family to Rfam</a></li>
-      <li><a href="#editseed">How can I edit a seed alignment?</a></li>
+      <li><a class="link" rel="submitfamily">I would like to submit a new family to Rfam</a></li>
+      <li><a class="link" rel="editseed">How can I edit a seed alignment?</a></li>
     </ul>
 
 <!--not done yet :-) 
      
   why do the annotations from the genomes and the taxonomy search not match up?  
 
-    <li><a href="#seednotinfull">Why is my favourite SEED sequence is missing from the FULL alignment</a></li>
-    <li><a href="#"></a></li>
-    <li><a href="#consline"></a>What do the funny symbols in the SS_cons line mean?</li>
-    <li><a href="#localRfam"></a>Can I download Rfam and search my sequence database locally?</li>
+    <li><a class="link" rel="seednotinfull">Why is my favourite SEED sequence is missing from the FULL alignment</a></li>
+    <li><a class="link" rel="consline"></a>What do the funny symbols in the SS_cons line mean?</li>
+    <li><a class="link" rel="localRfam"></a>Can I download Rfam and search my sequence database locally?</li>
 
 rfamscan and infernal versions
 
-<li><a href="#fullnotinseed">Why is my favourite sequence in the FULL alignment but not in the SEED?</a></li>
+<li><a class="link" rel="fullnotinseed">Why is my favourite sequence in the FULL alignment but not in the SEED?</a></li>
 
 RNA sequences for a defined phylogenetic group as a multiple fasta file
 
@@ -105,7 +104,7 @@ why is the model truncated from published blah
       the "full" alignment.
     </p>
 
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="scores">What do the scores for hits to Rfam models mean?</a></h3>
     
@@ -135,7 +134,7 @@ why is the model truncated from published blah
       href="http://infernal.janelia.org/">Infernal user guide</a> for 
       more information.)
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="secondarystructure">Where does your secondary structure 
       annotation come from?</a></h3>
@@ -175,7 +174,7 @@ why is the model truncated from published blah
       same structure as shown on the Rfam SEED alignment. We usually
       indicate where the a structure has been manually edited.
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="familydefine">What is your definition of an RNA family?</a></h3>
 
@@ -205,7 +204,7 @@ why is the model truncated from published blah
       <span class="link" onclick="switchTab('helpContactUsBlock');">
         contact us</span> and we will try to clarify or resolve the problem.
     </p> 
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="validatedseqs">How can I tell which are predicted and which 
       are experimentally confirmed sequences?</a></h3>
@@ -226,7 +225,7 @@ why is the model truncated from published blah
       nucleotide database, occasionally this contains useful information 
       about function.
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="myseqmissing">Why is my favourite sequence not in the 
       family?</a></h3>
@@ -244,7 +243,7 @@ why is the model truncated from published blah
       relevant information and we will decide whether the sequence should 
       indeed be included and, if so, we will try to improve our model. 
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="cminfo">Where can I find out more about RNA sequence 
       analysis/covariance models/SCFGs?</a></h3>
@@ -262,7 +261,7 @@ why is the model truncated from published blah
       <span onclick="switchTab('helpReferencesBlock');" class="link">
         Citing Rfam</span> tab.
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <!--searching-->
 
@@ -289,7 +288,7 @@ why is the model truncated from published blah
       for each family.
     </p>
     
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="searchdnaseq">How can I search my DNA sequence for non-coding 
       RNA genes?</a></h3>
@@ -317,7 +316,7 @@ why is the model truncated from published blah
       <span class="link" onclick="switchTab('helpGenomeAnnotBlock');">
         run Rfam locally</span>.  
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <!--downloading-->
 
@@ -348,7 +347,7 @@ why is the model truncated from published blah
       flat-files from our <a class="ext"
       href="ftp://ftp.sanger.ac.uk/pub/databases/Rfam/CURRENT">ftp site</a>.
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="downloadfasta">How can I download a subset of sequences from 
       a family?</a></h3>
@@ -357,7 +356,7 @@ why is the model truncated from published blah
       Unfortunately, this has not been implemented yet. There are plans in 
       place to modify the underlying Rfam database to allow this. 
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="downloadfastaspecies">How can I download all Rfam sequences 
       for my favourite species?</a></h3>
@@ -380,7 +379,7 @@ why is the model truncated from published blah
       tree. However, the results are only returned on the family level, not
       the sequence level.
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <!--other-->
 
@@ -406,7 +405,7 @@ why is the model truncated from published blah
         href="http://www.landesbioscience.com/journals/rnabiology/">
         RNA Biology</a>.    
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="editseed">How can I edit a SEED alignment?</a></h3>
     
@@ -419,7 +418,7 @@ why is the model truncated from published blah
         contact us</span>, preferably supplying us with a new alignment, in 
       Stockholm format, and we will do our best to incorporate the improvements.
     </p>
-    <p><a href="#faqTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <hr />
 
@@ -561,7 +560,32 @@ why is the model truncated from published blah
   
     <p><a href="#glossaryTop">back to top of glossary</a></p>
 
-    <p><a href="#faqTop">back to top of page</a></p>
+    <p><a class="link" rel="faqTop">back to top of page</a></p>
+
+    // [%# the links to the individual questions used to be real links, using 
+         # anchors in the page to move around. However, that seems to interfere
+         # with the new tab manager, so we have to work around it. This snippet
+         # of JS adds a listener to each internal link and uses the "rel"
+         # attribute to get the name of the element to scroll to %]
+    <script type="text/javascript">
+      // <![CDATA[
+
+      document.observe( "dom:loaded", function() {
+    
+        $$("a[rel]").each( function(el){
+    
+          el.observe( "click", function(e){
+            var el = e.findElement();
+            var target = el.getAttribute("rel");
+            $$("a[name='"+target+"']").first().scrollTo();
+          } );
+          
+        } );
+    
+      } );
+      
+      // ]]>
+    </script> 
 
   </div>
 </div>
