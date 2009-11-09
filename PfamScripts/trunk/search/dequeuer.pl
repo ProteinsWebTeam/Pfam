@@ -12,7 +12,8 @@ use Storable qw( freeze nfreeze );
 use Data::Dump qw( dump );
 
 my $DEBUG = defined($ENV{DEBUG}) ? $ENV{DEBUG} : 1;
-$ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
+#$ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/perl/pfam_scan/pfam_backend.conf';
+$ENV{PFAMOFFLINE_CONFIG} ||= $ENV{HOME} . '/pfam_backend.conf';
 
 my $pq = Bio::Pfam::WebServices::PfamQueue->new( 'h3' );
 $pq->daemonise unless $DEBUG;
@@ -69,7 +70,7 @@ JOB: while ( 1 ) {
     $DEBUG && print STDERR "dequeuer: running a search...\n";
     $ps->search( $input );
     $DEBUG && print STDERR "dequeuer: done\n";
-    $results = nfreeze( $ps->results );
+    $results = nfreeze( $ps->results( $input->{-e_dom} ) );
   };
   if ( $@ ) {
     $DEBUG && print STDERR "ERROR: search failed: $@\n";
