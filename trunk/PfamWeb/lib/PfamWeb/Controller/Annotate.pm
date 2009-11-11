@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.20 2009-11-02 13:07:21 jt6 Exp $
+# $Id: Annotate.pm,v 1.21 2009-11-11 15:06:16 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.20 2009-11-02 13:07:21 jt6 Exp $
+$Id: Annotate.pm,v 1.21 2009-11-11 15:06:16 jt6 Exp $
 
 =cut
 
@@ -32,13 +32,13 @@ use Digest::MD5 qw( md5_hex );
 
 # constants to encode the result of checking the form submission for tampering
 # and timeouts, etc.
-use constant SUBMISSION_VALID        => 0;
-use constant SUBMISSION_AJAX_FAILED  => 1;
-use constant SUBMISSION_NO_COOKIE    => 2;
-use constant SUBMISSION_MESSED_WITH  => 3;
-use constant SUBMISSION_TIMED_OUT    => 4;
-use constant SUBMISSION_INVALID      => 5;
-use constant SUBMISSION_EMAIL_FAILED => 6;
+use constant { SUBMISSION_VALID        => 0,
+               SUBMISSION_AJAX_FAILED  => 1,
+               SUBMISSION_NO_COOKIE    => 2,
+               SUBMISSION_MESSED_WITH  => 3,
+               SUBMISSION_TIMED_OUT    => 4,
+               SUBMISSION_INVALID      => 5,
+               SUBMISSION_EMAIL_FAILED => 6 };
 
 # set a custom container for the HTML::Widget form, to make it a wee bit 
 # easier to style
@@ -57,15 +57,21 @@ Checks input parameters and populates the stash accordingly.
 =cut
 
 sub begin : Private {
-  my ( $this, $c ) = @_;
+  my ( $this, $c, $entry_arg ) = @_;
+
+  # get a handle on the entry and detaint it
+  my $tainted_entry = $c->req->param('acc')   ||
+                      $c->req->param('id')    ||
+                      $c->req->param('entry') ||
+                      $entry_arg              ||
+                      '';
 
   # build the email subject line based on the accession (if given)
 
-  if ( $c->req->param('acc') and 
-       $c->req->param('acc') =~ m/^(P([FB])\d{5,6})$/i ) {
+  if ( $tainted_entry =~ m/^(P([FB])\d{5,6})$/i ) {
     $c->log->debug( "Annotate::begin: found a Pfam entry ($1)" );
 
-    if ( $2 eq "F" ) {
+    if ( $2 eq 'F' ) {
       $c->log->debug( 'Annotate::begin: got a pfam A entry' );
 
       my $pfam = $c->model('PfamDB::Pfama')->find( { pfama_acc => $1 } );
@@ -88,8 +94,7 @@ sub begin : Private {
     }
 
   } 
-  elsif ( $c->req->param('acc') and 
-          $c->req->param('acc') =~ m/^(CL\d{4})$/i ) {
+  elsif ( $tainted_entry =~ m/^(CL\d{4})$/i ) {
     $c->log->debug( 'Annotate::begin: found a clan entry' );
 
     my $clan = $c->model('PfamDB::Clans')->find( { clan_acc => $1 } )
@@ -128,7 +133,7 @@ sub annotate : Path {
   my ( $this, $c ) = @_;
 
   # create the widget
-  my $w = $c->forward( 'buildForm' );
+  my $w = $c->forward( 'build_form' );
 
   # stash the widget, tell the template to build the form using that widget,
   # set the template and we're done
@@ -201,7 +206,7 @@ sub submit : Local {
   my ( $this, $c ) = @_;
 
   # create the widget again
-  my $w = $c->forward( 'buildForm' );
+  my $w = $c->forward( 'build_form' );
 
   # process the form input through the widget
   my $r = $w->process( $c->req );
@@ -240,7 +245,7 @@ sub submit : Local {
 
       # the input parameters validated, so send an email
       my $mailErrors = $c->forward( 'sendMail' );
-
+      
       # see if something went wrong
       if ( $mailErrors ) {
         $c->stash->{widget} = $r;
@@ -277,16 +282,19 @@ being stashed, so that it can be used other than as a META refreshUri value.
 
 sub build_refresh_uri : Private {
   my ( $this, $c ) = @_;
-  
+
   # decide where we should redirect the user
   my $target;
-  if( $c->stash->{type} eq 'A' ) {
+  if ( $c->stash->{type} eq 'A' ) {
     $target = '/family';
-  } elsif( $c->stash->{type} eq 'B' ) {
+  }
+  elsif( $c->stash->{type} eq 'B' ) {
     $target = '/pfamb';
-  } elsif( $c->stash->{type} eq 'C' ) {
+  }
+  elsif( $c->stash->{type} eq 'C' ) {
     $target = '/clan';
-  } else {
+  }
+  else {
     $target = '/';
   }
   
@@ -451,13 +459,13 @@ sub sendMail : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 buildForm : Private
+=head2 build_form : Private
 
 Builds an HTML::Widget form for the annotation page.
 
 =cut
 
-sub buildForm : Private {
+sub build_form : Private {
   my ( $this, $c ) = @_;
 
   # get a widget
@@ -478,6 +486,10 @@ sub buildForm : Private {
   # hidden parameter to store the timestamp
   $w->element( 'Hidden', 'ts' )
     ->value( 'empty' );
+
+  # hidden parameter for the accession
+  $w->element( 'Hidden', 'acc' )
+    ->value( $c->stash->{acc} );
 
   # user's name
   $w->element( 'Textfield', 'user' )
