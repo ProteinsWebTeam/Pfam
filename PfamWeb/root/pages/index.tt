@@ -5,7 +5,7 @@
 # 
 # build the main Pfam home page.
 #
-# $Id: index.tt,v 1.60 2009-10-22 13:12:05 jt6 Exp $
+# $Id: index.tt,v 1.61 2009-11-12 15:46:24 jt6 Exp $
 
 META title = "Home page";
 META fullPage = 1;
@@ -344,22 +344,6 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     
   <div class="cleaner"><!-- empty --></div>
 
-  <div id="announcements" class="announcements" style="display: none">
-    <hr />
-    <span onclick="hideThis('announcements');" 
-          class="closer"
-          style="float: right; cursor: pointer">Hide this</span>
-    <h2>Announcements</h2>
-  </div>
- 
-  <div id="website_changes" class="announcements" style="display: none">
-    <hr />
-    <span onclick="hideThis('website_changes');" 
-          class="closer"
-          style="float: right; cursor: pointer">Hide this</span>
-    <h2>Latest website changes</h2>
-  </div>
-  
   <div id="posts" class="announcements" style="display: none">
     <hr />
     <span onclick="hideThis('posts');" 
@@ -426,6 +410,12 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   // "hide this" button
   var hideThis = function( id ) {
     $(id).hide();
+
+    // tell urchin that we've hidden the blog
+    try {
+      urchinTracker( "/index/hidBlog" );
+    } catch( e ) {}
+
     var d = new Date();
     var t = Math.round( d.getTime() / 1000 );
     createCookie( 'hide_' + id, t, '365' ); 
@@ -436,6 +426,13 @@ requirements.cssIeAll.push( "index_all_ie.css" );
     ['announcements','website_changes','posts'].each( function( type ) {
       var cookieValue = readCookie( "hide_" + type );
       if ( cookieValue != null ) {
+
+        // tell urchin that we've shown the blog
+        try {
+          urchinTracker( "/index/shownBlog" );
+        } catch( e ) {}
+
+
         eraseCookie( "hide_" + type );
         window.location = "[% c.uri_for('/') %]";
       }
@@ -443,7 +440,7 @@ requirements.cssIeAll.push( "index_all_ie.css" );
   } );
   
   // load the latest blog posts
-  Event.observe( window, 'load', function() {
+  document.observe( "dom:loaded", function() {
     var r = new Ajax.Request( "[% c.uri_for( '/announcements' ) %]",
       { 
         parameters: { type: "posts" },
