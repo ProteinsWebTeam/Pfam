@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.10 2009-10-07 14:32:42 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.11 2009-11-12 15:48:02 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -155,13 +155,321 @@ highlight.mouseoutHandler = function( e ) {
   // reset the array
   highlightedCells.clear();
 };
+
+//------------------------------------------------------------
+
+// a prototype-based rewrite of the cbb function by Roger Johansson, 
+// http://www.456bereastreet.com/
+
+var CurvedBorders = Class.create( {
+
+  initialize: function() {
+
+    // get the elements to fix
+    $$(".cbb").each( function( orig ) {
+
+      // create a new wrapper element and give it the same class names as the 
+      // original element, except for "cbb", which we switch for "cb"
+      var outer = new Element( "div" );
+
+      orig.classNames().each( function( cn ) {
+        outer.addClassName( cn );
+      } );
+
+      outer.removeClassName( "cbb" )
+           .addClassName( "cb" );
+
+      // move the ID of the original element onto the new outer element
+      // and give it a new class name to mark it as an inner element
+      outer.id = orig.identify();       
+      orig.removeAttribute("id");
+
+      orig.removeClassName( "cbb" )
+          .addClassName( "i3" );
+
+      // switch the original element for the new outer element
+      orig.parentNode.replaceChild( outer, orig );
+
+      // two more nested elements...
+      var i1 = new Element( "div", { "class": "i1" } );
+      var i2 = new Element( "div", { "class": "i2" } );
+
+      // string the inner elements together 
+      outer.appendChild( i1 );
+      i1.appendChild( i2 );
+      i2.appendChild( orig );
+
+      // add a top and bottom element
+      this.insertTop( outer );
+      this.insertBottom( outer );
+
+    }.bind( this ) );
+  },
   
+  //----------------------------------------
+
+  insertTop: function( obj ) {
+    var outer = new Element( "div", { "class": "bt" } );
+    outer.appendChild( new Element( "div" ) );
+    obj.insertBefore( outer, obj.firstChild );
+  },
+
+  //----------------------------------------
+
+  insertBottom: function( obj ) {
+    var outer = new Element( "div", { "class": "bb" } );
+    outer.appendChild( new Element( "div" ) );
+    obj.appendChild( outer );
+  }
+
+} );
+
+//------------------------------------------------------------
+
+// a class that sets up the various components and behaviours of the 
+// tabbed pages
+
+var TabPage = Class.create( {
+  
+  initialize: function() {
+  
+    // this is all lifted directly from the YUI example page:
+    //   http://developer.yahoo.com/yui/examples/history/history-tabview.html
+
+    // see if we got here via a bookmark
+    var bookmarkedTabViewState = YAHOO.util.History.getBookmarkedState( "tabview" ),
+        initialTabViewState = bookmarkedTabViewState || "tab0";
+    
+    // register the "tabview" module with the history manager
+    YAHOO.util.History.register( 
+      "tabview", 
+      initialTabViewState, 
+      function (state) {
+        this._tv.set( "activeIndex", state.substr(3) );
+      }.bind( this )
+    );
+
+    // when the history manager is ready, initialise the TabView widget with 
+    // whatever state we get from the history manager. The state is stored as 
+    // "tabN", where "N" is the index number of the tab
+    YAHOO.util.History.onReady( 
+      function () {
+        this._initTabView();
+        var currentState = YAHOO.util.History.getCurrentState("tabview");
+        this._tv.set ("activeIndex", currentState.substr(3) );
+      }.bind( this )
+    );
+
+    // finally, initialise the history manager, which will, in turn, initialise 
+    // the TabView widget. If initialising the history manager fails, we fall 
+    // back on the function that initialises just the TabView, so that at least 
+    // the page is usable
+    try {
+      YAHOO.util.History.initialize( "yui-history-field", "yui-history-iframe" );
+    } catch (e) {
+      this._initTabView();
+    }
+    
+  },
+
+  //----------------------------------------
+
+  // set up the legacy tab switching mechanism. We need to continue support 
+  // bookmarks that used the block names
+  
+  switchTab: function( id ) {
+
+    // get a list of all list items in the sidebar, i.e. the tab selectors
+    var tabs =  $("sidebar")
+                  .descendants()
+                  .findAll( function(el) { 
+                    return el.nodeName == "LI";
+                  } );
+
+    if ( $(id) ) {
+
+      // the argument was an id, so switch to that block
+      var selector = id+"Selector";
+      var tabIndex = tabs.indexOf( $(selector) );
+
+      try {
+        this._tv.selectTab( tabIndex );
+      } catch ( e ) { }
+
+    } else {
+
+      // the argument doesn't appear to be a block; assume it's "next" or "prev".
+      // This is a bit more complicated, because we need to take into account
+      // any disabled tabs in the list...
+      var selectedLi = $$("#sidebar li.selected").first();
+      var selectedLiIndex = tabs.indexOf( selectedLi );
+
+      // walk up/down the tabs list
+      var limit = ( id == "next" ) ? tabs.size() - selectedLiIndex
+                                   : selectedLiIndex;
+      var newTabSelector;
+      for ( var i = 0; i < limit; i++ ) {
+        if ( id == "next" ) {
+          newTabSelector = selectedLi.next("li", i);
+        } else if ( id == "prev" ) {
+          newTabSelector = selectedLi.previous("li", i);
+        }
+        if ( $(newTabSelector) && 
+             ! $(newTabSelector).hasClassName("disabled") ) {
+          break;
+        }
+      }
+
+      if ( newTabSelector == undefined ) {
+        return;
+      }
+
+      var tabIndex = tabs.indexOf( $(newTabSelector) );
+      try {
+        this._tv.selectTab( tabIndex );
+      } catch ( e ) { }
+
+    }
+      
+  },
+
+  //----------------------------------------
+
+  // a function to initialise the TabView widget
+  
+  _initTabView: function() {
+    this._tv = new YAHOO.widget.TabView( "tabset" );
+    
+    this._tv.addListener( "activeTabChange",
+                           this._handleTabChange, null, this );
+    
+    this._pageSetup();
+  },
+
+  //----------------------------------------
+
+  // a handler function that is called whenever the TabView widget changes 
+  // the tab. This is used to register the change with the history manager
+  
+  _handleTabChange: function( e ) {
+    
+    // avoid the second event that seems to 
+    if ( e.newValue == e.prevValue ) {
+      return;
+    }
+    
+    var newState = "tab" + this._tv.getTabIndex( e.newValue ),
+        currentState;
+
+    try {
+      currentState = YAHOO.util.History.getCurrentState("tabview");
+
+      // only change tabs if we're not currently showing the requested tab,
+      // otherwise we end up in an infinite loop
+      if ( newState != currentState ) {
+        YAHOO.util.History.navigate( "tabview", newState );
+      }
+    } catch (e) {
+      // if the history manager doesn't work, change the tab anyway
+      this._tv.set( "activeIndex", newState.substr(3) );
+    }
+
+    // get an ID for the tab that was just selected and register the change
+    //with the urchin tracker
+    var tabId = $$("#sidebar ul li")
+                  .toArray()[newState.substr(3)]
+                  .identify()
+                  .replace( "Selector", "" );
+    try {
+      urchinTracker( "/tab/" + tabId );
+    } catch( ex ) {
+      // don't care
+    }
+  },
+
+  //----------------------------------------
+
+  // set up the final few bits of the page behaviour
+  _pageSetup: function() {
+    
+    if ( $(showTab) ) {
+      this.switchTab( showTab );
+    } else if ( $$(".error").size() > 0 ) {
+      // see if there's an error message in the page. If there is, we walk back
+      // up the DOM tree from that error message node until we find the "block"
+      // that encloses it, grab the ID for that block and use the tab switcher
+      // to select it...
+      this.switchTab( $$(".error")
+                   .first()
+                   .up("div.block")
+                   .identify() );
+    }
+
+    // keep track of post-loading calls
+     
+    // register listeners for the start and end of each ajax call
+    Ajax.Responders.register( {
+      onCreate: function() {
+        $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
+        $('loadingComponents').show();
+      },
+      onComplete: function() {
+        $('loadingComponentsCount').update( '&nbsp;(' + Ajax.activeRequestCount + ' remaining)' );
+        if( Ajax.activeRequestCount < 1 ) {
+          $('loadingComponents').hide();
+        }
+      }
+    } );
+
+    document.observe( "keypress", function(e){
+
+      // don't capture events that originate on an input or textarea -%]
+      var targetNodeType = e.findElement().nodeName;
+      if ( targetNodeType == 'INPUT' ||
+           targetNodeType == 'TEXTAREA' ) {
+        return;
+      }
+
+      var code;
+      if ( e.keyCode ) {
+        code = e.keyCode;
+      } else if ( e.which ) {
+        code = e.which;
+      }
+
+      switch (code) {
+        case  75:            // "K"
+        case 107:            // "k"
+        case  80:            // "P"
+        case 112:            // "p"
+        /* case Event.KEY_UP:   // up arrow */
+          this.switchTab("prev");
+          break;
+        case  74:            // "J"
+        case 106:            // "j"
+        case  78:            // "N"
+        case 110:            // "n"
+        /* case Event.KEY_DOWN: // down arrow */
+          this.switchTab("next");
+          break;
+      }
+    }.bind( this ) );
+
+  }
+
+} );
+
 //------------------------------------------------------------
 //- functions ------------------------------------------------
 //------------------------------------------------------------
 
 // switch between panels on the index page
 function switchPanel( oTrigger, sId ) {
+  
+  // tell urchin about the switch
+  try {
+    urchinTracker( "/index/switchPanel/" + sId );
+  } catch( e ) {}
   
   // hide all of the panels
   $$("div.panel").each(
@@ -565,7 +873,18 @@ function jump(form) {
       if( spinner !== undefined ) {
         spinner.update("Loading entry...");
       }
-      window.location = oResponse.responseText;
+      
+      // strip off the meaningful bit of the URI and tell urchin about it
+      var uri        = oResponse.responseText;
+      var matches    = uri.match( /.*?(\/\w+\/\w+)$/ );
+      var jumpTarget = matches[1];
+      if ( jumpTarget !== "undefined" ) {
+        try {
+          urchinTracker( "/jump" + jumpTarget );
+        } catch( e ) {}
+      }
+      
+      window.location = uri;
     },
 
     // if it failed, we show the error message
@@ -580,9 +899,12 @@ function jump(form) {
 
       // we want to hide the error message if the user starts to change the
       // contents of the entry field. Add an event listener to do that
-      Event.observe( oForm.findFirstElement(),
-                     "change", 
-                     function() { errorDiv.hide(); } );
+      oForm
+        .findFirstElement()
+        .observe(
+          "change", 
+          function() { errorDiv.hide(); }
+        );
 
       // and we are done with the spinner now
       if( spinner !== undefined ) {
@@ -606,44 +928,18 @@ var seedsHighlighted = true;
 
 function toggleHighlightSeed() {
   if( seedsHighlighted ) {
-    $("treeDiv").select(".highlightSeed").each(
-      function( a ) {
-        a.removeClassName( "highlightSeed" );
-      }
-    );
+    $("treeDiv")
+      .select(".highlightSeed")
+      .invoke( "removeClassName", "highlightSeed" );
     $("seedToggle").update( "Show" );
   } else {
-    $("treeDiv").select(".seedNode").each(
-      function( d ) {
-        if( nodeMapping[d.id] ) {
-          $(nodeMapping[d.id].labelElId).addClassName( "highlightSeed" );
-        }
-      }
-    );
+    $("treeDiv")
+      .select(".seedNode")
+      .invoke( "addClassName", "highlightSeed" );
     $("seedToggle").update( "Hide" );
   }
   seedsHighlighted = !seedsHighlighted;
 }
-
-// the $$() function in prototype is variously described as wonderful
-// or immensely slow, so we'll ditch it in favour of walking the DOM
-// ourselves. This function is just here for historical reasons...
-// jt6 20061016 WTSI
-//
-// function toggleHighlightSeedSlowly() {
-//   if( seedsHighlighted ) {
-//   $$(".highlightSeed").each( function( summary ) {
-//     Element.removeClassName( summary, "highlightSeed" );
-//     } );
-//   } else {
-//   $$(".seedNode").each( function( summary ) {
-//     if( nodeMapping[summary.id] ) {
-//       Element.addClassName( $(nodeMapping[summary.id].labelElId), "highlightSeed" );
-//     }
-//     } );
-//   }
-//   seedsHighlighted = !seedsHighlighted;
-// }
 
 //------------------------------------------------------------
 // toggle showing/hiding of the node summaries
@@ -710,6 +1006,16 @@ function expandTo( finalDepth, node ) {
 }
 
 //------------------------------------------------------------
+// unhighlight all highlighted nodes
+
+function unhighlightAll() {
+  var checkedNodes = tree.getNodesByProperty( 'highlightState', 1 )
+  if( checkedNodes !== "undefined" && checkedNodes.size() ) {
+    checkedNodes.invoke('unhighlight');
+  }
+}
+
+//------------------------------------------------------------
 // collect the sequences that are specified by the checked leaf nodes
 // in the species trees. Submits the form in the page which will act on those
 // accessions. The argument should be either "G" or "A", for graphical or
@@ -717,29 +1023,26 @@ function expandTo( finalDepth, node ) {
 
 function collectSequences( sStyle, sAcc ) {
 
-  // get all leaf nodes
-  var leaves = $("treeDiv").select(".leafNode");
-
-  // and collect IDs from the checked ones
-  var bail = true;
-  var seqAccs = leaves.inject( "", function( accumulator, n ) {
-      var taskNode = nodeMapping[n.id];
-      if( taskNode.checked ) {
-        bail = false;
-        return accumulator + nodeSequences[n.id] + " ";
-      } else {
-        return accumulator;
-      }
-    }
-  );
-
+  // retrieve all checked nodes in the tree
+  var checkedNodes = tree.getNodesByProperty( "highlightState", 1 );  
+  
   // make sure we have at least one checked node
-  if( bail ) {
+  if( ! checkedNodes.size() ) {
     $("stError")
       .update( "Please select some nodes" )
       .show();
     return;
   }
+
+  var seqAccs = checkedNodes.inject( "", function( accumulator, n ) {
+    if ( typeof n.data == "string" &&
+         nodeSequences[n.data] &&
+         nodeSequences[n.data] !== "undefined" ) {
+      return accumulator + nodeSequences[n.data] + " ";
+    } else { 
+      return accumulator;
+    }
+  } );
 
   // TODO we could optimise this a bit, by storing the list of selected 
   // accessions at this point and then checking the new list against the old
