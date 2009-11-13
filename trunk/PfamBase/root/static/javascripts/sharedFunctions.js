@@ -4,7 +4,7 @@
 //
 // javascript glue for the site. Requires the prototype library.
 //
-// $Id: sharedFunctions.js,v 1.11 2009-11-12 15:48:02 jt6 Exp $
+// $Id: sharedFunctions.js,v 1.12 2009-11-13 15:57:26 pg6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -877,13 +877,14 @@ function jump(form) {
       // strip off the meaningful bit of the URI and tell urchin about it
       var uri        = oResponse.responseText;
       var matches    = uri.match( /.*?(\/\w+\/\w+)$/ );
-      var jumpTarget = matches[1];
-      if ( jumpTarget !== "undefined" ) {
-        try {
-          urchinTracker( "/jump" + jumpTarget );
-        } catch( e ) {}
+      if ( matches ) {
+        var jumpTarget = matches[1];
+        if ( jumpTarget !== "undefined") {
+          try {
+            urchinTracker("/jump" + jumpTarget);
+          } catch (e) {}
+        }
       }
-      
       window.location = uri;
     },
 
