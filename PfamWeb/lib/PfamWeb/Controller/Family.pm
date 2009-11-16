@@ -2,7 +2,7 @@
 # Family.pm
 # jt6 20060411 WTSI
 #
-# $Id: Family.pm,v 1.52 2009-10-27 14:46:03 jt6 Exp $
+# $Id: Family.pm,v 1.53 2009-11-16 16:05:30 jt6 Exp $
 
 =head1 NAME
 
@@ -22,7 +22,7 @@ load a Pfam object from the model.
 
 Generates a B<tabbed page>.
 
-$Id: Family.pm,v 1.52 2009-10-27 14:46:03 jt6 Exp $
+$Id: Family.pm,v 1.53 2009-11-16 16:05:30 jt6 Exp $
 
 =cut
 
@@ -419,7 +419,7 @@ sub get_db_xrefs : Private {
                              } );
   
   foreach my $ref ( @ataSCOOP ) {
-    if ( $ref->get_column('l_pfama_acc') != $ref->get_column('r_pfama_acc') ) {
+    if ( $ref->get_column('l_pfama_acc') ne $ref->get_column('r_pfama_acc') ) {
       push @{ $xRefs->{scoop} }, $ref;
     }
   }
@@ -436,29 +436,54 @@ sub get_db_xrefs : Private {
   }
 
   # PfamA to PfamA links based on PRC
-  my @atoaPRC = $c->model('PfamDB::Pfama2pfamaPrcResults')
-                  ->search( { 'pfamA1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
-                            { join               => [ qw( pfamA1 pfamA2 ) ],
-                              select             => [ qw( pfamA1.pfama_id 
-                                                          pfamA1.pfama_acc
-                                                          pfamA2.pfama_id 
-                                                          pfamA2.pfama_acc 
-                                                          evalue ) ],
-                              as                 => [ qw( l_pfama_id 
-                                                          l_pfama_acc 
-                                                          r_pfama_id 
-                                                          r_pfama_acc 
-                                                          evalue ) ],
-                              order_by           => 'pfamA2.auto_pfama ASC'
-                            } );
-
-  $xRefs->{atoaPRC} = [];
-  foreach ( @atoaPRC ) {
+  my @atoaHH = $c->model('PfamDB::Pfama2pfamaHhsearchResults')
+                 ->search( { 'auto_pfama1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
+                           { join     => [ qw( auto_pfama1 auto_pfama2 ) ],
+                             select   => [ qw( auto_pfama1.pfama_id 
+                                               auto_pfama1.pfama_acc
+                                               auto_pfama2.pfama_id 
+                                               auto_pfama2.pfama_acc 
+                                               evalue ) ],
+                             as       => [ qw( l_pfama_id 
+                                               l_pfama_acc 
+                                               r_pfama_id 
+                                               r_pfama_acc 
+                                               evalue ) ],
+                             order_by => 'auto_pfama2.auto_pfama ASC'
+                           } );
+                           
+  $xRefs->{atoaHH} = [];
+  foreach ( @atoaHH ) {
     if ( $_->get_column( 'evalue' ) <= 0.001 and
          $_->get_column( 'l_pfama_id' ) ne $_->get_column( 'r_pfama_id' ) ) {
-      push @{ $xRefs->{atoaPRC} }, $_;
+      push @{ $xRefs->{atoaHH} }, $_;
     } 
   }
+
+#  # PfamA to PfamA links based on PRC
+#  my @atoaPRC = $c->model('PfamDB::Pfama2pfamaPrcResults')
+#                  ->search( { 'pfamA1.pfama_acc' => $c->stash->{pfam}->pfama_acc },
+#                            { join               => [ qw( pfamA1 pfamA2 ) ],
+#                              select             => [ qw( pfamA1.pfama_id 
+#                                                          pfamA1.pfama_acc
+#                                                          pfamA2.pfama_id 
+#                                                          pfamA2.pfama_acc 
+#                                                          evalue ) ],
+#                              as                 => [ qw( l_pfama_id 
+#                                                          l_pfama_acc 
+#                                                          r_pfama_id 
+#                                                          r_pfama_acc 
+#                                                          evalue ) ],
+#                              order_by           => 'pfamA2.auto_pfama ASC'
+#                            } );
+#
+#  $xRefs->{atoaPRC} = [];
+#  foreach ( @atoaPRC ) {
+#    if ( $_->get_column( 'evalue' ) <= 0.001 and
+#         $_->get_column( 'l_pfama_id' ) ne $_->get_column( 'r_pfama_id' ) ) {
+#      push @{ $xRefs->{atoaPRC} }, $_;
+#    } 
+#  }
 
   # PfamB to PfamA links based on PRC
   my @atobPRC = $c->model('PfamDB::Pfamb2pfamaPrcResults')
