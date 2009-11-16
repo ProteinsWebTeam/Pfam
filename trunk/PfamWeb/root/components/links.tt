@@ -4,7 +4,7 @@
 # 
 # a block to format links for various databases
 #
-# $Id: links.tt,v 1.29 2009-10-07 13:25:13 jt6 Exp $
+# $Id: links.tt,v 1.30 2009-11-16 16:05:42 jt6 Exp $
 
 USE String;
 
@@ -16,6 +16,7 @@ USE String;
 # external links tables
 labels = {
     atoaPRC    = "Similarity to PfamA using PRC"
+    atoaHH     = "Similarity to PfamA using HHSearch"
     atobBOTH   = "Similarity to PfamB PRODOM &amp; PRC"
     atobPRC    = "Similarity to PfamB PRC"
     atobPRODOM = "Similarity to PfamB PRODOM"
@@ -50,6 +51,7 @@ labels = {
 # the respective tables
 internal = [
     "scoop",
+    "atoaHH",
     "atoaPRC",
     "atobBOTH",
     "atobPRC",   
@@ -162,11 +164,11 @@ BLOCK buildLink;
     [%- CASE "PANDIT" -%]
 <a class="ext" href="http://www.ebi.ac.uk/goldman-srv/pandit/pandit.cgi?action=browse&amp;fam=[% id %]">[% id %]</a>
     [%- CASE "pdb" -%]
-<a href="[% c.uri_for( "/structure", id=id ) %]">[% id %]</a>
+<a href="[% c.uri_for( "/structure", id ) %]">[% id %]</a>
     [%- CASE [ "PFAMA", "Pfam" ] -%]
-<a href="[% c.uri_for( "/family", entry=id ) %]">[% id %]</a>
+<a href="[% c.uri_for( "/family", id ) %]">[% id %]</a>
     [%- CASE "PFAMB" -%]
-<a href="[% c.uri_for( "/pfamb", acc=id ) %]">[% id %]</a>
+<a href="[% c.uri_for( "/pfamb", id ) %]">[% id %]</a>
     [%- CASE "PRINTS" -%]
 <a class="ext" href="http://umber.sbs.man.ac.uk/cgi-bin/dbbrowser/sprint/searchprintss.cgi?display_opts=Prints&amp;category=None&amp;queryform=false&amp;prints_accn=[% id %]">[% id %]</a>
     [%- CASE "PRODOM" -%]
@@ -228,11 +230,18 @@ BLOCK internalLinks;
                                         id=ref -%]
                 </span>[% 
               END;
+            CASE "atoaHH";
+              FOREACH ref IN xrefs.$db -%]
+                <span class="entry">
+                  [%- PROCESS buildLink type="PFAMA" 
+                                        id=ref.get_column("r_pfama_id") -%]
+                </span>[%
+              END;
             CASE "atoaPRC";
               FOREACH ref IN xrefs.$db -%]
                 <span class="entry">
                   [%- PROCESS buildLink type="PFAMA" 
-                                        id=ref.get_column("r_pfamA_id") -%]
+                                        id=ref.get_column("r_pfama_id") -%]
                 </span>[%
               END;
             CASE "atobPRC";
