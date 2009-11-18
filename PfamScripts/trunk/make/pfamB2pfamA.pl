@@ -8,7 +8,7 @@ use Log::Log4perl qw(:easy);
 use Bio::Pfam::PfamLiveDBManager;
 use Bio::Pfam::Config;
 
-#A script to build pfamA families from pfamB families.  Ti
+#A script to build pfamA families from pfamB families.
 
 
 #Start up the logger
@@ -241,7 +241,7 @@ sub tidy_seed {
 
     local $/ = "\n";
 
-    system("create_alignment.pl -fasta $oldseed -mu > aln.$$") and $logger->logdie("Couldn't run create_alignment.pl on $oldseed $!");
+    system("create_alignment.pl -fasta $oldseed -m > aln.$$") and $logger->logdie("Couldn't run create_alignment.pl on $oldseed $!");
 
     open(ALN, "aln.$$") or die "Couldn't open aln.$$ $!";
     my $aln = new Bio::Pfam::AlignPfam;
