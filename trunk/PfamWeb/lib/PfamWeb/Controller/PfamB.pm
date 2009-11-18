@@ -4,7 +4,7 @@
 #
 # Controller to build a PfamB  page.
 #
-# $Id: PfamB.pm,v 1.20 2009-10-07 10:25:28 jt6 Exp $
+# $Id: PfamB.pm,v 1.21 2009-11-18 14:39:29 jt6 Exp $
 
 =head1 NAME
 
@@ -20,12 +20,14 @@ A C<Controller> to handle pages for Pfam-B entries. This is heavily reliant
 on the Family controller, which is responsible for deciding whether the input
 parameters on the URL are pointing to a Pfam-B accession or ID.
 
-$Id: PfamB.pm,v 1.20 2009-10-07 10:25:28 jt6 Exp $
+$Id: PfamB.pm,v 1.21 2009-11-18 14:39:29 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
+
+use Data::Dump qw( dump );
 
 use base 'PfamWeb::Controller::Family';
 
@@ -140,8 +142,8 @@ sub get_summary_data : Private {
   my %seenArch;
   foreach my $arch ( @archAndSpecies ) {
     if( defined $arch->auto_architecture ) {
-      $numArchs++ unless $seenArch{$arch->auto_architecture};
-      $seenArch{$arch->auto_architecture}++;
+      $numArchs++ unless $seenArch{$arch->auto_architecture->auto_architecture};
+      $seenArch{$arch->auto_architecture->auto_architecture}++;
     } else {
       $numArchs++ unless $seenArch{nopfama};
       $seenArch{nopfama}++;
