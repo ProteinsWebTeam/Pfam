@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.7 2009-10-28 14:03:07 jt6 Exp $
+# $Id: rest.tt,v 1.8 2009-11-19 11:20:16 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -680,18 +680,72 @@ ITFQNGTIRQVNGRIEESR</pre>
     <h4>Wait for the search to complete</h4>
 
     <p>
-      Although you can check for results immediately, if you poll too soon you 
-      will simply receive an empty XML document. To avoid unnecessary hits on 
-      the server, the XML from the initial request includes a value for 
-      <code>&lt;estimated_time&gt;</code>. This is an estimate of the time, in 
-      seconds, that your search is likely to take.
+      Although you can check for results immediately, if you poll before your
+      job has completed, you won't receive an XML document. Instead, the HTTP
+      response to your request will have its status set appropriately and the
+      body of the response will contain only string giving the status. You 
+      should ideally check the HTTP status of the response, rather than relying
+      on the body of the response.
     </p>
     <p>
-      When running the searches on the command line, as we are here, you can 
-      simply wait for that length of time before retrieving results. If you are 
-      using a script to run searches, please add a delay here.  
+      These are the possible status codes for the response:
     </p>
-
+    <table class="details" summary="Search response status codes">
+      <thead>
+        <tr>
+          <th>HTTP status<br />code</th>
+          <th>Status<br />description</th>
+          <th>Response<br />body</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="even">
+          <td>202</td>
+          <td>Accepted</td>
+          <td>PEND / RUN</td>
+          <td class="left">The job has been accepted by the search system and is 
+            either pending (waiting to be started) or running. After a short 
+            delay, your script should check for results again</td>
+        </tr>
+        <tr class="odd">
+          <td>502</td>
+          <td>Bad gateway</td>
+          <td>FAIL</td>
+          <td class="left">There was a problem scheduling or running the job. 
+            The job has failed and will not produce results. There is no need
+            to check the status again</td>
+        </tr>
+        <tr class="even">
+          <td>503</td>
+          <td>Service unavailable</td>
+          <td>HOLD</td>
+          <td class="left">Your job was accepted but is on hold. This status 
+            will not be assigned by the search system, but by an administrator. 
+            There is probably a problem with the job and you should contact the 
+            help desk for assistance with it</td>
+        </tr>
+        <tr class="odd">
+          <td>410</td>
+          <td>Gone</td>
+          <td>DEL</td>
+          <td class="left">Your job was deleted from the search system. This 
+            status will not be assigned by the search system, but by an 
+            administrator. There was probably a problem with the job and you 
+            should contact the help desk for assistance with it</td>
+        </tr>
+        <tr class="even">
+          <td>500</td>
+          <td>Internal server error</td>
+          <td>Error message</td>
+          <td class="left">There was some problem with running your job, but it 
+            does not fall into any of the other categories. The body of the 
+            response will contain an error message from the server. Contact the 
+            help desk for assistance with the problem</td>
+        </tr>
+      </tbody>
+    </table>
+    
     <h4>Retrieve results</h4>
     <p>
       The XML that was returned from the first query includes one or more URLs 
