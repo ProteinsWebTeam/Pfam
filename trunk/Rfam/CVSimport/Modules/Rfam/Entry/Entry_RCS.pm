@@ -1,7 +1,4 @@
 
- 
-
-
 # Let the code begin...
 
 
@@ -14,7 +11,7 @@ use Rfam::Entry::Entry;
 use Rfam::RfamRegion;
 use Bio::Annotation::Collection;
 use Bio::Annotation::DBLink;
-
+use Data::Dumper;
 @ISA = qw(Rfam::Entry::Entry);
 
 
@@ -30,12 +27,28 @@ sub new {
   $self->{'forward'}   = [];
   $self->{'reference'} = [];
   $self->{'dblink'}    = [];
-
   $self->_loaded(0);
 
   return $self;
 }
 
+
+
+=head wiki_title
+
+
+=cut
+sub wiki_title{
+    my ($self,$value) = @_;
+    if( defined $value) {
+	$self->{'wiki_title'} = $value;
+    } else {
+	$self->_before_annotation_hook('wiki_title');
+    }
+    
+    return $self->{'wiki_title'};
+    
+}
 
 
 
@@ -309,14 +322,6 @@ sub ann{
     my ($obj,$value) = @_;
     warn "Rfam::Entry_RCS::ann() is deprecated - you're code is now probably broken!";
     return 0;
-#    if( defined $value) {
-#	$obj->{'_rcs_ann'} = $value;
-#    } else {
-#	if( $obj->_loaded() == 0 ) {
-#	    $obj->_load_annotation();
-#	}
-#    }
-#    return $obj->{'_rcs_ann'};
 }
 
 sub _load_in_full {
@@ -395,7 +400,7 @@ sub annotated_regions {
     $acc = $self->acc();
     $id  = $self->id();
     $ga  = $self->gathering_cutoff();
-
+    
     
    for ($self->name_start_end($type)) {
 	$nses{$_} = 1;
@@ -415,7 +420,7 @@ sub annotated_regions {
        $bits = $1; $embl_acc = $2; $seq_start = $3; $seq_end = $4;
       }
 
-      
+           
       eval {
 	    push @list,  Rfam::RfamRegion->new('-RFAM_ACCESSION' => $acc,
 					       '-RFAM_ID' => $id,
@@ -423,7 +428,7 @@ sub annotated_regions {
 					       '-FROM' => $seq_start, 
 					       '-TO' => $seq_end,
 					       '-BITS' => $bits,
-					       '-ANNOTATION' => $ann);
+					       '-ANNOTATION' => 'blah');
 
 	  };
       if ($@) {
@@ -490,6 +495,34 @@ sub full{
 
    return $out;
 }
+
+
+sub full_strings{
+   my ($self,@args) = @_;
+   my($dir,$id,$full_align);
+   $dir = $self->_directory();
+   $id  = $self->id();
+
+   open(_ALIGN,"$dir/ALIGN") || die("For entry object [$id], got no valid directory for ALIGN alignment [$dir/FULL] $!");
+   
+   $full_align = Rfam::RfamAlign->new();
+   $full_align->read_stockholm(\*_ALIGN);
+   close(_ALIGN);
+
+   my %seq_string;
+   foreach my $seq ( $full_align -> each_seq() ){
+      my $acc=$seq->id();
+      $acc=~s/\.\d+$//g;
+      $seq_string{$acc}{$seq->start()}{$seq->end()}=$seq->seq(); 
+     
+   }
+   #print STDERR Dumper(\%seq_string), "\n";
+   $seq_string{'sscons'}=$full_align->ss_cons->getInfernalString();
+   #print STDERR Dumper(\%seq_string), "\n";
+   return \%seq_string;
+}
+
+
 
 
 
@@ -716,6 +749,8 @@ sub num_seqs_in_full {
    my ($self, $value) = @_;
    if (defined $value) {
        $self->{'num_seqs_in_full'} = $value;
+   }else{
+       $self->_before_annotation_hook('num_seqs_in_full')
    }
    return $self->{'num_seqs_in_full'}
 }
@@ -738,6 +773,8 @@ sub num_seqs_in_seed {
    my ($self, $value) = @_;
    if (defined $value) {
        $self->{'num_seqs_in_seed'} = $value;
+   } else {
+       $self->_before_annotation_hook('num_seqs_in_seed');
    }
    return $self->{'num_seqs_in_seed'};
 }
@@ -944,7 +981,7 @@ sub _load_annotation {
    }
  
    open(_SOURCE,"$dir/$fname") || print "For entry object [$id], got no valid directory for $fname [$dir/$fname] $!";
-
+  
    $self->_read_std_desc(\*_SOURCE);
    close(_SOURCE) || die("Could not close [$id] DESC in reading annotation");
    
