@@ -1,4 +1,4 @@
-package iPfamDB::ProteinProteinBonds;
+package iPfamDB::PdbImage;
 
 use strict;
 use warnings;
@@ -6,24 +6,32 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("Core");
-__PACKAGE__->table("protein_protein_bonds");
+__PACKAGE__->table("pdb_image");
 __PACKAGE__->add_columns(
-  "atom_a",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
-  "atom_b",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
-  "bond_type",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 50 },
-  "distance",
-  { data_type => "FLOAT", default_value => "", is_nullable => 0, size => 32 },
-  "intrachain",
-  { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 3 },
+  "pdb_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 5 },
+  "pdb_image",
+  {
+    data_type => "MEDIUMBLOB",
+    default_value => undef,
+    is_nullable => 1,
+    size => 16777215,
+  },
+  "pdb_image_sml",
+  {
+    data_type => "BLOB",
+    default_value => undef,
+    is_nullable => 1,
+    size => 65535,
+  },
 );
-__PACKAGE__->belongs_to("atom_a", "iPfamDB::ProteinIntAtoms", { atom_acc => "atom_a" });
+__PACKAGE__->set_primary_key("pdb_id");
+__PACKAGE__->add_unique_constraint("pdb_id", ["pdb_id"]);
+__PACKAGE__->belongs_to("pdb_id", "iPfamDB::Pdb", { pdb_id => "pdb_id" });
 
 
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-16 12:00:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:s++JQlSJWmft4oE9MGwb6A
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:8kDGFHSgnmaTrhTwQ2KdnA
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

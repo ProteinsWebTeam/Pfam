@@ -13,9 +13,9 @@ __PACKAGE__->add_columns(
   "accession",
   { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 6 },
   "start",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 11 },
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "end",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 11 },
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "region_id",
   { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "region_source_db",
@@ -24,14 +24,28 @@ __PACKAGE__->add_columns(
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 12 },
 );
 __PACKAGE__->set_primary_key("region_id");
+__PACKAGE__->has_many(
+  "nardis",
+  "iPfamDB::Nardi",
+  { "foreign.nucleic_region_id" => "self.region_id" },
+);
+__PACKAGE__->belongs_to("rfam_acc", "iPfamDB::Rfam", { rfam_acc => "rfam_acc" });
+__PACKAGE__->belongs_to(
+  "accession",
+  "iPfamDB::NucleicAcid",
+  { accession => "accession" },
+);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:eWhVnA+i+kmvcr3Org21hw
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-16 12:00:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:P4PO9j77PqjhEGyd7gC2cw
 
 
+# You can replace this text with custom content, and it will be preserved on regeneration
 
 =head1 AUTHOR
+
+Prasad Gunasekaran, C<pg6@sanger.ac.uk>
 
 John Tate, C<jt6@sanger.ac.uk>
 
@@ -40,6 +54,8 @@ Rob Finn, C<rdf@sanger.ac.uk>
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
