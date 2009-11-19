@@ -1,4 +1,4 @@
-package iPfamDB::ProteinProteinBonds;
+package iPfamDB::GeneOntology;
 
 use strict;
 use warnings;
@@ -6,24 +6,28 @@ use warnings;
 use base 'DBIx::Class';
 
 __PACKAGE__->load_components("Core");
-__PACKAGE__->table("protein_protein_bonds");
+__PACKAGE__->table("gene_ontology");
 __PACKAGE__->add_columns(
-  "atom_a",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
-  "atom_b",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
-  "bond_type",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 50 },
-  "distance",
-  { data_type => "FLOAT", default_value => "", is_nullable => 0, size => 32 },
-  "intrachain",
-  { data_type => "TINYINT", default_value => "", is_nullable => 0, size => 3 },
+  "go_id",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 10 },
+  "pfama_acc",
+  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 7 },
+  "category",
+  { data_type => "TINYTEXT", default_value => "", is_nullable => 0, size => 255 },
+  "term",
+  {
+    data_type => "LONGTEXT",
+    default_value => "",
+    is_nullable => 0,
+    size => 4294967295,
+  },
 );
-__PACKAGE__->belongs_to("atom_a", "iPfamDB::ProteinIntAtoms", { atom_acc => "atom_a" });
+__PACKAGE__->set_primary_key("go_id", "pfama_acc");
+__PACKAGE__->belongs_to("pfama_acc", "iPfamDB::Pfama", { pfama_acc => "pfama_acc" });
 
 
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-16 12:00:37
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:s++JQlSJWmft4oE9MGwb6A
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:EhUQK6+8VQByM5U/Mm163g
 
 
 # You can replace this text with custom content, and it will be preserved on regeneration

@@ -9,9 +9,9 @@ __PACKAGE__->load_components("Core");
 __PACKAGE__->table("ligand_int_atoms");
 __PACKAGE__->add_columns(
   "internal_ligand_id",
-  { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 10 },
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "atom_number",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 11 },
+  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
   "ligand",
   { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 4 },
   "atom_acc",
@@ -20,17 +20,27 @@ __PACKAGE__->add_columns(
   { data_type => "VARCHAR", default_value => undef, is_nullable => 1, size => 4 },
 );
 __PACKAGE__->set_primary_key("atom_acc");
-
-
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:uISk6L2K6NV4JIgVllrmXw
-
-
-__PACKAGE__->add_unique_constraint(
-    intAtomsConst => [ qw(internal_ligand_id atom_number) ],
+__PACKAGE__->belongs_to(
+  "internal_ligand_id",
+  "iPfamDB::Ligands",
+  { internal_ligand_id => "internal_ligand_id" },
+);
+__PACKAGE__->has_many(
+  "protein_ligand_bonds",
+  "iPfamDB::ProteinLigandBonds",
+  { "foreign.ligand_atom" => "self.atom_acc" },
 );
 
+
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-16 12:00:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:i0I8z0AXAY1FKA0Xs7LKwQ
+
+
+# You can replace this text with custom content, and it will be preserved on regeneration
+
 =head1 AUTHOR
+
+Prasad Gunasekaran, C<pg6@sanger.ac.uk>
 
 John Tate, C<jt6@sanger.ac.uk>
 
@@ -39,6 +49,8 @@ Rob Finn, C<rdf@sanger.ac.uk>
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

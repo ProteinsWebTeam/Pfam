@@ -26,15 +26,28 @@ __PACKAGE__->add_columns(
   },
 );
 __PACKAGE__->set_primary_key("ppi");
+__PACKAGE__->belongs_to(
+  "protein_acc_a",
+  "iPfamDB::Protein",
+  { accession => "protein_acc_a" },
+);
+__PACKAGE__->belongs_to(
+  "protein_acc_b",
+  "iPfamDB::Protein",
+  { accession => "protein_acc_b" },
+);
+__PACKAGE__->has_many("ppi_res", "iPfamDB::PpiRes", { "foreign.ppi" => "self.ppi" });
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:3/00JOAbTmovwB6OUQnFBQ
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-16 12:00:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:LvQvLhs1P7Fc332Vs4jFHg
 
 
-__PACKAGE__->add_unique_constraint("ppiConst", ["protein_acc_a", "protein_acc_b"]);
+# You can replace this text with custom content, and it will be preserved on regeneration
 
 =head1 AUTHOR
+
+Prasad Gunasekaran, C<pg6@sanger.ac.uk>
 
 John Tate, C<jt6@sanger.ac.uk>
 
@@ -43,6 +56,8 @@ Rob Finn, C<rdf@sanger.ac.uk>
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software

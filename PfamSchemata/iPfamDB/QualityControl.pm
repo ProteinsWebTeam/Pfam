@@ -24,17 +24,18 @@ __PACKAGE__->add_columns(
     size => 65535,
   },
 );
+__PACKAGE__->add_unique_constraint("UQ_quality_control_1", ["quality_control", "int_type"]);
 
 
-# Created by DBIx::Class::Schema::Loader v0.04003 @ 2008-02-26 14:01:41
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:KKB+eZTnyu6peEw1yqD11A
+# Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-16 12:00:37
+# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:qGE1qjY3g78ZJ6bjlX7KTg
 
 
-__PACKAGE__->add_unique_constraint(
-    qcConst => [ qw(quality_control int_type method comment) ],
-);
+# You can replace this text with custom content, and it will be preserved on regeneration
 
 =head1 AUTHOR
+
+Prasad Gunasekaran, C<pg6@sanger.ac.uk>
 
 John Tate, C<jt6@sanger.ac.uk>
 
@@ -43,6 +44,8 @@ Rob Finn, C<rdf@sanger.ac.uk>
 =head1 COPYRIGHT
 
 Copyright (c) 2007: Genome Research Ltd.
+
+Authors: Rob Finn (rdf@sanger.ac.uk), John Tate (jt6@sanger.ac.uk)
 
 This is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
