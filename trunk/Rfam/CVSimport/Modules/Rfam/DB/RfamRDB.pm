@@ -100,7 +100,8 @@ sub connect {
    if ($self->{'_transaction_count'}) {
        my $error = "RfamRDB: Trying to open a query connection ";
        $error .= "while the database is connected for update"; 
-       $self->throw($error);
+       #$self->throw($error);
+       die $error;
    }
 
 
@@ -116,15 +117,19 @@ sub connect {
 
        my ($dbh);
 
-       $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port;host=$host", $user, $password); 
+       $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port;host=$host", $user, $password, {
+	   PrintError =>0,
+	   RaiseError =>1
+	   }); 
+       #print STDERR $dbh, "dbh from connect; \n";
 
        if( not ($dbh) or defined($DBI::err)) {
-	   $self->throw("Could not open connection to dbi:$driver:database=$db_name;host=$host with user $user and port $port"); 
+	   die "Could not  connection to dbi:$driver:database=$db_name;host=$host with user $user and port $port\n";
        }
        $self->_database_handle( $dbh );
 
    }
-         
+     
    $self->{'_connection_count'}++;
        
    return $self->_database_handle();
@@ -156,7 +161,8 @@ sub disconnect {
        }
    }
    else {
-       $self->throw( "Could not disconnect - nothing to disconnect from");
+       die "Could not disconnect - nothing to disconnect from\n";
+
    }
 }
 
@@ -178,10 +184,16 @@ sub disconnect {
 
 sub close_transaction{
    my ($self, $error) = @_;
-
+   
    my $dbh = $self->_database_handle();
+
    if ($dbh) {
        $self->{'_transaction_count'}--;
+       
+       if( $self->{'_transaction_count'} >=1 && $error){
+         $self->{'_transaction_count'}=0  #hack to just close up when error
+       }
+
 
        if (not $self->{'_transaction_count'}) {
 
@@ -199,9 +211,11 @@ sub close_transaction{
 		   }
 		   $dbh->disconnect;
 		   $self->_database_handle( undef, 1);
-		   $self->throw("$error");
+		   die "Database rolled back after error: $error\n";
+		#   $self->throw("$error");
 	       }
 	       else {
+
 		   if (! $dbh->{AutoCommit}) {
 		       $self->report_mode and print STDERR "Committing transaction\n";
 		       $dbh->commit;
@@ -210,11 +224,13 @@ sub close_transaction{
 		   $self->_database_handle( undef, 1);
 	       }
 	   };
-	   $@ and $self->throw("Could not complete the transaction [$@]");
+	   $@ and die "Could not complete the transaction\n [$@]";
+	#   $@ and $self->throw("Could not complete the transaction [$@]");
        }
    }
    else {
-       $self->throw( "Error: Cannot close transaction; there is none open!");
+       die "Error: Cannot close transaction; there is none open!";
+    #   $self->throw( "Error: Cannot close transaction; there is none open!");
    }
 }
 
@@ -244,11 +260,10 @@ sub open_transaction{
    if ($self->{'_connection_count'}) {
        my $error = "RfamRDB: Trying to start an update transaction ";
        $error .= "while database is open for query"; 
-       $self->throw( "$error");
+       die  "$error";
    }
 
-
-   if (not ($self->{'_transaction_count'} and defined $self->_database_handle)) {
+      if (not ($self->{'_transaction_count'} and defined $self->_database_handle)) {
        my $driver = $self->_database_driver();
        my $host = $self->_database_host();
        my $db_name = $self->_database_name();
@@ -261,11 +276,15 @@ sub open_transaction{
 
        $self->report_mode and print STDERR "Connecting to database...\n";
 
-       $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port;host=$host", $user, $password);
-
-
+       $dbh = DBI->connect("dbi:$driver:database=$db_name:port=$port;host=$host;mysql_server_prepare=1", $user, $password, {
+	   PrintError =>0,
+	   RaiseError =>1
+	   });
+       
+       #print STDERR $dbh, "dbh from open transaction; \n";  
        if( not ($dbh) or defined($DBI::err)) {
-	   $self->throw("Could not open connection to dbi:$driver:database=$db_name:port=$port;host=$host with user $user"); 
+	   die "Could not open connection to dbi:$driver:database=$db_name:port=$port;host=$host with user $user";
+	 
        }
 
        $self->_database_handle( $dbh );
@@ -289,7 +308,8 @@ sub open_transaction{
 	   $dbh->do( $self->__lock_tables_sql( @tmp ) );    
        };
        if ($@) {
-	   $self->throw("Rfam::DB::RfamRDB->open_connection - failed to lock tables");
+	   die "Rfam::DB::RfamRDB->open_connection - failed to lock tables\n";
+	   #$self->throw("Rfam::DB::RfamRDB->open_connection - failed to lock tables");
        }
    }
    
