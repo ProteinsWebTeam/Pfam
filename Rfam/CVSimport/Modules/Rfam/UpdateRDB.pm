@@ -42,19 +42,13 @@ use Rfam::DB::RfamRDB;
 
 sub new {
 
-  
-
   my $caller = shift;
   my $class  = ref( $caller ) || $caller;
   my %arguments = @_;
   
   my $self = $class->SUPER::new(%arguments);
 
-
-  
-
   return $self;
-
 
 }
 
@@ -72,6 +66,7 @@ sub new {
     by loading the given family through the middleware layer
     and inserting all relevant records into the correct tables,
     deleting records if necesary
+    -the order of table updates is important 
  Returns :
  Args    : Rfam::Entry::Entry object
 
@@ -84,10 +79,11 @@ sub check_in_Entry {
       @regions );
   
  
-  $dbh = $self->open_transaction('rfam', 'rfam_reg_seed', 'rfam_reg_full', 'rfamseq', 'rfam_literature_references', 'literature_references' , 'rfam_database_links');
+  $dbh = $self->open_transaction('wikitext', 'rfam', 'rfam_reg_seed', 'rfam_reg_full', 'rfamseq', 'rfam_literature_references', 'literature_references' , 'rfam_database_links');
   
     eval {
       foreach my $ent (@en) {
+	$self->update_wikitext( [$ent] );  
 	$self->update_rfam( [$ent] );	
 	$self->update_rfam_reg_seed( [$ent] );
 	$self->update_rfam_reg_full( [$ent] );
@@ -100,14 +96,6 @@ sub check_in_Entry {
   $@ and $self->throw($@);
   
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -146,216 +134,33 @@ sub empty_tables {
    };
 
    $self->close_transaction( $@ );
-   $@ and $self->throw($@);
+   $@ and die $@;
 
    return $rows;
 }
 
-
-##############################################
-#
-# Jen#edited method to fill the genome_entry table with the genome_assemblies.rgp data
-# and updating the rfamseq with auto_genome mapping
-#
-###############################################
-
-##each genome_acc is entered into the genome_entry table
-##and the auto_genome entry generated is used to update the rfamseq table with this 
-##auto_genome value;
-##nv each rfamseq_acc and auto_rfamseq are unique so dont need to use the starts and stops.
-
+#originall added by jen-not currently used but might get resurrected
 sub genomic_species_data {
-  my($self, $ac, $de, $ci, $joined_tax, @rf) = @_;
-
-  my ($dbh, $stat);
-
-  $dbh = $self->open_transaction('genome_entry','rfam_reg_full' , 'rfamseq');
-  my ($genome_auto);
-  eval {
-    if (not defined $stat) {
-      $stat = $dbh->prepare($self->__replace_sql('genome_entry', 5 ));
-    }
-
-    $stat->execute( $genome_auto,
-		    $ac,
-		    $de,
-		    $joined_tax,
-		    $ci
-		  );
-    $rows += $stat->rows;
-    $genome_auto = $stat->{mysql_insertid}; ## get the auto number
-  };
-  
-  if ($@) {
-    
-    $error = "Could not do the insertion/update on the pfamA table [$@]";
-    
-    last;
-  }
-
-  foreach my $rfamseq_acc (@rf) {
-
-      my $auto_sql = "select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'";
-      $stat = $dbh->prepare($auto_sql);
-      $stat->execute();
-      my $auto_rfamseq = $stat->fetchrow;
-      $stat->finish();
-
-      my $sql = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq'";
-      $stat = $dbh->prepare($sql);
-      $stat->execute();
-      $stat->finish();
-      
-  }
-
+     my($self, @array) = @_;
+    warn "Rfam::Entry_RCS::genome_species_data() is deprecated - you're code is now probably broken!";
+   return 0;
 }
 
-
-#################################################################
-#
-# jen ##New method to load chromosome build info  
-# for all the genomes entered into the genome_entry table
-# hte relevant rfamseq acc are mapped to this auto_genome number,
-# not all auto_genomes have rfmaseqs mapped to it.
-################################################################
-
+#originally added by jen-not currently used-might get resurrected.
 sub chromosome_data {
-  my($self, $ac, @chr) = @_;
-
-  my ($dbh, $insert);
-
-  $dbh = $self->open_transaction('genome_entry','rfamseq', 'chromosome_build');
- 
-
-  ##get the auto_genome number for this genome
-    my $auto_sql = "select  auto_genome from genome_entry where genome_acc= '$ac' ";
-    $stat = $dbh->prepare($auto_sql);
-    $stat->execute();
-    my $auto_genome= $stat->fetchrow;
-    $stat->finish();
-
-    print STDERR "autogenome=$auto_genome\n";
-    print STDERR "number of entries should be", scalar(@chr), "\n";
-
-  ##process eah GP line in @chr
-  ##get the accesion number for the seqeunce to be mapped;
-  foreach my $chrline (@chr){
-      my ($xsome_start, $xsome_end, $gbacc, $clone_start, $clone_end, $strand) = @{$chrline}; 
-    #  print STDERR join("|", $xsome_start, $xsome_end, $gbacc, $clone_start, $clone_end, $strand), "\n";
-      
-      ##get the relevant auto_rfamseq number for this sequence ##this should be unique i think...
-      my $sql = "select auto_rfamseq from rfamseq where rfamseq_acc= '$gbacc' ";
-      $stat = $dbh->prepare($sql);
-      $stat->execute();
-      my $auto_rfamseq= $stat->fetchrow();
-      $stat->finish();
-
-      if (!$auto_rfamseq) { 
-	  print STDERR "no entry for this $gbacc in rfamseq\n"; 
-	  next;
-      }
-      print STDERR "got $auto_rfamseq from rfamseq table\n";
-      
-      ##insert the GP line data using this auto_genome and auto_rfamseq number
-       eval {
-       if (not defined $insert) {
-       $insert = $dbh->prepare($self->__insert_sql('chromosome_build', 7 ));
-       }
-       ##print "ADDING DATA to chromosome build\n";
-       $insert->execute( $auto_genome,
-			 $auto_rfamseq,
-			 $xsome_start, 
-			 $xsome_end,
-			 $clone_start, 
-			 $clone_end, 
-			 $strand 
-			 );
-       $rows += $insert->rows;
-   };
-      if ($@) {
-	  $error = "Could not do the insertion/update on the chromosome_build table [$@]";
-	  last;
-      }
-
-  } #end of each GP line in @chr
-      
-} # end of chromosome_data
-
-
-################################
-#
-# This parses the final genome embl file after sam has tweaked with it!!
-#
-################################
-
-sub final_genomic_species_data {
-  my($self, $ac, $de, $joined_tax, @rf) = @_;
-
-  my ($dbh, $stat);
-
-  $dbh = $self->open_transaction('genome_entry','rfam_reg_full' , 'rfamseq', 'rfam');
-  my ($genome_auto);
-  eval {
-    if (not defined $stat) {
-      $stat = $dbh->prepare($self->__replace_sql('genome_entry', 4));
-    }
-    
-    # print "ADDING DATA $rdb_auto_num, $rdb_acc, \n";
-    $stat->execute( $genome_auto, 
-		    $ac,
-		    $de,
-		    $joined_tax
-		  );
-    $rows += $stat->rows;
-    $genome_auto = $stat->{mysql_insertid}; ## get the auto number
-  };
-  
-  if ($@) {
-    
-    $error = "Could not do the insertion/update on the pfamA table [$@]";
-    
-    last;
-  }
-
-  foreach my $update (@rf) {
-    my $rfamseq_acc = $update->{'seq_acc'};
-    my $rfam_acc = $update->{'rfam_acc'};
-    my $seq_start = $update->{'start'};
-    my $seq_end = $update->{'end'};
-#    print "rfamseq: $rfamseq_acc, $rfam_acc, $seq_start, $seq_end \n";
-    my $auto_sql = "select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'";
- #   print "$auto_sql \n";
-   $stat = $dbh->prepare($auto_sql);
-    $stat->execute();
-    my $auto_rfamseq = $stat->fetchrow;
-    $stat->finish();
-
-    $auto_sql = "select auto_rfam from rfam where rfam_acc = '$rfam_acc'";
-    $stat = $dbh->prepare($auto_sql);
-    $stat->execute();
-    my $auto_rfam = $stat->fetchrow;
-    $stat->finish();
-
-    
-    my $sql = "select auto_rfamseq, auto_rfam from rfam_reg_full where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
-    $stat = $dbh->prepare($sql);
-    $stat->execute();
-    my ($tmp_auto_rfamseq, $tmp_auto_rfam) = $stat->fetchrow;
-    $stat->finish();
-    
-    #  print "FAILED: $rfamseq_acc $rfam_acc, $seq_start, $seq_end \n" if (!$tmp_auto_rfamseq);
-    
-    my $sql_update = "UPDATE rfam_reg_full set auto_genome = $genome_auto where auto_rfamseq = '$auto_rfamseq' and auto_rfam = '$auto_rfam' and seq_start = '$seq_start' and seq_end = '$seq_end' ";
-    $stat = $dbh->prepare($sql_update);
-    $stat->execute();
-    
-    
-  }
-
-
-
-
+     my($self, @array) = @_;
+    warn "Rfam::Entry_RCS::chromosome_data() is deprecated - you're code is now probably broken!";
+   return 0;
 }
+
+# This parses the final genome embl file after sam has tweaked with it!!
+sub final_genomic_species_data {
+     my($self, @array) = @_;
+    warn "Rfam::Entry_RCS::final_genomic_species() is deprecated - you're code is now probably broken!";
+   return 0;
+}
+
+
 
 
 sub load_generic_file_to_rdb {
@@ -377,8 +182,7 @@ sub load_generic_file_to_rdb {
   if ($delete_from_table) {
     $dbh->do("delete from $table_name");
   }
-
-    
+   
 
    $self->report_mode and 
        printf STDERR "Inserting into %s.$table_name from file %s\n", $self->_database_name, $file;
@@ -509,45 +313,152 @@ sub delete_Entry {
 
 }
 
+#soley to stop multiple checkins to RDB
+sub add_lock {
+    my ($self, $usr, $family)=@_;
+    my ($lock,
+	$locker,
+	$error
+	);
 
-# this method looks like some test code - it won't do anything useful
-sub query {
-  my ($self, $var) = @_;
-my $dbh = $self->open_transaction( 'rfam' , 'rfam_database_links');
-my ($stat);
-	   my $st = $dbh->prepare("select auto_rfam from rfam where rfam_acc = 'RF00001'");
-	   $st->execute();
-	   my($temp_auto) = $st->fetchrow;
-	   $st->finish();
-#	   print "st: $st \n";
-	  my $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
-#print "AUTO: $rdb_auto_num \n";
+    $dbh = $self->connect('_lock'); #error raising is on
 
-       eval {
-	   if (not defined $stat) {
-	       $stat = $dbh->prepare($self->__replace_sql('rfam_database_links', 5));
-	   }
-	   print "ADDING \n";
-
-	   $stat->execute( "10000", 
-			  "TEST", 
-			   "this is a super test", 
-			   "", 
-			   ""
-			 );
-#	   $rows += $stat->rows;
-       };
-       
-       if ($@) {
-	 
-#	   $error = "Could not do the insertion/update on the pfamA table [$@]";
-	   
-	   last;
-       }
-
-
-
+    eval{
+	my $asth=$dbh->prepare("SELECT * from  _lock;");
+	$asth->execute();
+	$locker=$asth->fetchall_arrayref();
+	$asth->finish();
+    };if ($@){
+	$self->disconnect;
+	die "Failed to get the current RDB info: $@";
+    }
+    if (scalar(@$locker) > 1) {
+	my $userlist;
+	foreach my $r (@$locker){
+	    $userlist.=join("\t", @$r);
+	    $userlist.="\n";
+	}
+	$self->disconnect();
+	$error= "More than one lock on the lock table-this is BAD\n
+             $userlist If you know these locks can be removed use the -remove code? remove option at check in\n";
+    }
+        
+    #should only be one entry;
+    $user=$locker->[0];
+    
+    #if already locked-disconnect      
+    if ($user->[0]){
+	$self->disconnect();
+	$lock->{'status'}=undef; #already locked
+	$lock->{'locker'}=$user->[0]; 
+	$lock->{'family'}=$user->[1];
+	return $lock;
+    }else{
+	eval{
+	    my $bsth=$dbh->prepare("Insert into _lock values (?,?)");
+	    $bsth->execute($usr, $family);
+	}; if ($@){
+	    $error= "Failed to add lock to rdb for $usr $@";
+	}else{
+	    $self->disconnect();
+	    $lock->{'status'}=1; #locked and ready to go;
+	    $lock->{'locker'}=$usr;
+	    $lock->{'family'}=$family;;
+	    return $lock;
+	}
+	
+    }
+    $self->disconnect();
+    print STDERR $error if $error;
 }
+
+sub remove_my_lock {
+    my ($self, $usr, $lock)=@_;
+    my $error;
+    my $status=undef;
+    $dbh = $self->connect(); #error raising is on
+    
+    eval{
+	my $asth=$dbh->prepare("Delete from _lock  where locker=?");
+	$asth->execute($usr);
+	$asth->finish();
+    }; if($@){
+	$self->disconnect();
+	return $lock;
+    }
+    $lock=undef;
+    $self->disconnect();
+    return $lock; #removed lock
+}
+
+#########
+#UPWIKITEXT
+#########
+
+sub update_wikitext{
+    my ($self, $entries) = @_;
+    my ($wk_title,
+	$status,
+	$rdb_auto_wiki,
+	$error
+	);
+
+   
+    $dbh = $self->open_transaction( 'wikitext' );
+       
+    #prepare the queries we will need
+    my $asth;
+    unless( $asth = $dbh->prepare("SELECT auto_wiki FROM wikitext where title=?") ){
+	$self->close_transaction($dbh->errstr);
+    }
+
+    my $bsth;
+    unless( $bsth = $dbh->prepare("INSERT into wikitext (title) values (?)")){
+	$self->close_transaction($dbh->errstr);
+    }
+    
+   foreach my $en (@{$entries}) {
+	
+	eval {
+	    if ($en->wiki_title()){
+		$wk_title=$en->wiki_title();
+	    }else{
+		$status= "No wiki title available in DESC file. ";
+		$wk_title='Not specified';
+	    }
+	    $asth->execute($wk_title);
+	    my ($temp_auto) = $asth->fetchrow();
+	    $asth->finish();
+ 
+            if (defined $temp_auto){
+		$status .= "Used an existing wiki title entry";
+		$rdb_auto_wiki = $temp_auto;
+	    }
+	    else{
+		#insert and get the new auto_wiki number;
+		$bsth->execute($wk_title);
+		$bsth->finish();
+		$status="Added new title to wikitext table";
+	    }
+ 
+	}; #end of eval
+	    if ( $@ ) {
+		$error = "Could not do the insertion/update on the wikitext table [$@]";
+		last;
+	    }
+    }#end of entries
+
+    
+    $self->close_transaction( $error );
+    if (!$error){
+	print STDERR "Completed wikitext: $status\n";
+    }
+    
+}
+
+#######
+#RFAM
+######
 
 sub update_rfam{
    my ($self, $entries) = @_;
@@ -559,7 +470,6 @@ sub update_rfam{
        $rdb_id,  
        $rdb_desc, 
        $rdb_modlen,
-       
        $rdb_auto_num,
        $rdb_author,
        $rdb_comment,
@@ -569,42 +479,75 @@ sub update_rfam{
        $rdb_previous_ids,
        $rdb_source,
        $trusted_cutoff,
-
        $rdb_GA,
-
        $rdb_TC,
-
        $rdb_NC,
-
-    
        $rdb_cmcalibrate,
        $rdb_cmbuild,
        $rdb_num_full,
        $rdb_num_seed,
        $rdb_entry_type,
-       $rdb_structure_source
+       $rdb_structure_source,
+       $wiki_title,
+       $rdb_auto_wiki,
+       $rdb_states,
+       $rdb_nodes,
+       $rdb_species,
+       $rdb_tax_domain,
+       $rdb_tax_root,
+       $rdb_full_sscons
       );
 
-   $dbh = $self->open_transaction( 'rfam' );
- 
+
+   $dbh = $self->open_transaction( 'rfam', 'wikitext' );
+   $dbh->{PrintError}=1;
+   #prepare the queries we will need
+   my $asth;
+   unless( $asth = $dbh->prepare("Select auto_rfam from rfam where rfam_acc = ?") ){
+       $self->close_transaction($dbh->errstr);
+   }
+   my $csth;
+   unless( $csth = $dbh->prepare("select auto_wiki from wikitext where title = ?") ){
+       $self->close_transaction($dbh->errstr);
+   }
+
+   my $bsth;
+   unless( $bsth = $dbh->prepare($self->__replace_sql('rfam', 25))){
+       $self->close_transaction($dbh->errstr);
+   }
+
+   
    foreach my $en (@{$entries}) {
-    
+                  
        eval {
+	   
+	   #get values from the entry obj
 	   $rdb_acc = $en->acc;
 	   $rdb_id = $en->id();
-	 
-	 $rdb_auto_num = $en->auto_rfam;
-	 
-	 ### NEW AUTO NUMBER
- 
-	 ####### AUTO NUM 
-	   my $st = $dbh->prepare("select auto_rfam from rfam where rfam_acc = '$rdb_acc'");
+	   $rdb_auto_num = $en->auto_rfam;
+           
+	   if ($en->wiki_title()){
+	       $wiki_title=$en->wiki_title();
+	   }else{
+	       $wiki_title='Not specified';
+	   }
+
+           ####### AUTO NUM 
+           #get the existing auto_rfam from rdb if it exists if new family
+           my $st = $dbh->prepare("SELECT auto_rfam from rfam where rfam_acc = '$rdb_acc'");
 	   $st->execute();
 	   my($temp_auto) = $st->fetchrow;
 	   $st->finish();
-	   $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
+
+	   $rdb_auto_num = $temp_auto if(defined($temp_auto)); #note in this case it can be undefined.
+	   
+	   #get the relevant auto_wiki if it exists
+       	   $csth->execute($wiki_title);
+	   $rdb_auto_wiki= $csth->fetchrow;
+	   $csth->finish();
+    
 	   $rdb_desc = $en->description;
-	   $rdb_author = $en->author;  # author
+	   $rdb_author = $en->author;
 	   $rdb_comment = $en->comment;
 
 	   $rdb_align_method = $en->alignmethod();
@@ -621,31 +564,25 @@ sub update_rfam{
 	   }
 	   $rdb_num_seed = $en->num_seqs_in_seed();
 	   $rdb_num_full = $en->num_seqs_in_full();
-	       
-	   $rdb_modlen = $en->model_length;
 	   $rdb_entry_type = $en->entry_type;
+	   
        };
        if ($@) {
 	   $error = "Could not fetch all the needed data from the rfam entry [$@]";
 	   last;
        }
-    
+
+       eval{
        $self->report_mode and 
 	   printf STDERR "Inserting into %s.rfam from entry %s\n", $self->_database_name, $rdb_acc;
        
-    
-       eval {
-	   if (not defined $stat) {
-	       $stat = $dbh->prepare($self->__replace_sql('rfam', 19));
-	   }
-	  
-	  # print "ADDING DATA $rdb_auto_num, $rdb_acc, \n";
-	   $stat->execute( $rdb_auto_num, 
-			  $rdb_acc, 
+       
+           $bsth->execute( $rdb_auto_num, 
+			   $rdb_auto_wiki,
+			   $rdb_acc, 
 			   $rdb_id, 
 			   $rdb_desc, 
-			   $rdb_modlen,
-			   $rdb_author,			  
+	 		   $rdb_author,			  
 			   $rdb_source,
 			   $rdb_align_method,			 			   
 			   $rdb_GA,			   
@@ -658,46 +595,34 @@ sub update_rfam{
 			   $rdb_num_seed, 
 			   $rdb_num_full,
 	                   $rdb_entry_type,
-			   $rdb_structure_source
-			 );
-	   $rows += $stat->rows;
-       };
-       
-       if ($@) {
-	 
-	   $error = "Could not do the insertion/update on the pfamA table [$@]";
-	   
+			   $rdb_structure_source,
+			   $rdb_states,
+			   $rdb_nodes,
+			   $rdb_species,
+			   $rdb_tax_domain,
+			   $rdb_tax_root,
+			   $rdb_full_sscons
+			    );
+       $rows += $bsth->rows;
+   }; if ($@){
+           $error = "Could not do the insertion/update on the rfam table $@";
 	   last;
        }
      
-   }
+   }#each entry obj
    
-
-
    $self->close_transaction( $error );
-   $error and $self->throw( $error );
-
+   if (!$error){
+       print STDERR "Completed rfam: $rows rows added\n";
+   }
    return $rows;
+
 }
 
 sub fix_tax_and_species {
-  my($self, @array) = @_;
-   $dbh = $self->open_transaction( 'rfamseq');
-  foreach (@array) {
-    chop($_);
-    my($rfamseq_acc, $species, $taxonomy) = split(/~/, $_);
-    $species = $dbh->quote($species);
-    $taxonomy = $dbh->quote($taxonomy);
-    my $sql = "update rfamseq set species = $species, taxonomy = $taxonomy where rfamseq_acc = '$rfamseq_acc'";
-  #  print "sql: $sql \n";
-    my $st = $dbh->prepare($sql);
-    $st->execute();
-    
-    $st->finish();
-  #  exit(0);
-  }
-
-   $self->close_transaction();
+    my($self, @array) = @_;
+    warn "Rfam::Entry_RCS::fix_tax_and_species() is deprecated - you're code is now probably broken!";
+    return 0;
 }
 
 
@@ -707,30 +632,32 @@ sub fix_tax_and_species {
 #
 ###########################################
 
-
+#UPSMALL_FAM: this update method only to be used for smaller families as it loads directly into RDB
 sub update_rfam_reg_full {
    my ($self, $entries) = @_;
- 
-   
    my ($error, 
+       $rows,
        $dbh,
        $stat,
+       $full_ss,
+       $full_structure,
+       $counter,
        $rdb_acc, 
        $rdb_id, 
        $rdb_auto_num,
        $count,
        $rdb_mode,
        $rdb_significant,
-       $rdb_in_full,       
-       @regions, $from, $to,
-       %store_rfamseq, %store_rfam, $no_seq_count);
-   
-   
+       $rdb_type, 
+       $rdb_full_string,
+       @regions,
+       %store_seed, @seed_region, $seed_acc,
+       %store_rfamseq,  
+       $no_seq_count       
+       );
    
    $dbh = $self->open_transaction( 'rfam_reg_full', 'rfam', 'rfamseq' );
    
-   my (%hash);
-
    foreach my $en (@{$entries}) {
      
      eval {
@@ -739,22 +666,47 @@ sub update_rfam_reg_full {
        $rdb_id = $en->id();
        $rdb_auto_num = $en->auto_rfam;
        
+       #this method loads in the full align!!
+       $full_ss=$en->full_strings();
+       $full_structure=$full_ss->{'sscons'};
+
+       #get auto-rfam for this family 
+       my $asth = $dbh->prepare("SELECT auto_rfam from rfam where rfam_acc = '$rdb_acc'");
+       $asth->execute();
+       my($temp_auto) = $asth->fetchrow;
+       $asth->finish();
+	   
+       $rdb_auto_num = $temp_auto if(defined($temp_auto));  
+              
+       #update the ss cons line in the rfam table
+       my $bsth=$dbh->prepare("Update rfam set full_structure=? where auto_rfam=?");
+       $bsth->execute($full_structure, $rdb_auto_num);
+       $counter += $bsth->rows;
+       $bsth->finish();
        
-       ####### AUTO NUM 
-       my $st = $dbh->prepare("select auto_rfam from rfam where rfam_acc = '$rdb_acc'");
-       $st->execute();
-       my($temp_auto) = $st->fetchrow;
-       $st->finish();
-       
-       $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
+       if ( $counter != 1 ){
+	   $error= "ERROR: Updating the rfam table with full_structure for $rdb_acc failed $!";
+	   last;
+       }
+
+       #delete exsiting data before filling the table with data
        $dbh->do("delete from rfam_reg_full where auto_rfam = '$rdb_auto_num' ");
+
+       #load up the seed annotations in order to asign data for type field
+       @seed_region=$en->annotated_regions('SEED');
+       foreach my $s (@seed_region){
+	  if( $s->seq_name =~ /^(\S+)\.\d+/ ) {
+	       $seed_acc = $1;
+	   }
+	   else {
+	       $seed_acc = $reg->seq_name;
+	   } 
+	  $store_seed{$seed_acc}{$s->from}{$s->to}=1;
+       }
+
+       #collate the data for each region and fill rfam_reg_full
+       @regions = $en->annotated_regions('FULL');
        
-
-
-
-
-
-       my @regions = $en->annotated_regions('FULL');
        foreach my $reg (@regions) {
 	   my $rfamseq_acc;     # should be embl acc not acc.ver
 	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
@@ -763,62 +715,244 @@ sub update_rfam_reg_full {
 	   else {
 	       $rfamseq_acc = $reg->seq_name;
 	   }
-	 
-	 if (defined($store_rfamseq{$rfamseq_acc})) {
-	   $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
-	 } else {
-	   my $st = $dbh->prepare("select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'");
-	   $st->execute();
-	   $rfamseq_auto = $st->fetchrow;
-	   print  "ERROR: $rfamseq_acc is NOT in the rfamseq  table. This record has not been added \n" if (!$rfamseq_auto);
-	   $no_seq_count++  if (!$rfamseq_auto);
-	   next if (!$rfamseq_auto);
-	   $st->finish();
-	   $store_rfamseq{$rfamseq_acc} = $rfamseq_auto;
-	 }
-
-	 if (not defined $stat) {
-	   $stat = $dbh->prepare( $self->__insert_sql( 'rfam_reg_full', 6));
-	 }
-	 eval {
-	   $stat->execute($rdb_auto_num,
-			  $rfamseq_auto, 
-			  $reg->from, 
-			  $reg->to,
-			  $reg->bits_score,
-			 ""
-			 );
-	   
-	   
-	   
-	 };
+	   #padded seq string from full align
+	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
+	   #type
+	   if (defined $store_seed{$rfamseq_acc}{$reg->from}{$reg->to} ){
+	       $rdb_type='seed';
+	   }else{
+	       $rdb_type='full';
+	   }
+	
+	   if (defined($store_rfamseq{$rfamseq_acc})) {
+	       $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
+	   } else {
+	       my $st = $dbh->prepare("SELECT auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'");
+	       $st->execute();
+	       $rfamseq_auto = $st->fetchrow;
+	       print  STDERR"\tERROR: full $rfamseq_acc is NOT in the rfamseq  table. This record has not been added \n" if (!$rfamseq_auto);
+	       $no_seq_count++  if (!$rfamseq_auto);
+	       next if (!$rfamseq_auto);
+	       $st->finish();
+	       $store_rfamseq{$rfamseq_acc} = $rfamseq_auto;
+	   }
+  
+	   if (not defined $stat) {
+	       $stat = $dbh->prepare( $self->__insert_sql( 'rfam_reg_full', 11));
+	   }
+	   eval {
+	       $stat->execute($rdb_auto_num,
+			      $rfamseq_auto,
+			      '',
+			      $reg->from, 
+			      $reg->to,
+			      $reg->bits_score,
+			      '',
+			      $rdb_type,
+			      '',
+			      '',
+			      $rdb_full_string
+			      );
+	           
+	       $rows += $stat->rows;
+	       $stat->finish();
+	   };
 	 if ($@) {
-	   my  $error = "Could not insert data into rfam_reg_seed table [$@]";
-	   print "ERROR: $error \n";
-	   
+	    $error = "Could not insert data into rfam_reg_full table [$@]";
+	    last;
 	 }
-
-
-       }
-
-
       
+       }#end of regions
+ 
+     };#main eval
+     if ($@){
+	 $error="ERROR:Problems obtaining and loading data for rfam_reg_full $@";
+	 last;
+     }     
+   } #end of @entries
+       
+   if (!$no_seq_count){$no_seq_count=0};
+   $self->close_transaction( $error );
+   if (!$error){
+       print STDERR "Completed rfam_reg_full: $rows rows added $no_seq_count missing \n";
+   }
+ }
 
+##UPBIG_FAM:this method only to be used for large families: no lock placed on RDB
 
-
-     };
-
+sub collate_large_fam_reg_full {
+   my ($self, $entries) = @_;
+   my ($error,
+       $data,
+       $dbh,
+       $stat,
+       $counter,
+       $full_ss,
+       $full_structure,
+       $rdb_acc, 
+       $rdb_id, 
+       $rdb_auto_num,
+       $count,
+       $rdb_mode,
+       $rdb_significant,
+       $rdb_type,
+       $rdb_full_string,
+       @regions,
+       %store_seed, @seed_region, $seed_acc,
+       %store_rfamseq, 
+       %store_rfam, 
+       $no_seq_count       
+       );
+        
+   if (scalar(@$entries) >1){
+       print STDERR "This method collate_large_fam_reg_full cannot currently deal with parsing more than one entry at a time\n";
+       return;
    }
 
+   $dbh = $self->connect();
 
- 
-   $self->close_transaction( $error );
+   foreach my $en (@{$entries}) {
+     
+     eval {
+      
+       $rdb_acc = $en->acc;
+       $rdb_id = $en->id();
+       $rdb_auto_num = $en->auto_rfam;
+       $full_ss=$en->full_strings();
+       $full_structure=$full_ss->{'sscons'};
+       
+       my $asth = $dbh->prepare("SELECT auto_rfam from rfam where rfam_acc = ?");
+       $asth->execute($rdb_acc);
+       my($temp_auto) = $asth->fetchrow;
+       $asth->finish();
+	   
+       $rdb_auto_num = $temp_auto if(defined($temp_auto));  
+              
+       #this is stored so we can add the ss_cons line to the rfam table;
+       push(@data, $rdb_auto_num);
+
+       #load up the seed annotations in order to delete data before the load
+       
+       @seed_region=$en->annotated_regions('SEED');
+       
+       foreach my $s (@seed_region){
+	  if( $s->seq_name =~ /^(\S+)\.\d+/ ) {
+	       $seed_acc = $1;
+	   }
+	   else {
+	       $seed_acc = $reg->seq_name;
+	   } 
+	  $store_seed{$seed_acc}{$s->from}{$s->to}=1;
+       }
+       eval{
+	   #LOCK WHILE  INSERTING 
+	   $dbh->do("Lock table rfam write");
+	   
+	   #update the ss cons line in the rfam table
+	   my $bsth=$dbh->prepare("Update rfam set full_structure=? where auto_rfam=?");
+	   $bsth->execute($full_structure, $rdb_auto_num);
+	   $counter += $bsth->rows;
+	   $bsth->finish();
+	   
+	   $dbh->do("UNLOCK tables");
+       }; if ($@){ 
+	   print STDERR "ERROR here\n"; $error="Problem trying to lock and unlock tables\n";
+	   last;
+       }
+       
+       @regions = $en->annotated_regions('FULL');
+       foreach my $reg (@regions) {
+	   my $rfamseq_acc;     # should be embl acc not acc.ver
+	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
+	       $rfamseq_acc = $1;
+	   }
+	   else {
+	       $rfamseq_acc = $reg->seq_name;
+	   }
+	   #define type 
+	   if (defined $store_seed{$rfamseq_acc}{$reg->from}{$reg->to} ){
+	       $rdb_type='seed';
+	   }else{
+	       $rdb_type='full';
+	   }
+	   #full seq string
+	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
+	   
+	   if (defined($store_rfamseq{$rfamseq_acc})) {
+	       $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
+	   } else {
+	       my $st = $dbh->prepare("SELECT auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'");
+	       $st->execute();
+	       $rfamseq_auto = $st->fetchrow;
+	       print  STDERR "\tERROR: full $rfamseq_acc is NOT in the rfamseq  table. This record has not been added \n" if (!$rfamseq_auto);
+	       $no_seq_count++  if (!$rfamseq_auto);
+	       next if (!$rfamseq_auto);
+	       $st->finish();
+	       $store_rfamseq{$rfamseq_acc} = $rfamseq_auto;
+	   }
+       
+	   #generate the data structure to return;
+	   #empty values=auto_genome, evalue, type, genome_start, genome_end
+  
+	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, '', $reg->from, $reg->to, $reg->bits_score, '', $rdb_type, '',  '', $rdb_full_string);
+	   push (@$data, $string);
+       }#end of regions for $entry;
+    
+     };#end of eval for entries
+     if ($@){
+	 $error="Error with generating data for the rfam_reg_full table $@";
+	 last;
+	 }#main eval
+
+   } #end of all entries
 
 
-
-#print "Invalid seqs: $no_seq_count \n";
-
+   $self->disconnect();
+   if (!$error){
+       print STDERR "Completed collation of rfam_ref_full data\n";
+   }
+   return $data;
 }
+
+##load rfam_reg_full file
+sub load_rfam_reg_full_file_to_rdb {
+
+  my ($self, $file, $table_name, $auto_rfam) = @_;
+   my ($rows,
+       $error,
+       $dbh);
+  
+  $dbh = $self->open_transaction( 'rfam_reg_full');
+   
+  if (! -e $file) {
+       die "Load_ $table_name _from_file error: Could not find file $file";
+  }
+  if (!$table_name) {
+       die "load_ $table_name _from_file error: Did not pass the table_name";
+  }
+  eval{
+  my $asth=$dbh->prepare("Delete from rfam_reg_full where auto_rfam=?");
+  $asth->execute($auto_rfam);   
+  $asth->finish();
+
+  $self->report_mode and 
+       printf STDERR "Loading data to rfam_reg_full";
+   
+       my $load=$dbh->prepare("LOAD data INFILE '$file' into table rfam_reg_full");
+       $rows = $load->execute( );
+       $load->finish();
+   };if ($@){
+       $error="Problems loading and re-loading rhe rfam_reg_full data $@";  
+   }
+
+  $self->close_transaction( $error );
+  if (!$error){
+      print STDERR "Loaded data into reg_full for big fam\n";
+  }
+  return $rows;
+   
+}
+
 
 
 ###########################################
@@ -827,14 +961,14 @@ sub update_rfam_reg_full {
 #
 ###########################################
 
-
+#jd7- tried to move all the prepare statments outside of the regions loop
+#get a seg fault error which couldnt be fixed.
 sub update_rfam_reg_seed {
    my ($self, $entries) = @_;
- #  print "here \n";
    
    my ($error, 
        $dbh,
-       $stat,
+       $rows,
        $rdb_acc, 
        $rdb_id, 
        $rdb_auto_num,
@@ -848,28 +982,40 @@ sub update_rfam_reg_seed {
    
    
    $dbh = $self->open_transaction( 'rfam_reg_seed', 'rfam', 'rfamseq' );
-   
-   my (%hash);
 
+   #prepare sql queries
+   my $asth;
+   unless( $asth = $dbh->prepare("SELECT auto_rfam from rfam where rfam_acc = ?") ){
+	print STDERR "fail prepare\n";
+	$self->close_transaction($dbh->errstr);
+   }
+
+   my $csth;
+   unless( $csth = $dbh->prepare( $self->__insert_sql( 'rfam_reg_seed', 4)) ){
+       print STDERR "fail prepare\n";
+       $self->close_transaction($dbh->errstr);
+   }
+       
    foreach my $en (@{$entries}) {
-     
+  
      eval {
        
        $rdb_acc = $en->acc;
        $rdb_id = $en->id();
        $rdb_auto_num = $en->auto_rfam;
+  
+       #get auto_rfam 
+       $asth->execute($rdb_acc);
+       my ($temp_auto)= $asth->fetchrow;
+       $asth->finish();
+       $rdb_auto_num = $temp_auto if(defined($temp_auto));   
        
-       
-       ####### AUTO NUM 
-       my $st = $dbh->prepare("select auto_rfam from rfam where rfam_acc = '$rdb_acc'");
-       $st->execute();
-       my($temp_auto) = $st->fetchrow;
-       $st->finish();
-        
-     
-       $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
-       $dbh->do("delete from rfam_reg_seed where auto_rfam = '$rdb_auto_num' ");
-       my @regions = $en->annotated_regions('SEED');
+       #delete existing data
+       $dbh->do("DELETE from rfam_reg_seed where auto_rfam='$rdb_auto_num'");
+           
+       #load new regions       
+       @regions = $en->annotated_regions('SEED');
+   
        foreach my $reg (@regions) {
 	   my $rfamseq_acc;     # should be embl acc not acc.ver
 	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
@@ -878,79 +1024,54 @@ sub update_rfam_reg_seed {
 	   else {
 	       $rfamseq_acc = $reg->seq_name;
 	   }
-	 
-	 if (defined($store_rfamseq{$rfamseq_acc})) {
-	   $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
-	 } else {
-	   my $st = $dbh->prepare("select auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc'");
-	   $st->execute();
-	   $rfamseq_auto = $st->fetchrow;
-	   print  "ERROR: $rfamseq_acc is NOT in the rfamseq table. This record has not been added \n" if (!$rfamseq_auto);
-	   $no_seq_count++  if (!$rfamseq_auto);
-	   next if (!$rfamseq_auto);
-	   $st->finish();
-	   $store_rfamseq{$rfamseq_acc} = $rfamseq_auto;
-	 }
-
-	 if (not defined $stat) {
-	   $stat = $dbh->prepare( $self->__insert_sql( 'rfam_reg_seed', 4));
-	 }
-	 eval {
-	   $stat->execute($rdb_auto_num,
-			  $rfamseq_auto, 
-			  $reg->from, 
-			  $reg->to
-			 );
 	   
-	   
-	   
-	 };
-	 if ($@) {
-	   my  $error = "Could not insert data into rfam_reg_seed table [$@]";
-	   print "ERROR: $error \n";
-	   
-	 }
-
-
-       }
-
-      
-
-
-
-     };
-
-   }
-
-
-
+	   if (defined($store_rfamseq{$rfamseq_acc})) {
+	       $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
+	       
+	   }else {
+               #moving this prepare outide the regions loop generates a segmentation fault..
+     
+	       my $bsth=$dbh->prepare("SELECT auto_rfamseq from rfamseq where rfamseq_acc = '$rfamseq_acc' ");
+	       $bsth->execute();
+	       $rfamseq_auto = $bsth->fetchrow();
+	       $bsth->finish();
+	       if (!$rfamseq_auto){
+		   print STDERR "\tERROR: seed $rfamseq_acc is NOT in the rfamseq table. This region  cannot been added \n";
+		   ++$no_seq_count;
+		   next;
+	       }
+	       $store_rfamseq{$rfamseq_acc} = $rfamseq_auto;
+	   } 
  
-  
-   $self->close_transaction( $error );
-
-
-
-#print "Invalid seqs: $no_seq_count \n";
-
+	    eval {
+	       $csth->execute($rdb_auto_num,  $rfamseq_auto,  $reg->from, $reg->to );
+	       $rows += $csth->rows;
+	       $csth->finish();
+	   };
+	   if ($@) {
+	       $error = "Could not insert data into rfam_reg_seed table [$@]";
+	       last; 
+	   }
+   
+       } #end each region
+   }; #eval each family entry
+     if ($@) {
+	 $error = "Problem family eval[$@]";
+	 last;
+     } 
+     
+ }# end of each entry
+   if (!$no_seq_count){$no_seq_count=0};
+   $self->close_transaction( $error ); #wont commit data until reaches this point.
+   if (!$error){
+       print STDERR "Completed rfam_reg_seed: $rows rows added, $no_seq_count missing\n";
+   }
 }
-
-
-
-
-
-
-
-
-
 
 
 ########### NEW SUBS ############
 
-
-
 sub update_literature_references {
-  
-  
   
   my ($self, $entries) = @_;
   my ($stat,
@@ -962,27 +1083,24 @@ sub update_literature_references {
       $rdb_auto_num
      );
   
-  $dbh = $self->open_transaction( 'rfam_literature_references', 'literature_references' );
+  $dbh = $self->open_transaction( 'rfam', 'rfam_literature_references', 'literature_references' );
   
   foreach my $en (@{$entries}) {
-    
-    
-    
-    eval {
+     
+   
       $rdb_acc = $en->acc;
       $rdb_id = $en->id();
       
       ####### AUTO NUM 
       my $st = $dbh->prepare("select auto_rfam from rfam where rfam_acc = '$rdb_acc'");
       $st->execute();
-      my($temp_auto) = $st->fetchrow;
+      $rdb_auto_num = $st->fetchrow;
       $st->finish();
       
-      $rdb_auto_num = $temp_auto if(defined($temp_auto)); 
-      
-      
-    };
-    
+      if (! $rdb_auto_num ){
+	  $error= "ERROR: No auto_rdb_number obtained for this family $rdb_acc$!";
+	  last;
+      }
     
     eval {
       $self->report_mode and 
@@ -998,21 +1116,6 @@ sub update_literature_references {
       foreach my $ref ( $en->each_reference() ) {
 	my($comment, $medline, $authors, $journal, $title);
 	
-	## Get out comment if there is one - ignored for the moment
-#	if (defined ($ref->comment() ) ) {
-#	  print "DEF\n";
-#	#  print "COMMENT: " .$ref->comment() . " \n";
-#	  #foreach my $refcomm ( $ref->comment->each_flat() ) {
-#	   # $comment .=  $refcomm . " ";
-#	  $comment = $ref->comment();
-#	  print "COMMENT: " .$ref->comment() . " \n";
-#	  #  chop($refcomm);
-#	#  }
-#	}
-
-
-	
-#	print "COMM $comment \n";
 
 	$medline = $ref->medline();
 	$title = $ref->title();
@@ -1046,10 +1149,7 @@ sub update_literature_references {
 	  };
 	  
 	}
-	
-	
 	### ok so added lit refs if we had to now add to pfamA_lit_ref whatsit table :-)
-	
 	eval {
 	  $stat = undef;
 	  if (not defined $stat) {
@@ -1073,18 +1173,16 @@ sub update_literature_references {
     }				#/ if REFERENCES   
   }				#/ end for each entries
   
-  
   $self->close_transaction( $error );
-  $error and $self->throw( $error );
+  if (! $error){
+      print STDERR "Completed literature_references:\n";
+  }
   return $rows;
-  
-  
 }
 
 sub update_rfam_database_links {
 
-  
-  
+ 
   my ($self, $entries) = @_;
   my ($stat,
       $dbh,
@@ -1095,7 +1193,7 @@ sub update_rfam_database_links {
       $rdb_auto_num
      );
   
-  $dbh = $self->open_transaction( 'rfam_database_links' );
+  $dbh = $self->open_transaction( 'rfam', 'rfam_database_links' );
   
   foreach my $en (@{$entries}) {
     
@@ -1119,30 +1217,12 @@ sub update_rfam_database_links {
       
       $dbh->do("delete from rfam_database_links where auto_rfam = '$rdb_auto_num'");
     };
-    
-    
     ## If there is a database reference
     if ($en->each_dblink ()) {
       foreach my $link ($en->each_dblink ) {
-#	print "MEAOW BOO HISS \n";
 	my($database, $title, $db_link, @other_info, $all_other);
 	$database = $link->database;
 	$db_link = $link->primary_id();
-#	@other_info = $link->each_additional();
-#	foreach (@other_info) {#
-#
-#	  $all_other .= $_;
-#	}
-	
-	
-
-#	if (defined( $link->comment() )) {
-
-#	  foreach my $linkcomm ($link->comment->each_flat() ) {
-#	    $title = $linkcomm ;
-
-#	  }
-#	}
 
 	eval {
 	  $stat = undef;
@@ -1162,19 +1242,17 @@ sub update_rfam_database_links {
 	  last;
 	}
 	
-	
       }				#/ for EACH REFERENCE     
       
     }				#/ if REFERENCES   
   }				#/ end for each entries
   
-  
-  $self->close_transaction( $error );
-  $error and $self->throw( $error );
-  return $rows;
-  
-  
-
+   $self->close_transaction( $error );
+   if (!$error){
+       print STDERR "Finished the database links\n";
+   }
+   
+   return $rows;
 }
 
 
@@ -1205,7 +1283,7 @@ sub update_rfam_database_links {
 # Args    :
 #    1. A ref. to a list of hash refs
 
-# Notes   :
+# Note   :
 #    1. If the transaction handle is undefined, a transaction is created and committed
 #    for just this _update. If a handle is given, then it is assumed that the update
 #    is part of a larger transaction.
@@ -1281,220 +1359,5 @@ sub add_rfamseq {
     return $rows;
 }
 
-
-######################################################################################
-#
-#  miRNA stuff
-#
-######################################################################################
-
-sub  delete_mirna_tables{
-  my($self) = @_;
-  
-  my ($dbh, $stat_add, $rows, $error, $auto_lit, $auto_mirna, $stat_lit, $stat_mirna);
-  
-  # print "ID: $id, ACC: $acc, $desc , $start, $end, $mature_name, $sequence \n";
-  $dbh = $self->open_transaction( 'mirna' , 'mirna_literature_references', 'mirna_mature', 'mirna_species', 'mirna_database_links' );
-  $dbh->do("delete from mirna");
-  $dbh->do("delete from mirna_literature_references");
-  $dbh->do("delete from mirna_mature");
-  ##$dbh->do("delete from mirna_species"); # not needed at the moment as the species have been static
-  $dbh->do("delete from mirna_database_links");
-  $self->close_transaction();
-}
-
-
-sub add_mirna {
-  my($self, $id, $acc, $desc , $mature, $sequence, $comment_line, $refs, $database) = @_;
-  
-  my ($dbh, $stat_add, $stat_mat,$stat_data, $rows, $error, $auto_lit, $auto_mirna, $stat_lit, $stat_mirna);
-  
-  
-  $dbh = $self->open_transaction( 'mirna' ,'literature_references', 'mirna_literature_references', 'mirna_mature', 'mirna_species', 'mirna_database_links'  );
-  
-  
-  ######### UPDATE mirna 
-  eval {
-    if (not defined $stat_add) {
-      $stat_add = $dbh->prepare($self->__insert_sql('mirna', 6));
-      #print "stat: $stat \n";
-    }
-    #   print "ADDING: $rdb_acc \n";
-    #  sleep 1;
-    # print "$auto_mirna, $acc, $id, $desc, $sequence, $comment_line \n";
-    $stat_add->execute($auto_mirna,
-		       $acc, 
-		       $id, 
-		       $desc, 
-		       $sequence,
-		       $comment_line
-		      );
-    $rows += $stat_add->rows;
-    $auto_mirna = $stat_add->{mysql_insertid}; ## get the auto number
-    
-  };
-  if ($@) {
-    $error = "Could not do the insertion on the mirna table [$@]";
-    last;
-  }
-  
-  
-  my @mature_temp = @${mature};
-
-foreach my $query_return (@mature_temp) {
-  my %output = %{$query_return};
-  
-  
-  ########## UPDATE mirna_mature  
-  eval {
-    if (not defined $stat_mat) {
-      $stat_mat = $dbh->prepare($self->__insert_sql('mirna_mature', 4));
-    }
-    
-    $stat_mat->execute($auto_mirna,
-		       $output{NAME},
-		       $output{START},
-		       $output{END}
-		      );
-    $rows += $stat_add->rows;
-  };
-  if ($@) {
-    $error = "Could not do the insertion on the mirna_mature table [$@]";
-    last;
-  }
-  
-}
-
-######## UPDATE literature tables
-
-my @refs_temp = @${refs};
-
-foreach my $query_return (@refs_temp) {
-  my %output = %{$query_return};
-  
-  my $medline = $output{MEDLINE};
-  my $st = $dbh->prepare("select auto_lit from literature_references where medline = '$medline' or journal like '%" .$output{JOURNAL} . "%' ");
-  $st->execute();
-  my($auto_lit) = $st->fetchrow;
-  $st->finish();
-  
-  
-  if (!$auto_lit) {
-    eval {
-      if (not defined $stat_lit) {
-	$stat_lit = $dbh->prepare($self->__insert_sql('literature_references', 5));
-	#print "stat: $stat \n";
-      }
-      #   print "ADDING: $rdb_acc \n";
-      #  sleep 1;
-      #  die "No auto_
-      #    print "AUTO LIT: $auto_lit , " .$output{MEDLINE} . " , " .$output{TITLE} . " , " .$output{AUTHORS} . " , " .$output{JOURNAL} . "\n";
-      $stat_lit->execute($auto_lit,
-			 $output{MEDLINE},
-			 $output{TITLE},
-			 $output{AUTHORS},
-			 $output{JOURNAL}
-			);
-      $rows += $stat_lit->rows;
-      
-      $auto_lit = $stat_lit->{mysql_insertid}; ## get the auto number
-      
-    };
-    if ($@) {
-      $error = "Could not do the insertion on the literature_references table [$@]";
-      last;
-    }
-  }
-  
-  
-  
-  
-  eval {
-    if (not defined $stat_mirna) {
-      $stat_mirna = $dbh->prepare($self->__insert_sql('mirna_literature_references', 4));
-      #print "stat: $stat \n";
-    }
-    #   print "ADDING: $rdb_acc \n";
-    #  sleep 1;
-    $stat_mirna->execute($auto_mirna,
-			 $auto_lit,
-			 $output{COMMENT},
-			 $output{NUMBER}
-			);
-    $rows += $stat_mirna->rows;
-    
-  }
-  
-  
-};
-if ($@) {
-  $error = "Could not do the insertion on the mirna_literature_references table [$@]";
-  print "EROR: $error \n";
-  last;
-}
-
-
-
-
-
-
-
-######## UPDATE DATABASE_LINKS tables
-
-my @database_tmp = @${database};
-
-
-foreach (@database_tmp) {
-  # print "QUERY: $_ \n";
-  my %output = %{$_};
-  
-  my $db_id = $output{ID};
-  #  print "DB ADD: $db_id \n";
-  my $db_link = $output{LINK};
-  my $db_comment = $output{COMMENT};
-  # print "LINK: $db_link \n";
-  
-  
-  eval {
-    # if (not defined $stat_data) {
-    #     $stat_lit = $dbh->prepare($self->__insert_sql('mirna_database_links', 5));
-    # print "stat: $stat_lit \n";
-    #  }
-    #   print "ADDING: $rdb_acc \n";
-    #  sleep 1;
-    # print "auto: $auto_mirna, id: $db_id, link: $db_link, comment: $db_comment \n";
-    # $db_link = "RF";
-    my $params;
-    
-    #print "SQL: ";
-    
-    my $stat_lit = $dbh->prepare("insert into mirna_database_links values ('$auto_mirna', '$db_id','$db_comment', '$db_link',   '$params')");
-    $stat_lit->execute();
-    #   $stat_lit->execute($auto_mirna,
-    #		       $db_id,
-    #		       $db_link,
-    #		       $db_comment,
-    #		       ""
-    #		      );
-    #  $rows += $stat_data->rows;
-    
-    
-    
-  };
-  if ($@) {
-    $error = "Could not do the insertion on the mirna_database_links table [$@]";
-    print "error: $error \n";
-    last;
-    }  
-
-
-
-
-
-  
-}
-#exit(0);
-
-}
 
 1;
