@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.9 2009-11-19 13:46:08 jt6 Exp $
+# $Id: rest.tt,v 1.10 2009-11-19 14:04:00 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -31,21 +31,21 @@ sharedRequirements.css.push( "prettify.css" );
       <p>Contents:</p>
       <ol>
         <li>
-          <span><a href="#basic">Basic concepts</a></span>
+          <span><a class="link" rel="basic">Basic concepts</a></span>
           <ol>
-            <li><a href="#urls">URLs</a></li>
-            <li><a href="#sending">Sending requests</a></li>
-            <li><a href="#retrieving">Retrieving data</a></li>
+            <li><a class="link" rel="urls">URLs</a></li>
+            <li><a class="link" rel="sending">Sending requests</a></li>
+            <li><a class="link" rel="retrieving">Retrieving data</a></li>
           </ol>
         </li>
         <li>
-          <span><a href="#services">Available services</a></span>
+          <span><a class="link" rel="services">Available services</a></span>
           <ol>
-            <li><a href="#id2acc">ID/accession conversion</a></li>
-            <li><a href="#pfama">Pfam-A annotations</a></li>
-            <li><a href="#families">Pfam-A family list  </a></li>
-            <li><a href="#protein">Protein sequence data</a></li>
-            <li><a href="#search">Sequence searches</a></li>
+            <li><a class="link" rel="id2acc">ID/accession conversion</a></li>
+            <li><a class="link" rel="pfama">Pfam-A annotations</a></li>
+            <li><a class="link" rel="families">Pfam-A family list  </a></li>
+            <li><a class="link" rel="protein">Protein sequence data</a></li>
+            <li><a class="link" rel="search">Sequence searches</a></li>
           </ol>
         </li>
       </ol>
@@ -96,7 +96,7 @@ sharedRequirements.css.push( "prettify.css" );
       The response from the server will now be an XML document, rather than an
       HTML page.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="sending">Sending requests</a></h3>
 
@@ -153,7 +153,7 @@ else {
 }</pre>
       </div>
     </fieldset>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="retrieving">Retrieving data</a></h3>
 
@@ -200,7 +200,7 @@ print 'accession: ' . $entry->getAttribute( 'accession' ) . "\n";</pre>
       This script now prints out the accession for the family &quot;Piwi&quot;
       (<a href="[% c.uri_for( '/family/piwi' ) %]">PF02171</a>).
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <hr />
     
@@ -264,7 +264,7 @@ Piwi</pre>
       </div>
     </fieldset>
 
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
     
     <h3><a name="pfama">Pfam-A annotations</a></h3>
 
@@ -397,7 +397,7 @@ for example mRNA, guided by double stranded siRNA.
       <a href="[% c.uri_for('/static/documents/schemas/dead_family.xsd' ) %]">
         here</a>.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="families">Pfam-A family list</a></h3>
 
@@ -444,7 +444,7 @@ for example mRNA, guided by double stranded siRNA.
       <a href="[% c.uri_for('/static/documents/schemas/pfam_families.xsd' ) %]">
         here</a>.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="protein">Protein sequence data</a></h3>
 
@@ -516,7 +516,7 @@ Calpain-1 catalytic subunit EC=3.4.22.52
       You can see the XML schema for this XML document 
       <a href="[% c.uri_for('/static/documents/schemas/protein.xsd' ) %]">here</a>.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h3><a name="search">Sequence searches</a></h3>
     
@@ -550,7 +550,7 @@ Calpain-1 catalytic subunit EC=3.4.22.52
       and retrieve results, but the whole process is easily transferred to a 
       single script or program.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
     <h4>Save your sequence to file</h4>
 
@@ -820,7 +820,7 @@ ITFQNGTIRQVNGRIEESR</pre>
       if you wait too long before trying to view your hits in the website, you
       may find that they are already gone.
     </p>
-    <p><a href="#restTop">back to top</a></p>
+    <p><a class="link" rel="faqTop">back to top</a></p>
 
   </div>
     
