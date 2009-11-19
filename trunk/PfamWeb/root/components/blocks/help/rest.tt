@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.8 2009-11-19 11:20:16 jt6 Exp $
+# $Id: rest.tt,v 1.9 2009-11-19 13:46:08 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -745,6 +745,14 @@ ITFQNGTIRQVNGRIEESR</pre>
         </tr>
       </tbody>
     </table>
+    
+    <p>
+      When writing a script to submit searches and retrieve results, please add 
+      a short delay between the submission and the first attempt to retrieve 
+      results. Most search jobs are returned within four to five seconds of
+      submission, depending greatly on the length of the sequence to be 
+      searched.
+    </p>
     
     <h4>Retrieve results</h4>
     <p>
