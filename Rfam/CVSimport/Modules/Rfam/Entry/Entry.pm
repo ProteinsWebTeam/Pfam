@@ -716,7 +716,7 @@ sub _read_std_desc{
    }
 
    @lines = <$file>;
-
+   
   for($i=0;$i <= $#lines;$i++) {
        $_ = $lines[$i];
        /^ID\s+(\S+)$/ && do {
@@ -753,7 +753,6 @@ sub _read_std_desc{
 	   $self->previous_ids($1);
 	   next;
        };
-
        /^GA\s+(.*?)\s+$/ && do {
 	   $self->gathering_cutoff($1);
 	   next;
@@ -793,8 +792,10 @@ sub _read_std_desc{
 	   next;
        };
 
-       # not one of these lines - break!
-       last;
+       /^WK\s+http.*org\/wiki\/(.*)\;?$/ && do {
+	   $self->wiki_title( $1 );
+	   next;
+       };
    }
 
    my( $rn, $rm, $rt, $ra, $rl, $rc, @refs, $comment);
@@ -877,6 +878,7 @@ sub _read_std_desc{
      $ref->authors($ra);
      $ref->location($rl);
    }
+   
 }
 
 
