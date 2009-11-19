@@ -5,7 +5,7 @@
 # 
 # information on the RESTful interface
 #
-# $Id: rest.tt,v 1.10 2009-11-19 14:04:00 jt6 Exp $
+# $Id: rest.tt,v 1.11 2009-11-19 14:45:32 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -805,16 +805,6 @@ ITFQNGTIRQVNGRIEESR</pre>
       You can see the XML schema for this XML document 
       <a href="[% c.uri_for('/static/documents/schemas/results.xsd' ) %]">here</a>.
     </p>
-
-    <p>
-      Since the search is performed by the same server as searches in the Pfam
-      website, you can view your results in a web page by modifying the URL
-      to remove the <code>output=xml</code> parameter:
-    </p>
-    
-    <pre class="url">
-[% c.uri_for( "/search/sequence/results", jobId => "8B39C37A-BF7D-11DC-9E70-862FEF792CB2" ) | html %]</pre>
-    
     <p>
       Note that old search results are generally cleared out after some time, so
       if you wait too long before trying to view your hits in the website, you
