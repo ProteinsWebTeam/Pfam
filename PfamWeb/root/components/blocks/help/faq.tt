@@ -4,7 +4,7 @@
 # 
 # build the faq block for the help pages
 #
-# $Id: faq.tt,v 1.17 2009-10-28 17:07:14 jt6 Exp $
+# $Id: faq.tt,v 1.18 2009-11-19 14:03:49 jt6 Exp $
 %]
 
 <!-- start faq block -->
@@ -372,31 +372,6 @@ HMM STATES           MMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMM
       domains in a protein.
     </p>  
     <p><a class="link" rel="faqTop">back to top</a></p>
-
-    // [%# the links to the individual questions used to be real links, using 
-         # anchors in the page to move around. However, that seems to interfere
-         # with the new tab manager, so we have to work around it. This snippet
-         # of JS adds a listener to each internal link and uses the "rel"
-         # attribute to get the name of the element to scroll to %]
-    <script type="text/javascript">
-      // <![CDATA[
-
-      document.observe( "dom:loaded", function() {
-    
-        $$("a[rel]").each( function(el){
-    
-          el.observe( "click", function(e){
-            var el = e.findElement();
-            var target = el.getAttribute("rel");
-            $$("a[name='"+target+"']").first().scrollTo();
-          } );
-          
-        } );
-    
-      } );
-      
-      // ]]>
-    </script> 
 
   </div>
 </div>
