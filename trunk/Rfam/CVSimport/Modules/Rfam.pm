@@ -61,6 +61,7 @@ use vars qw( @ISA
 use Rfam::DB::DB_RCS;
 use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
+use RfamUtils;
 
 #mfetch -d version
 $embl = "embl_100";
@@ -137,6 +138,10 @@ our $rdb_user = "pfam";
 our $rdb_pass = "mafp1";
 our $rdb_port= "3303";
 
+#for rfamlive-special access..
+our $rdb_user_admin = "pfamadmin";
+our $rdb_pass_admin = "mafpAdmin";
+
 #for Release (rfamdev)
 our $rdbHostDev = "pfamdb2a";
 our $rdbUserDev = "pfam";
@@ -144,9 +149,12 @@ our $rdbPassDev = "mafp1";
 our $rdbPortDev= "3301";
 our $rdbNameDev= "rfam_9_1";
 
-my $external_rdb_name = "rfam";
-my $switchover_rdb_name = "rfam2";
+our $release_rdb_name = "rfam_9_1";
 our $live_rdb_name = "rfamlive";
+#temp databases used sequpdate switch over
+our $backup_rdb_name = "rfamlive_backup";
+our $test_rdb_name = "rfamlive_seq10";
+
 
 ######################################################################
 #Dictionaries of forbidden terms used by rfmake.pl & ALIGN2SEED.pl
@@ -220,31 +228,7 @@ sub default_db{
 				  '-rfamseq'   => $rfamseq );
 } 
 
-
-sub external_rdb {
-   my ($self) = @_;
-   warn "Depricated method. Call for $external_rdb_name db: this database doesn't exist";
-   #return Rfam::DB::DB_RDB->new('-db_name' => $external_rdb_name,
-#				'-db_driver' => $rdb_driver, 
-#				'-db_host' => $rdb_host,
-#				'-db_user' => $rdb_user,
-#				'-db_password' => $rdb_pass);
-
-}
-
-
-
-sub switchover_rdb {
-   my ($self) = @_;
-   warn "Depricated method. Call for $switchover_rdb_name db: this database doesn't exist";
-   # return Rfam::DB::DB_RDB->new('-db_name' => $switchover_rdb_name,
-#				'-db_driver' => $rdb_driver, 
-#				'-db_host' => $rdb_host,
-#				'-db_user' => $rdb_user,
-#				'-db_password' => $rdb_pass);
-
-}
-
+#curation
 sub live_rdb {
    my ($self) = @_;
 
@@ -257,75 +241,47 @@ sub live_rdb {
 
 }
 
-# sub temp_rdb {
-#    my ($self) = @_;
-#     warn "Depricated method. Call for $temp_rdb_name db: this database doesn't exist";
-#   #  return Rfam::DB::DB_RDB->new('-db_name' => $temp_rdb_name,
-# #				'-db_driver' => $rdb_driver, 
-# #				'-db_host' => $rdb_host,
-# #				'-db_user' => $rdb_user,
-# #				'-db_password' => $rdb_pass);
+#the only one on dev
+sub release_rdb {
+   my ($self) = @_;
 
-# }
-
-sub external_rdb_update{
-    my ($self) = @_;
-     warn "Depricated method. Call for $external_rdb_name db: this database doesn't exist";
-
-    #my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
-
-    #if (defined $dont) {
-#	if ($dont =~ /true/i) {
-#	    return undef;
-#	}
-#	else {
-#	    my $mess = "UpdateRDB - ";
-#	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
-#	    $mess .= "Found it to be $dont";
-#	    $self->throw( $mess );
-#       }
-#    }
-#    else { 
-#	return Rfam::UpdateRDB->new('-db_name' => $external_rdb_name,
-#				    '-db_driver' => $rdb_driver, 
-#				    '-db_host' => $rdb_host,
-#				    '-db_user' => $rdb_user,
-#				    '-db_password' => $rdb_pass);
-#    }    
+   return Rfam::DB::DB_RDB->new('-db_name' => $release_rdb_name,
+				'-db_driver' => $rdb_driver, 
+				'-db_host' => $rdbHostDev,
+				'-db_user' => $rdbUserDev,
+				'-db_password' => $rdbPassDev,
+				'-db_port' => $rdbPortDev );
 
 }
 
+#curation
+sub backup_rdb {
+   my ($self) = @_;
+   return Rfam::DB::DB_RDB->new('-db_name' => $backup_rdb_name,
+				'-db_driver' => $rdb_driver, 
+				'-db_host' => $rdb_host,
+				'-db_user' => $rdb_user,
+				'-db_password' => $rdb_pass,
+				'-db_port' => $rdb_port );
 
-sub switchover_rdb_update{
-    my ($self) = @_;
-    warn "Depricated method. Call for $switchover_rdb_name db: this database doesn't exist";
+   }
 
-    #my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+#curation
+sub test_rdb {
+   my ($self) = @_;
+   return Rfam::DB::DB_RDB->new('-db_name' => $test_rdb_name,
+				'-db_driver' => $rdb_driver, 
+				'-db_host' => $rdb_host,
+				'-db_user' => $rdb_user,
+				'-db_password' => $rdb_pass,
+				'-db_port' => $rdb_port );
 
-    #if (defined $dont) {
-#	if ($dont =~ /true/i) {
-#	    return undef;
-#	}
-#	else {
-#	    my $mess = "UpdateRDB - ";
-#	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
-#	    $mess .= "Found it to be $dont";
-#	    $self->throw( $mess );
-#       }
-#    }
-#    else {
-#	return Rfam::UpdateRDB->new('-db_name' => $switchover_rdb_name,
-#				    '-db_driver' => $rdb_driver, 
-#				    '-db_host' => $rdb_host,
-#				    '-db_user' => $rdb_user,
-#				    '-db_password' => $rdb_pass);
-#    }    
+   }
 
-}
 
 sub live_rdb_update{
     my ($self) = @_;
-
+     
     my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
 
     if (defined $dont) {
@@ -350,31 +306,114 @@ sub live_rdb_update{
     
 }
 
+sub release_rdb_update{
+    my ($self) = @_;
+
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+      }
+   }
+   else {
+	return Rfam::UpdateRDB->new('-db_name' => $release_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdbHostDev,
+				    '-db_user' => $rdbUserDev,
+				    '-db_password' => $rdbPassDev);
+   }    
+
+}
+
+
+sub test_rdb_update{
+    my ($self, $user) = @_;
+    
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+      }
+   }
+   else {
+	
+	return Rfam::UpdateRDB->new('-db_name' => $test_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdb_host,
+				    '-db_user' => $rdb_user,
+				    '-db_password' => $rdb_pass,
+				   '-db_port' => $rdb_port );
+
+    }
+}
+
+sub test_rdb_update_admin{
+    my ($self) = @_;
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+      }
+   }
+   else {
+  	return Rfam::UpdateRDB->new('-db_name' => $test_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdb_host,
+				    '-db_user' => $rdb_user_admin,
+				    '-db_password' => $rdb_pass_admin,
+				   '-db_port' => $rdb_port );
+
+   }    
+
+}
+
+
+sub external_rdb {
+   my ($self) = @_;
+   warn "Deprecated method. Call for external_rdb_name db: this database doesn't exist";
+}
+sub external_rdb_update{
+    my ($self) = @_;
+    warn "Deprecated method. Call for external_rdb_name db: this database doesn't exist";
+}
+
+sub switchover_rdb {
+   my ($self) = @_;
+   warn "Deprecated method. Call for switchover_rdb_name db: this database doesn't exist";
+}
+sub switchover_rdb_update{
+   my ($self) = @_;
+   warn "Deprecated method. Call for switchover_rdb_name db: this database doesn't exist";
+}
+
+sub temp_rdb{
+    my ($self) = @_;
+    warn "Deprecated method. Call for temp_rdb_name db: this database doesn't exist";
+}
 sub temp_rdb_update{
     my ($self) = @_;
-    warn "Depricated method. Call for $switchover_rdb_name db: this database doesn't exist";
-
-   # my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
-
-#    if (defined $dont) {
-#	if ($dont =~ /true/i) {
-#	    return undef;
-#	}
-#	else {
-#	    my $mess = "UpdateRDB - ";
-#	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
-#	    $mess .= "Found it to be $dont";
-#	    $self->throw( $mess );
-#       }
-#    }
-#    else {
-#	return Rfam::UpdateRDB->new('-db_name' => $temp_rdb_name,
-#				    '-db_driver' => $rdb_driver, 
-#				    '-db_host' => $rdb_host,
-#				    '-db_user' => $rdb_user,
-#				    '-db_password' => $rdb_pass);
-#    }    
-
+    warn "Deprecated method. Call for temp_rdb_name db: this database doesn't exist";
 }
 
 1;
