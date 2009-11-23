@@ -2,7 +2,7 @@
 # Protein.pm
 # jt6 20060427 WTSI
 #
-# $Id: Protein.pm,v 1.42 2009-10-28 11:56:33 jt6 Exp $
+# $Id: Protein.pm,v 1.43 2009-11-23 13:05:33 jt6 Exp $
 
 =head1 NAME
 
@@ -19,7 +19,7 @@ This is intended to be the base class for everything related to
 UniProt entries across the site. 
 Generates a B<tabbed page>.
 
-$Id: Protein.pm,v 1.42 2009-10-28 11:56:33 jt6 Exp $
+$Id: Protein.pm,v 1.43 2009-11-23 13:05:33 jt6 Exp $
 
 =cut
 
@@ -212,18 +212,9 @@ sub get_data : Private {
     $c->stash->{layout} = $json->encode( $c->stash->{seqs} );
   }
 
-  # if we've arrived here from the top-level controller, rather than from one 
-  # of the sub-classes, we will be displaying a key for the domain graphic.
-  # For now at least, the sub-classes, such as the interactive feature viewer,
-  # don't bother with the key, so they don't need this extra blob of data in 
-  # the stash. 
-  # $c->forward( 'generate_key', [ $layoutPfam ] )
-  #   if ref $this eq 'PfamWeb::Controller::Protein';
-
   #----------------------------------------
 
   # add extra data to the stash  
-  # $c->forward('generate_pfam_graphic');
   # $c->forward('get_das_sources');
   $c->forward('get_mapping');
   $c->forward('get_summary_data');
@@ -303,134 +294,16 @@ sub get_mapping : Private {
   my ( $this, $c ) = @_;
 
   my @mapping = $c->model('PfamDB::PdbPfamaReg')
-                  ->search( { 'auto_pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq },
-                            { prefetch              => [ qw( auto_pfama
-                                                             auto_pfamseq
-                                                             pdb_id ) ] } );
+                  ->search( { 'auto_pfamseq.auto_pfamseq' => $c->stash->{pfamseq}->auto_pfamseq,
+                              'pdb_res_start'             => { '!=' => 'pdb_res_end' } },
+                            { prefetch => [ qw( auto_pfama
+                                                auto_pfamseq
+                                                pdb_id ) ] } );
 
   $c->stash->{pfamMaps} = \@mapping;
 
   $c->log->debug('Protein::begin: added the structure mapping to the stash')
     if $c->debug;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 generate_pfam_graphic : Private
-
-Generates the Pfam graphic.
-
-=cut
-
-sub generate_pfam_graphic : Private {
-  my ( $this, $c ) = @_;
-
-  # get a layout manager and set the X scale
-  my $layoutPfam = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layoutPfam->scale_x(1);
-  $c->log->debug('Protein::generate_pfam_graphic: instantiated a layout manager')
-    if $c->debug;
-
-  # retrieve the Storable containing the annotated sequence, thaw it
-  # and hand it off to the layout manager
-  my $annseq;
-  eval {
-    $c->log->debug( 'Protein::generate_pfam_graphic: pfamseq:  ' . ref $c->stash->{pfamseq} )
-      if $c->debug;
-
-    my $annseq_row = $c->stash->{pfamseq}->annseqs;
-    $c->log->debug( 'Protein::generate_pfam_graphic: annseq:   ' . ref $annseq_row )
-      if $c->debug;
-
-    my $storable   = $annseq_row->annseq_storable;
-    $c->log->debug( 'Protein::generate_pfam_graphic: storable: ' . ref $storable )
-      if $c->debug;
-
-    $annseq = thaw( $storable );
-  };
-  if ($@) {
-    $c->log->error("Protein::generate_pfam_graphic: ERROR: failed to thaw annseq: $@");
-    return;
-  }
-
-  $layoutPfam->layout_sequences_with_regions_and_features( [$annseq],
-                                                           { PfamA      => 1,
-                                                             PfamB      => 1,
-                                                             noFeatures => 0 } );
-
-  # if we've arrived here from the top-level controller, rather than from one 
-  # of the sub-classes, we will be displaying a key for the domain graphic.
-  # For now at least, the sub-classes, such as the interactive feature viewer,
-  # don't bother with the key, so they don't need this extra blob of data in 
-  # the stash. 
-  $c->forward( 'generate_key', [ $layoutPfam ] )
-    if ref $this eq 'PfamWeb::Controller::Protein';
-
-  # and build an imageset
-
-  # should we use a document store rather than temp space for the images ?
-  my $imageset;  
-  if ( $c->config->{use_image_store} ) {
-    $c->log->debug( 'Protein::generate_pfam_graphic: using document store for image' )
-      if $c->debug;
-    require PfamWeb::ImageSet;
-    $imageset = PfamWeb::ImageSet->new;
-  }
-  else {
-    $c->log->debug( 'Protein::generate_pfam_graphic: using temporary directory for image' )
-      if $c->debug;
-    require Bio::Pfam::Drawing::Image::ImageSet;
-    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  }
-
-  $imageset->create_images( $layoutPfam->layout_to_XMLDOM );
-  $c->log->debug('Protein::generate_pfam_graphic: created images')
-    if $c->debug;
-
-  $c->stash->{pfamImageset} = $imageset;
-
-  $c->log->debug('Protein::generate_pfam_graphic: successfully generated an imageset object')
-    if $c->debug;
-}
-
-#-------------------------------------------------------------------------------
-
-=head2 generate_key : Private
-
-Generates a data structure representing the key to the domain image, which 
-can be formatted sensibly by the view. Needs a reference to the 
-L<LayoutManager> that will build the Pfam graphic.
-
-=cut
-
-sub generate_key : Private {
-  my( $this, $c, $lm ) = @_;
-  
-  # retrieve a hash of BioPerl objects indexed on sequence ID
-  my %hash = $lm->seqHash;
-
-  # pull out the sequence object for just the sequence that we're dealing with
-  # (there should be only that one anyway) 
-  my $seq = $hash{ $c->stash->{pfamseq}->pfamseq_id };
-
-  # and get the raw key data from that
-  my %key = $seq->getKey;
-
-  # from this point on we're mimicking old, crufty code...
-  
-  # sort the rows according to the start position of the domain
-  my @rows;
-  foreach my $row ( sort{$key{$a}{start} <=> $key{$b}{start} } keys %key ) {
-
-    # shouldn't they always be a number ?
-    next unless $key{$row}{start} =~ /^\d+$/;
-   
-    # just store the hash for this row and we're done here; let the view
-    # figure out what to render 
-    push @rows, $key{$row};
-  }
-  
-  $c->stash->{imageKey} = \@rows;
 }
 
 #-------------------------------------------------------------------------------
