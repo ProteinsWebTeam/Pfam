@@ -2,7 +2,7 @@
 # Structure.pm
 # jt6 20060706 WTSI
 #
-# $Id: Structure.pm,v 1.20 2009-10-07 10:33:57 jt6 Exp $
+# $Id: Structure.pm,v 1.21 2009-11-23 13:05:49 jt6 Exp $
 
 =head1 NAME
 
@@ -31,7 +31,7 @@ site, so it includes an action to capture a URL like
 
 Generates a B<tabbed page>.
 
-$Id: Structure.pm,v 1.20 2009-10-07 10:33:57 jt6 Exp $
+$Id: Structure.pm,v 1.21 2009-11-23 13:05:49 jt6 Exp $
 
 =cut
 
@@ -267,7 +267,8 @@ sub add_mapping : Private {
 
   # add the structure-to-UniProt mapping to the stash
   my @unpMap = $c->model('PfamDB::PdbPfamaReg')
-                 ->search( { pdb_id    => $c->stash->{pdb}->pdb_id },
+                 ->search( { pdb_id          => $c->stash->{pdb}->pdb_id, 
+                             'pdb_res_start' => { '!=' => 'pdb_res_end' } },
                            { prefetch => [ qw( auto_pfama auto_pfamseq ) ],
                              order_by => 'chain ASC' } );
 
