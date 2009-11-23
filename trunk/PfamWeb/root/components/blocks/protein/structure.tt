@@ -4,9 +4,9 @@
 # 
 # block for the structure data for the sequence section
 #
-# $Id: structure.tt,v 1.16 2009-10-07 13:46:23 jt6 Exp $
+# $Id: structure.tt,v 1.17 2009-11-23 13:06:09 jt6 Exp $
 
-RETURN UNLESS numStructures;
+RETURN UNLESS summaryData.numStructures;
 -%]
 
 <!-- start structure block -->
@@ -30,7 +30,7 @@ RETURN UNLESS numStructures;
 
     [%- mapping = {};
     FOREACH pdbMap IN pfamMaps;
-      seqKey = pdbMap.pfamA_id; # N.B. seqKey is the Pfam ID here !!!
+      seqKey = pdbMap.auto_pfama.pfama_id; # N.B. seqKey is the Pfam ID here !!!
       IF ! mapping.$seqKey;
         mapping.$seqKey = {};
       END;
@@ -40,7 +40,7 @@ RETURN UNLESS numStructures;
         mapping.$seqKey.$resKey = {};
       END;
 
-      pdbKey = pdbMap.pdb_id;
+      pdbKey = pdbMap.pdb_id.pdb_id;
       IF ! mapping.$seqKey.$resKey.$pdbKey;
         mapping.$seqKey.$resKey.$pdbKey = {};
       END;
