@@ -2,15 +2,15 @@
 # Pfam.pm
 # jt6 20060810 WTSI
 #
-# $Id: Pfam.pm,v 1.11 2009-10-07 22:07:22 jt6 Exp $
+# $Id: Pfam.pm,v 1.12 2009-11-24 16:39:48 pg6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Searches::Plugin::Pfam - search plugin for the pfamA table
+iPfamWeb::Controller::Searches::Plugin::Pfam - search plugin for the pfamA table
 
 =cut
 
-package PfamWeb::Controller::Search::Plugin::Pfam;
+package iPfamWeb::Controller::Search::Plugin::Pfam;
 
 =head1 DESCRIPTION
 
@@ -36,7 +36,7 @@ against the following columns:
 Also does a simple look up in the pfam table, checking to see if the
 raw search terms match a Pfam family accession or ID.
 
-$Id: Pfam.pm,v 1.11 2009-10-07 22:07:22 jt6 Exp $
+$Id: Pfam.pm,v 1.12 2009-11-24 16:39:48 pg6 Exp $
 
 =cut
 
@@ -50,8 +50,9 @@ $Id: Pfam.pm,v 1.11 2009-10-07 22:07:22 jt6 Exp $
 
 use strict;
 use warnings;
+use Data::Dump qw( dump );
 
-use base 'PfamWeb::Controller::Search';
+use base 'iPfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 
@@ -71,13 +72,24 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::Pfam::process: text querying table pfamA using: |' .
                   $c->stash->{terms} . '|' ) if $c->debug;
 
-  my $results = $c->model('PfamDB::Pfama')
+  my $rs = $c->model('iPfamDB::Pfama')
                   ->search( {},
                             {} )
-                  ->search_literal( 'MATCH( pfama_acc, pfama_id, description, comment, previous_id ) ' .
+                  ->search_literal( 'MATCH( pfama_acc, pfama_id, description, comment ) ' .
                                     'AGAINST( ? IN BOOLEAN MODE )',
                                     $c->stash->{terms} );
-
+  
+  # rather than retruning an object, just build a hash of what we need,
+  my $results = [];
+  while(my $r = $rs->next ){
+    push @$results,{
+      'acc' =>  $r->get_column( 'pfama_acc' ),
+      'id'  =>  $r->get_column( 'pfama_id'),
+      'desc'=>  $r->get_column( 'description'),
+      'type'=>  'family'
+    };
+  }
+  #$c->log->debug( "Search::Plugin::process:dump of the results is ".dump( $results ) );
   # do a simple lookup for the ID or accession...
 #  $c->log->debug( "Search::Plugin::Pfam::process: doing a lookup for ID or acc using: |" .
 #                  $c->stash->{rawQueryTerms} . '|' ) if $c->debug;
@@ -86,6 +98,7 @@ sub process : Private {
 #                                                   { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
 
 #  return $results, $lookup;
+  $c->log->debug( "the size of the resutls is ".scalar( @$results ) );
   return $results;
 }
 
