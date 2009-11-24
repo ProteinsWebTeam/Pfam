@@ -1,16 +1,17 @@
 
 # GO.pm
 # jt6 20060816 WTSI
+# pg6 20091123 WTSI
 #
-# $Id: GO.pm,v 1.6 2009-10-07 10:41:31 jt6 Exp $
+# $Id: GO.pm,v 1.7 2009-11-24 16:39:48 pg6 Exp $
 
 =head1 NAME
 
-PfamWeb::Controller::Searches::Plugin::GO - search plugin for the gene_ontology table
+iPfamWeb::Controller::Searches::Plugin::GO - search plugin for the gene_ontology table
 
 =cut
 
-package PfamWeb::Controller::Search::Plugin::GO;
+package iPfamWeb::Controller::Search::Plugin::GO;
 
 =head1 DESCRIPTION
 
@@ -28,7 +29,7 @@ following columns:
 There's an explicit join against the pfamA table, so that we can
 retrieve pfamA accession, ID and description.
 
-$Id: GO.pm,v 1.6 2009-10-07 10:41:31 jt6 Exp $
+$Id: GO.pm,v 1.7 2009-11-24 16:39:48 pg6 Exp $
 
 =cut
 
@@ -43,8 +44,9 @@ $Id: GO.pm,v 1.6 2009-10-07 10:41:31 jt6 Exp $
 
 use strict;
 use warnings;
+use Data::Dump qw( dump );
 
-use base 'PfamWeb::Controller::Search';
+use base 'iPfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 
@@ -60,14 +62,26 @@ sub process : Private {
   $c->log->debug( 'Search::Plugin::GO::process: text querying table gene_ontology' )
     if $c->debug;
 
-  my $results = $c->model('PfamDB::GeneOntology')
+  my $rs = $c->model('iPfamDB::GeneOntology')
                   ->search( {},
-                            { join     => [ qw( auto_pfama ) ],
-                              prefetch => [ qw( auto_pfama ) ] } )
+                            { prefetch => [ qw( pfama_acc ) ] } )
                   ->search_literal( 'MATCH( go_id, term ) ' .
                                     'AGAINST( ? IN BOOLEAN MODE )',
                                     $c->stash->{terms} );
-
+  
+  my $results = [];
+  while( my $r = $rs->next ){
+    push @$results, {
+      'acc'   =>  $r->get_column( 'pfama_acc' ),
+      'id'    =>  $r->pfama_acc->get_column( 'pfama_id' ),
+      'go_id' =>  $r->get_column( 'go_id' ),
+      'desc'  =>  $r->pfama_acc->get_column( 'description' ),
+      'type'  =>  'family'
+    };
+  }
+  
+  #$c->log->debug( "Search::Plugin::process:dump of the results is ".dump( $results ) );
+  $c->log->debug( "the size of the resutls is ".scalar( @$results ) );
   return $results;
 }
 
