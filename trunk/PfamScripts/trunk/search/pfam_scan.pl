@@ -1,6 +1,6 @@
 #!/software/bin/perl
 
-# $Id: pfam_scan.pl,v 1.24 2009-10-15 16:03:18 jm14 Exp $
+# $Id: pfam_scan.pl,v 1.25 2009-11-24 13:04:19 jm14 Exp $
 
 use strict;
 use warnings;
@@ -15,7 +15,7 @@ my $VERSION = "1.1";
 # get the user options
 my ( $outfile, $e_seq, $e_dom, $b_seq, $b_dom, $dir, 
      $clan_overlap, $fasta, $align, $help, $as, $pfamB, 
-     $json, $only_pfamB );
+     $json, $only_pfamB, $cpu );
 GetOptions( 'help'         => \$help,
             'outfile=s'    => \$outfile,
             'e_seq=f'      => \$e_seq,
@@ -31,7 +31,11 @@ GetOptions( 'help'         => \$help,
             'pfamB'        => \$pfamB,
             'only_pfamB'   => \$only_pfamB,
             'json:s'       => \$json,
+	    'cpu=i'        => \$cpu
 );
+
+
+
 
 help() if $help;
 help() unless ( $dir and $fasta ); # required options
@@ -105,7 +109,8 @@ my $ps = Bio::Pfam::Scan::PfamScan->new(
   -align        => $align,
   -as           => $as,
   -hmmlib       => \@hmmlib,
-  -version      => $VERSION
+  -version      => $VERSION,
+  -cpu          => $cpu
 );
 
 # run the search
@@ -147,7 +152,7 @@ Usage: pfam_scan.pl -fasta <fasta_file> -dir <directory location of Pfam files>
 Additonal options:
 
   -h              : show this help
-  -o <file>       : output file, otherwise send to STDOUT
+  -outfile <file> : output file, otherwise send to STDOUT
   -clan_overlap   : show overlapping hits within clan member families (applies to Pfam-A families only)
   -align          : show the HMM-sequence alignment for each match
   -e_seq <n>      : specify hmmscan evalue sequence cutoff for Pfam-A searches (default Pfam defined)
