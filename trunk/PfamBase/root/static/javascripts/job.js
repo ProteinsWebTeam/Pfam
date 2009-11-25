@@ -5,7 +5,7 @@
 // javascript class implementing a "job tracker", with progress bar. The
 // use of the timer is copied from prototype.js.
 //
-// $Id: job.js,v 1.7 2009-07-22 13:12:11 jt6 Exp $
+// $Id: job.js,v 1.8 2009-11-25 10:49:15 jt6 Exp $
 
 // Copyright (c) 2007: Genome Research Ltd.
 // 
@@ -496,18 +496,13 @@ var Job = Class.create({
     var last = $A( $("logScroller").childNodes ).last();
 
     // a span to hold the whole log entry
-    var entryEl = document.createElement( "div" );
-    entryEl.setAttribute( "id", "msg" + numMsgs );
+    var entryEl = new Element( "div", { id: "msg" + numMsgs } );
 
     // the title
-    var titleEl = document.createElement( "span" );
-    titleEl.setAttribute( "class", "title" )
-    titleEl.update( title + ":&nbsp;" );
+    var titleEl = new Element( "span", { "class": "title" } ).update( title + ":&nbsp;" );
     
     // the message itself
-    var msgEl = document.createElement( "span" );
-    msgEl.setAttribute( "class", "msg" );
-    msgEl.update( msg );
+    var msgEl = new Element( "span", {"class": "msg" } ).update( msg );
 
     // the entry
     entryEl.appendChild( titleEl );
