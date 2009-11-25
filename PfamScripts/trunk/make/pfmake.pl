@@ -97,7 +97,7 @@ sub main {
   $HMMResults->applyEdits( $descObj->EDITS ) if( $descObj->EDITS );  
   
   #Set the thresholds on the results set.  
-  if($domThrs and $seqThrs){
+  if(defined $domThrs and defined $seqThrs){
     $HMMResults->domThr($domThrs);
     $HMMResults->seqThr($seqThrs);
   }elsif(defined($oldSeqThrs) and defined($oldDomThrs)){
