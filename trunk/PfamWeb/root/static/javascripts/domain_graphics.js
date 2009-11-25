@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.8 2009-10-22 14:37:30 jt6 Exp $
+// $Id: domain_graphics.js,v 1.9 2009-11-25 13:41:25 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -71,44 +71,92 @@ var PfamGraphic = Class.create( {
   //----------------------------------------------------------------------------
   /**
    * @class 
-   * A javascript library for drawing Pfam-style domain graphics.</p> 
+   * A javascript library for drawing Pfam-style domain graphics in an HTML5
+   * &lt;canvas&gt; element. 
+   * </p>
    * 
-   * <h3>Synopsis</h3>
+   * <h2>Synopsis</h2>
    *
-   * <code>
-   * var pg = new PfamGraphic( parentEl, sequence );<br />
-   * pg.render();
+   * <code><pre>
+   *   // build the description of the graphic
+   *   var sequence = {
+   *     length: 400,
+   *     regions: [ { startStyle: "curved",
+   *                  endStyle:   "curved",
+   *                  start:      40,
+   *                  end:        220,
+   *                  aliStart:   60,
+   *                  aliEnd:     200,
+   *                  colour:     "#ff8800",
+   *                  text:       "first" },
+   *                { startStyle: "jagged",
+   *                  endStyle:   "jagged",
+   *                  start:      300,
+   *                  end:        380,
+   *                  aliStart:   315,
+   *                  aliEnd:     350,
+   *                  colour:     "#ff0000",
+   *                  text:       "second" } ]
+   *   };
+   *  
+   *   // get a handle on the element in the page (usually a div) that will 
+   *   // hold the canvas 
+   *   var parentEl = document.getElementById("canvasContainer");
+   *   
+   *   // get a PfamGraphic object and hand it the element and sequence object
+   *   var pg = new PfamGraphic( parentEl, sequence );
+   *  
+   *   // create a canvas within the specified element and draw the graphic on 
+   *   // that canvas
+   *   pg.render();</pre>
    * </code>
    *
-   * <h3>Inputs</h3>
-   *
-   * <p>The canvas element will be attached to the page as the child of the
-   * supplied parent element. The parent can be given either as a string, 
-   * with the ID of the element in question, or as a reference to the DOM
-   * element.</p>
-   *
-   * <p>The graphic is described by a javascript data structure (a JSON object)
-   * that specifies all necessary parameters, from the length of the sequence 
-   * to the colours of the domains and other markup.</p>
+   * <h2>Usage</h2>
    * 
-   * <h4>Sequence object</h4>
+   * <p>
+   * One of the main visualisations in the <a href="http://pfam.sanger.ac.uk/">
+   *   Pfam website</a> is the Pfam domain graphic. Domain graphics provide
+   * simple representations of protein sequences, showing the locations of 
+   * various sequence elements, from Pfam-A families to predicted active sites 
+   * and disulphide bridges. Given a description of the sequence, this library 
+   * draws Pfam graphics within a browser window.
+   * </p>
+   * 
+   * <h2>Inputs</h2>
+   *
+   * <p>
+   * The library needs a minimum of two inputs. Unless specified in the options,
+   * the library will create a new &lt;canvas&gt; element and use that for 
+   * drawing. The parent can be given either as a string, with the ID of the 
+   * element in question, or as a reference to the DOM element. The canvas 
+   * element will be attached to the page as the child of the supplied parent 
+   * element. 
+   * </p>
+   * <p>
+   * The graphic itself is described by a javascript data structure (a JSON 
+   * object) that specifies all necessary parameters, from the length of the 
+   * sequence to the colours of the domains and other markup.
+   * </p>
+   * 
+   * <h3>Sequence object</h3>
    *
    * <p>The sequence object must have the following structure:</p>
    *
    * <pre>
    *   var structure = {
    *     length: 100,     // required: positive integer
-   *     regions: [],     // required: javascript array
-   *     motifs:  [],     // required: javascript array
-   *     markups: [],     // required: javascript array
+   *     regions: [],     // optional: javascript array
+   *     motifs:  [],     // optional: javascript array
+   *     markups: [],     // optional: javascript array
    *     options: {}      // optional: javascript object
    *   };
    * </pre>
    *
-   * <p>The three required objects, <code>regions</code>, <code>motifs</code>
-   * and <code>markups</code>, can be empty, but they must be supplied. Each
-   * contains a list of graphical entities to be drawn. The three distinct 
-   * types of entity are:</p>
+   * <p>
+   * There are three main sections, <code>regions</code>, <code>motifs</code> 
+   * and <code>markups</code>. Each can be empty or can be omitted entirely. 
+   * The three distinct types of entity are:
+   * </p>
    * 
    * <dl>
    *   <dt>region</dt>
@@ -122,37 +170,45 @@ var PfamGraphic = Class.create( {
    *     a line joining two points on the sequence, or an active site 
    *     residue, drawn as a &quot;lollipop&quot;</dd>
    * </dl>
-   *
-   * <h3>The canvas</h3>
+   * 
+   * <h2>The canvas</h2>
    *
    * <p>The &lt;canvas&gt; element that is used to draw the graphic can 
    * either be supplied or generated by the PfamGraphic object. The parent 
    * element must be accessible in the DOM before calling 
    * <code>render()</code>.</p>
    * 
-   * <h3>Dependencies</h3>
+   * <h2>Dependencies</h2>
    *
    * <dl>
    *   <dt>Prototype</dt>
-   *   <dd>This library relies heavily on the prototype javascript library. Make
-   *   sure that the source of the page loads prototype before this file.</dd>
+   *   <dd>This library is built on the <a href="http://prototypejs.org/">
+   *     prototype</a> javascript library. Make sure that the source of the page 
+   *     loads prototype before this library.</dd>
    *  
    *   <dt>Canvas-text</dt>
    *   <dd>The labels on domains are rendered using standard canvas text
-   *   drawing calls, but these are only available as a native API in the most
-   *   recent browsers (FF3.6, Safari 3, maybe others). Load the canvas-text
-   *   library before this file, in order to provide text functionality in other
-   *   browsers.</dd>
+   *     drawing calls, but these are only available as a native API in the most
+   *     recent browsers (FF3.5, Safari 3, maybe others). Load the 
+   *     <a href="http://code.google.com/p/canvas-text/">canvas-text</a>
+   *     library before this file, in order to provide text functionality in 
+   *     other browsers.</dd>
    *   
-   *   <dt>Prototip2</dt>
-   *   <dd>Tooltips can be generated for mouseover events on the canvas, but this
-   *   requires the prototip library (version 2) to be loaded before this file.</dd>
-   *  
    *   <dt>Excanvas</dt>
-   *   <dd>Graphics are rendered into an HTML5 &lt;canvas&gt; element. This should
-   *   work in most modern browsers, though Internet Explorer requires the 
-   *   "excanvas" library too.</dd>
+   *   <dd>Graphics are rendered into an HTML5 &lt;canvas&gt; element. This 
+   *     should work in most modern browsers, though Internet Explorer requires 
+   *     the <a href="http://code.google.com/p/explorercanvas/">excanvas</a> 
+   *     library too.</dd>
    * </dl>
+   * 
+   * <p>
+   *   You can optionally include the 
+   *   <a href="http://www.nickstakenburg.com/projects/prototip2/">prototip2</a>
+   *   library and add a <code>metadata</code> item to each region in the 
+   *   sequence object, to have tooltips added to the graphical elements.
+   * </p>
+   *  
+   * <p>
    *
    * @description Builds a new PfamGraphic object. The parent element and sequence
    *   can be specified as arguments, or they can be set using setters. Both
@@ -172,6 +228,21 @@ var PfamGraphic = Class.create( {
       headSizeDiamond: 4,
       headSizeArrow:   3,
       headSizeLine:    3,
+     
+      // padding (in pixels) for the ends of the graphic, so that lollipop heads 
+      // are not truncated when the lollipop is close to one end of the 
+      // sequence. This padding is added to both sides of the sequence when 
+      // calculating the width of the canvas
+      sequenceEndPadding: 2,
+      
+      // sets the X and Y offsets for drawing the graphic. By default, the 
+      // graphic is drawing as close to the origin of the canvas as possible. 
+      // Setting the offsets shifts the drawing origin for the graphics, 
+      // meaning that it can be positioned away from the canvas origin, if 
+      // required. Note that the drawing offsets are applied before the scale 
+      // factors applied, so they are raw pixel values
+      xOffset: 0,
+      yOffset: 0,
       
       // parameters for adjusting the edges of domains
       defaultMarkupHeight:         20, // default height for a lollipop
@@ -185,15 +256,16 @@ var PfamGraphic = Class.create( {
       fontSize: "0.8em",
 
       // general image parameters
-      regionHeight:  20,  // the height of a region
-      motifHeight:   14,  // the height of a motif
-      motifOpacity:  0.6, // the opacity of a motif
-      labelPadding:  3,   // padding for the text label on a region
-      xscale:        0.5, // xscale pixels per residue
-      yscale:        1,   // not currently used
-      envOpacity:    0.6, // opacity of the envelope regions
-      highlightWeight: 1,         // line width of region highlight
-      highlightColour: "#000000"  // colour of region highlight line
+      regionHeight:    20,       // the height of a region
+      motifHeight:     14,       // the height of a motif
+      motifOpacity:    0.6,      // the opacity of a motif
+      labelPadding:    3,        // padding for the text label on a region
+      residueWidth:    0.5,      // number of pixels per residue
+      xscale:          1.0,      // X-dimension scale factor
+      yscale:          1.0,      // Y-dimension scale factor
+      envOpacity:      0.6,      // opacity of the envelope regions
+      highlightWeight: 1,        // line width of region highlight
+      highlightColour: "#000000" // colour of region highlight line
     };
 
     // general options, specified as part of the "sequence"
@@ -216,7 +288,7 @@ var PfamGraphic = Class.create( {
 
     // store the heights of the various drawing elements (only used in the 
     // context of a single rendering)
-    this._heights   = [];
+    this._heights = [];
 
     // somewhere to put <area> definitions for the domains and markups
     this._areasHash = new Hash();
@@ -232,8 +304,8 @@ var PfamGraphic = Class.create( {
     if ( sequence !== undefined ) {
       this.setSequence( sequence );
     }
-
-    // console.log( "PfamGraphic.initialize: finished initialising" );
+    
+    this._saveLevel = 0;
   },
 
   //----------------------------------------------------------------------------
@@ -251,13 +323,13 @@ var PfamGraphic = Class.create( {
    *   will contain the canvas. The element can be identified either by a string,
    *   giving the ID of the parent element, or as an reference to
    *   the parent element directly
-   * @throws {PfamGraphic: ERROR} if a valid parent node is not specified
+   * @throws {PfamGraphicException} if a valid parent node is not specified
    */
   setParent: function( parent ) {
     this._parent = $(parent);
 
     if ( this._parent === undefined || this._parent === null ) {
-      throw( "PfamGraphic: ERROR: couldn't find the parent node" );
+      this._throw( "couldn't find the parent node" );
     }
 
     // console.log( "PfamGraphic.setParent: parent node ID: |%s|", 
@@ -276,31 +348,40 @@ var PfamGraphic = Class.create( {
 
   //----------------------------------------------------------------------------
   /**
-   * Sets the <code>&lt;canvas&gt;</code> element for this graphic.
+   * Sets the <code>&lt;canvas&gt;</code> element for this graphic. 
+   * <strong>Note</strong> that specifying a canvas element automatically calls
+   * <code>setNewCanvas( false )</code>, so that all subsequent renderings will
+   * use the specified canvas. If you want the call to <code>render()</code> to
+   * generate a new canvas again, you will need to call
+   * <code>setNewCanvas( true )</code> yourself. 
    *
    * @param {String|Element} canvas the canvas element that should be used 
    *   for drawing the graphic. The canvas can be identified either by a string,
    *   giving the ID of the canvas element, or as an reference to
    *   the canvas element directly
-   * @throws {PfamGraphic: ERROR} if a valid canvas is is not specified
+   * @throws {PfamGraphicException} if a valid canvas is is not specified
    */
-  setCanvas: function( /** Element */ canvas ) {
+  setCanvas: function( canvas ) {
     this._canvas = $(canvas);
 
     if ( this._canvas === undefined || this._canvas === null ) {
-      throw( "PfamGraphic: ERROR: couldn't find the canvas node" );
+      this._throw( "couldn't find the canvas node" );
     }
 
     // exit if canvas is not supported
     if ( this._canvas.getContext === undefined ) {
-      throw( "PfamGraphic: ERROR: canvas is not supported" );
+      this._throw( "canvas is not supported" );
     }
 
     this._context = this._canvas.getContext( "2d" );
 
     if ( this._context === undefined ) {
-      throw( "PfamGraphic: ERROR: couldn't create a 2d context from canvas" );
+      this._throw( "couldn't create a 2d context from canvas" );
     }
+
+    // automatically turn off the option to generate a new canvas element for
+    // every rendering
+    this.setNewCanvas( false );
 
     // we need to tie the areas to the canvases, so if we change canvas, we
     // also need to reset the areas list
@@ -325,6 +406,7 @@ var PfamGraphic = Class.create( {
    */
   setImageParams: function( userImageParams ) {
     this._imageParams = Object.extend( this._imageParams, userImageParams );
+    this._applyImageParams = true;
   },
 
   //----------------------------------
@@ -353,6 +435,7 @@ var PfamGraphic = Class.create( {
   /**
    * Returns the "new canvas" boolean flag.
    *
+   * @see PfamGraphic#setNewCanvas
    * @returns {Object} the current value of the "new canvas" flag
    */
   getNewCanvas: function() {
@@ -387,7 +470,7 @@ var PfamGraphic = Class.create( {
    * the graphic into a new canvas.
    *
    * @param {Object} sequence data structure describing the graphic
-   * @throws {PfamGraphic: ERROR} if sequence object is not valid
+   * @throws {PfamGraphicException} if sequence object is not valid
    */
   setSequence: function( sequence ) {
 
@@ -395,26 +478,28 @@ var PfamGraphic = Class.create( {
 
     // first, it has to be an object...
     if ( typeof sequence !== "object" ) {
-      throw( "PfamGraphic: ERROR: must supply a valid sequence object" );
+      this._throw( "must supply a valid sequence object" );
     }
 
     // check that the sequence value makes sense
     if ( sequence.length === undefined ) {
-      throw( "PfamGraphic: ERROR: must specify a sequence length" );
+      this._throw( "must specify a sequence length" );
     }
 
     if ( isNaN( sequence.length ) ) {
-      throw( "PfamGraphic: ERROR: sequence length must be a valid number" );
+      this._throw( "sequence length must be a valid number" );
     }
 
     if ( parseInt( sequence.length, 10 ) <= 0 ) {
-      throw( "PfamGraphic: ERROR: sequence length must be a positive integer" );
+      this._throw( "sequence length must be a positive integer" );
     }
+
+    //----------------------------------
 
     // check the "regions", "markups" and "motifs" sections of the sequence
     if ( sequence.regions !== undefined ) {
       if ( typeof sequence.regions !== "object" ) {
-        throw( "PfamGraphic: ERROR: 'regions' must be a valid object" );
+        this._throw( "'regions' must be a valid object" );
       }
     } else {
 
@@ -424,7 +509,7 @@ var PfamGraphic = Class.create( {
 
     if ( sequence.markups !== undefined ) {
       if ( typeof sequence.markups !== "object" ) {
-        throw( "PfamGraphic: ERROR: 'markups' must be a valid object" );
+        this._throw( "'markups' must be a valid object" );
       }
     } else {
       sequence.markups = [];
@@ -432,25 +517,29 @@ var PfamGraphic = Class.create( {
 
     if ( sequence.motifs !== undefined ) {
       if ( typeof sequence.motifs !== "object" ) {
-        throw( "PfamGraphic: ERROR: 'motifs' must be a valid object" );
+        this._throw( "'motifs' must be a valid object" );
       }
     } else {
       sequence.motifs = [];
     }
 
+    //----------------------------------
+
     // see if any options were defined
     if ( sequence.options !== undefined ) {
       if ( typeof sequence.options !== "object" ) {
-        throw( "PfamGraphic: ERROR: 'options' must be a valid object" );
+        this._throw( "'options' must be a valid object" );
       }
       this._options = Object.extend( this._options, sequence.options );
       // console.log( "PfamGraphic.setSequence: merged options: ", this._options );
     }
 
+    //----------------------------------
+
     // see if any image parameters were defined
     if ( sequence.imageParams !== undefined ) {
       if ( typeof sequence.imageParams !== "object" ) {
-        throw( "PfamGraphic: ERROR: 'imageParams' must be a valid object" );
+        this._throw( "'imageParams' must be a valid object" );
       }
       this.setImageParams( sequence.imageParams );
       // console.log( "PfamGraphic.setSequence: merged imageParams: ", this._imageParams );
@@ -459,18 +548,19 @@ var PfamGraphic = Class.create( {
     // everything passes. Stash it
     this._sequence = sequence;
 
+    //----------------------------------
+
     // go through the sequence object and run anything that should be an integer
     // through "parseInt"
     this._walkSequence();
 
     // get the scale out of the image parameters
-    // console.log( "PfamGraphic.setSequence: x_scale: / y_scale: %d / %d", 
-    //   this._imageParams.xscale, this._imageParams.yscale );
+    // console.log( "PfamGraphic.setSequence: residue width, xscale / yscale: %d, %d / %d", 
+    //   this._imageParams.residueWidth, this._imageParams.xscale, this._imageParams.yscale );
     
     // scale the length of the sequence and the weight of the domain image
-    this._imageWidth = this._sequence.length * this._imageParams.xscale;
+    this._imageWidth = this._sequence.length * this._imageParams.residueWidth + 2;
     this._regionHeight = this._imageParams.regionHeight;
-    // TODO start taking notice of yscale
 
     // console.log( "PfamGraphic.setSequence: image width, domain height: %d, %d", 
     //   this._imageWidth, this._regionHeight );
@@ -487,6 +577,54 @@ var PfamGraphic = Class.create( {
 
     // console.log( "PfamGraphic.setSequence: seqHeight / seqStep: %d / %d", 
     //   this._seqHeight, this._seqStep );
+
+    //----------------------------------
+
+    // build the markups (lollipops, etc.). This will calculate the heights
+    // of the various markup elements, without actually drawing them
+    this._buildMarkups();
+
+    // find the maximum of three values, in order to determine the top
+    // extent (and then bottom extent) for the graphical elements:
+    //   o maximum top extend for lollipops
+    //   o maximum top extend for bridges
+    //   o half the domain height
+    this._canvasHeight = [ this._heights.lollipops.upMax,
+                           this._heights.bridges.upMax,
+                           ( this._regionHeight / 2 + 1 ) ].max() +
+                         [ this._heights.lollipops.downMax,
+                           this._heights.bridges.downMax,
+                           ( this._regionHeight / 2 + 1 ) ].max() + 1;
+                         // that single pixel is just a fudge factor...
+
+    // finally, scale the height by the specified factor
+    this._canvasHeight *= this._imageParams.yscale;
+    
+    // if a highlight region is given, adjust the canvas height so that we
+    // have room to add the highlight at the bottom. This is, currently, not
+    // subject to the scaling factor, though that might need to change...
+    if ( this._sequence.highlight !== undefined ) {
+      this._canvasHeight += ( 5 + Math.ceil( this._imageParams.highlightWeight / 2 ) );
+      // console.log( "PfamGraphic.render: got a highlight; canvasHeight now %d",
+      //   this._canvasHeight );
+    }
+
+    // canvas width is just calculated from the length of the sequence (which 
+    // is set in the "setSequence" method). We also add some padding at either 
+    // end of the sequence, to allow for lollipop heads that might fall on the 
+    // end-most residues
+    this._canvasWidth = this._imageWidth + 1 + this._imageParams.sequenceEndPadding * 2;
+    // console.log( "PfamGraphic.render: canvasWidth: %d", this._canvasWidth );
+    
+    // multiply the width by the specified horizontal scale factor
+    this._canvasWidth *= this._imageParams.xscale;
+
+    // set the baseline, relative to which the various elements will
+    // actually be drawn
+    this._baseline = [ this._heights.lollipops.upMax,
+                       this._heights.bridges.upMax,
+                       this._imageParams.regionHeight / 2 ].max() + 1;
+                       // that single pixel is just a fudge factor...
   },
   
   //----------------------------------
@@ -497,6 +635,40 @@ var PfamGraphic = Class.create( {
    */
   getSequence: function() {
     return this._sequence;
+  },
+
+  //----------------------------------------------------------------------------
+  /**
+   * Returns the calculated width and height of the domain graphic. This is
+   * calculated as the dimensions of the canvas element that would be required 
+   * to draw the whole graphic, taking into account image parameter settings 
+   * such as <code>seqEndPadding</code>, but not the canvas offset parameter.
+   * Values are accessible as elements of an array 
+   * (<code>[ width, height ]</code>) or as values in an object
+   * (<code>{ width: 100, height: 100 }</code>). If called before the sequence
+   * object has been supplied, this method returns <code>null</code>.
+   *
+   * @returns {Object} array with two elements; first is width, second is 
+   *   height
+   */
+  getDimensions: function() {
+    if ( this._canvasWidth  === undefined ||
+         this._canvasHeight === undefined ) { 
+      return null;
+    }
+    
+    console.log( "PfamGraphic.getDimensions: canvas (w, h): (%d, %d)",
+      this._canvasWidth, this._canvasHeight );
+    console.log( "PfamGraphic.getDimensions: sequence end padding: %d",
+      this._imageParams.sequenceEndPadding );
+    console.log( "PfamGraphic.getDimensions: xscale, yscale: %d x %d",
+      this._imageParams.xscale, this._imageParams.yscale  );
+    
+    var dim = [ this._canvasWidth, this._canvasHeight ];
+    dim.width  = this._canvasWidth;
+    dim.height = this._canvasHeight;
+
+    return dim;
   },
 
   //----------------------------------------------------------------------------
@@ -522,7 +694,7 @@ var PfamGraphic = Class.create( {
    *
    * @param {String|Element} [parent] parent element for domain canvas
    * @param {Object} [sequence] sequence object
-   * @throws {PfamGraphic: ERROR} if sequence or parent is not set either here
+   * @throws {PfamGraphicException} if sequence or parent is not set either here
    *   or previously
    */
   render: function( parent, sequence ) {
@@ -538,54 +710,17 @@ var PfamGraphic = Class.create( {
     // by this point, we need to have both a sequence object and a parent
     // node (to which we'll append the <canvas>)
     if ( this._sequence === undefined ) {
-      throw( "PfamGraphic: ERROR: sequence was not supplied" );
+      this._throw( "sequence was not supplied" );
     }
 
-    if ( this._options.newCanvas ) {
-      // we're going to try to build a canvas, so we need to have a parent node
-      if ( this._parent === undefined ) {
-        throw( "PfamGraphic: ERROR: parent node was not supplied" );
-      }
+    // we're going to try to build a canvas, so we need to have a parent node
+    if ( this._options.newCanvas && 
+         this._parent === undefined ) {
+      this._throw( "parent node was not supplied" );
     }
-
-    // build the markups (lollipops, etc.). This will calculate the heights
-    // of the various markup elements, without actually drawing them
-    this._buildMarkups();
-
-    // find the maximum of three values, in order to determine the top
-    // extend (and then bottom extent) for the graphical elements:
-    //   o maximum top extend for lollipops
-    //   o maximum top extend for bridges
-    //   o half the domain height
-    this._canvasHeight = [ this._heights.lollipops.upMax,
-                           this._heights.bridges.upMax,
-                           ( this._regionHeight / 2 + 1 ) ].max() +
-                         [ this._heights.lollipops.downMax,
-                           this._heights.bridges.downMax,
-                           ( this._regionHeight / 2 + 1 ) ].max() + 1;
-                         // that single pixel is just a fudge factor...
-
-    // if a highlight region is given, adjust the canvas height so that we
-    // have room to add the highlight at the bottom
-    if ( this._sequence.highlight !== undefined ) {
-      this._canvasHeight += ( 5 + Math.ceil( this._imageParams.highlightWeight / 2 ) );
-      // console.log( "PfamGraphic.render: got a highlight; canvasHeight now %d",
-      //   this._canvasHeight );
-    }
-
-    // canvas width is just calculated from the length of the sequence
-    // (which is set in the "setSequence" method)
-    this._canvasWidth = this._imageWidth;
-
-    // set the baseline, relative to which the various elements will
-    // actually be drawn
-    this._baseline = [ this._heights.lollipops.upMax,
-                       this._heights.bridges.upMax,
-                       this._imageParams.regionHeight / 2 ].max()  + 1;
-                       // that single pixel is just a fudge factor...
 
     // if we don't yet have a <canvas>, build the one with the calculated
-    // dimensions
+    // dimensions, adding the sequence end padding too
     if ( ( ! this._canvas ) || this._options.newCanvas ) {
       // console.log( "PfamGraphic.render: building canvas with width x height, baseline: %d x %d, %d",
       //   this._canvasWidth, this._canvasHeight, this._baseline );
@@ -608,7 +743,7 @@ var PfamGraphic = Class.create( {
     this._addListeners();
 
     // clean up...
-    this._heights = {};
+//    this._heights = {};
 
   }, // end of "render"
 
@@ -616,6 +751,20 @@ var PfamGraphic = Class.create( {
   //- private methods ----------------------------------------------------------
   //----------------------------------------------------------------------------
 
+  /**
+   * Throws a "PfamGraphicException" with the specified message. The exception 
+   * object has a "toString" method attached.
+   *
+   * @param {String} message the error message to embed in the exception
+   * @throws {PfamGraphicException} specified exception
+   */
+  _throw: function( message ) {
+    throw { name: "PfamGraphicException",
+            message: message,
+            toString: function() { return this.message; } };
+  },  
+  
+  //----------------------------------------------------------------------------
   /**
    * Walks the sequence object and runs <code>parseInt()</code> on the various
    * values that must be integers rather than strings.
@@ -752,10 +901,25 @@ var PfamGraphic = Class.create( {
       // console.log( "PfamGraphic._addListeners: parentEl: %s, scrollTop: %d",
       //   parentEl.identify(), parentEl.scrollTop );
 
-      var x = e.pointerX() - cx + sx,
-          y = e.pointerY() - cy + sy,
+      // the area coordinates are all stored relative to the top-left corner
+      // of the drawing area of the graphic, before the sequence end padding
+      // value has been added, and before the X- and Y-scale factors have been 
+      // applied. This means that the coordinates of the mouse event need to be
+      // adjusted accordingly. 
+      
+      // TODO It might prove sensible to adjust the coordinates of the areas 
+      // before they're stored, so that we don't have to do any calculations
+      // for a mouse event.
+
+      // the X-position of the event is adjusted to take into account the 
+      // offset of the graphic due to the sequence end padding value and
+      // the drawing offsets
+      var ip = this._imageParams;
+      var x = e.pointerX() - cx + sx - ip.sequenceEndPadding - ip.xOffset,
+          y = e.pointerY() - cy + sy - ip.yOffset,
           activeArea = null;
-      /* console.log( "PfamGraphic._addListeners: event coords: (%d, %d): %d", x, y ); */
+      x /= this._imageParams.xscale;
+      y /= this._imageParams.yscale;
 
       // see if we're in an area
       areasList.each( function( area ) {
@@ -913,7 +1077,7 @@ var PfamGraphic = Class.create( {
    * element and, once that's built, we can render the elements into it.
    *
    * @private
-   * @throws {PfamGraphic: ERROR} if there is an error in the markup description
+   * @throws {PfamGraphicException} if there is an error in the markup description
    */
   _buildMarkups: function() {
 
@@ -938,8 +1102,8 @@ var PfamGraphic = Class.create( {
 
       var start = Math.floor( markup.start );
       if ( start === "NaN" ) {
-        throw( "PfamGraphic: ERROR: markup start position is not a number: '" + 
-               markup.start + "'" );
+        this._throw( "markup start position is not a number: '" + 
+                     markup.start + "'" );
       }
 
       if ( orderedMarkups[markup.start] === undefined ) {
@@ -953,9 +1117,9 @@ var PfamGraphic = Class.create( {
     // "undefined" as a value
     orderedMarkups = orderedMarkups.flatten().compact();
     
-    // get the X-scale parameter. We need this when assessing whether lollipops
+    // get the width of a residue. We need this when assessing whether lollipops
     // are overlapping
-    var xscale = this._imageParams.xscale;
+    var residueWidth = this._imageParams.residueWidth;
 
     // walk the markups, in order of start position, and build a map showing where
     // the lollipops are found
@@ -963,7 +1127,7 @@ var PfamGraphic = Class.create( {
 
       var start = Math.floor( markup.start );
       if ( start === "NaN" ) {
-        throw( "PfamGraphic: ERROR: markup start position is not a number: '" + 
+        this._throw( "markup start position is not a number: '" + 
                markup.start + "'" );
       }
 
@@ -976,14 +1140,14 @@ var PfamGraphic = Class.create( {
 
       if ( markup.v_align !== undefined &&
            ! ms.valignValues.include( markup.v_align ) ) {
-        throw( "PfamGraphic: ERROR: markup 'v_align' value is not valid: '" + 
-               markup.v_align + "'" );
+        this._throw( "markup 'v_align' value is not valid: '" + 
+                     markup.v_align + "'" );
       }
 
       if ( markup.headStyle !== undefined &&
            ! ms.lollipopHeadValues.include( markup.headStyle ) ) {
-        throw( "PfamGraphic: ERROR: markup 'headStyle' value is not valid: '" + 
-               markup.headStyle + "'" );
+        this._throw( "markup 'headStyle' value is not valid: '" + 
+                     markup.headStyle + "'" );
       }
 
       // see if we're drawing on the top or the bottom
@@ -993,11 +1157,12 @@ var PfamGraphic = Class.create( {
       var h = up ? heights.lollipops.up : heights.lollipops.down;
 
       // check for an overlap with another lollipop (which was added previously)
-      if ( h[ start - ( 1 / xscale ) ] !== undefined ||
-           h[ start                  ] !== undefined ||
-           h[ start + ( 1 / xscale ) ] !== undefined ) {
+      if ( h[ start - ( 1 / residueWidth ) ] !== undefined ||
+           h[ start                        ] !== undefined ||
+           h[ start + ( 1 / residueWidth ) ] !== undefined ) {
 
-        var firstLollipopHeight = h.slice( start-(1/xscale), start+(1/xscale) ).max();
+        var firstLollipopHeight = h.slice( start - ( 1 / residueWidth ), 
+                                           start + ( 1 / residueWidth ) ).max();
 
         h[ start ] = firstLollipopHeight + ip.lollipopToLollipopIncrement;
 
@@ -1026,7 +1191,7 @@ var PfamGraphic = Class.create( {
                                               heights.lollipops.downMax );
       }
 
-      // console.log( "PfamGraphic.render: max heights for lollipops: up/down: %d / %d",
+      // console.log( "PfamGraphic._buildMarkup: max heights for lollipops: up/down: %d / %d",
       //   heights.lollipops.upMax, heights.lollipops.downMax );
 
     } );
@@ -1042,12 +1207,12 @@ var PfamGraphic = Class.create( {
 
       var start = Math.floor( bridgeMarkup.start );
       if ( start === "NaN" ) {
-        throw( "PfamGraphic: ERROR: bridge start position is not a number: '" + bridgeMarkup.start + "'" );
+        this._throw( "bridge start position is not a number: '" + bridgeMarkup.start + "'" );
       }
 
       var end = Math.floor( bridgeMarkup.end );
       if ( end === "NaN" ) {
-        throw( "PfamGraphic: ERROR: bridge end position is not a number: '" + bridgeMarkup.end + "'" );
+        this._throw( "bridge end position is not a number: '" + bridgeMarkup.end + "'" );
       }
 
       // console.log( "PfamGraphic._buildMarkups: checking bridge from %d to %d (+/- 1)",
@@ -1143,12 +1308,12 @@ var PfamGraphic = Class.create( {
       } );
 
       if ( bridge.up ) {
-        heights.bridges.upMax = Math.max( bridgeHeight, heights.bridges.upMax );
+        heights.bridges.upMax = Math.max( bridgeHeight, heights.bridges.upMax ) + 2;
       } else {
-        heights.bridges.downMax = Math.max( bridgeHeight, heights.bridges.downMax );
+        heights.bridges.downMax = Math.max( bridgeHeight, heights.bridges.downMax ) + 2;
       }
 
-      // console.log( "PfamGraphic.render: max heights for bridges: %d / %d",
+      // console.log( "PfamGraphic._buildMarkup: max heights for bridges: %d / %d",
       //   heights.bridges.upMax, heights.bridges.downMax );
 
     } );
@@ -1166,7 +1331,32 @@ var PfamGraphic = Class.create( {
    * @private
    */
   _draw: function() {
+    
+    this._context.save();
+        
+    // start by translating everything by the sequence end padding value, and
+    // applying the separate X- and Y-dimension scale factors to the context, so 
+    // that we don't have to worry about it all the time when actually drawing
 
+    if ( this._applyImageParams ) {
+
+      var ip = this._imageParams; // just a shortcut...
+      
+      // console.log( "PfamGraphic._draw: setting drawing offsets: (%d, %d)",
+      //   ip.xOffset, ip.yOffset );
+      this._context.translate( ip.xOffset, ip.yOffset );
+  
+      // console.log( "PfamGraphic._draw: applying scale factors: %d x %d",
+      //   ip.xscale, ip.yscale );
+      this._context.scale( ip.xscale, ip.yscale );
+  
+      // console.log( "PfamGraphic._draw: applying sequence end padding: (%d, %d)",
+      //   ip.sequenceEndPadding, 0 );
+      this._context.translate( ip.sequenceEndPadding, 0 );
+      
+      this._applyImageParams = false;
+    }
+    
     // draw the sequence
     var seqArea = this._drawSequence();
 
@@ -1216,6 +1406,10 @@ var PfamGraphic = Class.create( {
       this._drawHighlight();
     }
 
+    // restore the canvas state to what it was before we started drawing. This
+    // effectively removes the offset due to the sequence end padding, and
+    // resets the X and Y scale factors
+    this._context.restore();
   },
 
   //----------------------------------------------------------------------------
@@ -1234,7 +1428,7 @@ var PfamGraphic = Class.create( {
     // draw the rectangles (which make up the line) relative to that. Store the
     // two value in the object, so that we can use them when drawing markups too
     this._topOffset = Math.floor( this._baseline - ( this._seqHeight / 2 ) );
-    this._botOffset = Math.floor( this._baseline + ( this._seqHeight / 2 * 3 ) );
+    this._botOffset = Math.floor( this._baseline + ( this._seqHeight / 2 ) + 1 );
 
     // console.log( "PfamGraphic._drawSequence: baseline: %d", this._baseline );
     // console.log( "PfamGraphic._drawSequence: calculated top offset as %d", this._topOffset );
@@ -1243,26 +1437,17 @@ var PfamGraphic = Class.create( {
     // store the canvas state before we start drawing
     this._context.save();
 
-    // console.log( "PfamGraphic._drawSequence: (x1, y1), (w, h): (%d, %d), (%d, %d)",
-    //                        1,                 this._topOffset,
-    //                        this._imageWidth,  this._seqStep );
-    this._context.fillStyle = "#dddddd";
-    this._context.fillRect( 1,                this._topOffset,
-                             this._imageWidth, this._seqStep );
+    var gradient = this._context.createLinearGradient( 1, this._topOffset,
+                                                       1, this._botOffset );
 
-    // console.log( "PfamGraphic._drawSequence: (x1, y1), (w, h): (%d, %d), (%d, %d)",
-    //                        1,                 offset + this._seqStep,
-    //                        this._imageWidth,  this._seqStep );
-    this._context.fillStyle = "#bbbbbb";
-    this._context.fillRect( 1,                this._topOffset + this._seqStep,
-                             this._imageWidth, this._seqStep );
+    gradient.addColorStop( 0,   "#999999" );
+    gradient.addColorStop( 0.5, "#eeeeee" );
+    gradient.addColorStop( 0.7, "#cccccc" );
+    gradient.addColorStop( 1,   "#999999" );
 
-    // console.log( "PfamGraphic._drawSequence: (x1, y1), (w, h): (%d, %d), (%d, %d)",
-    //                        1,                 this._topOffset + ( this._seqStep * 2 ),
-    //                        this._imageWidth,  this._seqStep * 3 );
-    this._context.fillStyle = "#cccccc";
-    this._context.fillRect( 1,                this._topOffset + ( this._seqStep * 2 ),
-                             this._imageWidth, this._seqStep * 3 );
+    this._context.fillStyle = gradient;
+    this._context.fillRect( 1,                    this._topOffset + 0.5,
+                            this._imageWidth - 1, ( this._seqHeight / 2 ) * 3 );
 
     // we're done drawing, so restore the canvas state
     this._context.restore();
@@ -1288,18 +1473,18 @@ var PfamGraphic = Class.create( {
 
         up = markup.v_align === undefined || markup.v_align === "top", 
 
-        x1 = Math.floor( start * this._imageParams.xscale ) + 0.5,
+        x1 = Math.floor( start * this._imageParams.residueWidth ) + 1.5,
         y1,
         y2;
 
     if ( up ) {
       // console.log( "PfamGraphic._drawLollipop: drawing lollipop on top at %d", start );
-      y1 = Math.round( this._topOffset );
+      y1 = Math.round( this._topOffset + 1 ) - 0.5;
       y2 = Math.floor( y1 - this._heights.lollipops.up[start] + ( this._baseline - this._topOffset ) + 1 );
     } else { 
       // console.log( "PfamGraphic._drawLollipop: drawing lollipop on bottom at %d", start );
-      y1 = Math.round( this._botOffset - 1 );
-      y2 = Math.ceil( y1 + this._heights.lollipops.down[start] - ( this._botOffset - this._baseline ) + 1 );
+      y1 = Math.round( this._botOffset + 1 ) - 0.5;
+      y2 = Math.ceil( y1 + this._heights.lollipops.down[start] - ( this._botOffset - this._baseline ) - 1 );
     }
 
     // console.log( "PfamGraphic._drawLollipop: (x1, y1), (x1, y2): (%d, %d), (%d, %d)",
@@ -1307,7 +1492,7 @@ var PfamGraphic = Class.create( {
 
     // store the canvas state before we start drawing
     this._context.save();
-
+    
     this._context.beginPath();
     this._context.moveTo( x1, y1 );
     this._context.lineTo( x1, y2 );
@@ -1325,8 +1510,8 @@ var PfamGraphic = Class.create( {
     // <area> for the head)
     var ys = [ y1, y2 ].sort(function( a, b ) { return a - b; } );
     var area = { start:    start,
-                 coords:   [ Math.floor( x1 ),     ys[0] - 1, 
-                             Math.floor( x1 ) + 2, ys[1] + 1 ] };
+                 coords:   [ Math.floor( x1 ) - 1, ys[0] - 1, 
+                             Math.floor( x1 ) + 1, ys[1] + 1 ] };
     this._areasList.push( area );
 
     // console.log( "PfamGraphic._drawLollipop: area coords: (%d, %d), (%d, %d)", 
@@ -1406,7 +1591,7 @@ var PfamGraphic = Class.create( {
         this._areasList.push( { tip:      tip,
                                 shape:    "circle",
                                 start:    start,
-                                coords:   [ x, y, r ] } );
+                                coords:   [ x - r, y - r, x + r, y + r ] } );
         break;
 
       case "square":
@@ -1443,11 +1628,7 @@ var PfamGraphic = Class.create( {
         this._areasList.push( { tip:      tip,
                                 shape:    "poly",
                                 start:    start,
-                                coords:   [ x - d, y,
-                                            x,     y + d,
-                                            x + d, y,
-                                            x,     y - d,
-                                            x - d, y ] } );
+                                coords:   [ x - d, y - d, x + d, y + d ] } );
         break;
 
       case "line":
@@ -1468,41 +1649,29 @@ var PfamGraphic = Class.create( {
 
       case "arrow":
         d = this._imageParams.headSizeArrow;
-        // console.log( "PfamGraphic._drawLollipopHead: drawing arrow, extent |%d|, centred %d x %d", 
-        //   d, x, y );
+        console.log( "PfamGraphic._drawLollipopHead: drawing arrow, extent |%d|, centred %d x %d", 
+          d, x, y );
         this._context.beginPath();
 
         var coords;
+        console.log( "PfamGraphic._drawLollipopHead: up ? ", up );
         if ( up ) {
-          this._context.moveTo( x - 3, this._topOffset - d );
-          this._context.lineTo( x,     this._topOffset     );
-          this._context.lineTo( x + 3, this._topOffset - d );
-
-          coords = [ x - 4, this._topOffset - d,
-                     x,     this._topOffset + 1,
-                     x + 4, this._topOffset - d,
-                     x + 3, this._topOffset - 1 - d,
-                     x,     this._topOffset - 1,
-                     x - 3, this._topOffset - 1 - d ];
-
+          this._context.moveTo( x - d, y + d );
+          this._context.lineTo( x,     y     );
+          this._context.lineTo( x + d, y + d );
+          coords = [ x - d, y, x + d, y + d ];
         } else { 
-          this._context.moveTo( x - 3, this._botOffset + d );
-          this._context.lineTo( x,     this._botOffset     );
-          this._context.lineTo( x + 3, this._botOffset + d );
-
-          coords = [ x - 4, this._botOffset + d,
-                     x,     this._botOffset - 1,
-                     x + 4, this._botOffset + d,
-                     x + 3, this._botOffset + 1 + d,
-                     x,     this._botOffset + 1,
-                     x - 3, this._botOffset + 1 + d ];
+          this._context.moveTo( x - d, y - d );
+          this._context.lineTo( x,     y     );
+          this._context.lineTo( x + d, y - d );
+          coords = [ x - d, y - d, x + d, y ];
         }
 
         this._areasList.push( { tip:      tip,
                                 start:    start,
                                 shape:    "poly",
                                 coords:   coords } );
-  
+
         this._context.strokeStyle = colour || "rgb(50, 40, 255)";
         this._context.stroke();
 
@@ -1535,18 +1704,18 @@ var PfamGraphic = Class.create( {
 
         colour = "#000000",
         
-        x1 = Math.floor( start * this._imageParams.xscale ) + 0.5,
-        x2 = Math.floor( end * this._imageParams.xscale ) + 0.5,
-        y1 = Math.round( this._baseline ),
+        x1 = Math.floor( start * this._imageParams.residueWidth ) + 1.5,
+        x2 = Math.floor( end   * this._imageParams.residueWidth ) + 1.5,
+        y1 = Math.round( up ? this._topOffset : this._botOffset ) + 0.5,
         y2,
         label;
 
     if ( up ) {
       // console.log( "PfamGraphic._drawBridge: drawing bridge on top at position %d", start );
-      y2 = Math.ceil( y1 - height ) - 0.5;
+      y2 = Math.ceil( this._baseline - height ) - 0.5;
     } else {
       // console.log( "PfamGraphic._drawBridge: drawing bridge on bottom at position %d", start );
-      y2 = Math.floor( y1 + height ) + 0.5;
+      y2 = Math.floor( this._baseline + height ) + 0.5;
     }
 
     // console.log( "PfamGraphic._drawBridge: (x1, y1), (x2, y2): (%d, %d), (%d, %d)",
@@ -1596,18 +1765,18 @@ var PfamGraphic = Class.create( {
     this._areasList.push( { start:  start,
                             end:    end,
                             tip:    tip,
-                            coords: [ Math.floor( x1 ),     Math.floor( ys[0] ), 
-                                      Math.floor( x1 ) + 2, Math.floor( ys[1] ) + 2 ] } );
+                            coords: [ x1 - 1, ys[0] - 1, 
+                                      x1 + 1, ys[1] + 1 ] } );
     this._areasList.push( { start:  start,
                             end:    end,
                             tip:    tip,
-                            coords: [ Math.floor( x1 ),     Math.floor( ys[0] ), 
-                                      Math.floor( x2 ) + 2, Math.floor( ys[0] ) + 2 ] } );
+                            coords: [ x1 - 1, ys[1] - 1, 
+                                      x2 + 1, ys[1] + 1 ] } );
     this._areasList.push( { start:  start,
                             end:    end,
                             tip:    tip,
-                            coords: [ Math.floor( x2 ),     Math.floor( ys[0] ), 
-                                      Math.floor( x2 ) + 2, Math.floor( ys[1] ) + 2 ] } );
+                            coords: [ x2 - 1, ys[0] - 1, 
+                                      x2 + 1, ys[1] + 1 ] } );
 
     // console.log( "PfamGraphic._drawBridge: end" );
   },
@@ -1634,17 +1803,17 @@ var PfamGraphic = Class.create( {
    * 
    * @private
    * @param {Object} region object with description of the region
-   * @throws {PfamGraphic: ERROR} if the start or end styles are not valid
+   * @throws {PfamGraphicException} if the start or end styles are not valid
    */
   _drawRegion: function( region ) {
     // console.log( "PfamGraphic._drawRegion: drawing region..." );
 
     if ( ! this._markupSpec.regionEndValues.include( region.startStyle ) ) {
-      throw( "PfamGraphic: ERROR: region start style is not valid: '" + region.startStyle + "'" );
+      this._throw( "region start style is not valid: '" + region.startStyle + "'" );
     }
 
     if ( ! this._markupSpec.regionEndValues.include( region.endStyle ) ) {
-      throw( "PfamGraphic: ERROR: region end style is not valid: '" + region.endStyle + "'" );
+      this._throw( "region end style is not valid: '" + region.endStyle + "'" );
     }
 
     //----------------------------------
@@ -1653,9 +1822,9 @@ var PfamGraphic = Class.create( {
     var height = Math.floor( this._regionHeight ) - 2,
         radius = Math.round( height / 2 ),
         arrow  = radius,
-        width  = ( region.end - region.start + 1 ) * this._imageParams.xscale - 4,
+        width  = ( region.end - region.start + 1 ) * this._imageParams.residueWidth,
 
-        x = Math.max( 1, Math.floor( region.start * this._imageParams.xscale ) + 1.5 ),
+        x = Math.max( 1, Math.floor( region.start * this._imageParams.residueWidth ) + 1 ),
         y = Math.floor( this._baseline - radius ) + 0.5,
 
         regionParams = {
@@ -1684,10 +1853,16 @@ var PfamGraphic = Class.create( {
     // fill the path with a gradient
     var gradient = this._context.createLinearGradient( x, y, x, y + height );
 
-    gradient.addColorStop( 0, "#ffffff" );
-    gradient.addColorStop( 0.5, region.colour );
-    gradient.addColorStop( 0.7, region.colour );
-    gradient.addColorStop( 1, "#ffffff" ); // TODO make this a bit darker
+//    gradient.addColorStop( 0,   region.colour );
+//    gradient.addColorStop( 0.2, region.colour );
+//    gradient.addColorStop( 0.5, "#ffffff" );
+//    gradient.addColorStop( 0.8, region.colour );
+//    gradient.addColorStop( 1,   region.colour );
+
+     gradient.addColorStop( 0, "#ffffff" );
+     gradient.addColorStop( 0.5, region.colour );
+     gradient.addColorStop( 0.7, region.colour );
+     gradient.addColorStop( 1, "#ffffff" ); // TODO make this a bit darker
 
     this._context.fillStyle = gradient;
     this._context.fill();
@@ -1705,24 +1880,25 @@ var PfamGraphic = Class.create( {
     // now step out and draw a solid line round the gradient filled shape
 
     // calculate dimensions for this outer shape
-    height += 2;
-    radius  = Math.round( height / 2 );
-    arrow   = radius;
-    width  += 2;
-    x      -= 1;
-    y       = Math.floor( this._baseline - radius ) + 0.5;
+//    height += 1;
+//    radius  = Math.round( height / 2 );
+//    arrow   = radius;
+//    width  += 1;
+//    x      -= 0.5;
+//    y       = Math.floor( this._baseline - radius ) + 1;
 
     // console.log( "PfamGraphic._drawRegion: outer: (x, y), h, w: (%d, %d), %d, %d",
     //   x, y, height, width );
 
-    this._buildRegionPath( { x: x, 
-                             y: y, 
-                             w: width, 
-                             h: height,
-                             r: radius,
-                             a: arrow,
-                             s: region.startStyle,
-                             e: region.endStyle } );
+    this._buildRegionPath( regionParams ); 
+//    this._buildRegionPath( { x: x, 
+//                             y: y, 
+//                             w: width, 
+//                             h: height,
+//                             r: radius,
+//                             a: arrow,
+//                             s: region.startStyle,
+//                             e: region.endStyle } );
 
     this._context.strokeStyle = region.colour;
     this._context.stroke();
@@ -1824,15 +2000,18 @@ var PfamGraphic = Class.create( {
    * Draws a motif.
    * 
    * @param {Object} motif description of the motif
-   * @throws {PfamGraphic: ERROR} if the colour is not valid
+   * @throws {PfamGraphicException} if the colour is not valid
    */
   _drawMotif: function( motif ) {
     // console.log( "PfamGraphic._drawMotif: motif: ", motif );
 
+    motif.start = parseInt( motif.start, 10 );
+    motif.end   = parseInt( motif.end,   10 );
+    
     // work out the dimensions
     var height = this._imageParams.motifHeight,
-        width  = Math.floor( ( motif.end - motif.start + 1 ) * this._imageParams.xscale ),
-        x = Math.max( 1, Math.floor( motif.start * this._imageParams.xscale ) ),
+        width  = Math.floor( ( motif.end - motif.start + 1 ) * this._imageParams.residueWidth ) + 1,
+        x = Math.max( 1, Math.floor( ( motif.start + 1 ) * this._imageParams.residueWidth ) ),
         y = Math.floor( this._baseline - Math.round( height / 2 ) );
 
     // console.log( "PfamGraphic._drawMotif: (x, y), h, w: (%d, %d), %d, %d",
@@ -1850,7 +2029,7 @@ var PfamGraphic = Class.create( {
 
       // first, make sure we have a sensible number of colours to play with...
       if ( motif.colour.length !== 3 ) {
-        throw( "PfamGraphic: ERROR: motifs must have either one or three colours" );
+        this._throw( "motifs must have either one or three colours" );
       }
 
       // convert the colours from hex strings into "rgba()" values
@@ -1868,10 +2047,8 @@ var PfamGraphic = Class.create( {
       // draw the three stripes
       var step   = Math.round( height / 3 );
       for ( var i = 0; i < 3; i = i + 1 ) {
-  
         this._context.fillStyle = colours[i].rgb;
         this._context.fillRect( x, y + ( step * i ), width, step );
-  
       }
       
     } else {
@@ -1987,7 +2164,7 @@ var PfamGraphic = Class.create( {
    * @param {Object} region description of the region
    * @param {int} radius radius of the region end
    * @param {int} height height of the region
-   * @throws {PfamGraphic: ERROR} if the start/end coordinates are not valid
+   * @throws {PfamGraphicException} if the start/end coordinates are not valid
    */  
   _drawEnvelope: function( region, radius, height ) {
     // console.log( "PfamGraphic._drawEnvelope: adding envelope overlay" );
@@ -1996,17 +2173,17 @@ var PfamGraphic = Class.create( {
 
     // make sure the endpoints are sensible
     if ( parseInt( region.start, 10 ) > parseInt( region.aliStart, 10 ) ) {
-      throw( "PfamGraphic: ERROR: regions must have start <= aliStart (" + region.start + " is > " + region.aliStart + ")" );
+      this._throw( "regions must have start <= aliStart (" + region.start + " is > " + region.aliStart + ")" );
     }
 
     if ( parseInt( region.end, 10 ) < parseInt( region.aliEnd, 10 ) ) {
-      throw( "PfamGraphic: ERROR: regions must have end >= aliEnd (" + region.end + " is < " + region.aliEnd + ")" );
+      this._throw( "regions must have end >= aliEnd (" + region.end + " is < " + region.aliEnd + ")" );
     }
 
     //----------------------------------
 
     var y  = this._baseline - radius,
-        xs = this._imageParams.xscale,
+        xs = this._imageParams.residueWidth,
         l,
         r;
         
@@ -2020,7 +2197,7 @@ var PfamGraphic = Class.create( {
               
     if ( region.aliEnd && 
          region.aliEnd < region.end ) {
-      r = { x: Math.floor( region.aliEnd * xs ),
+      r = { x: Math.floor( region.aliEnd * xs ) + 1,
             y: Math.floor( y - 1 ) + 1,
             w: Math.floor( region.end * xs ) - Math.floor( region.aliEnd * xs ),
             h: height + 1 };
@@ -2128,10 +2305,12 @@ var PfamGraphic = Class.create( {
 
     if ( paddedTextWidth > regionWidth ) {
       // console.log( "PfamGraphic._drawText: text is wider than region; not adding" );
+      this._context.restore();
       return;
     }
     if ( paddedTextHeight > this._regionHeight ) {
       // console.log( "PfamGraphic._drawText: text is taller than region; not adding" );
+      this._context.restore();
       return;
     }
 
@@ -2308,8 +2487,8 @@ var PfamGraphic = Class.create( {
   _drawHighlight: function() {
 
     var lineThicknessOffset = Math.round( this._imageParams.highlightWeight / 2 ),
-        left   = Math.floor( this._sequence.highlight.start * this._imageParams.xscale ),
-        right  = Math.ceil( this._sequence.highlight.end   * this._imageParams.xscale ),
+        left   = Math.floor( this._sequence.highlight.start * this._imageParams.residueWidth ),
+        right  = Math.ceil(  this._sequence.highlight.end   * this._imageParams.residueWidth ),
         top    = this._canvasHeight - 4 - lineThicknessOffset,
         bottom = this._canvasHeight - 2;
 
@@ -2373,13 +2552,13 @@ var PfamGraphic = Class.create( {
    * @private
    * @param {String} hexString HTML colour value
    * @returns {Object} RGB colour values
-   * @throws {PfamGraphic: ERROR} if the colour is not valid
+   * @throws {PfamGraphicException} if the colour is not valid
    */
   _getRGBColour: function( hexString ) {
 
     var matches = /^#?([A-F0-9]{6})$/i.exec( hexString );
     if ( matches === null ) {
-      throw( "PfamGraphic: ERROR: not a valid hex colour ('" + hexString + "')" );
+      this._throw( "not a valid hex colour ('" + hexString + "')" );
     }
     var h = matches[1],
         r = parseInt( h.substring( 0, 2 ), 16 ),
@@ -2400,7 +2579,7 @@ var PfamGraphic = Class.create( {
    * The RGB values must be in the range 0 - 255, but they can be given as
    * a hash (e.g. { r: 7, g: 135, b: 79 }), an array (e.g. [7, 135, 79]) or as
    * individual values (e.g. 7, 135, 79). The hex value is returned with a leading
-   * hash (#). RGB values are silently clamped, individually to the range 0 255
+   * hash (#). RGB values are silently clamped, individually, to the range 0-255
    * and are rounded to the nearest integer value.
    *
    * @private
@@ -2408,7 +2587,7 @@ var PfamGraphic = Class.create( {
    * @param {int} green greenvalue 
    * @param {int} blue blue value 
    * @returns {String} RGB colour string
-   * @throws {PfamGraphic: ERROR} if the colour is not valid
+   * @throws {PfamGraphicException} if the colour is not valid
    */
   _getHexColour: function( red, green, blue ) {
 
@@ -2435,10 +2614,10 @@ var PfamGraphic = Class.create( {
 
     var rgbColour = [ r, g, b ].collect( function( x ) {
       if ( x === undefined ) {
-        throw( "PfamGraphic: ERROR: need all three RGB colour values" );
+        this._throw( "need all three RGB colour values" );
       }
       if ( isNaN( x ) ) {
-        throw( "PfamGraphic: ERROR: failed to get a valid RGB colour triplet" );
+        this._throw( "failed to get a valid RGB colour triplet" );
       }
       x = parseInt( x, 10 );
       x = Math.max( 0, x );
