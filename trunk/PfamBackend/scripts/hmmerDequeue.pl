@@ -69,7 +69,7 @@ JOB: while ( 1 ) {
     $DEBUG && print STDERR "dequeuer: running a search...\n";
     $ps->search( $input );
     $DEBUG && print STDERR "dequeuer: done\n";
-    $results = nfreeze( $ps->results );
+    $results = nfreeze( $ps->results( $input->{-e_dom} ) );
   };
   if ( $@ ) {
     $DEBUG && print STDERR "ERROR: search failed: $@\n";
