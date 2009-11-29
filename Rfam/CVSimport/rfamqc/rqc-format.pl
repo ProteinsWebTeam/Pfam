@@ -1,5 +1,10 @@
 #!/software/bin/perl -w
 
+BEGIN {
+    $rfam_mod_dir = "/nfs/team71/pfam/jd7/scripts/Modules/";
+    #$rfam_mod_dir = "//software/rfam/scripts/Modules/";
+}
+use lib $rfam_mod_dir;
 use strict;
 use Rfam;
 
@@ -55,6 +60,7 @@ sub check_timestamps {
     my $error;
 
     foreach my $file ( @Rfam::rcs_file_set ) {
+	
         if( !(-s "$family/$file") ) {
             warn "$family: $file does not exist\n";
             $error = 1;
@@ -69,15 +75,27 @@ sub check_timestamps {
         warn "$family: Your CM [$family/CM] is younger than your OUTPUT file [$family/OUTPUT].\n";
         $error = 1;
     }
+    if( -M "$family/CM" < -M "$family/TABFILE" ) {
+        warn "$family: Your CM [$family/CM] is younger than your TABFILE file [$family/TABFILE].\n";
+        $error = 1;
+   } 
     if ( -M "$family/OUTPUT" < -M "$family/ALIGN" ) {
         warn "$family: Your OUTPUT [$family/OUTPUT] is younger than your full alignment [$family/ALIGN].\n";
         $error = 1;
     }
+    if ( -M "$family/TABFILE" <  -M "$family/ALIGN" ) {
+	warn "$family: Your TABFILE [$family/TABFILE] is younger than your full alignment [$family/ALIGN].\n";
+	$error = 1;
+    }	
     if( -M "$family/OUTPUT" < -M "$family/scores" ) {
         warn "$family: Your OUTPUT [$family/OUTPUT] is younger than your scores [$family/scores].\n";
         $error = 1;
     }
-
+    if( -M "$family/TABFILE" <  -M "$family/scores" ) {
+	warn "$family: Your TABFILE [$family/TABFILE] is younger than your scores [$family/scores].\n";
+	$error = 1;
+    }	
+    
     if($error) {
         return 0;         # failure
     }
@@ -93,14 +111,18 @@ sub desc_is_OK {
     my $error = 0;
     my $ref;
     my %fields;
+    my $GOstring;
+    my $SOstring;
 
     open(DESC, "$family/DESC") or die "Can't open $family/DESC file\n";
     while( <DESC> ) {
         chop;
         if( length $_ > 80 ) {
-            warn "$family: Line greater than 80 chars [$_]\n";
-            $error = 1;
-        }
+	    if (! $_ =~/^DR/ && $_ =~/^WK/ ){ 
+	   	warn "$family: Line greater than 80 chars [$_]\n";
+		$error = 1;
+	    }
+	}
         if( /\r/ ) {
             warn "$family: DESC contains DOS newline characters\n";
             $error = 1;
@@ -119,8 +141,13 @@ sub desc_is_OK {
             };
             /^ID/ && do { 
                 $fields{$&}++;
-		if ( /^ID   (\S+);$/ ) {
-		    warn "$family: Bad formatting. Illegal semi colon at end of ID line [$_]";
+		if ( /^ID\s+(.*)$/) {
+		    my $st=$1;
+		    if ($1=~/[^a-zA-Z0-9\-\_]/){
+			warn "$family: Bad formatting. Illegal character in ID line [$_]";
+		    }
+		}else{
+		    warn "$family: Problem with ID line [$_]";
 		}
                 last;
             };
@@ -135,12 +162,14 @@ sub desc_is_OK {
 		    warn "$family: DE lines should not end with a fullstop\n";
                 } elsif (/^DE.*\;$/){
 		    warn "$family: DE lines should not end with a semicolon\n";
-                }
+                } elsif(/\t/){
+		    warn "$family: DE lines contains a tab character\n";
+		}
                 last; };
             /^AU/ && do { $fields{$&}++; last; };
             /^TC/ && do {
                 $fields{$&}++; 
-                if ( !/TC   \S+\s*$/){
+                if ( !/TC   (\d+\.\d+)$/){
                     warn "$family: TC lines should look like:\nTC   23.00\n";
                     $error = 1;
                 }
@@ -148,8 +177,8 @@ sub desc_is_OK {
             };
             /^NC/ && do {
                 $fields{$&}++; 
-                if ( !/NC   \S+\s*$/){
-                    warn "$family: NC lines should look like:\nNC   11.00\n";
+                if ( (!/NC   \d+\.\d+$/) && ( !/NC   undefined$/) )  {
+		    warn "$family: NC lines should look like:\nNC   11.00\nnot\n'$_'\n";
                     $error = 1;
                 }
                 last; 
@@ -157,16 +186,21 @@ sub desc_is_OK {
             /^SE/ && do { $fields{$&}++; last; };
             /^SS/ && do { 
 		$fields{$&}++;
-		if ( !/SS   (Published|Predicted)\;/){
-                    warn "$family: SS line format incorrect [$_]\n";
+		#my $SS=$_;
+		if ( (!/SS   (Published|Predicted)\;/) && ( !/SS   Pseudobase$/) ){
+		    warn "$family: SS line format incorrect- check for terminal semicolons [$_]\n";
                     $error = 1;
+		}
+		if ( /Published/ && !/PMID\:(\d+)(\; \w+)?\b/){
+		   warn "$family: SS line format incorrect- check PMID [$_]\n"; 
+		   $error = 1; 
 		}
 		last;
 	    };
             /^GA/ && do {
                 $fields{$&}++; 
-                if (! /^GA   \S+\s*$/){
-                    warn "$family: GA lines should look like:\nGA   20.00;\nNot $_\n";
+                if (! /^GA   \d+\.\d+$/){
+                    warn "$family: GA lines should look like:\nGA   20.00;\nNot\n'$_'\n";
                     $error = 1;
                 }
 		last;
@@ -212,31 +246,52 @@ sub desc_is_OK {
 	    };
             /^BM/ && do {
                 $fields{$&}++;
-		if( not /^BM   cmbuild (-\S+ )?CM SEED$/ and 
-		    not  ( /^BM   cmsearch (-\S+ )?-W \d+ (-\S+ )?CM SEQDB$/ or  /^BM   cmsearch\s+(--local\s+)?--toponly  CM SEQDB$/  )) {
+		if( not /^BM   cmbuild\s+(\-\w\s)?CM SEED\;\s+cmcalibrate\s(\-\-mpi )?\-s\s\d\sCM$/ 
+		    and not  ( /^BM\s+cmsearch  (\-\w\s\d+)?\s(\-\w \d+)?\s+\-\-toponly\s+(\-g\s+)?(\-\-fil\-no\-hmm\s+)?CM SEQDB$/
+			    # or  /^BM\s+cmsearch  (\-\w\s\d+)?\s(\-\w \d+)?\s+\-\-toponly\s+\-g\s+CM SEQDB$/
+#			     or  /^BM\s+cmsearch  (\-\w\s\d+)?\s(\-\w \d+)?\s+\-\-toponly\s+\--fil-no-hmm\s+CM SEQDB$/
+			     or    /^BM   cmsearch\s+(\-\-local\s+)?\-\-toponly  CM SEQDB$/ 
+			       )) {
                     warn "$family: Your BM line doesn't look right [$_]\n";
 		    $error = 1;
 		}
                 last;
+            };
+	    #check for WK and SO and GO here
+	    /^WK/ && do {
+                $fields{$&}++; 
+                if (! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+$/){
+                    warn "$family: WK lines should look like:\nWK   http:\/\/en.wikipedia.org\/wiki\/CRISPR;\nNot $_\nProblem most likely a terminal semicolon- remove it!";
+                    $error = 1;
+                }
+		last;
             };
             /^SQ/ && do {
                 $error = 1;
                 warn "$family: DESC files should not contain SQ lines, please check and remove\n";
                 last;
             };
-            # Non-Compulsory fields: These may be present
 
+
+            # Non-Compulsory fields: These may be present
 	    /^PI/ && do {
 		$fields{$&}++;	
-		if (/^PI\s+$/){
+		if (/^PI\s+$/ || /.*\;$/){
 		   $error = 1;
-                    warn "$family: DESC files should not contain blank PI lines, please check and remove\n"; 
-		   last;
-	       }elsif (! /^PI\s{3}(\S+;\s?){1,10}/ )   {
-		   $error = 1;
-                    warn "$family: DESC file PI lines wrongly formatted, please check format\n (missing space after internal semi-colon, or missing terminal semicolon?)\n"; 
+                    warn "$family: DESC files should not contain blank PI lines or terminal semi colons on PI lines:  please check and remove\n"; 
 		   last;
 	       }
+		my $PIline=$_;
+		$PIline =~s/^PI   //g;
+		my @ids=split("\; ", $PIline);
+		foreach my $i (@ids){
+		    if ($i=~/\;/){
+			$error = 1;
+			warn "$family: DESC file PI lines wrongly formatted, should be semicolon space separated list 'id1; ids2; id3' \n"; 	
+			last;
+		    }
+		}
+		
 		last;
 	    };
 
@@ -256,7 +311,7 @@ sub desc_is_OK {
             /^RL/ && do { 
 		if( !/^RL   .*\d{4};\d+:(\w*\d+)(?:-(\w?\d+))?\.$/ ) {
                     warn "$family: Bad reference line [$_]\nFormat is:    Journal abbreviation year;volume:page-page.\n";
-                    $error = 1;
+                   # $error = 1;
                 } else {
                     my $start = $1;
 		    my $end = $2;
@@ -269,7 +324,7 @@ sub desc_is_OK {
 
 		    if( $end and $start > $end ) {
                         warn "$family: Your reference line has a start ($start) bigger than end ($end)";
-                        $error = 1;
+                        #$error = 1;
                     }
                 }
                 last; 
@@ -293,10 +348,10 @@ sub desc_is_OK {
                 last;
             };
             /^DR/ && do  {
-                $ref=1;
+		$ref=1;
                 DBREF : { 
                     /^DR   EXPERT;\s+/ && do {
-                        if( !/^DR   EXPERT;\s+\S+@\S+;$/ ) {
+                        if( !/^DR   EXPERT;\s+\S+@\S+$/ ) {
                             warn "$family: Bad expert reference [$_]\n";
                             $error = 1;
                             last SWITCH;
@@ -304,7 +359,7 @@ sub desc_is_OK {
                         last SWITCH;
                     };
                     /^DR   MIR;\s+/ && do {
-                        if( !/^DR   MIR;\s+MI\d+;$/ ) {
+                        if( !/^DR   MIR;\s+MI\d+$/ ) {
                             warn "$family: Bad MIR reference [$_]\n";
                             $error = 1;
                             last SWITCH;
@@ -312,7 +367,7 @@ sub desc_is_OK {
                         last SWITCH;
                     };
                     /^DR   MIPF;\s+/ && do {
-                        if( !/^DR   MIPF;\sMIPF\d+;$/ ) {
+                        if( !/^DR   MIPF;\sMIPF\d+$/ ) {
                             warn "$family: Bad MIPF reference [$_]\n";
                             $error = 1;
                             last SWITCH;
@@ -320,25 +375,72 @@ sub desc_is_OK {
                         last SWITCH;
                     };
 		     /^DR   snoRNABase;\s+/ && do {
-                        if( !/^DR   snoRNABase;\s[0-9,A-Z,a-z,-]+\;$/ ) {
+                        if( !/^DR   snoRNABase;\s[0-9,A-Z,a-z,-]+$/ ) {
                             warn "$family: Bad snoRNABase reference [$_]\n";
                             $error = 1;
                             last SWITCH;
                         }
                         last SWITCH;
+                    };  
+		    /^DR   snornadb;\s+/ && do {
+			#URL; http://people.biochem.umass.edu/sfournier/fournierlab/snornadb/snrs/snR11_ta.php;]
+                        if( !/^DR   snornadb;\ssnR\d+$/ ) {
+                            warn "$family: Bad snornadb reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+                        }
+                        last SWITCH;
                     };
-		    /^DR   SO;\s+/ && do {
-                        if( !/^DR   SO;\s\S+\;$/ ) {
+		    /^DR   PKBASE;\s+/ && do {
+			#URL; http://www.ekevanbatenburg.nl/PKBASE/PKB00218.HTML;
+			if( !/^DR   PKBASE;\sPKB\d+$/ ) {
+                            warn "$family: Bad PKBASE reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+                        }
+                        last SWITCH;
+                    };
+		     /^DR   snorna\;\s/ && do {
+			#DR   URL; http://www-snorna.biotoul.fr/plus.php?id=U54;
+                        if( !/^DR   snorna;\s(\S+)$/ ) {
+                            warn "$family: Bad snornadb reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+                        }
+                        last SWITCH;
+                    };
+		    /^DR   snoopy\;\s/ && do {
+			# http://snoopy.med.miyazaki-u.ac.jp/snorna_db.cgi?mode=sno_info&id=Loxodonta_africana300005
+                        if( !/^DR   snoopy\;\s\S+$/ ) {
+                            warn "$family: Bad snoopy reference [$_]\n";
+                            $error = 1;
+                            last SWITCH;
+			}
+                        last SWITCH;
+                    };
+		    /^DR   SO\:/ && do {
+			$SOstring.=$_;
+                        if( !/^DR   SO:\d+\sSO\:\S+/ ) {
                             warn "$family: Bad SO reference [$_]\n";
                             $error = 1;
                             last SWITCH;
 			    #http://www.sequenceontology.org/miso/current_cvs/term/SO:0000655
                         }
                         last SWITCH;
+                    };		 
+		    /^DR   GO\:/ && do {
+			$GOstring.=$_;
+                        if( !/^DR   GO\:\d+\sGO\:\S+/ ) {
+                            warn "$family: Bad GO reference [$_]\n";
+                            #$error = 1;
+                            last SWITCH;
+			    #http://www.sequenceontology.org/miso/current_cvs/term/SO:0000655
+                        }
+                        last SWITCH;
                     };
-		    
-		    /^DR   URL;\s+(\S+);$/ && do {
-                       # warn "$family: Please check the URL $1\n";
+   
+		    /^DR   URL;\s+(\S+)$/ && do {
+                        warn "$family: DR line is URL-maybe add this to our known db list? $1\n";
                         last SWITCH;
                     };
                     warn "$family: Bad reference line: unknown database [$_]\n";
@@ -346,14 +448,7 @@ sub desc_is_OK {
                     last SWITCH;
                 };
             };
-            /^WK/ && do {
-                $fields{$&}++; 
-                if (! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+;$/ || ! /^WK   http:\/\/en.wikipedia.org\/wiki\/\S+$/){
-                    warn "$family: WK lines should look like:\nWK   http:\/\/en.wikipedia.org\/wiki\/CRISPR;\nNot $_\n";
-                    $error = 1;
-                }
-		last;
-            };
+           
             warn "$family: Unrecognised DESC file line [$_]\n";
             $error = 1;
         }
@@ -366,6 +461,8 @@ sub desc_is_OK {
 #        warn "$family: There is no accession line. SERIOUS ERROR.\n";
 #        $error = 1;
 #    }
+    
+
     if (exists $fields{AC} and $fields{AC} > 1){
         warn "$family: There are [$fields{AC}] accession lines. SERIOUS ERROR.\n";
         $error = 1;
@@ -410,6 +507,21 @@ sub desc_is_OK {
         warn "$family: There are [$fields{GA}] GA lines\n";
        $error = 1;
     }
+    if ($fields{WK} ne "1"){
+        warn "$family: There are [$fields{WK}] WK lines. SERIOUS ERROR\n";
+       $error = 1;
+    }
+ 
+    if (! defined $SOstring ){
+	warn "$family: There are no SO mappings for this family. SERIOUS ERROR\n";
+	$error=1;
+    }
+    if (! defined $GOstring ){
+	warn "$family: There are no GO mappings for this family. SERIOUS ERROR\n";
+	#$error=1;
+    }
+    
+
     $fields{RN} = 0 if !exists $fields{RN};
     $fields{RM} = 0 if !exists $fields{RM};
     if ($fields{RN} ne $fields{RM}){
