@@ -124,10 +124,11 @@ $cmSeqLib = "/nfs/pfam_nfs/rfam/CMSEQLIB";
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
 @ann_file_set      = ( "DESC" );
-@output_file_set   = ( "OUTPUT" );
+@output_file_set   = ( "OUTPUT");
 @model_file_set    = ( "CM" );
 @scores_file_set   = ( "scores" );
 @rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set, @output_file_set, @scores_file_set );
+@optional_file_set = ("TABFILE");
 
 $view_maker = "/software/rfam/scripts/rfamrcs/makerfamview.pl";
 
