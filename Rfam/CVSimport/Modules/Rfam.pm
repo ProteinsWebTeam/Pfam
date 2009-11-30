@@ -128,7 +128,7 @@ $cmSeqLib = "/nfs/pfam_nfs/rfam/CMSEQLIB";
 @model_file_set    = ( "CM" );
 @scores_file_set   = ( "scores" );
 @rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set, @output_file_set, @scores_file_set );
-@optional_file_set = ("TABFILE");
+@optional_file_set = ("TABFILE", "scores.evalue", "out.list", "species");
 
 $view_maker = "/software/rfam/scripts/rfamrcs/makerfamview.pl";
 
