@@ -4,7 +4,7 @@
 # 
 # build the summary block for families
 #
-# $Id: summary.tt,v 1.49 2009-10-19 15:58:47 jt6 Exp $
+# $Id: summary.tt,v 1.50 2009-11-30 15:16:31 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -100,7 +100,7 @@ PROCESS components/links.tt; %]
 
     [% IF pfam.interpro %]
       <h2 id="interproTitle">
-        Interpro entry 
+        InterPro entry 
         <a class="ext" href="http://www.ebi.ac.uk/interpro/DisplayIproEntry?ac=[% pfam.interpro.interpro_id %]">[% pfam.interpro.interpro_id %]</a>
       </h2>
       [% # THIS IS A HACK ! the database entry for the interpro abstract appears
