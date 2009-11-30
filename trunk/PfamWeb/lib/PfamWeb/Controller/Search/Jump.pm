@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.21 2009-10-27 14:45:48 jt6 Exp $
+# $Id: Jump.pm,v 1.22 2009-11-30 15:43:40 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.21 2009-10-27 14:45:48 jt6 Exp $
+$Id: Jump.pm,v 1.22 2009-11-30 15:43:40 jt6 Exp $
 
 =cut
 
@@ -56,12 +56,14 @@ sub guess : Private {
   my %action_types= ( family    => 'guess_family',
                       protein   => 'guess_sequence',
                       clan      => 'guess_clan',
+                      family    => 'guess_other_family',
                       structure => 'guess_structure', );
 #                      proteome  => 'guess_proteome' );
 
   my @available_actions = qw( guess_family
                               guess_clan
                               guess_structure
+                              guess_other_family
                               guess_sequence );
 #                              guess_proteome
 
@@ -94,16 +96,48 @@ Look for a Pfam family (A or B) with the specified accession or ID.
 sub guess_family : Private {
   my( $this, $c, $entry ) = @_;
 
-  $c->log->debug( 'Search::Jump::guess_family: looking for a family...' )
+  $c->log->debug( 'Search::Jump::guess_family: looking for a family...' . $entry )
     if $c->debug;
   
   # first, see if it's a Pfam-A family accession or ID
-  my @rs = $c->model('PfamDB::Pfama')
-             ->search( [ { pfama_acc => $1 },
-                         { pfama_id  => $1 } ] );
+  my $rs = $c->model('PfamDB::Pfama')
+             ->search( [ { pfama_acc => $entry },
+                         { pfama_id  => $entry } ] )
+             ->first;
+             
+  if ( $rs and 
+       ( $rs->pfama_id  eq $entry or
+         $rs->pfama_acc eq $entry ) ) {
+    $c->log->debug( 'Search::Jump::guess_family: ' 
+                    . $rs->pfama_id  . ' eq ' . $entry . ' or ' 
+                    . $rs->pfama_acc . ' eq ' . $entry )
+      if $c->debug;
+    return 'family';
+  }
+               
+  # or a Pfam-B accession ?
+  my @rs = $c->model('PfamDB::Pfamb')
+          ->search( [ { pfamb_acc => $entry },
+                      { pfamb_id  => $entry } ] );      
 
-  return 'family' if scalar @rs;
+  return 'pfamb' if scalar @rs;
+}
 
+#-------------------------------------------------------------------------------
+
+=head2 guess_other_family : Private
+
+Look for a Pfam family that had the supplied identifier as a previous ID. Find
+dead families with the same name.
+
+=cut
+
+sub guess_other_family : Private {
+  my( $this, $c, $entry ) = @_;
+
+  $c->log->debug( 'Search::Jump::guess_family: looking for a family...' . $entry )
+    if $c->debug;
+  
   # a previous family ID ?
   my $prev = $c->model('PfamDB::Pfama')
                ->find( { previous_id => { like => "%$entry%" } } );
@@ -113,23 +147,19 @@ sub guess_family : Private {
   if ( $prev ) {
     my $previous_id = $prev->previous_id;
     if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/ ) { # same pattern used in Family.pm
+      $c->log->debug( 'Search::Jump::guess_family: previous_id '
+                      . $prev  . ' matches pattern' )
+        if $c->debug;
       return 'family';
     }
   }
 
   # see if this could be a dead family
-  @rs = $c->model('PfamDB::DeadFamilies')
-          ->search( [ { pfama_acc => $1 },
-                      { pfama_id  => $1 } ] );
+  my @rs = $c->model('PfamDB::DeadFamilies')
+             ->search( [ { pfama_acc => $entry },
+                         { pfama_id  => $entry } ] );
 
   return 'family' if scalar @rs;
-  
-  # or a Pfam-B accession ?
-  @rs = $c->model('PfamDB::Pfamb')
-          ->search( [ { pfamb_acc => $1 },
-                      { pfamb_id  => $1 } ] );      
-
-  return 'pfamb' if scalar @rs;
 }
 
 #-------------------------------------------------------------------------------
