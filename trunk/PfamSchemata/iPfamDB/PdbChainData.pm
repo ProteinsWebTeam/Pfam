@@ -16,8 +16,8 @@ __PACKAGE__->add_columns(
   { data_type => "CHAR", default_value => "", is_nullable => 0, size => 1 },
   "pdb_id",
   { data_type => "VARCHAR", default_value => "", is_nullable => 0, size => 5 },
-  "accession",
-  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
+#  "accession",
+#  { data_type => "INT", default_value => "", is_nullable => 0, size => 10 },
 );
 __PACKAGE__->add_unique_constraint("UQ_pdb_chain_data_1", ["internal_chain_accession"]);
 __PACKAGE__->has_many(
@@ -41,7 +41,7 @@ __PACKAGE__->has_many(
 # Created by DBIx::Class::Schema::Loader v0.04006 @ 2009-11-16 12:00:37
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:iVyx6tF8fOUpV0YDmm/PEA
 
-
+__PACKAGE__->belongs_to("pdbtable", "iPfamDB::Pdb", { pdb_id => "pdb_id" });
 # You can replace this text with custom content, and it will be preserved on regeneration
 
 =head1 AUTHOR

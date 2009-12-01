@@ -87,6 +87,11 @@ __PACKAGE__->might_have(
   { "foreign.pdb_id" => "self.pdb_id" },
 );
 
+__PACKAGE__->has_many(
+  "pdb_chains",
+  "iPfamDB::PdbChainData",
+  { "foreign.pdb_id" => "self.pdb_id" },
+);
 # You can replace this text with custom content, and it will be preserved on regeneration
 
 =head1 AUTHOR
