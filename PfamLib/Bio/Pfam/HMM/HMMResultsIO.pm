@@ -1,10 +1,10 @@
 # HMMResultsIO.pm
 #
 # Author:        rdf
-# Maintainer:    $Id: HMMResultsIO.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.1 $
+# Maintainer:    $Id: HMMResultsIO.pm,v 1.2 2009-12-01 15:42:20 jt6 Exp $
+# Version:       $Revision: 1.2 $
 # Created:       Nov 16, 2008
-# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Last Modified: $Date: 2009-12-01 15:42:20 $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package Bio::Pfam::HMM::HMMResultsIO;
 
 A more detailed description of what this class does and how it does it.
 
-$Id: HMMResultsIO.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+$Id: HMMResultsIO.pm,v 1.2 2009-12-01 15:42:20 jt6 Exp $
 
 =head1 COPYRIGHT
 
@@ -429,9 +429,10 @@ sub _readHeader {
       $hmmRes->program($1);
     }elsif (/(^#)|(^$)/) {
       next;
-    }
-    else {
-      die "Failed to parse hmmsearh results |$_| in header section\n";
+    }elsif(/^Accession/){
+      next;
+    } else {
+      die "Failed to parse hmmsearch results |$_| in header section\n";
     }
   }
 }
@@ -456,8 +457,11 @@ sub _readSeqHits {
 # E-value  score  bias    E-value  score  bias    exp  N  Sequence Description
 #    ------- ------ -----    ------- ------ -----   ---- --  -------- -----------
 #      4e-83  285.8  10.0    5.3e-83  285.5   7.0    1.1  1  Q14SN3.1 Q14SN3_9HEPC Polyprotein (Fragment).
-    if (/^Domain and alignment annotation for each [sequence|model]/) {
+    if (/^Domain annotation for each [sequence|model]/) { # This is the format for HMMER3b3
       last;
+    }
+    elsif (/^Domain and alignment annotation for each [sequence|model]/) {  #This is the format for HMMER3b2 - can be removed later
+	last;
     }
     elsif (/^\s+(E-value|---)/) {
       next;
@@ -573,6 +577,7 @@ sub _readUnitData {
       $align   = 0;
       $recurse = 0;
       $eof = 1;
+      last;
     }
     elsif (/^\>\>\s+(\S+)/) {
       $nextSeqId = $1;
@@ -624,6 +629,10 @@ sub _readUnitData {
       
       next;
     }
+    elsif(/^\s+\[No individual domains/) {
+	$align=0;
+	next;
+    }
     else {
       confess("Did not parse line: $_");
     }
@@ -648,6 +657,7 @@ sub _readUnitData {
 
     if($hmmName and $hmmRes->program eq 'hmmsearch'){
       $pattern1 = qr/^\s+$hmmName\s+\d+\s+(\S+)\s+\d+/;
+      $id =~ s/\|/\\|/g;
       $pattern2 = qr/^\s+$id\s+\d+\s+(\S+)\s+\d+/;
     }elsif($seqName and $hmmRes->program eq 'hmmscan'){
       my $tmpSeqName = $seqName;
@@ -679,8 +689,7 @@ sub _readUnitData {
       }elsif (/^\s+(\S+)\s+CS$/) {
         my $cs = $1;
         $units[ $matchNo - 1 ]->hmmalign->{cs} .= $cs;
-      }
-      elsif (/^\s+==\s+domain\s+(\d+)/) {
+      }elsif (/^\s+==\s+domain\s+(\d+)/) {
         $matchNo = $1;
       }
       elsif (/^\s+(.*)\s+$/) {

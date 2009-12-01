@@ -1,10 +1,10 @@
 # Bio::Pfam::HMM::HMMResults.pm
 #
 # Author:        finnr
-# Maintainer:    $Id: HMMResults.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
-# Version:       $Revision: 1.1 $
+# Maintainer:    $Id: HMMResults.pm,v 1.2 2009-12-01 15:42:20 jt6 Exp $
+# Version:       $Revision: 1.2 $
 # Created:       Nov 19, 2008
-# Last Modified: $Date: 2009-10-08 12:27:28 $
+# Last Modified: $Date: 2009-12-01 15:42:20 $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ package Bio::Pfam::HMM::HMMResults;
 
 A more detailed description of what this class does and how it does it.
 
-$Id: HMMResults.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+$Id: HMMResults.pm,v 1.2 2009-12-01 15:42:20 jt6 Exp $
 
 =head1 COPYRIGHT
 
@@ -501,11 +501,27 @@ sub overlap {
 
 
 sub results {
-  my ( $self, $pfamScanData ) = @_;
+  my ( $self, $pfamScanData, $e_value) = @_;
 
   my @results = ();
   foreach my $unit ( sort { $a->seqFrom <=> $b->seqFrom } @{ $self->units } ) {    
-    my $pfamB = $unit->name =~ /^Pfam-B/ ? 1 : 0;
+
+      my $pfamB;
+
+      #Filter results based on thresholds
+      if($unit->name =~ /^Pfam-B/) {
+	  next unless($self->seqs->{$unit->name}->evalue <= "0.001" and $unit->evalue <= "0.001");
+	  $pfamB=1;
+      }
+      else {	  
+	  if($e_value) {
+	      next unless($self->seqs->{$unit->name}->evalue <= $e_value and $unit->evalue <= $e_value);
+	  } 
+	  else {
+	      next unless($unit->sig);
+	  }
+      }
+
     push @results, {
       seq          => { from => $unit->seqFrom,
                         to   => $unit->seqTo,

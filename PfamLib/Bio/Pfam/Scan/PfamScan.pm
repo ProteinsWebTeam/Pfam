@@ -23,7 +23,7 @@ package Bio::Pfam::Scan::PfamScan;
 
 =head1 DESCRIPTION
 
-$Id: PfamScan.pm,v 1.1 2009-10-08 12:27:28 jt6 Exp $
+$Id: PfamScan.pm,v 1.2 2009-12-01 15:42:20 jt6 Exp $
 
 =cut
 
@@ -127,13 +127,20 @@ sub search {
       push @hmmscan_cut_off, '-E', $seq_evalue, '--domE', $dom_evalue;
     }
 
-    my @params = ( 'hmmscan', 
-                   '--notextw', 
-                   @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );
+    push @{ $self->{_header} }, "#     cpu number specified: " . $self->{_cpu} . "\n" if($hmmlib !~ /Pfam\-B/ and $self->{_cpu});
 
-    push @{ $self->{_header} }, "\n#       searching against: " 
+    push @{ $self->{_header} }, "#        searching against: " 
                                 . $self->{_dir} . "/$hmmlib, with cut off " 
                                 . join( " ", @hmmscan_cut_off ) . "\n";
+   my @params;   
+   if($self->{_cpu}) {
+	@params = ( 'hmmscan', 
+                   '--notextw', '--cpu', $self->{_cpu}, @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );   
+    }
+    else {
+	@params = ( 'hmmscan', '--notextw', @hmmscan_cut_off, $self->{_dir} . '/' . $hmmlib, $self->{_fasta} );
+    
+    }    
 
     print STDERR "PfamScan::search: hmmscan command: |@params|\n" if $ENV{DEBUG};
     print STDERR 'PfamScan::search: sequence: |' . $self->{_sequence} . "|\n" if $ENV{DEBUG};
@@ -160,21 +167,20 @@ sub search {
     unless ( $hmmlib =~ /Pfam\-B/ ) {
 
       if($self->{_clan_overlap}){
-        push(@{$self->{_header}}, "#   resolve clan overlaps: off\n"); 
+        push(@{$self->{_header}}, "#    resolve clan overlaps: off\n"); 
       }
       else {
-        push(@{$self->{_header}}, "#   resolve clan overlaps: on\n"); 
+        push(@{$self->{_header}}, "#    resolve clan overlaps: on\n"); 
         $self->_resolve_clan_overlap;
       }
 
       if ( $self->{_as} ) {
-        push(@{$self->{_header}}, "# predicting active sites: on\n"); 
+        push(@{$self->{_header}}, "#     predict active sites: on\n"); 
         $self->_pred_act_sites;
       }
       else {
-          push(@{$self->{_header}}, "# predicting active sites: off\n"); 
+          push(@{$self->{_header}}, "#     predict active sites: off\n"); 
       }
-
     }
 
     # Determine which hits are significant
@@ -310,7 +316,7 @@ Returns the search results.
 =cut
 
 sub results {
-  my $self = shift;
+  my ($self, $e_value) = @_;
 
   unless ( defined $self->{_all_results} ) {
     carp "WARNING: call search() before trying to retrieve results";
@@ -320,7 +326,7 @@ sub results {
   my @search_results = ();
 
   foreach my $hmm_result ( @{ $self->{_all_results} } ) {
-    push @search_results, @{ $hmm_result->results($self) };
+    push @search_results, @{ $hmm_result->results($self, $e_value) };
   }
 
   return \@search_results;
@@ -413,9 +419,16 @@ qq(FATAL: the E-value domain cut-off "$args->{-e_dom}" must be positive non-zero
   $self->{_align}        = $args->{-align};
   $self->{_as}           = $args->{-as};
   $self->{_sequence}     = $args->{-sequence};
+  $self->{_cpu}          = $args->{-cpu};
+
 
   if ( $args->{-hmmlib} ) {
-    @{ $self->{_hmmlib} } = @{ $args->{-hmmlib} };
+      if(ref $args->{-hmmlib} eq 'ARRAY') {
+	  push(@{ $self->{_hmmlib} }, @{$args->{-hmmlib}});
+      }
+      else {
+	  push(@{ $self->{_hmmlib} }, $args->{-hmmlib});
+      }
   }
   else {
     push( @{ $self->{_hmmlib} }, "Pfam-A.hmm" );
@@ -474,7 +487,7 @@ Adds version to the header object
 sub _build_header {
   my ( $self, $version ) = @_;
 
-  unshift @{ $self->{_header} }, '#     query sequence file: ' . $self->{_fasta};
+  unshift @{ $self->{_header} }, '#      query sequence file: ' . $self->{_fasta} . "\n";
 
   unshift @{ $self->{_header} }, <<EOF_license;
 # Copyright (c) 2009 Genome Research Ltd\n# Freely distributed under the GNU 
