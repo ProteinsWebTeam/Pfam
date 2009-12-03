@@ -279,6 +279,7 @@ sub test_rdb {
 
    }
 
+#loading to rfamlive Curation -P3303
 
 sub live_rdb_update{
     my ($self) = @_;
@@ -307,6 +308,34 @@ sub live_rdb_update{
     
 }
 
+sub live_rdb_update_admin{
+    my ($self) = @_;
+    my $dont = $ENV{'DONT_UPDATE_PFAM_RDB'};
+
+    if (defined $dont) {
+	if ($dont =~ /true/i) {
+	    return undef;
+	}
+	else {
+	    my $mess = "UpdateRDB - ";
+	    $mess .= "expecting DONT_UPDATE_PFAM_RDB to be true or undefined; ";
+	    $mess .= "Found it to be $dont";
+	    $self->throw( $mess );
+      }
+   }
+   else {
+  	return Rfam::UpdateRDB->new('-db_name' => $live_rdb_name,
+				    '-db_driver' => $rdb_driver, 
+				    '-db_host' => $rdb_host,
+				    '-db_user' => $rdb_user_admin,
+				    '-db_password' => $rdb_pass_admin,
+				   '-db_port' => $rdb_port );
+
+   }    
+
+}
+
+#loading to release databases on Dev -P 3301
 sub release_rdb_update{
     my ($self) = @_;
 
@@ -333,7 +362,7 @@ sub release_rdb_update{
 
 }
 
-
+#test loadings on Curation -P 3303
 sub test_rdb_update{
     my ($self, $user) = @_;
     
