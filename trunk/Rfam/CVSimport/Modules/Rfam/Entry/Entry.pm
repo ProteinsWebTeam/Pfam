@@ -62,7 +62,7 @@ sub alignmethod{
 
 
 =head2 description
-
+    
  Title   : description
  Usage   : $self->description($desc)
  Function: get/set description
@@ -719,7 +719,9 @@ sub _read_std_desc{
    
   for($i=0;$i <= $#lines;$i++) {
        $_ = $lines[$i];
-       /^ID\s+(\S+)$/ && do {
+       /^ID\s+(.*)$/ && do {
+	   
+	   if ($1 =~/[^a-zA-Z0-9\-\_]/) { print STDERR  "Problem with id string '$_'. Extra spaces or tabs. Fix it!\n"; exit;}
 	   $thisfam = $1;
 	   $self->id($thisfam);
 	   next;
@@ -750,7 +752,7 @@ sub _read_std_desc{
        };
 
        /^PI\s+(.*?)\s+$/ && do {
-	   $self->previous_ids($1);
+	   $self->prevId($1);
 	   next;
        };
        /^GA\s+(.*?)\s+$/ && do {
@@ -803,16 +805,19 @@ sub _read_std_desc{
      ### DATABASE LINKS 
      my ($db_name, $db_ref, $rest);
      if ( $_ =~ /^DR\s+/) {
-       if ($_ =~ /^DR\s+(\S+);\s+(\S+\s\S?);\s*(.*)/) {
-	 ($db_name, $db_ref, $rest) = ($1, $2, $3);
+       if ($_ =~ /^DR\s+(\S+);\s+(\S+\s\S?);\s*(.*)/) { 
+	 ($db_name, $db_ref) = ($1, $2);
        } elsif ($_ =~ /^DR\s+(\S+);\s+(\S+);\s*(.*)/) {
-	 ($db_name, $db_ref, $rest) = ($1, $2, $3);
+	 ($db_name, $db_ref) = ($1, $2);
+       }elsif ($_ =~ /^DR\s+(SO|GO)\:(\d+)\s+(SO|GO)\:(\S+.*)/) { #SO/GO
+	 ($db_name, $db_ref, $rest) = ($1, $2, $4);
        } else {
 	 print "Bad DR line - $lines[$i]\n";
        }
-		  
+       
        my $link = new Bio::Annotation::DBLink(-database => $db_name,
-					      -primary_id => $db_ref
+					      -primary_id => $db_ref,
+					      -comment => $rest
 				      );
 
        $self->add_dblink( $link );
