@@ -49,8 +49,21 @@ sub wiki_title{
     return $self->{'wiki_title'};
     
 }
+=head wiki_title
 
 
+=cut
+sub prevId {
+    my ($self,$value) = @_;
+    if( defined $value) {
+	$self->{'prevId'} = $value;
+    } else {
+	$self->_before_annotation_hook('prevId');
+    }
+    
+    return $self->{'prevId'};
+    
+}
 
 =head2 add_dblink
 
@@ -496,7 +509,17 @@ sub full{
    return $out;
 }
 
+=head2 full_strings
 
+ Title   : full_strings
+ Usage   : $full = $self->full()
+ Function:
+ Example :
+ Returns : hash based on accession region start stop
+ Args    :
+
+
+=cut
 sub full_strings{
    my ($self,@args) = @_;
    my($dir,$id,$full_align);
@@ -522,6 +545,43 @@ sub full_strings{
    return \%seq_string;
 }
 
+=head2 scores_evalue
+
+ Title   : scores_evalue
+ Usage   : $full = $self->evalue()
+ Function:
+ Example :
+ Returns : has based on accession region start stop
+ Args    :
+
+
+=cut
+
+sub scores_evalue{
+   my ($self,@args) = @_;
+   my $dir = $self->_directory();
+   my $id=$self->id();
+   my %scores_ev;
+  
+   if (-e "$dir/scores.evalue"){
+       open(SCE,"<$dir/scores.evalue") || die "For entry object [$id],no valid file [$dir/scores.evalue] $!";
+       
+       while(my $l=<SCE>) {
+	   my ($bits, $ev, $region)=split(" ", $l);
+	   if ( $region=~/^(\S+)\/(\d+)\-(\d+)$/){
+	       my  ($acc, $start, $end)=($1, $2, $3);
+	       $acc=~s/\.\d+//g;
+	       $scores_ev{$acc}{$start}{$end}=$ev;
+	   }
+       }
+       
+       close(SCE);
+   }else{
+       print STDERR "**ERROR: Problem with the scores_evalue file for ". $self->acc(), "\n";;
+   }
+     
+   return \%scores_ev;
+}
 
 
 
