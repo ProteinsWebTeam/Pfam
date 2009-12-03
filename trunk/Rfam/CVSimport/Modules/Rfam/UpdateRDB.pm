@@ -469,6 +469,7 @@ sub update_rfam{
        $rdb_acc, 
        $rdb_id,  
        $rdb_desc, 
+       $rdb_prevId,
        $rdb_modlen,
        $rdb_auto_num,
        $rdb_author,
@@ -476,7 +477,7 @@ sub update_rfam{
        $rdb_align_method,
        $gathering_cutoff,
        $noise_cutoff,
-       $rdb_previous_ids,
+       $rdb_previous_id,
        $rdb_source,
        $trusted_cutoff,
        $rdb_GA,
@@ -495,7 +496,10 @@ sub update_rfam{
        $rdb_species,
        $rdb_tax_domain,
        $rdb_tax_root,
-       $rdb_full_sscons
+       $rdb_full_sscons,
+       $rdb_reference_structure,
+       $rdb_reference_sequence,
+       $rdb_structure_annotations
       );
 
 
@@ -512,7 +516,7 @@ sub update_rfam{
    }
 
    my $bsth;
-   unless( $bsth = $dbh->prepare($self->__replace_sql('rfam', 25))){
+   unless( $bsth = $dbh->prepare($self->__replace_sql('rfam', 28))){
        $self->close_transaction($dbh->errstr);
    }
 
@@ -549,6 +553,7 @@ sub update_rfam{
 	   $rdb_desc = $en->description;
 	   $rdb_author = $en->author;
 	   $rdb_comment = $en->comment;
+           $rdb_previous_id=$en->prevId(),     
 
 	   $rdb_align_method = $en->alignmethod();
 	   $rdb_GA = $en->gathering_cutoff();
@@ -589,7 +594,7 @@ sub update_rfam{
 			   $rdb_TC,			   
 			   $rdb_NC,
 			   $rdb_comment,
-			   $rdb_previous_ids,
+			   $rdb_previous_id,
 			   $rdb_cmbuild,
 			   $rdb_cmcalibrate,
 			   $rdb_num_seed, 
@@ -601,7 +606,10 @@ sub update_rfam{
 			   $rdb_species,
 			   $rdb_tax_domain,
 			   $rdb_tax_root,
-			   $rdb_full_sscons
+			   $rdb_full_sscons,
+			   $rdb_reference_structure,
+			   $rdb_reference_sequence,
+			   $rdb_structure_annotations
 			    );
        $rows += $bsth->rows;
    }; if ($@){
@@ -650,10 +658,12 @@ sub update_rfam_reg_full {
        $rdb_significant,
        $rdb_type, 
        $rdb_full_string,
+       $rdb_evalue,
        @regions,
        %store_seed, @seed_region, $seed_acc,
        %store_rfamseq,  
-       $no_seq_count       
+       $no_seq_count,
+       $s_evalues
        );
    
    $dbh = $self->open_transaction( 'rfam_reg_full', 'rfam', 'rfamseq' );
@@ -669,6 +679,12 @@ sub update_rfam_reg_full {
        #this method loads in the full align!!
        $full_ss=$en->full_strings();
        $full_structure=$full_ss->{'sscons'};
+       #get the evalues
+       $s_evalues=$en->scores_evalue();
+       if (! $s_evalues) {
+	   $error="Problem obtaining the data from scores_evalue;";
+	   last;
+       }
 
        #get auto-rfam for this family 
        my $asth = $dbh->prepare("SELECT auto_rfam from rfam where rfam_acc = '$rdb_acc'");
@@ -723,7 +739,9 @@ sub update_rfam_reg_full {
 	   }else{
 	       $rdb_type='full';
 	   }
-	
+	   #get the evalue from the scores_evalue file
+	   $rdb_evalue=$s_evalues->{$rfamseq_acc}->{$reg->from}->{$reg->to};
+
 	   if (defined($store_rfamseq{$rfamseq_acc})) {
 	       $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
 	   } else {
@@ -747,7 +765,7 @@ sub update_rfam_reg_full {
 			      $reg->from, 
 			      $reg->to,
 			      $reg->bits_score,
-			      '',
+			      $rdb_evalue,
 			      $rdb_type,
 			      '',
 			      '',
@@ -797,11 +815,13 @@ sub collate_large_fam_reg_full {
        $rdb_significant,
        $rdb_type,
        $rdb_full_string,
+       $rdb_evalue,
        @regions,
        %store_seed, @seed_region, $seed_acc,
        %store_rfamseq, 
        %store_rfam, 
-       $no_seq_count       
+       $no_seq_count,
+       $s_evalue
        );
         
    if (scalar(@$entries) >1){
@@ -820,7 +840,12 @@ sub collate_large_fam_reg_full {
        $rdb_auto_num = $en->auto_rfam;
        $full_ss=$en->full_strings();
        $full_structure=$full_ss->{'sscons'};
-       
+        #get the evalues
+       $s_evalues=$en->scores_evalue();
+       if (! $s_evalues) {
+	   $error="Problem obtaining the data from scores_evalue;";
+	   last;
+       }
        my $asth = $dbh->prepare("SELECT auto_rfam from rfam where rfam_acc = ?");
        $asth->execute($rdb_acc);
        my($temp_auto) = $asth->fetchrow;
@@ -877,6 +902,9 @@ sub collate_large_fam_reg_full {
 	   }
 	   #full seq string
 	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
+
+	   #get the evalue from the scores_evalue
+	   $rdb_evalue=$s_evalues->{$rfamseq_acc}->{$reg->from}->{$reg->to};
 	   
 	   if (defined($store_rfamseq{$rfamseq_acc})) {
 	       $rfamseq_auto = $store_rfamseq{$rfamseq_acc};
@@ -892,9 +920,9 @@ sub collate_large_fam_reg_full {
 	   }
        
 	   #generate the data structure to return;
-	   #empty values=auto_genome, evalue, type, genome_start, genome_end
-  
-	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, '', $reg->from, $reg->to, $reg->bits_score, '', $rdb_type, '',  '', $rdb_full_string);
+	   #empty values=auto_genome, genome_start, genome_end
+           
+	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, '', $reg->from, $reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, '',  '', $rdb_full_string);
 	   push (@$data, $string);
        }#end of regions for $entry;
     
@@ -909,7 +937,8 @@ sub collate_large_fam_reg_full {
 
    $self->disconnect();
    if (!$error){
-       print STDERR "Completed collation of rfam_ref_full data\n";
+       my $c=(scalar(@data))-1; #has a header we dont want to count
+       print STDERR "Completed collation of rfam_ref_full data: $c collated and $no_seq_count missing\n";
    }
    return $data;
 }
@@ -1223,7 +1252,7 @@ sub update_rfam_database_links {
 	my($database, $title, $db_link, @other_info, $all_other);
 	$database = $link->database;
 	$db_link = $link->primary_id();
-
+        $title=$link->comment();
 	eval {
 	  $stat = undef;
 	  if (not defined $stat) {
@@ -1291,73 +1320,73 @@ sub update_rfam_database_links {
 #=cut
 
 
-sub add_rfamseq {
-    my $self = shift;
-    my @seqs = @_;
+# sub add_rfamseq {
+#     my $self = shift;
+#     my @seqs = @_;
 
-    $dbh = $self->open_transaction( 'rfamseq' );
+#     $dbh = $self->open_transaction( 'rfamseq' );
 
-    my $error = "";
-    my $rows = 0;
-    foreach my $seq ( @seqs ) {
-	my $auto_id = '';
-	my $st = $dbh->prepare( 'select auto_rfamseq from rfamseq where rfamseq_acc = ?' );
-	$st->execute( $seq->accession_number );
-	($auto_id) = $st->fetchrow;
-	$st->finish();
+#     my $error = "";
+#     my $rows = 0;
+#     foreach my $seq ( @seqs ) {
+# 	my $auto_id = '';
+# 	my $st = $dbh->prepare( 'select auto_rfamseq from rfamseq where rfamseq_acc = ?' );
+# 	$st->execute( $seq->accession_number );
+# 	($auto_id) = $st->fetchrow;
+# 	$st->finish();
 
-	if( $auto_id ) {
-	    $st = $dbh->prepare($self->__replace_sql('rfamseq', 9));
-	}
-	else {
-	    $st = $dbh->prepare($self->__insert_sql('rfamseq', 9));
-	}
+# 	if( $auto_id ) {
+# 	    $st = $dbh->prepare($self->__replace_sql('rfamseq', 9));
+# 	}
+# 	else {
+# 	    $st = $dbh->prepare($self->__insert_sql('rfamseq', 9));
+# 	}
 
-	my $OS = "unknown";
-	my $OC = "unknown";
+# 	my $OS = "unknown";
+# 	my $OC = "unknown";
 
-	# stolen from Bio::SeqIO::embl->write_seq
-	my $spec = $seq->species;
-	if( $spec ) {
-	    my($species, @class) = $spec->classification();
-	    my $genus = $class[0];
-	    $OS = "$genus $species";
-	    if (my $ssp = $spec->sub_species) {
-		$OS .= " $ssp";
-	    }
-	    if (my $common = $spec->common_name) {
-		$OS .= " ($common)";
-	    }
-	    $OC = join('; ', reverse(@class)) .'.';
-	}
-	####
+# 	# stolen from Bio::SeqIO::embl->write_seq
+# 	my $spec = $seq->species;
+# 	if( $spec ) {
+# 	    my($species, @class) = $spec->classification();
+# 	    my $genus = $class[0];
+# 	    $OS = "$genus $species";
+# 	    if (my $ssp = $spec->sub_species) {
+# 		$OS .= " $ssp";
+# 	    }
+# 	    if (my $common = $spec->common_name) {
+# 		$OS .= " ($common)";
+# 	    }
+# 	    $OC = join('; ', reverse(@class)) .'.';
+# 	}
+# 	####
 
-	$st->execute( $auto_id,
-		      $seq->id,
-		      $seq->accession_number,
-		      $seq->description,
-		      $OS,
-		      $OC,
-		      $seq->seq_version,
-		      join( ';', $seq->get_secondary_accessions ),
-		      ''
-		      );
+# 	$st->execute( $auto_id,
+# 		      $seq->id,
+# 		      $seq->accession_number,
+# 		      $seq->description,
+# 		      $OS,
+# 		      $OC,
+# 		      $seq->seq_version,
+# 		      join( ';', $seq->get_secondary_accessions ),
+# 		      ''
+# 		      );
 
-	$rows += $st->rows;
-    };
-    if ($@) {
-	$error = "Could not do the insertion on the rfamseq table [$@]";
-	last;
-    }
+# 	$rows += $st->rows;
+#     };
+#     if ($@) {
+# 	$error = "Could not do the insertion on the rfamseq table [$@]";
+# 	last;
+#     }
 	 
-    $self->close_transaction( $error );
-    $error and $self->throw( $error );
+#     $self->close_transaction( $error );
+#     $error and $self->throw( $error );
 
-    $self->report_mode and 
-	printf STDERR "Just added %d records to %s.pfamseq\n", $rows, $self->_database_name();
+#     $self->report_mode and 
+# 	printf STDERR "Just added %d records to %s.pfamseq\n", $rows, $self->_database_name();
 
-    return $rows;
-}
+#     return $rows;
+# }
 
 
 1;
