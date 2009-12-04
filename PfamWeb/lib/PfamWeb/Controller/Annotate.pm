@@ -2,7 +2,7 @@
 # Annotate.pm
 # jt 20061020 WTSI
 #
-# $Id: Annotate.pm,v 1.21 2009-11-11 15:06:16 jt6 Exp $
+# $Id: Annotate.pm,v 1.22 2009-12-04 22:58:06 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Annotate;
 
 Accepts user annotations.
 
-$Id: Annotate.pm,v 1.21 2009-11-11 15:06:16 jt6 Exp $
+$Id: Annotate.pm,v 1.22 2009-12-04 22:58:06 jt6 Exp $
 
 =cut
 
@@ -25,6 +25,7 @@ use warnings;
 
 use base 'Catalyst::Controller';
 
+use IO::All;
 use Email::Valid;
 use PfamWeb::CustomContainer;
 use HTML::Widget::Element;
@@ -243,11 +244,9 @@ sub submit : Local {
     else {
       $c->log->debug( 'Annotate::submit: no errors in the user input' );
 
-      # the input parameters validated, so send an email
-      my $mailErrors = $c->forward( 'sendMail' );
-      
+      # the input parameters validated, so send an email. Check to
       # see if something went wrong
-      if ( $mailErrors ) {
+      if ( $c->forward( 'sendMail' ) ) {
         $c->stash->{widget} = $r;
         $c->stash->{submissionError} = SUBMISSION_EMAIL_FAILED;
       }
@@ -405,13 +404,15 @@ specified in the config.
 sub sendMail : Private {
   my ( $this, $c ) = @_;
 
-  $c->log->debug( 'Annotate::sendMail: sending an annotation mail' );
-  $c->log->debug( 'Annotate::sendMail:   acc:   |' . $c->stash->{acc} . '|' );
-  $c->log->debug( 'Annotate::sendMail:   id:    |' . $c->stash->{id} . '|' );
-  $c->log->debug( 'Annotate::sendMail:   user:  |' . $c->req->param('user') . '|' );
-  $c->log->debug( 'Annotate::sendMail:   email: |' . $c->req->param('email') . '|' );
-  $c->log->debug( 'Annotate::sendMail:   ann:   |' . $c->req->param('annotation') . '|' );
-  $c->log->debug( 'Annotate::sendMail:   refs:  |' . $c->req->param('refs') . '|' );
+  if ( $c->debug ) {
+    $c->log->debug( 'Annotate::sendMail: sending an annotation mail' );
+    $c->log->debug( 'Annotate::sendMail:   acc:   |' . $c->stash->{acc} . '|' );
+    $c->log->debug( 'Annotate::sendMail:   id:    |' . $c->stash->{id} . '|' );
+    $c->log->debug( 'Annotate::sendMail:   user:  |' . $c->req->param('user') . '|' );
+    $c->log->debug( 'Annotate::sendMail:   email: |' . $c->req->param('email') . '|' );
+    $c->log->debug( 'Annotate::sendMail:   ann:   |' . $c->req->param('annotation') . '|' );
+    $c->log->debug( 'Annotate::sendMail:   refs:  |' . $c->req->param('refs') . '|' );
+  }
 
   # validate the user-supplied email address. We check this because it could be a
   # conduit for email header injection, but the other params are used only in the 
@@ -424,7 +425,8 @@ sub sendMail : Private {
   my @parts;
   if ( $c->req->upload('alignment') ) {
     my $u = $c->req->upload('alignment');
-    $c->log->debug( 'Annotate::sendMail: attaching upload to mail (' . $u->filename . ')' );
+    $c->log->debug( 'Annotate::sendMail: attaching upload to mail (' . $u->filename . ')' )
+      if $c->debug;
 
     # build an email 'part' for it
     my $attachment = Email::MIME->create( attributes => { content_type => $u->type,
@@ -440,21 +442,26 @@ sub sendMail : Private {
   $c->stash->{annotation} = $c->req->param('annotation');
   $c->stash->{refs}       = $c->req->param('refs');
 
-  # render the email
-  my $mailTxt = $c->view( 'TT' )->render($c, 'components/annotationEmail.tt' );
+  # render the email body
+  my $mailTxt = $c->view('TT')->render($c, 'components/annotationEmail.tt' );
 
-  # and send it
-  eval {
-    $c->email( header     => [ To      => $this->{annotationEmail},
-                               From    => $c->stash->{email},
-                               Subject => $c->stash->{subject} ],
-               parts      => [ $mailTxt, @parts ] );
+  # build the contents of the mail in the stash and send it
+  $c->stash->{email} = { 
+    header     => [ To      => $this->{annotationEmail},
+                    From    => $c->stash->{email},
+                    Subject => $c->stash->{subject} ],
+    parts      => [ $mailTxt, @parts ] 
   };
-  if ( $@ ) {
-    $c->log->error( "Annotate::sendMail: problem when submitting an annotation: $@" );
+
+  $c->forward( $c->view('Email') );
+
+  if ( scalar @{ $c->error } ) {
+    $c->log->error( 'Annotate::sendMail: problem when submitting an annotation: ' 
+                    . join "\n", @{ $c->error } );
+    $c->clear_errors;
   }
 
-  return $@ ? $@ : 0;
+  return scalar @{ $c->error };
 }
 
 #-------------------------------------------------------------------------------
