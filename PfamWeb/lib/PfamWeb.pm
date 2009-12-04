@@ -2,7 +2,7 @@
 # PfamWeb.pm
 # jt 20060316 WTSI
 #
-# $Id: PfamWeb.pm,v 1.53 2008-10-23 09:27:14 jt6 Exp $
+# $Id: PfamWeb.pm,v 1.54 2009-12-04 22:58:31 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb;
 
 This is the main class for the Pfam website catalyst application.
 
-$Id: PfamWeb.pm,v 1.53 2008-10-23 09:27:14 jt6 Exp $
+$Id: PfamWeb.pm,v 1.54 2009-12-04 22:58:31 jt6 Exp $
 
 =cut
 
@@ -57,7 +57,6 @@ __PACKAGE__->config->{'Plugin::ConfigLoader'}->{file} = $conf;
 # catalyst plugins
 __PACKAGE__->setup( qw(
                         HTML::Widget
-                        Email
                         Session
                         Session::Store::FastMmap
                         Session::State::Cookie
