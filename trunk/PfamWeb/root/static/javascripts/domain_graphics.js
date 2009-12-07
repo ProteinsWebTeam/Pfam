@@ -23,7 +23,7 @@ if ( ! window.console ) {
 //
 // jt6 20090803 WTSI
 //
-// $Id: domain_graphics.js,v 1.9 2009-11-25 13:41:25 jt6 Exp $
+// $Id: domain_graphics.js,v 1.10 2009-12-07 22:38:37 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -349,11 +349,6 @@ var PfamGraphic = Class.create( {
   //----------------------------------------------------------------------------
   /**
    * Sets the <code>&lt;canvas&gt;</code> element for this graphic. 
-   * <strong>Note</strong> that specifying a canvas element automatically calls
-   * <code>setNewCanvas( false )</code>, so that all subsequent renderings will
-   * use the specified canvas. If you want the call to <code>render()</code> to
-   * generate a new canvas again, you will need to call
-   * <code>setNewCanvas( true )</code> yourself. 
    *
    * @param {String|Element} canvas the canvas element that should be used 
    *   for drawing the graphic. The canvas can be identified either by a string,
@@ -378,10 +373,6 @@ var PfamGraphic = Class.create( {
     if ( this._context === undefined ) {
       this._throw( "couldn't create a 2d context from canvas" );
     }
-
-    // automatically turn off the option to generate a new canvas element for
-    // every rendering
-    this.setNewCanvas( false );
 
     // we need to tie the areas to the canvases, so if we change canvas, we
     // also need to reset the areas list
@@ -657,12 +648,12 @@ var PfamGraphic = Class.create( {
       return null;
     }
     
-    console.log( "PfamGraphic.getDimensions: canvas (w, h): (%d, %d)",
-      this._canvasWidth, this._canvasHeight );
-    console.log( "PfamGraphic.getDimensions: sequence end padding: %d",
-      this._imageParams.sequenceEndPadding );
-    console.log( "PfamGraphic.getDimensions: xscale, yscale: %d x %d",
-      this._imageParams.xscale, this._imageParams.yscale  );
+    // console.log( "PfamGraphic.getDimensions: canvas (w, h): (%d, %d)",
+    //   this._canvasWidth, this._canvasHeight );
+    // console.log( "PfamGraphic.getDimensions: sequence end padding: %d",
+    //   this._imageParams.sequenceEndPadding );
+    // console.log( "PfamGraphic.getDimensions: xscale, yscale: %d x %d",
+    //   this._imageParams.xscale, this._imageParams.yscale  );
     
     var dim = [ this._canvasWidth, this._canvasHeight ];
     dim.width  = this._canvasWidth;
