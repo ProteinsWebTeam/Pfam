@@ -7,7 +7,7 @@
 # template uses an ajax call to hand off to a controller that generates domain
 # graphics for each of the selected sequences.
 #
-# $Id: seqViewGraphic.tt,v 1.10 2009-10-07 14:11:03 jt6 Exp $
+# $Id: seqViewGraphic.tt,v 1.11 2009-12-07 22:36:19 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -58,7 +58,7 @@ title = "View selected sequences"
   <p>
     [% i = 0;
     WHILE i < 10 %]
-      <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
+      <a href="[% c.uri_for( '/protein', selectedSeqAccs.$i ) %]">
         [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -69,7 +69,7 @@ title = "View selected sequences"
   <div id="extraAccs" style="display: none">
     [% i = 10;
     WHILE i < selectedSeqAccs.size %]
-    <a href="[% c.uri_for( "/protein", { acc = selectedSeqAccs.$i } ) %]">
+    <a href="[% c.uri_for( '/protein', selectedSeqAccs.$i ) %]">
       [% selectedSeqAccs.$i %]</a>
     [% i = i + 1;
     END %]
@@ -78,7 +78,7 @@ title = "View selected sequences"
 [% ELSE %]
   <p>
   [% FOREACH seqAcc IN selectedSeqAccs %]
-    <a href="[% c.uri_for( "/protein", { acc = seqAcc } ) %]">[% seqAcc %]</a>
+    <a href="[% c.uri_for( '/protein', seqAcc ) %]">[% seqAcc %]</a>
   [% END %]
   </p>
 [% END %]  
@@ -95,7 +95,7 @@ title = "View selected sequences"
   document.observe( "dom:loaded", function() {
     var r = new Ajax.Updater(
       "stdgph",
-      "[% c.uri_for( "/domaingraphics" ) %]",
+      "[% c.uri_for( '/domaingraphics' ) %]",
       { evalScripts: true,
         parameters: { jobId:   "[% jobId %]",
                       subTree: 1 },
