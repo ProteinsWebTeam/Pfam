@@ -2,7 +2,7 @@
 # DomainGraphics.pm
 # jt6 20060410 WTSI
 #
-# $Id: DomainGraphics.pm,v 1.32 2009-10-27 14:18:48 jt6 Exp $
+# $Id: DomainGraphics.pm,v 1.33 2009-12-07 22:27:44 jt6 Exp $
 
 =head1 NAME
 
@@ -28,7 +28,7 @@ in the config.
 If building sequence graphics, no attempt is currently made to page through the
 results, but rather all rows are generated.
 
-$Id: DomainGraphics.pm,v 1.32 2009-10-27 14:18:48 jt6 Exp $
+$Id: DomainGraphics.pm,v 1.33 2009-12-07 22:27:44 jt6 Exp $
 
 =cut
 
@@ -136,7 +136,7 @@ sub begin : Private {
   # can use to retrieve the list of sequence accessions to process
 
   elsif ( $c->req->param('subTree') and
-         $c->req->param('jobId') ) {
+          $c->req->param('jobId') ) {
 
     $c->log->debug( 'DomainGraphics::begin: checking for selected sequences' )
       if $c->debug;
@@ -167,10 +167,8 @@ sub begin : Private {
 
   # do we have an NCBI-code ?
 
-  # TODO not tested !
-
-  elsif( $c->req->param('taxId') and
-           $c->req->param('taxId') =~ m/^(\d+)$/i ){
+  elsif ( $c->req->param('taxId') and
+          $c->req->param('taxId') =~ m/^(\d+)$/i ){
 
     $c->log->debug( 'DomainGraphics::begin: getting proteome sequences' )
       if $c->debug;
@@ -251,11 +249,6 @@ sub domain_graphics : Path {
         }
       }
   
-      $c->log->debug( 'DomainGraphics::domain_graphics: pfama_colours: ' 
-                      . dump( $pfama_colours ) ) if $c->debug;
-      $c->log->debug( 'DomainGraphics::domain_graphics: pfamb_colours: ' 
-                      . dump( $pfamb_colours ) ) if $c->debug;
-      
       # and pre-assign the colours to the respective configurators
       if ( $pfama_colours ) {
         $pfama->assignedColours( $pfama_colours );
@@ -271,11 +264,6 @@ sub domain_graphics : Path {
   # let the layout manager build the domain graphics definition from the
   # sequence objects
   $lm->layoutSequences( $c->stash->{seqs} );
-
-  $c->log->debug( 'DomainGraphics::domain_graphics: pfama->assignedColours: ' 
-                  . dump( $pfama->assignedColours ) ) if $c->debug;
-  $c->log->debug( 'DomainGraphics::domain_graphics: pfamb->assignedColours: ' 
-                  . dump( $pfamb->assignedColours ) ) if $c->debug;
 
   # configure the JSON object to correctly stringify the layout manager output
   my $json = new JSON;
@@ -303,10 +291,6 @@ sub domain_graphics : Path {
     }
 
     $c->stash->{assignedColours} = $json->encode( $valid_colours );
-    
-    $c->log->debug( 'DomainGraphics::domain_graphics: assigned colours: ' 
-                    . dump( $c->stash->{assignedColours} ) )
-      if $c->debug;
   }
 
   # use a different template for rendering sequences vs architectures vs
@@ -635,7 +619,6 @@ sub get_pfamB_no_arch : Private {
 
     if ( not $seen_arch{$aa} ) {
       push @rows, $arch;
-      # push @seqs, thaw( $arch->annseqs->annseq_storable );
       $arch_store{ $arch->pfamseq_id } = $arch;
     }
     $seen_arch{$aa}++;
@@ -816,35 +799,61 @@ sub get_selected_seqs : Private {
   $c->forward( 'calculateRange' );
 
   my ( @seqs, %seqInfo, @ids );
-  foreach my $row ( @rows[ $c->stash->{first} .. $c->stash->{last} ] ) {
+  foreach my $seq ( @rows[ $c->stash->{first} .. $c->stash->{last} ] ) {
 
-    push @seqs, thaw( $row->annseqs->annseq_storable );
-
-    # my $seq = $row->auto_architecture->type_example;
+    push @seqs, thaw( $seq->annseqs->annseq_storable );
 
     # stash the sequence IDs for the type example in an array, so that we can 
     # access them in the right order in the TT, i.e. ordered by number of 
     # sequences with the given architecture)
-    my $pfamseq_id = $row->pfamseq_id;
-    $c->log->debug( "DomainGraphics::get_selected_seqs: row sequence ID: |$pfamseq_id|" )
+    my $id = $seq->pfamseq_id;
+    $c->log->debug( "DomainGraphics::get_selected_seqs: row sequence ID: |$id|" )
       if $c->debug;
-    push @ids, $pfamseq_id;
+    push @ids, $id;
 
-    # work out which domains are present on this sequence
-    my @domains = split m/\~/, $row->auto_architecture->architecture;
-    $seqInfo{$pfamseq_id}{arch} = \@domains;
+    my $aa = $seq->auto_architecture
+             ? $seq->auto_architecture->auto_architecture
+             : 'nopfama';
+             
+    $c->log->debug( "DomainGraphics::get_selected_seqs: checking |$id|, architecture |$aa|" )
+      if $c->debug;
 
-    # how many sequences ?
-    $seqInfo{$pfamseq_id}{num} = $row->auto_architecture->no_seqs;
+    if ( $aa =~ /^(\d+)$/ ) {
 
-    # store a mapping between the sequence and the auto_architecture
-    $seqInfo{$pfamseq_id}{auto_arch} = $row->auto_architecture->auto_architecture;
+      $c->log->debug( "DomainGraphics::get_selected_seqs: found architecture |$1|: " 
+                      . $seq->auto_architecture->architecture )
+        if $c->debug;
+
+      my @domains = split /\~/, $seq->auto_architecture->architecture;
+      $seqInfo{$id}{arch}      = \@domains;
+      $seqInfo{$id}{num}       = $seq->auto_architecture->no_seqs;
+      $seqInfo{$id}{auto_arch} = $aa;
+    }
+    else {
+
+      $c->log->debug( 'DomainGraphics::get_pfamB_no_arch: no PfamA domains' )
+        if $c->debug;
+      $seqInfo{$id}{arch}      = 'no Pfam-A domains';
+      $seqInfo{$id}{auto_arch} = 'nopfama';
+      $seqInfo{$id}{num}       = 1;
+      #$seqInfo{$id}{num}       = $seen_arch{nopfama};
+    }
+
+#    # work out which domains are present on this sequence
+#    my @domains = split m/\~/, $seq->auto_architecture->architecture;
+#    $seqInfo{$id}{arch} = \@domains;
+#
+#    # how many sequences ?
+#    $seqInfo{$id}{num} = $seq->auto_architecture->no_seqs;
+#
+#    # store a mapping between the sequence and the auto_architecture
+#    $seqInfo{$id}{auto_arch} = $seq->auto_architecture->auto_architecture;
 
     # store the sequence description, species name and length of each 
     # individual sequence
-    $seqInfo{$pfamseq_id}{desc}    = $row->description;
-    $seqInfo{$pfamseq_id}{species} = $row->species;
-    $seqInfo{$pfamseq_id}{length}  = $row->length;
+    $seqInfo{$id}{desc}    = $seq->description;
+    $seqInfo{$id}{species} = $seq->species;
+    $seqInfo{$id}{length}  = $seq->length;
   }
 
   $c->log->debug( 'DomainGraphics::get_selected_seqs: retrieved '
