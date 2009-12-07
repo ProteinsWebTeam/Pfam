@@ -4,7 +4,7 @@
 # 
 # build the linking block for the help pages
 #
-# $Id: linking.tt,v 1.11 2009-02-04 11:15:21 jt6 Exp $
+# $Id: linking.tt,v 1.12 2009-12-07 22:30:46 jt6 Exp $
 %]
 
 <!-- start linking block -->
@@ -188,7 +188,7 @@
       
     <p>
       The Pfam website features a      
-      <span class="link" onclick="switchTab('helpGetStartedBlock')">
+      <span class="link" onclick="tabPage.switchTab('helpGetStartedBlock')">
         search tool</span> that tries to guess the type of
       any accession or ID that it is given. For example, if given 
       &quot;VAV_HUMAN&quot;, the search returns the URL for the protein 

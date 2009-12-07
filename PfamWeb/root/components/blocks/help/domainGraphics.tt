@@ -5,7 +5,7 @@
 # 
 # build the domainGraphics block for the help pages
 #
-# $Id: domainGraphics.tt,v 1.15 2009-10-28 17:07:52 jt6 Exp $
+# $Id: domainGraphics.tt,v 1.16 2009-12-07 22:30:46 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -55,7 +55,7 @@ family = c.uri_for( "/family" );
     </p>
     <p>
       We provide a set of tools, described in the 
-      <span class="link" onclick="switchTab('helpToolsBlock')">Tools &amp; Web 
+      <span class="link" onclick="tabPage.switchTab('helpToolsBlock')">Tools &amp; Web 
         Services</span> section of the help pages, that allow you to generate 
       <a href="[% c.uri_for( "/generateGraphic" ) %]">custom domain graphics</a> by
       uploading your own XML file, or to generate graphics for a
