@@ -4,7 +4,7 @@
 # 
 # build the scores block for the help pages
 #
-# $Id: tools.tt,v 1.15 2009-10-28 17:07:52 jt6 Exp $
+# $Id: tools.tt,v 1.16 2009-12-07 22:30:46 jt6 Exp $
 
 USE dumper;
 
@@ -53,7 +53,7 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
     <p>
       You can see a detailed description of the XML language that describes
       Pfam domain images in the 
-      <span class="link" onclick="switchTab('helpDomainGraphicsBlock');">
+      <span class="link" onclick="tabPage.switchTab('helpDomainGraphicsBlock');">
         Guide to Graphics</span> section of the help pages. 
     </p>
     <p>
@@ -79,7 +79,7 @@ controller = "Controller::PfamGraphicsTools"; # needed to cope with the "::"
       interface to Pfam services, in the form of a set of 
       &quot;<a class="ext" href="http://en.wikipedia.org/wiki/Restful">RESTful</a>&quot;
       services. You can see documentation for these new services 
-      <span class="link" onclick="switchTab('helpRestBlock');">here</span>. 
+      <span class="link" onclick="tabPage.switchTab('helpRestBlock');">here</span>. 
     </p>
     <p>     
       Because of the problems of maintaining the SOAP-based web-services, we
