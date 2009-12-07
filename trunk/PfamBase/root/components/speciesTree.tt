@@ -5,7 +5,7 @@
 # build the javascript that will construct the interactive species tree in 
 # the browser
 #
-# $Id: speciesTree.tt,v 1.3 2009-10-07 14:21:10 jt6 Exp $
+# $Id: speciesTree.tt,v 1.4 2009-12-07 22:48:10 jt6 Exp $
 
 META naked = 1;
 
@@ -21,32 +21,36 @@ BLOCK walkTree;
 			node = tree.branches.$node_name;
 			node_id = "node" _ node_name.replace( '\W', '' );
 
-			IF NOT node.branches OR node.branches.keys.size > 1 OR parent == "root"
-%]
-summaryId = YAHOO.util.Dom.generateId();
-var html = '\
-  <div class="nodeSummary[% NOT node.branches ? " leafNode" : "" %][% node.inSeed ? " seedNode" : "" %]"\
-       id="' + summaryId +'">\
-    <div class="specSum">[% node.species.size %]</div>\
-    <div class="seqSum">[% node.sequences.size %]</div>\
-    <div class="domSum">[% node.frequency %]</div>\
-  </div>';
-var [% node_id %] = new YAHOO.widget.TaskNode("[% node_name %]", [% parent %], html, true, false, [% node.inSeed ? "true" : "false" %] );
-nodeMapping[summaryId] = [% node_id %];
-[%-
-			ELSE;
-%]
-var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
-[%-
-			END;
+			IF NOT node.branches           OR 
+         node.branches.keys.size > 1 OR 
+         parent == "root" -%]
+        
+        summaryId = YAHOO.util.Dom.generateId();
 
-			IF node.branches;
+        var nodeData = {
+          html: "\
+            <div class='nodeLabel[% node.inSeed ? ' seedNode highlightSeed' : '' %]'>[% node_name | html %]</div>\
+            <div class='nodeSummary'\
+                 id='" + summaryId + "'>\
+              <div class='specSum'>[% node.species.size %]</div>\
+              <div class='seqSum'>[% node.sequences.size %]</div>\
+              <div class='domSum'>[% node.frequency %]</div>\
+            </div>",
+          data: summaryId };
+          
+        var [% node_id %] = new YAHOO.widget.HTMLNode( nodeData, [% parent %], true );
+
+      [%- ELSE -%]
+
+        var [% node_id %] = new YAHOO.widget.TextNode("[% node_name %]", [% parent %], true);
+
+      [%- END;
+			
+      IF node.branches;
 	 			INCLUDE walkTree tree=node parent=node_id;
-			ELSE
-%]
-nodeSequences[summaryId] = "[% node.sequences.keys.join(" ") %]";
-[%-
-			END; # of if node.branches
+      ELSE -%]
+        nodeSequences[summaryId] = "[% node.sequences.keys.join(' ') %]";
+      [%- END;
 
 		END; # of FOREACH node_name
 
@@ -62,68 +66,68 @@ IF textTree;
 
   # the controller returned a text tree but we are still rendering this 
   # template, which means that we need to drop the text representation of
-  # the tree into a "pre" block, so that it formats correctly.
+  # the tree into a "pre" block, so that it formats correctly. -%]
+
+  <p class="small">
+    Because you appear to be using Internet Explorer, we have displayed the
+    species tree using a plain text representation. If you would like to try
+    using the fully interactive species tree, please press the button below.
+  </p>
+  <p class="small">
+    <strong>Please note</strong> that there are known problems using IE to view
+    this interactive tree and it can lead to instability in the browser.
+  </p>
   
-%]
-<p class="small">
-  Because you appear to be using Internet Explorer, we have displayed the
-  species tree using a plain text representation. If you would like to try
-  using the fully interactive species tree, please press the button below.
-</p>
-<p class="small">
-  <strong>Please note</strong> that there are known problems using IE to view
-  this interactive tree and it can lead to instability in the browser.
-</p>
-<div>
-  <input id="generateButton"
-         type="button" 
-         value="Generate interactive tree" 
-         onclick="forceLoad()" />
-  [% # we need a new spinner, since this template's contents was slapped
-     # over the top of the old one %]
-  <span id="secondaryLoadingSpinner"
-        class="loading"
-        style="display: none">Loading...</span>
-</div>
+  <div>
+    <input id="generateButton"
+           type="button" 
+           value="Generate interactive tree" 
+           onclick="forceLoad()" />
+    [% # we need a new spinner, since this template's contents was slapped
+       # over the top of the old one %]
+    <span id="secondaryLoadingSpinner"
+          class="loading"
+          style="display: none">Loading...</span>
+  </div>
 
 <pre>
 [% textTree %]
 </pre>
 
 [%- #----------------------------------------
-   # the controller can decide not to retrieve tree data if there are too many
-   # species. Check if we did get the data...
+    # the controller can decide not to retrieve tree data if there are too many
+    # species. Check if we did get the data...
 
 ELSIF rawTree;
   CALL c.log.debug( "speciesTree.tt: got a RAW tree in the stash" )
     IF c.debug; -%]
 
-treeBuiltSuccessfully = [% rawTree.maxTreeDepth > 0 ? "true" : "false" %];
-
-var summaryId;
+  treeBuiltSuccessfully = [% rawTree.maxTreeDepth > 0 ? "true" : "false" %];
   
-[%- INCLUDE walkTree tree=rawTree parent="root"; %]
-
-var dd = [];
- 
-dd[dd.length] = '<form>';
-dd[dd.length] = '<span>Expand to depth </span>';
-dd[dd.length] = '<select id="depthSelector">';
-for( var i = 1; i <= [% rawTree.maxTreeDepth %]; i++ ) {
-  dd[dd.length] = '<option value="' + i + '"';
-  if ( i == [% rawTree.maxTreeDepth %] ) {
-    dd[dd.length] = ' selected="1"';
+  var summaryId;
+    
+  [%- INCLUDE walkTree tree=rawTree parent="root"; %]
+  
+  var dd = [];
+   
+  dd[dd.length] = '<form>';
+  dd[dd.length] = '<span>Expand to depth </span>';
+  dd[dd.length] = '<select id="depthSelector">';
+  for( var i = 1; i <= [% rawTree.maxTreeDepth %]; i++ ) {
+    dd[dd.length] = '<option value="' + i + '"';
+    if ( i == [% rawTree.maxTreeDepth %] ) {
+      dd[dd.length] = ' selected="1"';
+    }
+    dd[dd.length] = '>' + i + '</option>';
   }
-  dd[dd.length] = '>' + i + '</option>';
-}
-dd[dd.length] = '</select>';
-dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
-dd[dd.length] = '</form>';
-
-$("ddph").update( dd.join("") );
+  dd[dd.length] = '</select>';
+  dd[dd.length] = '<input type="button" value="Go" onclick="expandToDepth()" />';
+  dd[dd.length] = '</form>';
   
-[%-# make the tree controls visible once the tree is loaded %]
-$("toolsContent").show();
+  $("ddph").update( dd.join("") );
+    
+  [%-# make the tree controls visible once the tree is loaded %]
+  $("toolsContent").show();
 
 [%- #----------------------------------------
 
@@ -162,7 +166,7 @@ ELSE;
         CASE "R"; "family";
       END %] has [% numSpecies %] species, which means that displaying the 
       interactive tree is not feasible, but you can still 
-      <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">download</a>
+      <a href="[% c.uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">download</a>
       a text representation of the tree. Please note that, due to the 
       volume of data involved, this can still be slow.
     </p>
@@ -182,7 +186,7 @@ ELSE;
       END %] has [% numSpecies %] species, which means that generating and
       displaying the interactive tree could take up to a minute or more, 
       depending on your browser and the speed of your computer. You can 
-      <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">download</a>
+      <a href="[% c.uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">download</a>
       a text representation of the tree, which should be quicker, but if you
       want to see the interactive tree, please use the button below.
     </p>

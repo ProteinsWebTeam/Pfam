@@ -4,7 +4,7 @@
 #
 # build the "control panel" for the species tree
 #
-# $Id: speciesTreeTools.tt,v 1.6 2009-10-07 14:28:03 jt6 Exp $
+# $Id: speciesTreeTools.tt,v 1.7 2009-12-07 22:48:10 jt6 Exp $
 %]
 
 <div id="treeTools">
@@ -54,7 +54,7 @@
     <h3>Download tree</h3>
     <ul class="bare">
       <li>
-        <a href="[% c.uri_for( "/speciestree/text", { acc = acc, loadTree = 1 } ) | html %]">Save</a> 
+        <a href="[% c.uri_for( '/speciestree/text', { acc = acc, loadTree = 1 } ) | html %]">Save</a> 
         a text representation
       </li>
     </ul>
@@ -66,8 +66,7 @@
     <h3>Selected sequences</h3>
     <ul class="bare">
       <li class="small">
-        (<a onclick="tree.getRoot().children.invoke('uncheck');$('stError').hide();return false;"
-           href="#">Uncheck</a> all)
+        (<span class="link" onclick="unhighlightAll();">Uncheck</span> all)
       </li>
       [%- IF entryType == "A" %]
         <li>
