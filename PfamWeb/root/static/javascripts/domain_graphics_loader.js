@@ -22,7 +22,7 @@ if ( ! window.console ) {
 // 
 // jt6 20090901 WTSI
 //
-// $Id: domain_graphics_loader.js,v 1.2 2009-10-07 13:06:20 jt6 Exp $
+// $Id: domain_graphics_loader.js,v 1.3 2009-12-07 22:39:00 jt6 Exp $
 //
 // Copyright (c) 2009: Genome Research Ltd.
 // 
@@ -88,8 +88,10 @@ var DomainGraphicsLoader = Class.create( {
       this._pg.setBaseUrl( this._baseUrl );
     }
 
-    this._addDomainGraphics();
-    this._addListeners();
+    if ( this._layout !== "undefined" ) {
+      this._addDomainGraphics();
+      this._addListeners();
+    }
   },
 
   //----------------------------------------------------------------------------
