@@ -2,7 +2,7 @@
 # Root.pm
 # jt 20080226 WTSI
 #
-# $Id: Root.pm,v 1.12 2009-10-07 14:19:09 jt6 Exp $
+# $Id: Root.pm,v 1.13 2009-12-07 22:48:35 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamBase::Controller::Root;
 This is the base class for the Xfam website catalyst applications. It's 
 intended to be sub-classed to build the specific site Root.pm classes.
 
-$Id: Root.pm,v 1.12 2009-10-07 14:19:09 jt6 Exp $
+$Id: Root.pm,v 1.13 2009-12-07 22:48:35 jt6 Exp $
 
 =cut
 
@@ -132,7 +132,7 @@ sub announcements : Local {
     # parse the XML and turn it into an XML::Feed object
     my $feed = XML::Feed->parse( \$blog_content );
     unless ( defined $feed ) {
-      $c->log->warn( "Root::announcements: could't parse blog content" )
+      $c->log->warn( "Root::announcements: couldn't parse blog content" )
         if $c->debug;
       $c->res->status( 204 );
       return;
