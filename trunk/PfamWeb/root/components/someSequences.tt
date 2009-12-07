@@ -6,7 +6,7 @@
 # the user-selected sequences that came from the species tree. It should be 
 # called by the DomainGraphics controller, via ajax.
 #
-# $Id: someSequences.tt,v 1.13 2009-10-28 11:58:31 jt6 Exp $
+# $Id: someSequences.tt,v 1.14 2009-12-07 22:37:12 jt6 Exp $
 
 META naked = 1;
 
@@ -39,8 +39,6 @@ BLOCK graphicRow; -%]
     </div>
 
   </div> 
-  
-  <!-- end of graphics row [% loop.index %] -->
 
 [% END; # of "BLOCK graphicRow"
 
@@ -58,10 +56,10 @@ END; # of "FOREACH id" -%]
      # we store them on the HTML nodes directly, so that they're easily accessible to
      # the javascript object that controls this page
   FOREACH id IN ids -%]
-  $("row[% id %]").store( "count", [% seqInfo.$id.num %] )
-                  .store( "arch",  [% seqInfo.$id.auto_arch %] );
+  $("row[% id %]").store( "count", "[% seqInfo.$id.num %]" )
+                  .store( "arch",  "[% seqInfo.$id.auto_arch %]" );
   [% END -%]
-
+   
   var layout = [% layout OR "{}" %];
   var assignedColours = [% assignedColours OR "{}" %];
   var loadUri = "[% c.uri_for( '/domaingraphics', acc ) %]";
