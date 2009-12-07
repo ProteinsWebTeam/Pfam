@@ -539,9 +539,8 @@ sub full_strings{
       $seq_string{$acc}{$seq->start()}{$seq->end()}=$seq->seq(); 
      
    }
-   #print STDERR Dumper(\%seq_string), "\n";
+  # print STDERR Dumper(\%seq_string), "\n";
    $seq_string{'sscons'}=$full_align->ss_cons->getInfernalString();
-   #print STDERR Dumper(\%seq_string), "\n";
    return \%seq_string;
 }
 
