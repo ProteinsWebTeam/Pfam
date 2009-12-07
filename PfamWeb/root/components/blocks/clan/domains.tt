@@ -5,7 +5,7 @@
 #
 # the domain organisation block for the clans sections
 #
-# $Id: domains.tt,v 1.13 2009-10-07 13:33:33 jt6 Exp $
+# $Id: domains.tt,v 1.14 2009-12-07 22:32:03 jt6 Exp $
 %]
 
 <!-- start domain organisation block -->
@@ -80,15 +80,18 @@
     // <![CDATA[
 
     document.observe( "dom:loaded", function() {
-      var r = new Ajax.Request( "[% c.uri_for( '/domaingraphics' ) %]",
-                                 { parameters: { acc: "[% clan.clan_acc %]" },
-                                   onComplete: function( oResponse ) {
-                                     $("clanGraphicsHolder").update( oResponse.responseText );
-                                   },
-                                   onFailure:  function() {
-                                     $("cgph").update( "Graphics loading failed." );
-                                   }
-                                 } );
+      var r = new Ajax.Request(
+        "[% c.uri_for( '/domaingraphics' ) %]",
+        { 
+          parameters: { acc: "[% clan.clan_acc %]" },
+          onComplete: function( oResponse ) {
+            $("clanGraphicsHolder").update( oResponse.responseText );
+          },
+          onFailure:  function() {
+            $("cgph").update( "Graphics loading failed." );
+          }
+        }
+      );
     } );
     
     // ]]>
