@@ -2,7 +2,7 @@
 # Keyword.pm
 # jt6 20060807 WTSI
 #
-# $Id: Keyword.pm,v 1.8 2009-10-08 10:12:46 jt6 Exp $
+# $Id: Keyword.pm,v 1.9 2009-12-07 22:26:06 jt6 Exp $
 
 =head1 NAME
 
@@ -18,7 +18,7 @@ This controller reads a list of search plugins from the application
 configuration and forwards to each of them in turn, collects the
 results and hands off to a template to format them as a results page.
 
-$Id: Keyword.pm,v 1.8 2009-10-08 10:12:46 jt6 Exp $
+$Id: Keyword.pm,v 1.9 2009-12-07 22:26:06 jt6 Exp $
 
 =cut
 
@@ -59,6 +59,16 @@ sub textSearch : Path {
     $c->stash->{kwSearchError} = 'You did not supply any valid query terms.';
 
     $c->log->debug( 'Search::Keyword::textSearch: no *valid* query terms supplied' )
+      if $c->debug;
+
+    return;
+  }
+
+  # stop Prasad submitting single character searches...
+  unless ( length $terms > 1 ) {
+    $c->stash->{kwSearchError} = 'You cannot use a single character as a query term.';
+
+    $c->log->debug( 'Search::Keyword::textSearch: single character query term' )
       if $c->debug;
 
     return;
