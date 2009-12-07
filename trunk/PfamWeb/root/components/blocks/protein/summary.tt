@@ -4,7 +4,7 @@
 # 
 # build the summary block for proteins
 #
-# $Id: summary.tt,v 1.31 2009-10-28 14:04:34 jt6 Exp $
+# $Id: summary.tt,v 1.32 2009-12-07 22:33:46 jt6 Exp $
 
 USE String;
 
@@ -176,17 +176,11 @@ oe = 0;
           } else {
             source.update( hit.type );
           }
-          var domain = new Element( "td" )
-                         .update( link );
-          var start  = new Element( "td" )
-                         .update( hit.metadata.start );
-          var end    = new Element( "td" )
-                         .update( hit.metadata.end );
 
           tr.appendChild( source );
-          tr.appendChild( domain );
-          tr.appendChild( start );
-          tr.appendChild( end );
+          tr.appendChild( new Element( "td" ).update( link ) );
+          tr.appendChild( new Element( "td" ).update( hit.metadata.start || hit.start ) );
+          tr.appendChild( new Element( "td" ).update( hit.metadata.end   || hit.end  ) );
 
           oe = ( oe == "odd" ) ? "even" : "odd";
         } );
@@ -196,11 +190,11 @@ oe = 0;
       }
 
       var sorter = new TableKit( "imageKey",
-                                  { editable:     false,
-                                    resizable:    false,
-                                    rowEvenClass: "even",
-                                    rowOddClass:  "odd",
-                                    stripe:       true } );
+                                 { editable:     false,
+                                   resizable:    false,
+                                   rowEvenClass: "even",
+                                   rowOddClass:  "odd",
+                                   stripe:       true } );
       sorter.sort(3);
 
       // ]]>
