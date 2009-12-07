@@ -5,7 +5,7 @@
 # block showing the species tree. This is a wrapper around another
 # template, which is called using an XMLHttpRequest to SpeciesTree.pm.
 #
-# $Id: species.tt,v 1.29 2009-10-07 14:08:38 jt6 Exp $
+# $Id: species.tt,v 1.30 2009-12-07 22:32:47 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -14,8 +14,8 @@ PROCESS "components/require.tt";
 
 # YUI stuff - this is for the tree viewer
 sharedRequirements.css.push( "tree.css" );
-sharedRequirements.js.push( "yui/TaskNode.js" );
-sharedRequirements.js.push( "treeTweak.js" );
+#sharedRequirements.js.push( "yui/TaskNode.js" );
+#sharedRequirements.js.push( "treeTweak.js" );
 
 #-------------------------------------------------------------------------------
 %]
@@ -111,7 +111,7 @@ sharedRequirements.js.push( "treeTweak.js" );
     </div>
 
     <!-- start of tree -->
-    <div id="treeDiv">
+    <div id="treeDiv" class="ygtv-checkbox">
       <p id="stph" class="loading">Loading...</p>
     </div>
 
