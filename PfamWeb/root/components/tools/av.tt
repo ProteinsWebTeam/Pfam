@@ -5,7 +5,7 @@
 # 
 # build a page for the AstexViewer applet
 #
-# $Id: av.tt,v 1.14 2009-10-07 14:10:27 jt6 Exp $
+# $Id: av.tt,v 1.15 2009-12-07 22:35:54 jt6 Exp $
 
 META naked = 1;
 
@@ -145,34 +145,6 @@ title = "AstexViewer"
   // ]]>
 </script>
 
-<div id="explanation">
-<h1>PDB entry [% pdb.pdb_id %]</h1>
-<p>
-  The applet to the left shows the structure of PDB entry 
-  <strong>[% pdb.pdb_id %]</strong>, along with the Pfam domains that map 
-  onto that structure. 
-</p>
-<p>
-  The <em>protein backbone</em> is drawn as secondary structure elements, 
-  and is coloured according to the Pfam domains found on the structure.
-  Regions of the protein that represent Pfam domains are also surrounded
-  by a semi-transparent <em>molecular surface</em>, representing the van 
-  der Waal&#39;s surface for the atoms that fall within the domain. Regions 
-  of protein that are not assigned to a Pfam-A region are shown in grey.
-</p>
-<p>
-  Molecular surfaces can be turned on and off using the buttons in the table 
-  below. Details of the mapping between the PDB structure, UniProt sequence and 
-  Pfam domain are also given in the table.
-</p>
-<p>
-  All surfaces are initially drawn as semi-transparent membranes, but you 
-  may find it quicker to manipulate the view if the surfaces are drawn as
-  solids. <span class="link" onclick="toggleTransparency();">
-    Toggle surface transparency</span>.
-</p>
-</div>
-
 <!--[if !IE]> Firefox and others will use outer object -->
 <object classid="java:MoleculeViewerApplet.class" 
         id="av"
@@ -204,6 +176,34 @@ title = "AstexViewer"
 <!--[if !IE]> close outer object -->
 </object>
 <!--<![endif]-->
+
+<div id="explanation">
+  <h1>PDB entry [% pdb.pdb_id %]</h1>
+  <p>
+    The applet to the left shows the structure of PDB entry 
+    <strong>[% pdb.pdb_id %]</strong>, along with the Pfam domains that map 
+    onto that structure. 
+  </p>
+  <p>
+    The <em>protein backbone</em> is drawn as secondary structure elements, 
+    and is coloured according to the Pfam domains found on the structure.
+    Regions of the protein that represent Pfam domains are also surrounded
+    by a semi-transparent <em>molecular surface</em>, representing the van 
+    der Waal&#39;s surface for the atoms that fall within the domain. Regions 
+    of protein that are not assigned to a Pfam-A region are shown in grey.
+  </p>
+  <p>
+    Molecular surfaces can be turned on and off using the buttons in the table 
+    below. Details of the mapping between the PDB structure, UniProt sequence and 
+    Pfam domain are also given in the table.
+  </p>
+  <p>
+    All surfaces are initially drawn as semi-transparent membranes, but you 
+    may find it quicker to manipulate the view if the surfaces are drawn as
+    solids. <span class="link" onclick="toggleTransparency();">
+      Toggle surface transparency</span>.
+  </p>
+</div>
 
 [% 
 imageUri   = c.uri_for( "/static/images" );
