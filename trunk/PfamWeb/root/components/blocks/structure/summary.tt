@@ -5,7 +5,7 @@
 # 
 # build the summary block for structures
 #
-# $Id: summary.tt,v 1.30 2009-10-07 14:06:26 jt6 Exp $
+# $Id: summary.tt,v 1.31 2009-12-07 22:35:15 jt6 Exp $
 
 USE String;
 USE date;
@@ -57,16 +57,16 @@ oe    = 0;
 
     [% IF pdb.pdb_image %]
       <div class="pdbImageFragment">
-        <a href="[% c.uri_for( "/structure/getimage", { id = pdbId } ) %]" 
+        <a href="[% c.uri_for( '/structure/getimage', { id = pdbId } ) %]" 
            rel="lightbox" 
            title="PDB entry [% pdbId %]">
           <img class="pdbImage" 
-               src="[% c.uri_for( "/structure/getimage", { id = pdbId, size = "s" } ) | html %]"
+               src="[% c.uri_for( '/structure/getimage', { id = pdbId, size = 's' } ) | html %]"
                alt="[% pdbId %]" /></a>
         <br />
         <span class="pdbTitle">PDB entry [% pdbId %]</span>: [% title %]
         <br />
-        <a href="[% c.uri_for( "/structure/getimage", { id = pdbId } ) %]" 
+        <a href="[% c.uri_for( '/structure/getimage', { id = pdbId } ) %]" 
            rel="lightbox" 
            title="PDB entry [% pdbId %]"
            class="small">Enlarge</a> image.
@@ -91,13 +91,13 @@ oe    = 0;
         Pubmed Central</a> article<span id="blArticlePlural">s</span> that 
         refer<span id="blReferPlural"></span> to <strong>[% pdbId %]</strong>.
       You can see <span id="blThemIt">them</span> 
-      <span class="link" onclick="switchTab('structureLiteratureBlock')">here</span>.
+      <span class="link" onclick="tabPage.switchTab('structureLiteratureBlock')">here</span>.
     </p>
 
     <table class="layout narrow"
            summary="Details of the structure">
   	  <tbody>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Experiment type:</td>
           <td class="data">
             [% IF pdb.method == "other" %]
@@ -117,13 +117,13 @@ oe    = 0;
             IF pdb.resolution AND pdb.resolution > 0 %], resolution [% pdb.resolution %]&Aring;[% END %]
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
     		  <td class="label">Deposition date:</td>
   	      <td class="data">
             [% pdb.date || '<span class="inactive">n/a</span>' %]
           </td>
     		</tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Authors:</td>
           <td class="data">
           [% FOREACH author IN authors -%]
@@ -132,7 +132,7 @@ oe    = 0;
           [% END -%]
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
     		  <td class="label">Species:</td>
   	      <td class="data">
             [% collectedSpecies = {};
@@ -150,7 +150,7 @@ oe    = 0;
           </td>
     		</tr>
         [% IF pdb.pubmed_id != 0 %]
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
     		  <td class="label">PubMed reference:</td>
   	      <td class="data">
   	        <a class="ext" href="http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&amp;db=PubMed&amp;dopt=Abstract&amp;list_uids=[% pdb.pubmed_id %]">
@@ -167,42 +167,42 @@ oe    = 0;
     <table class="details links"
            summary="Links to external data sources">
       <tbody>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label"><acronym title="Protein DataBank">PDB</acronym></td>
           <td>
             <a href="http://www.rcsb.org/pdb/explore/explore.do?structureId=[% pdbId %]"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label"><acronym title="Protein DataBank in Europe">PDBe</acronym></td>
           <td>
             <a href="http://www.ebi.ac.uk/pdbe-srv/view/entry/[% pdbId %]/summary"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">PDBsum</td>
           <td>
             <a href="http://www.ebi.ac.uk/thornton-srv/databases/cgi-bin/pdbsum/GetPage.pl?pdbcode=[% pdbId %]"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">CATH</td>
           <td>
             <a href="http://www.cathdb.info/cgi-bin/Pdb.pl?pdb_code=[% pdbId %]"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label"><acronym title="Structural Classifcation of Proteins">SCOP</acronym></td>
           <td>
             <a href="http://scop.mrc-lmb.cam.ac.uk/scop/search.cgi?pdb=[% pdbId %]"
                class="ext">[% pdbId %]</a>
           </td>
         </tr>
-        <tr class="[% oe % 2 ? "odd" : "even"; oe=oe+1 %]">
+        <tr class="[% oe % 2 ? 'odd' : 'even'; oe=oe+1 %]">
           <td class="label">Proteopedia</td>
           <td>
             <a href="http://proteopedia.org/wiki/index.php/[% pdbId %]"
@@ -212,11 +212,7 @@ oe    = 0;
       </tbody>
     </table>
 
-    <h2>TOPSAN annotations</h2>
-    
-    <div id="topsan">
-      <div class="loading">Loading TOPSAN annotations...</div>
-    </div>
+    <div id="topsan"></div> 
 
   </div>
 
@@ -232,12 +228,7 @@ oe    = 0;
       // topsan annotation
       var r = new Ajax.Updater(
         "topsan",
-        "[% c.uri_for( '/structure/annotations/topsan', pdbId ) %]",
-        {
-          onFailure:  function( oResponse ) {
-                        $("topsan").update( "TOPSAN annotation loading failed." );
-                      }
-        }
+        "[% c.uri_for( '/structure/annotations/topsan', pdbId ) %]"
       );
 
     } );
