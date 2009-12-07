@@ -2,7 +2,7 @@
 # Metaseq.pm
 # jt6 20071008 WTSI
 #
-# $Id: Metaseq.pm,v 1.4 2009-01-09 12:59:24 jt6 Exp $
+# $Id: Metaseq.pm,v 1.5 2009-12-07 22:23:00 jt6 Exp $
 
 =head1 NAME
 
@@ -17,21 +17,19 @@ package PfamWeb::Controller::Metaseq;
 
 Generates a page set for a metagenomics sequence.
 
-$Id: Metaseq.pm,v 1.4 2009-01-09 12:59:24 jt6 Exp $
+$Id: Metaseq.pm,v 1.5 2009-12-07 22:23:00 jt6 Exp $
 
 =cut
 
 use strict;
 use warnings;
 
-use Bio::Pfam::PfamRegion;
-use Bio::Pfam::AnnSeqFactory;
-use Bio::SeqFeature::Generic;
-use Bio::Pfam::OtherRegion;
-use Bio::Pfam::SeqPfam;
-use Bio::Pfam::Drawing::Layout::PfamLayoutManager;
-use Bio::Pfam::Drawing::Image::ImageSet;
-use Bio::Pfam::Drawing::Image::Image;
+use Bio::Pfam::Sequence;
+use Bio::Pfam::Sequence::Region;
+use Bio::Pfam::Sequence::MetaData;
+use Bio::Pfam::Drawing::Layout::LayoutManager;
+
+use JSON qw( -convert_blessed_universally );
 
 use Data::Dump qw( dump );
 
@@ -136,9 +134,9 @@ sub stats : Local{
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 get_data : Private
 
-Description...
+Retrieves the data for the given metaseq accession or ID.
 
 =cut
 
@@ -168,94 +166,92 @@ sub get_data : Private {
     $c->log->debug( 'Metaseq::get_data: adding extra metaseq info' )
       if $c->debug;
     
-    $c->forward('generatePfamGraphic');
-    $c->forward('getSummaryData');
+    $c->forward('generate_pfam_graphic');
+    $c->forward('get_summary_data');
   }
   
 }
 
 #-------------------------------------------------------------------------------
 
-=head2 generatePfamGraphic : Private
+=head2 generate_pfam_graphic : Private
 
 Generates the Pfam graphic.
 
 =cut
 
-sub generatePfamGraphic : Private {
+sub generate_pfam_graphic : Private {
   my( $this, $c ) = @_;
   
-  my $factory = new Bio::Pfam::AnnSeqFactory;
-  my $annseq  = $factory->createAnnotatedSequence();
-  
-  my %args = (
-    '-seq'   => $c->stash->{metaseq}->sequence,
-    '-start' => 1,
-    '-end'   => $c->stash->{metaseq}->length,
-    '-id'    => $c->stash->{metaseq}->metaseq_id,
-    '-acc'   => $c->stash->{metaseq}->metaseq_acc,
-    '-desc'  => $c->stash->{metaseq}->source
-  );
-  $c->log->debug( 'Metaseq::generatePfamGraphic: annseq args: ', dump \%args )
+  my @rs = $c->model('PfamDB::MetaPfamaReg')
+             ->search( { 'me.auto_metaseq' => $c->stash->{metaseq}->auto_metaseq },
+                       { prefetch => [ qw( auto_pfama auto_metaseq ) ] } );
+
+  $c->log->debug( 'Metaseq::generate_pfam_graphic: got ' . scalar @rs . ' rows' )
     if $c->debug;
-
-  $annseq->sequence( Bio::Pfam::SeqPfam->new( %args ) );
-  
-  my @rs = $c->model('PfamDB::Meta_pfama_reg')
-             ->search( { auto_metaseq => $c->stash->{metaseq}->auto_metaseq },
-                       { join     => [ 'pfamA' ],
-                         prefetch => [ 'pfamA' ] } );
-
+    
+  # build a Sequence object to describe the graphic
+  my @regions = ();
   foreach my $row ( @rs ) {
-    %args = (
-      '-PFAM_ACCESSION' => $row->pfamA_acc,
-      '-PFAM_ID'        => $row->pfamA_id,
-      '-SEQ_ID'         => $annseq->id,
-      '-FROM'           => $row->seq_start,
-      '-TO'             => $row->seq_end,
-      '-MODEL_FROM'     => $row->model_start,
-      '-MODEL_TO'       => $row->model_end,
-      '-MODEL_LENGTH'   => $row->model_length,
-      '-BITS'           => $row->domain_bits_score,
-      '-EVALUE'         => $row->domain_evalue_score,
-      '-TYPE'           => 'PfamA',
-      '-REGION'         => $row->type
-    );
-    $annseq->addAnnotatedRegion( Bio::Pfam::PfamRegion->new( %args ) );
-  }
-  
-  # build a layout manager
-  my $layout = Bio::Pfam::Drawing::Layout::PfamLayoutManager->new;
-  $layout->layout_sequences( $annseq );
-  
-   # if we've arrived here from the top-level controller, rather than from one 
-  # of the sub-classes, we will be displaying a key for the domain graphic.
-  # For now at least, the sub-classes, such as the interactive feature viewer,
-  # don't bother with the key, so they don't need this extra blob of data in 
-  # the stash. 
-  $c->forward( 'generateKey', [ $layout ] )
-    if ref $this eq 'PfamWeb::Controller::Metaseq';
-  
-  # and use it to create an ImageSet
 
-  # should we use a document store rather than temp space for the images ?
-  my $imageset;  
-  if ( $c->config->{use_image_store} ) {
-    $c->log->debug( 'NCBISeq::generatePfamGraphic: using document store for image' )
-      if $c->debug;
-    require PfamWeb::ImageSet;
-    $imageset = PfamWeb::ImageSet->new;
-  }
-  else {
-    $c->log->debug( 'NCBISeq::generatePfamGraphic: using temporary directory for store image' )
-      if $c->debug;
-    require Bio::Pfam::Drawing::Image::ImageSet;
-    $imageset = Bio::Pfam::Drawing::Image::ImageSet->new;
-  }
+    my $region = Bio::Pfam::Sequence::Region->new( {
+      start      => $row->seq_start,
+      end        => $row->seq_end,
+      aliStart   => $row->ali_start,
+      aliEnd     => $row->ali_end,      
+      modelStart => $row->model_start,
+      modelEnd   => $row->model_end,
+      type       => 'pfama',
+      # label      => '',
+      # href       => '',
+      metadata   => Bio::Pfam::Sequence::MetaData->new( {
+        accession   => $row->auto_pfama->pfama_acc,
+        identifier  => $row->auto_pfama->pfama_id,
+        description => $row->auto_pfama->description,
+        score       => $row->domain_evalue_score,
+        scoreName   => 'e-value',
+        start       => $row->seq_start,
+        end         => $row->seq_end,
+        aliStart    => $row->ali_start,
+        aliEnd      => $row->ali_end,
+        type        => $row->auto_pfama->type,
+      } )
+    } );
 
-  $imageset->create_images( $layout->layout_to_XMLDOM );
- 
-  $c->stash->{imageset} = $imageset;
+    push @regions, $region;
+  }
+  
+  my $sequence = Bio::Pfam::Sequence->new( {
+    length   => $c->stash->{metaseq}->length,
+    regions  => \@regions,
+    motifs   => [],
+    markups  => [],
+    metadata => Bio::Pfam::Sequence::MetaData->new( {
+      accession   => $c->stash->{metaseq}->gi,
+      identifier  => $c->stash->{metaseq}->secondary_acc,
+      description => $c->stash->{metaseq}->description,
+    } )
+  } );
+  
+  $c->log->debug( 'Metaseq::generate_pfam_graphic: sequence object: '
+                  . dump( $sequence ) ) if $c->debug;
+  
+  my $seqs = [ $sequence ];
+  
+  my $lm = Bio::Pfam::Drawing::Layout::LayoutManager->new;
+  $lm->layoutSequences( $seqs );
+
+  $c->log->debug( 'Metaseq::generate_pfam_graphic: laid out sequences: '
+                  . dump( $seqs ) ) if $c->debug;
+
+  # configure the JSON object to correctly stringify the layout manager output
+  my $json = new JSON;
+  $json->pretty(1);
+  $json->allow_blessed;
+  $json->convert_blessed;
+
+  # encode and stash the sequences as a JSON string
+  $c->stash->{layout} = $json->encode( $seqs );
 }
 
 #-------------------------------------------------------------------------------
@@ -299,13 +295,13 @@ sub generateKey : Private {
 
 #-------------------------------------------------------------------------------
 
-=head2 getSummaryData : Private
+=head2 get_summary_data : Private
 
 Gets the data items for the overview bar
 
 =cut
 
-sub getSummaryData : Private {
+sub get_summary_data : Private {
   my ( $this, $c ) = @_;
 
   my %summaryData;
@@ -327,7 +323,7 @@ sub getSummaryData : Private {
 
   $c->stash->{summaryData} = \%summaryData;
 
-  $c->log->debug( 'Metaseq::getSummaryData: added the summary data to the stash' )
+  $c->log->debug( 'Metaseq::get_summary_data: added the summary data to the stash' )
     if $c->debug;
 }
 
