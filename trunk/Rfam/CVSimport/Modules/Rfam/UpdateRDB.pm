@@ -722,7 +722,7 @@ sub update_rfam_reg_full {
 
        #collate the data for each region and fill rfam_reg_full
        @regions = $en->annotated_regions('FULL');
-       
+
        foreach my $reg (@regions) {
 	   my $rfamseq_acc;     # should be embl acc not acc.ver
 	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
@@ -731,8 +731,15 @@ sub update_rfam_reg_full {
 	   else {
 	       $rfamseq_acc = $reg->seq_name;
 	   }
+
 	   #padded seq string from full align
 	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
+	    if (!$rdb_full_string){
+	       print STDERR "ERROR with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
+	       $error="Problem with the rdb_full_string data\n";
+	       last;
+	   }
+
 	   #type
 	   if (defined $store_seed{$rfamseq_acc}{$reg->from}{$reg->to} ){
 	       $rdb_type='seed';
@@ -754,7 +761,15 @@ sub update_rfam_reg_full {
 	       $st->finish();
 	       $store_rfamseq{$rfamseq_acc} = $rfamseq_auto;
 	   }
-  
+	   #check all data is obtained-let us know if missing:
+	   my @toload=($rdb_auto_num, $rfamseq_auto,$reg->from,$reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, $rdb_full_string);
+	   foreach (my $i=0;  $i<=7; $i++){
+	       if (! $toload[$i]){
+		   print STDERR "\tERROR: Missing data in ", join(",", @toload), "\n";
+	       }
+	   }
+
+	   #load data
 	   if (not defined $stat) {
 	       $stat = $dbh->prepare( $self->__insert_sql( 'rfam_reg_full', 11));
 	   }
@@ -839,7 +854,9 @@ sub collate_large_fam_reg_full {
        $rdb_id = $en->id();
        $rdb_auto_num = $en->auto_rfam;
        $full_ss=$en->full_strings();
+       
        $full_structure=$full_ss->{'sscons'};
+       print STDERR $full_structure;
         #get the evalues
        $s_evalues=$en->scores_evalue();
        if (! $s_evalues) {
@@ -852,10 +869,10 @@ sub collate_large_fam_reg_full {
        $asth->finish();
 	   
        $rdb_auto_num = $temp_auto if(defined($temp_auto));  
-              
+       
        #this is stored so we can add the ss_cons line to the rfam table;
-       push(@data, $rdb_auto_num);
-
+       push(@$data, $rdb_auto_num);
+       
        #load up the seed annotations in order to delete data before the load
        
        @seed_region=$en->annotated_regions('SEED');
@@ -886,6 +903,7 @@ sub collate_large_fam_reg_full {
        }
        
        @regions = $en->annotated_regions('FULL');
+       
        foreach my $reg (@regions) {
 	   my $rfamseq_acc;     # should be embl acc not acc.ver
 	   if( $reg->seq_name =~ /^(\S+)\.\d+/ ) {
@@ -894,6 +912,8 @@ sub collate_large_fam_reg_full {
 	   else {
 	       $rfamseq_acc = $reg->seq_name;
 	   }
+	   if (!$rfamseq_acc){ die "Problem with $rfamseq_acc for $reg->seq_name\n";}
+           
 	   #define type 
 	   if (defined $store_seed{$rfamseq_acc}{$reg->from}{$reg->to} ){
 	       $rdb_type='seed';
@@ -902,6 +922,11 @@ sub collate_large_fam_reg_full {
 	   }
 	   #full seq string
 	   $rdb_full_string=$full_ss->{$rfamseq_acc}->{$reg->from}->{$reg->to};
+           if (!$rdb_full_string){
+	        print STDERR "ERROR with the full string for ", join(",", $rfamseq_acc,$reg->from,$reg->to),"\n";
+	       $error="Problem with the rdb_full_string data\n";
+	       last;
+	   }
 
 	   #get the evalue from the scores_evalue
 	   $rdb_evalue=$s_evalues->{$rfamseq_acc}->{$reg->from}->{$reg->to};
@@ -919,10 +944,17 @@ sub collate_large_fam_reg_full {
 	       $store_rfamseq{$rfamseq_acc} = $rfamseq_auto;
 	   }
        
+	   #check all data is obtained-let us know if missing:
+	   my @toload=($rdb_auto_num, $rfamseq_auto,$reg->from,$reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, $rdb_full_string);
+	   foreach (my $i=0;  $i<=7; $i++){
+	       if (! $toload[$i]){
+		   print STDERR "\tERROR: Missing data in ", join(",", @toload), "\n";
+	       }
+	   }
+
 	   #generate the data structure to return;
 	   #empty values=auto_genome, genome_start, genome_end
-           
-	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, '', $reg->from, $reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, '',  '', $rdb_full_string);
+ 	   my $string=join("\t", $rdb_auto_num, $rfamseq_auto, '', $reg->from, $reg->to, $reg->bits_score, $rdb_evalue, $rdb_type, '',  '', $rdb_full_string);
 	   push (@$data, $string);
        }#end of regions for $entry;
     
@@ -933,11 +965,15 @@ sub collate_large_fam_reg_full {
 	 }#main eval
 
    } #end of all entries
-
-
+   
+   if (!$no_seq_count){$no_seq_count=0};
+   if (scalar(@regions != scalar(@$data))-1 ){
+       $error="Problem with the number of collated regions for $rfamseq_acc\n";
+       exit;
+   }
    $self->disconnect();
    if (!$error){
-       my $c=(scalar(@data))-1; #has a header we dont want to count
+       my $c=(scalar(@$data))-1; #has a header we dont want to count
        print STDERR "Completed collation of rfam_ref_full data: $c collated and $no_seq_count missing\n";
    }
    return $data;
