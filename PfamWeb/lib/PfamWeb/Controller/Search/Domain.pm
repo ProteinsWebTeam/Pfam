@@ -2,7 +2,7 @@
 # Domain.pm
 # jt6 20061108 WTSI
 #
-# $Id: Domain.pm,v 1.7 2009-10-27 14:16:32 jt6 Exp $
+# $Id: Domain.pm,v 1.8 2009-12-07 22:25:42 jt6 Exp $
 
 =head1 NAME
 
@@ -16,7 +16,7 @@ package PfamWeb::Controller::Search::Domain;
 
 Searches for sequence architectures with the specified set of Pfam domains.
 
-$Id: Domain.pm,v 1.7 2009-10-27 14:16:32 jt6 Exp $
+$Id: Domain.pm,v 1.8 2009-12-07 22:25:42 jt6 Exp $
 
 =cut
 
@@ -52,8 +52,8 @@ sub domain_search : Path {
     $c->log->debug( 'Search::Domain::domain_search: problem getting data' )
         if $c->debug;
     
-    $c->stash->{domainSearchError} = $c->stash->{errorMessage}
-                                     || 'There was a problem running your query.'; 
+    $c->res->body( $c->stash->{errorMessage}
+                   || 'There was a problem running your query.' ); 
    
     return; 
   }
@@ -62,19 +62,28 @@ sub domain_search : Path {
     $c->log->debug( 'Search::Domain::domain_search: problem getting data' )
         if $c->debug;
     
-    $c->stash->{domainSearchError} = $c->stash->{errorMessage}
-                                     || 'There was a problem running your query.'; 
+    $c->res->body( $c->stash->{errorMessage}
+                   || 'There was a problem running your query.' ); 
    
     return; 
   }
-
-
-
+  
 }
+
+#-------------------------------------------------------------------------------
+#- private actions -------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+=head2 get_data : Private
+
+Parse the lists of domains, generate a query term and run the query.
+
+=cut
 
 sub get_data : Private {
   my ( $this, $c ) = @_;
   
+  # collect the search terms, modifying them to suit the fulltext query syntax
   my $list = '';
   if ( defined $c->req->param( 'have' ) ) {
     $c->log->debug( 'Search::Domain::domain_search: must have:     |' 
@@ -85,7 +94,8 @@ sub get_data : Private {
     }
   }
   if ( defined $c->req->param( 'not' ) ) {
-    $c->log->debug( 'Search::Domain::domain_search: must not have: |' . $c->req->param('not') . '|' )
+    $c->log->debug( 'Search::Domain::domain_search: must not have: |' 
+                    . $c->req->param('not') . '|' )
       if $c->debug;
     foreach ( split /\s+/, $c->req->param('not') ) {
       next unless /(PF\d{5})/;
@@ -105,6 +115,7 @@ sub get_data : Private {
     return 0; 
   }
 
+  # run it...
   my @architectures = $c->model('PfamDB::Architecture')
                         ->search( {},
                                   { join     => [ qw( storable ) ],
@@ -119,24 +130,28 @@ sub get_data : Private {
   $c->log->debug( "Search::Domain::get_data: sum using map: $sum" )
       if $c->debug;
 
-  $sum = 0;
-  foreach my $arch ( @architectures ) {
-    $sum += $arch->no_seqs;
-  }
-  $c->log->debug( "Search::Domain::get_data: sum using for: $sum" )
-      if $c->debug;
-
   $c->stash->{numRows} = scalar @architectures;
   $c->stash->{numSeqs} = $sum;
 
-  $c->log->debug( 'Search::Domain::domain_search: found ' . scalar @architectures
+  $c->log->debug( 'Search::Domain::domain_search: found ' . $c->stash->{numRows}
                   . " rows, with a total of $sum sequences" ) if $c->debug;
 
-  # if there are too many results, bail here and let the TT just
-  # display the text summary, plus an admonition to the user to
-  # restrict their search a bit
-  if ( scalar @architectures > 500 ) {
-    $c->log->debug( 'Search::Domain::get_data: too many sequences: ' . scalar @architectures )
+  # if there are no results, bail here and let the TT just display a message
+  # to that effect
+  unless ( $c->stash->{numRows} ) {
+    $c->log->debug( 'Search::Domain::get_data: no results' )
+        if $c->debug;
+
+    $c->stash->{errorMessage} = 'There were no sequences with the specified architecture';
+    
+    return 0;
+  }
+
+  # if there are too many results, bail and let the TT just display the 
+  # text summary, plus an admonishment to the user to restrict their search 
+  # a bit
+  if ( $c->stash->{numRows} > 500 ) {
+    $c->log->debug( 'Search::Domain::get_data: too many sequences: ' . $c->stash->{numRows} )
         if $c->debug;
 
     $c->stash->{errorMessage} = 'Your query returned too many sequences';
@@ -144,6 +159,7 @@ sub get_data : Private {
     return 0;
   }
   
+  # build the data structure that we need to describe the domain graphics  
   my ( @seqs, %seqInfo, @ids );
   foreach my $row ( @architectures ) {
 
@@ -183,7 +199,17 @@ sub get_data : Private {
   $c->stash->{seqs}    = \@seqs;
   $c->stash->{ids}     = \@ids;
   $c->stash->{seqInfo} = \%seqInfo;
+  
+  return $c->stash->{numRows};
 }
+
+#-------------------------------------------------------------------------------
+
+=head2 build_layout : Private
+
+Generate the domain graphics description for the result sequences.
+
+=cut
 
 sub build_layout : Private {
   my ( $this, $c ) = @_;
@@ -284,6 +310,7 @@ sub build_layout : Private {
       if $c->debug;
   }
   
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
