@@ -1,9 +1,9 @@
-/* $Id: canvas.text.js,v 1.2 2009-09-04 12:57:31 jt6 Exp $ */
+/* $Id: canvas.text.js,v 1.3 2009-12-07 22:37:53 jt6 Exp $ */
 
 /** 
  * @projectDescription An cross-browser implementation of the HTML5 <canvas> text methods
- * @author Fabien Ménager
- * @version $Revision: 1.2 $
+ * @author Fabien M?nager
+ * @version $Revision: 1.3 $
  * @license MIT License <http://www.opensource.org/licenses/mit-license.php>
  */
 
@@ -187,7 +187,7 @@ window.Canvas.Text = {
     this.faces[family][data.cssFontWeight][data.cssFontStyle] = data;
     return data;
   };
-	
+  
   // To use the typeface.js face files
   window._typeface_js = {faces: ctxt.faces, loadFace: ctxt.loadFace};
   
@@ -248,8 +248,8 @@ window.Canvas.Text = {
     var face = ctxt.getFaceFromStyle(style),
         scale = (style.size / face.resolution) * (3/4),
         offset = 0, i, 
-				chars = text.split(''), 
-				length = chars.length;
+        chars = text.split(''), 
+        length = chars.length;
     
     if (!isOpera9) {
       this.scale(scale, -scale);
@@ -343,7 +343,7 @@ window.Canvas.Text = {
   proto.getComputedStyle = function(style){
     var p, canvasStyle = getElementStyle(this.canvas), 
         computedStyle = {},
-				s = style.size,
+        s = style.size,
         canvasFontSize = parseFloat(canvasStyle.fontSize),
         fontSize = parseFloat(s);
     
@@ -474,3 +474,4 @@ window.Canvas.Text = {
     return dim;
   };
 })();
+
