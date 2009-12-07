@@ -6,7 +6,7 @@
 # build the javascript boiler plate that controls loading of the species
 # tree
 #
-# $Id: speciesTreeJS.tt,v 1.3 2009-10-07 14:26:47 jt6 Exp $
+# $Id: speciesTreeJS.tt,v 1.4 2009-12-07 22:48:10 jt6 Exp $
 
 stUri = c.uri_for( "/speciestree" );
 %]
@@ -30,77 +30,81 @@ stUri = c.uri_for( "/speciestree" );
 <script type="text/javascript">
   // <![CDATA[
 
-  /* [%-# set parameters that are used by the tree controls -%] */
+  /* [%# set parameters that are used by the tree controls -%] */
   
-  /* [%-# the URL for storing the list of selected IDs -%] */
+  /* [%# the URL for storing the list of selected IDs -%] */
   var selectStoreURI     = "[% stUri %]/store_ids";
 
-  /* [%-# the URL to visit when the user selects nodes and wants to view the
-        # selected sequences as domain graphics -%] */
+  /* [%# the URL to visit when the user selects nodes and wants to view the
+       # selected sequences as domain graphics -%] */
   var selectGraphicsURI  = "[% stUri %]/graphics";
 
-  /* [%-# the URL to visit when the user selects nodes and wants to view the 
-        # selected sequences as an alignment -%] */
+  /* [%# the URL to visit when the user selects nodes and wants to view the 
+       # selected sequences as an alignment -%] */
   var selectAlignmentURI = "[% c.uri_for( '/family/alignment/builder' ) %]";
 
-  /* [%-# the URL to visit when the user selects nodes and wants to download the 
-        # selected sequence accessions -%] */
+  /* [%# the URL to visit when the user selects nodes and wants to download the 
+       # selected sequence accessions -%] */
   var selectAccessionsURI = "[% stUri %]/accessions";
 
-  /* [%-# the URL to visit when the user selects nodes and wants to download the 
-        # selected sequences in FASTA format -%] */
+  /* [%# the URL to visit when the user selects nodes and wants to download the 
+       # selected sequences in FASTA format -%] */
   var selectFastaURI = "[% stUri %]/sequences";
 
-  /* [%-# a hash that maps between the ID of the summary node and the TaskNode object -%] */
+  /* [%# a hash that maps between the ID of the summary node and the TaskNode object -%] */
   var nodeMapping = {};
 
-  /* [%-# a hash that maps between the ID of the summary node and string of sequence 
-        # accessions -%] */
+  /* [%# a hash that maps between the ID of the summary node and string of sequence 
+       # accessions -%] */
   var nodeSequences = {};
 
-  /* [%-# a flag showing whether the tree was build and has nodes -%] */
+  /* [%# a flag showing whether the tree was build and has nodes -%] */
   var treeBuiltSuccessfully;
 
-  /* [%-# the function that loads the tree and renders it -%] */
+  /* [%# the function that loads the tree and renders it -%] */
   var tree;
   var stSuccess = function( oResponse ) {
 
-    /* [%-# build the tree widget and get a handle on the root, which we'll need
-          # when eval'ing the javascript from the server -%] */
+    /* [%# build the tree widget and get a handle on the root, which we'll need
+         # when eval'ing the javascript from the server -%] */
     tree = new YAHOO.widget.TreeView("treeDiv");
     var root = tree.getRoot();
 
-    /* [%-# eval the JS that the server generates. This is the set of calls that
-          # build the TreeView widget object tree -%] */
+    /* [%# eval the JS that the server generates. This is the set of calls that
+         # build the TreeView widget object tree -%] */
     try {
       eval( oResponse.responseText );
     } catch( e ) {
       // don't care
     }
 
-    /* [%-# by this point the tree was successfully built, but the response might
-          # have contained a message rather than tree components. If there was a
-          # a tree, we must have more than just the root node -%] */
+    tree.subscribe( "clickEvent", tree.onEventToggleHighlight );
+    tree.setNodesProperty( "propagateHighlightUp",   true );
+    tree.setNodesProperty( "propagateHighlightDown", true );
+
+    /* [%# by this point the tree was successfully built, but the response might
+         # have contained a message rather than tree components. If there was a
+         # a tree, we must have more than just the root node -%] */
     if ( treeBuiltSuccessfully ) {
 
-      /* [%-# we got a tree; render it -%]*/
+      /* [%# we got a tree; render it -%]*/
       tree.draw();
 
-      /* [%-# bring back the control panel -%] */
+      /* [%# bring back the control panel -%] */
       $("treeTools").show();
     
     } else {
 
-       /*[%-# if this flag isn't even set, then the AJAX response didn't contain
-            # the javascript to set it, so we assume instead that there's an 
-            # error message in there -%] */
+      /* [%# if this flag isn't even set, then the AJAX response didn't contain
+           # the javascript to set it, so we assume instead that there's an 
+           # error message in there %] */
       if ( treeBuiltSuccessfully == undefined ) {
         $("treeDiv").update( oResponse.responseText );
       } else {
         $("treeDiv").update( "There was a problem building the species tree." );
       }
 
-      /* [%-# hide the control panel too -%] */
+      /* [%# hide the control panel too -%] */
       $("treeTools").hide();
     }
   };
@@ -109,16 +113,16 @@ stUri = c.uri_for( "/speciestree" );
     $("treeDiv").update( "Tree loading failed." );
   }
 
-  /* [%-# this is an extra method to submit a new ajax request, this time with
-        # the "loadTree" flag set, which tells the controller to load the tree
-        # even it's large -%] */
+  /* [%# this is an extra method to submit a new ajax request, this time with
+       # the "loadTree" flag set, which tells the controller to load the tree
+       # even it's large %] */
   var forceLoad = function() {
   
-    /* [%-# show the new spinner and disable the button -%] */
+    /* [%# show the new spinner and disable the button %] */
     $("secondaryLoadingSpinner").show();
     $("generateButton").disable();
 
-    /* [%-# override the test for IE and the "loadTree" check, to force tree loading -%] */
+    /* [%# override the test for IE and the "loadTree" check, to force tree loading -%] */
     var r = new Ajax.Request(
       "[% stUri %]/interactive",
       { parameters: { acc:      "[% acc %]",
@@ -130,7 +134,7 @@ stUri = c.uri_for( "/speciestree" );
     );
   };
 
-  /* [%-# the parameters for the initial ajax call to build the tree -%] */
+  /* [%# the parameters for the initial ajax call to build the tree %] */
   var stUri;
   if( Prototype.Browser.IE && ielt8 ) {
     stUri = "[% stUri %]/text";
@@ -138,7 +142,7 @@ stUri = c.uri_for( "/speciestree" );
     stUri = "[% stUri %]/interactive";
   }
 
-  /* [%-# fire off the request to load the tree -%] */
+  /* [%# fire off the request to load the tree %] */
   document.observe( "dom:loaded", function() {
     var r = new Ajax.Request(
       stUri,
