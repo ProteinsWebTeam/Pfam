@@ -805,14 +805,17 @@ sub _read_std_desc{
      ### DATABASE LINKS 
      my ($db_name, $db_ref, $rest);
      if ( $_ =~ /^DR\s+/) {
-       if ($_ =~ /^DR\s+(\S+);\s+(\S+\s\S?);\s*(.*)/) { 
+       if ($_ =~ /^DR\s+(\S+);\s+(\S+\s\S?);\s*(.*)$/) {  # i think this is redudant..
 	 ($db_name, $db_ref) = ($1, $2);
-       } elsif ($_ =~ /^DR\s+(\S+);\s+(\S+);\s*(.*)/) {
+	 #print STDERR "Got DR(1) line $_;"
+       } elsif ($_ =~ /^DR\s+(\S+);\s+(\S+)$/) { #URL and MIPF etc
 	 ($db_name, $db_ref) = ($1, $2);
-       }elsif ($_ =~ /^DR\s+(SO|GO)\:(\d+)\s+(SO|GO)\:(\S+.*)/) { #SO/GO
+	 #print STDERR "Got DR(2) line $_;"
+       }elsif ($_ =~ /^DR\s+(SO|GO)\:(\d+)\s+(SO|GO)\:(\S+.*)$/) { #SO/GO
 	 ($db_name, $db_ref, $rest) = ($1, $2, $4);
+	 #print STDERR "Got DR(3) line $_;"
        } else {
-	 print "Bad DR line - $lines[$i]\n";
+	 print "Bad DR line $_\n";
        }
        
        my $link = new Bio::Annotation::DBLink(-database => $db_name,
