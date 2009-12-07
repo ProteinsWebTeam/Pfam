@@ -2,7 +2,7 @@
 # SpeciesTree.pm
 # jt6 20060410 WTSI
 #
-# $Id: SpeciesTree.pm,v 1.24 2009-10-07 10:33:03 jt6 Exp $
+# $Id: SpeciesTree.pm,v 1.25 2009-12-07 22:26:43 jt6 Exp $
 
 =head1 NAME
 
@@ -21,7 +21,7 @@ or a clan.
 
 Generates a B<page fragment>.
 
-$Id: SpeciesTree.pm,v 1.24 2009-10-07 10:33:03 jt6 Exp $
+$Id: SpeciesTree.pm,v 1.25 2009-12-07 22:26:43 jt6 Exp $
 
 =cut
 
@@ -125,6 +125,8 @@ sub auto : Private {
     $c->stash->{release_data} = '# Generated from Pfam version ' .
                                 $c->stash->{relData}->pfam_release . "\n";
   }
+  
+  return 1;
 }
 
 #-------------------------------------------------------------------------------
