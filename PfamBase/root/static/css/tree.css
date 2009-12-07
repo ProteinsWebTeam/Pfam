@@ -1,1 +1,26 @@
-/* Copyright (c) 2006 Yahoo! Inc. All rights reserved. */.ygtvcheck0 { background: url(/shared/images/treeview/check/check0.gif) 0 0 no-repeat; width:16px; height:22px; cursor:pointer }.ygtvcheck1 { background: url(/shared/images/treeview/check/check1.gif) 0 0 no-repeat; width:16px; height:22px; cursor:pointer }.ygtvcheck2 { background: url(/shared/images/treeview/check/check2.gif) 0 0 no-repeat; width:16px; height:22px; cursor:pointer }
+
+/* 
+ * style the species tree
+ * jt6 20091106 WTSI
+ *
+ * $Id: tree.css,v 1.3 2009-12-07 22:47:06 jt6 Exp $
+ */
+
+div.nodeLabel {
+  float: left;
+  margin: 0.3em 0;
+}
+
+div.nodeSummary {
+  float:right;
+}
+
+.ygtv-checkbox .ygtv-highlight0 .ygtvcontent,
+.ygtv-checkbox .ygtv-highlight1 .ygtvcontent,
+.ygtv-checkbox .ygtv-highlight2 .ygtvcontent {
+  padding-left: 18px ! important;
+}
+
+.ygtvfocus {
+  background-color: transparent ! important;
+}
