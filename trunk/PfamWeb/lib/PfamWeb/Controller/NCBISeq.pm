@@ -2,7 +2,7 @@
 # NCBISeq.pm
 # jt6 20071010 WTSI
 #
-# $Id: NCBISeq.pm,v 1.5 2009-10-28 11:55:58 jt6 Exp $
+# $Id: NCBISeq.pm,v 1.6 2009-12-07 22:27:57 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::NCBISeq;
 
 Generates a B<tabbed page>.
 
-$Id: NCBISeq.pm,v 1.5 2009-10-28 11:55:58 jt6 Exp $
+$Id: NCBISeq.pm,v 1.6 2009-12-07 22:27:57 jt6 Exp $
 
 =cut
 
@@ -90,9 +90,9 @@ sub begin : Private {
 #- private actions -------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-=head2 action : Attribute
+=head2 get_date : Private
 
-Description...
+Retrieves data for the given NCBI GI number.
 
 =cut
 
