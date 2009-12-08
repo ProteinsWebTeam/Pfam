@@ -1,58 +1,41 @@
 
 # Interpro.pm
-# jt6 20060810 WTSI
+# jt6 20060816 WTSI
 #
-# $Id: Interpro.pm,v 1.7 2009-11-24 16:39:48 pg6 Exp $
+# $Id: Interpro.pm,v 1.8 2009-12-08 13:53:21 jt6 Exp $
 
 =head1 NAME
 
-iPfamWeb::Controller::Searches::Plugin::Pfam - search plugin for the pfamA table
+PfamWeb::Controller::Searches::Plugin::Pfam - search plugin for the interpro table
 
 =cut
 
-package iPfamWeb::Controller::Search::Plugin::Interpro;
+package PfamWeb::Controller::Search::Plugin::Interpro;
 
 =head1 DESCRIPTION
 
-Performs a MySQL "fulltext" query of the pfamA table, searching
-against the following columns:
+Performs a MySQL "fulltext" query of the interpro gene_ontology table, on the
+following columns:
 
 =over
 
-=item o pfamA_acc
+=item o interpro_id
 
-=item o pfamA_id
-
-=item o description
-
-=item o comment
-
-=item o description
-
-=item o previous_id
+=item o abstract
 
 =back
 
-Also does a simple look up in the pfam table, checking to see if the
-raw search terms match a Pfam family accession or ID.
+There's an explicit join against the pfamA table, so that we can
+retrieve pfamA accession, ID and description.
 
-$Id: Interpro.pm,v 1.7 2009-11-24 16:39:48 pg6 Exp $
+$Id: Interpro.pm,v 1.8 2009-12-08 13:53:21 jt6 Exp $
 
 =cut
 
-# based loosely on this original query:
-# SELECT pfamA_acc   AS acc,
-#        pfamA_id    AS id,
-#        description AS descr
-# FROM   pfamA
-# WHERE  MATCH( pfamA_acc, pfamA_id, description, comment, previous_id )
-# AGAINST( ? IN BOOLEAN MODE )
-
 use strict;
 use warnings;
-use Data::Dump qw( dump );
 
-use base 'iPfamWeb::Controller::Search';
+use base 'PfamWeb::Controller::Search';
 
 #-------------------------------------------------------------------------------
 
@@ -60,46 +43,24 @@ use base 'iPfamWeb::Controller::Search';
 
 =head2 process : Private
 
-Executes the query. Performs a fulltext query on the pfamA table,
-searching the accession, ID, description, comment and "previous_id"
-columns.
+Executes the query.
 
 =cut
 
 sub process : Private {
   my( $this, $c ) = @_;
 
-  $c->log->debug( 'Search::Plugin::Interpro::process: text querying table pfamA using: |' .
-                  $c->stash->{terms} . '|' ) if $c->debug;
+  $c->log->debug( 'Search::Plugin::Interpro::process: text querying table interpro' )
+    if $c->debug;
 
-  my $rs = $c->model('iPfamDB::Pfama')
+  my $results = $c->model('PfamDB::Interpro')
                   ->search( {},
-                            {} )
-                  ->search_literal( 'MATCH( pfama_acc, pfama_id, interpro_id, interpro_abstract ) ' .
+                            { join     => [ qw( auto_pfama ) ],
+                              prefetch => [ qw( auto_pfama ) ] } )
+                  ->search_literal( 'MATCH( interpro_id, abstract ) ' .
                                     'AGAINST( ? IN BOOLEAN MODE )',
                                     $c->stash->{terms} );
-  
-  # rather than retruning an object, just build a hash of what we need,
-  my $results = [];
-  while(my $r = $rs->next ){
-    push @$results,{
-      'acc' =>  $r->get_column( 'pfama_acc' ),
-      'id'  =>  $r->get_column( 'pfama_id'),
-      'desc'=>  $r->get_column( 'description'),
-      'interpro'  =>  $r->get_column( 'interpro_id'),
-      'type'  =>  'family'
-    };
-  }
-  #$c->log->debug( "Search::Plugin::process:dump of the results is ".dump( $results ) );
-  # do a simple lookup for the ID or accession...
-#  $c->log->debug( "Search::Plugin::Pfam::process: doing a lookup for ID or acc using: |" .
-#                  $c->stash->{rawQueryTerms} . '|' ) if $c->debug;
 
-#  my $lookup = $c->model('PfamDB::Pfama')->search( [ { pfamA_acc => $c->stash->{rawQueryTerms} },
-#                                                   { pfamA_id  => $c->stash->{rawQueryTerms} } ] );
-
-#  return $results, $lookup;
-  $c->log->debug( "the size of the resutls is ".scalar( @$results ) );
   return $results;
 }
 
