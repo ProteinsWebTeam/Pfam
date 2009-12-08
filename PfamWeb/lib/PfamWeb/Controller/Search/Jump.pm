@@ -2,7 +2,7 @@
 # Jump.pm
 # jt6 20060807 WTSI
 #
-# $Id: Jump.pm,v 1.22 2009-11-30 15:43:40 jt6 Exp $
+# $Id: Jump.pm,v 1.23 2009-12-08 17:11:28 jt6 Exp $
 
 =head1 NAME
 
@@ -14,7 +14,7 @@ package PfamWeb::Controller::Search::Jump;
 
 =head1 DESCRIPTION
 
-$Id: Jump.pm,v 1.22 2009-11-30 15:43:40 jt6 Exp $
+$Id: Jump.pm,v 1.23 2009-12-08 17:11:28 jt6 Exp $
 
 =cut
 
@@ -48,17 +48,16 @@ to that particular type of entry, e.g. "family", "protein", etc.
 =cut
 
 sub guess : Private {
-  my( $this, $c, $entry, $entry_type ) = @_;
+  my ( $this, $c, $entry, $entry_type ) = @_;
   
   $c->log->debug( "Search::Jump::guess: guessing target for |$entry|" )
     if $c->debug;
     
-  my %action_types= ( family    => 'guess_family',
-                      protein   => 'guess_sequence',
-                      clan      => 'guess_clan',
-                      family    => 'guess_other_family',
-                      structure => 'guess_structure', );
-#                      proteome  => 'guess_proteome' );
+  my %action_types = ( family    => [ 'guess_family',  'guess_other_family' ],
+                       protein   => [ 'guess_sequence' ],
+                       clan      => [ 'guess_clan' ],
+                       structure => [ 'guess_structure' ], );
+#                       proteome  => [ 'guess_proteome' ] );
 
   my @available_actions = qw( guess_family
                               guess_clan
@@ -68,17 +67,20 @@ sub guess : Private {
 #                              guess_proteome
 
   my $guess_actions;
-  if( $entry_type and $action_types{$entry_type} ) {
+  if ( $entry_type and $action_types{$entry_type} ) {
     $c->log->debug( "Search::Jump::guess: guessing only for type: |$entry_type|" )
       if $c->debug;
-    push @$guess_actions, $action_types{$entry_type};
-  } else {
+    push @$guess_actions, @{ $action_types{$entry_type} };
+  }
+  else {
     $c->log->debug( 'Search::Jump::guess: guessing for any type' ) if $c->debug;
     $guess_actions = \@available_actions;
   }
 
   my $action;
-  foreach my $guess_action( @$guess_actions ) {
+  foreach my $guess_action ( @$guess_actions ) {
+    $c->log->debug( "Search::Jump::guess: checking guess action |$guess_action|" )
+      if $c->debug;
     last if $action = $c->forward( $guess_action, [ uc $entry ] );
   }
 
@@ -94,7 +96,7 @@ Look for a Pfam family (A or B) with the specified accession or ID.
 =cut
 
 sub guess_family : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
 
   $c->log->debug( 'Search::Jump::guess_family: looking for a family...' . $entry )
     if $c->debug;
@@ -106,8 +108,8 @@ sub guess_family : Private {
              ->first;
              
   if ( $rs and 
-       ( $rs->pfama_id  eq $entry or
-         $rs->pfama_acc eq $entry ) ) {
+       ( uc( $rs->pfama_id )  eq $entry or
+         uc( $rs->pfama_acc ) eq $entry ) ) {
     $c->log->debug( 'Search::Jump::guess_family: ' 
                     . $rs->pfama_id  . ' eq ' . $entry . ' or ' 
                     . $rs->pfama_acc . ' eq ' . $entry )
@@ -133,7 +135,7 @@ dead families with the same name.
 =cut
 
 sub guess_other_family : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
 
   $c->log->debug( 'Search::Jump::guess_family: looking for a family...' . $entry )
     if $c->debug;
@@ -146,7 +148,7 @@ sub guess_other_family : Private {
   # i.e. make sure that "6" doesn't match "DUF456" 
   if ( $prev ) {
     my $previous_id = $prev->previous_id;
-    if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/ ) { # same pattern used in Family.pm
+    if ( $previous_id =~ m/(^|.*?;\s*)$entry\;/i ) { # same pattern used in Family.pm
       $c->log->debug( 'Search::Jump::guess_family: previous_id '
                       . $prev  . ' matches pattern' )
         if $c->debug;
@@ -172,14 +174,14 @@ and metaseq accessions/IDs, as well as NCBI GIs.
 =cut
 
 sub guess_sequence : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
   
   $c->log->debug( 'Search::Jump::guess_sequence: looking for a sequence...' )
     if $c->debug;
     
   # how about a sequence entry ?
   my $found;
-  if( $entry =~ m/^([A-Z]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
+  if ( $entry =~ m/^([A-Z]\d[A-Z0-9]{3}\d)(\.\d+)?$/i ) {
   
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_acc => $1 } );
@@ -187,7 +189,7 @@ sub guess_sequence : Private {
   # TODO why wouldn't we just combine these two (^ and v) queries ?
 
   # see if it's a protein sequence ID (e.g. CANX_CHICK)
-  if( $entry =~ m/^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
+  if ( $entry =~ m/^([A-Z0-9]+\_[A-Z0-9]+)$/ ) {
   
     return 'protein' if $c->model('PfamDB::Pfamseq')
                           ->find( { pfamseq_id => $1 } );
@@ -201,7 +203,7 @@ sub guess_sequence : Private {
                         ->first;
   
   # an NCBI GI number ?
-  if( $entry =~ m/^(gi)?(\d+)$/ ) {
+  if ( $entry =~ m/^(gi)?(\d+)$/i ) {
   
     return 'ncbiseq' if $c->model('PfamDB::NcbiSeq')
                           ->find( { gi => $2 } );
@@ -232,7 +234,7 @@ Look for a Pfam clan with the specified accession or ID.
 =cut
 
 sub guess_clan : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
   
   $c->log->debug( 'Search::Jump::guess_clan: looking for a clan...' )
     if $c->debug;
@@ -244,7 +246,6 @@ sub guess_clan : Private {
              ->search( [ { clan_acc => $entry },
                          { clan_id  => $entry } ] );
   return 'clan' if scalar @rs;
-
 }  
 
 #-------------------------------------------------------------------------------
@@ -256,13 +257,13 @@ Look for a PDB structure with the specified ID.
 =cut
 
 sub guess_structure : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
   
   $c->log->debug( 'Search::Jump::guess_structure: looking for a structure...' )
     if $c->debug;
     
   # maybe a structure ?
-  if( $entry =~ m/^([0-9][A-Za-z0-9]{3})$/ ) {
+  if ( $entry =~ m/^([0-9][A-Za-z0-9]{3})$/i ) {
     return 'structure' if $c->model('PfamDB::Pdb')
                             ->find( { pdb_id => $1 } );
   }
@@ -277,7 +278,7 @@ Look for a proteome with the specified species name.
 =cut
 
 sub guess_proteome : Private {
-  my( $this, $c, $entry ) = @_;
+  my ( $this, $c, $entry ) = @_;
   
   $c->log->debug( 'Search::Jump::guess_proteome: looking for a proteome...' )
     if $c->debug;
