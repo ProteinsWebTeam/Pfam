@@ -138,7 +138,7 @@ if($logMessage =~ /^(PFNEWATC|PFNEW):(\S+)/){
     %{ $config->pfamlive; }
   );
   
-  Bio::Pfam::ViewProcess::initiateViewProcess($clan, $revlook->author, $revlook->{config} );
+  Bio::Pfam::ViewProcess::initiateClanViewProcess($clan, $revlook->author, $revlook->{config} );
   
 }elsif($logMessage =~ /CLKILL/){
   my @deleted = $revlook->deleted;
