@@ -161,11 +161,11 @@ else {
     }
 
     #Does the clan in question exist?
-    $client->checkClanExists($upFamObj->DESC->CL);
+    $client->checkClanExists($oldFamObj->DESC->CL);
 
     #Seems like it does, lets load it!
     my $clanIO  = Bio::Pfam::ClanIO->new;
-    my $clanObj = $clanIO->loadClanFromSVN( $oldFamObj->DESC->CL );
+    my $clanObj = $clanIO->loadClanFromSVN( $oldFamObj->DESC->CL, $client );
 
     #Now check the membership.
     my %membership = map { $_ => 1 } @{ $clanObj->DESC->MEMB };
@@ -198,10 +198,16 @@ else {
   }
   
   if($oldFamObj->DESC->CL){
+    if($upFamObj->DESC->CL){
     unless( $upFamObj->DESC->CL eq $oldFamObj->DESC->CL){
       die "The clan acession in the CL has been changed between the SVN copy and your local copy!:".
     "From:".$oldFamObj->DESC->CL." to ".$upFamObj->DESC->CL.".  You can not do this!\n".
     "(Use pfci with the remove_from_clan option followed by add_to_clan)\n";
+    }
+    }else{
+      unless($removeFromClan){
+        die "The SVN copy of this family has a CL line, but this version does not. Either use the -remove_from_clan option or put back.\n";
+      }
     }
   }
   
