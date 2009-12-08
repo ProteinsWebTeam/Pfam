@@ -45,6 +45,9 @@ if( !&check_timestamps( $family ) ) {
 if( !&desc_is_OK( $family ) ) {
     $error = 1;
 }
+if( !&seed_align_is_OK( $family ) ) {
+    $error = 1;
+}
 
 open( LOG, ">$family/format" ) or die;   
 if( $error ) {
@@ -53,6 +56,25 @@ if( $error ) {
     exit(1);
 }
 print STDERR "$family: No errors found\n";
+
+
+
+
+sub seed_align_is_OK{
+
+    my $family = shift @_;
+    my $error = 0;
+    #read in the seed and align files using sreformat to check for formatting errors-only catputure STDERR
+    my $output = `sreformat fasta $family/ALIGN 2>&1 1>/dev/null && sreformat fasta $family/SEED 2>&1 1>/dev/null`;
+    
+    if( $error ) {
+        return 0;               # failure
+    }
+    else {
+        return 1;               # success
+    }
+
+}
 
 
 sub check_timestamps {
@@ -248,8 +270,6 @@ sub desc_is_OK {
                 $fields{$&}++;
 		if( not /^BM   cmbuild\s+(\-\w\s)?CM SEED\;\s+cmcalibrate\s(\-\-mpi )?\-s\s\d\sCM$/ 
 		    and not  ( /^BM\s+cmsearch  (\-\w\s\d+)?\s(\-\w \d+)?\s+\-\-toponly\s+(\-g\s+)?(\-\-fil\-no\-hmm\s+)?CM SEQDB$/
-			    # or  /^BM\s+cmsearch  (\-\w\s\d+)?\s(\-\w \d+)?\s+\-\-toponly\s+\-g\s+CM SEQDB$/
-#			     or  /^BM\s+cmsearch  (\-\w\s\d+)?\s(\-\w \d+)?\s+\-\-toponly\s+\--fil-no-hmm\s+CM SEQDB$/
 			     or    /^BM   cmsearch\s+(\-\-local\s+)?\-\-toponly  CM SEQDB$/ 
 			       )) {
                     warn "$family: Your BM line doesn't look right [$_]\n";
@@ -547,4 +567,6 @@ sub desc_is_OK {
         return 1;               # success
     }
 }
+
+
 
