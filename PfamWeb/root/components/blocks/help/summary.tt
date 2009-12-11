@@ -5,7 +5,7 @@
 # 
 # build the summary block for the help pages
 #
-# $Id: summary.tt,v 1.20 2009-11-19 14:03:25 jt6 Exp $
+# $Id: summary.tt,v 1.21 2009-12-11 16:37:42 jt6 Exp $
 
 #-------------------------------------------------------------------------------
 # specify required stylesheets and javascript files 
@@ -91,11 +91,11 @@ CALL release_date.append( d.2, ":", d.1, ":", d.0 );
       profile-HMM.
     </p>
 
-    // [%# the links to the individual questions used to be real links, using 
-         # anchors in the page to move around. However, that seems to interfere
-         # with the new tab manager, so we have to work around it. This snippet
-         # of JS adds a listener to each internal link and uses the "rel"
-         # attribute to get the name of the element to scroll to %]
+    [%# the links to the individual questions used to be real links, using 
+      # anchors in the page to move around. However, that seems to interfere
+      # with the new tab manager, so we have to work around it. This snippet
+      # of JS adds a listener to each internal link and uses the "rel"
+      # attribute to get the name of the element to scroll to -%]
     <script type="text/javascript">
       // <![CDATA[
 
