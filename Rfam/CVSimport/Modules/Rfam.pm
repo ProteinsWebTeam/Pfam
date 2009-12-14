@@ -1,7 +1,7 @@
 #
 # Some global variables and methods for doing Rfam things
 #
-# sgj
+# sgj, jd7, pg5 -- I feel a gludge in the force
 
 package Rfam;
 
@@ -20,6 +20,8 @@ use vars qw( @ISA
 	     $lock_file
 	     $scripts_dir
 	     $acclog_file
+             $clan_acclog_file
+             $clan_dir
 	     $rfamseq
 	     $rfamseq_root_dir
 	     $rfamseq_current_dir
@@ -54,6 +56,7 @@ use vars qw( @ISA
              $hmmer2_path
              $hmmer3_path
              $cmSeqLib
+             $hmmSeqLib
 );
 
 @ISA    = qw( Exporter );
@@ -61,7 +64,6 @@ use vars qw( @ISA
 use Rfam::DB::DB_RCS;
 use Rfam::DB::DB_RDB;
 use Rfam::UpdateRDB;
-use RfamUtils;
 
 #mfetch -d version
 $embl = "embl_100";
@@ -72,8 +74,10 @@ $accession_dir  = "$root_dir/ACCESSION";
 $releases_dir   = "$root_dir/RELEASES";
 $rcs_master_dir = "$root_dir/RCS_MASTER";
 $rcs_attic_dir  = "$root_dir/RCS_ATTIC";
+$clan_dir       = "$root_dir/CLANS";
 $scripts_dir    = "/software/rfam/scripts/";
 $acclog_file    = "$accession_dir/acclog";
+$clan_acclog_file    = "$accession_dir/clanacclog";
 $rcs_index_file = "$accession_dir/accmap.dat";
 $lock_file      = "$accession_dir/lock";
 
@@ -97,7 +101,6 @@ $rfamseq_farm_run_dir     = "/data/blastdb/Rfam/rfamseq";
 $rfamseq_farm2_run_dir     = "/nfs/pfam_nfs/rfam/rfamseq/CURRENT";
 
 #SCRATCH ON THE FARM:
-#$scratch_farm = "/lustre/scratch1/sanger/rfam";
 $scratch_farm = "/lustre/scratch103/sanger";
 
 #INFERNAL PATH
@@ -118,17 +121,20 @@ $prc_path = "/software/rfam/share/prc-1.5.4_nuc";
 #CMSEARCH
 $cmSeqLib = "/nfs/pfam_nfs/rfam/CMSEQLIB";
 
+#HMMSEARCH3
+$hmmSeqLib = "/nfs/pfam_nfs/rfam/HMM3SEQLIB";
 
 ######################################################################
 
 @align_file_set    = ( "SEED", "ALIGN" );
 @view_file_set     = ( "SEED.ann", "ALIGN.ann" ); # must be in same order as @align_file_set
 @ann_file_set      = ( "DESC" );
-@output_file_set   = ( "OUTPUT");
+@output_file_set   = ( "OUTPUT" );
 @model_file_set    = ( "CM" );
 @scores_file_set   = ( "scores" );
 @rcs_file_set      = ( @align_file_set, @ann_file_set, @model_file_set, @output_file_set, @scores_file_set );
 @optional_file_set = ("TABFILE", "scores.evalue", "out.list", "species");
+#@optional_file_set = (@view_file_set); #
 
 $view_maker = "/software/rfam/scripts/rfamrcs/makerfamview.pl";
 
@@ -148,14 +154,13 @@ our $rdbHostDev = "pfamdb2a";
 our $rdbUserDev = "pfam";
 our $rdbPassDev = "mafp1";
 our $rdbPortDev= "3301";
-our $rdbNameDev= "rfam_9_1";
+our $rdbNameDev= "rfam_10_0";
 
-our $release_rdb_name = "rfam_9_1";
 our $live_rdb_name = "rfamlive";
+our $release_rdb_name = "rfam_9_1";
 #temp databases used sequpdate switch over
 our $backup_rdb_name = "rfamlive_backup";
 our $test_rdb_name = "rfamlive_seq10";
-
 
 ######################################################################
 #Dictionaries of forbidden terms used by rfmake.pl & ALIGN2SEED.pl
@@ -174,9 +179,11 @@ our $test_rdb_name = "rfamlive_seq10";
     CD => 1,
     CHROMOSOME => 1,
     DATA => 1,
+    DELTA  => 1,
     DNA => 1,
     DOMAIN => 1,
     DS => 1,
+    EL => 1,
     ELEMENT => 1,
     EUK => 1,
     EUKARYOTE => 1,
@@ -188,6 +195,8 @@ our $test_rdb_name = "rfamlive_seq10";
     FROM => 1,
     GENE => 1,
     GENOME => 1,
+    HDV => 1,
+    Hepatitis => 1,
     INTERGENIC => 1,
     INTRON => 1,
     NUCLEAR => 1,
@@ -197,6 +206,7 @@ our $test_rdb_name = "rfamlive_seq10";
     PRIMER => 1,
     PROMOTER => 1,
     PROTEIN => 1,
+    PYRO => 1,
     REG => 1,
     RNA => 1,
     SEQ  => 1,
@@ -208,7 +218,7 @@ our $test_rdb_name = "rfamlive_seq10";
     UTR => 1,
     VIRUS => 1
 );
- 
+
 @forbidden_terms = qw(
 contaminat
 pseudogene
@@ -220,6 +230,7 @@ transpos
 
 
 ######################################################################
+
 
 sub default_db{
     return Rfam::DB::DB_RCS->new( '-current'   => $current_dir,
