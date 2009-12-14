@@ -2,7 +2,7 @@
 # Metaseq.pm
 # jt6 20071008 WTSI
 #
-# $Id: Metaseq.pm,v 1.5 2009-12-07 22:23:00 jt6 Exp $
+# $Id: Metaseq.pm,v 1.6 2009-12-14 16:33:23 jt6 Exp $
 
 =head1 NAME
 
@@ -17,7 +17,7 @@ package PfamWeb::Controller::Metaseq;
 
 Generates a page set for a metagenomics sequence.
 
-$Id: Metaseq.pm,v 1.5 2009-12-07 22:23:00 jt6 Exp $
+$Id: Metaseq.pm,v 1.6 2009-12-14 16:33:23 jt6 Exp $
 
 =cut
 
@@ -227,8 +227,8 @@ sub generate_pfam_graphic : Private {
     motifs   => [],
     markups  => [],
     metadata => Bio::Pfam::Sequence::MetaData->new( {
-      accession   => $c->stash->{metaseq}->gi,
-      identifier  => $c->stash->{metaseq}->secondary_acc,
+      accession   => $c->stash->{metaseq}->metaseq_acc,
+      identifier  => $c->stash->{metaseq}->metaseq_id,
       description => $c->stash->{metaseq}->description,
     } )
   } );
