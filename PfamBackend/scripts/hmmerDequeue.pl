@@ -44,7 +44,7 @@ JOB: while ( 1 ) {
 
   if ( defined $pq->cpus ) {
     $DEBUG && print STDERR 'dequeuer: using ' . $pq->cpus . " cpus\n";
-    $input->{cpu} = $pq->cpus;
+    $input->{-cpu} = $pq->cpus;
   }
 
   if(defined( $job->{options} ) and $job->{options} =~ /\S+/ ){
