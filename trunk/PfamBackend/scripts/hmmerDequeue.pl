@@ -52,6 +52,7 @@ JOB: while ( 1 ) {
     $DEBUG && print STDERR 'dequeuer: options from db:'.dump( $opts )."\n";
     if(defined( $opts->{evalue}) ){
       $input->{-e_dom} = $opts->{evalue};
+      $input->{-e_seq} = $opts->{evalue};
     }
   }
   if(defined( $job->{job_type} )){
@@ -59,8 +60,6 @@ JOB: while ( 1 ) {
       push(@{$input->{-hmmlib}},  'Pfam-A.hmm');
     }elsif( $job->{job_type} eq 'B'){
       push(@{$input->{-hmmlib}},  'Pfam-B.hmm');
-      $input->{-e_dom} = '0.001';
-      $input->{-e_seq} = '0.001';
     }
   }
 
