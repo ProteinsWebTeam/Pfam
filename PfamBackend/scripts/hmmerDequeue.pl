@@ -42,6 +42,11 @@ JOB: while ( 1 ) {
     -fasta    => $filename,
   };
 
+  if ( defined $pq->cpus ) {
+    $DEBUG && print STDERR 'dequeuer: using ' . $pq->cpus . " cpus\n";
+    $input->{cpu} = $pq->cpus;
+  }
+
   if(defined( $job->{options} ) and $job->{options} =~ /\S+/ ){
     my $opts = from_json($job->{options});
     $DEBUG && print STDERR 'dequeuer: options from db:'.dump( $opts )."\n";
