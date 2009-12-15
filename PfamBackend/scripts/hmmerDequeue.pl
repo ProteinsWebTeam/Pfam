@@ -60,6 +60,7 @@ JOB: while ( 1 ) {
     }elsif( $job->{job_type} eq 'B'){
       push(@{$input->{-hmmlib}},  'Pfam-B.hmm');
       $input->{-e_dom} = '0.001';
+      $input->{-e_seq} = '0.001';
     }
   }
 
